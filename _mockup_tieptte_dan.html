@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Tiếp Tế có Đan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: { colors: { ink:'#070b14', ink2:'#0f1521', ink3:'#141b2a', jade:'#14b8a6', cyan:'#22d3ee', gold:'#f5b942' } } } };
+</script>
+<style>
+  body{ background:#070b14; font-size:16px; }
+  .gold-text{ font-weight:900; background:linear-gradient(180deg,#fff6d6 0%,#f4d27a 38%,#e0a83e 66%,#bd821f 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .fserif{ font-family:'Lora',serif; font-weight:700; }
+</style>
+</head>
+<body class="text-slate-200 antialiased p-6">
+<div class="max-w-[920px] mx-auto">
+  <div class="text-center mb-1">
+    <div class="text-3xl gold-text" style="font-family:'Lora',serif">Tiếp Tế khi có Đan</div>
+    <div class="text-sm text-slate-400 mt-1">Mẫu đan = <b class="text-blue-300">Hồi Khí Đan</b> (phẩm Lương — xanh dương). Đan hồi <b class="text-blue-300">Nội Lực</b> → ghép thanh Nội Lực (xanh); món ăn hồi Máu.</div>
+    <div class="text-xs text-slate-500 mt-1">(Số "+80 Nội Lực" là minh hoạ — Hồi Khí Đan chưa gán số hồi trong data, sẽ đặt sau.)</div>
+  </div>
+
+  <div class="flex flex-wrap gap-6 justify-center mt-6 items-start">
+
+    <!-- ===== KIỂU 1: Đan ở hàng dưới (gọn) ===== -->
+    <div class="flex flex-col items-center">
+      <div class="mb-2"><span class="px-3 py-1 rounded-full bg-amber-400/15 text-amber-300 text-xs font-bold tracking-wide">KIỂU 1 — Đan hàng dưới (gọn)</span></div>
+      <div class="w-[272px] rounded-xl border p-3" style="background:#0f1521;border-color:#1e293b">
+        <!-- Hàng trên: Món ăn + điều khiển Tự Ăn -->
+        <div class="flex gap-2.5">
+          <button type="button" class="group relative w-[100px] shrink-0 rounded-lg border p-2 text-center transition cursor-pointer flex flex-col items-center justify-center" style="background:#581c8714;border-color:#a855f780">
+            <div class="w-[46px] h-[46px] rounded-md overflow-hidden flex items-center justify-center border" style="background:#581c8730;border-color:#a855f750">
+              <img src="images/items/thienTriTan.png" alt="" class="w-full h-full object-contain">
+            </div>
+            <div class="text-[11px] mt-1.5 leading-tight font-medium" style="color:#d8b4fe">Thiên Trì Ngư Tần</div>
+            <div class="text-[10px] mt-0.5 leading-none" style="color:#94a3b8">Hồi <span style="color:#fcd34d">+1100</span> · ×20</div>
+          </button>
+          <div class="flex-1 min-w-0 flex flex-col">
+            <div class="flex items-center justify-between">
+              <span class="text-[13px] font-semibold" style="color:#e2e8f0">Tự Ăn</span>
+              <button type="button" class="relative w-12 h-[26px] rounded-full shrink-0" style="background:#14b8a6;box-shadow:0 0 10px -1px rgba(20,184,166,.65)"><span class="absolute top-[3px] w-5 h-5 rounded-full bg-white" style="right:3px"></span></button>
+            </div>
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px]" style="color:#94a3b8">Máu dưới</span>
+                <span class="text-[11px] font-bold tabular-nums px-1.5 py-0.5 rounded-md border" style="color:#fcd34d;background:#f5b9421a;border-color:#f5b94233">29%</span>
+              </div>
+              <div class="relative h-[7px] rounded-full" style="background:#1f2937">
+                <div class="absolute inset-y-0 left-0 rounded-full" style="width:47.5%;background:linear-gradient(to right,#14b8a6,#22d3ee)"></div>
+                <span class="absolute top-1/2 -translate-y-1/2 w-[16px] h-[16px] rounded-full" style="left:47.5%;margin-left:-8px;background:radial-gradient(circle at 35% 30%,#7af0e0,#14b8a6 70%);border:2px solid #0b0f17;box-shadow:0 0 0 1px #14b8a673"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Hàng dưới: Đan (Hồi Khí Đan) — đã lấp, có tự dùng riêng -->
+        <button type="button" class="group w-full mt-2.5 rounded-lg border px-2 py-1.5 flex items-center gap-2 text-left cursor-pointer transition" style="background:#1e3a8a1f;border-color:#3b82f680" onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='#3b82f680'">
+          <span class="w-9 h-9 shrink-0 rounded-md overflow-hidden flex items-center justify-center border" style="background:#1e3a8a40;border-color:#3b82f650">
+            <img src="images/items/hoiKhiDan.png" class="w-full h-full object-contain p-0.5" alt="">
+          </span>
+          <span class="min-w-0 flex-1 leading-tight">
+            <span class="block text-[11.5px] font-semibold" style="color:#93c5fd">Hồi Khí Đan</span>
+            <span class="block text-[10px]" style="color:#94a3b8">Hồi <b style="color:#60a5fa">+80 Nội Lực</b> · ×12</span>
+          </span>
+          <span class="inline-flex items-center gap-1 shrink-0">
+            <span class="text-[9px]" style="color:#64748b">tự dùng</span>
+            <span class="relative w-8 h-[18px] rounded-full" style="background:#14b8a6;box-shadow:0 0 6px -1px #14b8a699"><span class="absolute top-[2px] w-3.5 h-3.5 rounded-full bg-white" style="right:2px"></span></span>
+          </span>
+        </button>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 w-[272px] leading-snug">Ít đổi nhất so bản Đề xuất: đan thay chỗ dải "sắp có", có toggle Tự Dùng riêng. Đan auto khi Nội Lực thấp (ngưỡng mặc định, không thêm slider → vẫn gọn).</p>
+    </div>
+
+    <!-- ===== KIỂU 2: Đối xứng 2 ô + 2 ngưỡng ===== -->
+    <div class="flex flex-col items-center">
+      <div class="mb-2"><span class="px-3 py-1 rounded-full bg-slate-700/40 text-slate-300 text-xs font-bold tracking-wide">KIỂU 2 — Đối xứng (Máu | Nội Lực)</span></div>
+      <div class="w-[272px] rounded-xl border p-3" style="background:#0f1521;border-color:#1e293b">
+        <!-- 2 ô tile ngang -->
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" class="group rounded-lg border p-2 text-center transition cursor-pointer flex flex-col items-center" style="background:#581c8714;border-color:#a855f780">
+            <div class="w-[42px] h-[42px] rounded-md overflow-hidden flex items-center justify-center border" style="background:#581c8730;border-color:#a855f750"><img src="images/items/thienTriTan.png" class="w-full h-full object-contain" alt=""></div>
+            <div class="text-[10.5px] mt-1 leading-tight font-medium truncate w-full" style="color:#d8b4fe">Thiên Trì Ngư Tần</div>
+            <div class="text-[9.5px] leading-none" style="color:#94a3b8">+1100 · ×20</div>
+          </button>
+          <button type="button" class="group rounded-lg border p-2 text-center transition cursor-pointer flex flex-col items-center" style="background:#1e3a8a1f;border-color:#3b82f680">
+            <div class="w-[42px] h-[42px] rounded-md overflow-hidden flex items-center justify-center border" style="background:#1e3a8a40;border-color:#3b82f650"><img src="images/items/hoiKhiDan.png" class="w-full h-full object-contain p-0.5" alt=""></div>
+            <div class="text-[10.5px] mt-1 leading-tight font-medium truncate w-full" style="color:#93c5fd">Hồi Khí Đan</div>
+            <div class="text-[9.5px] leading-none" style="color:#94a3b8">+80 · ×12</div>
+          </button>
+        </div>
+        <!-- 2 hàng điều khiển đối xứng -->
+        <div class="mt-2.5 pt-2.5 space-y-2" style="border-top:1px solid #1e293b">
+          <!-- Tự Ăn (Máu) -->
+          <div class="flex items-center gap-2">
+            <button type="button" class="relative w-9 h-5 rounded-full shrink-0" style="background:#14b8a6;box-shadow:0 0 7px -1px #14b8a699"><span class="absolute top-0.5 w-4 h-4 rounded-full bg-white" style="right:2px"></span></button>
+            <span class="inline-flex items-center gap-1.5 shrink-0"><svg width="12" height="12" viewBox="0 0 24 24" fill="#f43f5e22" stroke="#f43f5e" stroke-width="2" class="shrink-0"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/></svg><span class="text-[11px]" style="color:#cbd5e1">Tự Ăn</span></span>
+            <div class="relative flex-1 h-[6px] rounded-full mx-1" style="background:#1f2937"><div class="absolute inset-y-0 left-0 rounded-full" style="width:47.5%;background:linear-gradient(to right,#fb7185,#f43f5e)"></div><span class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full" style="left:47.5%;margin-left:-6px;background:#fda4af;border:2px solid #0b0f17"></span></div>
+            <span class="text-[10px] font-bold tabular-nums shrink-0" style="color:#fcd34d">29%</span>
+          </div>
+          <!-- Tự Dùng (Nội Lực) -->
+          <div class="flex items-center gap-2">
+            <button type="button" class="relative w-9 h-5 rounded-full shrink-0" style="background:#14b8a6;box-shadow:0 0 7px -1px #14b8a699"><span class="absolute top-0.5 w-4 h-4 rounded-full bg-white" style="right:2px"></span></button>
+            <span class="inline-flex items-center gap-1.5 shrink-0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span class="text-[11px]" style="color:#cbd5e1">Tự Dùng</span></span>
+            <div class="relative flex-1 h-[6px] rounded-full mx-1" style="background:#1f2937"><div class="absolute inset-y-0 left-0 rounded-full" style="width:35%;background:linear-gradient(to right,#3b82f6,#60a5fa)"></div><span class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full" style="left:35%;margin-left:-6px;background:#93c5fd;border:2px solid #0b0f17"></span></div>
+            <span class="text-[10px] font-bold tabular-nums shrink-0" style="color:#fcd34d">25%</span>
+          </div>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 w-[272px] leading-snug">Đối xứng rõ: 2 ô (Máu tím | Nội Lực xanh) + 2 hàng tự dùng riêng, slider màu theo từng thanh (đỏ=máu, xanh=nội lực). Cao hơn Kiểu 1 ~1 hàng nhưng đủ điều khiển cả hai.</p>
+    </div>
+
+  </div>
+
+  <div class="rounded-lg border border-slate-800 p-4 mt-6 text-sm max-w-[720px] mx-auto" style="background:#0f1521">
+    <div class="fserif text-jade text-base mb-1">Ghi chú</div>
+    <ul class="text-[13px] text-slate-300 leading-relaxed space-y-1">
+      <li>• <b class="text-blue-300">Hồi Khí Đan = hồi Nội Lực</b> → đan nuôi thanh Nội Lực (xanh), món ăn nuôi thanh Máu (đỏ). Hệ đối xứng, dễ hiểu.</li>
+      <li>• <b>Kiểu 1</b>: gọn, đan chỉ thêm 1 hàng dưới (auto ngưỡng mặc định). <b>Kiểu 2</b>: đối xứng đủ, chỉnh được cả 2 ngưỡng nhưng cao hơn chút.</li>
+      <li>• Đan hồi <b>Máu</b> (Hồi Huyết Đan…) vẫn làm được sau — khi đó ô Đan có thể hồi Máu hoặc Nội Lực tuỳ món lắp.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

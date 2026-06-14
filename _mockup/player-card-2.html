@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup — Thẻ Người Chơi (bộ 2)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: {
+      ink: '#070b14', ink2: '#0f1521', ink3: '#141b2a',
+      jade: '#14b8a6', cyan: '#22d3ee', gold: '#f5b942',
+    } } } };
+  </script>
+  <style>
+    body{ background:#070b14; }
+    .panel{ background:#0f1521; border:1px solid #1e293b; }
+    .lbl{ font-size:.7rem; text-transform:uppercase; letter-spacing:.12em; color:#64748b; }
+    .nm{ font-weight:700; }
+    .stat{ font-size:11px; }
+  </style>
+</head>
+<body class="text-slate-200 antialiased min-h-screen p-8">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-xl font-bold text-jade mb-1">Thẻ Người Chơi — Bộ 2 (12 style mới)</h1>
+    <p class="text-sm text-slate-400 mb-6">Mỗi cái 1 hướng khác hẳn (bố cục / chất liệu). Số liệu mẫu. Thích cái nào → nói số, mình áp vào game (avatar 道 sẽ thành ảnh môn phái).</p>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
+
+      <!-- 1. Frosted glass -->
+      <div>
+        <div class="lbl mb-2">1 — Kính mờ (glass)</div>
+        <div class="w-full max-w-[300px] rounded-2xl p-4 bg-white/5 backdrop-blur-md border border-white/10 shadow-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0">道</div>
+            <div class="flex-1 min-w-0">
+              <div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div>
+              <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+              <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mt-4">
+            <button class="relative h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+            <button class="h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center transition">👥</button>
+            <button class="h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center transition">💬</button>
+            <button class="h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center transition">⚙️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Left accent bar -->
+      <div>
+        <div class="lbl mb-2">2 — Vạch màu bên trái</div>
+        <div class="w-full max-w-[300px] rounded-xl overflow-hidden border border-slate-800 bg-ink2 shadow-xl flex">
+          <div class="w-1.5 bg-gradient-to-b from-jade to-cyan shrink-0"></div>
+          <div class="flex-1 p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0">道</div>
+              <div class="flex-1 min-w-0">
+                <div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div>
+                <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+                <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mt-4">
+              <button class="relative h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">👥</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">💬</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">⚙️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Top gradient strip -->
+      <div>
+        <div class="lbl mb-2">3 — Dải header gradient</div>
+        <div class="w-full max-w-[300px] rounded-xl overflow-hidden border border-slate-800 bg-ink2 shadow-xl">
+          <div class="h-14 px-3 flex items-center gap-2.5 bg-gradient-to-r from-jade/35 via-cyan/20 to-transparent">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-lg shrink-0">道</div>
+            <div class="min-w-0"><div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div><div class="stat flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div></div>
+          </div>
+          <div class="p-3">
+            <div class="stat text-slate-400">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+            <div class="grid grid-cols-4 gap-2 mt-3">
+              <button class="relative h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">👥</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">💬</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">⚙️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Circle avatar + level badge (centered RPG) -->
+      <div>
+        <div class="lbl mb-2">4 — Avatar tròn + badge cấp (giữa)</div>
+        <div class="w-full max-w-[300px] rounded-2xl p-4 bg-ink2 border border-slate-800 shadow-xl text-center">
+          <div class="relative w-16 h-16 mx-auto">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-jade to-cyan ring-2 ring-cyan/40 flex items-center justify-center text-ink font-bold text-2xl">道</div>
+            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500 text-ink text-[10px] font-bold shadow">Lv 49</span>
+          </div>
+          <div class="nm mt-2.5 flex items-center justify-center gap-1.5">huyhuyy <span>🔥</span></div>
+          <div class="stat flex items-center justify-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+          <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b></div>
+          <div class="flex justify-center gap-2.5 mt-3">
+            <button class="relative w-9 h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+            <button class="w-9 h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">👥</button>
+            <button class="w-9 h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">💬</button>
+            <button class="w-9 h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">⚙️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Angled clip (tech/wuxia) -->
+      <div>
+        <div class="lbl mb-2">5 — Cắt góc chéo (tech)</div>
+        <div class="w-full max-w-[300px] p-[2px] bg-gradient-to-br from-cyan to-jade shadow-[0_0_16px_rgba(34,211,238,0.25)]" style="clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);">
+          <div class="p-4 bg-ink2" style="clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0" style="clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);">道</div>
+              <div class="flex-1 min-w-0">
+                <div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div>
+                <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+                <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mt-4">
+              <button class="relative h-9 bg-ink3 border border-cyan/30 hover:border-cyan/70 flex items-center justify-center text-slate-300 transition" style="clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);">✉️<span class="absolute top-0 right-0 min-w-[15px] h-4 px-1 rounded-bl bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+              <button class="h-9 bg-ink3 border border-cyan/30 hover:border-cyan/70 flex items-center justify-center text-slate-300 transition" style="clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);">👥</button>
+              <button class="h-9 bg-ink3 border border-cyan/30 hover:border-cyan/70 flex items-center justify-center text-slate-300 transition" style="clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);">💬</button>
+              <button class="h-9 bg-ink3 border border-cyan/30 hover:border-cyan/70 flex items-center justify-center text-slate-300 transition" style="clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);">⚙️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Gradient glow border -->
+      <div>
+        <div class="lbl mb-2">6 — Viền gradient phát sáng</div>
+        <div class="w-full max-w-[300px] rounded-2xl p-[2px] bg-gradient-to-br from-jade via-cyan to-violet-500 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+          <div class="rounded-2xl p-4 bg-ink2">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0">道</div>
+              <div class="flex-1 min-w-0">
+                <div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div>
+                <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+                <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mt-4">
+              <button class="relative h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">👥</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">💬</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">⚙️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Stat chips -->
+      <div>
+        <div class="lbl mb-2">7 — Chỉ số dạng chip</div>
+        <div class="w-full max-w-[300px] rounded-xl p-4 bg-ink2 border border-slate-800 shadow-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0">道</div>
+            <div class="flex-1 min-w-0">
+              <div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div>
+              <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+            </div>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <span class="flex-1 text-center stat py-1.5 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan">⚔️ <b>12,480</b></span>
+            <span class="flex-1 text-center stat py-1.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300">★ <b>Lv 49</b></span>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mt-3">
+            <button class="relative h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+            <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">👥</button>
+            <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">💬</button>
+            <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">⚙️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Jade plaque engraved -->
+      <div>
+        <div class="lbl mb-2">8 — Ngọc bài khắc chìm (trơn)</div>
+        <div class="w-full max-w-[300px] rounded-xl p-4 border border-jade/30 bg-gradient-to-b from-[#0e1f1c] to-[#0a1411]" style="box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -10px 24px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.5);">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0 ring-1 ring-jade/40">道</div>
+            <div class="flex-1 min-w-0">
+              <div class="nm text-jade flex items-center gap-1.5">huyhuyy <span>🔥</span></div>
+              <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+              <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mt-4">
+            <button class="relative h-9 rounded-lg bg-[#0c1a17] border border-jade/30 hover:border-jade/70 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+            <button class="h-9 rounded-lg bg-[#0c1a17] border border-jade/30 hover:border-jade/70 flex items-center justify-center text-slate-300 transition">👥</button>
+            <button class="h-9 rounded-lg bg-[#0c1a17] border border-jade/30 hover:border-jade/70 flex items-center justify-center text-slate-300 transition">💬</button>
+            <button class="h-9 rounded-lg bg-[#0c1a17] border border-jade/30 hover:border-jade/70 flex items-center justify-center text-slate-300 transition">⚙️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Two-tone diagonal -->
+      <div>
+        <div class="lbl mb-2">9 — Nền chéo 2 tông</div>
+        <div class="relative w-full max-w-[300px] rounded-xl overflow-hidden border border-slate-800 bg-ink2 shadow-xl">
+          <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(118deg, rgba(34,211,238,0.18) 0%, rgba(20,184,166,0.12) 38%, transparent 42%);"></div>
+          <div class="relative p-4">
+            <div class="flex items-center gap-3">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0">道</div>
+              <div class="flex-1 min-w-0">
+                <div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div>
+                <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+                <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-4 gap-2 mt-4">
+              <button class="relative h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">👥</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">💬</button>
+              <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-cyan/60 flex items-center justify-center text-slate-300 transition">⚙️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Minimal line / ghost buttons -->
+      <div>
+        <div class="lbl mb-2">10 — Tối giản, nút ẩn</div>
+        <div class="w-full max-w-[300px] rounded-xl p-4 bg-ink2/60 border border-slate-800">
+          <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+            <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-xl shrink-0">道</div>
+            <div class="flex-1 min-w-0"><div class="nm flex items-center gap-1.5">huyhuyy <span>🔥</span></div><div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div></div>
+          </div>
+          <div class="flex justify-between stat text-slate-400 py-3">
+            <span>Chiến lực <b class="text-cyan">12,480</b></span><span>Tổng Lv <b class="text-amber-300">49</b></span>
+          </div>
+          <div class="flex justify-around text-slate-400 text-lg pt-1 border-t border-slate-800">
+            <button class="relative hover:text-cyan transition py-1">✉️<span class="absolute -top-0 -right-1 min-w-[14px] h-3.5 px-1 rounded-full bg-rose-500 text-[8px] text-white flex items-center justify-center font-bold">3</span></button>
+            <button class="hover:text-cyan transition py-1">👥</button>
+            <button class="hover:text-cyan transition py-1">💬</button>
+            <button class="hover:text-cyan transition py-1">⚙️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. Neon outline (cyber-wuxia) -->
+      <div>
+        <div class="lbl mb-2">11 — Viền neon</div>
+        <div class="w-full max-w-[300px] rounded-xl p-4 bg-[#080d12] border-2 border-cyan/60 shadow-[0_0_16px_rgba(34,211,238,0.35),inset_0_0_18px_rgba(34,211,238,0.07)]">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-xl bg-[#0b1620] border border-cyan/50 flex items-center justify-center text-cyan font-bold text-2xl shrink-0 shadow-[0_0_10px_rgba(34,211,238,0.4)]">道</div>
+            <div class="flex-1 min-w-0">
+              <div class="nm text-cyan flex items-center gap-1.5" style="text-shadow:0 0 8px rgba(34,211,238,0.5)">huyhuyy <span>🔥</span></div>
+              <div class="stat flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+              <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mt-4">
+            <button class="relative h-9 rounded-lg bg-[#0b1620] border border-cyan/40 hover:border-cyan hover:shadow-[0_0_10px_rgba(34,211,238,0.5)] flex items-center justify-center text-cyan/90 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+            <button class="h-9 rounded-lg bg-[#0b1620] border border-cyan/40 hover:border-cyan hover:shadow-[0_0_10px_rgba(34,211,238,0.5)] flex items-center justify-center text-cyan/90 transition">👥</button>
+            <button class="h-9 rounded-lg bg-[#0b1620] border border-cyan/40 hover:border-cyan hover:shadow-[0_0_10px_rgba(34,211,238,0.5)] flex items-center justify-center text-cyan/90 transition">💬</button>
+            <button class="h-9 rounded-lg bg-[#0b1620] border border-cyan/40 hover:border-cyan hover:shadow-[0_0_10px_rgba(34,211,238,0.5)] flex items-center justify-center text-cyan/90 transition">⚙️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 12. Ribbon name -->
+      <div>
+        <div class="lbl mb-2">12 — Tên trên ruy-băng</div>
+        <div class="w-full max-w-[300px] rounded-xl p-4 bg-ink2 border border-slate-800 shadow-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-jade to-cyan flex items-center justify-center text-ink font-bold text-2xl shrink-0">道</div>
+            <div class="flex-1 min-w-0">
+              <span class="inline-flex items-center gap-1.5 pl-2 pr-3 py-0.5 rounded-r-md bg-gradient-to-r from-amber-500 to-amber-600 text-ink font-bold text-sm shadow">huyhuyy <span>🔥</span></span>
+              <div class="stat flex items-center gap-1.5 mt-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-400">Online</span><span class="text-slate-500">• VN</span></div>
+              <div class="stat text-slate-400 mt-1">Chiến lực <b class="text-cyan">12,480</b> · Tổng Lv <b class="text-amber-300">49</b></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mt-4">
+            <button class="relative h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-amber-400/60 flex items-center justify-center text-slate-300 transition">✉️<span class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] text-white flex items-center justify-center font-bold">3</span></button>
+            <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-amber-400/60 flex items-center justify-center text-slate-300 transition">👥</button>
+            <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-amber-400/60 flex items-center justify-center text-slate-300 transition">💬</button>
+            <button class="h-9 rounded-lg bg-ink3 border border-slate-700 hover:border-amber-400/60 flex items-center justify-center text-slate-300 transition">⚙️</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="text-sm text-slate-500 mt-8">Thích cái nào nói số (1–12), hoặc phối "layout X + màu Y + nút Z". Mình áp vào game đúng chỗ player card.</p>
+  </div>
+</body>
+</html>

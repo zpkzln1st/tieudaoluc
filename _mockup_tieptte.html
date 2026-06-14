@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Thẻ Tiếp Tế (gọn)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: { colors: { ink:'#070b14', ink2:'#0f1521', ink3:'#141b2a', jade:'#14b8a6', cyan:'#22d3ee', gold:'#f5b942' } } } };
+</script>
+<style>
+  body{ background:#070b14; font-size:16px; }
+  .gold-text{ font-weight:900; background:linear-gradient(180deg,#fff6d6 0%,#f4d27a 38%,#e0a83e 66%,#bd821f 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .fserif{ font-family:'Lora',serif; font-weight:700; }
+</style>
+</head>
+<body class="text-slate-200 antialiased p-6">
+<div class="max-w-[1240px] mx-auto">
+  <div class="text-center mb-1">
+    <div class="text-3xl gold-text" style="font-family:'Lora',serif">Thẻ Tiếp Tế — 4 kiểu gọn</div>
+    <div class="text-sm text-slate-400 mt-1">Đã bỏ chữ tiêu đề "Tiếp Tế" + nút "Ăn Ngay". Card rộng cố định <b class="text-slate-200">272px</b> (đúng cột phải khung Chiến Đấu). Bấm thử hover ô món.</div>
+  </div>
+
+  <div class="flex flex-wrap gap-5 justify-center mt-6 items-start">
+
+    <!-- ===== KIỂU A ===== -->
+    <div class="flex flex-col items-center">
+      <div class="mb-2 flex items-center gap-2"><span class="px-3 py-1 rounded-full bg-slate-700/40 text-slate-300 text-xs font-bold tracking-wide">KIỂU A</span><span class="text-xs text-slate-500">8.2</span></div>
+      <div class="w-[272px] rounded-xl border p-2.5 flex flex-col gap-2.5" style="background:#0f1521;border-color:#1e293b;">
+        <div class="flex gap-2">
+          <button type="button" class="group flex items-center gap-2 flex-1 min-w-0 rounded-lg p-1.5 text-left cursor-pointer transition-colors" style="background:#141b2a;border:1px solid #1e293b;" onmouseover="this.style.borderColor='#a855f780'" onmouseout="this.style.borderColor='#1e293b'">
+            <span class="relative shrink-0 w-10 h-10 rounded-md overflow-hidden grid place-items-center" style="background:#581c8730;border:1px solid #a855f780;box-shadow:0 0 8px -2px #a855f766;">
+              <img src="images/items/thienTriTan.png" alt="" class="w-full h-full object-contain p-0.5">
+            </span>
+            <span class="min-w-0 leading-tight">
+              <span class="block text-[12px] font-semibold truncate" style="color:#d8b4fe;">Thiên Trì Ngư Tần</span>
+              <span class="block text-[10.5px] mt-0.5 truncate" style="color:#64748b;"><span style="color:#14b8a6;">Hồi +1100</span> &middot; ×20</span>
+            </span>
+          </button>
+          <div class="shrink-0 w-12 grid place-items-center rounded-lg" style="border:1px dashed #334155;background:#141b2a;opacity:.55;">
+            <span class="leading-none" style="color:#475569;font-size:18px;">丹</span>
+            <span class="block text-[8.5px] mt-0.5 leading-none" style="color:#475569;">sắp có</span>
+          </div>
+        </div>
+        <div class="rounded-lg p-2 flex flex-col gap-2" style="background:#141b2a;border:1px solid #1e293b;">
+          <div class="flex items-center gap-2">
+            <button type="button" class="relative shrink-0 w-9 h-5 rounded-full" style="background:#14b8a6;box-shadow:0 0 7px -1px #14b8a699, inset 0 0 0 1px #0d9488;">
+              <span class="absolute top-0.5 w-4 h-4 rounded-full bg-white" style="left:18px;box-shadow:0 1px 2px #0006;"></span>
+            </button>
+            <span class="inline-flex items-center gap-1.5 min-w-0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" class="shrink-0" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5C12 3.5 6 10 6 14a6 6 0 0 0 12 0c0-4-6-10.5-6-10.5Z"/></svg>
+              <span class="text-[12px] font-medium" style="color:#cbd5e1;">Tự Ăn</span>
+            </span>
+            <span class="ml-auto text-[12px] font-bold tabular-nums" style="color:#fcd34d;">29%</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[9.5px] tabular-nums shrink-0" style="color:#475569;">10</span>
+            <div class="relative flex-1 h-3 grid items-center">
+              <div class="h-[3px] w-full rounded-full" style="background:#1e293b;"></div>
+              <div class="absolute h-[3px] rounded-full" style="left:0;width:47.5%;background:#f5b942;box-shadow:0 0 6px -1px #f5b94299;"></div>
+              <div class="absolute w-3 h-3 rounded-full -translate-x-1/2" style="left:47.5%;background:#fcd34d;border:1.5px solid #0f1521;box-shadow:0 0 6px -1px #fcd34daa;"></div>
+            </div>
+            <span class="text-[9.5px] tabular-nums shrink-0" style="color:#475569;">50</span>
+          </div>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 w-[272px] leading-snug">Gọn nhất theo số dòng, slider chỉnh mượt. Ô đan hơi vụn ở size thật.</p>
+    </div>
+
+    <!-- ===== KIỂU B ===== -->
+    <div class="flex flex-col items-center">
+      <div class="mb-2 flex items-center gap-2"><span class="px-3 py-1 rounded-full bg-slate-700/40 text-slate-300 text-xs font-bold tracking-wide">KIỂU B</span><span class="text-xs text-slate-500">7.0</span></div>
+      <div class="w-[272px] rounded-xl p-3" style="background:#0f1521;border:1px solid #1e293b">
+        <div class="flex gap-2.5">
+          <button class="group flex-1 flex items-center gap-2.5 rounded-lg p-2 text-left cursor-pointer transition" style="background:#581c8730;border:1px solid #a855f780" onmouseover="this.style.borderColor='#c084fc'" onmouseout="this.style.borderColor='#a855f780'" title="Bấm để đổi món">
+            <span class="w-12 h-12 shrink-0 rounded-md flex items-center justify-center" style="background:#2e1065;border:1px solid #a855f780">
+              <img src="images/items/thienTriTan.png" class="w-full h-full object-contain p-0.5" alt="">
+            </span>
+            <span class="min-w-0">
+              <span class="block text-[12.5px] font-semibold leading-tight" style="color:#d8b4fe">Thiên Trì Ngư Tần</span>
+              <span class="block text-[11px] mt-0.5 leading-tight" style="color:#94a3b8">Hồi <b style="color:#cbd5e1">+1100</b> · ×20</span>
+            </span>
+          </button>
+          <div class="w-[60px] shrink-0 rounded-lg flex flex-col items-center justify-center gap-0.5 opacity-50 select-none" style="border:1px dashed #334155;background:#141b2a">
+            <span class="text-xl leading-none" style="color:#64748b;font-family:serif">丹</span>
+            <span class="text-[9px] tracking-wide" style="color:#64748b">sắp có</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between mt-2.5 pt-2.5" style="border-top:1px solid #1e293b">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <span class="relative inline-block w-9 h-5 rounded-full" style="background:#14b8a6;box-shadow:0 0 8px 0 #14b8a680, inset 0 0 0 1px #2dd4bf">
+              <span class="absolute top-[3px] left-[18px] w-3.5 h-3.5 rounded-full bg-white"></span>
+            </span>
+            <span class="text-[12.5px] font-medium" style="color:#cbd5e1">Tự Ăn</span>
+          </label>
+        </div>
+        <div class="flex items-center gap-1.5 mt-2">
+          <span class="text-[10.5px] mr-0.5 shrink-0" style="color:#64748b">Ăn dưới</span>
+          <div class="flex gap-1 flex-1">
+            <button class="flex-1 py-1 rounded text-[11px] font-medium cursor-pointer" style="color:#94a3b8;background:#141b2a;border:1px solid #1e293b">10</button>
+            <button class="flex-1 py-1 rounded text-[11px] font-medium cursor-pointer" style="color:#94a3b8;background:#141b2a;border:1px solid #1e293b">20</button>
+            <button class="flex-1 py-1 rounded text-[11px] font-bold cursor-pointer" style="color:#0f1521;background:#14b8a6;border:1px solid #2dd4bf;box-shadow:0 0 7px 0 #14b8a666">30</button>
+            <button class="flex-1 py-1 rounded text-[11px] font-medium cursor-pointer" style="color:#94a3b8;background:#141b2a;border:1px solid #1e293b">40</button>
+            <button class="flex-1 py-1 rounded text-[11px] font-medium cursor-pointer" style="color:#94a3b8;background:#141b2a;border:1px solid #1e293b">50</button>
+          </div>
+          <span class="text-[10.5px] shrink-0" style="color:#64748b">%</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 w-[272px] leading-snug">Chip bấm-chọn dễ, nhưng mất chỉnh mượt (29% không đạt) + chip jade lệch ngôn ngữ (jade=accent, amber mới là ngưỡng).</p>
+    </div>
+
+    <!-- ===== KIỂU C ===== -->
+    <div class="flex flex-col items-center">
+      <div class="mb-2 flex items-center gap-2"><span class="px-3 py-1 rounded-full bg-jade/15 text-jade text-xs font-bold tracking-wide">KIỂU C</span><span class="text-xs text-jade font-semibold">8.6 · cao nhất</span></div>
+      <div class="w-[272px] rounded-xl border p-3" style="background:#0f1521;border-color:#1e293b">
+        <div class="flex gap-2.5">
+          <button type="button" class="group relative w-[104px] shrink-0 rounded-lg border p-2 text-center transition cursor-pointer flex flex-col items-center justify-center" style="background:#581c8714;border-color:#a855f780">
+            <div class="w-12 h-12 rounded-md overflow-hidden flex items-center justify-center border" style="background:#581c8730;border-color:#a855f750">
+              <img src="images/items/thienTriTan.png" alt="" class="w-full h-full object-contain">
+            </div>
+            <div class="text-[11px] mt-1.5 leading-tight font-medium" style="color:#d8b4fe">Thiên Trì Ngư Tần</div>
+            <div class="text-[10px] mt-0.5 leading-none" style="color:#94a3b8">Hồi <span style="color:#fcd34d">+1100</span> · ×20</div>
+            <span class="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition" style="color:#64748b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+          </button>
+          <div class="flex-1 min-w-0 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[13px] font-medium" style="color:#e2e8f0">Tự Ăn</span>
+              <button type="button" role="switch" aria-checked="true" class="relative w-11 h-[24px] rounded-full shrink-0" style="background:#14b8a6;box-shadow:0 0 0 1px #14b8a655, 0 0 9px -1px #14b8a6aa">
+                <span class="absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white" style="right:3px"></span>
+              </button>
+            </div>
+            <div class="mt-2">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px]" style="color:#94a3b8">Ăn khi máu dưới</span>
+                <span class="text-[11px] font-bold tabular-nums px-1.5 py-0.5 rounded-md border" style="color:#fcd34d;background:#f5b9421a;border-color:#f5b94233">29%</span>
+              </div>
+              <div class="relative h-[7px] rounded-full" style="background:#1f2937">
+                <div class="absolute inset-y-0 left-0 rounded-full" style="width:47.5%;background:linear-gradient(to right,#14b8a6,#22d3ee)"></div>
+                <span class="absolute top-1/2 -translate-y-1/2 w-[15px] h-[15px] rounded-full border-2" style="left:47.5%;margin-left:-7.5px;background:radial-gradient(circle at 35% 30%,#7af0e0,#14b8a6 70%);border-color:#0b0f17;box-shadow:0 0 0 1px #14b8a673"></span>
+              </div>
+              <div class="flex justify-between text-[9px] mt-1 px-px" style="color:#64748b"><span>10%</span><span>50%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2.5 rounded-lg border border-dashed px-2 py-1.5 flex items-center justify-center gap-2 opacity-60" style="border-color:#1e293b;background:#141b2a4d">
+          <span class="text-base leading-none" style="color:#64748b;font-family:'Lora',serif">丹</span>
+          <span class="text-[11px]" style="color:#64748b">Đan — sắp có</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 w-[272px] leading-snug">2 cột ngang → thấp nhất, slider khớp đúng CSS game có sẵn, tinh tế nhất. Vùng kéo hơi hẹp.</p>
+    </div>
+
+    <!-- ===== ĐỀ XUẤT (C tinh chỉnh) ===== -->
+    <div class="flex flex-col items-center">
+      <div class="mb-2 flex items-center gap-2"><span class="px-3 py-1 rounded-full bg-amber-400/15 text-amber-300 text-xs font-bold tracking-wide">★ ĐỀ XUẤT</span><span class="text-xs text-amber-300/80">C + tinh chỉnh</span></div>
+      <div class="w-[272px] rounded-xl border p-3" style="background:#0f1521;border-color:#1e293b">
+        <div class="flex gap-2.5">
+          <button type="button" class="group relative w-[100px] shrink-0 rounded-lg border p-2 text-center transition cursor-pointer flex flex-col items-center justify-center" style="background:#581c8714;border-color:#a855f780" onmouseover="this.style.borderColor='#c084fc'" onmouseout="this.style.borderColor='#a855f780'">
+            <div class="w-[46px] h-[46px] rounded-md overflow-hidden flex items-center justify-center border" style="background:#581c8730;border-color:#a855f750">
+              <img src="images/items/thienTriTan.png" alt="" class="w-full h-full object-contain">
+            </div>
+            <div class="text-[11px] mt-1.5 leading-tight font-medium" style="color:#d8b4fe">Thiên Trì Ngư Tần</div>
+            <div class="text-[10px] mt-0.5 leading-none" style="color:#94a3b8">Hồi <span style="color:#fcd34d">+1100</span> · ×20</div>
+            <span class="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition" style="color:#94a3b8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+          </button>
+          <div class="flex-1 min-w-0 flex flex-col">
+            <div class="flex items-center justify-between">
+              <span class="text-[13px] font-semibold" style="color:#e2e8f0">Tự Ăn</span>
+              <button type="button" role="switch" aria-checked="true" class="relative w-12 h-[26px] rounded-full shrink-0" style="background:#14b8a6;box-shadow:0 0 10px -1px rgba(20,184,166,.65)">
+                <span class="absolute top-[3px] w-5 h-5 rounded-full bg-white" style="right:3px;box-shadow:0 1px 2px #0006"></span>
+              </button>
+            </div>
+            <div class="mt-2.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px]" style="color:#94a3b8">Ăn khi máu dưới</span>
+                <span class="text-[11px] font-bold tabular-nums px-1.5 py-0.5 rounded-md border" style="color:#fcd34d;background:#f5b9421a;border-color:#f5b94233">29%</span>
+              </div>
+              <div class="relative h-[7px] rounded-full" style="background:#1f2937">
+                <div class="absolute inset-y-0 left-0 rounded-full" style="width:47.5%;background:linear-gradient(to right,#14b8a6,#22d3ee)"></div>
+                <span class="absolute top-1/2 -translate-y-1/2 w-[16px] h-[16px] rounded-full" style="left:47.5%;margin-left:-8px;background:radial-gradient(circle at 35% 30%,#7af0e0,#14b8a6 70%);border:2px solid #0b0f17;box-shadow:0 0 0 1px #14b8a673,0 0 7px #14b8a680"></span>
+              </div>
+              <div class="flex justify-between text-[9px] mt-1 px-px" style="color:#64748b"><span>10%</span><span>50%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2.5 rounded-lg border border-dashed px-2 py-1.5 flex items-center justify-center gap-2 opacity-60" style="border-color:#1e293b;background:#141b2a4d">
+          <span class="text-base leading-none fserif" style="color:#64748b">丹</span>
+          <span class="text-[11px]" style="color:#64748b">Đan — sắp có</span>
+        </div>
+      </div>
+      <p class="text-[11px] text-amber-300/70 mt-2 w-[272px] leading-snug">Khung C + slider thật khớp <code>.eat-range</code> game, pill % amber (đúng "amber=ngưỡng"), có dòng "Ăn khi máu dưới", toggle glow chuẩn game. <b>Đây là bản tôi sẽ code.</b></p>
+    </div>
+
+  </div>
+
+  <div class="rounded-lg border border-slate-800 p-4 mt-6 text-sm max-w-[820px] mx-auto" style="background:#0f1521">
+    <div class="fserif text-jade text-base mb-1">Chấm điểm (hội đồng)</div>
+    <div class="text-[13px] text-slate-300 leading-relaxed">C <b class="text-jade">8.6</b> (cao nhất — thấp + khớp CSS game) · A <b>8.2</b> (gọn, slider mượt) · B <b>7.0</b> (chip lệch màu jade + mất chỉnh mượt). → Đề xuất: <b class="text-amber-300">khung C + tinh chỉnh</b>. Ông chọn kiểu nào (A / B / C / Đề xuất) tôi code thẳng vào game + verify.</div>
+  </div>
+</div>
+</body>
+</html>
