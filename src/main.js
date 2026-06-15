@@ -29,7 +29,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { hatchEgg, petStatAt, activePet } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -114,6 +114,7 @@ if (state.travel) state.travel = null; // bỏ field cũ (Khinh Công giờ là 
 if (!state.dungeon) state.dungeon = { lastResult: null, history: [] }; // Bí Cảnh: kết quả lần chạy gần nhất + lịch sử
 if (!Array.isArray(state.notifications)) state.notifications = []; // Thông Báo (feed chung: chuông + Phi Cáp Đài)
 if (!Array.isArray(state.pets)) state.pets = []; // Linh Thú (pet) — nở từ trứng
+if (state.hatchery === undefined) state.hatchery = null; // Lò Ấp Noãn (P3, đơn): {pet,base,eggId,eggQuality,startedAt,readyAt,durMs,notified} | null
 // Tháo trang bị VƯỢT CẤP (combatLevel tụt do dev/sửa save) -> trả về túi, không cho hưởng chỉ số lậu
 (() => {
   const _cl = levelFromXp(state.skills?.chienDau?.xp || 0);
@@ -131,6 +132,12 @@ if (state.activity) {
   const r = advance(state, now());
   if (r && r.cycles > 0) offlineReport = { itemId: r.itemId, cycles: r.cycles, xp: r.xp };
   if (r && r.cycles > 0 && r.itemId) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Thu thập hoàn tất', '+' + r.cycles + ' ' + (_it ? _it.name : r.itemId) + ' · +' + r.xp + ' EXP (trong lúc vắng mặt)', now()); }
+}
+// Lò Ấp Noãn: trứng nở xong trong lúc vắng mặt -> báo 1 lần (chờ khai noãn).
+if (state.hatchery && now() >= state.hatchery.readyAt && !state.hatchery.notified) {
+  state.hatchery.notified = true;
+  const _sp = PET_SPECIES[state.hatchery.base];
+  pushNotif(state, 'khac', 'Noãn đã nở', (_sp ? _sp.name : 'Linh thú') + ' phá vỏ — vào Linh Thú khai noãn.', now());
 }
 
 // ---- Helper định dạng ----
@@ -492,13 +499,44 @@ const gameStore = {
       .filter((id) => this.ITEMS[id] && this.ITEMS[id].type === 'trung' && (this.state.inventory[id] || 0) > 0)
       .map((id) => ({ id, qty: this.state.inventory[id], item: this.ITEMS[id] }));
   },
-  hatchEggById(eggId) {
-    const pet = hatchEgg(this.state, eggId);
-    if (!pet) { this.showToast('Không ấp được trứng này.'); return; }
+  // --- P3: Lò Ấp Noãn (đơn). Roll pet ở engine lúc Đặt Ấp; ở đây điều phối + tính giờ/giá. ---
+  get hatchery() { return this.state.hatchery; },
+  get incubating() { void this._tick; const h = this.state.hatchery; return !!h && now() < h.readyAt; },
+  get hatchReady() { void this._tick; return incubReady(this.state, now()); },
+  get hatchRemainMs() { void this._tick; return incubRemainMs(this.state, now()); },
+  get hatchTimeLeft() { return fmtClock(this.hatchRemainMs / 1000); },
+  get hatchPct() { const h = this.state.hatchery; if (!h) return 0; void this._tick; return Math.max(0, Math.min(100, (now() - h.startedAt) / h.durMs * 100)); },
+  get hatchSkipCost() { void this._tick; return incubSkipCost(this.state, now()); },
+  get canAffordHatchSkip() { return (this.state.currencies.honThach || 0) >= this.hatchSkipCost; },
+  hatchSpeciesName() { const h = this.state.hatchery; return h ? ((PET_SPECIES[h.base] || {}).name || h.base) : ''; },
+  hatchEmoji() { const h = this.state.hatchery; return h ? ((PET_SPECIES[h.base] || {}).emoji || '🥚') : '🥚'; },
+  hatchEggTierName() { const h = this.state.hatchery; return h ? ((this.QUALITY[h.eggQuality] || {}).name || '') : ''; },
+  hatchEggTierColor() { const h = this.state.hatchery; return h ? ((this.QUALITY[h.eggQuality] || {}).text || 'text-slate-300') : 'text-slate-300'; },
+  hatchDurLabel(eggQ) { return Math.round(hatchDurMs(eggQ) / 3600000) + ' giờ'; },
+  startIncubate(eggId) {
+    if (this.state.hatchery) { this.showToast('Lò ấp đang bận — khai noãn xong đã.'); return; }
+    const rec = startIncubation(this.state, eggId, now());
+    if (!rec) { this.showToast('Không ấp được trứng này.'); return; }
+    Storage.save(this.state);
+    this.showToast('Đặt ' + ((PET_SPECIES[rec.base] || {}).name || rec.base) + ' Noãn vào lò ấp.');
+  },
+  collectHatch() {
+    const pet = finishHatch(this.state, now());
+    if (!pet) return;
     Storage.save(this.state);
     const nm = this.petName(pet), qn = (this.QUALITY[pet.quality] || {}).name;
-    this.showToast('🥚 Trứng nở! Linh Thú 〈' + nm + ' · ' + qn + '〉.');
-    this.pushNotif('khac', 'Ấp nở Linh Thú', nm + ' (' + qn + ') gia nhập đội.');
+    this.showToast('🥚 Khai noãn! Linh Thú 〈' + nm + ' · ' + qn + '〉.');
+    this.pushNotif('khac', 'Khai noãn Linh Thú', nm + ' (' + qn + ') phá vỏ gia nhập đội.');
+  },
+  skipIncubate() {
+    const h = this.state.hatchery; if (!h) return;
+    const t = now();
+    if (t >= h.readyAt) { this.collectHatch(); return; }       // đã đủ giờ -> khai luôn, miễn phí
+    const cost = incubSkipCost(this.state, t);
+    if ((this.state.currencies.honThach || 0) < cost) { this.showToast('Không đủ Hồn Thạch (cần ' + this.fmt(cost) + ').'); return; }
+    this.state.currencies.honThach -= cost;
+    h.readyAt = t;
+    this.collectHatch();                                        // tự Storage.save + thông báo
   },
   equipPet(petId) { const p = (this.state.pets || []).find((x) => x.id === petId); (this.state.pets || []).forEach((x) => { x.equipped = (x.id === petId); }); Storage.save(this.state); if (p) this.showToast('Đã dắt theo ' + this.petName(p) + '.'); },
   unequipActivePet() { (this.state.pets || []).forEach((p) => { p.equipped = false; }); Storage.save(this.state); },

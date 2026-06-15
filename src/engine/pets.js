@@ -76,6 +76,39 @@ export function hatchEgg(state, eggId) {
   return pet;
 }
 
+// ============================================================
+// P3 — ẤP NỞ THEO THỜI GIAN (lò đơn). Roll pet NGAY lúc đặt ấp (giấu phẩm tới khi khai noãn);
+// hẹn giờ theo readyAt vs now() -> sống qua reload/offline, không cần tick riêng.
+// ============================================================
+export const HATCH_MS = { phamPham: 2 * 3600e3, tinhPham: 8 * 3600e3, thanPham: 24 * 3600e3 }; // Phàm 2h / Linh 8h / Thần 24h
+export function hatchDurMs(eggQ) { return HATCH_MS[eggQ] || HATCH_MS.phamPham; }
+export function incubRemainMs(state, now) { const h = state.hatchery; return h ? Math.max(0, h.readyAt - now) : 0; }
+export function incubReady(state, now) { const h = state.hatchery; return !!h && now >= h.readyAt; }
+export function incubSkipCost(state, now) { return Math.ceil(incubRemainMs(state, now) / 3600000) * 100; } // 100 Hồn Thạch / giờ còn lại
+
+// Đặt 1 trứng vào lò: tiêu trứng, roll pet NGAY (ẩn phẩm), hẹn giờ. Trả record lò | null (lò bận / trứng sai).
+export function startIncubation(state, eggId, now) {
+  if (state.hatchery) return null;                                  // v1: lò đơn — đang bận thì thôi
+  const egg = ITEMS[eggId];
+  if (!egg || egg.type !== 'trung' || !egg.petBase) return null;
+  if ((state.inventory[eggId] || 0) < 1) return null;
+  removeItem(state, eggId, 1);
+  const pet = rollPet(egg.petBase, rollEggQuality(egg.quality), state);
+  const dur = hatchDurMs(egg.quality);
+  state.hatchery = { pet, base: egg.petBase, eggId, eggQuality: egg.quality, startedAt: now, readyAt: now + dur, durMs: dur, notified: false };
+  return state.hatchery;
+}
+
+// Khai noãn: đủ giờ -> push pet vào state.pets, dọn lò, trả pet. Chưa đủ -> null.
+export function finishHatch(state, now) {
+  const h = state.hatchery;
+  if (!h || now < h.readyAt) return null;
+  if (!Array.isArray(state.pets)) state.pets = [];
+  state.pets.push(h.pet);
+  state.hatchery = null;
+  return h.pet;
+}
+
 // Stat hiện tại của pet @ level (+ thức tỉnh ×1.25 + opt flat).
 export function petStatAt(pet) {
   if (!pet) return null;

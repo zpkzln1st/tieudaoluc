@@ -1924,9 +1924,53 @@
                   </template>
                 </div>
               </div>
-              <!-- Ấp Trứng -->
+              <!-- Lò Ấp Noãn -->
               <div class="panel rounded-xl p-4">
-                <div class="lbl mb-2.5 text-slate-400">Ấp Trứng — nở Linh Thú (trứng rơi từ Yêu Vương)</div>
+                <div class="lbl mb-2.5 text-slate-400">Lò Ấp Noãn — ủ trứng nở Linh Thú (trứng rơi từ Yêu Vương)</div>
+
+                <!-- Lò: đang ấp / đã nở -->
+                <template x-if="$store.game.hatchery">
+                  <div class="mb-3 rounded-xl border p-3 flex items-center gap-3" :class="$store.game.hatchReady ? 'border-jade/50 bg-jade/5' : 'border-amber-700/40 bg-amber-900/10'">
+                    <div class="w-14 h-14 rounded-lg bg-ink2 flex items-center justify-center text-3xl shrink-0 relative overflow-hidden">
+                      <span :class="$store.game.hatchReady ? '' : 'opacity-70'" x-text="$store.game.hatchEmoji()"></span>
+                      <div class="absolute inset-0 pointer-events-none" :style="$store.game.hatchReady ? 'box-shadow:inset 0 0 22px rgba(52,211,153,.45)' : 'box-shadow:inset 0 0 18px rgba(245,158,11,.3)'"></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-baseline gap-1.5 flex-wrap">
+                        <span class="text-[13.5px] font-bold fserif text-slate-200" x-text="$store.game.hatchSpeciesName()"></span>
+                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-black/45 border border-white/10 font-bold" :class="$store.game.hatchEggTierColor()" x-text="$store.game.hatchEggTierName()"></span>
+                      </div>
+                      <template x-if="!$store.game.hatchReady">
+                        <div class="mt-1.5">
+                          <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full bg-amber-500/85 transition-all duration-700" :style="'width:'+$store.game.hatchPct+'%'"></div></div>
+                          <div class="mt-1 flex items-center justify-between text-[10.5px]">
+                            <span class="text-slate-500 italic">Phẩm chất còn ẩn trong noãn…</span>
+                            <span class="text-amber-300 font-mono" x-text="$store.game.hatchTimeLeft"></span>
+                          </div>
+                        </div>
+                      </template>
+                      <template x-if="$store.game.hatchReady">
+                        <div class="mt-1 text-[11.5px] text-jade">Noãn đã rạn vỏ — khai noãn để lộ chân thân.</div>
+                      </template>
+                    </div>
+                    <div class="shrink-0 self-stretch flex items-center">
+                      <template x-if="!$store.game.hatchReady">
+                        <button @click="$store.game.skipIncubate()" :disabled="!$store.game.canAffordHatchSkip" class="px-3 py-1.5 rounded font-semibold bg-rose-800/70 hover:bg-rose-700 text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight">
+                          <span class="text-[11.5px]">Thúc Nở</span>
+                          <span class="text-[9.5px]" :class="$store.game.canAffordHatchSkip ? 'text-rose-200/85' : 'text-rose-300'" x-text="$store.game.fmt($store.game.hatchSkipCost)+' Hồn Thạch'"></span>
+                        </button>
+                      </template>
+                      <template x-if="$store.game.hatchReady">
+                        <button @click="$store.game.collectHatch()" class="px-4 py-2 text-[12.5px] rounded font-bold bg-jade/90 hover:bg-jade text-ink">Khai Noãn</button>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="!$store.game.hatchery">
+                  <div class="mb-3 rounded-xl border border-dashed border-slate-700/70 text-center text-slate-600 text-[12px] py-4">Lò ấp đang trống — chọn một quả trứng bên dưới để ủ.</div>
+                </template>
+
+                <!-- Danh sách trứng trong túi -->
                 <template x-if="$store.game.eggsInInventory.length===0">
                   <div class="text-center text-slate-600 text-[12px] py-6">Chưa có trứng nào. Hạ Yêu Vương để nhặt Trứng Linh Thú.</div>
                 </template>
@@ -1936,9 +1980,9 @@
                       <div class="w-11 h-11 rounded bg-ink flex items-center justify-center text-xl shrink-0 overflow-hidden" x-html="$store.game.ico(e.id, e.item.icon)"></div>
                       <div class="flex-1 min-w-0">
                         <div class="text-[13px] font-medium truncate" :class="($store.game.QUALITY[e.item.quality]||{}).text" x-text="e.item.name + ' ×' + e.qty"></div>
-                        <div class="text-[10px] text-slate-500">Nở ra Linh Thú cùng dòng — phẩm chất ngẫu nhiên theo nhãn trứng</div>
+                        <div class="text-[10px] text-slate-500" x-text="'Ủ ' + $store.game.hatchDurLabel(e.item.quality) + ' · nở Linh Thú cùng dòng, phẩm chất ngẫu nhiên'"></div>
                       </div>
-                      <button @click="$store.game.hatchEggById(e.id)" class="px-3.5 py-1.5 text-[12px] rounded bg-amber-600/85 hover:bg-amber-500 text-ink font-semibold shrink-0">🥚 Ấp Nở</button>
+                      <button @click="$store.game.startIncubate(e.id)" :disabled="!!$store.game.hatchery" class="px-3.5 py-1.5 text-[12px] rounded bg-amber-600/85 hover:bg-amber-500 text-ink font-semibold shrink-0 disabled:opacity-40 disabled:cursor-not-allowed" x-text="$store.game.hatchery ? 'Lò bận' : 'Đặt Ấp'"></button>
                     </div>
                   </template>
                 </div>

@@ -140,7 +140,7 @@ stamMax = 100
 **E.4 Phóng Sanh (mục 6):** thả → Bạc (`Lv×50 + qVal×5`) + Hồn Thạch (`floor(qRank/2)`, chỉ Tuyệt+) + `linhPhach` (phẩm≥Tinh, liệu MỚI — phải định nghĩa trong items.js).
 
 **E.5 Tiến hoá / Thức tỉnh (mục 2):** đạt trần Lv phẩm + tốn liệu thức tỉnh + Hồn Thạch (500→3000 theo phẩm). Đổi: stat ×1.25 · skill → bản `_awk` mạnh +~30% · mở 1 ô bị động phụ + 1 opt · **đổi ART hình thái 2** · 15% biến dị +1 phẩm. KHÔNG reset level.
-> ⚠️ **CHỜ CHỐT:** liệu thức tỉnh. `tinhThe` (Tinh Thể Yêu Vương) ĐÃ là liệu bắt buộc cường hóa gear +10↑ → dùng cho pet sẽ tranh tài nguyên end-game. **Đề xuất:** chỉ pet Thần+ mới cần `tinhThe`; pet phẩm thấp dùng liệu pet riêng (`linhPhach` gom từ Phóng Sanh).
+> ✅ **ĐÃ CHỐT (2026-06-15):** liệu thức tỉnh **TÁCH 2 nguồn** — pet phẩm **thấp** (< Thần) dùng `linhPhach` (liệu pet riêng, gom từ Phóng Sanh, định nghĩa ở items.js khi tới P6/P7); chỉ pet **Thần Phẩm trở lên** mới cần `tinhThe` (Tinh Thể Yêu Vương). Mục đích: pet thường KHÔNG tranh `tinhThe` với cường hóa gear +10↑; chỉ end-game pet xịn mới đua tài nguyên đó.
 
 **E.6 Art (mục 2):** phong cách "linh thú đồng hành" (chibi cute-fierce) — KHÁC boss khổng lồ, KHÔNG lấy ảnh boss. 10 dòng × 2 hình thái = **20 ảnh** `images/pets/pet_<base>_base.webp` + `_awk.webp` (~512², nền trong, màu theo hệ). Placeholder v1 = emoji dòng (🐯🐢🐺🐻🐍🦅🦁🦊…) + glow tĩnh theo phẩm.
 
@@ -151,10 +151,10 @@ stamMax = 100
 |---|---|---|
 | **P1 — Nở & Stat** | `data/pets.js` + `engine/pets.js` hatchEgg (roll phẩm→stat→opt); `state.pets`; nút Ấp trên trứng ở Hành Lý | Nở trứng ra pet thật, xem chỉ số |
 | **P2 — Mang & Stat** | view "Linh Thú" + card pet + Mang/Tháo 1 con; `petBonus()` + CAP vào `derivedStats` | **MVP: pet ảnh hưởng combat ngay** |
-| P3 — Ấp thời gian | timer nở + skip Hồn Thạch + tab Đang Ấp | time-gate + sink HT |
+| **P3 — Ấp thời gian ✅** | Lò Ấp Noãn đơn (`state.hatchery`): Đặt Ấp → roll pet NGAY nhưng **giấu phẩm**, countdown theo `readyAt` (sống reload/offline) → Khai Noãn (free) / Thúc Nở (`ceil(remain/h)×100` HT). Notif offline "đã nở". | time-gate + sink HT |
 | P4 — HP/Thể Lực/EXP | 2 thanh + tiêu hao + auto-item HP + EXP mang 50% + hồi nghỉ | pet chia lửa + lên cấp |
 | P5 — Kĩ năng | bị động + chủ động vào cycle (`stepFight` + `petTurn`) | pet đánh phụ, build theo dòng |
 | P6 — Dung Hợp/Phóng Sanh | 2 nút + nâng phẩm | pet cùi có lối ra |
 | P7 — Tiến hoá + Art + Săn Mồi idle | thức tỉnh + 20 art + idle engine pet không mang + mở nhiều slot (Ngự Thú) | hoàn chỉnh idle engine #2 |
 
-**MVP = P1 + P2.**
+**MVP = P1 + P2.** Đã ship: **P1 + P2 + P3**. Tiếp theo: P4 (HP/Thể Lực/EXP mang 50%).
