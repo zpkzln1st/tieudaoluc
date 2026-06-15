@@ -54,3 +54,21 @@ export const PET_OPT_POOL = [
 ];
 export const PET_OPT_BY_ID = {};
 PET_OPT_POOL.forEach((o) => { PET_OPT_BY_ID[o.id] = o; });
+
+// ============================================================
+// P5 — TUYỆT KĨ: mỗi loài 1 BỊ ĐỘNG (signature) + 1 CHỦ ĐỘNG (CD theo cycle, phát trong combat).
+// Bị động (mỗi cycle): dmgBonus(+% đòn tuyệt kĩ) · absorb(+% gánh thay chủ) · lifesteal(hồi=Công×val/cycle) · petHp(+% Sinh Lực pet) · cdCut(−nhịp hồi).
+// Chủ động (đủ nhịp + còn Thể Lực): mult(burst=Công×mult) · healMul(hồi=burst×healMul) · block(đỡ TRỌN đòn cycle). Tốn thêm 6 Thể Lực/lần.
+// ============================================================
+export const PET_SKILLS = {
+  bachHo:     { passive: { name: 'Hổ Uy',     desc: 'Uy mãnh trời sinh — sát thương tuyệt kĩ Linh Thú +30%.',                  dmgBonus: 0.30 }, active: { name: 'Bạo Trảo',       cd: 3, mult: 1.6, desc: 'Vồ rách phòng ngự, giáng một vuốt sấm sét.' } },
+  huyenQuy:   { passive: { name: 'Quy Giáp',  desc: 'Mai rùa huyền thiết — gánh thay chủ thêm 12% sát thương mỗi trận.',      absorb: 0.12 }, active: { name: 'Tị Thủy Quyết',  cd: 4, mult: 0.5, healMul: 1.6, desc: 'Dựng màn nước hộ thân chủ, hồi nhiều sinh lực.' } },
+  huyetLang:  { passive: { name: 'Huyết Khát', desc: 'Khát máu bẩm sinh — đòn Linh Thú hút máu hồi sinh lực cho chủ mỗi trận.', lifesteal: 0.6 }, active: { name: 'Cuồng Huyết',    cd: 3, mult: 1.4, healMul: 0.6, desc: 'Cắn xé điên cuồng, ngoạm máu địch hồi cho chủ.' } },
+  cuHung:     { passive: { name: 'Hùng Thể',  desc: 'Thân gấu sừng sững — Sinh Lực Linh Thú +35%, đỡ đòn bền hơn.',           petHp: 0.35 }, active: { name: 'Trấn Sơn Hống',  cd: 4, mult: 0.4, block: true, desc: 'Gầm vang chấn địch, đỡ trọn cơn sát thương kế.' } },
+  docGiao:    { passive: { name: 'Độc Tố',    desc: 'Nọc độc ngấm xương — sát thương tuyệt kĩ +20%, kèm độc ăn mòn.',         dmgBonus: 0.20 }, active: { name: 'Phún Độc',       cd: 3, mult: 1.3, desc: 'Phun độc vụ ăn mòn tạng phủ địch.' } },
+  loiBang:    { passive: { name: 'Lôi Tấn',   desc: 'Cánh sấm như chớp — tuyệt kĩ Linh Thú giảm 1 nhịp hồi.',                 cdCut: 1 }, active: { name: 'Lôi Dực Kích',   cd: 3, mult: 1.2, desc: 'Bổ nhào sấm sét, đòn nhanh như điện xẹt.' } },
+  hoaLan:     { passive: { name: 'Diễm Hoá',  desc: 'Lân hoả rực trời — sát thương tuyệt kĩ Hỏa +40%.',                       dmgBonus: 0.40 }, active: { name: 'Phần Diễm',      cd: 4, mult: 2.0, desc: 'Bùng cháy thiêu rụi, một đòn bạo phát kinh người.' } },
+  hoYeu:      { passive: { name: 'Hồ Mị',     desc: 'Yêu hồ mê hoặc — đòn Linh Thú hút sinh lực hồi cho chủ mỗi trận.',       lifesteal: 0.35 }, active: { name: 'Mị Hoặc',       cd: 4, mult: 1.0, healMul: 0.5, desc: 'Mê hoặc tâm thần địch, thừa cơ hồi sức cho chủ.' } },
+  bangPhuong: { passive: { name: 'Hàn Sương', desc: 'Sương băng ghì địch — chủ chịu ít đòn hơn (gánh thêm 8%).',             absorb: 0.08 }, active: { name: 'Hàn Băng Phong', cd: 4, mult: 1.4, desc: 'Phong ấn băng giá, đông cứng trọng thương địch.' } },
+  thienMa:    { passive: { name: 'Ma Khí',    desc: 'Ma khí trợ uy — tuyệt kĩ +20% và Sinh Lực Linh Thú +12%.',              dmgBonus: 0.20, petHp: 0.12 }, active: { name: 'Thiên Ma Trảm', cd: 4, mult: 1.8, desc: 'Một đao ma khí chém ngang trời, uy lực bạt sơn.' } },
+};

@@ -5,7 +5,7 @@
 import { ITEMS } from '../data/items.js';
 import { removeItem } from './inventory.js';
 import { levelFromXp } from './leveling.js';
-import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID } from '../data/pets.js';
+import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PET_SKILLS } from '../data/pets.js';
 
 const STAT_KEYS = ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc'];
 
@@ -162,8 +162,10 @@ export function gainPetXp(state, amount) {
 // tới khi rời trận / hồi). Thể Lực hồi +10/phút thời gian thực khi rảnh.
 // ============================================================
 export const PET_STAM_MAX = 100;
-const STAM_PER_CYCLE = 4, STAM_REGEN_PER_MIN = 10, CHIA_LUA = 0.20, PET_AUTO_PCT = 0.25;
-export function petHpMax(pet) { return Math.round(((petStatAt(pet) || {}).sinhLuc || 1) * 1.5); }
+const STAM_PER_CYCLE = 4, STAM_REGEN_PER_MIN = 10, CHIA_LUA = 0.20, PET_AUTO_PCT = 0.25, SKILL_STAM = 6;
+export function petPassive(pet) { return (PET_SKILLS[pet.base] || {}).passive || {}; }   // bị động signature theo loài
+export function petActive(pet) { return (PET_SKILLS[pet.base] || {}).active || null; }     // chủ động
+export function petHpMax(pet) { return Math.round(((petStatAt(pet) || {}).sinhLuc || 1) * 1.5 * (1 + (petPassive(pet).petHp || 0))); }
 // Thể Lực hiện tại (THUẦN, không ghi): tl + hồi 10/phút từ mốc tlAt. tl null/đầy -> 100.
 export function petStamView(pet, now) {
   if (!pet || pet.tl == null || pet.tl >= PET_STAM_MAX) return PET_STAM_MAX;
@@ -176,6 +178,7 @@ export function resetPetCombat(state) {
   const p = activePet(state);
   cb.petHp = p ? petHpMax(p) : null;
   cb.petFainted = false;
+  cb.petCd = 0;   // tuyệt kĩ chủ động sẵn sàng đầu phiên
 }
 // Pet tự dùng Món Ăn/Đan hồi HP khi <25% (chung ô với chủ -> tốn thêm item). Trả lượng hồi.
 function petAutoHeal(state) {
@@ -189,17 +192,34 @@ function petAutoHeal(state) {
 // 1 cycle combat của pet ĐANG MANG: gánh 20% sát thương (dmg) -> HP pet, −4 Thể Lực, auto-heal, ngất.
 // Trả lượng pet GÁNH (hoàn cho chủ). Không gánh nếu kiệt Thể Lực / đã ngất.
 export function petCombatCycle(state, dmg, now) {
-  const cb = state.combat; if (!cb) return 0;
-  const p = activePet(state); if (!p) return 0;
+  const cb = state.combat; if (!cb) return { absorb: 0, heal: 0, skill: null };
+  const p = activePet(state); if (!p) return { absorb: 0, heal: 0, skill: null };
   if (cb.petHp == null) cb.petHp = petHpMax(p);
-  if (cb.petFainted) return 0;
+  if (cb.petFainted) return { absorb: 0, heal: 0, skill: null };
   const stam = petStamView(p, now);
-  if (stam <= 0) return 0;                                       // kiệt -> rút
-  const hpMax = petHpMax(p);
-  const absorb = Math.min(cb.petHp, Math.max(0, Math.round((dmg || 0) * CHIA_LUA)));
-  cb.petHp -= absorb;
-  p.tl = Math.max(0, stam - STAM_PER_CYCLE); p.tlAt = now;       // tốn Thể Lực (ghi mốc -> hồi tính lại từ now)
+  if (stam <= 0) return { absorb: 0, heal: 0, skill: null };     // kiệt -> rút
+  const pas = petPassive(p), act = petActive(p), st = petStatAt(p) || {};
+  const hpMax = petHpMax(p), atk = st.congKich || 0, gross = dmg || 0;
+  // chia lửa — pet GÁNH bằng HP (bị động absorb cộng thêm %)
+  const chia = Math.min(cb.petHp, Math.round(gross * (CHIA_LUA + (pas.absorb || 0))));
+  cb.petHp -= chia;
+  let heal = pas.lifesteal ? Math.round(atk * pas.lifesteal) : 0;   // bị động hút máu mỗi cycle
+  // chủ động (đủ nhịp + còn Thể Lực): burst đỡ thêm sát thương + hồi; tốn thêm Thể Lực
+  let offense = 0, skill = null, extraStam = 0;
+  if (act) {
+    if ((cb.petCd || 0) <= 0) {
+      const burst = Math.round(atk * act.mult * (1 + (pas.dmgBonus || 0)));
+      offense = burst + (act.block ? gross : 0);
+      if (act.healMul) heal += Math.round(burst * act.healMul);
+      cb.petCd = Math.max(1, (act.cd || 3) - (pas.cdCut || 0));
+      extraStam = SKILL_STAM;
+      skill = { name: act.name, dmg: burst, heal: 0 };
+    } else { cb.petCd = (cb.petCd || 0) - 1; }
+  }
+  const reduce = Math.min(gross, chia + offense);                // tổng giảm sát thương cho chủ ≤ đòn cycle
+  p.tl = Math.max(0, stam - STAM_PER_CYCLE - extraStam); p.tlAt = now;
   if (cb.petHp > 0 && cb.petHp < hpMax * PET_AUTO_PCT) { const h = petAutoHeal(state); if (h > 0) cb.petHp = Math.min(hpMax, cb.petHp + h); }
   if (cb.petHp <= 0) { cb.petHp = 0; cb.petFainted = true; }     // ngất
-  return absorb;
+  if (skill) skill.heal = heal;
+  return { absorb: reduce, heal, skill };
 }

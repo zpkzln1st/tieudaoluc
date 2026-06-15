@@ -239,8 +239,9 @@ export function advance(state, now) {
       let done = 0, died = false;
       for (let i = 0; i < cyclesByTime; i++) {
         autoEatTick(state, maxHP);                          // Ô Lương Thực: tự ăn nếu máu dưới ngưỡng (trước khi vào con)
-        let hp = hpLost;
-        if (hp > 0) hp = Math.max(0, hp - petCombatCycle(state, hp, now));  // Linh Thú chia lửa 20% -> HP pet
+        const pc = petCombatCycle(state, hpLost, now);                     // Linh Thú: chia lửa + bị động + chủ động
+        let hp = Math.max(0, hpLost - (pc.absorb || 0));
+        if (pc.heal && cb.sinhLuc != null) cb.sinhLuc = Math.min(maxHP, cb.sinhLuc + pc.heal);
         if (hp > 0 && cb.sinhLuc - hp <= 0) { died = true; break; }        // gục ở con này
         if (hp > 0) cb.sinhLuc -= hp;
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)

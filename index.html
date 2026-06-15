@@ -1960,6 +1960,19 @@
                       <template x-for="o in p.opts" :key="o.id"><span class="text-[10px] px-2 py-0.5 rounded-full border" :class="q.text+' '+q.border" :style="'background:'+qh+'14'" x-text="$store.game.petOptLabel(o)"></span></template>
                     </div>
                   </div>
+                  <div>
+                    <div class="lbl mb-1.5">Tuyệt Kĩ</div>
+                    <div class="grid sm:grid-cols-2 gap-1.5">
+                      <div class="flex items-start gap-2 px-2 py-1.5 rounded-lg bg-ink3/60 border border-slate-700/60">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/><path d="M9 11l2 2 4-4"/></svg>
+                        <div class="min-w-0"><div class="text-[11.5px] text-slate-200 font-medium"><span x-text="$store.game.petPassiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal">· bị động</span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petPassiveOf(p).desc"></div></div>
+                      </div>
+                      <div class="flex items-start gap-2 px-2 py-1.5 rounded-lg" :style="'background:'+qh+'10;border:1px solid '+qh+'33'">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4 mt-0.5 shrink-0" :style="'color:'+qh" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>
+                        <div class="min-w-0"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1997,6 +2010,7 @@
                         <span class="text-[9px] px-1.5 py-0.5 rounded-full border cursor-help" :class="q.text+' '+q.border" :style="'background:'+qh+'14'"
                               @mouseenter="let r=$el.getBoundingClientRect(); tx=r.left+r.width/2; ty=r.top; tip=true" @mouseleave="tip=false"
                               x-text="p.opts.length+' dị bẩm'"></span>
+                        <span class="text-[9px] text-slate-500">· 2 tuyệt kĩ</span>
                         <template x-if="tip">
                           <div class="fixed z-50 -translate-x-1/2 -translate-y-full pointer-events-none" :style="'left:'+tx+'px; top:'+(ty-8)+'px'">
                             <div class="rounded-lg border bg-ink2/95 backdrop-blur px-2.5 py-1.5 shadow-xl shadow-black/60 whitespace-nowrap" :style="'border-color:'+qh+'66'">
