@@ -29,7 +29,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -72,6 +72,7 @@ if (!state.quests.weekly) state.quests.weekly = { period: null, list: [] };
 if (!state.quests.monthly) state.quests.monthly = { period: null, list: [] };
 if (!state.linhThach) state.linhThach = {};
 if (!state.combat) state.combat = { sinhLuc: null, noiThuong: false, loadout: { tamPhap: 'viemDuong', boPhap: ['tanToc'], chieu: ['lhd', 'htd', 'ptd'] }, pending: { exp: 0, bac: 0, items: {} } };
+if (state.combat.petHp === undefined) { state.combat.petHp = null; state.combat.petFainted = false; } // Linh Thú P4: HP pet + ngất (per phiên)
 if (!state.combat.loadout) state.combat.loadout = { tamPhap: 'viemDuong', boPhap: ['tanToc'], chieu: ['lhd', 'htd', 'ptd'] };
 if (typeof state.combat.loadout.boPhap === 'string') state.combat.loadout.boPhap = [state.combat.loadout.boPhap]; // cũ: 1 chuỗi -> mảng
 if (!Array.isArray(state.combat.loadout.boPhap) || !state.combat.loadout.boPhap.length) state.combat.loadout.boPhap = ['tanToc'];
@@ -508,6 +509,13 @@ const gameStore = {
   statIco(k) { const P = { congKich: '<path d="M5 19l3.5-3.5M8.5 15.5l8-8 2 2-8 8zM15 5l4 4"/>', hoThe: '<path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/>', neTranh: '<path d="M3 9h9a2.5 2.5 0 10-2.5-2.6M3 14h13a2.5 2.5 0 11-2.5 2.6"/>', menhTrung: '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.5"/>', sinhLuc: '<path d="M12 20s-7-4.7-7-10a4 4 0 017-2.2A4 4 0 0119 10c0 5.3-7 10-7 10z"/>' }; return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">' + (P[k] || '') + '</svg>'; },
   petXpNext(pet) { return petXpToNext(pet.level); },
   petXpPct(pet) { const n = petXpToNext(pet.level); return n ? Math.max(0, Math.min(100, (pet.xp || 0) / n * 100)) : 0; },
+  // P4 — thanh Sinh Lực + Thể Lực pet (Sinh Lực theo phiên combat; Thể Lực bền, hồi thời gian thực).
+  get petInCombat() { return !!(this.state.activity && this.state.activity.type === 'combat'); },
+  get petFainted() { return this.petInCombat && !!(this.state.combat && this.state.combat.petFainted); },
+  get petStamCur() { void this._tick; const p = this.activePetObj; return p ? petStamView(p, now()) : 100; },
+  get petHpMaxV() { const p = this.activePetObj; return p ? petHpMax(p) : 0; },
+  get petHpCur() { const p = this.activePetObj; if (!p) return 0; const h = this.state.combat && this.state.combat.petHp; return (h == null) ? this.petHpMaxV : Math.max(0, h); },
+  get petHpPct() { const m = this.petHpMaxV; return m ? Math.max(0, Math.min(100, Math.round(this.petHpCur / m * 100))) : 0; },
   petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
   petOptsText(pet) { return (pet.opts || []).map((o) => this.petOptLabel(o)).join('  ·  '); },   // cho tooltip chip "N dị bẩm"
   petLevelCap(pet) { const off = { phamPham: 10, luongPham: 6, tinhPham: 3 }[pet.quality] || 0; return Math.max(1, this.combatLevel - off); },
@@ -1324,6 +1332,7 @@ const gameStore = {
     const maxNL = this.combatMaxNL;                       // Nội Lực trôi qua các trận + tự dùng đan hồi Nội Lực < 25%
     let nl = this.state.combat.noiLuc == null ? maxNL : this.state.combat.noiLuc;
     const rNL = autoDanNL(this.state, maxNL, nl); if (rNL) nl = Math.min(maxNL, nl + rNL);
+    const hp0 = this.combatSinhLuc;                          // máu trước trận (cho Linh Thú chia lửa)
     const f = makeFight(this.combatStats, this.loadout.chieu, enemy, this.combatSinhLuc, null, nl);
     let g = 0; while (!f.over && g < 400) { stepFight(f); g++; }
     this.state.combat.noiLuc = Math.round(f.p.nl);        // lưu Nội Lực còn lại (trôi sang trận sau)
@@ -1332,7 +1341,12 @@ const gameStore = {
     this.chienBao.unshift({ no: this._roundNo, lines: f.log.slice(), won: f.result === 'win', he: f.eHe });
     if (this.chienBao.length > 12) this.chienBao = this.chienBao.slice(0, 12);
     const box = document.getElementById('chienBaoBox'); if (box) box.scrollTop = 0;
-    if (f.result === 'win') this.awardKill(f); else this.combatDeath();
+    if (f.result === 'win') {
+      this.awardKill(f);                                    // đã lưu state.combat.sinhLuc = HP còn lại
+      const dmg = Math.max(0, hp0 - this.state.combat.sinhLuc);
+      const refund = petCombatCycle(this.state, dmg, now());    // Linh Thú gánh 20% -> hoàn lại cho chủ
+      if (refund > 0) this.state.combat.sinhLuc = Math.min(this.combatMaxHp, this.state.combat.sinhLuc + refund);
+    } else this.combatDeath();
   },
   awardKill(f) {
     const e = this.ENEMIES[this.act.enemyId]; if (!e) return;

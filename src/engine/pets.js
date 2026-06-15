@@ -128,8 +128,12 @@ export function petStatAt(pet) {
 
 export function activePet(state) { return (state.pets || []).find((p) => p.equipped) || null; }
 
-// Bonus stat từ pet ĐANG MANG — cộng THẲNG toàn bộ vào derivedStats (full-add, KHÔNG trần).
-export function petBonus(state) { const p = activePet(state); return p ? petStatAt(p) : null; }
+// Bonus stat từ pet ĐANG MANG — cộng THẲNG toàn bộ (full-add). NGẤT trong combat -> mất sạch bonus.
+export function petBonus(state) {
+  if (state.activity && state.activity.type === 'combat' && state.combat && state.combat.petFainted) return null;
+  const p = activePet(state);
+  return p ? petStatAt(p) : null;
+}
 
 // ============================================================
 // P4 — EXP & LÊN CẤP. Pet đang mang ăn 50% EXP/trận; trần cấp = cấp Chiến Đấu − lệch phẩm.
@@ -150,4 +154,52 @@ export function gainPetXp(state, amount) {
   while (p.level < cap && p.xp >= petXpToNext(p.level)) { p.xp -= petXpToNext(p.level); p.level++; leveled++; }
   if (p.level >= cap) p.xp = Math.min(p.xp, petXpToNext(p.level));   // tới trần: thanh đầy, không tràn
   return { pet: p, leveled };
+}
+
+// ============================================================
+// P4 — THỂ LỰC + HP TRONG COMBAT (doc §D). Pet ĐANG MANG chia lửa 20% đòn quái -> HP pet;
+// −4 Thể Lực/cycle; kiệt Thể Lực -> RÚT (chỉ stat tĩnh còn cộng); HP=0 -> NGẤT (mất hết bonus
+// tới khi rời trận / hồi). Thể Lực hồi +10/phút thời gian thực khi rảnh.
+// ============================================================
+export const PET_STAM_MAX = 100;
+const STAM_PER_CYCLE = 4, STAM_REGEN_PER_MIN = 10, CHIA_LUA = 0.20, PET_AUTO_PCT = 0.25;
+export function petHpMax(pet) { return Math.round(((petStatAt(pet) || {}).sinhLuc || 1) * 1.5); }
+// Thể Lực hiện tại (THUẦN, không ghi): tl + hồi 10/phút từ mốc tlAt. tl null/đầy -> 100.
+export function petStamView(pet, now) {
+  if (!pet || pet.tl == null || pet.tl >= PET_STAM_MAX) return PET_STAM_MAX;
+  const regen = Math.floor((now - (pet.tlAt || now)) / 60000) * STAM_REGEN_PER_MIN;
+  return Math.max(0, Math.min(PET_STAM_MAX, pet.tl + regen));
+}
+// Reset HP pet đầu phiên combat (gọi trong startCombat).
+export function resetPetCombat(state) {
+  const cb = state.combat; if (!cb) return;
+  const p = activePet(state);
+  cb.petHp = p ? petHpMax(p) : null;
+  cb.petFainted = false;
+}
+// Pet tự dùng Món Ăn/Đan hồi HP khi <25% (chung ô với chủ -> tốn thêm item). Trả lượng hồi.
+function petAutoHeal(state) {
+  const cb = state.combat; if (!cb) return 0;
+  const fid = cb.luongThuc, food = fid && ITEMS[fid];
+  if (food && food.heal && (state.inventory[fid] || 0) > 0) { removeItem(state, fid, 1); return food.heal; }
+  const did = cb.dan, dan = did && ITEMS[did];
+  if (dan && dan.heal && (state.inventory[did] || 0) > 0) { removeItem(state, did, 1); return dan.heal; }
+  return 0;
+}
+// 1 cycle combat của pet ĐANG MANG: gánh 20% sát thương (dmg) -> HP pet, −4 Thể Lực, auto-heal, ngất.
+// Trả lượng pet GÁNH (hoàn cho chủ). Không gánh nếu kiệt Thể Lực / đã ngất.
+export function petCombatCycle(state, dmg, now) {
+  const cb = state.combat; if (!cb) return 0;
+  const p = activePet(state); if (!p) return 0;
+  if (cb.petHp == null) cb.petHp = petHpMax(p);
+  if (cb.petFainted) return 0;
+  const stam = petStamView(p, now);
+  if (stam <= 0) return 0;                                       // kiệt -> rút
+  const hpMax = petHpMax(p);
+  const absorb = Math.min(cb.petHp, Math.max(0, Math.round((dmg || 0) * CHIA_LUA)));
+  cb.petHp -= absorb;
+  p.tl = Math.max(0, stam - STAM_PER_CYCLE); p.tlAt = now;       // tốn Thể Lực (ghi mốc -> hồi tính lại từ now)
+  if (cb.petHp > 0 && cb.petHp < hpMax * PET_AUTO_PCT) { const h = petAutoHeal(state); if (h > 0) cb.petHp = Math.min(hpMax, cb.petHp + h); }
+  if (cb.petHp <= 0) { cb.petHp = 0; cb.petFainted = true; }     // ngất
+  return absorb;
 }

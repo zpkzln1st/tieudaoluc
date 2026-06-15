@@ -1906,11 +1906,22 @@
                 <div class="space-y-2.5">
                   <div class="relative aspect-square rounded-xl overflow-hidden bg-ink2 flex items-center justify-center text-6xl" :style="'border:1px solid '+qh+'40'">
                     <span x-text="$store.game.petEmoji(p)"></span>
-                    <div class="absolute inset-0" x-html="$store.game.petArtTag(p)"></div>
+                    <div class="absolute inset-0 transition" :class="$store.game.petFainted ? 'grayscale opacity-50' : ''" x-html="$store.game.petArtTag(p)"></div>
                     <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 50px '+qh+'26'"></div>
                     <div class="absolute inset-x-0 bottom-0 h-16 pointer-events-none" :style="'background:radial-gradient(ellipse at 50% 100%, '+qh+'33, transparent 70%)'"></div>
                     <span class="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded border font-bold" :class="q.text+' '+q.border" style="background:rgba(0,0,0,.5)" x-text="q.name"></span>
                     <span class="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" :style="'color:'+el+';background:rgba(0,0,0,.5);border:1px solid '+el+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+el+';box-shadow:0 0 6px '+el"></span><span x-text="$store.game.petHeName(p)"></span></span>
+                    <template x-if="$store.game.petFainted"><span class="absolute inset-x-0 bottom-2 flex justify-center"><span class="text-[10px] px-2 py-0.5 rounded bg-rose-900/85 border border-rose-500 text-rose-200 font-bold">Ngất — chờ hồi sức</span></span></template>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Sinh Lực</span><span class="text-slate-500" x-text="$store.game.fmt($store.game.petHpCur)+' / '+$store.game.fmt($store.game.petHpMaxV)"></span></div>
+                      <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+$store.game.petHpPct+'%;background:#fb7185'"></div></div>
+                    </div>
+                    <div>
+                      <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Thể Lực</span><span class="text-slate-500" x-text="Math.round($store.game.petStamCur)+' / 100'"></span></div>
+                      <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+$store.game.petStamCur+'%;background:'+($store.game.petStamCur<25?'#fb7185':'#22d3ee')"></div></div>
+                    </div>
                   </div>
                   <div>
                     <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Tu Vi</span><span class="text-slate-500" x-text="'Cảnh Lv '+p.level+' · '+$store.game.fmt(p.xp||0)+'/'+$store.game.fmt($store.game.petXpNext(p))"></span></div>
@@ -1932,8 +1943,8 @@
                     <button @click="$store.game.unequipActivePet()" class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-jade border border-jade/40 hover:bg-jade/10 transition">Thu Hồi</button>
                   </div>
                   <div>
-                    <div class="flex items-baseline gap-2 mb-1.5"><span class="text-[12px] text-jade font-semibold">Trợ Lực Cho Chủ Nhân</span><span class="text-[10px] text-slate-600">· cộng thẳng vào chủ</span></div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    <div class="flex items-baseline gap-2 mb-1.5"><span class="text-[12px] text-jade font-semibold">Trợ Lực Cho Chủ Nhân</span><span class="text-[10px]" :class="$store.game.petFainted ? 'text-rose-400' : 'text-slate-600'" x-text="$store.game.petFainted ? '· đang ngất, ngừng trợ lực' : '· cộng thẳng vào chủ'"></span></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 transition" :class="$store.game.petFainted ? 'opacity-40' : ''">
                       <template x-for="(v,k) in $store.game.petStat(p)" :key="k">
                         <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-jade/10 border border-jade/25">
                           <span class="text-jade shrink-0" x-html="$store.game.statIco(k)"></span>

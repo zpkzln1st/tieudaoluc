@@ -11,7 +11,7 @@ import { combatProfile, boPhapStats, COMBAT_CYCLE_MS } from '../data/votong.js';
 import { travelTimeMs } from './travel.js';
 import { addItem, removeItem } from './inventory.js';
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
-import { gainPetXp } from './pets.js';
+import { gainPetXp, resetPetCombat, petCombatCycle } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { grantDungeon } from './dungeon.js';
@@ -139,6 +139,7 @@ export function startCombat(state, enemyId, now) {
   const profile = combatProfile(state, state.combat.loadout, enemy);
   state.combat.sinhLuc = profile.maxHP; // vào trận đầy Sinh Lực
   state.combat.noiLuc = null;           // Nội Lực đầy khi bắt đầu phiên (sau đó trôi qua các trận)
+  resetPetCombat(state);                // Linh Thú: HP pet đầy + xoá trạng thái ngất đầu phiên
   state.activity = {
     type: 'combat', enemyId,
     cycleMs: COMBAT_CYCLE_MS,            // 1 con / vòng 8s — cadence thật, đồng bộ với chu kỳ chiến báo
@@ -238,8 +239,10 @@ export function advance(state, now) {
       let done = 0, died = false;
       for (let i = 0; i < cyclesByTime; i++) {
         autoEatTick(state, maxHP);                          // Ô Lương Thực: tự ăn nếu máu dưới ngưỡng (trước khi vào con)
-        if (hpLost > 0 && cb.sinhLuc - hpLost <= 0) { died = true; break; } // gục ở con này
-        if (hpLost > 0) cb.sinhLuc -= hpLost;
+        let hp = hpLost;
+        if (hp > 0) hp = Math.max(0, hp - petCombatCycle(state, hp, now));  // Linh Thú chia lửa 20% -> HP pet
+        if (hp > 0 && cb.sinhLuc - hp <= 0) { died = true; break; }        // gục ở con này
+        if (hp > 0) cb.sinhLuc -= hp;
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
         if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance) cb.pending.items[l.itemId] = (cb.pending.items[l.itemId] || 0) + 1; }
