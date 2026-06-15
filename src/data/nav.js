@@ -20,7 +20,7 @@ export const NAV = [
     { view: 'worldboss',  name: 'Yêu Vương',     gloss: 'World Boss',     icon: '🐲' },
   ] },
   { title: 'Linh Thú', items: [
-    { view: 'pets', name: 'Linh Thú', gloss: 'Pets', icon: '🐾', soon: true },
+    { view: 'pets', name: 'Linh Thú', gloss: 'Pets', icon: '🐾' },
   ] },
   { title: 'Giao Thương', items: [
     { view: 'merchant', name: 'Thương Điếm',    gloss: 'Merchant', icon: '🏪' },

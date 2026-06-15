@@ -29,6 +29,8 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
+import { hatchEgg, petStatAt, activePet } from './engine/pets.js';
+import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
 
@@ -111,6 +113,7 @@ if (state.player.coverImg && !state.player.ownedCovers.includes(state.player.cov
 if (state.travel) state.travel = null; // bỏ field cũ (Khinh Công giờ là activity 'travel')
 if (!state.dungeon) state.dungeon = { lastResult: null, history: [] }; // Bí Cảnh: kết quả lần chạy gần nhất + lịch sử
 if (!Array.isArray(state.notifications)) state.notifications = []; // Thông Báo (feed chung: chuông + Phi Cáp Đài)
+if (!Array.isArray(state.pets)) state.pets = []; // Linh Thú (pet) — nở từ trứng
 // Tháo trang bị VƯỢT CẤP (combatLevel tụt do dev/sửa save) -> trả về túi, không cho hưởng chỉ số lậu
 (() => {
   const _cl = levelFromXp(state.skills?.chienDau?.xp || 0);
@@ -472,8 +475,44 @@ const gameStore = {
     if (rw.exp) p.push(this.fmt(rw.exp) + ' EXP');
     return p.length ? 'Đoạt: ' + p.join(' · ') : 'Đã hạ gục.';
   },
+  // ===== LINH THÚ (pet) =====
+  PET_SPECIES, PET_QUALITY,
+  get petList() { return this.state.pets || []; },
+  get activePetObj() { return activePet(this.state); },
+  petName(pet) { return (PET_SPECIES[pet.base] || {}).name || pet.base; },
+  petEmoji(pet) { return (PET_SPECIES[pet.base] || {}).emoji || '🐾'; },
+  petRole(pet) { return (PET_SPECIES[pet.base] || {}).role || ''; },
+  petHeName(pet) { const h = (PET_SPECIES[pet.base] || {}).he; return ({ kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ' })[h] || ''; },
+  petQ(pet) { return this.QUALITY[pet.quality] || this.QUALITY.phamPham; },
+  petStat(pet) { return petStatAt(pet); },
+  petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
+  petLevelCap(pet) { const off = { phamPham: 10, luongPham: 6, tinhPham: 3 }[pet.quality] || 0; return Math.max(1, this.combatLevel - off); },
+  get eggsInInventory() {
+    return Object.keys(this.state.inventory || {})
+      .filter((id) => this.ITEMS[id] && this.ITEMS[id].type === 'trung' && (this.state.inventory[id] || 0) > 0)
+      .map((id) => ({ id, qty: this.state.inventory[id], item: this.ITEMS[id] }));
+  },
+  hatchEggById(eggId) {
+    const pet = hatchEgg(this.state, eggId);
+    if (!pet) { this.showToast('Không ấp được trứng này.'); return; }
+    Storage.save(this.state);
+    const nm = this.petName(pet), qn = (this.QUALITY[pet.quality] || {}).name;
+    this.showToast('🥚 Trứng nở! Linh Thú 〈' + nm + ' · ' + qn + '〉.');
+    this.pushNotif('khac', 'Ấp nở Linh Thú', nm + ' (' + qn + ') gia nhập đội.');
+  },
+  equipPet(petId) { const p = (this.state.pets || []).find((x) => x.id === petId); (this.state.pets || []).forEach((x) => { x.equipped = (x.id === petId); }); Storage.save(this.state); if (p) this.showToast('Đã dắt theo ' + this.petName(p) + '.'); },
+  unequipActivePet() { (this.state.pets || []).forEach((p) => { p.equipped = false; }); Storage.save(this.state); },
+  // Bonus pet ĐÃ CAP (số thực cộng vào nhân vật) = stats(có pet) − stats(không pet).
+  activePetBonusApplied() {
+    if (!this.activePetObj) return null;
+    const withP = derivedStats(this.state), noP = derivedStats(this.state, { noPet: true });
+    const out = {};
+    for (const k of ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc']) { const d = withP[k] - noP[k]; if (d > 0) out[k] = d; }
+    return out;
+  },
+  statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
   zoneName(id) { const l = (this.LOCATIONS || []).find((x) => x.id === id); return l ? l.name : ''; },  // tên vùng (cho nhãn gathering)
   // Nghề THU THẬP (có zone trên action) → danh sách chỉ hiện tài nguyên của VÙNG đang đứng. Nghề chế tạo (không zone) hiện hết.

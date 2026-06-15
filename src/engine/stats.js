@@ -5,6 +5,9 @@
 import { ITEMS } from '../data/items.js';
 import { levelFromXp } from './leveling.js';
 import { gearPlus, enhanceMul } from './enhance.js';
+import { petBonus } from './pets.js';
+
+const PET_STAT_CAP = 0.12; // Linh Thú đang mang: mỗi stat cộng tối đa 12% stat chủ (chưa kể pet) — chống bá đạo
 
 export function gearStats(state) {
   const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0 };
@@ -36,14 +39,25 @@ export function gearEle(state) {
   return e;
 }
 
-export function derivedStats(state) {
+export function derivedStats(state, opts) {
   const sl = (id) => levelFromXp(state.stats[id]?.xp || 0);
   const g = gearStats(state);
-  const congKich  = sl('lucDao') * 5 + g.congKich;
-  const hoThe     = sl('hoThe') * 5 + g.hoThe;
-  const neTranh   = sl('thanPhap') * 5 + g.neTranh;
-  const menhTrung = sl('linhXao') * 5 + g.menhTrung;
-  const sinhLuc   = 100 + sl('hoThe') * 10 + g.sinhLuc;
+  let congKich  = sl('lucDao') * 5 + g.congKich;
+  let hoThe     = sl('hoThe') * 5 + g.hoThe;
+  let neTranh   = sl('thanPhap') * 5 + g.neTranh;
+  let menhTrung = sl('linhXao') * 5 + g.menhTrung;
+  let sinhLuc   = 100 + sl('hoThe') * 10 + g.sinhLuc;
+  // Linh Thú đang mang: cộng có CAP (đo trên stat CHƯA kể pet). noPet=true -> bỏ qua (cho UI so sánh).
+  if (!(opts && opts.noPet)) {
+    const pb = petBonus(state);
+    if (pb) {
+      congKich  += Math.min(pb.congKich  || 0, Math.round(PET_STAT_CAP * congKich));
+      hoThe     += Math.min(pb.hoThe     || 0, Math.round(PET_STAT_CAP * hoThe));
+      neTranh   += Math.min(pb.neTranh   || 0, Math.round(PET_STAT_CAP * neTranh));
+      menhTrung += Math.min(pb.menhTrung || 0, Math.round(PET_STAT_CAP * menhTrung));
+      sinhLuc   += Math.min(pb.sinhLuc   || 0, Math.round(PET_STAT_CAP * sinhLuc));
+    }
+  }
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc };
