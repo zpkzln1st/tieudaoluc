@@ -509,6 +509,7 @@ const gameStore = {
   petXpNext(pet) { return petXpToNext(pet.level); },
   petXpPct(pet) { const n = petXpToNext(pet.level); return n ? Math.max(0, Math.min(100, (pet.xp || 0) / n * 100)) : 0; },
   petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
+  petOptsText(pet) { return (pet.opts || []).map((o) => this.petOptLabel(o)).join('  ·  '); },   // cho tooltip chip "N dị bẩm"
   petLevelCap(pet) { const off = { phamPham: 10, luongPham: 6, tinhPham: 3 }[pet.quality] || 0; return Math.max(1, this.combatLevel - off); },
   get eggsInInventory() {
     return Object.keys(this.state.inventory || {})
