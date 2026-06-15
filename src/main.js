@@ -488,6 +488,16 @@ const gameStore = {
   get activePetObj() { return activePet(this.state); },
   petName(pet) { return (PET_SPECIES[pet.base] || {}).name || pet.base; },
   petEmoji(pet) { return (PET_SPECIES[pet.base] || {}).emoji || '🐾'; },
+  // Art tile pet: images/pets/pet_<base>_<base|awk>.webp -> png -> tự gỡ (lộ emoji nền dưới). Overlay phủ lên lớp emoji.
+  petArtTag(pet) {
+    const f = 'pet_' + pet.base + '_' + (pet.evolved ? 'awk' : 'base');
+    return `<img src="images/pets/${f}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/pets/${f}.png&quot;;}else{this.remove();}'>`;
+  },
+  hatchArtTag() {
+    const h = this.state.hatchery; if (!h) return '';
+    const f = 'pet_' + h.base + '_base';
+    return `<img src="images/pets/${f}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/pets/${f}.png&quot;;}else{this.remove();}'>`;
+  },
   petRole(pet) { return (PET_SPECIES[pet.base] || {}).role || ''; },
   petHeName(pet) { const h = (PET_SPECIES[pet.base] || {}).he; return ({ kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ' })[h] || ''; },
   petQ(pet) { return this.QUALITY[pet.quality] || this.QUALITY.phamPham; },
