@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Linh Thú (redesign · full)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: {
+    ink: '#070b14', ink2: '#0f1521', ink3: '#141b2a',
+    jade: '#14b8a6', cyan: '#22d3ee', gold: '#f5b942',
+  } } } };
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  body{ background:#070b14; color:#e2e8f0; font-family:system-ui,sans-serif; }
+  .fserif{ font-family:'Lora',serif; }
+  .panel{ background:#0f1521; border:1px solid #1e293b; }
+  .gold-text{ background:linear-gradient(90deg,#fde68a,#f5b942); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lbl{ font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:#64748b; font-weight:600; }
+</style>
+</head>
+<body class="p-4 md:p-6">
+<div class="max-w-[1200px] mx-auto space-y-3">
+
+  <!-- HEADER 208px -->
+  <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+    <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#070b14 0%,rgba(7,11,20,.85) 36%,rgba(7,11,20,.5) 66%,rgba(7,11,20,.2) 100%)"></div>
+    <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(20,184,166,.16), transparent 66%)"></div>
+    <div class="relative w-full p-5 md:p-6">
+      <div class="flex items-center gap-2.5">
+        <svg viewBox="0 0 24 24" class="w-7 h-7 text-jade" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 11a2.5 2.5 0 11.01 0M9 7a2.5 2.5 0 11.01 0M15 7a2.5 2.5 0 11.01 0M19 11a2.5 2.5 0 11.01 0M7.5 16c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4-2 3.5-4.5 3.5S7.5 18.5 7.5 16z"/></svg>
+        <div class="text-[28px] gold-text leading-none fserif">Linh Thú</div>
+      </div>
+      <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif">Thu phục yêu thú sơn dã, ấp noãn dưỡng thành — một con linh thú kề vai, đường giang hồ bớt phần đơn độc.</div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div id="hero"></div>
+
+  <!-- DƯỚI: roster + lò ấp -->
+  <div class="grid lg:grid-cols-[1fr_320px] gap-3 items-start">
+    <div class="panel rounded-xl p-4">
+      <div class="flex items-baseline justify-between mb-3">
+        <div class="text-jade font-bold fserif text-[15px]">Linh Thú Của Ta <span class="text-slate-500 text-[12px] font-normal" id="roster-count"></span></div>
+        <span class="text-[11px] text-slate-600">Dắt 1 con kề bên — phần còn lại an dưỡng</span>
+      </div>
+      <div id="roster" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+    </div>
+    <div class="panel rounded-xl p-4 lg:sticky lg:top-4">
+      <div class="text-jade font-bold fserif text-[15px]">Lò Ấp Noãn</div>
+      <div class="text-[11px] text-slate-500 mb-3 fserif italic">Ủ noãn yêu thú, ngày đêm chờ ngày phá vỏ.</div>
+      <div id="incubator"></div>
+      <div id="eggs" class="space-y-2 mt-2.5"></div>
+    </div>
+  </div>
+
+  <p class="text-center text-[11px] text-slate-600 pt-2">— Mockup duyệt UI/text/bố cục · ảnh &amp; dữ liệu thật · Thể Lực / Tuyệt Kĩ / tab Trạng Thái = tầm nhìn P4-P7 (bấm tab thử) —</p>
+</div>
+
+<script>
+const QC = {
+  phamPham:{hex:'#cbd5e1',text:'text-slate-300',name:'Phàm Phẩm'}, luongPham:{hex:'#93c5fd',text:'text-blue-300',name:'Lương Phẩm'},
+  tinhPham:{hex:'#6ee7b7',text:'text-emerald-300',name:'Tinh Phẩm'}, tuyetPham:{hex:'#fda4af',text:'text-rose-300',name:'Tuyệt Phẩm'},
+  truyenThe:{hex:'#fcd34d',text:'text-amber-300',name:'Truyền Thế'}, thanPham:{hex:'#fdba74',text:'text-orange-300',name:'Thần Phẩm'}, coBan:{hex:'#d8b4fe',text:'text-purple-300',name:'Cô Bản'},
+};
+const EC = { kim:{hex:'#e2e8f0',name:'Kim'}, moc:{hex:'#6ee7b7',name:'Mộc'}, thuy:{hex:'#67e8f9',name:'Thủy'}, hoa:{hex:'#fdba74',name:'Hỏa'}, tho:{hex:'#fcd34d',name:'Thổ'} };
+const SL  = { congKich:'Công', hoThe:'Thủ', neTranh:'Né', menhTrung:'Chính Xác', sinhLuc:'Sinh Lực' };
+const SLF = { congKich:'Công Kích', hoThe:'Hộ Thể', neTranh:'Né Tránh', menhTrung:'Chính Xác', sinhLuc:'Sinh Lực' };
+const ICON = {
+  congKich:'<path d="M5 19l3.5-3.5M8.5 15.5l8-8 2 2-8 8zM15 5l4 4"/>',
+  hoThe:'<path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/>',
+  neTranh:'<path d="M3 9h9a2.5 2.5 0 10-2.5-2.6M3 14h13a2.5 2.5 0 11-2.5 2.6"/>',
+  menhTrung:'<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>',
+  sinhLuc:'<path d="M12 20s-7-4.7-7-10a4 4 0 017-2.2A4 4 0 0119 10c0 5.3-7 10-7 10z"/>',
+  passive:'<path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/><path d="M9 11l2 2 4-4"/>',
+  active:'<path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/>',
+  bolt:'<path d="M11 21h-1l1-7H7l6-11h1l-1 7h4l-6 11z"/>',
+};
+const svg = (k,cls)=>`<svg viewBox="0 0 24 24" class="${cls||'w-3.5 h-3.5'}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICON[k]||''}</svg>`;
+const art = (base,evolved)=>`../images/pets/pet_${base}_${evolved?'awk':'base'}.webp`;
+
+// ===== dữ liệu (số Lv6+ để minh hoạ tầm nhìn P4/P5; game hiện tại pet Lv1) =====
+const PETS = [
+  { id:'p1', base:'bangPhuong', name:'Băng Phượng', he:'thuy', role:'Khống Chế', q:'truyenThe', lv:6, eq:true, evolved:false,
+    tl:78, xp:240, xpMax:588,
+    stats:{congKich:14,hoThe:9,neTranh:8,menhTrung:12,sinhLuc:210},
+    opts:[{n:'Sinh Lực',v:'+107'},{n:'Sinh Lực',v:'+8%'},{n:'Tăng Sát Thương Hệ',v:'+10%'}],
+    skills:{ passive:{name:'Hàn Phong',desc:'Đòn thường 15% phủ băng — địch chậm 1 lượt.'}, active:{name:'Băng Phong Lao',desc:'8 giây/lần · giam địch mạnh nhất, nổ sát thương Thủy.'} } },
+  { id:'p2', base:'thienMa', name:'Thiên Ma', he:'tho', role:'Toàn Năng', q:'tuyetPham', lv:5, eq:false, evolved:false,
+    tl:54, xp:120, xpMax:447, stats:{congKich:11,hoThe:7,neTranh:5,menhTrung:7,sinhLuc:116},
+    opts:[{n:'Sinh Lực',v:'+86'},{n:'Bạo Kích Suất',v:'+3%'},{n:'Bạc Rơi',v:'+10%'}],
+    skills:{ passive:{name:'Ma Thể Hộ Thân',desc:'Giảm 8% sát thương phải nhận.'}, active:{name:'Thiên Ma Phệ Hồn',desc:'Cắn nuốt sinh lực địch, hồi máu cho chủ.'} } },
+  { id:'p3', base:'hoYeu', name:'Hồ Yêu', he:'moc', role:'Bạo Kích', q:'thanPham', lv:9, eq:false, evolved:true,
+    tl:90, xp:300, xpMax:1080, stats:{congKich:22,hoThe:8,neTranh:14,menhTrung:20,sinhLuc:96},
+    opts:[{n:'Bạo Kích Suất',v:'+3%'},{n:'Công Kích',v:'+10'},{n:'EXP Săn Mồi',v:'+31%'},{n:'Né Tránh',v:'+8'}],
+    skills:{ passive:{name:'Yêu Hồ Mị Ảnh',desc:'Bạo kích suất +6%.'}, active:{name:'Cửu Vĩ Liên Hỏa',desc:'Tung chuỗi đòn bạo kích lên 1 mục tiêu.'} } },
+  { id:'p4', base:'bachHo', name:'Bạch Hổ', he:'kim', role:'Sát Thủ', q:'phamPham', lv:3, eq:false, evolved:false,
+    tl:30, xp:40, xpMax:208, stats:{congKich:9,hoThe:2,neTranh:4,menhTrung:4,sinhLuc:14}, opts:[{n:'Công Kích',v:'+6'}],
+    skills:{ passive:{name:'Hổ Trảo',desc:'Đòn đầu trận +20% sát thương.'}, active:{name:'Bạch Hổ Tiễu Sát',desc:'Vồ địch máu thấp nhất, chí mạng.'} } },
+  { id:'p5', base:'cuHung', name:'Cự Hùng', he:'tho', role:'Trấn Thủ', q:'tinhPham', lv:4, eq:false, evolved:false,
+    tl:66, xp:90, xpMax:320, stats:{congKich:4,hoThe:8,neTranh:1,menhTrung:2,sinhLuc:34}, opts:[{n:'Sinh Lực',v:'+62'},{n:'Hộ Thể',v:'+7'}],
+    skills:{ passive:{name:'Hùng Bì',desc:'Sinh Lực tối đa +12%.'}, active:{name:'Trấn Sơn Hống',desc:'Gầm vang, kéo địch chĩa đòn vào mình.'} } },
+  { id:'p6', base:'loiBang', name:'Lôi Bằng', he:'hoa', role:'Tốc Kích', q:'luongPham', lv:2, eq:false, evolved:false,
+    tl:12, xp:20, xpMax:113, stats:{congKich:8,hoThe:2,neTranh:6,menhTrung:5,sinhLuc:14}, opts:[{n:'Né Tránh',v:'+5'},{n:'Công Kích %',v:'+4%'}],
+    skills:{ passive:{name:'Phong Dực',desc:'Né tránh +5%.'}, active:{name:'Lôi Dực Tập',desc:'Bổ nhào tốc kích, sát thương Hỏa-Lôi.'} } },
+];
+const EGG  = { base:'docGiao', name:'Độc Giao', tier:'tinhPham', tierName:'Linh Phẩm', pct:46, time:'04:21:08', cost:500 };
+const EGGS = [ { name:'Băng Phượng Noãn · Thần Phẩm', q:'thanPham', qty:1, dur:'24 giờ' }, { name:'Hồ Yêu Noãn · Phàm Phẩm', q:'phamPham', qty:3, dur:'2 giờ' } ];
+
+let petState = 'cho'; // cho | san | chien | duong
+const STATES = [
+  { id:'cho',   name:'Chờ Lệnh' },
+  { id:'san',   name:'Săn Mồi' },
+  { id:'chien', name:'Xuất Chiến' },
+  { id:'duong', name:'Dưỡng Sức' },
+];
+function stateBlurb(p){
+  const e = EC[p.he];
+  if (petState==='cho')   return { tone:'jade',  text:`Kề bên chủ nhân, dưỡng nhuệ khí — sẵn sàng nghe lệnh xuất trận.` };
+  if (petState==='san')   return { tone:'amber', text:`Đang lùng sục Lâm Linh Cốc · <b class="text-amber-300">+18 Tu Vi</b> / 10 phút · <b class="text-rose-300">−10 Thể Lực</b> / 10 phút.` };
+  if (petState==='chien') return { tone:'cyan',  text:`Cùng chủ nghênh địch — mỗi trận góp đòn và thi triển <b class="text-cyan-300">tuyệt kĩ</b>.` };
+  return { tone:'emerald', text:`Tịnh dưỡng nơi động phủ · <b class="text-emerald-300">+15 Thể Lực</b> / 10 phút, lành cả nội thương.` };
+}
+
+function bar(label, cur, max, hex, sub){
+  const pct = Math.max(0, Math.min(100, max? cur/max*100 : 0));
+  return `<div>
+    <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">${label}</span><span class="text-slate-500">${sub||(cur+' / '+max)}</span></div>
+    <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${hex}"></div></div>
+  </div>`;
+}
+
+function renderHero(){
+  const p = PETS.find(x=>x.eq); const el = document.getElementById('hero');
+  if (!p){ el.innerHTML = `<div class="panel rounded-2xl p-8 text-center text-slate-600"><div class="text-[13px] fserif">Chưa có linh thú kề bên.</div><div class="text-[11px] mt-1">Đưa một con xuất trận, để nó trợ lực cho ngươi.</div></div>`; return; }
+  const q = QC[p.q], e = EC[p.he];
+  const statTiles = ['congKich','hoThe','neTranh','menhTrung','sinhLuc'].filter(k=>p.stats[k]).map(k=>`
+    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style="background:rgba(20,184,166,.09);border:1px solid rgba(20,184,166,.25)">
+      <span class="text-jade">${svg(k,'w-4 h-4')}</span><span class="text-[11.5px] text-slate-300 flex-1">${SLF[k]}</span>
+      <span class="text-jade font-bold text-[13px]">+${p.stats[k]}</span></div>`).join('');
+  const affixes = p.opts.map(o=>`<span class="text-[10px] px-2 py-0.5 rounded-full" style="color:${q.hex};background:${q.hex}14;border:1px solid ${q.hex}40">${o.n} ${o.v}</span>`).join('');
+  const sk = p.skills;
+  const tabs = STATES.map(s=>`<button onclick="petState='${s.id}';renderHero()" class="px-3 py-1 rounded-md text-[11.5px] font-semibold transition ${petState===s.id?'bg-jade/20 text-jade border border-jade/40':'text-slate-500 border border-transparent hover:text-slate-300'}">${s.name}</button>`).join('');
+  const bl = stateBlurb(p);
+  const toneBg = { jade:'rgba(20,184,166,.08)', amber:'rgba(245,158,11,.08)', cyan:'rgba(34,211,238,.08)', emerald:'rgba(16,185,129,.08)' }[bl.tone];
+  const toneBd = { jade:'rgba(20,184,166,.3)', amber:'rgba(245,158,11,.3)', cyan:'rgba(34,211,238,.3)', emerald:'rgba(16,185,129,.3)' }[bl.tone];
+
+  el.innerHTML = `
+  <div class="relative panel rounded-2xl overflow-hidden" style="border-color:${q.hex}55;background:linear-gradient(150deg,${q.hex}12,#0f1521 62%)">
+    <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 60px ${q.hex}22"></div>
+    <div class="relative grid md:grid-cols-[270px_1fr] gap-4 p-4">
+
+      <!-- TRÁI: art + thanh -->
+      <div class="space-y-2.5">
+        <div class="relative rounded-xl overflow-hidden bg-ink2" style="aspect-ratio:1/1;border:1px solid ${q.hex}40">
+          <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 50px ${q.hex}26"></div>
+          <img src="${art(p.base,p.evolved)}" class="absolute inset-0 w-full h-full object-contain" onerror="this.style.opacity=0">
+          <div class="absolute inset-x-0 bottom-0 h-16 pointer-events-none" style="background:radial-gradient(ellipse at 50% 100%, ${q.hex}33, transparent 70%)"></div>
+          <span class="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded font-bold" style="color:${q.hex};background:rgba(0,0,0,.5);border:1px solid ${q.hex}66">${q.name}</span>
+          <span class="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" style="color:${e.hex};background:rgba(0,0,0,.5);border:1px solid ${e.hex}55"><span class="w-1.5 h-1.5 rounded-full" style="background:${e.hex};box-shadow:0 0 6px ${e.hex}"></span>${e.name}</span>
+          ${p.evolved?`<span class="absolute bottom-2 left-2 text-[9px] px-1.5 py-0.5 rounded font-bold text-amber-300" style="background:rgba(0,0,0,.55);border:1px solid #f59e0b66">Đã Thức Tỉnh</span>`:''}
+        </div>
+        ${bar('Thể Lực', p.tl, 100, p.tl<25?'#fb7185':'#22d3ee')}
+        ${bar('Tu Vi', p.xp, p.xpMax, q.hex, `Lv ${p.lv} → ${p.lv+1} · ${p.xp}/${p.xpMax}`)}
+      </div>
+
+      <!-- PHẢI: lý lịch -->
+      <div class="flex flex-col gap-3 min-w-0">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="lbl text-slate-500 mb-0.5">Linh Thú Kề Bên</div>
+            <div class="text-[22px] fserif font-bold leading-tight ${q.text}">${p.name}</div>
+            <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <span class="text-[10px] px-1.5 py-0.5 rounded ${q.text}" style="background:${q.hex}1a;border:1px solid ${q.hex}44">${q.name}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700">Cảnh Lv ${p.lv}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700">${p.role}</span>
+            </div>
+          </div>
+          <div class="shrink-0 flex flex-col gap-1.5 w-[116px]">
+            <button class="w-full py-1.5 rounded-lg text-[12px] font-semibold text-jade border border-jade/40 hover:bg-jade/10 transition">Thu Hồi</button>
+            <button class="w-full py-1.5 rounded-lg text-[11px] font-semibold ${p.evolved?'text-amber-300/40 border border-amber-800/40 cursor-not-allowed':'text-amber-300 border border-amber-600/50 hover:bg-amber-500/10'} transition" title="${p.evolved?'Đã thức tỉnh':'Đạt trần cảnh giới để thức tỉnh'}">${p.evolved?'Đã Thức Tỉnh':'Thức Tỉnh'}</button>
+          </div>
+        </div>
+
+        <!-- trợ lực (cộng thẳng toàn bộ) -->
+        <div>
+          <div class="flex items-baseline gap-2 mb-1.5"><span class="text-[12px] text-jade font-semibold">Trợ Lực Cho Chủ Nhân</span><span class="text-[10px] text-slate-600">· cộng thẳng vào chủ</span></div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">${statTiles}</div>
+        </div>
+
+        <!-- tuyệt kĩ + dị bẩm -->
+        <div class="grid sm:grid-cols-2 gap-x-4 gap-y-2">
+          <div>
+            <div class="lbl mb-1.5">Tuyệt Kĩ</div>
+            <div class="space-y-1.5">
+              <div class="flex items-start gap-2 px-2 py-1.5 rounded-lg bg-ink3/60 border border-slate-700/60" title="${sk.passive.desc}">
+                <span class="text-slate-400 mt-0.5">${svg('passive','w-4 h-4')}</span>
+                <div class="min-w-0"><div class="text-[11.5px] text-slate-200 font-medium">${sk.passive.name} <span class="text-[9px] text-slate-500 font-normal">· bị động</span></div><div class="text-[10px] text-slate-500 leading-snug">${sk.passive.desc}</div></div>
+              </div>
+              <div class="flex items-start gap-2 px-2 py-1.5 rounded-lg" style="background:${q.hex}10;border:1px solid ${q.hex}33" title="${sk.active.desc}">
+                <span style="color:${q.hex}" class="mt-0.5">${svg('active','w-4 h-4')}</span>
+                <div class="min-w-0"><div class="text-[11.5px] font-medium ${q.text}">${sk.active.name} <span class="text-[9px] text-slate-500 font-normal">· chủ động</span></div><div class="text-[10px] text-slate-500 leading-snug">${sk.active.desc}</div></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="lbl mb-1.5">Dị Bẩm</div>
+            <div class="flex flex-wrap gap-1.5 content-start">${affixes}</div>
+          </div>
+        </div>
+
+        <!-- trạng thái -->
+        <div class="pt-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1.5">${tabs}</div>
+          <div class="text-[11.5px] text-slate-300 px-3 py-2 rounded-lg leading-snug" style="background:${toneBg};border:1px solid ${toneBd}">${bl.text}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function petCard(p){
+  const q = QC[p.q], e = EC[p.he];
+  const top = Object.entries(p.stats).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const statline = top.map(([k,v])=>`<span class="text-slate-500">${SL[k]}</span> <b class="text-slate-300">${v}</b>`).join('<span class="text-slate-700"> · </span>');
+  const btn = p.eq
+    ? `<button class="w-full mt-auto py-1.5 text-[11px] rounded font-semibold text-jade border border-jade/45 hover:bg-jade/10 transition">Thu Hồi</button>`
+    : `<button class="w-full mt-auto py-1.5 text-[11px] rounded font-semibold text-ink bg-jade/85 hover:bg-jade transition">Đưa Xuất Trận</button>`;
+  return `<div class="rounded-xl overflow-hidden h-full flex flex-col" style="border:1px solid ${p.eq?q.hex+'aa':q.hex+'55'};background:linear-gradient(160deg,${q.hex}0e,#0f1521 70%);${p.eq?'box-shadow:0 0 0 1px '+q.hex+'55, inset 0 0 26px '+q.hex+'1f':''}">
+    <div class="relative bg-ink2" style="aspect-ratio:1/1">
+      <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 28px ${q.hex}1c"></div>
+      <img src="${art(p.base,p.evolved)}" class="absolute inset-0 w-full h-full object-contain" onerror="this.style.opacity=0">
+      <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded font-bold" style="color:${q.hex};background:rgba(0,0,0,.5);border:1px solid ${q.hex}55">${q.name}</span>
+      <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded bg-black/55 text-slate-200">Lv ${p.lv}</span>
+      <span class="absolute bottom-1.5 right-1.5 w-2 h-2 rounded-full" style="background:${e.hex};box-shadow:0 0 6px ${e.hex}" title="${e.name}"></span>
+      ${p.eq?`<span class="absolute bottom-1.5 left-1.5 flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-jade"><svg viewBox="0 0 24 24" class="w-2.5 h-2.5" fill="currentColor"><path d="M5 3h14v18l-7-4-7 4z"/></svg>Tại Trận</span>`:''}
+      <!-- thanh Thể Lực mảnh (P4) -->
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-black/40"><div class="h-full" style="width:${p.tl}%;background:${p.tl<25?'#fb7185':'#22d3ee'}"></div></div>
+    </div>
+    <div class="p-2 flex-1 flex flex-col gap-1">
+      <div class="text-[13px] font-bold fserif truncate ${q.text}">${p.name}</div>
+      <div class="text-[9.5px] -mt-0.5" style="color:${e.hex}cc">${e.name} · <span class="text-slate-500">${p.role}</span></div>
+      <div class="text-[10px] leading-tight">${statline}</div>
+      <div class="flex items-center gap-1 text-[9px] text-slate-500"><span class="px-1.5 py-0.5 rounded-full" style="color:${q.hex};background:${q.hex}14;border:1px solid ${q.hex}33">${p.opts.length} dị bẩm</span><span>· 2 tuyệt kĩ</span></div>
+      ${btn}
+    </div>
+  </div>`;
+}
+
+function renderIncubator(){
+  const q = QC[EGG.tier];
+  document.getElementById('incubator').innerHTML = `
+  <div class="rounded-xl border p-3" style="border-color:rgba(245,158,11,.4);background:rgba(120,53,15,.12)">
+    <div class="flex gap-3">
+      <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink2 shrink-0">
+        <img src="${art(EGG.base,false)}" class="absolute inset-0 w-full h-full object-contain opacity-80" onerror="this.style.opacity=0">
+        <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 18px rgba(245,158,11,.35)"></div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-baseline gap-1.5"><span class="text-[13px] font-bold fserif text-slate-200">${EGG.name}</span><span class="text-[9.5px] px-1.5 py-0.5 rounded font-bold ${q.text}" style="background:rgba(0,0,0,.4);border:1px solid #ffffff1a">${EGG.tierName}</span></div>
+        <div class="mt-1.5 h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full bg-amber-500/85" style="width:${EGG.pct}%"></div></div>
+        <div class="mt-1 flex items-center justify-between text-[10.5px]"><span class="text-slate-500 italic">Chân thân còn giấu trong vỏ noãn…</span><span class="text-amber-300 font-mono">${EGG.time}</span></div>
+      </div>
+    </div>
+    <button class="w-full mt-2.5 py-1.5 rounded text-[11.5px] font-semibold text-slate-100 bg-rose-800/70 hover:bg-rose-700 transition flex items-center justify-center gap-1.5">Thúc Nở <span class="text-[10px] text-rose-200/85">${EGG.cost} Hồn Thạch</span></button>
+  </div>`;
+}
+function eggRow(e){
+  const q = QC[e.q];
+  return `<div class="flex items-center gap-2.5 p-2.5 rounded bg-ink3/50 border border-slate-800">
+    <div class="w-10 h-10 rounded bg-ink flex items-center justify-center shrink-0" style="box-shadow:inset 0 0 0 1px ${q.hex}44"><svg viewBox="0 0 24 24" class="w-5 h-5" style="color:${q.hex}" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c3 3 5 6.5 5 10a5 5 0 11-10 0c0-3.5 2-7 5-10z"/></svg></div>
+    <div class="flex-1 min-w-0"><div class="text-[12px] font-medium truncate ${q.text}">${e.name} <span class="text-slate-500">×${e.qty}</span></div><div class="text-[10px] text-slate-500">Ủ ${e.dur} · nở thú cùng dòng, chân thân tùy duyên</div></div>
+    <button class="px-3 py-1.5 text-[11px] rounded font-semibold text-slate-500 bg-slate-800/60 cursor-not-allowed shrink-0">Lò Đang Bận</button>
+  </div>`;
+}
+
+function render(){
+  renderHero();
+  document.getElementById('roster-count').textContent = '· ' + PETS.length + ' thú đang dưỡng';
+  document.getElementById('roster').innerHTML = PETS.map(petCard).join('');
+  renderIncubator();
+  document.getElementById('eggs').innerHTML = `<div class="lbl mb-1">Noãn trong tay nải</div>` + EGGS.map(eggRow).join('');
+}
+render();
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@
 // ============================================================
 import { ITEMS } from '../data/items.js';
 import { removeItem } from './inventory.js';
+import { levelFromXp } from './leveling.js';
 import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID } from '../data/pets.js';
 
 const STAT_KEYS = ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc'];
@@ -127,5 +128,26 @@ export function petStatAt(pet) {
 
 export function activePet(state) { return (state.pets || []).find((p) => p.equipped) || null; }
 
-// Bonus stat từ pet ĐANG MANG (chưa cap — CAP áp ở derivedStats stats.js).
+// Bonus stat từ pet ĐANG MANG — cộng THẲNG toàn bộ vào derivedStats (full-add, KHÔNG trần).
 export function petBonus(state) { const p = activePet(state); return p ? petStatAt(p) : null; }
+
+// ============================================================
+// P4 — EXP & LÊN CẤP. Pet đang mang ăn 50% EXP/trận; trần cấp = cấp Chiến Đấu − lệch phẩm.
+// ============================================================
+export function petXpToNext(level) { return Math.round(40 * Math.pow(level, 1.5)); }      // E.1
+const PET_LV_OFFSET = { phamPham: 10, luongPham: 6, tinhPham: 3 };                         // phẩm thấp trần thấp hơn
+export function petLevelCap(state, pet) {
+  const off = PET_LV_OFFSET[pet.quality] || 0;
+  return Math.max(1, levelFromXp(state.skills?.chienDau?.xp || 0) - off);
+}
+// Cộng EXP cho pet ĐANG MANG, lên cấp tới trần. Trả { pet, leveled } hoặc null.
+export function gainPetXp(state, amount) {
+  const p = activePet(state);
+  if (!p || !(amount > 0)) return null;
+  const cap = petLevelCap(state, p);
+  p.xp = (p.xp || 0) + amount;
+  let leveled = 0;
+  while (p.level < cap && p.xp >= petXpToNext(p.level)) { p.xp -= petXpToNext(p.level); p.level++; leveled++; }
+  if (p.level >= cap) p.xp = Math.min(p.xp, petXpToNext(p.level));   // tới trần: thanh đầy, không tràn
+  return { pet: p, leveled };
+}

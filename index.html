@@ -1885,140 +1885,175 @@
                 <span class="w-8 h-8 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('pets','🐾')"></span>
                 <div class="text-[28px] gold-text leading-none fserif">Linh Thú</div>
               </div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif">Thu phục yêu thú thành bạn đồng hành — ấp trứng nở linh thú, dắt theo để mạnh thêm. Phẩm chất càng cao, càng lên cấp càng bá.</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif">Thu phục yêu thú sơn dã, ấp noãn dưỡng thành — một con linh thú kề vai, đường giang hồ bớt phần đơn độc.</div>
             </div>
           </div>
 
-          <div class="grid lg:grid-cols-[1fr_300px] gap-3 items-start">
-            <!-- TRÁI: roster + ấp trứng -->
-            <div class="space-y-3">
-              <!-- Roster -->
-              <div class="panel rounded-xl p-4">
-                <div class="text-jade font-bold fserif mb-3">Linh Thú Của Ta <span class="text-slate-500 text-[12px] font-normal" x-text="'· ' + $store.game.petList.length + ' con'"></span></div>
-                <template x-if="$store.game.petList.length===0">
-                  <div class="text-center text-slate-600 text-[12.5px] py-10">Chưa có Linh Thú nào.<br><span class="text-[11px]">Ấp trứng (rơi từ Yêu Vương) để có bạn đồng hành.</span></div>
-                </template>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <template x-for="p in $store.game.petList" :key="p.id">
-                    <div class="rounded-xl overflow-hidden border bg-ink3/40 h-full flex flex-col" :class="(p.equipped?'ring-1 ring-jade ':'') + $store.game.petQ(p).border" x-data="{ get q(){ return $store.game.petQ(p) }, get s(){ return $store.game.petStat(p) } }">
-                      <div class="relative aspect-square bg-ink2 flex items-center justify-center text-5xl">
-                        <span x-text="$store.game.petEmoji(p)"></span>
-                        <div class="absolute inset-0" x-html="$store.game.petArtTag(p)"></div>
-                        <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-black/50 border font-bold" :class="q.text+' '+q.border" x-text="q.name"></span>
-                        <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded bg-black/55 text-slate-200" x-text="'Lv '+p.level"></span>
-                        <template x-if="p.equipped"><span class="absolute bottom-0 inset-x-0 text-center text-[10px] py-0.5 bg-jade/85 text-ink font-bold">✓ Đang theo</span></template>
-                      </div>
-                      <div class="p-2 flex-1 flex flex-col gap-1">
-                        <div class="flex items-baseline gap-1.5 flex-wrap">
-                          <span class="text-[13px] font-bold fserif" :class="q.text" x-text="$store.game.petName(p)"></span>
-                          <span class="text-[9px] text-slate-500" x-text="$store.game.petHeName(p)+' · '+$store.game.petRole(p)"></span>
-                        </div>
-                        <div class="flex flex-wrap gap-x-2 gap-y-0.5">
-                          <template x-for="(v,k) in s" :key="k"><span class="text-[10px] text-slate-400"><span x-text="$store.game.statLabelShort(k)"></span> <b class="text-slate-200" x-text="$store.game.fmt(v)"></b></span></template>
-                        </div>
-                        <div class="flex flex-wrap gap-1" x-show="p.opts.length">
-                          <template x-for="o in p.opts" :key="o.id"><span class="text-[9px] px-1 py-0.5 rounded bg-jade/10 text-jade/90 border border-jade/20" x-text="$store.game.petOptLabel(o)"></span></template>
-                        </div>
-                        <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="w-full mt-auto py-1 text-[11px] rounded font-semibold transition" :class="p.equipped?'bg-slate-800 text-slate-400 hover:text-slate-200':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu về':'Dắt theo'"></button>
-                      </div>
-                    </div>
-                  </template>
+          <!-- HERO: Linh Thú Kề Bên (full-width) -->
+          <template x-if="!$store.game.activePetObj">
+            <div class="panel rounded-2xl px-6 py-8 text-center">
+              <div class="lbl text-slate-500 mb-1">Linh Thú Kề Bên</div>
+              <div class="text-[14px] fserif text-slate-300">Chưa có linh thú kề bên.</div>
+              <div class="text-[11.5px] text-slate-500 mt-1">Đưa một con xuất trận, để nó trợ lực cho ngươi trên đường giang hồ.</div>
+            </div>
+          </template>
+          <template x-if="$store.game.activePetObj">
+            <div x-data="{ get p(){ return $store.game.activePetObj }, get q(){ return $store.game.petQ($store.game.activePetObj) }, get qh(){ return $store.game.petQHex($store.game.activePetObj) }, get el(){ return $store.game.petElColor($store.game.activePetObj) } }"
+                 class="relative panel rounded-2xl overflow-hidden" :style="'border-color:'+qh+'55;background:linear-gradient(150deg,'+qh+'12,#0f1521 62%)'">
+              <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 60px '+qh+'22'"></div>
+              <div class="relative grid md:grid-cols-[260px_1fr] gap-4 p-4">
+                <!-- art-đài + Tu Vi -->
+                <div class="space-y-2.5">
+                  <div class="relative aspect-square rounded-xl overflow-hidden bg-ink2 flex items-center justify-center text-6xl" :style="'border:1px solid '+qh+'40'">
+                    <span x-text="$store.game.petEmoji(p)"></span>
+                    <div class="absolute inset-0" x-html="$store.game.petArtTag(p)"></div>
+                    <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 50px '+qh+'26'"></div>
+                    <div class="absolute inset-x-0 bottom-0 h-16 pointer-events-none" :style="'background:radial-gradient(ellipse at 50% 100%, '+qh+'33, transparent 70%)'"></div>
+                    <span class="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded border font-bold" :class="q.text+' '+q.border" style="background:rgba(0,0,0,.5)" x-text="q.name"></span>
+                    <span class="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" :style="'color:'+el+';background:rgba(0,0,0,.5);border:1px solid '+el+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+el+';box-shadow:0 0 6px '+el"></span><span x-text="$store.game.petHeName(p)"></span></span>
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Tu Vi</span><span class="text-slate-500" x-text="'Cảnh Lv '+p.level+' · '+$store.game.fmt(p.xp||0)+'/'+$store.game.fmt($store.game.petXpNext(p))"></span></div>
+                    <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+$store.game.petXpPct(p)+'%;background:'+qh"></div></div>
+                  </div>
                 </div>
-              </div>
-              <!-- Lò Ấp Noãn -->
-              <div class="panel rounded-xl p-4">
-                <div class="lbl mb-2.5 text-slate-400">Lò Ấp Noãn — ủ trứng nở Linh Thú (trứng rơi từ Yêu Vương)</div>
-
-                <!-- Lò: đang ấp / đã nở -->
-                <template x-if="$store.game.hatchery">
-                  <div class="mb-3 rounded-xl border p-3 flex items-center gap-3" :class="$store.game.hatchReady ? 'border-jade/50 bg-jade/5' : 'border-amber-700/40 bg-amber-900/10'">
-                    <div class="w-14 h-14 rounded-lg bg-ink2 flex items-center justify-center text-3xl shrink-0 relative overflow-hidden">
-                      <span :class="$store.game.hatchReady ? '' : 'opacity-70'" x-text="$store.game.hatchEmoji()"></span>
-                      <div class="absolute inset-0" :class="$store.game.hatchReady ? '' : 'opacity-70'" x-html="$store.game.hatchArtTag()"></div>
-                      <div class="absolute inset-0 pointer-events-none" :style="$store.game.hatchReady ? 'box-shadow:inset 0 0 22px rgba(52,211,153,.45)' : 'box-shadow:inset 0 0 18px rgba(245,158,11,.3)'"></div>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-baseline gap-1.5 flex-wrap">
-                        <span class="text-[13.5px] font-bold fserif text-slate-200" x-text="$store.game.hatchSpeciesName()"></span>
-                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-black/45 border border-white/10 font-bold" :class="$store.game.hatchEggTierColor()" x-text="$store.game.hatchEggTierName()"></span>
+                <!-- lý lịch -->
+                <div class="flex flex-col gap-3 min-w-0">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="lbl text-slate-500 mb-0.5">Linh Thú Kề Bên</div>
+                      <div class="text-[22px] fserif font-bold leading-tight" :class="q.text" x-text="$store.game.petName(p)"></div>
+                      <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        <span class="text-[10px] px-1.5 py-0.5 rounded border" :class="q.text+' '+q.border" x-text="q.name"></span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="'Cảnh Lv '+p.level"></span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="$store.game.petRole(p)"></span>
                       </div>
-                      <template x-if="!$store.game.hatchReady">
-                        <div class="mt-1.5">
-                          <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full bg-amber-500/85 transition-all duration-700" :style="'width:'+$store.game.hatchPct+'%'"></div></div>
-                          <div class="mt-1 flex items-center justify-between text-[10.5px]">
-                            <span class="text-slate-500 italic">Phẩm chất còn ẩn trong noãn…</span>
-                            <span class="text-amber-300 font-mono" x-text="$store.game.hatchTimeLeft"></span>
-                          </div>
-                        </div>
-                      </template>
-                      <template x-if="$store.game.hatchReady">
-                        <div class="mt-1 text-[11.5px] text-jade">Noãn đã rạn vỏ — khai noãn để lộ chân thân.</div>
-                      </template>
                     </div>
-                    <div class="shrink-0 self-stretch flex items-center">
-                      <template x-if="!$store.game.hatchReady">
-                        <button @click="$store.game.skipIncubate()" :disabled="!$store.game.canAffordHatchSkip" class="px-3 py-1.5 rounded font-semibold bg-rose-800/70 hover:bg-rose-700 text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight">
-                          <span class="text-[11.5px]">Thúc Nở</span>
-                          <span class="text-[9.5px]" :class="$store.game.canAffordHatchSkip ? 'text-rose-200/85' : 'text-rose-300'" x-text="$store.game.fmt($store.game.hatchSkipCost)+' Hồn Thạch'"></span>
-                        </button>
-                      </template>
-                      <template x-if="$store.game.hatchReady">
-                        <button @click="$store.game.collectHatch()" class="px-4 py-2 text-[12.5px] rounded font-bold bg-jade/90 hover:bg-jade text-ink">Khai Noãn</button>
+                    <button @click="$store.game.unequipActivePet()" class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-jade border border-jade/40 hover:bg-jade/10 transition">Thu Hồi</button>
+                  </div>
+                  <div>
+                    <div class="flex items-baseline gap-2 mb-1.5"><span class="text-[12px] text-jade font-semibold">Trợ Lực Cho Chủ Nhân</span><span class="text-[10px] text-slate-600">· cộng thẳng vào chủ</span></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      <template x-for="(v,k) in $store.game.petStat(p)" :key="k">
+                        <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-jade/10 border border-jade/25">
+                          <span class="text-jade shrink-0" x-html="$store.game.statIco(k)"></span>
+                          <span class="text-[11.5px] text-slate-300 flex-1 truncate" x-text="$store.game.statLabelFull(k)"></span>
+                          <span class="text-jade font-bold text-[13px]" x-text="'+'+$store.game.fmt(v)"></span>
+                        </div>
                       </template>
                     </div>
                   </div>
-                </template>
-                <template x-if="!$store.game.hatchery">
-                  <div class="mb-3 rounded-xl border border-dashed border-slate-700/70 text-center text-slate-600 text-[12px] py-4">Lò ấp đang trống — chọn một quả trứng bên dưới để ủ.</div>
-                </template>
-
-                <!-- Danh sách trứng trong túi -->
-                <template x-if="$store.game.eggsInInventory.length===0">
-                  <div class="text-center text-slate-600 text-[12px] py-6">Chưa có trứng nào. Hạ Yêu Vương để nhặt Trứng Linh Thú.</div>
-                </template>
-                <div class="space-y-2">
-                  <template x-for="e in $store.game.eggsInInventory" :key="e.id">
-                    <div class="flex items-center gap-3 p-2.5 rounded bg-ink3/50 border border-slate-800">
-                      <div class="w-11 h-11 rounded bg-ink flex items-center justify-center text-xl shrink-0 overflow-hidden" x-html="$store.game.ico(e.id, e.item.icon)"></div>
-                      <div class="flex-1 min-w-0">
-                        <div class="text-[13px] font-medium truncate" :class="($store.game.QUALITY[e.item.quality]||{}).text" x-text="e.item.name + ' ×' + e.qty"></div>
-                        <div class="text-[10px] text-slate-500" x-text="'Ủ ' + $store.game.hatchDurLabel(e.item.quality) + ' · nở Linh Thú cùng dòng, phẩm chất ngẫu nhiên'"></div>
-                      </div>
-                      <button @click="$store.game.startIncubate(e.id)" :disabled="!!$store.game.hatchery" class="px-3.5 py-1.5 text-[12px] rounded bg-amber-600/85 hover:bg-amber-500 text-ink font-semibold shrink-0 disabled:opacity-40 disabled:cursor-not-allowed" x-text="$store.game.hatchery ? 'Lò bận' : 'Đặt Ấp'"></button>
+                  <div x-show="p.opts.length">
+                    <div class="lbl mb-1.5">Dị Bẩm</div>
+                    <div class="flex flex-wrap gap-1.5">
+                      <template x-for="o in p.opts" :key="o.id"><span class="text-[10px] px-2 py-0.5 rounded-full border" :class="q.text+' '+q.border" :style="'background:'+qh+'14'" x-text="$store.game.petOptLabel(o)"></span></template>
                     </div>
-                  </template>
+                  </div>
                 </div>
               </div>
             </div>
+          </template>
 
-            <!-- PHẢI: Đang Dắt Theo -->
-            <div class="panel rounded-xl p-4 lg:sticky lg:top-0">
-              <div class="lbl mb-2 text-slate-400">Đang Dắt Theo</div>
-              <template x-if="!$store.game.activePetObj">
-                <div class="text-center text-slate-600 text-[12px] py-10">Chưa dắt Linh Thú nào.<br><span class="text-[10.5px]">Dắt 1 con để cộng chỉ số vào nhân vật.</span></div>
+          <div class="grid lg:grid-cols-[1fr_320px] gap-3 items-start">
+            <!-- TRÁI: Linh Thú Của Ta -->
+            <div class="panel rounded-xl p-4">
+              <div class="flex items-baseline justify-between mb-3">
+                <div class="text-jade font-bold fserif">Linh Thú Của Ta <span class="text-slate-500 text-[12px] font-normal" x-text="'· ' + $store.game.petList.length + ' thú đang dưỡng'"></span></div>
+                <span class="text-[11px] text-slate-600 hidden sm:block">Dắt 1 con kề bên — phần còn lại an dưỡng</span>
+              </div>
+              <template x-if="$store.game.petList.length===0">
+                <div class="text-center text-slate-600 text-[12.5px] py-10">Chuồng thú còn vắng bóng.<br><span class="text-[11px]">Hạ Yêu Vương đoạt noãn, ấp nở con linh thú đầu tiên kề vai.</span></div>
               </template>
-              <template x-if="$store.game.activePetObj">
-                <div x-data="{ get p(){ return $store.game.activePetObj }, get q(){ return $store.game.petQ($store.game.activePetObj) } }">
-                  <div class="rounded-xl overflow-hidden border bg-ink2 mb-3" :class="q.border">
-                    <div class="aspect-[4/3] bg-ink3 flex items-center justify-center text-6xl relative">
+              <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                <template x-for="p in $store.game.petList" :key="p.id">
+                  <div class="rounded-xl overflow-hidden h-full flex flex-col" :class="(p.equipped?'ring-1 ring-jade ':'')+$store.game.petQ(p).border" x-data="{ get q(){ return $store.game.petQ(p) }, get qh(){ return $store.game.petQHex(p) }, get el(){ return $store.game.petElColor(p) }, get s(){ return $store.game.petStat(p) } }" :style="'background:linear-gradient(160deg,'+qh+'0e,#0f1521 70%)'+(p.equipped?';box-shadow:inset 0 0 26px '+qh+'1f':'')">
+                    <div class="relative aspect-square bg-ink2 flex items-center justify-center text-5xl">
                       <span x-text="$store.game.petEmoji(p)"></span>
                       <div class="absolute inset-0" x-html="$store.game.petArtTag(p)"></div>
-                      <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink to-transparent pt-8 pb-2 px-3">
-                        <div class="text-base font-bold fserif" :class="q.text" x-text="$store.game.petName(p)"></div>
-                        <div class="text-[10px] text-slate-400" x-text="$store.game.petHeName(p)+' · '+q.name+' · Lv '+p.level"></div>
+                      <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 28px '+qh+'1c'"></div>
+                      <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded border font-bold" :class="q.text+' '+q.border" style="background:rgba(0,0,0,.5)" x-text="q.name"></span>
+                      <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded bg-black/55 text-slate-200" x-text="'Lv '+p.level"></span>
+                      <span class="absolute bottom-1.5 right-1.5 w-2 h-2 rounded-full" :style="'background:'+el+';box-shadow:0 0 6px '+el" :title="$store.game.petHeName(p)"></span>
+                      <template x-if="p.equipped"><span class="absolute bottom-1.5 left-1.5 flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-jade"><svg viewBox="0 0 24 24" class="w-2.5 h-2.5" fill="currentColor"><path d="M5 3h14v18l-7-4-7 4z"/></svg>Tại Trận</span></template>
+                    </div>
+                    <div class="p-2 flex-1 flex flex-col gap-1">
+                      <div class="text-[13px] font-bold fserif truncate" :class="q.text" x-text="$store.game.petName(p)"></div>
+                      <div class="text-[9.5px] -mt-0.5" :style="'color:'+el+'cc'"><span x-text="$store.game.petHeName(p)"></span> · <span class="text-slate-500" x-text="$store.game.petRole(p)"></span></div>
+                      <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+                        <template x-for="(v,k) in s" :key="k"><span class="text-[10px] text-slate-400"><span x-text="$store.game.statLabelShort(k)"></span> <b class="text-slate-200" x-text="$store.game.fmt(v)"></b></span></template>
                       </div>
+                      <div class="flex items-center gap-1" x-show="p.opts.length"><span class="text-[9px] px-1.5 py-0.5 rounded-full border" :class="q.text+' '+q.border" :style="'background:'+qh+'14'" x-text="p.opts.length+' dị bẩm'"></span></div>
+                      <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="w-full mt-auto py-1 text-[11px] rounded font-semibold transition" :class="p.equipped?'text-jade border border-jade/45 hover:bg-jade/10':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu Hồi':'Đưa Xuất Trận'"></button>
                     </div>
                   </div>
-                  <div class="text-[11px] text-jade mb-1.5 font-medium">Cộng vào nhân vật <span class="text-slate-500">(trần ≤12%/chỉ số)</span>:</div>
-                  <div class="space-y-1">
-                    <template x-for="(v,k) in ($store.game.activePetBonusApplied()||{})" :key="k">
-                      <div class="flex items-center justify-between text-[12px] px-2.5 py-1.5 rounded bg-jade/10 border border-jade/25"><span class="text-slate-300" x-text="$store.game.statLabelShort(k)"></span><span class="text-jade font-bold" x-text="'+'+$store.game.fmt(v)"></span></div>
-                    </template>
-                    <template x-if="!Object.keys($store.game.activePetBonusApplied()||{}).length"><div class="text-[11px] text-slate-500 text-center py-2">Không cộng chỉ số.</div></template>
+                </template>
+              </div>
+            </div>
+
+            <!-- PHẢI: Lò Ấp Noãn -->
+            <div class="panel rounded-xl p-4 lg:sticky lg:top-4">
+              <div class="text-jade font-bold fserif">Lò Ấp Noãn</div>
+              <div class="text-[11px] text-slate-500 mb-3 fserif italic">Ủ noãn yêu thú, ngày đêm chờ ngày phá vỏ.</div>
+
+              <!-- Lò: đang ấp / đã nở -->
+              <template x-if="$store.game.hatchery">
+                <div class="mb-3 rounded-xl border p-3 flex items-center gap-3" :class="$store.game.hatchReady ? 'border-jade/50 bg-jade/5' : 'border-amber-700/40 bg-amber-900/10'">
+                  <div class="w-14 h-14 rounded-lg bg-ink2 flex items-center justify-center text-3xl shrink-0 relative overflow-hidden">
+                    <span :class="$store.game.hatchReady ? '' : 'opacity-70'" x-text="$store.game.hatchEmoji()"></span>
+                    <div class="absolute inset-0" :class="$store.game.hatchReady ? '' : 'opacity-70'" x-html="$store.game.hatchArtTag()"></div>
+                    <div class="absolute inset-0 pointer-events-none" :style="$store.game.hatchReady ? 'box-shadow:inset 0 0 22px rgba(52,211,153,.45)' : 'box-shadow:inset 0 0 18px rgba(245,158,11,.3)'"></div>
                   </div>
-                  <button @click="$store.game.unequipActivePet()" class="w-full mt-3 py-2 rounded-lg text-[12px] font-semibold bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-300">Thu về</button>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-baseline gap-1.5 flex-wrap">
+                      <span class="text-[13.5px] font-bold fserif text-slate-200" x-text="$store.game.hatchSpeciesName()"></span>
+                      <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-black/45 border border-white/10 font-bold" :class="$store.game.hatchEggTierColor()" x-text="$store.game.hatchEggTierName()"></span>
+                    </div>
+                    <template x-if="!$store.game.hatchReady">
+                      <div class="mt-1.5">
+                        <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full bg-amber-500/85 transition-all duration-700" :style="'width:'+$store.game.hatchPct+'%'"></div></div>
+                        <div class="mt-1 flex items-center justify-between text-[10.5px]">
+                          <span class="text-slate-500 italic">Chân thân còn giấu trong vỏ noãn…</span>
+                          <span class="text-amber-300 font-mono" x-text="$store.game.hatchTimeLeft"></span>
+                        </div>
+                      </div>
+                    </template>
+                    <template x-if="$store.game.hatchReady">
+                      <div class="mt-1 text-[11.5px] text-jade">Noãn đã rạn vỏ — khai noãn, để chân thân lộ diện.</div>
+                    </template>
+                  </div>
+                  <div class="shrink-0 self-stretch flex items-center">
+                    <template x-if="!$store.game.hatchReady">
+                      <button @click="$store.game.skipIncubate()" :disabled="!$store.game.canAffordHatchSkip" class="px-3 py-1.5 rounded font-semibold bg-rose-800/70 hover:bg-rose-700 text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight">
+                        <span class="text-[11.5px]">Thúc Nở</span>
+                        <span class="text-[9.5px]" :class="$store.game.canAffordHatchSkip ? 'text-rose-200/85' : 'text-rose-300'" x-text="$store.game.fmt($store.game.hatchSkipCost)+' Hồn Thạch'"></span>
+                      </button>
+                    </template>
+                    <template x-if="$store.game.hatchReady">
+                      <button @click="$store.game.collectHatch()" class="px-4 py-2 text-[12.5px] rounded font-bold bg-jade/90 hover:bg-jade text-ink">Khai Noãn</button>
+                    </template>
+                  </div>
                 </div>
               </template>
+              <template x-if="!$store.game.hatchery">
+                <div class="mb-3 rounded-xl border border-dashed border-slate-700/70 text-center text-slate-600 text-[12px] py-4">Lò ấp còn nguội — đặt một quả noãn vào, nhóm lửa chờ ngày phá vỏ.</div>
+              </template>
+
+              <!-- Danh sách trứng trong túi -->
+              <template x-if="$store.game.eggsInInventory.length===0">
+                <div class="text-center text-slate-600 text-[12px] py-6">Tay trắng chưa một quả noãn. Hạ Yêu Vương nơi hoang dã để đoạt lấy.</div>
+              </template>
+              <div class="space-y-2">
+                <template x-for="e in $store.game.eggsInInventory" :key="e.id">
+                  <div class="flex items-center gap-3 p-2.5 rounded bg-ink3/50 border border-slate-800">
+                    <div class="w-11 h-11 rounded bg-ink flex items-center justify-center text-xl shrink-0 overflow-hidden" x-html="$store.game.ico(e.id, e.item.icon)"></div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-[13px] font-medium truncate" :class="($store.game.QUALITY[e.item.quality]||{}).text" x-text="e.item.name + ' ×' + e.qty"></div>
+                      <div class="text-[10px] text-slate-500" x-text="'Ủ ' + $store.game.hatchDurLabel(e.item.quality) + ' · nở thú cùng dòng, chân thân tùy duyên'"></div>
+                    </div>
+                    <button @click="$store.game.startIncubate(e.id)" :disabled="!!$store.game.hatchery" class="px-3.5 py-1.5 text-[12px] rounded bg-amber-600/85 hover:bg-amber-500 text-ink font-semibold shrink-0 disabled:opacity-40 disabled:cursor-not-allowed" x-text="$store.game.hatchery ? 'Lò Đang Bận' : 'Đặt Ấp'"></button>
+                  </div>
+                </template>
+              </div>
             </div>
           </div>
         </div>

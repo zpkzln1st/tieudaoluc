@@ -11,6 +11,7 @@ import { combatProfile, boPhapStats, COMBAT_CYCLE_MS } from '../data/votong.js';
 import { travelTimeMs } from './travel.js';
 import { addItem, removeItem } from './inventory.js';
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
+import { gainPetXp } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { grantDungeon } from './dungeon.js';
@@ -246,6 +247,7 @@ export function advance(state, now) {
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;
       }
+      if (done > 0) gainPetXp(state, Math.round(gainXp * 0.5) * done);   // Linh Thú đang mang ăn 50% EXP/trận (gộp offline)
       const sk = state.skills['chienDau'];
       if (sk) { sk.gathered = (sk.gathered || 0) + done; sk.timeMs = (sk.timeMs || 0) + done * act.cycleMs; }
       act.sessionCount += done;
