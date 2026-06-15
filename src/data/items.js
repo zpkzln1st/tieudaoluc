@@ -27,6 +27,7 @@ export const ITEM_TYPES = {
   khac:    'Chiến Lợi Phẩm',
   trung:   'Trứng Linh Thú',
   doPho:   'Đồ Phổ',
+  moi:     'Mồi Câu',
 };
 
 export const ITEMS = {
@@ -145,6 +146,15 @@ export const ITEMS = {
   hachCoLinh:    { id: 'hachCoLinh',    name: 'Hạch Cổ Linh',    icon: '🔮', type: 'khac', quality: 'thanPham',  value: 1600,  boss: true, desc: 'Hạch linh cổ xà ngưng tụ ngàn năm — mầm chế tuyệt kĩ.' },
   cuuViTinh:     { id: 'cuuViTinh',     name: 'Tinh Cửu Vĩ',     icon: '🦊', type: 'khac', quality: 'coBan',    value: 5000,  boss: true, desc: 'Tinh hồn cửu vĩ hồ tiên — bảo vật chế tạo tuyệt học.' },
   maToTam:       { id: 'maToTam',       name: 'Tâm Ma Tổ',       icon: '💠', type: 'khac', quality: 'coBan',    value: 12000, boss: true, desc: 'Tâm ma tổ chủng cực phẩm — cốt lõi luyện tuyệt kĩ tối thượng.' },
+
+  // --- Mồi Câu (7 bậc, dụ cá theo vùng — bán ở Thương Điếm) ---
+  moiHongTrung:   { id: 'moiHongTrung',   name: 'Hồng Trùng',    icon: '🪱', type: 'moi', quality: 'phamPham',  value: 1,   desc: 'Giun đỏ đào từ bùn lầy ven sông, ngọ nguậy béo mầm. Mồi vỡ lòng rẻ tiền của mọi ngư phủ, dụ đám cá tạp nông cạn cắn câu lia lịa.' },
+  moiTepDong:     { id: 'moiTepDong',     name: 'Tép Đồng',      icon: '🦐', type: 'moi', quality: 'luongPham', value: 3,   desc: 'Tép nhỏ vỏ ánh đồng bắt nơi bãi đá ngầm, búng tanh tách trong vợt. Tươi giòn hấp dẫn, cá quen miệng khó lòng bỏ qua.' },
+  moiTuuKhuc:     { id: 'moiTuuKhuc',     name: 'Tửu Khúc',      icon: '🍡', type: 'moi', quality: 'tinhPham',  value: 8,   desc: 'Viên bột ủ men rượu nếp, lên hương nồng nàn theo dòng nước lan xa cả trượng. Cá tinh khôn nước sâu nghe mùi cũng phải ngoi lên đớp.' },
+  moiHanTuy:      { id: 'moiHanTuy',      name: 'Hàn Tủy Nhị',   icon: '🧊', type: 'moi', quality: 'tuyetPham', value: 15,  desc: 'Tủy của thú hàn vực nghiền trộn băng tiêu, lạnh ngắt mà tỏa tinh khí. Thả xuống nước băng, dụ được giống cá ngủ vùi dưới lớp băng vĩnh cửu Lăng Tiêu.' },
+  moiVanMong:     { id: 'moiVanMong',     name: 'Vân Mộng Nhị',  icon: '☁️', type: 'moi', quality: 'truyenThe', value: 32,  desc: 'Sương mây tầng Phù Không ngưng kết với phấn hoa linh thảo, nhẹ bẫng phiêu phiêu trên mặt nước. Lý ngư nuốt mây ngỡ là mây trời, đớp lấy chẳng chút nghi ngờ.' },
+  moiGiaoLongDan: { id: 'moiGiaoLongDan', name: 'Giao Long Đản', icon: '🥚', type: 'moi', quality: 'thanPham',  value: 65,  desc: 'Trứng giao long chưa nở vớt từ sương mù Tịch Ngữ, vỏ ánh thanh kim đập khẽ như còn sống. Hương huyết khí khiến hải giao ngư hung tợn cũng nổi cơn thèm khát lao tới.' },
+  moiThienCau:    { id: 'moiThienCau',    name: 'Thiên Câu Nhị', icon: '✨', type: 'moi', quality: 'coBan',     value: 95,  desc: 'Mảnh linh nhị tương truyền do ngư tiên Thiên Thành đánh rơi xuống nhân gian, tỏa thánh quang ôn nhuận. Thiên trì ngư vốn ung dung bất nhiễm trần, chỉ trước mồi này mới chịu cắn câu.' },
 };
 
 // Gộp catalog trang bị thật (eq_*) vào ITEMS — xem src/data/gear.js.

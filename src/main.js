@@ -22,7 +22,7 @@ import {
 import { deriveCombat, combatProfile, simFight, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, TIER_STYLE, tierStyle } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
-import { MERCHANT, SHOP_BUY } from './data/merchant.js';
+import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
 import { addItem, removeItem } from './engine/inventory.js';
 import { derivedStats } from './engine/stats.js';
 import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
@@ -103,6 +103,10 @@ if (!state.player.doPho || typeof state.player.doPho !== 'object') state.player.
 if (!state.player.cover) state.player.cover = { x: 50, y: 50, z: 1 };
 if (!state.player.face) state.player.face = { x: 50, y: 50, z: 1 };
 if (state.player.fxVer !== 3) { state.player.cover = { x: 50, y: 50, z: 1 }; state.player.face = { x: 50, y: 50, z: 1 }; state.player.fxVer = 3; } // đổi hệ khung -> background-position
+if (!Array.isArray(state.player.ownedAvatars)) state.player.ownedAvatars = []; // Ảnh Đại Diện đã mua (Thương Điếm); free = ảnh theo giới tính
+if (!Array.isArray(state.player.ownedCovers)) state.player.ownedCovers = [];   // Ảnh Bìa đã mua
+if (state.player.avatar && !state.player.ownedAvatars.includes(state.player.avatar)) state.player.ownedAvatars.push(state.player.avatar); // giữ ảnh đang dùng của save cũ
+if (state.player.coverImg && !state.player.ownedCovers.includes(state.player.coverImg)) state.player.ownedCovers.push(state.player.coverImg);
 if (state.travel) state.travel = null; // bỏ field cũ (Khinh Công giờ là activity 'travel')
 if (!state.dungeon) state.dungeon = { lastResult: null, history: [] }; // Bí Cảnh: kết quả lần chạy gần nhất + lịch sử
 // Tháo trang bị VƯỢT CẤP (combatLevel tụt do dev/sửa save) -> trả về túi, không cho hưởng chỉ số lậu
@@ -110,8 +114,9 @@ if (!state.dungeon) state.dungeon = { lastResult: null, history: [] }; // Bí C�
   const _cl = levelFromXp(state.skills?.chienDau?.xp || 0);
   for (const slot in (state.equipment || {})) {
     const id = state.equipment[slot]; const it = id && ITEMS[id];
-    const req = it && it.equip && it.equip.reqLevel;
-    if (req && _cl < req) { state.inventory[id] = (state.inventory[id] || 0) + 1; state.equipment[slot] = null; }
+    const e = it && it.equip;
+    const lvl = (e && e.gatherSkill) ? levelFromXp(state.skills?.[e.gatherSkill]?.xp || 0) : _cl; // công cụ: cấp NGHỀ
+    if (e && e.reqLevel && lvl < e.reqLevel) { state.inventory[id] = (state.inventory[id] || 0) + 1; state.equipment[slot] = null; }
   }
 })();
 if (state.dungeon.lastResult && !state.dungeon.lastResult.log) state.dungeon.lastResult = null; // bỏ kết quả format cũ (thiếu log) -> không bật modal rỗng
@@ -208,7 +213,7 @@ const SVG_PATHS = {
 const gameStore = {
   state,
   SKILLS, STATS, ITEMS, QUALITY, ITEM_TYPES, LOCATIONS, REALM_TIERS, AVATARS, COVERS, LOGIN_REWARDS, TUTORIAL_QUESTS, DAILY_QUESTS, NAV,
-  EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, CLASSES, CLASS_GROUPS, NGHE, ENEMIES, STANCES, MERCHANT, SHOP_BUY, LINH_THACH,
+  EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, CLASSES, CLASS_GROUPS, NGHE, ENEMIES, STANCES, MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE, LINH_THACH,
   CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, NGU_HANH, MON_PHAI, DUNGEONS, DUNGEON_BY_ID,
   view: 'profile',
   profileTab: 'profile',
@@ -388,11 +393,14 @@ const gameStore = {
     if (this.tutDone) return true;
     return this.periodClaimable('daily') + this.periodClaimable('weekly') + this.periodClaimable('monthly') > 0;
   },
-  selectAvatar(id) { this.state.player.avatar = id; },
-  get avatarId() { return this.state.player.avatar || (this.state.player.gender === 'nu' ? 'nu' : 'nam'); },
+  get freeAvatarId() { return this.state.player.gender === 'nu' ? 'nu' : 'nam'; }, // ảnh theo giới tính: free
+  ownsAvatar(id) { return id === this.freeAvatarId || (this.state.player.ownedAvatars || []).includes(id); },
+  ownsCover(id) { return (this.state.player.ownedCovers || []).includes(id); }, // 'Giống Avatar' (null) luôn free
+  selectAvatar(id) { if (id && !this.ownsAvatar(id)) { this.showToast('Chưa sở hữu Ảnh Đại Diện này — mua ở Thương Điếm.'); return; } this.state.player.avatar = id; },
+  get avatarId() { return this.state.player.avatar || this.freeAvatarId; },
   get avatarSrc() { return `images/avatars/${this.avatarId}.webp`; },
   // Ảnh BÌA (banner) tách riêng khỏi avatar — coverImg=null => giống avatar.
-  selectCover(id) { this.state.player.coverImg = id; },
+  selectCover(id) { if (id && !this.ownsCover(id)) { this.showToast('Chưa sở hữu Ảnh Bìa này — mua ở Thương Điếm.'); return; } this.state.player.coverImg = id; },
   get coverImgId() { return this.state.player.coverImg || this.avatarId; },
   get coverSrc() { return `images/avatars/${this.coverImgId}.webp`; },
   // --- Thu phóng + kéo thả: background-size (zoom) + background-position (pan, tự giới hạn, KHÔNG hở) ---
@@ -1248,13 +1256,32 @@ const gameStore = {
   },
 
   // ---------- Phường Thị ----------
-  merchantTab: 'mua',
+  merchantTab: 'avatar',
   setMerchantTab(t) { this.merchantTab = t; },
-  buyItem(entry) {
-    if (this.state.currencies.bac < entry.price) return;
-    this.state.currencies.bac -= entry.price;
-    addItem(this.state, entry.itemId, 1);
+  buyAvatar(id) {
+    if (this.ownsAvatar(id)) return;
+    if ((this.state.currencies.honThach || 0) < AVATAR_PRICE) { this.showToast('Không đủ Hồn Thạch (cần ' + this.fmt(AVATAR_PRICE) + ').'); return; }
+    this.state.currencies.honThach -= AVATAR_PRICE;
+    this.state.player.ownedAvatars.push(id);
     Storage.save(this.state);
+    this.showToast('Đã mua Ảnh Đại Diện 〈' + ((this.AVATARS.find((a) => a.id === id) || {}).name || '') + '〉.');
+  },
+  buyCover(id) {
+    if (this.ownsCover(id)) return;
+    if ((this.state.currencies.honThach || 0) < COVER_PRICE) { this.showToast('Không đủ Hồn Thạch (cần ' + this.fmt(COVER_PRICE) + ').'); return; }
+    this.state.currencies.honThach -= COVER_PRICE;
+    this.state.player.ownedCovers.push(id);
+    Storage.save(this.state);
+    this.showToast('Đã mua Ảnh Bìa 〈' + ((this.COVERS.find((c) => c.id === id) || {}).name || '') + '〉.');
+  },
+  vatPhamPrice(id) { return Math.ceil((this.ITEMS[id] ? this.ITEMS[id].value : 0) * 1.2); },
+  buyVatPham(id) {
+    const price = this.vatPhamPrice(id);
+    if ((this.state.currencies.bac || 0) < price) { this.showToast('Không đủ Bạc (cần ' + this.fmt(price) + ').'); return; }
+    this.state.currencies.bac -= price;
+    addItem(this.state, id, 1);
+    Storage.save(this.state);
+    this.showToast('Đã mua 〈' + ((this.ITEMS[id] || {}).name || '') + '〉.');
   },
   sellItem(itemId, qty) {
     const have = this.state.inventory[itemId] || 0;
@@ -1283,11 +1310,19 @@ const gameStore = {
       .filter((x) => x && x.equip && x.equip.slot === slot && x.qty > 0)
       .sort((a, b) => this.qualityRank(b.id) - this.qualityRank(a.id) || (b.equip.itemLv || 0) - (a.equip.itemLv || 0)); // phẩm cao -> thấp
   },
-  equipReqOf(itemId) { const it = this.ITEMS[itemId]; return (it && it.equip && it.equip.reqLevel) || 0; }, // cấp yêu cầu MANG
-  canEquip(itemId) { const req = this.equipReqOf(itemId); return req <= 1 || this.combatLevel >= req; },
+  equipReqOf(itemId) { const it = this.ITEMS[itemId]; return (it && it.equip && it.equip.reqLevel) || 0; }, // cấp yêu cầu MANG (số)
+  // Công cụ (equip.gatherSkill) -> yêu cầu theo cấp NGHỀ tương ứng; còn lại theo Chiến Đấu.
+  equipReqCtx(itemId) {
+    const it = this.ITEMS[itemId]; const e = it && it.equip; const req = (e && e.reqLevel) || 0;
+    if (e && e.gatherSkill) { const sk = this.SKILLS[e.gatherSkill]; return { req, level: this.skillLevel(e.gatherSkill), label: (sk ? sk.name : 'Nghề') }; }
+    return { req, level: this.combatLevel, label: 'Chiến Đấu' };
+  },
+  canEquip(itemId) { const c = this.equipReqCtx(itemId); return c.req <= 1 || c.level >= c.req; },
+  equipReqText(itemId) { const c = this.equipReqCtx(itemId); return c.label + ' Lv ' + c.req; }, // "Đốn Củi Lv 5" | "Chiến Đấu Lv 10"
+  equipCurLevel(itemId) { return this.equipReqCtx(itemId).level; },                              // cấp hiện tại của người chơi theo đúng loại
   doEquip(itemId) {
-    const req = this.equipReqOf(itemId);
-    if (req > 1 && this.combatLevel < req) { const it = this.ITEMS[itemId]; this.showToast('Cần Chiến Đấu Lv ' + req + ' để mang ' + (it ? it.name : 'món này') + '.'); return; }
+    const c = this.equipReqCtx(itemId);
+    if (c.req > 1 && c.level < c.req) { const it = this.ITEMS[itemId]; this.showToast('Cần ' + c.label + ' Lv ' + c.req + ' để mang ' + (it ? it.name : 'món này') + '.'); return; }
     if (equipItem(this.state, itemId)) Storage.save(this.state);
   },
   doUnequip(slot) { if (unequipItem(this.state, slot)) Storage.save(this.state); },

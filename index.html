@@ -566,7 +566,7 @@
                   </div>
                   <div class="text-[10px] text-center mt-1 truncate" :class="!$store.game.state.player.avatar ? 'text-jade' : 'text-slate-400'">Mặc Định</div>
                 </button>
-                <template x-for="av in $store.game.AVATARS" :key="av.id">
+                <template x-for="av in $store.game.AVATARS.filter(a => ($store.game.state.player.ownedAvatars||[]).includes(a.id))" :key="av.id">
                   <button x-data="{ok:false}" x-show="ok" @click="$store.game.selectAvatar(av.id)" class="group">
                     <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                          :class="$store.game.state.player.avatar===av.id ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
@@ -595,7 +595,7 @@
                   </div>
                   <div class="text-[10px] text-center mt-1 truncate" :class="!$store.game.state.player.coverImg ? 'text-jade' : 'text-slate-400'">Giống Avatar</div>
                 </button>
-                <template x-for="av in $store.game.COVERS" :key="'cover-'+av.id">
+                <template x-for="av in $store.game.COVERS.filter(c => ($store.game.state.player.ownedCovers||[]).includes(c.id))" :key="'cover-'+av.id">
                   <button @click="$store.game.selectCover(av.id)" class="group">
                     <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                          :class="$store.game.state.player.coverImg===av.id ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
@@ -1720,58 +1720,124 @@
       <!-- ===== VIEW: MERCHANT (Phường Thị — Mua/Bán) ===== -->
       <template x-if="$store.game.view==='merchant'">
         <div class="space-y-3">
-          <div class="panel rounded-lg p-4 flex items-center gap-4">
-            <div class="w-16 h-16 rounded-lg bg-ink3 border border-slate-700 flex items-center justify-center text-4xl shrink-0" x-html="$store.game.ico($store.game.MERCHANT.id, $store.game.MERCHANT.icon)"></div>
-            <div class="flex-1 min-w-0">
-              <div class="lbl" x-text="$store.game.MERCHANT.name"></div>
-              <div class="italic text-sm text-slate-300 mt-1" x-text="'“'+$store.game.MERCHANT.quote+'”'"></div>
+
+          <!-- Header (kiểu Yêu Vương) -->
+          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+            <!-- Banner art nền (gen tay → images/ui/shop_banner.webp|png); thiếu file -> ẩn, dùng gradient fallback -->
+            <img src="images/ui/shop_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/shop_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.2) 100%)"></div>
+            <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(251,191,36,.16), transparent 66%)"></div>
+            <div class="relative w-full p-5 md:p-6 flex items-center gap-4">
+              <div class="w-16 h-16 rounded-lg bg-ink3 border border-amber-500/30 flex items-center justify-center text-4xl shrink-0 overflow-hidden" x-html="$store.game.ico($store.game.MERCHANT.id, $store.game.MERCHANT.icon)"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-[26px] gold-text leading-none fserif">Thương Điếm</div>
+                <div class="text-[12.5px] text-slate-300 leading-snug mt-1.5 max-w-xl italic" x-text="'“'+$store.game.MERCHANT.quote+'”'"></div>
+              </div>
             </div>
-            <div class="text-right text-sm"><div class="text-[10px] text-slate-500">Túi Bạc</div><div class="text-gold font-bold" x-text="'🟡 '+$store.game.fmt($store.game.state.currencies.bac)"></div></div>
           </div>
 
-          <div class="panel rounded-lg p-3">
-            <div class="flex gap-4 text-sm border-b border-slate-800 mb-3">
-              <button @click="$store.game.setMerchantTab('mua')" class="pb-2 -mb-px border-b-2" :class="$store.game.merchantTab==='mua'?'border-jade text-jade':'border-transparent text-slate-400'">Mua</button>
-              <button @click="$store.game.setMerchantTab('ban')" class="pb-2 -mb-px border-b-2" :class="$store.game.merchantTab==='ban'?'border-jade text-jade':'border-transparent text-slate-400'">Bán</button>
+          <!-- Master-detail: rail dọc trái + nội dung phải -->
+          <div class="grid lg:grid-cols-[240px_1fr] gap-3 items-start">
+
+            <!-- RAIL (cố định khi cuộn: sticky dính đỉnh #mainPane) -->
+            <div class="space-y-2 lg:sticky lg:top-0 lg:self-start lg:z-10">
+              <template x-for="t in [{id:'avatar',name:'Ảnh Đại Diện',sub:'Dung mạo nhân vật',seal:'容',col:'#22d3ee',ic:'👤'},{id:'cover',name:'Ảnh Bìa',sub:'Nền trang Hồ Sơ',seal:'幀',col:'#fbbf24',ic:'🖼️'},{id:'item',name:'Vật Phẩm',sub:'Liệu · Thức ăn · Mồi câu',seal:'物',col:'#34d399',ic:'🎣'}]" :key="t.id">
+                <button @click="$store.game.setMerchantTab(t.id)" class="w-full text-left rounded-lg p-2.5 flex items-center gap-2.5 border transition" :style="$store.game.merchantTab===t.id ? 'border-color:'+t.col+'aa;background:linear-gradient(135deg,'+t.col+'22,transparent)' : 'border-color:#1e293b;background:#0f1521'">
+                  <div class="w-11 h-11 rounded-lg shrink-0 flex items-center justify-center overflow-hidden" :style="'background:radial-gradient(circle,'+t.col+'33,#05070d);border:1px solid '+t.col+'55'" x-data="{ok:true}">
+                    <img x-show="ok" :src="`images/ui/shop_${t.id}.webp`" class="w-full h-full object-cover" @error="if($el.src.endsWith('.webp')){$el.src=$el.src.replace('.webp','.png')}else{ok=false}" alt="">
+                    <span x-show="!ok" class="text-xl" x-text="t.ic"></span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-[13px] font-semibold truncate" :style="'color:'+($store.game.merchantTab===t.id?t.col:'#cbd5e1')" x-text="t.name"></div>
+                    <div class="text-[10.5px] text-slate-500 truncate" x-text="t.sub"></div>
+                  </div>
+                  <span class="text-lg fserif shrink-0" :style="'color:'+t.col+'66'" x-text="t.seal"></span>
+                </button>
+              </template>
             </div>
 
-            <!-- MUA -->
-            <template x-if="$store.game.merchantTab==='mua'">
-              <div class="space-y-2">
-                <template x-for="entry in $store.game.SHOP_BUY" :key="entry.itemId">
-                  <div class="flex items-center gap-3 p-2.5 rounded bg-ink3/60 border border-slate-800">
-                    <div class="w-12 h-12 rounded bg-ink flex items-center justify-center text-lg" x-html="$store.game.ico(entry.itemId, $store.game.ITEMS[entry.itemId].icon)"></div>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-sm" x-text="$store.game.ITEMS[entry.itemId].name"></div>
-                      <div class="text-[11px] text-gold" x-text="'🟡 ' + $store.game.fmt(entry.price)"></div>
-                    </div>
-                    <button @click="$store.game.buyItem(entry)" :disabled="$store.game.state.currencies.bac < entry.price"
-                      class="px-3 py-1.5 text-sm rounded font-medium transition shrink-0"
-                      :class="$store.game.state.currencies.bac >= entry.price ? 'bg-jade/80 hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'">Mua</button>
+            <!-- DETAIL -->
+            <div>
+              <!-- ẢNH ĐẠI DIỆN -->
+              <template x-if="$store.game.merchantTab==='avatar'">
+                <div class="panel rounded-xl p-4">
+                  <div class="text-jade font-bold fserif mb-3">Ảnh Đại Diện</div>
+                  <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <template x-for="av in $store.game.AVATARS" :key="'shop-av-'+av.id">
+                      <button x-data="{ok:false}" x-show="ok" @click="$store.game.buyAvatar(av.id)" :disabled="$store.game.ownsAvatar(av.id)" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
+                        <div class="aspect-square overflow-hidden bg-ink3">
+                          <img :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
+                        </div>
+                        <div class="p-2">
+                          <div class="text-[12px] font-medium truncate text-slate-200" x-text="av.name"></div>
+                          <template x-if="$store.game.ownsAvatar(av.id)">
+                            <div class="mt-1.5 text-center py-1 text-[11px] rounded bg-slate-800 text-jade font-medium">Đã sở hữu</div>
+                          </template>
+                          <template x-if="!$store.game.ownsAvatar(av.id)">
+                            <div class="flex items-center justify-between mt-1.5">
+                              <span class="text-[11px] text-rose-300 font-semibold flex items-center gap-1"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.ico('honThach','🔴')"></span><span x-text="$store.game.fmt($store.game.AVATAR_PRICE)"></span></span>
+                              <span class="px-2.5 py-1 text-[11px] rounded font-semibold transition" :class="($store.game.state.currencies.honThach||0)>=$store.game.AVATAR_PRICE ? 'bg-jade/85 group-hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600'">Mua</span>
+                            </div>
+                          </template>
+                        </div>
+                      </button>
+                    </template>
                   </div>
-                </template>
-              </div>
-            </template>
+                </div>
+              </template>
 
-            <!-- BÁN -->
-            <template x-if="$store.game.merchantTab==='ban'">
-              <div class="space-y-2">
-                <template x-if="$store.game.inventoryList.length===0">
-                  <div class="text-sm text-slate-600 py-4 text-center">Túi trống — không có gì để bán.</div>
-                </template>
-                <template x-for="it in $store.game.inventoryList" :key="it.id">
-                  <div class="flex items-center gap-3 p-2.5 rounded bg-ink3/60 border border-slate-800">
-                    <div class="w-12 h-12 rounded bg-ink flex items-center justify-center text-lg" x-html="$store.game.ico(it.id, it.icon)"></div>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-sm truncate" x-text="it.name + ' ×' + $store.game.fmt(it.qty)"></div>
-                      <div class="text-[11px] text-gold" x-text="'🟡 ' + $store.game.fmt(it.value) + ' / cái'"></div>
-                    </div>
-                    <button @click="$store.game.sellItem(it.id, 1)" class="px-2.5 py-1.5 text-xs rounded bg-ink3 border border-slate-700 hover:border-gold text-slate-300 shrink-0">Bán 1</button>
-                    <button @click="$store.game.sellItem(it.id, it.qty)" class="px-2.5 py-1.5 text-xs rounded bg-gold/80 hover:bg-gold text-ink font-medium shrink-0">Bán hết</button>
+              <!-- ẢNH BÌA -->
+              <template x-if="$store.game.merchantTab==='cover'">
+                <div class="panel rounded-xl p-4">
+                  <div class="text-jade font-bold fserif mb-3">Ảnh Bìa</div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <template x-for="cv in $store.game.COVERS" :key="'shop-cv-'+cv.id">
+                      <button x-data="{ok:false}" x-show="ok" @click="$store.game.buyCover(cv.id)" :disabled="$store.game.ownsCover(cv.id)" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
+                        <div class="aspect-[16/9] overflow-hidden bg-black/40 relative">
+                          <img :src="`images/avatars/${cv.id}.webp`" class="w-full h-full object-cover" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
+                          <template x-if="$store.game.ownsCover(cv.id)"><div class="absolute top-1.5 right-1.5 text-[10px] px-1.5 py-0.5 rounded bg-jade/90 text-ink font-bold">✓ Đã có</div></template>
+                        </div>
+                        <div class="p-2.5 flex items-center justify-between gap-2">
+                          <div class="text-[12.5px] font-medium truncate text-slate-200" x-text="cv.name"></div>
+                          <template x-if="$store.game.ownsCover(cv.id)"><span class="text-[11px] text-jade font-medium shrink-0">Đã sở hữu</span></template>
+                          <template x-if="!$store.game.ownsCover(cv.id)"><span class="px-3 py-1 text-[11px] rounded font-semibold shrink-0 flex items-center gap-1 transition" :class="($store.game.state.currencies.honThach||0)>=$store.game.COVER_PRICE ? 'bg-jade/85 group-hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600'"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.ico('honThach','🔴')"></span><span x-text="$store.game.fmt($store.game.COVER_PRICE)"></span></span></template>
+                        </div>
+                      </button>
+                    </template>
                   </div>
-                </template>
-              </div>
-            </template>
+                </div>
+              </template>
+
+              <!-- VẬT PHẨM -->
+              <template x-if="$store.game.merchantTab==='item'">
+                <div class="panel rounded-xl p-4 space-y-5">
+                  <template x-for="grp in [{label:'Nguyên Liệu Cơ Bản · Bậc 1',ids:$store.game.SHOP_MAT,bait:false},{label:'Thức Ăn · Bậc 1',ids:$store.game.SHOP_FOOD,bait:false},{label:'Mồi Câu · 7 Bậc',ids:$store.game.SHOP_BAIT,bait:true}]" :key="grp.label">
+                    <div>
+                      <div class="lbl mb-2 text-slate-400" x-text="grp.label"></div>
+                      <div class="space-y-2">
+                        <template x-for="id in grp.ids" :key="'shop-it-'+id">
+                          <div class="flex items-center gap-3 p-2.5 rounded bg-ink3/50 border border-slate-800" x-data="{ get it(){ return $store.game.ITEMS[id] } }">
+                            <div class="w-11 h-11 rounded bg-ink flex items-center justify-center text-xl shrink-0 overflow-hidden" x-html="$store.game.ico(id, it.icon)"></div>
+                            <div class="flex-1 min-w-0">
+                              <div class="flex items-center gap-2">
+                                <span class="text-[13px] font-medium" :class="$store.game.QUALITY[it.quality].text" x-text="it.name"></span>
+                                <template x-if="grp.bait"><span class="text-[10px] px-1.5 py-0.5 rounded shrink-0 border bg-ink/40" :class="$store.game.QUALITY[it.quality].text+' '+$store.game.QUALITY[it.quality].border" x-text="$store.game.QUALITY[it.quality].name"></span></template>
+                              </div>
+                              <template x-if="it.heal"><div class="text-[10px] text-emerald-400 mt-0.5" x-text="'+'+$store.game.fmt(it.heal)+' Sinh Lực'"></div></template>
+                              <template x-if="grp.bait"><div class="text-[10.5px] text-slate-500 leading-snug mt-0.5" x-text="it.desc"></div></template>
+                            </div>
+                            <div class="shrink-0 flex items-center gap-3">
+                              <div class="text-[13.5px] text-gold font-semibold flex items-center gap-1.5"><span class="w-5 h-5 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span><span x-text="$store.game.fmt($store.game.vatPhamPrice(id))"></span></div>
+                              <button @click="$store.game.buyVatPham(id)" :disabled="($store.game.state.currencies.bac||0) < $store.game.vatPhamPrice(id)" class="px-4 py-1.5 text-[12px] rounded font-semibold transition" :class="($store.game.state.currencies.bac||0) >= $store.game.vatPhamPrice(id) ? 'bg-jade/85 hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'">Mua</button>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </template>
@@ -1915,7 +1981,7 @@
                     <div class="rounded-lg bg-ink3/50 border border-slate-700/60 px-3 py-2 mb-3">
                       <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Trang bị · <span class="text-slate-300" x-text="$store.game.equipSlotLabel(m.equip.slot)"></span></div>
                       <template x-if="m.equip.reqLevel > 1">
-                        <div class="text-[11px] mb-1.5" :class="$store.game.canEquip(m.id)?'text-slate-400':'text-rose-400'">⚔ Yêu cầu mang: <b x-text="'Chiến Đấu Lv '+m.equip.reqLevel"></b><span x-show="!$store.game.canEquip(m.id)" x-text="' (bạn: Lv '+$store.game.combatLevel+')'"></span></div>
+                        <div class="text-[11px] mb-1.5" :class="$store.game.canEquip(m.id)?'text-slate-400':'text-rose-400'">⚔ Yêu cầu mang: <b x-text="$store.game.equipReqText(m.id)"></b><span x-show="!$store.game.canEquip(m.id)" x-text="' (bạn: Lv '+$store.game.equipCurLevel(m.id)+')'"></span></div>
                       </template>
                       <div class="flex flex-wrap gap-1.5">
                         <template x-for="(v,k) in (m.equip.stats||{})" :key="k"><span class="text-[11px] px-1.5 py-0.5 rounded bg-jade/10 text-jade border border-jade/30" x-text="$store.game.statLabel(k)+' +'+v"></span></template>
