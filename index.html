@@ -1962,14 +1962,21 @@
                   </div>
                   <div>
                     <div class="lbl mb-1.5">Tuyệt Kĩ</div>
-                    <div class="grid sm:grid-cols-2 gap-1.5">
-                      <div class="flex items-start gap-2 px-2 py-1.5 rounded-lg bg-ink3/60 border border-slate-700/60">
-                        <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/><path d="M9 11l2 2 4-4"/></svg>
-                        <div class="min-w-0"><div class="text-[11.5px] text-slate-200 font-medium"><span x-text="$store.game.petPassiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal">· bị động</span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petPassiveOf(p).desc"></div></div>
+                    <div class="space-y-1.5">
+                      <div class="flex items-start gap-2.5 px-2 py-1.5 rounded-lg bg-ink3/60 border border-slate-700/60">
+                        <div class="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-ink2 border border-slate-600/50">
+                          <span class="absolute inset-0 flex items-center justify-center text-slate-500 opacity-30"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/><path d="M9 11l2 2 4-4"/></svg></span>
+                          <div class="absolute inset-0" x-html="$store.game.petSkillArt(p,'passive')"></div>
+                        </div>
+                        <div class="min-w-0 pt-0.5"><div class="text-[11.5px] text-slate-200 font-medium"><span x-text="$store.game.petPassiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal">· bị động</span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petPassiveOf(p).desc"></div></div>
                       </div>
-                      <div class="flex items-start gap-2 px-2 py-1.5 rounded-lg" :style="'background:'+qh+'10;border:1px solid '+qh+'33'">
-                        <svg viewBox="0 0 24 24" class="w-4 h-4 mt-0.5 shrink-0" :style="'color:'+qh" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>
-                        <div class="min-w-0"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div></div>
+                      <div class="flex items-start gap-2.5 px-2 py-1.5 rounded-lg" :style="'background:'+qh+'10;border:1px solid '+qh+'33'">
+                        <div class="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-ink2" :style="'border:1px solid '+qh+'40'">
+                          <span class="absolute inset-0 flex items-center justify-center opacity-30" :style="'color:'+qh"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg></span>
+                          <div class="absolute inset-0" x-html="$store.game.petSkillArt(p,'active')"></div>
+                          <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 14px '+qh+'22'"></div>
+                        </div>
+                        <div class="min-w-0 pt-0.5"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div></div>
                       </div>
                     </div>
                   </div>
@@ -1990,7 +1997,7 @@
               </template>
               <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                 <template x-for="p in $store.game.petList" :key="p.id">
-                  <div class="rounded-xl overflow-hidden h-full flex flex-col" :class="(p.equipped?'ring-1 ring-jade ':'')+$store.game.petQ(p).border" x-data="{ get q(){ return $store.game.petQ(p) }, get qh(){ return $store.game.petQHex(p) }, get el(){ return $store.game.petElColor(p) }, get s(){ return $store.game.petStat(p) } }" :style="'background:linear-gradient(160deg,'+qh+'0e,#0f1521 70%)'+(p.equipped?';box-shadow:inset 0 0 26px '+qh+'1f':'')">
+                  <div class="rounded-xl overflow-hidden h-full flex flex-col cursor-pointer transition hover:brightness-110" :class="(p.equipped?'ring-1 ring-jade ':'')+$store.game.petQ(p).border" x-data="{ get q(){ return $store.game.petQ(p) }, get qh(){ return $store.game.petQHex(p) }, get el(){ return $store.game.petElColor(p) }, get s(){ return $store.game.petStat(p) } }" :style="'background:linear-gradient(160deg,'+qh+'0e,#0f1521 70%)'+(p.equipped?';box-shadow:inset 0 0 26px '+qh+'1f':'')" @click="$store.game.openPetDetail(p.id)">
                     <div class="relative aspect-square bg-ink2 flex items-center justify-center text-5xl">
                       <span x-text="$store.game.petEmoji(p)"></span>
                       <div class="absolute inset-0" x-html="$store.game.petArtTag(p)"></div>
@@ -2022,7 +2029,7 @@
                           </div>
                         </template>
                       </div>
-                      <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="w-full mt-auto py-1 text-[11px] rounded font-semibold transition" :class="p.equipped?'text-jade border border-jade/45 hover:bg-jade/10':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu Hồi':'Đưa Xuất Trận'"></button>
+                      <button @click.stop="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="w-full mt-auto py-1 text-[11px] rounded font-semibold transition" :class="p.equipped?'text-jade border border-jade/45 hover:bg-jade/10':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu Hồi':'Đưa Xuất Trận'"></button>
                     </div>
                   </div>
                 </template>
@@ -2085,6 +2092,110 @@
                   </div>
                 </template>
               </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== POPUP: Linh Thú Chí (chi tiết pet — mở từ roster) ===== -->
+      <template x-if="$store.game.petDetailObj">
+        <div class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closePetDetail()">
+          <div class="panel rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl" @click.stop
+               x-data="{ get p(){ return $store.game.petDetailObj }, get q(){ return $store.game.petQ($store.game.petDetailObj) }, get qh(){ return $store.game.petQHex($store.game.petDetailObj) }, get el(){ return $store.game.petElColor($store.game.petDetailObj) } }"
+               :style="'border-color:'+qh+'55'">
+            <!-- HEADER: art-đài + danh tính -->
+            <div class="relative shrink-0 grid sm:grid-cols-[180px_1fr] gap-4 p-4" :style="'background:linear-gradient(150deg,'+qh+'14,#0f1521 64%)'">
+              <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 60px '+qh+'22'"></div>
+              <button @click="$store.game.closePetDetail()" class="absolute top-2.5 right-2.5 z-10 w-7 h-7 rounded-lg bg-ink3/80 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 flex items-center justify-center text-sm" aria-label="Đóng">✕</button>
+              <div class="relative aspect-square rounded-xl overflow-hidden bg-ink2 flex items-center justify-center text-6xl" :style="'border:1px solid '+qh+'40'">
+                <span x-text="$store.game.petEmoji(p)"></span>
+                <div class="absolute inset-0 transition" :class="$store.game.petFaintedOf(p) ? 'grayscale opacity-50' : ''" x-html="$store.game.petArtTag(p)"></div>
+                <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 50px '+qh+'26'"></div>
+                <div class="absolute inset-x-0 bottom-0 h-16 pointer-events-none" :style="'background:radial-gradient(ellipse at 50% 100%, '+qh+'33, transparent 70%)'"></div>
+                <span class="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded border font-bold" :class="q.text+' '+q.border" style="background:rgba(0,0,0,.5)" x-text="q.name"></span>
+                <template x-if="p.equipped"><span class="absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-jade">Tại Trận</span></template>
+                <template x-if="p.evolved"><span class="absolute bottom-2 left-2 text-[9px] px-1.5 py-0.5 rounded font-bold text-amber-300" style="background:rgba(0,0,0,.55);border:1px solid #f59e0b66">✦ Đã Thức Tỉnh</span></template>
+              </div>
+              <div class="relative flex flex-col gap-2 min-w-0 pr-8">
+                <div>
+                  <div class="lbl text-slate-500">Linh Thú Chí</div>
+                  <div class="text-[24px] fserif font-bold leading-tight" :class="q.text" x-text="$store.game.petName(p)"></div>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded border" :class="q.text+' '+q.border" x-text="q.name"></span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="'Cảnh Lv '+p.level"></span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="$store.game.petRole(p)"></span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1" :style="'color:'+el+';background:rgba(0,0,0,.35);border:1px solid '+el+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+el+';box-shadow:0 0 6px '+el"></span><span x-text="$store.game.petHeName(p)"></span></span>
+                </div>
+              </div>
+            </div>
+            <!-- BODY (cuộn) -->
+            <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+              <div>
+                <div class="flex items-baseline gap-2 mb-1.5"><span class="text-[12px] text-jade font-semibold">Trợ Lực Cho Chủ Nhân</span><span class="text-[10px] text-slate-600">· cộng thẳng vào chủ khi dắt</span></div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  <template x-for="(v,k) in $store.game.petStat(p)" :key="k">
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-jade/10 border border-jade/25">
+                      <span class="text-jade shrink-0" x-html="$store.game.statIco(k)"></span>
+                      <span class="text-[11.5px] text-slate-300 flex-1 truncate" x-text="$store.game.statLabelFull(k)"></span>
+                      <span class="text-jade font-bold text-[13px]" x-text="'+'+$store.game.fmt(v)"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+              <div x-show="p.opts.length">
+                <div class="lbl mb-1.5">Dị Bẩm</div>
+                <div class="flex flex-wrap gap-1.5">
+                  <template x-for="o in p.opts" :key="o.id"><span class="text-[10.5px] px-2 py-0.5 rounded-full border" :class="q.text+' '+q.border" :style="'background:'+qh+'14'" x-text="$store.game.petOptLabel(o)"></span></template>
+                </div>
+              </div>
+              <div>
+                <div class="lbl mb-1.5">Tuyệt Kĩ</div>
+                <div class="space-y-2">
+                  <div class="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-ink3/50 border border-slate-700/60">
+                    <div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-ink2 border border-slate-600/50">
+                      <span class="absolute inset-0 flex items-center justify-center text-slate-500 opacity-30"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/><path d="M9 11l2 2 4-4"/></svg></span>
+                      <div class="absolute inset-0" x-html="$store.game.petSkillArt(p,'passive')"></div>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-[13px] font-medium text-slate-100"><span x-text="$store.game.petPassiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal">· bị động</span></div>
+                      <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="$store.game.petPassiveOf(p).desc"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3 px-3 py-2.5 rounded-xl" :style="'background:'+qh+'10;border:1px solid '+qh+'33'">
+                    <div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-ink2" :style="'border:1px solid '+qh+'40'">
+                      <span class="absolute inset-0 flex items-center justify-center opacity-30" :style="'color:'+qh"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg></span>
+                      <div class="absolute inset-0" x-html="$store.game.petSkillArt(p,'active')"></div>
+                      <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 16px '+qh+'22'"></div>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-[13px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div>
+                      <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="$store.game.petActiveOf(p).desc"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="lbl">Tu Vi &amp; Trạng Thái</div>
+                <div>
+                  <div class="flex items-center justify-between text-[10px] mb-1"><span class="text-slate-400">Sinh Lực</span><span class="text-slate-500" x-text="$store.game.fmt($store.game.petHpCurOf(p))+' / '+$store.game.fmt($store.game.petHpMaxOf(p))"></span></div>
+                  <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+$store.game.petHpPctOf(p)+'%;background:#fb7185'"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between text-[10px] mb-1"><span class="text-slate-400">Thể Lực</span><span class="text-slate-500" x-text="Math.round($store.game.petStamOf(p))+' / 100'"></span></div>
+                  <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+$store.game.petStamOf(p)+'%;background:'+($store.game.petStamOf(p)<25?'#fb7185':'#22d3ee')"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between text-[10px] mb-1"><span class="text-slate-400">Tu Vi</span><span class="text-slate-500" x-text="'Cảnh Lv '+p.level+' · '+$store.game.fmt(p.xp||0)+'/'+$store.game.fmt($store.game.petXpNext(p))"></span></div>
+                  <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+$store.game.petXpPct(p)+'%;background:'+qh"></div></div>
+                </div>
+                <div class="text-[10px] text-slate-600" x-text="'Cảnh giới tối đa: Lv '+$store.game.petLevelCap(p)"></div>
+              </div>
+            </div>
+            <!-- FOOTER -->
+            <div class="shrink-0 px-4 py-3 border-t border-slate-800 bg-ink2/40 flex items-center justify-between gap-2">
+              <span class="text-[11px] text-slate-600 hidden sm:block">Dắt 1 con kề bên — phần còn lại an dưỡng</span>
+              <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="px-4 py-2 rounded-lg text-[12.5px] font-semibold transition" :class="p.equipped?'text-jade border border-jade/45 hover:bg-jade/10':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu Hồi':'Đưa Xuất Trận'"></button>
             </div>
           </div>
         </div>

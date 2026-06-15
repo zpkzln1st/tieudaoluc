@@ -518,6 +518,21 @@ const gameStore = {
   get petHpPct() { const m = this.petHpMaxV; return m ? Math.max(0, Math.min(100, Math.round(this.petHpCur / m * 100))) : 0; },
   petPassiveOf(pet) { return petPassive(pet); },   // Tuyệt Kĩ bị động (signature loài)
   petActiveOf(pet) { return petActive(pet) || {}; },
+  petSkillArt(pet, kind) {   // art tuyệt kĩ: images/pets/skill_<base>_<p|a>.webp -> png -> tự gỡ (lộ SVG nền)
+    const f = 'skill_' + pet.base + '_' + (kind === 'active' ? 'a' : 'p');
+    return `<img src="images/pets/${f}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/pets/${f}.png&quot;;}else{this.remove();}'>`;
+  },
+  // HP / Thể Lực / Ngất THEO TỪNG pet (popup mở pet bất kỳ; chỉ con đang mang + đang combat mới có HP phiên thật)
+  petHpMaxOf(pet) { return petHpMax(pet); },
+  petHpCurOf(pet) { return (this.petInCombat && this.activePetObj && this.activePetObj.id === pet.id) ? this.petHpCur : petHpMax(pet); },
+  petHpPctOf(pet) { const m = petHpMax(pet); return m ? Math.max(0, Math.min(100, Math.round(this.petHpCurOf(pet) / m * 100))) : 0; },
+  petStamOf(pet) { void this._tick; return petStamView(pet, now()); },
+  petFaintedOf(pet) { return this.petFainted && this.activePetObj && this.activePetObj.id === pet.id; },
+  // Popup chi tiết pet (mở từ roster) — mirror tpDetail
+  petDetail: null,
+  openPetDetail(id) { this.petDetail = id; },
+  closePetDetail() { this.petDetail = null; },
+  get petDetailObj() { return this.petDetail ? (this.state.pets || []).find((x) => x.id === this.petDetail) : null; },
   petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
   petOptsText(pet) { return (pet.opts || []).map((o) => this.petOptLabel(o)).join('  ·  '); },   // cho tooltip chip "N dị bẩm"
   petLevelCap(pet) { const off = { phamPham: 10, luongPham: 6, tinhPham: 3 }[pet.quality] || 0; return Math.max(1, this.combatLevel - off); },
