@@ -1900,25 +1900,25 @@
                 </template>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <template x-for="p in $store.game.petList" :key="p.id">
-                    <div class="rounded-xl overflow-hidden border bg-ink3/40" :class="(p.equipped?'ring-1 ring-jade ':'') + $store.game.petQ(p).border" x-data="{ get q(){ return $store.game.petQ(p) }, get s(){ return $store.game.petStat(p) } }">
+                    <div class="rounded-xl overflow-hidden border bg-ink3/40 h-full flex flex-col" :class="(p.equipped?'ring-1 ring-jade ':'') + $store.game.petQ(p).border" x-data="{ get q(){ return $store.game.petQ(p) }, get s(){ return $store.game.petStat(p) } }">
                       <div class="relative aspect-square bg-ink2 flex items-center justify-center text-5xl">
                         <span x-text="$store.game.petEmoji(p)"></span>
                         <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-black/50 border font-bold" :class="q.text+' '+q.border" x-text="q.name"></span>
                         <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded bg-black/55 text-slate-200" x-text="'Lv '+p.level"></span>
                         <template x-if="p.equipped"><span class="absolute bottom-0 inset-x-0 text-center text-[10px] py-0.5 bg-jade/85 text-ink font-bold">✓ Đang theo</span></template>
                       </div>
-                      <div class="p-2">
+                      <div class="p-2 flex-1 flex flex-col gap-1">
                         <div class="flex items-baseline gap-1.5 flex-wrap">
                           <span class="text-[13px] font-bold fserif" :class="q.text" x-text="$store.game.petName(p)"></span>
                           <span class="text-[9px] text-slate-500" x-text="$store.game.petHeName(p)+' · '+$store.game.petRole(p)"></span>
                         </div>
-                        <div class="mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+                        <div class="flex flex-wrap gap-x-2 gap-y-0.5">
                           <template x-for="(v,k) in s" :key="k"><span class="text-[10px] text-slate-400"><span x-text="$store.game.statLabelShort(k)"></span> <b class="text-slate-200" x-text="$store.game.fmt(v)"></b></span></template>
                         </div>
-                        <div class="mt-1 flex flex-wrap gap-1" x-show="p.opts.length">
+                        <div class="flex flex-wrap gap-1" x-show="p.opts.length">
                           <template x-for="o in p.opts" :key="o.id"><span class="text-[9px] px-1 py-0.5 rounded bg-jade/10 text-jade/90 border border-jade/20" x-text="$store.game.petOptLabel(o)"></span></template>
                         </div>
-                        <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="w-full mt-2 py-1 text-[11px] rounded font-semibold transition" :class="p.equipped?'bg-slate-800 text-slate-400 hover:text-slate-200':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu về':'Dắt theo'"></button>
+                        <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="w-full mt-auto py-1 text-[11px] rounded font-semibold transition" :class="p.equipped?'bg-slate-800 text-slate-400 hover:text-slate-200':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu về':'Dắt theo'"></button>
                       </div>
                     </div>
                   </template>
