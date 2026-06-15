@@ -11,6 +11,7 @@ export const NAV = [
     { view: 'tangkinhcac',name: 'Tàng Kinh Các', gloss: 'Skill Library', icon: '📖' },
     { view: 'map',       name: 'Bản Đồ',  gloss: 'Map',       icon: '🗺️' },
     { view: 'nhiemVu',   name: 'Nhiệm Vụ', gloss: 'Quests',   icon: '📜' },
+    { view: 'phiCapDai', name: 'Phi Cáp Đài', gloss: 'Notifications', icon: '🔔' },
   ] },
   { title: 'Kỹ Năng', skills: true },
   { title: 'Chiến Đấu', items: [

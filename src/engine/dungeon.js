@@ -18,6 +18,7 @@ import { deriveCombat } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
 import { levelFromXp, addSkillXp } from './leveling.js';
 import { addItem } from './inventory.js';
+import { pushNotif } from './notif.js';
 
 // ---- Hằng số cân bằng (TUNE) ----
 const MODE = {
@@ -157,5 +158,15 @@ export function grantDungeon(state, dungeonId, mode, now) {
   const summary = { ...run, at: now };
   state.dungeon.lastResult = { ...summary, seen: false };
   state.dungeon.history = [summary, ...(state.dungeon.history || [])].slice(0, 20); // lưu FULL để bấm xem lại
+  // Thông báo Bí Cảnh (chuông + Phi Cáp Đài)
+  const _dn = (DUNGEON_BY_ID[dungeonId] || {}).name || 'Bí Cảnh';
+  const _p = []; const _lo = run.loot || {};
+  if (_lo.bac) _p.push(_lo.bac.toLocaleString('vi-VN') + ' Bạc');
+  if (_lo.exp) _p.push(_lo.exp.toLocaleString('vi-VN') + ' EXP');
+  if (_lo.honThach) _p.push(_lo.honThach + ' Hồn Thạch');
+  const _ic = Object.values(_lo.items || {}).reduce((s, q) => s + q, 0);
+  if (_ic) _p.push('+' + _ic + ' vật phẩm');
+  if (run.doPhoId) _p.push('Đồ Phổ');
+  pushNotif(state, 'biCanh', (run.cleared ? 'Thông quan ' : 'Rút lui ') + _dn + (run.modeLabel ? ' · ' + run.modeLabel : ''), _p.join(' · '), now);
   return state.dungeon.lastResult;
 }

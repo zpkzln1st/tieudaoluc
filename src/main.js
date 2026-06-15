@@ -28,6 +28,7 @@ import { derivedStats } from './engine/stats.js';
 import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
+import { pushNotif } from './engine/notif.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
 
@@ -109,6 +110,7 @@ if (state.player.avatar && !state.player.ownedAvatars.includes(state.player.avat
 if (state.player.coverImg && !state.player.ownedCovers.includes(state.player.coverImg)) state.player.ownedCovers.push(state.player.coverImg);
 if (state.travel) state.travel = null; // bỏ field cũ (Khinh Công giờ là activity 'travel')
 if (!state.dungeon) state.dungeon = { lastResult: null, history: [] }; // Bí Cảnh: kết quả lần chạy gần nhất + lịch sử
+if (!Array.isArray(state.notifications)) state.notifications = []; // Thông Báo (feed chung: chuông + Phi Cáp Đài)
 // Tháo trang bị VƯỢT CẤP (combatLevel tụt do dev/sửa save) -> trả về túi, không cho hưởng chỉ số lậu
 (() => {
   const _cl = levelFromXp(state.skills?.chienDau?.xp || 0);
@@ -125,6 +127,7 @@ let offlineReport = null;
 if (state.activity) {
   const r = advance(state, now());
   if (r && r.cycles > 0) offlineReport = { itemId: r.itemId, cycles: r.cycles, xp: r.xp };
+  if (r && r.cycles > 0 && r.itemId) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Thu thập hoàn tất', '+' + r.cycles + ' ' + (_it ? _it.name : r.itemId) + ' · +' + r.xp + ' EXP (trong lúc vắng mặt)', now()); }
 }
 
 // ---- Helper định dạng ----
@@ -193,6 +196,8 @@ const SVG_PATHS = {
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   wind:   '<path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/><path d="M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>',
   scales: '<path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 6a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6a3 3 0 0 0 6 0z"/><path d="M8 21h8"/>',
+  inbox:  '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  gate:   '<path d="M3 21V9l9-5 9 5v12"/><path d="M3 9h18"/><path d="M8 21v-6a4 4 0 0 1 8 0v6"/>',
   bulb:   '<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.5.5 1 1.5 1 2.5h6c0-1 .5-2 1-2.5A6 6 0 0 0 12 3z"/>',
   star:   '<path d="M12 2.5l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.2 5.8 20.8l1.6-6.8L2.2 9.4l6.9-.6z"/>',
   coin:   '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/>',
@@ -426,8 +431,49 @@ const gameStore = {
   resetAdj(kind) { this.state.player[kind] = { x: 50, y: 50, z: 1 }; Storage.save(this.state); },
   get curAvatar() { return this.AVATARS.find(a => a.id === this.avatarId) || null; },
   dismissOffline() { this.offlineReport = null; },
+  // ===== THÔNG BÁO (feed chung: chuông + Phi Cáp Đài) =====
+  bellOpen: false,
+  notifFilter: 'all',
+  NOTIF_TYPES: [
+    { id: 'all',      label: 'Tất cả',        col: '#94a3b8', svg: 'inbox',                seal: '總' },
+    { id: 'thuThap',  label: 'Thu Thập',      col: '#34d399', art: 'thaiKhoang', ic: '⛏️', seal: '采' }, // mượn art Đào Khoáng
+    { id: 'yeuVuong', label: 'Yêu Vương',     col: '#fb7185', art: 'yvBachHo',   ic: '🐲', seal: '妖' }, // boss Bạch Hổ
+    { id: 'biCanh',   label: 'Bí Cảnh',       col: '#a78bfa', art: 'dungeon',    ic: '🏛️', seal: '秘' }, // nav Bí Cảnh
+    { id: 'khac',     label: 'Khác',          col: '#fbbf24', svg: 'star',                 seal: '他' },
+    { id: 'sanGD',    label: 'Sàn Giao Dịch', col: '#22d3ee', art: 'market',     ic: '⚖️', seal: '易' }, // nav Sàn Giao Dịch
+  ],
+  notifTypeMeta(type) { return this.NOTIF_TYPES.find((t) => t.id === type) || this.NOTIF_TYPES[4]; },
+  // Icon nhóm: art game có sẵn (ico) cho nhóm map tính năng; Tất cả/Khác = SVG nền + art ui phủ lên (images/ui/notif_<id>) khi có.
+  notifIcon(t, size) {
+    if (t && t.art) return this.ico(t.art, t.ic || '✦');
+    const id = t ? t.id : '';
+    const sv = this.svg((t && t.svg) || 'star', size || 'w-[18px] h-[18px]');
+    return `<span class="relative w-full h-full inline-flex items-center justify-center">${sv}<img src="images/ui/notif_${id}.webp" class="absolute inset-0 w-full h-full object-contain p-0.5" alt="" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/notif_${id}.png'}else{this.remove()}"></span>`;
+  },
+  pushNotif(type, title, body) { pushNotif(this.state, type, title, body, now()); Storage.save(this.state); },
+  get notifications() { return this.state.notifications || []; },
+  notifFor(type) { const a = this.notifications; return (!type || type === 'all') ? a : a.filter((n) => n.type === type); },
+  notifUnread(type) { void this._tick; return this.notifFor(type).filter((n) => !n.read).length; },
+  get notifBadge() { void this._tick; const n = this.notifications.filter((x) => !x.read).length; return n > 99 ? '99+' : (n ? String(n) : ''); },
+  notifRecent(k) { return this.notifications.slice(0, k || 5); },
+  toggleBell() { this.bellOpen = !this.bellOpen; },
+  closeBell() { this.bellOpen = false; },
+  openPhiCapDai() { this.bellOpen = false; this.navTo('phiCapDai'); },
+  setNotifFilter(t) { this.notifFilter = t; },
+  notifMarkRead(type) { this.notifFor(type).forEach((n) => { n.read = true; }); Storage.save(this.state); },
+  notifClearType(type) { if (!type || type === 'all') this.state.notifications = []; else this.state.notifications = this.notifications.filter((n) => n.type !== type); Storage.save(this.state); },
+  notifAgo(ts) { void this._tick; if (!ts) return ''; const s = Math.max(0, Math.floor((now() - ts) / 1000)); if (s < 60) return 'vừa xong'; const m = Math.floor(s / 60); if (m < 60) return m + ' phút trước'; const h = Math.floor(m / 60); if (h < 24) return h + ' giờ trước'; return Math.floor(h / 24) + ' ngày trước'; },
+  _bossRewardText(rw) {
+    if (!rw) return 'Đã hạ gục.';
+    const p = [];
+    for (const id in (rw.items || {})) { const it = this.ITEMS[id]; p.push((it ? it.name : id) + ' ×' + rw.items[id]); }
+    if (rw.honThach) p.push(this.fmt(rw.honThach) + ' Hồn Thạch');
+    if (rw.bac) p.push(this.fmt(rw.bac) + ' Bạc');
+    if (rw.exp) p.push(this.fmt(rw.exp) + ' EXP');
+    return p.length ? 'Đoạt: ' + p.join(' · ') : 'Đã hạ gục.';
+  },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
   zoneName(id) { const l = (this.LOCATIONS || []).find((x) => x.id === id); return l ? l.name : ''; },  // tên vùng (cho nhãn gathering)
   // Nghề THU THẬP (có zone trên action) → danh sách chỉ hiện tài nguyên của VÙNG đang đứng. Nghề chế tạo (không zone) hiện hết.
@@ -564,6 +610,7 @@ const gameStore = {
     this.state.player.professions.push(id);
     Storage.save(this.state);
     this.showToast('Bái sư thành! Đã học nghề ' + n.name + '.');
+    this.pushNotif('khac', 'Bái sư thành công', 'Đã học nghề ' + n.name + '.');
   },
 
   // ---------- Kỹ năng / Tứ Trụ ----------
@@ -791,7 +838,7 @@ const gameStore = {
   _finishBossFight() {
     const F = this.bossFight; if (!F || F.done) return;
     F.done = true;
-    if (F.win) F.reward = applyBossWin(this.state, F.id, now());
+    if (F.win) { F.reward = applyBossWin(this.state, F.id, now()); const _b = YEU_VUONG_BY_ID[F.id]; this.pushNotif('yeuVuong', 'Hạ ' + (_b ? _b.name : 'Yêu Vương'), this._bossRewardText(F.reward)); }
     else if (F.timeout) applyBossRetreat(this.state, F.id, now(), F.bHp);   // giằng co (600 nhịp, không gục) → boss giữ máu, KHÔNG dưỡng thương, thử lại ngay
     else applyBossLose(this.state, F.id, now(), F.bHp);   // gục → boss giữ máu + người chơi dưỡng thương 3p
     Storage.save(this.state);
@@ -806,7 +853,7 @@ const gameStore = {
     const res = resolveBossQueueEngine(this.state, now(), (b) => this.combatLevel >= b.reqLevel);
     if (res.length) {
       const wins = res.filter((r) => r.win).length;
-      if (wins > 0) this.showToast('⚔ Trong lúc vắng mặt, ngươi đã hạ ' + wins + ' Yêu Vương đang chờ! Xem Lịch Sử để rõ chiến quả.');
+      if (wins > 0) { this.showToast('⚔ Trong lúc vắng mặt, ngươi đã hạ ' + wins + ' Yêu Vương đang chờ! Xem Lịch Sử để rõ chiến quả.'); this.pushNotif('yeuVuong', 'Hạ ' + wins + ' Yêu Vương (vắng mặt)', 'Hàng đợi vây sát thành công — xem Lịch Sử để rõ chiến quả.'); }
       else this.showToast('Khiêu chiến hàng đợi thất bại — Yêu Vương vẫn còn sống, hãy thử lại.');
       Storage.save(this.state);
     }

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Phi Cáp Đài (view riêng)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  body{ background:#0b0e16; color:#e2e8f0; font-family:system-ui,sans-serif; }
+  .fserif{ font-family:'Lora',serif; }
+  .panel{ background:#0f1521; border:1px solid #1e293b; }
+  .lbl{ font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#64748b; }
+  .gold-text{ background:linear-gradient(90deg,#fde68a,#f59e0b); -webkit-background-clip:text; background-clip:text; color:transparent; }
+</style>
+</head>
+<body class="p-4">
+<div class="max-w-[1100px] mx-auto space-y-3">
+
+  <!-- ===== HEADER (kiểu Yêu Vương, đồng bộ 208px) ===== -->
+  <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+    <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.2) 100%)"></div>
+    <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(34,211,238,.14), transparent 66%)"></div>
+    <div class="relative w-full p-5 md:p-6">
+      <div class="flex items-center gap-2.5">
+        <svg viewBox="0 0 24 24" fill="none" class="w-7 h-7 text-cyan-300"><path d="M18 8A6 6 0 1 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <div class="text-[28px] gold-text leading-none fserif">Phi Cáp Đài</div>
+      </div>
+      <div class="text-[13px] text-slate-300 leading-snug mt-2 max-w-2xl">Tin tức giang hồ, chiến quả vây sát, thu hoạch &amp; giao dịch — mọi <b class="text-cyan-300">thư cáp</b> đều bay về đây. Lọc theo nhóm để xem riêng từng loại.</div>
+    </div>
+  </div>
+
+  <!-- ===== Tabs hub: Tin Giang Hồ + Phi Cáp ===== -->
+  <div class="panel rounded-lg px-3 pt-2.5">
+    <div class="flex gap-5 text-sm border-b border-slate-800">
+      <button class="pb-2.5 -mb-px border-b-2 border-jade text-jade font-semibold">Tin Giang Hồ</button>
+      <button class="pb-2.5 -mb-px border-b-2 border-transparent text-slate-500 font-semibold flex items-center gap-1.5">Phi Cáp <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-400">sắp có</span></button>
+    </div>
+  </div>
+
+  <!-- ===== Master-detail: rail nhóm + feed ===== -->
+  <div class="grid lg:grid-cols-[230px_1fr] gap-3 items-start">
+
+    <!-- RAIL nhóm (kèm số chưa đọc) -->
+    <div class="space-y-2 lg:sticky lg:top-0" id="rail"></div>
+
+    <!-- FEED -->
+    <div class="panel rounded-xl overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-800">
+        <div class="text-[12.5px] text-slate-300" id="feedTitle">Tất cả thông báo</div>
+        <div class="flex items-center gap-3">
+          <button onclick="markAll()" class="text-[11px] text-jade hover:text-jade/80">Đánh dấu đã đọc</button>
+          <button onclick="clearAll()" class="text-[11px] text-slate-500 hover:text-rose-400">Xoá</button>
+        </div>
+      </div>
+      <div id="feed" class="divide-y divide-slate-800/60 max-h-[560px] overflow-y-auto"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPE = {
+  all:      { label:'Tất cả',         col:'#94a3b8', ic:'✉️', seal:'總' },
+  thuThap:  { label:'Thu Thập',       col:'#34d399', ic:'🌿', seal:'采' },
+  yeuVuong: { label:'Yêu Vương',      col:'#fb7185', ic:'🐲', seal:'妖' },
+  biCanh:   { label:'Bí Cảnh',        col:'#a78bfa', ic:'🏛️', seal:'秘' },
+  khac:     { label:'Khác',           col:'#fbbf24', ic:'✦', seal:'他' },
+  sanGD:    { label:'Sàn Giao Dịch',  col:'#22d3ee', ic:'⚖️', seal:'易' },
+};
+const ORDER = ['all','thuThap','yeuVuong','biCanh','khac','sanGD'];
+let NOTIFS = [
+  { type:'thuThap',  title:'Thu thập hoàn tất',      body:'Đốn Củi · +240 Tùng Mộc · +960 EXP — trong lúc vắng mặt 3 giờ 12 phút.', ago:'2 phút', read:false },
+  { type:'yeuVuong', title:'Hạ Bạch Ngạch Hổ Vương', body:'Đoạt: Tinh Thể Yêu Vương ×1 · Trứng Bạch Hổ (Linh Phẩm) ×2 · 12.000 Bạc · 8.500 EXP.', ago:'18 phút', read:false },
+  { type:'biCanh',   title:'Vượt Thanh Vân Cốc ×5',  body:'Nhận: Đồ Phổ 〈Huyền Thiết Phủ〉 · 3.420 Bạc · Cơ Duyên +12% vượt ngưỡng.', ago:'34 phút', read:false },
+  { type:'khac',     title:'Lên cấp kỹ năng',         body:'Câu Cá đạt Lv 32 — mở vùng câu mới: Thủy Tinh Động.', ago:'1 giờ', read:false },
+  { type:'thuThap',  title:'Thu thập hoàn tất',      body:'Đào Khoáng · +180 Thiết Khoáng · +56 Hắc Thán · +720 EXP.', ago:'2 giờ', read:false },
+  { type:'sanGD',    title:'Lệnh bán đã khớp',        body:'Đã bán Hàn Thiết Đĩnh ×5 @ 95 Bạc/cái = +475 Bạc. (Sàn chưa mở — hiển thị mẫu.)', ago:'—', read:true },
+  { type:'khac',     title:'Bái sư thành công',       body:'Đã học nghề Luyện Đan từ NPC Âu Dã Tử.', ago:'hôm qua', read:true },
+];
+let cur = 'all';
+function unread(type){ return NOTIFS.filter(n=> (type==='all'||n.type===type) && !n.read).length; }
+function renderRail(){
+  document.getElementById('rail').innerHTML = ORDER.map(t=>{
+    const T=TYPE[t]; const on = t===cur; const u = unread(t);
+    const style = on ? `border-color:${T.col}aa;background:linear-gradient(135deg,${T.col}22,transparent)` : 'border-color:#1e293b;background:#0f1521';
+    return `<button onclick="setCur('${t}')" class="w-full text-left rounded-lg p-2.5 flex items-center gap-2.5 border transition" style="${style}">
+      <div class="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center text-lg" style="background:${T.col}22;border:1px solid ${T.col}55">${T.ic}</div>
+      <div class="flex-1 min-w-0 text-[13px] font-semibold truncate" style="color:${on?T.col:'#cbd5e1'}">${T.label}</div>
+      ${u>0?`<span class="min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0" style="background:${T.col};color:#06121a">${u}</span>`:`<span class="text-base fserif shrink-0" style="color:${T.col}55">${T.seal}</span>`}
+    </button>`;
+  }).join('');
+}
+function fcard(n){
+  const T=TYPE[n.type];
+  return `<button onclick="this.classList.add('opacity-60')" class="w-full text-left flex gap-3 px-4 py-3.5 hover:bg-ink3/40 transition ${n.read?'opacity-55':''}">
+    <div class="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-xl" style="background:${T.col}1c;border:1px solid ${T.col}55">${T.ic}</div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-[10px] px-1.5 py-0.5 rounded shrink-0" style="color:${T.col};background:${T.col}14;border:1px solid ${T.col}44">${T.label}</span>
+        <span class="text-[13.5px] font-semibold text-slate-100">${n.title}</span>
+      </div>
+      <div class="text-[12px] text-slate-400 leading-snug mt-1">${n.body}</div>
+      <div class="text-[10.5px] text-slate-600 mt-1.5">${n.ago==='—'?'—':n.ago+' trước'}</div>
+    </div>
+    ${n.read?'':`<span class="w-2 h-2 rounded-full shrink-0 mt-2" style="background:${T.col}"></span>`}
+  </button>`;
+}
+function render(){
+  renderRail();
+  const items = NOTIFS.filter(n=> cur==='all' || n.type===cur);
+  document.getElementById('feedTitle').textContent = cur==='all'?'Tất cả thông báo':TYPE[cur].label;
+  document.getElementById('feed').innerHTML = items.length
+    ? items.map(fcard).join('')
+    : `<div class="px-4 py-16 text-center text-slate-600 text-[12.5px]">Chưa có thông báo${cur==='all'?'':' nhóm '+TYPE[cur].label}.</div>`;
+}
+function setCur(t){ cur=t; render(); }
+function markAll(){ NOTIFS.forEach(n=>{ if(cur==='all'||n.type===cur) n.read=true; }); render(); }
+function clearAll(){ NOTIFS = NOTIFS.filter(n=> !(cur==='all'||n.type===cur)); render(); }
+render();
+</script>
+</body>
+</html>
