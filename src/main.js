@@ -29,8 +29,8 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet } from './engine/pets.js';
-import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID } from './data/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal } from './engine/pets.js';
+import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
 
@@ -484,7 +484,7 @@ const gameStore = {
     return p.length ? 'Đoạt: ' + p.join(' · ') : 'Đã hạ gục.';
   },
   // ===== LINH THÚ (pet) =====
-  PET_SPECIES, PET_QUALITY,
+  PET_SPECIES, PET_QUALITY, AWK_PASSIVES,
   get petList() { return this.state.pets || []; },
   get activePetObj() { return activePet(this.state); },
   petName(pet) { return (PET_SPECIES[pet.base] || {}).name || pet.base; },
@@ -517,9 +517,14 @@ const gameStore = {
   get petHpCur() { const p = this.activePetObj; if (!p) return 0; const h = this.state.combat && this.state.combat.petHp; return (h == null) ? this.petHpMaxV : Math.max(0, h); },
   get petHpPct() { const m = this.petHpMaxV; return m ? Math.max(0, Math.min(100, Math.round(this.petHpCur / m * 100))) : 0; },
   petPassiveOf(pet) { return petPassive(pet); },   // Tuyệt Kĩ bị động (signature loài)
-  petActiveOf(pet) { return petActive(pet) || {}; },
+  petActiveOf(pet) { return petActiveEff(pet) || {}; },   // chủ động (đã nhân hệ thức tỉnh khi evolved)
+  petAwkPassiveOf(pet) { return petAwkPassive(pet); },    // P7 — bị động Thức Tỉnh (null nếu chưa)
   petSkillArt(pet, kind) {   // art tuyệt kĩ: images/pets/skill_<base>_<p|a>.webp -> png -> tự gỡ (lộ SVG nền)
     const f = 'skill_' + pet.base + '_' + (kind === 'active' ? 'a' : 'p');
+    return `<img src="images/pets/${f}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/pets/${f}.png&quot;;}else{this.remove();}'>`;
+  },
+  awkArtTag(awkId) {   // art bị động Thức Tỉnh: images/pets/awk_<id>.webp -> png -> tự gỡ (lộ SVG sao nền)
+    const f = 'awk_' + awkId;
     return `<img src="images/pets/${f}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/pets/${f}.png&quot;;}else{this.remove();}'>`;
   },
   // HP / Thể Lực / Ngất THEO TỪNG pet (popup mở pet bất kỳ; chỉ con đang mang + đang combat mới có HP phiên thật)
@@ -530,12 +535,12 @@ const gameStore = {
   petFaintedOf(pet) { return this.petFainted && this.activePetObj && this.activePetObj.id === pet.id; },
   // Popup chi tiết pet (mở từ roster) — mirror tpDetail
   petDetail: null,
-  petDetailMode: 'view',   // view | fuse | fuseConfirm | release
+  petDetailMode: 'view',   // view | fuse | fuseConfirm | release | awaken
   fuseSel: [],
   openPetDetail(id) { this.petDetail = id; this.petDetailMode = 'view'; this.fuseSel = []; },
   closePetDetail() { this.petDetail = null; this.petDetailMode = 'view'; this.fuseSel = []; },
   get petDetailObj() { return this.petDetail ? (this.state.pets || []).find((x) => x.id === this.petDetail) : null; },
-  petActiveDmg(pet) { const a = petActive(pet); return a ? Math.round(((petStatAt(pet) || {}).congKich || 0) * (a.mult || 0)) : 0; },   // sát thương chủ động ≈ mult × Công Kích
+  petActiveDmg(pet) { const a = petActiveEff(pet); return a ? Math.round(((petStatAt(pet) || {}).congKich || 0) * (a.mult || 0)) : 0; },   // sát thương chủ động ≈ mult × Công Kích (đã gồm thức tỉnh)
   // --- P6: Dung Hợp (đa vật tế) ---
   get fuseDonors() {   // pet đủ điều kiện làm vật tế; SẮP cùng dòng+phẩm lên đầu rồi phẩm/cấp giảm dần
     const t = this.petDetailObj; if (!t) return [];
@@ -575,6 +580,34 @@ const gameStore = {
     Storage.save(this.state); this.closePetDetail();
     const parts = [this.fmt(r.bac) + ' Bạc']; if (r.honThach) parts.push(r.honThach + ' Hồn Thạch'); if (r.linhPhach) parts.push(r.linhPhach + ' Linh Phách');
     this.showToast('Phóng sanh · nhận ' + parts.join(' · ') + '.');
+  },
+  // --- P7: Thức Tỉnh ---
+  get awakenCostObj() { const p = this.petDetailObj; return p ? awakenCost(p) : null; },
+  get canAwakenSel() { const p = this.petDetailObj; return p ? canAwaken(this.state, p) : false; },
+  get awakenAffordSel() { const p = this.petDetailObj; return p ? awakenAfford(this.state, p) : false; },
+  awakenMatName() { const c = this.awakenCostObj; return c ? ((this.ITEMS[c.matId] || {}).name || c.matId) : ''; },
+  awakenMatHave() { const c = this.awakenCostObj; return c ? (this.state.inventory[c.matId] || 0) : 0; },
+  awakenMatIco() { const c = this.awakenCostObj; return c ? this.ico(c.matId, (this.ITEMS[c.matId] || {}).icon || '🌀') : ''; },
+  get awakenBlockReason() {
+    const p = this.petDetailObj; if (!p) return '';
+    if (p.evolved) return 'Đã Thức Tỉnh.';
+    if (!this.canAwakenSel) return 'Phải đạt cảnh giới tối đa (Lv ' + this.petLevelCap(p) + ') mới Thức Tỉnh được.';
+    if (!this.awakenAffordSel) return 'Thiếu liệu Thức Tỉnh hoặc Hồn Thạch.';
+    return '';
+  },
+  doAwaken() {
+    const p = this.petDetailObj; if (!p) return;
+    const before = (this.QUALITY[p.quality] || {}).name;
+    const r = awakenPet(this.state, p.id);
+    if (!r) { this.showToast(this.awakenBlockReason || 'Chưa thể Thức Tỉnh.'); return; }
+    Storage.save(this.state);
+    this.petDetailMode = 'view';
+    const aw = this.AWK_PASSIVES[r.awkPassive] || {};
+    let m = this.petName(p) + ' Thức Tỉnh — lĩnh ngộ 〈' + aw.name + '〉';
+    if (r.newOpt) m += ', khai mở ' + this.petOptLabel(r.newOpt);
+    if (r.mutated) m += ' · BIẾN DỊ thăng ' + (this.QUALITY[p.quality] || {}).name;
+    this.showToast(m + '.');
+    this.pushNotif('khac', 'Linh Thú Thức Tỉnh', this.petName(p) + ' phá vỏ phàm thai, hiện hình thái thứ hai · lĩnh ngộ 〈' + aw.name + '〉' + (r.mutated ? ' · biến dị thăng phẩm ' + before + ' → ' + (this.QUALITY[p.quality] || {}).name : '') + '.');
   },
   petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
   petOptsText(pet) { return (pet.opts || []).map((o) => this.petOptLabel(o)).join('  ·  '); },   // cho tooltip chip "N dị bẩm"
@@ -1420,11 +1453,13 @@ const gameStore = {
     const mult = skillExpMultiplier(this.state, 'chienDau');
     const xpGain = Math.max(1, Math.round(e.exp * mult));
     addSkillXp(this.state, 'chienDau', xpGain);
-    const rp = gainPetXp(this.state, Math.round(xpGain * 0.5));   // Linh Thú đang mang ăn 50% EXP/trận
+    const rp = gainPetXp(this.state, Math.round(xpGain * 0.5));   // Linh Thú đang mang ăn 50% EXP/trận (+ Hiếu Học)
     if (rp && rp.leveled) this.showToast(this.petName(rp.pet) + ' lên Cảnh Lv ' + rp.pet.level + '.');
     for (const st of boPhapStats(this.loadout)) addStatXp(this.state, st, e.statXp);
-    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance) this.combatPending.items[l.itemId] = (this.combatPending.items[l.itemId] || 0) + 1;
-    this.combatPending.bac += Math.max(1, Math.round(e.exp * 1.5));
+    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus');   // P7 — Tham Tài
+    const lootMul = 1 + activeAwkVal(this.state, 'lootBonus');     // P7 — Lùng Sục
+    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) this.combatPending.items[l.itemId] = (this.combatPending.items[l.itemId] || 0) + 1;
+    this.combatPending.bac += Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     this.state.combat.sinhLuc = Math.max(0, Math.round(f.p.hp));
     const sk = this.state.skills['chienDau']; if (sk) { sk.gathered = (sk.gathered || 0) + 1; sk.timeMs = (sk.timeMs || 0) + (this.act.cycleMs || 1000); }
@@ -1801,7 +1836,7 @@ const gameStore = {
   devSetPetLevel(lv) { lv = Math.max(1, Math.min(99, Math.floor(lv || 1))); (this.state.pets || []).forEach((p) => { p.level = lv; p.xp = 0; }); this.devSave(); this.showToast('Đặt mọi Linh Thú về Lv' + lv); },
   devAwakenActive() { const p = this.activePetObj; if (!p) { this.showToast('Chưa dắt Linh Thú nào.'); return; } p.evolved = !p.evolved; this.devSave(); this.showToast(this.petName(p) + (p.evolved ? ' — Thức Tỉnh (hiện art _awk).' : ' — về hình thái gốc.')); },
   devClearPets() { this.state.pets = []; this.state.hatchery = null; this.devSave(); this.showToast('Đã xoá hết Linh Thú + lò ấp.'); },
-  devGivePetMats() { addItem(this.state, 'linhPhach', 99); addItem(this.state, 'tinhTheYeuVuong', 99); this.devSave(); this.showToast('Nhận 99 Linh Phách + 99 Tinh Thể Yêu Vương.'); },
+  devGivePetMats() { addItem(this.state, 'linhPhach', 99); addItem(this.state, 'tinhTheYeuVuong', 99); this.state.currencies.honThach = (this.state.currencies.honThach || 0) + 50000; this.devSave(); this.showToast('Nhận 99 Linh Phách + 99 Tinh Thể Yêu Vương + 50k Hồn Thạch (test Thức Tỉnh).'); },
   devSetClass(id) { if (this.CLASSES[id]) { this.state.player.class = id; this.devSave(); } },
   devExport() {
     const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: 'application/json' });

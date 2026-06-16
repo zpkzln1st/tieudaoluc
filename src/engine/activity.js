@@ -11,7 +11,7 @@ import { combatProfile, boPhapStats, COMBAT_CYCLE_MS } from '../data/votong.js';
 import { travelTimeMs } from './travel.js';
 import { addItem, removeItem } from './inventory.js';
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
-import { gainPetXp, resetPetCombat, petCombatCycle } from './pets.js';
+import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { grantDungeon } from './dungeon.js';
@@ -236,6 +236,8 @@ export function advance(state, now) {
       const hpLost = act.hpLostPerKill || 0;               // máu mất mỗi con (từ Suy Tính)
       const maxHP = act.maxHP || (act.maxHP = combatProfile(state, cb.loadout, enemy).maxHP); // mốc ngưỡng tự ăn (memo cho save cũ)
       const bacPer = Math.max(1, Math.round(enemy.exp * 1.5));
+      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus');             // P7 — Tham Tài
+      const lootMul = 1 + activeAwkVal(state, 'lootBonus');               // P7 — Lùng Sục
       let done = 0, died = false;
       for (let i = 0; i < cyclesByTime; i++) {
         autoEatTick(state, maxHP);                          // Ô Lương Thực: tự ăn nếu máu dưới ngưỡng (trước khi vào con)
@@ -246,8 +248,8 @@ export function advance(state, now) {
         if (hp > 0) cb.sinhLuc -= hp;
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
-        if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance) cb.pending.items[l.itemId] = (cb.pending.items[l.itemId] || 0) + 1; }
-        cb.pending.bac += bacPer;                          // loot + Bạc -> túi tạm (mất 40% nếu gục)
+        if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul) cb.pending.items[l.itemId] = (cb.pending.items[l.itemId] || 0) + 1; }
+        cb.pending.bac += Math.round(bacPer * moneyMul);   // loot + Bạc -> túi tạm (mất 40% nếu gục)
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;
       }

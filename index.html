@@ -2029,7 +2029,6 @@
                           </div>
                         </template>
                       </div>
-                      <button @click.stop="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="w-full mt-auto py-1 text-[11px] rounded font-semibold transition" :class="p.equipped?'text-jade border border-jade/45 hover:bg-jade/10':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu Hồi':'Đưa Xuất Trận'"></button>
                     </div>
                   </div>
                 </template>
@@ -2127,6 +2126,12 @@
                   <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="$store.game.petRole(p)"></span>
                   <span class="text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1" :style="'color:'+el+';background:rgba(0,0,0,.35);border:1px solid '+el+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+el+';box-shadow:0 0 6px '+el"></span><span x-text="$store.game.petHeName(p)"></span></span>
                 </div>
+                <div x-show="p.opts.length" class="mt-1">
+                  <div class="lbl text-slate-500 mb-1">Dị Bẩm</div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <template x-for="o in p.opts" :key="o.id"><span class="text-[10px] px-2 py-0.5 rounded-full border" :class="q.text+' '+q.border" :style="'background:'+qh+'14'" x-text="$store.game.petOptLabel(o)"></span></template>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- BODY (cuộn) -->
@@ -2145,12 +2150,6 @@
                   </template>
                 </div>
               </div>
-              <div x-show="p.opts.length">
-                <div class="lbl mb-1.5">Dị Bẩm</div>
-                <div class="flex flex-wrap gap-1.5">
-                  <template x-for="o in p.opts" :key="o.id"><span class="text-[10.5px] px-2 py-0.5 rounded-full border" :class="q.text+' '+q.border" :style="'background:'+qh+'14'" x-text="$store.game.petOptLabel(o)"></span></template>
-                </div>
-              </div>
               <div>
                 <div class="lbl mb-1.5">Tuyệt Kĩ</div>
                 <div class="space-y-2">
@@ -2160,7 +2159,7 @@
                       <div class="absolute inset-0" x-html="$store.game.petSkillArt(p,'passive')"></div>
                     </div>
                     <div class="min-w-0">
-                      <div class="text-[13px] font-medium text-slate-100"><span x-text="$store.game.petPassiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal">· bị động</span></div>
+                      <div class="text-[13px] font-medium text-slate-100"><span x-text="$store.game.petPassiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal">· bị động</span> <template x-if="p.evolved"><span class="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-600/30 font-bold align-middle">✦ +30%</span></template></div>
                       <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="$store.game.petPassiveOf(p).desc"></div>
                     </div>
                   </div>
@@ -2171,7 +2170,7 @@
                       <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 16px '+qh+'22'"></div>
                     </div>
                     <div class="min-w-0">
-                      <div class="text-[13px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div>
+                      <div class="text-[13px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span> <template x-if="p.evolved"><span class="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-600/30 font-bold align-middle">✦ +30%</span></template></div>
                       <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="$store.game.petActiveOf(p).desc"></div>
                       <div class="flex flex-wrap gap-1 mt-1.5">
                         <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-ink/70 border border-slate-700 text-slate-300">Sát thương ~<span x-text="Math.round($store.game.petActiveOf(p).mult*100)"></span>% Công Kích · ≈<b class="text-rose-300" x-text="$store.game.fmt($store.game.petActiveDmg(p))"></b></span>
@@ -2180,6 +2179,19 @@
                       </div>
                     </div>
                   </div>
+                  <!-- Bị động Thức Tỉnh (P7) — chỉ hiện khi đã thức tỉnh -->
+                  <template x-if="$store.game.petAwkPassiveOf(p)">
+                    <div class="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-amber-900/10 border border-amber-700/30" x-data="{ get aw(){ return $store.game.petAwkPassiveOf(p)||{} } }">
+                      <div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-ink2 border border-amber-700/40 flex items-center justify-center" style="color:#fbbf24">
+                        <span class="opacity-40"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.5 6.6 6.8.4-5.2 4.4 1.7 6.6L12 17.4 6.2 21l1.7-6.6-5.2-4.4 6.8-.4L12 2.5z"/></svg></span>
+                        <div class="absolute inset-0" x-html="$store.game.awkArtTag(aw.id)"></div>
+                      </div>
+                      <div class="min-w-0">
+                        <div class="text-[13px] font-medium text-amber-200"><span x-text="aw.name"></span> <span class="text-[10px] text-slate-500 font-normal">· bị động Thức Tỉnh</span></div>
+                        <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="aw.desc"></div>
+                      </div>
+                    </div>
+                  </template>
                 </div>
               </div>
               <div class="space-y-2">
@@ -2272,14 +2284,58 @@
                   <div class="text-[10.5px] text-slate-600 max-w-sm mx-auto" x-show="!r.honThach || !r.linhPhach">Phẩm càng cao càng cho nhiều — từ Tinh Phẩm có Linh Phách, từ Tuyệt Phẩm có thêm Hồn Thạch.</div>
                 </div>
               </template>
+
+              <!-- AWAKEN: Thức Tỉnh -->
+              <template x-if="$store.game.petDetailMode==='awaken'">
+                <div class="space-y-4 py-1" x-data="{ get c(){ return $store.game.awakenCostObj||{} }, get hsOk(){ return ($store.game.state.currencies.honThach||0) >= ($store.game.awakenCostObj||{}).honThach }, get matOk(){ return $store.game.awakenMatHave() >= ($store.game.awakenCostObj||{}).matQty } }">
+                  <div class="text-center space-y-1">
+                    <div class="text-[15px] fserif text-amber-200">Thức Tỉnh <b :class="q.text" x-text="$store.game.petName(p)"></b></div>
+                    <div class="text-[11px] text-slate-500 max-w-md mx-auto fserif italic">Dẫn động huyết mạch thượng cổ, phá vỏ phàm thai — linh thú lột xác, uy năng vọt bậc, hiện ra chân thân giấu kín bấy lâu.</div>
+                  </div>
+                  <div class="rounded-xl bg-ink3/50 border border-amber-800/30 p-3.5 space-y-2">
+                    <div class="text-[11px] text-amber-300/90 font-semibold">Sau Thức Tỉnh</div>
+                    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-1.5 text-[11.5px]">
+                      <div class="flex items-center gap-2"><span class="text-amber-400 shrink-0">✦</span><span class="text-slate-300">Toàn bộ chỉ số <b class="text-amber-200">×1.25</b></span></div>
+                      <div class="flex items-center gap-2"><span class="text-amber-400 shrink-0">✦</span><span class="text-slate-300">Tuyệt kĩ tiến hoá <b class="text-amber-200">+30%</b> uy lực</span></div>
+                      <div class="flex items-center gap-2"><span class="text-amber-400 shrink-0">✦</span><span class="text-slate-300">Khai mở <b class="text-jade">1 Dị Bẩm</b> mới</span></div>
+                      <div class="flex items-center gap-2"><span class="text-amber-400 shrink-0">✦</span><span class="text-slate-300">Lĩnh ngộ <b class="text-cyan-300">1 bị động Thức Tỉnh</b></span></div>
+                      <div class="flex items-center gap-2"><span class="text-amber-400 shrink-0">✦</span><span class="text-slate-300"><b class="text-violet-300">15%</b> cơ duyên biến dị thăng 1 phẩm</span></div>
+                      <div class="flex items-center gap-2"><span class="text-amber-400 shrink-0">✦</span><span class="text-slate-300">Hiện <b class="text-amber-200">hình thái thứ hai</b></span></div>
+                    </div>
+                    <div class="text-[10.5px] text-slate-600 pt-0.5">Giữ nguyên cảnh giới · không thể hoàn lại.</div>
+                  </div>
+                  <div>
+                    <div class="lbl mb-1.5">Tế Phẩm Cần</div>
+                    <div class="flex items-stretch gap-2.5 flex-wrap">
+                      <div class="flex items-center gap-2 px-3 py-2 rounded-xl border" :class="hsOk ? 'bg-ink3/50 border-slate-700/70' : 'bg-rose-900/15 border-rose-800/50'">
+                        <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('honThach','🔴')"></span>
+                        <div class="leading-tight">
+                          <div class="text-[13px] font-bold" :class="hsOk ? 'text-rose-200' : 'text-rose-400'" x-text="$store.game.fmt(c.honThach)"></div>
+                          <div class="text-[9.5px] text-slate-500">Hồn Thạch · có <span x-text="$store.game.fmt($store.game.state.currencies.honThach||0)"></span></div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2 px-3 py-2 rounded-xl border" :class="matOk ? 'bg-ink3/50 border-slate-700/70' : 'bg-rose-900/15 border-rose-800/50'">
+                        <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.awakenMatIco()"></span>
+                        <div class="leading-tight">
+                          <div class="text-[13px] font-bold" :class="matOk ? 'text-emerald-200' : 'text-rose-400'" x-text="c.matQty"></div>
+                          <div class="text-[9.5px] text-slate-500"><span x-text="$store.game.awakenMatName()"></span> · có <span x-text="$store.game.fmt($store.game.awakenMatHave())"></span></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-[10px] text-slate-600 mt-1.5" x-text="$store.game.awakenMatName()==='Tinh Thể Yêu Vương' ? 'Phẩm Thần trở lên cần Tinh Thể Yêu Vương (rơi từ Yêu Vương).' : 'Phẩm dưới Thần dùng Linh Phách (gom từ phóng sanh linh thú phẩm cao).'"></div>
+                  </div>
+                  <template x-if="$store.game.awakenBlockReason"><div class="text-[11px] text-rose-300/90 text-center px-3 py-2 rounded-lg bg-rose-900/10 border border-rose-800/30" x-text="$store.game.awakenBlockReason"></div></template>
+                </div>
+              </template>
             </div>
             <!-- FOOTER -->
             <div class="shrink-0 px-4 py-3 border-t border-slate-800 bg-ink2/40 flex items-center justify-end gap-2">
               <template x-if="$store.game.petDetailMode==='view'">
-                <div class="flex items-center gap-2 w-full">
+                <div class="flex flex-wrap items-center gap-2 w-full">
                   <button @click="$store.game.petDetailMode='fuse'" :disabled="$store.game.fuseDonors.length===0" class="px-3 py-2 rounded-lg text-[12px] font-semibold text-violet-300 border border-violet-700/50 hover:bg-violet-500/10 disabled:opacity-40 disabled:cursor-not-allowed">Dung Hợp</button>
                   <button @click="$store.game.petDetailMode='release'" :disabled="p.equipped" class="px-3 py-2 rounded-lg text-[12px] font-semibold text-slate-300 border border-slate-700 hover:border-rose-500 hover:text-rose-300 disabled:opacity-40 disabled:cursor-not-allowed" :title="p.equipped?'Thu về trước đã':''">Phóng Sanh</button>
-                  <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="ml-auto px-4 py-2 rounded-lg text-[12.5px] font-semibold transition" :class="p.equipped?'text-jade border border-jade/45 hover:bg-jade/10':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu Hồi':'Đưa Xuất Trận'"></button>
+                  <template x-if="!p.evolved"><button @click="$store.game.petDetailMode='awaken'" class="px-3 py-2 rounded-lg text-[12px] font-semibold text-amber-300 border border-amber-700/50 hover:bg-amber-500/10">✦ Thức Tỉnh</button></template>
+                  <button @click="p.equipped ? $store.game.unequipActivePet() : $store.game.equipPet(p.id)" class="ml-auto px-4 py-2 rounded-lg text-[12.5px] font-semibold transition" :class="p.equipped?'text-jade border border-jade/45 hover:bg-jade/10':'bg-jade/85 hover:bg-jade text-ink'" x-text="p.equipped?'Thu Hồi':'Xuất Trận'"></button>
                 </div>
               </template>
               <template x-if="$store.game.petDetailMode==='fuse'">
@@ -2298,6 +2354,12 @@
                 <div class="flex items-center gap-2 w-full">
                   <button @click="$store.game.petDetailMode='view'" class="mr-auto px-4 py-2 rounded-lg text-[12px] font-semibold text-slate-300 border border-slate-700 hover:border-slate-500">← Quay lại</button>
                   <button @click="$store.game.doRelease()" class="px-4 py-2 rounded-lg text-[12px] font-semibold bg-rose-700/80 hover:bg-rose-600 text-slate-100">Xác Nhận Phóng Sanh</button>
+                </div>
+              </template>
+              <template x-if="$store.game.petDetailMode==='awaken'">
+                <div class="flex items-center gap-2 w-full">
+                  <button @click="$store.game.petDetailMode='view'" class="mr-auto px-4 py-2 rounded-lg text-[12px] font-semibold text-slate-300 border border-slate-700 hover:border-slate-500">← Quay lại</button>
+                  <button @click="$store.game.doAwaken()" :disabled="!$store.game.canAwakenSel || !$store.game.awakenAffordSel" class="px-5 py-2 rounded-lg text-[12.5px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink disabled:opacity-40 disabled:cursor-not-allowed">✦ Thức Tỉnh</button>
                 </div>
               </template>
             </div>

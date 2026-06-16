@@ -56,6 +56,45 @@ export const PET_OPT_BY_ID = {};
 PET_OPT_POOL.forEach((o) => { PET_OPT_BY_ID[o.id] = o; });
 
 // ============================================================
+// P7 — BỊ ĐỘNG THỨC TỈNH: khi Thức Tỉnh, pet lĩnh ngộ 1 trong các bị động dưới (roll 1, mỗi con khác nhau).
+// Hệ số dùng CHUNG key với passive signature (absorb/dmgBonus/lifesteal/petHp/cdCut) → gộp thẳng vào combat cycle.
+// ============================================================
+// Hiệu ứng (key) — gộp vào combat/stat khi pet ĐANG MANG:
+//   absorb(+% gánh) · dmgBonus(+% tuyệt kĩ) · cdCut(−nhịp hồi) · lifesteal(hồi=Công×val/nhịp) · petHp(+% Sinh Lực pet)
+//   statMul{stat|all}(+% chỉ số pet → cộng chủ) · stamCostCut(−Thể Lực/nhịp) · cycleHealPct(hồi chủ=Sinh Lực pet×val/nhịp)
+//   petExpBonus(+% tu vi/trận) · moneyBonus(+% Bạc) · lootBonus(+% cơ hội rơi đồ)
+export const AWK_PASSIVES = {
+  // — Nhóm Công —
+  cuongHon:   { id: 'cuongHon',   name: 'Cuồng Hồn',   desc: 'Hồn phách bùng cháy sau thức tỉnh — sát thương tuyệt kĩ Linh Thú tăng thêm 15%.', dmgBonus: 0.15 },
+  satPhat:    { id: 'satPhat',    name: 'Sát Phạt',    desc: 'Sát khí ngút trời — Công Kích Linh Thú tăng 12%, cộng thẳng cho chủ.', statMul: { congKich: 0.12 } },
+  tocGiac:    { id: 'tocGiac',    name: 'Tốc Giác',    desc: 'Linh giác khai mở, ra đòn nhanh hơn — tuyệt kĩ giảm 1 nhịp hồi.', cdCut: 1 },
+  // — Nhóm Thủ —
+  batKhuat:   { id: 'batKhuat',   name: 'Bất Khuất',   desc: 'Gân cốt như sắt sau khi lột vỏ — gánh thay chủ thêm 8% sát thương mỗi trận.', absorb: 0.08 },
+  hoChu:      { id: 'hoChu',      name: 'Hộ Chủ',      desc: 'Một lòng hộ chủ — Hộ Thể Linh Thú tăng 15%, chủ chịu đòn nhẹ hơn.', statMul: { hoThe: 0.15 } },
+  kienTam:    { id: 'kienTam',    name: 'Kiên Tâm',    desc: 'Đạo tâm vững như bàn thạch — Sinh Lực Linh Thú tăng 12%, trụ đòn bền hơn.', petHp: 0.12 },
+  // — Nhóm Hồi —
+  taiSinh:    { id: 'taiSinh',    name: 'Tái Sinh',    desc: 'Sinh cơ tuần hoàn — đòn Linh Thú hút thêm sinh lực hồi cho chủ mỗi nhịp.', lifesteal: 0.30 },
+  sinhCo:     { id: 'sinhCo',     name: 'Sinh Cơ',     desc: 'Sinh khí dồi dào — Sinh Lực Linh Thú tăng 15%, cộng chủ và trụ đòn lâu hơn.', statMul: { sinhLuc: 0.15 } },
+  hoiXuan:    { id: 'hoiXuan',    name: 'Hồi Xuân',    desc: 'Hơi thở hồi xuân — mỗi nhịp Linh Thú hồi cho chủ 5% Sinh Lực của nó.', cycleHealPct: 0.05 },
+  // — Nhóm Khéo —
+  tatPhong:   { id: 'tatPhong',   name: 'Tật Phong',   desc: 'Thân nhẹ như gió cuốn — Né Tránh Linh Thú tăng 18%, chủ né đòn nhiều hơn.', statMul: { neTranh: 0.18 } },
+  minhMuc:    { id: 'minhMuc',    name: 'Minh Mục',    desc: 'Mắt sáng nhìn thấu sơ hở — Chính Xác Linh Thú tăng 18%, chủ đánh trúng nhiều hơn.', statMul: { menhTrung: 0.18 } },
+  // — Nhóm Bền —
+  benBi:      { id: 'benBi',      name: 'Bền Bỉ',      desc: 'Sức bền dẻo dai — mỗi nhịp Linh Thú chỉ tốn 2 Thể Lực, đánh lâu mới kiệt sức.', stamCostCut: 2 },
+  // — Nhóm Lợi (ngoài chiến đấu) —
+  hieuHoc:    { id: 'hieuHoc',    name: 'Hiếu Học',    desc: 'Ham học hỏi — Linh Thú thu thêm 30% tu vi mỗi trận, lên cấp nhanh hơn.', petExpBonus: 0.30 },
+  thamTai:    { id: 'thamTai',    name: 'Tham Tài',    desc: 'Mũi thính hơi tiền — mỗi trận thắng nhặt thêm 20% Bạc.', moneyBonus: 0.20 },
+  lungSuc:    { id: 'lungSuc',    name: 'Lùng Sục',    desc: 'Bới lông tìm vết — tăng 25% cơ hội rơi vật phẩm mỗi trận.', lootBonus: 0.25 },
+  vienMan:    { id: 'vienMan',    name: 'Viên Mãn',    desc: 'Khí huyết viên mãn — toàn bộ chỉ số Linh Thú tăng 8%.', statMul: { all: 0.08 } },
+  // — Nhóm Hợp (combo, mạnh hơn chút) —
+  maThe:      { id: 'maThe',      name: 'Ma Thể',      desc: 'Ma thân cường hãn — Sinh Lực Linh Thú +10% và gánh thay chủ thêm 5%.', petHp: 0.10, absorb: 0.05 },
+  huyetChien: { id: 'huyetChien', name: 'Huyết Chiến', desc: 'Càng đánh càng hăng — Công Kích Linh Thú +10% và đòn của nó hút máu hồi chủ.', statMul: { congKich: 0.10 }, lifesteal: 0.15 },
+  toanNang:   { id: 'toanNang',   name: 'Toàn Năng',   desc: 'Công thủ toàn vẹn — sát thương tuyệt kĩ +10% và Sinh Lực Linh Thú +10%.', dmgBonus: 0.10, petHp: 0.10 },
+  manNhue:    { id: 'manNhue',    name: 'Mẫn Nhuệ',    desc: 'Nhanh nhạy lại sắc bén — Né Tránh và Chính Xác Linh Thú đều tăng 10%.', statMul: { neTranh: 0.10, menhTrung: 0.10 } },
+};
+export const AWK_PASSIVE_IDS = Object.keys(AWK_PASSIVES);
+
+// ============================================================
 // P5 — TUYỆT KĨ: mỗi loài 1 BỊ ĐỘNG (signature) + 1 CHỦ ĐỘNG (CD theo cycle, phát trong combat).
 // Bị động (mỗi cycle): dmgBonus(+% đòn tuyệt kĩ) · absorb(+% gánh thay chủ) · lifesteal(hồi=Công×val/cycle) · petHp(+% Sinh Lực pet) · cdCut(−nhịp hồi).
 // Chủ động (đủ nhịp + còn Thể Lực): mult(burst=Công×mult) · healMul(hồi=burst×healMul) · block(đỡ TRỌN đòn cycle). Tốn thêm 6 Thể Lực/lần.
