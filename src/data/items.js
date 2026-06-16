@@ -5,14 +5,16 @@
 // text/border/grad dùng cho khung độ hiếm (popup loot, tooltip...). bg/ring giữ cho lưới kho cũ.
 import { GEAR } from './gear.js';
 
+// Bậc 1→7: Thường(xám) · Tốt(lá) · Hiếm(dương) · Cực Hiếm(tím) · Sử Thi(hồng tím) · Truyền Thuyết(cam) · Độc Nhất(vàng kim).
+// ID nội bộ GIỮ NGUYÊN (phamPham…coBan) để không vỡ save cũ — chỉ đổi name + màu.
 export const QUALITY = {
-  phamPham:  { id: 'phamPham',  name: 'Phàm Phẩm',  bg: 'bg-slate-700/40',   ring: 'ring-slate-500',   text: 'text-slate-300',   border: 'border-slate-500/50',   grad: 'from-slate-700/30 to-ink3/20' },
-  luongPham: { id: 'luongPham', name: 'Lương Phẩm', bg: 'bg-blue-900/40',    ring: 'ring-blue-500',    text: 'text-blue-300',    border: 'border-blue-500/50',    grad: 'from-blue-900/25 to-ink3/20' },
-  tinhPham:  { id: 'tinhPham',  name: 'Tinh Phẩm',  bg: 'bg-emerald-900/40', ring: 'ring-emerald-500', text: 'text-emerald-300', border: 'border-emerald-500/50', grad: 'from-emerald-900/25 to-ink3/20' },
-  tuyetPham: { id: 'tuyetPham', name: 'Tuyệt Phẩm', bg: 'bg-rose-900/40',    ring: 'ring-rose-500',    text: 'text-rose-300',    border: 'border-rose-500/50',    grad: 'from-rose-900/25 to-ink3/20' },
-  truyenThe: { id: 'truyenThe', name: 'Truyền Thế', bg: 'bg-amber-900/40',   ring: 'ring-amber-500',   text: 'text-amber-300',   border: 'border-amber-500/50',   grad: 'from-amber-900/25 to-ink3/20' },
-  thanPham:  { id: 'thanPham',  name: 'Thần Phẩm',  bg: 'bg-orange-900/40',  ring: 'ring-orange-500',  text: 'text-orange-300',  border: 'border-orange-500/50',  grad: 'from-orange-900/25 to-ink3/20' },
-  coBan:     { id: 'coBan',     name: 'Cô Bản',     bg: 'bg-purple-900/40',  ring: 'ring-purple-500',  text: 'text-purple-300',  border: 'border-purple-500/50',  grad: 'from-purple-900/25 to-ink3/20' },
+  phamPham:  { id: 'phamPham',  name: 'Thường',        bg: 'bg-slate-700/40',    ring: 'ring-slate-500',    text: 'text-slate-300',    border: 'border-slate-500/50',    grad: 'from-slate-700/30 to-ink3/20' },
+  luongPham: { id: 'luongPham', name: 'Tốt',           bg: 'bg-emerald-900/40',  ring: 'ring-emerald-500',  text: 'text-emerald-300',  border: 'border-emerald-500/50',  grad: 'from-emerald-900/25 to-ink3/20' },
+  tinhPham:  { id: 'tinhPham',  name: 'Hiếm',          bg: 'bg-blue-900/40',     ring: 'ring-blue-500',     text: 'text-blue-300',     border: 'border-blue-500/50',     grad: 'from-blue-900/25 to-ink3/20' },
+  tuyetPham: { id: 'tuyetPham', name: 'Cực Hiếm',      bg: 'bg-violet-900/40',   ring: 'ring-violet-500',   text: 'text-violet-300',   border: 'border-violet-500/50',   grad: 'from-violet-900/25 to-ink3/20' },
+  truyenThe: { id: 'truyenThe', name: 'Sử Thi',        bg: 'bg-fuchsia-900/40',  ring: 'ring-fuchsia-500',  text: 'text-fuchsia-300',  border: 'border-fuchsia-500/50',  grad: 'from-fuchsia-900/25 to-ink3/20' },
+  thanPham:  { id: 'thanPham',  name: 'Truyền Thuyết', bg: 'bg-orange-900/40',   ring: 'ring-orange-500',   text: 'text-orange-300',   border: 'border-orange-500/50',   grad: 'from-orange-900/25 to-ink3/20' },
+  coBan:     { id: 'coBan',     name: 'Độc Nhất',      bg: 'bg-amber-900/40',    ring: 'ring-amber-500',    text: 'text-amber-300',    border: 'border-amber-500/50',    grad: 'from-amber-900/25 to-ink3/20' },
 };
 
 export const ITEM_TYPES = {
@@ -176,9 +178,9 @@ const EGG_THEMES = [
   { base: 'thienMa',    name: 'Thiên Ma' },
 ];
 const EGG_TIERS = [   // q (phẩm chất) khớp NHÃN tên trứng để màu khung đúng cảm nhận độ hiếm
-  { suf: 'pham', q: 'phamPham', label: 'Phàm Phẩm', v: 120 },
-  { suf: 'linh', q: 'tinhPham', label: 'Linh Phẩm', v: 450 },
-  { suf: 'than', q: 'thanPham', label: 'Thần Phẩm', v: 1400 },
+  { suf: 'pham', q: 'phamPham', label: 'Thường',        v: 120 },
+  { suf: 'linh', q: 'tinhPham', label: 'Hiếm',          v: 450 },
+  { suf: 'than', q: 'thanPham', label: 'Truyền Thuyết', v: 1400 },
 ];
 export const EGG_IDS = [];
 EGG_THEMES.forEach((t) => EGG_TIERS.forEach((tr) => {

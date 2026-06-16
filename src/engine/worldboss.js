@@ -187,10 +187,10 @@ export function genBossFeed(boss) {
   const tier = boss.wb;
   const firstNm = boss.name.split(' ')[0];
   const tmpl = [
-    { win: true, rare: true, ago: '6 phút trước', txt: 'trảm ' + boss.name + ', trúng <b class="text-amber-300">Trứng Thần Phẩm</b> ★' },
-    { win: true, ago: '12 phút trước', txt: 'hạ ' + boss.name + ' · ' + tier.tinhThe + '× Tinh Thể, 1× Trứng Phàm' },
+    { win: true, rare: true, ago: '6 phút trước', txt: 'trảm ' + boss.name + ', trúng <b class="text-amber-300">Trứng Truyền Thuyết</b> ★' },
+    { win: true, ago: '12 phút trước', txt: 'hạ ' + boss.name + ' · ' + tier.tinhThe + '× Tinh Thể, 1× Trứng Thường' },
     { win: false, ago: '18 phút trước', txt: 'bại trận dưới ' + boss.skill.name + ' — trọng thương lui về' },
-    { win: true, ago: '27 phút trước', txt: 'nhặt được <b class="text-emerald-300">Trứng ' + firstNm + ' · Linh Phẩm</b>' },
+    { win: true, ago: '27 phút trước', txt: 'nhặt được <b class="text-blue-300">Trứng ' + firstNm + ' · Hiếm</b>' },
     { win: true, rare: true, ago: '41 phút trước', txt: 'độc đoạt <b class="text-amber-300">' + (tier.tinhThe + 2) + '× Tinh Thể</b> trong một trận ★' },
     { win: true, ago: '1 giờ trước', txt: 'hạ ' + boss.name + ' · Hồn Thạch ×' + tier.honThach },
     { win: false, ago: '2 giờ trước', txt: 'khiêu chiến thất bại, để ' + firstNm + ' đào thoát' },
