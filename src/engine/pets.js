@@ -123,6 +123,7 @@ export function petStatAt(pet) {
     const d = PET_OPT_BY_ID[o.id];
     if (d && d.fmt === 'flat' && d.stat) s[d.stat] = (s[d.stat] || 0) + o.val;
   }
+  if (pet.fuseBonus) for (const k of STAT_KEYS) if (pet.fuseBonus[k]) s[k] = (s[k] || 0) + pet.fuseBonus[k];   // chỉ số hấp thụ từ Dung Hợp
   return s;
 }
 
@@ -252,24 +253,44 @@ export function upgradePetQuality(pet) {
   if (need > 0) pet.opts = (pet.opts || []).concat(rollOpts(pet.quality).slice(0, need));
   return true;
 }
-// Xem trước dung hợp (KHÔNG mutate). null nếu không hợp lệ.
+// % chỉ số donor mà target HẤP THỤ (vĩnh viễn): cùng dòng+phẩm 5% / cùng 1 thứ 3% / khác 1%.
+export function fuseAbsorbPct(t, d) {
+  const sb = t.base === d.base, sq = t.quality === d.quality;
+  return (sb && sq) ? 0.05 : (sb || sq) ? 0.03 : 0.01;
+}
+// Xem trước 1 donor (KHÔNG mutate). null nếu không hợp lệ.
 export function fusePreview(state, targetId, donorId) {
   const pets = state.pets || [];
   const t = pets.find((p) => p.id === targetId), d = pets.find((p) => p.id === donorId);
   if (!t || !d || t.id === d.id || d.equipped) return null;
   const same = (t.base === d.base && t.quality === d.quality);
   let xp = Math.round(petXpValue(d) * 0.7); if (same) xp = Math.round(xp * 1.15);   // cùng dòng+phẩm: +15% + cơ hội đột phá
-  return { xp, same, upChance: same ? (FUSE_UPGRADE[t.quality] || 0) : 0 };
+  return { xp, same, upChance: same ? (FUSE_UPGRADE[t.quality] || 0) : 0, pct: fuseAbsorbPct(t, d) };
 }
-// Dung hợp: donor -> tu vi cho target (+ cơ hội đột phá phẩm). Trả { target, xp, leveled, upgraded } | null.
-export function fusePet(state, targetId, donorId) {
-  const pv = fusePreview(state, targetId, donorId); if (!pv) return null;
-  const t = (state.pets || []).find((p) => p.id === targetId);
-  state.pets = (state.pets || []).filter((p) => p.id !== donorId);
-  const leveled = addXpToPet(state, t, pv.xp);
+// Dung hợp NHIỀU donor 1 lần: tu vi + HẤP THỤ chỉ số (vào fuseBonus) + 1 lần đột phá (chance gộp từ các con cùng dòng+phẩm). Trả tóm tắt | null.
+export function fuseMany(state, targetId, donorIds) {
+  const pets = state.pets || [];
+  const t = pets.find((p) => p.id === targetId);
+  if (!t || !donorIds || !donorIds.length) return null;
+  const donors = donorIds.map((id) => pets.find((p) => p.id === id)).filter((d) => d && d.id !== t.id && !d.equipped);
+  if (!donors.length) return null;
+  if (!t.fuseBonus) t.fuseBonus = {};
+  let xp = 0, pSurv = 1; const absorbed = {};
+  for (const d of donors) {
+    const same = (t.base === d.base && t.quality === d.quality);
+    let dxp = Math.round(petXpValue(d) * 0.7); if (same) dxp = Math.round(dxp * 1.15);
+    xp += dxp;
+    const pct = fuseAbsorbPct(t, d), ds = petStatAt(d) || {};
+    for (const k of STAT_KEYS) { if (ds[k]) { const a = Math.round(ds[k] * pct); if (a > 0) { t.fuseBonus[k] = (t.fuseBonus[k] || 0) + a; absorbed[k] = (absorbed[k] || 0) + a; } } }
+    if (same) pSurv *= (1 - (FUSE_UPGRADE[t.quality] || 0));
+  }
+  const dset = new Set(donors.map((d) => d.id));
+  state.pets = pets.filter((p) => !dset.has(p.id));
+  const leveled = addXpToPet(state, t, xp);
   let upgraded = false;
-  if (pv.upChance > 0 && Math.random() < pv.upChance) upgraded = upgradePetQuality(t);
-  return { target: t, xp: pv.xp, leveled, upgraded };
+  const upChance = 1 - pSurv;
+  if (upChance > 0 && Math.random() < upChance) upgraded = upgradePetQuality(t);
+  return { target: t, count: donors.length, xp, leveled, absorbed, upgraded };
 }
 // Phần thưởng phóng sanh (Bạc luôn; Hồn Thạch ≥Tuyệt; Linh Phách ≥Tinh).
 export function releaseReward(pet) {

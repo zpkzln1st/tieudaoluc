@@ -29,7 +29,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, fusePreview, fusePet, releaseReward, releasePet } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, fusePreview, fuseMany, releaseReward, releasePet } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -530,23 +530,44 @@ const gameStore = {
   petFaintedOf(pet) { return this.petFainted && this.activePetObj && this.activePetObj.id === pet.id; },
   // Popup chi tiết pet (mở từ roster) — mirror tpDetail
   petDetail: null,
-  petDetailMode: 'view',   // view | fuse | release
-  openPetDetail(id) { this.petDetail = id; this.petDetailMode = 'view'; },
-  closePetDetail() { this.petDetail = null; this.petDetailMode = 'view'; },
+  petDetailMode: 'view',   // view | fuse | fuseConfirm | release
+  fuseSel: [],
+  openPetDetail(id) { this.petDetail = id; this.petDetailMode = 'view'; this.fuseSel = []; },
+  closePetDetail() { this.petDetail = null; this.petDetailMode = 'view'; this.fuseSel = []; },
   get petDetailObj() { return this.petDetail ? (this.state.pets || []).find((x) => x.id === this.petDetail) : null; },
-  // --- P6: Dung Hợp + Phóng Sanh ---
-  get fuseDonors() {   // các pet đủ điều kiện làm vật tế cho target đang xem (khác target + không đang mang)
+  petActiveDmg(pet) { const a = petActive(pet); return a ? Math.round(((petStatAt(pet) || {}).congKich || 0) * (a.mult || 0)) : 0; },   // sát thương chủ động ≈ mult × Công Kích
+  // --- P6: Dung Hợp (đa vật tế) ---
+  get fuseDonors() {   // pet đủ điều kiện làm vật tế; SẮP cùng dòng+phẩm lên đầu rồi phẩm/cấp giảm dần
     const t = this.petDetailObj; if (!t) return [];
-    return (this.state.pets || []).filter((p) => p.id !== t.id && !p.equipped).map((d) => ({ pet: d, pv: fusePreview(this.state, t.id, d.id) }));
+    const kin = (d) => (t.base === d.base && t.quality === d.quality) ? 0 : (t.base === d.base ? 1 : (t.quality === d.quality ? 2 : 3));
+    return (this.state.pets || []).filter((p) => p.id !== t.id && !p.equipped)
+      .map((d) => ({ pet: d, pv: fusePreview(this.state, t.id, d.id) }))
+      .sort((a, b) => kin(a.pet) - kin(b.pet) || this.qualityRank(b.pet.quality) - this.qualityRank(a.pet.quality) || b.pet.level - a.pet.level);
   },
-  doFuse(donorId) {
-    const t = this.petDetailObj; if (!t) return;
-    const r = fusePet(this.state, t.id, donorId); if (!r) { this.showToast('Không dung hợp được.'); return; }
-    Storage.save(this.state); this.petDetailMode = 'view';
-    let m = this.petName(r.target) + ' nuốt linh khí · +' + this.fmt(r.xp) + ' tu vi' + (r.leveled ? ' (lên ' + r.leveled + ' cấp)' : '');
-    if (r.upgraded) { m += ' — ĐỘT PHÁ ' + (this.QUALITY[r.target.quality] || {}).name + '!'; this.pushNotif('khac', 'Dung Hợp đột phá', this.petName(r.target) + ' thăng phẩm ' + (this.QUALITY[r.target.quality] || {}).name + '.'); }
+  toggleFuseSel(id) { this.fuseSel = this.fuseSel.includes(id) ? this.fuseSel.filter((x) => x !== id) : [...this.fuseSel, id]; },
+  get fuseSelSummary() {
+    const t = this.petDetailObj; if (!t || !this.fuseSel.length) return null;
+    let xp = 0, pSurv = 1; const absorbed = {};
+    for (const id of this.fuseSel) {
+      const pv = fusePreview(this.state, t.id, id); if (!pv) continue;
+      xp += pv.xp;
+      const d = (this.state.pets || []).find((p) => p.id === id); const ds = d ? (petStatAt(d) || {}) : {};
+      for (const k of ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc']) { if (ds[k]) { const a = Math.round(ds[k] * pv.pct); if (a > 0) absorbed[k] = (absorbed[k] || 0) + a; } }
+      if (pv.same) pSurv *= (1 - pv.upChance);
+    }
+    return { count: this.fuseSel.length, xp, absorbed, upChance: 1 - pSurv };
+  },
+  doFuseMany() {
+    const t = this.petDetailObj; if (!t || !this.fuseSel.length) return;
+    const r = fuseMany(this.state, t.id, this.fuseSel.slice());
+    this.fuseSel = []; this.petDetailMode = 'view';
+    if (!r) { this.showToast('Không dung hợp được.'); return; }
+    Storage.save(this.state);
+    let m = this.petName(t) + ' nuốt ' + r.count + ' linh thú · +' + this.fmt(r.xp) + ' tu vi' + (r.leveled ? ' (lên ' + r.leveled + ' cấp)' : '');
+    if (r.upgraded) { m += ' — ĐỘT PHÁ ' + (this.QUALITY[t.quality] || {}).name + '!'; this.pushNotif('khac', 'Dung Hợp đột phá', this.petName(t) + ' thăng phẩm ' + (this.QUALITY[t.quality] || {}).name + '.'); }
     this.showToast(m);
   },
+  // --- P6: Phóng Sanh ---
   get releaseRewardObj() { const p = this.petDetailObj; return p ? releaseReward(p) : null; },
   doRelease() {
     const p = this.petDetailObj; if (!p) return;
