@@ -1925,7 +1925,7 @@
                   </div>
                   <div>
                     <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Tu Vi</span><span class="text-slate-500" x-text="'Cảnh Lv '+p.level+' · '+$store.game.fmt(p.xp||0)+'/'+$store.game.fmt($store.game.petXpNext(p))"></span></div>
-                    <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+$store.game.petXpPct(p)+'%;background:'+qh"></div></div>
+                    <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+$store.game.petXpPct(p)+'%;background:#f5b942'"></div></div>
                   </div>
                 </div>
                 <!-- lý lịch -->
@@ -1976,7 +1976,7 @@
                           <div class="absolute inset-0" x-html="$store.game.petSkillArt(p,'active')"></div>
                           <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 14px '+qh+'22'"></div>
                         </div>
-                        <div class="min-w-0 pt-0.5"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div></div>
+                        <div class="min-w-0 pt-0.5"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div><div class="text-[9.5px] text-rose-300/90 mt-0.5">Sát thương ~<span x-text="Math.round($store.game.petActiveOf(p).mult*100)"></span>% Công · ≈<b x-text="$store.game.fmt($store.game.petActiveDmg(p))"></b></div></div>
                       </div>
                     </div>
                   </div>
@@ -2194,7 +2194,7 @@
                 </div>
                 <div>
                   <div class="flex items-center justify-between text-[10px] mb-1"><span class="text-slate-400">Tu Vi</span><span class="text-slate-500" x-text="'Cảnh Lv '+p.level+' · '+$store.game.fmt(p.xp||0)+'/'+$store.game.fmt($store.game.petXpNext(p))"></span></div>
-                  <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+$store.game.petXpPct(p)+'%;background:'+qh"></div></div>
+                  <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+$store.game.petXpPct(p)+'%;background:#f5b942'"></div></div>
                 </div>
                 <div class="text-[10px] text-slate-600" x-text="'Cảnh giới tối đa: Lv '+$store.game.petLevelCap(p)"></div>
               </div>
@@ -2253,17 +2253,20 @@
                     <div class="text-[11px] text-slate-500 max-w-sm mx-auto mt-1 fserif italic">Thả linh thú về với núi rừng — chân thân tan thành linh khí, ngưng lại trong tay ngươi. Không thể gọi về.</div>
                   </div>
                   <div class="flex items-stretch justify-center gap-2.5 flex-wrap">
-                    <div class="w-[104px] px-3 py-3 rounded-xl bg-ink3/50 border border-slate-700/70 flex flex-col items-center gap-0.5">
+                    <div class="w-[108px] px-3 py-3 rounded-xl bg-ink3/50 border border-slate-700/70 flex flex-col items-center gap-1">
+                      <span class="w-8 h-8 inline-flex items-center justify-center" x-html="$store.game.ico('bac','🟡')"></span>
                       <b class="text-[17px] text-amber-300 leading-none" x-text="$store.game.fmt(r.bac)"></b>
-                      <span class="text-[10.5px] text-slate-400 mt-1">Bạc</span>
+                      <span class="text-[10.5px] text-slate-400">Bạc</span>
                     </div>
-                    <div class="w-[104px] px-3 py-3 rounded-xl bg-rose-900/15 border border-rose-800/40 flex flex-col items-center gap-0.5" x-show="r.honThach">
+                    <div class="w-[108px] px-3 py-3 rounded-xl bg-rose-900/15 border border-rose-800/40 flex flex-col items-center gap-1" x-show="r.honThach">
+                      <span class="w-8 h-8 inline-flex items-center justify-center" x-html="$store.game.ico('honThach','🔴')"></span>
                       <b class="text-[17px] text-rose-200 leading-none" x-text="$store.game.fmt(r.honThach)"></b>
-                      <span class="text-[10.5px] text-slate-400 mt-1">Hồn Thạch</span>
+                      <span class="text-[10.5px] text-slate-400">Hồn Thạch</span>
                     </div>
-                    <div class="w-[104px] px-3 py-3 rounded-xl bg-emerald-900/15 border border-emerald-800/40 flex flex-col items-center gap-0.5" x-show="r.linhPhach">
+                    <div class="w-[108px] px-3 py-3 rounded-xl bg-emerald-900/15 border border-emerald-800/40 flex flex-col items-center gap-1" x-show="r.linhPhach">
+                      <span class="w-8 h-8 inline-flex items-center justify-center" x-html="$store.game.ico('linhPhach','🌀')"></span>
                       <b class="text-[17px] text-emerald-200 leading-none" x-text="$store.game.fmt(r.linhPhach)"></b>
-                      <span class="text-[10.5px] text-slate-400 mt-1">Linh Phách</span>
+                      <span class="text-[10.5px] text-slate-400">Linh Phách</span>
                     </div>
                   </div>
                   <div class="text-[10.5px] text-slate-600 max-w-sm mx-auto" x-show="!r.honThach || !r.linhPhach">Phẩm càng cao càng cho nhiều — từ Tinh Phẩm có Linh Phách, từ Tuyệt Phẩm có thêm Hồn Thạch.</div>
