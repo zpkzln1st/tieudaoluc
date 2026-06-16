@@ -4,7 +4,9 @@
 // ============================================================
 import { ITEMS } from '../data/items.js';
 import { removeItem, addItem } from './inventory.js';
-import { levelFromXp } from './leveling.js';
+import { levelFromXp, addSkillXp } from './leveling.js';
+import { LOCATIONS } from '../data/locations.js';
+import { ENEMIES } from '../data/combat.js';
 import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PET_SKILLS, AWK_PASSIVES, AWK_PASSIVE_IDS } from '../data/pets.js';
 
 const STAT_KEYS = ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc'];
@@ -166,11 +168,12 @@ export function addXpToPet(state, p, amount) {
   return p.level - before;
 }
 // Pet ĐANG MANG ăn EXP/trận (+ Hiếu Học: petExpBonus). Trả { pet, leveled } hoặc null.
-export function gainPetXp(state, amount) {
+export function gainPetXp(state, amount, wins = 1) {
   const p = activePet(state);
   if (!p || !(amount > 0)) return null;
   const awk = petAwkPassive(p);
   const amt = awk && awk.petExpBonus ? Math.round(amount * (1 + awk.petExpBonus)) : amount;
+  addSkillXp(state, 'nguThu', NGU_THU_XP_COMBAT * Math.max(1, wins));   // P7 — +Ngự Thú XP theo SỐ trận thắng (live=1, offline=done)
   return { pet: p, leveled: addXpToPet(state, p, amt) };
 }
 // Giá trị 1 key bị động Thức Tỉnh của pet ĐANG MANG (0 nếu không có) — cho thưởng money/loot ngoài vòng combat.
@@ -216,7 +219,9 @@ export function petPassiveTotal(pet) {
 export function petHpMax(pet) { return Math.round(((petStatAt(pet) || {}).sinhLuc || 1) * 1.5 * (1 + (petPassiveTotal(pet).petHp || 0))); }
 // Thể Lực hiện tại (THUẦN, không ghi): tl + hồi 10/phút từ mốc tlAt. tl null/đầy -> 100.
 export function petStamView(pet, now) {
-  if (!pet || pet.tl == null || pet.tl >= PET_STAM_MAX) return PET_STAM_MAX;
+  if (!pet) return PET_STAM_MAX;
+  if (pet.state === 'hunt') return Math.max(0, Math.min(PET_STAM_MAX, pet.tl == null ? PET_STAM_MAX : pet.tl));   // đang Săn: không hồi thụ động (hunt tick rút)
+  if (pet.tl == null || pet.tl >= PET_STAM_MAX) return PET_STAM_MAX;
   const regen = Math.floor((now - (pet.tlAt || now)) / 60000) * STAM_REGEN_PER_MIN;
   return Math.max(0, Math.min(PET_STAM_MAX, pet.tl + regen));
 }
@@ -305,7 +310,7 @@ export function fuseAbsorbPct(t, d) {
 export function fusePreview(state, targetId, donorId) {
   const pets = state.pets || [];
   const t = pets.find((p) => p.id === targetId), d = pets.find((p) => p.id === donorId);
-  if (!t || !d || t.id === d.id || d.equipped) return null;
+  if (!t || !d || t.id === d.id || petBusy(d)) return null;
   const same = (t.base === d.base && t.quality === d.quality);
   let xp = Math.round(petXpValue(d) * 0.7); if (same) xp = Math.round(xp * 1.15);   // cùng dòng+phẩm: +15% + cơ hội đột phá
   return { xp, same, upChance: same ? (FUSE_UPGRADE[t.quality] || 0) : 0, pct: fuseAbsorbPct(t, d) };
@@ -314,8 +319,8 @@ export function fusePreview(state, targetId, donorId) {
 export function fuseMany(state, targetId, donorIds) {
   const pets = state.pets || [];
   const t = pets.find((p) => p.id === targetId);
-  if (!t || !donorIds || !donorIds.length) return null;
-  const donors = donorIds.map((id) => pets.find((p) => p.id === id)).filter((d) => d && d.id !== t.id && !d.equipped);
+  if (!t || petBusy(t) || !donorIds || !donorIds.length) return null;
+  const donors = donorIds.map((id) => pets.find((p) => p.id === id)).filter((d) => d && d.id !== t.id && !petBusy(d));
   if (!donors.length) return null;
   if (!t.fuseBonus) t.fuseBonus = {};
   let xp = 0, pSurv = 1; const absorbed = {};
@@ -353,7 +358,7 @@ export function devSpawnPet(state, base, quality, level) {
 // Phóng sanh: thả pet -> nhận thưởng. Trả reward | null (đang mang thì không thả).
 export function releasePet(state, id) {
   const p = (state.pets || []).find((x) => x.id === id);
-  if (!p || p.equipped) return null;
+  if (!p || petBusy(p)) return null;
   const r = releaseReward(p);
   state.pets = (state.pets || []).filter((x) => x.id !== id);
   state.currencies.bac = (state.currencies.bac || 0) + r.bac;
@@ -404,4 +409,99 @@ export function awakenPet(state, id) {
   let mutated = false;
   if (Math.random() < 0.15) mutated = upgradePetQuality(p);   // 15% biến dị thăng 1 phẩm (recompute stat + mở opt slot nếu có)
   return { pet: p, cost: c, newOpt, awkPassive: p.awkPassive, mutated };
+}
+
+// ============================================================
+// P7 — SĂN MỒI idle + NGỰ THÚ (mastery). Pet KHÔNG xuất chiến -> phái Săn Mồi tại 1 vùng (đủ cấp):
+// mỗi 10' thực +EXP (cap trần cấp) + roll loot quái vùng ×0.12 + −10 Thể Lực + EXP Ngự Thú.
+// Hết Thể Lực -> Dưỡng Sức (hồi 10/phút) -> đầy -> tự săn lại. Chạy live + offline (cap idle).
+// Ngự Thú = skill riêng (state.skills.nguThu); slot săn = 2 + ⌊cấp/5⌋. Pet săn KHÔNG cộng stat.
+// pet.state: undefined/'idle'(Chờ Lệnh) · 'hunt'(Săn Mồi) · 'rest'(Dưỡng Sức). equipped -> Xuất Trận.
+// ============================================================
+export const HUNT_TICK_MS = 10 * 60 * 1000;       // 10 phút / lượt săn
+const HUNT_STAM_COST = 10;                          // −10 Thể Lực / lượt
+const HUNT_LOOT_MULT = 0.12;                        // loot vùng × hệ số (chống lạm phát)
+const NGU_THU_XP_COMBAT = 1;                        // +Ngự Thú XP mỗi trận pet đánh thắng
+// Pet đang "bận" (không Dung Hợp/Phóng Sanh/phái việc mới được).
+export function petBusy(pet) { return !!pet && (pet.equipped || pet.state === 'hunt' || pet.state === 'rest'); }
+export function nguThuLv(state) { return levelFromXp((state.skills && state.skills.nguThu && state.skills.nguThu.xp) || 0); }
+export function huntSlots(state) { return 2 + Math.floor(nguThuLv(state) / 5); }
+export function huntSlotsUsed(state) { return (state.pets || []).filter((p) => p.state === 'hunt' || p.state === 'rest').length; }
+function huntExpPerTick(pet) {
+  const e = (pet.opts || []).find((o) => o.id === 'petExp');           // opt EXP Săn Mồi (nếu có)
+  return Math.max(1, Math.round(pet.level * 4 * (1 + (e ? e.val / 100 : 0)) * 0.4));
+}
+function huntNguThuXp(loc) { return 2 + Math.round((loc.reqLevel || 1) / 6); }   // vùng cao -> luyện Ngự Thú nhanh hơn
+function rollHuntLoot(loc, loot) {
+  for (const eid of (loc.enemies || [])) {
+    const e = ENEMIES[eid];
+    if (!e || !e.loot) continue;
+    for (const l of e.loot) if (Math.random() < l.chance * HUNT_LOOT_MULT) loot[l.itemId] = (loot[l.itemId] || 0) + 1;
+  }
+}
+// Phái 1 pet đi săn tại vùng. Trả pet | null (sai điều kiện: bận / hết slot / chưa đủ cấp vùng).
+export function startHunt(state, petId, locId, now) {
+  const p = (state.pets || []).find((x) => x.id === petId);
+  if (!p || petBusy(p)) return null;
+  if (huntSlotsUsed(state) >= huntSlots(state)) return null;
+  const loc = LOCATIONS.find((l) => l.id === locId);
+  if (!loc || p.level < loc.reqLevel) return null;
+  p.tl = petStamView(p, now);                                          // chốt Thể Lực hiện tại làm vốn săn
+  p.huntLoc = locId; p.huntAt = now;
+  p.huntStats = { exp: 0, ticks: 0, loot: {} };                        // thống kê phiên săn (cho popup Lịch Luyện)
+  p.state = p.tl >= HUNT_STAM_COST ? 'hunt' : 'rest';                  // thiếu sức -> nghỉ trước rồi tự săn
+  if (p.state === 'rest') p.tlAt = now;
+  return p;
+}
+// Ngừng săn / gọi về -> Chờ Lệnh. Settle lượt đã săn rồi clear, cho hồi Thể Lực từ giờ.
+export function stopHunt(state, petId, now) {
+  const p = (state.pets || []).find((x) => x.id === petId);
+  if (!p || (p.state !== 'hunt' && p.state !== 'rest')) return null;
+  resolveOneHunt(state, p, now, null);
+  p.tl = petStamView(p, now);                                          // chốt Thể Lực hiển thị (nếu đang rest hồi dở)
+  p.state = 'idle'; p.huntLoc = null; p.huntAt = null; p.tlAt = now;
+  return p;
+}
+// Giải quyết tiến trình săn của 1 pet (vòng hunt/rest qua thời gian trôi). Trả tóm tắt | null.
+function resolveOneHunt(state, p, now, capMs) {
+  const loc = LOCATIONS.find((l) => l.id === p.huntLoc);
+  if (!loc) { p.state = 'idle'; p.huntLoc = null; p.huntAt = null; return null; }
+  let cursor = p.huntAt || now;
+  if (capMs && now - cursor > capMs) cursor = now - capMs;            // bỏ phần offline vượt cap idle
+  let exp = 0, nguXp = 0, ticks = 0; const loot = {}; let guard = 0;
+  while (cursor < now && guard++ < 5000) {
+    if (p.state === 'hunt') {
+      if ((p.tl == null ? PET_STAM_MAX : p.tl) < HUNT_STAM_COST) { p.state = 'rest'; p.tlAt = cursor; continue; }
+      if (cursor + HUNT_TICK_MS > now) break;                         // chưa đủ 1 lượt 10'
+      cursor += HUNT_TICK_MS;
+      exp += huntExpPerTick(p); nguXp += huntNguThuXp(loc); rollHuntLoot(loc, loot); ticks++;
+      p.tl = (p.tl == null ? PET_STAM_MAX : p.tl) - HUNT_STAM_COST;
+      if (p.tl < HUNT_STAM_COST) { p.state = 'rest'; p.tlAt = cursor; }   // kiệt -> Dưỡng Sức
+    } else {                                                          // rest: nghỉ tới đầy rồi tự săn lại
+      const need = PET_STAM_MAX - Math.max(0, p.tl == null ? 0 : p.tl);
+      const restMs = Math.max(60000, Math.ceil(need / STAM_REGEN_PER_MIN) * 60000);
+      if (cursor + restMs > now) break;                              // vẫn đang nghỉ ở 'now'
+      cursor += restMs; p.tl = PET_STAM_MAX; p.state = 'hunt'; p.tlAt = cursor;
+    }
+  }
+  p.huntAt = cursor;
+  let leveled = 0;
+  if (exp > 0) leveled = addXpToPet(state, p, exp);
+  if (nguXp > 0) addSkillXp(state, 'nguThu', nguXp);
+  for (const id in loot) addItem(state, id, loot[id]);
+  if (ticks === 0) return null;
+  if (!p.huntStats) p.huntStats = { exp: 0, ticks: 0, loot: {} };       // tích lũy thống kê phiên
+  p.huntStats.exp += exp; p.huntStats.ticks += ticks;
+  for (const id in loot) p.huntStats.loot[id] = (p.huntStats.loot[id] || 0) + loot[id];
+  return { petId: p.id, base: p.base, exp, leveled, loot, ticks, loc: loc.id };
+}
+// Giải quyết săn mồi cho MỌI pet đang săn/nghỉ. Trả mảng tóm tắt (cho thông báo).
+export function resolvePetHunts(state, now, capMs) {
+  const out = [];
+  for (const p of (state.pets || [])) {
+    if (p.state !== 'hunt' && p.state !== 'rest') continue;
+    const r = resolveOneHunt(state, p, now, capMs);
+    if (r) out.push(r);
+  }
+  return out;
 }

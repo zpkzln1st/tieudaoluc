@@ -29,7 +29,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -535,7 +535,7 @@ const gameStore = {
   petFaintedOf(pet) { return this.petFainted && this.activePetObj && this.activePetObj.id === pet.id; },
   // Popup chi tiết pet (mở từ roster) — mirror tpDetail
   petDetail: null,
-  petDetailMode: 'view',   // view | fuse | fuseConfirm | release | awaken
+  petDetailMode: 'view',   // view | fuse | fuseConfirm | release | awaken | huntPick
   fuseSel: [],
   openPetDetail(id) { this.petDetail = id; this.petDetailMode = 'view'; this.fuseSel = []; },
   closePetDetail() { this.petDetail = null; this.petDetailMode = 'view'; this.fuseSel = []; },
@@ -545,7 +545,7 @@ const gameStore = {
   get fuseDonors() {   // pet đủ điều kiện làm vật tế; SẮP cùng dòng+phẩm lên đầu rồi phẩm/cấp giảm dần
     const t = this.petDetailObj; if (!t) return [];
     const kin = (d) => (t.base === d.base && t.quality === d.quality) ? 0 : (t.base === d.base ? 1 : (t.quality === d.quality ? 2 : 3));
-    return (this.state.pets || []).filter((p) => p.id !== t.id && !p.equipped)
+    return (this.state.pets || []).filter((p) => p.id !== t.id && !petBusy(p))
       .map((d) => ({ pet: d, pv: fusePreview(this.state, t.id, d.id) }))
       .sort((a, b) => kin(a.pet) - kin(b.pet) || this.qualityRank(b.pet.quality) - this.qualityRank(a.pet.quality) || b.pet.level - a.pet.level);
   },
@@ -609,6 +609,77 @@ const gameStore = {
     this.showToast(m + '.');
     this.pushNotif('khac', 'Linh Thú Thức Tỉnh', this.petName(p) + ' phá vỏ phàm thai, hiện hình thái thứ hai · lĩnh ngộ 〈' + aw.name + '〉' + (r.mutated ? ' · biến dị thăng phẩm ' + before + ' → ' + (this.QUALITY[p.quality] || {}).name : '') + '.');
   },
+  // ===== P7: SĂN MỒI + NGỰ THÚ =====
+  get nguThuLvV() { return nguThuLv(this.state); },
+  get nguThuProg() { return this.skillProg('nguThu'); },                  // {level,into,need,frac}
+  get huntSlotsV() { return huntSlots(this.state); },
+  get huntSlotsUsedV() { return huntSlotsUsed(this.state); },
+  get huntSlotFree() { return this.huntSlotsUsedV < this.huntSlotsV; },
+  get nextSlotLv() { return (Math.floor(this.nguThuLvV / 5) + 1) * 5; },  // cấp Ngự Thú mở slot kế
+  get huntingPets() { return (this.state.pets || []).filter((p) => p.state === 'hunt' || p.state === 'rest'); },
+  petStateKey(pet) { return pet.equipped ? 'battle' : (pet.state || 'idle'); },
+  petStateName(pet) { return ({ battle: 'Xuất Trận', hunt: 'Săn Mồi', rest: 'Dưỡng Sức', idle: 'Chờ Lệnh' })[this.petStateKey(pet)]; },
+  petBusyV(pet) { return petBusy(pet); },
+  petHuntLocName(pet) { const l = (this.LOCATIONS || []).find((x) => x.id === pet.huntLoc); return l ? l.name : ''; },
+  canPhaiSan(pet) { return !petBusy(pet) && this.huntSlotFree; },
+  // Vùng pet có thể săn: player đã mở (combatLv ≥ reqLevel); ok = pet đủ cấp vùng.
+  huntLocOptions(pet) {
+    return (this.LOCATIONS || []).filter((l) => this.combatLevel >= l.reqLevel)
+      .map((l) => ({ loc: l, ok: pet.level >= l.reqLevel, lootNames: (l.enemies || []).map((eid) => (this.ENEMIES[eid] || {}).name).filter(Boolean) }));
+  },
+  phaiSan(petId, locId) {
+    const p = (this.state.pets || []).find((x) => x.id === petId);
+    if (p && (p.state === 'hunt' || p.state === 'rest')) stopHunt(this.state, petId, now());   // đổi vùng: thu về trước rồi phái lại
+    const r = startHunt(this.state, petId, locId, now());
+    if (!r) { this.showToast('Không phái được — hết slot hoặc pet chưa đủ cấp vùng.'); return; }
+    Storage.save(this.state); this.petDetailMode = 'view';
+    this.showToast(this.petName(r) + ' lên đường Săn Mồi · ' + this.petHuntLocName(r) + '.');
+  },
+  recallHunt(petId) {
+    const r = stopHunt(this.state, petId, now());
+    if (!r) return;
+    Storage.save(this.state);
+    this.showToast(this.petName(r) + ' đã thu về, nghỉ trong chuồng.');
+  },
+  // --- Popup "Lịch Luyện": theo dõi tiến độ săn mồi mọi pet ---
+  huntTrackOpen: false,
+  openHuntTrack() { this.huntTrackOpen = true; },
+  closeHuntTrack() { this.huntTrackOpen = false; },
+  changeHuntZone(petId) { this.huntTrackOpen = false; this.openPetDetail(petId); this.petDetailMode = 'huntPick'; },   // Đổi Vùng -> mở bảng chọn vùng của pet
+  get huntTrackList() {
+    void this._tick;                                                    // đếm giây -> countdown cập nhật
+    const t = now();
+    return this.huntingPets.map((p) => {
+      const stam = petStamView(p, t);
+      const isRest = p.state === 'rest';
+      const nextTickMs = isRest ? 0 : Math.max(0, (p.huntAt + HUNT_TICK_MS) - t);
+      const restFullSec = isRest ? Math.ceil((100 - stam) / 10) * 60 : 0;   // giây tới đầy (xấp xỉ)
+      const hs = p.huntStats || { exp: 0, ticks: 0, loot: {} };
+      const lootCount = Object.values(hs.loot || {}).reduce((a, b) => a + b, 0);
+      return {
+        pet: p, stam, isRest, nextTickMs, restFullSec,
+        ticksToSleep: Math.max(0, Math.floor(stam / 10)),
+        tickPct: isRest ? 0 : Math.max(0, Math.min(100, (1 - nextTickMs / HUNT_TICK_MS) * 100)),
+        restPct: isRest ? Math.max(0, Math.min(100, stam)) : 0,
+        sessionExp: hs.exp || 0, sessionTicks: hs.ticks || 0, sessionLoot: lootCount,
+        locName: this.petHuntLocName(p),
+      };
+    });
+  },
+  // Giải quyết săn mồi (gọi mỗi 5s + on-load). Trả mảng tóm tắt | null.
+  tickHunts() {
+    if (!(this.state.pets || []).some((p) => p.state === 'hunt' || p.state === 'rest')) return null;
+    const res = resolvePetHunts(this.state, now(), idleCapMs(this.state));
+    if (res.length) Storage.save(this.state);
+    return res;
+  },
+  huntsOnLoad() {
+    const res = this.tickHunts();
+    if (!res || !res.length) return;
+    const totExp = res.reduce((s, r) => s + r.exp, 0);
+    const totLoot = res.reduce((s, r) => s + Object.values(r.loot).reduce((a, b) => a + b, 0), 0);
+    if (totExp > 0 || totLoot > 0) this.pushNotif('khac', 'Linh Thú săn mồi', 'Khi vắng mặt, bầy Linh Thú săn được ' + this.fmt(totExp) + ' tu vi' + (totLoot ? ' + ' + totLoot + ' vật phẩm' : '') + '.');
+  },
   petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
   petOptsText(pet) { return (pet.opts || []).map((o) => this.petOptLabel(o)).join('  ·  '); },   // cho tooltip chip "N dị bẩm"
   petLevelCap(pet) { const off = { phamPham: 10, luongPham: 6, tinhPham: 3 }[pet.quality] || 0; return Math.max(1, this.combatLevel - off); },
@@ -656,7 +727,7 @@ const gameStore = {
     h.readyAt = t;
     this.collectHatch();                                        // tự Storage.save + thông báo
   },
-  equipPet(petId) { const p = (this.state.pets || []).find((x) => x.id === petId); (this.state.pets || []).forEach((x) => { x.equipped = (x.id === petId); }); Storage.save(this.state); if (p) this.showToast(this.petName(p) + ' đã xuất trận, kề vai cùng ngươi.'); },
+  equipPet(petId) { const p = (this.state.pets || []).find((x) => x.id === petId); if (p && (p.state === 'hunt' || p.state === 'rest')) stopHunt(this.state, petId, now()); (this.state.pets || []).forEach((x) => { x.equipped = (x.id === petId); }); Storage.save(this.state); if (p) this.showToast(this.petName(p) + ' đã xuất trận, kề vai cùng ngươi.'); },
   unequipActivePet() { (this.state.pets || []).forEach((p) => { p.equipped = false; }); Storage.save(this.state); },
   // Bonus pet ĐÃ CAP (số thực cộng vào nhân vật) = stats(có pet) − stats(không pet).
   activePetBonusApplied() {
@@ -1872,6 +1943,7 @@ Alpine.store('game', gameStore);
 Alpine.start();
 Alpine.store('game').ensureQuests();
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
+Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 
 // Phím F9: bật/tắt Bảng Dev/Admin (offline)
 window.addEventListener('keydown', (e) => {
@@ -1911,6 +1983,7 @@ setInterval(() => {
   const s = window.Alpine?.store('game');
   if (!s) return;
   if (s.state.activity) advance(s.state, now());
+  s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
   if (document.hidden && s.bossFight && !s.bossFight.done) s.finishBossFightNow(); // tab nền: rafLoop bị throttle → chốt trận LIVE trong 5s, không treo
   s.resolveBossQueue();   // hàng đợi: boss giáng thế khi đang online → tự vây sát ở nền
   Storage.save(s.state);

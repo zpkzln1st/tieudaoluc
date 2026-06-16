@@ -253,7 +253,7 @@ export function advance(state, now) {
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;
       }
-      if (done > 0) gainPetXp(state, Math.round(gainXp * 0.5) * done);   // Linh Thú đang mang ăn 50% EXP/trận (gộp offline)
+      if (done > 0) gainPetXp(state, Math.round(gainXp * 0.5) * done, done);   // Linh Thú đang mang ăn 50% EXP/trận (gộp offline) + Ngự Thú XP × done
       const sk = state.skills['chienDau'];
       if (sk) { sk.gathered = (sk.gathered || 0) + done; sk.timeMs = (sk.timeMs || 0) + done * act.cycleMs; }
       act.sessionCount += done;
