@@ -297,6 +297,16 @@ export function releaseReward(pet) {
   const r = qRank(pet.quality);
   return { bac: pet.level * 50 + (r + 1) * 500, honThach: r >= 3 ? Math.floor(r / 2) : 0, linhPhach: r >= 2 ? (r - 1) : 0 };
 }
+// ---- Dev: tạo pet chỉ định loài/phẩm/cấp (bỏ qua ấp nở). ----
+export function devSpawnPet(state, base, quality, level) {
+  if (!PET_SPECIES[base] || !PET_QUALITY[quality]) return null;
+  const p = rollPet(base, quality, state);
+  p.level = Math.max(1, Math.min(99, Math.floor(level || 1)));
+  if (!Array.isArray(state.pets)) state.pets = [];
+  state.pets.push(p);
+  return p;
+}
+
 // Phóng sanh: thả pet -> nhận thưởng. Trả reward | null (đang mang thì không thả).
 export function releasePet(state, id) {
   const p = (state.pets || []).find((x) => x.id === id);

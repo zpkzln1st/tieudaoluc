@@ -29,7 +29,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, fusePreview, fuseMany, releaseReward, releasePet } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -1794,6 +1794,14 @@ const gameStore = {
     ['bac', 'honThach', 'nguyenBao'].forEach((k) => { this.state.currencies[k] = (this.state.currencies[k] || 0) + 1000000; });
     this.devSave(); this.showToast('Đã nhận TOÀN BỘ vật phẩm + tiền tệ (test).');
   },
+  // ---- Dev: Linh Thú ----
+  devPetBase: 'bachHo', devPetQuality: 'tuyetPham', devPetLv: 10,
+  devCreatePet() { const p = devSpawnPet(this.state, this.devPetBase, this.devPetQuality, this.devPetLv); if (!p) { this.showToast('Chọn loài + phẩm.'); return; } this.devSave(); this.showToast('Tạo ' + this.petName(p) + ' · ' + (this.QUALITY[p.quality] || {}).name + ' · Lv' + p.level); },
+  devGiveEachSpecies() { Object.keys(this.PET_SPECIES).forEach((b) => devSpawnPet(this.state, b, this.devPetQuality, this.devPetLv)); this.devSave(); this.showToast('Tạo 1 con mỗi loài · ' + (this.QUALITY[this.devPetQuality] || {}).name + ' · Lv' + this.devPetLv); },
+  devSetPetLevel(lv) { lv = Math.max(1, Math.min(99, Math.floor(lv || 1))); (this.state.pets || []).forEach((p) => { p.level = lv; p.xp = 0; }); this.devSave(); this.showToast('Đặt mọi Linh Thú về Lv' + lv); },
+  devAwakenActive() { const p = this.activePetObj; if (!p) { this.showToast('Chưa dắt Linh Thú nào.'); return; } p.evolved = !p.evolved; this.devSave(); this.showToast(this.petName(p) + (p.evolved ? ' — Thức Tỉnh (hiện art _awk).' : ' — về hình thái gốc.')); },
+  devClearPets() { this.state.pets = []; this.state.hatchery = null; this.devSave(); this.showToast('Đã xoá hết Linh Thú + lò ấp.'); },
+  devGivePetMats() { addItem(this.state, 'linhPhach', 99); addItem(this.state, 'tinhTheYeuVuong', 99); this.devSave(); this.showToast('Nhận 99 Linh Phách + 99 Tinh Thể Yêu Vương.'); },
   devSetClass(id) { if (this.CLASSES[id]) { this.state.player.class = id; this.devSave(); } },
   devExport() {
     const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: 'application/json' });

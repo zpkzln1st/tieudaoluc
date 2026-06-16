@@ -3957,6 +3957,26 @@
           <button @click="$store.game.devGiveStones()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💠 Tặng đá cường hóa + 100k Hồn Thạch</button>
         </div>
 
+        <!-- Linh Thú -->
+        <div class="lbl mb-1.5">Linh Thú</div>
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+          <select x-model="$store.game.devPetBase" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
+            <template x-for="b in Object.keys($store.game.PET_SPECIES)" :key="b"><option :value="b" x-text="$store.game.PET_SPECIES[b].name"></option></template>
+          </select>
+          <select x-model="$store.game.devPetQuality" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
+            <template x-for="q in Object.keys($store.game.PET_QUALITY)" :key="q"><option :value="q" x-text="($store.game.QUALITY[q]||{}).name"></option></template>
+          </select>
+          <input type="number" min="1" max="99" x-model.number="$store.game.devPetLv" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100" title="Cấp">
+          <button @click="$store.game.devCreatePet()" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Tạo Linh Thú</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <button @click="$store.game.devGiveEachSpecies()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🐾 1 con mỗi loài (theo phẩm/cấp đã chọn)</button>
+          <button @click="$store.game.devSetPetLevel($store.game.devPetLv)" class="px-3 py-1 rounded bg-ink3 border border-slate-700 text-xs">Đặt mọi pet về cấp đã chọn</button>
+          <button @click="$store.game.devAwakenActive()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">✦ Thức Tỉnh con đang dắt (xem _awk)</button>
+          <button @click="$store.game.devGivePetMats()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🌀 99 Linh Phách + Tinh Thể</button>
+          <button @click="$store.game.devClearPets()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-xs">Xoá hết Linh Thú</button>
+        </div>
+
         <!-- Quản lý Save -->
         <div class="lbl mb-1.5">Quản lý Save</div>
         <div class="flex flex-wrap gap-2">
