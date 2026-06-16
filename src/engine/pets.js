@@ -3,7 +3,7 @@
 // P1: nở trứng -> pet (roll phẩm + stat + opt). P2: petBonus() cộng vào derivedStats (có CAP ở stats.js).
 // ============================================================
 import { ITEMS } from '../data/items.js';
-import { removeItem } from './inventory.js';
+import { removeItem, addItem } from './inventory.js';
 import { levelFromXp } from './leveling.js';
 import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PET_SKILLS } from '../data/pets.js';
 
@@ -144,16 +144,21 @@ export function petLevelCap(state, pet) {
   const off = PET_LV_OFFSET[pet.quality] || 0;
   return Math.max(1, levelFromXp(state.skills?.chienDau?.xp || 0) - off);
 }
-// Cộng EXP cho pet ĐANG MANG, lên cấp tới trần. Trả { pet, leveled } hoặc null.
+// Cộng EXP cho 1 pet cụ thể, lên cấp tới trần. Trả số cấp lên.
+export function addXpToPet(state, p, amount) {
+  if (!p || !(amount > 0)) return 0;
+  const cap = petLevelCap(state, p);
+  const before = p.level;
+  p.xp = (p.xp || 0) + amount;
+  while (p.level < cap && p.xp >= petXpToNext(p.level)) { p.xp -= petXpToNext(p.level); p.level++; }
+  if (p.level >= cap) p.xp = Math.min(p.xp, petXpToNext(p.level));   // tới trần: thanh đầy, không tràn
+  return p.level - before;
+}
+// Pet ĐANG MANG ăn EXP/trận. Trả { pet, leveled } hoặc null.
 export function gainPetXp(state, amount) {
   const p = activePet(state);
   if (!p || !(amount > 0)) return null;
-  const cap = petLevelCap(state, p);
-  p.xp = (p.xp || 0) + amount;
-  let leveled = 0;
-  while (p.level < cap && p.xp >= petXpToNext(p.level)) { p.xp -= petXpToNext(p.level); p.level++; leveled++; }
-  if (p.level >= cap) p.xp = Math.min(p.xp, petXpToNext(p.level));   // tới trần: thanh đầy, không tràn
-  return { pet: p, leveled };
+  return { pet: p, leveled: addXpToPet(state, p, amount) };
 }
 
 // ============================================================
@@ -222,4 +227,63 @@ export function petCombatCycle(state, dmg, now) {
   if (cb.petHp <= 0) { cb.petHp = 0; cb.petFainted = true; }     // ngất
   if (skill) skill.heal = heal;
   return { absorb: reduce, heal, skill };
+}
+
+// ============================================================
+// P6 — DUNG HỢP (nuốt pet phụ → tu vi + cơ hội đột phá phẩm) + PHÓNG SANH (thả → Bạc/Hồn Thạch/Linh Phách).
+// ============================================================
+const Q_ORDER = Object.keys(PET_QUALITY);   // phamPham..coBan (theo thứ tự data)
+export function qRank(quality) { return Math.max(0, Q_ORDER.indexOf(quality)); }
+function petCumXp(level) { let s = 0; for (let i = 1; i < level; i++) s += petXpToNext(i); return s; }
+export function petXpValue(pet) { return Math.round(petCumXp(pet.level) + (qRank(pet.quality) + 1) * 50); }
+const FUSE_UPGRADE = { phamPham: 0.70, luongPham: 0.55, tinhPham: 0.42, tuyetPham: 0.30, truyenThe: 0.20, thanPham: 0.10, coBan: 0 };
+
+function recomputePetStats(pet) {   // đổi phẩm -> tính lại baseStats/growth ở phẩm mới (giữ level/xp)
+  const sp = PET_SPECIES[pet.base], pq = PET_QUALITY[pet.quality];
+  const bs = {}, gr = {};
+  for (const k of STAT_KEYS) { const b = sp.stats[k] || 0; if (b > 0) { bs[k] = Math.max(1, Math.round(b * pq.qMul)); gr[k] = Math.round(b * (k === 'sinhLuc' ? 0.09 : 0.11) * pq.gMul * 100) / 100; } }
+  pet.baseStats = bs; pet.growth = gr;
+}
+export function upgradePetQuality(pet) {
+  const i = qRank(pet.quality); if (i >= Q_ORDER.length - 1) return false;
+  pet.quality = Q_ORDER[i + 1];
+  recomputePetStats(pet);
+  const need = PET_QUALITY[pet.quality].optSlots - (pet.opts ? pet.opts.length : 0);   // mở thêm ô opt nếu phẩm mới nhiều hơn
+  if (need > 0) pet.opts = (pet.opts || []).concat(rollOpts(pet.quality).slice(0, need));
+  return true;
+}
+// Xem trước dung hợp (KHÔNG mutate). null nếu không hợp lệ.
+export function fusePreview(state, targetId, donorId) {
+  const pets = state.pets || [];
+  const t = pets.find((p) => p.id === targetId), d = pets.find((p) => p.id === donorId);
+  if (!t || !d || t.id === d.id || d.equipped) return null;
+  const same = (t.base === d.base && t.quality === d.quality);
+  let xp = Math.round(petXpValue(d) * 0.7); if (same) xp = Math.round(xp * 1.15);   // cùng dòng+phẩm: +15% + cơ hội đột phá
+  return { xp, same, upChance: same ? (FUSE_UPGRADE[t.quality] || 0) : 0 };
+}
+// Dung hợp: donor -> tu vi cho target (+ cơ hội đột phá phẩm). Trả { target, xp, leveled, upgraded } | null.
+export function fusePet(state, targetId, donorId) {
+  const pv = fusePreview(state, targetId, donorId); if (!pv) return null;
+  const t = (state.pets || []).find((p) => p.id === targetId);
+  state.pets = (state.pets || []).filter((p) => p.id !== donorId);
+  const leveled = addXpToPet(state, t, pv.xp);
+  let upgraded = false;
+  if (pv.upChance > 0 && Math.random() < pv.upChance) upgraded = upgradePetQuality(t);
+  return { target: t, xp: pv.xp, leveled, upgraded };
+}
+// Phần thưởng phóng sanh (Bạc luôn; Hồn Thạch ≥Tuyệt; Linh Phách ≥Tinh).
+export function releaseReward(pet) {
+  const r = qRank(pet.quality);
+  return { bac: pet.level * 50 + (r + 1) * 500, honThach: r >= 3 ? Math.floor(r / 2) : 0, linhPhach: r >= 2 ? (r - 1) : 0 };
+}
+// Phóng sanh: thả pet -> nhận thưởng. Trả reward | null (đang mang thì không thả).
+export function releasePet(state, id) {
+  const p = (state.pets || []).find((x) => x.id === id);
+  if (!p || p.equipped) return null;
+  const r = releaseReward(p);
+  state.pets = (state.pets || []).filter((x) => x.id !== id);
+  state.currencies.bac = (state.currencies.bac || 0) + r.bac;
+  if (r.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + r.honThach;
+  if (r.linhPhach) addItem(state, 'linhPhach', r.linhPhach);
+  return r;
 }

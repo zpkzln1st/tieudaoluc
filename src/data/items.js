@@ -108,6 +108,7 @@ export const ITEMS = {
   daCuongHoaTrung: { id: 'daCuongHoaTrung', name: 'Đá Cường Hóa Trung', icon: '🔷', type: 'vatlieu', quality: 'tinhPham',  value: 95,  desc: 'Đá cường hóa tinh luyện, lõi sáng trong. Dùng cho bậc cường hóa +6 đến +10.' },
   daCuongHoaCao:   { id: 'daCuongHoaCao',   name: 'Đá Cường Hóa Cao',   icon: '💠', type: 'vatlieu', quality: 'tuyetPham', value: 260, desc: 'Đá cường hóa thượng phẩm, kết tinh từ thỏi quý. Dùng cho bậc cao nhất — +11 đến +15.' },
   tinhTheYeuVuong: { id: 'tinhTheYeuVuong', name: 'Tinh Thể Yêu Vương', icon: '🔮', type: 'khac', quality: 'thanPham', value: 800, boss: true, desc: 'Tinh thể ngưng từ tử khí Yêu Vương (World Boss), mạch đỏ đập như tim sống. Chất xúc tác bắt buộc để cường hóa trang bị từ +10 trở lên.' },
+  linhPhach: { id: 'linhPhach', name: 'Linh Phách', icon: '🌀', type: 'khac', quality: 'tinhPham', value: 70, desc: 'Mảnh hồn phách tản ra khi phóng sanh linh thú phẩm cao — chất dẫn để Thức Tỉnh linh thú phẩm thấp.' },
 
   // --- Đan dược ---
   hoiKhiDan: { id: 'hoiKhiDan', name: 'Hồi Khí Đan', icon: '🧪', type: 'dan', quality: 'luongPham', value: 25, healNL: 60, desc: 'Đan dược hồi phục nội khí, ngậm vào chân nguyên sung mãn trở lại.' },

@@ -29,7 +29,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, fusePreview, fusePet, releaseReward, releasePet } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID } from './data/pets.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -530,9 +530,31 @@ const gameStore = {
   petFaintedOf(pet) { return this.petFainted && this.activePetObj && this.activePetObj.id === pet.id; },
   // Popup chi tiết pet (mở từ roster) — mirror tpDetail
   petDetail: null,
-  openPetDetail(id) { this.petDetail = id; },
-  closePetDetail() { this.petDetail = null; },
+  petDetailMode: 'view',   // view | fuse | release
+  openPetDetail(id) { this.petDetail = id; this.petDetailMode = 'view'; },
+  closePetDetail() { this.petDetail = null; this.petDetailMode = 'view'; },
   get petDetailObj() { return this.petDetail ? (this.state.pets || []).find((x) => x.id === this.petDetail) : null; },
+  // --- P6: Dung Hợp + Phóng Sanh ---
+  get fuseDonors() {   // các pet đủ điều kiện làm vật tế cho target đang xem (khác target + không đang mang)
+    const t = this.petDetailObj; if (!t) return [];
+    return (this.state.pets || []).filter((p) => p.id !== t.id && !p.equipped).map((d) => ({ pet: d, pv: fusePreview(this.state, t.id, d.id) }));
+  },
+  doFuse(donorId) {
+    const t = this.petDetailObj; if (!t) return;
+    const r = fusePet(this.state, t.id, donorId); if (!r) { this.showToast('Không dung hợp được.'); return; }
+    Storage.save(this.state); this.petDetailMode = 'view';
+    let m = this.petName(r.target) + ' nuốt linh khí · +' + this.fmt(r.xp) + ' tu vi' + (r.leveled ? ' (lên ' + r.leveled + ' cấp)' : '');
+    if (r.upgraded) { m += ' — ĐỘT PHÁ ' + (this.QUALITY[r.target.quality] || {}).name + '!'; this.pushNotif('khac', 'Dung Hợp đột phá', this.petName(r.target) + ' thăng phẩm ' + (this.QUALITY[r.target.quality] || {}).name + '.'); }
+    this.showToast(m);
+  },
+  get releaseRewardObj() { const p = this.petDetailObj; return p ? releaseReward(p) : null; },
+  doRelease() {
+    const p = this.petDetailObj; if (!p) return;
+    const r = releasePet(this.state, p.id); if (!r) { this.showToast('Đang dắt — thu về trước đã.'); return; }
+    Storage.save(this.state); this.closePetDetail();
+    const parts = [this.fmt(r.bac) + ' Bạc']; if (r.honThach) parts.push(r.honThach + ' Hồn Thạch'); if (r.linhPhach) parts.push(r.linhPhach + ' Linh Phách');
+    this.showToast('Phóng sanh · nhận ' + parts.join(' · ') + '.');
+  },
   petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
   petOptsText(pet) { return (pet.opts || []).map((o) => this.petOptLabel(o)).join('  ·  '); },   // cho tooltip chip "N dị bẩm"
   petLevelCap(pet) { const off = { phamPham: 10, luongPham: 6, tinhPham: 3 }[pet.quality] || 0; return Math.max(1, this.combatLevel - off); },
