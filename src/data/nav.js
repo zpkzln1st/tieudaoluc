@@ -22,6 +22,9 @@ export const NAV = [
   { title: 'Linh Thú', items: [
     { view: 'pets', name: 'Linh Thú', gloss: 'Pets', icon: '🐾' },
   ] },
+  { title: 'Giang Hồ', items: [
+    { view: 'phongVanBang', name: 'Phong Vân Bảng', gloss: 'Leaderboard', icon: '🏆' },
+  ] },
   { title: 'Giao Thương', items: [
     { view: 'merchant', name: 'Thương Điếm',    gloss: 'Merchant', icon: '🏪' },
     { view: 'market',   name: 'Sàn Giao Dịch',  gloss: 'Market',   icon: '⚖️', soon: true },
@@ -37,6 +40,6 @@ export const NAV = [
 export const VIEW_NAMES = {
   profile: 'Hồ Sơ', trangbi: 'Trang Bị', inventory: 'Hành Lý', map: 'Bản Đồ', nhiemVu: 'Nhiệm Vụ',
   combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương',
-  pets: 'Linh Thú', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch',
+  pets: 'Linh Thú', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch',
   guild: 'Bang Phái', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ',
 };

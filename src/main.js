@@ -31,10 +31,13 @@ import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './en
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
+import { genRoster, botCombatLv, botTotalLv, botTitle, botArchName, botActivity, ensureWorld } from './engine/bots.js';
+import { BOT_COUNT } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
 
 const now = () => Date.now();
+let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
 const CYCLE_MS = COMBAT_CYCLE_MS; // 1 vòng giao chiến = 8s (nguồn chung votong.js); hết vòng mới hiện trọn chiến báo + kết quả
 const BOSS_TURN_MS = 3000;        // Yêu Vương: lộ 1 lượt (frame) mỗi 3 giây khi xem live
 // Chi phí Bạc học nghề theo BẬC (index = số nghề đã học). Leo thang mạnh (làm tròn).
@@ -739,7 +742,7 @@ const gameStore = {
   },
   statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
   zoneName(id) { const l = (this.LOCATIONS || []).find((x) => x.id === id); return l ? l.name : ''; },  // tên vùng (cho nhãn gathering)
   // Nghề THU THẬP (có zone trên action) → danh sách chỉ hiện tài nguyên của VÙNG đang đứng. Nghề chế tạo (không zone) hiện hết.
@@ -885,6 +888,38 @@ const gameStore = {
   statProg(id) { return xpProgress(this.state.stats[id]?.xp || 0); },
   statLevel(id) { return levelFromXp(this.state.stats[id]?.xp || 0); },
   get totalLevel() { return this.combatLevel + Object.keys(this.SKILLS).reduce((s, id) => s + this.skillLevel(id), 0); },
+  // ===== GIANG HỒ — Phong Vân Bảng (BXH bot) =====
+  initWorld() { ensureWorld(this.state, now()); Storage.save(this.state); },
+  get playerActivityText() { return this.state.activity ? (this.actName || 'đang hành tẩu') : 'nhàn rỗi chốn giang hồ'; },
+  // Memo 200 hàng BOT ở module-level (đắt: 200×10 levelFromXp) theo (seed:createdAt:phút); hàng PLAYER tính TƯƠI mỗi render (rank/level không trễ).
+  get leaderboard() {
+    const w = this.state.world; if (!w) return [];
+    const t = now(), key = w.seed + ':' + w.createdAt + ':' + Math.floor(t / 60000);
+    if (_lbBotKey !== key || !_lbBots) {
+      _lbBots = genRoster(w.seed, w.createdAt).map((b) => ({
+        id: b.id, name: b.name, arch: b.arch, title: botTitle(b), archName: botArchName(b),
+        combatLv: botCombatLv(b, t), totalLv: botTotalLv(b, t), activity: botActivity(b, t), isPlayer: false,
+      }));
+      _lbBotKey = key;
+    }
+    const rows = _lbBots.concat([{
+      id: 'me', name: (this.state.player.name || 'Vô Danh'), arch: 'me', title: 'Ngươi', archName: '',
+      combatLv: this.combatLevel, totalLv: this.totalLevel, activity: this.playerActivityText, isPlayer: true,
+    }]);
+    rows.sort((a, b) => b.totalLv - a.totalLv || b.combatLv - a.combatLv || (a.id < b.id ? -1 : 1));
+    rows.forEach((r, i) => { r.rank = i + 1; });
+    return rows;
+  },
+  get lbTotal() { return BOT_COUNT + 1; },
+  get playerRow() { return this.leaderboard.find((r) => r.isPlayer) || null; },
+  get lbTop() { return this.leaderboard.slice(0, 50); },
+  get lbNeighbors() {                                                // người chơi ngoài top 50 -> lân cận hạng mình, KHÔNG chồng top 50
+    const p = this.playerRow; if (!p || p.rank <= 50) return [];
+    const lb = this.leaderboard, i = p.rank - 1;
+    return lb.slice(Math.max(50, i - 3), Math.min(lb.length, i + 4));
+  },
+  get lbDisplay() { const top = this.lbTop, nb = this.lbNeighbors; return nb.length ? [...top, { separator: true, id: 'sep' }, ...nb] : top; },
+  lbArchHex(arch) { return ({ satThu: '#fb7185', sanBoss: '#f59e0b', cayNghe: '#34d399', phuThuong: '#fbbf24', loMo: '#94a3b8', me: '#14b8a6' })[arch] || '#94a3b8'; },
 
   expPerSec(action) { return (action.xp / action.time).toFixed(2); },
   actionInputs(action) { return inputStatus(this.state, action); },
@@ -1944,6 +1979,7 @@ Alpine.start();
 Alpine.store('game').ensureQuests();
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
+Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)
 
 // Phím F9: bật/tắt Bảng Dev/Admin (offline)
 window.addEventListener('keydown', (e) => {
