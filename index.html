@@ -4188,6 +4188,25 @@
             <div class="flex items-center justify-between text-sm mt-1"><span class="text-slate-400">Tổng cấp</span><span class="font-medium text-jade" x-text="$store.game.totalLevel"></span></div>
             <div class="flex items-center justify-between text-sm mt-1"><span class="text-slate-400">Giới hạn nhàn rỗi</span><span class="font-medium" x-text="($store.game.state.settings?.idleCapHours || 8) + ' giờ'"></span></div>
           </div>
+          <!-- Tài khoản / Cloud -->
+          <div>
+            <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Tài Khoản</div>
+            <template x-if="$store.game.isLoggedIn">
+              <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="text-sm text-jade font-medium truncate" x-text="$store.game.authUserEmail"></div>
+                  <div class="text-[11px] text-slate-500">Đã đăng nhập · đồng bộ cloud sắp ra mắt</div>
+                </div>
+                <button @click="$store.game.doSignOut()" class="shrink-0 px-3 py-1.5 rounded-lg bg-ink3 border border-slate-700 hover:border-rose-500/60 text-slate-300 hover:text-rose-300 text-sm transition">Đăng xuất</button>
+              </div>
+            </template>
+            <template x-if="!$store.game.isLoggedIn">
+              <div>
+                <button @click="$store.game.closeSettings(); $store.game.openAuth()" class="w-full px-3 py-2.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-sm font-medium transition">Đăng nhập / Đăng ký</button>
+                <div class="text-[11px] text-slate-500 mt-1.5">Tạo tài khoản để sao lưu tiến trình lên cloud, chơi tiếp ở máy khác.</div>
+              </div>
+            </template>
+          </div>
           <!-- Lưu trữ -->
           <div>
             <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Lưu Trữ</div>
@@ -4206,6 +4225,34 @@
           </div>
           <div class="text-[10px] text-slate-600 text-center pt-1">Phím <b class="text-slate-500">F9</b>: bảng Dev/Admin (offline).</div>
         </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Modal Tài Khoản (Đăng nhập / Đăng ký — Supabase) ===== -->
+  <template x-if="$store.game.authOpen">
+    <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeAuth()">
+      <div class="panel rounded-xl w-[360px] max-w-full p-5 border border-jade/40 shadow-2xl" @click.stop x-init="$nextTick(() => $refs.authEmail && $refs.authEmail.focus())">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-bold text-jade flex items-center gap-2" style="font-family:'Lora',serif"><span>☁</span> Tài Khoản</div>
+          <button @click="$store.game.closeAuth()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center text-sm transition">✕</button>
+        </div>
+        <!-- Tabs Đăng nhập / Đăng ký -->
+        <div class="flex gap-1 p-1 rounded-lg bg-ink3 mb-3">
+          <button @click="$store.game.setAuthMode('login')" class="flex-1 py-1.5 rounded-md text-sm font-medium transition" :class="$store.game.authMode==='login' ? 'bg-jade text-ink' : 'text-slate-400 hover:text-slate-200'">Đăng nhập</button>
+          <button @click="$store.game.setAuthMode('register')" class="flex-1 py-1.5 rounded-md text-sm font-medium transition" :class="$store.game.authMode==='register' ? 'bg-jade text-ink' : 'text-slate-400 hover:text-slate-200'">Đăng ký</button>
+        </div>
+        <input type="email" x-ref="authEmail" x-model="$store.game.authEmail" @keydown.enter="$store.game.doAuth()" @keydown.escape="$store.game.closeAuth()" placeholder="Email" autocomplete="username"
+          class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100 text-sm mb-2">
+        <input type="password" x-model="$store.game.authPass" @keydown.enter="$store.game.doAuth()" @keydown.escape="$store.game.closeAuth()" :placeholder="$store.game.authMode==='register' ? 'Mật khẩu (≥6 ký tự)' : 'Mật khẩu'" autocomplete="current-password"
+          class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100 text-sm mb-2">
+        <template x-if="$store.game.authErr"><div class="text-[11px] text-rose-400 mb-2 flex items-center gap-1">⚠ <span x-text="$store.game.authErr"></span></div></template>
+        <template x-if="$store.game.authMsg"><div class="text-[11px] text-jade mb-2 flex items-center gap-1">✓ <span x-text="$store.game.authMsg"></span></div></template>
+        <button @click="$store.game.doAuth()" :disabled="$store.game.authBusy"
+          class="w-full py-2.5 rounded-lg font-bold text-sm transition"
+          :class="$store.game.authBusy ? 'bg-slate-700 text-slate-500 cursor-wait' : 'bg-jade text-ink hover:bg-jade/90'"
+          x-text="$store.game.authBusy ? 'Đang xử lý…' : ($store.game.authMode==='register' ? 'Tạo tài khoản' : 'Đăng nhập')"></button>
+        <div class="text-[10px] text-slate-600 text-center mt-2.5">Cloud chỉ để sao lưu tiến trình — không bắt buộc để chơi.</div>
       </div>
     </div>
   </template>

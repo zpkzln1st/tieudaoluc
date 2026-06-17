@@ -35,6 +35,7 @@ import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth } from './cloud.js';
 
 const now = () => Date.now();
 let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
@@ -48,6 +49,17 @@ const PROF_LV_STEP = 80; // mỗi 80 Tổng Lv mở thêm 1 nghề
 // Đổi mật khẩu: chạy devHash('matkhaumoi') rồi thay DEV_PASS_HASH. (Gate client-side chặn người chơi thường; F12 vẫn lách được — đã rõ, chống cheat thật cần server.)
 function devHash(s) { let h = 2166136261 >>> 0; const str = String(s); for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 const DEV_PASS_HASH = 1011525020;   // hash mật khẩu Dev (KHÔNG ghi plaintext ở đây — repo deploy public)
+// Dịch lỗi Auth Supabase (tiếng Anh) sang tiếng Việt cho các lỗi hay gặp.
+function authErrVi(msg) {
+  const m = (msg || '').toLowerCase();
+  if (m.includes('invalid login')) return 'Sai email hoặc mật khẩu.';
+  if (m.includes('already registered') || m.includes('already been registered') || m.includes('user already')) return 'Email này đã được đăng ký.';
+  if (m.includes('email not confirmed')) return 'Email chưa xác nhận — mở hộp thư bấm xác nhận trước.';
+  if (m.includes('password should be at least') || m.includes('at least 6')) return 'Mật khẩu quá ngắn (tối thiểu 6 ký tự).';
+  if ((m.includes('email') && m.includes('invalid')) || m.includes('unable to validate email') || m.includes('invalid format')) return 'Email không hợp lệ (thử email thật, đừng dùng @example.com).';
+  if (m.includes('rate limit') || m.includes('too many') || m.includes('for security purposes')) return 'Thao tác quá nhiều lần — đợi chút rồi thử lại.';
+  return msg || 'Có lỗi xảy ra.';
+}
 // Ngày địa phương dạng YYYY-MM-DD (cho điểm danh)
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const todayStr = () => ymd(new Date());
@@ -254,6 +266,8 @@ const gameStore = {
   dailyModal: false,
   devPanel: false,
   devAuthed: false, devLoginOpen: false, devPass: '', devLoginErr: '', devTab: 'char',   // cổng đăng nhập F9 (theo phiên — reload phải đăng nhập lại)
+  // Tài khoản / Cloud (Supabase Auth — Giai đoạn B). Offline-first: KHÔNG đăng nhập vẫn chơi.
+  authUser: null, authOpen: false, authMode: 'login', authEmail: '', authPass: '', authErr: '', authMsg: '', authBusy: false,
   devLvInput: 50,
   devItemSel: null,
   selectedSkill: 'phatMoc',
@@ -280,6 +294,47 @@ const gameStore = {
   },
   openSettings() { this.settingsModal = true; },
   closeSettings() { this.settingsModal = false; },
+  // ---------- Tài khoản / Cloud (Supabase Auth) ----------
+  get isLoggedIn() { return !!this.authUser; },
+  get authUserEmail() { return (this.authUser && this.authUser.email) || ''; },
+  // Khởi động: khôi phục phiên đã lưu + lắng nghe đổi trạng thái. Bọc try/catch để offline/CDN lỗi KHÔNG vỡ game.
+  async initCloud() {
+    try {
+      this.authUser = await cloudGetUser();
+      await cloudOnAuth((user) => { this.authUser = user; });
+    } catch (e) { /* không kết nối được cloud — bỏ qua, game vẫn chạy offline */ }
+  },
+  openAuth() { this.authErr = ''; this.authMsg = ''; this.authPass = ''; this.authOpen = true; },
+  closeAuth() { this.authOpen = false; this.authErr = ''; this.authMsg = ''; this.authPass = ''; },
+  setAuthMode(m) { this.authMode = m; this.authErr = ''; this.authMsg = ''; },
+  async doAuth() {
+    const email = (this.authEmail || '').trim();
+    const pass = this.authPass || '';
+    this.authErr = ''; this.authMsg = '';
+    if (!email || !pass) { this.authErr = 'Nhập email và mật khẩu.'; return; }
+    if (this.authMode === 'register' && pass.length < 6) { this.authErr = 'Mật khẩu tối thiểu 6 ký tự.'; return; }
+    this.authBusy = true;
+    try {
+      if (this.authMode === 'register') {
+        const { data, error } = await cloudSignUp(email, pass);
+        if (error) { this.authErr = authErrVi(error.message); return; }
+        if (data && data.session) { this.authUser = data.user; this.closeAuth(); this.showToast('Đã tạo tài khoản & đăng nhập.'); }
+        else { this.authMsg = 'Đã gửi email xác nhận. Mở hộp thư bấm xác nhận rồi đăng nhập.'; this.authMode = 'login'; this.authPass = ''; }
+      } else {
+        const { data, error } = await cloudSignIn(email, pass);
+        if (error) { this.authErr = authErrVi(error.message); return; }
+        this.authUser = data.user; this.closeAuth(); this.showToast('Đăng nhập thành công.');
+      }
+    } catch (e) {
+      this.authErr = 'Không kết nối được máy chủ (kiểm tra mạng) — thử lại.';
+    } finally {
+      this.authBusy = false; this.authPass = '';
+    }
+  },
+  async doSignOut() {
+    try { await cloudSignOut(); } catch (e) { /* vẫn xoá phiên ở client */ }
+    this.authUser = null; this.showToast('Đã đăng xuất.');
+  },
   // ---------- Tiểu Sử (≤250 ký tự) ----------
   bioModal: false,
   bioDraft: '',
@@ -2046,6 +2101,7 @@ Alpine.store('game').ensureQuests();
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)
+Alpine.store('game').initCloud();           // Tài khoản/Cloud: khôi phục phiên Supabase (lazy, offline-safe)
 
 // Phím F9: bật/tắt Bảng Dev/Admin (offline)
 window.addEventListener('keydown', (e) => {
