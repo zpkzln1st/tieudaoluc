@@ -4,7 +4,7 @@
 // ============================================================
 import { ITEMS } from '../data/items.js';
 import { removeItem, addItem } from './inventory.js';
-import { levelFromXp, addSkillXp } from './leveling.js';
+import { levelFromXp, addSkillXp, xpForLevel } from './leveling.js';
 import { LOCATIONS } from '../data/locations.js';
 import { ENEMIES } from '../data/combat.js';
 import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PET_SKILLS, AWK_PASSIVES, AWK_PASSIVE_IDS } from '../data/pets.js';
@@ -151,7 +151,7 @@ export function petBonus(state) {
 // ============================================================
 // P4 — EXP & LÊN CẤP. Pet đang mang ăn 50% EXP/trận; trần cấp = cấp Chiến Đấu − lệch phẩm.
 // ============================================================
-export function petXpToNext(level) { return Math.round(40 * Math.pow(level, 1.5)); }      // E.1
+export function petXpToNext(level) { return xpForLevel(level); }   // E.1 — DÙNG CHUNG đường cong với nhân vật (leveling.js): cong dồn cuối, tổng Lv1→100 ≈ 20,17M, 99→100 = 1.2M
 const PET_LV_OFFSET = { phamPham: 10, luongPham: 6, tinhPham: 3 };                         // phẩm thấp trần thấp hơn
 export function petLevelCap(state, pet) {
   const off = PET_LV_OFFSET[pet.quality] || 0;
@@ -188,8 +188,17 @@ export function activeAwkVal(state, key) {
 // −4 Thể Lực/cycle; kiệt Thể Lực -> RÚT (chỉ stat tĩnh còn cộng); HP=0 -> NGẤT (mất hết bonus
 // tới khi rời trận / hồi). Thể Lực hồi +10/phút thời gian thực khi rảnh.
 // ============================================================
-export const PET_STAM_MAX = 100;
+export const PET_STAM_MAX = 100;   // fallback khi pet null / phẩm lạ
 const STAM_PER_CYCLE = 4, STAM_REGEN_PER_MIN = 10, CHIA_LUA = 0.20, PET_AUTO_PCT = 0.25, SKILL_STAM = 6;
+// Thể Lực TỐI ĐA theo PHẨM (nền) + CẤP (+/level) + ×1.25 khi THỨC TỈNH -> phẩm/cấp/awk cao thì săn lâu hơn,
+// mỗi lần phái đi gom nhiều lượt hơn trước khi phải Dưỡng Sức (hồi vẫn 10/phút).
+const STAM_BASE_Q = { phamPham: 100, luongPham: 130, tinhPham: 170, tuyetPham: 220, truyenThe: 280, thanPham: 350, coBan: 440 };
+const STAM_PER_LEVEL = 1.2, STAM_AWAKEN_MUL = 1.25;
+export function petStamMax(pet) {
+  if (!pet) return PET_STAM_MAX;
+  const base = (STAM_BASE_Q[pet.quality] || PET_STAM_MAX) + Math.round((pet.level || 1) * STAM_PER_LEVEL);
+  return Math.round(base * (pet.evolved ? STAM_AWAKEN_MUL : 1));
+}
 export function petPassive(pet) { return (PET_SKILLS[pet.base] || {}).passive || {}; }   // bị động signature theo loài (THÔ — để hiển thị danh tính)
 export function petActive(pet) { return (PET_SKILLS[pet.base] || {}).active || null; }     // chủ động (THÔ)
 export const AWK_SKILL_MUL = 1.3;                                                          // Thức Tỉnh: tuyệt kĩ bản _awk mạnh ~+30%
@@ -220,10 +229,11 @@ export function petHpMax(pet) { return Math.round(((petStatAt(pet) || {}).sinhLu
 // Thể Lực hiện tại (THUẦN, không ghi): tl + hồi 10/phút từ mốc tlAt. tl null/đầy -> 100.
 export function petStamView(pet, now) {
   if (!pet) return PET_STAM_MAX;
-  if (pet.state === 'hunt') return Math.max(0, Math.min(PET_STAM_MAX, pet.tl == null ? PET_STAM_MAX : pet.tl));   // đang Săn: không hồi thụ động (hunt tick rút)
-  if (pet.tl == null || pet.tl >= PET_STAM_MAX) return PET_STAM_MAX;
+  const max = petStamMax(pet);
+  if (pet.state === 'hunt') return Math.max(0, Math.min(max, pet.tl == null ? max : pet.tl));   // đang Săn: không hồi thụ động (hunt tick rút)
+  if (pet.tl == null || pet.tl >= max) return max;
   const regen = Math.floor((now - (pet.tlAt || now)) / 60000) * STAM_REGEN_PER_MIN;
-  return Math.max(0, Math.min(PET_STAM_MAX, pet.tl + regen));
+  return Math.max(0, Math.min(max, pet.tl + regen));
 }
 // Reset HP pet đầu phiên combat (gọi trong startCombat).
 export function resetPetCombat(state) {
@@ -469,19 +479,20 @@ function resolveOneHunt(state, p, now, capMs) {
   let cursor = p.huntAt || now;
   if (capMs && now - cursor > capMs) cursor = now - capMs;            // bỏ phần offline vượt cap idle
   let exp = 0, nguXp = 0, ticks = 0; const loot = {}; let guard = 0;
+  const max = petStamMax(p);                                          // trần Thể Lực theo phẩm/cấp/awk
   while (cursor < now && guard++ < 5000) {
     if (p.state === 'hunt') {
-      if ((p.tl == null ? PET_STAM_MAX : p.tl) < HUNT_STAM_COST) { p.state = 'rest'; p.tlAt = cursor; continue; }
+      if ((p.tl == null ? max : p.tl) < HUNT_STAM_COST) { p.state = 'rest'; p.tlAt = cursor; continue; }
       if (cursor + HUNT_TICK_MS > now) break;                         // chưa đủ 1 lượt 10'
       cursor += HUNT_TICK_MS;
       exp += huntExpPerTick(p); nguXp += huntNguThuXp(loc); rollHuntLoot(loc, loot); ticks++;
-      p.tl = (p.tl == null ? PET_STAM_MAX : p.tl) - HUNT_STAM_COST;
+      p.tl = (p.tl == null ? max : p.tl) - HUNT_STAM_COST;
       if (p.tl < HUNT_STAM_COST) { p.state = 'rest'; p.tlAt = cursor; }   // kiệt -> Dưỡng Sức
     } else {                                                          // rest: nghỉ tới đầy rồi tự săn lại
-      const need = PET_STAM_MAX - Math.max(0, p.tl == null ? 0 : p.tl);
+      const need = max - Math.max(0, p.tl == null ? 0 : p.tl);
       const restMs = Math.max(60000, Math.ceil(need / STAM_REGEN_PER_MIN) * 60000);
       if (cursor + restMs > now) break;                              // vẫn đang nghỉ ở 'now'
-      cursor += restMs; p.tl = PET_STAM_MAX; p.state = 'hunt'; p.tlAt = cursor;
+      cursor += restMs; p.tl = max; p.state = 'hunt'; p.tlAt = cursor;
     }
   }
   p.huntAt = cursor;

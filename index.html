@@ -2035,8 +2035,8 @@
                  class="relative panel rounded-2xl overflow-hidden" :style="'border-color:'+qh+'55;background:linear-gradient(150deg,'+qh+'12,#0f1521 62%)'">
               <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 60px '+qh+'22'"></div>
               <div class="relative grid md:grid-cols-[260px_1fr] gap-4 p-4">
-                <!-- art-đài + Tu Vi -->
-                <div class="space-y-2.5">
+                <!-- art-đài + Tu Vi (căn giữa dọc để lấp gap khi cột phải cao hơn) -->
+                <div class="flex flex-col gap-2.5 justify-center">
                   <div class="relative aspect-square rounded-xl overflow-hidden bg-ink2 flex items-center justify-center text-6xl" :style="'border:1px solid '+qh+'40'">
                     <span x-text="$store.game.petEmoji(p)"></span>
                     <div class="absolute inset-0 transition" :class="$store.game.petFainted ? 'grayscale opacity-50' : ''" x-html="$store.game.petArtTag(p)"></div>
@@ -2052,8 +2052,8 @@
                       <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+$store.game.petHpPct+'%;background:#fb7185'"></div></div>
                     </div>
                     <div>
-                      <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Thể Lực</span><span class="text-slate-500" x-text="Math.round($store.game.petStamCur)+' / 100'"></span></div>
-                      <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+$store.game.petStamCur+'%;background:'+($store.game.petStamCur<25?'#fb7185':'#22d3ee')"></div></div>
+                      <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Thể Lực</span><span class="text-slate-500" x-text="Math.round($store.game.petStamCur)+' / '+$store.game.petStamMaxV"></span></div>
+                      <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+($store.game.petStamMaxV?$store.game.petStamCur/$store.game.petStamMaxV*100:0)+'%;background:'+($store.game.petStamCur<25?'#fb7185':'#22d3ee')"></div></div>
                     </div>
                   </div>
                   <div>
@@ -2111,6 +2111,23 @@
                         </div>
                         <div class="min-w-0 pt-0.5"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div><div class="text-[9.5px] text-rose-300/90 mt-0.5">Sát thương ~<span x-text="Math.round($store.game.petActiveOf(p).mult*100)"></span>% Công · ≈<b x-text="$store.game.fmt($store.game.petActiveDmg(p))"></b></div></div>
                       </div>
+                      <!-- Bị động Thức Tỉnh (P7) — chỉ khi thức tỉnh; lưới 2×2: hàng 2 = awk + 1 ô trống chờ kĩ năng thứ 4 -->
+                      <template x-if="$store.game.petAwkPassiveOf(p)">
+                        <div class="flex items-start gap-2.5 px-2 py-1.5 rounded-lg bg-amber-900/10 border border-amber-700/30" x-data="{ get aw(){ return $store.game.petAwkPassiveOf(p)||{} } }">
+                          <div class="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-ink2 border border-amber-700/40 flex items-center justify-center" style="color:#fbbf24">
+                            <span class="opacity-40"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.5 6.6 6.8.4-5.2 4.4 1.7 6.6L12 17.4 6.2 21l1.7-6.6-5.2-4.4 6.8-.4L12 2.5z"/></svg></span>
+                            <div class="absolute inset-0" x-html="$store.game.awkArtTag(aw.id)"></div>
+                          </div>
+                          <div class="min-w-0 pt-0.5"><div class="text-[11.5px] font-medium text-amber-200"><span x-text="aw.name"></span> <span class="text-[9px] text-slate-500 font-normal">· bị động Thức Tỉnh</span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="aw.desc"></div></div>
+                        </div>
+                      </template>
+                      <!-- Ô trống đặt chỗ kĩ năng thứ 4 (hiện khi đã thức tỉnh để lấp đầy lưới 2×2; cơ chế mở sau) -->
+                      <template x-if="$store.game.petAwkPassiveOf(p)">
+                        <div class="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg border border-dashed border-slate-700/60 text-slate-600">
+                          <svg viewBox="0 0 24 24" class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                          <span class="text-[10.5px]">Kĩ năng thứ 4 · chưa mở</span>
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -2139,10 +2156,15 @@
               </div>
               <button @click="$store.game.openHuntTrack()" class="group text-center px-4 py-2 rounded-xl bg-ink2/60 border border-slate-700/60 shrink-0 hover:border-jade/50 hover:bg-ink2 transition cursor-pointer" title="Xem tiến độ Lịch Luyện">
                 <div class="lbl mb-1 flex items-center justify-center gap-1">Slot Săn Mồi <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-600 group-hover:text-jade transition" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
-                <div class="flex items-center gap-1.5 justify-center">
-                  <template x-for="i in $store.game.huntSlotsV" :key="i"><span class="w-3.5 h-3.5 rounded-full" :class="i <= $store.game.huntSlotsUsedV ? '' : 'border border-slate-600'" :style="i <= $store.game.huntSlotsUsedV ? 'background:#14b8a6;box-shadow:0 0 7px #14b8a6' : ''"></span></template>
+                <div class="flex items-baseline justify-center gap-0.5 leading-none">
+                  <b class="text-[19px] text-jade tabular-nums" x-text="$store.game.huntSlotsUsedV"></b>
+                  <span class="text-[13px] text-slate-500 tabular-nums" x-text="'/ '+$store.game.huntSlotsV"></span>
+                  <span class="text-[10px] text-slate-500 ml-1">đang săn</span>
                 </div>
-                <div class="text-[10px] text-slate-500 mt-1"><b class="text-jade" x-text="$store.game.huntSlotsUsedV"></b>/<span x-text="$store.game.huntSlotsV"></span> đang săn · +1 ở Lv <span x-text="$store.game.nextSlotLv"></span></div>
+                <div class="mx-auto mt-1.5 h-1.5 w-24 rounded-full bg-slate-800 overflow-hidden">
+                  <div class="h-full rounded-full bg-jade transition-all" :style="`width:${$store.game.huntSlotsV ? Math.round($store.game.huntSlotsUsedV / $store.game.huntSlotsV * 100) : 0}%;box-shadow:0 0 6px #14b8a6`"></div>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-1">mở thêm ở Lv <span class="text-slate-400" x-text="$store.game.nextSlotLv"></span></div>
               </button>
             </div>
           </div>
@@ -2263,14 +2285,15 @@
       <!-- ===== POPUP: Lịch Luyện (theo dõi tiến độ săn mồi) ===== -->
       <template x-if="$store.game.huntTrackOpen">
         <div class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closeHuntTrack()">
-          <div class="panel rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl" @click.stop style="border-color:#14b8a655">
+          <div class="panel rounded-2xl w-full max-w-2xl min-h-[420px] max-h-[85vh] flex flex-col overflow-hidden shadow-2xl" @click.stop style="border-color:#14b8a655">
             <!-- HEADER -->
             <div class="relative shrink-0 p-4" style="background:linear-gradient(150deg,#14b8a614,#0f1521 64%)">
               <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 60px #14b8a61f"></div>
               <button @click="$store.game.closeHuntTrack()" class="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-ink3/80 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 flex items-center justify-center text-sm" aria-label="Đóng">✕</button>
               <div class="relative flex items-center gap-3 pr-8">
-                <div class="relative w-12 h-12 rounded-xl bg-ink2 border border-jade/40 flex items-center justify-center shrink-0" style="box-shadow:inset 0 0 18px #14b8a62e">
+                <div class="relative w-12 h-12 rounded-xl bg-ink2 border border-jade/40 flex items-center justify-center shrink-0 overflow-hidden" style="box-shadow:inset 0 0 18px #14b8a62e">
                   <svg viewBox="0 0 24 24" class="w-6 h-6 text-jade/80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2 4 4.5.6-3.3 3.1.8 4.5L12 17l-4.8 2.3.8-4.5L4.7 11.6 9.2 11 12 3z"/></svg>
+                  <img src="images/skills/nguThu.webp" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                 </div>
                 <div class="min-w-0">
                   <div class="lbl text-slate-500" x-text="'Ngự Thú · Cấp '+$store.game.nguThuLvV"></div>
@@ -2318,8 +2341,8 @@
                       </div>
                       <div class="mt-1.5 flex items-center gap-2">
                         <span class="lbl shrink-0" style="letter-spacing:.08em">Thể Lực</span>
-                        <div class="flex-1 h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+h.stam+'%;background:'+(h.stam<25?'#fb7185':'#22d3ee')"></div></div>
-                        <span class="text-[9.5px] text-slate-500 shrink-0 tabular-nums" x-text="Math.round(h.stam)"></span>
+                        <div class="flex-1 h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+(h.stamMax?h.stam/h.stamMax*100:0)+'%;background:'+(h.stam<25?'#fb7185':'#22d3ee')"></div></div>
+                        <span class="text-[9.5px] text-slate-500 shrink-0 tabular-nums" x-text="Math.round(h.stam)+' / '+h.stamMax"></span>
                       </div>
                       <div class="mt-2 flex items-center gap-1.5 flex-wrap">
                         <span class="lbl shrink-0">Phiên này</span>
@@ -2450,8 +2473,8 @@
                   <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+$store.game.petHpPctOf(p)+'%;background:#fb7185'"></div></div>
                 </div>
                 <div>
-                  <div class="flex items-center justify-between text-[10px] mb-1"><span class="text-slate-400">Thể Lực</span><span class="text-slate-500" x-text="Math.round($store.game.petStamOf(p))+' / 100'"></span></div>
-                  <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+$store.game.petStamOf(p)+'%;background:'+($store.game.petStamOf(p)<25?'#fb7185':'#22d3ee')"></div></div>
+                  <div class="flex items-center justify-between text-[10px] mb-1"><span class="text-slate-400">Thể Lực</span><span class="text-slate-500" x-text="Math.round($store.game.petStamOf(p))+' / '+$store.game.petStamMaxOf(p)"></span></div>
+                  <div class="h-1.5 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full" :style="'width:'+($store.game.petStamMaxOf(p)?$store.game.petStamOf(p)/$store.game.petStamMaxOf(p)*100:0)+'%;background:'+($store.game.petStamOf(p)<25?'#fb7185':'#22d3ee')"></div></div>
                 </div>
                 <div>
                   <div class="flex items-center justify-between text-[10px] mb-1"><span class="text-slate-400">Tu Vi</span><span class="text-slate-500" x-text="'Cảnh Lv '+p.level+' · '+$store.game.fmt(p.xp||0)+'/'+$store.game.fmt($store.game.petXpNext(p))"></span></div>
@@ -4249,106 +4272,144 @@
     </div>
   </template>
 
-  <!-- ===== BẢNG DEV / ADMIN (offline) — mở bằng F9 ===== -->
-  <template x-if="$store.game.devPanel">
+  <!-- ===== ĐĂNG NHẬP BẢNG DEV (F9) — phải đúng mật khẩu mới mở ===== -->
+  <template x-if="$store.game.devLoginOpen">
+    <div class="fixed inset-0 z-[91] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeDevLogin()">
+      <div class="panel rounded-xl w-[340px] max-w-full p-5 border border-amber-500/40 shadow-2xl" @click.stop x-init="$nextTick(() => $refs.devpw && $refs.devpw.focus())">
+        <div class="flex items-center gap-2 mb-1"><span class="text-amber-300 text-lg">🔒</span><div class="font-bold text-amber-300">Bảng Dev / Admin</div></div>
+        <div class="text-[11px] text-slate-500 mb-3">Nhập mật khẩu để mở công cụ quản trị.</div>
+        <input type="password" x-ref="devpw" x-model="$store.game.devPass" @keydown.enter="$store.game.devLogin()" @keydown.escape="$store.game.closeDevLogin()" placeholder="Mật khẩu" autocomplete="off"
+          class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-amber-500 outline-none text-slate-100 text-sm mb-2">
+        <template x-if="$store.game.devLoginErr"><div class="text-[11px] text-rose-400 mb-2 flex items-center gap-1">⚠ <span x-text="$store.game.devLoginErr"></span></div></template>
+        <div class="flex gap-2">
+          <button @click="$store.game.devLogin()" class="flex-1 py-2 rounded bg-amber-500/85 hover:bg-amber-500 text-ink text-sm font-bold transition">Đăng Nhập</button>
+          <button @click="$store.game.closeDevLogin()" class="px-3 py-2 rounded bg-ink3 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm">Huỷ</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== BẢNG DEV / ADMIN (offline) — F9; CHỈ hiện + dùng được khi đã đăng nhập ===== -->
+  <template x-if="$store.game.devPanel && $store.game.devAuthed">
     <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.devPanel=false">
-      <div class="panel rounded-xl w-[460px] max-w-full max-h-[88vh] overflow-y-auto p-5 border border-amber-500/40 shadow-2xl" @click.stop>
-        <div class="flex justify-between items-center mb-3">
-          <div class="font-bold text-amber-300">🛠️ Bảng Dev / Admin <span class="text-[10px] text-slate-500 font-normal">(F9 để bật/tắt)</span></div>
-          <button @click="$store.game.devPanel=false" class="text-slate-500 hover:text-rose-400">✕</button>
-        </div>
-
-        <!-- Tổng quan -->
-        <div class="grid grid-cols-2 gap-1 text-xs text-slate-400 mb-4 bg-ink3/60 rounded-lg p-2.5">
-          <div>Tên: <b class="text-slate-200" x-text="$store.game.state.player.name || '—'"></b></div>
-          <div>Thân phận: <b class="text-slate-200" x-text="$store.game.className"></b></div>
-          <div>Chiến Lv: <b class="text-jade" x-text="$store.game.combatLevel"></b></div>
-          <div>Tổng Lv: <b class="text-jade" x-text="$store.game.totalLevel"></b></div>
-        </div>
-
-        <!-- Tiền tệ -->
-        <div class="lbl mb-1.5">Tiền tệ</div>
-        <div class="space-y-1.5 mb-4 text-sm">
-          <div class="flex items-center gap-2"><span class="w-24 text-slate-300">Bạc</span><span class="flex-1 text-gold" x-text="$store.game.fmt($store.game.state.currencies.bac)"></span>
-            <button @click="$store.game.devAddCurrency('bac',1000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+1k</button>
-            <button @click="$store.game.devAddCurrency('bac',100000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+100k</button></div>
-          <div class="flex items-center gap-2"><span class="w-24 text-slate-300">Hồn Thạch</span><span class="flex-1" x-text="$store.game.fmt($store.game.state.currencies.honThach)"></span>
-            <button @click="$store.game.devAddCurrency('honThach',1000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+1k</button>
-            <button @click="$store.game.devAddCurrency('honThach',100000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+100k</button></div>
-          <div class="flex items-center gap-2"><span class="w-24 text-slate-300">Nguyên Bảo</span><span class="flex-1" x-text="$store.game.fmt($store.game.state.currencies.nguyenBao)"></span>
-            <button @click="$store.game.devAddCurrency('nguyenBao',100)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+100</button>
-            <button @click="$store.game.devAddCurrency('nguyenBao',1000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+1k</button></div>
-        </div>
-
-        <!-- Cấp độ -->
-        <div class="lbl mb-1.5">Cấp độ</div>
-        <div class="flex items-center gap-2 mb-2 text-sm">
-          <span class="text-slate-300">Đặt MỌI kỹ năng + Tứ Trụ + Chiến Đấu về Lv</span>
-          <input type="number" min="1" max="100" x-model.number="$store.game.devLvInput" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100">
-          <button @click="$store.game.devSetAllLevel($store.game.devLvInput)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Áp</button>
-        </div>
-        <div class="grid grid-cols-2 gap-1 mb-4 text-[11px]">
-          <template x-for="sid in Object.keys($store.game.SKILLS)" :key="sid">
-            <div class="flex items-center justify-between bg-ink3 rounded px-2 py-1">
-              <span class="truncate" x-text="$store.game.SKILLS[sid].name + ' · Lv' + $store.game.skillLevel(sid)"></span>
-              <button @click="$store.game.devAddSkillXp(sid,1000)" class="text-jade shrink-0 ml-1">+1k</button>
-            </div>
-          </template>
-          <div class="flex items-center justify-between bg-ink3 rounded px-2 py-1">
-            <span class="truncate" x-text="'Chiến Đấu · Lv' + $store.game.combatLevel"></span>
-            <button @click="$store.game.devAddSkillXp('chienDau',1000)" class="text-jade shrink-0 ml-1">+1k</button>
+      <div class="panel rounded-xl w-[480px] max-w-full h-[600px] max-h-[88vh] flex flex-col overflow-hidden p-5 border border-amber-500/40 shadow-2xl" @click.stop>
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-3 shrink-0">
+          <div class="font-bold text-amber-300 flex items-center gap-2">🛠️ Bảng Dev / Admin <span class="text-[10px] text-emerald-400 font-normal inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>đã đăng nhập</span></div>
+          <div class="flex items-center gap-2">
+            <button @click="$store.game.devLogout()" class="text-[11px] text-slate-400 hover:text-rose-400 border border-slate-700 rounded px-2 py-0.5">Đăng xuất</button>
+            <button @click="$store.game.devPanel=false" class="text-slate-500 hover:text-rose-400 text-lg leading-none">✕</button>
           </div>
         </div>
 
-        <!-- Vật phẩm -->
-        <div class="lbl mb-1.5">Vật phẩm</div>
-        <div class="flex items-center gap-2 mb-4">
-          <select x-model="$store.game.devItemSel" class="flex-1 min-w-0 px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
-            <option :value="null">— chọn vật phẩm —</option>
-            <template x-for="id in Object.keys($store.game.ITEMS)" :key="id">
-              <option :value="id" x-text="$store.game.ITEMS[id].name"></option>
+        <!-- Tabs -->
+        <div class="flex gap-1 mb-3.5 bg-ink3/40 rounded-lg p-1 shrink-0">
+          <template x-for="tb in [{k:'char',l:'Nhân Vật'},{k:'item',l:'Vật Phẩm'},{k:'pet',l:'Linh Thú'},{k:'sys',l:'Hệ Thống'}]" :key="tb.k">
+            <button @click="$store.game.setDevTab(tb.k)" class="flex-1 px-2 py-1.5 rounded text-[12px] font-medium transition border" :class="$store.game.devTab===tb.k ? 'bg-amber-500/20 text-amber-200 border-amber-500/40' : 'text-slate-400 hover:text-slate-200 border-transparent'" x-text="tb.l"></button>
+          </template>
+        </div>
+
+        <!-- Vùng nội dung cuộn — khung panel CỐ ĐỊNH, mọi tab cùng kích thước (nội dung dài thì cuộn trong đây) -->
+        <div class="flex-1 min-h-0 overflow-y-auto -mr-2 pr-2">
+        <!-- ===== TAB: NHÂN VẬT (tổng quan + tiền tệ + cấp độ) ===== -->
+        <div x-show="$store.game.devTab==='char'">
+          <div class="grid grid-cols-2 gap-1 text-xs text-slate-400 mb-4 bg-ink3/60 rounded-lg p-2.5">
+            <div>Tên: <b class="text-slate-200" x-text="$store.game.state.player.name || '—'"></b></div>
+            <div>Thân phận: <b class="text-slate-200" x-text="$store.game.className"></b></div>
+            <div>Chiến Lv: <b class="text-jade" x-text="$store.game.combatLevel"></b></div>
+            <div>Tổng Lv: <b class="text-jade" x-text="$store.game.totalLevel"></b></div>
+          </div>
+
+          <div class="lbl mb-1.5">Tiền tệ</div>
+          <div class="space-y-1.5 mb-4 text-sm">
+            <div class="flex items-center gap-2"><span class="w-24 text-slate-300">Bạc</span><span class="flex-1 text-gold" x-text="$store.game.fmt($store.game.state.currencies.bac)"></span>
+              <button @click="$store.game.devAddCurrency('bac',1000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+1k</button>
+              <button @click="$store.game.devAddCurrency('bac',100000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+100k</button></div>
+            <div class="flex items-center gap-2"><span class="w-24 text-slate-300">Hồn Thạch</span><span class="flex-1" x-text="$store.game.fmt($store.game.state.currencies.honThach)"></span>
+              <button @click="$store.game.devAddCurrency('honThach',1000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+1k</button>
+              <button @click="$store.game.devAddCurrency('honThach',100000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+100k</button></div>
+            <div class="flex items-center gap-2"><span class="w-24 text-slate-300">Nguyên Bảo</span><span class="flex-1" x-text="$store.game.fmt($store.game.state.currencies.nguyenBao)"></span>
+              <button @click="$store.game.devAddCurrency('nguyenBao',100)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+100</button>
+              <button @click="$store.game.devAddCurrency('nguyenBao',1000)" class="px-2 py-0.5 rounded bg-ink3 border border-slate-700 text-xs">+1k</button></div>
+          </div>
+
+          <div class="lbl mb-1.5">Cấp độ</div>
+          <div class="flex items-center gap-2 mb-2 text-sm">
+            <span class="text-slate-300">Đặt MỌI kỹ năng + Tứ Trụ + Chiến Đấu về Lv</span>
+            <input type="number" min="1" max="100" x-model.number="$store.game.devLvInput" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100">
+            <button @click="$store.game.devSetAllLevel($store.game.devLvInput)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Áp</button>
+          </div>
+          <div class="grid grid-cols-2 gap-1 text-[11px]">
+            <template x-for="sid in Object.keys($store.game.SKILLS)" :key="sid">
+              <div class="flex items-center justify-between bg-ink3 rounded px-2 py-1">
+                <span class="truncate" x-text="$store.game.SKILLS[sid].name + ' · Lv' + $store.game.skillLevel(sid)"></span>
+                <button @click="$store.game.devAddSkillXp(sid,1000)" class="text-jade shrink-0 ml-1">+1k</button>
+              </div>
             </template>
-          </select>
-          <button @click="$store.game.devAddItem($store.game.devItemSel,10)" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-xs shrink-0">+10</button>
-          <button @click="$store.game.devAddItem($store.game.devItemSel,99)" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-xs shrink-0">+99</button>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <button @click="$store.game.devGiveAll()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">📦 Nhận TOÀN BỘ vật phẩm (test)</button>
-          <button @click="$store.game.devGiveAllEggs()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🥚 Nhận toàn bộ Trứng + Tinh Thể (xem art)</button>
-          <button @click="$store.game.devGiveSampleGear()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">🎁 Tặng toàn bộ trang bị (test)</button>
-          <button @click="$store.game.devGiveStones()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💠 Tặng đá cường hóa + 100k Hồn Thạch</button>
+            <div class="flex items-center justify-between bg-ink3 rounded px-2 py-1">
+              <span class="truncate" x-text="'Chiến Đấu · Lv' + $store.game.combatLevel"></span>
+              <button @click="$store.game.devAddSkillXp('chienDau',1000)" class="text-jade shrink-0 ml-1">+1k</button>
+            </div>
+          </div>
         </div>
 
-        <!-- Linh Thú -->
-        <div class="lbl mb-1.5">Linh Thú</div>
-        <div class="flex flex-wrap items-center gap-2 mb-2">
-          <select x-model="$store.game.devPetBase" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
-            <template x-for="b in Object.keys($store.game.PET_SPECIES)" :key="b"><option :value="b" x-text="$store.game.PET_SPECIES[b].name"></option></template>
-          </select>
-          <select x-model="$store.game.devPetQuality" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
-            <template x-for="q in Object.keys($store.game.PET_QUALITY)" :key="q"><option :value="q" x-text="($store.game.QUALITY[q]||{}).name"></option></template>
-          </select>
-          <input type="number" min="1" max="99" x-model.number="$store.game.devPetLv" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100" title="Cấp">
-          <button @click="$store.game.devCreatePet()" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Tạo Linh Thú</button>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <button @click="$store.game.devGiveEachSpecies()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🐾 1 con mỗi loài (theo phẩm/cấp đã chọn)</button>
-          <button @click="$store.game.devSetPetLevel($store.game.devPetLv)" class="px-3 py-1 rounded bg-ink3 border border-slate-700 text-xs">Đặt mọi pet về cấp đã chọn</button>
-          <button @click="$store.game.devAwakenActive()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">✦ Thức Tỉnh con đang dắt (xem _awk)</button>
-          <button @click="$store.game.devGivePetMats()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🌀 99 Linh Phách + Tinh Thể</button>
-          <button @click="$store.game.devClearPets()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-xs">Xoá hết Linh Thú</button>
+        <!-- ===== TAB: VẬT PHẨM ===== -->
+        <div x-show="$store.game.devTab==='item'">
+          <div class="lbl mb-1.5">Cấp vật phẩm</div>
+          <div class="flex items-center gap-2 mb-4">
+            <select x-model="$store.game.devItemSel" class="flex-1 min-w-0 px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
+              <option :value="null">— chọn vật phẩm —</option>
+              <template x-for="id in Object.keys($store.game.ITEMS)" :key="id">
+                <option :value="id" x-text="$store.game.ITEMS[id].name"></option>
+              </template>
+            </select>
+            <button @click="$store.game.devAddItem($store.game.devItemSel,10)" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-xs shrink-0">+10</button>
+            <button @click="$store.game.devAddItem($store.game.devItemSel,99)" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-xs shrink-0">+99</button>
+          </div>
+          <div class="lbl mb-1.5">Phát nhanh</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button @click="$store.game.devGiveAll()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">📦 Nhận TOÀN BỘ vật phẩm (test)</button>
+            <button @click="$store.game.devGiveAllEggs()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🥚 Nhận toàn bộ Trứng + Tinh Thể (xem art)</button>
+            <button @click="$store.game.devGiveSampleGear()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">🎁 Tặng toàn bộ trang bị (test)</button>
+            <button @click="$store.game.devGiveStones()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💠 Tặng đá cường hóa + 100k Hồn Thạch</button>
+          </div>
         </div>
 
-        <!-- Quản lý Save -->
-        <div class="lbl mb-1.5">Quản lý Save</div>
-        <div class="flex flex-wrap gap-2">
-          <button @click="$store.game.devExport()" class="px-3 py-1.5 rounded bg-ink3 border border-slate-700 hover:border-jade text-sm">⬇ Xuất save</button>
-          <label class="px-3 py-1.5 rounded bg-ink3 border border-slate-700 hover:border-jade text-sm cursor-pointer">⬆ Nhập save
-            <input type="file" accept="application/json" class="hidden" @change="$store.game.devImport($event)">
-          </label>
-          <button @click="$store.game.devPanel=false; $store.game.resetGame()" class="px-3 py-1.5 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-sm">Reset toàn bộ</button>
+        <!-- ===== TAB: LINH THÚ ===== -->
+        <div x-show="$store.game.devTab==='pet'">
+          <div class="lbl mb-1.5">Tạo Linh Thú</div>
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <select x-model="$store.game.devPetBase" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
+              <template x-for="b in Object.keys($store.game.PET_SPECIES)" :key="b"><option :value="b" x-text="$store.game.PET_SPECIES[b].name"></option></template>
+            </select>
+            <select x-model="$store.game.devPetQuality" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100">
+              <template x-for="q in Object.keys($store.game.PET_QUALITY)" :key="q"><option :value="q" x-text="($store.game.QUALITY[q]||{}).name"></option></template>
+            </select>
+            <input type="number" min="1" max="99" x-model.number="$store.game.devPetLv" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-sm text-slate-100" title="Cấp">
+            <button @click="$store.game.devCreatePet()" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Tạo Linh Thú</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button @click="$store.game.devGiveEachSpecies()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🐾 1 con mỗi loài (theo phẩm/cấp đã chọn)</button>
+            <button @click="$store.game.devSetPetLevel($store.game.devPetLv)" class="px-3 py-1 rounded bg-ink3 border border-slate-700 text-xs">Đặt mọi pet về cấp đã chọn</button>
+            <button @click="$store.game.devAwakenActive()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">✦ Thức Tỉnh con đang dắt (xem _awk)</button>
+            <button @click="$store.game.devGivePetMats()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🌀 99 Linh Phách + Tinh Thể</button>
+            <button @click="$store.game.devClearPets()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-xs">Xoá hết Linh Thú</button>
+          </div>
         </div>
-        <div class="text-[10px] text-slate-600 mt-3">⚠️ Công cụ dev — chỉ để test/cân bằng bản offline. Lên online sẽ có hệ quản lý người chơi riêng (server).</div>
+
+        <!-- ===== TAB: HỆ THỐNG (save + reset) ===== -->
+        <div x-show="$store.game.devTab==='sys'">
+          <div class="lbl mb-1.5">Quản lý Save</div>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button @click="$store.game.devExport()" class="px-3 py-1.5 rounded bg-ink3 border border-slate-700 hover:border-jade text-sm">⬇ Xuất save</button>
+            <label class="px-3 py-1.5 rounded bg-ink3 border border-slate-700 hover:border-jade text-sm cursor-pointer">⬆ Nhập save
+              <input type="file" accept="application/json" class="hidden" @change="$store.game.devImport($event)">
+            </label>
+            <button @click="$store.game.devPanel=false; $store.game.resetGame()" class="px-3 py-1.5 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-sm">Reset toàn bộ</button>
+          </div>
+          <div class="text-[10px] text-slate-600">⚠️ Công cụ dev — chỉ để test/cân bằng bản offline. Lên online sẽ có hệ quản trị người chơi riêng (server). Đăng nhập reset mỗi lần tải lại trang.</div>
+        </div>
+        </div>
       </div>
     </div>
   </template>

@@ -29,7 +29,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
@@ -44,6 +44,10 @@ const BOSS_TURN_MS = 3000;        // Yêu Vương: lộ 1 lượt (frame) mỗi 
 // Chi phí Bạc học nghề theo BẬC (index = số nghề đã học). Leo thang mạnh (làm tròn).
 const PROF_COST = [50000, 120000, 280000, 650000, 1500000, 3500000, 8000000, 20000000, 50000000];
 const PROF_LV_STEP = 80; // mỗi 80 Tổng Lv mở thêm 1 nghề
+// Cổng Bảng Dev (F9): so HASH (FNV-1a) của mật khẩu — KHÔNG để plaintext trong source (repo deploy public).
+// Đổi mật khẩu: chạy devHash('matkhaumoi') rồi thay DEV_PASS_HASH. (Gate client-side chặn người chơi thường; F12 vẫn lách được — đã rõ, chống cheat thật cần server.)
+function devHash(s) { let h = 2166136261 >>> 0; const str = String(s); for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+const DEV_PASS_HASH = 1011525020;   // hash mật khẩu Dev (KHÔNG ghi plaintext ở đây — repo deploy public)
 // Ngày địa phương dạng YYYY-MM-DD (cho điểm danh)
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const todayStr = () => ymd(new Date());
@@ -249,6 +253,7 @@ const gameStore = {
   settingsModal: false,
   dailyModal: false,
   devPanel: false,
+  devAuthed: false, devLoginOpen: false, devPass: '', devLoginErr: '', devTab: 'char',   // cổng đăng nhập F9 (theo phiên — reload phải đăng nhập lại)
   devLvInput: 50,
   devItemSel: null,
   selectedSkill: 'phatMoc',
@@ -548,6 +553,7 @@ const gameStore = {
   get petInCombat() { return !!(this.state.activity && this.state.activity.type === 'combat'); },
   get petFainted() { return this.petInCombat && !!(this.state.combat && this.state.combat.petFainted); },
   get petStamCur() { void this._tick; const p = this.activePetObj; return p ? petStamView(p, now()) : 100; },
+  get petStamMaxV() { const p = this.activePetObj; return p ? petStamMax(p) : 100; },   // trần Thể Lực pet đang dắt (theo phẩm/cấp/awk)
   get petHpMaxV() { const p = this.activePetObj; return p ? petHpMax(p) : 0; },
   get petHpCur() { const p = this.activePetObj; if (!p) return 0; const h = this.state.combat && this.state.combat.petHp; return (h == null) ? this.petHpMaxV : Math.max(0, h); },
   get petHpPct() { const m = this.petHpMaxV; return m ? Math.max(0, Math.min(100, Math.round(this.petHpCur / m * 100))) : 0; },
@@ -567,6 +573,7 @@ const gameStore = {
   petHpCurOf(pet) { return (this.petInCombat && this.activePetObj && this.activePetObj.id === pet.id) ? this.petHpCur : petHpMax(pet); },
   petHpPctOf(pet) { const m = petHpMax(pet); return m ? Math.max(0, Math.min(100, Math.round(this.petHpCurOf(pet) / m * 100))) : 0; },
   petStamOf(pet) { void this._tick; return petStamView(pet, now()); },
+  petStamMaxOf(pet) { return petStamMax(pet); },   // trần Thể Lực 1 pet bất kỳ (roster/popup)
   petFaintedOf(pet) { return this.petFainted && this.activePetObj && this.activePetObj.id === pet.id; },
   // Popup chi tiết pet (mở từ roster) — mirror tpDetail
   petDetail: null,
@@ -686,16 +693,17 @@ const gameStore = {
     const t = now();
     return this.huntingPets.map((p) => {
       const stam = petStamView(p, t);
+      const max = petStamMax(p);
       const isRest = p.state === 'rest';
       const nextTickMs = isRest ? 0 : Math.max(0, (p.huntAt + HUNT_TICK_MS) - t);
-      const restFullSec = isRest ? Math.ceil((100 - stam) / 10) * 60 : 0;   // giây tới đầy (xấp xỉ)
+      const restFullSec = isRest ? Math.ceil((max - stam) / 10) * 60 : 0;   // giây tới đầy (xấp xỉ, hồi 10/phút)
       const hs = p.huntStats || { exp: 0, ticks: 0, loot: {} };
       const lootCount = Object.values(hs.loot || {}).reduce((a, b) => a + b, 0);
       return {
-        pet: p, stam, isRest, nextTickMs, restFullSec,
+        pet: p, stam, stamMax: max, isRest, nextTickMs, restFullSec,
         ticksToSleep: Math.max(0, Math.floor(stam / 10)),
         tickPct: isRest ? 0 : Math.max(0, Math.min(100, (1 - nextTickMs / HUNT_TICK_MS) * 100)),
-        restPct: isRest ? Math.max(0, Math.min(100, stam)) : 0,
+        restPct: isRest ? Math.max(0, Math.min(100, stam / max * 100)) : 0,
         sessionExp: hs.exp || 0, sessionTicks: hs.ticks || 0, sessionLoot: lootCount,
         locName: this.petHuntLocName(p),
       };
@@ -1953,8 +1961,20 @@ const gameStore = {
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) { const id = this.itemModal; if (!id) return; this.sellItem(id, qty); if (!(this.state.inventory[id] > 0)) this.closeItemModal(); },
 
-  // ---------- Dev / Admin (offline) ----------
-  toggleDev() { this.devPanel = !this.devPanel; },
+  // ---------- Dev / Admin (offline) — cổng mật khẩu F9 ----------
+  // F9: đã đăng nhập -> bật/tắt panel; chưa -> mở/đóng màn đăng nhập. Panel CHỈ hiện + dùng được khi devAuthed.
+  toggleDev() {
+    if (this.devAuthed) { this.devPanel = !this.devPanel; return; }
+    this.devLoginOpen = !this.devLoginOpen;
+    if (this.devLoginOpen) { this.devPass = ''; this.devLoginErr = ''; }
+  },
+  devLogin() {
+    if (devHash(this.devPass) === DEV_PASS_HASH) { this.devAuthed = true; this.devLoginOpen = false; this.devPanel = true; this.devPass = ''; this.devLoginErr = ''; }
+    else { this.devLoginErr = 'Sai mật khẩu.'; this.devPass = ''; }
+  },
+  closeDevLogin() { this.devLoginOpen = false; this.devPass = ''; this.devLoginErr = ''; },
+  devLogout() { this.devAuthed = false; this.devPanel = false; this.devLoginOpen = false; this.devPass = ''; this.devLoginErr = ''; },
+  setDevTab(t) { this.devTab = t; },
   devSave() { Storage.save(this.state); },
   devAddCurrency(key, amt) { this.state.currencies[key] = (this.state.currencies[key] || 0) + amt; this.devSave(); },
   devAddSkillXp(id, amt) { addSkillXp(this.state, id, amt); this.devSave(); },
