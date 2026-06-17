@@ -31,13 +31,14 @@ import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './en
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
-import { genRoster, botCombatLv, botTotalLv, botTitle, botArchName, botActivity, ensureWorld } from './engine/bots.js';
-import { BOT_COUNT } from './data/bots.js';
+import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld } from './engine/bots.js';
+import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
 
 const now = () => Date.now();
 let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
+let _nbData = null, _nbKey = '';      // cache Đồng Đạo Lân Cận theo (skill:phút)
 const CYCLE_MS = COMBAT_CYCLE_MS; // 1 vòng giao chiến = 8s (nguồn chung votong.js); hết vòng mới hiện trọn chiến báo + kết quả
 const BOSS_TURN_MS = 3000;        // Yêu Vương: lộ 1 lượt (frame) mỗi 3 giây khi xem live
 // Chi phí Bạc học nghề theo BẬC (index = số nghề đã học). Leo thang mạnh (làm tròn).
@@ -177,6 +178,7 @@ Object.keys(SKILLS).forEach((id) => { ICON_FOLDERS[id] = 'skills'; });
 Object.keys(ENEMIES).forEach((id) => { ICON_FOLDERS[id] = 'enemies'; });
 Object.keys(CLASSES).forEach((id) => { ICON_FOLDERS[id] = 'classes'; });
 NGHE.forEach((n) => { ICON_FOLDERS[n.id] = 'nghe'; }); // nghề: images/nghe/<id>.png (ghi đè id trùng class)
+ICON_FOLDERS['phongVanBang'] = 'ui';   // icon BXH: images/ui/phongVanBang.webp
 Object.keys(STATS).forEach((id) => { ICON_FOLDERS[id] = 'stats'; });
 LOCATIONS.forEach((l) => { ICON_FOLDERS[l.id] = 'locations'; });
 REALM_TIERS.forEach((t) => { ICON_FOLDERS[t.id] = 'tiers'; });
@@ -896,14 +898,18 @@ const gameStore = {
     const w = this.state.world; if (!w) return [];
     const t = now(), key = w.seed + ':' + w.createdAt + ':' + Math.floor(t / 60000);
     if (_lbBotKey !== key || !_lbBots) {
-      _lbBots = genRoster(w.seed, w.createdAt).map((b) => ({
-        id: b.id, name: b.name, arch: b.arch, title: botTitle(b), archName: botArchName(b),
-        combatLv: botCombatLv(b, t), totalLv: botTotalLv(b, t), activity: botActivity(b, t), isPlayer: false,
-      }));
+      _lbBots = genRoster(w.seed, w.createdAt).map((b) => {
+        const d = botDominant(b, t);                                 // 1 lần -> danh hiệu + màu theo nghề thật
+        return {
+          id: b.id, name: b.name, title: botTitleFor(d.track, d.level), catHex: CAT_HEX[botCatFor(d.track)] || '#94a3b8',
+          avatar: botAvatar(b), combatLv: botCombatLv(b, t), totalLv: botTotalLv(b, t), activity: botActivity(b, t), isPlayer: false,
+        };
+      });
       _lbBotKey = key;
     }
     const rows = _lbBots.concat([{
-      id: 'me', name: (this.state.player.name || 'Vô Danh'), arch: 'me', title: 'Ngươi', archName: '',
+      id: 'me', name: (this.state.player.name || 'Vô Danh'), title: 'Ngươi', catHex: '#14b8a6',
+      avatar: (this.curAvatar || { id: this.avatarId, char: '道', color: 'from-slate-600 to-slate-700' }),
       combatLv: this.combatLevel, totalLv: this.totalLevel, activity: this.playerActivityText, isPlayer: true,
     }]);
     rows.sort((a, b) => b.totalLv - a.totalLv || b.combatLv - a.combatLv || (a.id < b.id ? -1 : 1));
@@ -919,7 +925,16 @@ const gameStore = {
     return lb.slice(Math.max(50, i - 3), Math.min(lb.length, i + 4));
   },
   get lbDisplay() { const top = this.lbTop, nb = this.lbNeighbors; return nb.length ? [...top, { separator: true, id: 'sep' }, ...nb] : top; },
-  lbArchHex(arch) { return ({ satThu: '#fb7185', sanBoss: '#f59e0b', cayNghe: '#34d399', phuThuong: '#fbbf24', loMo: '#94a3b8', me: '#14b8a6' })[arch] || '#94a3b8'; },
+  // Đồng Đạo Lân Cận: bot chuyên nghề `skillId` (track đỉnh == skillId). Memo theo (skill:phút).
+  nearbyBotsList(skillId) {
+    const w = this.state.world; if (!w || !skillId) return { bots: [], count: 0 };
+    const t = now(), key = skillId + ':' + Math.floor(t / 60000);
+    if (_nbKey === key && _nbData) return _nbData;
+    const matched = nearbyBotsBy(genRoster(w.seed, w.createdAt), skillId, t);
+    _nbData = { bots: matched.slice(0, 5).map((b) => botAvatar(b)), count: matched.length };
+    _nbKey = key;
+    return _nbData;
+  },
 
   expPerSec(action) { return (action.xp / action.time).toFixed(2); },
   actionInputs(action) { return inputStatus(this.state, action); },
@@ -934,7 +949,6 @@ const gameStore = {
   skillTotalXp(id) { return this.state.skills[id]?.xp || 0; },
   skillGathered(id) { return this.state.skills[id]?.gathered || 0; },
   skillTimeLabel(id) { return this.fmtTime((this.state.skills[id]?.timeMs || 0) / 1000); },
-  nearbyCount(id) { return (id.length * 41 + this.skillLevel(id) * 3) % 240 + 28; },
 
   actionModal: null,
   openAction(skillId, actionId) { this.actionModal = { skillId, actionId }; },

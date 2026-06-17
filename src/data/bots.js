@@ -38,6 +38,28 @@ export const BOT_HO = [
   'Tần', 'Hàn', 'Tiêu', 'Cố', 'Mặc', 'Phong', 'Lạc', 'Sở', 'Yến', 'Trầm',
   'Liễu', 'Mạnh', 'Chu', 'Quan', 'Đường', 'Tạ', 'Bạch', 'Tống', 'Hứa', 'Lữ',
 ];
+// Danh hiệu THEO NGHỀ THẬT: theo track ĐỈNH của bot, 4 bậc cấp [<40 sơ · <70 trung · <90 cao · ≥90 đỉnh].
+export const TRACK_TITLES = {
+  chienDau:   ['Võ Đồ',     'Kiếm Sĩ',    'Cao Thủ',      'Võ Tông'],
+  phatMoc:    ['Tiều Đồng',  'Tiều Phu',   'Lão Tiều',     'Phủ Thánh'],
+  thaiKhoang: ['Khoáng Đồ',  'Thợ Mỏ',     'Khoáng Sư',    'Khoáng Tổ'],
+  dieuNgu:    ['Điếu Đồng',  'Ngư Phủ',    'Điếu Tẩu',     'Ngư Tiên'],
+  daLuyen:    ['Lô Đồng',    'Thợ Luyện',  'Luyện Kim Sư', 'Hỏa Thần Tượng'],
+  phanhNham:  ['Táo Đồng',   'Hỏa Đầu Quân','Đầu Bếp',     'Thần Trù'],
+  luyenDan:   ['Dược Đồng',  'Dược Sư',    'Đan Sư',       'Đan Vương'],
+  daTao:      ['Học Đồ Rèn', 'Thợ Rèn',    'Đại Tượng',    'Thần Binh Tượng'],
+  toaQuan:    ['Tọa Đồ',     'Tu Sĩ',      'Thiền Giả',    'Cao Tăng'],
+  doanhTao:   ['Phu Lực',    'Thợ Cả',     'Doanh Tạo Sư', 'Lỗ Ban Tái Thế'],
+};
+// Phân loại track -> màu danh hiệu (combat/gather/craft/support).
+export const TRACK_CAT = {
+  chienDau: 'combat',
+  phatMoc: 'gather', thaiKhoang: 'gather', dieuNgu: 'gather',
+  daLuyen: 'craft', phanhNham: 'craft', daTao: 'craft', doanhTao: 'craft',
+  luyenDan: 'support', toaQuan: 'support',
+};
+export const CAT_HEX = { combat: '#fb7185', gather: '#34d399', craft: '#fbbf24', support: '#a78bfa' };
+
 export const BOT_TEN = [
   'Thiên', 'Vô Kỵ', 'Tuyết', 'Phong', 'Vân', 'Hàn', 'Tịch', 'Dao', 'Ảnh', 'Tà',
   'Phi', 'Trần', 'Tuyền', 'Hạo Nhiên', 'Thanh', 'Minh', 'Khiêm', 'Lăng', 'Hiên', 'Nhiên',

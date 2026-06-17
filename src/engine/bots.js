@@ -5,9 +5,11 @@
 import { levelFromXp } from './leveling.js';
 import { LOCATIONS } from '../data/locations.js';
 import { SKILLS } from '../data/skills.js';
+import { AVATARS } from '../data/avatars.js';
 import {
   ARCHETYPES, ARCHETYPE_IDS, ARCHETYPE_WEIGHTS, BOT_COUNT, BASE_RATE_PER_DAY,
   BORNAT_SPREAD_DAYS, BORNAT_SKEW, ONLINE_FRAC, RATE_JITTER, TRACK_KEYS, BOT_HO, BOT_TEN,
+  TRACK_TITLES, TRACK_CAT,
 } from '../data/bots.js';
 
 const DAY_MS = 86400000;
@@ -57,6 +59,7 @@ export function genRoster(seed, createdAt) {
       onlineFrac: lerp(rng, ONLINE_FRAC),
       titleSeed: Math.floor(rng() * 1000),
       actSeed: Math.floor(rng() * 1000),
+      avatarId: AVATARS[Math.floor(rng() * AVATARS.length)].id,   // rng CUỐI — giữ nguyên các draw trước
     });
   }
   _cacheKey = ck; _cacheRoster = out;
@@ -78,8 +81,34 @@ export function botTotalLv(bot, now) {
   let s = 0; for (const k of TRACK_KEYS) s += levelFromXp(eff * w[k]);
   return s;
 }
-export function botTitle(bot) { const t = ARCHETYPES[bot.arch].titles; return t[bot.titleSeed % t.length]; }
-export function botArchName(bot) { return ARCHETYPES[bot.arch].name; }
+// "Nghề thật" của bot: NHÓM dồn effort nhiều nhất (combat/gather/craft/support), rồi 1 track CỤ THỂ trong nhóm
+// (seed theo bot -> đa dạng + đồng đạo phân bố các nghề). level = cấp track cao nhất trong nhóm (cho bậc danh hiệu).
+const CAT_TRACKS = { combat: ['chienDau'], gather: ['phatMoc', 'thaiKhoang', 'dieuNgu'], craft: ['daLuyen', 'phanhNham', 'daTao', 'doanhTao'], support: ['luyenDan', 'toaQuan'] };
+export function botDominant(bot, now) {
+  const eff = botEffort(bot, now), w = archNormW(bot.arch);
+  let bestCat = 'combat', bestCatXp = -1;
+  for (const cat in CAT_TRACKS) {
+    let sum = 0; for (const k of CAT_TRACKS[cat]) sum += eff * w[k];
+    if (sum > bestCatXp) { bestCatXp = sum; bestCat = cat; }
+  }
+  const tracks = CAT_TRACKS[bestCat], track = tracks[bot.titleSeed % tracks.length];
+  return { track, cat: bestCat, level: levelFromXp(eff * w[track]) };   // bậc = cấp ĐÚNG track hiển thị (tên+bậc khớp)
+}
+export function botTitleFor(track, level) {                         // danh hiệu theo track + bậc cấp
+  const tiers = TRACK_TITLES[track] || ['Tản Nhân'];
+  const t = level < 40 ? 0 : level < 70 ? 1 : level < 90 ? 2 : 3;
+  return tiers[Math.min(t, tiers.length - 1)];
+}
+export function botCatFor(track) { return TRACK_CAT[track] || 'combat'; }   // nhóm nghề (cho màu)
+export function botTitle(bot, now) { const d = botDominant(bot, now); return botTitleFor(d.track, d.level); }
+export function botCat(bot, now) { return botCatFor(botDominant(bot, now).track); }
+export function botArchName(bot) { return ARCHETYPES[bot.arch].name; }      // tên loại playstyle
+export function botAvatar(bot) { return AVATARS.find((a) => a.id === bot.avatarId) || AVATARS[0]; }   // {id,char,color}
+// Bot "đồng đạo" của 1 nghề = bot ĐANG LÀM nghề đó (botActivity chứa tên nghề) -> mọi nghề có người + đổi theo giờ. THUẦN.
+export function nearbyBotsBy(roster, skillId, now) {
+  const nm = (SKILLS[skillId] || {}).name; if (!nm) return [];
+  return roster.filter((b) => botActivity(b, now).includes(nm));
+}
 
 // ---- Flavor "đang làm gì" (đổi theo thời gian + hợp cấp/vùng) ----
 const GENERIC_ACTS = ['vây sát yêu thú', 'luyện công', 'tầm sư học đạo', 'chinh chiến giang hồ'];
