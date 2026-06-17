@@ -142,7 +142,7 @@ if (state.activity) {
 if (state.hatchery && now() >= state.hatchery.readyAt && !state.hatchery.notified) {
   state.hatchery.notified = true;
   const _sp = PET_SPECIES[state.hatchery.base];
-  pushNotif(state, 'khac', 'Noãn đã nở', (_sp ? _sp.name : 'Linh thú') + ' phá vỏ — vào Linh Thú khai noãn.', now());
+  pushNotif(state, 'linhThu', 'Noãn đã nở', (_sp ? _sp.name : 'Linh thú') + ' phá vỏ — vào Linh Thú khai noãn.', now());
 }
 
 // ---- Helper định dạng ----
@@ -178,11 +178,11 @@ Object.keys(SKILLS).forEach((id) => { ICON_FOLDERS[id] = 'skills'; });
 Object.keys(ENEMIES).forEach((id) => { ICON_FOLDERS[id] = 'enemies'; });
 Object.keys(CLASSES).forEach((id) => { ICON_FOLDERS[id] = 'classes'; });
 NGHE.forEach((n) => { ICON_FOLDERS[n.id] = 'nghe'; }); // nghề: images/nghe/<id>.png (ghi đè id trùng class)
-ICON_FOLDERS['phongVanBang'] = 'ui';   // icon BXH: images/ui/phongVanBang.webp
 Object.keys(STATS).forEach((id) => { ICON_FOLDERS[id] = 'stats'; });
 LOCATIONS.forEach((l) => { ICON_FOLDERS[l.id] = 'locations'; });
 REALM_TIERS.forEach((t) => { ICON_FOLDERS[t.id] = 'tiers'; });
 NAV.forEach((g) => (g.items || []).forEach((it) => { ICON_FOLDERS[it.view] = 'nav'; }));
+ICON_FOLDERS['phongVanBang'] = 'ui';   // GHI ĐÈ SAU NAV: icon BXH ở images/ui/phongVanBang.webp (cùng chỗ banner)
 ['bac', 'honThach', 'nguyenBao'].forEach((id) => { ICON_FOLDERS[id] = 'currency'; });
 if (MERCHANT && MERCHANT.id) ICON_FOLDERS[MERCHANT.id] = 'npc';
 // Trang bị thật (id bắt đầu 'eq_') -> art ở images/equip/<id>.png (tách khỏi vật phẩm thường).
@@ -455,10 +455,11 @@ const gameStore = {
     { id: 'thuThap',  label: 'Thu Thập',      col: '#34d399', art: 'thaiKhoang', ic: '⛏️', seal: '采' }, // mượn art Đào Khoáng
     { id: 'yeuVuong', label: 'Yêu Vương',     col: '#fb7185', art: 'yvBachHo',   ic: '🐲', seal: '妖' }, // boss Bạch Hổ
     { id: 'biCanh',   label: 'Bí Cảnh',       col: '#a78bfa', art: 'dungeon',    ic: '🏛️', seal: '秘' }, // nav Bí Cảnh
+    { id: 'linhThu',  label: 'Linh Thú',      col: '#14b8a6', art: 'pets',       ic: '🐾', seal: '獸' }, // nav Linh Thú
     { id: 'khac',     label: 'Khác',          col: '#fbbf24', svg: 'star',                 seal: '他' },
     { id: 'sanGD',    label: 'Sàn Giao Dịch', col: '#22d3ee', art: 'market',     ic: '⚖️', seal: '易' }, // nav Sàn Giao Dịch
   ],
-  notifTypeMeta(type) { return this.NOTIF_TYPES.find((t) => t.id === type) || this.NOTIF_TYPES[4]; },
+  notifTypeMeta(type) { return this.NOTIF_TYPES.find((t) => t.id === type) || this.NOTIF_TYPES.find((t) => t.id === 'khac'); },
   // Icon nhóm: art game có sẵn (ico) cho nhóm map tính năng; Tất cả/Khác = SVG nền + art ui phủ lên (images/ui/notif_<id>) khi có.
   notifIcon(t, size) {
     if (t && t.art) return this.ico(t.art, t.ic || '✦');
@@ -574,7 +575,7 @@ const gameStore = {
     if (!r) { this.showToast('Không dung hợp được.'); return; }
     Storage.save(this.state);
     let m = this.petName(t) + ' nuốt ' + r.count + ' linh thú · +' + this.fmt(r.xp) + ' tu vi' + (r.leveled ? ' (lên ' + r.leveled + ' cấp)' : '');
-    if (r.upgraded) { m += ' — ĐỘT PHÁ ' + (this.QUALITY[t.quality] || {}).name + '!'; this.pushNotif('khac', 'Dung Hợp đột phá', this.petName(t) + ' thăng phẩm ' + (this.QUALITY[t.quality] || {}).name + '.'); }
+    if (r.upgraded) { m += ' — ĐỘT PHÁ ' + (this.QUALITY[t.quality] || {}).name + '!'; this.pushNotif('linhThu', 'Dung Hợp đột phá', this.petName(t) + ' thăng phẩm ' + (this.QUALITY[t.quality] || {}).name + '.'); }
     this.showToast(m);
   },
   // --- P6: Phóng Sanh ---
@@ -612,7 +613,7 @@ const gameStore = {
     if (r.newOpt) m += ', khai mở ' + this.petOptLabel(r.newOpt);
     if (r.mutated) m += ' · BIẾN DỊ thăng ' + (this.QUALITY[p.quality] || {}).name;
     this.showToast(m + '.');
-    this.pushNotif('khac', 'Linh Thú Thức Tỉnh', this.petName(p) + ' phá vỏ phàm thai, hiện hình thái thứ hai · lĩnh ngộ 〈' + aw.name + '〉' + (r.mutated ? ' · biến dị thăng phẩm ' + before + ' → ' + (this.QUALITY[p.quality] || {}).name : '') + '.');
+    this.pushNotif('linhThu', 'Linh Thú Thức Tỉnh', this.petName(p) + ' phá vỏ phàm thai, hiện hình thái thứ hai · lĩnh ngộ 〈' + aw.name + '〉' + (r.mutated ? ' · biến dị thăng phẩm ' + before + ' → ' + (this.QUALITY[p.quality] || {}).name : '') + '.');
   },
   // ===== P7: SĂN MỒI + NGỰ THÚ =====
   get nguThuLvV() { return nguThuLv(this.state); },
@@ -683,7 +684,7 @@ const gameStore = {
     if (!res || !res.length) return;
     const totExp = res.reduce((s, r) => s + r.exp, 0);
     const totLoot = res.reduce((s, r) => s + Object.values(r.loot).reduce((a, b) => a + b, 0), 0);
-    if (totExp > 0 || totLoot > 0) this.pushNotif('khac', 'Linh Thú săn mồi', 'Khi vắng mặt, bầy Linh Thú săn được ' + this.fmt(totExp) + ' tu vi' + (totLoot ? ' + ' + totLoot + ' vật phẩm' : '') + '.');
+    if (totExp > 0 || totLoot > 0) this.pushNotif('linhThu', 'Linh Thú săn mồi', 'Khi vắng mặt, bầy Linh Thú săn được ' + this.fmt(totExp) + ' tu vi' + (totLoot ? ' + ' + totLoot + ' vật phẩm' : '') + '.');
   },
   petOptLabel(o) { const d = PET_OPT_BY_ID[o.id] || {}; return (d.name || o.id) + ' +' + this.fmt(o.val) + (d.fmt === 'pct' ? '%' : ''); },
   petOptsText(pet) { return (pet.opts || []).map((o) => this.petOptLabel(o)).join('  ·  '); },   // cho tooltip chip "N dị bẩm"
@@ -720,7 +721,7 @@ const gameStore = {
     Storage.save(this.state);
     const nm = this.petName(pet), qn = (this.QUALITY[pet.quality] || {}).name;
     this.showToast('Khai noãn! 〈' + nm + ' · ' + qn + '〉 phá vỏ chào đời.');
-    this.pushNotif('khac', 'Khai noãn Linh Thú', nm + ' (' + qn + ') phá vỏ gia nhập đội.');
+    this.pushNotif('linhThu', 'Khai noãn Linh Thú', nm + ' (' + qn + ') phá vỏ gia nhập đội.');
   },
   skipIncubate() {
     const h = this.state.hatchery; if (!h) return;

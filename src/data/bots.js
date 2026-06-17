@@ -60,6 +60,14 @@ export const TRACK_CAT = {
 };
 export const CAT_HEX = { combat: '#fb7185', gather: '#34d399', craft: '#fbbf24', support: '#a78bfa' };
 
+// Pool avatar cho BOT — chỉ id ĐÃ CÓ ART (images/avatars/<id>.webp) -> bot hiện ảnh thật, không rơi fallback 男/女.
+// (id sect như caibang/vodang KHÔNG nằm trong AVATARS data -> botAvatar trả id + char/màu mặc định, ảnh vẫn load.)
+export const BOT_AVATAR_IDS = [
+  'nam', 'nam1', 'nam2', 'nam3', 'nam4', 'nam5', 'nam6', 'nam7', 'nam8', 'nam9',
+  'nu', 'nu1', 'nu2', 'nu3', 'nu4', 'nu5', 'nu6', 'nu7',
+  'caibang', 'duongmon', 'hoason', 'ngami', 'ngudoc', 'thiennhan', 'thienvuong', 'thieulam', 'thuyyen', 'vodang',
+];
+
 export const BOT_TEN = [
   'Thiên', 'Vô Kỵ', 'Tuyết', 'Phong', 'Vân', 'Hàn', 'Tịch', 'Dao', 'Ảnh', 'Tà',
   'Phi', 'Trần', 'Tuyền', 'Hạo Nhiên', 'Thanh', 'Minh', 'Khiêm', 'Lăng', 'Hiên', 'Nhiên',

@@ -1,6 +1,6 @@
 // ============================================================
 // ENGINE — Thông Báo (notification feed). Nguồn CHUNG cho chuông + Phi Cáp Đài.
-// type: 'thuThap' | 'yeuVuong' | 'biCanh' | 'khac' | 'sanGD'
+// type: 'thuThap' | 'yeuVuong' | 'biCanh' | 'linhThu' | 'khac' | 'sanGD'
 // Gọi từ engine (dungeon, advance...) lẫn store (boss, bái sư...).
 // ============================================================
 const NOTIF_CAP = 50;

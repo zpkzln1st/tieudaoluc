@@ -9,7 +9,7 @@ import { AVATARS } from '../data/avatars.js';
 import {
   ARCHETYPES, ARCHETYPE_IDS, ARCHETYPE_WEIGHTS, BOT_COUNT, BASE_RATE_PER_DAY,
   BORNAT_SPREAD_DAYS, BORNAT_SKEW, ONLINE_FRAC, RATE_JITTER, TRACK_KEYS, BOT_HO, BOT_TEN,
-  TRACK_TITLES, TRACK_CAT,
+  TRACK_TITLES, TRACK_CAT, BOT_AVATAR_IDS,
 } from '../data/bots.js';
 
 const DAY_MS = 86400000;
@@ -59,7 +59,7 @@ export function genRoster(seed, createdAt) {
       onlineFrac: lerp(rng, ONLINE_FRAC),
       titleSeed: Math.floor(rng() * 1000),
       actSeed: Math.floor(rng() * 1000),
-      avatarId: AVATARS[Math.floor(rng() * AVATARS.length)].id,   // rng CUỐI — giữ nguyên các draw trước
+      avatarId: BOT_AVATAR_IDS[Math.floor(rng() * BOT_AVATAR_IDS.length)],   // rng CUỐI — pool có-art, giữ nguyên các draw trước
     });
   }
   _cacheKey = ck; _cacheRoster = out;
@@ -103,7 +103,10 @@ export function botCatFor(track) { return TRACK_CAT[track] || 'combat'; }   // n
 export function botTitle(bot, now) { const d = botDominant(bot, now); return botTitleFor(d.track, d.level); }
 export function botCat(bot, now) { return botCatFor(botDominant(bot, now).track); }
 export function botArchName(bot) { return ARCHETYPES[bot.arch].name; }      // tên loại playstyle
-export function botAvatar(bot) { return AVATARS.find((a) => a.id === bot.avatarId) || AVATARS[0]; }   // {id,char,color}
+export function botAvatar(bot) {   // {id,char,color} — id sect ngoài AVATARS vẫn trả đúng id (ảnh load) + char/màu mặc định
+  const a = AVATARS.find((x) => x.id === bot.avatarId);
+  return a ? { id: a.id, char: a.char, color: a.color } : { id: bot.avatarId, char: '侠', color: 'from-slate-600 to-slate-700' };
+}
 // Bot "đồng đạo" của 1 nghề = bot ĐANG LÀM nghề đó (botActivity chứa tên nghề) -> mọi nghề có người + đổi theo giờ. THUẦN.
 export function nearbyBotsBy(roster, skillId, now) {
   const nm = (SKILLS[skillId] || {}).name; if (!nm) return [];
