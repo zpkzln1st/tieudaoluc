@@ -14,6 +14,7 @@ import { YEU_VUONG, YEU_VUONG_BY_ID } from '../data/combat.js';
 import { addItem } from './inventory.js';
 import { addSkillXp, addStatXp } from './leveling.js';
 import { skillExpMultiplier } from '../data/classes.js';
+import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bảng dùng roster bot thật (deterministic)
 
 const HE_LIST = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
 const HISTORY_CAP = 40;
@@ -180,20 +181,45 @@ export function resolveBossQueue(state, now, isUnlocked) {
   return out;
 }
 
-// ----- Feed Giang Hồ (mô phỏng đạo hữu — KHÔNG lưu, chỉ tạo không khí). Thuần. -----
-const FEED_NAMES = ['Mộ Dung Tuyết', 'Diệp Cô Thành', 'Lý Tầm Hoan', 'Tạ Yên Khách', 'Đông Phương Bạch', 'Nam Cung Vũ', 'Hoa Mãn Lâu', 'Thượng Quan Kiếm', 'Tây Môn Tuyết', 'Hàn Lập', 'Cố Trường Phong', 'Lạc Thần Y', 'Tiêu Thập Nhất Lang', 'Yến Thanh'];
-const _pick = (a) => a[Math.floor(Math.random() * a.length)];
-export function genBossFeed(boss) {
-  const tier = boss.wb;
-  const firstNm = boss.name.split(' ')[0];
-  const tmpl = [
-    { win: true, rare: true, ago: '6 phút trước', txt: 'trảm ' + boss.name + ', trúng <b class="text-amber-300">Trứng Truyền Thuyết</b> ★' },
-    { win: true, ago: '12 phút trước', txt: 'hạ ' + boss.name + ' · ' + tier.tinhThe + '× Tinh Thể, 1× Trứng Thường' },
-    { win: false, ago: '18 phút trước', txt: 'bại trận dưới ' + boss.skill.name + ' — trọng thương lui về' },
-    { win: true, ago: '27 phút trước', txt: 'nhặt được <b class="text-blue-300">Trứng ' + firstNm + ' · Hiếm</b>' },
-    { win: true, rare: true, ago: '41 phút trước', txt: 'độc đoạt <b class="text-amber-300">' + (tier.tinhThe + 2) + '× Tinh Thể</b> trong một trận ★' },
-    { win: true, ago: '1 giờ trước', txt: 'hạ ' + boss.name + ' · Hồn Thạch ×' + tier.honThach },
-    { win: false, ago: '2 giờ trước', txt: 'khiêu chiến thất bại, để ' + firstNm + ' đào thoát' },
-  ];
-  return tmpl.map((r) => ({ who: _pick(FEED_NAMES), me: false, win: r.win, rare: !!r.rare, ago: r.ago, txt: r.txt }));
+// ----- Giang Hồ Bảng (chiến tích đạo hữu vây sát boss) — THUẦN + DETERMINISTIC, nối ROSTER BOT THẬT.
+// Mỗi slot ~25' sinh 1 chiến tích từ (seed, slot, boss); thợ săn = bot đủ cấp (combatLv >= reqLevel). KHÔNG lưu, memo theo slot. -----
+const BOSS_FEED_PERIOD_MS = 1000 * 60 * 25;
+const BOSS_FEED_SHOW = 7;
+const _bp = (h, arr) => arr[(h >>> 0) % arr.length];
+function strHash(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+
+let _bfKey = null, _bfMap = {};
+export function genBossFeed(boss, seed, createdAt, now) {
+  if (!boss || typeof seed !== 'number') return [];
+  const k0 = Math.floor(now / BOSS_FEED_PERIOD_MS), ck = seed + ':' + createdAt + ':' + k0;
+  if (_bfKey !== ck) { _bfKey = ck; _bfMap = {}; }                 // đổi slot/seed -> xoá cache
+  if (_bfMap[boss.id]) return _bfMap[boss.id];
+  const roster = genRoster(seed, createdAt), salt = strHash(boss.id), tier = boss.wb, firstNm = boss.name.split(' ')[0];
+  let hunters = roster.filter((b) => botCombatLv(b, now) >= boss.reqLevel);   // bot đủ sức khiêu chiến boss này
+  if (hunters.length < 4) hunters = roster.slice().sort((a, c) => botCombatLv(c, now) - botCombatLv(a, now)).slice(0, 12);
+  const out = [];
+  for (let i = 0; i < BOSS_FEED_SHOW; i++) {
+    const slot = k0 - i; if (slot < 0) break;
+    const h = hash2(seed ^ salt, slot), who = _bp(h, hunters).name;
+    const ro = (hash2(h, 3) >>> 0) % 100, hp2 = hash2(h, 9);
+    const ts = Math.min(now, slot * BOSS_FEED_PERIOD_MS - (hash2(h, 5) % (BOSS_FEED_PERIOD_MS >> 1)));
+    let win, rare, txt;
+    if (ro < 12) { win = true; rare = true; txt = _bp(hp2, [
+      `độc đoạt <b class="text-amber-300">Trứng Truyền Thuyết</b> khi trảm ${boss.name} ★`,
+      `trảm ${boss.name}, một trận trúng <b class="text-amber-300">${tier.tinhThe + 2}× Tinh Thể</b> ★`,
+    ]); }
+    else if (ro < 64) { win = true; rare = false; txt = _bp(hp2, [
+      `hạ ${boss.name} · ${tier.tinhThe}× Tinh Thể, Hồn Thạch ×${tier.honThach}`,
+      `vây sát ${boss.name} thành công, đoạt một Trứng ${firstNm}`,
+      `kết liễu ${boss.name} sau trận ác chiến, Hồn Thạch ×${tier.honThach}`,
+    ]); }
+    else { win = false; rare = false; txt = _bp(hp2, [
+      `bại dưới <b class="text-rose-300">${boss.skill.name}</b> — trọng thương lui về`,
+      `khiêu chiến ${boss.name} thất bại, để nó đào thoát`,
+      `chưa phá nổi <b class="text-rose-300">${boss.skill.name}</b>, đành rút lui dưỡng thương`,
+    ]); }
+    out.push({ who, me: false, win, rare, ts, txt });
+  }
+  _bfMap[boss.id] = out;
+  return out;
 }

@@ -75,3 +75,45 @@ export const BOT_TEN = [
   'Cô Hồng', 'Trường Phong', 'Ngạo Thiên', 'Phá Quân', 'Tịnh Tâm', 'Linh Nhi', 'Tiêu Dao', 'Cuồng Sinh', 'Sương', 'Hành',
   'Vọng', 'Huyền', 'Lệ', 'Băng', 'Tận', 'Dạ', 'Tuyệt', 'Phù Sinh', 'Lăng Tiêu', 'Vân Thâm',
 ];
+
+// ============================================================
+// FEED GIANG HỒ (tin bot) — P1 mảnh cuối. Sinh DETERMINISTIC theo (seed, slot thời gian):
+// mỗi ~FEED_PERIOD_MS có 1 tin nổi bật; nội dung suy ra từ trạng thái THẬT của bot tại thời điểm slot.
+// KHÔNG lưu, KHÔNG reroll mỗi render (memo theo slot). Xem engine/bots.js genJiangHuFeed.
+// ============================================================
+export const FEED_PERIOD_MS = 1000 * 60 * 3;             // nhịp tin: 1 sự kiện nổi bật mỗi ~3 phút
+export const FEED_SHOW = 18;                             // số tin dựng (panel hiện đủ; ticker cắt bớt)
+export const FEED_BREAK_WINDOW_MS = 1000 * 60 * 60 * 12; // cửa sổ dò "vừa đột phá" — chỉ báo lên cấp khi cấp THẬT tăng trong 12h
+
+// Kho kỳ trân cho tin "đắc bảo": tên + phẩm (id QUALITY, tô màu khi hiện) + minLv (chỉ phát cho bot đủ cấp -> khớp độ hiếm).
+export const FEED_TREASURES = [
+  { name: 'Tụ Khí Tán',            q: 'tinhPham',  minLv: 10 },
+  { name: 'Hàn Thiết Lệnh Bài',    q: 'tinhPham',  minLv: 15 },
+  { name: 'Bích Lân Hộ Tâm Kính',  q: 'tinhPham',  minLv: 22 },
+  { name: 'Tử Hà Ngọc Bội',        q: 'tuyetPham', minLv: 30 },
+  { name: 'Lưu Vân Toả',           q: 'tuyetPham', minLv: 36 },
+  { name: 'Thanh Minh Kiếm Tuệ',   q: 'tuyetPham', minLv: 43 },
+  { name: 'Ngũ Hành Linh Châu',    q: 'truyenThe', minLv: 50 },
+  { name: 'Phượng Vũ Lưu Kim Sam', q: 'truyenThe', minLv: 57 },
+  { name: 'Thôn Thiên Ma Giới',    q: 'truyenThe', minLv: 64 },
+  { name: 'Cửu Chuyển Hồi Hồn Đan',q: 'thanPham',  minLv: 70 },
+  { name: 'Long Tước Thần Cung',   q: 'thanPham',  minLv: 78 },
+  { name: 'Tinh Phách Bảo Giáp',   q: 'thanPham',  minLv: 84 },
+  { name: 'Hỗn Độn Tinh Thạch',    q: 'coBan',     minLv: 90 },
+  { name: 'Tru Tiên Cổ Kiếm',      q: 'coBan',     minLv: 95 },
+  { name: 'Thiên Đạo Lệnh',        q: 'coBan',     minLv: 100 },
+];
+
+// Tuyệt học cho tin "lĩnh ngộ" (tô tím · bí kíp). Tên huyền thoại giang hồ.
+export const FEED_TUYET_HOC = [
+  'Thái Huyền Kiếm Quyết', 'Cửu Âm Chân Kinh', 'Bắc Minh Thần Công', 'Lăng Ba Vi Bộ',
+  'Hàng Long Thập Bát Chưởng', 'Độc Cô Cửu Kiếm', 'Tịch Tà Kiếm Phổ', 'Quỳ Hoa Bảo Điển',
+  'Dịch Cân Tẩy Tủy Kinh', 'Nhất Dương Chỉ', 'Huyền Thiên Cửu Biến', 'Vô Tướng Kiếp Chỉ',
+];
+
+// Tin "nghề" — vật phẩm danh tiếng theo TỪNG track (gather/craft/support) để câu chữ KHỚP nghề, không lẫn lộn.
+export const FEED_FORGE = ['Trảm Mã Đại Đao', 'Hàn Quang Kiếm', 'Phá Quân Thương', 'Liệt Diễm Đao', 'Thanh Phong Tế Vũ Kiếm', 'Bá Vương Trọng Kích']; // daTao (rèn)
+export const FEED_DAN   = ['Đại Hoàn Đan', 'Tục Mệnh Đan', 'Tẩy Tủy Dịch', 'Bồi Nguyên Đan', 'Cửu Hoa Ngọc Lộ Hoàn', 'Tử Kim Đan'];               // luyenDan (luyện đan)
+export const FEED_MOC    = ['Thiết Tâm Mộc', 'Vạn Niên Âm Trầm', 'Lôi Kích Tử Đàn', 'Hồng Tâm Cổ Mộc', 'Bách Niên Hoàng Hoa Lê'];                  // phatMoc (đốn củi)
+export const FEED_KHOANG = ['Huyền Thiết', 'Tinh Ngân Mạch', 'Hàn Ngọc Tủy', 'Vẫn Lạc Tinh Thiết', 'Tử Tinh Sa'];                                  // thaiKhoang (đào khoáng)
+export const FEED_NGU    = ['Cửu Vĩ Linh Ngư', 'Hắc Giao', 'Băng Phách Hàn Ngư', 'Long Môn Xích Lý', 'Bạch Lân Tiên Ngư'];                         // dieuNgu (câu cá)

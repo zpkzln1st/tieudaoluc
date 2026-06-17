@@ -3,13 +3,17 @@
 // Deterministic (sống qua reload) + monotonic (cấp không tụt — tính từ thời gian tuyệt đối).
 // ============================================================
 import { levelFromXp } from './leveling.js';
-import { LOCATIONS } from '../data/locations.js';
+import { LOCATIONS, REALM_TIERS } from '../data/locations.js';
 import { SKILLS } from '../data/skills.js';
 import { AVATARS } from '../data/avatars.js';
+import { QUALITY } from '../data/items.js';
+import { YEU_VUONG } from '../data/combat.js';
 import {
   ARCHETYPES, ARCHETYPE_IDS, ARCHETYPE_WEIGHTS, BOT_COUNT, BASE_RATE_PER_DAY,
   BORNAT_SPREAD_DAYS, BORNAT_SKEW, ONLINE_FRAC, RATE_JITTER, TRACK_KEYS, BOT_HO, BOT_TEN,
-  TRACK_TITLES, TRACK_CAT, BOT_AVATAR_IDS,
+  TRACK_TITLES, TRACK_CAT, CAT_HEX, BOT_AVATAR_IDS,
+  FEED_PERIOD_MS, FEED_SHOW, FEED_BREAK_WINDOW_MS, FEED_TREASURES, FEED_TUYET_HOC,
+  FEED_FORGE, FEED_DAN, FEED_MOC, FEED_KHOANG, FEED_NGU,
 } from '../data/bots.js';
 
 const DAY_MS = 86400000;
@@ -24,7 +28,7 @@ function mulberry32(a) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-function hash2(a, b) {
+export function hash2(a, b) {
   let h = (a | 0) ^ Math.imul(b | 0, 0x9E3779B1);
   h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
   h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
@@ -134,4 +138,127 @@ export function ensureWorld(state, now) {
     state.world = { seed: (Math.floor(Math.random() * 2147483646) + 1), createdAt: now };
   }
   return state.world;
+}
+
+// ============================================================
+// FEED GIANG HỒ — tin bot. THUẦN + DETERMINISTIC + MONOTONIC.
+// Mỗi slot thời gian (slot = floor(now/PERIOD)) sinh ĐÚNG 1 tin từ (seed, slot) + trạng thái bot tại slotTime tuyệt đối.
+// Dựng FEED_SHOW slot gần nhất -> mở lại/đổi render KHÔNG reroll; qua mỗi PERIOD 1 tin mới chèn đầu, tin cũ trôi.
+// ============================================================
+const KIND_HEX  = { breakthrough: '#22d3ee', slayBoss: '#fb7185', rareLoot: '#fbbf24', tuyetHoc: '#c4b5fd', fortune: '#eab308' };
+const NGHE_HEX  = { gather: '#34d399', craft: '#fb923c', support: '#a78bfa' };   // màu chip theo NHÓM nghề (gather/craft/support)
+// Ấn triện Hán-tự thay icon (chất giang hồ). 5 loại tin chính + 9 ấn RIÊNG từng nghề (màu vẫn theo nhóm -> vừa sang vừa không một khuôn).
+const KIND_SEAL = { breakthrough: '破', slayBoss: '斬', rareLoot: '寶', tuyetHoc: '訣', fortune: '緣' };
+const NGHE_SEAL = { phatMoc: '樵', thaiKhoang: '礦', dieuNgu: '漁', daTao: '鍛', daLuyen: '冶', phanhNham: '廚', doanhTao: '築', luyenDan: '丹', toaQuan: '禪' };
+const pickH = (h, arr) => arr[(h >>> 0) % arr.length];
+function realmOf(L) { for (let i = REALM_TIERS.length - 1; i >= 0; i--) { if (L >= REALM_TIERS[i].min) return REALM_TIERS[i]; } return REALM_TIERS[0]; }
+function openRegions(L) { const o = LOCATIONS.filter((l) => l.reqLevel <= Math.max(1, L)); return o.length ? o : [LOCATIONS[0]]; }
+function bossesUpTo(L) { return YEU_VUONG.filter((b) => b.reqLevel <= L); }
+
+// Chọn loại sự kiện HỢP với bot (archetype + cấp + nghề đỉnh) rồi dựng câu chữ (nhiều mẫu -> không 1 khuôn).
+function feedEvent(bot, t, h) {
+  const L = botCombatLv(bot, t), arch = bot.arch, d = botDominant(bot, t);
+  const whoHex = CAT_HEX[d.cat] || '#94a3b8';
+  const Lback = botCombatLv(bot, t - FEED_BREAK_WINDOW_MS);          // cấp 12h trước -> dò lên cấp THẬT
+  const cand = [];
+  if (L > Lback && L >= 5) cand.push(['breakthrough', 6]);
+  if ((arch === 'sanBoss' || arch === 'satThu') && L >= 10) cand.push(['slayBoss', arch === 'sanBoss' ? 6 : 3]);
+  else if (arch === 'loMo' && L >= 20) cand.push(['slayBoss', 1]);
+  if (L >= 10) cand.push(['rareLoot', 4]);
+  if (L >= 30) cand.push(['tuyetHoc', 2]);
+  if (d.cat !== 'combat' && L >= 12) cand.push(['nghe', d.cat === 'craft' ? 5 : 4]);   // chỉ bot nghề-đỉnh phi-chiến mới khoe nghề -> không lệch
+  cand.push(['fortune', arch === 'phuThuong' ? 5 : 1]);
+  let tot = 0; for (const c of cand) tot += c[1];
+  let r = (h >>> 0) % tot, kind = cand[cand.length - 1][0];
+  for (const c of cand) { if (r < c[1]) { kind = c[0]; break; } r -= c[1]; }
+  const hex  = kind === 'nghe' ? (NGHE_HEX[d.cat] || '#94a3b8') : KIND_HEX[kind];
+  const seal = kind === 'nghe' ? (NGHE_SEAL[d.track] || '藝') : KIND_SEAL[kind];
+  return { kind, seal, hex, whoHex, txt: feedTxt(kind, bot, t, L, d, hash2(h, 0x2F1B)) };
+}
+
+function feedTxt(kind, bot, t, L, d, h) {
+  const reg = pickH(h, openRegions(L)).name;                          // vùng hợp cấp
+  const hp = hash2(h, 7), hx = hash2(h, 13);                          // tách hash: hp = chọn mẫu câu, hx = chọn nội dung
+  switch (kind) {
+    case 'breakthrough': {
+      const Lback = botCombatLv(bot, t - FEED_BREAK_WINDOW_MS);
+      const tNow = realmOf(L), tBack = realmOf(Lback);
+      if (tNow.id !== tBack.id) return pickH(hp, [
+        `phá quan đột phá, chân nguyên thăng nhập cảnh giới <b class="${tNow.text}">${tNow.name}</b>`,
+        `một sớm khai khiếu, đường đường bước vào <b class="${tNow.text}">${tNow.name}</b>`,
+      ]);
+      return pickH(hp, [
+        `bế quan xuất thất, tu vi tiến đến Chiến Đấu Lv ${L}`,
+        `lĩnh ngộ chân ý, công lực đại tiến đạt Lv ${L}`,
+        `khổ luyện có thành, đột phá lên Lv ${L}`,
+      ]);
+    }
+    case 'slayBoss': {
+      const bs = bossesUpTo(L), pool = bs.slice(Math.max(0, bs.length - 3));
+      const bObj = pickH(hx, pool.length ? pool : bs), boss = bObj.name;
+      const open = openRegions(bObj.reqLevel), bReg = pickH(hash2(h, 21), open.slice(Math.max(0, open.length - 2))).name;   // vùng tương xứng TẦM CẤP boss (không gán Yêu Vương cao về thôn tân thủ)
+      return pickH(hp, [
+        `đơn kiếm trảm <b class="text-rose-300">${boss}</b> nơi ${bReg}`,
+        `hợp vây diệt <b class="text-rose-300">${boss}</b>, danh chấn ${bReg}`,
+        `kết liễu <b class="text-rose-300">${boss}</b> sau một trận tử chiến`,
+        `đoạt mạng <b class="text-rose-300">${boss}</b>, thu trọn chiến lợi phẩm`,
+      ]);
+    }
+    case 'rareLoot': {
+      const elig = FEED_TREASURES.filter((x) => x.minLv <= L), tr = pickH(hx, elig.length ? elig : FEED_TREASURES);
+      const q = QUALITY[tr.q] || QUALITY.tinhPham, it = `<b class="${q.text}">${tr.name}</b>`;
+      return pickH(hp, [
+        `khai quật nơi ${reg}, đắc ${it} <span class="${q.text}">· ${q.name}</span>`,
+        `mở cổ rương phong ấn, thu được ${it}`,
+        `cơ duyên nhặt được ${it} — phẩm ${q.name}, chấn động một phương`,
+      ]);
+    }
+    case 'tuyetHoc': {
+      const art = pickH(hx, FEED_TUYET_HOC);
+      return pickH(hp, [
+        `cơ duyên trùng hợp, lĩnh ngộ tuyệt học <b class="text-violet-300">${art}</b>`,
+        `đắc tàn quyển <b class="text-violet-300">${art}</b>, võ công đại tiến`,
+        `tham ngộ <b class="text-violet-300">${art}</b>, một thân bản lĩnh tăng vọt`,
+      ]);
+    }
+    case 'nghe': {                                                    // tin nghề — câu chữ KHỚP track đỉnh
+      switch (d.track) {
+        case 'daTao':   { const w = pickH(hx, FEED_FORGE); return pickH(hp, [`khai lò rèn nên thần binh <b class="text-orange-300">${w}</b>`, `nghìn lần tôi luyện, đúc thành <b class="text-orange-300">${w}</b>`]); }
+        case 'luyenDan':{ const dn = pickH(hx, FEED_DAN);  return pickH(hp, [`khởi đỉnh luyện thành <b class="text-orange-300">${dn}</b>`, `đan thành chín chuyển, luyện ra <b class="text-orange-300">${dn}</b>`]); }
+        case 'phatMoc': { const m = pickH(hx, FEED_MOC);    return pickH(hp, [`đốn được kỳ mộc <b class="text-emerald-300">${m}</b> nơi ${reg}`, `tầm sơn đẵn gỗ, hạ một cây <b class="text-emerald-300">${m}</b>`]); }
+        case 'thaiKhoang': { const k = pickH(hx, FEED_KHOANG); return pickH(hp, [`đào trúng mạch <b class="text-emerald-300">${k}</b> trong ${reg}`, `khai khoáng nơi ${reg}, lộ ra <b class="text-emerald-300">${k}</b>`]); }
+        case 'dieuNgu': { const f = pickH(hx, FEED_NGU);    return pickH(hp, [`buông câu Long Môn, câu lên <b class="text-emerald-300">${f}</b>`, `nơi ${reg} câu được <b class="text-emerald-300">${f}</b>`]); }
+        case 'daLuyen': return pickH(hp, [`luyện thành một mẻ <b class="text-orange-300">tinh kim thượng phẩm</b>`, `lò lửa ngút trời, tinh luyện ra khối thần thiết`]);
+        case 'phanhNham': return pickH(hp, [`nấu nên <b class="text-orange-300">Mãn Hán Trân Hào</b>, hương bay khắp ${reg}`, `một bàn mỹ vị danh chấn ${reg}`]);
+        case 'doanhTao': return pickH(hp, [`dựng nên cơ quan kỳ xảo, ${reg} thêm phần vững chãi`, `bài bố trận pháp tinh diệu nơi ${reg}`]);
+        case 'toaQuan': return pickH(hp, [`tọa quan nhập định, ngộ ra một tầng huyền cơ`, `thiền tọa nơi ${reg}, đạo tâm thông triệt`]);
+        default: { const skn = (SKILLS[d.track] || {}).name || 'bách nghệ'; return pickH(hp, [`${skn} đại thành, danh tiếng vang khắp ${reg}`, `tinh thông ${skn}, được muôn người kính nể`]); }
+      }
+    }
+    case 'fortune':
+    default: {
+      if (bot.arch === 'phuThuong') { const n = 2 + ((hx >>> 0) % 9); return pickH(hp, [`một chuyến buôn xa, thu về <b class="text-gold">${n} vạn</b> lượng bạc`, `bắt được mối hời nơi Phường Thị, lãi đậm <b class="text-gold">${n} vạn</b> bạc`]); }
+      return pickH(hp, [`ngao du ${reg}, gặp một đoạn kỳ duyên hiếm có`, `hành hiệp trượng nghĩa nơi ${reg}, được muôn người truyền tụng`, `luận võ kết giao bằng hữu, thanh danh nổi như cồn`]);
+    }
+  }
+}
+
+let _feedKey = null, _feedList = null;
+export function genJiangHuFeed(seed, createdAt, now) {
+  const k0 = Math.floor(now / FEED_PERIOD_MS);
+  const ck = seed + ':' + createdAt + ':' + k0;
+  if (_feedKey === ck && _feedList) return _feedList;
+  const roster = genRoster(seed, createdAt), out = [];
+  const jitMax = Math.max(1, Math.floor(FEED_PERIOD_MS * 0.6));       // lệch ts về QUÁ KHỨ (< PERIOD) -> giờ "X phút trước" tự nhiên, vẫn ≤ now
+  for (let i = 0; i < FEED_SHOW; i++) {
+    const slot = k0 - i; if (slot < 0) break;
+    const slotTime = slot * FEED_PERIOD_MS;
+    const bot = roster[hash2(seed ^ 0x51ED2A, slot) % BOT_COUNT];
+    const ev = feedEvent(bot, slotTime, hash2(seed ^ 0x9A1B3C, slot));
+    const ts = Math.min(now, slotTime - (hash2(seed ^ 0x7C3D5E, slot) % jitMax));
+    out.push({ id: 'jh' + slot, kind: ev.kind, seal: ev.seal, hex: ev.hex, who: bot.name, whoHex: ev.whoHex, ts, txt: ev.txt });
+  }
+  out.sort((a, b) => b.ts - a.ts);
+  _feedKey = ck; _feedList = out;
+  return out;
 }

@@ -40,6 +40,11 @@
     .eat-range::-webkit-slider-thumb:active{transform:scale(1.04)}
     .eat-range::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:#14b8a6;border:2px solid #0b0f17;box-shadow:0 0 7px rgba(20,184,166,.5);cursor:pointer}
     .eat-range::-moz-range-track{height:7px;border-radius:9999px;background:transparent}
+    /* Ticker Tin Giang Hồ — cuộn ngang chậm, mềm; dừng khi rê chuột; mờ dần 2 mép */
+    .jh-tickwrap{ -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent); mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent); }
+    @keyframes jhscroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    .jh-tick{ animation: jhscroll 80s linear infinite; }
+    .jh-tickwrap:hover .jh-tick{ animation-play-state:paused; }
   </style>
 
   <script type="module" src="./src/main.js"></script>
@@ -52,9 +57,9 @@
     <div class="flex items-center gap-2.5">
       <!-- Logo emblem (ảnh; thiếu file -> ô 逍 tạm) -->
       <div class="w-12 h-12 shrink-0 flex items-center justify-center">
-        <img src="images/ui/logo-emblem.png" alt="Tiêu Dao Lục"
+        <img src="images/ui/logo-emblem.webp" alt="Tiêu Dao Lục"
           class="w-full h-full object-contain drop-shadow-[0_0_7px_rgba(34,211,238,0.45)]"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          onerror="if(this.src.endsWith('.webp')){this.src='images/ui/logo-emblem.png'}else{this.style.display='none';this.nextElementSibling.style.display='flex'}">
         <div class="hidden w-12 h-12 rounded-lg bg-gradient-to-br from-jade to-cyan items-center justify-center font-bold text-ink text-xl">逍</div>
       </div>
       <!-- Wordmark serif gradient vàng -->
@@ -164,7 +169,7 @@
                 <div class="relative w-full aspect-square">
                   <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[t.he].grad"></div>
                   <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:4.5rem;line-height:1" :class="$store.game.heInfo(t.he).text" x-text="$store.game.NGU_HANH[t.he].han"></span>
-                  <img :src="'images/tamphap/'+t.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                  <img :src="'images/tamphap/'+t.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                   <span class="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded" :class="$store.game.NGU_HANH[t.he].badge" x-text="$store.game.heName(t.he)"></span>
                   <template x-if="$store.game.draftTamPhapOn(t.id)"><span class="absolute top-1.5 right-1.5 w-5 h-5 bg-jade text-ink rounded-full flex items-center justify-center text-[11px] font-bold shadow">✓</span></template>
                 </div>
@@ -198,7 +203,7 @@
     <aside class="w-56 shrink-0 text-sm overflow-y-auto min-h-0 pb-4">
       <!-- Player card: nền ảnh + avatar (thiếu ảnh -> nền tối + 道) -->
       <div class="relative rounded-xl overflow-hidden border border-slate-700 mb-3 shadow-lg"
-           style="background-color:#0f1521; background-image:linear-gradient(105deg, rgba(7,11,20,0.93) 0%, rgba(7,11,20,0.62) 55%, rgba(7,11,20,0.35) 100%), url('images/ui/card-bg.png'); background-size:cover; background-position:center;">
+           style="background-color:#0f1521; background-image:linear-gradient(105deg, rgba(7,11,20,0.93) 0%, rgba(7,11,20,0.62) 55%, rgba(7,11,20,0.35) 100%), url('images/ui/card-bg.webp'); background-size:cover; background-position:center;">
         <div class="p-3">
           <div class="flex items-center gap-2.5">
             <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink3 shrink-0 ring-1 ring-white/15" :style="$store.game.faceStyle"></div>
@@ -657,7 +662,7 @@
                     <div class="relative w-full" style="aspect-ratio:1">
                       <div class="absolute inset-0 bg-gradient-to-br from-amber-900/25 via-ink3/40 to-ink"></div>
                       <span class="absolute inset-0 flex items-center justify-center text-[5.5rem] opacity-20 select-none" x-text="n.icon"></span>
-                      <img :src="'images/nghe/'+n.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                      <img :src="'images/nghe/'+n.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                       <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/15 to-transparent"></div>
                       <template x-if="$store.game.hasProfession(n.id)"><span class="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-jade text-ink font-bold shadow">✓ Đã học</span></template>
                       <div class="absolute bottom-0 inset-x-0 p-3">
@@ -784,12 +789,12 @@
 
       <!-- ===== VIEW: NHIỆM VỤ ===== -->
       <template x-if="$store.game.view==='nhiemVu'">
-        <div class="space-y-3 max-w-3xl">
+        <div class="space-y-3 max-w-5xl">
 
           <!-- Tân thủ -->
           <section class="panel rounded-xl overflow-hidden">
             <div class="px-4 py-3 flex items-center justify-between border-b border-slate-800 bg-gradient-to-r from-jade/15 to-transparent">
-              <div class="font-bold text-jade flex items-center gap-2"><span>📜</span> Nhiệm Vụ Tân Thủ</div>
+              <div class="font-bold text-jade flex items-center gap-2"><span class="inline-flex" x-html="$store.game.svg('scroll','w-5 h-5')"></span> Nhiệm Vụ Tân Thủ</div>
               <div class="flex items-center gap-1">
                 <template x-for="(q, si) in $store.game.TUTORIAL_QUESTS" :key="'dot'+q.id">
                   <span class="w-2 h-2 rounded-full transition" :class="si < $store.game.state.quests.tutorial.index ? 'bg-jade' : (si === $store.game.state.quests.tutorial.index ? 'bg-jade ring-2 ring-jade/30' : 'bg-slate-700')"></span>
@@ -799,7 +804,7 @@
             <div class="p-4">
               <template x-if="!$store.game.tutAllDone">
                 <div class="flex items-start gap-4">
-                  <div class="w-16 h-16 rounded-xl bg-ink3 flex items-center justify-center text-3xl shrink-0 ring-1 transition"
+                  <div class="w-14 h-14 rounded-xl bg-ink3 flex items-center justify-center text-2xl shrink-0 ring-1 transition"
                        :class="$store.game.tutDone ? 'ring-jade shadow-[0_0_14px_rgba(20,184,166,0.4)]' : 'ring-slate-700'"
                        x-html="$store.game.ico($store.game.tutQuest.target, $store.game.questEmoji($store.game.tutQuest))"></div>
                   <div class="flex-1 min-w-0">
@@ -841,7 +846,7 @@
                 <button @click="$store.game.setQuestTab(t.kind)"
                   class="relative flex-1 px-3 py-3 text-sm font-bold flex items-center justify-center gap-1.5 transition"
                   :class="$store.game.questTab===t.kind ? t.active : 'text-slate-500 hover:text-slate-300'">
-                  <span x-text="t.icon"></span><span x-text="t.label"></span>
+                  <span class="inline-flex shrink-0" x-html="$store.game.svg(t.icon,'w-[18px] h-[18px]')"></span><span x-text="t.label"></span>
                   <template x-if="$store.game.periodClaimable(t.kind) > 0">
                     <span class="ml-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold inline-flex items-center justify-center" x-text="$store.game.periodClaimable(t.kind)"></span>
                   </template>
@@ -849,23 +854,27 @@
                 </button>
               </template>
             </div>
-            <div class="px-4 py-2 text-[10px] text-slate-500 bg-ink3/20 border-b border-slate-800/60" x-text="$store.game.questTabMeta.info"></div>
-            <!-- Danh sách nhiệm vụ của tab đang chọn -->
-            <div class="p-3 space-y-2.5">
+            <div class="px-4 py-2 text-[10px] text-slate-500 bg-ink3/20 border-b border-slate-800/60 flex items-center gap-1.5 flex-wrap">
+              <span x-text="$store.game.questTabMeta.info"></span>
+              <span class="text-slate-700">·</span>
+              <span>còn <b class="text-slate-300" x-text="$store.game.resetCountdown($store.game.questTab)"></b></span>
+            </div>
+            <!-- Danh sách nhiệm vụ của tab đang chọn — 2 cột cho đỡ trống, thẻ đồng bộ cỡ với Tân Thủ -->
+            <div class="p-3 grid sm:grid-cols-2 gap-2.5 items-start">
               <template x-for="(entry, i) in $store.game.qList" :key="$store.game.questTab + '_' + entry.id">
                 <div class="rounded-lg border p-3 transition"
                      :class="entry.claimed ? 'border-slate-800 bg-ink3/30 opacity-70' : ($store.game.qDone(entry) ? 'border-jade/50 bg-jade/5' : 'border-slate-800 bg-ink3/50')">
                   <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-lg bg-ink3 ring-1 ring-slate-700 flex items-center justify-center text-2xl shrink-0" x-html="$store.game.ico($store.game.qDef(entry).target, $store.game.questEmoji($store.game.qDef(entry)))"></div>
+                    <div class="w-14 h-14 rounded-xl bg-ink3 ring-1 ring-slate-700 flex items-center justify-center text-2xl shrink-0" x-html="$store.game.ico($store.game.qDef(entry).target, $store.game.questEmoji($store.game.qDef(entry)))"></div>
                     <div class="flex-1 min-w-0">
                       <div class="font-medium text-sm truncate" x-text="$store.game.qDef(entry).name"></div>
-                      <div class="relative mt-1.5 h-4 rounded-full bg-slate-800 overflow-hidden">
+                      <div class="relative mt-1.5 h-5 rounded-full bg-slate-800 overflow-hidden">
                         <div class="h-full transition-all" :class="$store.game.questTabMeta.fill" :style="`width:${$store.game.qProgress(entry) / $store.game.qDef(entry).count * 100}%`"></div>
-                        <div class="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white/90"><span x-text="$store.game.qProgress(entry)"></span> / <span x-text="$store.game.qDef(entry).count"></span></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-[11px] font-semibold text-white/90"><span x-text="$store.game.qProgress(entry)"></span> / <span x-text="$store.game.qDef(entry).count"></span></div>
                       </div>
                     </div>
                     <button @click="$store.game.qClaim(i)" :disabled="entry.claimed || !$store.game.qDone(entry)"
-                      class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition"
+                      class="shrink-0 px-4 py-1.5 rounded-lg text-sm font-bold transition"
                       :class="entry.claimed ? 'bg-slate-800 text-emerald-400 cursor-default' : ($store.game.qDone(entry) ? 'bg-jade text-ink hover:bg-jade/90' : 'bg-slate-800 text-slate-600 cursor-not-allowed')"
                       x-text="entry.claimed ? '✓ Đã nhận' : ($store.game.qDone(entry) ? 'Nhận' : 'Đang làm…')"></button>
                   </div>
@@ -998,7 +1007,7 @@
         <div class="space-y-3">
           <!-- Header banner: info + Chiến Lực + Đổi vùng dồn TRÁI (chừa art bên phải); cao bằng banner Bí Cảnh/Yêu Vương -->
           <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
-            <img src="images/ui/combat_banner.png" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="this.style.display='none'">
+            <img src="images/ui/combat_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/combat_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 74%,rgba(11,14,22,.24) 100%)"></div>
             <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-jade to-cyan/40"></div>
             <div class="relative w-full p-5 md:p-6">
@@ -1027,7 +1036,7 @@
                       <div class="relative w-14 h-14 rounded-md overflow-hidden border shrink-0" :class="$store.game.boPhapOn(b.id)?'border-jade/70':'border-slate-700'">
                         <div class="absolute inset-0 bg-gradient-to-br from-slate-600/40 to-ink"></div>
                         <span class="absolute inset-0 flex items-center justify-center text-slate-500" x-html="$store.game.svg(b.ig,'w-7 h-7')"></span>
-                        <img :src="'images/bophap/'+b.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                        <img :src="'images/bophap/'+b.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                       </div>
                       <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
@@ -1074,7 +1083,7 @@
                     <button @click="panel='tamphap'; selTamPhap=$store.game.loadout.tamPhap" class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0" :class="panel==='tamphap'?'border-amber-200 ring-2 ring-amber-300/60':'border-amber-400/80 ring-1 ring-amber-400/40 hover:ring-amber-300/70'" title="Tâm Pháp (nội công nền)">
                       <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[$store.game.tamPhapObj.he].grad"></div>
                       <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo($store.game.tamPhapObj.he).text" x-html="$store.game.svg($store.game.heInfo($store.game.tamPhapObj.he).ig,'w-8 h-8')"></span>
-                      <img :src="'images/tamphap/'+$store.game.tamPhapObj.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                      <img :src="'images/tamphap/'+$store.game.tamPhapObj.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                       <span class="absolute bottom-0 inset-x-0 bg-ink/75 text-[8px] text-center truncate px-0.5" :class="$store.game.heInfo($store.game.tamPhapObj.he).text" x-text="$store.game.heName($store.game.tamPhapObj.he)"></span>
                     </button>
                     <!-- chiêu đã lắp -->
@@ -1082,7 +1091,7 @@
                       <button @click="panel='chieu'; selChieu=c.id" class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0" :class="(panel==='chieu'&&selChieu===c.id)?'border-jade ring-2 ring-jade/40':$store.game.NGU_HANH[c.type].ring+' hover:border-jade'" :title="c.name">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-8 h-8')"></span>
-                        <img :src="'images/chieu/'+c.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                        <img :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                       </button>
                     </template>
                     <!-- ô trống chiêu -->
@@ -1095,7 +1104,7 @@
                       <button @click="panel='bidong'; selBiDong=p.id" class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0" :class="(panel==='bidong'&&selBiDong===p.id)?'border-jade ring-2 ring-jade/40':$store.game.NGU_HANH[p.he].ring+' hover:border-jade'" :title="p.name+' — '+p.desc">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[p.he].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-50" :class="$store.game.heInfo(p.he).text" x-html="$store.game.svg($store.game.heInfo(p.he).ig,'w-7 h-7')"></span>
-                        <img :src="'images/bidong/'+p.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                        <img :src="'images/bidong/'+p.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                         <span class="absolute bottom-0 inset-x-0 bg-ink/80 text-[7px] text-center text-violet-300/90 uppercase tracking-wide leading-snug">bị động</span>
                       </button>
                     </template>
@@ -1124,7 +1133,7 @@
                           <button @click="selChieu=c.id" class="relative rounded-lg overflow-hidden border-2 transition" style="aspect-ratio:1" :class="selChieu===c.id?'border-jade ring-2 ring-jade/40':($store.game.chieuEquipped(c.id)?'border-jade/50':$store.game.tierStyle(c.tier).border+' '+$store.game.tierStyle(c.tier).glow)">
                             <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                             <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-10 h-10')"></span>
-                            <img :src="'images/chieu/'+c.id+'.png'" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.ownsChieu(c.id)?'':'grayscale opacity-60'" onerror="this.remove()">
+                            <img :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.ownsChieu(c.id)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             <div x-show="!$store.game.ownsChieu(c.id)" class="absolute inset-0 bg-ink/45"></div>
                             <span class="absolute top-1 right-1 text-[8px] font-bold px-1 py-px rounded shadow" :class="$store.game.tierStyle(c.tier).badge" x-text="$store.game.tierStyle(c.tier).label"></span>
                             <template x-if="$store.game.chieuEquipped(c.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
@@ -1139,7 +1148,7 @@
                           <button @click="selTamPhap=t.id" class="relative rounded-lg overflow-hidden border-2 transition" style="aspect-ratio:1" :class="selTamPhap===t.id?'border-jade ring-2 ring-jade/40':($store.game.tamPhapOn(t.id)?'border-jade/50':'border-slate-700 hover:border-slate-500')">
                             <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[t.he].grad"></div>
                             <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(t.he).text" x-html="$store.game.svg($store.game.heInfo(t.he).ig,'w-10 h-10')"></span>
-                            <img :src="'images/tamphap/'+t.id+'.png'" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.ownsTamPhap(t.id)?'':'grayscale opacity-60'" onerror="this.remove()">
+                            <img :src="'images/tamphap/'+t.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.ownsTamPhap(t.id)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             <div x-show="!$store.game.ownsTamPhap(t.id)" class="absolute inset-0 bg-ink/45"></div>
                             <template x-if="$store.game.tamPhapOn(t.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
                             <template x-if="!$store.game.ownsTamPhap(t.id)"><span class="absolute top-1 left-1 text-slate-300" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span></template>
@@ -1153,7 +1162,7 @@
                           <button @click="selBiDong=p.id" class="relative rounded-lg overflow-hidden border-2 transition" style="aspect-ratio:1" :class="selBiDong===p.id?'border-jade ring-2 ring-jade/40':($store.game.biDongOn(p.id)?'border-jade/50':'border-slate-700 hover:border-slate-500')">
                             <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[p.he].grad"></div>
                             <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(p.he).text" x-html="$store.game.svg($store.game.heInfo(p.he).ig,'w-10 h-10')"></span>
-                            <img :src="'images/bidong/'+p.id+'.png'" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.ownsBiDong(p.id)?'':'grayscale opacity-60'" onerror="this.remove()">
+                            <img :src="'images/bidong/'+p.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.ownsBiDong(p.id)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             <div x-show="!$store.game.ownsBiDong(p.id)" class="absolute inset-0 bg-ink/45"></div>
                             <template x-if="$store.game.biDongOn(p.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
                             <template x-if="!$store.game.ownsBiDong(p.id)"><span class="absolute top-1 left-1 text-slate-300" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span></template>
@@ -1174,7 +1183,7 @@
                             <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[280px]" :class="$store.game.NGU_HANH[cDetail.type].ring" style="aspect-ratio:1">
                               <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[cDetail.type].grad"></div>
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(cDetail.type).text" x-html="$store.game.svg($store.game.heInfo(cDetail.type).ig,'w-20 h-20')"></span>
-                              <img :src="'images/chieu/'+cDetail.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                              <img :src="'images/chieu/'+cDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             </div>
                             <div class="flex items-center gap-2 flex-wrap mb-1.5">
                               <span class="text-base font-bold" style="font-family:'Lora',serif" :class="$store.game.heInfo(cDetail.type).text" x-text="cDetail.name"></span>
@@ -1204,7 +1213,7 @@
                             <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[280px]" :class="$store.game.NGU_HANH[tDetail.he].ring" style="aspect-ratio:1">
                               <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[tDetail.he].grad"></div>
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(tDetail.he).text" x-html="$store.game.svg($store.game.heInfo(tDetail.he).ig,'w-20 h-20')"></span>
-                              <img :src="'images/tamphap/'+tDetail.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                              <img :src="'images/tamphap/'+tDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             </div>
                             <div class="flex items-center gap-2 flex-wrap mb-1.5">
                               <span class="text-base font-bold" style="font-family:'Lora',serif" :class="$store.game.heInfo(tDetail.he).text" x-text="tDetail.name"></span>
@@ -1225,7 +1234,7 @@
                             <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[280px]" :class="$store.game.NGU_HANH[bDetail.he].ring" style="aspect-ratio:1">
                               <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[bDetail.he].grad"></div>
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(bDetail.he).text" x-html="$store.game.svg($store.game.heInfo(bDetail.he).ig,'w-20 h-20')"></span>
-                              <img :src="'images/bidong/'+bDetail.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                              <img :src="'images/bidong/'+bDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             </div>
                             <div class="flex items-center gap-2 flex-wrap mb-1.5">
                               <span class="text-base font-bold" style="font-family:'Lora',serif" :class="$store.game.heInfo(bDetail.he).text" x-text="bDetail.name"></span>
@@ -1291,7 +1300,7 @@
                 <!-- Banner chân dung quái (khoe art lớn) -->
                 <div class="relative -mx-4 -mt-4 mb-3 h-56 overflow-hidden rounded-t-xl bg-gradient-to-b from-ink3 to-ink">
                   <div class="absolute inset-0 flex items-center justify-center text-7xl opacity-25" x-text="$store.game.combatSelObj.icon"></div>
-                  <img :src="'images/enemies/'+$store.game.combatSel+'.png'" class="absolute inset-0 w-full h-full object-cover" style="object-position:center 22%" alt="" onerror="this.remove()">
+                  <img :src="'images/enemies/'+$store.game.combatSel+'.webp'" class="absolute inset-0 w-full h-full object-cover" style="object-position:center 22%" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                   <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/25 to-transparent"></div>
                   <button @click="$store.game.closeCombatModal()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 backdrop-blur-sm z-10">✕</button>
                   <div class="absolute bottom-0 inset-x-0 p-3.5">
@@ -1354,7 +1363,7 @@
                   <div class="relative rounded-xl overflow-hidden border border-emerald-700/30 bg-gradient-to-br from-emerald-950/40 to-ink3/30 px-3 py-2.5 flex items-center gap-2.5" style="box-shadow:inset 0 0 24px rgba(0,0,0,.25)">
                     <div class="relative w-[4.5rem] h-[4.5rem] shrink-0 flex items-center justify-center" style="filter:drop-shadow(0 0 9px rgba(16,185,129,.35))">
                       <span class="text-emerald-200 font-black text-xl" style="font-family:'Lora',serif">XP</span>
-                      <img src="images/ui/exp.png" class="absolute inset-0 w-full h-full object-contain" onerror="this.remove()">
+                      <img src="images/ui/exp.webp" class="absolute inset-0 w-full h-full object-contain" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                     </div>
                     <div class="min-w-0">
                       <div class="text-[9px] uppercase tracking-[0.14em] text-emerald-400/70 font-semibold">Kinh Nghiệm</div>
@@ -1478,7 +1487,7 @@
                       <div class="relative w-[84px] h-[84px] rounded-full overflow-hidden border-2 border-amber-300/80" :style="'box-shadow:0 0 16px 1px rgba('+$store.game.NGU_HANH[$store.game.tamPhapObj.he].glowRgb+',.5), inset 0 0 14px rgba(0,0,0,.55)'">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[$store.game.tamPhapObj.he].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo($store.game.tamPhapObj.he).text" x-html="$store.game.svg($store.game.heInfo($store.game.tamPhapObj.he).ig,'w-9 h-9')"></span>
-                        <img :src="'images/tamphap/'+$store.game.tamPhapObj.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                        <img :src="'images/tamphap/'+$store.game.tamPhapObj.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                       </div>
                     </div>
                   </button>
@@ -1498,7 +1507,7 @@
                         <div class="relative w-11 h-11 rounded-md overflow-hidden border-2" :class="$store.game.NGU_HANH[p.he].ring" :title="p.name+' — '+p.desc">
                           <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[p.he].grad"></div>
                           <span class="absolute inset-0 flex items-center justify-center opacity-50" :class="$store.game.heInfo(p.he).text" x-html="$store.game.svg($store.game.heInfo(p.he).ig,'w-5 h-5')"></span>
-                          <img :src="'images/bidong/'+p.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                          <img :src="'images/bidong/'+p.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                         </div>
                       </template>
                       <template x-for="n in Math.max(0,$store.game.maxBiDongSlots-$store.game.equippedBiDongObjs.length)" :key="'bde'+n">
@@ -1513,7 +1522,7 @@
                         <div class="relative w-11 h-11 rounded-md overflow-hidden border border-jade/40" :title="b.name">
                           <div class="absolute inset-0 bg-gradient-to-br from-jade/20 to-ink"></div>
                           <span class="absolute inset-0 flex items-center justify-center text-jade/80" x-html="$store.game.svg(b.ig,'w-5 h-5')"></span>
-                          <img :src="'images/bophap/'+b.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                          <img :src="'images/bophap/'+b.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                         </div>
                       </template>
                     </div>
@@ -1531,7 +1540,7 @@
                       <button @click="$store.game.openBaiVo('chieu')" class="relative rounded-md overflow-hidden border-2 transition" style="aspect-ratio:1" :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'" :title="c.name">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-7 h-7')"></span>
-                        <img :src="'images/chieu/'+c.id+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                        <img :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                       </button>
                     </template>
                     <template x-for="n in Math.max(0,$store.game.maxChieuSlots-$store.game.equippedChieuObjs.length)" :key="'empty'+n">
@@ -1776,6 +1785,35 @@
             </div>
           </div>
 
+          <!-- Ticker Tin Giang Hồ — tin bot trôi ngang (derived, không lưu); 2 bản nối liền cho loop liền mạch -->
+          <div class="panel rounded-xl px-3 py-2 flex items-center gap-3">
+            <span class="shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold text-cyan pr-3 border-r border-slate-700/70">
+              <span class="w-2 h-2 rounded-full bg-cyan"></span>TIN GIANG HỒ
+            </span>
+            <div class="jh-tickwrap relative flex-1 overflow-hidden">
+              <div class="jh-tick flex items-center whitespace-nowrap w-max">
+                <template x-for="n in $store.game.jiangHuTicker" :key="'ta'+n.id">
+                  <span class="inline-flex items-center gap-2 text-[12.5px] pr-7">
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="'background:'+n.hex"></span>
+                    <b class="fserif" :style="'color:'+n.whoHex" x-text="n.who"></b>
+                    <span class="text-slate-300" x-html="n.txt"></span>
+                    <span class="text-slate-700 pl-5">•</span>
+                  </span>
+                </template>
+                <template x-for="n in $store.game.jiangHuTicker" :key="'tb'+n.id">
+                  <span class="inline-flex items-center gap-2 text-[12.5px] pr-7" aria-hidden="true">
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="'background:'+n.hex"></span>
+                    <b class="fserif" :style="'color:'+n.whoHex" x-text="n.who"></b>
+                    <span class="text-slate-300" x-html="n.txt"></span>
+                    <span class="text-slate-700 pl-5">•</span>
+                  </span>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 cột: Bảng Xếp Hạng (trái) + Tin Giang Hồ (phải) -->
+          <div class="grid lg:grid-cols-[1fr_330px] gap-3 items-start">
           <!-- Bảng -->
           <div class="panel rounded-xl p-3 sm:p-4">
             <div class="flex items-baseline justify-between mb-2 px-1">
@@ -1817,6 +1855,28 @@
               </template>
             </div>
           </div>
+
+          <!-- Panel Tin Giang Hồ — feed bot dọc; nguồn: $store.game.jiangHuFeed (derived, deterministic) -->
+          <div class="panel rounded-xl overflow-hidden lg:sticky lg:top-0 lg:self-start">
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-800">
+              <div class="text-jade font-bold fserif">Tin Giang Hồ</div>
+              <div class="text-[10.5px] text-slate-600">Động tĩnh quần hùng</div>
+            </div>
+            <div class="divide-y divide-slate-800/60 max-h-[620px] overflow-y-auto">
+              <template x-for="n in $store.game.jiangHuFeed" :key="n.id">
+                <div class="flex gap-3 px-3.5 py-3">
+                  <div class="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[20px]" :style="'background:'+n.hex+'1c;border:1px solid '+n.hex+'55;color:'+n.hex" x-text="n.seal"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-[12.5px] leading-snug"><b class="fserif" :style="'color:'+n.whoHex" x-text="n.who"></b> <span class="text-slate-300" x-html="n.txt"></span></div>
+                    <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="$store.game.notifAgo(n.ts)"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+          </div>
+          <!-- /2 cột -->
+
         </div>
       </template>
 
@@ -2062,9 +2122,13 @@
           <div class="panel rounded-xl p-4 relative overflow-hidden">
             <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(120% 100% at 0% 0%, rgba(20,184,166,.10), transparent 55%)"></div>
             <div class="relative flex items-center gap-4 flex-wrap">
-              <div class="relative w-16 h-16 rounded-xl bg-ink2 border border-jade/40 flex items-center justify-center shrink-0" style="box-shadow:inset 0 0 24px rgba(20,184,166,.18)">
-                <svg viewBox="0 0 24 24" class="w-8 h-8 text-jade/80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2 4 4.5.6-3.3 3.1.8 4.5L12 17l-4.8 2.3.8-4.5L4.7 11.6 9.2 11 12 3z"/></svg>
-                <span class="absolute -bottom-1.5 -right-1.5 min-w-[1.75rem] h-7 px-1 rounded-full bg-jade text-ink text-[13px] font-bold flex items-center justify-center border-2 border-ink2" x-text="$store.game.nguThuLvV"></span>
+              <div class="relative w-16 h-16 shrink-0">
+                <!-- slot art Ngự Thú: images/skills/nguThu.webp|png -> chưa có thì hiện ngôi sao jade fallback -->
+                <div class="absolute inset-0 rounded-xl bg-ink2 border border-jade/40 flex items-center justify-center overflow-hidden" style="box-shadow:inset 0 0 24px rgba(20,184,166,.18)">
+                  <svg viewBox="0 0 24 24" class="w-8 h-8 text-jade/80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2 4 4.5.6-3.3 3.1.8 4.5L12 17l-4.8 2.3.8-4.5L4.7 11.6 9.2 11 12 3z"/></svg>
+                  <img src="images/skills/nguThu.webp" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                </div>
+                <span class="absolute -bottom-1.5 -right-1.5 min-w-[1.75rem] h-7 px-1 rounded-full bg-jade text-ink text-[13px] font-bold flex items-center justify-center border-2 border-ink2 z-10" x-text="$store.game.nguThuLvV"></span>
               </div>
               <div class="flex-1 min-w-[220px]" x-data="{ get pr(){ return $store.game.nguThuProg } }">
                 <div class="flex items-baseline gap-2"><span class="text-[17px] fserif text-jade">Ngự Thú</span><span class="lbl">thuần dưỡng linh thú</span></div>
@@ -2689,7 +2753,7 @@
               <div class="flex items-center gap-3 mb-3 pb-2.5 border-b border-slate-800">
                 <div class="relative w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-gradient-to-br border" :class="$store.game.NGU_HANH[sec.he].grad+' '+$store.game.NGU_HANH[sec.he].ring">
                   <span class="text-[26px] leading-none font-bold opacity-90" style="font-family:'Lora',serif" :class="$store.game.heInfo(sec.he).text" x-text="sec.monPhai.han || (sec.he==='vatly'?'武':'符')"></span>
-                  <img :src="'images/monphai/'+sec.he+'.png'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                  <img :src="'images/monphai/'+sec.he+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-baseline gap-1.5"><span class="font-bold text-[15px]" style="font-family:'Lora',serif" :class="$store.game.heInfo(sec.he).text" x-text="sec.monPhai.name"></span><span class="text-slate-600 text-sm" x-text="sec.monPhai.han"></span></div>
@@ -2706,7 +2770,7 @@
                       <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[sec.he].grad"></div>
                       <!-- placeholder: chữ Hán thư pháp (đè bằng art nếu có) -->
                       <span class="absolute inset-0 flex items-center justify-center opacity-[.13] select-none" style="font-family:'Lora',serif;font-size:5.2rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
-                      <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-50'" onerror="this.remove()">
+                      <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-50'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                       <div x-show="!$store.game.itemOwned(it)" class="absolute inset-0 bg-ink/55"></div>
                       <!-- badge phẩm chất / loại (góc phải) -->
                       <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded shadow" :class="$store.game.itemMeta(it).badgeCls" x-text="$store.game.itemMeta(it).badgeText"></span>
@@ -2843,7 +2907,7 @@
           <div class="rounded-xl p-[2px] bg-gradient-to-br from-amber-600/50 via-amber-200/20 to-amber-700/50 shadow-[0_0_30px_rgba(0,0,0,0.45)]">
             <div class="relative w-full rounded-[10px]"
                  style="aspect-ratio:3/2; min-height:640px; background-color:#0a0e16;
-                   background-image:url('images/ui/worldmap.png'),
+                   background-image:url('images/ui/worldmap.webp'),
                      radial-gradient(ellipse at 30% 28%, rgba(45,212,191,0.10), transparent 55%),
                      radial-gradient(ellipse at 78% 72%, rgba(99,102,241,0.12), transparent 55%);
                    background-size:cover; background-position:center; background-repeat:no-repeat;">
@@ -2952,14 +3016,14 @@
           <!-- ===== Header ===== -->
           <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
             <!-- Banner art nền (gen tay → images/ui/yv_banner.png); thiếu file -> ẩn, dùng nền CSS fallback -->
-            <img src="images/ui/yv_banner.png" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="this.style.display='none'">
+            <img src="images/ui/yv_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/yv_banner.png'}else{this.style.display='none'}">
             <!-- Lớp phủ TỐI trái→phải: giữ tiêu đề + mô tả luôn đọc rõ trên art -->
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 34%,rgba(11,14,22,.55) 64%,rgba(11,14,22,.22) 100%)"></div>
             <!-- Glow đỏ tinh tế bên phải (giữ chất Yêu Vương) -->
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(244,63,94,.18), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[28px] gold-text leading-none fserif">Vây Sát Yêu Vương</div>
-              <div class="text-[13px] text-slate-300 leading-snug mt-2 max-w-2xl">Hạ Yêu Vương để đoạt <b class="text-amber-300">Tinh Thể Yêu Vương</b> — xúc tác cường hóa <b class="text-amber-300">+10 trở lên</b>, cùng <b class="text-slate-200">Trứng Linh Thú</b>, Hồn Thạch, Ngân Lượng &amp; EXP. Mỗi Yêu Vương <b class="text-slate-200">hồi sinh theo thời gian</b>; vào <b class="text-jade">hàng đợi</b> để tự vây sát khi giáng thế, hoặc <b class="text-jade">tham chiến trực tiếp xem từng lượt</b>.</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif">Hung thú thượng cổ nuốt tinh hoa nhật nguyệt mà hoá <b class="text-rose-300">Yêu Vương</b>, uy áp nghiêng trời — mỗi phen giáng thế là yêu khí ngút mây, sinh linh khiếp rạp. Kẻ gan dám vây sát mới đoạt nổi <b class="text-amber-300">linh bảo</b> trong truyền thuyết, một trận lưu danh thiên hạ.</div>
             </div>
           </div>
 
@@ -3003,14 +3067,29 @@
                       <template x-if="!g.bossLocked(b.id)"><span class="text-[10px] px-1.5 py-0.5 rounded" :style="'background:rgba('+th(b).g+',.15);border:1px solid '+th(b).c+'55'"><span class="text-slate-400">Ngũ Hành: </span><span :class="g.heInfo(g.bossHe(b.id)).text" x-text="g.heName(g.bossHe(b.id))"></span></span></template>
                     </div>
                     <div class="text-[11px] text-slate-500 mt-0.5" x-text="b.id==='yvThienMa'?'Boss Tối Thượng · Ma Giới Chí Tôn':b.affinity"></div>
-                    <div class="text-[11.5px] text-slate-400 italic mt-1.5 leading-snug" x-text="'“'+b.lore+'”'"></div>
+                    <div class="text-[11.5px] text-slate-400 italic mt-1.5 leading-snug line-clamp-2 min-h-[32px]" x-text="'“'+b.lore+'”'"></div>
                     <div class="grid grid-cols-4 gap-1.5 mt-2.5 max-w-md">
                       <div class="rounded-lg bg-black/30 border border-slate-800 px-2 py-1.5 text-center"><div class="lbl">Khí Huyết</div><div class="text-[13px] font-bold mt-0.5 text-rose-300" x-text="g.fmt(b.hp)"></div></div>
                       <div class="rounded-lg bg-black/30 border border-slate-800 px-2 py-1.5 text-center"><div class="lbl">Công</div><div class="text-[13px] font-bold mt-0.5 text-amber-300" x-text="g.fmt(b.atk)"></div></div>
                       <div class="rounded-lg bg-black/30 border border-slate-800 px-2 py-1.5 text-center"><div class="lbl">Thủ</div><div class="text-[13px] font-bold mt-0.5 text-sky-300" x-text="g.fmt(b.def)"></div></div>
                       <div class="rounded-lg bg-black/30 border border-slate-800 px-2 py-1.5 text-center"><div class="lbl">Tốc</div><div class="text-[13px] font-bold mt-0.5 text-emerald-300" x-text="b.spd"></div></div>
                     </div>
-                    <div class="text-[11px] text-slate-500 mt-2">Tuyệt kỹ: <b :style="'color:'+th(b).c" x-text="b.skill.name"></b> · Hồi sinh sau khi bị hạ: <b class="text-slate-300" x-text="b.wb.cdHours+' giờ'"></b></div>
+                    <!-- Tuyệt kĩ boss — thẻ chi tiết (slot art vuông: images/skills/<bossId>.webp|png, chưa có -> ấn 殺) -->
+                    <div class="mt-2.5 flex items-start gap-3 px-3 py-2.5 rounded-xl" :style="'background:'+th(b).c+'12;border:1px solid '+th(b).c+'33'">
+                      <div class="relative w-14 h-14 rounded-lg shrink-0 overflow-hidden flex items-center justify-center" :style="'background:radial-gradient(circle,'+th(b).c+'22,#05070d);border:1px solid '+th(b).c+'55'">
+                        <span class="fserif leading-none text-[26px]" :style="'color:'+th(b).c">殺</span>
+                        <img :src="'images/skills/'+b.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="text-[13px] font-semibold" :style="'color:'+th(b).c"><span x-text="b.skill.name"></span> <span class="text-[10px] text-slate-500 font-normal" x-text="'· tuyệt kĩ · mỗi '+b.skill.cd+' lượt'"></span></div>
+                        <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="'“'+(b.skill.fl.charAt(0).toUpperCase()+b.skill.fl.slice(1))+'”'"></div>
+                        <div class="flex flex-wrap gap-1 mt-1.5">
+                          <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-black/40 border border-slate-700 text-slate-300">Sát thương ~<b class="text-rose-300" x-text="Math.round(b.skill.mult*100)"></b>% Công · ≈<b class="text-rose-300" x-text="g.fmt(Math.round(b.atk*b.skill.mult))"></b></span>
+                          <template x-if="b.skill.slow"><span class="text-[9.5px] px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-300">Làm chậm — giảm tốc địch</span></template>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1.5">Hồi sinh sau khi bị hạ: <b class="text-slate-300" x-text="b.wb.cdHours+' giờ'"></b></div>
                   </div>
                 </div>
               </div>
@@ -3077,25 +3156,33 @@
                   <!-- KHÔNG đánh: trạng thái + hành động -->
                   <template x-if="!(g.bossFight && g.bossFight.id===b.id)">
                     <div class="space-y-3">
-                      <!-- alive -->
+                      <!-- alive — GIÁNG THẾ: action panel GỌN (chân dung/Ngũ Hành/tuyệt kĩ đã ở Hero band trên) + khí thế glow TĨNH. KHÔNG lặp lại hồ sơ boss. -->
                       <template x-if="g.bossStateOf(b.id)==='alive'">
-                        <div class="panel rounded-xl p-4 text-center min-h-[168px] flex flex-col justify-center" :style="'border-color:'+th(b).c+'55'">
-                          <div class="text-[12px] mb-3" :style="'color:'+th(b).c" x-text="g.bossHurt(b.id) ? '⚔ Yêu Vương đã trọng thương!' : '⚔ Yêu Vương đã giáng thế!'"></div>
-                          <template x-if="g.bossHurt(b.id)">
-                            <div class="mb-3">
-                              <div class="flex justify-between text-[10px] mb-0.5"><span :style="'color:'+th(b).c" x-text="b.name"></span><span class="text-slate-500">Khí Huyết còn lại</span></div>
-                              <div class="relative h-[14px] rounded-full bg-slate-800 overflow-hidden border border-black/50">
-                                <div class="absolute inset-y-0 left-0 rounded-full" :style="'width:'+g.bossHpPct(b.id)+'%;background:linear-gradient(90deg,'+th(b).c+','+th(b).d+')'"></div>
-                                <span class="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white" style="text-shadow:0 1px 2px rgba(0,0,0,.9)" x-text="Math.round(g.bossHpPct(b.id))+'%'"></span>
-                              </div>
+                        <div class="relative panel rounded-xl overflow-hidden" :style="'border-color:'+th(b).c+'66;box-shadow:0 0 26px -12px rgba('+th(b).g+',.55)'">
+                          <div class="absolute inset-0 pointer-events-none" :style="'background:radial-gradient(ellipse at 12% 45%, rgba('+th(b).g+',.16), transparent 62%)'"></div>
+                          <div class="relative p-4">
+                            <div class="flex items-center gap-2 mb-1">
+                              <span class="inline-flex shrink-0" :style="'color:'+th(b).c" x-html="g.svg('sword','w-[18px] h-[18px]')"></span>
+                              <span class="text-[14px] fserif" :style="'color:'+th(b).c" x-text="g.bossHurt(b.id) ? 'Yêu Vương Trọng Thương' : 'Yêu Vương Đã Giáng Thế'"></span>
                             </div>
-                          </template>
-                          <template x-if="g.isBossHealing()">
-                            <div class="w-full py-3 rounded-lg bg-black/40 border border-slate-700 text-center text-slate-400 text-[13px] inline-flex items-center justify-center gap-1.5"><span x-html="g.svg('heart','w-4 h-4')"></span>Đang dưỡng thương <b class="text-slate-200 font-mono" x-text="g.bossHealText()"></b></div>
-                          </template>
-                          <template x-if="!g.isBossHealing()">
-                            <button @click="g.startBossFight(b.id)" class="w-full py-3 rounded-lg font-bold text-white text-sm transition hover:brightness-110" style="background:linear-gradient(180deg,#e11d48,#9f1239);box-shadow:0 4px 18px -5px rgba(225,29,72,.7)"><span class="inline-flex items-center gap-1.5"><span x-html="g.svg('sword','w-4 h-4')"></span><span x-text="g.bossHurt(b.id)?'Kết Liễu — Vây Sát':'Tham Chiến — Vây Sát'"></span></span></button>
-                          </template>
+                            <div class="text-[11.5px] text-slate-300 leading-snug" x-text="g.bossHurt(b.id) ? 'Khí huyết hao mòn, sát cơ vẫn ngút — dồn một đòn kết liễu!' : 'Yêu khí cuồn cuộn chực nuốt chửng giang hồ — tham chiến vây sát ngay!'"></div>
+                            <template x-if="g.bossHurt(b.id)">
+                              <div class="mt-2.5">
+                                <div class="flex justify-between text-[10px] mb-0.5"><span :style="'color:'+th(b).c">Khí Huyết còn lại</span><span class="text-slate-500" x-text="Math.round(g.bossHpPct(b.id))+'%'"></span></div>
+                                <div class="relative h-[12px] rounded-full bg-slate-800 overflow-hidden border border-black/50">
+                                  <div class="absolute inset-y-0 left-0 rounded-full" :style="'width:'+g.bossHpPct(b.id)+'%;background:linear-gradient(90deg,'+th(b).c+','+th(b).d+')'"></div>
+                                </div>
+                              </div>
+                            </template>
+                            <div class="mt-3">
+                              <template x-if="g.isBossHealing()">
+                                <div class="w-full py-2.5 rounded-lg bg-black/40 border border-slate-700 text-center text-slate-400 text-[12.5px] inline-flex items-center justify-center gap-1.5"><span x-html="g.svg('heart','w-4 h-4')"></span>Đang dưỡng thương <b class="text-slate-200 font-mono" x-text="g.bossHealText()"></b></div>
+                              </template>
+                              <template x-if="!g.isBossHealing()">
+                                <button @click="g.startBossFight(b.id)" class="w-full py-2.5 rounded-lg font-bold text-white text-sm transition hover:brightness-110" style="background:linear-gradient(180deg,#e11d48,#9f1239);box-shadow:0 4px 18px -5px rgba(225,29,72,.7)"><span class="inline-flex items-center gap-1.5"><span x-html="g.svg('sword','w-4 h-4')"></span><span x-text="g.bossHurt(b.id)?'Kết Liễu — Vây Sát':'Tham Chiến — Vây Sát'"></span></span></button>
+                              </template>
+                            </div>
+                          </div>
                         </div>
                       </template>
                       <!-- reviving -->
@@ -3162,7 +3249,7 @@
                       </div>
                       <!-- EXP -->
                       <div class="aspect-square rounded-lg bg-black/50 border border-emerald-500/30 flex flex-col items-center justify-center gap-1">
-                        <span class="w-12 h-12 inline-flex items-center justify-center"><img src="images/ui/exp.png" class="w-12 h-12 object-contain" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'✦',style:'color:#6ee7b7;font-size:22px'}))"></span>
+                        <span class="w-12 h-12 inline-flex items-center justify-center"><img src="images/ui/exp.webp" class="w-12 h-12 object-contain" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/exp.png'}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'✦',style:'color:#6ee7b7;font-size:22px'}))}"></span>
                         <span class="text-[15px] font-bold leading-none text-emerald-300" x-text="g.fmt(b.exp)"></span>
                         <span class="text-[9px] uppercase tracking-wider text-slate-500 leading-none">EXP</span>
                       </div>
@@ -3197,7 +3284,7 @@
 
           <!-- Header -->
           <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
-            <img src="images/ui/dungeon_banner.png" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="this.style.display='none'">
+            <img src="images/ui/dungeon_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/dungeon_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(45,212,191,.16), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
@@ -3319,7 +3406,7 @@
                       <div class="grid grid-cols-4 gap-2.5">
                         <template x-if="d.loot.doPho">
                           <div @click="g.openDungeonPool(d.id)" class="relative aspect-square rounded-lg bg-black/50 border border-amber-500/45 flex flex-col items-center justify-center gap-0.5 cursor-pointer hover:border-amber-400 transition" style="box-shadow:inset 0 0 12px rgba(245,158,11,.18)" title="Bấm xem danh mục Đồ Phổ">
-                            <span class="w-10 h-10 inline-flex items-center justify-center"><img src="images/items/dopho.png" class="w-full h-full object-contain" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'📜',style:'font-size:20px'}))"></span>
+                            <span class="w-10 h-10 inline-flex items-center justify-center"><img src="images/items/dopho.webp" class="w-full h-full object-contain" onerror="if(this.src.endsWith('.webp')){this.src='images/items/dopho.png'}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'📜',style:'font-size:20px'}))}"></span>
                             <span class="text-[13px] font-bold leading-none text-amber-300" x-text="g.pctText(d.loot.doPhoChance)"></span>
                             <span class="text-[8px] tracking-wide text-amber-300/80 leading-tight text-center px-0.5" x-text="'Đồ Phổ Bậc '+d.loot.doPho.bac.join('/')"></span>
                             <span class="text-[7.5px] text-slate-500 leading-none">bấm xem ▸</span>
@@ -3412,7 +3499,7 @@
                       </template>
                       <template x-if="(r.loot||{}).honThach"><span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-rose-500/40 text-rose-200"><span class="w-5 h-5 inline-flex items-center justify-center" x-html="g.ico('honThach','🔴')"></span><span x-text="g.fmt((r.loot||{}).honThach)+' Hồn Thạch'"></span></span></template>
                       <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-amber-400/40 text-gold"><span class="w-5 h-5 inline-flex items-center justify-center" x-html="g.ico('bac','🟡')"></span><span x-text="g.fmt((r.loot||{}).bac)+' Bạc'"></span></span>
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-emerald-500/40 text-emerald-200"><span class="w-5 h-5 inline-flex items-center justify-center"><img src="images/ui/exp.png" class="w-5 h-5 object-contain" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'✦',style:'color:#6ee7b7;font-size:14px'}))"></span><span x-text="'+'+g.fmt((r.loot||{}).exp)+' EXP'"></span></span>
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-emerald-500/40 text-emerald-200"><span class="w-5 h-5 inline-flex items-center justify-center"><img src="images/ui/exp.webp" class="w-5 h-5 object-contain" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/exp.png'}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'✦',style:'color:#6ee7b7;font-size:14px'}))}"></span><span x-text="'+'+g.fmt((r.loot||{}).exp)+' EXP'"></span></span>
                     </div>
                   </div>
                 </div>
@@ -3844,7 +3931,7 @@
         <!-- header art -->
         <div class="relative shrink-0 h-56 bg-gradient-to-br overflow-hidden" :class="g.NGU_HANH[he].grad">
           <span class="absolute inset-0 flex items-center justify-center opacity-20 select-none" style="font-family:'Lora',serif;font-size:9rem;line-height:1" :class="g.heInfo(he).text" x-text="g.NGU_HANH[he].han"></span>
-          <img :src="'images/tamphap/'+tp.id+'.png'" class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.remove()">
+          <img :src="'images/tamphap/'+tp.id+'.webp'" class="absolute inset-0 w-full h-full object-cover object-top" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
           <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent"></div>
           <span class="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded" :class="g.NGU_HANH[he].badge" x-text="'Hệ ' + g.heName(he)"></span>
           <button @click="g.closeTpDetail()" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-ink/70 text-slate-300 hover:text-rose-400 flex items-center justify-center" aria-label="Đóng">✕</button>
@@ -3867,7 +3954,7 @@
               <template x-for="c in g.heChieu(he)" :key="c.id">
                 <div class="flex gap-2.5 rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
                   <div class="w-12 h-12 shrink-0 rounded-md overflow-hidden flex items-center justify-center" :class="g.tierStyle(c.tier).border + ' border bg-ink'">
-                    <img :src="'images/chieu/'+c.id+'.png'" class="w-full h-full object-cover" alt="" onerror="this.remove()">
+                    <img :src="'images/chieu/'+c.id+'.webp'" class="w-full h-full object-cover" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-0.5">
@@ -3890,7 +3977,7 @@
               <template x-for="p in g.heBiDong(he)" :key="p.id">
                 <div class="flex gap-2.5 rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
                   <div class="w-12 h-12 shrink-0 rounded-md overflow-hidden flex items-center justify-center border border-violet-500/40 bg-ink">
-                    <img :src="'images/bidong/'+p.id+'.png'" class="w-full h-full object-cover" alt="" onerror="this.remove()">
+                    <img :src="'images/bidong/'+p.id+'.webp'" class="w-full h-full object-cover" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="text-[13px] font-medium text-violet-300" x-text="p.name"></div>

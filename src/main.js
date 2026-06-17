@@ -31,7 +31,7 @@ import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './en
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
-import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld } from './engine/bots.js';
+import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -228,6 +228,10 @@ const SVG_PATHS = {
   book:   '<path d="M4 4.5A2 2 0 0 1 6 3h13v16H6a2 2 0 0 0-2 2z"/><path d="M19 19H6a2 2 0 0 0-2 2"/>',
   gem:    '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M9 3 6 9l6 12 6-12-3-6"/>',
   info:   '<circle cx="12" cy="12" r="9"/><path d="M12 11.5v5"/><path d="M12 8h.01"/>',
+  // Lịch: Ngày (1 chấm) · Tuần (1 hàng) · Tháng (lưới chấm) — line-icon đồng bộ với nav
+  calDay:   '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M12 14.5h.01"/>',
+  calWeek:  '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M7 14.5h10"/>',
+  calMonth: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M7.5 13h.01M12 13h.01M16.5 13h.01M7.5 16.5h.01M12 16.5h.01M16.5 16.5h.01"/>',
 };
 
 // ---- Store game ----
@@ -358,6 +362,10 @@ const gameStore = {
     monthly: { pool: MONTHLY_QUESTS, count: 7, period: () => monthStr() },
   },
   // Đảm bảo danh sách nhiệm vụ của 1 kỳ đúng với kỳ hiện tại; sang kỳ mới thì bốc lại + reset.
+  questUnlocked(q) {   // chỉ bốc nhiệm vụ người chơi đủ sức (mục tiêu đã mở theo cấp) -> khó dần + đa dạng theo tiến trình
+    const req = q.req || 1;
+    return q.type === 'kill' ? this.combatLevel >= req : this.skillLevel(q.skill) >= req;
+  },
   ensurePeriodQuests(kind) {
     const cfg = this.periodConfig[kind];
     if (!cfg) return;
@@ -365,13 +373,17 @@ const gameStore = {
     if (!this.state.quests[kind]) this.state.quests[kind] = { period: null, list: [] };
     const st = this.state.quests[kind];
     const want = Math.min(cfg.count, cfg.pool.length);
-    if (st.period === cur && st.list && st.list.length === want) return;
-    // Bốc ngẫu nhiên `want` cái từ pool rồi xếp lại theo thứ tự gốc cho ổn định.
-    const idx = cfg.pool.map((_, i) => i);
+    // Còn hạn + đủ số + mọi id còn trong pool (đổi data cũ -> bốc lại) thì giữ.
+    if (st.period === cur && st.list && st.list.length === want && st.list.every((e) => cfg.pool.some((q) => q.id === e.id))) return;
+    // Lọc mục tiêu đủ cấp; thiếu thì lùi về cả pool (người mới vẫn đủ 7 cái).
+    const elig = cfg.pool.filter((q) => this.questUnlocked(q));
+    const usable = elig.length >= want ? elig : cfg.pool;
+    // Bốc ngẫu nhiên `want` cái rồi xếp lại theo thứ tự gốc cho ổn định.
+    const idx = usable.map((_, i) => i);
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
     const chosen = idx.slice(0, want).sort((a, b) => a - b);
     st.period = cur;
-    st.list = chosen.map((i) => ({ id: cfg.pool[i].id, base: this.counterValue(cfg.pool[i]), claimed: false }));
+    st.list = chosen.map((i) => ({ id: usable[i].id, base: this.counterValue(usable[i]), claimed: false }));
     Storage.save(this.state);
   },
   ensureQuests() { this.ensurePeriodQuests('daily'); this.ensurePeriodQuests('weekly'); this.ensurePeriodQuests('monthly'); },
@@ -396,12 +408,29 @@ const gameStore = {
 
   // -- Tab Nhiệm vụ (UI): Ngày / Tuần / Tháng --
   QUEST_TABS: [
-    { kind: 'daily',   icon: '🗓️', label: 'Ngày',  active: 'text-amber-300',  bar: 'bg-amber-400',  fill: 'bg-amber-400',  info: 'Làm mới mỗi ngày · 7 nhiệm vụ' },
-    { kind: 'weekly',  icon: '📆',  label: 'Tuần',  active: 'text-sky-300',    bar: 'bg-sky-400',    fill: 'bg-sky-400',    info: 'Làm mới mỗi tuần · 7 nhiệm vụ' },
-    { kind: 'monthly', icon: '🗂️', label: 'Tháng', active: 'text-violet-300', bar: 'bg-violet-400', fill: 'bg-violet-400', info: 'Làm mới mỗi tháng · 7 nhiệm vụ' },
+    { kind: 'daily',   icon: 'calDay',   label: 'Ngày',  active: 'text-amber-300',  bar: 'bg-amber-400',  fill: 'bg-amber-400',  info: 'Làm mới 00:00 mỗi ngày' },
+    { kind: 'weekly',  icon: 'calWeek',  label: 'Tuần',  active: 'text-sky-300',    bar: 'bg-sky-400',    fill: 'bg-sky-400',    info: 'Làm mới 00:00 Thứ Hai hằng tuần' },
+    { kind: 'monthly', icon: 'calMonth', label: 'Tháng', active: 'text-violet-300', bar: 'bg-violet-400', fill: 'bg-violet-400', info: 'Làm mới 00:00 ngày 1 mỗi tháng' },
   ],
   questTab: 'daily',
   setQuestTab(t) { this.questTab = t; },
+  // Mốc reset kế tiếp (giờ địa phương): ngày = nửa đêm mai · tuần = 00:00 Thứ Hai tới · tháng = 00:00 ngày 1 tháng sau.
+  nextResetMs(kind) {
+    const d = new Date();
+    if (kind === 'weekly') { const dow = (d.getDay() + 6) % 7; return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (7 - dow)).getTime(); }
+    if (kind === 'monthly') { return new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime(); }
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+  },
+  resetCountdown(kind) {
+    void this._tick;
+    let s = Math.max(0, Math.floor((this.nextResetMs(kind) - now()) / 1000));
+    const dd = Math.floor(s / 86400); s -= dd * 86400;
+    const hh = Math.floor(s / 3600); s -= hh * 3600;
+    const mm = Math.floor(s / 60);
+    if (dd > 0) return dd + ' ngày ' + hh + ' giờ';
+    if (hh > 0) return hh + ' giờ ' + mm + ' phút';
+    return mm + ' phút';
+  },
   get questTabMeta() { return this.QUEST_TABS.find((t) => t.kind === this.questTab) || this.QUEST_TABS[0]; },
   // Tiện cho UI (tự quy về tab đang chọn)
   get qList() { return this.periodList(this.questTab); },
@@ -808,33 +837,29 @@ const gameStore = {
     const safe = String(emoji || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     const folder = ICON_FOLDERS[id] || 'items';
     const drop = `this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{textContent:&quot;${safe}&quot;}))`;
-    if (id && id.startsWith('dp_')) {   // ĐỒ PHỔ (Cách 3): cuộn nền THEO BẬC + art gear/tool thật lồng giữa (viền phẩm chất).
+    if (id && id.startsWith('dp_')) {   // ĐỒ PHỔ: cuộn nền THEO BẬC + art gear/tool lồng giữa. Tất cả WEBP-FIRST -> png -> emoji.
       const qq = ((this.ITEMS && this.ITEMS[id]) || {}).quality;
       const qmeta = (this.QUALITY && this.QUALITY[qq]) || null;
       const bd = qmeta ? qmeta.border : 'border-slate-500/50';
       const gearId = id.slice(3);
       // Nền cuộn theo bậc: 2-3 Lương/Tinh -> dopho_23 · 4-5 Tuyệt/Truyền Thế -> dopho_45 · 6 Thần -> dopho_6 · 7 Cô Bản -> dopho_7.
       const bgFile = { luongPham: 'dopho_23', tinhPham: 'dopho_23', tuyetPham: 'dopho_45', truyenThe: 'dopho_45', thanPham: 'dopho_6', coBan: 'dopho_7' }[qq] || 'dopho_45';
-      const isTool = /^eq_(riu|cuoc|canCau)_/.test(gearId); // công cụ chỉ có art .png
-      const inner = isTool
-        ? `<img src="images/equip/${gearId}.png" class="w-full h-full object-contain" alt="" onerror='${drop}'>`
-        : `<img src="images/equip/${gearId}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/equip/${gearId}.png&quot;;}'>`;
+      const inner = `<img src="images/equip/${gearId}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/equip/${gearId}.png&quot;;}else{${drop};}'>`;
       return `<span class="relative block w-full h-full">`
-        + `<img src="images/items/${bgFile}.png" class="absolute inset-0 w-full h-full object-contain" alt="" onerror='${drop}'>`
+        + `<img src="images/items/${bgFile}.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/items/${bgFile}.png&quot;;}else{${drop};}'>`
         + `<span class="absolute overflow-hidden border ${bd}" style="left:50%;top:49%;transform:translate(-50%,-50%);width:44%;height:44%;border-radius:14%;background:#070908">`
         + inner
         + `</span></span>`;
     }
-    if (folder === 'equip') {   // art trang bị: KÉO GIÃN lấp đầy khung (object-fill, không xén). Gear = .webp, Công cụ = .png trực tiếp.
-      if (/^eq_(riu|cuoc|canCau)_/.test(id)) return `<img src="images/equip/${id}.png" class="w-full h-full" style="object-fit:fill" alt="" onerror='${drop}'>`;
+    if (folder === 'equip') {   // art trang bị (KÉO GIÃN lấp khung): WEBP-FIRST -> png -> emoji.
       return `<img src="images/equip/${id}.webp" class="w-full h-full" style="object-fit:fill" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/equip/${id}.png&quot;;}else{${drop};}'>`;
     }
-    return `<img src="images/${folder}/${id}.png" class="w-full h-full object-contain p-0.5" alt="" onerror='if(this.src.endsWith(&quot;.png&quot;)){this.src=&quot;images/${folder}/${id}.webp&quot;;}else{${drop};}'>`;
+    return `<img src="images/${folder}/${id}.webp" class="w-full h-full object-contain p-0.5" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/${folder}/${id}.png&quot;;}else{${drop};}'>`;
   },
   // Ảnh chân dung YÊU THÚ — object-cover (lấp đầy khung), fallback emoji. Dùng ở danh sách + popup Suy Tính.
   enemyArt(id, emoji) {
     const safe = String(emoji || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    return `<img src="images/enemies/${id}.png" class="w-full h-full object-cover" alt="" onerror='this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{textContent:&quot;${safe}&quot;}))'>`;
+    return `<img src="images/enemies/${id}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/enemies/${id}.png&quot;;}else{this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{textContent:&quot;${safe}&quot;}));}'>`;
   },
   // Icon đường nét nội tuyến (thay emoji hệ thống). cls điều khiển kích thước/màu.
   svg(name, cls) {
@@ -936,6 +961,9 @@ const gameStore = {
     _nbKey = key;
     return _nbData;
   },
+  // ===== GIANG HỒ — Feed tin bot (DERIVED thuần, KHÔNG lưu; memo theo slot trong engine). void _tick -> mốc giờ + tin mới tự cập nhật. =====
+  get jiangHuFeed() { void this._tick; const w = this.state.world; if (!w) return []; return genJiangHuFeed(w.seed, w.createdAt, now()); },
+  get jiangHuTicker() { return this.jiangHuFeed.slice(0, 12); },
 
   expPerSec(action) { return (action.xp / action.time).toFixed(2); },
   actionInputs(action) { return inputStatus(this.state, action); },
@@ -1080,7 +1108,6 @@ const gameStore = {
   bossFight: null,                                    // trận LIVE: { id, he, frames, total, idx, pMax,bMax,pHp,bHp, log:[], turn, done, win, reward }
   _bossFrameAt: 0,                                    // mốc lộ frame gần nhất
   _bossAwayChecked: false,                            // đã resolve hàng đợi lúc load chưa
-  _bossFeed: {},                                      // cache feed giang hồ (mô phỏng)
   get yeuVuongList() { return YEU_VUONG; },
   bossObj(id) { return YEU_VUONG_BY_ID[id] || null; },
   get bossSelObj() { return YEU_VUONG_BY_ID[this.bossSel] || YEU_VUONG[0]; }, // THUẦN (không ghi state khi render); bossSel set ở ensureCombat
@@ -1177,14 +1204,18 @@ const gameStore = {
   },
   checkBossAwayOnce() { if (this._bossAwayChecked) return; this._bossAwayChecked = true; this.resolveBossQueue(); },
   bossHistoryOf(id) { return ((this.state.boss && this.state.boss.history) || []).filter((h) => h.id === id); },
-  bossFeed(id) { if (!this._bossFeed[id]) { const b = YEU_VUONG_BY_ID[id]; this._bossFeed[id] = b ? genBossFeed(b) : []; } return this._bossFeed[id]; },
-  // Trộn lịch sử BẢN THÂN + feed đạo hữu cho bảng Giang Hồ
+  bossFeed(id) { void this._tick; const b = YEU_VUONG_BY_ID[id], w = this.state.world; return (b && w) ? genBossFeed(b, w.seed, w.createdAt, now()) : []; },
+  // Trộn lịch sử BẢN THÂN + chiến tích đạo hữu (roster bot thật) cho bảng Giang Hồ
   bossLog(id) {
+    const nm = (YEU_VUONG_BY_ID[id] || {}).name || 'Yêu Vương';
+    const W = ['trảm', 'hạ gục', 'kết liễu', 'đoạt mạng'];   // động từ luân phiên -> không một khuôn, khớp giọng bot
     const mine = this.bossHistoryOf(id).slice(0, 6).map((h, i) => ({
       uid: 'me_' + i + '_' + h.t, me: true, win: h.win, rare: !!h.rare, ago: this.agoText(h.t),
-      txt: h.win ? ('Hạ gục · ' + this.rewardSummary(h.reward)) : 'Bại trận — Yêu Vương vẫn sống',
+      txt: h.win
+        ? (W[i % W.length] + ' ' + nm + ' · ' + this.rewardSummary(h.reward) + (h.rare ? ' ★' : ''))
+        : ('khiêu chiến ' + nm + ' bất thành — trọng thương lui về'),
     }));
-    const feed = this.bossFeed(id).map((f, i) => ({ ...f, uid: 'feed_' + i }));
+    const feed = this.bossFeed(id).map((f, i) => ({ ...f, uid: 'feed_' + i, ago: this.agoText(f.ts) }));
     return mine.concat(feed);
   },
   rewardSummary(rw) {
@@ -1366,7 +1397,7 @@ const gameStore = {
   },
   itemOwned(it) { return it.kind === 'chieu' ? this.ownsChieu(it.id) : it.kind === 'tamphap' ? this.ownsTamPhap(it.id) : this.ownsBiDong(it.id); },
   itemCost(it) { return it.kind === 'chieu' ? chieuCost(it.obj) : it.kind === 'tamphap' ? tamPhapCost(it.obj) : biDongCost(it.obj); },
-  itemImg(it) { return 'images/' + (it.kind === 'tamphap' ? 'tamphap' : it.kind === 'bidong' ? 'bidong' : 'chieu') + '/' + it.id + '.png'; },
+  itemImg(it) { return 'images/' + (it.kind === 'tamphap' ? 'tamphap' : it.kind === 'bidong' ? 'bidong' : 'chieu') + '/' + it.id + '.webp'; },
   itemKindLabel(it) { return it.kind === 'chieu' ? 'Chiêu' : it.kind === 'tamphap' ? 'Tâm Pháp' : 'Bị Động'; },
   itemTier(it) { return it.kind === 'chieu' ? it.obj.tier : (it.kind === 'tamphap' ? 'trung' : 'trung'); },
   itemDesc(it) { return it.kind === 'chieu' ? (it.obj.short || '') : (it.obj.short || it.obj.desc || ''); },
