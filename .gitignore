@@ -1,11 +1,12 @@
 # ============================================================
 # TIEUDAO (Tiêu Dao Lục) — kho git riêng, tách khỏi MONGGIANGHO.
-# Version MÃ NGUỒN + tài liệu. Asset nặng + bản nháp giữ LOCAL (không vào git).
+# Version MÃ NGUỒN + tài liệu + ASSET (deploy GitHub Pages).
 # ============================================================
 
-# Tài nguyên nặng (nhị phân, ~358MB) — giữ local trên ổ, không version qua git
-images/
-audio/
+# Asset (webp ~54MB + audio ~32MB) ĐÃ commit cùng repo để deploy GitHub Pages
+# (trước đây ignore khi còn png ~358MB; webp ép gọn nên đưa lên luôn).
+# images/
+# audio/
 
 # Bản nháp snapshot code thủ công (lịch sử cũ trước khi có git)
 _backup/
