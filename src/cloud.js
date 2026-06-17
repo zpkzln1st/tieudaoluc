@@ -46,3 +46,31 @@ export async function cloudOnAuth(cb) {
   const sb = await getClient();
   return sb.auth.onAuthStateChange((_event, session) => cb(session?.user || null));
 }
+
+// ---- Cloud save (bang 'saves', RLS: moi user chi dong cua minh) ----
+async function _uid() {
+  const sb = await getClient();
+  const { data } = await sb.auth.getSession();   // local, khong goi mang
+  return (data && data.session && data.session.user && data.session.user.id) || null;
+}
+// Doc save cua chinh minh. Tra { ok, row } ; row=null neu chua co; ok=false neu loi/chua dang nhap.
+export async function cloudLoadSave() {
+  const sb = await getClient();
+  const uid = await _uid();
+  if (!uid) return { ok: false, reason: 'no-auth' };
+  const { data, error } = await sb.from('saves').select('data,last_save,updated_at').eq('user_id', uid).maybeSingle();
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, row: data };   // data = null neu chua co dong
+}
+// Day (upsert) save len cloud. Tra { ok, reason }.
+export async function cloudPushSave(state) {
+  const sb = await getClient();
+  const uid = await _uid();
+  if (!uid) return { ok: false, reason: 'no-auth' };
+  const { error } = await sb.from('saves').upsert(
+    { user_id: uid, data: state, last_save: state.lastSave || 0, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' },
+  );
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}

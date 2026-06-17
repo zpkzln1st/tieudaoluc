@@ -35,7 +35,7 @@ import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
 
 const now = () => Date.now();
 let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
@@ -60,6 +60,15 @@ function authErrVi(msg) {
   if (m.includes('rate limit') || m.includes('too many') || m.includes('for security purposes')) return 'Thao tác quá nhiều lần — đợi chút rồi thử lại.';
   return msg || 'Có lỗi xảy ra.';
 }
+// Dịch lỗi Cloud save (DB/RLS) sang tiếng Việt.
+function cloudErrVi(msg) {
+  const m = (msg || '').toLowerCase();
+  if (m.includes('does not exist') || m.includes('relation') || m.includes('schema cache')) return 'Chưa tạo bảng lưu trên cloud (chạy SQL khởi tạo).';
+  if (m.includes('row-level security') || m.includes('rls') || m.includes('policy')) return 'Quyền cloud chưa đúng (kiểm tra RLS bảng saves).';
+  if (m.includes('jwt') || m.includes('expired') || m.includes('not authenticated')) return 'Phiên hết hạn — đăng nhập lại.';
+  if (m.includes('failed to fetch') || m.includes('network')) return 'Không kết nối được cloud (mạng?).';
+  return 'Đồng bộ cloud lỗi: ' + (msg || 'không rõ');
+}
 // Ngày địa phương dạng YYYY-MM-DD (cho điểm danh)
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const todayStr = () => ymd(new Date());
@@ -75,6 +84,8 @@ function monthStr() { const d = new Date(); return `${d.getFullYear()}-${String(
 
 // ---- Khởi tạo state + offline gains ----
 let state = Storage.load() || createInitialState();
+// lastSave NGAY LÚC NẠP từ đĩa (trước khi vòng game autosave bump) — mốc so sánh cloud đáng tin (xem cloudSyncOnLogin)
+const _loadedLastSave = (state && state.lastSave) || 0;
 if (!state.equipment) state.equipment = {};
 if (!state.enhance) state.enhance = {};   // cấp cường hóa theo món
 // Migrate: slot trang bị đã bỏ (Quần/Phụ Khí/Bội Sức) -> trả món đang mặc về túi.
@@ -268,6 +279,8 @@ const gameStore = {
   devAuthed: false, devLoginOpen: false, devPass: '', devLoginErr: '', devTab: 'char',   // cổng đăng nhập F9 (theo phiên — reload phải đăng nhập lại)
   // Tài khoản / Cloud (Supabase Auth — Giai đoạn B). Offline-first: KHÔNG đăng nhập vẫn chơi.
   authUser: null, authOpen: false, authMode: 'login', authEmail: '', authPass: '', authErr: '', authMsg: '', authBusy: false,
+  // Cloud save (Giai đoạn C) — đồng bộ save ↔ Supabase. cloudConflict = { cloud, local, _cloudData } khi 2 bản lệch.
+  cloudSyncing: false, cloudLastSync: 0, cloudErr: '', cloudConflict: null, _cloudLastPushed: -1,
   devLvInput: 50,
   devItemSel: null,
   selectedSkill: 'phatMoc',
@@ -302,6 +315,7 @@ const gameStore = {
     try {
       this.authUser = await cloudGetUser();
       await cloudOnAuth((user) => { this.authUser = user; });
+      if (this.authUser) this.cloudSyncOnLogin();   // đã đăng nhập sẵn (reload) -> kéo/so cloud
     } catch (e) { /* không kết nối được cloud — bỏ qua, game vẫn chạy offline */ }
   },
   openAuth() { this.authErr = ''; this.authMsg = ''; this.authPass = ''; this.authOpen = true; },
@@ -318,12 +332,12 @@ const gameStore = {
       if (this.authMode === 'register') {
         const { data, error } = await cloudSignUp(email, pass);
         if (error) { this.authErr = authErrVi(error.message); return; }
-        if (data && data.session) { this.authUser = data.user; this.closeAuth(); this.showToast('Đã tạo tài khoản & đăng nhập.'); }
+        if (data && data.session) { this.authUser = data.user; this.closeAuth(); this.showToast('Đã tạo tài khoản & đăng nhập.'); this.cloudSyncOnLogin(); }
         else { this.authMsg = 'Đã gửi email xác nhận. Mở hộp thư bấm xác nhận rồi đăng nhập.'; this.authMode = 'login'; this.authPass = ''; }
       } else {
         const { data, error } = await cloudSignIn(email, pass);
         if (error) { this.authErr = authErrVi(error.message); return; }
-        this.authUser = data.user; this.closeAuth(); this.showToast('Đăng nhập thành công.');
+        this.authUser = data.user; this.closeAuth(); this.showToast('Đăng nhập thành công.'); this.cloudSyncOnLogin();
       }
     } catch (e) {
       this.authErr = 'Không kết nối được máy chủ (kiểm tra mạng) — thử lại.';
@@ -332,8 +346,71 @@ const gameStore = {
     }
   },
   async doSignOut() {
+    if (this.isLoggedIn) { try { await this._cloudPushNow(); } catch (e) { /* best-effort lưu bản chót */ } }
     try { await cloudSignOut(); } catch (e) { /* vẫn xoá phiên ở client */ }
-    this.authUser = null; this.showToast('Đã đăng xuất.');
+    this.authUser = null; this.cloudConflict = null; this.cloudErr = ''; this.cloudLastSync = 0; this._cloudLastPushed = -1;
+    this.showToast('Đã đăng xuất.');
+  },
+  // ---------- Cloud save (đồng bộ save ↔ Supabase) ----------
+  // Tóm tắt 1 save (để so sánh khi xung đột). combatLv tự tính từ xp -> không phụ thuộc state đang chạy.
+  saveSummary(st) {
+    return {
+      name: (st && st.player && st.player.name) || '',
+      created: !!(st && st.player && st.player.created),
+      combatLv: levelFromXp((st && st.skills && st.skills.chienDau && st.skills.chienDau.xp) || 0),
+      lastSave: (st && st.lastSave) || 0,
+    };
+  },
+  saveTimeText(ts) { return ts ? new Date(ts).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'chưa lưu'; },
+  get cloudLastSyncText() {
+    if (this.cloudSyncing) return 'đang đồng bộ…';
+    if (!this.cloudLastSync) return 'chưa đồng bộ';
+    return 'đồng bộ lúc ' + new Date(this.cloudLastSync).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  },
+  // Đẩy state hiện tại lên cloud (đảm bảo đã lưu localStorage trước để lastSave mới nhất).
+  async _cloudPushNow() {
+    if (!this.isLoggedIn) return false;
+    this.cloudSyncing = true;
+    try {
+      const r = await cloudPushSave(this.state);
+      if (r.ok) { this._cloudLastPushed = this.state.lastSave || 0; this.cloudLastSync = now(); this.cloudErr = ''; return true; }
+      this.cloudErr = cloudErrVi(r.reason); return false;
+    } catch (e) { this.cloudErr = 'Không kết nối cloud.'; return false; }
+    finally { this.cloudSyncing = false; }
+  },
+  // Ghi đè localStorage bằng bản cloud rồi tải lại trang (nạp sạch state mới).
+  _applyCloudSave(cloudData) {
+    Storage.lock();   // chặn autosave RAM cũ ghi đè trong lúc chờ reload
+    try { localStorage.setItem('tieudao_save_v1', JSON.stringify(cloudData)); } catch (e) {}
+    this._cloudLastPushed = (cloudData && cloudData.lastSave) || 0;
+    this.showToast('Đã tải tiến trình từ cloud.');
+    setTimeout(() => location.reload(), 700);
+  },
+  // Lúc đăng nhập / khôi phục phiên: so cloud với local rồi quyết định.
+  async cloudSyncOnLogin() {
+    if (!this.isLoggedIn) return;
+    this.cloudErr = '';
+    let res;
+    try { res = await cloudLoadSave(); } catch (e) { this.cloudErr = 'Không tải được dữ liệu cloud.'; return; }
+    if (!res.ok) { if (res.reason !== 'no-auth') this.cloudErr = cloudErrVi(res.reason); return; }
+    const row = res.row;
+    if (!row) { await this._cloudPushNow(); return; }            // cloud trống -> đẩy local lên
+    const tCloud = row.last_save || 0;
+    const tLocal = _loadedLastSave;                              // mốc trên ĐĨA lúc nạp (không bị autosave bump)
+    if (tCloud <= tLocal) { await this._cloudPushNow(); return; } // đĩa local mới hơn/bằng cloud -> đẩy local (cùng máy)
+    // cloud MỚI HƠN bản trên đĩa máy này:
+    if (!this.state.player || !this.state.player.created) { this._applyCloudSave(row.data); return; } // máy này mới tinh -> lấy cloud
+    const localSum = this.saveSummary(this.state); localSum.lastSave = tLocal || localSum.lastSave;   // mốc hiển thị = lúc nạp
+    this.cloudConflict = { cloud: this.saveSummary(row.data), local: localSum, _cloudData: row.data }; // lệch -> hỏi người chơi
+  },
+  useCloudSave() { const c = this.cloudConflict; if (!c) return; this.cloudConflict = null; this._applyCloudSave(c._cloudData); },
+  useLocalSave() { this.cloudConflict = null; this._cloudPushNow().then((ok) => this.showToast(ok ? 'Đã giữ bản máy này.' : (this.cloudErr || 'Đồng bộ lỗi.'))); },
+  async cloudSyncNow() { if (!this.isLoggedIn) return; const ok = await this._cloudPushNow(); this.showToast(ok ? 'Đã đồng bộ lên cloud.' : (this.cloudErr || 'Đồng bộ lỗi.')); },
+  // Gọi định kỳ (mỗi 15s) + lúc rời trang: đẩy nếu save đã đổi so với lần đẩy trước.
+  cloudAutoPushTick() {
+    if (!this.isLoggedIn || this.cloudSyncing || this.cloudConflict) return;
+    const ls = this.state.lastSave || 0;
+    if (ls > this._cloudLastPushed) this._cloudPushNow();
   },
   // ---------- Tiểu Sử (≤250 ký tự) ----------
   bioModal: false,
@@ -2102,6 +2179,10 @@ Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)
 Alpine.store('game').initCloud();           // Tài khoản/Cloud: khôi phục phiên Supabase (lazy, offline-safe)
+
+// Cloud save: tự đẩy định kỳ (15s) nếu save đã đổi + đẩy ngay khi ẩn/rời trang (best-effort).
+setInterval(() => { const s = window.Alpine?.store('game'); if (s) s.cloudAutoPushTick(); }, 15000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { const s = window.Alpine?.store('game'); if (s) s.cloudAutoPushTick(); } });
 
 // Phím F9: bật/tắt Bảng Dev/Admin (offline)
 window.addEventListener('keydown', (e) => {

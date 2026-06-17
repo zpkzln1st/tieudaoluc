@@ -4192,12 +4192,18 @@
           <div>
             <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Tài Khoản</div>
             <template x-if="$store.game.isLoggedIn">
-              <div class="flex items-center justify-between gap-2">
-                <div class="min-w-0">
-                  <div class="text-sm text-jade font-medium truncate" x-text="$store.game.authUserEmail"></div>
-                  <div class="text-[11px] text-slate-500">Đã đăng nhập · đồng bộ cloud sắp ra mắt</div>
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <div class="text-sm text-jade font-medium truncate" x-text="$store.game.authUserEmail"></div>
+                    <div class="text-[11px] text-slate-500" x-text="$store.game.cloudLastSyncText"></div>
+                  </div>
+                  <button @click="$store.game.doSignOut()" class="shrink-0 px-3 py-1.5 rounded-lg bg-ink3 border border-slate-700 hover:border-rose-500/60 text-slate-300 hover:text-rose-300 text-sm transition">Đăng xuất</button>
                 </div>
-                <button @click="$store.game.doSignOut()" class="shrink-0 px-3 py-1.5 rounded-lg bg-ink3 border border-slate-700 hover:border-rose-500/60 text-slate-300 hover:text-rose-300 text-sm transition">Đăng xuất</button>
+                <button @click="$store.game.cloudSyncNow()" :disabled="$store.game.cloudSyncing"
+                  class="w-full mt-2 px-3 py-2 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-sm font-medium transition disabled:opacity-50 disabled:cursor-wait"
+                  x-text="$store.game.cloudSyncing ? 'Đang đồng bộ…' : 'Đồng bộ ngay'"></button>
+                <template x-if="$store.game.cloudErr"><div class="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1">⚠ <span x-text="$store.game.cloudErr"></span></div></template>
               </div>
             </template>
             <template x-if="!$store.game.isLoggedIn">
@@ -4253,6 +4259,35 @@
           :class="$store.game.authBusy ? 'bg-slate-700 text-slate-500 cursor-wait' : 'bg-jade text-ink hover:bg-jade/90'"
           x-text="$store.game.authBusy ? 'Đang xử lý…' : ($store.game.authMode==='register' ? 'Tạo tài khoản' : 'Đăng nhập')"></button>
         <div class="text-[10px] text-slate-600 text-center mt-2.5">Cloud chỉ để sao lưu tiến trình — không bắt buộc để chơi.</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Modal Xung Đột Tiến Trình (cloud ↔ máy này) — bắt buộc chọn ===== -->
+  <template x-if="$store.game.cloudConflict">
+    <div class="fixed inset-0 z-[79] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div class="panel rounded-xl w-[460px] max-w-full p-5 border border-amber-500/40 shadow-2xl" @click.stop>
+        <div class="font-bold text-amber-300 flex items-center gap-2 mb-1" style="font-family:'Lora',serif"><span>⚠</span> Hai bản tiến trình khác nhau</div>
+        <div class="text-[12px] text-slate-400 mb-3">Tài khoản có bản lưu trên cloud khác với bản ở máy này. Chọn bản muốn giữ — bản còn lại sẽ bị ghi đè.</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg border border-cyan/40 bg-cyan/5 p-3">
+            <div class="text-[11px] uppercase tracking-wide text-cyan mb-1">Bản Cloud</div>
+            <div class="text-sm text-slate-200 truncate" x-text="$store.game.cloudConflict.cloud.name || 'Chưa tạo nhân vật'"></div>
+            <div class="text-[12px] text-slate-400 mt-0.5">Lv chiến đấu <b class="text-jade" x-text="$store.game.cloudConflict.cloud.combatLv"></b></div>
+            <div class="text-[11px] text-slate-500 mt-0.5" x-text="$store.game.saveTimeText($store.game.cloudConflict.cloud.lastSave)"></div>
+          </div>
+          <div class="rounded-lg border border-jade/40 bg-jade/5 p-3">
+            <div class="text-[11px] uppercase tracking-wide text-jade mb-1">Bản máy này</div>
+            <div class="text-sm text-slate-200 truncate" x-text="$store.game.cloudConflict.local.name || 'Chưa tạo nhân vật'"></div>
+            <div class="text-[12px] text-slate-400 mt-0.5">Lv chiến đấu <b class="text-jade" x-text="$store.game.cloudConflict.local.combatLv"></b></div>
+            <div class="text-[11px] text-slate-500 mt-0.5" x-text="$store.game.saveTimeText($store.game.cloudConflict.local.lastSave)"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <button @click="$store.game.useCloudSave()" class="px-3 py-2.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-sm font-bold transition">Dùng bản Cloud</button>
+          <button @click="$store.game.useLocalSave()" class="px-3 py-2.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-sm font-bold transition">Giữ bản máy này</button>
+        </div>
+        <div class="text-[10px] text-slate-600 text-center mt-2.5">"Dùng bản Cloud" sẽ tải lại trang để nạp tiến trình mới.</div>
       </div>
     </div>
   </template>
