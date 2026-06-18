@@ -66,7 +66,7 @@
       <span class="gold-text text-[1.65rem] tracking-wide leading-none select-none pb-1" style="font-family:'Lora',serif; font-weight:700">Tiêu Dao Lục</span>
     </div>
     <template x-if="$store.game.hasActivity">
-      <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-ink3 border border-slate-700 text-sm">
+      <div @click="$store.game.goToActivity()" title="Mở màn hoạt động đang làm" class="flex items-center gap-2 px-3 py-1 rounded-full bg-ink3 border border-slate-700 text-sm cursor-pointer hover:border-jade/60 transition">
         <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico($store.game.actIconId, $store.game.actIcon)"></span>
         <span class="text-jade font-medium" x-text="$store.game.actName"></span>
         <template x-if="!$store.game.actIsTravel && !$store.game.actIsDungeon"><span class="text-slate-400" x-text="'+' + $store.game.act.sessionCount"></span></template>
@@ -907,6 +907,26 @@
                 <button class="mt-2 px-3 py-1 text-xs rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-300">Đàm Đạo</button>
               </div>
             </div>
+            <!-- Đang Luyện (live) — chỉ hiện khi NGHỀ ĐANG XEM cũng là nghề đang chạy -->
+            <template x-if="$store.game.hasActivity && $store.game.act.skillId === $store.game.selectedSkill">
+              <div class="panel rounded-lg p-3 border border-jade/30">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-jade animate-pulse shrink-0"></span>
+                  <span class="lbl">Đang Luyện</span>
+                  <span class="flex-1"></span>
+                  <span class="text-[11px] text-slate-400" x-text="$store.game.actExpPerSec + ' EXP/s'"></span>
+                  <button @click="$store.game.refreshActivity()" title="Làm mới" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade text-xs">↻</button>
+                  <button @click="$store.game.stop()" title="Dừng" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 text-xs">✕</button>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico($store.game.actIconId, $store.game.actIcon)"></span>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between text-sm mb-1"><span class="font-medium truncate" x-text="$store.game.actName"></span><span class="text-jade text-xs shrink-0" x-text="'Thu được +' + $store.game.act.sessionCount"></span></div>
+                    <div class="h-2.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-jade to-cyan" :style="`width:${$store.game.actProgressPct}%`"></div></div>
+                  </div>
+                </div>
+              </div>
+            </template>
             <div class="panel rounded-lg p-3 space-y-2">
               <!-- Nghề thu thập: chỉ hiện tài nguyên của vùng đang đứng -->
               <template x-if="$store.game.currentSkillIsGather">
@@ -1296,54 +1316,55 @@
           <!-- POPUP: Suy Tính yêu thú (bấm vào quái) -->
           <template x-if="$store.game.combatModal && $store.game.combatSelObj && $store.game.combatFc[$store.game.combatSel]">
             <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(2,6,12,.72)" @click.self="$store.game.closeCombatModal()">
-              <div class="panel rounded-xl border border-jade/30 max-w-lg w-full max-h-[90vh] overflow-y-auto p-4" @click.stop>
-                <!-- Banner chân dung quái (khoe art lớn) -->
-                <div class="relative -mx-4 -mt-4 mb-3 h-56 overflow-hidden rounded-t-xl bg-gradient-to-b from-ink3 to-ink">
-                  <div class="absolute inset-0 flex items-center justify-center text-7xl opacity-25" x-text="$store.game.combatSelObj.icon"></div>
-                  <img :src="'images/enemies/'+$store.game.combatSel+'.webp'" class="absolute inset-0 w-full h-full object-cover" style="object-position:center 22%" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
-                  <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/25 to-transparent"></div>
-                  <button @click="$store.game.closeCombatModal()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 backdrop-blur-sm z-10">✕</button>
-                  <div class="absolute bottom-0 inset-x-0 p-3.5">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="text-2xl font-bold text-white" style="font-family:'Lora',serif;text-shadow:0 2px 8px rgba(0,0,0,.95)" x-text="$store.game.combatSelObj.name"></span>
-                      <span x-show="$store.game.combatSelObj.isBoss" class="text-[11px] px-2 py-0.5 rounded bg-amber-500/30 text-amber-200 font-bold border border-amber-400/50">★ BOSS</span>
+              <div class="panel relative rounded-xl border border-jade/30 max-w-lg w-full max-h-[94vh] overflow-y-auto p-4" @click.stop>
+                <!-- Nút đóng (góc phải panel) -->
+                <button @click="$store.game.closeCombatModal()" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 z-10">✕</button>
+
+                <!-- HÀNG TRÊN: 2 cột [ảnh dọc | badge + chỉ số 2×2 + tuyệt kỹ] -->
+                <div class="flex gap-3 items-stretch mb-2">
+                  <!-- Ảnh chân dung dọc -->
+                  <div class="relative w-36 shrink-0 rounded-lg overflow-hidden bg-gradient-to-b from-ink3 to-ink border border-slate-700/40">
+                    <div class="absolute inset-0 flex items-center justify-center text-6xl opacity-25" x-text="$store.game.combatSelObj.icon"></div>
+                    <img :src="'images/enemies/'+$store.game.combatSel+'.webp'" class="absolute inset-0 w-full h-full object-cover" style="object-position:center 22%" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                    <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/15 to-transparent"></div>
+                    <div class="absolute bottom-0 inset-x-0 p-2">
+                      <div class="text-lg font-bold text-white leading-tight" style="font-family:'Lora',serif;text-shadow:0 2px 8px rgba(0,0,0,.95)" x-text="$store.game.combatSelObj.name"></div>
+                      <span x-show="$store.game.combatSelObj.isBoss" class="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 font-bold border border-amber-400/50">★ BOSS</span>
                     </div>
-                    <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
+                  </div>
+                  <!-- Phải: badge + chỉ số + tuyệt kỹ -->
+                  <div class="flex-1 min-w-0 flex flex-col gap-2">
+                    <div class="flex items-center gap-1.5 flex-wrap pr-8">
                       <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-200" x-text="$store.game.combatSelObj.affinity"></span>
                       <span class="text-[10px] px-1.5 py-0.5 rounded bg-violet-900/60 text-violet-200 inline-flex items-center gap-1" title="Mỗi trận một ngũ hành khác nhau"><span x-html="$store.game.svg('zap','w-3 h-3')"></span>Ngũ hành ngẫu nhiên</span>
                     </div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                      <div class="rounded-lg bg-ink3/70 border border-slate-700/50 px-2 py-1.5 flex items-center gap-2"><span class="w-7 h-7 rounded-md bg-rose-500/15 flex items-center justify-center text-rose-400 shrink-0" x-html="$store.game.svg('heart','w-4 h-4')"></span><div class="leading-none min-w-0"><div class="text-base font-bold" x-text="$store.game.combatSelObj.hp"></div><div class="text-[9px] text-slate-500 mt-0.5">Sinh Lực</div></div></div>
+                      <div class="rounded-lg bg-ink3/70 border border-slate-700/50 px-2 py-1.5 flex items-center gap-2"><span class="w-7 h-7 rounded-md bg-orange-500/15 flex items-center justify-center text-orange-300 shrink-0" x-html="$store.game.svg('sword','w-4 h-4')"></span><div class="leading-none min-w-0"><div class="text-base font-bold" x-text="$store.game.combatSelObj.atk"></div><div class="text-[9px] text-slate-500 mt-0.5">Công</div></div></div>
+                      <div class="rounded-lg bg-ink3/70 border border-slate-700/50 px-2 py-1.5 flex items-center gap-2"><span class="w-7 h-7 rounded-md bg-slate-500/15 flex items-center justify-center text-slate-300 shrink-0" x-html="$store.game.svg('shield','w-4 h-4')"></span><div class="leading-none min-w-0"><div class="text-base font-bold" x-text="$store.game.combatSelObj.def"></div><div class="text-[9px] text-slate-500 mt-0.5">Thủ</div></div></div>
+                      <div class="rounded-lg bg-ink3/70 border border-slate-700/50 px-2 py-1.5 flex items-center gap-2"><span class="w-7 h-7 rounded-md bg-sky-500/15 flex items-center justify-center text-sky-300 shrink-0" x-html="$store.game.svg('wind','w-4 h-4')"></span><div class="leading-none min-w-0"><div class="text-base font-bold" x-text="$store.game.combatSelObj.spd"></div><div class="text-[9px] text-slate-500 mt-0.5">Tốc</div></div></div>
+                    </div>
+                    <template x-if="$store.game.combatSelObj.skill">
+                      <div class="rounded-lg bg-gradient-to-br from-rose-950/40 to-ink3/30 border border-rose-800/40 px-2.5 py-2">
+                        <div class="flex items-center gap-1.5 mb-1">
+                          <span class="w-5 h-5 rounded bg-rose-500/15 flex items-center justify-center text-rose-300 shrink-0" x-html="$store.game.svg('crack','w-3.5 h-3.5')"></span>
+                          <span class="text-[9px] uppercase tracking-wider text-rose-400/80 font-semibold">Tuyệt Kỹ</span>
+                          <span class="text-sm font-bold text-rose-200 truncate" style="font-family:'Lora',serif" x-text="$store.game.combatSelObj.skill.name"></span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                          <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-900/50 text-rose-200 font-medium" x-text="'×'+$store.game.combatSelObj.skill.mult+' sát thương'"></span>
+                          <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700/70 text-slate-300" x-text="'mỗi '+$store.game.combatSelObj.skill.cd+'s'"></span>
+                          <template x-if="$store.game.combatSelObj.skill.slow"><span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-900/60 text-sky-200">làm chậm</span></template>
+                        </div>
+                      </div>
+                    </template>
                   </div>
                 </div>
-                <div class="text-[11px] text-slate-400 italic mb-3 -mt-1" x-text="$store.game.combatSelObj.lore"></div>
-
-                <!-- Chỉ số yêu thú -->
-                <div class="lbl mb-1.5">Chỉ số yêu thú</div>
-                <div class="grid grid-cols-4 gap-2 text-center mb-2.5">
-                  <div class="rounded-lg bg-ink3/70 border border-slate-700/50 py-2"><div class="w-7 h-7 mx-auto rounded-md bg-rose-500/15 flex items-center justify-center text-rose-400 mb-1" x-html="$store.game.svg('heart','w-4 h-4')"></div><div class="text-base font-bold leading-none" x-text="$store.game.combatSelObj.hp"></div><div class="text-[9px] text-slate-500 mt-0.5">Sinh Lực</div></div>
-                  <div class="rounded-lg bg-ink3/70 border border-slate-700/50 py-2"><div class="w-7 h-7 mx-auto rounded-md bg-orange-500/15 flex items-center justify-center text-orange-300 mb-1" x-html="$store.game.svg('sword','w-4 h-4')"></div><div class="text-base font-bold leading-none" x-text="$store.game.combatSelObj.atk"></div><div class="text-[9px] text-slate-500 mt-0.5">Công</div></div>
-                  <div class="rounded-lg bg-ink3/70 border border-slate-700/50 py-2"><div class="w-7 h-7 mx-auto rounded-md bg-slate-500/15 flex items-center justify-center text-slate-300 mb-1" x-html="$store.game.svg('shield','w-4 h-4')"></div><div class="text-base font-bold leading-none" x-text="$store.game.combatSelObj.def"></div><div class="text-[9px] text-slate-500 mt-0.5">Thủ</div></div>
-                  <div class="rounded-lg bg-ink3/70 border border-slate-700/50 py-2"><div class="w-7 h-7 mx-auto rounded-md bg-sky-500/15 flex items-center justify-center text-sky-300 mb-1" x-html="$store.game.svg('wind','w-4 h-4')"></div><div class="text-base font-bold leading-none" x-text="$store.game.combatSelObj.spd"></div><div class="text-[9px] text-slate-500 mt-0.5">Tốc</div></div>
-                </div>
-
-                <!-- Tuyệt kỹ quái (card riêng) -->
-                <template x-if="$store.game.combatSelObj.skill">
-                  <div class="rounded-lg bg-gradient-to-br from-rose-950/40 to-ink3/30 border border-rose-800/40 px-3 py-2.5 mb-2.5">
-                    <div class="flex items-center gap-2 mb-1">
-                      <span class="w-6 h-6 rounded-md bg-rose-500/15 flex items-center justify-center text-rose-300 shrink-0" x-html="$store.game.svg('crack','w-3.5 h-3.5')"></span>
-                      <span class="text-[9px] uppercase tracking-wider text-rose-400/80 font-semibold">Tuyệt Kỹ</span>
-                      <span class="text-sm font-bold text-rose-200" style="font-family:'Lora',serif" x-text="$store.game.combatSelObj.skill.name"></span>
-                    </div>
-                    <div class="text-[11px] text-slate-400 italic leading-snug mb-1.5" x-text="$store.game.combatSelObj.skill.fl"></div>
-                    <div class="flex flex-wrap gap-1.5">
-                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-900/50 text-rose-200 font-medium" x-text="'×'+$store.game.combatSelObj.skill.mult+' sát thương'"></span>
-                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700/70 text-slate-300" x-text="'thi triển mỗi '+$store.game.combatSelObj.skill.cd+'s'"></span>
-                      <template x-if="$store.game.combatSelObj.skill.slow"><span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-900/60 text-sky-200">làm chậm ngươi</span></template>
-                    </div>
-                  </div>
-                </template>
+                <!-- Lore -->
+                <div class="text-[11px] text-slate-400 italic mb-2" x-text="$store.game.combatSelObj.lore"></div>
 
                 <!-- Khắc/kháng ngũ hành -->
-                <div class="rounded-lg bg-ink3/40 border border-slate-700/40 px-3 py-2 mb-3">
+                <div class="rounded-lg bg-ink3/40 border border-slate-700/40 px-3 py-2 mb-2">
                   <div class="text-[11px] flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                     <span class="text-slate-500">Hệ Tâm Pháp của ngươi:</span><b :class="$store.game.heInfo($store.game.combatStats.heChinh).text" x-text="$store.game.heName($store.game.combatStats.heChinh)"></b>
                     <template x-if="$store.game.myHeMatchup.khac.length"><span class="text-slate-400">· khắc <b class="text-rose-300" x-text="$store.game.myHeMatchup.khacNames"></b> <span class="text-rose-300/70">(+30% ST)</span></span></template>
@@ -1353,101 +1374,72 @@
                 </div>
 
                 <!-- ===== Phần thưởng mỗi con (thiết kế giàu) ===== -->
-                <div class="flex items-center gap-2 mb-2.5">
-                  <span class="text-amber-400/80 shrink-0" x-html="$store.game.svg('gem','w-4 h-4')"></span>
+                <div class="flex items-center gap-2 mb-2">
                   <span class="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-300">Phần thưởng mỗi con</span>
                   <div class="flex-1 h-px bg-gradient-to-r from-amber-500/30 via-slate-700/40 to-transparent"></div>
                 </div>
-                <!-- EXP + Bạc (emblem tròn) -->
-                <div class="grid grid-cols-2 gap-2.5 mb-3">
-                  <div class="relative rounded-xl overflow-hidden border border-emerald-700/30 bg-gradient-to-br from-emerald-950/40 to-ink3/30 px-3 py-2.5 flex items-center gap-2.5" style="box-shadow:inset 0 0 24px rgba(0,0,0,.25)">
-                    <div class="relative w-[4.5rem] h-[4.5rem] shrink-0 flex items-center justify-center" style="filter:drop-shadow(0 0 9px rgba(16,185,129,.35))">
-                      <span class="text-emerald-200 font-black text-xl" style="font-family:'Lora',serif">XP</span>
+                <!-- EXP + Bạc (gọn) -->
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                  <div class="relative rounded-lg overflow-hidden border border-emerald-700/30 bg-gradient-to-br from-emerald-950/40 to-ink3/30 px-2.5 py-1.5 flex items-center gap-2" style="box-shadow:inset 0 0 18px rgba(0,0,0,.25)">
+                    <div class="relative w-10 h-10 shrink-0 flex items-center justify-center" style="filter:drop-shadow(0 0 6px rgba(16,185,129,.35))">
+                      <span class="text-emerald-200 font-black text-sm" style="font-family:'Lora',serif">XP</span>
                       <img src="images/ui/exp.webp" class="absolute inset-0 w-full h-full object-contain" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                     </div>
                     <div class="min-w-0">
                       <div class="text-[9px] uppercase tracking-[0.14em] text-emerald-400/70 font-semibold">Kinh Nghiệm</div>
-                      <div class="text-emerald-300 font-black text-2xl leading-tight" x-text="'+'+$store.game.fmt(($store.game.harvestEstimate||{}).expPer||0)"></div>
+                      <div class="text-emerald-300 font-black text-xl leading-tight" x-text="'+'+$store.game.fmt(($store.game.harvestEstimate||{}).expPer||0)"></div>
                     </div>
                   </div>
-                  <div class="relative rounded-xl overflow-hidden border border-amber-700/30 bg-gradient-to-br from-amber-950/40 to-ink3/30 px-3 py-2.5 flex items-center gap-2.5" style="box-shadow:inset 0 0 24px rgba(0,0,0,.25)">
-                    <div class="relative w-[4.5rem] h-[4.5rem] shrink-0 flex items-center justify-center" style="filter:drop-shadow(0 0 9px rgba(245,158,11,.35))">
+                  <div class="relative rounded-lg overflow-hidden border border-amber-700/30 bg-gradient-to-br from-amber-950/40 to-ink3/30 px-2.5 py-1.5 flex items-center gap-2" style="box-shadow:inset 0 0 18px rgba(0,0,0,.25)">
+                    <div class="relative w-10 h-10 shrink-0 flex items-center justify-center" style="filter:drop-shadow(0 0 6px rgba(245,158,11,.35))">
                       <span class="w-full h-full flex items-center justify-center" x-html="$store.game.ico('bac','🟡')"></span>
                     </div>
                     <div class="min-w-0">
                       <div class="text-[9px] uppercase tracking-[0.14em] text-amber-400/70 font-semibold">Bạc</div>
-                      <div class="text-gold font-black text-2xl leading-tight" x-text="'+'+$store.game.fmt(($store.game.harvestEstimate||{}).bacPer||0)"></div>
+                      <div class="text-gold font-black text-xl leading-tight" x-text="'+'+$store.game.fmt(($store.game.harvestEstimate||{}).bacPer||0)"></div>
                     </div>
                   </div>
                 </div>
-                <!-- Vật phẩm rơi (khung độ hiếm + mô tả) -->
+                <!-- Vật phẩm rơi — khung CỐ ĐỊNH 2 cột × 2 hàng (4 món); >4 cuộn TRONG khung, popup không phình -->
                 <template x-if="($store.game.combatSelObj.loot||[]).length">
                   <div class="mb-3">
-                    <div class="flex items-center justify-between mb-2">
-                      <div class="flex items-center gap-1.5"><span class="text-amber-400/70" x-html="$store.game.svg('collect','w-3.5 h-3.5')"></span><span class="text-[11px] uppercase tracking-[0.15em] font-semibold text-slate-300">Vật phẩm rơi</span></div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-[11px] uppercase tracking-[0.15em] font-semibold text-slate-300">Vật phẩm rơi</span>
                       <span class="text-[9px] uppercase tracking-wide text-slate-500">Tỷ lệ rơi</span>
                     </div>
-                    <div class="space-y-2">
+                    <div class="rounded-lg border border-slate-800/70 bg-ink/30 p-1.5 grid grid-cols-2 gap-1.5 content-start overflow-y-auto" style="max-height:118px">
                       <template x-for="l in ($store.game.combatSelObj.loot||[])" :key="l.itemId">
-                        <div class="rounded-lg border bg-gradient-to-r px-2.5 py-2 flex items-center gap-3" :class="$store.game.itemQuality(l.itemId).border+' '+$store.game.itemQuality(l.itemId).grad">
-                          <div class="w-14 h-14 rounded-lg border-2 flex items-center justify-center shrink-0 bg-ink/50" :class="$store.game.itemQuality(l.itemId).border">
-                            <span class="w-11 h-11 flex items-center justify-center text-2xl" style="filter:drop-shadow(0 1px 4px rgba(0,0,0,.55))" x-html="$store.game.ico(l.itemId, ($store.game.ITEMS[l.itemId]||{}).icon||'❓')"></span>
+                        <div class="rounded-md bg-ink3/60 border-l-[3px] pl-2 pr-2 py-1.5 flex items-center gap-2 h-[44px]" :class="$store.game.itemQuality(l.itemId).border" :title="$store.game.itemDescOf(l.itemId)">
+                          <div class="w-9 h-9 rounded-md bg-ink/50 flex items-center justify-center shrink-0">
+                            <span class="w-7 h-7 flex items-center justify-center text-base" style="filter:drop-shadow(0 1px 4px rgba(0,0,0,.55))" x-html="$store.game.ico(l.itemId, ($store.game.ITEMS[l.itemId]||{}).icon||'❓')"></span>
                           </div>
                           <div class="min-w-0 flex-1">
-                            <div class="font-bold text-[14px] text-slate-100 truncate" style="font-family:'Lora',serif" x-text="($store.game.ITEMS[l.itemId]||{}).name||l.itemId"></div>
-                            <div class="mt-0.5 mb-1"><span class="text-[8.5px] px-1.5 py-0.5 rounded uppercase tracking-wide font-bold border bg-ink/40" :class="$store.game.itemQuality(l.itemId).text+' '+$store.game.itemQuality(l.itemId).border" x-text="$store.game.itemQuality(l.itemId).name"></span></div>
-                            <div class="text-[10.5px] text-slate-400 leading-snug" x-text="$store.game.itemDescOf(l.itemId)"></div>
-                          </div>
-                          <div class="shrink-0 text-right pl-1">
-                            <div class="text-xl font-black leading-none" :class="$store.game.itemQuality(l.itemId).text" x-text="Math.round(l.chance*100)+'%'"></div>
-                            <div class="text-[10px] mt-1 opacity-50" :class="$store.game.itemQuality(l.itemId).text">◆</div>
+                            <div class="flex items-center justify-between gap-1">
+                              <span class="font-bold text-[12px] text-slate-100 truncate" style="font-family:'Lora',serif" x-text="($store.game.ITEMS[l.itemId]||{}).name||l.itemId"></span>
+                              <span class="text-sm font-black leading-none shrink-0" :class="$store.game.itemQuality(l.itemId).text" x-text="Math.round(l.chance*100)+'%'"></span>
+                            </div>
+                            <span class="text-[9px] font-bold uppercase tracking-wide" :class="$store.game.itemQuality(l.itemId).text" x-text="$store.game.itemQuality(l.itemId).name"></span>
                           </div>
                         </div>
                       </template>
                     </div>
                   </div>
                 </template>
-                <!-- Ghi chú -->
-                <div class="rounded-lg bg-ink3/40 border border-slate-700/40 px-3 py-2 mb-3 flex items-center gap-2 text-[10.5px] text-slate-400">
-                  <span class="text-slate-500 shrink-0" x-html="$store.game.svg('info','w-3.5 h-3.5')"></span>
-                  Tỷ lệ rơi tính cho mỗi con yêu thú bị hạ — ngũ hành ngẫu nhiên không ảnh hưởng vật phẩm.
-                </div>
-
-                <!-- Dự báo mỗi trận -->
-                <div class="lbl mb-1.5">Dự báo mỗi trận</div>
-                <div class="grid grid-cols-4 gap-2 text-center mb-3">
-                  <div class="rounded bg-ink3 py-1.5"><div class="text-[9px] text-slate-500">Thời gian/con</div><div class="text-sm font-semibold" x-text="$store.game.combatRoundSec+'s'"></div></div>
-                  <div class="rounded bg-ink3 py-1.5"><div class="text-[9px] text-slate-500">Sát thương ra</div><div class="text-sm font-semibold text-orange-300" x-text="$store.game.combatFc[$store.game.combatSel].dps+'/s'"></div></div>
-                  <div class="rounded bg-ink3 py-1.5"><div class="text-[9px] text-slate-500">Sinh Lực mất/con</div><div class="text-sm font-semibold" :class="$store.game.combatFc[$store.game.combatSel].hpLostPerKill>0?'text-rose-300':'text-jade'" x-text="$store.game.combatFc[$store.game.combatSel].hpLostPerKill>0?('-'+$store.game.combatFc[$store.game.combatSel].hpLostPerKill):'0'"></div></div>
-                  <div class="rounded bg-ink3 py-1.5"><div class="text-[9px] text-slate-500">Sức trụ</div><div class="text-sm font-semibold" x-text="$store.game.combatFc[$store.game.combatSel].endure"></div></div>
-                </div>
-
-                <!-- Dự tính theo giờ -->
-                <template x-if="$store.game.harvestEstimate">
-                  <div class="mb-3">
-                    <div class="lbl mb-1.5 flex items-center gap-1.5"><span x-html="$store.game.svg('trend','w-3.5 h-3.5')"></span>Dự tính khi cày liên tục</div>
-                    <div class="space-y-1.5 text-sm rounded bg-ink3/50 px-3 py-2">
-                      <div class="flex justify-between items-center"><span class="text-slate-400 flex items-center gap-1.5"><span class="text-amber-300" x-html="$store.game.svg('star','w-3.5 h-3.5')"></span>EXP / giờ</span><b class="text-jade" x-text="$store.game.fmt($store.game.harvestEstimate.expH)"></b></div>
-                      <div class="flex justify-between items-center"><span class="text-slate-400 flex items-center gap-1.5"><span class="text-gold" x-html="$store.game.svg('coin','w-3.5 h-3.5')"></span>Bạc / giờ</span><b class="text-gold" x-text="$store.game.fmt($store.game.harvestEstimate.bacH)"></b></div>
-                      <div class="flex justify-between items-center"><span class="text-slate-400 flex items-center gap-1.5"><span class="text-rose-300" x-html="$store.game.svg('sword','w-3.5 h-3.5')"></span>Kill / giờ</span><b class="text-slate-200" x-text="$store.game.fmt($store.game.harvestEstimate.killH)"></b></div>
-                      <div class="flex justify-between items-center pt-1.5 border-t border-slate-800"><span class="text-slate-400 flex items-center gap-1.5"><span class="text-rose-400" x-html="$store.game.svg('heart','w-3.5 h-3.5')"></span>Tỉ lệ sống sót</span><b :class="$store.game.harvestEstimate.survival>=90?'text-jade':($store.game.harvestEstimate.survival>=60?'text-amber-300':'text-rose-400')" x-text="$store.game.harvestEstimate.survival+'%'"></b></div>
-                      <div class="flex justify-between items-center"><span class="text-slate-400 flex items-center gap-1.5"><span class="text-sky-300" x-html="$store.game.svg('clock','w-3.5 h-3.5')"></span>Thời gian trụ</span><b class="text-slate-200" x-text="$store.game.harvestEstimate.endure"></b></div>
-                    </div>
-                  </div>
-                </template>
-
                 <!-- Giao Chiến -->
                 <button @click="$store.game.fight($store.game.combatSel); $store.game.closeCombatModal()" :disabled="$store.game.combatNoiThuong" class="w-full py-2.5 rounded-lg text-sm font-bold transition inline-flex items-center justify-center gap-1.5" :class="$store.game.combatNoiThuong?'bg-slate-800 text-slate-600':'bg-jade/80 hover:bg-jade text-ink'"><span x-html="$store.game.svg('sword','w-4 h-4')"></span>Giao Chiến</button>
               </div>
             </div>
           </template>
 
-          <!-- Trọng thương -> về thành -->
+          <!-- Suy yếu -> tự hồi phục (không thao tác) -->
           <template x-if="$store.game.combatNoiThuong">
-            <div class="panel rounded-lg p-3 border border-rose-700/50 bg-rose-900/15 flex items-center gap-3">
-              <span class="shrink-0 text-rose-400" x-html="$store.game.svg('crack','w-7 h-7')"></span>
-              <div class="flex-1 text-sm text-rose-200"><b>Trọng Thương!</b> Ngươi đã bị hạ — chỉ số −25%. Hãy về thành điều dưỡng.</div>
-              <button @click="$store.game.returnTown()" class="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold bg-rose-600/80 hover:bg-rose-500 text-white"><span x-html="$store.game.svg('home','w-4 h-4')"></span>Về Thành Dưỡng Sức</button>
+            <div class="panel rounded-lg p-3 border border-rose-700/50 bg-rose-900/15">
+              <div class="flex items-center gap-3">
+                <span class="shrink-0 text-rose-400" x-html="$store.game.svg('crack','w-7 h-7')"></span>
+                <div class="flex-1 text-sm text-rose-200"><b>Suy Yếu!</b> Ngươi đã bị hạ — Sinh Lực đang tự hồi phục, đầy mới chiến đấu tiếp được.</div>
+                <span class="shrink-0 text-2xl font-bold text-rose-200 tabular-nums" x-text="$store.game.suyYeuRemainSec + 's'"></span>
+              </div>
+              <div class="mt-2.5 h-2.5 rounded-full bg-ink3 overflow-hidden"><div class="h-full bg-rose-400 transition-all" :style="'width:'+$store.game.combatHpPct+'%'"></div></div>
             </div>
           </template>
 
@@ -1671,18 +1663,6 @@
                   </button>
                 </div>
                 <div class="text-[10px] text-slate-500 mt-2 text-center leading-snug">Tự dùng khi Sinh Lực / Nội Lực dưới <b class="text-amber-300">25%</b>.</div>
-              </section>
-
-              <!-- Túi -->
-              <section class="panel rounded-lg p-3">
-                <div class="text-jade font-bold text-sm mb-2 flex items-center gap-1.5"><span x-html="$store.game.svg('bag','w-4 h-4')"></span>Túi Chiến Lợi Phẩm</div>
-                <div class="text-xs space-y-1">
-                  <div class="flex justify-between"><span class="text-slate-400">Bạc</span><b class="text-gold" x-text="$store.game.fmt($store.game.combatPending.bac)"></b></div>
-                  <template x-for="(n,it) in $store.game.combatPending.items" :key="it"><div class="flex justify-between"><span class="text-slate-400" x-text="$store.game.ITEMS[it]?$store.game.ITEMS[it].name:it"></span><b x-text="'×'+n"></b></div></template>
-                  <template x-if="$store.game.combatPendingEmpty"><div class="text-slate-600 text-[11px]">— trống —</div></template>
-                </div>
-                <button @click="$store.game.collectLoot()" :disabled="$store.game.combatPendingEmpty" class="w-full mt-2 px-3 py-1.5 rounded-lg text-sm bg-jade/80 hover:bg-jade text-ink font-medium disabled:opacity-40 inline-flex items-center justify-center gap-1.5"><span x-html="$store.game.svg('collect','w-4 h-4')"></span>Thu Hoạch</button>
-                <div class="text-[10px] text-slate-600 mt-1.5">Gục → mất 40% túi. Dừng/đổi → tự nhập kho.</div>
               </section>
 
               <!-- Tiến Độ -->
@@ -3740,7 +3720,22 @@
           <div class="flex flex-wrap justify-center gap-1.5 mt-2 text-[11px]">
             <span class="px-2 py-0.5 rounded bg-ink3" x-text="'Lv ' + $store.game.modalAction.reqLevel"></span>
             <span class="px-2 py-0.5 rounded bg-ink3" x-text="$store.game.modalAction.time + ' giây'"></span>
-            <span class="px-2 py-0.5 rounded bg-ink3 text-jade" x-text="'+' + $store.game.modalAction.xp + ' EXP'"></span>
+          </div>
+        </div>
+        <!-- Nhận mỗi lần làm: EXP nghề + EXP Tứ Trụ -->
+        <div class="mt-3">
+          <div class="lbl mb-1.5">Nhận mỗi lần</div>
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs px-2.5 py-1.5 rounded bg-ink3">
+              <span class="flex items-center gap-2 text-slate-200"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico($store.game.modalSkill.id, $store.game.modalSkill.icon)"></span><span x-text="$store.game.modalSkill.name"></span></span>
+              <b class="text-jade" x-text="'+' + $store.game.modalAction.xp + ' EXP'"></b>
+            </div>
+            <template x-for="st in $store.game.modalStatGains" :key="st.name">
+              <div class="flex items-center justify-between text-xs px-2.5 py-1.5 rounded bg-ink3">
+                <span class="text-slate-300"><span x-text="st.name"></span> <span class="text-slate-500" x-text="'(' + st.gloss + ')'"></span></span>
+                <b class="text-amber-300" x-text="'+' + st.xp + ' EXP'"></b>
+              </div>
+            </template>
           </div>
         </div>
         <!-- ===== Linh Thạch (buff per-skill) ===== -->
@@ -3814,7 +3809,6 @@
             </div>
           </div>
         </template>
-        <div class="mt-3 text-xs text-slate-400">Có thể thực hiện <b class="text-slate-200" x-text="$store.game.maxTimes($store.game.modalAction)"></b> lần.</div>
         <div class="flex gap-2 mt-4">
           <button class="flex-1 py-2 rounded bg-ink3 border border-slate-700 text-sm text-slate-400">Xem</button>
           <button @click="$store.game.startFromModal()"

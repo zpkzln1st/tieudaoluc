@@ -14,6 +14,9 @@ _backup/
 # File server/dev tạm (tự sinh khi verify)
 _devserver.ps1
 
+# Mockup UI nháp (xem trước khi code, không vào repo)
+_mockup/
+
 # OS / editor junk
 Thumbs.db
 .DS_Store

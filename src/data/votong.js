@@ -336,8 +336,8 @@ export function starterLoadoutFor(tamPhapId){
 export function deriveCombat(state, loadout, opts){
   const d = derivedStats(state);
   const sl = (id)=>levelFromXp(state.stats?.[id]?.xp || 0);
-  // Trọng thương (−25%) chỉ áp cho combat thường; trận Yêu Vương dùng hệ dưỡng thương riêng → bỏ qua khi opts.ignoreNoiThuong
-  const nt = (state.combat && state.combat.noiThuong && !(opts && opts.ignoreNoiThuong)) ? 0.75 : 1;
+  // Suy yếu KHÔNG debuff chỉ số (người chơi tự hồi đầy HP rồi mới đánh tiếp) — giữ nt=1 để không phải sửa công thức dưới.
+  const nt = 1;
   const tp = tamPhapById(loadout && loadout.tamPhap);
   const heChinh = tp.he, tamPhapHeBonus = tp.heBonus || 0;
   let regenPct = 0;

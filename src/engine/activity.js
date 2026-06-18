@@ -73,7 +73,6 @@ export function startActivity(state, skillId, actionId, now) {
   const action = getAction(skillId, actionId);
   if (!action) return false;
   if (!canStartAction(state, skillId, action)) return false;
-  if (state.activity && state.activity.type === 'combat') bankPending(state);
   state.activity = {
     type: 'skill', skillId, actionId,
     cycleMs: Math.max(1, Math.round(action.time * 1000 / (professionEffMult(state, skillId) + toolEffBonus(state, skillId)))), // Nghề + Công cụ: nhanh hơn
@@ -85,22 +84,12 @@ export function startActivity(state, skillId, actionId, now) {
   return true;
 }
 
-// ---- Túi Chiến Lợi Phẩm: nhập kho an toàn (dừng/đổi/thắng) ----
-export function bankPending(state) {
-  const pend = state.combat && state.combat.pending;
-  if (!pend) return;
-  if (pend.bac) state.currencies.bac = (state.currencies.bac || 0) + pend.bac;
-  for (const k in pend.items) addItem(state, k, pend.items[k]);
-  state.combat.pending = { exp: 0, bac: 0, items: {} };
-}
-// ---- Trọng Thương: mất 40% túi, nhập 60% còn lại, dính Nội Thương ----
-function applyDeathCombat(state) {
-  const pend = state.combat.pending;
-  pend.bac = Math.round((pend.bac || 0) * 0.6);
-  for (const k in pend.items) pend.items[k] = Math.floor(pend.items[k] * 0.6);
-  bankPending(state); // nhập 60% còn lại
+// ---- Gục -> Suy Yếu: HP=0, tự hồi đầy trong 60s rồi mới đánh tiếp. KHÔNG mất đồ (loot vào kho ngay mỗi kill). ----
+export const SUY_YEU_MS = 60000;
+function applyDeathCombat(state, now) {
   state.combat.noiThuong = true;
   state.combat.sinhLuc = 0;
+  state.combat.suyYeuUntil = now + SUY_YEU_MS;
 }
 
 // ---- Tự dùng hồi Sinh Lực khi máu < 25%: ưu tiên Món Ăn, hết món thì dùng Đan hồi máu. Trả 0/1. ----
@@ -135,7 +124,6 @@ export function startCombat(state, enemyId, now) {
   if (!enemy) return false;
   if (levelFromXp(state.skills['chienDau']?.xp || 0) < enemy.reqLevel) return false;
   if (state.combat.noiThuong) return false; // phải về thành dưỡng sức trước
-  if (state.activity && state.activity.type === 'combat') bankPending(state);
   const profile = combatProfile(state, state.combat.loadout, enemy);
   state.combat.sinhLuc = profile.maxHP; // vào trận đầy Sinh Lực
   state.combat.noiLuc = null;           // Nội Lực đầy khi bắt đầu phiên (sau đó trôi qua các trận)
@@ -155,7 +143,6 @@ export function startCombat(state, enemyId, now) {
 export function startTravel(state, toId, now) {
   const fromId = state.player.location;
   if (!toId || toId === fromId) return false;
-  if (state.activity && state.activity.type === 'combat') bankPending(state);
   state.activity = {
     type: 'travel', fromId, toId,
     cycleMs: travelTimeMs(fromId, toId),   // tổng thời gian đi
@@ -170,7 +157,6 @@ export function startDungeon(state, dungeonId, mode, now) {
   const D = DUNGEON_BY_ID[dungeonId];
   if (!D) return false;
   if (levelFromXp(state.skills['chienDau']?.xp || 0) < D.reqLevel) return false;
-  if (state.activity && state.activity.type === 'combat') bankPending(state);
   const treo = mode === 'treo';
   state.activity = {
     type: 'dungeon', dungeonId, mode: treo ? 'treo' : 'nhanh',
@@ -181,7 +167,7 @@ export function startDungeon(state, dungeonId, mode, now) {
   return true;
 }
 
-export function stopActivity(state) { if (state.activity && state.activity.type === 'combat') bankPending(state); state.activity = null; }
+export function stopActivity(state) { state.activity = null; }
 
 // ---- Tiến độ + trao thưởng ----
 export function advance(state, now) {
@@ -248,8 +234,8 @@ export function advance(state, now) {
         if (hp > 0) cb.sinhLuc -= hp;
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
-        if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul) cb.pending.items[l.itemId] = (cb.pending.items[l.itemId] || 0) + 1; }
-        cb.pending.bac += Math.round(bacPer * moneyMul);   // loot + Bạc -> túi tạm (mất 40% nếu gục)
+        if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul) addItem(state, l.itemId, 1); }
+        state.currencies.bac = (state.currencies.bac || 0) + Math.round(bacPer * moneyMul);   // loot + Bạc -> THẲNG vào kho mỗi kill
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;
       }
@@ -259,7 +245,7 @@ export function advance(state, now) {
       act.sessionCount += done;
       act.lastResolved += done * act.cycleMs;
       report = { cycles: done, itemId: null, xp: done * gainXp };
-      if (died) { applyDeathCombat(state); state.activity = null; return report; }
+      if (died) { applyDeathCombat(state, now); state.activity = null; return report; }
     }
   } else {
     const skill = SKILLS[act.skillId];

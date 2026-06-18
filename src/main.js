@@ -16,7 +16,7 @@ import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.
 import { createInitialState } from './engine/state.js';
 import { Storage } from './engine/save.js';
 import {
-  startActivity, startCombat, startTravel, stopActivity, bankPending, advance, getAction, idleCapMs,
+  startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS,
   canStartAction, inputStatus, startDungeon, autoEatTick, autoDanNL,
 } from './engine/activity.js';
 import { deriveCombat, combatProfile, simFight, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, TIER_STYLE, tierStyle } from './data/votong.js';
@@ -102,7 +102,7 @@ if (!state.quests.daily) state.quests.daily = { period: null, list: [] };
 if (!state.quests.weekly) state.quests.weekly = { period: null, list: [] };
 if (!state.quests.monthly) state.quests.monthly = { period: null, list: [] };
 if (!state.linhThach) state.linhThach = {};
-if (!state.combat) state.combat = { sinhLuc: null, noiThuong: false, loadout: { tamPhap: 'viemDuong', boPhap: ['tanToc'], chieu: ['lhd', 'htd', 'ptd'] }, pending: { exp: 0, bac: 0, items: {} } };
+if (!state.combat) state.combat = { sinhLuc: null, noiThuong: false, suyYeuUntil: 0, loadout: { tamPhap: 'viemDuong', boPhap: ['tanToc'], chieu: ['lhd', 'htd', 'ptd'] } };
 if (state.combat.petHp === undefined) { state.combat.petHp = null; state.combat.petFainted = false; } // Linh Thú P4: HP pet + ngất (per phiên)
 if (!state.combat.loadout) state.combat.loadout = { tamPhap: 'viemDuong', boPhap: ['tanToc'], chieu: ['lhd', 'htd', 'ptd'] };
 if (typeof state.combat.loadout.boPhap === 'string') state.combat.loadout.boPhap = [state.combat.loadout.boPhap]; // cũ: 1 chuỗi -> mảng
@@ -120,7 +120,7 @@ if (Array.isArray(state.combat.loadout.chieu)) {
 }
 // Sở hữu võ học (Bước 6): trường mới — vá save cũ bằng cách cấp sở hữu cho mọi thứ ĐANG lắp + bộ nhập môn.
 state.combat.owned = normOwned(state.combat);
-if (!state.combat.pending) state.combat.pending = { exp: 0, bac: 0, items: {} };
+if (state.combat.suyYeuUntil == null) state.combat.suyYeuUntil = 0;
 // Ô Món Ăn + Ô Đan (tự dùng khi < 25%) — trường mới, vá save cũ
 if (state.combat.luongThuc === undefined) state.combat.luongThuc = null;
 if (state.combat.dan === undefined) state.combat.dan = null;
@@ -294,6 +294,14 @@ const gameStore = {
   // ---------- Điều hướng ----------
   navTo(view) { this.view = view; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   navToSkill(id) { this.view = 'skill'; this.selectedSkill = id; const _s = this.skillSubTabsFor(id); if (_s) this.skillTab = _s[0].k; document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  // Bấm chip hoạt động ở header -> nhảy vào đúng màn của hoạt động đang chạy
+  goToActivity() {
+    const a = this.state.activity; if (!a) return;
+    if (a.type === 'combat') this.navTo('combat');
+    else if (a.type === 'dungeon') this.navTo('dungeon');
+    else if (a.type === 'travel') this.navTo('map');
+    else if (a.skillId) this.navToSkill(a.skillId);
+  },
   toggleGroup(title) { this.groupsOpen[title] = !this.groupsOpen[title]; },
   selectSkill(id) { this.selectedSkill = id; },
   setProfileTab(t) { this.profileTab = t; },
@@ -1124,6 +1132,15 @@ const gameStore = {
   closeAction() { this.actionModal = null; },
   get modalSkill() { return this.actionModal ? this.SKILLS[this.actionModal.skillId] : null; },
   get modalAction() { return this.actionModal ? getAction(this.actionModal.skillId, this.actionModal.actionId) : null; },
+  // EXP chỉ số phụ (Tứ Trụ) nhận MỖI LẦN làm hành động — vd Đào Khoáng = Lực Đạo (Sức Mạnh) + Hộ Thể.
+  get modalStatGains() {
+    const sk = this.modalSkill, a = this.modalAction;
+    if (!sk || !a || !a.statXp) return [];
+    const out = [];
+    if (sk.stat && STATS[sk.stat]) out.push({ name: STATS[sk.stat].name, gloss: STATS[sk.stat].gloss, xp: a.statXp });
+    if (sk.stat2 && STATS[sk.stat2]) out.push({ name: STATS[sk.stat2].name, gloss: STATS[sk.stat2].gloss, xp: a.statXp });
+    return out;
+  },
   maxTimes(action) {
     if (!action.inputs || !action.inputs.length) return '∞';
     let m = Infinity;
@@ -1638,11 +1655,18 @@ const gameStore = {
   get maxChieuSlots() { return maxChieuSlots(this.combatLevel); },
   get nextSlotLevel() { return nextSlotLevel(this.combatLevel); },
   get chieuSlotsUsed() { return this.loadout.chieu.length; },
-  get combatSinhLuc() { const s = this.state.combat.sinhLuc; return s == null ? this.combatMaxHp : Math.max(0, Math.min(s, this.combatMaxHp)); },
+  get combatSinhLuc() {
+    void this._cycleNow;                                  // nudge: rafLoop bơm _cycleNow lúc suy yếu -> thanh HP hồi mượt
+    const c = this.state.combat;
+    if (c.noiThuong && c.suyYeuUntil) {                   // suy yếu: HP hồi tuyến tính 0 -> đầy trong 60s
+      const frac = Math.max(0, Math.min(1, 1 - (c.suyYeuUntil - now()) / SUY_YEU_MS));
+      return Math.round(this.combatMaxHp * frac);
+    }
+    const s = c.sinhLuc;
+    return s == null ? this.combatMaxHp : Math.max(0, Math.min(s, this.combatMaxHp));
+  },
   get combatHpPct() { return this.combatMaxHp ? this.combatSinhLuc / this.combatMaxHp * 100 : 0; },
   get combatNoiThuong() { return this.state.combat.noiThuong; },
-  get combatPending() { return this.state.combat.pending; },
-  get combatPendingEmpty() { return !this.combatPending.bac && !Object.keys(this.combatPending.items).length; },
   get combatSelObj() { return this.combatSel ? this.ENEMIES[this.combatSel] : null; },
   boPhapName(id) { return boPhapById(id).name; },
   get boPhapSel() { return normBoPhap(this.loadout); },          // mảng 1-2 id đang chọn
@@ -1693,11 +1717,12 @@ const gameStore = {
     return Math.max(1, Math.round(d));
   },
   fight(id) {
-    if (this.combatNoiThuong) { this.showToast('Phải về thành dưỡng sức trước'); return; }
+    if (this.combatNoiThuong) { this.showToast('Đang suy yếu — chờ hồi phục đầy Sinh Lực.'); return; }
     if (startCombat(this.state, id, now())) { this.chienBao = []; this._cycleStart = 0; this._cycleNow = now(); this._nlNow = null; this._roundNo = 0; Storage.save(this.state); }
   },
-  collectLoot() { bankPending(this.state); Storage.save(this.state); this.showToast('Đã thu chiến lợi phẩm vào kho.'); },
-  returnTown() { this.state.combat.noiThuong = false; this.state.combat.sinhLuc = null; this.state.combat.noiLuc = null; Storage.save(this.state); this.showToast('🏯 Về thành điều dưỡng — vết thương lành, Sinh Lực & Nội Lực hồi phục.'); },
+  // Suy yếu: số giây hồi phục còn lại (banner đếm ngược). HP% lấy từ combatHpPct.
+  get suyYeuRemainSec() { void this._cycleNow; const u = this.state.combat.suyYeuUntil; return u ? Math.max(0, Math.ceil((u - now()) / 1000)) : 0; },
+  recoverFromSuyYeu() { this.state.combat.noiThuong = false; this.state.combat.sinhLuc = null; this.state.combat.noiLuc = null; this.state.combat.suyYeuUntil = 0; Storage.save(this.state); this.showToast('Vết thương đã lành — Sinh Lực hồi đầy, có thể chiến đấu tiếp.'); },
   // --- Chiến báo theo CHU KỲ (mỗi vòng 8s = 1 trận; hết vòng mới hiện trọn chiến báo + kết quả) ---
   chienBao: [],             // mảng các BLOCK trận: { lines:[{h,c}], won }
   _cycleStart: 0,           // mốc bắt đầu vòng hiện tại (0 = chưa chạy; vòng đầu chỉ ra sau khi đếm đủ 8s)
@@ -1750,21 +1775,19 @@ const gameStore = {
     for (const st of boPhapStats(this.loadout)) addStatXp(this.state, st, e.statXp);
     const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus');   // P7 — Tham Tài
     const lootMul = 1 + activeAwkVal(this.state, 'lootBonus');     // P7 — Lùng Sục
-    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) this.combatPending.items[l.itemId] = (this.combatPending.items[l.itemId] || 0) + 1;
-    this.combatPending.bac += Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
+    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) addItem(this.state, l.itemId, 1);
+    this.state.currencies.bac = (this.state.currencies.bac || 0) + Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     this.state.combat.sinhLuc = Math.max(0, Math.round(f.p.hp));
     const sk = this.state.skills['chienDau']; if (sk) { sk.gathered = (sk.gathered || 0) + 1; sk.timeMs = (sk.timeMs || 0) + (this.act.cycleMs || 1000); }
     this.act.sessionCount = (this.act.sessionCount || 0) + 1;
   },
   combatDeath() {
-    const pend = this.state.combat.pending;
-    pend.bac = Math.round((pend.bac || 0) * 0.6);
-    for (const k in pend.items) pend.items[k] = Math.floor(pend.items[k] * 0.6);
-    bankPending(this.state);
-    this.state.combat.noiThuong = true; this.state.combat.sinhLuc = 0;
+    this.state.combat.noiThuong = true;
+    this.state.combat.sinhLuc = 0;
+    this.state.combat.suyYeuUntil = now() + SUY_YEU_MS;   // suy yếu: HP tự hồi đầy trong 60s rồi mới đánh tiếp
     stopActivity(this.state);
-    this.showToast('💀 Trọng thương! Hãy về thành dưỡng sức.');
+    this.showToast('Trọng thương! Suy yếu — Sinh Lực đang tự hồi phục.');
     Storage.save(this.state);
   },
 
@@ -2203,6 +2226,11 @@ function rafLoop() {
     } else if (s.state.activity) {
       advance(s.state, now());
     }
+    // Suy yếu: bơm _cycleNow để thanh HP hồi mượt; đủ 60s -> tự khỏi (chạy cả khi không ở màn combat)
+    if (s.state.combat && s.state.combat.noiThuong) {
+      s._cycleNow = now();
+      if (s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();
+    }
     // Yêu Vương — trận LIVE: lộ 1 lượt mỗi 3s khi đang xem; rời màn thì kết thúc tức thì (chạy nền)
     if (s.bossFight && !s.bossFight.done) {
       if (s.view !== 'worldboss') { s.finishBossFightNow(); }
@@ -2222,6 +2250,7 @@ setInterval(() => {
   const s = window.Alpine?.store('game');
   if (!s) return;
   if (s.state.activity) advance(s.state, now());
+  if (s.state.combat && s.state.combat.noiThuong && s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();   // suy yếu xong khi tab ẩn
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
   if (document.hidden && s.bossFight && !s.bossFight.done) s.finishBossFightNow(); // tab nền: rafLoop bị throttle → chốt trận LIVE trong 5s, không treo
   s.resolveBossQueue();   // hàng đợi: boss giáng thế khi đang online → tự vây sát ở nền
