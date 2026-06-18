@@ -26,6 +26,8 @@
     @media (max-width: 767px) {
       .nav-drawer { transform: translateX(-100%); transition: transform .2s ease; }
     }
+    /* Khung kéo chỉnh ảnh (avatar/bìa): chặn trình duyệt cuộn trang khi kéo bằng cảm ứng */
+    .frame-drag { touch-action: none; }
     body { background:#070b14; }
     .panel { background:#0f1521; border:1px solid #1e293b; }
     .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:.15em; color:#64748b; }
@@ -341,7 +343,7 @@
           </div>
 
           <!-- Banner: kéo di chuyển · lăn chuột phóng to -->
-          <div id="coverBox" class="group relative h-[307px] rounded-lg overflow-hidden border border-slate-800 bg-ink2 cursor-move select-none"
+          <div id="coverBox" class="frame-drag group relative h-[307px] rounded-lg overflow-hidden border border-slate-800 bg-ink2 cursor-move select-none"
                :style="$store.game.coverStyle"
                @pointerdown="$store.game.adjStart('cover',$event)" @wheel.prevent="$store.game.adjWheel('cover',$event)"
                title="Kéo để di chuyển · lăn chuột để phóng to">
@@ -589,7 +591,7 @@
               <!-- Khung ảnh đại diện: kéo + zoom -->
               <div class="lbl mb-2">Khung Ảnh Đại Diện</div>
               <div class="flex items-center gap-4 mb-5">
-                <div id="faceBox" class="w-40 h-40 rounded-xl overflow-hidden border border-slate-700 bg-ink2 cursor-move select-none shrink-0 relative" :style="$store.game.faceStyle" @pointerdown="$store.game.adjStart('face',$event)" @wheel.prevent="$store.game.adjWheel('face',$event)" title="Kéo để chỉnh khung · lăn chuột để phóng to">
+                <div id="faceBox" class="frame-drag w-40 h-40 rounded-xl overflow-hidden border border-slate-700 bg-ink2 cursor-move select-none shrink-0 relative" :style="$store.game.faceStyle" @pointerdown="$store.game.adjStart('face',$event)" @wheel.prevent="$store.game.adjWheel('face',$event)" title="Kéo để chỉnh khung · lăn chuột để phóng to">
                   <div class="absolute inset-0 ring-2 ring-inset ring-white/10 rounded-xl pointer-events-none"></div>
                 </div>
                 <div class="flex-1 min-w-0">
@@ -725,7 +727,7 @@
       <!-- ===== VIEW: TRANG BỊ (paper-doll C1) ===== -->
       <template x-if="$store.game.view==='trangbi'">
         <div class="max-w-5xl" x-data="{ L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu'] }">
-          <div class="grid lg:grid-cols-[1.7fr_1fr] gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-4">
 
             <!-- PAPER-DOLL -->
             <section class="panel rounded-xl p-4">
@@ -738,7 +740,7 @@
                 <div class="flex flex-col gap-3 shrink-0">
                   <template x-for="sid in L" :key="sid">
                     <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
-                      class="relative w-24 h-24 rounded-lg overflow-hidden transition"
+                      class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
                       <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.state.equipment[sid], $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
@@ -757,7 +759,7 @@
                 <div class="flex flex-col gap-3 shrink-0">
                   <template x-for="sid in R" :key="sid">
                     <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
-                      class="relative w-24 h-24 rounded-lg overflow-hidden transition"
+                      class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
                       <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.state.equipment[sid], $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
@@ -768,7 +770,7 @@
               <div class="flex gap-3 mt-3 justify-center">
                 <template x-for="sid in B" :key="sid">
                   <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
-                    class="relative w-24 h-24 rounded-lg overflow-hidden transition"
+                    class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                     :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
                     <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.state.equipment[sid], $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                     <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                  </button>
