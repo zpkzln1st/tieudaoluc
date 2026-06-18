@@ -30,6 +30,11 @@
     .frame-drag { touch-action: none; }
     /* Mobile: dùng dvh (chiều cao thấy được thật) để thanh trình duyệt không che mất đáy nội dung */
     .app-h { height: 100vh; height: 100dvh; }
+    /* Chặn cuộn/đẩy ngang toàn trang: số tiền lớn ở header không làm vỡ layout các màn khác */
+    html, body { overflow-x: hidden; }
+    /* Dải cuộn ngang gọn (vd nhóm tiền tệ header) — ẩn thanh cuộn */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     body { background:#070b14; }
     .panel { background:#0f1521; border:1px solid #1e293b; }
     .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:.15em; color:#64748b; }
@@ -93,12 +98,15 @@
     <template x-if="!$store.game.hasActivity">
       <span class="hidden md:inline text-sm text-slate-500">— Nhàn rỗi —</span>
     </template>
-    <div class="ml-auto flex items-center gap-1.5 sm:gap-3 text-sm">
-      <span class="flex items-center gap-1"><span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('honThach', '🔴')"></span><span x-text="$store.game.fmt($store.game.state.currencies.honThach)"></span></span>
-      <span class="flex items-center gap-1"><span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('nguyenBao', '🔷')"></span><span x-text="$store.game.fmt($store.game.state.currencies.nguyenBao)"></span></span>
-      <span class="flex items-center gap-1 text-gold"><span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('bac', '🟡')"></span><span x-text="$store.game.fmt($store.game.state.currencies.bac)"></span></span>
+    <div class="ml-auto flex items-center gap-1.5 sm:gap-3 text-sm min-w-0">
+      <!-- Nhóm tiền tệ: dải cuộn ngang an toàn (số lớn không đẩy vỡ layout); số rút gọn (1,2Tr) cho gọn -->
+      <div class="flex items-center gap-1.5 sm:gap-3 min-w-0 overflow-x-auto no-scrollbar">
+        <span class="flex items-center gap-1 shrink-0" :title="'Hồn Thạch: '+$store.game.fmt($store.game.state.currencies.honThach)"><span class="w-6 h-6 sm:w-[2.1rem] sm:h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('honThach', '🔴')"></span><span x-text="$store.game.fmtC($store.game.state.currencies.honThach)"></span></span>
+        <span class="flex items-center gap-1 shrink-0" :title="'Nguyên Bảo: '+$store.game.fmt($store.game.state.currencies.nguyenBao)"><span class="w-6 h-6 sm:w-[2.1rem] sm:h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('nguyenBao', '🔷')"></span><span x-text="$store.game.fmtC($store.game.state.currencies.nguyenBao)"></span></span>
+        <span class="flex items-center gap-1 text-gold shrink-0" :title="'Bạc: '+$store.game.fmt($store.game.state.currencies.bac)"><span class="w-6 h-6 sm:w-[2.1rem] sm:h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('bac', '🟡')"></span><span x-text="$store.game.fmtC($store.game.state.currencies.bac)"></span></span>
+      </div>
       <!-- Chuông Thông Báo -->
-      <div class="relative" @click.outside="$store.game.closeBell()">
+      <div class="relative shrink-0" @click.outside="$store.game.closeBell()">
         <button @click="$store.game.toggleBell()" class="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-ink3 transition" :class="$store.game.bellOpen?'bg-ink3 text-jade':'text-slate-300'" title="Thông báo">
           <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M18 8A6 6 0 1 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
           <template x-if="$store.game.notifBadge"><span class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center" x-text="$store.game.notifBadge"></span></template>
@@ -130,7 +138,7 @@
           </div>
         </template>
       </div>
-      <button @click="$store.game.resetGame()" class="ml-2 text-xs text-slate-500 hover:text-rose-400">Reset</button>
+      <button @click="$store.game.resetGame()" class="ml-2 text-xs text-slate-500 hover:text-rose-400 shrink-0">Reset</button>
     </div>
   </header>
 

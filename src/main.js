@@ -180,6 +180,19 @@ function fmt(n) {
   const s = Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return neg ? '-' + s : s;
 }
+// Rút gọn cho chỗ chật (header tiền tệ): <1 vạn giữ nguyên; rồi K(nghìn)/Tr(triệu)/Tỷ.
+// Vd: 9999->"9.999" · 100000->"100K" · 1100000->"1,1Tr" · 1000005->"1Tr" · 5e9->"5Tỷ".
+function fmtC(n) {
+  n = Math.floor(n || 0);
+  const neg = n < 0, a = Math.abs(n);
+  const trim = x => (x < 100 ? (Math.round(x * 10) / 10).toString().replace('.', ',') : Math.round(x).toString());
+  let out;
+  if (a < 1e4) out = fmt(a);
+  else if (a < 1e6) out = trim(a / 1e3) + 'K';
+  else if (a < 1e9) out = trim(a / 1e6) + 'Tr';
+  else out = trim(a / 1e9) + 'Tỷ';
+  return neg ? '-' + out : out;
+}
 function fmtTime(sec) {
   sec = Math.max(0, Math.floor(sec));
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
@@ -290,7 +303,7 @@ const gameStore = {
   draftTamPhap: null,        // Tâm Pháp khởi tu (chọn lúc tạo nhân vật) — quyết định hệ ngũ hành khởi đầu
   groupsOpen,
   offlineReport,
-  fmt, fmtTime, fmtClock,
+  fmt, fmtC, fmtTime, fmtClock,
 
   // ---------- Điều hướng ----------
   navTo(view) { this.view = view; this.navOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
