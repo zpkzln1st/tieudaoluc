@@ -274,6 +274,7 @@ const gameStore = {
   toast: '',
   _toastId: 0,
   settingsModal: false,
+  navOpen: false,           // ngăn kéo sidebar (drawer) trên mobile/màn hẹp
   dailyModal: false,
   devPanel: false,
   devAuthed: false, devLoginOpen: false, devPass: '', devLoginErr: '', devTab: 'char',   // cổng đăng nhập F9 (theo phiên — reload phải đăng nhập lại)
@@ -292,8 +293,8 @@ const gameStore = {
   fmt, fmtTime, fmtClock,
 
   // ---------- Điều hướng ----------
-  navTo(view) { this.view = view; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
-  navToSkill(id) { this.view = 'skill'; this.selectedSkill = id; const _s = this.skillSubTabsFor(id); if (_s) this.skillTab = _s[0].k; document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  navTo(view) { this.view = view; this.navOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  navToSkill(id) { this.view = 'skill'; this.navOpen = false; this.selectedSkill = id; const _s = this.skillSubTabsFor(id); if (_s) this.skillTab = _s[0].k; document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // Bấm chip hoạt động ở header -> nhảy vào đúng màn của hoạt động đang chạy
   goToActivity() {
     const a = this.state.activity; if (!a) return;
