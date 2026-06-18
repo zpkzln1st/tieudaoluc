@@ -2778,44 +2778,70 @@
                 </div>
                 <span class="text-[10px] px-1.5 py-0.5 rounded shrink-0" :class="$store.game.NGU_HANH[sec.he].badge" x-text="$store.game.heName(sec.he)"></span>
               </div>
-              <!-- thẻ võ học -->
-              <div class="grid gap-2.5" style="grid-template-columns:repeat(auto-fill,minmax(168px,1fr))">
+              <!-- tile nhỏ — bấm mở popup chi tiết (chỉ số đầy đủ) -->
+              <div class="grid gap-1.5" style="grid-template-columns:repeat(auto-fill,minmax(80px,1fr))">
                 <template x-for="it in sec.items.filter(it=> !onlyLocked || !$store.game.itemOwned(it))" :key="it.kind+'_'+it.id">
-                  <div class="rounded-lg border-2 overflow-hidden flex flex-col bg-ink3/40 transition" :class="$store.game.itemMeta(it).borderCls+' '+$store.game.itemMeta(it).ringCls+' '+($store.game.itemOwned(it)?$store.game.itemMeta(it).glowCls:'opacity-90 saturate-[.7]')">
-                    <!-- art -->
+                  <button @click="$store.game.openTkDetail(it)" class="relative rounded-md overflow-hidden border text-left transition hover:brightness-110" :class="$store.game.itemMeta(it).borderCls + ' ' + ($store.game.itemOwned(it) ? '' : 'saturate-[.6]')">
                     <div class="relative w-full" style="aspect-ratio:1">
                       <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[sec.he].grad"></div>
-                      <!-- placeholder: chữ Hán thư pháp (đè bằng art nếu có) -->
-                      <span class="absolute inset-0 flex items-center justify-center opacity-[.13] select-none" style="font-family:'Lora',serif;font-size:5.2rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
+                      <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:2.4rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
                       <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-50'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
-                      <div x-show="!$store.game.itemOwned(it)" class="absolute inset-0 bg-ink/55"></div>
-                      <!-- badge phẩm chất / loại (góc phải) -->
-                      <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded shadow" :class="$store.game.itemMeta(it).badgeCls" x-text="$store.game.itemMeta(it).badgeText"></span>
-                      <!-- chỉ đánh dấu khi CHƯA sở hữu (ổ khoá); thẻ đã học để art đủ màu nói thay -->
-                      <template x-if="!$store.game.itemOwned(it)"><span class="absolute top-1.5 left-1.5 w-5 h-5 flex items-center justify-center rounded bg-ink/75 text-slate-200" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span></template>
+                      <template x-if="!$store.game.itemOwned(it)"><span class="absolute top-0.5 left-0.5 w-4 h-4 flex items-center justify-center rounded bg-ink/75 text-slate-200" x-html="$store.game.svg('lock','w-2.5 h-2.5')"></span></template>
+                      <template x-if="$store.game.itemOwned(it)"><span class="absolute bottom-0.5 right-1 text-[11px] text-jade font-bold drop-shadow">✓</span></template>
                     </div>
-                    <!-- info -->
-                    <div class="p-2 flex flex-col flex-1" :class="$store.game.itemOwned(it)?'':'bg-ink/25'">
-                      <div class="font-semibold text-[12.5px] leading-tight truncate" :class="$store.game.heInfo(sec.he).text" x-text="it.obj.name"></div>
-                      <div class="text-[9.5px] font-medium mb-1" :class="$store.game.itemMeta(it).metaText" x-text="$store.game.itemMeta(it).metaLine"></div>
-                      <div class="text-[10.5px] text-slate-400 leading-snug mb-2 flex-1" x-text="$store.game.itemDesc(it)"></div>
-                      <!-- nút Học/Mua / Đã sở hữu -->
-                      <template x-if="$store.game.itemOwned(it)">
-                        <div class="w-full py-1.5 rounded text-center text-[11px] font-bold bg-jade/15 border border-jade/40 text-jade">✓ Đã sở hữu</div>
-                      </template>
-                      <template x-if="!$store.game.itemOwned(it)">
-                        <button @click="$store.game.learnItem(it)" :disabled="!$store.game.canAffordCost($store.game.itemCost(it))" class="w-full py-1.5 rounded text-[11px] font-bold transition border flex items-center justify-center gap-1.5" :class="!$store.game.canAffordCost($store.game.itemCost(it))?'bg-slate-800/60 border-slate-700 text-slate-500 cursor-not-allowed':($store.game.skillSource($store.game.itemCost(it))==='mua'?'bg-cyan/20 border-cyan/60 text-cyan hover:bg-cyan/30':'bg-amber-500/20 border-amber-400/60 text-amber-200 hover:bg-amber-500/30')">
-                          <span x-text="$store.game.skillSource($store.game.itemCost(it))==='mua'?'Mua':'Học'"></span>
-                          <span class="w-4 h-4 inline-flex items-center justify-center" x-html="$store.game.costIcon($store.game.itemCost(it))"></span>
-                          <span x-text="$store.game.costAmt($store.game.itemCost(it))"></span>
-                        </button>
-                      </template>
+                    <div class="px-1 py-0.5">
+                      <div class="text-[9.5px] font-semibold leading-tight truncate" :class="$store.game.heInfo(sec.he).text" x-text="it.obj.name"></div>
                     </div>
-                  </div>
+                  </button>
                 </template>
               </div>
             </section>
           </template>
+        </div>
+      </template>
+
+      <!-- ===== POPUP chi tiết võ học (Tàng Kinh Các) — bấm tile mở ===== -->
+      <template x-if="$store.game.tkDetail">
+        <div class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closeTkDetail()">
+          <div class="panel rounded-xl w-[350px] max-w-full max-h-[92vh] overflow-y-auto" @click.stop x-data="{ it: $store.game.tkDetail, m: $store.game.itemMeta($store.game.tkDetail) }">
+            <div class="relative h-36 overflow-hidden bg-gradient-to-br" :class="$store.game.NGU_HANH[m.he].grad">
+              <span class="absolute inset-0 flex items-center justify-center opacity-20 select-none" style="font-family:'Lora',serif;font-size:5rem;line-height:1" :class="$store.game.heInfo(m.he).text" x-text="m.han"></span>
+              <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+              <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/25 to-transparent"></div>
+              <button @click="$store.game.closeTkDetail()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 text-slate-300 hover:text-rose-400 z-10">✕</button>
+              <div class="absolute bottom-0 inset-x-0 p-3">
+                <div class="text-lg font-bold text-white" style="font-family:'Lora',serif;text-shadow:0 2px 8px rgba(0,0,0,.95)" x-text="it.obj.name"></div>
+                <div class="flex gap-1.5 mt-1">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded" :class="m.badgeCls" x-text="m.badgeText"></span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded" :class="$store.game.NGU_HANH[m.he].badge" x-text="$store.game.heName(m.he)"></span>
+                </div>
+              </div>
+            </div>
+            <div class="p-4">
+              <div class="lbl mb-1.5">Chỉ số</div>
+              <div class="rounded-lg border border-slate-800 bg-ink3/40 divide-y divide-slate-800/70 mb-3">
+                <template x-for="r in $store.game.tkRows(it)" :key="r.k+r.v">
+                  <div class="flex items-center justify-between gap-3 px-3 py-1.5">
+                    <span class="text-[11px] text-slate-500 shrink-0" x-text="r.k"></span>
+                    <span class="text-[12.5px] font-semibold text-right" :class="r.hl?'text-rose-300':'text-slate-200'" x-text="r.v"></span>
+                  </div>
+                </template>
+              </div>
+              <template x-if="$store.game.tkFlavor">
+                <div class="text-[12px] text-slate-400 italic leading-relaxed mb-4" x-text="'“'+$store.game.tkFlavor+'”'"></div>
+              </template>
+              <template x-if="$store.game.itemOwned(it)">
+                <div class="w-full py-2.5 rounded-lg text-center text-sm font-bold bg-jade/15 border border-jade/40 text-jade">✓ Đã sở hữu</div>
+              </template>
+              <template x-if="!$store.game.itemOwned(it)">
+                <button @click="$store.game.learnItem(it)" :disabled="!$store.game.canAffordCost($store.game.itemCost(it))" class="w-full py-2.5 rounded-lg text-sm font-bold transition border flex items-center justify-center gap-1.5" :class="!$store.game.canAffordCost($store.game.itemCost(it))?'bg-slate-800/60 border-slate-700 text-slate-500 cursor-not-allowed':($store.game.skillSource($store.game.itemCost(it))==='mua'?'bg-cyan/20 border-cyan/60 text-cyan hover:bg-cyan/30':'bg-amber-500/20 border-amber-400/60 text-amber-200 hover:bg-amber-500/30')">
+                  <span x-text="$store.game.skillSource($store.game.itemCost(it))==='mua'?'Mua':'Học'"></span>
+                  <span class="w-4 h-4 inline-flex items-center justify-center" x-html="$store.game.costIcon($store.game.itemCost(it))"></span>
+                  <span x-text="$store.game.costAmt($store.game.itemCost(it))"></span>
+                </button>
+              </template>
+            </div>
+          </div>
         </div>
       </template>
 

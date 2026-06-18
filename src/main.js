@@ -1573,6 +1573,42 @@ const gameStore = {
     if (it.kind === 'tamphap') return { he, han, badgeText: 'Tâm Pháp', badgeCls: 'bg-amber-500/85 text-ink font-bold', borderCls: 'border-amber-500/55', ringCls: 'ring-1 ring-amber-400/25', glowCls: '', metaLine: 'Tâm Pháp · Nội công nền', metaText: 'text-amber-300/80' };
     return { he, han, badgeText: 'Bị Động', badgeCls: 'bg-violet-600/85 text-violet-50 font-bold', borderCls: 'border-violet-500/55', ringCls: 'ring-1 ring-violet-400/25', glowCls: '', metaLine: 'Bị Động · Tự động', metaText: 'text-violet-300/80' };
   },
+  // ---- Popup chi tiết võ học (Tàng Kinh Các): bấm tile -> hiện chỉ số đầy đủ ----
+  tkDetail: null,
+  openTkDetail(it) { this.tkDetail = it; },
+  closeTkDetail() { this.tkDetail = null; },
+  // Ước tính sát thương chiêu từ Công thật của nhân vật (chưa trừ thủ địch — bản nền).
+  tkChieuDmg(c) {
+    const P = this.combatStats; if (!P || !c) return 0;
+    let d = P.atk * (c.mult || 0);
+    if (c.type && c.type !== 'vatly') { const eleB = (c.type === P.heChinh ? (P.tamPhapHeBonus || 0) : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); d *= (1 + eleB); }
+    return Math.max(1, Math.round(d));
+  },
+  // Các dòng chỉ số trong popup, theo loại võ học (chiêu / tâm pháp / bị động).
+  tkRows(it) {
+    if (!it) return [];
+    const o = it.obj, rows = [];
+    if (it.kind === 'chieu') {
+      rows.push({ k: 'Sát thương', v: '×' + o.mult + ' ST · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true });
+      rows.push({ k: 'Hệ', v: o.type === 'vatly' ? 'Vật lý' : heName(o.type) });
+      rows.push({ k: 'Nội Lực tiêu', v: o.nl || 0 });
+      rows.push({ k: 'Hồi chiêu', v: o.cd ? (o.cd + ' hiệp') : 'Tức thì' });
+      if (o.burn) rows.push({ k: 'Bỏng', v: o.burn.dmg + '/hiệp × ' + o.burn.ticks + ' hiệp' });
+      if (o.lifesteal) rows.push({ k: 'Hút máu', v: Math.round(o.lifesteal * 100) + '%' });
+      if (o.slow) rows.push({ k: 'Làm chậm', v: o.slow + ' hiệp' });
+      if (o.pen) rows.push({ k: 'Xuyên giáp', v: Math.round(o.pen * 100) + '%' });
+    } else if (it.kind === 'tamphap') {
+      rows.push({ k: 'Đổi hệ', v: heName(o.he) });
+      rows.push({ k: 'Tăng ST hệ', v: '+' + Math.round((o.heBonus || 0) * 100) + '%', hl: true });
+      if (o.noiLuc != null) rows.push({ k: 'Nội Lực', v: o.noiLuc });
+      if (o.nlRegen != null) rows.push({ k: 'Hồi Nội Lực', v: '+' + o.nlRegen + '/đánh thường' });
+    } else {
+      (o.desc || '').split('·').forEach((p, i) => { const t = p.trim(); if (t) rows.push({ k: i === 0 ? 'Hiệu ứng' : '', v: t, hl: i === 0 }); });
+      rows.push({ k: 'Loại', v: 'Bị động · luôn bật' });
+    }
+    return rows;
+  },
+  get tkFlavor() { const it = this.tkDetail; if (!it) return ''; const o = it.obj; return o.lore || o.short || ''; },
   get tangKinhOwnedCount() { return this.owned.chieu.length + this.owned.tamPhap.length + this.owned.biDong.length; },
   get tangKinhTotalCount() { return CHIEU.length + TAM_PHAP_POOL.length + BI_DONG.length; },
   // --- Tâm Pháp (nội công nền, ĐỔI được — 5 hệ ngũ hành) ---
