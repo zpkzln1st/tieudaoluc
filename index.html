@@ -28,6 +28,8 @@
     }
     /* Khung kéo chỉnh ảnh (avatar/bìa): chặn trình duyệt cuộn trang khi kéo bằng cảm ứng */
     .frame-drag { touch-action: none; }
+    /* Mobile: dùng dvh (chiều cao thấy được thật) để thanh trình duyệt không che mất đáy nội dung */
+    .app-h { height: 100vh; height: 100dvh; }
     body { background:#070b14; }
     .panel { background:#0f1521; border:1px solid #1e293b; }
     .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:.15em; color:#64748b; }
@@ -58,7 +60,7 @@
   <script type="module" src="./src/main.js"></script>
 </head>
 
-<body class="text-slate-200 antialiased h-screen flex flex-col overflow-hidden" x-data x-cloak>
+<body class="text-slate-200 antialiased app-h flex flex-col overflow-hidden" x-data x-cloak>
 
   <!-- ============ TOP BAR ============ -->
   <header class="panel sticky top-0 z-30 flex items-center gap-2 sm:gap-4 px-2 sm:px-4 h-14">
@@ -1097,7 +1099,7 @@
           <!-- POPUP: Thiết Lập Bài Võ (Tâm Pháp + Chiêu Thức, art-tile 2 cột) -->
           <template x-if="$store.game.baiVoModal">
             <div class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4" style="background:rgba(2,6,12,.78)" @click.self="$store.game.closeBaiVo()">
-              <div class="panel rounded-xl border border-jade/30 w-full max-w-6xl h-[88vh] flex flex-col overflow-hidden" @click.stop
+              <div class="panel rounded-xl border border-jade/30 w-full max-w-6xl h-[94dvh] sm:h-[88vh] flex flex-col overflow-hidden" @click.stop
                    x-data="{ panel: $store.game.baiVoPanel, hf:'all', selChieu: ($store.game.loadout.chieu[0]||$store.game.CHIEU[0].id), selTamPhap: $store.game.loadout.tamPhap, selBiDong: ($store.game.biDongSel[0]||$store.game.BI_DONG[0].id), hfList:[['all','Tất cả'],['kim','Kim'],['moc','Mộc'],['thuy','Thủy'],['hoa','Hỏa'],['tho','Thổ'],['vatly','Vật lý'],['buff','Trợ']], get cDetail(){ return this.$store.game.chieuObj(this.selChieu) }, get tDetail(){ return this.$store.game.TAM_PHAP_POOL.find(t=>t.id===this.selTamPhap) }, get bDetail(){ return this.$store.game.biDongObj(this.selBiDong) } }">
 
                 <!-- Header -->
@@ -1149,7 +1151,7 @@
                 </div>
 
                 <!-- 2 cột: thư viện | chi tiết -->
-                <div class="flex-1 min-h-0 flex flex-col sm:flex-row">
+                <div class="flex-1 min-h-0 flex flex-col sm:flex-row overflow-y-auto sm:overflow-hidden">
                   <!-- TRÁI: tabs + lọc + thư viện -->
                   <div class="sm:w-[56%] flex flex-col min-h-0 border-b sm:border-b-0 sm:border-r border-slate-800">
                     <div class="flex items-center gap-1 px-2.5 py-2 border-b border-slate-800 shrink-0 flex-wrap">
@@ -1160,7 +1162,7 @@
                         <template x-for="f in hfList" :key="f[0]"><button @click="hf=f[0]" class="px-1.5 py-0.5 rounded text-[10px] border transition" :class="hf===f[0]?'border-jade text-jade bg-jade/10':'border-slate-700 text-slate-400 hover:border-slate-500'" x-text="f[1]"></button></template>
                       </div>
                     </div>
-                    <div class="flex-1 min-h-0 overflow-y-auto p-3">
+                    <div class="p-3 sm:flex-1 sm:min-h-0 sm:overflow-y-auto">
                       <!-- lưới CHIÊU (3 cột, tile lớn) -->
                       <div x-show="panel==='chieu'" class="grid grid-cols-3 gap-2.5">
                         <template x-for="c in $store.game.CHIEU.filter(c=>hf==='all'||c.type===hf)" :key="c.id">
@@ -1209,7 +1211,7 @@
 
                   <!-- PHẢI: chi tiết -->
                   <div class="sm:w-[44%] flex flex-col min-h-0">
-                    <div class="flex-1 min-h-0 overflow-y-auto p-4">
+                    <div class="p-4 sm:flex-1 sm:min-h-0 sm:overflow-y-auto">
                       <!-- chi tiết CHIÊU -->
                       <div x-show="panel==='chieu'">
                         <template x-if="cDetail">
@@ -1330,7 +1332,7 @@
           <!-- POPUP: Suy Tính yêu thú (bấm vào quái) -->
           <template x-if="$store.game.combatModal && $store.game.combatSelObj && $store.game.combatFc[$store.game.combatSel]">
             <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(2,6,12,.72)" @click.self="$store.game.closeCombatModal()">
-              <div class="panel relative rounded-xl border border-jade/30 max-w-lg w-full max-h-[94vh] overflow-y-auto p-4" @click.stop>
+              <div class="panel relative rounded-xl border border-jade/30 max-w-lg w-full max-h-[94dvh] overflow-y-auto p-4" @click.stop>
                 <!-- Nút đóng (góc phải panel) -->
                 <button @click="$store.game.closeCombatModal()" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 z-10">✕</button>
 
@@ -2360,7 +2362,7 @@
       <!-- ===== POPUP: Linh Thú Chí (chi tiết pet — mở từ roster) ===== -->
       <template x-if="$store.game.petDetailObj">
         <div class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closePetDetail()">
-          <div class="panel rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl" @click.stop
+          <div class="panel rounded-2xl w-full max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden shadow-2xl" @click.stop
                x-data="{ get p(){ return $store.game.petDetailObj }, get q(){ return $store.game.petQ($store.game.petDetailObj) }, get qh(){ return $store.game.petQHex($store.game.petDetailObj) }, get el(){ return $store.game.petElColor($store.game.petDetailObj) } }"
                :style="'border-color:'+qh+'55'">
             <!-- HEADER: art-đài + danh tính -->
@@ -2803,7 +2805,7 @@
       <!-- ===== POPUP chi tiết võ học (Tàng Kinh Các) — bấm tile mở ===== -->
       <template x-if="$store.game.tkDetail">
         <div class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closeTkDetail()">
-          <div class="panel rounded-xl w-[350px] max-w-full max-h-[92vh] overflow-y-auto" @click.stop x-data="{ it: $store.game.tkDetail, m: $store.game.itemMeta($store.game.tkDetail) }">
+          <div class="panel rounded-xl w-[350px] max-w-full max-h-[92dvh] overflow-y-auto" @click.stop x-data="{ it: $store.game.tkDetail, m: $store.game.itemMeta($store.game.tkDetail) }">
             <div class="relative h-36 overflow-hidden bg-gradient-to-br" :class="$store.game.NGU_HANH[m.he].grad">
               <span class="absolute inset-0 flex items-center justify-center opacity-20 select-none" style="font-family:'Lora',serif;font-size:5rem;line-height:1" :class="$store.game.heInfo(m.he).text" x-text="m.han"></span>
               <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
@@ -3512,7 +3514,7 @@
           <!-- ===== Modal KẾT QUẢ (5 tầng text-log + chiến lợi phẩm) ===== -->
           <template x-if="g.dungeonShowResult && g.dungeonResult">
             <div class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="g.closeDungeonResult()" x-data="{ get r(){ return g.dungeonResult }, get dd(){ return g.DUNGEON_BY_ID[g.dungeonResult.dungeonId] } }">
-              <div class="panel rounded-xl border-2 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col" :style="'border-color:'+(dd?dd.color:'#475569')+'88'">
+              <div class="panel rounded-xl border-2 w-full max-w-2xl overflow-hidden max-h-[90dvh] flex flex-col" :style="'border-color:'+(dd?dd.color:'#475569')+'88'">
                 <div class="relative p-5 shrink-0" :style="'background:linear-gradient(135deg,'+(dd?dd.color:'#475569')+'22,transparent)'">
                   <button @click="g.closeDungeonResult()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 text-lg">✕</button>
                   <div class="text-[13px]" :style="'color:'+(dd?dd.color:'#cbd5e1')" x-text="dd?dd.name:''"></div>
@@ -3556,7 +3558,7 @@
           <!-- ===== Modal DANH MỤC ĐỒ PHỔ (phó bản này rớt gì) ===== -->
           <template x-if="g.dungeonPoolId && g.dungeonPoolObj">
             <div class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="g.closeDungeonPool()" x-data="{ get dd(){ return g.dungeonPoolObj } }">
-              <div class="panel rounded-xl border-2 w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col" :style="'border-color:'+dd.color+'88'">
+              <div class="panel rounded-xl border-2 w-full max-w-3xl overflow-hidden max-h-[90dvh] flex flex-col" :style="'border-color:'+dd.color+'88'">
                 <div class="relative p-4 shrink-0" :style="'background:linear-gradient(135deg,'+dd.color+'22,transparent)'">
                   <button @click="g.closeDungeonPool()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400">✕</button>
                   <div class="text-[12px]" :style="'color:'+dd.color" x-text="dd.name"></div>
@@ -4338,7 +4340,7 @@
   <!-- ===== Modal Điểm Danh (30 ngày) ===== -->
   <template x-if="$store.game.dailyModal">
     <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.dailyModal=false">
-      <div class="panel rounded-2xl w-[860px] max-w-full max-h-[90vh] flex flex-col border border-amber-500/30 shadow-2xl" @click.stop>
+      <div class="panel rounded-2xl w-[860px] max-w-full max-h-[90dvh] flex flex-col border border-amber-500/30 shadow-2xl" @click.stop>
         <!-- Header -->
         <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-800 shrink-0">
           <div class="flex items-center gap-2.5">
