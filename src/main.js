@@ -1249,7 +1249,17 @@ const gameStore = {
   get actRemaining() { return Math.max(0, this.actIdleCap - this.actIdleUsed); },
   get actCapped() { return this.act ? this.act.capped : false; },
   get actStalled() { return this.act ? this.act.stalled : false; },
-  get statusText() { return this.hasActivity ? ('Đang ' + this.actName) : 'Nhàn rỗi'; },
+  get statusText() {
+    if (!this.hasActivity) return 'Nhàn rỗi';
+    if (this.actIsCombat) return 'Đang chiến đấu' + (this.actEnemy ? ' · ' + this.actEnemy.name : '');
+    if (this.actIsTravel) return 'Đang khinh công' + (this.travelToObj ? ' → ' + this.travelToObj.name : '');
+    if (this.actIsDungeon) return 'Đang khám phá' + (this.actDungeon ? ' · ' + this.actDungeon.name : '');
+    // Hành nghề (thu thập/chế tác): dùng tên Nghề (động từ, vd "Đào Khoáng") + tên cụ thể ("Hắc Thán")
+    const nghe = this.actSkill ? this.actSkill.name : '';
+    const act = this.actAction ? this.actAction.name : '';
+    if (nghe && act && nghe !== act) return 'Đang ' + nghe + ' · ' + act;
+    return 'Đang ' + (nghe || act || 'hành tẩu');
+  },
 
   start(skillId, actionId) {
     if (startActivity(this.state, skillId, actionId, now())) Storage.save(this.state);
@@ -1559,12 +1569,17 @@ const gameStore = {
   get tangKinhSections() {
     const order = NGU_HANH_LIST.concat(['vatly', 'buff']);
     return order.map(he => {
-      const items = [];
-      CHIEU.filter(c => c.type === he).sort((a, b) => (TIER_ORDER[a.tier] || 0) - (TIER_ORDER[b.tier] || 0))
-        .forEach(c => items.push({ kind: 'chieu', id: c.id, obj: c }));
-      TAM_PHAP_POOL.filter(t => t.he === he).forEach(t => items.push({ kind: 'tamphap', id: t.id, obj: t }));
-      BI_DONG.filter(p => p.he === he).forEach(p => items.push({ kind: 'bidong', id: p.id, obj: p }));
-      return { he, monPhai: MON_PHAI[he], items };
+      const chieu = CHIEU.filter(c => c.type === he).sort((a, b) => (TIER_ORDER[a.tier] || 0) - (TIER_ORDER[b.tier] || 0)).map(c => ({ kind: 'chieu', id: c.id, obj: c }));
+      const tamphap = TAM_PHAP_POOL.filter(t => t.he === he).map(t => ({ kind: 'tamphap', id: t.id, obj: t }));
+      const bidong = BI_DONG.filter(p => p.he === he).map(p => ({ kind: 'bidong', id: p.id, obj: p }));
+      // Phân loại trong từng Môn Phái: Tâm Pháp (nội công nền) · Chiêu Thức (chủ động) · Bị Động (auto)
+      const groups = [
+        { key: 'tamphap', label: 'Tâm Pháp', items: tamphap },
+        { key: 'chieu', label: 'Chiêu Thức', items: chieu },
+        { key: 'bidong', label: 'Bị Động', items: bidong },
+      ].filter(g => g.items.length);
+      const items = [...tamphap, ...chieu, ...bidong];
+      return { he, monPhai: MON_PHAI[he], items, groups };
     });
   },
   itemOwned(it) { return it.kind === 'chieu' ? this.ownsChieu(it.id) : it.kind === 'tamphap' ? this.ownsTamPhap(it.id) : this.ownsBiDong(it.id); },

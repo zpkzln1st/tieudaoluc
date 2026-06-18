@@ -293,10 +293,10 @@ export const TIER_STYLE = {
 };
 export function tierStyle(t){ return TIER_STYLE[t] || TIER_STYLE['sơ']; }
 // Giá mặc định theo bậc (có thể override bằng trường .cost trên từng món).
-const CHIEU_TIER_COST = { 'sơ':{ bac:300 }, 'trung':{ bac:3000 }, 'cao':{ nguyenBao:60 }, 'tuyệt':{ nguyenBao:200 } };
-export function chieuCost(c){ return (c && c.cost) || (c && CHIEU_TIER_COST[c.tier]) || { bac:1000 }; }
-export function tamPhapCost(t){ return (t && t.cost) || { bac:5000 }; }  // Tâm Pháp = nội công nền, học ở môn phái (Bạc)
-export function biDongCost(p){ return (p && p.cost) || { bac:2000 }; }   // Bị Động (auto) học ở môn phái (Bạc)
+const CHIEU_TIER_COST = { 'sơ':{ bac:50000 }, 'trung':{ bac:200000 }, 'cao':{ nguyenBao:60 }, 'tuyệt':{ nguyenBao:200 } };
+export function chieuCost(c){ return (c && c.cost) || (c && CHIEU_TIER_COST[c.tier]) || { bac:50000 }; }
+export function tamPhapCost(t){ return (t && t.cost) || { bac:120000 }; }  // Tâm Pháp = nội công nền, học ở môn phái (Bạc)
+export function biDongCost(p){ return (p && p.cost) || { bac:80000 }; }   // Bị Động (auto) học ở môn phái (Bạc)
 // 'hoc' (Bạc, môn phái) vs 'mua' (Nguyên Bảo, Tiệm Bí Phổ) — suy từ loại tiền.
 export function skillSource(cost){ return (cost && cost.nguyenBao) ? 'mua' : 'hoc'; }
 
