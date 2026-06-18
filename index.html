@@ -352,11 +352,12 @@
             <button @click="$store.game.setProfileTab('badges')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='badges' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Huy Hiệu</button>
           </div>
 
-          <!-- Banner: kéo di chuyển · lăn chuột phóng to -->
-          <div id="coverBox" class="frame-drag group relative h-[307px] rounded-lg overflow-hidden border border-slate-800 bg-ink2 cursor-move select-none"
+          <!-- Banner: CHỈ kéo/chỉnh khung khi ở tab Dung Mạo (skins); các tab khác chỉ hiển thị -->
+          <div id="coverBox" class="group relative h-[307px] rounded-lg overflow-hidden border border-slate-800 bg-ink2 select-none"
+               :class="$store.game.profileTab==='skins' ? 'frame-drag cursor-move' : ''"
                :style="$store.game.coverStyle"
-               @pointerdown="$store.game.adjStart('cover',$event)" @wheel.prevent="$store.game.adjWheel('cover',$event)"
-               title="Kéo để di chuyển · lăn chuột để phóng to">
+               @pointerdown="$store.game.profileTab==='skins' && $store.game.adjStart('cover',$event)" @wheel="$store.game.profileTab==='skins' && ($event.preventDefault(), $store.game.adjWheel('cover',$event))"
+               :title="$store.game.profileTab==='skins' ? 'Kéo để di chuyển · lăn chuột để phóng to' : ''">
             <!-- Scrim trái-đáy: nổi chữ -->
             <div class="absolute inset-0 bg-gradient-to-tr from-black/85 via-black/25 to-transparent pointer-events-none"></div>
             <!-- Tên + cấp (góc trái dưới, tích hợp) -->
@@ -370,8 +371,8 @@
                 <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-amber-200/90">Giang Hồ Tự Do</span>
               </div>
             </div>
-            <!-- Điều khiển khung: chỉ hiện khi rê chuột -->
-            <div class="absolute bottom-3 right-3 z-10 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" @pointerdown.stop>
+            <!-- Điều khiển khung: chỉ ở tab Dung Mạo -->
+            <div x-show="$store.game.profileTab==='skins'" class="absolute bottom-3 right-3 z-10 flex items-center gap-2" @pointerdown.stop>
               <span class="hidden sm:inline text-[10px] text-white/75 bg-black/45 backdrop-blur rounded px-2 py-1 pointer-events-none">Kéo để di chuyển · lăn chuột phóng to</span>
               <button @click="$store.game.resetAdj('cover')" title="Đặt lại khung" class="w-7 h-7 rounded-full bg-black/55 backdrop-blur text-white/85 hover:text-jade flex items-center justify-center text-sm leading-none">↺</button>
             </div>
