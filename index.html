@@ -3132,7 +3132,7 @@
               <!-- Hero band -->
               <div class="relative rounded-xl overflow-hidden mb-3" :style="'border:1px solid '+th(b).c+'55;background:linear-gradient(135deg,'+th(b).d+'33,#0a0e16 64%);box-shadow:0 0 30px -12px rgba('+th(b).g+',.7)'">
                 <div class="absolute left-0 top-0 bottom-0 w-1/2 pointer-events-none" :style="'background:radial-gradient(ellipse at 16% 45%, rgba('+th(b).g+',.20), transparent 66%)'"></div>
-                <div class="relative flex gap-4 p-4">
+                <div class="relative flex flex-col sm:flex-row gap-4 p-4">
                   <div class="shrink-0 relative">
                     <div class="absolute -left-1.5 top-2 z-10 w-6 rounded-md flex flex-col items-center py-1.5 gap-0.5" :style="'background:linear-gradient(180deg,'+th(b).d+',#0a0e16);border:1px solid '+th(b).c+'66'">
                       <template x-for="ch in seal(b).split('')" :key="ch"><span class="text-[12px] leading-none" :style="'color:'+th(b).c" x-text="ch"></span></template>
