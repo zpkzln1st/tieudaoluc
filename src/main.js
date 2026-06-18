@@ -1397,6 +1397,7 @@ const gameStore = {
   // Tầng cảnh giới của 1 mốc cấp
   tierOf(level) { return this.REALM_TIERS.find(t => level >= t.min && level < t.max) || this.REALM_TIERS[this.REALM_TIERS.length - 1]; },
   locTier(loc) { return this.tierOf(loc.reqLevel); },
+  locsInTier(t) { return this.LOCATIONS.filter((l) => l.reqLevel >= t.min && l.reqLevel < t.max); },   // nhóm vùng theo tầng cảnh giới (cho list mobile)
   isCurrentTier(t) { const lv = this.combatLevel; return lv >= t.min && lv < t.max; },
   // Đường linh khí cong (quadratic) giữa các vùng kế tiếp; bow nhẹ lên cho mềm
   get mapSegments() {

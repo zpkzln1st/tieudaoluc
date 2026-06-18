@@ -1216,7 +1216,7 @@
                       <div x-show="panel==='chieu'">
                         <template x-if="cDetail">
                           <div>
-                            <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[280px]" :class="$store.game.NGU_HANH[cDetail.type].ring" style="aspect-ratio:1">
+                            <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[120px] sm:max-w-[280px]" :class="$store.game.NGU_HANH[cDetail.type].ring" style="aspect-ratio:1">
                               <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[cDetail.type].grad"></div>
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(cDetail.type).text" x-html="$store.game.svg($store.game.heInfo(cDetail.type).ig,'w-20 h-20')"></span>
                               <img :src="'images/chieu/'+cDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
@@ -1246,7 +1246,7 @@
                       <div x-show="panel==='tamphap'">
                         <template x-if="tDetail">
                           <div>
-                            <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[280px]" :class="$store.game.NGU_HANH[tDetail.he].ring" style="aspect-ratio:1">
+                            <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[120px] sm:max-w-[280px]" :class="$store.game.NGU_HANH[tDetail.he].ring" style="aspect-ratio:1">
                               <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[tDetail.he].grad"></div>
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(tDetail.he).text" x-html="$store.game.svg($store.game.heInfo(tDetail.he).ig,'w-20 h-20')"></span>
                               <img :src="'images/tamphap/'+tDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
@@ -1267,7 +1267,7 @@
                       <div x-show="panel==='bidong'">
                         <template x-if="bDetail">
                           <div>
-                            <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[280px]" :class="$store.game.NGU_HANH[bDetail.he].ring" style="aspect-ratio:1">
+                            <div class="relative rounded-lg overflow-hidden mb-3 border mx-auto w-full max-w-[120px] sm:max-w-[280px]" :class="$store.game.NGU_HANH[bDetail.he].ring" style="aspect-ratio:1">
                               <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[bDetail.he].grad"></div>
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(bDetail.he).text" x-html="$store.game.svg($store.game.heInfo(bDetail.he).ig,'w-20 h-20')"></span>
                               <img :src="'images/bidong/'+bDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
@@ -2947,7 +2947,41 @@
               <button @click="$store.game.cancelTravel()" class="shrink-0 text-sm px-4 py-1.5 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:text-rose-400 hover:border-rose-500">Huỷ</button>
             </div>
           </template>
-          <section class="panel rounded-xl p-2 sm:p-3">
+          <!-- MOBILE: danh sách vùng theo tầng cảnh giới (desktop dùng bản đồ tọa độ bên dưới) -->
+          <div class="lg:hidden space-y-3">
+            <div class="panel rounded-lg px-3 py-2.5 flex items-center gap-2">
+              <span class="text-amber-200/50">❖</span>
+              <span class="text-sm font-semibold tracking-[0.2em] text-amber-100/90" style="font-family:serif">BẢN ĐỒ</span>
+              <span class="ml-auto text-[11px] text-slate-400">Chiến Lv <span class="text-amber-200" x-text="$store.game.combatLevel"></span></span>
+            </div>
+            <template x-for="t in $store.game.REALM_TIERS" :key="t.id">
+              <section class="panel rounded-lg p-3">
+                <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-slate-800">
+                  <span class="w-8 h-8 rounded-lg flex items-center justify-center bg-ink2 ring-1" :class="$store.game.isCurrentTier(t)?'ring-jade/50':'ring-slate-700'" x-html="$store.game.ico(t.id, t.icon)"></span>
+                  <div class="flex-1 min-w-0"><div class="text-[13px] font-bold" :class="t.text" style="font-family:serif" x-text="t.name"></div><div class="text-[10px] text-slate-500" x-text="t.range"></div></div>
+                  <span class="text-[10px] text-slate-500" x-text="$store.game.locsInTier(t).length + ' vùng'"></span>
+                </div>
+                <div class="space-y-1.5">
+                  <template x-for="loc in $store.game.locsInTier(t)" :key="loc.id">
+                    <button @click="$store.game.openLocation(loc.id)" class="w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition" :class="($store.game.isCurrentLocation(loc)?'border-jade/60 bg-jade/10':'border-slate-800 bg-ink3/40 hover:border-slate-600') + ($store.game.locUnlocked(loc)?'':' opacity-60')">
+                      <span class="w-12 h-12 rounded-lg shrink-0 flex items-center justify-center text-2xl bg-ink2 border" :class="($store.game.isCurrentLocation(loc)?'border-jade/50':'border-slate-700') + ($store.game.locUnlocked(loc)?'':' grayscale')" x-html="$store.game.ico(loc.id, loc.icon)"></span>
+                      <div class="flex-1 min-w-0">
+                        <div class="text-[14px] font-semibold truncate" :class="$store.game.locUnlocked(loc)?'text-amber-50':'text-slate-400'" style="font-family:serif" x-text="loc.name"></div>
+                        <div class="text-[11px] mt-0.5">
+                          <template x-if="$store.game.isCurrentLocation(loc)"><span class="text-jade">● Đang ở đây</span></template>
+                          <template x-if="!$store.game.isCurrentLocation(loc) && $store.game.locUnlocked(loc)"><span class="text-emerald-400">Sẵn sàng — chạm để đến</span></template>
+                          <template x-if="!$store.game.locUnlocked(loc)"><span class="text-slate-500" x-text="'🔒 Cần Chiến Lv ' + loc.reqLevel"></span></template>
+                        </div>
+                      </div>
+                      <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-black/50 border" :class="$store.game.locTier(loc).text + ' ' + $store.game.locTier(loc).border" x-text="'Lv ' + loc.reqLevel"></span>
+                    </button>
+                  </template>
+                </div>
+              </section>
+            </template>
+          </div>
+
+          <section class="panel rounded-xl p-2 sm:p-3 hidden lg:block">
           <!-- Khung viền vàng -->
           <div class="rounded-xl p-[2px] bg-gradient-to-br from-amber-600/50 via-amber-200/20 to-amber-700/50 shadow-[0_0_30px_rgba(0,0,0,0.45)]">
             <div class="relative w-full rounded-[10px]"
