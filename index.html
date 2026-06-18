@@ -3929,7 +3929,7 @@
                   <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(id)" :key="s"><span class="text-[8px] leading-none text-amber-400">★</span></template></div>
                 </div>
                 <div class="flex-1 min-w-0 space-y-1">
-                  <div class="flex items-center gap-1.5 flex-wrap"><span class="text-[13px] font-medium text-slate-100 truncate max-w-[140px]" x-text="it.name"></span><template x-if="g.itemPlus(id)>0"><span class="text-[10px] font-bold text-amber-300 shrink-0" x-text="'+'+g.itemPlus(id)"></span></template><template x-if="g.gearHe(id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(id).info.badge" x-text="g.gearHe(id).info.han"></span></template></div>
+                  <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(id).text" x-text="it.name"></span><template x-if="g.itemPlus(id)>0"><span class="text-[10px] font-bold text-amber-300 shrink-0" x-text="'+'+g.itemPlus(id)"></span></template><template x-if="g.gearHe(id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(id).info.badge" x-text="g.gearHe(id).info.han"></span></template></div>
                   <div><span class="inline-block text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(id).bg+' '+g.itemQuality(id).text+' '+g.itemQuality(id).border" x-text="g.qualityName(id) + (it.equip.itemLv ? ' · Lv'+it.equip.itemLv : '')"></span></div>
                   <div class="space-y-0.5 pt-0.5">
                     <template x-for="c in g.gearCompare(id)" :key="c.key">
@@ -3952,25 +3952,25 @@
               <div class="flex items-center gap-1.5 mb-1.5"><span class="inline-block w-1.5 h-1.5 bg-amber-400 rotate-45"></span><span class="text-[10px] uppercase tracking-wider text-amber-300 font-medium">Đề cử cho bạn</span></div>
               <div class="relative rounded-lg border-2 border-amber-500/55 bg-amber-950/15 p-2.5 shadow-[0_0_16px_rgba(245,158,11,0.16)]">
                 <span class="absolute top-0 left-0 text-[8px] px-2 py-0.5 rounded-br-lg rounded-tl-md bg-amber-500 text-ink font-bold">Đề cử</span>
-                <div class="flex items-center gap-3 mt-1.5">
+                <div class="flex items-start gap-3 mt-1.5">
                   <div class="shrink-0 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :class="g.itemQuality(rec.id).border + ' ' + g.itemQuality(rec.id).grad"><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(rec.id, rec.icon)"></span></div>
                     <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(rec.id)" :key="s"><span class="text-[8px] leading-none text-amber-400">★</span></template></div>
                   </div>
                   <div class="flex-1 min-w-0 space-y-1">
-                    <div class="flex items-center gap-1 flex-wrap"><span class="text-[13px] font-medium text-slate-100 truncate max-w-[150px]" x-text="rec.name"></span><template x-if="g.gearHe(rec.id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(rec.id).info.badge" x-text="g.gearHe(rec.id).info.han"></span></template></div>
+                    <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(rec.id).text" x-text="rec.name"></span><template x-if="g.gearHe(rec.id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(rec.id).info.badge" x-text="g.gearHe(rec.id).info.han"></span></template></div>
                     <div class="flex items-center gap-1 flex-wrap">
                       <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(rec.id).bg+' '+g.itemQuality(rec.id).text+' '+g.itemQuality(rec.id).border" x-text="g.qualityName(rec.id) + (rec.equip.itemLv ? ' · Lv'+rec.equip.itemLv : '')"></span>
                       <template x-if="g.equipReqOf(rec.id)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(rec.id)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(rec.id)"></span></template>
                     </div>
                     <div class="space-y-0.5 pt-0.5">
                       <template x-for="c in g.gearCompare(rec.id)" :key="c.key">
-                        <div class="flex items-center justify-between gap-3 text-[11px] max-w-[260px]"><span class="inline-flex items-center gap-1.5 text-slate-400 whitespace-nowrap"><span class="text-slate-500" x-html="g.svg(g.gearStatIcon(c.key),'w-3.5 h-3.5')"></span><span x-text="c.label"></span></span><span class="tabular-nums"><span class="text-slate-100 font-medium" x-text="'+'+c.next"></span><span x-show="c.delta!==0" :class="c.delta>0?'text-emerald-400':'text-rose-400'" x-text="' '+(c.delta>0?'▲':'▼')+'('+(c.delta>0?'+':'')+c.delta+')'"></span></span></div>
+                        <div class="flex items-center justify-between gap-3 text-[11px]"><span class="inline-flex items-center gap-1.5 text-slate-400 whitespace-nowrap"><span class="text-slate-500" x-html="g.svg(g.gearStatIcon(c.key),'w-3.5 h-3.5')"></span><span x-text="c.label"></span></span><span class="tabular-nums whitespace-nowrap"><span class="text-slate-100 font-medium" x-text="'+'+c.next"></span><span x-show="c.delta!==0" :class="c.delta>0?'text-emerald-400':'text-rose-400'" x-text="' '+(c.delta>0?'▲':'▼')+'('+(c.delta>0?'+':'')+c.delta+')'"></span></span></div>
                       </template>
                     </div>
                   </div>
-                  <button @click="g.doEquip(rec.id); g.closeEquip()" :disabled="!g.canEquip(rec.id)" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-[11px] rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"><span x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.canEquip(rec.id)?'Trang Bị Nhanh':('Cần Lv '+g.equipReqOf(rec.id))"></span></button>
                 </div>
+                <button @click="g.doEquip(rec.id); g.closeEquip()" :disabled="!g.canEquip(rec.id)" class="w-full mt-2.5 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed"><span x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.canEquip(rec.id)?'Trang Bị Nhanh':('Cần Lv '+g.equipReqOf(rec.id))"></span></button>
               </div>
             </div>
           </template>
@@ -3994,7 +3994,7 @@
                   <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(it.id)" :key="s"><span class="text-[7px] leading-none text-amber-400">★</span></template></div>
                 </div>
                 <div class="flex-1 min-w-0 space-y-1">
-                  <div class="flex items-center gap-1 flex-wrap"><span class="text-[13px] font-medium text-slate-100 truncate max-w-[150px]" x-text="it.name"></span><template x-if="g.gearHe(it.id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(it.id).info.badge" x-text="g.gearHe(it.id).info.han"></span></template></div>
+                  <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(it.id).text" x-text="it.name"></span><template x-if="g.gearHe(it.id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(it.id).info.badge" x-text="g.gearHe(it.id).info.han"></span></template></div>
                   <div class="flex items-center gap-1 flex-wrap">
                     <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(it.id).bg+' '+g.itemQuality(it.id).text+' '+g.itemQuality(it.id).border" x-text="g.qualityName(it.id)"></span>
                     <template x-if="g.equipReqOf(it.id)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(it.id)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(it.id)"></span></template>
