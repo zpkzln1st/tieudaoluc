@@ -76,6 +76,7 @@ export function hatchEgg(state, eggId) {
   const pet = rollPet(egg.petBase, rollEggQuality(egg.quality), state);
   if (!Array.isArray(state.pets)) state.pets = [];
   state.pets.push(pet);
+  if (state.codex && state.codex.petSeen && pet.base) state.codex.petSeen[pet.base] = 1; // Vạn Vật Phổ — Linh Thú Phổ
   return pet;
 }
 
@@ -108,6 +109,7 @@ export function finishHatch(state, now) {
   if (!h || now < h.readyAt) return null;
   if (!Array.isArray(state.pets)) state.pets = [];
   state.pets.push(h.pet);
+  if (state.codex && state.codex.petSeen && h.pet.base) state.codex.petSeen[h.pet.base] = 1; // Vạn Vật Phổ — Linh Thú Phổ
   state.hatchery = null;
   return h.pet;
 }
@@ -362,6 +364,7 @@ export function devSpawnPet(state, base, quality, level) {
   p.level = Math.max(1, Math.min(99, Math.floor(level || 1)));
   if (!Array.isArray(state.pets)) state.pets = [];
   state.pets.push(p);
+  if (state.codex && state.codex.petSeen && p.base) state.codex.petSeen[p.base] = 1; // Vạn Vật Phổ — Linh Thú Phổ
   return p;
 }
 

@@ -25,6 +25,8 @@ import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
 import { addItem, removeItem } from './engine/inventory.js';
 import { derivedStats } from './engine/stats.js';
+import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
+import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
 import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
 import { equipItem, unequipItem } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
@@ -96,6 +98,7 @@ RETIRED_SLOTS.forEach((slot) => {
 });
 if (!state.login) state.login = { lastDay: null, streak: 0 };
 if (!state.counters) state.counters = { produced: {}, kills: {} };
+ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 if (!state.quests) state.quests = { tutorial: { index: 0, base: 0 }, daily: { period: null, list: [] }, weekly: { period: null, list: [] }, monthly: { period: null, list: [] } };
 if (!state.quests.tutorial) state.quests.tutorial = { index: 0, base: 0 };
 if (!state.quests.daily) state.quests.daily = { period: null, list: [] };
@@ -282,6 +285,7 @@ const gameStore = {
   CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, NGU_HANH, MON_PHAI, DUNGEONS, DUNGEON_BY_ID,
   view: 'profile',
   profileTab: 'profile',
+  codexTab: 'yeuthu', codexDetail: null,   // Vạn Vật Phổ
   confirmReset: false,
   lightbox: null,
   toast: '',
@@ -1590,6 +1594,38 @@ const gameStore = {
   itemDesc(it) { return it.kind === 'chieu' ? (it.obj.short || '') : (it.obj.short || it.obj.desc || ''); },
   itemTagList(it) { return it.kind === 'chieu' ? this.chieuTags(it.obj) : (it.kind === 'bidong' ? this.biDongTags(it.obj) : []); },
   learnItem(it) { return it.kind === 'chieu' ? this.learnChieu(it.id) : it.kind === 'tamphap' ? this.learnTamPhap(it.id) : this.learnBiDong(it.id); },
+
+  // ---------- Vạn Vật Phổ ----------
+  get codexCats() { return CODEX_CATS; },
+  get codexCat() { return CODEX_BY_KEY[this.codexTab] || CODEX_CATS[0]; },
+  codexCnt(catKey, id) { return codexCount(this.state, catKey, id); },
+  codexEntryState(cat, e) { const c = codexCount(this.state, cat.key, e.id); return c >= cat.threshold ? 'done' : (c > 0 ? 'prog' : 'locked'); },
+  codexEntryPct(cat, e) { return Math.min(100, Math.round(codexCount(this.state, cat.key, e.id) / cat.threshold * 100)); },
+  codexCatDoneN(cat) { return codexCatDone(this.state, cat); },
+  codexGroupDone(cat, grp) { let n = 0; for (const e of grp.entries) if (codexCount(this.state, cat.key, e.id) >= cat.threshold) n++; return n; },
+  get codexTotalDone() { return CODEX_CATS.reduce((a, c) => a + codexCatDone(this.state, c), 0); },
+  get codexTotalAll() { return CODEX_CATS.reduce((a, c) => a + c.entries.length, 0); },
+  codexOpen(e) { this.codexDetail = e; },
+  closeCodex() { this.codexDetail = null; },
+  // Art tile theo loại phổ: quái/pet dùng ảnh thật (fallback emoji nền), gear/vật phẩm dùng ico(), bí cảnh dùng triện.
+  codexArtTag(cat, e) {
+    const safe = String(e.icon || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const drop = `this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{className:&quot;text-4xl opacity-90&quot;,textContent:&quot;${safe}&quot;}))`;
+    if (cat.kind === 'enemy') return `<img src="images/enemies/${e.id}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
+    if (cat.kind === 'pet') return `<img src="images/pets/pet_${e.id}_base.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
+    if (cat.kind === 'gear' || cat.kind === 'item') return this.ico(e.id, e.icon);
+    if (cat.kind === 'dungeon') return `<img src="images/dungeons/${e.id}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
+    return `<span class="text-4xl fserif opacity-90">${e.icon || ''}</span>`;
+  },
+  // Phổ Lực tóm tắt (chuỗi) để hiển thị header
+  codexPhoLucText() {
+    const b = codexBonus(this.state);
+    const parts = [];
+    if (b.atkPct || b.allPct) parts.push('+' + (((b.atkPct + b.allPct) * 100).toFixed(1)) + '% Công');
+    if (b.defPct || b.allPct) parts.push('+' + (((b.defPct + b.allPct) * 100).toFixed(1)) + '% Thủ');
+    if (b.hpPct || b.allPct) parts.push('+' + (((b.hpPct + b.allPct) * 100).toFixed(1)) + '% Sinh Lực');
+    return parts.length ? parts.join(' · ') : 'Chưa có';
+  },
   tierStyle(t) { return tierStyle(t); },
   // Gom style hiển thị 1 thẻ võ học: phẩm chất (bậc) cho Chiêu · loại cho Tâm Pháp/Bị Động.
   itemMeta(it) {

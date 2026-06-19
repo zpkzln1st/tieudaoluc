@@ -32,7 +32,7 @@ export const NAV = [
   { title: 'Khác', items: [
     { view: 'guild',      name: 'Bang Phái',  gloss: 'Guild',      icon: '🏯', soon: true },
     { view: 'tavern',     name: 'Tửu Lâu',    gloss: 'Tavern',     icon: '🍶', soon: true },
-    { view: 'collection', name: 'Vạn Vật Phổ', gloss: 'Collection', icon: '📖', soon: true },
+    { view: 'collection', name: 'Vạn Vật Phổ', gloss: 'Collection', icon: '📖' },
   ] },
 ];
 

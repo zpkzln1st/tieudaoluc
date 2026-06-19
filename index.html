@@ -2871,6 +2871,119 @@
         </div>
       </template>
 
+      <!-- ===== VIEW: VẠN VẬT PHỔ (Collection) ===== -->
+      <template x-if="$store.game.view==='collection'">
+        <div class="space-y-3" x-data="{ get g(){ return $store.game } }">
+          <!-- Header band -->
+          <div class="relative panel rounded-xl overflow-hidden min-h-[150px] flex items-center">
+            <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse at 85% 40%, rgba(245,185,66,.14), transparent 60%)"></div>
+            <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-gold to-amber-500/30"></div>
+            <div class="relative w-full p-5 flex items-center gap-4">
+              <div class="w-16 h-16 rounded-lg bg-ink3 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0" x-html="g.svg('book','w-8 h-8')"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-[26px] gold-text leading-none fserif">Vạn Vật Phổ</div>
+                <div class="text-[12.5px] text-slate-400 mt-1.5 italic" style="font-family:'Lora',serif">"Thu lục vạn vật thiên hạ — tích đủ thành thục, một phần huyền cơ nhập thể."</div>
+                <div class="flex items-center gap-2 mt-2.5 flex-wrap">
+                  <span class="px-2.5 py-1 rounded-md bg-ink3/80 border border-slate-700 text-[11px]">Thu lục <b class="text-jade" x-text="g.codexTotalDone"></b>/<span x-text="g.codexTotalAll"></span> · <b class="text-jade" x-text="g.codexTotalAll?Math.round(g.codexTotalDone/g.codexTotalAll*100)+'%':'0%'"></b></span>
+                  <span class="px-2.5 py-1 rounded-md bg-amber-900/25 border border-amber-700/40 text-[11px] text-amber-200">Phổ Lực: <b x-text="g.codexPhoLucText()"></b></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="panel rounded-lg p-2 flex items-center gap-1.5 flex-wrap">
+            <template x-for="c in g.codexCats" :key="c.key">
+              <button @click="g.codexTab=c.key; g.codexDetail=null" class="px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition" :class="g.codexTab===c.key ? 'bg-jade text-ink' : 'bg-ink3 text-slate-400 hover:text-slate-200'">
+                <span x-text="c.name"></span>
+                <span class="text-[10px] px-1.5 rounded-full" :class="g.codexTab===c.key?'bg-ink/20 text-ink':'bg-ink2 text-slate-500'" x-text="g.codexCatDoneN(c)+'/'+c.entries.length"></span>
+              </button>
+            </template>
+          </div>
+
+          <!-- Set reward banner -->
+          <div class="rounded-lg border-2 p-3 flex items-center gap-3" :class="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length ? 'border-amber-400/70 bg-amber-950/20' : 'border-slate-700/70 bg-ink2/50'">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :class="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length ? 'bg-amber-500/20 text-amber-300' : 'bg-ink3 text-slate-500'" x-html="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length ? g.svg('star','w-5 h-5') : g.svg('lock','w-5 h-5')"></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[10px] uppercase tracking-wider text-slate-500">Thưởng trọn bộ</div>
+              <div class="text-[13.5px] font-semibold" :class="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length?'text-amber-200':'text-slate-300'" x-text="g.codexCat.setLabel"></div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Mỗi mục cần đạt <b class="text-slate-400" x-text="g.fmt(g.codexCat.threshold)+' '+g.codexCat.unit"></b> để thu lục (<span x-text="g.codexCat.per.label"></span>).</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-[11px] text-slate-400" x-text="g.codexCatDoneN(g.codexCat)+'/'+g.codexCat.entries.length"></div>
+              <div class="w-28 h-1.5 rounded-full bg-slate-800 overflow-hidden mt-1"><div class="h-full bg-gradient-to-r from-jade to-amber-400" :style="`width:${g.codexCatDoneN(g.codexCat)/g.codexCat.entries.length*100}%`"></div></div>
+            </div>
+          </div>
+
+          <!-- Grid — chia nhóm trong phổ cho đỡ loạn (gear theo ô · vật phẩm theo loại · quái theo affinity · pet theo hệ · bí cảnh theo cảnh giới) -->
+          <div class="panel rounded-lg p-3 space-y-4">
+            <template x-for="grp in g.codexCat.groups" :key="grp.label">
+              <div>
+                <div class="flex items-center gap-1.5 mb-2">
+                  <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                  <span class="text-[11px] uppercase tracking-wider text-slate-400 font-medium" x-text="grp.label"></span>
+                  <span class="text-[10px] text-slate-600" x-text="'· '+g.codexGroupDone(g.codexCat,grp)+'/'+grp.entries.length"></span>
+                </div>
+                <div class="grid gap-2.5" style="grid-template-columns:repeat(auto-fill,minmax(112px,1fr))">
+                  <template x-for="e in grp.entries" :key="e.id">
+                <button @click="g.codexOpen(e)" class="relative rounded-lg overflow-hidden border-2 text-left transition hover:brightness-110"
+                  :class="g.codexEntryState(g.codexCat,e)==='done' ? (e.quality ? g.QUALITY[e.quality].border : (e.he ? g.NGU_HANH[e.he].ring : 'border-amber-500/50')) : 'border-slate-700/50'">
+                  <div class="relative w-full" style="aspect-ratio:1">
+                    <div class="absolute inset-0 bg-gradient-to-br" :class="g.codexEntryState(g.codexCat,e)==='done' ? (e.quality ? g.QUALITY[e.quality].grad : (e.he ? g.NGU_HANH[e.he].grad : 'from-amber-900/20 to-ink')) : 'from-slate-800/40 to-ink'"></div>
+                    <!-- Art 1 lớp (tự fallback emoji). Chưa thu lục đủ -> XÁM; đủ -> màu. -->
+                    <span class="absolute inset-0 flex items-center justify-center transition" :class="g.codexEntryState(g.codexCat,e)==='done' ? '' : 'grayscale opacity-70'" x-html="g.codexArtTag(g.codexCat,e)"></span>
+                    <template x-if="g.codexEntryState(g.codexCat,e)==='locked'">
+                      <div class="absolute inset-0 bg-ink/70 flex items-center justify-center text-slate-500" x-html="g.svg('lock','w-6 h-6')"></div>
+                    </template>
+                    <span class="absolute bottom-0 inset-x-0 bg-ink/85 px-1.5 py-1">
+                      <span class="block text-[11px] font-semibold truncate leading-tight" :class="g.codexEntryState(g.codexCat,e)==='done' ? (e.quality?g.QUALITY[e.quality].text:'text-slate-100') : (g.codexEntryState(g.codexCat,e)==='locked'?'text-slate-600':'text-slate-300')" x-text="g.codexEntryState(g.codexCat,e)==='locked' ? '???' : e.name"></span>
+                      <template x-if="g.codexEntryState(g.codexCat,e)==='done'"><span class="block text-[9px] leading-tight text-amber-300/90" x-text="g.codexCat.per.label"></span></template>
+                      <template x-if="g.codexEntryState(g.codexCat,e)==='prog'"><span class="block text-[9px] leading-tight text-slate-400 tabular-nums" x-text="g.fmt(g.codexCnt(g.codexCat.key,e.id))+' / '+g.fmt(g.codexCat.threshold)"></span></template>
+                      <template x-if="g.codexEntryState(g.codexCat,e)==='locked'"><span class="block text-[9px] leading-tight text-slate-700">Chưa gặp</span></template>
+                    </span>
+                  </div>
+                </button>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Detail popup -->
+          <template x-if="g.codexDetail">
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="g.closeCodex()">
+              <div class="panel relative rounded-2xl w-full max-w-sm overflow-hidden border border-slate-700" @click.stop
+                   x-data="{ get e(){ return $store.game.codexDetail }, get cat(){ return $store.game.codexCat }, get st(){ return $store.game.codexEntryState($store.game.codexCat, $store.game.codexDetail) } }">
+                <button @click="$store.game.closeCodex()" class="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 text-slate-300 hover:text-rose-400">✕</button>
+                <div class="relative aspect-square flex items-center justify-center" :class="st==='done'?'':'grayscale opacity-70'">
+                  <div class="absolute inset-0 bg-gradient-to-br" :class="st==='done'?(e.quality?$store.game.QUALITY[e.quality].grad:(e.he?$store.game.NGU_HANH[e.he].grad:'from-amber-900/20 to-ink')):'from-slate-800/40 to-ink'"></div>
+                  <span class="absolute inset-0 flex items-center justify-center" x-html="$store.game.codexArtTag(cat,e)"></span>
+                  <template x-if="st==='locked'"><div class="absolute inset-0 bg-ink/60 flex items-center justify-center text-slate-500" x-html="$store.game.svg('lock','w-12 h-12')"></div></template>
+                </div>
+                <div class="p-4">
+                  <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                    <span class="text-lg fserif font-bold" :class="st==='locked'?'text-slate-400':(e.quality?$store.game.QUALITY[e.quality].text:'text-slate-100')" x-text="st==='locked'?'??? — Chưa gặp':e.name"></span>
+                    <span x-show="st!=='locked' && e.sub" class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 border border-slate-700 text-slate-300" x-text="e.sub"></span>
+                  </div>
+                  <div class="text-[11px] text-slate-500 mb-3" x-text="st==='locked' ? 'Tìm gặp để bắt đầu thu lục.' : ('Nơi tìm: '+e.where)"></div>
+                  <div class="rounded-lg px-3 py-2 mb-2 bg-ink3/60 border border-slate-700">
+                    <div class="flex items-center justify-between text-[11px] mb-1">
+                      <span class="text-slate-400" x-text="'Tiến độ ('+cat.unit+')'"></span>
+                      <span class="font-mono" :class="st==='done'?'text-jade':'text-slate-300'" x-text="$store.game.fmt($store.game.codexCnt(cat.key,e.id))+' / '+$store.game.fmt(cat.threshold)"></span>
+                    </div>
+                    <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-jade to-amber-400" :style="`width:${$store.game.codexEntryPct(cat,e)}%`"></div></div>
+                  </div>
+                  <div class="rounded-lg px-3 py-2 flex items-center justify-between" :class="st==='done'?'bg-amber-900/20 border border-amber-700/40':'bg-ink3/40 border border-slate-700'">
+                    <span class="text-[11px] text-slate-400" x-text="st==='done'?'Phổ Lực (đã nhập thể)':'Phổ Lực khi thu lục đủ'"></span>
+                    <span class="text-[13px] font-bold" :class="st==='done'?'text-amber-300':'text-slate-500'" x-text="cat.per.label"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
       <!-- ===== VIEW: INVENTORY ===== -->
       <template x-if="$store.game.view==='inventory'">
         <section class="panel rounded-lg p-4">

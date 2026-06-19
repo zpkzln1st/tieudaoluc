@@ -6,6 +6,7 @@ import { ITEMS } from '../data/items.js';
 import { levelFromXp } from './leveling.js';
 import { gearPlus, enhanceMul } from './enhance.js';
 import { petBonus } from './pets.js';
+import { codexBonus } from './codex.js';
 
 export function gearStats(state) {
   const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0 };
@@ -56,6 +57,13 @@ export function derivedStats(state, opts) {
       sinhLuc   += pb.sinhLuc   || 0;
     }
   }
+  // Vạn Vật Phổ — Phổ Lực: % chỉ số vĩnh viễn từ bộ sưu tập (per-entry + trọn bộ).
+  const cx = codexBonus(state);
+  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct));
+  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct));
+  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct));
+  neTranh   = Math.round(neTranh   * (1 + cx.allPct));
+  menhTrung = Math.round(menhTrung * (1 + cx.allPct));
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc };

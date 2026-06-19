@@ -150,6 +150,8 @@ export function runDungeon(state, dungeonId, mode) {
 export function grantDungeon(state, dungeonId, mode, now) {
   const run = runDungeon(state, dungeonId, mode);
   if (!run) return null;
+  // Vạn Vật Phổ — Bí Cảnh Lục: đếm số lượt thông quan.
+  if (state.codex && state.codex.dungeonRuns) state.codex.dungeonRuns[dungeonId] = (state.codex.dungeonRuns[dungeonId] || 0) + 1;
   if (run.loot.bac) state.currencies.bac = (state.currencies.bac || 0) + run.loot.bac;
   if (run.loot.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + run.loot.honThach;
   if (run.loot.exp) addSkillXp(state, 'chienDau', run.loot.exp);
