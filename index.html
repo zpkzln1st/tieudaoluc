@@ -2874,18 +2874,23 @@
       <!-- ===== VIEW: VẠN VẬT PHỔ (Collection) ===== -->
       <template x-if="$store.game.view==='collection'">
         <div class="space-y-3" x-data="{ get g(){ return $store.game } }">
-          <!-- Header band -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[150px] flex items-center">
-            <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse at 85% 40%, rgba(245,185,66,.14), transparent 60%)"></div>
+          <!-- Header banner (đồng bộ kiểu các màn: ảnh nền + gradient + icon art) -->
+          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+            <img src="images/ui/collection_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/collection_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.2) 100%)"></div>
+            <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(245,191,36,.16), transparent 66%)"></div>
             <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-gold to-amber-500/30"></div>
-            <div class="relative w-full p-5 flex items-center gap-4">
-              <div class="w-16 h-16 rounded-lg bg-ink3 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0" x-html="g.svg('book','w-8 h-8')"></div>
+            <div class="relative w-full p-5 md:p-6 flex items-center gap-4">
+              <div class="w-16 h-16 rounded-lg bg-ink3 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0 overflow-hidden">
+                <img src="images/ui/collection_icon.webp" alt="" class="w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/collection_icon.png'}else{this.style.display='none';this.nextElementSibling.style.display='flex'}">
+                <span class="hidden w-full h-full items-center justify-center" x-html="g.svg('book','w-8 h-8')"></span>
+              </div>
               <div class="flex-1 min-w-0">
                 <div class="text-[26px] gold-text leading-none fserif">Vạn Vật Phổ</div>
-                <div class="text-[12.5px] text-slate-400 mt-1.5 italic" style="font-family:'Lora',serif">"Thu lục vạn vật thiên hạ — tích đủ thành thục, một phần huyền cơ nhập thể."</div>
+                <div class="text-[12.5px] text-slate-300 mt-1.5 italic max-w-md" style="font-family:'Lora',serif">"Thu lục vạn vật thiên hạ — tích đủ thành thục, một phần huyền cơ nhập thể."</div>
                 <div class="flex items-center gap-2 mt-2.5 flex-wrap">
-                  <span class="px-2.5 py-1 rounded-md bg-ink3/80 border border-slate-700 text-[11px]">Thu lục <b class="text-jade" x-text="g.codexTotalDone"></b>/<span x-text="g.codexTotalAll"></span> · <b class="text-jade" x-text="g.codexTotalAll?Math.round(g.codexTotalDone/g.codexTotalAll*100)+'%':'0%'"></b></span>
-                  <span class="px-2.5 py-1 rounded-md bg-amber-900/25 border border-amber-700/40 text-[11px] text-amber-200">Phổ Lực: <b x-text="g.codexPhoLucText()"></b></span>
+                  <span class="px-2.5 py-1 rounded-md bg-ink3/80 backdrop-blur-sm border border-slate-700 text-[11px]">Thu lục <b class="text-jade" x-text="g.codexTotalDone"></b>/<span x-text="g.codexTotalAll"></span> · <b class="text-jade" x-text="g.codexTotalAll?Math.round(g.codexTotalDone/g.codexTotalAll*100)+'%':'0%'"></b></span>
+                  <span class="px-2.5 py-1 rounded-md bg-amber-900/25 backdrop-blur-sm border border-amber-700/40 text-[11px] text-amber-200">Phổ Lực: <b x-text="g.codexPhoLucText()"></b></span>
                 </div>
               </div>
             </div>
