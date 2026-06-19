@@ -790,19 +790,38 @@
             </section>
 
             <!-- CHỈ SỐ + BỘ TRANG -->
-            <section class="panel rounded-xl p-4">
+            <section class="panel rounded-xl p-4" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
               <div class="lbl mb-3">Chỉ Số Tổng</div>
-              <div class="space-y-2">
-                <template x-for="row in [['Công Kích','congKich'],['Phòng Ngự','hoThe'],['Né Tránh','neTranh'],['Chính Xác','menhTrung'],['Sinh Lực','sinhLuc']]" :key="row[1]">
-                  <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50">
-                    <span class="text-sm text-slate-300" x-text="row[0]"></span>
-                    <span class="text-sm text-jade font-medium" x-text="$store.game.fmt($store.game.stats[row[1]])"></span>
-                  </div>
-                </template>
-                <div class="flex items-center justify-between py-2 px-2.5 rounded bg-jade/10 border border-jade/30 mt-1">
-                  <span class="text-sm text-jade font-medium">Chiến Lực</span>
-                  <span class="text-lg text-jade font-bold" x-text="$store.game.fmt($store.game.stats.chienLuc)"></span>
-                </div>
+              <!-- Chiến Lực -->
+              <div class="flex items-center justify-between py-2 px-2.5 rounded bg-jade/10 border border-jade/30 mb-3">
+                <span class="text-sm text-jade font-medium">Chiến Lực</span>
+                <span class="text-lg text-jade font-bold" x-text="g.fmt(g.stats.chienLuc)"></span>
+              </div>
+              <!-- Tấn Công -->
+              <div class="text-[10px] uppercase tracking-wider text-rose-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-rose-400"></span>Tấn Công</div>
+              <div class="grid grid-cols-2 gap-1.5 mb-3">
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Công Kích</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.atk)"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Tốc Độ</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.spd)"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Bạo Kích</span><span class="text-[13px] text-amber-300 font-medium" x-text="Math.round(cs.crit*100)+'%'"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Bạo Sát</span><span class="text-[13px] text-amber-300 font-medium" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
+              </div>
+              <!-- Phòng Thủ -->
+              <div class="text-[10px] uppercase tracking-wider text-sky-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-sky-400"></span>Phòng Thủ</div>
+              <div class="grid grid-cols-2 gap-1.5 mb-3">
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Phòng Ngự</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.def)"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Sinh Lực</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.maxHP)"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Né Tránh</span><span class="text-[13px] font-medium" :class="cs.dodge>0?'text-sky-300':'text-slate-100'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Máu</span><span class="text-[13px] font-medium" :class="cs.regenPct>0?'text-jade':'text-slate-100'" x-text="Math.round(cs.regenPct*100)+'%/nhịp'"></span></div>
+              </div>
+              <!-- Nội Công & Ngũ Hành -->
+              <div class="text-[10px] uppercase tracking-wider text-jade/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-jade"></span>Nội Công · Ngũ Hành</div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Nội Lực</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.maxNL)"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Nội Lực</span><span class="text-[13px] text-slate-100 font-medium" x-text="'+'+g.fmt(cs.nlRegen)+'/đòn'"></span></div>
+              </div>
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50 mt-1.5">
+                <span class="text-[12px] text-slate-300">Cộng Hưởng Ngũ Hành</span>
+                <span class="text-[13px] font-bold" :class="g.heInfo(cs.heChinh).text" x-text="g.heName(cs.heChinh)+' +'+Math.round(cs.heBonus*100)+'%'"></span>
               </div>
               <div class="lbl mt-5 mb-2">Bộ Trang</div>
               <div class="text-sm text-slate-500 py-4 px-2 rounded bg-ink3/40 text-center">Hệ Bộ Trang (set bonus) — sắp ra mắt.</div>
