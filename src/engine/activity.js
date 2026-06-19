@@ -298,11 +298,16 @@ export function advance(state, now) {
     act.lastResolved = now;
   } else {
     act.stalled = false;
-    if (cappedByTime && (act.lastResolved - act.startedAt) >= cap) act.capped = true;
+    // Chạm trần nhàn rỗi: tiêu nốt phần dư (<1 chu kỳ, không đủ thưởng) cho đầy trần -> timer về 0,
+    // đánh dấu "đầy" thay vì kẹt lại vài giây vì floor(elapsed/cycleMs)=0 khiến lastResolved đứng yên.
+    if (cappedByTime) {
+      act.lastResolved = act.startedAt + cap;
+      act.capped = true;
+    }
   }
 
   if (act.stalled) act.progress = 0;
-  else if (act.capped && (act.lastResolved - act.startedAt) >= cap) act.progress = 1;
+  else if (act.capped) act.progress = 1;
   else act.progress = Math.min(1, (now - act.lastResolved) / act.cycleMs);
 
   return report;
