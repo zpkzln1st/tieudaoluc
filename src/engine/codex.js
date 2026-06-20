@@ -16,8 +16,10 @@ export function ensureCodex(state) {
     for (const id in prod) cx.obtained[id] = Math.max(cx.obtained[id] || 0, prod[id] || 0);
     const inv = state.inventory || {};
     for (const id in inv) cx.obtained[id] = Math.max(cx.obtained[id] || 0, inv[id] || 0);
+    // Gear loot-hunt: instance trong túi + đang mặc -> Binh Khí Phổ (theo gearId). Hỗ trợ cả id-string (save rất cũ).
+    for (const inst of (state.gearBag || [])) { const gid = inst && inst.gearId; if (gid) cx.obtained[gid] = Math.max(cx.obtained[gid] || 0, 1); }
     const eq = state.equipment || {};
-    for (const slot in eq) { const id = eq[slot]; if (id) cx.obtained[id] = Math.max(cx.obtained[id] || 0, 1); }
+    for (const slot in eq) { const v = eq[slot]; const gid = v && (typeof v === 'string' ? v : v.gearId); if (gid) cx.obtained[gid] = Math.max(cx.obtained[gid] || 0, 1); }
     for (const p of (state.pets || [])) { if (p && p.base) cx.petSeen[p.base] = 1; }
     if (state.hatchery && state.hatchery.pet && state.hatchery.pet.base) cx.petSeen[state.hatchery.pet.base] = 1;
     for (const h of ((state.dungeon && state.dungeon.history) || [])) { const id = h && h.dungeonId; if (id) cx.dungeonRuns[id] = (cx.dungeonRuns[id] || 0) + 1; }

@@ -11,7 +11,7 @@ import { TUTORIAL_QUESTS, DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS } from './
 import { LINH_THACH } from './data/linhthach.js';
 import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
-import { GEAR_IDS } from './data/gear.js';
+import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, AFFIX } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState } from './engine/state.js';
 import { Storage } from './engine/save.js';
@@ -28,7 +28,7 @@ import { derivedStats } from './engine/stats.js';
 import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
 import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
 import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
-import { equipItem, unequipItem } from './engine/equip.js';
+import { equipItem, unequipItem, addGearInstance, removeGearByUid, findGear } from './engine/equip.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
@@ -89,13 +89,29 @@ let state = Storage.load() || createInitialState();
 // lastSave NGAY LÚC NẠP từ đĩa (trước khi vòng game autosave bump) — mốc so sánh cloud đáng tin (xem cloudSyncOnLogin)
 const _loadedLastSave = (state && state.lastSave) || 0;
 if (!state.equipment) state.equipment = {};
-if (!state.enhance) state.enhance = {};   // cấp cường hóa theo món
+if (!state.enhance) state.enhance = {};   // (legacy) cường hóa theo id — dời vào instance.plus ở migration dưới
+if (!Array.isArray(state.gearBag)) state.gearBag = [];
 // Migrate: slot trang bị đã bỏ (Quần/Phụ Khí/Bội Sức) -> trả món đang mặc về túi.
 RETIRED_SLOTS.forEach((slot) => {
   const id = state.equipment[slot];
-  if (id) { state.inventory[id] = (state.inventory[id] || 0) + 1; }
+  if (id) { if (typeof id === 'string') state.inventory[id] = (state.inventory[id] || 0) + 1; else if (id.gearId) state.gearBag.push(id); }
   delete state.equipment[slot];
 });
+// MIGRATION LOOT-HUNT (idempotent): gear cũ (equipment id-string + inventory eq_*) -> instance.
+//   Giữ NGUYÊN stat/phẩm catalog (instanceFromCatalog) để người đang chơi không đổi sức mạnh. plus lấy từ state.enhance cũ.
+for (const slot in state.equipment) {
+  const v = state.equipment[slot];
+  if (typeof v === 'string') {
+    state.equipment[slot] = instanceFromCatalog(v, (state.enhance && state.enhance[v]) || 0) || null;
+  }
+}
+for (const id of Object.keys(state.inventory)) {
+  if (ITEMS[id] && ITEMS[id].equip) {   // mọi món equippable (eq_* + legacy tichSao/thietKiem/tichGiap) -> instance
+    const qty = state.inventory[id] || 0;
+    for (let i = 0; i < qty; i++) { const inst = instanceFromCatalog(id, 0); if (inst) state.gearBag.push(inst); }
+    delete state.inventory[id];
+  }
+}
 if (!state.login) state.login = { lastDay: null, streak: 0 };
 if (!state.counters) state.counters = { produced: {}, kills: {} };
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
@@ -154,10 +170,11 @@ if (state.hatchery === undefined) state.hatchery = null; // Lò Ấp Noãn (P3, 
 (() => {
   const _cl = levelFromXp(state.skills?.chienDau?.xp || 0);
   for (const slot in (state.equipment || {})) {
-    const id = state.equipment[slot]; const it = id && ITEMS[id];
-    const e = it && it.equip;
+    const inst = state.equipment[slot]; if (!inst) continue;
+    const e = (ITEMS[inst.gearId] || {}).equip;
     const lvl = (e && e.gatherSkill) ? levelFromXp(state.skills?.[e.gatherSkill]?.xp || 0) : _cl; // công cụ: cấp NGHỀ
-    if (e && e.reqLevel && lvl < e.reqLevel) { state.inventory[id] = (state.inventory[id] || 0) + 1; state.equipment[slot] = null; }
+    const req = inst.reqLevel || (e && e.reqLevel) || 0;
+    if (req > 1 && lvl < req) { state.gearBag.push(inst); state.equipment[slot] = null; }   // trả instance về túi
   }
 })();
 if (state.dungeon.lastResult && !state.dungeon.lastResult.log) state.dungeon.lastResult = null; // bỏ kết quả format cũ (thiếu log) -> không bật modal rỗng
@@ -1541,11 +1558,13 @@ const gameStore = {
   costEmoji(cost) { return { bac: '🟡', nguyenBao: '🔷', honThach: '🔴' }[this.costCur(cost)]; },
   costIcon(cost) { const cur = this.costCur(cost); return this.ico(cur, this.costEmoji(cost)); },  // ảnh currency thật (images/currency/<cur>.png) + fallback emoji
   // --- Item helpers (popup loot) ---
-  itemQuality(id) { return this.QUALITY[(this.ITEMS[id] || {}).quality] || this.QUALITY.phamPham; },
+  // x = string id (vật phẩm xếp chồng) HOẶC view/instance gear (có .quality) — phẩm chất ĐA HÌNH.
+  _qKey(x) { return (x && typeof x === 'object') ? x.quality : (this.ITEMS[x] || {}).quality; },
+  itemQuality(x) { return this.QUALITY[this._qKey(x)] || this.QUALITY.phamPham; },
   get QUALITY_KEYS() { return Object.keys(this.QUALITY); },                                   // thứ tự thấp -> cao
-  qualityRank(id) { const i = this.QUALITY_KEYS.indexOf((this.ITEMS[id] || {}).quality); return i < 0 ? 1 : i + 1; }, // 1..7
-  qualityName(id) { return this.itemQuality(id).name; },
-  itemDescOf(id) { const it = this.ITEMS[id] || {}; return it.desc || ('Chiến lợi phẩm ' + this.itemQuality(id).name + ', thu được khi hạ yêu thú.'); },
+  qualityRank(x) { const i = this.QUALITY_KEYS.indexOf(this._qKey(x)); return i < 0 ? 1 : i + 1; }, // 1..7
+  qualityName(x) { return this.itemQuality(x).name; },
+  itemDescOf(x) { const id = (x && typeof x === 'object') ? x.id : x; const it = this.ITEMS[id] || {}; return it.desc || ('Chiến lợi phẩm ' + this.itemQuality(x).name + ', thu được khi hạ yêu thú.'); },
   _spendCost(cost) { if (!cost) return true; const cur = this.costCur(cost); if ((this.state.currencies[cur] || 0) < cost[cur]) return false; this.state.currencies[cur] -= cost[cur]; return true; },
   // HỌC/MUA: trừ tiền + thêm vào sở hữu. Trả true nếu thành công.
   learnChieu(id) {
@@ -1878,6 +1897,8 @@ const gameStore = {
     const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus');   // P7 — Tham Tài
     const lootMul = 1 + activeAwkVal(this.state, 'lootBonus');     // P7 — Lùng Sục
     if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) addItem(this.state, l.itemId, 1);
+    // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
+    if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); } }
     this.state.currencies.bac = (this.state.currencies.bac || 0) + Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     this.state.combat.sinhLuc = Math.max(0, Math.round(f.p.hp));
@@ -1968,13 +1989,36 @@ const gameStore = {
     removeItem(this.state, itemId, qty);
     Storage.save(this.state);
   },
+  sellGear(uid) {                                  // bán 1 instance gear (theo uid trong túi)
+    const inst = removeGearByUid(this.state, uid);
+    if (!inst) return;
+    this.state.currencies.bac = (this.state.currencies.bac || 0) + ((this.ITEMS[inst.gearId] || {}).value || 0);
+    Storage.save(this.state);
+  },
+  // Khoe gear rơi — chỉ Hiếm trở lên (tránh spam Thường/Tốt).
+  notifyGearDrop(inst) {
+    if (!inst) return;
+    const rank = this.QUALITY_KEYS.indexOf(inst.quality);
+    if (rank < 2) return;
+    const q = this.QUALITY[inst.quality] || {}; const nm = (this.ITEMS[inst.gearId] || {}).name || 'trang bị';
+    this.showToast('✦ Rơi ' + (q.name || '') + ' 〈' + nm + '〉 · ' + Object.keys(inst.stats).length + ' dòng!');
+  },
 
   // ---------- Trang Bị ----------
   equipModal: null,
-  equippedItem(slotId) {
-    const id = this.state.equipment && this.state.equipment[slotId];
-    return id ? this.ITEMS[id] : null;
+  // View hợp nhất: instance gear + dữ liệu catalog (tên/art/slot...). Dùng cho mọi UI gear. .id = gearId (art/req), .uid = handle.
+  gearView(inst) {
+    if (!inst) return null;
+    const b = this.ITEMS[inst.gearId] || {}; const e = b.equip || {};
+    return {
+      id: inst.gearId, uid: inst.uid, gearId: inst.gearId, name: b.name, icon: b.icon,
+      type: b.type || 'trangbi', value: b.value || 0, quality: inst.quality, stats: inst.stats || {},
+      itemLv: inst.itemLv || e.itemLv || 1, reqLevel: inst.reqLevel || e.reqLevel || 1, plus: inst.plus || 0,
+      he: inst.he || null, eleDmg: inst.eleDmg || 0, slot: e.slot, weaponType: e.weaponType || null,
+      gatherEff: e.gatherEff || 0, gatherSkill: e.gatherSkill || null, rolls: inst.rolls || null, equip: e, _inst: inst,
+    };
   },
+  equippedItem(slotId) { return this.gearView(this.state.equipment && this.state.equipment[slotId]); },
   slotName(slotId) {
     const s = [...this.EQUIP_SLOTS, ...this.TOOL_SLOTS].find((x) => x.id === slotId);
     return s ? s.name : slotId;
@@ -1982,57 +2026,80 @@ const gameStore = {
   openEquip(slot) { this.equipModal = { slot }; },
   closeEquip() { this.equipModal = null; },
   equippableForSlot(slot) {
-    return Object.keys(this.state.inventory)
-      .map((id) => ({ ...this.ITEMS[id], qty: this.state.inventory[id] }))
-      .filter((x) => x && x.equip && x.equip.slot === slot && x.qty > 0)
-      .sort((a, b) => this.qualityRank(b.id) - this.qualityRank(a.id) || (b.equip.itemLv || 0) - (a.equip.itemLv || 0)); // phẩm cao -> thấp
+    return (this.state.gearBag || []).map((inst) => this.gearView(inst))
+      .filter((v) => v && v.slot === slot)
+      .sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.itemLv || 0) - (a.itemLv || 0)); // phẩm cao -> thấp
   },
-  equipReqOf(itemId) { const it = this.ITEMS[itemId]; return (it && it.equip && it.equip.reqLevel) || 0; }, // cấp yêu cầu MANG (số)
-  // Công cụ (equip.gatherSkill) -> yêu cầu theo cấp NGHỀ tương ứng; còn lại theo Chiến Đấu.
-  equipReqCtx(itemId) {
-    const it = this.ITEMS[itemId]; const e = it && it.equip; const req = (e && e.reqLevel) || 0;
-    if (e && e.gatherSkill) { const sk = this.SKILLS[e.gatherSkill]; return { req, level: this.skillLevel(e.gatherSkill), label: (sk ? sk.name : 'Nghề') }; }
+  // req: nhận view/instance gear (reqLevel+gatherSkill từ chính nó) HOẶC string id (catalog).
+  _equipE(x) { if (x && typeof x === 'object') return { reqLevel: x.reqLevel, gatherSkill: x.gatherSkill }; const it = this.ITEMS[x]; return (it && it.equip) || {}; },
+  equipReqOf(x) { return this._equipE(x).reqLevel || 0; },                                       // cấp yêu cầu MANG (số)
+  // Công cụ (gatherSkill) -> yêu cầu theo cấp NGHỀ tương ứng; còn lại theo Chiến Đấu.
+  equipReqCtx(x) {
+    const e = this._equipE(x); const req = e.reqLevel || 0;
+    if (e.gatherSkill) { const sk = this.SKILLS[e.gatherSkill]; return { req, level: this.skillLevel(e.gatherSkill), label: (sk ? sk.name : 'Nghề') }; }
     return { req, level: this.combatLevel, label: 'Chiến Đấu' };
   },
-  canEquip(itemId) { const c = this.equipReqCtx(itemId); return c.req <= 1 || c.level >= c.req; },
-  equipReqText(itemId) { const c = this.equipReqCtx(itemId); return c.label + ' Lv ' + c.req; }, // "Đốn Củi Lv 5" | "Chiến Đấu Lv 10"
-  equipCurLevel(itemId) { return this.equipReqCtx(itemId).level; },                              // cấp hiện tại của người chơi theo đúng loại
-  doEquip(itemId) {
-    const c = this.equipReqCtx(itemId);
-    if (c.req > 1 && c.level < c.req) { const it = this.ITEMS[itemId]; this.showToast('Cần ' + c.label + ' Lv ' + c.req + ' để mang ' + (it ? it.name : 'món này') + '.'); return; }
-    if (equipItem(this.state, itemId)) Storage.save(this.state);
+  canEquip(x) { const c = this.equipReqCtx(x); return c.req <= 1 || c.level >= c.req; },
+  equipReqText(x) { const c = this.equipReqCtx(x); return c.label + ' Lv ' + c.req; },           // "Đốn Củi Lv 5" | "Chiến Đấu Lv 10"
+  equipCurLevel(x) { return this.equipReqCtx(x).level; },                                         // cấp hiện tại của người chơi theo đúng loại
+  doEquip(uid) {
+    const v = this.gearView(findGear(this.state, uid)); if (!v) return;
+    const c = this.equipReqCtx(v);
+    if (c.req > 1 && c.level < c.req) { this.showToast('Cần ' + c.label + ' Lv ' + c.req + ' để mang ' + (v.name || 'món này') + '.'); return; }
+    if (equipItem(this.state, uid)) Storage.save(this.state);
   },
   doUnequip(slot) { if (unequipItem(this.state, slot)) Storage.save(this.state); },
   // --- Hiển thị chi tiết trang bị (badge ngũ hành + so sánh) ---
-  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
-  // Công cụ (rìu/cuốc/cần câu): dòng "+X% Hiệu Suất <kĩ năng>" cho equip modal.
-  toolEffText(itemId) {
-    const it = this.ITEMS[itemId]; const e = it && it.equip && it.equip.gatherEff;
+  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ' })[k] || k; },
+  // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích/Bạo Sát).
+  gearLineText(k, v) { const a = AFFIX[k]; return this.statLabel(k) + ' +' + v + (a && a.fmt === 'pct' ? '%' : ''); },
+  gearVal(k, v) { const a = AFFIX[k]; return '+' + v + (a && a.fmt === 'pct' ? '%' : ''); },        // chỉ giá trị (tách khỏi tên cho list dọc)
+  // Màu dòng theo BẬC ROLL (% trong [min,max]): Phàm trắng → Lương lục → Thượng lam → Cực đỏ → Tuyệt cam. Món cũ/migrate (không rolls) = jade trung tính.
+  gearLineColor(view, k) {
+    const pct = view && view.rolls && view.rolls[k];
+    if (pct == null) return '#5eead4';
+    if (pct < 0.25) return '#cbd5e1';
+    if (pct < 0.50) return '#34d399';
+    if (pct < 0.75) return '#38bdf8';
+    if (pct < 0.92) return '#fb7185';
+    return '#fbbf24';
+  },
+  // Công cụ: dòng "+X% Hiệu Suất <kĩ năng>". Nhận view/instance gear hoặc string id.
+  toolEffText(x) {
+    const e = (x && typeof x === 'object') ? x.gatherEff : (((this.ITEMS[x] || {}).equip) || {}).gatherEff;
     if (!e) return null;
-    const sk = it.equip.gatherSkill && this.SKILLS[it.equip.gatherSkill];
+    const skId = (x && typeof x === 'object') ? x.gatherSkill : (((this.ITEMS[x] || {}).equip) || {}).gatherSkill;
+    const sk = skId && this.SKILLS[skId];
     return '+' + Math.round(e * 100) + '% Hiệu Suất' + (sk ? ' ' + sk.name : '');
   },
-  gearHe(itemId) { const it = this.ITEMS[itemId]; const he = it && it.equip && it.equip.he; return he ? { he, name: heName(he), info: heInfo(he), eleDmg: it.equip.eleDmg || 0 } : null; },
-  // So sánh chỉ số món `itemId` với món ĐANG mặc cùng slot -> [{key,label,next,cur,delta}]
-  gearCompare(itemId) {
-    const it = this.ITEMS[itemId]; if (!it || !it.equip) return [];
-    const next = it.equip.stats || {};
-    const cur = (this.equippedItem(it.equip.slot) || {}).equip?.stats || {};
+  gearHe(x) {
+    const he = (x && typeof x === 'object') ? x.he : ((((this.ITEMS[x] || {}).equip) || {}).he);
+    if (!he) return null;
+    const eleDmg = (x && typeof x === 'object') ? (x.eleDmg || 0) : ((((this.ITEMS[x] || {}).equip) || {}).eleDmg || 0);
+    return { he, name: heName(he), info: heInfo(he), eleDmg };
+  },
+  // So sánh chỉ số view/instance gear `x` với món ĐANG mặc cùng slot -> [{key,label,next,cur,delta}]
+  gearCompare(x) {
+    if (!x || typeof x !== 'object') return [];
+    const slot = x.slot || (((this.ITEMS[x.gearId] || {}).equip) || {}).slot;
+    const next = x.stats || {};
+    const worn = this.state.equipment && this.state.equipment[slot];
+    const cur = (worn && worn.stats) || {};
     const keys = [...new Set([...Object.keys(next), ...Object.keys(cur)])];
     return keys.map((k) => ({ key: k, label: this.gearStatLabel(k), next: next[k] || 0, cur: cur[k] || 0, delta: (next[k] || 0) - (cur[k] || 0) }));
   },
   gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart' })[k] || 'zap'; },
-  gearGainTotal(id) { return this.gearCompare(id).reduce((s, c) => s + c.delta, 0); },         // tổng chênh stat vs món đang mặc
-  equipFilterBetter: false,                                                                     // checkbox "chỉ hiển thị tốt hơn"
-  recommendedForSlot(slot) {                                                                    // món NÂNG CẤP tốt nhất (null nếu không có)
+  gearGainTotal(x) { return this.gearCompare(x).reduce((s, c) => s + c.delta, 0); },             // tổng chênh stat vs món đang mặc
+  equipFilterBetter: false,                                                                       // checkbox "chỉ hiển thị tốt hơn"
+  recommendedForSlot(slot) {                                                                      // món NÂNG CẤP tốt nhất (null nếu không có)
     let best = null, bestScore = 0;
-    for (const it of this.equippableForSlot(slot)) { if (!this.canEquip(it.id)) continue; const s = this.gearGainTotal(it.id); if (s > bestScore) { bestScore = s; best = it; } } // chỉ đề cử món ĐỦ CẤP mang
+    for (const v of this.equippableForSlot(slot)) { if (!this.canEquip(v)) continue; const s = this.gearGainTotal(v); if (s > bestScore) { bestScore = s; best = v; } } // chỉ đề cử món ĐỦ CẤP mang
     return best;
   },
   othersForSlot(slot) {
     const rec = this.recommendedForSlot(slot);
-    let list = this.equippableForSlot(slot).filter((it) => !rec || it.id !== rec.id);
-    if (this.equipFilterBetter) list = list.filter((it) => this.gearGainTotal(it.id) > 0);
+    let list = this.equippableForSlot(slot).filter((v) => !rec || v.uid !== rec.uid);
+    if (this.equipFilterBetter) list = list.filter((v) => this.gearGainTotal(v) > 0);
     return list;
   },
 
@@ -2040,15 +2107,16 @@ const gameStore = {
   enhanceModal: null,            // { slot }
   enhanceMsg: null,              // kết quả lần cường gần nhất {ok:true,plus} | {ok:false}
   MAX_PLUS,
-  itemPlus(id) { return gearPlus(this.state, id); },                            // +N của 1 món
+  itemPlus(x) { return (x && typeof x === 'object') ? (x.plus || 0) : 0; },     // +N (view/instance gear); string -> 0
   openEnhance(slot) { this.equipModal = null; this.enhanceMsg = null; this.enhanceModal = { slot }; },
   closeEnhance() { this.enhanceModal = null; this.enhanceMsg = null; },
-  enhanceId() { return this.enhanceModal && this.state.equipment[this.enhanceModal.slot]; },   // itemId đang cường
-  enhanceMaxed(id) { return gearPlus(this.state, id) >= MAX_PLUS; },
-  enhanceCan(id) { return canEnhance(this.state, id); },
+  enhanceInst() { return this.enhanceModal && this.state.equipment[this.enhanceModal.slot]; },   // INSTANCE đang cường (để ghi)
+  enhanceId() { return this.gearView(this.enhanceInst()); },                                      // VIEW để hiển thị
+  enhanceMaxed(x) { return this.itemPlus(x) >= MAX_PLUS; },
+  enhanceCan(x) { return canEnhance(this.state, (x && x._inst) ? x._inst : x); },
   // Thông tin yêu cầu lần cường kế tiếp (null nếu đã +15)
-  enhanceInfo(id) {
-    const step = enhanceStep(gearPlus(this.state, id));
+  enhanceInfo(x) {
+    const step = enhanceStep(this.itemPlus(x));
     if (!step) return null;
     return { ...step, ratePct: Math.round(step.rate * 100),
       stoneName: (this.ITEMS[step.stoneId] || {}).name, stoneHave: this.state.inventory[step.stoneId] || 0,
@@ -2058,16 +2126,16 @@ const gameStore = {
       honOk: (this.state.currencies.honThach || 0) >= step.honThach,
       crystalOk: step.crystalQty <= 0 || (this.state.inventory[step.crystalId] || 0) >= step.crystalQty };
   },
-  // Xem trước chỉ số: cấp hiện tại -> cấp kế (làm tròn)
-  enhancePreview(id) {
-    const it = this.ITEMS[id]; if (!it || !it.equip) return [];
-    const plus = gearPlus(this.state, id), curMul = enhanceMul(plus), nxtMul = enhanceMul(plus + 1);
-    return Object.keys(it.equip.stats).map((k) => ({ key: k, label: this.gearStatLabel(k), icon: this.gearStatIcon(k),
-      cur: Math.round(it.equip.stats[k] * curMul), next: Math.round(it.equip.stats[k] * nxtMul) }));
+  // Xem trước chỉ số (view gear): cấp hiện tại -> cấp kế (làm tròn)
+  enhancePreview(x) {
+    if (!x || !x.stats) return [];
+    const plus = this.itemPlus(x), curMul = enhanceMul(plus), nxtMul = enhanceMul(plus + 1);
+    return Object.keys(x.stats).map((k) => ({ key: k, label: this.gearStatLabel(k), icon: this.gearStatIcon(k),
+      cur: Math.round(x.stats[k] * curMul), next: Math.round(x.stats[k] * nxtMul) }));
   },
   doEnhance() {
-    const id = this.enhanceId(); if (!id) return;
-    const r = tryEnhance(this.state, id);
+    const inst = this.enhanceInst(); if (!inst) return;
+    const r = tryEnhance(this.state, inst);
     if (r.ok) { this.enhanceMsg = r.success ? { ok: true, plus: r.plus } : { ok: false }; Storage.save(this.state); }
   },
 
@@ -2087,16 +2155,20 @@ const gameStore = {
       const t = item.type || 'khac';
       (groups[t] = groups[t] || []).push({ ...item, qty });
     }
+    // Gear loot-hunt: instance trong túi -> nhóm "Trang Bị" (phẩm cao -> thấp).
+    const gear = (this.state.gearBag || []).map((inst) => this.gearView(inst)).filter(Boolean)
+      .sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.itemLv || 0) - (a.itemLv || 0));
+    if (gear.length) groups['trangbi'] = (groups['trangbi'] || []).concat(gear);
     return Object.keys(groups).map((t) => ({
       type: t,
       label: this.ITEM_TYPES[t] || 'Khác',
-      items: groups[t].sort((a, b) => b.qty - a.qty),
+      items: t === 'trangbi' ? groups[t] : groups[t].sort((a, b) => b.qty - a.qty),
     }));
   },
 
   // ---------- Popup chi tiết vật phẩm (bấm item ở Hành Lý) ----------
-  itemModal: null,                               // itemId đang xem
-  openItemModal(id) { if (this.ITEMS[id]) this.itemModal = id; },
+  itemModal: null,                               // ref đang xem: string id (xếp chồng) HOẶC uid gear instance
+  openItemModal(ref) { if (findGear(this.state, ref) || this.ITEMS[ref]) this.itemModal = ref; },
   closeItemModal() { this.itemModal = null; },
 
   // ======================= BÍ CẢNH (Dungeon idle) =======================
@@ -2211,12 +2283,22 @@ const gameStore = {
     if (!forceDoPho && ['phamPham', 'luongPham', 'tinhPham'].includes(it.quality)) return true;
     return this.doPhoCharges(itemId) > 0; // bậc 4-7 + tool bậc 2-3: còn lượt Đồ Phổ mới hiện ở Rèn Đúc
   },
-  get itemModalObj() { const it = this.itemModal && this.ITEMS[this.itemModal]; return it ? { ...it, qty: this.state.inventory[this.itemModal] || 0 } : null; },
+  get itemModalObj() {
+    const ref = this.itemModal; if (!ref) return null;
+    const g = findGear(this.state, ref);
+    if (g) return { ...this.gearView(g), qty: 1, isGear: true };     // gear instance
+    const it = this.ITEMS[ref];
+    return it ? { ...it, qty: this.state.inventory[ref] || 0, isGear: false } : null;
+  },
   itemTypeLabel(t) { return this.ITEM_TYPES[t] || 'Khác'; },
   equipSlotLabel(slot) { const s = (this.EQUIP_SLOTS || []).find((x) => x.id === slot) || (this.TOOL_SLOTS || []).find((x) => x.id === slot); return s ? s.name : slot; },
-  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', sinhLuc: 'Sinh Lực', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực' })[k] || k; },
+  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực' })[k] || k; },
   // Bán nhanh từ popup chi tiết
-  sellFromModal(qty) { const id = this.itemModal; if (!id) return; this.sellItem(id, qty); if (!(this.state.inventory[id] > 0)) this.closeItemModal(); },
+  sellFromModal(qty) {
+    const ref = this.itemModal; if (!ref) return;
+    if (findGear(this.state, ref)) { this.sellGear(ref); this.closeItemModal(); return; }
+    this.sellItem(ref, qty); if (!(this.state.inventory[ref] > 0)) this.closeItemModal();
+  },
 
   // ---------- Dev / Admin (offline) — cổng mật khẩu F9 ----------
   // F9: đã đăng nhập -> bật/tắt panel; chưa -> mở/đóng màn đăng nhập. Panel CHỈ hiện + dùng được khi devAuthed.
@@ -2245,7 +2327,9 @@ const gameStore = {
     this.devSave();
   },
   devAddItem(id, qty) { if (!id || !this.ITEMS[id]) return; addItem(this.state, id, qty); this.devSave(); },
-  devGiveSampleGear() { GEAR_IDS.forEach((id) => addItem(this.state, id, 1)); this.devSave(); },
+  devGiveSampleGear() { GEAR_IDS.forEach((id) => addGearInstance(this.state, rollGearInstance(id))); this.devSave(); },
+  // Dev: roll N drop ngẫu nhiên ở cấp `lv` (test loot-hunt: phẩm + số dòng đa dạng).
+  devRollDrops(lv, n) { lv = lv || this.combatLevel || 20; n = n || 20; for (let i = 0; i < n; i++) { const gi = rollMonsterDrop(lv); if (gi) addGearInstance(this.state, gi); } this.devSave(); this.showToast('Roll ' + n + ' drop @Lv' + lv); },
   devGiveStones() { ['daCuongHoaSo', 'daCuongHoaTrung', 'daCuongHoaCao', 'tinhTheYeuVuong'].forEach((id) => addItem(this.state, id, 99)); this.state.currencies.honThach = (this.state.currencies.honThach || 0) + 100000; this.devSave(); },
   devGiveAllEggs() {   // toàn bộ Trứng Linh Thú (30) + Tinh Thể + mầm Boss — để xem art
     let n = 0;
@@ -2254,7 +2338,7 @@ const gameStore = {
     this.devSave(); this.showToast('Đã nhận ' + n + ' Trứng Linh Thú + Tinh Thể + mầm Boss (test).');
   },
   devGiveAll() {       // TOÀN BỘ vật phẩm đã đăng ký + tiền tệ
-    Object.keys(this.ITEMS).forEach((id) => addItem(this.state, id, id.startsWith('eq_') ? 1 : 20));
+    Object.keys(this.ITEMS).forEach((id) => { if (this.ITEMS[id].equip) addGearInstance(this.state, rollGearInstance(id)); else addItem(this.state, id, 20); });
     ['bac', 'honThach', 'nguyenBao'].forEach((k) => { this.state.currencies[k] = (this.state.currencies[k] || 0) + 1000000; });
     this.devSave(); this.showToast('Đã nhận TOÀN BỘ vật phẩm + tiền tệ (test).');
   },

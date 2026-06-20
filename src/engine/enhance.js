@@ -30,7 +30,7 @@ const TABLE = [
   { stone: 'cao',   qty: 8, hon: 3600, crys: 3, rate: 0.16 }, // -> +15
 ];
 
-export function gearPlus(state, itemId) { return (state.enhance && state.enhance[itemId]) || 0; }
+export function gearPlus(inst) { return (inst && inst.plus) || 0; }    // cấp cường hóa của 1 instance
 export function enhanceMul(plus) { return 1 + (plus || 0) * 0.08; }    // +8% / cấp
 
 // Yêu cầu cho lần cường hóa kế tiếp (null nếu đã +15).
@@ -40,9 +40,9 @@ export function enhanceStep(plus) {
   return { next: plus + 1, stoneId: STONE[r.stone], stoneTier: r.stone, stoneQty: r.qty, honThach: r.hon, crystalId: BOSS_CRYSTAL, crystalQty: r.crys, rate: r.rate };
 }
 
-// Có đủ liệu để cường hóa không?
-export function canEnhance(state, itemId) {
-  const step = enhanceStep(gearPlus(state, itemId));
+// Có đủ liệu để cường hóa instance này không?
+export function canEnhance(state, inst) {
+  const step = enhanceStep(gearPlus(inst));
   if (!step) return false;
   if ((state.inventory[step.stoneId] || 0) < step.stoneQty) return false;
   if ((state.currencies.honThach || 0) < step.honThach) return false;
@@ -50,20 +50,17 @@ export function canEnhance(state, itemId) {
   return true;
 }
 
-// Thực hiện 1 lần cường hóa. roll (0..1) tùy chọn để test. -> {ok, success, plus}.
-export function tryEnhance(state, itemId, roll) {
-  const plus = gearPlus(state, itemId);
+// Thực hiện 1 lần cường hóa instance. roll (0..1) tùy chọn để test. -> {ok, success, plus}.
+export function tryEnhance(state, inst, roll) {
+  const plus = gearPlus(inst);
   const step = enhanceStep(plus);
-  if (!step || !canEnhance(state, itemId)) return { ok: false };
+  if (!step || !inst || !canEnhance(state, inst)) return { ok: false };
   // Tiêu liệu — THÀNH hay BẠI đều mất.
   removeItem(state, step.stoneId, step.stoneQty);
   state.currencies.honThach = Math.max(0, (state.currencies.honThach || 0) - step.honThach);
   if (step.crystalQty > 0) removeItem(state, step.crystalId, step.crystalQty);
   const r = (roll == null ? Math.random() : roll);
   const success = r < step.rate;
-  if (success) {
-    if (!state.enhance) state.enhance = {};
-    state.enhance[itemId] = plus + 1;
-  }
-  return { ok: true, success, plus: gearPlus(state, itemId) };
+  if (success) inst.plus = plus + 1;
+  return { ok: true, success, plus: gearPlus(inst) };
 }

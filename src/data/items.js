@@ -3,7 +3,7 @@
 // Cá Hồi, Kiếm Sắt...), giữ Hán-Việt cho thứ huyền ảo (Linh Thạch, Đan).
 // ============================================================
 // text/border/grad dùng cho khung độ hiếm (popup loot, tooltip...). bg/ring giữ cho lưới kho cũ.
-import { GEAR } from './gear.js';
+import { GEAR, setGearLookup } from './gear.js';
 
 // Bậc 1→7: Thường(xám) · Tốt(lá) · Hiếm(dương) · Cực Hiếm(tím) · Sử Thi(hồng tím) · Truyền Thuyết(cam) · Độc Nhất(vàng kim).
 // ID nội bộ GIỮ NGUYÊN (phamPham…coBan) để không vỡ save cũ — chỉ đổi name + màu.
@@ -162,6 +162,8 @@ export const ITEMS = {
 
 // Gộp catalog trang bị thật (eq_*) vào ITEMS — xem src/data/gear.js.
 Object.assign(ITEMS, GEAR);
+// Cho gear.js tra cuu instance qua TOÀN BỘ ITEMS (gồm 3 món equippable legacy tichSao/thietKiem/tichGiap ngoài GEAR).
+setGearLookup(ITEMS);
 
 // --- TRỨNG LINH THÚ (tiền đề Pet) — mỗi Yêu Vương 1 dòng trứng × 3 phẩm chất ---
 // Drop từ Yêu Vương (1 con rơi 2-3 phẩm chất khác nhau). Chưa có tính năng ấp nở — cất giữ.

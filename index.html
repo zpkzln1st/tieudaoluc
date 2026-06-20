@@ -534,7 +534,7 @@
                     <button @click="$store.game.navTo('trangbi')" :title="$store.game.slotName(sid)"
                       class="relative aspect-square rounded-md overflow-hidden transition"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700/70 hover:border-slate-500'">
-                      <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.state.equipment[sid], $store.game.equippedItem(sid).icon)"></span></template>
+                      <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template>
                       <template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-0.5 right-0.5 text-[8px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[8px] text-slate-600 px-0.5 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>
                     </button>
@@ -753,7 +753,7 @@
                     <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
                       class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                      <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.state.equipment[sid], $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                      <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
                   </template>
                 </div>
@@ -772,7 +772,7 @@
                     <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
                       class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                      <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.state.equipment[sid], $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                      <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
                   </template>
                 </div>
@@ -783,7 +783,7 @@
                   <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
                     class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                     :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                    <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.state.equipment[sid], $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                    <template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                     <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                  </button>
                 </template>
               </div>
@@ -811,7 +811,7 @@
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Phòng Ngự</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.def)"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Sinh Lực</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.maxHP)"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Né Tránh</span><span class="text-[13px] font-medium" :class="cs.dodge>0?'text-sky-300':'text-slate-100'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Máu</span><span class="text-[13px] font-medium" :class="cs.regenPct>0?'text-jade':'text-slate-100'" x-text="Math.round(cs.regenPct*100)+'%/nhịp'"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Máu</span><span class="text-[13px] font-medium" :class="cs.regenPct>0?'text-jade':'text-slate-100'" x-text="Math.round(cs.regenPct*100)+'%/hiệp'"></span></div>
               </div>
               <!-- Nội Công & Ngũ Hành -->
               <div class="text-[10px] uppercase tracking-wider text-jade/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-jade"></span>Nội Công · Ngũ Hành</div>
@@ -2135,7 +2135,7 @@
                           <div class="absolute inset-0" x-html="$store.game.petSkillArt(p,'active')"></div>
                           <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 14px '+qh+'22'"></div>
                         </div>
-                        <div class="min-w-0 pt-0.5"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div><div class="text-[9.5px] text-rose-300/90 mt-0.5">Sát thương ~<span x-text="Math.round($store.game.petActiveOf(p).mult*100)"></span>% Công · ≈<b x-text="$store.game.fmt($store.game.petActiveDmg(p))"></b></div></div>
+                        <div class="min-w-0 pt-0.5"><div class="text-[11.5px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[9px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' hiệp'"></span></div><div class="text-[10px] text-slate-500 leading-snug" x-text="$store.game.petActiveOf(p).desc"></div><div class="text-[9.5px] text-rose-300/90 mt-0.5">Sát thương ~<span x-text="Math.round($store.game.petActiveOf(p).mult*100)"></span>% Công · ≈<b x-text="$store.game.fmt($store.game.petActiveDmg(p))"></b></div></div>
                       </div>
                       <!-- Bị động Thức Tỉnh (P7) — chỉ khi thức tỉnh; lưới 2×2: hàng 2 = awk + 1 ô trống chờ kĩ năng thứ 4 -->
                       <template x-if="$store.game.petAwkPassiveOf(p)">
@@ -2466,7 +2466,7 @@
                       <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 16px '+qh+'22'"></div>
                     </div>
                     <div class="min-w-0">
-                      <div class="text-[13px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' nhịp'"></span> <template x-if="p.evolved"><span class="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-600/30 font-bold align-middle">✦ +30%</span></template></div>
+                      <div class="text-[13px] font-medium" :class="q.text"><span x-text="$store.game.petActiveOf(p).name"></span> <span class="text-[10px] text-slate-500 font-normal" x-text="'· chủ động · mỗi '+$store.game.petActiveOf(p).cd+' hiệp'"></span> <template x-if="p.evolved"><span class="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-600/30 font-bold align-middle">✦ +30%</span></template></div>
                       <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="$store.game.petActiveOf(p).desc"></div>
                       <div class="flex flex-wrap gap-1 mt-1.5">
                         <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-ink/70 border border-slate-700 text-slate-300">Sát thương ~<span x-text="Math.round($store.game.petActiveOf(p).mult*100)"></span>% Công Kích · ≈<b class="text-rose-300" x-text="$store.game.fmt($store.game.petActiveDmg(p))"></b></span>
@@ -3019,11 +3019,12 @@
             <div class="mb-4">
               <div class="text-xs text-jade mb-2" x-text="grp.label"></div>
               <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(72px,1fr))">
-                <template x-for="it in grp.items" :key="it.id">
-                  <button @click="$store.game.openItemModal(it.id)" class="group flex flex-col items-center gap-1 text-center" :title="it.name+' — bấm xem chi tiết'">
+                <template x-for="it in grp.items" :key="it.uid || it.id">
+                  <button @click="$store.game.openItemModal(it.uid || it.id)" class="group flex flex-col items-center gap-1 text-center" :title="it.name+' — bấm xem chi tiết'">
                     <div class="relative w-full aspect-square rounded flex items-center justify-center ring-1 transition group-hover:ring-2 group-hover:brightness-110" :class="$store.game.QUALITY[it.quality].bg + ' ' + $store.game.QUALITY[it.quality].ring">
                       <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-3xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="$store.game.ico(it.id, it.icon)"></span>
-                      <span class="absolute bottom-0.5 right-1 text-[10px] font-bold text-slate-200" x-text="$store.game.fmt(it.qty)"></span>
+                      <template x-if="it.qty"><span class="absolute bottom-0.5 right-1 text-[10px] font-bold text-slate-200" x-text="$store.game.fmt(it.qty)"></span></template>
+                      <template x-if="it.plus>0"><span class="absolute top-0.5 right-0.5 text-[9px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+it.plus"></span></template>
                     </div>
                     <span class="text-[10px] leading-tight line-clamp-2 w-full min-h-[24px] opacity-80 group-hover:opacity-100" :class="$store.game.QUALITY[it.quality].text" x-text="it.name"></span>
                   </button>
@@ -3055,18 +3056,29 @@
                     <span class="text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wide font-bold border bg-ink/40" :class="$store.game.QUALITY[m.quality].text+' '+$store.game.QUALITY[m.quality].border" x-text="$store.game.QUALITY[m.quality].name"></span>
                   </div>
                   <div class="text-[11px] text-slate-500 mb-2.5">Loại: <span class="text-slate-300" x-text="$store.game.itemTypeLabel(m.type)"></span></div>
-                  <div class="text-[12px] text-slate-300 leading-snug mb-3" x-text="$store.game.itemDescOf(m.id)"></div>
-                  <!-- Trang bị: slot + chỉ số -->
+                  <div class="text-[12px] text-slate-300 leading-snug mb-3" x-text="$store.game.itemDescOf(m)"></div>
+                  <!-- Trang bị: slot + chỉ số (instance roll) -->
                   <template x-if="m.equip">
-                    <div class="rounded-lg bg-ink3/50 border border-slate-700/60 px-3 py-2 mb-3">
-                      <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">Trang bị · <span class="text-slate-300" x-text="$store.game.equipSlotLabel(m.equip.slot)"></span></div>
-                      <template x-if="m.equip.reqLevel > 1">
-                        <div class="text-[11px] mb-1.5" :class="$store.game.canEquip(m.id)?'text-slate-400':'text-rose-400'">⚔ Yêu cầu mang: <b x-text="$store.game.equipReqText(m.id)"></b><span x-show="!$store.game.canEquip(m.id)" x-text="' (bạn: Lv '+$store.game.equipCurLevel(m.id)+')'"></span></div>
+                    <div class="rounded-lg bg-ink3/50 border border-slate-700/60 px-3 py-2.5 mb-3">
+                      <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1.5 flex items-center justify-between"><span>Trang bị · <span class="text-slate-300" x-text="$store.game.equipSlotLabel(m.equip.slot)"></span></span><template x-if="m.plus>0"><span class="text-amber-300 font-bold" x-text="'+'+m.plus"></span></template></div>
+                      <template x-if="m.reqLevel > 1">
+                        <div class="text-[11px] mb-2" :class="$store.game.canEquip(m)?'text-slate-400':'text-rose-400'">⚔ Yêu cầu mang: <b x-text="$store.game.equipReqText(m)"></b><span x-show="!$store.game.canEquip(m)" x-text="' (bạn: Lv '+$store.game.equipCurLevel(m)+')'"></span></div>
                       </template>
-                      <div class="flex flex-wrap gap-1.5">
-                        <template x-for="(v,k) in (m.equip.stats||{})" :key="k"><span class="text-[11px] px-1.5 py-0.5 rounded bg-jade/10 text-jade border border-jade/30" x-text="$store.game.statLabel(k)+' +'+v"></span></template>
-                        <template x-if="!Object.keys(m.equip.stats||{}).length"><span class="text-[11px] text-slate-500">Không tăng chỉ số.</span></template>
+                      <!-- THUỘC TÍNH: list dọc, tên + giá trị TÔ MÀU theo bậc roll (min→max) -->
+                      <template x-if="Object.keys(m.stats||{}).length">
+                        <div class="flex items-center gap-2 mb-0.5"><span class="text-[10px] tracking-[0.18em] text-jade/80" style="font-family:'Lora',serif">THUỘC TÍNH</span><div class="flex-1 h-px bg-gradient-to-r from-jade/25 to-transparent"></div></div>
+                      </template>
+                      <div class="divide-y divide-slate-800/50">
+                        <template x-for="(v,k) in (m.stats||{})" :key="k">
+                          <div class="flex items-center gap-2.5 py-1.5" :style="'color:'+$store.game.gearLineColor(m,k)">
+                            <span class="w-3.5 h-3.5 shrink-0 opacity-90" x-html="$store.game.svg($store.game.gearStatIcon(k),'w-full h-full')"></span>
+                            <span class="text-[12.5px] flex-1" style="font-family:'Lora',serif" x-text="$store.game.statLabel(k)"></span>
+                            <span class="text-[13.5px] font-bold tabular-nums" x-text="$store.game.gearVal(k,v)"></span>
+                          </div>
+                        </template>
+                        <template x-if="$store.game.toolEffText(m)"><div class="flex items-center gap-2.5 py-1.5 text-emerald-300"><span class="w-3.5 h-3.5 shrink-0" x-html="$store.game.svg('zap','w-full h-full')"></span><span class="text-[12.5px] flex-1" x-text="$store.game.toolEffText(m)"></span></div></template>
                       </div>
+                      <template x-if="!Object.keys(m.stats||{}).length && !$store.game.toolEffText(m)"><div class="text-[11px] text-slate-500 py-1">Không tăng chỉ số.</div></template>
                     </div>
                   </template>
                   <!-- Đồ Phổ: Lĩnh Ngộ -> mở rèn ở Rèn Đúc -->
@@ -3083,7 +3095,10 @@
                     <div class="rounded-lg bg-ink3/50 border border-slate-700/50 px-3 py-2"><div class="text-[9px] uppercase tracking-wide text-slate-500">Giá bán / cái</div><div class="text-base font-bold text-gold flex items-center gap-1"><span class="w-4 h-4 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span><span x-text="$store.game.fmt(m.value||0)"></span></div></div>
                   </div>
                   <!-- Bán nhanh -->
-                  <template x-if="(m.value||0) > 0">
+                  <template x-if="(m.value||0) > 0 && m.isGear">
+                    <button @click="$store.game.sellFromModal(1)" class="w-full py-2 rounded-lg text-[12px] font-bold bg-gold/80 hover:bg-gold text-ink transition" x-text="'Bán (+'+$store.game.fmt(m.value||0)+' Bạc)'"></button>
+                  </template>
+                  <template x-if="(m.value||0) > 0 && !m.isGear">
                     <div class="flex gap-2">
                       <button @click="$store.game.sellFromModal(1)" class="flex-1 py-2 rounded-lg text-[12px] font-bold bg-ink3 border border-slate-700 hover:border-gold text-slate-200 transition">Bán 1</button>
                       <button @click="$store.game.sellFromModal(m.qty)" class="flex-1 py-2 rounded-lg text-[12px] font-bold bg-gold/80 hover:bg-gold text-ink transition" x-text="'Bán hết (+'+$store.game.fmt((m.value||0)*m.qty)+' Bạc)'"></button>
@@ -4076,21 +4091,21 @@
         <div class="p-4 overflow-auto">
           <!-- ĐANG MẶC -->
           <template x-if="g.equippedItem(slot)">
-            <div class="mb-3" x-data="{ get g(){ return $store.game }, get slot(){ return $store.game.equipModal.slot }, get id(){ return this.g.state.equipment[this.slot] }, get it(){ return this.g.equippedItem(this.slot) } }">
+            <div class="mb-3" x-data="{ get g(){ return $store.game }, get slot(){ return $store.game.equipModal.slot }, get it(){ return this.g.equippedItem(this.slot) } }">
               <div class="flex items-center gap-1.5 mb-1.5"><span class="inline-block w-1.5 h-1.5 bg-jade rotate-45"></span><span class="text-[10px] uppercase tracking-wider text-jade font-medium">Đang mặc</span></div>
-              <div class="flex items-center gap-3 p-2.5 rounded-lg bg-ink2/70 border" :class="g.itemQuality(id).border">
+              <div class="flex items-center gap-3 p-2.5 rounded-lg bg-ink2/70 border" :class="g.itemQuality(it).border">
                 <div class="shrink-0 flex flex-col items-center">
-                  <div class="w-14 h-14 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :class="g.itemQuality(id).border + ' ' + g.itemQuality(id).grad"><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(id, it.icon)"></span></div>
-                  <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(id)" :key="s"><span class="text-[8px] leading-none text-amber-400">★</span></template></div>
+                  <div class="w-14 h-14 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :class="g.itemQuality(it).border + ' ' + g.itemQuality(it).grad"><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(it.id, it.icon)"></span></div>
+                  <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(it)" :key="s"><span class="text-[8px] leading-none text-amber-400">★</span></template></div>
                 </div>
                 <div class="flex-1 min-w-0 space-y-1">
-                  <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(id).text" x-text="it.name"></span><template x-if="g.itemPlus(id)>0"><span class="text-[10px] font-bold text-amber-300 shrink-0" x-text="'+'+g.itemPlus(id)"></span></template><template x-if="g.gearHe(id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(id).info.badge" x-text="g.gearHe(id).info.han"></span></template></div>
-                  <div><span class="inline-block text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(id).bg+' '+g.itemQuality(id).text+' '+g.itemQuality(id).border" x-text="g.qualityName(id) + (it.equip.itemLv ? ' · Lv'+it.equip.itemLv : '')"></span></div>
+                  <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(it).text" x-text="it.name"></span><template x-if="g.itemPlus(it)>0"><span class="text-[10px] font-bold text-amber-300 shrink-0" x-text="'+'+g.itemPlus(it)"></span></template><template x-if="g.gearHe(it)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(it).info.badge" x-text="g.gearHe(it).info.han"></span></template></div>
+                  <div><span class="inline-block text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(it).bg+' '+g.itemQuality(it).text+' '+g.itemQuality(it).border" x-text="g.qualityName(it) + (it.itemLv ? ' · Lv'+it.itemLv : '')"></span></div>
                   <div class="space-y-0.5 pt-0.5">
-                    <template x-for="c in g.gearCompare(id)" :key="c.key">
-                      <div class="flex items-center justify-between gap-3 text-[11px] max-w-[230px]"><span class="inline-flex items-center gap-1.5 text-slate-400 whitespace-nowrap"><span class="text-slate-500" x-html="g.svg(g.gearStatIcon(c.key),'w-3.5 h-3.5')"></span><span x-text="c.label"></span></span><span class="text-slate-100 font-medium tabular-nums" x-text="'+'+c.next"></span></div>
+                    <template x-for="c in g.gearCompare(it).filter(c=>c.next>0)" :key="c.key">
+                      <div class="flex items-center justify-between gap-3 text-[11px] max-w-[230px]" :style="'color:'+g.gearLineColor(it,c.key)"><span class="inline-flex items-center gap-1.5 whitespace-nowrap opacity-90"><span class="w-3.5 h-3.5" x-html="g.svg(g.gearStatIcon(c.key),'w-full h-full')"></span><span x-text="c.label"></span></span><span class="font-bold tabular-nums" x-text="g.gearVal(c.key,c.next)"></span></div>
                     </template>
-                    <template x-if="g.toolEffText(id)"><div class="flex items-center gap-1.5 text-[11px] text-emerald-300 max-w-[230px]"><span class="text-emerald-400/80" x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.toolEffText(id)"></span></div></template>
+                    <template x-if="g.toolEffText(it)"><div class="flex items-center gap-1.5 text-[11px] text-emerald-300 max-w-[230px]"><span class="text-emerald-400/80" x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.toolEffText(it)"></span></div></template>
                   </div>
                 </div>
                 <div class="shrink-0 flex flex-col gap-1.5">
@@ -4109,23 +4124,23 @@
                 <span class="absolute top-0 left-0 text-[8px] px-2 py-0.5 rounded-br-lg rounded-tl-md bg-amber-500 text-ink font-bold">Đề cử</span>
                 <div class="flex items-start gap-3 mt-1.5">
                   <div class="shrink-0 flex flex-col items-center">
-                    <div class="w-14 h-14 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :class="g.itemQuality(rec.id).border + ' ' + g.itemQuality(rec.id).grad"><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(rec.id, rec.icon)"></span></div>
-                    <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(rec.id)" :key="s"><span class="text-[8px] leading-none text-amber-400">★</span></template></div>
+                    <div class="w-14 h-14 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :class="g.itemQuality(rec).border + ' ' + g.itemQuality(rec).grad"><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(rec.id, rec.icon)"></span></div>
+                    <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(rec)" :key="s"><span class="text-[8px] leading-none text-amber-400">★</span></template></div>
                   </div>
                   <div class="flex-1 min-w-0 space-y-1">
-                    <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(rec.id).text" x-text="rec.name"></span><template x-if="g.gearHe(rec.id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(rec.id).info.badge" x-text="g.gearHe(rec.id).info.han"></span></template></div>
+                    <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(rec).text" x-text="rec.name"></span><template x-if="g.gearHe(rec)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(rec).info.badge" x-text="g.gearHe(rec).info.han"></span></template></div>
                     <div class="flex items-center gap-1 flex-wrap">
-                      <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(rec.id).bg+' '+g.itemQuality(rec.id).text+' '+g.itemQuality(rec.id).border" x-text="g.qualityName(rec.id) + (rec.equip.itemLv ? ' · Lv'+rec.equip.itemLv : '')"></span>
-                      <template x-if="g.equipReqOf(rec.id)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(rec.id)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(rec.id)"></span></template>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(rec).bg+' '+g.itemQuality(rec).text+' '+g.itemQuality(rec).border" x-text="g.qualityName(rec) + (rec.itemLv ? ' · Lv'+rec.itemLv : '')"></span>
+                      <template x-if="g.equipReqOf(rec)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(rec)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(rec)"></span></template>
                     </div>
                     <div class="space-y-0.5 pt-0.5">
-                      <template x-for="c in g.gearCompare(rec.id)" :key="c.key">
-                        <div class="flex items-center justify-between gap-3 text-[11px]"><span class="inline-flex items-center gap-1.5 text-slate-400 whitespace-nowrap"><span class="text-slate-500" x-html="g.svg(g.gearStatIcon(c.key),'w-3.5 h-3.5')"></span><span x-text="c.label"></span></span><span class="tabular-nums whitespace-nowrap"><span class="text-slate-100 font-medium" x-text="'+'+c.next"></span><span x-show="c.delta!==0" :class="c.delta>0?'text-emerald-400':'text-rose-400'" x-text="' '+(c.delta>0?'▲':'▼')+'('+(c.delta>0?'+':'')+c.delta+')'"></span></span></div>
+                      <template x-for="c in g.gearCompare(rec).filter(c=>c.next>0)" :key="c.key">
+                        <div class="flex items-center justify-between gap-3 text-[11px]" :style="'color:'+g.gearLineColor(rec,c.key)"><span class="inline-flex items-center gap-1.5 whitespace-nowrap opacity-90"><span class="w-3.5 h-3.5" x-html="g.svg(g.gearStatIcon(c.key),'w-full h-full')"></span><span x-text="c.label"></span></span><span class="tabular-nums whitespace-nowrap font-bold"><span x-text="g.gearVal(c.key,c.next)"></span><template x-if="c.cur>0 && c.delta!==0"><span class="text-[10px] ml-1 font-normal" :style="'color:'+(c.delta>0?'#34d399':'#fb7185')" x-text="(c.delta>0?'▲':'▼')+Math.abs(c.delta)"></span></template></span></div>
                       </template>
                     </div>
                   </div>
                 </div>
-                <button @click="g.doEquip(rec.id); g.closeEquip()" :disabled="!g.canEquip(rec.id)" class="w-full mt-2.5 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed"><span x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.canEquip(rec.id)?'Trang Bị Nhanh':('Cần Lv '+g.equipReqOf(rec.id))"></span></button>
+                <button @click="g.doEquip(rec.uid); g.closeEquip()" :disabled="!g.canEquip(rec)" class="w-full mt-2.5 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed"><span x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.canEquip(rec)?'Trang Bị Nhanh':('Cần Lv '+g.equipReqOf(rec))"></span></button>
               </div>
             </div>
           </template>
@@ -4142,26 +4157,26 @@
             <div class="text-sm text-slate-600 py-3 text-center">Không có trang bị phù hợp trong túi.</div>
           </template>
           <div class="space-y-2">
-            <template x-for="it in g.othersForSlot(slot)" :key="it.id">
+            <template x-for="it in g.othersForSlot(slot)" :key="it.uid">
               <div class="flex items-center gap-3 p-2 rounded-lg bg-ink3/40 border border-slate-800">
                 <div class="shrink-0 flex flex-col items-center">
-                  <div class="relative w-12 h-12 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :class="g.itemQuality(it.id).border + ' ' + g.itemQuality(it.id).grad"><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(it.id, it.icon)"></span><template x-if="it.qty>1"><span class="absolute top-0 right-0 text-[8px] text-slate-200 bg-ink/80 rounded-bl px-0.5" x-text="'×'+g.fmt(it.qty)"></span></template></div>
-                  <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(it.id)" :key="s"><span class="text-[7px] leading-none text-amber-400">★</span></template></div>
+                  <div class="relative w-12 h-12 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :class="g.itemQuality(it).border + ' ' + g.itemQuality(it).grad"><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(it.id, it.icon)"></span><template x-if="it.plus>0"><span class="absolute top-0 right-0 text-[8px] text-amber-300 bg-ink/80 rounded-bl px-0.5" x-text="'+'+it.plus"></span></template></div>
+                  <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(it)" :key="s"><span class="text-[7px] leading-none text-amber-400">★</span></template></div>
                 </div>
                 <div class="flex-1 min-w-0 space-y-1">
-                  <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(it.id).text" x-text="it.name"></span><template x-if="g.gearHe(it.id)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(it.id).info.badge" x-text="g.gearHe(it.id).info.han"></span></template></div>
+                  <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(it).text" x-text="it.name"></span><template x-if="g.gearHe(it)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(it).info.badge" x-text="g.gearHe(it).info.han"></span></template></div>
                   <div class="flex items-center gap-1 flex-wrap">
-                    <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(it.id).bg+' '+g.itemQuality(it.id).text+' '+g.itemQuality(it.id).border" x-text="g.qualityName(it.id)"></span>
-                    <template x-if="g.equipReqOf(it.id)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(it.id)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(it.id)"></span></template>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(it).bg+' '+g.itemQuality(it).text+' '+g.itemQuality(it).border" x-text="g.qualityName(it)"></span>
+                    <template x-if="g.equipReqOf(it)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(it)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(it)"></span></template>
                   </div>
                   <div class="space-y-0.5 pt-0.5">
-                    <template x-for="c in g.gearCompare(it.id)" :key="c.key">
-                      <div class="flex items-center justify-between gap-3 text-[11px] max-w-[260px]"><span class="inline-flex items-center gap-1.5 text-slate-400 whitespace-nowrap"><span class="text-slate-500" x-html="g.svg(g.gearStatIcon(c.key),'w-3.5 h-3.5')"></span><span x-text="c.label"></span></span><span class="tabular-nums font-medium" :class="c.delta>0?'text-emerald-400':(c.delta<0?'text-rose-400':'text-slate-400')" x-text="c.delta>0?('+'+c.delta):(c.delta<0?(''+c.delta):'—')"></span></div>
+                    <template x-for="c in g.gearCompare(it).filter(c=>c.next>0)" :key="c.key">
+                      <div class="flex items-center justify-between gap-3 text-[11px] max-w-[260px]" :style="'color:'+g.gearLineColor(it,c.key)"><span class="inline-flex items-center gap-1.5 whitespace-nowrap opacity-90"><span class="w-3.5 h-3.5" x-html="g.svg(g.gearStatIcon(c.key),'w-full h-full')"></span><span x-text="c.label"></span></span><span class="tabular-nums whitespace-nowrap font-bold"><span x-text="g.gearVal(c.key,c.next)"></span><template x-if="c.cur>0 && c.delta!==0"><span class="text-[10px] ml-1 font-normal" :style="'color:'+(c.delta>0?'#34d399':'#fb7185')" x-text="(c.delta>0?'▲':'▼')+Math.abs(c.delta)"></span></template></span></div>
                     </template>
-                    <template x-if="g.toolEffText(it.id)"><div class="flex items-center gap-1.5 text-[11px] text-emerald-300 max-w-[260px]"><span class="text-emerald-400/80" x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.toolEffText(it.id)"></span></div></template>
+                    <template x-if="g.toolEffText(it)"><div class="flex items-center gap-1.5 text-[11px] text-emerald-300 max-w-[260px]"><span class="text-emerald-400/80" x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.toolEffText(it)"></span></div></template>
                   </div>
                 </div>
-                <button @click="g.doEquip(it.id); g.closeEquip()" :disabled="!g.canEquip(it.id)" class="shrink-0 px-3.5 py-2 text-[11px] rounded-lg bg-ink2 border border-slate-700 hover:border-jade/50 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed" x-text="g.canEquip(it.id)?'Trang Bị':('Cần Lv '+g.equipReqOf(it.id))"></button>
+                <button @click="g.doEquip(it.uid); g.closeEquip()" :disabled="!g.canEquip(it)" class="shrink-0 px-3.5 py-2 text-[11px] rounded-lg bg-ink2 border border-slate-700 hover:border-jade/50 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed" x-text="g.canEquip(it)?'Trang Bị':('Cần Lv '+g.equipReqOf(it))"></button>
               </div>
             </template>
           </div>
@@ -4281,14 +4296,14 @@
                     <animate attributeName="stroke-dashoffset" from="0" to="6.4" dur="1.2s" repeatCount="indefinite"/>
                   </rect>
                 </svg>
-                <div class="relative w-[82px] h-[82px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id, g.ITEMS[id].icon, g.ITEMS[id].name)" title="Bấm để phóng to">
-                  <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(id, g.ITEMS[id].icon)"></span>
+                <div class="relative w-[82px] h-[82px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to">
+                  <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(id.id, id.icon)"></span>
                   <template x-if="g.itemPlus(id)>0"><span class="absolute bottom-0 right-0 text-[11px] font-bold text-amber-300 bg-ink/85 px-1.5 rounded-tl" x-text="'+'+g.itemPlus(id)"></span></template>
                 </div>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-lg font-semibold truncate" :class="g.itemQuality(id).text" x-text="g.ITEMS[id].name + (g.itemPlus(id)>0 ? ' +'+g.itemPlus(id) : '')"></div>
-                <span class="inline-block mt-1.5 text-[11px] px-2 py-0.5 rounded border" :class="g.itemQuality(id).bg+' '+g.itemQuality(id).text+' '+g.itemQuality(id).border" x-text="g.qualityName(id) + (g.ITEMS[id].equip && g.ITEMS[id].equip.itemLv ? ' · Lv'+g.ITEMS[id].equip.itemLv : '')"></span>
+                <div class="text-lg font-semibold truncate" :class="g.itemQuality(id).text" x-text="id.name + (g.itemPlus(id)>0 ? ' +'+g.itemPlus(id) : '')"></div>
+                <span class="inline-block mt-1.5 text-[11px] px-2 py-0.5 rounded border" :class="g.itemQuality(id).bg+' '+g.itemQuality(id).text+' '+g.itemQuality(id).border" x-text="g.qualityName(id) + (id.itemLv ? ' · Lv'+id.itemLv : '')"></span>
                 <template x-if="!g.enhanceMaxed(id)">
                   <div class="flex items-center gap-3 mt-3">
                     <span class="text-[26px] font-bold leading-none text-slate-400" x-text="'+'+g.itemPlus(id)"></span>

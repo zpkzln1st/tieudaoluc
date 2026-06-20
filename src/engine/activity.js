@@ -10,6 +10,8 @@ import { LINH_THACH } from '../data/linhthach.js';
 import { combatProfile, boPhapStats, COMBAT_CYCLE_MS } from '../data/votong.js';
 import { travelTimeMs } from './travel.js';
 import { addItem, removeItem } from './inventory.js';
+import { addGearInstance } from './equip.js';
+import { rollMonsterDrop, rollGearInstance, MONSTER_DROP_CHANCE } from '../data/gear.js';
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
@@ -63,9 +65,9 @@ function applyLinhThach(state, act, skillId) {
 const TOOL_FOR_SKILL = { phatMoc: 'riu', thaiKhoang: 'cuoc', dieuNgu: 'canCau' };
 export function toolEffBonus(state, skillId) {
   const slot = TOOL_FOR_SKILL[skillId]; if (!slot) return 0;
-  const id = state.equipment && state.equipment[slot];
-  const it = id && ITEMS[id];
-  return (it && it.equip && it.equip.gatherEff) || 0;
+  const inst = state.equipment && state.equipment[slot];
+  const e = inst && (ITEMS[inst.gearId] || {}).equip;
+  return (e && e.gatherEff) || 0;
 }
 
 // ---- Bắt đầu hoạt động kỹ năng ----
@@ -235,6 +237,7 @@ export function advance(state, now) {
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
         if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul) addItem(state, l.itemId, 1); }
+        if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) addGearInstance(state, gi); }   // loot-hunt: rơi gear instance (offline-safe)
         state.currencies.bac = (state.currencies.bac || 0) + Math.round(bacPer * moneyMul);   // loot + Bạc -> THẲNG vào kho mỗi kill
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;
@@ -265,7 +268,8 @@ export function advance(state, now) {
       const gainXp = Math.max(1, Math.round(action.xp * mult));
       for (let i = 0; i < cycles; i++) {
         if (action.inputs) for (const inp of action.inputs) removeItem(state, inp.itemId, inp.qty);
-        if (action.itemId) addItem(state, action.itemId, 1);
+        // Rèn gear (mọi món có .equip, gồm cả legacy tichSao/thietKiem/tichGiap) -> instance ROLL. Sản phẩm khác (thỏi/đan...) -> xếp chồng.
+        if (action.itemId) { if (ITEMS[action.itemId] && ITEMS[action.itemId].equip) addGearInstance(state, rollGearInstance(action.itemId)); else addItem(state, action.itemId, 1); }
         addSkillXp(state, act.skillId, gainXp);
         if (skill.stat) addStatXp(state, skill.stat, action.statXp);
         if (skill.stat2) addStatXp(state, skill.stat2, action.statXp);

@@ -25,9 +25,10 @@ export function createInitialState() {
       linhXao:  { xp: 0 },
     },
     skills,
-    inventory: {},          // { itemId: qty }
-    equipment: {},          // { slotId: itemId }
-    enhance: {},            // { itemId: plus } — cấp cường hóa (+0..15) theo món
+    inventory: {},          // { itemId: qty } — CHỈ vật phẩm xếp chồng (vật liệu/thực phẩm/đan/đồ phổ/trứng). Gear KHÔNG ở đây.
+    gearBag: [],            // [instance] — trang bị (loot-hunt): mỗi món 1 instance riêng { uid, gearId, itemLv, quality, reqLevel, stats, he, eleDmg, plus }
+    equipment: {},          // { slotId: instance|null } — instance đang mặc (KHÔNG còn id-string)
+    enhance: {},            // (LEGACY) { itemId: plus } — đã dời vào instance.plus; giữ để migrate save cũ
     linhThach: {},          // { skillId: itemId } — Linh Thạch đã lắp cho mỗi kỹ năng
     combat: {               // Tuyệt Học Phổ: trạng thái chiến đấu
       sinhLuc: null,        // Sinh Lực hiện tại (null = đầy); cạn -> Trọng Thương
