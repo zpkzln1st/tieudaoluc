@@ -200,17 +200,17 @@ function fmt(n) {
   const s = Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return neg ? '-' + s : s;
 }
-// Rút gọn cho chỗ chật (header tiền tệ): <1 vạn giữ nguyên; rồi K(nghìn)/Tr(triệu)/Tỷ.
-// Vd: 9999->"9.999" · 100000->"100K" · 1100000->"1,1Tr" · 1000005->"1Tr" · 5e9->"5Tỷ".
+// Rút gọn cho chỗ chật (header tiền tệ) — HỆ ĐẾM HÁN: <1 Vạn giữ nguyên; rồi Vạn(10^4)/Ức(10^8)/Triệu(10^12).
+// Vd: 9999->"9.999" · 50000->"5Vạn" · 1150000->"115Vạn" · 2.5e8->"2,5Ức" · 5e12->"5Triệu".
 function fmtC(n) {
   n = Math.floor(n || 0);
   const neg = n < 0, a = Math.abs(n);
   const trim = x => (x < 100 ? (Math.round(x * 10) / 10).toString().replace('.', ',') : Math.round(x).toString());
   let out;
   if (a < 1e4) out = fmt(a);
-  else if (a < 1e6) out = trim(a / 1e3) + 'K';
-  else if (a < 1e9) out = trim(a / 1e6) + 'Tr';
-  else out = trim(a / 1e9) + 'Tỷ';
+  else if (a < 1e8) out = trim(a / 1e4) + 'Vạn';
+  else if (a < 1e12) out = trim(a / 1e8) + 'Ức';
+  else out = trim(a / 1e12) + 'Triệu';
   return neg ? '-' + out : out;
 }
 function fmtTime(sec) {
