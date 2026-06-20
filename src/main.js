@@ -31,6 +31,7 @@ import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } f
 import { equipItem, unequipItem, addGearInstance, removeGearByUid, findGear } from './engine/equip.js';
 import { TITLES, TITLE_BY_ID, TITLE_LOAI, titleBonusText } from './data/titles.js';
 import { ensureTitles, syncTitles, titleBonus } from './engine/titles.js';
+import { BADGES, BADGE_LV } from './data/badges.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
@@ -558,6 +559,11 @@ const gameStore = {
   titleEquip(id) { const ti = this.state.titles; if (!ti || !(ti.owned || []).includes(id)) return; ti.equipped = id; Storage.save(this.state); },
   titleQClass(q) { return ({ phamPham: 'dh-q-pham', luongPham: 'dh-q-luong', tinhPham: 'dh-q-tinh', tuyetPham: 'dh-q-tuyet', truyenThe: 'dh-q-truyen', thanPham: 'dh-q-than', coBan: 'dh-q-coban' })[q] || 'dh-q-pham'; },
   titleHigh(q) { return q === 'truyenThe' || q === 'thanPham' || q === 'coBan'; },   // phẩm cao -> hiệu ứng động + aura
+  // ---------- Huy Hiệu (kĩ năng Lv100) ----------
+  get badgesView() {
+    return BADGES.map((b) => { const lv = this.skillLevel(b.skillId); const sk = this.SKILLS[b.skillId]; const nm = (sk && sk.name) || (b.skillId === 'chienDau' ? 'Chiến Đấu' : b.skillId); return { ...b, skillName: nm, level: lv, unlocked: lv >= BADGE_LV }; });
+  },
+  get badgeUnlockedCount() { return this.badgesView.filter((b) => b.unlocked).length; },
   // -- Tân thủ --
   get tutAllDone() { return this.state.quests.tutorial.index >= this.TUTORIAL_QUESTS.length; },
   get tutQuest() { return this.TUTORIAL_QUESTS[this.state.quests.tutorial.index] || null; },

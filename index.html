@@ -253,10 +253,10 @@
           <div class="flex items-center gap-2.5">
             <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink3 shrink-0 ring-1 ring-white/15" :style="$store.game.faceStyle"></div>
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-semibold truncate" x-text="$store.game.state.player.name"></div>
+              <div class="text-sm font-semibold truncate" style="font-family:'Lora',serif" x-text="$store.game.state.player.name"></div>
               <template x-if="$store.game.equippedTitleObj">
                 <div class="my-0.5 truncate" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
-                  <span class="dh" :class="$store.game.titleQClass(t.q) + ($store.game.titleHigh(t.q) ? ' dh-high' : '')" style="gap:.35rem"><span class="dh-txt" style="font-size:11px" x-text="t.name"></span></span>
+                  <span class="dh max-w-full min-w-0" :class="$store.game.titleQClass(t.q)" style="gap:.35rem"><span class="dh-txt truncate" style="font-size:11px" x-text="t.name"></span></span>
                 </div>
               </template>
               <div class="text-[10px] text-slate-300/90" x-text="'Tổng Lv ' + $store.game.totalLevel"></div>
@@ -396,7 +396,7 @@
                 </div>
               </template>
               <div class="flex items-center gap-2">
-                <span class="text-3xl font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]" style="font-family:'Lora',serif" x-text="$store.game.state.player.name"></span>
+                <span class="text-3xl gold-text" style="font-family:'Lora',serif; font-weight:700; filter:drop-shadow(0 2px 5px rgba(0,0,0,.85)) drop-shadow(0 0 5px rgba(245,185,66,.28))" x-text="$store.game.state.player.name"></span>
               </div>
               <div class="flex items-center gap-2 mt-2.5 flex-wrap">
                 <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-slate-200">Chiến <b class="text-jade" x-text="$store.game.combatLevel"></b></span>
@@ -768,7 +768,7 @@
                         <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-slate-700/70 shrink-0" x-text="it.loai"></span>
                       </div>
                       <div class="text-[12px] text-jade/90 mt-1.5" x-text="it.bonusText"></div>
-                      <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '🔒 ') + it.src"></div>
+                      <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '') + it.src"></div>
                     </div>
                     <template x-if="it.on"><span class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium">Đang đeo</span></template>
                     <template x-if="it.owned && !it.on"><button @click="$store.game.titleEquip(it.id)" class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-ink2 border border-slate-700 hover:border-jade text-slate-200 transition">Đeo</button></template>
@@ -779,16 +779,26 @@
             </section>
           </template>
 
-          <!-- ===== Tab HUY HIỆU (badges) ===== -->
+          <!-- ===== Tab HUY HIỆU (kĩ năng Lv100 · Đại Thành) ===== -->
           <template x-if="$store.game.profileTab==='badges'">
-            <section class="panel rounded-lg p-4">
-              <div class="lbl mb-3">Huy Hiệu</div>
-              <div class="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                <template x-for="i in 12" :key="i">
-                  <div class="aspect-square rounded-lg bg-ink3 border border-dashed border-slate-700 flex items-center justify-center text-slate-600 text-xl">?</div>
+            <section class="panel rounded-lg p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div class="lbl">Huy Hiệu · Kĩ Năng Đại Thành</div>
+                <div class="text-[12px] text-slate-400">Đạt <b class="text-amber-300" x-text="$store.game.badgeUnlockedCount"></b>/<span x-text="$store.game.badgesView.length"></span></div>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <template x-for="b in $store.game.badgesView" :key="b.skillId">
+                  <div class="rounded-xl border p-4 flex flex-col items-center text-center transition" :class="b.unlocked ? 'border-amber-500/45 bg-amber-900/10' : 'border-slate-800/70 bg-black/20'" :title="b.desc">
+                    <div class="relative w-24 h-24 mb-2.5 flex items-center justify-center" :class="b.unlocked ? '' : 'grayscale opacity-45'">
+                      <span class="absolute inset-0 flex items-center justify-center text-5xl" x-text="b.icon"></span>
+                      <img :src="'images/ui/huyhieu/'+b.skillId+'.webp'" class="relative w-full h-full object-contain" :style="b.unlocked ? 'filter:drop-shadow(0 0 11px rgba(245,185,66,.55))' : ''" onerror="this.style.display='none'">
+                    </div>
+                    <div class="text-[14px] font-semibold leading-tight" :class="b.unlocked ? 'text-amber-200' : 'text-slate-400'" style="font-family:'Lora',serif" x-text="b.name"></div>
+                    <div class="text-[10.5px] text-slate-500 mt-1" x-text="b.skillName + ' · Lv' + b.level"></div>
+                    <div class="text-[10px] mt-1" :class="b.unlocked ? 'text-amber-300/85' : 'text-slate-600'" x-text="b.unlocked ? '✦ Đại Thành' : 'Cần Lv 100'"></div>
+                  </div>
                 </template>
               </div>
-              <div class="text-[10px] text-slate-600 mt-3">Hệ huy hiệu — sắp ra mắt.</div>
             </section>
           </template>
         </div>
