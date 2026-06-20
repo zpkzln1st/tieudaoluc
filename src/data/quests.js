@@ -15,7 +15,7 @@ export const TUTORIAL_QUESTS = [
   { id: 'tut4', name: 'Luyện 5 Tích Đĩnh',   desc: 'Luyện Kim → Tích Đĩnh (cần Tích Khoáng + Hắc Thán).',    type: 'produce', target: 'tichDinh',   count: 5,  reward: { bac: 500 } },
   { id: 'tut5', name: 'Rèn 1 Cuốc Thiếc',     desc: 'Rèn Đúc → Cuốc Thiếc (cần Tích Đĩnh).',                type: 'produce', target: 'tichSao',    count: 1,  reward: { bac: 600, honThach: 20 } },
   { id: 'tut6', name: 'Hạ 5 Sói Hoang',       desc: 'Chiến Đấu → Sói Hoang.',                                type: 'kill',    target: 'daLang',     count: 5,  reward: { bac: 600 } },
-  { id: 'tut7', name: 'Hạ 3 Heo Rừng',        desc: 'Chiến Đấu → Heo Rừng.',                                 type: 'kill',    target: 'sonTru',     count: 3,  reward: { bac: 800, honThach: 30 } },
+  { id: 'tut7', name: 'Hạ 3 Heo Rừng',        desc: 'Chiến Đấu → Heo Rừng. Hoàn tất tân thủ — nhận Trứng Linh Thú đầu tiên!', type: 'kill',    target: 'sonTru',     count: 3,  reward: { bac: 800, honThach: 30, eggPham: 1 } },
 ];
 
 // ---- Thưởng tính theo CÔNG SỨC: tỉ lệ count × đơn giá theo bậc req; kill quý hơn ×1.8; honThach/nguyenBao theo kỳ + bậc.

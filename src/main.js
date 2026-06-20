@@ -497,6 +497,14 @@ const gameStore = {
     if (r.bac) this.state.currencies.bac = (this.state.currencies.bac || 0) + r.bac;
     if (r.honThach) this.state.currencies.honThach = (this.state.currencies.honThach || 0) + r.honThach;
     if (r.nguyenBao) this.state.currencies.nguyenBao = (this.state.currencies.nguyenBao || 0) + r.nguyenBao;
+    if (r.eggPham) {   // Trứng Linh Thú phẩm Thường — NGẪU NHIÊN loài (vốn khởi đầu cho người chơi mới)
+      const eggs = Object.keys(this.ITEMS).filter((id) => id.startsWith('egg_') && id.endsWith('_pham'));
+      if (eggs.length) {
+        const id = eggs[Math.floor(Math.random() * eggs.length)];
+        addItem(this.state, id, r.eggPham);
+        this.showToast('🥚 Nhận ' + ((this.ITEMS[id] || {}).name || 'Trứng Linh Thú') + ' — ấp nở ở Lò Ấp Noãn (tab Linh Thú).');
+      }
+    }
   },
   rewardText(r) {
     if (!r) return '';
@@ -504,6 +512,7 @@ const gameStore = {
     if (r.bac) p.push(this.fmt(r.bac) + ' Bạc');
     if (r.honThach) p.push(r.honThach + ' Hồn Thạch');
     if (r.nguyenBao) p.push(r.nguyenBao + ' Nguyên Bảo');
+    if (r.eggPham) p.push((r.eggPham > 1 ? r.eggPham + ' ' : '') + 'Trứng Linh Thú · Thường');
     return p.join(' · ');
   },
   questEmoji(q) {
@@ -517,6 +526,7 @@ const gameStore = {
     if (r.bac) c.push({ id: 'bac', amt: r.bac, cls: 'text-gold', emoji: '🟡' });
     if (r.honThach) c.push({ id: 'honThach', amt: r.honThach, cls: 'text-rose-300', emoji: '🔴' });
     if (r.nguyenBao) c.push({ id: 'nguyenBao', amt: r.nguyenBao, cls: 'text-cyan', emoji: '🔷' });
+    if (r.eggPham) c.push({ id: 'egg', amt: r.eggPham, cls: 'text-emerald-300', emoji: '🥚' });
     return c;
   },
   // -- Tân thủ --
@@ -2054,15 +2064,16 @@ const gameStore = {
   // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích/Bạo Sát).
   gearLineText(k, v) { const a = AFFIX[k]; return this.statLabel(k) + ' +' + v + (a && a.fmt === 'pct' ? '%' : ''); },
   gearVal(k, v) { const a = AFFIX[k]; return '+' + v + (a && a.fmt === 'pct' ? '%' : ''); },        // chỉ giá trị (tách khỏi tên cho list dọc)
-  // Màu dòng theo BẬC ROLL (% trong [min,max]): Phàm trắng → Lương lục → Thượng lam → Cực đỏ → Tuyệt cam. Món cũ/migrate (không rolls) = jade trung tính.
+  // Màu dòng theo BẬC ROLL (% trong [min,max]): Phàm trắng → Lương lam → Thượng chàm → Cực tím → Tuyệt cam.
+  // KHÔNG dùng lục/đỏ (để dành cho mũi tên so sánh ▲/▼). Món cũ/migrate (không rolls) = xám trung tính.
   gearLineColor(view, k) {
     const pct = view && view.rolls && view.rolls[k];
-    if (pct == null) return '#5eead4';
-    if (pct < 0.25) return '#cbd5e1';
-    if (pct < 0.50) return '#34d399';
-    if (pct < 0.75) return '#38bdf8';
-    if (pct < 0.92) return '#fb7185';
-    return '#fbbf24';
+    if (pct == null) return '#94a3b8';   // neutral xám
+    if (pct < 0.25) return '#cbd5e1';     // Phàm  - trắng
+    if (pct < 0.50) return '#38bdf8';     // Lương - lam
+    if (pct < 0.75) return '#818cf8';     // Thượng- chàm/indigo
+    if (pct < 0.92) return '#c084fc';     // Cực   - tím
+    return '#fb923c';                      // Tuyệt - cam (cam thật, không vàng)
   },
   // Công cụ: dòng "+X% Hiệu Suất <kĩ năng>". Nhận view/instance gear hoặc string id.
   toolEffText(x) {
@@ -2088,7 +2099,7 @@ const gameStore = {
     const keys = [...new Set([...Object.keys(next), ...Object.keys(cur)])];
     return keys.map((k) => ({ key: k, label: this.gearStatLabel(k), next: next[k] || 0, cur: cur[k] || 0, delta: (next[k] || 0) - (cur[k] || 0) }));
   },
-  gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart' })[k] || 'zap'; },
+  gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart', baoKich: 'star', baoSat: 'flame', tocDo: 'wind' })[k] || 'zap'; },
   gearGainTotal(x) { return this.gearCompare(x).reduce((s, c) => s + c.delta, 0); },             // tổng chênh stat vs món đang mặc
   equipFilterBetter: false,                                                                       // checkbox "chỉ hiển thị tốt hơn"
   recommendedForSlot(slot) {                                                                      // món NÂNG CẤP tốt nhất (null nếu không có)

@@ -138,7 +138,6 @@
           </div>
         </template>
       </div>
-      <button @click="$store.game.resetGame()" class="ml-2 text-xs text-slate-500 hover:text-rose-400 shrink-0">Reset</button>
     </div>
   </header>
 
@@ -3070,13 +3069,12 @@
                       </template>
                       <div class="divide-y divide-slate-800/50">
                         <template x-for="(v,k) in (m.stats||{})" :key="k">
-                          <div class="flex items-center gap-2.5 py-1.5" :style="'color:'+$store.game.gearLineColor(m,k)">
-                            <span class="w-3.5 h-3.5 shrink-0 opacity-90" x-html="$store.game.svg($store.game.gearStatIcon(k),'w-full h-full')"></span>
+                          <div class="flex items-center gap-3 py-1.5" :style="'color:'+$store.game.gearLineColor(m,k)">
                             <span class="text-[12.5px] flex-1" style="font-family:'Lora',serif" x-text="$store.game.statLabel(k)"></span>
                             <span class="text-[13.5px] font-bold tabular-nums" x-text="$store.game.gearVal(k,v)"></span>
                           </div>
                         </template>
-                        <template x-if="$store.game.toolEffText(m)"><div class="flex items-center gap-2.5 py-1.5 text-emerald-300"><span class="w-3.5 h-3.5 shrink-0" x-html="$store.game.svg('zap','w-full h-full')"></span><span class="text-[12.5px] flex-1" x-text="$store.game.toolEffText(m)"></span></div></template>
+                        <template x-if="$store.game.toolEffText(m)"><div class="flex items-center gap-3 py-1.5 text-emerald-300"><span class="text-[12.5px] flex-1" x-text="$store.game.toolEffText(m)"></span></div></template>
                       </div>
                       <template x-if="!Object.keys(m.stats||{}).length && !$store.game.toolEffText(m)"><div class="text-[11px] text-slate-500 py-1">Không tăng chỉ số.</div></template>
                     </div>
@@ -4103,7 +4101,7 @@
                   <div><span class="inline-block text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(it).bg+' '+g.itemQuality(it).text+' '+g.itemQuality(it).border" x-text="g.qualityName(it) + (it.itemLv ? ' · Lv'+it.itemLv : '')"></span></div>
                   <div class="space-y-0.5 pt-0.5">
                     <template x-for="c in g.gearCompare(it).filter(c=>c.next>0)" :key="c.key">
-                      <div class="flex items-center justify-between gap-3 text-[11px] max-w-[230px]" :style="'color:'+g.gearLineColor(it,c.key)"><span class="inline-flex items-center gap-1.5 whitespace-nowrap opacity-90"><span class="w-3.5 h-3.5" x-html="g.svg(g.gearStatIcon(c.key),'w-full h-full')"></span><span x-text="c.label"></span></span><span class="font-bold tabular-nums" x-text="g.gearVal(c.key,c.next)"></span></div>
+                      <div class="flex items-center justify-between gap-3 text-[11.5px] max-w-[230px]" :style="'color:'+g.gearLineColor(it,c.key)"><span x-text="c.label"></span><span class="font-bold tabular-nums" x-text="g.gearVal(c.key,c.next)"></span></div>
                     </template>
                     <template x-if="g.toolEffText(it)"><div class="flex items-center gap-1.5 text-[11px] text-emerald-300 max-w-[230px]"><span class="text-emerald-400/80" x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.toolEffText(it)"></span></div></template>
                   </div>
@@ -4135,7 +4133,7 @@
                     </div>
                     <div class="space-y-0.5 pt-0.5">
                       <template x-for="c in g.gearCompare(rec).filter(c=>c.next>0)" :key="c.key">
-                        <div class="flex items-center justify-between gap-3 text-[11px]" :style="'color:'+g.gearLineColor(rec,c.key)"><span class="inline-flex items-center gap-1.5 whitespace-nowrap opacity-90"><span class="w-3.5 h-3.5" x-html="g.svg(g.gearStatIcon(c.key),'w-full h-full')"></span><span x-text="c.label"></span></span><span class="tabular-nums whitespace-nowrap font-bold"><span x-text="g.gearVal(c.key,c.next)"></span><template x-if="c.cur>0 && c.delta!==0"><span class="text-[10px] ml-1 font-normal" :style="'color:'+(c.delta>0?'#34d399':'#fb7185')" x-text="(c.delta>0?'▲':'▼')+Math.abs(c.delta)"></span></template></span></div>
+                        <div class="flex items-center gap-2 text-[11.5px]" :style="'color:'+g.gearLineColor(rec,c.key)"><span class="flex-1 truncate" x-text="c.label"></span><span class="w-14 text-right tabular-nums font-bold shrink-0" x-text="g.gearVal(c.key,c.next)"></span><span class="w-12 text-right tabular-nums text-[10px] shrink-0"><template x-if="c.cur>0 && c.delta!==0"><span :style="'color:'+(c.delta>0?'#34d399':'#fb7185')" x-text="(c.delta>0?'▲':'▼')+Math.abs(c.delta)"></span></template></span></div>
                       </template>
                     </div>
                   </div>
@@ -4171,7 +4169,7 @@
                   </div>
                   <div class="space-y-0.5 pt-0.5">
                     <template x-for="c in g.gearCompare(it).filter(c=>c.next>0)" :key="c.key">
-                      <div class="flex items-center justify-between gap-3 text-[11px] max-w-[260px]" :style="'color:'+g.gearLineColor(it,c.key)"><span class="inline-flex items-center gap-1.5 whitespace-nowrap opacity-90"><span class="w-3.5 h-3.5" x-html="g.svg(g.gearStatIcon(c.key),'w-full h-full')"></span><span x-text="c.label"></span></span><span class="tabular-nums whitespace-nowrap font-bold"><span x-text="g.gearVal(c.key,c.next)"></span><template x-if="c.cur>0 && c.delta!==0"><span class="text-[10px] ml-1 font-normal" :style="'color:'+(c.delta>0?'#34d399':'#fb7185')" x-text="(c.delta>0?'▲':'▼')+Math.abs(c.delta)"></span></template></span></div>
+                      <div class="flex items-center gap-2 text-[11.5px]" :style="'color:'+g.gearLineColor(it,c.key)"><span class="flex-1 truncate" x-text="c.label"></span><span class="w-14 text-right tabular-nums font-bold shrink-0" x-text="g.gearVal(c.key,c.next)"></span><span class="w-12 text-right tabular-nums text-[10px] shrink-0"><template x-if="c.cur>0 && c.delta!==0"><span :style="'color:'+(c.delta>0?'#34d399':'#fb7185')" x-text="(c.delta>0?'▲':'▼')+Math.abs(c.delta)"></span></template></span></div>
                     </template>
                     <template x-if="g.toolEffText(it)"><div class="flex items-center gap-1.5 text-[11px] text-emerald-300 max-w-[260px]"><span class="text-emerald-400/80" x-html="g.svg('zap','w-3.5 h-3.5')"></span><span x-text="g.toolEffText(it)"></span></div></template>
                   </div>
