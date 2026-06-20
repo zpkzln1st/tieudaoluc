@@ -1605,21 +1605,40 @@ const gameStore = {
   // --- Item helpers (popup loot) ---
   // x = string id (vật phẩm xếp chồng) HOẶC view/instance gear (có .quality) — phẩm chất ĐA HÌNH.
   _qKey(x) { return (x && typeof x === 'object') ? x.quality : (this.ITEMS[x] || {}).quality; },
-  itemQuality(x) { return this.QUALITY[this._qKey(x)] || this.QUALITY.phamPham; },
+  itemQuality(x) {
+    const base = this.QUALITY[this._qKey(x)] || this.QUALITY.phamPham;
+    // Bộ Trang (set) → hiển thị "Bạch Kim" + chữ shimmer + viền bạch kim ở MỌI nơi gọi itemQuality (giữ stat theo phẩm gốc).
+    if (this._itemSetId(x)) return Object.assign({}, base, { name: 'Bạch Kim', text: 'q-set', border: 'border-slate-300/70', bg: 'bg-slate-300/10', ring: 'ring-slate-300/60', grad: 'from-slate-300/25 to-ink3/15' });
+    return base;
+  },
   get QUALITY_KEYS() { return Object.keys(this.QUALITY); },                                   // thứ tự thấp -> cao
   qualityRank(x) { const i = this.QUALITY_KEYS.indexOf(this._qKey(x)); return i < 0 ? 1 : i + 1; }, // 1..7
   qualityName(x) { return this.itemQuality(x).name; },
   itemDescOf(x) { const id = (x && typeof x === 'object') ? x.id : x; const it = this.ITEMS[id] || {}; return it.desc || ('Chiến lợi phẩm ' + this.itemQuality(x).name + ', thu được khi hạ yêu thú.'); },
   QHEX: { phamPham: '#cbd5e1', luongPham: '#34d399', tinhPham: '#60a5fa', tuyetPham: '#a78bfa', truyenThe: '#e879f9', thanPham: '#fb923c', coBan: '#fbbf24' },
   // Hào quang chạy viền — ĐI THEO MÓN TRANG BỊ ở MỌI nơi hiện (ô paper-doll, Hành Lý, popup chọn trang bị...). Chỉ TRANG BỊ (gear) phẩm Sử Thi (truyenThe rank 5) TRỞ LÊN, HOẶC thuộc Bộ Trang (set — sắp ra mắt; hook setId/set). x = instance / gearView / string id. Trả hex màu phẩm hoặc null.
+  SET_COLORS: { kimQuang: '#d6e3f2' },   // màu hào quang/hiển thị riêng cho từng Bộ Trang (Bạch Kim)
+  _itemSetId(x) {   // id Bộ Trang của 1 item (instance/gearView/string id) — tra catalog. null nếu không thuộc set.
+    if (!x) return null;
+    const def = (typeof x === 'object') ? (this.ITEMS[x.gearId] || x) : (this.ITEMS[x] || {});
+    return (def.equip && def.equip.set) || (x.equip && x.equip.set) || x.set || null;
+  },
   itemHaloHex(x) {
     if (!x) return null;
-    let isGear, isSet;
-    if (typeof x === 'object') { isGear = !!(x.gearId || x.uid || x.equip || x.slot); isSet = !!(x.setId || x.set || (x.equip && x.equip.setId)); }
-    else { const d = this.ITEMS[x] || {}; isGear = !!d.equip; isSet = !!(d.set || (d.equip && d.equip.setId)); }
+    const def = (typeof x === 'object') ? (this.ITEMS[x.gearId] || x) : (this.ITEMS[x] || {});
+    const isGear = (typeof x === 'object') ? !!(x.gearId || x.uid || x.equip || x.slot) : !!def.equip;
     if (!isGear) return null;
-    return (this.qualityRank(x) >= 5 || isSet) ? (this.QHEX[this._qKey(x)] || '#cbd5e1') : null;
+    const setId = this._itemSetId(x);
+    if (!(this.qualityRank(x) >= 5 || setId)) return null;
+    return setId ? (this.SET_COLORS[setId] || '#d6e3f2') : (this.QHEX[this._qKey(x)] || '#cbd5e1');  // set → màu set; còn lại → màu phẩm
   },
+  // style cho <i class="halo2">: --c màu; set thì viền DÀY hơn (--hpad) + glow mạnh hơn (--hglow).
+  haloStyle(x) {
+    const hex = this.itemHaloHex(x);
+    if (!hex) return '';
+    return this._itemSetId(x) ? ('--c:' + hex + ';--hpad:2.4px;--hglow:7px') : ('--c:' + hex);
+  },
+  equipHaloStyle(slotId) { return this.haloStyle(this.state.equipment && this.state.equipment[slotId]); },
   equipHaloHex(slotId) { return this.itemHaloHex(this.state.equipment && this.state.equipment[slotId]); },
   _spendCost(cost) { if (!cost) return true; const cur = this.costCur(cost); if ((this.state.currencies[cur] || 0) < cost[cur]) return false; this.state.currencies[cur] -= cost[cur]; return true; },
   // HỌC/MUA: trừ tiền + thêm vào sở hữu. Trả true nếu thành công.
@@ -2386,6 +2405,7 @@ const gameStore = {
   },
   devAddItem(id, qty) { if (!id || !this.ITEMS[id]) return; addItem(this.state, id, qty); this.devSave(); },
   devGiveSampleGear() { GEAR_IDS.forEach((id) => addGearInstance(this.state, rollGearInstance(id))); this.devSave(); },
+  devGiveKimQuang() { GEAR_IDS.filter((id) => (((this.ITEMS[id] || {}).equip) || {}).set === 'kimQuang').forEach((id) => addGearInstance(this.state, instanceFromCatalog(id, 0))); this.devSave(); this.showToast('Nhan Bo Kim Quang (7 mon)'); },
   // Dev: roll N drop ngẫu nhiên ở cấp `lv` (test loot-hunt: phẩm + số dòng đa dạng).
   devRollDrops(lv, n) { lv = lv || this.combatLevel || 20; n = n || 20; for (let i = 0; i < n; i++) { const gi = rollMonsterDrop(lv); if (gi) addGearInstance(this.state, gi); } this.devSave(); this.showToast('Roll ' + n + ' drop @Lv' + lv); },
   devGiveStones() { ['daCuongHoaSo', 'daCuongHoaTrung', 'daCuongHoaCao', 'tinhTheYeuVuong'].forEach((id) => addItem(this.state, id, 99)); this.state.currencies.honThach = (this.state.currencies.honThach || 0) + 100000; this.devSave(); },

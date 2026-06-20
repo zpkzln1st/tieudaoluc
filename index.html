@@ -42,9 +42,9 @@
 
     /* ===== Hào quang chạy viền (phẩm Sử Thi+ / item thuộc Bộ Trang) — conic comet 2 vệt, MƯỢT qua góc bo (không dash → không seam, không hụt góc) ===== */
     @keyframes haloSpin{ to{ transform:rotate(360deg); } }
-    .halo2{ position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:3; overflow:hidden; padding:1.1px;
+    .halo2{ position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:3; overflow:hidden; padding:var(--hpad,1.1px);
       -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;
-      filter:drop-shadow(0 0 .85px rgba(0,0,0,.7)) drop-shadow(0 0 4px var(--c)); }
+      filter:drop-shadow(0 0 .85px rgba(0,0,0,.7)) drop-shadow(0 0 var(--hglow,4px) var(--c)); }
     .halo2::before{ content:''; position:absolute; inset:-45%;
       background:conic-gradient(from 0deg,
         color-mix(in srgb,var(--c) 14%,transparent) 0deg,
@@ -56,6 +56,16 @@
         color-mix(in srgb,var(--c) 14%,transparent) 360deg);
       animation:haloSpin 8.4s linear infinite; }
     @media (prefers-reduced-motion:reduce){ .halo2::before{ animation:none; } }
+
+    /* ===== Bộ Trang "Bạch Kim" — tên item shimmer bạch kim (set → itemQuality().text='q-set') ===== */
+    @keyframes qsetSweep{ from{ background-position:165% 0, 0 0 } to{ background-position:-65% 0, 0 0 } }
+    .q-set{ background-image:
+        linear-gradient(105deg, transparent 36%, #ffffff 50%, transparent 64%),
+        linear-gradient(170deg, #ffffff 0%, #dbe7f2 42%, #8aa0bb 100%);
+      background-size:220% 100%, 100% 100%; background-repeat:no-repeat;
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      filter:drop-shadow(0 0 3px rgba(200,222,248,.5)); animation:qsetSweep 3.4s linear infinite; }
+    @media (prefers-reduced-motion:reduce){ .q-set{ animation:none; } }
 
     /* Cỡ gốc 110% cho màn lớn (27"); thu nhỏ trên laptop/mobile để bớt cuộn + vừa khung */
     html { font-size: 110%; }
@@ -583,7 +593,7 @@
                     <button @click="$store.game.navTo('trangbi')" :title="$store.game.slotName(sid)"
                       class="relative aspect-square rounded-md overflow-hidden transition"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700/70 hover:border-slate-500'">
-                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="'--c:'+$store.game.equipHaloHex(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template>
+                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template>
                       <template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-0.5 right-0.5 text-[8px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[8px] text-slate-600 px-0.5 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>
                     </button>
@@ -839,7 +849,7 @@
                       class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :style="$store.game.equipHaloHex(sid) ? ('box-shadow:0 0 15px -2px '+$store.game.equipHaloHex(sid)) : ''"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="'--c:'+$store.game.equipHaloHex(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
                   </template>
                 </div>
@@ -859,7 +869,7 @@
                       class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :style="$store.game.equipHaloHex(sid) ? ('box-shadow:0 0 15px -2px '+$store.game.equipHaloHex(sid)) : ''"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="'--c:'+$store.game.equipHaloHex(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
                   </template>
                 </div>
@@ -871,7 +881,7 @@
                     class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                     :style="$store.game.equipHaloHex(sid) ? ('box-shadow:0 0 15px -2px '+$store.game.equipHaloHex(sid)) : ''"
                     :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                    <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="'--c:'+$store.game.equipHaloHex(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                    <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-1 right-1 text-[10px] font-bold text-amber-300 bg-ink/85 rounded px-1 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                     <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                  </button>
                 </template>
               </div>
@@ -3108,13 +3118,13 @@
               <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(72px,1fr))">
                 <template x-for="it in grp.items" :key="it.uid || it.id">
                   <button @click="$store.game.openItemModal(it.uid || it.id)" class="group flex flex-col items-center gap-1 text-center" :title="it.name+' — bấm xem chi tiết'">
-                    <div class="relative w-full aspect-square rounded flex items-center justify-center ring-1 transition group-hover:ring-2 group-hover:brightness-110" :class="$store.game.QUALITY[it.quality].bg + ' ' + $store.game.QUALITY[it.quality].ring">
-                      <template x-if="$store.game.itemHaloHex(it)"><i class="halo2" :style="'--c:'+$store.game.itemHaloHex(it)"></i></template>
+                    <div class="relative w-full aspect-square rounded flex items-center justify-center ring-1 transition group-hover:ring-2 group-hover:brightness-110" :class="$store.game.itemQuality(it).bg + ' ' + $store.game.itemQuality(it).ring">
+                      <template x-if="$store.game.itemHaloHex(it)"><i class="halo2" :style="$store.game.haloStyle(it)"</i></template>
                       <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-3xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="$store.game.ico(it.id, it.icon)"></span>
                       <template x-if="it.qty"><span class="absolute bottom-0.5 right-1 text-[10px] font-bold text-slate-200" x-text="$store.game.fmt(it.qty)"></span></template>
                       <template x-if="it.plus>0"><span class="absolute top-0.5 right-0.5 text-[9px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+it.plus"></span></template>
                     </div>
-                    <span class="text-[10px] leading-tight line-clamp-2 w-full min-h-[24px] opacity-80 group-hover:opacity-100" :class="$store.game.QUALITY[it.quality].text" x-text="it.name"></span>
+                    <span class="text-[10px] leading-tight line-clamp-2 w-full min-h-[24px] opacity-80 group-hover:opacity-100" :class="$store.game.itemQuality(it).text" x-text="it.name"></span>
                   </button>
                 </template>
               </div>
@@ -3126,22 +3136,22 @@
       <!-- ===== POPUP: Chi tiết vật phẩm (bấm item ở Hành Lý) ===== -->
       <template x-if="$store.game.itemModal && $store.game.itemModalObj">
         <div class="fixed inset-0 z-[55] flex items-center justify-center p-4" style="background:rgba(2,6,12,.74)" @click.self="$store.game.closeItemModal()">
-          <div class="panel rounded-xl border-2 w-full max-w-sm overflow-hidden" :class="$store.game.QUALITY[$store.game.itemModalObj.quality].border" @click.stop x-data="{ get m(){ return $store.game.itemModalObj } }">
+          <div class="panel rounded-xl border-2 w-full max-w-sm overflow-hidden" :class="$store.game.itemQuality($store.game.itemModalObj).border" @click.stop x-data="{ get m(){ return $store.game.itemModalObj } }">
             <template x-if="m">
               <div>
                 <!-- Banner art -->
-                <div class="relative h-44 flex items-center justify-center bg-gradient-to-br" :class="$store.game.QUALITY[m.quality].grad">
+                <div class="relative h-44 flex items-center justify-center bg-gradient-to-br" :class="$store.game.itemQuality(m).grad">
                   <div class="absolute inset-0 bg-gradient-to-t from-ink to-transparent opacity-40"></div>
                   <button @click="$store.game.closeItemModal()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 z-10">✕</button>
-                  <div class="relative w-28 h-28 rounded-xl border-2 flex items-center justify-center bg-ink/40 cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="$store.game.QUALITY[m.quality].border" style="box-shadow:0 0 24px rgba(0,0,0,.45)" @click="$store.game.openLightbox(m.id, m.icon, m.name)" title="Bấm để phóng to">
+                  <div class="relative w-28 h-28 rounded-xl border-2 flex items-center justify-center bg-ink/40 cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="$store.game.itemQuality(m).border" style="box-shadow:0 0 24px rgba(0,0,0,.45)" @click="$store.game.openLightbox(m.id, m.icon, m.name)" title="Bấm để phóng to">
                     <span class="w-24 h-24 flex items-center justify-center text-5xl" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))" x-html="$store.game.ico(m.id, m.icon)"></span>
                   </div>
                 </div>
                 <!-- Info -->
                 <div class="p-4">
                   <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                    <span class="text-lg font-bold" style="font-family:'Lora',serif" :class="$store.game.QUALITY[m.quality].text" x-text="m.name"></span>
-                    <span class="text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wide font-bold border bg-ink/40" :class="$store.game.QUALITY[m.quality].text+' '+$store.game.QUALITY[m.quality].border" x-text="$store.game.QUALITY[m.quality].name"></span>
+                    <span class="text-lg font-bold" style="font-family:'Lora',serif" :class="$store.game.itemQuality(m).text" x-text="m.name"></span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wide font-bold border bg-ink/40" :class="$store.game.itemQuality(m).text+' '+$store.game.itemQuality(m).border" x-text="$store.game.itemQuality(m).name"></span>
                   </div>
                   <div class="text-[11px] text-slate-500 mb-2.5">Loại: <span class="text-slate-300" x-text="$store.game.itemTypeLabel(m.type)"></span></div>
                   <div class="text-[12px] text-slate-300 leading-snug mb-3" x-text="$store.game.itemDescOf(m)"></div>
@@ -4211,7 +4221,7 @@
                 <span class="absolute top-0 left-0 text-[8px] px-2 py-0.5 rounded-br-lg rounded-tl-md bg-amber-500 text-ink font-bold">Đề cử</span>
                 <div class="flex items-start gap-3 mt-1.5">
                   <div class="shrink-0 flex flex-col items-center">
-                    <div class="relative w-14 h-14 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :style="g.itemHaloHex(rec) ? ('box-shadow:0 0 15px -2px '+g.itemHaloHex(rec)) : ''" :class="g.itemQuality(rec).border + ' ' + g.itemQuality(rec).grad"><template x-if="g.itemHaloHex(rec)"><i class="halo2" :style="'--c:'+g.itemHaloHex(rec)"></i></template><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(rec.id, rec.icon)"></span></div>
+                    <div class="relative w-14 h-14 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :style="g.itemHaloHex(rec) ? ('box-shadow:0 0 15px -2px '+g.itemHaloHex(rec)) : ''" :class="g.itemQuality(rec).border + ' ' + g.itemQuality(rec).grad"><template x-if="g.itemHaloHex(rec)"><i class="halo2" :style="g.haloStyle(rec)"</i></template><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(rec.id, rec.icon)"></span></div>
                     <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(rec)" :key="s"><span class="text-[8px] leading-none text-amber-400">★</span></template></div>
                   </div>
                   <div class="flex-1 min-w-0 space-y-1">
@@ -4247,7 +4257,7 @@
             <template x-for="it in g.othersForSlot(slot)" :key="it.uid">
               <div class="flex items-center gap-3 p-2 rounded-lg bg-ink3/40 border border-slate-800">
                 <div class="shrink-0 flex flex-col items-center">
-                  <div class="relative w-12 h-12 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :style="g.itemHaloHex(it) ? ('box-shadow:0 0 15px -2px '+g.itemHaloHex(it)) : ''" :class="g.itemQuality(it).border + ' ' + g.itemQuality(it).grad"><template x-if="g.itemHaloHex(it)"><i class="halo2" :style="'--c:'+g.itemHaloHex(it)"></i></template><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(it.id, it.icon)"></span><template x-if="it.plus>0"><span class="absolute top-0 right-0 text-[8px] text-amber-300 bg-ink/80 rounded-bl px-0.5" x-text="'+'+it.plus"></span></template></div>
+                  <div class="relative w-12 h-12 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :style="g.itemHaloHex(it) ? ('box-shadow:0 0 15px -2px '+g.itemHaloHex(it)) : ''" :class="g.itemQuality(it).border + ' ' + g.itemQuality(it).grad"><template x-if="g.itemHaloHex(it)"><i class="halo2" :style="g.haloStyle(it)"</i></template><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(it.id, it.icon)"></span><template x-if="it.plus>0"><span class="absolute top-0 right-0 text-[8px] text-amber-300 bg-ink/80 rounded-bl px-0.5" x-text="'+'+it.plus"></span></template></div>
                   <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(it)" :key="s"><span class="text-[7px] leading-none text-amber-400">★</span></template></div>
                 </div>
                 <div class="flex-1 min-w-0 space-y-1">
@@ -4640,10 +4650,10 @@
 
   <!-- ===== Modal Điểm Danh (30 ngày) ===== -->
   <template x-if="$store.game.dailyModal">
-    <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.dailyModal=false">
+    <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-2 sm:p-4" @click="$store.game.dailyModal=false">
       <div class="panel rounded-2xl w-[860px] max-w-full max-h-[90dvh] flex flex-col border border-amber-500/30 shadow-2xl" @click.stop>
         <!-- Header -->
-        <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-800 shrink-0">
+        <div class="flex items-center justify-between px-3 sm:px-5 pt-4 pb-3 border-b border-slate-800 shrink-0">
           <div class="flex items-center gap-2.5">
             <div class="font-bold text-lg text-amber-300">📅 Điểm Danh</div>
             <span class="px-2 py-0.5 rounded-full bg-ink3 border border-amber-500/20 text-amber-200 text-[11px]">🔥 Chuỗi <b x-text="$store.game.loginStreak"></b> ngày</span>
@@ -4651,37 +4661,37 @@
           <button @click="$store.game.dailyModal=false" class="text-slate-500 hover:text-rose-400 text-lg">✕</button>
         </div>
         <!-- Lưới 30 ngày -->
-        <div class="px-5 py-4 overflow-y-auto">
-          <div class="grid grid-cols-7 gap-2.5">
+        <div class="px-2 py-3 sm:px-5 sm:py-4 overflow-y-auto">
+          <div class="grid grid-cols-7 gap-1 sm:gap-2.5">
             <template x-for="(r, i) in $store.game.LOGIN_REWARDS" :key="r.day">
-              <div class="relative rounded-xl border flex flex-col items-center text-center h-[150px] p-3 transition"
+              <div class="relative rounded-xl border flex flex-col items-center text-center h-[116px] p-1 sm:h-[150px] sm:p-3 transition"
                    :class="(i === $store.game.loginNextIndex && $store.game.canClaimDaily)
                      ? 'border-jade bg-jade/10 ring-2 ring-jade/50 animate-pulse'
                      : (r.milestone ? 'border-amber-400/60 bg-amber-500/10' : 'border-slate-800 bg-ink3/40')">
                 <div class="flex-1 flex flex-col items-center justify-center font-bold leading-none">
                   <template x-if="!r.milestone">
-                    <div class="flex flex-col items-center gap-1">
-                      <span class="w-14 h-14 inline-flex items-center justify-center" x-html="$store.game.ico(r.bac ? 'bac' : 'honThach', r.bac ? '🟡' : '🔴')"></span>
-                      <span class="text-xl" :class="r.bac ? 'text-gold' : 'text-rose-200'" x-text="r.bac ? $store.game.fmt(r.bac) : r.honThach"></span>
+                    <div class="flex flex-col items-center gap-0.5 sm:gap-1">
+                      <span class="w-8 h-8 sm:w-14 sm:h-14 inline-flex items-center justify-center" x-html="$store.game.ico(r.bac ? 'bac' : 'honThach', r.bac ? '🟡' : '🔴')"></span>
+                      <span class="text-sm sm:text-xl" :class="r.bac ? 'text-gold' : 'text-rose-200'" x-text="r.bac ? $store.game.fmt(r.bac) : r.honThach"></span>
                     </div>
                   </template>
                   <template x-if="r.milestone">
-                    <div class="flex flex-col items-center gap-1.5">
-                      <div class="flex items-center gap-1.5"><span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('honThach','🔴')"></span><span class="text-base text-rose-200" x-text="r.honThach"></span></div>
-                      <div class="flex items-center gap-1.5"><span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('nguyenBao','🔷')"></span><span class="text-base text-cyan" x-text="r.nguyenBao"></span></div>
+                    <div class="flex flex-col items-center gap-1 sm:gap-1.5">
+                      <div class="flex flex-col sm:flex-row items-center gap-0 sm:gap-1.5 leading-none"><span class="w-6 h-6 sm:w-9 sm:h-9 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('honThach','🔴')"></span><span class="text-[11px] sm:text-base text-rose-200" x-text="r.honThach"></span></div>
+                      <div class="flex flex-col sm:flex-row items-center gap-0 sm:gap-1.5 leading-none"><span class="w-6 h-6 sm:w-9 sm:h-9 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('nguyenBao','🔷')"></span><span class="text-[11px] sm:text-base text-cyan" x-text="r.nguyenBao"></span></div>
                     </div>
                   </template>
                 </div>
-                <div class="text-xs text-slate-500 leading-none mt-1">Ngày <span x-text="r.day"></span></div>
+                <div class="text-[9px] sm:text-xs text-slate-500 leading-none mt-0.5 sm:mt-1">Ngày <span x-text="r.day"></span></div>
                 <template x-if="i < $store.game.loginNextIndex || (i === $store.game.loginNextIndex && !$store.game.canClaimDaily)">
-                  <div class="absolute inset-0 rounded-xl bg-black/70 flex items-center justify-center text-emerald-400 text-4xl font-bold">✓</div>
+                  <div class="absolute inset-0 rounded-xl bg-black/70 flex items-center justify-center text-emerald-400 text-2xl sm:text-4xl font-bold">✓</div>
                 </template>
               </div>
             </template>
           </div>
         </div>
         <!-- Nút nhận -->
-        <div class="px-5 pb-4 pt-3 border-t border-slate-800 shrink-0">
+        <div class="px-3 sm:px-5 pb-4 pt-3 border-t border-slate-800 shrink-0">
           <button @click="$store.game.claimDaily()" :disabled="!$store.game.canClaimDaily"
             class="w-full py-3.5 rounded-xl font-bold text-base transition"
             :class="$store.game.canClaimDaily ? 'bg-jade text-ink hover:bg-jade/90' : 'bg-slate-800 text-slate-600 cursor-not-allowed'"
@@ -4790,6 +4800,7 @@
             <button @click="$store.game.devGiveAll()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">📦 Nhận TOÀN BỘ vật phẩm (test)</button>
             <button @click="$store.game.devGiveAllEggs()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🥚 Nhận toàn bộ Trứng + Tinh Thể (xem art)</button>
             <button @click="$store.game.devGiveSampleGear()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">🎁 Tặng toàn bộ trang bị (test)</button>
+            <button @click="$store.game.devGiveKimQuang()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">✨ Tặng Bộ Kim Quang (7 món)</button>
             <button @click="$store.game.devGiveStones()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💠 Tặng đá cường hóa + 100k Hồn Thạch</button>
           </div>
         </div>

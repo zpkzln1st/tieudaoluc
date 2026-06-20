@@ -38,7 +38,7 @@ function statLv(state, id) { return levelFromXp(state.stats?.[id]?.xp || 0); }
 function rollDoPhoId(D) {
   const dp = D.loot.doPho; if (!dp) return null;
   const quals = dp.bac.map((b) => BAC_QUALITY[b]);
-  const byQual = Object.values(GEAR).filter((g) => g.equip && quals.includes(g.quality));
+  const byQual = Object.values(GEAR).filter((g) => g.equip && !g.equip.set && quals.includes(g.quality)); // loại Bộ Trang (set curate, không rơi Đồ Phổ random)
   let pool = byQual;
   if (dp.slots !== 'all') { const bySlot = byQual.filter((g) => dp.slots.includes(g.equip.slot)); if (bySlot.length) pool = bySlot; } // slot cấu hình sai/rỗng -> fallback phẩm chất (không phí lượt trúng)
   if (!pool.length) return null;

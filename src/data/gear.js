@@ -181,6 +181,20 @@ function mkTool(id, name, slot, bac, desc) {
   mkTool('eq_canCau_7', 'Thôn Hải Thần Can', 'canCau', 7, 'Thần can thôn hải, một lần buông câu kinh động cả thủy cung long vương.'),
 ].forEach((it) => { GEAR[it.id] = it; });
 
+// ============================================================
+// BỘ TRANG ĐẦU TIÊN — "Bộ Kim Quang" (7 món trừ Vũ Khí). Stat NGANG Độc Nhất (bac7). HIỂN THỊ "Bạch Kim" (set → itemQuality override, halo platinum). set='kimQuang' → set-bonus (dòng ẩn, mặc đủ bộ mới kích — sắp ra mắt). Art user gen: images/equip/<id>.webp. he=null.
+// ============================================================
+const mkKimQuang = (id, name, slot, icon) => mkGear(id, { name, slot, itemLv: BAC_LEVEL[7], quality: BAC_QUALITY[7], reqLevel: BAC_REQ[7], set: 'kimQuang', icon });
+[
+  mkKimQuang('eq_kim_quang_trich_tinh_hoan',  'Kim Quang Trích Tinh Hoàn',  'mu',       '⛑️'),
+  mkKimQuang('eq_kim_quang_duong_nghe_giap',  'Kim Quang Dương Nghê Giáp',  'giap',     '🥋'),
+  mkKimQuang('eq_kim_quang_bach_kim_yeu_dai', 'Kim Quang Bạch Kim Yêu Đái', 'dai',      '🎗️'),
+  mkKimQuang('eq_kim_quang_thien_tam_ho_uyen','Kim Quang Thiền Tằm Hộ Uyển','gang',     '🧤'),
+  mkKimQuang('eq_kim_quang_thien_tam_ngoa',   'Kim Quang Thiên Tâm Ngọa',   'giay',     '🥾'),
+  mkKimQuang('eq_kim_quang_nha_dien_chi_hon', 'Kim Quang Nhã Diện Chi Hồn', 'nhan',     '💍'),
+  mkKimQuang('eq_kim_quang_ngu_sac_ngoc_boi', 'Kim Quang Ngũ Sắc Ngọc Bội', 'trangSuc', '📿'),
+].forEach((it) => { GEAR[it.id] = it; });
+
 export const GEAR_IDS = Object.keys(GEAR);
 
 // ============================================================
