@@ -29,6 +29,8 @@ import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
 import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
 import { gearPlus, enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
 import { equipItem, unequipItem, addGearInstance, removeGearByUid, findGear } from './engine/equip.js';
+import { TITLES, TITLE_BY_ID, TITLE_LOAI, titleBonusText } from './data/titles.js';
+import { ensureTitles, syncTitles, titleBonus } from './engine/titles.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
@@ -115,6 +117,7 @@ for (const id of Object.keys(state.inventory)) {
 if (!state.login) state.login = { lastDay: null, streak: 0 };
 if (!state.counters) state.counters = { produced: {}, kills: {} };
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
+ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
 if (!state.quests) state.quests = { tutorial: { index: 0, base: 0 }, daily: { period: null, list: [] }, weekly: { period: null, list: [] }, monthly: { period: null, list: [] } };
 if (!state.quests.tutorial) state.quests.tutorial = { index: 0, base: 0 };
 if (!state.quests.daily) state.quests.daily = { period: null, list: [] };
@@ -529,6 +532,32 @@ const gameStore = {
     if (r.eggPham) c.push({ id: 'egg', amt: r.eggPham, cls: 'text-emerald-300', emoji: '🥚' });
     return c;
   },
+  // ---------- Danh Hiệu ----------
+  checkTitles() {
+    const newly = syncTitles(this.state);
+    for (const id of newly) { const tt = TITLE_BY_ID[id]; if (tt) this.showToast('🏅 Mở khoá Danh Hiệu 〘' + tt.name + '〙!'); }
+  },
+  get equippedTitleObj() { const eq = this.state.titles && this.state.titles.equipped; return eq ? (TITLE_BY_ID[eq] || null) : null; },
+  get titlesView() {
+    const ti = this.state.titles || { owned: [], equipped: null };
+    const owned = ti.owned || [], eq = ti.equipped;
+    const groups = {};
+    for (const tt of TITLES) {
+      const g = groups[tt.loai] || (groups[tt.loai] = { loai: tt.loai, label: TITLE_LOAI[tt.loai] || tt.loai, items: [] });
+      g.items.push({ id: tt.id, name: tt.name, q: tt.q, src: tt.src, owned: owned.includes(tt.id), on: eq === tt.id, bonusText: titleBonusText(tt) });
+    }
+    return Object.values(groups);
+  },
+  get titlesFlat() {
+    const ti = this.state.titles || { owned: [], equipped: null };
+    const owned = ti.owned || [], eq = ti.equipped;
+    return TITLES.map((tt) => ({ id: tt.id, name: tt.name, q: tt.q, loai: TITLE_LOAI[tt.loai] || tt.loai, src: tt.src, owned: owned.includes(tt.id), on: eq === tt.id, bonusText: titleBonusText(tt) }));
+  },
+  get titleOwnedCount() { return ((this.state.titles || {}).owned || []).length; },
+  get titleTotalCount() { return TITLES.length; },
+  titleEquip(id) { const ti = this.state.titles; if (!ti || !(ti.owned || []).includes(id)) return; ti.equipped = id; Storage.save(this.state); },
+  titleQClass(q) { return ({ phamPham: 'dh-q-pham', luongPham: 'dh-q-luong', tinhPham: 'dh-q-tinh', tuyetPham: 'dh-q-tuyet', truyenThe: 'dh-q-truyen', thanPham: 'dh-q-than', coBan: 'dh-q-coban' })[q] || 'dh-q-pham'; },
+  titleHigh(q) { return q === 'truyenThe' || q === 'thanPham' || q === 'coBan'; },   // phẩm cao -> hiệu ứng động + aura
   // -- Tân thủ --
   get tutAllDone() { return this.state.quests.tutorial.index >= this.TUTORIAL_QUESTS.length; },
   get tutQuest() { return this.TUTORIAL_QUESTS[this.state.quests.tutorial.index] || null; },
@@ -1904,8 +1933,9 @@ const gameStore = {
     const rp = gainPetXp(this.state, Math.round(xpGain * 0.5));   // Linh Thú đang mang ăn 50% EXP/trận (+ Hiếu Học)
     if (rp && rp.leveled) this.showToast(this.petName(rp.pet) + ' lên Cảnh Lv ' + rp.pet.level + '.');
     for (const st of boPhapStats(this.loadout)) addStatXp(this.state, st, e.statXp);
-    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus');   // P7 — Tham Tài
-    const lootMul = 1 + activeAwkVal(this.state, 'lootBonus');     // P7 — Lùng Sục
+    const _tb = titleBonus(this.state);                                       // Danh Hiệu: +Bạc/+rơi đồ nhẹ
+    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
+    const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
     if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) addItem(this.state, l.itemId, 1);
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
     if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); } }
@@ -2449,6 +2479,7 @@ setInterval(() => {
   if (s.state.activity) advance(s.state, now());
   if (s.state.combat && s.state.combat.noiThuong && s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();   // suy yếu xong khi tab ẩn
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
+  s.checkTitles();        // Danh Hiệu: mở khoá mới khi đủ cột mốc -> báo toast
   if (document.hidden && s.bossFight && !s.bossFight.done) s.finishBossFightNow(); // tab nền: rafLoop bị throttle → chốt trận LIVE trong 5s, không treo
   s.resolveBossQueue();   // hàng đợi: boss giáng thế khi đang online → tự vây sát ở nền
   Storage.save(s.state);

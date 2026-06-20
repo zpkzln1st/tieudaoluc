@@ -6,6 +6,7 @@
 // ============================================================
 import { derivedStats, gearEle } from '../engine/stats.js';
 import { levelFromXp } from '../engine/leveling.js';
+import { titleBonus } from '../engine/titles.js';
 
 // ---- NGŨ HÀNH ----
 // 5 hệ + Vật Lý + Trợ. Vòng tương khắc: Kim→Mộc→Thổ→Thủy→Hỏa→Kim.
@@ -335,6 +336,7 @@ export function starterLoadoutFor(tamPhapId){
 // ---- Chỉ số combat dẫn xuất (Tứ Trụ + trang bị + bài võ: Tâm Pháp + 1-2 Bộ Pháp) ----
 export function deriveCombat(state, loadout, opts){
   const d = derivedStats(state);
+  const tbn = titleBonus(state);                 // Danh Hiệu: +crit/spd/dodge nhẹ
   const sl = (id)=>levelFromXp(state.stats?.[id]?.xp || 0);
   // Suy yếu KHÔNG debuff chỉ số (người chơi tự hồi đầy HP rồi mới đánh tiếp) — giữ nt=1 để không phải sửa công thức dưới.
   const nt = 1;
@@ -358,10 +360,10 @@ export function deriveCombat(state, loadout, opts){
     maxHP: Math.max(1, Math.round(d.sinhLuc * (1+M.hp))),
     atk: Math.max(1, Math.round(d.congKich * (1+M.dmg) * nt)),
     def: Math.max(0, Math.round(d.hoThe * (1+M.def) * nt)),
-    spd: Math.max(1, Math.round((100 + sl('thanPhap')*1.5 + (d.tocDo||0)) * (1+M.spd) * nt)),
-    crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.005 + M.crit + (d.baoKich||0)/100)),
+    spd: Math.max(1, Math.round((100 + sl('thanPhap')*1.5 + (d.tocDo||0)) * (1+M.spd+tbn.spdPct) * nt)),
+    crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.005 + M.crit + (d.baoKich||0)/100 + tbn.critPct)),
     critDmg: 1.6 + M.critDmg + (d.baoSat||0)/100,
-    dodge: Math.min(0.5, Math.max(0, M.dodge)),
+    dodge: Math.min(0.5, Math.max(0, M.dodge + tbn.dodgePct)),
     heChinh, tamPhapHeBonus, eleBonus, heBonus,
     maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)), regenPct,
   };

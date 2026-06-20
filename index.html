@@ -18,6 +18,28 @@
     } } } };
   </script>
   <style>
+    /* ===== DANH HIỆU — plaque Kiểu B (Long Văn) · glow tĩnh dịu · Ánh Kim Quét (phẩm cao) ===== */
+    .dh-q-pham{--dhc:#cbd5e1} .dh-q-luong{--dhc:#34d399} .dh-q-tinh{--dhc:#60a5fa} .dh-q-tuyet{--dhc:#a78bfa}
+    .dh-q-truyen{--dhc:#e879f9} .dh-q-than{--dhc:#fb923c} .dh-q-coban{--dhc:#fbbf24}
+    .dh{ display:inline-flex; align-items:center; gap:.55rem; padding:.14rem .2rem; position:relative; }
+    .dh .dh-li{ width:24px; height:1px; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--dhc) 80%,transparent)); box-shadow:0 0 4px color-mix(in srgb,var(--dhc) 42%,transparent); position:relative; }
+    .dh .dh-li.r{ background:linear-gradient(270deg,transparent,color-mix(in srgb,var(--dhc) 80%,transparent)); }
+    .dh .dh-li::after{ content:'◆'; position:absolute; top:-.6em; color:var(--dhc); font-size:.5em; opacity:.9; filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 55%,transparent)); right:-2px; }
+    .dh .dh-li.r::after{ left:-2px; right:auto; }
+    .dh-txt{ font-family:'Lora',serif; font-weight:700; letter-spacing:.015em;
+      background:linear-gradient(168deg, color-mix(in srgb,#fff 62%,var(--dhc)) 4%, var(--dhc) 46%, color-mix(in srgb,var(--dhc) 60%,#000) 100%);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 68%,transparent)) drop-shadow(0 0 8px color-mix(in srgb,var(--dhc) 38%,transparent)); }
+    .dh-high::before{ content:''; position:absolute; inset:-55% -12%; z-index:0; background:radial-gradient(ellipse at center, color-mix(in srgb,var(--dhc) 16%,transparent), transparent 72%); pointer-events:none; }
+    .dh-high > *{ position:relative; z-index:1; }
+    @keyframes dhSweep{ from{ background-position:160% 0, 0 0 } to{ background-position:-60% 0, 0 0 } }
+    .dh-high .dh-txt{
+      background:linear-gradient(105deg, transparent 38%, rgba(255,255,255,.8) 50%, transparent 62%), linear-gradient(168deg, color-mix(in srgb,#fff 62%,var(--dhc)) 4%, var(--dhc) 46%, color-mix(in srgb,var(--dhc) 60%,#000) 100%);
+      background-size:220% 100%, 100% 100%; background-position:160% 0, 0 0; background-repeat:no-repeat; -webkit-background-clip:text; background-clip:text;
+      filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 72%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--dhc) 46%,transparent)) drop-shadow(0 0 20px color-mix(in srgb,var(--dhc) 24%,transparent));
+      animation:dhSweep 3.4s linear infinite; }
+    @media (prefers-reduced-motion: reduce){ .dh-high .dh-txt{ animation:none } }
+
     /* Cỡ gốc 110% cho màn lớn (27"); thu nhỏ trên laptop/mobile để bớt cuộn + vừa khung */
     html { font-size: 110%; }
     @media (max-width: 1500px) { html { font-size: 100%; } }
@@ -232,6 +254,11 @@
             <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink3 shrink-0 ring-1 ring-white/15" :style="$store.game.faceStyle"></div>
             <div class="flex-1 min-w-0">
               <div class="text-sm font-semibold truncate" x-text="$store.game.state.player.name"></div>
+              <template x-if="$store.game.equippedTitleObj">
+                <div class="my-0.5 truncate" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
+                  <span class="dh" :class="$store.game.titleQClass(t.q) + ($store.game.titleHigh(t.q) ? ' dh-high' : '')" style="gap:.35rem"><span class="dh-txt" style="font-size:11px" x-text="t.name"></span></span>
+                </div>
+              </template>
               <div class="text-[10px] text-slate-300/90" x-text="'Tổng Lv ' + $store.game.totalLevel"></div>
             </div>
           </div>
@@ -348,6 +375,7 @@
             <button @click="$store.game.setProfileTab('profile')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='profile' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Hồ Sơ</button>
             <button @click="$store.game.setProfileTab('skins')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='skins' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Dung Mạo</button>
             <button @click="$store.game.setProfileTab('nghe')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='nghe' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Nghề</button>
+            <button @click="$store.game.setProfileTab('titles')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='titles' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Danh Hiệu</button>
             <button @click="$store.game.setProfileTab('badges')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='badges' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Huy Hiệu</button>
           </div>
 
@@ -361,13 +389,18 @@
             <div class="absolute inset-0 bg-gradient-to-tr from-black/85 via-black/25 to-transparent pointer-events-none"></div>
             <!-- Tên + cấp (góc trái dưới, tích hợp) -->
             <div class="absolute left-5 bottom-4 z-10 pointer-events-none">
+              <!-- Danh Hiệu đang đeo (glow Kiểu B) -->
+              <template x-if="$store.game.equippedTitleObj">
+                <div class="mb-1.5 inline-block" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
+                  <span class="dh" :class="$store.game.titleQClass(t.q) + ($store.game.titleHigh(t.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" x-text="t.name"></span><span class="dh-li r"></span></span>
+                </div>
+              </template>
               <div class="flex items-center gap-2">
                 <span class="text-3xl font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]" style="font-family:'Lora',serif" x-text="$store.game.state.player.name"></span>
               </div>
               <div class="flex items-center gap-2 mt-2.5 flex-wrap">
                 <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-slate-200">Chiến <b class="text-jade" x-text="$store.game.combatLevel"></b></span>
                 <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-slate-200">Tổng <b class="text-jade" x-text="$store.game.totalLevel"></b></span>
-                <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-amber-200/90">Giang Hồ Tự Do</span>
               </div>
             </div>
             <!-- Điều khiển khung: chỉ ở tab Dung Mạo -->
@@ -713,6 +746,33 @@
                         </button>
                       </template>
                     </div>
+                  </div>
+                </template>
+              </div>
+            </section>
+          </template>
+
+          <!-- ===== Tab DANH HIỆU (Tàng Hiệu Các) ===== -->
+          <template x-if="$store.game.profileTab==='titles'">
+            <section class="panel rounded-lg p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div class="lbl">Tàng Hiệu Các</div>
+                <div class="text-[12px] text-slate-400">Đã mở <b class="text-jade" x-text="$store.game.titleOwnedCount"></b>/<span x-text="$store.game.titleTotalCount"></span></div>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-2.5">
+                <template x-for="it in $store.game.titlesFlat" :key="it.id">
+                  <div class="flex items-center gap-3 rounded-xl px-4 py-3 border" :class="it.owned ? (it.on ? 'border-jade/50 bg-jade/5' : 'border-slate-700/70 bg-ink3/40') : 'border-slate-800/60 bg-black/20 opacity-50'">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="dh" :class="$store.game.titleQClass(it.q) + (it.owned && $store.game.titleHigh(it.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" style="font-size:14.5px" x-text="it.name"></span><span class="dh-li r"></span></span>
+                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-slate-700/70 shrink-0" x-text="it.loai"></span>
+                      </div>
+                      <div class="text-[12px] text-jade/90 mt-1.5" x-text="it.bonusText"></div>
+                      <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '🔒 ') + it.src"></div>
+                    </div>
+                    <template x-if="it.on"><span class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium">Đang đeo</span></template>
+                    <template x-if="it.owned && !it.on"><button @click="$store.game.titleEquip(it.id)" class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-ink2 border border-slate-700 hover:border-jade text-slate-200 transition">Đeo</button></template>
+                    <template x-if="!it.owned"><span class="shrink-0 text-[11px] text-slate-600">Chưa mở</span></template>
                   </div>
                 </template>
               </div>

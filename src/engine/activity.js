@@ -12,6 +12,7 @@ import { travelTimeMs } from './travel.js';
 import { addItem, removeItem } from './inventory.js';
 import { addGearInstance } from './equip.js';
 import { rollMonsterDrop, rollGearInstance, MONSTER_DROP_CHANCE } from '../data/gear.js';
+import { titleBonus } from './titles.js';
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
@@ -224,8 +225,9 @@ export function advance(state, now) {
       const hpLost = act.hpLostPerKill || 0;               // máu mất mỗi con (từ Suy Tính)
       const maxHP = act.maxHP || (act.maxHP = combatProfile(state, cb.loadout, enemy).maxHP); // mốc ngưỡng tự ăn (memo cho save cũ)
       const bacPer = Math.max(1, Math.round(enemy.exp * 1.5));
-      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus');             // P7 — Tham Tài
-      const lootMul = 1 + activeAwkVal(state, 'lootBonus');               // P7 — Lùng Sục
+      const _tb = titleBonus(state);                                     // Danh Hiệu: +Bạc/+rơi đồ nhẹ
+      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
+      const lootMul = 1 + activeAwkVal(state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
       let done = 0, died = false;
       for (let i = 0; i < cyclesByTime; i++) {
         autoEatTick(state, maxHP);                          // Ô Lương Thực: tự ăn nếu máu dưới ngưỡng (trước khi vào con)

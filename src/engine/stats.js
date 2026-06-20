@@ -7,6 +7,7 @@ import { levelFromXp } from './leveling.js';
 import { enhanceMul } from './enhance.js';
 import { petBonus } from './pets.js';
 import { codexBonus } from './codex.js';
+import { titleBonus } from './titles.js';
 
 export function gearStats(state) {
   // 8 stat: 5 lõi + baoKich/baoSat/tocDo (chỉ gear cấp; vào crit/critDmg/spd ở deriveCombat).
@@ -52,13 +53,13 @@ export function derivedStats(state, opts) {
       sinhLuc   += pb.sinhLuc   || 0;
     }
   }
-  // Vạn Vật Phổ — Phổ Lực: % chỉ số vĩnh viễn từ bộ sưu tập (per-entry + trọn bộ).
-  const cx = codexBonus(state);
-  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct));
-  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct));
-  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct));
-  neTranh   = Math.round(neTranh   * (1 + cx.allPct));
-  menhTrung = Math.round(menhTrung * (1 + cx.allPct));
+  // Vạn Vật Phổ (Phổ Lực) + Danh Hiệu đang đeo — % chỉ số cộng nhẹ.
+  const cx = codexBonus(state), tb = titleBonus(state);
+  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct));
+  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct));
+  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct));
+  neTranh   = Math.round(neTranh   * (1 + cx.allPct + tb.allPct));
+  menhTrung = Math.round(menhTrung * (1 + cx.allPct + tb.allPct));
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   // baoKich/baoSat/tocDo: chỉ từ gear (không Tứ Trụ/codex), chuyển thẳng cho deriveCombat.
