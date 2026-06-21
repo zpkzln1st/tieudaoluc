@@ -3949,14 +3949,14 @@
             <div class="absolute left-0 right-0 bottom-0 pointer-events-none" style="height:38%;background:radial-gradient(120% 100% at 50% 120%, rgba(245,158,11,.13), transparent 70%)"></div>
             <div class="relative p-4">
               <!-- HERO -->
-              <div class="flex items-center justify-between gap-4 mb-3">
-                <div class="flex items-center gap-3">
-                  <div class="relative w-[88px] h-[88px] shrink-0 flex items-center justify-center fserif text-3xl" :style="'color:'+g.tmDaoColor()">
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="relative w-16 h-16 sm:w-[88px] sm:h-[88px] shrink-0 flex items-center justify-center fserif text-2xl sm:text-3xl" :style="'color:'+g.tmDaoColor()">
                     <span x-text="(t.name||'').slice(0,2)"></span>
                     <img src="images/ui/tongmon_emblem.webp" alt="" class="absolute inset-0 w-full h-full object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,.6)]" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/tongmon_emblem.png'}else{this.remove()}">
                   </div>
-                  <div>
-                    <div class="fserif gold-text text-[26px] leading-none" x-text="t.name"></div>
+                  <div class="min-w-0">
+                    <div class="fserif gold-text text-[20px] sm:text-[26px] leading-tight" x-text="t.name"></div>
                     <div class="flex items-center gap-2 mt-1.5">
                       <span class="text-[10px] px-2 py-0.5 rounded-full border" :style="'color:'+g.tmDaoColor()+';border-color:'+g.tmDaoColor()+'55;background:'+g.tmDaoColor()+'14'" x-text="g.tmDaoLabel()"></span>
                       <span class="text-slate-500 text-[12px]" x-text="t.disciples.length + '/' + g.tmSlot() + ' đệ tử'"></span>
@@ -3994,9 +3994,9 @@
                 </div>
               </template>
               <!-- CÔNG TRÌNH -->
-              <div class="flex flex-wrap gap-2 mb-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
                 <template x-for="key in ['tuHien','dienVo','tangThu','yQuan','tuLinh']" :key="key">
-                  <div class="shrink-0 w-[156px] relative rounded-lg overflow-hidden panel" :class="g.tmCanUpgrade(key)?'border-amber-500/50':''">
+                  <div class="relative rounded-lg overflow-hidden panel" :class="g.tmCanUpgrade(key)?'border-amber-500/50':''">
                     <img :src="'images/tongmon/buildings/'+key+'.webp'" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'">
                     <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(11,15,24,.5) 0%,rgba(11,15,24,.82) 72%,rgba(11,15,24,.92) 100%)"></div>
                     <div class="absolute inset-0 flex items-center justify-center fserif text-[3rem] opacity-10" x-text="g.tmBuild(key).han"></div>
