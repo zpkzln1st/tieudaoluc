@@ -46,6 +46,8 @@ import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, a
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
 
 const now = () => Date.now();
+// Helper toàn cục cho link 「gia bảo」 trong biên niên (x-html không gắn được @click Alpine) -> mở chi tiết món
+if (typeof window !== 'undefined') window.tmShowItem = (id) => { try { const s = window.Alpine && window.Alpine.store('game'); if (s) s.openItemModal(id); } catch (e) {} };
 let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
 let _nbData = null, _nbKey = '';      // cache Đồng Đạo Lân Cận theo (skill:phút)
 let _tmbBots = null, _tmbKey = '';    // cache hàng bot TÔNG MÔN BẢNG theo (seed:createdAt:phút)
@@ -360,11 +362,12 @@ const gameStore = {
   tmFlagChips(d) { const M = { daoLu: ['Đạo Lữ', '#34d399'], oanTham: ['Oán Thầm', '#fb7185'], tamMaSeed: ['Mầm Tâm Ma', '#a78bfa'], tinhTrieu: ['Tình Triều', '#f472b6'], cuuChuoc: ['Cải Tà', '#34d399'], triAn: ['Tri Ân', '#34d399'], batPhuc: ['Bất Phục', '#fb7185'], phatPhan: ['Phát Phẫn', '#f5b942'] }; const out = []; if (d.bietHieu) out.push([d.bietHieu, '#f5b942']); for (const k in (d.flags || {})) { if (M[k]) out.push(M[k]); } return out; },
   // Diễn Biến Tông Môn: gán seal Hán + màu theo loại sự kiện (suy từ text Sử Sách)
   tmDienBienSeal(text) { const T = text || ''; const M = [['Xuất Sư', '仙', '#f5b942'], ['★', '仙', '#f5b942'], ['đắc đạo', '仙', '#f5b942'], ['Trưởng Lão', '師', '#fbbf24'], ['đột phá', '破', '#22d3ee'], ['Phản Đồ', '叛', '#a78bfa'], ['đào tẩu', '叛', '#a78bfa'], ['phản xuất', '叛', '#a78bfa'], ['đạo lữ', '緣', '#34d399'], ['gia bảo', '寶', '#fbbf24'], ['Thu nhận', '入', '#94a3b8'], ['tâm ma', '魔', '#fb7185'], ['chiến thắng', '戰', '#fb7185'], ['Khí Vận', '運', '#22d3ee'], ['linh khí', '運', '#22d3ee']]; for (const [k, s, c] of M) { if (T.includes(k)) return { seal: s, color: c }; } return { seal: '事', color: '#64748b' }; },
-  get tmDienBien() { void this._tick; return ((this.tm && this.tm.soSach) || []).slice(0, 18).map((s) => { const m = this.tmDienBienSeal(s.text); return { text: s.text, html: this._chronHtml(s.text), t: s.t, seal: m.seal, color: m.color }; }); },
+  get tmDienBien() { void this._tick; return ((this.tm && this.tm.soSach) || []).slice(0, 18).map((s) => { const m = this.tmDienBienSeal(s.text); return { text: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color }; }); },
   // tô màu tên đệ tử (theo phẩm chất / tư chất) + cảnh giới (theo màu cảnh giới) trong dòng Diễn Biến
-  _chronHtml(text) {
+  _chronHtml(text, gid) {
     const t = this.tm; if (!t) return text;
     let s = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    if (gid) s = s.replace(/「([^」]+)」/, (m, nm) => '<a onclick="tmShowItem(\'' + gid + '\')" class="cursor-pointer underline decoration-dotted decoration-amber-400/50 hover:text-amber-100">「' + nm + '」</a>');
     const names = [];
     (t.disciples || []).forEach((d) => names.push([d.name, APT[d.apt].color]));
     (t.elders || []).forEach((d) => names.push([d.name, APT[d.apt].color]));
@@ -377,6 +380,10 @@ const gameStore = {
   },
   openFaceFull(src) { if (src) this.tmFaceFull = src; },
   closeFaceFull() { this.tmFaceFull = null; },
+  // Popup chỉ số 1 món Gia Bảo đệ tử đang đeo (click ô đã lắp)
+  tmGearView: null,
+  openTmGear(inst) { const v = this.gearView(inst); if (v) this.tmGearView = v; },
+  closeTmGear() { this.tmGearView = null; },
   // Đấu Giá Hội (shop tiêu Điểm Đấu Giá — side-only/cosmetic)
   shopOpen: false, shopRename: '',
   get tmShopItems() { return TM_SHOP; },
@@ -393,7 +400,7 @@ const gameStore = {
     const q = (this.soSachQuery || '').trim().toLowerCase();
     let arr = (this.tm && this.tm.soSach) || [];
     if (q) arr = arr.filter((s) => (s.text || '').toLowerCase().includes(q));
-    return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text), t: s.t, seal: m.seal, color: m.color }; });
+    return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color }; });
   },
   // Chân dung đệ tử: pool ngẫu nhiên gán cố định theo uid (images/tongmon/disciples/<sex>_<n>.webp). DISC_FACES = số ảnh mỗi giới (0 = chưa có art → dùng seal Hán).
   tmFace(d) { const n = (d.sex === 'nu') ? this.DISC_FACES.nu : this.DISC_FACES.nam; if (!n) return ''; let h = 0; const u = d.uid || ''; for (let i = 0; i < u.length; i++) h = (h * 31 + u.charCodeAt(i)) >>> 0; return 'images/tongmon/disciples/' + (d.sex === 'nu' ? 'nu' : 'nam') + '_' + ((h % n) + 1) + '.webp'; },

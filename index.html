@@ -4214,7 +4214,7 @@
                         </div>
                         <div class="grid grid-cols-4 gap-1.5 w-full max-w-[280px] sm:w-[196px] sm:max-w-none">
                           <template x-for="slot in ['mu','giap','dai','gang','vuKhi','trangSuc','nhan','giay','toaKy','canCau','cuoc','riu']" :key="slot">
-                            <button @click="g.openGiftPicker(slot)" class="relative rounded-lg w-full aspect-square overflow-hidden transition" :class="(d.gear && d.gear[slot]) ? ('bg-ink2 border-2 ' + g.itemQuality(d.gear[slot]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-jade/50'" :title="(d.gear && d.gear[slot]) ? (g.ITEMS[d.gear[slot].gearId]||{}).name : g.slotName(slot)">
+                            <button @click="(d.gear && d.gear[slot]) ? g.openTmGear(d.gear[slot]) : g.openGiftPicker(slot)" class="relative rounded-lg w-full aspect-square overflow-hidden transition" :class="(d.gear && d.gear[slot]) ? ('bg-ink2 border-2 ' + g.itemQuality(d.gear[slot]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-jade/50'" :title="(d.gear && d.gear[slot]) ? (g.ITEMS[d.gear[slot].gearId]||{}).name : g.slotName(slot)">
                               <template x-if="d.gear && d.gear[slot]"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="g.ico(d.gear[slot].gearId,(g.ITEMS[d.gear[slot].gearId]||{}).icon)"></span></template>
                               <template x-if="!(d.gear && d.gear[slot])"><span class="absolute inset-0 flex items-center justify-center text-slate-600 text-base">＋</span></template>
                               <template x-if="!(d.gear && d.gear[slot])"><span class="absolute bottom-0 inset-x-0 text-center text-[7px] leading-tight py-0.5 text-slate-600" x-text="g.slotName(slot)"></span></template>
@@ -4373,6 +4373,34 @@
                   </template>
                 </div>
                 <div class="px-4 py-2 border-t border-slate-800 text-[10.5px] text-slate-600 shrink-0" x-text="g.tmSoSachFull.length + ' dòng biên niên · tối đa 80'"></div>
+              </div>
+            </div>
+          </template>
+
+          <!-- POPUP CHỈ SỐ GIA BẢO (click ô đã lắp trong tab Gia Bảo) -->
+          <template x-if="g.tmGearView">
+            <div class="fixed inset-0 z-[81] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmGear()">
+              <div class="panel rounded-2xl w-[360px] max-w-full overflow-hidden border-2" :class="g.itemQuality(g.tmGearView).border" @click.stop>
+                <div class="flex items-start gap-3 p-4 border-b border-slate-800">
+                  <span class="w-12 h-12 rounded-lg bg-ink flex items-center justify-center shrink-0" x-html="g.ico(g.tmGearView.id,(g.ITEMS[g.tmGearView.id]||{}).icon)"></span>
+                  <div class="flex-1 min-w-0">
+                    <div class="fserif text-[15px] truncate" :class="g.itemQuality(g.tmGearView).text"><span x-text="g.tmGearView.name"></span><span x-show="g.tmGearView.plus>0" class="text-amber-300" x-text="' +'+g.tmGearView.plus"></span></div>
+                    <div class="text-[11px] text-slate-500"><span x-text="g.slotName(g.tmGearView.slot)"></span> · Lv <span x-text="g.tmGearView.itemLv"></span></div>
+                  </div>
+                  <button @click="g.closeTmGear()" class="text-slate-500 hover:text-rose-400 text-lg leading-none shrink-0">✕</button>
+                </div>
+                <div class="p-4 space-y-1.5">
+                  <div class="lbl mb-1">Thuộc Tính</div>
+                  <template x-if="!Object.keys(g.tmGearView.stats||{}).length"><div class="text-[12px] text-slate-600 italic">Món này không có chỉ số phụ.</div></template>
+                  <template x-for="entry in Object.entries(g.tmGearView.stats||{})" :key="entry[0]">
+                    <div class="flex items-center py-1 px-2.5 rounded bg-ink3/50 text-[12.5px] text-jade fserif" x-text="g.gearLineText(entry[0],entry[1])"></div>
+                  </template>
+                  <div x-show="g.tmGearView.eleDmg>0" class="flex items-center justify-between py-1 px-2.5 rounded bg-ink3/50 text-[12.5px]"><span class="text-slate-300">Sát thương hệ</span><span class="text-amber-300" x-text="'+'+g.tmGearView.eleDmg"></span></div>
+                </div>
+                <div class="flex gap-2 px-4 pb-4">
+                  <button @click="g.openGiftPicker(g.tmGearView.slot); g.closeTmGear()" class="flex-1 py-2 rounded-lg text-[12px] bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25">Đổi món khác</button>
+                  <button @click="g.tmReclaim(g.tmSelUid, g.tmGearView.slot); g.closeTmGear()" class="flex-1 py-2 rounded-lg text-[12px] border border-rose-500/40 text-rose-300 hover:bg-rose-500/10">Tháo về kho</button>
+                </div>
               </div>
             </div>
           </template>

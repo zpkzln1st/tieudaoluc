@@ -46,7 +46,7 @@ export function ensureTongMon(state, nowMs) {
   for (const d of t.disciples) if (!d.flags) d.flags = {};
 }
 
-function chronicle(t, text) { t.soSach.unshift({ t: Date.now(), text }); if (t.soSach.length > 80) t.soSach.length = 80; }
+function chronicle(t, text, gid) { const e = { t: Date.now(), text }; if (gid) e.gid = gid; t.soSach.unshift(e); if (t.soSach.length > 80) t.soSach.length = 80; }
 
 // ============================================================
 // SỰ KIỆN GIANG HỒ (chọn-mù) — roll trong simTongMon, resolve khi người chơi chọn.
@@ -261,7 +261,7 @@ export function giftGear(state, discipleUid, gearUid, slot, itemName) {
   const old = d.gear[slot];
   if (old) state.gearBag.push(old);              // thu hồi món cũ về kho
   d.gear[slot] = inst;
-  chronicle(t, itemName ? `Ban gia bảo 「${itemName}」 cho ${d.name}.` : `Ban gia bảo cho ${d.name}.`);
+  chronicle(t, itemName ? `Ban gia bảo 「${itemName}」 cho ${d.name}.` : `Ban gia bảo cho ${d.name}.`, inst.gearId);
   return true;
 }
 export function reclaimGear(state, discipleUid, slot) {
