@@ -95,6 +95,12 @@
     .tmtip .tmtipbox{ position:absolute; left:0; bottom:calc(100% + 8px); width:240px; z-index:90; opacity:0; pointer-events:none; transition:opacity .14s, transform .14s; transform:translateY(-4px); }
     .tmtip:hover .tmtipbox{ opacity:1; transform:translateY(0); }
     .tmtipbox::before{ content:''; position:absolute; left:18px; bottom:-5px; transform:rotate(45deg); width:10px; height:10px; background:#0f1521; border-right:1px solid; border-bottom:1px solid; border-color:inherit; }
+    /* Công trình Tông Môn: mobile = cuộn ngang mượt (vuốt) · >=sm = lưới */
+    .tm-bld-row{ display:flex; gap:.5rem; overflow-x:auto; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; padding-bottom:.3rem; }
+    .tm-bld-row::-webkit-scrollbar{ height:4px; }
+    .tm-bld-row > .tm-bld{ flex:0 0 156px; scroll-snap-align:start; }
+    @media (min-width:640px){ .tm-bld-row{ display:grid; grid-template-columns:repeat(3,1fr); overflow:visible; padding-bottom:0; } .tm-bld-row > .tm-bld{ flex:none; } }
+    @media (min-width:1024px){ .tm-bld-row{ grid-template-columns:repeat(5,1fr); } }
     .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:.15em; color:#64748b; }
     .fserif { font-family:'Lora',serif; font-weight:700; }
     .gold-text { font-weight:900; background:linear-gradient(180deg,#fff6d6 0%,#f4d27a 38%,#e0a83e 66%,#bd821f 100%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 1px 1px rgba(0,0,0,.55)) drop-shadow(0 0 4px rgba(245,185,66,.3)); }
@@ -3968,13 +3974,13 @@
                   <div class="fserif text-amber-200 text-lg" x-text="'Đệ ' + t.level + ' Tầng'"></div>
                 </div>
               </div>
-              <!-- STAT BAR -->
-              <div class="flex flex-wrap gap-2 mb-3">
-                <div class="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-amber-300 shrink-0" x-html="g.svg('star','w-4 h-4')"></span><div><div class="lbl">Uy Danh</div><div class="gold-text fserif text-base leading-none" x-text="g.fmt(g.tmUyDanh())"></div></div></div>
-                <div class="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-jade shrink-0" x-html="g.svg('zap','w-4 h-4')"></span><div><div class="lbl">Cống Hiến</div><div class="text-jade fserif text-base leading-none" x-text="g.fmt(Math.floor(t.congHien))"></div></div></div>
-                <div class="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-amber-400 shrink-0" x-html="g.svg('scales','w-4 h-4')"></span><div><div class="lbl">Điểm Đấu Giá</div><div class="text-amber-300 fserif text-base leading-none" x-text="g.fmt(Math.floor(t.diem))"></div></div></div>
-                <div class="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-cyan shrink-0" x-html="g.svg('gem','w-4 h-4')"></span><div><div class="lbl">Khí Vận</div><div class="text-cyan fserif text-base leading-none" x-text="Math.round(t.khiVan)"></div></div></div>
-                <button @click="g.openShop()" class="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 transition"><span class="w-4 h-4 inline-flex" x-html="g.svg('scales','w-4 h-4')"></span><span class="fserif text-[13px]">Đấu Giá Hội</span></button>
+              <!-- STAT BAR (mobile: lưới 2 cột đều · desktop: hàng ngang) -->
+              <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-3">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-amber-300 shrink-0" x-html="g.svg('star','w-4 h-4')"></span><div class="min-w-0"><div class="lbl">Uy Danh</div><div class="gold-text fserif text-base leading-none truncate" x-text="g.fmt(g.tmUyDanh())"></div></div></div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-jade shrink-0" x-html="g.svg('zap','w-4 h-4')"></span><div class="min-w-0"><div class="lbl">Cống Hiến</div><div class="text-jade fserif text-base leading-none truncate" x-text="g.fmt(Math.floor(t.congHien))"></div></div></div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-amber-400 shrink-0" x-html="g.svg('scales','w-4 h-4')"></span><div class="min-w-0"><div class="lbl">Điểm Đấu Giá</div><div class="text-amber-300 fserif text-base leading-none truncate" x-text="g.fmt(Math.floor(t.diem))"></div></div></div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg panel"><span class="w-4 h-4 inline-flex text-cyan shrink-0" x-html="g.svg('gem','w-4 h-4')"></span><div class="min-w-0"><div class="lbl">Khí Vận</div><div class="text-cyan fserif text-base leading-none truncate" x-text="Math.round(t.khiVan)"></div></div></div>
+                <button @click="g.openShop()" class="col-span-2 sm:col-auto flex items-center justify-center sm:justify-start gap-2 px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20 transition"><span class="w-4 h-4 inline-flex" x-html="g.svg('scales','w-4 h-4')"></span><span class="fserif text-[13px]">Đấu Giá Hội</span></button>
               </div>
               <!-- SỰ KIỆN CHỜ (full-width, luôn nổi bật) -->
               <template x-if="g.tmEvtPending.length">
@@ -3993,10 +3999,10 @@
                   </template>
                 </div>
               </template>
-              <!-- CÔNG TRÌNH -->
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
+              <!-- CÔNG TRÌNH (mobile: cuộn ngang vuốt · desktop: lưới) -->
+              <div class="tm-bld-row mb-4">
                 <template x-for="key in ['tuHien','dienVo','tangThu','yQuan','tuLinh']" :key="key">
-                  <div class="relative rounded-lg overflow-hidden panel" :class="g.tmCanUpgrade(key)?'border-amber-500/50':''">
+                  <div class="tm-bld relative rounded-lg overflow-hidden panel" :class="g.tmCanUpgrade(key)?'border-amber-500/50':''">
                     <img :src="'images/tongmon/buildings/'+key+'.webp'" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'">
                     <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(11,15,24,.5) 0%,rgba(11,15,24,.82) 72%,rgba(11,15,24,.92) 100%)"></div>
                     <div class="absolute inset-0 flex items-center justify-center fserif text-[3rem] opacity-10" x-text="g.tmBuild(key).han"></div>

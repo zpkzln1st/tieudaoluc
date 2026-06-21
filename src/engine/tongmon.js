@@ -251,7 +251,7 @@ export function doRecruit(state, idx) {
 }
 
 // ---- Gia Bảo: ban đồ từ gearBag main -> đệ tử (1 chiều). slot lấy từ equip catalog (truyền sẵn) ----
-export function giftGear(state, discipleUid, gearUid, slot) {
+export function giftGear(state, discipleUid, gearUid, slot, itemName) {
   const t = state.tongMon;
   const d = t.disciples.find((x) => x.uid === discipleUid); if (!d) return false;
   const gi = (state.gearBag || []).findIndex((g) => g.uid === gearUid); if (gi < 0) return false;
@@ -261,7 +261,7 @@ export function giftGear(state, discipleUid, gearUid, slot) {
   const old = d.gear[slot];
   if (old) state.gearBag.push(old);              // thu hồi món cũ về kho
   d.gear[slot] = inst;
-  chronicle(t, `Ban gia bảo cho ${d.name}.`);
+  chronicle(t, itemName ? `Ban gia bảo 「${itemName}」 cho ${d.name}.` : `Ban gia bảo cho ${d.name}.`);
   return true;
 }
 export function reclaimGear(state, discipleUid, slot) {

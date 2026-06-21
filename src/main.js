@@ -442,7 +442,7 @@ const gameStore = {
   openGiftPicker(slot) { this.giftSlot = slot || null; this.giftList = this.tmGiftList(); this.giftSlotChips = [...new Set(this.giftList.map((it) => it.slot).filter(Boolean))]; this.giftFilter = (slot && this.giftSlotChips.includes(slot)) ? slot : 'all'; this._recomputeGift(); this.giftOpen = true; },
   setGiftFilter(f) { this.giftFilter = f; this._recomputeGift(); },
   _recomputeGift() { this.giftShown = this.giftFilter === 'all' ? this.giftList.slice() : this.giftList.filter((it) => it.slot === this.giftFilter); },
-  tmGift(gearUid) { const inst = (this.state.gearBag || []).find((g) => g.uid === gearUid); if (!inst) return; const eq = (this.ITEMS[inst.gearId] || {}).equip; if (!eq || !eq.slot) { this.showToast('Món này không trang bị được'); return; } if (giftGear(this.state, this.tmSelUid, gearUid, eq.slot)) { this.tmSave(); this.giftOpen = false; this.showToast('Đã ban gia bảo cho đệ tử'); } },
+  tmGift(gearUid) { const inst = (this.state.gearBag || []).find((g) => g.uid === gearUid); if (!inst) return; const it = this.ITEMS[inst.gearId] || {}; const eq = it.equip; if (!eq || !eq.slot) { this.showToast('Món này không trang bị được'); return; } if (giftGear(this.state, this.tmSelUid, gearUid, eq.slot, it.name)) { this.tmSave(); this.giftOpen = false; this.showToast('Đã ban 「' + (it.name || 'gia bảo') + '」'); } },
   tmReclaim(uid, slot) { if (reclaimGear(this.state, uid, slot)) this.tmSave(); },
   // --- SỰ KIỆN GIANG HỒ (chọn-mù) ---
   get tmEvtPending() { void this._tick; return (this.tm && this.tm.events && this.tm.events.pending) || []; },
