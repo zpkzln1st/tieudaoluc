@@ -37,6 +37,9 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap } from './data/tongmon.js';
+import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
@@ -45,6 +48,10 @@ import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, clou
 const now = () => Date.now();
 let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
 let _nbData = null, _nbKey = '';      // cache Đồng Đạo Lân Cận theo (skill:phút)
+let _tmbBots = null, _tmbKey = '';    // cache hàng bot TÔNG MÔN BẢNG theo (seed:createdAt:phút)
+// Pool tên tông môn bot (prefix × suffix -> hàng trăm tổ hợp, deterministic theo seed bot)
+const TMB_PREFIX = ['Thanh Vân', 'Huyết Đao', 'Thiên Kiếm', 'Côn Lôn', 'Tiêu Dao', 'Vô Cực', 'Lạc Hà', 'Bạch Vân', 'Huyền Thiên', 'Cửu U', 'Tử Hà', 'Linh Tê', 'Phá Quân', 'Vạn Kiếm', 'Hàn Băng', 'Lưu Vân', 'Diệt Tuyệt', 'Thái Hư', 'Ngạo Thiên', 'Cô Nguyệt'];
+const TMB_SUFFIX = ['Cốc', 'Môn', 'Phái', 'Tông', 'Sơn Trang', 'Các', 'Đường', 'Lĩnh', 'Cung', 'Đảo'];
 const CYCLE_MS = COMBAT_CYCLE_MS; // 1 vòng giao chiến = 8s (nguồn chung votong.js); hết vòng mới hiện trọn chiến báo + kết quả
 const BOSS_TURN_MS = 3000;        // Yêu Vương: lộ 1 lượt (frame) mỗi 3 giây khi xem live
 // Chi phí Bạc học nghề theo BẬC (index = số nghề đã học). Leo thang mạnh (làm tròn).
@@ -119,6 +126,7 @@ if (!state.login) state.login = { lastDay: null, streak: 0 };
 if (!state.counters) state.counters = { produced: {}, kills: {} };
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
+ensureTongMon(state, Date.now()); try { simTongMon(state, Date.now(), (state.settings && state.settings.idleCapHours) || 8); } catch (e) {} // Tông Môn (nhánh phụ): khởi tạo + tu luyện/sản lượng OFFLINE (cap)
 if (!state.quests) state.quests = { tutorial: { index: 0, base: 0 }, daily: { period: null, list: [] }, weekly: { period: null, list: [] }, monthly: { period: null, list: [] } };
 if (!state.quests.tutorial) state.quests.tutorial = { index: 0, base: 0 };
 if (!state.quests.daily) state.quests.daily = { period: null, list: [] };
@@ -331,7 +339,119 @@ const gameStore = {
   fmt, fmtC, fmtTime, fmtClock,
 
   // ---------- Điều hướng ----------
-  navTo(view) { this.view = view; this.navOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  navTo(view) { this.view = view; this.navOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+
+  // ---------- TÔNG MÔN (nhánh phụ — cách ly tuyệt đối, mọi thực lực SIDE-ONLY) ----------
+  tmSelUid: null, tmRecruitOpen: false, giftOpen: false, disciTab: 'info',
+  giftList: [], giftShown: [], giftFilter: 'all', giftSlotChips: [], giftSlot: null,
+  tmEvtOpen: false, tmEvtIdx: -1, tmEvtCur: null, tmEvtResult: null,
+  DISC_FACES: { nam: 8, nu: 8 },   // số ảnh chân dung pool mỗi giới (images/tongmon/disciples/<sex>_<n>.webp)
+  tmFaceFull: null,                 // src ảnh chân dung đang xem full (lightbox)
+  tmRealmColors: ['#cbd5e1', '#34d399', '#60a5fa', '#22d3ee', '#a78bfa', '#c4b5fd', '#e879f9', '#fb923c', '#f5b942', '#fbbf24'],
+  get tm() { return this.state.tongMon; },
+  get tmSelDisciple() { return this.tm ? this.tm.disciples.find((d) => d.uid === this.tmSelUid) : null; },
+  tmTick() { try { simTongMon(this.state, now()); } catch (e) {} this._tick++; },
+  tmSave() { Storage.save(this.state); },
+  tmSlot() { return slotCount(this.tm); },
+  tmUyDanh() { return uyDanhOf(this.tm); },
+  tmPower(d) { return disciPower(d); },
+  tmCapName(d) { return REALMS[disciCap(d)].name; },                                  // tên cảnh giới ở TRẦN của đệ tử
+  tmSpeedMul(d) { return APT[d.apt].mul * (1 + BUILDINGS.dienVo.buffPerLv * (this.tm.buildings.dienVo || 0) + 0.02 * (this.tm.buildings.tuLinh || 0)); },
+  tmFlagChips(d) { const M = { daoLu: ['Đạo Lữ', '#34d399'], oanTham: ['Oán Thầm', '#fb7185'], tamMaSeed: ['Mầm Tâm Ma', '#a78bfa'], tinhTrieu: ['Tình Triều', '#f472b6'], cuuChuoc: ['Cải Tà', '#34d399'], triAn: ['Tri Ân', '#34d399'], batPhuc: ['Bất Phục', '#fb7185'], phatPhan: ['Phát Phẫn', '#f5b942'] }; const out = []; if (d.bietHieu) out.push([d.bietHieu, '#f5b942']); for (const k in (d.flags || {})) { if (M[k]) out.push(M[k]); } return out; },
+  // Diễn Biến Tông Môn: gán seal Hán + màu theo loại sự kiện (suy từ text Sử Sách)
+  tmDienBienSeal(text) { const T = text || ''; const M = [['Xuất Sư', '仙', '#f5b942'], ['★', '仙', '#f5b942'], ['đắc đạo', '仙', '#f5b942'], ['Trưởng Lão', '師', '#fbbf24'], ['đột phá', '破', '#22d3ee'], ['Phản Đồ', '叛', '#a78bfa'], ['đào tẩu', '叛', '#a78bfa'], ['phản xuất', '叛', '#a78bfa'], ['đạo lữ', '緣', '#34d399'], ['gia bảo', '寶', '#fbbf24'], ['Thu nhận', '入', '#94a3b8'], ['tâm ma', '魔', '#fb7185'], ['chiến thắng', '戰', '#fb7185'], ['Khí Vận', '運', '#22d3ee'], ['linh khí', '運', '#22d3ee']]; for (const [k, s, c] of M) { if (T.includes(k)) return { seal: s, color: c }; } return { seal: '事', color: '#64748b' }; },
+  get tmDienBien() { void this._tick; return ((this.tm && this.tm.soSach) || []).slice(0, 18).map((s) => { const m = this.tmDienBienSeal(s.text); return { text: s.text, html: this._chronHtml(s.text), t: s.t, seal: m.seal, color: m.color }; }); },
+  // tô màu tên đệ tử (theo phẩm chất / tư chất) + cảnh giới (theo màu cảnh giới) trong dòng Diễn Biến
+  _chronHtml(text) {
+    const t = this.tm; if (!t) return text;
+    let s = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const names = [];
+    (t.disciples || []).forEach((d) => names.push([d.name, APT[d.apt].color]));
+    (t.elders || []).forEach((d) => names.push([d.name, APT[d.apt].color]));
+    (t.legends || []).forEach((l) => names.push([l.name, (APT[l.apt] || {}).color || '#cbd5e1']));
+    ((t.events && t.events.rebels) || []).forEach((r) => names.push([r.name, (APT[r.apt] || {}).color || '#a78bfa']));
+    const seen = new Set();
+    names.sort((a, b) => b[0].length - a[0].length).forEach(([nm, c]) => { if (!nm || seen.has(nm)) return; seen.add(nm); if (s.includes(nm)) s = s.split(nm).join('<b style="color:' + c + '">' + nm + '</b>'); });
+    REALMS.forEach((r, i) => { if (s.includes(r.name)) s = s.split(r.name).join('<b style="color:' + (this.tmRealmColors[i] || '#cbd5e1') + '">' + r.name + '</b>'); });
+    return s;
+  },
+  openFaceFull(src) { if (src) this.tmFaceFull = src; },
+  closeFaceFull() { this.tmFaceFull = null; },
+  // Đấu Giá Hội (shop tiêu Điểm Đấu Giá — side-only/cosmetic)
+  shopOpen: false, shopRename: '',
+  get tmShopItems() { return TM_SHOP; },
+  openShop() { this.shopRename = (this.tm && this.tm.name) || ''; this.shopOpen = true; },
+  closeShop() { this.shopOpen = false; },
+  tmShopCanBuy(item) { return (this.tm && (this.tm.diem || 0) >= item.cost); },
+  tmBuy(id, opt) { const r = tmShopBuy(this.state, id, opt || {}); if (r.ok) { this.tmSave(); this.showToast('Đấu Giá Hội · ' + r.msg); } else this.showToast(r.msg); return r.ok; },
+  // Sử Sách đầy đủ (biên niên toàn bộ t.soSach + tìm theo tên/loại)
+  soSachOpen: false, soSachQuery: '',
+  openSoSach() { this.soSachQuery = ''; this.soSachOpen = true; },
+  closeSoSach() { this.soSachOpen = false; },
+  get tmSoSachFull() {
+    void this._tick;
+    const q = (this.soSachQuery || '').trim().toLowerCase();
+    let arr = (this.tm && this.tm.soSach) || [];
+    if (q) arr = arr.filter((s) => (s.text || '').toLowerCase().includes(q));
+    return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text), t: s.t, seal: m.seal, color: m.color }; });
+  },
+  // Chân dung đệ tử: pool ngẫu nhiên gán cố định theo uid (images/tongmon/disciples/<sex>_<n>.webp). DISC_FACES = số ảnh mỗi giới (0 = chưa có art → dùng seal Hán).
+  tmFace(d) { const n = (d.sex === 'nu') ? this.DISC_FACES.nu : this.DISC_FACES.nam; if (!n) return ''; let h = 0; const u = d.uid || ''; for (let i = 0; i < u.length; i++) h = (h * 31 + u.charCodeAt(i)) >>> 0; return 'images/tongmon/disciples/' + (d.sex === 'nu' ? 'nu' : 'nam') + '_' + ((h % n) + 1) + '.webp'; },
+  tmStats(d) { return disciStats(d); },                                   // bộ chỉ số tổng side-only
+  // cờ/biệt hiệu + mô tả + tác dụng (cho tooltip tùy biến). Hầu hết là DẤU ẤN ảnh hưởng DIỄN BIẾN SỰ KIỆN, chưa phải buff chỉ số.
+  tmFlagInfo(d) {
+    const M = {
+      daoLu: ['Đạo Lữ', '#34d399', 'Kết làm đạo lữ với một đồng môn, đạo tâm tương thông.', 'Ảnh hưởng diễn biến sự kiện (đạo lữ) về sau'],
+      oanTham: ['Oán Thầm', '#fb7185', 'Ôm oán trong lòng sau một biến cố.', 'Tăng nguy cơ sa "tâm ma · hắc hóa" trong sự kiện'],
+      tamMaSeed: ['Mầm Tâm Ma', '#a78bfa', 'Tâm ma đã gieo mầm, đạo tâm chớm nứt.', 'Dễ trở thành Phản Đồ khi gặp biến'],
+      tinhTrieu: ['Tình Triều', '#f472b6', 'Vương vấn chuyện tình duyên chốn sơn môn.', 'Có thể nảy sinh sự kiện tình cảm'],
+      cuuChuoc: ['Cải Tà', '#34d399', 'Từng lầm đường nay đã hối cải.', 'Trung thành & cần mẫn hơn trong sự kiện'],
+      triAn: ['Tri Ân', '#34d399', 'Mang ơn Chưởng Môn hoặc đồng môn.', 'Gắn bó, ít sinh biến'],
+      batPhuc: ['Bất Phục', '#fb7185', 'Trong lòng chưa phục, ngấm ngầm so bì.', 'Có thể bùng thành drama'],
+      phatPhan: ['Phát Phẫn', '#f5b942', 'Nuốt nhục mà khổ luyện, quyết vươn lên.', 'Dấu ấn ý chí — ảnh hưởng sự kiện về sau'],
+    };
+    const out = [];
+    if (d.bietHieu) out.push({ t: d.bietHieu, c: '#f5b942', desc: 'Biệt hiệu giang hồ — vinh dự do chiến tích / kỳ ngộ.', eff: 'Dấu ấn vinh dự (cosmetic)' });
+    for (const k in (d.flags || {})) { const m = M[k]; if (m) out.push({ t: m[0], c: m[1], desc: m[2], eff: m[3] }); }
+    return out;
+  },
+  tmRealmName(d) { return REALMS[d.realm].name; },
+  tmRealmColor(d) { return ['#cbd5e1', '#34d399', '#60a5fa', '#22d3ee', '#a78bfa', '#c4b5fd', '#e879f9', '#fb923c', '#f5b942', '#fbbf24'][d.realm] || '#cbd5e1'; },
+  tmApt(d) { return APT[d.apt]; },
+  tmHe(d) { return HE[d.he] || HE.kim; },
+  tmAtCap(d) { return d.realm >= disciCap(d); },
+  tmProgPct(d) { return d.awaiting ? 100 : (this.tmAtCap(d) ? 100 : Math.round((d.xp || 0) * 100)); },
+  tmStateLabel(d) { return d.awaiting ? 'Đắc Đạo!' : (this.tmAtCap(d) ? 'Viên mãn' : (d.state === 'rest' ? 'Nghỉ' : 'Đang tu')); },
+  tmDaoLabel() { return ({ chinh: 'Chính Đạo', ta: 'Tà Đạo', trung: 'Trung Dung' })[this.tm.dao] || 'Trung Dung'; },
+  tmDaoColor() { return ({ chinh: '#14b8a6', ta: '#e879f9', trung: '#94a3b8' })[this.tm.dao] || '#94a3b8'; },
+  tmBuild(key) { return BUILDINGS[key]; },
+  tmBuildLv(key) { return this.tm.buildings[key] || 0; },
+  tmBuildCost(key) { return buildCost(this.tm.buildings[key] || 0); },
+  tmCanUpgrade(key) { const c = buildCost(this.tm.buildings[key] || 0); return (this.state.currencies.bac || 0) >= c.bac && (this.tm.congHien || 0) >= c.congHien; },
+  tmUpgrade(key) { if (upgradeBuilding(this.state, key)) { this.tmSave(); this.showToast('Nâng cấp ' + BUILDINGS[key].name); } else this.showToast('Thiếu Bạc / Cống Hiến'); },
+  get tmRecruitCost() { return recruitCost(this.tm).bac; },
+  tmCanRecruit() { return this.tm.disciples.length < this.tmSlot(); },
+  openRecruit() { if (!this.tmCanRecruit()) { this.showToast('Hết slot — nâng Tụ Hiền Đường'); return; } if (!this.tm.recruitPool || !this.tm.recruitPool.length) refreshRecruitPool(this.tm, now()); this.tmRecruitOpen = true; },
+  tmRecruit(idx) { if (doRecruit(this.state, idx)) { this.tmSave(); this.showToast('Thu nhận đệ tử mới!'); if (!this.tm.recruitPool.length) refreshRecruitPool(this.tm, now()); } else this.showToast('Thiếu Bạc hoặc hết slot'); },
+  tmRefreshPool() { refreshRecruitPool(this.tm, now()); this.tmSave(); },
+  openDisciple(uid) { this.tmSelUid = uid; this.disciTab = 'info'; },
+  closeDisciple() { this.tmSelUid = null; this.giftOpen = false; },
+  tmXuatSu(uid) { if (xuatSu(this.state, uid)) { this.tmSave(); this.closeDisciple(); this.showToast('Đệ tử Xuất Sư — danh chấn giang hồ!'); } },
+  tmTruongLao(uid) { if (phongTruongLao(this.state, uid)) { this.tmSave(); this.closeDisciple(); this.showToast('Phong Trưởng Lão.'); } },
+  tmGiftList() { return (this.state.gearBag || []).map((g) => this.gearView(g)).filter(Boolean); },
+  openGiftPicker(slot) { this.giftSlot = slot || null; this.giftList = this.tmGiftList(); this.giftSlotChips = [...new Set(this.giftList.map((it) => it.slot).filter(Boolean))]; this.giftFilter = (slot && this.giftSlotChips.includes(slot)) ? slot : 'all'; this._recomputeGift(); this.giftOpen = true; },
+  setGiftFilter(f) { this.giftFilter = f; this._recomputeGift(); },
+  _recomputeGift() { this.giftShown = this.giftFilter === 'all' ? this.giftList.slice() : this.giftList.filter((it) => it.slot === this.giftFilter); },
+  tmGift(gearUid) { const inst = (this.state.gearBag || []).find((g) => g.uid === gearUid); if (!inst) return; const eq = (this.ITEMS[inst.gearId] || {}).equip; if (!eq || !eq.slot) { this.showToast('Món này không trang bị được'); return; } if (giftGear(this.state, this.tmSelUid, gearUid, eq.slot)) { this.tmSave(); this.giftOpen = false; this.showToast('Đã ban gia bảo cho đệ tử'); } },
+  tmReclaim(uid, slot) { if (reclaimGear(this.state, uid, slot)) this.tmSave(); },
+  // --- SỰ KIỆN GIANG HỒ (chọn-mù) ---
+  get tmEvtPending() { void this._tick; return (this.tm && this.tm.events && this.tm.events.pending) || []; },
+  tmGrpColor(g) { return (TM_GRP[g] || TM_GRP.A).color; },
+  tmGrpLabel(g) { return (TM_GRP[g] || TM_GRP.A).label; },
+  openTmEvt(idx) { const p = this.tmEvtPending[idx]; if (!p) return; this.tmEvtIdx = idx; this.tmEvtCur = p; this.tmEvtResult = null; this.tmEvtOpen = true; },
+  tmEvtChoose(ci) { if (this.tmEvtIdx < 0) return; const r = resolveEvent(this.state, this.tmEvtIdx, ci); if (r) { this.tmEvtResult = r; this.tmSave(); } },
+  closeTmEvt() { this.tmEvtOpen = false; this.tmEvtCur = null; this.tmEvtResult = null; this.tmEvtIdx = -1; },
+  devFireEvent(eid) { forceFireEvent(this.state, eid); this.tmSave(); this.showToast('DEV: nổ sự kiện ' + eid); },
   navToSkill(id) { this.view = 'skill'; this.navOpen = false; this.selectedSkill = id; const _s = this.skillSubTabsFor(id); if (_s) this.skillTab = _s[0].k; document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // Bấm chip hoạt động ở header -> nhảy vào đúng màn của hoạt động đang chạy
   goToActivity() {
@@ -1002,7 +1122,7 @@ const gameStore = {
   },
   statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
   zoneName(id) { const l = (this.LOCATIONS || []).find((x) => x.id === id); return l ? l.name : ''; },  // tên vùng (cho nhãn gathering)
   // Nghề THU THẬP (có zone trên action) → danh sách chỉ hiện tài nguyên của VÙNG đang đứng. Nghề chế tạo (không zone) hiện hết.
@@ -1161,11 +1281,22 @@ const gameStore = {
       });
       _lbBotKey = key;
     }
-    const rows = _lbBots.concat([{
+    const extra = [{
       id: 'me', name: (this.state.player.name || 'Vô Danh'), title: 'Ngươi', catHex: '#14b8a6',
       avatar: (this.curAvatar || { id: this.avatarId, char: '道', color: 'from-slate-600 to-slate-700' }),
       combatLv: this.combatLevel, totalLv: this.totalLevel, activity: this.playerActivityText, isPlayer: true,
-    }]);
+    }];
+    // "Trò giỏi hơn thầy": Cao Đồ đã Xuất Sư (legends) vân du thiên hạ — xếp TRÊN nhân vật chính trên bảng
+    const tmn = this.state.tongMon;
+    if (tmn && Array.isArray(tmn.legends)) tmn.legends.forEach((lg, i) => {
+      let jit = 0; const s = lg.name || ''; for (let c = 0; c < s.length; c++) jit = (jit * 31 + s.charCodeAt(c)) >>> 0;
+      extra.push({
+        id: 'leg' + i, name: lg.name, title: 'Cao Đồ · ' + (tmn.name || 'Tông Môn'), catHex: '#f5b942',
+        avatar: { id: '__none__', char: lg.han || '徒', color: 'from-amber-700 to-amber-900' },
+        combatLv: this.combatLevel, totalLv: this.totalLevel + 8 + i * 5 + (jit % 12), activity: 'vân du thiên hạ — rạng danh sư môn', isPlayer: false, isLegend: true,
+      });
+    });
+    const rows = _lbBots.concat(extra);
     rows.sort((a, b) => b.totalLv - a.totalLv || b.combatLv - a.combatLv || (a.id < b.id ? -1 : 1));
     rows.forEach((r, i) => { r.rank = i + 1; });
     return rows;
@@ -1192,6 +1323,27 @@ const gameStore = {
   // ===== GIANG HỒ — Feed tin bot (DERIVED thuần, KHÔNG lưu; memo theo slot trong engine). void _tick -> mốc giờ + tin mới tự cập nhật. =====
   get jiangHuFeed() { void this._tick; const w = this.state.world; if (!w) return []; return genJiangHuFeed(w.seed, w.createdAt, now()); },
   get jiangHuTicker() { return this.jiangHuFeed.slice(0, 12); },
+  // ===== TÔNG MÔN BẢNG (xếp Uy Danh tông mình vs tông bot deterministic) =====
+  pvbTab: 'caothu',
+  daoInfo(dao) { return ({ chinh: ['Chính Đạo', '#14b8a6'], ta: ['Tà Đạo', '#e879f9'], trung: ['Trung Dung', '#94a3b8'] })[dao] || ['Trung Dung', '#94a3b8']; },
+  get tongMonBang() {
+    const w = this.state.world; if (!w || !this.tm) return [];
+    const t = now(), key = w.seed + ':' + w.createdAt + ':' + Math.floor(t / 60000);
+    if (_tmbKey !== key || !_tmbBots) {
+      _tmbBots = genRoster(w.seed, w.createdAt).slice(0, 90).map((b, i) => {
+        const tl = botTotalLv(b, t);
+        return { id: 'sect' + i, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], dao: ['chinh', 'ta', 'trung'][b.titleSeed % 3], master: b.name, uy: Math.round(tl * 15 + (b.actSeed % 300) + tl * tl * 0.04), isPlayer: false };
+      });
+      _tmbKey = key;
+    }
+    const tm = this.tm;
+    const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Ngươi'), uy: uyDanhOf(tm), isPlayer: true }]);
+    rows.sort((a, b) => b.uy - a.uy || (a.id < b.id ? -1 : 1));
+    rows.forEach((r, i) => { r.rank = i + 1; });
+    return rows;
+  },
+  get tongMonRow() { return this.tongMonBang.find((r) => r.isPlayer) || null; },
+  get tmbDisplay() { const lb = this.tongMonBang, p = this.tongMonRow; const top = lb.slice(0, 50); if (!p || p.rank <= 50) return top; const i = p.rank - 1; return [...top, { separator: true, id: 'tsep' }, ...lb.slice(Math.max(50, i - 3), Math.min(lb.length, i + 4))]; },
 
   expPerSec(action) { return (action.xp / action.time).toFixed(2); },
   actionInputs(action) { return inputStatus(this.state, action); },
@@ -2519,6 +2671,7 @@ setInterval(() => {
   s.checkTitles();        // Danh Hiệu: mở khoá mới khi đủ cột mốc -> báo toast
   if (document.hidden && s.bossFight && !s.bossFight.done) s.finishBossFightNow(); // tab nền: rafLoop bị throttle → chốt trận LIVE trong 5s, không treo
   s.resolveBossQueue();   // hàng đợi: boss giáng thế khi đang online → tự vây sát ở nền
+  try { s.tmTick(); } catch (e) {}    // Tông Môn (nhánh phụ): tu luyện + sản lượng idle (nền & foreground)
   Storage.save(s.state);
 }, 5000);
 
