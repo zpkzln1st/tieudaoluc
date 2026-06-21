@@ -76,8 +76,8 @@ export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'tuLinh'];
 export const TM_SHOP = [
   { id: 'khiVan',  name: 'Khí Vận Phù',       han: '運', cost: 80,  desc: 'Tế trời cầu vận — +15 Khí Vận tông môn (tối đa 100).' },
   { id: 'recruit', name: 'Chiêu Hiền Lệnh',   han: '賢', cost: 150, desc: 'Truyền hịch khắp giang hồ — làm mới lứa Chiêu Hiền, tư chất vượt trội hơn hẳn.' },
-  { id: 'advisor', name: 'Cố Vấn Điểm Hóa',   han: '悟', cost: 200, desc: 'Mời cao nhân giảng đạo — toàn bộ đệ tử đang tu +25% tiến độ cảnh giới.' },
-  { id: 'calm',    name: 'Tịnh Tâm Lệnh',     han: '淨', cost: 250, desc: 'Lập đàn tịnh tâm — gột sạch cờ xấu (oán thầm / mầm tâm ma / bất phục…) toàn tông.' },
+  { id: 'advisor', name: 'Cố Vấn Điểm Hóa',   han: '悟', cost: 200, cdH: 24, desc: 'Mời cao nhân giảng đạo — toàn bộ đệ tử đang tu +25% tiến độ cảnh giới. (mỗi 24h)' },
+  { id: 'calm',    name: 'Tịnh Tâm Lệnh',     han: '淨', cost: 250, cdH: 24, desc: 'Lập đàn tịnh tâm — gột sạch cờ xấu (oán thầm / mầm tâm ma / bất phục…) toàn tông. (mỗi 24h)' },
   { id: 'rename',  name: 'Đổi Tên Tông Môn',  han: '名', cost: 300, desc: 'Khắc lại biển hiệu sơn môn — đặt một tên mới cho tông.', input: true },
   { id: 'dao',     name: 'Cải Đạo Tông Môn',  han: '道', cost: 400, desc: 'Chuyển hướng đạo thống (Chính / Tà / Trung Dung) — đổi cách giang hồ nhìn tông.', dao: true },
 ];

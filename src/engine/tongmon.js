@@ -19,6 +19,7 @@ export function ensureTongMon(state, nowMs) {
       disciples: [], elders: [], legends: [], soSach: [],
       recruitPool: [], recruitAt: 0,
       uyBonus: 0,                                                         // +Uy Danh tích từ SỰ KIỆN (uyDanhOf cộng vào)
+      shopCd: {},                                                         // cooldown Đấu Giá Hội (id -> untilMs); giữ "assist CHẬM" theo hợp đồng cách ly
       events: { pending: [], cd: {}, queue: [], rebels: [], seen: 0 },    // sự kiện giang hồ chọn-mù
       lastSimAt: nowMs || Date.now(),
     };
@@ -40,6 +41,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.lastSimAt) t.lastSimAt = nowMs || Date.now();
   // --- backfill SỰ KIỆN + cờ đệ tử (bản cũ chưa có) ---
   if (typeof t.uyBonus !== 'number') t.uyBonus = 0;
+  if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
   if (!t.events.cd) t.events.cd = {};
@@ -52,7 +54,7 @@ function chronicle(t, text, gid) { const e = { t: Date.now(), text }; if (gid) e
 // SỰ KIỆN GIANG HỒ (chọn-mù) — roll trong simTongMon, resolve khi người chơi chọn.
 // CÁCH LY: chỉ đụng state.tongMon + state.currencies.bac (sink 1 chiều). KHÔNG combat/gear-power.
 // ============================================================
-const EVT_LAMBDA_H = 0.15;     // sự kiện/giờ (DRAFT — TUNE)
+const EVT_LAMBDA_H = 0.22;     // sự kiện/giờ (TUNE 2026-06-22: 0.15 -> 0.22, ~5.3/ngày)
 const EVT_MAXGEN = 3;          // cap số sự kiện sinh mỗi lần sim (chống dội offline)
 const EVT_PENDING_CAP = 4;     // tối đa pending tồn đọng
 const REALM_COLORS = ['#cbd5e1', '#34d399', '#60a5fa', '#22d3ee', '#a78bfa', '#c4b5fd', '#e879f9', '#fb923c', '#f5b942', '#fbbf24'];
@@ -349,6 +351,8 @@ export function tmShopBuy(state, id, opt = {}) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };
   const item = TM_SHOP.find((x) => x.id === id); if (!item) return { ok: false, msg: 'Không có mục này' };
   if ((t.diem || 0) < item.cost) return { ok: false, msg: 'Thiếu Điểm Đấu Giá' };
+  const nowMs = Date.now();
+  if (item.cdH && ((t.shopCd && t.shopCd[id]) || 0) > nowMs) return { ok: false, msg: item.name + ' đang tĩnh dưỡng — đợi phiên sau' };
   switch (id) {
     case 'khiVan': t.khiVan = Math.min(100, (t.khiVan || 50) + 15); break;
     case 'recruit': shopRefreshPool(t); break;
@@ -358,6 +362,7 @@ export function tmShopBuy(state, id, opt = {}) {
     case 'dao': { if (!['chinh', 'ta', 'trung'].includes(opt.dao)) return { ok: false, msg: 'Chọn Đạo' }; t.dao = opt.dao; break; }
     default: return { ok: false, msg: 'Chưa hỗ trợ' };
   }
+  if (item.cdH) { if (!t.shopCd) t.shopCd = {}; t.shopCd[id] = nowMs + item.cdH * 3600 * 1000; }
   t.diem -= item.cost;
   chronicle(t, `Đấu Giá Hội: ${item.name}.`);
   return { ok: true, msg: item.name };

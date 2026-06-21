@@ -389,7 +389,9 @@ const gameStore = {
   get tmShopItems() { return TM_SHOP; },
   openShop() { this.shopRename = (this.tm && this.tm.name) || ''; this.shopOpen = true; },
   closeShop() { this.shopOpen = false; },
-  tmShopCanBuy(item) { return (this.tm && (this.tm.diem || 0) >= item.cost); },
+  tmShopReadyIn(item) { void this._tick; if (!item.cdH || !this.tm || !this.tm.shopCd) return 0; return Math.max(0, (this.tm.shopCd[item.id] || 0) - now()); },
+  tmShopCdText(item) { const ms = this.tmShopReadyIn(item); if (ms <= 0) return ''; const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? ('Còn ' + h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : ('Còn ' + m + 'm'); },
+  tmShopCanBuy(item) { return !!(this.tm && (this.tm.diem || 0) >= item.cost && this.tmShopReadyIn(item) <= 0); },
   tmBuy(id, opt) { const r = tmShopBuy(this.state, id, opt || {}); if (r.ok) { this.tmSave(); this.showToast('Đấu Giá Hội · ' + r.msg); } else this.showToast(r.msg); return r.ok; },
   // Sử Sách đầy đủ (biên niên toàn bộ t.soSach + tìm theo tên/loại)
   soSachOpen: false, soSachQuery: '',
@@ -1339,7 +1341,7 @@ const gameStore = {
     if (_tmbKey !== key || !_tmbBots) {
       _tmbBots = genRoster(w.seed, w.createdAt).slice(0, 90).map((b, i) => {
         const tl = botTotalLv(b, t);
-        return { id: 'sect' + i, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], dao: ['chinh', 'ta', 'trung'][b.titleSeed % 3], master: b.name, uy: Math.round(tl * 15 + (b.actSeed % 300) + tl * tl * 0.04), isPlayer: false };
+        return { id: 'sect' + i, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], dao: ['chinh', 'ta', 'trung'][b.titleSeed % 3], master: b.name, uy: Math.round(85 * Math.pow(tl / 100, 3.8) * (0.90 + (b.actSeed % 21) * 0.01)), isPlayer: false };
       });
       _tmbKey = key;
     }
