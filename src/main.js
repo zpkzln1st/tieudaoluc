@@ -34,7 +34,7 @@ import { ensureTitles, syncTitles, titleBonus } from './engine/titles.js';
 import { BADGES, BADGE_LV } from './data/badges.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
@@ -912,10 +912,19 @@ const gameStore = {
   petHeName(pet) { const h = (PET_SPECIES[pet.base] || {}).he; return ({ kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ' })[h] || ''; },
   petQ(pet) { return this.QUALITY[pet.quality] || this.QUALITY.phamPham; },
   petStat(pet) { return petStatAt(pet); },
+  // Danh sách buff hiển thị: Tứ Trụ chữ ký (sig, amber) đứng đầu + 5 buff thường (ngọc). 6 ô chia đều.
+  petGainList(pet) {
+    const out = [];
+    const tt = petTuTru(pet);
+    if (tt) out.push({ key: tt.stat, label: this.statLabel(tt.stat), val: tt.val, sig: true });
+    const s = petStatAt(pet) || {};
+    for (const k of ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc']) if (s[k]) out.push({ key: k, label: this.statLabel(k), val: s[k], sig: false });
+    return out;
+  },
   petElColor(pet) { return ({ kim: '#e2e8f0', moc: '#6ee7b7', thuy: '#67e8f9', hoa: '#fdba74', tho: '#fcd34d' })[(PET_SPECIES[pet.base] || {}).he] || '#94a3b8'; },
   petQHex(pet) { return ({ phamPham: '#cbd5e1', luongPham: '#34d399', tinhPham: '#60a5fa', tuyetPham: '#a78bfa', truyenThe: '#e879f9', thanPham: '#fb923c', coBan: '#fbbf24' })[pet.quality] || '#cbd5e1'; },
   statLabelFull(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
-  statIco(k) { const P = { congKich: '<path d="M5 19l3.5-3.5M8.5 15.5l8-8 2 2-8 8zM15 5l4 4"/>', hoThe: '<path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/>', neTranh: '<path d="M3 9h9a2.5 2.5 0 10-2.5-2.6M3 14h13a2.5 2.5 0 11-2.5 2.6"/>', menhTrung: '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.5"/>', sinhLuc: '<path d="M12 20s-7-4.7-7-10a4 4 0 017-2.2A4 4 0 0119 10c0 5.3-7 10-7 10z"/>' }; return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">' + (P[k] || '') + '</svg>'; },
+  statIco(k) { const P = { congKich: '<path d="M5 19l3.5-3.5M8.5 15.5l8-8 2 2-8 8zM15 5l4 4"/>', hoThe: '<path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/>', neTranh: '<path d="M3 9h9a2.5 2.5 0 10-2.5-2.6M3 14h13a2.5 2.5 0 11-2.5 2.6"/>', menhTrung: '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.5"/>', sinhLuc: '<path d="M12 20s-7-4.7-7-10a4 4 0 017-2.2A4 4 0 0119 10c0 5.3-7 10-7 10z"/>' }; P.lucDao = P.congKich; P.thanPhap = P.neTranh; P.linhXao = P.menhTrung; return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">' + (P[k] || '') + '</svg>'; },
   petXpNext(pet) { return petXpToNext(pet.level); },
   petXpPct(pet) { const n = petXpToNext(pet.level); return n ? Math.max(0, Math.min(100, (pet.xp || 0) / n * 100)) : 0; },
   // P4 — thanh Sinh Lực + Thể Lực pet (Sinh Lực theo phiên combat; Thể Lực bền, hồi thời gian thực).
@@ -1529,6 +1538,12 @@ const gameStore = {
   get combatTimeLabel() { return this.fmtTime((this.state.skills['chienDau']?.timeMs || 0) / 1000); },
   get stats() { return derivedStats(this.state); },
   get chienLuc() { return this.stats.chienLuc; },
+  // Giá trị 1 dòng Chỉ Số Phụ: key -> điểm tổng (derivedStats); ckey -> giá trị combat thật (deriveCombat) theo đơn vị.
+  secondaryStatVal(st) {
+    if (st.key) return this.fmt(this.stats[st.key] || 0);
+    if (st.ckey) { const v = (this.combatStats || {})[st.ckey] || 0; if (st.kind === 'pct') return (+(v * 100).toFixed(1)) + '%'; if (st.kind === 'mul') return Math.round(v * 100) + '%'; return this.fmt(Math.round(v)); }
+    return '—';
+  },
 
   // ---------- Yêu Vương (World Boss) — VÂY SÁT THEO LƯỢT ----------
   bossSel: null,                                      // boss đang chọn ở rail (master-detail)

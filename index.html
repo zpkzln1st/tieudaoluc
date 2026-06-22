@@ -67,6 +67,13 @@
       filter:drop-shadow(0 0 3px rgba(200,222,248,.5)); animation:qsetSweep 3.4s linear infinite; }
     @media (prefers-reduced-motion:reduce){ .q-set{ animation:none; } }
 
+    /* ===== Linh Thú overview — Phù Du (bồng bềnh nhẹ, glow tĩnh, không xoay) ===== */
+    @keyframes petFloat{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
+    @keyframes petFloatGround{ 0%,100%{ opacity:.9 } 50%{ opacity:.55 } }
+    .pet-float{ animation:petFloat 3.6s ease-in-out infinite; will-change:transform; }
+    .pet-float-ground{ animation:petFloatGround 3.6s ease-in-out infinite; }
+    @media (prefers-reduced-motion:reduce){ .pet-float,.pet-float-ground{ animation:none } }
+
     /* Cỡ gốc 110% cho màn lớn (27"); thu nhỏ trên laptop/mobile để bớt cuộn + vừa khung */
     html { font-size: 110%; }
     @media (max-width: 1500px) { html { font-size: 100%; } }
@@ -561,8 +568,46 @@
               </section>
               <!-- Linh Thú -->
               <section class="panel rounded-lg p-3">
-                <div class="lbl mb-2">Linh Thú</div>
-                <div class="text-sm text-slate-500 py-2">Chưa có linh thú. <span class="text-[10px] text-slate-600">(sắp)</span></div>
+                <div class="flex items-center justify-between mb-2">
+                  <div class="lbl">Linh Thú</div>
+                  <button @click="$store.game.navTo('pets')" class="text-[11px] text-jade hover:underline inline-flex items-center gap-0.5">Chi tiết <span>›</span></button>
+                </div>
+                <template x-if="$store.game.activePetObj">
+                  <div x-data="{ get p(){ return $store.game.activePetObj }, get q(){ return $store.game.petQ($store.game.activePetObj) }, get qh(){ return $store.game.petQHex($store.game.activePetObj) }, get el(){ return $store.game.petElColor($store.game.activePetObj) } }">
+                    <!-- art NỔI (không khung) + glow nền · bấm -> trang Linh Thú -->
+                    <div @click="$store.game.navTo('pets')" class="relative mx-auto cursor-pointer" style="width:192px;height:182px">
+                      <div class="absolute pet-float-ground" :style="'left:50%;bottom:4px;transform:translateX(-50%);width:60%;height:14px;border-radius:50%;background:radial-gradient(ellipse,'+qh+'66,transparent 72%);filter:blur(3px)'"></div>
+                      <div class="absolute inset-0 pet-float" :class="$store.game.petFainted?'grayscale opacity-50':''" :style="'filter:drop-shadow(0 5px 9px rgba(0,0,0,.6)) drop-shadow(0 0 8px '+qh+'3a)'" x-html="$store.game.petArtTag(p)"></div>
+                    </div>
+                    <div class="text-center mt-0.5">
+                      <div class="fserif font-bold leading-tight" :class="q.text" x-text="$store.game.petName(p)"></div>
+                      <div class="flex items-center justify-center gap-1.5 mt-1.5 flex-wrap">
+                        <span class="text-[10px] px-1.5 py-0.5 rounded border" :class="q.text+' '+q.border" x-text="q.name"></span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="'Cảnh Lv '+p.level"></span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1" :style="'color:'+el+';background:rgba(0,0,0,.4);border:1px solid '+el+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+el"></span><span x-text="$store.game.petHeName(p)"></span></span>
+                      </div>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-3 mb-1.5" style="letter-spacing:.06em">TRỢ LỰC CHO CHỦ NHÂN</div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                      <template x-for="(gn,i) in $store.game.petGainList(p)" :key="i">
+                        <div class="flex items-center justify-between px-2 py-1 rounded-md" :class="gn.sig ? 'bg-amber-400/10 border border-amber-400/30' : 'bg-jade/10 border border-jade/25'">
+                          <span class="text-[11px] truncate" :class="gn.sig?'text-amber-200':'text-slate-300'"><span x-show="gn.sig" class="text-amber-300">✦ </span><span x-text="gn.label"></span></span>
+                          <span class="text-[12px] font-bold shrink-0" :class="gn.sig?'text-amber-300':'text-jade'" x-text="'+'+$store.game.fmt(gn.val)"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="!$store.game.activePetObj">
+                  <div class="text-sm text-slate-500 py-1">
+                    <template x-if="($store.game.state.pets||[]).length">
+                      <span><b class="text-slate-300" x-text="($store.game.state.pets||[]).length"></b> linh thú · <button @click="$store.game.navTo('pets')" class="text-jade hover:underline">đưa một con xuất chiến ›</button></span>
+                    </template>
+                    <template x-if="!($store.game.state.pets||[]).length">
+                      <span>Chưa có linh thú — <button @click="$store.game.navTo('pets')" class="text-jade hover:underline">tới Lò Ấp Noãn ›</button></span>
+                    </template>
+                  </div>
+                </template>
               </section>
             </div>
 
@@ -618,7 +663,7 @@
               <!-- Kỹ Năng grid -->
               <section class="panel rounded-lg p-3">
                 <div class="lbl mb-2">Kỹ Năng</div>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   <template x-for="sid in Object.keys($store.game.SKILLS)" :key="sid">
                     <button @click="$store.game.navToSkill(sid)" class="bg-ink3 rounded p-2 flex items-center gap-2 hover:ring-1 hover:ring-jade/40">
                       <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
@@ -653,10 +698,9 @@
                       <div class="text-sm" x-text="st.name"></div>
                       <div class="text-[10px] text-slate-500" x-text="st.desc"></div>
                     </div>
-                    <span class="text-sm" :class="st.key ? 'text-jade font-medium' : 'text-slate-500'" x-text="st.key ? $store.game.fmt($store.game.stats[st.key]) : '—'"></span>
+                    <span class="text-sm" :class="(st.key||st.ckey) ? 'text-jade font-medium' : 'text-slate-500'" x-text="$store.game.secondaryStatVal(st)"></span>
                   </div>
                 </template>
-                <div class="text-[10px] text-slate-600 mt-2">Vài chỉ số (bạo kích, khinh công…) mở ở bản sau.</div>
               </section>
             </div>
           </div>
@@ -2253,11 +2297,11 @@
                   <div>
                     <div class="flex items-baseline gap-2 mb-1.5"><span class="text-[12px] text-jade font-semibold">Trợ Lực Cho Chủ Nhân</span><span class="text-[10px]" :class="$store.game.petFainted ? 'text-rose-400' : 'text-slate-600'" x-text="$store.game.petFainted ? '· đang ngất, ngừng trợ lực' : '· cộng thẳng vào chủ'"></span></div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 transition" :class="$store.game.petFainted ? 'opacity-40' : ''">
-                      <template x-for="(v,k) in $store.game.petStat(p)" :key="k">
-                        <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-jade/10 border border-jade/25">
-                          <span class="text-jade shrink-0" x-html="$store.game.statIco(k)"></span>
-                          <span class="text-[11.5px] text-slate-300 flex-1 truncate" x-text="$store.game.statLabelFull(k)"></span>
-                          <span class="text-jade font-bold text-[13px]" x-text="'+'+$store.game.fmt(v)"></span>
+                      <template x-for="(gn,i) in $store.game.petGainList(p)" :key="i">
+                        <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" :class="gn.sig ? 'bg-amber-400/10 border border-amber-400/30' : 'bg-jade/10 border border-jade/25'">
+                          <span class="shrink-0" :class="gn.sig?'text-amber-300':'text-jade'" x-html="$store.game.statIco(gn.key)"></span>
+                          <span class="text-[11.5px] flex-1 truncate" :class="gn.sig?'text-amber-200':'text-slate-300'"><span x-show="gn.sig">✦ </span><span x-text="gn.label"></span></span>
+                          <span class="font-bold text-[13px]" :class="gn.sig?'text-amber-300':'text-jade'" x-text="'+'+$store.game.fmt(gn.val)"></span>
                         </div>
                       </template>
                     </div>
@@ -2541,7 +2585,7 @@
       <!-- ===== POPUP: Linh Thú Chí (chi tiết pet — mở từ roster) ===== -->
       <template x-if="$store.game.petDetailObj">
         <div class="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closePetDetail()">
-          <div class="panel rounded-2xl w-full max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden shadow-2xl" @click.stop
+          <div class="panel rounded-2xl w-full max-w-2xl h-[720px] max-h-[90dvh] flex flex-col overflow-hidden shadow-2xl" @click.stop
                x-data="{ get p(){ return $store.game.petDetailObj }, get q(){ return $store.game.petQ($store.game.petDetailObj) }, get qh(){ return $store.game.petQHex($store.game.petDetailObj) }, get el(){ return $store.game.petElColor($store.game.petDetailObj) } }"
                :style="'border-color:'+qh+'55'">
             <!-- HEADER: art-đài + danh tính -->

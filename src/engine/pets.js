@@ -143,11 +143,25 @@ export function petStatAt(pet) {
 
 export function activePet(state) { return (state.pets || []).find((p) => p.equipped) || null; }
 
+// Tứ Trụ CHỮ KÝ: cố định theo loài (PET_SPECIES.tuTru), tăng theo cấp × phẩm. Full-add vào Tứ Trụ người chơi.
+const TUTRU_PERLV = { phamPham: 0.5, luongPham: 0.8, tinhPham: 1.2, tuyetPham: 1.8, truyenThe: 2.6, thanPham: 3.6, coBan: 5 };
+const TUTRU_TO_DERIVED = { lucDao: 'congKich', hoThe: 'hoThe', thanPhap: 'neTranh', linhXao: 'menhTrung' };
+export function petTuTru(pet) {
+  if (!pet) return null;
+  const stat = (PET_SPECIES[pet.base] || {}).tuTru; if (!stat) return null;
+  const ev = pet.evolved ? 1.25 : 1;
+  const val = Math.round((TUTRU_PERLV[pet.quality] || 0.5) * (pet.level || 1) * ev);
+  return val > 0 ? { stat, val } : null;
+}
+
 // Bonus stat từ pet ĐANG MANG — cộng THẲNG toàn bộ (full-add). NGẤT trong combat -> mất sạch bonus.
 export function petBonus(state) {
   if (state.activity && state.activity.type === 'combat' && state.combat && state.combat.petFainted) return null;
-  const p = activePet(state);
-  return p ? petStatAt(p) : null;
+  const p = activePet(state); if (!p) return null;
+  const s = petStatAt(p) || {};
+  const tt = petTuTru(p);                                    // Tứ Trụ chữ ký -> gập vào chỉ số dẫn xuất tương ứng (full-add combat)
+  if (tt) { const dk = TUTRU_TO_DERIVED[tt.stat]; if (dk) s[dk] = (s[dk] || 0) + tt.val; }
+  return s;
 }
 
 // ============================================================

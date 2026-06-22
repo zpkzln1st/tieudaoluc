@@ -5,16 +5,16 @@
 
 // 10 dòng (theo 10 Yêu Vương). Base @ Lv1 chuẩn phẩm Lương (qMul 1.0). emoji = placeholder tới khi có art.
 export const PET_SPECIES = {
-  bachHo:     { base: 'bachHo',     name: 'Bạch Hổ',     he: 'kim',  emoji: '🐯', role: 'Sát Thủ',   stats: { congKich: 9,  hoThe: 2, sinhLuc: 14, neTranh: 4, menhTrung: 4 } },
-  huyenQuy:   { base: 'huyenQuy',   name: 'Huyền Quy',   he: 'thuy', emoji: '🐢', role: 'Trụ Thủ',   stats: { congKich: 3,  hoThe: 8, sinhLuc: 30, neTranh: 2, menhTrung: 2 } },
-  huyetLang:  { base: 'huyetLang',  name: 'Huyết Lang',  he: 'kim',  emoji: '🐺', role: 'Hút Máu',   stats: { congKich: 8,  hoThe: 3, sinhLuc: 16, neTranh: 5, menhTrung: 3 } },
-  cuHung:     { base: 'cuHung',     name: 'Cự Hùng',     he: 'tho',  emoji: '🐻', role: 'Tank',      stats: { congKich: 4,  hoThe: 7, sinhLuc: 34, neTranh: 1, menhTrung: 2 } },
-  docGiao:    { base: 'docGiao',    name: 'Độc Giao',    he: 'moc',  emoji: '🐍', role: 'Độc',       stats: { congKich: 6,  hoThe: 4, sinhLuc: 20, neTranh: 3, menhTrung: 5 } },
-  loiBang:    { base: 'loiBang',    name: 'Lôi Bằng',    he: 'hoa',  emoji: '🦅', role: 'Tốc',       stats: { congKich: 8,  hoThe: 2, sinhLuc: 14, neTranh: 6, menhTrung: 5 } },
-  hoaLan:     { base: 'hoaLan',     name: 'Hỏa Lân',     he: 'hoa',  emoji: '🦁', role: 'Burst',     stats: { congKich: 10, hoThe: 2, sinhLuc: 15, neTranh: 3, menhTrung: 4 } },
-  hoYeu:      { base: 'hoYeu',      name: 'Hồ Yêu',      he: 'moc',  emoji: '🦊', role: 'Bạo Kích',  stats: { congKich: 5,  hoThe: 3, sinhLuc: 18, neTranh: 5, menhTrung: 7 } },
-  bangPhuong: { base: 'bangPhuong', name: 'Băng Phượng', he: 'thuy', emoji: '🦚', role: 'Khống Chế', stats: { congKich: 6,  hoThe: 4, sinhLuc: 20, neTranh: 4, menhTrung: 6 } },
-  thienMa:    { base: 'thienMa',    name: 'Thiên Ma',    he: 'tho',  emoji: '👹', role: 'Toàn Năng', stats: { congKich: 8,  hoThe: 5, sinhLuc: 22, neTranh: 4, menhTrung: 5 } },
+  bachHo:     { base: 'bachHo',     name: 'Bạch Hổ',     he: 'kim',  emoji: '🐯', role: 'Sát Thủ', tuTru: 'lucDao',   stats: { congKich: 9,  hoThe: 2, sinhLuc: 14, neTranh: 4, menhTrung: 4 } },
+  huyenQuy:   { base: 'huyenQuy',   name: 'Huyền Quy',   he: 'thuy', emoji: '🐢', role: 'Trụ Thủ', tuTru: 'hoThe',   stats: { congKich: 3,  hoThe: 8, sinhLuc: 30, neTranh: 2, menhTrung: 2 } },
+  huyetLang:  { base: 'huyetLang',  name: 'Huyết Lang',  he: 'kim',  emoji: '🐺', role: 'Hút Máu', tuTru: 'lucDao',   stats: { congKich: 8,  hoThe: 3, sinhLuc: 16, neTranh: 5, menhTrung: 3 } },
+  cuHung:     { base: 'cuHung',     name: 'Cự Hùng',     he: 'tho',  emoji: '🐻', role: 'Tank', tuTru: 'hoThe',      stats: { congKich: 4,  hoThe: 7, sinhLuc: 34, neTranh: 1, menhTrung: 2 } },
+  docGiao:    { base: 'docGiao',    name: 'Độc Giao',    he: 'moc',  emoji: '🐍', role: 'Độc', tuTru: 'linhXao',       stats: { congKich: 6,  hoThe: 4, sinhLuc: 20, neTranh: 3, menhTrung: 5 } },
+  loiBang:    { base: 'loiBang',    name: 'Lôi Bằng',    he: 'hoa',  emoji: '🦅', role: 'Tốc', tuTru: 'thanPhap',       stats: { congKich: 8,  hoThe: 2, sinhLuc: 14, neTranh: 6, menhTrung: 5 } },
+  hoaLan:     { base: 'hoaLan',     name: 'Hỏa Lân',     he: 'hoa',  emoji: '🦁', role: 'Burst', tuTru: 'lucDao',     stats: { congKich: 10, hoThe: 2, sinhLuc: 15, neTranh: 3, menhTrung: 4 } },
+  hoYeu:      { base: 'hoYeu',      name: 'Hồ Yêu',      he: 'moc',  emoji: '🦊', role: 'Bạo Kích', tuTru: 'linhXao',  stats: { congKich: 5,  hoThe: 3, sinhLuc: 18, neTranh: 5, menhTrung: 7 } },
+  bangPhuong: { base: 'bangPhuong', name: 'Băng Phượng', he: 'thuy', emoji: '🦚', role: 'Khống Chế', tuTru: 'thanPhap', stats: { congKich: 6,  hoThe: 4, sinhLuc: 20, neTranh: 4, menhTrung: 6 } },
+  thienMa:    { base: 'thienMa',    name: 'Thiên Ma',    he: 'tho',  emoji: '👹', role: 'Toàn Năng', tuTru: 'hoThe', stats: { congKich: 8,  hoThe: 5, sinhLuc: 22, neTranh: 4, menhTrung: 5 } },
 };
 
 // Phẩm chất pet (tái dùng id của QUALITY items.js cho màu khung). qMul=stat nở, gMul=growth/lv (DỐC HƠN).
