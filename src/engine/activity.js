@@ -249,7 +249,7 @@ export function advance(state, now) {
       if (sk) { sk.gathered = (sk.gathered || 0) + done; sk.timeMs = (sk.timeMs || 0) + done * act.cycleMs; }
       act.sessionCount += done;
       act.lastResolved += done * act.cycleMs;
-      report = { cycles: done, itemId: null, xp: done * gainXp };
+      report = { type: 'combat', enemyId: act.enemyId, cycles: done, xp: done * gainXp, bac: done * Math.round(bacPer * moneyMul), capped: cappedByTime };
       if (died) { applyDeathCombat(state, now); state.activity = null; return report; }
     }
   } else {
@@ -290,7 +290,7 @@ export function advance(state, now) {
       if (action.itemId) state.counters.produced[action.itemId] = (state.counters.produced[action.itemId] || 0) + cycles;
       act.sessionCount += cycles;
       act.lastResolved += cycles * act.cycleMs;
-      report = { cycles, itemId: action.itemId, xp: cycles * gainXp + buffXp };
+      report = { type: 'skill', skillId: act.skillId, itemId: action.itemId, cycles, xp: cycles * gainXp + buffXp, capped: cappedByTime };
     }
     if (action.needsDoPho && cycles > 0 && state.player && state.player.doPho) { // trừ lượt Đồ Phổ đã dùng
       state.player.doPho[action.itemId] = Math.max(0, (state.player.doPho[action.itemId] || 0) - cycles);

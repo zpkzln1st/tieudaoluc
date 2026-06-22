@@ -1975,7 +1975,7 @@
                       <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
                           <span class="text-[13px] font-bold fserif truncate" :class="r.isPlayer?'text-jade':''" :style="r.isPlayer?'':('color:'+r.catHex)" x-text="r.name"></span>
-                          <template x-if="r.isPlayer"><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-jade">Ngươi</span></template>
+                          <template x-if="r.isPlayer"><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-jade">Bổn Nhân</span></template>
                           <template x-if="!r.isPlayer"><span class="text-[9.5px] px-1.5 py-0.5 rounded-full border" :style="'color:'+r.catHex+';border-color:'+r.catHex+'55'" x-text="r.title"></span></template>
                         </div>
                         <div class="text-[10.5px] text-slate-500 truncate" x-text="'đang ' + r.activity"></div>
@@ -2008,7 +2008,7 @@
                         <div class="min-w-0">
                           <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-[13px] font-bold fserif truncate" :class="r.isPlayer?'text-amber-200':''" :style="r.isPlayer?'':('color:'+$store.game.daoInfo(r.dao)[1])" x-text="r.name"></span>
-                            <template x-if="r.isPlayer"><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-amber-300">Tông ngươi</span></template>
+                            <template x-if="r.isPlayer"><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-amber-300">Bổn Tông</span></template>
                           </div>
                           <div class="text-[10.5px] text-slate-500 truncate" x-text="'Chưởng Môn ' + r.master"></div>
                         </div>
@@ -3971,7 +3971,7 @@
                 </div>
                 <div class="text-right shrink-0">
                   <div class="lbl">Cấp Tông Môn</div>
-                  <div class="fserif text-amber-200 text-lg" x-text="'Đệ ' + t.level + ' Tầng'"></div>
+                  <div class="fserif text-amber-200 text-lg" x-text="'Đệ ' + g.tmSectTier() + ' Tầng'"></div>
                 </div>
               </div>
               <!-- STAT BAR (mobile: lưới 2 cột đều · desktop: hàng ngang) -->
@@ -4010,7 +4010,12 @@
                       <div class="fserif text-[13px] text-slate-200" x-text="g.tmBuild(key).name"></div>
                       <div class="text-[10px] text-amber-300/70" x-text="'Bậc ' + g.tmBuildLv(key)"></div>
                       <div class="text-[10px] text-slate-500 leading-tight mt-0.5 line-clamp-2 h-[26px]" x-text="g.tmBuild(key).desc"></div>
-                      <button @click="g.tmUpgrade(key)" class="mt-1 w-full text-[10px] py-1 rounded border transition" :class="g.tmCanUpgrade(key)?'border-amber-500/50 text-amber-200 hover:bg-amber-500/10':'border-slate-700 text-slate-600'">Nâng · <span x-text="g.fmt(g.tmBuildCost(key).bac)"></span> Bạc</button>
+                      <div class="flex items-center justify-center flex-wrap gap-x-1.5 text-[9px] mt-1 leading-tight">
+                        <span class="whitespace-nowrap" :class="(g.state.currencies.bac||0) >= g.tmBuildCost(key).bac ? 'text-amber-200/90':'text-rose-400/80'"><span x-text="g.fmt(g.tmBuildCost(key).bac)"></span> Bạc</span>
+                        <span class="text-slate-600">·</span>
+                        <span class="whitespace-nowrap" :class="(t.congHien||0) >= g.tmBuildCost(key).congHien ? 'text-jade/90':'text-rose-400/80'"><span x-text="g.fmt(g.tmBuildCost(key).congHien)"></span> Cống Hiến</span>
+                      </div>
+                      <button @click="g.tmUpgrade(key)" class="mt-1 w-full text-[10px] py-1 rounded border transition" :class="g.tmCanUpgrade(key)?'border-amber-500/50 text-amber-200 hover:bg-amber-500/10':'border-slate-700 text-slate-600'">Nâng</button>
                     </div>
                   </div>
                 </template>
@@ -4184,8 +4189,8 @@
 
           <!-- MODAL CHI TIẾT ĐỆ TỬ -->
           <template x-if="g.tmSelDisciple">
-            <div class="fixed inset-0 z-[72] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeDisciple()">
-              <div class="panel rounded-2xl w-[1000px] max-w-[96vw] h-auto sm:h-[800px] max-h-[92vh] flex flex-col overflow-hidden border" :style="'border-color:'+g.tmApt(d).color+'66'" @click.stop>
+            <div class="fixed inset-0 z-[72] flex items-start sm:items-center justify-center overflow-y-auto bg-black/72 backdrop-blur-sm p-4" @click="g.closeDisciple()">
+              <div class="panel rounded-2xl w-[1000px] max-w-[96vw] h-auto sm:h-[800px] max-h-[92dvh] my-auto flex flex-col overflow-hidden border" :style="'border-color:'+g.tmApt(d).color+'66'" @click.stop>
                 <!-- TITLE BAR -->
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 border-b border-slate-800/70 shrink-0">
                   <span class="gold-text fserif text-[22px] leading-none" x-text="d.name"></span>
@@ -5053,19 +5058,51 @@
     </div>
   </template>
 
+  <!-- ===== HỒI TRÌNH (offline) — thiệp "Phi Cáp Truyền Thư" giữa màn (Mẫu A) ===== -->
+  <template x-if="$store.game && $store.game.offlineReport">
+    <div class="fixed inset-0 z-[81] flex items-center justify-center p-4" style="background:rgba(0,0,0,.55);backdrop-filter:blur(2px)" @click="$store.game.dismissOffline()">
+      <div class="panel rounded-2xl overflow-hidden border border-jade/40" style="width:340px;max-width:92vw;box-shadow:0 14px 50px rgba(0,0,0,.6),0 0 34px rgba(20,184,166,.10)" @click.stop>
+        <div style="height:2px;background:linear-gradient(90deg,transparent,rgba(245,185,66,.85) 22%,#fff4d6 50%,rgba(245,185,66,.85) 78%,transparent)"></div>
+        <div class="flex items-center gap-2.5" style="padding:14px 20px 10px">
+          <span class="flex items-center justify-center text-jade shrink-0" style="width:32px;height:32px;border-radius:9px;background:#070908;border:1px solid rgba(148,163,184,.28)"><span class="inline-flex" style="width:18px;height:18px" x-html="$store.game.svg('scroll','w-full h-full')"></span></span>
+          <div class="min-w-0">
+            <div class="gold-text fserif leading-tight" style="font-size:15px">Phi Cáp Truyền Thư</div>
+            <div class="text-slate-500 leading-tight" style="font-size:11px">Một cánh bồ câu mang tin về…</div>
+          </div>
+        </div>
+        <div style="padding:0 20px 8px">
+          <div class="flex items-baseline justify-between" style="border-radius:12px;padding:8px 12px;background:rgba(20,184,166,.06);border:1px solid rgba(20,184,166,.18)">
+            <span class="uppercase text-slate-500" style="font-size:10px;letter-spacing:.12em">Ngươi vắng giang hồ</span>
+            <span class="fserif text-jade leading-none" style="font-size:17px" x-text="$store.game.offlineAwayText"></span>
+          </div>
+        </div>
+        <div class="text-slate-400 italic leading-snug" style="padding:6px 20px 4px;font-size:12px">
+          Hành trạng: <span class="text-slate-200 not-italic fserif" x-text="$store.game.offlineActText"></span>
+        </div>
+        <div style="padding:6px 20px">
+          <template x-for="(gn,i) in $store.game.offlineGains" :key="i">
+            <div class="flex items-center justify-between" style="padding:6px 0" :style="i>0 ? 'border-top:1px solid rgba(148,163,184,.12)' : ''">
+              <span class="text-slate-300" style="font-size:13px" x-text="gn.label"></span>
+              <span class="fserif" style="font-size:14px" :class="gn.cls" x-text="gn.amount"></span>
+            </div>
+          </template>
+        </div>
+        <template x-if="$store.game.offlineReport.capped">
+          <div class="flex items-center gap-1.5 text-amber-300" style="padding:0 20px 4px;font-size:11px">
+            <span class="rounded-full bg-amber-400 inline-block shrink-0" style="width:6px;height:6px"></span>
+            Đã chạm trần nhàn rỗi — vào luyện tiếp kẻo phí.
+          </div>
+        </template>
+        <div style="padding:14px 20px">
+          <button @click="$store.game.dismissOffline()" class="w-full fserif text-jade transition hover:brightness-110" style="padding:8px 0;border-radius:8px;font-size:13px;background:rgba(20,184,166,.14);border:1px solid rgba(20,184,166,.42)">Tiếp Tục Hành Trình</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <!-- ===== Vùng thông báo — mọi thông báo về CÙNG vị trí giữa-dưới; canh giữa bằng flex (không transform) nên chỉ mờ dần, không trượt ngang ===== -->
   <div class="fixed bottom-6 inset-x-0 z-[80] flex flex-col items-center gap-2 px-4 pointer-events-none">
-    <!-- Báo cáo nhàn rỗi (hiện khi vừa mở game, có nút Đóng) -->
-    <template x-if="$store.game && $store.game.offlineReport">
-      <div class="pointer-events-auto panel rounded-lg p-4 max-w-xs shadow-xl border border-jade/40">
-        <div class="font-semibold text-jade mb-1">Khi bạn vắng mặt…</div>
-        <div class="text-sm text-slate-300">Thu được <b x-text="'+' + $store.game.offlineReport.cycles"></b>
-          <span x-text="$store.game.offlineReport.itemId ? $store.game.ITEMS[$store.game.offlineReport.itemId].name : 'EXP'"></span>
-          (<span x-text="'+' + $store.game.offlineReport.xp + ' EXP'"></span>).
-        </div>
-        <button @click="$store.game.dismissOffline()" class="mt-2 text-xs text-slate-400 hover:text-jade">Đóng</button>
-      </div>
-    </template>
+    <!-- (Báo cáo Hồi Trình đã tách ra overlay riêng "Phi Cáp Truyền Thư" bên dưới) -->
     <!-- Thông báo nhanh (tự ẩn sau 2.5s) -->
     <div x-show="$store.game.toast" x-transition.opacity x-cloak
          class="px-5 py-3 rounded-xl bg-black/90 border border-jade/40 text-sm text-slate-100 shadow-2xl"

@@ -31,8 +31,8 @@ export const ENEMIES = {
   // ===== Lam Linh Cốc (Lv1) + U Lâm (Lv8) — Nhân Gian (giữ nguyên, đã cân) =====
   daLang:  { id: 'daLang',  name: 'Sói Hoang',  gloss: 'Wild Wolf',  icon: '🐺', reqLevel: 1,  power: 15,  exp: 5,  statXp: 1, time: 6,  loot: [{ itemId: 'langBi', chance: 0.30 }],
     hp:60,  atk:9,  def:3,  spd:72, affinity:'Mãnh Thú', lore:'Sói hoang đầu rừng, nhanh nhẹn, lao tới cắn xé — khí tức nó biến hoá thất thường khôn lường.',  atkFl:'lao tới đớp',     skill:{ name:'Liệt Trảo',     mult:1.6, cd:4, fl:'gầm gừ vung móng vuốt' } },
-  sonTru:  { id: 'sonTru',  name: 'Heo Rừng',   gloss: 'Wild Boar',  icon: '🐗', reqLevel: 3,  power: 35,  exp: 8,  statXp: 1, time: 8,  loot: [{ itemId: 'truNha', chance: 0.25 }],
-    hp:120, atk:14, def:7,  spd:66, affinity:'Mãnh Thú', lore:'Mãnh thú da dày, chỉ biết cúi đầu lao húc, mỗi lần lâm trận lại nhuốm một loại khí tức khác.', atkFl:'thúc một cú',     skill:{ name:'Cuồng Húc',     mult:1.7, cd:4, fl:'cúi đầu cuồng nộ lao húc' } },
+  sonTru:  { id: 'sonTru',  name: 'Heo Rừng',   gloss: 'Wild Boar',  icon: '🐗', reqLevel: 2,  power: 30,  exp: 8,  statXp: 1, time: 8,  loot: [{ itemId: 'truNha', chance: 0.25 }],
+    hp:100, atk:12, def:7,  spd:66, affinity:'Mãnh Thú', lore:'Mãnh thú da dày, chỉ biết cúi đầu lao húc, mỗi lần lâm trận lại nhuốm một loại khí tức khác.', atkFl:'thúc một cú',     skill:{ name:'Cuồng Húc',     mult:1.7, cd:4, fl:'cúi đầu cuồng nộ lao húc' } },
   hacHung: { id: 'hacHung', name: 'Gấu Đen',    gloss: 'Black Bear', icon: '🐻', reqLevel: 8,  power: 90,  exp: 15, statXp: 2, time: 12, loot: [{ itemId: 'hungChuong', chance: 0.20 }],
     hp:300, atk:24, def:16, spd:58, affinity:'Hậu Bì', lore:'Gấu đen núi sâu, da dày lông rậm, thân thủ trầm trọng — ngũ hành biến ảo theo từng cơn cuồng nộ.', atkFl:'tát một chưởng',  skill:{ name:'Bàn Sơn Chưởng',mult:1.6, cd:5, fl:'vung chưởng to như cối đá' } },
   yeuHo:   { id: 'yeuHo',   name: 'Hồ Ly Tinh', gloss: 'Fox Spirit', icon: '🦊', reqLevel: 15, power: 220, exp: 25, statXp: 3, time: 15, loot: [{ itemId: 'hoVi', chance: 0.15 }],

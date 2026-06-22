@@ -195,8 +195,9 @@ if (state.dungeon.lastResult && !state.dungeon.lastResult.log) state.dungeon.las
 if (Array.isArray(state.dungeon.history)) state.dungeon.history = state.dungeon.history.filter((h) => h && h.log); // bỏ entry lịch sử cũ thiếu chi tiết
 let offlineReport = null;
 if (state.activity) {
+  const _awayMs = Math.max(0, now() - (state.activity.lastResolved || now()));
   const r = advance(state, now());
-  if (r && r.cycles > 0) offlineReport = { itemId: r.itemId, cycles: r.cycles, xp: r.xp };
+  if (r && r.cycles > 0) offlineReport = { ...r, awayMs: _awayMs };
   if (r && r.cycles > 0 && r.itemId) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Thu thập hoàn tất', '+' + r.cycles + ' ' + (_it ? _it.name : r.itemId) + ' · +' + r.xp + ' EXP (trong lúc vắng mặt)', now()); }
 }
 // Lò Ấp Noãn: trứng nở xong trong lúc vắng mặt -> báo 1 lần (chờ khai noãn).
@@ -433,6 +434,7 @@ const gameStore = {
   tmStateLabel(d) { return d.awaiting ? 'Đắc Đạo!' : (this.tmAtCap(d) ? 'Viên mãn' : (d.state === 'rest' ? 'Nghỉ' : 'Đang tu')); },
   tmDaoLabel() { return ({ chinh: 'Chính Đạo', ta: 'Tà Đạo', trung: 'Trung Dung' })[this.tm.dao] || 'Trung Dung'; },
   tmDaoColor() { return ({ chinh: '#14b8a6', ta: '#e879f9', trung: '#94a3b8' })[this.tm.dao] || '#94a3b8'; },
+  tmSectTier() { const b = this.tm.buildings || {}; const s = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'tuLinh'].reduce((a, k) => a + (b[k] || 0), 0); return Math.max(1, s - 2); },  // Cấp Tông Môn = tổng bậc công trình (khởi đầu 3 -> Đệ 1 Tầng; mỗi lần nâng +1)
   tmBuild(key) { return BUILDINGS[key]; },
   tmBuildLv(key) { return this.tm.buildings[key] || 0; },
   tmBuildCost(key) { return buildCost(this.tm.buildings[key] || 0); },
@@ -830,6 +832,24 @@ const gameStore = {
   resetAdj(kind) { this.state.player[kind] = { x: 50, y: 50, z: 1 }; Storage.save(this.state); },
   get curAvatar() { return this.AVATARS.find(a => a.id === this.avatarId) || null; },
   dismissOffline() { this.offlineReport = null; },
+  get offlineAwayText() { const r = this.offlineReport; if (!r) return ''; let s = Math.floor((r.awayMs || 0) / 1000); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); if (h > 0) return h + ' giờ' + (m > 0 ? (' ' + m + ' phút') : ''); if (m > 0) return m + ' phút'; return Math.max(1, s) + ' giây'; },
+  get offlineActText() { const r = this.offlineReport; if (!r) return ''; if (r.type === 'combat') { const e = this.ENEMIES[r.enemyId]; return 'Chiến Đấu · ' + (e ? e.name : 'Yêu thú'); } const sk = this.SKILLS[r.skillId]; const it = r.itemId && this.ITEMS[r.itemId]; return (sk ? sk.name : 'Tu luyện') + (it ? (' · ' + it.name) : ''); },
+  get offlineGains() {
+    const r = this.offlineReport; if (!r) return [];
+    const out = [];
+    if (r.type === 'combat') {
+      const e = this.ENEMIES[r.enemyId];
+      out.push({ label: 'Hạ ' + (e ? e.name : 'yêu thú'), amount: '×' + r.cycles, cls: 'text-jade' });
+      out.push({ label: 'Tu Vi · Chiến Đấu', amount: '+' + this.fmt(r.xp) + ' EXP', cls: 'text-cyan' });
+      if (r.bac) out.push({ label: 'Bạc', amount: '+' + this.fmt(r.bac), cls: 'text-amber-300' });
+    } else {
+      const it = r.itemId && this.ITEMS[r.itemId];
+      const sk = this.SKILLS[r.skillId];
+      out.push({ label: it ? it.name : 'Thành quả', amount: '×' + r.cycles, cls: 'text-jade' });
+      out.push({ label: 'Tu Vi · ' + (sk ? sk.name : 'Tu luyện'), amount: '+' + this.fmt(r.xp) + ' EXP', cls: 'text-cyan' });
+    }
+    return out;
+  },
   // ===== THÔNG BÁO (feed chung: chuông + Phi Cáp Đài) =====
   bellOpen: false,
   notifFilter: 'all',
@@ -1291,7 +1311,7 @@ const gameStore = {
       _lbBotKey = key;
     }
     const extra = [{
-      id: 'me', name: (this.state.player.name || 'Vô Danh'), title: 'Ngươi', catHex: '#14b8a6',
+      id: 'me', name: (this.state.player.name || 'Vô Danh'), title: 'Bổn Nhân', catHex: '#14b8a6',
       avatar: (this.curAvatar || { id: this.avatarId, char: '道', color: 'from-slate-600 to-slate-700' }),
       combatLv: this.combatLevel, totalLv: this.totalLevel, activity: this.playerActivityText, isPlayer: true,
     }];
@@ -1346,7 +1366,7 @@ const gameStore = {
       _tmbKey = key;
     }
     const tm = this.tm;
-    const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Ngươi'), uy: uyDanhOf(tm), isPlayer: true }]);
+    const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Vô Danh'), uy: uyDanhOf(tm), isPlayer: true }]);
     rows.sort((a, b) => b.uy - a.uy || (a.id < b.id ? -1 : 1));
     rows.forEach((r, i) => { r.rank = i + 1; });
     return rows;
@@ -2076,6 +2096,7 @@ const gameStore = {
   fight(id) {
     if (this.combatNoiThuong) { this.showToast('Đang suy yếu — chờ hồi phục đầy Sinh Lực.'); return; }
     if (startCombat(this.state, id, now())) { this.chienBao = []; this._cycleStart = 0; this._cycleNow = now(); this._nlNow = null; this._roundNo = 0; Storage.save(this.state); }
+    else { const e = this.ENEMIES[id]; if (e && this.combatLevel < (e.reqLevel || 0)) this.showToast('Cần Chiến Đấu Lv ' + e.reqLevel + ' để khiêu chiến ' + e.name + ' — luyện yêu thú cấp thấp hơn trước.'); else this.showToast('Chưa thể khiêu chiến lúc này.'); }
   },
   // Suy yếu: số giây hồi phục còn lại (banner đếm ngược). HP% lấy từ combatHpPct.
   get suyYeuRemainSec() { void this._cycleNow; const u = this.state.combat.suyYeuUntil; return u ? Math.max(0, Math.ceil((u - now()) / 1000)) : 0; },
