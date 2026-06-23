@@ -464,6 +464,25 @@ const gameStore = {
   tmBuildCost(key) { return buildCost(this.tm.buildings[key] || 0); },
   tmCanUpgrade(key) { const c = buildCost(this.tm.buildings[key] || 0); return (this.state.currencies.bac || 0) >= c.bac && (this.tm.congHien || 0) >= c.congHien; },
   tmUpgrade(key) { if (upgradeBuilding(this.state, key)) { this.tmSave(); this.showToast('Nâng cấp ' + BUILDINGS[key].name); } else this.showToast('Thiếu Bạc / Cống Hiến'); },
+  // Popup chi tiết công trình: hiệu lực bậc HIỆN TẠI -> bậc SAU (cụ thể từng loại).
+  tmBuildSel: null,
+  tmBuildDetail(key) {
+    const b = BUILDINGS[key]; const lv = this.tmBuildLv(key), nlv = lv + 1; const fx = [];
+    if (key === 'tuHien') {
+      fx.push({ label: 'Sức chứa đệ tử', cur: (b.slotBase + b.slotPerLv * (Math.max(1, lv) - 1)) + '', next: (b.slotBase + b.slotPerLv * (nlv - 1)) + '' });
+    } else if (key === 'dienVo') {
+      fx.push({ label: 'Tốc tu toàn môn', cur: '+' + Math.round(b.buffPerLv * lv * 100) + '%', next: '+' + Math.round(b.buffPerLv * nlv * 100) + '%' });
+    } else if (key === 'tangThu') {
+      fx.push({ label: 'Điểm Đấu Giá', cur: this.fmt(b.diemPerLvH * lv) + '/giờ', next: this.fmt(b.diemPerLvH * nlv) + '/giờ' });
+    } else if (key === 'yQuan') {
+      fx.push({ label: 'Linh Đan luyện', cur: (b.danPerLvH * lv).toFixed(1) + '/giờ', next: (b.danPerLvH * nlv).toFixed(1) + '/giờ' });
+      fx.push({ label: 'Linh Liệu luyện', cur: (b.lieuPerLvH * lv).toFixed(1) + '/giờ', next: (b.lieuPerLvH * nlv).toFixed(1) + '/giờ' });
+    } else if (key === 'tuLinh') {
+      fx.push({ label: 'Khí Vận hồi (≤100)', cur: '+' + (b.khiPerLv * lv / 10).toFixed(1) + '/giờ', next: '+' + (b.khiPerLv * nlv / 10).toFixed(1) + '/giờ' });
+      fx.push({ label: 'Tốc tu toàn môn', cur: '+' + (2 * lv) + '%', next: '+' + (2 * nlv) + '%' });
+    }
+    return { name: b.name, han: b.han, desc: b.desc, level: lv, cost: this.tmBuildCost(key), effects: fx };
+  },
   get tmRecruitCost() { return recruitCost(this.tm).bac; },
   tmCanRecruit() { return this.tm.disciples.length < this.tmSlot(); },
   openRecruit() { if (!this.tmCanRecruit()) { this.showToast('Hết slot — nâng Tụ Hiền Đường'); return; } if (!this.tm.recruitPool || !this.tm.recruitPool.length) refreshRecruitPool(this.tm, now()); this.tmRecruitOpen = true; },
