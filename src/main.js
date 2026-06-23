@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -426,7 +426,8 @@ const gameStore = {
     for (const k in (d.flags || {})) { const m = M[k]; if (m) out.push({ t: m[0], c: m[1], desc: m[2], eff: m[3] }); }
     return out;
   },
-  tmRealmName(d) { return REALMS[d.realm].name; },
+  tmRealmName(d) { return subStageName(d.realm, d.xp, this.tmAtCap(d)); },   // tên TIỂU cảnh chính xác (vd 'Hư Đan')
+  tmRealmMajor(d) { return REALMS[d.realm].name; },                          // tên ĐẠI cảnh (gom màu/Trần)
   tmRealmColor(d) { return ['#cbd5e1', '#34d399', '#60a5fa', '#22d3ee', '#a78bfa', '#c4b5fd', '#e879f9', '#fb923c', '#f5b942', '#fbbf24'][d.realm] || '#cbd5e1'; },
   tmApt(d) { return APT[d.apt]; },
   tmHe(d) { return HE[d.he] || HE.kim; },
@@ -434,7 +435,7 @@ const gameStore = {
   tmOriginLabel(d) { return originLabelOf(d.origin, d.sex) || d.originLabel || ''; },
   tmOriginBio(d) { return originBioOf(d.origin, d.sex) || d.bio || ''; },
   tmAtCap(d) { return d.realm >= disciCap(d); },
-  tmProgPct(d) { return d.awaiting ? 100 : (this.tmAtCap(d) ? 100 : Math.round((d.xp || 0) * 100)); },
+  tmProgPct(d) { if (d.awaiting || this.tmAtCap(d)) return 100; const n = (SUB_STAGES[d.realm] || []).length || 1; return Math.round((((d.xp || 0) * n) % 1) * 100); },   // tiến trong TIỂU cảnh hiện tại
   tmStateLabel(d) { return d.awaiting ? 'Đắc Đạo!' : (this.tmAtCap(d) ? 'Viên mãn' : (d.state === 'rest' ? 'Nghỉ' : 'Đang tu')); },
   tmDaoLabel() { return ({ chinh: 'Chính Đạo', ta: 'Tà Đạo', trung: 'Trung Dung' })[this.tm.dao] || 'Trung Dung'; },
   tmDaoColor() { return ({ chinh: '#14b8a6', ta: '#e879f9', trung: '#94a3b8' })[this.tm.dao] || '#94a3b8'; },

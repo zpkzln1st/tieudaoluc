@@ -295,8 +295,10 @@ export function reclaimGear(state, discipleUid, slot) {
 function gearPow(inst) { return (QRANK[inst.quality] || 1) * (inst.itemLv || 1) * (1 + 0.08 * (inst.plus || 0)); }
 
 // ---- Thực Lực Đệ Tử (SIDE-ONLY) ----
+// Realm "mượt": tiến theo tiểu cảnh (xp trong đại cảnh); đã tới trần -> coi như Viên Mãn (+1).
+function realmF(d) { const r = d.realm || 0; return r + (r >= disciCap(d) ? 1 : (d.xp || 0)); }
 export function disciPower(d) {
-  let p = (d.realm + 1) * 10 * APT[d.apt].mul;
+  let p = (realmF(d) + 1) * 10 * APT[d.apt].mul;
   if (d.gear) for (const k in d.gear) p += gearPow(d.gear[k]);
   return Math.round(p);
 }
@@ -305,12 +307,13 @@ export function disciPower(d) {
 const APT_TIER = { pham: 0, trung: 1, thuong: 2, tuyet: 3, thien: 4 };
 export function disciStats(d) {
   const r = d.realm || 0, mul = APT[d.apt].mul, tier = APT_TIER[d.apt] || 0;
+  const rv = realmF(d);                                      // realm mượt (leo theo tiểu cảnh)
   const gp = gearTotal(d);
-  const base = (r + 1) * mul;
+  const base = (rv + 1) * mul;
   return {
     chienLuc: disciPower(d),                                 // = Thực Lực
     atk: Math.round(base * 22 + gp * 0.7),
-    spd: Math.round(60 + r * 16 + mul * 30),
+    spd: Math.round(60 + rv * 16 + mul * 30),
     crit: Math.min(0.6, 0.05 + tier * 0.03 + r * 0.012),
     critDmg: +(1.5 + tier * 0.12 + r * 0.04).toFixed(2),
     def: Math.round(base * 26 + gp * 0.6),

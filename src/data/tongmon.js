@@ -17,6 +17,27 @@ export const REALMS = [
   { name: 'Đắc Đạo',   hours: 4320, uy: 800 },
 ];
 
+// --- TIỂU CẢNH GIỚI: Luyện Khí 9 Tầng + Đại Viên Mãn (10); 9 đại cảnh sau mỗi cái 4 tiểu (tổng 46). ---
+// Index = realm. Tên là CHÍNH XÁC cảnh giới hiện tại (đã gồm đại cảnh), hiển thị thẳng.
+export const SUB_STAGES = [
+  ['Luyện Khí Tầng Một', 'Luyện Khí Tầng Hai', 'Luyện Khí Tầng Ba', 'Luyện Khí Tầng Bốn', 'Luyện Khí Tầng Năm', 'Luyện Khí Tầng Sáu', 'Luyện Khí Tầng Bảy', 'Luyện Khí Tầng Tám', 'Luyện Khí Tầng Chín', 'Luyện Khí Đại Viên Mãn'],
+  ['Dẫn Linh Trúc Cơ', 'Khai Mạch Trúc Cơ', 'Ngưng Cơ Trúc Cơ', 'Đạo Cơ Viên Mãn'],
+  ['Đan Khí Sơ Ngưng', 'Hư Đan', 'Thực Đan', 'Kim Đan Viên Mãn'],
+  ['Anh Thai', 'Ngưng Anh', 'Thành Anh', 'Nguyên Anh Viên Mãn'],
+  ['Thần Niệm Sơ Khai', 'Thần Hải Ngưng Tụ', 'Nguyên Thần Hóa Hình', 'Hóa Thần Viên Mãn'],
+  ['Hư Thần', 'Hư Thể', 'Động Hư', 'Quy Hư Viên Mãn'],
+  ['Thân Hợp', 'Thần Hợp', 'Pháp Hợp', 'Thiên Nhân Hợp Nhất'],
+  ['Nhập Thánh', 'Hóa Thánh', 'Pháp Tướng Đại Thành', 'Đại Thừa Viên Mãn'],
+  ['Nhất Cửu Thiên Kiếp', 'Tam Cửu Thiên Kiếp', 'Lục Cửu Thiên Kiếp', 'Cửu Cửu Thiên Kiếp'],
+  ['Vấn Đạo', 'Minh Đạo', 'Chứng Đạo', 'Đạo Thành'],
+];
+// Index tiểu cảnh theo xp (0..count-1). atCap=true -> đỉnh trần (tiểu cảnh cuối = Viên Mãn).
+export function subStageIndex(realm, xp, atCap) {
+  const n = (SUB_STAGES[realm] || []).length || 1;
+  return atCap ? n - 1 : Math.max(0, Math.min(n - 1, Math.floor((xp || 0) * n)));
+}
+export function subStageName(realm, xp, atCap) { return (SUB_STAGES[realm] || [])[subStageIndex(realm, xp, atCap)] || ''; }
+
 // --- 5 tư chất: tốc độ + TRẦN (index cảnh giới tối đa tự nhiên) + trọng số chiêu mộ + màu ---
 export const APT = {
   pham:   { name: 'Phàm Tư',  mul: 0.7,  cap: 2, w: 45, color: '#cbd5e1' },
