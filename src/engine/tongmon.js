@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, BREAK_REQ, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, BREAK_REQ, THAO_PRICE, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -15,7 +15,7 @@ export function ensureTongMon(state, nowMs) {
     const t = {
       name: 'Tiêu Dao Tông', dao: 'trung', level: 1,
       congHien: 0, diem: 0, khiVan: 50,
-      linhDan: 0, linhLieu: 0,                                            // Y Quán luyện idle -> nguyên liệu đột phá đại cảnh
+      linhThao: 0, linhDan: 0,                                            // Linh Thảo (mua) -> Y Quán tinh luyện -> Linh Đan (đột phá)
       buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, tuLinh: 0 },
       disciples: [], elders: [], legends: [], soSach: [],
       recruitPool: [], recruitAt: 0,
@@ -43,7 +43,7 @@ export function ensureTongMon(state, nowMs) {
   // --- backfill SỰ KIỆN + cờ đệ tử (bản cũ chưa có) ---
   if (typeof t.uyBonus !== 'number') t.uyBonus = 0;
   if (typeof t.linhDan !== 'number') t.linhDan = 0;
-  if (typeof t.linhLieu !== 'number') t.linhLieu = 0;
+  if (typeof t.linhThao !== 'number') t.linhThao = (typeof t.linhLieu === 'number' ? t.linhLieu : 0);   // migrate Linh Liệu cũ -> Linh Thảo
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
@@ -224,10 +224,13 @@ export function simTongMon(state, nowMs, capHours) {
       }
     }
   }
-  // Y Quán luyện Linh Đan + Linh Liệu (idle, side-only) — nguyên liệu đột phá đại cảnh
+  // Y Quán TINH LUYỆN: tốn Linh Thảo (kho) -> ra Linh Đan; hết Thảo thì ngưng (side-only)
   const yq = t.buildings.yQuan || 0;
-  t.linhDan = (t.linhDan || 0) + dt * (BUILDINGS.yQuan.danPerLvH * yq) / 3600;
-  t.linhLieu = (t.linhLieu || 0) + dt * (BUILDINGS.yQuan.lieuPerLvH * yq) / 3600;
+  if (yq > 0 && (t.linhThao || 0) > 0) {
+    const useThao = Math.min(t.linhThao, dt * (BUILDINGS.yQuan.refineThaoH * yq) / 3600);   // Thảo tiêu = rate × cấp × giờ, không quá kho
+    t.linhThao -= useThao;
+    t.linhDan = (t.linhDan || 0) + useThao * BUILDINGS.yQuan.danPerThao;                     // Thảo -> Đan theo tỉ lệ
+  }
   // sản lượng idle (side-only) — scale theo GIỜ (DRAFT, TUNE)
   t.diem = (t.diem || 0) + dt * (BUILDINGS.tangThu.diemPerLvH * (t.buildings.tangThu || 0)) / 3600;
   t.congHien = (t.congHien || 0) + dt * (tuCount * 3 + 1) / 3600;        // ~3/giờ mỗi đệ tử tu luyện + 1 nền
@@ -290,14 +293,22 @@ export function doBreakthrough(state, uid) {
   const cap = disciCap(d);
   if (d.realm >= cap) { d.breakReady = false; return { ok: false, msg: 'Đã đạt trần cảnh giới.' }; }
   const req = BREAK_REQ[d.realm]; if (!req) return { ok: false, msg: 'Không rõ yêu cầu đột phá.' };
-  if ((t.linhDan || 0) < req.dan) return { ok: false, msg: `Thiếu Linh Đan (cần ${req.dan}, có ${Math.floor(t.linhDan || 0)}).` };
-  if ((t.linhLieu || 0) < req.lieu) return { ok: false, msg: `Thiếu Linh Liệu (cần ${req.lieu}, có ${Math.floor(t.linhLieu || 0)}).` };
+  if ((t.linhDan || 0) < req.dan) return { ok: false, msg: `Thiếu Linh Đan (cần ${req.dan}, có ${Math.floor(t.linhDan || 0)}). Y Quán cần Linh Thảo để luyện.` };
   if ((state.currencies.honThach || 0) < req.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${req.honThach}).` };
-  t.linhDan -= req.dan; t.linhLieu -= req.lieu; state.currencies.honThach -= req.honThach;
+  t.linhDan -= req.dan; state.currencies.honThach -= req.honThach;
   d.realm++; d.xp = 0; d.breakReady = false;
   if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
   else chronicle(t, `${d.name} đột phá ${REALMS[d.realm].name}!`);
   return { ok: true, msg: `${d.name} đột phá ${REALMS[d.realm].name}!`, realm: REALMS[d.realm].name };
+}
+// ---- Mua Linh Thảo bằng Điểm Đấu Giá (nguồn Phase A; sau thêm Lịch Luyện/Dược Viên/kỳ ngộ) ----
+export function buyThao(state, qty) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  qty = Math.max(1, Math.floor(qty || 1));
+  const cost = THAO_PRICE * qty;
+  if ((t.diem || 0) < cost) return { ok: false, msg: `Thiếu Điểm Đấu Giá (cần ${cost}, có ${Math.floor(t.diem || 0)}).` };
+  t.diem -= cost; t.linhThao = (t.linhThao || 0) + qty;
+  return { ok: true, msg: `Mua ${qty} Linh Thảo · -${cost} Điểm Đấu Giá` };
 }
 
 // ---- Gia Bảo: ban đồ từ gearBag main -> đệ tử (1 chiều). slot lấy từ equip catalog (truyền sẵn) ----

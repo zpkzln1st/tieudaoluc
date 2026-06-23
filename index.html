@@ -4225,6 +4225,20 @@
                   </template>
                 </div>
               </template>
+              <!-- TÚI ĐỒ TÔNG MÔN (Linh Thảo / Linh Đan) + mua Linh Thảo -->
+              <div class="flex items-center flex-wrap gap-x-3 gap-y-2 mb-3 rounded-lg bg-ink3/30 border border-slate-800 px-3 py-2">
+                <span class="lbl shrink-0">Túi Đồ</span>
+                <span class="text-[11.5px]"><b class="text-emerald-300" x-text="g.tmLinhThao"></b> <span class="text-slate-500">Linh Thảo</span></span>
+                <span class="text-slate-700">·</span>
+                <span class="text-[11.5px]"><b class="text-violet-300" x-text="g.tmLinhDan"></b> <span class="text-slate-500">Linh Đan</span></span>
+                <span class="text-slate-700">·</span>
+                <span class="text-[11.5px]"><b class="text-amber-300" x-text="g.fmt(Math.floor(t.diem||0))"></b> <span class="text-slate-500">Điểm Đấu Giá</span></span>
+                <div class="ml-auto flex items-center gap-1.5">
+                  <span class="text-[10px] text-slate-600 whitespace-nowrap" x-text="'Mua Linh Thảo · '+g.tmThaoPrice+' Điểm/cái'"></span>
+                  <button @click="g.tmBuyThao(10)" class="text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 transition">+10</button>
+                  <button @click="g.tmBuyThao(50)" class="text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 transition">+50</button>
+                </div>
+              </div>
               <!-- CÔNG TRÌNH (mobile: cuộn ngang vuốt · desktop: lưới) -->
               <div class="tm-bld-row mb-4">
                 <template x-for="key in ['tuHien','dienVo','tangThu','yQuan','tuLinh']" :key="key">
@@ -4242,7 +4256,7 @@
               </div>
               <!-- ĐỆ TỬ ĐƯỜNG -->
               <div class="flex items-center justify-between mb-2 gap-2">
-                <div class="fserif text-slate-200 min-w-0 truncate">Đệ Tử Đường <span class="text-[11px] text-slate-500 font-normal" x-text="'· ' + t.disciples.length + '/' + g.tmSlot()"></span><span class="text-[11px] font-normal ml-2 text-slate-500">· Y Quán <b class="text-violet-300" x-text="g.tmLinhDan"></b> Đan · <b class="text-emerald-300" x-text="g.tmLinhLieu"></b> Liệu</span></div>
+                <div class="fserif text-slate-200">Đệ Tử Đường <span class="text-[11px] text-slate-500 font-normal" x-text="'· ' + t.disciples.length + '/' + g.tmSlot()"></span></div>
                 <button @click="g.tmRealmGuideOpen=true" class="shrink-0 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 text-slate-400 hover:border-cyan/50 hover:text-cyan transition inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('scroll','w-3.5 h-3.5')"></span>Cảnh Giới Phổ</button>
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">

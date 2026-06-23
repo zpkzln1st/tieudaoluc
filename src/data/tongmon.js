@@ -98,23 +98,25 @@ export const BUILDINGS = {
   tuHien:  { name: 'Tụ Hiền Đường', han: '宗', desc: 'Tăng số đệ tử nuôi được + mở Chiêu Hiền.', slotBase: 4, slotPerLv: 1 },
   dienVo:  { name: 'Diễn Võ Trường', han: '武', desc: 'Tăng tốc tu luyện toàn bộ đệ tử.', buffPerLv: 0.06 },
   tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Sinh Điểm Đấu Giá theo giờ.', diemPerLvH: 12 },
-  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Luyện Linh Đan & Linh Liệu (idle) — nguyên liệu cho đệ tử đột phá đại cảnh. Cấp cao luyện nhanh hơn.', danPerLvH: 0.5, lieuPerLvH: 0.8 },
+  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Tinh luyện Linh Thảo thành Linh Đan (đan đột phá đại cảnh). Phải có Linh Thảo trong kho — hết Thảo thì ngưng luyện. Cấp cao luyện nhanh hơn.', refineThaoH: 2, danPerThao: 0.5 },
   tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Tăng Khí Vận + chút tốc tu luyện.', khiPerLv: 4 },
 };
 export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'tuLinh'];
 
-// ĐỘT PHÁ ĐẠI CẢNH: index = realm HIỆN TẠI (đột phá lên realm+1). Cần Linh Đan + Linh Liệu (Y Quán luyện idle) + Hồn Thạch (main, 1 chiều). DRAFT, tune.
+// ĐỘT PHÁ ĐẠI CẢNH: index = realm HIỆN TẠI (đột phá lên realm+1). Cần Linh Đan (Y Quán tinh luyện từ Linh Thảo) + Hồn Thạch (main, 1 chiều). DRAFT, tune.
 export const BREAK_REQ = [
-  { dan: 2,  lieu: 4,   honThach: 100 },    // Luyện Khí -> Trúc Cơ
-  { dan: 4,  lieu: 8,   honThach: 300 },    // Trúc Cơ -> Kim Đan
-  { dan: 7,  lieu: 14,  honThach: 800 },    // Kim Đan -> Nguyên Anh
-  { dan: 11, lieu: 22,  honThach: 1800 },   // Nguyên Anh -> Hóa Thần
-  { dan: 17, lieu: 34,  honThach: 3500 },   // Hóa Thần -> Quy Hư
-  { dan: 25, lieu: 50,  honThach: 6500 },   // Quy Hư -> Hợp Thể
-  { dan: 36, lieu: 72,  honThach: 11000 },  // Hợp Thể -> Đại Thừa
-  { dan: 50, lieu: 100, honThach: 18000 },  // Đại Thừa -> Độ Kiếp
-  { dan: 70, lieu: 140, honThach: 30000 },  // Độ Kiếp -> Đắc Đạo
+  { dan: 2,  honThach: 100 },    // Luyện Khí -> Trúc Cơ
+  { dan: 4,  honThach: 300 },    // Trúc Cơ -> Kim Đan
+  { dan: 7,  honThach: 800 },    // Kim Đan -> Nguyên Anh
+  { dan: 11, honThach: 1800 },   // Nguyên Anh -> Hóa Thần
+  { dan: 17, honThach: 3500 },   // Hóa Thần -> Quy Hư
+  { dan: 25, honThach: 6500 },   // Quy Hư -> Hợp Thể
+  { dan: 36, honThach: 11000 },  // Hợp Thể -> Đại Thừa
+  { dan: 50, honThach: 18000 },  // Đại Thừa -> Độ Kiếp
+  { dan: 70, honThach: 30000 },  // Độ Kiếp -> Đắc Đạo
 ];
+// Linh Thảo (nguyên liệu thô): mua ở Tông Môn bằng Điểm Đấu Giá (Phase A); sau thêm Lịch Luyện / Dược Viên / kỳ ngộ.
+export const THAO_PRICE = 5;   // Điểm Đấu Giá / 1 Linh Thảo (DRAFT)
 
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // cost DRAFT — tune. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
