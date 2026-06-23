@@ -4264,7 +4264,7 @@
                       <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(d).color" x-text="d.name"></div>
                       <div class="text-[10px] mt-0.5 fserif" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmName(d)"></div>
                       <div class="flex items-center gap-1.5 mt-1.5">
-                        <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full" :class="d.awaiting?'bg-amber-400':'bg-jade'" :style="'width:'+g.tmProgPct(d)+'%'"></div></div>
+                        <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></div></div>
                         <span class="text-[9px]" :class="d.awaiting?'text-amber-300':'text-jade'" x-text="g.tmStateLabel(d)"></span>
                       </div>
                     </div>
@@ -4510,7 +4510,7 @@
                       <span><span class="text-slate-500">Cảnh Giới</span> <b class="fserif" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmName(d)"></b></span><span class="text-slate-700">·</span>
                       <span><span class="text-slate-500">Trần</span> <b class="fserif text-slate-200" x-text="g.tmCapName(d)"></b></span><span class="text-slate-700">·</span>
                       <span><span class="text-slate-500">Tốc Tu</span> <b class="fserif text-cyan" x-text="'×'+g.tmSpeedMul(d).toFixed(2)"></b></span>
-                      <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full" :class="d.awaiting?'bg-amber-400':'bg-jade'" :style="'width:'+g.tmProgPct(d)+'%'"></span></span><span class="text-[10px]" :class="d.awaiting?'text-amber-300':'text-jade'" x-text="g.tmProgPct(d)+'%'"></span></span>
+                      <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></span></span><span class="text-[10px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmProgPct(d)+'%'"></span></span>
                     </div>
                   </div>
                   <!-- ROW C: lore + (Tiền Đồ / tương lai) -->
