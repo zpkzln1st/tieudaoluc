@@ -4313,7 +4313,7 @@
           <!-- MODAL SỰ KIỆN GIANG HỒ (kể chuyện -> hồi kết) -->
           <template x-if="g.tmEvtOpen && g.tmEvtCur">
             <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmEvt()">
-              <div class="panel rounded-2xl w-[680px] max-w-full max-h-[90vh] overflow-hidden flex flex-col border" :style="'border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'55'" @click.stop>
+              <div class="panel rounded-2xl w-[680px] max-w-full h-[640px] max-h-[90vh] overflow-hidden flex flex-col border" :style="'border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'55'" @click.stop>
                 <!-- SCENE HEADER -->
                 <div class="relative px-5 py-4 overflow-hidden shrink-0 flex flex-col" :style="'height:176px;background:linear-gradient(165deg,'+g.tmGrpColor(g.tmEvtCur.grp)+'1c 0%, #0f1521 60%)'">
                   <img :src="'images/tongmon/events/'+g.tmEvtCur.eid.toLowerCase()+'.webp'" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'">
@@ -4364,7 +4364,6 @@
                         </button>
                       </template>
                     </div>
-                    <div class="mt-3.5 text-center text-[11px] text-slate-600 fserif italic">Lựa rồi mới biết lành dữ — như chuyện giang hồ, không ai báo trước.</div>
                   </div>
                   <!-- ② HỒI KẾT -->
                   <template x-if="g.tmEvtResult">
@@ -4381,9 +4380,13 @@
                         <div class="lbl mb-1">Ghi vào Sử Sách</div>
                         <div class="text-[12.5px] text-slate-300 fserif leading-snug" x-text="g.tmEvtResult.chronicle"></div>
                       </div>
-                      <button @click="g.closeTmEvt()" class="mt-4 w-full py-2.5 rounded-lg bg-jade/85 hover:bg-jade text-ink font-bold fserif">Tiếp tục</button>
                     </div>
                   </template>
+                </div>
+                <!-- FOOTER cố định (note / nút Tiếp tục) -->
+                <div class="shrink-0 px-5 py-3 border-t border-slate-800/70">
+                  <div x-show="!g.tmEvtResult" class="text-center text-[11px] text-slate-600 fserif italic">Lựa rồi mới biết lành dữ — như chuyện giang hồ, không ai báo trước.</div>
+                  <template x-if="g.tmEvtResult"><button @click="g.closeTmEvt()" class="w-full py-2.5 rounded-lg bg-jade/85 hover:bg-jade text-ink font-bold fserif">Tiếp tục</button></template>
                 </div>
               </div>
             </div>
