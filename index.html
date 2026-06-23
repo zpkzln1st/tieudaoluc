@@ -1996,7 +1996,8 @@
             <div class="flex items-center gap-2 mb-3 px-1">
               <button @click="$store.game.pvbTab='caothu'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='caothu'?'border-jade/50 bg-jade/10 text-jade':'border-slate-700 text-slate-400 hover:border-slate-600'">Cao Thủ Bảng</button>
               <button @click="$store.game.pvbTab='tongmon'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='tongmon'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Tông Môn Bảng</button>
-              <span class="ml-auto text-slate-500 text-[11px]" x-text="$store.game.pvbTab==='caothu'?'theo Tổng Cảnh Giới':'theo Uy Danh'"></span>
+              <button @click="$store.game.pvbTab='danhsi'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='danhsi'?'border-cyan/50 bg-cyan/10 text-cyan':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Bảng</button>
+              <span class="ml-auto text-slate-500 text-[11px]" x-text="$store.game.pvbTab==='caothu'?'theo Tổng Cảnh Giới':($store.game.pvbTab==='tongmon'?'theo Uy Danh':'20 danh sĩ chấn động giang hồ')"></span>
             </div>
             <!-- ===== CAO THỦ BẢNG ===== -->
             <div x-show="$store.game.pvbTab==='caothu'">
@@ -2067,7 +2068,179 @@
                 </template>
               </div>
             </div>
+            <!-- ===== DANH SĨ BẢNG ===== -->
+            <div x-show="$store.game.pvbTab==='danhsi'">
+              <div class="hidden sm:grid grid-cols-[44px_1fr_92px_92px] gap-2 px-2 pb-1.5 lbl">
+                <div class="text-center">Hạng</div><div>Danh Sĩ</div><div class="text-center">Ngũ Hành</div><div class="text-right">Uy Vọng</div>
+              </div>
+              <div class="space-y-1">
+                <template x-for="r in $store.game.danhSiBang" :key="r.id">
+                  <div @click="$store.game.openDanhSi(r.id)" class="grid grid-cols-[40px_1fr_auto] sm:grid-cols-[44px_1fr_92px_92px] gap-2 items-center px-2 py-2 rounded-lg border border-transparent bg-ink3/25 hover:border-cyan/40 cursor-pointer transition">
+                    <div class="flex items-center justify-center">
+                      <span class="min-w-[1.75rem] h-7 px-1 rounded-lg flex items-center justify-center text-[12px] font-bold tabular-nums" :class="r.rank===1?'bg-amber-400/20 text-amber-300 border border-amber-500/50':(r.rank===2?'bg-slate-300/15 text-slate-100 border border-slate-400/40':(r.rank===3?'bg-orange-700/25 text-orange-300 border border-orange-600/45':'text-slate-500'))" x-text="r.rank"></span>
+                    </div>
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-ink2" :style="'border:1px solid '+r.heColor+'55'"><img :src="r.face" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'"></div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap"><span class="text-[13px] font-bold fserif truncate" :style="'color:'+r.daoColor" x-text="r.ten"></span><span class="text-[10px] text-slate-500 truncate hidden sm:inline">「<span x-text="r.bietHieu"></span>」</span></div>
+                        <div class="text-[10.5px] text-slate-500 truncate" x-text="r.realmName + ' · ' + r.activityNow"></div>
+                      </div>
+                    </div>
+                    <div class="hidden sm:flex items-center justify-center">
+                      <span class="text-[10px] px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1" :style="'color:'+r.heColor+';background:rgba(0,0,0,.35);border:1px solid '+r.heColor+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+r.heColor"></span><span x-text="r.heName"></span></span>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-[14px] font-bold tabular-nums text-cyan" x-text="$store.game.fmt(r.rankPower)"></div>
+                      <div class="text-[9px] sm:hidden" :style="'color:'+r.daoColor" x-text="r.daoName"></div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
           </div>
+
+          <!-- ===== MODAL: Hồ Sơ Danh Sĩ ===== -->
+          <template x-if="$store.game.dsProfile">
+            <div class="fixed inset-0 z-[75] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closeDanhSi()" x-data="{ tab: 'thanThe', get p(){ return $store.game.dsProfile } }">
+              <div class="panel rounded-2xl overflow-hidden flex flex-col shadow-2xl" :style="'width:880px;max-width:96vw;height:648px;max-height:90dvh;border:1px solid '+p.heColor+'55'">
+                <div :style="'height:2px;background:linear-gradient(90deg,transparent,'+p.heColor+'cc 30%,#ffffff 50%,'+p.heColor+'cc 70%,transparent)'"></div>
+                <!-- HEADER -->
+                <div class="shrink-0 flex gap-4 p-4" :style="'background:linear-gradient(150deg,'+p.heColor+'14,#0f1521 60%)'">
+                  <div class="relative shrink-0 rounded-xl overflow-hidden bg-ink2 cursor-zoom-in group" @click="$store.game.openFaceFull(p.face)" :style="'width:128px;height:160px;border:1px solid '+p.heColor+'55'">
+                    <img :src="p.face" alt="" class="w-full h-full object-cover transition group-hover:scale-105" onerror="this.style.display='none'">
+                    <span class="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-md bg-black/55 border border-white/25 text-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition" x-html="$store.game.svg('scope','w-3.5 h-3.5')"></span>
+                  </div>
+                  <div class="min-w-0 flex-1 flex flex-col gap-2">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="min-w-0">
+                        <div class="lbl text-slate-500">Danh Sĩ Giang Hồ</div>
+                        <div class="text-[24px] gold-text fserif font-bold leading-tight truncate" x-text="p.ten"></div>
+                        <div class="fserif text-[13px]" :style="'color:'+p.heColor" x-text="'「 '+p.bietHieu+' 」'"></div>
+                        <div class="mt-1"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold fserif" :style="'color:'+p.danhHieu.c+';background:'+p.danhHieu.c+'18;border:1px solid '+p.danhHieu.c+'66;text-shadow:0 0 8px '+p.danhHieu.c+'55'" x-text="p.danhHieu.ten"></span></div>
+                      </div>
+                      <button @click="$store.game.closeDanhSi()" class="shrink-0 w-7 h-7 rounded-lg bg-ink3/80 border border-slate-700 hover:border-rose-400 text-slate-400 hover:text-rose-400 flex items-center justify-center text-sm">✕</button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-[10px] px-1.5 py-0.5 rounded border" :style="'color:'+p.daoColor+';border-color:'+p.daoColor+'66;background:'+p.daoColor+'14'" x-text="p.daoName"></span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="p.realmName"></span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1" :style="'color:'+p.heColor+';background:rgba(0,0,0,.35);border:1px solid '+p.heColor+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+p.heColor"></span><span x-text="p.heName"></span></span>
+                      <span class="tmtip inline-flex">
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-400 border border-slate-700 truncate max-w-[180px] cursor-help" x-text="p.monPhaiXuatThan"></span>
+                        <span class="tmtipbox panel rounded-lg p-2.5 text-left shadow-xl border border-slate-600"><span class="text-[11.5px] text-slate-300 leading-snug" x-text="p.monPhaiXuatThan"></span></span>
+                      </span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                      <template x-for="t in p.caTinh" :key="t"><span class="text-[10px] px-1.5 py-0.5 rounded-full bg-ink3 text-slate-400 border border-slate-700" x-text="t"></span></template>
+                    </div>
+                    <div class="mt-auto flex items-start gap-2 rounded-lg px-3 py-1.5" style="background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.35)">
+                      <span class="text-[9.5px] px-1.5 py-0.5 rounded font-bold shrink-0" style="color:#fda4af;background:rgba(251,113,133,.16);border:1px solid rgba(251,113,133,.4)">Với ngươi</span>
+                      <span class="text-[10.5px] text-slate-400 leading-snug line-clamp-2" x-text="p.hookWithPlayer"></span>
+                    </div>
+                  </div>
+                </div>
+                <!-- TAB BAR -->
+                <div class="shrink-0 flex gap-1.5 px-4 pt-2.5 pb-2 border-b border-slate-800/70">
+                  <template x-for="tb in [{id:'thanThe',name:'Thân Thế'},{id:'bienNien',name:'Biên Niên'},{id:'thucLuc',name:'Thực Lực'}]" :key="tb.id">
+                    <button @click="tab=tb.id" class="text-[12.5px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="tab!==tb.id ? 'border-slate-700 text-slate-400 hover:border-slate-600' : ''" :style="tab===tb.id ? ('color:'+p.heColor+';border-color:'+p.heColor+'66;background:'+p.heColor+'14') : ''" x-text="tb.name"></button>
+                  </template>
+                </div>
+                <!-- BODY -->
+                <div class="flex-1 min-h-0 overflow-y-auto p-4">
+                  <!-- TAB: Thân Thế -->
+                  <div x-show="tab==='thanThe'" class="space-y-4">
+                    <div><div class="lbl mb-1">Thân Thế</div><p class="text-[12.5px] text-slate-300 fserif leading-relaxed" x-text="p.thanThe"></p></div>
+                    <div><div class="lbl mb-1">Chí Hướng</div><p class="text-[12.5px] text-slate-200 fserif leading-snug" x-text="'“'+p.chiHuong+'”'"></p></div>
+                    <div>
+                      <div class="lbl mb-1.5">Ân Oán Giang Hồ</div>
+                      <template x-if="!p.rels.length"><div class="text-[11px] text-slate-600 italic">Chưa rõ ân oán với ai.</div></template>
+                      <div class="grid sm:grid-cols-2 gap-1.5">
+                        <template x-for="r in p.rels" :key="r.otherId">
+                          <div class="rounded-lg px-2.5 py-1.5 bg-ink3/40 border border-slate-800">
+                            <div class="flex items-center gap-1.5">
+                              <span class="text-[9.5px] px-1.5 py-0.5 rounded font-bold shrink-0" :style="'color:'+r.loaiColor+';background:'+r.loaiColor+'1c;border:1px solid '+r.loaiColor+'55'" x-text="r.loaiName"></span>
+                              <span class="text-[11.5px] font-bold fserif truncate" x-text="r.otherTen"></span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-500 leading-snug mt-1" x-text="r.text"></div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- TAB: Biên Niên -->
+                  <div x-show="tab==='bienNien'">
+                    <div class="flex items-center justify-between gap-2 mb-2.5">
+                      <div class="lbl">Biên Niên Giang Hồ</div>
+                      <span class="text-[10px] px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0" style="color:#34d399;border:1px solid rgba(20,184,166,.27);background:rgba(20,184,166,.08)"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span x-text="p.activityNow"></span></span>
+                    </div>
+                    <div class="space-y-2">
+                      <template x-for="(e,i) in p.bienNien" :key="i">
+                        <div class="pl-2.5" :style="'border-left:2px solid '+(p.loaiColor[e.loai]||'#94a3b8')">
+                          <div class="text-[9.5px] text-slate-500" x-text="e.daysAgo===0?'hôm nay':(e.daysAgo+' ngày trước')"></div>
+                          <div class="text-[11.5px] text-slate-300 leading-snug" x-text="e.text"></div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <!-- TAB: Thực Lực & Trang Bị -->
+                  <div x-show="tab==='thucLuc'" class="space-y-4">
+                    <div>
+                      <div class="lbl mb-1.5">Tuyệt Học</div>
+                      <div class="rounded-lg px-3 py-2" style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.3)">
+                        <div class="text-[12px] text-slate-300">Tuyệt học · <b class="text-violet-300" x-text="p.tuyetHoc.ten"></b></div>
+                        <div class="text-[10.5px] text-slate-500 leading-snug mt-0.5" x-text="p.tuyetHoc.desc"></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="flex items-center justify-between text-[10px] mb-1"><span class="lbl">Tu Vi · <span x-text="p.realmName"></span></span><span class="text-slate-500" x-text="p.realmPct+'%'"></span></div>
+                      <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+p.realmPct+'%;background:'+p.heColor"></div></div>
+                    </div>
+                    <div>
+                      <div class="lbl mb-1.5">Chỉ Số</div>
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                        <template x-for="st in p.stats" :key="st.name">
+                          <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg" :class="st.hl?'bg-cyan/10 border border-cyan/30':'bg-ink3/40 border border-slate-800'">
+                            <span class="text-[11px] text-slate-400" x-text="st.name"></span>
+                            <span class="text-[12px] font-bold tabular-nums" :class="st.hl?'text-cyan':'text-jade'" x-text="$store.game.fmt(st.val)+(st.suffix||'')"></span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="lbl mb-1.5">Trang Bị</div>
+                      <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                        <template x-for="g in p.gear" :key="g.slot">
+                          <div class="flex items-center gap-2 rounded-lg px-2 py-1.5" :style="'border:1px solid '+g.color+'55;background:'+g.color+'12'">
+                            <span class="w-10 h-10 rounded-md overflow-hidden bg-ink/50 inline-flex items-center justify-center shrink-0" :style="'border:1px solid '+g.color+'40'">
+                              <img :src="'images/equip/'+g.gearId+'.webp'" class="w-full h-full object-contain" alt="" onerror="this.style.display='none'">
+                            </span>
+                            <div class="min-w-0 flex-1">
+                              <div class="text-[11px] font-semibold leading-tight" :class="g.sig?'fserif':''" :style="'color:'+g.color" x-text="g.name"></div>
+                              <div class="text-[8.5px] text-slate-500 mt-0.5" x-text="g.slot+' · '+g.pham"></div>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- FOOTER -->
+                <div class="shrink-0 flex items-center justify-between gap-3 px-4 py-2.5 border-t border-slate-800" style="background:rgba(15,21,33,.5)">
+                  <div class="text-[11px] text-slate-500 italic truncate" x-text="'“'+p.tamCanh+'”'"></div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    <span class="text-[11px] text-slate-500">Hạng <b class="text-cyan" x-text="p.rank"></b>/<span x-text="p.total"></span> Danh Sĩ</span>
+                    <button @click="$store.game.closeDanhSi()" class="px-4 py-1.5 rounded-lg text-[12px] text-slate-300 border border-slate-700 hover:border-slate-500">Đóng</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Lightbox phóng to chân dung danh sĩ -->
+          <template x-if="$store.game.tmFaceFull">
+            <div class="fixed inset-0 z-[85] flex items-center justify-center p-6 cursor-zoom-out" style="background:rgba(0,0,0,.86);backdrop-filter:blur(4px)" @click="$store.game.closeFaceFull()">
+              <img :src="$store.game.tmFaceFull" alt="" class="max-w-full max-h-full rounded-xl shadow-2xl object-contain">
+            </div>
+          </template>
 
           <!-- Panel Tin Giang Hồ — feed bot dọc; nguồn: $store.game.jiangHuFeed (derived, deterministic) -->
           <div class="panel rounded-xl overflow-hidden lg:sticky lg:top-0 lg:self-start">

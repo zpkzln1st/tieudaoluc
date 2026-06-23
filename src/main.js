@@ -38,6 +38,7 @@ import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost,
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { danhSiList, danhSiProfile } from './engine/danhsi.js';
 import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
@@ -1363,6 +1364,12 @@ const gameStore = {
   get jiangHuTicker() { return this.jiangHuFeed.slice(0, 12); },
   // ===== TÔNG MÔN BẢNG (xếp Uy Danh tông mình vs tông bot deterministic) =====
   pvbTab: 'caothu',
+  // ===== DANH SĨ GIANG HỒ (20 deep AI, lazy-sim) =====
+  dsSel: null,
+  get danhSiBang() { void this._tick; return danhSiList(now()); },
+  openDanhSi(id) { this.dsSel = id; },
+  closeDanhSi() { this.dsSel = null; },
+  get dsProfile() { void this._tick; return this.dsSel ? danhSiProfile(this.dsSel, now()) : null; },
   daoInfo(dao) { return ({ chinh: ['Chính Đạo', '#14b8a6'], ta: ['Tà Đạo', '#e879f9'], trung: ['Trung Dung', '#94a3b8'] })[dao] || ['Trung Dung', '#94a3b8']; },
   get tongMonBang() {
     const w = this.state.world; if (!w || !this.tm) return [];
