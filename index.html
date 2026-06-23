@@ -4225,19 +4225,20 @@
                   </template>
                 </div>
               </template>
-              <!-- TÚI ĐỒ TÔNG MÔN (Linh Thảo / Linh Đan) + mua Linh Thảo -->
-              <div class="flex items-center flex-wrap gap-x-3 gap-y-2 mb-3 rounded-lg bg-ink3/30 border border-slate-800 px-3 py-2">
-                <span class="lbl shrink-0">Túi Đồ</span>
-                <span class="text-[11.5px]"><b class="text-emerald-300" x-text="g.tmLinhThao"></b> <span class="text-slate-500">Linh Thảo</span></span>
-                <span class="text-slate-700">·</span>
-                <span class="text-[11.5px]"><b class="text-violet-300" x-text="g.tmLinhDan"></b> <span class="text-slate-500">Linh Đan</span></span>
-                <span class="text-slate-700">·</span>
-                <span class="text-[11.5px]"><b class="text-amber-300" x-text="g.fmt(Math.floor(t.diem||0))"></b> <span class="text-slate-500">Điểm Đấu Giá</span></span>
-                <div class="ml-auto flex items-center gap-1.5">
-                  <span class="text-[10px] text-slate-600 whitespace-nowrap" x-text="'Mua Linh Thảo · '+g.tmThaoPrice+' Điểm/cái'"></span>
-                  <button @click="g.tmBuyThao(10)" class="text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 transition">+10</button>
-                  <button @click="g.tmBuyThao(50)" class="text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 transition">+50</button>
-                </div>
+              <!-- TÚI ĐỒ: nguyên liệu (art tile + số lượng) + nút Luyện Đan -->
+              <div class="flex items-center flex-wrap gap-2 mb-3 rounded-lg bg-ink3/30 border border-slate-800 px-3 py-2">
+                <span class="lbl shrink-0 mr-0.5">Túi Đồ</span>
+                <template x-for="m in g.tmMatsList" :key="m.id">
+                  <span class="tmtip inline-flex">
+                    <span class="relative w-9 h-9 rounded-md overflow-hidden bg-ink2 border border-slate-700 flex items-center justify-center" :class="m.count?'':'opacity-40'">
+                      <span class="text-base" x-text="m.emoji"></span>
+                      <img :src="'images/tongmon/mats/'+m.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                      <span class="absolute bottom-0 right-0.5 text-[9px] font-bold text-white leading-none" style="text-shadow:0 0 3px #000,0 0 2px #000" x-text="m.count"></span>
+                    </span>
+                    <span class="tmtipbox panel rounded-lg p-2 text-left shadow-xl border border-slate-600"><span class="text-[11.5px] text-slate-200 block" x-text="m.name"></span><span class="text-[10px] text-slate-500">Bậc <span x-text="m.tier"></span> · nguyên liệu luyện đan</span></span>
+                  </span>
+                </template>
+                <button @click="g.tmCraftOpen=true" class="ml-auto shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg border border-amber-500/50 text-amber-200 hover:bg-amber-500/10 transition inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('scroll','w-3.5 h-3.5')"></span>Luyện Đan</button>
               </div>
               <!-- CÔNG TRÌNH (mobile: cuộn ngang vuốt · desktop: lưới) -->
               <div class="tm-bld-row mb-4">
@@ -4270,6 +4271,7 @@
                       <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:'+g.tmHe(d).color" x-text="g.tmHe(d).han"></span>
                       <template x-if="d.awaiting"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1 py-0.5 rounded bg-amber-500 text-ink font-bold">Đắc Đạo</span></template>
                       <template x-if="d.breakReady"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-violet-500 text-white font-bold animate-pulse">Đột Phá</span></template>
+                      <template x-if="d.lichLuyenUntil && !d.breakReady"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-cyan-600 text-white font-bold">Lịch Luyện</span></template>
                     </div>
                     <div class="p-2 bg-ink3/40">
                       <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(d).color" x-text="d.name"></div>
@@ -4277,7 +4279,7 @@
                       <div class="text-[9px] text-slate-500 fserif leading-tight truncate" x-text="g.tmSubShort(d)"></div>
                       <div class="flex items-center gap-1.5 mt-1.5">
                         <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></div></div>
-                        <span class="text-[9px]" :style="'color:'+(d.breakReady?'#a78bfa':g.tmRealmColor(d))" x-text="d.breakReady ? 'Chờ đột phá' : g.tmStateLabel(d)"></span>
+                        <span class="text-[9px]" :style="'color:'+(d.breakReady?'#a78bfa':(d.lichLuyenUntil?'#22d3ee':g.tmRealmColor(d)))" x-text="d.breakReady ? 'Chờ đột phá' : (d.lichLuyenUntil ? 'Lịch luyện' : g.tmStateLabel(d))"></span>
                       </div>
                     </div>
                   </div>
@@ -4517,6 +4519,40 @@
             </div>
           </template>
 
+          <!-- MODAL LUYỆN ĐAN (Y Quán) -->
+          <template x-if="g.tmCraftOpen">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmCraftOpen=false">
+              <div class="panel rounded-2xl w-[560px] max-w-full h-[640px] max-h-[92dvh] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(245,185,66,.08),transparent)">
+                  <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-amber-300" x-html="g.svg('flask','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Luyện Đan · Y Quán</div></div>
+                  <button @click="g.tmCraftOpen=false" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                </div>
+                <div class="px-5 py-2.5 text-[11px] text-slate-500 border-b border-slate-800/60 shrink-0">Luyện đan đột phá từ nguyên liệu (kiếm qua <b class="text-slate-400">Lịch Luyện</b>). Y Quán Bậc <b class="text-amber-300" x-text="g.tmBuildLv('yQuan')"></b> — cấp cao mở đan bậc cao hơn.</div>
+                <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+                  <template x-for="r in g.tmRecipes" :key="r.id">
+                    <div class="rounded-lg bg-ink3/40 border px-3 py-2.5" :class="r.canCraft?'border-jade/30':'border-slate-800'">
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="w-7 h-7 rounded bg-ink2 border border-slate-700 flex items-center justify-center text-[15px] shrink-0" x-text="r.emoji"></span>
+                          <div class="min-w-0">
+                            <div class="fserif text-[13px] text-slate-100 truncate" x-text="r.name"></div>
+                            <div class="text-[10px] text-slate-500 truncate" x-text="'Đột phá → '+r.realmName + (r.have? ' · đang có '+r.have : '')"></div>
+                          </div>
+                        </div>
+                        <button @click="g.tmCraft(r.id)" :disabled="!r.canCraft" class="shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg font-bold transition" :class="r.canCraft?'bg-amber-500/85 hover:bg-amber-500 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="r.lvOk?'Luyện':('Cần Bậc '+r.lvReq)"></button>
+                      </div>
+                      <div class="flex flex-wrap gap-1.5 mt-1.5 pl-9">
+                        <template x-for="mt in r.mats" :key="mt.id">
+                          <span class="text-[10.5px] px-1.5 py-0.5 rounded inline-flex items-center gap-1 border" :class="mt.ok?'border-jade/30 text-jade':'border-rose-500/30 text-rose-300'"><span x-text="mt.emoji"></span><span x-text="mt.name+' '+mt.have+'/'+mt.need"></span></span>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- MODAL CHI TIẾT ĐỆ TỬ -->
           <template x-if="g.tmSelDisciple">
             <div class="fixed inset-0 z-[72] flex items-start sm:items-center justify-center overflow-y-auto bg-black/72 backdrop-blur-sm p-4" @click="g.closeDisciple()">
@@ -4597,6 +4633,15 @@
                       <span><span class="text-slate-500">Tốc Tu</span> <b class="fserif text-cyan" x-text="'×'+g.tmSpeedMul(d).toFixed(2)"></b></span>
                       <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></span></span><span class="text-[10px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmProgPct(d)+'%'"></span></span>
                     </div>
+                  </div>
+                  <!-- LỊCH LUYỆN (phái đi kiếm nguyên liệu) -->
+                  <div class="rounded-lg bg-ink3/40 border border-slate-800 px-3 py-2 shrink-0 flex items-center justify-between gap-2 flex-wrap">
+                    <div class="text-[11.5px] min-w-0">
+                      <span class="lbl mr-1">Lịch Luyện</span>
+                      <template x-if="g.tmLichLuyenInfo(d)"><span class="text-cyan">Đang đi · còn <b x-text="g.tmLichLuyenCdText(d)"></b></span></template>
+                      <template x-if="!g.tmLichLuyenInfo(d)"><span class="text-slate-500">Phái đi kiếm nguyên liệu (<span x-text="g.tmLichLuyenH"></span>h) — tạm ngưng tu</span></template>
+                    </div>
+                    <button @click="g.tmStartLichLuyen(d.uid)" :disabled="!g.tmCanLichLuyen(d)" class="shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg border transition" :class="g.tmCanLichLuyen(d)?'border-cyan/50 text-cyan hover:bg-cyan/10':'border-slate-700 text-slate-600 cursor-not-allowed'" x-text="g.tmLichLuyenInfo(d)?'Đang lịch luyện':'Phái Lịch Luyện'"></button>
                   </div>
                   <!-- ĐỘT PHÁ đại cảnh (Bình Cảnh) -->
                   <template x-if="d.breakReady">

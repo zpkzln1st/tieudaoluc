@@ -98,25 +98,42 @@ export const BUILDINGS = {
   tuHien:  { name: 'Tụ Hiền Đường', han: '宗', desc: 'Tăng số đệ tử nuôi được + mở Chiêu Hiền.', slotBase: 4, slotPerLv: 1 },
   dienVo:  { name: 'Diễn Võ Trường', han: '武', desc: 'Tăng tốc tu luyện toàn bộ đệ tử.', buffPerLv: 0.06 },
   tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Sinh Điểm Đấu Giá theo giờ.', diemPerLvH: 12 },
-  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Tinh luyện Linh Thảo thành Linh Đan (đan đột phá đại cảnh). Phải có Linh Thảo trong kho — hết Thảo thì ngưng luyện. Cấp cao luyện nhanh hơn.', refineThaoH: 2, danPerThao: 0.5 },
+  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Luyện đan đột phá theo CÔNG THỨC (tốn nguyên liệu trong Túi Đồ). Cấp cao mở luyện đan bậc cao hơn.' },
   tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Tăng Khí Vận + chút tốc tu luyện.', khiPerLv: 4 },
 };
 export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'tuLinh'];
 
-// ĐỘT PHÁ ĐẠI CẢNH: index = realm HIỆN TẠI (đột phá lên realm+1). Cần Linh Đan (Y Quán tinh luyện từ Linh Thảo) + Hồn Thạch (main, 1 chiều). DRAFT, tune.
-export const BREAK_REQ = [
-  { dan: 2,  honThach: 100 },    // Luyện Khí -> Trúc Cơ
-  { dan: 4,  honThach: 300 },    // Trúc Cơ -> Kim Đan
-  { dan: 7,  honThach: 800 },    // Kim Đan -> Nguyên Anh
-  { dan: 11, honThach: 1800 },   // Nguyên Anh -> Hóa Thần
-  { dan: 17, honThach: 3500 },   // Hóa Thần -> Quy Hư
-  { dan: 25, honThach: 6500 },   // Quy Hư -> Hợp Thể
-  { dan: 36, honThach: 11000 },  // Hợp Thể -> Đại Thừa
-  { dan: 50, honThach: 18000 },  // Đại Thừa -> Độ Kiếp
-  { dan: 70, honThach: 30000 },  // Độ Kiếp -> Đắc Đạo
-];
-// Linh Thảo (nguyên liệu thô): mua ở Tông Môn bằng Điểm Đấu Giá (Phase A); sau thêm Lịch Luyện / Dược Viên / kỳ ngộ.
-export const THAO_PRICE = 5;   // Điểm Đấu Giá / 1 Linh Thảo (DRAFT)
+// ===== LUYỆN ĐAN: nguyên liệu (MATS) -> đan đột phá (PILLS) theo CÔNG THỨC =====
+// 6 nguyên liệu, 3 bậc · art images/tongmon/mats/<id>.webp (emoji = fallback).
+export const MATS = {
+  mat_tulinhthao: { id: 'mat_tulinhthao', name: 'Tụ Linh Thảo',       tier: 1, emoji: '🌿' },
+  mat_hantinh:    { id: 'mat_hantinh',    name: 'Hàn Tinh Thạch',     tier: 1, emoji: '🔷' },
+  mat_bachnien:   { id: 'mat_bachnien',   name: 'Bách Niên Linh Chi', tier: 2, emoji: '🍄' },
+  mat_huyenthiet: { id: 'mat_huyenthiet', name: 'Huyền Thiết Tinh',   tier: 2, emoji: '🪨' },
+  mat_cuudiep:    { id: 'mat_cuudiep',    name: 'Cửu Diệp Linh Sâm',  tier: 3, emoji: '🌱' },
+  mat_tinhhon:    { id: 'mat_tinhhon',    name: 'Tinh Hồn Thạch',     tier: 3, emoji: '🔮' },
+};
+export const MAT_KEYS = Object.keys(MATS);
+// 9 đan đột phá: realm = cảnh giới HIỆN TẠI (đột phá lên realm+1). recipe {matId:qty}. lvReq = cấp Y Quán cần để luyện.
+export const PILLS = {
+  trucCoDan:   { id: 'trucCoDan',   name: 'Trúc Cơ Đan',   realm: 0, lvReq: 1, emoji: '🟢', recipe: { mat_tulinhthao: 3,  mat_hantinh: 2 } },
+  ketDanDan:   { id: 'ketDanDan',   name: 'Kết Đan Đan',   realm: 1, lvReq: 1, emoji: '🔵', recipe: { mat_tulinhthao: 5,  mat_hantinh: 4 } },
+  ngungAnhDan: { id: 'ngungAnhDan', name: 'Ngưng Anh Đan', realm: 2, lvReq: 3, emoji: '🟣', recipe: { mat_bachnien: 3,   mat_huyenthiet: 2 } },
+  hoaThanDan:  { id: 'hoaThanDan',  name: 'Hóa Thần Đan',  realm: 3, lvReq: 3, emoji: '🟪', recipe: { mat_bachnien: 5,   mat_huyenthiet: 4 } },
+  quyHuDan:    { id: 'quyHuDan',    name: 'Quy Hư Đan',    realm: 4, lvReq: 5, emoji: '🟠', recipe: { mat_cuudiep: 3,    mat_tinhhon: 2 } },
+  hopDaoDan:   { id: 'hopDaoDan',   name: 'Hợp Đạo Đan',   realm: 5, lvReq: 5, emoji: '🔶', recipe: { mat_cuudiep: 5,    mat_tinhhon: 4 } },
+  daiThuaDan:  { id: 'daiThuaDan',  name: 'Đại Thừa Đan',  realm: 6, lvReq: 6, emoji: '🟡', recipe: { mat_cuudiep: 7,    mat_tinhhon: 6 } },
+  doKiepDan:   { id: 'doKiepDan',   name: 'Độ Kiếp Đan',   realm: 7, lvReq: 7, emoji: '🔴', recipe: { mat_cuudiep: 10,   mat_tinhhon: 8 } },
+  phiThangDan: { id: 'phiThangDan', name: 'Phi Thăng Đan', realm: 8, lvReq: 8, emoji: '⭐', recipe: { mat_cuudiep: 14,   mat_tinhhon: 12 } },
+};
+export const PILL_KEYS = Object.keys(PILLS);
+export const PILL_BY_REALM = {}; PILL_KEYS.forEach((k) => { PILL_BY_REALM[PILLS[k].realm] = k; });
+// Đột phá realm R: cần 1 đan PILL_BY_REALM[R] + Hồn Thạch (main, 1 chiều). DRAFT.
+export const BREAK_HONTHACH = [100, 300, 800, 1800, 3500, 6500, 11000, 18000, 30000];
+
+// ===== LỊCH LUYỆN: phái đệ tử RẢNH đi kiếm nguyên liệu (nguồn chính, không mua-điểm) =====
+export const LICH_LUYEN_H = 4;   // giờ thực / chuyến (DRAFT)
+export function lichLuyenTier(realm) { return realm <= 1 ? 1 : (realm <= 3 ? 2 : 3); }   // bậc liệu theo cảnh giới đệ tử
 
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // cost DRAFT — tune. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung

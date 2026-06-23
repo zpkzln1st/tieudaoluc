@@ -37,9 +37,9 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, buyThao, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, craftPill, startLichLuyen, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, THAO_PRICE } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -430,16 +430,31 @@ const gameStore = {
   tmRealmMajor(d) { return REALMS[d.realm].name; },                          // tên ĐẠI cảnh (gom màu/Trần)
   tmRealmFull(d) { const major = REALMS[d.realm].name, sub = subStageName(d.realm, d.xp, this.tmAtCap(d)); return sub.includes(major) ? sub : (major + ' · ' + sub); },  // ĐẠI · tiểu (dedupe nếu tiểu đã chứa đại)
   tmSubShort(d) { const major = REALMS[d.realm].name, sub = subStageName(d.realm, d.xp, this.tmAtCap(d)); const s = sub.replace(major, '').replace(/\s+/g, ' ').trim(); return s || sub; },  // chỉ phần TIỂU (bỏ tên đại) cho card 2 dòng
-  // ===== ĐỘT PHÁ đại cảnh (Bình Cảnh -> nạp Linh Đan/Liệu/Hồn Thạch) =====
-  get tmLinhThao() { void this._tick; return Math.floor((this.tm && this.tm.linhThao) || 0); },
-  get tmLinhDan() { void this._tick; return Math.floor((this.tm && this.tm.linhDan) || 0); },
-  get tmThaoPrice() { return THAO_PRICE; },
-  tmBuyThao(qty) { const r = buyThao(this.state, qty); if (r.ok) { this.tmSave(); this.showToast('Túi Đồ · ' + r.msg); } else this.showToast(r.msg); },
-  tmNextRealm(d) { return REALMS[Math.min(9, (d.realm || 0) + 1)].name; },   // tên đại cảnh sẽ lên
+  // ===== TÚI ĐỒ (nguyên liệu/đan) + LUYỆN ĐAN + LỊCH LUYỆN + ĐỘT PHÁ =====
+  tmMatCount(m) { return Math.floor(((this.tm && this.tm.mats) || {})[m] || 0); },
+  tmPillCount(p) { return Math.floor(((this.tm && this.tm.pills) || {})[p] || 0); },
+  get tmMatsList() { void this._tick; return MAT_KEYS.map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, tier: MATS[m].tier, count: this.tmMatCount(m) })); },
+  get tmPillsList() { void this._tick; return PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p) })).filter((x) => x.count > 0); },
+  get tmRecipes() {
+    void this._tick;
+    return PILL_KEYS.map((p) => {
+      const pl = PILLS[p];
+      const mats = Object.keys(pl.recipe).map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, need: pl.recipe[m], have: this.tmMatCount(m), ok: this.tmMatCount(m) >= pl.recipe[m] }));
+      const lvOk = (this.tm.buildings.yQuan || 0) >= pl.lvReq;
+      return { id: p, name: pl.name, emoji: pl.emoji, realmName: REALMS[pl.realm + 1].name, lvReq: pl.lvReq, lvOk, mats, have: this.tmPillCount(p), canCraft: lvOk && mats.every((x) => x.ok) };
+    });
+  },
+  tmCraft(pillId) { const r = craftPill(this.state, pillId); if (r.ok) { this.tmSave(); this.showToast('Y Quán · ' + r.msg); } else this.showToast(r.msg); },
+  tmLichLuyenInfo(d) { void this._tick; if (!d || !d.lichLuyenUntil) return null; const ms = d.lichLuyenUntil - now(); return { active: ms > 0, leftMs: Math.max(0, ms) }; },
+  tmLichLuyenCdText(d) { const i = this.tmLichLuyenInfo(d); if (!i) return ''; const ms = i.leftMs, h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm'); },
+  tmCanLichLuyen(d) { return !!(d && !d.awaiting && !d.breakReady && !d.lichLuyenUntil); },
+  tmStartLichLuyen(uid) { const r = startLichLuyen(this.state, uid, now()); if (r.ok) { this.tmSave(); this.showToast('Lịch Luyện · ' + r.msg); } else this.showToast(r.msg); },
+  get tmLichLuyenH() { return LICH_LUYEN_H; },
+  tmNextRealm(d) { return REALMS[Math.min(9, (d.realm || 0) + 1)].name; },
   tmBreakRows(d) {
     const r = breakReqOf(d); if (!r) return [];
     return [
-      { label: 'Linh Đan', need: r.dan, have: Math.floor((this.tm.linhDan) || 0) },
+      { label: r.pillName, need: 1, have: this.tmPillCount(r.pill) },
       { label: 'Hồn Thạch', need: r.honThach, have: Math.floor((this.state.currencies.honThach) || 0) },
     ].map((x) => Object.assign(x, { ok: x.have >= x.need }));
   },
@@ -467,6 +482,7 @@ const gameStore = {
   tmUpgrade(key) { if (upgradeBuilding(this.state, key)) { this.tmSave(); this.showToast('Nâng cấp ' + BUILDINGS[key].name); } else this.showToast('Thiếu Bạc / Cống Hiến'); },
   // Popup chi tiết công trình: hiệu lực bậc HIỆN TẠI -> bậc SAU (cụ thể từng loại).
   tmBuildSel: null,
+  tmCraftOpen: false,
   tmBuildDetail(key) {
     const b = BUILDINGS[key]; const lv = this.tmBuildLv(key), nlv = lv + 1; const fx = [];
     if (key === 'tuHien') {
@@ -476,8 +492,9 @@ const gameStore = {
     } else if (key === 'tangThu') {
       fx.push({ label: 'Điểm Đấu Giá', cur: this.fmt(b.diemPerLvH * lv) + '/giờ', next: this.fmt(b.diemPerLvH * nlv) + '/giờ' });
     } else if (key === 'yQuan') {
-      fx.push({ label: 'Tinh luyện Linh Đan', cur: (b.refineThaoH * b.danPerThao * lv).toFixed(1) + '/giờ', next: (b.refineThaoH * b.danPerThao * nlv).toFixed(1) + '/giờ' });
-      fx.push({ label: 'Tốn Linh Thảo', cur: (b.refineThaoH * lv) + '/giờ', next: (b.refineThaoH * nlv) + '/giờ' });
+      const top = (L) => { let best = null; for (const k in PILLS) { const p = PILLS[k]; if (p.lvReq <= L && (!best || p.realm > best.realm)) best = p; } return best; };
+      const c = top(lv), n = top(nlv);
+      fx.push({ label: 'Luyện đan cao nhất', cur: c ? c.name : '—', next: n ? n.name : '—' });
     } else if (key === 'tuLinh') {
       fx.push({ label: 'Khí Vận hồi (≤100)', cur: '+' + (b.khiPerLv * lv / 10).toFixed(1) + '/giờ', next: '+' + (b.khiPerLv * nlv / 10).toFixed(1) + '/giờ' });
       fx.push({ label: 'Tốc tu toàn môn', cur: '+' + (2 * lv) + '%', next: '+' + (2 * nlv) + '%' });

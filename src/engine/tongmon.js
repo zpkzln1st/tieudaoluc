@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, BREAK_REQ, THAO_PRICE, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -15,7 +15,7 @@ export function ensureTongMon(state, nowMs) {
     const t = {
       name: 'Tiêu Dao Tông', dao: 'trung', level: 1,
       congHien: 0, diem: 0, khiVan: 50,
-      linhThao: 0, linhDan: 0,                                            // Linh Thảo (mua) -> Y Quán tinh luyện -> Linh Đan (đột phá)
+      mats: {}, pills: {},                                                // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá
       buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, tuLinh: 0 },
       disciples: [], elders: [], legends: [], soSach: [],
       recruitPool: [], recruitAt: 0,
@@ -42,8 +42,8 @@ export function ensureTongMon(state, nowMs) {
   if (!t.lastSimAt) t.lastSimAt = nowMs || Date.now();
   // --- backfill SỰ KIỆN + cờ đệ tử (bản cũ chưa có) ---
   if (typeof t.uyBonus !== 'number') t.uyBonus = 0;
-  if (typeof t.linhDan !== 'number') t.linhDan = 0;
-  if (typeof t.linhThao !== 'number') t.linhThao = (typeof t.linhLieu === 'number' ? t.linhLieu : 0);   // migrate Linh Liệu cũ -> Linh Thảo
+  if (!t.mats || typeof t.mats !== 'object') t.mats = {};
+  if (!t.pills || typeof t.pills !== 'object') t.pills = {};
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
@@ -204,6 +204,14 @@ export function simTongMon(state, nowMs, capHours) {
   let tuCount = 0;
   const buff = 1 + (BUILDINGS.dienVo.buffPerLv * (t.buildings.dienVo || 0)) + 0.02 * (t.buildings.tuLinh || 0);
   for (const d of t.disciples) {
+    // LỊCH LUYỆN: đang đi -> KHÔNG tu; xong -> thu nguyên liệu về Túi Đồ
+    if (d.lichLuyenUntil) {
+      if (nowMs < d.lichLuyenUntil) continue;
+      const rw = d.lichLuyenReward || {};
+      for (const m in rw) t.mats[m] = (t.mats[m] || 0) + rw[m];
+      chronicle(t, `${d.name} lịch luyện trở về, mang theo ${Object.keys(rw).map((m) => (MATS[m] || {}).name + '×' + rw[m]).join(', ')}.`);
+      d.lichLuyenUntil = 0; d.lichLuyenReward = null;
+    }
     if (d.state !== 'tu' || d.awaiting) continue;
     tuCount++;
     if (d.breakReady) continue;                  // BÌNH CẢNH: viên mãn, chờ người chơi đột phá (KHÔNG tự lên)
@@ -215,7 +223,7 @@ export function simTongMon(state, nowMs, capHours) {
       const realmSec = (REALMS[d.realm].hours * 3600) / spd;   // tổng giây thực để xong cảnh giới này
       const need = (1 - (d.xp || 0)) * realmSec;               // còn lại để đột phá
       if (rem >= need) {
-        d.xp = 1; d.breakReady = true; rem = 0;                // ĐẦY -> Bình Cảnh (cần Linh Đan/Liệu/Hồn Thạch để đột phá)
+        d.xp = 1; d.breakReady = true; rem = 0;                // ĐẦY -> Bình Cảnh (cần đan đột phá + Hồn Thạch)
         breaks.push({ name: d.name, realm: REALMS[d.realm].name, bottleneck: true });
         chronicle(t, `${d.name} tu vi viên mãn ${REALMS[d.realm].name}, lâm Bình Cảnh — chờ đột phá đại cảnh.`);
         break;
@@ -223,13 +231,6 @@ export function simTongMon(state, nowMs, capHours) {
         d.xp = (d.xp || 0) + rem / realmSec; rem = 0;
       }
     }
-  }
-  // Y Quán TINH LUYỆN: tốn Linh Thảo (kho) -> ra Linh Đan; hết Thảo thì ngưng (side-only)
-  const yq = t.buildings.yQuan || 0;
-  if (yq > 0 && (t.linhThao || 0) > 0) {
-    const useThao = Math.min(t.linhThao, dt * (BUILDINGS.yQuan.refineThaoH * yq) / 3600);   // Thảo tiêu = rate × cấp × giờ, không quá kho
-    t.linhThao -= useThao;
-    t.linhDan = (t.linhDan || 0) + useThao * BUILDINGS.yQuan.danPerThao;                     // Thảo -> Đan theo tỉ lệ
   }
   // sản lượng idle (side-only) — scale theo GIỜ (DRAFT, TUNE)
   t.diem = (t.diem || 0) + dt * (BUILDINGS.tangThu.diemPerLvH * (t.buildings.tangThu || 0)) / 3600;
@@ -284,31 +285,50 @@ export function doRecruitReset(state, nowMs) {
   return { ok: true, msg: `Đổi lứa mới · -${RECRUIT_RESET_COST} Hồn Thạch (${t.recruitResetCount}/${RECRUIT_RESET_MAX})` };
 }
 
-// ---- ĐỘT PHÁ đại cảnh: viên mãn (breakReady) -> nạp Linh Đan + Linh Liệu (Y Quán) + Hồn Thạch (main 1 chiều) ----
-export function breakReqOf(d) { return (d && d.breakReady) ? (BREAK_REQ[d.realm] || null) : null; }
+// ---- ĐỘT PHÁ đại cảnh: viên mãn (breakReady) -> nạp 1 ĐAN ký danh (PILLS) + Hồn Thạch (main 1 chiều) ----
+export function breakReqOf(d) {
+  if (!d || !d.breakReady) return null;
+  const pillId = PILL_BY_REALM[d.realm]; if (!pillId) return null;
+  return { pill: pillId, pillName: PILLS[pillId].name, honThach: BREAK_HONTHACH[d.realm] || 0 };
+}
 export function doBreakthrough(state, uid) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
   const d = t.disciples.find((x) => x.uid === uid);
   if (!d || !d.breakReady) return { ok: false, msg: 'Đệ tử chưa tới Bình Cảnh.' };
   const cap = disciCap(d);
   if (d.realm >= cap) { d.breakReady = false; return { ok: false, msg: 'Đã đạt trần cảnh giới.' }; }
-  const req = BREAK_REQ[d.realm]; if (!req) return { ok: false, msg: 'Không rõ yêu cầu đột phá.' };
-  if ((t.linhDan || 0) < req.dan) return { ok: false, msg: `Thiếu Linh Đan (cần ${req.dan}, có ${Math.floor(t.linhDan || 0)}). Y Quán cần Linh Thảo để luyện.` };
+  const req = breakReqOf(d); if (!req) return { ok: false, msg: 'Không rõ yêu cầu đột phá.' };
+  if (((t.pills || {})[req.pill] || 0) < 1) return { ok: false, msg: `Thiếu ${req.pillName} (luyện ở Y Quán).` };
   if ((state.currencies.honThach || 0) < req.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${req.honThach}).` };
-  t.linhDan -= req.dan; state.currencies.honThach -= req.honThach;
+  t.pills[req.pill] -= 1; state.currencies.honThach -= req.honThach;
   d.realm++; d.xp = 0; d.breakReady = false;
-  if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
-  else chronicle(t, `${d.name} đột phá ${REALMS[d.realm].name}!`);
+  if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} phục một viên ${req.pillName}, đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
+  else chronicle(t, `${d.name} phục một viên ${req.pillName}, đột phá ${REALMS[d.realm].name}!`);
   return { ok: true, msg: `${d.name} đột phá ${REALMS[d.realm].name}!`, realm: REALMS[d.realm].name };
 }
-// ---- Mua Linh Thảo bằng Điểm Đấu Giá (nguồn Phase A; sau thêm Lịch Luyện/Dược Viên/kỳ ngộ) ----
-export function buyThao(state, qty) {
+// ---- LUYỆN ĐAN: tốn nguyên liệu (mats) theo công thức -> +1 đan (pills); gác cấp Y Quán (lvReq) ----
+export function craftPill(state, pillId) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
-  qty = Math.max(1, Math.floor(qty || 1));
-  const cost = THAO_PRICE * qty;
-  if ((t.diem || 0) < cost) return { ok: false, msg: `Thiếu Điểm Đấu Giá (cần ${cost}, có ${Math.floor(t.diem || 0)}).` };
-  t.diem -= cost; t.linhThao = (t.linhThao || 0) + qty;
-  return { ok: true, msg: `Mua ${qty} Linh Thảo · -${cost} Điểm Đấu Giá` };
+  const pill = PILLS[pillId]; if (!pill) return { ok: false, msg: 'Không rõ đan.' };
+  if ((t.buildings.yQuan || 0) < pill.lvReq) return { ok: false, msg: `Y Quán cần Bậc ${pill.lvReq} để luyện ${pill.name}.` };
+  for (const m in pill.recipe) { if (((t.mats || {})[m] || 0) < pill.recipe[m]) return { ok: false, msg: `Thiếu ${(MATS[m] || {}).name} (cần ${pill.recipe[m]}).` }; }
+  for (const m in pill.recipe) t.mats[m] -= pill.recipe[m];
+  t.pills[pillId] = (t.pills[pillId] || 0) + 1;
+  chronicle(t, `Y Quán luyện thành một viên ${pill.name}.`);
+  return { ok: true, msg: `Luyện thành ${pill.name}` };
+}
+// ---- LỊCH LUYỆN: phái 1 đệ tử RẢNH đi kiếm nguyên liệu (về sau LICH_LUYEN_H giờ; thu hoạch trong simTongMon) ----
+const LICH_MATS_BY_TIER = { 1: ['mat_tulinhthao', 'mat_hantinh'], 2: ['mat_bachnien', 'mat_huyenthiet'], 3: ['mat_cuudiep', 'mat_tinhhon'] };
+export function startLichLuyen(state, uid, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  const d = t.disciples.find((x) => x.uid === uid); if (!d) return { ok: false, msg: '?' };
+  if (d.awaiting) return { ok: false, msg: 'Đệ tử đã Đắc Đạo, không phái được.' };
+  if (d.breakReady) return { ok: false, msg: 'Đệ tử đang Bình Cảnh — đột phá trước đã.' };
+  if (d.lichLuyenUntil) return { ok: false, msg: 'Đệ tử đang lịch luyện.' };
+  const now = nowMs || Date.now(), tier = lichLuyenTier(d.realm || 0), qty = 3 + ((d.realm || 0) % 3);
+  const reward = {}; LICH_MATS_BY_TIER[tier].forEach((m) => { reward[m] = qty; });
+  d.lichLuyenUntil = now + LICH_LUYEN_H * 3600000; d.lichLuyenReward = reward;
+  return { ok: true, msg: `${d.name} khởi hành lịch luyện (${LICH_LUYEN_H}h).` };
 }
 
 // ---- Gia Bảo: ban đồ từ gearBag main -> đệ tử (1 chiều). slot lấy từ equip catalog (truyền sẵn) ----
