@@ -11,7 +11,8 @@ function h32(s) { let h = 2166136261 >>> 0; s = '' + s; for (let i = 0; i < s.le
 const pick = (arr, k) => arr[h32(k) % arr.length];
 
 const REALMS = ['Luyện Khí', 'Trúc Cơ', 'Kim Đan', 'Nguyên Anh', 'Hóa Thần', 'Luyện Hư', 'Hợp Thể', 'Đại Thừa', 'Độ Kiếp', 'Đắc Đạo'];
-const HE_COLOR = { kim: '#e2e8f0', moc: '#6ee7b7', thuy: '#67e8f9', hoa: '#fb923c', tho: '#fcd34d' };
+// Màu ngũ hành ĐỒNG BỘ với bảng chuẩn game (votong.js NGU_HANH): Kim vàng · Mộc lục · Thủy lam · Hỏa cam · Thổ hổ phách.
+const HE_COLOR = { kim: '#facc15', moc: '#34d399', thuy: '#38bdf8', hoa: '#fb923c', tho: '#f59e0b' };
 const HE_NAME = { kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ' };
 const DAO = { chinh: ['Chính Đạo', '#14b8a6'], ta: ['Tà Đạo', '#e879f9'], trung: ['Trung Lập', '#94a3b8'] };
 const REL_NAME = { tucDich: 'Túc Địch', suDo: 'Sư Đồ', daoLu: 'Đạo Lữ', huyetCuu: 'Huyết Cừu', dongMon: 'Đồng Môn', triKy: 'Tri Kỷ', cuuThu: 'Cứu Thù' };
