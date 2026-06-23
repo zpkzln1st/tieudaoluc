@@ -4393,21 +4393,29 @@
           <!-- MODAL CHIÊU HIỀN -->
           <template x-if="g.tmRecruitOpen">
             <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="g.tmRecruitOpen=false">
-              <div class="panel rounded-2xl w-[640px] max-w-full max-h-[88vh] overflow-y-auto p-4" @click.stop>
+              <div class="panel rounded-2xl w-[680px] max-w-full max-h-[88vh] overflow-y-auto p-4" @click.stop>
                 <div class="flex items-center justify-between mb-1"><div class="fserif text-jade text-lg">Chiêu Hiền</div><button @click="g.tmRecruitOpen=false" class="text-slate-500 hover:text-rose-400 text-lg">✕</button></div>
                 <div class="text-[11px] text-slate-500 mb-3">Chọn người thu nhận · tốn <b class="text-gold" x-text="g.fmt(g.tmRecruitCost)"></b> Bạc · <button @click="g.tmRefreshPool()" class="text-jade hover:underline">↻ Đổi lứa khác</button></div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="flex flex-wrap justify-center gap-3">
                   <template x-for="(c,i) in t.recruitPool" :key="c.uid">
-                    <div class="panel rounded-xl overflow-hidden border" :style="'border-color:'+g.tmApt(c).color+'55'">
-                      <div class="relative" :style="'aspect-ratio:3/4;background:linear-gradient(160deg,'+g.tmHe(c).color+'22,#0f1521 72%)'">
-                        <div class="absolute inset-0 flex items-center justify-center fserif text-[3rem]" :style="'color:'+g.tmHe(c).color+'33'" x-text="c.han"></div>
+                    <div class="w-full sm:w-48 panel rounded-xl overflow-hidden border group transition hover:-translate-y-0.5" :style="'border-color:'+g.tmApt(c).color+'55'">
+                      <!-- CHÂN DUNG -->
+                      <div class="relative overflow-hidden bg-ink2" style="aspect-ratio:3/4">
+                        <div class="absolute inset-0 flex items-center justify-center fserif text-[3.6rem] select-none" :style="'color:'+g.tmHe(c).color+'2e'" x-text="c.han"></div>
+                        <img :src="g.tmFace(c)" alt="" class="absolute inset-0 w-full h-full object-cover object-top transition duration-500 group-hover:scale-105" onerror="this.remove()">
                         <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold" :style="'color:'+g.tmApt(c).color+';border-color:'+g.tmApt(c).color+'66'" x-text="g.tmApt(c).name"></span>
+                        <span class="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border inline-flex items-center gap-1" :style="'color:'+g.tmHe(c).color+';border-color:'+g.tmHe(c).color+'66'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+g.tmHe(c).color"></span><span x-text="g.tmHe(c).name"></span></span>
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink via-ink/85 to-transparent pt-8 pb-1.5 px-2.5">
+                          <div class="fserif text-[14px] leading-tight truncate" :style="'color:'+g.tmApt(c).color" x-text="c.name"></div>
+                          <div class="text-[10px] text-slate-400 truncate" x-text="c.originLabel"></div>
+                        </div>
                       </div>
+                      <!-- THÔNG TIN + NÚT -->
                       <div class="p-2.5">
-                        <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(c).color" x-text="c.name"></div>
-                        <div class="text-[10px] text-slate-500" x-text="c.originLabel"></div>
-                        <div class="flex flex-wrap gap-1 mt-1.5 min-h-[18px]"><template x-for="tr in c.traits" :key="tr"><span class="text-[9px] px-1.5 py-0.5 rounded bg-ink2 text-slate-400" x-text="tr"></span></template></div>
-                        <button @click="g.tmRecruit(i)" class="mt-2 w-full py-1.5 rounded-lg text-[12px] font-bold bg-jade/80 hover:bg-jade text-ink">Thu Nhận</button>
+                        <div class="flex flex-wrap gap-1 min-h-[20px] mb-2">
+                          <template x-for="tr in c.traits" :key="tr"><span class="text-[9px] px-1.5 py-0.5 rounded bg-ink2 text-slate-300 border border-slate-700/60" x-text="tr"></span></template>
+                        </div>
+                        <button @click="g.tmRecruit(i)" class="w-full py-1.5 rounded-lg text-[12px] font-bold bg-jade/80 hover:bg-jade text-ink transition">Thu Nhận</button>
                       </div>
                     </div>
                   </template>

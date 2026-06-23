@@ -28,10 +28,11 @@ export const APT = {
 export const APT_KEYS = ['pham', 'trung', 'thuong', 'tuyet', 'thien'];
 
 // --- Ngũ hành (flavor) ---
+// Màu ngũ hành ĐỒNG BỘ bảng chuẩn game (votong.js NGU_HANH): Kim vàng · Mộc lục · Thủy lam · Hỏa cam · Thổ hổ phách.
 export const HE = {
-  kim: { name: 'Kim', han: '金', color: '#cbd5e1' }, moc: { name: 'Mộc', han: '木', color: '#34d399' },
-  thuy:{ name: 'Thủy', han: '水', color: '#60a5fa' }, hoa: { name: 'Hỏa', han: '火', color: '#fb923c' },
-  tho: { name: 'Thổ', han: '土', color: '#fbbf24' },
+  kim: { name: 'Kim', han: '金', color: '#facc15' }, moc: { name: 'Mộc', han: '木', color: '#34d399' },
+  thuy:{ name: 'Thủy', han: '水', color: '#38bdf8' }, hoa: { name: 'Hỏa', han: '火', color: '#fb923c' },
+  tho: { name: 'Thổ', han: '土', color: '#f59e0b' },
 };
 export const HE_KEYS = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
 
