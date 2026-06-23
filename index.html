@@ -4264,7 +4264,8 @@
                     </div>
                     <div class="p-2 bg-ink3/40">
                       <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(d).color" x-text="d.name"></div>
-                      <div class="text-[10px] mt-0.5 fserif truncate" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmFull(d)"></div>
+                      <div class="text-[10.5px] mt-0.5 fserif leading-tight truncate" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmMajor(d)"></div>
+                      <div class="text-[9px] text-slate-500 fserif leading-tight truncate" x-text="g.tmSubShort(d)"></div>
                       <div class="flex items-center gap-1.5 mt-1.5">
                         <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></div></div>
                         <span class="text-[9px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmStateLabel(d)"></span>
