@@ -4247,7 +4247,10 @@
                 </template>
               </div>
               <!-- ĐỆ TỬ ĐƯỜNG -->
-              <div class="fserif text-slate-200 mb-2">Đệ Tử Đường <span class="text-[11px] text-slate-500 font-normal" x-text="'· ' + t.disciples.length + '/' + g.tmSlot()"></span></div>
+              <div class="flex items-center justify-between mb-2 gap-2">
+                <div class="fserif text-slate-200">Đệ Tử Đường <span class="text-[11px] text-slate-500 font-normal" x-text="'· ' + t.disciples.length + '/' + g.tmSlot()"></span></div>
+                <button @click="g.tmRealmGuideOpen=true" class="shrink-0 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 text-slate-400 hover:border-cyan/50 hover:text-cyan transition inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('scroll','w-3.5 h-3.5')"></span>Cảnh Giới Phổ</button>
+              </div>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 <template x-for="d in t.disciples" :key="d.uid">
                   <div @click="g.openDisciple(d.uid)" class="relative panel rounded-xl overflow-hidden border cursor-pointer transform-gpu transition-transform duration-200 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40" :style="'border-color:'+g.tmApt(d).color+'55'">
@@ -4261,7 +4264,7 @@
                     </div>
                     <div class="p-2 bg-ink3/40">
                       <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(d).color" x-text="d.name"></div>
-                      <div class="text-[10px] mt-0.5 fserif" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmName(d)"></div>
+                      <div class="text-[10px] mt-0.5 fserif truncate" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmFull(d)"></div>
                       <div class="flex items-center gap-1.5 mt-1.5">
                         <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></div></div>
                         <span class="text-[9px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmStateLabel(d)"></span>
@@ -4434,6 +4437,34 @@
             </div>
           </template>
 
+          <!-- MODAL CẢNH GIỚI PHỔ (bảng tra hệ thống cảnh giới) -->
+          <template x-if="g.tmRealmGuideOpen">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmRealmGuideOpen=false">
+              <div class="panel rounded-2xl w-[560px] max-w-full h-[640px] max-h-[90vh] flex flex-col overflow-hidden border border-slate-700" @click.stop>
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.07),transparent)">
+                  <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-cyan" x-html="g.svg('scroll','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Cảnh Giới Phổ</div></div>
+                  <button @click="g.tmRealmGuideOpen=false" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                </div>
+                <div class="px-5 py-2.5 text-[11px] text-slate-500 border-b border-slate-800/60 shrink-0">Mười đại cảnh giới tu tiên — mỗi đại cảnh chia nhiều tiểu cảnh. <b class="text-slate-400">Tư chất</b> quyết định <b class="text-amber-300/90">TRẦN</b> đệ tử tu tới đâu.</div>
+                <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+                  <template x-for="(rl,i) in g.tmRealmGuide" :key="i">
+                    <div class="rounded-lg bg-ink3/40 border px-3 py-2.5" :style="'border-color:'+rl.color+'33'">
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="w-2 h-2 rounded-full shrink-0" :style="'background:'+rl.color+';box-shadow:0 0 6px '+rl.color"></span>
+                          <span class="fserif text-[14px]" :style="'color:'+rl.color" x-text="(i+1)+'. '+rl.name"></span>
+                        </div>
+                        <template x-if="rl.capApts.length"><span class="shrink-0 text-[9.5px] px-1.5 py-0.5 rounded-full border border-amber-500/40 text-amber-300/90 whitespace-nowrap" x-text="'Trần · '+rl.capApts.join(', ')"></span></template>
+                      </div>
+                      <div class="text-[11px] text-slate-400 leading-relaxed mt-1.5 pl-4" x-text="rl.subs.join('  ·  ')"></div>
+                    </div>
+                  </template>
+                  <div class="text-[10.5px] text-slate-600 italic px-1 pt-1 leading-relaxed">Tốc tu theo tư chất: Phàm Tư ×0.7 · Trung Tư ×1.0 · Thượng Tư ×1.4 · Tuyệt Tư ×2.0 · Thiên Tư ×3.2. Trần có thể NÂNG nhờ Gia Bảo / kỳ ngộ.</div>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- MODAL CHI TIẾT ĐỆ TỬ -->
           <template x-if="g.tmSelDisciple">
             <div class="fixed inset-0 z-[72] flex items-start sm:items-center justify-center overflow-y-auto bg-black/72 backdrop-blur-sm p-4" @click="g.closeDisciple()">
@@ -4509,7 +4540,7 @@
                   <div class="rounded-lg bg-ink3/40 border border-slate-800 px-3 py-2 shrink-0">
                     <div class="flex items-center gap-2 flex-wrap text-[11px]">
                       <span class="lbl mr-1">Tu Vi</span>
-                      <span><span class="text-slate-500">Cảnh Giới</span> <b class="fserif" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmName(d)"></b></span><span class="text-slate-700">·</span>
+                      <span><span class="text-slate-500">Cảnh Giới</span> <b class="fserif" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmFull(d)"></b></span><span class="text-slate-700">·</span>
                       <span><span class="text-slate-500">Trần</span> <b class="fserif text-slate-200" x-text="g.tmCapName(d)"></b></span><span class="text-slate-700">·</span>
                       <span><span class="text-slate-500">Tốc Tu</span> <b class="fserif text-cyan" x-text="'×'+g.tmSpeedMul(d).toFixed(2)"></b></span>
                       <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></span></span><span class="text-[10px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmProgPct(d)+'%'"></span></span>

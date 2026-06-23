@@ -428,6 +428,10 @@ const gameStore = {
   },
   tmRealmName(d) { return subStageName(d.realm, d.xp, this.tmAtCap(d)); },   // tên TIỂU cảnh chính xác (vd 'Hư Đan')
   tmRealmMajor(d) { return REALMS[d.realm].name; },                          // tên ĐẠI cảnh (gom màu/Trần)
+  tmRealmFull(d) { const major = REALMS[d.realm].name, sub = subStageName(d.realm, d.xp, this.tmAtCap(d)); return sub.includes(major) ? sub : (major + ' · ' + sub); },  // ĐẠI · tiểu (dedupe nếu tiểu đã chứa đại)
+  // Cảnh Giới Phổ — bảng tra toàn hệ thống cảnh giới (10 đại × tiểu + trần theo tư chất).
+  tmRealmGuideOpen: false,
+  get tmRealmGuide() { return REALMS.map((r, i) => ({ name: r.name, color: this.tmRealmColors[i] || '#cbd5e1', subs: SUB_STAGES[i] || [], capApts: Object.keys(APT).filter((k) => APT[k].cap === i).map((k) => APT[k].name) })); },
   tmRealmColor(d) { return ['#cbd5e1', '#34d399', '#60a5fa', '#22d3ee', '#a78bfa', '#c4b5fd', '#e879f9', '#fb923c', '#f5b942', '#fbbf24'][d.realm] || '#cbd5e1'; },
   tmApt(d) { return APT[d.apt]; },
   tmHe(d) { return HE[d.he] || HE.kim; },
