@@ -4257,7 +4257,6 @@
                       <template x-if="g.tmFace(d)"><img :src="g.tmFace(d)" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()"></template>
                       <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold" :style="'color:'+g.tmApt(d).color+';border-color:'+g.tmApt(d).color+'66'" x-text="g.tmApt(d).name"></span>
                       <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:'+g.tmHe(d).color" x-text="g.tmHe(d).han"></span>
-                      <template x-if="d.gear && Object.keys(d.gear).length"><span class="absolute bottom-1.5 right-1.5 w-6 h-6 rounded bg-ink/85 flex items-center justify-center border border-amber-500/50 text-amber-300"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('sword','w-3.5 h-3.5')"></span></span></template>
                       <template x-if="d.awaiting"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1 py-0.5 rounded bg-amber-500 text-ink font-bold">Đắc Đạo</span></template>
                     </div>
                     <div class="p-2 bg-ink3/40">
@@ -4265,7 +4264,7 @@
                       <div class="text-[10px] mt-0.5 fserif" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmName(d)"></div>
                       <div class="flex items-center gap-1.5 mt-1.5">
                         <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></div></div>
-                        <span class="text-[9px]" :class="d.awaiting?'text-amber-300':'text-jade'" x-text="g.tmStateLabel(d)"></span>
+                        <span class="text-[9px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmStateLabel(d)"></span>
                       </div>
                     </div>
                   </div>
