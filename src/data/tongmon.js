@@ -40,15 +40,25 @@ export const HE_KEYS = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
 export const TRAITS = ['Lì Lợm', 'Cao Ngạo', 'Cần Mẫn', 'Mưu Trí', 'Hiếu Chiến', 'Nhân Hậu', 'Cô Độc', 'Phóng Khoáng', 'Thận Trọng', 'Si Tình', 'Cuồng Ngạo', 'Trượng Nghĩa'];
 
 // --- Xuất thân ---
+// label/bio NEUTRAL; xuất thân có giới tính thì thêm biến thể *Nam/*Nu (key GIỮ NGUYÊN để không vỡ save cũ).
 export const ORIGINS = [
   { key: 'anMay',   label: 'Ăn mày lưu lạc',     bio: 'Một đứa ăn mày nhặt được bên đường ngày mưa, gầy guộc nhưng ánh mắt không chịu khuất phục.' },
-  { key: 'tieuThu', label: 'Tiểu thư sa sút',    bio: 'Tiểu thư của một gia tộc nay đã lụi tàn, mang trong lòng nỗi hận phục hưng môn hộ.' },
+  { key: 'tieuThu', labelNam: 'Công tử sa sút', labelNu: 'Tiểu thư sa sút',
+    bioNam: 'Công tử của một gia tộc nay đã lụi tàn, mang trong lòng nỗi hận phục hưng môn hộ.',
+    bioNu:  'Tiểu thư của một gia tộc nay đã lụi tàn, mang trong lòng nỗi hận phục hưng môn hộ.' },
   { key: 'theGia',  label: 'Võ lâm thế gia',     bio: 'Hậu duệ một thế gia võ lâm, căn cơ vững vàng, kiêu hãnh trong huyết quản.' },
   { key: 'toiDo',   label: 'Tội đồ hoàn lương',  bio: 'Từng là kẻ sát nhân khét tiếng, nay rửa tay gác kiếm tìm một chốn dung thân.' },
-  { key: 'tangNhan',label: 'Tăng nhân hạ sơn',   bio: 'Một tăng nhân rời cửa Phật, mang theo Phật pháp lẫn một bí mật chưa nói.' },
-  { key: 'nuHiep',  label: 'Nữ hiệp giang hồ',   bio: 'Nữ hiệp phiêu bạt giang hồ, kiếm sắc lòng son, chưa tìm được nơi dừng chân.' },
+  { key: 'tangNhan',labelNam: 'Tăng nhân hạ sơn', labelNu: 'Ni cô hạ sơn',
+    bioNam: 'Một tăng nhân rời cửa Phật, mang theo Phật pháp lẫn một bí mật chưa nói.',
+    bioNu:  'Một ni cô rời cửa Phật, mang theo Phật pháp lẫn một bí mật chưa nói.' },
+  { key: 'nuHiep',  labelNam: 'Hiệp khách giang hồ', labelNu: 'Nữ hiệp giang hồ',
+    bioNam: 'Hiệp khách phiêu bạt giang hồ, kiếm sắc lòng son, chưa tìm được nơi dừng chân.',
+    bioNu:  'Nữ hiệp phiêu bạt giang hồ, kiếm sắc lòng son, chưa tìm được nơi dừng chân.' },
   { key: 'biAn',    label: 'Lai lịch bí ẩn',     bio: 'Kẻ bịt mặt không rõ lai lịch, võ công cao thâm khó dò, thân thế là một dấu hỏi.' },
 ];
+// Resolve nhãn/bio xuất thân theo giới tính (vá cả disciple/pool đã sinh trước đó — chỉ cần origin + sex).
+export function originLabelOf(key, sex) { const o = ORIGINS.find((x) => x.key === key) || {}; return (sex === 'nu' ? o.labelNu : o.labelNam) || o.label || ''; }
+export function originBioOf(key, sex) { const o = ORIGINS.find((x) => x.key === key) || {}; return (sex === 'nu' ? o.bioNu : o.bioNam) || o.bio || ''; }
 
 // --- Chí hướng / mơ ước ---
 export const DREAMS = ['Trở thành đệ nhất cao thủ', 'Phục hưng môn hộ đã tàn', 'Báo mối huyết hải thâm thù', 'Cầu một đạo trường sinh', 'Hành hiệp trượng nghĩa khắp thiên hạ', 'Tìm lại cố nhân thất lạc', 'Phá vỡ giới hạn trời định'];
@@ -93,7 +103,6 @@ export function genDisciple(opt = {}) {
   const sex = opt.sex || (Math.random() < 0.5 ? 'nam' : 'nu');
   const apt = opt.apt || wPick(APT_KEYS, (k) => APT[k].w);
   const origin = opt.origin || pick(ORIGINS).key;
-  const oinfo = ORIGINS.find((x) => x.key === origin) || {};
   const i = Math.floor(Math.random() * (sex === 'nam' ? TEN_NAM : TEN_NU).length);
   const ten = sex === 'nam' ? TEN_NAM[i] : TEN_NU[i];
   const han = (sex === 'nam' ? HAN_NAM : HAN_NU)[i] || '俠';
@@ -102,7 +111,7 @@ export function genDisciple(opt = {}) {
   return {
     uid: 'd' + (Date.now().toString(36)) + (_uidc++),
     name: opt.name || (pick(HO) + ' ' + ten),
-    sex, han: opt.han || han, origin, originLabel: oinfo.label || '', bio: oinfo.bio || '', apt,
+    sex, han: opt.han || han, origin, originLabel: originLabelOf(origin, sex), bio: originBioOf(origin, sex), apt,
     he: opt.he || pick(HE_KEYS),
     traits, dream: pick(DREAMS), tamMa: pick(TAMMA),
     realm: 0, xp: 0, capBonus: 0,          // capBonus: số bậc trần được NÂNG (Gia Bảo/kỳ ngộ…)

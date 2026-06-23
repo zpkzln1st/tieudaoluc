@@ -4395,11 +4395,14 @@
             <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="g.tmRecruitOpen=false">
               <div class="panel rounded-2xl w-[680px] max-w-full max-h-[88vh] overflow-y-auto p-4" @click.stop>
                 <div class="flex items-center justify-between mb-1"><div class="fserif text-jade text-lg">Chiêu Hiền</div><button @click="g.tmRecruitOpen=false" class="text-slate-500 hover:text-rose-400 text-lg">✕</button></div>
-                <div class="text-[11px] text-slate-500 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span>Chọn người thu nhận · tốn <b class="text-gold" x-text="g.fmt(g.tmRecruitCost)"></b> Bạc</span>
-                  <span class="text-slate-700">·</span>
-                  <button @click="g.tmRefreshPool()" :disabled="!g.tmCanReset()" class="inline-flex items-center gap-1 text-rose-300 hover:text-rose-200 disabled:text-slate-600 disabled:cursor-not-allowed disabled:hover:text-slate-600">↻ Đổi lứa · <b x-text="g.fmt(g.tmResetInfo.cost)"></b> Hồn Thạch <span class="text-slate-500" x-text="'('+g.tmResetInfo.left+'/'+g.tmResetInfo.max+')'"></span></button>
-                  <template x-if="g.tmResetInfo.left<=0"><span class="text-slate-600">· mới lại sau <span x-text="g.tmResetCdText()"></span></span></template>
+                <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                  <div class="text-[11.5px] text-slate-400">Mỗi đệ tử tốn <b class="text-gold" x-text="g.fmt(g.tmRecruitCost)"></b> Bạc</div>
+                  <div class="flex items-center gap-2.5">
+                    <button @click="g.tmRefreshPool()" :disabled="!g.tmCanReset()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11.5px] transition border-rose-500/40 text-rose-200 hover:bg-rose-500/10 disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:bg-transparent">
+                      <span class="text-[13px] leading-none">↻</span><span>Đổi lứa · <b class="text-rose-300" x-text="g.fmt(g.tmResetInfo.cost)"></b> Hồn Thạch</span>
+                    </button>
+                    <span class="text-[10.5px] whitespace-nowrap" :class="g.tmResetInfo.left>0?'text-slate-500':'text-slate-600'" x-text="g.tmResetInfo.left>0 ? ('Còn '+g.tmResetInfo.left+'/'+g.tmResetInfo.max+' lượt') : ('Hết lượt · mới sau '+g.tmResetCdText())"></span>
+                  </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <template x-for="(c,i) in t.recruitPool" :key="c.uid">
@@ -4411,7 +4414,7 @@
                         <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold" :style="'color:'+g.tmApt(c).color+';border-color:'+g.tmApt(c).color+'66'" x-text="g.tmApt(c).name"></span>
                         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink via-ink/85 to-transparent pt-8 pb-1.5 px-2.5">
                           <div class="fserif text-[14px] leading-tight truncate" :style="'color:'+g.tmApt(c).color" x-text="c.name"></div>
-                          <div class="text-[10px] text-slate-400 truncate" x-text="c.originLabel"></div>
+                          <div class="text-[10px] text-slate-400 truncate" x-text="g.tmOriginLabel(c)"></div>
                         </div>
                       </div>
                       <!-- THÔNG TIN + NÚT -->
@@ -4514,7 +4517,7 @@
                   <div class="grid gap-3 grid-cols-1 sm:grid-cols-[1.5fr_1fr] sm:flex-1 sm:min-h-0">
                     <div class="rounded-lg bg-ink2/40 border border-slate-800/60 p-3 overflow-hidden">
                       <div class="lbl mb-1">Xuất Thân</div>
-                      <div class="text-[12px] text-slate-300 fserif italic leading-snug mb-2" x-text="d.bio"></div>
+                      <div class="text-[12px] text-slate-300 fserif italic leading-snug mb-2" x-text="g.tmOriginBio(d)"></div>
                       <div class="grid grid-cols-2 gap-2 mb-2">
                         <div class="rounded-lg bg-ink3/50 border border-slate-800 px-2.5 py-1.5"><div class="lbl mb-0.5">Chí Hướng</div><div class="text-[12.5px] fserif text-slate-200" x-text="d.dream"></div></div>
                         <div class="rounded-lg bg-rose-500/5 border border-rose-500/20 px-2.5 py-1.5"><div class="lbl mb-0.5 text-rose-300/70">⚠ Tâm Ma</div><div class="text-[12.5px] fserif text-rose-200" x-text="d.tamMa"></div></div>
