@@ -37,7 +37,7 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
 import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
@@ -430,6 +430,20 @@ const gameStore = {
   tmRealmMajor(d) { return REALMS[d.realm].name; },                          // tên ĐẠI cảnh (gom màu/Trần)
   tmRealmFull(d) { const major = REALMS[d.realm].name, sub = subStageName(d.realm, d.xp, this.tmAtCap(d)); return sub.includes(major) ? sub : (major + ' · ' + sub); },  // ĐẠI · tiểu (dedupe nếu tiểu đã chứa đại)
   tmSubShort(d) { const major = REALMS[d.realm].name, sub = subStageName(d.realm, d.xp, this.tmAtCap(d)); const s = sub.replace(major, '').replace(/\s+/g, ' ').trim(); return s || sub; },  // chỉ phần TIỂU (bỏ tên đại) cho card 2 dòng
+  // ===== ĐỘT PHÁ đại cảnh (Bình Cảnh -> nạp Linh Đan/Liệu/Hồn Thạch) =====
+  get tmLinhDan() { void this._tick; return Math.floor((this.tm && this.tm.linhDan) || 0); },
+  get tmLinhLieu() { void this._tick; return Math.floor((this.tm && this.tm.linhLieu) || 0); },
+  tmNextRealm(d) { return REALMS[Math.min(9, (d.realm || 0) + 1)].name; },   // tên đại cảnh sẽ lên
+  tmBreakRows(d) {
+    const r = breakReqOf(d); if (!r) return [];
+    return [
+      { label: 'Linh Đan', need: r.dan, have: Math.floor((this.tm.linhDan) || 0) },
+      { label: 'Linh Liệu', need: r.lieu, have: Math.floor((this.tm.linhLieu) || 0) },
+      { label: 'Hồn Thạch', need: r.honThach, have: Math.floor((this.state.currencies.honThach) || 0) },
+    ].map((x) => Object.assign(x, { ok: x.have >= x.need }));
+  },
+  tmCanBreak(d) { const rows = this.tmBreakRows(d); return rows.length > 0 && rows.every((x) => x.ok); },
+  tmDoBreakthrough(uid) { const r = doBreakthrough(this.state, uid); if (r.ok) { this.tmSave(); this.showToast('★ ' + r.msg); } else this.showToast(r.msg); return r.ok; },
   // Cảnh Giới Phổ — bảng tra toàn hệ thống cảnh giới (10 đại × tiểu + trần theo tư chất).
   tmRealmGuideOpen: false,
   get tmRealmGuide() { return REALMS.map((r, i) => ({ name: r.name, color: this.tmRealmColors[i] || '#cbd5e1', subs: SUB_STAGES[i] || [], capApts: Object.keys(APT).filter((k) => APT[k].cap === i).map((k) => APT[k].name) })); },

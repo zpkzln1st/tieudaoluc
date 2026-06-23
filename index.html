@@ -4248,7 +4248,7 @@
               </div>
               <!-- ĐỆ TỬ ĐƯỜNG -->
               <div class="flex items-center justify-between mb-2 gap-2">
-                <div class="fserif text-slate-200">Đệ Tử Đường <span class="text-[11px] text-slate-500 font-normal" x-text="'· ' + t.disciples.length + '/' + g.tmSlot()"></span></div>
+                <div class="fserif text-slate-200 min-w-0 truncate">Đệ Tử Đường <span class="text-[11px] text-slate-500 font-normal" x-text="'· ' + t.disciples.length + '/' + g.tmSlot()"></span><span class="text-[11px] font-normal ml-2 text-slate-500">· Y Quán <b class="text-violet-300" x-text="g.tmLinhDan"></b> Đan · <b class="text-emerald-300" x-text="g.tmLinhLieu"></b> Liệu</span></div>
                 <button @click="g.tmRealmGuideOpen=true" class="shrink-0 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 text-slate-400 hover:border-cyan/50 hover:text-cyan transition inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('scroll','w-3.5 h-3.5')"></span>Cảnh Giới Phổ</button>
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -4261,6 +4261,7 @@
                       <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold" :style="'color:'+g.tmApt(d).color+';border-color:'+g.tmApt(d).color+'66'" x-text="g.tmApt(d).name"></span>
                       <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:'+g.tmHe(d).color" x-text="g.tmHe(d).han"></span>
                       <template x-if="d.awaiting"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1 py-0.5 rounded bg-amber-500 text-ink font-bold">Đắc Đạo</span></template>
+                      <template x-if="d.breakReady"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-violet-500 text-white font-bold animate-pulse">Đột Phá</span></template>
                     </div>
                     <div class="p-2 bg-ink3/40">
                       <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(d).color" x-text="d.name"></div>
@@ -4268,7 +4269,7 @@
                       <div class="text-[9px] text-slate-500 fserif leading-tight truncate" x-text="g.tmSubShort(d)"></div>
                       <div class="flex items-center gap-1.5 mt-1.5">
                         <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></div></div>
-                        <span class="text-[9px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmStateLabel(d)"></span>
+                        <span class="text-[9px]" :style="'color:'+(d.breakReady?'#a78bfa':g.tmRealmColor(d))" x-text="d.breakReady ? 'Chờ đột phá' : g.tmStateLabel(d)"></span>
                       </div>
                     </div>
                   </div>
@@ -4547,6 +4548,18 @@
                       <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></span></span><span class="text-[10px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmProgPct(d)+'%'"></span></span>
                     </div>
                   </div>
+                  <!-- ĐỘT PHÁ đại cảnh (Bình Cảnh) -->
+                  <template x-if="d.breakReady">
+                    <div class="rounded-lg px-3 py-2.5 shrink-0" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.4)">
+                      <div class="text-[12.5px] fserif text-violet-200 mb-2"><b class="text-violet-300">Bình Cảnh</b> — tu vi viên mãn, chờ đột phá lên <b :style="'color:'+g.tmRealmColor({realm:Math.min(9,(d.realm||0)+1)})" x-text="g.tmNextRealm(d)"></b></div>
+                      <div class="flex flex-wrap gap-1.5 mb-2.5">
+                        <template x-for="row in g.tmBreakRows(d)" :key="row.label">
+                          <span class="text-[11px] px-2 py-1 rounded-lg border inline-flex items-center gap-1" :class="row.ok?'border-jade/40 bg-jade/10 text-jade':'border-rose-500/40 bg-rose-500/10 text-rose-300'"><span x-text="row.label"></span> <b x-text="g.fmt(row.have)+'/'+g.fmt(row.need)"></b></span>
+                        </template>
+                      </div>
+                      <button @click="g.tmDoBreakthrough(d.uid)" :disabled="!g.tmCanBreak(d)" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmCanBreak(d)?'bg-violet-500/85 hover:bg-violet-500 text-white':'bg-ink3 text-slate-600 cursor-not-allowed border border-slate-800'" x-text="g.tmCanBreak(d)?'Đột Phá':'Thiếu nguyên liệu — luyện ở Y Quán'"></button>
+                    </div>
+                  </template>
                   <!-- ROW C: lore + (Tiền Đồ / tương lai) -->
                   <div class="grid gap-3 grid-cols-1 sm:grid-cols-[1.5fr_1fr] sm:flex-1 sm:min-h-0">
                     <div class="rounded-lg bg-ink2/40 border border-slate-800/60 p-3 overflow-hidden">
