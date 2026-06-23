@@ -252,6 +252,27 @@ export function doRecruit(state, idx) {
   return true;
 }
 
+// ---- Đổi lứa Chiêu Hiền: tốn Hồn Thạch (main->phụ 1 chiều), giới hạn 3 lần / 24h (reset theo ngày real) ----
+export const RECRUIT_RESET_COST = 2500;   // Hồn Thạch / lần
+export const RECRUIT_RESET_MAX = 3;        // tối đa mỗi 24h
+const RECRUIT_DAY_MS = 86400000;
+export function recruitResetInfo(t, nowMs) {
+  const day = Math.floor(nowMs / RECRUIT_DAY_MS);
+  const used = (t && t.recruitResetDay === day) ? (t.recruitResetCount || 0) : 0;
+  return { used, max: RECRUIT_RESET_MAX, left: RECRUIT_RESET_MAX - used, cost: RECRUIT_RESET_COST, resetInMs: (day + 1) * RECRUIT_DAY_MS - nowMs };
+}
+export function doRecruitReset(state, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  const day = Math.floor(nowMs / RECRUIT_DAY_MS);
+  if (t.recruitResetDay !== day) { t.recruitResetDay = day; t.recruitResetCount = 0; }   // sang ngày mới -> reset bộ đếm
+  if ((t.recruitResetCount || 0) >= RECRUIT_RESET_MAX) return { ok: false, msg: `Hết lượt đổi lứa hôm nay (${RECRUIT_RESET_MAX}/${RECRUIT_RESET_MAX}).` };
+  if ((state.currencies.honThach || 0) < RECRUIT_RESET_COST) return { ok: false, msg: `Không đủ Hồn Thạch (cần ${RECRUIT_RESET_COST}).` };
+  state.currencies.honThach -= RECRUIT_RESET_COST;
+  t.recruitResetCount = (t.recruitResetCount || 0) + 1;
+  refreshRecruitPool(t, nowMs);
+  return { ok: true, msg: `Đổi lứa mới · -${RECRUIT_RESET_COST} Hồn Thạch (${t.recruitResetCount}/${RECRUIT_RESET_MAX})` };
+}
+
 // ---- Gia Bảo: ban đồ từ gearBag main -> đệ tử (1 chiều). slot lấy từ equip catalog (truyền sẵn) ----
 export function giftGear(state, discipleUid, gearUid, slot, itemName) {
   const t = state.tongMon;

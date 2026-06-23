@@ -37,7 +37,7 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
 import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
@@ -445,7 +445,11 @@ const gameStore = {
   tmCanRecruit() { return this.tm.disciples.length < this.tmSlot(); },
   openRecruit() { if (!this.tmCanRecruit()) { this.showToast('Hết slot — nâng Tụ Hiền Đường'); return; } if (!this.tm.recruitPool || !this.tm.recruitPool.length) refreshRecruitPool(this.tm, now()); this.tmRecruitOpen = true; },
   tmRecruit(idx) { if (doRecruit(this.state, idx)) { this.tmSave(); this.showToast('Thu nhận đệ tử mới!'); if (!this.tm.recruitPool.length) refreshRecruitPool(this.tm, now()); } else this.showToast('Thiếu Bạc hoặc hết slot'); },
-  tmRefreshPool() { refreshRecruitPool(this.tm, now()); this.tmSave(); },
+  // Đổi lứa Chiêu Hiền: tốn Hồn Thạch, giới hạn 3 lần/24h (engine doRecruitReset).
+  get tmResetInfo() { void this._tick; return recruitResetInfo(this.tm, now()); },
+  tmCanReset() { const i = this.tmResetInfo; return i.left > 0 && (this.state.currencies.honThach || 0) >= i.cost; },
+  tmResetCdText() { const ms = this.tmResetInfo.resetInMs; const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm'); },
+  tmRefreshPool() { const r = doRecruitReset(this.state, now()); if (r.ok) { this.tmSave(); this.showToast('Chiêu Hiền · ' + r.msg); } else this.showToast(r.msg); },
   openDisciple(uid) { this.tmSelUid = uid; this.disciTab = 'info'; },
   closeDisciple() { this.tmSelUid = null; this.giftOpen = false; },
   tmXuatSu(uid) { if (xuatSu(this.state, uid)) { this.tmSave(); this.closeDisciple(); this.showToast('Đệ tử Xuất Sư — danh chấn giang hồ!'); } },
