@@ -460,6 +460,8 @@ const gameStore = {
   get tmEvtPending() { void this._tick; return (this.tm && this.tm.events && this.tm.events.pending) || []; },
   tmGrpColor(g) { return (TM_GRP[g] || TM_GRP.A).color; },
   tmGrpLabel(g) { return (TM_GRP[g] || TM_GRP.A).label; },
+  // Mặt đệ tử trong sự kiện: tra theo castUids (sống deterministic qua tmFace). '' nếu đệ tử đã rời (rơi về placeholder Hán).
+  tmEvtFace(ci) { const cur = this.tmEvtCur; if (!cur || !cur.castUids || !this.tm) return ''; const uid = cur.castUids[ci]; const d = (this.tm.disciples || []).find((x) => x.uid === uid); return d ? this.tmFace(d) : ''; },
   openTmEvt(idx) { const p = this.tmEvtPending[idx]; if (!p) return; this.tmEvtIdx = idx; this.tmEvtCur = p; this.tmEvtResult = null; this.tmEvtOpen = true; },
   tmEvtChoose(ci) { if (this.tmEvtIdx < 0) return; const r = resolveEvent(this.state, this.tmEvtIdx, ci); if (r) { this.tmEvtResult = r; this.tmSave(); } },
   closeTmEvt() { this.tmEvtOpen = false; this.tmEvtCur = null; this.tmEvtResult = null; this.tmEvtIdx = -1; },
