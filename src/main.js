@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -528,7 +528,7 @@ const gameStore = {
     if (d.breakReady) return 'Đang Bình Cảnh';
     if (d.lichLuyenUntil) return 'Đang lịch luyện';
     if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return 'Đã tận Giảng Đạo (+' + GIANG_MAX_BONUS + ' trần)';
-    if (disciCap(d) >= ((d.apt === 'thien') ? 9 : 8)) return (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo' : 'Tư chất đã chạm trần';
+    if (disciCap(d) >= aptHardCap(d)) return (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo' : 'Tư chất đã chạm trần';
     if (this.tmGiangSeats.free < 1) return 'Hết ghế thính giảng';
     return '';
   },

@@ -190,7 +190,8 @@ export function genDisciple(opt = {}) {
     name: opt.name || (pick(HO) + ' ' + ten),
     sex, han: opt.han || han, origin, originLabel: originLabelOf(origin, sex), bio: originBioOf(origin, sex), apt,
     he: opt.he || pick(HE_KEYS),
-    traits, dream: pick(DREAMS), tamMa: pick(TAMMA),
+    traits, dream: pick(DREAMS), tamMa: pick(TAMMA),   // tamMa = LORE STRING (hiển thị) — KHÔNG phải số
+    tamMaLv: 0, tamMaXp: 0,                            // hệ Tâm Ma Kiếp (SỐ): tamMaLv = bậc tâm ma (mức độ), tamMaXp = tích lũy trong bậc (0..1)
     realm: 0, xp: 0, capBonus: 0, giangBonus: 0,   // capBonus: bậc trần được NÂNG (sự kiện + Giảng Đạo); giangBonus: phần đến TỪ Giảng Đạo (cap GIANG_MAX_BONUS)
     flags: {},                              // cờ do SỰ KIỆN gắn (daoLu/oanTham/tamMaSeed/biệt hiệu…) — side-only
     gear: {},                               // { slotId: gearInstance } — Gia Bảo, side-only
@@ -200,5 +201,7 @@ export function genDisciple(opt = {}) {
   };
 }
 
-// trần cảnh giới thực = trần tư chất + capBonus. LUẬT: Đắc Đạo (9) ĐỘC QUYỀN Thiên Tư — non-Thiên tối đa Độ Kiếp (8) dù nuôi cỡ nào.
-export function disciCap(d) { return Math.min((d.apt === 'thien') ? 9 : 8, APT[d.apt].cap + (d.capBonus || 0)); }
+// Trần TUYỆT ĐỐI theo tư chất: Đắc Đạo (9) ĐỘC QUYỀN Thiên Tư — non-Thiên tối đa Độ Kiếp (8). 1 NGUỒN (chống lệch 4 chỗ: disciCap/giangAbsMax/sim/UI).
+export function aptHardCap(d) { return (d && d.apt === 'thien') ? 9 : 8; }
+// trần cảnh giới thực = min(trần tuyệt đối, trần tư chất + capBonus).
+export function disciCap(d) { return Math.min(aptHardCap(d), APT[d.apt].cap + (d.capBonus || 0)); }

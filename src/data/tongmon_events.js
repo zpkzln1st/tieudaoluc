@@ -648,7 +648,7 @@ const D1 = {
     // ưu tiên kẻ đã gieo mầm: tamMaSeed / oanTham / batPhuc, rồi tới kẻ tâm ma "tối" nhất
     const seeded = pool.filter((d) => d.flags && (d.flags.tamMaSeed || d.flags.oanTham || d.flags.batPhuc));
     if (seeded.length) return [seeded[Math.floor(Math.random() * seeded.length)].uid];
-    const dark = pool.slice().sort((a, b) => (b.tamMa || 0) - (a.tamMa || 0))[0];
+    const dark = pool.slice().sort((a, b) => ((b.tamMaLv || 0) + (b.tamMaXp || 0)) - ((a.tamMaLv || 0) + (a.tamMaXp || 0)))[0];
     return [dark.uid];
   },
   story: (c) =>
