@@ -26,3 +26,29 @@ export function luanVo(a, b, seed) {
 
 // nhãn mức độ thắng
 export function luanVoMarginLabel(m) { return m >= 0.4 ? 'đại thắng' : (m >= 0.18 ? 'thắng thuyết phục' : (m >= 0.05 ? 'thắng sát nút' : 'thắng trong gang tấc')); }
+
+// ---- luanVoCycle: diễn lại trận tỉ thí theo TỪNG HIỆP (HP + chiến báo) — deterministic, cùng người thắng với luanVo. Margin lớn -> ít hiệp áp đảo; sát nút -> nhiều hiệp giằng co. ----
+const LV_MOVES = ['vung một chiêu sấm sét', 'lách người tạt ngang một kiếm', 'dồn kình lực phá thế thủ', 'xuất một thức hiểm hóc', 'liên hoàn ba chiêu như vũ bão', 'thi triển tuyệt kĩ áp trận', 'một quyền nặng tựa thiên cân', 'thân pháp ảo diệu vây công'];
+const LV_DEFEND = ['chống đỡ chật vật', 'lảo đảo lùi nửa bước', 'gắng gượng hóa giải', 'trúng đòn loạng choạng', 'né được trong gang tấc', 'đỡ mà hổ khẩu tê dại'];
+export function luanVoCycle(a, b, seed) {
+  const base = luanVo(a, b, seed);
+  const aWin = base.winner === 'a', hf = base.heFactor;
+  const rounds = base.margin >= 0.4 ? 4 : (base.margin >= 0.18 ? 5 : 6);
+  let aHp = 100, bHp = 100;
+  const log = [];
+  for (let r = 0; r < rounds; r++) {
+    const s = h32(seed + ':rd' + r), last = r === rounds - 1;
+    const wDmg = last ? 999 : (8 + (s % 12) + Math.round(base.margin * 12));   // người thắng đánh nặng
+    const lDmg = last ? 0 : (3 + ((s >>> 8) % 7));                              // kẻ thua gỡ gạc
+    if (aWin) { bHp = Math.max(0, bHp - wDmg); aHp = Math.max(12, aHp - lDmg); }
+    else { aHp = Math.max(0, aHp - wDmg); bHp = Math.max(12, bHp - lDmg); }
+    const atk = aWin ? (a.name || '') : (b.name || ''), def = aWin ? (b.name || '') : (a.name || '');
+    const mv = LV_MOVES[(s >>> 16) % LV_MOVES.length], df = LV_DEFEND[(s >>> 4) % LV_DEFEND.length];
+    let line = `Hiệp ${r + 1}: ${atk} ${mv}, ${def} ${df}.`;
+    if (r === 1 && hf !== 0) line = `Hiệp ${r + 1}: ngũ hành tương khắc phát uy — ${atk} ${mv}, ${def} ${df}.`;
+    if (last) line = `Hiệp ${r + 1}: ${atk} dốc toàn lực một chiêu định thắng bại — ${def} gục xuống nhận thua.`;
+    log.push({ aHp, bHp, line });
+    if (aHp <= 0 || bHp <= 0) break;
+  }
+  return Object.assign({}, base, { marginLabel: luanVoMarginLabel(base.margin), rounds: log, aName: a.name || '', bName: b.name || '' });
+}

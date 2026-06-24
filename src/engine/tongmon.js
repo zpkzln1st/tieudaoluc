@@ -4,7 +4,7 @@
 // ============================================================
 import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
-import { luanVo, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
+import { luanVo, luanVoCycle, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
 // uy cộng dồn tới từng cảnh giới (để tính Uy Danh "tổng" của 1 đệ tử)
@@ -117,7 +117,7 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
     else if ('tamMa' in e) { const d = findD(e.tamMa.who); if (d) { if (e.tamMa.clear) { d.tamMaLv = 0; d.tamMaXp = 0; } if ('dLv' in e.tamMa) d.tamMaLv = Math.max(0, Math.min(TAMMA_MAX, (d.tamMaLv || 0) + e.tamMa.dLv)); if ('dXp' in e.tamMa) d.tamMaXp = Math.max(0, Math.min(1, (d.tamMaXp || 0) + e.tamMa.dXp)); const dl = e.tamMa.dLv || 0; if (e.tamMa.clear || dl < 0) chips.push(chip('Tâm ma tiêu tán · ' + d.name, '#34d399')); else if (dl > 0) chips.push(chip('Tâm ma trỗi dậy · ' + d.name, '#fb7185')); } }
     else if ('capBonus' in e) { const d = findD(e.capBonus.who); if (d) { d.capBonus = (d.capBonus || 0) + e.capBonus.n; chips.push(chip('+' + e.capBonus.n + ' bậc trần · ' + d.name, '#34d399')); } }
     else if ('realmUp' in e) { const d = findD(e.realmUp.who); if (d) { const cap = disciCap(d); d.realm = Math.min(cap, d.realm + e.realmUp.n); d.xp = 0; if (d.realm >= cap && cap >= 9) d.awaiting = true; chips.push(chip('Đột phá +' + e.realmUp.n + ' · ' + d.name, '#fbbf24')); } }
-    else if ('rebel' in e) { const i = t.disciples.findIndex((d) => d.uid === e.rebel.who); if (i >= 0) { const d = t.disciples[i]; t.disciples.splice(i, 1); t.events.rebels.push({ name: d.name, han: d.han, apt: d.apt, he: d.he, realm: d.realm, fromUid: d.uid, at: now }); chips.push(chip(d.name + ' → Phản Đồ', '#a78bfa')); } }
+    else if ('rebel' in e) { const i = t.disciples.findIndex((d) => d.uid === e.rebel.who); if (i >= 0) { const d = t.disciples[i]; t.disciples.splice(i, 1); t.events.rebels.push({ name: d.name, han: d.han, apt: d.apt, he: d.he, sex: d.sex, realm: d.realm, fromUid: d.uid, at: now }); chips.push(chip(d.name + ' → Phản Đồ', '#a78bfa')); } }
     else if ('recapture' in e) { if (rebel) { const i = t.events.rebels.findIndex((r) => r.fromUid === rebel.fromUid); if (i >= 0) t.events.rebels.splice(i, 1); const nd = genDisciple({ name: rebel.name, han: rebel.han, apt: rebel.apt, he: rebel.he }); nd.realm = rebel.realm; nd.flags = { cuuChuoc: true }; t.disciples.push(nd); chips.push(chip(rebel.name + ' · quy hàng', '#34d399')); } }
     else if ('dismissRebel' in e) { if (rebel) { const i = t.events.rebels.findIndex((r) => r.fromUid === rebel.fromUid); if (i >= 0) t.events.rebels.splice(i, 1); chips.push(chip(rebel.name + ' · dứt nợ', '#94a3b8')); } }
     else if ('bietHieu' in e) { const d = findD(e.bietHieu.who); if (d) { d.bietHieu = e.bietHieu.name; chips.push(chip('Biệt hiệu · ' + e.bietHieu.name, '#f5b942')); } }
@@ -528,7 +528,7 @@ export function runLuanVo(state, aUid, bUid, nowMs) {
   const now = nowMs || Date.now();
   if (a.luanVoCdUntil && now < a.luanVoCdUntil) return { ok: false, msg: `${a.name} vừa tỉ thí, đợi hồi sức.` };
   const seed = a.uid + '~' + b.uid + '~' + Math.floor(now / 600000);   // đổi mỗi 10' để khác trận, vẫn deterministic trong khoảnh khắc
-  const res = luanVo({ name: a.name, chienLuc: disciStats(a).chienLuc, he: a.he }, { name: b.name, chienLuc: disciStats(b).chienLuc, he: b.he }, seed);
+  const res = luanVoCycle({ name: a.name, chienLuc: disciStats(a).chienLuc, he: a.he }, { name: b.name, chienLuc: disciStats(b).chienLuc, he: b.he }, seed);
   if (!t.luanVo) t.luanVo = {};
   const recA = t.luanVo[a.uid] || (t.luanVo[a.uid] = { w: 0, l: 0 });
   const recB = t.luanVo[b.uid] || (t.luanVo[b.uid] = { w: 0, l: 0 });

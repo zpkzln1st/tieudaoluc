@@ -596,16 +596,30 @@ const gameStore = {
       const h = Math.floor(cdMs / 3600000), m = Math.floor((cdMs % 3600000) / 60000);
       return { uid: d.uid, name: d.name, han: d.han, color: (APT[d.apt] || {}).color || '#cbd5e1', face: this.tmFace(d), tier: tv.tier, tamMaLv: tv.lv, flags: this.tmFlagChips(d), onCd: cdMs > 0, cdText: cdMs > 0 ? (h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm')) : '' };
     });
-    const rebels = ((t.events && t.events.rebels) || []).map((r) => ({ name: r.name, han: r.han, color: (APT[r.apt] || {}).color || '#a78bfa', realmName: (REALMS[r.realm] || {}).name || '' }));
+    const rebels = ((t.events && t.events.rebels) || []).map((r) => ({ name: r.name, han: r.han, color: (APT[r.apt] || {}).color || '#a78bfa', realmName: (REALMS[r.realm] || {}).name || '', face: this.tmFace({ sex: r.sex, uid: r.fromUid }) }));
     return { needy, rebels, clean: needy.length === 0 && rebels.length === 0 };
   },
   tmDiscipline(uid) { const r = disciplineDisciple(this.state, uid, now()); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Giới Luật · ' + r.msg); } else this.showToast(r.msg); },
   // ===== LUẬN VÕ ĐƯỜNG: tỉ thí đệ tử (chọn đấu sĩ -> chọn đối thủ -> tỉ thí). Kết quả side-only. =====
-  luanVoOpen: false, luanVoChampion: null, luanVoResult: null,
-  openLuanVo() { this.luanVoChampion = null; this.luanVoResult = null; this.luanVoOpen = true; },
-  closeLuanVo() { this.luanVoOpen = false; },
+  luanVoOpen: false, luanVoChampion: null, luanVoFight: null, luanVoRound: 0, luanVoTimer: null,
+  openLuanVo() { this.luanVoChampion = null; this._lvStop(); this.luanVoFight = null; this.luanVoRound = 0; this.luanVoOpen = true; },
+  closeLuanVo() { this._lvStop(); this.luanVoFight = null; this.luanVoOpen = false; },
   pickChampion(uid) { this.luanVoChampion = (this.luanVoChampion === uid ? null : uid); },
-  closeLuanVoResult() { this.luanVoResult = null; },
+  _lvStop() { if (this.luanVoTimer) { clearTimeout(this.luanVoTimer); this.luanVoTimer = null; } },
+  _lvPlay() {   // phát từng hiệp (~1.1s/hiệp) đến hết, rồi hiện người thắng
+    this._lvStop();
+    const step = () => {
+      if (!this.luanVoFight) { this.luanVoTimer = null; return; }
+      if (this.luanVoRound < this.luanVoFight.rounds.length) { this.luanVoRound++; this._tick++; this.luanVoTimer = setTimeout(step, 1100); }
+      else { this.luanVoTimer = null; this._tick++; }
+    };
+    this.luanVoTimer = setTimeout(step, 500);
+  },
+  luanVoSkip() { this._lvStop(); if (this.luanVoFight) this.luanVoRound = this.luanVoFight.rounds.length; this._tick++; },
+  get luanVoFightDone() { void this._tick; return !!this.luanVoFight && this.luanVoRound >= this.luanVoFight.rounds.length; },
+  get luanVoHp() { void this._tick; const f = this.luanVoFight; if (!f || this.luanVoRound <= 0) return { a: 100, b: 100 }; const rd = f.rounds[Math.min(this.luanVoRound, f.rounds.length) - 1]; return { a: rd.aHp, b: rd.bHp }; },
+  get luanVoLog() { void this._tick; const f = this.luanVoFight; return f ? f.rounds.slice(0, this.luanVoRound).map((r) => r.line) : []; },
+  closeLuanVoResult() { this._lvStop(); this.luanVoFight = null; this.luanVoRound = 0; },
   get luanVoChampionCd() { void this._tick; if (!this.luanVoChampion) return ''; const c = this.tmLuanVoData.find((x) => x.uid === this.luanVoChampion); return c && c.onCd ? c.cdText : ''; },
   // ===== ĐÃI KHÁCH CÁC: bang giao bot-sect (Tiếp Đãi / Tặng Lễ -> giao tình -> Kết Minh). Selection ở store (genRoster), thưởng side-only. =====
   daiKhachOpen: false,
@@ -641,11 +655,10 @@ const gameStore = {
     if (!r.ok) { this.showToast(r.msg); return; }
     this.tmSave(); this._tick++;
     const t = this.tm, a = t.disciples.find((x) => x.uid === this.luanVoChampion), b = t.disciples.find((x) => x.uid === bUid);
-    this.luanVoResult = {
-      aName: a ? a.name : '', aColor: a ? ((APT[a.apt] || {}).color || '#ccc') : '#ccc', aFace: a ? this.tmFace(a) : '', aHan: a ? a.han : '', aScore: r.res.aScore,
-      bName: b ? b.name : '', bColor: b ? ((APT[b.apt] || {}).color || '#ccc') : '#ccc', bFace: b ? this.tmFace(b) : '', bHan: b ? b.han : '', bScore: r.res.bScore,
-      aWon: r.aWon, winnerName: r.res.winnerName, marginLabel: r.marginLabel, heFactor: r.res.heFactor,
-    };
+    const fd = (d) => d ? { name: d.name, color: (APT[d.apt] || {}).color || '#cbd5e1', face: this.tmFace(d), han: d.han, heColor: (HE[d.he] || HE.kim).color } : { name: '', color: '#94a3b8', face: '', han: '?', heColor: '#94a3b8' };
+    this.luanVoFight = { a: fd(a), b: fd(b), rounds: r.res.rounds, aWon: r.aWon, winnerName: r.res.winnerName, marginLabel: r.res.marginLabel, heFactor: r.res.heFactor };
+    this.luanVoRound = 0;
+    this._lvPlay();
   },
   // Glow TĨNH chân dung theo TIỂU CẢNH: hào quang màu đại cảnh, SÁNG dần khi đệ tử tiến tới Viên Mãn (idx tiểu cảnh). Inset (không tràn card). Thiên Tư vẫn có halo2 vàng riêng.
   tmSubGlow(d) {
