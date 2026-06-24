@@ -113,6 +113,13 @@ red-hot furnace, hanging swords and blades on racks, sparks flying, a hammer, tr
 smithy pavilion, night, intense amber-orange fire glow with cyan qi accents, misty, vertical 3:4,
 dark muted background, painterly xianxia concept art, no text, 312x416
 ```
+**`giangDao` (Giảng Đạo Đường — giảng đường thuyết đạo):**
+```
+Painterly wuxia sect building card art, a solemn lecture hall / dao-teaching pavilion: an elder master
+seated on a dais expounding scripture, dim hall with hanging lanterns and incense smoke, floating glowing
+calligraphy and dao-script symbols in the air, a few kneeling disciples listening, night, warm golden
+enlightenment glow, misty, vertical 3:4, dark muted background, painterly xianxia concept art, no text, 312x416
+```
 
 ---
 
