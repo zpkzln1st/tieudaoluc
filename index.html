@@ -4272,7 +4272,7 @@
                 <template x-for="d in t.disciples" :key="d.uid">
                   <div @click="g.openDisciple(d.uid)" class="relative panel rounded-xl overflow-hidden border cursor-pointer transform-gpu transition-transform duration-200 ease-out hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40" :style="'border-color:'+g.tmApt(d).color+'55'">
                     <template x-if="d.apt==='thien'"><div class="halo2" :style="'--c:'+g.tmApt(d).color+';border-radius:12px'"></div></template>
-                    <div class="relative" :style="'aspect-ratio:3/4;background:linear-gradient(160deg,'+g.tmHe(d).color+'22,#0f1521 72%)'">
+                    <div class="relative" :style="'aspect-ratio:3/4;background:linear-gradient(160deg,'+g.tmHe(d).color+'22,#0f1521 72%);box-shadow:'+g.tmSubGlow(d)">
                       <div class="absolute inset-0 flex items-center justify-center fserif text-[3.2rem]" :style="'color:'+g.tmHe(d).color+'33'" x-text="d.han"></div>
                       <template x-if="g.tmFace(d)"><img :src="g.tmFace(d)" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()"></template>
                       <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold" :style="'color:'+g.tmApt(d).color+';border-color:'+g.tmApt(d).color+'66'" x-text="g.tmApt(d).name"></span>
@@ -4793,7 +4793,7 @@
                       <div class="flex items-center justify-between mb-1.5"><div class="lbl">Trang Bị Đệ Tử</div>
                         <button @click="g.openGiftPicker()" class="text-[11px] px-2.5 py-1 rounded bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25">Ban Gia Bảo</button></div>
                       <div class="flex flex-col items-center sm:flex-row sm:items-start gap-2.5">
-                        <div class="relative rounded-xl overflow-hidden border bg-ink2 shrink-0 group" :class="g.tmFace(d)?'cursor-zoom-in':''" @click="g.tmFace(d) && g.openFaceFull(g.tmFace(d))" :style="'width:138px;height:184px;border-color:'+g.tmApt(d).color+'55'">
+                        <div class="relative rounded-xl overflow-hidden border bg-ink2 shrink-0 group" :class="g.tmFace(d)?'cursor-zoom-in':''" @click="g.tmFace(d) && g.openFaceFull(g.tmFace(d))" :style="'width:138px;height:184px;border-color:'+g.tmApt(d).color+'55;box-shadow:'+g.tmSubGlow(d)">
                           <template x-if="d.apt==='thien'"><div class="halo2" :style="'--c:'+g.tmApt(d).color+';border-radius:12px'"></div></template>
                           <div class="absolute inset-0 flex items-center justify-center fserif text-[3.6rem]" :style="'color:'+g.tmHe(d).color+'2e'" x-text="d.han"></div>
                           <template x-if="g.tmFace(d)"><img :src="g.tmFace(d)" alt="" class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.remove()"></template>
