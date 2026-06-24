@@ -1058,7 +1058,7 @@ const gameStore = {
     for (const k of ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc']) if (s[k]) out.push({ key: k, label: this.statLabel(k), val: s[k], sig: false });
     return out;
   },
-  petElColor(pet) { return ({ kim: '#e2e8f0', moc: '#6ee7b7', thuy: '#67e8f9', hoa: '#fdba74', tho: '#fcd34d' })[(PET_SPECIES[pet.base] || {}).he] || '#94a3b8'; },
+  petElColor(pet) { return (HE[(PET_SPECIES[pet.base] || {}).he] || {}).color || '#94a3b8'; },   // ĐỒNG BỘ bảng chuẩn HE (votong NGU_HANH): Kim vàng #facc15…
   petQHex(pet) { return ({ phamPham: '#cbd5e1', luongPham: '#34d399', tinhPham: '#60a5fa', tuyetPham: '#a78bfa', truyenThe: '#e879f9', thanPham: '#fb923c', coBan: '#fbbf24' })[pet.quality] || '#cbd5e1'; },
   statLabelFull(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   statIco(k) { const P = { congKich: '<path d="M5 19l3.5-3.5M8.5 15.5l8-8 2 2-8 8zM15 5l4 4"/>', hoThe: '<path d="M12 3l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V6l7-3z"/>', neTranh: '<path d="M3 9h9a2.5 2.5 0 10-2.5-2.6M3 14h13a2.5 2.5 0 11-2.5 2.6"/>', menhTrung: '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.5"/>', sinhLuc: '<path d="M12 20s-7-4.7-7-10a4 4 0 017-2.2A4 4 0 0119 10c0 5.3-7 10-7 10z"/>' }; P.lucDao = P.congKich; P.thanPhap = P.neTranh; P.linhXao = P.menhTrung; return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">' + (P[k] || '') + '</svg>'; },
