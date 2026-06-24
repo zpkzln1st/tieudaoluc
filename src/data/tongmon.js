@@ -95,12 +95,12 @@ const HAN_NU  = '衣烟雪灵鸾月冰嫣霜寂';
 
 // --- Công trình (NỀN, giữ nhẹ; phục vụ đệ tử) ---
 export const BUILDINGS = {
-  tuHien:  { name: 'Tụ Hiền Đường', han: '宗', desc: 'Tăng số đệ tử nuôi được + mở Chiêu Hiền.', slotBase: 4, slotPerLv: 1 },
-  dienVo:  { name: 'Diễn Võ Trường', han: '武', desc: 'Tăng tốc tu luyện toàn bộ đệ tử.', buffPerLv: 0.06 },
-  tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Sinh Điểm Đấu Giá theo giờ.', diemPerLvH: 12 },
-  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Luyện đan đột phá theo CÔNG THỨC (tốn nguyên liệu trong Túi Đồ). Cấp cao mở luyện đan bậc cao hơn.' },
-  duocVien:{ name: 'Dược Viên',     han: '藥', desc: 'Gieo trồng linh dược idle — mỗi luống nuôi một loại nguyên liệu, chín thì thu về Túi Đồ. Bậc cao mở thêm luống + trồng nguyên liệu bậc cao.' },
-  tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Tăng Khí Vận + chút tốc tu luyện.', khiPerLv: 4 },
+  tuHien:  { name: 'Tụ Hiền Đường', han: '宗', desc: 'Sảnh đường chiêu hiền nạp sĩ — nơi quy tụ anh tài bốn phương về dưới trướng tông môn. Bậc càng cao, sức chứa môn đồ càng rộng; cũng là chốn truyền hịch Chiêu Hiền vang khắp giang hồ.', slotBase: 4, slotPerLv: 1 },
+  dienVo:  { name: 'Diễn Võ Trường', han: '武', desc: 'Giáo trường luyện võ, ngày đêm vang tiếng binh khí va chạm. Đệ tử khổ luyện nơi đây, đạo cơ ngày một vững, tu vi tăng tiến mau hơn — mở rộng trường thì cả tông cùng hưởng.', buffPerLv: 0.06 },
+  tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Lầu cất giữ kinh thư bí lục của môn phái. Đệ tử nghiền ngẫm điển tịch, lĩnh ngộ huyền cơ — tích góp đều đặn thành Điểm Đấu Giá theo thời gian.', diemPerLvH: 12 },
+  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Đan phòng của tông môn, lò lửa quanh năm không tắt. Theo cổ phương mà nung luyện nguyên liệu trong Túi Đồ thành linh đan đột phá — mỗi mẻ tốn thời gian luyện. Bậc cao mở thêm lò và đan phẩm cao hơn.' },
+  duocVien:{ name: 'Dược Viên',     han: '藥', desc: 'Khu vườn ươm trồng linh dược, sương khói lượn quanh các luống đất. Mỗi luống nuôi một vị nguyên liệu, đủ ngày thì chín, hái về Túi Đồ. Bậc cao mở thêm luống và trồng được linh dược bậc cao.' },
+  tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Đại trận dẫn linh khí trời đất quy tụ về sơn môn, vận khí hanh thông cát tường. Linh khí dồi dào giúp Khí Vận tông môn tăng tiến, đồng thời bồi thêm tốc độ tu luyện cho toàn môn.', khiPerLv: 4 },
 };
 export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'tuLinh'];
 
