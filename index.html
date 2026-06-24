@@ -4306,7 +4306,9 @@
                 <template x-if="!g.tmDienBien.length"><div class="px-4 py-5 text-center text-[12px] text-slate-600 italic fserif">Chưa có dòng nào — chuyện tông môn sẽ chép vào đây.</div></template>
                 <template x-for="(s,si) in g.tmDienBien" :key="si">
                   <div class="flex gap-3 px-4 py-2.5 border-b border-slate-800/40 hover:bg-ink3/30 transition">
-                    <div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[16px] mt-0.5" :style="'background:'+s.color+'1c;border:1px solid '+s.color+'55;color:'+s.color" x-text="s.seal"></div>
+                    <template x-if="s.icon.kind==='disc'"><div class="w-8 h-8 rounded-lg shrink-0 overflow-hidden border mt-0.5 bg-ink2" :style="'border-color:'+s.icon.color+'77'"><img :src="s.icon.src" alt="" class="w-full h-full object-cover object-top" onerror="this.remove()"></div></template>
+                    <template x-if="s.icon.kind==='sect'"><div class="relative w-8 h-8 rounded-lg shrink-0 overflow-hidden bg-ink2 border border-amber-500/40 flex items-center justify-center mt-0.5"><span class="fserif text-amber-300 text-[15px]">宗</span><img src="images/ui/tongmon_emblem.webp" alt="" class="absolute inset-0 w-full h-full object-contain" onerror="this.remove()"></div></template>
+                    <template x-if="s.icon.kind==='seal'"><div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[16px] mt-0.5" :style="'background:'+s.color+'1c;border:1px solid '+s.color+'55;color:'+s.color" x-text="s.seal"></div></template>
                     <div class="flex-1 min-w-0"><div class="text-[12.5px] text-slate-200 leading-snug fserif" x-html="s.html"></div><div class="text-[10px] text-slate-600 mt-0.5" x-text="g.notifAgo(s.t)"></div></div>
                   </div>
                 </template>
