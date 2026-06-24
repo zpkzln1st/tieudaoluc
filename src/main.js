@@ -439,6 +439,9 @@ const gameStore = {
   get tmPillsList() { void this._tick; return PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p) })).filter((x) => x.count > 0); },
   // --- TÚI ĐỒ chia mục (scale khi thêm loại vật phẩm) ---
   tmBagOpen: false,
+  tmItemView: null,                                   // item đang xem art to (lightbox)
+  openItemView(it) { if (it) this.tmItemView = it; },
+  closeItemView() { this.tmItemView = null; },
   get tmBagCategories() {
     void this._tick;
     return [

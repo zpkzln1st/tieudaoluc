@@ -4542,7 +4542,7 @@
                       </div>
                       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         <template x-for="it in cat.items" :key="it.id">
-                          <div class="relative rounded-lg overflow-hidden border bg-ink2 p-2 flex items-center gap-2" :class="it.count?'border-slate-700':'border-slate-800/70 opacity-45'">
+                          <div @click="g.openItemView(it)" class="relative rounded-lg overflow-hidden border bg-ink2 p-2 flex items-center gap-2 cursor-pointer transition" :class="it.count?'border-slate-700 hover:border-slate-500':'border-slate-800/70 opacity-45 hover:opacity-80'">
                             <span class="relative w-10 h-10 rounded-md overflow-hidden bg-ink3 border flex items-center justify-center shrink-0" :style="'border-color:'+it.color+'44'">
                               <span class="text-[17px]" x-text="it.emoji"></span>
                               <template x-if="it.img"><img :src="it.img" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template>
@@ -4560,6 +4560,24 @@
                   <div class="text-[10.5px] text-slate-600 italic text-center pt-1">Nguyên liệu kiếm qua <b class="text-emerald-300/70">Lịch Luyện</b> / <b class="text-emerald-300/70">Dược Viên</b> · Đan Dược luyện ở <b class="text-amber-300/70">Y Quán</b>.</div>
                 </div>
               </div>
+            </div>
+          </template>
+
+          <!-- LIGHTBOX xem art vật phẩm (click tile Túi Đồ) -->
+          <template x-if="g.tmItemView">
+            <div class="fixed inset-0 z-[95] flex flex-col items-center justify-center bg-black/88 backdrop-blur-sm p-6 cursor-zoom-out" @click="g.closeItemView()">
+              <div @click.stop class="flex flex-col items-center">
+                <div class="relative rounded-2xl overflow-hidden border shadow-2xl" :style="'border-color:'+g.tmItemView.color+'66;width:min(80vw,360px);height:min(80vw,360px);background:#0b1018'">
+                  <span class="absolute inset-0 flex items-center justify-center text-7xl opacity-50" x-text="g.tmItemView.emoji"></span>
+                  <img :src="g.tmItemView.img" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()">
+                </div>
+                <div class="text-center mt-3.5">
+                  <div class="fserif text-[20px]" :style="'color:'+g.tmItemView.color" x-text="g.tmItemView.name"></div>
+                  <div class="text-[12px] text-slate-400 mt-1" x-text="g.tmItemView.sub"></div>
+                  <div class="text-[12.5px] text-slate-300 mt-1.5">Đang có <b :style="'color:'+g.tmItemView.color" x-text="'×'+g.tmItemView.count"></b></div>
+                </div>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-5">Bấm bất kỳ để đóng</div>
             </div>
           </template>
 
