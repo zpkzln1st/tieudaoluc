@@ -570,6 +570,20 @@ const gameStore = {
   tmRealmGuideOpen: false,
   get tmRealmGuide() { return REALMS.map((r, i) => ({ name: r.name, color: this.tmRealmColors[i] || '#cbd5e1', subs: SUB_STAGES[i] || [], capApts: Object.keys(APT).filter((k) => APT[k].cap === i).map((k) => APT[k].name) })); },
   tmRealmColor(d) { return ['#cbd5e1', '#34d399', '#60a5fa', '#22d3ee', '#a78bfa', '#c4b5fd', '#e879f9', '#fb923c', '#f5b942', '#fbbf24'][d.realm] || '#cbd5e1'; },
+  // ===== TỔ SƯ ĐIỆN: chiêm bái tiền nhân — Huyền Thoại Xuất Sư (t.legends) · Trưởng Lão (t.elders) · Cố Nhân Đã Khuất (t.fallen). Bề mặt codex/tưởng niệm trên data sẵn. =====
+  toSuOpen: false,
+  openToSu() { this.toSuOpen = true; },
+  closeToSu() { this.toSuOpen = false; },
+  get tmToSuData() {
+    void this._tick;
+    const t = this.tm; if (!t) return { legends: [], elders: [], fallen: [], total: 0 };
+    const aptOf = (k) => ({ name: (APT[k] || {}).name || '', color: (APT[k] || {}).color || '#cbd5e1' });
+    const legends = (t.legends || []).map((l) => { const a = aptOf(l.apt); return { name: l.name, han: l.han, aptName: a.name, color: a.color }; });
+    const elders = (t.elders || []).map((e) => { const a = aptOf(e.apt); return { name: e.name, han: e.han, aptName: a.name, color: a.color, realmName: (REALMS[e.realm] || {}).name || '', face: this.tmFace(e), heColor: (HE[e.he] || HE.kim).color }; });
+    const CAUSE = { thienKiep: 'Vẫn lạc dưới Thiên Kiếp' };
+    const fallen = (t.fallen || []).map((f) => { const a = aptOf(f.apt); return { name: f.name, han: f.han, aptName: a.name, color: a.color, realmName: (REALMS[f.realm] || {}).name || '', cause: CAUSE[f.cause] || 'Đã khuất', tamMa: f.tamMa, heColor: (HE[f.he] || HE.kim).color }; });
+    return { legends, elders, fallen, total: legends.length + elders.length + fallen.length };
+  },
   // Glow TĨNH chân dung theo TIỂU CẢNH: hào quang màu đại cảnh, SÁNG dần khi đệ tử tiến tới Viên Mãn (idx tiểu cảnh). Inset (không tràn card). Thiên Tư vẫn có halo2 vàng riêng.
   tmSubGlow(d) {
     if (!d) return '';

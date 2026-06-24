@@ -4533,8 +4533,68 @@
                   <template x-if="g.tmBuildSel==='duocVien' && g.tmBuildLv('duocVien')>=1">
                     <button @click="g.tmBuildSel=null; g.openDuocVien()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-emerald-600/85 hover:bg-emerald-600 text-white">Vào Dược Viên 藥</button>
                   </template>
+                  <template x-if="g.tmBuildSel==='toSuDien' && g.tmBuildLv('toSuDien')>=1">
+                    <button @click="g.tmBuildSel=null; g.openToSu()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-amber-700/80 hover:bg-amber-700 text-white">Vào Tổ Sư Điện 祖</button>
+                  </template>
                   <button @click="g.tmUpgrade(g.tmBuildSel)" :disabled="!g.tmCanUpgrade(g.tmBuildSel)" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmCanUpgrade(g.tmBuildSel)?'bg-amber-500/85 hover:bg-amber-500 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'">Nâng Cấp</button>
                 </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODAL TỔ SƯ ĐIỆN (chiêm bái tiền nhân: Huyền Thoại Xuất Sư · Trưởng Lão · Cố Nhân Đã Khuất) -->
+          <template x-if="g.toSuOpen">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeToSu()">
+              <div @click.stop class="panel rounded-2xl w-[640px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-amber-600/35">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(180,120,40,.12),transparent)">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[16px]" style="color:#f5b942;border:1px solid rgba(245,185,66,.4);background:rgba(245,185,66,.1)">祖</span>
+                    <div><div class="gold-text fserif text-[18px] leading-none">Tổ Sư Điện</div><div class="text-[10.5px] text-slate-500 mt-0.5">Khói hương cung phụng tiền nhân khai phái</div></div>
+                  </div>
+                  <button @click="g.closeToSu()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-3.5 space-y-4">
+                  <!-- HUYỀN THOẠI XUẤT SƯ -->
+                  <div>
+                    <div class="flex items-center gap-2 mb-2"><span class="text-[12.5px] fserif text-amber-300">仙 Huyền Thoại Xuất Sư</span><span class="text-[10px] text-slate-600" x-text="'· '+g.tmToSuData.legends.length"></span><span class="flex-1 h-px bg-slate-800/80"></span></div>
+                    <template x-if="!g.tmToSuData.legends.length"><div class="text-[11px] text-slate-600 italic">Chưa có đệ tử đắc đạo Xuất Sư vân du thiên hạ.</div></template>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <template x-for="(l,i) in g.tmToSuData.legends" :key="i">
+                        <div class="rounded-lg border px-2.5 py-2 flex items-center gap-2.5" style="background:rgba(245,185,66,.04)" :style="'border-color:'+l.color+'40'">
+                          <span class="w-8 h-8 rounded-full flex items-center justify-center fserif text-[15px] shrink-0" :style="'color:'+l.color+';border:1px solid '+l.color+'55;background:'+l.color+'12'" x-text="l.han"></span>
+                          <div class="min-w-0"><div class="fserif text-[12.5px] truncate" :style="'color:'+l.color" x-text="l.name"></div><div class="text-[9.5px] text-slate-500 truncate" x-text="l.aptName+' · vân du thiên hạ'"></div></div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <!-- TRƯỞNG LÃO TỌA TRẤN -->
+                  <div>
+                    <div class="flex items-center gap-2 mb-2"><span class="text-[12.5px] fserif text-jade">師 Trưởng Lão Tọa Trấn</span><span class="text-[10px] text-slate-600" x-text="'· '+g.tmToSuData.elders.length"></span><span class="flex-1 h-px bg-slate-800/80"></span></div>
+                    <template x-if="!g.tmToSuData.elders.length"><div class="text-[11px] text-slate-600 italic">Chưa có Trưởng Lão ở lại truyền dạy.</div></template>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <template x-for="(e,i) in g.tmToSuData.elders" :key="i">
+                        <div class="rounded-lg border px-2.5 py-2 flex items-center gap-2.5 bg-ink2/50" :style="'border-color:'+e.color+'40'">
+                          <span class="relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center fserif text-[15px] shrink-0" :style="'color:'+e.color+';border:1px solid '+e.color+'55;background:'+e.color+'12'"><span x-text="e.han"></span><template x-if="e.face"><img :src="e.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
+                          <div class="min-w-0"><div class="fserif text-[12.5px] truncate" :style="'color:'+e.color" x-text="e.name"></div><div class="text-[9.5px] text-slate-500 truncate" x-text="e.realmName+' · '+e.aptName"></div></div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <!-- CỐ NHÂN ĐÃ KHUẤT -->
+                  <div>
+                    <div class="flex items-center gap-2 mb-2"><span class="text-[12.5px] fserif text-rose-300/80">逝 Cố Nhân Đã Khuất</span><span class="text-[10px] text-slate-600" x-text="'· '+g.tmToSuData.fallen.length"></span><span class="flex-1 h-px bg-slate-800/80"></span></div>
+                    <template x-if="!g.tmToSuData.fallen.length"><div class="text-[11px] text-slate-600 italic">Chưa có đệ tử nào ngã xuống.</div></template>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <template x-for="(f,i) in g.tmToSuData.fallen" :key="i">
+                        <div class="rounded-lg border border-slate-800 px-2.5 py-2 flex items-center gap-2.5 bg-ink3/40 grayscale-[.4]">
+                          <span class="w-8 h-8 rounded-full flex items-center justify-center fserif text-[15px] shrink-0 text-slate-400" style="border:1px solid rgba(100,116,139,.4);background:rgba(100,116,139,.08)" x-text="f.han"></span>
+                          <div class="min-w-0"><div class="fserif text-[12.5px] truncate text-slate-300" x-text="f.name"></div><div class="text-[9.5px] text-rose-300/60 truncate" x-text="f.realmName+' · '+f.cause"></div></div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+                <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-center text-[10.5px] text-slate-600 italic" style="background:rgba(15,21,33,.55)">Một nén tâm hương — công đức tiền nhân, ấm phúc hậu bối.</div>
               </div>
             </div>
           </template>
