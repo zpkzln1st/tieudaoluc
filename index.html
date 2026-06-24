@@ -1997,7 +1997,8 @@
               <button @click="$store.game.pvbTab='caothu'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='caothu'?'border-jade/50 bg-jade/10 text-jade':'border-slate-700 text-slate-400 hover:border-slate-600'">Cao Thủ Bảng</button>
               <button @click="$store.game.pvbTab='tongmon'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='tongmon'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Tông Môn Bảng</button>
               <button @click="$store.game.pvbTab='danhsi'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='danhsi'?'border-cyan/50 bg-cyan/10 text-cyan':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Bảng</button>
-              <span class="ml-auto text-slate-500 text-[11px]" x-text="$store.game.pvbTab==='caothu'?'theo Tổng Cảnh Giới':($store.game.pvbTab==='tongmon'?'theo Uy Danh':'20 danh sĩ chấn động giang hồ')"></span>
+              <button @click="$store.game.pvbTab='danhSiLuc'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='danhSiLuc'?'border-violet-400/50 bg-violet-500/10 text-violet-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Lục</button>
+              <span class="ml-auto text-slate-500 text-[11px]" x-text="$store.game.pvbTab==='caothu'?'theo Tổng Cảnh Giới':($store.game.pvbTab==='tongmon'?'theo Uy Danh':($store.game.pvbTab==='danhSiLuc'?'sưu tập danh sĩ giang hồ':'20 danh sĩ chấn động giang hồ'))"></span>
             </div>
             <!-- ===== CAO THỦ BẢNG ===== -->
             <div x-show="$store.game.pvbTab==='caothu'">
@@ -2096,6 +2097,32 @@
                   </div>
                 </template>
               </div>
+            </div>
+            <!-- DANH SĨ LỤC (codex sưu tập) -->
+            <div x-show="$store.game.pvbTab==='danhSiLuc'">
+              <div class="flex items-center gap-3 px-2 pb-3 flex-wrap">
+                <div class="text-[12.5px] text-slate-300 fserif">Đã khám phá <b class="text-violet-300" x-text="$store.game.danhSiLuc.discovered"></b><span class="text-slate-600">/</span><span x-text="$store.game.danhSiLuc.total"></span></div>
+                <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden max-w-[220px]"><div class="h-full bg-violet-400 rounded-full transition-all" :style="'width:'+Math.round($store.game.danhSiLuc.discovered/$store.game.danhSiLuc.total*100)+'%'"></div></div>
+                <span x-show="$store.game.danhSiLuc.deceased" class="text-[11px] inline-flex items-center gap-1" style="color:#c4b5fd"><span class="fserif">承</span><b x-text="$store.game.danhSiLuc.deceased"></b> truyền nhân kế vị</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                <template x-for="c in $store.game.danhSiLuc.items" :key="c.id">
+                  <div @click="c.discovered && $store.game.openDanhSi(c.id)" class="relative rounded-xl border overflow-hidden transition transform-gpu" :class="c.discovered?'cursor-pointer hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40':'opacity-55'" :style="'border-color:'+(c.discovered?c.heColor+'45':'#1e293b')">
+                    <div class="relative" style="aspect-ratio:3/4">
+                      <template x-if="c.discovered"><img :src="c.face" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'"></template>
+                      <template x-if="!c.discovered"><div class="absolute inset-0 flex items-center justify-center fserif text-[3.4rem] text-slate-700 select-none">?</div></template>
+                      <div class="absolute inset-0" style="background:linear-gradient(180deg,transparent 42%,rgba(11,15,24,.94))"></div>
+                      <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border border-slate-700 text-slate-300 font-bold" x-text="'#'+c.rank"></span>
+                      <template x-if="c.discovered && c.isSuccessor"><span class="absolute top-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded-full font-bold fserif" style="color:#c4b5fd;background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.5)">承</span></template>
+                      <div class="absolute bottom-0 inset-x-0 p-2">
+                        <div class="fserif text-[12.5px] truncate" :style="'color:'+(c.discovered?c.daoColor:'#64748b')" x-text="c.discovered?c.ten:'???'"></div>
+                        <div class="text-[9.5px] text-slate-500 truncate" x-text="c.discovered?('「'+c.bietHieu+'」'):'chưa khám phá'"></div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+              <div class="text-[10.5px] text-slate-600 italic text-center pt-3">Mở hồ sơ một danh sĩ để khám phá. Tiền nhân tạ thế thì truyền nhân kế vị — danh lục giang hồ chẳng bao giờ ngơi đổi.</div>
             </div>
           </div>
 

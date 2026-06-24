@@ -1686,8 +1686,15 @@ const gameStore = {
   // ===== DANH SĨ GIANG HỒ (20 deep AI, lazy-sim) =====
   dsSel: null,
   get danhSiBang() { void this._tick; return danhSiList(now()); },
-  openDanhSi(id) { this.dsSel = id; },
+  openDanhSi(id) { this.dsSel = id; const s = this._ensureDanhSiState(); if (id && !s.seen.includes(id)) { s.seen.push(id); this.tmSave(); } },   // đánh dấu đã khám phá (Danh Sĩ Lục)
   closeDanhSi() { this.dsSel = null; },
+  // DANH SĨ LỤC: codex sưu tập 20 danh sĩ (đã khám phá / chưa), trạng thái truyền nhân.
+  get danhSiLuc() {
+    void this._tick;
+    const seen = (this.state.danhSi && this.state.danhSi.seen) || [], list = danhSiList(now());
+    const items = list.map((c) => ({ id: c.id, rank: c.rank, ten: c.ten, bietHieu: c.bietHieu, discovered: seen.includes(c.id), face: c.face, heColor: c.heColor, daoName: c.daoName, daoColor: c.daoColor, realmName: c.realmName, isSuccessor: !!c.successorOf }));
+    return { items, discovered: items.filter((i) => i.discovered).length, total: items.length, deceased: items.filter((i) => i.isSuccessor).length };
+  },
   // KỲ NGỘ / BÁI SƯ / TRUY NÃ: lời mời player-facing của danh sĩ đang xem (nhận 1 lần, persist state.danhSi.accepted).
   _ensureDanhSiState() { if (!this.state.danhSi || typeof this.state.danhSi !== 'object') this.state.danhSi = { accepted: [], seen: [] }; if (!Array.isArray(this.state.danhSi.accepted)) this.state.danhSi.accepted = []; if (!Array.isArray(this.state.danhSi.seen)) this.state.danhSi.seen = []; return this.state.danhSi; },
   get dsOffer() {
