@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -16,7 +16,8 @@ export function ensureTongMon(state, nowMs) {
       name: 'Tiêu Dao Tông', dao: 'trung', level: 1,
       congHien: 0, diem: 0, khiVan: 50,
       mats: {}, pills: {},                                                // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá
-      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, tuLinh: 0 },
+      duocVien: { plots: [] },                                            // Dược Viên: luống trồng nguyên liệu (idle)
+      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, tuLinh: 0 },
       disciples: [], elders: [], legends: [], soSach: [],
       recruitPool: [], recruitAt: 0,
       uyBonus: 0,                                                         // +Uy Danh tích từ SỰ KIỆN (uyDanhOf cộng vào)
@@ -37,7 +38,10 @@ export function ensureTongMon(state, nowMs) {
   if (!Array.isArray(t.elders)) t.elders = [];
   if (!Array.isArray(t.legends)) t.legends = [];
   if (!Array.isArray(t.soSach)) t.soSach = [];
-  if (!t.buildings) t.buildings = { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, tuLinh: 0 };
+  if (!t.buildings) t.buildings = { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, tuLinh: 0 };
+  if (typeof t.buildings.duocVien !== 'number') t.buildings.duocVien = 0;          // backfill công trình mới
+  if (!t.duocVien || typeof t.duocVien !== 'object') t.duocVien = { plots: [] };
+  if (!Array.isArray(t.duocVien.plots)) t.duocVien.plots = [];
   if (!Array.isArray(t.recruitPool)) t.recruitPool = [];
   if (!t.lastSimAt) t.lastSimAt = nowMs || Date.now();
   // --- backfill SỰ KIỆN + cờ đệ tử (bản cũ chưa có) ---
@@ -329,6 +333,38 @@ export function startLichLuyen(state, uid, nowMs) {
   const reward = {}; LICH_MATS_BY_TIER[tier].forEach((m) => { reward[m] = qty; });
   d.lichLuyenUntil = now + LICH_LUYEN_H * 3600000; d.lichLuyenReward = reward;
   return { ok: true, msg: `${d.name} khởi hành lịch luyện (${LICH_LUYEN_H}h).` };
+}
+
+// ============================================================
+// DƯỢC VIÊN — trồng nguyên liệu idle (gieo -> chờ giờ thực -> thu tay). CÁCH LY: chỉ SINH mats (side, 1 chiều). Không đụng sim lõi.
+// ============================================================
+function ensureDuocVien(t) { if (!t.duocVien || typeof t.duocVien !== 'object') t.duocVien = { plots: [] }; if (!Array.isArray(t.duocVien.plots)) t.duocVien.plots = []; }
+export function sowPlot(state, plotIdx, matId, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  ensureDuocVien(t);
+  const cnt = duocPlotCount(t); if (plotIdx < 0 || plotIdx >= cnt) return { ok: false, msg: 'Luống không hợp lệ.' };
+  const mat = MATS[matId]; if (!mat) return { ok: false, msg: 'Không rõ nguyên liệu.' };
+  if (mat.tier > duocMaxTier(t)) return { ok: false, msg: `Dược Viên chưa đủ bậc trồng ${mat.name}.` };
+  if (t.duocVien.plots[plotIdx]) return { ok: false, msg: 'Luống đang có cây.' };
+  const now = nowMs || Date.now(), h = DUOC_GROW_H[mat.tier] || 4;
+  t.duocVien.plots[plotIdx] = { mat: matId, at: now, until: now + h * 3600000, qty: DUOC_YIELD[mat.tier] || 3 };
+  return { ok: true, msg: `Gieo ${mat.name}.` };
+}
+export function harvestPlot(state, plotIdx, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: '?' };
+  ensureDuocVien(t);
+  const p = t.duocVien.plots[plotIdx]; if (!p) return { ok: false, msg: 'Luống trống.' };
+  const now = nowMs || Date.now(); if (now < p.until) return { ok: false, msg: 'Cây chưa chín.' };
+  t.mats[p.mat] = (t.mats[p.mat] || 0) + p.qty;
+  const nm = (MATS[p.mat] || {}).name, q = p.qty, mid = p.mat;
+  t.duocVien.plots[plotIdx] = null;
+  return { ok: true, msg: `Thu ${nm}×${q}.`, mat: mid, qty: q };
+}
+export function harvestAllPlots(state, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, n: 0, tot: {} };
+  ensureDuocVien(t); const now = nowMs || Date.now(); let n = 0; const tot = {};
+  t.duocVien.plots.forEach((p, i) => { if (p && now >= p.until) { t.mats[p.mat] = (t.mats[p.mat] || 0) + p.qty; tot[p.mat] = (tot[p.mat] || 0) + p.qty; t.duocVien.plots[i] = null; n++; } });
+  return { ok: n > 0, n, tot };
 }
 
 // ---- Gia Bảo: ban đồ từ gearBag main -> đệ tử (1 chiều). slot lấy từ equip catalog (truyền sẵn) ----

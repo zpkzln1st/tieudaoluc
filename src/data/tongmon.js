@@ -99,9 +99,10 @@ export const BUILDINGS = {
   dienVo:  { name: 'Diễn Võ Trường', han: '武', desc: 'Tăng tốc tu luyện toàn bộ đệ tử.', buffPerLv: 0.06 },
   tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Sinh Điểm Đấu Giá theo giờ.', diemPerLvH: 12 },
   yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Luyện đan đột phá theo CÔNG THỨC (tốn nguyên liệu trong Túi Đồ). Cấp cao mở luyện đan bậc cao hơn.' },
+  duocVien:{ name: 'Dược Viên',     han: '藥', desc: 'Gieo trồng linh dược idle — mỗi luống nuôi một loại nguyên liệu, chín thì thu về Túi Đồ. Bậc cao mở thêm luống + trồng nguyên liệu bậc cao.' },
   tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Tăng Khí Vận + chút tốc tu luyện.', khiPerLv: 4 },
 };
-export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'tuLinh'];
+export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'tuLinh'];
 
 // ===== LUYỆN ĐAN: nguyên liệu (MATS) -> đan đột phá (PILLS) theo CÔNG THỨC =====
 // 6 nguyên liệu, 3 bậc · art images/tongmon/mats/<id>.webp (emoji = fallback).
@@ -134,6 +135,13 @@ export const BREAK_HONTHACH = [100, 300, 800, 1800, 3500, 6500, 11000, 18000, 30
 // ===== LỊCH LUYỆN: phái đệ tử RẢNH đi kiếm nguyên liệu (nguồn chính, không mua-điểm) =====
 export const LICH_LUYEN_H = 4;   // giờ thực / chuyến (DRAFT)
 export function lichLuyenTier(realm) { return realm <= 1 ? 1 : (realm <= 3 ? 2 : 3); }   // bậc liệu theo cảnh giới đệ tử
+
+// ===== DƯỢC VIÊN: trồng nguyên liệu idle (luống · gieo -> chờ giờ thực -> thu tay). Nguồn liệu phụ, idle thật. =====
+export const DUOC_PLOT_BASE = 2;                  // số luống ở Bậc 1 (DRAFT)
+export const DUOC_GROW_H = { 1: 2, 2: 5, 3: 10 }; // giờ chín theo BẬC nguyên liệu (DRAFT)
+export const DUOC_YIELD  = { 1: 4, 2: 3, 3: 2 };  // thu hoạch / luống theo bậc liệu (DRAFT)
+export function duocPlotCount(t) { const lv = (t && t.buildings && t.buildings.duocVien) || 0; return lv < 1 ? 0 : DUOC_PLOT_BASE + (lv - 1); }   // Bậc1=2 luống, +1/bậc
+export function duocMaxTier(t) { const lv = (t && t.buildings && t.buildings.duocVien) || 0; return lv <= 2 ? 1 : (lv <= 4 ? 2 : 3); }            // trồng tới bậc liệu nào
 
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // cost DRAFT — tune. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
