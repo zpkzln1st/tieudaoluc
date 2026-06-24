@@ -2,8 +2,9 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
+import { luanVo, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
 // uy cộng dồn tới từng cảnh giới (để tính Uy Danh "tổng" của 1 đệ tử)
@@ -54,6 +55,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.mats || typeof t.mats !== 'object') t.mats = {};
   if (!t.pills || typeof t.pills !== 'object') t.pills = {};
   if (!t.pillQual || typeof t.pillQual !== 'object') t.pillQual = {};       // phẩm chất đan (song song t.pills; t.pills giữ TỔNG). Đan cũ chưa rõ phẩm -> coi Hạ khi tiêu.
+  if (!t.luanVo || typeof t.luanVo !== 'object') t.luanVo = {};             // record Luận Võ (uid -> {w,l}), side-only
   if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
@@ -513,6 +515,29 @@ export function disciplineDisciple(state, uid, nowMs) {
   chronicle(t, `${d.name} chịu Giới Luật Đường răn dạy, gột tâm ma tịnh đạo — sơn môn thêm nghiêm cẩn.`);
   return { ok: true, msg: `${d.name} đã được răn dạy · tâm ma −${dLv}${cleared.length ? ', gột cờ xấu' : ''}.`, cleared };
 }
+
+// ---- LUẬN VÕ ĐƯỜNG: tỉ thí 2 đệ tử (Chiến Lực side-only + ngũ hành khắc). Kết quả SIDE-ONLY: record w/l + uy nhẹ + cooldown. KHÔNG sinh power. ----
+export function runLuanVo(state, aUid, bUid, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  if ((t.buildings.luanVoDuong || 0) < 1) return { ok: false, msg: 'Cần xây Luận Võ Đường.' };
+  const a = t.disciples.find((x) => x.uid === aUid), b = t.disciples.find((x) => x.uid === bUid);
+  if (!a || !b || a.uid === b.uid) return { ok: false, msg: 'Chọn hai đệ tử khác nhau.' };
+  if (a.awaiting || b.awaiting) return { ok: false, msg: 'Đệ tử Đắc Đạo không tỉ thí.' };
+  const now = nowMs || Date.now();
+  if (a.luanVoCdUntil && now < a.luanVoCdUntil) return { ok: false, msg: `${a.name} vừa tỉ thí, đợi hồi sức.` };
+  const seed = a.uid + '~' + b.uid + '~' + Math.floor(now / 600000);   // đổi mỗi 10' để khác trận, vẫn deterministic trong khoảnh khắc
+  const res = luanVo({ name: a.name, chienLuc: disciStats(a).chienLuc, he: a.he }, { name: b.name, chienLuc: disciStats(b).chienLuc, he: b.he }, seed);
+  if (!t.luanVo) t.luanVo = {};
+  const recA = t.luanVo[a.uid] || (t.luanVo[a.uid] = { w: 0, l: 0 });
+  const recB = t.luanVo[b.uid] || (t.luanVo[b.uid] = { w: 0, l: 0 });
+  const aWon = res.winner === 'a';
+  if (aWon) { recA.w++; recB.l++; } else { recA.l++; recB.w++; }
+  a.luanVoCdUntil = now + LUANVO_CD_H * 3600000;
+  t.uyBonus = (t.uyBonus || 0) + LUANVO_WIN_UY;                 // uy nhẹ (cosmetic, side-only)
+  chronicle(t, `Luận Võ Đường: ${a.name} tỉ thí ${b.name} — ${res.winnerName} ${luanVoMarginLabel(res.margin)}.`);
+  return { ok: true, res, aWon, marginLabel: luanVoMarginLabel(res.margin) };
+}
+export function luanVoRecord(t, uid) { return (t && t.luanVo && t.luanVo[uid]) || { w: 0, l: 0 }; }
 
 // ============================================================
 // DƯỢC VIÊN — trồng nguyên liệu idle (gieo -> chờ giờ thực -> thu tay). CÁCH LY: chỉ SINH mats (side, 1 chiều). Không đụng sim lõi.

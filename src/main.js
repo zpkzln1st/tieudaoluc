@@ -37,7 +37,7 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
 import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
@@ -600,6 +600,34 @@ const gameStore = {
     return { needy, rebels, clean: needy.length === 0 && rebels.length === 0 };
   },
   tmDiscipline(uid) { const r = disciplineDisciple(this.state, uid, now()); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Giới Luật · ' + r.msg); } else this.showToast(r.msg); },
+  // ===== LUẬN VÕ ĐƯỜNG: tỉ thí đệ tử (chọn đấu sĩ -> chọn đối thủ -> tỉ thí). Kết quả side-only. =====
+  luanVoOpen: false, luanVoChampion: null, luanVoResult: null,
+  openLuanVo() { this.luanVoChampion = null; this.luanVoResult = null; this.luanVoOpen = true; },
+  closeLuanVo() { this.luanVoOpen = false; },
+  pickChampion(uid) { this.luanVoChampion = (this.luanVoChampion === uid ? null : uid); },
+  closeLuanVoResult() { this.luanVoResult = null; },
+  get luanVoChampionCd() { void this._tick; if (!this.luanVoChampion) return ''; const c = this.tmLuanVoData.find((x) => x.uid === this.luanVoChampion); return c && c.onCd ? c.cdText : ''; },
+  get tmLuanVoData() {
+    void this._tick;
+    const t = this.tm; if (!t) return [];
+    return (t.disciples || []).filter((d) => !d.awaiting).map((d) => {
+      const rec = luanVoRecord(t, d.uid), cdMs = (d.luanVoCdUntil || 0) - now();
+      const h = Math.floor(cdMs / 3600000), m = Math.floor((cdMs % 3600000) / 60000);
+      return { uid: d.uid, name: d.name, han: d.han, color: (APT[d.apt] || {}).color || '#cbd5e1', heColor: (HE[d.he] || HE.kim).color, heHan: (HE[d.he] || HE.kim).han, face: this.tmFace(d), chienLuc: disciStats(d).chienLuc, w: rec.w, l: rec.l, isChampion: this.luanVoChampion === d.uid, onCd: cdMs > 0, cdText: cdMs > 0 ? (h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm')) : '' };
+    });
+  },
+  tmRunLuanVo(bUid) {
+    if (!this.luanVoChampion) { this.showToast('Chọn đấu sĩ trước.'); return; }
+    const r = runLuanVo(this.state, this.luanVoChampion, bUid, now());
+    if (!r.ok) { this.showToast(r.msg); return; }
+    this.tmSave(); this._tick++;
+    const t = this.tm, a = t.disciples.find((x) => x.uid === this.luanVoChampion), b = t.disciples.find((x) => x.uid === bUid);
+    this.luanVoResult = {
+      aName: a ? a.name : '', aColor: a ? ((APT[a.apt] || {}).color || '#ccc') : '#ccc', aFace: a ? this.tmFace(a) : '', aHan: a ? a.han : '', aScore: r.res.aScore,
+      bName: b ? b.name : '', bColor: b ? ((APT[b.apt] || {}).color || '#ccc') : '#ccc', bFace: b ? this.tmFace(b) : '', bHan: b ? b.han : '', bScore: r.res.bScore,
+      aWon: r.aWon, winnerName: r.res.winnerName, marginLabel: r.marginLabel, heFactor: r.res.heFactor,
+    };
+  },
   // Glow TĨNH chân dung theo TIỂU CẢNH: hào quang màu đại cảnh, SÁNG dần khi đệ tử tiến tới Viên Mãn (idx tiểu cảnh). Inset (không tràn card). Thiên Tư vẫn có halo2 vàng riêng.
   tmSubGlow(d) {
     if (!d) return '';

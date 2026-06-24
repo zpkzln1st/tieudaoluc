@@ -208,6 +208,10 @@ export const GIOI_LUAT_CD_H = 6;                                                
 export const GIOI_LUAT_BAD_FLAGS = ['oanTham', 'tamMaSeed', 'batPhuc', 'phatPhan'];   // cờ xấu Giới Luật gột được
 export function gioiLuatPotency(lv) { return 1 + Math.floor((lv || 1) / 2); }     // số bậc tâm ma gột mỗi lần (theo bậc công trình)
 
+// ===== LUẬN VÕ ĐƯỜNG: tỉ thí đệ tử (kết quả SIDE-ONLY: uy/record cosmetic, KHÔNG sinh power về main). DRAFT. =====
+export const LUANVO_CD_H = 2;        // giờ hồi sức của đấu sĩ sau 1 trận
+export const LUANVO_WIN_UY = 8;      // Uy Danh thưởng người thắng (cosmetic, side-only)
+
 // ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới
