@@ -4239,7 +4239,7 @@
                   <template x-if="!g.tmBagPreview.length"><span class="text-[11px] text-slate-600 italic">trống — kiếm liệu qua Lịch Luyện / Dược Viên</span></template>
                   <span class="text-[10.5px] text-slate-500 hover:text-slate-300">mở túi →</span>
                 </button>
-                <button @click="g.tmCraftOpen=true" class="ml-auto shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg border border-amber-500/50 text-amber-200 hover:bg-amber-500/10 transition inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('flask','w-3.5 h-3.5')"></span>Luyện Đan</button>
+                <button @click="g.tmCraftOpen=true" class="ml-auto shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg border border-amber-500/50 text-amber-200 hover:bg-amber-500/10 transition inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('flame','w-3.5 h-3.5')"></span>Luyện Đan</button>
               </div>
               <!-- CÔNG TRÌNH (mobile: cuộn ngang vuốt · desktop: lưới) -->
               <div class="tm-bld-row mb-4">
@@ -4587,7 +4587,7 @@
             <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmCraftOpen=false">
               <div class="panel rounded-2xl w-[580px] max-w-full h-[660px] max-h-[92dvh] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(245,185,66,.08),transparent)">
-                  <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-amber-300" x-html="g.svg('flask','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Luyện Đan · Y Quán</div></div>
+                  <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-amber-300" x-html="g.svg('flame','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Luyện Đan · Y Quán</div></div>
                   <div class="flex items-center gap-3">
                     <span class="text-[11px] text-slate-400">Lò <b class="text-amber-300" x-text="g.tmFurnaces.used"></b><span class="text-slate-600">/</span><b class="text-slate-300" x-text="g.tmFurnaces.total"></b></span>
                     <button @click="g.tmCraftOpen=false" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
@@ -5008,7 +5008,9 @@
                   <template x-if="!g.tmSoSachFull.length"><div class="px-5 py-8 text-center text-[12.5px] text-slate-600 italic fserif">Chưa có ghi chép nào khớp.</div></template>
                   <template x-for="(s,si) in g.tmSoSachFull" :key="si">
                     <div class="flex gap-3 px-4 py-2.5 hover:bg-ink3/30">
-                      <div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[16px] mt-0.5" :style="'background:'+s.color+'1c;border:1px solid '+s.color+'55;color:'+s.color" x-text="s.seal"></div>
+                      <template x-if="s.icon.kind==='disc'"><div class="w-8 h-8 rounded-lg shrink-0 overflow-hidden border mt-0.5 bg-ink2" :style="'border-color:'+s.icon.color+'77'"><img :src="s.icon.src" alt="" class="w-full h-full object-cover object-top" onerror="this.remove()"></div></template>
+                      <template x-if="s.icon.kind==='sect'"><div class="relative w-8 h-8 rounded-lg shrink-0 overflow-hidden bg-ink2 border border-amber-500/40 flex items-center justify-center mt-0.5"><span class="fserif text-amber-300 text-[15px]">宗</span><img src="images/ui/tongmon_emblem.webp" alt="" class="absolute inset-0 w-full h-full object-contain" onerror="this.remove()"></div></template>
+                      <template x-if="s.icon.kind==='seal'"><div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[16px] mt-0.5" :style="'background:'+s.color+'1c;border:1px solid '+s.color+'55;color:'+s.color" x-text="s.seal"></div></template>
                       <div class="flex-1 min-w-0"><div class="text-[12.5px] text-slate-200 leading-snug fserif" x-html="s.html"></div><div class="text-[10px] text-slate-600 mt-0.5" x-text="g.notifAgo(s.t)"></div></div>
                     </div>
                   </template>

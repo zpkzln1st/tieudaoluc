@@ -419,6 +419,16 @@ const gameStore = {
     { key: 'giabao', label: 'Gia Bảo', kw: ['gia bảo', 'Luyện Khí Các', 'tôi luyện'] },
   ],
   tmChronCat(text) { const T = text || ''; for (const c of this.CHRON_CATS) { if (c.kw.some((k) => T.includes(k))) return c.key; } return 'sukien'; },
+  // Icon dòng biên niên: ưu tiên AVATAR đệ tử (tên đệ tử hiện có trong text) -> ẤN tông môn (việc cả môn) -> seal Hán.
+  tmChronIcon(s) {
+    void this._tick;
+    const text = (s && (s.text || s.raw)) || '';
+    const discs = (this.tm && this.tm.disciples) || [];
+    const named = discs.slice().sort((a, b) => (b.name || '').length - (a.name || '').length).find((d) => d.name && text.includes(d.name));
+    if (named) { const f = this.tmFace(named); if (f) return { kind: 'disc', src: f, color: (APT[named.apt] || {}).color || '#cbd5e1' }; }
+    if (/tông môn|sơn môn|toàn môn|cả môn|cả tông|Đấu Giá|Khí Vận|linh khí|môn quy|quây quần/i.test(text)) return { kind: 'sect' };
+    const m = this.tmDienBienSeal(text); return { kind: 'seal', seal: m.seal, color: m.color };
+  },
   openSoSach() { this.soSachQuery = ''; this.soSachCat = 'all'; this.soSachOpen = true; },
   closeSoSach() { this.soSachOpen = false; },
   get tmSoSachCatList() {
@@ -436,7 +446,7 @@ const gameStore = {
     let arr = (this.tm && this.tm.soSach) || [];
     if (q) arr = arr.filter((s) => (s.text || '').toLowerCase().includes(q));
     if (cat !== 'all') arr = arr.filter((s) => this.tmChronCat(s.text) === cat);
-    return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color }; });
+    return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color, icon: this.tmChronIcon(s) }; });
   },
   // Chân dung đệ tử: pool ngẫu nhiên gán cố định theo uid (images/tongmon/disciples/<sex>_<n>.webp). DISC_FACES = số ảnh mỗi giới (0 = chưa có art → dùng seal Hán).
   tmFace(d) { const n = (d.sex === 'nu') ? this.DISC_FACES.nu : this.DISC_FACES.nam; if (!n) return ''; let h = 0; const u = d.uid || ''; for (let i = 0; i < u.length; i++) h = (h * 31 + u.charCodeAt(i)) >>> 0; return 'images/tongmon/disciples/' + (d.sex === 'nu' ? 'nu' : 'nam') + '_' + ((h % n) + 1) + '.webp'; },
