@@ -98,7 +98,7 @@ character can overlay on top, 1200x420, no text
 
 ## 5. TILE CÔNG TRÌNH — `images/tongmon/buildings/<key>.webp` (tuỳ chọn)
 **Nơi để:** `images/tongmon/buildings/` · **Kích thước:** ~312×416 (3:4) · **Nền:** tối, hợp thẻ.
-**Tên file = key:** `tuHien` (Tụ Hiền Đường), `dienVo` (Diễn Võ Trường), `tangThu` (Tàng Thư Lâu), `yQuan` (Y Quán), `tuLinh` (Tụ Linh Trận), **`duocVien` (Dược Viên — MỚI, đang fallback Hán 藥; đã wire sẵn ở card + header modal).**
+**Tên file = key:** `tuHien` (Tụ Hiền Đường), `dienVo` (Diễn Võ Trường), `tangThu` (Tàng Thư Lâu), `yQuan` (Y Quán), `tuLinh` (Tụ Linh Trận), `duocVien` (Dược Viên 藥), `luyenKhiCac` (Luyện Khí Các 器), `giangDao` (Giảng Đạo Đường 講), **+ 4 công trình XÃ HỘI MỚI (đang fallback Hán): `daiKhachCac` 賓 · `gioiLuatDuong` 律 · `luanVoDuong` 論 · `toSuDien` 祖 — đã wire sẵn ở lưới + popup chi tiết.**
 ```
 Painterly wuxia sect building card art, [TÊN CÔNG TRÌNH ENG: hall of talents / martial training ground /
 library tower / infirmary / spirit-gathering array], traditional Chinese architecture, night, jade and
@@ -124,6 +124,34 @@ Painterly wuxia sect building card art, a solemn lecture hall / dao-teaching pav
 seated on a dais expounding scripture, dim hall with hanging lanterns and incense smoke, floating glowing
 calligraphy and dao-script symbols in the air, a few kneeling disciples listening, night, warm golden
 enlightenment glow, misty, vertical 3:4, dark muted background, painterly xianxia concept art, no text, 312x416
+```
+**`daiKhachCac` (Đãi Khách Các — lầu tiếp khách bang giao):**
+```
+Painterly wuxia sect building card art, a welcoming guest reception pavilion / diplomatic hall: a warm
+banquet hall with low tables, wine pots and tea cups, a gracious host greeting robed envoys from other
+sects at an open doorway, silk banners and hanging lanterns, night, warm amber and jade hospitality glow,
+misty, vertical 3:4, dark muted background, painterly xianxia concept art, no text, 312x416
+```
+**`gioiLuatDuong` (Giới Luật Đường — đường nghiêm trị môn quy):**
+```
+Painterly wuxia sect discipline hall card art, a stern austere judgment hall: a raised dark-wood judgment
+seat, a hanging bronze whip and iron chains on the wall, a tall stone tablet engraved with sect law, cold
+torchlight, solemn oppressive authority, empty floor, night, cold blue-white light with faint crimson
+accents, misty, vertical 3:4, dark muted background, painterly xianxia concept art, no text, 312x416
+```
+**`luanVoDuong` (Luận Võ Đường — đài tỉ thí luận võ):**
+```
+Painterly wuxia sect building card art, an indoor martial sparring / debate hall: a raised wooden duel
+platform where two disciples cross swords mid-clash with qi sparks, weapon racks along the walls, a few
+watching disciples, banners overhead, night, energetic cyan and gold martial qi glow, misty, vertical 3:4,
+dark muted background, painterly xianxia concept art, no text, 312x416
+```
+**`toSuDien` (Tổ Sư Điện — điện thờ tổ sư):**
+```
+Painterly wuxia sect ancestral shrine hall card art, a solemn ancestor temple: rows of memorial spirit
+tablets on a tiered altar, a large seated founder patriarch statue behind, thick drifting incense smoke,
+hanging red lanterns and offerings of fruit and wine, deeply reverent atmosphere, night, warm golden and
+faint jade ancestral glow, misty, vertical 3:4, dark muted background, painterly xianxia concept art, no text, 312x416
 ```
 
 ---

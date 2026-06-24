@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -608,7 +608,8 @@ const gameStore = {
   tmStateLabel(d) { return d.awaiting ? 'Đắc Đạo!' : (this.tmAtCap(d) ? 'Viên mãn' : (d.state === 'rest' ? 'Nghỉ' : 'Đang tu')); },
   tmDaoLabel() { return ({ chinh: 'Chính Đạo', ta: 'Tà Đạo', trung: 'Trung Dung' })[this.tm.dao] || 'Trung Dung'; },
   tmDaoColor() { return ({ chinh: '#14b8a6', ta: '#e879f9', trung: '#94a3b8' })[this.tm.dao] || '#94a3b8'; },
-  tmSectTier() { const b = this.tm.buildings || {}; const s = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'giangDao', 'tuLinh'].reduce((a, k) => a + (b[k] || 0), 0); return Math.max(1, s - 2); },  // Cấp Tông Môn = tổng bậc công trình (khởi đầu 3 -> Đệ 1 Tầng; mỗi lần nâng +1)
+  get tmBuildKeys() { return BUILD_KEYS; },   // thứ tự lưới công trình (1 nguồn — thêm building chỉ sửa BUILD_KEYS)
+  tmSectTier() { const b = this.tm.buildings || {}; const s = BUILD_KEYS.reduce((a, k) => a + (b[k] || 0), 0); return Math.max(1, s - 2); },  // Cấp Tông Môn = tổng bậc công trình (khởi đầu 3 -> Đệ 1 Tầng; mỗi lần nâng +1)
   tmBuild(key) { return BUILDINGS[key]; },
   tmBuildLv(key) { return this.tm.buildings[key] || 0; },
   tmBuildCost(key) { return buildCost(this.tm.buildings[key] || 0); },
@@ -619,6 +620,7 @@ const gameStore = {
   tmCraftOpen: false,
   tmBuildDetail(key) {
     const b = BUILDINGS[key]; const lv = this.tmBuildLv(key), nlv = lv + 1; const fx = [];
+    const SOCIAL_BLD = { daiKhachCac: 'Bang giao · sứ giả bốn phương', gioiLuatDuong: 'Trị tâm ma · xử phản đồ', luanVoDuong: 'Tỉ thí · luận võ giao lưu', toSuDien: 'Chiêm bái · cung phụng tiền nhân' };
     if (key === 'tuHien') {
       fx.push({ label: 'Sức chứa đệ tử', cur: (b.slotBase + b.slotPerLv * (Math.max(1, lv) - 1)) + '', next: (b.slotBase + b.slotPerLv * (nlv - 1)) + '' });
     } else if (key === 'dienVo') {
@@ -642,6 +644,8 @@ const gameStore = {
       fx.push({ label: 'Trần cường hóa gia bảo', cur: mp(lv), next: mp(nlv) });
     } else if (key === 'giangDao') {
       fx.push({ label: 'Ghế thính giảng', cur: giangSeats(lv) + '', next: giangSeats(nlv) + '' });
+    } else if (SOCIAL_BLD[key]) {   // 4 công trình xã hội — nội thất build ở chunk riêng
+      fx.push({ label: SOCIAL_BLD[key], cur: lv < 1 ? 'Chưa khai mở' : ('Bậc ' + lv), next: 'Bậc ' + nlv });
     }
     return { name: b.name, han: b.han, desc: b.desc, level: lv, cost: this.tmBuildCost(key), effects: fx };
   },

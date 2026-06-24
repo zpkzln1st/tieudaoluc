@@ -18,7 +18,7 @@ export function ensureTongMon(state, nowMs) {
       mats: {}, pills: {},                                                // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá
       brewing: [],                                                        // Y Quán: mẻ đan đang luyện (idle, có thời gian)
       duocVien: { plots: [] },                                            // Dược Viên: luống trồng nguyên liệu (idle)
-      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, luyenKhiCac: 0, giangDao: 0, tuLinh: 0 },
+      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, luyenKhiCac: 0, giangDao: 0, tuLinh: 0, daiKhachCac: 0, gioiLuatDuong: 0, luanVoDuong: 0, toSuDien: 0 },
       disciples: [], elders: [], legends: [], fallen: [], soSach: [],
       recruitPool: [], recruitAt: 0,
       uyBonus: 0,                                                         // +Uy Danh tích từ SỰ KIỆN (uyDanhOf cộng vào)
@@ -44,6 +44,7 @@ export function ensureTongMon(state, nowMs) {
   if (typeof t.buildings.duocVien !== 'number') t.buildings.duocVien = 0;          // backfill công trình mới
   if (typeof t.buildings.luyenKhiCac !== 'number') t.buildings.luyenKhiCac = 0;
   if (typeof t.buildings.giangDao !== 'number') t.buildings.giangDao = 0;
+  ['daiKhachCac', 'gioiLuatDuong', 'luanVoDuong', 'toSuDien'].forEach((k) => { if (typeof t.buildings[k] !== 'number') t.buildings[k] = 0; });   // backfill 4 công trình xã hội
   if (!t.duocVien || typeof t.duocVien !== 'object') t.duocVien = { plots: [] };
   if (!Array.isArray(t.duocVien.plots)) t.duocVien.plots = [];
   if (!Array.isArray(t.recruitPool)) t.recruitPool = [];

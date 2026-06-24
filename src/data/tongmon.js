@@ -103,8 +103,13 @@ export const BUILDINGS = {
   luyenKhiCac:{ name: 'Luyện Khí Các', han: '器', desc: 'Gác lò rèn của tông môn, đe nung đỏ lửa, búa gõ vang chan chát. Tôi luyện gia bảo đệ tử đang đeo lên một tầng uy lực — bậc càng cao thì rèn được càng sâu.' },
   giangDao:{ name: 'Giảng Đạo Đường', han: '講', desc: 'Giảng đường thâm u, cao nhân thuyết đạo cho hậu bối nghe. Thính giảng lâu ngày khai mở tâm khiếu — NÂNG TRẦN tư chất đệ tử, giúp kẻ căn cơ tầm thường vươn xa hơn số trời định. (Đắc Đạo vẫn là cảnh giới chỉ Thiên Tư chạm tới.)' },
   tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Đại trận dẫn linh khí trời đất quy tụ về sơn môn, vận khí hanh thông cát tường. Linh khí dồi dào giúp Khí Vận tông môn tăng tiến, đồng thời bồi thêm tốc độ tu luyện cho toàn môn.', khiPerLv: 4 },
+  // --- Công trình XÃ HỘI (nội thất ở chunk riêng) ---
+  daiKhachCac:  { name: 'Đãi Khách Các', han: '賓', desc: 'Lầu tiếp đãi tân khách bốn phương, rượu thơm trà nóng quanh năm. Nơi tông môn kết giao các phái giang hồ, đón sứ giả gây dựng bang giao — bậc cao thì đón được nhiều khách quý, uy danh vang xa.' },
+  gioiLuatDuong:{ name: 'Giới Luật Đường', han: '律', desc: 'Đường nghiêm trị gia pháp môn quy, roi đồng giới xích lạnh người. Nơi tra xét kẻ sinh tâm ma, xử trí phản đồ, gột cờ xấu giữ sơn môn thanh tịnh — bậc cao thì uy nghiêm càng trọng, trấn tâm ma càng sâu.' },
+  luanVoDuong:  { name: 'Luận Võ Đường', han: '論', desc: 'Giảng võ đường cho đệ tử tỉ thí cao thấp, binh khí lách cách suốt ngày. Nơi luận bàn võ học, giao đấu nâng cao sĩ khí toàn môn — bậc cao thì mở thêm đối thủ và đài luận võ.' },
+  toSuDien:     { name: 'Tổ Sư Điện', han: '祖', desc: 'Điện thờ tổ sư lịch đại, khói hương nghi ngút trang nghiêm. Nơi cung phụng tiền nhân khai phái, ghi danh đệ tử Xuất Sư, Trưởng Lão cùng những người đã khuất — bậc cao thì bài vị càng nhiều, ấm phúc càng dày.' },
 };
-export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'giangDao', 'tuLinh'];
+export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'giangDao', 'tuLinh', 'daiKhachCac', 'gioiLuatDuong', 'luanVoDuong', 'toSuDien'];
 
 // ===== LUYỆN ĐAN: nguyên liệu (MATS) -> đan đột phá (PILLS) theo CÔNG THỨC =====
 // 6 nguyên liệu, 3 bậc · art images/tongmon/mats/<id>.webp (emoji = fallback).
