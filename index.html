@@ -4881,7 +4881,9 @@
                             </div>
                           </template>
                         </div>
-                        <button @click="g.tmDoBreakthrough(d.uid)" :disabled="!g.tmCanBreak(d)" class="w-full py-1.5 rounded-lg text-[12.5px] font-bold fserif transition" :class="g.tmCanBreak(d)?'text-white hover:brightness-110':'bg-ink3/60 text-slate-500 cursor-not-allowed border border-slate-800'" :style="g.tmCanBreak(d)?'background:linear-gradient(90deg,#7c3aed,#a78bfa);box-shadow:0 0 11px -5px rgba(167,139,250,.7)':''" x-text="g.tmCanBreak(d)?'Đột Phá':'Thiếu nguyên liệu — luyện ở Y Quán'"></button>
+                        <div class="flex justify-center">
+                          <button @click="g.tmDoBreakthrough(d.uid)" :disabled="!g.tmCanBreak(d)" class="min-w-[180px] px-8 py-1.5 rounded-lg text-[12.5px] font-bold fserif transition" :class="g.tmCanBreak(d)?'text-white hover:brightness-110':'bg-ink3/60 text-slate-500 cursor-not-allowed border border-slate-800'" :style="g.tmCanBreak(d)?'background:linear-gradient(90deg,#7c3aed,#a78bfa);box-shadow:0 0 11px -5px rgba(167,139,250,.7)':''" x-text="g.tmCanBreak(d)?'Đột Phá':'Thiếu nguyên liệu — luyện ở Y Quán'"></button>
+                        </div>
                       </div>
                     </div>
                   </template>
