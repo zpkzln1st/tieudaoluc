@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -545,8 +545,27 @@ const gameStore = {
       { kind: 'honthach', label: 'Hồn Thạch', need: r.honThach, have: Math.floor((this.state.currencies.honThach) || 0) },
     ].map((x) => Object.assign(x, { ok: x.have >= x.need }));
   },
-  tmCanBreak(d) { const rows = this.tmBreakRows(d); return rows.length > 0 && rows.every((x) => x.ok); },
-  tmDoBreakthrough(uid) { const r = doBreakthrough(this.state, uid); if (r.ok) { this.tmSave(); this.showToast('★ ' + r.msg); } else this.showToast(r.msg); return r.ok; },
+  tmCanBreak(d) { void this._tick; if (d && d.kiepCdUntil && d.kiepCdUntil > now()) return false; const rows = this.tmBreakRows(d); return rows.length > 0 && rows.every((x) => x.ok); },
+  // THIÊN KIẾP: thông tin độ kiếp cho cảnh hiện tại (nếu realm 7/8) — tên, tử vong?, tỉ lệ (theo đan phẩm CAO nhất đang có + tâm ma + Khí Vận).
+  tmKiepInfo(d) {
+    void this._tick; if (!d) return null;
+    const k = thienKiepOf(d.realm); if (!k) return null;
+    const pillId = PILL_BY_REALM[d.realm], qual = ((this.tm && this.tm.pillQual) || {})[pillId] || {};
+    let bonus = 0, bestPham = '';
+    for (const key of PILL_PHAM_KEYS.slice().reverse()) { if ((qual[key] || 0) > 0) { bonus = pillPham(key).breakBonus; bestPham = pillPham(key).name; break; } }
+    const odds = kiepOdds(d, bonus, this.tm.khiVan);
+    return { name: k.name, deadly: k.deadly, oddsPct: Math.round(odds * 100), bestPham };
+  },
+  tmKiepCdText(d) { void this._tick; if (!d || !d.kiepCdUntil) return ''; const ms = d.kiepCdUntil - now(); if (ms <= 0) return ''; const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm'); },
+  tmKiepResult: null,
+  closeKiepResult() { this.tmKiepResult = null; },
+  get tmKiepTone() { const r = this.tmKiepResult; if (!r) return '#94a3b8'; return r.outcome === 'survive' ? '#fbbf24' : (r.outcome === 'death' ? '#fb7185' : '#f5b942'); },
+  tmDoBreakthrough(uid) {
+    const r = doBreakthrough(this.state, uid);
+    if (r && r.kiep) { this.tmSave(); this._tick++; if (r.kiep.outcome === 'death') this.closeDisciple(); this.tmKiepResult = r.kiep; return true; }
+    if (r.ok) { this.tmSave(); this.showToast('★ ' + r.msg); } else this.showToast(r.msg);
+    return r.ok;
+  },
   // Cảnh Giới Phổ — bảng tra toàn hệ thống cảnh giới (10 đại × tiểu + trần theo tư chất).
   tmRealmGuideOpen: false,
   get tmRealmGuide() { return REALMS.map((r, i) => ({ name: r.name, color: this.tmRealmColors[i] || '#cbd5e1', subs: SUB_STAGES[i] || [], capApts: Object.keys(APT).filter((k) => APT[k].cap === i).map((k) => APT[k].name) })); },

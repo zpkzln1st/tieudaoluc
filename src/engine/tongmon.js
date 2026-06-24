@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -19,7 +19,7 @@ export function ensureTongMon(state, nowMs) {
       brewing: [],                                                        // Y Quán: mẻ đan đang luyện (idle, có thời gian)
       duocVien: { plots: [] },                                            // Dược Viên: luống trồng nguyên liệu (idle)
       buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, luyenKhiCac: 0, giangDao: 0, tuLinh: 0 },
-      disciples: [], elders: [], legends: [], soSach: [],
+      disciples: [], elders: [], legends: [], fallen: [], soSach: [],
       recruitPool: [], recruitAt: 0,
       uyBonus: 0,                                                         // +Uy Danh tích từ SỰ KIỆN (uyDanhOf cộng vào)
       shopCd: {},                                                         // cooldown Đấu Giá Hội (id -> untilMs); giữ "assist CHẬM" theo hợp đồng cách ly
@@ -38,6 +38,7 @@ export function ensureTongMon(state, nowMs) {
   if (!Array.isArray(t.disciples)) t.disciples = [];
   if (!Array.isArray(t.elders)) t.elders = [];
   if (!Array.isArray(t.legends)) t.legends = [];
+  if (!Array.isArray(t.fallen)) t.fallen = [];                                    // đệ tử tử vong (Thiên Kiếp…) — enshrine Tổ Sư Điện
   if (!Array.isArray(t.soSach)) t.soSach = [];
   if (!t.buildings) t.buildings = { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, tuLinh: 0 };
   if (typeof t.buildings.duocVien !== 'number') t.buildings.duocVien = 0;          // backfill công trình mới
@@ -363,16 +364,56 @@ export function doBreakthrough(state, uid) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
   const d = t.disciples.find((x) => x.uid === uid);
   if (!d || !d.breakReady) return { ok: false, msg: 'Đệ tử chưa tới Bình Cảnh.' };
+  if (d.kiepCdUntil && Date.now() < d.kiepCdUntil) return { ok: false, msg: 'Đạo thương chưa lành — đợi tĩnh dưỡng rồi độ kiếp lại.' };
   const cap = disciCap(d);
   if (d.realm >= cap) { d.breakReady = false; return { ok: false, msg: 'Đã đạt trần cảnh giới.' }; }
   const req = breakReqOf(d); if (!req) return { ok: false, msg: 'Không rõ yêu cầu đột phá.' };
   if (((t.pills || {})[req.pill] || 0) < 1) return { ok: false, msg: `Thiếu ${req.pillName} (luyện ở Y Quán).` };
   if ((state.currencies.honThach || 0) < req.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${req.honThach}).` };
-  consumePill(t, req.pill); state.currencies.honThach -= req.honThach;   // tiêu 1 đan (đồng bộ pills+pillQual)
-  d.realm++; d.xp = 0; d.breakReady = false;
-  if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} phục một viên ${req.pillName}, đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
-  else chronicle(t, `${d.name} phục một viên ${req.pillName}, đột phá ${REALMS[d.realm].name}!`);
-  return { ok: true, msg: `${d.name} đột phá ${REALMS[d.realm].name}!`, realm: REALMS[d.realm].name };
+  const kiep = THIEN_KIEP[d.realm] || null;
+  const pham = consumePill(t, req.pill, !!kiep);       // độ kiếp -> dùng đan PHẨM CAO nhất; thường -> phẩm thấp. Chi phí trả TRƯỚC khi rủi ro.
+  state.currencies.honThach -= req.honThach;
+  const fromName = REALMS[d.realm].name;
+  // ---- CẢNH THƯỜNG: đột phá tức thì (như cũ) ----
+  if (!kiep) {
+    d.realm++; d.xp = 0; d.breakReady = false;
+    if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} phục một viên ${req.pillName}, đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
+    else chronicle(t, `${d.name} phục một viên ${req.pillName}, đột phá ${REALMS[d.realm].name}!`);
+    return { ok: true, msg: `${d.name} đột phá ${REALMS[d.realm].name}!`, realm: REALMS[d.realm].name };
+  }
+  // ---- ĐỘ THIÊN KIẾP (cảnh cao, có rủi ro) ----
+  const phamBonus = (PILL_PHAM_BY_KEY[pham] || {}).breakBonus || 0;
+  const odds = kiepOdds(d, phamBonus, t.khiVan), oddsPct = Math.round(odds * 100);
+  if (Math.random() < odds) {                          // THÀNH CÔNG
+    d.realm++; d.xp = 0; d.breakReady = false; d.kiepCdUntil = 0;
+    const toName = REALMS[d.realm].name;
+    if (d.realm >= cap && cap >= 9) d.awaiting = true;
+    const uy = kiep.deadly ? 300 : 120; t.uyBonus = (t.uyBonus || 0) + uy;
+    chronicle(t, `★ ${d.name} vượt ${kiep.name}, độ kiếp thành công đột phá ${toName} — thiên lôi tán, đạo thành, danh chấn sơn môn!`);
+    return { ok: true, realm: toName, kiep: { outcome: 'survive', name: kiep.name, who: d.name, fromName, toName, oddsPct, deadly: kiep.deadly,
+      text: `Kiếp vân cuồn cuộn vần vũ trên đỉnh sơn môn, chín đạo thiên lôi nối nhau giáng xuống. ${d.name} đứng thẳng giữa biển sét, để mặc lôi quang xé da nứt thịt mà thần hồn bất động. Đạo sấm cuối cùng dứt, mây tan trăng tỏ — ${d.name} bước ra khỏi vùng cháy xém, hào quang ${toName} rạng ngời. Độ kiếp đại thành!`,
+      chips: [{ label: 'Đột phá ' + toName, color: '#fbbf24' }, { label: '+' + uy + ' Uy Danh', color: '#fbbf24' }] } };
+  }
+  // ---- THẤT BẠI ----
+  if (kiep.deadly && Math.random() < (kiep.deathOnFail || 0)) {     // TỬ VONG (chỉ cảnh tử)
+    const i = t.disciples.findIndex((x) => x.uid === d.uid); if (i >= 0) t.disciples.splice(i, 1);
+    if (!Array.isArray(t.fallen)) t.fallen = [];
+    t.fallen.push({ name: d.name, han: d.han, apt: d.apt, he: d.he, realm: d.realm, tamMa: d.tamMa, cause: 'thienKiep', at: Date.now() });
+    t.khiVan = Math.max(0, (t.khiVan || 50) - 10);
+    chronicle(t, `☍ ${d.name} độ ${kiep.name} thất bại — thiên lôi thiêu thân, hồn phi phách tán, đạo tiêu ngọc nát. Cả sơn môn cử tang.`);
+    return { ok: true, kiep: { outcome: 'death', name: kiep.name, who: d.name, fromName, oddsPct, deadly: true,
+      text: `Đạo thứ chín thiên lôi giáng xuống, ${d.name} vận tận chân nguyên gắng chống. Một tiếng nổ kinh thiên — thân ảnh tan vào ánh sét trắng loà, chỉ còn lại làn tro mỏng tản trong gió núi. Hồn phi phách tán, đạo tiêu ngọc nát, ${d.name} đã vĩnh viễn không còn. Sơn môn chìm trong tang tóc, một nén tâm hương tiễn đưa.`,
+      chips: [{ label: d.name + ' → tử vong', color: '#fb7185' }, { label: '−10 Khí Vận', color: '#fb7185' }] } };
+  }
+  // SỐNG SÓT nhưng tổn đạo (setback): giữ Bình Cảnh, +1 tâm ma, tĩnh dưỡng
+  d.xp = 1; d.breakReady = true;
+  d.tamMaLv = Math.min(TAMMA_MAX, (d.tamMaLv || 0) + 1);
+  d.kiepCdUntil = Date.now() + KIEP_CD_H * 3600000;
+  t.khiVan = Math.max(0, (t.khiVan || 50) - 5);
+  chronicle(t, `${d.name} độ ${kiep.name} thất bại — đạo cơ chấn động, may giữ được mạng, lui về tĩnh dưỡng dưỡng thương.`);
+  return { ok: true, kiep: { outcome: 'setback', name: kiep.name, who: d.name, fromName, oddsPct, deadly: kiep.deadly,
+    text: `${d.name} gắng gượng đón thiên lôi, song đến đạo thứ bảy thì chân nguyên cạn kiệt, hộc một ngụm máu tươi ngã quỵ giữa kiếp vân. Mây sét tan đi, để lại y thoi thóp trong vũng máu — đạo cơ chấn động, tâm ma quấy thêm một tầng. Lần này chưa thành, nhưng mạng còn thì còn cơ hội.`,
+    chips: [{ label: 'Độ kiếp thất bại', color: '#fb7185' }, { label: 'Tâm ma +1', color: '#a78bfa' }, { label: 'Tĩnh dưỡng ' + KIEP_CD_H + 'h', color: '#94a3b8' }] } };
 }
 // ---- LUYỆN ĐAN: KHỞI LÒ (tốn mats ngay) -> chờ giờ thực (pillBrewH) -> THU đan. Số lò song song = yQuanFurnaces. ----
 export function startBrew(state, pillId, nowMs) {

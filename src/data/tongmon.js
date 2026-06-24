@@ -133,6 +133,22 @@ export const PILL_KEYS = Object.keys(PILLS);
 export const PILL_BY_REALM = {}; PILL_KEYS.forEach((k) => { PILL_BY_REALM[PILLS[k].realm] = k; });
 // Đột phá realm R: cần 1 đan PILL_BY_REALM[R] + Hồn Thạch (main, 1 chiều). DRAFT.
 export const BREAK_HONTHACH = [100, 300, 800, 1800, 3500, 6500, 11000, 18000, 30000];
+
+// ===== THIÊN KIẾP: đột phá CẢNH CAO (realm 7,8) = độ kiếp có RỦI RO. realm 8->9 (Đắc Đạo) thất bại CÓ THỂ TỬ VONG. Cảnh thấp vẫn đột phá tức thì. DRAFT. =====
+// key = realm ĐANG đột phá TỪ (doBreakthrough đọc d.realm trước khi tăng). baseOdds = tỉ lệ thành nền.
+export const THIEN_KIEP = {
+  7: { name: 'Đại Thừa Thiên Kiếp', baseOdds: 0.74, deadly: false, deathOnFail: 0 },    // Đại Thừa -> Độ Kiếp: thất bại = tổn đạo, KHÔNG chết
+  8: { name: 'Cửu Cửu Thiên Kiếp',  baseOdds: 0.56, deadly: true,  deathOnFail: 0.40 },  // Độ Kiếp -> Đắc Đạo: thất bại có thể HỒN PHI PHÁCH TÁN
+};
+export const KIEP_CD_H = 12;   // giờ tĩnh dưỡng giữa 2 lần độ kiếp sau khi thất bại (DRAFT)
+export function thienKiepOf(realm) { return THIEN_KIEP[realm] || null; }
+// Tỉ lệ THÀNH công độ kiếp (0..1): nền + phẩm đan (phamBonus) − gánh nặng tâm ma (0.05/bậc) + Khí Vận + tư chất.
+export function kiepOdds(d, phamBonus, khiVan) {
+  const k = THIEN_KIEP[d.realm]; if (!k) return 1;
+  let p = k.baseOdds + (phamBonus || 0) - 0.05 * (d.tamMaLv || 0) + (((khiVan == null ? 50 : khiVan) - 50) / 250);
+  if (d.apt === 'thien') p += 0.10; else if (d.apt === 'tuyet') p += 0.04;
+  return Math.max(0.05, Math.min(0.95, p));
+}
 // Luyện đan TỐN THỜI GIAN (lò Y Quán): giờ chín theo từng đan (DRAFT, scale theo cảnh giới).
 export const PILL_BREW_H = { trucCoDan: 2, ketDanDan: 3, ngungAnhDan: 5, hoaThanDan: 8, quyHuDan: 12, hopDaoDan: 16, daiThuaDan: 24, doKiepDan: 36, phiThangDan: 48 };
 export function pillBrewH(pillId) { return PILL_BREW_H[pillId] || 4; }
