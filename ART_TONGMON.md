@@ -106,6 +106,13 @@ glowing jade-green spirit herbs and luminous mushrooms, a wooden drying rack and
 curved-roof apothecary pavilion behind, night, soft emerald and jade qi glow rising from the plants,
 misty, vertical 3:4, dark muted background, painterly xianxia concept art, no text, 312x416
 ```
+**`luyenKhiCac` (Luyện Khí Các — gác lò rèn khí):**
+```
+Painterly wuxia sect building card art, a mountain forge / weapon-smithing hall: a glowing anvil and
+red-hot furnace, hanging swords and blades on racks, sparks flying, a hammer, traditional Chinese
+smithy pavilion, night, intense amber-orange fire glow with cyan qi accents, misty, vertical 3:4,
+dark muted background, painterly xianxia concept art, no text, 312x416
+```
 
 ---
 
