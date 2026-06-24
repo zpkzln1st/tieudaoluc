@@ -4833,15 +4833,12 @@
                     <div class="relative rounded-xl shrink-0 overflow-hidden" style="border:1px solid rgba(167,139,250,.45);background:radial-gradient(130% 150% at 0% 0%, rgba(167,139,250,.20), rgba(15,21,33,.55) 62%)">
                       <div class="absolute inset-0 pointer-events-none" style="box-shadow:inset 0 0 32px -10px rgba(167,139,250,.5)"></div>
                       <div class="absolute fserif select-none pointer-events-none" style="right:-2px;top:-16px;font-size:4.6rem;line-height:1;opacity:.12;color:#a78bfa">破</div>
-                      <div class="relative px-3.5 py-3">
-                        <div class="flex items-center gap-2.5 mb-2.5">
-                          <span class="w-8 h-8 rounded-full flex items-center justify-center fserif text-[16px] shrink-0" style="background:rgba(167,139,250,.16);border:1px solid rgba(167,139,250,.5);color:#c4b5fd;box-shadow:0 0 12px -2px rgba(167,139,250,.55)">破</span>
-                          <div class="leading-tight min-w-0">
-                            <div class="text-[13px] fserif text-violet-200"><b class="text-violet-300">Bình Cảnh</b> · tu vi viên mãn</div>
-                            <div class="text-[10.5px] text-slate-400">Chờ đột phá lên <b class="fserif" :style="'color:'+g.tmRealmColor({realm:Math.min(9,(d.realm||0)+1)})" x-text="g.tmNextRealm(d)"></b></div>
-                          </div>
+                      <div class="relative px-3.5 py-2.5">
+                        <div class="flex items-center gap-2.5 mb-2">
+                          <span class="w-7 h-7 rounded-full flex items-center justify-center fserif text-[15px] shrink-0" style="background:rgba(167,139,250,.16);border:1px solid rgba(167,139,250,.5);color:#c4b5fd;box-shadow:0 0 12px -2px rgba(167,139,250,.55)">破</span>
+                          <div class="text-[12.5px] fserif text-violet-200 min-w-0 flex-1 leading-snug"><b class="text-violet-300">Bình Cảnh</b> · tu vi viên mãn — chờ đột phá lên <b class="fserif" :style="'color:'+g.tmRealmColor({realm:Math.min(9,(d.realm||0)+1)})" x-text="g.tmNextRealm(d)"></b></div>
                         </div>
-                        <div class="space-y-1.5 mb-3">
+                        <div class="grid grid-cols-2 gap-2 mb-2.5">
                           <template x-for="row in g.tmBreakRows(d)" :key="row.label">
                             <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 border" :class="row.ok?'border-jade/25 bg-jade/[.06]':'border-rose-500/25 bg-rose-500/[.05]'">
                               <span class="w-7 h-7 rounded-md bg-ink2/80 border border-slate-700 flex items-center justify-center text-[14px] shrink-0">
