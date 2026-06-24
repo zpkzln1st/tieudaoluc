@@ -4542,6 +4542,9 @@
                   <template x-if="g.tmBuildSel==='luanVoDuong' && g.tmBuildLv('luanVoDuong')>=1">
                     <button @click="g.tmBuildSel=null; g.openLuanVo()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-cyan-700/75 hover:bg-cyan-700 text-white">Vào Luận Võ Đường 論</button>
                   </template>
+                  <template x-if="g.tmBuildSel==='daiKhachCac' && g.tmBuildLv('daiKhachCac')>=1">
+                    <button @click="g.tmBuildSel=null; g.openDaiKhach()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-teal-700/75 hover:bg-teal-700 text-white">Vào Đãi Khách Các 賓</button>
+                  </template>
                   <button @click="g.tmUpgrade(g.tmBuildSel)" :disabled="!g.tmCanUpgrade(g.tmBuildSel)" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmCanUpgrade(g.tmBuildSel)?'bg-amber-500/85 hover:bg-amber-500 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'">Nâng Cấp</button>
                 </div>
               </div>
@@ -4601,6 +4604,49 @@
                   </div>
                 </div>
                 <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-center text-[10.5px] text-slate-600 italic" style="background:rgba(15,21,33,.55)">Một nén tâm hương — công đức tiền nhân, ấm phúc hậu bối.</div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODAL ĐÃI KHÁCH CÁC (bang giao bot-sect: Tiếp Đãi / Tặng Lễ -> Kết Minh) -->
+          <template x-if="g.daiKhachOpen">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeDaiKhach()">
+              <div @click.stop class="panel rounded-2xl w-[680px] max-w-full h-[620px] max-h-[92dvh] flex flex-col overflow-hidden border border-teal-600/35">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(20,184,166,.12),transparent)">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[16px]" style="color:#2dd4bf;border:1px solid rgba(45,212,191,.4);background:rgba(45,212,191,.1)">賓</span>
+                    <div><div class="fserif text-[18px] leading-none text-teal-200">Đãi Khách Các</div><div class="text-[10.5px] text-slate-500 mt-0.5">Kết giao các môn phái giang hồ · <span class="text-amber-300/80" x-text="g.tmDiploData.allyCount"></span> đồng minh Kết Minh</div></div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-slate-400">Điểm <b class="text-amber-300" x-text="g.fmt(g.tm.diem||0)"></b></span>
+                    <button @click="g.closeDaiKhach()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                  </div>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-3.5">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <template x-for="e in g.tmDiploData.envoys" :key="e.id">
+                      <div class="rounded-xl border p-3 flex flex-col gap-2" :style="'border-color:'+e.tierColor+'40'" :class="e.tierKey==='ketMinh'?'bg-amber-400/[.05]':'bg-ink2/50'">
+                        <div class="flex items-center gap-2.5">
+                          <span class="relative w-11 h-11 rounded-lg overflow-hidden flex items-center justify-center text-[15px] text-slate-200 shrink-0 bg-gradient-to-br" :class="e.avatar.color"><img :src="'images/avatars/'+e.avatar.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'"><span x-text="e.avatar.char"></span></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5"><span class="fserif text-[13px] truncate text-slate-100" x-text="e.name"></span><span class="text-[8.5px] px-1.5 py-0.5 rounded-full shrink-0" :style="'color:'+e.daoColor+';border:1px solid '+e.daoColor+'55'" x-text="e.daoLabel"></span></div>
+                            <div class="text-[10px] text-slate-500 truncate">Chưởng môn <span class="text-slate-400" x-text="e.master"></span> · Uy <b class="text-amber-300/80" x-text="g.fmt(e.uy)"></b></div>
+                          </div>
+                          <span class="text-[10px] fserif font-bold shrink-0" :style="'color:'+e.tierColor" x-text="e.tierName"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+(e.nextMin?Math.min(100,Math.round(e.rep/e.nextMin*100)):100)+'%;background:'+e.tierColor"></div></div>
+                          <span class="text-[9px] tabular-nums text-slate-500 shrink-0" x-text="e.nextMin?(e.rep+'/'+e.nextMin):(e.rep+' · chí thân')"></span>
+                        </div>
+                        <div class="flex gap-2">
+                          <button @click="g.tmDiploHost(e.id, e.name)" :disabled="e.onCd" class="flex-1 text-[11px] px-2 py-1.5 rounded-lg font-bold fserif transition" :class="e.onCd?'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed':'bg-teal-700/70 hover:bg-teal-700 text-white'" x-text="e.onCd?('Đợi '+e.cdText):'Tiếp Đãi'"></button>
+                          <button @click="g.tmDiploGift(e.id, e.name)" :disabled="(g.tm.diem||0)<g.tmDiploData.giftDiem" class="flex-1 text-[11px] px-2 py-1.5 rounded-lg font-bold fserif transition" :class="(g.tm.diem||0)>=g.tmDiploData.giftDiem?'bg-amber-600/75 hover:bg-amber-600 text-white':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="'Tặng Lễ · '+g.tmDiploData.giftDiem+'đ'"></button>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                  <div class="text-[10px] text-slate-600 italic mt-3 text-center">Tiếp Đãi: +giao tình (mỗi 8h/sứ). Tặng Lễ: tốn Điểm Đấu Giá, +nhiều giao tình. Đạt <b class="text-amber-300/70">Kết Minh</b> → quà liệu + Uy Danh + đồng minh triều cống. Nâng bậc công trình mở thêm môn phái để kết giao.</div>
+                </div>
               </div>
             </div>
           </template>

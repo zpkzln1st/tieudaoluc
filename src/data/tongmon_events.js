@@ -45,6 +45,7 @@ export const TM_GRP = {
   E: { label: 'Giai Thoại',           color: '#94a3b8' },
   F: { label: 'Kỳ Ngộ',               color: '#34d399' },
   G: { label: 'Giới Luật',            color: '#fb7185' },
+  H: { label: 'Bang Giao',            color: '#22d3ee' },
 };
 
 // Pool tên NPC khách giang hồ (sự kiện nhóm B/C dùng) — Hán-Việt
@@ -1078,7 +1079,20 @@ const G1 = {
 };
 
 // ============================================================
-// TỔNG HỢP — A1-3, B1-3, C1-2, D1-3 chuỗi + TMK, E1-5 auto, F1-4 kỳ ngộ, G1 giới luật
+// NHÓM H — Bang Giao (auto, gated Đãi Khách Các + có đồng minh Kết Minh). Pacing-safe.
+// ============================================================
+const H1 = {
+  id: 'H1', grp: 'H', kind: 'auto', han: '盟', title: 'Đồng Minh Triều Cống', weight: 5, cdH: 72,
+  cond: (t) => (t.buildings && (t.buildings.daiKhachCac || 0) >= 1) && t.diplomacy && t.diplomacy.ties && Object.values(t.diplomacy.ties).some((tie) => (tie.rep || 0) >= 120),
+  auto: (c) => G(
+    `Một đoàn ngựa xe rầm rộ tiến vào sơn môn — sứ giả của môn phái đồng minh mang trọng lễ tới đáp tình. Rương lớn rương nhỏ chất đầy linh dược quý cùng đôi lời chúc tụng khăng khít. Bang giao bền chặt, sĩ khí toàn môn phấn chấn.`,
+    [ { mat: { id: 'mat_bachnien', n: 3 } }, { mat: { id: 'mat_huyenthiet', n: 2 } }, { uy: 60 }, { khiVan: 3 } ],
+    `Đồng minh triều cống — môn phái Kết Minh gửi trọng lễ, Uy Danh tăng.`
+  ),
+};
+
+// ============================================================
+// TỔNG HỢP — A1-3, B1-3, C1-2, D1-3 chuỗi + TMK, E1-5 auto, F1-4 kỳ ngộ, G1 giới luật, H1 bang giao
 // ============================================================
 export const TM_EVENTS = [
   A1, A2, A3,
@@ -1087,7 +1101,7 @@ export const TM_EVENTS = [
   D1, D2, D3, TMK,
   E1, E2, E3, E4, E5,
   F1, F2, F3, F4,
-  G1,
+  G1, H1,
 ];
 
 export const TM_EVENT_BY_ID = TM_EVENTS.reduce((m, e) => { m[e.id] = e; return m; }, {});

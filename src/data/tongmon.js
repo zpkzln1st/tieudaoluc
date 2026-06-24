@@ -212,6 +212,24 @@ export function gioiLuatPotency(lv) { return 1 + Math.floor((lv || 1) / 2); }   
 export const LUANVO_CD_H = 2;        // giờ hồi sức của đấu sĩ sau 1 trận
 export const LUANVO_WIN_UY = 8;      // Uy Danh thưởng người thắng (cosmetic, side-only)
 
+// ===== ĐÃI KHÁCH CÁC: bang giao bot-sect. rep -> bậc giao tình (Người Lạ/Sơ Giao/Hữu Hảo/Kết Minh). Thưởng SIDE-ONLY (uy/mats/cosmetic, KHÔNG bac/honThach/power). DRAFT. =====
+export const DIPLO_HOST_REP = 8;          // giao tình mỗi lần Tiếp Đãi
+export const DIPLO_HOST_UY = 4;           // uy mỗi Tiếp Đãi
+export const DIPLO_HOST_CD_H = 8;         // giờ giữa 2 lần tiếp đãi 1 sect
+export const DIPLO_GIFT_REP = 22;         // giao tình mỗi lần Tặng Lễ
+export const DIPLO_GIFT_UY = 10;          // uy mỗi Tặng Lễ
+export const DIPLO_GIFT_DIEM = 60;        // tốn Điểm Đấu Giá / lần tặng lễ (sink side)
+export const DIPLO_ALLY_UY = 80;          // uy thưởng 1 lần khi đạt Kết Minh
+export const DIPLO_ALLY_MATS = { mat_bachnien: 3, mat_huyenthiet: 2 };   // quà liệu 1 lần khi đạt Kết Minh
+export const DIPLO_TIERS = [
+  { key: 'la',      name: 'Người Lạ', min: 0,   color: '#64748b' },
+  { key: 'soGiao',  name: 'Sơ Giao',  min: 20,  color: '#94a3b8' },
+  { key: 'huuHao',  name: 'Hữu Hảo',  min: 60,  color: '#34d399' },
+  { key: 'ketMinh', name: 'Kết Minh', min: 120, color: '#f5b942' },
+];
+export function diploTier(rep) { let cur = DIPLO_TIERS[0]; for (const x of DIPLO_TIERS) if ((rep || 0) >= x.min) cur = x; return cur; }
+export function diploNextMin(rep) { for (const x of DIPLO_TIERS) if ((rep || 0) < x.min) return x.min; return null; }   // ngưỡng bậc kế (null = đã max)
+
 // ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới

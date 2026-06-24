@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { luanVo, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
@@ -56,6 +56,8 @@ export function ensureTongMon(state, nowMs) {
   if (!t.pills || typeof t.pills !== 'object') t.pills = {};
   if (!t.pillQual || typeof t.pillQual !== 'object') t.pillQual = {};       // phẩm chất đan (song song t.pills; t.pills giữ TỔNG). Đan cũ chưa rõ phẩm -> coi Hạ khi tiêu.
   if (!t.luanVo || typeof t.luanVo !== 'object') t.luanVo = {};             // record Luận Võ (uid -> {w,l}), side-only
+  if (!t.diplomacy || typeof t.diplomacy !== 'object') t.diplomacy = { ties: {} };   // Đãi Khách Các: bang giao bot-sect (sectId -> {rep,lastVisit}), side-only
+  if (!t.diplomacy.ties || typeof t.diplomacy.ties !== 'object') t.diplomacy.ties = {};
   if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
@@ -538,6 +540,46 @@ export function runLuanVo(state, aUid, bUid, nowMs) {
   return { ok: true, res, aWon, marginLabel: luanVoMarginLabel(res.margin) };
 }
 export function luanVoRecord(t, uid) { return (t && t.luanVo && t.luanVo[uid]) || { w: 0, l: 0 }; }
+
+// ---- ĐÃI KHÁCH CÁC: bang giao bot-sect (chỉ key sectId, KHÔNG đụng roster bot ở engine). Thưởng SIDE-ONLY (uy/mats/cosmetic). ----
+function ensureDiplo(t) { if (!t.diplomacy || typeof t.diplomacy !== 'object') t.diplomacy = { ties: {} }; if (!t.diplomacy.ties) t.diplomacy.ties = {}; return t.diplomacy; }
+function diploTieOf(t, sectId) { ensureDiplo(t); return t.diplomacy.ties[sectId] || (t.diplomacy.ties[sectId] = { rep: 0, lastVisit: 0 }); }
+function diploGrantRep(t, sectId, dRep, now, sectName) {
+  const tie = diploTieOf(t, sectId);
+  const beforeKey = diploTier(tie.rep).key;
+  tie.rep = Math.max(0, (tie.rep || 0) + dRep);
+  tie.lastVisit = now;
+  const after = diploTier(tie.rep);
+  let ally = false;
+  if (after.key === 'ketMinh' && beforeKey !== 'ketMinh') {        // VỪA kết minh -> quà 1 lần (side)
+    ally = true;
+    if (!t.mats) t.mats = {};
+    for (const m in DIPLO_ALLY_MATS) t.mats[m] = (t.mats[m] || 0) + DIPLO_ALLY_MATS[m];
+    t.uyBonus = (t.uyBonus || 0) + DIPLO_ALLY_UY;
+    chronicle(t, `★ ${sectName || 'Một môn phái'} kết minh với tông môn ngươi — đồng khí liên chi, đồng minh giang hồ!`);
+  }
+  return { tier: after, ally };
+}
+export function diplomacyHost(state, sectId, sectName, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  if ((t.buildings.daiKhachCac || 0) < 1) return { ok: false, msg: 'Cần xây Đãi Khách Các.' };
+  const now = nowMs || Date.now(), tie = diploTieOf(t, sectId);
+  if (tie.lastVisit && now < tie.lastVisit + DIPLO_HOST_CD_H * 3600000) return { ok: false, msg: 'Vừa tiếp đãi sứ giả — đợi lượt sau.' };
+  const r = diploGrantRep(t, sectId, DIPLO_HOST_REP, now, sectName);
+  t.uyBonus = (t.uyBonus || 0) + DIPLO_HOST_UY;
+  return { ok: true, msg: `Tiếp đãi ${sectName || 'sứ giả'} · +${DIPLO_HOST_REP} giao tình`, ally: r.ally };
+}
+export function diplomacyGift(state, sectId, sectName, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  if ((t.buildings.daiKhachCac || 0) < 1) return { ok: false, msg: 'Cần xây Đãi Khách Các.' };
+  if ((t.diem || 0) < DIPLO_GIFT_DIEM) return { ok: false, msg: `Thiếu Điểm Đấu Giá (cần ${DIPLO_GIFT_DIEM}).` };
+  const now = nowMs || Date.now();
+  t.diem -= DIPLO_GIFT_DIEM;
+  const r = diploGrantRep(t, sectId, DIPLO_GIFT_REP, now, sectName);
+  t.uyBonus = (t.uyBonus || 0) + DIPLO_GIFT_UY;
+  chronicle(t, `Đãi Khách Các tặng trọng lễ cho ${sectName || 'một môn phái'} — giao tình thêm khăng khít.`);
+  return { ok: true, msg: `Tặng lễ ${sectName || ''} · +${DIPLO_GIFT_REP} giao tình`, ally: r.ally };
+}
 
 // ============================================================
 // DƯỢC VIÊN — trồng nguyên liệu idle (gieo -> chờ giờ thực -> thu tay). CÁCH LY: chỉ SINH mats (side, 1 chiều). Không đụng sim lõi.

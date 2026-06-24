@@ -37,9 +37,9 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -607,6 +607,25 @@ const gameStore = {
   pickChampion(uid) { this.luanVoChampion = (this.luanVoChampion === uid ? null : uid); },
   closeLuanVoResult() { this.luanVoResult = null; },
   get luanVoChampionCd() { void this._tick; if (!this.luanVoChampion) return ''; const c = this.tmLuanVoData.find((x) => x.uid === this.luanVoChampion); return c && c.onCd ? c.cdText : ''; },
+  // ===== ĐÃI KHÁCH CÁC: bang giao bot-sect (Tiếp Đãi / Tặng Lễ -> giao tình -> Kết Minh). Selection ở store (genRoster), thưởng side-only. =====
+  daiKhachOpen: false,
+  openDaiKhach() { this.daiKhachOpen = true; },
+  closeDaiKhach() { this.daiKhachOpen = false; },
+  get tmDiploData() {
+    void this._tick;
+    const w = this.state.world, t = this.tm; if (!w || !t) return { envoys: [], allyCount: 0, lv: 0, giftDiem: DIPLO_GIFT_DIEM };
+    const lv = this.tmBuildLv('daiKhachCac'), tnow = now(), count = Math.min(16, 4 + 2 * lv);
+    const roster = genRoster(w.seed, w.createdAt), ties = (t.diplomacy && t.diplomacy.ties) || {};
+    const envoys = roster.slice(0, count).map((b, i) => {
+      const sectId = 'sect' + i, daoKey = ['chinh', 'ta', 'trung'][b.titleSeed % 3], di = this.daoInfo(daoKey), tl = botTotalLv(b, tnow);
+      const tie = ties[sectId] || { rep: 0, lastVisit: 0 }, tier = diploTier(tie.rep), nextMin = diploNextMin(tie.rep);
+      const cdMs = (tie.lastVisit || 0) + DIPLO_HOST_CD_H * 3600000 - tnow, h = Math.floor(cdMs / 3600000), m = Math.floor((cdMs % 3600000) / 60000);
+      return { id: sectId, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], master: b.name, daoLabel: di[0], daoColor: di[1], uy: Math.round(85 * Math.pow(tl / 100, 3.8) * (0.90 + (b.actSeed % 21) * 0.01)), avatar: botAvatar(b), rep: tie.rep || 0, tierName: tier.name, tierColor: tier.color, tierKey: tier.key, nextMin, onCd: cdMs > 0, cdText: cdMs > 0 ? (h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm')) : '' };
+    });
+    return { envoys, allyCount: envoys.filter((e) => e.tierKey === 'ketMinh').length, lv, giftDiem: DIPLO_GIFT_DIEM };
+  },
+  tmDiploHost(sectId, sectName) { const r = diplomacyHost(this.state, sectId, sectName, now()); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Bang Giao · ' + r.msg + (r.ally ? ' — KẾT MINH!' : '')); } else this.showToast(r.msg); },
+  tmDiploGift(sectId, sectName) { const r = diplomacyGift(this.state, sectId, sectName, now()); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Bang Giao · ' + r.msg + (r.ally ? ' — KẾT MINH!' : '')); } else this.showToast(r.msg); },
   get tmLuanVoData() {
     void this._tick;
     const t = this.tm; if (!t) return [];
