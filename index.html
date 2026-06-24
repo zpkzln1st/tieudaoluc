@@ -2117,6 +2117,7 @@
                         <div class="text-[24px] gold-text fserif font-bold leading-tight truncate" x-text="p.ten"></div>
                         <div class="fserif text-[13px]" :style="'color:'+p.heColor" x-text="'「 '+p.bietHieu+' 」'"></div>
                         <div class="mt-1"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold fserif" :style="'color:'+p.danhHieu.c+';background:'+p.danhHieu.c+'18;border:1px solid '+p.danhHieu.c+'66;text-shadow:0 0 8px '+p.danhHieu.c+'55'" x-text="p.danhHieu.ten"></span></div>
+                        <template x-if="p.successorOf"><div class="mt-1.5 text-[10px] px-2 py-1 rounded inline-flex items-center gap-1.5 leading-tight" style="color:#c4b5fd;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.35)"><span class="fserif text-[12px]">承</span><span>Truyền nhân đời <span x-text="p.successorOf.gen"></span> · tiền nhân <b x-text="p.successorOf.ancestorTen"></b> 「<span x-text="p.successorOf.ancestorBh"></span>」 đã tạ thế</span></div></template>
                       </div>
                       <button @click="$store.game.closeDanhSi()" class="shrink-0 w-7 h-7 rounded-lg bg-ink3/80 border border-slate-700 hover:border-rose-400 text-slate-400 hover:text-rose-400 flex items-center justify-center text-sm">✕</button>
                     </div>
