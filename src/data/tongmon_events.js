@@ -24,6 +24,7 @@
 //   { khiVan:±n }                     // Khí Vận (kẹp 0..100)
 //   { congHien:±n } { diem:±n }       // tài nguyên tông (kẹp >=0)
 //   { bac:±n }                        // Bạc main (kẹp >=0; tốn = trừ tối đa số đang có)
+//   { mat:{id, n} }                   // nguyên liệu Túi Đồ (id = mat_*, side; KỲ NGỘ nhóm F rơi liệu)
 //   { flag:{name, value?:true, who} } // gắn cờ lên đệ tử (who = uid)
 //   { capBonus:{n, who} }             // nâng TRẦN cảnh giới (tiềm năng, side-only)
 //   { realmUp:{n, who} }              // đột phá +n cảnh giới ngay (kẹp theo trần, side-only)
@@ -42,6 +43,7 @@ export const TM_GRP = {
   C: { label: 'Khiêu Chiến Môn Phái', color: '#f5b942' },
   D: { label: 'Chuỗi Phản Đồ',        color: '#a78bfa' },
   E: { label: 'Giai Thoại',           color: '#94a3b8' },
+  F: { label: 'Kỳ Ngộ',               color: '#34d399' },
 };
 
 // Pool tên NPC khách giang hồ (sự kiện nhóm B/C dùng) — Hán-Việt
@@ -890,7 +892,124 @@ const E5 = {
 };
 
 // ============================================================
-// TỔNG HỢP — 16 sự kiện (A1-3, B1-3, C1-2, D1-3 chuỗi, E1-5 auto)
+// NHÓM F — KỲ NGỘ (rơi nguyên liệu hiếm): linh dược / dược đầu / cổ động / thiên tài địa bảo
+// ============================================================
+const F1 = {
+  id: 'F1', grp: 'F', kind: 'auto', han: '採', title: 'Linh Dược Phùng Thời', weight: 6, cdH: 20,
+  cond: (t) => t.disciples.length >= 1,
+  auto: (c) => {
+    const d = rnd(c.t.disciples);
+    const pick = rnd(['mat_tulinhthao', 'mat_hantinh', 'mat_bachnien', 'mat_huyenthiet']);
+    const n = 2 + Math.floor(Math.random() * 2);   // 2-3
+    return G(
+      `${d.name} men theo khe núi sau cơn mưa, bỗng ngửi thấy một mùi dược thơm mát lạ thường. Vạch đám rêu phong, một khóm linh dược ẩn dưới gốc cổ thụ hiện ra, lá còn đọng sương lấp lánh linh khí. Người mừng rỡ hái trọn, gói vào tay áo mang về Túi Đồ.`,
+      [ { mat: { id: pick, n } }, { khiVan: 2 } ],
+      `Kỳ ngộ — ${d.name} men khe núi gặp khóm linh dược ẩn dưới cổ thụ, hái về sung vào kho.`
+    );
+  },
+};
+
+const F2 = {
+  id: 'F2', grp: 'F', kind: 'choice', han: '販', title: 'Dược Đầu Quá Môn', weight: 7, cdH: 36,
+  cond: (t) => t.disciples.length >= 1,
+  story: (c) =>
+    `Một lão dược đầu lưng đeo sọt thuốc, râu tóc bạc phơ, gõ cổng sơn môn xin nghỉ chân. Trong sọt y lấp ló mấy vị linh dược quý hiếm, hương thơm thoảng ra cũng đủ biết là hàng tốt. "Lão phu vân du khắp chốn, gặp tông môn hữu duyên mới chịu mở sọt. Quý nhân xem có gì vừa ý chăng?"`,
+  choices: [
+    {
+      label: 'Mua trọn sọt thuốc',
+      flavor: 'Trả tiền dứt khoát, ôm cả sọt linh dược về tông.',
+      resolve: (c) => G(
+        `Ngươi sai người khiêng bạc ra, mua đứt cả sọt. Lão dược đầu cười khà khà, đổ hết linh dược vào Túi Đồ tông môn rồi vác sọt không thong dong xuống núi. Một phen giao dịch sòng phẳng, kho liệu tông môn dày thêm mấy phần.`,
+        [ { bac: -900 }, { mat: { id: 'mat_bachnien', n: 4 } }, { mat: { id: 'mat_huyenthiet', n: 3 } } ],
+        `Mua trọn sọt thuốc của lão dược đầu — tốn Bạc, đổi lấy một mẻ linh dược bậc trung.`
+      ),
+    },
+    {
+      label: 'Mặc cả tới cùng',
+      flavor: 'Trả giá kì kèo từng đồng, ép lão hạ giá.',
+      resolve: (c) => c.lucky(0.5)
+        ? G(`Ngươi kì kèo nửa buổi, lão dược đầu chịu thua cái miệng dẻo, vừa lắc đầu vừa cười "thôi thôi bán rẻ cho xong". Rốt cuộc vừa được giá hời, lão lại tặng kèm một vị linh sâm cho đỡ tức.`,
+            [ { bac: -500 }, { mat: { id: 'mat_bachnien', n: 4 } }, { mat: { id: 'mat_cuudiep', n: 1 } } ],
+            `Mặc cả thắng lão dược đầu — giá hời, lại được tặng kèm Cửu Diệp Linh Sâm.`)
+        : M(`Ngươi ép giá quá tay, lão dược đầu phật ý phất tay áo: "Tiếc rẻ vài đồng thì hữu duyên cũng thành vô duyên." Y vác sọt bỏ đi thẳng, chỉ để lại đúng một nắm cỏ linh rẻ tiền gọi là cho khỏi mất công.`,
+            [ { mat: { id: 'mat_tulinhthao', n: 2 } }, { khiVan: -1 } ],
+            `Mặc cả hỏng — lão dược đầu phật ý bỏ đi, tông môn chỉ vớt được nắm cỏ linh.`),
+    },
+    {
+      label: 'Lấy đặc sản tông đổi hàng',
+      flavor: 'Không mất bạc, đem công sức tông môn đổi ngang lấy thuốc.',
+      resolve: (c) => G(
+        `Ngươi sai đệ tử khiêng ra đặc sản sơn môn — trà linh, mật đá, da thú quý — đổi ngang lấy thuốc. Lão dược đầu vốn dân vân du, thấy toàn của lạ thì khoái chí, vui vẻ đổi hết sọt thuốc lấy mớ đặc sản đem đi khoe thiên hạ.`,
+        [ { congHien: -60 }, { mat: { id: 'mat_huyenthiet', n: 3 } }, { mat: { id: 'mat_bachnien', n: 2 } } ],
+        `Đổi đặc sản tông lấy thuốc của lão dược đầu — không tốn Bạc, hao chút Cống Hiến.`
+      ),
+    },
+    {
+      label: 'Tiễn khách, không mua',
+      flavor: 'Mời lão chén trà rồi tiễn xuống núi, không giao dịch.',
+      resolve: (c) => M(
+        `Ngươi mời lão chén trà nóng, hàn huyên dăm câu rồi lễ phép tiễn xuống núi. Lão dược đầu cảm cái khí độ không tham, trước khi đi dúi lại một vị linh dược "kết duyên", dặn rằng đời người gặp nhau là quý. Tông môn chẳng mất gì, lại được tiếng khí khái.`,
+        [ { mat: { id: 'mat_bachnien', n: 1 } }, { khiVan: 2 }, { uy: 30 } ],
+        `Tiễn lão dược đầu không mua — được tặng một vị linh dược kết duyên + chút tiếng khí khái.`
+      ),
+    },
+  ],
+};
+
+const F3 = {
+  id: 'F3', grp: 'F', kind: 'choice', han: '洞', title: 'Cổ Động Khai Phong', weight: 5, cdH: 48,
+  cond: (t) => t.disciples.filter((d) => !d.awaiting).length >= 1,
+  pick: (t) => { const h = highApt(t.disciples.filter((d) => !d.awaiting)); return h ? [h.uid] : []; },
+  story: (c) =>
+    `Tiều phu chân núi hớt hải báo: sau trận sạt lở, một cổ động bị niêm phong từ thời thượng cổ lộ ra cửa. Đệ tử dò xét về, nói bên trong linh khí nồng đậm khác thường, ẩn ước có dược điền cổ — song cũng nghe cả tiếng gió rít quái dị, e có cấm chế hung hiểm. Cơ duyên hay tử địa, khó mà nói trước.`,
+  choices: [
+    {
+      label: 'Phái cao đồ vào thám hiểm',
+      flavor: 'Cử đệ tử mạnh nhất một mình đột nhập tận sâu cổ động.',
+      resolve: (c) => c.lucky(0.55)
+        ? G(`${c.main.name} vận khí hộ thân, lách qua mấy lớp cấm chế cổ xưa, lần tới một dược điền giấu trong lòng núi — linh sâm ngàn năm mọc thành khóm, tinh hồn thạch lấp lánh dưới khe. Người hái sạch mang ra, áo bào ám đầy linh khí, cả tông một phen reo mừng.`,
+            [ { mat: { id: 'mat_cuudiep', n: 3 } }, { mat: { id: 'mat_tinhhon', n: 3 } }, { uy: 60 } ],
+            `★ ${c.main.name} đột nhập cổ động, vét trọn dược điền cổ — một mẻ linh dược thượng phẩm về kho.`)
+        : B(`${c.main.name} vừa vào sâu thì cấm chế kích hoạt, đá lăn lửa táp tứ phía. Người liều mạng cướp được một nắm linh dược rồi tháo chạy thoát thân, thân mang vài vết thương, hồn phách chấn động mất mấy ngày mới hoàn. Cổ động sau đó sụp kín, cơ duyên khép lại.`,
+            [ { mat: { id: 'mat_cuudiep', n: 1 } }, { khiVan: -5 } ],
+            `${c.main.name} kẹt cấm chế cổ động, chỉ vớt được chút linh dược mà suýt bỏ mạng — Khí Vận tổn.`),
+    },
+    {
+      label: 'Cả tông cẩn trọng cùng vào',
+      flavor: 'Dàn trận, từng bước phá cấm chế, ăn chắc mặc bền.',
+      resolve: (c) => G(
+        `Ngươi không phiêu lưu, điều cả tông dàn trận, người phá cấm kẻ cảnh giới, từng bước tiến sâu. Tuy không vét được tận đáy dược điền vì cấm chế quá hiểm, song cũng thu hoạch một mẻ linh dược kha khá mà chẳng ai sứt mẻ. Vững vàng, an toàn.`,
+        [ { congHien: -40 }, { mat: { id: 'mat_huyenthiet', n: 3 } }, { mat: { id: 'mat_cuudiep', n: 2 } } ],
+        `Cả tông cẩn trọng dò cổ động — thu một mẻ linh dược an toàn, hao chút Cống Hiến.`
+      ),
+    },
+    {
+      label: 'Niêm phong lại, không động',
+      flavor: 'Thấy hung hiểm khó lường, cho lấp cửa động, không tham.',
+      resolve: (c) => M(
+        `Ngươi nhìn cái cửa động đen ngòm, nghe tiếng gió rít như tiếng người khóc, bèn lắc đầu cho đệ tử lấp lại. "Của trời cho mà mạng không hưởng nổi thì là họa, chẳng phải phúc." Tông môn bỏ lỡ một cơ duyên, đổi lại một đêm ngon giấc — và một bài học về sự biết đủ.`,
+        [ { khiVan: 3 } ],
+        `Niêm phong cổ động, không tham cơ duyên hung hiểm — Khí Vận an, lòng người vững.`
+      ),
+    },
+  ],
+};
+
+const F4 = {
+  id: 'F4', grp: 'F', kind: 'auto', han: '寶', title: 'Thiên Tài Giáng Thế', weight: 3, cdH: 72,
+  cond: (t) => t.disciples.length >= 1,
+  auto: (c) => {
+    const d = rnd(c.t.disciples);
+    return G(
+      `Một đêm sao băng xối xả như mưa, một vệt sáng kéo dài rạch ngang trời rồi đáp xuống hậu sơn. ${d.name} cùng mấy đệ tử lần theo, thấy nơi sao rơi mọc lên một đóa linh chi phát quang ngũ sắc, quanh nó tinh hồn thạch kết tinh từng tảng. Thiên tài địa bảo trăm năm khó gặp — cả tông thắp hương tạ trời, rồi cung kính thu về.`,
+      [ { mat: { id: 'mat_cuudiep', n: 3 } }, { mat: { id: 'mat_tinhhon', n: 4 } }, { uy: 80 }, { khiVan: 3 } ],
+      `★ Thiên tài giáng thế — sao băng đáp hậu sơn nảy linh chi ngũ sắc, ${d.name} dẫn người thu trọn một mẻ địa bảo thượng phẩm.`
+    );
+  },
+};
+
+// ============================================================
+// TỔNG HỢP — 20 sự kiện (A1-3, B1-3, C1-2, D1-3 chuỗi, E1-5 auto, F1-4 kỳ ngộ)
 // ============================================================
 export const TM_EVENTS = [
   A1, A2, A3,
@@ -898,6 +1017,7 @@ export const TM_EVENTS = [
   C1, C2,
   D1, D2, D3,
   E1, E2, E3, E4, E5,
+  F1, F2, F3, F4,
 ];
 
 export const TM_EVENT_BY_ID = TM_EVENTS.reduce((m, e) => { m[e.id] = e; return m; }, {});
