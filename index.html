@@ -4836,12 +4836,13 @@
                       <span><span class="text-slate-500">Tốc Tu</span> <b class="fserif text-cyan" x-text="'×'+g.tmSpeedMul(d).toFixed(2)"></b></span>
                       <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></span></span><span class="text-[10px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmProgPct(d)+'%'"></span></span>
                     </div>
-                    <template x-if="g.tmTuViEta(d)">
-                      <div class="mt-1.5 pt-1.5 border-t border-slate-800/70 flex items-center justify-between gap-2 text-[11px]">
-                        <span class="text-slate-500" x-text="g.tmTuViEta(d).label"></span>
+                    <template x-if="g.tmTuViVal(d)">
+                      <div class="mt-1.5 pt-1.5 border-t border-slate-800/70 flex items-center justify-between gap-2 text-[11px]" x-data="{ get v(){ return g.tmTuViVal(d) } }">
+                        <span class="text-slate-500">Tu Vi</span>
                         <span class="inline-flex items-baseline gap-1.5">
-                          <b class="fserif text-[13px]" :style="'color:'+g.tmTuViEta(d).color" x-text="g.tmTuViEta(d).value"></b>
-                          <template x-if="g.tmTuViEta(d).pct!==undefined"><span class="text-[10px] text-slate-500">· <b class="text-slate-300" x-text="g.tmTuViEta(d).pct+'%'"></b> đại cảnh</span></template>
+                          <template x-if="v.text"><b class="fserif text-[12.5px]" :style="'color:'+v.color" x-text="v.text"></b></template>
+                          <template x-if="!v.text"><span class="fserif tabular-nums"><b class="text-[13.5px]" :style="'color:'+v.color" x-text="g.fmt(v.cur)"></b><span class="text-slate-600"> / </span><span class="text-slate-400" x-text="g.fmt(v.max)"></span></span></template>
+                          <template x-if="v.suffix"><span class="text-[9.5px] px-1.5 py-0.5 rounded-full" :style="'color:'+v.color+';background:'+v.color+'1a;border:1px solid '+v.color+'44'" x-text="v.suffix"></span></template>
                         </span>
                       </div>
                     </template>

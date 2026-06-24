@@ -494,17 +494,19 @@ const gameStore = {
   tmOriginBio(d) { return originBioOf(d.origin, d.sex) || d.bio || ''; },
   tmAtCap(d) { return d.realm >= disciCap(d); },
   tmProgPct(d) { if (d.awaiting || this.tmAtCap(d)) return 100; const n = (SUB_STAGES[d.realm] || []).length || 1; return Math.round((((d.xp || 0) * n) % 1) * 100); },   // tiến trong TIỂU cảnh hiện tại
-  tmEtaText(sec) { sec = Math.ceil(sec); const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60); if (d > 0) return d + ' ngày' + (h > 0 ? (' ' + h + 'h') : ''); if (h > 0) return h + 'h' + (m > 0 ? (' ' + m + 'm') : ''); return Math.max(1, m) + 'm'; },
-  // Dòng GIÁ TRỊ tu vi: ước tính thời gian tới Bình Cảnh (đại cảnh đầy) + % đại cảnh — trực quan hơn thanh tiểu cảnh.
-  tmTuViEta(d) {
+  tuViNeed(realm) { return (REALMS[realm] ? REALMS[realm].hours : 1) * 3600; },   // tu vi điểm cần để đầy 1 đại cảnh
+  // Dòng GIÁ TRỊ tu vi dạng SỐ: hiện tại / tối đa của đại cảnh (trực quan hơn thanh %). Cập nhật sống theo _tick.
+  tmTuViVal(d) {
     void this._tick; if (!d) return null;
-    if (d.awaiting) return { label: 'Tiền đồ', value: 'Đắc Đạo — chờ định đoạt', color: '#fbbf24' };
-    if (d.breakReady) return { label: 'Trạng thái', value: 'Bình Cảnh · chờ đột phá', color: '#a78bfa' };
-    if (d.lichLuyenUntil && d.lichLuyenUntil > now()) return { label: 'Lịch luyện', value: 'còn ' + this.tmLichLuyenCdText(d), color: '#22d3ee' };
-    if (this.tmAtCap(d)) return { label: 'Tu vi', value: 'Viên mãn · tới trần tư chất', color: this.tmRealmColor(d) };
-    const realmSec = REALMS[d.realm].hours * 3600 / Math.max(0.01, this.tmSpeedMul(d));
-    const remSec = Math.max(0, (1 - (d.xp || 0)) * realmSec);
-    return { label: 'Tiến tới Bình Cảnh', value: '≈ ' + this.tmEtaText(remSec), pct: Math.round((d.xp || 0) * 100), color: this.tmRealmColor(d) };
+    if (d.awaiting) return { text: 'Đắc Đạo — chờ định đoạt', color: '#fbbf24' };
+    const need = this.tuViNeed(d.realm);
+    const full = this.tmAtCap(d) || d.breakReady;
+    const cur = full ? need : Math.floor((d.xp || 0) * need);
+    let suffix = '';
+    if (d.breakReady) suffix = 'Bình Cảnh';
+    else if (this.tmAtCap(d)) suffix = 'Viên mãn';
+    else if (d.lichLuyenUntil && d.lichLuyenUntil > now()) suffix = 'lịch luyện';
+    return { cur, max: need, suffix, color: this.tmRealmColor(d) };
   },
   tmStateLabel(d) { return d.awaiting ? 'Đắc Đạo!' : (this.tmAtCap(d) ? 'Viên mãn' : (d.state === 'rest' ? 'Nghỉ' : 'Đang tu')); },
   tmDaoLabel() { return ({ chinh: 'Chính Đạo', ta: 'Tà Đạo', trung: 'Trung Dung' })[this.tm.dao] || 'Trung Dung'; },
