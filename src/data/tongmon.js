@@ -203,6 +203,11 @@ export const GIANG_H = 48;            // giờ thực / khóa thính giảng (+1
 export const GIANG_MAX_BONUS = 2;     // trần cộng tối đa từ Giảng Đạo / đệ tử
 export function giangSeats(lv) { return lv || 0; }   // số ghế thính giảng đồng thời = bậc công trình
 
+// ===== GIỚI LUẬT ĐƯỜNG: răn dạy đệ tử sinh tâm ma / cờ xấu -> gột cờ xấu + giảm tâm ma (mạnh theo bậc). DRAFT. =====
+export const GIOI_LUAT_CD_H = 6;                                                  // giờ tĩnh tâm giữa 2 lần răn 1 đệ tử
+export const GIOI_LUAT_BAD_FLAGS = ['oanTham', 'tamMaSeed', 'batPhuc', 'phatPhan'];   // cờ xấu Giới Luật gột được
+export function gioiLuatPotency(lv) { return 1 + Math.floor((lv || 1) / 2); }     // số bậc tâm ma gột mỗi lần (theo bậc công trình)
+
 // ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới

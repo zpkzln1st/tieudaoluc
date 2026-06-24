@@ -44,6 +44,7 @@ export const TM_GRP = {
   D: { label: 'Chuỗi Phản Đồ',        color: '#a78bfa' },
   E: { label: 'Giai Thoại',           color: '#94a3b8' },
   F: { label: 'Kỳ Ngộ',               color: '#34d399' },
+  G: { label: 'Giới Luật',            color: '#fb7185' },
 };
 
 // Pool tên NPC khách giang hồ (sự kiện nhóm B/C dùng) — Hán-Việt
@@ -1064,7 +1065,20 @@ const F4 = {
 };
 
 // ============================================================
-// TỔNG HỢP — 20 sự kiện (A1-3, B1-3, C1-2, D1-3 chuỗi, E1-5 auto, F1-4 kỳ ngộ)
+// NHÓM G — Giới Luật (auto, gated Giới Luật Đường). Pacing-safe (auto KHÔNG chiếm slot pending).
+// ============================================================
+const G1 = {
+  id: 'G1', grp: 'G', kind: 'auto', han: '律', title: 'Đại Điểm Giới Luật', weight: 4, cdH: 96,
+  cond: (t) => (t.buildings && (t.buildings.gioiLuatDuong || 0) >= 1) && t.disciples.length >= 3,
+  auto: (c) => G(
+    `Giới Luật Đường gióng chuông đại điểm, toàn môn tề tựu nghe đọc lại tông quy. Trưởng lão tuyên giới, đệ tử cúi đầu tự tỉnh, kẻ chớm tà niệm cũng phải rùng mình. Một phen chấn chỉnh, sĩ khí nghiêm cẩn, tà niệm lui xa.`,
+    [ { khiVan: 4 }, { uy: 40 } ],
+    `Giới Luật Đường đại điểm toàn môn — tông phong nghiêm cẩn, Khí Vận tăng.`
+  ),
+};
+
+// ============================================================
+// TỔNG HỢP — A1-3, B1-3, C1-2, D1-3 chuỗi + TMK, E1-5 auto, F1-4 kỳ ngộ, G1 giới luật
 // ============================================================
 export const TM_EVENTS = [
   A1, A2, A3,
@@ -1073,6 +1087,7 @@ export const TM_EVENTS = [
   D1, D2, D3, TMK,
   E1, E2, E3, E4, E5,
   F1, F2, F3, F4,
+  G1,
 ];
 
 export const TM_EVENT_BY_ID = TM_EVENTS.reduce((m, e) => { m[e.id] = e; return m; }, {});

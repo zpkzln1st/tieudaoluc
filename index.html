@@ -4536,6 +4536,9 @@
                   <template x-if="g.tmBuildSel==='toSuDien' && g.tmBuildLv('toSuDien')>=1">
                     <button @click="g.tmBuildSel=null; g.openToSu()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-amber-700/80 hover:bg-amber-700 text-white">Vào Tổ Sư Điện 祖</button>
                   </template>
+                  <template x-if="g.tmBuildSel==='gioiLuatDuong' && g.tmBuildLv('gioiLuatDuong')>=1">
+                    <button @click="g.tmBuildSel=null; g.openGioiLuat()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-rose-700/75 hover:bg-rose-700 text-white">Vào Giới Luật Đường 律</button>
+                  </template>
                   <button @click="g.tmUpgrade(g.tmBuildSel)" :disabled="!g.tmCanUpgrade(g.tmBuildSel)" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmCanUpgrade(g.tmBuildSel)?'bg-amber-500/85 hover:bg-amber-500 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'">Nâng Cấp</button>
                 </div>
               </div>
@@ -4595,6 +4598,58 @@
                   </div>
                 </div>
                 <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-center text-[10.5px] text-slate-600 italic" style="background:rgba(15,21,33,.55)">Một nén tâm hương — công đức tiền nhân, ấm phúc hậu bối.</div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODAL GIỚI LUẬT ĐƯỜNG (răn dạy đệ tử sinh tâm ma / cờ xấu) -->
+          <template x-if="g.gioiLuatOpen">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeGioiLuat()">
+              <div @click.stop class="panel rounded-2xl w-[600px] max-w-full h-[580px] max-h-[92dvh] flex flex-col overflow-hidden border border-rose-600/35">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(190,30,60,.12),transparent)">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[16px]" style="color:#fb7185;border:1px solid rgba(251,113,133,.4);background:rgba(251,113,133,.1)">律</span>
+                    <div><div class="fserif text-[18px] leading-none text-rose-200">Giới Luật Đường</div><div class="text-[10.5px] text-slate-500 mt-0.5">Nghiêm trị tâm ma, gột cờ xấu giữ sơn môn thanh tịnh</div></div>
+                  </div>
+                  <button @click="g.closeGioiLuat()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-3.5 space-y-4">
+                  <template x-if="g.tmGioiLuatData.clean">
+                    <div class="flex flex-col items-center justify-center py-10 text-center"><span class="fserif text-[2.4rem] text-jade/30 mb-2">淨</span><div class="text-[12.5px] text-slate-400 fserif">Sơn môn thanh tịnh — đạo tâm toàn môn trong sáng.</div></div>
+                  </template>
+                  <!-- ĐỆ TỬ CẦN RĂN DẠY -->
+                  <div x-show="g.tmGioiLuatData.needy.length">
+                    <div class="flex items-center gap-2 mb-2"><span class="text-[12.5px] fserif text-rose-300">魔 Cần Răn Dạy</span><span class="text-[10px] text-slate-600" x-text="'· '+g.tmGioiLuatData.needy.length"></span><span class="flex-1 h-px bg-slate-800/80"></span></div>
+                    <div class="space-y-2">
+                      <template x-for="d in g.tmGioiLuatData.needy" :key="d.uid">
+                        <div class="rounded-lg border px-3 py-2 flex items-center gap-3 bg-ink2/50" :style="'border-color:'+d.tier.color+'40'">
+                          <span class="relative w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center fserif text-[16px] shrink-0" :style="'color:'+d.color+';border:1px solid '+d.color+'55;background:'+d.color+'12'"><span x-text="d.han"></span><template x-if="d.face"><img :src="d.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2"><span class="fserif text-[13px] truncate" :style="'color:'+d.color" x-text="d.name"></span><span class="text-[10px] fserif font-bold shrink-0" :style="'color:'+d.tier.color" x-text="d.tier.name"></span></div>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                              <template x-for="(fc,k) in d.flags" :key="k"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full fserif" :style="'color:'+fc[1]+';background:'+fc[1]+'14;border:1px solid '+fc[1]+'44'" x-text="fc[0]"></span></template>
+                            </div>
+                          </div>
+                          <button @click="g.tmDiscipline(d.uid)" :disabled="d.onCd" class="shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg font-bold fserif transition" :class="d.onCd?'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed':'bg-rose-600/85 hover:bg-rose-600 text-white'" x-text="d.onCd?('Tĩnh tâm · '+d.cdText):'Trách Phạt'"></button>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="text-[10px] text-slate-600 italic mt-2">Trách phạt gột cờ xấu + giảm tâm ma. Tâm ma cao / tính cao ngạo có thể phản tác (sinh bất phục).</div>
+                  </div>
+                  <!-- PHẢN ĐỒ -->
+                  <div x-show="g.tmGioiLuatData.rebels.length">
+                    <div class="flex items-center gap-2 mb-2"><span class="text-[12.5px] fserif text-violet-300">叛 Phản Đồ</span><span class="text-[10px] text-slate-600" x-text="'· '+g.tmGioiLuatData.rebels.length"></span><span class="flex-1 h-px bg-slate-800/80"></span></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <template x-for="(r,i) in g.tmGioiLuatData.rebels" :key="i">
+                        <div class="rounded-lg border border-violet-500/25 px-2.5 py-2 flex items-center gap-2.5 bg-violet-500/[.05]">
+                          <span class="w-8 h-8 rounded-full flex items-center justify-center fserif text-[15px] shrink-0" :style="'color:'+r.color+';border:1px solid '+r.color+'55;background:'+r.color+'12'" x-text="r.han"></span>
+                          <div class="min-w-0"><div class="fserif text-[12px] truncate" :style="'color:'+r.color" x-text="r.name"></div><div class="text-[9px] text-slate-500 truncate" x-text="r.realmName"></div></div>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="text-[10px] text-slate-600 italic mt-2">Phản Đồ do Chuỗi Phản Đồ (sự kiện giang hồ) định đoạt — truy nã, chiêu hàng hay trảm trừ.</div>
+                  </div>
+                </div>
               </div>
             </div>
           </template>

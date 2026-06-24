@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -482,6 +482,36 @@ export function enrollGiang(state, uid, nowMs) {
   if (giangSeatInfo(t).free < 1) return { ok: false, msg: 'Hết ghế thính giảng — nâng Giảng Đạo Đường.' };
   d.giangUntil = (nowMs || Date.now()) + GIANG_H * 3600000;
   return { ok: true, msg: `${d.name} vào Giảng Đạo Đường thính giảng (${GIANG_H}h).` };
+}
+
+// ---- GIỚI LUẬT ĐƯỜNG: răn dạy 1 đệ tử sinh tâm ma / cờ xấu -> gột cờ + giảm tâm ma (mạnh theo bậc). Có thể PHẢN tác (sinh bất phục) nếu tâm ma cao / tính ngạo. SIDE-ONLY. ----
+export function disciNeedsDiscipline(d) { return !!d && !d.awaiting && ((d.tamMaLv || 0) >= 1 || (d.flags && GIOI_LUAT_BAD_FLAGS.some((k) => d.flags[k]))); }
+export function disciplineDisciple(state, uid, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  if ((t.buildings.gioiLuatDuong || 0) < 1) return { ok: false, msg: 'Cần xây Giới Luật Đường.' };
+  const d = t.disciples.find((x) => x.uid === uid); if (!d) return { ok: false, msg: '?' };
+  if (d.awaiting) return { ok: false, msg: 'Đệ tử đã Đắc Đạo, không cần răn dạy.' };
+  const now = nowMs || Date.now();
+  if (d.gioiLuatCdUntil && now < d.gioiLuatCdUntil) return { ok: false, msg: `${d.name} vừa bị răn, đang tĩnh tâm.` };
+  if (!disciNeedsDiscipline(d)) return { ok: false, msg: `${d.name} đạo tâm trong sáng, không cần răn dạy.` };
+  d.gioiLuatCdUntil = now + GIOI_LUAT_CD_H * 3600000;
+  // phản tác: tâm ma cao + tính ngạo -> phạt mà sinh bất phục
+  const resist = Math.min(0.5, 0.08 + 0.06 * (d.tamMaLv || 0) + ((d.traits || []).some((tr) => ['Cuồng Ngạo', 'Cao Ngạo', 'Hiếu Chiến'].includes(tr)) ? 0.12 : 0));
+  if (Math.random() < resist) {
+    if (!d.flags) d.flags = {};
+    d.flags.batPhuc = true;
+    t.khiVan = Math.max(0, (t.khiVan || 50) - 2);
+    chronicle(t, `${d.name} bị Giới Luật Đường trách phạt mà trong lòng bất phục, ngầm sinh oán khí.`);
+    return { ok: true, backfire: true, msg: `${d.name} bị phạt nhưng sinh bất phục — coi chừng hậu họa.` };
+  }
+  const dLv = Math.min(d.tamMaLv || 0, gioiLuatPotency(t.buildings.gioiLuatDuong || 1));
+  d.tamMaLv = Math.max(0, (d.tamMaLv || 0) - dLv);
+  const cleared = [];
+  if (d.flags) GIOI_LUAT_BAD_FLAGS.forEach((k) => { if (d.flags[k]) { delete d.flags[k]; cleared.push(k); } });
+  t.khiVan = Math.min(100, (t.khiVan || 50) + 2);
+  t.uyBonus = (t.uyBonus || 0) + 15;
+  chronicle(t, `${d.name} chịu Giới Luật Đường răn dạy, gột tâm ma tịnh đạo — sơn môn thêm nghiêm cẩn.`);
+  return { ok: true, msg: `${d.name} đã được răn dạy · tâm ma −${dLv}${cleared.length ? ', gột cờ xấu' : ''}.`, cleared };
 }
 
 // ============================================================

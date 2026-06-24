@@ -37,7 +37,7 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
 import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
@@ -584,6 +584,22 @@ const gameStore = {
     const fallen = (t.fallen || []).map((f) => { const a = aptOf(f.apt); return { name: f.name, han: f.han, aptName: a.name, color: a.color, realmName: (REALMS[f.realm] || {}).name || '', cause: CAUSE[f.cause] || 'Đã khuất', tamMa: f.tamMa, heColor: (HE[f.he] || HE.kim).color }; });
     return { legends, elders, fallen, total: legends.length + elders.length + fallen.length };
   },
+  // ===== GIỚI LUẬT ĐƯỜNG: răn dạy đệ tử sinh tâm ma / cờ xấu (gột cờ + giảm tâm ma). =====
+  gioiLuatOpen: false,
+  openGioiLuat() { this.gioiLuatOpen = true; },
+  closeGioiLuat() { this.gioiLuatOpen = false; },
+  get tmGioiLuatData() {
+    void this._tick;
+    const t = this.tm; if (!t) return { needy: [], rebels: [], clean: true };
+    const needy = (t.disciples || []).filter((d) => disciNeedsDiscipline(d)).map((d) => {
+      const tv = this.tmTamMaView(d), cdMs = (d.gioiLuatCdUntil || 0) - now();
+      const h = Math.floor(cdMs / 3600000), m = Math.floor((cdMs % 3600000) / 60000);
+      return { uid: d.uid, name: d.name, han: d.han, color: (APT[d.apt] || {}).color || '#cbd5e1', face: this.tmFace(d), tier: tv.tier, tamMaLv: tv.lv, flags: this.tmFlagChips(d), onCd: cdMs > 0, cdText: cdMs > 0 ? (h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm')) : '' };
+    });
+    const rebels = ((t.events && t.events.rebels) || []).map((r) => ({ name: r.name, han: r.han, color: (APT[r.apt] || {}).color || '#a78bfa', realmName: (REALMS[r.realm] || {}).name || '' }));
+    return { needy, rebels, clean: needy.length === 0 && rebels.length === 0 };
+  },
+  tmDiscipline(uid) { const r = disciplineDisciple(this.state, uid, now()); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Giới Luật · ' + r.msg); } else this.showToast(r.msg); },
   // Glow TĨNH chân dung theo TIỂU CẢNH: hào quang màu đại cảnh, SÁNG dần khi đệ tử tiến tới Viên Mãn (idx tiểu cảnh). Inset (không tràn card). Thiên Tư vẫn có halo2 vàng riêng.
   tmSubGlow(d) {
     if (!d) return '';
