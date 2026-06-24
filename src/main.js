@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -2783,6 +2783,18 @@ const gameStore = {
   devClearPets() { this.state.pets = []; this.state.hatchery = null; this.devSave(); this.showToast('Đã xoá hết Linh Thú + lò ấp.'); },
   devGivePetMats() { addItem(this.state, 'linhPhach', 99); addItem(this.state, 'tinhTheYeuVuong', 99); this.state.currencies.honThach = (this.state.currencies.honThach || 0) + 50000; this.devSave(); this.showToast('Nhận 99 Linh Phách + 99 Tinh Thể Yêu Vương + 50k Hồn Thạch (test Thức Tỉnh).'); },
   devSetClass(id) { if (this.CLASSES[id]) { this.state.player.class = id; this.devSave(); } },
+  // ---- Dev: Tông Môn ----
+  devTmBuildLv: 5, devTmRealm: 4, devTmEventSel: '',
+  get devTmEvents() { return TM_EVENTS.map((e) => ({ id: e.id, title: e.title, grp: e.grp, kind: e.kind })); },
+  devTmGiveMats(q) { const t = this.tm; if (!t) return; q = q || 99; MAT_KEYS.forEach((m) => { t.mats[m] = (t.mats[m] || 0) + q; }); this.devSave(); this.showToast('Dev: +' + q + ' mỗi nguyên liệu'); },
+  devTmGivePills(q) { const t = this.tm; if (!t) return; q = q || 20; PILL_KEYS.forEach((p) => { t.pills[p] = (t.pills[p] || 0) + q; }); this.devSave(); this.showToast('Dev: +' + q + ' mỗi loại đan'); },
+  devTmGiveResources() { const t = this.tm; if (!t) return; t.congHien = (t.congHien || 0) + 100000; t.diem = (t.diem || 0) + 100000; t.khiVan = 100; this.state.currencies.bac = (this.state.currencies.bac || 0) + 1000000; this.state.currencies.honThach = (this.state.currencies.honThach || 0) + 1000000; this.devSave(); this.showToast('Dev: +Cống Hiến/Điểm/Bạc/Hồn Thạch + Khí Vận 100'); },
+  devTmSetBuildings(lv) { const t = this.tm; if (!t) return; lv = Math.max(0, Math.floor(lv || 0)); Object.keys(BUILDINGS).forEach((k) => { t.buildings[k] = Math.max(t.buildings[k] || 0, lv); }); this.devSave(); this.showToast('Dev: mọi công trình ≥ Bậc ' + lv); },
+  devTmAddDisciples(n) { const t = this.tm; if (!t) return; n = n || 3; for (let i = 0; i < n; i++) t.disciples.push(genDisciple()); this.devSave(); this.showToast('Dev: +' + n + ' đệ tử ngẫu nhiên'); },
+  devTmRealmAll(realm) { const t = this.tm; if (!t) return; realm = Math.max(0, Math.min(9, Math.floor(realm || 0))); t.disciples.forEach((d) => { d.realm = Math.min(realm, disciCap(d)); d.xp = 0; d.breakReady = false; d.awaiting = false; }); this.devSave(); this.showToast('Dev: mọi đệ tử về ' + REALMS[realm].name); },
+  devTmBreakReadyAll() { const t = this.tm; if (!t) return; let n = 0; t.disciples.forEach((d) => { if (!d.awaiting && !d.lichLuyenUntil && d.realm < disciCap(d)) { d.xp = 1; d.breakReady = true; n++; } }); this.devSave(); this.showToast('Dev: ' + n + ' đệ tử → Bình Cảnh (test đột phá)'); },
+  devTmFinishTimers() { const n = now(), t = this.tm; if (!t) return; t.disciples.forEach((d) => { if (d.lichLuyenUntil) d.lichLuyenUntil = n - 1; }); (t.brewing || []).forEach((b) => { b.until = n - 1; }); ((t.duocVien || {}).plots || []).forEach((p) => { if (p) p.until = n - 1; }); this.devSave(); this.showToast('Dev: hoàn tất Lịch Luyện / Lò đan / Dược Viên'); },
+  devTmFireEvent() { if (this.devTmEventSel) this.devFireEvent(this.devTmEventSel); else this.showToast('Chọn sự kiện trước.'); },
   devExport() {
     const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');

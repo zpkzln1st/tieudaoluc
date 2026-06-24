@@ -5950,7 +5950,7 @@
   <!-- ===== BẢNG DEV / ADMIN (offline) — F9; CHỈ hiện + dùng được khi đã đăng nhập ===== -->
   <template x-if="$store.game.devPanel && $store.game.devAuthed">
     <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.devPanel=false">
-      <div class="panel rounded-xl w-[480px] max-w-full h-[600px] max-h-[88vh] flex flex-col overflow-hidden p-5 border border-amber-500/40 shadow-2xl" @click.stop>
+      <div class="panel rounded-xl w-[520px] max-w-full h-[600px] max-h-[88vh] flex flex-col overflow-hidden p-5 border border-amber-500/40 shadow-2xl" @click.stop>
         <!-- Header -->
         <div class="flex justify-between items-center mb-3 shrink-0">
           <div class="font-bold text-amber-300 flex items-center gap-2">🛠️ Bảng Dev / Admin <span class="text-[10px] text-emerald-400 font-normal inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>đã đăng nhập</span></div>
@@ -5962,7 +5962,7 @@
 
         <!-- Tabs -->
         <div class="flex gap-1 mb-3.5 bg-ink3/40 rounded-lg p-1 shrink-0">
-          <template x-for="tb in [{k:'char',l:'Nhân Vật'},{k:'item',l:'Vật Phẩm'},{k:'pet',l:'Linh Thú'},{k:'sys',l:'Hệ Thống'}]" :key="tb.k">
+          <template x-for="tb in [{k:'char',l:'Nhân Vật'},{k:'item',l:'Vật Phẩm'},{k:'pet',l:'Linh Thú'},{k:'tongmon',l:'Tông Môn'},{k:'sys',l:'Hệ Thống'}]" :key="tb.k">
             <button @click="$store.game.setDevTab(tb.k)" class="flex-1 px-2 py-1.5 rounded text-[12px] font-medium transition border" :class="$store.game.devTab===tb.k ? 'bg-amber-500/20 text-amber-200 border-amber-500/40' : 'text-slate-400 hover:text-slate-200 border-transparent'" x-text="tb.l"></button>
           </template>
         </div>
@@ -6054,6 +6054,47 @@
             <button @click="$store.game.devGivePetMats()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🌀 99 Linh Phách + Tinh Thể</button>
             <button @click="$store.game.devClearPets()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-xs">Xoá hết Linh Thú</button>
           </div>
+        </div>
+
+        <!-- ===== TAB: TÔNG MÔN ===== -->
+        <div x-show="$store.game.devTab==='tongmon'">
+          <template x-if="!$store.game.tm"><div class="text-[12px] text-slate-500 italic">Chưa khởi tạo Tông Môn.</div></template>
+          <template x-if="$store.game.tm">
+            <div>
+              <div class="lbl mb-1.5">Tài nguyên & Công trình</div>
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <button @click="$store.game.devTmGiveMats(99)" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🌿 +99 mỗi nguyên liệu</button>
+                <button @click="$store.game.devTmGivePills(20)" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💊 +20 mỗi loại đan</button>
+                <button @click="$store.game.devTmGiveResources()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💰 +Cống Hiến/Điểm/Tiền + Khí Vận</button>
+              </div>
+              <div class="flex items-center gap-2 mb-4 text-sm">
+                <span class="text-slate-300">Mọi công trình → Bậc</span>
+                <input type="number" min="0" max="20" x-model.number="$store.game.devTmBuildLv" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100">
+                <button @click="$store.game.devTmSetBuildings($store.game.devTmBuildLv)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Áp</button>
+              </div>
+              <div class="lbl mb-1.5">Đệ tử <span class="text-slate-600 normal-case tracking-normal" x-text="'· '+$store.game.tm.disciples.length+' người'"></span></div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <button @click="$store.game.devTmAddDisciples(3)" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">+3 đệ tử ngẫu nhiên</button>
+                <button @click="$store.game.devTmBreakReadyAll()" class="px-3 py-1 rounded bg-violet-900/40 border border-violet-700/50 text-violet-200 text-xs">→ Bình Cảnh (test đột phá)</button>
+                <button @click="$store.game.devTmFinishTimers()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">⏩ Hoàn tất Lịch Luyện/Lò/Vườn</button>
+              </div>
+              <div class="flex items-center gap-2 mb-4 text-sm">
+                <span class="text-slate-300 shrink-0">Mọi đệ tử →</span>
+                <select x-model.number="$store.game.devTmRealm" class="flex-1 min-w-0 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
+                  <template x-for="(r,i) in $store.game.tmRealmGuide" :key="i"><option :value="i" x-text="r.name"></option></template>
+                </select>
+                <button @click="$store.game.devTmRealmAll($store.game.devTmRealm)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium shrink-0">Áp</button>
+              </div>
+              <div class="lbl mb-1.5">Nổ sự kiện giang hồ</div>
+              <div class="flex items-center gap-2">
+                <select x-model="$store.game.devTmEventSel" class="flex-1 min-w-0 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
+                  <option value="">— chọn sự kiện —</option>
+                  <template x-for="ev in $store.game.devTmEvents" :key="ev.id"><option :value="ev.id" x-text="ev.id+' · '+ev.title+(ev.kind==='auto'?' (auto)':'')"></option></template>
+                </select>
+                <button @click="$store.game.devTmFireEvent()" class="px-3 py-1 rounded bg-amber-500/85 hover:bg-amber-500 text-ink text-xs font-bold shrink-0">Nổ</button>
+              </div>
+            </div>
+          </template>
         </div>
 
         <!-- ===== TAB: HỆ THỐNG (save + reset) ===== -->
