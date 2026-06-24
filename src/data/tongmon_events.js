@@ -837,6 +837,61 @@ const D3 = {
 };
 
 // ============================================================
+// TÂM MA KIẾP (nhóm D) — nổ qua tích lũy tamMaLv (accrueTamMa), KHÔNG roll ngẫu nhiên (chain:true).
+// cast = đệ tử lâm kiếp (castUids). Bậc cao (>=TAMMA_CHOICE_LV) mới thành sự kiện CHỌN này.
+// ============================================================
+const TMK = {
+  id: 'TMK', grp: 'D', kind: 'choice', han: '魔', title: 'Tâm Ma Kiếp', weight: 0, cdH: 0, chain: true,
+  cond: (t) => t.disciples.some((d) => !d.awaiting && (d.tamMaLv || 0) >= 3),
+  story: (c) => {
+    const d = c.main; if (!d) return 'Một luồng ma khí trỗi dậy giữa sơn môn lúc canh khuya.';
+    return `${d.name} bế quan đã ba ngày không xuất. Ngươi đẩy cửa thạch thất: y ngồi giữa vũng nến chảy, mắt nhắm nghiền mà lệ máu rỉ hai bên thái dương, miệng lẩm nhẩm những lời chẳng phải của mình. Tâm ma 「${d.tamMa}」 ủ bấy lâu nay phá phong trỗi dậy — kinh mạch gào thét, đạo tâm rạn như băng tiết xuân. Một niệm sai, bao năm khổ tu hóa tro bụi; một niệm vững, kiếp nạn lại hóa cơ duyên. Chưởng Môn, ngươi định liệu thế nào?`;
+  },
+  choices: [
+    {
+      label: 'Thân chinh hộ pháp, dẫn khí trấn ma',
+      flavor: 'Đích thân ngồi trấn bên cạnh, vận chân khí gột rửa ma niệm cho đồ nhi suốt mấy ngày đêm.',
+      resolve: (c) => (c.lucky(0.5) || c.anyTrait(['Nhân Hậu', 'Thận Trọng', 'Cần Mẫn'], c.main))
+        ? G(
+            `Ngươi ngồi xếp bằng sau lưng ${c.main.name}, một tay áp Mệnh Môn dẫn chân khí, một tay bắt ấn trấn thần. Bảy ngày bảy đêm không rời, từng đợt ma niệm xô tới đều bị ngươi gột về biển khổ. Đến rạng đông thứ bảy, y rùng mình tỉnh lại, lệ máu đã khô, ánh mắt trong veo trở lại. Quỳ sụp tạ ơn sư phụ tái tạo.`,
+            [ { tamMa: { who: c.main.uid, dLv: -2 } }, { clearFlag: { name: 'tamMaSeed', who: c.main.uid } }, { khiVan: 4 }, { uy: 80 } ],
+            `Chưởng Môn thân chinh hộ pháp bảy ngày, gột tâm ma cho ${c.main.name} — đạo tâm sáng lại, sư đồ thâm tình.`
+          )
+        : M(
+            `Ngươi dồn sức trấn ma cho ${c.main.name}, nhưng ma niệm đã ăn sâu, gột mãi chẳng tận. Cuối cùng cũng áp được nó lắng xuống đáy tâm, song như tro chưa nguội — chỉ chờ một cơn gió là bùng lại. Ngươi mệt phờ, y cũng kiệt, đạo tâm tạm yên mà chưa thực vững.`,
+            [ { tamMa: { who: c.main.uid, dLv: -1 } }, { khiVan: -2 } ],
+            `Chưởng Môn trấn ma cho ${c.main.name} chỉ áp được phần nào — tâm ma lắng tạm, mầm vẫn còn.`
+          ),
+    },
+    {
+      label: 'Ban linh đan trấn áp tâm thần',
+      flavor: 'Lấy đan dược trấn tâm của tông môn, ép ma niệm chìm xuống — trị ngọn, hao tài.',
+      resolve: (c) => M(
+        `Ngươi sai Y Quán dâng một viên đan trấn tâm hiếm quý, bón cho ${c.main.name}. Đan vào bụng, ma khí lập tức bị áp chế, y thiếp đi một giấc dài an ổn. Tỉnh dậy thì tâm thần đã tịnh — nhưng ai cũng hiểu, đan dược trị được cái ngọn chứ chẳng nhổ được cái gốc. Tốn của tông một phần, đổi lấy mấy phần an tâm.`,
+        [ { tamMa: { who: c.main.uid, dLv: -2 } }, { congHien: -30 } ],
+        `Tông môn dâng linh đan trấn tâm cho ${c.main.name} — ma niệm chìm xuống, hao chút Cống Hiến.`
+      ),
+    },
+    {
+      label: 'Lấy ma luyện tâm, để y tự độ',
+      flavor: 'Không can thiệp — đặt cược đồ nhi tự nuốt ma niệm thành đạo, hoặc gục ngã trong ma.',
+      resolve: (c) => c.lucky(0.38)
+        ? G(
+            `Ngươi khép cửa thạch thất, để mặc ${c.main.name} một mình đối diện ma trong tâm. Bảy ngày tịch lặng, đến đêm thứ bảy sấm xé trời — y rống một tiếng dài, nuốt trọn ma niệm làm của mình. Cửa mở, y bước ra, sát khí đã hóa sát đạo thuần, ánh mắt trầm như vực thẳm mà sáng như sao. Lấy ma luyện đạo, một bước thoát thai hoán cốt!`,
+            [ { tamMa: { who: c.main.uid, clear: true } }, { capBonus: { n: 1, who: c.main.uid } }, { bietHieu: { name: 'Hàng Ma', who: c.main.uid } }, { uy: 220 }, { khiVan: 4 } ],
+            `★ ${c.main.name} tự độ tâm ma kiếp, lấy ma luyện đạo thoát thai hoán cốt — sát khí hóa sát đạo, giai thoại trấn phái.`
+          )
+        : B(
+            `Ngươi để mặc ${c.main.name} tự độ. Nhưng ma niệm 「${c.main.tamMa}」 quá mạnh — đêm thứ ba, tiếng cười the thé vọng khắp hậu sơn. Cửa thạch thất bật tung, y bước ra với đôi mắt vằn đỏ, đạo tâm đã vỡ vụn, miệng nhếch nụ cười tà dị. "Đa tạ sư phụ thành toàn." Y đoạt một quyển bí lục rồi vọt xuống núi giữa đêm, để lại một sơn môn lặng ngắt.`,
+            [ { rebel: { who: c.main.uid } }, { khiVan: -8 }, { uy: -100 }, { queue: { eid: 'D2', delayH: 24, rebelFrom: c.main.uid } } ],
+            `${c.main.name} tự độ tâm ma thất bại, hóa ma phản xuất sơn môn giữa đêm — mối họa lớn đã thành.`,
+            'Ma niệm đã nuốt trọn y rồi…'
+          ),
+    },
+  ],
+};
+
+// ============================================================
 // NHÓM E (tiếp) — giai thoại auto
 // ============================================================
 const E2 = {
@@ -1015,7 +1070,7 @@ export const TM_EVENTS = [
   A1, A2, A3,
   B1, B2, B3,
   C1, C2,
-  D1, D2, D3,
+  D1, D2, D3, TMK,
   E1, E2, E3, E4, E5,
   F1, F2, F3, F4,
 ];

@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -106,6 +106,8 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
     else if ('bac' in e) { const cur = state.currencies.bac || 0; const dlt = e.bac < 0 ? -Math.min(cur, -e.bac) : e.bac; state.currencies.bac = cur + dlt; chips.push(chip((dlt >= 0 ? '+' : '−') + Math.abs(dlt) + ' Bạc', dlt >= 0 ? '#34d399' : '#fb7185')); }
     else if ('mat' in e) { const id = e.mat.id, n = e.mat.n || 0; if (MATS[id]) { if (!t.mats) t.mats = {}; t.mats[id] = Math.max(0, (t.mats[id] || 0) + n); const col = ({ 1: '#34d399', 2: '#60a5fa', 3: '#f5b942' })[MATS[id].tier] || '#34d399'; chips.push(chip((n >= 0 ? '+' : '−') + Math.abs(n) + ' ' + MATS[id].name, col)); } }   // KỲ NGỘ rơi nguyên liệu (side, 1 chiều)
     else if ('flag' in e) { const d = findD(e.flag.who); if (d) { if (!d.flags) d.flags = {}; d.flags[e.flag.name] = ('value' in e.flag) ? e.flag.value : true; const lb = FLAG_LABEL[e.flag.name]; if (lb) chips.push(chip(lb.t, lb.c)); } }
+    else if ('clearFlag' in e) { const d = findD(e.clearFlag.who); if (d && d.flags) { delete d.flags[e.clearFlag.name]; const lb = FLAG_LABEL[e.clearFlag.name]; chips.push(chip('Gỡ cờ · ' + (lb ? lb.t.replace('Cờ · ', '') : e.clearFlag.name), '#94a3b8')); } }   // XÓA THẬT cờ (Giới Luật / hóa giải tâm ma)
+    else if ('tamMa' in e) { const d = findD(e.tamMa.who); if (d) { if (e.tamMa.clear) { d.tamMaLv = 0; d.tamMaXp = 0; } if ('dLv' in e.tamMa) d.tamMaLv = Math.max(0, Math.min(TAMMA_MAX, (d.tamMaLv || 0) + e.tamMa.dLv)); if ('dXp' in e.tamMa) d.tamMaXp = Math.max(0, Math.min(1, (d.tamMaXp || 0) + e.tamMa.dXp)); const dl = e.tamMa.dLv || 0; if (e.tamMa.clear || dl < 0) chips.push(chip('Tâm ma tiêu tán · ' + d.name, '#34d399')); else if (dl > 0) chips.push(chip('Tâm ma trỗi dậy · ' + d.name, '#fb7185')); } }
     else if ('capBonus' in e) { const d = findD(e.capBonus.who); if (d) { d.capBonus = (d.capBonus || 0) + e.capBonus.n; chips.push(chip('+' + e.capBonus.n + ' bậc trần · ' + d.name, '#34d399')); } }
     else if ('realmUp' in e) { const d = findD(e.realmUp.who); if (d) { const cap = disciCap(d); d.realm = Math.min(cap, d.realm + e.realmUp.n); d.xp = 0; if (d.realm >= cap && cap >= 9) d.awaiting = true; chips.push(chip('Đột phá +' + e.realmUp.n + ' · ' + d.name, '#fbbf24')); } }
     else if ('rebel' in e) { const i = t.disciples.findIndex((d) => d.uid === e.rebel.who); if (i >= 0) { const d = t.disciples[i]; t.disciples.splice(i, 1); t.events.rebels.push({ name: d.name, han: d.han, apt: d.apt, he: d.he, realm: d.realm, fromUid: d.uid, at: now }); chips.push(chip(d.name + ' → Phản Đồ', '#a78bfa')); } }
@@ -173,6 +175,32 @@ function rollEvents(state, t, dtSec, now) {
   do { k++; p *= Math.random(); } while (p > L && k < 60);
   let count = Math.min(EVT_MAXGEN, k - 1);
   while (count-- > 0 && t.events.pending.length < EVT_PENDING_CAP) fireRandomOne(state, t, now);
+}
+
+// ---- TÂM MA KIẾP: tích lũy + nổ kiếp (hybrid auto/popup). Gọi trong simTongMon. ----
+function accrueTamMa(state, t, dtSec, now) {
+  for (const d of t.disciples) {
+    if (d.awaiting) continue;
+    if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0;
+    if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0;
+    if (d.tamMaLv >= TAMMA_MAX) { d.tamMaXp = 0; continue; }          // đã đỉnh -> không tích nữa
+    const rate = tamMaMult(d, t.dao) / (TAMMA_BASE_H * 3600);
+    d.tamMaXp = (d.tamMaXp || 0) + dtSec * rate;
+    if (d.tamMaXp < 1) continue;
+    const newLv = d.tamMaLv + 1;
+    if (newLv >= TAMMA_CHOICE_LV) {                                   // bậc cao -> SỰ KIỆN CHỌN (cần slot pending)
+      const hasPending = t.events.pending.some((p) => p.eid === 'TMK' && (p.castUids || []).includes(d.uid));
+      if (!hasPending && t.events.pending.length < EVT_PENDING_CAP) { d.tamMaLv = newLv; d.tamMaXp = 0; fireEvent(state, t, 'TMK', { castUids: [d.uid] }, now); }
+      else d.tamMaXp = 1;                                             // pegged, chờ slot pending
+    } else {                                                         // bậc thấp -> AUTO tự áp chế
+      d.tamMaLv = newLv; d.tamMaXp = 0; autoTamMa(t, d);
+    }
+  }
+}
+function autoTamMa(t, d) {
+  const tier = tamMaTier(d.tamMaLv);
+  chronicle(t, `${d.name} đêm khuya tâm ma quấy nhiễu, tự toạ thiền áp chế — đạo tâm gợn sóng (${tier.name}).`);
+  if (Math.random() < 0.22) { if (!d.flags) d.flags = {}; d.flags.tamMaSeed = true; }   // tâm ma chưa trị, dễ gieo mầm sâu hơn
 }
 
 // ---- API: người chơi chọn 1 lựa chọn ở pending[pendingIdx] -> trả OUTCOME hiển thị (Hồi Kết) ----
@@ -257,6 +285,8 @@ export function simTongMon(state, nowMs, capHours) {
   t.diem = (t.diem || 0) + dt * (BUILDINGS.tangThu.diemPerLvH * (t.buildings.tangThu || 0)) / 3600;
   t.congHien = (t.congHien || 0) + dt * (tuCount * 3 + 1) / 3600;        // ~3/giờ mỗi đệ tử tu luyện + 1 nền
   t.khiVan = Math.min(100, (t.khiVan || 50) + dt * (BUILDINGS.tuLinh.khiPerLv * (t.buildings.tuLinh || 0)) / 36000);
+  // ---- TÂM MA KIẾP: tích lũy tâm ma (số) -> nổ kiếp khi đầy bậc. Hybrid: bậc thấp auto tự áp chế, bậc cao thành sự kiện CHỌN. Mỗi đệ tử tối đa +1 bậc / lần sim (chống dội offline). ----
+  if (t.events) { try { accrueTamMa(state, t, dt, nowMs); } catch (e) {} }
   // ---- Sự kiện giang hồ: chuỗi đã hẹn (queue) + roll ngẫu nhiên theo elapsed ----
   if (t.events) { try { processEventQueue(state, t, nowMs); rollEvents(state, t, dt, nowMs); } catch (e) {} }
   return { breaks };

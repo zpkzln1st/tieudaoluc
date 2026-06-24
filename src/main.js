@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -450,6 +450,8 @@ const gameStore = {
   // Chân dung đệ tử: pool ngẫu nhiên gán cố định theo uid (images/tongmon/disciples/<sex>_<n>.webp). DISC_FACES = số ảnh mỗi giới (0 = chưa có art → dùng seal Hán).
   tmFace(d) { const n = (d.sex === 'nu') ? this.DISC_FACES.nu : this.DISC_FACES.nam; if (!n) return ''; let h = 0; const u = d.uid || ''; for (let i = 0; i < u.length; i++) h = (h * 31 + u.charCodeAt(i)) >>> 0; return 'images/tongmon/disciples/' + (d.sex === 'nu' ? 'nu' : 'nam') + '_' + ((h % n) + 1) + '.webp'; },
   tmStats(d) { return disciStats(d); },                                   // bộ chỉ số tổng side-only
+  // Tâm Ma Kiếp: bậc + tiến trong bậc + tier (tên/màu) cho thanh mức độ ở modal chi tiết
+  tmTamMaView(d) { void this._tick; const lv = (d && d.tamMaLv) || 0; return { lv, max: TAMMA_MAX, xpPct: Math.round(Math.max(0, Math.min(1, (d && d.tamMaXp) || 0)) * 100), tier: tamMaTier(lv), lore: (d && d.tamMa) || '' }; },
   // cờ/biệt hiệu + mô tả + tác dụng (cho tooltip tùy biến). Hầu hết là DẤU ẤN ảnh hưởng DIỄN BIẾN SỰ KIỆN, chưa phải buff chỉ số.
   tmFlagInfo(d) {
     const M = {

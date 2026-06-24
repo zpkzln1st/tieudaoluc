@@ -4920,7 +4920,11 @@
                       <div class="text-[12px] text-slate-300 fserif italic leading-snug mb-2" x-text="g.tmOriginBio(d)"></div>
                       <div class="grid grid-cols-2 gap-2 mb-2">
                         <div class="rounded-lg bg-ink3/50 border border-slate-800 px-2.5 py-1.5"><div class="lbl mb-0.5">Chí Hướng</div><div class="text-[12.5px] fserif text-slate-200" x-text="d.dream"></div></div>
-                        <div class="rounded-lg bg-rose-500/5 border border-rose-500/20 px-2.5 py-1.5"><div class="lbl mb-0.5 text-rose-300/70">⚠ Tâm Ma</div><div class="text-[12.5px] fserif text-rose-200" x-text="d.tamMa"></div></div>
+                        <div class="rounded-lg bg-rose-500/5 border px-2.5 py-1.5" :style="'border-color:'+g.tmTamMaView(d).tier.color+'33'">
+                          <div class="flex items-center justify-between gap-2 mb-0.5"><div class="lbl text-rose-300/70">⚠ Tâm Ma</div><div class="text-[10px] fserif font-bold shrink-0" :style="'color:'+g.tmTamMaView(d).tier.color" x-text="g.tmTamMaView(d).tier.name"></div></div>
+                          <div class="text-[12px] fserif text-rose-200/90 truncate" x-text="d.tamMa"></div>
+                          <div class="flex items-center gap-1.5 mt-1"><div class="flex-1 h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+g.tmTamMaView(d).xpPct+'%;background:'+g.tmTamMaView(d).tier.color"></div></div><span class="text-[9px] tabular-nums fserif shrink-0" :style="'color:'+g.tmTamMaView(d).tier.color" x-text="g.tmTamMaView(d).lv+'/'+g.tmTamMaView(d).max"></span></div>
+                        </div>
                       </div>
                       <div x-show="g.tmFlagInfo(d).length"><div class="lbl mb-1.5">Cờ · Biệt Hiệu <span class="normal-case tracking-normal text-slate-600">· rê chuột xem chi tiết</span></div>
                         <div class="flex flex-wrap gap-2">

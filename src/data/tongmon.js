@@ -159,6 +159,33 @@ export const GIANG_H = 48;            // giờ thực / khóa thính giảng (+1
 export const GIANG_MAX_BONUS = 2;     // trần cộng tối đa từ Giảng Đạo / đệ tử
 export function giangSeats(lv) { return lv || 0; }   // số ghế thính giảng đồng thời = bậc công trình
 
+// ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
+export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
+export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới
+export const TAMMA_CHOICE_LV = 3;      // tamMaLv (sau khi tăng) >= mức này -> kiếp thành SỰ KIỆN CHỌN (drama); dưới -> auto tự áp chế
+// cờ ĐẨY (dương) / DỊU (âm) tốc tích tâm ma — cộng dồn vào hệ số
+export const TAMMA_FLAG_ACCEL = { tamMaSeed: 1.4, oanTham: 1.2, batPhuc: 1.0, phatPhan: 0.4, cuuChuoc: -0.5, triAn: -0.4, daoLu: -0.2 };
+export const TAMMA_TRAIT_PRONE = ['Cô Độc', 'Cuồng Ngạo', 'Cao Ngạo', 'Hiếu Chiến', 'Si Tình'];   // tính cách dễ sa tâm ma (+)
+export const TAMMA_TRAIT_CALM  = ['Nhân Hậu', 'Trượng Nghĩa', 'Thận Trọng', 'Cần Mẫn'];           // tính cách an định (−)
+// 6 bậc tâm ma (0..5): tên + màu (leo từ lục an -> tím -> đỏ phệ)
+export const TAMMA_TIERS = [
+  { lv: 0, name: 'Đạo Tâm Trong Sáng',  color: '#34d399' },
+  { lv: 1, name: 'Tâm Phù Động',        color: '#94a3b8' },
+  { lv: 2, name: 'Tâm Ma Chớm Nứt',     color: '#a78bfa' },
+  { lv: 3, name: 'Tâm Ma Thâm Trầm',    color: '#f5b942' },
+  { lv: 4, name: 'Ma Chướng Triền Thân',color: '#fb923c' },
+  { lv: 5, name: 'Tâm Ma Phệ Đỉnh',     color: '#fb7185' },
+];
+export function tamMaTier(lv) { return TAMMA_TIERS[Math.max(0, Math.min(TAMMA_MAX, lv || 0))]; }
+// Hệ số tốc tích tâm ma của 1 đệ tử (theo cờ + tính cách + đạo thống tông). Kẹp 0.2..6.
+export function tamMaMult(d, dao) {
+  let m = 1;
+  for (const k in (d.flags || {})) if (k in TAMMA_FLAG_ACCEL) m += TAMMA_FLAG_ACCEL[k];
+  (d.traits || []).forEach((tr) => { if (TAMMA_TRAIT_PRONE.includes(tr)) m += 0.3; if (TAMMA_TRAIT_CALM.includes(tr)) m -= 0.25; });
+  if (dao === 'ta') m += 0.5; else if (dao === 'chinh') m -= 0.3;
+  return Math.max(0.2, Math.min(6, m));
+}
+
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // cost DRAFT — tune. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
 export const TM_SHOP = [
