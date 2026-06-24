@@ -38,7 +38,7 @@ import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost,
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
-import { danhSiList, danhSiProfile } from './engine/danhsi.js';
+import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
@@ -1688,6 +1688,40 @@ const gameStore = {
   get danhSiBang() { void this._tick; return danhSiList(now()); },
   openDanhSi(id) { this.dsSel = id; },
   closeDanhSi() { this.dsSel = null; },
+  // KỲ NGỘ / BÁI SƯ / TRUY NÃ: lời mời player-facing của danh sĩ đang xem (nhận 1 lần, persist state.danhSi.accepted).
+  _ensureDanhSiState() { if (!this.state.danhSi || typeof this.state.danhSi !== 'object') this.state.danhSi = { accepted: [], seen: [] }; if (!Array.isArray(this.state.danhSi.accepted)) this.state.danhSi.accepted = []; if (!Array.isArray(this.state.danhSi.seen)) this.state.danhSi.seen = []; return this.state.danhSi; },
+  get dsOffer() {
+    void this._tick;
+    if (!this.dsSel || !this.tm) return null;
+    const o = offerOf(this.dsSel, now(), uyDanhOf(this.tm)); if (!o) return null;
+    o.accepted = ((this.state.danhSi && this.state.danhSi.accepted) || []).includes(o.offerId);
+    return o;
+  },
+  dsAcceptOffer() {
+    const o = this.dsOffer; if (!o) return;
+    if (o.accepted) { this.showToast('Đã nhận lời mời này rồi.'); return; }
+    if (!o.met) { this.showToast('Chưa đủ ' + o.need.label + '.'); return; }
+    const t = this.tm, r = o.reward;
+    if (r.type === 'disciple') {
+      if (t.disciples.length >= slotCount(t)) { this.showToast('Hết slot đệ tử — nâng Tụ Hiền Đường.'); return; }
+      const apt = o.rankPower >= 820 ? 'tuyet' : (o.rankPower >= 700 ? 'thuong' : 'trung');
+      const d = genDisciple({ name: o.danhSiTen, he: o.he, apt, sex: o.sex }); d.recruitedAt = now(); t.disciples.push(d);
+      t.soSach.unshift({ t: now(), text: `★ Danh sĩ ${o.danhSiTen} ngưỡng mộ tông phong, đầu nhập tông môn làm đệ tử!` });
+      this.showToast('★ ' + o.danhSiTen + ' đầu nhập tông môn!');
+    } else if (r.type === 'uy') {
+      t.uyBonus = (t.uyBonus || 0) + (r.uy || 0); t.diem = (t.diem || 0) + (r.diem || 0);
+      t.soSach.unshift({ t: now(), text: `Tông môn nhận Truy Nã Lệnh, trừ gian ${o.danhSiTen} — uy danh chấn động.` });
+      this.showToast('Truy Nã · +' + r.uy + ' Uy Danh, +' + r.diem + ' Điểm');
+    } else {
+      t.diem = (t.diem || 0) + (r.diem || 0); t.congHien = (t.congHien || 0) + (r.congHien || 0);
+      if (r.mat) { if (!t.mats) t.mats = {}; t.mats[r.mat.id] = (t.mats[r.mat.id] || 0) + r.mat.n; }
+      t.soSach.unshift({ t: now(), text: `Kỳ ngộ với danh sĩ ${o.danhSiTen} — tông môn nhận tâm đắc cùng lễ vật giang hồ.` });
+      this.showToast('Kỳ Ngộ · nhận lễ vật giang hồ');
+    }
+    if (t.soSach.length > 80) t.soSach.length = 80;
+    this._ensureDanhSiState().accepted.push(o.offerId);
+    this.tmSave(); this._tick++;
+  },
   get dsProfile() { void this._tick; return this.dsSel ? danhSiProfile(this.dsSel, now()) : null; },
   daoInfo(dao) { return ({ chinh: ['Chính Đạo', '#14b8a6'], ta: ['Tà Đạo', '#e879f9'], trung: ['Trung Dung', '#94a3b8'] })[dao] || ['Trung Dung', '#94a3b8']; },
   get tongMonBang() {

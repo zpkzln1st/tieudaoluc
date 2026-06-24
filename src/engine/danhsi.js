@@ -296,3 +296,31 @@ export function danhSiProfile(id, now) {
     stats: statsOf(c, base.realmIdx), danhHieu: DANH_HIEU(rnk),
   });
 }
+
+// ---- KỲ NGỘ / BÁI SƯ / TRUY NÃ: lời mời player-facing (deterministic theo danh sĩ + dao). 1 lời mời / danh sĩ, nhận 1 lần (persist accepted). Thưởng SIDE-ONLY. ----
+const OFFER_KIND_NAME = { baiSu: 'Bái Sư', truyNa: 'Truy Nã', kyNgo: 'Kỳ Ngộ' };
+const OFFER_COLOR = { baiSu: '#f5b942', truyNa: '#fb7185', kyNgo: '#34d399' };
+function offerKind(c) {
+  if (c.dao === 'ta') return 'truyNa';
+  if (c.dao === 'chinh') return (h32(c.id + ':ok') % 100) < 55 ? 'baiSu' : 'kyNgo';
+  return 'kyNgo';
+}
+export function offerOf(id, now, playerUy) {
+  const c = danhSiById(id, now); if (!c) return null;
+  const kind = offerKind(c), offerId = c.id + ':offer', rp = c.rankPower || 500, uy = playerUy || 0;
+  let need, desc, label, reward;
+  if (kind === 'baiSu') {
+    need = { val: Math.round(rp * 1.3), label: 'Uy Danh Tông Môn' };
+    desc = `${c.ten} nghe danh tông phong của ngươi, ngỏ ý đầu nhập làm đệ tử. Chỉ tông môn đủ uy vọng mới giữ chân nổi cao nhân — thu nhận thì danh chấn giang hồ.`;
+    label = 'Thu Nhận Làm Đệ Tử'; reward = { type: 'disciple' };
+  } else if (kind === 'truyNa') {
+    need = { val: Math.round(rp * 1.05), label: 'Uy Danh Tông Môn' };
+    desc = `${c.ten} là mối họa tà đạo đang bị giang hồ truy nã. Tông môn đủ thực lực ra tay trừ gian sẽ được trọng thưởng uy danh.`;
+    label = 'Nhận Truy Nã Lệnh'; reward = { type: 'uy', uy: Math.round(rp * 0.7), diem: 140 };
+  } else {
+    need = { val: 0, label: '' };
+    desc = `${c.ten} có duyên gặp gỡ tông môn ngươi, truyền lại một phần tâm đắc cùng chút lễ vật giang hồ làm quà kết giao.`;
+    label = 'Nhận Kỳ Ngộ'; reward = { type: 'res', diem: 90, congHien: 50, mat: { id: 'mat_bachnien', n: 2 } };
+  }
+  return { offerId, kind, kindName: OFFER_KIND_NAME[kind], color: OFFER_COLOR[kind], desc, label, need, met: need.val <= uy, reward, danhSiTen: c.ten, he: c.nguHanh, sex: c.sex, rankPower: rp };
+}

@@ -2145,6 +2145,17 @@
                 <div class="flex-1 min-h-0 overflow-y-auto p-4">
                   <!-- TAB: Thân Thế -->
                   <div x-show="tab==='thanThe'" class="space-y-4">
+                    <!-- LỜI MỜI (Kỳ Ngộ / Bái Sư / Truy Nã) -->
+                    <template x-if="$store.game.dsOffer">
+                      <div class="rounded-xl px-3.5 py-2.5" :style="'background:'+$store.game.dsOffer.color+'10;border:1px solid '+$store.game.dsOffer.color+'45'">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold fserif" :style="'color:'+$store.game.dsOffer.color+';background:'+$store.game.dsOffer.color+'1c;border:1px solid '+$store.game.dsOffer.color+'66'" x-text="$store.game.dsOffer.kindName"></span>
+                          <span x-show="!$store.game.dsOffer.met && !$store.game.dsOffer.accepted" class="text-[10px] text-rose-300/80" x-text="'Cần '+$store.game.dsOffer.need.label+' ≥ '+$store.game.fmt($store.game.dsOffer.need.val)"></span>
+                        </div>
+                        <div class="text-[11.5px] text-slate-300 fserif leading-snug mb-2" x-text="$store.game.dsOffer.desc"></div>
+                        <button @click="$store.game.dsAcceptOffer()" :disabled="$store.game.dsOffer.accepted || !$store.game.dsOffer.met" class="w-full py-1.5 rounded-lg text-[12px] font-bold fserif transition" :class="($store.game.dsOffer.accepted||!$store.game.dsOffer.met)?'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed':'text-ink hover:brightness-110'" :style="($store.game.dsOffer.accepted||!$store.game.dsOffer.met)?'':('background:'+$store.game.dsOffer.color)" x-text="$store.game.dsOffer.accepted ? 'Đã Nhận' : $store.game.dsOffer.label"></button>
+                      </div>
+                    </template>
                     <div>
                       <div class="lbl mb-1">Thân Thế</div>
                       <div class="text-[11.5px] fserif italic leading-snug mb-1.5" :style="'color:'+p.heColor+'cc'" x-text="p.monPhaiXuatThan"></div>
