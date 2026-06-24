@@ -2191,6 +2191,19 @@
                       <b class="text-violet-300 fserif text-[13px]" x-text="p.tuyetHoc.ten"></b>
                       <span class="text-[10.5px] text-slate-500 leading-snug" x-text="'— '+p.tuyetHoc.desc"></span>
                     </div>
+                    <!-- Luận Võ Đài (record + trận gần đây) -->
+                    <div class="rounded-lg px-3 py-2" style="background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.28)">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="lbl shrink-0 text-teal-300/80">Luận Võ Đài</span>
+                        <span class="text-[11.5px] text-slate-300">Thắng <b class="text-emerald-300" x-text="p.luanVo.record.w"></b> · Thua <b class="text-rose-300" x-text="p.luanVo.record.l"></b></span>
+                        <span class="text-[10px] text-slate-600">· gần đây</span>
+                      </div>
+                      <div class="flex flex-wrap gap-1.5 mt-1.5">
+                        <template x-for="(m,mi) in p.luanVo.recent" :key="mi">
+                          <span class="text-[9.5px] px-1.5 py-0.5 rounded-full fserif inline-flex items-center gap-1" :style="'color:'+(m.won?'#34d399':'#fb7185')+';background:'+(m.won?'#34d399':'#fb7185')+'14;border:1px solid '+(m.won?'#34d399':'#fb7185')+'44'"><b x-text="m.won?'Thắng':'Thua'"></b><span class="text-slate-300" x-text="m.otherTen"></span></span>
+                        </template>
+                      </div>
+                    </div>
                     <!-- Trang Bị (paper-doll) | Chỉ Số -->
                     <div class="flex flex-col sm:flex-row gap-4">
                       <!-- TRANG BỊ -->

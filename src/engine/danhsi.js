@@ -3,6 +3,7 @@
 // Sống qua reload + tiến theo thời gian thực (cảnh giới/Biên Niên mọc dần, hoạt động/tâm cảnh đổi theo giờ).
 // ============================================================
 import { DANH_SI, DANHSI_REL } from '../data/danhsi.js';
+import { luanVo, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí DÙNG CHUNG với Tông Môn (side-only, 0 combat)
 
 const DAY = 86400000;
 const EPOCH = 1735689600000;   // 2025-01-01 — mốc tuyệt đối để tu vi/Biên Niên tiến đều theo thời gian
@@ -17,7 +18,7 @@ const HE_NAME = { kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: '
 const DAO = { chinh: ['Chính Đạo', '#14b8a6'], ta: ['Tà Đạo', '#e879f9'], trung: ['Trung Lập', '#94a3b8'] };
 const REL_NAME = { tucDich: 'Túc Địch', suDo: 'Sư Đồ', daoLu: 'Đạo Lữ', huyetCuu: 'Huyết Cừu', dongMon: 'Đồng Môn', triKy: 'Tri Kỷ', cuuThu: 'Cứu Thù' };
 const REL_COLOR = { tucDich: '#fb7185', suDo: '#f5b942', daoLu: '#f472b6', huyetCuu: '#ef4444', dongMon: '#34d399', triKy: '#22d3ee', cuuThu: '#a78bfa' };
-const LOAI_COLOR = { khoiDau: '#94a3b8', dotPha: '#f5b942', tramBoss: '#fb7185', kyNgo: '#a78bfa', anOan: '#22d3ee', giangHo: '#34d399' };
+const LOAI_COLOR = { khoiDau: '#94a3b8', dotPha: '#f5b942', tramBoss: '#fb7185', kyNgo: '#a78bfa', anOan: '#22d3ee', giangHo: '#34d399', luanVo: '#2dd4bf' };
 const QUAL = [
   { n: 'Phàm Phẩm', c: '#cbd5e1' }, { n: 'Lương Phẩm', c: '#34d399' }, { n: 'Tinh Phẩm', c: '#60a5fa' },
   { n: 'Cực Hiếm', c: '#a78bfa' }, { n: 'Truyền Thế', c: '#e879f9' }, { n: 'Thần Phẩm', c: '#fb923c' },
@@ -94,6 +95,39 @@ export function feudsOf(id, now) {
   return adversariesOf(c, now).filter((a) => !a.authored).map((a) => ({ otherId: a.otherId, otherTen: a.o.ten, otherBh: a.o.bietHieu, intensity: a.intensity, intensityLabel: intenLabel(a.intensity), lastClashDays: a.lastClashDays, text: feudText(c, a) }));
 }
 
+// ---- LUẬN VÕ DANH SĨ: ghép 2 danh sĩ deterministic theo time-slot, dùng core luanVo CHUNG (cùng Tông Môn). Stateless, memoize theo slot. ----
+const LUANVO_PERIOD = DAY * 9;   // ~1 trận / 9 ngày
+function chienLucOf(c, realmIdx) {   // = Chiến Lực trong statsOf (cùng công thức -> nhất quán)
+  const rp = c.rankPower || 500, v = (k) => 0.92 + (h32(c.id + ':st:' + k) % 17) / 100;
+  const ck = Math.round((rp * 1.6 + realmIdx * 340) * v('ck'));
+  const ht = Math.round((rp * 1.2 + realmIdx * 300) * v('ht'));
+  const nt = Math.round((rp * 0.7 + realmIdx * 150) * v('nt'));
+  const mt = Math.round((rp * 0.8 + realmIdx * 170) * v('mt'));
+  return ck + ht + nt + mt + realmIdx * 200 + Math.round(rp);
+}
+function luanVoAtSlot(c, slot, now) {
+  const others = DANH_SI.filter((o) => o.id !== c.id);
+  const opp = others[h32(c.id + ':lv:' + slot) % others.length];
+  const [x, y] = [c, opp].sort((p, q) => (p.id < q.id ? -1 : 1));   // canonical -> kết quả ĐỐI XỨNG, ai xem cũng nhất quán
+  const res = luanVo({ name: x.ten, chienLuc: chienLucOf(x, realmOf(x, now).idx), he: x.nguHanh }, { name: y.ten, chienLuc: chienLucOf(y, realmOf(y, now).idx), he: y.nguHanh }, 'ds:' + x.id + '~' + y.id + ':' + slot);
+  return { opp, won: res.winnerName === c.ten, margin: res.margin, marginLabel: luanVoMarginLabel(res.margin) };
+}
+function luanVoMatchesOf(c, now) {
+  const cur = Math.floor(now / LUANVO_PERIOD), out = [];
+  for (let k = 0; k < 4; k++) { const slot = cur - k, m = luanVoAtSlot(c, slot, now); out.push(Object.assign(m, { daysAgo: Math.max(0, Math.round((now - slot * LUANVO_PERIOD) / DAY)) })); }
+  return out;
+}
+function luanVoRecordOf(c, now) {
+  const cur = Math.floor(now / LUANVO_PERIOD); let w = 0, l = 0;
+  for (let k = 0; k < 12; k++) { if (luanVoAtSlot(c, cur - k, now).won) w++; else l++; }
+  return { w, l };
+}
+// API: lịch sử luận võ gần đây của 1 danh sĩ (cho codex Phase 4 + display Thực Lực).
+export function luanVoOf(id, now) {
+  const c = danhSiById(id); if (!c) return { record: { w: 0, l: 0 }, recent: [] };
+  return { record: luanVoRecordOf(c, now), recent: luanVoMatchesOf(c, now).map((m) => ({ otherTen: m.opp.ten, otherBh: m.opp.bietHieu, won: m.won, marginLabel: m.marginLabel, daysAgo: m.daysAgo })) };
+}
+
 function bienNien(c, now) {
   const out = [];
   const cur = Math.floor(now / AUTO_PERIOD);
@@ -104,6 +138,7 @@ function bienNien(c, now) {
   (c.lifeEvents || []).forEach((e, i) => { out.push({ daysAgo: 60 + i * (40 + (h32(c.id + ':d' + i) % 30)), loai: e.loai, text: e.text }); });
   // ân oán: chèn vài trận ác chiến gần đây (đụng độ với thù địch) -> Biên Niên "sống"
   adversariesOf(c, now).slice(0, 2).forEach((a) => { if (a.lastClashDays <= 70) out.push({ daysAgo: a.lastClashDays, loai: 'anOan', text: `Đại chiến với ${a.o.ten} 「${a.o.bietHieu}」 tại ${pick(PLACES, c.id + a.otherId + ':cl')} — ${a.intensity >= 0.7 ? 'ác đấu mấy ngày bất phân' : 'một phen so chiêu nảy lửa'}.` }); });
+  luanVoMatchesOf(c, now).slice(0, 2).forEach((m) => out.push({ daysAgo: m.daysAgo, loai: 'luanVo', text: m.won ? `Luận võ thắng ${m.opp.ten} 「${m.opp.bietHieu}」 — ${m.marginLabel}.` : `Luận võ bại dưới tay ${m.opp.ten} 「${m.opp.bietHieu}」, đối thủ ${m.marginLabel}.` }));
   out.sort((a, b) => a.daysAgo - b.daysAgo);
   return out.slice(0, 12);
 }
@@ -209,7 +244,7 @@ export function danhSiProfile(id, now) {
   const rank = danhSiList(now).find((x) => x.id === id);
   const rnk = rank ? rank.rank : 0;
   return Object.assign(base, {
-    tamCanh: tamCanhOf(c, now), bienNien: bienNien(c, now), gear: gearOf(c), rels: allRels,
+    tamCanh: tamCanhOf(c, now), bienNien: bienNien(c, now), gear: gearOf(c), rels: allRels, luanVo: luanVoOf(id, now),
     rank: rnk, total: DANH_SI.length, loaiColor: LOAI_COLOR,
     stats: statsOf(c, base.realmIdx), danhHieu: DANH_HIEU(rnk),
   });
