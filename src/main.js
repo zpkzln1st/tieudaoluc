@@ -426,8 +426,7 @@ const gameStore = {
     const discs = (this.tm && this.tm.disciples) || [];
     const named = discs.slice().sort((a, b) => (b.name || '').length - (a.name || '').length).find((d) => d.name && text.includes(d.name));
     if (named) { const f = this.tmFace(named); if (f) return { kind: 'disc', src: f, color: (APT[named.apt] || {}).color || '#cbd5e1' }; }
-    if (/tông môn|sơn môn|toàn môn|cả môn|cả tông|Đấu Giá|Khí Vận|linh khí|môn quy|quây quần/i.test(text)) return { kind: 'sect' };
-    const m = this.tmDienBienSeal(text); return { kind: 'seal', seal: m.seal, color: m.color };
+    const m = this.tmDienBienSeal(text); return { kind: 'sect', seal: m.seal, color: m.color };   // KHÔNG thuộc đệ tử cụ thể -> ấn tông môn (giữ seal/color làm dự phòng)
   },
   openSoSach() { this.soSachQuery = ''; this.soSachCat = 'all'; this.soSachOpen = true; },
   closeSoSach() { this.soSachOpen = false; },
