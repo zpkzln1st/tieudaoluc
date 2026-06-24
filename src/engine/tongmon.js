@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -18,7 +18,7 @@ export function ensureTongMon(state, nowMs) {
       mats: {}, pills: {},                                                // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá
       brewing: [],                                                        // Y Quán: mẻ đan đang luyện (idle, có thời gian)
       duocVien: { plots: [] },                                            // Dược Viên: luống trồng nguyên liệu (idle)
-      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, tuLinh: 0 },
+      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, luyenKhiCac: 0, tuLinh: 0 },
       disciples: [], elders: [], legends: [], soSach: [],
       recruitPool: [], recruitAt: 0,
       uyBonus: 0,                                                         // +Uy Danh tích từ SỰ KIỆN (uyDanhOf cộng vào)
@@ -41,6 +41,7 @@ export function ensureTongMon(state, nowMs) {
   if (!Array.isArray(t.soSach)) t.soSach = [];
   if (!t.buildings) t.buildings = { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, tuLinh: 0 };
   if (typeof t.buildings.duocVien !== 'number') t.buildings.duocVien = 0;          // backfill công trình mới
+  if (typeof t.buildings.luyenKhiCac !== 'number') t.buildings.luyenKhiCac = 0;
   if (!t.duocVien || typeof t.duocVien !== 'object') t.duocVien = { plots: [] };
   if (!Array.isArray(t.duocVien.plots)) t.duocVien.plots = [];
   if (!Array.isArray(t.recruitPool)) t.recruitPool = [];
@@ -406,9 +407,28 @@ export function giftGear(state, discipleUid, gearUid, slot, itemName) {
 export function reclaimGear(state, discipleUid, slot) {
   const t = state.tongMon;
   const d = t.disciples.find((x) => x.uid === discipleUid); if (!d || !d.gear || !d.gear[slot]) return false;
-  state.gearBag.push(d.gear[slot]); delete d.gear[slot]; return true;
+  const inst = d.gear[slot];
+  if (inst && inst.tmPlus) delete inst.tmPlus;        // CÁCH LY: xóa cường hóa Luyện Khí Các (side) trước khi trả về kho main -> 0 rò power
+  state.gearBag.push(inst); delete d.gear[slot]; return true;
 }
-function gearPow(inst) { return (QRANK[inst.quality] || 1) * (inst.itemLv || 1) * (1 + 0.08 * (inst.plus || 0)); }
+// gearPow (SIDE-ONLY): cộng cả plus của main + tmPlus của Luyện Khí Các. Main combat KHÔNG bao giờ đọc tmPlus.
+function gearPow(inst) { return (QRANK[inst.quality] || 1) * (inst.itemLv || 1) * (1 + 0.08 * ((inst.plus || 0) + (inst.tmPlus || 0))); }
+
+// ---- LUYỆN KHÍ CÁC: cường hóa gia bảo đệ tử đang đeo (+1 tmPlus). Liệu: mats (side) + Hồn Thạch (main 1 chiều). ----
+export function enhanceGear(state, discipleUid, slot) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  const lv = t.buildings.luyenKhiCac || 0;
+  if (lv < 1) return { ok: false, msg: 'Cần xây Luyện Khí Các.' };
+  const d = t.disciples.find((x) => x.uid === discipleUid); if (!d || !d.gear || !d.gear[slot]) return { ok: false, msg: 'Ô này chưa có gia bảo.' };
+  const inst = d.gear[slot], cur = inst.tmPlus || 0, max = lkcMaxPlus(lv);
+  if (cur >= max) return { ok: false, msg: `Đã đạt trần +${max} — nâng Luyện Khí Các để rèn sâu hơn.` };
+  const step = lkcStep(cur);
+  if (((t.mats || {})[step.mat] || 0) < step.matQty) return { ok: false, msg: `Thiếu ${(MATS[step.mat] || {}).name} (cần ${step.matQty}).` };
+  if ((state.currencies.honThach || 0) < step.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${step.honThach}).` };
+  t.mats[step.mat] -= step.matQty; state.currencies.honThach -= step.honThach;
+  inst.tmPlus = cur + 1;
+  return { ok: true, msg: `Cường hóa gia bảo → +${inst.tmPlus}`, plus: inst.tmPlus };
+}
 
 // ---- Thực Lực Đệ Tử (SIDE-ONLY) ----
 // Realm "mượt": tiến theo tiểu cảnh (xp trong đại cảnh); đã tới trần -> coi như Viên Mãn (+1).

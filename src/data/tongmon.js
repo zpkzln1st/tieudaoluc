@@ -100,9 +100,10 @@ export const BUILDINGS = {
   tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Lầu cất giữ kinh thư bí lục của môn phái. Đệ tử nghiền ngẫm điển tịch, lĩnh ngộ huyền cơ — tích góp đều đặn thành Điểm Đấu Giá theo thời gian.', diemPerLvH: 12 },
   yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Đan phòng của tông môn, lò lửa quanh năm không tắt. Theo cổ phương mà nung luyện nguyên liệu trong Túi Đồ thành linh đan đột phá — mỗi mẻ tốn thời gian luyện. Bậc cao mở thêm lò và đan phẩm cao hơn.' },
   duocVien:{ name: 'Dược Viên',     han: '藥', desc: 'Khu vườn ươm trồng linh dược, sương khói lượn quanh các luống đất. Mỗi luống nuôi một vị nguyên liệu, đủ ngày thì chín, hái về Túi Đồ. Bậc cao mở thêm luống và trồng được linh dược bậc cao.' },
+  luyenKhiCac:{ name: 'Luyện Khí Các', han: '器', desc: 'Gác lò rèn của tông môn, đe nung đỏ lửa, búa gõ vang chan chát. Tôi luyện gia bảo đệ tử đang đeo lên một tầng uy lực — bậc càng cao thì rèn được càng sâu.' },
   tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Đại trận dẫn linh khí trời đất quy tụ về sơn môn, vận khí hanh thông cát tường. Linh khí dồi dào giúp Khí Vận tông môn tăng tiến, đồng thời bồi thêm tốc độ tu luyện cho toàn môn.', khiPerLv: 4 },
 };
-export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'tuLinh'];
+export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'tuLinh'];
 
 // ===== LUYỆN ĐAN: nguyên liệu (MATS) -> đan đột phá (PILLS) theo CÔNG THỨC =====
 // 6 nguyên liệu, 3 bậc · art images/tongmon/mats/<id>.webp (emoji = fallback).
@@ -147,6 +148,10 @@ export const DUOC_GROW_H = { 1: 2, 2: 5, 3: 10 }; // giờ chín theo BẬC nguy
 export const DUOC_YIELD  = { 1: 4, 2: 3, 3: 2 };  // thu hoạch / luống theo bậc liệu (DRAFT)
 export function duocPlotCount(t) { const lv = (t && t.buildings && t.buildings.duocVien) || 0; return lv < 1 ? 0 : DUOC_PLOT_BASE + (lv - 1); }   // Bậc1=2 luống, +1/bậc
 export function duocMaxTier(t) { const lv = (t && t.buildings && t.buildings.duocVien) || 0; return lv <= 2 ? 1 : (lv <= 4 ? 2 : 3); }            // trồng tới bậc liệu nào
+
+// ===== LUYỆN KHÍ CÁC: cường hóa Gia Bảo đệ tử — SIDE-ONLY, ghi inst.tmPlus (chỉ gearPow đọc; reclaim xóa). =====
+export function lkcMaxPlus(lv) { return (lv || 0) < 1 ? 0 : 3 * (lv || 0); }   // trần tmPlus = 3 × bậc Luyện Khí Các (DRAFT)
+export function lkcStep(tmPlus) { const p = tmPlus || 0; return { mat: 'mat_huyenthiet', matQty: 2 + p, honThach: Math.round(60 * Math.pow(1.45, p)) }; }   // liệu để lên tmPlus+1 (DRAFT)
 
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // cost DRAFT — tune. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung

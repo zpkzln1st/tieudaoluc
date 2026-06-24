@@ -37,9 +37,9 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -388,6 +388,17 @@ const gameStore = {
   tmGearView: null,
   openTmGear(inst) { const v = this.gearView(inst); if (v) this.tmGearView = v; },
   closeTmGear() { this.tmGearView = null; },
+  // Luyện Khí Các: thông tin cường hóa gia bảo đang xem (side-only tmPlus). Đệ tử = tmSelUid, slot = tmGearView.slot.
+  get tmGearEnhance() {
+    void this._tick;
+    const v = this.tmGearView; if (!v || !v._inst) return null;
+    const lv = this.tmBuildLv('luyenKhiCac'), cur = v._inst.tmPlus || 0, max = lkcMaxPlus(lv);
+    if (lv < 1) return { lkcBuilt: false, cur: 0, max: 0 };
+    if (cur >= max) return { lkcBuilt: true, atMax: true, cur, max };
+    const step = lkcStep(cur), m = MATS[step.mat] || {}, matHave = this.tmMatCount(step.mat), honHave = Math.floor(this.state.currencies.honThach || 0);
+    return { lkcBuilt: true, atMax: false, cur, max, next: cur + 1, matName: m.name, matEmoji: m.emoji, matQty: step.matQty, matHave, matOk: matHave >= step.matQty, honThach: step.honThach, honHave, honOk: honHave >= step.honThach, canEnhance: matHave >= step.matQty && honHave >= step.honThach };
+  },
+  tmEnhanceGear() { const r = enhanceGear(this.state, this.tmSelUid, this.tmGearView && this.tmGearView.slot); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Luyện Khí Các · ' + r.msg); } else this.showToast(r.msg); },
   // Đấu Giá Hội (shop tiêu Điểm Đấu Giá — side-only/cosmetic)
   shopOpen: false, shopRename: '',
   get tmShopItems() { return TM_SHOP; },
@@ -511,7 +522,7 @@ const gameStore = {
   tmStateLabel(d) { return d.awaiting ? 'Đắc Đạo!' : (this.tmAtCap(d) ? 'Viên mãn' : (d.state === 'rest' ? 'Nghỉ' : 'Đang tu')); },
   tmDaoLabel() { return ({ chinh: 'Chính Đạo', ta: 'Tà Đạo', trung: 'Trung Dung' })[this.tm.dao] || 'Trung Dung'; },
   tmDaoColor() { return ({ chinh: '#14b8a6', ta: '#e879f9', trung: '#94a3b8' })[this.tm.dao] || '#94a3b8'; },
-  tmSectTier() { const b = this.tm.buildings || {}; const s = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'tuLinh'].reduce((a, k) => a + (b[k] || 0), 0); return Math.max(1, s - 2); },  // Cấp Tông Môn = tổng bậc công trình (khởi đầu 3 -> Đệ 1 Tầng; mỗi lần nâng +1)
+  tmSectTier() { const b = this.tm.buildings || {}; const s = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'tuLinh'].reduce((a, k) => a + (b[k] || 0), 0); return Math.max(1, s - 2); },  // Cấp Tông Môn = tổng bậc công trình (khởi đầu 3 -> Đệ 1 Tầng; mỗi lần nâng +1)
   tmBuild(key) { return BUILDINGS[key]; },
   tmBuildLv(key) { return this.tm.buildings[key] || 0; },
   tmBuildCost(key) { return buildCost(this.tm.buildings[key] || 0); },
@@ -540,6 +551,9 @@ const gameStore = {
       const mt = (L) => (L < 1 ? '—' : 'Bậc ' + duocMaxTier({ buildings: { duocVien: L } }));
       fx.push({ label: 'Số luống trồng', cur: cnt(lv) + '', next: cnt(nlv) + '' });
       fx.push({ label: 'Trồng liệu tối đa', cur: mt(lv), next: mt(nlv) });
+    } else if (key === 'luyenKhiCac') {
+      const mp = (L) => (L < 1 ? '—' : '+' + lkcMaxPlus(L));
+      fx.push({ label: 'Trần cường hóa gia bảo', cur: mp(lv), next: mp(nlv) });
     }
     return { name: b.name, han: b.han, desc: b.desc, level: lv, cost: this.tmBuildCost(key), effects: fx };
   },
