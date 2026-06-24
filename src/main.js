@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -487,7 +487,7 @@ const gameStore = {
     void this._tick;
     return [
       { key: 'mat', label: 'Nguyên Liệu', color: '#34d399', items: MAT_KEYS.map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, count: this.tmMatCount(m), color: this.tmMatTierColor(MATS[m].tier), sub: 'Bậc ' + MATS[m].tier + ' · luyện đan', img: 'images/tongmon/mats/' + m + '.webp' })) },
-      { key: 'pill', label: 'Đan Dược', color: '#f5b942', items: PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p), color: '#f5b942', sub: 'Đột phá → ' + REALMS[PILLS[p].realm + 1].name, img: 'images/tongmon/pills/' + p + '.webp' })) },
+      { key: 'pill', label: 'Đan Dược', color: '#f5b942', items: PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p), color: '#f5b942', sub: 'Đột phá → ' + REALMS[PILLS[p].realm + 1].name, img: 'images/tongmon/pills/' + p + '.webp', phamBreak: this.tmPillPhamBreak(p) })) },
     ];
   },
   get tmBagTotal() { void this._tick; let n = 0; MAT_KEYS.forEach((m) => { n += this.tmMatCount(m); }); PILL_KEYS.forEach((p) => { n += this.tmPillCount(p); }); return n; },
@@ -504,7 +504,9 @@ const gameStore = {
     });
   },
   // mẻ đan đang luyện trong lò (countdown, thu tay — offline-safe)
-  get tmBrewing() { void this._tick; const arr = (this.tm && this.tm.brewing) || []; return arr.map((b, i) => { const pl = PILLS[b.pill] || {}, span = Math.max(1, b.until - b.at), left = Math.max(0, b.until - now()); return { idx: i, pill: b.pill, name: pl.name, emoji: pl.emoji, color: this.tmMatTierColor(0), ready: left <= 0, left, pct: Math.min(100, Math.round((1 - left / span) * 100)) }; }); },
+  get tmBrewing() { void this._tick; const arr = (this.tm && this.tm.brewing) || []; return arr.map((b, i) => { const pl = PILLS[b.pill] || {}, span = Math.max(1, b.until - b.at), left = Math.max(0, b.until - now()); return { idx: i, pill: b.pill, name: pl.name, emoji: pl.emoji, color: this.tmMatTierColor(0), pham: b.pham ? pillPham(b.pham) : null, ready: left <= 0, left, pct: Math.min(100, Math.round((1 - left / span) * 100)) }; }); },
+  // Phẩm chất đan đang có (breakdown theo phẩm, từ THẤP->CAO) — cho Túi Đồ + lightbox.
+  tmPillPhamBreak(pillId) { void this._tick; const q = ((this.tm && this.tm.pillQual) || {})[pillId] || {}; return PILL_PHAM_KEYS.map((k) => ({ key: k, n: q[k] || 0, name: pillPham(k).name, short: pillPham(k).short, color: pillPham(k).color })).filter((x) => x.n > 0); },
   tmBrewHasReady() { void this._tick; return this.tmBrewing.some((b) => b.ready); },
   tmBrew(pillId) { const r = startBrew(this.state, pillId, now()); if (r.ok) { this.tmSave(); this.showToast('Y Quán · ' + r.msg); } else this.showToast(r.msg); },
   tmCollectBrew(idx) { const r = collectBrew(this.state, idx, now()); if (r.ok) { this.tmSave(); this.showToast('Y Quán · ' + r.msg); } else this.showToast(r.msg); },

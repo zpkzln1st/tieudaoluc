@@ -4566,6 +4566,7 @@
                               <div class="text-[11.5px] fserif truncate" :style="'color:'+it.color" x-text="it.name"></div>
                               <div class="text-[9px] text-slate-500 truncate" x-text="it.sub"></div>
                               <div class="text-[11px] text-slate-300 leading-none mt-0.5">×<b x-text="it.count"></b></div>
+                              <template x-if="it.phamBreak && it.phamBreak.length"><div class="flex flex-wrap gap-x-1.5 leading-none mt-0.5"><template x-for="ph in it.phamBreak" :key="ph.key"><span class="text-[8.5px] fserif font-bold" :style="'color:'+ph.color" x-text="ph.short+'·'+ph.n"></span></template></div></template>
                             </div>
                           </div>
                         </template>
@@ -4590,6 +4591,7 @@
                   <div class="fserif text-[20px]" :style="'color:'+g.tmItemView.color" x-text="g.tmItemView.name"></div>
                   <div class="text-[12px] text-slate-400 mt-1" x-text="g.tmItemView.sub"></div>
                   <div class="text-[12.5px] text-slate-300 mt-1.5">Đang có <b :style="'color:'+g.tmItemView.color" x-text="'×'+g.tmItemView.count"></b></div>
+                  <template x-if="g.tmItemView.phamBreak && g.tmItemView.phamBreak.length"><div class="flex flex-wrap items-center justify-center gap-2 mt-2"><template x-for="ph in g.tmItemView.phamBreak" :key="ph.key"><span class="text-[11px] px-2 py-0.5 rounded-full fserif font-bold" :style="'color:'+ph.color+';background:'+ph.color+'14;border:1px solid '+ph.color+'55'" x-text="ph.name+' ×'+ph.n"></span></template></div></template>
                 </div>
               </div>
               <div class="text-[11px] text-slate-500 mt-5">Bấm bất kỳ để đóng</div>
@@ -4621,7 +4623,7 @@
                           <div class="flex items-center gap-2.5 rounded-lg bg-ink2/70 border px-2.5 py-2" :class="b.ready?'border-amber-400/50':'border-slate-800'" :style="b.ready?'box-shadow:0 0 12px -3px #f5b94266':''">
                             <span class="relative w-8 h-8 rounded overflow-hidden bg-ink3 border border-slate-700 flex items-center justify-center text-[16px] shrink-0"><span x-text="b.emoji"></span><img :src="'images/tongmon/pills/'+b.pill+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
                             <div class="flex-1 min-w-0">
-                              <div class="text-[12px] fserif text-slate-100 truncate" x-text="b.name"></div>
+                              <div class="flex items-center gap-1.5"><span class="text-[12px] fserif text-slate-100 truncate" x-text="b.name"></span><template x-if="b.pham"><span class="text-[8px] px-1 py-px rounded fserif font-bold shrink-0 leading-none" :style="'color:'+b.pham.color+';background:'+b.pham.color+'1f;border:1px solid '+b.pham.color+'66'" x-text="b.pham.name"></span></template></div>
                               <div class="mt-1 flex items-center gap-1.5">
                                 <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+b.pct+'%;background:#f5b942;box-shadow:0 0 5px #f5b94288'"></div></div>
                                 <span class="text-[9.5px] whitespace-nowrap" :class="b.ready?'text-amber-300':'text-slate-500'" x-text="b.ready?'Đã thành':g.tmDuocLeftText(b.left)"></span>

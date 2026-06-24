@@ -139,6 +139,29 @@ export function pillBrewH(pillId) { return PILL_BREW_H[pillId] || 4; }
 // Số LÒ luyện song song theo bậc Y Quán (DRAFT): Bậc 1 = 1 lò, +1 mỗi 3 bậc.
 export function yQuanFurnaces(lv) { return 1 + Math.floor((lv || 0) / 3); }
 
+// ===== ĐAN PHẨM (phẩm chất đan) — roll lúc KHỞI LÒ theo bậc Y Quán + Khí Vận. breakBonus = CỘNG vào tỉ lệ vượt Thiên Kiếp (hệ Thiên Kiếp dùng). Lưu SONG SONG t.pillQual, t.pills giữ TỔNG (save-safe). DRAFT. =====
+export const PILL_PHAM = [
+  { key: 'ha',     name: 'Hạ Phẩm',     short: 'Hạ',     color: '#94a3b8', breakBonus: 0.00 },
+  { key: 'trung',  name: 'Trung Phẩm',  short: 'Trung',  color: '#34d399', breakBonus: 0.06 },
+  { key: 'thuong', name: 'Thượng Phẩm', short: 'Thượng', color: '#60a5fa', breakBonus: 0.14 },
+  { key: 'cuc',    name: 'Cực Phẩm',    short: 'Cực',    color: '#f5b942', breakBonus: 0.24 },
+];
+export const PILL_PHAM_KEYS = PILL_PHAM.map((p) => p.key);   // thứ tự THẤP -> CAO
+export const PILL_PHAM_BY_KEY = {}; PILL_PHAM.forEach((p) => { PILL_PHAM_BY_KEY[p.key] = p; });
+export function pillPham(key) { return PILL_PHAM_BY_KEY[key] || PILL_PHAM[0]; }
+// Roll phẩm 1 mẻ đan: bậc Y Quán + Khí Vận đẩy phẩm cao. Trả key.
+export function rollPillPham(yQuanLv, khiVan) {
+  const lift = Math.max(0, (yQuanLv || 0) * 0.6 + (((khiVan == null ? 50 : khiVan) - 50) / 50) * 1.6);
+  const w = {
+    ha:     Math.max(1, 10 - lift * 1.6),
+    trung:  5 + lift * 0.5,
+    thuong: Math.max(0.2, (lift - 1) * 0.8),
+    cuc:    Math.max(0.04, (lift - 3.2) * 0.6),
+  };
+  let tot = 0; PILL_PHAM_KEYS.forEach((k) => (tot += w[k])); let r = Math.random() * tot;
+  for (const k of PILL_PHAM_KEYS) { r -= w[k]; if (r <= 0) return k; } return 'ha';
+}
+
 // ===== LỊCH LUYỆN: phái đệ tử RẢNH đi kiếm nguyên liệu (nguồn chính, không mua-điểm) =====
 export const LICH_LUYEN_H = 4;   // giờ thực / chuyến (DRAFT)
 export function lichLuyenTier(realm) { return realm <= 1 ? 1 : (realm <= 3 ? 2 : 3); }   // bậc liệu theo cảnh giới đệ tử

@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -51,6 +51,7 @@ export function ensureTongMon(state, nowMs) {
   if (typeof t.uyBonus !== 'number') t.uyBonus = 0;
   if (!t.mats || typeof t.mats !== 'object') t.mats = {};
   if (!t.pills || typeof t.pills !== 'object') t.pills = {};
+  if (!t.pillQual || typeof t.pillQual !== 'object') t.pillQual = {};       // phẩm chất đan (song song t.pills; t.pills giữ TỔNG). Đan cũ chưa rõ phẩm -> coi Hạ khi tiêu.
   if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
@@ -336,6 +337,22 @@ export function doRecruitReset(state, nowMs) {
   return { ok: true, msg: `Đổi lứa mới · -${RECRUIT_RESET_COST} Hồn Thạch (${t.recruitResetCount}/${RECRUIT_RESET_MAX})` };
 }
 
+// ---- Đan phẩm: cộng/tiêu 1 viên đan giữ ĐỒNG BỘ t.pills (TỔNG) + t.pillQual (phẩm). ----
+function addPill(t, pillId, pham) {
+  t.pills[pillId] = (t.pills[pillId] || 0) + 1;
+  if (!t.pillQual) t.pillQual = {};
+  if (!t.pillQual[pillId]) t.pillQual[pillId] = {};
+  const k = pham || 'ha';
+  t.pillQual[pillId][k] = (t.pillQual[pillId][k] || 0) + 1;
+}
+// Tiêu 1 viên: mặc định lấy phẩm THẤP nhất (giữ đan tốt); preferHigh -> lấy CAO nhất. Trả phẩm đã tiêu.
+function consumePill(t, pillId, preferHigh) {
+  t.pills[pillId] = Math.max(0, (t.pills[pillId] || 0) - 1);
+  const q = (t.pillQual && t.pillQual[pillId]) || null;
+  if (q) { const order = preferHigh ? PILL_PHAM_KEYS.slice().reverse() : PILL_PHAM_KEYS; for (const k of order) { if ((q[k] || 0) > 0) { q[k]--; return k; } } }
+  return 'ha';   // đan cũ không rõ phẩm -> coi Hạ
+}
+
 // ---- ĐỘT PHÁ đại cảnh: viên mãn (breakReady) -> nạp 1 ĐAN ký danh (PILLS) + Hồn Thạch (main 1 chiều) ----
 export function breakReqOf(d) {
   if (!d || !d.breakReady) return null;
@@ -351,7 +368,7 @@ export function doBreakthrough(state, uid) {
   const req = breakReqOf(d); if (!req) return { ok: false, msg: 'Không rõ yêu cầu đột phá.' };
   if (((t.pills || {})[req.pill] || 0) < 1) return { ok: false, msg: `Thiếu ${req.pillName} (luyện ở Y Quán).` };
   if ((state.currencies.honThach || 0) < req.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${req.honThach}).` };
-  t.pills[req.pill] -= 1; state.currencies.honThach -= req.honThach;
+  consumePill(t, req.pill); state.currencies.honThach -= req.honThach;   // tiêu 1 đan (đồng bộ pills+pillQual)
   d.realm++; d.xp = 0; d.breakReady = false;
   if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} phục một viên ${req.pillName}, đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
   else chronicle(t, `${d.name} phục một viên ${req.pillName}, đột phá ${REALMS[d.realm].name}!`);
@@ -368,14 +385,14 @@ export function startBrew(state, pillId, nowMs) {
   for (const m in pill.recipe) { if (((t.mats || {})[m] || 0) < pill.recipe[m]) return { ok: false, msg: `Thiếu ${(MATS[m] || {}).name} (cần ${pill.recipe[m]}).` }; }
   for (const m in pill.recipe) t.mats[m] -= pill.recipe[m];
   const now = nowMs || Date.now(), h = pillBrewH(pillId);
-  t.brewing.push({ pill: pillId, at: now, until: now + h * 3600000 });
+  t.brewing.push({ pill: pillId, at: now, until: now + h * 3600000, pham: rollPillPham(t.buildings.yQuan || 0, t.khiVan) });   // phẩm chốt lúc khởi lò
   return { ok: true, msg: `Khởi lò luyện ${pill.name} (${h}h).` };
 }
 export function collectBrew(state, brewIdx, nowMs) {
   const t = state.tongMon; if (!t || !Array.isArray(t.brewing)) return { ok: false, msg: '?' };
   const b = t.brewing[brewIdx]; if (!b) return { ok: false, msg: 'Không có mẻ.' };
   const now = nowMs || Date.now(); if (now < b.until) return { ok: false, msg: 'Đan chưa thành.' };
-  t.pills[b.pill] = (t.pills[b.pill] || 0) + 1;
+  addPill(t, b.pill, b.pham);
   const nm = (PILLS[b.pill] || {}).name, pid = b.pill;
   t.brewing.splice(brewIdx, 1);
   chronicle(t, `Y Quán xuất lò một viên ${nm}.`);
@@ -384,7 +401,7 @@ export function collectBrew(state, brewIdx, nowMs) {
 export function collectAllBrews(state, nowMs) {
   const t = state.tongMon; if (!t || !Array.isArray(t.brewing)) return { ok: false, n: 0, tot: {} };
   const now = nowMs || Date.now(); let n = 0; const tot = {};
-  for (let i = t.brewing.length - 1; i >= 0; i--) { const b = t.brewing[i]; if (now >= b.until) { t.pills[b.pill] = (t.pills[b.pill] || 0) + 1; tot[b.pill] = (tot[b.pill] || 0) + 1; t.brewing.splice(i, 1); n++; } }
+  for (let i = t.brewing.length - 1; i >= 0; i--) { const b = t.brewing[i]; if (now >= b.until) { addPill(t, b.pill, b.pham); tot[b.pill] = (tot[b.pill] || 0) + 1; t.brewing.splice(i, 1); n++; } }
   if (n) chronicle(t, `Y Quán xuất lò ${Object.keys(tot).map((p) => (PILLS[p] || {}).name + '×' + tot[p]).join(', ')}.`);
   return { ok: n > 0, n, tot };
 }
