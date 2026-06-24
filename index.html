@@ -4243,7 +4243,7 @@
               </div>
               <!-- CÔNG TRÌNH (mobile: cuộn ngang vuốt · desktop: lưới) -->
               <div class="tm-bld-row mb-4">
-                <template x-for="key in ['tuHien','dienVo','tangThu','yQuan','duocVien','luyenKhiCac','tuLinh']" :key="key">
+                <template x-for="key in ['tuHien','dienVo','tangThu','yQuan','duocVien','luyenKhiCac','giangDao','tuLinh']" :key="key">
                   <div @click="g.tmBuildSel=key" class="tm-bld relative rounded-lg overflow-hidden panel cursor-pointer hover:border-amber-400/70 transition" :class="g.tmCanUpgrade(key)?'border-amber-500/60':''" style="aspect-ratio:1/1">
                     <img :src="'images/tongmon/buildings/'+key+'.webp'" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'">
                     <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(11,15,24,.12) 0%,rgba(11,15,24,.32) 48%,rgba(11,15,24,.92) 100%)"></div>
@@ -4274,6 +4274,7 @@
                       <template x-if="d.awaiting"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1 py-0.5 rounded bg-amber-500 text-ink font-bold">Đắc Đạo</span></template>
                       <template x-if="d.breakReady"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-violet-500 text-white font-bold animate-pulse">Đột Phá</span></template>
                       <template x-if="d.lichLuyenUntil && !d.breakReady"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-cyan-600 text-white font-bold">Lịch Luyện</span></template>
+                      <template x-if="d.giangUntil && !d.breakReady && !d.lichLuyenUntil"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-amber-600 text-white font-bold">Thính Giảng</span></template>
                     </div>
                     <div class="p-2 bg-ink3/40">
                       <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(d).color" x-text="d.name"></div>
@@ -4281,7 +4282,7 @@
                       <div class="text-[9px] text-slate-500 fserif leading-tight truncate" x-text="g.tmSubShort(d)"></div>
                       <div class="flex items-center gap-1.5 mt-1.5">
                         <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></div></div>
-                        <span class="text-[9px]" :style="'color:'+(d.breakReady?'#a78bfa':(d.lichLuyenUntil?'#22d3ee':g.tmRealmColor(d)))" x-text="d.breakReady ? 'Chờ đột phá' : (d.lichLuyenUntil ? 'Lịch luyện' : g.tmStateLabel(d))"></span>
+                        <span class="text-[9px]" :style="'color:'+(d.breakReady?'#a78bfa':(d.lichLuyenUntil?'#22d3ee':(d.giangUntil?'#fbbf24':g.tmRealmColor(d))))" x-text="d.breakReady ? 'Chờ đột phá' : (d.lichLuyenUntil ? 'Lịch luyện' : (d.giangUntil ? 'Thính giảng' : g.tmStateLabel(d)))"></span>
                       </div>
                     </div>
                   </div>
@@ -4857,6 +4858,17 @@
                       <template x-if="!g.tmLichLuyenInfo(d)"><span class="text-slate-500">Phái đi kiếm nguyên liệu (<span x-text="g.tmLichLuyenH"></span>h) — tạm ngưng tu</span></template>
                     </div>
                     <button @click="g.tmStartLichLuyen(d.uid)" :disabled="!g.tmCanLichLuyen(d)" class="shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg border transition" :class="g.tmCanLichLuyen(d)?'border-cyan/50 text-cyan hover:bg-cyan/10':'border-slate-700 text-slate-600 cursor-not-allowed'" x-text="g.tmLichLuyenInfo(d)?'Đang lịch luyện':'Phái Lịch Luyện'"></button>
+                  </div>
+                  <!-- GIẢNG ĐẠO ĐƯỜNG (thính giảng -> nâng trần tư chất) -->
+                  <div class="rounded-lg bg-ink3/40 border border-slate-800 px-3 py-2 shrink-0 flex items-center justify-between gap-2 flex-wrap">
+                    <div class="text-[11.5px] min-w-0">
+                      <span class="lbl mr-1">Thính Giảng</span>
+                      <template x-if="g.tmGiangInfo(d)"><span class="text-amber-300">Đang nghe giảng · còn <b x-text="g.tmGiangCdText(d)"></b></span></template>
+                      <template x-if="!g.tmGiangInfo(d) && g.tmCanGiang(d)"><span class="text-slate-500">Nâng trần tư chất · <span x-text="g.tmGiangH"></span>h/bậc · đã +<b class="text-amber-300/90" x-text="g.tmGiangBonus(d)"></b>/<span x-text="g.tmGiangMax()"></span></span></template>
+                      <template x-if="!g.tmGiangInfo(d) && !g.tmCanGiang(d)"><span class="text-slate-600 italic" x-text="g.tmGiangReason(d)||'Không khả dụng'"></span></template>
+                    </div>
+                    <template x-if="g.tmGiangInfo(d)"><span class="shrink-0 text-[11.5px] text-amber-300/80 fserif">Đang thính giảng…</span></template>
+                    <template x-if="!g.tmGiangInfo(d)"><button @click="g.tmStartGiang(d.uid)" :disabled="!g.tmCanGiang(d)" class="shrink-0 text-[11.5px] px-3 py-1.5 rounded-lg border transition" :class="g.tmCanGiang(d)?'border-amber-400/50 text-amber-300 hover:bg-amber-400/10':'border-slate-700 text-slate-600 cursor-not-allowed'" x-text="g.tmCanGiang(d)?('Ghi Danh · '+g.tmGiangSeats.free+' ghế'):'Ghi Danh'"></button></template>
                   </div>
                   <!-- ĐỘT PHÁ đại cảnh (Bình Cảnh) -->
                   <template x-if="d.breakReady">

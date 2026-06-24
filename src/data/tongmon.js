@@ -101,9 +101,10 @@ export const BUILDINGS = {
   yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Đan phòng của tông môn, lò lửa quanh năm không tắt. Theo cổ phương mà nung luyện nguyên liệu trong Túi Đồ thành linh đan đột phá — mỗi mẻ tốn thời gian luyện. Bậc cao mở thêm lò và đan phẩm cao hơn.' },
   duocVien:{ name: 'Dược Viên',     han: '藥', desc: 'Khu vườn ươm trồng linh dược, sương khói lượn quanh các luống đất. Mỗi luống nuôi một vị nguyên liệu, đủ ngày thì chín, hái về Túi Đồ. Bậc cao mở thêm luống và trồng được linh dược bậc cao.' },
   luyenKhiCac:{ name: 'Luyện Khí Các', han: '器', desc: 'Gác lò rèn của tông môn, đe nung đỏ lửa, búa gõ vang chan chát. Tôi luyện gia bảo đệ tử đang đeo lên một tầng uy lực — bậc càng cao thì rèn được càng sâu.' },
+  giangDao:{ name: 'Giảng Đạo Đường', han: '講', desc: 'Giảng đường thâm u, cao nhân thuyết đạo cho hậu bối nghe. Thính giảng lâu ngày khai mở tâm khiếu — NÂNG TRẦN tư chất đệ tử, giúp kẻ căn cơ tầm thường vươn xa hơn số trời định. (Đắc Đạo vẫn là cảnh giới chỉ Thiên Tư chạm tới.)' },
   tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Đại trận dẫn linh khí trời đất quy tụ về sơn môn, vận khí hanh thông cát tường. Linh khí dồi dào giúp Khí Vận tông môn tăng tiến, đồng thời bồi thêm tốc độ tu luyện cho toàn môn.', khiPerLv: 4 },
 };
-export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'tuLinh'];
+export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'giangDao', 'tuLinh'];
 
 // ===== LUYỆN ĐAN: nguyên liệu (MATS) -> đan đột phá (PILLS) theo CÔNG THỨC =====
 // 6 nguyên liệu, 3 bậc · art images/tongmon/mats/<id>.webp (emoji = fallback).
@@ -153,6 +154,11 @@ export function duocMaxTier(t) { const lv = (t && t.buildings && t.buildings.duo
 export function lkcMaxPlus(lv) { return (lv || 0) < 1 ? 0 : 3 * (lv || 0); }   // trần tmPlus = 3 × bậc Luyện Khí Các (DRAFT)
 export function lkcStep(tmPlus) { const p = tmPlus || 0; return { mat: 'mat_huyenthiet', matQty: 2 + p, honThach: Math.round(60 * Math.pow(1.45, p)) }; }   // liệu để lên tmPlus+1 (DRAFT)
 
+// ===== GIẢNG ĐẠO ĐƯỜNG: thính giảng idle -> +1 TRẦN tư chất (capBonus). Tối đa +2/đệ tử; Đắc Đạo vẫn độc quyền Thiên (luật disciCap). =====
+export const GIANG_H = 48;            // giờ thực / khóa thính giảng (+1 trần) — DRAFT
+export const GIANG_MAX_BONUS = 2;     // trần cộng tối đa từ Giảng Đạo / đệ tử
+export function giangSeats(lv) { return lv || 0; }   // số ghế thính giảng đồng thời = bậc công trình
+
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // cost DRAFT — tune. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
 export const TM_SHOP = [
@@ -185,7 +191,7 @@ export function genDisciple(opt = {}) {
     sex, han: opt.han || han, origin, originLabel: originLabelOf(origin, sex), bio: originBioOf(origin, sex), apt,
     he: opt.he || pick(HE_KEYS),
     traits, dream: pick(DREAMS), tamMa: pick(TAMMA),
-    realm: 0, xp: 0, capBonus: 0,          // capBonus: số bậc trần được NÂNG (Gia Bảo/kỳ ngộ…)
+    realm: 0, xp: 0, capBonus: 0, giangBonus: 0,   // capBonus: bậc trần được NÂNG (sự kiện + Giảng Đạo); giangBonus: phần đến TỪ Giảng Đạo (cap GIANG_MAX_BONUS)
     flags: {},                              // cờ do SỰ KIỆN gắn (daoLu/oanTham/tamMaSeed/biệt hiệu…) — side-only
     gear: {},                               // { slotId: gearInstance } — Gia Bảo, side-only
     state: 'tu',                            // tu | rest
@@ -194,5 +200,5 @@ export function genDisciple(opt = {}) {
   };
 }
 
-// trần cảnh giới thực của 1 đệ tử = trần tư chất + capBonus (tối đa 9 = Đắc Đạo)
-export function disciCap(d) { return Math.min(9, APT[d.apt].cap + (d.capBonus || 0)); }
+// trần cảnh giới thực = trần tư chất + capBonus. LUẬT: Đắc Đạo (9) ĐỘC QUYỀN Thiên Tư — non-Thiên tối đa Độ Kiếp (8) dù nuôi cỡ nào.
+export function disciCap(d) { return Math.min((d.apt === 'thien') ? 9 : 8, APT[d.apt].cap + (d.capBonus || 0)); }

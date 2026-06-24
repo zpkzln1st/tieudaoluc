@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -18,7 +18,7 @@ export function ensureTongMon(state, nowMs) {
       mats: {}, pills: {},                                                // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá
       brewing: [],                                                        // Y Quán: mẻ đan đang luyện (idle, có thời gian)
       duocVien: { plots: [] },                                            // Dược Viên: luống trồng nguyên liệu (idle)
-      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, luyenKhiCac: 0, tuLinh: 0 },
+      buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, luyenKhiCac: 0, giangDao: 0, tuLinh: 0 },
       disciples: [], elders: [], legends: [], soSach: [],
       recruitPool: [], recruitAt: 0,
       uyBonus: 0,                                                         // +Uy Danh tích từ SỰ KIỆN (uyDanhOf cộng vào)
@@ -42,6 +42,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.buildings) t.buildings = { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, tuLinh: 0 };
   if (typeof t.buildings.duocVien !== 'number') t.buildings.duocVien = 0;          // backfill công trình mới
   if (typeof t.buildings.luyenKhiCac !== 'number') t.buildings.luyenKhiCac = 0;
+  if (typeof t.buildings.giangDao !== 'number') t.buildings.giangDao = 0;
   if (!t.duocVien || typeof t.duocVien !== 'object') t.duocVien = { plots: [] };
   if (!Array.isArray(t.duocVien.plots)) t.duocVien.plots = [];
   if (!Array.isArray(t.recruitPool)) t.recruitPool = [];
@@ -55,7 +56,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
   if (!t.events.cd) t.events.cd = {};
-  for (const d of t.disciples) if (!d.flags) d.flags = {};
+  for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; }
 }
 
 function chronicle(t, text, gid) { const e = { t: Date.now(), text }; if (gid) e.gid = gid; t.soSach.unshift(e); if (t.soSach.length > 80) t.soSach.length = 80; }
@@ -219,6 +220,18 @@ export function simTongMon(state, nowMs, capHours) {
       chronicle(t, `${d.name} lịch luyện trở về, mang theo ${Object.keys(rw).map((m) => (MATS[m] || {}).name + '×' + rw[m]).join(', ')}.`);
       d.lichLuyenUntil = 0; d.lichLuyenReward = null;
     }
+    // GIẢNG ĐẠO: đang thính giảng -> KHÔNG tu; xong -> +1 TRẦN tư chất (nếu chưa tới giới hạn giảng / trần tuyệt đối)
+    if (d.giangUntil) {
+      if (nowMs < d.giangUntil) continue;
+      d.giangUntil = 0;
+      const absMax = (d.apt === 'thien') ? 9 : 8;
+      if ((d.giangBonus || 0) < GIANG_MAX_BONUS && disciCap(d) < absMax) {
+        d.capBonus = (d.capBonus || 0) + 1; d.giangBonus = (d.giangBonus || 0) + 1;
+        chronicle(t, `${d.name} thính giảng đắc ngộ, trần tư chất nới rộng — vươn tới ${REALMS[disciCap(d)].name}.`);
+      } else {
+        chronicle(t, `${d.name} mãn khóa thính giảng trở về, tư chất đã chạm giới hạn.`);
+      }
+    }
     if (d.state !== 'tu' || d.awaiting) continue;
     tuCount++;
     if (d.breakReady) continue;                  // BÌNH CẢNH: viên mãn, chờ người chơi đột phá (KHÔNG tự lên)
@@ -356,6 +369,29 @@ export function startLichLuyen(state, uid, nowMs) {
   const reward = {}; LICH_MATS_BY_TIER[tier].forEach((m) => { reward[m] = qty; });
   d.lichLuyenUntil = now + LICH_LUYEN_H * 3600000; d.lichLuyenReward = reward;
   return { ok: true, msg: `${d.name} khởi hành lịch luyện (${LICH_LUYEN_H}h).` };
+}
+
+// ---- GIẢNG ĐẠO ĐƯỜNG: ghi danh đệ tử RẢNH thính giảng (về sau GIANG_H giờ -> +1 trần; xử lý trong simTongMon) ----
+function giangAbsMax(d) { return (d && d.apt === 'thien') ? 9 : 8; }       // trần tuyệt đối: Thiên 9 (Đắc Đạo) / non-Thiên 8 (Độ Kiếp)
+export function canEnrollGiang(t, d) {
+  if (!t || !d || d.awaiting || d.breakReady || d.lichLuyenUntil || d.giangUntil) return false;
+  if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return false;                // đã tận Giảng Đạo
+  return disciCap(d) < giangAbsMax(d);                                     // còn chỗ để nâng trần?
+}
+export function giangSeatInfo(t) { const total = giangSeats((t.buildings || {}).giangDao || 0); const used = (t.disciples || []).filter((d) => d.giangUntil).length; return { total, used, free: Math.max(0, total - used) }; }
+export function enrollGiang(state, uid, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  if ((t.buildings.giangDao || 0) < 1) return { ok: false, msg: 'Cần xây Giảng Đạo Đường.' };
+  const d = t.disciples.find((x) => x.uid === uid); if (!d) return { ok: false, msg: '?' };
+  if (d.awaiting) return { ok: false, msg: 'Đệ tử đã Đắc Đạo.' };
+  if (d.breakReady) return { ok: false, msg: 'Đệ tử đang Bình Cảnh — đột phá trước đã.' };
+  if (d.lichLuyenUntil) return { ok: false, msg: 'Đệ tử đang lịch luyện.' };
+  if (d.giangUntil) return { ok: false, msg: 'Đệ tử đang thính giảng.' };
+  if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return { ok: false, msg: `Đã tận Giảng Đạo (+${GIANG_MAX_BONUS} trần).` };
+  if (disciCap(d) >= giangAbsMax(d)) return { ok: false, msg: (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo — không cần giảng.' : 'Tư chất đã chạm trần — giảng cũng vô ích.' };
+  if (giangSeatInfo(t).free < 1) return { ok: false, msg: 'Hết ghế thính giảng — nâng Giảng Đạo Đường.' };
+  d.giangUntil = (nowMs || Date.now()) + GIANG_H * 3600000;
+  return { ok: true, msg: `${d.name} vào Giảng Đạo Đường thính giảng (${GIANG_H}h).` };
 }
 
 // ============================================================

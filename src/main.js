@@ -37,9 +37,9 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -481,9 +481,30 @@ const gameStore = {
   tmCollectAllBrews() { const r = collectAllBrews(this.state, now()); if (r.ok) { this.tmSave(); const s = Object.keys(r.tot).map((p) => (PILLS[p] || {}).name + '×' + r.tot[p]).join(', '); this.showToast('Y Quán · xuất ' + s); } else this.showToast('Chưa mẻ nào thành.'); },
   tmLichLuyenInfo(d) { void this._tick; if (!d || !d.lichLuyenUntil) return null; const ms = d.lichLuyenUntil - now(); return { active: ms > 0, leftMs: Math.max(0, ms) }; },
   tmLichLuyenCdText(d) { const i = this.tmLichLuyenInfo(d); if (!i) return ''; const ms = i.leftMs, h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm'); },
-  tmCanLichLuyen(d) { return !!(d && !d.awaiting && !d.breakReady && !d.lichLuyenUntil); },
+  tmCanLichLuyen(d) { return !!(d && !d.awaiting && !d.breakReady && !d.lichLuyenUntil && !d.giangUntil); },
   tmStartLichLuyen(uid) { const r = startLichLuyen(this.state, uid, now()); if (r.ok) { this.tmSave(); this.showToast('Lịch Luyện · ' + r.msg); } else this.showToast(r.msg); },
   get tmLichLuyenH() { return LICH_LUYEN_H; },
+  // --- GIẢNG ĐẠO ĐƯỜNG (thính giảng -> nâng trần tư chất) ---
+  get tmGiangSeats() { void this._tick; return giangSeatInfo(this.tm); },
+  get tmGiangH() { return GIANG_H; },
+  tmGiangMax() { return GIANG_MAX_BONUS; },
+  tmGiangBonus(d) { return (d && d.giangBonus) || 0; },
+  tmGiangInfo(d) { void this._tick; if (!d || !d.giangUntil) return null; const ms = d.giangUntil - now(); return { active: ms > 0, leftMs: Math.max(0, ms) }; },
+  tmGiangCdText(d) { const i = this.tmGiangInfo(d); if (!i) return ''; const ms = i.leftMs, h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm'); },
+  tmCanGiang(d) { void this._tick; return (this.tmBuildLv('giangDao') >= 1) && canEnrollGiang(this.tm, d) && this.tmGiangSeats.free >= 1; },
+  tmGiangReason(d) {   // lý do KHÔNG ghi danh được (hiển thị khi nút disabled)
+    void this._tick; if (!d) return '';
+    if (this.tmBuildLv('giangDao') < 1) return 'Chưa xây Giảng Đạo Đường';
+    if (d.giangUntil) return '';
+    if (d.awaiting) return 'Đã Đắc Đạo';
+    if (d.breakReady) return 'Đang Bình Cảnh';
+    if (d.lichLuyenUntil) return 'Đang lịch luyện';
+    if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return 'Đã tận Giảng Đạo (+' + GIANG_MAX_BONUS + ' trần)';
+    if (disciCap(d) >= ((d.apt === 'thien') ? 9 : 8)) return (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo' : 'Tư chất đã chạm trần';
+    if (this.tmGiangSeats.free < 1) return 'Hết ghế thính giảng';
+    return '';
+  },
+  tmStartGiang(uid) { const r = enrollGiang(this.state, uid, now()); if (r.ok) { this.tmSave(); this.showToast('Giảng Đạo · ' + r.msg); } else this.showToast(r.msg); },
   tmNextRealm(d) { return REALMS[Math.min(9, (d.realm || 0) + 1)].name; },
   tmBreakRows(d) {
     const r = breakReqOf(d); if (!r) return [];
@@ -517,12 +538,13 @@ const gameStore = {
     if (d.breakReady) suffix = 'Bình Cảnh';
     else if (this.tmAtCap(d)) suffix = 'Viên mãn';
     else if (d.lichLuyenUntil && d.lichLuyenUntil > now()) suffix = 'lịch luyện';
+    else if (d.giangUntil && d.giangUntil > now()) suffix = 'thính giảng';
     return { cur, max: need, suffix, color: this.tmRealmColor(d) };
   },
   tmStateLabel(d) { return d.awaiting ? 'Đắc Đạo!' : (this.tmAtCap(d) ? 'Viên mãn' : (d.state === 'rest' ? 'Nghỉ' : 'Đang tu')); },
   tmDaoLabel() { return ({ chinh: 'Chính Đạo', ta: 'Tà Đạo', trung: 'Trung Dung' })[this.tm.dao] || 'Trung Dung'; },
   tmDaoColor() { return ({ chinh: '#14b8a6', ta: '#e879f9', trung: '#94a3b8' })[this.tm.dao] || '#94a3b8'; },
-  tmSectTier() { const b = this.tm.buildings || {}; const s = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'tuLinh'].reduce((a, k) => a + (b[k] || 0), 0); return Math.max(1, s - 2); },  // Cấp Tông Môn = tổng bậc công trình (khởi đầu 3 -> Đệ 1 Tầng; mỗi lần nâng +1)
+  tmSectTier() { const b = this.tm.buildings || {}; const s = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'giangDao', 'tuLinh'].reduce((a, k) => a + (b[k] || 0), 0); return Math.max(1, s - 2); },  // Cấp Tông Môn = tổng bậc công trình (khởi đầu 3 -> Đệ 1 Tầng; mỗi lần nâng +1)
   tmBuild(key) { return BUILDINGS[key]; },
   tmBuildLv(key) { return this.tm.buildings[key] || 0; },
   tmBuildCost(key) { return buildCost(this.tm.buildings[key] || 0); },
@@ -554,6 +576,8 @@ const gameStore = {
     } else if (key === 'luyenKhiCac') {
       const mp = (L) => (L < 1 ? '—' : '+' + lkcMaxPlus(L));
       fx.push({ label: 'Trần cường hóa gia bảo', cur: mp(lv), next: mp(nlv) });
+    } else if (key === 'giangDao') {
+      fx.push({ label: 'Ghế thính giảng', cur: giangSeats(lv) + '', next: giangSeats(nlv) + '' });
     }
     return { name: b.name, han: b.han, desc: b.desc, level: lv, cost: this.tmBuildCost(key), effects: fx };
   },
