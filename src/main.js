@@ -409,14 +409,33 @@ const gameStore = {
   tmShopCanBuy(item) { return !!(this.tm && (this.tm.diem || 0) >= item.cost && this.tmShopReadyIn(item) <= 0); },
   tmBuy(id, opt) { const r = tmShopBuy(this.state, id, opt || {}); if (r.ok) { this.tmSave(); this.showToast('Đấu Giá Hội · ' + r.msg); } else this.showToast(r.msg); return r.ok; },
   // Sử Sách đầy đủ (biên niên toàn bộ t.soSach + tìm theo tên/loại)
-  soSachOpen: false, soSachQuery: '',
-  openSoSach() { this.soSachQuery = ''; this.soSachOpen = true; },
+  soSachOpen: false, soSachQuery: '', soSachCat: 'all',
+  // Phân loại biên niên cho bộ lọc Sử Sách (khớp từ khóa; không khớp -> 'sukien')
+  CHRON_CATS: [
+    { key: 'canhgioi', label: 'Cảnh Giới', kw: ['đột phá', 'Bình Cảnh', 'viên mãn', 'Đắc Đạo', 'đắc đạo', 'Xuất Sư', 'Trưởng Lão', '★'] },
+    { key: 'lichluyen', label: 'Lịch Luyện', kw: ['lịch luyện'] },
+    { key: 'luyendan', label: 'Luyện Đan', kw: ['Y Quán', 'luyện thành', 'xuất lò'] },
+    { key: 'giangdao', label: 'Giảng Đạo', kw: ['thính giảng', 'trần tư chất'] },
+    { key: 'giabao', label: 'Gia Bảo', kw: ['gia bảo', 'Luyện Khí Các', 'tôi luyện'] },
+  ],
+  tmChronCat(text) { const T = text || ''; for (const c of this.CHRON_CATS) { if (c.kw.some((k) => T.includes(k))) return c.key; } return 'sukien'; },
+  openSoSach() { this.soSachQuery = ''; this.soSachCat = 'all'; this.soSachOpen = true; },
   closeSoSach() { this.soSachOpen = false; },
+  get tmSoSachCatList() {
+    void this._tick;
+    const arr = (this.tm && this.tm.soSach) || [], counts = {};
+    arr.forEach((s) => { const c = this.tmChronCat(s.text); counts[c] = (counts[c] || 0) + 1; });
+    const out = [{ key: 'all', label: 'Tất cả', n: arr.length }];
+    this.CHRON_CATS.forEach((c) => out.push({ key: c.key, label: c.label, n: counts[c.key] || 0 }));
+    out.push({ key: 'sukien', label: 'Sự Kiện', n: counts['sukien'] || 0 });
+    return out;
+  },
   get tmSoSachFull() {
     void this._tick;
-    const q = (this.soSachQuery || '').trim().toLowerCase();
+    const q = (this.soSachQuery || '').trim().toLowerCase(), cat = this.soSachCat || 'all';
     let arr = (this.tm && this.tm.soSach) || [];
     if (q) arr = arr.filter((s) => (s.text || '').toLowerCase().includes(q));
+    if (cat !== 'all') arr = arr.filter((s) => this.tmChronCat(s.text) === cat);
     return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color }; });
   },
   // Chân dung đệ tử: pool ngẫu nhiên gán cố định theo uid (images/tongmon/disciples/<sex>_<n>.webp). DISC_FACES = số ảnh mỗi giới (0 = chưa có art → dùng seal Hán).
