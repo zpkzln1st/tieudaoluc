@@ -4551,8 +4551,8 @@
           <!-- MODAL CHI TIẾT CÔNG TRÌNH -->
           <template x-if="g.tmBuildSel">
             <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmBuildSel=null" x-data="{ get b(){ return g.tmBuildDetail(g.tmBuildSel) } }">
-              <div class="panel rounded-2xl w-[480px] max-w-full h-[520px] max-h-[92dvh] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
-                <div class="relative h-[150px] shrink-0 overflow-hidden">
+              <div class="panel rounded-2xl w-[580px] max-w-full max-h-[88dvh] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
+                <div class="relative h-[160px] sm:h-[180px] shrink-0 overflow-hidden">
                   <img :src="'images/tongmon/buildings/'+g.tmBuildSel+'.webp'" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
                   <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(11,15,24,.25) 0%,rgba(15,21,33,.55) 50%,#0f1521 100%)"></div>
                   <div class="absolute fserif text-[5rem] opacity-15 right-3 -top-2 pointer-events-none" x-text="b.han"></div>
