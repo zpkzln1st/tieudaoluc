@@ -4836,6 +4836,15 @@
                       <span><span class="text-slate-500">Tốc Tu</span> <b class="fserif text-cyan" x-text="'×'+g.tmSpeedMul(d).toFixed(2)"></b></span>
                       <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></span></span><span class="text-[10px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmProgPct(d)+'%'"></span></span>
                     </div>
+                    <template x-if="g.tmTuViEta(d)">
+                      <div class="mt-1.5 pt-1.5 border-t border-slate-800/70 flex items-center justify-between gap-2 text-[11px]">
+                        <span class="text-slate-500" x-text="g.tmTuViEta(d).label"></span>
+                        <span class="inline-flex items-baseline gap-1.5">
+                          <b class="fserif text-[13px]" :style="'color:'+g.tmTuViEta(d).color" x-text="g.tmTuViEta(d).value"></b>
+                          <template x-if="g.tmTuViEta(d).pct!==undefined"><span class="text-[10px] text-slate-500">· <b class="text-slate-300" x-text="g.tmTuViEta(d).pct+'%'"></b> đại cảnh</span></template>
+                        </span>
+                      </div>
+                    </template>
                   </div>
                   <!-- LỊCH LUYỆN (phái đi kiếm nguyên liệu) -->
                   <div class="rounded-lg bg-ink3/40 border border-slate-800 px-3 py-2 shrink-0 flex items-center justify-between gap-2 flex-wrap">
