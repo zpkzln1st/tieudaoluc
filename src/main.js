@@ -541,10 +541,15 @@ const gameStore = {
     }
     return out;
   },
-  tmDuocSowable() { void this._tick; const mt = this.tmDuocMaxTier; return MAT_KEYS.filter((m) => MATS[m].tier <= mt).map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, tier: MATS[m].tier, growH: DUOC_GROW_H[MATS[m].tier] || 4, qty: DUOC_YIELD[MATS[m].tier] || 3 })); },
+  tmMatTierColor(tier) { return ({ 1: '#34d399', 2: '#60a5fa', 3: '#f5b942' })[tier] || '#94a3b8'; },
+  tmDuocSowable() { void this._tick; const mt = this.tmDuocMaxTier; return MAT_KEYS.filter((m) => MATS[m].tier <= mt).map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, tier: MATS[m].tier, color: this.tmMatTierColor(MATS[m].tier), growH: DUOC_GROW_H[MATS[m].tier] || 4, qty: DUOC_YIELD[MATS[m].tier] || 3, have: this.tmMatCount(m) })); },
   tmDuocLeftText(ms) { const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (Math.max(0, m) + 'm'); },
   tmDuocHasRipe() { void this._tick; return this.tmDuocPlots.some((p) => !p.empty && p.ripe); },
+  get tmDuocStatus() { void this._tick; let gr = 0, ri = 0, em = 0; this.tmDuocPlots.forEach((p) => { if (p.empty) em++; else if (p.ripe) ri++; else gr++; }); return { growing: gr, ripe: ri, empty: em }; },
+  // Ô hiển thị = luống thật + ô KHOÁ lấp cho đầy lưới (≥6) → vừa đẹp vừa gợi nâng cấp.
+  get tmDuocSlots() { void this._tick; const cnt = this.tmDuocPlotCount, plots = this.tmDuocPlots, show = Math.max(cnt, 6), out = plots.slice(); for (let i = cnt; i < show; i++) out.push({ idx: i, locked: true }); return out; },
   openDuocVien() { this.tmDuocSowIdx = -1; this.tmDuocOpen = true; },
+  closeDuocVien() { this.tmDuocOpen = false; this.tmDuocSowIdx = -1; },
   tmSow(plotIdx, matId) { const r = sowPlot(this.state, plotIdx, matId, now()); if (r.ok) { this.tmSave(); this.tmDuocSowIdx = -1; this.showToast('Dược Viên · ' + r.msg); } else this.showToast(r.msg); },
   tmHarvest(plotIdx) { const r = harvestPlot(this.state, plotIdx, now()); if (r.ok) { this.tmSave(); this.showToast('Dược Viên · ' + r.msg); } else this.showToast(r.msg); },
   tmHarvestAll() { const r = harvestAllPlots(this.state, now()); if (r.ok) { this.tmSave(); const s = Object.keys(r.tot).map((m) => (MATS[m] || {}).name + '×' + r.tot[m]).join(', '); this.showToast('Dược Viên · thu ' + s); } else this.showToast('Chưa luống nào chín.'); },

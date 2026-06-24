@@ -4329,7 +4329,7 @@
           <!-- MODAL SỰ KIỆN GIANG HỒ (kể chuyện -> hồi kết) -->
           <template x-if="g.tmEvtOpen && g.tmEvtCur">
             <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmEvt()">
-              <div class="panel rounded-2xl w-[680px] max-w-full h-[640px] max-h-[90vh] overflow-hidden flex flex-col border" :style="'border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'55'" @click.stop>
+              <div class="panel rounded-2xl w-[700px] max-w-full h-[724px] max-h-[92dvh] overflow-hidden flex flex-col border" :style="'border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'55'" @click.stop>
                 <!-- SCENE HEADER -->
                 <div class="relative px-5 py-4 overflow-hidden shrink-0 flex flex-col" :style="'height:176px;background:linear-gradient(165deg,'+g.tmGrpColor(g.tmEvtCur.grp)+'1c 0%, #0f1521 60%)'">
                   <img :src="'images/tongmon/events/'+g.tmEvtCur.eid.toLowerCase()+'.webp'" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'">
@@ -4559,39 +4559,65 @@
 
           <!-- MODAL DƯỢC VIÊN (trồng nguyên liệu idle) -->
           <template x-if="g.tmDuocOpen">
-            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmDuocOpen=false; g.tmDuocSowIdx=-1">
-              <div class="panel rounded-2xl w-[600px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-emerald-500/30" @click.stop>
-                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(16,185,129,.1),transparent)">
-                  <div class="flex items-center gap-2"><span class="fserif text-emerald-300 text-[19px] leading-none">藥</span><div class="text-[18px] gold-text fserif leading-none">Dược Viên</div></div>
-                  <button @click="g.tmDuocOpen=false; g.tmDuocSowIdx=-1" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeDuocVien()">
+              <div class="panel rounded-2xl w-[640px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-emerald-500/30 relative" @click.stop>
+                <!-- HEADER (ảnh vườn nền + tiêu đề + tóm tắt trạng thái) -->
+                <div class="relative shrink-0 overflow-hidden" style="height:118px">
+                  <img src="images/tongmon/buildings/duocVien.webp" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
+                  <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(11,15,24,.55) 0%,rgba(15,21,33,.78) 55%,#0f1521 100%)"></div>
+                  <div class="absolute fserif select-none pointer-events-none" style="right:-2px;top:-24px;font-size:7rem;line-height:1;opacity:.1;color:#34d399">藥</div>
+                  <button @click="g.closeDuocVien()" class="absolute top-2.5 right-3 text-slate-300 hover:text-rose-400 text-xl leading-none z-10">✕</button>
+                  <div class="absolute bottom-2.5 left-5 right-5">
+                    <div class="gold-text fserif text-[21px] leading-none">Dược Viên</div>
+                    <div class="flex items-center gap-2 mt-2 flex-wrap text-[10.5px]">
+                      <span class="px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-300 bg-emerald-500/10">Bậc <b x-text="g.tmDuocLv"></b></span>
+                      <span class="text-slate-400"><b class="text-slate-200" x-text="g.tmDuocPlotCount"></b> luống · trồng tới <b class="text-emerald-300" x-text="'Bậc '+g.tmDuocMaxTier"></b></span>
+                      <span class="text-slate-700">·</span>
+                      <span class="text-amber-300">Chín <b x-text="g.tmDuocStatus.ripe"></b></span>
+                      <span class="text-emerald-300/90">Đang trồng <b x-text="g.tmDuocStatus.growing"></b></span>
+                      <span class="text-slate-500">Trống <b x-text="g.tmDuocStatus.empty"></b></span>
+                    </div>
+                  </div>
                 </div>
-                <div class="px-5 py-2.5 text-[11px] text-slate-500 border-b border-slate-800/60 shrink-0">Gieo linh dược → chờ chín → thu về Túi Đồ. Dược Viên Bậc <b class="text-emerald-300" x-text="g.tmDuocLv"></b> · <b class="text-emerald-300" x-text="g.tmDuocPlotCount"></b> luống · trồng tới nguyên liệu <b class="text-emerald-300" x-text="'Bậc '+g.tmDuocMaxTier"></b>.</div>
+                <!-- LƯỚI LUỐNG -->
                 <div class="flex-1 overflow-y-auto p-4">
                   <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                    <template x-for="p in g.tmDuocPlots" :key="p.idx">
-                      <div class="relative rounded-xl overflow-hidden border aspect-square flex flex-col" :class="p.empty ? 'border-dashed border-slate-700 bg-ink3/40' : (p.ripe ? 'border-emerald-400/70 bg-emerald-500/10' : 'border-slate-700 bg-ink2')">
-                        <template x-if="p.empty">
-                          <button @click="g.tmDuocSowIdx=p.idx" class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-emerald-300 transition">
-                            <span class="text-2xl leading-none">＋</span><span class="text-[10.5px]">Gieo trồng</span>
+                    <template x-for="p in g.tmDuocSlots" :key="p.idx">
+                      <div class="relative rounded-xl overflow-hidden border aspect-square flex flex-col"
+                           :class="p.locked ? 'border-slate-800 bg-ink3/20' : (p.empty ? 'border-dashed border-slate-700 bg-ink3/40 hover:border-emerald-500/50' : (p.ripe ? 'border-emerald-400/70 bg-emerald-500/10' : 'border-slate-700 bg-ink2'))"
+                           :style="p.ripe ? 'box-shadow:0 0 0 1px #34d39955, 0 0 16px -2px #34d39966' : ''">
+                        <!-- KHOÁ -->
+                        <template x-if="p.locked">
+                          <div class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-slate-700 select-none">
+                            <span class="w-5 h-5 inline-flex opacity-70" x-html="g.svg('scroll','w-5 h-5')"></span><span class="text-[9.5px] text-slate-600 text-center px-1">Nâng cấp mở</span>
+                          </div>
+                        </template>
+                        <!-- TRỐNG -->
+                        <template x-if="!p.locked && p.empty">
+                          <button @click="g.tmDuocSowIdx=p.idx" class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-slate-500 hover:text-emerald-300 transition group">
+                            <span class="w-9 h-9 rounded-full border border-dashed border-slate-600 group-hover:border-emerald-400/70 flex items-center justify-center text-xl leading-none transition">＋</span>
+                            <span class="text-[10.5px] fserif">Gieo trồng</span>
                           </button>
                         </template>
-                        <template x-if="!p.empty">
+                        <!-- ĐANG TRỒNG / CHÍN -->
+                        <template x-if="!p.locked && !p.empty">
                           <div class="absolute inset-0 flex flex-col">
-                            <div class="relative flex-1 flex items-center justify-center">
-                              <span class="text-3xl" x-text="p.emoji"></span>
-                              <img :src="'images/tongmon/mats/'+p.mat+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
-                              <template x-if="p.ripe"><span class="absolute top-1 right-1 text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-ink font-bold">Chín</span></template>
+                            <div class="relative flex-1 flex items-center justify-center overflow-hidden">
+                              <span class="text-4xl opacity-90" x-text="p.emoji"></span>
+                              <img :src="'images/tongmon/mats/'+p.mat+'.webp'" class="absolute inset-0 w-full h-full object-cover" :class="p.ripe?'':'opacity-90'" alt="" onerror="this.remove()">
+                              <template x-if="p.ripe"><span class="absolute top-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-ink font-bold shadow">Chín</span></template>
+                              <template x-if="!p.ripe"><div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(7,11,20,.05),rgba(7,11,20,.55) 88%)"></div></template>
                             </div>
-                            <div class="shrink-0 bg-ink/75 px-2 py-1.5">
-                              <div class="text-[10.5px] text-slate-200 truncate fserif" x-text="p.name"></div>
+                            <div class="shrink-0 px-2 py-1.5" :style="'background:'+(p.ripe?'rgba(16,185,129,.16)':'rgba(7,11,20,.82)')">
+                              <div class="text-[11px] text-slate-100 truncate fserif leading-tight" x-text="p.name"></div>
                               <template x-if="!p.ripe">
-                                <div class="mt-1 flex items-center gap-1.5">
-                                  <div class="flex-1 h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full bg-emerald-400" :style="'width:'+p.pct+'%'"></div></div>
-                                  <span class="text-[9px] text-slate-500 whitespace-nowrap" x-text="g.tmDuocLeftText(p.left)"></span>
+                                <div class="mt-1.5 flex items-center gap-1.5">
+                                  <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :style="'width:'+p.pct+'%;background:#34d399;box-shadow:0 0 5px #34d39988'"></div></div>
+                                  <span class="text-[9px] text-slate-400 whitespace-nowrap" x-text="g.tmDuocLeftText(p.left)"></span>
                                 </div>
                               </template>
                               <template x-if="p.ripe">
-                                <button @click="g.tmHarvest(p.idx)" class="mt-1 w-full py-1 rounded text-[10.5px] font-bold bg-emerald-500/85 hover:bg-emerald-500 text-ink transition" x-text="'Thu ×'+p.qty"></button>
+                                <button @click="g.tmHarvest(p.idx)" class="mt-1.5 w-full py-1 rounded-md text-[11px] font-bold bg-emerald-500/90 hover:bg-emerald-400 text-ink transition" x-text="'Thu Hoạch ×'+p.qty"></button>
                               </template>
                             </div>
                           </div>
@@ -4601,25 +4627,44 @@
                   </div>
                   <template x-if="!g.tmDuocPlotCount"><div class="text-center text-[12px] text-slate-600 italic fserif py-8">Chưa có luống — nâng Dược Viên để mở đất trồng.</div></template>
                 </div>
+                <!-- FOOTER -->
                 <div class="shrink-0 px-4 py-3 border-t border-slate-800" style="background:rgba(15,21,33,.55)">
-                  <button @click="g.tmHarvestAll()" :disabled="!g.tmDuocHasRipe()" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmDuocHasRipe()?'bg-emerald-500/85 hover:bg-emerald-500 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'">Thu Hoạch Tất Cả</button>
+                  <button @click="g.tmHarvestAll()" :disabled="!g.tmDuocHasRipe()" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmDuocHasRipe()?'bg-emerald-500/90 hover:bg-emerald-400 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="g.tmDuocStatus.ripe>0 ? ('Thu Hoạch Tất Cả ('+g.tmDuocStatus.ripe+')') : 'Thu Hoạch Tất Cả'"></button>
                 </div>
-              </div>
-              <template x-if="g.tmDuocSowIdx>=0">
-                <div class="fixed inset-0 z-[79] flex items-center justify-center bg-black/60 p-4" @click="g.tmDuocSowIdx=-1">
-                  <div class="panel rounded-2xl w-[360px] max-w-full max-h-[80vh] flex flex-col overflow-hidden border border-emerald-500/40" @click.stop>
-                    <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 shrink-0"><div class="text-[14px] fserif text-emerald-200">Chọn linh dược gieo</div><button @click="g.tmDuocSowIdx=-1" class="text-slate-500 hover:text-rose-400 text-lg leading-none">✕</button></div>
-                    <div class="flex-1 overflow-y-auto p-3 space-y-1.5">
-                      <template x-for="s in g.tmDuocSowable()" :key="s.id">
-                        <button @click="g.tmSow(g.tmDuocSowIdx, s.id)" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg bg-ink3/40 border border-slate-800 hover:border-emerald-400/60 transition text-left">
-                          <span class="relative w-9 h-9 rounded-md overflow-hidden bg-ink2 border border-slate-700 flex items-center justify-center shrink-0"><span class="text-base" x-text="s.emoji"></span><img :src="'images/tongmon/mats/'+s.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
-                          <div class="min-w-0"><div class="text-[12.5px] text-slate-100 fserif truncate" x-text="s.name"></div><div class="text-[10px] text-slate-500">Bậc <span x-text="s.tier"></span> · chín sau <span x-text="s.growH"></span>h → thu ×<span x-text="s.qty"></span></div></div>
-                        </button>
-                      </template>
+
+                <!-- PICKER chọn hạt giống: overlay TRONG panel (không bubble đóng garden) -->
+                <template x-if="g.tmDuocSowIdx>=0">
+                  <div class="absolute inset-0 z-20 flex items-center justify-center p-4" style="background:rgba(7,11,20,.72);backdrop-filter:blur(2px)" @click="g.tmDuocSowIdx=-1">
+                    <div class="panel rounded-2xl w-[400px] max-w-full max-h-[92%] flex flex-col overflow-hidden border border-emerald-500/40 shadow-2xl" @click.stop>
+                      <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(16,185,129,.1),transparent)">
+                        <div class="text-[14px] fserif text-emerald-200">Chọn linh dược gieo <span class="text-slate-500 text-[11px]">· Luống <span x-text="g.tmDuocSowIdx+1"></span></span></div>
+                        <button @click="g.tmDuocSowIdx=-1" class="text-slate-500 hover:text-rose-400 text-lg leading-none">✕</button>
+                      </div>
+                      <div class="flex-1 overflow-y-auto p-3">
+                        <div class="grid grid-cols-2 gap-2">
+                          <template x-for="s in g.tmDuocSowable()" :key="s.id">
+                            <button @click="g.tmSow(g.tmDuocSowIdx, s.id)" class="relative rounded-xl overflow-hidden border bg-ink2 hover:bg-ink3 transition text-left flex flex-col" :style="'border-color:'+s.color+'66'">
+                              <div class="relative w-full overflow-hidden flex items-center justify-center" style="aspect-ratio:16/10;background:radial-gradient(120% 130% at 50% 35%, #0f1521, #070b14)">
+                                <span class="text-3xl" x-text="s.emoji"></span>
+                                <img :src="'images/tongmon/mats/'+s.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                                <span class="absolute top-1 left-1 text-[8.5px] px-1.5 py-0.5 rounded-full font-bold" :style="'color:'+s.color+';background:'+s.color+'1f;border:1px solid '+s.color+'66'" x-text="'Bậc '+s.tier"></span>
+                                <span class="absolute bottom-1 right-1 text-[8.5px] px-1.5 py-0.5 rounded bg-ink/80 text-slate-300 border border-slate-700">Kho <b x-text="s.have"></b></span>
+                              </div>
+                              <div class="px-2.5 py-2">
+                                <div class="text-[12.5px] text-slate-100 fserif truncate" x-text="s.name"></div>
+                                <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                                  <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-cyan inline-block"></span>chín <b class="text-slate-300" x-text="s.growH+'h'"></b></span>
+                                  <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>thu <b class="text-emerald-300" x-text="'×'+s.qty"></b></span>
+                                </div>
+                              </div>
+                            </button>
+                          </template>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </template>
+                </template>
+              </div>
             </div>
           </template>
 
