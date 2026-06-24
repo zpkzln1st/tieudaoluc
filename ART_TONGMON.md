@@ -81,6 +81,11 @@ subtle gold filigree, soft glow, isolated on transparent background, painterly g
   - `d3` Cố Nhân Lai Phục: kẻ áo đen đứng trên sơn môn trong mưa, cao trào.
 - **E — Giai thoại (slate #94a3b8, an hoà):** khoảnh khắc đẹp cột mốc.
   - `e1` Triêu Hà Mãn Sơn: đệ tử tọa vong mỏm đá lúc mây ráng đỏ; `e2`–`e5`: trăng tròn/cứu dân/kỳ vật/quần tụ.
+- **F — Kỳ Ngộ (emerald #34d399):** rơi nguyên liệu hiếm — linh dược / cổ động / địa bảo.
+  - `f1` Linh Dược Phùng Thời: đệ tử vạch rêu khe núi gặp khóm linh dược phát sáng dưới gốc cổ thụ sau mưa.
+  - `f2` Dược Đầu Quá Môn: lão dược đầu râu bạc, sọt thuốc đầy linh dược quý, đứng trước cổng sơn môn lúc hoàng hôn.
+  - `f3` Cổ Động Khai Phong: cửa cổ động bị sạt lở lộ ra, khí xanh mờ ảo phun ra, ánh bảo vật le lói bên trong, hiểm khí.
+  - `f4` Thiên Tài Giáng Thế: sao băng đáp xuống đỉnh núi đêm, nơi rơi mọc đóa linh chi phát quang ngũ sắc, tinh thạch quanh đó.
 
 **Prompt mẫu (thay phần in hoa theo từng id):**
 ```
