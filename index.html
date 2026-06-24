@@ -2260,7 +2260,13 @@
             <div class="divide-y divide-slate-800/60 max-h-[620px] overflow-y-auto">
               <template x-for="n in $store.game.jiangHuFeed" :key="n.id">
                 <div class="flex gap-3 px-3.5 py-3">
-                  <div class="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[20px]" :style="'background:'+n.hex+'1c;border:1px solid '+n.hex+'55;color:'+n.hex" x-text="n.seal"></div>
+                  <div class="relative shrink-0 w-9 h-9">
+                    <div class="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br flex items-center justify-center text-[13px] text-white/90" :class="n.av.color" x-data="{ok:true}">
+                      <img :src="'images/avatars/'+n.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                      <span x-show="!ok" class="fserif" x-text="n.av.char"></span>
+                    </div>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full" :style="'background:'+n.hex+';box-shadow:0 0 0 2px #0f1521'"></span>
+                  </div>
                   <div class="flex-1 min-w-0">
                     <div class="text-[12.5px] leading-snug"><b class="fserif" :style="'color:'+n.whoHex" x-text="n.who"></b> <span class="text-slate-300" x-html="n.txt"></span></div>
                     <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="$store.game.notifAgo(n.ts)"></div>
@@ -4320,7 +4326,13 @@
               <div class="divide-y divide-slate-800/60 max-h-[224px] overflow-y-auto">
                 <template x-for="n in g.jiangHuFeed.slice(0,6)" :key="n.id">
                   <div class="flex gap-2.5 px-3 py-2 items-center">
-                    <div class="w-7 h-7 rounded shrink-0 flex items-center justify-center fserif leading-none text-[14px]" :style="'background:'+n.hex+'1c;border:1px solid '+n.hex+'55;color:'+n.hex" x-text="n.seal"></div>
+                    <div class="relative shrink-0 w-7 h-7">
+                      <div class="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br flex items-center justify-center text-[11px] text-white/90" :class="n.av.color" x-data="{ok:true}">
+                        <img :src="'images/avatars/'+n.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                        <span x-show="!ok" class="fserif" x-text="n.av.char"></span>
+                      </div>
+                      <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full" :style="'background:'+n.hex+';box-shadow:0 0 0 1.5px #0f1521'"></span>
+                    </div>
                     <div class="flex-1 min-w-0"><div class="text-[11.5px] leading-snug truncate"><b class="fserif" :style="'color:'+n.whoHex" x-text="n.who"></b> <span class="text-slate-400" x-html="n.txt"></span></div><div class="text-[9.5px] text-slate-600" x-text="g.notifAgo(n.ts)"></div></div>
                   </div>
                 </template>

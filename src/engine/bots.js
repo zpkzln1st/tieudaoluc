@@ -256,7 +256,7 @@ export function genJiangHuFeed(seed, createdAt, now) {
     const bot = roster[hash2(seed ^ 0x51ED2A, slot) % BOT_COUNT];
     const ev = feedEvent(bot, slotTime, hash2(seed ^ 0x9A1B3C, slot));
     const ts = Math.min(now, slotTime - (hash2(seed ^ 0x7C3D5E, slot) % jitMax));
-    out.push({ id: 'jh' + slot, kind: ev.kind, seal: ev.seal, hex: ev.hex, who: bot.name, whoHex: ev.whoHex, ts, txt: ev.txt });
+    out.push({ id: 'jh' + slot, kind: ev.kind, seal: ev.seal, hex: ev.hex, who: bot.name, whoHex: ev.whoHex, ts, txt: ev.txt, av: botAvatar(bot) });
   }
   out.sort((a, b) => b.ts - a.ts);
   _feedKey = ck; _feedList = out;
