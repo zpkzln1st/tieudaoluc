@@ -4630,7 +4630,7 @@
           <!-- MODAL DƯỢC VIÊN (trồng nguyên liệu idle) -->
           <template x-if="g.tmDuocOpen">
             <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeDuocVien()">
-              <div class="panel rounded-2xl w-[560px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-emerald-500/30 relative" @click.stop>
+              <div class="panel rounded-2xl w-[560px] max-w-full h-[660px] max-h-[92dvh] flex flex-col overflow-hidden border border-emerald-500/30 relative" @click.stop>
                 <!-- HEADER (ảnh vườn nền + tiêu đề + tóm tắt trạng thái) -->
                 <div class="relative shrink-0 overflow-hidden" style="height:118px">
                   <img src="images/tongmon/buildings/duocVien.webp" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">
@@ -4653,32 +4653,32 @@
                 <div class="flex-1 overflow-y-auto p-4">
                   <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     <template x-for="p in g.tmDuocSlots" :key="p.idx">
-                      <div class="relative rounded-xl overflow-hidden border aspect-square flex flex-col"
-                           :class="p.locked ? 'border-slate-800 bg-ink3/20' : (p.empty ? 'border-dashed border-slate-700 bg-ink3/40 hover:border-emerald-500/50' : (p.ripe ? 'border-emerald-400/70 bg-emerald-500/10' : 'border-slate-700 bg-ink2'))"
-                           :style="p.ripe ? 'box-shadow:0 0 0 1px #34d39955, 0 0 16px -2px #34d39966' : ''">
-                        <!-- KHOÁ -->
-                        <template x-if="p.locked">
-                          <div class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-slate-700 select-none">
-                            <span class="w-5 h-5 inline-flex opacity-70" x-html="g.svg('scroll','w-5 h-5')"></span><span class="text-[9.5px] text-slate-600 text-center px-1">Nâng cấp mở</span>
-                          </div>
-                        </template>
-                        <!-- TRỐNG -->
-                        <template x-if="!p.locked && p.empty">
-                          <button @click="g.tmDuocSowIdx=p.idx" class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-slate-500 hover:text-emerald-300 transition group">
-                            <span class="w-9 h-9 rounded-full border border-dashed border-slate-600 group-hover:border-emerald-400/70 flex items-center justify-center text-xl leading-none transition">＋</span>
-                            <span class="text-[10.5px] fserif">Gieo trồng</span>
-                          </button>
-                        </template>
-                        <!-- ĐANG TRỒNG / CHÍN -->
-                        <template x-if="!p.locked && !p.empty">
-                          <div class="absolute inset-0 flex flex-col">
-                            <div class="relative flex-1 flex items-center justify-center overflow-hidden">
-                              <span class="text-3xl opacity-90" x-text="p.emoji"></span>
-                              <img :src="'images/tongmon/mats/'+p.mat+'.webp'" class="absolute inset-0 w-full h-full object-contain p-2" :class="p.ripe?'':'opacity-90'" alt="" onerror="this.remove()">
-                              <template x-if="p.ripe"><span class="absolute top-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-ink font-bold shadow">Chín</span></template>
-                              <template x-if="!p.ripe"><div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(7,11,20,.05),rgba(7,11,20,.55) 88%)"></div></template>
-                            </div>
-                            <div class="shrink-0 px-2 py-1.5" :style="'background:'+(p.ripe?'rgba(16,185,129,.16)':'rgba(7,11,20,.82)')">
+                      <div class="rounded-xl overflow-hidden border flex flex-col transition"
+                           :class="p.locked ? 'border-slate-800 bg-ink3/15' : (p.empty ? 'border-dashed border-slate-700 bg-ink3/25 hover:border-emerald-500/50 cursor-pointer' : (p.ripe ? 'border-emerald-400/70 bg-ink2' : 'border-slate-700 bg-ink2'))"
+                           :style="p.ripe ? 'box-shadow:0 0 0 1px #34d39955, 0 0 16px -2px #34d39966' : ''"
+                           @click="(!p.locked && p.empty) && (g.tmDuocSowIdx=p.idx)">
+                        <!-- KHUNG ART (vuông, full-bleed — art kín ô, không viền đen) -->
+                        <div class="relative aspect-square overflow-hidden" :style="(p.empty||p.locked) ? 'background:radial-gradient(120% 120% at 50% 32%, #141b2a, #0b1018)' : 'background:#0b1018'">
+                          <template x-if="p.locked">
+                            <div class="absolute inset-0 flex items-center justify-center text-slate-700 select-none"><span class="w-7 h-7 inline-flex opacity-50" x-html="g.svg('scroll','w-7 h-7')"></span></div>
+                          </template>
+                          <template x-if="!p.locked && p.empty">
+                            <div class="absolute inset-0 flex items-center justify-center text-slate-500"><span class="w-12 h-12 rounded-full border border-dashed border-slate-600 flex items-center justify-center text-2xl leading-none">＋</span></div>
+                          </template>
+                          <template x-if="!p.locked && !p.empty">
+                            <span class="absolute inset-0 flex items-center justify-center text-5xl opacity-50" x-text="p.emoji"></span>
+                          </template>
+                          <template x-if="!p.locked && !p.empty">
+                            <img :src="'images/tongmon/mats/'+p.mat+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                          </template>
+                          <template x-if="p.ripe"><span class="absolute top-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-ink font-bold shadow">Chín</span></template>
+                        </div>
+                        <!-- TEXT (ngoài khung art) -->
+                        <div class="px-2 py-1.5 border-t flex-1 flex flex-col justify-center min-h-0" :class="p.ripe ? 'bg-emerald-500/[.08] border-emerald-500/20' : 'bg-ink2/60 border-slate-800'">
+                          <template x-if="p.locked"><div class="text-[10px] text-slate-600 text-center fserif">Nâng cấp mở</div></template>
+                          <template x-if="!p.locked && p.empty"><div class="text-[10.5px] text-slate-500 text-center fserif">Gieo trồng</div></template>
+                          <template x-if="!p.locked && !p.empty">
+                            <div>
                               <div class="text-[11px] text-slate-100 truncate fserif leading-tight" x-text="p.name"></div>
                               <template x-if="!p.ripe">
                                 <div class="mt-1.5 flex items-center gap-1.5">
@@ -4687,11 +4687,11 @@
                                 </div>
                               </template>
                               <template x-if="p.ripe">
-                                <button @click="g.tmHarvest(p.idx)" class="mt-1.5 w-full py-1 rounded-md text-[11px] font-bold bg-emerald-500/90 hover:bg-emerald-400 text-ink transition" x-text="'Thu Hoạch ×'+p.qty"></button>
+                                <button @click.stop="g.tmHarvest(p.idx)" class="mt-1.5 w-full py-1 rounded-md text-[11px] font-bold bg-emerald-500/90 hover:bg-emerald-400 text-ink transition" x-text="'Thu Hoạch ×'+p.qty"></button>
                               </template>
                             </div>
-                          </div>
-                        </template>
+                          </template>
+                        </div>
                       </div>
                     </template>
                   </div>
@@ -4714,9 +4714,9 @@
                         <div class="grid grid-cols-2 gap-2">
                           <template x-for="s in g.tmDuocSowable()" :key="s.id">
                             <button @click="g.tmSow(g.tmDuocSowIdx, s.id)" class="relative rounded-xl overflow-hidden border bg-ink2 hover:bg-ink3 transition text-left flex flex-col" :style="'border-color:'+s.color+'66'">
-                              <div class="relative w-full overflow-hidden flex items-center justify-center" style="aspect-ratio:16/10;background:radial-gradient(120% 130% at 50% 35%, #0f1521, #070b14)">
-                                <span class="text-2xl" x-text="s.emoji"></span>
-                                <img :src="'images/tongmon/mats/'+s.id+'.webp'" class="absolute inset-0 w-full h-full object-contain p-1.5" alt="" onerror="this.remove()">
+                              <div class="relative w-full overflow-hidden flex items-center justify-center" style="aspect-ratio:1/1;background:#0b1018">
+                                <span class="absolute inset-0 flex items-center justify-center text-4xl opacity-50" x-text="s.emoji"></span>
+                                <img :src="'images/tongmon/mats/'+s.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
                                 <span class="absolute top-1 left-1 text-[8.5px] px-1.5 py-0.5 rounded-full font-bold" :style="'color:'+s.color+';background:'+s.color+'1f;border:1px solid '+s.color+'66'" x-text="'Bậc '+s.tier"></span>
                                 <span class="absolute bottom-1 right-1 text-[8.5px] px-1.5 py-0.5 rounded bg-ink/80 text-slate-300 border border-slate-700">Kho <b x-text="s.have"></b></span>
                               </div>
