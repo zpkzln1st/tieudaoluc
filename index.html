@@ -4586,7 +4586,7 @@
                       <div class="space-y-1.5">
                         <template x-for="b in g.tmBrewing" :key="b.idx">
                           <div class="flex items-center gap-2.5 rounded-lg bg-ink2/70 border px-2.5 py-2" :class="b.ready?'border-amber-400/50':'border-slate-800'" :style="b.ready?'box-shadow:0 0 12px -3px #f5b94266':''">
-                            <span class="w-8 h-8 rounded bg-ink3 border border-slate-700 flex items-center justify-center text-[16px] shrink-0" x-text="b.emoji"></span>
+                            <span class="relative w-8 h-8 rounded overflow-hidden bg-ink3 border border-slate-700 flex items-center justify-center text-[16px] shrink-0"><span x-text="b.emoji"></span><img :src="'images/tongmon/pills/'+b.pill+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
                             <div class="flex-1 min-w-0">
                               <div class="text-[12px] fserif text-slate-100 truncate" x-text="b.name"></div>
                               <div class="mt-1 flex items-center gap-1.5">
@@ -4606,7 +4606,7 @@
                       <div class="rounded-lg bg-ink3/40 border px-3 py-2.5" :class="r.canCraft?'border-jade/30':'border-slate-800'">
                         <div class="flex items-center justify-between gap-2">
                           <div class="flex items-center gap-2 min-w-0">
-                            <span class="w-7 h-7 rounded bg-ink2 border border-slate-700 flex items-center justify-center text-[15px] shrink-0" x-text="r.emoji"></span>
+                            <span class="relative w-7 h-7 rounded overflow-hidden bg-ink2 border border-slate-700 flex items-center justify-center text-[15px] shrink-0"><span x-text="r.emoji"></span><img :src="'images/tongmon/pills/'+r.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
                             <div class="min-w-0">
                               <div class="fserif text-[13px] text-slate-100 truncate" x-text="r.name"></div>
                               <div class="text-[10px] text-slate-500 truncate"><span x-text="'Đột phá → '+r.realmName"></span> <span class="text-slate-600">·</span> <span class="text-cyan/80" x-text="'luyện '+r.brewH+'h'"></span><span x-show="r.have" x-text="' · đang có '+r.have"></span></div>
@@ -4841,8 +4841,9 @@
                         <div class="grid grid-cols-2 gap-2 mb-2.5">
                           <template x-for="row in g.tmBreakRows(d)" :key="row.label">
                             <div class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 border" :class="row.ok?'border-jade/25 bg-jade/[.06]':'border-rose-500/25 bg-rose-500/[.05]'">
-                              <span class="w-7 h-7 rounded-md bg-ink2/80 border border-slate-700 flex items-center justify-center text-[14px] shrink-0">
+                              <span class="relative overflow-hidden w-7 h-7 rounded-md bg-ink2/80 border border-slate-700 flex items-center justify-center text-[14px] shrink-0">
                                 <template x-if="row.kind==='pill'"><span x-text="row.emoji"></span></template>
+                                <template x-if="row.kind==='pill'"><img :src="'images/tongmon/pills/'+row.pill+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template>
                                 <template x-if="row.kind!=='pill'"><span class="w-4 h-4 inline-flex text-cyan" x-html="g.svg('gem','w-4 h-4')"></span></template>
                               </span>
                               <span class="text-[11.5px] text-slate-200 flex-1 truncate fserif" x-text="row.label"></span>

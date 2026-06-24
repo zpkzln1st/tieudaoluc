@@ -91,14 +91,50 @@ character can overlay on top, 1200x420, no text
 
 ---
 
-## 5. TILE 5 CÔNG TRÌNH — `images/tongmon/buildings/<key>.webp` (tuỳ chọn)
-**Nơi để:** `images/tongmon/buildings/` (tạo mới) · **Kích thước:** ~312×416 (3:4) · **Nền:** tối, hợp thẻ.
-**Tên file = key:** `tuHien` (Tụ Hiền Đường), `dienVo` (Diễn Võ Trường), `tangThu` (Tàng Thư Lâu), `yQuan` (Y Quán), `tuLinh` (Tụ Linh Trận).
+## 5. TILE CÔNG TRÌNH — `images/tongmon/buildings/<key>.webp` (tuỳ chọn)
+**Nơi để:** `images/tongmon/buildings/` · **Kích thước:** ~312×416 (3:4) · **Nền:** tối, hợp thẻ.
+**Tên file = key:** `tuHien` (Tụ Hiền Đường), `dienVo` (Diễn Võ Trường), `tangThu` (Tàng Thư Lâu), `yQuan` (Y Quán), `tuLinh` (Tụ Linh Trận), **`duocVien` (Dược Viên — MỚI, đang fallback Hán 藥; đã wire sẵn ở card + header modal).**
 ```
 Painterly wuxia sect building card art, [TÊN CÔNG TRÌNH ENG: hall of talents / martial training ground /
 library tower / infirmary / spirit-gathering array], traditional Chinese architecture, night, jade and
 amber lantern glow, vertical 3:4, dark muted background, no text
 ```
+**`duocVien` (Dược Viên — vườn linh dược):**
+```
+Painterly wuxia sect building card art, a serene spirit-herb medicine garden: tiered planting beds of
+glowing jade-green spirit herbs and luminous mushrooms, a wooden drying rack and stone mortar, a small
+curved-roof apothecary pavilion behind, night, soft emerald and jade qi glow rising from the plants,
+misty, vertical 3:4, dark muted background, painterly xianxia concept art, no text, 312x416
+```
+
+---
+
+## 7. ĐAN DƯỢC (9 viên) — `images/tongmon/pills/<id>.webp` (MỚI, đã wire sẵn — đang fallback emoji)
+**Nơi để:** `images/tongmon/pills/` (tạo mới) · **Kích thước:** ~512×512 (VUÔNG) · **Nền:** ĐEN ĐẶC (object-cover sẽ phủ kín ô) · 1 viên đan giữa khung, glow theo màu, KHÔNG chữ.
+**Hiện ở:** Túi Đồ (mục Đan Dược) · modal Luyện Đan (icon công thức + lò đang luyện) · Bình Cảnh (icon yêu cầu). Thiếu file → tự lộ lại emoji.
+**Tên file = id (camelCase, đúng như list dưới).**
+
+**Prompt mẫu (thay [TÊN] + [MÀU GLOW] + [HỌA TIẾT] theo từng viên):**
+```
+A single ornate Chinese cultivation elixir pill (xianxia "dan/pellet"), perfectly round glossy pill with
+intricate swirling [HỌA TIẾT] surface patterns, floating centered on a deep solid black background,
+radiant [MÀU GLOW] inner glow and soft qi-mist halo, faint dragon-and-cloud relief, painterly
+semi-realistic game item icon, high detail, centered with even margin, no text, 512x512
+```
+
+| id (tên file) | Đan | Đột phá lên | Màu glow | Họa tiết gợi ý |
+|---|---|---|---|---|
+| `trucCoDan`   | Trúc Cơ Đan   | Trúc Cơ   | xanh ngọc lục (jade green) | mầm cây / vân gỗ linh |
+| `ketDanDan`   | Kết Đan Đan   | Kim Đan   | lam ngọc (azure blue)      | xoáy nước / vân băng |
+| `ngungAnhDan` | Ngưng Anh Đan | Nguyên Anh| tím nhạt (violet)          | hình thai nhi linh / vân mây |
+| `hoaThanDan`  | Hóa Thần Đan  | Hóa Thần  | tím magenta sâu            | thần văn / sao mờ |
+| `quyHuDan`    | Quy Hư Đan    | Luyện Hư  | cam (orange)               | hư không xoáy / khói |
+| `hopDaoDan`   | Hợp Đạo Đan   | Hợp Thể   | hổ phách cam (amber)       | âm dương / vân rồng |
+| `daiThuaDan`  | Đại Thừa Đan  | Đại Thừa  | vàng kim (golden yellow)   | hoa sen / hào quang |
+| `doKiepDan`   | Độ Kiếp Đan   | Độ Kiếp   | đỏ thẫm (crimson red)      | sấm sét / vân lửa kiếp |
+| `phiThangDan` | Phi Thăng Đan | Đắc Đạo   | trắng-kim rực (radiant white-gold) | tiên quang / lông vũ thăng thiên |
+
+> Càng bậc cao → đan càng tinh xảo/thần thánh (nhiều glow + hoa văn rồng/tiên). Bậc thấp giản dị hơn.
 
 ---
 

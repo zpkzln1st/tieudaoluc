@@ -443,11 +443,11 @@ const gameStore = {
     void this._tick;
     return [
       { key: 'mat', label: 'Nguyên Liệu', color: '#34d399', items: MAT_KEYS.map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, count: this.tmMatCount(m), color: this.tmMatTierColor(MATS[m].tier), sub: 'Bậc ' + MATS[m].tier + ' · luyện đan', img: 'images/tongmon/mats/' + m + '.webp' })) },
-      { key: 'pill', label: 'Đan Dược', color: '#f5b942', items: PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p), color: '#f5b942', sub: 'Đột phá → ' + REALMS[PILLS[p].realm + 1].name, img: null })) },
+      { key: 'pill', label: 'Đan Dược', color: '#f5b942', items: PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p), color: '#f5b942', sub: 'Đột phá → ' + REALMS[PILLS[p].realm + 1].name, img: 'images/tongmon/pills/' + p + '.webp' })) },
     ];
   },
   get tmBagTotal() { void this._tick; let n = 0; MAT_KEYS.forEach((m) => { n += this.tmMatCount(m); }); PILL_KEYS.forEach((p) => { n += this.tmPillCount(p); }); return n; },
-  get tmBagPreview() { void this._tick; const out = []; MAT_KEYS.forEach((m) => { const c = this.tmMatCount(m); if (c > 0) out.push({ id: m, emoji: MATS[m].emoji, count: c, img: 'images/tongmon/mats/' + m + '.webp' }); }); PILL_KEYS.forEach((p) => { const c = this.tmPillCount(p); if (c > 0) out.push({ id: p, emoji: PILLS[p].emoji, count: c, img: null }); }); return out.slice(0, 7); },
+  get tmBagPreview() { void this._tick; const out = []; MAT_KEYS.forEach((m) => { const c = this.tmMatCount(m); if (c > 0) out.push({ id: m, emoji: MATS[m].emoji, count: c, img: 'images/tongmon/mats/' + m + '.webp' }); }); PILL_KEYS.forEach((p) => { const c = this.tmPillCount(p); if (c > 0) out.push({ id: p, emoji: PILLS[p].emoji, count: c, img: 'images/tongmon/pills/' + p + '.webp' }); }); return out.slice(0, 7); },
   get tmFurnaces() { void this._tick; const used = ((this.tm && this.tm.brewing) || []).length, total = yQuanFurnaces(this.tmBuildLv('yQuan')); return { used, total, free: Math.max(0, total - used) }; },
   get tmRecipes() {
     void this._tick;
