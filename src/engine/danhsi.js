@@ -185,7 +185,7 @@ function gearOf(c) {
   return SLOTS.map(([sid, sname], i) => {
     if (sid === 'vuKhi') {
       const wq = Math.min(5, baseQ + 1), q = QUAL[wq];
-      const gearId = DSW_WEAPON[c.id] || ('eq_' + weaponType(c.binhKhi && c.binhKhi.ten) + '_' + (wq + 1));
+      const gearId = DSW_WEAPON[c.id] || (c.successorOf && DSW_WEAPON[c.successorOf.ancestorId]) || ('eq_' + weaponType(c.binhKhi && c.binhKhi.ten) + '_' + (wq + 1));   // truyền nhân kế thừa binh khí -> dùng lại art ký danh của tiền nhân
       return { slot: sname, gearId, name: (c.binhKhi && c.binhKhi.ten) || 'Vô Danh', pham: (c.binhKhi && c.binhKhi.pham) || q.n, color: '#f5b942', sig: true };
     }
     const qd = Math.max(0, Math.min(5, baseQ + ((h32(c.id + ':g' + i) % 3) - 1)));
@@ -258,6 +258,7 @@ function succ1(orig, bornAt) {
     tuyetHoc: { ten: (orig.tuyetHoc && orig.tuyetHoc.ten) || 'Tuyệt học bản môn', desc: `Tuyệt học trấn phái ${orig.monPhaiXuatThan} truyền tới tay hậu bối — uy lực còn đó, hỏa hầu chờ ngày viên mãn.` },
     tamCanh: [`Bóng tiền nhân ${orig.ten} quá lớn — ta phải bước ra khỏi cái bóng ấy, hay nương theo nó?`, 'Y bát trên vai nặng hơn ta tưởng.', `Giang hồ còn nhớ tên ${orig.bietHieu}; bao giờ họ mới nhớ tên ta?`],
     lifeEvents: [],
+    hookWithPlayer: `Truyền nhân tân tiến của ${orig.monPhaiXuatThan}, kế thừa y bát ${orig.ten}. Chưa có ân oán gì với ngươi — nhưng cái bóng tiền nhân buộc hậu bối phải sớm chọn bạn hay thù.`,
     rankPower, bornAt, successorOf: { ancestorId: orig.id, ancestorTen: orig.ten, ancestorBh: orig.bietHieu, gen: 1, ancestorDeathAt: bornAt },
   };
 }
