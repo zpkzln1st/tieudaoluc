@@ -2155,12 +2155,14 @@
                       <template x-if="!p.rels.length"><div class="text-[11px] text-slate-600 italic">Chưa rõ ân oán với ai.</div></template>
                       <div class="grid sm:grid-cols-2 gap-1.5">
                         <template x-for="r in p.rels" :key="r.otherId">
-                          <div class="rounded-lg px-2.5 py-1.5 bg-ink3/40 border border-slate-800">
+                          <div class="rounded-lg px-2.5 py-1.5 bg-ink3/40 border" :class="r.intensityLabel?'border-rose-500/25':'border-slate-800'">
                             <div class="flex items-center gap-1.5">
                               <span class="text-[9.5px] px-1.5 py-0.5 rounded font-bold shrink-0" :style="'color:'+r.loaiColor+';background:'+r.loaiColor+'1c;border:1px solid '+r.loaiColor+'55'" x-text="r.loaiName"></span>
                               <span class="text-[11.5px] font-bold fserif truncate" x-text="r.otherTen"></span>
+                              <template x-if="r.intensityLabel"><span class="text-[8.5px] px-1.5 py-0.5 rounded font-bold shrink-0 ml-auto" :style="'color:'+(r.intensity>=0.7?'#ef4444':(r.intensity>=0.45?'#fb7185':'#f59e0b'))+';background:'+(r.intensity>=0.7?'#ef4444':(r.intensity>=0.45?'#fb7185':'#f59e0b'))+'1c'" x-text="r.intensityLabel"></span></template>
                             </div>
                             <div class="text-[10.5px] text-slate-500 leading-snug mt-1" x-text="r.text"></div>
+                            <template x-if="typeof r.lastClashDays==='number'"><div class="text-[9px] text-rose-300/60 mt-0.5" x-text="r.lastClashDays===0?'Vừa đụng độ hôm nay':('Đụng độ '+r.lastClashDays+' ngày trước')"></div></template>
                           </div>
                         </template>
                       </div>

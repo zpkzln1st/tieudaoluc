@@ -57,6 +57,43 @@ const AUTO_POOL = [
   { loai: 'kyNgo', t: (c) => `Tình cờ đắc một mảnh tàn quyển nơi ${pick(PLACES, c.id + 'k')}.` },
   { loai: 'giangHo', t: () => 'Danh tiếng lại vang thêm một dải giang hồ.' },
 ];
+// ---- ÂN OÁN ĐỘNG: thù địch (authored foe + feud TỰ SINH) deterministic — intensity + lần đụng độ gần nhất. Stateless (id, otherId, time-slot). ----
+const FEUD_REASONS = [
+  'tranh đoạt một bộ tàn quyển thất lạc', 'bất đồng đạo nghĩa, thề không đội chung trời',
+  'một trận sinh tử năm xưa bất phân thắng bại', 'tranh ngôi thứ trên Phong Vân Bảng',
+  'ân oán môn phái truyền đời chưa dứt', 'cùng để mắt một kỳ trân, kết thành cừu địch',
+  'lời qua tiếng lại chốn Luận Võ, sinh hiềm khích',
+];
+const ADV_FOE = ['tucDich', 'huyetCuu', 'cuuThu'], ADV_FRIEND = ['daoLu', 'suDo', 'triKy', 'dongMon'];
+function intenLabel(x) { return x >= 0.7 ? 'tử thù' : (x >= 0.45 ? 'kết oán' : 'hiềm khích'); }
+function adversariesOf(c, now) {
+  const out = [];
+  for (const o of DANH_SI) {
+    if (o.id === c.id) continue;
+    const key = [c.id, o.id].sort().join('~');
+    const authored = DANHSI_REL.find((r) => (r.a === c.id && r.b === o.id) || (r.a === o.id && r.b === c.id));
+    if (authored && ADV_FRIEND.includes(authored.loai)) continue;                 // bạn -> không sinh ân oán
+    const authoredFoe = !!(authored && ADV_FOE.includes(authored.loai));
+    const opp = (c.dao === 'chinh' && o.dao === 'ta') || (c.dao === 'ta' && o.dao === 'chinh');
+    const close = Math.abs((c.rankPower || 500) - (o.rankPower || 500)) < 80;
+    const seed = h32(key + ':feud');
+    let chance = 6 + (opp ? 28 : 0) + (close ? 20 : 0);
+    if (authoredFoe) chance = 100;
+    if ((seed % 100) >= chance) continue;
+    const intensity = Math.min(1, 0.28 + (opp ? 0.3 : 0) + (close ? 0.2 : 0) + ((seed >>> 8) % 22) / 100 + (authoredFoe ? 0.25 : 0));
+    const lastClashDays = (h32(key + ':clash') + Math.floor(now / DAY)) % 100;     // xoay theo ngày -> "sống"
+    out.push({ o, otherId: o.id, authored: !!authored, authoredFoe, opp, close, intensity, lastClashDays, key });
+  }
+  out.sort((a, b) => a.lastClashDays - b.lastClashDays || b.intensity - a.intensity);
+  return out;
+}
+function feudText(c, a) { return `Kết oán với ${a.o.ten} 「${a.o.bietHieu}」 — ${pick(FEUD_REASONS, c.id + a.otherId + ':r')}.`; }
+// Feud TỰ SINH (không có rel tác giả) — cho profile.rels + codex (Phase 4).
+export function feudsOf(id, now) {
+  const c = danhSiById(id); if (!c) return [];
+  return adversariesOf(c, now).filter((a) => !a.authored).map((a) => ({ otherId: a.otherId, otherTen: a.o.ten, otherBh: a.o.bietHieu, intensity: a.intensity, intensityLabel: intenLabel(a.intensity), lastClashDays: a.lastClashDays, text: feudText(c, a) }));
+}
+
 function bienNien(c, now) {
   const out = [];
   const cur = Math.floor(now / AUTO_PERIOD);
@@ -65,8 +102,10 @@ function bienNien(c, now) {
     if (seed % 100 < 62) { const ev = AUTO_POOL[seed % AUTO_POOL.length]; out.push({ daysAgo: Math.max(0, Math.round((now - slot * AUTO_PERIOD) / DAY)), loai: ev.loai, text: ev.t(c) }); }
   }
   (c.lifeEvents || []).forEach((e, i) => { out.push({ daysAgo: 60 + i * (40 + (h32(c.id + ':d' + i) % 30)), loai: e.loai, text: e.text }); });
+  // ân oán: chèn vài trận ác chiến gần đây (đụng độ với thù địch) -> Biên Niên "sống"
+  adversariesOf(c, now).slice(0, 2).forEach((a) => { if (a.lastClashDays <= 70) out.push({ daysAgo: a.lastClashDays, loai: 'anOan', text: `Đại chiến với ${a.o.ten} 「${a.o.bietHieu}」 tại ${pick(PLACES, c.id + a.otherId + ':cl')} — ${a.intensity >= 0.7 ? 'ác đấu mấy ngày bất phân' : 'một phen so chiêu nảy lửa'}.` }); });
   out.sort((a, b) => a.daysAgo - b.daysAgo);
-  return out.slice(0, 10);
+  return out.slice(0, 12);
 }
 
 // ---- Trang bị deterministic (9 slot; phẩm theo rankPower; vũ khí = binhKhi tác giả) ----
@@ -157,14 +196,20 @@ export function danhSiById(id) { return DANH_SI.find((c) => c.id === id) || null
 export function danhSiProfile(id, now) {
   const c = danhSiById(id); if (!c) return null;
   const base = decorate(c, now);
+  const advs = adversariesOf(c, now), advByOther = {}; advs.forEach((a) => { advByOther[a.otherId] = a; });
   const rels = DANHSI_REL.filter((r) => r.a === id || r.b === id).map((r) => {
-    const oid = r.a === id ? r.b : r.a, o = danhSiById(oid);
-    return { loai: r.loai, loaiName: REL_NAME[r.loai] || r.loai, loaiColor: REL_COLOR[r.loai] || '#94a3b8', otherId: oid, otherTen: o ? o.ten : oid, otherBh: o ? o.bietHieu : '', text: r.text };
+    const oid = r.a === id ? r.b : r.a, o = danhSiById(oid), a = advByOther[oid];
+    const base = { loai: r.loai, loaiName: REL_NAME[r.loai] || r.loai, loaiColor: REL_COLOR[r.loai] || '#94a3b8', otherId: oid, otherTen: o ? o.ten : oid, otherBh: o ? o.bietHieu : '', text: r.text };
+    if (a) { base.intensity = a.intensity; base.intensityLabel = intenLabel(a.intensity); base.lastClashDays = a.lastClashDays; }   // enrich thù tác giả bằng dữ liệu đụng độ ĐỘNG
+    return base;
   });
+  const relOthers = new Set(rels.map((r) => r.otherId));
+  const feudRels = advs.filter((a) => !a.authored && !relOthers.has(a.otherId)).slice(0, 4).map((a) => ({ loai: 'anOan', loaiName: 'Ân Oán', loaiColor: '#fb7185', otherId: a.otherId, otherTen: a.o.ten, otherBh: a.o.bietHieu, text: feudText(c, a), dynamic: true, intensity: a.intensity, intensityLabel: intenLabel(a.intensity), lastClashDays: a.lastClashDays }));
+  const allRels = rels.concat(feudRels);
   const rank = danhSiList(now).find((x) => x.id === id);
   const rnk = rank ? rank.rank : 0;
   return Object.assign(base, {
-    tamCanh: tamCanhOf(c, now), bienNien: bienNien(c, now), gear: gearOf(c), rels,
+    tamCanh: tamCanhOf(c, now), bienNien: bienNien(c, now), gear: gearOf(c), rels: allRels,
     rank: rnk, total: DANH_SI.length, loaiColor: LOAI_COLOR,
     stats: statsOf(c, base.realmIdx), danhHieu: DANH_HIEU(rnk),
   });
