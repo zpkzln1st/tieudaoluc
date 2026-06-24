@@ -37,9 +37,9 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, craftPill, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile } from './engine/danhsi.js';
-import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, TM_SHOP, buildCost, disciCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -378,6 +378,8 @@ const gameStore = {
     const seen = new Set();
     names.sort((a, b) => b[0].length - a[0].length).forEach(([nm, c]) => { if (!nm || seen.has(nm)) return; seen.add(nm); if (s.includes(nm)) s = s.split(nm).join('<b style="color:' + c + '">' + nm + '</b>'); });
     REALMS.forEach((r, i) => { if (s.includes(r.name)) s = s.split(r.name).join('<b style="color:' + (this.tmRealmColors[i] || '#cbd5e1') + '">' + r.name + '</b>'); });
+    // tên NGUYÊN LIỆU tô màu theo bậc (T1 lục / T2 lam / T3 vàng) — dài trước để khỏi nuốt tên ngắn
+    MAT_KEYS.map((m) => [MATS[m].name, this.tmMatTierColor(MATS[m].tier)]).sort((a, b) => b[0].length - a[0].length).forEach(([nm, c]) => { if (s.includes(nm)) s = s.split(nm).join('<b style="color:' + c + '">' + nm + '</b>'); });
     return s;
   },
   openFaceFull(src) { if (src) this.tmFaceFull = src; },
@@ -435,16 +437,34 @@ const gameStore = {
   tmPillCount(p) { return Math.floor(((this.tm && this.tm.pills) || {})[p] || 0); },
   get tmMatsList() { void this._tick; return MAT_KEYS.map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, tier: MATS[m].tier, count: this.tmMatCount(m) })); },
   get tmPillsList() { void this._tick; return PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p) })).filter((x) => x.count > 0); },
+  // --- TÚI ĐỒ chia mục (scale khi thêm loại vật phẩm) ---
+  tmBagOpen: false,
+  get tmBagCategories() {
+    void this._tick;
+    return [
+      { key: 'mat', label: 'Nguyên Liệu', color: '#34d399', items: MAT_KEYS.map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, count: this.tmMatCount(m), color: this.tmMatTierColor(MATS[m].tier), sub: 'Bậc ' + MATS[m].tier + ' · luyện đan', img: 'images/tongmon/mats/' + m + '.webp' })) },
+      { key: 'pill', label: 'Đan Dược', color: '#f5b942', items: PILL_KEYS.map((p) => ({ id: p, name: PILLS[p].name, emoji: PILLS[p].emoji, count: this.tmPillCount(p), color: '#f5b942', sub: 'Đột phá → ' + REALMS[PILLS[p].realm + 1].name, img: null })) },
+    ];
+  },
+  get tmBagTotal() { void this._tick; let n = 0; MAT_KEYS.forEach((m) => { n += this.tmMatCount(m); }); PILL_KEYS.forEach((p) => { n += this.tmPillCount(p); }); return n; },
+  get tmBagPreview() { void this._tick; const out = []; MAT_KEYS.forEach((m) => { const c = this.tmMatCount(m); if (c > 0) out.push({ id: m, emoji: MATS[m].emoji, count: c, img: 'images/tongmon/mats/' + m + '.webp' }); }); PILL_KEYS.forEach((p) => { const c = this.tmPillCount(p); if (c > 0) out.push({ id: p, emoji: PILLS[p].emoji, count: c, img: null }); }); return out.slice(0, 7); },
+  get tmFurnaces() { void this._tick; const used = ((this.tm && this.tm.brewing) || []).length, total = yQuanFurnaces(this.tmBuildLv('yQuan')); return { used, total, free: Math.max(0, total - used) }; },
   get tmRecipes() {
     void this._tick;
+    const free = this.tmFurnaces.free;
     return PILL_KEYS.map((p) => {
       const pl = PILLS[p];
-      const mats = Object.keys(pl.recipe).map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, need: pl.recipe[m], have: this.tmMatCount(m), ok: this.tmMatCount(m) >= pl.recipe[m] }));
-      const lvOk = (this.tm.buildings.yQuan || 0) >= pl.lvReq;
-      return { id: p, name: pl.name, emoji: pl.emoji, realmName: REALMS[pl.realm + 1].name, lvReq: pl.lvReq, lvOk, mats, have: this.tmPillCount(p), canCraft: lvOk && mats.every((x) => x.ok) };
+      const mats = Object.keys(pl.recipe).map((m) => ({ id: m, name: MATS[m].name, emoji: MATS[m].emoji, color: this.tmMatTierColor(MATS[m].tier), need: pl.recipe[m], have: this.tmMatCount(m), ok: this.tmMatCount(m) >= pl.recipe[m] }));
+      const lvOk = (this.tm.buildings.yQuan || 0) >= pl.lvReq, matsOk = mats.every((x) => x.ok);
+      return { id: p, name: pl.name, emoji: pl.emoji, realmName: REALMS[pl.realm + 1].name, lvReq: pl.lvReq, lvOk, brewH: pillBrewH(p), mats, have: this.tmPillCount(p), matsOk, canCraft: lvOk && matsOk && free > 0 };
     });
   },
-  tmCraft(pillId) { const r = craftPill(this.state, pillId); if (r.ok) { this.tmSave(); this.showToast('Y Quán · ' + r.msg); } else this.showToast(r.msg); },
+  // mẻ đan đang luyện trong lò (countdown, thu tay — offline-safe)
+  get tmBrewing() { void this._tick; const arr = (this.tm && this.tm.brewing) || []; return arr.map((b, i) => { const pl = PILLS[b.pill] || {}, span = Math.max(1, b.until - b.at), left = Math.max(0, b.until - now()); return { idx: i, pill: b.pill, name: pl.name, emoji: pl.emoji, color: this.tmMatTierColor(0), ready: left <= 0, left, pct: Math.min(100, Math.round((1 - left / span) * 100)) }; }); },
+  tmBrewHasReady() { void this._tick; return this.tmBrewing.some((b) => b.ready); },
+  tmBrew(pillId) { const r = startBrew(this.state, pillId, now()); if (r.ok) { this.tmSave(); this.showToast('Y Quán · ' + r.msg); } else this.showToast(r.msg); },
+  tmCollectBrew(idx) { const r = collectBrew(this.state, idx, now()); if (r.ok) { this.tmSave(); this.showToast('Y Quán · ' + r.msg); } else this.showToast(r.msg); },
+  tmCollectAllBrews() { const r = collectAllBrews(this.state, now()); if (r.ok) { this.tmSave(); const s = Object.keys(r.tot).map((p) => (PILLS[p] || {}).name + '×' + r.tot[p]).join(', '); this.showToast('Y Quán · xuất ' + s); } else this.showToast('Chưa mẻ nào thành.'); },
   tmLichLuyenInfo(d) { void this._tick; if (!d || !d.lichLuyenUntil) return null; const ms = d.lichLuyenUntil - now(); return { active: ms > 0, leftMs: Math.max(0, ms) }; },
   tmLichLuyenCdText(d) { const i = this.tmLichLuyenInfo(d); if (!i) return ''; const ms = i.leftMs, h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm'); },
   tmCanLichLuyen(d) { return !!(d && !d.awaiting && !d.breakReady && !d.lichLuyenUntil); },
@@ -454,8 +474,8 @@ const gameStore = {
   tmBreakRows(d) {
     const r = breakReqOf(d); if (!r) return [];
     return [
-      { label: r.pillName, need: 1, have: this.tmPillCount(r.pill) },
-      { label: 'Hồn Thạch', need: r.honThach, have: Math.floor((this.state.currencies.honThach) || 0) },
+      { kind: 'pill', pill: r.pill, emoji: (PILLS[r.pill] || {}).emoji, label: r.pillName, need: 1, have: this.tmPillCount(r.pill) },
+      { kind: 'honthach', label: 'Hồn Thạch', need: r.honThach, have: Math.floor((this.state.currencies.honThach) || 0) },
     ].map((x) => Object.assign(x, { ok: x.have >= x.need }));
   },
   tmCanBreak(d) { const rows = this.tmBreakRows(d); return rows.length > 0 && rows.every((x) => x.ok); },

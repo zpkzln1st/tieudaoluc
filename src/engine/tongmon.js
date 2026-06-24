@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, genDisciple, disciCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -16,6 +16,7 @@ export function ensureTongMon(state, nowMs) {
       name: 'Tiêu Dao Tông', dao: 'trung', level: 1,
       congHien: 0, diem: 0, khiVan: 50,
       mats: {}, pills: {},                                                // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá
+      brewing: [],                                                        // Y Quán: mẻ đan đang luyện (idle, có thời gian)
       duocVien: { plots: [] },                                            // Dược Viên: luống trồng nguyên liệu (idle)
       buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, tuLinh: 0 },
       disciples: [], elders: [], legends: [], soSach: [],
@@ -48,6 +49,7 @@ export function ensureTongMon(state, nowMs) {
   if (typeof t.uyBonus !== 'number') t.uyBonus = 0;
   if (!t.mats || typeof t.mats !== 'object') t.mats = {};
   if (!t.pills || typeof t.pills !== 'object') t.pills = {};
+  if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
@@ -310,16 +312,36 @@ export function doBreakthrough(state, uid) {
   else chronicle(t, `${d.name} phục một viên ${req.pillName}, đột phá ${REALMS[d.realm].name}!`);
   return { ok: true, msg: `${d.name} đột phá ${REALMS[d.realm].name}!`, realm: REALMS[d.realm].name };
 }
-// ---- LUYỆN ĐAN: tốn nguyên liệu (mats) theo công thức -> +1 đan (pills); gác cấp Y Quán (lvReq) ----
-export function craftPill(state, pillId) {
+// ---- LUYỆN ĐAN: KHỞI LÒ (tốn mats ngay) -> chờ giờ thực (pillBrewH) -> THU đan. Số lò song song = yQuanFurnaces. ----
+export function startBrew(state, pillId, nowMs) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  if (!Array.isArray(t.brewing)) t.brewing = [];
   const pill = PILLS[pillId]; if (!pill) return { ok: false, msg: 'Không rõ đan.' };
   if ((t.buildings.yQuan || 0) < pill.lvReq) return { ok: false, msg: `Y Quán cần Bậc ${pill.lvReq} để luyện ${pill.name}.` };
+  const furnaces = yQuanFurnaces(t.buildings.yQuan || 0);
+  if (t.brewing.length >= furnaces) return { ok: false, msg: `Hết lò (${t.brewing.length}/${furnaces}) — đợi mẻ xong hoặc nâng Y Quán.` };
   for (const m in pill.recipe) { if (((t.mats || {})[m] || 0) < pill.recipe[m]) return { ok: false, msg: `Thiếu ${(MATS[m] || {}).name} (cần ${pill.recipe[m]}).` }; }
   for (const m in pill.recipe) t.mats[m] -= pill.recipe[m];
-  t.pills[pillId] = (t.pills[pillId] || 0) + 1;
-  chronicle(t, `Y Quán luyện thành một viên ${pill.name}.`);
-  return { ok: true, msg: `Luyện thành ${pill.name}` };
+  const now = nowMs || Date.now(), h = pillBrewH(pillId);
+  t.brewing.push({ pill: pillId, at: now, until: now + h * 3600000 });
+  return { ok: true, msg: `Khởi lò luyện ${pill.name} (${h}h).` };
+}
+export function collectBrew(state, brewIdx, nowMs) {
+  const t = state.tongMon; if (!t || !Array.isArray(t.brewing)) return { ok: false, msg: '?' };
+  const b = t.brewing[brewIdx]; if (!b) return { ok: false, msg: 'Không có mẻ.' };
+  const now = nowMs || Date.now(); if (now < b.until) return { ok: false, msg: 'Đan chưa thành.' };
+  t.pills[b.pill] = (t.pills[b.pill] || 0) + 1;
+  const nm = (PILLS[b.pill] || {}).name, pid = b.pill;
+  t.brewing.splice(brewIdx, 1);
+  chronicle(t, `Y Quán xuất lò một viên ${nm}.`);
+  return { ok: true, msg: `Thu ${nm}`, pill: pid };
+}
+export function collectAllBrews(state, nowMs) {
+  const t = state.tongMon; if (!t || !Array.isArray(t.brewing)) return { ok: false, n: 0, tot: {} };
+  const now = nowMs || Date.now(); let n = 0; const tot = {};
+  for (let i = t.brewing.length - 1; i >= 0; i--) { const b = t.brewing[i]; if (now >= b.until) { t.pills[b.pill] = (t.pills[b.pill] || 0) + 1; tot[b.pill] = (tot[b.pill] || 0) + 1; t.brewing.splice(i, 1); n++; } }
+  if (n) chronicle(t, `Y Quán xuất lò ${Object.keys(tot).map((p) => (PILLS[p] || {}).name + '×' + tot[p]).join(', ')}.`);
+  return { ok: n > 0, n, tot };
 }
 // ---- LỊCH LUYỆN: phái 1 đệ tử RẢNH đi kiếm nguyên liệu (về sau LICH_LUYEN_H giờ; thu hoạch trong simTongMon) ----
 const LICH_MATS_BY_TIER = { 1: ['mat_tulinhthao', 'mat_hantinh'], 2: ['mat_bachnien', 'mat_huyenthiet'], 3: ['mat_cuudiep', 'mat_tinhhon'] };

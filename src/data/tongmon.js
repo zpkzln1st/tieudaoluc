@@ -131,6 +131,11 @@ export const PILL_KEYS = Object.keys(PILLS);
 export const PILL_BY_REALM = {}; PILL_KEYS.forEach((k) => { PILL_BY_REALM[PILLS[k].realm] = k; });
 // Đột phá realm R: cần 1 đan PILL_BY_REALM[R] + Hồn Thạch (main, 1 chiều). DRAFT.
 export const BREAK_HONTHACH = [100, 300, 800, 1800, 3500, 6500, 11000, 18000, 30000];
+// Luyện đan TỐN THỜI GIAN (lò Y Quán): giờ chín theo từng đan (DRAFT, scale theo cảnh giới).
+export const PILL_BREW_H = { trucCoDan: 2, ketDanDan: 3, ngungAnhDan: 5, hoaThanDan: 8, quyHuDan: 12, hopDaoDan: 16, daiThuaDan: 24, doKiepDan: 36, phiThangDan: 48 };
+export function pillBrewH(pillId) { return PILL_BREW_H[pillId] || 4; }
+// Số LÒ luyện song song theo bậc Y Quán (DRAFT): Bậc 1 = 1 lò, +1 mỗi 3 bậc.
+export function yQuanFurnaces(lv) { return 1 + Math.floor((lv || 0) / 3); }
 
 // ===== LỊCH LUYỆN: phái đệ tử RẢNH đi kiếm nguyên liệu (nguồn chính, không mua-điểm) =====
 export const LICH_LUYEN_H = 4;   // giờ thực / chuyến (DRAFT)
