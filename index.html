@@ -6643,12 +6643,30 @@
                 <button @click="$store.game.devTmRealmAll($store.game.devTmRealm)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium shrink-0">Áp</button>
               </div>
               <div class="lbl mb-1.5">Nổ sự kiện giang hồ</div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 mb-4">
                 <select x-model="$store.game.devTmEventSel" class="flex-1 min-w-0 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
                   <option value="">— chọn sự kiện —</option>
                   <template x-for="ev in $store.game.devTmEvents" :key="ev.id"><option :value="ev.id" x-text="ev.id+' · '+ev.title+(ev.kind==='auto'?' (auto)':'')"></option></template>
                 </select>
                 <button @click="$store.game.devTmFireEvent()" class="px-3 py-1 rounded bg-amber-500/85 hover:bg-amber-500 text-ink text-xs font-bold shrink-0">Nổ</button>
+              </div>
+              <div class="lbl mb-1.5">Bí Kíp <span class="text-slate-600 normal-case tracking-normal">(BK1-5)</span></div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <select x-model="$store.game.devBkTier" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
+                  <option value="all">Mọi bậc</option><option value="sơ">Sơ</option><option value="trung">Trung</option><option value="cao">Cao</option><option value="tuyệt">Tuyệt</option>
+                </select>
+                <button @click="$store.game.devTmGiveBiKip($store.game.devBkTier,5)" class="px-3 py-1 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-200 text-xs">📘 +5 mỗi bí kíp (bậc chọn)</button>
+                <button @click="$store.game.devTmRollBkAuction()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">🔄 Làm mới phiên Đấu Giá</button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <button @click="$store.game.devTmTeachBiKip('random')" class="px-3 py-1 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-200 text-xs">🥋 Gán bí kíp ngẫu nhiên (đệ tử)</button>
+                <button @click="$store.game.devTmTeachBiKip('full')" class="px-3 py-1 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-200 text-xs">🥋 Lấp đầy ô võ học</button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[11px] text-slate-400 self-center">Hợp Nhất:</span>
+                <button @click="$store.game.devTmMergeBk('sơ')" class="px-3 py-1 rounded bg-fuchsia-900/40 border border-fuchsia-700/50 text-fuchsia-200 text-xs">Sơ→Trung</button>
+                <button @click="$store.game.devTmMergeBk('trung')" class="px-3 py-1 rounded bg-fuchsia-900/40 border border-fuchsia-700/50 text-fuchsia-200 text-xs">Trung→Cao</button>
+                <button @click="$store.game.devTmMergeBk('cao')" class="px-3 py-1 rounded bg-fuchsia-900/40 border border-fuchsia-700/50 text-fuchsia-200 text-xs">Cao→Tuyệt</button>
               </div>
             </div>
           </template>
