@@ -5405,11 +5405,18 @@
                         </div>
                       </div>
                       <div x-show="g.tmDisciSkills(d).length || g.tmDisciLinhNgo(d)" class="mt-2.5">
-                        <div class="lbl mb-1.5">Võ Học <span class="normal-case tracking-normal text-slate-600">· ô <span x-text="g.tmDisciSlot(d).used+'/'+g.tmDisciSlot(d).max"></span></span></div>
-                        <div class="flex flex-wrap gap-1.5">
+                        <div class="lbl mb-1.5">Võ Học <span class="normal-case tracking-normal text-slate-600">· ô <span x-text="g.tmDisciSlot(d).used+'/'+g.tmDisciSlot(d).max"></span> · rê xem · bấm phóng to</span></div>
+                        <div class="flex flex-wrap gap-2">
                           <template x-for="sk in g.tmDisciSkills(d)" :key="sk.id">
                             <span class="tmtip inline-flex">
-                              <span class="text-[10.5px] px-2 py-0.5 rounded-full fserif cursor-help inline-flex items-center gap-1" :style="'color:'+sk.tierColor+';background:'+sk.tierColor+'14;border:1px solid '+sk.tierColor+'55'" x-text="sk.ten"></span>
+                              <span @click="g.openFaceFull('images/tongmon/bikip/'+sk.id+'.webp')" class="block w-[58px] cursor-zoom-in group">
+                                <span class="relative block w-[58px] h-[58px] rounded-lg overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[19px]" :style="'border-color:'+sk.tierColor+'99;color:'+sk.heColor">
+                                  <span x-text="sk.heHan"></span>
+                                  <img :src="'images/tongmon/bikip/'+sk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover transition-transform duration-200 group-hover:scale-110" alt="" onerror="this.remove()">
+                                  <span class="absolute top-0 left-0 text-[7.5px] leading-none px-1 py-0.5 rounded-br-md font-bold fserif" :style="'background:'+sk.tierColor+'e6;color:#0b0f17'" x-text="sk.tierName"></span>
+                                </span>
+                                <span class="block text-[9px] fserif text-center mt-0.5 leading-tight truncate w-[58px]" :style="'color:'+sk.tierColor" x-text="sk.ten"></span>
+                              </span>
                               <span class="tmtipbox panel rounded-lg p-3 text-left shadow-xl" :style="'border-color:'+sk.tierColor+'66'">
                                 <span class="fserif text-[12.5px] block" :style="'color:'+sk.tierColor" x-text="sk.ten"></span>
                                 <span class="text-[10px] text-slate-500 block mb-1" x-text="sk.loaiName+' · '+sk.heName+' · '+sk.tierName+' Cấp'"></span>
@@ -5418,7 +5425,18 @@
                               </span>
                             </span>
                           </template>
-                          <template x-if="g.tmDisciLinhNgo(d)"><span class="text-[10px] px-2 py-0.5 rounded-full fserif text-indigo-300 border border-indigo-500/40 bg-indigo-500/10 inline-flex items-center gap-1">Đang lĩnh ngộ <b x-text="g.tmDisciLinhNgo(d).bk.ten"></b> · <span x-text="g.linhNgoLeftText(g.tmDisciLinhNgo(d).leftMs)"></span></span></template>
+                          <template x-if="g.tmDisciLinhNgo(d)">
+                            <span class="inline-flex w-[58px]">
+                              <span class="block w-[58px]">
+                                <span class="relative block w-[58px] h-[58px] rounded-lg overflow-hidden bg-ink3 border border-indigo-500/45 flex items-center justify-center fserif text-[19px] text-indigo-300/70">
+                                  <span x-text="g.tmDisciLinhNgo(d).bk.heHan"></span>
+                                  <img :src="'images/tongmon/bikip/'+g.tmDisciLinhNgo(d).bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover opacity-35" alt="" onerror="this.remove()">
+                                  <span class="absolute inset-0 flex items-center justify-center bg-black/45 text-[8.5px] text-indigo-200 fserif" x-text="g.linhNgoLeftText(g.tmDisciLinhNgo(d).leftMs)"></span>
+                                </span>
+                                <span class="block text-[9px] fserif text-center mt-0.5 leading-tight truncate w-[58px] text-indigo-300/80">Đang ngộ</span>
+                              </span>
+                            </span>
+                          </template>
                         </div>
                       </div>
                     </div>
