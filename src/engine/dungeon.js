@@ -14,6 +14,7 @@
 // Hằng số cân bằng để TOP cho user tune.
 // ============================================================
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
+import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '../data/tongmon.js';   // rơi bí kíp về Tông Môn (main->phụ 1 chiều, side-only)
 import { deriveCombat } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
 import { levelFromXp, addSkillXp } from './leveling.js';
@@ -143,7 +144,14 @@ export function runDungeon(state, dungeonId, mode) {
   }
   if (cleared && D.loot.rare) for (const r of D.loot.rare) { if (Math.random() < (r.chance || 0) * (mode === 'treo' ? 1.5 : 1)) addLoot(r.itemId, 1); }
 
-  return { dungeonId, mode, modeLabel: m.label, cleared, reachedTang, hpPct, power, log, doPhoId, loot: { items, bac, exp, honThach } };
+  // BÍ KÍP -> Tông Môn (main->phụ 1 chiều): roll thuần, KHÔNG vào kho main; grantDungeon nạp vào biKipBag
+  let biKipDropId = null;
+  if (cleared) {
+    const bkChance = BICANH_BK_CHANCE * m.doPhoMul * (coDuyenBonus ? 1.3 : 1);
+    if (Math.random() < bkChance) biKipDropId = rollBiCanhBiKip(D.reqLevel);
+  }
+
+  return { dungeonId, mode, modeLabel: m.label, cleared, reachedTang, hpPct, power, log, doPhoId, biKipDropId, loot: { items, bac, exp, honThach } };
 }
 
 // ---- CHẠY THẬT: runDungeon + nhập thưởng + lưu kết quả ----
@@ -156,6 +164,13 @@ export function grantDungeon(state, dungeonId, mode, now) {
   if (run.loot.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + run.loot.honThach;
   if (run.loot.exp) addSkillXp(state, 'chienDau', run.loot.exp);
   for (const id in run.loot.items) addItem(state, id, run.loot.items[id]);
+  // BÍ KÍP rơi -> nạp THẲNG vào kho bí kíp Tông Môn (main->phụ 1 chiều; side-only, KHÔNG vào kho/sức mạnh main)
+  if (run.biKipDropId && state.tongMon) {
+    const bag = state.tongMon.biKipBag || (state.tongMon.biKipBag = {});
+    bag[run.biKipDropId] = (bag[run.biKipDropId] || 0) + 1;
+    const _bk = BI_KIP_BY_ID[run.biKipDropId];
+    if (_bk) run.biKipDrop = { id: run.biKipDropId, ten: _bk.ten, tier: _bk.tier, tierName: (BI_KIP_TIER[_bk.tier] || {}).name, tierColor: (BI_KIP_TIER[_bk.tier] || {}).color, he: _bk.he };
+  }
   if (!state.dungeon) state.dungeon = { lastResult: null, history: [] };
   const summary = { ...run, at: now };
   state.dungeon.lastResult = { ...summary, seen: false };
@@ -169,6 +184,7 @@ export function grantDungeon(state, dungeonId, mode, now) {
   const _ic = Object.values(_lo.items || {}).reduce((s, q) => s + q, 0);
   if (_ic) _p.push('+' + _ic + ' vật phẩm');
   if (run.doPhoId) _p.push('Đồ Phổ');
+  if (run.biKipDrop) _p.push('Bí Kíp 「' + run.biKipDrop.ten + '」 → Tông Môn');
   pushNotif(state, 'biCanh', (run.cleared ? 'Thông quan ' : 'Rút lui ') + _dn + (run.modeLabel ? ' · ' + run.modeLabel : ''), _p.join(' · '), now);
   return state.dungeon.lastResult;
 }

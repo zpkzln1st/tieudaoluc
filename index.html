@@ -4183,6 +4183,12 @@
                         <div class="text-[13px] leading-snug"><b class="text-amber-300 text-[14px]">Đoạt Đồ Phổ!</b><br><span class="text-slate-100" x-text="(g.ITEMS[r.doPhoId]||{}).name"></span><br><span class="text-[11px] text-slate-500">Mở túi → Lĩnh Ngộ để rèn món này.</span></div>
                       </div>
                     </template>
+                    <template x-if="r.biKipDrop">
+                      <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-black/40 border" :style="'border-color:'+r.biKipDrop.tierColor+'88'">
+                        <span class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-[22px]" :style="'border-color:'+r.biKipDrop.tierColor+'66'"><span x-text="'笈'"></span><img :src="'images/tongmon/bikip/'+r.biKipDrop.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
+                        <div class="text-[13px] leading-snug"><b :style="'color:'+r.biKipDrop.tierColor" class="text-[14px]">Nhặt Bí Kíp <span x-text="r.biKipDrop.tierName"></span>!</b><br><span class="text-slate-100 fserif" x-text="r.biKipDrop.ten"></span><br><span class="text-[11px] text-indigo-300/80">Đã nhập Tàng Thư Lâu → cho đệ tử lĩnh ngộ.</span></div>
+                      </div>
+                    </template>
                     <div class="flex items-center gap-2 flex-wrap text-[12.5px]">
                       <template x-for="it in g.dungeonResultItems()" :key="it.id">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-slate-700"><span class="w-6 h-6 inline-flex items-center justify-center" x-html="g.ico(it.id,(g.ITEMS[it.id]||{}).icon)"></span><span :class="(g.itemQuality(it.id)||{}).text||'text-slate-200'" x-text="(g.ITEMS[it.id]||{}).name"></span><span class="text-slate-400" x-text="'×'+it.qty"></span></span>

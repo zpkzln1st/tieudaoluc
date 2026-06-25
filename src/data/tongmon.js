@@ -306,6 +306,25 @@ export function genBkAuction(tangThuLv) {
   return lots;
 }
 
+// --- RƠI BÍ KÍP TỪ BÍ CẢNH (main -> phụ 1 chiều, vào biKipBag tông môn). Bậc tối đa GATE theo độ khó phó bản (reqLevel): bí lục quý chỉ rơi ở bí cảnh thâm sâu. SIDE-ONLY. DRAFT. ---
+export const BICANH_BK_CHANCE = 0.06;   // xác suất nền khi THÔNG QUAN (×mode doPhoMul ×cơ duyên) — tune
+export function biCanhBkMaxTier(reqLevel) {
+  const lv = reqLevel || 0;
+  if (lv >= 90) return 'tuyệt';
+  if (lv >= 70) return 'cao';
+  if (lv >= 40) return 'trung';
+  return 'sơ';
+}
+export function rollBiCanhBiKip(reqLevel) {
+  const maxIdx = BI_KIP_TIER_ORDER.indexOf(biCanhBkMaxTier(reqLevel));
+  const pool = BI_KIP.filter((b) => BI_KIP_TIER_ORDER.indexOf(b.tier) <= maxIdx);
+  if (!pool.length) return null;
+  let tot = 0; pool.forEach((b) => { tot += (BI_KIP_TIER[b.tier] || {}).weight || 1; });
+  let r = Math.random() * tot;
+  for (const b of pool) { r -= (BI_KIP_TIER[b.tier] || {}).weight || 1; if (r <= 0) return b.id; }
+  return pool[0].id;
+}
+
 // ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới
