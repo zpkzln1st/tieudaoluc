@@ -44,7 +44,8 @@ import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, a
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
-import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
+import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
+import { grantDungeon } from './engine/dungeon.js';   // dev: thông quan Bí Cảnh tức thì (chạy thật + roi loot/bí kíp)
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
 
 let _devNowOffset = 0;                        // Dev: tua đồng hồ (session-only; reload reset). 0 = thực.
@@ -3051,6 +3052,23 @@ const gameStore = {
     ['bac', 'honThach', 'nguyenBao'].forEach((k) => { this.state.currencies[k] = (this.state.currencies[k] || 0) + 1000000; });
     this.devSave(); this.showToast('Đã nhận TOÀN BỘ vật phẩm + tiền tệ (test).');
   },
+  // ---- Dev: võ học / nghề / danh hiệu / codex / suy yếu / boss (nhân vật chính) ----
+  devUnlockAllVoHoc() { this.state.combat.owned = { chieu: CHIEU.map((c) => c.id), tamPhap: TAM_PHAP_POOL.map((t) => t.id), biDong: BI_DONG.map((p) => p.id) }; this.devSave(); this._tick++; this.showToast('Dev: mở khoá TOÀN BỘ võ học (chiêu/tâm pháp/bị động).'); },
+  devLearnAllNghe() { this.state.player.professions = NGHE.map((n) => n.id); this.devSave(); this._tick++; this.showToast('Dev: học TẤT CẢ ' + NGHE.length + ' nghề.'); },
+  devUnlockAllTitles() { ensureTitles(this.state); if (!this.state.titles) this.state.titles = { owned: [], equipped: null }; this.state.titles.owned = TITLES.map((t) => t.id); this.devSave(); this._tick++; this.showToast('Dev: mở khoá TOÀN BỘ ' + TITLES.length + ' Danh Hiệu.'); },
+  devCompleteCodex() {
+    ensureCodex(this.state); const cx = this.state.codex;
+    if (!this.state.counters) this.state.counters = {};
+    if (!this.state.counters.kills) this.state.counters.kills = {};
+    CODEX_CATS.forEach((cat) => { (cat.entries || []).forEach((e) => { const need = cat.threshold || 1; switch (cat.key) { case 'yeuthu': this.state.counters.kills[e.id] = Math.max(this.state.counters.kills[e.id] || 0, need); break; case 'binhkhi': cx.obtained[e.id] = Math.max(cx.obtained[e.id] || 0, 1); break; case 'vatpham': cx.obtained[e.id] = Math.max(cx.obtained[e.id] || 0, need); break; case 'linhthu': cx.petSeen[e.id] = 1; break; case 'bicanh': cx.dungeonRuns[e.id] = Math.max(cx.dungeonRuns[e.id] || 0, need); break; } }); });
+    this.devSave(); this._tick++; this.showToast('Dev: hoàn tất Vạn Vật Phổ (5 phổ).');
+  },
+  devClearSuyYeu() { this.recoverFromSuyYeu(); },
+  devBossReadyAll() { const bs = ensureBoss(this.state); YEU_VUONG.forEach((b) => { bs.cd[b.id] = 0; bossResetHp(this.state, b.id); }); bs.healUntil = 0; this.devSave(); this._tick++; this.showToast('Dev: mọi Yêu Vương sẵn sàng (reset CD + HP đầy).'); },
+  // ---- Dev: Bí Cảnh (thông quan tức thì) + Đồ Phổ ----
+  devDungeonSel: '', devDungeonMode: 'treo',
+  devGrantDungeon(n) { const id = this.devDungeonSel || DUNGEON_IDS[0], mode = this.devDungeonMode || 'treo'; n = n || 5; let r = null, drops = 0; for (let i = 0; i < n; i++) { r = grantDungeon(this.state, id, mode, now()); if (r && r.biKipDrop) drops++; } this.devSave(); this._tick++; const nm = (this.DUNGEON_BY_ID[id] || {}).name || id; this.showToast('Dev: chạy ' + n + ' lượt ' + nm + ' (' + mode + ')' + (drops ? ' — rơi ' + drops + ' bí kíp' : '') + '. (chưa thông quan? đặt Lv 100)'); },
+  devGiveDoPho(n) { n = n || 5; if (!this.state.player.doPho || typeof this.state.player.doPho !== 'object') this.state.player.doPho = {}; let c = 0; Object.values(this.ITEMS).forEach((it) => { if (it && it.type === 'doPho' && it.gearId) { this.state.player.doPho[it.gearId] = (this.state.player.doPho[it.gearId] || 0) + n; c++; } }); this.devSave(); this._tick++; this.showToast('Dev: +' + n + ' lượt rèn Đồ Phổ cho ' + c + ' món (gear bậc 4-7 + công cụ).'); },
   // ---- Dev: Linh Thú ----
   devPetBase: 'bachHo', devPetQuality: 'tuyetPham', devPetLv: 10,
   devCreatePet() { const p = devSpawnPet(this.state, this.devPetBase, this.devPetQuality, this.devPetLv); if (!p) { this.showToast('Chọn loài + phẩm.'); return; } this.devSave(); this.showToast('Tạo ' + this.petName(p) + ' · ' + (this.QUALITY[p.quality] || {}).name + ' · Lv' + p.level); },

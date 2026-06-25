@@ -19,7 +19,7 @@ import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bản
 const HE_LIST = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
 const HISTORY_CAP = 40;
 
-function ensureBoss(state) {
+export function ensureBoss(state) {
   if (!state.boss) state.boss = {};
   const b = state.boss;
   if (!b.cd) b.cd = {};

@@ -6566,6 +6566,16 @@
               <button @click="$store.game.devAddSkillXp('chienDau',1000)" class="text-jade shrink-0 ml-1">+1k</button>
             </div>
           </div>
+
+          <div class="lbl mb-1.5 mt-4">Mở Khoá / Test</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button @click="$store.game.devUnlockAllVoHoc()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🥋 Mở khoá toàn bộ võ học</button>
+            <button @click="$store.game.devLearnAllNghe()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🛠️ Học tất cả Nghề</button>
+            <button @click="$store.game.devUnlockAllTitles()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">🏷️ Mở khoá toàn bộ Danh Hiệu</button>
+            <button @click="$store.game.devCompleteCodex()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">📖 Hoàn tất Vạn Vật Phổ</button>
+            <button @click="$store.game.devClearSuyYeu()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-xs">❤️ Gỡ Suy Yếu (hồi đầy HP)</button>
+            <button @click="$store.game.devBossReadyAll()" class="px-3 py-1 rounded bg-fuchsia-900/40 border border-fuchsia-700/50 text-fuchsia-200 text-xs">👹 Mọi Yêu Vương sẵn sàng</button>
+          </div>
         </div>
 
         <!-- ===== TAB: VẬT PHẨM ===== -->
@@ -6588,6 +6598,17 @@
             <button @click="$store.game.devGiveSampleGear()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">🎁 Tặng toàn bộ trang bị (test)</button>
             <button @click="$store.game.devGiveKimQuang()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">✨ Tặng Bộ Kim Quang (7 món)</button>
             <button @click="$store.game.devGiveStones()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💠 Tặng đá cường hóa + 100k Hồn Thạch</button>
+          </div>
+          <div class="lbl mb-1.5 mt-4">Bí Cảnh & Đồ Phổ</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select x-model="$store.game.devDungeonSel" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
+              <template x-for="d in $store.game.DUNGEONS" :key="d.id"><option :value="d.id" x-text="d.name + ' (Lv' + d.reqLevel + ')'"></option></template>
+            </select>
+            <select x-model="$store.game.devDungeonMode" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
+              <option value="nhanh">Chạy Nhanh</option><option value="treo">Treo Luyện</option>
+            </select>
+            <button @click="$store.game.devGrantDungeon(5)" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">⚔️ Chạy ×5 (loot + rơi bí kíp)</button>
+            <button @click="$store.game.devGiveDoPho(5)" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">📜 +5 lượt rèn mọi Đồ Phổ</button>
           </div>
         </div>
 
