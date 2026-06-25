@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP_BY_ID, BI_KIP_ADD_STATS, biKipMods, biKipPower, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { luanVo, luanVoCycle, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
@@ -16,7 +16,7 @@ export function ensureTongMon(state, nowMs) {
     const t = {
       name: 'Tiêu Dao Tông', dao: 'trung', level: 1,
       congHien: 0, diem: 0, khiVan: 50,
-      mats: {}, pills: {},                                                // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá
+      mats: {}, pills: {}, biKipBag: {},                                  // Túi Đồ: nguyên liệu (Lịch Luyện kiếm) -> Y Quán luyện đan -> đột phá; biKipBag = kho bí kíp
       brewing: [],                                                        // Y Quán: mẻ đan đang luyện (idle, có thời gian)
       duocVien: { plots: [] },                                            // Dược Viên: luống trồng nguyên liệu (idle)
       buildings: { tuHien: 1, dienVo: 1, tangThu: 1, yQuan: 0, duocVien: 0, luyenKhiCac: 0, giangDao: 0, tuLinh: 0, daiKhachCac: 0, gioiLuatDuong: 0, luanVoDuong: 0, toSuDien: 0 },
@@ -58,12 +58,13 @@ export function ensureTongMon(state, nowMs) {
   if (!t.luanVo || typeof t.luanVo !== 'object') t.luanVo = {};             // record Luận Võ (uid -> {w,l}), side-only
   if (!t.diplomacy || typeof t.diplomacy !== 'object') t.diplomacy = { ties: {} };   // Đãi Khách Các: bang giao bot-sect (sectId -> {rep,lastVisit}), side-only
   if (!t.diplomacy.ties || typeof t.diplomacy.ties !== 'object') t.diplomacy.ties = {};
+  if (!t.biKipBag || typeof t.biKipBag !== 'object') t.biKipBag = {};                 // Tàng Thư Lâu: kho bí kíp sở hữu (biKipId -> count), side-only
   if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
   if (!t.events.cd) t.events.cd = {};
-  for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0; if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0; }
+  for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0; if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0; if (!Array.isArray(d.skills)) d.skills = []; }
 }
 
 function chronicle(t, text, gid) { const e = { t: Date.now(), text }; if (gid) e.gid = gid; t.soSach.unshift(e); if (t.soSach.length > 80) t.soSach.length = 80; }
@@ -656,9 +657,13 @@ export function enhanceGear(state, discipleUid, slot) {
 // ---- Thực Lực Đệ Tử (SIDE-ONLY) ----
 // Realm "mượt": tiến theo tiểu cảnh (xp trong đại cảnh); đã tới trần -> coi như Viên Mãn (+1).
 function realmF(d) { const r = d.realm || 0; return r + (r >= disciCap(d) ? 1 : (d.xp || 0)); }
+// Bí kíp đã lĩnh ngộ: gộp stat mods + power (SIDE-ONLY).
+export function disciSkillMods(d) { const out = {}; (d.skills || []).forEach((sid) => { const m = biKipMods(BI_KIP_BY_ID[sid]); for (const k in m) out[k] = (out[k] || 0) + m[k]; }); return out; }
+export function disciSkillPower(d) { let p = 0; (d.skills || []).forEach((sid) => { p += biKipPower(BI_KIP_BY_ID[sid]); }); return p; }
 export function disciPower(d) {
   let p = (realmF(d) + 1) * 10 * APT[d.apt].mul;
   if (d.gear) for (const k in d.gear) p += gearPow(d.gear[k]);
+  p += disciSkillPower(d);                       // bí kíp lĩnh ngộ (side-only)
   return Math.round(p);
 }
 
@@ -669,15 +674,17 @@ export function disciStats(d) {
   const rv = realmF(d);                                      // realm mượt (leo theo tiểu cảnh)
   const gp = gearTotal(d);
   const base = (rv + 1) * mul;
+  const sk = disciSkillMods(d);                              // bí kíp lĩnh ngộ: atk/def/spd/maxHP/critDmg NHÂN %, crit/dodge CỘNG xác suất
+  const mp = (k) => 1 + (sk[k] || 0), ad = (k) => (sk[k] || 0);
   return {
-    chienLuc: disciPower(d),                                 // = Thực Lực
-    atk: Math.round(base * 22 + gp * 0.7),
-    spd: Math.round(60 + rv * 16 + mul * 30),
-    crit: Math.min(0.6, 0.05 + tier * 0.03 + r * 0.012),
-    critDmg: +(1.5 + tier * 0.12 + r * 0.04).toFixed(2),
-    def: Math.round(base * 26 + gp * 0.6),
-    maxHP: Math.round(base * 340 + gp * 5),
-    dodge: Math.min(0.4, 0.02 + r * 0.01),
+    chienLuc: disciPower(d),                                 // = Thực Lực (đã gồm skill power)
+    atk: Math.round((base * 22 + gp * 0.7) * mp('atk')),
+    spd: Math.round((60 + rv * 16 + mul * 30) * mp('spd')),
+    crit: Math.min(0.75, 0.05 + tier * 0.03 + r * 0.012 + ad('crit')),
+    critDmg: +((1.5 + tier * 0.12 + r * 0.04) * mp('critDmg')).toFixed(2),
+    def: Math.round((base * 26 + gp * 0.6) * mp('def')),
+    maxHP: Math.round((base * 340 + gp * 5) * mp('maxHP')),
+    dodge: Math.min(0.5, 0.02 + r * 0.01 + ad('dodge')),
     regenPct: 0.01 + Math.floor(r / 3) * 0.005,
     maxNL: Math.round(base * 30 + gp * 0.5),
     nlRegen: Math.round(4 + r * 1.2),

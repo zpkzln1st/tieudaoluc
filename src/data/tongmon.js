@@ -230,6 +230,58 @@ export const DIPLO_TIERS = [
 export function diploTier(rep) { let cur = DIPLO_TIERS[0]; for (const x of DIPLO_TIERS) if ((rep || 0) >= x.min) cur = x; return cur; }
 export function diploNextMin(rep) { for (const x of DIPLO_TIERS) if ((rep || 0) < x.min) return x.min; return null; }   // ngưỡng bậc kế (null = đã max)
 
+// ===== BÍ KÍP / VÕ HỌC (Tàng Thư Lâu cho đệ tử LĨNH NGỘ). Bậc giống main (Sơ/Trung/Cao/Tuyệt). Hiệu ứng SIDE-ONLY (disciStats/Luận Võ/Uy, KHÔNG về combat main). DRAFT. =====
+// Bậc: mul = hệ số nhân hiệu ứng, learnH = giờ lĩnh ngộ, weight = độ phổ biến (sơ/trung dễ, cao/tuyệt hiếm). Màu khớp votong TIER_STYLE.
+export const BI_KIP_TIER = {
+  'sơ':    { key: 'sơ',    name: 'Sơ',    mul: 1.0, learnH: 6,  weight: 50, color: '#cbd5e1' },
+  'trung': { key: 'trung', name: 'Trung', mul: 1.9, learnH: 14, weight: 30, color: '#7dd3fc' },
+  'cao':   { key: 'cao',   name: 'Cao',   mul: 3.2, learnH: 30, weight: 14, color: '#fbbf24' },
+  'tuyệt': { key: 'tuyệt', name: 'Tuyệt', mul: 5.0, learnH: 60, weight: 6,  color: '#e879f9' },
+};
+export const BI_KIP_TIER_ORDER = ['sơ', 'trung', 'cao', 'tuyệt'];
+// 8 loại võ học: tên + hồ sơ chỉ số (key trùng disciStats). atk/def/spd/maxHP/critDmg = NHÂN %, crit/dodge = CỘNG xác suất.
+export const BI_KIP_LOAI = {
+  kiem:  { name: 'Kiếm Pháp',  prof: { crit: 0.05, atk: 0.10 } },
+  dao:   { name: 'Đao Pháp',   prof: { atk: 0.18 } },
+  quyen: { name: 'Quyền Pháp', prof: { atk: 0.10, maxHP: 0.12 } },
+  chi:   { name: 'Chỉ Pháp',   prof: { crit: 0.04, critDmg: 0.14 } },
+  than:  { name: 'Thân Pháp',  prof: { dodge: 0.06, spd: 0.10 } },
+  noi:   { name: 'Nội Công',   prof: { maxHP: 0.16, def: 0.12 } },
+  khinh: { name: 'Khinh Công', prof: { spd: 0.16, dodge: 0.04 } },
+  am:    { name: 'Ám Khí',     prof: { crit: 0.06, atk: 0.08 } },
+};
+export const BI_KIP_ADD_STATS = ['crit', 'dodge'];   // stat CỘNG (xác suất); còn lại NHÂN %
+// chieu = đòn thi triển trong Đài Tỉ Võ (BK4). flavor = các vế chiến báo.
+export const BI_KIP = [
+  // --- SƠ (dễ kiếm) ---
+  { id: 'bk_cobankiem', ten: 'Cơ Bản Kiếm Quyết', loai: 'kiem', tier: 'sơ', he: 'kim', lore: 'Thập tam thức kiếm nhập môn, mộc mạc mà vững như rễ tùng.', chieu: ['vạch một kiếm cương trực', 'kiếm quyết nhập môn mà chắc nịch'] },
+  { id: 'bk_badao', ten: 'Bá Đao Thuật', loai: 'dao', tier: 'sơ', he: 'hoa', lore: 'Đao đi đường bá, một nhát bổ xuống nặng tựa núi đè.', chieu: ['vung một đao bá đạo', 'đao thế hung mãnh chẻ ngang'] },
+  { id: 'bk_lahan', ten: 'La Hán Quyền', loai: 'quyen', tier: 'sơ', he: 'tho', lore: 'Quyền pháp nhà Phật, cương mãnh trầm ổn, lấy nhu khắc cương.', chieu: ['tung một quyền La Hán trầm ổn', 'quyền kình như chuông đại hồng'] },
+  { id: 'bk_luuvan', ten: 'Lưu Vân Thân Pháp', loai: 'than', tier: 'sơ', he: 'thuy', lore: 'Thân pháp lượn như mây trôi, lách qua kẽ chiêu nhẹ nhàng.', chieu: ['lách người như mây lượn', 'thân ảnh phiêu hốt khó nắm bắt'] },
+  { id: 'bk_thanhtam', ten: 'Thanh Tâm Quyết', loai: 'noi', tier: 'sơ', he: 'moc', lore: 'Nội công dưỡng khí, khí hải sung mãn, đạo tâm an định.', chieu: ['vận nội tức điều hòa nghênh đòn', 'chân khí hộ thân vững vàng'] },
+  { id: 'bk_truyphong', ten: 'Truy Phong Bộ', loai: 'khinh', tier: 'sơ', he: 'thuy', lore: 'Bộ pháp đuổi gió, sải chân nhanh hơn cả tiếng vỡ.', chieu: ['lướt nhanh như truy phong', 'bộ pháp khinh linh chiếm tiên cơ'] },
+  // --- TRUNG ---
+  { id: 'bk_luuquang', ten: 'Lưu Quang Kiếm Pháp', loai: 'kiem', tier: 'trung', he: 'kim', lore: 'Kiếm nhanh như tia chớp lưu quang, chưa thấy ánh đã thấy máu.', chieu: ['kiếm quang vụt như lưu quang', 'một đạo bạch hồng xé hư không'] },
+  { id: 'bk_cuongphong', ten: 'Cuồng Phong Đao Pháp', loai: 'dao', tier: 'trung', he: 'moc', lore: 'Đao cuốn cuồng phong, mỗi chiêu kéo theo gió táp loạn vây.', chieu: ['đao quang cuốn cuồng phong', 'gió đao vây bủa tứ phía'] },
+  { id: 'bk_phichlich', ten: 'Phích Lịch Thần Chỉ', loai: 'chi', tier: 'trung', he: 'hoa', lore: 'Một chỉ điểm ra tựa sấm sét, kình lực tụ một điểm xuyên giáp.', chieu: ['điểm một chỉ như sấm phích lịch', 'chỉ kình tụ điểm xuyên phá'] },
+  { id: 'bk_huyenquy', ten: 'Huyền Quy Nội Công', loai: 'noi', tier: 'trung', he: 'tho', lore: 'Nội công nhà rùa, thủ vững như mai cứng, càng đánh càng lì.', chieu: ['vận Huyền Quy khí hộ thể', 'thân tựa quy giáp nuốt trọn đòn'] },
+  { id: 'bk_thiemdien', ten: 'Thiểm Điện Khinh Công', loai: 'khinh', tier: 'trung', he: 'hoa', lore: 'Khinh công nhanh tựa chớp giật, chớp mắt đã đổi mười bộ.', chieu: ['di hình như thiểm điện', 'bóng người chớp tắt sau lưng địch'] },
+  // --- CAO (khó) ---
+  { id: 'bk_ngaotuyet', ten: 'Ngạo Tuyết Kiếm Đạo', loai: 'kiem', tier: 'cao', he: 'thuy', lore: 'Kiếm ý lạnh như tuyết đỉnh non, một kiếm ra hàn khí đóng băng hơi thở.', chieu: ['vung Ngạo Tuyết, hàn quang phủ trắng', 'kiếm ý lạnh thấu xương ép tới'] },
+  { id: 'bk_phaquan', ten: 'Phá Quân Đao Pháp', loai: 'dao', tier: 'cao', he: 'kim', lore: 'Đao phá vạn quân, một nhát mở đường máu giữa thiên binh.', chieu: ['bổ Phá Quân một đao mở đường', 'đao thế phá tan mọi phòng tuyến'] },
+  { id: 'bk_kimcuong', ten: 'Kim Cương Bất Hoại Thể', loai: 'noi', tier: 'cao', he: 'tho', lore: 'Luyện thân tới mức đao thương khó tổn, thân như kim cương trường tồn.', chieu: ['vận Kim Cương Thể nghênh chính diện', 'thân bất hoại nuốt trọn cường kích'] },
+  // --- TUYỆT (cực hiếm) ---
+  { id: 'bk_thaihu', ten: 'Thái Hư Kiếm Ý', loai: 'kiem', tier: 'tuyệt', he: 'kim', lore: 'Kiếm ý hợp với hư không, vô chiêu thắng hữu chiêu — một niệm phân sinh tử.', chieu: ['kiếm ý hợp hư không, vô chiêu thắng hữu chiêu', 'một niệm Thái Hư, kiếm tới trước cả ý'] },
+  { id: 'bk_votuong', ten: 'Vô Tướng Ma Công', loai: 'am', tier: 'tuyệt', he: 'moc', lore: 'Ma công vô tướng vô hình, sát chiêu đến từ nơi không ai ngờ tới.', chieu: ['ám khí Vô Tướng đến từ hư vô', 'sát chiêu vô hình không cách nào phòng'] },
+];
+export const BI_KIP_BY_ID = {}; BI_KIP.forEach((b) => { BI_KIP_BY_ID[b.id] = b; });
+export const BI_KIP_KEYS = BI_KIP.map((b) => b.id);
+// stat mods 1 bí kíp (đã nhân bậc) — trả {stat: value}
+export function biKipMods(bk) { const out = {}; if (!bk) return out; const prof = (BI_KIP_LOAI[bk.loai] || {}).prof || {}, mul = (BI_KIP_TIER[bk.tier] || {}).mul || 1; for (const k in prof) out[k] = prof[k] * mul; return out; }
+export function biKipPower(bk) { return bk ? Math.round(55 * ((BI_KIP_TIER[bk.tier] || {}).mul || 1)) : 0; }   // +Chiến Lực side-only / bí kíp
+export function biKipSlotMax(realm) { return 1 + Math.floor((realm || 0) / 2); }   // trần số bí kíp học được theo cảnh giới (realm 0→1 ... 9→5)
+export function biKipLearnH(bk) { return bk ? ((BI_KIP_TIER[bk.tier] || {}).learnH || 6) : 6; }
+
 // ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới
@@ -292,6 +344,7 @@ export function genDisciple(opt = {}) {
     tamMaLv: 0, tamMaXp: 0,                            // hệ Tâm Ma Kiếp (SỐ): tamMaLv = bậc tâm ma (mức độ), tamMaXp = tích lũy trong bậc (0..1)
     realm: 0, xp: 0, capBonus: 0, giangBonus: 0,   // capBonus: bậc trần được NÂNG (sự kiện + Giảng Đạo); giangBonus: phần đến TỪ Giảng Đạo (cap GIANG_MAX_BONUS)
     flags: {},                              // cờ do SỰ KIỆN gắn (daoLu/oanTham/tamMaSeed/biệt hiệu…) — side-only
+    skills: [],                             // bí kíp đã LĨNH NGỘ (id BI_KIP) — side-only, cộng disciStats/Luận Võ/Uy
     gear: {},                               // { slotId: gearInstance } — Gia Bảo, side-only
     state: 'tu',                            // tu | rest
     awaiting: false,                        // chờ Đắc Đạo -> chọn Xuất Sư/Trưởng Lão
