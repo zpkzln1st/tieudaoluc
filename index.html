@@ -102,6 +102,9 @@
     .tmtip .tmtipbox{ position:absolute; left:0; bottom:calc(100% + 8px); width:240px; z-index:90; opacity:0; pointer-events:none; transition:opacity .14s, transform .14s; transform:translateY(-4px); }
     .tmtip:hover .tmtipbox{ opacity:1; transform:translateY(0); }
     .tmtipbox::before{ content:''; position:absolute; left:18px; bottom:-5px; transform:rotate(45deg); width:10px; height:10px; background:#0f1521; border-right:1px solid; border-bottom:1px solid; border-color:inherit; }
+    /* biến thể mở SANG TRÁI (ô bên phải khung) — tránh tràn mép phải bị cắt */
+    .tmtip .tmtipbox.tmtipbox-r{ left:auto; right:0; }
+    .tmtipbox.tmtipbox-r::before{ left:auto; right:18px; }
     /* Công trình Tông Môn: mobile = cuộn ngang mượt (vuốt) · >=sm = lưới */
     .tm-bld-row{ display:flex; gap:.5rem; overflow-x:auto; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; padding-bottom:.3rem; }
     .tm-bld-row::-webkit-scrollbar{ height:4px; }
@@ -4839,8 +4842,8 @@
                         <template x-if="!g.bkMergeResult"><span class="fserif text-2xl" :style="'color:'+g.bkMergeCur.nextColor+'99'">?</span></template>
                       </div>
                     </div>
-                    <template x-if="g.bkMergeResult"><div class="text-center mt-2 text-[11.5px] fserif" :style="'color:'+g.bkMergeResult.tierColor">✦ Lĩnh hội 「<span x-text="g.bkMergeResult.ten"></span>」 (<span x-text="g.bkMergeResult.tierName"></span>)!</div></template>
-                    <button @click="g.tmMergeBiKipPick()" :disabled="!g.bkMergeFull" class="w-full mt-2.5 py-2 rounded-lg text-[12.5px] font-bold fserif transition" :class="g.bkMergeFull?'bg-fuchsia-600/90 hover:bg-fuchsia-600 text-white':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="g.bkMergeFull ? ('Hợp Nhất → 1 '+g.bkMergeCur.nextName) : ('Chọn đủ cuốn ghép · '+g.bkMergeSel.length+'/'+g.bkMergeNeed)"></button>
+                    <div class="text-center mt-2 h-[17px] text-[11.5px] fserif leading-[17px] truncate" :style="g.bkMergeResult ? ('color:'+g.bkMergeResult.tierColor) : ''"><template x-if="g.bkMergeResult"><span>✦ Lĩnh hội 「<span x-text="g.bkMergeResult.ten"></span>」 (<span x-text="g.bkMergeResult.tierName"></span>)!</span></template></div>
+                    <button @click="g.tmMergeBiKipPick()" :disabled="!g.bkMergeFull" class="w-full mt-2 py-2 rounded-lg text-[12.5px] font-bold fserif transition" :class="g.bkMergeFull?'bg-fuchsia-600/90 hover:bg-fuchsia-600 text-white':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="g.bkMergeFull ? ('Hợp Nhất → 1 '+g.bkMergeCur.nextName) : ('Chọn đủ cuốn ghép · '+g.bkMergeSel.length+'/'+g.bkMergeNeed)"></button>
                   </div>
                   <!-- kho bí kíp bậc nguồn -->
                   <div class="lbl mb-1.5">Kho Bí Kíp bậc <span :style="'color:'+g.bkMergeCur.tierColor" x-text="g.bkMergeCur.tierName"></span> <span class="text-slate-600 normal-case tracking-normal">· bấm để chọn ghép</span></div>
@@ -4911,9 +4914,9 @@
                       </div>
                       <button @click="g.closeLuanVoResult()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                     </div>
-                    <div class="overflow-y-auto">
+                    <div class="flex-1 min-h-0 flex flex-col">
                     <!-- 2 thẻ đấu sĩ (kĩ năng + thuộc tính) -->
-                    <div class="grid grid-cols-2">
+                    <div class="grid grid-cols-2 shrink-0">
                       <!-- A (trái) -->
                       <div class="p-3.5 border-r border-slate-800/70">
                         <div class="flex gap-2.5">
@@ -4990,7 +4993,7 @@
                               <template x-for="sk in f.b.skills" :key="sk.id">
                                 <span class="tmtip inline-flex">
                                   <span class="relative w-9 h-9 rounded-md overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[12px] transition-all duration-200" :class="g.luanVoActiveSkill.b===sk.id?'ring-2 ring-amber-300 scale-110 z-10':''" :style="'border-color:'+sk.tierColor+(g.luanVoActiveSkill.b===sk.id?'':'88')+';color:'+sk.heColor"><span x-text="sk.heHan"></span><img :src="'images/tongmon/bikip/'+sk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"><span class="absolute top-0 left-0 text-[6.5px] leading-none px-0.5 py-0.5 rounded-br font-bold fserif" :style="'background:'+sk.tierColor+'e6;color:#0b0f17'" x-text="sk.tierName"></span></span>
-                                  <span class="tmtipbox panel rounded-lg p-2.5 text-left shadow-xl" style="left:auto;right:0" :style="'border-color:'+sk.tierColor+'66'">
+                                  <span class="tmtipbox tmtipbox-r panel rounded-lg p-2.5 text-left shadow-xl" :style="'border-color:'+sk.tierColor+'66'">
                                     <span class="fserif text-[12px] block" :style="'color:'+sk.tierColor" x-text="sk.ten"></span>
                                     <span class="text-[9.5px] text-slate-500 block mb-1" x-text="sk.loaiName+' · '+sk.heName+' · '+sk.tierName"></span>
                                     <span class="flex flex-wrap gap-1"><template x-for="ml in sk.modLines" :key="ml.stat"><span class="text-[9px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90" x-text="'+'+ml.pct+'% '+ml.stat"></span></template></span>
@@ -5008,22 +5011,22 @@
                       </div>
                     </div>
                     <!-- thế trận khắc chế -->
-                    <div class="flex items-center justify-center gap-2 py-1.5 border-y border-slate-800/70 bg-ink2/40 text-[10px] flex-wrap px-3">
+                    <div class="flex items-center justify-center gap-2 py-1.5 border-y border-slate-800/70 bg-ink2/40 text-[10px] flex-wrap px-3 shrink-0">
                       <span class="text-slate-500">Thế trận:</span>
                       <template x-if="f.heFactor!==0"><span class="px-2 py-0.5 rounded-full text-cyan border border-cyan/30 bg-cyan/5" x-text="(f.heFactor>0?f.a.heName:f.b.heName)+' khắc '+(f.heFactor>0?f.b.heName:f.a.heName)+' +15%'"></span></template>
                       <template x-if="f.loaiFactor!==0"><span class="px-2 py-0.5 rounded-full text-fuchsia-300 border border-fuchsia-500/30 bg-fuchsia-500/5" x-text="(f.loaiFactor>0?f.a.loaiCatName:f.b.loaiCatName)+' khắc '+(f.loaiFactor>0?f.b.loaiCatName:f.a.loaiCatName)+' +10%'"></span></template>
                       <template x-if="f.heFactor===0 && f.loaiFactor===0"><span class="text-slate-600">đôi bên cân tài, không khắc chế</span></template>
                     </div>
                     <!-- chiến báo tô màu + tự cuộn -->
-                    <div class="px-4 sm:px-5 py-3">
-                      <div class="lbl mb-1.5">Chiến Báo</div>
-                      <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5 h-[150px] overflow-y-auto text-[11.5px] leading-relaxed space-y-1.5 fserif" x-ref="lvlog" x-effect="g.luanVoLog.length; $nextTick(() => { if ($refs.lvlog) $refs.lvlog.scrollTop = $refs.lvlog.scrollHeight; })">
+                    <div class="px-4 sm:px-5 py-3 flex-1 min-h-0 flex flex-col">
+                      <div class="lbl mb-1.5 shrink-0">Chiến Báo</div>
+                      <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5 flex-1 min-h-[110px] overflow-y-auto overflow-x-hidden text-[11.5px] leading-relaxed space-y-1.5 fserif break-words" x-ref="lvlog" x-effect="g.luanVoLog.length; $nextTick(() => { if ($refs.lvlog) $refs.lvlog.scrollTop = $refs.lvlog.scrollHeight; })">
                         <template x-for="(l,li) in g.luanVoLog" :key="li"><div class="pl-2 border-l-2 transition-colors" :class="li===g.luanVoLog.length-1 && !g.luanVoFightDone ? 'border-cyan/70 text-slate-200' : 'border-transparent text-slate-400'" x-html="g.luanVoLineHtml(l)"></div></template>
                         <template x-if="!g.luanVoLog.length"><div class="text-slate-600 italic pl-2">Hai đấu sĩ bước lên đài, ôm quyền hành lễ…</div></template>
                       </div>
                     </div>
                     <!-- người thắng + nút -->
-                    <div class="px-5 py-3.5 border-t border-slate-800">
+                    <div class="px-5 py-3.5 border-t border-slate-800 shrink-0">
                       <template x-if="g.luanVoFightDone">
                         <div class="text-center mb-3"><span class="fserif text-[15px] text-amber-200" x-text="g.luanVoFight.winnerName"></span> <span class="text-[12.5px] text-slate-300" x-text="g.luanVoFight.marginLabel"></span><template x-if="g.luanVoFight.heFactor!==0"><div class="text-[10px] text-cyan mt-0.5">ngũ hành tương khắc nghiêng cán cân</div></template><template x-if="g.luanVoFight.loaiFactor!==0"><div class="text-[10px] text-fuchsia-300 mt-0.5">võ học khắc chế nghiêng cán cân</div></template></div>
                       </template>
