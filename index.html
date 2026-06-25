@@ -5408,6 +5408,41 @@
                   </div>
                 </div>
                 <div class="p-4 overflow-y-auto space-y-2.5">
+                  <!-- PHIÊN ĐẤU GIÁ BÍ KÍP -->
+                  <div class="rounded-xl border border-indigo-500/30 bg-indigo-500/[.05] p-3">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-md flex items-center justify-center fserif text-[14px] text-indigo-200 border border-indigo-400/40 bg-indigo-500/10">笈</span>
+                        <div class="fserif text-[14px] text-indigo-100 leading-none">Phiên Đấu Giá Bí Kíp</div>
+                      </div>
+                      <span class="text-[10.5px] text-slate-500">Phiên mới sau <b class="text-indigo-300" x-text="g.linhNgoLeftText(g.tmBkAuction.nextMs)"></b></span>
+                    </div>
+                    <template x-if="!g.tmBkAuction.lots.length"><div class="text-[11px] text-slate-500 italic py-2 text-center">Phiên đã mãn — đợi phiên kế. (Bậc cao cần nâng Tàng Thư Lâu mới hiện)</div></template>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <template x-for="bk in g.tmBkAuction.lots" :key="bk.id">
+                        <div class="rounded-lg border p-2.5 flex flex-col gap-2 bg-ink3/40" :style="'border-color:'+bk.tierColor+'40'">
+                          <div class="flex gap-2.5">
+                            <span class="relative w-11 h-11 rounded-md overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-[16px]" :style="'border-color:'+bk.tierColor+'55;color:'+bk.heColor"><span x-text="bk.heHan"></span><img :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
+                            <div class="min-w-0 flex-1">
+                              <div class="flex items-center gap-1.5">
+                                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold fserif shrink-0" :style="'color:'+bk.tierColor+';border:1px solid '+bk.tierColor+'66;background:'+bk.tierColor+'18'" x-text="bk.tierName"></span>
+                                <span class="fserif text-[12.5px] truncate" :style="'color:'+bk.tierColor" x-text="bk.ten"></span>
+                              </div>
+                              <div class="text-[9.5px] text-slate-500 mt-0.5 truncate" x-text="bk.loaiName + ' · ' + bk.heName"></div>
+                              <div class="flex flex-wrap gap-1 mt-1">
+                                <template x-for="ml in bk.modLines" :key="ml.stat"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-ink3 text-emerald-300/90 border border-slate-700/60" x-text="'+'+ml.pct+'% '+ml.stat"></span></template>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex items-center justify-between gap-2 mt-auto">
+                            <div class="text-[12px]" :class="bk.afford?'text-amber-300':'text-rose-400/80'"><b x-text="bk.price"></b> Điểm</div>
+                            <button @click="g.tmBuyBkLot(bk.id)" :disabled="!bk.afford" class="text-[11.5px] px-3 py-1 rounded bg-indigo-600/85 hover:bg-indigo-600 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed">Đoạt</button>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <div class="lbl pt-1">Lệnh Phù · Cosmetic</div>
                   <template x-for="item in g.tmShopItems" :key="item.id">
                     <div class="flex gap-3 p-3 rounded-lg bg-ink3/40 border border-slate-800">
                       <div class="w-11 h-11 rounded-lg shrink-0 flex items-center justify-center fserif text-[22px]" :style="'background:'+item.color+'14;border:1px solid '+item.color+'40;color:'+item.color" x-text="item.han"></div>

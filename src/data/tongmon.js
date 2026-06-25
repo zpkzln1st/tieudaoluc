@@ -282,6 +282,30 @@ export function biKipPower(bk) { return bk ? Math.round(55 * ((BI_KIP_TIER[bk.ti
 export function biKipSlotMax(realm) { return 1 + Math.floor((realm || 0) / 2); }   // trần số bí kíp học được theo cảnh giới (realm 0→1 ... 9→5)
 export function biKipLearnH(bk) { return bk ? ((BI_KIP_TIER[bk.tier] || {}).learnH || 6) : 6; }
 
+// --- ĐẤU GIÁ BÍ KÍP: phiên rao bán N lô bí kíp ở Đấu Giá Hội, làm mới mỗi BK_AUCTION_REFRESH_H giờ. Tiêu Điểm Đấu Giá (sinh từ Tàng Thư Lâu). Bậc cao hiếm + GATE theo cấp Tàng Thư Lâu (kho càng giàu, bí lục càng quý). SIDE-ONLY. DRAFT — tune. ---
+export const BK_AUCTION_SLOTS = 4;            // số lô mỗi phiên
+export const BK_AUCTION_REFRESH_H = 8;        // giờ làm mới phiên (bán hết -> đợi phiên sau = rate-limit "assist CHẬM")
+export const BK_AUCTION_PRICE = { 'sơ': 60, 'trung': 200, 'cao': 650, 'tuyệt': 1600 };   // Điểm theo bậc
+export const BK_TIER_GATE  = { 'sơ': 0, 'trung': 1, 'cao': 3, 'tuyệt': 5 };               // cấp Tàng Thư Lâu tối thiểu để lô bậc này xuất hiện
+export function bkLotPrice(tier) { return Math.round((BK_AUCTION_PRICE[tier] || 100) * (0.9 + Math.random() * 0.3)); }
+// sinh 1 phiên đấu giá: chọn (không trùng) theo weight bậc (sơ/trung dễ ra, cao/tuyệt hiếm), lọc theo gate cấp Tàng Thư Lâu
+export function genBkAuction(tangThuLv) {
+  const lv = tangThuLv || 0;
+  const pool = BI_KIP.filter((b) => (BK_TIER_GATE[b.tier] || 0) <= lv);
+  const used = new Set(), lots = [];
+  let guard = 0;
+  while (lots.length < BK_AUCTION_SLOTS && guard++ < 300) {
+    let tot = 0; pool.forEach((b) => { if (!used.has(b.id)) tot += (BI_KIP_TIER[b.tier] || {}).weight || 1; });
+    if (tot <= 0) break;
+    let r = Math.random() * tot, pick = null;
+    for (const b of pool) { if (used.has(b.id)) continue; r -= (BI_KIP_TIER[b.tier] || {}).weight || 1; if (r <= 0) { pick = b; break; } }
+    if (!pick) break;
+    used.add(pick.id);
+    lots.push({ id: pick.id, price: bkLotPrice(pick.tier) });
+  }
+  return lots;
+}
+
 // ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới

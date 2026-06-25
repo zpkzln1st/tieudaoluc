@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP_BY_ID, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP_BY_ID, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { luanVo, luanVoCycle, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
@@ -24,6 +24,7 @@ export function ensureTongMon(state, nowMs) {
       recruitPool: [], recruitAt: 0,
       uyBonus: 0,                                                         // +Uy Danh tích từ SỰ KIỆN (uyDanhOf cộng vào)
       shopCd: {},                                                         // cooldown Đấu Giá Hội (id -> untilMs); giữ "assist CHẬM" theo hợp đồng cách ly
+      bkAuction: { lots: [], at: 0 },                                     // Đấu Giá Bí Kíp: phiên rao bán lô bí kíp (làm mới theo giờ)
       events: { pending: [], cd: {}, queue: [], rebels: [], seen: 0 },    // sự kiện giang hồ chọn-mù
       lastSimAt: nowMs || Date.now(),
     };
@@ -61,6 +62,8 @@ export function ensureTongMon(state, nowMs) {
   if (!t.biKipBag || typeof t.biKipBag !== 'object') t.biKipBag = {};                 // Tàng Thư Lâu: kho bí kíp sở hữu (biKipId -> count), side-only
   if (!t.bkGranted) { t.bkGranted = true; ['bk_cobankiem', 'bk_badao', 'bk_thanhtam'].forEach((id) => { t.biKipBag[id] = (t.biKipBag[id] || 0) + 1; }); }   // tặng 3 bí kíp sơ khởi đầu (1 lần)
   if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
+  if (!t.bkAuction || typeof t.bkAuction !== 'object') t.bkAuction = { lots: [], at: 0 };   // backfill Đấu Giá Bí Kíp
+  if (!Array.isArray(t.bkAuction.lots)) t.bkAuction.lots = [];
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
@@ -306,6 +309,8 @@ export function simTongMon(state, nowMs, capHours) {
   if (t.events) { try { accrueTamMa(state, t, dt, nowMs); } catch (e) {} }
   // ---- Sự kiện giang hồ: chuỗi đã hẹn (queue) + roll ngẫu nhiên theo elapsed ----
   if (t.events) { try { processEventQueue(state, t, nowMs); rollEvents(state, t, dt, nowMs); } catch (e) {} }
+  // ---- Đấu Giá Bí Kíp: làm mới phiên theo giờ (offline-safe) ----
+  try { bkAuctionRefresh(state, nowMs); } catch (e) {}
   return { breaks };
 }
 
@@ -723,6 +728,31 @@ export function startLinhNgo(state, biKipId, uid, nowMs) {
   return { ok: true, msg: `${d.name} bắt đầu lĩnh ngộ 「${bk.ten}」 (${biKipLearnH(bk)}h).` };
 }
 export function biKipBagAdd(state, biKipId, n) { const t = state.tongMon; if (!t) return false; if (!BI_KIP_BY_ID[biKipId]) return false; if (!t.biKipBag) t.biKipBag = {}; t.biKipBag[biKipId] = (t.biKipBag[biKipId] || 0) + (n || 1); return true; }
+
+// ---- ĐẤU GIÁ BÍ KÍP: phiên rao bán lô bí kíp, làm mới theo giờ. Tiêu Điểm Đấu Giá. SIDE-ONLY (chỉ vào biKipBag). ----
+export function bkAuctionRefresh(state, nowMs) {
+  const t = state.tongMon; if (!t) return;
+  if (!t.bkAuction || typeof t.bkAuction !== 'object') t.bkAuction = { lots: [], at: 0 };
+  if (!Array.isArray(t.bkAuction.lots)) t.bkAuction.lots = [];
+  if ((nowMs - (t.bkAuction.at || 0)) >= BK_AUCTION_REFRESH_H * 3600000) {   // chỉ làm mới theo GIỜ (bán hết -> đợi phiên sau, không tự refresh tức thì)
+    t.bkAuction.lots = genBkAuction(t.buildings.tangThu || 0);
+    t.bkAuction.at = nowMs;
+  }
+}
+export function buyBkLot(state, biKipId, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };
+  bkAuctionRefresh(state, nowMs);
+  const i = (t.bkAuction.lots || []).findIndex((l) => l.id === biKipId);
+  const lot = i >= 0 ? t.bkAuction.lots[i] : null;
+  if (!lot) return { ok: false, msg: 'Lô đã hết — đợi phiên sau' };
+  const bk = BI_KIP_BY_ID[biKipId]; if (!bk) return { ok: false, msg: 'Không rõ bí kíp' };
+  if ((t.diem || 0) < lot.price) return { ok: false, msg: 'Thiếu Điểm Đấu Giá' };
+  t.diem -= lot.price;
+  biKipBagAdd(state, biKipId, 1);
+  t.bkAuction.lots.splice(i, 1);
+  chronicle(t, `Đấu Giá Hội: đoạt được bí kíp 「${bk.ten}」 về Tàng Thư Lâu.`);
+  return { ok: true, msg: `Đoạt 「${bk.ten}」` };
+}
 
 // ---- Uy Danh Giang Hồ (điểm tổng, LIVE) ----
 export function uyDanhOf(t) {
