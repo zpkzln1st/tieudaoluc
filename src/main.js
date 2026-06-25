@@ -37,8 +37,9 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, bkMergeRows, mergeBiKip, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, bkMergeRows, mergeBiKip, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
+import { CAT_NAME } from './engine/luanvo.js';   // tên nhóm tương khắc loại võ học (Cương/Trường/Nhanh)
 import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
@@ -694,7 +695,8 @@ const gameStore = {
     return (t.disciples || []).filter((d) => !d.awaiting).map((d) => {
       const rec = luanVoRecord(t, d.uid), cdMs = (d.luanVoCdUntil || 0) - now();
       const h = Math.floor(cdMs / 3600000), m = Math.floor((cdMs % 3600000) / 60000);
-      return { uid: d.uid, name: d.name, han: d.han, color: (APT[d.apt] || {}).color || '#cbd5e1', heColor: (HE[d.he] || HE.kim).color, heHan: (HE[d.he] || HE.kim).han, face: this.tmFace(d), chienLuc: disciStats(d).chienLuc, w: rec.w, l: rec.l, isChampion: this.luanVoChampion === d.uid, onCd: cdMs > 0, cdText: cdMs > 0 ? (h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm')) : '' };
+      const loaiCat = disciLoaiCat(d);
+      return { uid: d.uid, name: d.name, han: d.han, color: (APT[d.apt] || {}).color || '#cbd5e1', heColor: (HE[d.he] || HE.kim).color, heHan: (HE[d.he] || HE.kim).han, face: this.tmFace(d), chienLuc: disciStats(d).chienLuc, loaiCat, loaiCatName: loaiCat ? CAT_NAME[loaiCat] : '', w: rec.w, l: rec.l, isChampion: this.luanVoChampion === d.uid, onCd: cdMs > 0, cdText: cdMs > 0 ? (h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm')) : '' };
     });
   },
   tmRunLuanVo(bUid) {
@@ -704,7 +706,7 @@ const gameStore = {
     this.tmSave(); this._tick++;
     const t = this.tm, a = t.disciples.find((x) => x.uid === this.luanVoChampion), b = t.disciples.find((x) => x.uid === bUid);
     const fd = (d) => d ? { name: d.name, color: (APT[d.apt] || {}).color || '#cbd5e1', face: this.tmFace(d), han: d.han, heColor: (HE[d.he] || HE.kim).color } : { name: '', color: '#94a3b8', face: '', han: '?', heColor: '#94a3b8' };
-    this.luanVoFight = { a: fd(a), b: fd(b), rounds: r.res.rounds, aWon: r.aWon, winnerName: r.res.winnerName, marginLabel: r.res.marginLabel, heFactor: r.res.heFactor };
+    this.luanVoFight = { a: fd(a), b: fd(b), rounds: r.res.rounds, aWon: r.aWon, winnerName: r.res.winnerName, marginLabel: r.res.marginLabel, heFactor: r.res.heFactor, loaiFactor: r.res.loaiFactor };
     this.luanVoRound = 0;
     this._lvPlay();
   },

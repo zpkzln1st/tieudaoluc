@@ -4846,7 +4846,7 @@
                         <span class="relative w-11 h-11 rounded-lg overflow-hidden flex items-center justify-center fserif text-[17px] shrink-0" :style="'color:'+d.color+';border:1px solid '+d.color+'55;background:'+d.color+'12'"><span x-text="d.han"></span><template x-if="d.face"><img :src="d.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
                         <div class="min-w-0 flex-1">
                           <div class="flex items-center gap-1.5"><span class="fserif text-[13px] truncate" :style="'color:'+d.color" x-text="d.name"></span><span class="text-[10px] fserif shrink-0" :style="'color:'+d.heColor" x-text="d.heHan"></span></div>
-                          <div class="text-[10px] text-slate-400">Chiến Lực <b class="text-slate-200" x-text="g.fmt(d.chienLuc)"></b></div>
+                          <div class="text-[10px] text-slate-400 flex items-center gap-1.5 flex-wrap">Chiến Lực <b class="text-slate-200" x-text="g.fmt(d.chienLuc)"></b><template x-if="d.loaiCatName"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-fuchsia-500/12 text-fuchsia-200/90 border border-fuchsia-500/30" x-text="d.loaiCatName"></span></template></div>
                           <div class="text-[9.5px] text-slate-500">Thắng <b class="text-emerald-300" x-text="d.w"></b> · Thua <b class="text-rose-300" x-text="d.l"></b></div>
                         </div>
                         <div class="shrink-0 flex flex-col items-end gap-1">
@@ -4901,7 +4901,7 @@
                     <!-- người thắng + nút -->
                     <div class="px-5 py-3.5">
                       <template x-if="g.luanVoFightDone">
-                        <div class="text-center mb-3"><span class="fserif text-[15px] text-amber-200" x-text="g.luanVoFight.winnerName"></span> <span class="text-[12.5px] text-slate-300" x-text="g.luanVoFight.marginLabel"></span><template x-if="g.luanVoFight.heFactor!==0"><div class="text-[10px] text-cyan mt-0.5">ngũ hành tương khắc nghiêng cán cân</div></template></div>
+                        <div class="text-center mb-3"><span class="fserif text-[15px] text-amber-200" x-text="g.luanVoFight.winnerName"></span> <span class="text-[12.5px] text-slate-300" x-text="g.luanVoFight.marginLabel"></span><template x-if="g.luanVoFight.heFactor!==0"><div class="text-[10px] text-cyan mt-0.5">ngũ hành tương khắc nghiêng cán cân</div></template><template x-if="g.luanVoFight.loaiFactor!==0"><div class="text-[10px] text-fuchsia-300 mt-0.5">võ học khắc chế nghiêng cán cân</div></template></div>
                       </template>
                       <div class="flex justify-center">
                         <button x-show="!g.luanVoFightDone" @click="g.luanVoSkip()" class="px-6 py-1.5 rounded-lg text-[12px] font-bold fserif border border-slate-700 text-slate-300 hover:border-cyan/50 hover:text-cyan transition">Bỏ Qua »</button>

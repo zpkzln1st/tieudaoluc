@@ -4,7 +4,7 @@
 // ============================================================
 import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
-import { luanVo, luanVoCycle, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
+import { luanVo, luanVoCycle, luanVoMarginLabel, LOAI_CAT } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
 // uy cộng dồn tới từng cảnh giới (để tính Uy Danh "tổng" của 1 đệ tử)
@@ -543,7 +543,7 @@ export function runLuanVo(state, aUid, bUid, nowMs) {
   const now = nowMs || Date.now();
   if (a.luanVoCdUntil && now < a.luanVoCdUntil) return { ok: false, msg: `${a.name} vừa tỉ thí, đợi hồi sức.` };
   const seed = a.uid + '~' + b.uid + '~' + Math.floor(now / 600000);   // đổi mỗi 10' để khác trận, vẫn deterministic trong khoảnh khắc
-  const res = luanVoCycle({ name: a.name, chienLuc: disciStats(a).chienLuc, he: a.he, chieuPool: disciChieuPool(a) }, { name: b.name, chienLuc: disciStats(b).chienLuc, he: b.he, chieuPool: disciChieuPool(b) }, seed);
+  const res = luanVoCycle({ name: a.name, chienLuc: disciStats(a).chienLuc, he: a.he, chieuPool: disciChieuPool(a), loaiCat: disciLoaiCat(a) }, { name: b.name, chienLuc: disciStats(b).chienLuc, he: b.he, chieuPool: disciChieuPool(b), loaiCat: disciLoaiCat(b) }, seed);
   if (!t.luanVo) t.luanVo = {};
   const recA = t.luanVo[a.uid] || (t.luanVo[a.uid] = { w: 0, l: 0 });
   const recB = t.luanVo[b.uid] || (t.luanVo[b.uid] = { w: 0, l: 0 });
@@ -676,6 +676,12 @@ export function disciSkillMods(d) { const out = {}; (d.skills || []).forEach((si
 export function disciSkillPower(d) { let p = 0; (d.skills || []).forEach((sid) => { p += biKipPower(BI_KIP_BY_ID[sid]); }); return p; }
 // Bí kíp đã lĩnh ngộ -> pool chiêu cho Đài Tỉ Võ (luanVoCycle: "thi triển 〈bí kíp〉" + câu chiến báo riêng bk.chieu[]).
 export function disciChieuPool(d) { return ((d && d.skills) || []).map((sid) => { const bk = BI_KIP_BY_ID[sid]; return bk ? { ten: bk.ten, lines: bk.chieu || [] } : null; }).filter(Boolean); }
+// Nhóm tương khắc loại võ học (cương/trường/nhanh) của 1 đệ tử = theo bí kíp BẬC CAO NHẤT đã lĩnh ngộ. Rỗng nếu chưa học / chỉ Nội Công.
+export function disciLoaiCat(d) {
+  let best = null, bestTi = -1;
+  ((d && d.skills) || []).forEach((sid) => { const bk = BI_KIP_BY_ID[sid]; if (!bk) return; const ti = BI_KIP_TIER_ORDER.indexOf(bk.tier); if (ti > bestTi) { bestTi = ti; best = bk; } });
+  return best ? (LOAI_CAT[best.loai] || '') : '';
+}
 export function disciPower(d) {
   let p = (realmF(d) + 1) * 10 * APT[d.apt].mul;
   if (d.gear) for (const k in d.gear) p += gearPow(d.gear[k]);
