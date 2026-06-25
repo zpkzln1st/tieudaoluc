@@ -201,3 +201,38 @@ upper-body 3:4 vertical, cinematic, no text, 600x800
 - Làm xong **#1** là thấy ngay (chỉ cần thả file đúng tên). #2–#5 báo tôi, tôi gắn hook (img + onerror fallback về giao diện hiện tại — không vỡ nếu thiếu ảnh).
 - Tất cả ưu tiên **.webp**; nếu xuất .png cũng nhận với #4/#5 (tôi thêm fallback .png như các hệ khác).
 - Giữ nền tối/muted ở #2 và #4 để chữ (gold-text, watermark Hán) đọc rõ.
+
+---
+
+## 9. BÍ KÍP / VÕ HỌC — `images/tongmon/bikip/<id>.webp` (Tàng Thư Lâu · Lĩnh Ngộ)
+**Nơi để:** `images/tongmon/bikip/` (tạo mới) · **Kích thước:** ~512×512 (VUÔNG) · **Nền:** ĐEN/tối đặc (object-cover phủ kín ô icon). 1 cuốn bí kíp/vật biểu trưng giữa khung, glow theo ngũ hành, KHÔNG chữ đọc được.
+**Đã wire sẵn:** icon 44px ở card "Kho Bí Kíp" (modal Lĩnh Ngộ) — thiếu file thì tự lộ lại chữ Hán ngũ hành. (Sẽ thêm vào tooltip Võ Học + nguồn shop sau.)
+**Tên file = id** (16 cái dưới).
+
+**TEMPLATE (thay [MOTIF]/[MÀU NGŨ HÀNH]/[BẬC]):**
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique scroll/book ([MOTIF]),
+[MÀU] qi glow swirling around it, [BẬC], single object centered, deep dark background,
+painterly xianxia concept art, no readable text, square 512x512
+```
+- [MOTIF] theo loại: Kiếm Pháp = a sword wreathed in sword-qi · Đao Pháp = a heavy saber/broadsword · Quyền Pháp = a clenched fist with shockwave · Chỉ Pháp = a pointing finger shooting a beam · Thân Pháp = a flowing robed silhouette with motion trails · Nội Công = a meditating cultivator with dantian energy swirl · Khinh Công = a figure skimming in mid-air with light footprints · Ám Khí = scattered hidden darts/needles.
+- [MÀU] theo ngũ hành: Kim = golden yellow · Mộc = jade green · Thủy = azure blue · Hỏa = fiery orange · Thổ = amber/ochre.
+- [BẬC]: Sơ = a worn plain bound manual, faint glow · Trung = a well-kept manual with brass clasp, moderate glow · Cao = an ornate gilded tome, strong radiant glow · Tuyệt = an ancient divine treatise floating, intense blazing aura, gold filigree.
+
+**16 BÍ KÍP (id · tên · motif loại · màu ngũ hành · bậc):**
+- `bk_cobankiem` — Cơ Bản Kiếm Quyết · sword sword-qi · golden (Kim) · Sơ
+- `bk_badao` — Bá Đao Thuật · heavy saber · fiery orange (Hỏa) · Sơ
+- `bk_lahan` — La Hán Quyền · clenched fist shockwave · amber (Thổ) · Sơ
+- `bk_luuvan` — Lưu Vân Thân Pháp · flowing silhouette motion trails · azure (Thủy) · Sơ
+- `bk_thanhtam` — Thanh Tâm Quyết · meditating cultivator dantian swirl · jade green (Mộc) · Sơ
+- `bk_truyphong` — Truy Phong Bộ · figure skimming, light footprints · azure (Thủy) · Sơ
+- `bk_luuquang` — Lưu Quang Kiếm Pháp · sword streaking like light · golden (Kim) · Trung
+- `bk_cuongphong` — Cuồng Phong Đao Pháp · saber amid swirling gale · jade green (Mộc) · Trung
+- `bk_phichlich` — Phích Lịch Thần Chỉ · finger shooting thunder beam · fiery orange (Hỏa) · Trung
+- `bk_huyenquy` — Huyền Quy Nội Công · turtle-shell aura, internal energy · amber (Thổ) · Trung
+- `bk_thiemdien` — Thiểm Điện Khinh Công · figure blinking like lightning · fiery orange (Hỏa) · Trung
+- `bk_ngaotuyet` — Ngạo Tuyết Kiếm Đạo · sword wreathed in frost/snow-qi · azure (Thủy) · Cao
+- `bk_phaquan` — Phá Quân Đao Pháp · saber cleaving an army, war aura · golden (Kim) · Cao
+- `bk_kimcuong` — Kim Cương Bất Hoại Thể · indestructible diamond-body cultivator · amber (Thổ) · Cao
+- `bk_thaihu` — Thái Hư Kiếm Ý · ethereal swordless sword-intent in the void · golden (Kim) · Tuyệt
+- `bk_votuong` — Vô Tướng Ma Công · formless shadow demonic-energy manual · jade green (Mộc) · Tuyệt

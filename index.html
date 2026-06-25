@@ -4738,16 +4738,18 @@
                     <template x-if="!g.tmBiKipBag.length"><div class="text-[11px] text-slate-600 italic">Kho trống — mua ở Đấu Giá Hội hoặc nhặt từ Bí Cảnh / Danh Sĩ.</div></template>
                     <div class="space-y-2">
                       <template x-for="bk in g.tmBiKipBag" :key="bk.id">
-                        <div @click="g.biKipPick = (g.biKipPick===bk.id?null:bk.id)" class="rounded-lg border p-2.5 cursor-pointer transition" :style="'border-color:'+bk.tierColor+(g.biKipPick===bk.id?'':'44')" :class="g.biKipPick===bk.id?'bg-indigo-500/[.10] ring-1 ring-indigo-400/40':'bg-ink2/50 hover:border-slate-500'">
-                          <div class="flex items-center gap-2">
-                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold fserif shrink-0" :style="'color:'+bk.tierColor+';border:1px solid '+bk.tierColor+'66;background:'+bk.tierColor+'18'" x-text="bk.tierName"></span>
-                            <span class="fserif text-[12.5px] truncate" :style="'color:'+bk.tierColor" x-text="bk.ten"></span>
-                            <span class="text-[10px] fserif shrink-0 ml-auto" :style="'color:'+bk.heColor" x-text="bk.heHan"></span>
-                            <span class="text-[10px] text-slate-400 shrink-0">×<b x-text="bk.count"></b></span>
-                          </div>
-                          <div class="text-[9.5px] text-slate-500 mt-0.5 truncate" x-text="bk.loaiName + ' · ' + bk.heName"></div>
-                          <div class="flex flex-wrap gap-1 mt-1">
-                            <template x-for="ml in bk.modLines" :key="ml.stat"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-ink3 text-emerald-300/90 border border-slate-700/60" x-text="'+'+ml.pct+'% '+ml.stat"></span></template>
+                        <div @click="g.biKipPick = (g.biKipPick===bk.id?null:bk.id)" class="rounded-lg border p-2.5 cursor-pointer transition flex gap-2.5" :style="'border-color:'+bk.tierColor+(g.biKipPick===bk.id?'':'44')" :class="g.biKipPick===bk.id?'bg-indigo-500/[.10] ring-1 ring-indigo-400/40':'bg-ink2/50 hover:border-slate-500'">
+                          <span class="relative w-11 h-11 rounded-md overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-[16px]" :style="'border-color:'+bk.tierColor+'55;color:'+bk.heColor"><span x-text="bk.heHan"></span><img :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                              <span class="text-[9px] px-1.5 py-0.5 rounded font-bold fserif shrink-0" :style="'color:'+bk.tierColor+';border:1px solid '+bk.tierColor+'66;background:'+bk.tierColor+'18'" x-text="bk.tierName"></span>
+                              <span class="fserif text-[12.5px] truncate" :style="'color:'+bk.tierColor" x-text="bk.ten"></span>
+                              <span class="text-[10px] text-slate-400 shrink-0 ml-auto">×<b x-text="bk.count"></b></span>
+                            </div>
+                            <div class="text-[9.5px] text-slate-500 mt-0.5 truncate" x-text="bk.loaiName + ' · ' + bk.heName"></div>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                              <template x-for="ml in bk.modLines" :key="ml.stat"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-ink3 text-emerald-300/90 border border-slate-700/60" x-text="'+'+ml.pct+'% '+ml.stat"></span></template>
+                            </div>
                           </div>
                         </div>
                       </template>
