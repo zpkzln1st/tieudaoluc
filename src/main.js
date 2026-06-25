@@ -47,7 +47,8 @@ import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs } from './engine/worldboss.js';
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
 
-const now = () => Date.now();
+let _devNowOffset = 0;                        // Dev: tua đồng hồ (session-only; reload reset). 0 = thực.
+const now = () => Date.now() + _devNowOffset;
 // Helper toàn cục cho link 「gia bảo」 trong biên niên (x-html không gắn được @click Alpine) -> mở chi tiết món
 if (typeof window !== 'undefined') window.tmShowItem = (id) => { try { const s = window.Alpine && window.Alpine.store('game'); if (s) s.openItemModal(id); } catch (e) {} };
 let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
@@ -3076,6 +3077,17 @@ const gameStore = {
   devTmTeachBiKip(mode) { const t = this.tm; if (!t) return; const keys = BI_KIP_KEYS; let total = 0; t.disciples.forEach((d) => { if (d.awaiting) return; if (!Array.isArray(d.skills)) d.skills = []; const cap = biKipSlotMax(d.realm); const want = mode === 'full' ? cap : Math.min(cap, 1 + Math.floor(Math.random() * 2)); let guard = 0; while (d.skills.length < want && guard++ < 80) { const id = keys[Math.floor(Math.random() * keys.length)]; if (!d.skills.includes(id)) { d.skills.push(id); total++; } } }); this.devSave(); this._tick++; this.showToast('Dev: gán ' + total + ' bí kíp cho đệ tử (' + (mode === 'full' ? 'đầy ô' : 'ngẫu nhiên') + ') — test Luận Võ + khắc loại'); },
   devTmRollBkAuction() { const t = this.tm; if (!t) return; if (!t.bkAuction) t.bkAuction = { lots: [], at: 0 }; t.bkAuction.at = 0; bkAuctionRefresh(this.state, now()); this.devSave(); this._tick++; this.showToast('Dev: làm mới phiên Đấu Giá Bí Kíp'); },
   devTmMergeBk(tier) { const r = mergeBiKip(this.state, tier); if (r.ok) { this.devSave(); this._tick++; this.showToast('Dev Hợp Nhất · ' + r.msg); } else this.showToast(r.msg); },
+  // ---- Dev: Tông Môn drama / xã hội ----
+  devTmSetTamMa(lv) { const t = this.tm; if (!t) return; lv = Math.max(0, Math.min(TAMMA_MAX, Math.floor(lv))); t.disciples.forEach((d) => { d.tamMaLv = lv; d.tamMaXp = 0; }); this.devSave(); this._tick++; this.showToast('Dev: mọi đệ tử Tâm Ma bậc ' + lv); },
+  devTmStageThienKiep(realm) { const t = this.tm; if (!t) return; realm = Math.max(7, Math.min(8, Math.floor(realm || 8))); let d = t.disciples.find((x) => x.apt === 'thien' && !x.awaiting); if (!d) { d = genDisciple({ apt: 'thien' }); d.name = 'Thí Nghiệm Thiên Kiếp'; t.disciples.push(d); } d.realm = realm; d.xp = 1; d.breakReady = true; d.kiepCdUntil = 0; d.awaiting = false; if (!t.pills) t.pills = {}; PILL_KEYS.forEach((p) => { t.pills[p] = (t.pills[p] || 0) + 20; }); this.state.currencies.honThach = (this.state.currencies.honThach || 0) + 1000000; this.devSave(); this._tick++; this.showToast('Dev: dựng cảnh Thiên Kiếp (' + REALMS[realm].name + ') — mở hồ sơ ' + d.name + ' → Bình Cảnh → Độ Thiên Kiếp.'); },
+  devResetDanhSiOffers() { this._ensureDanhSiState(); this.state.danhSi.accepted = []; this.devSave(); this._tick++; this.showToast('Dev: reset lời mời Danh Sĩ đã nhận (re-test Bái Sư/Kỳ Ngộ + bí kíp truyền dạy).'); },
+  devTmClearDrama() { const t = this.tm; if (!t) return; t.disciples.forEach((d) => { d.flags = {}; d.tamMaLv = 0; d.tamMaXp = 0; }); if (t.events) { t.events.rebels = []; t.events.pending = []; t.events.queue = []; } t.fallen = []; this.devSave(); this._tick++; this.showToast('Dev: gột sạch cờ xấu / tâm ma / phản đồ / cố nhân.'); },
+  devTmClearCooldowns() { const t = this.tm; if (!t) return; t.disciples.forEach((d) => { d.luanVoCdUntil = 0; d.gioiLuatCdUntil = 0; }); if (t.diplomacy && t.diplomacy.ties) Object.keys(t.diplomacy.ties).forEach((k) => { t.diplomacy.ties[k].lastVisit = 0; }); t.shopCd = {}; if (t.bkAuction) t.bkAuction.at = 0; this.devSave(); this._tick++; this.showToast('Dev: reset CD Luận Võ / Giới Luật / Đãi Khách / Đấu Giá.'); },
+  devTmSeedDiplomacy(rep, n) { const t = this.tm; if (!t) return; rep = (rep == null) ? 119 : rep; n = n || 4; if (!t.diplomacy) t.diplomacy = { ties: {} }; if (!t.diplomacy.ties) t.diplomacy.ties = {}; for (let i = 0; i < n; i++) t.diplomacy.ties['sect' + i] = { rep, lastVisit: 0 }; this.devSave(); this._tick++; this.showToast('Dev: gieo bang giao ' + n + ' phái (rep ' + rep + '). Vào Đãi Khách Các → Tiếp Đãi để vượt ngưỡng Kết Minh.'); },
+  // ---- Dev: tua đồng hồ game (session-only; reload về thực). Chủ yếu xem Danh Sĩ tử vong/truyền nhân + bot + timer Tông Môn. ----
+  get devNowOffsetDays() { void this._tick; return Math.round(_devNowOffset / 8640000) / 10; },
+  devNowOffsetAdd(days) { _devNowOffset += (days || 0) * 86400000; this._tick++; try { this.tmTick(); } catch (e) {} this.showToast('Dev: tua đồng hồ ' + (days >= 0 ? '+' : '') + days + ' ngày (tổng ' + this.devNowOffsetDays + 'd). Quan sát Danh Sĩ/bot; reload về thực.'); },
+  devNowOffsetClear() { _devNowOffset = 0; this._tick++; this.showToast('Dev: về đồng hồ thực.'); },
   devTmFireEvent() { if (this.devTmEventSel) this.devFireEvent(this.devTmEventSel); else this.showToast('Chọn sự kiện trước.'); },
   devExport() {
     const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: 'application/json' });
