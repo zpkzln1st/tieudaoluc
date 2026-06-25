@@ -4,6 +4,7 @@
 // ============================================================
 import { DANH_SI, DANHSI_REL } from '../data/danhsi.js';
 import { luanVo, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí DÙNG CHUNG với Tông Môn (side-only, 0 combat)
+import { danhSiBiKipId, BI_KIP_BY_ID, BI_KIP_TIER } from '../data/tongmon.js';   // bí kíp truyền dạy -> Tàng Thư Lâu (main->phụ, side-only)
 
 const DAY = 86400000;
 const EPOCH = 1735689600000;   // 2025-01-01 — mốc tuyệt đối để tu vi/Biên Niên tiến đều theo thời gian
@@ -312,16 +313,18 @@ export function offerOf(id, now, playerUy) {
   let need, desc, label, reward;
   if (kind === 'baiSu') {
     need = { val: Math.round(rp * 1.3), label: 'Uy Danh Tông Môn' };
-    desc = `${c.ten} nghe danh tông phong của ngươi, ngỏ ý đầu nhập làm đệ tử. Chỉ tông môn đủ uy vọng mới giữ chân nổi cao nhân — thu nhận thì danh chấn giang hồ.`;
-    label = 'Thu Nhận Làm Đệ Tử'; reward = { type: 'disciple' };
+    desc = `${c.ten} nghe danh tông phong của ngươi, ngỏ ý đầu nhập làm đệ tử, mang theo sở học bình sinh truyền lại cho tông môn. Chỉ tông môn đủ uy vọng mới giữ chân nổi cao nhân — thu nhận thì danh chấn giang hồ.`;
+    label = 'Thu Nhận Làm Đệ Tử'; reward = { type: 'disciple', biKip: danhSiBiKipId(rp, c.nguHanh, h32(c.id + ':bk'), 'tuyệt') };   // bái sư gate Uy cao -> sở học tới Tuyệt
   } else if (kind === 'truyNa') {
     need = { val: Math.round(rp * 1.05), label: 'Uy Danh Tông Môn' };
     desc = `${c.ten} là mối họa tà đạo đang bị giang hồ truy nã. Tông môn đủ thực lực ra tay trừ gian sẽ được trọng thưởng uy danh.`;
     label = 'Nhận Truy Nã Lệnh'; reward = { type: 'uy', uy: Math.round(rp * 0.7), diem: 140 };
   } else {
     need = { val: 0, label: '' };
-    desc = `${c.ten} có duyên gặp gỡ tông môn ngươi, truyền lại một phần tâm đắc cùng chút lễ vật giang hồ làm quà kết giao.`;
-    label = 'Nhận Kỳ Ngộ'; reward = { type: 'res', diem: 90, congHien: 50, mat: { id: 'mat_bachnien', n: 2 } };
+    desc = `${c.ten} có duyên gặp gỡ tông môn ngươi, truyền lại một phần tâm đắc võ học cùng chút lễ vật giang hồ làm quà kết giao.`;
+    label = 'Nhận Kỳ Ngộ'; reward = { type: 'res', diem: 90, congHien: 50, mat: { id: 'mat_bachnien', n: 2 }, biKip: danhSiBiKipId(rp, c.nguHanh, h32(c.id + ':bk'), 'trung') };   // kỳ ngộ KHÔNG gate -> cap Trung
   }
-  return { offerId, kind, kindName: OFFER_KIND_NAME[kind], color: OFFER_COLOR[kind], desc, label, need, met: need.val <= uy, reward, danhSiTen: c.ten, he: c.nguHanh, sex: c.sex, rankPower: rp };
+  const _bk = reward.biKip ? BI_KIP_BY_ID[reward.biKip] : null;
+  const bkInfo = _bk ? { id: reward.biKip, ten: _bk.ten, tier: _bk.tier, tierName: (BI_KIP_TIER[_bk.tier] || {}).name, tierColor: (BI_KIP_TIER[_bk.tier] || {}).color } : null;
+  return { offerId, kind, kindName: OFFER_KIND_NAME[kind], color: OFFER_COLOR[kind], desc, label, need, met: need.val <= uy, reward, bkInfo, danhSiTen: c.ten, he: c.nguHanh, sex: c.sex, rankPower: rp };
 }

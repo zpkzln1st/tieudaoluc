@@ -325,6 +325,20 @@ export function rollBiCanhBiKip(reqLevel) {
   return pool[0].id;
 }
 
+// --- DANH SĨ TRUYỀN DẠY BÍ KÍP (main -> phụ): bậc theo thực lực danh sĩ (rankPower), ưu tiên trùng ngũ hành. DETERMINISTIC (hashVal từ h32 phía gọi). capTier giới hạn bậc (kỳ ngộ không gate -> cap Trung; bái sư gate Uy cao -> tới Tuyệt). SIDE-ONLY. DRAFT. ---
+export function danhSiBiKipId(rankPower, he, hashVal, capTier) {
+  const rp = rankPower || 500;
+  let idx = rp >= 880 ? 3 : rp >= 760 ? 2 : rp >= 620 ? 1 : 0;   // tuyệt / cao / trung / sơ theo thực lực
+  const capIdx = capTier ? BI_KIP_TIER_ORDER.indexOf(capTier) : 3;
+  idx = Math.max(0, Math.min(idx, capIdx < 0 ? 3 : capIdx));
+  const tier = BI_KIP_TIER_ORDER[idx];
+  const pool = BI_KIP.filter((b) => b.tier === tier);
+  const heMatch = pool.filter((b) => b.he === he);
+  const use = heMatch.length ? heMatch : pool;
+  if (!use.length) return BI_KIP[0].id;
+  return use[(hashVal >>> 0) % use.length].id;
+}
+
 // ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới

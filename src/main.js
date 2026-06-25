@@ -1761,12 +1761,14 @@ const gameStore = {
     if (o.accepted) { this.showToast('Đã nhận lời mời này rồi.'); return; }
     if (!o.met) { this.showToast('Chưa đủ ' + o.need.label + '.'); return; }
     const t = this.tm, r = o.reward;
+    const _grantBiKip = () => { if (r.biKip) { if (!t.biKipBag) t.biKipBag = {}; t.biKipBag[r.biKip] = (t.biKipBag[r.biKip] || 0) + 1; } };   // truyền dạy -> Tàng Thư Lâu (side-only)
     if (r.type === 'disciple') {
       if (t.disciples.length >= slotCount(t)) { this.showToast('Hết slot đệ tử — nâng Tụ Hiền Đường.'); return; }
       const apt = o.rankPower >= 820 ? 'tuyet' : (o.rankPower >= 700 ? 'thuong' : 'trung');
       const d = genDisciple({ name: o.danhSiTen, he: o.he, apt, sex: o.sex }); d.recruitedAt = now(); t.disciples.push(d);
-      t.soSach.unshift({ t: now(), text: `★ Danh sĩ ${o.danhSiTen} ngưỡng mộ tông phong, đầu nhập tông môn làm đệ tử!` });
-      this.showToast('★ ' + o.danhSiTen + ' đầu nhập tông môn!');
+      _grantBiKip();
+      t.soSach.unshift({ t: now(), text: `★ Danh sĩ ${o.danhSiTen} ngưỡng mộ tông phong, đầu nhập tông môn làm đệ tử${o.bkInfo ? `, truyền lại 「${o.bkInfo.ten}」` : ''}!` });
+      this.showToast('★ ' + o.danhSiTen + ' đầu nhập tông môn!' + (o.bkInfo ? ' (+bí kíp)' : ''));
     } else if (r.type === 'uy') {
       t.uyBonus = (t.uyBonus || 0) + (r.uy || 0); t.diem = (t.diem || 0) + (r.diem || 0);
       t.soSach.unshift({ t: now(), text: `Tông môn nhận Truy Nã Lệnh, trừ gian ${o.danhSiTen} — uy danh chấn động.` });
@@ -1774,8 +1776,9 @@ const gameStore = {
     } else {
       t.diem = (t.diem || 0) + (r.diem || 0); t.congHien = (t.congHien || 0) + (r.congHien || 0);
       if (r.mat) { if (!t.mats) t.mats = {}; t.mats[r.mat.id] = (t.mats[r.mat.id] || 0) + r.mat.n; }
-      t.soSach.unshift({ t: now(), text: `Kỳ ngộ với danh sĩ ${o.danhSiTen} — tông môn nhận tâm đắc cùng lễ vật giang hồ.` });
-      this.showToast('Kỳ Ngộ · nhận lễ vật giang hồ');
+      _grantBiKip();
+      t.soSach.unshift({ t: now(), text: `Kỳ ngộ với danh sĩ ${o.danhSiTen} — tông môn nhận tâm đắc võ học${o.bkInfo ? ` 「${o.bkInfo.ten}」` : ''} cùng lễ vật giang hồ.` });
+      this.showToast('Kỳ Ngộ · nhận tâm đắc' + (o.bkInfo ? ' 「' + o.bkInfo.ten + '」' : '') + ' + lễ vật');
     }
     if (t.soSach.length > 80) t.soSach.length = 80;
     this._ensureDanhSiState().accepted.push(o.offerId);

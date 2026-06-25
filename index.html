@@ -2180,6 +2180,15 @@
                           <span x-show="!$store.game.dsOffer.met && !$store.game.dsOffer.accepted" class="text-[10px] text-rose-300/80" x-text="'Cần '+$store.game.dsOffer.need.label+' ≥ '+$store.game.fmt($store.game.dsOffer.need.val)"></span>
                         </div>
                         <div class="text-[11.5px] text-slate-300 fserif leading-snug mb-2" x-text="$store.game.dsOffer.desc"></div>
+                        <template x-if="$store.game.dsOffer.bkInfo">
+                          <div class="flex items-center gap-2 mb-2 px-2.5 py-1.5 rounded-lg bg-black/30 border" :style="'border-color:'+$store.game.dsOffer.bkInfo.tierColor+'55'">
+                            <span class="relative w-8 h-8 rounded-md overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-[13px]" :style="'border-color:'+$store.game.dsOffer.bkInfo.tierColor+'66;color:'+$store.game.dsOffer.bkInfo.tierColor"><span>笈</span><img :src="'images/tongmon/bikip/'+$store.game.dsOffer.bkInfo.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
+                            <div class="min-w-0">
+                              <div class="text-[9px] text-slate-500 uppercase tracking-wide leading-none">Truyền dạy bí kíp</div>
+                              <div class="text-[11.5px] fserif truncate leading-tight mt-0.5" :style="'color:'+$store.game.dsOffer.bkInfo.tierColor"><span class="text-[9px] px-1 py-0.5 rounded mr-1" :style="'background:'+$store.game.dsOffer.bkInfo.tierColor+'1c;border:1px solid '+$store.game.dsOffer.bkInfo.tierColor+'66'" x-text="$store.game.dsOffer.bkInfo.tierName"></span><span x-text="$store.game.dsOffer.bkInfo.ten"></span></div>
+                            </div>
+                          </div>
+                        </template>
                         <button @click="$store.game.dsAcceptOffer()" :disabled="$store.game.dsOffer.accepted || !$store.game.dsOffer.met" class="w-full py-1.5 rounded-lg text-[12px] font-bold fserif transition" :class="($store.game.dsOffer.accepted||!$store.game.dsOffer.met)?'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed':'text-ink hover:brightness-110'" :style="($store.game.dsOffer.accepted||!$store.game.dsOffer.met)?'':('background:'+$store.game.dsOffer.color)" x-text="$store.game.dsOffer.accepted ? 'Đã Nhận' : $store.game.dsOffer.label"></button>
                       </div>
                     </template>
