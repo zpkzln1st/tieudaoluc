@@ -657,7 +657,7 @@ const gameStore = {
   closeTangThu() { this.tangThuOpen = false; },
   // Hợp Nhất Bí Kíp: người chơi TỰ CHỌN cuốn ghép (cùng bậc, đủ số) -> 1 bí kíp ngẫu nhiên bậc kế (side-only)
   bkMergeOpen: false, bkMergeTier: 'sơ', bkMergeSel: [], bkMergeResult: null,
-  openBkMerge() { this.bkMergeTier = 'sơ'; this.bkMergeSel = []; this.bkMergeResult = null; this.bkMergeOpen = true; },
+  openBkMerge() { const bag = (this.tm && this.tm.biKipBag) || {}; const cnt = (tr) => Object.keys(bag).reduce((s, id) => s + ((bag[id] > 0 && (BI_KIP_BY_ID[id] || {}).tier === tr) ? bag[id] : 0), 0); const tiers = ['sơ', 'trung', 'cao']; this.bkMergeTier = tiers.find((tr) => cnt(tr) >= (BK_MERGE_N[tr] || 3)) || tiers.find((tr) => cnt(tr) > 0) || 'sơ'; this.bkMergeSel = []; this.bkMergeResult = null; this.bkMergeOpen = true; },
   closeBkMerge() { this.bkMergeOpen = false; this.bkMergeSel = []; this.bkMergeResult = null; },
   get bkMergeTiers() { return ['sơ', 'trung', 'cao'].map((tier) => { const ti = BI_KIP_TIER_ORDER.indexOf(tier), next = BI_KIP_TIER_ORDER[ti + 1]; return { tier, tierName: (BI_KIP_TIER[tier] || {}).name, tierColor: (BI_KIP_TIER[tier] || {}).color, next, nextName: (BI_KIP_TIER[next] || {}).name, nextColor: (BI_KIP_TIER[next] || {}).color, need: BK_MERGE_N[tier] || 3 }; }); },
   get bkMergeCur() { return this.bkMergeTiers.find((r) => r.tier === this.bkMergeTier) || this.bkMergeTiers[0]; },
@@ -674,7 +674,7 @@ const gameStore = {
   get bkMergeFull() { void this._tick; return this.bkMergeSel.length >= this.bkMergeNeed; },
   bkMergePickAdd(id) { if (this.bkMergeSel.length >= this.bkMergeNeed) return; const bag = (this.tm && this.tm.biKipBag) || {}; const sel = this.bkMergeSel.filter((x) => x === id).length; if ((bag[id] || 0) - sel < 1) return; this.bkMergeSel.push(id); this.bkMergeResult = null; this._tick++; },
   bkMergePickRemove(idx) { this.bkMergeSel.splice(idx, 1); this.bkMergeResult = null; this._tick++; },
-  tmMergeBiKipPick() { if (this.bkMergeSel.length !== this.bkMergeNeed) { this.showToast('Chọn đủ ' + this.bkMergeNeed + ' bí kíp.'); return; } const r = mergeBiKipPick(this.state, this.bkMergeSel.slice()); if (r.ok) { this.bkMergeSel = []; this.bkMergeResult = this.biKipView(r.got.id); this.tmSave(); this._tick++; this.showToast('Hợp Nhất · ' + r.msg); } else this.showToast(r.msg); },
+  tmMergeBiKipPick() { if (this.bkMergeSel.length !== this.bkMergeNeed) { this.showToast('Chọn đủ ' + this.bkMergeNeed + ' bí kíp.'); return; } const r = mergeBiKipPick(this.state, this.bkMergeSel.slice()); if (r.ok) { this.bkMergeSel = []; this.bkMergeResult = this.biKipView(r.got.id); this.tmSave(); this._tick++; this.showToast('Hợp Nhất · ' + r.msg); } else { const bag = (this.tm && this.tm.biKipBag) || {}; const cnt = {}; this.bkMergeSel = this.bkMergeSel.filter((id) => { cnt[id] = (cnt[id] || 0) + 1; return (bag[id] || 0) >= cnt[id]; }); this.bkMergeResult = null; this._tick++; this.showToast(r.msg); } },
   _STATN: { atk: 'Công Kích', def: 'Phòng Ngự', spd: 'Tốc Độ', maxHP: 'Sinh Lực', crit: 'Bạo Kích', dodge: 'Né Tránh', critDmg: 'Bạo Sát' },
   biKipView(id) {
     const bk = BI_KIP_BY_ID[id]; if (!bk) return null;
@@ -3116,7 +3116,20 @@ const gameStore = {
   // ---- Dev: tua đồng hồ game (session-only; reload về thực). Chủ yếu xem Danh Sĩ tử vong/truyền nhân + bot + timer Tông Môn. ----
   get devNowOffsetDays() { void this._tick; return Math.round(_devNowOffset / 8640000) / 10; },
   devNowOffsetAdd(days) { _devNowOffset += (days || 0) * 86400000; this._tick++; try { this.tmTick(); } catch (e) {} this.showToast('Dev: tua đồng hồ ' + (days >= 0 ? '+' : '') + days + ' ngày (tổng ' + this.devNowOffsetDays + 'd). Quan sát Danh Sĩ/bot; reload về thực.'); },
-  devNowOffsetClear() { _devNowOffset = 0; this._tick++; this.showToast('Dev: về đồng hồ thực.'); },
+  devNowOffsetClear() {
+    const t0 = Date.now();   // gỡ kẹt mọi timer wall-clock tương lai (do tua đồng hồ) về thực trước khi zero offset
+    const c = this.state.combat; if (c && c.suyYeuUntil > t0) c.suyYeuUntil = t0;
+    try { const b = ensureBoss(this.state); if (b) { if (b.healUntil > t0) b.healUntil = t0; if (b.cd) Object.keys(b.cd).forEach((k) => { if (b.cd[k] > t0) b.cd[k] = t0; }); } } catch (e) {}
+    const t = this.tm;
+    if (t) {
+      (t.disciples || []).forEach((d) => { ['linhNgoUntil', 'giangUntil', 'lichLuyenUntil'].forEach((k) => { if (d[k] > t0) d[k] = t0 - 1; }); });
+      (t.brewing || []).forEach((b) => { if (b && b.until > t0) b.until = t0 - 1; });
+      (((t.duocVien || {}).plots) || []).forEach((p) => { if (p && p.until > t0) p.until = t0 - 1; });
+      if (t.bkAuction && t.bkAuction.at > t0) t.bkAuction.at = 0;
+      if (t.recruitAt > t0) t.recruitAt = t0;
+    }
+    _devNowOffset = 0; this._tick++; this.devSave(); this.showToast('Dev: về đồng hồ thực (gỡ kẹt timer tương lai).');
+  },
   devTmFireEvent() { if (this.devTmEventSel) this.devFireEvent(this.devTmEventSel); else this.showToast('Chọn sự kiện trước.'); },
   devExport() {
     const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: 'application/json' });

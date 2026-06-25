@@ -2310,7 +2310,7 @@
           <!-- Lightbox phóng to chân dung danh sĩ -->
           <template x-if="$store.game.tmFaceFull">
             <div class="fixed inset-0 z-[85] flex items-center justify-center p-6 cursor-zoom-out" style="background:rgba(0,0,0,.86);backdrop-filter:blur(4px)" @click="$store.game.closeFaceFull()">
-              <img :src="$store.game.tmFaceFull" alt="" class="max-w-full max-h-full rounded-xl shadow-2xl object-contain">
+              <img :src="$store.game.tmFaceFull" alt="" class="max-w-full max-h-full rounded-xl shadow-2xl object-contain" onerror="$store.game.closeFaceFull()">
             </div>
           </template>
 
@@ -5666,7 +5666,7 @@
           <!-- LIGHTBOX xem ảnh chân dung full -->
           <template x-if="g.tmFaceFull">
             <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/90 p-6 cursor-zoom-out" @click="g.closeFaceFull()">
-              <img :src="g.tmFaceFull" alt="" class="max-w-[92vw] max-h-[92vh] rounded-xl shadow-2xl object-contain">
+              <img :src="g.tmFaceFull" alt="" class="max-w-[92vw] max-h-[92vh] rounded-xl shadow-2xl object-contain" onerror="$store.game.closeFaceFull()">
               <button @click="g.closeFaceFull()" class="absolute top-4 right-5 text-slate-300 hover:text-white text-3xl leading-none">✕</button>
             </div>
           </template>
