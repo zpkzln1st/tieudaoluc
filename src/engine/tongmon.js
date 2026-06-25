@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP_BY_ID, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { luanVo, luanVoCycle, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
@@ -740,6 +740,30 @@ export function bkAuctionRefresh(state, nowMs) {
     t.bkAuction.lots = genBkAuction(t.buildings.tangThu || 0);
     t.bkAuction.at = nowMs;
   }
+}
+// ---- HỢP NHẤT BÍ KÍP: gộp K bí kíp cùng bậc -> 1 bí kíp ngẫu nhiên bậc kế (SIDE-ONLY) ----
+function bkTierCount(t, tier) { let n = 0; const bag = t.biKipBag || {}; for (const id in bag) { const bk = BI_KIP_BY_ID[id]; if (bk && bk.tier === tier) n += bag[id]; } return n; }
+export function bkMergeRows(t) {
+  if (!t) return [];
+  return ['sơ', 'trung', 'cao'].map((tier) => {
+    const ti = BI_KIP_TIER_ORDER.indexOf(tier), nextTier = BI_KIP_TIER_ORDER[ti + 1];
+    const need = BK_MERGE_N[tier] || 3, have = bkTierCount(t, tier);
+    return { tier, nextTier, need, have, canMerge: have >= need };
+  });
+}
+export function mergeBiKip(state, tier) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };
+  const ti = BI_KIP_TIER_ORDER.indexOf(tier), nextTier = BI_KIP_TIER_ORDER[ti + 1];
+  if (!nextTier) return { ok: false, msg: 'Bậc Tuyệt không thể hợp nhất lên.' };
+  const need = BK_MERGE_N[tier] || 3;
+  if (bkTierCount(t, tier) < need) return { ok: false, msg: `Cần ${need} bí kíp bậc ${(BI_KIP_TIER[tier] || {}).name}.` };
+  let rem = need; const bag = t.biKipBag;
+  for (const id in bag) { if (rem <= 0) break; const bk = BI_KIP_BY_ID[id]; if (!bk || bk.tier !== tier) continue; const take = Math.min(rem, bag[id]); bag[id] -= take; rem -= take; if (bag[id] <= 0) delete bag[id]; }
+  const pool = BI_KIP.filter((b) => b.tier === nextTier);
+  const got = pool[Math.floor(Math.random() * pool.length)];
+  biKipBagAdd(state, got.id, 1);
+  chronicle(t, `Hợp nhất ${need} bí kíp ${(BI_KIP_TIER[tier] || {}).name} — lĩnh hội 「${got.ten}」 (${(BI_KIP_TIER[nextTier] || {}).name})!`);
+  return { ok: true, got: { id: got.id, ten: got.ten, tier: nextTier }, msg: `Hợp nhất thành 「${got.ten}」` };
 }
 export function buyBkLot(state, biKipId, nowMs) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };

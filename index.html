@@ -4621,7 +4621,10 @@
                     <button @click="g.tmBuildSel=null; g.openDaiKhach()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-teal-700/75 hover:bg-teal-700 text-white">Vào Đãi Khách Các</button>
                   </template>
                   <template x-if="g.tmBuildSel==='tangThu' && g.tmBuildLv('tangThu')>=1">
-                    <button @click="g.tmBuildSel=null; g.openTangThu()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-indigo-700/80 hover:bg-indigo-700 text-white">Lĩnh Ngộ Bí Kíp</button>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                      <button @click="g.tmBuildSel=null; g.openTangThu()" class="py-2 rounded-lg text-[13px] font-bold fserif transition bg-indigo-700/80 hover:bg-indigo-700 text-white">Lĩnh Ngộ Bí Kíp</button>
+                      <button @click="g.tmBuildSel=null; g.openBkMerge()" class="py-2 rounded-lg text-[13px] font-bold fserif transition bg-fuchsia-700/75 hover:bg-fuchsia-700 text-white">Hợp Nhất Bí Kíp</button>
+                    </div>
                   </template>
                   <button @click="g.tmUpgrade(g.tmBuildSel)" :disabled="!g.tmCanUpgrade(g.tmBuildSel)" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmCanUpgrade(g.tmBuildSel)?'bg-amber-500/85 hover:bg-amber-500 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'">Nâng Cấp</button>
                 </div>
@@ -4789,6 +4792,33 @@
                   </div>
                 </div>
                 <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 italic text-center" style="background:rgba(15,21,33,.5)">Lĩnh ngộ tốn giờ theo bậc (Sơ nhanh, Tuyệt lâu) · số ô đồng thời = bậc Tàng Thư Lâu · trần số bí kíp/đệ tử theo cảnh giới. Võ học cộng Thực Lực + Uy + lợi thế Đài Tỉ Võ.</div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODAL HỢP NHẤT BÍ KÍP (gộp K bí kíp cùng bậc -> 1 bí kíp bậc kế) -->
+          <template x-if="g.bkMergeOpen">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeBkMerge()">
+              <div class="panel rounded-2xl w-[460px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-fuchsia-500/35" @click.stop>
+                <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(217,70,239,.10),transparent)">
+                  <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-md flex items-center justify-center fserif text-[14px] text-fuchsia-200 border border-fuchsia-400/40 bg-fuchsia-500/10">合</span><div class="text-[17px] fserif leading-none text-fuchsia-100">Hợp Nhất Bí Kíp</div></div>
+                  <button @click="g.closeBkMerge()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                </div>
+                <div class="p-4 overflow-y-auto space-y-2.5">
+                  <template x-for="m in g.tmBkMergeRows" :key="m.tier">
+                    <div class="rounded-lg border p-3 bg-ink3/40" :style="'border-color:'+m.tierColor+'33'">
+                      <div class="flex items-center gap-2.5">
+                        <span class="text-[11px] px-2 py-1 rounded font-bold fserif shrink-0" :style="'color:'+m.tierColor+';border:1px solid '+m.tierColor+'66;background:'+m.tierColor+'18'" x-text="m.tierName"></span>
+                        <span class="text-[12px] fserif" :class="m.have>=m.need?'text-slate-300':'text-slate-500'">×<b x-text="m.need"></b></span>
+                        <span class="text-slate-500 text-lg leading-none">→</span>
+                        <span class="text-[11px] px-2 py-1 rounded font-bold fserif shrink-0" :style="'color:'+m.nextColor+';border:1px solid '+m.nextColor+'66;background:'+m.nextColor+'18'" x-text="m.nextName"></span>
+                        <span class="text-[10.5px] text-slate-500 ml-auto">Đang có <b :class="m.have>=m.need?'text-emerald-300':'text-slate-400'" x-text="m.have"></b></span>
+                      </div>
+                      <button @click="g.tmMergeBiKip(m.tier)" :disabled="!m.canMerge" class="w-full mt-2.5 py-1.5 rounded-lg text-[12px] font-bold fserif transition" :class="m.canMerge?'bg-fuchsia-600/85 hover:bg-fuchsia-600 text-white':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="m.canMerge?('Hợp Nhất ('+m.need+' '+m.tierName+' → 1 '+m.nextName+')'):('Thiếu '+(m.need-m.have)+' bí kíp '+m.tierName)"></button>
+                    </div>
+                  </template>
+                  <div class="text-[10.5px] text-slate-600 italic text-center pt-1">Gộp bí kíp cùng bậc (bản dư/trùng) thành 1 bí kíp NGẪU NHIÊN bậc kế. Bậc Tuyệt là cao nhất. Side-only.</div>
+                </div>
               </div>
             </div>
           </template>

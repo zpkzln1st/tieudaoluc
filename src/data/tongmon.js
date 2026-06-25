@@ -326,6 +326,8 @@ export function rollBiCanhBiKip(reqLevel) {
 }
 
 // --- DANH SĨ TRUYỀN DẠY BÍ KÍP (main -> phụ): bậc theo thực lực danh sĩ (rankPower), ưu tiên trùng ngũ hành. DETERMINISTIC (hashVal từ h32 phía gọi). capTier giới hạn bậc (kỳ ngộ không gate -> cap Trung; bái sư gate Uy cao -> tới Tuyệt). SIDE-ONLY. DRAFT. ---
+// --- HỢP NHẤT BÍ KÍP: gộp K bí kíp cùng bậc (trùng / dư) -> 1 bí kíp NGẪU NHIÊN bậc kế. Sink cho bản dư + đường lên Cao/Tuyệt không thuần RNG. Tuyệt không hợp lên. DRAFT. ---
+export const BK_MERGE_N = { 'sơ': 3, 'trung': 3, 'cao': 2 };
 export function danhSiBiKipId(rankPower, he, hashVal, capTier) {
   const rp = rankPower || 500;
   let idx = rp >= 880 ? 3 : rp >= 760 ? 2 : rp >= 620 ? 1 : 0;   // tuyệt / cao / trung / sơ theo thực lực
