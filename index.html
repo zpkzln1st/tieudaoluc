@@ -4605,6 +4605,9 @@
                   <template x-if="g.tmBuildSel==='daiKhachCac' && g.tmBuildLv('daiKhachCac')>=1">
                     <button @click="g.tmBuildSel=null; g.openDaiKhach()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-teal-700/75 hover:bg-teal-700 text-white">Vào Đãi Khách Các</button>
                   </template>
+                  <template x-if="g.tmBuildSel==='tangThu' && g.tmBuildLv('tangThu')>=1">
+                    <button @click="g.tmBuildSel=null; g.openTangThu()" class="w-full mb-2 py-2 rounded-lg text-[13px] font-bold fserif transition bg-indigo-700/80 hover:bg-indigo-700 text-white">Lĩnh Ngộ Bí Kíp</button>
+                  </template>
                   <button @click="g.tmUpgrade(g.tmBuildSel)" :disabled="!g.tmCanUpgrade(g.tmBuildSel)" class="w-full py-2 rounded-lg text-[13px] font-bold fserif transition" :class="g.tmCanUpgrade(g.tmBuildSel)?'bg-amber-500/85 hover:bg-amber-500 text-ink':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'">Nâng Cấp</button>
                 </div>
               </div>
@@ -4710,6 +4713,65 @@
                   </div>
                   <div class="text-[10px] text-slate-600 italic mt-3 text-center">Tiếp Đãi: +giao tình (mỗi 8h/sứ). Tặng Lễ: tốn Điểm Đấu Giá, +nhiều giao tình. Đạt <b class="text-amber-300/70">Kết Minh</b> → quà liệu + Uy Danh + đồng minh triều cống. Nâng bậc công trình mở thêm môn phái để kết giao.</div>
                 </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODAL TÀNG THƯ LÂU · LĨNH NGỘ BÍ KÍP -->
+          <template x-if="g.tangThuOpen">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeTangThu()">
+              <div @click.stop class="panel rounded-2xl w-[760px] max-w-full h-[640px] max-h-[92dvh] flex flex-col overflow-hidden border border-indigo-500/35">
+                <div class="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(99,102,241,.14),transparent)">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[16px] shrink-0" style="color:#a5b4fc;border:1px solid rgba(129,140,248,.4);background:rgba(99,102,241,.12)">書</span>
+                    <div class="min-w-0"><div class="fserif text-[17px] leading-none text-indigo-200">Tàng Thư Lâu · Lĩnh Ngộ</div><div class="text-[10.5px] text-slate-500 mt-0.5 truncate">Chọn bí kíp → chọn đệ tử để lĩnh ngộ</div></div>
+                  </div>
+                  <div class="flex items-center gap-2.5 shrink-0">
+                    <span class="text-[11px] text-slate-400 whitespace-nowrap">Ô lĩnh ngộ <b class="text-indigo-300" x-text="g.tmLinhNgoData.seats.used"></b><span class="text-slate-600">/</span><b class="text-slate-300" x-text="g.tmLinhNgoData.seats.total"></b></span>
+                    <button @click="g.closeTangThu()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                  </div>
+                </div>
+                <div class="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2">
+                  <!-- KHO BÍ KÍP -->
+                  <div class="p-3.5 sm:border-r border-slate-800/70">
+                    <div class="lbl mb-2">Kho Bí Kíp <span class="text-slate-600 normal-case" x-text="'· '+g.tmBiKipBag.length+' loại'"></span></div>
+                    <template x-if="!g.tmBiKipBag.length"><div class="text-[11px] text-slate-600 italic">Kho trống — mua ở Đấu Giá Hội hoặc nhặt từ Bí Cảnh / Danh Sĩ.</div></template>
+                    <div class="space-y-2">
+                      <template x-for="bk in g.tmBiKipBag" :key="bk.id">
+                        <div @click="g.biKipPick = (g.biKipPick===bk.id?null:bk.id)" class="rounded-lg border p-2.5 cursor-pointer transition" :style="'border-color:'+bk.tierColor+(g.biKipPick===bk.id?'':'44')" :class="g.biKipPick===bk.id?'bg-indigo-500/[.10] ring-1 ring-indigo-400/40':'bg-ink2/50 hover:border-slate-500'">
+                          <div class="flex items-center gap-2">
+                            <span class="text-[9px] px-1.5 py-0.5 rounded font-bold fserif shrink-0" :style="'color:'+bk.tierColor+';border:1px solid '+bk.tierColor+'66;background:'+bk.tierColor+'18'" x-text="bk.tierName"></span>
+                            <span class="fserif text-[12.5px] truncate" :style="'color:'+bk.tierColor" x-text="bk.ten"></span>
+                            <span class="text-[10px] fserif shrink-0 ml-auto" :style="'color:'+bk.heColor" x-text="bk.heHan"></span>
+                            <span class="text-[10px] text-slate-400 shrink-0">×<b x-text="bk.count"></b></span>
+                          </div>
+                          <div class="text-[9.5px] text-slate-500 mt-0.5 truncate" x-text="bk.loaiName + ' · ' + bk.heName"></div>
+                          <div class="flex flex-wrap gap-1 mt-1">
+                            <template x-for="ml in bk.modLines" :key="ml.stat"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-ink3 text-emerald-300/90 border border-slate-700/60" x-text="'+'+ml.pct+'% '+ml.stat"></span></template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <!-- ĐỆ TỬ -->
+                  <div class="p-3.5">
+                    <div class="lbl mb-2">Đệ Tử <span class="text-slate-600 normal-case" x-show="g.biKipPick">· chọn để lĩnh ngộ</span></div>
+                    <div class="space-y-2">
+                      <template x-for="d in g.tmLinhNgoData.disciples" :key="d.uid">
+                        <div class="rounded-lg border border-slate-800 p-2.5 flex items-center gap-2.5 bg-ink2/50">
+                          <span class="relative w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center fserif text-[14px] shrink-0" :style="'color:'+d.color+';border:1px solid '+d.color+'55;background:'+d.color+'12'"><span x-text="d.han"></span><template x-if="d.face"><img :src="d.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="fserif text-[12.5px] truncate" :style="'color:'+d.color" x-text="d.name"></div>
+                            <div class="text-[9.5px] text-slate-500">Ô võ học <b :class="d.slotUsed>=d.slotMax?'text-rose-300':'text-slate-300'" x-text="d.slotUsed+'/'+d.slotMax"></b><span x-show="d.busy" class="text-amber-300/70" x-text="' · '+d.busy"></span></div>
+                          </div>
+                          <template x-if="d.learning"><span class="text-[9.5px] text-indigo-300 fserif shrink-0 text-right leading-tight">Lĩnh ngộ<br><span x-text="g.linhNgoLeftText(d.learning.leftMs)"></span></span></template>
+                          <template x-if="!d.learning"><button @click="g.tmStartLinhNgo(d.uid)" :disabled="!g.biKipPick || d.slotUsed>=d.slotMax" class="shrink-0 text-[11px] px-2.5 py-1.5 rounded-lg font-bold fserif transition" :class="(!g.biKipPick||d.slotUsed>=d.slotMax)?'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed':'bg-indigo-600/85 hover:bg-indigo-600 text-white'" x-text="d.slotUsed>=d.slotMax?'Đầy ô':'Lĩnh Ngộ'"></button></template>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+                <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 italic text-center" style="background:rgba(15,21,33,.5)">Lĩnh ngộ tốn giờ theo bậc (Sơ nhanh, Tuyệt lâu) · số ô đồng thời = bậc Tàng Thư Lâu · trần số bí kíp/đệ tử theo cảnh giới. Võ học cộng Thực Lực + Uy + lợi thế Đài Tỉ Võ.</div>
               </div>
             </div>
           </template>
@@ -5293,6 +5355,23 @@
                               </span>
                             </span>
                           </template>
+                        </div>
+                      </div>
+                      <div x-show="g.tmDisciSkills(d).length || g.tmDisciLinhNgo(d)" class="mt-2.5">
+                        <div class="lbl mb-1.5">Võ Học <span class="normal-case tracking-normal text-slate-600">· ô <span x-text="g.tmDisciSlot(d).used+'/'+g.tmDisciSlot(d).max"></span></span></div>
+                        <div class="flex flex-wrap gap-1.5">
+                          <template x-for="sk in g.tmDisciSkills(d)" :key="sk.id">
+                            <span class="tmtip inline-flex">
+                              <span class="text-[10.5px] px-2 py-0.5 rounded-full fserif cursor-help inline-flex items-center gap-1" :style="'color:'+sk.tierColor+';background:'+sk.tierColor+'14;border:1px solid '+sk.tierColor+'55'" x-text="sk.ten"></span>
+                              <span class="tmtipbox panel rounded-lg p-3 text-left shadow-xl" :style="'border-color:'+sk.tierColor+'66'">
+                                <span class="fserif text-[12.5px] block" :style="'color:'+sk.tierColor" x-text="sk.ten"></span>
+                                <span class="text-[10px] text-slate-500 block mb-1" x-text="sk.loaiName+' · '+sk.heName+' · '+sk.tierName+' Cấp'"></span>
+                                <span class="text-[11.5px] text-slate-300 leading-snug block italic" x-text="sk.lore"></span>
+                                <span class="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-slate-700/60"><template x-for="ml in sk.modLines" :key="ml.stat"><span class="text-[9px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90" x-text="'+'+ml.pct+'% '+ml.stat"></span></template></span>
+                              </span>
+                            </span>
+                          </template>
+                          <template x-if="g.tmDisciLinhNgo(d)"><span class="text-[10px] px-2 py-0.5 rounded-full fserif text-indigo-300 border border-indigo-500/40 bg-indigo-500/10 inline-flex items-center gap-1">Đang lĩnh ngộ <b x-text="g.tmDisciLinhNgo(d).bk.ten"></b> · <span x-text="g.linhNgoLeftText(g.tmDisciLinhNgo(d).leftMs)"></span></span></template>
                         </div>
                       </div>
                     </div>

@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP_BY_ID, BI_KIP_ADD_STATS, biKipMods, biKipPower, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP_BY_ID, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { luanVo, luanVoCycle, luanVoMarginLabel } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
@@ -59,6 +59,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.diplomacy || typeof t.diplomacy !== 'object') t.diplomacy = { ties: {} };   // Đãi Khách Các: bang giao bot-sect (sectId -> {rep,lastVisit}), side-only
   if (!t.diplomacy.ties || typeof t.diplomacy.ties !== 'object') t.diplomacy.ties = {};
   if (!t.biKipBag || typeof t.biKipBag !== 'object') t.biKipBag = {};                 // Tàng Thư Lâu: kho bí kíp sở hữu (biKipId -> count), side-only
+  if (!t.bkGranted) { t.bkGranted = true; ['bk_cobankiem', 'bk_badao', 'bk_thanhtam'].forEach((id) => { t.biKipBag[id] = (t.biKipBag[id] || 0) + 1; }); }   // tặng 3 bí kíp sơ khởi đầu (1 lần)
   if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
   if (!t.shopCd) t.shopCd = {};
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
@@ -293,6 +294,14 @@ export function simTongMon(state, nowMs, capHours) {
   t.diem = (t.diem || 0) + dt * (BUILDINGS.tangThu.diemPerLvH * (t.buildings.tangThu || 0)) / 3600;
   t.congHien = (t.congHien || 0) + dt * (tuCount * 3 + 1) / 3600;        // ~3/giờ mỗi đệ tử tu luyện + 1 nền
   t.khiVan = Math.min(100, (t.khiVan || 50) + dt * (BUILDINGS.tuLinh.khiPerLv * (t.buildings.tuLinh || 0)) / 36000);
+  // ---- LĨNH NGỘ BÍ KÍP: đệ tử học xong (wall-clock) -> thêm vào d.skills (offline-safe) ----
+  for (const d of t.disciples) {
+    if (d.linhNgoUntil && nowMs >= d.linhNgoUntil) {
+      const bk = BI_KIP_BY_ID[d.linhNgoTarget];
+      if (bk) { if (!Array.isArray(d.skills)) d.skills = []; if (!d.skills.includes(d.linhNgoTarget)) { d.skills.push(d.linhNgoTarget); chronicle(t, `${d.name} bế quan nghiền ngẫm, lĩnh ngộ thành công 「${bk.ten}」!`); } }
+      d.linhNgoUntil = 0; d.linhNgoTarget = null;
+    }
+  }
   // ---- TÂM MA KIẾP: tích lũy tâm ma (số) -> nổ kiếp khi đầy bậc. Hybrid: bậc thấp auto tự áp chế, bậc cao thành sự kiện CHỌN. Mỗi đệ tử tối đa +1 bậc / lần sim (chống dội offline). ----
   if (t.events) { try { accrueTamMa(state, t, dt, nowMs); } catch (e) {} }
   // ---- Sự kiện giang hồ: chuỗi đã hẹn (queue) + roll ngẫu nhiên theo elapsed ----
@@ -691,6 +700,29 @@ export function disciStats(d) {
     heChinh: d.he, heBonus: 0.10 + tier * 0.03,
   };
 }
+
+// ---- TÀNG THƯ LÂU · LĨNH NGỘ BÍ KÍP: đặt 1 bí kíp (kho) + đệ tử rảnh -> học idle (learnH theo bậc) -> d.skills. Số ô đồng thời = bậc Tàng Thư Lâu. SIDE-ONLY. ----
+export function linhNgoSeatInfo(t) { const total = (t.buildings.tangThu || 0); const used = (t.disciples || []).filter((d) => d.linhNgoUntil).length; return { total, used, free: Math.max(0, total - used) }; }
+export function startLinhNgo(state, biKipId, uid, nowMs) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn.' };
+  if ((t.buildings.tangThu || 0) < 1) return { ok: false, msg: 'Cần Tàng Thư Lâu.' };
+  const bk = BI_KIP_BY_ID[biKipId]; if (!bk) return { ok: false, msg: 'Không rõ bí kíp.' };
+  if (((t.biKipBag || {})[biKipId] || 0) < 1) return { ok: false, msg: 'Kho không có bí kíp này.' };
+  const d = t.disciples.find((x) => x.uid === uid); if (!d) return { ok: false, msg: '?' };
+  if (d.awaiting) return { ok: false, msg: 'Đệ tử đã Đắc Đạo.' };
+  if (d.lichLuyenUntil) return { ok: false, msg: 'Đệ tử đang lịch luyện.' };
+  if (d.giangUntil) return { ok: false, msg: 'Đệ tử đang thính giảng.' };
+  if (d.linhNgoUntil) return { ok: false, msg: 'Đệ tử đang lĩnh ngộ bí kíp khác.' };
+  if (!Array.isArray(d.skills)) d.skills = [];
+  if (d.skills.includes(biKipId)) return { ok: false, msg: `${d.name} đã thông 「${bk.ten}」.` };
+  if (d.skills.length >= biKipSlotMax(d.realm)) return { ok: false, msg: `${d.name} hết ô võ học (trần ${biKipSlotMax(d.realm)} theo cảnh giới).` };
+  if (linhNgoSeatInfo(t).free < 1) return { ok: false, msg: 'Hết chỗ lĩnh ngộ — nâng Tàng Thư Lâu.' };
+  const now = nowMs || Date.now();
+  t.biKipBag[biKipId] -= 1; if (t.biKipBag[biKipId] <= 0) delete t.biKipBag[biKipId];
+  d.linhNgoUntil = now + biKipLearnH(bk) * 3600000; d.linhNgoTarget = biKipId;
+  return { ok: true, msg: `${d.name} bắt đầu lĩnh ngộ 「${bk.ten}」 (${biKipLearnH(bk)}h).` };
+}
+export function biKipBagAdd(state, biKipId, n) { const t = state.tongMon; if (!t) return false; if (!BI_KIP_BY_ID[biKipId]) return false; if (!t.biKipBag) t.biKipBag = {}; t.biKipBag[biKipId] = (t.biKipBag[biKipId] || 0) + (n || 1); return true; }
 
 // ---- Uy Danh Giang Hồ (điểm tổng, LIVE) ----
 export function uyDanhOf(t) {
