@@ -543,7 +543,7 @@ export function runLuanVo(state, aUid, bUid, nowMs) {
   const now = nowMs || Date.now();
   if (a.luanVoCdUntil && now < a.luanVoCdUntil) return { ok: false, msg: `${a.name} vừa tỉ thí, đợi hồi sức.` };
   const seed = a.uid + '~' + b.uid + '~' + Math.floor(now / 600000);   // đổi mỗi 10' để khác trận, vẫn deterministic trong khoảnh khắc
-  const res = luanVoCycle({ name: a.name, chienLuc: disciStats(a).chienLuc, he: a.he }, { name: b.name, chienLuc: disciStats(b).chienLuc, he: b.he }, seed);
+  const res = luanVoCycle({ name: a.name, chienLuc: disciStats(a).chienLuc, he: a.he, chieuPool: disciChieuPool(a) }, { name: b.name, chienLuc: disciStats(b).chienLuc, he: b.he, chieuPool: disciChieuPool(b) }, seed);
   if (!t.luanVo) t.luanVo = {};
   const recA = t.luanVo[a.uid] || (t.luanVo[a.uid] = { w: 0, l: 0 });
   const recB = t.luanVo[b.uid] || (t.luanVo[b.uid] = { w: 0, l: 0 });
@@ -674,6 +674,8 @@ function realmF(d) { const r = d.realm || 0; return r + (r >= disciCap(d) ? 1 : 
 // Bí kíp đã lĩnh ngộ: gộp stat mods + power (SIDE-ONLY).
 export function disciSkillMods(d) { const out = {}; (d.skills || []).forEach((sid) => { const m = biKipMods(BI_KIP_BY_ID[sid]); for (const k in m) out[k] = (out[k] || 0) + m[k]; }); return out; }
 export function disciSkillPower(d) { let p = 0; (d.skills || []).forEach((sid) => { p += biKipPower(BI_KIP_BY_ID[sid]); }); return p; }
+// Bí kíp đã lĩnh ngộ -> pool chiêu cho Đài Tỉ Võ (luanVoCycle: "thi triển 〈bí kíp〉" + câu chiến báo riêng bk.chieu[]).
+export function disciChieuPool(d) { return ((d && d.skills) || []).map((sid) => { const bk = BI_KIP_BY_ID[sid]; return bk ? { ten: bk.ten, lines: bk.chieu || [] } : null; }).filter(Boolean); }
 export function disciPower(d) {
   let p = (realmF(d) + 1) * 10 * APT[d.apt].mul;
   if (d.gear) for (const k in d.gear) p += gearPow(d.gear[k]);

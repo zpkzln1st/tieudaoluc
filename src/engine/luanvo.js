@@ -30,9 +30,11 @@ export function luanVoMarginLabel(m) { return m >= 0.4 ? 'đại thắng' : (m >
 // ---- luanVoCycle: diễn lại trận tỉ thí theo TỪNG HIỆP (HP + chiến báo) — deterministic, cùng người thắng với luanVo. Margin lớn -> ít hiệp áp đảo; sát nút -> nhiều hiệp giằng co. ----
 const LV_MOVES = ['vung một chiêu sấm sét', 'lách người tạt ngang một kiếm', 'dồn kình lực phá thế thủ', 'xuất một thức hiểm hóc', 'liên hoàn ba chiêu như vũ bão', 'thi triển tuyệt kĩ áp trận', 'một quyền nặng tựa thiên cân', 'thân pháp ảo diệu vây công'];
 const LV_DEFEND = ['chống đỡ chật vật', 'lảo đảo lùi nửa bước', 'gắng gượng hóa giải', 'trúng đòn loạng choạng', 'né được trong gang tấc', 'đỡ mà hổ khẩu tê dại'];
+// chieuPool (tùy chọn, do caller build từ bí kíp đã lĩnh ngộ): [{ ten, lines[] }]. Có thì đấu sĩ "thi triển 〈bí kíp〉" + dùng câu chiến báo riêng; không thì rơi về LV_MOVES.
 export function luanVoCycle(a, b, seed) {
   const base = luanVo(a, b, seed);
   const aWin = base.winner === 'a', hf = base.heFactor;
+  const aPool = Array.isArray(a.chieuPool) ? a.chieuPool : [], bPool = Array.isArray(b.chieuPool) ? b.chieuPool : [];
   const rounds = base.margin >= 0.4 ? 4 : (base.margin >= 0.18 ? 5 : 6);
   let aHp = 100, bHp = 100;
   const log = [];
@@ -43,10 +45,20 @@ export function luanVoCycle(a, b, seed) {
     if (aWin) { bHp = Math.max(0, bHp - wDmg); aHp = Math.max(12, aHp - lDmg); }
     else { aHp = Math.max(0, aHp - wDmg); bHp = Math.max(12, bHp - lDmg); }
     const atk = aWin ? (a.name || '') : (b.name || ''), def = aWin ? (b.name || '') : (a.name || '');
-    const mv = LV_MOVES[(s >>> 16) % LV_MOVES.length], df = LV_DEFEND[(s >>> 4) % LV_DEFEND.length];
-    let line = `Hiệp ${r + 1}: ${atk} ${mv}, ${def} ${df}.`;
-    if (r === 1 && hf !== 0) line = `Hiệp ${r + 1}: ngũ hành tương khắc phát uy — ${atk} ${mv}, ${def} ${df}.`;
-    if (last) line = `Hiệp ${r + 1}: ${atk} dốc toàn lực một chiêu định thắng bại — ${def} gục xuống nhận thua.`;
+    const atkPool = aWin ? aPool : bPool, defPool = aWin ? bPool : aPool;
+    // người tấn công thi triển bí kíp (nếu có): tên + câu chiêu riêng
+    let atkTag = '', mv;
+    if (atkPool.length) { const bk = atkPool[(s >>> 20) % atkPool.length]; atkTag = bk.ten || ''; const ls = (bk.lines && bk.lines.length) ? bk.lines : LV_MOVES; mv = ls[(s >>> 16) % ls.length]; }
+    else mv = LV_MOVES[(s >>> 16) % LV_MOVES.length];
+    const df = LV_DEFEND[(s >>> 4) % LV_DEFEND.length];
+    const defTag = defPool.length ? (defPool[(s >>> 12) % defPool.length].ten || '') : '';   // người thủ vận bí kíp chống đỡ
+    const atkPhrase = atkTag ? `${atk} thi triển 〈${atkTag}〉, ${mv}` : `${atk} ${mv}`;
+    const defPhrase = defTag ? `${def} vận 〈${defTag}〉 ${df}` : `${def} ${df}`;
+    let line = `Hiệp ${r + 1}: ${atkPhrase}; ${defPhrase}.`;
+    if (r === 1 && hf !== 0) line = `Hiệp ${r + 1}: ngũ hành tương khắc phát uy — ${atkPhrase}; ${defPhrase}.`;
+    if (last) line = atkTag
+      ? `Hiệp ${r + 1}: ${atk} dốc toàn lực thi triển 〈${atkTag}〉 định thắng bại — ${def}${defTag ? ` dẫu vận 〈${defTag}〉 vẫn` : ''} gục xuống nhận thua.`
+      : `Hiệp ${r + 1}: ${atk} dốc toàn lực một chiêu định thắng bại — ${def} gục xuống nhận thua.`;
     log.push({ aHp, bHp, line });
     if (aHp <= 0 || bHp <= 0) break;
   }
