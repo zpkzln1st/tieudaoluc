@@ -219,20 +219,69 @@ painterly xianxia concept art, no readable text, square 512x512
 - [MÀU] theo ngũ hành: Kim = golden yellow · Mộc = jade green · Thủy = azure blue · Hỏa = fiery orange · Thổ = amber/ochre.
 - [BẬC]: Sơ = a worn plain bound manual, faint glow · Trung = a well-kept manual with brass clasp, moderate glow · Cao = an ornate gilded tome, strong radiant glow · Tuyệt = an ancient divine treatise floating, intense blazing aura, gold filigree.
 
-**16 BÍ KÍP (id · tên · motif loại · màu ngũ hành · bậc):**
-- `bk_cobankiem` — Cơ Bản Kiếm Quyết · sword sword-qi · golden (Kim) · Sơ
-- `bk_badao` — Bá Đao Thuật · heavy saber · fiery orange (Hỏa) · Sơ
-- `bk_lahan` — La Hán Quyền · clenched fist shockwave · amber (Thổ) · Sơ
-- `bk_luuvan` — Lưu Vân Thân Pháp · flowing silhouette motion trails · azure (Thủy) · Sơ
-- `bk_thanhtam` — Thanh Tâm Quyết · meditating cultivator dantian swirl · jade green (Mộc) · Sơ
-- `bk_truyphong` — Truy Phong Bộ · figure skimming, light footprints · azure (Thủy) · Sơ
-- `bk_luuquang` — Lưu Quang Kiếm Pháp · sword streaking like light · golden (Kim) · Trung
-- `bk_cuongphong` — Cuồng Phong Đao Pháp · saber amid swirling gale · jade green (Mộc) · Trung
-- `bk_phichlich` — Phích Lịch Thần Chỉ · finger shooting thunder beam · fiery orange (Hỏa) · Trung
-- `bk_huyenquy` — Huyền Quy Nội Công · turtle-shell aura, internal energy · amber (Thổ) · Trung
-- `bk_thiemdien` — Thiểm Điện Khinh Công · figure blinking like lightning · fiery orange (Hỏa) · Trung
-- `bk_ngaotuyet` — Ngạo Tuyết Kiếm Đạo · sword wreathed in frost/snow-qi · azure (Thủy) · Cao
-- `bk_phaquan` — Phá Quân Đao Pháp · saber cleaving an army, war aura · golden (Kim) · Cao
-- `bk_kimcuong` — Kim Cương Bất Hoại Thể · indestructible diamond-body cultivator · amber (Thổ) · Cao
-- `bk_thaihu` — Thái Hư Kiếm Ý · ethereal swordless sword-intent in the void · golden (Kim) · Tuyệt
-- `bk_votuong` — Vô Tướng Ma Công · formless shadow demonic-energy manual · jade green (Mộc) · Tuyệt
+**16 PROMPT ĐẦY ĐỦ (mỗi cái 1 file, tên = id):**
+
+`bk_cobankiem.webp` — Cơ Bản Kiếm Quyết (Kiếm · Kim · Sơ):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a straight sword wreathed in cutting sword-qi, golden-yellow qi glow swirling around it, a worn plain bound manual with a faint glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_badao.webp` — Bá Đao Thuật (Đao · Hỏa · Sơ):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a heavy broad saber radiating brute force, fiery-orange qi glow swirling around it, a worn plain bound manual with a faint glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_lahan.webp` — La Hán Quyền (Quyền · Thổ · Sơ):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a clenched buddhist fist releasing a shockwave, amber-ochre qi glow swirling around it, a worn plain bound manual with a faint glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_luuvan.webp` — Lưu Vân Thân Pháp (Thân Pháp · Thủy · Sơ):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a flowing robed silhouette with cloud-like motion trails, azure-blue qi glow swirling around it, a worn plain bound manual with a faint glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_thanhtam.webp` — Thanh Tâm Quyết (Nội Công · Mộc · Sơ):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a serene meditating cultivator with a dantian energy swirl, jade-green qi glow swirling around it, a worn plain bound manual with a faint glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_truyphong.webp` — Truy Phong Bộ (Khinh Công · Thủy · Sơ):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a figure skimming mid-air leaving light footprints, azure-blue qi glow swirling around it, a worn plain bound manual with a faint glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_luuquang.webp` — Lưu Quang Kiếm Pháp (Kiếm · Kim · Trung):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a sword streaking like a beam of light, golden-yellow qi glow swirling around it, a well-kept manual with a brass clasp and moderate glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_cuongphong.webp` — Cuồng Phong Đao Pháp (Đao · Mộc · Trung):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a saber amid a swirling gale of wind blades, jade-green qi glow swirling around it, a well-kept manual with a brass clasp and moderate glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_phichlich.webp` — Phích Lịch Thần Chỉ (Chỉ · Hỏa · Trung):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a pointing finger firing a thunderbolt beam, fiery-orange qi glow swirling around it, a well-kept manual with a brass clasp and moderate glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_huyenquy.webp` — Huyền Quy Nội Công (Nội Công · Thổ · Trung):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a turtle-shell defensive aura of internal energy around a cultivator, amber-ochre qi glow swirling around it, a well-kept manual with a brass clasp and moderate glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_thiemdien.webp` — Thiểm Điện Khinh Công (Khinh Công · Hỏa · Trung):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a figure blinking like a lightning flash with afterimages, fiery-orange qi glow swirling around it, a well-kept manual with a brass clasp and moderate glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_ngaotuyet.webp` — Ngạo Tuyết Kiếm Đạo (Kiếm · Thủy · Cao):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a sword wreathed in frost and snow-qi, azure-blue icy qi glow swirling around it, an ornate gilded tome with a strong radiant glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_phaquan.webp` — Phá Quân Đao Pháp (Đao · Kim · Cao):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting a saber cleaving through an army with a fierce war aura, golden-yellow qi glow swirling around it, an ornate gilded tome with a strong radiant glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_kimcuong.webp` — Kim Cương Bất Hoại Thể (Nội Công · Thổ · Cao):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient technique manual depicting an indestructible diamond-hard body cultivator glowing like crystal, amber-ochre qi glow swirling around it, an ornate gilded tome with a strong radiant glow, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_thaihu.webp` — Thái Hư Kiếm Ý (Kiếm · Kim · Tuyệt):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient divine treatise floating in the air, depicting an ethereal swordless sword-intent shimmering in the void, golden-yellow blazing aura and gold filigree swirling around it, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
+`bk_votuong.webp` — Vô Tướng Ma Công (Ám Khí · Mộc · Tuyệt):
+```
+Painterly wuxia martial-arts secret manual icon — an ancient divine treatise floating in the air, depicting a formless shadowy demonic-energy technique with hidden darts emerging from nowhere, jade-green blazing demonic aura and gold filigree swirling around it, single object centered, deep dark background, painterly xianxia concept art, no readable text, square 512x512
+```
