@@ -4816,7 +4816,7 @@
                     <div class="flex items-center justify-center gap-2.5">
                       <div class="flex gap-1.5">
                         <template x-for="i in g.bkMergeNeed" :key="i">
-                          <div class="w-[52px] h-[52px] rounded-lg border-2 flex items-center justify-center overflow-hidden relative" :class="g.bkMergeTray[i-1] ? '' : 'border-dashed border-slate-700 bg-ink3/40'" :style="g.bkMergeTray[i-1] ? ('border-color:'+g.bkMergeTray[i-1].tierColor+'aa') : ''">
+                          <div class="w-[56px] h-[56px] rounded-lg border-2 flex items-center justify-center overflow-hidden relative shrink-0" :class="g.bkMergeTray[i-1] ? '' : 'border-dashed border-slate-700 bg-ink3/40'" :style="g.bkMergeTray[i-1] ? ('border-color:'+g.bkMergeTray[i-1].tierColor+'aa') : ''">
                             <template x-if="g.bkMergeTray[i-1]">
                               <div @click="g.bkMergePickRemove(i-1)" class="absolute inset-0 cursor-pointer group fserif flex items-center justify-center text-[16px]" :style="'color:'+g.bkMergeTray[i-1].heColor">
                                 <span x-text="g.bkMergeTray[i-1].heHan"></span>
@@ -4847,13 +4847,13 @@
                   <template x-if="!g.bkMergePool.length"><div class="text-[11px] text-slate-600 italic py-4 text-center">Chưa có bí kíp bậc này — mua ở Đấu Giá / nhặt Bí Cảnh / đệ tử lĩnh ngộ.</div></template>
                   <div class="flex flex-wrap gap-2">
                     <template x-for="bk in g.bkMergePool" :key="bk.id">
-                      <div class="w-[60px]">
-                        <div @click="g.bkMergePickAdd(bk.id)" class="relative w-[60px] h-[60px] rounded-lg overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[17px] transition" :class="bk.remain>0 ? 'cursor-pointer hover:brightness-125' : 'opacity-30 grayscale cursor-not-allowed'" :style="'border-color:'+bk.tierColor+'88;color:'+bk.heColor">
+                      <div class="w-[56px]">
+                        <div @click="g.bkMergePickAdd(bk.id)" class="relative w-[56px] h-[56px] rounded-lg overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[17px] transition" :class="bk.remain>0 ? 'cursor-pointer hover:brightness-125' : 'opacity-30 grayscale cursor-not-allowed'" :style="'border-color:'+bk.tierColor+'88;color:'+bk.heColor">
                           <span x-text="bk.heHan"></span>
                           <img :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
                           <span class="absolute bottom-0 right-0 text-[8.5px] leading-none px-1 py-0.5 rounded-tl-md font-bold bg-black/70 text-slate-200">×<span x-text="bk.remain"></span></span>
                         </div>
-                        <div class="text-[8.5px] fserif text-center mt-0.5 leading-tight truncate w-[60px]" :style="'color:'+bk.tierColor" x-text="bk.ten"></div>
+                        <div class="text-[8.5px] fserif text-center mt-0.5 leading-tight truncate w-[56px]" :style="'color:'+bk.tierColor" x-text="bk.ten"></div>
                       </div>
                     </template>
                   </div>
