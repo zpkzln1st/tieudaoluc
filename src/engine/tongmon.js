@@ -675,7 +675,7 @@ function realmF(d) { const r = d.realm || 0; return r + (r >= disciCap(d) ? 1 : 
 export function disciSkillMods(d) { const out = {}; (d.skills || []).forEach((sid) => { const m = biKipMods(BI_KIP_BY_ID[sid]); for (const k in m) out[k] = (out[k] || 0) + m[k]; }); return out; }
 export function disciSkillPower(d) { let p = 0; (d.skills || []).forEach((sid) => { p += biKipPower(BI_KIP_BY_ID[sid]); }); return p; }
 // Bí kíp đã lĩnh ngộ -> pool chiêu cho Đài Tỉ Võ (luanVoCycle: "thi triển 〈bí kíp〉" + câu chiến báo riêng bk.chieu[]).
-export function disciChieuPool(d) { return ((d && d.skills) || []).map((sid) => { const bk = BI_KIP_BY_ID[sid]; return bk ? { ten: bk.ten, lines: bk.chieu || [] } : null; }).filter(Boolean); }
+export function disciChieuPool(d) { return ((d && d.skills) || []).map((sid) => { const bk = BI_KIP_BY_ID[sid]; return bk ? { id: bk.id, ten: bk.ten, lines: bk.chieu || [] } : null; }).filter(Boolean); }
 // Nhóm tương khắc loại võ học (cương/trường/nhanh) của 1 đệ tử = theo bí kíp BẬC CAO NHẤT đã lĩnh ngộ. Rỗng nếu chưa học / chỉ Nội Công.
 export function disciLoaiCat(d) {
   let best = null, bestTi = -1;

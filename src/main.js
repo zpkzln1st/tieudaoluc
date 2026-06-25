@@ -630,6 +630,25 @@ const gameStore = {
   get luanVoFightDone() { void this._tick; return !!this.luanVoFight && this.luanVoRound >= this.luanVoFight.rounds.length; },
   get luanVoHp() { void this._tick; const f = this.luanVoFight; if (!f || this.luanVoRound <= 0) return { a: 100, b: 100 }; const rd = f.rounds[Math.min(this.luanVoRound, f.rounds.length) - 1]; return { a: rd.aHp, b: rd.bHp }; },
   get luanVoLog() { void this._tick; const f = this.luanVoFight; return f ? f.rounds.slice(0, this.luanVoRound).map((r) => r.line) : []; },
+  // hiệp hiện tại: bí kíp đang thi triển mỗi bên (để SÁNG đúng ô skill)
+  get luanVoActiveSkill() { void this._tick; const f = this.luanVoFight; if (!f || this.luanVoRound <= 0) return { a: '', b: '' }; const rd = f.rounds[Math.min(this.luanVoRound, f.rounds.length) - 1]; if (!rd) return { a: '', b: '' }; return rd.atkIsA ? { a: rd.atkSkillId, b: rd.defSkillId } : { a: rd.defSkillId, b: rd.atkSkillId }; },
+  // sát thương HP (% điểm) mỗi bên nhận TRONG hiệp hiện tại
+  get luanVoHpDelta() { void this._tick; const f = this.luanVoFight, r = this.luanVoRound; if (!f || r <= 0) return { a: 0, b: 0 }; const i = Math.min(r, f.rounds.length) - 1, cur = f.rounds[i], prev = i >= 1 ? f.rounds[i - 1] : { aHp: 100, bHp: 100 }; return { a: Math.max(0, Math.round(prev.aHp - cur.aHp)), b: Math.max(0, Math.round(prev.bHp - cur.bHp)) }; },
+  // tô màu 1 dòng chiến báo: tên theo màu đấu sĩ · 〈bí kíp〉 theo bậc · khắc cyan/tím · gục đỏ · "Hiệp N" mờ
+  luanVoLineHtml(line) {
+    const f = this.luanVoFight; if (!f || !line) return line || '';
+    const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let h = esc(line);
+    const skMap = {}; [...(f.a.skills || []), ...(f.b.skills || [])].forEach((s) => { skMap[s.ten] = s.tierColor; });
+    h = h.replace(/〈([^〉]+)〉/g, (m, p1) => '<span style="color:' + (skMap[p1] || '#fbbf24') + ';font-weight:600">〈' + p1 + '〉</span>');
+    const wrap = (name, color) => { if (name) { const e = esc(name); if (e) h = h.split(e).join('<span style="color:' + color + '">' + e + '</span>'); } };
+    wrap(f.a.name, f.a.color); wrap(f.b.name, f.b.color);
+    h = h.replace(/ngũ hành tương khắc[^—]*/, (m) => '<span style="color:#22d3ee">' + m + '</span>');
+    h = h.replace(/võ học khắc chế[^—]*/, (m) => '<span style="color:#e879f9">' + m + '</span>');
+    h = h.replace(/gục xuống nhận thua/g, '<span style="color:#fb7185">gục xuống nhận thua</span>');
+    h = h.replace(/^(Hiệp \d+:)/, '<span style="color:#64748b">$1</span>');
+    return h;
+  },
   closeLuanVoResult() { this._lvStop(); this.luanVoFight = null; this.luanVoRound = 0; },
   get luanVoChampionCd() { void this._tick; if (!this.luanVoChampion) return ''; const c = this.tmLuanVoData.find((x) => x.uid === this.luanVoChampion); return c && c.onCd ? c.cdText : ''; },
   // ===== ĐÃI KHÁCH CÁC: bang giao bot-sect (Tiếp Đãi / Tặng Lễ -> giao tình -> Kết Minh). Selection ở store (genRoster), thưởng side-only. =====
@@ -718,7 +737,11 @@ const gameStore = {
     if (!r.ok) { this.showToast(r.msg); return; }
     this.tmSave(); this._tick++;
     const t = this.tm, a = t.disciples.find((x) => x.uid === this.luanVoChampion), b = t.disciples.find((x) => x.uid === bUid);
-    const fd = (d) => d ? { name: d.name, color: (APT[d.apt] || {}).color || '#cbd5e1', face: this.tmFace(d), han: d.han, heColor: (HE[d.he] || HE.kim).color } : { name: '', color: '#94a3b8', face: '', han: '?', heColor: '#94a3b8' };
+    const fd = (d) => {
+      if (!d) return { name: '', color: '#94a3b8', face: '', han: '?', heColor: '#94a3b8', heName: '', heHan: '', loaiCatName: '', realmName: '', chienLuc: 0, atk: 0, def: 0, maxHP: 0, spd: 0, crit: 0, dodge: 0, w: 0, l: 0, skills: [] };
+      const st = disciStats(d), lc = disciLoaiCat(d), rec = luanVoRecord(t, d.uid), he = HE[d.he] || HE.kim;
+      return { uid: d.uid, name: d.name, color: (APT[d.apt] || {}).color || '#cbd5e1', face: this.tmFace(d), han: d.han, heColor: he.color, heName: he.name, heHan: he.han, loaiCatName: lc ? CAT_NAME[lc] : '', realmName: (REALMS[d.realm] || {}).name || '', chienLuc: st.chienLuc, atk: st.atk, def: st.def, maxHP: st.maxHP, spd: st.spd, crit: st.crit, dodge: st.dodge, w: rec.w, l: rec.l, skills: this.tmDisciSkills(d) };
+    };
     this.luanVoFight = { a: fd(a), b: fd(b), rounds: r.res.rounds, aWon: r.aWon, winnerName: r.res.winnerName, marginLabel: r.res.marginLabel, heFactor: r.res.heFactor, loaiFactor: r.res.loaiFactor };
     this.luanVoRound = 0;
     this._lvPlay();

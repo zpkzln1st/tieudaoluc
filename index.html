@@ -4903,43 +4903,127 @@
               <!-- ĐÀI TỈ VÕ (cycle từng hiệp: HP + chiến báo) -->
               <template x-if="g.luanVoFight">
                 <div class="absolute inset-0 z-[5] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click="g.luanVoFightDone && g.closeLuanVoResult()">
-                  <div @click.stop class="panel rounded-2xl w-[460px] max-w-full overflow-hidden border border-sky-500/45 shadow-2xl">
-                    <div class="flex items-center justify-between gap-2 px-5 py-3 border-b border-slate-800" style="background:linear-gradient(90deg,rgba(34,211,238,.12),transparent)">
+                  <div @click.stop class="panel rounded-2xl w-[720px] max-w-full max-h-[92vh] flex flex-col overflow-hidden border border-sky-500/45 shadow-2xl" x-data="{ f: $store.game.luanVoFight }">
+                    <div class="flex items-center justify-between gap-2 px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.12),transparent)">
                       <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[15px]" style="color:#22d3ee;border:1px solid rgba(34,211,238,.4);background:rgba(34,211,238,.1)">武</span>
                         <div class="fserif text-[16px] text-cyan leading-none">Đài Tỉ Võ</div>
                       </div>
                       <button @click="g.closeLuanVoResult()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                     </div>
-                    <!-- 2 đấu sĩ + thanh HP -->
-                    <div class="px-4 sm:px-5 py-3.5">
-                      <div class="flex items-center gap-2.5">
-                        <div class="flex-1 min-w-0">
-                          <div class="flex items-center gap-2">
-                            <span class="relative w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center fserif text-[16px] shrink-0" :style="'color:'+g.luanVoFight.a.color+';border:1px solid '+g.luanVoFight.a.color+'66;background:'+g.luanVoFight.a.color+'14'"><span x-text="g.luanVoFight.a.han"></span><template x-if="g.luanVoFight.a.face"><img :src="g.luanVoFight.a.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
-                            <div class="fserif text-[12.5px] truncate min-w-0" :style="'color:'+g.luanVoFight.a.color" x-text="g.luanVoFight.a.name"></div>
+                    <div class="overflow-y-auto">
+                    <!-- 2 thẻ đấu sĩ (kĩ năng + thuộc tính) -->
+                    <div class="grid grid-cols-2">
+                      <!-- A (trái) -->
+                      <div class="p-3.5 border-r border-slate-800/70">
+                        <div class="flex gap-2.5">
+                          <span class="relative w-[54px] h-[68px] rounded-lg overflow-hidden shrink-0 bg-ink3 border flex items-center justify-center fserif text-xl" :style="'border-color:'+f.a.heColor+'66;color:'+f.a.heColor"><span x-text="f.a.han"></span><template x-if="f.a.face"><img :src="f.a.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="fserif text-[14px] truncate" :style="'color:'+f.a.color" x-text="f.a.name"></div>
+                            <div class="text-[9.5px] text-slate-500" x-text="f.a.realmName"></div>
+                            <div class="flex flex-wrap gap-1 mt-1">
+                              <span class="text-[8.5px] px-1.5 py-0.5 rounded-full" :style="'color:'+f.a.heColor+';background:'+f.a.heColor+'1a;border:1px solid '+f.a.heColor+'55'" x-text="f.a.heHan+' '+f.a.heName"></span>
+                              <template x-if="f.a.loaiCatName"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-fuchsia-500/12 text-fuchsia-200/90 border border-fuchsia-500/30" x-text="f.a.loaiCatName"></span></template>
+                              <span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-ink3 text-slate-400 border border-slate-700">Thắng <b class="text-emerald-300" x-text="f.a.w"></b> Thua <b class="text-rose-300" x-text="f.a.l"></b></span>
+                            </div>
                           </div>
-                          <div class="h-2 rounded-full bg-slate-800 overflow-hidden mt-1.5"><div class="h-full rounded-full transition-all duration-500" :style="'width:'+g.luanVoHp.a+'%;background:'+(g.luanVoHp.a<35?'#fb7185':'#34d399')"></div></div>
                         </div>
-                        <span class="fserif text-[15px] text-slate-500 shrink-0">VS</span>
-                        <div class="flex-1 min-w-0">
-                          <div class="flex items-center gap-2 flex-row-reverse">
-                            <span class="relative w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center fserif text-[16px] shrink-0" :style="'color:'+g.luanVoFight.b.color+';border:1px solid '+g.luanVoFight.b.color+'66;background:'+g.luanVoFight.b.color+'14'"><span x-text="g.luanVoFight.b.han"></span><template x-if="g.luanVoFight.b.face"><img :src="g.luanVoFight.b.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
-                            <div class="fserif text-[12.5px] truncate min-w-0 text-right" :style="'color:'+g.luanVoFight.b.color" x-text="g.luanVoFight.b.name"></div>
+                        <div class="flex items-baseline gap-1.5 mt-2"><span class="lbl">Chiến Lực</span><b class="fserif text-[17px] text-gold" x-text="g.fmt(f.a.chienLuc)"></b></div>
+                        <div class="grid grid-cols-3 gap-1 mt-1 text-[9.5px]">
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Công</span> <b class="text-rose-300" x-text="g.fmtC(f.a.atk)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Thủ</span> <b class="text-sky-300" x-text="g.fmtC(f.a.def)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Sinh</span> <b class="text-emerald-300" x-text="g.fmtC(f.a.maxHP)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Tốc</span> <b class="text-slate-200" x-text="Math.round(f.a.spd)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Bạo</span> <b class="text-amber-300" x-text="Math.round(f.a.crit*100)+'%'"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Né</span> <b class="text-slate-200" x-text="Math.round(f.a.dodge*100)+'%'"></b></div>
+                        </div>
+                        <template x-if="f.a.skills.length">
+                          <div>
+                            <div class="lbl mt-2 mb-1">Võ Học</div>
+                            <div class="flex gap-1.5 flex-wrap">
+                              <template x-for="sk in f.a.skills" :key="sk.id">
+                                <span class="tmtip inline-flex">
+                                  <span class="relative w-9 h-9 rounded-md overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[12px] transition-all duration-200" :class="g.luanVoActiveSkill.a===sk.id?'ring-2 ring-amber-300 scale-110 z-10':''" :style="'border-color:'+sk.tierColor+(g.luanVoActiveSkill.a===sk.id?'':'88')+';color:'+sk.heColor"><span x-text="sk.heHan"></span><img :src="'images/tongmon/bikip/'+sk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"><span class="absolute top-0 left-0 text-[6.5px] leading-none px-0.5 py-0.5 rounded-br font-bold fserif" :style="'background:'+sk.tierColor+'e6;color:#0b0f17'" x-text="sk.tierName"></span></span>
+                                  <span class="tmtipbox panel rounded-lg p-2.5 text-left shadow-xl" :style="'border-color:'+sk.tierColor+'66'">
+                                    <span class="fserif text-[12px] block" :style="'color:'+sk.tierColor" x-text="sk.ten"></span>
+                                    <span class="text-[9.5px] text-slate-500 block mb-1" x-text="sk.loaiName+' · '+sk.heName+' · '+sk.tierName"></span>
+                                    <span class="flex flex-wrap gap-1"><template x-for="ml in sk.modLines" :key="ml.stat"><span class="text-[9px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90" x-text="'+'+ml.pct+'% '+ml.stat"></span></template></span>
+                                  </span>
+                                </span>
+                              </template>
+                            </div>
                           </div>
-                          <div class="h-2 rounded-full bg-slate-800 overflow-hidden mt-1.5" dir="rtl"><div class="h-full rounded-full transition-all duration-500" :style="'width:'+g.luanVoHp.b+'%;background:'+(g.luanVoHp.b<35?'#fb7185':'#34d399')"></div></div>
+                        </template>
+                        <div class="flex items-center gap-2 mt-2.5">
+                          <div class="h-2 rounded-full bg-slate-800 overflow-hidden flex-1"><div class="h-full rounded-full transition-all duration-500" :style="'width:'+g.luanVoHp.a+'%;background:'+(g.luanVoHp.a<35?'#fb7185':'#34d399')"></div></div>
+                          <span class="text-[9px] tabular-nums w-8 text-right" :class="g.luanVoHp.a<35?'text-rose-300':'text-slate-400'" x-text="Math.round(g.luanVoHp.a)+'%'"></span>
+                          <span class="text-[9.5px] text-rose-400 w-7 fserif" x-show="g.luanVoHpDelta.a>0" x-text="'−'+g.luanVoHpDelta.a"></span>
+                        </div>
+                      </div>
+                      <!-- B (phải) -->
+                      <div class="p-3.5 text-right">
+                        <div class="flex gap-2.5 flex-row-reverse">
+                          <span class="relative w-[54px] h-[68px] rounded-lg overflow-hidden shrink-0 bg-ink3 border flex items-center justify-center fserif text-xl" :style="'border-color:'+f.b.heColor+'66;color:'+f.b.heColor"><span x-text="f.b.han"></span><template x-if="f.b.face"><img :src="f.b.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="fserif text-[14px] truncate" :style="'color:'+f.b.color" x-text="f.b.name"></div>
+                            <div class="text-[9.5px] text-slate-500" x-text="f.b.realmName"></div>
+                            <div class="flex flex-wrap gap-1 mt-1 justify-end">
+                              <span class="text-[8.5px] px-1.5 py-0.5 rounded-full" :style="'color:'+f.b.heColor+';background:'+f.b.heColor+'1a;border:1px solid '+f.b.heColor+'55'" x-text="f.b.heHan+' '+f.b.heName"></span>
+                              <template x-if="f.b.loaiCatName"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-fuchsia-500/12 text-fuchsia-200/90 border border-fuchsia-500/30" x-text="f.b.loaiCatName"></span></template>
+                              <span class="text-[8.5px] px-1.5 py-0.5 rounded-full bg-ink3 text-slate-400 border border-slate-700">Thắng <b class="text-emerald-300" x-text="f.b.w"></b> Thua <b class="text-rose-300" x-text="f.b.l"></b></span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="flex items-baseline gap-1.5 mt-2 justify-end"><b class="fserif text-[17px] text-gold" x-text="g.fmt(f.b.chienLuc)"></b><span class="lbl">Chiến Lực</span></div>
+                        <div class="grid grid-cols-3 gap-1 mt-1 text-[9.5px]">
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Công</span> <b class="text-rose-300" x-text="g.fmtC(f.b.atk)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Thủ</span> <b class="text-sky-300" x-text="g.fmtC(f.b.def)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Sinh</span> <b class="text-emerald-300" x-text="g.fmtC(f.b.maxHP)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Tốc</span> <b class="text-slate-200" x-text="Math.round(f.b.spd)"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Bạo</span> <b class="text-amber-300" x-text="Math.round(f.b.crit*100)+'%'"></b></div>
+                          <div class="bg-ink3/60 rounded px-1.5 py-1 truncate"><span class="text-slate-500">Né</span> <b class="text-slate-200" x-text="Math.round(f.b.dodge*100)+'%'"></b></div>
+                        </div>
+                        <template x-if="f.b.skills.length">
+                          <div>
+                            <div class="lbl mt-2 mb-1">Võ Học</div>
+                            <div class="flex gap-1.5 flex-wrap justify-end">
+                              <template x-for="sk in f.b.skills" :key="sk.id">
+                                <span class="tmtip inline-flex">
+                                  <span class="relative w-9 h-9 rounded-md overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[12px] transition-all duration-200" :class="g.luanVoActiveSkill.b===sk.id?'ring-2 ring-amber-300 scale-110 z-10':''" :style="'border-color:'+sk.tierColor+(g.luanVoActiveSkill.b===sk.id?'':'88')+';color:'+sk.heColor"><span x-text="sk.heHan"></span><img :src="'images/tongmon/bikip/'+sk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"><span class="absolute top-0 left-0 text-[6.5px] leading-none px-0.5 py-0.5 rounded-br font-bold fserif" :style="'background:'+sk.tierColor+'e6;color:#0b0f17'" x-text="sk.tierName"></span></span>
+                                  <span class="tmtipbox panel rounded-lg p-2.5 text-left shadow-xl" style="left:auto;right:0" :style="'border-color:'+sk.tierColor+'66'">
+                                    <span class="fserif text-[12px] block" :style="'color:'+sk.tierColor" x-text="sk.ten"></span>
+                                    <span class="text-[9.5px] text-slate-500 block mb-1" x-text="sk.loaiName+' · '+sk.heName+' · '+sk.tierName"></span>
+                                    <span class="flex flex-wrap gap-1"><template x-for="ml in sk.modLines" :key="ml.stat"><span class="text-[9px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90" x-text="'+'+ml.pct+'% '+ml.stat"></span></template></span>
+                                  </span>
+                                </span>
+                              </template>
+                            </div>
+                          </div>
+                        </template>
+                        <div class="flex items-center gap-2 mt-2.5 flex-row-reverse">
+                          <div class="h-2 rounded-full bg-slate-800 overflow-hidden flex-1" dir="rtl"><div class="h-full rounded-full transition-all duration-500" :style="'width:'+g.luanVoHp.b+'%;background:'+(g.luanVoHp.b<35?'#fb7185':'#34d399')"></div></div>
+                          <span class="text-[9px] tabular-nums w-8" :class="g.luanVoHp.b<35?'text-rose-300':'text-slate-400'" x-text="Math.round(g.luanVoHp.b)+'%'"></span>
+                          <span class="text-[9.5px] text-rose-400 w-7 fserif text-right" x-show="g.luanVoHpDelta.b>0" x-text="'−'+g.luanVoHpDelta.b"></span>
                         </div>
                       </div>
                     </div>
-                    <!-- chiến báo -->
-                    <div class="px-4 sm:px-5">
-                      <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5 h-[124px] overflow-y-auto text-[11px] text-slate-300 leading-relaxed space-y-1 fserif">
-                        <template x-for="(l,li) in g.luanVoLog" :key="li"><div x-text="l"></div></template>
-                        <template x-if="!g.luanVoLog.length"><div class="text-slate-600 italic">Hai đấu sĩ bước lên đài, ôm quyền hành lễ…</div></template>
+                    <!-- thế trận khắc chế -->
+                    <div class="flex items-center justify-center gap-2 py-1.5 border-y border-slate-800/70 bg-ink2/40 text-[10px] flex-wrap px-3">
+                      <span class="text-slate-500">Thế trận:</span>
+                      <template x-if="f.heFactor!==0"><span class="px-2 py-0.5 rounded-full text-cyan border border-cyan/30 bg-cyan/5" x-text="(f.heFactor>0?f.a.heName:f.b.heName)+' khắc '+(f.heFactor>0?f.b.heName:f.a.heName)+' +15%'"></span></template>
+                      <template x-if="f.loaiFactor!==0"><span class="px-2 py-0.5 rounded-full text-fuchsia-300 border border-fuchsia-500/30 bg-fuchsia-500/5" x-text="(f.loaiFactor>0?f.a.loaiCatName:f.b.loaiCatName)+' khắc '+(f.loaiFactor>0?f.b.loaiCatName:f.a.loaiCatName)+' +10%'"></span></template>
+                      <template x-if="f.heFactor===0 && f.loaiFactor===0"><span class="text-slate-600">đôi bên cân tài, không khắc chế</span></template>
+                    </div>
+                    <!-- chiến báo tô màu + tự cuộn -->
+                    <div class="px-4 sm:px-5 py-3">
+                      <div class="lbl mb-1.5">Chiến Báo</div>
+                      <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5 h-[150px] overflow-y-auto text-[11.5px] leading-relaxed space-y-1.5 fserif" x-ref="lvlog" x-effect="g.luanVoLog.length; $nextTick(() => { if ($refs.lvlog) $refs.lvlog.scrollTop = $refs.lvlog.scrollHeight; })">
+                        <template x-for="(l,li) in g.luanVoLog" :key="li"><div class="pl-2 border-l-2 transition-colors" :class="li===g.luanVoLog.length-1 && !g.luanVoFightDone ? 'border-cyan/70 text-slate-200' : 'border-transparent text-slate-400'" x-html="g.luanVoLineHtml(l)"></div></template>
+                        <template x-if="!g.luanVoLog.length"><div class="text-slate-600 italic pl-2">Hai đấu sĩ bước lên đài, ôm quyền hành lễ…</div></template>
                       </div>
                     </div>
                     <!-- người thắng + nút -->
-                    <div class="px-5 py-3.5">
+                    <div class="px-5 py-3.5 border-t border-slate-800">
                       <template x-if="g.luanVoFightDone">
                         <div class="text-center mb-3"><span class="fserif text-[15px] text-amber-200" x-text="g.luanVoFight.winnerName"></span> <span class="text-[12.5px] text-slate-300" x-text="g.luanVoFight.marginLabel"></span><template x-if="g.luanVoFight.heFactor!==0"><div class="text-[10px] text-cyan mt-0.5">ngũ hành tương khắc nghiêng cán cân</div></template><template x-if="g.luanVoFight.loaiFactor!==0"><div class="text-[10px] text-fuchsia-300 mt-0.5">võ học khắc chế nghiêng cán cân</div></template></div>
                       </template>
@@ -4947,6 +5031,7 @@
                         <button x-show="!g.luanVoFightDone" @click="g.luanVoSkip()" class="px-6 py-1.5 rounded-lg text-[12px] font-bold fserif border border-slate-700 text-slate-300 hover:border-cyan/50 hover:text-cyan transition">Bỏ Qua »</button>
                         <button x-show="g.luanVoFightDone" @click="g.closeLuanVoResult()" class="px-8 py-1.5 rounded-lg text-[12px] font-bold fserif bg-sky-600/90 hover:bg-sky-600 text-white transition">Tiếp</button>
                       </div>
+                    </div>
                     </div>
                   </div>
                 </div>

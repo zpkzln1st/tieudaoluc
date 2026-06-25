@@ -53,12 +53,13 @@ export function luanVoCycle(a, b, seed) {
     else { aHp = Math.max(0, aHp - wDmg); bHp = Math.max(12, bHp - lDmg); }
     const atk = aWin ? (a.name || '') : (b.name || ''), def = aWin ? (b.name || '') : (a.name || '');
     const atkPool = aWin ? aPool : bPool, defPool = aWin ? bPool : aPool;
-    // người tấn công thi triển bí kíp (nếu có): tên + câu chiêu riêng
-    let atkTag = '', mv;
-    if (atkPool.length) { const bk = atkPool[(s >>> 20) % atkPool.length]; atkTag = bk.ten || ''; const ls = (bk.lines && bk.lines.length) ? bk.lines : LV_MOVES; mv = ls[(s >>> 16) % ls.length]; }
+    // người tấn công thi triển bí kíp (nếu có): tên + câu chiêu riêng. Ghi id để UI sáng đúng ô skill.
+    let atkTag = '', atkSkillId = '', mv;
+    if (atkPool.length) { const bk = atkPool[(s >>> 20) % atkPool.length]; atkTag = bk.ten || ''; atkSkillId = bk.id || ''; const ls = (bk.lines && bk.lines.length) ? bk.lines : LV_MOVES; mv = ls[(s >>> 16) % ls.length]; }
     else mv = LV_MOVES[(s >>> 16) % LV_MOVES.length];
     const df = LV_DEFEND[(s >>> 4) % LV_DEFEND.length];
-    const defTag = defPool.length ? (defPool[(s >>> 12) % defPool.length].ten || '') : '';   // người thủ vận bí kíp chống đỡ
+    let defTag = '', defSkillId = '';
+    if (defPool.length) { const bkd = defPool[(s >>> 12) % defPool.length]; defTag = bkd.ten || ''; defSkillId = bkd.id || ''; }   // người thủ vận bí kíp chống đỡ
     const atkPhrase = atkTag ? `${atk} thi triển 〈${atkTag}〉, ${mv}` : `${atk} ${mv}`;
     const defPhrase = defTag ? `${def} vận 〈${defTag}〉 ${df}` : `${def} ${df}`;
     let line = `Hiệp ${r + 1}: ${atkPhrase}; ${defPhrase}.`;
@@ -67,7 +68,7 @@ export function luanVoCycle(a, b, seed) {
     if (last) line = atkTag
       ? `Hiệp ${r + 1}: ${atk} dốc toàn lực thi triển 〈${atkTag}〉 định thắng bại — ${def}${defTag ? ` dẫu vận 〈${defTag}〉 vẫn` : ''} gục xuống nhận thua.`
       : `Hiệp ${r + 1}: ${atk} dốc toàn lực một chiêu định thắng bại — ${def} gục xuống nhận thua.`;
-    log.push({ aHp, bHp, line });
+    log.push({ aHp, bHp, line, atkIsA: aWin, atkSkillId, defSkillId });
     if (aHp <= 0 || bHp <= 0) break;
   }
   return Object.assign({}, base, { marginLabel: luanVoMarginLabel(base.margin), rounds: log, aName: a.name || '', bName: b.name || '' });
