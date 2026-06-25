@@ -4799,25 +4799,65 @@
           <!-- MODAL HỢP NHẤT BÍ KÍP (gộp K bí kíp cùng bậc -> 1 bí kíp bậc kế) -->
           <template x-if="g.bkMergeOpen">
             <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeBkMerge()">
-              <div class="panel rounded-2xl w-[460px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-fuchsia-500/35" @click.stop>
+              <div class="panel rounded-2xl w-[480px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-fuchsia-500/35" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(217,70,239,.10),transparent)">
                   <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-md flex items-center justify-center fserif text-[14px] text-fuchsia-200 border border-fuchsia-400/40 bg-fuchsia-500/10">合</span><div class="text-[17px] fserif leading-none text-fuchsia-100">Hợp Nhất Bí Kíp</div></div>
                   <button @click="g.closeBkMerge()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                 </div>
-                <div class="p-4 overflow-y-auto space-y-2.5">
-                  <template x-for="m in g.tmBkMergeRows" :key="m.tier">
-                    <div class="rounded-lg border p-3 bg-ink3/40" :style="'border-color:'+m.tierColor+'33'">
-                      <div class="flex items-center gap-2.5">
-                        <span class="text-[11px] px-2 py-1 rounded font-bold fserif shrink-0" :style="'color:'+m.tierColor+';border:1px solid '+m.tierColor+'66;background:'+m.tierColor+'18'" x-text="m.tierName"></span>
-                        <span class="text-[12px] fserif" :class="m.have>=m.need?'text-slate-300':'text-slate-500'">×<b x-text="m.need"></b></span>
-                        <span class="text-slate-500 text-lg leading-none">→</span>
-                        <span class="text-[11px] px-2 py-1 rounded font-bold fserif shrink-0" :style="'color:'+m.nextColor+';border:1px solid '+m.nextColor+'66;background:'+m.nextColor+'18'" x-text="m.nextName"></span>
-                        <span class="text-[10.5px] text-slate-500 ml-auto">Đang có <b :class="m.have>=m.need?'text-emerald-300':'text-slate-400'" x-text="m.have"></b></span>
+                <div class="p-4 overflow-y-auto">
+                  <!-- tab bậc -->
+                  <div class="flex gap-1.5 mb-3">
+                    <template x-for="tr in g.bkMergeTiers" :key="tr.tier">
+                      <button @click="g.setBkMergeTier(tr.tier)" class="flex-1 py-1.5 rounded-lg text-[11.5px] font-bold fserif border transition" :style="g.bkMergeTier===tr.tier ? ('color:'+tr.tierColor+';border-color:'+tr.tierColor+'88;background:'+tr.tierColor+'1a') : 'color:#94a3b8;border-color:#334155'" x-text="tr.tierName+' → '+tr.nextName"></button>
+                    </template>
+                  </div>
+                  <!-- lò hợp nhất: ô chọn + mũi tên + ô kết quả -->
+                  <div class="rounded-xl border border-fuchsia-500/25 bg-fuchsia-500/[.05] p-3 mb-3">
+                    <div class="flex items-center justify-center gap-2.5">
+                      <div class="flex gap-1.5">
+                        <template x-for="i in g.bkMergeNeed" :key="i">
+                          <div class="w-[52px] h-[52px] rounded-lg border-2 flex items-center justify-center overflow-hidden relative" :class="g.bkMergeTray[i-1] ? '' : 'border-dashed border-slate-700 bg-ink3/40'" :style="g.bkMergeTray[i-1] ? ('border-color:'+g.bkMergeTray[i-1].tierColor+'aa') : ''">
+                            <template x-if="g.bkMergeTray[i-1]">
+                              <div @click="g.bkMergePickRemove(i-1)" class="absolute inset-0 cursor-pointer group fserif flex items-center justify-center text-[16px]" :style="'color:'+g.bkMergeTray[i-1].heColor">
+                                <span x-text="g.bkMergeTray[i-1].heHan"></span>
+                                <img :src="'images/tongmon/bikip/'+g.bkMergeTray[i-1].id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                                <span class="absolute inset-0 flex items-center justify-center bg-rose-900/0 group-hover:bg-rose-900/55 text-transparent group-hover:text-rose-100 text-[16px] transition">✕</span>
+                              </div>
+                            </template>
+                            <template x-if="!g.bkMergeTray[i-1]"><span class="text-slate-700 text-lg">+</span></template>
+                          </div>
+                        </template>
                       </div>
-                      <button @click="g.tmMergeBiKip(m.tier)" :disabled="!m.canMerge" class="w-full mt-2.5 py-1.5 rounded-lg text-[12px] font-bold fserif transition" :class="m.canMerge?'bg-fuchsia-600/85 hover:bg-fuchsia-600 text-white':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="m.canMerge?('Hợp Nhất ('+m.need+' '+m.tierName+' → 1 '+m.nextName+')'):('Thiếu '+(m.need-m.have)+' bí kíp '+m.tierName)"></button>
+                      <span class="text-fuchsia-300 text-2xl leading-none">→</span>
+                      <div class="w-[56px] h-[56px] rounded-lg border-2 flex items-center justify-center overflow-hidden relative shrink-0" :style="'border-color:'+g.bkMergeCur.nextColor+'99'">
+                        <template x-if="g.bkMergeResult">
+                          <div class="absolute inset-0 fserif flex items-center justify-center text-[18px]" :style="'color:'+g.bkMergeResult.heColor">
+                            <span x-text="g.bkMergeResult.heHan"></span>
+                            <img :src="'images/tongmon/bikip/'+g.bkMergeResult.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                          </div>
+                        </template>
+                        <template x-if="!g.bkMergeResult"><span class="fserif text-2xl" :style="'color:'+g.bkMergeCur.nextColor+'99'">?</span></template>
+                      </div>
                     </div>
-                  </template>
-                  <div class="text-[10.5px] text-slate-600 italic text-center pt-1">Gộp bí kíp cùng bậc (bản dư/trùng) thành 1 bí kíp NGẪU NHIÊN bậc kế. Bậc Tuyệt là cao nhất. Side-only.</div>
+                    <template x-if="g.bkMergeResult"><div class="text-center mt-2 text-[11.5px] fserif" :style="'color:'+g.bkMergeResult.tierColor">✦ Lĩnh hội 「<span x-text="g.bkMergeResult.ten"></span>」 (<span x-text="g.bkMergeResult.tierName"></span>)!</div></template>
+                    <button @click="g.tmMergeBiKipPick()" :disabled="!g.bkMergeFull" class="w-full mt-2.5 py-2 rounded-lg text-[12.5px] font-bold fserif transition" :class="g.bkMergeFull?'bg-fuchsia-600/90 hover:bg-fuchsia-600 text-white':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="g.bkMergeFull ? ('Hợp Nhất → 1 '+g.bkMergeCur.nextName) : ('Chọn đủ cuốn ghép · '+g.bkMergeSel.length+'/'+g.bkMergeNeed)"></button>
+                  </div>
+                  <!-- kho bí kíp bậc nguồn -->
+                  <div class="lbl mb-1.5">Kho Bí Kíp bậc <span :style="'color:'+g.bkMergeCur.tierColor" x-text="g.bkMergeCur.tierName"></span> <span class="text-slate-600 normal-case tracking-normal">· bấm để chọn ghép</span></div>
+                  <template x-if="!g.bkMergePool.length"><div class="text-[11px] text-slate-600 italic py-4 text-center">Chưa có bí kíp bậc này — mua ở Đấu Giá / nhặt Bí Cảnh / đệ tử lĩnh ngộ.</div></template>
+                  <div class="flex flex-wrap gap-2">
+                    <template x-for="bk in g.bkMergePool" :key="bk.id">
+                      <div class="w-[60px]">
+                        <div @click="g.bkMergePickAdd(bk.id)" class="relative w-[60px] h-[60px] rounded-lg overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[17px] transition" :class="bk.remain>0 ? 'cursor-pointer hover:brightness-125' : 'opacity-30 grayscale cursor-not-allowed'" :style="'border-color:'+bk.tierColor+'88;color:'+bk.heColor">
+                          <span x-text="bk.heHan"></span>
+                          <img :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                          <span class="absolute bottom-0 right-0 text-[8.5px] leading-none px-1 py-0.5 rounded-tl-md font-bold bg-black/70 text-slate-200">×<span x-text="bk.remain"></span></span>
+                        </div>
+                        <div class="text-[8.5px] fserif text-center mt-0.5 leading-tight truncate w-[60px]" :style="'color:'+bk.tierColor" x-text="bk.ten"></div>
+                      </div>
+                    </template>
+                  </div>
+                  <div class="text-[10.5px] text-slate-600 italic text-center pt-3">Tự chọn <b x-text="g.bkMergeNeed"></b> bí kíp cùng bậc (trùng hay khác cuốn đều được) → 1 bí kíp NGẪU NHIÊN bậc kế. Bậc Tuyệt là cao nhất. Side-only.</div>
                 </div>
               </div>
             </div>

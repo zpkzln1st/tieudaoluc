@@ -771,6 +771,27 @@ export function mergeBiKip(state, tier) {
   chronicle(t, `Hợp nhất ${need} bí kíp ${(BI_KIP_TIER[tier] || {}).name} — lĩnh hội 「${got.ten}」 (${(BI_KIP_TIER[nextTier] || {}).name})!`);
   return { ok: true, got: { id: got.id, ten: got.ten, tier: nextTier }, msg: `Hợp nhất thành 「${got.ten}」` };
 }
+// Hợp Nhất THỦ CÔNG: tiêu ĐÚNG các bí kíp người chơi chọn (ids, có thể trùng id). Tất cả phải CÙNG bậc + đủ số (BK_MERGE_N) -> 1 bí kíp ngẫu nhiên bậc kế.
+export function mergeBiKipPick(state, ids) {
+  const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };
+  if (!Array.isArray(ids) || !ids.length) return { ok: false, msg: 'Chọn bí kíp để hợp nhất.' };
+  const first = BI_KIP_BY_ID[ids[0]]; if (!first) return { ok: false, msg: 'Bí kíp không hợp lệ.' };
+  const tier = first.tier;
+  if (!ids.every((id) => (BI_KIP_BY_ID[id] || {}).tier === tier)) return { ok: false, msg: 'Phải cùng một bậc.' };
+  const ti = BI_KIP_TIER_ORDER.indexOf(tier), nextTier = BI_KIP_TIER_ORDER[ti + 1];
+  if (!nextTier) return { ok: false, msg: 'Bậc Tuyệt không thể hợp nhất lên.' };
+  const need = BK_MERGE_N[tier] || 3;
+  if (ids.length !== need) return { ok: false, msg: `Cần đúng ${need} bí kíp bậc ${(BI_KIP_TIER[tier] || {}).name}.` };
+  const want = {}; ids.forEach((id) => { want[id] = (want[id] || 0) + 1; });
+  const bag = t.biKipBag || (t.biKipBag = {});
+  for (const id in want) if ((bag[id] || 0) < want[id]) return { ok: false, msg: 'Kho không đủ bí kíp đã chọn.' };
+  for (const id in want) { bag[id] -= want[id]; if (bag[id] <= 0) delete bag[id]; }
+  const pool = BI_KIP.filter((b) => b.tier === nextTier);
+  const got = pool[Math.floor(Math.random() * pool.length)];
+  biKipBagAdd(state, got.id, 1);
+  chronicle(t, `Hợp nhất ${need} bí kíp ${(BI_KIP_TIER[tier] || {}).name} — lĩnh hội 「${got.ten}」 (${(BI_KIP_TIER[nextTier] || {}).name})!`);
+  return { ok: true, got: { id: got.id, ten: got.ten, tier: nextTier }, msg: `Hợp nhất thành 「${got.ten}」` };
+}
 export function buyBkLot(state, biKipId, nowMs) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };
   bkAuctionRefresh(state, nowMs);

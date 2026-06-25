@@ -37,10 +37,10 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, bkMergeRows, mergeBiKip, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, bkMergeRows, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME } from './engine/luanvo.js';   // tên nhóm tương khắc loại võ học (Cương/Trường/Nhanh)
-import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_KEYS, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_KEYS, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, BK_MERGE_N, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -655,15 +655,26 @@ const gameStore = {
   tangThuOpen: false, biKipPick: null,
   openTangThu() { this.biKipPick = null; this.tangThuOpen = true; },
   closeTangThu() { this.tangThuOpen = false; },
-  // Hợp Nhất Bí Kíp: gộp K bí kíp cùng bậc -> 1 bí kíp bậc kế (side-only)
-  bkMergeOpen: false,
-  openBkMerge() { this.bkMergeOpen = true; },
-  closeBkMerge() { this.bkMergeOpen = false; },
-  get tmBkMergeRows() {
+  // Hợp Nhất Bí Kíp: người chơi TỰ CHỌN cuốn ghép (cùng bậc, đủ số) -> 1 bí kíp ngẫu nhiên bậc kế (side-only)
+  bkMergeOpen: false, bkMergeTier: 'sơ', bkMergeSel: [], bkMergeResult: null,
+  openBkMerge() { this.bkMergeTier = 'sơ'; this.bkMergeSel = []; this.bkMergeResult = null; this.bkMergeOpen = true; },
+  closeBkMerge() { this.bkMergeOpen = false; this.bkMergeSel = []; this.bkMergeResult = null; },
+  get bkMergeTiers() { return ['sơ', 'trung', 'cao'].map((tier) => { const ti = BI_KIP_TIER_ORDER.indexOf(tier), next = BI_KIP_TIER_ORDER[ti + 1]; return { tier, tierName: (BI_KIP_TIER[tier] || {}).name, tierColor: (BI_KIP_TIER[tier] || {}).color, next, nextName: (BI_KIP_TIER[next] || {}).name, nextColor: (BI_KIP_TIER[next] || {}).color, need: BK_MERGE_N[tier] || 3 }; }); },
+  get bkMergeCur() { return this.bkMergeTiers.find((r) => r.tier === this.bkMergeTier) || this.bkMergeTiers[0]; },
+  get bkMergeNeed() { return this.bkMergeCur.need; },
+  setBkMergeTier(tier) { this.bkMergeTier = tier; this.bkMergeSel = []; this.bkMergeResult = null; this._tick++; },
+  get bkMergePool() {
     void this._tick; const t = this.tm; if (!t) return [];
-    return bkMergeRows(t).map((r) => Object.assign({}, r, { tierName: (BI_KIP_TIER[r.tier] || {}).name, tierColor: (BI_KIP_TIER[r.tier] || {}).color, nextName: (BI_KIP_TIER[r.nextTier] || {}).name, nextColor: (BI_KIP_TIER[r.nextTier] || {}).color }));
+    const bag = t.biKipBag || {}; const selCount = {}; this.bkMergeSel.forEach((id) => { selCount[id] = (selCount[id] || 0) + 1; });
+    return Object.keys(bag).filter((id) => bag[id] > 0 && (BI_KIP_BY_ID[id] || {}).tier === this.bkMergeTier)
+      .map((id) => { const v = this.biKipView(id); return v ? Object.assign(v, { have: bag[id], remain: bag[id] - (selCount[id] || 0) }) : null; })
+      .filter(Boolean).sort((a, b) => a.ten.localeCompare(b.ten, 'vi'));
   },
-  tmMergeBiKip(tier) { const r = mergeBiKip(this.state, tier); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Hợp Nhất · ' + r.msg); } else this.showToast(r.msg); },
+  get bkMergeTray() { void this._tick; return this.bkMergeSel.map((id) => this.biKipView(id)).filter(Boolean); },
+  get bkMergeFull() { void this._tick; return this.bkMergeSel.length >= this.bkMergeNeed; },
+  bkMergePickAdd(id) { if (this.bkMergeSel.length >= this.bkMergeNeed) return; const bag = (this.tm && this.tm.biKipBag) || {}; const sel = this.bkMergeSel.filter((x) => x === id).length; if ((bag[id] || 0) - sel < 1) return; this.bkMergeSel.push(id); this.bkMergeResult = null; this._tick++; },
+  bkMergePickRemove(idx) { this.bkMergeSel.splice(idx, 1); this.bkMergeResult = null; this._tick++; },
+  tmMergeBiKipPick() { if (this.bkMergeSel.length !== this.bkMergeNeed) { this.showToast('Chọn đủ ' + this.bkMergeNeed + ' bí kíp.'); return; } const r = mergeBiKipPick(this.state, this.bkMergeSel.slice()); if (r.ok) { this.bkMergeSel = []; this.bkMergeResult = this.biKipView(r.got.id); this.tmSave(); this._tick++; this.showToast('Hợp Nhất · ' + r.msg); } else this.showToast(r.msg); },
   _STATN: { atk: 'Công Kích', def: 'Phòng Ngự', spd: 'Tốc Độ', maxHP: 'Sinh Lực', crit: 'Bạo Kích', dodge: 'Né Tránh', critDmg: 'Bạo Sát' },
   biKipView(id) {
     const bk = BI_KIP_BY_ID[id]; if (!bk) return null;
