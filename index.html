@@ -6665,8 +6665,8 @@
               <div class="lbl mb-1.5">Đang Hoạt Động <span class="normal-case tracking-normal text-slate-600">· tạm thời</span></div>
               <div class="space-y-2">
                 <template x-for="(e,i) in fx.active" :key="'a'+i">
-                  <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2.5" :style="'--dhc:'+e.color">
-                    <div class="flex items-center gap-1.5 mb-1">
+                  <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2" :style="'--dhc:'+e.color">
+                    <div class="flex items-center gap-1.5 mb-0.5">
                       <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,transparent,'+e.color+'b3)'"></span>
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif text-[15px]" :style="'color:'+e.color+';background:'+e.color+'18;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
@@ -6674,7 +6674,7 @@
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="flex-1 h-px" :style="'background:linear-gradient(270deg,transparent,'+e.color+'b3)'"></span>
                     </div>
-                    <div class="text-[10px] text-slate-500 text-center mb-1.5" x-text="e.src"></div>
+                    <div class="text-[10px] text-slate-500/90 text-center leading-tight mb-1" x-text="e.src"></div>
                     <div class="flex flex-wrap justify-center gap-1.5"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25" x-text="ln"></span></template></div>
                   </div>
                 </template>
@@ -6686,8 +6686,8 @@
               <div class="lbl mb-1.5">Thường Trực <span class="normal-case tracking-normal text-slate-600">· luôn áp</span></div>
               <div class="space-y-2">
                 <template x-for="(e,i) in fx.passive" :key="'p'+i">
-                  <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2.5" :style="'--dhc:'+e.color">
-                    <div class="flex items-center gap-1.5 mb-1">
+                  <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2" :style="'--dhc:'+e.color">
+                    <div class="flex items-center gap-1.5 mb-0.5">
                       <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,transparent,'+e.color+'b3)'"></span>
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif text-[15px]" :style="'color:'+e.color+';background:'+e.color+'18;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
@@ -6695,7 +6695,7 @@
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="flex-1 h-px" :style="'background:linear-gradient(270deg,transparent,'+e.color+'b3)'"></span>
                     </div>
-                    <div class="text-[10px] text-slate-500 text-center mb-1.5" x-text="e.src"></div>
+                    <div class="text-[10px] text-slate-500/90 text-center leading-tight mb-1" x-text="e.src"></div>
                     <div class="flex flex-wrap justify-center gap-1.5"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25" x-text="ln"></span></template></div>
                   </div>
                 </template>
