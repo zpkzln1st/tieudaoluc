@@ -4894,7 +4894,7 @@
                           <span class="text-[11px] fserif text-center" :class="e.rank<=3?'text-amber-300':(e.isMine?'text-amber-200/80':'text-slate-500')" x-text="'#'+e.rank"></span>
                           <span class="relative w-[34px] h-[34px] rounded-lg overflow-hidden flex items-center justify-center fserif text-[14px] shrink-0" :style="'color:'+e.color+';border:1px solid '+e.color+'55;background:'+e.color+'12'"><span x-text="e.han"></span><template x-if="e.face"><img :src="e.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
                           <div class="min-w-0">
-                            <div class="flex items-center gap-1.5"><span class="fserif text-[12.5px] truncate" :style="'color:'+(e.isMine?e.color:'#cbd5e1')" x-text="e.name"></span><span class="text-[9px] fserif shrink-0" :style="'color:'+e.heColor" x-text="e.heHan"></span><template x-if="e.isMine"><span class="text-[8px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-200 shrink-0">Tông Ta</span></template></div>
+                            <div class="flex items-center gap-1.5"><span class="fserif text-[12.5px] truncate" :style="'color:'+(e.isMine?e.color:'#cbd5e1')" x-text="e.name"></span><span class="text-[9px] fserif shrink-0" :style="'color:'+e.heColor" x-text="e.heHan"></span><template x-if="e.isMine && g.lvhTitleOf(e.uid)"><span class="text-[8px] px-1.5 py-0.5 rounded-full fserif font-bold shrink-0" :style="'color:#0b0f17;background:'+g.lvhTitleOf(e.uid).color" x-text="g.lvhTitleOf(e.uid).name"></span></template><template x-if="e.isMine && !g.lvhTitleOf(e.uid)"><span class="text-[8px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-200 shrink-0">Tông Ta</span></template></div>
                             <div class="text-[9.5px] text-slate-500 truncate" x-text="e.sub + (e.loaiCatName?(' · '+e.loaiCatName):'')"></div>
                           </div>
                           <div class="text-right">
@@ -5374,6 +5374,7 @@
                   <span class="lbl" x-text="d.originLabel"></span>
                   <span class="text-[10px] px-2 py-0.5 rounded-full border" :style="'color:'+g.tmApt(d).color+';border-color:'+g.tmApt(d).color+'66;background:'+g.tmApt(d).color+'14'" x-text="g.tmApt(d).name"></span>
                   <span class="text-[12px]" :style="'color:'+g.tmHe(d).color" x-text="'Ngũ hành '+g.tmHe(d).name+' '+g.tmHe(d).han"></span>
+                  <template x-if="g.lvhTitleOf(d.uid)"><span class="text-[10.5px] px-2 py-0.5 rounded-full fserif font-bold inline-flex items-center gap-1" :style="'color:#0b0f17;background:'+g.lvhTitleOf(d.uid).color"><span class="fserif">魁</span><span x-text="g.lvhTitleOf(d.uid).name"></span></span></template>
                   <button @click="g.closeDisciple()" class="ml-auto text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                 </div>
                 <!-- BODY (1 màn, không cuộn) -->

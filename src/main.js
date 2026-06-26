@@ -58,6 +58,8 @@ let _tmbBots = null, _tmbKey = '';    // cache hàng bot TÔNG MÔN BẢNG theo 
 let _lvhBotsCache = null, _lvhBotsKey = '';   // cache đại biểu bot Luận Võ Hội (seed:createdAt:kỳ)
 const LVH_PERIOD = 24 * 3600 * 1000;          // kỳ Luận Võ Hội = 24h (vòng tròn nội bộ re-roll mỗi kỳ). DRAFT.
 const LVH_BOT_N = 60;                          // số đại biểu bot lên bảng (DRAFT)
+// Danh hiệu top-3 đệ tử (theo điểm vòng tròn nội bộ mỗi kỳ) — GIỮ khi còn top, +Uy nhẹ. DRAFT.
+const LVH_TITLES = [{ name: 'Võ Khôi', color: '#f5b942', uy: 50 }, { name: 'Á Khôi', color: '#cbd5e1', uy: 30 }, { name: 'Thám Hoa', color: '#d97706', uy: 15 }];
 // Pool tên tông môn bot (prefix × suffix -> hàng trăm tổ hợp, deterministic theo seed bot)
 const TMB_PREFIX = ['Thanh Vân', 'Huyết Đao', 'Thiên Kiếm', 'Côn Lôn', 'Tiêu Dao', 'Vô Cực', 'Lạc Hà', 'Bạch Vân', 'Huyền Thiên', 'Cửu U', 'Tử Hà', 'Linh Tê', 'Phá Quân', 'Vạn Kiếm', 'Hàn Băng', 'Lưu Vân', 'Diệt Tuyệt', 'Thái Hư', 'Ngạo Thiên', 'Cô Nguyệt'];
 const TMB_SUFFIX = ['Cốc', 'Môn', 'Phái', 'Tông', 'Sơn Trang', 'Các', 'Đường', 'Lĩnh', 'Cung', 'Đảo'];
@@ -717,6 +719,10 @@ const gameStore = {
       fd: { uid: e.uid, name: e.name, color: e.color, face: e.face, han: e.han, heColor: e.heColor, heName: e.heName, heHan: e.heHan, loaiCatName: e.loaiCatName, realmName: e.sub, chienLuc: e.chienLuc, atk: st.atk, def: st.def, maxHP: st.maxHP, spd: st.spd, crit: st.crit, dodge: st.dodge, w: e.w, l: e.l, skills },
     };
   },
+  // Danh hiệu top-3 đệ tử tông ta theo điểm vòng tròn (held; đổi mỗi kỳ) -> {uid: {name,color,uy}}
+  get lvhTitles() { void this._tick; const mine = this.lvhBoard.mine; if (mine.length < 2) return {}; const ranked = [...mine].sort((a, b) => b.pts - a.pts || b.chienLuc - a.chienLuc); const out = {}; LVH_TITLES.forEach((tt, i) => { if (ranked[i]) out[ranked[i].uid] = tt; }); return out; },
+  get lvhTitleUyBonus() { void this._tick; return Object.values(this.lvhTitles).reduce((s, t) => s + (t.uy || 0), 0); },
+  lvhTitleOf(uid) { return this.lvhTitles[uid] || null; },
   lvhTiThi(bKey) {
     if (!this.lvhPick) { this.showToast('Chọn đấu sĩ trước.'); return; }
     const board = this.lvhBoard.entries;
@@ -1921,7 +1927,7 @@ const gameStore = {
       _tmbKey = key;
     }
     const tm = this.tm;
-    const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Vô Danh'), uy: uyDanhOf(tm), isPlayer: true }]);
+    const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Vô Danh'), uy: uyDanhOf(tm) + this.lvhTitleUyBonus, isPlayer: true }]);
     rows.sort((a, b) => b.uy - a.uy || (a.id < b.id ? -1 : 1));
     rows.forEach((r, i) => { r.rank = i + 1; });
     return rows;
