@@ -5241,18 +5241,18 @@
           <!-- CINEMATIC ĐỘT PHÁ CẢNH GIỚI (đột phá thường — chúc mừng phá cảnh; ảnh theo cảnh giới đích, glow tĩnh) -->
           <template x-if="g.tmBreakCine">
             <div class="fixed inset-0 z-[115] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="g.closeBreakCine()">
-              <div @click.stop class="relative w-[560px] max-w-full rounded-2xl overflow-hidden border shadow-2xl" :style="'border-color:'+g.tmBreakCine.color+'66; box-shadow:0 0 0 1px '+g.tmBreakCine.color+'33, 0 0 40px -8px '+g.tmBreakCine.color+'66'">
-                <div class="relative h-[280px] sm:h-[330px]">
+              <div @click.stop class="relative w-[960px] max-w-full max-h-[94dvh] rounded-2xl overflow-hidden border shadow-2xl" :style="'border-color:'+g.tmBreakCine.color+'66; box-shadow:0 0 0 1px '+g.tmBreakCine.color+'33, 0 0 60px -10px '+g.tmBreakCine.color+'77'">
+                <div class="relative h-[300px] sm:h-[540px]">
                   <img :src="g.tmBreakCineImg(g.tmBreakCine.idx)" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'">
-                  <div class="absolute inset-0" style="background:radial-gradient(ellipse at 50% 28%, transparent 35%, rgba(7,11,20,.5) 78%), linear-gradient(180deg, rgba(7,11,20,.18), rgba(7,11,20,.96))"></div>
-                  <div class="absolute inset-x-0 bottom-0 p-5 text-center">
-                    <div class="text-[10.5px] tracking-[0.34em] uppercase mb-2" :style="'color:'+g.tmBreakCine.color+'cc'">Đột Phá Cảnh Giới</div>
-                    <div class="gold-text fserif text-[32px] sm:text-[38px] leading-none mb-1.5" style="font-family:'Lora',serif; font-weight:700; filter:drop-shadow(0 2px 7px rgba(0,0,0,.92))" x-text="g.tmBreakCine.toName"></div>
-                    <div class="text-[13px] text-slate-200" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.95))"><b :style="'color:'+g.tmBreakCine.color" x-text="g.tmBreakCine.who"></b> phá cảnh, đạo hạnh thêm tinh tiến</div>
+                  <div class="absolute inset-0" style="background:radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(7,11,20,.5) 80%), linear-gradient(180deg, rgba(7,11,20,.12), rgba(7,11,20,.96))"></div>
+                  <div class="absolute inset-x-0 bottom-0 p-6 sm:p-8 text-center">
+                    <div class="text-[11px] sm:text-[12.5px] tracking-[0.34em] uppercase mb-2.5" :style="'color:'+g.tmBreakCine.color+'cc'">Đột Phá Cảnh Giới</div>
+                    <div class="gold-text fserif text-[36px] sm:text-[52px] leading-none mb-2.5" style="font-family:'Lora',serif; font-weight:700; filter:drop-shadow(0 3px 10px rgba(0,0,0,.92))" x-text="g.tmBreakCine.toName"></div>
+                    <div class="text-[13px] sm:text-[15px] text-slate-200" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.95))"><b :style="'color:'+g.tmBreakCine.color" x-text="g.tmBreakCine.who"></b> phá cảnh, đạo hạnh thêm tinh tiến</div>
                   </div>
                 </div>
-                <div class="p-3.5 flex justify-center" style="background:#0f1521">
-                  <button @click="g.closeBreakCine()" class="px-10 py-1.5 rounded-lg text-[12.5px] font-bold fserif text-ink hover:brightness-110 transition" :style="'background:'+g.tmBreakCine.color">Khép Lại</button>
+                <div class="p-4 flex justify-center" style="background:#0f1521">
+                  <button @click="g.closeBreakCine()" class="px-12 py-2 rounded-lg text-[13px] sm:text-[14px] font-bold fserif text-ink hover:brightness-110 transition" :style="'background:'+g.tmBreakCine.color">Khép Lại</button>
                 </div>
               </div>
             </div>
