@@ -5895,9 +5895,32 @@
         .dtm-root .shake{ animation:dtmShk .26s; } @keyframes dtmShk{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 85%{transform:translateX(-3px)} }
         .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
         @keyframes dtmFlt{ 0%{opacity:0;transform:translateY(8px) scale(.8)} 25%{opacity:1} 100%{opacity:0;transform:translateY(-30px) scale(1.15)} }
+        /* ART overlay (onerror tự ẩn -> lộ Hán) */
+        .dtm-root .dtm-art{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .dtm-root .card-art > .card-han{ position:relative; z-index:0; }
+        .dtm-root .dtm-sigil{ position:absolute; bottom:3px; right:3px; width:17px; height:17px; object-fit:contain; z-index:2; filter:drop-shadow(0 1px 2px #000); }
+        .dtm-root .dtm-portwrap{ position:relative; overflow:hidden; }
+        .dtm-root .dtm-portwrap > span{ position:relative; z-index:0; }
+        .dtm-root .dtm-port{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .dtm-root .dtm-sti{ width:12px; height:12px; object-fit:contain; display:inline-block; vertical-align:-1px; margin-right:2px; }
+        .dtm-root .dtm-burst{ position:absolute; inset:-22%; width:144%; height:144%; object-fit:contain; z-index:4; pointer-events:none; mix-blend-mode:screen; animation:dtmBurst .62s ease-out forwards; }
+        @keyframes dtmBurst{ 0%{opacity:0;transform:scale(.5)} 25%{opacity:1} 100%{opacity:0;transform:scale(1.25)} }
+        .dtm-root .dtm-moment{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; mix-blend-mode:screen; z-index:1; opacity:.9; }
+        /* Nền cảnh + sương mộng (CSS, không dùng ảnh đen) */
+        .dtm-root{ position:relative; isolation:isolate; }
+        .dtm-root .dtm-bg{ position:absolute; inset:0; z-index:-2; background-size:cover; background-position:center; opacity:.16; filter:saturate(.9); border-radius:16px; pointer-events:none; transition:opacity .5s; }
+        .dtm-root .dtm-bg::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(7,11,20,.5), rgba(7,11,20,.86)); }
+        .dtm-root .dtm-fog{ position:absolute; inset:0; z-index:-1; pointer-events:none; overflow:hidden; border-radius:16px; }
+        .dtm-root .dtm-fog::before, .dtm-root .dtm-fog::after{ content:''; position:absolute; width:170%; height:170%; left:-35%; top:-35%; border-radius:45%;
+          background:radial-gradient(ellipse 42% 30% at 30% 38%, rgba(167,139,250,.12), transparent 62%), radial-gradient(ellipse 36% 24% at 72% 62%, rgba(56,189,248,.09), transparent 62%); animation:dtmFog 40s linear infinite; }
+        .dtm-root .dtm-fog::after{ animation-duration:58s; animation-direction:reverse; opacity:.65; }
+        @keyframes dtmFog{ 0%{transform:translate(0,0) rotate(0)} 50%{transform:translate(4%,-3%) rotate(180deg)} 100%{transform:translate(0,0) rotate(360deg)} }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-fog::before,.dtm-root .dtm-fog::after{ animation:none } }
       </style>
       <template x-if="$store.game.view==='dangTienMong'">
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
+          <div class="dtm-bg" :style="'background-image:url('+bgImg()+')'"></div>
+          <div class="dtm-fog"></div>
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2">
               <span class="w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px]" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢</span>
@@ -5941,7 +5964,7 @@
                 <template x-for="h in HEROES" :key="h.id">
                   <div class="panel rounded-2xl p-4 border hover:border-cyan/50 transition cursor-pointer" :style="'border-color:'+heColor(h.he)+'44'" @click="startRun(h)">
                     <div class="flex items-center gap-3 mb-2.5">
-                      <span class="w-16 h-20 rounded-lg flex items-center justify-center fserif text-4xl shrink-0" :style="'color:'+heColor(h.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(h.he)+'33,transparent 70%);border:1px solid '+heColor(h.he)+'55'" x-text="h.han"></span>
+                      <span class="dtm-portwrap w-16 h-20 rounded-lg flex items-center justify-center fserif text-4xl shrink-0" :style="'color:'+heColor(h.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(h.he)+'33,transparent 70%);border:1px solid '+heColor(h.he)+'55'"><span x-text="h.han"></span><img :src="heroImg(h.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
                       <div>
                         <div class="fserif text-lg" :style="'color:'+heColor(h.he)" x-text="h.name"></div>
                         <div class="text-[11px] text-slate-500" x-text="'Tâm Pháp '+heName(h.he)+' · HP '+h.hp+' · Khí '+h.khi"></div>
@@ -5964,13 +5987,13 @@
           <template x-if="phase==='map'">
             <div>
               <div class="panel rounded-xl p-2.5 mb-3 flex items-center gap-3 flex-wrap">
-                <span class="w-9 h-11 rounded-md flex items-center justify-center fserif text-2xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'" x-text="run.hero.han"></span>
+                <span class="dtm-portwrap w-9 h-11 rounded-md flex items-center justify-center fserif text-2xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'"><span x-text="run.hero.han"></span><img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
                 <div class="min-w-[150px] flex-1">
                   <div class="flex items-center justify-between text-[11px]"><span class="fserif" :style="'color:'+heColor(run.hero.he)" x-text="run.hero.name"></span><span class="text-slate-400" x-text="run.hp+' / '+run.maxHp+' HP'"></span></div>
                   <div class="h-3 rounded-full bg-ink3 overflow-hidden border border-slate-700/60 mt-0.5"><div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*run.hp/run.maxHp)+'%'"></div></div>
                 </div>
                 <div class="flex gap-1.5 items-center">
-                  <template x-for="r in run.relics" :key="r.id"><span class="relic" :title="r.name+' — '+r.desc" x-text="r.han"></span></template>
+                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" :title="r.name+' — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
                   <template x-if="!run.relics.length"><span class="text-[10px] text-slate-600 italic">chưa có di vật</span></template>
                 </div>
                 <button @click="openDeck=true" class="text-[11px] px-2.5 py-1 rounded bg-ink3 border border-slate-600 text-slate-300 hover:border-cyan" x-text="'Bộ Bài ('+run.deck.length+')'"></button>
@@ -6003,7 +6026,10 @@
                        @click="e.hp>0&&(targetIdx=ei)">
                     <div x-show="ei===tgtIdx()&&e.hp>0" class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] fserif text-gold px-1.5 rounded bg-ink2 border border-gold/40 whitespace-nowrap">⌖ Mục tiêu</div>
                     <div class="flex items-center gap-2.5">
-                      <div class="w-14 h-16 rounded-lg shrink-0 flex items-center justify-center fserif text-3xl relative" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'" x-text="e.han">
+                      <div class="dtm-portwrap w-14 h-16 rounded-lg shrink-0 flex items-center justify-center fserif text-3xl" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'">
+                        <span x-text="e.han"></span>
+                        <img :src="enemyImg(e)" class="dtm-port" alt="" onerror="this.style.display='none'">
+                        <template x-if="e.burst"><img :src="vfxImg(e.burst)" class="dtm-burst" alt=""></template>
                         <template x-for="f in e.floats" :key="f.id"><span class="dmgfloat text-rose-300 text-lg" style="top:24%;left:28%" x-text="f.v"></span></template>
                       </div>
                       <div class="min-w-0 flex-1">
@@ -6017,9 +6043,9 @@
                         </div>
                         <div class="flex items-center gap-1 mt-1 flex-wrap">
                           <span class="pill fserif" :style="intentStyle(e)" x-text="e.hp>0?intentText(e):'Đã bại'"></span>
-                          <span x-show="e.block>0" class="pill text-sky-300 border-sky-600/40 bg-sky-900/40" x-text="'Hộ '+e.block"></span>
-                          <span x-show="e.poison>0" class="pill text-emerald-300 border-emerald-600/40 bg-emerald-900/40" x-text="'Độc '+e.poison"></span>
-                          <span x-show="e.weak>0" class="pill text-violet-300 border-violet-600/40 bg-violet-900/30" x-text="'Suy Yếu '+e.weak"></span>
+                          <span x-show="e.block>0" class="pill text-sky-300 border-sky-600/40 bg-sky-900/40"><img :src="statusIcon('hothe')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Hộ '+e.block"></span></span>
+                          <span x-show="e.poison>0" class="pill text-emerald-300 border-emerald-600/40 bg-emerald-900/40"><img :src="statusIcon('doc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Độc '+e.poison"></span></span>
+                          <span x-show="e.weak>0" class="pill text-violet-300 border-violet-600/40 bg-violet-900/30"><img :src="statusIcon('suyyeu')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Suy Yếu '+e.weak"></span></span>
                         </div>
                       </div>
                     </div>
@@ -6029,7 +6055,9 @@
 
               <div class="panel rounded-2xl p-3 mb-2 border border-jade/30" :class="playerHit?'shake':''">
                 <div class="flex items-center gap-3">
-                  <span class="w-11 h-14 rounded-md flex items-center justify-center fserif text-2xl shrink-0 relative" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'" x-text="run.hero.han">
+                  <span class="dtm-portwrap w-11 h-14 rounded-md flex items-center justify-center fserif text-2xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'">
+                    <span x-text="run.hero.han"></span>
+                    <img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
                     <template x-for="f in playerFloats" :key="f.id"><span class="dmgfloat text-rose-400 text-xl" style="top:20%;left:18%" x-text="f.v"></span></template>
                   </span>
                   <div class="flex-1">
@@ -6041,9 +6069,9 @@
                       <div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*Math.max(0,run.hp)/run.maxHp)+'%'"></div>
                     </div>
                     <div class="flex items-center gap-1.5 mt-1.5 flex-wrap min-h-[18px]">
-                      <span x-show="player.block>0" class="pill text-sky-200 border-sky-500/50 bg-sky-900/40" x-text="'⛨ Hộ Thể '+player.block"></span>
-                      <span x-show="player.str>0" class="pill text-amber-300 border-amber-500/50 bg-amber-500/10" x-text="'Lực +'+player.str"></span>
-                      <span x-show="player.dodge" class="pill text-cyan border-cyan/40 bg-cyan/10">Né đòn kế</span>
+                      <span x-show="player.block>0" class="pill text-sky-200 border-sky-500/50 bg-sky-900/40"><img :src="statusIcon('hothe')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Hộ Thể '+player.block"></span></span>
+                      <span x-show="player.str>0" class="pill text-amber-300 border-amber-500/50 bg-amber-500/10"><img :src="statusIcon('luc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Lực +'+player.str"></span></span>
+                      <span x-show="player.dodge" class="pill text-cyan border-cyan/40 bg-cyan/10"><img :src="statusIcon('ne')" class="dtm-sti" alt="" onerror="this.style.display='none'">Né đòn kế</span>
                       <span x-show="player.block<=0&&player.str<=0&&!player.dodge" class="text-[10px] text-slate-600 italic">— chưa có trạng thái —</span>
                     </div>
                   </div>
@@ -6054,7 +6082,7 @@
                   <button @click="endTurn()" class="px-4 py-2 rounded-lg bg-ink3 border border-slate-600 hover:border-gold text-slate-200 text-[12.5px] font-bold transition shrink-0">Kết Lượt ⟳</button>
                 </div>
                 <div class="flex gap-1 mt-2" x-show="run.relics.length">
-                  <template x-for="r in run.relics" :key="r.id"><span class="relic" style="width:26px;height:26px;font-size:13px" :title="r.name+' — '+r.desc" x-text="r.han"></span></template>
+                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" style="width:26px;height:26px;font-size:13px" :title="r.name+' — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
                 </div>
               </div>
 
@@ -6062,7 +6090,7 @@
                 <template x-for="(c,i) in hand" :key="c.uid">
                   <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
-                    <div class="card-art"><span class="card-han" x-text="c.han"></span></div>
+                    <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                     <div class="ctitle" x-text="c.name"></div>
                     <div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div>
                     <div class="cdesc" x-text="c.desc"></div>
@@ -6084,7 +6112,7 @@
                 <template x-for="(c,i) in rewardCards" :key="i">
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
                     <div class="cost" x-text="c.cost"></div><div class="rar"></div>
-                    <div class="card-art"><span class="card-han" x-text="c.han"></span></div>
+                    <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                     <div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div>
                   </div>
                 </template>
@@ -6115,7 +6143,7 @@
                   <div class="panel rounded-xl p-3 text-center border" :style="'border-color:'+heColor(s.card.he)+'44'">
                     <div class="flex justify-center mb-2"><div class="card" style="width:104px;height:150px;cursor:default" :style="'--c:'+heColor(s.card.he)+';--r:'+rarColor(s.card.rar)">
                       <div class="cost" x-text="s.card.cost"></div><div class="rar"></div>
-                      <div class="card-art"><span class="card-han" style="font-size:34px" x-text="s.card.han"></span></div>
+                      <div class="card-art"><span class="card-han" style="font-size:34px" x-text="s.card.han"></span><img :src="cardImg(s.card.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(s.card.he)"><img :src="sigilImg(s.card.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                       <div class="ctitle" x-text="s.card.name"></div><div class="ctype" x-text="typeLabel(s.card)"></div><div class="cdesc" x-text="s.card.desc"></div>
                     </div></div>
                     <button @click="buyShop(i)" :disabled="mongNgan<s.price||s.sold" class="px-4 py-1 rounded-lg text-[12px] font-bold transition" :class="(mongNgan>=s.price&&!s.sold)?'bg-gold/80 text-ink hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'" x-text="s.sold?'Đã mua':(s.price+' Mộng Ngân')"></button>
@@ -6143,19 +6171,25 @@
 
           <!-- THẮNG / THUA -->
           <template x-if="phase==='win'">
-            <div class="panel rounded-2xl border border-gold/50 p-10 text-center">
-              <div class="fserif text-4xl gold-text mb-2" style="filter:drop-shadow(0 0 18px #f5b94244)">Đăng Tiên!</div>
-              <p class="text-slate-300 mb-1">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
-              <p class="text-[12px] text-slate-500 mb-6" x-text="'Thu hoạch: '+mongNgan+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
-              <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+            <div class="panel rounded-2xl border border-gold/50 p-10 text-center relative overflow-hidden">
+              <img src="images/dtm/vfx/dang_tien_burst.webp" class="dtm-moment" style="z-index:0;opacity:.7" alt="" onerror="this.remove()">
+              <div class="relative" style="z-index:10">
+                <div class="fserif text-4xl gold-text mb-2" style="filter:drop-shadow(0 0 18px #f5b94244)">Đăng Tiên!</div>
+                <p class="text-slate-300 mb-1">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
+                <p class="text-[12px] text-slate-500 mb-6" x-text="'Thu hoạch: '+mongNgan+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
+                <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+              </div>
             </div>
           </template>
           <template x-if="phase==='lose'">
-            <div class="panel rounded-2xl border border-rose-600/50 p-10 text-center">
-              <div class="fserif text-4xl text-rose-400 mb-2">Mộng Tan</div>
-              <p class="text-slate-400 mb-1">Thần thức bị đánh bật khỏi mộng cảnh — giật mình tỉnh giấc ở Tàng Kinh Các.</p>
-              <p class="text-[12px] text-slate-600 mb-6">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
-              <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+            <div class="panel rounded-2xl border border-rose-600/50 p-10 text-center relative overflow-hidden">
+              <img src="images/dtm/vfx/mong_tan.webp" class="dtm-moment" style="z-index:0;opacity:.6" alt="" onerror="this.remove()">
+              <div class="relative" style="z-index:10">
+                <div class="fserif text-4xl text-rose-400 mb-2">Mộng Tan</div>
+                <p class="text-slate-400 mb-1">Thần thức bị đánh bật khỏi mộng cảnh — giật mình tỉnh giấc ở Tàng Kinh Các.</p>
+                <p class="text-[12px] text-slate-600 mb-6">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
+                <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+              </div>
             </div>
           </template>
 
@@ -6167,7 +6201,7 @@
                   <template x-for="(c,i) in run.deck" :key="i">
                     <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
                       <div class="cost" x-text="c.cost"></div><div class="rar"></div>
-                      <div class="card-art"><span class="card-han" x-text="c.han"></span></div>
+                      <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                       <div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div>
                     </div>
                   </template>

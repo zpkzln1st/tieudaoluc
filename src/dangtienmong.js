@@ -66,6 +66,7 @@ export function dangTienMong() {
     elite: [['hoaSonKiem'], ['duongMon'], ['satThu', 'satThu']],
     boss: [['maGiao']],
   };
+  const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao' };   // elite/boss mượn chân dung chưởng môn
   const TIER = [
     { label: 'Tầng 1' },
     { label: 'Tầng 2', types: ['battle', 'event', 'shop'] },
@@ -97,6 +98,15 @@ export function dangTienMong() {
     heColor(h) { return HE_COLOR[h] || '#cbd5e1'; }, heName(h) { return HE_NAME[h] || ''; },
     typeLabel(c) { return { atk: 'Công', def: 'Thủ', ky: 'Kỹ' }[c.type] || ''; },
     rarColor(r) { return RAR_C[r] || '#94a3b8'; }, rarName(r) { return RAR_N[r] || ''; },
+    // ----- ART (onerror tự ẩn -> lộ Hán) -----
+    cardImg(id) { const m = { coBanKiem: 'book_co_ban_kiem', coBanQuyen: 'book_co_ban_quyen', cuuAm: 'book_cuu_am', cuuDuong: 'book_cuu_duong', datMa: 'book_dat_ma_truong', dichCan: 'book_dich_can_kinh', amKhi: 'book_duong_mon_am_khi', hapTinh: 'book_hap_tinh_dai_phap', hoaSon: 'book_hoa_son_kiem', laHan: 'book_la_han_quyen', langBa: 'book_lang_ba_vi_bo', ngaMi: 'book_nga_mi_cuu_duong', thaiCuc: 'book_thai_cuc_quyen', thanhPhong: 'book_thanh_phong_bo', tichTa: 'book_tich_ta_kiem' }; return 'images/cards/' + (m[id] || id) + '.webp'; },
+    heroImg(id) { return 'images/dtm/heroes/' + id + '.webp'; },
+    enemyImg(e) { return 'images/dtm/enemies/' + (e._art || 'cuongDao') + '.webp'; },
+    relicImg(id) { return 'images/dtm/relics/' + id + '.webp'; },
+    statusIcon(k) { return 'images/dtm/vfx/st_' + k + '.webp'; },
+    sigilImg(he) { return (he && he !== 'vatly') ? 'images/dtm/vfx/sigil_' + he + '.webp' : ''; },
+    vfxImg(he) { return 'images/dtm/vfx/vfx_' + he + '.webp'; },
+    bgImg() { if (this.phase === 'lobby' || this.phase === 'hero') return 'images/dtm/bg/lobby.webp'; const t = this.mapTier; return 'images/dtm/bg/' + (this.battleKind === 'boss' || t >= 4 ? 'dream_boss' : (t >= 2 ? 'dream_deep' : 'dream_shallow')) + '.webp'; },
     nodeHan(t) { return { battle: '敵', elite: '雄', event: '緣', shop: '市', rest: '憩', boss: '魔' }[t] || '敵'; },
     nodeLabel(t) { return { battle: 'Đấu', elite: 'Tinh Anh', event: 'Kỳ Ngộ', shop: 'Mộng Thị', rest: 'Tĩnh Thất', boss: 'Mộng Chủ' }[t] || 'Đấu'; },
     nodeStyle(nd, state) { const c = { battle: '#fb7185', elite: '#f5b942', event: '#a78bfa', shop: '#facc15', rest: '#34d399', boss: '#fb7185' }[nd.type] || '#94a3b8';
@@ -124,7 +134,7 @@ export function dangTienMong() {
     tgtIdx() { if (this.enemies[this.targetIdx] && this.enemies[this.targetIdx].hp > 0) return this.targetIdx; const i = this.enemies.findIndex((e) => e.hp > 0); return i < 0 ? 0 : i; },
     startBattle(kind) {
       const enc = rnd(ENC[kind] || ENC.battle); const sc = 1 + this.mapTier * 0.1;
-      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { name: t.name, han: t.han, he: t.he, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * sc), hp: Math.round(t.hp * sc), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, ii: 0, floats: [], hit: false }; });
+      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * sc), hp: Math.round(t.hp * sc), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, ii: 0, floats: [], hit: false, burst: null }; });
       this.targetIdx = 0; this.battleKind = kind;
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
       this.player = { block: 0, str: 0, dodge: false }; this.log = ''; this.playerFloats = [];
@@ -157,7 +167,7 @@ export function dangTienMong() {
         const hits = c.hits || 1;
         const tgts = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (this.enemies[this.tgtIdx()] ? [this.enemies[this.tgtIdx()]] : []);
         let total = 0;
-        tgts.forEach((e) => { let per = base; if (KHAC[c.he] === e.he) per = Math.floor(per * 1.3); let d = 0; for (let h = 0; h < hits; h++) d += this.hitEnemy(e, per); if (d > 0) this.floatE(e, d); total += d; });
+        tgts.forEach((e) => { let per = base; if (KHAC[c.he] === e.he) { per = Math.floor(per * 1.3); e.burst = c.he; const eb = e; setTimeout(() => { eb.burst = null; }, 620); } let d = 0; for (let h = 0; h < hits; h++) d += this.hitEnemy(e, per); if (d > 0) this.floatE(e, d); total += d; });
         if (c.drain) this.run.hp = Math.min(this.run.maxHp, this.run.hp + total);
         this.log = c.name + (c.aoe ? ' (toàn thể)' : '') + ' → ' + total + ' ST';
       }
