@@ -1134,6 +1134,37 @@ const gameStore = {
   saveBio() { this.state.player.bio = (this.bioDraft || '').slice(0, 250); this.bioModal = false; Storage.save(this.state); this.showToast('Đã lưu tiểu sử.'); },
   // ---------- Điểm Danh ----------
   openDaily() { this.dailyModal = true; },
+  // ===== HIỆU ỨNG: tổng hợp mọi hiệu ứng/bonus đang tác động lên nhân vật (Linh Thạch hoạt động + passive: Linh Thú/Danh Hiệu/Vạn Vật Phổ/Nghề). =====
+  hieuUngOpen: false,
+  openHieuUng() { this.hieuUngOpen = true; },
+  closeHieuUng() { this.hieuUngOpen = false; },
+  get hieuUngEffects() {
+    void this._tick;
+    const active = [], passive = [];
+    // Linh Thạch (buff hoạt động gather/craft hiện tại)
+    if (this.actBuff) {
+      const sk = this.currentSkill, lines = [];
+      if (this.actBuff.expPct) lines.push('+' + this.actBuff.expPct + '% EXP kỹ năng');
+      if (this.actBuff.effPct) lines.push('+' + this.actBuff.effPct + '% Hiệu Suất');
+      active.push({ seal: '晶', color: '#60a5fa', name: 'Linh Thạch', src: 'Đang ' + (sk ? sk.name : 'tu luyện'), lines });
+    }
+    // Linh Thú kề bên
+    const pet = this.activePetObj;
+    if (pet) { const b = this.activePetBonusApplied() || {}, lines = Object.keys(b).map((k) => '+' + this.fmt(b[k]) + ' ' + this.statLabelShort(k)); passive.push({ seal: '獸', color: this.petElColor(pet), name: 'Linh Thú · ' + this.petName(pet), src: 'Kề bên xuất chiến', lines: lines.length ? lines : ['Đồng hành cùng ngươi'] }); }
+    // Danh Hiệu
+    const tt = this.equippedTitleObj;
+    if (tt) { const txt = titleBonusText(tt); passive.push({ seal: '號', color: '#f5b942', name: 'Danh Hiệu · ' + tt.name, src: 'Đang đeo', lines: txt ? [txt] : ['Vinh danh giang hồ'] }); }
+    // Vạn Vật Phổ (codex Phổ Lực)
+    const cb = codexBonus(this.state), cbLines = [];
+    if (cb.allPct) cbLines.push('+' + Math.round(cb.allPct * 100) + '% Toàn chỉ số');
+    if (cb.atkPct) cbLines.push('+' + Math.round(cb.atkPct * 100) + '% Công Kích');
+    if (cb.defPct) cbLines.push('+' + Math.round(cb.defPct * 100) + '% Phòng Ngự');
+    if (cb.hpPct) cbLines.push('+' + Math.round(cb.hpPct * 100) + '% Sinh Lực');
+    if (cbLines.length) passive.push({ seal: '譜', color: '#a78bfa', name: 'Vạn Vật Phổ', src: 'Phổ Lực sưu tập', lines: cbLines });
+    // Nghề đã học
+    (this.professions || []).forEach((id) => { const n = NGHE.find((x) => x.id === id); if (n) { const sk = this.SKILLS[n.skill]; passive.push({ seal: '業', color: '#34d399', name: 'Nghề · ' + n.name, src: sk ? sk.name : '', lines: ['+' + n.exp + '% EXP', '+' + n.eff + '% Hiệu Suất'] }); } });
+    return { active, passive };
+  },
   get canClaimDaily() { return this.state.login.lastDay !== todayStr(); },
   get loginStreak() { return this.state.login.streak || 0; },
   get loginNextIndex() {

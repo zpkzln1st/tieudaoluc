@@ -533,8 +533,8 @@
                 <div class="lbl mb-2">Khác</div>
                 <template x-for="m in ['Điểm Danh','Thống Kê','Tương Tác','Giao Dịch','Vạn Vật Phổ','Hiệu Ứng','Mã Giới Thiệu']" :key="m">
                   <div class="flex items-center justify-between px-2 py-2 rounded text-sm transition"
-                       :class="m==='Điểm Danh' ? 'hover:bg-ink3 cursor-pointer text-slate-200' : 'text-slate-300'"
-                       @click="m==='Điểm Danh' && $store.game.openDaily()">
+                       :class="(m==='Điểm Danh'||m==='Hiệu Ứng') ? 'hover:bg-ink3 cursor-pointer text-slate-200' : 'text-slate-300'"
+                       @click="m==='Điểm Danh' ? $store.game.openDaily() : (m==='Hiệu Ứng' ? $store.game.openHieuUng() : null)">
                     <span x-text="m"></span>
                     <template x-if="m==='Điểm Danh'">
                       <span class="flex items-center gap-1.5 text-[10px]">
@@ -542,7 +542,8 @@
                         <span class="text-jade">Mở ›</span>
                       </span>
                     </template>
-                    <template x-if="m!=='Điểm Danh'"><span class="text-[10px] text-slate-600">sắp ›</span></template>
+                    <template x-if="m==='Hiệu Ứng'"><span class="text-[10px] text-jade">Mở ›</span></template>
+                    <template x-if="m!=='Điểm Danh' && m!=='Hiệu Ứng'"><span class="text-[10px] text-slate-600">sắp ›</span></template>
                   </div>
                 </template>
               </section>
@@ -6627,6 +6628,58 @@
       <div class="w-[70vmin] h-[70vmin] max-w-[520px] max-h-[520px] flex items-center justify-center" style="font-size:160px" x-html="$store.game.ico($store.game.lightbox.id, $store.game.lightbox.emoji)"></div>
       <div class="mt-4 text-xl font-bold text-slate-100" x-text="$store.game.lightbox.name"></div>
       <div class="mt-1 text-xs text-slate-500">Bấm bất kỳ đâu để đóng</div>
+    </div>
+  </template>
+
+  <!-- ===== Modal Hiệu Ứng (tổng hợp bonus đang áp lên nhân vật) ===== -->
+  <template x-if="$store.game.hieuUngOpen">
+    <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click.self="$store.game.closeHieuUng()">
+      <div class="panel rounded-2xl w-[480px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-cyan/30 shadow-2xl" x-data="{ get fx(){ return $store.game.hieuUngEffects } }">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.1),transparent)">
+          <div class="flex items-center gap-2.5"><span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[15px]" style="color:#22d3ee;border:1px solid rgba(34,211,238,.4);background:rgba(34,211,238,.1)">效</span><div class="fserif text-[17px] text-cyan leading-none">Hiệu Ứng</div></div>
+          <button @click="$store.game.closeHieuUng()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+        </div>
+        <div class="p-4 overflow-y-auto space-y-3.5">
+          <template x-if="fx.active.length">
+            <div>
+              <div class="lbl mb-1.5">Đang Hoạt Động <span class="normal-case tracking-normal text-slate-600">· tạm thời</span></div>
+              <div class="space-y-2">
+                <template x-for="(e,i) in fx.active" :key="'a'+i">
+                  <div class="flex gap-3 p-2.5 rounded-lg bg-ink2/50 border" :style="'border-color:'+e.color+'40'">
+                    <span class="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center fserif text-[18px]" :style="'color:'+e.color+';background:'+e.color+'14;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
+                    <div class="min-w-0 flex-1">
+                      <div class="fserif text-[13px] truncate" :style="'color:'+e.color" x-text="e.name"></div>
+                      <div class="text-[10px] text-slate-500 mb-1 truncate" x-text="e.src"></div>
+                      <div class="flex flex-wrap gap-1"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90 border border-slate-700/50" x-text="ln"></span></template></div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+          <template x-if="fx.passive.length">
+            <div>
+              <div class="lbl mb-1.5">Thường Trực <span class="normal-case tracking-normal text-slate-600">· luôn áp</span></div>
+              <div class="space-y-2">
+                <template x-for="(e,i) in fx.passive" :key="'p'+i">
+                  <div class="flex gap-3 p-2.5 rounded-lg bg-ink2/50 border" :style="'border-color:'+e.color+'40'">
+                    <span class="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center fserif text-[18px]" :style="'color:'+e.color+';background:'+e.color+'14;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
+                    <div class="min-w-0 flex-1">
+                      <div class="fserif text-[13px] truncate" :style="'color:'+e.color" x-text="e.name"></div>
+                      <div class="text-[10px] text-slate-500 mb-1 truncate" x-text="e.src"></div>
+                      <div class="flex flex-wrap gap-1"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90 border border-slate-700/50" x-text="ln"></span></template></div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+          <template x-if="!fx.active.length && !fx.passive.length">
+            <div class="text-center text-slate-500 italic py-10 text-[12.5px] fserif">Chưa có hiệu ứng nào đang áp.<br><span class="text-[11px] text-slate-600">Lắp Linh Thạch · dắt Linh Thú · đeo Danh Hiệu · học Nghề · hoàn thiện Vạn Vật Phổ để nhận bonus.</span></div>
+          </template>
+        </div>
+        <div class="px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 italic text-center shrink-0" style="background:rgba(15,21,33,.5)">Tổng hợp mọi hiệu ứng/bonus đang tác động lên nhân vật.</div>
+      </div>
     </div>
   </template>
 
