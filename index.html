@@ -5875,16 +5875,16 @@
       <style>
         .dtm-root .bar{ height:100%; border-radius:9999px; transition:width .35s ease; }
         .dtm-root .glowstatic{ box-shadow:0 0 0 1px var(--c,#f5b942)55, 0 0 26px -8px var(--c,#f5b942); }
-        .dtm-root .card{ width:122px; height:176px; border-radius:11px; position:relative; cursor:pointer; flex:0 0 auto; background:linear-gradient(180deg,#0f1726,#0a0f1b); border:1px solid var(--c); overflow:hidden; box-shadow:0 0 0 1px #00000088, 0 6px 16px -8px #000, inset 0 0 20px -15px var(--c); transition:transform .14s, box-shadow .14s; }
+        .dtm-root .card{ width:132px; height:212px; border-radius:11px; position:relative; cursor:pointer; flex:0 0 auto; background:linear-gradient(180deg,#0f1726,#0a0f1b); border:1px solid var(--c); overflow:hidden; box-shadow:0 0 0 1px #00000088, 0 6px 16px -8px #000, inset 0 0 20px -15px var(--c); transition:transform .14s, box-shadow .14s; }
         .dtm-root .card:hover.playable{ transform:translateY(-16px); box-shadow:0 0 0 1px var(--c), 0 0 22px -3px var(--c), 0 16px 28px -10px #000; z-index:5; }
         .dtm-root .card.unplayable{ filter:grayscale(.55) brightness(.6); cursor:not-allowed; }
-        .dtm-root .card-art{ height:68px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
-        .dtm-root .card-han{ font-family:'Lora',serif; font-size:40px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
+        .dtm-root .card-art{ height:64%; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
+        .dtm-root .card-han{ font-family:'Lora',serif; font-size:48px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
         .dtm-root .cost{ position:absolute; top:5px; left:5px; width:23px; height:23px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12.5px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee; z-index:2; }
         .dtm-root .rar{ position:absolute; top:6px; right:6px; width:11px; height:11px; border-radius:9999px; background:var(--r); box-shadow:0 0 7px -1px var(--r); z-index:2; }
-        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:11px; text-align:center; line-height:1.05; padding:5px 3px 1px; color:#f1f5f9; }
-        .dtm-root .ctype{ text-align:center; font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:var(--c); opacity:.8; }
-        .dtm-root .cdesc{ font-size:9px; line-height:1.25; color:#cbd5e1; padding:3px 6px; text-align:center; }
+        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:11px; text-align:center; line-height:1.02; padding:4px 3px 0; color:#f1f5f9; }
+        .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--c); opacity:.8; }
+        .dtm-root .cdesc{ font-size:9px; line-height:1.18; color:#cbd5e1; padding:2px 6px 4px; text-align:center; }
         .dtm-root .khi-pip{ width:15px; height:15px; border-radius:9999px; border:1px solid #155e75; }
         .dtm-root .khi-pip.on{ background:radial-gradient(circle at 35% 30%,#a5f3fc,#0891b2); border-color:#22d3ee; box-shadow:0 0 7px -1px #22d3ee; }
         .dtm-root .pill{ font-size:10px; padding:1px 7px; border-radius:9999px; border:1px solid; font-weight:600; display:inline-block; }
@@ -5964,7 +5964,7 @@
                 <template x-for="h in HEROES" :key="h.id">
                   <div class="panel rounded-2xl p-4 border hover:border-cyan/50 transition cursor-pointer" :style="'border-color:'+heColor(h.he)+'44'" @click="startRun(h)">
                     <div class="flex items-center gap-3 mb-2.5">
-                      <span class="dtm-portwrap w-16 h-20 rounded-lg flex items-center justify-center fserif text-4xl shrink-0" :style="'color:'+heColor(h.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(h.he)+'33,transparent 70%);border:1px solid '+heColor(h.he)+'55'"><span x-text="h.han"></span><img :src="heroImg(h.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
+                      <span class="dtm-portwrap w-24 h-32 rounded-lg flex items-center justify-center fserif text-5xl shrink-0" :style="'color:'+heColor(h.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(h.he)+'33,transparent 70%);border:1px solid '+heColor(h.he)+'55'"><span x-text="h.han"></span><img :src="heroImg(h.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
                       <div>
                         <div class="fserif text-lg" :style="'color:'+heColor(h.he)" x-text="h.name"></div>
                         <div class="text-[11px] text-slate-500" x-text="'Tâm Pháp '+heName(h.he)+' · HP '+h.hp+' · Khí '+h.khi"></div>
@@ -5987,7 +5987,7 @@
           <template x-if="phase==='map'">
             <div>
               <div class="panel rounded-xl p-2.5 mb-3 flex items-center gap-3 flex-wrap">
-                <span class="dtm-portwrap w-9 h-11 rounded-md flex items-center justify-center fserif text-2xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'"><span x-text="run.hero.han"></span><img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
+                <span class="dtm-portwrap w-11 h-14 rounded-md flex items-center justify-center fserif text-2xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'"><span x-text="run.hero.han"></span><img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
                 <div class="min-w-[150px] flex-1">
                   <div class="flex items-center justify-between text-[11px]"><span class="fserif" :style="'color:'+heColor(run.hero.he)" x-text="run.hero.name"></span><span class="text-slate-400" x-text="run.hp+' / '+run.maxHp+' HP'"></span></div>
                   <div class="h-3 rounded-full bg-ink3 overflow-hidden border border-slate-700/60 mt-0.5"><div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*run.hp/run.maxHp)+'%'"></div></div>
@@ -6026,7 +6026,7 @@
                        @click="e.hp>0&&(targetIdx=ei)">
                     <div x-show="ei===tgtIdx()&&e.hp>0" class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] fserif text-gold px-1.5 rounded bg-ink2 border border-gold/40 whitespace-nowrap">⌖ Mục tiêu</div>
                     <div class="flex items-center gap-2.5">
-                      <div class="dtm-portwrap w-14 h-16 rounded-lg shrink-0 flex items-center justify-center fserif text-3xl" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'">
+                      <div class="dtm-portwrap w-20 h-24 rounded-lg shrink-0 flex items-center justify-center fserif text-4xl" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'">
                         <span x-text="e.han"></span>
                         <img :src="enemyImg(e)" class="dtm-port" alt="" onerror="this.style.display='none'">
                         <template x-if="e.burst"><img :src="vfxImg(e.burst)" class="dtm-burst" alt=""></template>
@@ -6055,7 +6055,7 @@
 
               <div class="panel rounded-2xl p-3 mb-2 border border-jade/30" :class="playerHit?'shake':''">
                 <div class="flex items-center gap-3">
-                  <span class="dtm-portwrap w-11 h-14 rounded-md flex items-center justify-center fserif text-2xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'">
+                  <span class="dtm-portwrap w-16 h-20 rounded-md flex items-center justify-center fserif text-3xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'">
                     <span x-text="run.hero.han"></span>
                     <img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
                     <template x-for="f in playerFloats" :key="f.id"><span class="dmgfloat text-rose-400 text-xl" style="top:20%;left:18%" x-text="f.v"></span></template>
@@ -6086,7 +6086,7 @@
                 </div>
               </div>
 
-              <div class="flex gap-2 justify-center flex-wrap min-h-[184px] items-end py-1 overflow-x-auto">
+              <div class="flex gap-2 justify-center flex-wrap min-h-[222px] items-end py-1 overflow-x-auto">
                 <template x-for="(c,i) in hand" :key="c.uid">
                   <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
@@ -6141,7 +6141,7 @@
               <div class="grid sm:grid-cols-3 gap-3 mb-4">
                 <template x-for="(s,i) in shopItems" :key="i">
                   <div class="panel rounded-xl p-3 text-center border" :style="'border-color:'+heColor(s.card.he)+'44'">
-                    <div class="flex justify-center mb-2"><div class="card" style="width:104px;height:150px;cursor:default" :style="'--c:'+heColor(s.card.he)+';--r:'+rarColor(s.card.rar)">
+                    <div class="flex justify-center mb-2"><div class="card" style="width:118px;height:188px;cursor:default" :style="'--c:'+heColor(s.card.he)+';--r:'+rarColor(s.card.rar)">
                       <div class="cost" x-text="s.card.cost"></div><div class="rar"></div>
                       <div class="card-art"><span class="card-han" style="font-size:34px" x-text="s.card.han"></span><img :src="cardImg(s.card.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(s.card.he)"><img :src="sigilImg(s.card.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                       <div class="ctitle" x-text="s.card.name"></div><div class="ctype" x-text="typeLabel(s.card)"></div><div class="cdesc" x-text="s.card.desc"></div>
