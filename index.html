@@ -852,18 +852,22 @@
               </div>
               <div class="grid sm:grid-cols-2 gap-2.5">
                 <template x-for="it in $store.game.titlesFlat" :key="it.id">
-                  <div class="flex items-center gap-3 rounded-xl px-4 py-3 border" :class="it.owned ? (it.on ? 'border-jade/50 bg-jade/5' : 'border-slate-700/70 bg-ink3/40') : 'border-slate-800/60 bg-black/20 opacity-50'">
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <span class="dh" :class="$store.game.titleQClass(it.q) + (it.owned && $store.game.titleHigh(it.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" style="font-size:14.5px" x-text="it.name"></span><span class="dh-li r"></span></span>
-                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-slate-700/70 shrink-0" x-text="it.loai"></span>
-                      </div>
-                      <div class="text-[12px] text-jade/90 mt-1.5" x-text="it.bonusText"></div>
-                      <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '') + it.src"></div>
+                  <div class="rounded-xl px-4 py-3 border" :class="it.owned ? (it.on ? 'border-jade/50 bg-jade/5' : 'border-slate-700/70 bg-ink3/40') : 'border-slate-800/60 bg-black/20 opacity-50'">
+                    <!-- Hàng 1: danh hiệu + phân loại (full-width, không bị nút bóp hẹp → khỏi xuống hàng vỡ vạch) -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="dh" :class="$store.game.titleQClass(it.q) + (it.owned && $store.game.titleHigh(it.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" style="font-size:14.5px" x-text="it.name"></span><span class="dh-li r"></span></span>
+                      <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-slate-700/70 shrink-0" x-text="it.loai"></span>
                     </div>
-                    <template x-if="it.on"><span class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium">Đang đeo</span></template>
-                    <template x-if="it.owned && !it.on"><button @click="$store.game.titleEquip(it.id)" class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-ink2 border border-slate-700 hover:border-jade text-slate-200 transition">Đeo</button></template>
-                    <template x-if="!it.owned"><span class="shrink-0 text-[11px] text-slate-600">Chưa mở</span></template>
+                    <!-- Hàng 2: bonus/nguồn + nút đeo -->
+                    <div class="flex items-center justify-between gap-3 mt-1.5">
+                      <div class="min-w-0">
+                        <div class="text-[12px] text-jade/90" x-text="it.bonusText"></div>
+                        <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '') + it.src"></div>
+                      </div>
+                      <template x-if="it.on"><span class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium">Đang đeo</span></template>
+                      <template x-if="it.owned && !it.on"><button @click="$store.game.titleEquip(it.id)" class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-ink2 border border-slate-700 hover:border-jade text-slate-200 transition">Đeo</button></template>
+                      <template x-if="!it.owned"><span class="shrink-0 text-[11px] text-slate-600">Chưa mở</span></template>
+                    </div>
                   </div>
                 </template>
               </div>
