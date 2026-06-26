@@ -4879,7 +4879,7 @@
                 </div>
                 <div class="px-5 py-2 border-b border-slate-800/60 shrink-0 flex items-center justify-between gap-2 text-[11px]">
                   <span :class="g.lvhPick?'text-cyan':'text-slate-500'">
-                    <template x-if="!g.lvhPick"><span>Bấm 1 đấu sĩ để chọn, rồi bấm <b>Tỉ Thí</b> ở đối thủ.</span></template>
+                    <template x-if="!g.lvhPick"><span>Bấm 1 đấu sĩ để xem <b>Đấu Lục</b> (lịch sử + xem lại trận).</span></template>
                     <template x-if="g.lvhPick"><span>Đã chọn đấu sĩ · bấm <b>Tỉ Thí</b> ở đối thủ bất kỳ. <button @click="g.lvhPick=null" class="text-slate-500 hover:text-rose-400 underline">bỏ chọn</button></span></template>
                   </span>
                   <span class="text-slate-500 shrink-0">Hạng cao nhất tông ta <b class="text-amber-300" x-text="'#'+g.lvhMyRank"></b> · kỳ tới <b class="text-cyan" x-text="g.lvhNextText"></b></span>
@@ -4890,7 +4890,7 @@
                     <div>
                       <template x-if="e.separator"><div class="flex items-center gap-2 py-1 text-[9px] text-slate-600 tracking-widest"><div class="flex-1 border-t border-slate-800"></div>TÔNG TA<div class="flex-1 border-t border-slate-800"></div></div></template>
                       <template x-if="!e.separator">
-                        <div @click="g.lvhSelectChampion(e.key)" class="grid grid-cols-[26px_34px_1fr_auto] sm:grid-cols-[30px_38px_1fr_88px_64px] gap-2 items-center px-2 py-1.5 rounded-lg border cursor-pointer transition" :class="g.lvhPick===e.key?'ring-1 ring-cyan/60 bg-cyan/10':(e.isMine?'bg-amber-500/[.07] hover:bg-amber-500/15':'bg-ink2/40 hover:bg-ink2/70')" :style="'border-color:'+(g.lvhPick===e.key?'#22d3ee':(e.isMine?'#f5b94255':'#1e293b'))">
+                        <div @click="g.lvhOpenHist(e.key)" class="grid grid-cols-[26px_34px_1fr_auto] sm:grid-cols-[30px_38px_1fr_88px_64px] gap-2 items-center px-2 py-1.5 rounded-lg border cursor-pointer transition" :class="g.lvhPick===e.key?'ring-1 ring-cyan/60 bg-cyan/10':(e.isMine?'bg-amber-500/[.07] hover:bg-amber-500/15':'bg-ink2/40 hover:bg-ink2/70')" :style="'border-color:'+(g.lvhPick===e.key?'#22d3ee':(e.isMine?'#f5b94255':'#1e293b'))" :title="'Xem Đấu Lục ' + e.name">
                           <span class="text-[11px] fserif text-center" :class="e.rank<=3?'text-amber-300':(e.isMine?'text-amber-200/80':'text-slate-500')" x-text="'#'+e.rank"></span>
                           <span class="relative w-[34px] h-[34px] rounded-lg overflow-hidden flex items-center justify-center fserif text-[14px] shrink-0" :style="'color:'+e.color+';border:1px solid '+e.color+'55;background:'+e.color+'12'"><span x-text="e.han"></span><template x-if="e.face"><img :src="e.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
                           <div class="min-w-0">
@@ -4911,6 +4911,47 @@
                   </template>
                 </div>
               </div>
+              <!-- ĐẤU LỤC (lịch sử đấu 1 đấu sĩ — bấm 1 trận để xem playback) -->
+              <template x-if="g.lvhHist && !g.luanVoFight">
+                <div class="absolute inset-0 z-[4] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.lvhCloseHist()" x-data="{ get hi(){ return g.lvhHist } }">
+                  <div @click.stop class="panel rounded-2xl w-[560px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-sky-500/40">
+                    <div class="flex items-start gap-3 px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.08),transparent)">
+                      <span class="relative w-12 h-[58px] rounded-lg overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-lg" :style="'border-color:'+hi.entry.heColor+'55;color:'+hi.entry.heColor"><span x-text="hi.entry.han"></span><template x-if="hi.entry.face"><img :src="hi.entry.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 flex-wrap"><span class="fserif text-[15px] truncate" :style="'color:'+(hi.entry.isMine?hi.entry.color:'#cbd5e1')" x-text="hi.entry.name"></span><span class="text-[10px] fserif" :style="'color:'+hi.entry.heColor" x-text="hi.entry.heHan"></span><template x-if="g.lvhTitleOf(hi.entry.uid)"><span class="text-[8.5px] px-1.5 py-0.5 rounded-full fserif font-bold" :style="'color:#0b0f17;background:'+g.lvhTitleOf(hi.entry.uid).color"><span class="fserif">魁</span><span x-text="g.lvhTitleOf(hi.entry.uid).name"></span></span></template></div>
+                        <div class="text-[10.5px] text-slate-500 truncate" x-text="'#'+hi.entry.rank+' · '+hi.entry.sub+(hi.entry.loaiCatName?(' · '+hi.entry.loaiCatName):'')"></div>
+                        <div class="text-[11px] mt-0.5">Chiến Lực <b class="text-gold" x-text="g.fmt(hi.entry.chienLuc)"></b> · Đấu Lục <b class="text-emerald-300" x-text="hi.w"></b>–<b class="text-rose-300" x-text="hi.l"></b></div>
+                        <div class="flex gap-1 mt-1">
+                          <template x-for="id in hi.entry.skillIds" :key="id"><span class="relative w-7 h-7 rounded overflow-hidden bg-ink3 border flex items-center justify-center fserif text-[11px]" :style="'border-color:'+((g.biKipView(id)||{}).tierColor||'#475569')+'88;color:'+((g.biKipView(id)||{}).heColor||'#94a3b8')"><span x-text="(g.biKipView(id)||{}).heHan||'笈'"></span><img :src="'images/tongmon/bikip/'+id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span></template>
+                        </div>
+                      </div>
+                      <button @click="g.lvhCloseHist()" class="text-slate-500 hover:text-rose-400 text-xl leading-none self-start">✕</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto px-4 py-3">
+                      <div class="lbl mb-1.5">Trận Gần Đây <span class="normal-case tracking-normal text-slate-600">· bấm để xem lại</span></div>
+                      <div class="space-y-1.5">
+                        <template x-for="m in hi.matches" :key="m.oppKey">
+                          <div @click="g.lvhReplayMatch(m.oppKey)" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-ink2/40 hover:bg-ink2/80 border border-slate-800 cursor-pointer transition">
+                            <span class="text-[10px] fserif font-bold w-9 text-center shrink-0 px-1.5 py-0.5 rounded" :class="m.won?'text-emerald-200 bg-emerald-500/15':'text-rose-200 bg-rose-500/15'" x-text="m.won?'Thắng':'Thua'"></span>
+                            <span class="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center fserif text-[12px] shrink-0" :style="'color:'+m.oppColor+';border:1px solid '+m.oppColor+'55;background:'+m.oppColor+'12'"><span x-text="m.oppHan"></span><template x-if="m.oppFace"><img :src="m.oppFace" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
+                            <div class="min-w-0 flex-1">
+                              <div class="flex items-center gap-1.5"><span class="fserif text-[12.5px] truncate text-slate-200" x-text="m.oppName"></span><span class="text-[9px] fserif" :style="'color:'+m.oppHeColor" x-text="m.oppHeHan"></span></div>
+                              <div class="text-[9.5px] text-slate-500 truncate" x-text="'#'+m.oppRank+' · '+m.oppSub"></div>
+                            </div>
+                            <div class="text-right shrink-0">
+                              <div class="text-[10px] text-slate-400" :class="m.won?'text-emerald-300/80':'text-rose-300/80'" x-text="m.marginLabel"></div>
+                              <div class="text-[9px] text-cyan mt-0.5">Xem ▸</div>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                    <div class="px-5 py-3 border-t border-slate-800 shrink-0">
+                      <button @click="g.lvhPickFromHist()" class="w-full py-2 rounded-lg text-[12px] font-bold fserif transition bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25">⚡ Chọn làm đấu sĩ — Tỉ Thí tự chọn đối thủ</button>
+                    </div>
+                  </div>
+                </div>
+              </template>
               <!-- ĐÀI TỈ VÕ (cycle từng hiệp: HP + chiến báo) -->
               <template x-if="g.luanVoFight">
                 <div class="absolute inset-0 z-[5] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click="g.luanVoFightDone && g.closeLuanVoResult()">

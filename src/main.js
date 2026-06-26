@@ -39,7 +39,7 @@ import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pe
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, bkMergeRows, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
-import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
+import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
 import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, THIEN_KIEP, thienKiepOf, kiepOdds, KIEP_CD_H, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_KEYS, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, BK_MERGE_N, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
@@ -618,8 +618,8 @@ const gameStore = {
   tmDiscipline(uid) { const r = disciplineDisciple(this.state, uid, now()); if (r.ok) { this.tmSave(); this._tick++; this.showToast('Giới Luật · ' + r.msg); } else this.showToast(r.msg); },
   // ===== LUẬN VÕ ĐƯỜNG: tỉ thí đệ tử (chọn đấu sĩ -> chọn đối thủ -> tỉ thí). Kết quả side-only. =====
   luanVoOpen: false, luanVoChampion: null, luanVoFight: null, luanVoRound: 0, luanVoTimer: null,
-  openLuanVo() { this.luanVoChampion = null; this.lvhPick = null; this._lvStop(); this.luanVoFight = null; this.luanVoRound = 0; this.luanVoOpen = true; },
-  closeLuanVo() { this._lvStop(); this.luanVoFight = null; this.luanVoOpen = false; this.lvhPick = null; },
+  openLuanVo() { this.luanVoChampion = null; this.lvhPick = null; this.lvhHistKey = null; this._lvStop(); this.luanVoFight = null; this.luanVoRound = 0; this.luanVoOpen = true; },
+  closeLuanVo() { this._lvStop(); this.luanVoFight = null; this.luanVoOpen = false; this.lvhPick = null; this.lvhHistKey = null; },
   pickChampion(uid) { this.luanVoChampion = (this.luanVoChampion === uid ? null : uid); },
   _lvStop() { if (this.luanVoTimer) { clearTimeout(this.luanVoTimer); this.luanVoTimer = null; } },
   _lvPlay() {   // phát từng hiệp (~1.1s/hiệp) đến hết, rồi hiện người thắng
@@ -672,7 +672,8 @@ const gameStore = {
       const skillIds = ti > 0 ? [bk1.id, bk2.id] : [bk1.id];
       const he = bk1.he, lc = LOAI_CAT[bk1.loai] || '', hi = HE[he] || HE.kim;
       const sectName = TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length];
-      return { key: 'champ' + i, isBot: true, isMine: false, uid: null, name: b.name, han: (b.name || '?').slice(0, 1), face: botAvatar(b), color: '#94a3b8', he, heName: hi.name, heHan: hi.han, heColor: hi.color, loaiCat: lc, loaiCatName: lc ? CAT_NAME[lc] : '', sub: sectName, chienLuc, skillIds, w: 0, l: 0, pts: 0 };
+      const av = botAvatar(b);
+      return { key: 'champ' + i, isBot: true, isMine: false, uid: null, name: b.name, han: av.char || (b.name || '?').slice(0, 1), face: 'images/avatars/' + av.id + '.webp', color: '#94a3b8', he, heName: hi.name, heHan: hi.han, heColor: hi.color, loaiCat: lc, loaiCatName: lc ? CAT_NAME[lc] : '', sub: sectName, chienLuc, skillIds, w: 0, l: 0, pts: 0 };
     });
     _lvhBotsKey = key; return _lvhBotsCache;
   },
@@ -734,6 +735,38 @@ const gameStore = {
     this.luanVoFight = { a: fa.fd, b: fb.fd, rounds: res.rounds, aWon: res.winner === 'a', winnerName: res.winnerName, marginLabel: res.marginLabel, heFactor: res.heFactor, loaiFactor: res.loaiFactor };
     this.luanVoRound = 0; this._lvPlay();
   },
+  // ===== ĐẤU LỤC: lịch sử đấu của 1 đấu sĩ (đệ tử/bot) — bấm hàng BXH -> mở. Trận vs đối thủ lân cận hạng, tất định theo kỳ; bấm 1 trận -> xem playback. =====
+  lvhHistKey: null,
+  lvhOpenHist(key) { this.lvhHistKey = key; },
+  lvhCloseHist() { this.lvhHistKey = null; },
+  _lvhOpponents(e, board) {
+    const arr = board.entries, idx = arr.findIndex((x) => x.key === e.key); if (idx < 0) return [];
+    const out = [];
+    for (let d = 1; out.length < 6 && d < arr.length; d++) { if (arr[idx - d] && arr[idx - d].key !== e.key) out.push(arr[idx - d].key); if (out.length < 6 && arr[idx + d] && arr[idx + d].key !== e.key) out.push(arr[idx + d].key); }
+    return out;
+  },
+  _lvhMatchSeed(season, aKey, bKey) { return 'lvhm:' + season + ':' + aKey + '~' + bKey; },
+  get lvhHist() {
+    void this._tick; if (!this.lvhHistKey) return null;
+    const board = this.lvhBoard, e = board.entries.find((x) => x.key === this.lvhHistKey); if (!e) return null;
+    const matches = this._lvhOpponents(e, board).map((ok) => {
+      const opp = board.entries.find((x) => x.key === ok); if (!opp) return null;
+      const fa = this._lvhFighter(e), fb = this._lvhFighter(opp);
+      const res = luanVo(fa.combatant, fb.combatant, this._lvhMatchSeed(board.season, e.key, ok));
+      return { oppKey: ok, oppName: opp.name, oppSub: opp.sub, oppFace: opp.face, oppHan: opp.han, oppColor: opp.color, oppHeColor: opp.heColor, oppHeHan: opp.heHan, oppCL: opp.chienLuc, oppRank: opp.rank, won: res.winnerName === e.name, marginLabel: luanVoMarginLabel(res.margin) };
+    }).filter(Boolean);
+    const wn = matches.filter((m) => m.won).length;
+    return { entry: e, matches, w: wn, l: matches.length - wn };
+  },
+  lvhReplayMatch(oppKey) {
+    const board = this.lvhBoard, e = board.entries.find((x) => x.key === this.lvhHistKey), opp = board.entries.find((x) => x.key === oppKey);
+    if (!e || !opp) return;
+    const fa = this._lvhFighter(e), fb = this._lvhFighter(opp);
+    const res = luanVoCycle(fa.combatant, fb.combatant, this._lvhMatchSeed(board.season, e.key, oppKey));
+    this.luanVoFight = { a: fa.fd, b: fb.fd, rounds: res.rounds, aWon: res.winner === 'a', winnerName: res.winnerName, marginLabel: res.marginLabel, heFactor: res.heFactor, loaiFactor: res.loaiFactor };
+    this.luanVoRound = 0; this._lvPlay();
+  },
+  lvhPickFromHist() { if (this.lvhHistKey) { this.lvhPick = this.lvhHistKey; this.lvhCloseHist(); this.showToast('Đã chọn đấu sĩ · bấm Tỉ Thí ở đối thủ trên bảng.'); } },
   // ===== ĐÃI KHÁCH CÁC: bang giao bot-sect (Tiếp Đãi / Tặng Lễ -> giao tình -> Kết Minh). Selection ở store (genRoster), thưởng side-only. =====
   daiKhachOpen: false,
   openDaiKhach() { this.daiKhachOpen = true; },
