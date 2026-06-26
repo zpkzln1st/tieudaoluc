@@ -5959,23 +5959,33 @@
           <!-- CHỌN HERO -->
           <template x-if="phase==='hero'">
             <div>
-              <div class="text-center mb-4"><div class="fserif text-2xl gold-text">Chọn Mộng Thân</div><div class="text-[12px] text-slate-500">Mỗi mộng thân có Tâm Pháp + dị bẩm + bộ bài khởi đầu riêng.</div></div>
+              <div class="text-center mb-5"><div class="fserif text-3xl gold-text">Chọn Mộng Thân</div><div class="text-[12.5px] text-slate-500 mt-0.5">Mỗi mộng thân một Tâm Pháp, một dị bẩm, một lối chơi — chọn kẻ hợp ý ngươi.</div></div>
               <div class="grid sm:grid-cols-3 gap-4">
                 <template x-for="h in HEROES" :key="h.id">
-                  <div class="panel rounded-2xl p-4 border hover:border-cyan/50 transition cursor-pointer" :style="'border-color:'+heColor(h.he)+'44'" @click="startRun(h)">
-                    <div class="flex items-center gap-3 mb-2.5">
-                      <span class="dtm-portwrap w-24 h-32 rounded-lg flex items-center justify-center fserif text-5xl shrink-0" :style="'color:'+heColor(h.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(h.he)+'33,transparent 70%);border:1px solid '+heColor(h.he)+'55'"><span x-text="h.han"></span><img :src="heroImg(h.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
-                      <div>
-                        <div class="fserif text-lg" :style="'color:'+heColor(h.he)" x-text="h.name"></div>
-                        <div class="text-[11px] text-slate-500" x-text="'Tâm Pháp '+heName(h.he)+' · HP '+h.hp+' · Khí '+h.khi"></div>
+                  <div class="panel rounded-2xl border-2 overflow-hidden cursor-pointer transition hover:-translate-y-1 flex flex-col group" :style="'border-color:'+heColor(h.he)+'55'" @click="startRun(h)">
+                    <!-- KHUNG CHÂN DUNG cố định 4:5 -->
+                    <div class="dtm-portwrap relative w-full" style="aspect-ratio:4/5">
+                      <span class="absolute inset-0 flex items-center justify-center fserif" style="font-size:96px;z-index:0" :style="'color:'+heColor(h.he)" x-text="h.han"></span>
+                      <img :src="heroImg(h.id)" class="dtm-port group-hover:scale-105 transition" style="transition-duration:.4s" alt="" onerror="this.style.display='none'">
+                      <span class="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center fserif text-[16px]" :style="'color:'+heColor(h.he)+';background:rgba(7,11,20,.72);border:1px solid '+heColor(h.he)+'66'" x-text="({kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土'})[h.he]||''"></span>
+                      <div class="absolute inset-x-0 bottom-0 p-3 z-10" style="background:linear-gradient(transparent,rgba(7,11,20,.5) 30%,rgba(7,11,20,.96))">
+                        <div class="fserif text-xl leading-tight" :style="'color:'+heColor(h.he)+';text-shadow:0 2px 7px #000'" x-text="h.name"></div>
+                        <div class="text-[11px] text-slate-300" x-text="'Tâm Pháp '+heName(h.he)"></div>
                       </div>
                     </div>
-                    <div class="rounded-lg bg-ink3/60 p-2 mb-2 border border-slate-700/50">
-                      <div class="text-[11px] fserif" :style="'color:'+heColor(h.he)" x-text="'⟡ '+h.passive"></div>
-                      <div class="text-[10.5px] text-slate-400 mt-0.5" x-text="h.passiveDesc"></div>
+                    <!-- THÔNG TIN -->
+                    <div class="p-3.5 flex flex-col gap-2 flex-1">
+                      <div class="flex gap-2">
+                        <span class="flex-1 text-center py-1 rounded-lg bg-ink3/60 border border-slate-700/50 text-[11.5px]"><span class="text-slate-500">HP</span> <b class="text-jade" x-text="h.hp"></b></span>
+                        <span class="flex-1 text-center py-1 rounded-lg bg-ink3/60 border border-slate-700/50 text-[11.5px]"><span class="text-slate-500">Khí</span> <b class="text-cyan" x-text="h.khi"></b></span>
+                      </div>
+                      <div class="rounded-lg bg-ink3/60 p-2.5 border" :style="'border-color:'+heColor(h.he)+'33'">
+                        <div class="text-[12.5px] fserif flex items-center gap-1.5" :style="'color:'+heColor(h.he)"><span>⟡</span><span x-text="h.passive"></span></div>
+                        <div class="text-[11px] text-slate-400 mt-1 leading-snug" x-text="h.passiveDesc"></div>
+                      </div>
+                      <div class="text-[11.5px] text-slate-400 italic leading-relaxed flex-1" x-text="h.desc"></div>
+                      <button class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
                     </div>
-                    <div class="text-[10.5px] text-slate-500 italic leading-snug" x-text="h.desc"></div>
-                    <div class="mt-2.5 text-center text-[12px] py-1.5 rounded-lg bg-gradient-to-r from-jade/80 to-cyan/80 text-ink font-bold">Nhập mộng với mộng thân này</div>
                   </div>
                 </template>
               </div>
