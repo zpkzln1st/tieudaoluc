@@ -5211,8 +5211,11 @@
 
           <!-- MODAL KẾT QUẢ THIÊN KIẾP (độ kiếp thành / tổn đạo / tử vong) -->
           <template x-if="g.tmKiepResult">
-            <div class="fixed inset-0 z-[110] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click="g.closeKiepResult()">
+            <div class="fixed inset-0 z-[110] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click.self="g.closeKiepResult()">
               <div @click.stop class="panel rounded-2xl w-[460px] max-w-full overflow-hidden border shadow-2xl" :style="'border-color:'+g.tmKiepTone+'66'">
+                <template x-if="g.tmKiepResult.cineIdx!=null">
+                  <div class="relative h-[150px]"><img :src="g.tmBreakCineImg(g.tmKiepResult.cineIdx)" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'"><div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(15,21,33,.12),rgba(15,21,33,.92))"></div></div>
+                </template>
                 <div class="px-5 py-3 border-b border-slate-800 flex items-center gap-3" :style="'background:linear-gradient(90deg,'+g.tmKiepTone+'18,transparent)'">
                   <span class="w-9 h-9 rounded-full flex items-center justify-center fserif text-[18px] shrink-0" :style="'color:'+g.tmKiepTone+';border:1px solid '+g.tmKiepTone+'66;background:'+g.tmKiepTone+'1a'">劫</span>
                   <div class="min-w-0">
@@ -5230,6 +5233,26 @@
                 </div>
                 <div class="px-5 pb-4 flex justify-center">
                   <button @click="g.closeKiepResult()" class="px-9 py-1.5 rounded-lg text-[12.5px] font-bold fserif text-white transition hover:brightness-110" :style="'background:'+g.tmKiepTone" x-text="'Khép Lại'"></button>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- CINEMATIC ĐỘT PHÁ CẢNH GIỚI (đột phá thường — chúc mừng phá cảnh; ảnh theo cảnh giới đích, glow tĩnh) -->
+          <template x-if="g.tmBreakCine">
+            <div class="fixed inset-0 z-[115] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="g.closeBreakCine()">
+              <div @click.stop class="relative w-[560px] max-w-full rounded-2xl overflow-hidden border shadow-2xl" :style="'border-color:'+g.tmBreakCine.color+'66; box-shadow:0 0 0 1px '+g.tmBreakCine.color+'33, 0 0 40px -8px '+g.tmBreakCine.color+'66'">
+                <div class="relative h-[280px] sm:h-[330px]">
+                  <img :src="g.tmBreakCineImg(g.tmBreakCine.idx)" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'">
+                  <div class="absolute inset-0" style="background:radial-gradient(ellipse at 50% 28%, transparent 35%, rgba(7,11,20,.5) 78%), linear-gradient(180deg, rgba(7,11,20,.18), rgba(7,11,20,.96))"></div>
+                  <div class="absolute inset-x-0 bottom-0 p-5 text-center">
+                    <div class="text-[10.5px] tracking-[0.34em] uppercase mb-2" :style="'color:'+g.tmBreakCine.color+'cc'">Đột Phá Cảnh Giới</div>
+                    <div class="gold-text fserif text-[32px] sm:text-[38px] leading-none mb-1.5" style="font-family:'Lora',serif; font-weight:700; filter:drop-shadow(0 2px 7px rgba(0,0,0,.92))" x-text="g.tmBreakCine.toName"></div>
+                    <div class="text-[13px] text-slate-200" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.95))"><b :style="'color:'+g.tmBreakCine.color" x-text="g.tmBreakCine.who"></b> phá cảnh, đạo hạnh thêm tinh tiến</div>
+                  </div>
+                </div>
+                <div class="p-3.5 flex justify-center" style="background:#0f1521">
+                  <button @click="g.closeBreakCine()" class="px-10 py-1.5 rounded-lg text-[12.5px] font-bold fserif text-ink hover:brightness-110 transition" :style="'background:'+g.tmBreakCine.color">Khép Lại</button>
                 </div>
               </div>
             </div>

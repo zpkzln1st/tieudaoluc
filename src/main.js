@@ -576,10 +576,15 @@ const gameStore = {
   tmKiepResult: null,
   closeKiepResult() { this.tmKiepResult = null; },
   get tmKiepTone() { const r = this.tmKiepResult; if (!r) return '#94a3b8'; return r.outcome === 'survive' ? '#fbbf24' : (r.outcome === 'death' ? '#fb7185' : '#f5b942'); },
+  // ----- CINEMATIC ĐỘT PHÁ CẢNH GIỚI -----
+  tmBreakCine: null,
+  closeBreakCine() { this.tmBreakCine = null; },
+  // ảnh cinematic theo cảnh giới ĐÍCH: cine_pha_canh_t<realm+1> (t2 Trúc Cơ ... t10 Đắc Đạo). onerror tự ẩn -> lộ nền gradient.
+  tmBreakCineImg(idx) { return 'images/tongmon/cinematic/cine_pha_canh_t' + ((idx || 0) + 1) + '.webp'; },
   tmDoBreakthrough(uid) {
     const r = doBreakthrough(this.state, uid);
-    if (r && r.kiep) { this.tmSave(); this._tick++; if (r.kiep.outcome === 'death') this.closeDisciple(); this.tmKiepResult = r.kiep; return true; }
-    if (r.ok) { this.tmSave(); this.showToast('★ ' + r.msg); } else this.showToast(r.msg);
+    if (r && r.kiep) { this.tmSave(); this._tick++; if (r.kiep.outcome === 'death') this.closeDisciple(); else if (r.kiep.outcome === 'survive') { const d = this.tm.disciples.find((x) => x.uid === uid); if (d) r.kiep.cineIdx = d.realm; } this.tmKiepResult = r.kiep; return true; }
+    if (r.ok) { this.tmSave(); const d = this.tm.disciples.find((x) => x.uid === uid); if (d) this.tmBreakCine = { who: d.name, toName: r.realm, idx: d.realm, color: this.tmRealmColor(d) }; else this.showToast('★ ' + r.msg); } else this.showToast(r.msg);
     return r.ok;
   },
   // Cảnh Giới Phổ — bảng tra toàn hệ thống cảnh giới (10 đại × tiểu + trần theo tư chất).
