@@ -5871,6 +5871,313 @@
         </div>
       </template>
 
+      <!-- ===== VIEW: ĐĂNG TIÊN MỘNG (game thẻ bài, cách ly) ===== -->
+      <style>
+        .dtm-root .bar{ height:100%; border-radius:9999px; transition:width .35s ease; }
+        .dtm-root .glowstatic{ box-shadow:0 0 0 1px var(--c,#f5b942)55, 0 0 26px -8px var(--c,#f5b942); }
+        .dtm-root .card{ width:122px; height:176px; border-radius:11px; position:relative; cursor:pointer; flex:0 0 auto; background:linear-gradient(180deg,#0f1726,#0a0f1b); border:1px solid var(--c); overflow:hidden; box-shadow:0 0 0 1px #00000088, 0 6px 16px -8px #000, inset 0 0 20px -15px var(--c); transition:transform .14s, box-shadow .14s; }
+        .dtm-root .card:hover.playable{ transform:translateY(-16px); box-shadow:0 0 0 1px var(--c), 0 0 22px -3px var(--c), 0 16px 28px -10px #000; z-index:5; }
+        .dtm-root .card.unplayable{ filter:grayscale(.55) brightness(.6); cursor:not-allowed; }
+        .dtm-root .card-art{ height:68px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
+        .dtm-root .card-han{ font-family:'Lora',serif; font-size:40px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
+        .dtm-root .cost{ position:absolute; top:5px; left:5px; width:23px; height:23px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12.5px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee; z-index:2; }
+        .dtm-root .rar{ position:absolute; top:6px; right:6px; width:11px; height:11px; border-radius:9999px; background:var(--r); box-shadow:0 0 7px -1px var(--r); z-index:2; }
+        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:11px; text-align:center; line-height:1.05; padding:5px 3px 1px; color:#f1f5f9; }
+        .dtm-root .ctype{ text-align:center; font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:var(--c); opacity:.8; }
+        .dtm-root .cdesc{ font-size:9px; line-height:1.25; color:#cbd5e1; padding:3px 6px; text-align:center; }
+        .dtm-root .khi-pip{ width:15px; height:15px; border-radius:9999px; border:1px solid #155e75; }
+        .dtm-root .khi-pip.on{ background:radial-gradient(circle at 35% 30%,#a5f3fc,#0891b2); border-color:#22d3ee; box-shadow:0 0 7px -1px #22d3ee; }
+        .dtm-root .pill{ font-size:10px; padding:1px 7px; border-radius:9999px; border:1px solid; font-weight:600; display:inline-block; }
+        .dtm-root .node{ width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:20px; border:1px solid; position:relative; transition:transform .12s; }
+        .dtm-root .node.pick{ cursor:pointer; } .dtm-root .node.pick:hover{ transform:scale(1.12); }
+        .dtm-root .node.locked{ opacity:.34; } .dtm-root .node.done{ opacity:.5; }
+        .dtm-root .relic{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:17px; border:1px solid #f5b94255; color:#f5b942; background:#f5b94212; cursor:default; }
+        .dtm-root .shake{ animation:dtmShk .26s; } @keyframes dtmShk{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 85%{transform:translateX(-3px)} }
+        .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
+        @keyframes dtmFlt{ 0%{opacity:0;transform:translateY(8px) scale(.8)} 25%{opacity:1} 100%{opacity:0;transform:translateY(-30px) scale(1.15)} }
+      </style>
+      <template x-if="$store.game.view==='dangTienMong'">
+        <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px]" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢</span>
+              <div><div class="fserif text-lg gold-text leading-none">Đăng Tiên Mộng</div><div class="text-[10px] text-slate-500 -mt-0.5">登仙夢 · mộng cảnh luyện chiêu</div></div>
+            </div>
+            <div class="flex items-center gap-3 text-[12px]">
+              <span class="text-slate-400">Mộng sâu nhất <b class="text-gold" x-text="'Tầng '+deepest"></b></span>
+              <template x-if="run"><span class="text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="mongNgan"></b> · HP <b class="text-jade" x-text="run.hp+'/'+run.maxHp"></b></span></template>
+            </div>
+          </div>
+
+          <!-- SẢNH -->
+          <template x-if="phase==='lobby'">
+            <div>
+              <div class="rounded-2xl overflow-hidden border border-violet-500/30 mb-4 relative" style="background:linear-gradient(120deg,#1a1530,#0c1322)">
+                <div class="absolute inset-0 opacity-25" style="background:radial-gradient(circle at 78% 30%, #a78bfa66, transparent 55%)"></div>
+                <div class="relative p-7">
+                  <div class="text-[11px] tracking-[0.34em] uppercase text-violet-300/80 mb-1">Hoàng Lương Trầm · giấc mộng kê vàng</div>
+                  <div class="fserif text-4xl gold-text mb-2" style="filter:drop-shadow(0 0 16px #f5b94233)">Đăng Tiên Mộng</div>
+                  <p class="text-slate-300 text-[13px] max-w-xl mb-1">Gối đầu lên Hoàng Lương Trầm, thần thức rơi vào mộng cảnh kết từ tàn niệm võ học tiền nhân. Võ học cổ nhân hóa thành chiêu trong tay; cao thủ đã khuất chắn lối phía trước.</p>
+                  <p class="text-violet-300/70 text-[11.5px] italic mb-5">Thân thể vẫn nằm ở Tàng Kinh Các — thắng thua chỉ là mộng, chỉ <b>lĩnh ngộ</b> theo ngươi tỉnh giấc.</p>
+                  <div class="flex items-center gap-4 flex-wrap">
+                    <button @click="phase='hero'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa">Nhập Mộng ⟶</button>
+                    <div class="text-[12px] text-slate-400">Mộng sâu nhất: <b class="text-gold" x-text="'Tầng '+deepest"></b> · <span class="text-slate-600">cách ly tuyệt đối — không phạt thân thật</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-3 gap-3">
+                <template x-for="b in lobbyBlurbs" :key="b.t">
+                  <div class="panel rounded-xl p-3.5"><div class="fserif text-[14px] mb-1" :style="'color:'+b.c" x-text="b.t"></div><div class="text-[11.5px] text-slate-400 leading-snug" x-text="b.d"></div></div>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- CHỌN HERO -->
+          <template x-if="phase==='hero'">
+            <div>
+              <div class="text-center mb-4"><div class="fserif text-2xl gold-text">Chọn Mộng Thân</div><div class="text-[12px] text-slate-500">Mỗi mộng thân có Tâm Pháp + dị bẩm + bộ bài khởi đầu riêng.</div></div>
+              <div class="grid sm:grid-cols-3 gap-4">
+                <template x-for="h in HEROES" :key="h.id">
+                  <div class="panel rounded-2xl p-4 border hover:border-cyan/50 transition cursor-pointer" :style="'border-color:'+heColor(h.he)+'44'" @click="startRun(h)">
+                    <div class="flex items-center gap-3 mb-2.5">
+                      <span class="w-16 h-20 rounded-lg flex items-center justify-center fserif text-4xl shrink-0" :style="'color:'+heColor(h.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(h.he)+'33,transparent 70%);border:1px solid '+heColor(h.he)+'55'" x-text="h.han"></span>
+                      <div>
+                        <div class="fserif text-lg" :style="'color:'+heColor(h.he)" x-text="h.name"></div>
+                        <div class="text-[11px] text-slate-500" x-text="'Tâm Pháp '+heName(h.he)+' · HP '+h.hp+' · Khí '+h.khi"></div>
+                      </div>
+                    </div>
+                    <div class="rounded-lg bg-ink3/60 p-2 mb-2 border border-slate-700/50">
+                      <div class="text-[11px] fserif" :style="'color:'+heColor(h.he)" x-text="'⟡ '+h.passive"></div>
+                      <div class="text-[10.5px] text-slate-400 mt-0.5" x-text="h.passiveDesc"></div>
+                    </div>
+                    <div class="text-[10.5px] text-slate-500 italic leading-snug" x-text="h.desc"></div>
+                    <div class="mt-2.5 text-center text-[12px] py-1.5 rounded-lg bg-gradient-to-r from-jade/80 to-cyan/80 text-ink font-bold">Nhập mộng với mộng thân này</div>
+                  </div>
+                </template>
+              </div>
+              <div class="text-center mt-4"><button @click="phase='lobby'" class="text-[12px] text-slate-500 hover:text-slate-300">‹ Về sảnh</button></div>
+            </div>
+          </template>
+
+          <!-- BẢN ĐỒ MỘNG -->
+          <template x-if="phase==='map'">
+            <div>
+              <div class="panel rounded-xl p-2.5 mb-3 flex items-center gap-3 flex-wrap">
+                <span class="w-9 h-11 rounded-md flex items-center justify-center fserif text-2xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'" x-text="run.hero.han"></span>
+                <div class="min-w-[150px] flex-1">
+                  <div class="flex items-center justify-between text-[11px]"><span class="fserif" :style="'color:'+heColor(run.hero.he)" x-text="run.hero.name"></span><span class="text-slate-400" x-text="run.hp+' / '+run.maxHp+' HP'"></span></div>
+                  <div class="h-3 rounded-full bg-ink3 overflow-hidden border border-slate-700/60 mt-0.5"><div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*run.hp/run.maxHp)+'%'"></div></div>
+                </div>
+                <div class="flex gap-1.5 items-center">
+                  <template x-for="r in run.relics" :key="r.id"><span class="relic" :title="r.name+' — '+r.desc" x-text="r.han"></span></template>
+                  <template x-if="!run.relics.length"><span class="text-[10px] text-slate-600 italic">chưa có di vật</span></template>
+                </div>
+                <button @click="openDeck=true" class="text-[11px] px-2.5 py-1 rounded bg-ink3 border border-slate-600 text-slate-300 hover:border-cyan" x-text="'Bộ Bài ('+run.deck.length+')'"></button>
+              </div>
+              <div class="text-center text-[12px] text-slate-500 mb-2">Tầng <b class="text-gold" x-text="mapTier+1"></b>/<span x-text="map.length"></span> — chọn một lối đi</div>
+              <div class="panel rounded-2xl p-4">
+                <template x-for="(row,ri) in mapView" :key="ri">
+                  <div class="flex items-center justify-center gap-6 sm:gap-10 py-2 relative">
+                    <template x-for="(nd,ci) in row.nodes" :key="ci">
+                      <div class="flex flex-col items-center gap-1">
+                        <div class="node" :class="row.state" :style="nodeStyle(nd,row.state)" @click="row.state==='pick' && pickNode(nd)" x-text="nodeHan(nd.type)"></div>
+                        <span class="text-[9px]" :class="row.state==='pick'?'text-slate-300':'text-slate-600'" x-text="nodeLabel(nd.type)"></span>
+                      </div>
+                    </template>
+                    <span x-show="row.state==='pick'" class="absolute -left-1 sm:left-2 text-[10px] text-gold fserif">Lối hiện tại ▸</span>
+                  </div>
+                </template>
+              </div>
+              <div class="text-center mt-3"><button @click="quitRun()" class="text-[11px] text-slate-600 hover:text-rose-400">Tỉnh giấc (bỏ mộng — không phạt thân thật)</button></div>
+            </div>
+          </template>
+
+          <!-- ĐẤU -->
+          <template x-if="phase==='battle'">
+            <div>
+              <div class="flex gap-2.5 justify-center mb-2.5 flex-wrap items-stretch">
+                <template x-for="(e,ei) in enemies" :key="ei">
+                  <div class="panel rounded-2xl p-3 relative transition" :class="(e.hit?'shake ':'')+(e.hp<=0?'opacity-40 ':'cursor-pointer ')"
+                       :style="'flex:1 1 0;min-width:152px;max-width:330px;'+(ei===tgtIdx()&&e.hp>0?'border-color:#f5b942;box-shadow:0 0 18px -5px #f5b942':'border-color:'+heColor(e.he)+'44')"
+                       @click="e.hp>0&&(targetIdx=ei)">
+                    <div x-show="ei===tgtIdx()&&e.hp>0" class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] fserif text-gold px-1.5 rounded bg-ink2 border border-gold/40 whitespace-nowrap">⌖ Mục tiêu</div>
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-14 h-16 rounded-lg shrink-0 flex items-center justify-center fserif text-3xl relative" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'" x-text="e.han">
+                        <template x-for="f in e.floats" :key="f.id"><span class="dmgfloat text-rose-300 text-lg" style="top:24%;left:28%" x-text="f.v"></span></template>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1 flex-wrap">
+                          <div class="fserif text-[13px] leading-tight" :style="'color:'+heColor(e.he)" x-text="e.name"></div>
+                          <span x-show="e.elite" class="pill text-amber-300 border-amber-500/50 bg-amber-500/10">Tinh Anh</span>
+                        </div>
+                        <div class="mt-1 h-4 rounded-full bg-ink3 overflow-hidden relative border border-slate-700/60">
+                          <div class="bar bg-gradient-to-r from-rose-700 to-rose-500" :style="'width:'+(100*Math.max(0,e.hp)/e.maxHp)+'%'"></div>
+                          <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white" x-text="Math.max(0,e.hp)+'/'+e.maxHp"></div>
+                        </div>
+                        <div class="flex items-center gap-1 mt-1 flex-wrap">
+                          <span class="pill fserif" :style="intentStyle(e)" x-text="e.hp>0?intentText(e):'Đã bại'"></span>
+                          <span x-show="e.block>0" class="pill text-sky-300 border-sky-600/40 bg-sky-900/40" x-text="'Hộ '+e.block"></span>
+                          <span x-show="e.poison>0" class="pill text-emerald-300 border-emerald-600/40 bg-emerald-900/40" x-text="'Độc '+e.poison"></span>
+                          <span x-show="e.weak>0" class="pill text-violet-300 border-violet-600/40 bg-violet-900/30" x-text="'Suy Yếu '+e.weak"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+
+              <div class="panel rounded-2xl p-3 mb-2 border border-jade/30" :class="playerHit?'shake':''">
+                <div class="flex items-center gap-3">
+                  <span class="w-11 h-14 rounded-md flex items-center justify-center fserif text-2xl shrink-0 relative" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'" x-text="run.hero.han">
+                    <template x-for="f in playerFloats" :key="f.id"><span class="dmgfloat text-rose-400 text-xl" style="top:20%;left:18%" x-text="f.v"></span></template>
+                  </span>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between text-[11px] mb-1">
+                      <span class="text-slate-300 fserif" x-text="run.hero.name"></span>
+                      <span class="text-slate-400" x-text="run.hp+' / '+run.maxHp+' HP'"></span>
+                    </div>
+                    <div class="h-4 rounded-full bg-ink3 overflow-hidden relative border border-slate-700/60">
+                      <div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*Math.max(0,run.hp)/run.maxHp)+'%'"></div>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-1.5 flex-wrap min-h-[18px]">
+                      <span x-show="player.block>0" class="pill text-sky-200 border-sky-500/50 bg-sky-900/40" x-text="'⛨ Hộ Thể '+player.block"></span>
+                      <span x-show="player.str>0" class="pill text-amber-300 border-amber-500/50 bg-amber-500/10" x-text="'Lực +'+player.str"></span>
+                      <span x-show="player.dodge" class="pill text-cyan border-cyan/40 bg-cyan/10">Né đòn kế</span>
+                      <span x-show="player.block<=0&&player.str<=0&&!player.dodge" class="text-[10px] text-slate-600 italic">— chưa có trạng thái —</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-col items-center shrink-0">
+                    <div class="flex gap-1"><template x-for="i in maxKhi" :key="i"><span class="khi-pip" :class="i<=khi?'on':''"></span></template></div>
+                    <div class="text-[10px] text-cyan mt-1" x-text="'Khí '+khi+'/'+maxKhi"></div>
+                  </div>
+                  <button @click="endTurn()" class="px-4 py-2 rounded-lg bg-ink3 border border-slate-600 hover:border-gold text-slate-200 text-[12.5px] font-bold transition shrink-0">Kết Lượt ⟳</button>
+                </div>
+                <div class="flex gap-1 mt-2" x-show="run.relics.length">
+                  <template x-for="r in run.relics" :key="r.id"><span class="relic" style="width:26px;height:26px;font-size:13px" :title="r.name+' — '+r.desc" x-text="r.han"></span></template>
+                </div>
+              </div>
+
+              <div class="flex gap-2 justify-center flex-wrap min-h-[184px] items-end py-1 overflow-x-auto">
+                <template x-for="(c,i) in hand" :key="c.uid">
+                  <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
+                    <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
+                    <div class="card-art"><span class="card-han" x-text="c.han"></span></div>
+                    <div class="ctitle" x-text="c.name"></div>
+                    <div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div>
+                    <div class="cdesc" x-text="c.desc"></div>
+                  </div>
+                </template>
+                <template x-if="!hand.length"><div class="text-slate-600 text-sm self-center">Hết bài — Kết Lượt.</div></template>
+              </div>
+              <div class="flex justify-between text-[10px] text-slate-500 mt-1 px-1"><span x-text="'Rút '+drawPile.length+' · Bỏ '+discard.length+(enemies.length>1?' · '+aliveCount()+' địch còn lại':'')"></span><span class="text-slate-600 italic" x-text="log"></span></div>
+            </div>
+          </template>
+
+          <!-- THƯỞNG -->
+          <template x-if="phase==='reward'">
+            <div class="panel rounded-2xl border border-gold/40 p-6 text-center">
+              <div class="fserif text-2xl gold-text mb-1">Vượt ải — Lĩnh Ngộ một chiêu</div>
+              <div class="text-[12px] text-slate-500 mb-1" x-text="'+'+rewardGold+' Mộng Ngân'"></div>
+              <div class="text-[11px] text-slate-500 mb-5">Thêm 1 thẻ vào bộ bài (hoặc bỏ qua).</div>
+              <div class="flex gap-4 justify-center flex-wrap mb-4">
+                <template x-for="(c,i) in rewardCards" :key="i">
+                  <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
+                    <div class="cost" x-text="c.cost"></div><div class="rar"></div>
+                    <div class="card-art"><span class="card-han" x-text="c.han"></span></div>
+                    <div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div>
+                  </div>
+                </template>
+              </div>
+              <button @click="afterNode()" class="px-6 py-1.5 rounded-lg bg-ink3 border border-slate-600 text-slate-400 text-[12px] hover:border-slate-400">Bỏ qua</button>
+            </div>
+          </template>
+
+          <!-- SỰ KIỆN -->
+          <template x-if="phase==='event'">
+            <div class="panel rounded-2xl border border-violet-500/40 p-6 max-w-xl mx-auto">
+              <div class="fserif text-xl text-violet-300 mb-1" x-text="event.title"></div>
+              <p class="text-[12.5px] text-slate-300 italic leading-relaxed mb-4" x-text="event.text"></p>
+              <div class="space-y-2">
+                <template x-for="(o,i) in event.opts" :key="i">
+                  <button @click="resolveEvent(o)" class="w-full text-left px-4 py-2.5 rounded-lg bg-ink3/70 border border-slate-700 hover:border-violet-400 text-slate-200 text-[12.5px] transition" x-text="o.label"></button>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- MỘNG THỊ -->
+          <template x-if="phase==='shop'">
+            <div class="panel rounded-2xl border border-gold/40 p-6">
+              <div class="flex items-center justify-between mb-4"><div class="fserif text-xl gold-text">Mộng Thị</div><div class="text-[12px] text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="mongNgan"></b></div></div>
+              <div class="grid sm:grid-cols-3 gap-3 mb-4">
+                <template x-for="(s,i) in shopItems" :key="i">
+                  <div class="panel rounded-xl p-3 text-center border" :style="'border-color:'+heColor(s.card.he)+'44'">
+                    <div class="flex justify-center mb-2"><div class="card" style="width:104px;height:150px;cursor:default" :style="'--c:'+heColor(s.card.he)+';--r:'+rarColor(s.card.rar)">
+                      <div class="cost" x-text="s.card.cost"></div><div class="rar"></div>
+                      <div class="card-art"><span class="card-han" style="font-size:34px" x-text="s.card.han"></span></div>
+                      <div class="ctitle" x-text="s.card.name"></div><div class="ctype" x-text="typeLabel(s.card)"></div><div class="cdesc" x-text="s.card.desc"></div>
+                    </div></div>
+                    <button @click="buyShop(i)" :disabled="mongNgan<s.price||s.sold" class="px-4 py-1 rounded-lg text-[12px] font-bold transition" :class="(mongNgan>=s.price&&!s.sold)?'bg-gold/80 text-ink hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'" x-text="s.sold?'Đã mua':(s.price+' Mộng Ngân')"></button>
+                  </div>
+                </template>
+              </div>
+              <div class="flex items-center justify-center gap-3">
+                <button @click="buyHeal()" :disabled="mongNgan<40||run.hp>=run.maxHp" class="px-4 py-1.5 rounded-lg text-[12px]" :class="(mongNgan>=40&&run.hp<run.maxHp)?'bg-jade/70 text-ink font-bold':'bg-slate-800 text-slate-500 border border-slate-700'">Dưỡng thương +18 HP (40)</button>
+                <button @click="afterNode()" class="px-6 py-1.5 rounded-lg bg-ink3 border border-slate-600 text-slate-300 text-[12px] hover:border-slate-400">Rời Mộng Thị</button>
+              </div>
+            </div>
+          </template>
+
+          <!-- NGHỈ -->
+          <template x-if="phase==='rest'">
+            <div class="panel rounded-2xl border border-emerald-500/40 p-7 max-w-md mx-auto text-center">
+              <div class="fserif text-xl text-emerald-300 mb-1">Tĩnh Thất</div>
+              <p class="text-[12px] text-slate-400 mb-5">Một khắc an tĩnh trong mộng cảnh.</p>
+              <div class="flex gap-3 justify-center flex-wrap">
+                <button @click="restHeal()" class="px-5 py-2.5 rounded-xl bg-emerald-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Điều Tức <span class="text-emerald-200" x-text="'(+'+Math.round(run.maxHp*0.3)+' HP)'"></span></button>
+                <button @click="restLearn()" class="px-5 py-2.5 rounded-xl bg-cyan-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Tham Ngộ (+1 thẻ ngẫu nhiên)</button>
+              </div>
+            </div>
+          </template>
+
+          <!-- THẮNG / THUA -->
+          <template x-if="phase==='win'">
+            <div class="panel rounded-2xl border border-gold/50 p-10 text-center">
+              <div class="fserif text-4xl gold-text mb-2" style="filter:drop-shadow(0 0 18px #f5b94244)">Đăng Tiên!</div>
+              <p class="text-slate-300 mb-1">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
+              <p class="text-[12px] text-slate-500 mb-6" x-text="'Thu hoạch: '+mongNgan+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
+              <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+            </div>
+          </template>
+          <template x-if="phase==='lose'">
+            <div class="panel rounded-2xl border border-rose-600/50 p-10 text-center">
+              <div class="fserif text-4xl text-rose-400 mb-2">Mộng Tan</div>
+              <p class="text-slate-400 mb-1">Thần thức bị đánh bật khỏi mộng cảnh — giật mình tỉnh giấc ở Tàng Kinh Các.</p>
+              <p class="text-[12px] text-slate-600 mb-6">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
+              <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+            </div>
+          </template>
+
+          <template x-if="openDeck">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="openDeck=false">
+              <div class="panel rounded-2xl border border-cyan/30 p-5 max-w-3xl max-h-[85vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-3"><div class="fserif text-lg gold-text" x-text="'Bộ Bài ('+run.deck.length+')'"></div><button @click="openDeck=false" class="text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
+                <div class="flex flex-wrap gap-2 justify-center">
+                  <template x-for="(c,i) in run.deck" :key="i">
+                    <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
+                      <div class="cost" x-text="c.cost"></div><div class="rar"></div>
+                      <div class="card-art"><span class="card-han" x-text="c.han"></span></div>
+                      <div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
       <!-- ===== VIEW: PLACEHOLDER ===== -->
       <template x-if="$store.game.isPlaceholderView">
         <section class="panel rounded-lg p-10 text-center">
