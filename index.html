@@ -4868,7 +4868,7 @@
 
           <!-- MODAL LUẬN VÕ ĐƯỜNG (tỉ thí đệ tử — chọn đấu sĩ rồi chọn đối thủ) -->
           <template x-if="g.luanVoOpen">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeLuanVo()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="g.closeLuanVo()">
               <div @click.stop class="panel rounded-2xl w-[680px] max-w-full h-[640px] max-h-[92dvh] flex flex-col overflow-hidden border border-sky-600/40">
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.1),transparent)">
                   <div class="flex items-center gap-2.5">
@@ -4913,7 +4913,7 @@
               </div>
               <!-- ĐẤU LỤC (lịch sử đấu 1 đấu sĩ — bấm 1 trận để xem playback) -->
               <template x-if="g.lvhHist && !g.luanVoFight">
-                <div class="absolute inset-0 z-[4] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.lvhCloseHist()" x-data="{ get hi(){ return g.lvhHist } }">
+                <div class="absolute inset-0 z-[4] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="g.lvhCloseHist()" x-data="{ get hi(){ return g.lvhHist } }">
                   <div @click.stop class="panel rounded-2xl w-[560px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-sky-500/40">
                     <div class="flex items-start gap-3 px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.08),transparent)">
                       <span class="relative w-12 h-[58px] rounded-lg overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-lg" :style="'border-color:'+hi.entry.heColor+'55;color:'+hi.entry.heColor"><span x-text="hi.entry.han"></span><template x-if="hi.entry.face"><img :src="hi.entry.face" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template></span>
@@ -4954,7 +4954,7 @@
               </template>
               <!-- ĐÀI TỈ VÕ (cycle từng hiệp: HP + chiến báo) -->
               <template x-if="g.luanVoFight">
-                <div class="absolute inset-0 z-[5] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click="g.luanVoFightDone && g.closeLuanVoResult()">
+                <div class="absolute inset-0 z-[5] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click.self="g.luanVoFightDone && g.closeLuanVoResult()">
                   <div @click.stop class="panel rounded-2xl w-[720px] max-w-full h-[648px] max-h-[94vh] flex flex-col overflow-hidden border border-sky-500/45 shadow-2xl" x-data="{ f: $store.game.luanVoFight }">
                     <div class="flex items-center justify-between gap-2 px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.12),transparent)">
                       <div class="flex items-center gap-2.5">
