@@ -1141,6 +1141,12 @@ const gameStore = {
   get hieuUngEffects() {
     void this._tick;
     const active = [], passive = [];
+    // --- Sổ Tổng Lực: gộp % chiến đấu (Danh Hiệu + Vạn Vật Phổ) theo FIELD + flat (Linh Thú). KHÔNG gộp EXP/Hiệu Suất (per-skill) ---
+    const SUM_LABEL = { allPct: 'Toàn Chỉ Số', atkPct: 'Công Kích', defPct: 'Phòng Ngự', hpPct: 'Sinh Lực', critPct: 'Bạo Kích', spdPct: 'Tốc Độ', dodgePct: 'Né Tránh', dropPct: 'Tỉ Lệ Rơi', bacPct: 'Bạc Nhặt' };
+    const SUM_ORDER = ['allPct', 'atkPct', 'defPct', 'hpPct', 'critPct', 'spdPct', 'dodgePct', 'f_congKich', 'f_hoThe', 'f_sinhLuc', 'f_neTranh', 'f_menhTrung', 'dropPct', 'bacPct'];
+    const agg = {};
+    const addPct = (field, frac, seal, color) => { if (!frac) return; const e = agg[field] || (agg[field] = { key: field, label: SUM_LABEL[field] || field, val: 0, pct: true, sources: [] }); e.val += frac; if (!e.sources.some((s) => s.seal === seal)) e.sources.push({ seal, color }); };
+    const addFlat = (field, label, n, seal, color) => { if (!n) return; const k = 'f_' + field; const e = agg[k] || (agg[k] = { key: k, label, val: 0, pct: false, sources: [] }); e.val += n; if (!e.sources.some((s) => s.seal === seal)) e.sources.push({ seal, color }); };
     // Linh Thạch (buff hoạt động gather/craft hiện tại)
     if (this.actBuff) {
       const sk = this.currentSkill, lines = [];
@@ -1148,22 +1154,32 @@ const gameStore = {
       if (this.actBuff.effPct) lines.push('+' + this.actBuff.effPct + '% Hiệu Suất');
       active.push({ seal: '晶', color: '#60a5fa', name: 'Linh Thạch', src: 'Đang ' + (sk ? sk.name : 'tu luyện'), lines });
     }
-    // Linh Thú kề bên
+    // Linh Thú kề bên (stat flat → tổng lực + thẻ)
     const pet = this.activePetObj;
-    if (pet) { const b = this.activePetBonusApplied() || {}, lines = Object.keys(b).map((k) => '+' + this.fmt(b[k]) + ' ' + this.statLabelShort(k)); passive.push({ seal: '獸', color: this.petElColor(pet), name: 'Linh Thú · ' + this.petName(pet), src: 'Kề bên xuất chiến', lines: lines.length ? lines : ['Đồng hành cùng ngươi'] }); }
-    // Danh Hiệu
+    if (pet) { const b = this.activePetBonusApplied() || {}, pc = this.petElColor(pet), lines = Object.keys(b).map((k) => '+' + this.fmt(b[k]) + ' ' + this.statLabelShort(k)); Object.keys(b).forEach((k) => addFlat(k, this.statLabelShort(k), b[k], '獸', pc)); passive.push({ seal: '獸', color: pc, name: 'Linh Thú · ' + this.petName(pet), src: 'Kề bên xuất chiến', lines: lines.length ? lines : ['Đồng hành cùng ngươi'] }); }
+    // Danh Hiệu (% → tổng lực + thẻ)
     const tt = this.equippedTitleObj;
-    if (tt) { const txt = titleBonusText(tt); passive.push({ seal: '號', color: '#f5b942', name: 'Danh Hiệu · ' + tt.name, src: 'Đang đeo', lines: txt ? [txt] : ['Vinh danh giang hồ'] }); }
-    // Vạn Vật Phổ (codex Phổ Lực)
+    if (tt) { const txt = titleBonusText(tt); if (tt.bonus) Object.keys(tt.bonus).forEach((k) => addPct(k, tt.bonus[k], '號', '#f5b942')); passive.push({ seal: '號', color: '#f5b942', name: 'Danh Hiệu · ' + tt.name, src: 'Đang đeo', lines: txt ? txt.split(' · ') : ['Vinh danh giang hồ'] }); }
+    // Vạn Vật Phổ (codex Phổ Lực, % → tổng lực + thẻ)
     const cb = codexBonus(this.state), cbLines = [];
     if (cb.allPct) cbLines.push('+' + Math.round(cb.allPct * 100) + '% Toàn chỉ số');
     if (cb.atkPct) cbLines.push('+' + Math.round(cb.atkPct * 100) + '% Công Kích');
     if (cb.defPct) cbLines.push('+' + Math.round(cb.defPct * 100) + '% Phòng Ngự');
     if (cb.hpPct) cbLines.push('+' + Math.round(cb.hpPct * 100) + '% Sinh Lực');
+    ['allPct', 'atkPct', 'defPct', 'hpPct'].forEach((k) => addPct(k, cb[k], '譜', '#a78bfa'));
     if (cbLines.length) passive.push({ seal: '譜', color: '#a78bfa', name: 'Vạn Vật Phổ', src: 'Phổ Lực sưu tập', lines: cbLines });
-    // Nghề đã học
-    (this.professions || []).forEach((id) => { const n = NGHE.find((x) => x.id === id); if (n) { const sk = this.SKILLS[n.skill]; passive.push({ seal: '業', color: '#34d399', name: 'Nghề · ' + n.name, src: sk ? sk.name : '', lines: ['+' + n.exp + '% EXP', '+' + n.eff + '% Hiệu Suất'] }); } });
-    return { active, passive };
+    // Nghề đã học — GỘP thành 1 thẻ (mỗi nghề +EXP/+Hiệu Suất cho kỹ năng tương ứng, KHÔNG gộp vào tổng lực)
+    const profs = (this.professions || []).map((id) => NGHE.find((x) => x.id === id)).filter(Boolean);
+    if (profs.length) {
+      const allSame = profs.every((n) => n.exp === profs[0].exp && n.eff === profs[0].eff);
+      const src = allSame ? ('+' + profs[0].exp + '% EXP · +' + profs[0].eff + '% Hiệu Suất mỗi nghề') : 'Mỗi nghề tăng EXP & Hiệu Suất kỹ năng tương ứng';
+      passive.push({ seal: '業', color: '#34d399', name: 'Nghề · ' + profs.length + ' nghề', src, lines: profs.map((n) => n.name) });
+    }
+    // tổng hợp -> summary sắp theo SUM_ORDER
+    const summary = Object.values(agg)
+      .sort((a, b) => (SUM_ORDER.indexOf(a.key) + 1 || 99) - (SUM_ORDER.indexOf(b.key) + 1 || 99))
+      .map((e) => ({ label: e.label, text: e.pct ? ('+' + (Math.round(e.val * 1000) / 10) + '%') : ('+' + this.fmt(Math.round(e.val))), sources: e.sources }));
+    return { active, passive, summary };
   },
   get canClaimDaily() { return this.state.login.lastDay !== todayStr(); },
   get loginStreak() { return this.state.login.streak || 0; },

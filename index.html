@@ -6640,18 +6640,40 @@
           <button @click="$store.game.closeHieuUng()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
         </div>
         <div class="p-4 overflow-y-auto space-y-3.5">
+          <!-- Sổ Tổng Lực: gộp bonus theo chỉ số (cộng dồn lên chiến đấu) -->
+          <template x-if="fx.summary.length">
+            <div>
+              <div class="lbl mb-1.5">Sổ Tổng Lực <span class="normal-case tracking-normal text-slate-600">· cộng dồn lên chiến đấu</span></div>
+              <div class="space-y-1.5">
+                <template x-for="r in fx.summary" :key="r.label">
+                  <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-ink2/50 border border-slate-800">
+                    <span class="text-[12px] text-slate-300 shrink-0" x-text="r.label"></span>
+                    <span class="fserif text-[14px] text-emerald-300 shrink-0" x-text="r.text"></span>
+                    <span class="ml-auto flex items-center gap-1.5 shrink-0">
+                      <template x-for="s in r.sources" :key="s.seal"><span class="fserif text-[12.5px] leading-none" :style="'color:'+s.color" x-text="s.seal"></span></template>
+                    </span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+          <!-- Thẻ chi tiết theo nguồn (kiểu Khắc Lệnh Vàng) -->
           <template x-if="fx.active.length">
             <div>
               <div class="lbl mb-1.5">Đang Hoạt Động <span class="normal-case tracking-normal text-slate-600">· tạm thời</span></div>
               <div class="space-y-2">
                 <template x-for="(e,i) in fx.active" :key="'a'+i">
-                  <div class="flex gap-3 p-2.5 rounded-lg bg-ink2/50 border" :style="'border-color:'+e.color+'40'">
-                    <span class="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center fserif text-[18px]" :style="'color:'+e.color+';background:'+e.color+'14;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
-                    <div class="min-w-0 flex-1">
-                      <div class="fserif text-[13px] truncate" :style="'color:'+e.color" x-text="e.name"></div>
-                      <div class="text-[10px] text-slate-500 mb-1 truncate" x-text="e.src"></div>
-                      <div class="flex flex-wrap gap-1"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90 border border-slate-700/50" x-text="ln"></span></template></div>
+                  <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2.5" :style="'--dhc:'+e.color">
+                    <div class="flex items-center gap-1.5 mb-1.5">
+                      <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,transparent,'+e.color+'b3)'"></span>
+                      <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
+                      <span class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif text-[15px]" :style="'color:'+e.color+';background:'+e.color+'18;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
+                      <span class="dh-txt text-[13.5px] whitespace-nowrap px-0.5" x-text="e.name"></span>
+                      <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
+                      <span class="flex-1 h-px" :style="'background:linear-gradient(270deg,transparent,'+e.color+'b3)'"></span>
                     </div>
+                    <div class="text-[10px] text-slate-500 text-center mb-2" x-text="e.src"></div>
+                    <div class="flex flex-wrap justify-center gap-1.5"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25" x-text="ln"></span></template></div>
                   </div>
                 </template>
               </div>
@@ -6662,19 +6684,23 @@
               <div class="lbl mb-1.5">Thường Trực <span class="normal-case tracking-normal text-slate-600">· luôn áp</span></div>
               <div class="space-y-2">
                 <template x-for="(e,i) in fx.passive" :key="'p'+i">
-                  <div class="flex gap-3 p-2.5 rounded-lg bg-ink2/50 border" :style="'border-color:'+e.color+'40'">
-                    <span class="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center fserif text-[18px]" :style="'color:'+e.color+';background:'+e.color+'14;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
-                    <div class="min-w-0 flex-1">
-                      <div class="fserif text-[13px] truncate" :style="'color:'+e.color" x-text="e.name"></div>
-                      <div class="text-[10px] text-slate-500 mb-1 truncate" x-text="e.src"></div>
-                      <div class="flex flex-wrap gap-1"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-emerald-300/90 border border-slate-700/50" x-text="ln"></span></template></div>
+                  <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2.5" :style="'--dhc:'+e.color">
+                    <div class="flex items-center gap-1.5 mb-1.5">
+                      <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,transparent,'+e.color+'b3)'"></span>
+                      <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
+                      <span class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif text-[15px]" :style="'color:'+e.color+';background:'+e.color+'18;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
+                      <span class="dh-txt text-[13.5px] whitespace-nowrap px-0.5" x-text="e.name"></span>
+                      <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
+                      <span class="flex-1 h-px" :style="'background:linear-gradient(270deg,transparent,'+e.color+'b3)'"></span>
                     </div>
+                    <div class="text-[10px] text-slate-500 text-center mb-2" x-text="e.src"></div>
+                    <div class="flex flex-wrap justify-center gap-1.5"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25" x-text="ln"></span></template></div>
                   </div>
                 </template>
               </div>
             </div>
           </template>
-          <template x-if="!fx.active.length && !fx.passive.length">
+          <template x-if="!fx.summary.length && !fx.active.length && !fx.passive.length">
             <div class="text-center text-slate-500 italic py-10 text-[12.5px] fserif">Chưa có hiệu ứng nào đang áp.<br><span class="text-[11px] text-slate-600">Lắp Linh Thạch · dắt Linh Thú · đeo Danh Hiệu · học Nghề · hoàn thiện Vạn Vật Phổ để nhận bonus.</span></div>
           </template>
         </div>
