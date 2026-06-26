@@ -930,7 +930,7 @@ const gameStore = {
       const cnt = (L) => duocPlotCount({ buildings: { duocVien: L } });
       const mt = (L) => (L < 1 ? '—' : 'Bậc ' + duocMaxTier({ buildings: { duocVien: L } }));
       fx.push({ label: 'Số luống trồng', cur: cnt(lv) + '', next: cnt(nlv) + '' });
-      fx.push({ label: 'Trồng liệu tối đa', cur: mt(lv), next: mt(nlv) });
+      fx.push({ label: 'Trồng nguyên liệu tối đa', cur: mt(lv), next: mt(nlv) });
     } else if (key === 'luyenKhiCac') {
       const mp = (L) => (L < 1 ? '—' : '+' + lkcMaxPlus(L));
       fx.push({ label: 'Trần cường hóa gia bảo', cur: mp(lv), next: mp(nlv) });
@@ -1594,7 +1594,7 @@ const gameStore = {
     const p = this.petDetailObj; if (!p) return '';
     if (p.evolved) return 'Đã Thức Tỉnh.';
     if (!this.canAwakenSel) return 'Phải đạt cảnh giới tối đa (Lv ' + this.petLevelCap(p) + ') mới Thức Tỉnh được.';
-    if (!this.awakenAffordSel) return 'Thiếu liệu Thức Tỉnh hoặc Hồn Thạch.';
+    if (!this.awakenAffordSel) return 'Thiếu nguyên liệu Thức Tỉnh hoặc Hồn Thạch.';
     return '';
   },
   doAwaken() {
@@ -2020,7 +2020,7 @@ const gameStore = {
   canStart(skillId, action) { return canStartAction(this.state, skillId, action); },
   startLabel(skillId, action) {
     if (this.skillLevel(skillId) < action.reqLevel) return 'Cần Lv ' + action.reqLevel;
-    if (this.actionInputs(action).some((i) => !i.ok)) return 'Thiếu liệu';
+    if (this.actionInputs(action).some((i) => !i.ok)) return 'Thiếu nguyên liệu';
     return 'Bắt Đầu';
   },
 
