@@ -1152,14 +1152,14 @@ const gameStore = {
       const sk = this.currentSkill, lines = [];
       if (this.actBuff.expPct) lines.push('+' + this.actBuff.expPct + '% EXP kỹ năng');
       if (this.actBuff.effPct) lines.push('+' + this.actBuff.effPct + '% Hiệu Suất');
-      active.push({ seal: '晶', color: '#60a5fa', name: 'Linh Thạch', src: 'Đang ' + (sk ? sk.name : 'tu luyện'), lines });
+      active.push({ seal: '晶', color: '#60a5fa', name: 'Linh Thạch · ' + (sk ? sk.name : 'Tu luyện'), lines });
     }
     // Linh Thú kề bên (stat flat → tổng lực + thẻ)
     const pet = this.activePetObj;
-    if (pet) { const b = this.activePetBonusApplied() || {}, pc = this.petElColor(pet), lines = Object.keys(b).map((k) => '+' + this.fmt(b[k]) + ' ' + this.statLabelShort(k)); Object.keys(b).forEach((k) => addFlat(k, this.statLabelShort(k), b[k], '獸', pc)); passive.push({ seal: '獸', color: pc, name: 'Linh Thú · ' + this.petName(pet), src: 'Kề bên xuất chiến', lines: lines.length ? lines : ['Đồng hành cùng ngươi'] }); }
+    if (pet) { const b = this.activePetBonusApplied() || {}, pc = this.petElColor(pet), lines = Object.keys(b).map((k) => '+' + this.fmt(b[k]) + ' ' + this.statLabelShort(k)); Object.keys(b).forEach((k) => addFlat(k, this.statLabelShort(k), b[k], '獸', pc)); passive.push({ seal: '獸', color: pc, name: 'Linh Thú · ' + this.petName(pet), lines: lines.length ? lines : ['Đồng hành cùng ngươi'] }); }
     // Danh Hiệu (% → tổng lực + thẻ)
     const tt = this.equippedTitleObj;
-    if (tt) { const txt = titleBonusText(tt); if (tt.bonus) Object.keys(tt.bonus).forEach((k) => addPct(k, tt.bonus[k], '號', '#f5b942')); passive.push({ seal: '號', color: '#f5b942', name: 'Danh Hiệu · ' + tt.name, src: 'Đang đeo', lines: txt ? txt.split(' · ') : ['Vinh danh giang hồ'] }); }
+    if (tt) { const txt = titleBonusText(tt); if (tt.bonus) Object.keys(tt.bonus).forEach((k) => addPct(k, tt.bonus[k], '號', '#f5b942')); passive.push({ seal: '號', color: '#f5b942', name: 'Danh Hiệu · ' + tt.name, lines: txt ? txt.split(' · ') : ['Vinh danh giang hồ'] }); }
     // Vạn Vật Phổ (codex Phổ Lực, % → tổng lực + thẻ)
     const cb = codexBonus(this.state), cbLines = [];
     if (cb.allPct) cbLines.push('+' + Math.round(cb.allPct * 100) + '% Toàn chỉ số');
@@ -1167,13 +1167,13 @@ const gameStore = {
     if (cb.defPct) cbLines.push('+' + Math.round(cb.defPct * 100) + '% Phòng Ngự');
     if (cb.hpPct) cbLines.push('+' + Math.round(cb.hpPct * 100) + '% Sinh Lực');
     ['allPct', 'atkPct', 'defPct', 'hpPct'].forEach((k) => addPct(k, cb[k], '譜', '#a78bfa'));
-    if (cbLines.length) passive.push({ seal: '譜', color: '#a78bfa', name: 'Vạn Vật Phổ', src: 'Phổ Lực sưu tập', lines: cbLines });
+    if (cbLines.length) passive.push({ seal: '譜', color: '#a78bfa', name: 'Vạn Vật Phổ', lines: cbLines });
     // Nghề đã học — GỘP thành 1 thẻ (mỗi nghề +EXP/+Hiệu Suất cho kỹ năng tương ứng, KHÔNG gộp vào tổng lực)
     const profs = (this.professions || []).map((id) => NGHE.find((x) => x.id === id)).filter(Boolean);
     if (profs.length) {
       const allSame = profs.every((n) => n.exp === profs[0].exp && n.eff === profs[0].eff);
-      const src = allSame ? ('+' + profs[0].exp + '% EXP · +' + profs[0].eff + '% Hiệu Suất mỗi nghề') : 'Mỗi nghề tăng EXP & Hiệu Suất kỹ năng tương ứng';
-      passive.push({ seal: '業', color: '#34d399', name: 'Nghề · ' + profs.length + ' nghề', src, lines: profs.map((n) => n.name) });
+      const bonusChip = allSame ? ('+' + profs[0].exp + '% EXP · +' + profs[0].eff + '% Hiệu Suất / nghề') : 'Tăng EXP & Hiệu Suất / nghề';
+      passive.push({ seal: '業', color: '#34d399', name: 'Nghề · ' + profs.length + ' nghề', lines: [bonusChip, ...profs.map((n) => n.name)] });
     }
     // tổng hợp -> summary sắp theo SUM_ORDER
     const summary = Object.values(agg)
