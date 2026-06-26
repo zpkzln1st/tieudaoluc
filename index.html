@@ -27,14 +27,14 @@
     .dh .dh-li::after{ content:'◆'; position:absolute; top:-.6em; color:var(--dhc); font-size:.5em; opacity:.9; filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 55%,transparent)); right:-2px; }
     .dh .dh-li.r::after{ left:-2px; right:auto; }
     .dh-txt{ font-family:'Lora',serif; font-weight:700; letter-spacing:.015em;
-      background:linear-gradient(168deg, color-mix(in srgb,#fff 62%,var(--dhc)) 4%, var(--dhc) 46%, color-mix(in srgb,var(--dhc) 60%,#000) 100%);
+      background:linear-gradient(180deg, color-mix(in srgb,#fff 60%,var(--dhc)) 6%, var(--dhc) 52%, color-mix(in srgb,var(--dhc) 84%,#000) 100%);
       -webkit-background-clip:text; background-clip:text; color:transparent;
       filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 68%,transparent)) drop-shadow(0 0 8px color-mix(in srgb,var(--dhc) 38%,transparent)); }
     .dh-high::before{ content:''; position:absolute; inset:-55% -12%; z-index:0; background:radial-gradient(ellipse at center, color-mix(in srgb,var(--dhc) 16%,transparent), transparent 72%); pointer-events:none; }
     .dh-high > *{ position:relative; z-index:1; }
     @keyframes dhSweep{ from{ background-position:160% 0, 0 0 } to{ background-position:-60% 0, 0 0 } }
     .dh-high .dh-txt{
-      background:linear-gradient(105deg, transparent 38%, rgba(255,255,255,.8) 50%, transparent 62%), linear-gradient(168deg, color-mix(in srgb,#fff 62%,var(--dhc)) 4%, var(--dhc) 46%, color-mix(in srgb,var(--dhc) 60%,#000) 100%);
+      background:linear-gradient(105deg, transparent 38%, rgba(255,255,255,.8) 50%, transparent 62%), linear-gradient(180deg, color-mix(in srgb,#fff 60%,var(--dhc)) 6%, var(--dhc) 52%, color-mix(in srgb,var(--dhc) 84%,#000) 100%);
       background-size:220% 100%, 100% 100%; background-position:160% 0, 0 0; background-repeat:no-repeat; -webkit-background-clip:text; background-clip:text;
       filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 72%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--dhc) 46%,transparent)) drop-shadow(0 0 20px color-mix(in srgb,var(--dhc) 24%,transparent));
       animation:dhSweep 3.4s linear infinite; }
@@ -441,14 +441,16 @@
             <div class="absolute inset-0 bg-gradient-to-tr from-black/85 via-black/25 to-transparent pointer-events-none"></div>
             <!-- Tên + cấp (góc trái dưới, tích hợp) -->
             <div class="absolute left-5 bottom-4 z-10 pointer-events-none">
-              <!-- Danh Hiệu đang đeo (glow Kiểu B) -->
-              <template x-if="$store.game.equippedTitleObj">
-                <div class="mb-1.5 inline-block" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
-                  <span class="dh" :class="$store.game.titleQClass(t.q) + ($store.game.titleHigh(t.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" x-text="t.name"></span><span class="dh-li r"></span></span>
+              <!-- Danh Hiệu + Tên: căn giữa nhau (title dài/ngắn vẫn cân, badges giữ căn trái) -->
+              <div class="inline-flex flex-col items-center">
+                <template x-if="$store.game.equippedTitleObj">
+                  <div class="mb-1.5" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
+                    <span class="dh" :class="$store.game.titleQClass(t.q) + ($store.game.titleHigh(t.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" x-text="t.name"></span><span class="dh-li r"></span></span>
+                  </div>
+                </template>
+                <div class="flex items-center gap-2">
+                  <span class="text-3xl gold-text" style="font-family:'Lora',serif; font-weight:700; filter:drop-shadow(0 2px 5px rgba(0,0,0,.85)) drop-shadow(0 0 5px rgba(245,185,66,.28))" x-text="$store.game.state.player.name"></span>
                 </div>
-              </template>
-              <div class="flex items-center gap-2">
-                <span class="text-3xl gold-text" style="font-family:'Lora',serif; font-weight:700; filter:drop-shadow(0 2px 5px rgba(0,0,0,.85)) drop-shadow(0 0 5px rgba(245,185,66,.28))" x-text="$store.game.state.player.name"></span>
               </div>
               <div class="flex items-center gap-2 mt-2.5 flex-wrap">
                 <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-slate-200">Chiến <b class="text-jade" x-text="$store.game.combatLevel"></b></span>
@@ -6664,7 +6666,7 @@
               <div class="space-y-2">
                 <template x-for="(e,i) in fx.active" :key="'a'+i">
                   <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2.5" :style="'--dhc:'+e.color">
-                    <div class="flex items-center gap-1.5 mb-1.5">
+                    <div class="flex items-center gap-1.5 mb-1">
                       <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,transparent,'+e.color+'b3)'"></span>
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif text-[15px]" :style="'color:'+e.color+';background:'+e.color+'18;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
@@ -6672,7 +6674,7 @@
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="flex-1 h-px" :style="'background:linear-gradient(270deg,transparent,'+e.color+'b3)'"></span>
                     </div>
-                    <div class="text-[10px] text-slate-500 text-center mb-2" x-text="e.src"></div>
+                    <div class="text-[10px] text-slate-500 text-center mb-1.5" x-text="e.src"></div>
                     <div class="flex flex-wrap justify-center gap-1.5"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25" x-text="ln"></span></template></div>
                   </div>
                 </template>
@@ -6685,7 +6687,7 @@
               <div class="space-y-2">
                 <template x-for="(e,i) in fx.passive" :key="'p'+i">
                   <div class="rounded-xl bg-ink2/50 border border-slate-800 px-3.5 py-2.5" :style="'--dhc:'+e.color">
-                    <div class="flex items-center gap-1.5 mb-1.5">
+                    <div class="flex items-center gap-1.5 mb-1">
                       <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,transparent,'+e.color+'b3)'"></span>
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif text-[15px]" :style="'color:'+e.color+';background:'+e.color+'18;border:1px solid '+e.color+'45'" x-text="e.seal"></span>
@@ -6693,7 +6695,7 @@
                       <span class="text-[7px] leading-none" :style="'color:'+e.color">◆</span>
                       <span class="flex-1 h-px" :style="'background:linear-gradient(270deg,transparent,'+e.color+'b3)'"></span>
                     </div>
-                    <div class="text-[10px] text-slate-500 text-center mb-2" x-text="e.src"></div>
+                    <div class="text-[10px] text-slate-500 text-center mb-1.5" x-text="e.src"></div>
                     <div class="flex flex-wrap justify-center gap-1.5"><template x-for="ln in e.lines" :key="ln"><span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25" x-text="ln"></span></template></div>
                   </div>
                 </template>
