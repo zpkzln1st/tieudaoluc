@@ -6009,6 +6009,38 @@
         .dtm-root .dtm-fog::after{ animation-duration:58s; animation-direction:reverse; opacity:.65; }
         @keyframes dtmFog{ 0%{transform:translate(0,0) rotate(0)} 50%{transform:translate(4%,-3%) rotate(180deg)} 100%{transform:translate(0,0) rotate(360deg)} }
         @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-fog::before,.dtm-root .dtm-fog::after{ animation:none } }
+        /* ===== MOBILE (<=640px): căn chỉnh kích thước DTM cho điện thoại (trước chỉ tune desktop) ===== */
+        @media (max-width: 640px){
+          /* Sảnh — banner watermark gọn lại cho khỏi đè chữ */
+          .dtm-root .lob-hero .lhwm{ font-size:104px; right:6px; }
+          /* Mộng Lục (5 ô kỷ lục) — thu nhỏ chữ cho 5 ô vừa 1 hàng */
+          .dtm-root .lob-stat{ padding:7px 3px; }
+          .dtm-root .lob-stat .lbl{ font-size:7.5px; letter-spacing:.04em; }
+          .dtm-root .lob-stat .val{ font-size:15px; }
+          /* Mộng Thân — thẻ hero HẾT tràn chữ: chân dung cao hơn (3/4) + chữ nhỏ + badge gọn */
+          .dtm-root .hcard .hport{ aspect-ratio:3/4; }
+          .dtm-root .hcard .hcap{ padding:7px 6px; }
+          .dtm-root .hcard .hcap .fserif{ font-size:12px; line-height:1.16; }
+          .dtm-root .hcard .hcap > div:nth-child(2){ font-size:8.5px; }
+          .dtm-root .hcard .hpill{ font-size:8px; padding:1px 5px; }
+          .dtm-root .hcard .hebadge{ width:21px; height:21px; font-size:11px; top:6px; right:6px; border-radius:6px; }
+          /* ĐẤU/THƯỞNG — thẻ bài nhỏ lại để 3 thẻ/hàng (5 lá = 2 hàng thay vì 3), hết kéo dài màn */
+          .dtm-root .card{ width:104px; height:166px; border-radius:10px; }
+          .dtm-root .card-han{ font-size:40px; }
+          .dtm-root .cost{ width:20px; height:20px; font-size:11px; top:5px; left:5px; }
+          .dtm-root .cost::after{ font-size:8px; }
+          .dtm-root .rar{ width:8px; height:8px; top:6px; right:6px; }
+          .dtm-root .dtm-sigil{ width:15px; height:15px; bottom:3px; right:3px; }
+          .dtm-root .card-info{ padding:5px 5px 6px; }
+          .dtm-root .card-info::before{ width:34px; margin:1px auto 3px; }
+          .dtm-root .ctitle{ font-size:10.5px; line-height:1.16; min-height:26px; }
+          .dtm-root .ctype{ font-size:6.5px; margin-top:2px; }
+          .dtm-root .cdesc{ font-size:8.5px; line-height:1.28; min-height:22px; margin-top:2px; }
+          .dtm-root .min-h-\[256px\]{ min-height:184px; }
+          /* Banner Thắng/Thua — tiêu đề + chiều cao gọn cho khỏi tràn ngang */
+          .dtm-root .dtm-endbanner{ min-height:240px; padding:26px 16px; }
+          .dtm-root .dtm-endtitle{ font-size:42px; }
+        }
       </style>
       <template x-if="$store.game.view==='dangTienMong'">
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
