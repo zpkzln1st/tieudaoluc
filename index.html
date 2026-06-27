@@ -5963,6 +5963,34 @@
         @keyframes dtmSlashFx{ 0%{opacity:0;transform:scale(.62) rotate(-10deg)} 30%{opacity:1} 100%{opacity:0;transform:scale(1.18) rotate(7deg)} }
         /* Ánh kim thẻ Tuyệt (sheen vàng phủ art) */
         .dtm-root .dtm-tuyetglow{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2; mix-blend-mode:screen; opacity:.4; pointer-events:none; }
+        /* SẢNH (lobby) — Hub đầy đủ */
+        .dtm-root .lob-hero{ position:relative; overflow:hidden; border-radius:18px; border:1px solid #a78bfa33; display:flex; }
+        .dtm-root .lob-hero .lhbg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+        .dtm-root .lob-hero .lhfb{ position:absolute; inset:0; z-index:0; background:radial-gradient(120% 90% at 80% 18%, #2a1f55 0%, #140f2e 40%, #0a0f1b 78%), radial-gradient(circle at 78% 26%, rgba(167,139,250,.4), transparent 50%); }
+        .dtm-root .lob-hero .lhscrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(7,11,20,.92) 0%, rgba(7,11,20,.66) 44%, rgba(7,11,20,.2) 100%); }
+        .dtm-root .lob-hero .lhwm{ position:absolute; right:22px; top:50%; transform:translateY(-50%); font-family:'Lora',serif; font-size:170px; color:#a78bfa; opacity:.06; z-index:1; line-height:1; pointer-events:none; }
+        .dtm-root .lob-statbar{ display:flex; }
+        .dtm-root .lob-stat{ flex:1; text-align:center; padding:10px 8px; }
+        .dtm-root .lob-stat + .lob-stat{ border-left:1px solid #ffffff12; }
+        .dtm-root .lob-stat .lbl{ font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:#64748b; }
+        .dtm-root .lob-stat .val{ font-family:'Lora',serif; font-size:20px; font-weight:700; margin-top:2px; }
+        .dtm-root .lob-sec{ font-family:'Lora',serif; font-size:13px; color:#e2e8f0; display:flex; align-items:center; gap:8px; margin:0 0 10px; }
+        .dtm-root .lob-sec::before{ content:''; width:3px; height:15px; border-radius:2px; background:linear-gradient(#a78bfa,#0891b2); }
+        .dtm-root .lob-sec .more{ margin-left:auto; font-size:10.5px; color:#64748b; letter-spacing:.1em; text-transform:uppercase; }
+        .dtm-root .hcard{ position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--c); cursor:pointer; background:#0a0f1b; transition:transform .16s, box-shadow .16s; }
+        .dtm-root .hcard:hover{ transform:translateY(-4px); box-shadow:0 0 0 1px var(--c), 0 0 26px -8px var(--c); }
+        .dtm-root .hcard .hport{ position:relative; aspect-ratio:4/5; }
+        .dtm-root .hcard .hport > .han{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:78px; z-index:0; }
+        .dtm-root .hcard .hport > img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .dtm-root .hcard .hgrad{ position:absolute; inset:0; z-index:2; background:linear-gradient(transparent 40%, rgba(7,11,20,.5) 62%, rgba(7,11,20,.97)); }
+        .dtm-root .hcard .hebadge{ position:absolute; top:8px; right:8px; z-index:3; width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:14px; background:rgba(7,11,20,.7); border:1px solid; }
+        .dtm-root .hcard .hcap{ position:absolute; left:0; right:0; bottom:0; z-index:3; padding:9px 10px; }
+        .dtm-root .hcard .hpill{ font-size:10px; padding:1px 7px; border-radius:9999px; background:#ffffff10; border:1px solid #ffffff1c; color:#cbd5e1; }
+        .dtm-root .ftile{ position:relative; border-radius:10px; overflow:hidden; border:1px solid #1e293b; background:#0a0f1b; flex:0 0 auto; }
+        .dtm-root .ftile > img{ display:block; width:100%; height:100%; object-fit:cover; }
+        .dtm-root .ftile .ftnm{ position:absolute; left:0; right:0; bottom:0; font-size:9.5px; text-align:center; padding:8px 3px 3px; background:linear-gradient(transparent,rgba(7,11,20,.95)); color:#e2e8f0; }
+        .dtm-root .ftile.locked{ filter:grayscale(.7) brightness(.5); }
+        .dtm-root .ftile.locked::after{ content:'?'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:24px; color:#64748b; }
         /* Nền cảnh + sương mộng (CSS, không dùng ảnh đen) */
         .dtm-root{ position:relative; isolation:isolate; }
         .dtm-root .dtm-bg{ position:absolute; inset:0; z-index:-2; background-size:cover; background-position:center; opacity:.16; filter:saturate(.9); border-radius:16px; pointer-events:none; transition:opacity .5s; }
@@ -5992,23 +6020,80 @@
           <!-- SẢNH -->
           <template x-if="phase==='lobby'">
             <div>
-              <div class="rounded-2xl overflow-hidden border border-violet-500/30 mb-4 relative" style="background:linear-gradient(120deg,#1a1530,#0c1322)">
-                <div class="absolute inset-0 opacity-25" style="background:radial-gradient(circle at 78% 30%, #a78bfa66, transparent 55%)"></div>
-                <div class="relative p-7">
-                  <div class="text-[11px] tracking-[0.34em] uppercase text-violet-300/80 mb-1">Hoàng Lương Trầm · giấc mộng kê vàng</div>
-                  <div class="fserif text-4xl gold-text mb-2" style="filter:drop-shadow(0 0 16px #f5b94233)">Đăng Tiên Mộng</div>
-                  <p class="text-slate-300 text-[13px] max-w-xl mb-1">Gối đầu lên Hoàng Lương Trầm, thần thức rơi vào mộng cảnh kết từ tàn niệm võ học tiền nhân. Võ học cổ nhân hóa thành chiêu trong tay; cao thủ đã khuất chắn lối phía trước.</p>
-                  <p class="text-violet-300/70 text-[11.5px] italic mb-5">Thân thể vẫn nằm ở Tàng Kinh Các — thắng thua chỉ là mộng, chỉ <b>lĩnh ngộ</b> theo ngươi tỉnh giấc.</p>
+              <!-- HERO BANNER -->
+              <div class="lob-hero" style="min-height:200px">
+                <div class="lhfb"></div>
+                <img class="lhbg" src="images/dtm/bg/lobby_hero.webp" alt="" onerror="this.remove()">
+                <div class="lhscrim"></div>
+                <span class="lhwm">夢</span>
+                <div class="relative" style="z-index:3;flex:1;padding:24px 30px;display:flex;flex-direction:column;justify-content:center">
+                  <div class="text-[11px] tracking-[0.32em] uppercase text-violet-300/80">Hoàng Lương Trầm · Giấc Mộng Kê Vàng</div>
+                  <div class="fserif gold-text" style="font-size:40px;line-height:1;margin:6px 0 0;filter:drop-shadow(0 2px 14px #f5b94233)">Đăng Tiên Mộng</div>
+                  <p class="text-slate-300 text-[13px]" style="max-width:480px;margin:9px 0 16px;line-height:1.5">Đấu bài trong mộng — đoạt lĩnh ngộ tiền nhân, leo tới Mộng Chủ.</p>
                   <div class="flex items-center gap-4 flex-wrap">
-                    <button @click="phase='hero'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa">Nhập Mộng ⟶</button>
-                    <div class="text-[12px] text-slate-400">Mộng sâu nhất: <b class="text-gold" x-text="'Tầng '+deepest"></b> · <span class="text-slate-600">cách ly tuyệt đối — không phạt thân thật</span></div>
+                    <button @click="phase='hero'" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa">Nhập Mộng ⟶</button>
+                    <span class="text-[11px] text-slate-500">Cách ly tuyệt đối · không phạt thân thật</span>
                   </div>
                 </div>
               </div>
-              <div class="grid sm:grid-cols-3 gap-3">
-                <template x-for="b in lobbyBlurbs" :key="b.t">
-                  <div class="panel rounded-xl p-3.5"><div class="fserif text-[14px] mb-1" :style="'color:'+b.c" x-text="b.t"></div><div class="text-[11.5px] text-slate-400 leading-snug" x-text="b.d"></div></div>
-                </template>
+
+              <!-- MỘNG LỤC (kỷ lục) -->
+              <div class="panel lob-statbar rounded-2xl mt-3">
+                <div class="lob-stat"><div class="lbl">Mộng Sâu Nhất</div><div class="val gold-text" x-text="'Tầng '+($store.game.state.dangTien.deepest||0)"></div></div>
+                <div class="lob-stat"><div class="lbl">Lần Nhập Mộng</div><div class="val text-violet-300" x-text="$store.game.state.dangTien.runs||0"></div></div>
+                <div class="lob-stat"><div class="lbl">Đăng Tiên</div><div class="val text-jade" x-text="$store.game.state.dangTien.wins||0"></div></div>
+                <div class="lob-stat"><div class="lbl">Tỷ Lệ Thắng</div><div class="val text-slate-200" x-text="($store.game.state.dangTien.runs>0?Math.round(100*$store.game.state.dangTien.wins/$store.game.state.dangTien.runs):0)+'%'"></div></div>
+              </div>
+
+              <!-- MỘNG THÂN -->
+              <div class="mt-5">
+                <div class="lob-sec">Mộng Thân <span class="more">bấm để nhập mộng</span></div>
+                <div class="grid grid-cols-3 gap-3">
+                  <template x-for="h in HEROES" :key="h.id">
+                    <div class="hcard" :style="'--c:'+heColor(h.he)+'66'" @click="startRun(h)">
+                      <div class="hport">
+                        <span class="han" :style="'color:'+heColor(h.he)" x-text="h.han"></span>
+                        <img :src="heroImg(h.id)" alt="" onerror="this.style.display='none'">
+                        <div class="hgrad"></div>
+                        <span class="hebadge" :style="'color:'+heColor(h.he)+';border-color:'+heColor(h.he)+'66'" x-text="({kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土'})[h.he]||''"></span>
+                        <div class="hcap">
+                          <div class="fserif text-[15px]" :style="'color:'+heColor(h.he)+';text-shadow:0 2px 6px #000'" x-text="h.name"></div>
+                          <div class="text-[10.5px] text-slate-300" style="margin-top:1px" x-text="'⟡ '+h.passive"></div>
+                          <div class="flex gap-1.5" style="margin-top:6px">
+                            <span class="hpill" x-text="'HP '+h.hp"></span>
+                            <span class="hpill" x-text="'Khí '+h.khi"></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- TÀN NIỆM + VÕ HỌC -->
+              <div class="flex gap-4 mt-5 flex-wrap">
+                <div class="flex-1" style="min-width:280px">
+                  <div class="lob-sec">Cao Thủ Tàn Niệm <span class="more">chắn lối</span></div>
+                  <div class="flex gap-2 flex-wrap">
+                    <template x-for="(f,i) in lobbyFoes" :key="i">
+                      <div class="ftile" :class="f.locked?'locked':''" style="width:62px;height:76px">
+                        <template x-if="!f.locked"><img :src="'images/dtm/enemies/'+f.art+'.webp'" alt="" onerror="this.style.display='none'"></template>
+                        <template x-if="!f.locked"><div class="ftnm" x-text="f.nm"></div></template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="flex-1" style="min-width:280px">
+                  <div class="lob-sec">Võ Học Trong Mộng <span class="more">có thể lĩnh ngộ</span></div>
+                  <div class="flex gap-2 flex-wrap">
+                    <template x-for="(c,i) in lobbyCards" :key="i">
+                      <div class="ftile" :class="c.locked?'locked':''" style="width:56px;height:76px">
+                        <template x-if="!c.locked"><img :src="cardImg(c.id)" alt="" onerror="this.style.display='none'"></template>
+                        <template x-if="!c.locked"><div class="ftnm" x-text="c.nm"></div></template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
           </template>

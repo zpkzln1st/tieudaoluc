@@ -86,10 +86,14 @@ export function dangTienMong() {
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [],
     HEROES,
-    lobbyBlurbs: [
-      { t: 'Đấu Bài Theo Lượt', c: '#22d3ee', d: 'Khí mỗi lượt · Hộ Thể · ngũ hành khắc +30% · địch báo ý đồ trước.' },
-      { t: 'Roguelike Mỗi Lần Một Khác', c: '#a78bfa', d: 'Bản đồ nhánh, chọn lối đi; rút bí kíp, nhặt di vật; thắng/thua một mạch.' },
-      { t: 'Cách Ly Tuyệt Đối', c: '#34d399', d: 'Mộng cảnh — thắng thua KHÔNG đụng thân thật; chỉ Tầng Mộng sâu nhất theo ra để khoe.' },
+    lobbyFoes: [
+      { art: 'cuongDao', nm: 'Cường Đạo' }, { art: 'satThu', nm: 'Sát Thủ' },
+      { art: 'port_master_hoa_son', nm: 'Hoa Sơn' }, { art: 'port_master_duong_mon', nm: 'Đường Môn' },
+      { art: 'port_master_ma_giao', nm: 'Mộng Chủ' }, { locked: true }, { locked: true },
+    ],
+    lobbyCards: [
+      { id: 'thienVuong', nm: 'Thiên Vương' }, { id: 'cuuDuong', nm: 'Cửu Dương' },
+      { id: 'tichTa', nm: 'Tịch Tà' }, { id: 'hoaSon', nm: 'Hoa Sơn' }, { locked: true }, { locked: true },
     ],
     // ----- BRIDGE persist (chỉ Tầng Mộng sâu nhất, cách ly) -----
     dtInit() { try { const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; } catch (e) {} },
