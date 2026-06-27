@@ -5979,9 +5979,9 @@
         .dtm-root .lob-sec .more{ margin-left:auto; font-size:10.5px; color:#64748b; letter-spacing:.1em; text-transform:uppercase; }
         .dtm-root .hcard{ position:relative; border-radius:14px; overflow:hidden; border:1px solid var(--c); cursor:pointer; background:#0a0f1b; transition:transform .16s, box-shadow .16s; }
         .dtm-root .hcard:hover{ transform:translateY(-4px); box-shadow:0 0 0 1px var(--c), 0 0 26px -8px var(--c); }
-        .dtm-root .hcard .hport{ position:relative; aspect-ratio:4/5; }
+        .dtm-root .hcard .hport{ position:relative; aspect-ratio:5/4; }
         .dtm-root .hcard .hport > .han{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:78px; z-index:0; }
-        .dtm-root .hcard .hport > img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .dtm-root .hcard .hport > img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 18%; z-index:1; }
         .dtm-root .hcard .hgrad{ position:absolute; inset:0; z-index:2; background:linear-gradient(transparent 40%, rgba(7,11,20,.5) 62%, rgba(7,11,20,.97)); }
         .dtm-root .hcard .hebadge{ position:absolute; top:8px; right:8px; z-index:3; width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:14px; background:rgba(7,11,20,.7); border:1px solid; }
         .dtm-root .hcard .hcap{ position:absolute; left:0; right:0; bottom:0; z-index:3; padding:9px 10px; }
@@ -6006,7 +6006,7 @@
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
           <div class="dtm-bg" :style="'background-image:url('+bgImg()+')'"></div>
           <div class="dtm-fog"></div>
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center justify-between mb-3" x-show="phase!=='lobby'">
             <div class="flex items-center gap-2">
               <span class="relative w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px] overflow-hidden" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢<img src="images/dtm/emblem.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()"></span>
               <div><div class="fserif text-lg gold-text leading-none">Đăng Tiên Mộng</div><div class="text-[10px] text-slate-500 -mt-0.5">登仙夢 · mộng cảnh luyện chiêu</div></div>
@@ -6021,7 +6021,7 @@
           <template x-if="phase==='lobby'">
             <div>
               <!-- HERO BANNER -->
-              <div class="lob-hero" style="min-height:200px">
+              <div class="lob-hero" style="min-height:130px">
                 <div class="lhfb"></div>
                 <img class="lhbg" src="images/dtm/bg/lobby_hero.webp" alt="" onerror="this.remove()">
                 <div class="lhscrim"></div>
@@ -6046,7 +6046,7 @@
               </div>
 
               <!-- MỘNG THÂN -->
-              <div class="mt-5">
+              <div class="mt-3">
                 <div class="lob-sec">Mộng Thân <span class="more">bấm để nhập mộng</span></div>
                 <div class="grid grid-cols-3 gap-3">
                   <template x-for="h in HEROES" :key="h.id">
@@ -6071,12 +6071,12 @@
               </div>
 
               <!-- TÀN NIỆM + VÕ HỌC -->
-              <div class="flex gap-4 mt-5 flex-wrap">
+              <div class="flex gap-4 mt-3 flex-wrap">
                 <div class="flex-1" style="min-width:280px">
                   <div class="lob-sec">Cao Thủ Tàn Niệm <span class="more">chắn lối</span></div>
                   <div class="flex gap-2 flex-wrap">
                     <template x-for="(f,i) in lobbyFoes" :key="i">
-                      <div class="ftile" :class="f.locked?'locked':''" style="width:62px;height:76px">
+                      <div class="ftile" :class="f.locked?'locked':''" style="width:56px;height:52px">
                         <template x-if="!f.locked"><img :src="'images/dtm/enemies/'+f.art+'.webp'" alt="" onerror="this.style.display='none'"></template>
                         <template x-if="!f.locked"><div class="ftnm" x-text="f.nm"></div></template>
                       </div>
@@ -6087,7 +6087,7 @@
                   <div class="lob-sec">Võ Học Trong Mộng <span class="more">có thể lĩnh ngộ</span></div>
                   <div class="flex gap-2 flex-wrap">
                     <template x-for="(c,i) in lobbyCards" :key="i">
-                      <div class="ftile" :class="c.locked?'locked':''" style="width:56px;height:76px">
+                      <div class="ftile" :class="c.locked?'locked':''" style="width:52px;height:52px">
                         <template x-if="!c.locked"><img :src="cardImg(c.id)" alt="" onerror="this.style.display='none'"></template>
                         <template x-if="!c.locked"><div class="ftnm" x-text="c.nm"></div></template>
                       </div>
