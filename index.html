@@ -5892,14 +5892,14 @@
         .dtm-root .card-art{ position:absolute; inset:0; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
         .dtm-root .card-art::after{ content:''; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(120% 80% at 50% 6%, transparent 50%, rgba(7,11,20,.5) 100%), linear-gradient(180deg, rgba(7,11,20,.16) 0%, transparent 24%, transparent 52%, rgba(8,12,20,.58) 76%, rgba(7,11,20,.95) 100%); }
         .dtm-root .card-han{ font-family:'Lora',serif; font-size:52px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
-        .dtm-root .card-info{ position:absolute; left:0; right:0; bottom:0; z-index:5; padding:5px 7px 7px; text-align:center; }
-        .dtm-root .card-info::before{ content:''; display:block; height:2px; width:42px; margin:0 auto 4px; border-radius:9999px; background:linear-gradient(90deg,transparent,var(--c),transparent); }
+        .dtm-root .card-info{ position:absolute; left:0; right:0; bottom:0; z-index:5; padding:6px 7px 8px; text-align:center; background:linear-gradient(180deg, transparent 0%, rgba(6,9,16,.55) 22%, rgba(5,8,14,.88) 52%, rgba(4,7,12,.97) 100%); }
+        .dtm-root .card-info::before{ content:''; display:block; height:2px; width:40px; margin:1px auto 5px; border-radius:9999px; background:linear-gradient(90deg,transparent,var(--c),transparent); }
         .dtm-root .cost{ position:absolute; top:5px; left:5px; width:23px; height:23px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-weight:800; font-size:12.5px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee, 0 1px 3px #000; z-index:6; }
         .dtm-root .cost::after{ content:'氣'; position:absolute; left:50%; top:calc(100% + 1px); transform:translateX(-50%); font-family:'Lora',serif; font-size:9px; font-weight:700; line-height:1; color:#7dd3fc; text-shadow:0 1px 2px #000, 0 0 3px #000; pointer-events:none; }
         .dtm-root .rar{ display:none; }   /* chấm phẩm chất bỏ -> phẩm chất hiện = tên màu ở dòng info + màu khung góc */
-        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:12.5px; text-align:center; line-height:1.05; padding:0; color:#fff; text-shadow:0 1px 4px #000, 0 0 3px #000; }
-        .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--c); opacity:.95; text-shadow:0 1px 3px #000; }
-        .dtm-root .cdesc{ font-size:9.5px; line-height:1.22; color:#eaf0f8; padding:1px 2px 0; text-align:center; text-shadow:0 1px 3px #000; }
+        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:12.5px; text-align:center; line-height:1.22; padding:0; color:#fff; text-shadow:0 1px 4px #000, 0 0 3px #000; }
+        .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--c); opacity:.95; margin-top:3.5px; line-height:1.35; text-shadow:0 1px 3px #000; }
+        .dtm-root .cdesc{ font-size:9.5px; line-height:1.38; color:#eef3fa; padding:0 1px; margin-top:3.5px; text-align:center; text-shadow:0 1px 3px #000; }
         .dtm-root .khi-pip{ width:15px; height:15px; border-radius:9999px; border:1px solid #155e75; }
         .dtm-root .khi-pip.on{ background:radial-gradient(circle at 35% 30%,#a5f3fc,#0891b2); border-color:#22d3ee; box-shadow:0 0 7px -1px #22d3ee; }
         .dtm-root .pill{ font-size:10px; padding:1px 7px; border-radius:9999px; border:1px solid; font-weight:600; display:inline-block; }
