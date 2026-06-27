@@ -6417,7 +6417,7 @@
                         <template x-if="upMaxed(u)"><span class="text-[11px] text-jade font-bold">Đã đủ</span></template>
                         <template x-if="!upMaxed(u)">
                           <div>
-                            <div class="text-[12px] gold-text font-bold whitespace-nowrap" x-text="upNextCost(u)+' MN'"></div>
+                            <div class="text-[12px] gold-text font-bold whitespace-nowrap" x-text="upNextCost(u)+' Mộng Ngân'"></div>
                             <template x-if="upGateOk(u)"><button @click="buyUp(u.id)" :disabled="!upCanBuy(u)" class="mt-1 px-3 py-1 rounded-lg text-[11.5px] font-bold transition" :class="upCanBuy(u)?'bg-violet-600 text-white hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'">Lĩnh Ngộ</button></template>
                             <template x-if="!upGateOk(u)"><div class="mt-1 text-[10px] text-rose-300/80 leading-tight" x-text="u.gateText"></div></template>
                           </div>
