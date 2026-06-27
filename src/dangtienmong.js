@@ -97,13 +97,14 @@ export function dangTienMong() {
     { id: 'luongNghi', key: 'peek', kind: 'flag', name: 'Lưỡng Nghi Kính', han: '鏡', desc: 'Xem trước đòn KẾ của địch.', costs: [500], gate: null, gateText: '' },
     { id: 'tinhThat', key: 'restBonus', kind: 'flag', name: 'Tịnh Thất Phù', han: '淨', desc: 'Tĩnh Thất hồi 35% (thay 30%).', costs: [1000], gate: null, gateText: '' },
   ];
+  const DTM_SC_MAX = 6;   // Sát Cảnh bậc tối đa (MVP); mở rộng sau
   let _uid = 0;
   const mk = (id) => ({ uid: ++_uid, id, ...POOL[id] });
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
   return {
-    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, rerollLeft: 0, _bankGain: 0,
+    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false,
@@ -119,7 +120,7 @@ export function dangTienMong() {
       { id: 'tichTa', nm: 'Tịch Tà' }, { id: 'hoaSon', nm: 'Hoa Sơn' }, { locked: true }, { locked: true },
     ],
     // ----- BRIDGE persist (chỉ Tầng Mộng sâu nhất, cách ly) -----
-    dtInit() { try { const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; } catch (e) {} },
+    dtInit() { try { const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {} },
     persist() { try { const g = this.$store.game; const s = g.state.dangTien; s.deepest = Math.max(s.deepest || 0, this.deepest || 0); Storage.save(g.state); } catch (e) {} },
     // Bank phần Mộng Ngân chưa tiêu của ván vào VÍ PERSISTENT khi kết ván (thắng/thua/tỉnh giấc). CHỈ ghi state.dangTien.mongNgan.
     bankRun(won) {
@@ -128,6 +129,7 @@ export function dangTienMong() {
         const rate = Math.min((won ? 0.50 : 0.35) + 0.08 * sc, 0.90);
         let gain = Math.round((this.runNgan || 0) * rate);
         if (won && !s._firstWin) { gain += 100; s._firstWin = true; }                 // Đăng Tiên lần đầu
+        if (won && sc > 0) { const hid = this.run.hero.id; const cm = s.scMaxByHero[hid] || 0; if (sc >= cm && cm < DTM_SC_MAX) gain += 50; } // mở bậc Sát Cảnh mới
         if ((this.deepest || 0) > (s._tierBanked || 0)) { gain += 30 * (this.deepest - (s._tierBanked || 0)); s._tierBanked = this.deepest; } // tầng mới
         s.mongNgan = (s.mongNgan || 0) + gain; this._bankGain = gain;
         Storage.save(this.$store.game.state);
@@ -148,9 +150,29 @@ export function dangTienMong() {
     _setReroll() { this.rerollLeft = (this._up().reroll) || 0; },
     reroll() {
       if (this.rerollLeft <= 0) return; this.rerollLeft--;
-      if (this.phase === 'reward') { this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k))).slice(0, 3).map(mk); }
-      else if (this.phase === 'shop') { const keys = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k))).slice(0, 3); this.shopItems = keys.map((k) => { const card = mk(k); const price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); return { card, price, sold: false }; }); }
+      if (this.phase === 'reward') { this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3).map(mk); }
+      else if (this.phase === 'shop') { const keys = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3); this.shopItems = keys.map((k) => { const card = mk(k); const price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); return { card, price, sold: false }; }); }
     },
+    // ----- Sát Cảnh (Ascension per-hero) -----
+    scMax() { return DTM_SC_MAX; },
+    scMaxOf(id) { try { return (this.$store.game.state.dangTien.scMaxByHero || {})[id] || 0; } catch (e) { return 0; } },
+    setSc(id, n) { this.scSel[id] = Math.max(0, Math.min(n, this.scMaxOf(id))); },
+    scModsList(n) { const a = []; if (!n || n <= 0) return a; a.push('Tàn niệm +' + (8 * n) + '% HP'); if (n >= 2) a.push('Mộng Ngân trong ván ×0.9'); if (n >= 3) a.push('Vào ván −3 HP'); if (n >= 4) a.push('HP khởi đầu ×0.9'); if (n >= 5) a.push('Mộng Thị +15% giá · Tĩnh Thất −5%'); return a; },
+    scBankPct(n) { return Math.round(8 * (n || 0)); },   // +8%/bậc bank
+    // ----- Mở thẻ Tuyệt theo cột mốc (CHỈ lọc roll thưởng/shop; bộ khởi đầu hero giữ nguyên) -----
+    _cardUnlocked(id) { const c = POOL[id]; if (!c || c.rar !== 'tuyet') return true; try { return (this.$store.game.state.dangTien.unlockedCards || []).includes(id); } catch (e) { return false; } },
+    _checkUnlocks() {
+      try {
+        const s = this.$store.game.state.dangTien; const u = s.unlockedCards; const dp = this.deepest || 0;
+        const add = (id) => { if (!u.includes(id)) { u.push(id); (this._newUnlocks = this._newUnlocks || []).push(id); } };
+        if ((s.wins || 0) >= 1) add('thienVuong');   // hạ Mộng Chủ -> đoạt Thiên Vương Phá
+        if (dp >= 3) add('hapTinh');                  // Tầng 3 -> Hấp Tinh
+        if (dp >= 4) add('tichTa');                   // Tầng 4 -> Tịch Tà
+      } catch (e) {}
+    },
+    cardName(id) { return (POOL[id] || {}).name || id; },
+    unlockCondText(id) { return { thienVuong: 'Hạ Mộng Chủ (Đăng Tiên)', hapTinh: 'Đạt Tầng 3', tichTa: 'Đạt Tầng 4' }[id] || ''; },
+    lobbyCardLocked(c) { return !!(c && c.id && (POOL[c.id] || {}).rar === 'tuyet' && !this._cardUnlocked(c.id)); },
 
     heColor(h) { return HE_COLOR[h] || '#cbd5e1'; }, heName(h) { return HE_NAME[h] || ''; },
     typeLabel(c) { return { atk: 'Công', def: 'Thủ', ky: 'Kỹ' }[c.type] || ''; },
@@ -178,11 +200,15 @@ export function dangTienMong() {
     bossBannerImg() { return 'images/dtm/enemies/port_master_ma_giao.webp'; },
 
     startRun(h) {
-      this.runNgan = 0; this._bankGain = 0;
+      this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0;
       const up = this._up();
-      const mhp = h.hp + 4 * (up.hp || 0);          // Cố Bản
+      const sc = Math.min((this.scSel && this.scSel[h.id]) || 0, this.scMaxOf(h.id));   // Sát Cảnh đã chọn
+      let mhp = h.hp + 4 * (up.hp || 0);             // Cố Bản
+      if (sc >= 3) mhp -= 3;                          // SC3: vào ván −3 HP
+      if (sc >= 4) mhp = Math.round(mhp * 0.9);       // SC4: HP khởi đầu ×0.9
+      mhp = Math.max(10, mhp);
       this.maxKhi = 3 + (up.khi || 0);               // Tụ Khí
-      this.run = { hero: h, deck: h.start.map(mk), hp: mhp, maxHp: mhp, relics: [], reviveUsed: false };
+      this.run = { hero: h, deck: h.start.map(mk), hp: mhp, maxHp: mhp, relics: [], reviveUsed: false, sc: sc };
       if (up.startRelic) { const r = RELICS.find((x) => x.id === up.startRelic); if (r) this.run.relics.push({ ...r }); }  // Khải Mộng Di Vật
       try { const s = this.$store.game.state.dangTien; s.runs = (s.runs || 0) + 1; } catch (e) {}
       this.genMap(); this.mapTier = 0; this.buildMapView(); this.phase = 'map';
@@ -198,16 +224,22 @@ export function dangTienMong() {
     },
     afterNode() {
       this.mapTier++; this.deepest = Math.max(this.deepest, this.mapTier);
-      if (this.mapTier >= this.map.length) { try { const s = this.$store.game.state.dangTien; s.wins = (s.wins || 0) + 1; } catch (e) {} this.bankRun(true); this.persist(); this.phase = 'win'; return; }
-      this.persist(); this.buildMapView(); this.phase = 'map';
+      if (this.mapTier >= this.map.length) {
+        try { const s = this.$store.game.state.dangTien; s.wins = (s.wins || 0) + 1; } catch (e) {}
+        this.bankRun(true);
+        try { const s = this.$store.game.state.dangTien; const hid = this.run.hero.id; const cm = s.scMaxByHero[hid] || 0; if ((this.run.sc || 0) >= cm && cm < DTM_SC_MAX) { s.scMaxByHero[hid] = cm + 1; this.scSel[hid] = cm + 1; this._newScUnlocked = cm + 1; } } catch (e) {}
+        this._checkUnlocks();
+        this.persist(); this.phase = 'win'; return;
+      }
+      this._checkUnlocks(); this.persist(); this.buildMapView(); this.phase = 'map';
     },
 
     hasRelic(id) { return this.run.relics.some((r) => r.id === id); },
     aliveCount() { return this.enemies.filter((e) => e.hp > 0).length; },
     tgtIdx() { if (this.enemies[this.targetIdx] && this.enemies[this.targetIdx].hp > 0) return this.targetIdx; const i = this.enemies.findIndex((e) => e.hp > 0); return i < 0 ? 0 : i; },
     startBattle(kind) {
-      const enc = rnd(ENC[kind] || ENC.battle); const sc = 1 + this.mapTier * 0.1;
-      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * sc), hp: Math.round(t.hp * sc), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, ii: 0, floats: [], hit: false, burst: null, atkfx: null }; });
+      const enc = rnd(ENC[kind] || ENC.battle); const scl = 1 + this.mapTier * 0.1 + (this.run.sc || 0) * 0.08;   // +8% HP quái mỗi bậc Sát Cảnh
+      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, ii: 0, floats: [], hit: false, burst: null, atkfx: null }; });
       this.targetIdx = 0; this.battleKind = kind;
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
       this.player = { block: 0, str: 0, dodge: false }; this.log = ''; this.playerFloats = [];
@@ -229,7 +261,7 @@ export function dangTienMong() {
     peekText(e) { const it = e.intents[(e.ii + 1) % e.intents.length]; if (!it) return ''; const s = e.str || 0;
       if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
       if (it.t === 'def') return 'Hộ ' + it.v; if (it.t === 'buff') return 'Lực +' + it.v; if (it.t === 'charge') return 'Vận Công…'; if (it.t === 'heal') return 'Liệu +' + it.v; return ''; },
-    restPct() { return 0.30 + (this._up().restBonus ? 0.05 : 0); },   // Tịnh Thất Phù
+    restPct() { return 0.30 + (this._up().restBonus ? 0.05 : 0) - ((this.run && (this.run.sc || 0) >= 5) ? 0.05 : 0); },   // Tịnh Thất Phù; SC5 −5%
     draw(n) { for (let k = 0; k < n; k++) { if (!this.drawPile.length) { if (!this.discard.length) return; this.drawPile = shuffle(this.discard); this.discard = []; } this.hand.push(this.drawPile.pop()); } },
     floatE(e, v) { const id = ++this._f; e.floats.push({ id, v: '-' + v }); e.hit = true; setTimeout(() => { e.hit = false; }, 240); setTimeout(() => { e.floats = e.floats.filter((f) => f.id !== id); }, 950); },
     floatPlayer(v) { const id = ++this._f; this.playerFloats.push({ id, v: '-' + v }); this.playerHit = true; setTimeout(() => { this.playerHit = false; }, 260); setTimeout(() => { this.playerFloats = this.playerFloats.filter((f) => f.id !== id); }, 950); },
@@ -278,20 +310,20 @@ export function dangTienMong() {
     },
     winBattle() {
       if (this.hasRelic('huyetNgoc')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);
-      this.rewardGold = this.battleKind === 'boss' ? 60 : (this.battleKind === 'elite' ? 35 : 18); this.runNgan += this.rewardGold;
+      this.rewardGold = this.battleKind === 'boss' ? 60 : (this.battleKind === 'elite' ? 35 : 18); if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
       if (this.battleKind === 'boss') { this.afterNode(); return; }
       if (this.battleKind === 'elite' && this.run.relics.length < RELICS.length) { const have = this.run.relics.map((r) => r.id); const r = rnd(RELICS.filter((x) => !have.includes(x.id))); if (r) { this.run.relics.push(r); this.log = 'Nhặt di vật: ' + r.name; } }
-      this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k))).slice(0, 3).map(mk);
+      this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3).map(mk);
       this._setReroll(); this.phase = 'reward';
     },
     pickReward(c) { this.run.deck.push(mk(c.id)); this.afterNode(); },
 
     openEvent() { this.event = rnd([
       { title: 'Lão Nhân Bên Suối', text: 'Một lão nhân áo vải câu bên suối mộng, ngẩng lên cười: "Tiểu hữu, ngươi muốn một quyển bí kíp, hay chút lộ phí?"',
-        opts: [{ label: 'Xin một chiêu thức (rút 1/3 thẻ)', fn: () => { this.rewardGold = 0; this.rewardCards = shuffle(Object.keys(POOL)).slice(0, 3).map(mk); this._setReroll(); this.phase = 'reward'; } },
+        opts: [{ label: 'Xin một chiêu thức (rút 1/3 thẻ)', fn: () => { this.rewardGold = 0; this.rewardCards = shuffle(Object.keys(POOL).filter((k) => this._cardUnlocked(k))).slice(0, 3).map(mk); this._setReroll(); this.phase = 'reward'; } },
                 { label: 'Xin lộ phí (+45 Mộng Ngân)', fn: () => { this.runNgan += 45; this.afterNode(); } }] },
       { title: 'Thạch Bia Cổ', text: 'Tấm bia khắc võ học cổ, sát khí âm u. Lĩnh hội thì lợi hại, nhưng phản phệ chút tâm thần.',
-        opts: [{ label: 'Lĩnh hội (mất 6 HP, +1 thẻ Tuyệt)', fn: () => { this.run.hp = Math.max(1, this.run.hp - 6); const t = rnd(Object.keys(POOL).filter((k) => POOL[k].rar === 'tuyet')); this.run.deck.push(mk(t)); this.afterNode(); } },
+        opts: [{ label: 'Lĩnh hội (mất 6 HP, +1 thẻ Tuyệt)', fn: () => { this.run.hp = Math.max(1, this.run.hp - 6); const tk = Object.keys(POOL).filter((k) => POOL[k].rar === 'tuyet' && this._cardUnlocked(k)); const t = tk.length ? rnd(tk) : rnd(Object.keys(POOL).filter((k) => POOL[k].rar === 'hiem')); this.run.deck.push(mk(t)); this.afterNode(); } },
                 { label: 'Bỏ qua', fn: () => this.afterNode() }] },
       { title: 'Suối Linh Tuyền', text: 'Dòng suối trong mộng tỏa linh khí mát lành.',
         opts: [{ label: 'Tẩm mình (hồi 40% HP)', fn: () => { this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * 0.4)); this.afterNode(); } },
@@ -299,11 +331,11 @@ export function dangTienMong() {
     ]); this.phase = 'event'; },
     resolveEvent(o) { o.fn(); },
 
-    openShop() { const keys = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k))).slice(0, 3);
-      this.shopItems = keys.map((k) => { const card = mk(k); const price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; },
+    openShop() { const keys = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3);
+      this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; },
     buyShop(i) { const s = this.shopItems[i]; if (s.sold || this.runNgan < s.price) return; this.runNgan -= s.price; this.run.deck.push(mk(s.card.id)); s.sold = true; },
     buyHeal() { if (this.runNgan < 40 || this.run.hp >= this.run.maxHp) return; this.runNgan -= 40; this.run.hp = Math.min(this.run.maxHp, this.run.hp + 18); },
     restHeal() { this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * this.restPct())); this.afterNode(); },
-    restLearn() { const t = rnd(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k))); this.run.deck.push(mk(t)); this.afterNode(); },
+    restLearn() { const t = rnd(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))); this.run.deck.push(mk(t)); this.afterNode(); },
   };
 }

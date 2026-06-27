@@ -5991,6 +5991,8 @@
         .dtm-root .ftile .ftnm{ position:absolute; left:0; right:0; bottom:0; font-size:9.5px; text-align:center; padding:8px 3px 3px; background:linear-gradient(transparent,rgba(7,11,20,.95)); color:#e2e8f0; }
         .dtm-root .ftile.locked{ filter:grayscale(.7) brightness(.5); }
         .dtm-root .ftile.locked::after{ content:'?'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:24px; color:#64748b; }
+        .dtm-root .ftile.tlock{ filter:grayscale(.82) brightness(.5); }
+        .dtm-root .ftile.tlock::before{ content:'封'; position:absolute; top:1px; right:3px; z-index:2; font-family:'Lora',serif; font-size:11px; color:#fbbf24; text-shadow:0 1px 2px #000; }
         /* Lĩnh Ngộ Đường — tile nâng cấp */
         .dtm-root .mu-tile{ display:flex; gap:10px; align-items:flex-start; padding:11px 12px; border-radius:12px; border:1px solid #1e293b; background:linear-gradient(180deg,#141127,#0c0f1d); }
         .dtm-root .mu-tile.cant{ opacity:.72; }
@@ -6019,7 +6021,7 @@
             </div>
             <div class="flex items-center gap-3 text-[12px]">
               <span class="text-slate-400">Mộng sâu nhất <b class="text-gold" x-text="'Tầng '+deepest"></b></span>
-              <template x-if="run"><span class="text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="runNgan"></b> · HP <b class="text-jade" x-text="run.hp+'/'+run.maxHp"></b></span></template>
+              <template x-if="run"><span class="text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="runNgan"></b> · HP <b class="text-jade" x-text="run.hp+'/'+run.maxHp"></b><template x-if="run.sc>0"><b class="text-rose-300"> · Sát Cảnh <span x-text="run.sc"></span></b></template></span></template>
             </div>
           </div>
 
@@ -6058,7 +6060,7 @@
                 <div class="lob-sec">Mộng Thân <span class="more">bấm để nhập mộng</span></div>
                 <div class="grid grid-cols-3 gap-3">
                   <template x-for="h in HEROES" :key="h.id">
-                    <div class="hcard" :style="'--c:'+heColor(h.he)+'66'" @click="startRun(h)">
+                    <div class="hcard" :style="'--c:'+heColor(h.he)+'66'" @click="phase='hero'">
                       <div class="hport">
                         <span class="han" :style="'color:'+heColor(h.he)" x-text="h.han"></span>
                         <img :src="heroImg(h.id)" alt="" onerror="this.style.display='none'">
@@ -6095,7 +6097,7 @@
                   <div class="lob-sec">Võ Học Trong Mộng <span class="more">có thể lĩnh ngộ</span></div>
                   <div class="flex gap-2 flex-wrap">
                     <template x-for="(c,i) in lobbyCards" :key="i">
-                      <div class="ftile" :class="c.locked?'locked':''" style="width:52px;height:52px">
+                      <div class="ftile" :class="(c.locked?'locked':'')+(lobbyCardLocked(c)?' tlock':'')" :title="lobbyCardLocked(c)?('Mở khoá: '+unlockCondText(c.id)):''" style="width:52px;height:52px">
                         <template x-if="!c.locked"><img :src="cardImg(c.id)" alt="" onerror="this.style.display='none'"></template>
                         <template x-if="!c.locked"><div class="ftnm" x-text="c.nm"></div></template>
                       </div>
@@ -6134,7 +6136,20 @@
                         <div class="text-[11px] text-slate-400 mt-1 leading-snug" x-text="h.passiveDesc"></div>
                       </div>
                       <div class="text-[11.5px] text-slate-400 italic leading-relaxed flex-1" x-text="h.desc"></div>
-                      <button class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
+                      <div class="rounded-lg bg-ink3/40 p-2 border border-rose-500/20" @click.stop>
+                        <div class="flex items-center justify-between mb-1">
+                          <span class="text-[10px] uppercase tracking-wide text-rose-300/80 fserif">Sát Cảnh</span>
+                          <span class="text-[10px] text-jade" x-show="scSel[h.id]>0" x-text="'+'+scBankPct(scSel[h.id])+'% Mộng Ngân'"></span>
+                        </div>
+                        <div class="flex flex-wrap gap-1">
+                          <template x-for="n in (scMaxOf(h.id)+1)" :key="n">
+                            <button @click.stop="setSc(h.id, n-1)" class="w-6 h-6 rounded-md text-[11px] font-bold border transition" :class="scSel[h.id]===(n-1) ? 'border-rose-400 text-rose-200 bg-rose-500/15' : 'border-slate-700 text-slate-500 hover:border-slate-500'" x-text="n-1"></button>
+                          </template>
+                        </div>
+                        <div class="text-[9.5px] text-rose-300/70 mt-1 leading-snug" x-show="scSel[h.id]>0" x-text="scModsList(scSel[h.id]).join(' · ')"></div>
+                        <div class="text-[9.5px] text-slate-600 mt-1" x-show="scMaxOf(h.id)===0">Đăng Tiên (thắng) để mở bậc khó hơn.</div>
+                      </div>
+                      <button @click.stop="startRun(h)" class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
                     </div>
                   </div>
                 </template>
@@ -6360,7 +6375,11 @@
               <div class="econtent">
                 <div class="dtm-endtitle win">Đăng Tiên!</div>
                 <p class="text-slate-100 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
-                <p class="text-[12px] text-amber-200/80 mb-6" x-text="'Lĩnh ngộ mang về: +'+_bankGain+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
+                <div class="text-[12.5px] mt-3 mb-6 leading-relaxed">
+                  <span class="text-amber-200">Lĩnh ngộ mang về: <b x-text="'+'+_bankGain+' Mộng Ngân'"></b></span>
+                  <template x-if="_newScUnlocked>0"><span class="text-rose-300"> · Mở Sát Cảnh <b x-text="_newScUnlocked"></b></span></template>
+                  <template x-if="_newUnlocks.length"><div class="text-violet-300 mt-1" x-text="'Lĩnh ngộ chiêu mới: '+_newUnlocks.map(id=>cardName(id)).join(', ')"></div></template>
+                </div>
                 <div class="flex gap-3 justify-center flex-wrap">
                   <button @click="phase='hero'" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110">Nhập Mộng Lần Nữa</button>
                   <button @click="phase='lobby'" class="px-6 py-2.5 rounded-xl bg-ink3/80 border border-slate-500 text-slate-100 font-bold hover:border-gold">Về Sảnh</button>
@@ -6378,7 +6397,11 @@
               <div class="econtent">
                 <div class="dtm-endtitle lose">Mộng Tan</div>
                 <p class="text-slate-200 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Thần thức bị đánh bật khỏi mộng cảnh — giật mình tỉnh giấc ở Tàng Kinh Các.</p>
-                <p class="text-[12px] text-slate-400 mb-6">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
+                <p class="text-[12px] text-slate-400 mb-2">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
+                <div class="text-[12.5px] mb-6 leading-relaxed">
+                  <span class="text-amber-200">Lĩnh ngộ mang về: <b x-text="'+'+_bankGain+' Mộng Ngân'"></b></span>
+                  <template x-if="_newUnlocks.length"><div class="text-violet-300 mt-1" x-text="'Lĩnh ngộ chiêu mới: '+_newUnlocks.map(id=>cardName(id)).join(', ')"></div></template>
+                </div>
                 <div class="flex gap-3 justify-center flex-wrap">
                   <button @click="phase='hero'" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Thử Lại</button>
                   <button @click="phase='lobby'" class="px-6 py-2.5 rounded-xl bg-ink3/80 border border-slate-500 text-slate-100 font-bold hover:border-slate-300">Về Sảnh</button>
