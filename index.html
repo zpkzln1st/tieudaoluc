@@ -5996,7 +5996,7 @@
         .dtm-root .mu-tile.cant{ opacity:.72; }
         .dtm-root .mu-tile.maxed{ border-color:#34d39955; }
         .dtm-root .mu-glyph{ width:38px; height:38px; flex:0 0 auto; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:21px; color:#c4b5fd; background:#a78bfa14; border:1px solid #a78bfa44; }
-        .dtm-root .mu-pips{ font-size:11px; letter-spacing:1px; color:#f5b942; }
+        .dtm-root .mu-pips{ font-size:10.5px; color:#f5b942; }
         /* Nền cảnh + sương mộng (CSS, không dùng ảnh đen) */
         .dtm-root{ position:relative; isolation:isolate; }
         .dtm-root .dtm-bg{ position:absolute; inset:0; z-index:-2; background-size:cover; background-position:center; opacity:.16; filter:saturate(.9); border-radius:16px; pointer-events:none; transition:opacity .5s; }
@@ -6403,7 +6403,7 @@
                     <div class="mu-tile" :class="upMaxed(u)?'maxed':(upCanBuy(u)?'':'cant')">
                       <div class="mu-glyph fserif" x-text="u.han"></div>
                       <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap"><div class="fserif text-[14px] text-violet-100" x-text="u.name"></div><span class="mu-pips" x-text="upPips(u)"></span></div>
+                        <div class="flex items-center gap-2 flex-wrap"><div class="fserif text-[14px] text-violet-100" x-text="u.name"></div><span class="mu-pips" x-show="upMax(u)>1" x-text="'Bậc '+upLevel(u)+'/'+upMax(u)"></span><span class="mu-pips" style="color:#5eead4" x-show="upMax(u)===1&&upMaxed(u)">✓ đã có</span></div>
                         <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="u.desc"></div>
                         <template x-if="u.id==='khaiMong' && _up().startRelic">
                           <div class="flex gap-1.5 mt-1.5 flex-wrap">

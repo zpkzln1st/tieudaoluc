@@ -90,9 +90,9 @@ export function dangTienMong() {
   ];
   // Lĩnh Ngộ Đường — nâng cấp vĩnh viễn mua bằng Mộng Ngân persistent, CHỈ hiệu lực TRONG mộng (0 power về main).
   const META_UP = [
-    { id: 'coBan', key: 'hp', kind: 'level', name: 'Cố Bản', han: '固', desc: '+4 HP nền khởi đầu mỗi run.', costs: [120, 240, 420, 660, 980], gate: null, gateText: '' },
-    { id: 'tuKhi', key: 'khi', kind: 'level', name: 'Tụ Khí', han: '氣', desc: '+1 Khí nền cả run.', costs: [800], gate: 'win1', gateText: 'Cần Đăng Tiên 1 lần' },
-    { id: 'khaiMong', key: 'startRelic', kind: 'relic', name: 'Khải Mộng Di Vật', han: '啟', desc: 'Khởi đầu run kèm 1 Di Vật chọn sẵn.', costs: [600], gate: 'deep4', gateText: 'Cần đạt Tầng 4' },
+    { id: 'coBan', key: 'hp', kind: 'level', name: 'Cố Bản', han: '固', desc: '+4 HP nền khởi đầu mỗi ván.', costs: [120, 240, 420, 660, 980], gate: null, gateText: '' },
+    { id: 'tuKhi', key: 'khi', kind: 'level', name: 'Tụ Khí', han: '氣', desc: '+1 Khí nền suốt cả ván.', costs: [800], gate: 'win1', gateText: 'Cần Đăng Tiên 1 lần' },
+    { id: 'khaiMong', key: 'startRelic', kind: 'relic', name: 'Khải Mộng Di Vật', han: '啟', desc: 'Vào ván kèm sẵn 1 Di Vật chọn trước.', costs: [600], gate: 'deep4', gateText: 'Cần đạt Tầng 4' },
     { id: 'tayTam', key: 'reroll', kind: 'level', name: 'Tẩy Tâm', han: '洗', desc: '+1 lượt đổi bộ thẻ thưởng mỗi trận.', costs: [300, 700], gate: null, gateText: '' },
     { id: 'luongNghi', key: 'peek', kind: 'flag', name: 'Lưỡng Nghi Kính', han: '鏡', desc: 'Xem trước đòn KẾ của địch.', costs: [500], gate: null, gateText: '' },
     { id: 'tinhThat', key: 'restBonus', kind: 'flag', name: 'Tịnh Thất Phù', han: '淨', desc: 'Tĩnh Thất hồi 35% (thay 30%).', costs: [1000], gate: null, gateText: '' },
