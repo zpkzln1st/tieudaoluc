@@ -5932,12 +5932,12 @@
         .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
         @keyframes dtmFlt{ 0%{opacity:0;transform:translateY(8px) scale(.8)} 25%{opacity:1} 100%{opacity:0;transform:translateY(-30px) scale(1.15)} }
         /* ART overlay (onerror tự ẩn -> lộ Hán) */
-        .dtm-root .dtm-art{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .dtm-root .dtm-art{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; transform:translateZ(0); backface-visibility:hidden; }
         .dtm-root .card-art > .card-han{ position:relative; z-index:0; }
         .dtm-root .dtm-sigil{ position:absolute; bottom:4px; right:4px; width:17px; height:17px; object-fit:contain; z-index:6; filter:drop-shadow(0 1px 2px #000); }
         .dtm-root .dtm-portwrap{ position:relative; overflow:hidden; }
         .dtm-root .dtm-portwrap > span{ position:relative; z-index:0; }
-        .dtm-root .dtm-port{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .dtm-root .dtm-port{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; transform:translateZ(0); backface-visibility:hidden; }
         .dtm-root .dtm-sti{ width:12px; height:12px; object-fit:contain; display:inline-block; vertical-align:-1px; margin-right:2px; }
         .dtm-root .dtm-burst{ position:absolute; inset:-22%; width:144%; height:144%; object-fit:contain; z-index:4; pointer-events:none; mix-blend-mode:screen; animation:dtmBurst .62s ease-out forwards; }
         @keyframes dtmBurst{ 0%{opacity:0;transform:scale(.5)} 25%{opacity:1} 100%{opacity:0;transform:scale(1.25)} }
@@ -6148,7 +6148,7 @@
                 </div>
               </div>
 
-              <div class="flex gap-2 justify-center flex-wrap min-h-[230px] items-end pt-5 pb-1">
+              <div class="flex gap-2 justify-center flex-wrap min-h-[230px] items-end pt-5 pb-1 transform-gpu">
                 <template x-for="(c,i) in hand" :key="c.uid">
                   <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
