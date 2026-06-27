@@ -5885,8 +5885,8 @@
             linear-gradient(var(--r),var(--r)) left bottom/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) left bottom/2px 11px no-repeat,
             linear-gradient(var(--r),var(--r)) right bottom/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) right bottom/2px 11px no-repeat; }
         /* Hero card: hover = CẢ KHUNG glow + scale nhẹ (ảnh đi theo khung, KHÔNG tự phóng riêng) */
-        .dtm-root .dtm-herocard{ transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; will-change:transform; }
-        .dtm-root .dtm-herocard:hover{ transform:translateY(-5px) scale(1.02); box-shadow:0 0 0 1px var(--hc,#64748b), 0 0 30px -8px var(--hc,#64748b), 0 20px 36px -16px #000; z-index:3; }
+        .dtm-root .dtm-herocard{ transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+        .dtm-root .dtm-herocard:hover{ transform:translateY(-6px); box-shadow:0 0 0 1px var(--hc,#64748b), 0 0 32px -7px var(--hc,#64748b), 0 22px 38px -16px #000; z-index:3; }
         .dtm-root .card-art{ position:absolute; inset:0; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
         .dtm-root .card-art::after{ content:''; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(120% 80% at 50% 6%, transparent 50%, rgba(7,11,20,.5) 100%), linear-gradient(180deg, rgba(7,11,20,.16) 0%, transparent 24%, transparent 52%, rgba(8,12,20,.58) 76%, rgba(7,11,20,.95) 100%); }
         .dtm-root .card-han{ font-family:'Lora',serif; font-size:57px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
