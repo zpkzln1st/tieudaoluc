@@ -5900,7 +5900,7 @@
         .dtm-root .cdesc{ font-size:10.5px; line-height:1.38; color:#eef3fa; padding:0 1px; margin-top:3.5px; min-height:30px; display:flex; flex-direction:column; justify-content:center; text-align:center; text-shadow:0 1px 3px #000; }
         .dtm-root .khi-pip{ width:15px; height:15px; border-radius:9999px; border:1px solid #155e75; }
         .dtm-root .khi-pip.on{ background:radial-gradient(circle at 35% 30%,#a5f3fc,#0891b2); border-color:#22d3ee; box-shadow:0 0 7px -1px #22d3ee; }
-        .dtm-root .pill{ font-size:10px; padding:1px 7px; border-radius:9999px; border:1px solid; font-weight:600; display:inline-block; }
+        .dtm-root .pill{ font-size:11.5px; padding:2.5px 10px; border-radius:9999px; border:1px solid; font-weight:600; display:inline-flex; align-items:center; }
         .dtm-root .node{ width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:20px; border:1px solid; position:relative; transition:transform .12s; }
         .dtm-root .node.pick{ cursor:pointer; } .dtm-root .node.pick:hover{ transform:scale(1.12); }
         .dtm-root .node.locked{ opacity:.34; } .dtm-root .node.done{ opacity:.5; }
@@ -5937,10 +5937,26 @@
         .dtm-root .dtm-portwrap{ position:relative; overflow:hidden; }
         .dtm-root .dtm-portwrap > span{ position:relative; z-index:0; }
         .dtm-root .dtm-port{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; transform:translateZ(0); backface-visibility:hidden; }
-        .dtm-root .dtm-sti{ width:12px; height:12px; object-fit:contain; display:inline-block; vertical-align:-1px; margin-right:2px; }
+        .dtm-root .dtm-sti{ width:15px; height:15px; object-fit:contain; display:inline-block; vertical-align:-2px; margin-right:3px; }
         .dtm-root .dtm-burst{ position:absolute; inset:-22%; width:144%; height:144%; object-fit:contain; z-index:4; pointer-events:none; mix-blend-mode:screen; animation:dtmBurst .62s ease-out forwards; }
         @keyframes dtmBurst{ 0%{opacity:0;transform:scale(.5)} 25%{opacity:1} 100%{opacity:0;transform:scale(1.25)} }
         .dtm-root .dtm-moment{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; mix-blend-mode:screen; z-index:1; opacity:.9; }
+        /* Banner Thắng/Thua cinematic */
+        .dtm-root .dtm-endbanner{ position:relative; overflow:hidden; border-radius:18px; min-height:300px; display:flex; align-items:center; justify-content:center; text-align:center; padding:34px 20px; }
+        .dtm-root .dtm-endbanner .ebg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+        .dtm-root .dtm-endbanner .ebg-fb{ position:absolute; inset:0; z-index:0; }
+        .dtm-root .dtm-endbanner.win{ border:1px solid #f5b94266; box-shadow:inset 0 0 90px -34px #f5b942aa, 0 0 30px -12px #f5b94255; }
+        .dtm-root .dtm-endbanner.win .ebg-fb{ background:radial-gradient(ellipse 75% 85% at 50% 28%, #4a3a12 0%, #120f08 55%, #070b14 100%), radial-gradient(circle at 50% 32%, rgba(245,185,66,.4), transparent 52%); }
+        .dtm-root .dtm-endbanner.lose{ border:1px solid #fb718566; box-shadow:inset 0 0 90px -34px #fb718577, 0 0 30px -14px #fb718544; }
+        .dtm-root .dtm-endbanner.lose .ebg-fb{ background:radial-gradient(ellipse 75% 85% at 50% 30%, #3a1620 0%, #140a10 58%, #070b14 100%), radial-gradient(circle at 50% 42%, rgba(251,113,133,.26), transparent 54%); }
+        .dtm-root .dtm-endbanner .ewm{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:150px; line-height:1; z-index:1; opacity:.08; pointer-events:none; letter-spacing:14px; }
+        .dtm-root .dtm-endbanner .emoment{ position:absolute; inset:-8%; width:116%; height:116%; object-fit:contain; z-index:2; mix-blend-mode:screen; pointer-events:none; animation:dtmEndBurst 1.1s ease-out both; }
+        @keyframes dtmEndBurst{ 0%{opacity:0;transform:scale(.7)} 40%{opacity:.95} 100%{opacity:.82;transform:scale(1)} }
+        .dtm-root .dtm-endbanner .econtent{ position:relative; z-index:5; animation:dtmEndIn .6s ease-out both; }
+        @keyframes dtmEndIn{ 0%{opacity:0;transform:translateY(10px) scale(.97)} 100%{opacity:1;transform:none} }
+        .dtm-root .dtm-endtitle{ font-family:'Lora',serif; font-weight:700; font-size:56px; line-height:1.06; }
+        .dtm-root .dtm-endtitle.win{ background:linear-gradient(180deg,#fff3c4,#f5b942 55%,#c8881f); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 2px 12px #f5b94255); }
+        .dtm-root .dtm-endtitle.lose{ color:#fb7185; text-shadow:0 0 22px #fb718566, 0 2px 6px #000; }
         /* Nền cảnh + sương mộng (CSS, không dùng ảnh đen) */
         .dtm-root{ position:relative; isolation:isolate; }
         .dtm-root .dtm-bg{ position:absolute; inset:0; z-index:-2; background-size:cover; background-position:center; opacity:.16; filter:saturate(.9); border-radius:16px; pointer-events:none; transition:opacity .5s; }
@@ -6230,24 +6246,36 @@
 
           <!-- THẮNG / THUA -->
           <template x-if="phase==='win'">
-            <div class="panel rounded-2xl border border-gold/50 p-10 text-center relative overflow-hidden">
-              <img src="images/dtm/vfx/dang_tien_burst.webp" class="dtm-moment" style="z-index:0;opacity:.7" alt="" onerror="this.remove()">
-              <div class="relative" style="z-index:10">
-                <div class="fserif text-4xl gold-text mb-2" style="filter:drop-shadow(0 0 18px #f5b94244)">Đăng Tiên!</div>
-                <p class="text-slate-300 mb-1">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
-                <p class="text-[12px] text-slate-500 mb-6" x-text="'Thu hoạch: '+mongNgan+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
-                <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+            <div class="dtm-endbanner win">
+              <div class="ebg-fb"></div>
+              <img class="ebg" src="images/dtm/bg/win_dang_tien.webp" alt="" onerror="this.remove()">
+              <span class="ewm" style="color:#f5b942">登仙</span>
+              <img class="emoment" src="images/dtm/vfx/dang_tien_burst.webp" alt="" onerror="this.remove()">
+              <div class="econtent">
+                <div class="dtm-endtitle win">Đăng Tiên!</div>
+                <p class="text-slate-100 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
+                <p class="text-[12px] text-amber-200/80 mb-6" x-text="'Thu hoạch: '+mongNgan+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
+                <div class="flex gap-3 justify-center flex-wrap">
+                  <button @click="phase='hero'" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110">Nhập Mộng Lần Nữa</button>
+                  <button @click="phase='lobby'" class="px-6 py-2.5 rounded-xl bg-ink3/80 border border-slate-500 text-slate-100 font-bold hover:border-gold">Về Sảnh</button>
+                </div>
               </div>
             </div>
           </template>
           <template x-if="phase==='lose'">
-            <div class="panel rounded-2xl border border-rose-600/50 p-10 text-center relative overflow-hidden">
-              <img src="images/dtm/vfx/mong_tan.webp" class="dtm-moment" style="z-index:0;opacity:.6" alt="" onerror="this.remove()">
-              <div class="relative" style="z-index:10">
-                <div class="fserif text-4xl text-rose-400 mb-2">Mộng Tan</div>
-                <p class="text-slate-400 mb-1">Thần thức bị đánh bật khỏi mộng cảnh — giật mình tỉnh giấc ở Tàng Kinh Các.</p>
-                <p class="text-[12px] text-slate-600 mb-6">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
-                <button @click="phase='lobby'" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Về Sảnh</button>
+            <div class="dtm-endbanner lose">
+              <div class="ebg-fb"></div>
+              <img class="ebg" src="images/dtm/bg/lose_mong_tan.webp" alt="" onerror="this.remove()">
+              <span class="ewm" style="color:#fb7185">夢殘</span>
+              <img class="emoment" src="images/dtm/vfx/mong_tan.webp" alt="" onerror="this.remove()">
+              <div class="econtent">
+                <div class="dtm-endtitle lose">Mộng Tan</div>
+                <p class="text-slate-200 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Thần thức bị đánh bật khỏi mộng cảnh — giật mình tỉnh giấc ở Tàng Kinh Các.</p>
+                <p class="text-[12px] text-slate-400 mb-6">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
+                <div class="flex gap-3 justify-center flex-wrap">
+                  <button @click="phase='hero'" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Thử Lại</button>
+                  <button @click="phase='lobby'" class="px-6 py-2.5 rounded-xl bg-ink3/80 border border-slate-500 text-slate-100 font-bold hover:border-slate-300">Về Sảnh</button>
+                </div>
               </div>
             </div>
           </template>
