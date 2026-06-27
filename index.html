@@ -5895,7 +5895,8 @@
         .dtm-root .card-info{ position:absolute; left:0; right:0; bottom:0; z-index:5; padding:5px 7px 7px; text-align:center; }
         .dtm-root .card-info::before{ content:''; display:block; height:2px; width:42px; margin:0 auto 4px; border-radius:9999px; background:linear-gradient(90deg,transparent,var(--c),transparent); }
         .dtm-root .cost{ position:absolute; top:5px; left:5px; width:23px; height:23px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-weight:800; font-size:12.5px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee, 0 1px 3px #000; z-index:6; }
-        .dtm-root .rar{ position:absolute; top:6px; right:6px; width:11px; height:11px; border-radius:9999px; background:var(--r); box-shadow:0 0 7px -1px var(--r), 0 0 0 1px #00000055; z-index:6; }
+        .dtm-root .cost::after{ content:'氣'; position:absolute; left:50%; top:calc(100% + 1px); transform:translateX(-50%); font-family:'Lora',serif; font-size:9px; font-weight:700; line-height:1; color:#7dd3fc; text-shadow:0 1px 2px #000, 0 0 3px #000; pointer-events:none; }
+        .dtm-root .rar{ display:none; }   /* chấm phẩm chất bỏ -> phẩm chất hiện = tên màu ở dòng info + màu khung góc */
         .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:12.5px; text-align:center; line-height:1.05; padding:0; color:#fff; text-shadow:0 1px 4px #000, 0 0 3px #000; }
         .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--c); opacity:.95; text-shadow:0 1px 3px #000; }
         .dtm-root .cdesc{ font-size:9.5px; line-height:1.22; color:#eaf0f8; padding:1px 2px 0; text-align:center; text-shadow:0 1px 3px #000; }
@@ -6153,7 +6154,7 @@
                   <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="c.desc"></div></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype"><span x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></span><span> · </span><span :style="'color:'+rarColor(c.rar)" x-text="rarName(c.rar)"></span></div><div class="cdesc" x-text="c.desc"></div></div>
                   </div>
                 </template>
                 <template x-if="!hand.length"><div class="text-slate-600 text-sm self-center">Hết bài — Kết Lượt.</div></template>
@@ -6173,7 +6174,7 @@
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
                     <div class="cost" x-text="c.cost"></div><div class="rar"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype"><span x-text="typeLabel(c)"></span><span> · </span><span :style="'color:'+rarColor(c.rar)" x-text="rarName(c.rar)"></span></div><div class="cdesc" x-text="c.desc"></div></div>
                   </div>
                 </template>
               </div>
@@ -6204,7 +6205,7 @@
                     <div class="flex justify-center mb-2"><div class="card" style="width:118px;height:188px;cursor:default" :style="'--c:'+heColor(s.card.he)+';--r:'+rarColor(s.card.rar)">
                       <div class="cost" x-text="s.card.cost"></div><div class="rar"></div>
                       <div class="card-art"><span class="card-han" style="font-size:34px" x-text="s.card.han"></span><img :src="cardImg(s.card.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(s.card.he)"><img :src="sigilImg(s.card.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                      <div class="card-info"><div class="ctitle" x-text="s.card.name"></div><div class="ctype" x-text="typeLabel(s.card)"></div><div class="cdesc" x-text="s.card.desc"></div></div>
+                      <div class="card-info"><div class="ctitle" x-text="s.card.name"></div><div class="ctype"><span x-text="typeLabel(s.card)"></span><span> · </span><span :style="'color:'+rarColor(s.card.rar)" x-text="rarName(s.card.rar)"></span></div><div class="cdesc" x-text="s.card.desc"></div></div>
                     </div></div>
                     <button @click="buyShop(i)" :disabled="mongNgan<s.price||s.sold" class="px-4 py-1 rounded-lg text-[12px] font-bold transition" :class="(mongNgan>=s.price&&!s.sold)?'bg-gold/80 text-ink hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'" x-text="s.sold?'Đã mua':(s.price+' Mộng Ngân')"></button>
                   </div>
@@ -6262,7 +6263,7 @@
                     <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
                       <div class="cost" x-text="c.cost"></div><div class="rar"></div>
                       <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                      <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
+                      <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype"><span x-text="typeLabel(c)"></span><span> · </span><span :style="'color:'+rarColor(c.rar)" x-text="rarName(c.rar)"></span></div><div class="cdesc" x-text="c.desc"></div></div>
                     </div>
                   </template>
                 </div>
