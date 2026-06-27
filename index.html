@@ -5878,20 +5878,55 @@
         .dtm-root .card{ width:132px; height:212px; border-radius:11px; position:relative; cursor:pointer; flex:0 0 auto; background:linear-gradient(180deg,#0f1726,#0a0f1b); border:1px solid var(--c); overflow:hidden; box-shadow:0 0 0 1px #00000088, 0 6px 16px -8px #000, inset 0 0 20px -15px var(--c); transition:transform .14s, box-shadow .14s; }
         .dtm-root .card:hover.playable{ transform:translateY(-16px); box-shadow:0 0 0 1px var(--c), 0 0 22px -3px var(--c), 0 16px 28px -10px #000; z-index:5; }
         .dtm-root .card.unplayable{ filter:grayscale(.55) brightness(.6); cursor:not-allowed; }
+        /* Kiểu A: khung phẩm chất (inset) + 4 góc ốp (background-gradient, 0 thêm DOM) */
+        .dtm-root .card::after{ content:''; position:absolute; inset:4px; border-radius:8px; z-index:3; pointer-events:none; box-shadow:inset 0 0 0 1px var(--r), inset 0 0 13px -8px var(--r); }
+        .dtm-root .card::before{ content:''; position:absolute; inset:6px; z-index:4; pointer-events:none; border-radius:7px; opacity:.85;
+          background:
+            linear-gradient(var(--r),var(--r)) left top/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) left top/2px 11px no-repeat,
+            linear-gradient(var(--r),var(--r)) right top/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) right top/2px 11px no-repeat,
+            linear-gradient(var(--r),var(--r)) left bottom/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) left bottom/2px 11px no-repeat,
+            linear-gradient(var(--r),var(--r)) right bottom/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) right bottom/2px 11px no-repeat; }
+        /* Hero card: hover = CẢ KHUNG glow + scale nhẹ (ảnh đi theo khung, KHÔNG tự phóng riêng) */
+        .dtm-root .dtm-herocard{ transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; will-change:transform; }
+        .dtm-root .dtm-herocard:hover{ transform:translateY(-5px) scale(1.02); box-shadow:0 0 0 1px var(--hc,#64748b), 0 0 30px -8px var(--hc,#64748b), 0 20px 36px -16px #000; z-index:3; }
         .dtm-root .card-art{ position:absolute; inset:0; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
+        .dtm-root .card-art::after{ content:''; position:absolute; inset:0; z-index:2; pointer-events:none; background:radial-gradient(120% 80% at 50% 6%, transparent 50%, rgba(7,11,20,.5) 100%), linear-gradient(180deg, rgba(7,11,20,.16) 0%, transparent 24%, transparent 52%, rgba(8,12,20,.58) 76%, rgba(7,11,20,.95) 100%); }
         .dtm-root .card-han{ font-family:'Lora',serif; font-size:52px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
-        .dtm-root .card-info{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:6px 6px 7px; background:linear-gradient(transparent, rgba(8,12,20,.5) 26%, rgba(8,12,20,.95)); }
-        .dtm-root .cost{ position:absolute; top:5px; left:5px; width:23px; height:23px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12.5px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee; z-index:2; }
-        .dtm-root .rar{ position:absolute; top:6px; right:6px; width:11px; height:11px; border-radius:9999px; background:var(--r); box-shadow:0 0 7px -1px var(--r); z-index:2; }
-        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:11.5px; text-align:center; line-height:1.05; padding:0; color:#f8fafc; text-shadow:0 1px 4px #000, 0 0 2px #000; }
-        .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--c); opacity:.92; text-shadow:0 1px 3px #000; }
-        .dtm-root .cdesc{ font-size:9.5px; line-height:1.2; color:#e2e8f0; padding:1px 2px 0; text-align:center; text-shadow:0 1px 3px #000; }
+        .dtm-root .card-info{ position:absolute; left:0; right:0; bottom:0; z-index:5; padding:5px 7px 7px; text-align:center; }
+        .dtm-root .card-info::before{ content:''; display:block; height:2px; width:42px; margin:0 auto 4px; border-radius:9999px; background:linear-gradient(90deg,transparent,var(--c),transparent); }
+        .dtm-root .cost{ position:absolute; top:5px; left:5px; width:23px; height:23px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-weight:800; font-size:12.5px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee, 0 1px 3px #000; z-index:6; }
+        .dtm-root .rar{ position:absolute; top:6px; right:6px; width:11px; height:11px; border-radius:9999px; background:var(--r); box-shadow:0 0 7px -1px var(--r), 0 0 0 1px #00000055; z-index:6; }
+        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:12.5px; text-align:center; line-height:1.05; padding:0; color:#fff; text-shadow:0 1px 4px #000, 0 0 3px #000; }
+        .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--c); opacity:.95; text-shadow:0 1px 3px #000; }
+        .dtm-root .cdesc{ font-size:9.5px; line-height:1.22; color:#eaf0f8; padding:1px 2px 0; text-align:center; text-shadow:0 1px 3px #000; }
         .dtm-root .khi-pip{ width:15px; height:15px; border-radius:9999px; border:1px solid #155e75; }
         .dtm-root .khi-pip.on{ background:radial-gradient(circle at 35% 30%,#a5f3fc,#0891b2); border-color:#22d3ee; box-shadow:0 0 7px -1px #22d3ee; }
         .dtm-root .pill{ font-size:10px; padding:1px 7px; border-radius:9999px; border:1px solid; font-weight:600; display:inline-block; }
         .dtm-root .node{ width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:20px; border:1px solid; position:relative; transition:transform .12s; }
         .dtm-root .node.pick{ cursor:pointer; } .dtm-root .node.pick:hover{ transform:scale(1.12); }
         .dtm-root .node.locked{ opacity:.34; } .dtm-root .node.done{ opacity:.5; }
+        /* Kiểu 1: Thang Mộng (leo dọc) + boss V2 banner áp đỉnh */
+        .dtm-root .dtm-ladder{ display:flex; flex-direction:column; align-items:center; }
+        .dtm-root .dtm-bossban{ position:relative; width:100%; max-width:430px; height:112px; border-radius:14px; overflow:hidden; margin-bottom:2px; box-shadow:0 0 30px -10px #fb7185, inset 0 0 0 1px #fb718555; }
+        .dtm-root .dtm-bossban img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 26%; }
+        .dtm-root .dtm-bossban .scrim{ position:absolute; inset:0; background:radial-gradient(120% 150% at 50% -10%, transparent 32%, rgba(7,11,20,.6) 100%), linear-gradient(90deg, rgba(7,11,20,.9), rgba(7,11,20,.2) 42%, rgba(7,11,20,.2) 58%, rgba(7,11,20,.9)), linear-gradient(180deg, transparent 42%, rgba(7,11,20,.92)); }
+        .dtm-root .dtm-bossban .ctr{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:2; }
+        .dtm-root .dtm-bossban .big{ font-family:'Lora',serif; font-size:23px; color:#fff; text-shadow:0 0 16px #fb7185aa,0 2px 6px #000; letter-spacing:.05em; }
+        .dtm-root .dtm-bossban .sub{ font-size:10px; color:#fda4af; margin-top:3px; letter-spacing:.13em; }
+        .dtm-root .dtm-bossban.pick{ cursor:pointer; box-shadow:0 0 36px -6px #fb7185, inset 0 0 0 1px #fb7185; }
+        .dtm-root .dtm-bossban.locked{ filter:grayscale(.45) brightness(.62); }
+        .dtm-root .dtm-bossban::after{ content:''; position:absolute; left:9%; right:9%; bottom:7px; height:2px; background:linear-gradient(90deg,transparent,#fb7185,transparent); z-index:3; }
+        .dtm-root .dtm-conn{ width:2px; height:18px; background:linear-gradient(#33415588,#33415522); }
+        .dtm-root .dtm-conn.lit{ background:linear-gradient(#f5b942,#a78bfa); box-shadow:0 0 8px -1px #f5b94288; }
+        .dtm-root .dtm-trow{ display:flex; align-items:center; justify-content:center; gap:16px; padding:7px 0; position:relative; width:100%; }
+        .dtm-root .dtm-tband{ font-size:10px; color:#64748b; font-family:'Lora',serif; position:absolute; left:4px; }
+        .dtm-root .dtm-cur{ position:absolute; right:4px; font-size:10px; color:#f5b942; font-family:'Lora',serif; white-space:nowrap; }
+        .dtm-root .nodeT{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+        .dtm-root .nodeT .glyph{ width:56px; height:56px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:25px; border:1.5px solid; transition:transform .14s; }
+        .dtm-root .nodeT.pick .glyph{ cursor:pointer; box-shadow:0 0 18px -3px var(--nc); }
+        .dtm-root .nodeT.pick .glyph:hover{ transform:scale(1.08); }
+        .dtm-root .nodeT.locked{ opacity:.35; } .dtm-root .nodeT.done .glyph{ opacity:.5; border-style:dashed; }
+        .dtm-root .nodeT .nlbl{ font-size:9.5px; }
         .dtm-root .relic{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:17px; border:1px solid #f5b94255; color:#f5b942; background:#f5b94212; cursor:default; }
         .dtm-root .shake{ animation:dtmShk .26s; } @keyframes dtmShk{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 85%{transform:translateX(-3px)} }
         .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
@@ -5899,7 +5934,7 @@
         /* ART overlay (onerror tự ẩn -> lộ Hán) */
         .dtm-root .dtm-art{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
         .dtm-root .card-art > .card-han{ position:relative; z-index:0; }
-        .dtm-root .dtm-sigil{ position:absolute; bottom:3px; right:3px; width:17px; height:17px; object-fit:contain; z-index:2; filter:drop-shadow(0 1px 2px #000); }
+        .dtm-root .dtm-sigil{ position:absolute; bottom:4px; right:4px; width:17px; height:17px; object-fit:contain; z-index:6; filter:drop-shadow(0 1px 2px #000); }
         .dtm-root .dtm-portwrap{ position:relative; overflow:hidden; }
         .dtm-root .dtm-portwrap > span{ position:relative; z-index:0; }
         .dtm-root .dtm-port{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
@@ -5963,11 +5998,11 @@
               <div class="text-center mb-5"><div class="fserif text-3xl gold-text">Chọn Mộng Thân</div><div class="text-[12.5px] text-slate-500 mt-0.5">Mỗi mộng thân một Tâm Pháp, một dị bẩm, một lối chơi — chọn kẻ hợp ý ngươi.</div></div>
               <div class="grid sm:grid-cols-3 gap-4">
                 <template x-for="h in HEROES" :key="h.id">
-                  <div class="panel rounded-2xl border-2 overflow-hidden cursor-pointer transition hover:-translate-y-1 flex flex-col group" :style="'border-color:'+heColor(h.he)+'55'" @click="startRun(h)">
+                  <div class="dtm-herocard panel rounded-2xl border-2 overflow-hidden cursor-pointer flex flex-col group" :style="'border-color:'+heColor(h.he)+'55;--hc:'+heColor(h.he)" @click="startRun(h)">
                     <!-- KHUNG CHÂN DUNG cố định 4:5 -->
                     <div class="dtm-portwrap relative w-full" style="aspect-ratio:4/5">
                       <span class="absolute inset-0 flex items-center justify-center fserif" style="font-size:96px;z-index:0" :style="'color:'+heColor(h.he)" x-text="h.han"></span>
-                      <img :src="heroImg(h.id)" class="dtm-port group-hover:scale-105 transition" style="transition-duration:.4s" alt="" onerror="this.style.display='none'">
+                      <img :src="heroImg(h.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
                       <span class="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center fserif text-[16px]" :style="'color:'+heColor(h.he)+';background:rgba(7,11,20,.72);border:1px solid '+heColor(h.he)+'66'" x-text="({kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土'})[h.he]||''"></span>
                       <div class="absolute inset-x-0 bottom-0 p-3 z-10" style="background:linear-gradient(transparent,rgba(7,11,20,.5) 30%,rgba(7,11,20,.96))">
                         <div class="fserif text-xl leading-tight" :style="'color:'+heColor(h.he)+';text-shadow:0 2px 7px #000'" x-text="h.name"></div>
@@ -6009,19 +6044,35 @@
                 </div>
                 <button @click="openDeck=true" class="text-[11px] px-2.5 py-1 rounded bg-ink3 border border-slate-600 text-slate-300 hover:border-cyan" x-text="'Bộ Bài ('+run.deck.length+')'"></button>
               </div>
-              <div class="text-center text-[12px] text-slate-500 mb-2">Tầng <b class="text-gold" x-text="mapTier+1"></b>/<span x-text="map.length"></span> — chọn một lối đi</div>
-              <div class="panel rounded-2xl p-4">
-                <template x-for="(row,ri) in mapView" :key="ri">
-                  <div class="flex items-center justify-center gap-6 sm:gap-10 py-2 relative">
-                    <template x-for="(nd,ci) in row.nodes" :key="ci">
-                      <div class="flex flex-col items-center gap-1">
-                        <div class="node" :class="row.state" :style="nodeStyle(nd,row.state)" @click="row.state==='pick' && pickNode(nd)" x-text="nodeHan(nd.type)"></div>
-                        <span class="text-[9px]" :class="row.state==='pick'?'text-slate-300':'text-slate-600'" x-text="nodeLabel(nd.type)"></span>
+              <div class="text-center text-[12px] text-slate-500 mb-2">Tầng <b class="text-gold" x-text="mapTier+1"></b>/<span x-text="map.length"></span> — leo dần tới Mộng Chủ</div>
+              <div class="panel rounded-2xl p-4 pt-3">
+                <div class="dtm-ladder">
+                  <!-- Mộng Chủ áp đỉnh (tầng cao nhất = mapView[0]) -->
+                  <template x-if="mapView.length">
+                    <div class="dtm-bossban" :class="mapView[0].state"
+                         @click="mapView[0].state==='pick' && pickNode(mapView[0].nodes[0])">
+                      <img :src="bossBannerImg()" alt="" onerror="this.style.display='none'">
+                      <div class="scrim"></div>
+                      <div class="ctr"><div class="big fserif">魔 Mộng Chủ</div><div class="sub" x-text="mapView[0].state==='pick'?('BẤM QUYẾT CHIẾN · TẦNG '+map.length):('CHỦ TỂ MỘNG CẢNH · TẦNG '+map.length)"></div></div>
+                    </div>
+                  </template>
+                  <!-- các tầng dưới (cao -> thấp), connector nối tuyến -->
+                  <template x-for="(row,ri) in mapView.slice(1)" :key="ri">
+                    <div class="w-full flex flex-col items-center">
+                      <div class="dtm-conn" :class="row.state!=='locked'?'lit':''"></div>
+                      <div class="dtm-trow">
+                        <span class="dtm-tband" x-text="'Tầng '+(map.length-1-ri)"></span>
+                        <template x-for="(nd,ci) in row.nodes" :key="ci">
+                          <div class="nodeT" :class="row.state" :style="'--nc:'+nodeColor(nd.type)">
+                            <div class="glyph" :style="nodeGlyphStyle(nd,row.state)" @click="row.state==='pick' && pickNode(nd)" x-text="nodeHan(nd.type)"></div>
+                            <span class="nlbl" :style="'color:'+(row.state==='pick'?nodeColor(nd.type):'#64748b')" x-text="nodeLabel(nd.type)"></span>
+                          </div>
+                        </template>
+                        <span x-show="row.state==='pick'" class="dtm-cur">◂ đang ở đây</span>
                       </div>
-                    </template>
-                    <span x-show="row.state==='pick'" class="absolute -left-1 sm:left-2 text-[10px] text-gold fserif">Lối hiện tại ▸</span>
-                  </div>
-                </template>
+                    </div>
+                  </template>
+                </div>
               </div>
               <div class="text-center mt-3"><button @click="quitRun()" class="text-[11px] text-slate-600 hover:text-rose-400">Tỉnh giấc (bỏ mộng — không phạt thân thật)</button></div>
             </div>
@@ -6097,7 +6148,7 @@
                 </div>
               </div>
 
-              <div class="flex gap-2 justify-center flex-wrap min-h-[222px] items-end py-1 overflow-x-auto">
+              <div class="flex gap-2 justify-center flex-wrap min-h-[230px] items-end pt-5 pb-1">
                 <template x-for="(c,i) in hand" :key="c.uid">
                   <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>

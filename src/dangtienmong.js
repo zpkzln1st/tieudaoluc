@@ -17,7 +17,7 @@ export function ensureDangTien(state) {
 }
 
 export function dangTienMong() {
-  const HE_COLOR = { kim: '#facc15', moc: '#34d399', thuy: '#38bdf8', hoa: '#fb7185', tho: '#f59e0b', vatly: '#cbd5e1' };
+  const HE_COLOR = { kim: '#facc15', moc: '#34d399', thuy: '#38bdf8', hoa: '#fb7185', tho: '#d8dee9', vatly: '#94a3b8' };
   const HE_NAME = { kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ', vatly: 'Vô' };
   const KHAC = { kim: 'moc', moc: 'tho', tho: 'thuy', thuy: 'hoa', hoa: 'kim' };
   const RAR_C = { thuong: '#94a3b8', hiem: '#38bdf8', tuyet: '#f5b942' };
@@ -112,6 +112,11 @@ export function dangTienMong() {
     nodeStyle(nd, state) { const c = { battle: '#fb7185', elite: '#f5b942', event: '#a78bfa', shop: '#facc15', rest: '#34d399', boss: '#fb7185' }[nd.type] || '#94a3b8';
       if (state === 'pick') return 'color:' + c + ';border-color:' + c + ';box-shadow:0 0 14px -3px ' + c + ';background:' + c + '18';
       if (state === 'done') return 'color:#64748b;border-color:#334155'; return 'color:#475569;border-color:#1e293b'; },
+    nodeColor(t) { return { battle: '#fb7185', elite: '#f5b942', event: '#a78bfa', shop: '#facc15', rest: '#34d399', boss: '#fb7185' }[t] || '#94a3b8'; },
+    nodeGlyphStyle(nd, state) { const c = this.nodeColor(nd.type);
+      if (state === 'pick') return 'color:' + c + ';border-color:' + c + ';background:' + c + '18';
+      if (state === 'done') return 'color:#64748b;border-color:#33415599'; return 'color:#475569;border-color:#1e293b'; },
+    bossBannerImg() { return 'images/dtm/enemies/port_master_ma_giao.webp'; },
 
     startRun(h) { this.mongNgan = 0; this.run = { hero: h, deck: h.start.map(mk), hp: h.hp, maxHp: h.hp, relics: [], reviveUsed: false }; try { const s = this.$store.game.state.dangTien; s.runs = (s.runs || 0) + 1; } catch (e) {} this.genMap(); this.mapTier = 0; this.buildMapView(); this.phase = 'map'; },
     quitRun() { this.run = null; this.phase = 'lobby'; },
