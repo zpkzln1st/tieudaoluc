@@ -5878,13 +5878,14 @@
         .dtm-root .card{ width:132px; height:212px; border-radius:11px; position:relative; cursor:pointer; flex:0 0 auto; background:linear-gradient(180deg,#0f1726,#0a0f1b); border:1px solid var(--c); overflow:hidden; box-shadow:0 0 0 1px #00000088, 0 6px 16px -8px #000, inset 0 0 20px -15px var(--c); transition:transform .14s, box-shadow .14s; }
         .dtm-root .card:hover.playable{ transform:translateY(-16px); box-shadow:0 0 0 1px var(--c), 0 0 22px -3px var(--c), 0 16px 28px -10px #000; z-index:5; }
         .dtm-root .card.unplayable{ filter:grayscale(.55) brightness(.6); cursor:not-allowed; }
-        .dtm-root .card-art{ height:64%; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
-        .dtm-root .card-han{ font-family:'Lora',serif; font-size:48px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
+        .dtm-root .card-art{ position:absolute; inset:0; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:radial-gradient(ellipse at 50% 32%, color-mix(in srgb,var(--c) 40%,transparent), transparent 70%); }
+        .dtm-root .card-han{ font-family:'Lora',serif; font-size:52px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
+        .dtm-root .card-info{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:6px 6px 7px; background:linear-gradient(transparent, rgba(8,12,20,.5) 26%, rgba(8,12,20,.95)); }
         .dtm-root .cost{ position:absolute; top:5px; left:5px; width:23px; height:23px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12.5px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee; z-index:2; }
         .dtm-root .rar{ position:absolute; top:6px; right:6px; width:11px; height:11px; border-radius:9999px; background:var(--r); box-shadow:0 0 7px -1px var(--r); z-index:2; }
-        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:11px; text-align:center; line-height:1.02; padding:4px 3px 0; color:#f1f5f9; }
-        .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--c); opacity:.8; }
-        .dtm-root .cdesc{ font-size:9px; line-height:1.18; color:#cbd5e1; padding:2px 6px 4px; text-align:center; }
+        .dtm-root .ctitle{ font-family:'Lora',serif; font-weight:700; font-size:11.5px; text-align:center; line-height:1.05; padding:0; color:#f8fafc; text-shadow:0 1px 4px #000, 0 0 2px #000; }
+        .dtm-root .ctype{ text-align:center; font-size:7.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--c); opacity:.92; text-shadow:0 1px 3px #000; }
+        .dtm-root .cdesc{ font-size:9.5px; line-height:1.2; color:#e2e8f0; padding:1px 2px 0; text-align:center; text-shadow:0 1px 3px #000; }
         .dtm-root .khi-pip{ width:15px; height:15px; border-radius:9999px; border:1px solid #155e75; }
         .dtm-root .khi-pip.on{ background:radial-gradient(circle at 35% 30%,#a5f3fc,#0891b2); border-color:#22d3ee; box-shadow:0 0 7px -1px #22d3ee; }
         .dtm-root .pill{ font-size:10px; padding:1px 7px; border-radius:9999px; border:1px solid; font-weight:600; display:inline-block; }
@@ -6036,7 +6037,7 @@
                        @click="e.hp>0&&(targetIdx=ei)">
                     <div x-show="ei===tgtIdx()&&e.hp>0" class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] fserif text-gold px-1.5 rounded bg-ink2 border border-gold/40 whitespace-nowrap">⌖ Mục tiêu</div>
                     <div class="flex items-center gap-2.5">
-                      <div class="dtm-portwrap w-20 h-24 rounded-lg shrink-0 flex items-center justify-center fserif text-4xl" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'">
+                      <div class="dtm-portwrap w-24 h-28 rounded-lg shrink-0 flex items-center justify-center fserif text-5xl" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'">
                         <span x-text="e.han"></span>
                         <img :src="enemyImg(e)" class="dtm-port" alt="" onerror="this.style.display='none'">
                         <template x-if="e.burst"><img :src="vfxImg(e.burst)" class="dtm-burst" alt=""></template>
@@ -6065,7 +6066,7 @@
 
               <div class="panel rounded-2xl p-3 mb-2 border border-jade/30" :class="playerHit?'shake':''">
                 <div class="flex items-center gap-3">
-                  <span class="dtm-portwrap w-16 h-20 rounded-md flex items-center justify-center fserif text-3xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'">
+                  <span class="dtm-portwrap w-20 h-24 rounded-md flex items-center justify-center fserif text-4xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'">
                     <span x-text="run.hero.han"></span>
                     <img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
                     <template x-for="f in playerFloats" :key="f.id"><span class="dmgfloat text-rose-400 text-xl" style="top:20%;left:18%" x-text="f.v"></span></template>
@@ -6101,9 +6102,7 @@
                   <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="ctitle" x-text="c.name"></div>
-                    <div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div>
-                    <div class="cdesc" x-text="c.desc"></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="c.desc"></div></div>
                   </div>
                 </template>
                 <template x-if="!hand.length"><div class="text-slate-600 text-sm self-center">Hết bài — Kết Lượt.</div></template>
@@ -6123,7 +6122,7 @@
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
                     <div class="cost" x-text="c.cost"></div><div class="rar"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
                   </div>
                 </template>
               </div>
@@ -6154,7 +6153,7 @@
                     <div class="flex justify-center mb-2"><div class="card" style="width:118px;height:188px;cursor:default" :style="'--c:'+heColor(s.card.he)+';--r:'+rarColor(s.card.rar)">
                       <div class="cost" x-text="s.card.cost"></div><div class="rar"></div>
                       <div class="card-art"><span class="card-han" style="font-size:34px" x-text="s.card.han"></span><img :src="cardImg(s.card.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(s.card.he)"><img :src="sigilImg(s.card.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                      <div class="ctitle" x-text="s.card.name"></div><div class="ctype" x-text="typeLabel(s.card)"></div><div class="cdesc" x-text="s.card.desc"></div>
+                      <div class="card-info"><div class="ctitle" x-text="s.card.name"></div><div class="ctype" x-text="typeLabel(s.card)"></div><div class="cdesc" x-text="s.card.desc"></div></div>
                     </div></div>
                     <button @click="buyShop(i)" :disabled="mongNgan<s.price||s.sold" class="px-4 py-1 rounded-lg text-[12px] font-bold transition" :class="(mongNgan>=s.price&&!s.sold)?'bg-gold/80 text-ink hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'" x-text="s.sold?'Đã mua':(s.price+' Mộng Ngân')"></button>
                   </div>
@@ -6212,7 +6211,7 @@
                     <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
                       <div class="cost" x-text="c.cost"></div><div class="rar"></div>
                       <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                      <div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div>
+                      <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
                     </div>
                   </template>
                 </div>
