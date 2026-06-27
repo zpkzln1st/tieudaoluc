@@ -5991,6 +5991,12 @@
         .dtm-root .ftile .ftnm{ position:absolute; left:0; right:0; bottom:0; font-size:9.5px; text-align:center; padding:8px 3px 3px; background:linear-gradient(transparent,rgba(7,11,20,.95)); color:#e2e8f0; }
         .dtm-root .ftile.locked{ filter:grayscale(.7) brightness(.5); }
         .dtm-root .ftile.locked::after{ content:'?'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:24px; color:#64748b; }
+        /* Lĩnh Ngộ Đường — tile nâng cấp */
+        .dtm-root .mu-tile{ display:flex; gap:10px; align-items:flex-start; padding:11px 12px; border-radius:12px; border:1px solid #1e293b; background:linear-gradient(180deg,#141127,#0c0f1d); }
+        .dtm-root .mu-tile.cant{ opacity:.72; }
+        .dtm-root .mu-tile.maxed{ border-color:#34d39955; }
+        .dtm-root .mu-glyph{ width:38px; height:38px; flex:0 0 auto; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:21px; color:#c4b5fd; background:#a78bfa14; border:1px solid #a78bfa44; }
+        .dtm-root .mu-pips{ font-size:11px; letter-spacing:1px; color:#f5b942; }
         /* Nền cảnh + sương mộng (CSS, không dùng ảnh đen) */
         .dtm-root{ position:relative; isolation:isolate; }
         .dtm-root .dtm-bg{ position:absolute; inset:0; z-index:-2; background-size:cover; background-position:center; opacity:.16; filter:saturate(.9); border-radius:16px; pointer-events:none; transition:opacity .5s; }
@@ -6013,7 +6019,7 @@
             </div>
             <div class="flex items-center gap-3 text-[12px]">
               <span class="text-slate-400">Mộng sâu nhất <b class="text-gold" x-text="'Tầng '+deepest"></b></span>
-              <template x-if="run"><span class="text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="mongNgan"></b> · HP <b class="text-jade" x-text="run.hp+'/'+run.maxHp"></b></span></template>
+              <template x-if="run"><span class="text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="runNgan"></b> · HP <b class="text-jade" x-text="run.hp+'/'+run.maxHp"></b></span></template>
             </div>
           </div>
 
@@ -6032,6 +6038,7 @@
                   <p class="text-slate-300 text-[13px]" style="max-width:480px;margin:9px 0 16px;line-height:1.5">Đấu bài trong mộng — đoạt lĩnh ngộ tiền nhân, leo tới Mộng Chủ.</p>
                   <div class="flex items-center gap-4 flex-wrap">
                     <button @click="phase='hero'" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa">Nhập Mộng ⟶</button>
+                    <button @click="metaTab=true" class="px-5 py-2.5 rounded-xl border border-violet-400/60 text-violet-200 font-bold hover:bg-violet-500/10 transition">Lĩnh Ngộ Đường</button>
                     <span class="text-[11px] text-slate-500">Cách ly tuyệt đối · không phạt thân thật</span>
                   </div>
                 </div>
@@ -6043,6 +6050,7 @@
                 <div class="lob-stat"><div class="lbl">Lần Nhập Mộng</div><div class="val text-violet-300" x-text="$store.game.state.dangTien.runs||0"></div></div>
                 <div class="lob-stat"><div class="lbl">Đăng Tiên</div><div class="val text-jade" x-text="$store.game.state.dangTien.wins||0"></div></div>
                 <div class="lob-stat"><div class="lbl">Tỷ Lệ Thắng</div><div class="val text-slate-200" x-text="($store.game.state.dangTien.runs>0?Math.round(100*$store.game.state.dangTien.wins/$store.game.state.dangTien.runs):0)+'%'"></div></div>
+                <div class="lob-stat"><div class="lbl">Mộng Ngân</div><div class="val gold-text" x-text="$store.game.state.dangTien.mongNgan||0"></div></div>
               </div>
 
               <!-- MỘNG THÂN -->
@@ -6212,6 +6220,7 @@
                         </div>
                         <div class="flex items-center gap-1 mt-1 flex-wrap">
                           <span class="pill fserif" :style="intentStyle(e)" x-text="e.hp>0?intentText(e):'Đã bại'"></span>
+                          <span x-show="peekOn()&&e.hp>0" class="pill" style="font-size:9px;color:#94a3b8;border-color:#33415588;background:#33415522" x-text="'Kế: '+peekText(e)"></span>
                           <span x-show="e.block>0" class="pill text-sky-300 border-sky-600/40 bg-sky-900/40"><img :src="statusIcon('hothe')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Hộ '+e.block"></span></span>
                           <span x-show="e.poison>0" class="pill text-emerald-300 border-emerald-600/40 bg-emerald-900/40"><img :src="statusIcon('doc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Độc '+e.poison"></span></span>
                           <span x-show="e.weak>0" class="pill text-violet-300 border-violet-600/40 bg-violet-900/30"><img :src="statusIcon('suyyeu')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Suy Yếu '+e.weak"></span></span>
@@ -6284,7 +6293,10 @@
                   </div>
                 </template>
               </div>
-              <button @click="afterNode()" class="px-6 py-1.5 rounded-lg bg-ink3 border border-slate-600 text-slate-400 text-[12px] hover:border-slate-400">Bỏ qua</button>
+              <div class="flex items-center justify-center gap-2.5 flex-wrap">
+                <button x-show="rerollLeft>0" @click="reroll()" class="px-5 py-1.5 rounded-lg border border-cyan/50 text-cyan text-[12px] hover:bg-cyan/10 transition" x-text="'Đổi Lựa Chọn ('+rerollLeft+')'"></button>
+                <button @click="afterNode()" class="px-6 py-1.5 rounded-lg bg-ink3 border border-slate-600 text-slate-400 text-[12px] hover:border-slate-400">Bỏ qua</button>
+              </div>
             </div>
           </template>
 
@@ -6304,7 +6316,7 @@
           <!-- MỘNG THỊ -->
           <template x-if="phase==='shop'">
             <div class="panel rounded-2xl border border-gold/40 p-6">
-              <div class="flex items-center justify-between mb-4"><div class="fserif text-xl gold-text">Mộng Thị</div><div class="text-[12px] text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="mongNgan"></b></div></div>
+              <div class="flex items-center justify-between mb-4"><div class="fserif text-xl gold-text">Mộng Thị</div><div class="text-[12px] text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="runNgan"></b></div></div>
               <div class="grid sm:grid-cols-3 gap-3 mb-4">
                 <template x-for="(s,i) in shopItems" :key="i">
                   <div class="panel rounded-xl p-3 text-center border" :style="'border-color:'+heColor(s.card.he)+'44'">
@@ -6313,12 +6325,13 @@
                       <div class="card-art"><span class="card-han" style="font-size:34px" x-text="s.card.han"></span><img :src="cardImg(s.card.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="s.card.rar==='tuyet'"><img class="dtm-tuyetglow" src="images/dtm/vfx/card_glow_tuyet.webp" alt="" onerror="this.remove()"></template><template x-if="sigilImg(s.card.he)"><img :src="sigilImg(s.card.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                       <div class="card-info"><div class="ctitle" x-text="s.card.name"></div><div class="ctype" x-text="typeLabel(s.card)"></div><div class="cdesc" x-text="s.card.desc"></div></div>
                     </div></div>
-                    <button @click="buyShop(i)" :disabled="mongNgan<s.price||s.sold" class="px-4 py-1 rounded-lg text-[12px] font-bold transition" :class="(mongNgan>=s.price&&!s.sold)?'bg-gold/80 text-ink hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'" x-text="s.sold?'Đã mua':(s.price+' Mộng Ngân')"></button>
+                    <button @click="buyShop(i)" :disabled="runNgan<s.price||s.sold" class="px-4 py-1 rounded-lg text-[12px] font-bold transition" :class="(runNgan>=s.price&&!s.sold)?'bg-gold/80 text-ink hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'" x-text="s.sold?'Đã mua':(s.price+' Mộng Ngân')"></button>
                   </div>
                 </template>
               </div>
-              <div class="flex items-center justify-center gap-3">
-                <button @click="buyHeal()" :disabled="mongNgan<40||run.hp>=run.maxHp" class="px-4 py-1.5 rounded-lg text-[12px]" :class="(mongNgan>=40&&run.hp<run.maxHp)?'bg-jade/70 text-ink font-bold':'bg-slate-800 text-slate-500 border border-slate-700'">Dưỡng thương +18 HP (40)</button>
+              <div class="flex items-center justify-center gap-3 flex-wrap">
+                <button x-show="rerollLeft>0" @click="reroll()" class="px-4 py-1.5 rounded-lg border border-cyan/50 text-cyan text-[12px] hover:bg-cyan/10 transition" x-text="'Đổi Hàng ('+rerollLeft+')'"></button>
+                <button @click="buyHeal()" :disabled="runNgan<40||run.hp>=run.maxHp" class="px-4 py-1.5 rounded-lg text-[12px]" :class="(runNgan>=40&&run.hp<run.maxHp)?'bg-jade/70 text-ink font-bold':'bg-slate-800 text-slate-500 border border-slate-700'">Dưỡng thương +18 HP (40)</button>
                 <button @click="afterNode()" class="px-6 py-1.5 rounded-lg bg-ink3 border border-slate-600 text-slate-300 text-[12px] hover:border-slate-400">Rời Mộng Thị</button>
               </div>
             </div>
@@ -6330,7 +6343,7 @@
               <div class="fserif text-xl text-emerald-300 mb-1">Tĩnh Thất</div>
               <p class="text-[12px] text-slate-400 mb-5">Một khắc an tĩnh trong mộng cảnh.</p>
               <div class="flex gap-3 justify-center flex-wrap">
-                <button @click="restHeal()" class="px-5 py-2.5 rounded-xl bg-emerald-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Điều Tức <span class="text-emerald-200" x-text="'(+'+Math.round(run.maxHp*0.3)+' HP)'"></span></button>
+                <button @click="restHeal()" class="px-5 py-2.5 rounded-xl bg-emerald-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Điều Tức <span class="text-emerald-200" x-text="'(+'+Math.round(run.maxHp*restPct())+' HP)'"></span></button>
                 <button @click="restLearn()" class="px-5 py-2.5 rounded-xl bg-cyan-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Tham Ngộ (+1 thẻ ngẫu nhiên)</button>
               </div>
             </div>
@@ -6347,7 +6360,7 @@
               <div class="econtent">
                 <div class="dtm-endtitle win">Đăng Tiên!</div>
                 <p class="text-slate-100 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
-                <p class="text-[12px] text-amber-200/80 mb-6" x-text="'Thu hoạch: '+mongNgan+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
+                <p class="text-[12px] text-amber-200/80 mb-6" x-text="'Lĩnh ngộ mang về: +'+_bankGain+' Mộng Ngân · bộ bài '+run.deck.length+' thẻ · đạt Tầng '+deepest"></p>
                 <div class="flex gap-3 justify-center flex-wrap">
                   <button @click="phase='hero'" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110">Nhập Mộng Lần Nữa</button>
                   <button @click="phase='lobby'" class="px-6 py-2.5 rounded-xl bg-ink3/80 border border-slate-500 text-slate-100 font-bold hover:border-gold">Về Sảnh</button>
@@ -6369,6 +6382,49 @@
                 <div class="flex gap-3 justify-center flex-wrap">
                   <button @click="phase='hero'" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110">Thử Lại</button>
                   <button @click="phase='lobby'" class="px-6 py-2.5 rounded-xl bg-ink3/80 border border-slate-500 text-slate-100 font-bold hover:border-slate-300">Về Sảnh</button>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template x-if="metaTab">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="metaTab=false">
+              <div class="panel rounded-2xl border border-violet-500/40 w-[680px] max-w-full max-h-[88vh] overflow-y-auto p-5">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="fserif text-xl gold-text">Lĩnh Ngộ Đường</div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-[12px] text-slate-400">Mộng Ngân <b class="text-gold" x-text="metaNgan()"></b></span>
+                    <button @click="metaTab=false" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                  </div>
+                </div>
+                <div class="text-[11px] text-violet-300/70 italic mb-4">Mọi lĩnh ngộ tại đây CHỈ hiệu lực trong Đăng Tiên Mộng — tỉnh giấc, thân thể không đổi.</div>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <template x-for="u in metaUp" :key="u.id">
+                    <div class="mu-tile" :class="upMaxed(u)?'maxed':(upCanBuy(u)?'':'cant')">
+                      <div class="mu-glyph fserif" x-text="u.han"></div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap"><div class="fserif text-[14px] text-violet-100" x-text="u.name"></div><span class="mu-pips" x-text="upPips(u)"></span></div>
+                        <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="u.desc"></div>
+                        <template x-if="u.id==='khaiMong' && _up().startRelic">
+                          <div class="flex gap-1.5 mt-1.5 flex-wrap">
+                            <template x-for="r in RELICS" :key="r.id">
+                              <button @click="setStartRelic(r.id)" class="w-7 h-7 rounded-md border flex items-center justify-center fserif text-[13px] transition" :class="_up().startRelic===r.id ? 'border-gold text-gold bg-gold/10' : 'border-slate-700 text-slate-400 hover:border-slate-500'" :title="r.name+' — '+r.desc" x-text="r.han"></button>
+                            </template>
+                          </div>
+                        </template>
+                      </div>
+                      <div class="shrink-0 flex flex-col items-end gap-1 text-right">
+                        <template x-if="upMaxed(u)"><span class="text-[11px] text-jade font-bold">Đã đủ</span></template>
+                        <template x-if="!upMaxed(u)">
+                          <div>
+                            <div class="text-[12px] gold-text font-bold whitespace-nowrap" x-text="upNextCost(u)+' MN'"></div>
+                            <template x-if="upGateOk(u)"><button @click="buyUp(u.id)" :disabled="!upCanBuy(u)" class="mt-1 px-3 py-1 rounded-lg text-[11.5px] font-bold transition" :class="upCanBuy(u)?'bg-violet-600 text-white hover:brightness-110':'bg-slate-800 text-slate-500 border border-slate-700'">Lĩnh Ngộ</button></template>
+                            <template x-if="!upGateOk(u)"><div class="mt-1 text-[10px] text-rose-300/80 leading-tight" x-text="u.gateText"></div></template>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
                 </div>
               </div>
             </div>
