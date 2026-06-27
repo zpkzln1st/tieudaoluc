@@ -35,9 +35,9 @@ export function dangTienMong() {
     hapTinh: { name: 'Hấp Tinh Đại Pháp', han: '吸', he: 'moc', sect: 'Ma Giáo', cost: 2, type: 'atk', rar: 'tuyet', dmg: 7, drain: true, desc: '7 ST · hút máu = ST.' },
     hoaSon: { name: 'Hoa Sơn Kiếm', han: '華', he: 'thuy', sect: 'Hoa Sơn', cost: 2, type: 'atk', rar: 'hiem', dmg: 9, desc: 'Gây 9 ST.' },
     langBa: { name: 'Lăng Ba Vi Bộ', han: '波', he: 'thuy', cost: 1, type: 'ky', rar: 'hiem', blk: 5, dodge: true, desc: '+5 Hộ · NÉ đòn kế.' },
-    ngaMi: { name: 'Nga Mi Cửu Dương', han: '峨', he: 'hoa', sect: 'Nga Mi', cost: 1, type: 'ky', rar: 'thuong', heal: 8, desc: 'Hồi 8 HP.' },
+    ngaMi: { name: 'Nga Mi Cửu Dương', han: '峨', he: 'thuy', sect: 'Nga Mi', cost: 1, type: 'ky', rar: 'thuong', heal: 8, desc: 'Hồi 8 HP.' },
     thanhPhong: { name: 'Thanh Phong Bộ', han: '風', he: 'moc', cost: 0, type: 'ky', rar: 'thuong', draw: 2, desc: 'Rút 2 lá.' },
-    tichTa: { name: 'Tịch Tà Kiếm', han: '辟', he: 'kim', sect: 'tà phái', cost: 2, type: 'atk', rar: 'tuyet', dmg: 3, hits: 3, desc: 'Đánh 3 × 3 ST.' },
+    tichTa: { name: 'Tịch Tà Kiếm', han: '辟', he: 'hoa', sect: 'Nhật Nguyệt', cost: 2, type: 'atk', rar: 'tuyet', dmg: 3, hits: 3, desc: 'Đánh 3 × 3 ST.' },
     thienVuong: { name: 'Thiên Vương Phá', han: '霸', he: 'kim', sect: 'Thiên Vương', cost: 3, type: 'atk', rar: 'tuyet', dmg: 18, desc: 'Gây 18 ST.' },
     taoDang: { name: 'Tảo Đãng Thiên Quân', han: '掃', he: 'vatly', cost: 2, type: 'atk', rar: 'hiem', dmg: 5, aoe: true, desc: 'Gây 5 ST lên TẤT CẢ địch.' },
   };
@@ -59,7 +59,7 @@ export function dangTienMong() {
     langYeu: { name: 'Mộng Lang Yêu', han: '狼', he: 'thuy', hp: 28, intents: [{ t: 'atk', v: 7 }, { t: 'atk', v: 7 }, { t: 'def', v: 8 }] },
     hoaSonKiem: { name: 'Hoa Sơn Kiếm Sĩ', han: '華', he: 'thuy', hp: 46, elite: true, intents: [{ t: 'atk', v: 9 }, { t: 'buff', v: 2 }, { t: 'atk', v: 6, hits: 2 }, { t: 'def', v: 10 }] },
     duongMon: { name: 'Đường Môn Ám Sứ', han: '暗', he: 'moc', hp: 42, elite: true, intents: [{ t: 'atk', v: 6 }, { t: 'atk', v: 4, hits: 2 }, { t: 'heal', v: 8 }, { t: 'atk', v: 11 }] },
-    maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'hoa', hp: 72, boss: true, intents: [{ t: 'atk', v: 11 }, { t: 'charge' }, { t: 'atk', v: 22, big: true }, { t: 'def', v: 12 }, { t: 'heal', v: 10 }] },
+    maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 72, boss: true, intents: [{ t: 'atk', v: 11 }, { t: 'charge' }, { t: 'atk', v: 22, big: true }, { t: 'def', v: 12 }, { t: 'heal', v: 10 }] },
   };
   const ENC = {
     battle: [['cuongDao'], ['langYeu'], ['satThu'], ['cuongDao', 'langYeu'], ['cuongDao', 'cuongDao'], ['satThu', 'langYeu']],
