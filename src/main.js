@@ -352,7 +352,22 @@ const gameStore = {
   fmt, fmtC, fmtTime, fmtClock,
 
   // ---------- Điều hướng ----------
-  navTo(view) { this.view = view; this.navOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  navTo(view) { this._applyView(view); this._pushHash('#' + view); },
+  _applyView(view) { this.view = view; this.navOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
+  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong'],
+  _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
+  applyHashRoute() {   // đọc URL hash -> đổi view (KHÔNG push lại, tránh lặp). Gọi khi popstate (back/forward).
+    const h = location.hash || '';
+    if (h.indexOf('#skill=') === 0) { const id = decodeURIComponent(h.slice(7)); if (this.SKILLS && this.SKILLS[id]) { this._applySkill(id); return; } }
+    let v = h.replace(/^#/, '');
+    if (!this._ROUTE_VIEWS.includes(v)) v = 'profile';
+    this._applyView(v);
+  },
+  initRoute() {   // lúc tải: mở đúng tab theo #link sẵn có, hoặc lập baseline #<view hiện tại>
+    if (location.hash) this.applyHashRoute();
+    else { try { history.replaceState({ h: '#' + this.view }, '', '#' + this.view); } catch (e) {} }
+  },
 
   // ---------- TÔNG MÔN (nhánh phụ — cách ly tuyệt đối, mọi thực lực SIDE-ONLY) ----------
   tmSelUid: null, tmRecruitOpen: false, giftOpen: false, disciTab: 'info',
@@ -1004,7 +1019,8 @@ const gameStore = {
   tmEvtChoose(ci) { if (this.tmEvtIdx < 0) return; const r = resolveEvent(this.state, this.tmEvtIdx, ci); if (r) { this.tmEvtResult = r; this.tmSave(); } },
   closeTmEvt() { this.tmEvtOpen = false; this.tmEvtCur = null; this.tmEvtResult = null; this.tmEvtIdx = -1; },
   devFireEvent(eid) { forceFireEvent(this.state, eid); this.tmSave(); this.showToast('DEV: nổ sự kiện ' + eid); },
-  navToSkill(id) { this.view = 'skill'; this.navOpen = false; this.selectedSkill = id; const _s = this.skillSubTabsFor(id); if (_s) this.skillTab = _s[0].k; document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  navToSkill(id) { this._applySkill(id); this._pushHash('#skill=' + id); },
+  _applySkill(id) { this.view = 'skill'; this.navOpen = false; this.selectedSkill = id; const _s = this.skillSubTabsFor(id); if (_s) this.skillTab = _s[0].k; document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // Bấm chip hoạt động ở header -> nhảy vào đúng màn của hoạt động đang chạy
   goToActivity() {
     const a = this.state.activity; if (!a) return;
@@ -3356,6 +3372,8 @@ window.Alpine = Alpine;
 window.dangTienMong = dangTienMong;   // expose component factory cho x-data trong view Đăng Tiên Mộng
 Alpine.store('game', gameStore);
 Alpine.start();
+Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)
+window.addEventListener('popstate', () => { const s = window.Alpine?.store('game'); if (s) s.applyHashRoute(); });
 Alpine.store('game').ensureQuests();
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
