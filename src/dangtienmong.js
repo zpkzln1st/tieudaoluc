@@ -107,7 +107,7 @@ export function dangTienMong() {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
-    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false,
+    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [],
     HEROES, RELICS, metaUp: META_UP,
     lobbyFoes: [
@@ -268,20 +268,41 @@ export function dangTienMong() {
     hitEnemy(e, amt) { let d = amt; if (e.block > 0) { const a = Math.min(e.block, d); e.block -= a; d -= a; } e.hp = Math.max(0, e.hp - d); return d; },
     absorbPlayer(amt) { let d = amt; if (this.player.block > 0) { const a = Math.min(this.player.block, d); this.player.block -= a; d -= a; } this.run.hp = Math.max(0, this.run.hp - d); return d; },
 
-    // Juice: clone thẻ vừa đánh thành 1 lớp absolute (escape overflow hàng bài) rồi cho "bay" lên + sáng + tan
+    // Juice: clone thẻ vừa đánh thành lớp absolute (escape overflow hàng bài) rồi cho "BAY VÀO con quái đang nhắm" (windup -> phóng tới -> nổ sáng + tan)
     castFlyAnim(el) {
       try {
         const root = this.$el; if (!root || !el || !el.getBoundingClientRect) return;
         const r = el.getBoundingClientRect(); const rr = root.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        let tx = 0, ty = -150;   // mặc định bay lên nếu không tìm thấy địch
+        try { const ens = root.querySelectorAll('.flex-wrap.items-stretch > div'); const tgt = ens[this.tgtIdx()] || ens[0]; if (tgt) { const tr = tgt.getBoundingClientRect(); tx = (tr.left + tr.width / 2) - cx; ty = (tr.top + tr.height / 2) - cy; } } catch (_) {}
         const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable');
         cl.style.position = 'absolute'; cl.style.left = (r.left - rr.left) + 'px'; cl.style.top = (r.top - rr.top) + 'px';
-        cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0'; cl.style.zIndex = '40'; cl.style.pointerEvents = 'none';
-        root.appendChild(cl); setTimeout(() => { try { cl.remove(); } catch (_) {} }, 500);
+        cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0'; cl.style.zIndex = '45'; cl.style.pointerEvents = 'none';
+        root.appendChild(cl);
+        const done = () => { try { cl.remove(); } catch (_) {} };
+        if (cl.animate) {
+          cl.animate([
+            { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1, filter: 'brightness(1)' },
+            { transform: 'translate(' + (tx * 0.12) + 'px,' + (ty * 0.1 - 34) + 'px) scale(1.2) rotate(-4deg)', opacity: 1, filter: 'brightness(1.55)', offset: 0.32 },
+            { transform: 'translate(' + tx + 'px,' + ty + 'px) scale(.4) rotate(8deg)', opacity: 0, filter: 'brightness(2.3)' }
+          ], { duration: 470, easing: 'cubic-bezier(.42,.04,.25,1)' }).onfinish = done;
+        }
+        setTimeout(done, 680);
+      } catch (e) {}
+    },
+    // Juice: rung màn trận khi tung đòn. Dùng FLAG PHẢN ỨNG + :class (Alpine quản lý → KHÔNG bị flush sau @click xoá, như e.hit; class imperative/WAAPI trên root bị Alpine strip).
+    castShake() {
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+        const set = () => { this._shake = true; clearTimeout(this._shakeT); this._shakeT = setTimeout(() => { this._shake = false; }, 300); };
+        if (this._shake) { this._shake = false; (window.requestAnimationFrame || setTimeout)(set); } else set();
       } catch (e) {}
     },
     playCard(i, ev) {
       const c = this.hand[i]; if (!c || this.khi < c.cost) return;
       if (ev && ev.currentTarget) this.castFlyAnim(ev.currentTarget);
+      if (c.dmg) this.castShake();
       this.khi -= c.cost;
       if (c.dmg) {
         let base = c.dmg + (this.player.str || 0);

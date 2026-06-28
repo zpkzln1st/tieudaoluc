@@ -6009,11 +6009,12 @@
         .dtm-root .dtm-fog::after{ animation-duration:58s; animation-direction:reverse; opacity:.65; }
         @keyframes dtmFog{ 0%{transform:translate(0,0) rotate(0)} 50%{transform:translate(4%,-3%) rotate(180deg)} 100%{transform:translate(0,0) rotate(360deg)} }
         @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-fog::before,.dtm-root .dtm-fog::after{ animation:none } }
-        /* JUICE đánh thẻ: phản hồi chạm tức thì (:active) + thẻ "bay" lên khi đánh (clone absolute, không bị cắt bởi hàng bài cuộn) */
-        .dtm-root .card.playable:active{ transform:scale(.94); filter:brightness(1.14); transition:transform .07s ease; }
-        .dtm-root .dtm-castfly{ z-index:40; pointer-events:none; border-radius:10px; box-shadow:0 0 30px -4px var(--c,#f5b942), 0 0 64px -16px #ffffffcc; animation:dtmCastFly .48s cubic-bezier(.34,.08,.2,1) forwards; }
-        @keyframes dtmCastFly{ 0%{ transform:scale(1) translateY(0) rotate(0); opacity:1; } 28%{ transform:scale(1.16) translateY(-26px) rotate(-2deg); opacity:1; filter:brightness(1.5) saturate(1.25); } 100%{ transform:scale(.6) translateY(-155px) rotate(4deg); opacity:0; filter:brightness(2.1); } }
-        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-castfly{ animation-duration:.22s } .dtm-root .card.playable:active{ transform:none } }
+        /* JUICE đánh thẻ: chạm phản hồi tức thì (:active) + thẻ BAY VÀO ĐỊCH (WAAPI trong JS) + RUNG MÀN khi tung đòn */
+        .dtm-root .card.playable:active{ transform:scale(.94); filter:brightness(1.16); transition:transform .07s ease; }
+        .dtm-root .dtm-castfly{ z-index:45; pointer-events:none; border-radius:10px; box-shadow:0 0 36px -2px var(--c,#f5b942), 0 0 74px -14px #ffffffe6; will-change:transform,opacity; }
+        .dtm-root .dtm-shakefx{ animation:dtmHitShake .28s ease both; }
+        @keyframes dtmHitShake{ 0%,100%{ transform:translate(0,0) } 16%{ transform:translate(-5px,2px) } 36%{ transform:translate(6px,-2px) } 56%{ transform:translate(-4px,2px) } 78%{ transform:translate(3px,-1px) } }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .card.playable:active{ transform:none } .dtm-root .dtm-shakefx{ animation:none } }
         /* ===== MOBILE (<=640px): căn chỉnh kích thước DTM cho điện thoại (trước chỉ tune desktop) ===== */
         @media (max-width: 640px){
           /* --- SẢNH: banner gọn lại (trước quá to, lỗi nặng trên mobile) --- */
@@ -6304,7 +6305,7 @@
 
           <!-- ĐẤU -->
           <template x-if="phase==='battle'">
-            <div>
+            <div :class="_shake?'dtm-shakefx':''">
               <div class="flex gap-2.5 justify-center mb-2.5 flex-wrap items-stretch">
                 <template x-for="(e,ei) in enemies" :key="ei">
                   <div class="panel rounded-2xl p-3 relative transition" :class="(e.hit?'shake ':'')+(e.hp<=0?'opacity-40 ':'cursor-pointer ')"
