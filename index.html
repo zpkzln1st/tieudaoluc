@@ -6033,13 +6033,17 @@
           /* --- STRIP Cao Thủ Tàn Niệm + Võ Học: ô DỌC (portrait) để art khỏi bị cắt --- */
           .dtm-root .ftile{ width:56px !important; height:78px !important; }
           .dtm-root .ftile .ftnm{ font-size:8px; padding:10px 2px 3px; }
-          /* --- CHỌN MỘNG THÂN: thẻ GỌN hẳn (chân dung 3/2 + bóp info + lore 2 dòng + tiêu đề nhỏ) cho vừa ~1 màn --- */
-          .dtm-root .text-center.mb-5{ margin-bottom:10px !important; }
-          .dtm-root .text-center.mb-5 .text-3xl{ font-size:22px !important; }
-          .dtm-root .text-center.mb-5 .text-\[12\.5px\]{ font-size:10.5px !important; }
-          .dtm-root .dtm-herocard .dtm-portwrap{ aspect-ratio:3/2 !important; }
-          .dtm-root .dtm-herocard .dtm-port{ object-position:center 12%; }
-          .dtm-root .dtm-herocard .p-3\.5{ padding:9px !important; gap:5px !important; }
+          /* --- CHỌN MỘNG THÂN: CAROUSEL NGANG (vuốt ngang đổi hero), MỖI hero full info VỪA khung điện thoại, KHÔNG cuộn dọc, tự co theo mọi cỡ màn --- */
+          .dtm-root .text-center.mb-5{ margin-bottom:8px !important; }
+          .dtm-root .text-center.mb-5 .text-3xl{ font-size:21px !important; }
+          .dtm-root .text-center.mb-5 .text-\[12\.5px\]{ font-size:10px !important; margin-top:1px !important; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-4{ display:flex !important; flex-wrap:nowrap !important; overflow-x:auto; overflow-y:hidden; gap:10px !important; scroll-snap-type:x mandatory; height:calc(100dvh - 226px); min-height:356px; -webkit-overflow-scrolling:touch; padding:2px 2px 8px; }
+          .dtm-root .text-center.mt-4{ margin-top:7px !important; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-4 > .dtm-herocard{ flex:0 0 87% !important; scroll-snap-align:start; height:100%; }
+          .dtm-root .dtm-herocard:hover{ transform:none !important; }
+          .dtm-root .dtm-herocard .dtm-portwrap{ aspect-ratio:auto !important; flex:1 1 auto !important; min-height:96px; }
+          .dtm-root .dtm-herocard .dtm-port{ object-position:center 14%; }
+          .dtm-root .dtm-herocard .p-3\.5{ flex:0 0 auto !important; padding:9px !important; gap:5px !important; }
           .dtm-root .dtm-herocard .p-2\.5{ padding:7px !important; }
           .dtm-root .dtm-herocard .p-2{ padding:6px !important; }
           .dtm-root .dtm-herocard .italic{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -6076,6 +6080,17 @@
           .dtm-root .border-jade\/30 .dtm-portwrap{ width:54px !important; height:66px !important; font-size:28px !important; }
           .dtm-root .border-jade\/30 .items-center.gap-3{ flex-wrap:wrap !important; }
           .dtm-root .border-jade\/30 .items-center.gap-3 > button{ order:9; width:100%; margin-top:6px; }
+          /* --- THƯỞNG (Vượt ải) + MỘNG THỊ: panel gold bớt padding cho khỏi chật --- */
+          .dtm-root .border-gold\/40.p-6{ padding:16px 6px !important; }
+          /* THƯỞNG: 3 thẻ CÂN ĐỐI 1 hàng (thẻ 98px + gap 6 → 3 lá vừa 1 hàng, hết wrap 2+1 lệch) */
+          .dtm-root .flex.gap-4.justify-center.flex-wrap{ gap:6px !important; }
+          .dtm-root .flex.gap-4.justify-center.flex-wrap .card{ width:98px !important; height:157px !important; }
+          /* MỘNG THỊ: 3 thẻ/hàng (thay vì 1 thẻ/hàng sparse) + thẻ co theo cột cho cân đối */
+          .dtm-root .grid.sm\:grid-cols-3.gap-3{ grid-template-columns:repeat(3,1fr) !important; gap:6px !important; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-3 .panel{ padding:6px !important; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-3 .card{ width:100% !important; height:auto !important; aspect-ratio:118/188; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-3 .card .card-han{ font-size:30px !important; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-3 button{ font-size:10px !important; padding:4px 6px !important; }
           /* Banner Thắng/Thua — tiêu đề + chiều cao gọn cho khỏi tràn ngang */
           .dtm-root .dtm-endbanner{ min-height:240px; padding:26px 16px; }
           .dtm-root .dtm-endtitle{ font-size:42px; }
