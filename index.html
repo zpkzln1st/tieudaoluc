@@ -6011,9 +6011,15 @@
         @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-fog::before,.dtm-root .dtm-fog::after{ animation:none } }
         /* ===== MOBILE (<=640px): căn chỉnh kích thước DTM cho điện thoại (trước chỉ tune desktop) ===== */
         @media (max-width: 640px){
-          /* Sảnh — banner watermark gọn lại cho khỏi đè chữ */
-          .dtm-root .lob-hero .lhwm{ font-size:104px; right:6px; }
-          /* Mộng Lục (5 ô kỷ lục) — thu nhỏ chữ cho 5 ô vừa 1 hàng */
+          /* --- SẢNH: banner gọn lại (trước quá to, lỗi nặng trên mobile) --- */
+          .dtm-root .lob-hero{ min-height:0 !important; }
+          .dtm-root .lob-hero .relative{ padding:14px 16px !important; }
+          .dtm-root .lob-hero .fserif.gold-text{ font-size:26px !important; margin-top:3px !important; }
+          .dtm-root .lob-hero p{ font-size:11px !important; margin:6px 0 11px !important; line-height:1.4 !important; }
+          .dtm-root .lob-hero .text-\[11px\]{ font-size:9px; letter-spacing:.16em; }
+          .dtm-root .lob-hero button{ padding:7px 16px !important; font-size:12.5px !important; }
+          .dtm-root .lob-hero .lhwm{ font-size:76px; right:4px; }
+          /* Mộng Lục (5 ô kỷ lục) */
           .dtm-root .lob-stat{ padding:7px 3px; }
           .dtm-root .lob-stat .lbl{ font-size:7.5px; letter-spacing:.04em; }
           .dtm-root .lob-stat .val{ font-size:15px; }
@@ -6024,7 +6030,15 @@
           .dtm-root .hcard .hcap > div:nth-child(2){ font-size:8.5px; }
           .dtm-root .hcard .hpill{ font-size:8px; padding:1px 5px; }
           .dtm-root .hcard .hebadge{ width:21px; height:21px; font-size:11px; top:6px; right:6px; border-radius:6px; }
-          /* ĐẤU/THƯỞNG — thẻ bài nhỏ lại để 3 thẻ/hàng (5 lá = 2 hàng thay vì 3), hết kéo dài màn */
+          /* --- STRIP Cao Thủ Tàn Niệm + Võ Học: ô DỌC (portrait) để art khỏi bị cắt --- */
+          .dtm-root .ftile{ width:56px !important; height:78px !important; }
+          .dtm-root .ftile .ftnm{ font-size:8px; padding:10px 2px 3px; }
+          /* --- CHỌN MỘNG THÂN: thẻ nhỏ lại (chân dung vuông + bóp info) cho đỡ phải kéo --- */
+          .dtm-root .dtm-herocard .dtm-portwrap{ aspect-ratio:1/1 !important; }
+          .dtm-root .dtm-herocard .dtm-port{ object-position:center 16%; }
+          .dtm-root .dtm-herocard .p-3\.5{ padding:10px !important; gap:6px !important; }
+          .dtm-root .dtm-herocard .p-2\.5{ padding:8px !important; }
+          /* --- ĐẤU: thẻ bài nhỏ --- */
           .dtm-root .card{ width:104px; height:166px; border-radius:10px; }
           .dtm-root .card-han{ font-size:40px; }
           .dtm-root .cost{ width:20px; height:20px; font-size:11px; top:5px; left:5px; }
@@ -6036,7 +6050,19 @@
           .dtm-root .ctitle{ font-size:10.5px; line-height:1.16; min-height:26px; }
           .dtm-root .ctype{ font-size:6.5px; margin-top:2px; }
           .dtm-root .cdesc{ font-size:8.5px; line-height:1.28; min-height:22px; margin-top:2px; }
-          .dtm-root .min-h-\[256px\]{ min-height:184px; }
+          /* HÀNG BÀI: gom về 1 HÀNG NGANG cuộn (thay vì wrap 2 hàng); tắt nhấc thẻ để khỏi bị cắt khi cuộn */
+          .dtm-root .min-h-\[256px\]{ min-height:0 !important; flex-wrap:nowrap !important; justify-content:flex-start !important; overflow-x:auto; overflow-y:hidden; padding-top:10px !important; padding-bottom:6px; scroll-snap-type:x proximity; }
+          .dtm-root .min-h-\[256px\] > .card{ flex:0 0 auto; scroll-snap-align:center; }
+          .dtm-root .card:hover.playable{ transform:none; box-shadow:0 0 0 1px var(--c), 0 0 14px -4px var(--c); }
+          /* ĐẤU: quái xếp DỌC (mỗi con 1 hàng đủ rộng) + chân dung nhỏ → tên/máu/ý đồ không bị ép cột hẹp */
+          .dtm-root .flex-wrap.items-stretch{ flex-direction:column !important; align-items:center !important; }
+          .dtm-root .flex-wrap.items-stretch > div{ width:100% !important; max-width:100% !important; padding:9px !important; }
+          .dtm-root .flex-wrap.items-stretch > div .dtm-portwrap{ width:62px !important; height:80px !important; font-size:32px !important; }
+          .dtm-root .flex-wrap.items-stretch > div .text-\[13px\]{ font-size:12px !important; }
+          /* ĐẤU: chân dung người chơi nhỏ lại + cho nút Kết Lượt xuống dòng (full-width) → tên/HP/trạng thái đủ chỗ 1 dòng */
+          .dtm-root .border-jade\/30 .dtm-portwrap{ width:54px !important; height:66px !important; font-size:28px !important; }
+          .dtm-root .border-jade\/30 .items-center.gap-3{ flex-wrap:wrap !important; }
+          .dtm-root .border-jade\/30 .items-center.gap-3 > button{ order:9; width:100%; margin-top:6px; }
           /* Banner Thắng/Thua — tiêu đề + chiều cao gọn cho khỏi tràn ngang */
           .dtm-root .dtm-endbanner{ min-height:240px; padding:26px 16px; }
           .dtm-root .dtm-endtitle{ font-size:42px; }
