@@ -6009,6 +6009,11 @@
         .dtm-root .dtm-fog::after{ animation-duration:58s; animation-direction:reverse; opacity:.65; }
         @keyframes dtmFog{ 0%{transform:translate(0,0) rotate(0)} 50%{transform:translate(4%,-3%) rotate(180deg)} 100%{transform:translate(0,0) rotate(360deg)} }
         @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-fog::before,.dtm-root .dtm-fog::after{ animation:none } }
+        /* JUICE đánh thẻ: phản hồi chạm tức thì (:active) + thẻ "bay" lên khi đánh (clone absolute, không bị cắt bởi hàng bài cuộn) */
+        .dtm-root .card.playable:active{ transform:scale(.94); filter:brightness(1.14); transition:transform .07s ease; }
+        .dtm-root .dtm-castfly{ z-index:40; pointer-events:none; border-radius:10px; box-shadow:0 0 30px -4px var(--c,#f5b942), 0 0 64px -16px #ffffffcc; animation:dtmCastFly .48s cubic-bezier(.34,.08,.2,1) forwards; }
+        @keyframes dtmCastFly{ 0%{ transform:scale(1) translateY(0) rotate(0); opacity:1; } 28%{ transform:scale(1.16) translateY(-26px) rotate(-2deg); opacity:1; filter:brightness(1.5) saturate(1.25); } 100%{ transform:scale(.6) translateY(-155px) rotate(4deg); opacity:0; filter:brightness(2.1); } }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-castfly{ animation-duration:.22s } .dtm-root .card.playable:active{ transform:none } }
         /* ===== MOBILE (<=640px): căn chỉnh kích thước DTM cho điện thoại (trước chỉ tune desktop) ===== */
         @media (max-width: 640px){
           /* --- SẢNH: banner gọn lại (trước quá to, lỗi nặng trên mobile) --- */
@@ -6371,7 +6376,7 @@
 
               <div class="flex gap-2 justify-center flex-wrap min-h-[256px] items-end pt-6 pb-1 transform-gpu">
                 <template x-for="(c,i) in hand" :key="c.uid">
-                  <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i)">
+                  <div class="card" :class="khi>=c.cost?'playable':'unplayable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="playCard(i, $event)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="c.rar==='tuyet'"><img class="dtm-tuyetglow" src="images/dtm/vfx/card_glow_tuyet.webp" alt="" onerror="this.remove()"></template><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                     <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="c.desc"></div></div>

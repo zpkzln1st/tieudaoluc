@@ -268,8 +268,20 @@ export function dangTienMong() {
     hitEnemy(e, amt) { let d = amt; if (e.block > 0) { const a = Math.min(e.block, d); e.block -= a; d -= a; } e.hp = Math.max(0, e.hp - d); return d; },
     absorbPlayer(amt) { let d = amt; if (this.player.block > 0) { const a = Math.min(this.player.block, d); this.player.block -= a; d -= a; } this.run.hp = Math.max(0, this.run.hp - d); return d; },
 
-    playCard(i) {
+    // Juice: clone thẻ vừa đánh thành 1 lớp absolute (escape overflow hàng bài) rồi cho "bay" lên + sáng + tan
+    castFlyAnim(el) {
+      try {
+        const root = this.$el; if (!root || !el || !el.getBoundingClientRect) return;
+        const r = el.getBoundingClientRect(); const rr = root.getBoundingClientRect();
+        const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable');
+        cl.style.position = 'absolute'; cl.style.left = (r.left - rr.left) + 'px'; cl.style.top = (r.top - rr.top) + 'px';
+        cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0'; cl.style.zIndex = '40'; cl.style.pointerEvents = 'none';
+        root.appendChild(cl); setTimeout(() => { try { cl.remove(); } catch (_) {} }, 500);
+      } catch (e) {}
+    },
+    playCard(i, ev) {
       const c = this.hand[i]; if (!c || this.khi < c.cost) return;
+      if (ev && ev.currentTarget) this.castFlyAnim(ev.currentTarget);
       this.khi -= c.cost;
       if (c.dmg) {
         let base = c.dmg + (this.player.str || 0);
