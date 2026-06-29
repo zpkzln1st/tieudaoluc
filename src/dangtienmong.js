@@ -303,6 +303,7 @@ export function dangTienMong() {
       const c = this.hand[i]; if (!c || this.khi < c.cost) return;
       if (ev && ev.currentTarget) this.castFlyAnim(ev.currentTarget);
       if (c.dmg) this.castShake();
+      try { if (navigator.vibrate) navigator.vibrate(c.dmg ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN (không phụ thuộc cài đặt animation của máy)
       this.khi -= c.cost;
       if (c.dmg) {
         let base = c.dmg + (this.player.str || 0);
