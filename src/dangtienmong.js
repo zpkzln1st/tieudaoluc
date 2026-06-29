@@ -284,9 +284,9 @@ export function dangTienMong() {
         let tx = 0, ty = -150;   // mặc định bay lên nếu không tìm thấy địch
         try { const ens = document.querySelectorAll('.dtm-enemy'); const tgt = ens[this.tgtIdx()] || ens[0]; if (tgt) { const tr = tgt.getBoundingClientRect(); tx = (tr.left + tr.width / 2) - cx; ty = (tr.top + tr.height / 2) - cy; } } catch (_) {}   // .dtm-enemy = lớp RIÊNG panel quái -> query toàn cục, không lệ thuộc scope/root (1 trận tại 1 thời điểm)
         // OVERLAY cố định phủ toàn VIEWPORT (inset:0) -> clone định vị theo toạ độ viewport (r.left/r.top), KHÔNG phụ thuộc containing-block/scroll của .dtm-root (fix lỗi clone xuất hiện ở đáy trang trên browser thật)
-        const ov = document.createElement('div'); ov.className = 'dtm-root'; ov.style.cssText = 'position:fixed;inset:0;margin:0;padding:0;max-width:none;background:none;pointer-events:none;z-index:9999;overflow:visible';
-        const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable');
-        cl.style.position = 'absolute'; cl.style.left = r.left + 'px'; cl.style.top = r.top + 'px';
+        const ov = document.createElement('div'); ov.className = 'dtm-root'; ov.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;margin:0;padding:0;max-width:none;background:none;pointer-events:none;z-index:9999;overflow:visible';
+        const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable', 'sel');
+        cl.style.position = 'fixed'; cl.style.left = r.left + 'px'; cl.style.top = r.top + 'px';   // FIXED theo VIEWPORT trực tiếp (không qua overlay) -> clone luôn khởi đầu ĐÚNG vị trí lá bài trên browser thật
         cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0';
         cl.style.setProperty('--tx', tx + 'px'); cl.style.setProperty('--ty', ty + 'px');
         ov.appendChild(cl); document.body.appendChild(ov);

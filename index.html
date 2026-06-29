@@ -6011,9 +6011,10 @@
         @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-fog::before,.dtm-root .dtm-fog::after{ animation:none } }
         /* JUICE đánh thẻ: chạm phản hồi tức thì (:active) + thẻ BAY VÀO ĐỊCH (WAAPI trong JS) + RUNG MÀN khi tung đòn */
         .dtm-root .card.playable:active{ transform:scale(.94); filter:brightness(1.16); transition:transform .07s ease; }
-        /* THẺ ĐANG CHỌN (tap 1): nhô lên + to ra + sáng/viền — tap lần 2 để đánh */
-        .dtm-root .card.sel{ transform:translateY(-22px) scale(1.09); box-shadow:0 0 0 2px var(--c), 0 0 30px -2px var(--c), 0 18px 32px -10px #000; filter:brightness(1.13); z-index:12; transition:transform .15s ease, box-shadow .15s ease; }
-        .dtm-root .card.sel:active{ transform:translateY(-22px) scale(1.09); }
+        /* THẺ ĐANG CHỌN (tap 1): nhô lên + to ra + sáng/viền — tap lần 2 để đánh. !important để HOVER không ghi đè/giật thẻ đang chọn */
+        .dtm-root .card.sel, .dtm-root .card.sel:hover{ transform:translateY(-22px) scale(1.09) !important; box-shadow:0 0 0 2px var(--c), 0 0 30px -2px var(--c), 0 18px 32px -10px #000 !important; filter:brightness(1.13); z-index:12 !important; transition:transform .15s ease, box-shadow .15s ease; }
+        /* Khi ĐANG có thẻ được chọn -> thẻ KHÁC không sáng/nhấc khi rê chuột (khỏi rối) */
+        .dtm-root .has-sel .card:not(.sel):hover.playable{ transform:none !important; box-shadow:0 0 0 1px var(--c), inset 0 0 20px -15px var(--c) !important; z-index:auto !important; }
         .dtm-root .dtm-castfly{ z-index:45; pointer-events:none; border-radius:10px; box-shadow:0 0 36px -2px var(--c,#f5b942), 0 0 74px -14px #ffffffe6; will-change:transform,opacity; animation:dtmCastFly .5s cubic-bezier(.42,.04,.25,1) forwards; }
         @keyframes dtmCastFly{ 0%{ transform:translate(0,0) scale(1) rotate(0deg); opacity:1; filter:brightness(1) } 30%{ transform:translate(calc(var(--tx,0px)*.12), calc(var(--ty,-30px)*.1 - 34px)) scale(1.2) rotate(-4deg); opacity:1; filter:brightness(1.5) } 100%{ transform:translate(var(--tx,0px), var(--ty,-150px)) scale(.4) rotate(8deg); opacity:0; filter:brightness(2.2) } }
         .dtm-root .dtm-shakefx{ animation:dtmHitShake .28s ease both; }
@@ -6389,7 +6390,7 @@
                 </div>
               </div>
 
-              <div class="flex gap-2 justify-center flex-wrap min-h-[256px] items-end pt-6 pb-1 transform-gpu">
+              <div class="flex gap-2 justify-center flex-wrap min-h-[256px] items-end pt-6 pb-1 transform-gpu" :class="selUid?'has-sel':''">
                 <template x-for="(c,i) in hand" :key="c.uid">
                   <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
