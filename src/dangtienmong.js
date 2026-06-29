@@ -6,6 +6,7 @@
 // Logic = bản mockup _mockup/dangtienmong.html đã verify; thêm bridge persist Tầng sâu nhất.
 // ============================================================
 import { Storage } from './engine/save.js';
+import { castFxFor, runFx, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
 
 export function ensureDangTien(state) {
   if (!state.dangTien) state.dangTien = {};
@@ -107,7 +108,7 @@ export function dangTienMong() {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
-    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, selUid: null,
+    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [],
     HEROES, RELICS, metaUp: META_UP,
     lobbyFoes: [
@@ -284,14 +285,29 @@ export function dangTienMong() {
         if (this._shake) { this._shake = false; (window.requestAnimationFrame || setTimeout)(set); } else set();
       } catch (e) {}
     },
-    // Diễn hoạt đánh thẻ TẠI CHỖ trên thẻ thật (flag phản ứng _cast + :class — Alpine quản lý, KHÔNG clone/định vị tuyệt đối như hiệu ứng thẻ-bay đã bỏ).
-    // Công -> Đâm Tới (thẻ lao tới phía địch); Thủ/Kỹ -> Vòng Khí (thẻ tụ khí + vòng năng lượng lan). Diễn xong (~380ms) mới rời tay.
-    castCard(c) {
+    // Hit-stop: đóng băng cảnh ngắn lúc trúng đòn (flag phản ứng -> .dtm-hitstop pause animation).
+    hitStop(ms) {
+      try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches) return; } catch (e) {}
+      this._hitstop = true; clearTimeout(this._hitstopT); this._hitstopT = setTimeout(() => { this._hitstop = false; }, ms || 70);
+    },
+    // Đánh thẻ: chạy hiệu ứng (theo LOẠI thẻ) trên con quái đang nhắm + thẻ thật, rồi thẻ BIẾN MẤT khỏi tay.
+    // CÁCH LY: chỉ đụng DOM (the + panel quái) + run state; KHÔNG state combat/gear. Hiệu ứng port từ mockup (dtm_fx.js).
+    castCard(c, ev) {
+      c._cast = 'casting';   // đánh dấu đã tung (chặn re-tap) NGAY — chưa có CSS 'dtm-cast-casting' nên chưa hiện gì
       let reduce = false;
       try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
       if (reduce) { this._discardCast(c); return; }
-      c._cast = (c.type === 'atk') ? 'lunge' : 'aura';
-      setTimeout(() => { this._discardCast(c); }, 380);
+      try {
+        let cardEl = ev && ev.currentTarget;
+        if (cardEl && cardEl.classList && !cardEl.classList.contains('card') && cardEl.closest) cardEl = cardEl.closest('.card');
+        const panels = Array.from(document.querySelectorAll('.dtm-enemy'));
+        const hosts = panels.map((p) => p.querySelector('.dtm-efx')).filter(Boolean);
+        const host = hosts[this.tgtIdx()] || hosts[0] || null;
+        const stageEl = panels[0] ? panels[0].parentElement : null;   // hàng quái (cho đòn AoE quét ngang)
+        runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake: () => this.castShake(), hitStop: (ms) => this.hitStop(ms) });
+      } catch (e) {}
+      setTimeout(() => { if (c._cast === 'casting') c._cast = 'vanish'; }, DTM_VANISH_LEAD);   // thẻ bắt đầu tan khỏi tay
+      setTimeout(() => { this._discardCast(c); }, DTM_VANISH_LEAD + DTM_VANISH_MS + 60);
     },
     _discardCast(c) {
       const i = this.hand.indexOf(c);
@@ -301,7 +317,6 @@ export function dangTienMong() {
     playCard(i, ev) {
       const c = this.hand[i]; if (!c || c._cast || this.khi < c.cost) return;
       this.selUid = null;
-      if (c.dmg) this.castShake();
       try { if (navigator.vibrate) navigator.vibrate(c.dmg ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN (không phụ thuộc cài đặt animation của máy)
       this.khi -= c.cost;
       if (c.dmg) {
@@ -320,7 +335,7 @@ export function dangTienMong() {
       if (c.weaken) { const e = this.enemies[this.tgtIdx()]; if (e) e.weak += c.weaken; }
       if (c.str) this.player.str += c.str;
       if (c.dodge) this.player.dodge = true;
-      this.castCard(c);
+      this.castCard(c, ev);
       if (c.draw) this.draw(c.draw);
       if (this.aliveCount() === 0) this.winBattle();
     },

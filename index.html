@@ -6127,7 +6127,880 @@
           .dtm-root .dtm-endbanner{ min-height:240px; padding:26px 16px; }
           .dtm-root .dtm-endtitle{ font-size:42px; }
         }
-      </style>
+      
+        /* ============ HIEU UNG DANH THE v3 (port tu _mockup/fx_src) ============ */
+        /* --- toolkit: host fx tren con quai + flash/knock/squash + hit-stop + the bien mat --- */
+        .dtm-root .dtm-efxwrap{ position:relative; }
+        .dtm-root .dtm-efx{ position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }
+        .dtm-root .dtm-eflash{ position:absolute; inset:0; background:#fff; opacity:0; mix-blend-mode:screen; border-radius:inherit; pointer-events:none; z-index:8; }
+        .dtm-root .dtm-eflash.on{ animation:dtmEFlash .26s ease-out; }
+        @keyframes dtmEFlash{ 0%{opacity:0} 16%{opacity:.92} 100%{opacity:0} }
+        .dtm-root .dtm-portwrap.dtm-eknock{ animation:dtmEKnock .56s cubic-bezier(.18,.7,.3,1) both; }
+        @keyframes dtmEKnock{
+          0%{ transform:translate(0,0) rotate(0) }
+          13%{ transform:translate(var(--kx,0px),var(--ky,0px)) rotate(var(--kr,0deg)) }
+          38%{ transform:translate(calc(var(--kx,0px)*-.34),calc(var(--ky,0px)*-.34)) rotate(calc(var(--kr,0deg)*-.4)) }
+          60%{ transform:translate(calc(var(--kx,0px)*.16),calc(var(--ky,0px)*.16)) rotate(calc(var(--kr,0deg)*.22)) }
+          82%{ transform:translate(calc(var(--kx,0px)*-.06),0) rotate(0) }
+          100%{ transform:translate(0,0) rotate(0) }
+        }
+        .dtm-root .dtm-portwrap.dtm-esquash{ animation:dtmESquash .4s ease-out; }
+        @keyframes dtmESquash{ 0%{transform:scale(1,1)} 22%{transform:scale(1.16,.82)} 55%{transform:scale(.92,1.08)} 100%{transform:scale(1,1)} }
+        .dtm-root .dtm-hitstop, .dtm-root .dtm-hitstop *{ animation-play-state:paused !important; }
+        .dtm-root .card.dtm-cast-vanish{ animation:dtmCardVanish var(--dtmv,.7s) ease-in forwards !important; }
+        @keyframes dtmCardVanish{ 0%{opacity:1; transform:translateY(0) scale(1)} 100%{opacity:0; transform:translateY(30px) scale(.78)} }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-hitstop,.dtm-root .dtm-hitstop *{ animation-play-state:running !important } }
+/* ==== FX tram ==== */
+/* ===== TRAM KICH ===== */
+
+/* Windup: the keo lui + nghieng + rung, glow kiem-khi don len */
+@keyframes tramWindup{
+  0%   { transform: translate(0,0) rotate(0deg); filter: brightness(1); }
+  55%  { transform: translate(-26px,4px) rotate(-7deg); filter: brightness(1.08); }
+  78%  { transform: translate(-34px,5px) rotate(-9deg); filter: brightness(1.18); }
+  85%  { transform: translate(-31px,4px) rotate(-8.4deg); }
+  100% { transform: translate(-34px,5px) rotate(-9deg); filter: brightness(1.22); }
+}
+.tram-windup{ animation: tramWindup 150ms cubic-bezier(.3,.9,.4,1) forwards; }
+
+/* micro-jitter chong lai (lay da cang) */
+@keyframes tramJitter{
+  0%,100%{ transform: translate(-34px,5px) rotate(-9deg); }
+  25% { transform: translate(-35px,4px) rotate(-9.4deg); }
+  50% { transform: translate(-33px,6px) rotate(-8.6deg); }
+  75% { transform: translate(-35px,5px) rotate(-9.5deg); }
+}
+.tram-jitter{ animation: tramJitter 60ms linear 2; }
+
+/* Strike: the vut toi vuot qua (overshoot) roi settle */
+@keyframes tramStrike{
+  0%   { transform: translate(-34px,5px) rotate(-9deg); }
+  35%  { transform: translate(20px,-3px) rotate(5deg); filter: brightness(1.5); }
+  60%  { transform: translate(8px,-1px) rotate(2deg); filter: brightness(1.05); }
+  100% { transform: translate(0,0) rotate(0deg); filter: brightness(1); }
+}
+.tram-strike{ animation: tramStrike 360ms cubic-bezier(.2,1.7,.3,1) forwards; }
+
+/* Sinh khi quanh the khi tich luc */
+.tram-aura{
+  position:absolute; inset:-6px; border-radius:14px; pointer-events:none;
+  opacity:0; z-index:5;
+  background: radial-gradient(120% 60% at 0% 50%, rgba(150,230,255,.55), rgba(120,200,255,0) 60%);
+  box-shadow: 0 0 22px 4px rgba(140,225,255,.0);
+  mix-blend-mode: screen;
+}
+@keyframes tramAura{
+  0%   { opacity:0; box-shadow:0 0 6px 0 rgba(140,225,255,0); }
+  70%  { opacity:.9; box-shadow:0 0 26px 6px rgba(150,230,255,.7); }
+  100% { opacity:0; box-shadow:0 0 40px 10px rgba(150,230,255,0); }
+}
+.tram-aura.on{ animation: tramAura 200ms ease-out forwards; }
+
+/* Lan chem CHEO sac lem cat ngang quai */
+.tram-slash{
+  position:absolute; left:50%; top:50%; pointer-events:none; z-index:30;
+  width:112%; height:2.5px;
+  transform: translate(-50%,-50%) rotate(-34deg) scaleX(0);
+  transform-origin:50% 50%;
+  background: linear-gradient(90deg,
+     rgba(255,255,255,0) 0%,
+     rgba(180,235,255,.5) 18%,
+     rgba(255,255,255,1) 50%,
+     #eaffff 72%,
+     rgba(255,255,255,0) 100%);
+  filter: drop-shadow(0 0 5px rgba(170,235,255,.95)) drop-shadow(0 0 10px rgba(120,200,255,.6));
+  border-radius:4px; opacity:0;
+}
+/* leading-edge trang sang hon o dau lan */
+.tram-slash::after{
+  content:""; position:absolute; right:0; top:50%; width:8px; height:8px;
+  transform: translate(40%,-50%);
+  background: radial-gradient(circle, #ffffff 0%, rgba(220,250,255,.6) 45%, rgba(255,255,255,0) 70%);
+  filter: blur(1px);
+}
+@keyframes tramSlash{
+  0%   { transform: translate(-50%,-50%) rotate(-34deg) scaleX(0);   opacity:0; }
+  14%  { opacity:1; }
+  42%  { transform: translate(-50%,-50%) rotate(-34deg) scaleX(1.06); opacity:1; }
+  100% { transform: translate(-50%,-50%) rotate(-34deg) scaleX(1.06); opacity:0; }
+}
+.tram-slash.go{ animation: tramSlash 230ms cubic-bezier(.1,.85,.25,1) forwards; }
+
+/* Loi trang bung khi trung (core flash) */
+.tram-core{
+  position:absolute; left:50%; top:50%; width:90px; height:90px;
+  transform: translate(-50%,-50%) scale(.2); opacity:0;
+  background: radial-gradient(circle, #ffffff 0%, rgba(200,245,255,.7) 35%, rgba(150,220,255,0) 70%);
+  pointer-events:none; z-index:28; mix-blend-mode:screen;
+}
+@keyframes tramCore{
+  0%  { transform:translate(-50%,-50%) scale(.2); opacity:0; }
+  18% { transform:translate(-50%,-50%) scale(1);  opacity:1; }
+  100%{ transform:translate(-50%,-50%) scale(1.7); opacity:0; }
+}
+.tram-core.go{ animation: tramCore 280ms cubic-bezier(.15,.8,.3,1) forwards; }
+
+/* Vong soc mong lan ra theo huong chem */
+.tram-ring{
+  position:absolute; left:50%; top:50%; width:60px; height:60px; border-radius:50%;
+  transform: translate(-50%,-50%) scale(.3) rotate(-34deg);
+  border:2px solid rgba(190,240,255,.9);
+  box-shadow: 0 0 12px rgba(160,225,255,.8) inset, 0 0 10px rgba(160,225,255,.7);
+  opacity:0; pointer-events:none; z-index:27;
+}
+@keyframes tramRing{
+  0%  { transform:translate(-50%,-50%) scale(.3) rotate(-34deg); opacity:0; }
+  20% { opacity:.9; }
+  100%{ transform:translate(-50%,-50%) scale(2.3) rotate(-34deg); opacity:0; border-width:.5px; }
+}
+.tram-ring.go{ animation: tramRing 340ms cubic-bezier(.2,.7,.3,1) forwards; }
+
+/* Spark: VET DOC manh, van toc + TRONG LUC (roi xuong), mo dan */
+.tram-spark{
+  position:absolute; left:50%; top:50%; pointer-events:none; z-index:32;
+  width: var(--len,16px); height:2.5px; border-radius:2px;
+  background: linear-gradient(90deg, #ffffff, #ffe9a8 40%, rgba(255,200,80,0));
+  filter: drop-shadow(0 0 4px rgba(255,220,140,.9));
+  transform: translate(-50%,-50%) rotate(var(--a,0deg)) translateX(0);
+  opacity:0;
+}
+@keyframes tramSpark{
+  0%   { opacity:1; transform: translate(-50%,-50%) rotate(var(--a)) translateX(0)            scaleX(.4); }
+  18%  { opacity:1; transform: translate(-50%,-50%) rotate(var(--a)) translateX(calc(var(--d)*.45)) scaleX(1); }
+  100% { opacity:0;
+         transform: translate(calc(-50% + var(--gx,0px)), calc(-50% + var(--gy,40px)))
+                    rotate(var(--a)) translateX(var(--d)) scaleX(.5); }
+}
+.tram-spark.go{ animation: tramSpark var(--dur,520ms) cubic-bezier(.2,.7,.5,1) forwards; }
+
+/* Huyet quang: giot do van ra + roi trong luc */
+.tram-blood{
+  position:absolute; left:50%; top:50%; pointer-events:none; z-index:31;
+  width:6px; height:6px; border-radius:50%;
+  background: radial-gradient(circle, #ff5a4d 0%, #c41f1f 60%, rgba(150,10,10,0) 100%);
+  filter: drop-shadow(0 0 3px rgba(220,40,40,.8));
+  transform: translate(-50%,-50%); opacity:0;
+}
+@keyframes tramBlood{
+  0%   { opacity:1; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity:0; transform: translate(calc(-50% + var(--bx,0px)), calc(-50% + var(--by,55px))) scale(.5); }
+}
+.tram-blood.go{ animation: tramBlood var(--bdur,560ms) cubic-bezier(.3,.6,.6,1) forwards; }
+
+/* Debris manh vo van ra */
+.tram-deb{
+  position:absolute; left:50%; top:50%; pointer-events:none; z-index:31;
+  width:4px; height:4px; background:#dff4ff; border-radius:1px;
+  filter: drop-shadow(0 0 2px rgba(180,225,255,.7));
+  transform: translate(-50%,-50%); opacity:0;
+}
+@keyframes tramDeb{
+  0%   { opacity:1; transform: translate(-50%,-50%) rotate(0deg) scale(1); }
+  100% { opacity:0; transform: translate(calc(-50% + var(--dx,0px)), calc(-50% + var(--dy,30px))) rotate(var(--dr,180deg)) scale(.4); }
+}
+.tram-deb.go{ animation: tramDeb var(--ddur,500ms) cubic-bezier(.25,.6,.5,1) forwards; }
+/* ==== FX bao ==== */
+/* ====================== BẠO QUYỀN (REWORK) — đòn NẶNG, hướng LÊN ====================== */
+/* Bố cục: quái Ở TRÊN, thẻ Ở DƯỚI → đấm THẲNG LÊN. Thân nhún xuống lấy đà, bung lên, recoil spring. */
+
+/* ---- 1) ANTICIPATION: thân NÉN xuống + dồn kình đỏ-cam ---- */
+.bao-charge{ animation: baoCharge .19s cubic-bezier(.42,0,.78,.36) forwards; transform-origin:50% 92%; }
+@keyframes baoCharge{
+  0%  { transform:translateY(0)    scale(1,1);        filter:brightness(1); }
+  70% { transform:translateY(11px) scale(1.07,.86);   filter:brightness(1.22) drop-shadow(0 0 12px rgba(255,120,40,.7)); }
+  100%{ transform:translateY(13px) scale(1.09,.83);   filter:brightness(1.34) drop-shadow(0 0 16px rgba(255,135,45,.9)); }
+}
+/* micro-jitter dồn kình ở cuối windup (gồng lực) */
+.bao-coil{ animation: baoCoil .052s linear 2; transform-origin:50% 92%; }
+@keyframes baoCoil{
+  0%,100%{ transform:translateY(13px) scale(1.09,.83) rotate(0); }
+  50%    { transform:translateY(14px) scale(1.10,.82) rotate(-.6deg); }
+}
+
+/* ---- 2) STRIKE: bung THẲNG LÊN phía quái rồi recoil spring settle ---- */
+.bao-strike{ animation: baoStrike .50s cubic-bezier(.18,1.55,.3,1) forwards; transform-origin:50% 92%; }
+@keyframes baoStrike{
+  0%  { transform:translateY(13px) scale(1.09,.83);  filter:brightness(1.34) drop-shadow(0 0 16px rgba(255,135,45,.9)); }
+  18% { transform:translateY(-34px) scale(.9,1.2);   filter:brightness(1.7)  drop-shadow(0 0 24px rgba(255,165,60,1)); }
+  40% { transform:translateY(-3px)  scale(1.06,.95); filter:brightness(1.06); }
+  62% { transform:translateY(4px)   scale(.98,1.02); filter:brightness(1); }
+  100%{ transform:translateY(0)     scale(1,1);      filter:brightness(1); }
+}
+
+/* glyph 拳 trên thẻ sáng bùng lúc tống đòn */
+.bao-fistglow{ animation: baoFistGlow .5s ease-out forwards; }
+@keyframes baoFistGlow{
+  0%  { filter:drop-shadow(0 2px 6px #000); }
+  18% { filter:drop-shadow(0 2px 6px #000) drop-shadow(0 0 16px rgba(255,170,70,1)) brightness(1.7); }
+  100%{ filter:drop-shadow(0 2px 6px #000); }
+}
+
+/* hào quang kình tụ ở nắm (đáy thẻ) lúc windup */
+.bao-aura{ position:absolute; left:50%; bottom:6%; width:54px; height:54px; margin:0 0 0 -27px;
+  border-radius:50%; pointer-events:none; opacity:0; z-index:4;
+  background:radial-gradient(circle,rgba(255,180,70,.6) 0%,rgba(255,90,25,.28) 46%,transparent 70%);
+}
+.bao-aura.on{ animation: baoAura .2s ease-out forwards; }
+@keyframes baoAura{ 0%{opacity:0;transform:scale(.35)} 65%{opacity:.95;transform:scale(1.15)} 100%{opacity:0;transform:scale(.7)} }
+
+/* ---- 3) IMPACT (trên quái, đúng tâm) ---- */
+
+/* lõi trắng nén-bung (mix-blend chỉ trên phần nhỏ) */
+.bao-core{ position:absolute; left:50%; top:50%; width:58px; height:58px; margin:-29px 0 0 -29px;
+  border-radius:50%; pointer-events:none; mix-blend-mode:screen; z-index:30;
+  background:radial-gradient(circle,#fff 0%,#ffe7c2 30%,rgba(255,150,60,.55) 56%,transparent 72%);
+  animation: baoCore .28s cubic-bezier(.1,.8,.3,1) forwards; }
+@keyframes baoCore{ 0%{opacity:0;transform:scale(.2)} 14%{opacity:1;transform:scale(1.2)} 100%{opacity:0;transform:scale(2)} }
+
+/* vòng chấn KÉP — vành mảnh, không mix-blend (phần tử lớn → tránh lag) */
+.bao-wave{ position:absolute; left:50%; top:50%; width:30px; height:30px; margin:-15px 0 0 -15px;
+  border-radius:50%; pointer-events:none; z-index:27; border:3px solid rgba(255,195,115,.92);
+  box-shadow:0 0 12px rgba(255,140,50,.65); animation: baoWave .52s cubic-bezier(.12,.7,.2,1) forwards; }
+.bao-wave.w2{ animation-delay:.08s; border-color:rgba(255,120,40,.62); border-width:2px; }
+@keyframes baoWave{ 0%{opacity:0;transform:scale(.25)} 9%{opacity:1} 100%{opacity:0;transform:scale(4)} }
+
+/* cột kình DỌC — lực dội từ DƯỚI lên, mảnh, đúng tâm, KHÔNG quét sang vùng khác */
+.bao-column{ position:absolute; left:50%; bottom:-6px; width:14px; height:80px; margin:0 0 0 -7px;
+  pointer-events:none; z-index:26; transform-origin:50% 100%; opacity:0; border-radius:7px;
+  background:linear-gradient(0deg,rgba(255,170,70,0) 0%,rgba(255,190,90,.85) 40%,#fff 100%);
+  filter:drop-shadow(0 0 8px rgba(255,160,60,.8));
+  animation: baoColumn .3s cubic-bezier(.1,.85,.3,1) forwards; }
+@keyframes baoColumn{
+  0%  { opacity:0; transform:scaleY(.2) scaleX(1.2); }
+  16% { opacity:1; transform:scaleY(1.05) scaleX(1); }
+  100%{ opacity:0; transform:scaleY(1.05) scaleX(.4); }
+}
+
+/* tia lửa — vệt cứng, vận tốc + TRỌNG LỰC (JS đặt --dx/--dy/--ds/--rot/--dur) */
+.bao-spark{ position:absolute; left:50%; top:50%; width:var(--ds,14px); height:3px; margin:-1.5px 0 0 0;
+  border-radius:2px; pointer-events:none; transform-origin:left center; z-index:31;
+  background:linear-gradient(90deg,#fff,#ffd27a 40%,rgba(255,110,30,0));
+  box-shadow:0 0 6px rgba(255,170,70,.9);
+  animation: baoSpark var(--dur,.55s) cubic-bezier(.15,.6,.4,1) forwards; }
+@keyframes baoSpark{
+  0%  { opacity:1; transform:translate(0,0) rotate(var(--rot,0deg)) scaleX(.3); }
+  20% { opacity:1; transform:translate(calc(var(--dx)*.45),calc(var(--dy)*.45 - 6px)) rotate(var(--rot,0deg)) scaleX(1.1); }
+  100%{ opacity:0; transform:translate(var(--dx),calc(var(--dy) + 34px)) rotate(calc(var(--rot,0deg) + 30deg)) scaleX(.5); }
+}
+
+/* mảnh vỡ to, có trọng lực */
+.bao-debris{ position:absolute; left:50%; top:52%; width:var(--dz,6px); height:var(--dz,6px); margin:-3px 0 0 -3px;
+  border-radius:1px; pointer-events:none; z-index:30; background:#c2671e; box-shadow:0 0 3px rgba(255,140,50,.55);
+  animation: baoDebris var(--dur,.6s) cubic-bezier(.2,.5,.5,1) forwards; }
+@keyframes baoDebris{
+  0%  { opacity:1; transform:translate(0,0) rotate(0); }
+  100%{ opacity:0; transform:translate(var(--dx),calc(var(--dy) + 44px)) rotate(var(--rot,180deg)); }
+}
+
+/* bụi mù bốc lên (lớp nền, hơi trễ) */
+.bao-dust{ position:absolute; left:50%; top:60%; width:var(--dsz,28px); height:var(--dsz,28px); margin:0 0 0 -14px;
+  border-radius:50%; pointer-events:none; z-index:25; filter:blur(3px);
+  background:radial-gradient(circle,rgba(200,160,115,.5),transparent 70%);
+  animation: baoDust .72s ease-out forwards; }
+@keyframes baoDust{
+  0%  { opacity:0; transform:translate(0,0) scale(.4); }
+  25% { opacity:.7; }
+  100%{ opacity:0; transform:translate(var(--dx),-30px) scale(1.85); }
+}
+/* ==== FX vu ==== */
+/* ===== KIEM VU - lien hoan kiem ===== */
+/* the rung theo nhip cac nhat */
+@keyframes vuCardDance {
+  0%   { transform: translate(0,0) rotate(0); }
+  10%  { transform: translate(-7px,2px) rotate(-2.2deg); }   /* anticipation: keo lui+rung */
+  22%  { transform: translate(6px,-1px) rotate(2deg); }       /* nhat 1 */
+  34%  { transform: translate(-5px,1px) rotate(-1.8deg); }    /* nhat 2 */
+  46%  { transform: translate(5px,-1px) rotate(1.6deg); }     /* nhat 3 */
+  60%  { transform: translate(-9px,2px) rotate(-2.6deg); }    /* lui sau lay da cho nhat cuoi */
+  70%  { transform: translate(8px,-2px) rotate(2.4deg); }     /* nhat cuoi - bung */
+  84%  { transform: translate(-3px,1px) rotate(-1deg); }      /* settle */
+  100% { transform: translate(0,0) rotate(0); }
+}
+.vu-dance { animation: vuCardDance 760ms cubic-bezier(.2,1.55,.3,1) both; }
+
+/* charge glow tren the luc lay da */
+.vu-card-glow::after {
+  content:""; position:absolute; inset:-2px; border-radius:inherit;
+  pointer-events:none; z-index:5;
+  box-shadow: 0 0 0 0 rgba(180,235,255,0); 
+  animation: vuCardGlow 760ms ease-out both;
+}
+@keyframes vuCardGlow {
+  0%   { box-shadow:0 0 0 0 rgba(180,235,255,0); filter:brightness(1); }
+  12%  { box-shadow:0 0 14px 3px rgba(170,230,255,.85); }
+  22%,46%,70% { box-shadow:0 0 22px 5px rgba(210,245,255,.95); }
+  100% { box-shadow:0 0 0 0 rgba(180,235,255,0); }
+}
+
+/* LAN CHEM: vach mong sang lia ngang qua chan dung quai, moi nhat 1 goc khac */
+.vu-slash {
+  position:absolute; left:50%; top:50%;
+  width:118%; height:2px;
+  margin-left:-59%; margin-top:-1px;
+  border-radius:6px;
+  background: linear-gradient(90deg,
+     rgba(255,255,255,0) 0%,
+     rgba(190,238,255,.0) 12%,
+     rgba(235,250,255,.95) 46%,
+     #ffffff 50%,
+     rgba(235,250,255,.95) 54%,
+     rgba(190,238,255,0) 88%,
+     rgba(255,255,255,0) 100%);
+  filter: drop-shadow(0 0 7px rgba(160,225,255,.95)) brightness(1.6);
+  transform: rotate(var(--ang,30deg)) scaleX(0);
+  transform-origin:50% 50%;
+  opacity:0; pointer-events:none; z-index:7;
+  animation: vuSlashGo 200ms cubic-bezier(.15,1.7,.35,1) forwards;
+}
+@keyframes vuSlashGo {
+  0%   { opacity:0; transform: rotate(var(--ang,30deg)) scaleX(0); }
+  18%  { opacity:1; }
+  55%  { opacity:1; transform: rotate(var(--ang,30deg)) scaleX(1.08); }
+  100% { opacity:0; transform: rotate(var(--ang,30deg)) scaleX(1.12); }
+}
+/* nhat cuoi day hon, sang hon */
+.vu-slash-final { height:3px; margin-top:-1.5px;
+  filter: drop-shadow(0 0 13px rgba(190,238,255,1)) brightness(1.9);
+  animation-duration:300ms; }
+
+/* loi sang trang giua nguoi quai - vong soc nhat cuoi */
+.vu-burst {
+  position:absolute; left:50%; top:48%;
+  width:30px; height:30px; margin-left:-15px; margin-top:-15px;
+  border-radius:50%;
+  background: radial-gradient(circle, #ffffff 0%, rgba(210,245,255,.9) 35%, rgba(150,220,255,0) 72%);
+  transform: scale(0); opacity:0; pointer-events:none; z-index:6;
+  animation: vuBurst 360ms cubic-bezier(.1,.9,.3,1) forwards;
+}
+@keyframes vuBurst {
+  0%   { transform:scale(0); opacity:0; }
+  14%  { transform:scale(.8); opacity:1; }
+  100% { transform:scale(3.4); opacity:0; }
+}
+/* vong soc vien (ring) */
+.vu-ring {
+  position:absolute; left:50%; top:48%;
+  width:24px; height:24px; margin-left:-12px; margin-top:-12px;
+  border-radius:50%;
+  border:3px solid rgba(220,248,255,.95);
+  box-shadow:0 0 12px rgba(170,228,255,.9);
+  transform:scale(.3); opacity:0; pointer-events:none; z-index:6;
+  animation: vuRing 420ms cubic-bezier(.1,.85,.25,1) forwards;
+}
+@keyframes vuRing {
+  0%   { transform:scale(.3); opacity:0; border-width:4px; }
+  20%  { opacity:1; }
+  100% { transform:scale(4.2); opacity:0; border-width:1px; }
+}
+
+/* SPARK: tia lua manh, van toc + trong luc (roi xuong) */
+.vu-spark {
+  position:absolute; left:50%; top:50%;
+  width:var(--sw,3px); height:var(--sl,16px);
+  margin-left:-1.5px; margin-top:0;
+  border-radius:3px;
+  background: linear-gradient(180deg, #ffffff, var(--sc,#bfeeff) 55%, rgba(120,200,255,0));
+  filter: drop-shadow(0 0 4px var(--sc,#a8e2ff)) brightness(1.5);
+  transform: translate(0,0) rotate(var(--sr,0deg)) scaleY(1);
+  opacity:1; pointer-events:none; z-index:8;
+  animation: vuSparkFly var(--sd,560ms) cubic-bezier(.18,.7,.5,1) forwards;
+}
+@keyframes vuSparkFly {
+  0%   { transform: translate(0,0) rotate(var(--sr)) scaleY(.4); opacity:1; }
+  18%  { opacity:1; transform: translate(calc(var(--sx)*.4), calc(var(--sy)*.4)) rotate(var(--sr)) scaleY(1); }
+  100% { transform: translate(var(--sx), calc(var(--sy) + var(--sg,46px))) rotate(var(--sr)) scaleY(.5); opacity:0; }
+}
+
+/* DEBRIS: manh vo nho bay+roi */
+.vu-debris {
+  position:absolute; left:50%; top:50%;
+  width:var(--dsz,4px); height:var(--dsz,4px);
+  margin:-2px 0 0 -2px; border-radius:1px;
+  background: var(--dc,#dff4ff);
+  filter: drop-shadow(0 0 2px rgba(170,225,255,.8));
+  opacity:1; pointer-events:none; z-index:8;
+  animation: vuDebrisFly var(--dd,640ms) cubic-bezier(.2,.6,.4,1) forwards;
+}
+@keyframes vuDebrisFly {
+  0%   { transform: translate(0,0) rotate(0); opacity:1; }
+  100% { transform: translate(var(--dx), calc(var(--dy) + var(--dg,60px))) rotate(var(--drot,260deg)); opacity:0; }
+}
+/* ==== FX taoQuet ==== */
+/* ===== TAO QUET — quet ngang ca hang ===== */
+
+/* Windup: the ha thap, keo lui ve goc trai-duoi, lay da xoay ngang */
+@keyframes taoQuetWindup{
+  0%   { transform: translate(0,0) rotate(0deg); filter:brightness(1); }
+  50%  { transform: translate(-30px,12px) rotate(-13deg); filter:brightness(1.05); }
+  78%  { transform: translate(-38px,16px) rotate(-17deg); filter:brightness(1.12); }
+  100% { transform: translate(-38px,16px) rotate(-17deg); filter:brightness(1.18); }
+}
+.taoQuet-windup{ animation: taoQuetWindup 170ms cubic-bezier(.3,.9,.4,1) forwards; }
+
+/* Strike: the buc toi vach ngang sang phai roi settle (overshoot) */
+@keyframes taoQuetStrike{
+  0%   { transform: translate(-38px,16px) rotate(-17deg); }
+  30%  { transform: translate(26px,-6px) rotate(9deg); filter:brightness(1.5); }
+  58%  { transform: translate(10px,-2px) rotate(3deg); filter:brightness(1.06); }
+  100% { transform: translate(0,0) rotate(0deg); filter:brightness(1); }
+}
+.taoQuet-strike{ animation: taoQuetStrike 420ms cubic-bezier(.2,1.7,.3,1) forwards; }
+
+/* Charge glow ngang tren the luc lay da */
+.taoQuet-cardglow::after{
+  content:""; position:absolute; inset:-2px; border-radius:inherit; pointer-events:none; z-index:5;
+  animation: taoQuetCardGlow 320ms ease-out both;
+}
+@keyframes taoQuetCardGlow{
+  0%   { box-shadow:0 0 0 0 rgba(180,235,255,0); }
+  55%  { box-shadow:0 -2px 20px 5px rgba(170,230,255,.85); }
+  100% { box-shadow:0 0 0 0 rgba(180,235,255,0); }
+}
+
+/* === LAN SONG QUET LON: vach kiem-khi MONG chay ngang ca hang quai ===
+   dat o BANG QUAI (top ~ giua hang chan dung), gan trai khu stage, scaleX tu goc trai */
+.taoQuet-wave{
+  position:absolute; left:2%; right:2%; top:38px; height:3px;
+  transform-origin:0% 50%; transform:scaleX(0); opacity:0;
+  border-radius:4px; pointer-events:none; z-index:24;
+  background: linear-gradient(90deg,
+     rgba(255,255,255,0) 0%,
+     rgba(190,238,255,.85) 8%,
+     #ffffff 16%,
+     #eaffff 30%,
+     rgba(200,242,255,.55) 70%,
+     rgba(190,238,255,0) 100%);
+  filter: drop-shadow(0 0 6px rgba(160,225,255,.95)) drop-shadow(0 0 12px rgba(120,200,255,.55)) brightness(1.5);
+}
+/* dau song sang manh dan dau (leading edge) */
+.taoQuet-wave::after{
+  content:""; position:absolute; left:0; top:50%; width:14px; height:14px;
+  transform:translate(-40%,-50%);
+  background: radial-gradient(circle,#ffffff 0%, rgba(220,250,255,.7) 45%, rgba(255,255,255,0) 72%);
+  filter: blur(1px);
+}
+@keyframes taoQuetWave{
+  0%   { transform:scaleX(0);    opacity:0; }
+  12%  { opacity:1; }
+  60%  { transform:scaleX(1);    opacity:1; }
+  100% { transform:scaleX(1);    opacity:0; }
+}
+.taoQuet-wave.go{ animation: taoQuetWave 360ms cubic-bezier(.12,.85,.25,1) forwards; }
+
+/* song phu mong hon o duoi, tao do day cho lat quet */
+.taoQuet-wave2{
+  position:absolute; left:2%; right:2%; top:54px; height:1.5px;
+  transform-origin:0% 50%; transform:scaleX(0); opacity:0;
+  border-radius:4px; pointer-events:none; z-index:23;
+  background: linear-gradient(90deg, rgba(190,238,255,0), rgba(200,242,255,.6) 30%, rgba(190,238,255,0));
+  filter: drop-shadow(0 0 5px rgba(150,220,255,.7));
+}
+@keyframes taoQuetWave2{
+  0%{ transform:scaleX(0); opacity:0; }
+  16%{ opacity:.9; }
+  64%{ transform:scaleX(1); opacity:.7; }
+  100%{ transform:scaleX(1); opacity:0; }
+}
+.taoQuet-wave2.go{ animation: taoQuetWave2 380ms cubic-bezier(.12,.85,.25,1) forwards; animation-delay:40ms; }
+
+/* === TREN MOI QUAI: lat chem ngang sac lem cat qua TAM chan dung === */
+.taoQuet-cut{
+  position:absolute; left:50%; top:50%; width:124%; height:2.5px;
+  transform: translate(-50%,-50%) rotate(-4deg) scaleX(0);
+  transform-origin:0% 50%;
+  border-radius:4px; opacity:0; pointer-events:none; z-index:30;
+  background: linear-gradient(90deg,
+     rgba(255,255,255,0) 0%,
+     rgba(190,238,255,.55) 16%,
+     #ffffff 50%,
+     #eaffff 72%,
+     rgba(255,255,255,0) 100%);
+  filter: drop-shadow(0 0 5px rgba(170,235,255,.95)) drop-shadow(0 0 9px rgba(120,200,255,.55));
+}
+@keyframes taoQuetCut{
+  0%   { transform:translate(-50%,-50%) rotate(-4deg) scaleX(0);    opacity:0; }
+  18%  { opacity:1; }
+  55%  { transform:translate(-50%,-50%) rotate(-4deg) scaleX(1.06); opacity:1; }
+  100% { transform:translate(-50%,-50%) rotate(-4deg) scaleX(1.06); opacity:0; }
+}
+.taoQuet-cut.go{ animation: taoQuetCut 220ms cubic-bezier(.1,.85,.25,1) forwards; }
+
+/* loi trang bung tam quai khi song luot qua */
+.taoQuet-core{
+  position:absolute; left:50%; top:50%; width:74px; height:74px;
+  transform:translate(-50%,-50%) scale(.2); opacity:0;
+  background: radial-gradient(circle,#ffffff 0%, rgba(200,245,255,.7) 36%, rgba(150,220,255,0) 70%);
+  pointer-events:none; z-index:28; mix-blend-mode:screen;
+}
+@keyframes taoQuetCore{
+  0%{ transform:translate(-50%,-50%) scale(.2); opacity:0; }
+  20%{ transform:translate(-50%,-50%) scale(.95); opacity:1; }
+  100%{ transform:translate(-50%,-50%) scale(1.6); opacity:0; }
+}
+.taoQuet-core.go{ animation: taoQuetCore 280ms cubic-bezier(.15,.8,.3,1) forwards; }
+
+/* SPARK: tia mong toa theo huong quet (lech phai-ngang) + TRONG LUC keo xuong */
+.taoQuet-spark{
+  position:absolute; left:50%; top:50%; pointer-events:none; z-index:32;
+  width: var(--len,16px); height:2.5px; border-radius:2px;
+  background: linear-gradient(90deg,#ffffff, #d6f3ff 42%, rgba(150,220,255,0));
+  filter: drop-shadow(0 0 4px rgba(170,225,255,.9));
+  transform: translate(-50%,-50%) rotate(var(--a,0deg)) translateX(0);
+  opacity:0;
+}
+@keyframes taoQuetSpark{
+  0%   { opacity:1; transform: translate(-50%,-50%) rotate(var(--a)) translateX(0) scaleX(.4); }
+  20%  { opacity:1; transform: translate(-50%,-50%) rotate(var(--a)) translateX(calc(var(--d)*.5)) scaleX(1); }
+  100% { opacity:0;
+         transform: translate(calc(-50% + var(--gx,8px)), calc(-50% + var(--gy,42px)))
+                    rotate(var(--a)) translateX(var(--d)) scaleX(.5); }
+}
+.taoQuet-spark.go{ animation: taoQuetSpark var(--dur,500ms) cubic-bezier(.2,.7,.5,1) forwards; }
+/* ==== FX kichDoc ==== */
+/* ===== KỊCH ĐỘC — độc tố lan + ăn mòn (xanh lục), trên TÂM con quái. Ép màu độc, KHÔNG theo --c ===== */
+
+/* thẻ rung khẽ + ám xanh độc lúc lấy đà */
+.kichDoc-charge{ animation: kdCharge .3s ease-out both; }
+@keyframes kdCharge{
+  0%  { filter:brightness(1); transform:translateY(0) scale(1); }
+  55% { filter:brightness(1.08) drop-shadow(0 0 10px rgba(132,204,22,.7)); transform:translateY(-3px) scale(1.02); }
+  100%{ filter:brightness(1); transform:translateY(0) scale(1); }
+}
+
+/* màn tint xanh bệnh hoạn phủ chân dung quái (domEnemy) */
+.kichDoc-tint{ position:absolute; inset:0; border-radius:14px; pointer-events:none; opacity:0; z-index:24;
+  background:radial-gradient(circle at 50% 50%, rgba(132,204,22,.55) 0%, rgba(63,98,18,.34) 56%, transparent 78%);
+  mix-blend-mode:multiply; }
+.kichDoc-tint.on{ animation: kdTint .95s ease-out forwards; }
+@keyframes kdTint{ 0%{opacity:0} 18%{opacity:.9} 70%{opacity:.5} 100%{opacity:0} }
+
+/* bệt độc bắn toé ở tâm */
+.kichDoc-splat{ position:absolute; left:50%; top:50%; width:72px; height:72px; margin:-36px 0 0 -36px;
+  border-radius:50%; pointer-events:none; z-index:30; opacity:0;
+  background:radial-gradient(circle, #ecfccb 0%, #a3e635 28%, #65a30d 52%, rgba(63,98,18,.5) 68%, transparent 78%);
+  filter:drop-shadow(0 0 8px rgba(132,204,22,.85));
+  animation: kdSplat .44s cubic-bezier(.1,.8,.3,1) forwards; }
+@keyframes kdSplat{ 0%{opacity:0;transform:scale(.2)} 16%{opacity:1;transform:scale(1.08)} 100%{opacity:0;transform:scale(1.5)} }
+
+/* bong bóng ăn mòn: nổi lên + phình rồi VỠ */
+.kichDoc-bub{ position:absolute; left:50%; top:50%; width:var(--bs,10px); height:var(--bs,10px); margin:0 0 0 calc(var(--bs,10px) / -2);
+  border-radius:50%; pointer-events:none; z-index:31; opacity:0;
+  background:radial-gradient(circle at 38% 30%, rgba(236,252,203,.95), #65a30d 72%);
+  box-shadow:0 0 4px rgba(132,204,22,.7);
+  animation: kdBub var(--bd,.6s) ease-out forwards; animation-delay:var(--bdl,0ms); }
+@keyframes kdBub{
+  0%  { opacity:0; transform:translate(var(--bx,0px), 6px) scale(.3); }
+  26% { opacity:1; transform:translate(var(--bx,0px), var(--by,-14px)) scale(1); }
+  78% { opacity:1; transform:translate(var(--bx,0px), calc(var(--by,-14px) - 7px)) scale(1.18); }
+  88% { opacity:1; transform:translate(var(--bx,0px), calc(var(--by,-14px) - 9px)) scale(1.34); }
+  100%{ opacity:0; transform:translate(var(--bx,0px), calc(var(--by,-14px) - 9px)) scale(.2); }
+}
+
+/* màn sương độc lởn vởn (lớp nền, mờ) */
+.kichDoc-haze{ position:absolute; left:50%; top:54%; width:100px; height:74px; margin:-37px 0 0 -50px;
+  border-radius:50%; pointer-events:none; z-index:23; opacity:0; filter:blur(7px);
+  background:radial-gradient(ellipse, rgba(132,204,22,.42), transparent 70%);
+  animation: kdHaze 1.15s ease-out forwards; }
+@keyframes kdHaze{ 0%{opacity:0;transform:translateY(8px) scale(.7)} 32%{opacity:.7} 100%{opacity:0;transform:translateY(-12px) scale(1.35)} }
+
+/* giọt độc nhỏ rớt xuống theo trọng lực */
+.kichDoc-drip{ position:absolute; left:50%; top:50%; width:var(--ds,5px); height:var(--ds,7px); margin:-3px 0 0 -2.5px;
+  border-radius:50% 50% 50% 50% / 62% 62% 40% 40%; pointer-events:none; z-index:30; opacity:0;
+  background:linear-gradient(180deg,#bef264,#4d7c0f); box-shadow:0 0 3px rgba(132,204,22,.6);
+  animation: kdDrip var(--dd,.7s) cubic-bezier(.3,.4,.6,1) forwards; }
+@keyframes kdDrip{ 0%{opacity:1;transform:translate(var(--dx,0px),0) scaleY(1)} 12%{opacity:1} 100%{opacity:0;transform:translate(var(--dx,0px), var(--dy,46px)) scaleY(1.4)} }
+
+/* ==== FX hapTinh ==== */
+.hapTinh-cardDrain{animation:hapTinhCardDrain 280ms cubic-bezier(.4,.05,.25,1) both}@keyframes hapTinhCardDrain{0%{transform:translateY(0) scale(1)}55%{transform:translateY(2px) scale(.985)}100%{transform:translateY(0) scale(1)}}.hapTinh-cardLife{animation:hapTinhCardHeal 720ms cubic-bezier(.22,.7,.3,1) both}@keyframes hapTinhCardHeal{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-3px) scale(1.025)}100%{transform:translateY(0) scale(1)}}#hapTinhAura{position:absolute;inset:-2px;border-radius:13px;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 62%,rgba(251,113,133,.55),rgba(190,18,60,.22) 46%,transparent 72%);box-shadow:inset 0 0 26px -6px rgba(251,113,133,.8),0 0 22px -4px rgba(251,113,133,.55);z-index:2}#hapTinhAura.on{animation:hapTinhAuraBloom 720ms cubic-bezier(.2,.7,.3,1) both}@keyframes hapTinhAuraBloom{0%{opacity:0}20%{opacity:1}55%{opacity:.92}100%{opacity:0}}#hapTinhAura.charge{animation:hapTinhAuraCharge 280ms ease-out both}@keyframes hapTinhAuraCharge{0%{opacity:0}100%{opacity:.34}}.hapTinh-lifemote{position:absolute;left:50%;bottom:14px;width:var(--m,6px);height:var(--m,6px);margin-left:calc(var(--m,6px)/-2);border-radius:50%;background:radial-gradient(circle,#fff,#fb7185 55%,#be123c);box-shadow:0 0 8px 1px rgba(251,113,133,.9);pointer-events:none;z-index:3;animation:hapTinhLifeRise var(--ld,620ms) cubic-bezier(.3,.6,.4,1) var(--dl,0ms) both}@keyframes hapTinhLifeRise{0%{opacity:0;transform:translate(0,0) scale(.4)}18%{opacity:1;transform:translate(calc(var(--mx,0px)*.4),-22px) scale(1)}100%{opacity:0;transform:translate(var(--mx,0px),var(--my,-92px)) scale(.5)}}.hapTinh-tint{position:absolute;inset:0;border-radius:14px;background:radial-gradient(ellipse at 50% 45%,rgba(167,139,250,.55),rgba(190,18,60,.5) 55%,transparent 78%);mix-blend-mode:screen;opacity:0;pointer-events:none;z-index:4;animation:hapTinhTint 300ms ease-out both}@keyframes hapTinhTint{0%{opacity:0}20%{opacity:.95}100%{opacity:0}}.hapTinh-siphon{position:absolute;left:50%;top:50%;width:var(--rs,120px);height:var(--rs,120px);margin-left:calc(var(--rs,120px)/-2);margin-top:calc(var(--rs,120px)/-2);border-radius:50%;border:2px solid rgba(251,113,133,.85);box-shadow:0 0 12px -2px rgba(251,113,133,.7),inset 0 0 10px -2px rgba(167,139,250,.6);opacity:0;pointer-events:none;z-index:5;animation:hapTinhSiphon var(--sd,420ms) cubic-bezier(.5,0,.3,1) var(--sdl,0ms) both}@keyframes hapTinhSiphon{0%{opacity:0;transform:scale(1) rotate(0deg)}14%{opacity:.95}100%{opacity:0;transform:scale(.06) rotate(140deg)}}.hapTinh-core{position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:radial-gradient(circle,#fff,#fb7185 50%,rgba(190,18,60,0) 75%);box-shadow:0 0 18px 4px rgba(251,113,133,.85);opacity:0;pointer-events:none;z-index:7;animation:hapTinhCore 360ms cubic-bezier(.15,.8,.3,1) 180ms both}@keyframes hapTinhCore{0%{opacity:0;transform:scale(.2)}38%{opacity:1;transform:scale(1.5)}100%{opacity:0;transform:scale(.4)}}.hapTinh-mote{position:absolute;left:50%;top:50%;width:var(--w,5px);height:var(--w,5px);margin-left:calc(var(--w,5px)/-2);margin-top:calc(var(--w,5px)/-2);border-radius:50%;background:radial-gradient(circle,#fff,#fb7185 45%,#be123c 90%);box-shadow:0 0 7px 1px rgba(251,113,133,.85);opacity:0;pointer-events:none;z-index:6;animation:hapTinhImplode var(--md,460ms) cubic-bezier(.55,0,.35,1) var(--dl,0ms) both}@keyframes hapTinhImplode{0%{opacity:0;transform:translate(var(--sx,0px),var(--sy,0px)) scale(.5)}16%{opacity:1;transform:translate(calc(var(--sx,0px)*.86),calc(var(--sy,0px)*.86)) scale(1)}88%{opacity:1;transform:translate(calc(var(--sx,0px)*.06),calc(var(--sy,0px)*.06)) scale(.85)}100%{opacity:0;transform:translate(0,0) scale(.2)}}
+/* ==== FX phan ==== */
+/* ===== phan : Phần Thiêu - Liệt Diễm Phần Thân (REWORK: đốt TRÊN QUÁI) ===== */
+
+/* ---- CARD: chỉ TỰ NHIỆT khi lấy đà (KHÔNG còn cháy/char thẻ) ---- */
+@keyframes phanCardHeat {
+  0%   { transform: translateZ(0) scale(1) rotate(0); filter: brightness(1) saturate(1); }
+  30%  { transform: translateZ(0) scale(.988) translateX(-1px) rotate(-.7deg); filter: brightness(1.1) saturate(1.35); }
+  48%  { transform: translateZ(0) scale(.985) translateX(1px) rotate(.6deg); filter: brightness(1.22) saturate(1.6); }
+  64%  { transform: translateZ(0) scale(.99) translateX(-.5px) rotate(-.4deg); filter: brightness(1.18) saturate(1.5); }
+  /* nhả kình: thẻ bật nhẹ tới trước rồi settle (overshoot) */
+  78%  { transform: translateZ(0) scale(1.03) rotate(0); filter: brightness(1.32) saturate(1.7) drop-shadow(0 0 12px rgba(255,140,40,.85)); }
+  100% { transform: translateZ(0) scale(1) rotate(0); filter: brightness(1) saturate(1); }
+}
+.phan-cardHeat { animation: phanCardHeat .56s cubic-bezier(.3,.9,.25,1) both; will-change: transform, filter; }
+
+/* viền lửa ấm chạy quanh rìa thẻ lúc lấy đà - GLOW TĨNH, không lan ra ngoài vùng thẻ */
+.phan-rim {
+  position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: 6; opacity: 0;
+  box-shadow: inset 0 0 0 1px rgba(255,150,50,0), 0 0 0 0 rgba(255,120,30,0);
+  animation: phanRim .56s ease-out both;
+}
+@keyframes phanRim {
+  0%   { opacity: 0; box-shadow: inset 0 0 8px 1px rgba(255,150,50,.0), 0 0 6px 0 rgba(255,110,20,0); }
+  55%  { opacity: 1; box-shadow: inset 0 0 14px 2px rgba(255,165,60,.7), 0 0 18px 3px rgba(255,110,25,.55); }
+  100% { opacity: 0; box-shadow: inset 0 0 6px 1px rgba(255,150,50,0), 0 0 22px 5px rgba(255,110,20,0); }
+}
+
+/* ===== QUÁI: thân loé cam NÓNG RỰC (đặt đúng tâm chân dung) ===== */
+.phan-bodyhot {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 11; opacity: 0;
+  background: radial-gradient(58% 64% at 50% 52%,
+     rgba(255,244,210,.95) 0%, rgba(255,196,90,.9) 26%,
+     rgba(255,120,28,.78) 50%, rgba(190,46,0,.32) 70%, rgba(120,20,0,0) 82%);
+  mix-blend-mode: screen;
+  animation: phanBodyhot .62s cubic-bezier(.15,.8,.3,1) both;
+  will-change: transform, opacity;
+}
+@keyframes phanBodyhot {
+  0%   { opacity: 0; transform: scale(.7); filter: brightness(2); }
+  14%  { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.1); filter: brightness(1); }
+}
+
+/* sóng nhiệt rung mờ ÔM thân quái (heat-haze: blur nhẹ, mảnh) */
+.phan-haze {
+  position: absolute; inset: -3%; border-radius: inherit; pointer-events: none; z-index: 10; opacity: 0;
+  background: repeating-linear-gradient(0deg,
+     rgba(255,160,50,.06) 0 2px, transparent 2px 6px);
+  animation: phanHaze .9s ease-out both;
+}
+@keyframes phanHaze {
+  0%   { opacity: 0; transform: translateY(2px) scaleY(1); filter: blur(0); }
+  22%  { opacity: .85; }
+  60%  { opacity: .55; transform: translateY(-3px) scaleY(1.05); filter: blur(1.4px); }
+  100% { opacity: 0; transform: translateY(-9px) scaleY(1.12); filter: blur(2.6px); }
+}
+
+/* quầng cam-đỏ phủ dưới chân quái (glow nền, ấm chỗ đứng) */
+.phan-floor {
+  position: absolute; left: 50%; bottom: 4%; width: 78%; height: 30%;
+  transform: translateX(-50%); pointer-events: none; z-index: 9; opacity: 0;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(255,150,40,.7), rgba(255,90,15,.3) 50%, rgba(150,30,0,0) 78%);
+  filter: blur(4px); mix-blend-mode: screen;
+  animation: phanFloor .85s ease-out both;
+}
+@keyframes phanFloor {
+  0%   { opacity: 0; transform: translateX(-50%) scaleX(.5) scaleY(.6); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scaleX(1.15) scaleY(.8); }
+}
+
+/* ===== LƯỠI LỬA liếm leo từ thân lên (JS set --x,--w,--h,--dur,--dly) ===== */
+.phan-tongue {
+  position: absolute; left: var(--x); bottom: var(--b, 10%);
+  width: var(--w, 14px); height: var(--h, 40px);
+  pointer-events: none; z-index: 12; opacity: 0;
+  transform: translateX(-50%) scaleY(.2);
+  transform-origin: 50% 100%;
+  /* lưỡi lửa thon: nóng (trắng-vàng) ở chân, đỏ-cam ở ngọn, bo tròn ngọn */
+  background: linear-gradient(to top,
+     rgba(255,250,225,.95) 0%, rgba(255,205,90,.92) 30%,
+     rgba(255,120,30,.85) 62%, rgba(220,55,0,.45) 85%, rgba(160,25,0,0) 100%);
+  border-radius: 50% 50% 46% 46% / 70% 70% 30% 30%;
+  filter: drop-shadow(0 0 5px rgba(255,140,40,.8)) blur(.4px);
+  mix-blend-mode: screen;
+  animation: phanTongue var(--dur, .6s) cubic-bezier(.2,.75,.3,1) var(--dly, 0s) both;
+  will-change: transform, opacity;
+}
+@keyframes phanTongue {
+  0%   { opacity: 0; transform: translateX(-50%) scaleY(.2) scaleX(1); }
+  18%  { opacity: 1; transform: translateX(-50%) scaleY(1) scaleX(1.04); }
+  48%  { transform: translateX(calc(-50% + var(--sway, 3px))) scaleY(.92) scaleX(.9); }
+  72%  { transform: translateX(calc(-50% - var(--sway, 3px))) scaleY(.8) scaleX(.82); opacity: .85; }
+  100% { opacity: 0; transform: translateX(-50%) scaleY(.55) scaleX(.6); }
+}
+
+/* ===== EMBER: đốm lửa bay LÊN có trọng lực ngược rồi rơi ===== */
+.phan-ember {
+  position: absolute; left: var(--x); bottom: var(--y);
+  width: var(--sz); height: var(--sz); border-radius: 50%;
+  background: radial-gradient(circle, #fff6c8 0%, #ffc24a 36%, #ff6a12 72%, rgba(180,40,0,0) 100%);
+  box-shadow: 0 0 5px 1px rgba(255,140,30,.9);
+  pointer-events: none; z-index: 13; opacity: 0;
+  animation: phanEmber var(--dur) cubic-bezier(.25,.55,.45,1) var(--dly) both;
+  will-change: transform, opacity;
+}
+@keyframes phanEmber {
+  0%   { opacity: 0; transform: translate(0,0) scale(.4); }
+  14%  { opacity: 1; }
+  58%  { opacity: 1; transform: translate(calc(var(--dx)*.7), var(--rise)) scale(1); }   /* rise = âm = bay LÊN */
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--rise) + var(--fall))) scale(.25); }
+}
+
+/* ===== ASH: tàn tro dẹt cháy đỏ, xoay, bay lên rồi rơi ===== */
+.phan-ash {
+  position: absolute; left: var(--x); bottom: var(--y);
+  width: var(--sz); height: calc(var(--sz)*.55); border-radius: 1px;
+  background: linear-gradient(120deg, #3a2014, #0c0705 72%);
+  box-shadow: inset 0 0 2px rgba(255,95,20,.7);
+  pointer-events: none; z-index: 12; opacity: 0;
+  animation: phanAsh var(--dur) cubic-bezier(.3,.5,.4,1) var(--dly) both;
+  will-change: transform, opacity;
+}
+@keyframes phanAsh {
+  0%   { opacity: 0; transform: translate(0,0) rotate(0); }
+  18%  { opacity: 1; }
+  60%  { opacity: .9; transform: translate(calc(var(--dx)*.6), var(--rise)) rotate(var(--spin)); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--rise) + var(--fall))) rotate(calc(var(--spin)*2.2)); }
+}
+/* ==== FX hoThuan ==== */
+/* ===== HO THUAN — ho the / khien-khi bat-quai bao quanh NHAN VAT (self). KHONG danh quai. ===== */
+/* lop boc: phu sat the, bam tam the (offset 0,0), KHONG dinh vi tuyet doi toan trang */
+.hoThuan-wrap{ position:absolute; left:50%; top:50%; width:188px; height:188px; transform:translate(-50%,-50%); pointer-events:none; z-index:8; }
+
+/* card "thu the": nen nho lai roi nay ve (overshoot nho) — cam giac giu tan, vung chai */
+.hoThuan-brace{ animation:hoThuanBrace 760ms cubic-bezier(.22,1.4,.34,1) both; }
+@keyframes hoThuanBrace{
+  0%{ transform:scale(1) }
+  22%{ transform:scale(.965) translateY(2px) }   /* nen xuong — lay da phong ngu */
+  46%{ transform:scale(1.018) translateY(-1px) }  /* nay vot len */
+  70%{ transform:scale(.992) }
+  100%{ transform:scale(1) }
+}
+
+/* --- 1) ANTICIPATION: hao-khi mong tu tam toa ra (windup, phan tu NHO nen mix nhe khong lag) --- */
+.hoThuan-gather{ position:absolute; left:50%; top:50%; width:30px; height:30px; transform:translate(-50%,-50%) scale(.3); border-radius:50%;
+  background:radial-gradient(circle, color-mix(in srgb,var(--c) 75%, #fff) 0%, var(--c) 38%, transparent 70%);
+  opacity:0; filter:blur(1px); }
+.hoThuan-gather.go{ animation:hoThuanGather 300ms cubic-bezier(.3,.7,.4,1) forwards; }
+@keyframes hoThuanGather{
+  0%{ opacity:0; transform:translate(-50%,-50%) scale(.3) }
+  60%{ opacity:.85; transform:translate(-50%,-50%) scale(1) }
+  100%{ opacity:0; transform:translate(-50%,-50%) scale(1.25) }
+}
+
+/* --- 2) DINH HINH: vong bat-quai luc-giac bung tu tam ra, overshoot roi settle "clang" --- */
+.hoThuan-hex{ position:absolute; inset:0; opacity:0; transform-origin:50% 50%; }
+.hoThuan-hex svg{ width:100%; height:100%; display:block; overflow:visible; }
+.hoThuan-hex .ring{ fill:none; stroke:var(--c); stroke-width:2; filter:drop-shadow(0 0 5px var(--c)); }    /* vanh MONG ~2px */
+.hoThuan-hex .ring2{ fill:none; stroke:color-mix(in srgb,var(--c) 60%, #fff); stroke-width:1; opacity:.55; } /* vanh trong manh */
+.hoThuan-hex.go{ animation:hoThuanHexIn 720ms cubic-bezier(.18,1.25,.32,1) forwards; }
+@keyframes hoThuanHexIn{
+  0%{ opacity:0; transform:scale(.42) rotate(-14deg) }
+  46%{ opacity:1; transform:scale(1.07) rotate(2deg) }   /* vot qua */
+  62%{ transform:scale(.97) rotate(-1deg) }              /* dap lai — CLANG settle */
+  76%{ transform:scale(1.012) rotate(.4deg) }
+  88%{ transform:scale(1) rotate(0) }
+  100%{ opacity:.9; transform:scale(1) rotate(0) }       /* giu mot nhip */
+}
+.hoThuan-hex.fade{ animation:hoThuanHexFade 360ms ease-in forwards; }
+@keyframes hoThuanHexFade{ 0%{opacity:.9} 100%{opacity:0; transform:scale(1.04)} }
+
+/* khien "kinh": lop kinh mo trong nen luc-giac — day cam giac vung chai. mask vanh ngoai, KHONG mix-blend tren khoi lon */
+.hoThuan-pane{ position:absolute; inset:0; opacity:0; transform-origin:50% 50%;
+  -webkit-mask:radial-gradient(circle at 50% 50%, #000 60%, transparent 78%);
+          mask:radial-gradient(circle at 50% 50%, #000 60%, transparent 78%);
+  background:radial-gradient(circle at 50% 42%, color-mix(in srgb,var(--c) 30%, transparent) 0%, transparent 64%); }
+.hoThuan-pane.go{ animation:hoThuanPane 760ms cubic-bezier(.18,1.2,.32,1) forwards; }
+@keyframes hoThuanPane{ 0%{opacity:0;transform:scale(.5)} 50%{opacity:1;transform:scale(1.03)} 78%{opacity:.7;transform:scale(1)} 100%{opacity:0;transform:scale(1.02)} }
+
+/* --- 3) ngan sang quet quanh VANH khien MOT lan (guard gleam) — conic mask vong mong, khong quet lan ra ngoai --- */
+.hoThuan-gleam{ position:absolute; left:50%; top:50%; width:172px; height:172px; transform:translate(-50%,-50%); border-radius:50%; opacity:0; padding:3px;
+  -webkit-mask:radial-gradient(circle, transparent 0 47%, #000 50% 53%, transparent 56%);
+          mask:radial-gradient(circle, transparent 0 47%, #000 50% 53%, transparent 56%);
+  background:conic-gradient(from var(--g0,-30deg), transparent 0deg, transparent 18deg, color-mix(in srgb,var(--c) 60%,#fff) 30deg, #fff 38deg, color-mix(in srgb,var(--c) 60%,#fff) 46deg, transparent 60deg, transparent 360deg); }
+.hoThuan-gleam.go{ animation:hoThuanGleam 520ms cubic-bezier(.3,.5,.5,1) forwards; }
+@keyframes hoThuanGleam{
+  0%{ opacity:0; transform:translate(-50%,-50%) rotate(0deg) }
+  14%{ opacity:1 }
+  85%{ opacity:1 }
+  100%{ opacity:0; transform:translate(-50%,-50%) rotate(372deg) }   /* quet dung 1 vong */
+}
+
+/* --- nut sang o 6 dinh luc-giac: chot sang tung diem (settle "khoa") — lech nhip qua --nd --- */
+.hoThuan-node{ position:absolute; left:50%; top:50%; width:8px; height:8px; margin:-4px; border-radius:50%;
+  background:radial-gradient(circle, #fff 0%, var(--c) 55%, transparent 75%);
+  opacity:0; filter:drop-shadow(0 0 5px var(--c));
+  transform:translate(var(--nx,0),var(--ny,0)) scale(.2); }
+.hoThuan-node.go{ animation:hoThuanNode 620ms cubic-bezier(.2,1.5,.3,1) var(--nd,0ms) forwards; }
+@keyframes hoThuanNode{
+  0%{ opacity:0; transform:translate(var(--nx,0),var(--ny,0)) scale(.2) }
+  55%{ opacity:1; transform:translate(var(--nx,0),var(--ny,0)) scale(1.25) }   /* chot — overshoot */
+  72%{ transform:translate(var(--nx,0),var(--ny,0)) scale(.92) }
+  100%{ opacity:0; transform:translate(var(--nx,0),var(--ny,0)) scale(1) }
+}
+
+/* --- hat khi NHE bay len trong khien roi tan (10 hat — diu, "trong luc nguoc", phong ngu khong bao luc) --- */
+.hoThuan-mote{ position:absolute; left:50%; top:60%; width:var(--mw,3px); height:var(--mw,3px); border-radius:50%;
+  background:color-mix(in srgb,var(--c) 70%, #fff); opacity:0; filter:drop-shadow(0 0 3px var(--c));
+  transform:translate(var(--mx0,0),0); }
+.hoThuan-mote.go{ animation:hoThuanMote var(--mdur,820ms) ease-out var(--md,0ms) forwards; }
+@keyframes hoThuanMote{
+  0%{ opacity:0; transform:translate(var(--mx0,0),6px) scale(.6) }
+  22%{ opacity:.9 }
+  100%{ opacity:0; transform:translate(calc(var(--mx0,0) + var(--mdx,0)), var(--my,-46px)) scale(1) }
+}
+/* ==== FX khi ==== */
+
+.khi-aura{position:absolute;inset:-8%;border-radius:14px;pointer-events:none;opacity:0;mix-blend-mode:screen;
+  background:radial-gradient(circle at 50% 50%, rgba(190,130,255,.0) 30%, rgba(150,80,255,.45) 55%, rgba(110,40,220,.0) 72%);}
+.khi-core{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(circle, #fff 0%, #e8c8ff 28%, rgba(180,110,255,.7) 55%, rgba(140,60,240,0) 75%);mix-blend-mode:screen;}
+.khi-ring{position:absolute;left:50%;top:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;pointer-events:none;opacity:0;
+  border:3px solid rgba(200,150,255,.9);box-shadow:0 0 9px 1px rgba(160,90,255,.55);}
+.khi-sweep{position:absolute;left:50%;top:50%;width:5px;height:82%;margin-top:-41%;pointer-events:none;opacity:0;transform-origin:50% 50%;
+  background:linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 45%, #e0c0ff 55%, rgba(160,90,255,0) 100%);
+  filter:blur(.5px) drop-shadow(0 0 8px rgba(190,130,255,.9));mix-blend-mode:screen;}
+.khi-spark{position:absolute;left:50%;top:50%;width:var(--w,5px);height:var(--h,16px);border-radius:3px;pointer-events:none;
+  background:linear-gradient(180deg,#fff,#caa0ff 55%,rgba(150,80,255,0));filter:drop-shadow(0 0 5px rgba(180,120,255,.9));
+  transform:translate(-50%,-50%) rotate(var(--a,0deg));mix-blend-mode:screen;
+  animation:khiSpark var(--life,620ms) cubic-bezier(.18,.7,.35,1) forwards;animation-delay:var(--d,0ms);opacity:0;}
+.khi-debris{position:absolute;left:50%;top:50%;width:var(--ds,4px);height:var(--ds,4px);border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#f0e0ff,rgba(150,80,255,0));filter:drop-shadow(0 0 4px rgba(170,110,255,.8));
+  transform:translate(-50%,-50%);mix-blend-mode:screen;
+  animation:khiDebris var(--life,700ms) cubic-bezier(.2,.6,.4,1) forwards;animation-delay:var(--d,0ms);opacity:0;}
+
+.khi-cardCharge{animation:khiCardCharge 760ms cubic-bezier(.2,1.7,.3,1) both;}
+@keyframes khiCardCharge{
+  0%{transform:translate(0,0) scale(1) rotate(0deg);filter:brightness(1);}
+  10%{transform:translate(-2px,0) scale(.985) rotate(-.6deg);}
+  20%{transform:translate(2px,0) scale(.985) rotate(.6deg);filter:brightness(1.12);}
+  30%{transform:translate(-2px,1px) scale(.97) rotate(-.5deg);}
+  40%{transform:translate(2px,0) scale(.965) rotate(.5deg);filter:brightness(1.3) drop-shadow(0 0 10px rgba(170,100,255,.7));}
+  55%{transform:translate(0,-1px) scale(1.06) rotate(0deg);filter:brightness(1.7) drop-shadow(0 0 22px rgba(190,130,255,.95));}
+  70%{transform:translate(0,0) scale(1.02);filter:brightness(1.25) drop-shadow(0 0 12px rgba(170,100,255,.5));}
+  100%{transform:translate(0,0) scale(1) rotate(0deg);filter:brightness(1);}
+}
+@keyframes khiAuraIn{
+  0%{opacity:0;transform:scale(1.5);}
+  60%{opacity:.9;transform:scale(.62);}
+  100%{opacity:.4;transform:scale(.42);}
+}
+@keyframes khiCorePop{
+  0%{opacity:0;transform:scale(.2);}
+  35%{opacity:1;transform:scale(1.15);}
+  60%{opacity:.9;transform:scale(.9);}
+  100%{opacity:0;transform:scale(2.4);filter:blur(4px);}
+}
+@keyframes khiRingOut{
+  0%{opacity:0;transform:scale(.25);border-width:5px;}
+  18%{opacity:1;}
+  100%{opacity:0;transform:scale(var(--rs,9));border-width:1px;}
+}
+@keyframes khiSweepGo{
+  0%{opacity:0;transform:translate(-50%,-2%) rotate(var(--sa,0deg)) scaleY(.3);}
+  25%{opacity:1;}
+  100%{opacity:0;transform:translate(-50%,-2%) rotate(calc(var(--sa,0deg) + 26deg)) scaleY(1.1);}
+}
+@keyframes khiSpark{
+  0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a,0deg)) translateY(0) scaleY(.4);}
+  12%{opacity:1;transform:translate(-50%,-50%) rotate(var(--a,0deg)) translateY(calc(var(--dist,70px) * -.35)) scaleY(1);}
+  100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a,0deg)) translateY(calc(var(--dist,70px) * -1)) translateX(var(--drop,8px)) scaleY(.55);}
+}
+@keyframes khiDebris{
+  0%{opacity:0;transform:translate(-50%,-50%);}
+  15%{opacity:1;}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx,0px)), calc(-50% + var(--dy,40px))) scale(.4);}
+}
+@keyframes khiEbloom{
+  0%{opacity:0;transform:scale(.6);}
+  30%{opacity:.85;transform:scale(1.05);}
+  100%{opacity:0;transform:scale(1.4);}
+}
+.khi-ebloom{position:absolute;inset:-10%;border-radius:16px;pointer-events:none;opacity:0;mix-blend-mode:screen;
+  background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.5) 0%, rgba(190,130,255,.4) 35%, rgba(130,60,230,0) 70%);
+  filter:blur(2px);}
+
+
+</style>
       <template x-if="$store.game.view==='dangTienMong'">
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
           <div class="dtm-bg" :style="'background-image:url('+bgImg()+')'"></div>
@@ -6327,7 +7200,7 @@
 
           <!-- ĐẤU -->
           <template x-if="phase==='battle'">
-            <div :class="_shake?'dtm-shakefx':''">
+            <div :class="(_shake?'dtm-shakefx ':'')+(_hitstop?'dtm-hitstop':'')">
               <div class="flex gap-2.5 justify-center mb-2.5 flex-wrap items-stretch">
                 <template x-for="(e,ei) in enemies" :key="ei">
                   <div class="panel rounded-2xl p-3 relative transition dtm-enemy" :class="(e.hit?'shake ':'')+(e.hp<=0?'opacity-40 ':'cursor-pointer ')"
@@ -6342,6 +7215,7 @@
                           <template x-if="e.burst"><img :src="vfxImg(e.burst)" class="dtm-burst" alt=""></template>
                           <template x-if="e.atkfx"><img :src="atkFxImg(e.atkfx)" class="dtm-slashfx" alt=""></template>
                         </div>
+                        <span class="dtm-efx"><span class="dtm-eflash"></span></span>
                         <template x-for="f in e.floats" :key="f.id"><span class="dmgfloat text-rose-300 text-lg" style="top:24%;left:28%" x-text="f.v"></span></template>
                       </div>
                       <div class="min-w-0 flex-1">
