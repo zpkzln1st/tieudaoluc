@@ -99,27 +99,4 @@ export function runFx(key, cardEl, hostEl, opts) {
   applySpeed(cardSafe, hosts);
   setTimeout(() => clearFx(cardSafe, hosts), 1900);
 }
-
-// ===== CUE phu/self (KHONG tan cong dich): +Ho/Hoi/Luc/Ne/Rut tren NHAN VAT; Suy Yeu tren con quai =====
-const DTM_CUES = {
-  shield(host) { spawn(host, 'cue-shield', 1, function () {}); },
-  heal(host) { spawn(host, 'cue-heal', 1, function () {}); spawn(host, 'cue-healmote', 6, function (s) { s.style.setProperty('--mx', ((Math.random() * 2 - 1) * 28) + 'px'); s.style.setProperty('--md', (Math.random() * 0.3).toFixed(2) + 's'); }); },
-  power(host) { spawn(host, 'cue-power', 1, function () {}); },
-  dodge(host) { spawn(host, 'cue-dodge', 1, function () {}); },
-  draw(host) { spawn(host, 'cue-draw', 4, function (s, i) { s.style.setProperty('--dx', ((i - 1.5) * 18) + 'px'); s.style.setProperty('--md', (i * 0.05).toFixed(2) + 's'); }); },
-  weaken(host) { spawn(host, 'cue-weaken', 1, function () {}); },
-};
-// playerHost = .dtm-pfx (nhan vat); enemyHost = .dtm-efx con quai dang nham
-export function runCues(c, playerHost, enemyHost) {
-  if (!c) return;
-  const ph = playerHost || document.createElement('div');
-  try {
-    if (c.blk) DTM_CUES.shield(ph);
-    if (c.heal) DTM_CUES.heal(ph);
-    if (c.str) DTM_CUES.power(ph);
-    if (c.dodge) DTM_CUES.dodge(ph);
-    if (c.draw) DTM_CUES.draw(ph);
-    if (c.weaken && enemyHost) DTM_CUES.weaken(enemyHost);
-    setTimeout(function () { try { ph.querySelectorAll('[data-fxspark]').forEach(function (x) { x.remove(); }); } catch (e) {} }, 1500);
-  } catch (e) { console.error('DTM cues', e); }
-}
+// (Cue self/phu — Hồi/Né/Rút/Lực/Suy Yếu — CHỜ MOCKUP user duyệt; KHÔNG tự thêm.)

@@ -6,7 +6,7 @@
 // Logic = bản mockup _mockup/dangtienmong.html đã verify; thêm bridge persist Tầng sâu nhất.
 // ============================================================
 import { Storage } from './engine/save.js';
-import { castFxFor, runFx, runCues, dealsDamage, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
+import { castFxFor, runFx, dealsDamage, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
 
 export function ensureDangTien(state) {
   if (!state.dangTien) state.dangTien = {};
@@ -302,8 +302,7 @@ export function dangTienMong() {
         const hosts = panels.map((p) => p.querySelector('.dtm-efx')).filter(Boolean);
         const host = hosts[this.tgtIdx()] || hosts[0] || null;
         const stageEl = panels[0] ? panels[0].parentElement : null;   // hàng quái (cho đòn AoE quét ngang)
-        if (dealsDamage(c)) runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake: () => this.castShake(), hitStop: (ms) => this.hitStop(ms) });   // chỉ chạy hiệu ứng TẤN CÔNG khi thẻ gây sát thương
-        runCues(c, document.querySelector('.dtm-pfx'), host);   // cue phụ/self: +Hộ/Hồi/Lực/Né/Rút trên nhân vật; Suy Yếu trên quái
+        if (dealsDamage(c)) runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake: () => this.castShake(), hitStop: (ms) => this.hitStop(ms) });   // CHỈ chạy hiệu ứng TẤN CÔNG khi thẻ gây sát thương (thẻ né/hồi/rút/Hộ -> KHÔNG đánh quái; hiệu ứng self chờ mockup duyệt)
       } catch (e) {}
       setTimeout(() => { if (c._cast === 'casting') c._cast = 'vanish'; }, DTM_VANISH_LEAD);   // thẻ bắt đầu tan khỏi tay
       setTimeout(() => { this._discardCast(c); }, DTM_VANISH_LEAD + DTM_VANISH_MS + 60);

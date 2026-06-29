@@ -6134,24 +6134,8 @@
         .dtm-root .card.dtm-cast-vanish{ animation:dtmCardVanish var(--dtmv,.7s) ease-in forwards !important; }
         @keyframes dtmCardVanish{ 0%{opacity:1; transform:translateY(0) scale(1)} 100%{opacity:0; transform:translateY(30px) scale(.78)} }
         @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-hitstop,.dtm-root .dtm-hitstop *{ animation-play-state:running !important } }
-        /* --- CUE phụ/self trên NHÂN VẬT (+Hộ/Hồi/Lực/Né/Rút) + Suy Yếu trên quái --- */
-        .dtm-root .dtm-pfx{ position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }
-        .dtm-root .cue-shield{ position:absolute; left:50%; top:50%; width:62px; height:62px; margin:-31px 0 0 -31px; border-radius:9999px; border:3px solid #67e8f9; box-shadow:0 0 12px -2px #22d3ee, inset 0 0 10px -4px #22d3ee; opacity:0; animation:cueShield .6s cubic-bezier(.2,1.3,.4,1) forwards; }
-        @keyframes cueShield{ 0%{opacity:0;transform:scale(1.5) rotate(-8deg)} 45%{opacity:.95;transform:scale(.92)} 70%{opacity:.85;transform:scale(1)} 100%{opacity:0;transform:scale(1.05)} }
-        .dtm-root .cue-heal{ position:absolute; left:50%; top:55%; width:72px; height:72px; margin:-36px 0 0 -36px; border-radius:9999px; opacity:0; background:radial-gradient(circle, rgba(52,211,153,.5), transparent 68%); animation:cueHeal .7s ease-out forwards; }
-        @keyframes cueHeal{ 0%{opacity:0;transform:scale(.5) translateY(6px)} 30%{opacity:.9} 100%{opacity:0;transform:scale(1.2) translateY(-12px)} }
-        .dtm-root .cue-healmote{ position:absolute; left:50%; bottom:12%; width:8px; height:8px; margin-left:-4px; border-radius:9999px; background:#6ee7b7; box-shadow:0 0 6px #34d399; opacity:0; animation:cueHealMote .8s ease-out forwards; animation-delay:var(--md,0s); }
-        @keyframes cueHealMote{ 0%{opacity:0;transform:translate(var(--mx,0),0) scale(.6)} 25%{opacity:1} 100%{opacity:0;transform:translate(var(--mx,0),-48px) scale(.9)} }
-        .dtm-root .cue-power{ position:absolute; left:50%; top:50%; width:66px; height:66px; margin:-33px 0 0 -33px; border-radius:9999px; opacity:0; background:radial-gradient(circle, rgba(245,185,66,.6), rgba(251,113,133,.22) 50%, transparent 72%); box-shadow:0 0 16px -3px #f5b942; animation:cuePower .62s ease-out forwards; }
-        @keyframes cuePower{ 0%{opacity:0;transform:scale(.4)} 35%{opacity:.95;transform:scale(1.05)} 100%{opacity:0;transform:scale(1.3)} }
-        .dtm-root .cue-dodge{ position:absolute; left:50%; top:50%; width:54px; height:66px; margin:-33px 0 0 -27px; border-radius:12px; opacity:0; border:2px solid #67e8f9; box-shadow:0 0 10px -2px #22d3ee; animation:cueDodge .5s ease-out forwards; }
-        @keyframes cueDodge{ 0%{opacity:.85;transform:translateX(0) skewX(0)} 100%{opacity:0;transform:translateX(28px) skewX(-12deg)} }
-        .dtm-root .cue-draw{ position:absolute; left:50%; bottom:16%; width:7px; height:7px; margin-left:-3.5px; border-radius:2px; background:#fde68a; box-shadow:0 0 6px #f5b942; opacity:0; animation:cueDraw .6s ease-out forwards; animation-delay:var(--md,0s); }
-        @keyframes cueDraw{ 0%{opacity:0;transform:translate(var(--dx,0),10px) scale(.6)} 30%{opacity:1} 100%{opacity:0;transform:translate(var(--dx,0),-30px) scale(1)} }
-        .dtm-root .cue-weaken{ position:absolute; left:50%; top:50%; width:60px; height:60px; margin:-30px 0 0 -30px; opacity:0; color:#a78bfa; font-family:'Lora',serif; font-size:34px; display:flex; align-items:center; justify-content:center; text-shadow:0 0 10px #7c3aed; animation:cueWeaken .8s ease-out forwards; }
-        .dtm-root .cue-weaken::before{ content:'▼'; }
-        @keyframes cueWeaken{ 0%{opacity:0;transform:translateY(-14px) scale(1.3)} 30%{opacity:.95;transform:translateY(0) scale(1)} 70%{opacity:.8} 100%{opacity:0;transform:translateY(8px) scale(.9)} }
-/* ==== FX tram ==== */
+        /* (CUE self/phu cua dot truoc DA GO - cho mockup user duyet roi moi them) */
+        /* ==== FX tram ==== */
 /* ===== TRAM KICH ===== */
 
 /* Windup: the keo lui + nghieng + rung, glow kiem-khi don len */
@@ -7247,7 +7231,6 @@
                       <span x-text="run.hero.han"></span>
                       <img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
                     </span>
-                    <span class="dtm-pfx"></span>
                     <template x-for="f in playerFloats" :key="f.id"><span class="dmgfloat text-rose-400 text-xl" style="top:20%;left:18%" x-text="f.v"></span></template>
                   </span>
                   <div class="flex-1">
