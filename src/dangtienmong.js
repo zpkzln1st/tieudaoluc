@@ -107,7 +107,7 @@ export function dangTienMong() {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
-    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false,
+    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [],
     HEROES, RELICS, metaUp: META_UP,
     lobbyFoes: [
@@ -120,7 +120,7 @@ export function dangTienMong() {
       { id: 'tichTa', nm: 'Tịch Tà' }, { id: 'hoaSon', nm: 'Hoa Sơn' }, { locked: true }, { locked: true },
     ],
     // ----- BRIDGE persist (chỉ Tầng Mộng sâu nhất, cách ly) -----
-    dtInit() { try { const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {} },
+    dtInit() { try { this._rootEl = this.$el; const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {} },
     persist() { try { const g = this.$store.game; const s = g.state.dangTien; s.deepest = Math.max(s.deepest || 0, this.deepest || 0); Storage.save(g.state); } catch (e) {} },
     // Bank phần Mộng Ngân chưa tiêu của ván vào VÍ PERSISTENT khi kết ván (thắng/thua/tỉnh giấc). CHỈ ghi state.dangTien.mongNgan.
     bankRun(won) {
@@ -268,6 +268,13 @@ export function dangTienMong() {
     hitEnemy(e, amt) { let d = amt; if (e.block > 0) { const a = Math.min(e.block, d); e.block -= a; d -= a; } e.hp = Math.max(0, e.hp - d); return d; },
     absorbPlayer(amt) { let d = amt; if (this.player.block > 0) { const a = Math.min(this.player.block, d); this.player.block -= a; d -= a; } this.run.hp = Math.max(0, this.run.hp - d); return d; },
 
+    // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
+    tapCard(i, ev) {
+      const c = this.hand[i]; if (!c) return;
+      if (this.selUid !== c.uid) { this.selUid = c.uid; return; }   // tap 1 / đổi -> chọn (nhô lên)
+      if (this.khi < c.cost) return;                                // tap 2 nhưng không đủ Khí -> giữ chọn, chưa đánh
+      this.selUid = null; this.playCard(i, ev);                     // tap 2 -> ĐÁNH
+    },
     // Juice: clone thẻ vừa đánh thành lớp absolute (escape overflow hàng bài) rồi cho "BAY VÀO con quái đang nhắm" (windup -> phóng tới -> nổ sáng + tan)
     castFlyAnim(el) {
       try {
@@ -275,7 +282,7 @@ export function dangTienMong() {
         const r = el.getBoundingClientRect();
         const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
         let tx = 0, ty = -150;   // mặc định bay lên nếu không tìm thấy địch
-        try { const scope = (el.closest && el.closest('.dtm-root')) || document.querySelector('.dtm-root'); const ens = scope.querySelectorAll('.flex-wrap.items-stretch > div'); const tgt = ens[this.tgtIdx()] || ens[0]; if (tgt) { const tr = tgt.getBoundingClientRect(); tx = (tr.left + tr.width / 2) - cx; ty = (tr.top + tr.height / 2) - cy; } } catch (_) {}
+        try { const ens = document.querySelectorAll('.dtm-enemy'); const tgt = ens[this.tgtIdx()] || ens[0]; if (tgt) { const tr = tgt.getBoundingClientRect(); tx = (tr.left + tr.width / 2) - cx; ty = (tr.top + tr.height / 2) - cy; } } catch (_) {}   // .dtm-enemy = lớp RIÊNG panel quái -> query toàn cục, không lệ thuộc scope/root (1 trận tại 1 thời điểm)
         // OVERLAY cố định phủ toàn VIEWPORT (inset:0) -> clone định vị theo toạ độ viewport (r.left/r.top), KHÔNG phụ thuộc containing-block/scroll của .dtm-root (fix lỗi clone xuất hiện ở đáy trang trên browser thật)
         const ov = document.createElement('div'); ov.className = 'dtm-root'; ov.style.cssText = 'position:fixed;inset:0;margin:0;padding:0;max-width:none;background:none;pointer-events:none;z-index:9999;overflow:visible';
         const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable');
@@ -296,6 +303,7 @@ export function dangTienMong() {
     },
     playCard(i, ev) {
       const c = this.hand[i]; if (!c || this.khi < c.cost) return;
+      this.selUid = null;
       if (ev && ev.currentTarget) this.castFlyAnim(ev.currentTarget);
       if (c.dmg) this.castShake();
       try { if (navigator.vibrate) navigator.vibrate(c.dmg ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN (không phụ thuộc cài đặt animation của máy)
@@ -321,6 +329,7 @@ export function dangTienMong() {
       if (this.aliveCount() === 0) this.winBattle();
     },
     endTurn() {
+      this.selUid = null;
       this.discard.push(...this.hand); this.hand = [];
       for (const e of this.enemies) { if (e.hp > 0 && e.poison > 0) { this.hitEnemy(e, e.poison); this.floatE(e, e.poison); e.poison = Math.max(0, e.poison - 1); } }
       if (this.aliveCount() === 0) { this.winBattle(); return; }
