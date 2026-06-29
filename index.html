@@ -6015,8 +6015,6 @@
         .dtm-root .card.sel, .dtm-root .card.sel:hover{ transform:translateY(-22px) scale(1.09) !important; box-shadow:0 0 0 2px var(--c), 0 0 30px -2px var(--c), 0 18px 32px -10px #000 !important; filter:brightness(1.13); z-index:12 !important; transition:transform .15s ease, box-shadow .15s ease; }
         /* Khi ĐANG có thẻ được chọn -> thẻ KHÁC không sáng/nhấc khi rê chuột (khỏi rối) */
         .dtm-root .has-sel .card:not(.sel):hover.playable{ transform:none !important; box-shadow:0 0 0 1px var(--c), inset 0 0 20px -15px var(--c) !important; z-index:auto !important; }
-        .dtm-root .dtm-castfly{ z-index:45; pointer-events:none; border-radius:10px; box-shadow:0 0 36px -2px var(--c,#f5b942), 0 0 74px -14px #ffffffe6; will-change:transform,opacity; animation:dtmCastFly .5s cubic-bezier(.42,.04,.25,1) forwards; }
-        @keyframes dtmCastFly{ 0%{ transform:translate(0,0) scale(1) rotate(0deg); opacity:1; filter:brightness(1) } 30%{ transform:translate(calc(var(--tx,0px)*.12), calc(var(--ty,-30px)*.1 - 34px)) scale(1.2) rotate(-4deg); opacity:1; filter:brightness(1.5) } 100%{ transform:translate(var(--tx,0px), var(--ty,-150px)) scale(.4) rotate(8deg); opacity:0; filter:brightness(2.2) } }
         .dtm-root .dtm-shakefx{ animation:dtmHitShake .28s ease both; }
         @keyframes dtmHitShake{ 0%,100%{ transform:translate(0,0) } 16%{ transform:translate(-5px,2px) } 36%{ transform:translate(6px,-2px) } 56%{ transform:translate(-4px,2px) } 78%{ transform:translate(3px,-1px) } }
         @media (prefers-reduced-motion:reduce){ .dtm-root .card.playable:active{ transform:none } .dtm-root .dtm-shakefx{ animation:none } }

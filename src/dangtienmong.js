@@ -275,24 +275,7 @@ export function dangTienMong() {
       if (this.khi < c.cost) return;                                // tap 2 nhưng không đủ Khí -> giữ chọn, chưa đánh
       this.selUid = null; this.playCard(i, ev);                     // tap 2 -> ĐÁNH
     },
-    // Juice: clone thẻ vừa đánh thành lớp absolute (escape overflow hàng bài) rồi cho "BAY VÀO con quái đang nhắm" (windup -> phóng tới -> nổ sáng + tan)
-    castFlyAnim(el) {
-      try {
-        if (!el || !el.getBoundingClientRect) return;
-        const r = el.getBoundingClientRect();
-        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-        let tx = 0, ty = -150;   // mặc định bay lên nếu không tìm thấy địch
-        try { const ens = document.querySelectorAll('.dtm-enemy'); const tgt = ens[this.tgtIdx()] || ens[0]; if (tgt) { const tr = tgt.getBoundingClientRect(); tx = (tr.left + tr.width / 2) - cx; ty = (tr.top + tr.height / 2) - cy; } } catch (_) {}   // .dtm-enemy = lớp RIÊNG panel quái -> query toàn cục, không lệ thuộc scope/root (1 trận tại 1 thời điểm)
-        // OVERLAY cố định phủ toàn VIEWPORT (inset:0) -> clone định vị theo toạ độ viewport (r.left/r.top), KHÔNG phụ thuộc containing-block/scroll của .dtm-root (fix lỗi clone xuất hiện ở đáy trang trên browser thật)
-        const ov = document.createElement('div'); ov.className = 'dtm-root'; ov.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;margin:0;padding:0;max-width:none;background:none;pointer-events:none;z-index:9999;overflow:visible';
-        const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable', 'sel');
-        cl.style.position = 'fixed'; cl.style.left = r.left + 'px'; cl.style.top = r.top + 'px';   // FIXED theo VIEWPORT trực tiếp (không qua overlay) -> clone luôn khởi đầu ĐÚNG vị trí lá bài trên browser thật
-        cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0';
-        cl.style.setProperty('--tx', tx + 'px'); cl.style.setProperty('--ty', ty + 'px');
-        ov.appendChild(cl); document.body.appendChild(ov);
-        setTimeout(() => { try { ov.remove(); } catch (_) {} }, 580);
-      } catch (e) {}
-    },
+    // (Đã BỎ hiệu ứng "thẻ bay vào địch" — clone cross-screen định vị sai trên browser thật của user dù đúng ở preview; thay bằng juice in-place/on-target khả thi hơn.)
     // Juice: rung màn trận khi tung đòn. Dùng FLAG PHẢN ỨNG + :class (Alpine quản lý → KHÔNG bị flush sau @click xoá, như e.hit; class imperative/WAAPI trên root bị Alpine strip).
     castShake() {
       try {
@@ -304,7 +287,6 @@ export function dangTienMong() {
     playCard(i, ev) {
       const c = this.hand[i]; if (!c || this.khi < c.cost) return;
       this.selUid = null;
-      if (ev && ev.currentTarget) this.castFlyAnim(ev.currentTarget);
       if (c.dmg) this.castShake();
       try { if (navigator.vibrate) navigator.vibrate(c.dmg ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN (không phụ thuộc cài đặt animation của máy)
       this.khi -= c.cost;
