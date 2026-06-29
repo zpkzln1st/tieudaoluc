@@ -6011,7 +6011,8 @@
         @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-fog::before,.dtm-root .dtm-fog::after{ animation:none } }
         /* JUICE đánh thẻ: chạm phản hồi tức thì (:active) + thẻ BAY VÀO ĐỊCH (WAAPI trong JS) + RUNG MÀN khi tung đòn */
         .dtm-root .card.playable:active{ transform:scale(.94); filter:brightness(1.16); transition:transform .07s ease; }
-        .dtm-root .dtm-castfly{ z-index:45; pointer-events:none; border-radius:10px; box-shadow:0 0 36px -2px var(--c,#f5b942), 0 0 74px -14px #ffffffe6; will-change:transform,opacity; }
+        .dtm-root .dtm-castfly{ z-index:45; pointer-events:none; border-radius:10px; box-shadow:0 0 36px -2px var(--c,#f5b942), 0 0 74px -14px #ffffffe6; will-change:transform,opacity; animation:dtmCastFly .5s cubic-bezier(.42,.04,.25,1) forwards; }
+        @keyframes dtmCastFly{ 0%{ transform:translate(0,0) scale(1) rotate(0deg); opacity:1; filter:brightness(1) } 30%{ transform:translate(calc(var(--tx,0px)*.12), calc(var(--ty,-30px)*.1 - 34px)) scale(1.2) rotate(-4deg); opacity:1; filter:brightness(1.5) } 100%{ transform:translate(var(--tx,0px), var(--ty,-150px)) scale(.4) rotate(8deg); opacity:0; filter:brightness(2.2) } }
         .dtm-root .dtm-shakefx{ animation:dtmHitShake .28s ease both; }
         @keyframes dtmHitShake{ 0%,100%{ transform:translate(0,0) } 16%{ transform:translate(-5px,2px) } 36%{ transform:translate(6px,-2px) } 56%{ transform:translate(-4px,2px) } 78%{ transform:translate(3px,-1px) } }
         @media (prefers-reduced-motion:reduce){ .dtm-root .card.playable:active{ transform:none } .dtm-root .dtm-shakefx{ animation:none } }
@@ -6089,6 +6090,8 @@
           /* ĐẤU: hàng trạng thái quái = FULL-WIDTH dưới chân dung+tên+HP (nhiều chỗ -> ít hàng) + CAO CỐ ĐỊNH ~2 hàng -> thêm/bớt hiệu ứng KHÔNG nhảy khung */
           .dtm-root .dtm-statuszone{ min-height:40px; align-content:center; }
           .dtm-root .border-jade\/30 .min-h-\[18px\]{ min-height:40px; align-content:center; }
+          /* ĐẤU: số sát thương bay lên TO + đậm + bóng đổ cho RÕ trên mobile */
+          .dtm-root .dmgfloat{ font-size:24px !important; font-weight:800; text-shadow:0 2px 5px #000, 0 0 9px rgba(0,0,0,.85); }
           /* ĐẤU: chân dung người chơi nhỏ lại + cho nút Kết Lượt xuống dòng (full-width) → tên/HP/trạng thái đủ chỗ 1 dòng */
           .dtm-root .border-jade\/30 .dtm-portwrap{ width:54px !important; height:66px !important; font-size:28px !important; }
           .dtm-root .border-jade\/30 .items-center.gap-3{ flex-wrap:wrap !important; }
@@ -6316,11 +6319,13 @@
                        @click="e.hp>0&&(targetIdx=ei)">
                     <div x-show="ei===tgtIdx()&&e.hp>0" class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] fserif text-gold px-1.5 rounded bg-ink2 border border-gold/40 whitespace-nowrap">⌖ Mục tiêu</div>
                     <div class="flex items-center gap-2.5">
-                      <div class="dtm-portwrap w-24 h-28 rounded-lg shrink-0 flex items-center justify-center fserif text-5xl" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'">
-                        <span x-text="e.han"></span>
-                        <img :src="enemyImg(e)" class="dtm-port" alt="" onerror="this.style.display='none'">
-                        <template x-if="e.burst"><img :src="vfxImg(e.burst)" class="dtm-burst" alt=""></template>
-                        <template x-if="e.atkfx"><img :src="atkFxImg(e.atkfx)" class="dtm-slashfx" alt=""></template>
+                      <div class="relative shrink-0">
+                        <div class="dtm-portwrap w-24 h-28 rounded-lg flex items-center justify-center fserif text-5xl" :style="'color:'+heColor(e.he)+';background:radial-gradient(ellipse at 50% 35%,'+heColor(e.he)+'33,transparent 72%);border:1px solid '+heColor(e.he)+'55'">
+                          <span x-text="e.han"></span>
+                          <img :src="enemyImg(e)" class="dtm-port" alt="" onerror="this.style.display='none'">
+                          <template x-if="e.burst"><img :src="vfxImg(e.burst)" class="dtm-burst" alt=""></template>
+                          <template x-if="e.atkfx"><img :src="atkFxImg(e.atkfx)" class="dtm-slashfx" alt=""></template>
+                        </div>
                         <template x-for="f in e.floats" :key="f.id"><span class="dmgfloat text-rose-300 text-lg" style="top:24%;left:28%" x-text="f.v"></span></template>
                       </div>
                       <div class="min-w-0 flex-1">
@@ -6347,9 +6352,11 @@
 
               <div class="panel rounded-2xl p-3 mb-2 border border-jade/30" :class="playerHit?'shake':''">
                 <div class="flex items-center gap-3">
-                  <span class="dtm-portwrap w-20 h-24 rounded-md flex items-center justify-center fserif text-4xl shrink-0" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'">
-                    <span x-text="run.hero.han"></span>
-                    <img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
+                  <span class="relative shrink-0 inline-flex">
+                    <span class="dtm-portwrap w-20 h-24 rounded-md flex items-center justify-center fserif text-4xl" :style="'color:'+heColor(run.hero.he)+';border:1px solid '+heColor(run.hero.he)+'55'">
+                      <span x-text="run.hero.han"></span>
+                      <img :src="heroImg(run.hero.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
+                    </span>
                     <template x-for="f in playerFloats" :key="f.id"><span class="dmgfloat text-rose-400 text-xl" style="top:20%;left:18%" x-text="f.v"></span></template>
                   </span>
                   <div class="flex-1">

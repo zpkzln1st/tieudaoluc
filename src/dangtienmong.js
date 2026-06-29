@@ -271,7 +271,8 @@ export function dangTienMong() {
     // Juice: clone thẻ vừa đánh thành lớp absolute (escape overflow hàng bài) rồi cho "BAY VÀO con quái đang nhắm" (windup -> phóng tới -> nổ sáng + tan)
     castFlyAnim(el) {
       try {
-        const root = this.$el; if (!root || !el || !el.getBoundingClientRect) return;
+        if (!el || !el.getBoundingClientRect) return;
+        const root = (el.closest && el.closest('.dtm-root')) || this.$el; if (!root) return;   // $el trong @click là phần tử THẺ, không phải .dtm-root -> lấy root qua closest
         const r = el.getBoundingClientRect(); const rr = root.getBoundingClientRect();
         const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
         let tx = 0, ty = -150;   // mặc định bay lên nếu không tìm thấy địch
@@ -279,16 +280,9 @@ export function dangTienMong() {
         const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable');
         cl.style.position = 'absolute'; cl.style.left = (r.left - rr.left) + 'px'; cl.style.top = (r.top - rr.top) + 'px';
         cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0'; cl.style.zIndex = '45'; cl.style.pointerEvents = 'none';
+        cl.style.setProperty('--tx', tx + 'px'); cl.style.setProperty('--ty', ty + 'px');   // dùng CSS animation (chạy được trên máy tắt WAAPI) — toạ độ địch qua biến CSS
         root.appendChild(cl);
-        const done = () => { try { cl.remove(); } catch (_) {} };
-        if (cl.animate) {
-          cl.animate([
-            { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1, filter: 'brightness(1)' },
-            { transform: 'translate(' + (tx * 0.12) + 'px,' + (ty * 0.1 - 34) + 'px) scale(1.2) rotate(-4deg)', opacity: 1, filter: 'brightness(1.55)', offset: 0.32 },
-            { transform: 'translate(' + tx + 'px,' + ty + 'px) scale(.4) rotate(8deg)', opacity: 0, filter: 'brightness(2.3)' }
-          ], { duration: 470, easing: 'cubic-bezier(.42,.04,.25,1)' }).onfinish = done;
-        }
-        setTimeout(done, 680);
+        setTimeout(() => { try { cl.remove(); } catch (_) {} }, 580);
       } catch (e) {}
     },
     // Juice: rung màn trận khi tung đòn. Dùng FLAG PHẢN ỨNG + :class (Alpine quản lý → KHÔNG bị flush sau @click xoá, như e.hit; class imperative/WAAPI trên root bị Alpine strip).
