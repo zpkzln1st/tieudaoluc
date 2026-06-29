@@ -6015,9 +6015,17 @@
         .dtm-root .card.sel, .dtm-root .card.sel:hover{ transform:translateY(-22px) scale(1.09) !important; box-shadow:0 0 0 2px var(--c), 0 0 30px -2px var(--c), 0 18px 32px -10px #000 !important; filter:brightness(1.13); z-index:12 !important; transition:transform .15s ease, box-shadow .15s ease; }
         /* Khi ĐANG có thẻ được chọn -> thẻ KHÁC không sáng/nhấc khi rê chuột (khỏi rối) */
         .dtm-root .has-sel .card:not(.sel):hover.playable{ transform:none !important; box-shadow:0 0 0 1px var(--c), inset 0 0 20px -15px var(--c) !important; z-index:auto !important; }
+        /* ĐÁNH THẺ: Công -> Đâm Tới (thẻ lao tới phía địch) ; Thủ/Kỹ -> Vòng Khí (thẻ tụ khí + vòng năng lượng lan ra). Diễn TẠI CHỖ trên thẻ thật (flag :class, KHÔNG clone). */
+        .dtm-root .card.dtm-cast-lunge{ animation:dtmCastLunge .42s cubic-bezier(.45,-0.28,.3,1) forwards; z-index:13; pointer-events:none; }
+        @keyframes dtmCastLunge{ 0%{ transform:translateY(0) scale(1) } 26%{ transform:translateY(-24px) scale(1.1) rotate(-3deg); filter:brightness(1.4) } 54%{ transform:translateY(-66px) scale(.96) rotate(2deg); filter:brightness(1.6) } 100%{ transform:translateY(-54px) scale(.66); opacity:0 } }
+        .dtm-root .card.dtm-cast-aura{ animation:dtmCastDim .5s ease forwards; overflow:visible; z-index:13; pointer-events:none; }
+        @keyframes dtmCastDim{ 0%{ transform:scale(1) } 28%{ transform:scale(1.07); filter:brightness(1.6) } 100%{ transform:scale(.88); opacity:0 } }
+        .dtm-root .card .dtm-aura-ring{ position:absolute; left:50%; top:47%; width:54px; height:54px; margin:-27px 0 0 -27px; border-radius:9999px; border:3px solid var(--c); box-shadow:0 0 14px -2px var(--c); opacity:0; pointer-events:none; z-index:8; }
+        .dtm-root .card.dtm-cast-aura .dtm-aura-ring{ animation:dtmCastAura .55s ease-out forwards; }
+        @keyframes dtmCastAura{ 0%{ transform:scale(.32); opacity:.95 } 70%{ opacity:.45 } 100%{ transform:scale(4.4); opacity:0 } }
         .dtm-root .dtm-shakefx{ animation:dtmHitShake .28s ease both; }
         @keyframes dtmHitShake{ 0%,100%{ transform:translate(0,0) } 16%{ transform:translate(-5px,2px) } 36%{ transform:translate(6px,-2px) } 56%{ transform:translate(-4px,2px) } 78%{ transform:translate(3px,-1px) } }
-        @media (prefers-reduced-motion:reduce){ .dtm-root .card.playable:active{ transform:none } .dtm-root .dtm-shakefx{ animation:none } }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .card.playable:active{ transform:none } .dtm-root .dtm-shakefx{ animation:none } .dtm-root .card.dtm-cast-lunge,.dtm-root .card.dtm-cast-aura{ animation:none } .dtm-root .card .dtm-aura-ring{ display:none } }
         /* ===== MOBILE (<=640px): căn chỉnh kích thước DTM cho điện thoại (trước chỉ tune desktop) ===== */
         @media (max-width: 640px){
           /* --- SẢNH: banner gọn lại (trước quá to, lỗi nặng trên mobile) --- */
@@ -6080,6 +6088,11 @@
           .dtm-root .card.sel{ transform:translateY(-16px) scale(1.07) !important; }
           .dtm-root .min-h-\[256px\] > .card{ flex:0 0 auto; scroll-snap-align:center; }
           .dtm-root .card:hover.playable{ transform:none; box-shadow:0 0 0 1px var(--c), 0 0 14px -4px var(--c); }
+          /* ĐÁNH THẺ mobile: hàng bài cuộn ngang (overflow-y:hidden, ~32px headroom) -> giảm tầm lao + thu nhỏ vòng khí cho khỏi cắt đỉnh */
+          .dtm-root .card.dtm-cast-lunge{ animation:dtmCastLungeM .4s cubic-bezier(.45,-0.2,.3,1) forwards; }
+          @keyframes dtmCastLungeM{ 0%{ transform:translateY(0) scale(1) } 32%{ transform:translateY(-14px) scale(1.09); filter:brightness(1.45) } 100%{ transform:translateY(-24px) scale(.68); opacity:0 } }
+          .dtm-root .card.dtm-cast-aura .dtm-aura-ring{ animation:dtmCastAuraM .5s ease-out forwards; }
+          @keyframes dtmCastAuraM{ 0%{ transform:scale(.4); opacity:.95 } 100%{ transform:scale(2.6); opacity:0 } }
           /* ĐẤU: quái CẠNH NHAU (tiết kiệm chiều cao, đỡ phải lăn) + chân dung nhỏ → tên tối đa 2 dòng, không ép cột hẹp */
           .dtm-root .flex-wrap.items-stretch{ gap:7px !important; }
           .dtm-root .flex-wrap.items-stretch > div{ padding:8px !important; }
@@ -6390,10 +6403,11 @@
 
               <div class="flex gap-2 justify-center flex-wrap min-h-[256px] items-end pt-6 pb-1 transform-gpu" :class="selUid?'has-sel':''">
                 <template x-for="(c,i) in hand" :key="c.uid">
-                  <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)">
+                  <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')+(c._cast?' dtm-cast-'+c._cast:'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="c.rar==='tuyet'"><img class="dtm-tuyetglow" src="images/dtm/vfx/card_glow_tuyet.webp" alt="" onerror="this.remove()"></template><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                     <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="c.desc"></div></div>
+                    <span class="dtm-aura-ring"></span>
                   </div>
                 </template>
                 <template x-if="!hand.length"><div class="text-slate-600 text-sm self-center">Hết bài — Kết Lượt.</div></template>

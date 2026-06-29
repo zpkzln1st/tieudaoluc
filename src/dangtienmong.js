@@ -99,7 +99,7 @@ export function dangTienMong() {
   ];
   const DTM_SC_MAX = 6;   // Sát Cảnh bậc tối đa (MVP); mở rộng sau
   let _uid = 0;
-  const mk = (id) => ({ uid: ++_uid, id, ...POOL[id] });
+  const mk = (id) => ({ uid: ++_uid, _cast: null, id, ...POOL[id] });
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -262,7 +262,7 @@ export function dangTienMong() {
       if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
       if (it.t === 'def') return 'Hộ ' + it.v; if (it.t === 'buff') return 'Lực +' + it.v; if (it.t === 'charge') return 'Vận Công…'; if (it.t === 'heal') return 'Liệu +' + it.v; return ''; },
     restPct() { return 0.30 + (this._up().restBonus ? 0.05 : 0) - ((this.run && (this.run.sc || 0) >= 5) ? 0.05 : 0); },   // Tịnh Thất Phù; SC5 −5%
-    draw(n) { for (let k = 0; k < n; k++) { if (!this.drawPile.length) { if (!this.discard.length) return; this.drawPile = shuffle(this.discard); this.discard = []; } this.hand.push(this.drawPile.pop()); } },
+    draw(n) { for (let k = 0; k < n; k++) { if (!this.drawPile.length) { if (!this.discard.length) return; this.drawPile = shuffle(this.discard); this.discard = []; } const dc = this.drawPile.pop(); if (dc) { dc._cast = null; this.hand.push(dc); } } },
     floatE(e, v) { const id = ++this._f; e.floats.push({ id, v: '-' + v }); e.hit = true; setTimeout(() => { e.hit = false; }, 240); setTimeout(() => { e.floats = e.floats.filter((f) => f.id !== id); }, 950); },
     floatPlayer(v) { const id = ++this._f; this.playerFloats.push({ id, v: '-' + v }); this.playerHit = true; setTimeout(() => { this.playerHit = false; }, 260); setTimeout(() => { this.playerFloats = this.playerFloats.filter((f) => f.id !== id); }, 950); },
     hitEnemy(e, amt) { let d = amt; if (e.block > 0) { const a = Math.min(e.block, d); e.block -= a; d -= a; } e.hp = Math.max(0, e.hp - d); return d; },
@@ -270,7 +270,7 @@ export function dangTienMong() {
 
     // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
     tapCard(i, ev) {
-      const c = this.hand[i]; if (!c) return;
+      const c = this.hand[i]; if (!c || c._cast) return;
       if (this.selUid !== c.uid) { this.selUid = c.uid; return; }   // tap 1 / đổi -> chọn (nhô lên)
       if (this.khi < c.cost) return;                                // tap 2 nhưng không đủ Khí -> giữ chọn, chưa đánh
       this.selUid = null; this.playCard(i, ev);                     // tap 2 -> ĐÁNH
@@ -284,8 +284,22 @@ export function dangTienMong() {
         if (this._shake) { this._shake = false; (window.requestAnimationFrame || setTimeout)(set); } else set();
       } catch (e) {}
     },
+    // Diễn hoạt đánh thẻ TẠI CHỖ trên thẻ thật (flag phản ứng _cast + :class — Alpine quản lý, KHÔNG clone/định vị tuyệt đối như hiệu ứng thẻ-bay đã bỏ).
+    // Công -> Đâm Tới (thẻ lao tới phía địch); Thủ/Kỹ -> Vòng Khí (thẻ tụ khí + vòng năng lượng lan). Diễn xong (~380ms) mới rời tay.
+    castCard(c) {
+      let reduce = false;
+      try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
+      if (reduce) { this._discardCast(c); return; }
+      c._cast = (c.type === 'atk') ? 'lunge' : 'aura';
+      setTimeout(() => { this._discardCast(c); }, 380);
+    },
+    _discardCast(c) {
+      const i = this.hand.indexOf(c);
+      if (i >= 0) { this.hand.splice(i, 1); this.discard.push(c); }
+      c._cast = null;
+    },
     playCard(i, ev) {
-      const c = this.hand[i]; if (!c || this.khi < c.cost) return;
+      const c = this.hand[i]; if (!c || c._cast || this.khi < c.cost) return;
       this.selUid = null;
       if (c.dmg) this.castShake();
       try { if (navigator.vibrate) navigator.vibrate(c.dmg ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN (không phụ thuộc cài đặt animation của máy)
@@ -306,12 +320,13 @@ export function dangTienMong() {
       if (c.weaken) { const e = this.enemies[this.tgtIdx()]; if (e) e.weak += c.weaken; }
       if (c.str) this.player.str += c.str;
       if (c.dodge) this.player.dodge = true;
-      this.hand.splice(i, 1); this.discard.push(c);
+      this.castCard(c);
       if (c.draw) this.draw(c.draw);
       if (this.aliveCount() === 0) this.winBattle();
     },
     endTurn() {
       this.selUid = null;
+      for (const hc of this.hand) hc._cast = null;
       this.discard.push(...this.hand); this.hand = [];
       for (const e of this.enemies) { if (e.hp > 0 && e.poison > 0) { this.hitEnemy(e, e.poison); this.floatE(e, e.poison); e.poison = Math.max(0, e.poison - 1); } }
       if (this.aliveCount() === 0) { this.winBattle(); return; }
