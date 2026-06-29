@@ -272,17 +272,18 @@ export function dangTienMong() {
     castFlyAnim(el) {
       try {
         if (!el || !el.getBoundingClientRect) return;
-        const root = (el.closest && el.closest('.dtm-root')) || this.$el; if (!root) return;   // $el trong @click là phần tử THẺ, không phải .dtm-root -> lấy root qua closest
-        const r = el.getBoundingClientRect(); const rr = root.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
         const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
         let tx = 0, ty = -150;   // mặc định bay lên nếu không tìm thấy địch
-        try { const ens = root.querySelectorAll('.flex-wrap.items-stretch > div'); const tgt = ens[this.tgtIdx()] || ens[0]; if (tgt) { const tr = tgt.getBoundingClientRect(); tx = (tr.left + tr.width / 2) - cx; ty = (tr.top + tr.height / 2) - cy; } } catch (_) {}
+        try { const scope = (el.closest && el.closest('.dtm-root')) || document.querySelector('.dtm-root'); const ens = scope.querySelectorAll('.flex-wrap.items-stretch > div'); const tgt = ens[this.tgtIdx()] || ens[0]; if (tgt) { const tr = tgt.getBoundingClientRect(); tx = (tr.left + tr.width / 2) - cx; ty = (tr.top + tr.height / 2) - cy; } } catch (_) {}
+        // OVERLAY cố định phủ toàn VIEWPORT (inset:0) -> clone định vị theo toạ độ viewport (r.left/r.top), KHÔNG phụ thuộc containing-block/scroll của .dtm-root (fix lỗi clone xuất hiện ở đáy trang trên browser thật)
+        const ov = document.createElement('div'); ov.className = 'dtm-root'; ov.style.cssText = 'position:fixed;inset:0;margin:0;padding:0;max-width:none;background:none;pointer-events:none;z-index:9999;overflow:visible';
         const cl = el.cloneNode(true); cl.classList.add('dtm-castfly'); cl.classList.remove('playable', 'unplayable');
-        cl.style.position = 'absolute'; cl.style.left = (r.left - rr.left) + 'px'; cl.style.top = (r.top - rr.top) + 'px';
-        cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0'; cl.style.zIndex = '45'; cl.style.pointerEvents = 'none';
-        cl.style.setProperty('--tx', tx + 'px'); cl.style.setProperty('--ty', ty + 'px');   // dùng CSS animation (chạy được trên máy tắt WAAPI) — toạ độ địch qua biến CSS
-        root.appendChild(cl);
-        setTimeout(() => { try { cl.remove(); } catch (_) {} }, 580);
+        cl.style.position = 'absolute'; cl.style.left = r.left + 'px'; cl.style.top = r.top + 'px';
+        cl.style.width = r.width + 'px'; cl.style.height = r.height + 'px'; cl.style.margin = '0';
+        cl.style.setProperty('--tx', tx + 'px'); cl.style.setProperty('--ty', ty + 'px');
+        ov.appendChild(cl); document.body.appendChild(ov);
+        setTimeout(() => { try { ov.remove(); } catch (_) {} }, 580);
       } catch (e) {}
     },
     // Juice: rung màn trận khi tung đòn. Dùng FLAG PHẢN ỨNG + :class (Alpine quản lý → KHÔNG bị flush sau @click xoá, như e.hit; class imperative/WAAPI trên root bị Alpine strip).
