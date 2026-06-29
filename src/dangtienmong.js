@@ -6,7 +6,7 @@
 // Logic = bản mockup _mockup/dangtienmong.html đã verify; thêm bridge persist Tầng sâu nhất.
 // ============================================================
 import { Storage } from './engine/save.js';
-import { castFxFor, runFx, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
+import { castFxFor, runFx, runCues, dealsDamage, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
 
 export function ensureDangTien(state) {
   if (!state.dangTien) state.dangTien = {};
@@ -186,8 +186,6 @@ export function dangTienMong() {
     statusIcon(k) { return 'images/dtm/vfx/st_' + k + '.webp'; },
     sigilImg(he) { return (he && he !== 'vatly') ? 'images/dtm/vfx/sigil_' + he + '.webp' : ''; },
     vfxImg(he) { return 'images/dtm/vfx/vfx_' + he + '.webp'; },
-    atkFxImg(n) { return 'images/dtm/vfx/' + n + '.webp'; },
-    atkFxFor(c) { if ((c.hits || 1) > 1) return 'multi_slash'; return /Quyền|Chưởng|Trượng|Chỉ|Phá(?!p)/.test(c.name || '') ? 'fist_impact' : 'slash_arc'; },
     bgImg() { if (this.phase === 'lobby' || this.phase === 'hero') return 'images/dtm/bg/lobby.webp'; const t = this.mapTier; return 'images/dtm/bg/' + (this.battleKind === 'boss' || t >= 4 ? 'dream_boss' : (t >= 2 ? 'dream_deep' : 'dream_shallow')) + '.webp'; },
     nodeHan(t) { return { battle: '敵', elite: '雄', event: '緣', shop: '市', rest: '憩', boss: '魔' }[t] || '敵'; },
     nodeLabel(t) { return { battle: 'Đấu', elite: 'Tinh Anh', event: 'Kỳ Ngộ', shop: 'Mộng Thị', rest: 'Tĩnh Thất', boss: 'Mộng Chủ' }[t] || 'Đấu'; },
@@ -304,7 +302,8 @@ export function dangTienMong() {
         const hosts = panels.map((p) => p.querySelector('.dtm-efx')).filter(Boolean);
         const host = hosts[this.tgtIdx()] || hosts[0] || null;
         const stageEl = panels[0] ? panels[0].parentElement : null;   // hàng quái (cho đòn AoE quét ngang)
-        runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake: () => this.castShake(), hitStop: (ms) => this.hitStop(ms) });
+        if (dealsDamage(c)) runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake: () => this.castShake(), hitStop: (ms) => this.hitStop(ms) });   // chỉ chạy hiệu ứng TẤN CÔNG khi thẻ gây sát thương
+        runCues(c, document.querySelector('.dtm-pfx'), host);   // cue phụ/self: +Hộ/Hồi/Lực/Né/Rút trên nhân vật; Suy Yếu trên quái
       } catch (e) {}
       setTimeout(() => { if (c._cast === 'casting') c._cast = 'vanish'; }, DTM_VANISH_LEAD);   // thẻ bắt đầu tan khỏi tay
       setTimeout(() => { this._discardCast(c); }, DTM_VANISH_LEAD + DTM_VANISH_MS + 60);
@@ -325,7 +324,7 @@ export function dangTienMong() {
         const hits = c.hits || 1;
         const tgts = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (this.enemies[this.tgtIdx()] ? [this.enemies[this.tgtIdx()]] : []);
         let total = 0;
-        tgts.forEach((e) => { const ef = e; e.atkfx = this.atkFxFor(c); setTimeout(() => { ef.atkfx = null; }, 480); let per = base; if (KHAC[c.he] === e.he) { per = Math.floor(per * 1.3); e.burst = c.he; const eb = e; setTimeout(() => { eb.burst = null; }, 620); } let d = 0; for (let h = 0; h < hits; h++) d += this.hitEnemy(e, per); if (d > 0) this.floatE(e, d); total += d; });
+        tgts.forEach((e) => { let per = base; if (KHAC[c.he] === e.he) { per = Math.floor(per * 1.3); e.burst = c.he; const eb = e; setTimeout(() => { eb.burst = null; }, 620); } let d = 0; for (let h = 0; h < hits; h++) d += this.hitEnemy(e, per); if (d > 0) this.floatE(e, d); total += d; });
         if (c.drain) this.run.hp = Math.min(this.run.maxHp, this.run.hp + total);
         this.log = c.name + (c.aoe ? ' (toàn thể)' : '') + ' → ' + total + ' ST';
       }

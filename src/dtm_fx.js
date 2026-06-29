@@ -2,25 +2,25 @@
 // Cach ly: chi dung DOM (the dang danh + panel con quai); KHONG dung state combat/gear/currencies.
 import { DTM_FX_KEYS, DTM_FX_DOM, DTM_FX_PLAY } from './dtm_fx_data.js';
 
-export const DTM_VANISH_MS = 700;   // thoi gian the bien mat khoi tay (user chot)
-export const DTM_VANISH_LEAD = 380; // bat dau bien mat sau khi danh
-const FX_SPEED = 0.45;              // toc do hieu ung (user chot): <1 = cham hon
+export const DTM_VANISH_MS = 250;   // thoi gian the bien mat khoi tay (user chot moi)
+export const DTM_VANISH_LEAD = 360; // bat dau bien mat sau khi danh
+const FX_SPEED = 0.75;              // toc do hieu ung (user chot moi): <1 = cham hon
 export { DTM_FX_KEYS };
+try { document.documentElement.style.setProperty('--dtmv', (DTM_VANISH_MS / 1000) + 's'); } catch (e) {}
 
-// ===== chon hieu ung theo LOAI + CO CHE the =====
+// ===== chon hieu ung TAN CONG theo CO CHE the (chi goi khi the GAY SAT THUONG) =====
 export function castFxFor(c) {
   if (!c) return 'tram';
   if (c.aoe) return 'taoQuet';
-  if (c.type === 'def') return 'hoThuan';
-  if (c.type === 'ky') return 'khi';
-  // type atk:
   if ((c.hits || 1) > 1) return 'vu';
   if (c.drain) return 'hapTinh';
   if (c.poison) return 'kichDoc';
   if (c.he === 'hoa') return 'phan';
-  if (/Quyền|Chưởng|Phá|Trượng|Bạo|Băng/.test(c.name || '') || (c.cost || 0) >= 3) return 'bao';
+  if (((/Quyền|Chưởng|Trượng|Phá|Bạo|Băng/.test(c.name || '')) && !/Cơ Bản/.test(c.name || '')) || (c.cost || 0) >= 3) return 'bao';   // đòn nặng (La Hán/Đạt Ma/Thiên Vương…), trừ "Cơ Bản"
   return 'tram';
 }
+// the co GAY SAT THUONG quai khong? (quyet dinh co chay hieu ung TAN CONG hay khong)
+export function dealsDamage(c) { return !!(c && c.dmg); }
 
 // ===== helpers DOM (bridge) =====
 function reflow(el) { if (el) void el.offsetWidth; }
@@ -98,4 +98,28 @@ export function runFx(key, cardEl, hostEl, opts) {
   } catch (e) { console.error('DTM FX run', key, e); }
   applySpeed(cardSafe, hosts);
   setTimeout(() => clearFx(cardSafe, hosts), 1900);
+}
+
+// ===== CUE phu/self (KHONG tan cong dich): +Ho/Hoi/Luc/Ne/Rut tren NHAN VAT; Suy Yeu tren con quai =====
+const DTM_CUES = {
+  shield(host) { spawn(host, 'cue-shield', 1, function () {}); },
+  heal(host) { spawn(host, 'cue-heal', 1, function () {}); spawn(host, 'cue-healmote', 6, function (s) { s.style.setProperty('--mx', ((Math.random() * 2 - 1) * 28) + 'px'); s.style.setProperty('--md', (Math.random() * 0.3).toFixed(2) + 's'); }); },
+  power(host) { spawn(host, 'cue-power', 1, function () {}); },
+  dodge(host) { spawn(host, 'cue-dodge', 1, function () {}); },
+  draw(host) { spawn(host, 'cue-draw', 4, function (s, i) { s.style.setProperty('--dx', ((i - 1.5) * 18) + 'px'); s.style.setProperty('--md', (i * 0.05).toFixed(2) + 's'); }); },
+  weaken(host) { spawn(host, 'cue-weaken', 1, function () {}); },
+};
+// playerHost = .dtm-pfx (nhan vat); enemyHost = .dtm-efx con quai dang nham
+export function runCues(c, playerHost, enemyHost) {
+  if (!c) return;
+  const ph = playerHost || document.createElement('div');
+  try {
+    if (c.blk) DTM_CUES.shield(ph);
+    if (c.heal) DTM_CUES.heal(ph);
+    if (c.str) DTM_CUES.power(ph);
+    if (c.dodge) DTM_CUES.dodge(ph);
+    if (c.draw) DTM_CUES.draw(ph);
+    if (c.weaken && enemyHost) DTM_CUES.weaken(enemyHost);
+    setTimeout(function () { try { ph.querySelectorAll('[data-fxspark]').forEach(function (x) { x.remove(); }); } catch (e) {} }, 1500);
+  } catch (e) { console.error('DTM cues', e); }
 }
