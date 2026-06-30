@@ -108,7 +108,7 @@ export function dangTienMong() {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
-    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, selUid: null,
+    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, _winning: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [],
     HEROES, RELICS, metaUp: META_UP,
     lobbyFoes: [
@@ -269,6 +269,7 @@ export function dangTienMong() {
 
     // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
     tapCard(i, ev) {
+      if (this._winning) return;
       const c = this.hand[i]; if (!c || c._cast) return;
       if (this.selUid !== c.uid) { this.selUid = c.uid; return; }   // tap 1 / đổi -> chọn (nhô lên)
       if (this.khi < c.cost) return;                                // tap 2 nhưng không đủ Khí -> giữ chọn, chưa đánh
@@ -310,7 +311,7 @@ export function dangTienMong() {
         const pPort = pfx && pfx.parentElement ? pfx.parentElement.querySelector('.dtm-portwrap') : null;
         if (pfx) {
           if (c.blk) runFx('hoThuan', pfx, null, { shake, hitStop });   // Hộ Thuẫn = 1 trong 9 FX (đã duyệt), bọc quanh chân dung hero
-          if (c.heal) runCue('heal', pfx, pPort);
+          if (c.heal || c.drain) runCue('heal', pfx, pPort);   // drain (Hấp Tinh) cũng hồi máu -> hiện Hồi (user chốt)
           if (c.str) runCue('luc', pfx, pPort);
           if (c.dodge) runCue('pstep', pfx, pPort);
           if (c.draw) runCue('dxrut', pfx, pPort);
@@ -329,6 +330,7 @@ export function dangTienMong() {
       c._cast = null;
     },
     playCard(i, ev) {
+      if (this._winning) return;
       const c = this.hand[i]; if (!c || c._cast || this.khi < c.cost) return;
       this.selUid = null;
       try { if (navigator.vibrate) navigator.vibrate(c.dmg ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN (không phụ thuộc cài đặt animation của máy)
@@ -351,14 +353,15 @@ export function dangTienMong() {
       if (c.dodge) this.player.dodge = true;
       this.castCard(c, ev);
       if (c.draw) this.draw(c.draw);
-      if (this.aliveCount() === 0) this.winBattle();
+      if (this.aliveCount() === 0) this._finishBattle();
     },
     endTurn() {
+      if (this._winning) return;
       this.selUid = null;
       for (const hc of this.hand) hc._cast = null;
       this.discard.push(...this.hand); this.hand = [];
       for (const e of this.enemies) { if (e.hp > 0 && e.poison > 0) { this.hitEnemy(e, e.poison); this.floatE(e, e.poison); e.poison = Math.max(0, e.poison - 1); } }
-      if (this.aliveCount() === 0) { this.winBattle(); return; }
+      if (this.aliveCount() === 0) { this._finishBattle(); return; }
       let toPlayer = 0;
       for (const e of this.enemies) { if (e.hp <= 0) continue; const it = this.curIntent(e); if (it) {
         if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += this.absorbPlayer(per); } }
@@ -371,6 +374,14 @@ export function dangTienMong() {
     onDeath() {
       if (this.hasRelic('menhHon') && !this.run.reviveUsed) { this.run.reviveUsed = true; this.run.hp = Math.round(this.run.maxHp * 0.3); this.log = 'Hộ Mệnh Hồn Phách — hồi sinh!'; this.player.block = 0; this.khi = this.maxKhi; this.draw(this.handSize()); return; }
       this.bankRun(false); this.persist(); this.phase = 'lose';
+    },
+    // Thắng trận: DỪNG 1 nhịp cho đòn kết liễu kịp diễn + hiện "Thắng ải" rồi mới sang thưởng/màn sau (tránh chuyển PHỤT, hụt hẫng khi quái sắp chết). reduced-motion -> chuyển ngay.
+    _finishBattle() {
+      if (this._winning) return;
+      this._winning = true; this.selUid = null;
+      let reduce = false; try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
+      if (reduce) { this._winning = false; this.winBattle(); return; }
+      setTimeout(() => { this._winning = false; this.winBattle(); }, 950);
     },
     winBattle() {
       if (this.hasRelic('huyetNgoc')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);

@@ -6110,6 +6110,7 @@
           /* Banner Thắng/Thua — tiêu đề + chiều cao gọn cho khỏi tràn ngang */
           .dtm-root .dtm-endbanner{ min-height:240px; padding:26px 16px; }
           .dtm-root .dtm-endtitle{ font-size:42px; }
+          .dtm-root .dtm-winbeat span{ font-size:26px !important; }
           /* CUE SELF mobile: Ho Thuan nho them cho vua chan dung hero (54px). Rule base (.62) nam SAU block @media nay trong source -> cung specificity thi rule SAU (base) thang -> can !important de ban mobile nay thang. */
           .dtm-root .dtm-pfx .hoThuan-wrap{ transform:translate(-50%,-50%) scale(.48) !important; }
         }
@@ -6120,6 +6121,12 @@
         .dtm-root .dtm-efx{ position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }
         .dtm-root .dtm-pfx{ position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }   /* host cue SELF tren chan dung hero */
         .dtm-root .dtm-pfx .hoThuan-wrap{ transform:translate(-50%,-50%) scale(.62); }   /* Ho Thuan (188px card-size) thu nho cho vua chan dung hero (~117px) */
+        /* Nhip "Thang ai": dung 1 nhip sau khi ha quai cuoi (cho don ket lieu kip dien) roi moi sang thuong/man sau */
+        .dtm-root .dtm-winbeat{ position:absolute; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; pointer-events:none;
+          background:radial-gradient(ellipse at 50% 42%, rgba(245,185,66,.10), rgba(7,11,20,.5) 68%); animation:dtmWinBeat .95s ease-out both; }
+        .dtm-root .dtm-winbeat span{ font-size:32px; color:#f8d27a; letter-spacing:.08em; text-shadow:0 2px 12px rgba(0,0,0,.85), 0 0 22px rgba(245,185,66,.4); animation:dtmWinBeatTxt .95s cubic-bezier(.2,.8,.3,1) both; }
+        @keyframes dtmWinBeat{ 0%{opacity:0} 16%{opacity:1} 74%{opacity:1} 100%{opacity:0} }
+        @keyframes dtmWinBeatTxt{ 0%{opacity:0; transform:scale(.82) translateY(8px)} 24%{opacity:1; transform:scale(1) translateY(0)} 78%{opacity:1; transform:scale(1)} 100%{opacity:0; transform:scale(1.05)} }
         .dtm-root .dtm-eflash{ position:absolute; inset:0; background:#fff; opacity:0; mix-blend-mode:screen; border-radius:inherit; pointer-events:none; z-index:8; }
         .dtm-root .dtm-eflash.on{ animation:dtmEFlash .26s ease-out; }
         @keyframes dtmEFlash{ 0%{opacity:0} 16%{opacity:.92} 100%{opacity:0} }
@@ -7339,6 +7346,7 @@
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
           <div class="dtm-bg" :style="'background-image:url('+bgImg()+')'"></div>
           <div class="dtm-fog"></div>
+          <div class="dtm-winbeat" x-show="_winning"><span class="fserif">Thắng ải</span></div>
           <div class="flex items-center justify-between mb-3" x-show="phase!=='lobby'">
             <div class="flex items-center gap-2">
               <span class="relative w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px] overflow-hidden" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢<img src="images/dtm/emblem.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()"></span>
