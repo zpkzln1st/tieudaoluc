@@ -6,7 +6,7 @@
 // Logic = bản mockup _mockup/dangtienmong.html đã verify; thêm bridge persist Tầng sâu nhất.
 // ============================================================
 import { Storage } from './engine/save.js';
-import { castFxFor, runFx, dealsDamage, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
+import { castFxFor, runFx, runCue, dealsDamage, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
 
 export function ensureDangTien(state) {
   if (!state.dangTien) state.dangTien = {};
@@ -302,7 +302,23 @@ export function dangTienMong() {
         const hosts = panels.map((p) => p.querySelector('.dtm-efx')).filter(Boolean);
         const host = hosts[this.tgtIdx()] || hosts[0] || null;
         const stageEl = panels[0] ? panels[0].parentElement : null;   // hàng quái (cho đòn AoE quét ngang)
-        if (dealsDamage(c)) runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake: () => this.castShake(), hitStop: (ms) => this.hitStop(ms) });   // CHỈ chạy hiệu ứng TẤN CÔNG khi thẻ gây sát thương (thẻ né/hồi/rút/Hộ -> KHÔNG đánh quái; hiệu ứng self chờ mockup duyệt)
+        const shake = () => this.castShake(); const hitStop = (ms) => this.hitStop(ms);
+        // (1) Đòn TẤN CÔNG lên quái — CHỈ khi thẻ gây sát thương.
+        if (dealsDamage(c)) runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake, hitStop });
+        // (2) Cue SELF trên chân dung hero (.dtm-pfx): Hộ Thuẫn(blk) · Hồi(heal) · Lực(str) · Né(dodge) · Rút(draw).
+        const pfx = document.querySelector('.dtm-pfx');
+        const pPort = pfx && pfx.parentElement ? pfx.parentElement.querySelector('.dtm-portwrap') : null;
+        if (pfx) {
+          if (c.blk) runFx('hoThuan', pfx, null, { shake, hitStop });   // Hộ Thuẫn = 1 trong 9 FX (đã duyệt), bọc quanh chân dung hero
+          if (c.heal) runCue('heal', pfx, pPort);
+          if (c.str) runCue('luc', pfx, pPort);
+          if (c.dodge) runCue('pstep', pfx, pPort);
+          if (c.draw) runCue('dxrut', pfx, pPort);
+        }
+        // (3) Suy Yếu (Phong Ấn) trên con quái đang nhắm. Desaturate áp lên ẢNH quái (.dtm-port), KHÔNG phải .dtm-portwrap —
+        //     vì .dtm-portwrap đã nhận knock/squash (transform); 2 rule cùng set `animation` trên 1 element thì cascade chỉ chọn 1
+        //     (knock specificity cao hơn) → sap bị đè. Ảnh là element riêng nên filter (sap) + transform (knock) cùng chạy.
+        if (c.weaken && host) { const eImg = host.parentElement ? host.parentElement.querySelector('.dtm-port') : null; runCue('phongAn', host, eImg); }
       } catch (e) {}
       setTimeout(() => { if (c._cast === 'casting') c._cast = 'vanish'; }, DTM_VANISH_LEAD);   // thẻ bắt đầu tan khỏi tay
       setTimeout(() => { this._discardCast(c); }, DTM_VANISH_LEAD + DTM_VANISH_MS + 60);

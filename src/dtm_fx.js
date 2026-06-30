@@ -1,6 +1,7 @@
 // Engine hieu ung danh the cho Dang Tien Mong (port tu mockup _mockup/fx_src, da verify).
 // Cach ly: chi dung DOM (the dang danh + panel con quai); KHONG dung state combat/gear/currencies.
 import { DTM_FX_KEYS, DTM_FX_DOM, DTM_FX_PLAY } from './dtm_fx_data.js';
+import { DTM_CUE_DOM, DTM_CUE_PLAY } from './dtm_cue_data.js';
 
 export const DTM_VANISH_MS = 250;   // thoi gian the bien mat khoi tay (user chot moi)
 export const DTM_VANISH_LEAD = 360; // bat dau bien mat sau khi danh
@@ -99,4 +100,33 @@ export function runFx(key, cardEl, hostEl, opts) {
   applySpeed(cardSafe, hosts);
   setTimeout(() => clearFx(cardSafe, hosts), 1900);
 }
-// (Cue self/phu — Hồi/Né/Rút/Lực/Suy Yếu — CHỜ MOCKUP user duyệt; KHÔNG tự thêm.)
+// ===== CUE SELF/PHU (Hoi HP / Luc / Ne / Rut / Phong An) — chu ky rieng (host, portrait, spawn, addCls, reflow). =====
+// Port tu mockup _mockup/selfcue_src (user duyet). CACH LY: chi dung DOM (chan dung hero/quai); chay toc do GOC (1x, dung ban duyet).
+const _cueCompiled = {};
+function compileCue(key) {
+  if (_cueCompiled[key]) return _cueCompiled[key];
+  const body = DTM_CUE_PLAY[key];
+  if (!body) { _cueCompiled[key] = function () {}; return _cueCompiled[key]; }
+  try { _cueCompiled[key] = new Function('host', 'portrait', 'spawn', 'addCls', 'reflow', body); }
+  catch (e) { console.error('DTM CUE compile', key, e); _cueCompiled[key] = function () {}; }
+  return _cueCompiled[key];
+}
+function cueSpawn(parent, cls, n, eachFn) {
+  if (!parent) return;
+  for (let i = 0; i < n; i++) { const s = document.createElement('span'); s.className = cls; s.dataset.fxcue = '1'; if (eachFn) eachFn(s, i); parent.appendChild(s); setTimeout(() => { try { s.remove(); } catch (e) {} }, 1500); }
+}
+function clearCue(host) { if (!host) return; host.querySelectorAll('[data-fxcue],[data-cuedom]').forEach((x) => { try { x.remove(); } catch (e) {} }); }
+function injectCueDom(host, html) { if (host && html) { const tpl = document.createElement('template'); tpl.innerHTML = html; Array.from(tpl.content.childNodes).forEach((n) => { if (n.setAttribute) n.setAttribute('data-cuedom', '1'); host.appendChild(n); if (n.remove) setTimeout(() => { try { n.remove(); } catch (e) {} }, 1600); }); } }
+
+// runCue(key, host con, portrait con): host = lop fx (.dtm-pfx hero / .dtm-efx quai); portrait = phan tu de desaturate/bien doi.
+// MOI phan tu cue TU don (cueSpawn 1500ms / injectCueDom 1600ms) -> KHONG quet host-wide o cuoi (tranh timer cue TRUOC cat cue SAU tren cung host .dtm-pfx). clearCue dau = cue moi thay cue cu tren host.
+export function runCue(key, hostEl, portraitEl) {
+  const host = hostEl || document.createElement('div');
+  const portrait = portraitEl || document.createElement('div');
+  const fn = compileCue(key);
+  clearCue(host);
+  const dom = DTM_CUE_DOM[key];
+  if (dom) injectCueDom(host, dom);
+  try { fn(host, portrait, cueSpawn, addCls, reflow); }
+  catch (e) { console.error('DTM CUE run', key, e); }
+}
