@@ -26,7 +26,7 @@ export function dealsDamage(c) { return !!(c && c.dmg); }
 // ===== helpers DOM (bridge) =====
 function reflow(el) { if (el) void el.offsetWidth; }
 function addCls(el, cls, ms) { if (!el) return; el.classList.remove(cls); reflow(el); el.classList.add(cls); if (ms) setTimeout(() => { try { el.classList.remove(cls); } catch (e) {} }, ms); }
-function portraitOf(host) { const p = host && host.closest('.dtm-enemy'); return p ? p.querySelector('.dtm-portwrap') : null; }
+function portraitOf(host) { if (!host) return null; const p = host.closest('.dtm-enemy') || host.parentElement; return p ? p.querySelector('.dtm-portwrap') : null; }   // host-agnostic: dung cho .dtm-efx (quai) LAN .dtm-pfx (hero, khi quai danh)
 function flashEl(host) { if (!host) return; const f = host.querySelector('.dtm-eflash'); if (f) addCls(f, 'on', 340); }
 function knockEl(host, dx, dy, rot) { const p = portraitOf(host); if (!p) return; p.style.setProperty('--kx', (dx || 0) + 'px'); p.style.setProperty('--ky', (dy || 0) + 'px'); p.style.setProperty('--kr', (rot || 0) + 'deg'); addCls(p, 'dtm-eknock', 620); }
 function squashEl(host) { const p = portraitOf(host); if (p) addCls(p, 'dtm-esquash', 460); }

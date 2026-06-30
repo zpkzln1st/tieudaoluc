@@ -6112,7 +6112,7 @@
           .dtm-root .dtm-endtitle{ font-size:42px; }
           .dtm-root .dtm-winbeat span{ font-size:26px !important; }
           /* CUE SELF mobile: Ho Thuan nho them cho vua chan dung hero (54px). Rule base (.62) nam SAU block @media nay trong source -> cung specificity thi rule SAU (base) thang -> can !important de ban mobile nay thang. */
-          .dtm-root .dtm-pfx .hoThuan-wrap{ transform:translate(-50%,-50%) scale(.48) !important; }
+          .dtm-root .dtm-pfx .hoThuan-wrap, .dtm-root .dtm-efx .hoThuan-wrap{ transform:translate(-50%,-50%) scale(.48) !important; }
         }
       
         /* ============ HIEU UNG DANH THE v3 (port tu _mockup/fx_src) ============ */
@@ -6120,7 +6120,7 @@
         .dtm-root .dtm-efxwrap{ position:relative; }
         .dtm-root .dtm-efx{ position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }
         .dtm-root .dtm-pfx{ position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }   /* host cue SELF tren chan dung hero */
-        .dtm-root .dtm-pfx .hoThuan-wrap{ transform:translate(-50%,-50%) scale(.62); }   /* Ho Thuan (188px card-size) thu nho cho vua chan dung hero (~117px) */
+        .dtm-root .dtm-pfx .hoThuan-wrap, .dtm-root .dtm-efx .hoThuan-wrap{ transform:translate(-50%,-50%) scale(.62); }   /* Ho Thuan (188px card-size) thu nho cho vua chan dung hero/quai (~117px) */
         /* Nhip "Thang ai": dung 1 nhip sau khi ha quai cuoi (cho don ket lieu kip dien) roi moi sang thuong/man sau */
         .dtm-root .dtm-winbeat{ position:absolute; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; pointer-events:none;
           background:radial-gradient(ellipse at 50% 42%, rgba(245,185,66,.10), rgba(7,11,20,.5) 68%); animation:dtmWinBeat .95s ease-out both; }

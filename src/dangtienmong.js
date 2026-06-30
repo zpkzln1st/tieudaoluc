@@ -362,8 +362,9 @@ export function dangTienMong() {
       this.discard.push(...this.hand); this.hand = [];
       for (const e of this.enemies) { if (e.hp > 0 && e.poison > 0) { this.hitEnemy(e, e.poison); this.floatE(e, e.poison); e.poison = Math.max(0, e.poison - 1); } }
       if (this.aliveCount() === 0) { this._finishBattle(); return; }
-      let toPlayer = 0;
+      let toPlayer = 0, _ai = 0;
       for (const e of this.enemies) { if (e.hp <= 0) continue; const it = this.curIntent(e); if (it) {
+        this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
         if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += this.absorbPlayer(per); } }
         else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
       } e.ii++; e.weak = Math.max(0, (e.weak || 0) - 1); }
@@ -374,6 +375,29 @@ export function dangTienMong() {
     onDeath() {
       if (this.hasRelic('menhHon') && !this.run.reviveUsed) { this.run.reviveUsed = true; this.run.hp = Math.round(this.run.maxHp * 0.3); this.log = 'Hộ Mệnh Hồn Phách — hồi sinh!'; this.player.block = 0; this.khi = this.maxKhi; this.draw(this.handSize()); return; }
       this.bankRun(false); this.persist(); this.phase = 'lose';
+    },
+    // Hiệu ứng khi QUÁI ra đòn (DÙNG LẠI hiệu ứng nhân vật): atk -> đòn tấn công TRÊN CHÂN DUNG HERO · def -> Hộ Thuẫn · buff/charge -> Lực · heal -> Hồi (trên quái). Lệch nhịp theo thứ tự quái. CÁCH LY: chỉ đụng DOM.
+    _enemyActFx(e, it, idx) {
+      try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches) return; } catch (_) {}
+      const shake = () => this.castShake(); const hitStop = (ms) => this.hitStop(ms);
+      setTimeout(() => {
+        try {
+          const panels = Array.from(document.querySelectorAll('.dtm-enemy'));
+          const mi = this.enemies.indexOf(e);
+          const ehost = (mi >= 0 && panels[mi]) ? panels[mi].querySelector('.dtm-efx') : null;
+          const eport = (ehost && ehost.parentElement) ? ehost.parentElement.querySelector('.dtm-portwrap') : null;
+          if (it.t === 'atk') {
+            const pfx = document.querySelector('.dtm-pfx');
+            if (pfx) { const key = ((it.hits || 1) > 1) ? 'vu' : (it.big ? 'bao' : 'tram'); runFx(key, null, pfx, { hosts: [pfx], shake, hitStop }); }
+          } else if (it.t === 'def') {
+            if (ehost) { ehost.style.setProperty('--c', this.heColor(e.he)); runFx('hoThuan', ehost, null, { shake, hitStop }); }
+          } else if (it.t === 'buff' || it.t === 'charge') {
+            if (ehost) runCue('luc', ehost, eport);
+          } else if (it.t === 'heal') {
+            if (ehost) runCue('heal', ehost, eport);
+          }
+        } catch (_) {}
+      }, idx * 240);
     },
     // Thắng trận: DỪNG 1 nhịp cho đòn kết liễu kịp diễn + hiện "Thắng ải" rồi mới sang thưởng/màn sau (tránh chuyển PHỤT, hụt hẫng khi quái sắp chết). reduced-motion -> chuyển ngay.
     _finishBattle() {
