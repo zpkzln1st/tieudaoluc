@@ -82,6 +82,15 @@ export function dangTienMong() {
     boss: [['maGiao']],
   };
   const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao' };   // elite/boss mượn chân dung chưởng môn
+  // BỘ BÀI QUÁI (repertoire): mỗi quái có chuỗi chiêu RIÊNG (song song intents), telegraph = chip lá kế. {nm,han,art} — art mượn book_* (chỉ chip mini), hiệu lực vẫn theo intent.
+  const MOVES = {
+    cuongDao: [ { nm: 'Loạn Đao Trảm', han: '刀', art: 'book_dat_ma_truong' }, { nm: 'Thiết Bài Hộ', han: '盾', art: 'book_thai_cuc_quyen' }, { nm: 'Đoạt Mệnh Kích', han: '奪', art: 'book_la_han_quyen' } ],
+    satThu: [ { nm: 'Tỏa Hầu Đoản Nhận', han: '刺', art: 'book_tich_ta_kiem' }, { nm: 'Ngưng Sát Khí', han: '殺', art: 'book_dich_can_kinh' }, { nm: 'Đoạt Phách Kích', han: '魄', art: 'book_hoa_son_kiem' } ],
+    langYeu: [ { nm: 'Lang Liệt Trảo', han: '爪', art: 'book_hoa_son_kiem' }, { nm: 'Giảo Sát', han: '噬', art: 'book_la_han_quyen' }, { nm: 'Súc Thân Hộ', han: '護', art: 'book_thai_cuc_quyen' } ],
+    hoaSonKiem: [ { nm: 'Hoa Sơn Nhất Kiếm', han: '華', art: 'book_hoa_son_kiem' }, { nm: 'Ngưng Kiếm Ý', han: '意', art: 'book_dich_can_kinh' }, { nm: 'Mai Hoa Song Kiếm', han: '梅', art: 'book_tich_ta_kiem' }, { nm: 'Kiếm Phong Hộ Thân', han: '守', art: 'book_thai_cuc_quyen' } ],
+    duongMon: [ { nm: 'Mãn Thiên Ám Khí', han: '暗', art: 'book_duong_mon_am_khi' }, { nm: 'Liên Châu Đoản Tiễn', han: '箭', art: 'book_duong_mon_am_khi' }, { nm: 'Liệu Thương Đan', han: '藥', art: 'book_nga_mi_cuu_duong' }, { nm: 'Thấu Cốt Châm', han: '釘', art: 'book_tich_ta_kiem' } ],
+    maGiao: [ { nm: 'Huyết Ma Trảo', han: '魔', art: 'book_hap_tinh_dai_phap' }, { nm: 'Tụ Ma Khí', han: '蓄', art: 'book_cuu_am' }, { nm: 'Thiên Ma Hủy Diệt', han: '殛', art: 'book_hap_tinh_dai_phap' }, { nm: 'Ma Khí Hộ Thể', han: '罡', art: 'book_thai_cuc_quyen' }, { nm: 'Hấp Tinh Hoàn Nguyên', han: '吸', art: 'book_hap_tinh_dai_phap' } ],
+  };
   const TIER = [
     { label: 'Tầng 1' },
     { label: 'Tầng 2', types: ['battle', 'event', 'shop'] },
@@ -238,7 +247,7 @@ export function dangTienMong() {
     tgtIdx() { if (this.enemies[this.targetIdx] && this.enemies[this.targetIdx].hp > 0) return this.targetIdx; const i = this.enemies.findIndex((e) => e.hp > 0); return i < 0 ? 0 : i; },
     startBattle(kind) {
       const enc = rnd(ENC[kind] || ENC.battle); const scl = 1 + this.mapTier * 0.1 + (this.run.sc || 0) * 0.08;   // +8% HP quái mỗi bậc Sát Cảnh
-      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, ii: 0, floats: [], hit: false, burst: null, atkfx: null }; });
+      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, ii: 0, floats: [], hit: false, burst: null, atkfx: null }; });
       this.targetIdx = 0; this.battleKind = kind;
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
       this.player = { block: 0, str: 0, dodge: false }; this.log = ''; this.playerFloats = [];
@@ -256,6 +265,12 @@ export function dangTienMong() {
       if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v; return ''; },
     intentStyle(e) { const it = e.hp > 0 && this.curIntent(e); const c = !it ? '#64748b' : (it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))));
       return 'color:' + c + ';border:1px solid ' + c + '55;background:' + c + '14'; },
+    // ----- Telegraph CHIP: ý đồ quái = lá bài kế trong bộ bài riêng (chip mini art + tên chiêu + tác dụng) -----
+    intentMove(e) { try { const arr = MOVES[e.id]; return (arr && arr.length) ? arr[e.ii % arr.length] : null; } catch (_) { return null; } },
+    intentCardArt(e) { const m = this.intentMove(e); return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
+    intentCardName(e) { const m = this.intentMove(e); return m ? m.nm : (this.intentText(e) || 'Ý đồ'); },
+    intentCardHan(e) { const m = this.intentMove(e); return m ? m.han : (e.han || '?'); },
+    intentColor(e) { const it = this.curIntent(e); if (!it) return '#64748b'; return it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))); },
     peekOn() { return !!this._up().peek; },   // Lưỡng Nghi Kính
     peekText(e) { const it = e.intents[(e.ii + 1) % e.intents.length]; if (!it) return ''; const s = e.str || 0;
       if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
