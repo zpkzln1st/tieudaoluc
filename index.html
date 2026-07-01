@@ -5879,11 +5879,8 @@
         .dtm-root .card:hover.playable{ transform:translateY(-16px); box-shadow:0 0 0 1px var(--c), 0 0 22px -3px var(--c), 0 16px 28px -10px #000; z-index:5; }
         .dtm-root .card.unplayable{ filter:grayscale(.55) brightness(.6); cursor:not-allowed; }
         /* Kiểu A: khung phẩm chất (inset) + 4 góc ốp (background-gradient, 0 thêm DOM) */
-        .dtm-root .card::after{ content:''; position:absolute; inset:4px; border-radius:8px; z-index:3; pointer-events:none; box-shadow:inset 0 0 0 1px var(--r), inset 0 0 13px -8px var(--r); }
-        .dtm-root .card::before{ content:''; position:absolute; inset:6px; z-index:4; pointer-events:none; border-radius:7px; opacity:.85;
-          background:                                                /* chỉ ốp 2 góc DƯỚI -> chừa góc trên cho cost (trái) + viên phẩm chất (phải) */
-            linear-gradient(var(--r),var(--r)) left bottom/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) left bottom/2px 11px no-repeat,
-            linear-gradient(var(--r),var(--r)) right bottom/11px 2px no-repeat, linear-gradient(var(--r),var(--r)) right bottom/2px 11px no-repeat; }
+        .dtm-root .card::after{ content:''; position:absolute; inset:2px; border-radius:10px; z-index:3; pointer-events:none; box-shadow:inset 0 0 0 1px var(--r); }   /* Style C: vien doi manh (he ngoai + 1 duong pham chat manh sat trong) */
+        .dtm-root .card::before{ display:none; }   /* Style C: bo goc op (dung vien doi manh o ::after) */
         /* Hero card: hover = CẢ KHUNG glow + scale nhẹ (ảnh đi theo khung, KHÔNG tự phóng riêng) */
         .dtm-root .dtm-herocard{ transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
         .dtm-root .dtm-herocard:hover{ transform:translateY(-6px); box-shadow:0 0 0 1px var(--hc,#64748b), 0 0 32px -7px var(--hc,#64748b), 0 22px 38px -16px #000; z-index:3; }
@@ -7631,7 +7628,7 @@
                 <template x-for="(c,i) in hand" :key="c.uid">
                   <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')+(c._cast?' dtm-cast-'+c._cast:'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
-                    <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="c.rar==='tuyet'"><img class="dtm-tuyetglow" src="images/dtm/vfx/card_glow_tuyet.webp" alt="" onerror="this.remove()"></template><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
+                    <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                     <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="c.desc"></div></div>
                   </div>
                 </template>
@@ -7651,7 +7648,7 @@
                 <template x-for="(c,i) in rewardCards" :key="i">
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
-                    <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="c.rar==='tuyet'"><img class="dtm-tuyetglow" src="images/dtm/vfx/card_glow_tuyet.webp" alt="" onerror="this.remove()"></template><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
+                    <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                     <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
                   </div>
                 </template>
@@ -7809,7 +7806,7 @@
                   <template x-for="(c,i) in run.deck" :key="i">
                     <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
                       <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
-                      <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="c.rar==='tuyet'"><img class="dtm-tuyetglow" src="images/dtm/vfx/card_glow_tuyet.webp" alt="" onerror="this.remove()"></template><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
+                      <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                       <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
                     </div>
                   </template>
