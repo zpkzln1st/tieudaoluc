@@ -78,10 +78,11 @@ export function dangTienMong() {
     duongMon: { name: 'Đường Môn Ám Sứ', han: '暗', he: 'moc', hp: 42, elite: true, intents: [{ t: 'atk', v: 6 }, { t: 'atk', v: 4, hits: 2 }, { t: 'heal', v: 8 }, { t: 'atk', v: 11 }] },
     maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 72, boss: true, intents: [{ t: 'atk', v: 11 }, { t: 'charge' }, { t: 'atk', v: 22, big: true }, { t: 'def', v: 12 }, { t: 'heal', v: 10 }] },
   };
+  // ENC: mỗi ENCOUNTER = mảng ĐỢT (wave); mỗi đợt = mảng id quái. Diệt sạch đợt -> đợt kế tràn vào. (Full 20 tầng ở TIER/ENC mở rộng.)
   const ENC = {
-    battle: [['cuongDao'], ['langYeu'], ['satThu'], ['cuongDao', 'langYeu'], ['cuongDao', 'cuongDao'], ['satThu', 'langYeu']],
-    elite: [['hoaSonKiem'], ['duongMon'], ['satThu', 'satThu']],
-    boss: [['maGiao']],
+    battle: [[['cuongDao']], [['langYeu']], [['satThu']], [['cuongDao', 'langYeu']], [['cuongDao', 'cuongDao']], [['satThu', 'langYeu']]],
+    elite: [[['hoaSonKiem']], [['duongMon']], [['satThu', 'satThu']], [['cuongDao', 'cuongDao'], ['hoaSonKiem']]],
+    boss: [[['maGiao']]],
   };
   const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao' };   // elite/boss mượn chân dung chưởng môn
   // BỘ BÀI QUÁI (repertoire): mỗi quái có chuỗi chiêu RIÊNG (song song intents), telegraph = chip lá kế. {nm,han,art} — art mượn book_* (chỉ chip mini), hiệu lực vẫn theo intent.
@@ -119,7 +120,7 @@ export function dangTienMong() {
 
   return {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
-    map: [], mapTier: 0, mapView: [], battleKind: null,
+    map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, _winning: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [],
@@ -257,6 +258,7 @@ export function dangTienMong() {
         const discardSnap = this.discard.concat(this.hand.filter((c) => c._cast));
         const snap = {
           phase: this.phase, run: this.run, map: this.map, mapTier: this.mapTier, battleKind: this.battleKind,
+          waves: this.waves, waveIdx: this.waveIdx,
           enemies: this.enemies, targetIdx: this.targetIdx, player: this.player, maxKhi: this.maxKhi, khi: this.khi,
           drawPile: this.drawPile, hand: handSnap, discard: discardSnap, log: this.log,
           runNgan: this.runNgan, rewardCards: this.rewardCards, rewardGold: this.rewardGold, shopItems: this.shopItems,
@@ -275,6 +277,7 @@ export function dangTienMong() {
     _restoreRun(a) {
       this.run = a.run; this.map = a.map || []; this.mapTier = a.mapTier || 0; this.battleKind = a.battleKind || null;
       this.enemies = (a.enemies || []).map((e) => Object.assign({}, e, { floats: [], hit: false, burst: null, atkfx: null }));
+      this.waves = a.waves || (this.enemies.length ? [this.enemies.map((e) => e.id)] : []); this.waveIdx = a.waveIdx || 0; this._waveFlash = 0;
       this.targetIdx = a.targetIdx || 0; this.player = a.player || { block: 0, str: 0, dodge: false };
       this.maxKhi = a.maxKhi || 3; this.khi = a.khi != null ? a.khi : this.maxKhi;
       const clr = (arr) => (arr || []).map((c) => Object.assign({}, c, { _cast: null }));
@@ -312,16 +315,33 @@ export function dangTienMong() {
     aliveCount() { return this.enemies.filter((e) => e.hp > 0).length; },
     tgtIdx() { if (this.enemies[this.targetIdx] && this.enemies[this.targetIdx].hp > 0) return this.targetIdx; const i = this.enemies.findIndex((e) => e.hp > 0); return i < 0 ? 0 : i; },
     startBattle(kind) {
-      const enc = rnd(ENC[kind] || ENC.battle); const scl = 1 + this.mapTier * 0.1 + (this.run.sc || 0) * 0.08;   // +8% HP quái mỗi bậc Sát Cảnh
-      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
-      this.targetIdx = 0; this.battleKind = kind;
+      const enc = rnd(ENC[kind] || ENC.battle);   // enc = mảng ĐỢT (mỗi đợt = mảng id quái)
+      this.waves = enc; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = kind;
+      this._spawnEnemies(enc[0]);
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
       this.player = { block: 0, str: 0, dodge: false }; this.log = ''; this.playerFloats = [];
       if (this.hasRelic('thietGiap')) this.player.block += 6;
       this.khi = this.maxKhi + (this.hasRelic('ngocBoi') ? 2 : 0);
       this.phase = 'battle'; this.startTurnPassive();
-      this.enemies.forEach((e) => { e.plan = this._planPick(e, -1); e.planNext = this._planFollow(e, e.plan); });   // AI: chọn chiêu mở màn + chiêu kế (telegraph)
       this.draw(this.handSize());
+      this._saveRun();
+    },
+    // Sinh 1 đợt quái từ mảng id (HP scale theo tầng + Sát Cảnh, +AI plan/planNext). Dùng cho mở trận & đợt kế.
+    _spawnEnemies(ids) {
+      const scl = 1 + this.mapTier * 0.1 + (this.run.sc || 0) * 0.08;   // +8% HP quái mỗi bậc Sát Cảnh
+      this.enemies = (ids || []).map((id) => { const t = ENEMIES[id]; return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
+      this.targetIdx = 0;
+      this.enemies.forEach((e) => { e.plan = this._planPick(e, -1); e.planNext = this._planFollow(e, e.plan); });
+    },
+    waveCount() { return (this.waves && this.waves.length) || 1; },
+    // Diệt sạch đợt hiện tại: còn đợt -> tràn đợt kế (liền mạch); hết đợt -> thắng trận.
+    _battleCleared() { if (this.waves && this.waveIdx < this.waves.length - 1) this._advanceWave(); else this._finishBattle(); },
+    // Đợt kế TRÀN VÀO: giữ HP/Hộ Thể/Lực/trạng thái + tay bài + Khí (không hồi giữa đợt). Quái mới telegraph, ra đòn ở lượt SAU.
+    _advanceWave() {
+      this.waveIdx++;
+      this._spawnEnemies(this.waves[this.waveIdx]);
+      this.log = 'Đợt ' + (this.waveIdx + 1) + '/' + this.waves.length + ' tràn tới!';
+      try { if (!(window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches)) { this._waveFlash = this.waveIdx + 1; clearTimeout(this._waveFlashT); this._waveFlashT = setTimeout(() => { this._waveFlash = 0; }, 1300); } } catch (e) {}
       this._saveRun();
     },
     handSize() { return 5 + (this.hasRelic('linhPhu') ? 1 : 0); },
@@ -457,7 +477,7 @@ export function dangTienMong() {
       if (c.dodge) this.player.dodge = true;
       this.castCard(c, ev);
       if (c.draw) this.draw(c.draw);
-      if (this.aliveCount() === 0) this._finishBattle();
+      if (this.aliveCount() === 0) this._battleCleared();
       this._saveRun();
     },
     endTurn() {
@@ -466,15 +486,19 @@ export function dangTienMong() {
       for (const hc of this.hand) hc._cast = null;
       this.discard.push(...this.hand); this.hand = [];
       for (const e of this.enemies) { if (e.hp > 0 && e.poison > 0) { this.hitEnemy(e, e.poison); this.floatE(e, e.poison); e.poison = Math.max(0, e.poison - 1); } }
-      if (this.aliveCount() === 0) { this._finishBattle(); return; }
-      let toPlayer = 0, _ai = 0;
-      for (const e of this.enemies) { if (e.hp <= 0) continue; const it = this.curIntent(e); if (it) {
-        this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
-        if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += this.absorbPlayer(per); } }
-        else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
-      } e.plan = (e.planNext != null) ? e.planNext : this._planPick(e, e.plan); e.planNext = this._planFollow(e, e.plan); e.weak = Math.max(0, (e.weak || 0) - 1); }
-      if (toPlayer > 0) this.floatPlayer(toPlayer);
-      if (this.run.hp <= 0) { this.onDeath(); return; }
+      if (this.aliveCount() === 0) {
+        if (this.waves && this.waveIdx < this.waves.length - 1) { this._advanceWave(); }   // Độc dứt điểm đợt này -> đợt kế tràn tới (ra đòn lượt SAU)
+        else { this._finishBattle(); return; }
+      } else {
+        let toPlayer = 0, _ai = 0;
+        for (const e of this.enemies) { if (e.hp <= 0) continue; const it = this.curIntent(e); if (it) {
+          this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
+          if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += this.absorbPlayer(per); } }
+          else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
+        } e.plan = (e.planNext != null) ? e.planNext : this._planPick(e, e.plan); e.planNext = this._planFollow(e, e.plan); e.weak = Math.max(0, (e.weak || 0) - 1); }
+        if (toPlayer > 0) this.floatPlayer(toPlayer);
+        if (this.run.hp <= 0) { this.onDeath(); return; }
+      }
       this.player.block = 0; this.khi = this.maxKhi; this.startTurnPassive(); this.draw(this.handSize());
       this._saveRun();
     },
@@ -515,7 +539,9 @@ export function dangTienMong() {
     },
     winBattle() {
       if (this.hasRelic('huyetNgoc')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);
-      this.rewardGold = this.battleKind === 'boss' ? 60 : (this.battleKind === 'elite' ? 35 : 18); if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
+      const _base = this.battleKind === 'boss' ? 60 : (this.battleKind === 'elite' ? 35 : 18);
+      this.rewardGold = _base + ((this.waves && this.waves.length > 1) ? (this.waves.length - 1) * 12 : 0);   // +12 Mộng Ngân mỗi đợt phụ (DRAFT)
+      if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
       if (this.battleKind === 'boss') { this.afterNode(); return; }
       if (this.battleKind === 'elite' && this.run.relics.length < RELICS.length) { const have = this.run.relics.map((r) => r.id); const r = rnd(RELICS.filter((x) => !have.includes(x.id))); if (r) { this.run.relics.push(r); this.log = 'Nhặt di vật: ' + r.name; } }
       this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3).map(mk);
