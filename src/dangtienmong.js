@@ -97,11 +97,11 @@ export function dangTienMong() {
     caiBang: { name: 'Cái Bang Trưởng Lão', han: '丐', he: 'hoa', hp: 48, elite: true, intents: [{ t: 'atk', v: 10 }, { t: 'def', v: 8 }, { t: 'atk', v: 7, hits: 2 }, { t: 'buff', v: 3 }] },
     ngaMiSu: { name: 'Nga Mi Sư Thái', han: '峨', he: 'thuy', hp: 46, elite: true, intents: [{ t: 'atk', v: 9 }, { t: 'heal', v: 10 }, { t: 'atk', v: 8 }, { t: 'def', v: 7 }] },
     thieuLam: { name: 'Thiếu Lâm Võ Tăng', han: '禪', he: 'kim', hp: 54, elite: true, intents: [{ t: 'atk', v: 8 }, { t: 'def', v: 12 }, { t: 'atk', v: 12 }, { t: 'buff', v: 2 }] },
-    // --- Ác Thủ (mini-boss) ---
-    voDang: { name: 'Võ Đang Chân Nhân', han: '太', he: 'tho', hp: 66, elite: true, intents: [{ t: 'atk', v: 11 }, { t: 'def', v: 10 }, { t: 'charge' }, { t: 'atk', v: 20, big: true }, { t: 'heal', v: 8 }] },
-    thienSon: { name: 'Thiên Sơn Lão Quái', han: '雪', he: 'tho', hp: 72, elite: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 22, big: true }, { t: 'def', v: 10 }, { t: 'atk', v: 8, hits: 2 }] },
-    nhatNguyet: { name: 'Nhật Nguyệt Giáo Chủ', han: '日', he: 'hoa', hp: 70, elite: true, intents: [{ t: 'atk', v: 13 }, { t: 'buff', v: 4 }, { t: 'atk', v: 9, hits: 2 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }] },
-    bongLai: { name: 'Bồng Lai Tán Tiên', han: '蓬', he: 'kim', hp: 68, elite: true, intents: [{ t: 'atk', v: 11 }, { t: 'heal', v: 12 }, { t: 'def', v: 14 }, { t: 'atk', v: 15 }, { t: 'buff', v: 3 }] },
+    // --- Ác Thủ / Chưởng Môn (mini-boss) — chuongMon:true -> có màn "xuất trận" + banner ---
+    voDang: { name: 'Võ Đang Chưởng Môn', han: '太', he: 'tho', hp: 66, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 11 }, { t: 'def', v: 10 }, { t: 'charge' }, { t: 'atk', v: 20, big: true }, { t: 'heal', v: 8 }] },
+    thienSon: { name: 'Thiên Sơn Lão Tổ', han: '雪', he: 'tho', hp: 72, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 22, big: true }, { t: 'def', v: 10 }, { t: 'atk', v: 8, hits: 2 }] },
+    nhatNguyet: { name: 'Nhật Nguyệt Giáo Chủ', han: '日', he: 'hoa', hp: 70, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 13 }, { t: 'buff', v: 4 }, { t: 'atk', v: 9, hits: 2 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }] },
+    bongLai: { name: 'Bồng Lai Tán Tiên', han: '蓬', he: 'kim', hp: 68, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 11 }, { t: 'heal', v: 12 }, { t: 'def', v: 14 }, { t: 'atk', v: 15 }, { t: 'buff', v: 3 }] },
     // --- Mộng Chủ (boss) ---
     maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 84, boss: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }, { t: 'def', v: 14 }, { t: 'heal', v: 12 }] },
   };
@@ -124,14 +124,20 @@ export function dangTienMong() {
       [['hoaSonKiem']], [['duongMon']], [['caiBang']], [['ngaMiSu']], [['thieuLam']],
       [['satThu', 'satThu'], ['hoaSonKiem']], [['taoKhau', 'taoKhau'], ['duongMon']], [['cungThu', 'cungThu'], ['caiBang']],
     ],
-    miniboss: [   // Ác Thủ: mini-boss (một số có đợt lâu la mở màn / kết boss)
-      [['voDang']], [['thienSon']], [['nhatNguyet']], [['bongLai']],
-      [['taoKhau', 'taoKhau'], ['voDang']], [['satThu', 'langYeu'], ['thienSon']],
+    miniboss: [   // Ác Thủ / Chưởng Môn: LUÔN đa đợt (lâu la mở màn -> chưởng môn xuất trận). Random pool.
+      [['taoKhau', 'taoKhau'], ['voDang']],
+      [['satThu', 'langYeu'], ['thienSon']],
+      [['cungThu', 'cungThu'], ['nhatNguyet']],
+      [['doCo', 'daLang'], ['bongLai']],
+      [['taoKhau', 'daLang', 'cungThu'], ['satThu', 'satThu'], ['voDang']],
+      [['langYeu', 'langYeu'], ['tanKiem', 'luyenKhi'], ['thienSon']],
       [['doCo', 'doCo'], ['caiBang'], ['nhatNguyet']],
+      [['cungThu', 'cungThu', 'cungThu'], ['hoaSonKiem'], ['bongLai']],
     ],
-    boss: [   // Mộng Chủ: chung kết đa đợt
+    boss: [   // Mộng Chủ: chung kết đa đợt (guards -> Mộng Chủ)
       [['thieuLam', 'ngaMiSu'], ['maGiao']],
       [['cungThu', 'cungThu'], ['nhatNguyet'], ['maGiao']],
+      [['satThu', 'satThu'], ['caiBang', 'thieuLam'], ['maGiao']],
     ],
   };
   const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao', caiBang: 'port_master_cai_bang', ngaMiSu: 'port_master_nga_mi', thieuLam: 'port_master_thieu_lam', voDang: 'port_master_vo_dang', thienSon: 'port_master_thien_son', nhatNguyet: 'port_master_nhat_nguyet', bongLai: 'port_master_bong_lai', taoKhau: 'cuongDao', daLang: 'langYeu', cungThu: 'satThu' };   // elite/mini-boss mượn chân dung chưởng môn; lâu la mới mượn 3 art cơ bản; tanKiem/doCo/luyenKhi -> Hán (art sau)
@@ -205,7 +211,7 @@ export function dangTienMong() {
 
   return {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
-    map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0,
+    map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, _winning: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null,
@@ -444,9 +450,17 @@ export function dangTienMong() {
       const dmgScl = 1 + this.mapTier * 0.04;                              // sát thương ĐÒN theo tầng (chỉ intent atk) — DRAFT
       this.enemies = (ids || []).map((id) => { const t = ENEMIES[id];
         const ints = t.intents.map((it) => (it.t === 'atk' && it.v != null) ? { ...it, v: Math.round(it.v * dmgScl) } : it);   // copy có scale (KHÔNG mutate ENEMIES gốc; def/heal/buff giữ nguyên)
-        return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * hpScl), hp: Math.round(t.hp * hpScl), block: 0, poison: 0, weak: 0, str: 0, intents: ints, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
+        return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, chuongMon: !!t.chuongMon, maxHp: Math.round(t.hp * hpScl), hp: Math.round(t.hp * hpScl), block: 0, poison: 0, weak: 0, str: 0, intents: ints, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
       this.targetIdx = 0;
       this.enemies.forEach((e) => { e.plan = this._planPick(e, -1); e.planNext = this._planFollow(e, e.plan); });
+      this._triggerBossReveal();   // đợt có chưởng môn/Mộng Chủ -> màn "xuất trận"
+    },
+    // Màn "boss xuất trận" (art + tên) khi đợt có chưởng môn/Mộng Chủ tràn vào. reduced-motion -> bỏ.
+    _triggerBossReveal() {
+      try { if (window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches) return; } catch (e) {}
+      const b = this.enemies.find((e) => e.chuongMon || e.boss); if (!b) return;
+      this._bossReveal = { name: b.name, _art: b._art, title: b.boss ? 'Mộng Chủ Giáng Lâm' : 'Chưởng Môn Xuất Trận', he: b.he };
+      clearTimeout(this._bossRevealT); this._bossRevealT = setTimeout(() => { this._bossReveal = null; }, 1900);
     },
     waveCount() { return (this.waves && this.waves.length) || 1; },
     // Diệt sạch đợt hiện tại: còn đợt -> tràn đợt kế (liền mạch); hết đợt -> thắng trận.
