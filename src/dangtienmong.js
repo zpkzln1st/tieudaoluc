@@ -162,6 +162,7 @@ export function dangTienMong() {
       if (this.rerollLeft <= 0) return; this.rerollLeft--;
       if (this.phase === 'reward') { this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3).map(mk); }
       else if (this.phase === 'shop') { const keys = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3); this.shopItems = keys.map((k) => { const card = mk(k); const price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); return { card, price, sold: false }; }); }
+      this._saveRun();
     },
     // ----- Sát Cảnh (Ascension per-hero) -----
     scMax() { return DTM_SC_MAX; },
@@ -219,16 +220,55 @@ export function dangTienMong() {
       this.run = { hero: h, deck: h.start.map(mk), hp: mhp, maxHp: mhp, relics: [], reviveUsed: false, sc: sc };
       if (up.startRelic) { const r = RELICS.find((x) => x.id === up.startRelic); if (r) this.run.relics.push({ ...r }); }  // Khải Mộng Di Vật
       try { const s = this.$store.game.state.dangTien; s.runs = (s.runs || 0) + 1; } catch (e) {}
-      this.genMap(); this.mapTier = 0; this.buildMapView(); this.phase = 'map';
+      this.genMap(); this.mapTier = 0; this.buildMapView(); this.phase = 'map'; this._saveRun();
     },
-    quitRun() { this.bankRun(false); this.run = null; this.phase = 'lobby'; },
+    quitRun() { this.bankRun(false); this._clearRun(); this.run = null; this.phase = 'lobby'; },
+    // ----- Run-resume: chup run dang do vao state.dangTien.activeRun (rời view -> component huy -> khong mat run). CHI dung state.dangTien. -----
+    // JSON deep-copy (tu drop proxy + fn). event.opts co closure fn -> KHONG serialize duoc -> khoi phuc thi REGEN event moi.
+    _saveRun() {
+      try {
+        if (!this.run || this._winning) return;
+        if (this.phase === 'win' || this.phase === 'lose' || this.phase === 'lobby') return;
+        const snap = {
+          phase: this.phase, run: this.run, map: this.map, mapTier: this.mapTier, battleKind: this.battleKind,
+          enemies: this.enemies, targetIdx: this.targetIdx, player: this.player, maxKhi: this.maxKhi, khi: this.khi,
+          drawPile: this.drawPile, hand: this.hand, discard: this.discard, log: this.log,
+          runNgan: this.runNgan, rewardCards: this.rewardCards, rewardGold: this.rewardGold, shopItems: this.shopItems,
+          rerollLeft: this.rerollLeft, scSel: this.scSel, deepest: this.deepest,
+          _firstAtkUsed: this._firstAtkUsed, _bankGain: this._bankGain, _newUnlocks: this._newUnlocks, _newScUnlocked: this._newScUnlocked, v: 1,
+        };
+        const g = this.$store.game;
+        g.state.dangTien.activeRun = JSON.parse(JSON.stringify(snap));
+        Storage.save(g.state);
+      } catch (e) {}
+    },
+    _clearRun() { try { const g = this.$store.game; if (g.state.dangTien.activeRun) { g.state.dangTien.activeRun = null; Storage.save(g.state); } } catch (e) {} },
+    hasActiveRun() { try { const a = this.$store.game.state.dangTien.activeRun; return !!(a && a.run); } catch (e) { return false; } },
+    activeRunLabel() { try { const a = this.$store.game.state.dangTien.activeRun; if (!a || !a.run) return ''; const h = a.run.hero ? a.run.hero.name : 'Mộng khách'; return h + ' · Tầng ' + ((a.mapTier || 0) + 1); } catch (e) { return ''; } },
+    resumeRun() { try { const a = this.$store.game.state.dangTien.activeRun; if (a && a.run) this._restoreRun(a); } catch (e) {} },
+    _restoreRun(a) {
+      this.run = a.run; this.map = a.map || []; this.mapTier = a.mapTier || 0; this.battleKind = a.battleKind || null;
+      this.enemies = (a.enemies || []).map((e) => Object.assign({}, e, { floats: [], hit: false, burst: null, atkfx: null }));
+      this.targetIdx = a.targetIdx || 0; this.player = a.player || { block: 0, str: 0, dodge: false };
+      this.maxKhi = a.maxKhi || 3; this.khi = a.khi != null ? a.khi : this.maxKhi;
+      const clr = (arr) => (arr || []).map((c) => Object.assign({}, c, { _cast: null }));
+      this.drawPile = clr(a.drawPile); this.hand = clr(a.hand); this.discard = clr(a.discard); this.log = a.log || '';
+      this.runNgan = a.runNgan || 0; this.rewardCards = clr(a.rewardCards); this.rewardGold = a.rewardGold || 0; this.shopItems = a.shopItems || [];
+      this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, a.scSel || {});
+      this.deepest = Math.max(this.deepest || 0, a.deepest || 0);
+      this._firstAtkUsed = !!a._firstAtkUsed; this._bankGain = a._bankGain || 0; this._newUnlocks = a._newUnlocks || []; this._newScUnlocked = a._newScUnlocked || 0;
+      this.selUid = null; this._winning = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false;
+      this.buildMapView();
+      if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
+      else this.phase = a.phase || 'map';
+    },
     genMap() { this.map = TIER.map((ti) => ti.types ? ti.types.map((t) => ({ type: t })) : [{ type: 'battle' }, { type: 'battle' }]); },
     buildMapView() { this.mapView = this.map.map((row, r) => ({ nodes: row, state: r < this.mapTier ? 'done' : (r === this.mapTier ? 'pick' : 'locked') })).slice().reverse(); },
     pickNode(nd) {
       if (nd.type === 'battle' || nd.type === 'elite' || nd.type === 'boss') this.startBattle(nd.type);
       else if (nd.type === 'event') this.openEvent();
       else if (nd.type === 'shop') this.openShop();
-      else if (nd.type === 'rest') this.phase = 'rest';
+      else if (nd.type === 'rest') { this.phase = 'rest'; this._saveRun(); }
     },
     afterNode() {
       this.mapTier++; this.deepest = Math.max(this.deepest, this.mapTier);
@@ -237,9 +277,9 @@ export function dangTienMong() {
         this.bankRun(true);
         try { const s = this.$store.game.state.dangTien; const hid = this.run.hero.id; const cm = s.scMaxByHero[hid] || 0; if ((this.run.sc || 0) >= cm && cm < DTM_SC_MAX) { s.scMaxByHero[hid] = cm + 1; this.scSel[hid] = cm + 1; this._newScUnlocked = cm + 1; } } catch (e) {}
         this._checkUnlocks();
-        this.persist(); this.phase = 'win'; return;
+        this._clearRun(); this.persist(); this.phase = 'win'; return;
       }
-      this._checkUnlocks(); this.persist(); this.buildMapView(); this.phase = 'map';
+      this._checkUnlocks(); this.persist(); this.buildMapView(); this.phase = 'map'; this._saveRun();
     },
 
     hasRelic(id) { return this.run.relics.some((r) => r.id === id); },
@@ -256,6 +296,7 @@ export function dangTienMong() {
       this.phase = 'battle'; this.startTurnPassive();
       this.enemies.forEach((e) => { e.plan = this._planPick(e, -1); e.planNext = this._planFollow(e, e.plan); });   // AI: chọn chiêu mở màn + chiêu kế (telegraph)
       this.draw(this.handSize());
+      this._saveRun();
     },
     handSize() { return 5 + (this.hasRelic('linhPhu') ? 1 : 0); },
     startTurnPassive() { if (this.run.hero.id === 'thien') this.player.block += 3; this._firstAtkUsed = false; },
@@ -391,6 +432,7 @@ export function dangTienMong() {
       this.castCard(c, ev);
       if (c.draw) this.draw(c.draw);
       if (this.aliveCount() === 0) this._finishBattle();
+      this._saveRun();
     },
     endTurn() {
       if (this._winning) return;
@@ -408,10 +450,11 @@ export function dangTienMong() {
       if (toPlayer > 0) this.floatPlayer(toPlayer);
       if (this.run.hp <= 0) { this.onDeath(); return; }
       this.player.block = 0; this.khi = this.maxKhi; this.startTurnPassive(); this.draw(this.handSize());
+      this._saveRun();
     },
     onDeath() {
       if (this.hasRelic('menhHon') && !this.run.reviveUsed) { this.run.reviveUsed = true; this.run.hp = Math.round(this.run.maxHp * 0.3); this.log = 'Hộ Mệnh Hồn Phách — hồi sinh!'; this.player.block = 0; this.khi = this.maxKhi; this.draw(this.handSize()); return; }
-      this.bankRun(false); this.persist(); this.phase = 'lose';
+      this.bankRun(false); this._clearRun(); this.persist(); this.phase = 'lose';
     },
     // Hiệu ứng khi QUÁI ra đòn (DÙNG LẠI hiệu ứng nhân vật): atk -> đòn tấn công TRÊN CHÂN DUNG HERO · def -> Hộ Thuẫn · buff/charge -> Lực · heal -> Hồi (trên quái). Lệch nhịp theo thứ tự quái. CÁCH LY: chỉ đụng DOM.
     _enemyActFx(e, it, idx) {
@@ -450,7 +493,7 @@ export function dangTienMong() {
       if (this.battleKind === 'boss') { this.afterNode(); return; }
       if (this.battleKind === 'elite' && this.run.relics.length < RELICS.length) { const have = this.run.relics.map((r) => r.id); const r = rnd(RELICS.filter((x) => !have.includes(x.id))); if (r) { this.run.relics.push(r); this.log = 'Nhặt di vật: ' + r.name; } }
       this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3).map(mk);
-      this._setReroll(); this.phase = 'reward';
+      this._setReroll(); this.phase = 'reward'; this._saveRun();
     },
     pickReward(c) { this.run.deck.push(mk(c.id)); this.afterNode(); },
 
@@ -464,13 +507,13 @@ export function dangTienMong() {
       { title: 'Suối Linh Tuyền', text: 'Dòng suối trong mộng tỏa linh khí mát lành.',
         opts: [{ label: 'Tẩm mình (hồi 40% HP)', fn: () => { this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * 0.4)); this.afterNode(); } },
                 { label: 'Múc mang theo (+30 Mộng Ngân)', fn: () => { this.runNgan += 30; this.afterNode(); } }] },
-    ]); this.phase = 'event'; },
-    resolveEvent(o) { o.fn(); },
+    ]); this.phase = 'event'; this._saveRun(); },
+    resolveEvent(o) { o.fn(); this._saveRun(); },
 
     openShop() { const keys = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3);
-      this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; },
-    buyShop(i) { const s = this.shopItems[i]; if (s.sold || this.runNgan < s.price) return; this.runNgan -= s.price; this.run.deck.push(mk(s.card.id)); s.sold = true; },
-    buyHeal() { if (this.runNgan < 40 || this.run.hp >= this.run.maxHp) return; this.runNgan -= 40; this.run.hp = Math.min(this.run.maxHp, this.run.hp + 18); },
+      this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; this._saveRun(); },
+    buyShop(i) { const s = this.shopItems[i]; if (s.sold || this.runNgan < s.price) return; this.runNgan -= s.price; this.run.deck.push(mk(s.card.id)); s.sold = true; this._saveRun(); },
+    buyHeal() { if (this.runNgan < 40 || this.run.hp >= this.run.maxHp) return; this.runNgan -= 40; this.run.hp = Math.min(this.run.maxHp, this.run.hp + 18); this._saveRun(); },
     restHeal() { this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * this.restPct())); this.afterNode(); },
     restLearn() { const t = rnd(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))); this.run.deck.push(mk(t)); this.afterNode(); },
   };

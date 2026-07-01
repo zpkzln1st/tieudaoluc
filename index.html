@@ -7378,7 +7378,8 @@
                   <div class="fserif gold-text" style="font-size:40px;line-height:1;margin:6px 0 0;filter:drop-shadow(0 2px 14px #f5b94233)">Đăng Tiên Mộng</div>
                   <p class="text-slate-300 text-[13px]" style="max-width:480px;margin:9px 0 16px;line-height:1.5">Đấu bài trong mộng — đoạt lĩnh ngộ tiền nhân, leo tới Mộng Chủ.</p>
                   <div class="flex items-center gap-4 flex-wrap">
-                    <button @click="phase='hero'" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa">Nhập Mộng ⟶</button>
+                    <template x-if="hasActiveRun()"><button @click="resumeRun()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#34d399">Tiếp Tục Giấc Mộng · <span x-text="activeRunLabel()"></span> ⟶</button></template>
+                    <button @click="phase='hero'" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa" x-text="hasActiveRun()?'Nhập Mộng Mới':'Nhập Mộng ⟶'"></button>
                     <button @click="metaTab=true" class="px-5 py-2.5 rounded-xl border border-violet-400/60 text-violet-200 font-bold hover:bg-violet-500/10 transition">Lĩnh Ngộ Đường</button>
                     <span class="text-[11px] text-slate-500">Cách ly tuyệt đối · không phạt thân thật</span>
                   </div>
