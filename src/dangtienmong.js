@@ -28,6 +28,8 @@ export function ensureDangTien(state) {
   if (!d.scMaxByHero) d.scMaxByHero = { kiem: 0, thien: 0, doc: 0 };   // (Đợt 2) Sát Cảnh per-hero
   if (d._firstWin == null) d._firstWin = false; // thưởng-mốc Đăng Tiên lần đầu
   if (d._tierBanked == null) d._tierBanked = 0; // thưởng-mốc tầng sâu nhất
+  if (d.activeRun === undefined) d.activeRun = null;                  // (run-resume) snapshot run đang dở
+  if (!d.bridgeWeek) d.bridgeWeek = { weekId: null, nbClaimed: 0 };   // (assist) cap TUẦN đổi Mộng Ngân -> Nguyên Bảo (kênh 1 chiều duy nhất ra main)
   return d;
 }
 
@@ -108,13 +110,15 @@ export function dangTienMong() {
     { id: 'tinhThat', key: 'restBonus', kind: 'flag', name: 'Tịnh Thất Phù', han: '淨', desc: 'Tĩnh Thất hồi 35% (thay 30%).', costs: [1000], gate: null, gateText: '' },
   ];
   const DTM_SC_MAX = 6;   // Sát Cảnh bậc tối đa (MVP); mở rộng sau
+  const DTM_BRIDGE_RATE = 20;      // (assist) đổi bao nhiêu Mộng Ngân lấy 1 Nguyên Bảo — DRAFT
+  const DTM_BRIDGE_WEEKCAP = 60;   // (assist) trần Nguyên Bảo đổi được mỗi tuần — DRAFT
   let _uid = 0;
   const mk = (id) => ({ uid: ++_uid, _cast: null, id, ...POOL[id] });
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
   return {
-    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
+    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, _winning: false, selUid: null,
@@ -148,6 +152,24 @@ export function dangTienMong() {
     // ----- Lĩnh Ngộ Đường (đọc/ghi state.dangTien.up + .mongNgan; KHÔNG đụng main) -----
     _up() { try { return this.$store.game.state.dangTien.up || {}; } catch (e) { return {}; } },
     metaNgan() { try { return this.$store.game.state.dangTien.mongNgan || 0; } catch (e) { return 0; } },
+    // ----- Assist bridge: đổi Mộng Ngân (persistent) -> chút Nguyên Bảo (main), CAP theo TUẦN. KÊNH 1 CHIỀU DUY NHẤT chạm state.currencies (cố ý, cách ly còn lại giữ). -----
+    _weekId() { try { const d = new Date(); const dow = (d.getDay() + 6) % 7; const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dow); const p = (x) => String(x).padStart(2, '0'); return mon.getFullYear() + '-' + p(mon.getMonth() + 1) + '-' + p(mon.getDate()); } catch (e) { return '0'; } },
+    _bridge() { const s = this.$store.game.state.dangTien; if (!s.bridgeWeek) s.bridgeWeek = { weekId: null, nbClaimed: 0 }; const wk = this._weekId(); if (s.bridgeWeek.weekId !== wk) { s.bridgeWeek.weekId = wk; s.bridgeWeek.nbClaimed = 0; } return s.bridgeWeek; },
+    bridgeRate() { return DTM_BRIDGE_RATE; }, bridgeCap() { return DTM_BRIDGE_WEEKCAP; },
+    bridgeClaimed() { return this._bridge().nbClaimed; },
+    bridgeRemaining() { return Math.max(0, DTM_BRIDGE_WEEKCAP - this._bridge().nbClaimed); },
+    bridgeMaxNow() { return Math.min(this.bridgeRemaining(), Math.floor(this.metaNgan() / DTM_BRIDGE_RATE)); },
+    exchangeNgan(n) {
+      try {
+        const g = this.$store.game; const s = g.state.dangTien; const b = this._bridge();
+        const take = Math.min(Math.floor(n) || 0, this.bridgeRemaining(), Math.floor((s.mongNgan || 0) / DTM_BRIDGE_RATE));
+        if (take <= 0) return;
+        s.mongNgan -= take * DTM_BRIDGE_RATE;
+        g.state.currencies.nguyenBao = (g.state.currencies.nguyenBao || 0) + take;   // *** cầu nối duy nhất ra main (cap tuần) ***
+        b.nbClaimed += take;
+        Storage.save(g.state);
+      } catch (e) {}
+    },
     upLevel(u) { const up = this._up(); return u.kind === 'level' ? (up[u.key] || 0) : (up[u.key] ? 1 : 0); },
     upMax(u) { return u.kind === 'level' ? u.costs.length : 1; },
     upMaxed(u) { return this.upLevel(u) >= this.upMax(u); },

@@ -7381,6 +7381,7 @@
                     <template x-if="hasActiveRun()"><button @click="resumeRun()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#34d399">Tiếp Tục Giấc Mộng · <span x-text="activeRunLabel()"></span> ⟶</button></template>
                     <button @click="phase='hero'" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa" x-text="hasActiveRun()?'Nhập Mộng Mới':'Nhập Mộng ⟶'"></button>
                     <button @click="metaTab=true" class="px-5 py-2.5 rounded-xl border border-violet-400/60 text-violet-200 font-bold hover:bg-violet-500/10 transition">Lĩnh Ngộ Đường</button>
+                    <button @click="bridgeTab=true" class="px-5 py-2.5 rounded-xl border border-amber-400/60 text-amber-200 font-bold hover:bg-amber-500/10 transition">Đổi Nguyên Bảo</button>
                     <span class="text-[11px] text-slate-500">Cách ly tuyệt đối · không phạt thân thật</span>
                   </div>
                 </div>
@@ -7795,6 +7796,30 @@
                     </div>
                   </template>
                 </div>
+              </div>
+            </div>
+          </template>
+
+          <template x-if="bridgeTab">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="bridgeTab=false">
+              <div class="panel rounded-2xl border border-amber-500/40 w-[520px] max-w-full max-h-[88vh] overflow-y-auto p-5">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="fserif text-xl gold-text">Đổi Lấy Nguyên Bảo</div>
+                  <button @click="bridgeTab=false" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                </div>
+                <div class="text-[11px] text-amber-200/70 italic mb-4">Mộng Ngân tụ trong mộng ngưng thành chút Nguyên Bảo mang về thân thật — mỗi tuần thiên cơ chỉ cho đọng ngần ấy.</div>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                  <div class="panel rounded-xl p-3 text-center"><div class="text-[10px] uppercase tracking-wider text-slate-500">Mộng Ngân</div><div class="fserif text-2xl gold-text" x-text="metaNgan()"></div></div>
+                  <div class="panel rounded-xl p-3 text-center"><div class="text-[10px] uppercase tracking-wider text-slate-500">Nguyên Bảo</div><div class="fserif text-2xl text-amber-300 flex items-center justify-center gap-1"><img src="images/currency/nguyenBao.webp" class="w-5 h-5 object-contain" alt="" onerror="this.style.display='none'"><span x-text="$store.game.state.currencies.nguyenBao||0"></span></div></div>
+                </div>
+                <div class="text-[12px] text-slate-300 mb-1">Tỷ giá: <b class="text-gold" x-text="bridgeRate()"></b> Mộng Ngân <span class="text-slate-500">đổi</span> <b class="text-amber-300">1</b> Nguyên Bảo</div>
+                <div class="text-[12px] text-slate-400 mb-3">Tuần này đã đổi <b class="text-amber-300" x-text="bridgeClaimed()"></b> / <b x-text="bridgeCap()"></b> Nguyên Bảo · còn lại <b class="text-jade" x-text="bridgeRemaining()"></b></div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <button @click="exchangeNgan(1)" :disabled="bridgeMaxNow()<1" class="px-4 py-2 rounded-lg border border-amber-400/50 text-amber-200 font-bold hover:bg-amber-500/10 transition disabled:opacity-40 disabled:cursor-not-allowed">Đổi 1</button>
+                  <button @click="exchangeNgan(10)" :disabled="bridgeMaxNow()<1" class="px-4 py-2 rounded-lg border border-amber-400/50 text-amber-200 font-bold hover:bg-amber-500/10 transition disabled:opacity-40 disabled:cursor-not-allowed">Đổi 10</button>
+                  <button @click="exchangeNgan(bridgeMaxNow())" :disabled="bridgeMaxNow()<1" class="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 text-white font-bold hover:brightness-110 transition disabled:opacity-40 disabled:cursor-not-allowed">Đổi Tối Đa · <span x-text="bridgeMaxNow()"></span></button>
+                </div>
+                <div x-show="bridgeMaxNow()<1" class="text-[11px] text-slate-500 mt-2" x-text="bridgeRemaining()<1 ? 'Đã đạt giới hạn tuần này — tuần sau lại đổi được.' : ('Chưa đủ Mộng Ngân để đổi (cần ít nhất '+bridgeRate()+').')"></div>
               </div>
             </div>
           </template>
