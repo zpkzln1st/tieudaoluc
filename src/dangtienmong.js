@@ -251,10 +251,14 @@ export function dangTienMong() {
       try {
         if (!this.run || this._winning) return;
         if (this.phase === 'win' || this.phase === 'lose' || this.phase === 'lobby') return;
+        // Thẻ đang diễn hoạt cảnh (_cast) = ĐÃ tiêu (trừ Khí + áp hiệu ứng) chỉ CHƯA rời tay (splice qua setTimeout).
+        // Snapshot phải phản ánh trạng thái ĐÃ CHỐT: coi thẻ _cast như đã vào chồng Bỏ -> tránh resume hồi sinh thẻ đã đánh = nhân đôi thẻ.
+        const handSnap = this.hand.filter((c) => !c._cast);
+        const discardSnap = this.discard.concat(this.hand.filter((c) => c._cast));
         const snap = {
           phase: this.phase, run: this.run, map: this.map, mapTier: this.mapTier, battleKind: this.battleKind,
           enemies: this.enemies, targetIdx: this.targetIdx, player: this.player, maxKhi: this.maxKhi, khi: this.khi,
-          drawPile: this.drawPile, hand: this.hand, discard: this.discard, log: this.log,
+          drawPile: this.drawPile, hand: handSnap, discard: discardSnap, log: this.log,
           runNgan: this.runNgan, rewardCards: this.rewardCards, rewardGold: this.rewardGold, shopItems: this.shopItems,
           rerollLeft: this.rerollLeft, scSel: this.scSel, deepest: this.deepest,
           _firstAtkUsed: this._firstAtkUsed, _bankGain: this._bankGain, _newUnlocks: this._newUnlocks, _newScUnlocked: this._newScUnlocked, v: 1,
@@ -475,7 +479,7 @@ export function dangTienMong() {
       this._saveRun();
     },
     onDeath() {
-      if (this.hasRelic('menhHon') && !this.run.reviveUsed) { this.run.reviveUsed = true; this.run.hp = Math.round(this.run.maxHp * 0.3); this.log = 'Hộ Mệnh Hồn Phách — hồi sinh!'; this.player.block = 0; this.khi = this.maxKhi; this.draw(this.handSize()); return; }
+      if (this.hasRelic('menhHon') && !this.run.reviveUsed) { this.run.reviveUsed = true; this.run.hp = Math.round(this.run.maxHp * 0.3); this.log = 'Hộ Mệnh Hồn Phách — hồi sinh!'; this.player.block = 0; this.khi = this.maxKhi; this.draw(this.handSize()); this._saveRun(); return; }   // LƯU state sau hồi sinh (reviveUsed + hp + tay bài mới) — nếu không, resume rewind + tái vũ trang relic 1 lần
       this.bankRun(false); this._clearRun(); this.persist(); this.phase = 'lose';
     },
     // Hiệu ứng khi QUÁI ra đòn (DÙNG LẠI hiệu ứng nhân vật): atk -> đòn tấn công TRÊN CHÂN DUNG HERO · def -> Hộ Thuẫn · buff/charge -> Lực · heal -> Hồi (trên quái). Lệch nhịp theo thứ tự quái. CÁCH LY: chỉ đụng DOM.
