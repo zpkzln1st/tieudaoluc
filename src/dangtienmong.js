@@ -247,18 +247,40 @@ export function dangTienMong() {
     tgtIdx() { if (this.enemies[this.targetIdx] && this.enemies[this.targetIdx].hp > 0) return this.targetIdx; const i = this.enemies.findIndex((e) => e.hp > 0); return i < 0 ? 0 : i; },
     startBattle(kind) {
       const enc = rnd(ENC[kind] || ENC.battle); const scl = 1 + this.mapTier * 0.1 + (this.run.sc || 0) * 0.08;   // +8% HP quái mỗi bậc Sát Cảnh
-      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, ii: 0, floats: [], hit: false, burst: null, atkfx: null }; });
+      this.enemies = enc.map((id) => { const t = ENEMIES[id]; return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
       this.targetIdx = 0; this.battleKind = kind;
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
       this.player = { block: 0, str: 0, dodge: false }; this.log = ''; this.playerFloats = [];
       if (this.hasRelic('thietGiap')) this.player.block += 6;
       this.khi = this.maxKhi + (this.hasRelic('ngocBoi') ? 2 : 0);
       this.phase = 'battle'; this.startTurnPassive();
+      this.enemies.forEach((e) => { e.plan = this._planPick(e, -1); e.planNext = this._planFollow(e, e.plan); });   // AI: chọn chiêu mở màn + chiêu kế (telegraph)
       this.draw(this.handSize());
     },
     handSize() { return 5 + (this.hasRelic('linhPhu') ? 1 : 0); },
     startTurnPassive() { if (this.run.hero.id === 'thien') this.player.block += 3; this._firstAtkUsed = false; },
-    curIntent(e) { return e.intents[e.ii % e.intents.length]; },
+    curIntent(e) { return e.intents[e.plan] || e.intents[0]; },
+    // ----- AI bộ bài quái: chọn chiêu KẾ theo tình huống, KHÔNG còn chuỗi cố định. Giữ telegraph: chiêu đang hiện = chiêu SẼ ra cuối lượt (planNext = chiêu lượt sau, cho Lưỡng Nghi Kính). Mọi trọng số = DRAFT. -----
+    _wpick(w) { let s = 0; for (const x of w) s += x; if (s <= 0) return 0; let r = Math.random() * s; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return w.length - 1; },
+    _planPick(e, avoidIdx) {
+      const ints = e.intents; if (!ints || !ints.length) return 0;
+      const hpR = e.maxHp ? e.hp / e.maxHp : 1; const pblk = (this.player && this.player.block) || 0;
+      const w = ints.map((m, i) => { let x;
+        if (m.t === 'atk') { x = 1.0; if ((m.hits || 1) > 1 && pblk >= 4) x *= 1.6; if (m.big) x *= 1.15; }          // đối thủ thủ dày -> ưu tiên đa hiệp / đòn nặng
+        else if (m.t === 'def') { x = 0.55; if (hpR < 0.5) x *= 1.5; }
+        else if (m.t === 'buff') { x = 0.5; if ((e.str || 0) >= 4) x *= 0.4; if (hpR > 0.6) x *= 1.2; }              // đã đủ Lực thì thôi tăng
+        else if (m.t === 'heal') { x = 0.35; if (hpR < 0.4) x *= 4; else if (hpR > 0.8) x *= 0.1; }                 // máu thấp -> ưu tiên hồi
+        else if (m.t === 'charge') { x = 0.7; if (hpR < 0.35) x *= 0.4; }                                          // sắp gục thì bớt vận công đòn lớn
+        else x = 0.5;
+        if (i === avoidIdx) x *= 0.15;   // hạn chế lặp lại chiêu vừa ra
+        return Math.max(0.02, x); });
+      return this._wpick(w);
+    },
+    _planFollow(e, curIdx) {
+      const m = e.intents[curIdx];
+      if (m && m.t === 'charge') { const bi = e.intents.findIndex((x) => x.t === 'atk' && x.big); if (bi >= 0) return bi; }   // Vận Công -> BẮT BUỘC đòn mạnh kế (telegraph trung thực)
+      return this._planPick(e, curIdx);
+    },
     intentText(e) { const it = this.curIntent(e); if (!it) return ''; const s = e.str || 0;
       if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
       if (it.t === 'def') return 'Vận Hộ Thể ' + it.v; if (it.t === 'buff') return 'Tăng Lực +' + it.v;
@@ -266,13 +288,13 @@ export function dangTienMong() {
     intentStyle(e) { const it = e.hp > 0 && this.curIntent(e); const c = !it ? '#64748b' : (it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))));
       return 'color:' + c + ';border:1px solid ' + c + '55;background:' + c + '14'; },
     // ----- Telegraph CHIP: ý đồ quái = lá bài kế trong bộ bài riêng (chip mini art + tên chiêu + tác dụng) -----
-    intentMove(e) { try { const arr = MOVES[e.id]; return (arr && arr.length) ? arr[e.ii % arr.length] : null; } catch (_) { return null; } },
+    intentMove(e) { try { const arr = MOVES[e.id]; return (arr && arr.length) ? (arr[e.plan] || arr[0]) : null; } catch (_) { return null; } },
     intentCardArt(e) { const m = this.intentMove(e); return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     intentCardName(e) { const m = this.intentMove(e); return m ? m.nm : (this.intentText(e) || 'Ý đồ'); },
     intentCardHan(e) { const m = this.intentMove(e); return m ? m.han : (e.han || '?'); },
     intentColor(e) { const it = this.curIntent(e); if (!it) return '#64748b'; return it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))); },
     peekOn() { return !!this._up().peek; },   // Lưỡng Nghi Kính
-    peekText(e) { const it = e.intents[(e.ii + 1) % e.intents.length]; if (!it) return ''; const s = e.str || 0;
+    peekText(e) { const it = e.intents[e.planNext] || e.intents[0]; if (!it) return ''; const s = e.str || 0;
       if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
       if (it.t === 'def') return 'Hộ ' + it.v; if (it.t === 'buff') return 'Lực +' + it.v; if (it.t === 'charge') return 'Vận Công…'; if (it.t === 'heal') return 'Liệu +' + it.v; return ''; },
     restPct() { return 0.30 + (this._up().restBonus ? 0.05 : 0) - ((this.run && (this.run.sc || 0) >= 5) ? 0.05 : 0); },   // Tịnh Thất Phù; SC5 −5%
@@ -382,7 +404,7 @@ export function dangTienMong() {
         this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
         if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += this.absorbPlayer(per); } }
         else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
-      } e.ii++; e.weak = Math.max(0, (e.weak || 0) - 1); }
+      } e.plan = (e.planNext != null) ? e.planNext : this._planPick(e, e.plan); e.planNext = this._planFollow(e, e.plan); e.weak = Math.max(0, (e.weak || 0) - 1); }
       if (toPlayer > 0) this.floatPlayer(toPlayer);
       if (this.run.hp <= 0) { this.onDeath(); return; }
       this.player.block = 0; this.khi = this.maxKhi; this.startTurnPassive(); this.draw(this.handSize());
