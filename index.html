@@ -5938,11 +5938,11 @@
         .dtm-root .node.locked{ opacity:.34; } .dtm-root .node.done{ opacity:.5; }
         /* Kiểu 1: Thang Mộng (leo dọc) + boss V2 banner áp đỉnh */
         .dtm-root .dtm-ladder{ display:flex; flex-direction:column; align-items:center; }
-        .dtm-root .dtm-bossban{ position:relative; width:100%; max-width:430px; height:112px; border-radius:14px; overflow:hidden; margin-bottom:2px; box-shadow:0 0 30px -10px #fb7185, inset 0 0 0 1px #fb718555; }
-        .dtm-root .dtm-bossban img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 26%; }
-        .dtm-root .dtm-bossban .scrim{ position:absolute; inset:0; background:radial-gradient(120% 150% at 50% -10%, transparent 32%, rgba(7,11,20,.6) 100%), linear-gradient(90deg, rgba(7,11,20,.9), rgba(7,11,20,.2) 42%, rgba(7,11,20,.2) 58%, rgba(7,11,20,.9)), linear-gradient(180deg, transparent 42%, rgba(7,11,20,.92)); }
-        .dtm-root .dtm-bossban .ctr{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:2; }
-        .dtm-root .dtm-bossban .big{ font-family:'Lora',serif; font-size:23px; color:#fff; text-shadow:0 0 16px #fb7185aa,0 2px 6px #000; letter-spacing:.05em; }
+        .dtm-root .dtm-bossban{ position:relative; width:100%; max-width:430px; height:184px; border-radius:14px; overflow:hidden; margin-bottom:2px; box-shadow:0 0 30px -10px #fb7185, inset 0 0 0 1px #fb718555; }
+        .dtm-root .dtm-bossban img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 28%; }
+        .dtm-root .dtm-bossban .scrim{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(7,11,20,.15) 0%, rgba(7,11,20,.05) 45%, rgba(7,11,20,.55) 78%, rgba(7,11,20,.92) 100%); }
+        .dtm-root .dtm-bossban .ctr{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:14px; z-index:2; }
+        .dtm-root .dtm-bossban .big{ font-family:'Lora',serif; font-size:30px; color:#fff; text-shadow:0 0 16px #fb7185aa,0 2px 6px #000; letter-spacing:.05em; }
         .dtm-root .dtm-bossban .sub{ font-size:10px; color:#fda4af; margin-top:3px; letter-spacing:.13em; }
         .dtm-root .dtm-bossban.pick{ cursor:pointer; box-shadow:0 0 36px -6px #fb7185, inset 0 0 0 1px #fb7185; }
         .dtm-root .dtm-bossban.locked{ filter:grayscale(.45) brightness(.62); }
@@ -5962,9 +5962,13 @@
         .dtm-root .dtm-trung{ position:relative; width:100%; padding:2px 0 10px; }
         .dtm-root .dtm-trung-bg{ position:absolute; inset:0; z-index:0; background-size:cover; background-position:center; -webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent); mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent); }
         .dtm-root .dtm-trung-veil{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg,#070b14,#070b1488 22%,#070b1444 50%,#070b1488 78%,#070b14); }
-        .dtm-root .dtm-trung-head{ position:relative; z-index:2; text-align:center; padding:12px 0 4px; }
-        .dtm-root .dtm-trung-head .than{ font-size:38px; line-height:1; opacity:.92; text-shadow:0 2px 10px rgba(0,0,0,.6); }
-        .dtm-root .dtm-trung-head .tname{ font-family:'Lora',serif; font-size:13.5px; font-weight:700; color:#cbd5e1; margin-top:1px; letter-spacing:.03em; text-shadow:0 1px 4px rgba(0,0,0,.8); }
+        .dtm-root .dtm-trung-head{ position:relative; z-index:2; text-align:center; padding:12px 0 6px; }
+        .dtm-root .dtm-trung-emb{ display:inline-flex; align-items:center; gap:11px; padding:8px 18px; border-radius:12px; background:linear-gradient(90deg, color-mix(in srgb,var(--tc) 13%,#0a0f1b), #0a0f1b); box-shadow:inset 0 0 0 1px var(--tc), 0 0 20px -9px var(--tc); }
+        .dtm-root .dtm-trung-emb .ch{ font-size:30px; line-height:1; text-shadow:0 2px 8px rgba(0,0,0,.6); }
+        .dtm-root .dtm-trung-emb .bar{ width:1px; height:32px; }
+        .dtm-root .dtm-trung-emb .nm{ text-align:left; line-height:1.16; }
+        .dtm-root .dtm-trung-emb .nm b{ display:block; font-size:14px; color:#e2e8f0; font-weight:700; }
+        .dtm-root .dtm-trung-emb .nm span{ display:block; font-size:10.5px; color:#94a3b8; }
         .dtm-root .relic{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:17px; border:1px solid #f5b94255; color:#f5b942; background:#f5b94212; cursor:default; }
         .dtm-root .shake{ animation:dtmShk .26s; } @keyframes dtmShk{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 85%{transform:translateX(-3px)} }
         .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
@@ -7566,7 +7570,7 @@
                     <div class="dtm-trung">
                       <div class="dtm-trung-bg" :style="'background-image:linear-gradient(180deg,'+band.meta.tint+'aa,'+band.meta.tint+'66), url('+trungBgUrl(band.meta.bg)+')'"></div>
                       <div class="dtm-trung-veil"></div>
-                      <div class="dtm-trung-head"><div class="than fserif" :style="'color:'+band.meta.hanC" x-text="band.meta.han"></div><div class="tname" x-text="band.meta.name"></div></div>
+                      <div class="dtm-trung-head"><div class="dtm-trung-emb" :style="'--tc:'+band.meta.hanC"><span class="ch fserif" :style="'color:'+band.meta.hanC" x-text="band.meta.han"></span><span class="bar" :style="'background:'+band.meta.hanC+'99'"></span><span class="nm"><b class="fserif" x-text="band.meta.name.split(' · ')[0]"></b><span class="fserif" x-text="band.meta.name.split(' · ')[1]"></span></span></div></div>
                       <template x-for="item in band.rows" :key="item.ri">
                         <div class="w-full flex flex-col items-center relative" style="z-index:2">
                           <!-- Mộng Chủ (tầng đỉnh) -->
