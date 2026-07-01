@@ -71,20 +71,60 @@ export function dangTienMong() {
     { id: 'menhHon', name: 'Hộ Mệnh Hồn Phách', han: '魂', desc: 'Gục lần đầu → hồi sinh 30% HP.' },
   ];
   const ENEMIES = {
+    // --- Lâu la (fodder) ---
     cuongDao: { name: 'Lục Lâm Cường Đạo', han: '盜', he: 'moc', hp: 26, intents: [{ t: 'atk', v: 8 }, { t: 'def', v: 6 }, { t: 'atk', v: 10 }] },
     satThu: { name: 'Hắc Phong Sát Thủ', han: '殺', he: 'kim', hp: 30, intents: [{ t: 'atk', v: 5, hits: 2 }, { t: 'buff', v: 3 }, { t: 'atk', v: 9 }] },
     langYeu: { name: 'Mộng Lang Yêu', han: '狼', he: 'thuy', hp: 28, intents: [{ t: 'atk', v: 7 }, { t: 'atk', v: 7 }, { t: 'def', v: 8 }] },
+    taoKhau: { name: 'Thảo Khấu', han: '草', he: 'moc', hp: 22, intents: [{ t: 'atk', v: 6 }, { t: 'def', v: 5 }, { t: 'atk', v: 9 }] },
+    daLang: { name: 'Dã Lang', han: '豺', he: 'thuy', hp: 24, intents: [{ t: 'atk', v: 7 }, { t: 'def', v: 4 }, { t: 'atk', v: 6, hits: 2 }] },
+    cungThu: { name: 'Lục Lâm Cung Thủ', han: '弓', he: 'kim', hp: 20, intents: [{ t: 'atk', v: 4, hits: 2 }, { t: 'atk', v: 8 }, { t: 'buff', v: 2 }] },
+    tanKiem: { name: 'Tán Tu Kiếm Đồ', han: '劍', he: 'tho', hp: 28, intents: [{ t: 'atk', v: 8 }, { t: 'def', v: 6 }, { t: 'atk', v: 11 }] },
+    doCo: { name: 'Ngũ Độc Giáo Đồ', han: '蠱', he: 'moc', hp: 26, intents: [{ t: 'atk', v: 5 }, { t: 'atk', v: 4, hits: 2 }, { t: 'def', v: 5 }] },
+    luyenKhi: { name: 'Luyện Khí Tán Nhân', han: '焰', he: 'hoa', hp: 30, intents: [{ t: 'atk', v: 9 }, { t: 'buff', v: 3 }, { t: 'atk', v: 7 }] },
+    // --- Tinh Anh (elite) ---
     hoaSonKiem: { name: 'Hoa Sơn Kiếm Sĩ', han: '華', he: 'thuy', hp: 46, elite: true, intents: [{ t: 'atk', v: 9 }, { t: 'buff', v: 2 }, { t: 'atk', v: 6, hits: 2 }, { t: 'def', v: 10 }] },
     duongMon: { name: 'Đường Môn Ám Sứ', han: '暗', he: 'moc', hp: 42, elite: true, intents: [{ t: 'atk', v: 6 }, { t: 'atk', v: 4, hits: 2 }, { t: 'heal', v: 8 }, { t: 'atk', v: 11 }] },
-    maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 72, boss: true, intents: [{ t: 'atk', v: 11 }, { t: 'charge' }, { t: 'atk', v: 22, big: true }, { t: 'def', v: 12 }, { t: 'heal', v: 10 }] },
+    caiBang: { name: 'Cái Bang Trưởng Lão', han: '丐', he: 'hoa', hp: 48, elite: true, intents: [{ t: 'atk', v: 10 }, { t: 'def', v: 8 }, { t: 'atk', v: 7, hits: 2 }, { t: 'buff', v: 3 }] },
+    ngaMiSu: { name: 'Nga Mi Sư Thái', han: '峨', he: 'thuy', hp: 46, elite: true, intents: [{ t: 'atk', v: 9 }, { t: 'heal', v: 10 }, { t: 'atk', v: 8 }, { t: 'def', v: 7 }] },
+    thieuLam: { name: 'Thiếu Lâm Võ Tăng', han: '禪', he: 'kim', hp: 54, elite: true, intents: [{ t: 'atk', v: 8 }, { t: 'def', v: 12 }, { t: 'atk', v: 12 }, { t: 'buff', v: 2 }] },
+    // --- Ác Thủ (mini-boss) ---
+    voDang: { name: 'Võ Đang Chân Nhân', han: '太', he: 'tho', hp: 66, elite: true, intents: [{ t: 'atk', v: 11 }, { t: 'def', v: 10 }, { t: 'charge' }, { t: 'atk', v: 20, big: true }, { t: 'heal', v: 8 }] },
+    thienSon: { name: 'Thiên Sơn Lão Quái', han: '雪', he: 'tho', hp: 72, elite: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 22, big: true }, { t: 'def', v: 10 }, { t: 'atk', v: 8, hits: 2 }] },
+    nhatNguyet: { name: 'Nhật Nguyệt Giáo Chủ', han: '日', he: 'hoa', hp: 70, elite: true, intents: [{ t: 'atk', v: 13 }, { t: 'buff', v: 4 }, { t: 'atk', v: 9, hits: 2 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }] },
+    bongLai: { name: 'Bồng Lai Tán Tiên', han: '蓬', he: 'kim', hp: 68, elite: true, intents: [{ t: 'atk', v: 11 }, { t: 'heal', v: 12 }, { t: 'def', v: 14 }, { t: 'atk', v: 15 }, { t: 'buff', v: 3 }] },
+    // --- Mộng Chủ (boss) ---
+    maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 84, boss: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }, { t: 'def', v: 14 }, { t: 'heal', v: 12 }] },
   };
   // ENC: mỗi ENCOUNTER = mảng ĐỢT (wave); mỗi đợt = mảng id quái. Diệt sạch đợt -> đợt kế tràn vào. (Full 20 tầng ở TIER/ENC mở rộng.)
   const ENC = {
-    battle: [[['cuongDao']], [['langYeu']], [['satThu']], [['cuongDao', 'langYeu']], [['cuongDao', 'cuongDao']], [['satThu', 'langYeu']]],
-    elite: [[['hoaSonKiem']], [['duongMon']], [['satThu', 'satThu']], [['cuongDao', 'cuongDao'], ['hoaSonKiem']]],
-    boss: [[['maGiao']]],
+    battle: [
+      [['cuongDao']], [['langYeu']], [['satThu']], [['taoKhau']], [['daLang']], [['cungThu']],
+      [['cuongDao', 'langYeu']], [['taoKhau', 'taoKhau']], [['satThu', 'cungThu']], [['daLang', 'langYeu']],
+      [['tanKiem']], [['doCo']], [['luyenKhi']], [['tanKiem', 'cungThu']], [['luyenKhi', 'doCo']], [['cuongDao', 'cuongDao']],
+    ],
+    swarm: [   // Vây Khốn: 2-3 ĐỢT, đợt cuối thường có Tinh Anh
+      [['cuongDao', 'cuongDao'], ['satThu', 'langYeu']],
+      [['taoKhau', 'taoKhau', 'taoKhau'], ['cungThu', 'cungThu'], ['hoaSonKiem']],
+      [['langYeu', 'langYeu'], ['daLang', 'satThu'], ['duongMon']],
+      [['doCo', 'doCo'], ['tanKiem', 'luyenKhi'], ['caiBang']],
+      [['cungThu', 'cungThu', 'cungThu'], ['satThu', 'satThu'], ['thieuLam']],
+      [['taoKhau', 'daLang'], ['cuongDao', 'cuongDao']],
+    ],
+    elite: [
+      [['hoaSonKiem']], [['duongMon']], [['caiBang']], [['ngaMiSu']], [['thieuLam']],
+      [['satThu', 'satThu'], ['hoaSonKiem']], [['taoKhau', 'taoKhau'], ['duongMon']], [['cungThu', 'cungThu'], ['caiBang']],
+    ],
+    miniboss: [   // Ác Thủ: mini-boss (một số có đợt lâu la mở màn / kết boss)
+      [['voDang']], [['thienSon']], [['nhatNguyet']], [['bongLai']],
+      [['taoKhau', 'taoKhau'], ['voDang']], [['satThu', 'langYeu'], ['thienSon']],
+      [['doCo', 'doCo'], ['caiBang'], ['nhatNguyet']],
+    ],
+    boss: [   // Mộng Chủ: chung kết đa đợt
+      [['thieuLam', 'ngaMiSu'], ['maGiao']],
+      [['cungThu', 'cungThu'], ['nhatNguyet'], ['maGiao']],
+    ],
   };
-  const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao' };   // elite/boss mượn chân dung chưởng môn
+  const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao', caiBang: 'port_master_cai_bang', ngaMiSu: 'port_master_nga_mi', thieuLam: 'port_master_thieu_lam', voDang: 'port_master_vo_dang', thienSon: 'port_master_thien_son', nhatNguyet: 'port_master_nhat_nguyet', bongLai: 'port_master_bong_lai', taoKhau: 'cuongDao', daLang: 'langYeu', cungThu: 'satThu' };   // elite/mini-boss mượn chân dung chưởng môn; lâu la mới mượn 3 art cơ bản; tanKiem/doCo/luyenKhi -> Hán (art sau)
   // BỘ BÀI QUÁI (repertoire): mỗi quái có chuỗi chiêu RIÊNG (song song intents), telegraph = chip lá kế. {nm,han,art} — art mượn book_* (chỉ chip mini), hiệu lực vẫn theo intent.
   const MOVES = {
     cuongDao: [ { nm: 'Loạn Đao Trảm', han: '刀', art: 'book_dat_ma_truong' }, { nm: 'Thiết Bài Hộ', han: '盾', art: 'book_thai_cuc_quyen' }, { nm: 'Đoạt Mệnh Kích', han: '奪', art: 'book_la_han_quyen' } ],
@@ -93,13 +133,42 @@ export function dangTienMong() {
     hoaSonKiem: [ { nm: 'Hoa Sơn Nhất Kiếm', han: '華', art: 'book_hoa_son_kiem' }, { nm: 'Ngưng Kiếm Ý', han: '意', art: 'book_dich_can_kinh' }, { nm: 'Mai Hoa Song Kiếm', han: '梅', art: 'book_tich_ta_kiem' }, { nm: 'Kiếm Phong Hộ Thân', han: '守', art: 'book_thai_cuc_quyen' } ],
     duongMon: [ { nm: 'Mãn Thiên Ám Khí', han: '暗', art: 'book_duong_mon_am_khi' }, { nm: 'Liên Châu Đoản Tiễn', han: '箭', art: 'book_duong_mon_am_khi' }, { nm: 'Liệu Thương Đan', han: '藥', art: 'book_nga_mi_cuu_duong' }, { nm: 'Thấu Cốt Châm', han: '釘', art: 'book_tich_ta_kiem' } ],
     maGiao: [ { nm: 'Huyết Ma Trảo', han: '魔', art: 'book_hap_tinh_dai_phap' }, { nm: 'Tụ Ma Khí', han: '蓄', art: 'book_cuu_am' }, { nm: 'Thiên Ma Hủy Diệt', han: '殛', art: 'book_hap_tinh_dai_phap' }, { nm: 'Ma Khí Hộ Thể', han: '罡', art: 'book_thai_cuc_quyen' }, { nm: 'Hấp Tinh Hoàn Nguyên', han: '吸', art: 'book_hap_tinh_dai_phap' } ],
+    taoKhau: [ { nm: 'Cường Đao', han: '刀', art: 'book_dat_ma_truong' }, { nm: 'Thô Bài Đáng', han: '盾', art: 'book_thai_cuc_quyen' }, { nm: 'Bổ Sát', han: '劈', art: 'book_la_han_quyen' } ],
+    daLang: [ { nm: 'Dã Trảo', han: '爪', art: 'book_hoa_son_kiem' }, { nm: 'Cúp Mình', han: '伏', art: 'book_thai_cuc_quyen' }, { nm: 'Liên Giảo', han: '噬', art: 'book_la_han_quyen' } ],
+    cungThu: [ { nm: 'Liên Tiễn', han: '箭', art: 'book_duong_mon_am_khi' }, { nm: 'Xuyên Vân Tiễn', han: '弓', art: 'book_duong_mon_am_khi' }, { nm: 'Ngưng Thần', han: '神', art: 'book_dich_can_kinh' } ],
+    tanKiem: [ { nm: 'Tán Kiếm Trảm', han: '劍', art: 'book_hoa_son_kiem' }, { nm: 'Thủ Thế', han: '守', art: 'book_thai_cuc_quyen' }, { nm: 'Đoạt Mệnh Kiếm', han: '奪', art: 'book_tich_ta_kiem' } ],
+    doCo: [ { nm: 'Cổ Độc Thích', han: '蠱', art: 'book_duong_mon_am_khi' }, { nm: 'Song Độc Châm', han: '針', art: 'book_duong_mon_am_khi' }, { nm: 'Độc Vụ Chướng', han: '障', art: 'book_thai_cuc_quyen' } ],
+    luyenKhi: [ { nm: 'Hỏa Chưởng', han: '焰', art: 'book_cuu_duong' }, { nm: 'Vận Hỏa Khí', han: '蓄', art: 'book_dich_can_kinh' }, { nm: 'Liệt Diễm Chưởng', han: '烈', art: 'book_cuu_duong' } ],
+    caiBang: [ { nm: 'Đả Cẩu Bổng', han: '棒', art: 'book_dat_ma_truong' }, { nm: 'Túy Bộ Hộ', han: '醉', art: 'book_thai_cuc_quyen' }, { nm: 'Liên Hoàn Bổng', han: '連', art: 'book_la_han_quyen' }, { nm: 'Vận Kình', han: '蓄', art: 'book_dich_can_kinh' } ],
+    ngaMiSu: [ { nm: 'Nga Mi Thích', han: '峨', art: 'book_hoa_son_kiem' }, { nm: 'Liệu Thương Chú', han: '藥', art: 'book_nga_mi_cuu_duong' }, { nm: 'Phật Quang Kiếm', han: '光', art: 'book_tich_ta_kiem' }, { nm: 'Kim Đỉnh Hộ', han: '頂', art: 'book_thai_cuc_quyen' } ],
+    thieuLam: [ { nm: 'La Hán Quyền', han: '羅', art: 'book_la_han_quyen' }, { nm: 'Kim Cương Thân', han: '剛', art: 'book_thai_cuc_quyen' }, { nm: 'Vi Đà Chử', han: '杵', art: 'book_dat_ma_truong' }, { nm: 'Vận Thiền', han: '禪', art: 'book_dich_can_kinh' } ],
+    voDang: [ { nm: 'Thái Cực Kiếm', han: '太', art: 'book_thai_cuc_quyen' }, { nm: 'Miên Chưởng Hộ', han: '綿', art: 'book_thai_cuc_quyen' }, { nm: 'Vận Lưỡng Nghi', han: '蓄', art: 'book_cuu_am' }, { nm: 'Tứ Lạng Bạt Cân', han: '撥', art: 'book_dat_ma_truong' }, { nm: 'Đạo Môn Liệu Thương', han: '丹', art: 'book_nga_mi_cuu_duong' } ],
+    thienSon: [ { nm: 'Thiên Sơn Chưởng', han: '雪', art: 'book_cuu_am' }, { nm: 'Ngưng Băng Khí', han: '蓄', art: 'book_cuu_am' }, { nm: 'Băng Phách Hàn Quang', han: '殛', art: 'book_tich_ta_kiem' }, { nm: 'Hàn Băng Hộ Thể', han: '盾', art: 'book_thai_cuc_quyen' }, { nm: 'Song Sát Chưởng', han: '掌', art: 'book_la_han_quyen' } ],
+    nhatNguyet: [ { nm: 'Nhật Nguyệt Kiếm', han: '日', art: 'book_tich_ta_kiem' }, { nm: 'Ngưng Ma Khí', han: '罡', art: 'book_hap_tinh_dai_phap' }, { nm: 'Song Nguyệt Trảm', han: '月', art: 'book_tich_ta_kiem' }, { nm: 'Tụ Ma Vận Công', han: '蓄', art: 'book_hap_tinh_dai_phap' }, { nm: 'Nhật Nguyệt Hủy Diệt', han: '殛', art: 'book_hap_tinh_dai_phap' } ],
+    bongLai: [ { nm: 'Bồng Lai Kiếm', han: '蓬', art: 'book_hoa_son_kiem' }, { nm: 'Ngọc Lộ Hồi Xuân', han: '露', art: 'book_nga_mi_cuu_duong' }, { nm: 'Tiên Thiên Hộ Thể', han: '仙', art: 'book_thai_cuc_quyen' }, { nm: 'Ngự Kiếm Thuật', han: '御', art: 'book_tich_ta_kiem' }, { nm: 'Vận Tiên Khí', han: '蓄', art: 'book_dich_can_kinh' } ],
   };
+  // 20 TẦNG — khó dần: Đấu -> Tinh Anh -> Ác Thủ (7/14/17) -> Vây Khốn (từ 9) -> Mộng Chủ (20). Xen Kỳ Ngộ/Mộng Thị/Tĩnh Thất để nghỉ.
   const TIER = [
-    { label: 'Tầng 1' },
-    { label: 'Tầng 2', types: ['battle', 'event', 'shop'] },
-    { label: 'Tầng 3', types: ['elite', 'battle', 'rest'] },
-    { label: 'Tầng 4', types: ['event', 'elite'] },
-    { label: 'Mộng Chủ', types: ['boss'] },
+    { types: ['battle'] },
+    { types: ['battle', 'event'] },
+    { types: ['battle', 'shop'] },
+    { types: ['battle', 'event', 'rest'] },
+    { types: ['elite', 'battle'] },
+    { types: ['battle', 'shop', 'event'] },
+    { types: ['miniboss'] },
+    { types: ['battle', 'rest'] },
+    { types: ['swarm', 'battle'] },
+    { types: ['elite', 'event', 'shop'] },
+    { types: ['swarm', 'battle', 'rest'] },
+    { types: ['battle', 'elite'] },
+    { types: ['swarm', 'event'] },
+    { types: ['miniboss'] },
+    { types: ['elite', 'shop', 'rest'] },
+    { types: ['swarm', 'battle'] },
+    { types: ['miniboss', 'elite'] },
+    { types: ['swarm', 'event', 'rest'] },
+    { types: ['elite', 'swarm', 'shop'] },
+    { types: ['boss'] },
   ];
   // Lĩnh Ngộ Đường — nâng cấp vĩnh viễn mua bằng Mộng Ngân persistent, CHỈ hiệu lực TRONG mộng (0 power về main).
   const META_UP = [
@@ -220,12 +289,12 @@ export function dangTienMong() {
     sigilImg(he) { return (he && he !== 'vatly') ? 'images/dtm/vfx/sigil_' + he + '.webp' : ''; },
     vfxImg(he) { return 'images/dtm/vfx/vfx_' + he + '.webp'; },
     bgImg() { if (this.phase === 'lobby' || this.phase === 'hero') return 'images/dtm/bg/lobby.webp'; const t = this.mapTier; return 'images/dtm/bg/' + (this.battleKind === 'boss' || t >= 4 ? 'dream_boss' : (t >= 2 ? 'dream_deep' : 'dream_shallow')) + '.webp'; },
-    nodeHan(t) { return { battle: '敵', elite: '雄', event: '緣', shop: '市', rest: '憩', boss: '魔' }[t] || '敵'; },
-    nodeLabel(t) { return { battle: 'Đấu', elite: 'Tinh Anh', event: 'Kỳ Ngộ', shop: 'Mộng Thị', rest: 'Tĩnh Thất', boss: 'Mộng Chủ' }[t] || 'Đấu'; },
-    nodeStyle(nd, state) { const c = { battle: '#fb7185', elite: '#f5b942', event: '#a78bfa', shop: '#facc15', rest: '#34d399', boss: '#fb7185' }[nd.type] || '#94a3b8';
+    nodeHan(t) { return { battle: '敵', swarm: '圍', elite: '雄', miniboss: '尊', event: '緣', shop: '市', rest: '憩', boss: '魔' }[t] || '敵'; },
+    nodeLabel(t) { return { battle: 'Đấu', swarm: 'Vây Khốn', elite: 'Tinh Anh', miniboss: 'Ác Thủ', event: 'Kỳ Ngộ', shop: 'Mộng Thị', rest: 'Tĩnh Thất', boss: 'Mộng Chủ' }[t] || 'Đấu'; },
+    nodeStyle(nd, state) { const c = { battle: '#fb7185', swarm: '#f43f5e', elite: '#f5b942', miniboss: '#fb923c', event: '#a78bfa', shop: '#facc15', rest: '#34d399', boss: '#fb7185' }[nd.type] || '#94a3b8';
       if (state === 'pick') return 'color:' + c + ';border-color:' + c + ';box-shadow:0 0 14px -3px ' + c + ';background:' + c + '18';
       if (state === 'done') return 'color:#64748b;border-color:#334155'; return 'color:#475569;border-color:#1e293b'; },
-    nodeColor(t) { return { battle: '#fb7185', elite: '#f5b942', event: '#a78bfa', shop: '#facc15', rest: '#34d399', boss: '#fb7185' }[t] || '#94a3b8'; },
+    nodeColor(t) { return { battle: '#fb7185', swarm: '#f43f5e', elite: '#f5b942', miniboss: '#fb923c', event: '#a78bfa', shop: '#facc15', rest: '#34d399', boss: '#fb7185' }[t] || '#94a3b8'; },
     nodeGlyphStyle(nd, state) { const c = this.nodeColor(nd.type);
       if (state === 'pick') return 'color:' + c + ';border-color:' + c + ';background:' + c + '18';
       if (state === 'done') return 'color:#64748b;border-color:#33415599'; return 'color:#475569;border-color:#1e293b'; },
@@ -294,7 +363,7 @@ export function dangTienMong() {
     genMap() { this.map = TIER.map((ti) => ti.types ? ti.types.map((t) => ({ type: t })) : [{ type: 'battle' }, { type: 'battle' }]); },
     buildMapView() { this.mapView = this.map.map((row, r) => ({ nodes: row, state: r < this.mapTier ? 'done' : (r === this.mapTier ? 'pick' : 'locked') })).slice().reverse(); },
     pickNode(nd) {
-      if (nd.type === 'battle' || nd.type === 'elite' || nd.type === 'boss') this.startBattle(nd.type);
+      if (['battle', 'swarm', 'elite', 'miniboss', 'boss'].includes(nd.type)) this.startBattle(nd.type);
       else if (nd.type === 'event') this.openEvent();
       else if (nd.type === 'shop') this.openShop();
       else if (nd.type === 'rest') { this.phase = 'rest'; this._saveRun(); }
@@ -328,8 +397,11 @@ export function dangTienMong() {
     },
     // Sinh 1 đợt quái từ mảng id (HP scale theo tầng + Sát Cảnh, +AI plan/planNext). Dùng cho mở trận & đợt kế.
     _spawnEnemies(ids) {
-      const scl = 1 + this.mapTier * 0.1 + (this.run.sc || 0) * 0.08;   // +8% HP quái mỗi bậc Sát Cảnh
-      this.enemies = (ids || []).map((id) => { const t = ENEMIES[id]; return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * scl), hp: Math.round(t.hp * scl), block: 0, poison: 0, weak: 0, str: 0, intents: t.intents, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
+      const hpScl = 1 + this.mapTier * 0.08 + (this.run.sc || 0) * 0.08;   // HP quái theo tầng + Sát Cảnh (DRAFT)
+      const dmgScl = 1 + this.mapTier * 0.04;                              // sát thương ĐÒN theo tầng (chỉ intent atk) — DRAFT
+      this.enemies = (ids || []).map((id) => { const t = ENEMIES[id];
+        const ints = t.intents.map((it) => (it.t === 'atk' && it.v != null) ? { ...it, v: Math.round(it.v * dmgScl) } : it);   // copy có scale (KHÔNG mutate ENEMIES gốc; def/heal/buff giữ nguyên)
+        return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, maxHp: Math.round(t.hp * hpScl), hp: Math.round(t.hp * hpScl), block: 0, poison: 0, weak: 0, str: 0, intents: ints, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
       this.targetIdx = 0;
       this.enemies.forEach((e) => { e.plan = this._planPick(e, -1); e.planNext = this._planFollow(e, e.plan); });
     },
@@ -539,11 +611,11 @@ export function dangTienMong() {
     },
     winBattle() {
       if (this.hasRelic('huyetNgoc')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);
-      const _base = this.battleKind === 'boss' ? 60 : (this.battleKind === 'elite' ? 35 : 18);
+      const _base = { boss: 60, miniboss: 45, elite: 35, swarm: 26, battle: 18 }[this.battleKind] || 18;   // DRAFT
       this.rewardGold = _base + ((this.waves && this.waves.length > 1) ? (this.waves.length - 1) * 12 : 0);   // +12 Mộng Ngân mỗi đợt phụ (DRAFT)
       if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
       if (this.battleKind === 'boss') { this.afterNode(); return; }
-      if (this.battleKind === 'elite' && this.run.relics.length < RELICS.length) { const have = this.run.relics.map((r) => r.id); const r = rnd(RELICS.filter((x) => !have.includes(x.id))); if (r) { this.run.relics.push(r); this.log = 'Nhặt di vật: ' + r.name; } }
+      if ((this.battleKind === 'elite' || this.battleKind === 'miniboss') && this.run.relics.length < RELICS.length) { const have = this.run.relics.map((r) => r.id); const r = rnd(RELICS.filter((x) => !have.includes(x.id))); if (r) { this.run.relics.push(r); this.log = 'Nhặt di vật: ' + r.name; } }
       this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3).map(mk);
       this._setReroll(); this.phase = 'reward'; this._saveRun();
     },
