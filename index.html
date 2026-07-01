@@ -7546,7 +7546,7 @@
                   <div class="h-3 rounded-full bg-ink3 overflow-hidden border border-slate-700/60 mt-0.5"><div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*run.hp/run.maxHp)+'%'"></div></div>
                 </div>
                 <div class="flex gap-1.5 items-center">
-                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" :title="r.name+' — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
+                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" :style="'box-shadow:0 0 0 1px '+rarColor(r.rar)+'cc'" :title="r.name+' ['+rarName(r.rar)+'] — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
                   <template x-if="!run.relics.length"><span class="text-[10px] text-slate-600 italic">chưa có di vật</span></template>
                 </div>
                 <button @click="openDeck=true" class="text-[11px] px-2.5 py-1 rounded bg-ink3 border border-slate-600 text-slate-300 hover:border-cyan" x-text="'Bộ Bài ('+run.deck.length+')'"></button>
@@ -7660,7 +7660,7 @@
                   <button @click="endTurn()" class="px-4 py-2 rounded-lg bg-ink3 border border-slate-600 hover:border-gold text-slate-200 text-[12.5px] font-bold transition shrink-0">Kết Lượt ⟳</button>
                 </div>
                 <div class="flex gap-1 mt-2" x-show="run.relics.length">
-                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" style="width:26px;height:26px;font-size:13px" :title="r.name+' — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
+                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" :style="'width:26px;height:26px;font-size:13px;box-shadow:0 0 0 1px '+rarColor(r.rar)+'cc'" :title="r.name+' ['+rarName(r.rar)+'] — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
                 </div>
               </div>
 
@@ -7684,6 +7684,18 @@
               <div class="fserif text-2xl gold-text mb-1">Vượt ải — Lĩnh Ngộ một chiêu</div>
               <div class="text-[12px] text-slate-500 mb-1" x-text="'+'+rewardGold+' Mộng Ngân'"></div>
               <div class="text-[11px] text-slate-500 mb-5">Thêm 1 thẻ vào bộ bài (hoặc bỏ qua).</div>
+              <template x-if="_gotRelic">
+                <div class="flex justify-center mb-5">
+                  <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl" :style="'border:1px solid '+rarColor(_gotRelic.rar)+'99;background:'+rarColor(_gotRelic.rar)+'12'">
+                    <span class="relic dtm-portwrap shrink-0" :style="'width:38px;height:38px;font-size:19px;box-shadow:0 0 0 1px '+rarColor(_gotRelic.rar)"><span x-text="_gotRelic.han"></span><img :src="relicImg(_gotRelic.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
+                    <div class="text-left">
+                      <div class="text-[10px] font-bold uppercase tracking-wider" :style="'color:'+rarColor(_gotRelic.rar)" x-text="'Nhặt di vật · '+rarName(_gotRelic.rar)"></div>
+                      <div class="text-[13.5px] text-slate-100 fserif" x-text="_gotRelic.name"></div>
+                      <div class="text-[11px] text-slate-400" x-text="_gotRelic.desc"></div>
+                    </div>
+                  </div>
+                </div>
+              </template>
               <div class="flex gap-4 justify-center flex-wrap mb-4">
                 <template x-for="(c,i) in rewardCards" :key="i">
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">

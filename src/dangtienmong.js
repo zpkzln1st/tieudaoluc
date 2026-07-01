@@ -64,11 +64,21 @@ export function dangTienMong() {
     { id: 'doc', name: 'Cẩm Hương Độc Khách', han: '毒', he: 'moc', hp: 46, khi: 3, passive: 'Dụng Độc', passiveDesc: 'Thẻ gây Độc +2 Độc.', desc: 'Truyền nhân Đường Môn lưu lạc, kiều diễm mà âm độc. Không vội phân thắng bại — gieo độc để thời gian bào mòn đối thủ. Hợp lối độc-DoT, thắng kẻ trâu bò.', start: ['coBanKiem', 'coBanQuyen', 'amKhi', 'amKhi', 'amKhi', 'hapTinh', 'thanhPhong', 'langBa', 'cuuAm', 'ngaMi'] },
   ];
   const RELICS = [
-    { id: 'thietGiap', name: 'Huyền Thiết Giáp', han: '鐵', desc: 'Đầu mỗi trận +6 Hộ Thể.' },
-    { id: 'ngocBoi', name: 'Tụ Khí Ngọc Bội', han: '氣', desc: 'Lượt đầu mỗi trận +2 Khí.' },
-    { id: 'huyetNgoc', name: 'Hồi Huyết Châu', han: '血', desc: 'Thắng trận hồi 5 HP.' },
-    { id: 'linhPhu', name: 'Quảng Lãm Phù', han: '符', desc: 'Mỗi lượt rút thêm 1 lá.' },
-    { id: 'menhHon', name: 'Hộ Mệnh Hồn Phách', han: '魂', desc: 'Gục lần đầu → hồi sinh 30% HP.' },
+    { id: 'thietGiap', name: 'Huyền Thiết Giáp', han: '鐵', rar: 'thuong', desc: 'Đầu mỗi trận +6 Hộ Thể.' },
+    { id: 'ngocBoi', name: 'Tụ Khí Ngọc Bội', han: '氣', rar: 'hiem', desc: 'Lượt đầu mỗi trận +2 Khí.' },
+    { id: 'huyetNgoc', name: 'Hồi Huyết Châu', han: '血', rar: 'thuong', desc: 'Thắng trận hồi 5 HP.' },
+    { id: 'linhPhu', name: 'Quảng Lãm Phù', han: '符', rar: 'hiem', desc: 'Mỗi lượt rút thêm 1 lá.' },
+    { id: 'menhHon', name: 'Hộ Mệnh Hồn Phách', han: '魂', rar: 'tuyet', desc: 'Gục lần đầu → hồi sinh 30% HP.' },
+    { id: 'trongGiap', name: 'Trọng Thiết Giáp', han: '甲', rar: 'thuong', desc: 'Đầu mỗi trận +10 Hộ Thể.' },
+    { id: 'tuKhiDan', name: 'Tụ Khí Đan', han: '丹', rar: 'thuong', desc: 'Đầu mỗi lượt +3 Hộ Thể.' },
+    { id: 'tuBao', name: 'Tụ Bảo Bồn', han: '財', rar: 'thuong', desc: 'Thắng trận thêm 10 Mộng Ngân.' },
+    { id: 'bangBoi', name: 'Huyền Băng Bội', han: '冰', rar: 'hiem', desc: 'Đầu mỗi trận rút thêm 2 lá.' },
+    { id: 'voTuong', name: 'Vô Tướng Phù', han: '幻', rar: 'hiem', desc: 'Lượt đầu mỗi trận: Né đòn kế.' },
+    { id: 'satKhi', name: 'Sát Khí Lệnh', han: '殺', rar: 'hiem', desc: 'Đầu mỗi lượt +1 Lực.' },
+    { id: 'docLong', name: 'Độc Long Giới', han: '毒', rar: 'hiem', desc: 'Thẻ gây Độc thêm +2 Độc.' },
+    { id: 'lietNhan', name: 'Liệt Nhận Phù', han: '刃', rar: 'hiem', desc: 'Thẻ Công đầu mỗi lượt +3 ST.' },
+    { id: 'hoiNguyen', name: 'Hồi Nguyên Châu', han: '元', rar: 'tuyet', desc: 'Thắng trận hồi 12% HP tối đa.' },
+    { id: 'kimChung', name: 'Kim Chung Tráo', han: '鐘', rar: 'tuyet', desc: 'Hộ Thể dư cuối lượt giữ lại một nửa.' },
   ];
   const ENEMIES = {
     // --- Lâu la (fodder) ---
@@ -192,7 +202,7 @@ export function dangTienMong() {
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, _winning: false, selUid: null,
-    rewardCards: [], rewardGold: 0, event: {}, shopItems: [],
+    rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null,
     HEROES, RELICS, metaUp: META_UP,
     lobbyFoes: [
       { art: 'cuongDao', nm: 'Cường Đạo' }, { art: 'satThu', nm: 'Sát Thủ' },
@@ -381,6 +391,16 @@ export function dangTienMong() {
     },
 
     hasRelic(id) { return this.run.relics.some((r) => r.id === id); },
+    // Rơi di vật CÓ TRỌNG SỐ theo phẩm chất + loại màn: Ác Thủ/Mộng Chủ -> di vật xịn (hiếm/tuyệt) nhiều hơn. DRAFT.
+    _dropRelic() {
+      const have = this.run.relics.map((r) => r.id);
+      const pool = RELICS.filter((x) => !have.includes(x.id)); if (!pool.length) return null;
+      const hi = (this.battleKind === 'miniboss' || this.battleKind === 'boss');
+      const w = pool.map((r) => ({ thuong: hi ? 1 : 3, hiem: 2.4, tuyet: hi ? 2 : 0.5 }[r.rar] || 1));
+      let s = 0; for (const x of w) s += x; let t = Math.random() * s;
+      for (let i = 0; i < pool.length; i++) { t -= w[i]; if (t <= 0) return pool[i]; }
+      return pool[pool.length - 1];
+    },
     aliveCount() { return this.enemies.filter((e) => e.hp > 0).length; },
     tgtIdx() { if (this.enemies[this.targetIdx] && this.enemies[this.targetIdx].hp > 0) return this.targetIdx; const i = this.enemies.findIndex((e) => e.hp > 0); return i < 0 ? 0 : i; },
     startBattle(kind) {
@@ -388,11 +408,14 @@ export function dangTienMong() {
       this.waves = enc; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = kind;
       this._spawnEnemies(enc[0]);
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
-      this.player = { block: 0, str: 0, dodge: false }; this.log = ''; this.playerFloats = [];
+      this.player = { block: 0, str: 0, dodge: false }; this.log = ''; this.playerFloats = []; this._gotRelic = null;
       if (this.hasRelic('thietGiap')) this.player.block += 6;
+      if (this.hasRelic('trongGiap')) this.player.block += 10;   // di vật: Trọng Thiết Giáp
+      if (this.hasRelic('voTuong')) this.player.dodge = true;    // di vật: Vô Tướng Phù (né đòn đầu)
       this.khi = this.maxKhi + (this.hasRelic('ngocBoi') ? 2 : 0);
       this.phase = 'battle'; this.startTurnPassive();
       this.draw(this.handSize());
+      if (this.hasRelic('bangBoi')) this.draw(2);   // di vật: Huyền Băng Bội (rút thêm 2 lá đầu trận)
       this._saveRun();
     },
     // Sinh 1 đợt quái từ mảng id (HP scale theo tầng + Sát Cảnh, +AI plan/planNext). Dùng cho mở trận & đợt kế.
@@ -417,7 +440,7 @@ export function dangTienMong() {
       this._saveRun();
     },
     handSize() { return 5 + (this.hasRelic('linhPhu') ? 1 : 0); },
-    startTurnPassive() { if (this.run.hero.id === 'thien') this.player.block += 3; this._firstAtkUsed = false; },
+    startTurnPassive() { if (this.run.hero.id === 'thien') this.player.block += 3; if (this.hasRelic('tuKhiDan')) this.player.block += 3; if (this.hasRelic('satKhi')) this.player.str += 1; this._firstAtkUsed = false; },
     curIntent(e) { return e.intents[e.plan] || e.intents[0]; },
     // ----- AI bộ bài quái: chọn chiêu KẾ theo tình huống, KHÔNG còn chuỗi cố định. Giữ telegraph: chiêu đang hiện = chiêu SẼ ra cuối lượt (planNext = chiêu lượt sau, cho Lưỡng Nghi Kính). Mọi trọng số = DRAFT. -----
     _wpick(w) { let s = 0; for (const x of w) s += x; if (s <= 0) return 0; let r = Math.random() * s; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return w.length - 1; },
@@ -533,7 +556,7 @@ export function dangTienMong() {
       this.khi -= c.cost;
       if (c.dmg) {
         let base = c.dmg + (this.player.str || 0);
-        if (this.run.hero.id === 'kiem' && c.type === 'atk' && !this._firstAtkUsed) { base += 3; this._firstAtkUsed = true; }
+        if (c.type === 'atk' && !this._firstAtkUsed) { let fb = 0; if (this.run.hero.id === 'kiem') fb += 3; if (this.hasRelic('lietNhan')) fb += 3; base += fb; this._firstAtkUsed = true; }   // Lợi Nhận (kiem) + di vật Liệt Nhận Phù: đòn Công đầu lượt +ST
         const hits = c.hits || 1;
         const tgts = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (this.enemies[this.tgtIdx()] ? [this.enemies[this.tgtIdx()]] : []);
         let total = 0;
@@ -543,7 +566,7 @@ export function dangTienMong() {
       }
       if (c.blk) this.player.block += c.blk;
       if (c.heal) this.run.hp = Math.min(this.run.maxHp, this.run.hp + c.heal);
-      if (c.poison) { const e = this.enemies[this.tgtIdx()]; if (e) { e.poison += c.poison + (this.run.hero.id === 'doc' ? 2 : 0); } }
+      if (c.poison) { const e = this.enemies[this.tgtIdx()]; if (e) { e.poison += c.poison + (this.run.hero.id === 'doc' ? 2 : 0) + (this.hasRelic('docLong') ? 2 : 0); } }
       if (c.weaken) { const e = this.enemies[this.tgtIdx()]; if (e) e.weak += c.weaken; }
       if (c.str) this.player.str += c.str;
       if (c.dodge) this.player.dodge = true;
@@ -571,7 +594,7 @@ export function dangTienMong() {
         if (toPlayer > 0) this.floatPlayer(toPlayer);
         if (this.run.hp <= 0) { this.onDeath(); return; }
       }
-      this.player.block = 0; this.khi = this.maxKhi; this.startTurnPassive(); this.draw(this.handSize());
+      this.player.block = this.hasRelic('kimChung') ? Math.floor(this.player.block / 2) : 0; this.khi = this.maxKhi; this.startTurnPassive(); this.draw(this.handSize());   // Kim Chung Tráo: giữ nửa Hộ Thể dư
       this._saveRun();
     },
     onDeath() {
@@ -611,11 +634,13 @@ export function dangTienMong() {
     },
     winBattle() {
       if (this.hasRelic('huyetNgoc')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);
+      if (this.hasRelic('hoiNguyen')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * 0.12));   // di vật: Hồi Nguyên Châu
       const _base = { boss: 60, miniboss: 45, elite: 35, swarm: 26, battle: 18 }[this.battleKind] || 18;   // DRAFT
-      this.rewardGold = _base + ((this.waves && this.waves.length > 1) ? (this.waves.length - 1) * 12 : 0);   // +12 Mộng Ngân mỗi đợt phụ (DRAFT)
+      this.rewardGold = _base + ((this.waves && this.waves.length > 1) ? (this.waves.length - 1) * 12 : 0) + (this.hasRelic('tuBao') ? 10 : 0);   // +12/đợt phụ + Tụ Bảo Bồn (DRAFT)
       if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
       if (this.battleKind === 'boss') { this.afterNode(); return; }
-      if ((this.battleKind === 'elite' || this.battleKind === 'miniboss') && this.run.relics.length < RELICS.length) { const have = this.run.relics.map((r) => r.id); const r = rnd(RELICS.filter((x) => !have.includes(x.id))); if (r) { this.run.relics.push(r); this.log = 'Nhặt di vật: ' + r.name; } }
+      this._gotRelic = null;
+      if ((this.battleKind === 'elite' || this.battleKind === 'miniboss') && this.run.relics.length < RELICS.length) { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._gotRelic = r; this.log = 'Nhặt di vật: ' + r.name; } }
       this.rewardCards = shuffle(Object.keys(POOL).filter((k) => !['coBanKiem', 'coBanQuyen'].includes(k) && this._cardUnlocked(k))).slice(0, 3).map(mk);
       this._setReroll(); this.phase = 'reward'; this._saveRun();
     },
