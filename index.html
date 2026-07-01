@@ -5958,6 +5958,13 @@
         .dtm-root .nodeT.pick .glyph:hover{ transform:scale(1.08); }
         .dtm-root .nodeT.locked{ opacity:.35; } .dtm-root .nodeT.done .glyph{ opacity:.5; border-style:dashed; }
         .dtm-root .nodeT .nlbl{ font-size:9.5px; }
+        /* 3 TRÙNG — dải cảnh có nền + feather mép cho liền mạch */
+        .dtm-root .dtm-trung{ position:relative; width:100%; padding:2px 0 10px; }
+        .dtm-root .dtm-trung-bg{ position:absolute; inset:0; z-index:0; background-size:cover; background-position:center; -webkit-mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent); mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent); }
+        .dtm-root .dtm-trung-veil{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg,#070b14,#070b1488 22%,#070b1444 50%,#070b1488 78%,#070b14); }
+        .dtm-root .dtm-trung-head{ position:relative; z-index:2; text-align:center; padding:12px 0 4px; }
+        .dtm-root .dtm-trung-head .than{ font-size:38px; line-height:1; opacity:.92; text-shadow:0 2px 10px rgba(0,0,0,.6); }
+        .dtm-root .dtm-trung-head .tname{ font-family:'Lora',serif; font-size:13.5px; font-weight:700; color:#cbd5e1; margin-top:1px; letter-spacing:.03em; text-shadow:0 1px 4px rgba(0,0,0,.8); }
         .dtm-root .relic{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:17px; border:1px solid #f5b94255; color:#f5b942; background:#f5b94212; cursor:default; }
         .dtm-root .shake{ animation:dtmShk .26s; } @keyframes dtmShk{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 85%{transform:translateX(-3px)} }
         .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
@@ -7554,29 +7561,40 @@
               <div class="text-center text-[12px] text-slate-500 mb-2">Tầng <b class="text-gold" x-text="mapTier+1"></b>/<span x-text="map.length"></span> — leo dần tới Mộng Chủ</div>
               <div class="panel rounded-2xl p-4 pt-3">
                 <div class="dtm-ladder">
-                  <!-- Mộng Chủ áp đỉnh (tầng cao nhất = mapView[0]) -->
-                  <template x-if="mapView.length">
-                    <div class="dtm-bossban" :class="mapView[0].state"
-                         @click="mapView[0].state==='pick' && pickNode(mapView[0].nodes[0])">
-                      <img :src="bossBannerImg()" alt="" onerror="this.style.display='none'">
-                      <div class="scrim"></div>
-                      <div class="ctr"><div class="big fserif">魔 Mộng Chủ</div><div class="sub" x-text="mapView[0].state==='pick'?('BẤM QUYẾT CHIẾN · TẦNG '+map.length):('CHỦ TỂ MỘNG CẢNH · TẦNG '+map.length)"></div></div>
-                    </div>
-                  </template>
-                  <!-- các tầng dưới (cao -> thấp), connector nối tuyến -->
-                  <template x-for="(row,ri) in mapView.slice(1)" :key="ri">
-                    <div class="w-full flex flex-col items-center">
-                      <div class="dtm-conn" :class="row.state!=='locked'?'lit':''"></div>
-                      <div class="dtm-trow">
-                        <span class="dtm-tband" x-text="'Tầng '+(map.length-1-ri)"></span>
-                        <template x-for="(nd,ci) in row.nodes" :key="ci">
-                          <div class="nodeT" :class="row.state" :style="'--nc:'+nodeColor(nd.type)">
-                            <div class="glyph" :style="nodeGlyphStyle(nd,row.state)" @click="row.state==='pick' && pickNode(nd)" x-text="nodeHan(nd.type)"></div>
-                            <span class="nlbl" :style="'color:'+(row.state==='pick'?nodeColor(nd.type):'#64748b')" x-text="nodeLabel(nd.type)"></span>
-                          </div>
-                        </template>
-                        <span x-show="row.state==='pick'" class="dtm-cur">◂ đang ở đây</span>
-                      </div>
+                  <!-- 20 tầng gom 3 TRÙNG (cảnh giới): mỗi Trùng 1 nền cảnh + tiêu đề; Mộng Chủ nằm trong Trùng đỉnh. -->
+                  <template x-for="band in trungBands()" :key="band.meta.idx">
+                    <div class="dtm-trung">
+                      <div class="dtm-trung-bg" :style="'background-image:linear-gradient(180deg,'+band.meta.tint+'aa,'+band.meta.tint+'66), url('+trungBgUrl(band.meta.bg)+')'"></div>
+                      <div class="dtm-trung-veil"></div>
+                      <div class="dtm-trung-head"><div class="than fserif" :style="'color:'+band.meta.hanC" x-text="band.meta.han"></div><div class="tname" x-text="band.meta.name"></div></div>
+                      <template x-for="item in band.rows" :key="item.ri">
+                        <div class="w-full flex flex-col items-center relative" style="z-index:2">
+                          <!-- Mộng Chủ (tầng đỉnh) -->
+                          <template x-if="item.tier === map.length">
+                            <div class="dtm-bossban" :class="item.row.state" @click="item.row.state==='pick' && pickNode(item.row.nodes[0])">
+                              <img :src="bossBannerImg()" alt="" onerror="this.style.display='none'">
+                              <div class="scrim"></div>
+                              <div class="ctr"><div class="big fserif">魔 Mộng Chủ</div><div class="sub" x-text="item.row.state==='pick'?('BẤM QUYẾT CHIẾN · TẦNG '+map.length):('CHỦ TỂ MỘNG CẢNH · TẦNG '+map.length)"></div></div>
+                            </div>
+                          </template>
+                          <!-- tầng thường -->
+                          <template x-if="item.tier !== map.length">
+                            <div class="w-full flex flex-col items-center">
+                              <div class="dtm-conn" :class="item.row.state!=='locked'?'lit':''"></div>
+                              <div class="dtm-trow" :class="item.row.state==='pick'?'cur':''">
+                                <span class="dtm-tband" x-text="'Tầng '+item.tier"></span>
+                                <template x-for="(nd,ci) in item.row.nodes" :key="ci">
+                                  <div class="nodeT" :class="item.row.state" :style="'--nc:'+nodeColor(nd.type)">
+                                    <div class="glyph" :style="nodeGlyphStyle(nd,item.row.state)" @click="item.row.state==='pick' && pickNode(nd)" x-text="nodeHan(nd.type)"></div>
+                                    <span class="nlbl" :style="'color:'+(item.row.state==='pick'?nodeColor(nd.type):'#64748b')" x-text="nodeLabel(nd.type)"></span>
+                                  </div>
+                                </template>
+                                <span x-show="item.row.state==='pick'" class="dtm-cur">◂ đang ở đây</span>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
                     </div>
                   </template>
                 </div>

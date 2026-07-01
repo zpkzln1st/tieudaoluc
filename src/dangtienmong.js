@@ -180,6 +180,12 @@ export function dangTienMong() {
     { types: ['elite', 'swarm', 'shop'] },
     { types: ['boss'] },
   ];
+  // 3 TRÙNG (cảnh giới mộng) — gom 20 tầng thành 3 dải, mỗi Trùng 1 nền cảnh (dùng lại dream_*) + tông màu. Thứ tự HIỂN THỊ trên->dưới = Trùng 3->1.
+  const TRUNG = [
+    { idx: 2, bg: 'dream_boss', han: '淵', name: 'Đệ Tam Trùng · Mộng Chủ Ma Uyên', tint: '#2a0a1e', hanC: '#fb7185' },
+    { idx: 1, bg: 'dream_deep', han: '幽', name: 'Đệ Nhị Trùng · Thâm Mộng U Cảnh', tint: '#0a2233', hanC: '#38bdf8' },
+    { idx: 0, bg: 'dream_shallow', han: '夢', name: 'Đệ Nhất Trùng · Sơ Nhập Mộng Cảnh', tint: '#0c2119', hanC: '#34d399' },
+  ];
   // Lĩnh Ngộ Đường — nâng cấp vĩnh viễn mua bằng Mộng Ngân persistent, CHỈ hiệu lực TRONG mộng (0 power về main).
   const META_UP = [
     { id: 'coBan', key: 'hp', kind: 'level', name: 'Cố Bản', han: '固', desc: '+4 HP tối đa mỗi ván.', costs: [120, 240, 420, 660, 980], gate: null, gateText: '' },
@@ -322,7 +328,7 @@ export function dangTienMong() {
       this.run = { hero: h, deck: h.start.map(mk), hp: mhp, maxHp: mhp, relics: [], reviveUsed: false, sc: sc };
       if (up.startRelic) { const r = RELICS.find((x) => x.id === up.startRelic); if (r) this.run.relics.push({ ...r }); }  // Khải Mộng Di Vật
       try { const s = this.$store.game.state.dangTien; s.runs = (s.runs || 0) + 1; } catch (e) {}
-      this.genMap(); this.mapTier = 0; this.buildMapView(); this.phase = 'map'; this._saveRun();
+      this.genMap(); this.mapTier = 0; this.buildMapView(); this.phase = 'map'; this._saveRun(); this._scrollMapCur();
     },
     quitRun() { this.bankRun(false); this._clearRun(); this.run = null; this.phase = 'lobby'; },
     // ----- Run-resume: chup run dang do vao state.dangTien.activeRun (rời view -> component huy -> khong mat run). CHI dung state.dangTien. -----
@@ -368,10 +374,24 @@ export function dangTienMong() {
       this.selUid = null; this._winning = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false;
       this.buildMapView();
       if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
-      else this.phase = a.phase || 'map';
+      else { this.phase = a.phase || 'map'; if (this.phase === 'map') this._scrollMapCur(); }
     },
     genMap() { this.map = TIER.map((ti) => ti.types ? ti.types.map((t) => ({ type: t })) : [{ type: 'battle' }, { type: 'battle' }]); },
     buildMapView() { this.mapView = this.map.map((row, r) => ({ nodes: row, state: r < this.mapTier ? 'done' : (r === this.mapTier ? 'pick' : 'locked') })).slice().reverse(); },
+    // Gom mapView (đã đảo, cao->thấp) thành 3 Trùng để render dải cảnh. Mỗi row kèm tier thật.
+    trungBands() {
+      const L = this.map.length || 1; const per = Math.max(1, Math.ceil(L / 3));
+      const bands = TRUNG.map((t) => ({ meta: t, rows: [] }));
+      (this.mapView || []).forEach((row, ri) => {
+        const tier = L - ri;   // mapView[0] = tầng cao nhất
+        const ti = Math.min(2, Math.floor((tier - 1) / per));
+        const b = bands.find((x) => x.meta.idx === ti); if (b) b.rows.push({ row, ri, tier });
+      });
+      return bands.filter((b) => b.rows.length);
+    },
+    trungBgUrl(bg) { return 'images/dtm/bg/' + bg + '.webp'; },
+    // Tự cuộn map tới TẦNG ĐANG ĐỨNG (khỏi kéo tay): lúc mới nhập mộng = tầng 1 (đáy), leo lên thì trôi theo.
+    _scrollMapCur() { try { this.$nextTick(() => { const el = document.querySelector('.dtm-root .dtm-trow.cur') || document.querySelector('.dtm-root .dtm-bossban.pick'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' }); }); } catch (e) {} },
     pickNode(nd) {
       if (['battle', 'swarm', 'elite', 'miniboss', 'boss'].includes(nd.type)) this.startBattle(nd.type);
       else if (nd.type === 'event') this.openEvent();
@@ -387,7 +407,7 @@ export function dangTienMong() {
         this._checkUnlocks();
         this._clearRun(); this.persist(); this.phase = 'win'; return;
       }
-      this._checkUnlocks(); this.persist(); this.buildMapView(); this.phase = 'map'; this._saveRun();
+      this._checkUnlocks(); this.persist(); this.buildMapView(); this.phase = 'map'; this._saveRun(); this._scrollMapCur();
     },
 
     hasRelic(id) { return this.run.relics.some((r) => r.id === id); },
