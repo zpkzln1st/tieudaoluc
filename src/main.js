@@ -1952,6 +1952,28 @@ const gameStore = {
     return lb.slice(Math.max(50, i - 3), Math.min(lb.length, i + 4));
   },
   get lbDisplay() { const top = this.lbTop, nb = this.lbNeighbors; return nb.length ? [...top, { separator: true, id: 'sep' }, ...nb] : top; },
+  // ===== MỘNG CẢNH BẢNG (BXH Đăng Tiên Mộng) — điểm người chơi = deepest*10 + Σ Sát Cảnh*50; bot điểm DERIVED deterministic (không có run thật). 0 power. =====
+  get mongCanhBang() {
+    const w = this.state.world; if (!w) return [];
+    const h = (s) => { let x = 2166136261 >>> 0; s = '' + s; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return x >>> 0; };
+    const bots = genRoster(w.seed, w.createdAt).map((b) => {
+      const depth = 1 + Math.floor(Math.pow((h(b.id + ':dtmdeep') % 1000) / 1000, 1.7) * 7);   // 1..8, lệch về thấp
+      const scm = Math.floor(Math.pow((h(b.id + ':dtmsc') % 1000) / 1000, 2.1) * 16);           // 0..15, lệch về thấp
+      return { id: b.id, name: b.name, avatar: botAvatar(b), deepest: depth, score: depth * 10 + scm * 50, sub: 'Mộng sâu Tầng ' + depth, isPlayer: false };
+    });
+    const d = this.state.dangTien || {};
+    const scSum = Object.values(d.scMaxByHero || {}).reduce((s, v) => s + (v || 0), 0);
+    const me = { id: 'me', name: (this.state.player.name || 'Vô Danh'), avatar: (this.curAvatar || { id: this.avatarId, char: '道', color: 'from-slate-600 to-slate-700' }), deepest: (d.deepest || 0), score: (d.deepest || 0) * 10 + scSum * 50, sub: (d.deepest ? ('Mộng sâu Tầng ' + d.deepest) : 'Chưa nhập mộng'), isPlayer: true };
+    const rows = bots.concat([me]);
+    rows.sort((a, b) => b.score - a.score || (a.id < b.id ? -1 : 1));
+    rows.forEach((r, i) => { r.rank = i + 1; });
+    return rows;
+  },
+  get mcbDisplay() {
+    const all = this.mongCanhBang, top = all.slice(0, 50), p = all.find((r) => r.isPlayer);
+    if (!p || p.rank <= 50) return top;
+    return [...top, { separator: true, id: 'sep' }, ...all.slice(Math.max(50, p.rank - 4), p.rank + 3)];
+  },
   // Đồng Đạo Lân Cận: bot chuyên nghề `skillId` (track đỉnh == skillId). Memo theo (skill:phút).
   nearbyBotsList(skillId) {
     const w = this.state.world; if (!w || !skillId) return { bots: [], count: 0 };
