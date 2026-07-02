@@ -36,27 +36,28 @@ export function ensureDangTien(state) {
 export function dangTienMong() {
   const HE_COLOR = { kim: '#facc15', moc: '#34d399', thuy: '#38bdf8', hoa: '#fb7185', tho: '#d8dee9', vatly: '#94a3b8' };
   const HE_NAME = { kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ', vatly: 'Vô' };
-  const KHAC = { kim: 'moc', moc: 'tho', tho: 'thuy', thuy: 'hoa', hoa: 'kim' };
-  const RAR_C = { thuong: '#94a3b8', hiem: '#38bdf8', tuyet: '#f5b942' };
-  const RAR_N = { thuong: 'Thường', hiem: 'Hiếm', tuyet: 'Tuyệt' };
+  const HE_HAN = { kim: '金', moc: '木', thuy: '水', hoa: '火', tho: '土', vatly: '無' };
+  const KHAC = { kim: 'moc', moc: 'tho', tho: 'thuy', thuy: 'hoa', hoa: 'kim' };   // A khắc KHAC[A]
+  const RAR_C = { so: '#6b7280', thuong: '#94a3b8', hiem: '#38bdf8', tuyet: '#f5b942', than: '#c084fc' };   // 5 bậc (Sơ/Thường/Hiếm/Tuyệt/Thần Thoại) — pool hiện chỉ dùng 3 bậc giữa, chừa Sơ+Thần cho nội dung mở rộng
+  const RAR_N = { so: 'Sơ Cấp', thuong: 'Thường', hiem: 'Hiếm', tuyet: 'Tuyệt', than: 'Thần Thoại' };
   const POOL = {
-    coBanKiem: { name: 'Cơ Bản Kiếm', han: '劍', he: 'vatly', cost: 1, type: 'atk', rar: 'thuong', dmg: 6, desc: 'Gây 6 ST.' },
-    coBanQuyen: { name: 'Cơ Bản Quyền', han: '拳', he: 'vatly', cost: 1, type: 'atk', rar: 'thuong', dmg: 5, blk: 3, desc: 'Gây 5 ST · +3 Hộ.' },
-    laHan: { name: 'La Hán Quyền', han: '羅', he: 'kim', sect: 'Thiếu Lâm', cost: 2, type: 'atk', rar: 'thuong', dmg: 11, desc: 'Gây 11 ST.' },
-    thaiCuc: { name: 'Thái Cực Quyền', han: '極', he: 'tho', sect: 'Võ Đang', cost: 1, type: 'def', rar: 'hiem', blk: 9, desc: '+9 Hộ Thể.' },
-    cuuDuong: { name: 'Cửu Dương Thần Công', han: '陽', he: 'hoa', cost: 2, type: 'ky', rar: 'hiem', heal: 7, blk: 4, desc: 'Hồi 7 HP · +4 Hộ.' },
-    cuuAm: { name: 'Cửu Âm Chân Kinh', han: '陰', he: 'thuy', cost: 2, type: 'atk', rar: 'hiem', dmg: 5, weaken: 2, desc: '5 ST · Suy Yếu 2.' },
-    datMa: { name: 'Đạt Ma Trượng', han: '達', he: 'kim', sect: 'Thiếu Lâm', cost: 2, type: 'atk', rar: 'thuong', dmg: 7, blk: 5, desc: '7 ST · +5 Hộ.' },
-    dichCan: { name: 'Dịch Cân Kinh', han: '易', he: 'kim', sect: 'Thiếu Lâm', cost: 1, type: 'ky', rar: 'hiem', str: 3, desc: '+3 Lực cả trận.' },
-    amKhi: { name: 'Đường Môn Ám Khí', han: '暗', he: 'moc', sect: 'Đường Môn', cost: 1, type: 'atk', rar: 'thuong', dmg: 3, poison: 4, desc: '3 ST · Độc 4.' },
-    hapTinh: { name: 'Hấp Tinh Đại Pháp', han: '吸', he: 'moc', sect: 'Ma Giáo', cost: 2, type: 'atk', rar: 'tuyet', dmg: 7, drain: true, desc: '7 ST · hút máu = ST.' },
-    hoaSon: { name: 'Hoa Sơn Kiếm', han: '華', he: 'thuy', sect: 'Hoa Sơn', cost: 2, type: 'atk', rar: 'hiem', dmg: 9, desc: 'Gây 9 ST.' },
-    langBa: { name: 'Lăng Ba Vi Bộ', han: '波', he: 'thuy', cost: 1, type: 'ky', rar: 'hiem', blk: 5, dodge: true, desc: '+5 Hộ · NÉ đòn kế.' },
-    ngaMi: { name: 'Nga Mi Cửu Dương', han: '峨', he: 'thuy', sect: 'Nga Mi', cost: 1, type: 'ky', rar: 'thuong', heal: 8, desc: 'Hồi 8 HP.' },
-    thanhPhong: { name: 'Thanh Phong Bộ', han: '風', he: 'moc', cost: 0, type: 'ky', rar: 'thuong', draw: 2, desc: 'Rút 2 lá.' },
-    tichTa: { name: 'Tịch Tà Kiếm', han: '辟', he: 'hoa', sect: 'Nhật Nguyệt', cost: 2, type: 'atk', rar: 'tuyet', dmg: 3, hits: 3, desc: 'Đánh 3 × 3 ST.' },
-    thienVuong: { name: 'Thiên Vương Phá', han: '霸', he: 'kim', sect: 'Thiên Vương', cost: 3, type: 'atk', rar: 'tuyet', dmg: 18, desc: 'Gây 18 ST.' },
-    taoDang: { name: 'Tảo Đãng Thiên Quân', han: '掃', he: 'vatly', cost: 2, type: 'atk', rar: 'hiem', dmg: 5, aoe: true, desc: 'Gây 5 ST lên TẤT CẢ địch.' },
+    coBanKiem: { name: 'Cơ Bản Kiếm', han: '劍', he: 'vatly', cost: 1, type: 'atk', rar: 'thuong', dmg: 6, desc: 'Gây 6 ST.', flavor: 'Chiêu kiếm nhập môn, thẳng tới thẳng lui. Cao thủ nào cũng khởi từ một đường kiếm mộc mạc như thế — vạn pháp quy căn.' },
+    coBanQuyen: { name: 'Cơ Bản Quyền', han: '拳', he: 'vatly', cost: 1, type: 'atk', rar: 'thuong', dmg: 5, blk: 3, desc: 'Gây 5 ST · +3 Hộ.', flavor: 'Quyền lộ khởi thủ, công thủ tương sinh. Chưa vội cầu chiêu lạ, trước hãy đứng cho vững tấn.' },
+    laHan: { name: 'La Hán Quyền', han: '羅', he: 'kim', sect: 'Thiếu Lâm', cost: 2, type: 'atk', rar: 'thuong', dmg: 11, desc: 'Gây 11 ST.', flavor: 'Trấn sơn tuyệt kỹ Thiếu Lâm, mười tám vị La Hán hộ trì. Quyền cương mãnh hùng hồn, một đấm ra như sấm động, đủ hàng ma vệ đạo.' },
+    thaiCuc: { name: 'Thái Cực Quyền', han: '極', he: 'tho', sect: 'Võ Đang', cost: 1, type: 'def', rar: 'hiem', blk: 9, desc: '+9 Hộ Thể.', flavor: 'Trương chân nhân ngộ đạo bên suối, thấy nước chảy đá mòn mà thành quyền. Một vòng thái cực bao la, dĩ tĩnh chế động, tứ lạng bạt thiên cân.' },
+    cuuDuong: { name: 'Cửu Dương Thần Công', han: '陽', he: 'hoa', cost: 2, type: 'ky', rar: 'hiem', heal: 7, blk: 4, desc: 'Hồi 7 HP · +4 Hộ.', flavor: 'Nội công chí dương chí cương, chân khí sinh sinh bất tức. Luyện thành thì bách độc bất xâm, càng chiến càng hăng, khí lực vô cùng.' },
+    cuuAm: { name: 'Cửu Âm Chân Kinh', han: '陰', he: 'thuy', cost: 2, type: 'atk', rar: 'hiem', dmg: 5, weaken: 2, desc: '5 ST · Suy Yếu 2.', flavor: 'Kỳ thư đoạt tạo hóa, khiến quần hùng tranh nhau đổ máu. Nội công âm nhu tinh diệu, chiêu ra lặng lẽ mà đoạt hồn nhiếp phách.' },
+    datMa: { name: 'Đạt Ma Trượng', han: '達', he: 'kim', sect: 'Thiếu Lâm', cost: 2, type: 'atk', rar: 'thuong', dmg: 7, blk: 5, desc: '7 ST · +5 Hộ.', flavor: 'Trượng pháp do Đạt Ma tổ sư truyền lại, cương trung hữu nhu. Một trượng quét ngang vừa khắc địch vừa lập thế thủ.' },
+    dichCan: { name: 'Dịch Cân Kinh', han: '易', he: 'kim', sect: 'Thiếu Lâm', cost: 1, type: 'ky', rar: 'hiem', str: 3, desc: '+3 Lực cả trận.', flavor: 'Bí điển tẩy tủy dịch cân của Thiền môn. Luyện thấu thì gân cốt đổi mới, phàm thai thoát cốt, khí lực tăng tiến chẳng cùng.' },
+    amKhi: { name: 'Đường Môn Ám Khí', han: '暗', he: 'moc', sect: 'Đường Môn', cost: 1, type: 'atk', rar: 'thuong', dmg: 3, poison: 4, desc: '3 ST · Độc 4.', flavor: 'Đường Môn đất Thục danh chấn thiên hạ vì ám khí. Mũi tiêu tẩm độc bắn ra vô thanh vô tức, thấy máu là phong hầu.' },
+    hapTinh: { name: 'Hấp Tinh Đại Pháp', han: '吸', he: 'moc', sect: 'Ma Giáo', cost: 2, type: 'atk', rar: 'tuyet', dmg: 7, drain: true, desc: '7 ST · hút máu = ST.', flavor: 'Tà công nghịch thiên của Ma Giáo, hút cạn nội lực người khác nạp vào mình. Uy lực kinh người, song dị chủng chân khí xung đột, sớm muộn phản phệ.' },
+    hoaSon: { name: 'Hoa Sơn Kiếm', han: '華', he: 'thuy', sect: 'Hoa Sơn', cost: 2, type: 'atk', rar: 'hiem', dmg: 9, desc: 'Gây 9 ST.', flavor: 'Kiếm tông Hoa Sơn lấy khí ngự kiếm, chiêu thức tiêu sái. Một đường lăng lệ như gió núi, chính khí lẫm nhiên soi tỏ giang hồ.' },
+    langBa: { name: 'Lăng Ba Vi Bộ', han: '波', he: 'thuy', cost: 1, type: 'ky', rar: 'hiem', blk: 5, dodge: true, desc: '+5 Hộ · NÉ đòn kế.', flavor: 'Thân pháp tuyệt thế, bước theo phương vị Dịch lý. Người đi như lướt trên sóng biếc, phiêu hốt vô định, đòn hiểm nào cũng lách qua.' },
+    ngaMi: { name: 'Nga Mi Cửu Dương', han: '峨', he: 'thuy', sect: 'Nga Mi', cost: 1, type: 'ky', rar: 'thuong', heal: 8, desc: 'Hồi 8 HP.', flavor: 'Chân truyền Cửu Dương của phái Nga Mi. Vận công điều tức thì nội thương tự khỏi, ôn dưỡng sinh cơ, trụ được đường dài.' },
+    thanhPhong: { name: 'Thanh Phong Bộ', han: '風', he: 'moc', cost: 0, type: 'ky', rar: 'thuong', draw: 2, desc: 'Rút 2 lá.', flavor: 'Bộ pháp nhẹ tựa thanh phong, tiến thoái theo tâm. Chân bước thảnh thơi mà chiêu thức nối liền chẳng dứt.' },
+    tichTa: { name: 'Tịch Tà Kiếm', han: '辟', he: 'hoa', sect: 'Nhật Nguyệt', cost: 2, type: 'atk', rar: 'tuyet', dmg: 3, hits: 3, desc: 'Đánh 3 × 3 ST.', flavor: 'Kiếm phổ tà môn nhanh đến quỷ khốc thần sầu. Ba nhát liền như một, ai thấy cũng lạnh gáy — nhưng luyện thì phải trả giá đắt.' },
+    thienVuong: { name: 'Thiên Vương Phá', han: '霸', he: 'kim', sect: 'Thiên Vương', cost: 3, type: 'atk', rar: 'tuyet', dmg: 18, desc: 'Gây 18 ST.', flavor: 'Bá đạo trấn thế của Thiên Vương Bang. Một chưởng giáng xuống nghiền non lấp bể, uy áp muôn quân, thiên hạ khiếp phục.' },
+    taoDang: { name: 'Tảo Đãng Thiên Quân', han: '掃', he: 'vatly', cost: 2, type: 'atk', rar: 'hiem', dmg: 5, aoe: true, desc: 'Gây 5 ST lên TẤT CẢ địch.', flavor: 'Một chiêu quét ngang cả trận, đãng địch như đãng lá. Khí thế ngời ngời tựa thiên binh vạn mã tràn tới.' },
   };
   const HEROES = [
     { id: 'kiem', name: 'Lãng Kiếm Khách', han: '劍', he: 'kim', hp: 50, khi: 3, passive: 'Lợi Nhận', passiveDesc: 'Thẻ Công đầu mỗi lượt +3 ST.', desc: 'Kiếm khách lãng du, không môn không phái. Lấy nhanh-sắc-chuẩn làm đạo, đánh phủ đầu kết liễu trước khi địch kịp ra chiêu. Hợp lối tấn công dồn dập, kết trận nhanh.', start: ['coBanKiem', 'coBanKiem', 'coBanKiem', 'coBanQuyen', 'tichTa', 'hoaSon', 'langBa', 'dichCan', 'ngaMi', 'thaiCuc'] },
@@ -104,6 +105,28 @@ export function dangTienMong() {
     bongLai: { name: 'Bồng Lai Tán Tiên', han: '蓬', he: 'kim', hp: 68, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 11 }, { t: 'heal', v: 12 }, { t: 'def', v: 14 }, { t: 'atk', v: 15 }, { t: 'buff', v: 3 }] },
     // --- Mộng Chủ (boss) ---
     maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 84, boss: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }, { t: 'def', v: 14 }, { t: 'heal', v: 12 }] },
+  };
+  // Tiểu sử tàn niệm (bio) — hiển thị trong modal Chi Tiết Quái. Giọng võ lâm; nội dung là tàn niệm cao thủ trong mộng cảnh.
+  const ENEMY_BIO = {
+    cuongDao: 'Phường cường đạo chốn lục lâm, chiếm núi xưng vương. Đao pháp thô lậu mà sát khí đằng đằng, ra tay tàn nhẫn chỉ vì manh áo miếng cơm.',
+    satThu: 'Sát thủ Hắc Phong ẩn mình trong bóng tối, một đời chỉ biết lấy mạng đoạt hồn. Sát khí ngưng nơi đầu ngón, ra tay tất lấy yết hầu — giết người trong chớp mắt mà chẳng để lộ hình tung.',
+    langYeu: 'Yêu lang sinh trưởng nơi mộng cảnh, thú tính hung hãn mà chưa khai linh trí. Vuốt sắc hổ gầm cắn xé con mồi, gặp nguy thì thu mình thủ thế — chỉ biết cuồng bạo chứ chẳng rõ chiêu số.',
+    taoKhau: 'Thảo khấu tụ tập chốn sơn dã, chiếm đường cướp của mà qua ngày. Đao pháp thô lậu chỉ biết chém giết vặt vãnh, hữu dũng vô mưu, gặp ai cũng liều mạng chỉ vì manh áo miếng cơm.',
+    daLang: 'Dã lang hoang dại lang thang chốn rừng sâu, săn mồi theo bầy chẳng bao giờ đơn độc. Bổ nhào vờn mồi rồi cắn xé liên hoàn, hợp quần vây khốn — một khi động thủ thì lấy số áp người.',
+    cungThu: 'Cung thủ chốn lục lâm rình sào huyệt, nấp trong tán cây mà bắn lén từ xa. Ngưng thần ngắm bắn đoạt mạng chẳng ngơi tay, thủ đoạn ám muội — chỉ cậy mũi tên chứ không dám giáp mặt.',
+    tanKiem: 'Kiếm đồ lang bạt giang hồ, không môn không phái, kiếm pháp học lỏm tạp nham. Tán kiếm loạn chiêu mà liều lĩnh đoạt mạng, hữu chiêu vô lý — chỉ mong một kiếm đổi lấy miếng cơm.',
+    doCo: 'Giáo đồ Ngũ Độc Giáo chốn Nam Cương, nuôi cổ thả độc chỉ để mưu hại người. Âm thầm điểm huyệt hạ độc, độc vụ mê hồn tỏa sương — âm hiểm khôn lường, gieo độc thủ chẳng chút ghê tay.',
+    luyenKhi: 'Tán nhân luyện khí nơi hoang cốc, chấp niệm cầu công quá gấp mà tẩu hỏa nhập ma. Hỏa chưởng liệt diễm bốc cháy cả thân, chân khí phản phệ tâm mạch — cuồng loạn thiêu đốt, giết người mà cũng tự thiêu chính mình.',
+    hoaSonKiem: 'Kiếm sĩ phái Hoa Sơn, một đời tôi luyện khí tông, lấy khí ngự kiếm mà thành danh. Kiếm ý ngưng như băng tuyết, xuất thủ nhẹ nhàng mà sắc bén thấu xương — một chiêu mai hoa đủ điểm huyệt đoạt mệnh.',
+    duongMon: 'Sứ giả Đường Môn ẩn trong bóng tối, mười ngón tay giấu mười phần chết chóc. Ám khí tẩm độc vừa rời tay đã lấy mạng người, phòng chẳng kịp phòng.',
+    caiBang: 'Trưởng lão Cái Bang, áo vải rách vai mà cốt cách hào sảng, xem thường vinh nhục thế gian. Trúc bổng vốn múa như rồng say, tưởng lảo đảo mà chiêu chiêu hiểm hóc — chân nhân bất lộ tướng, khiến địch khinh thường rồi chuốc bại.',
+    ngaMiSu: 'Sư thái phái Nga Mi, một thân từ bi mà võ công chính trực nghiêm minh. Kiếm pháp công thủ vẹn toàn, tiến có Nga Mi thứ đoạt mệnh, lui có Kim Đỉnh hộ thân — nhu trung ngụ cương, chẳng cho địch hở một tấc.',
+    thieuLam: 'Võ tăng Thiếu Lâm, kim thân bất hoại, một đời khổ luyện ngoại công cương mãnh. La Hán quyền phong hùng hồn như sấm dậy, cương mãnh phá vạn pháp — một quyền dốc toàn lực, để người chẳng dám khinh nhờn.',
+    voDang: 'Chưởng môn Võ Đang, đạo cốt tiên phong, một đời tu Thái Cực. Đạo pháp thuận theo tự nhiên, dĩ tĩnh chế động, tứ lạng bạt thiên cân — chỉ tiếc chấp niệm còn vương nơi mộng cảnh.',
+    thienSon: 'Lão tổ phái Thiên Sơn ẩn cư nơi băng phong tuyết lĩnh, một đời luyện Ngưng Băng Hàn Khí, chưởng phong lạnh thấu như hầm băng. Ra chiêu thì hàn quang phong bế kinh mạch, lạnh lùng tàn khốc — chấp niệm băng phong khóa chặt tâm ma nơi mộng cảnh.',
+    nhatNguyet: 'Giáo chủ Nhật Nguyệt Thần Giáo, oai chấn một cõi giang hồ, ma khí ngùn ngụt bức người khó thở. Kiếm pháp âm độc hòa cùng Tụ Ma Vận Công, một chiêu ra thì thiên sầu địa ám — chỉ tiếc bá nghiệp dở dang, oán khí còn vương nơi mộng.',
+    bongLai: 'Tán tiên phái Bồng Lai, tiên phong đạo cốt, ngự kiếm đạp mây lướt gió giữa chốn trần ai. Ngũ kiếm hợp thuật thu vạn khí quy nhất, ngọc lộ hồi xuân dưỡng thân bất lão — thân mang tiên duyên mà chấp niệm chưa dứt, vẫn vương một giấc mộng chưa thành.',
+    maGiao: 'Tàn niệm của một vị hộ pháp Ma Giáo, chết rồi mà oán khí chẳng tan. Ma công thâm hiểm còn hằn trong mộng, gặp ai cũng chỉ biết sát phạt.',
   };
   // ENC: mỗi ENCOUNTER = mảng ĐỢT (wave); mỗi đợt = mảng id quái. Diệt sạch đợt -> đợt kế tràn vào. (Full 20 tầng ở TIER/ENC mở rộng.)
   const ENC = {
@@ -215,6 +238,8 @@ export function dangTienMong() {
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, _winning: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null,
+    // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
+    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null,
     HEROES, RELICS, metaUp: META_UP,
     lobbyFoes: [
       { art: 'cuongDao', nm: 'Cường Đạo' }, { art: 'satThu', nm: 'Sát Thủ' },
@@ -321,6 +346,62 @@ export function dangTienMong() {
       if (state === 'pick') return 'color:' + c + ';border-color:' + c + ';background:' + c + '18';
       if (state === 'done') return 'color:#64748b;border-color:#33415599'; return 'color:#475569;border-color:#1e293b'; },
     bossBannerImg() { return 'images/dtm/enemies/port_master_ma_giao.webp'; },
+
+    // ============================================================
+    // BÁCH KHOA THẺ + CHI TIẾT QUÁI (2 chức năng tra cứu)
+    // CÁCH LY: chỉ đọc POOL / ENEMIES / MOVES / ENEMY_BIO (const component) + this.enemies (run) + DOM.
+    // KHÔNG đụng state.combat / gearBag / currencies. (_cardUnlocked đọc state.dangTien — trong phạm vi cách ly.)
+    // ============================================================
+    heHan(h) { return HE_HAN[h] || ''; },
+    khacName(h) { return HE_NAME[KHAC[h]] || '—'; },                                           // h khắc ...
+    khacColor(h) { return HE_COLOR[KHAC[h]] || '#94a3b8'; },
+    biKhacName(h) { const k = Object.keys(KHAC).find((x) => KHAC[x] === h); return k ? HE_NAME[k] : '—'; },   // ... khắc h
+    biKhacColor(h) { const k = Object.keys(KHAC).find((x) => KHAC[x] === h); return k ? HE_COLOR[k] : '#94a3b8'; },
+    // ----- Chi Tiết Quái (từ nút "Chi Tiết" trên panel quái — KHÔNG đụng chọn mục tiêu) -----
+    openEnemyDetail(e) { this.dtlEnemy = e; },
+    closeEnemyDetail() { this.dtlEnemy = null; },
+    enemyLoai(e) { return !e ? '' : (e.boss ? 'Mộng Chủ' : (e.chuongMon ? 'Ác Thủ · Chưởng Môn' : (e.elite ? 'Tinh Anh' : 'Lâu La'))); },
+    enemyBio(e) { return (e && ENEMY_BIO[e.id]) || ''; },
+    enemyMoves(e) { return (e && MOVES[e.id]) || []; },
+    enemyStatusList(e) { const a = []; if (!e) return a; if (e.block > 0) a.push({ k: 'hothe', label: 'Hộ Thể', v: e.block, c: '#38bdf8' }); if (e.poison > 0) a.push({ k: 'doc', label: 'Độc', v: e.poison, c: '#34d399' }); if (e.weak > 0) a.push({ k: 'suyyeu', label: 'Suy Yếu', v: e.weak, c: '#a78bfa' }); if (e.str > 0) a.push({ k: 'luc', label: 'Lực', v: e.str, c: '#facc15' }); return a; },
+    moveIntentText(e, i) { const it = e.intents[i]; if (!it) return ''; const s = e.str || 0;
+      if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
+      if (it.t === 'def') return 'Vận Hộ Thể ' + it.v; if (it.t === 'buff') return 'Tăng Lực +' + it.v;
+      if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v; return ''; },
+    moveIntentColor(e, i) { const it = e.intents[i]; if (!it) return '#94a3b8'; return it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))); },
+    moveArt(m) { return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
+    // ----- Bách Khoa Thẻ (wiki) — Sảnh + trong trận -----
+    openWiki() { this.wikiOpen = true; },
+    closeWiki() { this.wikiOpen = false; },
+    wikiPhaiList() { return [...new Set(Object.keys(POOL).map((k) => POOL[k].sect).filter(Boolean))].sort(); },
+    wikiPhaiShown() { const all = this.wikiPhaiList(); return this.phaiExpanded ? all : all.slice(0, 3); },
+    wikiHasMorePhai() { return this.wikiPhaiList().length > 3; },
+    wikiBacHas(r) { return r === 'all' || Object.values(POOL).some((c) => c.rar === r); },
+    wikiTotal() { return Object.keys(POOL).length; },
+    wikiCards() {
+      const q = (this.wikiSearch || '').toLowerCase().trim();
+      return Object.keys(POOL).filter((id) => { const c = POOL[id];
+        if (this.fHe !== 'all' && c.he !== this.fHe) return false;
+        if (this.fLoai !== 'all' && c.type !== this.fLoai) return false;
+        if (this.fBac !== 'all' && c.rar !== this.fBac) return false;
+        if (this.fPhai !== 'all') { if (this.fPhai === '__none') { if (c.sect) return false; } else if (c.sect !== this.fPhai) return false; }
+        if (q && !((c.name + ' ' + (c.desc || '') + ' ' + (c.flavor || '') + ' ' + (c.sect || '')).toLowerCase().includes(q))) return false;
+        return true;
+      }).map((id) => ({ id, ...POOL[id] }));
+    },
+    wikiActive() { const a = []; if (this.fHe !== 'all') a.push({ g: 'he', label: 'Hệ ' + HE_NAME[this.fHe] }); if (this.fLoai !== 'all') a.push({ g: 'loai', label: this.typeLabel({ type: this.fLoai }) }); if (this.fBac !== 'all') a.push({ g: 'bac', label: RAR_N[this.fBac] }); if (this.fPhai !== 'all') a.push({ g: 'phai', label: this.fPhai === '__none' ? 'Vô phái' : this.fPhai }); return a; },
+    setFilter(g, v) { if (g === 'he') this.fHe = v; else if (g === 'loai') this.fLoai = v; else if (g === 'bac') this.fBac = v; else if (g === 'phai') this.fPhai = v; },
+    clearFilter(g) { this.setFilter(g, 'all'); },
+    clearAllFilters() { this.fHe = this.fLoai = this.fBac = this.fPhai = 'all'; this.wikiSearch = ''; },
+    togglePhaiExpand() { this.phaiExpanded = !this.phaiExpanded; },
+    // ----- Chi Tiết Thẻ (từ wiki) -----
+    openCardDetail(id) { this.cardDetail = id; },
+    closeCardDetail() { this.cardDetail = null; },
+    cd() { return this.cardDetail ? { id: this.cardDetail, ...POOL[this.cardDetail] } : {}; },
+    cardLocked(id) { return !this._cardUnlocked(id); },   // dùng lại hệ mở khóa Tuyệt theo cột mốc (chỉ Tuyệt bị khóa)
+    // ----- Lightbox (phóng to chân dung / thẻ) -----
+    zoomImg(src) { if (src) this.lightbox = src; },
+    closeZoom() { this.lightbox = null; },
 
     startRun(h) {
       this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0;
