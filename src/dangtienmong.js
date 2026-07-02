@@ -183,6 +183,24 @@ export function dangTienMong() {
     hanBangChanKhi: { name: 'Hàn Băng Chân Khí', han: '氣', he: 'tho', sect: 'Thiên Sơn', cost: 1, type: 'atk', rar: 'hiem', dmg: 6, heal: 4, weaken: 1, desc: '6 ST · hồi 4 · Suy Yếu 1.' },
     thienSonBangPhong: { name: 'Thiên Sơn Băng Phong', han: '封', he: 'tho', sect: 'Thiên Sơn', cost: 2, type: 'atk', rar: 'hiem', dmg: 9, weaken: 2, stun: 1, desc: '9 ST · Suy Yếu 2 · Choáng 1.' },
   };
+  // Hợp Bích — hiệu ứng CỘNG THÊM khi chơi thẻ THỨ 2+ cùng phái trong 1 lượt (design §3). Áp inline trong playCard. Số DRAFT.
+  const HOP_BICH = {
+    'Thiên Vương': { blkBonus: 4, forcePen: true },          // Kim Cang Bất Hoại: +4 Hộ Thể & đòn Phá Giáp
+    'Thiếu Lâm': { keepBlock: true, blkToDmgBonus: 0.5 },     // Kim Cang Phục Ma: giữ giáp & Công +½ Hộ Thể
+    'Bồng Lai': { drawBonus: 1, energyOnce: 1 },              // Vân Du Tiên Tích: rút +1; lần đầu +1 Khí
+    'Đường Môn': { dmgPerHit: 2, poisonBonus: 2 },            // Mãn Thiên Hoa Vũ: ám khí +2 ST/mũi & +2 Độc
+    'Ngũ Độc': { detonateBonus: 0.5, keepHalfPoison: true },  // Bách Độc Câu Phát: kích nổ ×+0.5 & chừa nửa Độc
+    'Ma Giáo': { drainHealBonus: 3, selfDmgReduce: 2 },       // Huyết Ma Đồng Nguyên: hút +3 hồi & selfDmg −2
+    'Nga Mi': { healMul: 1.5, blkMul: 1.5 },                  // Cửu Dương Tương Sinh: heal & Hộ Thể ×1.5
+    'Hoa Sơn': { dmgBonus: 2, drawBonus: 1 },                 // Ngũ Nhạc Kiếm Ý: +2 ST & rút +1
+    'Thúy Yên': { weakenBonus: 2, blkBonus: 4 },              // Hàn Băng Phong Tỏa: Suy Yếu +2 & +4 Hộ Thể
+    'Thiên Nhẫn': { extendBurn: 2 },                          // Liên Hoàn Phần Thiên: mọi Bỏng +2 lượt
+    'Cái Bang': { strBonus: 2 },                              // Túy Quyền Liên Hoàn: +2 Lực
+    'Nhật Nguyệt': { healFlat: 4 },                           // Huyết Nhật Đồng Huy: hồi 4 HP
+    'Võ Đang': { keepBlock: true, dodge: true },              // Thái Cực Sinh Nghi: giữ giáp & né đòn kế
+    'Côn Lôn': { stunBonus: 1, drawBonus: 1 },               // Càn Khôn Đảo Chuyển: đòn Choáng +1 lượt & rút +1
+    'Thiên Sơn': { healFlat: 4, weakenBonus: 1 },            // Lục Dương Hồi Xuân: hồi 4 & Suy Yếu +1
+  };
   const HEROES = [
     { id: 'kiem', name: 'Lãng Kiếm Khách', han: '劍', he: 'kim', hp: 50, khi: 3, passive: 'Lợi Nhận', passiveDesc: 'Thẻ Công đầu mỗi lượt +3 ST.', desc: 'Kiếm khách lãng du, không môn không phái. Lấy nhanh-sắc-chuẩn làm đạo, đánh phủ đầu kết liễu trước khi địch kịp ra chiêu. Hợp lối tấn công dồn dập, kết trận nhanh.', start: ['coBanKiem', 'coBanKiem', 'coBanKiem', 'coBanQuyen', 'tichTa', 'hoaSon', 'langBa', 'dichCan', 'ngaMi', 'thaiCuc'] },
     { id: 'thien', name: 'Khô Thiền Sư', han: '禪', he: 'kim', hp: 64, khi: 3, passive: 'Kim Cương Bất Hoại', passiveDesc: 'Đầu mỗi lượt +3 Hộ Thể.', desc: 'Khổ tăng Thiếu Lâm, hình gầy mà khí vững. Kim thân bất hoại, lấy nhu chí cương — càng đỡ càng bền, lấy thủ làm công. Hợp lối trâu bò, chống đòn đường dài.', start: ['coBanQuyen', 'coBanQuyen', 'laHan', 'laHan', 'datMa', 'thaiCuc', 'thaiCuc', 'dichCan', 'cuuDuong', 'ngaMi'] },
@@ -360,7 +378,7 @@ export function dangTienMong() {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
-    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _shake: false, _hitstop: false, _winning: false, selUid: null,
+    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
     dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null,
@@ -692,7 +710,10 @@ export function dangTienMong() {
       this._saveRun();
     },
     handSize() { return 5 + (this.hasRelic('linhPhu') ? 1 : 0); },
-    startTurnPassive() { if (this.run.hero.id === 'thien') this.player.block += 3; if (this.hasRelic('tuKhiDan')) this.player.block += 3; if (this.hasRelic('satKhi')) this.player.str += 1; this._firstAtkUsed = false; },
+    startTurnPassive() { this._sectPlayed = {}; if (this.run.hero.id === 'thien') this.player.block += 3; if (this.hasRelic('tuKhiDan')) this.player.block += 3; if (this.hasRelic('satKhi')) this.player.str += 1; this._firstAtkUsed = false; },
+    // Màu glow viền chạy (Kim Quang) cho thẻ: Thần Thoại = tím Tử Quang (luôn); Hợp Bích = màu hệ (khi đã chơi ≥1 thẻ cùng phái/lượt, trong trận). '' = không glow.
+    cardGlow(c) { if (!c) return ''; if (c.rar === 'than') return '#c084fc'; if (this.phase === 'battle' && c.sect && this._sectPlayed && (this._sectPlayed[c.sect] || 0) >= 1) return HE_COLOR[c.he] || '#94a3b8'; return ''; },
+    hopBichName(sect) { return { 'Thiên Vương': 'Kim Cang Bất Hoại', 'Thiếu Lâm': 'Kim Cang Phục Ma', 'Bồng Lai': 'Vân Du Tiên Tích', 'Đường Môn': 'Mãn Thiên Hoa Vũ', 'Ngũ Độc': 'Bách Độc Câu Phát', 'Ma Giáo': 'Huyết Ma Đồng Nguyên', 'Nga Mi': 'Cửu Dương Tương Sinh', 'Hoa Sơn': 'Ngũ Nhạc Kiếm Ý', 'Thúy Yên': 'Hàn Băng Phong Tỏa', 'Thiên Nhẫn': 'Liên Hoàn Phần Thiên', 'Cái Bang': 'Túy Quyền Liên Hoàn', 'Nhật Nguyệt': 'Huyết Nhật Đồng Huy', 'Võ Đang': 'Thái Cực Sinh Nghi', 'Côn Lôn': 'Càn Khôn Đảo Chuyển', 'Thiên Sơn': 'Lục Dương Hồi Xuân' }[sect] || ''; },
     curIntent(e) { return e.intents[e.plan] || e.intents[0]; },
     // ----- AI bộ bài quái: chọn chiêu KẾ theo tình huống, KHÔNG còn chuỗi cố định. Giữ telegraph: chiêu đang hiện = chiêu SẼ ra cuối lượt (planNext = chiêu lượt sau, cho Lưỡng Nghi Kính). Mọi trọng số = DRAFT. -----
     _wpick(w) { let s = 0; for (const x of w) s += x; if (s <= 0) return 0; let r = Math.random() * s; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return w.length - 1; },
@@ -811,40 +832,56 @@ export function dangTienMong() {
       this.selUid = null;
       try { if (navigator.vibrate) navigator.vibrate((c.dmg || c.blkToDmg || c.detonate) ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN
       this.khi -= c.cost;
-      if (c.energy) this.khi += c.energy;   // Tụ Khí: +Khí ngay
+      // ===== Hợp Bích: đếm thẻ CÙNG phái/lượt; thẻ thứ 2+ kích hiệu ứng phái (cộng thêm) =====
+      const _sp = this._sectPlayed || (this._sectPlayed = {});
+      const prior = c.sect ? (_sp[c.sect] || 0) : 0;
+      if (c.sect) _sp[c.sect] = prior + 1;
+      const hbOn = !!(c.sect && prior >= 1);
+      const hb = hbOn ? (HOP_BICH[c.sect] || {}) : {};
       const tgt = () => this.enemies[this.tgtIdx()];
-      if (c.poison) { const e = tgt(); if (e) e.poison += c.poison + (this.run.hero.id === 'doc' ? 2 : 0) + (this.hasRelic('docLong') ? 2 : 0); }   // Độc gieo TRƯỚC đòn -> detonate tính cả Độc vừa gieo
+      if (c.energy) this.khi += c.energy;   // Tụ Khí: +Khí ngay
+      if (hb.energyOnce && prior === 1) this.khi += hb.energyOnce;   // Bồng Lai: lần đầu combo/lượt +1 Khí
+      if (c.poison) { const e = tgt(); if (e) e.poison += c.poison + (hb.poisonBonus || 0) + (this.run.hero.id === 'doc' ? 2 : 0) + (this.hasRelic('docLong') ? 2 : 0); }   // Độc gieo TRƯỚC đòn -> detonate tính cả Độc vừa gieo
+      const usePen = c.pen || hb.forcePen;   // Phá Giáp (thẻ hoặc Hợp Bích Thiên Vương)
       // Nhánh SÁT THƯƠNG: gộp dmg thường + blkToDmg (Hộ Thể hóa ST) + detonate (kích nổ Độc)
       if (c.dmg || c.blkToDmg || c.detonate) {
-        let base = (c.dmg || 0) + (this.player.str || 0);
-        if (c.blkToDmg) base += Math.floor((this.player.block || 0) * c.blkToDmg);
+        let base = (c.dmg || 0) + (this.player.str || 0) + (hb.dmgBonus || 0) + (hb.dmgPerHit || 0);
+        const btd = (c.blkToDmg || 0) + (hb.blkToDmgBonus || 0);
+        if (btd) base += Math.floor((this.player.block || 0) * btd);
         if (c.type === 'atk' && !this._firstAtkUsed) { let fb = 0; if (this.run.hero.id === 'kiem') fb += 3; if (this.hasRelic('lietNhan')) fb += 3; base += fb; this._firstAtkUsed = true; }   // Lợi Nhận (kiem) + Liệt Nhận Phù
         const hits = c.hits || 1;
         const tgts = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (tgt() ? [tgt()] : []);
         let total = 0;
         tgts.forEach((e) => {
           let per = base;
-          if (c.detonate) { per += Math.floor((e.poison || 0) * c.detonate); e.poison = 0; }   // ST += Độc×k rồi xóa Độc
+          if (c.detonate) { const mul = c.detonate + (hb.detonateBonus || 0); per += Math.floor((e.poison || 0) * mul); e.poison = hb.keepHalfPoison ? Math.floor((e.poison || 0) / 2) : 0; }   // ST += Độc×k; Hợp Bích Ngũ Độc chừa nửa Độc
           if (KHAC[c.he] === e.he) { per = Math.floor(per * 1.3); e.burst = c.he; const eb = e; setTimeout(() => { eb.burst = null; }, 620); }
-          let d = 0; for (let h = 0; h < hits; h++) d += (c.pen ? this._hitPen(e, per) : this.hitEnemy(e, per));   // Phá Giáp -> bỏ qua Hộ Thể
+          let d = 0; for (let h = 0; h < hits; h++) d += (usePen ? this._hitPen(e, per) : this.hitEnemy(e, per));   // Phá Giáp -> bỏ qua Hộ Thể
           if (d > 0) this.floatE(e, d); total += d;
         });
-        if (c.drain) this.run.hp = Math.min(this.run.maxHp, this.run.hp + total);
+        if (c.drain) this.run.hp = Math.min(this.run.maxHp, this.run.hp + total + (hb.drainHealBonus || 0));   // Hợp Bích Ma Giáo: hút +3 hồi
         this.log = c.name + (c.aoe ? ' (toàn thể)' : '') + ' → ' + total + ' ST';
       }
-      if (c.blk) this.player.block += c.blk;
-      if (c.keepBlock) this.player.keepBlock = true;   // Giữ Hộ Thể (không reset đầu lượt sau)
-      if (c.heal) this.run.hp = Math.min(this.run.maxHp, this.run.hp + c.heal);
+      const blkGain = Math.round((c.blk || 0) * (hb.blkMul || 1)) + (hb.blkBonus || 0);   // Nga Mi ×1.5 · Thiên Vương/Thúy Yên +4
+      if (blkGain) this.player.block += blkGain;
+      if (c.keepBlock || hb.keepBlock) this.player.keepBlock = true;   // Giữ Hộ Thể (thẻ / Thiếu Lâm / Võ Đang)
+      const healGain = Math.round((c.heal || 0) * (hb.healMul || 1)) + (hb.healFlat || 0);   // Nga Mi ×1.5 · Nhật Nguyệt/Thiên Sơn +4
+      if (healGain) this.run.hp = Math.min(this.run.maxHp, this.run.hp + healGain);
       // trạng thái áp lên mục tiêu (hoặc TOÀN địch nếu aoe)
       const affected = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (tgt() ? [tgt()] : []);
-      if (c.weaken) affected.forEach((e) => { e.weak += c.weaken; });
+      const weakenAmt = (c.weaken || 0) + (hb.weakenBonus || 0);   // Thúy Yên +2 · Thiên Sơn +1
+      if (weakenAmt) affected.forEach((e) => { e.weak += weakenAmt; });
       if (c.burn) affected.forEach((e) => { e.burn = (e.burn || 0) + c.burn; e.burnT = Math.max(e.burnT || 0, c.burnT || 0); });   // Bỏng: cường độ cộng dồn, thời hạn lấy max
-      if (c.stun) affected.forEach((e) => this._applyStun(e, c.stun));
-      if (c.str) this.player.str += c.str;
-      if (c.dodge) this.player.dodge = true;
-      if (c.selfDmg) { this.run.hp = Math.max(1, this.run.hp - c.selfDmg); this.floatPlayer(c.selfDmg); }   // đổi máu (không tự giết, min 1 HP)
+      if (hb.extendBurn) this.enemies.forEach((e) => { if (e.hp > 0 && e.burn > 0 && e.burnT > 0) e.burnT += hb.extendBurn; });   // Hợp Bích Thiên Nhẫn: mọi Bỏng +2 lượt
+      const stunAmt = c.stun ? (c.stun + (hb.stunBonus || 0)) : 0;   // Côn Lôn: đòn Choáng +1 lượt
+      if (stunAmt) affected.forEach((e) => this._applyStun(e, stunAmt));
+      if (c.str || hb.strBonus) this.player.str += (c.str || 0) + (hb.strBonus || 0);   // Cái Bang +2 Lực
+      if (c.dodge || hb.dodge) this.player.dodge = true;   // Né (thẻ / Võ Đang)
+      if (c.selfDmg) { const sd = Math.max(0, c.selfDmg - (hb.selfDmgReduce || 0)); if (sd) { this.run.hp = Math.max(1, this.run.hp - sd); this.floatPlayer(sd); } }   // đổi máu; Hợp Bích Ma Giáo −2
+      if (hbOn) this.log = '〈Hợp Bích ' + c.sect + '〉 ' + (this.log || c.name);
       this.castCard(c, ev);
-      if (c.draw) this.draw(c.draw);
+      const drawN = (c.draw || 0) + (hb.drawBonus || 0);   // Bồng Lai/Hoa Sơn/Côn Lôn +1
+      if (drawN) this.draw(drawN);
       if (this.aliveCount() === 0) this._battleCleared();
       this._saveRun();
     },

@@ -5977,6 +5977,14 @@
         .dtm-root .dtm-art{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; transform:translateZ(0); backface-visibility:hidden; }
         .dtm-root .card-art > .card-han{ position:relative; z-index:0; }
         .dtm-root .dtm-sigil{ position:absolute; bottom:4px; right:4px; width:19px; height:19px; object-fit:contain; z-index:6; filter:drop-shadow(0 1px 2px #000); }
+        /* Hợp Bích (Kim Quang, màu hệ) / Thần Thoại (Tử Quang, tím) — hào quang comet CHẠY VIỀN màu var(--c) đậm rõ (mockup D/T1). haloSpin = keyframe global. */
+        .dtm-root .dtm-hb-halo{ position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:4; overflow:hidden; padding:2.6px;
+          -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;
+          filter:drop-shadow(0 0 1px rgba(0,0,0,.75)) drop-shadow(0 0 8px var(--c)); }
+        .dtm-root .dtm-hb-halo::before{ content:''; position:absolute; inset:-45%;
+          background:conic-gradient(from 0deg, color-mix(in srgb,var(--c) 45%,transparent) 0deg, var(--c) 22deg, #fff 42deg, var(--c) 62deg, color-mix(in srgb,var(--c) 45%,transparent) 100deg, color-mix(in srgb,var(--c) 45%,transparent) 180deg, var(--c) 202deg, #fff 222deg, var(--c) 242deg, color-mix(in srgb,var(--c) 45%,transparent) 280deg, color-mix(in srgb,var(--c) 45%,transparent) 360deg);
+          animation:haloSpin 6s linear infinite; }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-hb-halo::before{ animation:none; } }
         .dtm-root .dtm-portwrap{ position:relative; overflow:hidden; }
         .dtm-root .dtm-portwrap > span{ position:relative; z-index:0; }
         .dtm-root .dtm-port{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; transform:translateZ(0); backface-visibility:hidden; }
@@ -7768,6 +7776,7 @@
               <div class="flex gap-2 justify-center flex-wrap min-h-[256px] items-end pt-6 pb-1 transform-gpu" :class="selUid?'has-sel':''">
                 <template x-for="(c,i) in hand" :key="c.uid">
                   <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')+(c._cast?' dtm-cast-'+c._cast:'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)">
+                    <template x-if="cardGlow(c)"><div class="dtm-hb-halo" :style="'--c:'+cardGlow(c)"></div></template>
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
                     <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="c.desc"></div></div>
