@@ -7405,55 +7405,55 @@
   filter:blur(2px);}
 
         /* ===== Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu — prefix .dtmk-, cách ly) ===== */
-        .dtm-root .dtmk-back{ position:fixed; inset:0; background:rgba(4,7,11,.8); z-index:80; display:flex; align-items:center; justify-content:center; padding:16px; }
-        .dtm-root .dtmk-modal{ background:linear-gradient(180deg,#111b26,#0b131b); border:1px solid #26323f; border-radius:18px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 30px 80px -20px #000; }
-        .dtm-root .dtmk-modal.enemy{ width:min(820px,96vw); height:min(700px,92vh); }
-        .dtm-root .dtmk-modal.wiki{ width:min(1000px,96vw); height:min(720px,93vh); }
-        .dtm-root .dtmk-modal.carddt{ width:min(440px,92vw); height:min(600px,90vh); }
-        .dtm-root .dtmk-mhead{ padding:13px 18px; border-bottom:1px solid #1e293b; display:flex; align-items:center; justify-content:space-between; flex:none; }
-        .dtm-root .dtmk-mbody{ padding:16px 18px; overflow:auto; flex:1; }
-        .dtm-root .dtmk-mbody::-webkit-scrollbar{ width:9px; } .dtm-root .dtmk-mbody::-webkit-scrollbar-thumb{ background:#26323f; border-radius:9px; }
-        .dtm-root .dtmk-xbtn{ width:32px; height:32px; border-radius:9px; border:1px solid #2b3a49; color:#9fb0c0; background:#0e1620; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-        .dtm-root .dtmk-xbtn:hover{ color:#e6edf3; border-color:#3a4a5a; }
-        .dtm-root .dtmk-ic{ width:1em; height:1em; display:inline-block; vertical-align:-2px; }
-        .dtm-root .dtmk-statbox{ background:#0c141d; border:1px solid #1c2733; border-radius:10px; padding:8px 10px; }
-        .dtm-root .dtmk-mpill{ display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:700; white-space:nowrap; }
-        .dtm-root .dtmk-lore{ font-style:italic; color:#c3cfdb; font-size:13px; line-height:1.55; border-left:2px solid #f5b94266; padding-left:11px; }
-        .dtm-root .dtmk-zoom{ cursor:zoom-in; }
-        .dtm-root .dtmk-btndetail{ font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid #2b6f8a; color:#7fd6f0; background:#0c2531cc; cursor:pointer; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
-        .dtm-root .dtmk-btndetail:hover{ background:#123647; }
+        .dtmk-back{ position:fixed; inset:0; background:rgba(4,7,11,.8); z-index:120; display:flex; align-items:center; justify-content:center; padding:16px; }
+        .dtmk-modal{ background:linear-gradient(180deg,#111b26,#0b131b); border:1px solid #26323f; border-radius:18px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 30px 80px -20px #000; }
+        .dtmk-modal.enemy{ width:min(820px,96vw); height:min(700px,92vh); }
+        .dtmk-modal.wiki{ width:min(1000px,96vw); height:min(720px,93vh); }
+        .dtmk-modal.carddt{ width:min(440px,92vw); height:min(600px,90vh); }
+        .dtmk-mhead{ padding:13px 18px; border-bottom:1px solid #1e293b; display:flex; align-items:center; justify-content:space-between; flex:none; }
+        .dtmk-mbody{ padding:16px 18px; overflow:auto; flex:1; }
+        .dtmk-mbody::-webkit-scrollbar{ width:9px; } .dtmk-mbody::-webkit-scrollbar-thumb{ background:#26323f; border-radius:9px; }
+        .dtmk-xbtn{ width:32px; height:32px; border-radius:9px; border:1px solid #2b3a49; color:#9fb0c0; background:#0e1620; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .dtmk-xbtn:hover{ color:#e6edf3; border-color:#3a4a5a; }
+        .dtmk-ic{ width:1em; height:1em; display:inline-block; vertical-align:-2px; }
+        .dtmk-statbox{ background:#0c141d; border:1px solid #1c2733; border-radius:10px; padding:8px 10px; }
+        .dtmk-mpill{ display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:700; white-space:nowrap; }
+        .dtmk-lore{ font-style:italic; color:#c3cfdb; font-size:13px; line-height:1.55; border-left:2px solid #f5b94266; padding-left:11px; }
+        .dtmk-zoom{ cursor:zoom-in; }
+        .dtmk-btndetail{ font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid #2b6f8a; color:#7fd6f0; background:#0c2531cc; cursor:pointer; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+        .dtmk-btndetail:hover{ background:#123647; }
         /* Bộ Chiêu (move rows) trong modal Chi Tiết Quái */
-        .dtm-root .dtmk-move{ display:flex; align-items:center; gap:10px; background:#0c141d; border:1px solid #1c2733; border-radius:11px; padding:8px 10px; }
-        .dtm-root .dtmk-moveart{ position:relative; width:40px; height:40px; border-radius:7px; overflow:hidden; flex:none; background:#111; display:flex; align-items:center; justify-content:center; }
-        .dtm-root .dtmk-mvhan{ font-family:'Lora',serif; color:#64748b; font-size:18px; }
+        .dtmk-move{ display:flex; align-items:center; gap:10px; background:#0c141d; border:1px solid #1c2733; border-radius:11px; padding:8px 10px; }
+        .dtmk-moveart{ position:relative; width:40px; height:40px; border-radius:7px; overflow:hidden; flex:none; background:#111; display:flex; align-items:center; justify-content:center; }
+        .dtmk-mvhan{ font-family:'Lora',serif; color:#64748b; font-size:18px; }
         /* Bộ lọc wiki */
-        .dtm-root .dtmk-tab{ padding:5px 12px; border-radius:999px; font-size:13px; font-weight:600; border:1px solid #26313d; color:#9fb0c0; cursor:pointer; white-space:nowrap; }
-        .dtm-root .dtmk-chip{ padding:3px 10px; border-radius:999px; font-size:11.5px; border:1px solid #26313d; color:#9fb0c0; cursor:pointer; white-space:nowrap; }
-        .dtm-root .dtmk-chip.on{ background:#1c2836; color:#e6edf3; border-color:#3a4a5a; }
-        .dtm-root .dtmk-glabel{ font-size:11px; color:#7c8a99; min-width:42px; padding-top:6px; flex:none; text-align:right; }
-        .dtm-root .dtmk-afchip{ background:#12303a; border:1px solid #2b6f8a; color:#9fe0f5; padding:3px 6px 3px 10px; border-radius:999px; font-size:11.5px; display:inline-flex; gap:5px; align-items:center; cursor:pointer; white-space:nowrap; }
-        .dtm-root .dtmk-afchip:hover{ background:#164050; }
-        .dtm-root .dtmk-clearall{ padding:3px 10px; border-radius:999px; font-size:11.5px; color:#f5a3a3; border:1px solid #5a2b2b; cursor:pointer; white-space:nowrap; }
+        .dtmk-tab{ padding:5px 12px; border-radius:999px; font-size:13px; font-weight:600; border:1px solid #26313d; color:#9fb0c0; cursor:pointer; white-space:nowrap; }
+        .dtmk-chip{ padding:3px 10px; border-radius:999px; font-size:11.5px; border:1px solid #26313d; color:#9fb0c0; cursor:pointer; white-space:nowrap; }
+        .dtmk-chip.on{ background:#1c2836; color:#e6edf3; border-color:#3a4a5a; }
+        .dtmk-glabel{ font-size:11px; color:#7c8a99; min-width:42px; padding-top:6px; flex:none; text-align:right; }
+        .dtmk-afchip{ background:#12303a; border:1px solid #2b6f8a; color:#9fe0f5; padding:3px 6px 3px 10px; border-radius:999px; font-size:11.5px; display:inline-flex; gap:5px; align-items:center; cursor:pointer; white-space:nowrap; }
+        .dtmk-afchip:hover{ background:#164050; }
+        .dtmk-clearall{ padding:3px 10px; border-radius:999px; font-size:11.5px; color:#f5a3a3; border:1px solid #5a2b2b; cursor:pointer; white-space:nowrap; }
         /* Lưới thẻ wiki */
-        .dtm-root .dtmk-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); }
-        .dtm-root .dtmk-card{ position:relative; border-radius:12px; overflow:hidden; background:#0d151d; border:1px solid #1e293b; aspect-ratio:146/210; cursor:pointer; transition:transform .12s, box-shadow .12s, border-color .12s; }
-        .dtm-root .dtmk-card:hover{ transform:translateY(-4px); box-shadow:0 10px 26px -10px var(--r,#38bdf8); border-color:var(--r,#38bdf8); }
-        .dtm-root .dtmk-cart{ position:absolute; inset:0; background-size:cover; background-position:center; }
-        .dtm-root .dtmk-cart::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(5,8,12,.05) 42%, rgba(5,8,12,.93) 100%); }
-        .dtm-root .dtmk-cframe{ position:absolute; inset:0; border-radius:12px; box-shadow:inset 0 0 0 1.5px var(--r,#38bdf8); pointer-events:none; z-index:3; opacity:.9; }
-        .dtm-root .dtmk-ccost{ position:absolute; top:6px; left:6px; z-index:4; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#0a0f16; background:radial-gradient(circle at 35% 30%, #7fe3ff, #22a7e0); box-shadow:0 1px 4px rgba(0,0,0,.5); }
-        .dtm-root .dtmk-ccost small{ position:absolute; bottom:-11px; font-size:8px; color:#9fe4ff; text-shadow:0 1px 2px #000; }
-        .dtm-root .dtmk-cgem{ position:absolute; top:8px; right:8px; z-index:4; width:11px; height:11px; transform:rotate(45deg); background:var(--r,#38bdf8); box-shadow:0 0 7px -1px var(--r,#38bdf8); border:1px solid rgba(255,255,255,.35); }
-        .dtm-root .dtmk-csig{ position:absolute; bottom:52px; right:8px; z-index:4; width:16px; height:16px; border-radius:50%; background:var(--he,#94a3b8); box-shadow:0 0 8px -1px var(--he,#94a3b8); border:1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:9px; color:#0a0f16; font-weight:800; font-family:'Lora',serif; }
-        .dtm-root .dtmk-cinfo{ position:absolute; left:0; right:0; bottom:0; z-index:4; padding:7px 8px 8px; }
-        .dtm-root .dtmk-cnm{ font-weight:800; font-size:12.5px; line-height:1.2; color:#e6edf3; }
-        .dtm-root .dtmk-chan{ font-family:'Lora',serif; opacity:.5; }
-        .dtm-root .dtmk-cty{ font-size:9.5px; margin-top:3px; font-weight:600; }
-        .dtm-root .dtmk-card.lock .dtmk-cart{ filter:grayscale(.85) brightness(.4); }
-        .dtm-root .dtmk-lockseal{ position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:40px; color:#e05252; text-shadow:0 2px 8px #000; }
+        .dtmk-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); }
+        .dtmk-card{ position:relative; border-radius:12px; overflow:hidden; background:#0d151d; border:1px solid #1e293b; aspect-ratio:146/210; cursor:pointer; transition:transform .12s, box-shadow .12s, border-color .12s; }
+        .dtmk-card:hover{ transform:translateY(-4px); box-shadow:0 10px 26px -10px var(--r,#38bdf8); border-color:var(--r,#38bdf8); }
+        .dtmk-cart{ position:absolute; inset:0; background-size:cover; background-position:center; }
+        .dtmk-cart::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(5,8,12,.05) 42%, rgba(5,8,12,.93) 100%); }
+        .dtmk-cframe{ position:absolute; inset:0; border-radius:12px; box-shadow:inset 0 0 0 1.5px var(--r,#38bdf8); pointer-events:none; z-index:3; opacity:.9; }
+        .dtmk-ccost{ position:absolute; top:6px; left:6px; z-index:4; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#0a0f16; background:radial-gradient(circle at 35% 30%, #7fe3ff, #22a7e0); box-shadow:0 1px 4px rgba(0,0,0,.5); }
+        .dtmk-ccost small{ position:absolute; bottom:-11px; font-size:8px; color:#9fe4ff; text-shadow:0 1px 2px #000; }
+        .dtmk-cgem{ position:absolute; top:8px; right:8px; z-index:4; width:11px; height:11px; transform:rotate(45deg); background:var(--r,#38bdf8); box-shadow:0 0 7px -1px var(--r,#38bdf8); border:1px solid rgba(255,255,255,.35); }
+        .dtmk-csig{ position:absolute; bottom:52px; right:8px; z-index:4; width:16px; height:16px; border-radius:50%; background:var(--he,#94a3b8); box-shadow:0 0 8px -1px var(--he,#94a3b8); border:1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:9px; color:#0a0f16; font-weight:800; font-family:'Lora',serif; }
+        .dtmk-cinfo{ position:absolute; left:0; right:0; bottom:0; z-index:4; padding:7px 8px 8px; }
+        .dtmk-cnm{ font-weight:800; font-size:12.5px; line-height:1.2; color:#e6edf3; }
+        .dtmk-chan{ font-family:'Lora',serif; opacity:.5; }
+        .dtmk-cty{ font-size:9.5px; margin-top:3px; font-weight:600; }
+        .dtmk-card.lock .dtmk-cart{ filter:grayscale(.85) brightness(.4); }
+        .dtmk-lockseal{ position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:40px; color:#e05252; text-shadow:0 2px 8px #000; }
         /* Lightbox phóng to */
-        .dtm-root .dtmk-lightbox{ position:fixed; inset:0; z-index:90; background:rgba(3,5,8,.92); display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
-        .dtm-root .dtmk-lightbox img{ max-width:96vw; max-height:92vh; border-radius:12px; box-shadow:0 20px 80px -10px #000; }
+        .dtmk-lightbox{ position:fixed; inset:0; z-index:130; background:rgba(3,5,8,.92); display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
+        .dtmk-lightbox img{ max-width:96vw; max-height:92vh; border-radius:12px; box-shadow:0 20px 80px -10px #000; }
 </style>
       <template x-if="$store.game.view==='dangTienMong'">
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
@@ -7478,7 +7478,7 @@
           <div class="flex items-center justify-between mb-3" x-show="phase!=='lobby'">
             <div class="flex items-center gap-2">
               <span class="relative w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px] overflow-hidden" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢<img src="images/dtm/emblem.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()"></span>
-              <div><div class="fserif text-lg gold-text leading-none">Đăng Tiên Mộng</div><div class="text-[10px] text-slate-500 -mt-0.5">登仙夢 · mộng cảnh luyện chiêu</div></div>
+              <div><div class="fserif text-lg gold-text leading-none">Đăng Tiên Mộng</div></div>
             </div>
             <div class="flex items-center gap-3 text-[12px]">
               <button @click="openWiki()" class="dtmk-btndetail" title="Bách Khoa Võ Học"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-book"/></svg><span class="hidden sm:inline">Bách Khoa</span></button>
@@ -7990,6 +7990,8 @@
             </div>
           </template>
 
+          <!-- 4 modal tra cuu teleport ra <body> de thoat stacking-context isolation cua .dtm-root (khoi bi sidebar/top-bar de len) -->
+          <template x-teleport="body"><div class="dtmk-portal">
           <!-- ===== MODAL: Chi Tiết Quái (tàn niệm) ===== -->
           <template x-if="dtlEnemy">
             <div class="dtmk-back" @click.self="closeEnemyDetail()">
@@ -8089,7 +8091,7 @@
 
           <!-- ===== MODAL: Chi Tiết Thẻ (từ wiki) ===== -->
           <template x-if="cardDetail">
-            <div class="dtmk-back" style="z-index:85" @click.self="closeCardDetail()">
+            <div class="dtmk-back" style="z-index:125" @click.self="closeCardDetail()">
               <div class="dtmk-modal carddt">
                 <div class="dtmk-mhead"><div class="fserif text-lg text-slate-100">Chi Tiết Chiêu Thức</div><button class="dtmk-xbtn" @click="closeCardDetail()"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-x"/></svg></button></div>
                 <div class="dtmk-mbody">
@@ -8120,6 +8122,7 @@
           <template x-if="lightbox">
             <div class="dtmk-lightbox" @click="closeZoom()"><img :src="lightbox" alt=""/></div>
           </template>
+          </div></template>
         </div>
       </template>
 
