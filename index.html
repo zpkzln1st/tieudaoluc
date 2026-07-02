@@ -7721,7 +7721,9 @@
                       <span x-show="peekOn()&&e.hp>0" class="pill" style="font-size:9px;color:#94a3b8;border-color:#33415588;background:#33415522" x-text="'Kế: '+peekText(e)"></span>
                       <span x-show="e.block>0" class="pill text-sky-300 border-sky-600/40 bg-sky-900/40"><img :src="statusIcon('hothe')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Hộ '+e.block"></span></span>
                       <span x-show="e.poison>0" class="pill text-emerald-300 border-emerald-600/40 bg-emerald-900/40"><img :src="statusIcon('doc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Độc '+e.poison"></span></span>
+                      <span x-show="e.burn>0&&e.burnT>0" class="pill" style="color:#fdba74;border:1px solid #fb923c66;background:#fb923c1f"><span x-text="'Bỏng '+e.burn+'×'+e.burnT"></span></span>
                       <span x-show="e.weak>0" class="pill text-violet-300 border-violet-600/40 bg-violet-900/30"><img :src="statusIcon('suyyeu')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Suy Yếu '+e.weak"></span></span>
+                      <span x-show="e.stun>0" class="pill" style="color:#d8b4fe;border:1px solid #c084fc66;background:#c084fc1f"><span x-text="'Choáng '+e.stun"></span></span>
                     </div>
                   </div>
                 </template>
