@@ -8016,10 +8016,18 @@
                         <div class="flex items-center gap-2 flex-wrap"><div class="fserif text-[14px] text-violet-100" x-text="u.name"></div><span class="mu-pips" x-show="upMax(u)>1" x-text="'Bậc '+upLevel(u)+'/'+upMax(u)"></span><span class="mu-pips" style="color:#5eead4" x-show="upMax(u)===1&&upMaxed(u)">✓ đã có</span></div>
                         <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="u.desc"></div>
                         <template x-if="u.id==='khaiMong' && _up().startRelic">
-                          <div class="flex gap-1.5 mt-1.5 flex-wrap">
-                            <template x-for="r in RELICS" :key="r.id">
-                              <button @click="setStartRelic(r.id)" class="w-7 h-7 rounded-md border flex items-center justify-center fserif text-[13px] transition" :class="_up().startRelic===r.id ? 'border-gold text-gold bg-gold/10' : 'border-slate-700 text-slate-400 hover:border-slate-500'" :title="r.name+' — '+r.desc" x-text="r.han"></button>
-                            </template>
+                          <div class="mt-2">
+                            <div class="flex gap-1.5 flex-wrap">
+                              <template x-for="r in RELICS" :key="r.id">
+                                <button @click="setStartRelic(r.id)" @mouseenter="_relicHover=r.id" @mouseleave="_relicHover=null" class="relative w-9 h-9 rounded-md overflow-hidden border flex items-center justify-center fserif text-[15px] shrink-0 transition" :style="_up().startRelic===r.id ? 'border-color:#f5b942;box-shadow:0 0 0 1px #f5b942,0 0 10px -2px #f5b942' : 'border-color:'+rarColor(r.rar)+'66'">
+                                  <span :style="'color:'+rarColor(r.rar)" x-text="r.han"></span>
+                                  <img :src="relicImg(r.id)" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'">
+                                </button>
+                              </template>
+                            </div>
+                            <div class="text-[11px] mt-2 leading-snug min-h-[30px]" x-show="relicShown()">
+                              <span class="fserif" :style="'color:'+rarColor((relicShown()||{}).rar)" x-text="(relicShown()||{}).name"></span><span class="text-slate-400" x-text="relicShown()?(' — '+relicShown().desc):''"></span>
+                            </div>
                           </div>
                         </template>
                       </div>

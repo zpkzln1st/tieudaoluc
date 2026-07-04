@@ -403,7 +403,7 @@ export function dangTienMong() {
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
   return {
-    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
+    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, selUid: null,
@@ -469,6 +469,7 @@ export function dangTienMong() {
     upPips(u) { const L = this.upLevel(u), M = this.upMax(u); let s = ''; for (let i = 0; i < M; i++) s += (i < L ? '●' : '○'); return s; },
     buyUp(id) { const u = META_UP.find((x) => x.id === id); if (!u || !this.upCanBuy(u)) return; const s = this.$store.game.state.dangTien; s.mongNgan -= this.upNextCost(u); const up = s.up; if (u.kind === 'level') up[u.key] = (up[u.key] || 0) + 1; else if (u.kind === 'flag') up[u.key] = true; else if (u.kind === 'relic') up[u.key] = up[u.key] || 'thietGiap'; try { Storage.save(this.$store.game.state); } catch (e) {} },
     setStartRelic(id) { try { const s = this.$store.game.state.dangTien; if (s.up.startRelic == null) return; s.up.startRelic = id; Storage.save(this.$store.game.state); } catch (e) {} },
+    relicShown() { const id = this._relicHover || this._up().startRelic; return RELICS.find((x) => x.id === id) || null; },   // di vật đang rê/chọn (cho picker Khải Mộng)
     _setReroll() { this.rerollLeft = (this._up().reroll) || 0; },
     reroll() {
       if (this.rerollLeft <= 0) return; this.rerollLeft--;
