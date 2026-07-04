@@ -60,7 +60,7 @@ export function dangTienMong() {
     coBanChuong: { name: 'Cơ Bản Chưởng', han: '掌', he: 'vatly', cost: 1, type: 'atk', rar: 'so', dmg: 4, weaken: 1, desc: '4 ST · Suy Yếu 1.' },
     hoThanBo: { name: 'Hộ Thân Bộ', han: '護', he: 'vatly', cost: 1, type: 'def', rar: 'so', blk: 6, desc: '+6 Hộ Thể.' },
     vinhXuanChuy: { name: 'Vịnh Xuân Chùy', han: '詠', he: 'vatly', cost: 1, type: 'atk', rar: 'so', dmg: 2, hits: 2, desc: '2 ST ×2.' },
-    langBa: { name: 'Lăng Ba Vi Bộ', han: '波', he: 'thuy', cost: 1, type: 'ky', rar: 'thuong', blk: 5, dodge: true, desc: '+5 Hộ Thể · Né đòn kế.', flavor: 'Thân pháp tuyệt thế, bước theo phương vị Dịch lý. Người đi như lướt trên sóng biếc, phiêu hốt vô định, đòn hiểm nào cũng lách qua.' },
+    langBa: { name: 'Lăng Ba Vi Bộ', han: '波', he: 'thuy', cost: 1, type: 'ky', rar: 'thuong', blk: 6, desc: '+6 Hộ Thể.', flavor: 'Thân pháp tuyệt thế, bước theo phương vị Dịch lý. Người đi như lướt trên sóng biếc, phiêu hốt vô định, lấy bộ pháp hóa giải kình đạo.' },
     thanhPhong: { name: 'Thanh Phong Bộ', han: '風', he: 'moc', cost: 0, type: 'ky', rar: 'thuong', draw: 2, desc: 'Rút 2 lá.', flavor: 'Bộ pháp nhẹ tựa thanh phong, tiến thoái theo tâm. Chân bước thảnh thơi mà chiêu thức nối liền chẳng dứt.' },
     vanKhiQuyet: { name: 'Vận Khí Quyết', han: '運', he: 'vatly', cost: 0, type: 'ky', rar: 'thuong', energy: 1, draw: 1, desc: '+1 Khí · rút 1.' },
     toanPhongCuoc: { name: 'Toàn Phong Cước', han: '旋', he: 'vatly', cost: 1, type: 'atk', rar: 'thuong', dmg: 6, blk: 3, desc: '6 ST · +3 Hộ Thể.' },
@@ -85,13 +85,13 @@ export function dangTienMong() {
     viDaChuong: { name: 'Vi Đà Chưởng', han: '韋', he: 'kim', sect: 'Thiếu Lâm', cost: 1, type: 'atk', rar: 'thuong', dmg: 5, blk: 4, desc: '5 ST · +4 Hộ Thể.' },
     baNhaThung: { name: 'Bá Nhã Thung Chung', han: '鐘', he: 'kim', sect: 'Thiếu Lâm', cost: 2, type: 'atk', rar: 'hiem', dmg: 8, blkToDmg: 0.5, desc: '8 ST + ½ Hộ Thể.' },
     // Bồng Lai — rút bài + né + Tụ Khí
-    vanVuThan: { name: 'Vân Vũ Thân Pháp', han: '雲', he: 'kim', sect: 'Bồng Lai', cost: 0, type: 'ky', rar: 'thuong', dodge: true, draw: 1, desc: 'Né đòn kế · rút 1.' },
+    vanVuThan: { name: 'Vân Vũ Thân Pháp', han: '雲', he: 'kim', sect: 'Bồng Lai', cost: 1, type: 'ky', rar: 'thuong', dodge: true, draw: 1, desc: 'Giảm ½ đòn kế · rút 1.' },
     ngocLoTuKhi: { name: 'Ngọc Lộ Tụ Khí', han: '露', he: 'kim', sect: 'Bồng Lai', cost: 0, type: 'ky', rar: 'hiem', energy: 2, draw: 1, exhaust: true, desc: '+2 Khí · rút 1 · Đoạn.' },
     phiKiemTruyThan: { name: 'Phi Kiếm Truy Thần', han: '飛', he: 'kim', sect: 'Bồng Lai', cost: 1, type: 'atk', rar: 'hiem', dmg: 4, hits: 2, draw: 1, desc: '4 ST ×2 · rút 1.' },
     thanhVanBo: { name: 'Thanh Vân Bộ', han: '步', he: 'kim', sect: 'Bồng Lai', cost: 0, type: 'ky', rar: 'so', draw: 1, desc: 'Rút 1.' },
     tienNhanChiLo: { name: 'Tiên Nhân Chỉ Lộ', han: '指', he: 'kim', sect: 'Bồng Lai', cost: 1, type: 'atk', rar: 'thuong', dmg: 5, draw: 1, desc: '5 ST · rút 1.' },
     luuVanPhi: { name: 'Lưu Vân Phi Kiếm', han: '劍', he: 'kim', sect: 'Bồng Lai', cost: 1, type: 'atk', rar: 'hiem', dmg: 3, hits: 3, draw: 1, desc: '3 ST ×3 · rút 1.' },
-    tieuDaoDonKiem: { name: 'Tiêu Dao Độn Kiếm', han: '逍', he: 'kim', sect: 'Bồng Lai', cost: 2, type: 'atk', rar: 'tuyet', dmg: 6, hits: 3, draw: 2, dodge: true, exhaust: true, desc: '6 ST ×3 · rút 2 · Né · Đoạn.' },
+    tieuDaoDonKiem: { name: 'Tiêu Dao Độn Kiếm', han: '逍', he: 'kim', sect: 'Bồng Lai', cost: 2, type: 'atk', rar: 'tuyet', dmg: 6, hits: 3, draw: 2, dodge: true, exhaust: true, desc: '6 ST ×3 · rút 2 · Giảm ½ đòn · Đoạn.' },
     // ---------- MỘC ☴ (khắc Thổ) ----------
     // Đường Môn — ám khí nhiều mũi + Độc
     amKhi: { name: 'Đường Môn Ám Khí', han: '暗', he: 'moc', sect: 'Đường Môn', cost: 1, type: 'atk', rar: 'thuong', dmg: 3, poison: 4, desc: '3 ST · Độc 4.', flavor: 'Đường Môn đất Thục danh chấn thiên hạ vì ám khí. Mũi tiêu tẩm độc bắn ra vô thanh vô tức, thấy máu là phong hầu.' },
@@ -171,7 +171,7 @@ export function dangTienMong() {
     // Võ Đang — cố thủ + phản (keepBlock/blkToDmg)
     thaiCuc: { name: 'Thái Cực Quyền', han: '極', he: 'tho', sect: 'Võ Đang', cost: 1, type: 'def', rar: 'hiem', blk: 9, desc: '+9 Hộ Thể.', flavor: 'Trương chân nhân ngộ đạo bên suối, thấy nước chảy đá mòn mà thành quyền. Một vòng thái cực bao la, dĩ tĩnh chế động, tứ lạng bạt thiên cân.' },
     lienHoanThoiTuy: { name: 'Liên Hoàn Thôi Thủ', han: '推', he: 'tho', sect: 'Võ Đang', cost: 1, type: 'def', rar: 'hiem', blk: 7, keepBlock: true, desc: '+7 Hộ Thể · Giữ Hộ Thể.' },
-    tuLuongBatThienCan: { name: 'Tứ Lượng Bạt Thiên Cân', han: '撥', he: 'tho', sect: 'Võ Đang', cost: 2, type: 'atk', rar: 'tuyet', dmg: 4, blkToDmg: 1, dodge: true, desc: '4 ST + toàn bộ Hộ Thể · Né.' },
+    tuLuongBatThienCan: { name: 'Tứ Lượng Bạt Thiên Cân', han: '撥', he: 'tho', sect: 'Võ Đang', cost: 2, type: 'atk', rar: 'tuyet', dmg: 4, blkToDmg: 1, dodge: true, desc: '4 ST + toàn bộ Hộ Thể · Giảm ½ đòn.' },
     luongNghiThuc: { name: 'Lưỡng Nghi Thức', han: '兩', he: 'tho', sect: 'Võ Đang', cost: 0, type: 'def', rar: 'thuong', blk: 6, desc: '+6 Hộ Thể.' },
     nhuVanChuong: { name: 'Nhu Vân Chưởng', han: '雲', he: 'tho', sect: 'Võ Đang', cost: 1, type: 'def', rar: 'thuong', blk: 8, draw: 1, desc: '+8 Hộ Thể · rút 1.' },
     thaiCucNhuKinh: { name: 'Thái Cực Nhu Kình', han: '柔', he: 'tho', sect: 'Võ Đang', cost: 1, type: 'def', rar: 'hiem', blk: 6, dmg: 2, blkToDmg: 1, desc: '+6 Hộ Thể · 2 ST + toàn bộ Hộ Thể.' },
@@ -207,7 +207,7 @@ export function dangTienMong() {
     'Thiên Nhẫn': { extendBurn: 2 },                          // Liên Hoàn Phần Thiên: mọi Bỏng +2 lượt
     'Cái Bang': { strBonus: 2 },                              // Túy Quyền Liên Hoàn: +2 Lực
     'Nhật Nguyệt': { healFlat: 4 },                           // Huyết Nhật Đồng Huy: hồi 4 HP
-    'Võ Đang': { keepBlock: true, dodge: true },              // Thái Cực Sinh Nghi: giữ giáp & né đòn kế
+    'Võ Đang': { keepBlock: true, dodge: true },              // Thái Cực Sinh Nghi: giữ giáp & giảm ½ đòn kế
     'Côn Lôn': { stunBonus: 1, drawBonus: 1 },               // Càn Khôn Đảo Chuyển: đòn Choáng +1 lượt & rút +1
     'Thiên Sơn': { healFlat: 4, weakenBonus: 1 },            // Lục Dương Hồi Xuân: hồi 4 & Suy Yếu +1
   };
@@ -226,7 +226,7 @@ export function dangTienMong() {
     { id: 'tuKhiDan', name: 'Tụ Khí Đan', han: '丹', rar: 'thuong', desc: 'Đầu mỗi lượt +3 Hộ Thể.' },
     { id: 'tuBao', name: 'Tụ Bảo Bồn', han: '財', rar: 'thuong', desc: 'Thắng trận thêm 10 Mộng Ngân.' },
     { id: 'bangBoi', name: 'Huyền Băng Bội', han: '冰', rar: 'hiem', desc: 'Đầu mỗi trận rút thêm 2 lá.' },
-    { id: 'voTuong', name: 'Vô Tướng Phù', han: '幻', rar: 'hiem', desc: 'Lượt đầu mỗi trận: Né đòn kế.' },
+    { id: 'voTuong', name: 'Vô Tướng Phù', han: '幻', rar: 'hiem', desc: 'Lượt đầu mỗi trận: giảm ½ đòn kế.' },
     { id: 'satKhi', name: 'Sát Khí Lệnh', han: '殺', rar: 'hiem', desc: 'Đầu mỗi lượt +1 Lực.' },
     { id: 'docLong', name: 'Độc Long Giới', han: '毒', rar: 'hiem', desc: 'Thẻ gây Độc thêm +2 Độc.' },
     { id: 'lietNhan', name: 'Liệt Nhận Phù', han: '刃', rar: 'hiem', desc: 'Thẻ Công đầu mỗi lượt +3 ST.' },
@@ -562,7 +562,7 @@ export function dangTienMong() {
     playerStatusList() { const p = this.player; const a = [];
       if (p.block > 0) a.push({ k: 'hothe', txt: 'Hộ Thể ' + p.block, c: DTM_COL.hothe, icon: 'hothe' });
       if (p.str > 0) a.push({ k: 'luc', txt: 'Lực +' + p.str, c: DTM_COL.luc, icon: 'luc' });
-      if (p.dodge) a.push({ k: 'ne', txt: 'Né đòn kế', c: DTM_COL.ne, icon: 'ne' });
+      if (p.dodge) a.push({ k: 'ne', txt: 'Giảm ½ đòn kế', c: DTM_COL.ne, icon: 'ne' });
       if (p.poison > 0) a.push({ k: 'doc', txt: 'Độc ' + p.poison, c: DTM_COL.doc, icon: 'doc' });
       if (p.burn > 0 && p.burnT > 0) a.push({ k: 'burn', txt: 'Bỏng ' + p.burn + '×' + p.burnT + ' lượt', c: DTM_COL.burn });
       if (p.weaken > 0) a.push({ k: 'suyyeu', txt: 'Suy Yếu ' + p.weaken, c: DTM_COL.suyyeu, icon: 'suyyeu' });
@@ -617,7 +617,7 @@ export function dangTienMong() {
       if (c.str) P('buff', '+' + c.str + ' Lực');
       if (c.energy) P('energy', '+' + c.energy + ' Khí');
       if (c.draw) P('draw', 'Rút ' + c.draw + ' lá');
-      if (c.dodge) P('dodge', 'Né đòn kế');
+      if (c.dodge) P('dodge', 'Giảm ½ đòn kế');
       if (c.pen) P('pen', 'Phá Giáp');
       if (c.selfDmg) P('self', 'Tự tổn ' + c.selfDmg + ' HP');
       if (c.exhaust) P('exhaust', 'Đoạn');
@@ -1012,7 +1012,7 @@ export function dangTienMong() {
           if ((e.stun || 0) > 0) { e.stun--; e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--; continue; }   // Choáng: bỏ lượt, giữ nguyên telegraph (ra đòn lượt sau)
           const it = this.curIntent(e); if (it) {
             this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
-            if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += (it.pen ? this._playerPen(per) : this.absorbPlayer(per)); } }   // pen: xuyên Hộ Thể người chơi
+            if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; if (this.player.dodge) { per = Math.floor(per / 2); this.player.dodge = false; } for (let h = 0; h < hits; h++) { toPlayer += (it.pen ? this._playerPen(per) : this.absorbPlayer(per)); } }   // Né = giảm ½ sát thương đòn kế (dùng 1 lần; pen vẫn xuyên Hộ Thể)
             else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
             else if (it.t === 'poison') this.player.poison = (this.player.poison || 0) + it.v;                                             // boss gieo Độc lên người chơi
             else if (it.t === 'burn') { this.player.burn = (this.player.burn || 0) + it.v; this.player.burnT = Math.max(this.player.burnT || 0, it.burnT || 3); }
