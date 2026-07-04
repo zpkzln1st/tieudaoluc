@@ -7462,9 +7462,30 @@
         /* Lightbox phóng to */
         .dtmk-lightbox{ position:fixed; inset:0; z-index:130; background:rgba(3,5,8,.92); display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
         .dtmk-lightbox img{ max-width:96vw; max-height:92vh; border-radius:12px; box-shadow:0 20px 80px -10px #000; }
+        /* ===== Bảng Dev/Test (teleport body — class global, KHÔNG scope .dtm-root) ===== */
+        .dtm-devbtn{ position:fixed; bottom:14px; right:14px; z-index:140; font-family:'Lora',serif; font-size:11px; font-weight:800; letter-spacing:.16em; color:#1a1206; background:linear-gradient(180deg,#fcd34d,#d97706); border:1px solid #00000066; border-radius:8px; padding:5px 11px; box-shadow:0 4px 14px -4px #000, 0 0 0 1px #fbbf2455; cursor:pointer; opacity:.8; }
+        .dtm-devbtn:hover{ opacity:1; box-shadow:0 6px 18px -4px #000, 0 0 12px -2px #fbbf24; }
+        .dtm-devwrap{ position:fixed; inset:0; z-index:141; background:rgba(3,5,10,.66); display:flex; align-items:center; justify-content:center; padding:16px; }
+        .dtm-devpanel{ width:min(560px,96vw); max-height:88vh; overflow-y:auto; background:linear-gradient(180deg,#0e1626,#0a0f1b); border:1px solid #fbbf2455; border-radius:14px; box-shadow:0 30px 90px -20px #000; padding:15px 18px 18px; color:#dbe4ee; font-size:12.5px; }
+        .dtm-devhead{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #1e293b; padding-bottom:8px; margin-bottom:4px; }
+        .dtm-devhead .t{ color:#f8d27a; font-size:17px; }
+        .dtm-devx{ color:#94a3b8; cursor:pointer; background:none; border:none; padding:2px 4px; display:flex; }
+        .dtm-devx:hover{ color:#e6edf3; }
+        .dtm-devpanel h4{ font-family:'Lora',serif; color:#fbbf24; font-size:12.5px; margin:14px 0 6px; letter-spacing:.02em; }
+        .dtm-devrow{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+        .dtm-devlbl{ color:#94a3b8; font-size:11px; width:100%; }
+        .dtm-devpanel select, .dtm-devpanel input{ background:#070b12; border:1px solid #33415588; border-radius:7px; color:#e6edf3; padding:5px 8px; font-size:12px; }
+        .dtm-devpanel select{ max-width:100%; flex:1 1 190px; min-width:0; }
+        .dtm-devpanel input[type=number]{ width:76px; }
+        .dtm-devbn{ background:#16233a; border:1px solid #3a4d6b; border-radius:7px; color:#cfe0f2; padding:5px 10px; font-size:11.5px; cursor:pointer; font-weight:600; }
+        .dtm-devbn:hover{ background:#1e3050; border-color:#5877a3; }
+        .dtm-devbn.warn{ border-color:#c0525288; color:#fca5a5; background:#1a0f12; }
+        .dtm-devbn.warn:hover{ background:#2a1418; }
+        .dtm-devhint{ color:#64748b; font-size:10.5px; }
+        .dtm-devhint b{ color:#94a3b8; font-weight:700; }
 </style>
       <template x-if="$store.game.view==='dangTienMong'">
-        <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
+        <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()" @keydown.window="if($event.ctrlKey&&$event.shiftKey&&$event.code==='KeyD'){$event.preventDefault();devHotkey();}">
           <div class="dtm-bg" :style="'background-image:url('+bgImg()+')'"></div>
           <div class="dtm-fog"></div>
           <!-- SVG line-icon sprite (Bách Khoa / Chi Tiết) — không emoji -->
@@ -7483,6 +7504,54 @@
               <div class="brct"><div class="brsub fserif" x-text="_bossReveal.title"></div><div class="brnm fserif" :style="'color:'+heColor(_bossReveal.he)" x-text="_bossReveal.name"></div></div>
             </div>
           </template>
+          <!-- ===== Bảng Dev/Test (teleport body — tránh isolation:isolate; ẩn, gate ?dev=1 / Ctrl+Shift+D) ===== -->
+          <template x-teleport="body"><div class="dtmk-portal">
+            <button x-show="devEnabled" @click="devHotkey()" class="dtm-devbtn" title="Bảng Dev/Test (Ctrl+Shift+D)">DEV</button>
+            <template x-if="devPanel">
+              <div class="dtm-devwrap" @click.self="devPanel=false">
+                <div class="dtm-devpanel">
+                  <div class="dtm-devhead"><span class="t fserif">Bảng Dev / Test</span><button class="dtm-devx" @click="devPanel=false"><svg width="16" height="16" viewBox="0 0 24 24"><use href="#dtmk-i-x"/></svg></button></div>
+                  <h4>Sinh quái · Boss</h4>
+                  <div class="dtm-devrow">
+                    <select x-model="devEnemySel"><option value="">— chọn quái / boss —</option><template x-for="e in devEnemyList()" :key="e.id"><option :value="e.id" x-text="e.name"></option></template></select>
+                    <button class="dtm-devbn" @click="devSpawn(false)">Sinh trận</button>
+                    <button class="dtm-devbn" @click="devSpawn(true)">×2</button>
+                  </div>
+                  <h4>Thêm thẻ vào tay / bộ bài</h4>
+                  <div class="dtm-devrow">
+                    <select x-model="devCardSel"><option value="">— chọn thẻ —</option><template x-for="c in devCardList()" :key="c.id"><option :value="c.id" x-text="c.name"></option></template></select>
+                    <button class="dtm-devbn" @click="devAddCard('hand')">Vào tay</button>
+                    <button class="dtm-devbn" @click="devAddCard('deck')">Vào bộ bài</button>
+                  </div>
+                  <h4>Chỉ số</h4>
+                  <div class="dtm-devrow">
+                    <span>HP người chơi</span><input type="number" x-model="devHp"><button class="dtm-devbn" @click="devSetHp()">Đặt</button>
+                    <span>Khí</span><input type="number" x-model="devKhi"><button class="dtm-devbn" @click="devSetKhi()">Đặt</button>
+                  </div>
+                  <div class="dtm-devrow" style="margin-top:6px"><span>HP quái (mục tiêu)</span><input type="number" x-model="devEnemyHp"><button class="dtm-devbn" @click="devSetEnemyHp()">Đặt</button></div>
+                  <h4>Trạng thái thử</h4>
+                  <div class="dtm-devrow"><span class="dtm-devlbl">Người chơi</span>
+                    <button class="dtm-devbn" @click="devStatus('player','poison')">+Độc</button><button class="dtm-devbn" @click="devStatus('player','burn')">+Bỏng</button><button class="dtm-devbn" @click="devStatus('player','weaken')">+Suy Yếu</button><button class="dtm-devbn" @click="devStatus('player','stun')">+Choáng</button><button class="dtm-devbn" @click="devStatus('player','block')">+Hộ Thể</button><button class="dtm-devbn" @click="devStatus('player','str')">+Lực</button>
+                  </div>
+                  <div class="dtm-devrow" style="margin-top:6px"><span class="dtm-devlbl">Quái (mục tiêu)</span>
+                    <button class="dtm-devbn" @click="devStatus('enemy','poison')">+Độc</button><button class="dtm-devbn" @click="devStatus('enemy','burn')">+Bỏng</button><button class="dtm-devbn" @click="devStatus('enemy','weaken')">+Suy Yếu</button><button class="dtm-devbn" @click="devStatus('enemy','stun')">+Choáng</button><button class="dtm-devbn" @click="devStatus('enemy','block')">+Hộ Thể</button><button class="dtm-devbn" @click="devStatus('enemy','str')">+Lực</button>
+                  </div>
+                  <h4>Mở khóa & Sát Cảnh</h4>
+                  <div class="dtm-devrow">
+                    <button class="dtm-devbn" @click="devUnlockAll()">Mở toàn bộ thẻ Tuyệt</button>
+                    <span class="dtm-devlbl" style="margin-left:8px">Sát Cảnh</span>
+                    <template x-for="n in (scMax()+1)" :key="n"><button class="dtm-devbn" @click="devSetScAll(n-1)" x-text="n-1"></button></template>
+                  </div>
+                  <h4>Mộng Ngân & Tầng</h4>
+                  <div class="dtm-devrow">
+                    <button class="dtm-devbn" @click="devAddNgan(100)">+100 Mộng Ngân</button><button class="dtm-devbn" @click="devAddNgan(1000)">+1000</button><button class="dtm-devbn" @click="devJumpTier()">Nhảy tầng +1</button>
+                  </div>
+                  <div class="dtm-devhint" x-show="log" x-text="'Log: '+log" style="margin-top:12px"></div>
+                  <div class="dtm-devrow" style="margin-top:10px;justify-content:space-between"><span class="dtm-devhint">Gate: <b>?dev=1</b> · phím <b>Ctrl+Shift+D</b></span><button class="dtm-devbn warn" @click="devDisable()">Tắt chế độ Dev</button></div>
+                </div>
+              </div>
+            </template>
+          </div></template>
           <div class="flex items-center justify-between mb-3" x-show="phase!=='lobby'">
             <div class="flex items-center gap-2">
               <span class="relative w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px] overflow-hidden" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢<img src="images/dtm/emblem.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()"></span>
