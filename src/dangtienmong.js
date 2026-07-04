@@ -822,6 +822,10 @@ export function dangTienMong() {
       this._saveRun();
     },
     handSize() { return 5 + (this.hasRelic('linhPhu') ? 1 : 0); },
+    // Hàng bài PC: co nhỏ vừa 1 hàng (≤5 thẻ full-size; đông hơn thu dần). Mobile giữ cuộn (trả 1). Số/công thức = DRAFT.
+    handScale() { const n = this.hand.length; if (n <= 5 || (typeof window !== 'undefined' && window.innerWidth <= 640)) return 1;
+      let avail = 858; try { const el = document.querySelector('.dtm-root .min-h-\\[256px\\]'); if (el && el.clientWidth > 100) avail = el.clientWidth - 22; } catch (e) {}
+      const per = (avail - (n - 1) * 8) / n; return Math.max(0.5, Math.min(1, per / 146)); },   // đo bề rộng hàng bài thật -> vừa mọi cỡ màn PC. Số DRAFT.
     startTurnPassive() { this._sectPlayed = {}; if (this.run.hero.id === 'thien') this.player.block += 3; if (this.hasRelic('tuKhiDan')) this.player.block += 3; if (this.hasRelic('satKhi')) this.player.str += 1; this._firstAtkUsed = false; },
     // Màu glow viền chạy (Kim Quang) cho thẻ: Thần Thoại = tím Tử Quang (luôn); Hợp Bích = màu hệ (khi đã chơi ≥1 thẻ cùng phái/lượt, trong trận). '' = không glow.
     cardGlow(c) { if (!c) return ''; if (c.rar === 'than') return '#c084fc'; if (this.phase === 'battle' && c.sect && this._sectPlayed && (this._sectPlayed[c.sect] || 0) >= 1) return HE_COLOR[c.he] || '#94a3b8'; return ''; },
