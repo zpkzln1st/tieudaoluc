@@ -7,6 +7,7 @@
 // ============================================================
 import { Storage } from './engine/save.js';
 import { castFxFor, runFx, runCue, dealsDamage, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
+import { CARD_LORE } from './dtm_card_lore.js';
 
 export function ensureDangTien(state) {
   if (!state.dangTien) state.dangTien = {};
@@ -560,7 +561,7 @@ export function dangTienMong() {
         if (this.fLoai !== 'all' && c.type !== this.fLoai) return false;
         if (this.fBac !== 'all' && c.rar !== this.fBac) return false;
         if (this.fPhai !== 'all') { if (this.fPhai === '__none') { if (c.sect) return false; } else if (c.sect !== this.fPhai) return false; }
-        if (q && !((c.name + ' ' + (c.desc || '') + ' ' + (c.flavor || '') + ' ' + (c.sect || '')).toLowerCase().includes(q))) return false;
+        if (q && !((c.name + ' ' + (c.desc || '') + ' ' + (c.flavor || CARD_LORE[id] || '') + ' ' + (c.sect || '')).toLowerCase().includes(q))) return false;
         return true;
       }).map((id) => ({ id, ...POOL[id] }));
     },
@@ -599,6 +600,7 @@ export function dangTienMong() {
     },
     cardEffColor(t) { return { atk: '#fb7185', def: '#38bdf8', heal: '#34d399', poison: '#7bd88f', burn: '#fb923c', weaken: '#a78bfa', stun: '#c084fc', buff: '#facc15', energy: '#22d3ee', draw: '#93c5fd', dodge: '#67e8f9', pen: '#fbbf24', drain: '#fb7185', keep: '#38bdf8', self: '#f87171', exhaust: '#94a3b8' }[t] || '#94a3b8'; },
     cardDescShort(c) { return this.cardEffects(c).map((x) => x.s).join(' · '); },   // bản 1 dòng cho thẻ nhỏ (tay/lưới/bộ bài)
+    cardFlavor(c) { return (c && (c.flavor || CARD_LORE[c.id])) || ''; },   // lore: thẻ [C] có flavor trong POOL; thẻ mới lấy từ CARD_LORE
     // ----- Lightbox (phóng to chân dung / thẻ) -----
     zoomImg(src) { if (src) this.lightbox = src; },
     closeZoom() { this.lightbox = null; },

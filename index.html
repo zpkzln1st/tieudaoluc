@@ -8130,7 +8130,7 @@
                         <template x-if="!cardEffects(cd()).length"><span class="text-sm text-slate-500">—</span></template>
                       </div>
                     </div>
-                    <p class="dtmk-lore mt-4 w-full" x-show="cd().flavor" x-text="cd().flavor"></p>
+                    <p class="dtmk-lore mt-4 w-full" x-show="cardFlavor(cd())" x-text="cardFlavor(cd())"></p>
                     <template x-if="cardLocked(cardDetail)"><p class="text-[12px] text-rose-300/80 mt-3 text-center">Chiêu Tuyệt / Thần Thoại — cần mở khóa theo cột mốc mới học được.</p></template>
                   </div>
                 </div>
