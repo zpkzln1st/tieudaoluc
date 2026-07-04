@@ -407,7 +407,7 @@ export function dangTienMong() {
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, selUid: null,
-    rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null, _relicToast: null,
+    rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
     dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null,
     // ----- Bảng Dev/Test (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D; CHỈ đụng this.* + state.dangTien + DOM) -----
@@ -1081,7 +1081,7 @@ export function dangTienMong() {
       if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
       if (this.battleKind === 'boss') { this.afterNode(); return; }
       this._gotRelic = null;
-      if ((this.battleKind === 'elite' || this.battleKind === 'miniboss') && this.run.relics.length < RELICS.length) { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._gotRelic = r; this.log = 'Nhặt di vật: ' + r.name; this._relicToast = r; setTimeout(() => { this._relicToast = null; }, 2800); } }   // thông báo nhận di vật (toast)
+      if ((this.battleKind === 'elite' || this.battleKind === 'miniboss') && this.run.relics.length < RELICS.length) { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._gotRelic = r; this.log = 'Nhặt di vật: ' + r.name; } }   // _gotRelic -> khung pop-in ở màn Thưởng (thông báo nhận di vật)
       this.rewardCards = this._rollKeys(3).map(mk);
       this._setReroll(); this.phase = 'reward'; this._saveRun();
     },

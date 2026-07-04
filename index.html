@@ -5981,15 +5981,10 @@
         .dtm-root .dtm-reltip .rr{ font-size:10px; font-weight:800; letter-spacing:.04em; }
         .dtm-root .dtm-reltip .dd{ display:block; margin-top:3px; font-size:11px; color:#cdd8e3; line-height:1.35; }
         .dtm-root .dtm-relwrap:hover .dtm-reltip{ opacity:1; visibility:visible; }
-        /* Toast thông báo nhận di vật */
-        .dtm-root .dtm-relictoast{ position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:44; display:flex; align-items:center; gap:11px; padding:10px 16px 10px 11px; border-radius:12px; background:#0b1120f2; border:1px solid #f5b94255; box-shadow:0 16px 44px -12px #000, 0 0 0 1px #00000066; max-width:min(92%,370px); animation:dtmRelToast 2.8s ease forwards; }
-        .dtm-root .dtm-relictoast .ri{ position:relative; width:46px; height:46px; border-radius:10px; overflow:hidden; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:23px; background:#070b12; }
-        .dtm-root .dtm-relictoast .ri img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-        .dtm-root .dtm-relictoast .lbl{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
-        .dtm-root .dtm-relictoast .nm{ font-size:15px; color:#f1f5f9; margin-top:1px; }
-        .dtm-root .dtm-relictoast .dd{ font-size:11px; color:#94a3b8; margin-top:2px; }
-        @keyframes dtmRelToast{ 0%{ opacity:0; transform:translate(-50%,-16px); } 9%{ opacity:1; transform:translate(-50%,0); } 86%{ opacity:1; transform:translate(-50%,0); } 100%{ opacity:0; transform:translate(-50%,-10px); } }
-        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-relictoast{ animation:none; opacity:1; } }
+        /* Thông báo nhận di vật: khung ở màn Thưởng POP-IN + glow (bỏ toast nổi vì đè header) */
+        .dtm-root .dtm-gotrelic{ animation:dtmGotRelic .5s cubic-bezier(.2,1.05,.4,1) both; }
+        @keyframes dtmGotRelic{ 0%{ opacity:0; transform:scale(.86) translateY(-5px); } 60%{ opacity:1; } 100%{ opacity:1; transform:scale(1) translateY(0); } }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-gotrelic{ animation:none; } }
         .dtm-root .shake{ animation:dtmShk .26s; } @keyframes dtmShk{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 85%{transform:translateX(-3px)} }
         .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
         @keyframes dtmFlt{ 0%{opacity:0;transform:translateY(8px) scale(.8)} 25%{opacity:1} 100%{opacity:0;transform:translateY(-30px) scale(1.15)} }
@@ -7525,16 +7520,6 @@
           </defs></svg>
           <div class="dtm-winbeat" x-show="_winning"><span class="fserif">Thắng ải</span></div>
           <div class="dtm-winbeat dtm-waveflash" x-show="_waveFlash>0"><span class="fserif" x-text="'Đợt '+_waveFlash+' / '+waveCount()"></span></div>
-          <template x-if="_relicToast">
-            <div class="dtm-relictoast">
-              <span class="ri" :style="'box-shadow:0 0 0 1px '+rarColor(_relicToast.rar)+',0 0 16px -3px '+rarColor(_relicToast.rar)"><span :style="'color:'+rarColor(_relicToast.rar)" x-text="_relicToast.han"></span><img :src="relicImg(_relicToast.id)" alt="" onerror="this.style.display='none'"></span>
-              <div class="rt">
-                <div class="lbl" :style="'color:'+rarColor(_relicToast.rar)" x-text="'Nhận Di Vật · '+rarName(_relicToast.rar)"></div>
-                <div class="nm fserif" x-text="_relicToast.name"></div>
-                <div class="dd" x-text="_relicToast.desc"></div>
-              </div>
-            </div>
-          </template>
           <template x-if="_bossReveal">
             <div class="dtm-bossreveal">
               <img :src="enemyImg(_bossReveal)" alt="" onerror="this.style.display='none'">
@@ -7903,7 +7888,7 @@
               <div class="text-[11px] text-slate-500 mb-5">Thêm 1 thẻ vào bộ bài (hoặc bỏ qua).</div>
               <template x-if="_gotRelic">
                 <div class="flex justify-center mb-5">
-                  <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl" :style="'border:1px solid '+rarColor(_gotRelic.rar)+'99;background:'+rarColor(_gotRelic.rar)+'12'">
+                  <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl dtm-gotrelic" :style="'border:1px solid '+rarColor(_gotRelic.rar)+'99;background:'+rarColor(_gotRelic.rar)+'12;box-shadow:0 0 24px -6px '+rarColor(_gotRelic.rar)+',0 0 0 1px '+rarColor(_gotRelic.rar)+'33'">
                     <span class="relic dtm-portwrap shrink-0" :style="'width:38px;height:38px;font-size:19px;box-shadow:0 0 0 1px '+rarColor(_gotRelic.rar)"><span x-text="_gotRelic.han"></span><img :src="relicImg(_gotRelic.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
                     <div class="text-left">
                       <div class="text-[10px] font-bold uppercase tracking-wider" :style="'color:'+rarColor(_gotRelic.rar)" x-text="'Nhặt di vật · '+rarName(_gotRelic.rar)"></div>
