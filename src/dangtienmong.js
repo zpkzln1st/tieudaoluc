@@ -574,6 +574,31 @@ export function dangTienMong() {
     closeCardDetail() { this.cardDetail = null; },
     cd() { return this.cardDetail ? { id: this.cardDetail, ...POOL[this.cardDetail] } : {}; },
     cardLocked(id) { return !this._cardUnlocked(id); },   // dùng lại hệ mở khóa Tuyệt theo cột mốc (chỉ Tuyệt bị khóa)
+    // ----- Thuộc tính thẻ SINH TỰ ĐỘNG từ trường cơ chế (nguồn chân lý DUY NHẤT -> đồng bộ mọi nơi; bỏ desc viết tay) -----
+    cardEffects(c) {
+      if (!c) return []; const E = []; const P = (t, s) => E.push({ t, s });
+      if (c.dmg) { let s = c.dmg + ' ST'; if (c.hits > 1) s = c.dmg + ' ST ×' + c.hits; if (c.aoe) s += ' toàn địch'; P('atk', s); }
+      if (c.detonate) P('atk', 'ST = Độc ×' + c.detonate);
+      if (c.blkToDmg) P('atk', (c.blkToDmg === 1 ? '+ toàn bộ Hộ Thể' : '+ ½ Hộ Thể') + ' vào ST');
+      if (c.drain) P('drain', 'Hút máu');
+      if (c.blk) P('def', '+' + c.blk + ' Hộ Thể');
+      if (c.keepBlock) P('keep', 'Giữ Hộ Thể');
+      if (c.heal) P('heal', 'Hồi ' + c.heal);
+      if (c.poison) P('poison', 'Độc ' + c.poison);
+      if (c.burn) P('burn', 'Bỏng ' + c.burn + ' × ' + (c.burnT || 3) + ' lượt');
+      if (c.weaken) P('weaken', 'Suy Yếu ' + c.weaken);
+      if (c.stun) P('stun', 'Choáng ' + c.stun + ' lượt');
+      if (c.str) P('buff', '+' + c.str + ' Lực');
+      if (c.energy) P('energy', '+' + c.energy + ' Khí');
+      if (c.draw) P('draw', 'Rút ' + c.draw + ' lá');
+      if (c.dodge) P('dodge', 'Né đòn kế');
+      if (c.pen) P('pen', 'Phá Giáp');
+      if (c.selfDmg) P('self', 'Tự tổn ' + c.selfDmg + ' HP');
+      if (c.exhaust) P('exhaust', 'Đoạn');
+      return E;
+    },
+    cardEffColor(t) { return { atk: '#fb7185', def: '#38bdf8', heal: '#34d399', poison: '#7bd88f', burn: '#fb923c', weaken: '#a78bfa', stun: '#c084fc', buff: '#facc15', energy: '#22d3ee', draw: '#93c5fd', dodge: '#67e8f9', pen: '#fbbf24', drain: '#fb7185', keep: '#38bdf8', self: '#f87171', exhaust: '#94a3b8' }[t] || '#94a3b8'; },
+    cardDescShort(c) { return this.cardEffects(c).map((x) => x.s).join(' · '); },   // bản 1 dòng cho thẻ nhỏ (tay/lưới/bộ bài)
     // ----- Lightbox (phóng to chân dung / thẻ) -----
     zoomImg(src) { if (src) this.lightbox = src; },
     closeZoom() { this.lightbox = null; },

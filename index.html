@@ -7783,7 +7783,7 @@
                     <template x-if="cardGlow(c)"><div class="dtm-hb-halo" :style="'--c:'+cardGlow(c)"></div></template>
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="c.desc"></div></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="cdesc" x-text="cardDescShort(c)"></div></div>
                   </div>
                 </template>
                 <template x-if="!hand.length"><div class="text-slate-600 text-sm self-center">Hết bài — Kết Lượt.</div></template>
@@ -7815,7 +7815,7 @@
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="cardDescShort(c)"></div></div>
                   </div>
                 </template>
               </div>
@@ -7997,7 +7997,7 @@
                     <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
                       <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                       <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                      <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="c.desc"></div></div>
+                      <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="cdesc" x-text="cardDescShort(c)"></div></div>
                     </div>
                   </template>
                 </div>
@@ -8124,7 +8124,12 @@
                       <template x-if="cd().sect"><span class="dtmk-mpill" style="background:#1c2836;color:#cdd8e3" x-text="cd().sect"></span></template>
                       <span class="dtmk-mpill" style="background:#0c2531;color:#7fd6f0;border:1px solid #2b6f8a" x-text="cd().cost+' Khí 氣'"></span>
                     </div>
-                    <div class="dtmk-statbox w-full mt-4"><div class="text-[11px] text-slate-400 mb-1">Hiệu Ứng</div><div class="text-sm text-slate-100" x-text="cd().desc"></div></div>
+                    <div class="dtmk-statbox w-full mt-4"><div class="text-[11px] text-slate-400 mb-1.5">Hiệu Ứng</div>
+                      <div class="flex flex-wrap gap-1.5">
+                        <template x-for="ef in cardEffects(cd())" :key="ef.s"><span class="dtmk-mpill" :style="'color:'+cardEffColor(ef.t)+';border:1px solid '+cardEffColor(ef.t)+'55;background:'+cardEffColor(ef.t)+'14'"><span :style="'display:inline-block;width:6px;height:6px;border-radius:50%;flex:none;background:'+cardEffColor(ef.t)"></span><span x-text="ef.s"></span></span></template>
+                        <template x-if="!cardEffects(cd()).length"><span class="text-sm text-slate-500">—</span></template>
+                      </div>
+                    </div>
                     <p class="dtmk-lore mt-4 w-full" x-show="cd().flavor" x-text="cd().flavor"></p>
                     <template x-if="cardLocked(cardDetail)"><p class="text-[12px] text-rose-300/80 mt-3 text-center">Chiêu Tuyệt / Thần Thoại — cần mở khóa theo cột mốc mới học được.</p></template>
                   </div>
