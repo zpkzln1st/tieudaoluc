@@ -602,25 +602,27 @@ export function dangTienMong() {
     cardLocked(id) { return !this._cardUnlocked(id); },   // dùng lại hệ mở khóa Tuyệt theo cột mốc (chỉ Tuyệt bị khóa)
     // ----- Thuộc tính thẻ SINH TỰ ĐỘNG từ trường cơ chế (nguồn chân lý DUY NHẤT -> đồng bộ mọi nơi; bỏ desc viết tay) -----
     cardEffects(c) {
-      if (!c) return []; const E = []; const P = (t, s) => E.push({ t, s });
-      if (c.dmg) { let s = c.dmg + ' ST'; if (c.hits > 1) s = c.dmg + ' ST ×' + c.hits; if (c.aoe) s += ' toàn địch'; P('atk', s); }
-      if (c.detonate) P('atk', 'ST = Độc ×' + c.detonate);
-      if (c.blkToDmg) P('atk', (c.blkToDmg === 1 ? '+ toàn bộ Hộ Thể' : '+ ½ Hộ Thể') + ' vào ST');
-      if (c.drain) P('drain', 'Hút máu');
-      if (c.blk) P('def', '+' + c.blk + ' Hộ Thể');
-      if (c.keepBlock) P('keep', 'Giữ Hộ Thể');
-      if (c.heal) P('heal', 'Hồi ' + c.heal);
-      if (c.poison) P('poison', 'Độc ' + c.poison);
-      if (c.burn) P('burn', 'Bỏng ' + c.burn + ' × ' + (c.burnT || 3) + ' lượt');
-      if (c.weaken) P('weaken', 'Suy Yếu ' + c.weaken);
-      if (c.stun) P('stun', 'Choáng ' + c.stun + ' lượt');
-      if (c.str) P('buff', '+' + c.str + ' Lực');
-      if (c.energy) P('energy', '+' + c.energy + ' Khí');
-      if (c.draw) P('draw', 'Rút ' + c.draw + ' lá');
-      if (c.dodge) P('dodge', 'Giảm ½ đòn kế');
-      if (c.pen) P('pen', 'Phá Giáp');
-      if (c.selfDmg) P('self', 'Tự tổn ' + c.selfDmg + ' HP');
-      if (c.exhaust) P('exhaust', 'Đoạn');
+      // s = nhãn NGẮN (chip trên thẻ) · full = mô tả ĐẦY ĐỦ (tooltip nổi / xem chi tiết)
+      if (!c) return []; const E = []; const P = (t, s, full) => E.push({ t, s, full });
+      if (c.dmg) { let s = c.dmg + ' ST'; if (c.hits > 1) s = c.dmg + ' ST ×' + c.hits; if (c.aoe) s += ' toàn địch';
+        P('atk', s, 'Gây ' + c.dmg + ' sát thương' + (c.hits > 1 ? (' mỗi đòn, đánh ' + c.hits + ' lần') : '') + (c.aoe ? ' lên TOÀN BỘ địch' : ' lên mục tiêu')); }
+      if (c.detonate) P('atk', 'ST = Độc ×' + c.detonate, 'Kích nổ: cộng (Độc hiện có × ' + c.detonate + ') vào sát thương rồi xóa Độc');
+      if (c.blkToDmg) P('atk', (c.blkToDmg === 1 ? '+ toàn Hộ Thể' : '+ ½ Hộ Thể'), 'Cộng ' + (c.blkToDmg === 1 ? 'toàn bộ' : 'một nửa') + ' Hộ Thể đang có vào sát thương đòn này');
+      if (c.drain) P('drain', 'Hút máu', 'Hút máu — hồi máu bằng sát thương gây ra');
+      if (c.blk) P('def', '+' + c.blk + ' Hộ Thể', 'Nhận ' + c.blk + ' Hộ Thể (lá chắn hấp thụ sát thương lượt này)');
+      if (c.keepBlock) P('keep', 'Giữ Hộ Thể', 'Không mất Hộ Thể dư vào cuối lượt');
+      if (c.heal) P('heal', 'Hồi ' + c.heal, 'Hồi ' + c.heal + ' máu');
+      if (c.poison) P('poison', 'Độc ' + c.poison, 'Gây ' + c.poison + ' Độc — mỗi lượt trừ máu địch rồi giảm 1');
+      if (c.burn) P('burn', 'Bỏng ' + c.burn + ' × ' + (c.burnT || 3) + ' lượt', 'Bỏng: mỗi lượt trừ ' + c.burn + ' máu, kéo dài ' + (c.burnT || 3) + ' lượt (xuyên Hộ Thể)');
+      if (c.weaken) P('weaken', 'Suy Yếu ' + c.weaken, 'Suy Yếu ' + c.weaken + ' — địch gây ít sát thương hơn');
+      if (c.stun) P('stun', 'Choáng ' + c.stun + ' lượt', 'Choáng ' + c.stun + ' lượt — địch mất lượt hành động');
+      if (c.str) P('buff', '+' + c.str + ' Lực', 'Tăng ' + c.str + ' Lực — mọi đòn Công sau đều +' + c.str + ' sát thương');
+      if (c.energy) P('energy', '+' + c.energy + ' Khí', 'Hồi ' + c.energy + ' Khí ngay lập tức');
+      if (c.draw) P('draw', 'Rút ' + c.draw + ' lá', 'Rút thêm ' + c.draw + ' lá bài');
+      if (c.dodge) P('dodge', 'Giảm ½ đòn kế', 'Giảm MỘT NỬA sát thương đòn tấn công kế của địch');
+      if (c.pen) P('pen', 'Phá Giáp', 'Phá Giáp — đòn này bỏ qua Hộ Thể của địch');
+      if (c.selfDmg) P('self', 'Tự tổn ' + c.selfDmg + ' HP', 'Tự chịu ' + c.selfDmg + ' sát thương khi dùng lá này');
+      if (c.exhaust) P('exhaust', 'Đoạn', 'Đoạn — dùng xong lá này bị loại khỏi ván (không quay lại bộ bài)');
       return E;
     },
     cardEffColor(t) { return DTM_COL[t] || '#94a3b8'; },
