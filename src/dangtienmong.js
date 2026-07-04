@@ -409,7 +409,7 @@ export function dangTienMong() {
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
-    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null,
+    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null, _chipTip: null,
     // ----- Bảng Dev/Test (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D; CHỈ đụng this.* + state.dangTien + DOM) -----
     devEnabled: false, devPanel: false, devCardSel: '', devEnemySel: '', devHp: '', devKhi: '', devEnemyHp: '',
     HEROES, RELICS, metaUp: META_UP,
@@ -631,6 +631,17 @@ export function dangTienMong() {
     // ----- Lightbox (phóng to chân dung / thẻ) -----
     zoomImg(src) { if (src) this.lightbox = src; },
     closeZoom() { this.lightbox = null; },
+    // ----- Tooltip chip NỔI TỰ DO (fixed, gắn body) — hover chip xem mô tả đầy đủ; tự canh trong màn hình, không bị khung thẻ cắt -----
+    showChipTip(e, ev) {
+      if (!e) return; this._chipTip = { s: e.s, full: e.full || e.s, c: this.cardEffColor(e.t) };
+      const r = ev.currentTarget.getBoundingClientRect();
+      this.$nextTick(() => { const tip = document.querySelector('.dtm-chiptip'); if (!tip) return;
+        const tw = tip.offsetWidth, th = tip.offsetHeight;
+        let left = r.left + r.width / 2 - tw / 2; left = Math.max(6, Math.min(left, window.innerWidth - tw - 6));
+        let top = r.top - th - 9; if (top < 6) top = r.bottom + 9;
+        tip.style.left = left + 'px'; tip.style.top = top + 'px'; });
+    },
+    hideChipTip() { this._chipTip = null; },
     // ===== Bảng Dev/Test — CHỈ đụng this.* (component) + state.dangTien + DOM. KHÔNG đụng currencies/gearBag/combat. =====
     devHotkey() { if (!this.devEnabled) { this.devEnabled = true; try { localStorage.setItem('dtm_dev', '1'); } catch (e) {} } this.devPanel = !this.devPanel; },
     devDisable() { this.devEnabled = false; this.devPanel = false; try { localStorage.removeItem('dtm_dev'); } catch (e) {} },
