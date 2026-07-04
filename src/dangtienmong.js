@@ -41,6 +41,15 @@ export function dangTienMong() {
   const KHAC = { kim: 'moc', moc: 'tho', tho: 'thuy', thuy: 'hoa', hoa: 'kim' };   // A khắc KHAC[A]
   const RAR_C = { so: '#6b7280', thuong: '#94a3b8', hiem: '#38bdf8', tuyet: '#f5b942', than: '#c084fc' };   // 5 bậc (Sơ/Thường/Hiếm/Tuyệt/Thần Thoại) — pool hiện chỉ dùng 3 bậc giữa, chừa Sơ+Thần cho nội dung mở rộng
   const RAR_N = { so: 'Sơ Cấp', thuong: 'Thường', hiem: 'Hiếm', tuyet: 'Tuyệt', than: 'Thần Thoại' };
+  // ===== NGUỒN MÀU DUY NHẤT cho thuộc tính thẻ + ý đồ quái + pill trạng thái (đồng bộ hiển thị chiến đấu) =====
+  // key = loại hiệu ứng (chip thẻ / intent) + alias trạng thái (block/hothe/doc/suyyeu/luc/ne). cardEffColor + _itCol + status pill đều đọc map này.
+  const DTM_COL = {
+    atk: '#fb7185', def: '#38bdf8', heal: '#34d399', poison: '#7bd88f', burn: '#fb923c', weaken: '#a78bfa', stun: '#c084fc',
+    buff: '#facc15', energy: '#22d3ee', draw: '#93c5fd', dodge: '#67e8f9', pen: '#fbbf24', drain: '#fb7185', keep: '#38bdf8',
+    self: '#f87171', exhaust: '#94a3b8', charge: '#f5b942',
+    // alias trạng thái (cùng màu với loại tương ứng)
+    block: '#38bdf8', hothe: '#38bdf8', doc: '#7bd88f', suyyeu: '#a78bfa', luc: '#facc15', ne: '#67e8f9',
+  };
   // ===== POOL 117 thẻ (15 phái ×7 + 12 neutral) · 5 bậc so/thuong/hiem/tuyet (than để dành 9 huyền thoại) =====
   // [C] = thẻ live cũ (reuse art book_*, giữ flavor); các thẻ khác MỚI (Hán fallback, cần art, chưa có flavor — soạn lore ở mục 7).
   // Số DRAFT (tune qua harness/cảm giác). eff schema phẳng: dmg/hits/aoe/blk/heal/poison/weaken/str/dodge/draw/drain + burn/burnT/stun/pen/energy/keepBlock/exhaust/blkToDmg/detonate/selfDmg.
@@ -537,13 +546,25 @@ export function dangTienMong() {
     enemyLoai(e) { return !e ? '' : (e.boss ? 'Mộng Chủ' : (e.chuongMon ? 'Ác Thủ · Chưởng Môn' : (e.elite ? 'Tinh Anh' : 'Lâu La'))); },
     enemyBio(e) { return (e && ENEMY_BIO[e.id]) || ''; },
     enemyMoves(e) { return (e && MOVES[e.id]) || []; },
-    enemyStatusList(e) { const a = []; if (!e) return a; if (e.block > 0) a.push({ k: 'hothe', label: 'Hộ Thể', v: e.block, c: '#38bdf8' }); if (e.poison > 0) a.push({ k: 'doc', label: 'Độc', v: e.poison, c: '#34d399' }); if (e.burn > 0 && e.burnT > 0) a.push({ k: 'burn', label: 'Bỏng', v: e.burn + '×' + e.burnT, c: '#fb923c' }); if (e.weak > 0) a.push({ k: 'suyyeu', label: 'Suy Yếu', v: e.weak, c: '#a78bfa' }); if (e.stun > 0) a.push({ k: 'stun', label: 'Choáng', v: e.stun, c: '#c084fc' }); if (e.str > 0) a.push({ k: 'luc', label: 'Lực', v: e.str, c: '#facc15' }); return a; },
-    moveIntentText(e, i) { const it = e.intents[i]; if (!it) return ''; const s = e.str || 0;
-      if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
-      if (it.t === 'def') return 'Vận Hộ Thể ' + it.v; if (it.t === 'buff') return 'Tăng Lực +' + it.v;
-      if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v;
-      if (it.t === 'poison') return 'Gieo Độc ' + it.v; if (it.t === 'burn') return 'Gieo Bỏng ' + it.v + '×' + (it.burnT || 3);
-      if (it.t === 'weaken') return 'Suy Yếu ngươi ' + it.v; if (it.t === 'stun') return 'Trấn Choáng'; return ''; },
+    // Danh sách trạng thái (đồng bộ nhãn/đơn vị/màu qua DTM_COL) — DÙNG CHUNG cho pill chiến đấu + pill modal Chi Tiết Quái. icon = tên st_ nếu có asset.
+    enemyStatusList(e) { const a = []; if (!e) return a;
+      if (e.block > 0) a.push({ k: 'hothe', txt: 'Hộ Thể ' + e.block, c: DTM_COL.hothe, icon: 'hothe' });
+      if (e.poison > 0) a.push({ k: 'doc', txt: 'Độc ' + e.poison, c: DTM_COL.doc, icon: 'doc' });
+      if (e.burn > 0 && e.burnT > 0) a.push({ k: 'burn', txt: 'Bỏng ' + e.burn + '×' + e.burnT + ' lượt', c: DTM_COL.burn });
+      if (e.weak > 0) a.push({ k: 'suyyeu', txt: 'Suy Yếu ' + e.weak, c: DTM_COL.suyyeu, icon: 'suyyeu' });
+      if (e.stun > 0) a.push({ k: 'stun', txt: 'Choáng ' + e.stun + ' lượt', c: DTM_COL.stun });
+      if (e.str > 0) a.push({ k: 'luc', txt: 'Lực +' + e.str, c: DTM_COL.luc, icon: 'luc' });
+      return a; },
+    playerStatusList() { const p = this.player; const a = [];
+      if (p.block > 0) a.push({ k: 'hothe', txt: 'Hộ Thể ' + p.block, c: DTM_COL.hothe, icon: 'hothe' });
+      if (p.str > 0) a.push({ k: 'luc', txt: 'Lực +' + p.str, c: DTM_COL.luc, icon: 'luc' });
+      if (p.dodge) a.push({ k: 'ne', txt: 'Né đòn kế', c: DTM_COL.ne, icon: 'ne' });
+      if (p.poison > 0) a.push({ k: 'doc', txt: 'Độc ' + p.poison, c: DTM_COL.doc, icon: 'doc' });
+      if (p.burn > 0 && p.burnT > 0) a.push({ k: 'burn', txt: 'Bỏng ' + p.burn + '×' + p.burnT + ' lượt', c: DTM_COL.burn });
+      if (p.weaken > 0) a.push({ k: 'suyyeu', txt: 'Suy Yếu ' + p.weaken, c: DTM_COL.suyyeu, icon: 'suyyeu' });
+      if (p.stun > 0) a.push({ k: 'stun', txt: 'Choáng ' + p.stun + ' lượt', c: DTM_COL.stun });
+      return a; },
+    moveIntentText(e, i) { return this._intentDesc(e.intents[i], e); },
     moveIntentColor(e, i) { const it = e.intents[i]; if (!it) return '#94a3b8'; return this._itCol(it.t); },
     moveArt(m) { return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     // ----- Bách Khoa Thẻ (wiki) — Sảnh + trong trận -----
@@ -598,7 +619,7 @@ export function dangTienMong() {
       if (c.exhaust) P('exhaust', 'Đoạn');
       return E;
     },
-    cardEffColor(t) { return { atk: '#fb7185', def: '#38bdf8', heal: '#34d399', poison: '#7bd88f', burn: '#fb923c', weaken: '#a78bfa', stun: '#c084fc', buff: '#facc15', energy: '#22d3ee', draw: '#93c5fd', dodge: '#67e8f9', pen: '#fbbf24', drain: '#fb7185', keep: '#38bdf8', self: '#f87171', exhaust: '#94a3b8' }[t] || '#94a3b8'; },
+    cardEffColor(t) { return DTM_COL[t] || '#94a3b8'; },
     cardDescShort(c) { return this.cardEffects(c).map((x) => x.s).join(' · '); },   // bản 1 dòng cho thẻ nhỏ (tay/lưới/bộ bài)
     cardFlavor(c) { return (c && (c.flavor || CARD_LORE[c.id])) || ''; },   // lore: thẻ [C] có flavor trong POOL; thẻ mới lấy từ CARD_LORE
     // ----- Lightbox (phóng to chân dung / thẻ) -----
@@ -783,12 +804,14 @@ export function dangTienMong() {
       if (m && m.t === 'charge') { const bi = e.intents.findIndex((x) => x.t === 'atk' && x.big); if (bi >= 0) return bi; }   // Vận Công -> BẮT BUỘC đòn mạnh kế (telegraph trung thực)
       return this._planPick(e, curIdx);
     },
-    intentText(e) { const it = this.curIntent(e); if (!it) return ''; const s = e.str || 0;
-      if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); const p = it.pen ? ' xuyên giáp' : ''; return (it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per)) + p; }
+    // Mô tả ý đồ quái — DÙNG CHUNG cho telegraph chip / peek / bộ chiêu modal. Đồng bộ thuật ngữ ("Phá Giáp") + đơn vị ("×K lượt","N lượt") với thẻ.
+    _intentDesc(it, e) { if (!it) return ''; const s = e.str || 0;
+      if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return 'Đánh ' + per + (it.hits ? '×' + it.hits : '') + (it.pen ? ' · Phá Giáp' : ''); }
       if (it.t === 'def') return 'Vận Hộ Thể ' + it.v; if (it.t === 'buff') return 'Tăng Lực +' + it.v;
-      if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v;
-      if (it.t === 'poison') return 'Gieo Độc ' + it.v; if (it.t === 'burn') return 'Gieo Bỏng ' + it.v + '×' + (it.burnT || 3);
-      if (it.t === 'weaken') return 'Suy Yếu ngươi ' + it.v; if (it.t === 'stun') return 'Trấn Choáng'; return ''; },
+      if (it.t === 'charge') return 'Vận Công (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v;
+      if (it.t === 'poison') return 'Gieo Độc ' + it.v; if (it.t === 'burn') return 'Gieo Bỏng ' + it.v + '×' + (it.burnT || 3) + ' lượt';
+      if (it.t === 'weaken') return 'Suy Yếu ' + it.v; if (it.t === 'stun') return 'Trấn Choáng ' + (it.v || 1) + ' lượt'; return ''; },
+    intentText(e) { return this._intentDesc(this.curIntent(e), e); },
     intentStyle(e) { const it = e.hp > 0 && this.curIntent(e); const c = !it ? '#64748b' : this._itCol(it.t);
       return 'color:' + c + ';border:1px solid ' + c + '55;background:' + c + '14'; },
     // ----- Telegraph CHIP: ý đồ quái = lá bài kế trong bộ bài riêng (chip mini art + tên chiêu + tác dụng) -----
@@ -796,13 +819,10 @@ export function dangTienMong() {
     intentCardArt(e) { const m = this.intentMove(e); return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     intentCardName(e) { const m = this.intentMove(e); return m ? m.nm : (this.intentText(e) || 'Ý đồ'); },
     intentCardHan(e) { const m = this.intentMove(e); return m ? m.han : (e.han || '?'); },
-    _itCol(t) { return { atk: '#fb7185', charge: '#f5b942', heal: '#34d399', def: '#38bdf8', buff: '#facc15', poison: '#34d399', burn: '#fb923c', weaken: '#a78bfa', stun: '#c084fc' }[t] || '#facc15'; },
+    _itCol(t) { return DTM_COL[t] || DTM_COL.buff; },
     intentColor(e) { const it = this.curIntent(e); if (!it) return '#64748b'; return this._itCol(it.t); },
     peekOn() { return !!this._up().peek; },   // Lưỡng Nghi Kính
-    peekText(e) { const it = e.intents[e.planNext] || e.intents[0]; if (!it) return ''; const s = e.str || 0;
-      if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
-      if (it.t === 'def') return 'Hộ ' + it.v; if (it.t === 'buff') return 'Lực +' + it.v; if (it.t === 'charge') return 'Vận Công…'; if (it.t === 'heal') return 'Liệu +' + it.v;
-      if (it.t === 'poison') return 'Độc ' + it.v; if (it.t === 'burn') return 'Bỏng ' + it.v; if (it.t === 'weaken') return 'Suy Yếu ' + it.v; if (it.t === 'stun') return 'Choáng'; return ''; },
+    peekText(e) { return this._intentDesc(e.intents[e.planNext] || e.intents[0], e); },
     restPct() { return 0.30 + (this._up().restBonus ? 0.05 : 0) - ((this.run && (this.run.sc || 0) >= 5) ? 0.05 : 0); },   // Tịnh Thất Phù; SC5 −5%
     draw(n) { for (let k = 0; k < n; k++) { if (!this.drawPile.length) { if (!this.discard.length) return; this.drawPile = shuffle(this.discard); this.discard = []; } const dc = this.drawPile.pop(); if (dc) { dc._cast = null; this.hand.push(dc); } } },
     floatE(e, v) { const id = ++this._f; e.floats.push({ id, v: '-' + v }); e.hit = true; setTimeout(() => { e.hit = false; }, 240); setTimeout(() => { e.floats = e.floats.filter((f) => f.id !== id); }, 950); },

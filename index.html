@@ -7727,11 +7727,9 @@
                       <template x-if="e.hp>0"><span class="dtm-tgchip" :style="'--c:'+heColor(e.he)"><span class="dtm-tgci"><span class="dh" x-text="intentCardHan(e)"></span><img :src="intentCardArt(e)" x-show="intentCardArt(e)" alt="" onerror="this.style.display='none'"></span><span class="ci"><b x-text="intentCardName(e)"></b><span :style="'color:'+intentColor(e)" x-text="intentText(e)"></span></span></span></template>
                       <span x-show="e.hp<=0" class="pill fserif" style="color:#64748b;border-color:#33415588;background:#33415522">Đã bại</span>
                       <span x-show="peekOn()&&e.hp>0" class="pill" style="font-size:9px;color:#94a3b8;border-color:#33415588;background:#33415522" x-text="'Kế: '+peekText(e)"></span>
-                      <span x-show="e.block>0" class="pill text-sky-300 border-sky-600/40 bg-sky-900/40"><img :src="statusIcon('hothe')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Hộ '+e.block"></span></span>
-                      <span x-show="e.poison>0" class="pill text-emerald-300 border-emerald-600/40 bg-emerald-900/40"><img :src="statusIcon('doc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Độc '+e.poison"></span></span>
-                      <span x-show="e.burn>0&&e.burnT>0" class="pill" style="color:#fdba74;border:1px solid #fb923c66;background:#fb923c1f"><span x-text="'Bỏng '+e.burn+'×'+e.burnT"></span></span>
-                      <span x-show="e.weak>0" class="pill text-violet-300 border-violet-600/40 bg-violet-900/30"><img :src="statusIcon('suyyeu')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Suy Yếu '+e.weak"></span></span>
-                      <span x-show="e.stun>0" class="pill" style="color:#d8b4fe;border:1px solid #c084fc66;background:#c084fc1f"><span x-text="'Choáng '+e.stun"></span></span>
+                      <template x-for="s in enemyStatusList(e)" :key="s.k">
+                        <span class="pill" :style="'color:'+s.c+';border:1px solid '+s.c+'66;background:'+s.c+'1f'"><template x-if="s.icon"><img :src="statusIcon(s.icon)" class="dtm-sti" alt="" onerror="this.style.display='none'"></template><span x-text="s.txt"></span></span>
+                      </template>
                     </div>
                   </div>
                 </template>
@@ -7756,14 +7754,10 @@
                       <div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*Math.max(0,run.hp)/run.maxHp)+'%'"></div>
                     </div>
                     <div class="flex items-center gap-1.5 mt-1.5 flex-wrap min-h-[18px]">
-                      <span x-show="player.block>0" class="pill text-sky-200 border-sky-500/50 bg-sky-900/40"><img :src="statusIcon('hothe')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Hộ Thể '+player.block"></span></span>
-                      <span x-show="player.str>0" class="pill text-amber-300 border-amber-500/50 bg-amber-500/10"><img :src="statusIcon('luc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Lực +'+player.str"></span></span>
-                      <span x-show="player.dodge" class="pill text-cyan border-cyan/40 bg-cyan/10"><img :src="statusIcon('ne')" class="dtm-sti" alt="" onerror="this.style.display='none'">Né đòn kế</span>
-                      <span x-show="player.poison>0" class="pill" style="color:#6ee7b7;border:1px solid #34d39966;background:#34d3991f"><img :src="statusIcon('doc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Trúng Độc '+player.poison"></span></span>
-                      <span x-show="player.burn>0&&player.burnT>0" class="pill" style="color:#fdba74;border:1px solid #fb923c66;background:#fb923c1f"><span x-text="'Bị Bỏng '+player.burn+'×'+player.burnT"></span></span>
-                      <span x-show="player.weaken>0" class="pill" style="color:#c4b5fd;border:1px solid #a78bfa66;background:#a78bfa1f"><img :src="statusIcon('suyyeu')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Suy Yếu '+player.weaken"></span></span>
-                      <span x-show="player.stun>0" class="pill" style="color:#d8b4fe;border:1px solid #c084fc66;background:#c084fc1f"><span x-text="'Choáng '+player.stun"></span></span>
-                      <span x-show="player.block<=0&&player.str<=0&&!player.dodge&&!(player.poison>0)&&!(player.burn>0)&&!(player.weaken>0)&&!(player.stun>0)" class="text-[10px] text-slate-600 italic">— chưa có trạng thái —</span>
+                      <template x-for="s in playerStatusList()" :key="s.k">
+                        <span class="pill" :style="'color:'+s.c+';border:1px solid '+s.c+'66;background:'+s.c+'1f'"><template x-if="s.icon"><img :src="statusIcon(s.icon)" class="dtm-sti" alt="" onerror="this.style.display='none'"></template><span x-text="s.txt"></span></span>
+                      </template>
+                      <span x-show="!playerStatusList().length" class="text-[10px] text-slate-600 italic">— chưa có trạng thái —</span>
                     </div>
                   </div>
                   <div class="flex flex-col items-center shrink-0">
@@ -8027,7 +8021,7 @@
                       </div>
                       <template x-if="enemyStatusList(dtlEnemy).length">
                         <div class="mt-2 flex flex-wrap gap-2">
-                          <template x-for="s in enemyStatusList(dtlEnemy)" :key="s.k"><span class="dtmk-mpill" :style="'background:'+s.c+'1e;color:'+s.c+';border:1px solid '+s.c+'55'" x-text="s.label+' '+s.v"></span></template>
+                          <template x-for="s in enemyStatusList(dtlEnemy)" :key="s.k"><span class="dtmk-mpill" :style="'background:'+s.c+'1e;color:'+s.c+';border:1px solid '+s.c+'55'" x-text="s.txt"></span></template>
                         </div>
                       </template>
                       <p class="dtmk-lore mt-3" x-show="enemyBio(dtlEnemy)" x-text="enemyBio(dtlEnemy)"></p>
