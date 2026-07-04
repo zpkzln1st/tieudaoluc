@@ -5973,6 +5973,23 @@
         .dtm-root .dtm-trung-emb .nm b{ display:block; font-size:14px; color:#e2e8f0; font-weight:700; }
         .dtm-root .dtm-trung-emb .nm span{ display:block; font-size:10.5px; color:#94a3b8; }
         .dtm-root .relic{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:17px; border:1px solid #f5b94255; color:#f5b942; background:#f5b94212; cursor:default; }
+        /* Tooltip di vật (thay native :title tràn form) */
+        .dtm-root .dtm-relwrap{ position:relative; display:inline-flex; }
+        .dtm-root .dtm-reltip{ position:absolute; left:50%; bottom:calc(100% + 9px); transform:translateX(-50%); width:max-content; max-width:220px; padding:7px 10px; border-radius:9px; background:#0b1120f7; border:1px solid var(--rc,#5b6b82); box-shadow:0 10px 28px -8px #000, 0 0 0 1px #00000066; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .12s ease; z-index:70; text-align:left; }
+        .dtm-root .dtm-reltip::after{ content:''; position:absolute; left:50%; top:100%; transform:translateX(-50%); border:6px solid transparent; border-top-color:var(--rc,#5b6b82); }
+        .dtm-root .dtm-reltip b{ font-family:'Lora',serif; font-size:12.5px; line-height:1.2; }
+        .dtm-root .dtm-reltip .rr{ font-size:10px; font-weight:800; letter-spacing:.04em; }
+        .dtm-root .dtm-reltip .dd{ display:block; margin-top:3px; font-size:11px; color:#cdd8e3; line-height:1.35; }
+        .dtm-root .dtm-relwrap:hover .dtm-reltip{ opacity:1; visibility:visible; }
+        /* Toast thông báo nhận di vật */
+        .dtm-root .dtm-relictoast{ position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:44; display:flex; align-items:center; gap:11px; padding:10px 16px 10px 11px; border-radius:12px; background:#0b1120f2; border:1px solid #f5b94255; box-shadow:0 16px 44px -12px #000, 0 0 0 1px #00000066; max-width:min(92%,370px); animation:dtmRelToast 2.8s ease forwards; }
+        .dtm-root .dtm-relictoast .ri{ position:relative; width:46px; height:46px; border-radius:10px; overflow:hidden; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:23px; background:#070b12; }
+        .dtm-root .dtm-relictoast .ri img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+        .dtm-root .dtm-relictoast .lbl{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+        .dtm-root .dtm-relictoast .nm{ font-size:15px; color:#f1f5f9; margin-top:1px; }
+        .dtm-root .dtm-relictoast .dd{ font-size:11px; color:#94a3b8; margin-top:2px; }
+        @keyframes dtmRelToast{ 0%{ opacity:0; transform:translate(-50%,-16px); } 9%{ opacity:1; transform:translate(-50%,0); } 86%{ opacity:1; transform:translate(-50%,0); } 100%{ opacity:0; transform:translate(-50%,-10px); } }
+        @media (prefers-reduced-motion:reduce){ .dtm-root .dtm-relictoast{ animation:none; opacity:1; } }
         .dtm-root .shake{ animation:dtmShk .26s; } @keyframes dtmShk{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 85%{transform:translateX(-3px)} }
         .dtm-root .dmgfloat{ position:absolute; font-family:'Lora',serif; font-weight:700; animation:dtmFlt 1s ease forwards; pointer-events:none; z-index:6; }
         @keyframes dtmFlt{ 0%{opacity:0;transform:translateY(8px) scale(.8)} 25%{opacity:1} 100%{opacity:0;transform:translateY(-30px) scale(1.15)} }
@@ -7508,6 +7525,16 @@
           </defs></svg>
           <div class="dtm-winbeat" x-show="_winning"><span class="fserif">Thắng ải</span></div>
           <div class="dtm-winbeat dtm-waveflash" x-show="_waveFlash>0"><span class="fserif" x-text="'Đợt '+_waveFlash+' / '+waveCount()"></span></div>
+          <template x-if="_relicToast">
+            <div class="dtm-relictoast">
+              <span class="ri" :style="'box-shadow:0 0 0 1px '+rarColor(_relicToast.rar)+',0 0 16px -3px '+rarColor(_relicToast.rar)"><span :style="'color:'+rarColor(_relicToast.rar)" x-text="_relicToast.han"></span><img :src="relicImg(_relicToast.id)" alt="" onerror="this.style.display='none'"></span>
+              <div class="rt">
+                <div class="lbl" :style="'color:'+rarColor(_relicToast.rar)" x-text="'Nhận Di Vật · '+rarName(_relicToast.rar)"></div>
+                <div class="nm fserif" x-text="_relicToast.name"></div>
+                <div class="dd" x-text="_relicToast.desc"></div>
+              </div>
+            </div>
+          </template>
           <template x-if="_bossReveal">
             <div class="dtm-bossreveal">
               <img :src="enemyImg(_bossReveal)" alt="" onerror="this.style.display='none'">
@@ -7721,7 +7748,7 @@
                   <div class="h-3 rounded-full bg-ink3 overflow-hidden border border-slate-700/60 mt-0.5"><div class="bar bg-gradient-to-r from-jade to-emerald-400" :style="'width:'+(100*run.hp/run.maxHp)+'%'"></div></div>
                 </div>
                 <div class="flex gap-1.5 items-center">
-                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" :style="'box-shadow:0 0 0 1px '+rarColor(r.rar)+'cc'" :title="r.name+' ['+rarName(r.rar)+'] — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
+                  <template x-for="r in run.relics" :key="r.id"><span class="dtm-relwrap"><span class="relic dtm-portwrap" :style="'box-shadow:0 0 0 1px '+rarColor(r.rar)+'cc'"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span><span class="dtm-reltip" :style="'--rc:'+rarColor(r.rar)"><b :style="'color:'+rarColor(r.rar)" x-text="r.name"></b><span class="rr" :style="'color:'+rarColor(r.rar)" x-text="' · '+rarName(r.rar)"></span><span class="dd" x-text="r.desc"></span></span></span></template>
                   <template x-if="!run.relics.length"><span class="text-[10px] text-slate-600 italic">chưa có di vật</span></template>
                 </div>
                 <button @click="openDeck=true" class="text-[11px] px-2.5 py-1 rounded bg-ink3 border border-slate-600 text-slate-300 hover:border-cyan" x-text="'Bộ Bài ('+run.deck.length+')'"></button>
@@ -7849,7 +7876,7 @@
                   <button @click="endTurn()" class="px-4 py-2 rounded-lg bg-ink3 border border-slate-600 hover:border-gold text-slate-200 text-[12.5px] font-bold transition shrink-0">Kết Lượt ⟳</button>
                 </div>
                 <div class="flex gap-1 mt-2" x-show="run.relics.length">
-                  <template x-for="r in run.relics" :key="r.id"><span class="relic dtm-portwrap" :style="'width:26px;height:26px;font-size:13px;box-shadow:0 0 0 1px '+rarColor(r.rar)+'cc'" :title="r.name+' ['+rarName(r.rar)+'] — '+r.desc"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span></template>
+                  <template x-for="r in run.relics" :key="r.id"><span class="dtm-relwrap"><span class="relic dtm-portwrap" :style="'width:26px;height:26px;font-size:13px;box-shadow:0 0 0 1px '+rarColor(r.rar)+'cc'"><span x-text="r.han"></span><img :src="relicImg(r.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span><span class="dtm-reltip" :style="'--rc:'+rarColor(r.rar)"><b :style="'color:'+rarColor(r.rar)" x-text="r.name"></b><span class="rr" :style="'color:'+rarColor(r.rar)" x-text="' · '+rarName(r.rar)"></span><span class="dd" x-text="r.desc"></span></span></span></template>
                 </div>
               </div>
 
@@ -8008,9 +8035,9 @@
                   </div>
                 </div>
                 <div class="text-[11px] text-violet-300/70 italic mb-4">Mọi lĩnh ngộ tại đây CHỈ hiệu lực trong Đăng Tiên Mộng — tỉnh giấc, thân thể không đổi.</div>
-                <div class="grid sm:grid-cols-2 gap-3">
+                <div class="grid sm:grid-cols-2 gap-3 items-start">
                   <template x-for="u in metaUp" :key="u.id">
-                    <div class="mu-tile" :class="upMaxed(u)?'maxed':(upCanBuy(u)?'':'cant')">
+                    <div class="mu-tile" :class="(upMaxed(u)?'maxed':(upCanBuy(u)?'':'cant'))+(u.id==='khaiMong'&&_up().startRelic?' sm:col-span-2':'')">
                       <div class="mu-glyph fserif" x-text="u.han"></div>
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap"><div class="fserif text-[14px] text-violet-100" x-text="u.name"></div><span class="mu-pips" x-show="upMax(u)>1" x-text="'Bậc '+upLevel(u)+'/'+upMax(u)"></span><span class="mu-pips" style="color:#5eead4" x-show="upMax(u)===1&&upMaxed(u)">✓ đã có</span></div>
