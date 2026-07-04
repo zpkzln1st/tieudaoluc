@@ -6000,6 +6000,12 @@
         .dtm-root .dtm-tgchip .ci{ min-width:0; line-height:1.08; text-align:left; }
         .dtm-root .dtm-tgchip .ci b{ font-family:'Lora',serif; font-weight:700; font-size:10.5px; color:#fff; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:148px; }
         .dtm-root .dtm-tgchip .ci > span{ font-size:9.5px; font-weight:700; }
+        /* Desktop: khung quái ỔN ĐỊNH khi nhiều trạng thái — pill gọn + reserve chiều cao (mobile có khối riêng @media max-640) */
+        @media (min-width:641px){
+          .dtm-root .dtm-statuszone{ min-height:26px; align-content:flex-start; }
+          .dtm-root .dtm-statuszone .pill{ font-size:10px; padding:1.5px 8px; }
+          .dtm-root .dtm-statuszone .dtm-sti{ width:12px; height:12px; }
+        }
         .dtm-root .dtm-burst{ position:absolute; inset:-22%; width:144%; height:144%; object-fit:contain; z-index:4; pointer-events:none; mix-blend-mode:screen; animation:dtmBurst .62s ease-out forwards; }
         @keyframes dtmBurst{ 0%{opacity:0;transform:scale(.5)} 25%{opacity:1} 100%{opacity:0;transform:scale(1.25)} }
         .dtm-root .dtm-moment{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; mix-blend-mode:screen; z-index:1; opacity:.9; }
@@ -7797,11 +7803,13 @@
                         </div>
                       </div>
                     </div>
-                    <div class="flex items-center gap-1 mt-1 flex-wrap dtm-statuszone">
+                    <div class="flex items-center gap-1 mt-1 flex-wrap dtm-tgzone">
                       <template x-if="e.hp>0"><span class="dtm-tgchip" :style="'--c:'+heColor(e.he)"><span class="dtm-tgci"><span class="dh" x-text="intentCardHan(e)"></span><img :src="intentCardArt(e)" x-show="intentCardArt(e)" alt="" onerror="this.style.display='none'"></span><span class="ci"><b x-text="intentCardName(e)"></b><span :style="'color:'+intentColor(e)" x-text="intentText(e)"></span></span></span></template>
                       <span x-show="e.hp<=0" class="pill fserif" style="color:#64748b;border-color:#33415588;background:#33415522">Đã bại</span>
                       <span x-show="peekOn()&&e.hp>0" class="pill" style="font-size:9px;color:#94a3b8;border-color:#33415588;background:#33415522" x-text="'Kế: '+peekText(e)"></span>
-                      <template x-for="s in enemyStatusList(e)" :key="s.k">
+                    </div>
+                    <div class="flex items-center gap-1 mt-1 flex-wrap dtm-statuszone">
+                      <template x-for="s in enemyStatusList(e).filter(x=>x.k!=='luc')" :key="s.k">
                         <span class="pill" :style="'color:'+s.c+';border:1px solid '+s.c+'66;background:'+s.c+'1f'"><template x-if="s.icon"><img :src="statusIcon(s.icon)" class="dtm-sti" alt="" onerror="this.style.display='none'"></template><span x-text="s.txt"></span></span>
                       </template>
                     </div>
