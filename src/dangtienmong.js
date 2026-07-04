@@ -247,6 +247,12 @@ export function dangTienMong() {
     bongLai: { name: 'Bồng Lai Tán Tiên', han: '蓬', he: 'kim', hp: 68, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 11 }, { t: 'heal', v: 12 }, { t: 'def', v: 14 }, { t: 'atk', v: 15 }, { t: 'buff', v: 3 }] },
     // --- Mộng Chủ (boss) ---
     maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 84, boss: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }, { t: 'def', v: 14 }, { t: 'heal', v: 12 }] },
+    // --- 5 Chưởng Môn còn thiếu (boss chưởng môn, LITE: dùng cơ chế player-side poison/burn/weaken/stun + pen; gimmick nhẹ). Số DRAFT. ---
+    thien_vuong: { name: 'Thiên Vương Đế Quân', han: '霸', he: 'kim', hp: 85, elite: true, chuongMon: true, intents: [{ t: 'def', v: 16 }, { t: 'atk', v: 12 }, { t: 'def', v: 14 }, { t: 'charge' }, { t: 'atk', v: 26, big: true, pen: true }, { t: 'atk', v: 8, hits: 2 }] },
+    ngu_doc: { name: 'Ngũ Độc Giáo Chủ', han: '毒', he: 'moc', hp: 80, elite: true, chuongMon: true, intents: [{ t: 'poison', v: 5 }, { t: 'poison', v: 5 }, { t: 'weaken', v: 3 }, { t: 'poison', v: 6 }, { t: 'charge' }, { t: 'atk', v: 8, big: true, pen: true }, { t: 'heal', v: 8 }, { t: 'poison', v: 5 }, { t: 'def', v: 6 }] },
+    thuy_yen: { name: 'Băng Hà Tôn Chủ', han: '冰', he: 'thuy', hp: 76, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 10 }, { t: 'weaken', v: 3 }, { t: 'def', v: 16 }, { t: 'atk', v: 7, hits: 2 }, { t: 'stun' }, { t: 'atk', v: 12 }] },
+    thien_nhan: { name: 'Xích Diễm Tôn Giả', han: '焰', he: 'hoa', hp: 72, elite: true, chuongMon: true, intents: [{ t: 'burn', v: 4, burnT: 3 }, { t: 'atk', v: 6 }, { t: 'buff', v: 2 }, { t: 'burn', v: 5, burnT: 3 }, { t: 'atk', v: 8, pen: true }, { t: 'charge' }, { t: 'atk', v: 14, big: true }, { t: 'heal', v: 8 }] },
+    con_lon: { name: 'Thiết Cầm Tiên Sinh', han: '琴', he: 'tho', hp: 75, elite: true, chuongMon: true, intents: [{ t: 'def', v: 9 }, { t: 'stun' }, { t: 'atk', v: 16 }, { t: 'def', v: 8 }, { t: 'weaken', v: 3 }, { t: 'atk', v: 5, hits: 2 }] },
   };
   // Tiểu sử tàn niệm (bio) — hiển thị trong modal Chi Tiết Quái. Giọng võ lâm; nội dung là tàn niệm cao thủ trong mộng cảnh.
   const ENEMY_BIO = {
@@ -298,6 +304,13 @@ export function dangTienMong() {
       [['langYeu', 'langYeu'], ['tanKiem', 'luyenKhi'], ['thienSon']],
       [['doCo', 'doCo'], ['caiBang'], ['nhatNguyet']],
       [['cungThu', 'cungThu', 'cungThu'], ['hoaSonKiem'], ['bongLai']],
+      [['taoKhau', 'satThu'], ['thien_vuong']],
+      [['doCo', 'doCo'], ['ngu_doc']],
+      [['langYeu', 'daLang'], ['thuy_yen']],
+      [['luyenKhi', 'cungThu'], ['thien_nhan']],
+      [['tanKiem', 'satThu'], ['con_lon']],
+      [['satThu', 'satThu'], ['tanKiem', 'luyenKhi'], ['thien_vuong']],
+      [['doCo', 'daLang'], ['cungThu', 'cungThu'], ['ngu_doc']],
     ],
     boss: [   // Mộng Chủ: chung kết đa đợt (guards -> Mộng Chủ)
       [['thieuLam', 'ngaMiSu'], ['maGiao']],
@@ -305,7 +318,7 @@ export function dangTienMong() {
       [['satThu', 'satThu'], ['caiBang', 'thieuLam'], ['maGiao']],
     ],
   };
-  const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao', caiBang: 'port_master_cai_bang', ngaMiSu: 'port_master_nga_mi', thieuLam: 'port_master_thieu_lam', voDang: 'port_master_vo_dang', thienSon: 'port_master_thien_son', nhatNguyet: 'port_master_nhat_nguyet', bongLai: 'port_master_bong_lai', taoKhau: 'cuongDao', daLang: 'langYeu', cungThu: 'satThu' };   // elite/mini-boss mượn chân dung chưởng môn; lâu la mới mượn 3 art cơ bản; tanKiem/doCo/luyenKhi -> Hán (art sau)
+  const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao', caiBang: 'port_master_cai_bang', ngaMiSu: 'port_master_nga_mi', thieuLam: 'port_master_thieu_lam', voDang: 'port_master_vo_dang', thienSon: 'port_master_thien_son', nhatNguyet: 'port_master_nhat_nguyet', bongLai: 'port_master_bong_lai', thien_vuong: 'port_master_thien_vuong', ngu_doc: 'port_master_ngu_doc', thuy_yen: 'port_master_thuy_yen', thien_nhan: 'port_master_thien_nhan', con_lon: 'port_master_con_lon', taoKhau: 'cuongDao', daLang: 'langYeu', cungThu: 'satThu' };   // elite/mini-boss mượn chân dung chưởng môn; lâu la mới mượn 3 art cơ bản; tanKiem/doCo/luyenKhi -> Hán (art sau)
   // BỘ BÀI QUÁI (repertoire): mỗi quái có chuỗi chiêu RIÊNG (song song intents), telegraph = chip lá kế. {nm,han,art} — art mượn book_* (chỉ chip mini), hiệu lực vẫn theo intent.
   const MOVES = {
     cuongDao: [ { nm: 'Loạn Đao Trảm', han: '刀', art: 'book_dat_ma_truong' }, { nm: 'Thiết Bài Hộ', han: '盾', art: 'book_thai_cuc_quyen' }, { nm: 'Đoạt Mệnh Kích', han: '奪', art: 'book_la_han_quyen' } ],
@@ -314,6 +327,11 @@ export function dangTienMong() {
     hoaSonKiem: [ { nm: 'Hoa Sơn Nhất Kiếm', han: '華', art: 'book_hoa_son_kiem' }, { nm: 'Ngưng Kiếm Ý', han: '意', art: 'book_dich_can_kinh' }, { nm: 'Mai Hoa Song Kiếm', han: '梅', art: 'book_tich_ta_kiem' }, { nm: 'Kiếm Phong Hộ Thân', han: '守', art: 'book_thai_cuc_quyen' } ],
     duongMon: [ { nm: 'Mãn Thiên Ám Khí', han: '暗', art: 'book_duong_mon_am_khi' }, { nm: 'Liên Châu Đoản Tiễn', han: '箭', art: 'book_duong_mon_am_khi' }, { nm: 'Liệu Thương Đan', han: '藥', art: 'book_nga_mi_cuu_duong' }, { nm: 'Thấu Cốt Châm', han: '釘', art: 'book_tich_ta_kiem' } ],
     maGiao: [ { nm: 'Huyết Ma Trảo', han: '魔', art: 'book_hap_tinh_dai_phap' }, { nm: 'Tụ Ma Khí', han: '蓄', art: 'book_cuu_am' }, { nm: 'Thiên Ma Hủy Diệt', han: '殛', art: 'book_hap_tinh_dai_phap' }, { nm: 'Ma Khí Hộ Thể', han: '罡', art: 'book_thai_cuc_quyen' }, { nm: 'Hấp Tinh Hoàn Nguyên', han: '吸', art: 'book_hap_tinh_dai_phap' } ],
+    thien_vuong: [ { nm: 'Kim Cang Hộ Giáp', han: '鎧', art: 'kimCangGiap' }, { nm: 'Bá Vương Kích', han: '霸', art: 'thienVuong' }, { nm: 'Thiết Tường Bích', han: '壁', art: 'thietTuongBich' }, { nm: 'Vận Thiên Cương', han: '蓄', art: 'book_dich_can_kinh' }, { nm: 'Thiên Vương Phá', han: '碎', art: 'phaGiapTamChuy' }, { nm: 'Liên Hoàn Thiết Chùy', han: '錐', art: 'phaThietChuy' } ],
+    ngu_doc: [ { nm: 'Ngưng Độc Tán', han: '凝', art: 'ngungDocTan' }, { nm: 'Ngũ Độc Xà Tiễn', han: '蛇', art: 'nguDocXaTien' }, { nm: 'Nhiếp Độc Chú', han: '蠱', art: 'docLongToa' }, { nm: 'Bách Độc Vụ', han: '毒', art: 'tanDocThu' }, { nm: 'Tụ Độc Vận Công', han: '蓄', art: 'book_cuu_am' }, { nm: 'Vạn Độc Quy Tông', han: '歸', art: 'vanDocQuiTong' }, { nm: 'Dĩ Độc Dưỡng Thân', han: '養', art: 'book_nga_mi_cuu_duong' }, { nm: 'Cốt Độc Chưởng', han: '骨', art: 'cotDocChuong' }, { nm: 'Độc Vụ Hộ Thể', han: '障', art: 'book_thai_cuc_quyen' } ],
+    thuy_yen: [ { nm: 'Hàn Băng Miên Chưởng', han: '寒', art: 'hanBangChuong' }, { nm: 'Băng Phách Hàn Sương', han: '霜', art: 'lanhSuongThu' }, { nm: 'Huyền Băng Hộ Giáp', han: '冰', art: 'book_thai_cuc_quyen' }, { nm: 'Song Băng Thích', han: '針', art: 'bangChamThich' }, { nm: 'Huyền Băng Phong Tỏa', han: '封', art: 'bangPhongToa' }, { nm: 'Băng Hà Nhất Kích', han: '掌', art: 'bangPhongChuong' } ],
+    thien_nhan: [ { nm: 'Phần Thiên Chưởng', han: '焚', art: 'phanThienChuong' }, { nm: 'Liệt Diễm Kích', han: '炎', art: 'lieuHoaChuong' }, { nm: 'Vận Hỏa Khí', han: '蓄', art: 'book_cuu_duong' }, { nm: 'Hỏa Vân Cuồng Phong', han: '燄', art: 'hoaVanCuongPhong' }, { nm: 'Xuyên Diễm Thích', han: '烈', art: 'phanThienDoiHoa' }, { nm: 'Tụ Nghiệp Hỏa', han: '燎', art: 'liaoNguyenChiHoa' }, { nm: 'Phần Thiên Diệt Địa', han: '燔', art: 'phucDiaHoaVan' }, { nm: 'Hỏa Liệu Nguyên', han: '丹', art: 'book_nga_mi_cuu_duong' } ],
+    con_lon: [ { nm: 'Tỏa Thiên Cương Trận', han: '鎖', art: 'toaThienCuong' }, { nm: 'Chấn Nhạc Cầm Âm', han: '琴', art: 'book_cuu_am' }, { nm: 'Hỗn Nguyên Nhất Khí', han: '混', art: 'honNguyenNhatKhi' }, { nm: 'Càn Khôn Thủ Thế', han: '守', art: 'book_thai_cuc_quyen' }, { nm: 'Đảo Chuyển Âm Dương', han: '轉', art: 'daoChuyenAmDuong' }, { nm: 'Côn Lôn Tam Thức', han: '劍', art: 'conLonTamThucKiem' } ],
     taoKhau: [ { nm: 'Cường Đao', han: '刀', art: 'book_dat_ma_truong' }, { nm: 'Thô Bài Đáng', han: '盾', art: 'book_thai_cuc_quyen' }, { nm: 'Bổ Sát', han: '劈', art: 'book_la_han_quyen' } ],
     daLang: [ { nm: 'Dã Trảo', han: '爪', art: 'book_hoa_son_kiem' }, { nm: 'Cúp Mình', han: '伏', art: 'book_thai_cuc_quyen' }, { nm: 'Liên Giảo', han: '噬', art: 'book_la_han_quyen' } ],
     cungThu: [ { nm: 'Liên Tiễn', han: '箭', art: 'book_duong_mon_am_khi' }, { nm: 'Xuyên Vân Tiễn', han: '弓', art: 'book_duong_mon_am_khi' }, { nm: 'Ngưng Thần', han: '神', art: 'book_dich_can_kinh' } ],
@@ -522,8 +540,10 @@ export function dangTienMong() {
     moveIntentText(e, i) { const it = e.intents[i]; if (!it) return ''; const s = e.str || 0;
       if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
       if (it.t === 'def') return 'Vận Hộ Thể ' + it.v; if (it.t === 'buff') return 'Tăng Lực +' + it.v;
-      if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v; return ''; },
-    moveIntentColor(e, i) { const it = e.intents[i]; if (!it) return '#94a3b8'; return it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))); },
+      if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v;
+      if (it.t === 'poison') return 'Gieo Độc ' + it.v; if (it.t === 'burn') return 'Gieo Bỏng ' + it.v + '×' + (it.burnT || 3);
+      if (it.t === 'weaken') return 'Suy Yếu ngươi ' + it.v; if (it.t === 'stun') return 'Trấn Choáng'; return ''; },
+    moveIntentColor(e, i) { const it = e.intents[i]; if (!it) return '#94a3b8'; return this._itCol(it.t); },
     moveArt(m) { return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     // ----- Bách Khoa Thẻ (wiki) — Sảnh + trong trận -----
     openWiki() { this.wikiOpen = true; },
@@ -605,7 +625,7 @@ export function dangTienMong() {
       this.run = a.run; this.map = a.map || []; this.mapTier = a.mapTier || 0; this.battleKind = a.battleKind || null;
       this.enemies = (a.enemies || []).map((e) => Object.assign({}, e, { floats: [], hit: false, burst: null, atkfx: null }));
       this.waves = a.waves || (this.enemies.length ? [this.enemies.map((e) => e.id)] : []); this.waveIdx = a.waveIdx || 0; this._waveFlash = 0;
-      this.targetIdx = a.targetIdx || 0; this.player = a.player || { block: 0, str: 0, dodge: false, keepBlock: false };
+      this.targetIdx = a.targetIdx || 0; this.player = a.player || { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0 };
       this.maxKhi = a.maxKhi || 3; this.khi = a.khi != null ? a.khi : this.maxKhi;
       const clr = (arr) => (arr || []).map((c) => Object.assign({}, c, { _cast: null }));
       this.drawPile = clr(a.drawPile); this.hand = clr(a.hand); this.discard = clr(a.discard); this.log = a.log || '';
@@ -670,7 +690,7 @@ export function dangTienMong() {
       this.waves = enc; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = kind;
       this._spawnEnemies(enc[0]);
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
-      this.player = { block: 0, str: 0, dodge: false, keepBlock: false }; this.log = ''; this.playerFloats = []; this._gotRelic = null;
+      this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0 }; this.log = ''; this.playerFloats = []; this._gotRelic = null;
       if (this.hasRelic('thietGiap')) this.player.block += 6;
       if (this.hasRelic('trongGiap')) this.player.block += 10;   // di vật: Trọng Thiết Giáp
       if (this.hasRelic('voTuong')) this.player.dodge = true;    // di vật: Vô Tướng Phù (né đòn đầu)
@@ -737,21 +757,25 @@ export function dangTienMong() {
       return this._planPick(e, curIdx);
     },
     intentText(e) { const it = this.curIntent(e); if (!it) return ''; const s = e.str || 0;
-      if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
+      if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); const p = it.pen ? ' xuyên giáp' : ''; return (it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per)) + p; }
       if (it.t === 'def') return 'Vận Hộ Thể ' + it.v; if (it.t === 'buff') return 'Tăng Lực +' + it.v;
-      if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v; return ''; },
-    intentStyle(e) { const it = e.hp > 0 && this.curIntent(e); const c = !it ? '#64748b' : (it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))));
+      if (it.t === 'charge') return 'Vận Công… (đòn mạnh)'; if (it.t === 'heal') return 'Liệu Thương +' + it.v;
+      if (it.t === 'poison') return 'Gieo Độc ' + it.v; if (it.t === 'burn') return 'Gieo Bỏng ' + it.v + '×' + (it.burnT || 3);
+      if (it.t === 'weaken') return 'Suy Yếu ngươi ' + it.v; if (it.t === 'stun') return 'Trấn Choáng'; return ''; },
+    intentStyle(e) { const it = e.hp > 0 && this.curIntent(e); const c = !it ? '#64748b' : this._itCol(it.t);
       return 'color:' + c + ';border:1px solid ' + c + '55;background:' + c + '14'; },
     // ----- Telegraph CHIP: ý đồ quái = lá bài kế trong bộ bài riêng (chip mini art + tên chiêu + tác dụng) -----
     intentMove(e) { try { const arr = MOVES[e.id]; return (arr && arr.length) ? (arr[e.plan] || arr[0]) : null; } catch (_) { return null; } },
     intentCardArt(e) { const m = this.intentMove(e); return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     intentCardName(e) { const m = this.intentMove(e); return m ? m.nm : (this.intentText(e) || 'Ý đồ'); },
     intentCardHan(e) { const m = this.intentMove(e); return m ? m.han : (e.han || '?'); },
-    intentColor(e) { const it = this.curIntent(e); if (!it) return '#64748b'; return it.t === 'atk' ? '#fb7185' : (it.t === 'charge' ? '#f5b942' : (it.t === 'heal' ? '#34d399' : (it.t === 'def' ? '#38bdf8' : '#facc15'))); },
+    _itCol(t) { return { atk: '#fb7185', charge: '#f5b942', heal: '#34d399', def: '#38bdf8', buff: '#facc15', poison: '#34d399', burn: '#fb923c', weaken: '#a78bfa', stun: '#c084fc' }[t] || '#facc15'; },
+    intentColor(e) { const it = this.curIntent(e); if (!it) return '#64748b'; return this._itCol(it.t); },
     peekOn() { return !!this._up().peek; },   // Lưỡng Nghi Kính
     peekText(e) { const it = e.intents[e.planNext] || e.intents[0]; if (!it) return ''; const s = e.str || 0;
       if (it.t === 'atk') { const per = Math.max(0, it.v + s - (e.weak || 0)); return it.hits ? ('Đánh ' + per + '×' + it.hits) : ('Đánh ' + per); }
-      if (it.t === 'def') return 'Hộ ' + it.v; if (it.t === 'buff') return 'Lực +' + it.v; if (it.t === 'charge') return 'Vận Công…'; if (it.t === 'heal') return 'Liệu +' + it.v; return ''; },
+      if (it.t === 'def') return 'Hộ ' + it.v; if (it.t === 'buff') return 'Lực +' + it.v; if (it.t === 'charge') return 'Vận Công…'; if (it.t === 'heal') return 'Liệu +' + it.v;
+      if (it.t === 'poison') return 'Độc ' + it.v; if (it.t === 'burn') return 'Bỏng ' + it.v; if (it.t === 'weaken') return 'Suy Yếu ' + it.v; if (it.t === 'stun') return 'Choáng'; return ''; },
     restPct() { return 0.30 + (this._up().restBonus ? 0.05 : 0) - ((this.run && (this.run.sc || 0) >= 5) ? 0.05 : 0); },   // Tịnh Thất Phù; SC5 −5%
     draw(n) { for (let k = 0; k < n; k++) { if (!this.drawPile.length) { if (!this.discard.length) return; this.drawPile = shuffle(this.discard); this.discard = []; } const dc = this.drawPile.pop(); if (dc) { dc._cast = null; this.hand.push(dc); } } },
     floatE(e, v) { const id = ++this._f; e.floats.push({ id, v: '-' + v }); e.hit = true; setTimeout(() => { e.hit = false; }, 240); setTimeout(() => { e.floats = e.floats.filter((f) => f.id !== id); }, 950); },
@@ -763,6 +787,12 @@ export function dangTienMong() {
       else { e.stun = (e.stun || 0) + n; }
     },
     absorbPlayer(amt) { let d = amt; if (this.player.block > 0) { const a = Math.min(this.player.block, d); this.player.block -= a; d -= a; } this.run.hp = Math.max(0, this.run.hp - d); return d; },
+    _playerPen(amt) { this.run.hp = Math.max(0, this.run.hp - amt); return amt; },   // Phá Giáp lên người chơi: bỏ qua Hộ Thể
+    // Gimmick boss chưởng môn (LITE): chỉ 2 con có gimmick cuối lượt; còn lại phân biệt qua pattern intent.
+    _bossGimmick(e) {
+      if (e.id === 'ngu_doc') { const p = this.player.poison || 0; if (p > 0) e.hp = Math.min(e.maxHp, e.hp + p); this.player.poison = p + 1; }   // Dĩ Độc Dưỡng Thân: hồi = Độc người chơi, rồi Độc +1
+      else if (e.id === 'thien_nhan') { if ((this.player.burn || 0) > 0 && (this.player.burnT || 0) > 0) this.player.burnT += 1; e.str = (e.str || 0) + 1; }   // Nghiệp Hỏa: Bỏng người chơi +1 lượt & boss +1 Lực
+    },
 
     // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
     tapCard(i, ev) {
@@ -845,7 +875,7 @@ export function dangTienMong() {
       const usePen = c.pen || hb.forcePen;   // Phá Giáp (thẻ hoặc Hợp Bích Thiên Vương)
       // Nhánh SÁT THƯƠNG: gộp dmg thường + blkToDmg (Hộ Thể hóa ST) + detonate (kích nổ Độc)
       if (c.dmg || c.blkToDmg || c.detonate) {
-        let base = (c.dmg || 0) + (this.player.str || 0) + (hb.dmgBonus || 0) + (hb.dmgPerHit || 0);
+        let base = (c.dmg || 0) + (this.player.str || 0) + (hb.dmgBonus || 0) + (hb.dmgPerHit || 0) - (this.player.weaken || 0);   // Suy Yếu người chơi giảm ST
         const btd = (c.blkToDmg || 0) + (hb.blkToDmgBonus || 0);
         if (btd) base += Math.floor((this.player.block || 0) * btd);
         if (c.type === 'atk' && !this._firstAtkUsed) { let fb = 0; if (this.run.hero.id === 'kiem') fb += 3; if (this.hasRelic('lietNhan')) fb += 3; base += fb; this._firstAtkUsed = true; }   // Lợi Nhận (kiem) + Liệt Nhận Phù
@@ -853,7 +883,7 @@ export function dangTienMong() {
         const tgts = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (tgt() ? [tgt()] : []);
         let total = 0;
         tgts.forEach((e) => {
-          let per = base;
+          let per = Math.max(0, base);
           if (c.detonate) { const mul = c.detonate + (hb.detonateBonus || 0); per += Math.floor((e.poison || 0) * mul); e.poison = hb.keepHalfPoison ? Math.floor((e.poison || 0) / 2) : 0; }   // ST += Độc×k; Hợp Bích Ngũ Độc chừa nửa Độc
           if (KHAC[c.he] === e.he) { per = Math.floor(per * 1.3); e.burst = c.he; const eb = e; setTimeout(() => { eb.burst = null; }, 620); }
           let d = 0; for (let h = 0; h < hits; h++) d += (usePen ? this._hitPen(e, per) : this.hitEnemy(e, per));   // Phá Giáp -> bỏ qua Hộ Thể
@@ -904,17 +934,30 @@ export function dangTienMong() {
           if ((e.stun || 0) > 0) { e.stun--; e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--; continue; }   // Choáng: bỏ lượt, giữ nguyên telegraph (ra đòn lượt sau)
           const it = this.curIntent(e); if (it) {
             this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
-            if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += this.absorbPlayer(per); } }
+            if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; for (let h = 0; h < hits; h++) { if (this.player.dodge) { this.player.dodge = false; continue; } toPlayer += (it.pen ? this._playerPen(per) : this.absorbPlayer(per)); } }   // pen: xuyên Hộ Thể người chơi
             else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
+            else if (it.t === 'poison') this.player.poison = (this.player.poison || 0) + it.v;                                             // boss gieo Độc lên người chơi
+            else if (it.t === 'burn') { this.player.burn = (this.player.burn || 0) + it.v; this.player.burnT = Math.max(this.player.burnT || 0, it.burnT || 3); }
+            else if (it.t === 'weaken') this.player.weaken = (this.player.weaken || 0) + it.v;
+            else if (it.t === 'stun') this.player.stun = (this.player.stun || 0) + 1;
           }
+          this._bossGimmick(e);   // gimmick cuối lượt (LITE: ngu_doc / thien_nhan)
           e.plan = (e.planNext != null) ? e.planNext : this._planPick(e, e.plan); e.planNext = this._planFollow(e, e.plan); e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--;
         }
+        // DoT lên NGƯỜI CHƠI (Độc/Bỏng do boss gieo) — xuyên Hộ Thể, giảm dần như quái
+        let pdot = 0;
+        if ((this.player.poison || 0) > 0) { pdot += this.player.poison; this.player.poison = Math.max(0, this.player.poison - 1); }
+        if ((this.player.burn || 0) > 0 && (this.player.burnT || 0) > 0) { pdot += this.player.burn; this.player.burnT--; if (this.player.burnT <= 0) this.player.burn = 0; }
+        if (pdot > 0) { this.run.hp = Math.max(0, this.run.hp - pdot); this.floatPlayer(pdot); }
         if (toPlayer > 0) this.floatPlayer(toPlayer);
         if (this.run.hp <= 0) { this.onDeath(); return; }
       }
       if (this.player.keepBlock) { this.player.keepBlock = false; }   // Giữ Hộ Thể: KHÔNG reset block lượt này (dùng 1 lần)
       else this.player.block = this.hasRelic('kimChung') ? Math.floor(this.player.block / 2) : 0;   // Kim Chung Tráo: giữ nửa Hộ Thể dư
-      this.khi = this.maxKhi; this.startTurnPassive(); this.draw(this.handSize());
+      this.player.weaken = Math.max(0, (this.player.weaken || 0) - 1);   // Suy Yếu người chơi giảm dần
+      this.khi = this.maxKhi;
+      if ((this.player.stun || 0) > 0) { this.khi = Math.max(0, this.khi - 2); this.player.stun = Math.max(0, this.player.stun - 1); }   // Choáng người chơi: −2 Khí lượt này (LITE)
+      this.startTurnPassive(); this.draw(this.handSize());
       this._saveRun();
     },
     onDeath() {

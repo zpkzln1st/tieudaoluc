@@ -7759,7 +7759,11 @@
                       <span x-show="player.block>0" class="pill text-sky-200 border-sky-500/50 bg-sky-900/40"><img :src="statusIcon('hothe')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Hộ Thể '+player.block"></span></span>
                       <span x-show="player.str>0" class="pill text-amber-300 border-amber-500/50 bg-amber-500/10"><img :src="statusIcon('luc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Lực +'+player.str"></span></span>
                       <span x-show="player.dodge" class="pill text-cyan border-cyan/40 bg-cyan/10"><img :src="statusIcon('ne')" class="dtm-sti" alt="" onerror="this.style.display='none'">Né đòn kế</span>
-                      <span x-show="player.block<=0&&player.str<=0&&!player.dodge" class="text-[10px] text-slate-600 italic">— chưa có trạng thái —</span>
+                      <span x-show="player.poison>0" class="pill" style="color:#6ee7b7;border:1px solid #34d39966;background:#34d3991f"><img :src="statusIcon('doc')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Trúng Độc '+player.poison"></span></span>
+                      <span x-show="player.burn>0&&player.burnT>0" class="pill" style="color:#fdba74;border:1px solid #fb923c66;background:#fb923c1f"><span x-text="'Bị Bỏng '+player.burn+'×'+player.burnT"></span></span>
+                      <span x-show="player.weaken>0" class="pill" style="color:#c4b5fd;border:1px solid #a78bfa66;background:#a78bfa1f"><img :src="statusIcon('suyyeu')" class="dtm-sti" alt="" onerror="this.style.display='none'"><span x-text="'Suy Yếu '+player.weaken"></span></span>
+                      <span x-show="player.stun>0" class="pill" style="color:#d8b4fe;border:1px solid #c084fc66;background:#c084fc1f"><span x-text="'Choáng '+player.stun"></span></span>
+                      <span x-show="player.block<=0&&player.str<=0&&!player.dodge&&!(player.poison>0)&&!(player.burn>0)&&!(player.weaken>0)&&!(player.stun>0)" class="text-[10px] text-slate-600 italic">— chưa có trạng thái —</span>
                     </div>
                   </div>
                   <div class="flex flex-col items-center shrink-0">
