@@ -798,7 +798,7 @@ export function dangTienMong() {
           drawPile: this.drawPile, hand: handSnap, discard: discardSnap, log: this.log,
           runNgan: this.runNgan, rewardCards: this.rewardCards, rewardGold: this.rewardGold, shopItems: this.shopItems,
           rerollLeft: this.rerollLeft, scSel: this.scSel, deepest: this.deepest,
-          _firstAtkUsed: this._firstAtkUsed, _bankGain: this._bankGain, _newUnlocks: this._newUnlocks, _newScUnlocked: this._newScUnlocked, v: 1,
+          _firstAtkUsed: this._firstAtkUsed, _bankGain: this._bankGain, _newUnlocks: this._newUnlocks, _newScUnlocked: this._newScUnlocked, _hiddenElite: this._hiddenElite, v: 1,
         };
         const g = this.$store.game;
         g.state.dangTien.activeRun = JSON.parse(JSON.stringify(snap));
@@ -821,7 +821,7 @@ export function dangTienMong() {
       this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, a.scSel || {});
       this.deepest = Math.max(this.deepest || 0, a.deepest || 0);
       this._firstAtkUsed = !!a._firstAtkUsed; this._bankGain = a._bankGain || 0; this._newUnlocks = a._newUnlocks || []; this._newScUnlocked = a._newScUnlocked || 0;
-      this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._deckPick = null; this._hiddenElite = false; this._hoverCard = null;
+      this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._deckPick = null; this._hiddenElite = !!a._hiddenElite; this._hoverCard = null;   // giữ cờ elite ẩn qua reload giữa trận (thưởng +40 khi thắng)
       this.buildMapView();
       if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
       else { this.phase = a.phase || 'map'; if (this.phase === 'map') this._scrollMapCur(); }
