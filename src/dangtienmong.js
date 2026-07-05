@@ -457,7 +457,7 @@ export function dangTienMong() {
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
   return {
-    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
+    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0, _deckPick: null, _hiddenElite: false,
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, _losing: false, selUid: null,
@@ -767,7 +767,7 @@ export function dangTienMong() {
     devJumpTier() { if (!this.run) { this._devLog('chưa có ván'); return; } this.mapTier = Math.min((this.map.length || 20) - 1, (this.mapTier || 0) + 1); this.deepest = Math.max(this.deepest || 0, this.mapTier); this.persist(); this.buildMapView(); this.phase = 'map'; this._saveRun(); try { this._scrollMapCur(); } catch (e) {} this._devLog('nhảy tầng ' + (this.mapTier + 1)); },
 
     startRun(h) {
-      this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0;
+      this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0; this._hiddenElite = false; this._deckPick = null;
       const up = this._up();
       const sc = Math.min((this.scSel && this.scSel[h.id]) || 0, this.scMaxOf(h.id));   // Sát Cảnh đã chọn
       let mhp = h.hp + 4 * (up.hp || 0);             // Cố Bản
@@ -821,7 +821,7 @@ export function dangTienMong() {
       this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, a.scSel || {});
       this.deepest = Math.max(this.deepest || 0, a.deepest || 0);
       this._firstAtkUsed = !!a._firstAtkUsed; this._bankGain = a._bankGain || 0; this._newUnlocks = a._newUnlocks || []; this._newScUnlocked = a._newScUnlocked || 0;
-      this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._hoverCard = null;
+      this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._deckPick = null; this._hiddenElite = false; this._hoverCard = null;
       this.buildMapView();
       if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
       else { this.phase = a.phase || 'map'; if (this.phase === 'map') this._scrollMapCur(); }
@@ -1258,6 +1258,7 @@ export function dangTienMong() {
       if (this.hasRelic('hoiNguyen')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * 0.12));   // di vật: Hồi Nguyên Châu
       const _base = { boss: 60, huyenthoai: 55, miniboss: 45, elite: 35, swarm: 26, battle: 18 }[this.battleKind] || 18;   // DRAFT
       this.rewardGold = _base + ((this.waves && this.waves.length > 1) ? (this.waves.length - 1) * 12 : 0) + (this.hasRelic('tuBao') ? 10 : 0);   // +12/đợt phụ + Tụ Bảo Bồn (DRAFT)
+      if (this._hiddenElite) { this.rewardGold += 40; this._hiddenElite = false; }   // Kỳ Ngộ elite ẩn: thắng -> thưởng hậu (di vật vẫn rơi theo nhánh elite)
       if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
       if (this.battleKind === 'boss') { this.afterNode(); return; }
       this._gotRelic = null; this._gotThan = null;
@@ -1284,6 +1285,28 @@ export function dangTienMong() {
     _drawReward() { this.rewardGold = 0; this.rewardCards = this._rollKeys(3).map(mk); this._setReroll(); this.phase = 'reward'; },   // rút 1/3 thẻ (không thưởng Ngân)
     _giveRelic() { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._evtRelic = r; this.log = 'Nhận di vật: ' + r.name; } else { this.runNgan += 40; this.log = 'Di vật đã đủ — nhận +40 Mộng Ngân.'; } },   // _evtRelic -> khung chi tiết ở màn kết quả Kỳ Ngộ
     _coin() { return Math.random() < 0.5; },
+    // Nâng cấp thẻ (Kỳ Ngộ): nâng THẲNG số chính theo loại + gắn c.up (dấu "+"); thẻ thuần hiệu ứng (không số) -> giảm 1 Khí. Bảng số DRAFT.
+    _upgradeCard(c) {
+      if (!c || c.up) return false; let boosted = false;
+      if (c.dmg) { c.dmg += 3; boosted = true; } if (c.blk) { c.blk += 3; boosted = true; } if (c.heal) { c.heal += 3; boosted = true; }
+      if (c.poison) { c.poison += 2; boosted = true; } if (c.burn) { c.burn += 1; boosted = true; } if (c.weaken) { c.weaken += 1; boosted = true; }
+      if (c.str) { c.str += 1; boosted = true; } if (c.draw) { c.draw += 1; boosted = true; }
+      if (!boosted && (c.cost || 0) > 0) c.cost = Math.max(0, c.cost - 1);   // thẻ thuần hiệu ứng -> rẻ 1 Khí
+      c.up = true; return true;
+    },
+    // Mở picker chọn thẻ trong bộ bài (mode 'up' = nâng cấp / 'del' = loại bỏ). Edge: bộ bài quá nhỏ / mọi thẻ đã nâng -> fallback +Mộng Ngân rồi resolve event luôn.
+    _openDeckPick(mode) {
+      if (mode === 'del' && this.run.deck.length <= 3) { this.runNgan += 20; this.log = 'Bộ bài đã quá tinh gọn — nhận +20 Mộng Ngân.'; this.afterNode(); return; }
+      if (mode === 'up' && !this.run.deck.some((c) => !c.up)) { this.runNgan += 20; this.log = 'Mọi chiêu đã viên mãn — nhận +20 Mộng Ngân.'; this.afterNode(); return; }
+      this._deckPick = mode;
+    },
+    _pickDeckCard(i) {
+      const c = this.run.deck[i]; if (!c) return;
+      if (this._deckPick === 'up') { if (c.up) return; this._upgradeCard(c); this.log = 'Khắc sâu chiêu thức: ' + c.name + ' — uy lực tăng tiến.'; }
+      else if (this._deckPick === 'del') { this.run.deck.splice(i, 1); this.log = 'Buông bỏ một chiêu: ' + c.name + ' — bộ bài tinh gọn, sắc bén hơn.'; }
+      this._deckPick = null; this.afterNode();   // -> intercept _pendingEventResult -> _showEventResult
+    },
+    _cancelDeckPick() { this._deckPick = null; this._pendingEventResult = false; this._evtBefore = null; this.log = ''; },   // hủy -> quay lại màn chọn phương án Kỳ Ngộ
     openEvent() { this.event = rnd([
       { title: 'Lão Nhân Bên Suối', text: 'Một lão nhân áo vải câu bên suối mộng, ngẩng lên cười: "Tiểu hữu, ngươi muốn một quyển bí kíp, hay chút lộ phí?"',
         opts: [{ label: 'Xin một chiêu thức (rút 1/3 thẻ)', fn: () => this._drawReward() },
@@ -1311,8 +1334,14 @@ export function dangTienMong() {
                 { label: 'Khóa tím — Bảo (nhận 1 di vật)', fn: () => { this._giveRelic(); this.afterNode(); } },
                 { label: 'Khóa lam — Học (rút 1/3 thẻ)', fn: () => this._drawReward() }] },
       { title: 'Lư Hương Tịnh Tâm', text: 'Làn khói hương thanh khiết giúp ngươi buông bỏ một chiêu thức thô vụng, để võ học tinh gọn sắc bén hơn.',
-        opts: [{ label: 'Tinh luyện (bỏ 1 thẻ Cơ Bản khỏi bộ bài)', fn: () => { const i = this.run.deck.findIndex((c) => /^coBan/.test(c.id || '')); if (i >= 0) { this.run.deck.splice(i, 1); this.log = 'Bỏ một chiêu thô — bộ bài tinh gọn hơn.'; } else { this.runNgan += 20; this.log = 'Không còn chiêu thô để bỏ, +20 Mộng Ngân.'; } this.afterNode(); } },
+        opts: [{ label: 'Tinh luyện (chọn 1 thẻ để loại bỏ)', fn: () => this._openDeckPick('del') },
                 { label: 'Tĩnh tọa (hồi 12% HP)', fn: () => { this._heal(0.12); this.afterNode(); } }] },
+      { title: 'Bia Đá Khắc Cốt', text: 'Một tấm bia cổ khắc kín võ học, từng nét như hằn vào tâm khảm. Ngươi có thể khắc sâu một chiêu thức đã biết, luyện tới mức tinh thuần hơn.',
+        opts: [{ label: 'Khắc sâu (chọn 1 thẻ để NÂNG CẤP)', fn: () => this._openDeckPick('up') },
+                { label: 'Chép lấy lộ phí (+25 Mộng Ngân)', fn: () => { this.runNgan += 25; this.log = 'Chép vài trang bán được chút bạc, +25 Mộng Ngân.'; this.afterNode(); } }] },
+      { title: 'Sát Cơ Ẩn Hiện', text: 'Một cao thủ ẩn cư chặn ngang lối mộng, sát khí ngập trời: "Qua được tay ta, chiến lợi phẩm là của ngươi. Bằng không… ở lại đây."',
+        opts: [{ label: 'Nghênh chiến (đấu Tinh Anh ẩn — thắng: thưởng hậu)', fn: () => { this._hiddenElite = true; this.startBattle('elite'); } },
+                { label: 'Lặng lẽ vòng tránh (+18 Mộng Ngân)', fn: () => { this.runNgan += 18; this.log = 'Nín thở lách qua sát cơ, nhặt được chút bạc rơi. +18 Mộng Ngân.'; this.afterNode(); } }] },
     ]); this.phase = 'event'; this._saveRun(); },
     // Chọn 1 phương án Kỳ Ngộ -> chạy hiệu ứng RỒI hiện màn KẾT QUẢ (trước đây afterNode() chuyển màn ngay nên không thấy kết quả). KHÔNG _saveRun ở đây: giữ điểm resume = TRƯỚC khi chọn (tránh làm lại event / nhân đôi thưởng nếu rời màn giữa chừng); afterNode thật mới save.
     resolveEvent(o) {
@@ -1321,7 +1350,7 @@ export function dangTienMong() {
       this._evtBefore = { hp: this.run.hp, maxHp: this.run.maxHp, ngan: this.runNgan, deck: this.run.deck.length, relics: this.run.relics.length };
       this._pendingEventResult = true;
       try { o.fn(); } catch (e) {}
-      if (this.phase === 'reward') this._pendingEventResult = false;   // fn nhảy thẳng màn Thưởng (rút thẻ) -> đó CHÍNH là kết quả, không cần màn text
+      if (this.phase === 'reward' || this.phase === 'battle') this._pendingEventResult = false;   // fn nhảy thẳng Thưởng (rút thẻ) / vào Trận (elite ẩn) -> đó CHÍNH là kết quả, không cần màn text
     },
     // Dựng danh sách thay đổi (HP/Mộng Ngân/thẻ/di vật) để hiện rõ NGƯỜI CHƠI được/mất gì.
     _showEventResult() {

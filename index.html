@@ -7928,7 +7928,7 @@
                     <template x-if="cardGlow(c)"><div class="dtm-hb-halo" :style="'--c:'+cardGlow(c)"></div></template>
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="hc-chips"><template x-for="e in cardEffects(c)" :key="e.t+e.s"><span class="hc-chip" :style="'background:'+cardEffColor(e.t)" x-text="e.s"></span></template></div></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name + (c.up ? ' ＋' : '')"></div><div class="ctype" x-text="typeLabel(c)+(c.aoe?' · Toàn thể':(c.sect?' · '+c.sect:''))"></div><div class="hc-chips"><template x-for="e in cardEffects(c)" :key="e.t+e.s"><span class="hc-chip" :style="'background:'+cardEffColor(e.t)" x-text="e.s"></span></template></div></div>
                   </div>
                 </template>
                 <template x-if="!hand.length"><div class="text-slate-600 text-sm self-center">Hết bài — Kết Lượt.</div></template>
@@ -7972,7 +7972,7 @@
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                    <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="hc-chips"><template x-for="e in cardEffects(c)" :key="e.t+e.s"><span class="hc-chip" :style="'background:'+cardEffColor(e.t)" @mouseenter="showChipTip(e,$event)" @mouseleave="hideChipTip()" x-text="e.s"></span></template></div></div>
+                    <div class="card-info"><div class="ctitle" x-text="c.name + (c.up ? ' ＋' : '')"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="hc-chips"><template x-for="e in cardEffects(c)" :key="e.t+e.s"><span class="hc-chip" :style="'background:'+cardEffColor(e.t)" @mouseenter="showChipTip(e,$event)" @mouseleave="hideChipTip()" x-text="e.s"></span></template></div></div>
                   </div>
                 </template>
               </div>
@@ -8185,7 +8185,26 @@
                     <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
                       <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                       <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
-                      <div class="card-info"><div class="ctitle" x-text="c.name"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="hc-chips"><template x-for="e in cardEffects(c)" :key="e.t+e.s"><span class="hc-chip" :style="'background:'+cardEffColor(e.t)" @mouseenter="showChipTip(e,$event)" @mouseleave="hideChipTip()" x-text="e.s"></span></template></div></div>
+                      <div class="card-info"><div class="ctitle" x-text="c.name + (c.up ? ' ＋' : '')"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="hc-chips"><template x-for="e in cardEffects(c)" :key="e.t+e.s"><span class="hc-chip" :style="'background:'+cardEffColor(e.t)" @mouseenter="showChipTip(e,$event)" @mouseleave="hideChipTip()" x-text="e.s"></span></template></div></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Kỳ Ngộ: picker chọn thẻ để NÂNG CẤP / LOẠI BỎ (tái dùng .card như Bộ Bài) -->
+          <template x-if="_deckPick">
+            <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4" @click.self="_cancelDeckPick()">
+              <div class="panel rounded-2xl border border-violet-500/40 p-5 max-w-3xl max-h-[85vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-1"><div class="fserif text-lg text-violet-300" x-text="_deckPick==='up' ? 'Khắc Cốt · chọn 1 chiêu để NÂNG CẤP' : 'Tinh Luyện · chọn 1 chiêu để LOẠI BỎ'"></div><button @click="_cancelDeckPick()" class="text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
+                <div class="text-[11px] text-slate-400 mb-3" x-text="_deckPick==='up' ? 'Nâng thẳng số chính của thẻ (thẻ đã có dấu ＋ không nâng lại được).' : 'Bỏ 1 thẻ khỏi bộ bài — hiệu lực cả ván này.'"></div>
+                <div class="flex flex-wrap gap-2 justify-center">
+                  <template x-for="(c,i) in run.deck" :key="i">
+                    <div class="card" :class="(_deckPick==='up'&&c.up)?'unplayable':'playable'" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="_pickDeckCard(i)">
+                      <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
+                      <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
+                      <div class="card-info"><div class="ctitle" x-text="c.name + (c.up ? ' ＋' : '')"></div><div class="ctype" x-text="typeLabel(c)"></div><div class="hc-chips"><template x-for="e in cardEffects(c)" :key="e.t+e.s"><span class="hc-chip" :style="'background:'+cardEffColor(e.t)" x-text="e.s"></span></template></div></div>
                     </div>
                   </template>
                 </div>
