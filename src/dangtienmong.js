@@ -996,14 +996,19 @@ export function dangTienMong() {
         case 'namCungLietHoa': if (it.big) { add += (p.burn || 0) * (p.burnT || 0); p.burn = 0; p.burnT = 0; } break;   // Điểm Hỏa Bùng Nổ: đòn big +tổng Bỏng player rồi thiêu sạch
         case 'langToCam': if ((p.block || 0) >= 10) pen = true; break;                                                   // Công Xa Đa Đòn: player thủ dày (>=10) -> đòn kế Phá Giáp
         case 'toUyenNghiet': if (this.run.hp <= Math.ceil(this.run.maxHp * 0.35)) { mul *= 1.5; pen = true; } break;     // Nhất Kích Chí Mạng: player HP<=35% -> đòn kế +50% & Phá Giáp
+        case 'voDang': if (it.big) { add += (e.block || 0); pen = true; e.block = 0; } break;                            // Vô Cực Thủ Thế: đòn big quy đổi TOÀN BỘ giáp thành ST xuyên
+        case 'nhatNguyet': { const r = e.maxHp ? e.hp / e.maxHp : 1; if (r < 0.25) add += 8; else if (r < 0.5) add += 4; break; }   // Huyết Tế: máu càng thấp đòn càng mạnh
+        case 'maGiao': if (e.maxHp && e.hp / e.maxHp < 0.25) add += 2; break;                                            // Huyết Ma Cường: <25% máu +2 ST (hút máu ở _onEnemyHit)
       }
       if (it.big && (this.run.sc || 0) >= 12) mul *= 1.25;   // SC12: đòn Vận Công +25% ST
       if (e._phase2) mul *= 1.2;                              // SC15 Phẫn Nộ: pha 2 đòn +20%
       return { add, mul, pen };
     },
     _heavyAtkIdx(e) { let bi = -1, bv = -1; (e.intents || []).forEach((x, i) => { if (x.t === 'atk' && (x.v || 0) > bv) { bv = x.v || 0; bi = i; } }); return bi < 0 ? e.plan : bi; },
-    _onEnemyHit(e) {   // sau MỖI đòn tấn công của quái (per-action) — tích Hàn (bangPhach)
+    _onEnemyHit(e, dealt) {   // sau MỖI đòn tấn công của quái (per-action); dealt = ST vừa gây lên người chơi
       if (e.id === 'bangPhachNuHiep') { const p = this.player; p._han = (p._han || 0) + 1; if (p._han >= 4) { p.stun = (p.stun || 0) + 1; p._han = 0; } }   // Hàn Băng Tích Lạnh: >=4 tầng Hàn -> Choáng player rồi reset
+      else if (e.id === 'thieuLam') { e.block = (e.block || 0) + Math.max(2, Math.round((dealt || 0) * 0.25)); }   // Thiết Bố Sam: mỗi đòn tự cộng giáp (25% ST, tối thiểu 2)
+      else if (e.id === 'maGiao') { const r = e.maxHp ? e.hp / e.maxHp : 1; const pct = r < 0.25 ? 1.5 : (r < 0.5 ? 1.0 : 0.5); if (dealt > 0) e.hp = Math.min(e.maxHp, e.hp + Math.round(dealt * pct)); }   // Huyết Ma Cường: hút máu 50%/100%/150% ST theo máu
     },
     // Gimmick CUỐI LƯỢT (sau khi ý đồ đã giải). it = ý đồ vừa ra.
     _bossGimmick(e, it) {
@@ -1019,6 +1024,12 @@ export function dangTienMong() {
         case 'khongTichThuyenSu': { if ((e.block || 0) > 0) { const r = Math.min(Math.floor(e.block / 2), 12); if (r > 0) { this._playerPen(r); this.floatPlayer(r); } } break; }   // Thiền Thân Bất Hoại: giáp dư -> phản 1/2 (<=12) xuyên giáp
         case 'langToCam': { e._turns = (e._turns || 0) + 1; if (e._turns % 3 === 0) e.str = (e.str || 0) + 1; break; }              // Công Xa Đa Đòn: mỗi 3 lượt +1 Lực
         case 'vanVongNuong': { if (it && it.t === 'def') { e._dodging = true; e._reflect = 0; } break; }                            // Nhu Hóa Mượn Lực: def -> né đòn player lượt sau, dồn 1/2 phản
+        case 'thienSon': { if ((e.block || 0) > 0) { e.hp = Math.min(e.maxHp, e.hp + 8); p.weaken = (p.weaken || 0) + 2; } break; }   // Băng Sơn Trường Trận: giáp còn vững -> tự hồi 8 & Suy Yếu player +2
+        case 'bongLai': { if (it && it.t === 'def') { e._dodging = true; e._reflect = 0; e._noReflect = true; e._vanBonus = true; } break; }   // Vân Ẩn: def -> né trọn 1 lượt (KHÔNG phản), đòn kế +1 hit
+        case 'hoaSonKiem': { e._kiemTri = Math.min((e._kiemTri || 0) + 1, 4); break; }                                                // Kiếm Trì Tăng Tốc: mỗi lượt +1 hit vào đòn chuỗi (cap +4)
+        case 'duongMon': { p.poison = (p.poison || 0) + 1; break; }                                                                   // Độc Vô Hình: cuối lượt Độc player +1
+        case 'caiBang': { e.str = (e.str || 0) + 1; break; }                                                                          // Túy Ý: mỗi lượt tự +1 Lực (snowball)
+        case 'ngaMiSu': { e._turns = (e._turns || 0) + 1; if (e._turns % 3 === 0) e.hp = Math.min(e.maxHp, e.hp + 18); break; }        // Trường Kỳ Chiến: mỗi 3 lượt tự hồi 18
       }
     },
     // SC7/SC9: thêm chiêu Sát Cảnh cho boss/tinh anh (intent phụ; telegraph qua chip synthetic _sc trong intentMove).
@@ -1123,7 +1134,7 @@ export function dangTienMong() {
         const tgts = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (tgt() ? [tgt()] : []);
         let total = 0;
         tgts.forEach((e) => {
-          if (e._dodging) { e._reflect = (e._reflect || 0) + Math.floor(Math.max(0, base) * (c.hits || 1) / 2); return; }   // Nhu Hóa Mượn Lực: quái né đòn player, dồn 1/2 ST -> phản lượt sau
+          if (e._dodging) { if (!e._noReflect) e._reflect = (e._reflect || 0) + Math.floor(Math.max(0, base) * (c.hits || 1) / 2); return; }   // né đòn player; vanVong dồn 1/2 ST phản, bongLai (_noReflect) chỉ né
           let per = Math.max(0, base);
           if (c.detonate) { const mul = c.detonate + (hb.detonateBonus || 0); per += Math.floor((e.poison || 0) * mul); e.poison = hb.keepHalfPoison ? Math.floor((e.poison || 0) / 2) : 0; }   // ST += Độc×k; Hợp Bích Ngũ Độc chừa nửa Độc
           if (c.execute && e.maxHp && e.hp <= Math.ceil(e.maxHp * 0.2)) per += c.execute;   // Đoạt Mệnh: địch còn <20% HP -> đòn này +ST (thẻ Thần Nhất Nhãn Đoạn Mệnh)
@@ -1174,19 +1185,21 @@ export function dangTienMong() {
         let toPlayer = 0, _ai = 0;
         const sc = this.run.sc || 0; const defHealMul = sc >= 11 ? 1.25 : 1; const scDot = sc >= 14 ? 1 : 0;   // SC11 def/heal ×1.25 · SC14 Bỏng/Độc player +1 lượt
         for (const e of this.enemies) { if (e.hp <= 0) continue;
-          if (e._dodging) { const r = Math.min(e._reflect || 0, 40); if (r > 0) { const rd = this.absorbPlayer(r); toPlayer += rd; if (rd > 0) this.floatPlayer(rd, this.heColor(e.he)); } e._dodging = false; e._reflect = 0; }   // Nhu Hóa Mượn Lực (vanVongNuong): hoàn 1/2 ST đã né — resolve TRƯỚC stun-continue để né KHÔNG kéo dài qua lượt Choáng
+          if (e._dodging) { const r = Math.min(e._reflect || 0, 40); if (r > 0) { const rd = this.absorbPlayer(r); toPlayer += rd; if (rd > 0) this.floatPlayer(rd, this.heColor(e.he)); } e._dodging = false; e._reflect = 0; e._noReflect = false; }   // né (vanVong hoàn 1/2 ST đã né; bongLai chỉ né) — resolve TRƯỚC stun-continue để né KHÔNG kéo qua lượt Choáng
           if ((e.stun || 0) > 0) { e.stun--; e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--; continue; }   // Choáng: bỏ lượt, giữ nguyên telegraph (ra đòn lượt sau)
           if (sc >= 15 && !e._phase2 && (e.chuongMon || e.boss || e.huyen) && e.hp > 0 && e.hp < e.maxHp / 2) { e._phase2 = true; e.intents.push({ t: 'atk', v: Math.round(12 * (1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5))), pen: true, _sc: true, _nm: 'Phẫn Nộ · Cuồng Kích', _han: '怒' }); }   // SC15 Phẫn Nộ: pha 2 (+1 chiêu; đòn +20% qua _atkMods)
           const it = this.curIntent(e); if (it) {
             this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
             if (it.t === 'atk') {
-              const gm = this._atkMods(e, it);   // gimmick per-đòn (thien_vuong/ngu_doc/namCung/langToCam/toUyenNghiet + SC12/15)
+              const gm = this._atkMods(e, it);   // gimmick per-đòn (thien_vuong/ngu_doc/namCung/langToCam/toUyenNghiet/voDang/nhatNguyet/maGiao + SC12/15)
               let per = Math.max(0, Math.round((it.v + (e.str || 0) - (e.weak || 0) + gm.add) * gm.mul));
-              const hits = it.hits || 1; const usePen = it.pen || gm.pen;
+              let hits = it.hits || 1; const usePen = it.pen || gm.pen;
+              if (e.id === 'hoaSonKiem' && hits > 1) hits += (e._kiemTri || 0);   // Kiếm Trì Tăng Tốc: đòn chuỗi +hit dồn theo lượt
+              if (e._vanBonus) { hits += 1; e._vanBonus = false; }                 // Vân Ẩn (bongLai): đòn kế sau khi né +1 hit
               if (this.player.dodge) { per = Math.floor(per / 2); this.player.dodge = false; }   // Né người chơi = giảm ½ sát thương đòn kế (dùng 1 lần)
               let dealt = 0; for (let h = 0; h < hits; h++) dealt += (usePen ? this._playerPen(per) : this.absorbPlayer(per));   // pen xuyên Hộ Thể
               if (dealt > 0) this.floatPlayer(dealt, this.heColor(e.he)); toPlayer += dealt;   // số ST nhận tô theo ngũ hành quái
-              this._onEnemyHit(e);   // tích Hàn (bangPhach) sau đòn
+              this._onEnemyHit(e, dealt);   // tích Hàn / cộng giáp / hút máu sau đòn
             }
             else if (it.t === 'def') e.block += Math.round(it.v * defHealMul); else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + Math.round(it.v * defHealMul));   // SC11: def/heal ×1.25
             else if (it.t === 'poison') this.player.poison = (this.player.poison || 0) + it.v + scDot;                                    // boss gieo Độc lên người chơi (SC14 +1)
