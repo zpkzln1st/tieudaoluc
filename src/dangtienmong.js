@@ -821,7 +821,7 @@ export function dangTienMong() {
       this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, a.scSel || {});
       this.deepest = Math.max(this.deepest || 0, a.deepest || 0);
       this._firstAtkUsed = !!a._firstAtkUsed; this._bankGain = a._bankGain || 0; this._newUnlocks = a._newUnlocks || []; this._newScUnlocked = a._newScUnlocked || 0;
-      this.selUid = null; this._winning = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._hoverCard = null;
+      this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._hoverCard = null;
       this.buildMapView();
       if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
       else { this.phase = a.phase || 'map'; if (this.phase === 'map') this._scrollMapCur(); }
