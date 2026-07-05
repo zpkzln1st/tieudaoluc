@@ -858,7 +858,7 @@ export function dangTienMong() {
       this.waves = enc; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = kind;
       this._spawnEnemies(enc[0]);
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
-      this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0 }; this.log = ''; this.playerFloats = []; this._gotRelic = null; this._gotThan = null;
+      this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0 }; this.log = ''; this.playerFloats = []; this._gotRelic = null; this._gotThan = null; this._hoverCard = null;
       if (this.hasRelic('thietGiap')) this.player.block += 6;
       if (this.hasRelic('trongGiap')) this.player.block += 10;   // di vật: Trọng Thiết Giáp
       if (this.hasRelic('voTuong')) this.player.dodge = true;    // di vật: Vô Tướng Phù (né đòn đầu)
@@ -1034,7 +1034,7 @@ export function dangTienMong() {
     playCard(i, ev) {
       if (this._winning) return;
       const c = this.hand[i]; if (!c || c._cast || this.khi < c.cost) return;
-      this.selUid = null;
+      this.selUid = null; this._hoverCard = null;   // đánh thẻ -> ẩn preview (tránh preview kẹt khi thẻ rời tay lúc đang hover)
       try { if (navigator.vibrate) navigator.vibrate((c.dmg || c.blkToDmg || c.detonate) ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN
       this.khi -= c.cost;
       // ===== Hợp Bích: đếm thẻ CÙNG phái/lượt; thẻ thứ 2+ kích hiệu ứng phái (cộng thêm) =====
@@ -1093,7 +1093,7 @@ export function dangTienMong() {
     },
     endTurn() {
       if (this._winning) return;
-      this.selUid = null;
+      this.selUid = null; this._hoverCard = null;
       for (const hc of this.hand) hc._cast = null;
       this.discard.push(...this.hand); this.hand = [];
       // DoT cuối lượt người chơi: Độc (giảm dần) + Bỏng (cố định, xuyên Hộ Thể, hết burnT thì tắt)
