@@ -6096,7 +6096,7 @@
         @media (min-width:641px){
           .dtm-root .min-h-\[256px\]{ flex-wrap:nowrap !important; }
           .dtm-root .min-h-\[256px\] > .card{ transform:scale(var(--hs,1)); transform-origin:bottom center; margin-left:calc(-73px * (1 - var(--hs,1))); margin-right:calc(-73px * (1 - var(--hs,1))); }
-          .dtm-root .min-h-\[256px\] > .card:hover.playable{ transform:scale(var(--hs,1)) translateY(-16px); }
+          .dtm-root .min-h-\[256px\] > .card:hover.playable{ transform:scale(calc(var(--hs,1) * 1.09)) translateY(-22px); box-shadow:0 0 0 2px var(--c), 0 0 30px -2px var(--c), 0 18px 32px -10px #000; filter:brightness(1.13); z-index:12; }   /* hover = trạng thái chọn -> đồng nhất, preview không lệch */
           .dtm-root .min-h-\[256px\] > .card.playable:active{ transform:scale(calc(var(--hs,1) * .94)); }
           .dtm-root .min-h-\[256px\] > .card.sel, .dtm-root .min-h-\[256px\] > .card.sel:hover{ transform:scale(calc(var(--hs,1) * 1.09)) translateY(-22px) !important; }
           .dtm-root .min-h-\[256px\].has-sel > .card:not(.sel):hover.playable{ transform:scale(var(--hs,1)) !important; }
