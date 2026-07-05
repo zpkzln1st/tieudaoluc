@@ -477,8 +477,8 @@ export function dangTienMong() {
     // ----- BRIDGE persist (chỉ Tầng Mộng sâu nhất, cách ly) -----
     dtInit() { try { this._rootEl = this.$el; const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {}
       try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('dtm_dev', '1'); else localStorage.removeItem('dtm_dev'); } this.devEnabled = localStorage.getItem('dtm_dev') === '1'; } catch (e2) {}
-      // MOBILE: chọn thẻ (tap-1) -> hiện bản xem phóng to (căn giữa) để đọc đầy đủ; bỏ chọn/đánh -> ẩn. (PC dùng hover.)
-      try { this.$watch('selUid', (v) => { if (window.innerWidth > 640) return; if (v && this.phase === 'battle') { this._hoverCard = this.hand.find((c) => c.uid === v) || null; this.$nextTick(() => { const p = document.querySelector('.dtm-cardprev'); if (!p) return; const pw = p.offsetWidth; p.style.left = Math.max(8, (window.innerWidth - pw) / 2) + 'px'; p.style.top = '54px'; }); } else this._hoverCard = null; }); } catch (e3) {} },
+      // MOBILE: chọn thẻ (tap-1) -> hiện bản xem phóng to (căn giữa) để đọc đầy đủ; bỏ chọn/đánh -> ẩn. (PC dùng hover, canh TRÊN thẻ.)
+      try { this.$watch('selUid', (v) => { if (window.innerWidth > 640) return; if (v && this.phase === 'battle') { this._hoverCard = this.hand.find((c) => c.uid === v) || null; this.$nextTick(() => this._positionPreview(null)); } else this._hoverCard = null; }); } catch (e3) {} },
     persist() { try { const g = this.$store.game; const s = g.state.dangTien; s.deepest = Math.max(s.deepest || 0, this.deepest || 0); Storage.save(g.state); } catch (e) {} },
     // Bank phần Mộng Ngân chưa tiêu của ván vào VÍ PERSISTENT khi kết ván (thắng/thua/tỉnh giấc). CHỈ ghi state.dangTien.mongNgan.
     bankRun(won) {
@@ -697,17 +697,26 @@ export function dangTienMong() {
         tip.style.left = left + 'px'; tip.style.top = top + 'px'; });
     },
     hideChipTip() { this._chipTip = null; },
-    // ----- Bản xem PHÓNG TO thẻ tay khi rê chuột (PC): thẻ nhỏ 1 hàng -> hover hiện bản to + mô tả đầy đủ -----
+    // ----- Bản xem PHÓNG TO thẻ tay (nổi body-level: art + tên + Hệ/Phẩm/Loại/Phái + hiệu ứng đầy đủ + lore) -----
+    // PC = rê chuột thẻ tay; MOBILE = chọn thẻ (tap-1) qua $watch(selUid). LUÔN nằm TRÊN thẻ (chừa khoảng cho trạng thái CHỌN nhô cao) + clamp trong màn hình (không lòi sidebar).
     showPreview(c, ev) {
-      if (typeof window !== 'undefined' && window.innerWidth <= 640) return;   // mobile: thẻ đã cuộn full, không cần
-      this._hoverCard = c; const r = ev.currentTarget.getBoundingClientRect();
-      this.$nextTick(() => { const p = document.querySelector('.dtm-cardprev'); if (!p) return;
-        const pw = p.offsetWidth, ph = p.offsetHeight;
-        let left = r.left + r.width / 2 - pw / 2; left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
-        let top = r.top - ph - 26; if (top < 8) top = 8;   // −26: chừa cho thẻ nhấc lên (khỏi che ảnh)
-        p.style.left = left + 'px'; p.style.top = top + 'px'; });
+      if (!c || (typeof window !== 'undefined' && window.innerWidth <= 640)) return;   // mobile do $watch(selUid) quản lý
+      this._hoverCard = c; const el = ev && ev.currentTarget;
+      this.$nextTick(() => this._positionPreview(el));
     },
-    hidePreview() { if (typeof window !== 'undefined' && window.innerWidth <= 640) return; this._hoverCard = null; },   // mobile: preview do $watch(selUid) quản lý, mouseleave (synthetic khi chạm) KHÔNG xoá
+    hidePreview() { if (typeof window !== 'undefined' && window.innerWidth <= 640) return; this._hoverCard = null; },   // mobile: mouseleave synthetic khi chạm KHÔNG được xoá
+    _positionPreview(cardEl) {
+      const prev = document.querySelector('.dtm-cardprev'); if (!prev) return;
+      const pw = prev.offsetWidth, ph = prev.offsetHeight;
+      if (cardEl && cardEl.getBoundingClientRect) {   // PC: canh TRÊN thẻ, chừa 52px cho trạng thái CHỌN (translateY 22 + scale) -> thẻ nhô cao vẫn không đè lên preview
+        const r = cardEl.getBoundingClientRect();
+        let left = r.left + r.width / 2 - pw / 2; left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+        let top = r.top - 52 - ph; if (top < 8) top = 8;
+        prev.style.left = left + 'px'; prev.style.top = top + 'px';
+      } else {   // mobile (chọn thẻ): căn giữa, phía trên
+        prev.style.left = Math.max(8, (window.innerWidth - pw) / 2) + 'px'; prev.style.top = '54px';
+      }
+    },
     // ===== Bảng Dev/Test — CHỈ đụng this.* (component) + state.dangTien + DOM. KHÔNG đụng currencies/gearBag/combat. =====
     devHotkey() { if (!this.devEnabled) { this.devEnabled = true; try { localStorage.setItem('dtm_dev', '1'); } catch (e) {} } this.devPanel = !this.devPanel; },
     devDisable() { this.devEnabled = false; this.devPanel = false; try { localStorage.removeItem('dtm_dev'); } catch (e) {} },
@@ -791,7 +800,7 @@ export function dangTienMong() {
       this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, a.scSel || {});
       this.deepest = Math.max(this.deepest || 0, a.deepest || 0);
       this._firstAtkUsed = !!a._firstAtkUsed; this._bankGain = a._bankGain || 0; this._newUnlocks = a._newUnlocks || []; this._newScUnlocked = a._newScUnlocked || 0;
-      this.selUid = null; this._winning = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false;
+      this.selUid = null; this._winning = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._hoverCard = null;
       this.buildMapView();
       if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
       else { this.phase = a.phase || 'map'; if (this.phase === 'map') this._scrollMapCur(); }
@@ -1222,10 +1231,29 @@ export function dangTienMong() {
         opts: [{ label: 'Tinh luyện (bỏ 1 thẻ Cơ Bản khỏi bộ bài)', fn: () => { const i = this.run.deck.findIndex((c) => /^coBan/.test(c.id || '')); if (i >= 0) { this.run.deck.splice(i, 1); this.log = 'Bỏ một chiêu thô — bộ bài tinh gọn hơn.'; } else { this.runNgan += 20; this.log = 'Không còn chiêu thô để bỏ, +20 Mộng Ngân.'; } this.afterNode(); } },
                 { label: 'Tĩnh tọa (hồi 12% HP)', fn: () => { this._heal(0.12); this.afterNode(); } }] },
     ]); this.phase = 'event'; this._saveRun(); },
-    resolveEvent(o) { o.fn(); this._saveRun(); },
+    // Chọn 1 phương án Kỳ Ngộ -> chạy hiệu ứng RỒI hiện màn KẾT QUẢ (trước đây afterNode() chuyển màn ngay nên không thấy kết quả). KHÔNG _saveRun ở đây: giữ điểm resume = TRƯỚC khi chọn (tránh làm lại event / nhân đôi thưởng nếu rời màn giữa chừng); afterNode thật mới save.
+    resolveEvent(o) {
+      if (this._eventResult) return;   // đang xem kết quả -> chặn double-click
+      this.log = '';
+      this._evtBefore = { hp: this.run.hp, maxHp: this.run.maxHp, ngan: this.runNgan, deck: this.run.deck.length, relics: this.run.relics.length };
+      this._pendingEventResult = true;
+      try { o.fn(); } catch (e) {}
+      if (this.phase === 'reward') this._pendingEventResult = false;   // fn nhảy thẳng màn Thưởng (rút thẻ) -> đó CHÍNH là kết quả, không cần màn text
+    },
+    // Dựng danh sách thay đổi (HP/Mộng Ngân/thẻ/di vật) để hiện rõ NGƯỜI CHƠI được/mất gì.
+    _showEventResult() {
+      const b = this._evtBefore || {}; const d = [];
+      const dhp = this.run.hp - (b.hp || 0); if (dhp) d.push({ t: dhp > 0 ? 'heal' : 'self', s: (dhp > 0 ? '+' : '') + dhp + ' HP' });
+      const dmax = this.run.maxHp - (b.maxHp || 0); if (dmax) d.push({ t: 'self', s: (dmax > 0 ? '+' : '') + dmax + ' HP tối đa' });
+      const dng = this.runNgan - (b.ngan || 0); if (dng) d.push({ t: dng > 0 ? 'buff' : 'exhaust', s: (dng > 0 ? '+' : '') + dng + ' Mộng Ngân' });
+      const dck = this.run.deck.length - (b.deck || 0); if (dck > 0) d.push({ t: 'draw', s: '+' + dck + ' thẻ' }); else if (dck < 0) d.push({ t: 'exhaust', s: dck + ' thẻ' });
+      const dr = this.run.relics.length - (b.relics || 0); if (dr > 0) d.push({ t: 'keep', s: '+' + dr + ' di vật' });
+      this._eventResult = { text: this.log || 'Xong.', deltas: d };
+    },
+    continueEvent() { this._eventResult = null; this._evtBefore = null; this.afterNode(); },   // _pendingEventResult đã false -> afterNode thật chuyển màn + save
 
     openShop() { const keys = this._rollKeys(3);
-      this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; this._saveRun(); },
+      this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'than' ? 140 : (card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30)); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; this._saveRun(); },
     buyShop(i) { const s = this.shopItems[i]; if (s.sold || this.runNgan < s.price) return; this.runNgan -= s.price; this.run.deck.push(mk(s.card.id)); s.sold = true; this._saveRun(); },
     buyHeal() { if (this.runNgan < 40 || this.run.hp >= this.run.maxHp) return; this.runNgan -= 40; this.run.hp = Math.min(this.run.maxHp, this.run.hp + 18); this._saveRun(); },
     restHeal() { this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * this.restPct())); this.afterNode(); },
