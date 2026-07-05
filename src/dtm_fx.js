@@ -2,6 +2,8 @@
 // Cach ly: chi dung DOM (the dang danh + panel con quai); KHONG dung state combat/gear/currencies.
 import { DTM_FX_KEYS, DTM_FX_DOM, DTM_FX_PLAY } from './dtm_fx_data.js';
 import { DTM_CUE_DOM, DTM_CUE_PLAY } from './dtm_cue_data.js';
+import { DTM_NEWCUE_PLAY, DTM_NEWCUE_CSS } from './dtm_newcue.js';
+try { const _s = document.createElement('style'); _s.textContent = DTM_NEWCUE_CSS; (document.head || document.documentElement).appendChild(_s); } catch (e) {}   // CSS 5 cue moi (doatMenh/tuKhi/choang/phaGiap/hienMau)
 
 export const DTM_VANISH_MS = 250;   // thoi gian the bien mat khoi tay (user chot moi)
 export const DTM_VANISH_LEAD = 360; // bat dau bien mat sau khi danh
@@ -21,7 +23,7 @@ export function castFxFor(c) {
   return 'tram';
 }
 // the co GAY SAT THUONG quai khong? (quyet dinh co chay hieu ung TAN CONG hay khong)
-export function dealsDamage(c) { return !!(c && c.dmg); }
+export function dealsDamage(c) { return !!(c && (c.dmg || c.detonate || c.blkToDmg)); }   // detonate/blkToDmg cũng gây ST -> có hiệu ứng đòn (fix thẻ diễn "trơ")
 
 // ===== helpers DOM (bridge) =====
 function reflow(el) { if (el) void el.offsetWidth; }
@@ -105,9 +107,9 @@ export function runFx(key, cardEl, hostEl, opts) {
 const _cueCompiled = {};
 function compileCue(key) {
   if (_cueCompiled[key]) return _cueCompiled[key];
-  const body = DTM_CUE_PLAY[key];
+  const body = DTM_CUE_PLAY[key] || DTM_NEWCUE_PLAY[key];
   if (!body) { _cueCompiled[key] = function () {}; return _cueCompiled[key]; }
-  try { _cueCompiled[key] = new Function('host', 'portrait', 'spawn', 'addCls', 'reflow', body); }
+  try { _cueCompiled[key] = new Function('host', 'portrait', 'spawn', 'addCls', 'reflow', 'T', body); }
   catch (e) { console.error('DTM CUE compile', key, e); _cueCompiled[key] = function () {}; }
   return _cueCompiled[key];
 }
@@ -120,13 +122,13 @@ function injectCueDom(host, html) { if (host && html) { const tpl = document.cre
 
 // runCue(key, host con, portrait con): host = lop fx (.dtm-pfx hero / .dtm-efx quai); portrait = phan tu de desaturate/bien doi.
 // MOI phan tu cue TU don (cueSpawn 1500ms / injectCueDom 1600ms) -> KHONG quet host-wide o cuoi (tranh timer cue TRUOC cat cue SAU tren cung host .dtm-pfx). clearCue dau = cue moi thay cue cu tren host.
-export function runCue(key, hostEl, portraitEl) {
+export function runCue(key, hostEl, portraitEl, T) {
   const host = hostEl || document.createElement('div');
   const portrait = portraitEl || document.createElement('div');
   const fn = compileCue(key);
   clearCue(host);
   const dom = DTM_CUE_DOM[key];
   if (dom) injectCueDom(host, dom);
-  try { fn(host, portrait, cueSpawn, addCls, reflow); }
+  try { fn(host, portrait, cueSpawn, addCls, reflow, T || {}); }   // T = { shake, hitStop } (cue moi dung); cue cu KHONG tham chieu T -> vo hai
   catch (e) { console.error('DTM CUE run', key, e); }
 }

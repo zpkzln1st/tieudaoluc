@@ -1005,10 +1005,11 @@ export function dangTienMong() {
         const hosts = panels.map((p) => p.querySelector('.dtm-efx')).filter(Boolean);
         const host = hosts[this.tgtIdx()] || hosts[0] || null;
         const stageEl = panels[0] ? panels[0].parentElement : null;   // hàng quái (cho đòn AoE quét ngang)
-        const shake = () => this.castShake(); const hitStop = (ms) => this.hitStop(ms);
-        // (1) Đòn TẤN CÔNG lên quái — CHỈ khi thẻ gây sát thương.
-        if (dealsDamage(c)) runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake, hitStop });
-        // (2) Cue SELF trên chân dung hero (.dtm-pfx): Hộ Thuẫn(blk) · Hồi(heal) · Lực(str) · Né(dodge) · Rút(draw).
+        const shake = () => this.castShake(); const hitStop = (ms) => this.hitStop(ms); const T = { shake, hitStop };
+        const NEWCUE_COL = { doatMenh: '#f87171', phaGiap: '#fbbf24', choang: '#c084fc', tuKhi: '#22d3ee', hienMau: '#f43f5e' };
+        // (1) Đòn TẤN CÔNG lên quái — CHỈ khi thẻ gây sát thương. execute/pen dùng cue CHỮ KÝ (Đoạt Mệnh/Phá Giáp) THAY đòn công generic.
+        if (dealsDamage(c) && !c.execute && !c.pen) runFx(castFxFor(c), cardEl, host, { hosts, stage: stageEl, shake, hitStop });
+        // (2) Cue SELF trên chân dung hero (.dtm-pfx): Hộ Thuẫn(blk) · Hồi(heal) · Lực(str) · Né(dodge) · Rút(draw) · Tụ Khí(energy) · Hiến Máu(selfDmg).
         const pfx = document.querySelector('.dtm-pfx');
         const pPort = pfx && pfx.parentElement ? pfx.parentElement.querySelector('.dtm-portwrap') : null;
         if (pfx) {
@@ -1017,11 +1018,16 @@ export function dangTienMong() {
           if (c.str) runCue('luc', pfx, pPort);
           if (c.dodge) runCue('pstep', pfx, pPort);
           if (c.draw) runCue('dxrut', pfx, pPort);
+          if (c.energy) { pfx.style.setProperty('--c', NEWCUE_COL.tuKhi); if (pPort) pPort.style.setProperty('--c', NEWCUE_COL.tuKhi); runCue('tuKhi', pfx, pPort, T); }   // Tụ Khí (+Khí)
+          if (c.selfDmg) { pfx.style.setProperty('--c', NEWCUE_COL.hienMau); if (pPort) pPort.style.setProperty('--c', NEWCUE_COL.hienMau); runCue('hienMau', pfx, pPort, T); }   // Hiến Máu (đổi máu)
         }
-        // (3) Suy Yếu (Phong Ấn) trên con quái đang nhắm. Desaturate áp lên ẢNH quái (.dtm-port), KHÔNG phải .dtm-portwrap —
-        //     vì .dtm-portwrap đã nhận knock/squash (transform); 2 rule cùng set `animation` trên 1 element thì cascade chỉ chọn 1
-        //     (knock specificity cao hơn) → sap bị đè. Ảnh là element riêng nên filter (sap) + transform (knock) cùng chạy.
-        if (c.weaken && host) { const eImg = host.parentElement ? host.parentElement.querySelector('.dtm-port') : null; runCue('phongAn', host, eImg); }
+        // (3) MỘT cue trên con quái đang nhắm (ưu tiên): Đoạt Mệnh(execute)/Phá Giáp(pen) THAY đòn công · Choáng(stun)/Phong Ấn(weaken) THÊM.
+        //     Áp filter/transform lên ẢNH quái (.dtm-port) — KHÔNG .dtm-portwrap (đã nhận knock/squash của đòn công; 2 rule cùng set `animation` cascade chọn 1).
+        if (host) {
+          const eImg = host.parentElement ? host.parentElement.querySelector('.dtm-port') : null;
+          const ecue = c.execute ? 'doatMenh' : (c.pen ? 'phaGiap' : (c.stun ? 'choang' : (c.weaken ? 'phongAn' : null)));
+          if (ecue) { const col = NEWCUE_COL[ecue]; if (col) { host.style.setProperty('--c', col); if (eImg) eImg.style.setProperty('--c', col); } runCue(ecue, host, eImg, T); }
+        }
       } catch (e) {}
       setTimeout(() => { if (c._cast === 'casting') c._cast = 'vanish'; }, DTM_VANISH_LEAD);   // thẻ bắt đầu tan khỏi tay
       setTimeout(() => { this._discardCast(c); }, DTM_VANISH_LEAD + DTM_VANISH_MS + 60);
