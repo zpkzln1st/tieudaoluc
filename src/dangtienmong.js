@@ -460,8 +460,8 @@ export function dangTienMong() {
     phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0,
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
-    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, selUid: null,
-    rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null, _gotThan: null, _eventResult: null, _pendingEventResult: false, _evtBefore: null,
+    drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, _losing: false, selUid: null,
+    rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null, _gotThan: null, _eventResult: null, _pendingEventResult: false, _evtBefore: null, _evtRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
     dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null, _chipTip: null, _hoverCard: null,
     // ----- Bảng Dev/Test (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D; CHỈ đụng this.* + state.dangTien + DOM) -----
@@ -621,7 +621,7 @@ export function dangTienMong() {
     closeEnemyDetail() { this.dtlEnemy = null; },
     enemyLoai(e) { return !e ? '' : (e.boss ? 'Mộng Chủ' : (e.huyen ? 'Huyền Thoại' : (e.chuongMon ? 'Ác Thủ · Chưởng Môn' : (e.elite ? 'Tinh Anh' : 'Lâu La')))); },
     enemyBio(e) { return (e && ENEMY_BIO[e.id]) || ''; },
-    enemyMoves(e) { return (e && MOVES[e.id]) || []; },
+    enemyMoves(e) { if (!e) return []; const mv = MOVES[e.id] || []; return (e.intents || []).map((it, i) => (it && it._sc) ? { nm: it._nm || 'Sát Cảnh', han: it._han || '殺', art: '' } : (mv[i] || { nm: 'Sát Chiêu', han: (it && it._han) || '殺', art: '' })); },   // index-aligned với e.intents (kể cả chiêu Sát Cảnh _sc/Phẫn Nộ đắp thêm) -> modal highlight đúng plan
     // Danh sách trạng thái (đồng bộ nhãn/đơn vị/màu qua DTM_COL) — DÙNG CHUNG cho pill chiến đấu + pill modal Chi Tiết Quái. icon = tên st_ nếu có asset.
     enemyStatusList(e) { const a = []; if (!e) return a;
       if (e._dodging) a.push({ k: 'ne', txt: 'Né đòn', c: DTM_COL.ne, icon: 'ne' });   // Nhu Hóa Mượn Lực: né trọn đòn player lượt này
@@ -785,7 +785,7 @@ export function dangTienMong() {
     // JSON deep-copy (tu drop proxy + fn). event.opts co closure fn -> KHONG serialize duoc -> khoi phuc thi REGEN event moi.
     _saveRun() {
       try {
-        if (!this.run || this._winning) return;
+        if (!this.run || this._winning || this._losing) return;
         if (this.phase === 'win' || this.phase === 'lose' || this.phase === 'lobby') return;
         // Thẻ đang diễn hoạt cảnh (_cast) = ĐÃ tiêu (trừ Khí + áp hiệu ứng) chỉ CHƯA rời tay (splice qua setTimeout).
         // Snapshot phải phản ánh trạng thái ĐÃ CHỐT: coi thẻ _cast như đã vào chồng Bỏ -> tránh resume hồi sinh thẻ đã đánh = nhân đôi thẻ.
@@ -914,6 +914,8 @@ export function dangTienMong() {
     waveCount() { return (this.waves && this.waves.length) || 1; },
     // Diệt sạch đợt hiện tại: còn đợt -> tràn đợt kế (liền mạch); hết đợt -> thắng trận.
     _battleCleared() { if (this.waves && this.waveIdx < this.waves.length - 1) this._advanceWave(); else this._finishBattle(); },
+    // Dọn xác quái đã bại (hp<=0) sau ~950ms cho đòn kết + số ST kịp diễn — CHỈ khi CÒN quái sống (không đụng logic clear-wave; chỉ ẩn xác khỏi màn cho đỡ rối).
+    _scheduleReap() { clearTimeout(this._reapT); this._reapT = setTimeout(() => { if (this.phase !== 'battle') return; const alive = this.enemies.filter((e) => e.hp > 0); if (alive.length && alive.length < this.enemies.length) { this.enemies = alive; this.targetIdx = 0; this._saveRun(); } }, 950); },
     // Đợt kế TRÀN VÀO: giữ HP/Hộ Thể/Lực/trạng thái + tay bài + Khí (không hồi giữa đợt). Quái mới telegraph, ra đòn ở lượt SAU.
     _advanceWave() {
       this.waveIdx++;
@@ -974,8 +976,8 @@ export function dangTienMong() {
     peekText(e) { return this._intentDesc(e.intents[e.planNext] || e.intents[0], e); },
     restPct() { return 0.30 + (this._up().restBonus ? 0.05 : 0) - ((this.run && (this.run.sc || 0) >= 5) ? 0.05 : 0); },   // Tịnh Thất Phù; SC5 −5%
     draw(n) { for (let k = 0; k < n; k++) { if (!this.drawPile.length) { if (!this.discard.length) return; this.drawPile = shuffle(this.discard); this.discard = []; } const dc = this.drawPile.pop(); if (dc) { dc._cast = null; this.hand.push(dc); } } },
-    floatE(e, v) { const id = ++this._f; e.floats.push({ id, v: '-' + v }); e.hit = true; setTimeout(() => { e.hit = false; }, 240); setTimeout(() => { e.floats = e.floats.filter((f) => f.id !== id); }, 950); },
-    floatPlayer(v) { const id = ++this._f; this.playerFloats.push({ id, v: '-' + v }); this.playerHit = true; setTimeout(() => { this.playerHit = false; }, 260); setTimeout(() => { this.playerFloats = this.playerFloats.filter((f) => f.id !== id); }, 950); },
+    floatE(e, v, c) { const id = ++this._f; e.floats.push({ id, v: '-' + v, c: c || '#fda4af' }); e.hit = true; setTimeout(() => { e.hit = false; }, 240); setTimeout(() => { e.floats = e.floats.filter((f) => f.id !== id); }, 950); },   // c = màu số ST (theo ngũ hành)
+    floatPlayer(v, c) { const id = ++this._f; this.playerFloats.push({ id, v: '-' + v, c: c || '#fb7185' }); this.playerHit = true; setTimeout(() => { this.playerHit = false; }, 260); setTimeout(() => { this.playerFloats = this.playerFloats.filter((f) => f.id !== id); }, 950); },
     hitEnemy(e, amt) { let d = amt; if (e.block > 0) { const a = Math.min(e.block, d); e.block -= a; d -= a; } e.hp = Math.max(0, e.hp - d); return d; },
     _hitPen(e, amt) { const before = e.hp; e.hp = Math.max(0, e.hp - amt); return before - e.hp; },   // Phá Giáp: bỏ qua Hộ Thể (trừ thẳng HP)
     _applyStun(e, n) {   // Choáng: quái thường cộng dồn; boss/chưởng môn/huyền thoại cap 1 + kháng (miễn 3 lượt sau)
@@ -1028,7 +1030,7 @@ export function dangTienMong() {
 
     // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
     tapCard(i, ev) {
-      if (this._winning) return;
+      if (this._winning || this._losing) return;
       const c = this.hand[i]; if (!c || c._cast || c.curse) return;   // Nội Thương: không chơi được
       if (this.selUid !== c.uid) { this.selUid = c.uid; return; }   // tap 1 / đổi -> chọn (nhô lên)
       if (this.khi < c.cost) return;                                // tap 2 nhưng không đủ Khí -> giữ chọn, chưa đánh
@@ -1095,7 +1097,7 @@ export function dangTienMong() {
       c._cast = null;
     },
     playCard(i, ev) {
-      if (this._winning) return;
+      if (this._winning || this._losing) return;
       const c = this.hand[i]; if (!c || c._cast || c.curse || this.khi < c.cost) return;   // Nội Thương (curse): không chơi được
       this.selUid = null; this._hoverCard = null;   // đánh thẻ -> ẩn preview (tránh preview kẹt khi thẻ rời tay lúc đang hover)
       try { if (navigator.vibrate) navigator.vibrate((c.dmg || c.blkToDmg || c.detonate) ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN
@@ -1127,7 +1129,7 @@ export function dangTienMong() {
           if (c.execute && e.maxHp && e.hp <= Math.ceil(e.maxHp * 0.2)) per += c.execute;   // Đoạt Mệnh: địch còn <20% HP -> đòn này +ST (thẻ Thần Nhất Nhãn Đoạn Mệnh)
           if (KHAC[c.he] === e.he) { per = Math.floor(per * 1.3); e.burst = c.he; const eb = e; setTimeout(() => { eb.burst = null; }, 620); }
           let d = 0; for (let h = 0; h < hits; h++) d += (usePen ? this._hitPen(e, per) : this.hitEnemy(e, per));   // Phá Giáp -> bỏ qua Hộ Thể
-          if (d > 0) this.floatE(e, d); total += d;
+          if (d > 0) this.floatE(e, d, this.heColor(c.he)); total += d;   // số ST tô màu theo ngũ hành thẻ
         });
         if (c.drain) this.run.hp = Math.min(this.run.maxHp, this.run.hp + total + (hb.drainHealBonus || 0));   // Hợp Bích Ma Giáo: hút +3 hồi
         this.log = c.name + (c.aoe ? ' (toàn thể)' : '') + ' → ' + total + ' ST';
@@ -1152,18 +1154,18 @@ export function dangTienMong() {
       this.castCard(c, ev);
       const drawN = (c.draw || 0) + (hb.drawBonus || 0);   // Bồng Lai/Hoa Sơn/Côn Lôn +1
       if (drawN) this.draw(drawN);
-      if (this.aliveCount() === 0) this._battleCleared();
+      if (this.aliveCount() === 0) this._battleCleared(); else this._scheduleReap();   // còn quái sống -> dọn xác quái vừa bại (đỡ rối)
       this._saveRun();
     },
     endTurn() {
-      if (this._winning) return;
+      if (this._winning || this._losing) return;
       this.selUid = null; this._hoverCard = null;
       for (const hc of this.hand) hc._cast = null;
       this.discard.push(...this.hand); this.hand = [];
       // DoT cuối lượt người chơi: Độc (giảm dần) + Bỏng (cố định, xuyên Hộ Thể, hết burnT thì tắt)
       for (const e of this.enemies) { if (e.hp <= 0) continue;
-        if (e.poison > 0) { this.hitEnemy(e, e.poison); this.floatE(e, e.poison); e.poison = Math.max(0, e.poison - 1); }
-        if (e.burn > 0 && e.burnT > 0) { const b = e.burn; e.hp = Math.max(0, e.hp - b); this.floatE(e, b); e.burnT--; if (e.burnT <= 0) e.burn = 0; }
+        if (e.poison > 0) { this.hitEnemy(e, e.poison); this.floatE(e, e.poison, DTM_COL.poison); e.poison = Math.max(0, e.poison - 1); }
+        if (e.burn > 0 && e.burnT > 0) { const b = e.burn; e.hp = Math.max(0, e.hp - b); this.floatE(e, b, DTM_COL.burn); e.burnT--; if (e.burnT <= 0) e.burn = 0; }
       }
       if (this.aliveCount() === 0) {
         if (this.waves && this.waveIdx < this.waves.length - 1) { this._advanceWave(); }   // Độc/Bỏng dứt điểm đợt này -> đợt kế tràn tới (ra đòn lượt SAU)
@@ -1172,8 +1174,8 @@ export function dangTienMong() {
         let toPlayer = 0, _ai = 0;
         const sc = this.run.sc || 0; const defHealMul = sc >= 11 ? 1.25 : 1; const scDot = sc >= 14 ? 1 : 0;   // SC11 def/heal ×1.25 · SC14 Bỏng/Độc player +1 lượt
         for (const e of this.enemies) { if (e.hp <= 0) continue;
+          if (e._dodging) { const r = Math.min(e._reflect || 0, 40); if (r > 0) { const rd = this.absorbPlayer(r); toPlayer += rd; if (rd > 0) this.floatPlayer(rd, this.heColor(e.he)); } e._dodging = false; e._reflect = 0; }   // Nhu Hóa Mượn Lực (vanVongNuong): hoàn 1/2 ST đã né — resolve TRƯỚC stun-continue để né KHÔNG kéo dài qua lượt Choáng
           if ((e.stun || 0) > 0) { e.stun--; e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--; continue; }   // Choáng: bỏ lượt, giữ nguyên telegraph (ra đòn lượt sau)
-          if (e._dodging) { const r = Math.min(e._reflect || 0, 40); if (r > 0) toPlayer += this.absorbPlayer(r); e._dodging = false; e._reflect = 0; }   // Nhu Hóa Mượn Lực (vanVongNuong): hoàn 1/2 ST đã né ở lượt player
           if (sc >= 15 && !e._phase2 && (e.chuongMon || e.boss || e.huyen) && e.hp > 0 && e.hp < e.maxHp / 2) { e._phase2 = true; e.intents.push({ t: 'atk', v: Math.round(12 * (1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5))), pen: true, _sc: true, _nm: 'Phẫn Nộ · Cuồng Kích', _han: '怒' }); }   // SC15 Phẫn Nộ: pha 2 (+1 chiêu; đòn +20% qua _atkMods)
           const it = this.curIntent(e); if (it) {
             this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
@@ -1182,7 +1184,8 @@ export function dangTienMong() {
               let per = Math.max(0, Math.round((it.v + (e.str || 0) - (e.weak || 0) + gm.add) * gm.mul));
               const hits = it.hits || 1; const usePen = it.pen || gm.pen;
               if (this.player.dodge) { per = Math.floor(per / 2); this.player.dodge = false; }   // Né người chơi = giảm ½ sát thương đòn kế (dùng 1 lần)
-              for (let h = 0; h < hits; h++) { toPlayer += (usePen ? this._playerPen(per) : this.absorbPlayer(per)); }   // pen xuyên Hộ Thể
+              let dealt = 0; for (let h = 0; h < hits; h++) dealt += (usePen ? this._playerPen(per) : this.absorbPlayer(per));   // pen xuyên Hộ Thể
+              if (dealt > 0) this.floatPlayer(dealt, this.heColor(e.he)); toPlayer += dealt;   // số ST nhận tô theo ngũ hành quái
               this._onEnemyHit(e);   // tích Hàn (bangPhach) sau đòn
             }
             else if (it.t === 'def') e.block += Math.round(it.v * defHealMul); else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + Math.round(it.v * defHealMul));   // SC11: def/heal ×1.25
@@ -1197,11 +1200,8 @@ export function dangTienMong() {
           e.planNext = this._planFollow(e, e.plan); e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--;
         }
         // DoT lên NGƯỜI CHƠI (Độc/Bỏng do boss gieo) — xuyên Hộ Thể, giảm dần như quái
-        let pdot = 0;
-        if ((this.player.poison || 0) > 0) { pdot += this.player.poison; this.player.poison = Math.max(0, this.player.poison - 1); }
-        if ((this.player.burn || 0) > 0 && (this.player.burnT || 0) > 0) { pdot += this.player.burn; this.player.burnT--; if (this.player.burnT <= 0) this.player.burn = 0; }
-        if (pdot > 0) { this.run.hp = Math.max(0, this.run.hp - pdot); this.floatPlayer(pdot); }
-        if (toPlayer > 0) this.floatPlayer(toPlayer);
+        if ((this.player.poison || 0) > 0) { const pp = this.player.poison; this.run.hp = Math.max(0, this.run.hp - pp); this.floatPlayer(pp, DTM_COL.poison); this.player.poison = Math.max(0, pp - 1); }   // DoT Độc lên người chơi
+        if ((this.player.burn || 0) > 0 && (this.player.burnT || 0) > 0) { const bb = this.player.burn; this.run.hp = Math.max(0, this.run.hp - bb); this.floatPlayer(bb, DTM_COL.burn); this.player.burnT--; if (this.player.burnT <= 0) this.player.burn = 0; }   // DoT Bỏng
         if (this.run.hp <= 0) { this.onDeath(); return; }
       }
       if (this.player.keepBlock) { this.player.keepBlock = false; }   // Giữ Hộ Thể: KHÔNG reset block lượt này (dùng 1 lần)
@@ -1210,11 +1210,17 @@ export function dangTienMong() {
       this.khi = this.maxKhi;
       if ((this.player.stun || 0) > 0) { this.khi = Math.max(0, this.khi - 2); this.player.stun = Math.max(0, this.player.stun - 1); }   // Choáng người chơi: −2 Khí lượt này (LITE)
       this.startTurnPassive(); this.draw(this.handSize());
+      this._scheduleReap();   // dọn xác quái đã bại (còn quái sống)
       this._saveRun();
     },
     onDeath() {
       if (this.hasRelic('menhHon') && !this.run.reviveUsed) { this.run.reviveUsed = true; this.run.hp = Math.round(this.run.maxHp * 0.3); this.log = 'Hộ Mệnh Hồn Phách — hồi sinh!'; this.player.block = 0; this.khi = this.maxKhi; this.draw(this.handSize()); this._saveRun(); return; }   // LƯU state sau hồi sinh (reviveUsed + hp + tay bài mới) — nếu không, resume rewind + tái vũ trang relic 1 lần
-      this.bankRun(false); this._clearRun(); this.persist(); this.phase = 'lose';
+      if (this._losing) return;
+      this._losing = true; this.selUid = null; this._hoverCard = null;   // DỪNG 1 nhịp "Trọng Thương" cho đòn kết liễu + số ST kịp hiện rồi mới sang Mộng Tan (tránh chuyển PHỤT)
+      const finish = () => { this._losing = false; this.bankRun(false); this._clearRun(); this.persist(); this.phase = 'lose'; };
+      let reduce = false; try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
+      if (reduce) { finish(); return; }
+      setTimeout(finish, 1100);
     },
     // Hiệu ứng khi QUÁI ra đòn (DÙNG LẠI hiệu ứng nhân vật): atk -> đòn tấn công TRÊN CHÂN DUNG HERO · def -> Hộ Thuẫn · buff/charge -> Lực · heal -> Hồi (trên quái). Lệch nhịp theo thứ tự quái. CÁCH LY: chỉ đụng DOM.
     _enemyActFx(e, it, idx) {
@@ -1241,7 +1247,7 @@ export function dangTienMong() {
     },
     // Thắng trận: DỪNG 1 nhịp cho đòn kết liễu kịp diễn + hiện "Thắng ải" rồi mới sang thưởng/màn sau (tránh chuyển PHỤT, hụt hẫng khi quái sắp chết). reduced-motion -> chuyển ngay.
     _finishBattle() {
-      if (this._winning) return;
+      if (this._winning || this._losing) return;
       this._winning = true; this.selUid = null;
       let reduce = false; try { reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
       if (reduce) { this._winning = false; this.winBattle(); return; }
@@ -1276,7 +1282,7 @@ export function dangTienMong() {
     _heal(pct) { this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * pct)); },
     _tuyetKey() { const tk = Object.keys(POOL).filter((k) => POOL[k].rar === 'tuyet' && this._cardUnlocked(k)); return tk.length ? rnd(tk) : rnd(Object.keys(POOL).filter((k) => POOL[k].rar === 'hiem')); },
     _drawReward() { this.rewardGold = 0; this.rewardCards = this._rollKeys(3).map(mk); this._setReroll(); this.phase = 'reward'; },   // rút 1/3 thẻ (không thưởng Ngân)
-    _giveRelic() { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this.log = 'Nhận di vật: ' + r.name; } else { this.runNgan += 40; this.log = 'Di vật đã đủ — nhận +40 Mộng Ngân.'; } },
+    _giveRelic() { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._evtRelic = r; this.log = 'Nhận di vật: ' + r.name; } else { this.runNgan += 40; this.log = 'Di vật đã đủ — nhận +40 Mộng Ngân.'; } },   // _evtRelic -> khung chi tiết ở màn kết quả Kỳ Ngộ
     _coin() { return Math.random() < 0.5; },
     openEvent() { this.event = rnd([
       { title: 'Lão Nhân Bên Suối', text: 'Một lão nhân áo vải câu bên suối mộng, ngẩng lên cười: "Tiểu hữu, ngươi muốn một quyển bí kíp, hay chút lộ phí?"',
@@ -1311,7 +1317,7 @@ export function dangTienMong() {
     // Chọn 1 phương án Kỳ Ngộ -> chạy hiệu ứng RỒI hiện màn KẾT QUẢ (trước đây afterNode() chuyển màn ngay nên không thấy kết quả). KHÔNG _saveRun ở đây: giữ điểm resume = TRƯỚC khi chọn (tránh làm lại event / nhân đôi thưởng nếu rời màn giữa chừng); afterNode thật mới save.
     resolveEvent(o) {
       if (this._eventResult) return;   // đang xem kết quả -> chặn double-click
-      this.log = '';
+      this.log = ''; this._evtRelic = null;
       this._evtBefore = { hp: this.run.hp, maxHp: this.run.maxHp, ngan: this.runNgan, deck: this.run.deck.length, relics: this.run.relics.length };
       this._pendingEventResult = true;
       try { o.fn(); } catch (e) {}
@@ -1324,10 +1330,10 @@ export function dangTienMong() {
       const dmax = this.run.maxHp - (b.maxHp || 0); if (dmax) d.push({ t: 'self', s: (dmax > 0 ? '+' : '') + dmax + ' HP tối đa' });
       const dng = this.runNgan - (b.ngan || 0); if (dng) d.push({ t: dng > 0 ? 'buff' : 'exhaust', s: (dng > 0 ? '+' : '') + dng + ' Mộng Ngân' });
       const dck = this.run.deck.length - (b.deck || 0); if (dck > 0) d.push({ t: 'draw', s: '+' + dck + ' thẻ' }); else if (dck < 0) d.push({ t: 'exhaust', s: dck + ' thẻ' });
-      const dr = this.run.relics.length - (b.relics || 0); if (dr > 0) d.push({ t: 'keep', s: '+' + dr + ' di vật' });
-      this._eventResult = { text: this.log || 'Xong.', deltas: d };
+      const dr = this.run.relics.length - (b.relics || 0); if (dr > 0 && !this._evtRelic) d.push({ t: 'keep', s: '+' + dr + ' di vật' });   // có _evtRelic -> hiện khung chi tiết thay chip đếm
+      this._eventResult = { text: this.log || 'Xong.', deltas: d, relic: this._evtRelic || null };
     },
-    continueEvent() { this._eventResult = null; this._evtBefore = null; this.afterNode(); },   // _pendingEventResult đã false -> afterNode thật chuyển màn + save
+    continueEvent() { this._eventResult = null; this._evtBefore = null; this._evtRelic = null; this.afterNode(); },   // _pendingEventResult đã false -> afterNode thật chuyển màn + save
 
     openShop() { const keys = this._rollKeys(3);
       this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'than' ? 140 : (card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30)); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; this._saveRun(); },
