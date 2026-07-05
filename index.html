@@ -8240,6 +8240,12 @@
                       <p class="dtmk-lore mt-3" x-show="enemyBio(dtlEnemy)" x-text="enemyBio(dtlEnemy)"></p>
                     </div>
                   </div>
+                  <template x-if="enemyGimmick(dtlEnemy)">
+                    <div class="mt-4 rounded-xl p-3" :style="'border:1px solid '+heColor(dtlEnemy.he)+'55;background:'+heColor(dtlEnemy.he)+'12'">
+                      <div class="flex items-center gap-2 mb-1"><span class="fserif text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded" :style="'color:'+heColor(dtlEnemy.he)+';background:'+heColor(dtlEnemy.he)+'22'">Chữ Ký</span><span class="fserif text-[15px]" :style="'color:'+heColor(dtlEnemy.he)" x-text="enemyGimmick(dtlEnemy).name"></span></div>
+                      <div class="text-[12.5px] text-slate-300 leading-relaxed" x-text="enemyGimmick(dtlEnemy).desc"></div>
+                    </div>
+                  </template>
                   <div class="mt-5">
                     <div class="fserif text-base mb-2" style="color:#f8d27a">Bộ Chiêu <span class="text-xs text-slate-500 font-normal" x-text="'· '+enemyMoves(dtlEnemy).length+' chiêu · vàng = đang thi triển'"></span></div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">

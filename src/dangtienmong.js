@@ -371,6 +371,33 @@ export function dangTienMong() {
   const EART = { hoaSonKiem: 'port_master_hoa_son', duongMon: 'port_master_duong_mon', maGiao: 'port_master_ma_giao', caiBang: 'port_master_cai_bang', ngaMiSu: 'port_master_nga_mi', thieuLam: 'port_master_thieu_lam', voDang: 'port_master_vo_dang', thienSon: 'port_master_thien_son', nhatNguyet: 'port_master_nhat_nguyet', bongLai: 'port_master_bong_lai', thien_vuong: 'port_master_thien_vuong', ngu_doc: 'port_master_ngu_doc', thuy_yen: 'port_master_thuy_yen', thien_nhan: 'port_master_thien_nhan', con_lon: 'port_master_con_lon', taoKhau: 'cuongDao', daLang: 'langYeu', cungThu: 'satThu' };   // elite/mini-boss mượn chân dung chưởng môn; lâu la mới mượn 3 art cơ bản; tanKiem/doCo/luyenKhi -> Hán (art sau)
   // Huyền Thoại -> thẻ Thần Thoại mở khóa khi hạ (dùng ở winBattle). id huyền thoại = id danh sĩ (khớp art images/danhsi/).
   const HUYEN_THAN = { lacVoTran: 'camHuongHoaiCotTan', doDuocMaCo: 'tamCotDuongSinhCo', namCungLietHoa: 'phanTamCuuDiem', khongTichThuyenSu: 'phucMaBatDongThien', coNhanMaiKiem: 'lacMaiNhatKiem', vanVongNuong: 'hanhVanLuuThuyQuyet', langToCam: 'doanHuyenThapTamTuyen', toUyenNghiet: 'nhatNhanDoanMenhThich', bangPhachNuHiep: 'hanBangCuuTuyetChuong' };
+  // CHỮ KÝ (gimmick) — mô tả cho người chơi hiểu luật đặc biệt của trùm (hiện ở modal Chi Tiết Quái). Khớp logic _atkMods/_bossGimmick/_onEnemyHit.
+  const GIMMICK = {
+    thien_vuong: { name: 'Trọng Giáp Phản Đòn', desc: 'Khi giáp dày (≥20), đòn kế xuyên Hộ Thể và cộng 30% giáp vào sát thương.' },
+    ngu_doc: { name: 'Dĩ Độc Dưỡng Thân', desc: 'Cuối lượt hồi máu bằng lượng Độc trên người chơi rồi tăng Độc thêm 1; đòn nổ mạnh theo Độc.' },
+    thuy_yen: { name: 'Băng Cốt', desc: 'Choáng ăn 1 lượt rồi miễn Choáng; đòn Choáng kèm hàn khí gây Suy Yếu.' },
+    thien_nhan: { name: 'Nghiệp Hỏa', desc: 'Cuối lượt kéo dài Bỏng trên người chơi thêm 1 lượt và tự tăng 1 Lực.' },
+    con_lon: { name: 'Trấn Nhạc Cương', desc: 'Choáng người chơi rồi lượt kế cộng giáp và tung đòn nặng.' },
+    lacVoTran: { name: 'Cẩm Hương Hoại Cốt', desc: 'Người chơi càng nhiều Độc, Lực của y càng cao (mỗi 3 tầng Độc +1 Lực).' },
+    doDuocMaCo: { name: 'Tự Dưỡng Cầu Sinh', desc: 'Khi liệu thương, hút sạch Độc trên người chơi chuyển thành máu.' },
+    namCungLietHoa: { name: 'Điểm Hỏa Bùng Nổ', desc: 'Đòn mạnh cộng toàn bộ Bỏng đang có trên người chơi rồi thiêu sạch.' },
+    khongTichThuyenSu: { name: 'Thiền Thân Bất Hoại', desc: 'Cuối lượt, giáp dư phản một nửa thành sát thương xuyên Hộ Thể.' },
+    coNhanMaiKiem: { name: 'Kiếm Ý Chuẩn Xác', desc: 'Vận công dồn thêm Lực vào nhát Lạc Mai chí mạng.' },
+    vanVongNuong: { name: 'Nhu Hóa Mượn Lực', desc: 'Sau khi thủ, né trọn đòn người chơi một lượt rồi phản lại một nửa.' },
+    langToCam: { name: 'Công Xa Đa Đòn', desc: 'Người chơi thủ dày (≥10 Hộ Thể) thì đòn kế xuyên giáp; mỗi 3 lượt tự tăng Lực.' },
+    toUyenNghiet: { name: 'Nhất Kích Chí Mạng', desc: 'Người chơi máu thấp (≤35%) thì đòn kế +50% sát thương và xuyên giáp.' },
+    bangPhachNuHiep: { name: 'Hàn Băng Tích Lạnh', desc: 'Mỗi đòn cộng 1 tầng Hàn; đủ 4 tầng thì đòn kế gây Choáng rồi tan.' },
+    voDang: { name: 'Vô Cực Thủ Thế', desc: 'Đòn nặng quy đổi TOÀN BỘ giáp đang có thành sát thương xuyên Hộ Thể.' },
+    thienSon: { name: 'Băng Sơn Trường Trận', desc: 'Khi giáp còn vững, cuối lượt tự hồi máu và chồng Suy Yếu lên người chơi.' },
+    nhatNguyet: { name: 'Huyết Tế', desc: 'Máu càng thấp đòn càng mạnh (<50% +4, <25% +8 sát thương).' },
+    bongLai: { name: 'Vân Ẩn', desc: 'Sau khi thủ, né trọn đòn người chơi một lượt; đòn kế thêm 1 nhịp.' },
+    thieuLam: { name: 'Thiết Bố Sam', desc: 'Mỗi lần ra đòn tự cộng thêm Hộ Thể (theo sát thương gây ra).' },
+    hoaSonKiem: { name: 'Kiếm Trì Tăng Tốc', desc: 'Đòn chuỗi mỗi lượt thêm 1 nhịp — càng đánh càng nhiều đòn.' },
+    duongMon: { name: 'Độc Vô Hình', desc: 'Cuối mỗi lượt lặng lẽ chồng thêm 1 Độc lên người chơi.' },
+    caiBang: { name: 'Túy Ý', desc: 'Mỗi lượt tự tăng 1 Lực, càng lâu càng mạnh.' },
+    ngaMiSu: { name: 'Trường Kỳ Chiến', desc: 'Cứ mỗi 3 lượt tự hồi một lượng lớn máu.' },
+    maGiao: { name: 'Huyết Ma Cường', desc: 'Đòn đánh hút máu theo % sát thương — máu càng thấp hút càng nhiều (tối đa 150%).' },
+  };
   // BỘ BÀI QUÁI (repertoire): mỗi quái có chuỗi chiêu RIÊNG (song song intents), telegraph = chip lá kế. {nm,han,art} — art mượn book_* (chỉ chip mini), hiệu lực vẫn theo intent.
   const MOVES = {
     cuongDao: [ { nm: 'Loạn Đao Trảm', han: '刀', art: 'book_dat_ma_truong' }, { nm: 'Thiết Bài Hộ', han: '盾', art: 'book_thai_cuc_quyen' }, { nm: 'Đoạt Mệnh Kích', han: '奪', art: 'book_la_han_quyen' } ],
@@ -621,6 +648,7 @@ export function dangTienMong() {
     closeEnemyDetail() { this.dtlEnemy = null; },
     enemyLoai(e) { return !e ? '' : (e.boss ? 'Mộng Chủ' : (e.huyen ? 'Huyền Thoại' : (e.chuongMon ? 'Ác Thủ · Chưởng Môn' : (e.elite ? 'Tinh Anh' : 'Lâu La')))); },
     enemyBio(e) { return (e && ENEMY_BIO[e.id]) || ''; },
+    enemyGimmick(e) { return (e && GIMMICK[e.id]) || null; },   // Chữ Ký (luật đặc biệt) hiện ở modal Chi Tiết Quái
     enemyMoves(e) { if (!e) return []; const mv = MOVES[e.id] || []; return (e.intents || []).map((it, i) => (it && it._sc) ? { nm: it._nm || 'Sát Cảnh', han: it._han || '殺', art: '' } : (mv[i] || { nm: 'Sát Chiêu', han: (it && it._han) || '殺', art: '' })); },   // index-aligned với e.intents (kể cả chiêu Sát Cảnh _sc/Phẫn Nộ đắp thêm) -> modal highlight đúng plan
     // Danh sách trạng thái (đồng bộ nhãn/đơn vị/màu qua DTM_COL) — DÙNG CHUNG cho pill chiến đấu + pill modal Chi Tiết Quái. icon = tên st_ nếu có asset.
     enemyStatusList(e) { const a = []; if (!e) return a;
