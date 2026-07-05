@@ -7936,6 +7936,18 @@
                   </div>
                 </div>
               </template>
+              <template x-if="_gotThan">
+                <div class="flex justify-center mb-5">
+                  <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl dtm-gotrelic" style="border:1px solid #c084fc99;background:#c084fc12;box-shadow:0 0 24px -6px #c084fc,0 0 0 1px #c084fc33">
+                    <span class="relic dtm-portwrap shrink-0" style="width:38px;height:38px;font-size:19px;box-shadow:0 0 0 1px #c084fc"><span x-text="_gotThan.han"></span><img :src="cardImg(_gotThan.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
+                    <div class="text-left">
+                      <div class="text-[10px] font-bold uppercase tracking-wider" style="color:#c084fc">Đoạt Tuyệt Học · Thần Thoại</div>
+                      <div class="text-[13.5px] text-slate-100 fserif" x-text="_gotThan.name"></div>
+                      <div class="text-[11px] text-slate-400">Đã khắc ghi — về sau có duyên gặp lại trong mộng.</div>
+                    </div>
+                  </div>
+                </div>
+              </template>
               <div class="flex gap-4 justify-center flex-wrap mb-4">
                 <template x-for="(c,i) in rewardCards" :key="i">
                   <div class="card playable" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="pickReward(c)">
