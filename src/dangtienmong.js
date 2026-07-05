@@ -651,7 +651,7 @@ export function dangTienMong() {
       this.$nextTick(() => { const p = document.querySelector('.dtm-cardprev'); if (!p) return;
         const pw = p.offsetWidth, ph = p.offsetHeight;
         let left = r.left + r.width / 2 - pw / 2; left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
-        let top = r.top - ph - 12; if (top < 8) top = 8;
+        let top = r.top - ph - 26; if (top < 8) top = 8;   // −26: chừa cho thẻ nhấc lên (khỏi che ảnh)
         p.style.left = left + 'px'; p.style.top = top + 'px'; });
     },
     hidePreview() { if (typeof window !== 'undefined' && window.innerWidth <= 640) return; this._hoverCard = null; },   // mobile: preview do $watch(selUid) quản lý, mouseleave (synthetic khi chạm) KHÔNG xoá

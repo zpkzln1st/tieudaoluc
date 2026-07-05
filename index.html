@@ -6096,7 +6096,7 @@
         @media (min-width:641px){
           .dtm-root .min-h-\[256px\]{ flex-wrap:nowrap !important; }
           .dtm-root .min-h-\[256px\] > .card{ transform:scale(var(--hs,1)); transform-origin:bottom center; margin-left:calc(-73px * (1 - var(--hs,1))); margin-right:calc(-73px * (1 - var(--hs,1))); }
-          .dtm-root .min-h-\[256px\] > .card:hover.playable{ transform:scale(calc(var(--hs,1) * 1.09)) translateY(-22px); box-shadow:0 0 0 2px var(--c), 0 0 30px -2px var(--c), 0 18px 32px -10px #000; filter:brightness(1.13); z-index:12; }   /* hover = trạng thái chọn -> đồng nhất, preview không lệch */
+          .dtm-root .min-h-\[256px\] > .card:hover.playable{ transform:scale(var(--hs,1)) translateY(-16px); }
           .dtm-root .min-h-\[256px\] > .card.playable:active{ transform:scale(calc(var(--hs,1) * .94)); }
           .dtm-root .min-h-\[256px\] > .card.sel, .dtm-root .min-h-\[256px\] > .card.sel:hover{ transform:scale(calc(var(--hs,1) * 1.09)) translateY(-22px) !important; }
           .dtm-root .min-h-\[256px\].has-sel > .card:not(.sel):hover.playable{ transform:scale(var(--hs,1)) !important; }
@@ -7519,7 +7519,7 @@
         .dtm-chiptip{ position:fixed; z-index:99999; max-width:230px; padding:7px 10px; background:#0b1120f8; border:1px solid var(--tc,#5b6b82); border-radius:9px; color:#eef3fa; font-size:11.5px; font-weight:600; line-height:1.4; box-shadow:0 12px 30px -8px #000, 0 0 0 1px #00000066; pointer-events:none; }
         .dtm-chiptip .tt{ font-family:'Lora',serif; font-weight:700; font-size:12px; margin-bottom:2px; }
         /* Bản xem phóng to thẻ tay (hover, teleport body) — art + tên + mô tả đầy đủ + lore */
-        .dtm-cardprev{ position:fixed; z-index:9995; display:flex; width:min(372px,94vw); min-height:196px; background:#0a0f1af7; border:1px solid var(--r,#334155); border-radius:14px; box-shadow:0 26px 64px -14px #000, 0 0 0 1px #00000088; overflow:hidden; pointer-events:none; }
+        .dtm-cardprev{ position:fixed; z-index:9995; display:flex; width:372px; min-height:200px; background:#0a0f1af7; border:1px solid var(--r,#334155); border-radius:14px; box-shadow:0 26px 64px -14px #000, 0 0 0 1px #00000088; overflow:hidden; pointer-events:none; }   /* bề RỘNG cố định 372; cao vừa nội dung (sàn 200) — neo ĐÁY trên thẻ (không che ảnh) */
         .dtm-cardprev .pv-art{ position:relative; width:138px; flex:0 0 auto; background:radial-gradient(ellipse at 50% 34%, color-mix(in srgb,var(--c) 42%,transparent), transparent 70%); }
         .dtm-cardprev .pv-han{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:58px; color:var(--c); filter:drop-shadow(0 2px 6px #000); z-index:0; }
         .dtm-cardprev .pv-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }   /* art PHỦ Hán (Hán chỉ là fallback khi thiếu art) */
@@ -7530,7 +7530,8 @@
         .dtm-cardprev .pv-fx{ margin-top:10px; }
         .dtm-cardprev .pv-row{ display:flex; align-items:flex-start; gap:7px; margin-bottom:6px; font-size:12px; color:#dbe4ee; line-height:1.36; }
         .dtm-cardprev .pv-chip{ flex:0 0 auto; font-size:10px; font-weight:700; padding:1px 6px; border-radius:9999px; color:#0a0f16; white-space:nowrap; margin-top:1px; box-shadow:0 1px 2px rgba(0,0,0,.5); }
-        .dtm-cardprev .pv-lore{ margin-top:9px; padding-top:8px; border-top:1px solid #ffffff14; font-size:11px; font-style:italic; color:#8aa0b6; line-height:1.42; }
+        .dtm-cardprev .pv-lore{ margin-top:9px; padding-top:8px; border-top:1px solid #ffffff14; font-size:11px; font-style:italic; color:#8aa0b6; line-height:1.42; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+        @media (max-width:640px){ .dtm-cardprev{ width:94vw; height:auto; min-height:190px; } }   /* mobile: vừa màn (chọn thẻ mới hiện, không rê nên không "nhảy") */
 </style>
       <template x-if="$store.game.view==='dangTienMong'">
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()" @keydown.window="if($event.ctrlKey&&$event.shiftKey&&$event.code==='KeyD'){$event.preventDefault();devHotkey();}">
