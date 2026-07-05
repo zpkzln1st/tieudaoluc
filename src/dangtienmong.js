@@ -606,6 +606,7 @@ export function dangTienMong() {
     enemyMoves(e) { return (e && MOVES[e.id]) || []; },
     // Danh sách trạng thái (đồng bộ nhãn/đơn vị/màu qua DTM_COL) — DÙNG CHUNG cho pill chiến đấu + pill modal Chi Tiết Quái. icon = tên st_ nếu có asset.
     enemyStatusList(e) { const a = []; if (!e) return a;
+      if (e._dodging) a.push({ k: 'ne', txt: 'Né đòn', c: DTM_COL.ne, icon: 'ne' });   // Nhu Hóa Mượn Lực: né trọn đòn player lượt này
       if (e.block > 0) a.push({ k: 'hothe', txt: 'Hộ Thể ' + e.block, c: DTM_COL.hothe, icon: 'hothe' });
       if (e.poison > 0) a.push({ k: 'doc', txt: 'Độc ' + e.poison, c: DTM_COL.doc, icon: 'doc' });
       if (e.burn > 0 && e.burnT > 0) a.push({ k: 'burn', txt: 'Bỏng ' + e.burn + '×' + e.burnT + ' lượt', c: DTM_COL.burn });
@@ -621,6 +622,7 @@ export function dangTienMong() {
       if (p.burn > 0 && p.burnT > 0) a.push({ k: 'burn', txt: 'Bỏng ' + p.burn + '×' + p.burnT + ' lượt', c: DTM_COL.burn });
       if (p.weaken > 0) a.push({ k: 'suyyeu', txt: 'Suy Yếu ' + p.weaken, c: DTM_COL.suyyeu, icon: 'suyyeu' });
       if (p.stun > 0) a.push({ k: 'stun', txt: 'Choáng ' + p.stun + ' lượt', c: DTM_COL.stun });
+      if (p._han > 0) a.push({ k: 'han', txt: 'Hàn ' + p._han + ' tầng', c: '#7dd3fc' });   // Hàn Băng Tích Lạnh (bangPhach): >=4 tầng -> Choáng
       return a; },
     moveIntentText(e, i) { return this._intentDesc(e.intents[i], e); },
     moveIntentColor(e, i) { const it = e.intents[i]; if (!it) return '#94a3b8'; return this._itCol(it.t); },
@@ -725,7 +727,7 @@ export function dangTienMong() {
     devCardList() { return Object.keys(POOL).map((id) => ({ id, name: POOL[id].name, rar: POOL[id].rar })).sort((a, b) => a.name.localeCompare(b.name, 'vi')); },
     devEnemyList() { return Object.keys(ENEMIES).map((id) => ({ id, name: ENEMIES[id].name })).sort((a, b) => a.name.localeCompare(b.name, 'vi')); },
     devAddCard(where) { const id = this.devCardSel; if (!id || !POOL[id]) return; this._devRun(); if (where === 'hand') { if (this.phase !== 'battle') { this._devLog('phải đang trong trận để thêm vào tay'); return; } this.hand.push(mk(id)); } else { this.run.deck.push(mk(id)); } this._devLog((where === 'hand' ? '+tay: ' : '+bộ bài: ') + POOL[id].name); },
-    devSpawn(multi) { const id = this.devEnemySel; if (!id || !ENEMIES[id]) return; this._devRun(); const ids = multi ? [id, id] : [id]; this.waves = [ids]; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = 'miniboss'; this._spawnEnemies(ids); this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = []; this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0 }; this.khi = this.maxKhi; this.phase = 'battle'; this.startTurnPassive(); this.draw(this.handSize()); this._devLog('sinh trận: ' + ENEMIES[id].name + (multi ? ' ×2' : '')); },
+    devSpawn(multi) { const id = this.devEnemySel; if (!id || !ENEMIES[id]) return; this._devRun(); const ids = multi ? [id, id] : [id]; this.waves = [ids]; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = 'miniboss'; this._spawnEnemies(ids); this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = []; this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0, _han: 0 }; this.khi = this.maxKhi; this.phase = 'battle'; this.startTurnPassive(); this.draw(this.handSize()); this._devLog('sinh trận: ' + ENEMIES[id].name + (multi ? ' ×2' : '')); },
     devSetHp() { if (!this.run) return; const v = parseInt(this.devHp, 10); if (isNaN(v)) return; const vv = Math.max(1, v); if (vv > this.run.maxHp) this.run.maxHp = vv; this.run.hp = vv; this._devLog('HP người chơi = ' + vv); },
     devSetKhi() { const v = parseInt(this.devKhi, 10); if (isNaN(v)) return; const vv = Math.max(0, v); if (vv > this.maxKhi) this.maxKhi = vv; this.khi = vv; this._devLog('Khí = ' + vv); },
     devSetEnemyHp() { const e = this.enemies[this.tgtIdx()]; if (!e) return; const v = parseInt(this.devEnemyHp, 10); if (isNaN(v)) return; const vv = Math.max(1, v); if (vv > e.maxHp) e.maxHp = vv; e.hp = vv; this._devLog('HP quái = ' + vv); },
@@ -792,7 +794,7 @@ export function dangTienMong() {
       this.run = a.run; this.map = a.map || []; this.mapTier = a.mapTier || 0; this.battleKind = a.battleKind || null;
       this.enemies = (a.enemies || []).map((e) => Object.assign({}, e, { floats: [], hit: false, burst: null, atkfx: null }));
       this.waves = a.waves || (this.enemies.length ? [this.enemies.map((e) => e.id)] : []); this.waveIdx = a.waveIdx || 0; this._waveFlash = 0;
-      this.targetIdx = a.targetIdx || 0; this.player = a.player || { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0 };
+      this.targetIdx = a.targetIdx || 0; this.player = a.player || { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0, _han: 0 };
       this.maxKhi = a.maxKhi || 3; this.khi = a.khi != null ? a.khi : this.maxKhi;
       const clr = (arr) => (arr || []).map((c) => Object.assign({}, c, { _cast: null }));
       this.drawPile = clr(a.drawPile); this.hand = clr(a.hand); this.discard = clr(a.discard); this.log = a.log || '';
@@ -858,7 +860,7 @@ export function dangTienMong() {
       this.waves = enc; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = kind;
       this._spawnEnemies(enc[0]);
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
-      this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0 }; this.log = ''; this.playerFloats = []; this._gotRelic = null; this._gotThan = null; this._hoverCard = null;
+      this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0, _han: 0 }; this.log = ''; this.playerFloats = []; this._gotRelic = null; this._gotThan = null; this._hoverCard = null;
       if (this.hasRelic('thietGiap')) this.player.block += 6;
       if (this.hasRelic('trongGiap')) this.player.block += 10;   // di vật: Trọng Thiết Giáp
       if (this.hasRelic('voTuong')) this.player.dodge = true;    // di vật: Vô Tướng Phù (né đòn đầu)
@@ -959,14 +961,40 @@ export function dangTienMong() {
     },
     absorbPlayer(amt) { let d = amt; if (this.player.block > 0) { const a = Math.min(this.player.block, d); this.player.block -= a; d -= a; } this.run.hp = Math.max(0, this.run.hp - d); return d; },
     _playerPen(amt) { this.run.hp = Math.max(0, this.run.hp - amt); return amt; },   // Phá Giáp lên người chơi: bỏ qua Hộ Thể
-    // Gimmick boss chưởng môn + huyền thoại (LITE): chỉ vài con có gimmick cuối lượt (dùng lại state sẵn có); còn lại phân biệt qua pattern intent. it = ý đồ VỪA ra (một số gimmick chỉ kích khi hồi/vận công).
+    // ===== GIMMICK BOSS CHƯỞNG MÔN + HUYỀN THOẠI (FULL, §9/§10) =====
+    // _atkMods: sửa 1 ĐÒN tấn công của quái (cộng ST / nhân / ép Phá Giáp) theo gimmick + Sát Cảnh — cờ TẠM tính lại mỗi đòn (KHÔNG ghi đè intents[] dùng chung).
+    _atkMods(e, it) {
+      let add = 0, mul = 1, pen = false; const p = this.player;
+      switch (e.id) {
+        case 'thien_vuong': if ((e.block || 0) >= 20) { pen = true; add += Math.floor((e.block || 0) * 0.3); } break;   // Trọng Giáp Phản Đòn: giáp dày -> đòn kế Phá Giáp + ST +30% giáp
+        case 'ngu_doc': if (it.big) add += (p.poison || 0); break;                                                      // Dĩ Độc Dưỡng Thân: đòn nổ +ST theo Độc player
+        case 'namCungLietHoa': if (it.big) { add += (p.burn || 0) * (p.burnT || 0); p.burn = 0; p.burnT = 0; } break;   // Điểm Hỏa Bùng Nổ: đòn big +tổng Bỏng player rồi thiêu sạch
+        case 'langToCam': if ((p.block || 0) >= 10) pen = true; break;                                                   // Công Xa Đa Đòn: player thủ dày (>=10) -> đòn kế Phá Giáp
+        case 'toUyenNghiet': if (this.run.hp <= Math.ceil(this.run.maxHp * 0.35)) { mul *= 1.5; pen = true; } break;     // Nhất Kích Chí Mạng: player HP<=35% -> đòn kế +50% & Phá Giáp
+      }
+      if (it.big && (this.run.sc || 0) >= 12) mul *= 1.25;   // SC12: đòn Vận Công +25% ST
+      if (e._phase2) mul *= 1.2;                              // SC15 Phẫn Nộ: pha 2 đòn +20%
+      return { add, mul, pen };
+    },
+    _heavyAtkIdx(e) { let bi = -1, bv = -1; (e.intents || []).forEach((x, i) => { if (x.t === 'atk' && (x.v || 0) > bv) { bv = x.v || 0; bi = i; } }); return bi < 0 ? e.plan : bi; },
+    _onEnemyHit(e) {   // sau MỖI đòn tấn công của quái (per-action) — tích Hàn (bangPhach)
+      if (e.id === 'bangPhachNuHiep') { const p = this.player; p._han = (p._han || 0) + 1; if (p._han >= 4) { p.stun = (p.stun || 0) + 1; p._han = 0; } }   // Hàn Băng Tích Lạnh: >=4 tầng Hàn -> Choáng player rồi reset
+    },
+    // Gimmick CUỐI LƯỢT (sau khi ý đồ đã giải). it = ý đồ vừa ra.
     _bossGimmick(e, it) {
-      if (e.id === 'ngu_doc') { const p = this.player.poison || 0; if (p > 0) e.hp = Math.min(e.maxHp, e.hp + p); this.player.poison = p + 1; }   // Dĩ Độc Dưỡng Thân: hồi = Độc người chơi, rồi Độc +1
-      else if (e.id === 'thien_nhan') { if ((this.player.burn || 0) > 0 && (this.player.burnT || 0) > 0) this.player.burnT += 1; e.str = (e.str || 0) + 1; }   // Nghiệp Hỏa: Bỏng người chơi +1 lượt & boss +1 Lực
-      // --- Huyền Thoại (LITE): gimmick rẻ; các gimmick phức tạp (né/phản giáp/frost/execute) để pha sau, boss vẫn có chất qua pattern intent + HP cao ---
-      else if (e.id === 'lacVoTran') { const p = this.player.poison || 0; if (p >= 3) e.str = (e.str || 0) + Math.floor(p / 3); }   // Cẩm Hương Hoại Cốt: mỗi 3 tầng Độc player -> boss +Lực
-      else if (e.id === 'doDuocMaCo') { if (it && it.t === 'heal') { const p = this.player.poison || 0; if (p > 0) { e.hp = Math.min(e.maxHp, e.hp + p); this.player.poison = 0; } } }   // Tự Dưỡng Cầu Sinh: khi hồi -> hút sạch Độc player thành HP
-      else if (e.id === 'coNhanMaiKiem') { if (it && it.t === 'charge') e.str = (e.str || 0) + 2; }   // Kiếm Ý Chuẩn Xác: vận công dồn +2 Lực vào nhát Lạc Mai
+      const p = this.player;
+      switch (e.id) {
+        case 'ngu_doc': { const pp = p.poison || 0; if (pp > 0) e.hp = Math.min(e.maxHp, e.hp + pp); p.poison = pp + 1; break; }   // Dĩ Độc Dưỡng Thân: hồi = Độc player, rồi Độc +1
+        case 'thien_nhan': { if ((p.burn || 0) > 0 && (p.burnT || 0) > 0) p.burnT += 1; e.str = (e.str || 0) + 1; break; }          // Nghiệp Hỏa: Bỏng player +1 lượt & boss +1 Lực
+        case 'lacVoTran': { const want = Math.floor((p.poison || 0) / 3); e.str = (e.str || 0) + (want - (e._auraStr || 0)); e._auraStr = want; break; }   // Cẩm Hương Hoại Cốt: Lực = floor(Độc player/3) (aura, không dồn vô hạn)
+        case 'doDuocMaCo': { if (it && it.t === 'heal') { const pp = p.poison || 0; if (pp > 0) { e.hp = Math.min(e.maxHp, e.hp + pp); p.poison = 0; } } break; }   // Tự Dưỡng Cầu Sinh: hồi -> hút sạch Độc player thành HP
+        case 'coNhanMaiKiem': { if (it && it.t === 'charge') e.str = (e.str || 0) + 2; break; }                                     // Kiếm Ý Chuẩn Xác: vận công dồn +2 Lực vào nhát Lạc Mai
+        case 'con_lon': { if (it && it.t === 'stun') { e.block = (e.block || 0) + 8; e._forceHeavy = true; } break; }               // Trấn Nhạc Cương: Choáng player -> +giáp & ép đòn nặng lượt kế
+        case 'thuy_yen': { if (it && it.t === 'stun') p.weaken = (p.weaken || 0) + 2; break; }                                      // Băng Cốt: Choáng kèm hàn khí -> Suy Yếu player +2
+        case 'khongTichThuyenSu': { if ((e.block || 0) > 0) { const r = Math.min(Math.floor(e.block / 2), 12); if (r > 0) { this._playerPen(r); this.floatPlayer(r); } } break; }   // Thiền Thân Bất Hoại: giáp dư -> phản 1/2 (<=12) xuyên giáp
+        case 'langToCam': { e._turns = (e._turns || 0) + 1; if (e._turns % 3 === 0) e.str = (e.str || 0) + 1; break; }              // Công Xa Đa Đòn: mỗi 3 lượt +1 Lực
+        case 'vanVongNuong': { if (it && it.t === 'def') { e._dodging = true; e._reflect = 0; } break; }                            // Nhu Hóa Mượn Lực: def -> né đòn player lượt sau, dồn 1/2 phản
+      }
     },
 
     // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
@@ -1064,6 +1092,7 @@ export function dangTienMong() {
         const tgts = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (tgt() ? [tgt()] : []);
         let total = 0;
         tgts.forEach((e) => {
+          if (e._dodging) { e._reflect = (e._reflect || 0) + Math.floor(Math.max(0, base) * (c.hits || 1) / 2); return; }   // Nhu Hóa Mượn Lực: quái né đòn player, dồn 1/2 ST -> phản lượt sau
           let per = Math.max(0, base);
           if (c.detonate) { const mul = c.detonate + (hb.detonateBonus || 0); per += Math.floor((e.poison || 0) * mul); e.poison = hb.keepHalfPoison ? Math.floor((e.poison || 0) / 2) : 0; }   // ST += Độc×k; Hợp Bích Ngũ Độc chừa nửa Độc
           if (c.execute && e.maxHp && e.hp <= Math.ceil(e.maxHp * 0.2)) per += c.execute;   // Đoạt Mệnh: địch còn <20% HP -> đòn này +ST (thẻ Thần Nhất Nhãn Đoạn Mệnh)
@@ -1114,17 +1143,27 @@ export function dangTienMong() {
         let toPlayer = 0, _ai = 0;
         for (const e of this.enemies) { if (e.hp <= 0) continue;
           if ((e.stun || 0) > 0) { e.stun--; e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--; continue; }   // Choáng: bỏ lượt, giữ nguyên telegraph (ra đòn lượt sau)
+          if (e._dodging) { const r = Math.min(e._reflect || 0, 40); if (r > 0) toPlayer += this.absorbPlayer(r); e._dodging = false; e._reflect = 0; }   // Nhu Hóa Mượn Lực (vanVongNuong): hoàn 1/2 ST đã né ở lượt player
           const it = this.curIntent(e); if (it) {
             this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
-            if (it.t === 'atk') { let per = Math.max(0, it.v + (e.str || 0) - (e.weak || 0)); const hits = it.hits || 1; if (this.player.dodge) { per = Math.floor(per / 2); this.player.dodge = false; } for (let h = 0; h < hits; h++) { toPlayer += (it.pen ? this._playerPen(per) : this.absorbPlayer(per)); } }   // Né = giảm ½ sát thương đòn kế (dùng 1 lần; pen vẫn xuyên Hộ Thể)
+            if (it.t === 'atk') {
+              const gm = this._atkMods(e, it);   // gimmick per-đòn (thien_vuong/ngu_doc/namCung/langToCam/toUyenNghiet + SC12/15)
+              let per = Math.max(0, Math.round((it.v + (e.str || 0) - (e.weak || 0) + gm.add) * gm.mul));
+              const hits = it.hits || 1; const usePen = it.pen || gm.pen;
+              if (this.player.dodge) { per = Math.floor(per / 2); this.player.dodge = false; }   // Né người chơi = giảm ½ sát thương đòn kế (dùng 1 lần)
+              for (let h = 0; h < hits; h++) { toPlayer += (usePen ? this._playerPen(per) : this.absorbPlayer(per)); }   // pen xuyên Hộ Thể
+              this._onEnemyHit(e);   // tích Hàn (bangPhach) sau đòn
+            }
             else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
             else if (it.t === 'poison') this.player.poison = (this.player.poison || 0) + it.v;                                             // boss gieo Độc lên người chơi
             else if (it.t === 'burn') { this.player.burn = (this.player.burn || 0) + it.v; this.player.burnT = Math.max(this.player.burnT || 0, it.burnT || 3); }
             else if (it.t === 'weaken') this.player.weaken = (this.player.weaken || 0) + it.v;
             else if (it.t === 'stun') this.player.stun = (this.player.stun || 0) + 1;
           }
-          this._bossGimmick(e, it);   // gimmick cuối lượt (LITE: ngu_doc / thien_nhan / 3 huyền thoại)
-          e.plan = (e.planNext != null) ? e.planNext : this._planPick(e, e.plan); e.planNext = this._planFollow(e, e.plan); e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--;
+          this._bossGimmick(e, it);   // gimmick cuối lượt (FULL)
+          e.plan = (e.planNext != null) ? e.planNext : this._planPick(e, e.plan);
+          if (e._forceHeavy) { e.plan = this._heavyAtkIdx(e); e._forceHeavy = false; }   // Trấn Nhạc Cương (con_lon): ép đòn nặng lượt kế
+          e.planNext = this._planFollow(e, e.plan); e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--;
         }
         // DoT lên NGƯỜI CHƠI (Độc/Bỏng do boss gieo) — xuyên Hộ Thể, giảm dần như quái
         let pdot = 0;
