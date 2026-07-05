@@ -446,11 +446,13 @@ export function dangTienMong() {
     { id: 'luongNghi', key: 'peek', kind: 'flag', name: 'Lưỡng Nghi Kính', han: '鏡', desc: 'Xem trước đòn KẾ của địch.', costs: [500], gate: null, gateText: '' },
     { id: 'tinhThat', key: 'restBonus', kind: 'flag', name: 'Tịnh Thất Phù', han: '淨', desc: 'Tĩnh Thất hồi 35% (thay 30%).', costs: [1000], gate: null, gateText: '' },
   ];
-  const DTM_SC_MAX = 6;   // Sát Cảnh bậc tối đa (MVP); mở rộng sau
+  const DTM_SC_MAX = 15;   // Sát Cảnh bậc tối đa (SC1-5 cũ + SC6-15 mới, cộng dồn §8)
   const DTM_BRIDGE_RATE = 20;      // (assist) đổi bao nhiêu Mộng Ngân lấy 1 Nguyên Bảo — DRAFT
   const DTM_BRIDGE_WEEKCAP = 60;   // (assist) trần Nguyên Bảo đổi được mỗi tuần — DRAFT
   let _uid = 0;
   const mk = (id) => ({ uid: ++_uid, _cast: null, id, ...POOL[id] });
+  // Thẻ rác "Nội Thương" (SC8) — KHÔNG ở POOL (không lọt wiki/đếm 126). Không chơi được, chiếm chỗ tay tới cuối lượt. Chỉ nhét vào drawPile mỗi trận.
+  const mkNoiThuong = () => ({ uid: ++_uid, _cast: null, id: 'noiThuong', name: 'Nội Thương', han: '傷', he: 'vatly', cost: 1, type: 'ky', rar: 'so', curse: true });
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -535,8 +537,24 @@ export function dangTienMong() {
     scMax() { return DTM_SC_MAX; },
     scMaxOf(id) { try { return (this.$store.game.state.dangTien.scMaxByHero || {})[id] || 0; } catch (e) { return 0; } },
     setSc(id, n) { this.scSel[id] = Math.max(0, Math.min(n, this.scMaxOf(id))); },
-    scModsList(n) { const a = []; if (!n || n <= 0) return a; a.push('Tàn niệm +' + (8 * n) + '% HP'); if (n >= 2) a.push('Mộng Ngân trong ván ×0.9'); if (n >= 3) a.push('Vào ván −3 HP'); if (n >= 4) a.push('HP khởi đầu ×0.9'); if (n >= 5) a.push('Mộng Thị +15% giá · Tĩnh Thất −5%'); return a; },
-    scBankPct(n) { return Math.round(8 * (n || 0)); },   // +8%/bậc bank
+    scModsList(n) { const a = []; if (!n || n <= 0) return a;
+      a.push('Tàn niệm +' + (8 * n) + '% HP');
+      if (n >= 2) a.push('Mộng Ngân trong ván ×0.9');
+      if (n >= 3) a.push('Vào ván −3 HP');
+      if (n >= 4) a.push('HP khởi đầu ×0.9');
+      if (n >= 5) a.push('Mộng Thị +15% giá · Tĩnh Thất −5%');
+      if (n >= 6) a.push('Quái ra đòn +' + (5 * (n - 5)) + '% ST');
+      if (n >= 7) a.push('Ác Thủ/Mộng Chủ thêm 1 chiêu');
+      if (n >= 8) a.push('Mỗi trận +1 thẻ Nội Thương');
+      if (n >= 9) a.push('Tinh Anh/Chưởng Môn thêm đòn Suy Yếu/Độc');
+      if (n >= 10) a.push('Khí lượt đầu −1');
+      if (n >= 11) a.push('Quái Hộ Thể/Liệu Thương +25%');
+      if (n >= 12) a.push('Đòn Vận Công +25% ST');
+      if (n >= 13) a.push('Di vật rơi hiếm hơn');
+      if (n >= 14) a.push('Bỏng/Độc lên người chơi +1 lượt');
+      if (n >= 15) a.push('Phẫn Nộ: Mộng Chủ/Ác Thủ vào pha 2 khi máu <50% (+1 chiêu & đòn +20%)');
+      return a; },
+    scBankPct(n) { return Math.min(8 * (n || 0), 40); },   // +8%/bậc bank, cap +40% (rate bank tổng cap 0.90 từ ~SC5)
     // ----- Mở thẻ Tuyệt theo cột mốc (CHỈ lọc roll thưởng/shop; bộ khởi đầu hero giữ nguyên) -----
     _cardUnlocked(id) { const c = POOL[id]; if (!c || (c.rar !== 'tuyet' && c.rar !== 'than')) return true; try { return (this.$store.game.state.dangTien.unlockedCards || []).includes(id); } catch (e) { return false; } },   // Tuyệt (cột mốc) + Thần Thoại (hạ huyền thoại) mới mở
     _checkUnlocks() {
@@ -660,6 +678,7 @@ export function dangTienMong() {
     cardEffects(c) {
       // s = nhãn NGẮN (chip trên thẻ) · full = mô tả ĐẦY ĐỦ (tooltip nổi / xem chi tiết)
       if (!c) return []; const E = []; const P = (t, s, full) => E.push({ t, s, full });
+      if (c.curse) { P('exhaust', 'Nội Thương', 'Thẻ rác Sát Cảnh — không chơi được, chiếm chỗ trên tay tới cuối lượt.'); return E; }
       if (c.dmg) { let s = c.dmg + ' ST'; if (c.hits > 1) s = c.dmg + ' ST ×' + c.hits; if (c.aoe) s += ' toàn địch';
         P('atk', s, 'Gây ' + c.dmg + ' sát thương' + (c.hits > 1 ? (' mỗi đòn, đánh ' + c.hits + ' lần') : '') + (c.aoe ? ' lên TOÀN BỘ địch' : ' lên mục tiêu')); }
       if (c.detonate) P('atk', 'ST = Độc ×' + c.detonate, 'Kích nổ: cộng (Độc hiện có × ' + c.detonate + ') vào sát thương rồi xóa Độc');
@@ -860,11 +879,13 @@ export function dangTienMong() {
       this.waves = enc; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = kind;
       this._spawnEnemies(enc[0]);
       this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = [];
+      if ((this.run.sc || 0) >= 8) { this.drawPile.push(mkNoiThuong()); this.drawPile = shuffle(this.drawPile); }   // SC8: mỗi trận +1 thẻ rác Nội Thương
       this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0, _han: 0 }; this.log = ''; this.playerFloats = []; this._gotRelic = null; this._gotThan = null; this._hoverCard = null;
       if (this.hasRelic('thietGiap')) this.player.block += 6;
       if (this.hasRelic('trongGiap')) this.player.block += 10;   // di vật: Trọng Thiết Giáp
       if (this.hasRelic('voTuong')) this.player.dodge = true;    // di vật: Vô Tướng Phù (né đòn đầu)
       this.khi = this.maxKhi + (this.hasRelic('ngocBoi') ? 2 : 0);
+      if ((this.run.sc || 0) >= 10) this.khi = Math.max(1, this.khi - 1);   // SC10: Khí lượt đầu −1
       this.phase = 'battle'; this.startTurnPassive();
       this.draw(this.handSize());
       if (this.hasRelic('bangBoi')) this.draw(2);   // di vật: Huyền Băng Bội (rút thêm 2 lá đầu trận)
@@ -872,11 +893,13 @@ export function dangTienMong() {
     },
     // Sinh 1 đợt quái từ mảng id (HP scale theo tầng + Sát Cảnh, +AI plan/planNext). Dùng cho mở trận & đợt kế.
     _spawnEnemies(ids) {
-      const hpScl = 1 + this.mapTier * 0.08 + (this.run.sc || 0) * 0.08;   // HP quái theo tầng + Sát Cảnh (DRAFT)
-      const dmgScl = 1 + this.mapTier * 0.04;                              // sát thương ĐÒN theo tầng (chỉ intent atk) — DRAFT
+      const sc = this.run.sc || 0;
+      const hpScl = 1 + this.mapTier * 0.08 + sc * 0.08;                                  // HP quái theo tầng + Sát Cảnh (DRAFT)
+      const dmgScl = 1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5);                // sát thương ĐÒN theo tầng + SC6 (+5%/bậc từ SC6) — DRAFT
       this.enemies = (ids || []).map((id) => { const t = ENEMIES[id];
         const ints = t.intents.map((it) => (it.t === 'atk' && it.v != null) ? { ...it, v: Math.round(it.v * dmgScl) } : it);   // copy có scale (KHÔNG mutate ENEMIES gốc; def/heal/buff giữ nguyên)
         return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, chuongMon: !!t.chuongMon, huyen: !!t.huyen, maxHp: Math.round(t.hp * hpScl), hp: Math.round(t.hp * hpScl), block: 0, poison: 0, weak: 0, str: 0, burn: 0, burnT: 0, stun: 0, stunImmune: 0, intents: ints, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
+      if (sc >= 7) this.enemies.forEach((e) => this._scAugment(e, sc, dmgScl));   // SC7/SC9: thêm chiêu cho boss/tinh anh
       this.targetIdx = 0;
       this.enemies.forEach((e) => { e.plan = this._planPick(e, -1); e.planNext = this._planFollow(e, e.plan); });
       this._triggerBossReveal();   // đợt có chưởng môn/Mộng Chủ -> màn "xuất trận"
@@ -941,7 +964,7 @@ export function dangTienMong() {
     intentStyle(e) { const it = e.hp > 0 && this.curIntent(e); const c = !it ? '#64748b' : this._itCol(it.t);
       return 'color:' + c + ';border:1px solid ' + c + '55;background:' + c + '14'; },
     // ----- Telegraph CHIP: ý đồ quái = lá bài kế trong bộ bài riêng (chip mini art + tên chiêu + tác dụng) -----
-    intentMove(e) { try { const arr = MOVES[e.id]; return (arr && arr.length) ? (arr[e.plan] || arr[0]) : null; } catch (_) { return null; } },
+    intentMove(e) { try { const it = e.intents[e.plan]; if (it && it._sc) return { nm: it._nm || 'Sát Cảnh', han: it._han || '殺', art: '' }; const arr = MOVES[e.id]; return (arr && arr.length) ? (arr[e.plan] || arr[0]) : null; } catch (_) { return null; } },
     intentCardArt(e) { const m = this.intentMove(e); return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     intentCardName(e) { const m = this.intentMove(e); return m ? m.nm : (this.intentText(e) || 'Ý đồ'); },
     intentCardHan(e) { const m = this.intentMove(e); return m ? m.han : (e.han || '?'); },
@@ -996,11 +1019,17 @@ export function dangTienMong() {
         case 'vanVongNuong': { if (it && it.t === 'def') { e._dodging = true; e._reflect = 0; } break; }                            // Nhu Hóa Mượn Lực: def -> né đòn player lượt sau, dồn 1/2 phản
       }
     },
+    // SC7/SC9: thêm chiêu Sát Cảnh cho boss/tinh anh (intent phụ; telegraph qua chip synthetic _sc trong intentMove).
+    _scAugment(e, sc, dmgScl) {
+      const boss = e.chuongMon || e.boss || e.huyen;
+      if (sc >= 7 && boss) e.intents.push({ t: 'atk', v: Math.round(10 * (dmgScl || 1)), pen: true, _sc: true, _nm: 'Sát Cảnh · Sát Chiêu', _han: '殺' });   // +1 đòn Phá Giáp (chuỗi dài khó đoán)
+      if (sc >= 9 && (e.elite || boss)) { const pois = Math.random() < 0.5; e.intents.push(pois ? { t: 'poison', v: 4, _sc: true, _nm: 'Sát Cảnh · Độc Chú', _han: '毒' } : { t: 'weaken', v: 2, _sc: true, _nm: 'Sát Cảnh · Nhiếp Hồn', _han: '弱' }); }   // +1 đòn player-side
+    },
 
     // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
     tapCard(i, ev) {
       if (this._winning) return;
-      const c = this.hand[i]; if (!c || c._cast) return;
+      const c = this.hand[i]; if (!c || c._cast || c.curse) return;   // Nội Thương: không chơi được
       if (this.selUid !== c.uid) { this.selUid = c.uid; return; }   // tap 1 / đổi -> chọn (nhô lên)
       if (this.khi < c.cost) return;                                // tap 2 nhưng không đủ Khí -> giữ chọn, chưa đánh
       this.selUid = null; this.playCard(i, ev);                     // tap 2 -> ĐÁNH
@@ -1067,7 +1096,7 @@ export function dangTienMong() {
     },
     playCard(i, ev) {
       if (this._winning) return;
-      const c = this.hand[i]; if (!c || c._cast || this.khi < c.cost) return;
+      const c = this.hand[i]; if (!c || c._cast || c.curse || this.khi < c.cost) return;   // Nội Thương (curse): không chơi được
       this.selUid = null; this._hoverCard = null;   // đánh thẻ -> ẩn preview (tránh preview kẹt khi thẻ rời tay lúc đang hover)
       try { if (navigator.vibrate) navigator.vibrate((c.dmg || c.blkToDmg || c.detonate) ? [14] : [7]); } catch (_) {}   // rung máy: phản hồi CHẮC CHẮN
       this.khi -= c.cost;
@@ -1141,9 +1170,11 @@ export function dangTienMong() {
         else { this._finishBattle(); return; }
       } else {
         let toPlayer = 0, _ai = 0;
+        const sc = this.run.sc || 0; const defHealMul = sc >= 11 ? 1.25 : 1; const scDot = sc >= 14 ? 1 : 0;   // SC11 def/heal ×1.25 · SC14 Bỏng/Độc player +1 lượt
         for (const e of this.enemies) { if (e.hp <= 0) continue;
           if ((e.stun || 0) > 0) { e.stun--; e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--; continue; }   // Choáng: bỏ lượt, giữ nguyên telegraph (ra đòn lượt sau)
           if (e._dodging) { const r = Math.min(e._reflect || 0, 40); if (r > 0) toPlayer += this.absorbPlayer(r); e._dodging = false; e._reflect = 0; }   // Nhu Hóa Mượn Lực (vanVongNuong): hoàn 1/2 ST đã né ở lượt player
+          if (sc >= 15 && !e._phase2 && (e.chuongMon || e.boss || e.huyen) && e.hp > 0 && e.hp < e.maxHp / 2) { e._phase2 = true; e.intents.push({ t: 'atk', v: Math.round(12 * (1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5))), pen: true, _sc: true, _nm: 'Phẫn Nộ · Cuồng Kích', _han: '怒' }); }   // SC15 Phẫn Nộ: pha 2 (+1 chiêu; đòn +20% qua _atkMods)
           const it = this.curIntent(e); if (it) {
             this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
             if (it.t === 'atk') {
@@ -1154,9 +1185,9 @@ export function dangTienMong() {
               for (let h = 0; h < hits; h++) { toPlayer += (usePen ? this._playerPen(per) : this.absorbPlayer(per)); }   // pen xuyên Hộ Thể
               this._onEnemyHit(e);   // tích Hàn (bangPhach) sau đòn
             }
-            else if (it.t === 'def') e.block += it.v; else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + it.v);
-            else if (it.t === 'poison') this.player.poison = (this.player.poison || 0) + it.v;                                             // boss gieo Độc lên người chơi
-            else if (it.t === 'burn') { this.player.burn = (this.player.burn || 0) + it.v; this.player.burnT = Math.max(this.player.burnT || 0, it.burnT || 3); }
+            else if (it.t === 'def') e.block += Math.round(it.v * defHealMul); else if (it.t === 'buff') e.str = (e.str || 0) + it.v; else if (it.t === 'heal') e.hp = Math.min(e.maxHp, e.hp + Math.round(it.v * defHealMul));   // SC11: def/heal ×1.25
+            else if (it.t === 'poison') this.player.poison = (this.player.poison || 0) + it.v + scDot;                                    // boss gieo Độc lên người chơi (SC14 +1)
+            else if (it.t === 'burn') { this.player.burn = (this.player.burn || 0) + it.v; this.player.burnT = Math.max(this.player.burnT || 0, (it.burnT || 3) + scDot); }   // SC14: Bỏng +1 lượt
             else if (it.t === 'weaken') this.player.weaken = (this.player.weaken || 0) + it.v;
             else if (it.t === 'stun') this.player.stun = (this.player.stun || 0) + 1;
           }
@@ -1234,7 +1265,8 @@ export function dangTienMong() {
           this.log = 'Đoạt tuyệt học Thần Thoại: ' + POOL[thanId].name;
         }
       }
-      if ((this.battleKind === 'elite' || this.battleKind === 'miniboss' || this.battleKind === 'huyenthoai') && this.run.relics.length < RELICS.length) { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._gotRelic = r; this.log = 'Nhặt di vật: ' + r.name; } }   // _gotRelic -> khung pop-in ở màn Thưởng (thông báo nhận di vật)
+      const scSkipRelic = (this.run.sc || 0) >= 13 && Math.random() < 0.35;   // SC13: di vật rơi hiếm hơn (35% hụt)
+      if (!scSkipRelic && (this.battleKind === 'elite' || this.battleKind === 'miniboss' || this.battleKind === 'huyenthoai') && this.run.relics.length < RELICS.length) { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._gotRelic = r; this.log = 'Nhặt di vật: ' + r.name; } }   // _gotRelic -> khung pop-in ở màn Thưởng (thông báo nhận di vật)
       this.rewardCards = this._rollKeys(3).map(mk);
       this._setReroll(); this.phase = 'reward'; this._saveRun();
     },

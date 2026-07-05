@@ -7921,7 +7921,7 @@
 
               <div class="flex gap-2 justify-center flex-wrap min-h-[256px] items-end pt-6 pb-1 transform-gpu" :class="selUid?'has-sel':''" :style="'--hs:'+handScale()">
                 <template x-for="(c,i) in hand" :key="c.uid">
-                  <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')+(c._cast?' dtm-cast-'+c._cast:'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)" @mouseenter="showPreview(c,$event)" @mouseleave="hidePreview()">
+                  <div class="card" :class="((khi>=c.cost && !c.curse)?'playable':'unplayable')+(selUid===c.uid?' sel':'')+(c._cast?' dtm-cast-'+c._cast:'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)" @mouseenter="showPreview(c,$event)" @mouseleave="hidePreview()">
                     <template x-if="cardGlow(c)"><div class="dtm-hb-halo" :style="'--c:'+cardGlow(c)"></div></template>
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>
