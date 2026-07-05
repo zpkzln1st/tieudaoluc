@@ -7518,6 +7518,19 @@
         /* Tooltip chip nổi tự do (teleport body) — không bị khung thẻ cắt */
         .dtm-chiptip{ position:fixed; z-index:99999; max-width:230px; padding:7px 10px; background:#0b1120f8; border:1px solid var(--tc,#5b6b82); border-radius:9px; color:#eef3fa; font-size:11.5px; font-weight:600; line-height:1.4; box-shadow:0 12px 30px -8px #000, 0 0 0 1px #00000066; pointer-events:none; }
         .dtm-chiptip .tt{ font-family:'Lora',serif; font-weight:700; font-size:12px; margin-bottom:2px; }
+        /* Bản xem phóng to thẻ tay (hover, teleport body) — art + tên + mô tả đầy đủ + lore */
+        .dtm-cardprev{ position:fixed; z-index:9995; display:flex; width:min(372px,94vw); min-height:196px; background:#0a0f1af7; border:1px solid var(--r,#334155); border-radius:14px; box-shadow:0 26px 64px -14px #000, 0 0 0 1px #00000088; overflow:hidden; pointer-events:none; }
+        .dtm-cardprev .pv-art{ position:relative; width:138px; flex:0 0 auto; background:radial-gradient(ellipse at 50% 34%, color-mix(in srgb,var(--c) 42%,transparent), transparent 70%); }
+        .dtm-cardprev .pv-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+        .dtm-cardprev .pv-han{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:58px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
+        .dtm-cardprev .pv-cost{ position:absolute; top:7px; left:7px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-weight:800; font-size:14px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee; z-index:2; }
+        .dtm-cardprev .pv-body{ flex:1 1 auto; padding:12px 13px 13px; min-width:0; }
+        .dtm-cardprev .pv-nm{ font-size:17px; font-weight:700; color:#fff; line-height:1.2; }
+        .dtm-cardprev .pv-ty{ font-size:10px; color:var(--c); text-transform:uppercase; letter-spacing:.06em; margin-top:3px; }
+        .dtm-cardprev .pv-fx{ margin-top:10px; }
+        .dtm-cardprev .pv-row{ display:flex; align-items:flex-start; gap:7px; margin-bottom:6px; font-size:12px; color:#dbe4ee; line-height:1.36; }
+        .dtm-cardprev .pv-chip{ flex:0 0 auto; font-size:10px; font-weight:700; padding:1px 6px; border-radius:9999px; color:#0a0f16; white-space:nowrap; margin-top:1px; box-shadow:0 1px 2px rgba(0,0,0,.5); }
+        .dtm-cardprev .pv-lore{ margin-top:9px; padding-top:8px; border-top:1px solid #ffffff14; font-size:11px; font-style:italic; color:#8aa0b6; line-height:1.42; }
 </style>
       <template x-if="$store.game.view==='dangTienMong'">
         <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()" @keydown.window="if($event.ctrlKey&&$event.shiftKey&&$event.code==='KeyD'){$event.preventDefault();devHotkey();}">
@@ -7533,6 +7546,17 @@
           <div class="dtm-winbeat" x-show="_winning"><span class="fserif">Thắng ải</span></div>
           <div class="dtm-winbeat dtm-waveflash" x-show="_waveFlash>0"><span class="fserif" x-text="'Đợt '+_waveFlash+' / '+waveCount()"></span></div>
           <template x-teleport="body"><div class="dtm-chiptip" x-show="_chipTip" :style="_chipTip?('--tc:'+_chipTip.c):''"><div class="tt" :style="_chipTip?('color:'+_chipTip.c):''" x-text="_chipTip?_chipTip.s:''"></div><div x-text="_chipTip?_chipTip.full:''"></div></div></template>
+          <template x-teleport="body"><template x-if="_hoverCard">
+            <div class="dtm-cardprev" :style="'--c:'+heColor(_hoverCard.he)+';--r:'+rarColor(_hoverCard.rar)">
+              <div class="pv-art"><img :src="cardImg(_hoverCard.id)" alt="" onerror="this.style.display='none'"><span class="pv-han" x-text="_hoverCard.han"></span><span class="pv-cost" x-text="_hoverCard.cost"></span></div>
+              <div class="pv-body">
+                <div class="pv-nm fserif" x-text="_hoverCard.name"></div>
+                <div class="pv-ty" x-text="typeLabel(_hoverCard)+' · '+rarName(_hoverCard.rar)+(_hoverCard.sect?' · '+_hoverCard.sect:'')"></div>
+                <div class="pv-fx"><template x-for="e in cardEffects(_hoverCard)" :key="e.t+e.s"><div class="pv-row"><span class="pv-chip" :style="'background:'+cardEffColor(e.t)" x-text="e.s"></span><span x-text="e.full"></span></div></template></div>
+                <div class="pv-lore" x-show="cardFlavor(_hoverCard)" x-text="cardFlavor(_hoverCard)"></div>
+              </div>
+            </div>
+          </template></template>
           <template x-if="_bossReveal">
             <div class="dtm-bossreveal">
               <img :src="enemyImg(_bossReveal)" alt="" onerror="this.style.display='none'">
@@ -7880,7 +7904,7 @@
 
               <div class="flex gap-2 justify-center flex-wrap min-h-[256px] items-end pt-6 pb-1 transform-gpu" :class="selUid?'has-sel':''" :style="'--hs:'+handScale()">
                 <template x-for="(c,i) in hand" :key="c.uid">
-                  <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')+(c._cast?' dtm-cast-'+c._cast:'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)">
+                  <div class="card" :class="(khi>=c.cost?'playable':'unplayable')+(selUid===c.uid?' sel':'')+(c._cast?' dtm-cast-'+c._cast:'')" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)" @click="tapCard(i, $event)" @mouseenter="showPreview(c,$event)" @mouseleave="hidePreview()">
                     <template x-if="cardGlow(c)"><div class="dtm-hb-halo" :style="'--c:'+cardGlow(c)"></div></template>
                     <div class="cost" x-text="c.cost"></div><div class="rar" :title="rarName(c.rar)"></div>
                     <div class="card-art"><span class="card-han" x-text="c.han"></span><img :src="cardImg(c.id)" class="dtm-art" alt="" onerror="this.style.display='none'"><template x-if="sigilImg(c.he)"><img :src="sigilImg(c.he)" class="dtm-sigil" alt="" onerror="this.style.display='none'"></template></div>

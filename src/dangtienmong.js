@@ -409,7 +409,7 @@ export function dangTienMong() {
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
-    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null, _chipTip: null,
+    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, cardDetail: null, lightbox: null, _chipTip: null, _hoverCard: null,
     // ----- Bảng Dev/Test (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D; CHỈ đụng this.* + state.dangTien + DOM) -----
     devEnabled: false, devPanel: false, devCardSel: '', devEnemySel: '', devHp: '', devKhi: '', devEnemyHp: '',
     HEROES, RELICS, metaUp: META_UP,
@@ -424,7 +424,9 @@ export function dangTienMong() {
     ],
     // ----- BRIDGE persist (chỉ Tầng Mộng sâu nhất, cách ly) -----
     dtInit() { try { this._rootEl = this.$el; const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {}
-      try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('dtm_dev', '1'); else localStorage.removeItem('dtm_dev'); } this.devEnabled = localStorage.getItem('dtm_dev') === '1'; } catch (e2) {} },
+      try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('dtm_dev', '1'); else localStorage.removeItem('dtm_dev'); } this.devEnabled = localStorage.getItem('dtm_dev') === '1'; } catch (e2) {}
+      // MOBILE: chọn thẻ (tap-1) -> hiện bản xem phóng to (căn giữa) để đọc đầy đủ; bỏ chọn/đánh -> ẩn. (PC dùng hover.)
+      try { this.$watch('selUid', (v) => { if (window.innerWidth > 640) return; if (v && this.phase === 'battle') { this._hoverCard = this.hand.find((c) => c.uid === v) || null; this.$nextTick(() => { const p = document.querySelector('.dtm-cardprev'); if (!p) return; const pw = p.offsetWidth; p.style.left = Math.max(8, (window.innerWidth - pw) / 2) + 'px'; p.style.top = '54px'; }); } else this._hoverCard = null; }); } catch (e3) {} },
     persist() { try { const g = this.$store.game; const s = g.state.dangTien; s.deepest = Math.max(s.deepest || 0, this.deepest || 0); Storage.save(g.state); } catch (e) {} },
     // Bank phần Mộng Ngân chưa tiêu của ván vào VÍ PERSISTENT khi kết ván (thắng/thua/tỉnh giấc). CHỈ ghi state.dangTien.mongNgan.
     bankRun(won) {
@@ -642,6 +644,17 @@ export function dangTienMong() {
         tip.style.left = left + 'px'; tip.style.top = top + 'px'; });
     },
     hideChipTip() { this._chipTip = null; },
+    // ----- Bản xem PHÓNG TO thẻ tay khi rê chuột (PC): thẻ nhỏ 1 hàng -> hover hiện bản to + mô tả đầy đủ -----
+    showPreview(c, ev) {
+      if (typeof window !== 'undefined' && window.innerWidth <= 640) return;   // mobile: thẻ đã cuộn full, không cần
+      this._hoverCard = c; const r = ev.currentTarget.getBoundingClientRect();
+      this.$nextTick(() => { const p = document.querySelector('.dtm-cardprev'); if (!p) return;
+        const pw = p.offsetWidth, ph = p.offsetHeight;
+        let left = r.left + r.width / 2 - pw / 2; left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+        let top = r.top - ph - 12; if (top < 8) top = 8;
+        p.style.left = left + 'px'; p.style.top = top + 'px'; });
+    },
+    hidePreview() { if (typeof window !== 'undefined' && window.innerWidth <= 640) return; this._hoverCard = null; },   // mobile: preview do $watch(selUid) quản lý, mouseleave (synthetic khi chạm) KHÔNG xoá
     // ===== Bảng Dev/Test — CHỈ đụng this.* (component) + state.dangTien + DOM. KHÔNG đụng currencies/gearBag/combat. =====
     devHotkey() { if (!this.devEnabled) { this.devEnabled = true; try { localStorage.setItem('dtm_dev', '1'); } catch (e) {} } this.devPanel = !this.devPanel; },
     devDisable() { this.devEnabled = false; this.devPanel = false; try { localStorage.removeItem('dtm_dev'); } catch (e) {} },
