@@ -7521,8 +7521,8 @@
         /* Bản xem phóng to thẻ tay (hover, teleport body) — art + tên + mô tả đầy đủ + lore */
         .dtm-cardprev{ position:fixed; z-index:9995; display:flex; width:min(372px,94vw); min-height:196px; background:#0a0f1af7; border:1px solid var(--r,#334155); border-radius:14px; box-shadow:0 26px 64px -14px #000, 0 0 0 1px #00000088; overflow:hidden; pointer-events:none; }
         .dtm-cardprev .pv-art{ position:relative; width:138px; flex:0 0 auto; background:radial-gradient(ellipse at 50% 34%, color-mix(in srgb,var(--c) 42%,transparent), transparent 70%); }
-        .dtm-cardprev .pv-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-        .dtm-cardprev .pv-han{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:58px; color:var(--c); filter:drop-shadow(0 2px 6px #000); }
+        .dtm-cardprev .pv-han{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:58px; color:var(--c); filter:drop-shadow(0 2px 6px #000); z-index:0; }
+        .dtm-cardprev .pv-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }   /* art PHỦ Hán (Hán chỉ là fallback khi thiếu art) */
         .dtm-cardprev .pv-cost{ position:absolute; top:7px; left:7px; width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Lora',serif; font-weight:800; font-size:14px; color:#06202a; background:linear-gradient(180deg,#67e8f9,#0891b2); box-shadow:0 0 8px -1px #22d3ee; z-index:2; }
         .dtm-cardprev .pv-body{ flex:1 1 auto; padding:12px 13px 13px; min-width:0; }
         .dtm-cardprev .pv-nm{ font-size:17px; font-weight:700; color:#fff; line-height:1.2; }
