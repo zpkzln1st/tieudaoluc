@@ -17,6 +17,7 @@ export const TITLE_LOAI = {
   boss:     'Yêu Vương',
   nghe:     'Nghề',
   canhGioi: 'Cảnh Giới',
+  mongCanh: 'Mộng Cảnh',
 };
 
 const t = (id, name, q, loai, bonus, cond, src) => ({ id, name, q, loai, bonus, cond, src });
@@ -86,6 +87,14 @@ export const TITLES = [
   t('hoChienBao', 'Hộ Chiến Bảo', 'tinhPham', 'canhGioi', { defPct: 0.015, hpPct: 0.015 }, { kind: 'gearQ', v: 'truyenThe' }, 'Sở hữu 1 trang bị Sử Thi'),
   t('thanBinh',  'Thần Binh Tại Thủ', 'truyenThe', 'canhGioi', { atkPct: 0.02, critPct: 0.01 }, { kind: 'gearQ', v: 'thanPham' }, 'Sở hữu 1 trang bị Truyền Thuyết'),
   t('chiBaoVuong', 'Chí Bảo Chi Vương', 'coBan', 'canhGioi', { allPct: 0.02 }, { kind: 'gearQ', v: 'coBan' }, 'Sở hữu 1 trang bị Độc Nhất'),
+
+  // ===== MỘNG CẢNH (Đăng Tiên Mộng — Sát Cảnh; danh hiệu CỐ SẮC 0 chỉ số: cosmetic chảy ra từ mộng cảnh, khoe không thêm lực) =====
+  t('mongDu',       'Mộng Du Giả',        'luongPham', 'mongCanh', {}, { kind: 'dtmSc', v: 1 },  'Đăng Tiên Mộng: đạt Sát Cảnh 1'),
+  t('satCanhHanhGia', 'Sát Cảnh Hành Giả', 'tinhPham',  'mongCanh', {}, { kind: 'dtmSc', v: 3 },  'Đăng Tiên Mộng: đạt Sát Cảnh 3'),
+  t('nghichMong',   'Nghịch Mộng Khách',  'tuyetPham', 'mongCanh', {}, { kind: 'dtmSc', v: 5 },  'Đăng Tiên Mộng: đạt Sát Cảnh 5'),
+  t('phaCanh',      'Phá Cảnh Cuồng Đồ',  'truyenThe', 'mongCanh', {}, { kind: 'dtmSc', v: 7 },  'Đăng Tiên Mộng: đạt Sát Cảnh 7'),
+  t('mongChanNhan', 'Mộng Cảnh Chân Nhân', 'thanPham', 'mongCanh', {}, { kind: 'dtmSc', v: 10 }, 'Đăng Tiên Mộng: đạt Sát Cảnh 10'),
+  t('dangTienVoCuc', 'Đăng Tiên Vô Cực',  'thanPham',  'mongCanh', {}, { kind: 'dtmSc', v: 15 }, 'Đăng Tiên Mộng: chinh phục Sát Cảnh 15'),
 ];
 
 export const TITLE_BY_ID = {};

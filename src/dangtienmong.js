@@ -899,7 +899,7 @@ export function dangTienMong() {
       if (this.mapTier >= this.map.length) {
         try { const s = this.$store.game.state.dangTien; s.wins = (s.wins || 0) + 1; } catch (e) {}
         this.bankRun(true);
-        try { const s = this.$store.game.state.dangTien; const hid = this.run.hero.id; const cm = s.scMaxByHero[hid] || 0; if ((this.run.sc || 0) >= cm && cm < DTM_SC_MAX) { s.scMaxByHero[hid] = cm + 1; this.scSel[hid] = cm + 1; this._newScUnlocked = cm + 1; } } catch (e) {}
+        try { const s = this.$store.game.state.dangTien; const hid = this.run.hero.id; const cm = s.scMaxByHero[hid] || 0; if ((this.run.sc || 0) >= cm && cm < DTM_SC_MAX) { s.scMaxByHero[hid] = cm + 1; this.scSel[hid] = cm + 1; this._newScUnlocked = cm + 1; try { this.$store.game.checkTitles && this.$store.game.checkTitles(); } catch (e2) {} } } catch (e) {}   // mở Danh Hiệu Sát Cảnh (Model B: cosmetic chảy ra main qua titles.js; syncTitles CHỈ đọc dangTien)
         this._checkUnlocks();
         this._clearRun(); this.persist(); this.phase = 'win'; return;
       }
