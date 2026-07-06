@@ -80,6 +80,24 @@ Hiện nhiều con đang **mượn** chân dung con khác → cần art riêng �
 
 ---
 
+## D — 3 CHÂN DUNG MỘNG THÂN MỚI (hero — cần gấp; giờ đang Hán fallback)
+
+Đích `images/dtm/heroes/<id>.webp`. Chân dung dọc **4:5**, nhân vật nửa trên khung, mặt rõ (hcard crop vào mặt). **STYLE CHUNG hero — dán TRƯỚC:**
+`Wuxia xianxia martial-arts hero character portrait, upper-body bust, dramatic semi-realistic painterly digital art, ornate traditional Chinese martial robes, cinematic rim lighting, atmospheric dark moody background, heroic charismatic presence, facing viewer, subject in upper-center of frame, vertical 4:5 composition, no text, no border —` rồi nối phần riêng. Quầng: Thủy=lam · Hỏa=đỏ-cam · Vô=trắng thép.
+
+**`thuy.webp` — Yên Vũ Kiếm Khách · Thủy (lam) · kiếm khách mưa khói, control/Suy Yếu**
+`a young elegant wandering swordsman standing in misty rain, flowing pale-blue and white silk robes, a slender jian sword held calmly at his side, serene composed handsome face with wet hair, drifting rain and blue mist swirling around him, tranquil yet unfathomable aura, glowing cyan-blue energy, moody rainy bamboo-grove background at dusk`
+
+**`hoa.webp` — Xích Diễm Lãng Nhân · Hỏa (đỏ-cam) · lãng tử hỏa quyền, Bỏng dồn**
+`a wild rugged rogue martial artist with untamed windblown hair and a reckless grin, scorched crimson-and-black tattered robes open at the chest, both fists wreathed in blazing orange-red flames, embers and heat-haze rising around him, fierce burning eyes, intense fiery aura, dark ember-lit ruined battlefield background`
+
+**`vo.webp` — Vô Danh Khách · Vô hệ (trắng thép) · vô danh vô phái, biến hóa 4 Khí**
+`a mysterious nameless master of no sect, plain unadorned grey-white travel robes and a wide conical bamboo hat shadowing the upper half of the face, calm enigmatic half-hidden expression, standing relaxed with hands behind the back, faint silver-white steel-toned qi aura, minimalist neutral misty void background, an air of quiet unfathomable mastery`
+
+Thả 3 file `images/dtm/heroes/thuy|hoa|vo.webp` là **tự hiện** (heroImg đã trỏ sẵn), không cần mình sửa code.
+
+---
+
 ## WIRING KHI CÓ ART (mình làm — báo khi thả file xong)
 
 Khi thả `images/dtm/enemies/<id>.webp` cho 8 con nhóm A, mình sẽ **bỏ mapping mượn** trong `EART` (src/dangtienmong.js) để `enemyImg` dùng art riêng:
