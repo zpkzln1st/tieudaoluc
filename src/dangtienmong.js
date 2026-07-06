@@ -19,7 +19,7 @@ export function ensureDangTien(state) {
   if (d.mongNgan == null) d.mongNgan = 0;   // ví Mộng Ngân PERSISTENT (meta tiêu); tách khỏi ví trong-ván
   if (!d.up) d.up = {};                     // nâng cấp đã mua (CHỈ hiệu lực trong-mộng)
   const u = d.up;
-  if (u.hp == null) u.hp = 0;               // Cố Bản: +4 HP nền / bậc (0..5)
+  if (u.hp == null) u.hp = 0;               // Cố Bản: +6 HP nền / bậc (0..5)
   if (u.khi == null) u.khi = 0;             // Tụ Khí: +1 Khí nền (0..1)
   if (u.startRelic === undefined) u.startRelic = null; // Khải Mộng: relic khởi đầu (id) hoặc null
   if (u.reroll == null) u.reroll = 0;       // Tẩy Tâm: số lượt đổi thẻ thưởng / trận (0..2)
@@ -225,12 +225,12 @@ export function dangTienMong() {
   };
   // 6 mộng thân — mỗi ngũ hành 1 + 1 Vô hệ. kiem FREE, còn lại mở bằng Mộng Ngân persistent + điều kiện (unlock). Số/điều kiện DRAFT.
   const HEROES = [
-    { id: 'kiem', name: 'Lãng Kiếm Khách', han: '劍', he: 'tho', hp: 50, khi: 3, passive: 'Lợi Nhận', passiveDesc: 'Thẻ Công đầu mỗi lượt +3 ST.', desc: 'Vô môn vô phái, độc bộ thiên nhai. Nhất kiếm tùy thân, bán sinh phong trần. Kiếm vị xuất, sát cơ tiên khởi; hàn quang nhất thiểm, thắng phụ dĩ phân.', unlock: null, start: ['coBanKiem', 'coBanKiem', 'coBanKiem', 'coBanQuyen', 'tichTa', 'hoaSon', 'langBa', 'dichCan', 'ngaMi', 'thaiCuc'] },
-    { id: 'doc', name: 'Cẩm Hương Độc Khách', han: '毒', he: 'moc', hp: 46, khi: 3, passive: 'Dụng Độc', passiveDesc: 'Thẻ gây Độc +2 Độc.', desc: 'Độc hành vô ảnh, sát nhân vô thanh. Kẻ này không trọng cường công, chỉ lấy kỳ độc nhập mạch, loạn khí, tổn thần. Một khi độc tức đã thấm kinh lạc, sinh tử liền khó thoát khỏi lòng bàn tay.', unlock: { cost: 300 }, start: ['coBanKiem', 'coBanQuyen', 'amKhi', 'amKhi', 'amKhi', 'hapTinh', 'thanhPhong', 'langBa', 'cuuAm', 'ngaMi'] },
+    { id: 'kiem', name: 'Lãng Kiếm Khách', han: '劍', he: 'tho', hp: 58, khi: 3, passive: 'Lợi Nhận', passiveDesc: 'Thẻ Công đầu mỗi lượt +3 ST.', desc: 'Vô môn vô phái, độc bộ thiên nhai. Nhất kiếm tùy thân, bán sinh phong trần. Kiếm vị xuất, sát cơ tiên khởi; hàn quang nhất thiểm, thắng phụ dĩ phân.', unlock: null, start: ['coBanKiem', 'coBanKiem', 'coBanKiem', 'coBanQuyen', 'tichTa', 'hoaSon', 'langBa', 'dichCan', 'ngaMi', 'thaiCuc'] },
+    { id: 'doc', name: 'Cẩm Hương Độc Khách', han: '毒', he: 'moc', hp: 52, khi: 3, passive: 'Dụng Độc', passiveDesc: 'Thẻ gây Độc +2 Độc.', desc: 'Độc hành vô ảnh, sát nhân vô thanh. Kẻ này không trọng cường công, chỉ lấy kỳ độc nhập mạch, loạn khí, tổn thần. Một khi độc tức đã thấm kinh lạc, sinh tử liền khó thoát khỏi lòng bàn tay.', unlock: { cost: 300 }, start: ['coBanKiem', 'coBanQuyen', 'amKhi', 'amKhi', 'amKhi', 'hapTinh', 'thanhPhong', 'langBa', 'cuuAm', 'ngaMi'] },
     { id: 'thien', name: 'Khô Thiền Sư', han: '禪', he: 'kim', hp: 64, khi: 3, passive: 'Kim Cương Bất Hoại', passiveDesc: 'Đầu mỗi lượt +3 Hộ Thể.', desc: 'Luyện thể thành cương, huyết nhục hóa thiết. Ngoại lực nan xâm, đao binh bất phá. Thân như kim thạch, khí trấn sơn hà; lâm trận càng lâu, hộ thể càng thịnh.', unlock: { cost: 700, gate: 'win1', gateText: 'Đăng Tiên 1 lần' }, start: ['coBanQuyen', 'coBanQuyen', 'laHan', 'laHan', 'datMa', 'thaiCuc', 'thaiCuc', 'dichCan', 'cuuDuong', 'ngaMi'] },
-    { id: 'thuy', name: 'Yên Vũ Kiếm Khách', han: '雨', he: 'thuy', hp: 52, khi: 3, passive: 'Băng Tâm', passiveDesc: 'Thẻ gây Suy Yếu +1 Suy Yếu.', desc: 'Băng tâm vô cấu, đạo niệm bất động. Trước vạn chiêu biến hóa vẫn tĩnh như hàn đàm, trước sát khí ngập trời vẫn lạnh tựa tuyết lĩnh. Tâm càng tĩnh, ý càng minh; ý càng minh, sát cơ càng chuẩn.', unlock: { cost: 1400, gate: 'deep10', gateText: 'Đạt Tầng 10' }, start: ['coBanKiem', 'coBanKiem', 'coBanQuyen', 'lacThacKiem', 'hoaSon', 'matKiem', 'ngaMi', 'langBa', 'phoHienChuong', 'ngocNuKiem'] },
-    { id: 'hoa', name: 'Xích Diễm Lãng Nhân', han: '焰', he: 'hoa', hp: 48, khi: 3, passive: 'Phẫn Tâm', passiveDesc: 'Thẻ gây Bỏng kéo dài thêm 1 lượt.', desc: 'Nộ hỏa tàng tâm, chiến ý nhập cốt. Càng bị áp chế, hung khí càng thịnh; càng lâm tuyệt cảnh, sát lực càng cuồng. Một niệm phẫn khởi, phá trận khai sinh lộ.', unlock: { cost: 2200, gate: 'sc3', gateText: 'Sát Cảnh 3 (bất kỳ mộng thân)' }, start: ['coBanQuyen', 'coBanQuyen', 'coBanKiem', 'tinhHoaMoi', 'phanThienChuong', 'lieuHoaChuong', 'dangLongCuoc', 'tuyQuyen', 'phanHuyetChuong', 'khaiTuuThuc'] },
-    { id: 'vo', name: 'Vô Danh Khách', han: '無', he: 'vatly', hp: 44, khi: 4, passive: 'Vô Cực Nhất Khí', passiveDesc: 'Khí tối đa 4 (thay vì 3) — nhiều nước đi mỗi lượt.', desc: 'Nhất khí quy nguyên, vạn pháp quy tông. Không chấp quyền chưởng, chẳng nệ binh khí; khí vận chu thiên, thế sinh vô cực. Một hơi chân khí chưa tuyệt, càn khôn vẫn còn khả chuyển.', unlock: { cost: 4000, gate: 'win2', gateText: 'Đăng Tiên 2 lần' }, start: ['coBanKiem', 'coBanQuyen', 'coBanChuong', 'hoThanBo', 'vinhXuanChuy', 'vanKhiQuyet', 'toanPhongCuoc', 'coBanKiem', 'coBanQuyen', 'taoDang'] },
+    { id: 'thuy', name: 'Yên Vũ Kiếm Khách', han: '雨', he: 'thuy', hp: 58, khi: 3, passive: 'Băng Tâm', passiveDesc: 'Thẻ gây Suy Yếu +1 Suy Yếu.', desc: 'Băng tâm vô cấu, đạo niệm bất động. Trước vạn chiêu biến hóa vẫn tĩnh như hàn đàm, trước sát khí ngập trời vẫn lạnh tựa tuyết lĩnh. Tâm càng tĩnh, ý càng minh; ý càng minh, sát cơ càng chuẩn.', unlock: { cost: 1400, gate: 'deep10', gateText: 'Đạt Tầng 10' }, start: ['coBanKiem', 'coBanKiem', 'coBanQuyen', 'lacThacKiem', 'hoaSon', 'matKiem', 'ngaMi', 'langBa', 'phoHienChuong', 'ngocNuKiem'] },
+    { id: 'hoa', name: 'Xích Diễm Lãng Nhân', han: '焰', he: 'hoa', hp: 56, khi: 3, passive: 'Phẫn Tâm', passiveDesc: 'Thẻ gây Bỏng kéo dài thêm 1 lượt.', desc: 'Nộ hỏa tàng tâm, chiến ý nhập cốt. Càng bị áp chế, hung khí càng thịnh; càng lâm tuyệt cảnh, sát lực càng cuồng. Một niệm phẫn khởi, phá trận khai sinh lộ.', unlock: { cost: 2200, gate: 'sc3', gateText: 'Sát Cảnh 3 (bất kỳ mộng thân)' }, start: ['coBanQuyen', 'coBanQuyen', 'coBanKiem', 'tinhHoaMoi', 'phanThienChuong', 'lieuHoaChuong', 'dangLongCuoc', 'tuyQuyen', 'phanHuyetChuong', 'khaiTuuThuc'] },
+    { id: 'vo', name: 'Vô Danh Khách', han: '無', he: 'vatly', hp: 50, khi: 4, passive: 'Vô Cực Nhất Khí', passiveDesc: 'Khí tối đa 4 (thay vì 3) — nhiều nước đi mỗi lượt.', desc: 'Nhất khí quy nguyên, vạn pháp quy tông. Không chấp quyền chưởng, chẳng nệ binh khí; khí vận chu thiên, thế sinh vô cực. Một hơi chân khí chưa tuyệt, càn khôn vẫn còn khả chuyển.', unlock: { cost: 4000, gate: 'win2', gateText: 'Đăng Tiên 2 lần' }, start: ['coBanKiem', 'coBanQuyen', 'coBanChuong', 'hoThanBo', 'vinhXuanChuy', 'vanKhiQuyet', 'toanPhongCuoc', 'coBanKiem', 'coBanQuyen', 'taoDang'] },
   ];
   const RELICS = [
     { id: 'thietGiap', name: 'Huyền Thiết Giáp', han: '鐵', rar: 'thuong', desc: 'Đầu mỗi trận +6 Hộ Thể.' },
@@ -472,7 +472,7 @@ export function dangTienMong() {
   ];
   // Lĩnh Ngộ Đường — nâng cấp vĩnh viễn mua bằng Mộng Ngân persistent, CHỈ hiệu lực TRONG mộng (0 power về main).
   const META_UP = [
-    { id: 'coBan', key: 'hp', kind: 'level', name: 'Cố Bản', han: '固', desc: '+4 HP tối đa mỗi ván.', costs: [120, 240, 420, 660, 980], gate: null, gateText: '' },
+    { id: 'coBan', key: 'hp', kind: 'level', name: 'Cố Bản', han: '固', desc: '+6 HP tối đa mỗi ván.', costs: [120, 240, 420, 660, 980], gate: null, gateText: '' },
     { id: 'tuKhi', key: 'khi', kind: 'level', name: 'Tụ Khí', han: '氣', desc: '+1 Khí tối đa mỗi lượt.', costs: [800], gate: 'win1', gateText: 'Cần Đăng Tiên 1 lần' },
     { id: 'khaiMong', key: 'startRelic', kind: 'relic', name: 'Khải Mộng Di Vật', han: '啟', desc: 'Vào ván kèm sẵn 1 Di Vật chọn trước.', costs: [600], gate: 'deep4', gateText: 'Cần đạt Tầng 4' },
     { id: 'tayTam', key: 'reroll', kind: 'level', name: 'Tẩy Tâm', han: '洗', desc: '+1 lượt đổi bộ thẻ thưởng mỗi trận.', costs: [300, 700], gate: null, gateText: '' },
@@ -815,7 +815,7 @@ export function dangTienMong() {
       this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0; this._hiddenElite = false; this._deckPick = null;
       const up = this._up();
       const sc = Math.min((this.scSel && this.scSel[h.id]) || 0, this.scMaxOf(h.id));   // Sát Cảnh đã chọn
-      let mhp = h.hp + 4 * (up.hp || 0);             // Cố Bản
+      let mhp = h.hp + 6 * (up.hp || 0);             // Cố Bản
       if (sc >= 3) mhp -= 3;                          // SC3: vào ván −3 HP
       if (sc >= 4) mhp = Math.round(mhp * 0.9);       // SC4: HP khởi đầu ×0.9
       mhp = Math.max(10, mhp);
