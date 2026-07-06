@@ -1011,7 +1011,7 @@ export function dangTienMong() {
     intentStyle(e) { const it = e.hp > 0 && this.curIntent(e); const c = !it ? '#64748b' : this._itCol(it.t);
       return 'color:' + c + ';border:1px solid ' + c + '55;background:' + c + '14'; },
     // ----- Telegraph CHIP: ý đồ quái = lá bài kế trong bộ bài riêng (chip mini art + tên chiêu + tác dụng) -----
-    intentMove(e) { try { const it = e.intents[e.plan]; if (it && it._sc) return { nm: it._nm || 'Sát Cảnh', han: it._han || '殺', art: '' }; const arr = MOVES[e.id]; return (arr && arr.length) ? (arr[e.plan] || arr[0]) : null; } catch (_) { return null; } },
+    intentMove(e) { try { const it = e.intents[e.plan]; if (it && it._sc) return { nm: it._nm || 'Sát Cảnh', han: it._han || '殺', art: it._art || '' }; const arr = MOVES[e.id]; return (arr && arr.length) ? (arr[e.plan] || arr[0]) : null; } catch (_) { return null; } },
     intentCardArt(e) { const m = this.intentMove(e); return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     intentCardName(e) { const m = this.intentMove(e); return m ? m.nm : (this.intentText(e) || 'Ý đồ'); },
     intentCardHan(e) { const m = this.intentMove(e); return m ? m.han : (e.han || '?'); },
@@ -1080,8 +1080,8 @@ export function dangTienMong() {
     // SC7/SC9: thêm chiêu Sát Cảnh cho boss/tinh anh (intent phụ; telegraph qua chip synthetic _sc trong intentMove).
     _scAugment(e, sc, dmgScl) {
       const boss = e.chuongMon || e.boss || e.huyen;
-      if (sc >= 7 && boss) e.intents.push({ t: 'atk', v: Math.round(10 * (dmgScl || 1)), pen: true, _sc: true, _nm: 'Sát Cảnh · Sát Chiêu', _han: '殺' });   // +1 đòn Phá Giáp (chuỗi dài khó đoán)
-      if (sc >= 9 && (e.elite || boss)) { const pois = Math.random() < 0.5; e.intents.push(pois ? { t: 'poison', v: 4, _sc: true, _nm: 'Sát Cảnh · Độc Chú', _han: '毒' } : { t: 'weaken', v: 2, _sc: true, _nm: 'Sát Cảnh · Nhiếp Hồn', _han: '弱' }); }   // +1 đòn player-side
+      if (sc >= 7 && boss) e.intents.push({ t: 'atk', v: Math.round(10 * (dmgScl || 1)), pen: true, _sc: true, _nm: 'Sát Cảnh · Sát Chiêu', _han: '殺', _art: 'sc_sat' });   // +1 đòn Phá Giáp (chuỗi dài khó đoán)
+      if (sc >= 9 && (e.elite || boss)) { const pois = Math.random() < 0.5; e.intents.push(pois ? { t: 'poison', v: 4, _sc: true, _nm: 'Sát Cảnh · Độc Chú', _han: '毒', _art: 'sc_doc' } : { t: 'weaken', v: 2, _sc: true, _nm: 'Sát Cảnh · Nhiếp Hồn', _han: '弱', _art: 'sc_nhiep' }); }   // +1 đòn player-side
     },
 
     // Bấm thẻ: lần 1 = CHỌN (thẻ nhô lên + to ra); lần 2 (CÙNG thẻ) = XÁC NHẬN -> đánh (bay vào địch). Bấm thẻ khác = đổi chọn.
@@ -1232,7 +1232,7 @@ export function dangTienMong() {
         for (const e of this.enemies) { if (e.hp <= 0) continue;
           if (e._dodging) { const r = Math.min(e._reflect || 0, 40); if (r > 0) { const rd = this.absorbPlayer(r); toPlayer += rd; if (rd > 0) this.floatPlayer(rd, this.heColor(e.he)); } e._dodging = false; e._reflect = 0; e._noReflect = false; }   // né (vanVong hoàn 1/2 ST đã né; bongLai chỉ né) — resolve TRƯỚC stun-continue để né KHÔNG kéo qua lượt Choáng
           if ((e.stun || 0) > 0) { e.stun--; e.weak = Math.max(0, (e.weak || 0) - 1); if ((e.stunImmune || 0) > 0) e.stunImmune--; continue; }   // Choáng: bỏ lượt, giữ nguyên telegraph (ra đòn lượt sau)
-          if (sc >= 15 && !e._phase2 && (e.chuongMon || e.boss || e.huyen) && e.hp > 0 && e.hp < e.maxHp / 2) { e._phase2 = true; e.intents.push({ t: 'atk', v: Math.round(12 * (1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5))), pen: true, _sc: true, _nm: 'Phẫn Nộ · Cuồng Kích', _han: '怒' }); }   // SC15 Phẫn Nộ: pha 2 (+1 chiêu; đòn +20% qua _atkMods)
+          if (sc >= 15 && !e._phase2 && (e.chuongMon || e.boss || e.huyen) && e.hp > 0 && e.hp < e.maxHp / 2) { e._phase2 = true; e.intents.push({ t: 'atk', v: Math.round(12 * (1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5))), pen: true, _sc: true, _nm: 'Phẫn Nộ · Cuồng Kích', _han: '怒', _art: 'sc_no' }); }   // SC15 Phẫn Nộ: pha 2 (+1 chiêu; đòn +20% qua _atkMods)
           const it = this.curIntent(e); if (it) {
             this._enemyActFx(e, it, _ai++);   // hiệu ứng quái ra đòn (cosmetic, lệch nhịp)
             if (it.t === 'atk') {
