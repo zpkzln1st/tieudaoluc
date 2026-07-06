@@ -7687,7 +7687,8 @@
                         <span class="han" :style="'color:'+heColor(h.he)" x-text="h.han"></span>
                         <img :src="heroImg(h.id)" alt="" onerror="this.style.display='none'">
                         <div class="hgrad"></div>
-                        <span class="hebadge" :style="'color:'+heColor(h.he)+';border-color:'+heColor(h.he)+'66'" x-text="({kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土'})[h.he]||''"></span>
+                        <template x-if="!heroUnlocked(h.id)"><span class="absolute inset-0 z-[4] flex items-center justify-center" style="background:rgba(7,11,20,.68)"><span class="fserif text-4xl text-slate-400">封</span></span></template>
+                        <span class="hebadge" :style="'color:'+heColor(h.he)+';border-color:'+heColor(h.he)+'66'" x-text="({kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土',vatly:'無'})[h.he]||''"></span>
                         <div class="hcap">
                           <div class="fserif text-[15px]" :style="'color:'+heColor(h.he)+';text-shadow:0 2px 6px #000'" x-text="h.name"></div>
                           <div class="text-[10.5px] text-slate-300" style="margin-top:1px" x-text="'⟡ '+h.passive"></div>
@@ -7733,15 +7734,16 @@
           <!-- CHỌN HERO -->
           <template x-if="phase==='hero'">
             <div>
-              <div class="text-center mb-5"><div class="fserif text-3xl gold-text">Chọn Mộng Thân</div><div class="text-[12.5px] text-slate-500 mt-0.5">Mỗi mộng thân một Tâm Pháp, một dị bẩm, một lối chơi — chọn kẻ hợp ý ngươi.</div></div>
+              <div class="text-center mb-5"><div class="fserif text-3xl gold-text">Chọn Mộng Thân</div><div class="text-[12.5px] text-slate-500 mt-0.5">Mỗi mộng thân một Tâm Pháp, một dị bẩm, một lối chơi — chọn kẻ hợp ý ngươi.</div><div class="text-[12px] text-violet-300 mt-1">Mộng Ngân tích lũy: <b x-text="metaNgan()"></b> · mộng thân mới mở bằng Mộng Ngân + điều kiện</div></div>
               <div class="grid sm:grid-cols-3 gap-4">
                 <template x-for="h in HEROES" :key="h.id">
-                  <div class="dtm-herocard panel rounded-2xl border-2 overflow-hidden cursor-pointer flex flex-col group" :style="'border-color:'+heColor(h.he)+'55;--hc:'+heColor(h.he)" @click="startRun(h)">
+                  <div class="dtm-herocard panel rounded-2xl border-2 overflow-hidden flex flex-col group" :class="heroUnlocked(h.id)?'cursor-pointer':''" :style="'border-color:'+heColor(h.he)+'55;--hc:'+heColor(h.he)" @click="heroUnlocked(h.id) && startRun(h)">
                     <!-- KHUNG CHÂN DUNG cố định 4:5 -->
                     <div class="dtm-portwrap relative w-full" style="aspect-ratio:4/5">
                       <span class="absolute inset-0 flex items-center justify-center fserif" style="font-size:96px;z-index:0" :style="'color:'+heColor(h.he)" x-text="h.han"></span>
                       <img :src="heroImg(h.id)" class="dtm-port" alt="" onerror="this.style.display='none'">
-                      <span class="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center fserif text-[16px]" :style="'color:'+heColor(h.he)+';background:rgba(7,11,20,.72);border:1px solid '+heColor(h.he)+'66'" x-text="({kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土'})[h.he]||''"></span>
+                      <template x-if="!heroUnlocked(h.id)"><span class="absolute inset-0 z-[8] flex items-center justify-center" style="background:rgba(7,11,20,.62)"><span class="fserif text-6xl text-slate-400">封</span></span></template>
+                      <span class="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg flex items-center justify-center fserif text-[16px]" :style="'color:'+heColor(h.he)+';background:rgba(7,11,20,.72);border:1px solid '+heColor(h.he)+'66'" x-text="({kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土',vatly:'無'})[h.he]||''"></span>
                       <div class="absolute inset-x-0 bottom-0 p-3 z-10" style="background:linear-gradient(transparent,rgba(7,11,20,.5) 30%,rgba(7,11,20,.96))">
                         <div class="fserif text-xl leading-tight" :style="'color:'+heColor(h.he)+';text-shadow:0 2px 7px #000'" x-text="h.name"></div>
                         <div class="text-[11px] text-slate-300" x-text="'Tâm Pháp '+heName(h.he)"></div>
@@ -7758,20 +7760,31 @@
                         <div class="text-[11px] text-slate-400 mt-1 leading-snug" x-text="h.passiveDesc"></div>
                       </div>
                       <div class="text-[11.5px] text-slate-400 italic leading-relaxed flex-1" x-text="h.desc"></div>
-                      <div class="rounded-lg bg-ink3/40 p-2 border border-rose-500/20" @click.stop>
-                        <div class="flex items-center justify-between mb-1">
-                          <span class="text-[10px] uppercase tracking-wide text-rose-300/80 fserif">Sát Cảnh</span>
-                          <span class="text-[10px] text-jade" x-show="scSel[h.id]>0" x-text="'+'+scBankPct(scSel[h.id])+'% Mộng Ngân'"></span>
+                      <template x-if="heroUnlocked(h.id)">
+                        <div class="contents">
+                          <div class="rounded-lg bg-ink3/40 p-2 border border-rose-500/20" @click.stop>
+                            <div class="flex items-center justify-between mb-1">
+                              <span class="text-[10px] uppercase tracking-wide text-rose-300/80 fserif">Sát Cảnh</span>
+                              <span class="text-[10px] text-jade" x-show="scSel[h.id]>0" x-text="'+'+scBankPct(scSel[h.id])+'% Mộng Ngân'"></span>
+                            </div>
+                            <div class="flex flex-wrap gap-1">
+                              <template x-for="n in (scMaxOf(h.id)+1)" :key="n">
+                                <button @click.stop="setSc(h.id, n-1)" class="w-6 h-6 rounded-md text-[11px] font-bold border transition" :class="scSel[h.id]===(n-1) ? 'border-rose-400 text-rose-200 bg-rose-500/15' : 'border-slate-700 text-slate-500 hover:border-slate-500'" x-text="n-1"></button>
+                              </template>
+                            </div>
+                            <div class="text-[9.5px] text-rose-300/70 mt-1 leading-snug" x-show="scSel[h.id]>0" x-text="scModsList(scSel[h.id]).join(' · ')"></div>
+                            <div class="text-[9.5px] text-slate-600 mt-1" x-show="scMaxOf(h.id)===0">Đăng Tiên (thắng) để mở bậc khó hơn.</div>
+                          </div>
+                          <button @click.stop="startRun(h)" class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
                         </div>
-                        <div class="flex flex-wrap gap-1">
-                          <template x-for="n in (scMaxOf(h.id)+1)" :key="n">
-                            <button @click.stop="setSc(h.id, n-1)" class="w-6 h-6 rounded-md text-[11px] font-bold border transition" :class="scSel[h.id]===(n-1) ? 'border-rose-400 text-rose-200 bg-rose-500/15' : 'border-slate-700 text-slate-500 hover:border-slate-500'" x-text="n-1"></button>
-                          </template>
+                      </template>
+                      <template x-if="!heroUnlocked(h.id)">
+                        <div class="rounded-lg bg-ink3/40 p-2.5 border border-violet-500/30 mt-auto" @click.stop>
+                          <div class="text-[10px] uppercase tracking-wide text-violet-300/80 fserif mb-1">Điều kiện mở khóa</div>
+                          <div class="text-[12px] text-violet-200 mb-2.5" x-text="heroLockText(h)"></div>
+                          <button @click.stop="unlockHero(h)" :disabled="!canUnlockHero(h)" class="w-full text-center text-[13px] py-2 rounded-xl font-bold transition" :class="canUnlockHero(h) ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:brightness-110' : 'bg-ink3 text-slate-500 cursor-not-allowed'" x-text="canUnlockHero(h) ? ('Mở Khóa · '+h.unlock.cost+' Mộng Ngân') : (heroGateOk(h.unlock.gate) ? ('Thiếu Mộng Ngân (cần '+h.unlock.cost+')') : ('Cần: '+h.unlock.gateText))"></button>
                         </div>
-                        <div class="text-[9.5px] text-rose-300/70 mt-1 leading-snug" x-show="scSel[h.id]>0" x-text="scModsList(scSel[h.id]).join(' · ')"></div>
-                        <div class="text-[9.5px] text-slate-600 mt-1" x-show="scMaxOf(h.id)===0">Đăng Tiên (thắng) để mở bậc khó hơn.</div>
-                      </div>
-                      <button @click.stop="startRun(h)" class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
+                      </template>
                     </div>
                   </div>
                 </template>

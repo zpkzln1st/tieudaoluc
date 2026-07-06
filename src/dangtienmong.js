@@ -26,7 +26,9 @@ export function ensureDangTien(state) {
   if (u.peek == null) u.peek = false;       // Lưỡng Nghi Kính: xem đòn kế
   if (u.restBonus == null) u.restBonus = false; // Tịnh Thất Phù: Tĩnh Thất hồi 35%
   if (!d.unlockedCards) d.unlockedCards = [];                          // (Đợt 2) mở thẻ Tuyệt theo cột mốc
-  if (!d.scMaxByHero) d.scMaxByHero = { kiem: 0, thien: 0, doc: 0 };   // (Đợt 2) Sát Cảnh per-hero
+  if (!d.scMaxByHero) d.scMaxByHero = { kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 };   // (Đợt 2) Sát Cảnh per-hero
+  ['kiem', 'thien', 'doc', 'thuy', 'hoa', 'vo'].forEach((h) => { if (d.scMaxByHero[h] == null) d.scMaxByHero[h] = 0; });   // backfill 6 mộng thân
+  if (!d.heroes) d.heroes = ['kiem'];   // (Đợt hero) mộng thân đã mở khóa — kiem FREE, còn lại mở bằng Mộng Ngân + điều kiện
   if (d._firstWin == null) d._firstWin = false; // thưởng-mốc Đăng Tiên lần đầu
   if (d._tierBanked == null) d._tierBanked = 0; // thưởng-mốc tầng sâu nhất
   if (d.activeRun === undefined) d.activeRun = null;                  // (run-resume) snapshot run đang dở
@@ -221,10 +223,14 @@ export function dangTienMong() {
     'Côn Lôn': { stunBonus: 1, drawBonus: 1 },               // Càn Khôn Đảo Chuyển: đòn Choáng +1 lượt & rút +1
     'Thiên Sơn': { healFlat: 4, weakenBonus: 1 },            // Lục Dương Hồi Xuân: hồi 4 & Suy Yếu +1
   };
+  // 6 mộng thân — mỗi ngũ hành 1 + 1 Vô hệ. kiem FREE, còn lại mở bằng Mộng Ngân persistent + điều kiện (unlock). Số/điều kiện DRAFT.
   const HEROES = [
-    { id: 'kiem', name: 'Lãng Kiếm Khách', han: '劍', he: 'kim', hp: 50, khi: 3, passive: 'Lợi Nhận', passiveDesc: 'Thẻ Công đầu mỗi lượt +3 ST.', desc: 'Kiếm khách lãng du, không môn không phái. Lấy nhanh-sắc-chuẩn làm đạo, đánh phủ đầu kết liễu trước khi địch kịp ra chiêu. Hợp lối tấn công dồn dập, kết trận nhanh.', start: ['coBanKiem', 'coBanKiem', 'coBanKiem', 'coBanQuyen', 'tichTa', 'hoaSon', 'langBa', 'dichCan', 'ngaMi', 'thaiCuc'] },
-    { id: 'thien', name: 'Khô Thiền Sư', han: '禪', he: 'kim', hp: 64, khi: 3, passive: 'Kim Cương Bất Hoại', passiveDesc: 'Đầu mỗi lượt +3 Hộ Thể.', desc: 'Khổ tăng Thiếu Lâm, hình gầy mà khí vững. Kim thân bất hoại, lấy nhu chí cương — càng đỡ càng bền, lấy thủ làm công. Hợp lối trâu bò, chống đòn đường dài.', start: ['coBanQuyen', 'coBanQuyen', 'laHan', 'laHan', 'datMa', 'thaiCuc', 'thaiCuc', 'dichCan', 'cuuDuong', 'ngaMi'] },
-    { id: 'doc', name: 'Cẩm Hương Độc Khách', han: '毒', he: 'moc', hp: 46, khi: 3, passive: 'Dụng Độc', passiveDesc: 'Thẻ gây Độc +2 Độc.', desc: 'Truyền nhân Đường Môn lưu lạc, kiều diễm mà âm độc. Không vội phân thắng bại — gieo độc để thời gian bào mòn đối thủ. Hợp lối độc-DoT, thắng kẻ trâu bò.', start: ['coBanKiem', 'coBanQuyen', 'amKhi', 'amKhi', 'amKhi', 'hapTinh', 'thanhPhong', 'langBa', 'cuuAm', 'ngaMi'] },
+    { id: 'kiem', name: 'Lãng Kiếm Khách', han: '劍', he: 'kim', hp: 50, khi: 3, passive: 'Lợi Nhận', passiveDesc: 'Thẻ Công đầu mỗi lượt +3 ST.', desc: 'Kiếm khách lãng du, không môn không phái. Lấy nhanh-sắc-chuẩn làm đạo, đánh phủ đầu kết liễu trước khi địch kịp ra chiêu. Hợp lối tấn công dồn dập, kết trận nhanh.', unlock: null, start: ['coBanKiem', 'coBanKiem', 'coBanKiem', 'coBanQuyen', 'tichTa', 'hoaSon', 'langBa', 'dichCan', 'ngaMi', 'thaiCuc'] },
+    { id: 'doc', name: 'Cẩm Hương Độc Khách', han: '毒', he: 'moc', hp: 46, khi: 3, passive: 'Dụng Độc', passiveDesc: 'Thẻ gây Độc +2 Độc.', desc: 'Truyền nhân Đường Môn lưu lạc, kiều diễm mà âm độc. Không vội phân thắng bại — gieo độc để thời gian bào mòn đối thủ. Hợp lối độc-DoT, thắng kẻ trâu bò.', unlock: { cost: 300 }, start: ['coBanKiem', 'coBanQuyen', 'amKhi', 'amKhi', 'amKhi', 'hapTinh', 'thanhPhong', 'langBa', 'cuuAm', 'ngaMi'] },
+    { id: 'thien', name: 'Khô Thiền Sư', han: '禪', he: 'tho', hp: 64, khi: 3, passive: 'Kim Cương Bất Hoại', passiveDesc: 'Đầu mỗi lượt +3 Hộ Thể.', desc: 'Khổ tăng khổ tu, hình gầy mà khí vững như núi. Kim cương bất hoại, lấy nhu chí cương — càng đỡ càng bền, lấy thủ làm công. Hợp lối trâu bò, chống đòn đường dài.', unlock: { cost: 700, gate: 'win1', gateText: 'Đăng Tiên 1 lần' }, start: ['coBanQuyen', 'coBanQuyen', 'laHan', 'laHan', 'datMa', 'thaiCuc', 'thaiCuc', 'dichCan', 'cuuDuong', 'ngaMi'] },
+    { id: 'thuy', name: 'Yên Vũ Kiếm Khách', han: '雨', he: 'thuy', hp: 52, khi: 3, passive: 'Băng Tâm', passiveDesc: 'Thẻ gây Suy Yếu +1 Suy Yếu.', desc: 'Kiếm khách áo xanh giữa mưa khói, tâm tĩnh như mặt hồ. Không tranh nhanh chậm — lấy nhu chế cương, gieo Suy Yếu bào mòn nhuệ khí địch rồi thong dong kết liễu.', unlock: { cost: 1400, gate: 'deep10', gateText: 'Đạt Tầng 10' }, start: ['coBanKiem', 'coBanKiem', 'coBanQuyen', 'lacThacKiem', 'hoaSon', 'matKiem', 'ngaMi', 'langBa', 'phoHienChuong', 'ngocNuKiem'] },
+    { id: 'hoa', name: 'Xích Diễm Lãng Nhân', han: '焰', he: 'hoa', hp: 48, khi: 3, passive: 'Phần Tâm', passiveDesc: 'Thẻ gây Bỏng kéo dài thêm 1 lượt.', desc: 'Lãng tử tóc rối, lòng như lửa cháy. Đánh là thiêu, chạm là bỏng — để ngọn lửa gặm dần đối thủ qua từng lượt. Hợp lối Bỏng dồn, càng đánh lâu càng rát.', unlock: { cost: 2200, gate: 'sc3', gateText: 'Sát Cảnh 3 (bất kỳ mộng thân)' }, start: ['coBanQuyen', 'coBanQuyen', 'coBanKiem', 'tinhHoaMoi', 'phanThienChuong', 'lieuHoaChuong', 'dangLongCuoc', 'tuyQuyen', 'phanHuyetChuong', 'khaiTuuThuc'] },
+    { id: 'vo', name: 'Vô Danh Khách', han: '無', he: 'vatly', hp: 44, khi: 4, passive: 'Vô Cực Nhất Khí', passiveDesc: 'Khí tối đa 4 (thay vì 3) — nhiều nước đi mỗi lượt.', desc: 'Không tên, không phái, không hệ. Võ học tạp mà thông — nội lực dồi dào (nhiều Khí) nên biến hóa vô cùng, tự do lắp ghép mọi chiêu. Kẻ chơi cao tay mới thuần được.', unlock: { cost: 4000, gate: 'win2', gateText: 'Đăng Tiên 2 lần' }, start: ['coBanKiem', 'coBanQuyen', 'coBanChuong', 'hoThanBo', 'vinhXuanChuy', 'vanKhiQuyet', 'toanPhongCuoc', 'coBanKiem', 'coBanQuyen', 'taoDang'] },
   ];
   const RELICS = [
     { id: 'thietGiap', name: 'Huyền Thiết Giáp', han: '鐵', rar: 'thuong', desc: 'Đầu mỗi trận +6 Hộ Thể.' },
@@ -484,7 +490,7 @@ export function dangTienMong() {
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
   return {
-    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0 }, _newUnlocks: [], _newScUnlocked: 0, _deckPick: null, _hiddenElite: false,
+    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 }, _newUnlocks: [], _newScUnlocked: 0, _deckPick: null, _hiddenElite: false,
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, _losing: false, selUid: null,
@@ -504,7 +510,7 @@ export function dangTienMong() {
       { id: 'tichTa', nm: 'Tịch Tà' }, { id: 'hoaSon', nm: 'Hoa Sơn' }, { locked: true }, { locked: true },
     ],
     // ----- BRIDGE persist (chỉ Tầng Mộng sâu nhất, cách ly) -----
-    dtInit() { try { this._rootEl = this.$el; const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {}
+    dtInit() { try { this._rootEl = this.$el; const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {}
       try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('dtm_dev', '1'); else localStorage.removeItem('dtm_dev'); } this.devEnabled = localStorage.getItem('dtm_dev') === '1'; } catch (e2) {}
       // MOBILE: chọn thẻ (tap-1) -> hiện bản xem phóng to (căn giữa) để đọc đầy đủ; bỏ chọn/đánh -> ẩn. (PC dùng hover, canh TRÊN thẻ.)
       try { this.$watch('selUid', (v) => { if (window.innerWidth > 640) return; if (v && this.phase === 'battle') { this._hoverCard = this.hand.find((c) => c.uid === v) || null; this.$nextTick(() => this._positionPreview(null)); } else this._hoverCard = null; }); } catch (e3) {} },
@@ -525,6 +531,16 @@ export function dangTienMong() {
     // ----- Lĩnh Ngộ Đường (đọc/ghi state.dangTien.up + .mongNgan; KHÔNG đụng main) -----
     _up() { try { return this.$store.game.state.dangTien.up || {}; } catch (e) { return {}; } },
     metaNgan() { try { return this.$store.game.state.dangTien.mongNgan || 0; } catch (e) { return 0; } },
+    // ----- Mở khóa mộng thân (state.dangTien.heroes; tiêu Mộng Ngân persistent — trong cách ly) -----
+    heroUnlocked(id) { try { return (this.$store.game.state.dangTien.heroes || ['kiem']).includes(id); } catch (e) { return id === 'kiem'; } },
+    heroGateOk(g) { if (!g) return true; try { const s = this.$store.game.state.dangTien;
+      if (g === 'win1') return (s.wins || 0) >= 1; if (g === 'win2') return (s.wins || 0) >= 2;
+      if (g === 'deep10') return (s.deepest || 0) >= 10; if (g === 'deep15') return (s.deepest || 0) >= 15;
+      if (g === 'sc3') return Math.max(0, ...Object.values(s.scMaxByHero || {})) >= 3;
+    } catch (e) {} return true; },
+    heroLockText(h) { const u = (h && h.unlock) || {}; const b = [(u.cost || 0) + ' Mộng Ngân']; if (u.gateText) b.push(u.gateText); return b.join(' · '); },
+    canUnlockHero(h) { const u = h && h.unlock; if (!u) return false; return this.heroGateOk(u.gate) && this.metaNgan() >= (u.cost || 0); },
+    unlockHero(h) { try { const u = h && h.unlock; if (!u || !this.canUnlockHero(h)) return; const s = this.$store.game.state.dangTien; s.mongNgan = (s.mongNgan || 0) - (u.cost || 0); s.heroes = s.heroes || ['kiem']; if (!s.heroes.includes(h.id)) s.heroes.push(h.id); Storage.save(this.$store.game.state); } catch (e) {} },
     // ----- Assist bridge: đổi Mộng Ngân (persistent) -> chút Nguyên Bảo (main), CAP theo TUẦN. KÊNH 1 CHIỀU DUY NHẤT chạm state.currencies (cố ý, cách ly còn lại giữ). -----
     _weekId() { try { const d = new Date(); const dow = (d.getDay() + 6) % 7; const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dow); const p = (x) => String(x).padStart(2, '0'); return mon.getFullYear() + '-' + p(mon.getMonth() + 1) + '-' + p(mon.getDate()); } catch (e) { return '0'; } },
     _bridge() { const s = this.$store.game.state.dangTien; if (!s.bridgeWeek) s.bridgeWeek = { weekId: null, nbClaimed: 0 }; const wk = this._weekId(); if (s.bridgeWeek.weekId !== wk) { s.bridgeWeek.weekId = wk; s.bridgeWeek.nbClaimed = 0; } return s.bridgeWeek; },
@@ -795,6 +811,7 @@ export function dangTienMong() {
     devJumpTier() { if (!this.run) { this._devLog('chưa có ván'); return; } this.mapTier = Math.min((this.map.length || 20) - 1, (this.mapTier || 0) + 1); this.deepest = Math.max(this.deepest || 0, this.mapTier); this.persist(); this.buildMapView(); this.phase = 'map'; this._saveRun(); try { this._scrollMapCur(); } catch (e) {} this._devLog('nhảy tầng ' + (this.mapTier + 1)); },
 
     startRun(h) {
+      if (!this.heroUnlocked(h.id)) return;   // mộng thân chưa mở khóa -> không vào ván
       this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0; this._hiddenElite = false; this._deckPick = null;
       const up = this._up();
       const sc = Math.min((this.scSel && this.scSel[h.id]) || 0, this.scMaxOf(h.id));   // Sát Cảnh đã chọn
@@ -802,7 +819,7 @@ export function dangTienMong() {
       if (sc >= 3) mhp -= 3;                          // SC3: vào ván −3 HP
       if (sc >= 4) mhp = Math.round(mhp * 0.9);       // SC4: HP khởi đầu ×0.9
       mhp = Math.max(10, mhp);
-      this.maxKhi = 3 + (up.khi || 0);               // Tụ Khí
+      this.maxKhi = (h.khi || 3) + (up.khi || 0);    // Khí nền theo hero (Vô = 4) + Tụ Khí
       this.run = { hero: h, deck: h.start.map(mk), hp: mhp, maxHp: mhp, relics: [], reviveUsed: false, sc: sc };
       if (up.startRelic) { const r = RELICS.find((x) => x.id === up.startRelic); if (r) this.run.relics.push({ ...r }); }  // Khải Mộng Di Vật
       try { const s = this.$store.game.state.dangTien; s.runs = (s.runs || 0) + 1; } catch (e) {}
@@ -846,7 +863,7 @@ export function dangTienMong() {
       const clr = (arr) => (arr || []).map((c) => Object.assign({}, c, { _cast: null }));
       this.drawPile = clr(a.drawPile); this.hand = clr(a.hand); this.discard = clr(a.discard); this.log = a.log || '';
       this.runNgan = a.runNgan || 0; this.rewardCards = clr(a.rewardCards); this.rewardGold = a.rewardGold || 0; this.shopItems = a.shopItems || [];
-      this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0 }, a.scSel || {});
+      this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 }, a.scSel || {});
       this.deepest = Math.max(this.deepest || 0, a.deepest || 0);
       this._firstAtkUsed = !!a._firstAtkUsed; this._bankGain = a._bankGain || 0; this._newUnlocks = a._newUnlocks || []; this._newScUnlocked = a._newScUnlocked || 0;
       this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._deckPick = null; this._hiddenElite = !!a._hiddenElite; this._hoverCard = null;   // giữ cờ elite ẩn qua reload giữa trận (thưởng +40 khi thắng)
@@ -1180,9 +1197,9 @@ export function dangTienMong() {
       if (healGain) this.run.hp = Math.min(this.run.maxHp, this.run.hp + healGain);
       // trạng thái áp lên mục tiêu (hoặc TOÀN địch nếu aoe)
       const affected = c.aoe ? this.enemies.filter((e) => e.hp > 0) : (tgt() ? [tgt()] : []);
-      const weakenAmt = (c.weaken || 0) + (hb.weakenBonus || 0);   // Thúy Yên +2 · Thiên Sơn +1
+      const weakenAmt = (c.weaken || 0) + (hb.weakenBonus || 0) + ((c.weaken && this.run.hero.id === 'thuy') ? 1 : 0);   // Thúy Yên +2 · Thiên Sơn +1 · Băng Tâm (Yên Vũ Kiếm Khách) +1
       if (weakenAmt) affected.forEach((e) => { e.weak += weakenAmt; });
-      if (c.burn) affected.forEach((e) => { e.burn = (e.burn || 0) + c.burn; e.burnT = Math.max(e.burnT || 0, c.burnT || 0); });   // Bỏng: cường độ cộng dồn, thời hạn lấy max
+      if (c.burn) affected.forEach((e) => { e.burn = (e.burn || 0) + c.burn; e.burnT = Math.max(e.burnT || 0, (c.burnT || 0) + (this.run.hero.id === 'hoa' ? 1 : 0)); });   // Bỏng cộng dồn, thời hạn lấy max · Phần Tâm (Xích Diễm) +1 lượt
       if (hb.extendBurn) this.enemies.forEach((e) => { if (e.hp > 0 && e.burn > 0 && e.burnT > 0) e.burnT += hb.extendBurn; });   // Hợp Bích Thiên Nhẫn: mọi Bỏng +2 lượt
       const stunAmt = c.stun ? (c.stun + (hb.stunBonus || 0)) : 0;   // Côn Lôn: đòn Choáng +1 lượt
       if (stunAmt) affected.forEach((e) => this._applyStun(e, stunAmt));
