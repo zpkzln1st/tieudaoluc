@@ -7733,7 +7733,7 @@
           <!-- CHỌN HERO -->
           <template x-if="phase==='hero'">
             <div>
-              <div class="text-center mb-5"><div class="fserif text-3xl gold-text">Chọn Mộng Thân</div><div class="text-[12.5px] text-slate-500 mt-0.5">Mỗi mộng thân một Tâm Pháp, một dị bẩm, một lối chơi — chọn kẻ hợp ý ngươi.</div><div class="text-[12px] text-violet-300 mt-1">Mộng Ngân tích lũy: <b x-text="metaNgan()"></b> · mộng thân mới mở bằng Mộng Ngân + điều kiện</div></div>
+              <div class="text-center mb-3"><div class="fserif text-2xl gold-text leading-tight">Chọn Mộng Thân</div><div class="text-[12px] text-violet-300 mt-0.5">Mộng Ngân tích lũy: <b x-text="metaNgan()"></b></div></div>
               <div class="grid sm:grid-cols-3 gap-4">
                 <template x-for="h in HEROES" :key="h.id">
                   <div class="dtm-herocard panel rounded-2xl border-2 overflow-hidden flex flex-col group" :class="heroUnlocked(h.id)?'cursor-pointer':''" :style="'border-color:'+heColor(h.he)+'55;--hc:'+heColor(h.he)" @click="heroUnlocked(h.id) && startRun(h)">
