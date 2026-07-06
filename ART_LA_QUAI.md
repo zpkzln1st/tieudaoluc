@@ -82,17 +82,19 @@ Hiện nhiều con đang **mượn** chân dung con khác → cần art riêng �
 
 ## D — 3 CHÂN DUNG MỘNG THÂN MỚI (hero — cần gấp; giờ đang Hán fallback)
 
-Đích `images/dtm/heroes/<id>.webp`. Chân dung dọc **4:5**, nhân vật nửa trên khung, mặt rõ (hcard crop vào mặt). **STYLE CHUNG hero — dán TRƯỚC:**
-`Wuxia xianxia martial-arts hero character portrait, upper-body bust, dramatic semi-realistic painterly digital art, ornate traditional Chinese martial robes, cinematic rim lighting, atmospheric dark moody background, heroic charismatic presence, facing viewer, subject in upper-center of frame, vertical 4:5 composition, no text, no border —` rồi nối phần riêng. Quầng: Thủy=lam · Hỏa=đỏ-cam · Vô=trắng thép.
+Đích `images/dtm/heroes/<id>.webp`. Chân dung dọc **4:5**. **KHỚP STYLE HERO CŨ = bìa bí kíp DRAMATIC CÓ ĐỀ HÁN + TRIỆN ĐỎ** (như Khô Thiền Sư 「金剛不動」): nhân vật giữa khung + hào quang runic/mandala rực theo hệ + nền tối cinematic + 4 chữ Hán tâm pháp dọc góc trái-trên + 1 triện đỏ. Quầng: Thủy=lam · Hỏa=đỏ-cam · Vô=trắng thép.
 
-**`thuy.webp` — Yên Vũ Kiếm Khách · Thủy (lam) · kiếm khách mưa khói, control/Suy Yếu**
-`a young elegant wandering swordsman standing in misty rain, flowing pale-blue and white silk robes, a slender jian sword held calmly at his side, serene composed handsome face with wet hair, drifting rain and blue mist swirling around him, tranquil yet unfathomable aura, glowing cyan-blue energy, moody rainy bamboo-grove background at dusk`
+**STYLE CHUNG hero — dán TRƯỚC:**
+`Wuxia xianxia martial-arts secret-manual character key-art, a single powerful figure centered (upper body), facing viewer, dramatic semi-realistic painterly digital art, ORNATE and HIGHLY DETAILED, radiant glowing runic mandala and energy swirling behind the figure, cinematic deep-dark atmospheric background, strong rim lighting, epic god-rays, premium mobile-game hero card art, high contrast, NOT flat, NOT muted ink-wash; include a BOLD vertical Chinese calligraphy title running down the upper-left plus one small red seal stamp beneath it, vertical 4:5 composition, no other text, no border —` rồi nối phần riêng.
 
-**`hoa.webp` — Xích Diễm Lãng Nhân · Hỏa (đỏ-cam) · lãng tử hỏa quyền, Bỏng dồn**
-`a wild rugged rogue martial artist with untamed windblown hair and a reckless grin, scorched crimson-and-black tattered robes open at the chest, both fists wreathed in blazing orange-red flames, embers and heat-haze rising around him, fierce burning eyes, intense fiery aura, dark ember-lit ruined battlefield background`
+**`thuy.webp` — Yên Vũ Kiếm Khách · Thủy (lam) · đề 「煙雨冰心」 (Yên Vũ Băng Tâm)**
+`title calligraphy 「煙雨冰心」; an elegant young wandering swordsman in flowing pale-blue and white silk robes holding a slender jian sword, serene composed handsome face, drifting rain and swirling blue mist, glowing cyan-blue runic energy and a water halo behind him, radiant azure glow`
 
-**`vo.webp` — Vô Danh Khách · Vô hệ (trắng thép) · vô danh vô phái, biến hóa 4 Khí**
-`a mysterious nameless master of no sect, plain unadorned grey-white travel robes and a wide conical bamboo hat shadowing the upper half of the face, calm enigmatic half-hidden expression, standing relaxed with hands behind the back, faint silver-white steel-toned qi aura, minimalist neutral misty void background, an air of quiet unfathomable mastery`
+**`hoa.webp` — Xích Diễm Lãng Nhân · Hỏa (đỏ-cam) · đề 「焚心烈火」 (Phần Tâm Liệt Hỏa)**
+`title calligraphy 「焚心烈火」; a wild rugged rogue martial artist with untamed hair and a fierce grin, scorched crimson-and-black robes open at the chest, both fists blazing with orange-red flames, embers and firestorm swirling, glowing red-orange runic mandala and flame halo behind him, radiant fiery glow`
+
+**`vo.webp` — Vô Danh Khách · Vô hệ (trắng thép) · đề 「無極一氣」 (Vô Cực Nhất Khí)**
+`title calligraphy 「無極一氣」; a mysterious nameless master in plain grey-white robes and a wide conical bamboo hat shadowing the upper face, calm enigmatic aura, hands behind the back, swirling silver-white qi and a faint runic halo behind him, radiant steel-white glow`
 
 Thả 3 file `images/dtm/heroes/thuy|hoa|vo.webp` là **tự hiện** (heroImg đã trỏ sẵn), không cần mình sửa code.
 
