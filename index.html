@@ -7452,7 +7452,7 @@
         /* ===== Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu — prefix .dtmk-, cách ly) ===== */
         .dtmk-back{ position:fixed; inset:0; background:rgba(4,7,11,.8); z-index:120; display:flex; align-items:center; justify-content:center; padding:16px; }
         .dtmk-modal{ background:linear-gradient(180deg,#111b26,#0b131b); border:1px solid #26323f; border-radius:18px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 30px 80px -20px #000; }
-        .dtmk-modal.enemy{ width:min(820px,96vw); height:min(700px,92vh); }
+        .dtmk-modal.enemy{ width:min(820px,96vw); height:auto; max-height:92vh; }   /* auto-fit nội dung (Bộ Chiêu nở khi Sát Cảnh cao thêm chiêu) -> khỏi cuộn; chỉ cuộn khi vượt 92vh */
         .dtmk-modal.wiki{ width:min(1000px,96vw); height:min(720px,93vh); }
         .dtmk-modal.carddt{ width:min(480px,94vw); height:auto; max-height:94vh; }   /* auto-fit noi dung -> khoi cuon; rong hon chut cho pill/lore it xuong dong */
         .dtmk-mhead{ padding:13px 18px; border-bottom:1px solid #1e293b; display:flex; align-items:center; justify-content:space-between; flex:none; }
@@ -7468,8 +7468,8 @@
         .dtmk-btndetail{ font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid #2b6f8a; color:#7fd6f0; background:#0c2531cc; cursor:pointer; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
         .dtmk-btndetail:hover{ background:#123647; }
         /* Bộ Chiêu (move rows) trong modal Chi Tiết Quái */
-        .dtmk-move{ display:flex; align-items:center; gap:10px; background:#0c141d; border:1px solid #1c2733; border-radius:11px; padding:8px 10px; }
-        .dtmk-moveart{ position:relative; width:40px; height:40px; border-radius:7px; overflow:hidden; flex:none; background:#111; display:flex; align-items:center; justify-content:center; }
+        .dtmk-move{ display:flex; align-items:center; gap:8px; background:#0c141d; border:1px solid #1c2733; border-radius:10px; padding:4px 8px; }
+        .dtmk-moveart{ position:relative; width:30px; height:30px; border-radius:6px; overflow:hidden; flex:none; background:#111; display:flex; align-items:center; justify-content:center; }
         .dtmk-mvhan{ font-family:'Lora',serif; color:#64748b; font-size:18px; }
         /* Bộ lọc wiki */
         .dtmk-tab{ padding:5px 12px; border-radius:999px; font-size:13px; font-weight:600; border:1px solid #26313d; color:#9fb0c0; cursor:pointer; white-space:nowrap; }
@@ -7639,7 +7639,6 @@
             </div>
             <div class="flex items-center gap-3 text-[12px]">
               <button @click="openWiki()" class="dtmk-btndetail" title="Bách Khoa Võ Học"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-book"/></svg><span class="hidden sm:inline">Bách Khoa</span></button>
-              <span class="text-slate-400">Mộng sâu nhất <b class="text-gold" x-text="'Tầng '+deepest"></b></span>
               <template x-if="run"><span class="text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="runNgan"></b> · HP <b class="text-jade" x-text="run.hp+'/'+run.maxHp"></b><template x-if="run.sc>0"><b class="text-rose-300"> · Sát Cảnh <span x-text="run.sc"></span></b></template></span></template>
             </div>
           </div>
@@ -7772,7 +7771,7 @@
                                 <button @click.stop="setSc(h.id, n-1)" class="w-6 h-6 rounded-md text-[11px] font-bold border transition" :class="scSel[h.id]===(n-1) ? 'border-rose-400 text-rose-200 bg-rose-500/15' : 'border-slate-700 text-slate-500 hover:border-slate-500'" x-text="n-1"></button>
                               </template>
                             </div>
-                            <div class="text-[9.5px] text-rose-300/70 mt-1 leading-snug" x-show="scSel[h.id]>0" x-text="scModsList(scSel[h.id]).join(' · ')"></div>
+                            <div class="text-[9.5px] text-rose-300/70 mt-1 leading-snug" style="max-height:38px;overflow-y:auto" x-show="scSel[h.id]>0" x-text="scModsList(scSel[h.id]).join(' · ')"></div>
                             <div class="text-[9.5px] text-slate-600 mt-1" x-show="scMaxOf(h.id)===0">Đăng Tiên (thắng) để mở bậc khó hơn.</div>
                           </div>
                           <button @click.stop="startRun(h)" class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
@@ -8234,7 +8233,7 @@
                 <div class="dtmk-mhead"><div class="fserif text-lg text-slate-100">Chi Tiết Tàn Niệm</div><button class="dtmk-xbtn" @click="closeEnemyDetail()"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-x"/></svg></button></div>
                 <div class="dtmk-mbody">
                   <div class="flex flex-col sm:flex-row gap-4">
-                    <img :src="enemyImg(dtlEnemy)" @click="zoomImg(enemyImg(dtlEnemy))" onerror="this.style.opacity=0" class="dtmk-zoom rounded-xl object-cover flex-none mx-auto sm:mx-0" :style="'width:184px;height:246px;box-shadow:0 0 0 1px '+heColor(dtlEnemy.he)+'66,0 0 30px -8px '+heColor(dtlEnemy.he)" alt=""/>
+                    <img :src="enemyImg(dtlEnemy)" @click="zoomImg(enemyImg(dtlEnemy))" onerror="this.style.opacity=0" class="dtmk-zoom rounded-xl object-cover flex-none mx-auto sm:mx-0" :style="'width:168px;height:224px;box-shadow:0 0 0 1px '+heColor(dtlEnemy.he)+'66,0 0 30px -8px '+heColor(dtlEnemy.he)" alt=""/>
                     <div class="flex-1 min-w-0">
                       <div class="fserif text-xl" :style="'color:'+heColor(dtlEnemy.he)" x-text="dtlEnemy.name"></div>
                       <div class="flex flex-wrap gap-2 mt-2">
@@ -8254,14 +8253,14 @@
                     </div>
                   </div>
                   <template x-if="enemyGimmick(dtlEnemy)">
-                    <div class="mt-4 rounded-xl p-3" :style="'border:1px solid '+heColor(dtlEnemy.he)+'55;background:'+heColor(dtlEnemy.he)+'12'">
+                    <div class="mt-3 rounded-xl p-2.5" :style="'border:1px solid '+heColor(dtlEnemy.he)+'55;background:'+heColor(dtlEnemy.he)+'12'">
                       <div class="flex items-center gap-2 mb-1"><span class="fserif text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded" :style="'color:'+heColor(dtlEnemy.he)+';background:'+heColor(dtlEnemy.he)+'22'">Chữ Ký</span><span class="fserif text-[15px]" :style="'color:'+heColor(dtlEnemy.he)" x-text="enemyGimmick(dtlEnemy).name"></span></div>
                       <div class="text-[12.5px] text-slate-300 leading-relaxed" x-text="enemyGimmick(dtlEnemy).desc"></div>
                     </div>
                   </template>
-                  <div class="mt-5">
+                  <div class="mt-3">
                     <div class="fserif text-base mb-2" style="color:#f8d27a">Bộ Chiêu <span class="text-xs text-slate-500 font-normal" x-text="'· '+enemyMoves(dtlEnemy).length+' chiêu · vàng = đang thi triển'"></span></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       <template x-for="(m,mi) in enemyMoves(dtlEnemy)" :key="mi">
                         <div class="dtmk-move" :style="mi===dtlEnemy.plan?'border-color:#f5b942;box-shadow:0 0 0 1px #f5b94255':''">
                           <span class="dtmk-moveart"><span class="dtmk-mvhan" x-text="m.han"></span><img :src="moveArt(m)" x-show="moveArt(m)" onerror="this.style.display='none'" class="absolute inset-0 w-full h-full object-cover" alt=""/></span>
