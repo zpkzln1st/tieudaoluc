@@ -5918,6 +5918,12 @@
         .dtm-root .card::before{ display:none; }   /* Style C: bo goc op (dung vien doi manh o ::after) */
         /* Hero card: hover = CẢ KHUNG glow + scale nhẹ (ảnh đi theo khung, KHÔNG tự phóng riêng) */
         .dtm-root .dtm-herocard{ transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+        /* Tĩnh Thất: nút lựa chọn (title + mô tả), viền/glow theo màu --rc */
+        .dtm-root .dtm-restopt{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:12px 8px; border-radius:12px; border:1px solid color-mix(in srgb, var(--rc) 42%, transparent); background:color-mix(in srgb, var(--rc) 9%, #0c141d); cursor:pointer; transition:border-color .14s, background .14s, transform .1s; }
+        .dtm-root .dtm-restopt:hover{ border-color:var(--rc); background:color-mix(in srgb, var(--rc) 17%, #0c141d); }
+        .dtm-root .dtm-restopt:active{ transform:translateY(1px); }
+        .dtm-root .dtm-restopt .t{ color:var(--rc); font-size:15px; line-height:1.2; }
+        .dtm-root .dtm-restopt .d{ color:#94a3b8; font-size:10.5px; }
         /* ô mods Sát Cảnh trong thẻ: cao CỐ ĐỊNH (khỏi resize khi chọn SC) + preview 2 dòng + pill "Chi Tiết" bấm mở popup */
         .dtm-root .dtm-scmodwrap{ height:30px; }
         .dtm-root .dtm-scmods{ display:flex; align-items:center; gap:6px; height:30px; cursor:pointer; }
@@ -6148,17 +6154,17 @@
           .dtm-root .text-center.mb-5{ margin-bottom:8px !important; }
           .dtm-root .text-center.mb-5 .text-3xl{ font-size:21px !important; }
           .dtm-root .text-center.mb-5 .text-\[12\.5px\]{ font-size:10px !important; margin-top:1px !important; }
-          .dtm-root .grid.sm\:grid-cols-3.gap-4{ display:flex !important; flex-wrap:nowrap !important; overflow-x:auto; overflow-y:hidden; gap:10px !important; scroll-snap-type:x mandatory; height:calc(100dvh - 226px); min-height:356px; -webkit-overflow-scrolling:touch; padding:2px 2px 8px; touch-action:pan-x; overscroll-behavior-x:contain; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-4{ display:flex !important; flex-wrap:nowrap !important; align-items:stretch; overflow-x:auto; overflow-y:visible; gap:10px !important; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:2px 2px 8px; touch-action:pan-x; overscroll-behavior-x:contain; }   /* chieu cao TU NHIEN (the deu qua stretch) + trang cuon doc khi man ngan */
           .dtm-root .text-center.mt-4{ margin-top:7px !important; }
-          .dtm-root .grid.sm\:grid-cols-3.gap-4 > .dtm-herocard{ flex:0 0 87% !important; scroll-snap-align:start; height:100%; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-4 > .dtm-herocard{ flex:0 0 87% !important; scroll-snap-align:start; }
           .dtm-root .dtm-herocard:hover{ transform:none !important; }
-          .dtm-root .dtm-herocard .dtm-portwrap{ aspect-ratio:auto !important; flex:1 1 auto !important; min-height:96px; }
-          .dtm-root .dtm-herocard .dtm-port{ object-position:center 14%; }
-          .dtm-root .dtm-herocard .p-3\.5{ flex:0 0 auto !important; padding:9px !important; gap:5px !important; }
+          .dtm-root .dtm-herocard .dtm-portwrap{ aspect-ratio:auto !important; flex:0 0 auto !important; height:200px; }   /* cao co dinh -> hien ro nhan vat (khong con dau toc) + deu nhau */
+          .dtm-root .dtm-herocard .dtm-port{ object-position:center 18%; }
+          .dtm-root .dtm-herocard .p-3\.5{ flex:1 1 auto !important; padding:9px !important; gap:5px !important; }   /* info gian day nut Nhap Mong xuong day (deu) */
           .dtm-root .dtm-herocard .p-2\.5{ padding:7px !important; }
           .dtm-root .dtm-herocard .p-2{ padding:6px !important; }
-          /* lore hero: hiện ĐẦY ĐỦ (bỏ clamp) — portrait flex:1 hấp thụ chiều cao, min-height:96 chặn tràn; lore quá dài thì cuộn trong khung (hiếm) */
-          .dtm-root .dtm-herocard .italic{ display:block; max-height:140px; overflow-y:auto; }
+          /* lore hero: hiện ĐẦY ĐỦ + flex-1 giãn đẩy Sát Cảnh/nút xuống đáy (thẻ đều) */
+          .dtm-root .dtm-herocard .italic{ display:block; min-height:40px; }
           /* --- HEADER (map/đấu...): thu về 1 dòng mảnh; ẩn phụ đề 登仙夢 + 'Mộng sâu nhất' cho khỏi cao --- */
           .dtm-root > .items-center.justify-between{ margin-bottom:8px !important; }
           .dtm-root > .items-center.justify-between .w-8.h-8{ width:26px !important; height:26px !important; font-size:13px !important; }
@@ -6166,6 +6172,11 @@
           .dtm-root > .items-center.justify-between .text-\[10px\]{ display:none !important; }
           .dtm-root > .items-center.justify-between .text-\[12px\]{ font-size:10px !important; }
           .dtm-root > .items-center.justify-between .text-\[12px\] > span:first-child{ display:none !important; }
+          /* #3 HEADER: title 1 dòng riêng (hết wrap), stats (Bách Khoa + Mộng Ngân/HP/Sát Cảnh) xuống DÒNG 2 full-width nowrap -> hết tràn/che */
+          .dtm-root .dtm-hdr{ flex-wrap:wrap; column-gap:8px; row-gap:2px; }
+          .dtm-root .dtm-hdr > .items-center.gap-2{ flex:1 1 auto; min-width:0; }
+          .dtm-root .dtm-hdr-r{ order:2; width:100%; justify-content:flex-start; }
+          .dtm-root .dtm-hdr-r .text-slate-400{ white-space:nowrap; }
           /* --- ĐẤU: thẻ bài nhỏ --- */
           .dtm-root .card{ width:104px; height:166px; border-radius:10px; }
           .dtm-root .card-han{ font-size:40px; }
@@ -6186,7 +6197,7 @@
           .dtm-root .min-h-\[256px\] > .card{ flex:0 0 auto; scroll-snap-align:center; }
           .dtm-root .card:hover.playable{ transform:none; box-shadow:0 0 0 1px var(--c), 0 0 14px -4px var(--c); }
           /* ĐẤU: quái CẠNH NHAU (tiết kiệm chiều cao, đỡ phải lăn) + chân dung nhỏ → tên tối đa 2 dòng, không ép cột hẹp */
-          .dtm-root .flex-wrap.items-stretch{ gap:7px !important; }
+          .dtm-root .flex-wrap.items-stretch{ gap:7px !important; margin-top:6px; }   /* +margin cho pill "Muc tieu" (-top-2) thoang khoi header */
           .dtm-root .flex-wrap.items-stretch > div{ padding:8px !important; }
           .dtm-root .flex-wrap.items-stretch > div .gap-2\.5{ gap:7px !important; }
           .dtm-root .flex-wrap.items-stretch > div .dtm-portwrap{ width:50px !important; height:62px !important; font-size:26px !important; }
@@ -7706,12 +7717,12 @@
               </div>
             </template>
           </div></template>
-          <div class="flex items-center justify-between mb-3" x-show="phase!=='lobby'">
+          <div class="dtm-hdr flex items-center justify-between mb-3" x-show="phase!=='lobby'">
             <div class="flex items-center gap-2">
               <span class="relative w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px] overflow-hidden" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢<img src="images/dtm/emblem.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()"></span>
               <div><div class="fserif text-lg gold-text leading-none">Đăng Tiên Mộng</div></div>
             </div>
-            <div class="flex items-center gap-3 text-[12px]">
+            <div class="dtm-hdr-r flex items-center gap-3 text-[12px]">
               <button @click="openWiki()" class="dtmk-btndetail" title="Bách Khoa Võ Học"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-book"/></svg><span class="hidden sm:inline">Bách Khoa</span></button>
               <template x-if="run"><span class="text-slate-400">Mộng Ngân <b class="text-violet-300" x-text="runNgan"></b> · HP <b class="text-jade" x-text="run.hp+'/'+run.maxHp"></b><template x-if="run.sc>0"><b class="text-rose-300"> · Sát Cảnh <span x-text="run.sc"></span></b></template></span></template>
             </div>
@@ -8136,13 +8147,45 @@
 
           <!-- NGHỈ -->
           <template x-if="phase==='rest'">
-            <div class="panel rounded-2xl border border-emerald-500/40 p-7 max-w-md mx-auto text-center">
+            <div class="panel rounded-2xl border border-emerald-500/40 p-6 max-w-md mx-auto text-center">
               <div class="fserif text-xl text-emerald-300 mb-1">Tĩnh Thất</div>
-              <p class="text-[12px] text-slate-400 mb-5">Một khắc an tĩnh trong mộng cảnh.</p>
-              <div class="flex gap-3 justify-center flex-wrap">
-                <button @click="restHeal()" class="px-5 py-2.5 rounded-xl bg-emerald-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Điều Tức <span class="text-emerald-200" x-text="'(+'+Math.round(run.maxHp*restPct())+' HP)'"></span></button>
-                <button @click="restLearn()" class="px-5 py-2.5 rounded-xl bg-cyan-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Tham Ngộ (+1 thẻ ngẫu nhiên)</button>
-              </div>
+              <!-- 4 LỰA CHỌN -->
+              <template x-if="!_restResult">
+                <div>
+                  <p class="text-[12px] text-slate-400 mb-4">Một khắc an tĩnh trong mộng cảnh — chọn một điều để tu dưỡng.</p>
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <button @click="restHeal()" class="dtm-restopt" style="--rc:#34d399"><span class="fserif t">Điều Tức</span><span class="d" x-text="'Hồi +'+Math.round(run.maxHp*restPct())+' HP'"></span></button>
+                    <button @click="restLearn()" class="dtm-restopt" style="--rc:#38bdf8"><span class="fserif t">Tham Ngộ</span><span class="d">Lĩnh ngộ +1 chiêu</span></button>
+                    <button @click="restUpgrade()" class="dtm-restopt" style="--rc:#f5b942"><span class="fserif t">Khắc Cốt</span><span class="d">Nâng cấp 1 chiêu</span></button>
+                    <button @click="restRemove()" class="dtm-restopt" style="--rc:#fb7185"><span class="fserif t">Tinh Luyện</span><span class="d">Buông bỏ 1 chiêu</span></button>
+                  </div>
+                </div>
+              </template>
+              <!-- KẾT QUẢ NHẬN ĐƯỢC -->
+              <template x-if="_restResult">
+                <div>
+                  <div class="fserif text-lg text-emerald-200 mt-1 mb-1" x-text="_restResult.title"></div>
+                  <p class="text-[12.5px] text-slate-300 italic mb-3 leading-relaxed" x-text="_restResult.note"></p>
+                  <div class="flex gap-1.5 justify-center flex-wrap mb-3" x-show="_restResult.deltas && _restResult.deltas.length">
+                    <template x-for="dd in (_restResult.deltas||[])" :key="dd.s"><span class="inline-block text-[11.5px] font-bold px-2.5 py-0.5 rounded-full" :style="'background:'+cardEffColor(dd.t)+';color:#0a0f16'" x-text="dd.s"></span></template>
+                  </div>
+                  <template x-if="_restResult.card">
+                    <div class="flex justify-center mb-3">
+                      <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl" :style="'border:1px solid '+heColor(_restResult.card.he)+'99;background:'+heColor(_restResult.card.he)+'12;box-shadow:0 0 22px -8px '+heColor(_restResult.card.he)">
+                        <span class="relic dtm-portwrap shrink-0" :style="'width:40px;height:40px;font-size:19px;box-shadow:0 0 0 1px '+rarColor(_restResult.card.rar)"><span x-text="_restResult.card.han"></span><img :src="cardImg(_restResult.card.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
+                        <div class="text-left">
+                          <div class="text-[10px] font-bold uppercase tracking-wide" :style="'color:'+heColor(_restResult.card.he)" x-text="typeLabel(_restResult.card)+' · '+heName(_restResult.card.he)"></div>
+                          <div class="text-[13.5px] text-slate-100 fserif" x-text="_restResult.card.name + (_restResult.card.up?' ＋':'')"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template x-if="_restResult.removedName">
+                    <div class="text-[12.5px] text-slate-400 mb-3">Đã buông bỏ: <b class="text-rose-300" x-text="_restResult.removedName"></b></div>
+                  </template>
+                  <button @click="restContinue()" class="px-6 py-2.5 rounded-xl bg-emerald-700/70 text-white font-bold text-[12.5px] hover:brightness-110">Tiếp tục ⟶</button>
+                </div>
+              </template>
             </div>
           </template>
 

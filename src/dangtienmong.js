@@ -490,7 +490,7 @@ export function dangTienMong() {
   const rnd = (a) => a[Math.floor(Math.random() * a.length)];
 
   return {
-    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 }, _newUnlocks: [], _newScUnlocked: 0, _deckPick: null, _hiddenElite: false,
+    phase: 'lobby', runNgan: 0, run: null, openDeck: false, deepest: 0, metaTab: false, bridgeTab: false, _relicHover: null, rerollLeft: 0, _bankGain: 0, scSel: { kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 }, _newUnlocks: [], _newScUnlocked: 0, _deckPick: null, _deckPickCtx: null, _restResult: null, _hiddenElite: false,
     map: [], mapTier: 0, mapView: [], battleKind: null, waves: [], waveIdx: 0, _waveFlash: 0, _bossReveal: null,
     enemies: [], targetIdx: 0, player: { block: 0, str: 0, dodge: false }, maxKhi: 3, khi: 3,
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, _losing: false, selUid: null,
@@ -840,7 +840,7 @@ export function dangTienMong() {
 
     startRun(h) {
       if (!this.heroUnlocked(h.id)) return;   // mộng thân chưa mở khóa -> không vào ván
-      this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0; this._hiddenElite = false; this._deckPick = null; this.scInfo = null;
+      this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0; this._hiddenElite = false; this._deckPick = null; this._deckPickCtx = null; this._restResult = null; this.scInfo = null;
       const up = this._up();
       const sc = Math.min((this.scSel && this.scSel[h.id]) || 0, this.scMaxOf(h.id));   // Sát Cảnh đã chọn
       let mhp = h.hp + 6 * (up.hp || 0);             // Cố Bản
@@ -894,7 +894,7 @@ export function dangTienMong() {
       this.rerollLeft = a.rerollLeft || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 }, a.scSel || {});
       this.deepest = Math.max(this.deepest || 0, a.deepest || 0);
       this._firstAtkUsed = !!a._firstAtkUsed; this._bankGain = a._bankGain || 0; this._newUnlocks = a._newUnlocks || []; this._newScUnlocked = a._newScUnlocked || 0;
-      this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._deckPick = null; this._hiddenElite = !!a._hiddenElite; this._hoverCard = null;   // giữ cờ elite ẩn qua reload giữa trận (thưởng +40 khi thắng)
+      this.selUid = null; this._winning = false; this._losing = false; this._shake = false; this._hitstop = false; this.playerFloats = []; this.playerHit = false; this.openDeck = false; this.metaTab = false; this._eventResult = null; this._pendingEventResult = false; this._evtBefore = null; this._evtRelic = null; this._deckPick = null; this._deckPickCtx = null; this._restResult = null; this._hiddenElite = !!a._hiddenElite; this._hoverCard = null;   // giữ cờ elite ẩn qua reload giữa trận (thưởng +40 khi thắng)
       this.buildMapView();
       if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
       else { this.phase = a.phase || 'map'; if (this.phase === 'map') this._scrollMapCur(); }
@@ -960,6 +960,7 @@ export function dangTienMong() {
       this.khi = this.maxKhi + (this.hasRelic('ngocBoi') ? 2 : 0);
       if ((this.run.sc || 0) >= 10) this.khi = Math.max(1, this.khi - 1);   // SC10: Khí lượt đầu −1
       this.phase = 'battle'; this.startTurnPassive();
+      try { this.$nextTick(() => { const m = document.querySelector('main'); if (m) m.scrollTop = 0; }); } catch (e) {}   // vào trận -> cuộn lên đầu (khỏi kẹt vị trí cuộn cũ của map, thấy ngay tiêu đề + quái)
       this.draw(this.handSize());
       if (this.hasRelic('bangBoi')) this.draw(2);   // di vật: Huyền Băng Bội (rút thêm 2 lá đầu trận)
       this._saveRun();
@@ -1384,15 +1385,24 @@ export function dangTienMong() {
     _openDeckPick(mode) {
       if (mode === 'del' && this.run.deck.length <= 3) { this.runNgan += 20; this.log = 'Bộ bài đã quá tinh gọn — nhận +20 Mộng Ngân.'; this.afterNode(); return; }
       if (mode === 'up' && !this.run.deck.some((c) => !c.up)) { this.runNgan += 20; this.log = 'Mọi chiêu đã viên mãn — nhận +20 Mộng Ngân.'; this.afterNode(); return; }
-      this._deckPick = mode;
+      this._deckPick = mode; this._deckPickCtx = null;   // Kỳ Ngộ (event) -> ctx null (phân biệt với Tĩnh Thất)
     },
     _pickDeckCard(i) {
       const c = this.run.deck[i]; if (!c) return;
-      if (this._deckPick === 'up') { if (c.up) return; this._upgradeCard(c); this.log = 'Khắc sâu chiêu thức: ' + c.name + ' — uy lực tăng tiến.'; }
-      else if (this._deckPick === 'del') { this.run.deck.splice(i, 1); this.log = 'Buông bỏ một chiêu: ' + c.name + ' — bộ bài tinh gọn, sắc bén hơn.'; }
-      this._deckPick = null; this.afterNode();   // -> intercept _pendingEventResult -> _showEventResult
+      const mode = this._deckPick;
+      if (mode === 'up') { if (c.up) return; this._upgradeCard(c); this.log = 'Khắc sâu chiêu thức: ' + c.name + ' — uy lực tăng tiến.'; }
+      else if (mode === 'del') { this.run.deck.splice(i, 1); this.log = 'Buông bỏ một chiêu: ' + c.name + ' — bộ bài tinh gọn, sắc bén hơn.'; }
+      const wasRest = this._deckPickCtx === 'rest';
+      this._deckPick = null; this._deckPickCtx = null;
+      if (wasRest) {   // Tĩnh Thất: hiện KẾT QUẢ tại chỗ (không nhảy màn), chờ "Tiếp tục"
+        this._restResult = (mode === 'up')
+          ? { title: 'Khắc Cốt', note: 'Khắc sâu chiêu thức, uy lực tăng tiến.', card: c }
+          : { title: 'Tinh Luyện', note: 'Buông bỏ tạp niệm, bộ bài sắc bén hơn.', removedName: c.name };
+        this._saveRun(); return;
+      }
+      this.afterNode();   // Kỳ Ngộ -> intercept _pendingEventResult -> _showEventResult
     },
-    _cancelDeckPick() { this._deckPick = null; this._pendingEventResult = false; this._evtBefore = null; this.log = ''; },   // hủy -> quay lại màn chọn phương án Kỳ Ngộ
+    _cancelDeckPick() { this._deckPick = null; this._deckPickCtx = null; this._pendingEventResult = false; this._evtBefore = null; this.log = ''; },   // hủy -> quay lại màn chọn (Kỳ Ngộ / Tĩnh Thất)
     openEvent() { this.event = rnd([
       { title: 'Lão Nhân Bên Suối', text: 'Một lão nhân áo vải câu bên suối mộng, ngẩng lên cười: "Tiểu hữu, ngươi muốn một quyển bí kíp, hay chút lộ phí?"',
         opts: [{ label: 'Xin một chiêu thức (rút 1/3 thẻ)', fn: () => this._drawReward() },
@@ -1454,7 +1464,26 @@ export function dangTienMong() {
       this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'than' ? 140 : (card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30)); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; this._saveRun(); },
     buyShop(i) { const s = this.shopItems[i]; if (s.sold || this.runNgan < s.price) return; this.runNgan -= s.price; this.run.deck.push(mk(s.card.id)); s.sold = true; this._saveRun(); },
     buyHeal() { if (this.runNgan < 40 || this.run.hp >= this.run.maxHp) return; this.runNgan -= 40; this.run.hp = Math.min(this.run.maxHp, this.run.hp + 18); this._saveRun(); },
-    restHeal() { this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * this.restPct())); this.afterNode(); },
-    restLearn() { const t = this._rollKeys(1)[0] || 'coBanKiem'; this.run.deck.push(mk(t)); this.afterNode(); },
+    // ===== TĨNH THẤT: 4 lựa chọn, MỖI lựa chọn hiện rõ KẾT QUẢ nhận được rồi mới "Tiếp tục" (khỏi bấm xong mất hút) =====
+    restHeal() {
+      const amt = Math.min(this.run.maxHp - this.run.hp, Math.round(this.run.maxHp * this.restPct()));
+      this.run.hp += amt;
+      this._restResult = { title: 'Điều Tức', note: 'Vận công điều tức, khí huyết dần sung mãn.', deltas: [{ t: 'heal', s: '+' + amt + ' HP' }] };
+      this._saveRun();
+    },
+    restLearn() {
+      const t = this._rollKeys(1)[0] || 'coBanKiem'; const c = mk(t); this.run.deck.push(c);
+      this._restResult = { title: 'Tham Ngộ', note: 'Trong tĩnh lặng, lĩnh hội một chiêu thức mới.', card: c };
+      this._saveRun();
+    },
+    restUpgrade() {
+      if (!this.run.deck.some((x) => !x.up)) { this.runNgan += 20; this._restResult = { title: 'Khắc Cốt', note: 'Mọi chiêu đã viên mãn — đổi lấy chút lĩnh ngộ.', deltas: [{ t: 'buff', s: '+20 Mộng Ngân' }] }; this._saveRun(); return; }
+      this._deckPick = 'up'; this._deckPickCtx = 'rest';
+    },
+    restRemove() {
+      if (this.run.deck.length <= 3) { this.runNgan += 20; this._restResult = { title: 'Tinh Luyện', note: 'Bộ bài đã quá tinh gọn — đổi lấy chút lĩnh ngộ.', deltas: [{ t: 'buff', s: '+20 Mộng Ngân' }] }; this._saveRun(); return; }
+      this._deckPick = 'del'; this._deckPickCtx = 'rest';
+    },
+    restContinue() { this._restResult = null; this.afterNode(); },
   };
 }
