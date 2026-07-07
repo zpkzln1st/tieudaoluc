@@ -496,7 +496,7 @@ export function dangTienMong() {
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, _losing: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null, _gotThan: null, _eventResult: null, _pendingEventResult: false, _evtBefore: null, _evtRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
-    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, wikiFiltOpen: false, dtmFiltDrop: null, cardDetail: null, lightbox: null, _chipTip: null, _hoverCard: null,
+    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, wikiFiltOpen: false, dtmFiltDrop: null, scInfo: null, cardDetail: null, lightbox: null, _chipTip: null, _hoverCard: null,
     // ----- Bảng Dev/Test (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D; CHỈ đụng this.* + state.dangTien + DOM) -----
     devEnabled: false, devPanel: false, devCardSel: '', devEnemySel: '', devHp: '', devKhi: '', devEnemyHp: '',
     HEROES, RELICS, metaUp: META_UP,
@@ -821,7 +821,7 @@ export function dangTienMong() {
 
     startRun(h) {
       if (!this.heroUnlocked(h.id)) return;   // mộng thân chưa mở khóa -> không vào ván
-      this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0; this._hiddenElite = false; this._deckPick = null;
+      this.runNgan = 0; this._bankGain = 0; this._newUnlocks = []; this._newScUnlocked = 0; this._hiddenElite = false; this._deckPick = null; this.scInfo = null;
       const up = this._up();
       const sc = Math.min((this.scSel && this.scSel[h.id]) || 0, this.scMaxOf(h.id));   // Sát Cảnh đã chọn
       let mhp = h.hp + 6 * (up.hp || 0);             // Cố Bản
