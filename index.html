@@ -39,6 +39,11 @@
       filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 72%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--dhc) 46%,transparent)) drop-shadow(0 0 20px color-mix(in srgb,var(--dhc) 24%,transparent));
       animation:dhSweep 3.4s linear infinite; }
     @media (prefers-reduced-motion: reduce){ .dh-high .dh-txt{ animation:none } }
+    /* Danh hiệu trong LIST (Tàng Hiệu Các): cho TÊN co/wrap để tag "loại" luôn ghim phải, không rớt dòng (mobile tên dài) */
+    .dh-list{ min-width:0; }
+    .dh-list .dh-txt{ white-space:normal; overflow-wrap:anywhere; }
+    .th-card .th-hint{ transition:color .14s; }
+    .th-card:hover .th-hint{ color:#5eead4; }
 
     /* ===== Hào quang chạy viền (phẩm Sử Thi+ / item thuộc Bộ Trang) — conic comet 2 vệt, MƯỢT qua góc bo (không dash → không seam, không hụt góc) ===== */
     @keyframes haloSpin{ to{ transform:rotate(360deg); } }
@@ -852,20 +857,20 @@
               </div>
               <div class="grid sm:grid-cols-2 gap-2.5">
                 <template x-for="it in $store.game.titlesFlat" :key="it.id">
-                  <div class="rounded-xl px-4 py-3 border" :class="it.owned ? (it.on ? 'border-jade/50 bg-jade/5' : 'border-slate-700/70 bg-ink3/40') : 'border-slate-800/60 bg-black/20 opacity-50'">
-                    <!-- Hàng 1: danh hiệu + phân loại (full-width, không bị nút bóp hẹp → khỏi xuống hàng vỡ vạch) -->
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="dh" :class="$store.game.titleQClass(it.q) + (it.owned && $store.game.titleHigh(it.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" style="font-size:14.5px" x-text="it.name"></span><span class="dh-li r"></span></span>
-                      <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-slate-700/70 shrink-0" x-text="it.loai"></span>
+                  <div class="th-card rounded-xl px-4 py-3 border transition" :class="it.owned ? (it.on ? 'th-on border-jade/60 bg-jade/10' : 'border-slate-700/70 bg-ink3/40 cursor-pointer hover:border-jade/50 hover:bg-jade/5') : 'border-slate-800/60 bg-black/20 opacity-50'" @click="it.owned && !it.on && $store.game.titleEquip(it.id)">
+                    <!-- Hàng 1: danh hiệu (co/wrap được) + phân loại (ghim phải, KHÔNG rớt dòng) -->
+                    <div class="flex items-center gap-2">
+                      <span class="dh dh-list min-w-0" :class="$store.game.titleQClass(it.q) + (it.owned && $store.game.titleHigh(it.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" style="font-size:14.5px" x-text="it.name"></span><span class="dh-li r"></span></span>
+                      <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-slate-700/70 shrink-0 ml-auto" x-text="it.loai"></span>
                     </div>
-                    <!-- Hàng 2: bonus/nguồn + nút đeo -->
+                    <!-- Hàng 2: bonus/nguồn + trạng thái (cả thẻ = nút đeo) -->
                     <div class="flex items-center justify-between gap-3 mt-1.5">
                       <div class="min-w-0">
                         <div class="text-[12px] text-jade/90" x-text="it.bonusText"></div>
                         <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '') + it.src"></div>
                       </div>
-                      <template x-if="it.on"><span class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium">Đang đeo</span></template>
-                      <template x-if="it.owned && !it.on"><button @click="$store.game.titleEquip(it.id)" class="shrink-0 text-[12px] px-3 py-1.5 rounded-lg bg-ink2 border border-slate-700 hover:border-jade text-slate-200 transition">Đeo</button></template>
+                      <template x-if="it.on"><span class="shrink-0 inline-flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Đang đeo</span></template>
+                      <template x-if="it.owned && !it.on"><span class="th-hint shrink-0 text-[11px] text-slate-500">Bấm để đeo ›</span></template>
                       <template x-if="!it.owned"><span class="shrink-0 text-[11px] text-slate-600">Chưa mở</span></template>
                     </div>
                   </div>
