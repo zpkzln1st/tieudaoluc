@@ -6110,6 +6110,9 @@
         @media (prefers-reduced-motion:reduce){ .dtm-root .card.playable:active{ transform:none } .dtm-root .dtm-shakefx{ animation:none } }
         /* ===== MOBILE (<=640px): căn chỉnh kích thước DTM cho điện thoại (trước chỉ tune desktop) ===== */
         @media (max-width: 640px){
+          /* Modal DTM (Lĩnh Ngộ Đường / Đổi Nguyên Bảo) z-80 bị NHỐT trong .dtm-root(isolation) -> app top-bar(z30) đè mép trên. Top-align DƯỚI header (54px) + cap cao cho khỏi cắt viền. */
+          .dtm-root .dtm-cmodback{ align-items:flex-start !important; padding-top:54px !important; }
+          .dtm-root .dtm-cmodback > .panel{ max-height:calc(100dvh - 70px) !important; }
           /* --- SẢNH: banner gọn lại (trước quá to, lỗi nặng trên mobile) --- */
           .dtm-root .lob-hero{ min-height:0 !important; }
           .dtm-root .lob-hero .relative{ padding:14px 16px !important; }
@@ -7494,6 +7497,10 @@
           .dtmk-filt-toggle .ar{ font-size:10px; color:#7fd6f0; }
           .dtmk-filt-groups{ display:none; }
           .dtmk-filt-groups.open{ display:block; }
+          /* modal dtmk (Bách Khoa/Chi Tiết...): top-align DƯỚI app header (khỏi jammed/cắt mép trên) + cap cao vừa màn */
+          .dtmk-back{ align-items:flex-start !important; padding-top:54px !important; }
+          .dtmk-modal{ max-height:calc(100dvh - 70px) !important; }
+          .dtmk-modal.wiki{ height:calc(100dvh - 70px) !important; }
         }
         /* Lưới thẻ wiki */
         .dtmk-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); }
@@ -8130,7 +8137,7 @@
           </template>
 
           <template x-if="metaTab">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="metaTab=false">
+            <div class="dtm-cmodback fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="metaTab=false">
               <div class="panel rounded-2xl border border-violet-500/40 w-[680px] max-w-full max-h-[88vh] overflow-y-auto p-5">
                 <div class="flex items-center justify-between mb-1">
                   <div class="fserif text-xl gold-text">Lĩnh Ngộ Đường</div>
@@ -8181,7 +8188,7 @@
           </template>
 
           <template x-if="bridgeTab">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="bridgeTab=false">
+            <div class="dtm-cmodback fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="bridgeTab=false">
               <div class="panel rounded-2xl border border-amber-500/40 w-[520px] max-w-full max-h-[88vh] overflow-y-auto p-5">
                 <div class="flex items-center justify-between mb-1">
                   <div class="fserif text-xl gold-text">Đổi Lấy Nguyên Bảo</div>
