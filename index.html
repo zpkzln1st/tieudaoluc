@@ -6151,20 +6151,25 @@
           .dtm-root .ftile{ flex:1 1 0 !important; min-width:0; max-width:56px; height:78px !important; }   /* flex-fill: moi so o (6/7) deu vua 1 hang, chia deu, het o le hang 2 */
           .dtm-root .ftile .ftnm{ font-size:8px; padding:10px 2px 3px; }
           /* --- CHỌN MỘNG THÂN: CAROUSEL NGANG (vuốt ngang đổi hero), MỖI hero full info VỪA khung điện thoại, KHÔNG cuộn dọc, tự co theo mọi cỡ màn --- */
-          .dtm-root .text-center.mb-5{ margin-bottom:8px !important; }
-          .dtm-root .text-center.mb-5 .text-3xl{ font-size:21px !important; }
-          .dtm-root .text-center.mb-5 .text-\[12\.5px\]{ font-size:10px !important; margin-top:1px !important; }
-          .dtm-root .grid.sm\:grid-cols-3.gap-4{ display:flex !important; flex-wrap:nowrap !important; align-items:stretch; overflow-x:auto; overflow-y:visible; gap:10px !important; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:2px 2px 8px; touch-action:pan-x; overscroll-behavior-x:contain; }   /* chieu cao TU NHIEN (the deu qua stretch) + trang cuon doc khi man ngan */
-          .dtm-root .text-center.mt-4{ margin-top:7px !important; }
-          .dtm-root .grid.sm\:grid-cols-3.gap-4 > .dtm-herocard{ flex:0 0 87% !important; scroll-snap-align:start; }
+          .dtm-root .text-center.mb-5{ margin-bottom:6px !important; }
+          .dtm-root .text-center.mb-5 .text-3xl{ font-size:19px !important; }
+          .dtm-root .text-center.mb-5 .text-\[12\.5px\]{ font-size:10px !important; margin-top:0 !important; }
+          /* Thẻ KHÓA cao vừa màn (khỏi cắt), nút Nhập Mộng LUÔN ở đáy; lore = phần co giãn CUỘN trong khung */
+          .dtm-root .grid.sm\:grid-cols-3.gap-4{ display:flex !important; flex-wrap:nowrap !important; overflow-x:auto; overflow-y:hidden; gap:10px !important; scroll-snap-type:x mandatory; height:calc(100dvh - 198px); min-height:368px; -webkit-overflow-scrolling:touch; padding:2px 2px 8px; touch-action:pan-x; overscroll-behavior-x:contain; }
+          .dtm-root .text-center.mt-4{ margin-top:6px !important; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-4 > .dtm-herocard{ flex:0 0 88% !important; scroll-snap-align:start; height:100%; }
           .dtm-root .dtm-herocard:hover{ transform:none !important; }
-          .dtm-root .dtm-herocard .dtm-portwrap{ aspect-ratio:auto !important; flex:0 0 auto !important; height:200px; }   /* cao co dinh -> hien ro nhan vat (khong con dau toc) + deu nhau */
-          .dtm-root .dtm-herocard .dtm-port{ object-position:center 18%; }
-          .dtm-root .dtm-herocard .p-3\.5{ flex:1 1 auto !important; padding:9px !important; gap:5px !important; }   /* info gian day nut Nhap Mong xuong day (deu) */
+          .dtm-root .dtm-herocard .dtm-portwrap{ aspect-ratio:auto !important; flex:0 0 auto !important; height:144px; }   /* cao vua -> hien nhan vat (khong con dau toc) */
+          .dtm-root .dtm-herocard .dtm-port{ object-position:center 20%; }
+          .dtm-root .dtm-herocard .p-3\.5{ flex:1 1 auto !important; min-height:0; padding:9px !important; gap:4px !important; display:flex; flex-direction:column; }
           .dtm-root .dtm-herocard .p-2\.5{ padding:7px !important; }
           .dtm-root .dtm-herocard .p-2{ padding:6px !important; }
-          /* lore hero: hiện ĐẦY ĐỦ + flex-1 giãn đẩy Sát Cảnh/nút xuống đáy (thẻ đều) */
-          .dtm-root .dtm-herocard .italic{ display:block; min-height:40px; }
+          /* lore = phần CO GIÃN + cuộn trong khung (min 0 -> co hết cỡ khi màn ngắn) -> nút Nhập Mộng LUÔN trong khung, không bao giờ cắt */
+          .dtm-root .dtm-herocard .italic{ display:block; flex:1 1 auto; min-height:0; overflow-y:auto; }
+          /* nén ô Sát Cảnh trong thẻ hero (màn nhỏ) cho lore/nút đủ chỗ */
+          .dtm-root .dtm-herocard .border-rose-500\/20{ padding:6px !important; }
+          .dtm-root .dtm-herocard .dtm-scmodwrap{ height:24px; }
+          .dtm-root .dtm-herocard .dtm-scmods{ height:24px; }
           /* --- HEADER (map/đấu...): thu về 1 dòng mảnh; ẩn phụ đề 登仙夢 + 'Mộng sâu nhất' cho khỏi cao --- */
           .dtm-root > .items-center.justify-between{ margin-bottom:8px !important; }
           .dtm-root > .items-center.justify-between .w-8.h-8{ width:26px !important; height:26px !important; font-size:13px !important; }
@@ -8111,6 +8116,20 @@
                         <div class="text-[11px] text-slate-400" x-text="_eventResult.relic.desc"></div>
                       </div>
                     </div>
+                  </template>
+                  <template x-if="_eventResult.card">
+                    <div class="flex justify-center mb-3">
+                      <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl" :style="'border:1px solid '+heColor(_eventResult.card.he)+'99;background:'+heColor(_eventResult.card.he)+'12;box-shadow:0 0 22px -8px '+heColor(_eventResult.card.he)">
+                        <span class="relic dtm-portwrap shrink-0" :style="'width:40px;height:40px;font-size:19px;box-shadow:0 0 0 1px '+rarColor(_eventResult.card.rar)"><span x-text="_eventResult.card.han"></span><img :src="cardImg(_eventResult.card.id)" class="dtm-port" alt="" onerror="this.style.display='none'"></span>
+                        <div class="text-left">
+                          <div class="text-[10px] font-bold uppercase tracking-wide" :style="'color:'+heColor(_eventResult.card.he)" x-text="typeLabel(_eventResult.card)+' · '+heName(_eventResult.card.he)"></div>
+                          <div class="text-[13.5px] text-slate-100 fserif" x-text="_eventResult.card.name + (_eventResult.card.up?' ＋':'')"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template x-if="_eventResult.removedName">
+                    <div class="text-[12.5px] text-slate-400 mb-3">Đã buông bỏ: <b class="text-rose-300" x-text="_eventResult.removedName"></b></div>
                   </template>
                   <div class="flex gap-1.5 flex-wrap mb-4" x-show="_eventResult.deltas.length">
                     <template x-for="dd in _eventResult.deltas" :key="dd.s"><span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full" :style="'background:'+cardEffColor(dd.t)+';color:#0a0f16'" x-text="dd.s"></span></template>

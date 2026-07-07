@@ -1400,6 +1400,8 @@ export function dangTienMong() {
           : { title: 'Tinh Luyện', note: 'Buông bỏ tạp niệm, bộ bài sắc bén hơn.', removedName: c.name };
         this._saveRun(); return;
       }
+      this._evtCard = (mode === 'up') ? c : null;   // Kỳ Ngộ nâng thẻ -> hiện rõ THẺ nào được nâng (art + ＋)
+      this._evtRemovedName = (mode === 'del') ? c.name : null;
       this.afterNode();   // Kỳ Ngộ -> intercept _pendingEventResult -> _showEventResult
     },
     _cancelDeckPick() { this._deckPick = null; this._deckPickCtx = null; this._pendingEventResult = false; this._evtBefore = null; this.log = ''; },   // hủy -> quay lại màn chọn (Kỳ Ngộ / Tĩnh Thất)
@@ -1408,7 +1410,7 @@ export function dangTienMong() {
         opts: [{ label: 'Xin một chiêu thức (rút 1/3 thẻ)', fn: () => this._drawReward() },
                 { label: 'Xin lộ phí (+45 Mộng Ngân)', fn: () => { this.runNgan += 45; this.log = '+45 Mộng Ngân.'; this.afterNode(); } }] },
       { title: 'Thạch Bia Cổ', text: 'Tấm bia khắc võ học cổ, sát khí âm u. Lĩnh hội thì lợi hại, nhưng phản phệ chút tâm thần.',
-        opts: [{ label: 'Lĩnh hội (−6 HP, +1 thẻ Tuyệt)', fn: () => { this.run.hp = Math.max(1, this.run.hp - 6); this.run.deck.push(mk(this._tuyetKey())); this.log = 'Lĩnh ngộ một tuyệt học!'; this.afterNode(); } },
+        opts: [{ label: 'Lĩnh hội (−6 HP, +1 thẻ Tuyệt)', fn: () => { this.run.hp = Math.max(1, this.run.hp - 6); const c = mk(this._tuyetKey()); this.run.deck.push(c); this._evtCard = c; this.log = 'Lĩnh ngộ một tuyệt học!'; this.afterNode(); } },
                 { label: 'Bỏ qua', fn: () => this.afterNode() }] },
       { title: 'Suối Linh Tuyền', text: 'Dòng suối trong mộng tỏa linh khí mát lành, xoa dịu thương thế người lữ khách.',
         opts: [{ label: 'Tẩm mình (hồi 40% HP)', fn: () => { this._heal(0.4); this.log = 'Thương thế nhẹ đi nhiều.'; this.afterNode(); } },
@@ -1423,7 +1425,7 @@ export function dangTienMong() {
         opts: [{ label: 'Nuốt thử (50%: nhận 1 di vật · 50%: −12 HP)', fn: () => { if (this._coin()) { this._giveRelic(); } else { this.run.hp = Math.max(1, this.run.hp - 12); this.log = 'Đan độc phản phệ, −12 HP.'; } this.afterNode(); } },
                 { label: 'Không mạo hiểm (hồi 15% HP nghỉ ngơi)', fn: () => { this._heal(0.15); this.afterNode(); } }] },
       { title: 'Ma Ảnh Truyền Công', text: 'Một bóng đen rỉ tai bên tai ngươi: "Ta cho ngươi sức mạnh cấm kỵ… chỉ đổi lấy chút nguyên khí. Ngươi có gan nhận không?"',
-        opts: [{ label: 'Nhận truyền công (−5 HP tối đa, +1 thẻ Tuyệt)', fn: () => { this.run.maxHp = Math.max(10, this.run.maxHp - 5); this.run.hp = Math.min(this.run.hp, this.run.maxHp); this.run.deck.push(mk(this._tuyetKey())); this.log = 'Ma công nhập thể — mạnh nhưng hao nguyên khí.'; this.afterNode(); } },
+        opts: [{ label: 'Nhận truyền công (−5 HP tối đa, +1 thẻ Tuyệt)', fn: () => { this.run.maxHp = Math.max(10, this.run.maxHp - 5); this.run.hp = Math.min(this.run.hp, this.run.maxHp); const c = mk(this._tuyetKey()); this.run.deck.push(c); this._evtCard = c; this.log = 'Ma công nhập thể — mạnh nhưng hao nguyên khí.'; this.afterNode(); } },
                 { label: 'Cự tuyệt (+20 Mộng Ngân, giữ mình thanh tịnh)', fn: () => { this.runNgan += 20; this.log = 'Giữ tâm thanh tịnh, +20 Mộng Ngân.'; this.afterNode(); } }] },
       { title: 'Cổ Rương Trấn Ải', text: 'Một cổ rương phong ấn nằm giữa lối, ba ổ khóa ba màu — thần thức mách bảo chỉ mở được MỘT.',
         opts: [{ label: 'Khóa vàng — Tài (+55 Mộng Ngân)', fn: () => { this.runNgan += 55; this.log = 'Rương đầy bạc vụn! +55 Mộng Ngân.'; this.afterNode(); } },
@@ -1442,7 +1444,7 @@ export function dangTienMong() {
     // Chọn 1 phương án Kỳ Ngộ -> chạy hiệu ứng RỒI hiện màn KẾT QUẢ (trước đây afterNode() chuyển màn ngay nên không thấy kết quả). KHÔNG _saveRun ở đây: giữ điểm resume = TRƯỚC khi chọn (tránh làm lại event / nhân đôi thưởng nếu rời màn giữa chừng); afterNode thật mới save.
     resolveEvent(o) {
       if (this._eventResult) return;   // đang xem kết quả -> chặn double-click
-      this.log = ''; this._evtRelic = null;
+      this.log = ''; this._evtRelic = null; this._evtCard = null; this._evtRemovedName = null;
       this._evtBefore = { hp: this.run.hp, maxHp: this.run.maxHp, ngan: this.runNgan, deck: this.run.deck.length, relics: this.run.relics.length };
       this._pendingEventResult = true;
       try { o.fn(); } catch (e) {}
@@ -1454,11 +1456,13 @@ export function dangTienMong() {
       const dhp = this.run.hp - (b.hp || 0); if (dhp) d.push({ t: dhp > 0 ? 'heal' : 'self', s: (dhp > 0 ? '+' : '') + dhp + ' HP' });
       const dmax = this.run.maxHp - (b.maxHp || 0); if (dmax) d.push({ t: 'self', s: (dmax > 0 ? '+' : '') + dmax + ' HP tối đa' });
       const dng = this.runNgan - (b.ngan || 0); if (dng) d.push({ t: dng > 0 ? 'buff' : 'exhaust', s: (dng > 0 ? '+' : '') + dng + ' Mộng Ngân' });
-      const dck = this.run.deck.length - (b.deck || 0); if (dck > 0) d.push({ t: 'draw', s: '+' + dck + ' thẻ' }); else if (dck < 0) d.push({ t: 'exhaust', s: dck + ' thẻ' });
+      const dck = this.run.deck.length - (b.deck || 0);
+      if (dck > 0 && !this._evtCard) d.push({ t: 'draw', s: '+' + dck + ' thẻ' });   // có _evtCard -> hiện KHUNG THẺ (art) thay chip đếm
+      else if (dck < 0 && !this._evtRemovedName) d.push({ t: 'exhaust', s: dck + ' thẻ' });
       const dr = this.run.relics.length - (b.relics || 0); if (dr > 0 && !this._evtRelic) d.push({ t: 'keep', s: '+' + dr + ' di vật' });   // có _evtRelic -> hiện khung chi tiết thay chip đếm
-      this._eventResult = { text: this.log || 'Xong.', deltas: d, relic: this._evtRelic || null };
+      this._eventResult = { text: this.log || 'Xong.', deltas: d, relic: this._evtRelic || null, card: this._evtCard || null, removedName: this._evtRemovedName || null };
     },
-    continueEvent() { this._eventResult = null; this._evtBefore = null; this._evtRelic = null; this.afterNode(); },   // _pendingEventResult đã false -> afterNode thật chuyển màn + save
+    continueEvent() { this._eventResult = null; this._evtBefore = null; this._evtRelic = null; this._evtCard = null; this._evtRemovedName = null; this.afterNode(); },   // _pendingEventResult đã false -> afterNode thật chuyển màn + save
 
     openShop() { const keys = this._rollKeys(3);
       this.shopItems = keys.map((k) => { const card = mk(k); let price = card.rar === 'than' ? 140 : (card.rar === 'tuyet' ? 75 : (card.rar === 'hiem' ? 50 : 30)); if ((this.run.sc || 0) >= 5) price = Math.round(price * 1.15); return { card, price, sold: false }; }); this._setReroll(); this.phase = 'shop'; this._saveRun(); },
