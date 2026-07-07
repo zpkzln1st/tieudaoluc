@@ -6146,7 +6146,8 @@
           .dtm-root .dtm-herocard .p-3\.5{ flex:0 0 auto !important; padding:9px !important; gap:5px !important; }
           .dtm-root .dtm-herocard .p-2\.5{ padding:7px !important; }
           .dtm-root .dtm-herocard .p-2{ padding:6px !important; }
-          .dtm-root .dtm-herocard .italic{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+          /* lore hero: hiện ĐẦY ĐỦ (bỏ clamp) — portrait flex:1 hấp thụ chiều cao, min-height:96 chặn tràn; lore quá dài thì cuộn trong khung (hiếm) */
+          .dtm-root .dtm-herocard .italic{ display:block; max-height:140px; overflow-y:auto; }
           /* --- HEADER (map/đấu...): thu về 1 dòng mảnh; ẩn phụ đề 登仙夢 + 'Mộng sâu nhất' cho khỏi cao --- */
           .dtm-root > .items-center.justify-between{ margin-bottom:8px !important; }
           .dtm-root > .items-center.justify-between .w-8.h-8{ width:26px !important; height:26px !important; font-size:13px !important; }
@@ -7669,7 +7670,7 @@
                 <span class="lhwm">夢</span>
                 <div class="relative" style="z-index:3;flex:1;padding:24px 30px;display:flex;flex-direction:column;justify-content:center">
                   <div class="text-[11px] tracking-[0.32em] uppercase text-violet-300/80">Hoàng Lương Nhất Mộng · Đạo Tâm Bất Diệt</div>
-                  <div class="fserif gold-text" style="font-size:40px;line-height:1;margin:6px 0 0;filter:drop-shadow(0 2px 14px #f5b94233)">Đăng Tiên Mộng</div>
+                  <div class="fserif gold-text" style="font-size:40px;line-height:1.16;padding-bottom:2px;margin:6px 0 0;filter:drop-shadow(0 2px 14px #f5b94233)">Đăng Tiên Mộng</div>
                   <p class="text-slate-300 text-[13px]" style="max-width:480px;margin:9px 0 16px;line-height:1.5">Nhập mộng tu chân — đoạt cơ duyên, ngộ tiên pháp, vấn đỉnh Mộng Chủ.</p>
                   <div class="flex items-center gap-4 flex-wrap">
                     <template x-if="hasActiveRun()"><button @click="resumeRun()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#34d399">Tiếp Tục Giấc Mộng · <span x-text="activeRunLabel()"></span> ⟶</button></template>
@@ -7785,8 +7786,11 @@
                                 <button @click.stop="setSc(h.id, n-1)" class="w-6 h-6 rounded-md text-[11px] font-bold border transition" :class="scSel[h.id]===(n-1) ? 'border-rose-400 text-rose-200 bg-rose-500/15' : 'border-slate-700 text-slate-500 hover:border-slate-500'" x-text="n-1"></button>
                               </template>
                             </div>
-                            <div class="text-[9.5px] text-rose-300/70 mt-1 leading-snug" style="max-height:38px;overflow-y:auto" x-show="scSel[h.id]>0" x-text="scModsList(scSel[h.id]).join(' · ')"></div>
-                            <div class="text-[9.5px] text-slate-600 mt-1" x-show="scMaxOf(h.id)===0">Đăng Tiên (thắng) để mở bậc khó hơn.</div>
+                            <!-- ô mods SC: CAO CỐ ĐỊNH (reserve luôn) -> chọn Sát Cảnh KHÔNG làm thẻ/chân dung nhảy kích thước -->
+                            <div class="text-[9.5px] mt-1 leading-snug" style="height:30px;overflow-y:auto">
+                              <span class="text-rose-300/70" x-show="scSel[h.id]>0" x-text="scModsList(scSel[h.id]).join(' · ')"></span>
+                              <span class="text-slate-600" x-show="scSel[h.id]===0 && scMaxOf(h.id)===0">Đăng Tiên (thắng) để mở bậc khó hơn.</span>
+                            </div>
                           </div>
                           <button @click.stop="startRun(h)" class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
                         </div>
