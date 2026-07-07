@@ -6119,9 +6119,10 @@
           .dtm-root .lob-hero button{ padding:7px 16px !important; font-size:12.5px !important; }
           .dtm-root .lob-hero .lhwm{ font-size:76px; right:4px; }
           /* Mộng Lục (5 ô kỷ lục) */
-          .dtm-root .lob-stat{ padding:7px 3px; }
-          .dtm-root .lob-stat .lbl{ font-size:7.5px; letter-spacing:.04em; }
-          .dtm-root .lob-stat .val{ font-size:15px; }
+          /* Mộng Lục: cột dọc, nhãn reserve 2 dòng (canh giữa) -> mọi VALUE thẳng hàng; nhỏ letter-spacing/padding cho 5 cột vừa panel (hết clip "Mộng Ngân") */
+          .dtm-root .lob-stat{ padding:7px 2px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; }
+          .dtm-root .lob-stat .lbl{ font-size:7.5px; letter-spacing:.012em; line-height:1.08; min-height:2.2em; display:flex; align-items:center; justify-content:center; text-align:center; }
+          .dtm-root .lob-stat .val{ font-size:15px; margin-top:4px; }
           /* Mộng Thân — thẻ hero HẾT tràn chữ: chân dung cao hơn (3/4) + chữ nhỏ + badge gọn */
           .dtm-root .hcard .hport{ aspect-ratio:3/4; }
           .dtm-root .hcard .hcap{ padding:7px 6px; }
@@ -6190,6 +6191,8 @@
           .dtm-root .dmgfloat{ font-size:26px !important; font-weight:800; text-shadow:0 2px 5px #000, 0 0 9px rgba(0,0,0,.85); }
           /* ĐẤU: chân dung người chơi nhỏ lại + cho nút Kết Lượt xuống dòng (full-width) → tên/HP/trạng thái đủ chỗ 1 dòng */
           .dtm-root .border-jade\/30 .dtm-portwrap{ width:54px !important; height:66px !important; font-size:28px !important; }
+          /* di vật KHÔNG bị rule chân-dung-hero ở trên làm phình: re-shrink strip di vật (selector cụ thể hơn) */
+          .dtm-root .dtm-relwrap .relic.dtm-portwrap{ width:30px !important; height:30px !important; font-size:15px !important; }
           .dtm-root .border-jade\/30 .items-center.gap-3{ flex-wrap:wrap !important; }
           .dtm-root .border-jade\/30 .items-center.gap-3 > button{ order:9; width:100%; margin-top:6px; }
           /* --- THƯỞNG (Vượt ải) + MỘNG THỊ: panel gold bớt padding cho khỏi chật --- */
@@ -7483,6 +7486,14 @@
         .dtmk-afchip{ background:#12303a; border:1px solid #2b6f8a; color:#9fe0f5; padding:3px 6px 3px 10px; border-radius:999px; font-size:11.5px; display:inline-flex; gap:5px; align-items:center; cursor:pointer; white-space:nowrap; }
         .dtmk-afchip:hover{ background:#164050; }
         .dtmk-clearall{ padding:3px 10px; border-radius:999px; font-size:11.5px; color:#f5a3a3; border:1px solid #5a2b2b; cursor:pointer; white-space:nowrap; }
+        /* Toggle "Bộ lọc" — CHỈ mobile: gom Hệ/Loại/Bậc/Phái vào dropdown cho thẻ rộng chỗ; desktop luôn hiện */
+        .dtmk-filt-toggle{ display:none; }
+        @media(max-width:640px){
+          .dtmk-filt-toggle{ display:inline-flex; align-items:center; gap:5px; flex:none; padding:8px 11px; border-radius:9px; border:1px solid #26313d; background:#0e1524; color:#cbd5e1; font-size:12px; font-weight:700; cursor:pointer; }
+          .dtmk-filt-toggle .ar{ font-size:10px; color:#7fd6f0; }
+          .dtmk-filt-groups{ display:none; }
+          .dtmk-filt-groups.open{ display:block; }
+        }
         /* Lưới thẻ wiki */
         .dtmk-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); }
         .dtmk-card{ position:relative; border-radius:12px; overflow:hidden; background:#0d151d; border:1px solid #1e293b; aspect-ratio:146/210; cursor:pointer; transition:transform .12s, box-shadow .12s, border-color .12s; }
@@ -8284,8 +8295,12 @@
               <div class="dtmk-modal wiki">
                 <div class="dtmk-mhead"><div class="flex items-center gap-3"><div class="fserif text-lg gold-text">Bách Khoa Võ Học</div><span class="text-xs text-slate-400" x-text="wikiCards().length+' / '+wikiTotal()+' thẻ'"></span></div><button class="dtmk-xbtn" @click="closeWiki()"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-x"/></svg></button></div>
                 <div class="px-4 pt-3 pb-3 border-b border-slate-800 flex-none space-y-3">
-                  <div class="relative"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-search"/></svg></span>
-                    <input x-model="wikiSearch" placeholder="Tìm chiêu thức, hiệu ứng…" class="w-full bg-[#0c141d] border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-sky-500 text-slate-100"/></div>
+                  <div class="flex gap-2 items-center">
+                    <div class="relative flex-1"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-search"/></svg></span>
+                      <input x-model="wikiSearch" placeholder="Tìm chiêu thức, hiệu ứng…" class="w-full bg-[#0c141d] border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-sky-500 text-slate-100"/></div>
+                    <button class="dtmk-filt-toggle" @click="wikiFiltOpen=!wikiFiltOpen"><span>Bộ lọc</span><span class="ar" x-text="wikiFiltOpen?'▴':'▾'"></span></button>
+                  </div>
+                  <div class="dtmk-filt-groups space-y-3" :class="wikiFiltOpen?'open':''">
                   <div class="flex gap-2"><span class="dtmk-glabel">Hệ:</span><div class="flex flex-wrap gap-1.5">
                     <template x-for="h in [['all','Tất Cả'],['kim','Kim'],['moc','Mộc'],['thuy','Thủy'],['hoa','Hỏa'],['tho','Thổ'],['vatly','Vô']]" :key="h[0]">
                       <span class="dtmk-tab" @click="setFilter('he',h[0])" :style="fHe===h[0]?('background:'+(h[0]==='all'?'#f5b942':heColor(h[0]))+';border-color:'+(h[0]==='all'?'#f5b942':heColor(h[0]))+';color:#0a0f16'):''" x-text="h[1]"></span>
@@ -8305,6 +8320,7 @@
                     <template x-for="p in wikiPhaiShown()" :key="p"><span class="dtmk-chip" :class="fPhai===p?'on':''" @click="setFilter('phai',p)" x-text="p"></span></template>
                     <template x-if="wikiHasMorePhai()"><span class="dtmk-chip" style="border-style:dashed;color:#7fd6f0" @click="togglePhaiExpand()" x-text="phaiExpanded?'− Thu gọn':('+ Thêm ('+(wikiPhaiList().length-3)+')')"></span></template>
                   </div></div>
+                  </div>
                   <template x-if="wikiActive().length">
                     <div class="flex items-start gap-2"><span class="dtmk-glabel">Đang chọn:</span><div class="flex flex-wrap gap-1.5 items-center">
                       <template x-for="a in wikiActive()" :key="a.g"><span class="dtmk-afchip" @click="clearFilter(a.g)"><span x-text="a.label"></span><svg class="dtmk-ic" viewBox="0 0 24 24" style="width:12px;height:12px"><use href="#dtmk-i-x"/></svg></span></template>
