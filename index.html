@@ -6224,6 +6224,17 @@
           .dtm-root .dtm-winbeat span{ font-size:26px !important; }
           /* CUE SELF mobile: Ho Thuan nho them cho vua chan dung hero (54px). Rule base (.62) nam SAU block @media nay trong source -> cung specificity thi rule SAU (base) thang -> can !important de ban mobile nay thang. */
           .dtm-root .dtm-pfx .hoThuan-wrap, .dtm-root .dtm-efx .hoThuan-wrap{ transform:translate(-50%,-50%) scale(.48) !important; }
+          /* #1 ĐẤU: tên quái KHÔNG bị nút Chi Tiết (icon góc phải) đè — chừa lề phải hàng tên + nút info to hơn cho dễ bấm */
+          .dtm-root .dtm-enehd{ padding-right:36px; }
+          .dtm-root .dtm-enemy .dtmk-btndetail{ padding:5px 8px !important; }
+          .dtm-root .dtm-enemy .dtmk-btndetail .dtmk-ic{ width:13px; height:13px; }
+          /* #2 BẢN ĐỒ: thu gap ladder + nhãn 2 bên nhỏ -> "đang ở đây" không đè node ở hàng 3 nhánh */
+          .dtm-root .dtm-trow{ gap:8px; }
+          .dtm-root .dtm-cur{ font-size:9px; right:2px; }
+          .dtm-root .dtm-tband{ font-size:9px; left:2px; }
+          /* #8 vùng bấm to hơn: nút chọn Sát Cảnh + swatch chọn di vật khởi đầu (Lĩnh Ngộ Đường) */
+          .dtm-root .dtm-scpick{ width:30px; height:30px; }
+          .dtm-root .dtm-relswatch{ width:38px; height:38px; }
         }
       
         /* ============ HIEU UNG DANH THE v3 (port tu _mockup/fx_src) ============ */
@@ -7533,6 +7544,7 @@
           .dtmk-modal{ max-height:calc(100dvh - 70px) !important; }
           .dtmk-modal.wiki{ height:calc(100dvh - 70px) !important; }
           .dtmk-modal.scinfo{ height:calc(100dvh - 70px) !important; }   /* khung Sát Cảnh CỐ ĐỊNH size (thêm luật sau chỉ cuộn, khỏi chỉnh layout) */
+          .dtmk-cdbtn{ padding-top:10px; padding-bottom:10px; }   /* #8 nút thanh xổ lọc cao hơn (vùng bấm >=40px) */
         }
         /* Lưới thẻ wiki */
         .dtmk-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); }
@@ -7822,7 +7834,7 @@
                             </div>
                             <div class="flex flex-wrap gap-1">
                               <template x-for="n in (scMaxOf(h.id)+1)" :key="n">
-                                <button @click.stop="setSc(h.id, n-1)" class="w-6 h-6 rounded-md text-[11px] font-bold border transition" :class="scSel[h.id]===(n-1) ? 'border-rose-400 text-rose-200 bg-rose-500/15' : 'border-slate-700 text-slate-500 hover:border-slate-500'" x-text="n-1"></button>
+                                <button @click.stop="setSc(h.id, n-1)" class="dtm-scpick w-6 h-6 rounded-md text-[11px] font-bold border transition" :class="scSel[h.id]===(n-1) ? 'border-rose-400 text-rose-200 bg-rose-500/15' : 'border-slate-700 text-slate-500 hover:border-slate-500'" x-text="n-1"></button>
                               </template>
                             </div>
                             <!-- ô mods SC: cao CỐ ĐỊNH (không resize khi chọn SC) — SC cao list rất dài nên chỉ preview 2 dòng, BẤM mở popup đọc đầy đủ -->
@@ -7934,7 +7946,7 @@
                         <template x-for="f in e.floats" :key="f.id"><span class="dmgfloat" :style="'top:24%;left:28%;color:'+(f.c||'#fda4af')" x-text="f.v"></span></template>
                       </div>
                       <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-1 flex-wrap">
+                        <div class="flex items-center gap-1 flex-wrap dtm-enehd">
                           <div class="fserif text-[13px] leading-tight" :style="'color:'+heColor(e.he)" x-text="e.name"></div>
                           <span x-show="e.elite" class="pill text-amber-300 border-amber-500/50 bg-amber-500/10">Tinh Anh</span>
                         </div>
@@ -8193,7 +8205,7 @@
                           <div class="mt-2">
                             <div class="flex gap-1.5 flex-wrap">
                               <template x-for="r in RELICS" :key="r.id">
-                                <button @click="setStartRelic(r.id)" @mouseenter="_relicHover=r.id" @mouseleave="_relicHover=null" class="relative w-9 h-9 rounded-md overflow-hidden border flex items-center justify-center fserif text-[15px] shrink-0 transition" :style="_up().startRelic===r.id ? 'border-color:#f5b942;box-shadow:0 0 0 1px #f5b942,0 0 10px -2px #f5b942' : 'border-color:'+rarColor(r.rar)+'66'">
+                                <button @click="setStartRelic(r.id)" @mouseenter="_relicHover=r.id" @mouseleave="_relicHover=null" class="dtm-relswatch relative w-9 h-9 rounded-md overflow-hidden border flex items-center justify-center fserif text-[15px] shrink-0 transition" :style="_up().startRelic===r.id ? 'border-color:#f5b942;box-shadow:0 0 0 1px #f5b942,0 0 10px -2px #f5b942' : 'border-color:'+rarColor(r.rar)+'66'">
                                   <span :style="'color:'+rarColor(r.rar)" x-text="r.han"></span>
                                   <img :src="relicImg(r.id)" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.style.display='none'">
                                 </button>
