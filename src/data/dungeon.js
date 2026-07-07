@@ -3,7 +3,7 @@
 // text-log + roll loot (liệu/đá/ĐỒ PHỔ rèn bậc 4-7/hiếm: boss-mầm·Tinh Thể).
 // Engine tiêu thụ data này: src/engine/dungeon.js (runDungeon). Schema giữ "thuần data".
 //
-// Cơ chế (khớp THIET_KE_YEUVUONG_BICANH.md mục D):
+// Cơ chế (khớp docs/THIET_KE_YEUVUONG_BICANH.md mục D):
 //   - Gate = Chiến Đấu Lv >= reqLevel.
 //   - 2 chế độ: 'nhanh' (ngắn, ít) · 'treo' (dài, nhiều) — engine nhân loot theo mode.
 //   - 5 tầng: (1) quái thường (2) sự kiện/hazard (3) tinh anh (4) cơ duyên/bẫy/rương (5) boss.

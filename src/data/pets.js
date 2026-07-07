@@ -1,5 +1,5 @@
 // ============================================================
-// DATA — Linh Thú (pet). Hằng số gom 1 chỗ để tune. Xem THIET_KE_LINH_THU.md.
+// DATA — Linh Thú (pet). Hằng số gom 1 chỗ để tune. Xem docs/THIET_KE_LINH_THU.md.
 // Stat key TRÙNG engine derivedStats: congKich/hoThe/neTranh/menhTrung/sinhLuc.
 // ============================================================
 

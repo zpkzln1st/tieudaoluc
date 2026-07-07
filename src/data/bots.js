@@ -1,5 +1,5 @@
 // ============================================================
-// DATA — Hệ Giang Hồ AI (bot). Hằng số gom 1 chỗ. Xem THIET_KE_BOT_WORLD.md.
+// DATA — Hệ Giang Hồ AI (bot). Hằng số gom 1 chỗ. Xem docs/THIET_KE_BOT_WORLD.md.
 // Bot = MÔ PHỎNG client-side; stat suy ra từ (seed, bornAt, now) — không lưu, không vòng lặp nền.
 // ============================================================
 
