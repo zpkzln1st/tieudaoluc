@@ -42,8 +42,6 @@
     /* Danh hiệu trong LIST (Tàng Hiệu Các): cho TÊN co/wrap để tag "loại" luôn ghim phải, không rớt dòng (mobile tên dài) */
     .dh-list{ min-width:0; }
     .dh-list .dh-txt{ white-space:normal; overflow-wrap:anywhere; }
-    .th-card .th-hint{ transition:color .14s; }
-    .th-card:hover .th-hint{ color:#5eead4; }
 
     /* ===== Hào quang chạy viền (phẩm Sử Thi+ / item thuộc Bộ Trang) — conic comet 2 vệt, MƯỢT qua góc bo (không dash → không seam, không hụt góc) ===== */
     @keyframes haloSpin{ to{ transform:rotate(360deg); } }
@@ -869,8 +867,7 @@
                         <div class="text-[12px] text-jade/90" x-text="it.bonusText"></div>
                         <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '') + it.src"></div>
                       </div>
-                      <template x-if="it.on"><span class="shrink-0 inline-flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Đang đeo</span></template>
-                      <template x-if="it.owned && !it.on"><span class="th-hint shrink-0 text-[11px] text-slate-500">Bấm để đeo ›</span></template>
+                      <template x-if="it.on"><span class="shrink-0 inline-flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg bg-jade/20 text-jade border border-jade/40 font-medium"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Đang dùng</span></template>
                       <template x-if="!it.owned"><span class="shrink-0 text-[11px] text-slate-600">Chưa mở</span></template>
                     </div>
                   </div>
