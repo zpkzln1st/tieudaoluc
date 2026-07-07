@@ -6127,7 +6127,7 @@
           .dtm-root .lob-hero .fserif.gold-text{ font-size:26px !important; margin-top:3px !important; }
           .dtm-root .lob-hero p{ font-size:11px !important; margin:6px 0 11px !important; line-height:1.4 !important; }
           .dtm-root .lob-hero .text-\[11px\]{ font-size:9px; letter-spacing:.16em; }
-          .dtm-root .lob-hero button{ padding:7px 16px !important; font-size:12.5px !important; }
+          .dtm-root .lob-hero button{ padding:9px 16px !important; font-size:12.5px !important; min-height:40px; }
           .dtm-root .lob-hero .lhwm{ font-size:76px; right:4px; }
           /* Mộng Lục (5 ô kỷ lục) */
           /* Mộng Lục: cột dọc, nhãn reserve 2 dòng (canh giữa) -> mọi VALUE thẳng hàng; nhỏ letter-spacing/padding cho 5 cột vừa panel (hết clip "Mộng Ngân") */
@@ -6142,7 +6142,7 @@
           .dtm-root .hcard .hpill{ font-size:8px; padding:1px 5px; }
           .dtm-root .hcard .hebadge{ width:21px; height:21px; font-size:11px; top:6px; right:6px; border-radius:6px; }
           /* --- STRIP Cao Thủ Tàn Niệm + Võ Học: ô DỌC (portrait) để art khỏi bị cắt --- */
-          .dtm-root .ftile{ width:56px !important; height:78px !important; }
+          .dtm-root .ftile{ flex:1 1 0 !important; min-width:0; max-width:56px; height:78px !important; }   /* flex-fill: moi so o (6/7) deu vua 1 hang, chia deu, het o le hang 2 */
           .dtm-root .ftile .ftnm{ font-size:8px; padding:10px 2px 3px; }
           /* --- CHỌN MỘNG THÂN: CAROUSEL NGANG (vuốt ngang đổi hero), MỖI hero full info VỪA khung điện thoại, KHÔNG cuộn dọc, tự co theo mọi cỡ màn --- */
           .dtm-root .text-center.mb-5{ margin-bottom:8px !important; }
@@ -6173,13 +6173,13 @@
           .dtm-root .cost::after{ font-size:8px; }
           .dtm-root .rar{ width:8px; height:8px; top:6px; right:6px; }
           .dtm-root .dtm-sigil{ width:15px; height:15px; bottom:3px; right:3px; }
-          .dtm-root .card-info{ padding:5px 5px 6px; height:86px; }
+          .dtm-root .card-info{ padding:5px 5px 6px; height:92px; }   /* +6px (thay 86): chua 4 chip + ten 2 dong khong bi cat day, van gon */
           .dtm-root .card-info::before{ width:34px; margin:1px auto 3px; }
           .dtm-root .ctitle{ font-size:10.5px; line-height:1.16; min-height:26px; }
-          .dtm-root .ctype{ font-size:6.5px; margin-top:2px; }
+          .dtm-root .ctype{ font-size:7.5px; margin-top:2px; }
           .dtm-root .cdesc{ font-size:8.5px; line-height:1.28; min-height:22px; margin-top:2px; }
           .dtm-root .hc-chips{ min-height:0; gap:2px; margin-top:2px; }
-          .dtm-root .hc-chip{ font-size:7px; padding:1px 4px; }
+          .dtm-root .hc-chip{ font-size:7.5px; padding:1px 4px; }
           /* HÀNG BÀI: gom về 1 HÀNG NGANG cuộn (thay vì wrap 2 hàng); tắt nhấc thẻ để khỏi bị cắt khi cuộn */
           .dtm-root .min-h-\[256px\]{ min-height:0 !important; flex-wrap:nowrap !important; justify-content:flex-start !important; overflow-x:auto; overflow-y:hidden; padding-top:32px !important; padding-bottom:10px; scroll-snap-type:x proximity; }
           .dtm-root .card.sel{ transform:translateY(-16px) scale(1.07) !important; }
@@ -6217,7 +6217,7 @@
           .dtm-root .grid.sm\:grid-cols-3.gap-3 .panel{ padding:6px !important; }
           .dtm-root .grid.sm\:grid-cols-3.gap-3 .card{ width:100% !important; height:auto !important; aspect-ratio:118/188; }
           .dtm-root .grid.sm\:grid-cols-3.gap-3 .card .card-han{ font-size:30px !important; }
-          .dtm-root .grid.sm\:grid-cols-3.gap-3 button{ font-size:10px !important; padding:4px 6px !important; }
+          .dtm-root .grid.sm\:grid-cols-3.gap-3 button{ font-size:10.5px !important; padding:5px 6px !important; min-height:40px; display:flex; align-items:center; justify-content:center; }
           /* Banner Thắng/Thua — tiêu đề + chiều cao gọn cho khỏi tràn ngang */
           .dtm-root .dtm-endbanner{ min-height:240px; padding:26px 16px; }
           .dtm-root .dtm-endtitle{ font-size:42px; }
@@ -6235,6 +6235,13 @@
           /* #8 vùng bấm to hơn: nút chọn Sát Cảnh + swatch chọn di vật khởi đầu (Lĩnh Ngộ Đường) */
           .dtm-root .dtm-scpick{ width:30px; height:30px; }
           .dtm-root .dtm-relswatch{ width:38px; height:38px; }
+          /* ===== HOÀN THIỆN: tap target nút CHÍNH >=40px ===== */
+          /* #4 Sự Kiện: nút phương án + "Tiếp tục" */
+          .dtm-root .border-violet-500\/40.p-6 button{ min-height:40px; }
+          /* #5 Thưởng + Mộng Thị: hàng nút dưới (Đổi/Bỏ qua/Dưỡng thương/Rời) */
+          .dtm-root .border-gold\/40.p-6 .flex.items-center.justify-center button{ min-height:40px; }
+          /* #7 nút ✕ đóng modal (Lĩnh Ngộ/Đổi Nguyên Bảo/Bộ Bài/Kỳ Ngộ): vùng bấm 40x40, margin âm giữ layout header */
+          .dtm-root .dtm-xclose{ width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; margin:-8px -8px -8px 0; }
         }
       
         /* ============ HIEU UNG DANH THE v3 (port tu _mockup/fx_src) ============ */
@@ -8190,7 +8197,7 @@
                   <div class="fserif text-xl gold-text">Lĩnh Ngộ Đường</div>
                   <div class="flex items-center gap-3">
                     <span class="text-[12px] text-slate-400">Mộng Ngân <b class="text-gold" x-text="metaNgan()"></b></span>
-                    <button @click="metaTab=false" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                    <button @click="metaTab=false" class="dtm-xclose text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                   </div>
                 </div>
                 <div class="text-[11px] text-violet-300/70 italic mb-4">Mọi lĩnh ngộ tại đây CHỈ hiệu lực trong Đăng Tiên Mộng — tỉnh giấc, thân thể không đổi.</div>
@@ -8239,7 +8246,7 @@
               <div class="panel rounded-2xl border border-amber-500/40 w-[520px] max-w-full max-h-[88vh] overflow-y-auto p-5">
                 <div class="flex items-center justify-between mb-1">
                   <div class="fserif text-xl gold-text">Đổi Lấy Nguyên Bảo</div>
-                  <button @click="bridgeTab=false" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+                  <button @click="bridgeTab=false" class="dtm-xclose text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                 </div>
                 <div class="text-[11px] text-amber-200/70 italic mb-4">Mộng Ngân tụ trong mộng ngưng thành chút Nguyên Bảo mang về thân thật — mỗi tuần thiên cơ chỉ cho đọng ngần ấy.</div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
@@ -8261,7 +8268,7 @@
           <template x-if="openDeck">
             <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4" @click.self="openDeck=false">
               <div class="panel rounded-2xl border border-cyan/30 p-5 max-w-3xl max-h-[85vh] overflow-y-auto">
-                <div class="flex items-center justify-between mb-3"><div class="fserif text-lg gold-text" x-text="'Bộ Bài ('+run.deck.length+')'"></div><button @click="openDeck=false" class="text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
+                <div class="flex items-center justify-between mb-3"><div class="fserif text-lg gold-text" x-text="'Bộ Bài ('+run.deck.length+')'"></div><button @click="openDeck=false" class="dtm-xclose text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
                 <div class="flex flex-wrap gap-2 justify-center">
                   <template x-for="(c,i) in run.deck" :key="i">
                     <div class="card" style="cursor:default" :style="'--c:'+heColor(c.he)+';--r:'+rarColor(c.rar)">
@@ -8279,7 +8286,7 @@
           <template x-if="_deckPick">
             <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4" @click.self="_cancelDeckPick()">
               <div class="panel rounded-2xl border border-violet-500/40 p-5 max-w-3xl max-h-[85vh] overflow-y-auto">
-                <div class="flex items-center justify-between mb-1"><div class="fserif text-lg text-violet-300" x-text="_deckPick==='up' ? 'Khắc Cốt · chọn 1 chiêu để NÂNG CẤP' : 'Tinh Luyện · chọn 1 chiêu để LOẠI BỎ'"></div><button @click="_cancelDeckPick()" class="text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
+                <div class="flex items-center justify-between mb-1"><div class="fserif text-lg text-violet-300" x-text="_deckPick==='up' ? 'Khắc Cốt · chọn 1 chiêu để NÂNG CẤP' : 'Tinh Luyện · chọn 1 chiêu để LOẠI BỎ'"></div><button @click="_cancelDeckPick()" class="dtm-xclose text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
                 <div class="text-[11px] text-slate-400 mb-3" x-text="_deckPick==='up' ? 'Nâng thẳng số chính của thẻ (thẻ đã có dấu ＋ không nâng lại được).' : 'Bỏ 1 thẻ khỏi bộ bài — hiệu lực cả ván này.'"></div>
                 <div class="flex flex-wrap gap-2 justify-center">
                   <template x-for="(c,i) in run.deck" :key="i">
