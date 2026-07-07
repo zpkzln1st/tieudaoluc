@@ -597,6 +597,24 @@ export function dangTienMong() {
       if (n >= 14) a.push('Bỏng/Độc lên người chơi +1 lượt');
       if (n >= 15) a.push('Phẫn Nộ: Mộng Chủ/Ác Thủ vào pha 2 khi máu <50% (+1 chiêu & đòn +20%)');
       return a; },
+    // Chi tiết luật Sát Cảnh cho popup: {sc, label, desc} — ghi rõ TỪ BẬC nào + giải thích dễ hiểu.
+    scModsDetail(n) { const a = []; if (!n || n <= 0) return a;
+      a.push({ sc: 1, label: 'Tàn Niệm Trỗi Dậy', desc: 'Máu mọi kẻ địch tăng thêm 8% mỗi bậc Sát Cảnh (hiện +' + (8 * n) + '%). Địch dày máu hơn, trận kéo dài, khó dứt điểm.' });
+      if (n >= 2) a.push({ sc: 2, label: 'Mộng Ngân Hao Tổn', desc: 'Mộng Ngân kiếm được trong ván nhân 0.9 — mỗi trận thắng nhận ít hơn 10%.' });
+      if (n >= 3) a.push({ sc: 3, label: 'Nhập Mộng Tổn Nguyên', desc: 'Vào mỗi ván bị trừ sẵn 3 HP tối đa.' });
+      if (n >= 4) a.push({ sc: 4, label: 'Sinh Cơ Suy Giảm', desc: 'HP khởi đầu nhân 0.9 — bắt đầu ván với ít máu hơn.' });
+      if (n >= 5) a.push({ sc: 5, label: 'Mộng Cảnh Khắc Nghiệt', desc: 'Mộng Thị (mua thẻ) đắt thêm 15%; Tĩnh Thất (nghỉ) hồi ít hơn 5%.' });
+      if (n >= 6) a.push({ sc: 6, label: 'Sát Khí Dâng Trào', desc: 'Sát thương đòn đánh của quái tăng 5% mỗi bậc kể từ SC6 (hiện +' + (5 * (n - 5)) + '%).' });
+      if (n >= 7) a.push({ sc: 7, label: 'Ác Thủ Hiểm Chiêu', desc: 'Ác Thủ (Cửa Trùng) và Mộng Chủ được cộng thêm 1 chiêu vào bộ đòn — chuỗi tấn công khó đoán hơn.' });
+      if (n >= 8) a.push({ sc: 8, label: 'Nội Thương Quấy Nhiễu', desc: 'Mỗi trận bị trộn thêm 1 thẻ rác "Nội Thương" vào bộ bài — kẹt tay, không đánh được.' });
+      if (n >= 9) a.push({ sc: 9, label: 'Độc Kế Tinh Anh', desc: 'Tinh Anh và Chưởng Môn có thêm đòn gieo Suy Yếu hoặc Độc lên người chơi.' });
+      if (n >= 10) a.push({ sc: 10, label: 'Khí Cơ Bế Tắc', desc: 'Lượt đầu mỗi trận bị −1 Khí — mở màn có ít nước đi hơn.' });
+      if (n >= 11) a.push({ sc: 11, label: 'Quái Vật Kiên Cường', desc: 'Quái vận Hộ Thể và Liệu Thương +25% — thủ dày hơn và hồi nhiều máu hơn.' });
+      if (n >= 12) a.push({ sc: 12, label: 'Trọng Kích Bạo Liệt', desc: 'Đòn Vận Công (đòn nặng quái vận sẵn) tăng 25% sát thương.' });
+      if (n >= 13) a.push({ sc: 13, label: 'Cơ Duyên Khan Hiếm', desc: 'Di vật rơi hiếm hơn — 35% khả năng hụt di vật sau trận thắng có thưởng.' });
+      if (n >= 14) a.push({ sc: 14, label: 'Trầm Kha Dai Dẳng', desc: 'Bỏng và Độc mà quái gieo lên người chơi kéo dài thêm 1 lượt — rát dai hơn.' });
+      if (n >= 15) a.push({ sc: 15, label: 'Phẫn Nộ · Pha 2', desc: 'Mộng Chủ/Ác Thủ khi máu còn dưới 50% sẽ nổi Phẫn Nộ: thêm 1 chiêu và MỌI đòn +20% sát thương. Cực nguy hiểm về cuối trận.' });
+      return a; },
     scBankPct(n) { return Math.min(8 * (n || 0), 40); },   // +8%/bậc bank, cap +40% (rate bank tổng cap 0.90 từ ~SC5)
     // ----- Mở thẻ Tuyệt theo cột mốc (CHỈ lọc roll thưởng/shop; bộ khởi đầu hero giữ nguyên) -----
     _cardUnlocked(id) { const c = POOL[id]; if (!c || (c.rar !== 'tuyet' && c.rar !== 'than')) return true; try { return (this.$store.game.state.dangTien.unlockedCards || []).includes(id); } catch (e) { return false; } },   // Tuyệt (cột mốc) + Thần Thoại (hạ huyền thoại) mới mở
