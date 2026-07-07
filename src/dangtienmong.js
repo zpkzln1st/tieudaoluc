@@ -496,7 +496,7 @@ export function dangTienMong() {
     drawPile: [], hand: [], discard: [], log: '', playerHit: false, playerFloats: [], _f: 0, _firstAtkUsed: false, _sectPlayed: {}, _shake: false, _hitstop: false, _winning: false, _losing: false, selUid: null,
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null, _gotThan: null, _eventResult: null, _pendingEventResult: false, _evtBefore: null, _evtRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
-    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, wikiFiltOpen: false, cardDetail: null, lightbox: null, _chipTip: null, _hoverCard: null,
+    dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, wikiFiltOpen: false, dtmFiltDrop: null, cardDetail: null, lightbox: null, _chipTip: null, _hoverCard: null,
     // ----- Bảng Dev/Test (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D; CHỈ đụng this.* + state.dangTien + DOM) -----
     devEnabled: false, devPanel: false, devCardSel: '', devEnemySel: '', devHp: '', devKhi: '', devEnemyHp: '',
     HEROES, RELICS, metaUp: META_UP,
@@ -690,8 +690,8 @@ export function dangTienMong() {
     moveIntentColor(e, i) { const it = e.intents[i]; if (!it) return '#94a3b8'; return this._itCol(it.t); },
     moveArt(m) { return (m && m.art) ? 'images/cards/' + m.art + '.webp' : ''; },
     // ----- Bách Khoa Thẻ (wiki) — Sảnh + trong trận -----
-    openWiki() { this.wikiOpen = true; },
-    closeWiki() { this.wikiOpen = false; },
+    openWiki() { this.wikiOpen = true; this.dtmFiltDrop = null; },
+    closeWiki() { this.wikiOpen = false; this.dtmFiltDrop = null; },
     wikiPhaiList() { return [...new Set(Object.keys(POOL).map((k) => POOL[k].sect).filter(Boolean))].sort(); },
     wikiPhaiShown() { const all = this.wikiPhaiList(); return this.phaiExpanded ? all : all.slice(0, 3); },
     wikiHasMorePhai() { return this.wikiPhaiList().length > 3; },
@@ -710,6 +710,15 @@ export function dangTienMong() {
     },
     wikiActive() { const a = []; if (this.fHe !== 'all') a.push({ g: 'he', label: 'Hệ ' + HE_NAME[this.fHe] }); if (this.fLoai !== 'all') a.push({ g: 'loai', label: this.typeLabel({ type: this.fLoai }) }); if (this.fBac !== 'all') a.push({ g: 'bac', label: RAR_N[this.fBac] }); if (this.fPhai !== 'all') a.push({ g: 'phai', label: this.fPhai === '__none' ? 'Vô phái' : this.fPhai }); return a; },
     setFilter(g, v) { if (g === 'he') this.fHe = v; else if (g === 'loai') this.fLoai = v; else if (g === 'bac') this.fBac = v; else if (g === 'phai') this.fPhai = v; },
+    // ----- Bộ lọc dạng dropdown (thanh xổ): nhãn hiện tại + mở/đóng -----
+    filtLabel(g) {
+      if (g === 'he') return this.fHe === 'all' ? 'Tất Cả' : (HE_NAME[this.fHe] || this.fHe);
+      if (g === 'loai') return this.fLoai === 'all' ? 'Tất cả' : this.typeLabel({ type: this.fLoai });
+      if (g === 'bac') return this.fBac === 'all' ? 'Tất cả' : (RAR_N[this.fBac] || this.fBac);
+      if (g === 'phai') return this.fPhai === 'all' ? 'Tất cả' : (this.fPhai === '__none' ? 'Vô phái' : this.fPhai);
+      return '';
+    },
+    toggleFiltDrop(g) { this.dtmFiltDrop = this.dtmFiltDrop === g ? null : g; },
     clearFilter(g) { this.setFilter(g, 'all'); },
     clearAllFilters() { this.fHe = this.fLoai = this.fBac = this.fPhai = 'all'; this.wikiSearch = ''; },
     togglePhaiExpand() { this.phaiExpanded = !this.phaiExpanded; },

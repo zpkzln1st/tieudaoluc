@@ -7490,7 +7490,20 @@
         .dtmk-afchip{ background:#12303a; border:1px solid #2b6f8a; color:#9fe0f5; padding:3px 6px 3px 10px; border-radius:999px; font-size:11.5px; display:inline-flex; gap:5px; align-items:center; cursor:pointer; white-space:nowrap; }
         .dtmk-afchip:hover{ background:#164050; }
         .dtmk-clearall{ padding:3px 10px; border-radius:999px; font-size:11.5px; color:#f5a3a3; border:1px solid #5a2b2b; cursor:pointer; white-space:nowrap; }
-        /* Toggle "Bộ lọc" — CHỈ mobile: gom Hệ/Loại/Bậc/Phái vào dropdown cho thẻ rộng chỗ; desktop luôn hiện */
+        /* Bộ lọc dạng DROPDOWN (thanh xổ) — Kiểu B custom themed. 2 cột mobile / 4 cột desktop; popup nổi trên lưới thẻ */
+        .dtmk-filt-groups{ position:relative; z-index:5; }
+        .dtmk-fgrid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+        .dtmk-flbl{ font-size:11px; color:#7c8a99; display:block; margin-bottom:3px; }
+        .dtmk-cd{ position:relative; }
+        .dtmk-cdbtn{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:6px; background:#0c141d; border:1px solid #334155; border-radius:9px; padding:8px 11px; color:#e2e8f0; font-size:12.5px; font-weight:600; cursor:pointer; text-align:left; }
+        .dtmk-cdbtn > span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .dtmk-cdbtn .ar{ color:#7fd6f0; font-size:9px; flex:none; transition:transform .15s; }
+        .dtmk-cd.open .dtmk-cdbtn{ border-color:#38bdf8; }
+        .dtmk-cd.open .dtmk-cdbtn .ar{ transform:rotate(180deg); }
+        .dtmk-cdpop{ position:absolute; left:0; right:0; top:calc(100% + 5px); z-index:40; background:#0e1826; border:1px solid #3a4a5a; border-radius:10px; padding:8px; box-shadow:0 16px 36px -10px #000, 0 0 0 1px #00000055; display:none; flex-wrap:wrap; gap:6px; max-height:210px; overflow-y:auto; }
+        .dtmk-cd.open .dtmk-cdpop{ display:flex; }
+        @media(min-width:641px){ .dtmk-fgrid{ grid-template-columns:repeat(4,1fr); } }
+        /* Toggle "Bộ lọc" — CHỉ mobile: gom Hệ/Loại/Bậc/Phái vào dropdown cho thẻ rộng chỗ; desktop luôn hiện */
         .dtmk-filt-toggle{ display:none; }
         @media(max-width:640px){
           .dtmk-filt-toggle{ display:inline-flex; align-items:center; gap:5px; flex:none; padding:8px 11px; border-radius:9px; border:1px solid #26313d; background:#0e1524; color:#cbd5e1; font-size:12px; font-weight:700; cursor:pointer; }
@@ -8312,25 +8325,45 @@
                     <button class="dtmk-filt-toggle" @click="wikiFiltOpen=!wikiFiltOpen"><span>Bộ lọc</span><span class="ar" x-text="wikiFiltOpen?'▴':'▾'"></span></button>
                   </div>
                   <div class="dtmk-filt-groups space-y-3" :class="wikiFiltOpen?'open':''">
-                  <div class="flex gap-2"><span class="dtmk-glabel">Hệ:</span><div class="flex flex-wrap gap-1.5">
-                    <template x-for="h in [['all','Tất Cả'],['kim','Kim'],['moc','Mộc'],['thuy','Thủy'],['hoa','Hỏa'],['tho','Thổ'],['vatly','Vô']]" :key="h[0]">
-                      <span class="dtmk-tab" @click="setFilter('he',h[0])" :style="fHe===h[0]?('background:'+(h[0]==='all'?'#f5b942':heColor(h[0]))+';border-color:'+(h[0]==='all'?'#f5b942':heColor(h[0]))+';color:#0a0f16'):''" x-text="h[1]"></span>
-                    </template>
-                  </div></div>
-                  <div class="flex flex-col sm:flex-row sm:gap-7 gap-3">
-                    <div class="flex gap-2"><span class="dtmk-glabel">Loại:</span><div class="flex flex-wrap gap-1.5">
-                      <template x-for="l in [['all','Tất cả'],['atk','Công'],['def','Thủ'],['ky','Kỹ']]" :key="l[0]"><span class="dtmk-chip" :class="fLoai===l[0]?'on':''" @click="setFilter('loai',l[0])" x-text="l[1]"></span></template>
-                    </div></div>
-                    <div class="flex gap-2"><span class="dtmk-glabel">Bậc:</span><div class="flex flex-wrap gap-1.5">
-                      <template x-for="b in [['all','Tất cả'],['so','Sơ'],['thuong','Thường'],['hiem','Hiếm'],['tuyet','Tuyệt'],['than','Thần Thoại']]" :key="b[0]"><span class="dtmk-chip" :class="fBac===b[0]?'on':''" @click="setFilter('bac',b[0])" :style="wikiBacHas(b[0])?'':'opacity:.4'" x-text="b[1]"></span></template>
-                    </div></div>
+                  <!-- Bộ lọc = 4 dropdown "thanh xổ" (2 cột mobile / 4 cột desktop) — tiết kiệm chỗ; click-ngoài đóng -->
+                  <div class="dtmk-fgrid" @click.outside="dtmFiltDrop=null">
+                    <div class="dtmk-fld"><span class="dtmk-flbl">Hệ</span>
+                      <div class="dtmk-cd" :class="dtmFiltDrop==='he'?'open':''">
+                        <button class="dtmk-cdbtn" @click.stop="toggleFiltDrop('he')"><span x-text="filtLabel('he')"></span><span class="ar">▾</span></button>
+                        <div class="dtmk-cdpop">
+                          <template x-for="h in [['all','Tất Cả'],['kim','Kim'],['moc','Mộc'],['thuy','Thủy'],['hoa','Hỏa'],['tho','Thổ'],['vatly','Vô']]" :key="h[0]">
+                            <span class="dtmk-chip" :class="fHe===h[0]?'on':''" :style="fHe===h[0]?('background:'+(h[0]==='all'?'#f5b942':heColor(h[0]))+';border-color:'+(h[0]==='all'?'#f5b942':heColor(h[0]))+';color:#0a0f16'):''" @click.stop="setFilter('he',h[0]);dtmFiltDrop=null" x-text="h[1]"></span>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="dtmk-fld"><span class="dtmk-flbl">Loại</span>
+                      <div class="dtmk-cd" :class="dtmFiltDrop==='loai'?'open':''">
+                        <button class="dtmk-cdbtn" @click.stop="toggleFiltDrop('loai')"><span x-text="filtLabel('loai')"></span><span class="ar">▾</span></button>
+                        <div class="dtmk-cdpop">
+                          <template x-for="l in [['all','Tất cả'],['atk','Công'],['def','Thủ'],['ky','Kỹ']]" :key="l[0]"><span class="dtmk-chip" :class="fLoai===l[0]?'on':''" @click.stop="setFilter('loai',l[0]);dtmFiltDrop=null" x-text="l[1]"></span></template>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="dtmk-fld"><span class="dtmk-flbl">Bậc</span>
+                      <div class="dtmk-cd" :class="dtmFiltDrop==='bac'?'open':''">
+                        <button class="dtmk-cdbtn" @click.stop="toggleFiltDrop('bac')"><span x-text="filtLabel('bac')"></span><span class="ar">▾</span></button>
+                        <div class="dtmk-cdpop">
+                          <template x-for="b in [['all','Tất cả'],['so','Sơ'],['thuong','Thường'],['hiem','Hiếm'],['tuyet','Tuyệt'],['than','Thần Thoại']]" :key="b[0]"><span class="dtmk-chip" :class="fBac===b[0]?'on':''" :style="wikiBacHas(b[0])?'':'opacity:.4'" @click.stop="setFilter('bac',b[0]);dtmFiltDrop=null" x-text="b[1]"></span></template>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="dtmk-fld"><span class="dtmk-flbl">Phái</span>
+                      <div class="dtmk-cd" :class="dtmFiltDrop==='phai'?'open':''">
+                        <button class="dtmk-cdbtn" @click.stop="toggleFiltDrop('phai')"><span x-text="filtLabel('phai')"></span><span class="ar">▾</span></button>
+                        <div class="dtmk-cdpop">
+                          <span class="dtmk-chip" :class="fPhai==='all'?'on':''" @click.stop="setFilter('phai','all');dtmFiltDrop=null">Tất cả</span>
+                          <span class="dtmk-chip" :class="fPhai==='__none'?'on':''" @click.stop="setFilter('phai','__none');dtmFiltDrop=null">Vô phái</span>
+                          <template x-for="p in wikiPhaiList()" :key="p"><span class="dtmk-chip" :class="fPhai===p?'on':''" @click.stop="setFilter('phai',p);dtmFiltDrop=null" x-text="p"></span></template>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="flex gap-2"><span class="dtmk-glabel">Phái:</span><div class="flex flex-wrap gap-1.5">
-                    <span class="dtmk-chip" :class="fPhai==='all'?'on':''" @click="setFilter('phai','all')">Tất cả</span>
-                    <span class="dtmk-chip" :class="fPhai==='__none'?'on':''" @click="setFilter('phai','__none')">Vô phái</span>
-                    <template x-for="p in wikiPhaiShown()" :key="p"><span class="dtmk-chip" :class="fPhai===p?'on':''" @click="setFilter('phai',p)" x-text="p"></span></template>
-                    <template x-if="wikiHasMorePhai()"><span class="dtmk-chip" style="border-style:dashed;color:#7fd6f0" @click="togglePhaiExpand()" x-text="phaiExpanded?'− Thu gọn':('+ Thêm ('+(wikiPhaiList().length-3)+')')"></span></template>
-                  </div></div>
                   </div>
                   <template x-if="wikiActive().length">
                     <div class="flex items-start gap-2"><span class="dtmk-glabel">Đang chọn:</span><div class="flex flex-wrap gap-1.5 items-center">
