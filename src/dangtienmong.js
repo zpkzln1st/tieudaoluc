@@ -899,7 +899,53 @@ export function dangTienMong() {
       if (a.phase === 'event') this.openEvent();   // event fn khong serialize -> regen event moi (hiem)
       else { this.phase = a.phase || 'map'; if (this.phase === 'map') this._scrollMapCur(); }
     },
-    genMap() { this.map = TIER.map((ti) => ti.types ? ti.types.map((t) => ({ type: t })) : [{ type: 'battle' }, { type: 'battle' }]); },
+    // Map PROCEDURAL — random mỗi ván (khỏi cố định lặp lại): giữ CỐ ĐỊNH Boss (tầng 20) + 2 mốc Ác Thủ (xê dịch cuối mỗi Trùng) + Huyền Thoại ở Trùng sâu; còn lại xáo loại node + số nhánh, khó dần theo độ sâu, bảo đảm đủ Mộng Thị/Tĩnh Thất/Kỳ Ngộ. (TIER cũ = layout gốc, giữ tham khảo.)
+    genMap() {
+      const R = () => Math.random();
+      const pick = (a) => a[Math.floor(R() * a.length)];
+      const m = [];
+      m.push([{ type: 'battle' }]);   // Tầng 1: khởi đầu nhẹ (1 trận)
+      const mb1 = 4 + Math.floor(R() * 3);    // Ác Thủ #1: index 4-6 (tầng 5-7, cuối Trùng 1)
+      const mb2 = 11 + Math.floor(R() * 3);   // Ác Thủ #2: index 11-13 (tầng 12-14, cuối Trùng 2)
+      const hy = new Set();
+      hy.add(14 + Math.floor(R() * 4));       // Huyền Thoại: index 14-17 (Trùng sâu)
+      if (R() < 0.55) { const h2 = 14 + Math.floor(R() * 5); if (h2 !== mb2) hy.add(h2); }
+      for (let i = 1; i <= 18; i++) {
+        if (i === mb1 || i === mb2) { m.push([{ type: 'miniboss' }]); continue; }
+        const depth = i / 18;
+        const isHy = hy.has(i);
+        let nb = R() < 0.16 ? 1 : (R() < (0.5 + depth * 0.3) ? 2 : 3);   // sâu -> nhiều nhánh (lựa chọn)
+        if (isHy && nb < 2) nb = 2;
+        const combat = depth < 0.3 ? pick(['battle', 'battle', 'battle', 'swarm'])
+                     : depth < 0.62 ? pick(['battle', 'battle', 'swarm', 'elite'])
+                     : pick(['swarm', 'elite', 'elite', 'battle']);   // 1 nhánh CHIẾN ĐẤU, khó dần
+        const nodes = [{ type: combat }];
+        const sec = ['event', 'event', 'shop', 'rest'];
+        if (depth > 0.4) sec.push('elite');
+        if (depth > 0.25) sec.push('battle');
+        for (let b = 1; b < nb; b++) {
+          let t = (isHy && b === 1) ? 'huyenthoai' : pick(sec);
+          let g = 0; while (nodes.some((n) => n.type === t) && t !== 'battle' && g++ < 4) t = pick(sec);   // tránh trùng loại trong 1 tầng
+          nodes.push({ type: t });
+        }
+        m.push(nodes);
+      }
+      m.push([{ type: 'boss' }]);   // Tầng 20: Mộng Chủ — CỐ ĐỊNH
+      // Bảo đảm rải đủ Mộng Thị / Tĩnh Thất / Kỳ Ngộ (khỏi xui bị thiếu kinh tế/hồi phục)
+      const cnt = (t) => m.reduce((s, r) => s + (r.some((n) => n.type === t) ? 1 : 0), 0);
+      const inject = (t, min, lo, hi) => {
+        let g = 0;
+        while (cnt(t) < min && g++ < 60) {
+          const i = lo + Math.floor(R() * (hi - lo + 1)); const r = m[i]; if (!r) continue;
+          const t0 = r[0].type; if (t0 === 'miniboss' || t0 === 'boss') continue;
+          if (r.length >= 3) continue;   // đầy -> tìm tầng khác (chỉ PUSH, KHÔNG thay node -> khỏi đè mất loại đã bảo đảm)
+          if (r.some((n) => n.type === t)) continue;
+          r.push({ type: t });
+        }
+      };
+      inject('shop', 3, 2, 18); inject('rest', 3, 2, 18); inject('event', 3, 1, 12);
+      this.map = m;
+    },
     buildMapView() { this.mapView = this.map.map((row, r) => ({ nodes: row, state: r < this.mapTier ? 'done' : (r === this.mapTier ? 'pick' : 'locked') })).slice().reverse(); },
     // Gom mapView (đã đảo, cao->thấp) thành 3 Trùng để render dải cảnh. Mỗi row kèm tier thật.
     trungBands() {
