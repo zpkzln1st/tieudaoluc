@@ -7532,6 +7532,7 @@
           .dtmk-back{ align-items:flex-start !important; padding-top:54px !important; }
           .dtmk-modal{ max-height:calc(100dvh - 70px) !important; }
           .dtmk-modal.wiki{ height:calc(100dvh - 70px) !important; }
+          .dtmk-modal.scinfo{ height:calc(100dvh - 70px) !important; }   /* khung Sát Cảnh CỐ ĐỊNH size (thêm luật sau chỉ cuộn, khỏi chỉnh layout) */
         }
         /* Lưới thẻ wiki */
         .dtmk-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); }
@@ -8286,7 +8287,7 @@
           <!-- ===== POPUP: Chi Tiết Luật Sát Cảnh (list dài ở SC cao — đọc đầy đủ) ===== -->
           <template x-if="scInfo">
             <div class="dtmk-back" @click.self="scInfo=null">
-              <div class="dtmk-modal" style="width:min(460px,94vw);max-height:min(78vh,600px)">
+              <div class="dtmk-modal scinfo" style="width:min(460px,94vw);max-height:min(78vh,600px)">
                 <div class="dtmk-mhead"><div class="fserif text-lg gold-text">Sát Cảnh <span x-text="scInfo.sc"></span> <span class="text-slate-300 text-sm font-normal" x-text="'· '+scInfo.hero"></span></div><button class="dtmk-xbtn" @click="scInfo=null"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-x"/></svg></button></div>
                 <div class="dtm-scinfo-body">
                   <div class="dtm-scinfo-note">Các luật khó, cộng dồn theo từng bậc Sát Cảnh (màu = độ khó):</div>
