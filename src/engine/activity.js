@@ -18,6 +18,7 @@ import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { grantDungeon } from './dungeon.js';
+import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
 
 export function getAction(skillId, actionId) {
   const skill = SKILLS[skillId];
@@ -26,7 +27,7 @@ export function getAction(skillId, actionId) {
 }
 
 export function idleCapMs(state) {
-  return (state.settings?.idleCapHours || 8) * 3600 * 1000;
+  return ((state.settings?.idleCapHours || 8) + dongPhuCapBonusH(state)) * 3600 * 1000;
 }
 
 export function inputStatus(state, action) {

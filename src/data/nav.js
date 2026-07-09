@@ -8,6 +8,7 @@ export const NAV = [
     { view: 'profile',   name: 'Hồ Sơ',   gloss: 'Profile',   icon: '👤' },
     { view: 'trangbi',   name: 'Trang Bị', gloss: 'Equipment', icon: '🛡️' },
     { view: 'inventory', name: 'Hành Lý', gloss: 'Inventory', icon: '🎒' },
+    { view: 'dongPhu',   name: 'Động Phủ', gloss: 'Homestead', icon: '🏠' },
     { view: 'tangkinhcac',name: 'Tàng Kinh Các', gloss: 'Skill Library', icon: '📖' },
     { view: 'map',       name: 'Bản Đồ',  gloss: 'Map',       icon: '🗺️' },
     { view: 'nhiemVu',   name: 'Nhiệm Vụ', gloss: 'Quests',   icon: '📜' },
@@ -44,6 +45,6 @@ export const NAV = [
 export const VIEW_NAMES = {
   profile: 'Hồ Sơ', trangbi: 'Trang Bị', inventory: 'Hành Lý', map: 'Bản Đồ', nhiemVu: 'Nhiệm Vụ',
   combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương',
-  pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng',
+  pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ',
   guild: 'Bang Phái', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ',
 };

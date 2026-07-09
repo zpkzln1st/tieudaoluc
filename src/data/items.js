@@ -105,6 +105,14 @@ export const ITEMS = {
   tieuPhuLinhThach:   { id: 'tieuPhuLinhThach',   name: 'Linh Thạch Tiều Phu',  icon: '💎', type: 'vatlieu', quality: 'tinhPham', value: 50, desc: 'Linh thạch ngưng từ mộc khí — lắp cho kỹ năng Đốn Củi để tăng hiệu suất.' },
   khoangPhuLinhThach: { id: 'khoangPhuLinhThach', name: 'Linh Thạch Khoáng Phu', icon: '💠', type: 'vatlieu', quality: 'tinhPham', value: 50, desc: 'Linh thạch ngưng từ địa khí — lắp cho kỹ năng Đào Khoáng để tăng hiệu suất.' },
 
+  // --- Vật liệu Doanh Tạo cao cấp (Động Phủ) — chế từ nghề Xây Dựng, xây/nâng nhà riêng ---
+  thanhNgoa:     { id: 'thanhNgoa',     name: 'Thanh Ngõa',     icon: '🟦', type: 'vatlieu', quality: 'luongPham', value: 15,  desc: 'Ngói nung men xanh biếc, mưa gió trăm năm chẳng phai. Mái nhà lợp nó, xa trông như một dải sóng ngọc.' },
+  luongMoc:      { id: 'luongMoc',      name: 'Lương Mộc',      icon: '🪵', type: 'vatlieu', quality: 'luongPham', value: 40,  desc: 'Xà bạch dương bào nhẵn, nẹp khớp sắt hai đầu. Đặt lên tường, cả gian nhà lập tức có xương sống.' },
+  thachChuyen:   { id: 'thachChuyen',   name: 'Thạch Chuyên',   icon: '🪨', type: 'vatlieu', quality: 'tinhPham',  value: 32,  desc: 'Đá vôi đẽo vuông thành sắc cạnh, nặng trịch một khối. Tường xây từ nó, phá thành mới mong lay nổi.' },
+  tinhThachSong: { id: 'tinhThachSong', name: 'Tinh Thạch Song', icon: '🪟', type: 'vatlieu', quality: 'tinhPham',  value: 120, desc: 'Song cửa ghép tinh thạch trong vắt, khung gỗ phong đỏ. Đêm xuống tự ánh lên, trong nhà chẳng cần thắp đèn.' },
+  hanNgocChuyen: { id: 'hanNgocChuyen', name: 'Hàn Ngọc Chuyên', icon: '🧊', type: 'vatlieu', quality: 'tuyetPham', value: 140, desc: 'Gạch ép từ hàn thiết và thạch khôi, mát lạnh quanh năm. Hè oi ngồi trong phòng, ngỡ như tựa lưng vào băng.' },
+  kimTatTru:     { id: 'kimTatTru',     name: 'Kim Tất Trụ',    icon: '🏛️', type: 'vatlieu', quality: 'tuyetPham', value: 260, desc: 'Cột hồng mộc sơn kim quang, đầu trụ bọc hoàng kim. Dựng giữa chính đường, khí phái áp cả một vùng.' },
+
   // --- Đá Cường Hóa (ép từ Thỏi ở Luyện Kim; dùng cường hóa trang bị) ---
   daCuongHoaSo:    { id: 'daCuongHoaSo',    name: 'Đá Cường Hóa Sơ',    icon: '🔹', type: 'vatlieu', quality: 'luongPham', value: 30,  desc: 'Đá ngưng từ thỏi luyện sơ cấp, ánh lam mờ. Dùng tôi luyện trang bị bậc thấp — cường hóa +1 đến +5.' },
   daCuongHoaTrung: { id: 'daCuongHoaTrung', name: 'Đá Cường Hóa Trung', icon: '🔷', type: 'vatlieu', quality: 'tinhPham',  value: 95,  desc: 'Đá cường hóa tinh luyện, lõi sáng trong. Dùng cho bậc cường hóa +6 đến +10.' },

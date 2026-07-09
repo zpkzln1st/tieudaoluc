@@ -131,6 +131,13 @@ export const SKILLS = {
       { id: 'vanYeu',    name: 'Ván Gỗ',   gloss: 'Weak Plank',  itemId: 'vanYeu',    reqLevel: 1,  xp: 17, time: 45.8, statXp: 1, inputs: [{ itemId: 'tungMoc', qty: 3 }] },
       { id: 'gach',      name: 'Gạch',     gloss: 'Brick',       itemId: 'gach',      reqLevel: 10, xp: 58, time: 87.8, statXp: 2, inputs: [{ itemId: 'datSet', qty: 3 }] },
       { id: 'thietKhau', name: 'Khớp Sắt', gloss: 'Iron Fitting',itemId: 'thietKhau', reqLevel: 10, xp: 58, time: 87.8, statXp: 2, inputs: [{ itemId: 'thietDinh', qty: 3 }] },
+      // --- Vật liệu Động Phủ (đợt 1, Lv12-38) — nuôi nhà bậc 3-6; xp ~×2 gather cùng cấp (craft tiêu liệu đã cày) ---
+      { id: 'thanhNgoa',     name: 'Thanh Ngõa',     gloss: 'Glazed Tile',   itemId: 'thanhNgoa',     reqLevel: 12, xp: 240, time: 100, statXp: 3, inputs: [{ itemId: 'datSet', qty: 4 }, { itemId: 'cat', qty: 2 }] },
+      { id: 'luongMoc',      name: 'Lương Mộc',      gloss: 'Beam',          itemId: 'luongMoc',      reqLevel: 18, xp: 300, time: 110, statXp: 3, inputs: [{ itemId: 'bachDuongMoc', qty: 3 }, { itemId: 'thietKhau', qty: 1 }] },
+      { id: 'thachChuyen',   name: 'Thạch Chuyên',   gloss: 'Hewn Stone',    itemId: 'thachChuyen',   reqLevel: 24, xp: 370, time: 120, statXp: 4, inputs: [{ itemId: 'thachKhoi', qty: 4 }, { itemId: 'cat', qty: 2 }] },
+      { id: 'tinhThachSong', name: 'Tinh Thạch Song', gloss: 'Crystal Lattice', itemId: 'tinhThachSong', reqLevel: 26, xp: 450, time: 130, statXp: 5, inputs: [{ itemId: 'tinhThachDinh', qty: 2 }, { itemId: 'phongMoc', qty: 2 }] },
+      { id: 'hanNgocChuyen', name: 'Hàn Ngọc Chuyên', gloss: 'Jade Brick',   itemId: 'hanNgocChuyen', reqLevel: 30, xp: 530, time: 140, statXp: 5, inputs: [{ itemId: 'hanThietDinh', qty: 1 }, { itemId: 'thachKhoi', qty: 3 }] },
+      { id: 'kimTatTru',     name: 'Kim Tất Trụ',    gloss: 'Gilt Pillar',   itemId: 'kimTatTru',     reqLevel: 38, xp: 640, time: 150, statXp: 6, inputs: [{ itemId: 'hongMoc', qty: 3 }, { itemId: 'hoangKimDinh', qty: 1 }] },
     ],
   },
 };

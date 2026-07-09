@@ -1,11 +1,13 @@
 // ============================================================
 // ĐĂNG TIÊN MỘNG (登仙夢) — hệ con game THẺ BÀI (deck-battler roguelike).
-// CÁCH LY TUYỆT ĐỐI: component này CHỈ đụng state.dangTien (persist Tầng Mộng sâu nhất).
+// CÁCH LY TUYỆT ĐỐI: component này CHỈ GHI state.dangTien (+ 1 cầu assist ghi state.currencies).
 //   KHÔNG import/đụng deriveCombat / gearBag / combat. Mộng cảnh = thắng/thua không phạt thân.
-//   (Pha 1: assist đổi Mộng Ngân ↔ Nguyên Bảo cap tuần — CHƯA wire.)
+//   ĐƯỢC ĐỌC knob THUẦN từ engine/dongphu.js (dtmBridgeWeekCap / dtmMongNganMult) — chiều
+//   phụ thuộc DTM -> dongphu (dongphu KHÔNG đọc ngược DTM). Đây là kênh Động Phủ đổi TRẦN, 0 power mới.
 // Logic = bản mockup _mockup/dangtienmong.html đã verify; thêm bridge persist Tầng sâu nhất.
 // ============================================================
 import { Storage } from './engine/save.js';
+import { dtmBridgeWeekCap, dtmMongNganMult } from './engine/dongphu.js';   // Mộng Đài (Động Phủ) đổi trần assist + %Mộng Ngân
 import { castFxFor, runFx, runCue, dealsDamage, DTM_VANISH_MS, DTM_VANISH_LEAD } from './dtm_fx.js';
 import { CARD_LORE } from './dtm_card_lore.js';
 
@@ -481,7 +483,7 @@ export function dangTienMong() {
   ];
   const DTM_SC_MAX = 15;   // Sát Cảnh bậc tối đa (SC1-5 cũ + SC6-15 mới, cộng dồn §8)
   const DTM_BRIDGE_RATE = 20;      // (assist) đổi bao nhiêu Mộng Ngân lấy 1 Nguyên Bảo — DRAFT
-  const DTM_BRIDGE_WEEKCAP = 60;   // (assist) trần Nguyên Bảo đổi được mỗi tuần — DRAFT
+  // Trần assist tuần KHÔNG còn hardcode: đọc dtmBridgeWeekCap(state) từ Động Phủ (nền 60, Mộng Đài bậc 1/2/3 -> 70/75/80).
   let _uid = 0;
   const mk = (id) => ({ uid: ++_uid, _cast: null, id, ...POOL[id] });
   // Thẻ rác "Nội Thương" (SC8) — KHÔNG ở POOL (không lọt wiki/đếm 126). Không chơi được, chiếm chỗ tay tới cuối lượt. Chỉ nhét vào drawPile mỗi trận.
@@ -520,7 +522,7 @@ export function dangTienMong() {
       try {
         const s = this.$store.game.state.dangTien; const sc = (this.run && this.run.sc) || 0;
         const rate = Math.min((won ? 0.50 : 0.35) + 0.08 * sc, 0.90);
-        let gain = Math.round((this.runNgan || 0) * rate);
+        let gain = Math.round((this.runNgan || 0) * rate * dtmMongNganMult(this.$store.game.state));  // Mộng Đài bậc 2: +10% Mộng Ngân/ván
         if (won && !s._firstWin) { gain += 100; s._firstWin = true; }                 // Đăng Tiên lần đầu
         if (won && sc > 0) { const hid = this.run.hero.id; const cm = s.scMaxByHero[hid] || 0; if (sc >= cm && cm < DTM_SC_MAX) gain += 50; } // mở bậc Sát Cảnh mới
         if ((this.deepest || 0) > (s._tierBanked || 0)) { gain += 30 * (this.deepest - (s._tierBanked || 0)); s._tierBanked = this.deepest; } // tầng mới
@@ -544,9 +546,9 @@ export function dangTienMong() {
     // ----- Assist bridge: đổi Mộng Ngân (persistent) -> chút Nguyên Bảo (main), CAP theo TUẦN. KÊNH 1 CHIỀU DUY NHẤT chạm state.currencies (cố ý, cách ly còn lại giữ). -----
     _weekId() { try { const d = new Date(); const dow = (d.getDay() + 6) % 7; const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dow); const p = (x) => String(x).padStart(2, '0'); return mon.getFullYear() + '-' + p(mon.getMonth() + 1) + '-' + p(mon.getDate()); } catch (e) { return '0'; } },
     _bridge() { const s = this.$store.game.state.dangTien; if (!s.bridgeWeek) s.bridgeWeek = { weekId: null, nbClaimed: 0 }; const wk = this._weekId(); if (s.bridgeWeek.weekId !== wk) { s.bridgeWeek.weekId = wk; s.bridgeWeek.nbClaimed = 0; } return s.bridgeWeek; },
-    bridgeRate() { return DTM_BRIDGE_RATE; }, bridgeCap() { return DTM_BRIDGE_WEEKCAP; },
+    bridgeRate() { return DTM_BRIDGE_RATE; }, bridgeCap() { try { return dtmBridgeWeekCap(this.$store.game.state); } catch (e) { return 60; } },
     bridgeClaimed() { return this._bridge().nbClaimed; },
-    bridgeRemaining() { return Math.max(0, DTM_BRIDGE_WEEKCAP - this._bridge().nbClaimed); },
+    bridgeRemaining() { return Math.max(0, this.bridgeCap() - this._bridge().nbClaimed); },
     bridgeMaxNow() { return Math.min(this.bridgeRemaining(), Math.floor(this.metaNgan() / DTM_BRIDGE_RATE)); },
     exchangeNgan(n) {
       try {
