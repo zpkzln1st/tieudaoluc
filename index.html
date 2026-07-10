@@ -10012,8 +10012,8 @@
       font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:#0d1420; border:1px solid var(--q,#475569);
       color:var(--q,#cbd5e1); border-radius:7px; padding:0 3px; line-height:1.35; }
     .cbti-gear{ --q:#f5b942; box-shadow:0 0 8px rgba(245,185,66,.3); }
-    .cbti-lg{ width:54px; height:54px; border-radius:11px; }
-    .cbti-lg i{ font-size:10.5px; padding:0 4px; right:-4px; bottom:-4px; }
+    .cbti-lg{ width:108px; height:108px; border-radius:18px; }
+    .cbti-lg i{ font-size:14px; padding:1px 6px; right:-5px; bottom:-5px; }
     @keyframes cbtiPop{ 0%{ transform:scale(.55) } 55%{ transform:scale(1.12); box-shadow:0 0 12px rgba(245,185,66,.45) } 100%{ transform:scale(1) } }
     @media (prefers-reduced-motion:reduce){ .cbti{ animation:none } }
     /* Tooltip đồ rơi (hover ô .cbti) — tên + phẩm chất + loại + số lượng, tô theo màu phẩm chất (--q) */
@@ -10035,56 +10035,56 @@
   </style>
   <template x-if="$store.game.combatSummary">
     <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click.self="$store.game.closeCombatSummary()">
-      <div class="w-[520px] max-w-[96vw] max-h-[92vh] overflow-y-auto rounded-2xl relative" style="background:linear-gradient(180deg,#0d1524,#0a101c);border:1px solid rgba(232,200,119,.4);box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 34px rgba(232,200,119,.09)">
-        <span class="absolute pointer-events-none" style="top:7px;left:7px;width:26px;height:26px;border:1.5px solid rgba(232,200,119,.55);border-right:none;border-bottom:none;border-radius:8px 0 0 0"></span>
-        <span class="absolute pointer-events-none" style="top:7px;right:7px;width:26px;height:26px;border:1.5px solid rgba(232,200,119,.55);border-left:none;border-bottom:none;border-radius:0 8px 0 0"></span>
+      <div class="w-[676px] max-w-[96vw] max-h-[94vh] overflow-y-auto rounded-2xl relative" style="background:linear-gradient(180deg,#0d1524,#0a101c);border:1px solid rgba(232,200,119,.4);box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 34px rgba(232,200,119,.09)">
+        <span class="absolute pointer-events-none" style="top:9px;left:9px;width:34px;height:34px;border:1.5px solid rgba(232,200,119,.55);border-right:none;border-bottom:none;border-radius:10px 0 0 0"></span>
+        <span class="absolute pointer-events-none" style="top:9px;right:9px;width:34px;height:34px;border:1.5px solid rgba(232,200,119,.55);border-left:none;border-bottom:none;border-radius:0 10px 0 0"></span>
         <!-- Header -->
-        <div class="text-center pt-4 px-5">
-          <div class="text-[10px] tracking-[.3em] uppercase text-amber-200/70" x-text="$store.game.combatSummary.reason==='death' ? '— Trọng Thương —' : '— Thu Quân —'"></div>
-          <div class="text-2xl gold-text" style="font-family:'Lora',serif;font-weight:700">Tổng Kết Chiến Trận</div>
-          <div class="text-[11.5px] text-slate-400 mt-1"><span x-text="$store.game.combatSummary.enemyName"></span><template x-if="$store.game.combatSummary.durMs>0"><span> — giao chiến <b class="text-slate-200" x-text="$store.game.fmtTime(Math.round($store.game.combatSummary.durMs/1000))"></b></span></template></div>
+        <div class="text-center pt-5 px-7">
+          <div class="text-[13px] tracking-[.3em] uppercase text-amber-200/70" x-text="$store.game.combatSummary.reason==='death' ? '— Trọng Thương —' : '— Thu Quân —'"></div>
+          <div class="text-[32px] gold-text" style="font-family:'Lora',serif;font-weight:700">Tổng Kết Chiến Trận</div>
+          <div class="text-[15px] text-slate-400 mt-1.5"><span x-text="$store.game.combatSummary.enemyName"></span><template x-if="$store.game.combatSummary.durMs>0"><span> — giao chiến <b class="text-slate-200" x-text="$store.game.fmtTime(Math.round($store.game.combatSummary.durMs/1000))"></b></span></template></div>
         </div>
-        <div class="flex items-center gap-2.5 mx-6 mt-3 text-amber-200/60 text-[10px]"><span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span>◆<span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span></div>
+        <div class="flex items-center gap-3 mx-7 mt-4 text-amber-200/60 text-[13px]"><span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span>◆<span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span></div>
         <!-- Hero: Trảm / Thắng / Bại -->
-        <div class="flex justify-center gap-9 pt-3 px-5 text-center">
-          <div><div class="text-[26px] font-bold text-slate-100 leading-none" style="font-family:'Lora',serif" x-text="$store.game.fmt($store.game.combatSummary.kills)"></div><div class="text-[9.5px] tracking-[.13em] uppercase text-slate-500 mt-1.5">Đã Trảm</div></div>
-          <div><div class="text-[26px] font-bold text-jade leading-none" style="font-family:'Lora',serif" x-text="$store.game.fmt($store.game.combatSummary.win)"></div><div class="text-[9.5px] tracking-[.13em] uppercase text-slate-500 mt-1.5">Vòng Thắng</div></div>
-          <div><div class="text-[26px] font-bold text-rose-400 leading-none" style="font-family:'Lora',serif" x-text="$store.game.fmt($store.game.combatSummary.lose)"></div><div class="text-[9.5px] tracking-[.13em] uppercase text-slate-500 mt-1.5">Vòng Bại</div></div>
+        <div class="flex justify-center gap-12 pt-4 px-6 text-center">
+          <div><div class="text-[34px] font-bold text-slate-100 leading-none" style="font-family:'Lora',serif" x-text="$store.game.fmt($store.game.combatSummary.kills)"></div><div class="text-[12px] tracking-[.13em] uppercase text-slate-500 mt-2">Đã Trảm</div></div>
+          <div><div class="text-[34px] font-bold text-jade leading-none" style="font-family:'Lora',serif" x-text="$store.game.fmt($store.game.combatSummary.win)"></div><div class="text-[12px] tracking-[.13em] uppercase text-slate-500 mt-2">Vòng Thắng</div></div>
+          <div><div class="text-[34px] font-bold text-rose-400 leading-none" style="font-family:'Lora',serif" x-text="$store.game.fmt($store.game.combatSummary.lose)"></div><div class="text-[12px] tracking-[.13em] uppercase text-slate-500 mt-2">Vòng Bại</div></div>
         </div>
         <!-- Gains: EXP + Bạc -->
-        <div class="grid grid-cols-2 gap-2 px-6 pt-3">
-          <div class="flex items-center gap-2.5 rounded-xl border border-slate-700/70 bg-ink3/50 px-3 py-2.5">
-            <img src="images/ui/exp.webp" class="w-6 h-6 object-contain shrink-0" onerror="this.remove()">
-            <div class="min-w-0"><div class="text-[15px] font-bold font-mono text-jade leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.xp)"></div><div class="text-[9px] text-slate-500">EXP Chiến Đấu · Lv <span x-text="$store.game.combatLevel"></span> · <span x-text="Math.round($store.game.combatProg.frac*100)+'%'"></span></div></div>
+        <div class="grid grid-cols-2 gap-3 px-7 pt-4">
+          <div class="flex items-center gap-3 rounded-2xl border border-slate-700/70 bg-ink3/50 px-4 py-3">
+            <img src="images/ui/exp.webp" class="w-8 h-8 object-contain shrink-0" onerror="this.remove()">
+            <div class="min-w-0"><div class="text-[20px] font-bold font-mono text-jade leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.xp)"></div><div class="text-[11.5px] text-slate-500">EXP Chiến Đấu · Lv <span x-text="$store.game.combatLevel"></span> · <span x-text="Math.round($store.game.combatProg.frac*100)+'%'"></span></div></div>
           </div>
-          <div class="flex items-center gap-2.5 rounded-xl border border-slate-700/70 bg-ink3/50 px-3 py-2.5">
-            <span class="w-6 h-6 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
-            <div class="min-w-0"><div class="text-[15px] font-bold font-mono text-amber-300 leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.bac)"></div><div class="text-[9px] text-slate-500">Bạc</div></div>
+          <div class="flex items-center gap-3 rounded-2xl border border-slate-700/70 bg-ink3/50 px-4 py-3">
+            <span class="w-8 h-8 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
+            <div class="min-w-0"><div class="text-[20px] font-bold font-mono text-amber-300 leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.bac)"></div><div class="text-[11.5px] text-slate-500">Bạc</div></div>
           </div>
         </div>
         <!-- Chiến Lợi Phẩm -->
-        <div class="flex items-center gap-2 px-6 pt-3.5 pb-1.5 text-[10px] tracking-[.13em] uppercase text-slate-500"><span class="shrink-0">Chiến Lợi Phẩm</span><template x-if="$store.game.combatSummaryItemCount"><span class="tracking-normal normal-case text-slate-300 shrink-0" x-text="'· '+$store.game.combatSummaryItemCount+' vật phẩm'"></span></template><span class="flex-1 h-px bg-slate-800"></span></div>
-        <div class="px-6 flex flex-wrap gap-2.5 max-h-[184px] overflow-y-auto pb-1">
-          <template x-if="!$store.game.combatSummary.loot.length && !$store.game.combatSummary.gear.length"><span class="text-[11px] text-slate-600 italic">— trận này chưa rơi vật phẩm —</span></template>
+        <div class="flex items-center gap-2.5 px-7 pt-4 pb-2 text-[13px] tracking-[.13em] uppercase text-slate-500"><span class="shrink-0">Chiến Lợi Phẩm</span><template x-if="$store.game.combatSummaryItemCount"><span class="tracking-normal normal-case text-slate-300 shrink-0" x-text="'· '+$store.game.combatSummaryItemCount+' vật phẩm'"></span></template><span class="flex-1 h-px bg-slate-800"></span></div>
+        <div class="px-7 flex flex-wrap gap-3 max-h-[248px] overflow-y-auto pb-1">
+          <template x-if="!$store.game.combatSummary.loot.length && !$store.game.combatSummary.gear.length"><span class="text-[13px] text-slate-600 italic">— trận này chưa rơi vật phẩm —</span></template>
           <template x-for="l in $store.game.combatSummary.loot" :key="l.id">
             <span class="cbti cbti-lg" :style="'animation:none;--q:'+$store.game.qualHex(($store.game.ITEMS[l.id]||{}).quality)" :title="(($store.game.ITEMS[l.id]||{}).name||l.id)+' ×'+l.n">
-              <span class="w-10 h-10 inline-flex items-center justify-center text-3xl" x-html="$store.game.ico(l.id, ($store.game.ITEMS[l.id]||{}).icon||'📦')"></span><i x-text="'×'+l.n"></i>
+              <span class="w-20 h-20 inline-flex items-center justify-center text-6xl" x-html="$store.game.ico(l.id, ($store.game.ITEMS[l.id]||{}).icon||'📦')"></span><i x-text="'×'+l.n"></i>
             </span>
           </template>
           <template x-for="(g,gi) in $store.game.combatSummary.gear" :key="'g'+gi">
             <span class="cbti cbti-lg" :style="'animation:none;--q:'+$store.game.qualHex(g.quality)" :title="(($store.game.ITEMS[g.gearId]||{}).name||'Trang bị')+' — đã vào Hành Lý'">
-              <span class="w-10 h-10 inline-flex items-center justify-center text-3xl" x-html="$store.game.ico(g.gearId, '🗡')"></span>
+              <span class="w-20 h-20 inline-flex items-center justify-center text-6xl" x-html="$store.game.ico(g.gearId, '🗡')"></span>
             </span>
           </template>
           <template x-if="$store.game.combatSummary.gearN > $store.game.combatSummary.gear.length">
-            <span class="text-[10px] text-amber-300/80 self-center" x-text="'+'+($store.game.combatSummary.gearN-$store.game.combatSummary.gear.length)+' trang bị nữa'"></span>
+            <span class="text-[13px] text-amber-300/80 self-center" x-text="'+'+($store.game.combatSummary.gearN-$store.game.combatSummary.gear.length)+' trang bị nữa'"></span>
           </template>
         </div>
         <!-- Footer -->
-        <div class="flex gap-2.5 px-6 py-4">
-          <button @click="$store.game.closeCombatSummary()" class="flex-1 py-2.5 rounded-xl text-[13px] font-bold border border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white transition">Thu Quân</button>
+        <div class="flex gap-3 px-7 py-5">
+          <button @click="$store.game.closeCombatSummary()" class="flex-1 py-3 rounded-2xl text-[16px] font-bold border border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white transition">Thu Quân</button>
           <template x-if="$store.game.combatSummary.reason!=='death'">
-            <button @click="$store.game.combatAgain()" class="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-jade hover:brightness-110 text-ink transition">⚔ Đánh Tiếp</button>
+            <button @click="$store.game.combatAgain()" class="flex-1 py-3 rounded-2xl text-[16px] font-bold bg-jade hover:brightness-110 text-ink transition">⚔ Đánh Tiếp</button>
           </template>
         </div>
       </div>
