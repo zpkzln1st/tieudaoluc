@@ -20,12 +20,17 @@ function mk(level, arch, extra) {
   const atk = Math.round(1.4  * Math.pow(level, 1.30) * a.atk);
   const def = Math.round(0.6  * Math.pow(level, 1.30) * a.def);
   const spd = Math.round(70 * a.spd);
-  const exp = Math.round(0.5  * Math.pow(level, 1.45) * a.exp);
+  const exp = Math.min(arch === 'boss' ? 480 : 80, Math.round(0.5 * Math.pow(level, 1.45) * a.exp));   // tran EXP: quai thuong <=80, boss <=480 (chong lam phat EXP cap cao)
   const power  = Math.round(hp * 0.22 + atk * 4);
   const statXp = Math.max(1, Math.round(level / 8));
   const time   = Math.max(6, Math.round(level * 0.12) + 5);
   return Object.assign({ reqLevel: level, hp, atk, def, spd, exp, statXp, power, time }, extra);
 }
+
+// ---- Kinh te combat (chinh tap trung 1 cho) ----
+export const BAC_DROP_CHANCE = 0.15;   // ti le roi Bac moi kill (10-20%) — KHONG con 100%
+export const BAC_PER_EXP = 0.5;        // Bac khi roi = round(exp x 0.5); L100 thuong 80 exp -> 40 Bac
+export const LOOT_DROP_MULT = 0.5;     // giam ti le roi nguyen lieu (dung drop tran lan)
 
 export const ENEMIES = {
   // ===== Lam Linh Cốc (Lv1) + U Lâm (Lv8) — Nhân Gian (giữ nguyên, đã cân) =====

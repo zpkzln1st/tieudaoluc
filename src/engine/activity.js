@@ -4,7 +4,7 @@
 // advance() gọi mỗi tick VÀ khi load (offline gains). Chạy được client/server.
 // ============================================================
 import { SKILLS } from '../data/skills.js';
-import { ENEMIES } from '../data/combat.js';
+import { ENEMIES, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from '../data/combat.js';
 import { ITEMS } from '../data/items.js';
 import { LINH_THACH } from '../data/linhthach.js';
 import { combatProfile, boPhapStats, COMBAT_CYCLE_MS } from '../data/votong.js';
@@ -226,11 +226,11 @@ export function advance(state, now) {
       const stats = boPhapStats(cb.loadout);               // Tứ Trụ nhận EXP theo các Bộ Pháp (1-2)
       const hpLost = act.hpLostPerKill || 0;               // máu mất mỗi con (từ Suy Tính)
       const maxHP = act.maxHP || (act.maxHP = combatProfile(state, cb.loadout, enemy).maxHP); // mốc ngưỡng tự ăn (memo cho save cũ)
-      const bacPer = Math.max(1, Math.round(enemy.exp * 1.5));
+      const bacPer = Math.max(1, Math.round(enemy.exp * BAC_PER_EXP));   // Bạc/kill khi rơi (exp×0.5 -> L100 = 40)
       const _tb = titleBonus(state);                                     // Danh Hiệu: +Bạc/+rơi đồ nhẹ
       const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
       const lootMul = 1 + activeAwkVal(state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
-      let done = 0, died = false;
+      let done = 0, died = false, bacGot = 0;
       const sess = act.sess || (act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
       for (let i = 0; i < cyclesByTime; i++) {
         autoEatTick(state, maxHP);                          // Ô Lương Thực: tự ăn nếu máu dưới ngưỡng (trước khi vào con)
@@ -241,19 +241,19 @@ export function advance(state, now) {
         if (hp > 0) cb.sinhLuc -= hp;
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
-        if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
+        if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul * LOOT_DROP_MULT) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
         if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }   // loot-hunt: rơi gear instance (offline-safe)
-        state.currencies.bac = (state.currencies.bac || 0) + Math.round(bacPer * moneyMul);   // loot + Bạc -> THẲNG vào kho mỗi kill
+        if (Math.random() < BAC_DROP_CHANCE) { const bg = Math.round(bacPer * moneyMul); state.currencies.bac = (state.currencies.bac || 0) + bg; bacGot += bg; }   // Bạc rơi ~15%/kill (không phải mỗi con)
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;
       }
-      sess.xp += done * gainXp; sess.bac += done * Math.round(bacPer * moneyMul); sess.win += done; if (died) sess.lose += 1;
+      sess.xp += done * gainXp; sess.bac += bacGot; sess.win += done; if (died) sess.lose += 1;
       if (done > 0) gainPetXp(state, Math.round(gainXp * 0.5) * done, done);   // Linh Thú đang mang ăn 50% EXP/trận (gộp offline) + Ngự Thú XP × done
       const sk = state.skills['chienDau'];
       if (sk) { sk.gathered = (sk.gathered || 0) + done; sk.timeMs = (sk.timeMs || 0) + done * act.cycleMs; }
       act.sessionCount += done;
       act.lastResolved += done * act.cycleMs;
-      report = { type: 'combat', enemyId: act.enemyId, cycles: done, xp: done * gainXp, bac: done * Math.round(bacPer * moneyMul), capped: cappedByTime };
+      report = { type: 'combat', enemyId: act.enemyId, cycles: done, xp: done * gainXp, bac: bacGot, capped: cappedByTime };
       if (died) { applyDeathCombat(state, now); state.activity = null; report.died = true; report.sess = sess; return report; }   // gục nền/offline: kèm thu hoạch phiên cho caller báo tổng kết
     }
   } else {

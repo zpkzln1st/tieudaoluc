@@ -24,7 +24,7 @@ import {
   canStartAction, inputStatus, startDungeon, autoEatTick, autoDanNL,
 } from './engine/activity.js';
 import { deriveCombat, combatProfile, simFight, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, TIER_STYLE, tierStyle } from './data/votong.js';
-import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID } from './data/combat.js';
+import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
 import { addItem, removeItem } from './engine/inventory.js';
@@ -2516,7 +2516,7 @@ const gameStore = {
     const kph = 3600 / roundSec;
     const mult = skillExpMultiplier(this.state, 'chienDau');
     const expPer = Math.max(1, Math.round(e.exp * mult));
-    const bacPer = Math.max(1, Math.round(e.exp * 1.5));
+    const bacPer = Math.max(1, Math.round(e.exp * BAC_PER_EXP * BAC_DROP_CHANCE));   // Bạc KỲ VỌNG/kill (rơi ~15% × exp×0.5) — cho dự tính/giờ đúng
     let survival, endureSec;
     if (fc.lvl === '❌' && fc.endure === 'thua') { survival = 0; endureSec = 0; }
     else if (fc.fights === Infinity || fc.hpLostPerKill <= 0) { survival = 99; endureSec = Infinity; }
@@ -2929,12 +2929,10 @@ const gameStore = {
     const _tb = titleBonus(this.state);                                       // Danh Hiệu: +Bạc/+rơi đồ nhẹ
     const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
     const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
-    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; }
+    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul * LOOT_DROP_MULT) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; }
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
     if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }
-    const bacGain = Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
-    this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain;
-    sess.bac += bacGain;
+    if (Math.random() < BAC_DROP_CHANCE) { const bacGain = Math.round(Math.max(1, Math.round(e.exp * BAC_PER_EXP)) * moneyMul); this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain; sess.bac += bacGain; }   // Bạc rơi ~15%/kill (không phải mỗi con)
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     this.state.combat.sinhLuc = Math.max(0, Math.round(f.p.hp));
     const sk = this.state.skills['chienDau']; if (sk) { sk.gathered = (sk.gathered || 0) + 1; sk.timeMs = (sk.timeMs || 0) + (this.act.cycleMs || 1000); }
