@@ -2843,7 +2843,9 @@ const gameStore = {
     for (const id of this.currentLocationEnemies) o[id] = combatProfile(this.state, this.loadout, this.ENEMIES[id]);
     this.combatFc = o;
   },
-  combatVerdictCls(id) { const r = this.combatFc[id], l = r ? r.lvl : ''; return l === '✅' ? 'text-jade' : (l === '⚠️' ? 'text-amber-300' : 'text-rose-400'); },
+  // Thu nhỏ panel Bài Võ (khi không chỉnh loadout) -> thanh Yêu Thú nhảy lên. Persist ở settings.
+  get baiVoCollapsed() { return !!(this.state.settings && this.state.settings.baiVoCollapsed); },
+  toggleBaiVo() { if (!this.state.settings) this.state.settings = {}; this.state.settings.baiVoCollapsed = !this.state.settings.baiVoCollapsed; Storage.save(this.state); },
   combatBorderCls(id) { const r = this.combatFc[id], l = r ? r.lvl : ''; return l === '✅' ? 'border-jade/60' : (l === '⚠️' ? 'border-amber-400/60' : 'border-rose-500/60'); },
   combatChieuDmg(c) {
     const e = this.combatSelObj; if (!e || c.type === 'buff') return 0;
