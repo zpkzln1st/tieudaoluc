@@ -1,56 +1,56 @@
 # THIẾT KẾ ĐỘNG PHỦ — Nhà riêng + trần treo máy + hub mini-game
 
-> **TRẠNG THÁI: DRAFT CHỜ USER CHỐT — CHƯA CODE.** Soạn 2026-07-09 qua workflow 3 track thiết kế + 1 critic phản biện, đã hòa giải mâu thuẫn giữa các track. Mọi con số là DRAFT chờ tune.
+> **TRẠNG THÁI: ĐÃ CODE + LIVE** (commit `f5ecf50`, 2026-07-10). Nguồn chân lý CODE = `src/engine/dongphu.js` (thuần) + `src/dongphu.js` (component) + view `.dp-root` trong `index.html`. Doc này đã đồng bộ với code LIVE: **rebalance liệu/giá/thời gian** + **hệ Độ Bền** (đảo §0.4 "không decay" cũ) + đổi tên nhãn + lore Hán-Việt cổ thư. Con số cân bằng vẫn DRAFT chờ user chơi tune; pacing §3 (tính cho liệu bản nháp cũ) đã lỗi thời, xem cảnh báo tại §3.
 
 ## 0. Quyết định khóa (user đã chốt)
 
-1. Động Phủ = **nhà riêng của người chơi**, payoff cho nghề **Doanh Tạo** (sản phẩm nghề hiện KHÔNG có chỗ tiêu — hệ này sửa đúng chỗ đó).
-2. Nhà chính **6 bậc**, trần treo máy `idleCapHours` **8h nền → +1h/bậc → tối đa 14h** (9/10/11/12/13/14).
+1. Động Phủ = **nhà riêng của người chơi**, payoff cho nghề **Doanh Tạo** (sản phẩm nghề trước đây KHÔNG có chỗ tiêu — hệ này sửa đúng chỗ đó).
+2. Nhà chính **6 bậc**, trần treo máy `idleCapMs` **8h nền → +1h/bậc → tối đa 14h** (bậc 1-6 = 9/10/11/12/13/14).
 3. Xây/nâng = **nguyên liệu + Bạc + thời gian thi công CHẠY NỀN** (song song hoạt động thường, KHÔNG chiếm widget hoạt động, không xây-xong-ngay).
-4. **Không decay / không bảo trì.**
-5. 3 công trình đặc biệt gắn mini-game: **Mộng Đài** (Đăng Tiên Mộng — đã live, KHÔNG re-gate, chỉ thêm chiều sâu) · **Trảm Yêu Đài** (Kỳ Trận Trảm Yêu — mockup xong, chưa tích hợp) · **Diễn Võ Trường** (autochess — tạm gác, card khóa).
+4. **Có Độ Bền + Bảo Trì** (ĐẢO quyết định "không decay" của bản nháp cũ — user chốt lại 2026-07-10): mọi công trình hao mòn 100%→0% trong 40 ngày; <80% mới sửa được; 0% = tắt chức năng + khóa truy cập. Chi tiết §4.
+5. 3 công trình đặc biệt gắn mini-game: **Mộng Đài** (Đăng Tiên Mộng — đã live, KHÔNG re-gate, chỉ thêm chiều sâu) · **Trảm Yêu Đài** (Kỳ Trận Trảm Yêu — mockup xong, CHƯA tích hợp → "Sắp Khai Mở") · **Diễn Võ Trường** (autochess — tạm gác, "Chưa Khai Phá").
 6. **0-power tuyệt đối**: tiền/vật liệu chảy MỘT CHIỀU VÀO công trình; mini-game không bao giờ trả sức mạnh về game chính.
 7. Tách bạch **Tông Môn** (nhánh xã hội/đệ tử): không dùng chung state/tiền tệ/công trình.
 
 ---
 
-## 1. Nhà chính — 6 bậc
+## 1. Nhà chính — 6 bậc (số liệu = code LIVE)
 
 Tên bậc: **Thảo Lư → Mộc Xá → Trạch Viện → Sơn Trang → Phủ Đệ → Động Phủ**.
-Bậc 0 = **bãi đất trống** (trạng thái first-touch, có art + CTA "Khởi Công Thảo Lư").
+Bậc 0 = **Bãi Đất Trống** (trạng thái first-touch, có art + CTA khởi công Thảo Lư).
 
-| Bậc | Tên | Trần treo | Gate Doanh Tạo | Nguyên liệu (đậm = item ĐÃ có) | Bạc | Thi công nền |
+| Bậc | Tên | Trần treo | Gate Doanh Tạo | Nguyên liệu (đậm = item dùng sẵn) | Bạc | Thi công nền |
 |---|---|---|---|---|---|---|
-| 1 | Thảo Lư | 9h | Lv 1 | **vanYeu**×40 · **datSet**×30 · **cat**×20 | 500 | 30 phút |
-| 2 | Mộc Xá | 10h | Lv 10 | **vanYeu**×100 · **gach**×80 · **thietKhau**×20 | 2.000 | 2 giờ |
-| 3 | Trạch Viện | 11h | Lv 18 | Thanh Ngõa×120 · Lương Mộc×50 · **gach**×60 · **thietKhau**×30 | 8.000 | 6 giờ |
-| 4 | Sơn Trang | 12h | Lv 24 | Thạch Chuyên×150 · Thanh Ngõa×80 · Lương Mộc×50 · **gach**×80 · **thietKhau**×40 | 30.000 | 12 giờ |
-| 5 | Phủ Đệ | 13h | Lv 30 | Hàn Ngọc Chuyên×160 · Tinh Thạch Song×60 · Thạch Chuyên×100 · Thanh Ngõa×80 · Lương Mộc×50 | 100.000 | 24 giờ |
-| 6 | Động Phủ | 14h | Lv 38 | Kim Tất Trụ×150 · Hàn Ngọc Chuyên×250 · Thạch Chuyên×250 · Tinh Thạch Song×100 · Thanh Ngõa×200 · **thietKhau**×100 | 300.000 | 48 giờ |
+| 1 | Thảo Lư | 9h | Lv 1 | **vanYeu**×400 · **datSet**×300 · **cat**×200 | 300.000 | 12 giờ |
+| 2 | Mộc Xá | 10h | Lv 10 | **vanYeu**×1000 · **gach**×800 · **thietKhau**×200 | 600.000 | 24 giờ |
+| 3 | Trạch Viện | 11h | Lv 18 | Thanh Ngõa×1200 · Lương Mộc×500 · **gach**×600 · **thietKhau**×300 | 1.100.000 | 36 giờ |
+| 4 | Sơn Trang | 12h | Lv 24 | Thạch Chuyên×1500 · Thanh Ngõa×800 · Lương Mộc×500 · **gach**×800 · **thietKhau**×400 | 2.000.000 | 54 giờ |
+| 5 | Phủ Đệ | 13h | Lv 30 | Hàn Ngọc Chuyên×1600 · Tinh Thạch Song×600 · Thạch Chuyên×1000 · Thanh Ngõa×800 · Lương Mộc×500 | 3.300.000 | 72 giờ |
+| 6 | Động Phủ | 14h | Lv 38 | Kim Tất Trụ×1500 · Hàn Ngọc Chuyên×2500 · Thạch Chuyên×2500 · Tinh Thạch Song×1000 · Thanh Ngõa×2000 · **thietKhau**×1000 | 5.000.000 | 96 giờ |
 
-- Thời gian thi công (Track 2 sở hữu): 0,5h · 2h · 6h · 12h · 24h · 48h — bậc đầu xong trong 1 phiên chơi, bậc cuối "treo qua 2 đêm".
-- Gate Lv bậc 5/6 đã HẠ từ 34/42 → **30/38** (kết quả tính lại pacing trọn chuỗi — xem §3).
-- **Số lượng liệu theo nguyên tắc "LIỆU NUÔI CẤP" (user yêu cầu tăng, 2026-07-09):** số lượng được cỡ sao cho chính việc craft liệu xây nhà tự sinh ~66-90% XP tới gate bậc kế — không còn pha "luyện chay" craft đồ thừa ~170h như bản nháp đầu. Tổng thời gian bậc 6 GIỮ ~3-4 tuần, nhưng toàn bộ giờ đổ vào căn nhà.
-- **Gate chéo nghề khác (chủ đích — nhà = mục tiêu toàn tài khoản, kiểu IMMO house):** input các sản phẩm cao cấp gate bằng nghề gather/refine: Tinh Thạch Song cần Dã Luyện 32 + Phạt Mộc 32 · Hàn Ngọc Chuyên cần Dã Luyện 48 · Kim Tất Trụ cần **Phạt Mộc 60 + Dã Luyện 60**. Nhà bậc 6 thực chất yêu cầu Doanh Tạo 38 + Phạt Mộc 60 + Dã Luyện 60. Pacing §3 giả định nghề gather đồng hành; nếu user thấy nặng thì hạ input (đòn bẩy: thay hongMoc→phongMoc, hoangKimDinh→tinhThachDinh).
-- Ghi chú: datSet/cat có bán ở Phường Thị (SHOP_MAT) → bậc 1-2 có shortcut nhẹ bằng Bạc, hợp lý.
-- Ghi chú Bạc: thang 500→300K là "thuế giấy" — thu nhập combat idle (~17K Bạc/giờ mid-game) phủ nhẹ 300K trong 1-2 ngày; **gate thật là XP nghề**. Nếu muốn Bạc có sức nặng thì neo chi phí bậc 5-6 theo "X ngày thu nhập combat idle" đo bằng harness (đòn bẩy tune, không chặn ship).
+- Trần treo = `houseCapH(lv) = 8 + min(6, lv)` → bậc 0 (bãi đất) vẫn hưởng 8h nền; bậc 1-6 = 9→14h.
+- Thời gian thi công nền: 12/24/36/54/72/96h (min 12h, max 96h) — bậc đầu "treo qua đêm", bậc cuối "treo qua 4 đêm".
+- Gate Lv bậc 5/6 = **30/38** (đã hạ từ 34/42 thời tính lại pacing).
+- **REBALANCE (2026-07-10):** so với bản nháp thiết kế đầu, số lượng liệu Nhà Chính đã ×10, Bạc nâng thang 300k→5M, thời gian giãn 12→96h. Chủ đích: Động Phủ = **mục tiêu dài hơi toàn tài khoản kiểu IMMO house** (không phải sink vài ngày). Bottleneck thực = **cày đủ khối lượng liệu cao cấp** (xem cảnh báo pacing §3).
+- **Gate chéo nghề khác (chủ đích):** input các sản phẩm cao cấp gate ngầm bằng nghề gather/refine (tên hiển thị code: **Luyện Kim** = daLuyen/refine, **Đốn Củi** = phatMoc/woodcutting): Tinh Thạch Song cần Luyện Kim 32 + Đốn Củi 32 · Hàn Ngọc Chuyên cần Luyện Kim 48 · Kim Tất Trụ cần **Đốn Củi 60 + Luyện Kim 60**. Nhà bậc 6 thực chất yêu cầu Doanh Tạo 38 + Đốn Củi 60 + Luyện Kim 60. Đòn bẩy hạ độ khó nếu thấy nặng: thay hongMoc→phongMoc, hoangKimDinh→tinhThachDinh, hoặc giảm số lượng liệu.
+- Ghi chú: datSet/cat có bán ở Phường Thị → bậc 1-2 có shortcut nhẹ bằng Bạc, hợp lý. Bạc thang 300k→5M vẫn nhẹ so với thu nhập combat idle (~17K Bạc/giờ mid-game) — **gate thật là khối lượng liệu + XP nghề**, không phải Bạc.
 
-## 2. Mở rộng nghề Doanh Tạo (đợt ship đầu: Lv12→38)
+## 2. Mở rộng nghề Doanh Tạo (đợt ship đầu: Lv12→38) — ĐÃ LIVE
 
-Hiện trạng: 5 action, kịch trần Lv10. **Đợt 1 thêm 6 action** (đủ nuôi nhà bậc 3-6):
+6 action mới trong `src/data/skills.js` (nghề `doanhTao`, stat cộng = `lucDao`). Số liệu = code LIVE (khớp bảng dưới):
 
 | Lv | ID | Tên (gloss) | Inputs | xp | time (s) | statXp | Phẩm | Giá bán |
 |---|---|---|---|---|---|---|---|---|
-| 12 | thanhNgoa | Thanh Ngõa (Ngói Lưu Ly Xanh) | datSet×4 + cat×2 | 240 | 100 | 3 | Tốt | 15 |
-| 18 | luongMoc | Lương Mộc (Xà Gỗ) | bachDuongMoc×3 + thietKhau×1 | 300 | 110 | 3 | Tốt | 40 |
-| 24 | thachChuyen | Thạch Chuyên (Đá Tảng Đẽo) | thachKhoi×4 + cat×2 | 370 | 120 | 4 | Hiếm | 32 |
-| 26 | tinhThachSong | Tinh Thạch Song (Song Cửa Tinh Thạch) | tinhThachDinh×2 + phongMoc×2 | 450 | 130 | 5 | Hiếm | 120 |
-| 30 | hanNgocChuyen | Hàn Ngọc Chuyên (Gạch Hàn Ngọc) | hanThietDinh×1 + thachKhoi×3 | 530 | 140 | 5 | Cực Hiếm | 140 |
-| 38 | kimTatTru | Kim Tất Trụ (Cột Sơn Kim) | hongMoc×3 + hoangKimDinh×1 | 640 | 150 | 6 | Cực Hiếm | 260 |
+| 12 | thanhNgoa | Thanh Ngõa (Glazed Tile) | datSet×4 + cat×2 | 240 | 100 | 3 | Tốt (luongPham) | 15 |
+| 18 | luongMoc | Lương Mộc (Beam) | bachDuongMoc×3 + thietKhau×1 | 300 | 110 | 3 | Tốt (luongPham) | 40 |
+| 24 | thachChuyen | Thạch Chuyên (Hewn Stone) | thachKhoi×4 + cat×2 | 370 | 120 | 4 | Hiếm (tinhPham) | 32 |
+| 26 | tinhThachSong | Tinh Thạch Song (Crystal Lattice) | tinhThachDinh×2 + phongMoc×2 | 450 | 130 | 5 | Hiếm (tinhPham) | 120 |
+| 30 | hanNgocChuyen | Hàn Ngọc Chuyên (Jade Brick) | hanThietDinh×1 + thachKhoi×3 | 530 | 140 | 5 | Cực Hiếm (tuyetPham) | 140 |
+| 38 | kimTatTru | Kim Tất Trụ (Gilt Pillar) | hongMoc×3 + hoangKimDinh×1 | 640 | 150 | 6 | Cực Hiếm (tuyetPham) | 260 |
 
-- **XP action mới đã nhân ~×2** so với bản nháp đầu (fix pacing của critic — xem §3). Triết lý: action craft tiêu nguyên liệu đã tốn công farm → xp/s cao hơn gather cùng cấp (cùng logic Dã Luyện).
-- **4 sản phẩm Lv55-100 (Vân Văn Bình Phong / Tinh Quang Đăng / Long Văn Lương / Thiên Công Đống Lương) DỜI SANG ĐỢT SAU** — critic chứng minh chúng bán LỖ so với giá trị input và không có sink nào ở nhà bậc 1-6 (dead content). Sẽ ship cùng sink thật của chúng (bậc 7 "Tiên Phủ" / trang trí Động Phủ / Thâm Mộng). Nghề vẫn lên Lv100 bằng spam action cao nhất (như các nghề gather hiện tại). Lore 4 món này đã soạn xong, giữ trong phụ lục §9.
-- Lore 6 món đợt 1 (tone Hán-Việt sắc gọn):
+- Triết lý: action craft tiêu nguyên liệu đã tốn công farm → xp/s cao hơn gather cùng cấp (cùng logic nghề Luyện Kim).
+- **4 sản phẩm Lv55-100 (Vân Văn Bình Phong / Tinh Quang Đăng / Long Văn Lương / Thiên Công Đống Lương) DỜI SANG ĐỢT SAU** — bán lỗ so với value input và chưa có sink ở nhà bậc 1-6 (dead content). Sẽ ship cùng sink thật (bậc 7 "Tiên Phủ" / trang trí Động Phủ / Thâm Mộng). Nghề vẫn lên Lv100 bằng spam action cao nhất. Lore 4 món giữ ở phụ lục §9.
+- Lore 6 món đợt 1 (đã cắm trong `items.js`, tone Hán-Việt sắc gọn):
   - **Thanh Ngõa**: "Ngói nung men xanh biếc, mưa gió trăm năm chẳng phai. Mái nhà lợp nó, xa trông như một dải sóng ngọc."
   - **Lương Mộc**: "Xà bạch dương bào nhẵn, nẹp khớp sắt hai đầu. Đặt lên tường, cả gian nhà lập tức có xương sống."
   - **Thạch Chuyên**: "Đá vôi đẽo vuông thành sắc cạnh, nặng trịch một khối. Tường xây từ nó, phá thành mới mong lay nổi."
@@ -58,178 +58,200 @@ Hiện trạng: 5 action, kịch trần Lv10. **Đợt 1 thêm 6 action** (đủ
   - **Hàn Ngọc Chuyên**: "Gạch ép từ hàn thiết và thạch khôi, mát lạnh quanh năm. Hè oi ngồi trong phòng, ngỡ như tựa lưng vào băng."
   - **Kim Tất Trụ**: "Cột hồng mộc sơn kim quang, đầu trụ bọc hoàng kim. Dựng giữa chính đường, khí phái áp cả một vùng."
 
-## 3. Pacing (tính lại bằng công thức TRỌN CHUỖI)
+## 3. Pacing
 
-> **Phương pháp (ghi lại để lần tune sau không lặp lỗi):** xp/s của một action craft phải tính **trọn chuỗi** = (xp craft + xp doanhTao của input) ÷ (time craft + time gather TOÀN BỘ input, đệ quy). Input thuộc nghề khác (thachKhoi=Thải Khoáng, thỏi=Dã Luyện…) cho 0 xp Doanh Tạo nhưng VẪN tốn giờ. Bản nháp đầu chia craft-only nên lạc quan ~2-2,5×.
+> ⚠️ **BẢNG SỐ DƯỚI ĐÂY ĐÃ LỖI THỜI — tính cho liệu bản nháp CŨ (trước rebalance ×10).** Sau khi liệu Nhà Chính ×10, bottleneck đã DỜI: nghề Doanh Tạo sẽ đạt gate Lv (1/10/18/24/30/38) **sớm hơn nhiều** so với lúc gom đủ khối lượng liệu cho bậc nhà tương ứng → giờ chơi bị chi phối bởi **cày thô khối lượng liệu cao cấp** chứ không phải "luyện chờ gate". Tổng thời gian bậc 6 hiện dài hơn hẳn ~3-4 tuần cũ (chủ đích "mục tiêu toàn tài khoản"). **Số pacing chính xác phải ĐO LẠI bằng harness với liệu LIVE** — chưa làm, mọi số dưới chỉ giữ để tham khảo PHƯƠNG PHÁP, KHÔNG phản ánh cân bằng hiện tại.
 
-Với xp ×2 + gate 30/38, xp/s trọn chuỗi ≈ Thanh Ngõa 0,95 · Lương Mộc 0,88 · Thạch Chuyên 1,39 · Tinh Thạch Song 1,19 · Hàn Ngọc Chuyên 1,64 · Kim Tất Trụ 1,53. Số lượng liệu §1 đã theo "liệu nuôi cấp" (craft liệu nhà tự sinh phần lớn XP):
+**Phương pháp (giữ để lần tune sau không lặp lỗi):** xp/s của một action craft phải tính **trọn chuỗi** = (xp craft + xp doanhTao của input) ÷ (time craft + time gather TOÀN BỘ input, đệ quy). Input thuộc nghề khác (thachKhoi=Đào Khoáng, thỏi=Luyện Kim…) cho 0 xp Doanh Tạo nhưng VẪN tốn giờ. Bản nháp đầu chia craft-only nên lạc quan ~2-2,5×.
 
-| Bậc | Giờ farm liệu | XP từ farm (tích lũy) | XP gate (55·L²) | Luyện thêm | Tổng bậc | Nhịp (idle 9-13h/ngày) | Mục tiêu |
-|---|---|---|---|---|---|---|---|
-| 1 | ~1,4h | ~1,3K | Lv1 (0) | 0 | ~1,4h | trong ngày | ✓ |
-| 2 | ~8h | ~12K | Lv10 (~15,7K) | ~2h | ~10h | 1-2 ngày | ✓ |
-| 3 | ~22h | ~74K | Lv18 (~98K) | ~7h | ~29h | 3-4 ngày | ✓ |
-| 4 | ~32h | ~186K | Lv24 (~238K) | ~10h | ~42h | tích lũy 7-9 ngày | ✓ |
-| 5 | ~42h | ~380K | Lv30 (~471K) | ~15h | ~57h | tích lũy 13-14 ngày | ✓ |
-| 6 | ~95h | ~820K | Lv38 (~967K) | ~25h | ~120h | tích lũy 23-27 ngày | 3-4 tuần ✓ |
+<sub>Bảng cũ (liệu bản nháp, KHÔNG còn đúng sau ×10):</sub>
 
-Bộ đệm rút ngắn: Linh Thạch exp/eff · trần treo tự nới mỗi bậc · liệu thừa từ "luyện thêm" bank sẵn cho bậc sau. **Đòn bẩy tune:** gate Lv + xp action mới (nhịp) và số lượng liệu (tỉ lệ "liệu nuôi cấp" — muốn nhà "đắt" hơn nữa thì tăng số lượng, gate cấp tự khắc theo).
+| Bậc | Giờ farm liệu | XP từ farm (tích lũy) | XP gate (55·L²) | Luyện thêm | Tổng bậc | Mục tiêu (cũ) |
+|---|---|---|---|---|---|---|
+| 1 | ~1,4h | ~1,3K | Lv1 (0) | 0 | ~1,4h | trong ngày |
+| 2 | ~8h | ~12K | Lv10 (~15,7K) | ~2h | ~10h | 1-2 ngày |
+| 3 | ~22h | ~74K | Lv18 (~98K) | ~7h | ~29h | 3-4 ngày |
+| 4 | ~32h | ~186K | Lv24 (~238K) | ~10h | ~42h | 7-9 ngày |
+| 5 | ~42h | ~380K | Lv30 (~471K) | ~15h | ~57h | 13-14 ngày |
+| 6 | ~95h | ~820K | Lv38 (~967K) | ~25h | ~120h | 3-4 tuần |
+
+**Đòn bẩy tune (khi đo lại):** gate Lv + xp action mới (nhịp) + số lượng liệu §1 (tỉ lệ "liệu nuôi cấp"). Muốn nhà "đắt" hơn → tăng số lượng liệu; muốn nhẹ hơn → hạ số lượng hoặc đổi input cao cấp sang thấp hơn.
 
 ---
 
-## 4. Cơ chế xây nền & state (Track 2 sở hữu)
+## 4. Cơ chế xây nền, độ bền & state (nguồn chân lý: `engine/dongphu.js`)
 
-### Schema `state.dongPhu`
+### Schema `state.dongPhu` (LIVE)
 
 ```js
 dongPhu: {
-  house: 0,                      // bậc Nhà Chính 0..6 (0 = bãi đất trống)
+  house: 0,                      // bậc Nhà Chính 0..6 (0 = Bãi Đất Trống)
   buildings: {
     mongDai: 0,                  // 0..3
-    tramYeuDai: 0,               // 0..3
-    dienVoTruong: 0,             // autochess GÁC — luôn 0, giữ chỗ sẵn khỏi migration sau
+    tramYeuDai: 0,               // 0..3 (buildable=false tới khi ráp match-3)
+    dienVoTruong: 0,             // autochess GÁC — luôn 0 (maxLv 0), giữ chỗ khỏi migration
   },
   build: null,                   // job DUY NHẤT đang chạy hoặc null:
                                  // { target:'house'|'mongDai'|'tramYeuDai', toLevel, startedAt, endsAt,
                                  //   paid:{ bac, mats:{...} } }   // biên lai — nguồn chân lý khi Hủy Xây
-  log: [],                       // [{t,target,toLevel}] hoàn công, cap 20 ("Sổ Công Trình")
+  dur: {},                       // ĐỘ BỀN: dur[key] = mốc thời gian ĐẦY 100% gần nhất (xây/nâng/sửa)
+  log: [],                       // [{t,target,toLevel}] hoàn công, cap 20 (Nhật Ký "Sổ Công Trình")
+  doneUnseen: false,             // có công trình vừa xong chưa xem (red-dot nav; clear khi mở view)
 }
 ```
 
-- **1 job tại 1 thời điểm** (nhà HOẶC công trình) — khớp triết lý "1 ô hoạt động", tạo lựa chọn có sức nặng, state phẳng, giãn nhịp sink. Không song song, không queue ở v1 (thêm `queue:[]` sau vẫn thuận).
-- Mốc thời gian **tuyệt đối** (`startedAt/endsAt` = `Date.now()`) — cùng họ `suyYeuUntil`, serialize được, offline-safe.
+- **1 job tại 1 thời điểm** (nhà HOẶC công trình) — khớp triết lý "1 ô hoạt động", tạo lựa chọn có sức nặng, state phẳng. Không song song, không queue ở v1.
+- Mốc thời gian **tuyệt đối** (`startedAt/endsAt = Date.now()`) — cùng họ `suyYeuUntil`, serialize được, offline-safe.
 - **`paid` là biên lai**: trừ tài nguyên NGAY lúc khởi công; Hủy Xây hoàn theo biên lai chứ không tra bảng giá → đổi giá sau này không tạo exploit.
 
-### Resolve — hàm thuần idempotent
+### Vòng đời job
 
-```js
-// engine/dongphu.js — thuần (state, now), không import UI/combat
-export function resolveDongPhu(state, now) {
-  const dp = state.dongPhu; if (!dp || !dp.build) return null;
-  const b = dp.build;
-  if (now < b.endsAt) return null;              // đồng hồ lùi → vô hại
-  if (b.target === 'house') dp.house = Math.max(dp.house, b.toLevel);
-  else dp.buildings[b.target] = Math.max(dp.buildings[b.target] || 0, b.toLevel);
-  dp.log.unshift({ t: b.endsAt, target: b.target, toLevel: b.toLevel });
-  if (dp.log.length > 20) dp.log.length = 20;
-  dp.build = null;
-  return { done: true, target: b.target, toLevel: b.toLevel };  // caller bắn toast
-}
-```
+- **`ensureDongPhu(state, now)`** — idempotent + vá save cũ: clamp house 0..6, buildings 0..maxLv, khởi tạo `dur/log/doneUnseen`. **Khởi tạo Độ Bền không phạt hồi tố:** công trình đã tồn tại mà thiếu mốc `dur[key]` → gán = `now` (coi như vừa đầy). Job mồ côi/hỏng (target lạ, toLevel ngoài khoảng, thiếu timestamp) → hoàn liệu theo `paid` rồi xóa job (fail-safe về phía người chơi).
+- **`startBuild(state, target, now)`** — guard: `build == null` (chống double-spend) · nâng từng bậc +1 · house ≤ 6. Gate: nhà cần Doanh Tạo ≥ reqLevel; công trình phụ cần nhà ≥ reqHouse (Mộng Đài b1, Trảm Yêu Đài b2). Đủ Bạc + liệu → trừ atomic, ghi `paid`, set `endsAt = now + buildMs`.
+- **`resolveDongPhu(state, now)`** — thuần idempotent, hoàn công khi `now ≥ endsAt`: nâng bậc bằng `Math.max` (gọi lặp/xung đột cloud không tụt bậc), **set `dur[target] = endsAt`** (độ bền 100% tính từ lúc hoàn công), đẩy Nhật Ký (cap 20), bật `doneUnseen`, xóa job. Trả `{done, target, toLevel}` để caller bắn toast/notif. Xây **KHÔNG chiếm `state.activity`**, **KHÔNG bị trần treo chặn** (timer theo giờ thực — treo 96h thì bậc 6 vẫn xong).
+- **`cancelBuild(state)`** — Hủy Xây: hoàn **100% VẬT LIỆU** theo biên lai, **MẤT trắng Bạc** ("công thợ đã trả"; giữ sink + chống spam khởi công-hủy). Không hoàn theo tiến độ.
 
-- Xây **KHÔNG chiếm `state.activity`**, **KHÔNG bị trần treo chặn** (timer-1-phát theo giờ thực — treo 48h thì nhà bậc 6 vẫn xong).
-- Idempotent + `Math.max` → gọi lặp/xung đột cloud không tụt bậc.
+### Độ Bền & Bảo Trì (LIVE — đảo "không decay" cũ)
 
-### Guard khởi công (`startBuild`)
+Hằng số (`engine/dongphu.js`): `DUR_DECAY_DAYS = 40` · `DUR_REPAIR_BELOW = 80` · `IDLE_BASE_H = 8`.
 
-- `build == null` (chống double-spend) · nâng từng bậc +1 · `house ≤ 6`.
-- Công trình đặc biệt: yêu cầu **nhà bậc tối thiểu** — Mộng Đài cần nhà **bậc 1**, Trảm Yêu Đài cần nhà **bậc 2** (scheme Track 2 — giữ match-3 "vừa túi Lv15-20").
-- Đủ Bạc + liệu → trừ atomic, ghi `paid`.
-
-### Hủy Xây — hoàn 100% VẬT LIỆU, MẤT Bạc
-
-- Vật liệu là thành quả cày nghề → hoàn đủ theo biên lai. Bạc = "công thợ đã trả" → mất trắng (giữ sink + chống spam khởi công-hủy). Không hoàn theo tiến độ, hủy là hủy sạch.
+- **Hao mòn tuyến tính:** `durabilityPct = 100 − ((now − dur[key]) / 40 ngày) × 100`, clamp 0..100 → mất **2,5%/ngày**, 40 ngày về 0%. Theo giờ thực, offline-safe (chỉ đọc, không cần tick).
+- **Sửa Chữa** mở khi độ bền **< 80%** (đạt sau ~8 ngày kể từ lúc đầy). `repairCost` = `ceil(liệu-xây-cấp-hiện-tại × (100−p)/100)` — **chỉ tốn VẬT LIỆU, TỨC THÌ, KHÔNG tốn Bạc**; `repairBuild` set `dur[key] = now` (về 100%). Bù theo % thiếu nên sửa sớm rẻ hơn sửa muộn.
+- **0% = TẮT chức năng + KHÓA truy cập** (`isFunctional` = độ bền > 0):
+  - **Nhà Chính 0%** → `dongPhuCapBonusH` trả 0 → trần treo về **8h nền** (mất toàn bộ bonus bậc nhà).
+  - **Mộng Đài 0%** → `dtmBridgeWeekCap` trả **0** (KHÓA quy đổi assist — khác lv0=60) + mất +10% Mộng Ngân + đóng Thâm Mộng; `buildingUsable` false → **gate nav chặn vào Đăng Tiên Mộng**.
+- Các hàm thuần: `durabilityPct` / `isFunctional` / `constructionExists` / `buildingUsable` / `repairCost` / `repairBuild` — mọi knob gate bằng `Date.now()`.
 
 ### Ca biên
 
 | Ca | Xử lý |
 |---|---|
-| Chỉnh đồng hồ | Cùng mức lộ như MỌI hệ offline hiện có (tin `Date.now()`); tua lùi chỉ trì hoãn, không hỏng state. KHÔNG thêm anti-cheat riêng (stance đã chốt: cloud save không chống cheat). |
-| Xong khi offline | `endsAt` tuyệt đối → boot resolve TRƯỚC UI + TRƯỚC advance offline. |
-| Lên bậc GIỮA khoảng offline | Không nội suy — resolve build trước → advance dùng trần MỚI cho cả khoảng (sai số ≤1h nghiêng về người chơi, chấp nhận). |
-| Save cũ | `settings.idleCapHours` GIỮ nghĩa = trần NỀN 8h; tổng = nền + bonus tính LÚC ĐỌC → save cũ 0 migration, không double-count. |
-| Đa thiết bị | Job nằm trong state, đi theo bản save thắng xung đột (`_loadedLastSave` nguyên trạng, không nhánh riêng). |
-| Job mồ côi (save hỏng) | `ensureDongPhu` validate target/toLevel; vô lệ → hoàn liệu theo `paid`, xóa job (fail-safe về phía người chơi). |
+| Chỉnh đồng hồ | Cùng mức lộ như MỌI hệ offline (tin `Date.now()`); tua lùi chỉ trì hoãn, không hỏng state. KHÔNG anti-cheat riêng (cloud save không chống cheat). |
+| Xong khi offline | `endsAt` tuyệt đối → boot resolve TRƯỚC UI & TRƯỚC advance offline. |
+| Lên bậc GIỮA khoảng offline | Không nội suy — resolve build trước → advance dùng trần MỚI cho cả khoảng (sai số ≤1h nghiêng về người chơi). |
+| Save cũ | `dur[key]` thiếu → gán = now (không phạt hồi tố). `settings.idleCapHours` GIỮ nghĩa trần NỀN 8h; tổng tính LÚC ĐỌC → 0 migration, không double-count. |
+| Đa thiết bị | Job + dur nằm trong state, đi theo bản save thắng xung đột (`_loadedLastSave` nguyên trạng). |
 
 ---
 
-## 5. Tích hợp kỹ thuật (điểm móc chính xác)
+## 5. Tích hợp kỹ thuật (điểm móc LIVE)
 
-1. **`idleCapMs(state)`** — `src/engine/activity.js:28`, điểm móc DUY NHẤT của trần treo:
+1. **`idleCapMs(state)`** — `src/engine/activity.js:29`, điểm móc DUY NHẤT của trần treo:
 ```js
-export function dongPhuCapBonusH(state) { return Math.min(6, state.dongPhu?.house || 0); }
-// activity.js:
+// engine/dongphu.js
+export function dongPhuCapBonusH(state) {
+  const h = (state.dongPhu && state.dongPhu.house) || 0;
+  if (h < 1) return 0;
+  if (!isFunctional(state, 'house', Date.now())) return 0;   // nhà 0% -> mất bonus, về nền
+  return Math.min(6, h);
+}
+// activity.js
 export function idleCapMs(state) {
   return ((state.settings?.idleCapHours || 8) + dongPhuCapBonusH(state)) * 3600 * 1000;
 }
 ```
-2. **Thứ tự boot (QUAN TRỌNG — critic bắt):** `ensureDongPhu(state)` → `resolveDongPhu(state, now)` → **RỒI MỚI** `simTongMon(...)` (main.js:141 hiện truyền `idleCapHours` thô → đổi sang `idleCapMs(state)/3600000` để Tông Môn cũng hưởng nhà). Pets Săn Mồi đã đọc qua `idleCapMs` → tự hưởng.
-3. **Mộng Đài → cap assist DTM:** `DTM_BRIDGE_WEEKCAP=60` là const đọc ở **3 chỗ** (dangtienmong.js ~547/549/550 — bridgeCap/bridgeRemaining/bridgeMaxNow) → thay cả 3 bằng hàm thuần `dtmBridgeWeekCap(state)` export từ `engine/dongphu.js`. Chiều phụ thuộc: **DTM đọc knob từ dongphu** — dongphu không import gì từ DTM. **Cập nhật hợp đồng cách ly DTM:** "chỉ GHI `state.dangTien`, được ĐỌC knob thuần từ dongphu".
-4. **Trảm Yêu Đài → cổng nav Kỳ Trận** (khi ship match-3): thêm `'kyTran'` vào `_ROUTE_VIEWS` + `isPlaceholderView`; item nav nhóm Chiến Đấu khóa kèm "Cần Trảm Yêu Đài (Động Phủ)" khi bậc <1; `navTo` guard cùng điều kiện.
-5. **View `dongPhu`**: vào `_ROUTE_VIEWS` + `isPlaceholderView`; mỗi tick chính gọi `resolveDongPhu` (rẻ, return sớm).
-6. Card Mộng Đài muốn hiện "Cap tuần này: X/70" → cần export helper `_weekId` của DTM thành hàm thuần dùng chung (hoặc chỉ hiện cap tĩnh, bỏ số đã dùng — đơn giản hơn).
+2. **Thứ tự boot (ĐÃ SỬA, main.js:144-146):** `ensureTongMon → ensureDangTien → ensureDongPhu(state) → resolveDongPhu(state, now) → simTongMon(state, now, idleCapMs(state)/3600000)`. Động Phủ hoàn công TRƯỚC advance offline & Tông Môn → cả khoảng vắng hưởng trần treo mới. Pets Săn Mồi cũng đọc qua `idleCapMs` → tự hưởng.
+3. **Mộng Đài → knob assist DTM (chiều phụ thuộc DTM → dongphu):** `dangtienmong.js` import `dtmBridgeWeekCap` / `dtmMongNganMult` từ `engine/dongphu.js`:
+   - `bridgeCap()` (dangtienmong.js:549) = `dtmBridgeWeekCap(state)` → nền 60; Mộng Đài b1/b2/b3 = 70/75/80; **0 nếu Mộng Đài hỏng (0%)**.
+   - `dtmMongNganMult(state)` (dùng ở bankRun ~:525) = 1.10 khi Mộng Đài ≥ b2 và còn hiệu lực, else 1.0.
+   - `dongPhuThamMongOpen(state)` = true khi Mộng Đài ≥ b3 và còn hiệu lực (flag hook Thâm Mộng).
+   - **Hợp đồng cách ly DTM:** DTM chỉ GHI `state.dangTien`, được ĐỌC knob thuần từ dongphu; dongphu KHÔNG import gì từ DTM.
+4. **View `dongPhu`:** trong `_ROUTE_VIEWS` + `isPlaceholderView`. `_applyView('dongPhu')` (main.js:361) gọi `resolveDongPhu` + clear `doneUnseen`. Vòng tick chính (main.js:~3466) gọi `resolveDongPhu` mỗi 5s → toast/notif type `'dongPhu'` khi hoàn công.
+5. **Trảm Yêu Đài → cổng nav Kỳ Trận (khi ship match-3):** thêm view `'kyTran'` vào `_ROUTE_VIEWS` + `isPlaceholderView`; item nav nhóm Chiến Đấu gate theo `buildingUsable(state,'tramYeuDai')`; bật `buildable:true` cho `BUILDINGS.tramYeuDai`. Hiện `buildable:false` → card "Sắp Khai Mở", không nút xây.
 
 ### Hợp đồng cách ly (mirror Tông Môn/DTM)
 
 1. Tiền + vật liệu chảy **một chiều vào**; Hủy Xây hoàn biên lai là hoàn tác, không phải nguồn thu.
 2. Mini-game **không trả power ra ngoài**; kênh duy nhất ra main vẫn là cầu assist NB sẵn có của DTM — công trình chỉ đổi TRẦN, không thêm kênh mới.
-3. Nhà chính ảnh hưởng ĐÚNG HAI THỨ: (i) trần treo qua `idleCapMs`; (ii) điều kiện `reqHouse` dựng công trình. KHÔNG chỉ số, KHÔNG buff combat, KHÔNG chạm deriveCombat/gearBag.
-4. `engine/dongphu.js` không import combat/stats/votong; mini-game chỉ import hàm thuần đọc-knob.
-5. Không decay, không reset, không tua giờ bằng tiền (nếu sau này muốn "thúc công" bằng Nguyên Bảo = quyết định riêng, ngoài hợp đồng này).
+3. Nhà chính ảnh hưởng ĐÚNG HAI THỨ: (i) trần treo qua `idleCapMs`; (ii) điều kiện `reqHouse`/`buildingUsable` dựng & vào công trình. KHÔNG chỉ số, KHÔNG buff combat, KHÔNG chạm `deriveCombat`/`gearBag`/Tứ Trụ.
+4. `engine/dongphu.js` không import combat/stats/votong (chỉ `leveling.js`); mini-game chỉ import hàm thuần đọc-knob.
+5. Không reset, không tua giờ bằng tiền. Độ Bền chỉ tiêu thêm VẬT LIỆU (0 power ra ngoài, chỉ là gold/liệu sink).
 6. Động Phủ tách bạch Tông Môn: không chung state/shop/tiền tệ/công trình.
 
 ---
 
-## 6. Ba công trình đặc biệt (hiệu ứng — Track 3 sở hữu; cap assist theo phương án BẢO THỦ của critic)
+## 6. Ba công trình đặc biệt (số liệu = code LIVE)
 
-Chi phí (rẻ hơn rõ bậc nhà cùng số — đầu tư nhánh phụ; thi công 4h/12h/24h):
+`BUILDINGS[key].levels[i]` = chi phí TỚI bậc (i+1). Thi công công trình phụ: **12h / 24h / 48h**.
 
-| Công trình | Bậc 1 | Bậc 2 | Bậc 3 |
-|---|---|---|---|
-| Mộng Đài (cần nhà b1) | gach×50 · vanYeu×50 · thietKhau×15 · 2.000 Bạc | gach×100 · Thanh Ngõa×60 · Lương Mộc×40 · 10.000 | Thạch Chuyên×80 · Tinh Thạch Song×40 · Hàn Ngọc Chuyên×50 · 40.000 |
-| Trảm Yêu Đài (cần nhà b2) | tương tự Mộng Đài ±10% (DRAFT) | — | — |
+| Công trình | reqHouse | Bậc 1 | Bậc 2 | Bậc 3 |
+|---|---|---|---|---|
+| Mộng Đài | nhà b1 | gach×500 · vanYeu×500 · thietKhau×150 · 20.000 Bạc · 12h | gach×1000 · Thanh Ngõa×600 · Lương Mộc×400 · 100.000 · 24h | Thạch Chuyên×800 · Tinh Thạch Song×400 · Hàn Ngọc Chuyên×500 · 440.000 · 48h |
+| Trảm Yêu Đài | nhà b2 | gach×550 · vanYeu×550 · thietKhau×160 · 22.000 · 12h | gach×1100 · Thanh Ngõa×660 · Lương Mộc×440 · 110.000 · 24h | Thạch Chuyên×880 · Tinh Thạch Song×440 · Hàn Ngọc Chuyên×550 · 440.000 · 48h |
+
+*(Trảm Yêu Đài đã có `levels` cụ thể trong code nhưng `buildable:false` → chi phí trên chỉ kích hoạt khi ráp match-3.)*
 
 ### Mộng Đài (Đăng Tiên Mộng — ĐÃ LIVE, mở Lv12, KHÔNG re-gate; bậc 0 = nguyên trạng)
 
-| Bậc | Tên | Hiệu ứng (cộng dồn) |
-|---|---|---|
-| 1 | Mộng Đàn | Cap assist tuần 60 → **70** Nguyên Bảo |
-| 2 | Mộng Các | **+10% Mộng Ngân khi kết ván** (nội bộ hệ cách ly) + cap → **75** |
-| 3 | Mộng Cung | **Mở cổng "Thâm Mộng"** (flag hook cho Trùng 4/tầng 21+/Ascension DTM — nội dung thiết kế sau) + cap → **80** |
+| Bậc | Hiệu ứng (cộng dồn) — số & câu khớp `eff[]` code; phần trong ngoặc là chú giải thiết kế (không có trong chuỗi hiển thị) |
+|---|---|
+| 1 | **Giới Hạn Quy Đổi Tuần: 60 → 70 Nguyên Bảo** |
+| 2 | **+10% Mộng Ngân mỗi ván** (nội bộ hệ cách ly) · giới hạn → **75** |
+| 3 | **Mở Thâm Mộng** (flag hook cho Trùng 4/tầng 21+/Ascension DTM — nội dung thiết kế sau) · giới hạn → **80** |
 
-> Phương án cap thay thế (nếu user muốn hào phóng hơn): 80/100/120 (+20/bậc). Mặc định trình phương án bảo thủ 70/75/80 vì cap assist là kênh power duy nhất ra main — chỗ user hay siết nhất.
+> Cap assist là kênh power DUY NHẤT ra main → chốt phương án bảo thủ 70/75/80. Nếu muốn hào phóng hơn: 80/100/120 (đổi mảng `[60,70,75,80]` trong `dtmBridgeWeekCap`).
 
-### Trảm Yêu Đài (Kỳ Trận Trảm Yêu — CHƯA tích hợp)
+### Trảm Yêu Đài (Kỳ Trận Trảm Yêu — `buildable:false`, "Sắp Khai Mở")
 
-**Quy tắc release (bịt lỗ critic bắt): card ở trạng thái "Sắp Khai Mở" — KHÔNG có nút xây — cho tới khi match-3 tích hợp vào game.** Tuyệt đối không để trạng thái "xây được nhưng chưa dùng được".
+**Quy tắc release:** card ở trạng thái **"Sắp Khai Mở"** — KHÔNG có nút xây — cho tới khi match-3 tích hợp vào game. Tuyệt đối không để "xây được nhưng chưa dùng được". `note: 'Cần tích hợp Kỳ Trận Trảm Yêu'`.
 
-| Bậc | Tên | Hiệu ứng |
-|---|---|---|
-| 1 | Trảm Yêu Đàn | **Mở nav "Kỳ Trận Trảm Yêu"** (đây là công tắc mở — match-3 chưa từng live nên gate mới là hợp lệ, khác Mộng Đài) |
-| 2-3 | Trảm Yêu Các / Điện | **Knob độ sâu — CHỐT KHI SHIP match-3** (ý tưởng: chương gauntlet mới / chế độ ngày; KHÔNG thiết kế kinh tế chi tiết cho mini-game chưa tích hợp — critic gọi đây là scope bloat) |
+| Bậc | Hiệu ứng (dự kiến — chuỗi `eff[]` trong code) |
+|---|---|
+| 1 | **Mở Kỳ Trận Trảm Yêu** (công tắc mở nav — match-3 chưa từng live nên gate mới hợp lệ, khác Mộng Đài) |
+| 2 | **Mở chương gauntlet mới** (knob độ sâu — chốt khi ship match-3) |
+| 3 | **Chế độ Nhật Trảm** (daily — chốt khi ship) |
 
-**Du Tiền (tiền tệ Kỳ Trận):** giai đoạn đầu **CHỈ tiêu TRONG mini-game** (shop nội bộ: mở skill/tâm pháp pool P2). Nếu sau này bắc ra ngoài: giới hạn CỨNG ở cosmetic — danh hiệu nguồn mini-game = **0 chỉ số TUYỆT ĐỐI** (chỉ glow; critic bắt vế "hoặc mức lệ tối thiểu" là rò rỉ 0-power — ĐÃ XÓA), skin bàn cờ, tiểu cảnh sân Động Phủ. KHÔNG BAO GIỜ đổi Du Tiền → Bạc/Nguyên Bảo/vật liệu.
+**Du Tiền (tiền tệ Kỳ Trận):** giai đoạn đầu **CHỈ tiêu TRONG mini-game**. Nếu sau bắc ra ngoài: giới hạn CỨNG ở cosmetic — danh hiệu nguồn mini-game = **0 chỉ số TUYỆT ĐỐI** (chỉ glow), skin bàn cờ, tiểu cảnh sân Động Phủ. KHÔNG BAO GIỜ đổi Du Tiền → Bạc/Nguyên Bảo/vật liệu.
 
-### Diễn Võ Trường (autochess — TẠM GÁC)
+### Diễn Võ Trường (autochess "Quần Hùng Kỳ Trận" — TẠM GÁC)
 
-Card placeholder thuần: art silhouette (đài + cờ xí, jade mờ trên nền đen), `grayscale + opacity .55`, KHÔNG glow, badge "Chưa Khai Phá", không pip/giá/nút. Click → tooltip "Khu đất này còn chờ chủ nhân tương lai." Không field state (đã giữ chỗ trong schema).
+Code: `reqHouse:99, maxLv:0, buildable:false, grey:true, badge:'Chưa Khai Phá'`. Card silhouette xám (`grayscale + opacity`), không glow/pip/giá/nút. Tease: *"Đất trống ngàn thước, chờ ngày quần hùng khai chiến."* Giữ chỗ trong schema (`buildings.dienVoTruong` luôn 0).
 
 ---
 
-## 7. Giao diện view Động Phủ
+## 7. Giao diện view Động Phủ (LIVE = rail dọc ornate, UI-kit Dạ Ngọc)
 
-- **Nav:** nhóm **"Nhân Vật"**, mục "Động Phủ" (nhà riêng = "của tôi"; Tông Môn xã hội nằm chỗ khác). Icon art `images/nav/dongphu.webp`. Red-dot khi có công trình vừa xong chưa xem.
-- **Bố cục:** strip tiến độ xây (chỉ hiện khi có job) → **hero card Nhà Chính** full-width (art bậc | tên bậc + dòng to nhất **"Trần Nhàn Rỗi: Xh"** + 6 pip + preview bậc kế + khối chi phí tô đỏ thứ thiếu + nút NÂNG CẤP disabled-kèm-lý-do) → grid 3 card công trình (art + 3 pip + các dòng hiệu ứng: bậc đạt chữ jade sáng, chưa đạt slate mờ + khóa; CTA hoặc "Cần Nhà Chính Bậc X").
-- **Bậc 0 first-touch (critic bắt):** art bãi đất trống/nền móng + lore intro + CTA "Khởi Công Thảo Lư" — khoảnh khắc bán cả hệ thống, phải mock riêng.
-- **Chip tiến độ toàn app:** gắn DƯỚI widget hoạt động ở sidebar (icon SVG búa + "Mộng Các · 3g 12p" + bar 2px, click → navTo). KHÔNG chiếm ô activity — nhấn mạnh xây chạy song song. Mobile: lặp trong drawer, KHÔNG nhét header (gotcha tràn ngang).
-- **Thông báo hoàn công:** toast + red-dot nav; vào view thì card vừa xong glow tĩnh sáng dần 1 lần. ~~Banner Phi Cáp full-screen khi nâng nhà~~ — **tùy chọn chờ user duyệt riêng** (user từng bác hiệu ứng to/động; mặc định toast + glow tĩnh).
-- **Style:** dark + jade/cyan, card ink3 viền slate-700 hover jade, fserif tiêu đề, pip chấm jade, Hán-Việt ĐẦY ĐỦ ("Trần Nhàn Rỗi"/"Nâng Cấp"/"Chưa Khai Phá"), 1 dòng/hiệu ứng, icon SVG/art. Mobile: hero dọc, công trình 1 cột, strip sticky top.
+- **Nav:** nhóm **"Nhân Vật"**, mục "Động Phủ" (icon `images/nav/dongphu.webp`). Red-dot khi `doneUnseen` (công trình vừa xong chưa xem).
+- **Bố cục (chốt: rail DỌC, KHÔNG tab ngang):** grid ~92px + **rail dọc ornate sticky** (3 mục, plaque art `rail_nha/rail_ct/rail_so` + `tab_active` bọc mục đang chọn + tassel ghim đáy). `.dp-root` scoped, art UI-kit trong `images/dongphu/ui/*.webp`.
+  - **① Nhà Chính** (`dpTab='nhaChinh'`): timeline 7 bậc (Bãi Đất Trống + 6 bậc, tự-co-vừa-khung) + panel info bậc đang xem — tiêu đề **"Cấp N: Tên"**, dòng **"Giới Hạn Treo Máy: Xh"**, lore cổ thư, khối chi phí (liệu tô MÀU theo phẩm chất, thứ thiếu tô đỏ) + CTA "Nâng Cấp" (disabled kèm lý do: thiếu Bạc/liệu/Doanh Tạo cấp N/đang thi công).
+  - **② Công Trình Phụ** (`dpTab='congTrinh'`): selector 3 công trình + panel detail (art + type + tags + lore + các dòng `eff` đạt/chưa-đạt + chi phí + CTA hoặc badge "Sắp Khai Mở"/"Chưa Khai Phá" hoặc "Cần Nhà Chính bậc X").
+  - **③ Sổ Công Trình = màn QUẢN LÝ** (`dpTab='so'`): 4 khu —
+    1. **Đang Thi Công** (chỉ khi có job: tên + đếm ngược + bar + nút Hủy Xây).
+    2. **Tổng Quan** — khung "F" vẽ bằng CSS (nền tối + viền vàng + kẻ đôi inset + 4 hoa văn góc SVG; **BỎ border-image vì cắt art méo góc — bài học: frame ornate phức tạp thì VẼ CSS an toàn hơn**) + 4 medallion art `ov_med_nha/gio/ct/sua` phát sáng (scale riêng 0.90/0.92/0.98/1.0 vì art fill lệch → đường kính hiện đều ~41.5px).
+    3. **Độ Bền & Bảo Trì** — cards data-driven (`soDurList`): % + thanh màu (good/warn/bad/dead = jade/vàng/hồng/xám) + countdown tới 0% + liệu sửa tô màu phẩm chất + nút Sửa Chữa (chỉ khi <80%).
+    4. **Nhật Ký Công Trình** — `dp.log` (12 mục gần nhất, ấn triện Hán 府/夢/劍/武 + "N phút/giờ/ngày trước").
+- **Chip tiến độ toàn app:** gắn DƯỚI widget hoạt động ở sidebar (icon búa + tên job + đếm ngược + bar, click → navTo). KHÔNG chiếm ô activity. Mobile: lặp trong drawer, KHÔNG nhét header (gotcha tràn ngang).
+- **Thông báo hoàn công:** toast + red-dot nav; vào view thì card vừa xong glow tĩnh (KHÔNG banner full-screen — user bác hiệu ứng to/động).
+- **Style:** dark + jade/cyan, font Lora serif (NẠP THÊM weight 400;500 + italic vào `<head>` rồi mới `font-family:Lora` — né serif ra sans xấu là SAI), Hán-Việt ĐẦY ĐỦ, 1 dòng/hiệu ứng, icon SVG/art.
 
-## 8. Lore
+## 8. Lore (bản Hán-Việt cổ thư — port nguyên văn từ code, user tự viết & duyệt ở mockup)
 
-- Intro view: **"Giang hồ vạn dặm, về đến đây mới gọi là nhà."**
-- Nhà chính: "Nền vững một thước, mộng dài một canh."
-- Mộng Đài: "Đăng đài nhập mộng, tỉnh lai đắc bảo."
-- Trảm Yêu Đài: "Kỳ trận bày xong, yêu tà tự đến nộp mạng."
-- Diễn Võ Trường: "Đất trống ngàn thước, chờ ngày quần hùng khai chiến."
+**7 bậc Nhà Chính** (`HOUSE_TIERS[i].lore`):
 
-### Art cần làm (`images/dongphu/`) — 10 art + 1 icon nav
+| Bậc | Tên | Lore |
+|---|---|---|
+| 0 | Bãi Đất Trống | Hoang địa sơ khai, linh mạch vị tỉnh. Nhất thạch định cơ, tông môn tự thử khai thiên. |
+| 1 | Thảo Lư | Thảo lư lâm phong, cô đăng chiếu dạ. Tuy vô hoa vũ, diệc khả tĩnh tâm dưỡng khí. |
+| 2 | Mộc Xá | Mộc xá sơ thành, trà yên vị tán. Môn nhân an cư ư thử, trú tập võ, dạ luyện khí. |
+| 3 | Trạch Viện | Thanh ngõa cao tường, viện môn thâm bế. Tông môn căn cơ tiệm ổn, khả thu đồ lập quy. |
+| 4 | Sơn Trang | Sơn trang y lĩnh, lâu viện tương liên. Nhất phương khí vận tiệm tụ, thanh danh thủy động giang hồ. |
+| 5 | Phủ Đệ | Phủ đệ nguy nhiên, trường đăng bất diệt. Tân khách quy phụ, môn hạ đệ tử nhật thịnh. |
+| 6 | Động Phủ | Động thiên khai cảnh, linh khí thành vân. Chân tu ẩn ư kỳ nội, đạo thống trường tồn bất diệt. |
 
-`nha_0.webp` (bãi đất trống/nền móng — first-touch) + `nha_1..6.webp` (6 bậc, style tile kiến trúc như tongmon/ nhưng phối cảnh NHÀ RIÊNG ấm cúng, tránh lẫn quần thể môn phái) + `mongdai.webp` (đài gỗ dưới trăng, motif tím/lam ăn theo dtm/) + `tramyeudai.webp` (đài đá cửu cung trận đồ, motif ngũ sắc ăn theo kytran/) + `dienvotruong_lock.webp` (silhouette) + `images/nav/dongphu.webp`.
+**3 công trình phụ** (`BUILDINGS[key].lore`):
+
+- **Mộng Đài:** "U mộng nhập đài, hương yên dẫn duyên. Môn nhân ngưng thần nhập cảnh, tham huyền ngộ đạo, linh cơ tự hiện."
+- **Trảm Yêu Đài:** "Cửu cung bố trận, pháp kiếm trấn đàn. Phù hỏa nhất khởi, yêu vụ tận tán, tà khí bất xâm sơn môn."
+- **Diễn Võ Trường:** "Diễn võ trường khai, quần hùng tề tụ. Đài cao kỳ liệt, thắng phụ nhất chưởng chi gian." *(tease card: "Đất trống ngàn thước, chờ ngày quần hùng khai chiến.")*
+
+### Art (`images/dongphu/`) — đã đủ (user gen)
+
+Art cảnh: `nha_0.webp`..`nha_6.webp` (7 bậc) + `mongdai.webp` + `tramyeu.webp` + `dienvo.webp` + `images/nav/dongphu.webp`.
+UI-kit (`images/dongphu/ui/`): `ov_frame` · 4 medallion `ov_med_nha/gio/ct/sua` · 3 rail plaque `rail_nha/rail_ct/rail_so` + `tab_active` · `tassel` · liệu cao cấp. *(Lưu ý: `ov_frame` cuối cùng vẽ khung bằng CSS thay border-image — xem §7 khu Tổng Quan.)*
 
 ## 9. Phụ lục — 4 sản phẩm danh vọng Lv55-100 (DỜI đợt sau, lore giữ sẵn)
 
-| Lv | Tên | Inputs | Lore |
+| Lv | Tên | Inputs (dự kiến) | Lore |
 |---|---|---|---|
 | 55 | Vân Văn Bình Phong | vanMauDinh×1 + phuVanMoc×2 | "Bình phong khảm vân mẫu, vân mây trôi thật trong lớp đá. Ngồi sau nó luận sự, lòng tự nhiên tĩnh lại." |
 | 70 | Tinh Quang Đăng | vanThietDinh×1 + tinhHoaMoc×2 | "Đèn lồng lõi vẫn thiết, chao gỗ tinh hoa. Không dầu không lửa, đêm đêm tự tỏa ánh sao." |
@@ -238,11 +260,19 @@ Card placeholder thuần: art silhouette (đài + cờ xí, jade mờ trên nề
 
 Điều kiện ship lại: có sink thật (bậc 7 "Tiên Phủ" / trang trí Động Phủ / Thâm Mộng) + sửa giá bán ≥1,25× tổng value input.
 
-## 10. Các quyết định đã CHỐT (user, 2026-07-09) — DOC ĐÓNG BĂNG, SẴN SÀNG CODE
+## 10. Trạng thái & việc còn lại
 
-1. **Cap assist Mộng Đài: 70/75/80** (bảo thủ). ✅
-2. **Trảm Yêu Đài: "Sắp Khai Mở"** — card hiện nhưng KHÔNG nút xây cho tới khi match-3 tích hợp. Động Phủ ship trước được. ✅
-3. **Nâng nhà chính: toast + glow tĩnh** (KHÔNG banner full-screen). ✅
-4. **Hủy Xây: hoàn 100% vật liệu, mất trắng Bạc.** ✅
+**ĐÃ CODE + LIVE** (commit `f5ecf50`, push origin/main = repo Pages):
+1. `engine/dongphu.js` (schema + ensure + resolve + startBuild/cancel + độ bền/sửa chữa + knob thuần) ✅
+2. `idleCapMs` + boot order (ensureDongPhu → resolveDongPhu → simTongMon) ✅
+3. View rail dọc ornate + Sổ Công Trình = màn Quản Lý ✅
+4. Mộng Đài knob (3 read-site DTM → hàm thuần) ✅
+5. 6 items + 6 action Doanh Tạo Lv12-38 ✅
+6. Hệ Độ Bền + Sửa Chữa + rebalance liệu/giá/thời gian ✅
+7. Art 10 cảnh + UI-kit + medallion + rail plaque ✅
+8. **Cách ly 0-power KEPT** (verify DOM: idle 8↔14h, DTM cap 60/70/75/80↔0 khi hỏng, không chạm combat/gear/Tứ Trụ) ✅
 
-Thứ tự build khi có lệnh code: engine/dongphu.js (schema + ensure + resolve + startBuild/cancel) → idleCapMs + boot order (ensureDongPhu → resolveDongPhu → simTongMon) → view UI (**mockup `_mockup/` duyệt visual trước khi ráp**) → Mộng Đài knob (3 read-site DTM) → items/actions Doanh Tạo mới → art 10 + icon nav (user gen) → (Trảm Yêu Đài kích hoạt khi ráp match-3).
+**Còn lại:**
+- **Trảm Yêu Đài kích hoạt** = ráp Kỳ Trận Trảm Yêu (match-3) vào game thật rồi bật `buildable:true` + cổng nav `buildingUsable`. Mockup đã review sạch (xem `THIET_KE_*` / memory `design_match3_tieudao`).
+- **Tune cân bằng** liệu/giá/thời gian/tốc hao độ bền + **đo lại pacing §3 bằng harness** (bảng cũ đã lỗi thời sau rebalance ×10).
+- `ov_frame` slice có thể cần tune nếu user soi kỹ (đã chuyển sang vẽ CSS nên rủi ro thấp).
