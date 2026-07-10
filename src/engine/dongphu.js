@@ -12,7 +12,10 @@ import { levelFromXp } from './leveling.js';
 
 export const DONGPHU_MAX_HOUSE = 6;
 export const IDLE_BASE_H = 8;            // trần treo NỀN (khớp settings.idleCapHours mặc định)
+export const DUR_DECAY_DAYS = 40;        // ĐỘ BỀN: 100% -> 0% trong 40 ngày (2,5%/ngày)
+export const DUR_REPAIR_BELOW = 80;      // chỉ mở Sửa Chữa khi độ bền < 80%
 const H = 3600 * 1000, M = 60 * 1000;
+const DUR_MS = DUR_DECAY_DAYS * 24 * 3600 * 1000;
 
 // --- 7 bậc Nhà Chính (index 0..6; bậc 0 = bãi đất trống, không thi công) ---
 // reqLevel = gate Doanh Tạo để khởi công TỚI bậc đó. mats keyed theo itemId (data/items.js).
@@ -20,23 +23,23 @@ const H = 3600 * 1000, M = 60 * 1000;
 export const HOUSE_TIERS = [
   { lv: 0, name: 'Bãi Đất Trống', img: 'nha_0',
     lore: 'Hoang địa sơ khai, linh mạch vị tỉnh. Nhất thạch định cơ, tông môn tự thử khai thiên.' },
-  { lv: 1, name: 'Thảo Lư', img: 'nha_1', reqLevel: 1, buildMs: 30 * M, bac: 500,
-    mats: { vanYeu: 40, datSet: 30, cat: 20 },
+  { lv: 1, name: 'Thảo Lư', img: 'nha_1', reqLevel: 1, buildMs: 12 * H, bac: 300000,
+    mats: { vanYeu: 400, datSet: 300, cat: 200 },
     lore: 'Thảo lư lâm phong, cô đăng chiếu dạ. Tuy vô hoa vũ, diệc khả tĩnh tâm dưỡng khí.' },
-  { lv: 2, name: 'Mộc Xá', img: 'nha_2', reqLevel: 10, buildMs: 2 * H, bac: 2000,
-    mats: { vanYeu: 100, gach: 80, thietKhau: 20 },
+  { lv: 2, name: 'Mộc Xá', img: 'nha_2', reqLevel: 10, buildMs: 24 * H, bac: 600000,
+    mats: { vanYeu: 1000, gach: 800, thietKhau: 200 },
     lore: 'Mộc xá sơ thành, trà yên vị tán. Môn nhân an cư ư thử, trú tập võ, dạ luyện khí.' },
-  { lv: 3, name: 'Trạch Viện', img: 'nha_3', reqLevel: 18, buildMs: 6 * H, bac: 8000,
-    mats: { thanhNgoa: 120, luongMoc: 50, gach: 60, thietKhau: 30 },
+  { lv: 3, name: 'Trạch Viện', img: 'nha_3', reqLevel: 18, buildMs: 36 * H, bac: 1100000,
+    mats: { thanhNgoa: 1200, luongMoc: 500, gach: 600, thietKhau: 300 },
     lore: 'Thanh ngõa cao tường, viện môn thâm bế. Tông môn căn cơ tiệm ổn, khả thu đồ lập quy.' },
-  { lv: 4, name: 'Sơn Trang', img: 'nha_4', reqLevel: 24, buildMs: 12 * H, bac: 30000,
-    mats: { thachChuyen: 150, thanhNgoa: 80, luongMoc: 50, gach: 80, thietKhau: 40 },
+  { lv: 4, name: 'Sơn Trang', img: 'nha_4', reqLevel: 24, buildMs: 54 * H, bac: 2000000,
+    mats: { thachChuyen: 1500, thanhNgoa: 800, luongMoc: 500, gach: 800, thietKhau: 400 },
     lore: 'Sơn trang y lĩnh, lâu viện tương liên. Nhất phương khí vận tiệm tụ, thanh danh thủy động giang hồ.' },
-  { lv: 5, name: 'Phủ Đệ', img: 'nha_5', reqLevel: 30, buildMs: 24 * H, bac: 100000,
-    mats: { hanNgocChuyen: 160, tinhThachSong: 60, thachChuyen: 100, thanhNgoa: 80, luongMoc: 50 },
+  { lv: 5, name: 'Phủ Đệ', img: 'nha_5', reqLevel: 30, buildMs: 72 * H, bac: 3300000,
+    mats: { hanNgocChuyen: 1600, tinhThachSong: 600, thachChuyen: 1000, thanhNgoa: 800, luongMoc: 500 },
     lore: 'Phủ đệ nguy nhiên, trường đăng bất diệt. Tân khách quy phụ, môn hạ đệ tử nhật thịnh.' },
-  { lv: 6, name: 'Động Phủ', img: 'nha_6', reqLevel: 38, buildMs: 48 * H, bac: 300000,
-    mats: { kimTatTru: 150, hanNgocChuyen: 250, thachChuyen: 250, tinhThachSong: 100, thanhNgoa: 200, thietKhau: 100 },
+  { lv: 6, name: 'Động Phủ', img: 'nha_6', reqLevel: 38, buildMs: 96 * H, bac: 5000000,
+    mats: { kimTatTru: 1500, hanNgocChuyen: 2500, thachChuyen: 2500, tinhThachSong: 1000, thanhNgoa: 2000, thietKhau: 1000 },
     lore: 'Động thiên khai cảnh, linh khí thành vân. Chân tu ẩn ư kỳ nội, đạo thống trường tồn bất diệt.' },
 ];
 
@@ -50,14 +53,14 @@ export const BUILDINGS = {
     lore: 'U mộng nhập đài, hương yên dẫn duyên. Môn nhân ngưng thần nhập cảnh, tham huyền ngộ đạo, linh cơ tự hiện.',
     tags: ['Mộng Cảnh', 'Ngộ Đạo', 'Cơ Duyên'],
     eff: [
-      'Trần hỗ trợ tuần: 60 → 70 Nguyên Bảo',
-      '+10% Mộng Ngân mỗi ván · trần → 75',
-      'Mở Thâm Mộng · trần → 80',
+      'Giới Hạn Quy Đổi Tuần: 60 → 70 Nguyên Bảo',
+      '+10% Mộng Ngân mỗi ván · giới hạn → 75',
+      'Mở Thâm Mộng · giới hạn → 80',
     ],
     levels: [
-      { bac: 2000, buildMs: 4 * H, mats: { gach: 50, vanYeu: 50, thietKhau: 15 } },
-      { bac: 10000, buildMs: 12 * H, mats: { gach: 100, thanhNgoa: 60, luongMoc: 40 } },
-      { bac: 40000, buildMs: 24 * H, mats: { thachChuyen: 80, tinhThachSong: 40, hanNgocChuyen: 50 } },
+      { bac: 20000, buildMs: 12 * H, mats: { gach: 500, vanYeu: 500, thietKhau: 150 } },
+      { bac: 100000, buildMs: 24 * H, mats: { gach: 1000, thanhNgoa: 600, luongMoc: 400 } },
+      { bac: 440000, buildMs: 48 * H, mats: { thachChuyen: 800, tinhThachSong: 400, hanNgocChuyen: 500 } },
     ],
   },
   tramYeuDai: {
@@ -69,9 +72,9 @@ export const BUILDINGS = {
     tags: ['Trảm Yêu', 'Trận Đồ'],
     eff: ['Mở Kỳ Trận Trảm Yêu', 'Mở chương gauntlet mới', 'Chế độ Nhật Trảm'],
     levels: [
-      { bac: 2200, buildMs: 4 * H, mats: { gach: 55, vanYeu: 55, thietKhau: 16 } },
-      { bac: 11000, buildMs: 12 * H, mats: { gach: 110, thanhNgoa: 66, luongMoc: 44 } },
-      { bac: 44000, buildMs: 24 * H, mats: { thachChuyen: 88, tinhThachSong: 44, hanNgocChuyen: 55 } },
+      { bac: 22000, buildMs: 12 * H, mats: { gach: 550, vanYeu: 550, thietKhau: 160 } },
+      { bac: 110000, buildMs: 24 * H, mats: { gach: 1100, thanhNgoa: 660, luongMoc: 440 } },
+      { bac: 440000, buildMs: 48 * H, mats: { thachChuyen: 880, tinhThachSong: 440, hanNgocChuyen: 550 } },
     ],
   },
   dienVoTruong: {
@@ -86,7 +89,8 @@ export const BUILDINGS = {
 export const BUILDING_KEYS = ['mongDai', 'tramYeuDai', 'dienVoTruong'];
 
 // ---- Khởi tạo + vá save cũ (idempotent, fail-safe job mồ côi) ----
-export function ensureDongPhu(state) {
+export function ensureDongPhu(state, now) {
+  const _n = now || Date.now();
   if (!state.dongPhu || typeof state.dongPhu !== 'object') state.dongPhu = {};
   const dp = state.dongPhu;
   if (typeof dp.house !== 'number' || !isFinite(dp.house)) dp.house = 0;
@@ -99,6 +103,10 @@ export function ensureDongPhu(state) {
   }
   if (!Array.isArray(dp.log)) dp.log = [];
   if (typeof dp.doneUnseen !== 'boolean') dp.doneUnseen = false;
+  // ĐỘ BỀN: dur[key] = mốc thời gian ĐẦY 100% gần nhất (xây/nâng/sửa). Save cũ / công trình đã có mà thiếu mốc -> coi như vừa đầy (không phạt hồi tố).
+  if (!dp.dur || typeof dp.dur !== 'object') dp.dur = {};
+  if ((dp.house || 0) >= 1 && !dp.dur.house) dp.dur.house = _n;
+  for (const k of BUILDING_KEYS) if ((dp.buildings[k] || 0) >= 1 && !dp.dur[k]) dp.dur[k] = _n;
   // Validate job đang chạy — job mồ côi/hỏng -> hoàn liệu theo biên lai rồi xóa (fail-safe về phía người chơi).
   if (dp.build != null) {
     const b = dp.build;
@@ -119,6 +127,8 @@ export function resolveDongPhu(state, now) {
   if (now < b.endsAt) return null;                        // chưa xong (đồng hồ lùi -> vô hại)
   if (b.target === 'house') dp.house = Math.max(dp.house || 0, b.toLevel);
   else dp.buildings[b.target] = Math.max(dp.buildings[b.target] || 0, b.toLevel);
+  if (!dp.dur) dp.dur = {};
+  dp.dur[b.target] = b.endsAt;                            // vừa xây/nâng xong -> độ bền 100% tính từ lúc hoàn công
   dp.log.unshift({ t: b.endsAt, target: b.target, toLevel: b.toLevel });
   if (dp.log.length > 20) dp.log.length = 20;
   dp.doneUnseen = true;
@@ -185,19 +195,72 @@ function _giveMats(state, mats) {
   for (const id in mats) state.inventory[id] = (state.inventory[id] || 0) + mats[id];
 }
 
-// ---- Knob thuần (đọc bởi hệ khác) — CÁCH LY: chiều phụ thuộc luôn HƯỚNG VÀO dongphu ----
-export function dongPhuCapBonusH(state) { return Math.min(6, (state.dongPhu && state.dongPhu.house) || 0); }
+// ---- ĐỘ BỀN + SỬA CHỮA (thuần, tính theo giờ thực, offline-safe) ----
+function currentBuildMats(state, key) {   // bộ liệu xây CẤP HIỆN TẠI (nền tính chi phí sửa theo %)
+  const dp = state.dongPhu || {};
+  if (key === 'house') { const t = HOUSE_TIERS[dp.house || 0]; return (t && t.mats) || {}; }
+  const B = BUILDINGS[key]; const lv = (dp.buildings && dp.buildings[key]) || 0;
+  return (B && B.levels && B.levels[lv - 1] && B.levels[lv - 1].mats) || {};
+}
+export function constructionExists(state, key) {
+  const dp = state.dongPhu; if (!dp) return false;
+  return key === 'house' ? (dp.house || 0) >= 1 : !!(dp.buildings && (dp.buildings[key] || 0) >= 1);
+}
+// Độ bền hiện tại 0..100 (null nếu công trình chưa tồn tại). Hao tuyến tính 100→0 trong DUR_DECAY_DAYS.
+export function durabilityPct(state, key, now) {
+  if (!constructionExists(state, key)) return null;
+  const t0 = state.dongPhu.dur && state.dongPhu.dur[key];
+  if (!t0) return 100;
+  return Math.max(0, Math.min(100, 100 - ((now - t0) / DUR_MS) * 100));
+}
+// Chức năng còn hiệu lực? >0% = đầy đủ; =0% = TẮT + khóa truy cập. Chưa xây -> false.
+export function isFunctional(state, key, now) {
+  const p = durabilityPct(state, key, now);
+  return p != null && p > 0;
+}
+// Công trình phụ có VÀO được mini-game không (đã xây + độ bền > 0). Dùng cho gate nav.
+export function buildingUsable(state, key, now) {
+  return constructionExists(state, key) && isFunctional(state, key, now == null ? Date.now() : now);
+}
+// Chi phí sửa về 100% (null nếu chưa cần sửa / không có công trình).
+export function repairCost(state, key, now) {
+  const p = durabilityPct(state, key, now);
+  if (p == null || p >= DUR_REPAIR_BELOW) return null;
+  const frac = (100 - p) / 100, base = currentBuildMats(state, key), mats = {};
+  for (const id in base) mats[id] = Math.ceil(base[id] * frac);
+  return { pct: p, mats };
+}
+export function repairBuild(state, key, now) {
+  const c = repairCost(state, key, now);
+  if (!c) return { ok: false, msg: 'Chưa cần sửa (độ bền còn ≥80%) hoặc không có công trình.' };
+  for (const id in c.mats) if ((state.inventory[id] || 0) < c.mats[id]) return { ok: false, msg: 'Thiếu nguyên liệu.' };
+  for (const id in c.mats) { state.inventory[id] = (state.inventory[id] || 0) - c.mats[id]; if (state.inventory[id] <= 0) delete state.inventory[id]; }
+  if (!state.dongPhu.dur) state.dongPhu.dur = {};
+  state.dongPhu.dur[key] = now;                            // về 100% (mốc mới = now)
+  return { ok: true, mats: c.mats };
+}
+
+// ---- Knob thuần (đọc bởi hệ khác) — CÁCH LY: chiều phụ thuộc luôn HƯỚNG VÀO dongphu. Gate theo ĐỘ BỀN. ----
+export function dongPhuCapBonusH(state) {
+  const h = (state.dongPhu && state.dongPhu.house) || 0;
+  if (h < 1) return 0;
+  if (!isFunctional(state, 'house', Date.now())) return 0;    // nhà hỏng (0%) -> mất bonus trần treo, về nền
+  return Math.min(6, h);
+}
 export function dtmBridgeWeekCap(state) {
   const lv = (state.dongPhu && state.dongPhu.buildings && state.dongPhu.buildings.mongDai) || 0;
+  if (lv < 1) return 60;                                       // chưa xây Mộng Đài -> trần nền 60
+  if (!isFunctional(state, 'mongDai', Date.now())) return 0;   // xây rồi mà hỏng (0%) -> KHÓA quy đổi (không đổi được)
   return [60, 70, 75, 80][Math.min(3, lv)];
 }
 export function dtmMongNganMult(state) {
   const lv = (state.dongPhu && state.dongPhu.buildings && state.dongPhu.buildings.mongDai) || 0;
-  return lv >= 2 ? 1.10 : 1.0;
+  if (lv < 2 || !isFunctional(state, 'mongDai', Date.now())) return 1.0;
+  return 1.10;
 }
 export function dongPhuThamMongOpen(state) {
   const lv = (state.dongPhu && state.dongPhu.buildings && state.dongPhu.buildings.mongDai) || 0;
-  return lv >= 3;
+  return lv >= 3 && isFunctional(state, 'mongDai', Date.now());
 }
 
 // ---- Helper hiển thị (thuần, không đụng UI) ----

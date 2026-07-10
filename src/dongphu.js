@@ -5,13 +5,17 @@
 //   Glue tới game store qua this.$store.game (showToast / navTo / fmt / ico / Storage).
 // ============================================================
 import { Storage } from './engine/save.js';
-import { ITEMS } from './data/items.js';
+import { ITEMS, QUALITY } from './data/items.js';
 import { levelFromXp } from './engine/leveling.js';
 import {
-  HOUSE_TIERS, BUILDINGS, BUILDING_KEYS, DONGPHU_MAX_HOUSE,
+  HOUSE_TIERS, BUILDINGS, BUILDING_KEYS, DONGPHU_MAX_HOUSE, DUR_REPAIR_BELOW, DUR_DECAY_DAYS,
   planBuild, startBuild, cancelBuild, resolveDongPhu,
   houseCapH, buildingsUnlocked, unlocksAtHouse,
+  durabilityPct, isFunctional, repairCost, repairBuild, constructionExists,
 } from './engine/dongphu.js';
+
+// Màu tên nguyên liệu theo PHẨM CHẤT (đồng bộ ramp game) — hex cho inline style.
+const QUALITY_HEX = { phamPham: '#cbd5e1', luongPham: '#6ee7b7', tinhPham: '#93c5fd', tuyetPham: '#c4b5fd', truyenThe: '#f0abfc', thanPham: '#fdba74', coBan: '#fcd34d' };
 
 export function dongPhu() {
   return {
@@ -63,13 +67,15 @@ export function dongPhu() {
     get housePlan() { try { return planBuild(this.st, 'house'); } catch (e) { return null; } },
     get doanhTaoLv() { try { return levelFromXp((this.st.skills && this.st.skills.doanhTao && this.st.skills.doanhTao.xp) || 0); } catch (e) { return 0; } },
     get nextHouseTier() { const p = this.housePlan; return p ? HOUSE_TIERS[p.toLevel] : null; },
+    // màu tên nguyên liệu theo phẩm chất
+    matColor(id) { return QUALITY_HEX[(ITEMS[id] || {}).quality] || '#c7ccc9'; },
     // bảng nguyên liệu cho 1 kế hoạch (house/building)
     matRows(plan) {
       if (!plan || !plan.mats) return [];
       const inv = this.st.inventory || {};
       return Object.keys(plan.mats).map((id) => {
         const need = plan.mats[id], have = inv[id] || 0;
-        return { id, name: this.itemName(id), need, have, ok: have >= need };
+        return { id, name: this.itemName(id), need, have, ok: have >= need, color: this.matColor(id) };
       });
     },
     get houseMatRows() { return this.matRows(this.housePlan); },
@@ -140,24 +146,61 @@ export function dongPhu() {
       return (Math.round((ms || 0) / 60000)) + ' phút';
     },
 
-    // ----- Sổ Công Trình (bản log đơn giản) -----
-    get logRows() {
-      const rows = [];
-      const cur = this.curHouse;
-      rows.push({ icon: '🏠', title: 'Nhà Chính · ' + HOUSE_TIERS[cur].name + ' (Cấp ' + cur + ')',
-        sub: 'Giới hạn treo máy ' + houseCapH(cur) + ' giờ · ' + buildingsUnlocked(cur) + ' công trình đã mở',
-        stat: 'Đã xây', cls: 'done' });
-      // công trình phụ
-      for (const k of BUILDING_KEYS) {
-        const B = BUILDINGS[k], lvl = (this.dp.buildings && this.dp.buildings[k]) || 0;
-        if (k === 'dienVoTruong') { rows.push({ icon: '⚔️', title: B.name, sub: 'Đất trống ngàn thước · chưa khai phá', stat: 'Chưa mở', cls: 'lock' }); continue; }
-        if (!B.buildable) { rows.push({ icon: '🀄', title: B.name + ' · Cấp ' + lvl, sub: B.type + ' · chờ tích hợp', stat: 'Sắp khai mở', cls: 'wip' }); continue; }
-        rows.push({ icon: '🌙', title: B.name + ' · Cấp ' + lvl, sub: B.type + (lvl > 0 ? (' · ' + (B.eff[Math.min(lvl, B.eff.length) - 1] || '')) : ' · chưa dựng'),
-          stat: lvl > 0 ? 'Hoạt động' : 'Chưa dựng', cls: lvl > 0 ? 'done' : 'lock' });
+    // ----- Sổ Công Trình = màn Quản Lý (Tổng Quan + Độ Bền + Nhật Ký) -----
+    fmtDays(ms) {
+      const d = (ms || 0) / 86400000; if (d <= 0) return '0 giờ';
+      let days = Math.floor(d), hrs = Math.round((d - days) * 24);
+      if (hrs >= 24) { days++; hrs = 0; }
+      const s = []; if (days > 0) s.push(days + ' ngày'); if (hrs > 0) s.push(hrs + ' giờ');
+      return s.length ? s.join(' ') : '0 giờ';
+    },
+    _durEntry(key, name, img, type, func, nav) {
+      const now = Date.now();
+      if (!constructionExists(this.st, key)) {
+        const B = BUILDINGS[key] || {};
+        return { key, name, img, type, exists: false, grey: !!B.grey, notBuilt: B.grey ? 'Chưa mở' : (B.badge || 'Chưa xây') };
       }
-      // job đang chạy
-      if (this.hasJob) rows.push({ icon: '🔨', title: this.jobName, sub: 'Đang thi công · còn ' + this.jobRemainText, stat: 'Thi công', cls: 'wip' });
-      return rows;
+      const pct = durabilityPct(this.st, key, now), p = Math.round(pct);
+      const cls = p >= 80 ? 'good' : p >= 40 ? 'warn' : p > 0 ? 'bad' : 'dead';
+      const status = p === 0 ? 'Hư hỏng' : p >= 80 ? 'Còn tốt' : 'Cần sửa';
+      const toZeroMs = (pct / 100) * DUR_DECAY_DAYS * 86400000;
+      const rc = repairCost(this.st, key, now);
+      const repairMats = rc ? Object.keys(rc.mats).map((id) => ({ name: this.itemName(id), qty: rc.mats[id], color: this.matColor(id) })) : [];
+      return {
+        key, name, img, type, func, nav, exists: true, pct, p, cls, status, funcOff: p === 0,
+        countTxt: p > 0 ? ('còn ' + this.fmtDays(toZeroMs) + ' tới 0%') : 'đã hư hỏng · không truy cập được',
+        canRepair: pct < DUR_REPAIR_BELOW, repairMats,
+      };
+    },
+    get soDurList() {
+      void this.g._tick;
+      const cur = this.curHouse;
+      const mongLv = (this.dp.buildings && this.dp.buildings.mongDai) || 0;
+      return [
+        this._durEntry('house', HOUSE_TIERS[cur].name, 'nha_' + cur, 'Nhà Chính', 'Giới Hạn Treo Máy · ' + houseCapH(cur) + ' giờ', ''),
+        this._durEntry('mongDai', 'Mộng Đài', 'mongdai', 'Đăng Tiên Mộng', 'Giới Hạn Quy Đổi Tuần · ' + [60, 70, 75, 80][Math.min(3, mongLv)] + ' Nguyên Bảo', 'dangTienMong'),
+        this._durEntry('tramYeuDai', 'Trảm Yêu Đài', 'tramyeu', 'Kỳ Trận Trảm Yêu', '', ''),
+        this._durEntry('dienVoTruong', 'Diễn Võ Trường', 'dienvo', 'Quần Hùng Kỳ Trận', '', ''),
+      ];
+    },
+    get soNeedRepair() { return this.soDurList.filter((e) => e.exists && e.canRepair).length; },
+    _ago(ms) {
+      const m = Math.floor(ms / 60000); if (m < 1) return 'vừa xong'; if (m < 60) return m + ' phút trước';
+      const h = Math.floor(m / 60); if (h < 24) return h + ' giờ trước';
+      return Math.floor(h / 24) + ' ngày trước';
+    },
+    get soLog() {
+      void this.g._tick;
+      const now = Date.now(), SEAL = { house: '府', mongDai: '夢', tramYeuDai: '劍', dienVoTruong: '武' };
+      return (this.dp.log || []).slice(0, 12).map((e) => {
+        const nm = e.target === 'house' ? ((HOUSE_TIERS[e.toLevel] || {}).name) : ((BUILDINGS[e.target] || {}).name);
+        return { seal: SEAL[e.target] || '事', name: nm || 'Công trình', toLevel: e.toLevel, ago: this._ago(now - (e.t || now)) };
+      });
+    },
+    doRepair(key) {
+      const r = repairBuild(this.st, key, Date.now());
+      if (r.ok) { this._save(); this.g.showToast('Động Phủ · Đã sửa chữa về 100% độ bền.'); }
+      else this.g.showToast(r.msg || 'Không sửa được.');
     },
 
     // ----- Hành động -----

@@ -8571,13 +8571,14 @@
         .dp-emblem{ width:50px; height:50px; border-radius:12px; display:grid; place-items:center; margin-bottom:4px; border:1px solid var(--dpl); background:radial-gradient(circle at 50% 35%,rgba(201,162,75,.18),rgba(10,15,20,.6)); box-shadow:inset 0 0 14px rgba(201,162,75,.15); }
         .dp-emblem svg{ width:25px; height:25px; stroke:var(--dpg2); fill:none; stroke-width:1.5; }
         .dp-navitem{ width:100%; background:none; border:none; padding:4px 0 2px; display:flex; flex-direction:column; align-items:center; gap:5px; color:var(--dpid); cursor:pointer; }
-        .dp-navic{ width:50px; height:50px; border-radius:12px; position:relative; display:grid; place-items:center; border:1px solid var(--dpls); background:linear-gradient(180deg,rgba(20,28,40,.6),rgba(10,15,22,.6)); transition:.18s; }
+        .dp-navic{ width:50px; height:50px; border-radius:12px; position:relative; display:grid; place-items:center; transition:.18s; }
+        .dp-navic img{ width:100%; height:100%; object-fit:contain; opacity:.7; transition:opacity .18s; filter:drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
         .dp-navic svg{ width:25px; height:25px; stroke:#b9c0c6; fill:none; stroke-width:1.6; }
         .dp-navlbl{ font-size:11.5px; letter-spacing:.02em; line-height:1.15; text-align:center; }
-        .dp-navitem:hover .dp-navic{ border-color:var(--dpl); transform:translateY(-1px); }
+        .dp-navitem:hover .dp-navic{ transform:translateY(-1px); }
+        .dp-navitem:hover .dp-navic img{ opacity:.9; }
         .dp-navitem.on{ color:var(--dpg3); }
-        .dp-navitem.on .dp-navic{ border-color:transparent; background:radial-gradient(circle at 50% 30%,rgba(245,208,137,.22),rgba(12,18,26,.7)); }
-        .dp-navitem.on .dp-navic svg{ stroke:var(--dpg3); }
+        .dp-navitem.on .dp-navic img{ opacity:1; }
         .dp-navitem.on .dp-navic::after{ content:""; position:absolute; inset:-8px; z-index:3; pointer-events:none; background:url("images/dongphu/ui/tab_active.webp") center/100% 100% no-repeat; }
         .dp-tassel{ margin-top:auto; width:100%; min-height:150px; background:url("images/dongphu/ui/tassel.webp") no-repeat center top; background-size:auto 140px; }
         .dp-main{ min-width:0; padding:0 2px 4px 20px; }
@@ -8723,7 +8724,72 @@
         .dp-logrow .ls{ font-size:12.5px; color:var(--dpid); margin-top:2px; }
         .dp-logrow .lstat{ font-size:12.5px; font-weight:600; white-space:nowrap; }
         .dp-logrow .lstat.done{ color:var(--dpj); } .dp-logrow .lstat.wip{ color:var(--dpg3); } .dp-logrow .lstat.lock{ color:var(--dplock); }
+        /* ===== SỔ CÔNG TRÌNH = QUẢN LÝ (Tổng Quan + Độ Bền + Nhật Ký) ===== */
+        .dp-root .ql-wrap{ display:flex; flex-direction:column; gap:20px; }
+        .dp-root .ql-sectitle{ font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dpg2); font-weight:600; margin:0 0 11px; display:flex; align-items:center; gap:9px; }
+        .dp-root .ql-sectitle::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,var(--dpl),transparent); }
+        .dp-root .ql-ov{ display:flex; align-items:center; min-height:92px; border:22px solid transparent; border-width:22px 66px; border-image:url("images/dongphu/ui/ov_frame.webp") 44 100 fill / 22px 66px / 0 stretch; }
+        .dp-root .ql-tile{ flex:1; min-width:0; display:flex; align-items:center; gap:12px; padding:2px 16px; position:relative; }
+        .dp-root .ql-tile+.ql-tile{ border-left:1px solid var(--dpls); }
+        .dp-root .ql-tile+.ql-tile::before{ content:"◆"; position:absolute; left:-5px; top:50%; transform:translateY(-50%); font-size:8px; color:var(--dpg); text-shadow:0 0 6px rgba(201,162,75,.6); }
+        .dp-root .ql-medal{ width:48px; height:48px; flex:0 0 auto; }
+        .dp-root .ql-medal img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+        .dp-root .ql-tcol{ min-width:0; }
+        .dp-root .ql-tile .ql{ font-size:10.5px; color:var(--dpid); letter-spacing:.06em; text-transform:uppercase; margin-bottom:1px; }
+        .dp-root .ql-tile .qv{ font-size:21px; color:var(--dpg3); font-weight:700; line-height:1.15; }
+        .dp-root .du-warn{ display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--dpg3); margin:-4px 0 11px; padding:8px 13px; border:1px solid rgba(245,208,137,.3); border-radius:10px; background:rgba(245,208,137,.06); }
+        .dp-root .du-warn svg{ width:17px; height:17px; stroke:var(--dpg3); fill:none; stroke-width:1.6; flex:0 0 auto; }
+        .dp-root .du-list{ display:flex; flex-direction:column; gap:12px; }
+        .dp-root .du-card{ display:flex; gap:14px; background:var(--dppanel); border:1px solid var(--dpls); border-radius:14px; padding:14px 16px; }
+        .dp-root .du-card.muted{ opacity:.55; }
+        .dp-root .du-thumb{ width:60px; height:60px; flex:0 0 auto; border-radius:11px; overflow:hidden; border:1px solid var(--dpls); background:#0a1017; }
+        .dp-root .du-thumb img{ width:100%; height:100%; object-fit:cover; }
+        .dp-root .du-thumb.grey img{ filter:grayscale(1) brightness(.5); }
+        .dp-root .du-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+        .dp-root .du-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .dp-root .du-name{ font-size:16px; color:var(--dpi); font-weight:600; }
+        .dp-root .du-type{ font-size:12px; color:var(--dpid); }
+        .dp-root .du-chip{ margin-left:auto; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid; white-space:nowrap; }
+        .dp-root .du-chip.good{ color:var(--dpj); border-color:rgba(45,212,191,.4); background:rgba(45,212,191,.08); }
+        .dp-root .du-chip.warn{ color:var(--dpg3); border-color:rgba(245,208,137,.4); background:rgba(245,208,137,.08); }
+        .dp-root .du-chip.bad{ color:var(--dpr); border-color:rgba(251,113,133,.4); background:rgba(251,113,133,.08); }
+        .dp-root .du-chip.dead{ color:#fff; border-color:var(--dpr); background:rgba(251,113,133,.5); }
+        .dp-root .du-bar{ height:9px; border-radius:6px; background:rgba(255,255,255,.06); overflow:hidden; }
+        .dp-root .du-bar>i{ display:block; height:100%; border-radius:6px; }
+        .dp-root .du-bar>i.good{ background:linear-gradient(90deg,var(--dpj2),var(--dpj)); }
+        .dp-root .du-bar>i.warn{ background:linear-gradient(90deg,var(--dpg),var(--dpg3)); }
+        .dp-root .du-bar>i.bad{ background:linear-gradient(90deg,#e11d48,var(--dpr)); }
+        .dp-root .du-bar>i.dead{ background:#5a1622; }
+        .dp-root .du-line{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; font-size:12.5px; }
+        .dp-root .du-func{ color:var(--dpis); font-weight:600; }
+        .dp-root .du-func.off{ color:var(--dpr); }
+        .dp-root .du-dot{ color:var(--dpl); }
+        .dp-root .du-count{ color:var(--dpid); }
+        .dp-root .du-count b{ color:var(--dpg3); font-weight:600; }
+        .dp-root .du-foot{ display:flex; align-items:center; gap:14px; margin-top:4px; padding-top:9px; border-top:1px dashed rgba(201,162,75,.12); flex-wrap:wrap; }
+        .dp-root .du-repair{ flex:1; min-width:180px; }
+        .dp-root .du-rlabel{ font-size:11.5px; color:var(--dpid); margin-bottom:5px; }
+        .dp-root .du-ok{ font-size:12.5px; color:var(--dpj); }
+        .dp-root .du-mats{ display:flex; flex-wrap:wrap; gap:7px; }
+        .dp-root .du-mat{ font-size:12px; color:var(--dpis); padding:3px 9px; border-radius:8px; border:1px solid var(--dpls); background:rgba(12,19,29,.6); }
+        .dp-root .du-mat b{ color:var(--dpi); font-weight:700; }
+        .dp-root .du-none{ font-size:13px; color:var(--dpid); font-style:italic; }
+        .dp-root .du-btn{ flex:0 0 auto; padding:9px 20px; border-radius:9px; border:1px solid var(--dpg2); background:linear-gradient(180deg,rgba(245,208,137,.16),rgba(201,162,75,.1)); color:var(--dpg3); font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer; }
+        .dp-root .du-btn:hover{ background:linear-gradient(180deg,rgba(245,208,137,.26),rgba(201,162,75,.16)); }
+        .dp-root .du-btn.off{ border-color:#3a3a3a; background:#26261f; color:#6b6b64; cursor:not-allowed; }
+        .dp-root .ql-log{ display:flex; flex-direction:column; }
+        .dp-root .ql-logrow{ display:flex; align-items:center; gap:12px; padding:9px 4px; border-bottom:1px dashed rgba(201,162,75,.1); }
+        .dp-root .ql-logrow:last-child{ border-bottom:none; }
+        .dp-root .ql-seal{ width:30px; height:30px; flex:0 0 auto; border-radius:8px; display:grid; place-items:center; border:1px solid var(--dpls); background:rgba(12,20,30,.7); font-family:'Lora',serif; font-size:15px; color:var(--dpg2); }
+        .dp-root .ql-logrow .lg{ flex:1; min-width:0; font-size:13.5px; color:var(--dpis); }
+        .dp-root .ql-logrow .lg b{ color:var(--dpi); font-weight:600; }
+        .dp-root .ql-logrow .lt{ flex:0 0 auto; font-size:12px; color:var(--dpid); }
+        .dp-root .ql-empty{ padding:16px; text-align:center; color:var(--dpid); font-style:italic; font-size:13px; border:1px dashed var(--dpls); border-radius:12px; }
         @media (max-width:900px){
+          .dp-root .ql-ov{ flex-wrap:wrap; border-width:14px 26px; }
+          .dp-root .ql-tile{ flex:1 1 42%; }
+          .dp-root .ql-tile+.ql-tile{ border-left:none; } .dp-root .ql-tile+.ql-tile::before{ display:none; }
+          .dp-root .du-foot{ flex-direction:column; align-items:stretch; } .dp-root .du-btn{ width:100%; }
           .dp-root{ grid-template-columns:1fr; }
           .dp-rail{ flex-direction:row; border-right:none; border-bottom:1px solid var(--dpls); padding:6px 4px; overflow-x:auto; gap:6px; }
           .dp-rail::before{ display:none; }
@@ -8747,15 +8813,15 @@
           <!-- RAIL dọc ornate (bám mockup) -->
           <nav class="dp-rail" aria-label="Điều hướng Động Phủ">
             <button class="dp-navitem" :class="dpTab==='nhaChinh' && 'on'" @click="dpTab='nhaChinh'" title="Nhà Chính" style="margin-top:2px">
-              <span class="dp-navic"><svg viewBox="0 0 24 24"><path d="M3 11L12 3l9 8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20v-5h4v5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="dp-navic"><img src="images/dongphu/ui/rail_nha.webp" alt="Nhà Chính" @error="$el.style.display='none'"></span>
               <span class="dp-navlbl">Nhà Chính</span>
             </button>
             <button class="dp-navitem" :class="dpTab==='congTrinh' && 'on'" @click="dpTab='congTrinh'" title="Công Trình Phụ">
-              <span class="dp-navic"><svg viewBox="0 0 24 24"><path d="M4 21V8l5-3 5 3v13" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 21V11l6 3v7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 21h18" stroke-linecap="round"/><path d="M7 10v2M7 14v2M17 15v2" stroke-linecap="round"/></svg></span>
+              <span class="dp-navic"><img src="images/dongphu/ui/rail_ct.webp" alt="Công Trình Phụ" @error="$el.style.display='none'"></span>
               <span class="dp-navlbl">Công Trình Phụ</span>
             </button>
             <button class="dp-navitem" :class="dpTab==='so' && 'on'" @click="dpTab='so'" title="Sổ Công Trình">
-              <span class="dp-navic"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3v4h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12h6M9 16h6" stroke-linecap="round"/></svg></span>
+              <span class="dp-navic"><img src="images/dongphu/ui/rail_so.webp" alt="Sổ Công Trình" @error="$el.style.display='none'"></span>
               <span class="dp-navlbl">Sổ Công Trình</span>
             </button>
             <div class="dp-tassel" aria-hidden="true"></div>
@@ -8831,7 +8897,7 @@
                     <template x-for="row in houseMatRows" :key="row.id">
                       <span class="dp-mat" :class="!row.ok && 'short'" :title="row.name">
                         <span class="micon" x-html="ico(row.id)"></span>
-                        <span class="mname" x-text="row.name"></span><span class="cnt" x-text="fmt(row.have)"></span><span class="need" x-text="'/' + fmt(row.need)"></span>
+                        <span class="mname" :style="'color:'+row.color" x-text="row.name"></span><span class="cnt" x-text="fmt(row.have)"></span><span class="need" x-text="'/' + fmt(row.need)"></span>
                       </span>
                     </template>
                     <span class="dp-mat" :class="(st.currencies.bac||0) < housePlan.bac && 'short'" title="Bạc">
@@ -8907,7 +8973,7 @@
                           <template x-for="row in selBuildMatRows" :key="row.id">
                             <span class="dp-mat" :class="!row.ok && 'short'" :title="row.name">
                               <span class="micon" x-html="ico(row.id)"></span>
-                              <span class="mname" x-text="row.name"></span><span class="cnt" x-text="fmt(row.have)"></span><span class="need" x-text="'/' + fmt(row.need)"></span>
+                              <span class="mname" :style="'color:'+row.color" x-text="row.name"></span><span class="cnt" x-text="fmt(row.have)"></span><span class="need" x-text="'/' + fmt(row.need)"></span>
                             </span>
                           </template>
                           <span class="dp-mat" :class="(st.currencies.bac||0) < selBinfo.plan.bac && 'short'" title="Bạc">
@@ -8951,14 +9017,82 @@
 
           <!-- ===== TAB: SỔ CÔNG TRÌNH ===== -->
           <div x-show="dpTab==='so'">
-            <div class="dp-log">
-              <template x-for="(r, i) in logRows" :key="i">
-                <div class="dp-logrow">
-                  <span class="li" x-text="r.icon"></span>
-                  <div class="lb"><div class="lt" x-text="r.title"></div><div class="ls" x-text="r.sub"></div></div>
-                  <div class="lstat" :class="r.cls" x-text="r.stat"></div>
+            <div class="ql-wrap">
+
+              <!-- 1. Đang Thi Công -->
+              <div>
+                <p class="ql-sectitle">Đang Thi Công</p>
+                <template x-if="hasJob">
+                  <div class="dp-job" x-data="{cfm:false}">
+                    <span class="ji">🔨</span>
+                    <div class="jb"><div class="jt"><span x-text="jobName"></span><span class="jr" x-text="'Còn ' + jobRemainText"></span></div><div class="jbar"><i :style="`width:${jobPct}%`"></i></div></div>
+                    <button class="dp-cancel" @click="cfm ? (doCancel(), cfm=false) : cfm=true" x-text="cfm ? 'Chắc chắn? (mất Bạc)' : 'Hủy Xây'"></button>
+                  </div>
+                </template>
+                <template x-if="!hasJob"><div class="ql-empty">Chưa có công trình nào đang thi công — sảnh đường tĩnh lặng.</div></template>
+              </div>
+
+              <!-- 2. Tổng Quan (dải ornate + medallion) -->
+              <div>
+                <p class="ql-sectitle">Tổng Quan</p>
+                <div class="ql-ov">
+                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_nha.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Nhà Chính</div><div class="qv gold-text fserif" x-text="curHouseName"></div></div></div>
+                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_gio.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Giới Hạn Treo Máy</div><div class="qv gold-text fserif" x-text="capAt(curHouse) + ' giờ'"></div></div></div>
+                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_ct.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Công Trình Đã Mở</div><div class="qv gold-text fserif" x-text="slotsAt(curHouse)"></div></div></div>
+                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_sua.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Cần Sửa Chữa</div><div class="qv gold-text fserif" x-text="soNeedRepair"></div></div></div>
                 </div>
-              </template>
+              </div>
+
+              <!-- 3. Độ Bền & Bảo Trì -->
+              <div>
+                <p class="ql-sectitle">Độ Bền &amp; Bảo Trì</p>
+                <template x-if="soNeedRepair > 0">
+                  <div class="du-warn"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b x-text="soNeedRepair"></b> công trình đang dưới 80% — nên sửa chữa để giữ chức năng.</span></div>
+                </template>
+                <div class="du-list">
+                  <template x-for="e in soDurList" :key="e.key">
+                    <div>
+                      <template x-if="!e.exists">
+                        <div class="du-card muted">
+                          <span class="du-thumb" :class="e.grey && 'grey'"><img :src="`images/dongphu/${e.img}.webp`" alt="" @error="$el.style.display='none'"></span>
+                          <div class="du-body"><div class="du-head"><span class="du-name" x-text="e.name"></span><span class="du-type" x-text="e.type"></span></div><div class="du-none" x-text="'Chưa xây — ' + e.notBuilt"></div></div>
+                        </div>
+                      </template>
+                      <template x-if="e.exists">
+                        <div class="du-card">
+                          <span class="du-thumb"><img :src="`images/dongphu/${e.img}.webp`" alt="" @error="$el.style.display='none'"></span>
+                          <div class="du-body">
+                            <div class="du-head"><span class="du-name" x-text="e.name"></span><span class="du-type" x-text="e.type"></span><span class="du-chip" :class="e.cls" x-text="e.p + '% · ' + e.status"></span></div>
+                            <div class="du-bar"><i :class="e.cls" :style="`width:${e.p}%`"></i></div>
+                            <div class="du-line"><span class="du-func" :class="e.funcOff && 'off'" x-text="e.func + (e.funcOff ? ' · TẮT' : '')"></span><span class="du-dot">·</span><span class="du-count" x-text="e.countTxt"></span></div>
+                            <div class="du-foot">
+                              <template x-if="e.canRepair">
+                                <div class="du-repair"><div class="du-rlabel">Nguyên liệu sửa chữa</div><div class="du-mats"><template x-for="m in e.repairMats" :key="m.name"><span class="du-mat"><span :style="'color:'+m.color" x-text="m.name"></span> <b x-text="m.qty"></b></span></template></div></div>
+                              </template>
+                              <template x-if="!e.canRepair"><div class="du-repair"><div class="du-ok">Còn tốt · chưa cần sửa</div></div></template>
+                              <button class="du-btn" :class="!e.canRepair && 'off'" :disabled="!e.canRepair" @click="doRepair(e.key)">Sửa Chữa</button>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- 4. Nhật Ký -->
+              <div>
+                <p class="ql-sectitle">Nhật Ký Công Trình</p>
+                <template x-if="soLog.length">
+                  <div class="ql-log">
+                    <template x-for="(l, i) in soLog" :key="i">
+                      <div class="ql-logrow"><span class="ql-seal" x-text="l.seal"></span><div class="lg"><b x-text="l.name"></b><span x-text="' (Cấp ' + l.toLevel + ') hoàn công'"></span></div><div class="lt" x-text="l.ago"></div></div>
+                    </template>
+                  </div>
+                </template>
+                <template x-if="!soLog.length"><div class="ql-empty">Chưa có công trình nào hoàn công.</div></template>
+              </div>
+
             </div>
           </div>
 
