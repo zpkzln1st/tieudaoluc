@@ -8728,15 +8728,26 @@
         .dp-root .ql-wrap{ display:flex; flex-direction:column; gap:20px; }
         .dp-root .ql-sectitle{ font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dpg2); font-weight:600; margin:0 0 11px; display:flex; align-items:center; gap:9px; }
         .dp-root .ql-sectitle::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,var(--dpl),transparent); }
-        .dp-root .ql-ov{ display:flex; align-items:center; min-height:118px; border:28px solid transparent; border-width:28px 76px; border-image:url("images/dongphu/ui/ov_frame.webp") 100 262 fill / 28px 76px / 0 stretch; }
-        .dp-root .ql-tile{ flex:1; min-width:0; display:flex; align-items:center; gap:9px; padding:2px 10px; position:relative; }
+        /* Khung F (CSS tự vẽ) — ngoặc góc lớn + kẻ đôi trong; medallion phát sáng + căn size bằng nhau */
+        .dp-root .ql-ov{ position:relative; display:flex; align-items:center; min-height:96px; padding:14px 30px;
+          background:linear-gradient(180deg,rgba(16,25,38,.92),rgba(9,14,21,.92)); border:1px solid rgba(138,109,47,.9); border-radius:12px;
+          box-shadow:0 10px 30px rgba(0,0,0,.5), inset 0 0 0 3px rgba(10,15,22,.6), inset 0 0 0 4px rgba(201,162,75,.22); }
+        .dp-root .ql-fl{ position:absolute; width:34px; height:34px; pointer-events:none; z-index:2; }
+        .dp-root .ql-fl svg{ width:100%; height:100%; stroke:var(--dpg2); fill:none; stroke-width:1.4; }
+        .dp-root .ql-fl.f1{ top:5px; left:5px; } .dp-root .ql-fl.f2{ top:5px; right:5px; transform:scaleX(-1); }
+        .dp-root .ql-fl.f3{ bottom:5px; left:5px; transform:scaleY(-1); } .dp-root .ql-fl.f4{ bottom:5px; right:5px; transform:scale(-1,-1); }
+        .dp-root .ql-tile{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; padding:2px 14px; position:relative; }
         .dp-root .ql-tile+.ql-tile{ border-left:1px solid var(--dpls); }
-        .dp-root .ql-tile+.ql-tile::before{ content:"◆"; position:absolute; left:-4px; top:50%; transform:translateY(-50%); font-size:7px; color:var(--dpg); text-shadow:0 0 6px rgba(201,162,75,.6); }
-        .dp-root .ql-medal{ width:40px; height:40px; flex:0 0 auto; }
-        .dp-root .ql-medal img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+        .dp-root .ql-tile+.ql-tile::before{ content:"◆"; position:absolute; left:-5px; top:50%; transform:translateY(-50%); font-size:7px; color:var(--dpg); text-shadow:0 0 6px rgba(201,162,75,.6); }
+        .dp-root .ql-medal{ width:46px; height:46px; flex:0 0 auto; }
+        .dp-root .ql-medal img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 9px rgba(201,162,75,.45)) drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
+        .dp-root .ql-medal.ovm-nha img{ transform:scale(.98); }
+        .dp-root .ql-medal.ovm-gio img{ transform:scale(.92); }
+        .dp-root .ql-medal.ovm-ct img{ transform:scale(.90); }
+        .dp-root .ql-medal.ovm-sua img{ transform:scale(1); }
         .dp-root .ql-tcol{ min-width:0; }
         .dp-root .ql-tile .ql{ font-size:9.5px; color:var(--dpid); letter-spacing:.04em; text-transform:uppercase; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .dp-root .ql-tile .qv{ font-size:16px; color:var(--dpg3); font-weight:700; line-height:1.1; }
+        .dp-root .ql-tile .qv{ font-size:18px; color:var(--dpg3); font-weight:700; line-height:1.1; }
         .dp-root .du-warn{ display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--dpg3); margin:-4px 0 11px; padding:8px 13px; border:1px solid rgba(245,208,137,.3); border-radius:10px; background:rgba(245,208,137,.06); }
         .dp-root .du-warn svg{ width:17px; height:17px; stroke:var(--dpg3); fill:none; stroke-width:1.6; flex:0 0 auto; }
         .dp-root .du-list{ display:flex; flex-direction:column; gap:12px; }
@@ -8786,7 +8797,8 @@
         .dp-root .ql-logrow .lt{ flex:0 0 auto; font-size:12px; color:var(--dpid); }
         .dp-root .ql-empty{ padding:16px; text-align:center; color:var(--dpid); font-style:italic; font-size:13px; border:1px dashed var(--dpls); border-radius:12px; }
         @media (max-width:900px){
-          .dp-root .ql-ov{ flex-wrap:wrap; border-width:14px 26px; }
+          .dp-root .ql-ov{ flex-wrap:wrap; padding:12px 20px; }
+          .dp-root .ql-fl{ width:26px; height:26px; }
           .dp-root .ql-tile{ flex:1 1 42%; }
           .dp-root .ql-tile+.ql-tile{ border-left:none; } .dp-root .ql-tile+.ql-tile::before{ display:none; }
           .dp-root .du-foot{ flex-direction:column; align-items:stretch; } .dp-root .du-btn{ width:100%; }
@@ -9036,10 +9048,14 @@
               <div>
                 <p class="ql-sectitle">Tổng Quan</p>
                 <div class="ql-ov">
-                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_nha.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Nhà Chính</div><div class="qv gold-text fserif" x-text="curHouseName"></div></div></div>
-                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_gio.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Giới Hạn Treo Máy</div><div class="qv gold-text fserif" x-text="capAt(curHouse) + ' giờ'"></div></div></div>
-                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_ct.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Công Trình Đã Mở</div><div class="qv gold-text fserif" x-text="slotsAt(curHouse)"></div></div></div>
-                  <div class="ql-tile"><span class="ql-medal"><img src="images/dongphu/ui/ov_med_sua.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Cần Sửa Chữa</div><div class="qv gold-text fserif" x-text="soNeedRepair"></div></div></div>
+                  <span class="ql-fl f1"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+                  <span class="ql-fl f2"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+                  <span class="ql-fl f3"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+                  <span class="ql-fl f4"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+                  <div class="ql-tile"><span class="ql-medal ovm-nha"><img src="images/dongphu/ui/ov_med_nha.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Nhà Chính</div><div class="qv gold-text fserif" x-text="curHouseName"></div></div></div>
+                  <div class="ql-tile"><span class="ql-medal ovm-gio"><img src="images/dongphu/ui/ov_med_gio.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Giới Hạn Treo Máy</div><div class="qv gold-text fserif" x-text="capAt(curHouse) + ' giờ'"></div></div></div>
+                  <div class="ql-tile"><span class="ql-medal ovm-ct"><img src="images/dongphu/ui/ov_med_ct.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Công Trình Đã Mở</div><div class="qv gold-text fserif" x-text="slotsAt(curHouse)"></div></div></div>
+                  <div class="ql-tile"><span class="ql-medal ovm-sua"><img src="images/dongphu/ui/ov_med_sua.webp" alt="" @error="$el.style.display='none'"></span><div class="ql-tcol"><div class="ql">Cần Sửa Chữa</div><div class="qv gold-text fserif" x-text="soNeedRepair"></div></div></div>
                 </div>
               </div>
 
