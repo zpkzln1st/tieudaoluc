@@ -24,7 +24,7 @@ export const LOCATIONS = [
 // ============================================================
 export const REALM_TIERS = [
   { id: 'tierNhanGian', name: 'Nhân Gian', range: 'Lv 1 - 30',   min: 1,  max: 30,  icon: '🏞️', text: 'text-emerald-300', border: 'border-emerald-400/50', dot: 'bg-emerald-400' },
-  { id: 'tierBiCanh',   name: 'Bí Cảnh',   range: 'Lv 30 - 60',  min: 30, max: 60,  icon: '🔮', text: 'text-cyan-300',    border: 'border-cyan-400/50',    dot: 'bg-cyan-400' },
+  { id: 'tierBiCanh',   name: 'Bí Cảnh',   range: 'Lv 30 - 60',  min: 30, max: 60,  icon: '🔮', text: 'text-blue-400',    border: 'border-blue-400/50',    dot: 'bg-blue-400' },
   { id: 'tierTienCanh', name: 'Tiên Cảnh', range: 'Lv 60 - 90',  min: 60, max: 90,  icon: '☁️', text: 'text-purple-300',  border: 'border-purple-400/50',  dot: 'bg-purple-400' },
   { id: 'tierThanVuc',  name: 'Thần Vực',  range: 'Lv 90 - 100', min: 90, max: 101, icon: '⚜️', text: 'text-amber-300',   border: 'border-amber-400/50',   dot: 'bg-amber-400' },
 ];

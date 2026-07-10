@@ -162,7 +162,7 @@
     </div>
     <template x-if="$store.game.hasActivity">
       <div @click="$store.game.goToActivity()" title="Mở màn hoạt động đang làm" class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-ink3 border border-slate-700 text-sm cursor-pointer hover:border-jade/60 transition">
-        <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico($store.game.actIconId, $store.game.actIcon)"></span>
+        <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.actIconHtml"></span>
         <span class="text-jade font-medium" x-text="$store.game.actName"></span>
         <template x-if="!$store.game.actIsTravel && !$store.game.actIsDungeon"><span class="text-slate-400" x-text="'+' + $store.game.act.sessionCount"></span></template>
         <template x-if="$store.game.actIsTravel"><span class="text-slate-400 font-mono" x-text="$store.game.fmtTime($store.game.travelRemainSec)"></span></template>
@@ -388,7 +388,7 @@
         <template x-if="$store.game.hasActivity">
           <div>
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-12 h-12 rounded-lg bg-ink3 flex items-center justify-center text-2xl" x-html="$store.game.ico($store.game.actIconId, $store.game.actIcon)"></div>
+              <div class="w-12 h-12 rounded-lg bg-ink3 flex items-center justify-center text-2xl" x-html="$store.game.actIconHtml"></div>
               <div class="flex-1 min-w-0">
                 <div class="font-semibold truncate" x-text="$store.game.actName + ' — ' + $store.game.actSub"></div>
                 <div class="text-xs text-slate-400" x-text="$store.game.actExpPerSec + ' EXP/s'"></div>
@@ -435,6 +435,27 @@
             <button @click="$store.game.setProfileTab('badges')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='badges' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Huy Hiệu</button>
           </div>
 
+          <style>
+            /* Huy Hiệu banner — KHO HIỆU ỨNG, gate theo class .hbfx-* (chọn riêng từng huy hiệu) */
+            .hb-shim{ position:relative; display:block; }
+            .hb-shim > img{ display:block; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,.65)); }
+            .hb-clip{ position:absolute; inset:0; border-radius:50%; overflow:hidden; pointer-events:none; }
+            .hb-sweep, .hb-glint{ display:none; }
+            /* Ánh Kim Quét */
+            .hbfx-sweep .hb-sweep{ display:block; position:absolute; top:-25%; left:0; width:34%; height:150%; pointer-events:none;
+              background:linear-gradient(90deg,transparent,rgba(255,244,210,.55),transparent);
+              transform:translateX(-170%) skewX(-18deg); animation:hbSweep 4s ease-in-out infinite; animation-delay:var(--d,0s); }
+            @keyframes hbSweep{ 0%{ transform:translateX(-170%) skewX(-18deg) } 30%,100%{ transform:translateX(340%) skewX(-18deg) } }
+            /* Glow Thở */
+            .hbfx-glow > img{ animation:hbGlow 3.6s ease-in-out infinite; animation-delay:var(--d,0s); }
+            @keyframes hbGlow{ 0%,100%{ filter:drop-shadow(0 2px 6px rgba(0,0,0,.65)) drop-shadow(0 0 4px rgba(245,185,66,.3)) } 50%{ filter:drop-shadow(0 2px 6px rgba(0,0,0,.65)) drop-shadow(0 0 13px rgba(245,185,66,.85)) } }
+            /* Lấp Lánh */
+            .hbfx-twinkle .hb-glint{ display:block; position:absolute; top:12%; right:10%; width:24%; height:24%; pointer-events:none; opacity:0;
+              background:radial-gradient(circle,#fff 0%,rgba(255,255,255,.6) 35%,rgba(255,255,255,0) 70%);
+              animation:hbTwinkle 4.2s ease-in-out infinite; animation-delay:var(--d,0s); }
+            @keyframes hbTwinkle{ 0%,85%,100%{ opacity:0; transform:scale(.3) } 93%{ opacity:1; transform:scale(1) } }
+            @media (prefers-reduced-motion:reduce){ .hb-sweep,.hb-glint{ animation:none!important; opacity:0!important } .hbfx-glow > img{ animation:none!important } }
+          </style>
           <!-- Banner: CHỈ kéo/chỉnh khung khi ở tab Dung Mạo (skins); các tab khác chỉ hiển thị -->
           <div id="coverBox" class="group relative h-[307px] rounded-lg overflow-hidden border border-slate-800 bg-ink2 select-none"
                :class="$store.game.profileTab==='skins' ? 'frame-drag cursor-move' : ''"
@@ -461,8 +482,20 @@
                 <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-slate-200">Tổng Cấp <b class="text-jade" x-text="$store.game.totalLevel"></b></span>
               </div>
             </div>
-            <!-- Điều khiển khung: chỉ ở tab Dung Mạo -->
-            <div x-show="$store.game.profileTab==='skins'" class="absolute bottom-3 right-3 z-10 flex items-center gap-2" @pointerdown.stop>
+            <!-- Huy Hiệu đeo (góc phải-dưới) — chỉ hiển thị; trang bị/gỡ ở tab Huy Hiệu, chỉnh cỡ ở Dung Mạo -->
+            <template x-if="$store.game.equippedBadgeList.length">
+              <div class="absolute bottom-3 right-3 z-10 flex items-end gap-2 pointer-events-none">
+                <template x-for="(hb, hi) in $store.game.equippedBadgeList" :key="hb.skillId">
+                  <span class="hb-shim" :class="'hbfx-'+$store.game.badgeFxOf(hb.skillId)" :style="'width:'+($store.game.state.player.badgeSize||48)+'px;height:'+($store.game.state.player.badgeSize||48)+'px;--d:'+(hi*0.7)+'s'">
+                    <img :src="'images/ui/huyhieu/'+hb.skillId+'.webp'" onerror="this.style.display='none'">
+                    <span class="hb-clip"><span class="hb-sweep"></span></span>
+                    <span class="hb-glint"></span>
+                  </span>
+                </template>
+              </div>
+            </template>
+            <!-- Điều khiển khung: chỉ ở tab Dung Mạo (dời lên góc trên-phải để không đè Huy Hiệu) -->
+            <div x-show="$store.game.profileTab==='skins'" class="absolute top-3 right-3 z-10 flex items-center gap-2" @pointerdown.stop>
               <span class="hidden sm:inline text-[10px] text-white/75 bg-black/45 backdrop-blur rounded px-2 py-1 pointer-events-none">Kéo để di chuyển · lăn chuột phóng to</span>
               <button @click="$store.game.resetAdj('cover')" title="Đặt lại khung" class="w-7 h-7 rounded-full bg-black/55 backdrop-blur text-white/85 hover:text-jade flex items-center justify-center text-sm leading-none">↺</button>
             </div>
@@ -482,7 +515,7 @@
                     <template x-if="$store.game.actIsTravel">
                       <div>
                         <div class="flex items-center gap-2.5 mb-2">
-                          <div class="w-10 h-10 rounded-lg bg-ink3 flex items-center justify-center text-xl shrink-0">🏃</div>
+                          <div class="w-10 h-10 rounded-lg bg-ink3 flex items-center justify-center shrink-0" x-html="$store.game.actIconHtml"></div>
                           <div class="flex-1 min-w-0">
                             <div class="text-sm font-semibold truncate text-jade">Khinh Công</div>
                             <div class="text-[11px] text-slate-400 truncate" x-text="$store.game.actSub"></div>
@@ -497,7 +530,7 @@
                     <template x-if="!$store.game.actIsTravel">
                       <div>
                         <div class="flex items-center gap-2.5 mb-2">
-                          <div class="w-10 h-10 rounded-lg bg-ink3 flex items-center justify-center text-xl shrink-0" x-html="$store.game.ico($store.game.actIconId, $store.game.actIcon)"></div>
+                          <div class="w-10 h-10 rounded-lg bg-ink3 flex items-center justify-center text-xl shrink-0" x-html="$store.game.actIconHtml"></div>
                       <div class="flex-1 min-w-0">
                         <div class="text-sm font-semibold truncate" x-text="$store.game.actName + ' — ' + $store.game.actSub"></div>
                         <div class="text-[10px] text-slate-400" x-text="$store.game.actIsDungeon ? 'Bí Cảnh · đang khám phá' : ($store.game.actExpPerSec + ' EXP/s')"></div>
@@ -795,6 +828,34 @@
               </div>
               <div class="text-[10px] text-slate-600 mt-3">Chọn "Giống Avatar" để banner dùng chung ảnh đại diện.</div>
               </div>
+
+              <!-- Kích cỡ Huy Hiệu đeo (áp cho góc banner Hồ Sơ) -->
+              <div class="border-t border-slate-800 p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="lbl">Kích Cỡ Huy Hiệu</div>
+                  <span class="text-sm text-jade font-mono" x-text="($store.game.state.player.badgeSize||48) + 'px'"></span>
+                </div>
+                <input type="range" min="32" max="72" step="1" :value="$store.game.state.player.badgeSize||48" @input="$store.game.setBadgeSize($event.target.value)" class="w-full accent-jade cursor-pointer">
+                <div class="text-[10px] text-slate-500 mt-2">Chỉnh cỡ huy hiệu hiển thị ở góc banner Hồ Sơ. Trang bị/gỡ (tối đa 3) ở tab <b class="text-slate-400">Huy Hiệu</b>.</div>
+              </div>
+
+              <!-- Hiệu ứng huy hiệu — chọn RIÊNG từng cái (đồng điệu hoặc phá cách) -->
+              <div class="border-t border-slate-800 p-4" x-show="$store.game.equippedBadgeList.length">
+                <div class="lbl mb-3">Hiệu Ứng Huy Hiệu · từng cái</div>
+                <div class="space-y-3">
+                  <template x-for="hb in $store.game.equippedBadgeList" :key="'fx-'+hb.skillId">
+                    <div class="flex items-center gap-3">
+                      <img :src="'images/ui/huyhieu/'+hb.skillId+'.webp'" class="w-10 h-10 object-contain shrink-0" onerror="this.style.display='none'">
+                      <div class="flex flex-wrap gap-1.5">
+                        <template x-for="fx in $store.game.BADGE_FX" :key="fx.id">
+                          <button @click="$store.game.setBadgeFx(hb.skillId, fx.id)" class="px-2.5 py-1 rounded-lg text-xs border transition" :class="$store.game.badgeFxOf(hb.skillId)===fx.id ? 'border-jade bg-jade/15 text-jade' : 'border-slate-700 text-slate-400 hover:border-slate-500'" x-text="fx.name"></button>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-3">Chọn hiệu ứng cho từng huy hiệu — cùng loại để <b class="text-slate-400">đồng điệu</b>, khác nhau để <b class="text-slate-400">phá cách</b>.</div>
+              </div>
             </section>
           </template>
 
@@ -882,18 +943,20 @@
             <section class="panel rounded-lg p-4 sm:p-5">
               <div class="flex items-center justify-between mb-4">
                 <div class="lbl">Huy Hiệu · Kĩ Năng Đại Thành</div>
-                <div class="text-[12px] text-slate-400">Đạt <b class="text-amber-300" x-text="$store.game.badgeUnlockedCount"></b>/<span x-text="$store.game.badgesView.length"></span></div>
+                <div class="text-[12px] text-slate-400">Đeo <b class="text-jade" x-text="$store.game.badgeEquippedCount"></b>/3 · Đạt <b class="text-amber-300" x-text="$store.game.badgeUnlockedCount"></b>/<span x-text="$store.game.badgesView.length"></span></div>
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 <template x-for="b in $store.game.badgesView" :key="b.skillId">
-                  <div class="rounded-xl border p-4 flex flex-col items-center text-center transition" :class="b.unlocked ? 'border-amber-500/45 bg-amber-900/10' : 'border-slate-800/70 bg-black/20'" :title="b.desc">
+                  <div class="rounded-xl border p-4 flex flex-col items-center text-center transition"
+                       :class="(b.unlocked ? 'border-amber-500/45 bg-amber-900/10 cursor-pointer hover:border-amber-400' : 'border-slate-800/70 bg-black/20') + (b.equipped ? ' ring-2 ring-jade' : '')"
+                       @click="b.unlocked && $store.game.toggleBadge(b.skillId)" :title="b.desc">
                     <div class="relative w-24 h-24 mb-2.5 flex items-center justify-center" :class="b.unlocked ? '' : 'grayscale opacity-45'">
                       <span class="absolute inset-0 flex items-center justify-center text-5xl" x-text="b.icon"></span>
                       <img :src="'images/ui/huyhieu/'+b.skillId+'.webp'" class="relative w-full h-full object-contain" :style="b.unlocked ? 'filter:drop-shadow(0 0 11px rgba(245,185,66,.55))' : ''" onerror="this.style.display='none'">
                     </div>
                     <div class="text-[14px] font-semibold leading-tight" :class="b.unlocked ? 'text-amber-200' : 'text-slate-400'" style="font-family:'Lora',serif" x-text="b.name"></div>
                     <div class="text-[10.5px] text-slate-500 mt-1" x-text="b.skillName + ' · Lv' + b.level"></div>
-                    <div class="text-[10px] mt-1" :class="b.unlocked ? 'text-amber-300/85' : 'text-slate-600'" x-text="b.unlocked ? '✦ Đại Thành' : 'Cần Lv 100'"></div>
+                    <div class="text-[10px] mt-1" :class="b.equipped ? 'text-jade font-semibold' : (b.unlocked ? 'text-amber-300/85' : 'text-slate-600')" x-text="b.equipped ? '✓ Đang đeo' : (b.unlocked ? '✦ Đại Thành · bấm để đeo' : 'Cần Lv 100')"></div>
                   </div>
                 </template>
               </div>
@@ -1109,17 +1172,54 @@
       </template>
 
       <!-- ===== VIEW: SKILL (bám sát IdleMMO) ===== -->
+      <style>
+        /* Header NPC trang Kỹ Năng — khung ornate đồng bộ Động Phủ (viền vàng + kẻ đôi inset + hoa văn 4 góc) */
+        .sk-hero{ position:relative; padding:16px 22px; border-radius:12px;
+          background:linear-gradient(180deg,rgba(16,25,38,.92),rgba(9,14,21,.92));
+          border:1px solid rgba(138,109,47,.9);
+          box-shadow:0 10px 30px rgba(0,0,0,.5), inset 0 0 0 3px rgba(10,15,22,.6), inset 0 0 0 4px rgba(201,162,75,.22); }
+        .sk-hero .sk-fl{ position:absolute; width:34px; height:34px; pointer-events:none; z-index:2; }
+        .sk-hero .sk-fl svg{ width:100%; height:100%; stroke:#e8c877; fill:none; stroke-width:1.4; }
+        .sk-hero .sk-fl.f1{ top:5px; left:5px; } .sk-hero .sk-fl.f2{ top:5px; right:5px; transform:scaleX(-1); }
+        .sk-hero .sk-fl.f3{ bottom:5px; left:5px; transform:scaleY(-1); } .sk-hero .sk-fl.f4{ bottom:5px; right:5px; transform:scale(-1,-1); }
+        .sk-hero .sk-row{ display:flex; align-items:center; gap:18px; position:relative; z-index:1; }
+        .sk-hero .sk-ic{ width:88px; height:88px; border-radius:12px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:44px;
+          background:rgba(12,18,26,.7); border:1px solid rgba(201,162,75,.35); box-shadow:inset 0 0 22px -12px #000; overflow:hidden; }
+        .sk-hero .sk-ic img{ width:100%; height:100%; object-fit:contain; }
+        .sk-hero .sk-body{ flex:1; min-width:0; }
+        .sk-hero .sk-nm{ font-family:'Lora',Georgia,serif; font-size:16px; font-weight:700; color:#f5d089; letter-spacing:.02em; line-height:1.2; }
+        .sk-hero .sk-qt{ font-style:italic; font-size:13.5px; color:#cbd5e1; margin-top:5px; line-height:1.45; }
+        .sk-hero .sk-dam{ margin-top:10px; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; padding:6px 15px; border-radius:8px;
+          border:1px solid rgba(201,162,75,.5); color:#f5d089; background:rgba(201,162,75,.08); cursor:pointer; transition:background .15s, border-color .15s; }
+        .sk-hero .sk-dam:hover{ background:rgba(201,162,75,.16); border-color:rgba(201,162,75,.85); }
+        .sk-hero .sk-div{ display:flex; align-items:center; gap:9px; margin-top:12px; position:relative; z-index:1; }
+        .sk-hero .sk-div::before, .sk-hero .sk-div::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,162,75,.4),transparent); }
+        .sk-hero .sk-div span{ color:#c9a24b; font-size:8px; transform:rotate(45deg); display:inline-block; text-shadow:0 0 6px rgba(201,162,75,.6); }
+        @media (max-width:640px){
+          .sk-hero{ padding:13px 15px; }
+          .sk-hero .sk-row{ gap:13px; }
+          .sk-hero .sk-ic{ width:66px; height:66px; font-size:34px; }
+          .sk-hero .sk-nm{ font-size:14px; } .sk-hero .sk-qt{ font-size:12.5px; }
+        }
+      </style>
       <template x-if="$store.game.view==='skill'">
         <div class="flex flex-col lg:flex-row gap-3">
           <!-- TRÁI: NPC + hành động -->
           <div class="flex-1 min-w-0 space-y-3">
-            <div class="panel rounded-lg p-4 flex items-center gap-4">
-              <div class="w-24 h-24 rounded-lg bg-ink3 border border-slate-700 flex items-center justify-center text-5xl shrink-0" x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></div>
-              <div class="flex-1 min-w-0">
-                <div class="lbl" x-text="$store.game.currentSkill.npc.name"></div>
-                <div class="italic text-sm text-slate-300 mt-1" x-text="'“' + $store.game.currentSkill.npc.quote + '”'"></div>
-                <button class="mt-2 px-3 py-1 text-xs rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-300">Đàm Đạo</button>
+            <div class="sk-hero">
+              <span class="sk-fl f1"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+              <span class="sk-fl f2"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+              <span class="sk-fl f3"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+              <span class="sk-fl f4"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+              <div class="sk-row">
+                <div class="sk-ic" x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></div>
+                <div class="sk-body">
+                  <div class="sk-nm" x-text="$store.game.currentSkill.npc.name"></div>
+                  <div class="sk-qt" x-text="'“' + $store.game.currentSkill.npc.quote + '”'"></div>
+                  <button class="sk-dam">Đàm Đạo</button>
+                </div>
               </div>
+              <div class="sk-div"><span>◆</span></div>
             </div>
             <!-- Đang Luyện (live) — chỉ hiện khi NGHỀ ĐANG XEM cũng là nghề đang chạy -->
             <template x-if="$store.game.hasActivity && $store.game.act.skillId === $store.game.selectedSkill">
@@ -1133,7 +1233,7 @@
                   <button @click="$store.game.stop()" title="Dừng" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 text-xs">✕</button>
                 </div>
                 <div class="flex items-center gap-2.5">
-                  <span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico($store.game.actIconId, $store.game.actIcon)"></span>
+                  <span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="$store.game.actIconHtml"></span>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between text-sm mb-1"><span class="font-medium truncate" x-text="$store.game.actName"></span><span class="text-jade text-xs shrink-0" x-text="'Thu được +' + $store.game.act.sessionCount"></span></div>
                     <div class="h-2.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-jade to-cyan" :style="`width:${$store.game.actProgressPct}%`"></div></div>
@@ -1240,10 +1340,9 @@
       <template x-if="$store.game.view==='combat'">
         <div class="space-y-3">
           <!-- Header banner: info + Chiến Lực + Đổi vùng dồn TRÁI (chừa art bên phải); cao bằng banner Bí Cảnh/Yêu Vương -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <img src="images/ui/combat_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/combat_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 74%,rgba(11,14,22,.24) 100%)"></div>
-            <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-jade to-cyan/40"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[26px] gold-text leading-none fserif">Sơn Dã Liệp Trường</div>
               <div class="text-[11px] text-slate-300 flex items-center gap-1 mt-2"><span class="text-rose-300/80 shrink-0" x-html="$store.game.svg('pin','w-3 h-3')"></span><span x-text="$store.game.currentLocationObj.name"></span></div>
@@ -1955,7 +2054,7 @@
       <template x-if="$store.game.view==='phongVanBang'">
         <div class="space-y-3">
           <!-- Header 208px -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <img src="images/ui/phongvan_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/phongvan_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.25) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(245,185,66,.13), transparent 66%)"></div>
@@ -2397,7 +2496,7 @@
         <div class="space-y-3">
 
           <!-- Header (kiểu Yêu Vương) -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <!-- Banner art nền (gen tay → images/ui/shop_banner.webp|png); thiếu file -> ẩn, dùng gradient fallback -->
             <img src="images/ui/shop_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/shop_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.2) 100%)"></div>
@@ -2527,7 +2626,7 @@
       <template x-if="$store.game.view==='pets'">
         <div class="space-y-3">
           <!-- Header -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <img src="images/ui/pets_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:right 22%" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/pets_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.2) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(52,211,153,.15), transparent 66%)"></div>
@@ -3191,7 +3290,7 @@
       <template x-if="$store.game.view==='phiCapDai'">
         <div class="space-y-3">
           <!-- Header (đồng bộ 208px) -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <!-- Banner art nền (gen tay → images/ui/phicap_banner.webp|png); thiếu -> ẩn, dùng gradient fallback -->
             <img src="images/ui/phicap_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/phicap_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.2) 100%)"></div>
@@ -3386,11 +3485,10 @@
       <template x-if="$store.game.view==='collection'">
         <div class="space-y-3" x-data="{ get g(){ return $store.game } }">
           <!-- Header banner (đồng bộ kiểu các màn: ảnh nền + gradient + icon art) -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <img src="images/ui/collection_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/collection_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.85) 36%,rgba(11,14,22,.5) 66%,rgba(11,14,22,.2) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(245,191,36,.16), transparent 66%)"></div>
-            <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-gold to-amber-500/30"></div>
             <div class="relative w-full p-5 md:p-6 flex items-center gap-4">
               <div class="w-16 h-16 rounded-lg bg-ink3 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0 overflow-hidden">
                 <img src="images/ui/collection_icon.webp" alt="" class="w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/collection_icon.png'}else{this.style.display='none';this.nextElementSibling.style.display='flex'}">
@@ -3761,7 +3859,7 @@
              th(b){ return this.TH[b.wb.eggBase]||this.TH.huyetLang }, seal(b){ return this.SEAL[b.wb.eggBase]||'妖王' } }">
 
           <!-- ===== Header ===== -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <!-- Banner art nền (gen tay → images/ui/yv_banner.png); thiếu file -> ẩn, dùng nền CSS fallback -->
             <img src="images/ui/yv_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/yv_banner.png'}else{this.style.display='none'}">
             <!-- Lớp phủ TỐI trái→phải: giữ tiêu đề + mô tả luôn đọc rõ trên art -->
@@ -4030,7 +4128,7 @@
         <div class="space-y-3" x-data="{ get g(){ return $store.game } }">
 
           <!-- Header -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[208px] flex items-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
             <img src="images/ui/dungeon_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/dungeon_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(45,212,191,.16), transparent 66%)"></div>
@@ -4298,9 +4396,9 @@
           <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_320px] gap-4 items-start">
           <div class="relative rounded-2xl overflow-hidden border border-slate-800" style="background:radial-gradient(1100px 600px at 50% -12%, #16202e 0%, #070b14 72%)">
             <!-- Banner hero (art tay → images/ui/tongmon_banner.webp|png); thiếu -> ẩn, lộ gradient nền -->
-            <img src="images/ui/tongmon_banner.webp" alt="" class="absolute top-0 inset-x-0 w-full pointer-events-none" style="height:200px;object-fit:cover;object-position:center 26%" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/tongmon_banner.png'}else{this.style.display='none'}">
-            <div class="absolute top-0 inset-x-0 pointer-events-none" style="height:200px;background:linear-gradient(180deg,rgba(7,11,20,.4) 0%,rgba(7,11,20,.12) 28%,rgba(7,11,20,.82) 86%,#070b14 100%)"></div>
-            <div class="absolute top-0 inset-x-0 pointer-events-none" style="height:200px;background:linear-gradient(100deg,rgba(7,11,20,.82) 0%,rgba(7,11,20,.34) 50%,transparent 84%)"></div>
+            <img src="images/ui/tongmon_banner.webp" alt="" class="absolute top-0 inset-x-0 w-full pointer-events-none" style="height:160px;object-fit:cover;object-position:center 26%" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/tongmon_banner.png'}else{this.style.display='none'}">
+            <div class="absolute top-0 inset-x-0 pointer-events-none" style="height:160px;background:linear-gradient(180deg,rgba(7,11,20,.4) 0%,rgba(7,11,20,.12) 28%,rgba(7,11,20,.82) 86%,#070b14 100%)"></div>
+            <div class="absolute top-0 inset-x-0 pointer-events-none" style="height:160px;background:linear-gradient(100deg,rgba(7,11,20,.82) 0%,rgba(7,11,20,.34) 50%,transparent 84%)"></div>
             <div class="absolute left-0 right-0 bottom-0 pointer-events-none" style="height:38%;background:radial-gradient(120% 100% at 50% 120%, rgba(245,158,11,.13), transparent 70%)"></div>
             <div class="relative p-4">
               <!-- HERO -->
@@ -6068,10 +6166,10 @@
         .dtm-root .lob-hero .lhscrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(90deg, rgba(7,11,20,.92) 0%, rgba(7,11,20,.66) 44%, rgba(7,11,20,.2) 100%); }
         .dtm-root .lob-hero .lhwm{ position:absolute; right:22px; top:50%; transform:translateY(-50%); font-family:'Lora',serif; font-size:170px; color:#a78bfa; opacity:.06; z-index:1; line-height:1; pointer-events:none; }
         .dtm-root .lob-statbar{ display:flex; }
-        .dtm-root .lob-stat{ flex:1; text-align:center; padding:10px 8px; }
+        .dtm-root .lob-stat{ flex:1; text-align:center; padding:8px 8px; }
         .dtm-root .lob-stat + .lob-stat{ border-left:1px solid #ffffff12; }
         .dtm-root .lob-stat .lbl{ font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:#64748b; }
-        .dtm-root .lob-stat .val{ font-family:'Lora',serif; font-size:20px; font-weight:700; margin-top:2px; }
+        .dtm-root .lob-stat .val{ font-family:'Lora',serif; font-size:16px; font-weight:700; margin-top:2px; }
         .dtm-root .lob-sec{ font-family:'Lora',serif; font-size:13px; color:#e2e8f0; display:flex; align-items:center; gap:8px; margin:0 0 10px; }
         .dtm-root .lob-sec::before{ content:''; width:3px; height:15px; border-radius:2px; background:linear-gradient(#a78bfa,#0891b2); }
         .dtm-root .lob-sec .more{ margin-left:auto; font-size:10.5px; color:#64748b; letter-spacing:.1em; text-transform:uppercase; }
@@ -7635,7 +7733,7 @@
         @media (max-width:640px){ .dtm-cardprev{ width:min(372px,94vw); } }
 </style>
       <template x-if="$store.game.view==='dangTienMong'">
-        <div class="dtm-root max-w-[920px] mx-auto" x-data="dangTienMong()" x-init="dtInit()" @keydown.window="if($event.ctrlKey&&$event.shiftKey&&$event.code==='KeyD'){$event.preventDefault();devHotkey();}">
+        <div class="dtm-root max-w-[1200px] mx-auto" x-data="dangTienMong()" x-init="dtInit()" @keydown.window="if($event.ctrlKey&&$event.shiftKey&&$event.code==='KeyD'){$event.preventDefault();devHotkey();}">
           <div class="dtm-bg" :style="'background-image:url('+bgImg()+')'"></div>
           <div class="dtm-fog"></div>
           <!-- SVG line-icon sprite (Bách Khoa / Chi Tiết) — không emoji -->
@@ -7740,21 +7838,21 @@
           <template x-if="phase==='lobby'">
             <div>
               <!-- HERO BANNER -->
-              <div class="lob-hero" style="min-height:130px">
+              <div class="lob-hero" style="min-height:108px">
                 <div class="lhfb"></div>
                 <img class="lhbg" src="images/dtm/bg/lobby_hero.webp" alt="" onerror="this.remove()">
                 <div class="lhscrim"></div>
                 <span class="lhwm">夢</span>
-                <div class="relative" style="z-index:3;flex:1;padding:24px 30px;display:flex;flex-direction:column;justify-content:center">
+                <div class="relative" style="z-index:3;flex:1;padding:16px 30px;display:flex;flex-direction:column;justify-content:center">
                   <div class="text-[11px] tracking-[0.32em] uppercase text-violet-300/80">Hoàng Lương Nhất Mộng · Đạo Tâm Bất Diệt</div>
-                  <div class="fserif gold-text" style="font-size:40px;line-height:1.16;padding-bottom:2px;margin:6px 0 0;filter:drop-shadow(0 2px 14px #f5b94233)">Đăng Tiên Mộng</div>
-                  <p class="text-slate-300 text-[13px]" style="max-width:480px;margin:9px 0 16px;line-height:1.5">Nhập mộng tu chân — đoạt cơ duyên, ngộ tiên pháp, vấn đỉnh Mộng Chủ.</p>
-                  <div class="flex items-center gap-4 flex-wrap">
-                    <template x-if="hasActiveRun()"><button @click="resumeRun()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#34d399">Tiếp Tục Giấc Mộng · <span x-text="activeRunLabel()"></span> ⟶</button></template>
-                    <button @click="phase='hero'" class="px-7 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa" x-text="hasActiveRun()?'Nhập Mộng Mới':'Nhập Mộng ⟶'"></button>
-                    <button @click="metaTab=true" class="px-5 py-2.5 rounded-xl border border-violet-400/60 text-violet-200 font-bold hover:bg-violet-500/10 transition">Lĩnh Ngộ Đường</button>
-                    <button @click="bridgeTab=true" class="px-5 py-2.5 rounded-xl border border-amber-400/60 text-amber-200 font-bold hover:bg-amber-500/10 transition">Đổi Nguyên Bảo</button>
-                    <button @click="openWiki()" class="px-5 py-2.5 rounded-xl border border-sky-400/60 text-sky-200 font-bold hover:bg-sky-500/10 transition flex items-center gap-2"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-book"/></svg>Bách Khoa Võ Học</button>
+                  <div class="fserif gold-text" style="font-size:30px;line-height:1.14;padding-bottom:2px;margin:3px 0 0;filter:drop-shadow(0 2px 12px #f5b94233)">Đăng Tiên Mộng</div>
+                  <p class="text-slate-300 text-[13px]" style="max-width:480px;margin:7px 0 13px;line-height:1.45">Nhập mộng tu chân — đoạt cơ duyên, ngộ tiên pháp, vấn đỉnh Mộng Chủ.</p>
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <template x-if="hasActiveRun()"><button @click="resumeRun()" class="px-4 py-2 rounded-lg text-[13px] bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#34d399">Tiếp Tục Giấc Mộng · <span x-text="activeRunLabel()"></span> ⟶</button></template>
+                    <button @click="phase='hero'" class="px-4 py-2 rounded-lg text-[13px] bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold hover:brightness-110 transition glowstatic" style="--c:#a78bfa" x-text="hasActiveRun()?'Nhập Mộng Mới':'Nhập Mộng ⟶'"></button>
+                    <button @click="metaTab=true" class="px-3.5 py-2 rounded-lg text-[13px] border border-violet-400/60 text-violet-200 font-bold hover:bg-violet-500/10 transition">Lĩnh Ngộ Đường</button>
+                    <button @click="bridgeTab=true" class="px-3.5 py-2 rounded-lg text-[13px] border border-amber-400/60 text-amber-200 font-bold hover:bg-amber-500/10 transition">Đổi Nguyên Bảo</button>
+                    <button @click="openWiki()" class="px-3.5 py-2 rounded-lg text-[13px] border border-sky-400/60 text-sky-200 font-bold hover:bg-sky-500/10 transition flex items-center gap-1.5"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-book"/></svg>Bách Khoa Võ Học</button>
                   </div>
                 </div>
               </div>
@@ -9130,18 +9228,41 @@
   </div>
 
   <!-- ===== Modal chi tiết Vùng (Bản Đồ) ===== -->
+  <style>
+    /* Modal Địa Điểm — khung ornate (viền vàng + kẻ đôi inset + hoa văn 4 góc + divider ◆ + border gold-tint) */
+    .locm-panel{ position:relative; background:#070c18; border:1px solid rgba(138,109,47,.9); box-shadow:0 30px 90px rgba(0,0,0,.7), inset 0 0 0 3px rgba(10,15,22,.55), inset 0 0 0 4px rgba(201,162,75,.2); }
+    .locm-fl{ position:absolute; width:30px; height:30px; pointer-events:none; z-index:5; }
+    .locm-fl svg{ width:100%; height:100%; stroke:#e8c877; fill:none; stroke-width:1.4; }
+    .locm-fl.a{ top:6px; left:6px; } .locm-fl.b{ top:6px; right:6px; transform:scaleX(-1); }
+    .locm-fl.c{ bottom:6px; left:6px; transform:scaleY(-1); } .locm-fl.d{ bottom:6px; right:6px; transform:scale(-1,-1); }
+    .locm-dv{ display:flex; align-items:center; gap:10px; }
+    .locm-dv::before, .locm-dv::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,162,75,.42),transparent); }
+    .locm-dv i{ color:#c9a24b; font-size:8px; transform:rotate(45deg); font-style:normal; text-shadow:0 0 6px rgba(201,162,75,.6); }
+    .locm-b{ border:1px solid rgba(201,162,75,.2); }
+    .locm-b2{ border:1px solid rgba(201,162,75,.14); }
+    .locm-icf{ border:1px solid rgba(201,162,75,.55); box-shadow:inset 0 0 0 2px rgba(10,15,22,.7), inset 0 0 16px -6px rgba(201,162,75,.5); }
+  </style>
   <template x-if="$store.game.locationModal">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeLocation()">
-      <div class="panel rounded-2xl w-[30rem] max-w-[94vw] overflow-hidden shadow-2xl ring-1 ring-white/5" @click.stop>
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" x-data="{ zoom:false }" @click="$store.game.closeLocation()">
+      <div class="locm-panel rounded-2xl w-[30rem] max-w-[94vw] h-[762px] max-h-[92vh] flex flex-col overflow-hidden" @click.stop>
+        <span class="locm-fl a"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+        <span class="locm-fl b"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+        <span class="locm-fl c"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+        <span class="locm-fl d"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
 
         <!-- HERO -->
-        <div class="relative px-6 pt-5 pb-5 bg-gradient-to-b from-ink3/60 to-transparent">
-          <button @click="$store.game.closeLocation()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/40 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
-          <div class="text-[11px] uppercase tracking-[0.25em] text-slate-500 mb-3">Địa Điểm</div>
+        <div class="relative px-6 pt-5 pb-4 shrink-0">
+          <button @click="$store.game.closeLocation()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/40 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition z-10">✕</button>
+          <div class="text-[11px] uppercase tracking-[0.25em] text-[#b79b52] mb-3">Địa Điểm</div>
           <div class="flex items-center gap-4">
-            <div class="w-20 h-20 rounded-2xl bg-ink flex items-center justify-center text-5xl shrink-0 ring-1 ring-slate-700 shadow-lg" x-html="$store.game.ico($store.game.modalLocation.id, $store.game.modalLocation.icon)"></div>
+            <button type="button" @click="zoom=true" title="Xem ảnh lớn" class="locm-icf group relative w-20 h-20 rounded-2xl bg-ink shrink-0 overflow-hidden cursor-zoom-in">
+              <span class="absolute inset-0 flex items-center justify-center text-5xl" x-html="$store.game.ico($store.game.modalLocation.id, $store.game.modalLocation.icon)"></span>
+              <span class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/45 opacity-0 group-hover:opacity-100 transition">
+                <svg viewBox="0 0 24 24" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2M11 8.5v5M8.5 11h5"/></svg>
+              </span>
+            </button>
             <div class="flex-1 min-w-0">
-              <div class="text-2xl font-bold leading-tight truncate" style="font-family:'Lora',serif" x-text="$store.game.modalLocation.name"></div>
+              <div class="text-2xl font-bold leading-tight truncate" :class="$store.game.locTier($store.game.modalLocation).text" style="font-family:'Lora',serif" x-text="$store.game.modalLocation.name"></div>
               <div class="text-sm text-slate-400 mt-0.5" x-text="$store.game.modalLocation.gloss"></div>
               <div class="flex items-center gap-2 mt-2">
                 <span class="px-2.5 py-1 rounded-md bg-black/30 text-xs font-semibold border" :class="$store.game.locTier($store.game.modalLocation).text + ' ' + $store.game.locTier($store.game.modalLocation).border" x-text="$store.game.locTier($store.game.modalLocation).name"></span>
@@ -9153,11 +9274,13 @@
         </div>
 
         <!-- BODY -->
-        <div class="px-6 pb-6 space-y-5">
+        <div class="flex-1 min-h-0 flex flex-col px-6 pb-5 gap-4">
+
+          <div class="locm-dv shrink-0"><i>◆</i></div>
 
           <!-- Lộ trình / khoảng cách -->
           <template x-if="!$store.game.isCurrentLocation($store.game.modalLocation)">
-            <div class="flex items-center gap-2 px-4 py-3 rounded-xl bg-ink3/50 border border-slate-700/60">
+            <div class="shrink-0 flex items-center gap-2 px-4 py-3 rounded-xl bg-ink3/40 locm-b">
               <div class="flex-1 min-w-0 text-center">
                 <div class="text-[10px] uppercase tracking-wide text-slate-500">Đang ở</div>
                 <div class="text-sm font-medium text-slate-200 truncate" x-text="$store.game.currentLocationObj.name"></div>
@@ -9174,23 +9297,23 @@
           </template>
 
           <!-- Có gì ở đây (TAB) -->
-          <div x-data="{ qtab: 'mob' }">
-            <div class="flex items-center gap-2.5 mb-3 text-xs uppercase tracking-[0.15em] text-slate-500"><span class="h-px flex-1 bg-slate-800"></span><span>Có Gì Ở Đây</span><span class="h-px flex-1 bg-slate-800"></span></div>
+          <div x-data="{ qtab: 'mob' }" class="flex-1 min-h-0 flex flex-col">
+            <div class="shrink-0 flex items-center gap-2.5 mb-3 text-xs uppercase tracking-[0.15em] text-[#b79b52]"><span class="h-px flex-1" style="background:linear-gradient(90deg,transparent,rgba(201,162,75,.3),transparent)"></span><span>Có Gì Ở Đây</span><span class="h-px flex-1" style="background:linear-gradient(90deg,transparent,rgba(201,162,75,.3),transparent)"></span></div>
             <!-- thanh tab -->
-            <div class="flex gap-1 p-1 rounded-xl bg-ink3/50 border border-slate-800 mb-3">
+            <div class="shrink-0 flex gap-1 p-1 rounded-xl bg-ink3/40 locm-b mb-3">
               <button @click="qtab='mob'"     class="flex-1 py-1.5 rounded-lg text-xs font-medium transition" :class="qtab==='mob'    ?'bg-jade/15 text-jade':'text-slate-400 hover:text-slate-200'">Yêu Thú</button>
               <button @click="qtab='boss'"    class="flex-1 py-1.5 rounded-lg text-xs font-medium transition" :class="qtab==='boss'   ?'bg-jade/15 text-jade':'text-slate-400 hover:text-slate-200'">Yêu Vương</button>
               <button @click="qtab='res'"     class="flex-1 py-1.5 rounded-lg text-xs font-medium transition" :class="qtab==='res'    ?'bg-jade/15 text-jade':'text-slate-400 hover:text-slate-200'">Tài Nguyên</button>
               <button @click="qtab='dungeon'" class="flex-1 py-1.5 rounded-lg text-xs font-medium transition" :class="qtab==='dungeon'?'bg-jade/15 text-jade':'text-slate-400 hover:text-slate-200'">Bí Cảnh</button>
             </div>
             <!-- nội dung tab -->
-            <div class="min-h-[92px]">
+            <div class="flex-1 min-h-[120px] overflow-y-auto pr-0.5">
               <!-- Yêu Thú -->
               <div x-show="qtab==='mob'">
                 <template x-if="$store.game.zoneMobs($store.game.modalLocation).length">
                   <div class="grid grid-cols-2 gap-2.5">
                     <template x-for="eid in $store.game.zoneMobs($store.game.modalLocation)" :key="eid">
-                      <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-ink3/60 border border-slate-700/50">
+                      <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-ink3/50 locm-b2">
                         <div class="w-11 h-11 rounded-lg bg-ink flex items-center justify-center text-2xl shrink-0 overflow-hidden" x-html="$store.game.enemyArt(eid, $store.game.ENEMIES[eid].icon)"></div>
                         <div class="min-w-0">
                           <div class="text-sm font-medium text-slate-200 truncate" x-text="$store.game.ENEMIES[eid].name"></div>
@@ -9224,7 +9347,7 @@
                 <template x-if="$store.game.zoneResources($store.game.modalLocation.id).length">
                   <div class="grid grid-cols-2 gap-2.5">
                     <template x-for="r in $store.game.zoneResources($store.game.modalLocation.id)" :key="r.id">
-                      <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-ink3/60 border border-slate-700/50">
+                      <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-ink3/50 locm-b2">
                         <div class="w-11 h-11 rounded-lg bg-ink flex items-center justify-center text-2xl shrink-0 overflow-hidden" x-html="$store.game.ico(r.itemId, ($store.game.ITEMS[r.itemId]||{}).icon||'📦')"></div>
                         <div class="min-w-0">
                           <div class="text-sm font-medium text-slate-200 truncate" x-text="r.name"></div>
@@ -9243,36 +9366,60 @@
             </div>
           </div>
 
+          <div class="locm-dv shrink-0"><i>◆</i></div>
+
           <!-- Hành động -->
-          <div>
+          <div class="shrink-0">
+            <!-- Đang ở đây -->
             <template x-if="$store.game.isCurrentLocation($store.game.modalLocation)">
-              <div class="px-4 py-4 rounded-xl bg-jade/10 border border-jade/40 text-center text-base text-jade font-semibold">📍 Bạn đang ở đây</div>
+              <div class="flex justify-center">
+                <span class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-jade/10 border border-jade/40 text-jade text-[13px] font-semibold">
+                  <span class="inline-flex text-jade" x-html="$store.game.svg('pin','w-4 h-4')"></span>Bạn đang ở đây
+                </span>
+              </div>
             </template>
+            <!-- Chưa mở khóa -->
             <template x-if="!$store.game.isCurrentLocation($store.game.modalLocation) && !$store.game.locUnlocked($store.game.modalLocation)">
-              <div class="px-4 py-4 rounded-xl bg-rose-900/20 border border-rose-700/40 text-center text-base text-rose-300 font-medium">🔒 Cần Chiến Đấu Lv <span x-text="$store.game.modalLocation.reqLevel"></span> mới tới được</div>
+              <div class="flex justify-center">
+                <span class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-rose-900/20 border border-rose-700/40 text-rose-300 text-[13px] font-medium">
+                  <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+                  Cần Chiến Đấu Lv <span x-text="$store.game.modalLocation.reqLevel"></span>
+                </span>
+              </div>
             </template>
+            <!-- Di chuyển -->
             <template x-if="!$store.game.isCurrentLocation($store.game.modalLocation) && $store.game.locUnlocked($store.game.modalLocation)">
-              <div class="space-y-3">
+              <div class="space-y-2.5">
                 <div class="grid grid-cols-2 gap-3">
+                  <!-- Truyền Tống (btn_gold Động Phủ) -->
                   <button @click="$store.game.teleportTo($store.game.modalLocation.id)" :disabled="!$store.game.canAffordTele($store.game.modalLocation)"
-                    class="px-4 py-3.5 rounded-xl transition flex flex-col items-center gap-1 border"
-                    :class="$store.game.canAffordTele($store.game.modalLocation) ? 'bg-amber-500/10 border-amber-500/40 hover:bg-amber-500/20 hover:border-amber-400/60' : 'bg-slate-800/40 border-slate-700 opacity-60 cursor-not-allowed'">
-                    <span class="text-base font-bold flex items-center gap-1.5" :class="$store.game.canAffordTele($store.game.modalLocation) ? 'text-amber-200' : 'text-slate-500'">✨ Truyền Tống</span>
-                    <span class="flex items-center gap-1.5 text-sm font-bold" :class="$store.game.canAffordTele($store.game.modalLocation) ? 'text-amber-100' : 'text-rose-400'"><span class="w-5 h-5 inline-flex items-center justify-center" x-html="$store.game.ico('bac','🟡')"></span><span x-text="$store.game.fmt($store.game.teleCost($store.game.modalLocation))"></span></span>
-                    <span class="text-[11px] text-slate-500">Tới ngay tức thì</span>
+                    class="relative aspect-[866/288] transition" :class="$store.game.canAffordTele($store.game.modalLocation) ? 'cursor-pointer hover:-translate-y-px' : 'cursor-not-allowed'">
+                    <span class="absolute inset-0" :style="'background:url(images/dongphu/ui/btn_gold.webp) center/100% 100% no-repeat'+($store.game.canAffordTele($store.game.modalLocation)?'':';filter:grayscale(.6) brightness(.5)')"></span>
+                    <span class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-0.5">
+                      <span class="fserif text-[12.5px] font-medium leading-none" :style="'text-shadow:0 1px 2px rgba(0,0,0,.75);color:'+($store.game.canAffordTele($store.game.modalLocation)?'#f1e3c2':'#cbd5e1')">Truyền Tống</span>
+                      <span class="flex items-center gap-1 text-[11px] font-medium leading-none" :style="'text-shadow:0 1px 2px rgba(0,0,0,.75);color:'+($store.game.canAffordTele($store.game.modalLocation)?'#eec877':'#fca5a5')"><span class="w-3 h-3 inline-flex items-center justify-center" x-html="$store.game.ico('bac','🟡')"></span><span x-text="$store.game.fmt($store.game.teleCost($store.game.modalLocation))"></span></span>
+                    </span>
                   </button>
+                  <!-- Khinh Công (btn_gold nhuộm ngọc) -->
                   <button @click="$store.game.startKhinhCong($store.game.modalLocation.id)"
-                    class="px-4 py-3.5 rounded-xl transition flex flex-col items-center gap-1 bg-jade/10 border border-jade/40 hover:bg-jade/20 hover:border-jade/60">
-                    <span class="text-base font-bold text-jade flex items-center gap-1.5">🏃 Khinh Công</span>
-                    <span class="text-sm font-bold text-emerald-100" x-text="'~' + $store.game.walkLabel($store.game.modalLocation)"></span>
-                    <span class="text-[11px] text-slate-500">Miễn phí, tốn thời gian</span>
+                    class="relative aspect-[866/288] cursor-pointer hover:-translate-y-px transition">
+                    <span class="absolute inset-0" style="background:url(images/dongphu/ui/btn_gold.webp) center/100% 100% no-repeat;filter:hue-rotate(118deg) saturate(1.15)"></span>
+                    <span class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-0.5">
+                      <span class="fserif text-[12.5px] font-medium leading-none" style="text-shadow:0 1px 2px rgba(0,0,0,.75);color:#d0f5ec">Khinh Công</span>
+                      <span class="text-[11px] font-medium leading-none" style="text-shadow:0 1px 2px rgba(0,0,0,.75);color:#8fe8d9" x-text="'~' + $store.game.walkLabel($store.game.modalLocation)"></span>
+                    </span>
                   </button>
                 </div>
-                <div class="text-xs text-slate-500 text-center leading-relaxed">Phí Truyền Tống = <b class="text-amber-300/80">Tổng Lv × khoảng cách</b>.</div>
+                <div class="text-[11px] text-slate-500 text-center">Phí Truyền Tống = <b class="text-amber-300/80">Tổng Lv × khoảng cách</b></div>
               </div>
             </template>
           </div>
         </div>
+      </div>
+
+      <!-- Lightbox ảnh địa điểm (bấm ảnh để phóng to) -->
+      <div x-show="zoom" @click.stop="zoom=false" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-6 cursor-zoom-out">
+        <img :src="'images/locations/'+$store.game.modalLocation.id+'.webp'" alt="" style="max-width:82vw;max-height:82vh;width:auto;height:auto;border-radius:18px;box-shadow:0 20px 80px rgba(0,0,0,.7)" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.style.display='none'}">
       </div>
     </div>
   </template>
@@ -9773,6 +9920,20 @@
     <div x-show="$store.game.toast" x-transition.opacity x-cloak
          class="px-5 py-3 rounded-xl bg-black/90 border border-jade/40 text-sm text-slate-100 shadow-2xl"
          x-text="$store.game.toast"></div>
+  </div>
+
+  <!-- Loot float: vật phẩm thu được khi online — bay lên & tan (đỡ nhàm chán) -->
+  <style>
+    @keyframes lootfloat{ 0%{opacity:0;transform:translateY(12px) scale(.82)} 9%{opacity:1;transform:translateY(0) scale(1.05)} 15%{transform:translateY(0) scale(1)} 82%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-12px)} }
+    .lootfloat{ animation:lootfloat 3s ease-out forwards; }
+  </style>
+  <div class="fixed bottom-24 right-5 z-[80] flex flex-col items-end gap-2.5 pointer-events-none" x-cloak>
+    <template x-for="f in $store.game.lootFloats" :key="f.id">
+      <div class="lootfloat flex items-center gap-3.5 pl-3 pr-6 py-3 rounded-2xl" :style="'border:1px solid '+f.color+'b3;background:linear-gradient(120deg,'+f.color+'2e,'+f.color+'12);box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 18px -6px '+f.color+'99'">
+        <span class="w-11 h-11 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" :style="'background:#0c1420;border:1px solid '+f.color+'66'" x-html="f.icon"></span>
+        <span class="text-[20px] font-medium whitespace-nowrap" :style="'color:'+f.color"><b x-text="'+' + f.n"></b> <span x-text="f.name"></span></span>
+      </div>
+    </template>
   </div>
 
   <!-- ===== Modal Cài Đặt ===== -->
