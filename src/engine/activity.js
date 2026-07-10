@@ -261,6 +261,9 @@ export function advance(state, now) {
       for (const inp of action.inputs) {
         cyclesByInputs = Math.min(cyclesByInputs, Math.floor((state.inventory[inp.itemId] || 0) / inp.qty));
       }
+      // Hết nguyên liệu -> TỰ DỪNG như Đồ Phổ bên dưới (không treo thanh tiến độ chạy rỗng).
+      // ranOut để caller báo lý do dừng (toast + chuông). cycles:0 nên không tạo offline report.
+      if (cyclesByInputs <= 0) { state.activity = null; return { type: 'skill', skillId: act.skillId, itemId: action.itemId, cycles: 0, xp: 0, ranOut: true }; }
     }
     let cyclesByCharge = Infinity;
     if (action.needsDoPho) cyclesByCharge = (((state.player && state.player.doPho) || {})[action.itemId]) || 0; // bậc 4-7: tối đa = số lượt Đồ Phổ còn

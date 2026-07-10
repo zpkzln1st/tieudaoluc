@@ -775,7 +775,6 @@
               </div>
               <div class="flex items-center justify-between mb-3">
                 <div class="lbl">Chọn Avatar</div>
-                <div class="text-[11px] text-slate-500">Bấm để đổi · avatar tạm, ảnh thật thay sau</div>
               </div>
               <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                 <!-- Mặc định (theo môn phái) -->
@@ -803,7 +802,6 @@
               <div x-show="skinTab==='cover'" class="p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="lbl">Chọn Ảnh Bìa</div>
-                <div class="text-[11px] text-slate-500">Chọn ảnh nền riêng · chỉnh khung ngay trên banner Hồ Sơ</div>
               </div>
               <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                 <!-- Giống avatar (mặc định) -->
@@ -826,7 +824,6 @@
                   </button>
                 </template>
               </div>
-              <div class="text-[10px] text-slate-600 mt-3">Chọn "Giống Avatar" để banner dùng chung ảnh đại diện.</div>
               </div>
 
               <!-- ===== TAB: Huy Hiệu (đeo + cỡ + hiệu ứng — GOM 1 CHỖ) ===== -->
@@ -837,10 +834,7 @@
                 </div>
 
                 <!-- Đang đeo: 3 ô, mỗi huy hiệu 1 thẻ (preview hiệu ứng + chọn hiệu ứng riêng) -->
-                <div class="flex items-baseline gap-2 mb-2">
-                  <span class="lbl">Đang Đeo</span>
-                  <span class="text-[11px] text-slate-500">· tối đa 3 · mỗi thẻ một hiệu ứng riêng</span>
-                </div>
+                <div class="lbl mb-2">Đang Đeo</div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <template x-for="(slot, si) in $store.game.equippedBadgeSlots" :key="'bslot'+si">
                     <div>
@@ -877,11 +871,9 @@
                   <input type="range" min="32" max="72" step="1" :value="$store.game.state.player.badgeSize||48" @input="$store.game.setBadgeSize($event.target.value)" class="accent-jade cursor-pointer" style="width:200px;max-width:100%">
                   <span class="text-[13px] text-jade font-mono" x-text="($store.game.state.player.badgeSize||48)+'px'"></span>
                 </div>
-                <div class="text-[10px] text-slate-500 mt-2">Cỡ áp cho cả 3 huy hiệu hiển thị ở góc banner Hồ Sơ.</div>
-
                 <!-- Kho huy hiệu -->
                 <div class="flex items-center gap-3 my-4 text-[11px] uppercase tracking-wider text-slate-500">
-                  <span class="flex-1 h-px bg-slate-800"></span><span class="shrink-0">Kho Huy Hiệu · bấm để đeo / gỡ</span><span class="flex-1 h-px bg-slate-800"></span>
+                  <span class="flex-1 h-px bg-slate-800"></span><span class="shrink-0">Kho Huy Hiệu</span><span class="flex-1 h-px bg-slate-800"></span>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   <template x-for="b in $store.game.badgesView" :key="b.skillId">
@@ -907,7 +899,6 @@
             <section class="panel rounded-lg p-4">
               <div class="flex items-center justify-between mb-1">
                 <div class="lbl">Nghề Nghiệp <span class="text-[10px] text-slate-500 font-normal" x-text="'· đã học '+$store.game.professionCount+'/'+$store.game.NGHE.length"></span></div>
-                <div class="text-[11px] text-slate-500">Bái sư học nghề · giữ nhiều</div>
               </div>
               <div class="text-[11px] text-slate-500 mb-1 leading-snug">Mỗi nghề tăng <b class="text-jade">EXP</b> &amp; <b class="text-jade">Hiệu suất</b> cho một kĩ năng sống.</div>
               <div class="text-[11px] text-amber-200/80 mb-3" x-show="$store.game.professionCount < $store.game.NGHE.length">Nghề kế: cần <b x-text="$store.game.professionLvReq"></b> Tổng Lv · <b x-text="$store.game.fmt($store.game.professionNextCost)"></b> Bạc. <span class="text-slate-500">(mỗi 80 Lv mở 1 nghề, giá tăng dần)</span></div>

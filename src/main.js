@@ -217,6 +217,7 @@ if (state.activity) {
   const r = advance(state, now());
   if (r && r.cycles > 0) offlineReport = { ...r, awayMs: _awayMs };
   if (r && r.cycles > 0 && r.itemId) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Thu thập hoàn tất', '+' + r.cycles + ' ' + (_it ? _it.name : r.itemId) + ' · +' + r.xp + ' EXP (trong lúc vắng mặt)', now()); }
+  if (r && r.ranOut) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Hết nguyên liệu', 'Đã dừng ' + (_it ? _it.name : 'chế tác') + ' — thu thập/mua thêm nguyên liệu rồi luyện tiếp.', now()); }
 }
 // Lò Ấp Noãn: trứng nở xong trong lúc vắng mặt -> báo 1 lần (chờ khai noãn).
 if (state.hatchery && now() >= state.hatchery.readyAt && !state.hatchery.notified) {
@@ -1064,6 +1065,13 @@ const gameStore = {
     if (!r) return;
     const M = { bac: { nm: 'Bạc', c: '#fbbf24' }, honThach: { nm: 'Hồn Thạch', c: '#fb7185' }, nguyenBao: { nm: 'Nguyên Bảo', c: '#22d3ee' } };
     for (const c of this.rewardChips(r)) { const m = M[c.id]; if (m) this._lootFloat(this.ico(c.id, c.emoji), c.amt, m.nm, m.c); }
+  },
+  // Hết nguyên liệu -> hoạt động tự dừng (engine advance trả ranOut): toast + chuông cho rõ lý do.
+  notifyRanOut(rep) {
+    const nm = ((this.ITEMS[rep.itemId] || {}).name) || ((this.SKILLS[rep.skillId] || {}).name) || 'chế tác';
+    this.showToast('Hết nguyên liệu — đã dừng: ' + nm + '.');
+    pushNotif(this.state, 'thuThap', 'Hết nguyên liệu', 'Đã dừng ' + nm + ' — thu thập/mua thêm nguyên liệu rồi luyện tiếp.', now());
+    Storage.save(this.state);
   },
   openSettings() { this.settingsModal = true; },
   closeSettings() { this.settingsModal = false; },
@@ -3477,6 +3485,7 @@ function rafLoop() {
     } else if (s.state.activity) {
       const rep = advance(s.state, now());
       if (rep && rep.type === 'skill' && rep.cycles > 0 && rep.itemId) s.showLootPop(rep.itemId, rep.cycles);   // online: bắn loot float mỗi khi thu vật phẩm
+      if (rep && rep.ranOut) s.notifyRanOut(rep);   // hết nguyên liệu -> hoạt động tự dừng, báo rõ lý do
     }
     // Suy yếu: bơm _cycleNow để thanh HP hồi mượt; đủ 60s -> tự khỏi (chạy cả khi không ở màn combat)
     if (s.state.combat && s.state.combat.noiThuong) {
@@ -3501,7 +3510,7 @@ requestAnimationFrame(rafLoop);
 setInterval(() => {
   const s = window.Alpine?.store('game');
   if (!s) return;
-  if (s.state.activity) advance(s.state, now());
+  if (s.state.activity) { const rep = advance(s.state, now()); if (rep && rep.ranOut) s.notifyRanOut(rep); }   // hết nguyên liệu -> tự dừng (cả khi tab ẩn)
   if (s.state.combat && s.state.combat.noiThuong && s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();   // suy yếu xong khi tab ẩn
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
   s.checkTitles();        // Danh Hiệu: mở khoá mới khi đủ cột mốc -> báo toast
