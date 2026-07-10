@@ -1769,12 +1769,13 @@
 
               <!-- Bài Võ Đang Lắp — SƠ ĐỒ (tâm điểm Tâm Pháp + nhánh + Bị Động/Bộ Pháp + Chiêu + chỉ số) -->
               <section class="panel rounded-xl p-3 relative overflow-hidden border border-jade/30" style="box-shadow:inset 0 0 32px rgba(20,184,166,.06)">
-                <div class="flex items-center justify-between" :class="$store.game.baiVoCollapsed ? '' : 'mb-1'">
-                  <button @click="$store.game.toggleBaiVo()" class="flex items-center gap-1.5 text-jade font-semibold text-sm hover:opacity-80 transition" :title="$store.game.baiVoCollapsed ? 'Mở lại Bài Võ' : 'Thu nhỏ Bài Võ'">
-                    <span x-html="$store.game.svg('scroll','w-4 h-4')"></span>Bài Võ Đang Lắp
-                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 transition-transform" :class="$store.game.baiVoCollapsed ? '' : 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                <div class="flex items-center justify-between gap-1.5" :class="$store.game.baiVoCollapsed ? '' : 'mb-1'">
+                  <button @click="$store.game.toggleBaiVo()" class="flex items-center gap-1.5 min-w-0 text-jade font-semibold text-[13px] hover:opacity-80 transition" :title="$store.game.baiVoCollapsed ? 'Mở lại Bài Võ' : 'Thu nhỏ Bài Võ'">
+                    <span class="shrink-0" x-html="$store.game.svg('scroll','w-4 h-4')"></span>
+                    <span class="truncate">Bài Võ Đang Lắp</span>
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0 text-jade/70 transition-transform" :class="$store.game.baiVoCollapsed ? '' : 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                   </button>
-                  <button @click="$store.game.openBaiVo('chieu')" x-show="!$store.game.baiVoCollapsed" class="px-3.5 py-1.5 rounded-lg text-xs font-medium border border-jade/60 text-jade hover:bg-jade hover:text-ink transition">Thiết Lập</button>
+                  <button @click="$store.game.openBaiVo('chieu')" x-show="!$store.game.baiVoCollapsed" class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-medium border border-jade/60 text-jade hover:bg-jade hover:text-ink transition">Thiết Lập</button>
                 </div>
 
                 <div x-show="!$store.game.baiVoCollapsed">
