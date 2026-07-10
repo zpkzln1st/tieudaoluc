@@ -432,7 +432,6 @@
             <button @click="$store.game.setProfileTab('skins')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='skins' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Dung Mạo</button>
             <button @click="$store.game.setProfileTab('nghe')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='nghe' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Nghề</button>
             <button @click="$store.game.setProfileTab('titles')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='titles' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Danh Hiệu</button>
-            <button @click="$store.game.setProfileTab('badges')" class="pb-2 -mb-px border-b-2" :class="$store.game.profileTab==='badges' ? 'border-jade text-jade' : 'border-transparent text-slate-400'">Huy Hiệu</button>
           </div>
 
           <style>
@@ -482,11 +481,11 @@
                 <span class="px-2.5 py-1 rounded-md bg-black/45 backdrop-blur-sm border border-white/10 text-[11px] text-slate-200">Tổng Cấp <b class="text-jade" x-text="$store.game.totalLevel"></b></span>
               </div>
             </div>
-            <!-- Huy Hiệu đeo (góc phải-dưới) — chỉ hiển thị; trang bị/gỡ ở tab Huy Hiệu, chỉnh cỡ ở Dung Mạo -->
+            <!-- Huy Hiệu đeo (góc phải-dưới) — chỉ hiển thị; trang bị/gỡ + cỡ + hiệu ứng ở Dung Mạo -> sub-tab Huy Hiệu. Hiệu ứng chạy ĐỒNG BỘ (bỏ so le --d). -->
             <template x-if="$store.game.equippedBadgeList.length">
               <div class="absolute bottom-3 right-3 z-10 flex items-end gap-2 pointer-events-none">
-                <template x-for="(hb, hi) in $store.game.equippedBadgeList" :key="hb.skillId">
-                  <span class="hb-shim" :class="'hbfx-'+$store.game.badgeFxOf(hb.skillId)" :style="'width:'+($store.game.state.player.badgeSize||48)+'px;height:'+($store.game.state.player.badgeSize||48)+'px;--d:'+(hi*0.7)+'s'">
+                <template x-for="hb in $store.game.equippedBadgeList" :key="hb.skillId">
+                  <span class="hb-shim" :class="'hbfx-'+$store.game.badgeFxOf(hb.skillId)" :style="'width:'+($store.game.state.player.badgeSize||48)+'px;height:'+($store.game.state.player.badgeSize||48)+'px'">
                     <img :src="'images/ui/huyhieu/'+hb.skillId+'.webp'" onerror="this.style.display='none'">
                     <span class="hb-clip"><span class="hb-sweep"></span></span>
                     <span class="hb-glint"></span>
@@ -756,6 +755,7 @@
               <div class="flex border-b border-slate-800">
                 <button @click="skinTab='avatar'" class="relative flex-1 px-3 py-3 text-sm font-bold transition" :class="skinTab==='avatar' ? 'text-jade' : 'text-slate-500 hover:text-slate-300'">Ảnh Đại Diện<span x-show="skinTab==='avatar'" class="absolute bottom-0 inset-x-0 h-0.5 bg-jade"></span></button>
                 <button @click="skinTab='cover'" class="relative flex-1 px-3 py-3 text-sm font-bold transition" :class="skinTab==='cover' ? 'text-jade' : 'text-slate-500 hover:text-slate-300'">Ảnh Bìa<span x-show="skinTab==='cover'" class="absolute bottom-0 inset-x-0 h-0.5 bg-jade"></span></button>
+                <button @click="skinTab='badge'" class="relative flex-1 px-3 py-3 text-sm font-bold transition" :class="skinTab==='badge' ? 'text-jade' : 'text-slate-500 hover:text-slate-300'">Huy Hiệu<span x-show="skinTab==='badge'" class="absolute bottom-0 inset-x-0 h-0.5 bg-jade"></span></button>
               </div>
 
               <!-- ===== TAB: Ảnh Đại Diện ===== -->
@@ -768,7 +768,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="text-xs text-slate-400 mb-1">Phóng to</div>
-                  <input type="range" min="1" max="3" step="0.02" :value="$store.game.state.player.face.z" @input="$store.game.setAdjZoom('face',$event.target.value)" class="w-full accent-jade cursor-pointer">
+                  <input type="range" min="1" max="3" step="0.02" :value="$store.game.state.player.face.z" @input="$store.game.setAdjZoom('face',$event.target.value)" class="accent-jade cursor-pointer" style="width:240px;max-width:100%">
                   <button @click="$store.game.resetAdj('face')" class="mt-2 px-3 py-1 rounded-lg text-xs bg-ink3 border border-slate-700 hover:border-jade text-slate-300">↺ Đặt lại khung</button>
                   <div class="text-[10px] text-slate-500 mt-2 leading-snug">Kéo để chọn khung · <b class="text-slate-400">phóng to để kéo dọc rộng hơn.</b></div>
                 </div>
@@ -829,32 +829,75 @@
               <div class="text-[10px] text-slate-600 mt-3">Chọn "Giống Avatar" để banner dùng chung ảnh đại diện.</div>
               </div>
 
-              <!-- Kích cỡ Huy Hiệu đeo (áp cho góc banner Hồ Sơ) -->
-              <div class="border-t border-slate-800 p-4">
-                <div class="flex items-center justify-between mb-2">
-                  <div class="lbl">Kích Cỡ Huy Hiệu</div>
-                  <span class="text-sm text-jade font-mono" x-text="($store.game.state.player.badgeSize||48) + 'px'"></span>
+              <!-- ===== TAB: Huy Hiệu (đeo + cỡ + hiệu ứng — GOM 1 CHỖ) ===== -->
+              <div x-show="skinTab==='badge'" class="p-4">
+                <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                  <div class="lbl">Huy Hiệu · Kĩ Năng Đại Thành</div>
+                  <div class="text-[12px] text-slate-400">Đeo <b class="text-jade" x-text="$store.game.badgeEquippedCount"></b>/3 · Đạt <b class="text-amber-300" x-text="$store.game.badgeUnlockedCount"></b>/<span x-text="$store.game.badgesView.length"></span></div>
                 </div>
-                <input type="range" min="32" max="72" step="1" :value="$store.game.state.player.badgeSize||48" @input="$store.game.setBadgeSize($event.target.value)" class="w-full accent-jade cursor-pointer">
-                <div class="text-[10px] text-slate-500 mt-2">Chỉnh cỡ huy hiệu hiển thị ở góc banner Hồ Sơ. Trang bị/gỡ (tối đa 3) ở tab <b class="text-slate-400">Huy Hiệu</b>.</div>
-              </div>
 
-              <!-- Hiệu ứng huy hiệu — chọn RIÊNG từng cái (đồng điệu hoặc phá cách) -->
-              <div class="border-t border-slate-800 p-4" x-show="$store.game.equippedBadgeList.length">
-                <div class="lbl mb-3">Hiệu Ứng Huy Hiệu · từng cái</div>
-                <div class="space-y-3">
-                  <template x-for="hb in $store.game.equippedBadgeList" :key="'fx-'+hb.skillId">
-                    <div class="flex items-center gap-3">
-                      <img :src="'images/ui/huyhieu/'+hb.skillId+'.webp'" class="w-10 h-10 object-contain shrink-0" onerror="this.style.display='none'">
-                      <div class="flex flex-wrap gap-1.5">
-                        <template x-for="fx in $store.game.BADGE_FX" :key="fx.id">
-                          <button @click="$store.game.setBadgeFx(hb.skillId, fx.id)" class="px-2.5 py-1 rounded-lg text-xs border transition" :class="$store.game.badgeFxOf(hb.skillId)===fx.id ? 'border-jade bg-jade/15 text-jade' : 'border-slate-700 text-slate-400 hover:border-slate-500'" x-text="fx.name"></button>
-                        </template>
-                      </div>
+                <!-- Đang đeo: 3 ô, mỗi huy hiệu 1 thẻ (preview hiệu ứng + chọn hiệu ứng riêng) -->
+                <div class="flex items-baseline gap-2 mb-2">
+                  <span class="lbl">Đang Đeo</span>
+                  <span class="text-[11px] text-slate-500">· tối đa 3 · mỗi thẻ một hiệu ứng riêng</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <template x-for="(slot, si) in $store.game.equippedBadgeSlots" :key="'bslot'+si">
+                    <div>
+                      <!-- ô có huy hiệu -->
+                      <template x-if="slot">
+                        <div class="relative h-full rounded-xl border border-slate-700 bg-ink3/40 p-3 flex flex-col items-center gap-2">
+                          <button @click="$store.game.toggleBadge(slot.skillId)" title="Gỡ huy hiệu" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/40 border border-slate-700 text-slate-400 hover:text-rose-400 hover:border-rose-500 text-xs leading-none flex items-center justify-center">✕</button>
+                          <span class="hb-shim" :class="'hbfx-'+$store.game.badgeFxOf(slot.skillId)" style="width:60px;height:60px">
+                            <img :src="'images/ui/huyhieu/'+slot.skillId+'.webp'" onerror="this.style.display='none'">
+                            <span class="hb-clip"><span class="hb-sweep"></span></span><span class="hb-glint"></span>
+                          </span>
+                          <div class="text-[13px] font-semibold text-amber-200 text-center leading-tight" style="font-family:'Lora',serif" x-text="slot.name"></div>
+                          <div class="flex flex-wrap gap-1 justify-center">
+                            <template x-for="fx in $store.game.BADGE_FX" :key="fx.id">
+                              <button @click="$store.game.setBadgeFx(slot.skillId, fx.id)" class="px-2 py-0.5 rounded-lg text-[11px] border transition" :class="$store.game.badgeFxOf(slot.skillId)===fx.id ? 'border-jade bg-jade/15 text-jade' : 'border-slate-700 text-slate-400 hover:border-slate-500'" x-text="fx.name"></button>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                      <!-- ô trống -->
+                      <template x-if="!slot">
+                        <div class="h-full min-h-[150px] rounded-xl border border-dashed border-amber-500/25 bg-black/20 flex flex-col items-center justify-center gap-1 text-amber-500/40">
+                          <div class="text-2xl leading-none">＋</div>
+                          <div class="text-[11px]">Ô trống</div>
+                        </div>
+                      </template>
                     </div>
                   </template>
                 </div>
-                <div class="text-[10px] text-slate-500 mt-3">Chọn hiệu ứng cho từng huy hiệu — cùng loại để <b class="text-slate-400">đồng điệu</b>, khác nhau để <b class="text-slate-400">phá cách</b>.</div>
+
+                <!-- Cỡ chung (áp cho góc banner Hồ Sơ) -->
+                <div class="flex items-center gap-3 bg-ink3/40 border border-slate-700 rounded-lg px-4 py-3 mt-4">
+                  <span class="text-[12px] text-slate-300 whitespace-nowrap">Kích Cỡ Huy Hiệu</span>
+                  <input type="range" min="32" max="72" step="1" :value="$store.game.state.player.badgeSize||48" @input="$store.game.setBadgeSize($event.target.value)" class="accent-jade cursor-pointer" style="width:200px;max-width:100%">
+                  <span class="text-[13px] text-jade font-mono" x-text="($store.game.state.player.badgeSize||48)+'px'"></span>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-2">Cỡ áp cho cả 3 huy hiệu hiển thị ở góc banner Hồ Sơ.</div>
+
+                <!-- Kho huy hiệu -->
+                <div class="flex items-center gap-3 my-4 text-[11px] uppercase tracking-wider text-slate-500">
+                  <span class="flex-1 h-px bg-slate-800"></span><span class="shrink-0">Kho Huy Hiệu · bấm để đeo / gỡ</span><span class="flex-1 h-px bg-slate-800"></span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <template x-for="b in $store.game.badgesView" :key="b.skillId">
+                    <div class="rounded-xl border p-3 flex flex-col items-center text-center transition"
+                         :class="(b.unlocked ? 'border-amber-500/45 bg-amber-900/10 cursor-pointer hover:border-amber-400' : 'border-slate-800/70 bg-black/20') + (b.equipped ? ' ring-2 ring-jade' : '')"
+                         @click="b.unlocked && $store.game.toggleBadge(b.skillId)" :title="b.desc">
+                      <div class="relative w-[74px] h-[74px] mb-1.5 flex items-center justify-center" :class="b.unlocked ? '' : 'grayscale opacity-45'">
+                        <span class="absolute inset-0 flex items-center justify-center text-4xl" x-text="b.icon"></span>
+                        <img :src="'images/ui/huyhieu/'+b.skillId+'.webp'" class="relative w-full h-full object-contain" :style="b.unlocked ? 'filter:drop-shadow(0 0 10px rgba(245,185,66,.5))' : ''" onerror="this.style.display='none'">
+                      </div>
+                      <div class="text-[12.5px] font-semibold leading-tight" :class="b.unlocked ? 'text-amber-200' : 'text-slate-400'" style="font-family:'Lora',serif" x-text="b.name"></div>
+                      <div class="text-[10px] text-slate-500 mt-0.5" x-text="b.skillName + ' · Lv' + b.level"></div>
+                      <div class="text-[10px] mt-1" :class="b.equipped ? 'text-jade font-semibold' : (b.unlocked ? 'text-amber-300/85' : 'text-slate-600')" x-text="b.equipped ? '✓ Đang đeo' : (b.unlocked ? '✦ Đại Thành · bấm để đeo' : 'Cần Lv 100')"></div>
+                    </div>
+                  </template>
+                </div>
               </div>
             </section>
           </template>
@@ -938,30 +981,6 @@
             </section>
           </template>
 
-          <!-- ===== Tab HUY HIỆU (kĩ năng Lv100 · Đại Thành) ===== -->
-          <template x-if="$store.game.profileTab==='badges'">
-            <section class="panel rounded-lg p-4 sm:p-5">
-              <div class="flex items-center justify-between mb-4">
-                <div class="lbl">Huy Hiệu · Kĩ Năng Đại Thành</div>
-                <div class="text-[12px] text-slate-400">Đeo <b class="text-jade" x-text="$store.game.badgeEquippedCount"></b>/3 · Đạt <b class="text-amber-300" x-text="$store.game.badgeUnlockedCount"></b>/<span x-text="$store.game.badgesView.length"></span></div>
-              </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                <template x-for="b in $store.game.badgesView" :key="b.skillId">
-                  <div class="rounded-xl border p-4 flex flex-col items-center text-center transition"
-                       :class="(b.unlocked ? 'border-amber-500/45 bg-amber-900/10 cursor-pointer hover:border-amber-400' : 'border-slate-800/70 bg-black/20') + (b.equipped ? ' ring-2 ring-jade' : '')"
-                       @click="b.unlocked && $store.game.toggleBadge(b.skillId)" :title="b.desc">
-                    <div class="relative w-24 h-24 mb-2.5 flex items-center justify-center" :class="b.unlocked ? '' : 'grayscale opacity-45'">
-                      <span class="absolute inset-0 flex items-center justify-center text-5xl" x-text="b.icon"></span>
-                      <img :src="'images/ui/huyhieu/'+b.skillId+'.webp'" class="relative w-full h-full object-contain" :style="b.unlocked ? 'filter:drop-shadow(0 0 11px rgba(245,185,66,.55))' : ''" onerror="this.style.display='none'">
-                    </div>
-                    <div class="text-[14px] font-semibold leading-tight" :class="b.unlocked ? 'text-amber-200' : 'text-slate-400'" style="font-family:'Lora',serif" x-text="b.name"></div>
-                    <div class="text-[10.5px] text-slate-500 mt-1" x-text="b.skillName + ' · Lv' + b.level"></div>
-                    <div class="text-[10px] mt-1" :class="b.equipped ? 'text-jade font-semibold' : (b.unlocked ? 'text-amber-300/85' : 'text-slate-600')" x-text="b.equipped ? '✓ Đang đeo' : (b.unlocked ? '✦ Đại Thành · bấm để đeo' : 'Cần Lv 100')"></div>
-                  </div>
-                </template>
-              </div>
-            </section>
-          </template>
         </div>
       </template>
 

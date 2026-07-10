@@ -1328,6 +1328,8 @@ const gameStore = {
   get badgeEquippedCount() { return (this.state.player.badges || []).length; },
   // Huy Hiệu đeo (chỉ cái đã Đại Thành, đúng thứ tự đeo) — render góc banner.
   get equippedBadgeList() { return (this.state.player.badges || []).filter((id) => this.skillLevel(id) >= BADGE_LV).map((id) => ({ skillId: id })); },
+  // 3 ô "Đang Đeo" (điền huy hiệu hoặc null) — kèm tên, cho sub-tab Huy Hiệu trong Dung Mạo.
+  get equippedBadgeSlots() { const view = this.badgesView; const worn = this.equippedBadgeList.map((hb) => { const b = view.find((x) => x.skillId === hb.skillId); return { skillId: hb.skillId, name: (b && b.name) || hb.skillId }; }); return [0, 1, 2].map((i) => worn[i] || null); },
   toggleBadge(skillId) {
     if (this.skillLevel(skillId) < BADGE_LV) { this.showToast('Chưa Đại Thành (cần kĩ năng Lv 100) — không đeo được.'); return; }
     if (!Array.isArray(this.state.player.badges)) this.state.player.badges = [];
