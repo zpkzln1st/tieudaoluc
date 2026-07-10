@@ -1914,10 +1914,12 @@
                     <template x-if="$store.game.actIsCombat"><span class="flex items-center gap-1.5 font-normal text-xs text-slate-400"><span class="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>Đang đánh <span class="text-rose-300" x-text="$store.game.actName"></span></span></template>
                   </div>
                   <div class="flex items-center gap-1.5 shrink-0">
-                    <button @click="$store.game.openBagPeek()" title="Túi Tạm — xem nhanh đồ trong túi" class="relative w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade flex items-center justify-center">
-                      <span class="w-3.5 h-3.5 inline-flex" x-html="$store.game.svg('bag','w-3.5 h-3.5')"></span>
-                      <template x-if="$store.game.bagPeekCount"><span class="absolute -top-1.5 -right-1.5 min-w-[15px] h-[15px] px-1 rounded-full bg-jade text-ink text-[9px] font-bold flex items-center justify-center leading-none" x-text="$store.game.bagPeekCount"></span></template>
-                    </button>
+                    <template x-if="$store.game.combatSessView">
+                      <button @click="$store.game.openBagPeek()" title="Túi Tạm — đồ rơi phiên này" class="relative w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade flex items-center justify-center">
+                        <span class="w-3.5 h-3.5 inline-flex" x-html="$store.game.svg('bag','w-3.5 h-3.5')"></span>
+                        <template x-if="$store.game.bagPeekCount"><span class="absolute -top-1.5 -right-1.5 min-w-[15px] h-[15px] px-1 rounded-full bg-jade text-ink text-[9px] font-bold flex items-center justify-center leading-none" x-text="$store.game.bagPeekCount"></span></template>
+                      </button>
+                    </template>
                     <template x-if="$store.game.actIsCombat"><button @click="$store.game.stop()" title="Dừng giao chiến" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 text-xs">✕</button></template>
                   </div>
                 </div>
@@ -10062,19 +10064,19 @@
         <!-- Chiến Lợi Phẩm -->
         <div class="flex items-center gap-2 px-6 pt-3.5 pb-1.5 text-[10px] tracking-[.13em] uppercase text-slate-500"><span class="shrink-0">Chiến Lợi Phẩm</span><template x-if="$store.game.combatSummaryItemCount"><span class="tracking-normal normal-case text-slate-300 shrink-0" x-text="'· '+$store.game.combatSummaryItemCount+' vật phẩm'"></span></template><span class="flex-1 h-px bg-slate-800"></span></div>
         <div class="px-6 flex flex-wrap gap-2 max-h-[130px] overflow-y-auto">
-          <template x-if="!$store.game.combatSummary.loot.length && !$store.game.combatSummary.gearIds.length"><span class="text-[11px] text-slate-600 italic">— trận này chưa rơi vật phẩm —</span></template>
+          <template x-if="!$store.game.combatSummary.loot.length && !$store.game.combatSummary.gear.length"><span class="text-[11px] text-slate-600 italic">— trận này chưa rơi vật phẩm —</span></template>
           <template x-for="l in $store.game.combatSummary.loot" :key="l.id">
             <span class="cbti cbti-lg" :style="'animation:none;--q:'+$store.game.qualHex(($store.game.ITEMS[l.id]||{}).quality)" :title="(($store.game.ITEMS[l.id]||{}).name||l.id)+' ×'+l.n">
               <span class="w-7 h-7 inline-flex items-center justify-center" x-html="$store.game.ico(l.id, ($store.game.ITEMS[l.id]||{}).icon||'📦')"></span><i x-text="'×'+l.n"></i>
             </span>
           </template>
-          <template x-for="(g,gi) in $store.game.combatSummary.gearIds" :key="'g'+gi">
-            <span class="cbti cbti-lg cbti-gear" style="animation:none" :title="(($store.game.ITEMS[g]||{}).name||'Trang bị')+' — đã vào Hành Lý'">
-              <span class="w-7 h-7 inline-flex items-center justify-center" x-html="$store.game.ico(g, '🗡')"></span>
+          <template x-for="(g,gi) in $store.game.combatSummary.gear" :key="'g'+gi">
+            <span class="cbti cbti-lg" :style="'animation:none;--q:'+$store.game.qualHex(g.quality)" :title="(($store.game.ITEMS[g.gearId]||{}).name||'Trang bị')+' — đã vào Hành Lý'">
+              <span class="w-7 h-7 inline-flex items-center justify-center" x-html="$store.game.ico(g.gearId, '🗡')"></span>
             </span>
           </template>
-          <template x-if="$store.game.combatSummary.gearN > $store.game.combatSummary.gearIds.length">
-            <span class="text-[10px] text-amber-300/80 self-center" x-text="'+'+($store.game.combatSummary.gearN-$store.game.combatSummary.gearIds.length)+' trang bị nữa'"></span>
+          <template x-if="$store.game.combatSummary.gearN > $store.game.combatSummary.gear.length">
+            <span class="text-[10px] text-amber-300/80 self-center" x-text="'+'+($store.game.combatSummary.gearN-$store.game.combatSummary.gear.length)+' trang bị nữa'"></span>
           </template>
         </div>
         <div class="mx-6 mt-3.5 rounded-lg border border-jade/20 px-3 py-2 text-[10.5px] text-slate-400 flex items-center gap-2" style="background:rgba(45,212,191,.05)"><span>🔔</span><span>Tổng kết đã ghi vào <b class="text-jade">Chuông · Phi Cáp Đài</b> — xem lại bất cứ lúc nào.</span></div>
@@ -10094,11 +10096,11 @@
     <div class="fixed inset-0 z-[54] flex items-center justify-center p-4" style="background:rgba(3,6,10,.72)" @click.self="$store.game.closeBagPeek()">
       <div class="w-[360px] max-w-[96vw] max-h-[86vh] flex flex-col panel rounded-2xl overflow-hidden border border-slate-700" style="box-shadow:0 22px 60px rgba(0,0,0,.7)">
         <div class="flex items-center justify-between px-4 pt-3.5 pb-3 border-b border-slate-800 shrink-0">
-          <div class="flex items-center gap-2 text-jade font-bold text-sm"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('bag','w-4 h-4')"></span>Túi Tạm<span class="text-[10.5px] text-slate-500 font-normal" x-text="'· '+$store.game.bagPeekCount+' món'"></span></div>
+          <div class="flex items-center gap-2 text-jade font-bold text-sm"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('bag','w-4 h-4')"></span>Túi Tạm<span class="text-[10.5px] text-slate-500 font-normal">· thu hoạch phiên này</span></div>
           <button @click="$store.game.closeBagPeek()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/15 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
         </div>
         <div class="p-3.5 overflow-y-auto">
-          <template x-if="!$store.game.bagPeekList.length"><div class="text-center text-slate-500 text-sm py-8">Túi trống — đi thu thập / săn yêu thú đã.</div></template>
+          <template x-if="!$store.game.bagPeekList.length"><div class="text-center text-slate-500 text-sm py-8">Phiên này chưa rơi vật phẩm nào — cứ đánh tiếp!</div></template>
           <div class="grid gap-2" style="grid-template-columns:repeat(6,48px);justify-content:center">
             <template x-for="it in $store.game.bagPeekList" :key="it.uid || it.id">
               <button @click="$store.game.openItemModal(it.uid || it.id)" :title="it.name" class="relative w-12 h-12 rounded-lg flex items-center justify-center ring-1 transition hover:ring-2 hover:brightness-110" :class="$store.game.itemQuality(it).bg + ' ' + $store.game.itemQuality(it).ring">
@@ -10108,8 +10110,11 @@
               </button>
             </template>
           </div>
+          <template x-if="$store.game.combatSessView && $store.game.combatSessView.nGear > $store.game.combatSessView.gear.length">
+            <div class="text-center text-[10px] text-amber-300/80 mt-2.5" x-text="'+ '+($store.game.combatSessView.nGear-$store.game.combatSessView.gear.length)+' trang bị nữa — xem đầy đủ ở Hành Lý'"></div>
+          </template>
         </div>
-        <div class="px-4 py-2.5 border-t border-slate-800 text-[10.5px] text-slate-500 text-center shrink-0">Bấm 1 món để xem chi tiết · mở <b class="text-slate-300">Hành Lý</b> đầy đủ ở thanh điều hướng.</div>
+        <div class="px-4 py-2.5 border-t border-slate-800 text-[10.5px] text-slate-500 text-center shrink-0">Chỉ hiện đồ rơi phiên này · bấm 1 món xem chi tiết · kho đầy đủ ở <b class="text-slate-300">Hành Lý</b>.</div>
       </div>
     </div>
   </template>

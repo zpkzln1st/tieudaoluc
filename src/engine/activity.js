@@ -139,7 +139,7 @@ export function startCombat(state, enemyId, now) {
     maxHP: profile.maxHP,               // mốc Sinh Lực tối đa (cho ngưỡng tự ăn ở advance)
     startedAt: now, lastResolved: now,
     sessionCount: 0, progress: 0, capped: false, stalled: false,
-    sess: { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gearIds: [], gearN: 0 },   // thu hoạch phiên (khay + Tổng Kết Trận); gearN đếm ĐỦ, gearIds chỉ giữ 12 icon đầu
+    sess: { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 },   // thu hoạch phiên (khay + Túi Tạm + Tổng Kết); gearN đếm ĐỦ, gear giữ 12 snapshot đầu {gearId,quality,uid}
   };
   return true;
 }
@@ -231,7 +231,7 @@ export function advance(state, now) {
       const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
       const lootMul = 1 + activeAwkVal(state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
       let done = 0, died = false;
-      const sess = act.sess || (act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gearIds: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
+      const sess = act.sess || (act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
       for (let i = 0; i < cyclesByTime; i++) {
         autoEatTick(state, maxHP);                          // Ô Lương Thực: tự ăn nếu máu dưới ngưỡng (trước khi vào con)
         const pc = petCombatCycle(state, hpLost, now);                     // Linh Thú: chia lửa + bị động + chủ động
@@ -242,7 +242,7 @@ export function advance(state, now) {
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
         if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
-        if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if (sess.gearIds.length < 12) sess.gearIds.push(gi.gearId); } }   // loot-hunt: rơi gear instance (offline-safe)
+        if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }   // loot-hunt: rơi gear instance (offline-safe)
         state.currencies.bac = (state.currencies.bac || 0) + Math.round(bacPer * moneyMul);   // loot + Bạc -> THẲNG vào kho mỗi kill
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;

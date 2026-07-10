@@ -218,7 +218,7 @@ if (state.activity) {
   if (r && r.cycles > 0) offlineReport = { ...r, awayMs: _awayMs };
   if (r && r.cycles > 0 && r.itemId) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Thu thập hoàn tất', '+' + r.cycles + ' ' + (_it ? _it.name : r.itemId) + ' · +' + r.xp + ' EXP (trong lúc vắng mặt)', now()); }
   if (r && r.ranOut) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Hết nguyên liệu', 'Đã dừng ' + (_it ? _it.name : 'chế tác') + ' — thu thập/mua thêm nguyên liệu rồi luyện tiếp.', now()); }
-  if (r && r.type === 'combat' && r.died && r.sess) { const _e = ENEMIES[r.enemyId]; const _s = r.sess; pushNotif(state, 'khac', 'Trọng thương khi vắng mặt', 'Gục trước ' + (_e ? _e.name : 'yêu thú') + ' — cả phiên hạ ' + (_s.win || 0) + ' · +' + (_s.xp || 0).toLocaleString('vi-VN') + ' EXP · +' + (_s.bac || 0).toLocaleString('vi-VN') + ' Bạc.', now()); }
+  if (r && r.type === 'combat' && r.died && r.sess) { const _e = ENEMIES[r.enemyId]; const _s = r.sess; const _lt = dropListText(Object.keys(_s.loot || {}).map((id) => ({ id, n: _s.loot[id] })), _s.gearN || 0); pushNotif(state, 'khac', 'Trọng thương khi vắng mặt', 'Gục trước ' + (_e ? _e.name : 'yêu thú') + ' — cả phiên hạ ' + (_s.win || 0) + ' · +' + (_s.xp || 0).toLocaleString('vi-VN') + ' EXP · +' + (_s.bac || 0).toLocaleString('vi-VN') + ' Bạc' + (_lt ? ' · Nhận: ' + _lt : '') + '.', now()); }
 }
 // Lò Ấp Noãn: trứng nở xong trong lúc vắng mặt -> báo 1 lần (chờ khai noãn).
 if (state.hatchery && now() >= state.hatchery.readyAt && !state.hatchery.notified) {
@@ -254,6 +254,14 @@ function fmtTime(sec) {
   if (h > 0) return `${h}h${String(m).padStart(2, '0')}m`;
   if (m > 0) return `${m}m${String(s).padStart(2, '0')}s`;
   return `${s}s`;
+}
+// Liệt kê cụ thể đồ nhận trong 1 phiên (cho thông báo / Phi Cáp Đài). loot: [{id,n}] · gearN: số trang bị.
+function dropListText(loot, gearN) {
+  const parts = (loot || []).map((l) => ((ITEMS[l.id] || {}).name || l.id) + ' ×' + l.n);
+  if (gearN > 0) parts.push(gearN + ' trang bị');
+  if (!parts.length) return '';
+  if (parts.length > 8) return parts.slice(0, 8).join(', ') + ' … +' + (parts.length - 8) + ' loại';
+  return parts.join(', ');
 }
 function fmtClock(sec) {
   sec = Math.max(0, Math.floor(sec));
@@ -2256,6 +2264,7 @@ const gameStore = {
   stop() {
     const sum = this.buildCombatSummary('manual');   // combat: chốt thu hoạch phiên trước khi dừng (null nếu hoạt động khác)
     stopActivity(this.state);
+    this.bagPeek = false;   // đóng Túi Tạm (phiên đã kết thúc)
     if (sum) { this.pushCombatSummaryNotif(sum); if (sum.kills > 0 || sum.lose > 0) this.combatSummary = sum; }
     Storage.save(this.state);
   },
@@ -2909,7 +2918,7 @@ const gameStore = {
   },
   awardKill(f) {
     const e = this.ENEMIES[this.act.enemyId]; if (!e) return;
-    const sess = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gearIds: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
+    const sess = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
     const mult = skillExpMultiplier(this.state, 'chienDau');
     const xpGain = Math.max(1, Math.round(e.exp * mult));
     addSkillXp(this.state, 'chienDau', xpGain);
@@ -2922,7 +2931,7 @@ const gameStore = {
     const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
     if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; }
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
-    if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if (sess.gearIds.length < 12) sess.gearIds.push(gi.gearId); } }
+    if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }
     const bacGain = Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
     this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain;
     sess.bac += bacGain;
@@ -2932,12 +2941,13 @@ const gameStore = {
     this.act.sessionCount = (this.act.sessionCount || 0) + 1;
   },
   combatDeath() {
-    if (this.act) { const _s = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gearIds: [], gearN: 0 }); _s.lose += 1; }   // vòng bại cuối vào thu hoạch phiên (save cũ -> tự vá)
+    if (this.act) { const _s = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 }); _s.lose += 1; }   // vòng bại cuối vào thu hoạch phiên (save cũ -> tự vá)
     const sum = this.buildCombatSummary('death');             // chốt tổng kết TRƯỚC khi dừng hoạt động
     this.state.combat.noiThuong = true;
     this.state.combat.sinhLuc = 0;
     this.state.combat.suyYeuUntil = now() + SUY_YEU_MS;   // suy yếu: HP tự hồi đầy trong 60s rồi mới đánh tiếp
     stopActivity(this.state);
+    this.bagPeek = false;   // đóng Túi Tạm (phiên đã kết thúc)
     if (sum) { this.pushCombatSummaryNotif(sum); if (sum.kills > 0) this.combatSummary = sum; }
     this.showToast('Trọng thương! Suy yếu — Sinh Lực đang tự hồi phục.');
     Storage.save(this.state);
@@ -2953,27 +2963,29 @@ const gameStore = {
       kills: a.sessionCount || 0, xp: s.xp || 0, bac: s.bac || 0,
       win: s.win || 0, lose: s.lose || 0,
       loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })),
-      gearIds: (s.gearIds || []).slice(),
-      gearN: s.gearN != null ? s.gearN : (s.gearIds || []).length,   // đếm ĐỦ trang bị rơi (gearIds chỉ 12 icon đầu)
+      gear: (s.gear || []).slice(),
+      gearN: s.gearN != null ? s.gearN : (s.gear || []).length,   // đếm ĐỦ trang bị rơi (gear chỉ giữ 12 snapshot đầu)
       durMs: Math.max(0, now() - (a.startedAt || now())),
     };
   },
   closeCombatSummary() { this.combatSummary = null; },
   combatAgain() { const s = this.combatSummary; this.combatSummary = null; if (s && s.enemyId) this.fight(s.enemyId); },
-  get combatSummaryItemCount() { const s = this.combatSummary; if (!s) return 0; return s.loot.reduce((a, l) => a + l.n, 0) + (s.gearN != null ? s.gearN : s.gearIds.length); },
+  get combatSummaryItemCount() { const s = this.combatSummary; if (!s) return 0; return s.loot.reduce((a, l) => a + l.n, 0) + (s.gearN != null ? s.gearN : s.gear.length); },
   // Ghi tổng kết vào chuông/Phi Cáp Đài — MỌI đường kết thúc phiên có đánh đấm (dừng tay/gục/đổi vùng).
   pushCombatSummaryNotif(sum) {
     if (!sum || (sum.kills <= 0 && sum.lose <= 0)) return;
-    const nItems = sum.loot.reduce((a, l) => a + l.n, 0) + (sum.gearN != null ? sum.gearN : sum.gearIds.length);
+    const gn = sum.gearN != null ? sum.gearN : (sum.gear || []).length;
+    const items = dropListText(sum.loot, gn);   // liệt kê cụ thể món nhận
     pushNotif(this.state, 'khac', (sum.reason === 'death' ? 'Trọng thương — ' : 'Thu quân — ') + sum.enemyName,
-      'Hạ ' + this.fmt(sum.kills) + ' · +' + this.fmt(sum.xp) + ' EXP · +' + this.fmt(sum.bac) + ' Bạc' + (nItems ? ' · ' + nItems + ' vật phẩm' : '') + (sum.durMs > 0 ? ' (' + this.fmtTime(Math.round(sum.durMs / 1000)) + ')' : '') + '.', now());
+      'Hạ ' + this.fmt(sum.kills) + ' · +' + this.fmt(sum.xp) + ' EXP · +' + this.fmt(sum.bac) + ' Bạc' + (items ? ' · Nhận: ' + items : '') + (sum.durMs > 0 ? ' · ' + this.fmtTime(Math.round(sum.durMs / 1000)) : '') + '.', now());
   },
   // Gục khi combat chạy NỀN (đang ở trang khác / tab ẩn): advance trả died+sess -> toast + chuông.
   notifyCombatBgDeath(rep) {
     this.showToast('Trọng thương! Suy yếu — Sinh Lực đang tự hồi phục.');
+    this.bagPeek = false;   // đóng Túi Tạm nếu đang mở (phiên nền đã kết thúc)
     if (!rep || !rep.sess) return;
     const s = rep.sess, e = this.ENEMIES[rep.enemyId] || {};
-    this.pushCombatSummaryNotif({ reason: 'death', enemyName: e.name || 'Yêu thú', kills: s.win || 0, xp: s.xp || 0, bac: s.bac || 0, win: s.win || 0, lose: s.lose || 0, loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })), gearIds: (s.gearIds || []).slice(), gearN: s.gearN || 0, durMs: 0 });
+    this.pushCombatSummaryNotif({ reason: 'death', enemyName: e.name || 'Yêu thú', kills: s.win || 0, xp: s.xp || 0, bac: s.bac || 0, win: s.win || 0, lose: s.lose || 0, loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })), gear: (s.gear || []).slice(), gearN: s.gearN || 0, durMs: 0 });
   },
   // Khay Thu Hoạch (strip trên Chiến Báo) — view chuẩn hoá của act.sess.
   get combatSessView() {
@@ -2982,7 +2994,8 @@ const gameStore = {
     return {
       kills: a.sessionCount || 0, xp: s.xp || 0, bac: s.bac || 0,
       loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id], it: this.ITEMS[id] || {} })),
-      nGear: s.gearN != null ? s.gearN : (s.gearIds || []).length,
+      gear: (s.gear || []).map((g) => ({ ...g, it: this.ITEMS[g.gearId] || {} })),
+      nGear: s.gearN != null ? s.gearN : (s.gear || []).length,
     };
   },
 
@@ -3240,14 +3253,16 @@ const gameStore = {
     }));
   },
 
-  // ---------- Túi Tạm (mini Hành Lý — xem nhanh khi đang đánh; chỉ ĐỌC, gộp xếp-chồng + gear) ----------
+  // ---------- Túi Tạm (CHỈ đồ rơi phiên đánh hiện tại, KHÔNG phải cả kho; chỉ ĐỌC, nguồn = combatSessView) ----------
   bagPeek: false,
   openBagPeek() { this.bagPeek = true; },
   closeBagPeek() { this.bagPeek = false; },
-  get bagPeekCount() { return this.inventoryList.length + (this.state.gearBag || []).length; },
+  get bagPeekCount() { const sv = this.combatSessView; return sv ? (sv.loot.length + (sv.nGear || 0)) : 0; },
   get bagPeekList() {
-    const gear = (this.state.gearBag || []).map((inst) => this.gearView(inst)).filter(Boolean);
-    return this.inventoryList.concat(gear).sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.qty || 0) - (a.qty || 0));
+    const sv = this.combatSessView; if (!sv) return [];
+    const stack = sv.loot.map((l) => ({ ...(this.ITEMS[l.id] || {}), id: l.id, qty: l.n }));
+    const gear = sv.gear.map((g) => ({ ...(this.ITEMS[g.gearId] || {}), id: g.gearId, uid: g.uid, quality: g.quality, isGear: true }));   // snapshot phiên: id=gearId cho icon, quality=roll, uid mở đúng instance
+    return gear.concat(stack).sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.qty || 0) - (a.qty || 0));
   },
   // ---------- Popup chi tiết vật phẩm (bấm item ở Hành Lý) ----------
   itemModal: null,                               // ref đang xem: string id (xếp chồng) HOẶC uid gear instance
