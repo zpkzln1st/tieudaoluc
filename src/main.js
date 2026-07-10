@@ -3240,6 +3240,15 @@ const gameStore = {
     }));
   },
 
+  // ---------- Túi Tạm (mini Hành Lý — xem nhanh khi đang đánh; chỉ ĐỌC, gộp xếp-chồng + gear) ----------
+  bagPeek: false,
+  openBagPeek() { this.bagPeek = true; },
+  closeBagPeek() { this.bagPeek = false; },
+  get bagPeekCount() { return this.inventoryList.length + (this.state.gearBag || []).length; },
+  get bagPeekList() {
+    const gear = (this.state.gearBag || []).map((inst) => this.gearView(inst)).filter(Boolean);
+    return this.inventoryList.concat(gear).sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.qty || 0) - (a.qty || 0));
+  },
   // ---------- Popup chi tiết vật phẩm (bấm item ở Hành Lý) ----------
   itemModal: null,                               // ref đang xem: string id (xếp chồng) HOẶC uid gear instance
   openItemModal(ref) { if (findGear(this.state, ref) || this.ITEMS[ref]) this.itemModal = ref; },
