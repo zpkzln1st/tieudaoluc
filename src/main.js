@@ -218,6 +218,7 @@ if (state.activity) {
   if (r && r.cycles > 0) offlineReport = { ...r, awayMs: _awayMs };
   if (r && r.cycles > 0 && r.itemId) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Thu thập hoàn tất', '+' + r.cycles + ' ' + (_it ? _it.name : r.itemId) + ' · +' + r.xp + ' EXP (trong lúc vắng mặt)', now()); }
   if (r && r.ranOut) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Hết nguyên liệu', 'Đã dừng ' + (_it ? _it.name : 'chế tác') + ' — thu thập/mua thêm nguyên liệu rồi luyện tiếp.', now()); }
+  if (r && r.type === 'combat' && r.died && r.sess) { const _e = ENEMIES[r.enemyId]; const _s = r.sess; pushNotif(state, 'khac', 'Trọng thương khi vắng mặt', 'Gục trước ' + (_e ? _e.name : 'yêu thú') + ' — cả phiên hạ ' + (_s.win || 0) + ' · +' + (_s.xp || 0).toLocaleString('vi-VN') + ' EXP · +' + (_s.bac || 0).toLocaleString('vi-VN') + ' Bạc.', now()); }
 }
 // Lò Ấp Noãn: trứng nở xong trong lúc vắng mặt -> báo 1 lần (chờ khai noãn).
 if (state.hatchery && now() >= state.hatchery.readyAt && !state.hatchery.notified) {
@@ -2249,14 +2250,21 @@ const gameStore = {
   },
 
   start(skillId, actionId) {
-    if (startActivity(this.state, skillId, actionId, now())) Storage.save(this.state);
+    const prev = this.buildCombatSummary('manual');   // đang đánh dở -> chốt phiên combat cũ vào chuông (không mất dấu)
+    if (startActivity(this.state, skillId, actionId, now())) { if (prev) this.pushCombatSummaryNotif(prev); Storage.save(this.state); }
   },
-  stop() { stopActivity(this.state); Storage.save(this.state); },
+  stop() {
+    const sum = this.buildCombatSummary('manual');   // combat: chốt thu hoạch phiên trước khi dừng (null nếu hoạt động khác)
+    stopActivity(this.state);
+    if (sum) { this.pushCombatSummaryNotif(sum); if (sum.kills > 0 || sum.lose > 0) this.combatSummary = sum; }
+    Storage.save(this.state);
+  },
   refreshActivity() {
     if (!this.act) return;
     const a = this.act;
+    const carrySess = a.type === 'combat' ? a.sess : null, carryCount = a.sessionCount || 0;   // refresh chỉ reset đồng hồ treo — GIỮ thu hoạch phiên
     stopActivity(this.state);
-    if (a.type === 'combat') startCombat(this.state, a.enemyId, now());
+    if (a.type === 'combat') { startCombat(this.state, a.enemyId, now()); const na = this.state.activity; if (na && carrySess) { na.sess = carrySess; na.sessionCount = carryCount; } }
     else startActivity(this.state, a.skillId, a.actionId, now());
     Storage.save(this.state);
   },
@@ -2453,7 +2461,9 @@ const gameStore = {
     this.state.currencies.bac -= cost;
     if (this.act && (this.actIsTravel || this.actIsCombat || (this.actAction && this.actAction.zone))) {   // hoạt động gắn-vùng -> huỷ khi đổi vùng
       const wasName = this.actName;
+      const sum = this.buildCombatSummary('manual');   // combat bị cắt vì đổi vùng: vẫn chốt thu hoạch vào chuông
       stopActivity(this.state);
+      if (sum) this.pushCombatSummaryNotif(sum);
       this.showToast('Đổi vùng — đã dừng: ' + wasName);
     }
     this.state.player.location = id;
@@ -2464,7 +2474,8 @@ const gameStore = {
   startKhinhCong(id) {
     const loc = this.locationObj(id);
     if (!loc || id === this.currentLocation || !this.locUnlocked(loc)) return;
-    if (startTravel(this.state, id, now())) Storage.save(this.state);
+    const prev = this.buildCombatSummary('manual');   // đang đánh dở -> chốt phiên combat cũ vào chuông
+    if (startTravel(this.state, id, now())) { if (prev) this.pushCombatSummaryNotif(prev); Storage.save(this.state); }
     this.closeLocation();
   },
   cancelTravel() { if (this.actIsTravel) { stopActivity(this.state); Storage.save(this.state); } },
@@ -2845,7 +2856,8 @@ const gameStore = {
   },
   fight(id) {
     if (this.combatNoiThuong) { this.showToast('Đang suy yếu — chờ hồi phục đầy Sinh Lực.'); return; }
-    if (startCombat(this.state, id, now())) { this.chienBao = []; this._cycleStart = 0; this._cycleNow = now(); this._nlNow = null; this._roundNo = 0; Storage.save(this.state); }
+    const prev = this.buildCombatSummary('manual');   // đang đánh dở con khác -> chốt phiên cũ vào chuông (không mất dấu)
+    if (startCombat(this.state, id, now())) { if (prev) this.pushCombatSummaryNotif(prev); this.chienBao = []; this._cycleStart = 0; this._cycleNow = now(); this._nlNow = null; this._roundNo = 0; Storage.save(this.state); }
     else { const e = this.ENEMIES[id]; if (e && this.combatLevel < (e.reqLevel || 0)) this.showToast('Cần Chiến Đấu Lv ' + e.reqLevel + ' để khiêu chiến ' + e.name + ' — luyện yêu thú cấp thấp hơn trước.'); else this.showToast('Chưa thể khiêu chiến lúc này.'); }
   },
   // Suy yếu: số giây hồi phục còn lại (banner đếm ngược). HP% lấy từ combatHpPct.
@@ -2895,33 +2907,84 @@ const gameStore = {
   },
   awardKill(f) {
     const e = this.ENEMIES[this.act.enemyId]; if (!e) return;
+    const sess = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gearIds: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
     const mult = skillExpMultiplier(this.state, 'chienDau');
     const xpGain = Math.max(1, Math.round(e.exp * mult));
     addSkillXp(this.state, 'chienDau', xpGain);
+    sess.xp += xpGain; sess.win += 1;
     const rp = gainPetXp(this.state, Math.round(xpGain * 0.5));   // Linh Thú đang mang ăn 50% EXP/trận (+ Hiếu Học)
     if (rp && rp.leveled) this.showToast(this.petName(rp.pet) + ' lên Cảnh Lv ' + rp.pet.level + '.');
     for (const st of boPhapStats(this.loadout)) addStatXp(this.state, st, e.statXp);
     const _tb = titleBonus(this.state);                                       // Danh Hiệu: +Bạc/+rơi đồ nhẹ
     const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
     const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
-    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) addItem(this.state, l.itemId, 1);
+    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; }
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
-    if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); } }
-    this.state.currencies.bac = (this.state.currencies.bac || 0) + Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
+    if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if (sess.gearIds.length < 12) sess.gearIds.push(gi.gearId); } }
+    const bacGain = Math.round(Math.max(1, Math.round(e.exp * 1.5)) * moneyMul);
+    this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain;
+    sess.bac += bacGain;
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     this.state.combat.sinhLuc = Math.max(0, Math.round(f.p.hp));
     const sk = this.state.skills['chienDau']; if (sk) { sk.gathered = (sk.gathered || 0) + 1; sk.timeMs = (sk.timeMs || 0) + (this.act.cycleMs || 1000); }
     this.act.sessionCount = (this.act.sessionCount || 0) + 1;
   },
   combatDeath() {
+    if (this.act) { const _s = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gearIds: [], gearN: 0 }); _s.lose += 1; }   // vòng bại cuối vào thu hoạch phiên (save cũ -> tự vá)
+    const sum = this.buildCombatSummary('death');             // chốt tổng kết TRƯỚC khi dừng hoạt động
     this.state.combat.noiThuong = true;
     this.state.combat.sinhLuc = 0;
     this.state.combat.suyYeuUntil = now() + SUY_YEU_MS;   // suy yếu: HP tự hồi đầy trong 60s rồi mới đánh tiếp
     stopActivity(this.state);
+    if (sum) { this.pushCombatSummaryNotif(sum); if (sum.kills > 0) this.combatSummary = sum; }
     this.showToast('Trọng thương! Suy yếu — Sinh Lực đang tự hồi phục.');
     Storage.save(this.state);
   },
+  // ---------- Tổng Kết Chiến Trận (thu hoạch phiên đánh — modal + chuông) ----------
+  buildCombatSummary(reason) {
+    const a = this.act;
+    if (!a || a.type !== 'combat') return null;
+    const s = a.sess || {};
+    const e = this.ENEMIES[a.enemyId] || {};
+    return {
+      reason, enemyId: a.enemyId, enemyName: e.name || 'Yêu thú',
+      kills: a.sessionCount || 0, xp: s.xp || 0, bac: s.bac || 0,
+      win: s.win || 0, lose: s.lose || 0,
+      loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })),
+      gearIds: (s.gearIds || []).slice(),
+      gearN: s.gearN != null ? s.gearN : (s.gearIds || []).length,   // đếm ĐỦ trang bị rơi (gearIds chỉ 12 icon đầu)
+      durMs: Math.max(0, now() - (a.startedAt || now())),
+    };
+  },
+  closeCombatSummary() { this.combatSummary = null; },
+  combatAgain() { const s = this.combatSummary; this.combatSummary = null; if (s && s.enemyId) this.fight(s.enemyId); },
+  get combatSummaryItemCount() { const s = this.combatSummary; if (!s) return 0; return s.loot.reduce((a, l) => a + l.n, 0) + (s.gearN != null ? s.gearN : s.gearIds.length); },
+  // Ghi tổng kết vào chuông/Phi Cáp Đài — MỌI đường kết thúc phiên có đánh đấm (dừng tay/gục/đổi vùng).
+  pushCombatSummaryNotif(sum) {
+    if (!sum || (sum.kills <= 0 && sum.lose <= 0)) return;
+    const nItems = sum.loot.reduce((a, l) => a + l.n, 0) + (sum.gearN != null ? sum.gearN : sum.gearIds.length);
+    pushNotif(this.state, 'khac', (sum.reason === 'death' ? 'Trọng thương — ' : 'Thu quân — ') + sum.enemyName,
+      'Hạ ' + this.fmt(sum.kills) + ' · +' + this.fmt(sum.xp) + ' EXP · +' + this.fmt(sum.bac) + ' Bạc' + (nItems ? ' · ' + nItems + ' vật phẩm' : '') + (sum.durMs > 0 ? ' (' + this.fmtTime(Math.round(sum.durMs / 1000)) + ')' : '') + '.', now());
+  },
+  // Gục khi combat chạy NỀN (đang ở trang khác / tab ẩn): advance trả died+sess -> toast + chuông.
+  notifyCombatBgDeath(rep) {
+    this.showToast('Trọng thương! Suy yếu — Sinh Lực đang tự hồi phục.');
+    if (!rep || !rep.sess) return;
+    const s = rep.sess, e = this.ENEMIES[rep.enemyId] || {};
+    this.pushCombatSummaryNotif({ reason: 'death', enemyName: e.name || 'Yêu thú', kills: s.win || 0, xp: s.xp || 0, bac: s.bac || 0, win: s.win || 0, lose: s.lose || 0, loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })), gearIds: (s.gearIds || []).slice(), gearN: s.gearN || 0, durMs: 0 });
+  },
+  // Khay Thu Hoạch (strip trên Chiến Báo) — view chuẩn hoá của act.sess.
+  get combatSessView() {
+    const a = this.act; if (!a || a.type !== 'combat') return null;
+    const s = a.sess || {};
+    return {
+      kills: a.sessionCount || 0, xp: s.xp || 0, bac: s.bac || 0,
+      loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id], it: this.ITEMS[id] || {} })),
+      nGear: s.gearN != null ? s.gearN : (s.gearIds || []).length,
+    };
+  },
 
+  combatSummary: null,   // modal Tổng Kết Chiến Trận (mở khi dừng tay/gục có thành quả)
   // ---------- Ô Món Ăn + Ô Đan (hệ tự dùng khi tài nguyên < 25%) ----------
   foodPicker: false,
   danPicker: false,
@@ -3226,11 +3289,13 @@ const gameStore = {
     const c = d.cost || {};
     if (c.bac) this.state.currencies.bac -= c.bac;
     if (c.honThach) this.state.currencies.honThach -= c.honThach;
+    const prev = this.buildCombatSummary('manual');            // đang đánh dở -> chốt phiên combat cũ vào chuông
     if (!startDungeon(this.state, id, mode, now())) {          // lỗi -> hoàn phí
       if (c.bac) this.state.currencies.bac += c.bac;
       if (c.honThach) this.state.currencies.honThach += c.honThach;
       this.showToast('Không thể vào Bí Cảnh.'); return;
     }
+    if (prev) this.pushCombatSummaryNotif(prev);
     Storage.save(this.state);
     this.showToast('🏛️ Tiến vào ' + d.name + ' · ' + (mode === 'treo' ? 'Treo Luyện' : 'Chạy Nhanh') + '.');
   },
@@ -3486,6 +3551,7 @@ function rafLoop() {
       const rep = advance(s.state, now());
       if (rep && rep.type === 'skill' && rep.cycles > 0 && rep.itemId) s.showLootPop(rep.itemId, rep.cycles);   // online: bắn loot float mỗi khi thu vật phẩm
       if (rep && rep.ranOut) s.notifyRanOut(rep);   // hết nguyên liệu -> hoạt động tự dừng, báo rõ lý do
+      if (rep && rep.type === 'combat' && rep.died) s.notifyCombatBgDeath(rep);   // gục khi combat chạy nền -> toast + tổng kết vào chuông
     }
     // Suy yếu: bơm _cycleNow để thanh HP hồi mượt; đủ 60s -> tự khỏi (chạy cả khi không ở màn combat)
     if (s.state.combat && s.state.combat.noiThuong) {
@@ -3510,7 +3576,7 @@ requestAnimationFrame(rafLoop);
 setInterval(() => {
   const s = window.Alpine?.store('game');
   if (!s) return;
-  if (s.state.activity) { const rep = advance(s.state, now()); if (rep && rep.ranOut) s.notifyRanOut(rep); }   // hết nguyên liệu -> tự dừng (cả khi tab ẩn)
+  if (s.state.activity) { const rep = advance(s.state, now()); if (rep && rep.ranOut) s.notifyRanOut(rep); if (rep && rep.type === 'combat' && rep.died) s.notifyCombatBgDeath(rep); }   // hết nguyên liệu / gục nền -> tự dừng + báo (cả khi tab ẩn)
   if (s.state.combat && s.state.combat.noiThuong && s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();   // suy yếu xong khi tab ẩn
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
   s.checkTitles();        // Danh Hiệu: mở khoá mới khi đủ cột mốc -> báo toast
