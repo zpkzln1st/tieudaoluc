@@ -14,13 +14,20 @@ const ARCH = {
   nhanh:  { hp: 0.7, atk: 1.25, def: 0.85,spd: 1.32, exp: 1.1 },
   boss:   { hp: 6,   atk: 1.45, def: 1.3, spd: 0.95, exp: 9 },
 };
+// EXP: SOFT-CAP theo cap (tang dan, KHONG phang) -> map cap cao cho EXP NHIEU HON map thap.
+// Cong thuc: base = raw / (1 + raw/EXP_SOFT). raw = 0.5*L^1.45. base tien dan toi ~EXP_SOFT nhung luon tang theo L.
+// Roi nhan he so loai quai (thuong/nhanh/trau) -> chenh nhau trong map; boss = base * BOSS_EXP_MULT.
+const EXP_SOFT = 100;        // nguong mem: quai thuong Lv100 ~= EXP_SOFT. Nang len = cay nhanh hon toan cuc.
+const BOSS_EXP_MULT = 2.5;   // boss: EXP ~2.5 lan quai thuong cung cap
 function mk(level, arch, extra) {
   const a = ARCH[arch] || ARCH.thuong;
   const hp  = Math.round(0.95 * Math.pow(level, 2.25) * a.hp);
   const atk = Math.round(1.4  * Math.pow(level, 1.30) * a.atk);
   const def = Math.round(0.6  * Math.pow(level, 1.30) * a.def);
   const spd = Math.round(70 * a.spd);
-  const exp = Math.min(80, Math.round(0.5 * Math.pow(level, 1.45) * a.exp));   // tran EXP: MOI quai (ke ca boss) <=80
+  const rawE = 0.5 * Math.pow(level, 1.45);
+  const baseE = rawE / (1 + rawE / EXP_SOFT);                                // soft-cap: tang dan theo cap, khong phang
+  const exp = Math.round(baseE * (arch === 'boss' ? BOSS_EXP_MULT : a.exp)); // *he so loai quai (thuong/nhanh/trau/boss)
   const power  = Math.round(hp * 0.22 + atk * 4);
   const statXp = Math.max(1, Math.round(level / 8));
   const time   = Math.max(6, Math.round(level * 0.12) + 5);
@@ -29,7 +36,7 @@ function mk(level, arch, extra) {
 
 // ---- Kinh te combat (chinh tap trung 1 cho) ----
 export const BAC_DROP_CHANCE = 0.15;   // ti le roi Bac moi kill (10-20%) — KHONG con 100%
-export const BAC_PER_EXP = 0.5;        // Bac khi roi = round(exp x 0.5); L100 thuong 80 exp -> 40 Bac
+export const BAC_PER_EXP = 0.5;        // Bac khi roi = round(exp x 0.5); vd L100 thuong 80 exp -> 40 Bac, boss 200 -> 100
 export const LOOT_DROP_MULT = 0.5;     // giam ti le roi nguyen lieu (dung drop tran lan)
 
 export const ENEMIES = {

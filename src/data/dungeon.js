@@ -5,7 +5,8 @@
 //
 // Cơ chế (khớp docs/THIET_KE_YEUVUONG_BICANH.md mục D):
 //   - Gate = Chiến Đấu Lv >= reqLevel.
-//   - 2 chế độ: 'nhanh' (ngắn, ít) · 'treo' (dài, nhiều) — engine nhân loot theo mode.
+//   - LỊCH LUYỆN: mỗi phó bản 1 thời lượng CỐ ĐỊNH/lượt (durMs, 1h30->3h). Người chơi đặt N lượt
+//     (N*durMs <= trần treo máy). pace = giữ loot/giờ = "Treo Luyện" cũ khi rút thời lượng (durMs<treoMs cũ).
 //   - 5 tầng: (1) quái thường (2) sự kiện/hazard (3) tinh anh (4) cơ duyên/bẫy/rương (5) boss.
 //   - Stat-check Tứ Trụ: hazard (tầng 2) check theo `hazard`; tầng 4 cơ duyên engine tự chọn
 //     stat tốt nhất của người chơi (lucDao cưỡng / linhXao khôn / thanPhap né). Combat tầng
@@ -27,7 +28,7 @@ export const DUNGEONS = [
     lore: 'Sơn cốc xanh mướt, suối trong róc rách — chốn nhập môn của tân khách giang hồ.',
     mobs: ['Thanh Lang', 'Cẩm Mao Hổ'], boss: 'Thanh Mộc Lang Vương',
     tangs: ['thuong', 'coDuyen', 'boss'],
-    nhanhMs: 6 * MIN, treoMs: 90 * MIN, cost: { bac: 120 },
+    durMs: 90 * MIN, pace: 1, cost: { bac: 120 },
     loot: {
       bac: [80, 160], exp: 60, honThach: [2, 5],
       lieu: ['tungMoc', 'trucMoc', 'langBi', 'caTuyet'],
@@ -43,7 +44,7 @@ export const DUNGEONS = [
     lore: 'Rừng đen phủ chướng khí tía lục, nấm độc phát quang giữa sương lam.',
     mobs: ['Độc Vụ Yểm', 'Lục Lân Mãng'], boss: 'Hắc Phong Độc Chu',
     tangs: ['thuong', 'hazard', 'boss'],
-    nhanhMs: 7 * MIN, treoMs: 2 * HR, cost: { bac: 400 },
+    durMs: 100 * MIN, pace: 0.8333, cost: { bac: 400 },
     loot: {
       bac: [200, 360], exp: 150, honThach: [4, 8],
       lieu: ['bachDuongMoc', 'dongKhoang', 'langBi', 'truNha', 'hoVi'],
@@ -59,7 +60,7 @@ export const DUNGEONS = [
     lore: 'Động cao vách núi, mây gió cuồn cuộn — bẫy cơ quan rình kẻ chậm chân.',
     mobs: ['Phong Dực Điêu', 'Toàn Phong Hầu'], boss: 'Lưu Vân Phong Bằng',
     tangs: ['thuong', 'bay', 'tinhAnh', 'boss'],
-    nhanhMs: 8 * MIN, treoMs: 150 * MIN, cost: { bac: 1000, honThach: 5 },
+    durMs: 110 * MIN, pace: 0.7333, cost: { bac: 1000, honThach: 5 },
     loot: {
       bac: [400, 700], exp: 360, honThach: [8, 16],
       lieu: ['phongMoc', 'thietKhoang', 'hungChuong', 'thuyTinhSa'],
@@ -75,7 +76,7 @@ export const DUNGEONS = [
     lore: 'Đầm băng sâu lạnh thấu xương, hàn khí trói chặt gân cốt.',
     mobs: ['Hàn Phách Quỷ', 'Băng Tinh Giao'], boss: 'Hàn Đàm Băng Cơ',
     tangs: ['hazard', 'thuong', 'coDuyen', 'boss'],
-    nhanhMs: 9 * MIN, treoMs: 3 * HR, cost: { bac: 2000, honThach: 12 },
+    durMs: 120 * MIN, pace: 0.6667, cost: { bac: 2000, honThach: 12 },
     loot: {
       bac: [600, 1000], exp: 620, honThach: [12, 22],
       lieu: ['hanTung', 'hanThietKhoang', 'tuyetLangBi', 'bangLanNgu', 'hanThietTinh'],
@@ -91,7 +92,7 @@ export const DUNGEONS = [
     lore: 'Cung điện ngầm bên dòng dung nham, hơi nóng thiêu đốt tạng phủ.',
     mobs: ['Diệm Tinh', 'Hỏa Giáp Thần Tướng'], boss: 'Xích Diệm Hỏa Mẫu',
     tangs: ['thuong', 'hazard', 'tinhAnh', 'kyNgo', 'boss'],
-    nhanhMs: 10 * MIN, treoMs: 4 * HR, cost: { bac: 3500, honThach: 20 },
+    durMs: 135 * MIN, pace: 0.5625, cost: { bac: 3500, honThach: 20 },
     loot: {
       bac: [900, 1500], exp: 1050, honThach: [18, 30],
       lieu: ['hoangKimSa', 'hoangKimDinh', 'hacThan', 'huyenSa'],
@@ -107,7 +108,7 @@ export const DUNGEONS = [
     lore: 'Cổ mộ ngàn kiếm cắm đá, kiếm khí lượn lờ trong mê trận.',
     mobs: ['Thủ Mộ Kiếm Nô', 'Kiếm Trủng Lão Hồn'], boss: 'Cổ Mộ Kiếm Hồn',
     tangs: ['thuong', 'bay', 'tinhAnh', 'coDuyen', 'boss'],
-    nhanhMs: 11 * MIN, treoMs: 270 * MIN, cost: { bac: 5000, honThach: 30 },
+    durMs: 150 * MIN, pace: 0.5556, cost: { bac: 5000, honThach: 30 },
     loot: {
       bac: [1200, 2000], exp: 1600, honThach: [24, 40],
       lieu: ['vanThiet', 'vanMauThach', 'vanVuLong', 'tinhTuy'],
@@ -123,7 +124,7 @@ export const DUNGEONS = [
     lore: 'Núi yêu chạng vạng máu, mắt thú lập loè, yêu khí ngút trời.',
     mobs: ['Huyết Nha Lang', 'Cửu Anh Mãng Xà'], boss: 'Vạn Yêu Chi Vương',
     tangs: ['thuong', 'tinhAnh', 'hazard', 'thuong', 'tinhAnh', 'boss'],
-    nhanhMs: 11 * MIN, treoMs: 5 * HR, cost: { bac: 6500, honThach: 40 },
+    durMs: 160 * MIN, pace: 0.5333, cost: { bac: 6500, honThach: 40 },
     loot: {
       bac: [1400, 2200], exp: 2600, honThach: [28, 46],
       lieu: ['tinhHoaMoc', 'vanVuLong', 'tinhTuy', 'huKhongTinh'],
@@ -139,7 +140,7 @@ export const DUNGEONS = [
     lore: 'Di tích đại trận thất truyền, bánh răng đá quay giữa phù văn lưu quang.',
     mobs: ['Cơ Quan Thạch Nhân', 'Thủ Trận Đồng Vệ'], boss: 'Thiên Cơ Cổ Linh',
     tangs: ['bay', 'coDuyen', 'hazard', 'tinhAnh', 'bay', 'boss'],
-    nhanhMs: 12 * MIN, treoMs: 330 * MIN, cost: { bac: 8500, honThach: 55 },
+    durMs: 170 * MIN, pace: 0.5152, cost: { bac: 8500, honThach: 55 },
     loot: {
       bac: [1800, 2800], exp: 3600, honThach: [36, 56],
       lieu: ['tramHaiMoc', 'sanHoKhoang', 'sanHoDinh', 'huKhongTinh', 'meVuHon'],
@@ -155,7 +156,7 @@ export const DUNGEONS = [
     lore: 'Bí cảnh ngoài chín tầng trời — đảo tiên trôi nổi, tinh vân vàng tím xoáy cuộn.',
     mobs: ['Hư Không Du Hồn', 'Tinh Vẫn Cự Thú'], boss: 'Thái Hư Đạo Quân',
     tangs: ['thuong', 'hazard', 'tinhAnh', 'coDuyen', 'bay', 'kyNgo', 'boss'],
-    nhanhMs: 12 * MIN, treoMs: 6 * HR, cost: { bac: 12000, honThach: 80 },
+    durMs: 180 * MIN, pace: 0.5, cost: { bac: 12000, honThach: 80 },
     loot: {
       bac: [2500, 4000], exp: 5200, honThach: [50, 80],
       lieu: ['thanDanMoc', 'thanTinhKhoang', 'thanTinhDinh', 'coMaHaiCot'],

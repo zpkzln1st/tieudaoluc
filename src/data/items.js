@@ -8,14 +8,22 @@ import { GEAR, setGearLookup } from './gear.js';
 // Bậc 1→7: Thường(xám) · Tốt(lá) · Hiếm(dương) · Cực Hiếm(tím) · Sử Thi(hồng tím) · Truyền Thuyết(cam) · Độc Nhất(vàng kim).
 // ID nội bộ GIỮ NGUYÊN (phamPham…coBan) để không vỡ save cũ — chỉ đổi name + màu.
 export const QUALITY = {
-  phamPham:  { id: 'phamPham',  name: 'Thường',        bg: 'bg-slate-700/40',    ring: 'ring-slate-500',    text: 'text-slate-300',    border: 'border-slate-500/50',    grad: 'from-slate-700/30 to-ink3/20' },
-  luongPham: { id: 'luongPham', name: 'Tốt',           bg: 'bg-emerald-900/40',  ring: 'ring-emerald-500',  text: 'text-emerald-300',  border: 'border-emerald-500/50',  grad: 'from-emerald-900/25 to-ink3/20' },
-  tinhPham:  { id: 'tinhPham',  name: 'Hiếm',          bg: 'bg-blue-900/40',     ring: 'ring-blue-500',     text: 'text-blue-300',     border: 'border-blue-500/50',     grad: 'from-blue-900/25 to-ink3/20' },
-  tuyetPham: { id: 'tuyetPham', name: 'Cực Hiếm',      bg: 'bg-violet-900/40',   ring: 'ring-violet-500',   text: 'text-violet-300',   border: 'border-violet-500/50',   grad: 'from-violet-900/25 to-ink3/20' },
-  truyenThe: { id: 'truyenThe', name: 'Sử Thi',        bg: 'bg-fuchsia-900/40',  ring: 'ring-fuchsia-500',  text: 'text-fuchsia-300',  border: 'border-fuchsia-500/50',  grad: 'from-fuchsia-900/25 to-ink3/20' },
-  thanPham:  { id: 'thanPham',  name: 'Truyền Thuyết', bg: 'bg-orange-900/40',   ring: 'ring-orange-500',   text: 'text-orange-300',   border: 'border-orange-500/50',   grad: 'from-orange-900/25 to-ink3/20' },
-  coBan:     { id: 'coBan',     name: 'Độc Nhất',      bg: 'bg-amber-900/40',    ring: 'ring-amber-500',    text: 'text-amber-300',    border: 'border-amber-500/50',    grad: 'from-amber-900/25 to-ink3/20' },
+  phamPham:  { id: 'phamPham',  name: 'Thường',        hex: '#cbd5e1', bg: 'bg-slate-700/40',    ring: 'ring-slate-500',    text: 'text-slate-300',    border: 'border-slate-500/50',    grad: 'from-slate-700/30 to-ink3/20' },
+  luongPham: { id: 'luongPham', name: 'Tốt',           hex: '#6ee7b7', bg: 'bg-emerald-900/40',  ring: 'ring-emerald-500',  text: 'text-emerald-300',  border: 'border-emerald-500/50',  grad: 'from-emerald-900/25 to-ink3/20' },
+  tinhPham:  { id: 'tinhPham',  name: 'Hiếm',          hex: '#93c5fd', bg: 'bg-blue-900/40',     ring: 'ring-blue-500',     text: 'text-blue-300',     border: 'border-blue-500/50',     grad: 'from-blue-900/25 to-ink3/20' },
+  tuyetPham: { id: 'tuyetPham', name: 'Cực Hiếm',      hex: '#c4b5fd', bg: 'bg-violet-900/40',   ring: 'ring-violet-500',   text: 'text-violet-300',   border: 'border-violet-500/50',   grad: 'from-violet-900/25 to-ink3/20' },
+  truyenThe: { id: 'truyenThe', name: 'Sử Thi',        hex: '#f0abfc', bg: 'bg-fuchsia-900/40',  ring: 'ring-fuchsia-500',  text: 'text-fuchsia-300',  border: 'border-fuchsia-500/50',  grad: 'from-fuchsia-900/25 to-ink3/20' },
+  thanPham:  { id: 'thanPham',  name: 'Truyền Thuyết', hex: '#fdba74', bg: 'bg-orange-900/40',   ring: 'ring-orange-500',   text: 'text-orange-300',   border: 'border-orange-500/50',   grad: 'from-orange-900/25 to-ink3/20' },
+  coBan:     { id: 'coBan',     name: 'Độc Nhất',      hex: '#fcd34d', bg: 'bg-amber-900/40',    ring: 'ring-amber-500',    text: 'text-amber-300',    border: 'border-amber-500/50',    grad: 'from-amber-900/25 to-ink3/20' },
 };
+// Tên vật phẩm tô MÀU theo phẩm chất (HTML) — dùng cho MỌI thông báo/loot-list dạng chữ (Bí Cảnh, combat, thu thập…).
+// Chỉ tô phần TÊN; số lượng "×N" để nguyên màu nền cho dễ đọc. gear instance (có .quality) cũng nhận diện qua ITEMS fallback.
+export function itemNameHtml(id, name) {
+  const it = ITEMS[id] || {};
+  const q = QUALITY[it.quality] || QUALITY.phamPham;
+  const nm = name || it.name || id;
+  return '<span style="color:' + q.hex + '">' + nm + '</span>';
+}
 
 export const ITEM_TYPES = {
   go:      'Gỗ',
@@ -202,8 +210,8 @@ EGG_THEMES.forEach((t) => EGG_TIERS.forEach((tr) => {
 
 // --- ĐỒ PHỔ (công thức rèn gear bậc 4-7) — mỗi gear bậc 4-7 một đồ phổ. Drop từ BÍ CẢNH.
 // "Lĩnh Ngộ" đồ phổ -> ghi gearId vào state.player.doPho -> mở khoá rèn món đó ở Rèn Đúc
-// (vẫn phải cày Thỏi cao cấp + liệu). Trùng = bán được. icon dùng chung images/items/dopho.png
-// (xử lý ở main.js ico(): id bắt đầu 'dp_' -> dopho.png). Đặt SAU Object.assign(ITEMS,GEAR).
+// (vẫn phải cày Thỏi cao cấp + liệu). Trùng = bán được. icon = cuộn nền theo bậc (dopho_23/45/6/7)
+// (xử lý ở main.js ico(): id bắt đầu 'dp_' -> cuộn + art gear lồng giữa). Đặt SAU Object.assign(ITEMS,GEAR).
 // Lời giới thiệu RIÊNG từng món (2 câu: nguồn gốc/chế tác + uy lực đặc trưng — KHÔNG khuôn mẫu, KHÔNG filler).
 // Cơ chế "1 lượt = 1 món" + Thỏi cần đã hiện ở panel Lĩnh Ngộ / Rèn Đúc → lore CHỈ là lời văn.
 const DP_LORE = {

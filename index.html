@@ -166,7 +166,7 @@
         <span class="text-jade font-medium" x-text="$store.game.actName"></span>
         <template x-if="!$store.game.actIsTravel && !$store.game.actIsDungeon"><span class="text-slate-400" x-text="'+' + $store.game.act.sessionCount"></span></template>
         <template x-if="$store.game.actIsTravel"><span class="text-slate-400 font-mono" x-text="$store.game.fmtTime($store.game.travelRemainSec)"></span></template>
-        <template x-if="$store.game.actIsDungeon"><span class="text-slate-400 font-mono" x-text="$store.game.fmtTime($store.game.dungeonTimeLeft())"></span></template>
+        <template x-if="$store.game.actIsDungeon"><span class="text-slate-400" x-text="$store.game.fmtDurHMS($store.game.dungeonTimeLeft())"></span></template>
         <div class="w-16 h-1.5 rounded-full bg-slate-700 overflow-hidden">
           <div class="h-full bg-gold" :style="`width:${$store.game.actProgressPct}%`"></div>
         </div>
@@ -204,7 +204,7 @@
                       <span class="text-[9px] px-1.5 py-0.5 rounded shrink-0" :style="'color:'+t.col+';background:'+t.col+'14;border:1px solid '+t.col+'44'" x-text="t.label"></span>
                       <span class="text-[12.5px] font-semibold text-slate-100 truncate" x-text="n.title"></span>
                     </div>
-                    <div class="text-[11px] text-slate-400 leading-snug mt-0.5 line-clamp-2" x-text="n.body"></div>
+                    <div class="text-[11px] text-slate-400 leading-snug mt-0.5 line-clamp-2" x-html="n.body"></div>
                     <div class="text-[10px] text-slate-600 mt-0.5" x-text="$store.game.notifAgo(n.ts)"></div>
                   </div>
                   <template x-if="!n.read"><span class="w-2 h-2 rounded-full shrink-0 mt-1.5" :style="'background:'+t.col"></span></template>
@@ -544,7 +544,7 @@
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-slate-400">
                       <span class="text-jade" x-text="$store.game.actIsDungeon ? 'Đang khám phá' : ('Thu được +' + $store.game.act.sessionCount)"></span>
-                      <span class="font-mono" x-text="$store.game.actIsDungeon ? ('còn ' + $store.game.fmtTime($store.game.dungeonTimeLeft())) : $store.game.fmtClock($store.game.actRemaining)"></span>
+                      <span :class="$store.game.actIsDungeon ? '' : 'font-mono'" x-text="$store.game.actIsDungeon ? ('còn ' + $store.game.fmtDurHMS($store.game.dungeonTimeLeft())) : $store.game.fmtClock($store.game.actRemaining)"></span>
                     </div>
                     <template x-if="$store.game.actBuff">
                       <div class="mt-1.5 flex items-center gap-1.5 text-[10px] px-2 py-1 rounded bg-jade/10 border border-jade/30 text-jade">
@@ -1356,10 +1356,10 @@
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[26px] gold-text leading-none fserif">Sơn Dã Liệp Trường</div>
               <div class="text-[11px] text-slate-300 flex items-center gap-1 mt-2"><span class="text-rose-300/80 shrink-0" x-html="$store.game.svg('pin','w-3 h-3')"></span><span x-text="$store.game.currentLocationObj.name"></span></div>
-              <div class="text-[13px] text-slate-300 leading-snug mt-2 max-w-md">Săn yêu thú nơi sơn dã — luyện <b class="text-amber-300">Chiến Đấu</b>, gặt Hồn Thạch &amp; EXP.</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Hoang sơn thâm cốc, dị thú chiếm cứ tứ phương, hung hiểm khó lường.</b> Nơi đây dần trở thành thí luyện chi địa của võ lâm nhân sĩ, lấy sinh tử định thành bại, dùng <b class="text-amber-300">thực lực đoạt cơ duyên</b>.</div>
               <div class="flex items-center gap-2 mt-3">
                 <span class="px-2.5 py-1 rounded-md bg-ink3/80 backdrop-blur-sm border border-slate-700 text-xs whitespace-nowrap">Chiến Lực <b class="text-jade" x-text="$store.game.fmt($store.game.chienLuc)"></b></span>
-                <button @click="$store.game.navTo('map')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-ink3/80 backdrop-blur-sm border border-slate-700 hover:border-jade text-slate-300"><span x-html="$store.game.svg('map','w-3.5 h-3.5')"></span>Đổi vùng</button>
+                <button @click="$store.game.openZoneChange()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-ink3/80 backdrop-blur-sm border border-slate-700 hover:border-jade text-slate-300"><span x-html="$store.game.svg('map','w-3.5 h-3.5')"></span>Đổi vùng</button>
               </div>
             </div>
           </div>
@@ -2701,7 +2701,7 @@
                 <span class="w-8 h-8 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('pets','🐾')"></span>
                 <div class="text-[28px] gold-text leading-none fserif">Linh Thú</div>
               </div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif">Thu phục yêu thú sơn dã, ấp noãn dưỡng thành — một con linh thú kề vai, đường giang hồ bớt phần đơn độc.</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif"><b class="text-jade">Linh thú thông linh, huyết mạch thiên thành.</b> Thu phục dưỡng thành, đồng hành chinh chiến, hộ đạo tu tiên.</div>
             </div>
           </div>
 
@@ -3411,7 +3411,7 @@
                         <span class="text-[10px] px-1.5 py-0.5 rounded shrink-0" :style="'color:'+t.col+';background:'+t.col+'14;border:1px solid '+t.col+'44'" x-text="t.label"></span>
                         <span class="text-[13.5px] font-semibold text-slate-100" x-text="n.title"></span>
                       </div>
-                      <div class="text-[12px] text-slate-400 leading-snug mt-1" x-text="n.body"></div>
+                      <div class="text-[12px] text-slate-400 leading-snug mt-1" x-html="n.body"></div>
                       <div class="text-[10.5px] text-slate-600 mt-1.5" x-text="$store.game.notifAgo(n.ts)"></div>
                     </div>
                     <template x-if="!n.read"><span class="w-2 h-2 rounded-full shrink-0 mt-2" :style="'background:'+t.col"></span></template>
@@ -3933,7 +3933,7 @@
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(244,63,94,.18), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[28px] gold-text leading-none fserif">Vây Sát Yêu Vương</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif">Hung thú thượng cổ nuốt tinh hoa nhật nguyệt mà hoá <b class="text-rose-300">Yêu Vương</b>, uy áp nghiêng trời — mỗi phen giáng thế là yêu khí ngút mây, sinh linh khiếp rạp. Kẻ gan dám vây sát mới đoạt nổi <b class="text-amber-300">linh bảo</b> trong truyền thuyết, một trận lưu danh thiên hạ.</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Yêu Vương giáng thế, yêu khí trùng thiên.</b> Chư hiệp hợp lực tru ma, đoạt <b class="text-amber-300">Linh Bảo</b>, tranh đoạt vô thượng cơ duyên.</div>
             </div>
           </div>
 
@@ -4199,7 +4199,7 @@
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(45,212,191,.16), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[28px] gold-text leading-none fserif">Bí Cảnh Tầm Bảo</div>
-              <div class="text-[13px] text-slate-300 leading-snug mt-2 max-w-2xl">Treo khám phá <b class="text-amber-300">9 bí cảnh</b>, đoạt <b class="text-amber-300">Đồ Phổ</b> rèn trang bị bậc cao + nguyên liệu hiếm, đá cường hóa, Hồn Thạch, EXP. <b class="text-slate-200">Rời màn vẫn chạy.</b></div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Linh khí hội tụ, bảo khố hiện thế.</b> Trong mê cung cổ xưa ẩn giấu vô số trân bảo cùng truyền thừa thất lạc. Hãy tiến vào 9 tầng bí cảnh, tìm kiếm cơ duyên, thu thập <b class="text-amber-300">Đồ Phổ</b>, trang bị phẩm chất cao, Hồn Thạch và các nguyên liệu hiếm.</div>
             </div>
           </div>
 
@@ -4219,7 +4219,7 @@
                         <span class="text-slate-300/80" x-text="'Lv'+d.reqLevel"></span>
                         <span class="text-slate-600">·</span>
                         <template x-if="g.dungeonLocked(d.id)"><span class="text-slate-400">Chưa đủ cấp</span></template>
-                        <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)"><span class="text-amber-300" x-text="'⏳ còn '+g.fmtTime(g.dungeonTimeLeft())"></span></template>
+                        <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)"><span class="text-amber-300" x-text="'⏳ '+g.dungeonRunsDone+'/'+g.dungeonRunsTotal+' · còn '+g.fmtDurHMS(g.dungeonTimeLeft())"></span></template>
                         <template x-if="!g.dungeonLocked(d.id) && !g.dungeonRunningHere(d.id)"><span class="text-emerald-400">● Sẵn sàng</span></template>
                       </div>
                     </div>
@@ -4244,6 +4244,7 @@
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/40 border border-slate-700 text-slate-300" x-text="'Lv '+d.reqLevel"></span>
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/40 border border-slate-700 text-slate-400" x-text="d.realm"></span>
                         <span class="text-[10px] px-1.5 py-0.5 rounded" :style="'background:'+d.color+'22;border:1px solid '+d.color+'55;color:'+d.color" x-text="'⚠ '+d.hazardName"></span>
+                        <span class="ml-auto shrink-0 text-[11px] font-medium px-2.5 py-0.5 rounded inline-flex items-center gap-1.5" :style="'background:rgba(0,0,0,.5);border:1px solid '+d.color+'99;color:#f1e3c2'"><span class="w-3.5 h-3.5 inline-flex" :style="'color:'+d.color" x-html="g.svg('clock','w-3.5 h-3.5')"></span>Mỗi lượt <b :style="'color:'+d.color" x-text="g.fmtDurHM(g.dungeonDurSec(d.id))"></b></span>
                       </div>
                       <div class="text-[11.5px] text-slate-300 italic mt-2 leading-snug max-w-xl" x-text="'“'+d.lore+'”'"></div>
                       <div class="flex items-center gap-1.5 mt-3 flex-wrap">
@@ -4268,42 +4269,35 @@
                     <!-- đang chạy phó bản NÀY -->
                     <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)">
                       <div>
-                        <div class="flex items-center justify-between mb-1.5"><span class="text-[12px] fserif" :style="'color:'+d.color" x-text="'Đang khám phá · '+(g.dungeonRunMode==='treo'?'Treo Luyện':'Chạy Nhanh')"></span><span class="text-[12px] font-mono text-slate-300" x-text="'còn '+g.fmtTime(g.dungeonTimeLeft())"></span></div>
+                        <div class="flex items-center justify-between mb-1.5"><span class="text-[12px] fserif" :style="'color:'+d.color" x-text="'Lịch Luyện · lượt '+Math.min(g.dungeonRunsDone+1, g.dungeonRunsTotal)+'/'+g.dungeonRunsTotal"></span><span class="text-[12px] text-slate-300" x-text="'còn '+g.fmtDurHMS(g.dungeonTimeLeft())"></span></div>
                         <div class="h-3 rounded-full bg-slate-800 overflow-hidden border border-black/50"><div class="h-full rounded-full transition-all" :style="'width:'+g.dungeonRunPct+'%;background:linear-gradient(90deg,'+d.color+','+d.color+'88)'"></div></div>
-                        <div class="text-[10px] text-slate-500 mt-2 text-center">Tự dồn chiến lợi phẩm khi xong — cứ rời màn.</div>
                       </div>
                     </template>
                     <!-- đang chạy phó bản KHÁC -->
                     <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunning && !g.dungeonRunningHere(d.id)">
-                      <div class="text-center text-slate-400 py-2 text-[12px]">Đang khám phá Bí Cảnh khác (<b class="text-slate-300" x-text="(g.DUNGEON_BY_ID[g.dungeonRunId]||{}).name"></b>) — chờ xong đã.</div>
+                      <div class="text-center text-slate-400 py-2 text-[12px]">Đang khám phá Bí Cảnh khác (<b class="text-slate-300" x-text="(g.DUNGEON_BY_ID[g.dungeonRunId]||{}).name"></b>).</div>
                     </template>
-                    <!-- rảnh: chọn chế độ -->
+                    <!-- rảnh: Lịch Luyện (Kiểu A) — 1 hàng: chọn lượt · tổng · nút bắt đầu CO GỌN (không full-width) -->
                     <template x-if="!g.dungeonLocked(d.id) && !g.dungeonRunning">
                       <div>
-                        <div class="flex items-center justify-between mb-2.5">
-                          <span class="lbl">Chọn chế độ thâm nhập</span>
-                          <span class="text-[11px] text-slate-400 inline-flex items-center gap-2">Phí:
-                            <span class="inline-flex items-center gap-1 text-gold"><span class="w-3.5 h-3.5 inline-flex" x-html="g.ico('bac','🟡')"></span><b x-text="g.fmt(d.cost.bac||0)"></b></span>
-                            <template x-if="d.cost.honThach"><span class="inline-flex items-center gap-1 text-rose-300"><span class="w-3.5 h-3.5 inline-flex" x-html="g.ico('honThach','🔴')"></span><b x-text="g.fmt(d.cost.honThach)"></b></span></template>
+                        <div class="mb-2.5"><span class="lbl">Lịch Luyện</span></div>
+                        <div class="flex items-center justify-between flex-wrap gap-x-4 gap-y-2.5">
+                          <span class="inline-flex items-center gap-1.5 text-[12px] text-slate-400">Số lượt
+                            <button @click="g.dungeonRunsDec(d.id)" :disabled="g.dungeonRunsSel(d.id)<=1" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-300 leading-none disabled:opacity-30 disabled:cursor-not-allowed">−</button>
+                            <b class="text-slate-100 text-[15px] tabular-nums w-5 text-center inline-block" x-text="g.dungeonRunsSel(d.id)"></b>
+                            <button @click="g.dungeonRunsInc(d.id)" :disabled="g.dungeonRunsSel(d.id)>=g.dungeonMaxRuns(d.id)" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-300 leading-none disabled:opacity-30 disabled:cursor-not-allowed">+</button>
+                            <button @click="g.dungeonRunsSet(d.id, g.dungeonMaxRuns(d.id))" class="text-[11px] text-slate-500 hover:text-jade underline decoration-dotted underline-offset-2 ml-0.5" x-text="'Tối đa '+g.dungeonMaxRuns(d.id)"></button>
                           </span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2.5">
-                          <button @click="g.startDungeonRun(d.id,'nhanh')" :disabled="!g.canAffordDungeon(d.id)" class="rounded-lg px-3 py-2 border text-left transition hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed" :style="'border-color:'+d.color+'55;background:linear-gradient(135deg,'+d.color+'18,transparent)'">
-                            <div class="flex items-center justify-between gap-1 leading-none">
-                              <span class="text-[13px] font-bold inline-flex items-center gap-1.5" :style="'color:'+d.color"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('zap','w-3.5 h-3.5')"></span>Chạy Nhanh</span>
-                              <span class="inline-flex gap-0.5 text-[11px] leading-none shrink-0" :style="'color:'+d.color" title="Mức thưởng"><span>◆</span><span class="opacity-20">◆</span><span class="opacity-20">◆</span></span>
-                            </div>
-                            <div class="text-[11px] text-slate-400 font-mono mt-1.5 leading-none" x-text="g.fmtTime(g.dungeonDurSec(d.id,'nhanh'))"></div>
-                          </button>
-                          <button @click="g.startDungeonRun(d.id,'treo')" :disabled="!g.canAffordDungeon(d.id)" class="rounded-lg px-3 py-2 border text-left transition hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed" :style="'border-color:'+d.color+'aa;background:linear-gradient(135deg,'+d.color+'2e,transparent)'">
-                            <div class="flex items-center justify-between gap-1 leading-none">
-                              <span class="text-[13px] font-bold inline-flex items-center gap-1.5" :style="'color:'+d.color"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('clock','w-3.5 h-3.5')"></span>Treo Luyện</span>
-                              <span class="inline-flex gap-0.5 text-[11px] leading-none shrink-0" :style="'color:'+d.color" title="Mức thưởng"><span>◆</span><span>◆</span><span>◆</span></span>
-                            </div>
-                            <div class="text-[11px] text-slate-400 font-mono mt-1.5 leading-none" x-text="g.fmtTime(g.dungeonDurSec(d.id,'treo'))"></div>
+                          <span class="text-[12px] text-slate-400">Tổng <b class="text-slate-200" x-text="g.fmtDurHM(g.dungeonBatchSec(d.id))"></b></span>
+                          <button @click="g.startDungeonRun(d.id)" :disabled="!g.canAffordDungeonBatch(d.id)" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed shrink-0" :style="'border-color:'+d.color+'aa;background:linear-gradient(135deg,'+d.color+'2e,transparent)'">
+                            <span class="text-[13.5px] font-bold fserif inline-flex items-center gap-1.5" :style="'color:'+d.color"><span class="w-4 h-4 inline-flex" x-html="g.svg('clock','w-4 h-4')"></span>Bắt đầu</span>
+                            <span class="inline-flex items-center gap-2 text-[12px] pl-2.5 border-l" :style="'border-color:'+d.color+'55'">
+                              <span class="inline-flex items-center gap-1 text-gold"><span class="w-4 h-4 inline-flex" x-html="g.ico('bac','🟡')"></span><b x-text="g.fmt(g.dungeonBatchCost(d.id).bac)"></b></span>
+                              <template x-if="g.dungeonBatchCost(d.id).honThach"><span class="inline-flex items-center gap-1 text-rose-300"><span class="w-4 h-4 inline-flex" x-html="g.ico('honThach','🔴')"></span><b x-text="g.fmt(g.dungeonBatchCost(d.id).honThach)"></b></span></template>
+                            </span>
                           </button>
                         </div>
-                        <template x-if="!g.canAffordDungeon(d.id)"><div class="text-[10px] text-rose-400 mt-2 text-center">Không đủ phí vào.</div></template>
+                        <template x-if="!g.canAffordDungeonBatch(d.id)"><div class="text-[10px] text-rose-400 mt-2 text-right">Không đủ phí cho lịch này.</div></template>
                       </div>
                     </template>
                   </div>
@@ -4315,40 +4309,51 @@
                       <div class="flex items-center gap-2 mb-2.5"><span class="lbl">Bảo Vật · Chiến lợi phẩm</span></div>
                       <div class="grid grid-cols-4 gap-2.5">
                         <template x-if="d.loot.doPho">
-                          <div @click="g.openDungeonPool(d.id)" class="relative aspect-square rounded-lg bg-black/50 border border-amber-500/45 flex flex-col items-center justify-center gap-0.5 cursor-pointer hover:border-amber-400 transition" style="box-shadow:inset 0 0 12px rgba(245,158,11,.18)" title="Bấm xem danh mục Đồ Phổ">
-                            <span class="w-10 h-10 inline-flex items-center justify-center"><img src="images/items/dopho.webp" class="w-full h-full object-contain" onerror="if(this.src.endsWith('.webp')){this.src='images/items/dopho.png'}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'📜',style:'font-size:20px'}))}"></span>
-                            <span class="text-[13px] font-bold leading-none text-amber-300" x-text="g.pctText(d.loot.doPhoChance)"></span>
-                            <span class="text-[8px] tracking-wide text-amber-300/80 leading-tight text-center px-0.5" x-text="'Đồ Phổ Bậc '+d.loot.doPho.bac.join('/')"></span>
-                            <span class="text-[7.5px] text-slate-500 leading-none">bấm xem ▸</span>
+                          <div @click="g.openDungeonPool(d.id)" class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-amber-500/45 cursor-pointer hover:border-amber-400 transition" style="box-shadow:inset 0 0 12px rgba(245,158,11,.18)" title="Bấm xem danh mục Đồ Phổ">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center"><img :src="g.doPhoScroll(d.loot.doPho.bac)" class="w-full h-full object-contain" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'📜',style:'font-size:20px'}))}"></span>
+                              <span class="text-[13px] font-bold leading-none text-amber-300" x-text="g.pctText(g.dungeonDoPhoChance(d.id))"></span>
+                              <span class="text-[8px] tracking-wide text-amber-300/80 leading-tight" x-text="'Đồ Phổ Bậc '+d.loot.doPho.bac.join('/')"></span>
+                            </div>
                           </div>
                         </template>
                         <template x-for="lid in d.loot.lieu.slice(0,3)" :key="lid">
-                          <div class="aspect-square rounded-lg bg-black/50 border flex flex-col items-center justify-center gap-0.5 cursor-zoom-in" :class="g.itemQuality(lid).border" @click="g.openLightbox(lid,(g.ITEMS[lid]||{}).icon,(g.ITEMS[lid]||{}).name)">
-                            <span class="w-11 h-11 inline-flex items-center justify-center" x-html="g.ico(lid,(g.ITEMS[lid]||{}).icon)"></span>
-                            <span class="text-[8.5px] leading-none truncate w-full text-center px-0.5" :class="g.itemQuality(lid).text" x-text="(g.ITEMS[lid]||{}).name"></span>
+                          <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border cursor-zoom-in" :class="g.itemQuality(lid).border" @click="g.openLightbox(lid,(g.ITEMS[lid]||{}).icon,(g.ITEMS[lid]||{}).name)">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(lid,(g.ITEMS[lid]||{}).icon)"></span>
+                              <span class="text-[8.5px] leading-none truncate w-full" :class="g.itemQuality(lid).text" x-text="(g.ITEMS[lid]||{}).name"></span>
+                            </div>
                           </div>
                         </template>
                         <template x-for="sid in d.loot.da" :key="sid">
-                          <div class="aspect-square rounded-lg bg-black/50 border flex flex-col items-center justify-center gap-0.5 cursor-zoom-in" :class="g.itemQuality(sid).border" @click="g.openLightbox(sid,(g.ITEMS[sid]||{}).icon,(g.ITEMS[sid]||{}).name)">
-                            <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(sid,(g.ITEMS[sid]||{}).icon)"></span>
-                            <span class="text-[8px] leading-tight text-slate-300 text-center px-0.5" x-text="(g.ITEMS[sid]||{}).name"></span>
+                          <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border cursor-zoom-in" :class="g.itemQuality(sid).border" @click="g.openLightbox(sid,(g.ITEMS[sid]||{}).icon,(g.ITEMS[sid]||{}).name)">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(sid,(g.ITEMS[sid]||{}).icon)"></span>
+                              <span class="text-[8px] leading-tight text-slate-300" x-text="(g.ITEMS[sid]||{}).name"></span>
+                            </div>
                           </div>
                         </template>
-                        <div class="aspect-square rounded-lg bg-black/50 border border-rose-600/40 flex flex-col items-center justify-center gap-0.5">
-                          <span class="w-9 h-9 inline-flex items-center justify-center" x-html="g.ico('honThach','🔴')"></span>
-                          <span class="text-[11px] font-bold leading-none text-rose-300" x-text="d.loot.honThach[0]+'~'+d.loot.honThach[1]"></span>
-                          <span class="text-[8.5px] uppercase text-slate-500 leading-none">Hồn Thạch</span>
+                        <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-rose-600/40">
+                          <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                            <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico('honThach','🔴')"></span>
+                            <span class="text-[11px] font-bold leading-none text-rose-300" x-text="d.loot.honThach[0]+'~'+d.loot.honThach[1]"></span>
+                            <span class="text-[8.5px] uppercase text-slate-500 leading-none">Hồn Thạch</span>
+                          </div>
                         </div>
-                        <div class="aspect-square rounded-lg bg-black/50 border border-amber-400/40 flex flex-col items-center justify-center gap-0.5">
-                          <span class="w-9 h-9 inline-flex items-center justify-center" x-html="g.ico('bac','🟡')"></span>
-                          <span class="text-[11px] font-bold leading-none text-gold" x-text="g.fmt(d.loot.bac[0])+'+'"></span>
-                          <span class="text-[8.5px] uppercase text-slate-500 leading-none">Bạc</span>
+                        <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-amber-400/40">
+                          <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                            <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico('bac','🟡')"></span>
+                            <span class="text-[11px] font-bold leading-none text-gold" x-text="g.fmt(d.loot.bac[0])+'+'"></span>
+                            <span class="text-[8.5px] uppercase text-slate-500 leading-none">Bạc</span>
+                          </div>
                         </div>
                         <template x-for="r in (d.loot.rare||[])" :key="r.itemId">
-                          <div class="relative aspect-square rounded-lg bg-black/50 border flex flex-col items-center justify-center gap-0.5 cursor-zoom-in" :class="g.itemQuality(r.itemId).border" @click="g.openLightbox(r.itemId,(g.ITEMS[r.itemId]||{}).icon,(g.ITEMS[r.itemId]||{}).name)">
-                            <span class="absolute -top-1 -right-1 text-[8px] font-bold px-1 rounded bg-black/70 border border-slate-600 text-slate-300">hiếm</span>
-                            <span class="w-11 h-11 inline-flex items-center justify-center" x-html="g.ico(r.itemId,(g.ITEMS[r.itemId]||{}).icon)"></span>
-                            <span class="text-[8.5px] leading-none" :class="g.itemQuality(r.itemId).text" x-text="(r.chance*100).toFixed(1)+'%'"></span>
+                          <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border cursor-zoom-in" :class="g.itemQuality(r.itemId).border" @click="g.openLightbox(r.itemId,(g.ITEMS[r.itemId]||{}).icon,(g.ITEMS[r.itemId]||{}).name)">
+                            <span class="absolute top-0.5 right-0.5 z-10 text-[8px] font-bold px-1 rounded bg-black/70 border border-slate-600 text-slate-300">hiếm</span>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(r.itemId,(g.ITEMS[r.itemId]||{}).icon)"></span>
+                              <span class="text-[8.5px] leading-none" :class="g.itemQuality(r.itemId).text" x-text="(r.chance*100).toFixed(1)+'%'"></span>
+                            </div>
                           </div>
                         </template>
                       </div>
@@ -4361,8 +4366,9 @@
                           <button @click="g.openDungeonHistory(h)" class="w-full flex items-center gap-2 text-[11px] py-1.5 border-b border-slate-800/60 hover:bg-white/5 rounded px-1 transition text-left">
                             <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="'background:'+(h.cleared?'#34d399':'#fb7185')"></span>
                             <span class="text-slate-300 truncate flex-1" x-text="(g.DUNGEON_BY_ID[h.dungeonId]||{}).name"></span>
-                            <template x-if="h.doPhoId"><span class="text-amber-300" title="Đoạt Đồ Phổ">📜</span></template>
-                            <span :class="h.cleared?'text-emerald-400':'text-rose-400'" x-text="h.cleared?'Thông quan':'Rút lui'"></span>
+                            <template x-if="h.doPhoId || (h.doPhoIds && h.doPhoIds.length)"><span class="text-amber-300" title="Đoạt Đồ Phổ">📜</span></template>
+                            <template x-if="(h.runs||1) > 1"><span class="text-slate-300 shrink-0" x-text="h.clears+'/'+h.runs+' TQ'"></span></template>
+                            <template x-if="(h.runs||1) <= 1"><span :class="h.cleared?'text-emerald-400':'text-rose-400'" x-text="h.cleared?'Thông quan':'Rút lui'"></span></template>
                             <span class="w-3 h-3 text-slate-600 shrink-0" x-html="g.svg('chevR','w-3 h-3')"></span>
                           </button>
                         </template>
@@ -4383,30 +4389,42 @@
                 <div class="relative p-5 shrink-0" :style="'background:linear-gradient(135deg,'+(dd?dd.color:'#475569')+'22,transparent)'">
                   <button @click="g.closeDungeonResult()" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 text-lg">✕</button>
                   <div class="text-[13px]" :style="'color:'+(dd?dd.color:'#cbd5e1')" x-text="dd?dd.name:''"></div>
-                  <div class="text-3xl fserif mt-0.5" :class="r.cleared?'text-emerald-300':'text-rose-300'" x-text="r.cleared?'Thông Quan!':'Rút Lui'"></div>
-                  <div class="text-[13px] text-slate-400 mt-1.5"><span x-text="r.modeLabel"></span> · Sinh lực còn <b :class="r.hpPct>50?'text-emerald-300':(r.hpPct>0?'text-amber-300':'text-rose-300')" x-text="r.hpPct+'%'"></b> · Chiến lực <b class="text-slate-300" x-text="g.fmt(r.power)"></b></div>
+                  <template x-if="(r.runs||1) <= 1">
+                    <div>
+                      <div class="text-3xl fserif mt-0.5" :class="r.cleared?'text-emerald-300':'text-rose-300'" x-text="r.cleared?'Thông Quan!':'Rút Lui'"></div>
+                      <div class="text-[13px] text-slate-400 mt-1.5">Sinh lực còn <b :class="r.hpPct>50?'text-emerald-300':(r.hpPct>0?'text-amber-300':'text-rose-300')" x-text="r.hpPct+'%'"></b> · Chiến lực <b class="text-slate-300" x-text="g.fmt(r.power)"></b></div>
+                    </div>
+                  </template>
+                  <template x-if="(r.runs||1) > 1">
+                    <div>
+                      <div class="text-3xl fserif mt-0.5" :class="r.clears>0?'text-emerald-300':'text-rose-300'" x-text="'Lịch Luyện · '+r.clears+'/'+r.runs+' thông quan'"></div>
+                      <div class="text-[13px] text-slate-400 mt-1.5"><b class="text-slate-300" x-text="r.runs"></b> lượt · Chiến lực <b class="text-slate-300" x-text="g.fmt(r.power)"></b></div>
+                    </div>
+                  </template>
                 </div>
                 <div class="p-5 overflow-y-auto space-y-4">
-                  <div class="space-y-2">
-                    <template x-for="(L,i) in (r.log||[])" :key="i">
-                      <div class="rounded-lg bg-black/30 border-l-[3px] pl-4 pr-3 py-2.5" :class="g.logToneClass(L.tone)" style="border-color:currentColor">
-                        <div class="text-[11px] uppercase tracking-wider opacity-80 font-semibold" x-text="L.title"></div>
-                        <div class="text-[13.5px] leading-relaxed text-slate-200 mt-1" x-html="L.text"></div>
-                      </div>
-                    </template>
-                  </div>
+                  <template x-if="r.log && r.log.length">
+                    <div class="space-y-2">
+                      <template x-for="(L,i) in (r.log||[])" :key="i">
+                        <div class="rounded-lg bg-black/30 border-l-[3px] pl-4 pr-3 py-2.5" :class="g.logToneClass(L.tone)" style="border-color:currentColor">
+                          <div class="text-[11px] uppercase tracking-wider opacity-80 font-semibold" x-text="L.title"></div>
+                          <div class="text-[13.5px] leading-relaxed text-slate-200 mt-1" x-html="L.text"></div>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
                   <div class="rounded-xl p-4" style="background:linear-gradient(135deg,rgba(245,185,66,.1),transparent);border:1px solid rgba(245,185,66,.35)">
-                    <div class="text-[13px] text-amber-300 font-semibold mb-3 inline-flex items-center gap-1.5">🎁 Chiến Lợi Phẩm</div>
-                    <template x-if="r.doPhoId">
+                    <div class="text-[13px] text-amber-300 font-semibold mb-3 inline-flex items-center gap-1.5" x-text="(r.runs||1) > 1 ? '🎁 Tổng thu hoạch · '+r.runs+' lượt' : '🎁 Chiến Lợi Phẩm'"></div>
+                    <template x-for="(dpId,di) in (r.doPhoIds || (r.doPhoId ? [r.doPhoId] : []))" :key="di">
                       <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-black/40 border border-amber-500/50">
-                        <span class="w-16 h-16 inline-flex items-center justify-center shrink-0" x-html="g.ico(r.doPhoId,'📜')"></span>
-                        <div class="text-[13px] leading-snug"><b class="text-amber-300 text-[14px]">Đoạt Đồ Phổ!</b><br><span class="text-slate-100" x-text="(g.ITEMS[r.doPhoId]||{}).name"></span><br><span class="text-[11px] text-slate-500">Mở túi → Lĩnh Ngộ để rèn món này.</span></div>
+                        <span class="w-16 h-16 inline-flex items-center justify-center shrink-0" x-html="g.ico(dpId,'📜')"></span>
+                        <div class="text-[13px] leading-snug"><b class="text-amber-300 text-[14px]">Đoạt Đồ Phổ!</b><br><span class="text-slate-100" x-text="(g.ITEMS[dpId]||{}).name"></span></div>
                       </div>
                     </template>
-                    <template x-if="r.biKipDrop">
-                      <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-black/40 border" :style="'border-color:'+r.biKipDrop.tierColor+'88'">
-                        <span class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-[22px]" :style="'border-color:'+r.biKipDrop.tierColor+'66'"><span x-text="'笈'"></span><img :src="'images/tongmon/bikip/'+r.biKipDrop.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
-                        <div class="text-[13px] leading-snug"><b :style="'color:'+r.biKipDrop.tierColor" class="text-[14px]">Nhặt Bí Kíp <span x-text="r.biKipDrop.tierName"></span>!</b><br><span class="text-slate-100 fserif" x-text="r.biKipDrop.ten"></span><br><span class="text-[11px] text-indigo-300/80">Đã nhập Tàng Thư Lâu → cho đệ tử lĩnh ngộ.</span></div>
+                    <template x-for="(bk,bi) in (r.biKipDrops || (r.biKipDrop ? [r.biKipDrop] : []))" :key="bi">
+                      <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-black/40 border" :style="'border-color:'+bk.tierColor+'88'">
+                        <span class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink3 border shrink-0 flex items-center justify-center fserif text-[22px]" :style="'border-color:'+bk.tierColor+'66'"><span x-text="'笈'"></span><img :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></span>
+                        <div class="text-[13px] leading-snug"><b :style="'color:'+bk.tierColor" class="text-[14px]">Nhặt Bí Kíp <span x-text="bk.tierName"></span>!</b><br><span class="text-slate-100 fserif" x-text="bk.ten"></span><br><span class="text-[11px] text-indigo-300/80">Đã nhập Tàng Thư Lâu → cho đệ tử lĩnh ngộ.</span></div>
                       </div>
                     </template>
                     <div class="flex items-center gap-2 flex-wrap text-[12.5px]">
@@ -4418,6 +4436,32 @@
                       <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/40 border border-emerald-500/40 text-emerald-200"><span class="w-5 h-5 inline-flex items-center justify-center"><img src="images/ui/exp.webp" class="w-5 h-5 object-contain" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/exp.png'}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'✦',style:'color:#6ee7b7;font-size:14px'}))}"></span><span x-text="'+'+g.fmt((r.loot||{}).exp)+' EXP'"></span></span>
                     </div>
                   </div>
+                  <!-- CHI TIẾT TỪNG LƯỢT (khi Lịch Luyện > 1 lượt) -->
+                  <template x-if="(r.runs||1) > 1 && (r.perRun||[]).length">
+                    <div>
+                      <div class="text-[13px] text-slate-300 font-semibold mb-2 inline-flex items-center gap-1.5">📋 Chi Tiết Từng Lượt</div>
+                      <div class="space-y-1.5">
+                        <template x-for="(pr,i) in r.perRun" :key="i">
+                          <div class="rounded-lg bg-black/25 border border-slate-800 px-3 py-2">
+                            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                              <span class="text-[11.5px] font-semibold shrink-0" :class="pr.cleared?'text-emerald-300':'text-rose-300'" x-text="'Lượt '+(i+1)+(pr.cleared?' · Thông quan':' · Rút lui')"></span>
+                              <span class="text-[10px] text-slate-500" x-text="'sinh lực '+pr.hpPct+'%'"></span>
+                              <template x-if="pr.doPhoId"><span class="text-[10.5px] text-amber-300 font-medium px-1.5 py-0.5 rounded bg-amber-900/30 border border-amber-500/40" x-text="'📜 '+((g.ITEMS[pr.doPhoId]||{}).name||'Đồ Phổ')"></span></template>
+                              <template x-if="pr.biKipDrop"><span class="text-[10.5px] font-medium fserif px-1.5 py-0.5 rounded bg-black/40 border" :style="'color:'+pr.biKipDrop.tierColor+';border-color:'+pr.biKipDrop.tierColor+'66'" x-text="'笈 '+pr.biKipDrop.ten"></span></template>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px]">
+                              <template x-for="itId in Object.keys((pr.loot||{}).items||{}).filter(k=>k.slice(0,3)!=='dp_')" :key="itId">
+                                <span class="inline-flex items-center gap-1"><span class="w-4 h-4 inline-flex items-center justify-center" x-html="g.ico(itId,(g.ITEMS[itId]||{}).icon)"></span><span :class="(g.itemQuality(itId)||{}).text||'text-slate-300'" x-text="(g.ITEMS[itId]||{}).name"></span><span class="text-slate-500" x-text="'×'+pr.loot.items[itId]"></span></span>
+                              </template>
+                              <span class="text-gold" x-text="g.fmt((pr.loot||{}).bac||0)+' Bạc'"></span>
+                              <span class="text-emerald-300/90" x-text="'+'+g.fmt((pr.loot||{}).exp||0)+' EXP'"></span>
+                              <template x-if="(pr.loot||{}).honThach"><span class="text-rose-300" x-text="pr.loot.honThach+' Hồn Thạch'"></span></template>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
                 </div>
                 <div class="p-4 shrink-0 border-t border-slate-800">
                   <button @click="g.closeDungeonResult()" class="w-full py-3 rounded-lg font-bold text-[15px] bg-ink3 border border-slate-700 hover:border-jade text-slate-200 transition">Đóng</button>
@@ -4434,7 +4478,7 @@
                   <button @click="g.closeDungeonPool()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400">✕</button>
                   <div class="text-[12px]" :style="'color:'+dd.color" x-text="dd.name"></div>
                   <div class="text-lg fserif text-amber-200">Danh Mục Đồ Phổ</div>
-                  <div class="text-[11px] text-slate-400 mt-0.5 leading-snug">Bậc <span x-text="dd.loot.doPho.bac.join(' / ')"></span> · tỉ lệ đoạt <b class="text-amber-300" x-text="g.pctText(dd.loot.doPhoChance)"></b> mỗi lượt thông quan (Treo Luyện cao hơn).</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5 leading-snug">Bậc <span x-text="dd.loot.doPho.bac.join(' / ')"></span> · tỉ lệ đoạt <b class="text-amber-300" x-text="g.pctText(g.dungeonDoPhoChance(dd.id))"></b> mỗi lượt thông quan.</div>
                 </div>
                 <div class="p-5 overflow-y-auto">
                   <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -9813,10 +9857,14 @@
   <style>
     .eh-hex{ background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat; display:grid; place-items:center;
       font-family:'Lora',Georgia,serif; font-weight:800; text-shadow:0 1px 3px #000; line-height:1; }
+    /* nen panel_bg cho Lo Cuong Hoa (dung chung texture rong-goc voi Dong Phu) */
+    .eh-panel{ background-color:#0f1521;
+      background-image:linear-gradient(rgba(9,14,20,.5),rgba(9,14,20,.5)), url("images/dongphu/ui/panel_bg.webp");
+      background-size:100% 100%; background-position:center; }
   </style>
   <template x-if="$store.game.enhanceModal">
     <div class="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeEnhance()">
-      <div class="panel rounded-2xl w-[600px] max-w-[95vw] overflow-hidden relative" @click.stop
+      <div class="panel eh-panel rounded-2xl w-[600px] max-w-[95vw] overflow-hidden relative" @click.stop
            style="border:1px solid rgba(94,234,212,.42);box-shadow:inset 0 0 0 4px #0b1220,inset 0 0 0 5px rgba(94,234,212,.22),0 25px 60px rgba(0,0,0,.6)"
            x-data="{ get g(){ return $store.game }, get id(){ return $store.game.enhanceId() } }">
         <!-- KHUNG D: 4 góc ngọc -->
@@ -9824,7 +9872,7 @@
         <span class="absolute pointer-events-none z-[3]" style="top:8px;right:8px;width:24px;height:24px;border:2px solid #5eead4;border-left:none;border-bottom:none;border-radius:0 6px 0 0;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
         <span class="absolute pointer-events-none z-[3]" style="bottom:8px;left:8px;width:24px;height:24px;border:2px solid #5eead4;border-right:none;border-top:none;border-radius:0 0 0 6px;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
         <span class="absolute pointer-events-none z-[3]" style="bottom:8px;right:8px;width:24px;height:24px;border:2px solid #5eead4;border-left:none;border-top:none;border-radius:0 0 6px 0;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
-        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-ink2/60">
+        <div class="flex items-center justify-between px-5 py-3.5">
           <span class="flex items-center gap-2 text-base font-semibold text-slate-100"><span class="text-amber-400" x-html="g.svg('zap','w-5 h-5')"></span>Lò Cường Hóa</span>
           <button @click="g.closeEnhance()" class="text-slate-500 hover:text-rose-400 text-lg" aria-label="Đóng">✕</button>
         </div>
@@ -9897,7 +9945,9 @@
                   <div class="text-[11px] text-slate-500 mt-2 text-center">Thất bại: mất nguyên liệu, <span class="text-slate-400">KHÔNG tụt cấp</span>.</div>
                 </div>
 
-                <button @click="g.doEnhance()" :disabled="!g.enhanceCan(id)" class="w-full py-3 rounded-xl font-semibold text-base transition inline-flex items-center justify-center gap-2" :class="g.enhanceCan(id) ? 'bg-amber-500 hover:bg-amber-400 text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'"><span x-html="g.svg('zap','w-5 h-5')"></span>Cường Hóa</button>
+                <div class="flex justify-center">
+                  <button @click="g.doEnhance()" :disabled="!g.enhanceCan(id)" class="dp-btn inline-flex items-center justify-center gap-2" :class="!g.enhanceCan(id) && 'off'"><span x-html="g.svg('zap','w-5 h-5')"></span>Cường Hóa</button>
+                </div>
               </div>
             </template>
           </div>
@@ -9972,7 +10022,7 @@
         <div style="padding:6px 20px">
           <template x-for="(gn,i) in $store.game.offlineGains" :key="i">
             <div class="flex items-center justify-between" style="padding:6px 0" :style="i>0 ? 'border-top:1px solid rgba(148,163,184,.12)' : ''">
-              <span class="text-slate-300" style="font-size:13px" x-text="gn.label"></span>
+              <span class="text-slate-300" style="font-size:13px" :style="gn.hex ? 'color:'+gn.hex : ''" x-text="gn.label"></span>
               <span class="fserif" style="font-size:14px" :class="gn.cls" x-text="gn.amount"></span>
             </div>
           </template>
@@ -10507,9 +10557,6 @@
           <div class="flex flex-wrap items-center gap-2">
             <select x-model="$store.game.devDungeonSel" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
               <template x-for="d in $store.game.DUNGEONS" :key="d.id"><option :value="d.id" x-text="d.name + ' (Lv' + d.reqLevel + ')'"></option></template>
-            </select>
-            <select x-model="$store.game.devDungeonMode" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">
-              <option value="nhanh">Chạy Nhanh</option><option value="treo">Treo Luyện</option>
             </select>
             <button @click="$store.game.devGrantDungeon(5)" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">⚔️ Chạy ×5 (loot + rơi bí kíp)</button>
             <button @click="$store.game.devGiveDoPho(5)" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">📜 +5 lượt rèn mọi Đồ Phổ</button>

@@ -1,8 +1,10 @@
 // ============================================================
 // ENGINE — BÍ CẢNH (Dungeon idle) — THUẦN.
-// runDungeon(state, dungeonId, mode): mô phỏng 1 lượt theo D.tangs[] (số tầng + loại
-//   KHÁC NHAU mỗi phó bản) -> {cleared, log[], loot, hpPct, doPhoId, ...}. KHÔNG mutate kho.
-// grantDungeon(state, dungeonId, mode, now): chạy runDungeon + NHẬP thưởng + lưu lastResult/history.
+// runDungeon(state, dungeonId): mô phỏng 1 lượt theo D.tangs[] (số tầng + loại KHÁC NHAU mỗi phó
+//   bản) -> {cleared, log[], loot, hpPct, doPhoId, ...}. KHÔNG mutate kho. Loot = base × RUN × D.pace.
+// LỊCH LUYỆN gộp N lượt: grantDungeonRun(state,id,acc,now) chạy+nhập 1 lượt & gom vào acc;
+//   finalizeDungeonBatch(state,id,acc,now) chốt tổng kết (lastResult+history+1 thông báo).
+//   grantDungeon(state,id,count,now) = chạy count lượt liền rồi chốt (dev/entry đơn giản).
 //
 // Loại tầng (D.tangs):
 //   'thuong'/'tinhAnh'/'boss' = combat (HP tốn theo chênh Chiến Đấu Lv vs độ sâu).
@@ -14,6 +16,7 @@
 // Hằng số cân bằng để TOP cho user tune.
 // ============================================================
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
+import { ITEMS, itemNameHtml } from '../data/items.js';   // tên vật phẩm (tô màu phẩm chất) cho thông báo Phi Cáp Đài
 import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '../data/tongmon.js';   // rơi bí kíp về Tông Môn (main->phụ 1 chiều, side-only)
 import { deriveCombat } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
@@ -22,10 +25,8 @@ import { addItem } from './inventory.js';
 import { pushNotif } from './notif.js';
 
 // ---- Hằng số cân bằng (TUNE) ----
-const MODE = {
-  nhanh: { label: 'Chạy Nhanh', bacMul: 1, expMul: 1, honMul: 1, lieuN: 1, daChance: 0.40, doPhoMul: 1.0 },
-  treo:  { label: 'Treo Luyện', bacMul: 3, expMul: 3, honMul: 2, lieuN: 2, daChance: 0.70, doPhoMul: 1.6 },
-};
+// Thưởng NỀN mỗi lượt (kế thừa "Treo Luyện" cũ). Nhân thêm D.pace để giữ loot/giờ khi durMs rút ngắn.
+const RUN = { bacMul: 3, expMul: 3, honMul: 2, lieuN: 2, daChance: 0.70, doPhoMul: 1.6, rareMul: 1.5 };
 const COMBAT_BASE_LOSS = { thuong: 9, tinhAnh: 15, boss: 24 };   // % máu/tầng combat (trước hệ số chênh cấp)
 const ORD = ['Một', 'Hai', 'Ba', 'Bốn', 'Năm', 'Sáu', 'Bảy', 'Tám'];
 const HAZARD_NAME_BY_STAT = { sinhLuc: 'sinh khí', hoThe: 'thể chất', thanPhap: 'thân pháp', linhXao: 'ngộ tính', lucDao: 'sức mạnh' };
@@ -47,10 +48,10 @@ function rollDoPhoId(D) {
 }
 
 // ---- MÔ PHỎNG 1 LƯỢT (thuần, không mutate kho) ----
-export function runDungeon(state, dungeonId, mode) {
+export function runDungeon(state, dungeonId) {
   const D = DUNGEON_BY_ID[dungeonId];
   if (!D) return null;
-  const m = MODE[mode] || MODE.nhanh;
+  const P = D.pace || 1;   // hệ số giữ loot/giờ = Treo Luyện cũ (durMs rút ngắn từ treoMs cũ)
   const C = deriveCombat(state, state.combat && state.combat.loadout, { ignoreNoiThuong: true }); // phòng thủ: state.combat thiếu vẫn chạy
   const dodge = clamp(C.dodge || 0, 0, 0.35);
   const cl = levelFromXp(state.skills?.chienDau?.xp || 0);
@@ -129,62 +130,106 @@ export function runDungeon(state, dungeonId, mode) {
   const items = {};
   const addLoot = (id, qty) => { if (id && qty > 0) items[id] = (items[id] || 0) + qty; };
   const partialMul = cleared ? 1 : 0.4;
-  const bac = Math.round(randInt(D.loot.bac[0], D.loot.bac[1]) * m.bacMul * partialMul);
-  const exp = Math.round((D.loot.exp || 0) * m.expMul * (cleared ? 1 : 0.5));
-  const honThach = Math.round(randInt(D.loot.honThach[0], D.loot.honThach[1]) * m.honMul * partialMul);
+  const bac = Math.round(randInt(D.loot.bac[0], D.loot.bac[1]) * RUN.bacMul * P * partialMul);
+  const exp = Math.round((D.loot.exp || 0) * RUN.expMul * P * (cleared ? 1 : 0.5));
+  const honThach = Math.round(randInt(D.loot.honThach[0], D.loot.honThach[1]) * RUN.honMul * P * partialMul);
 
-  const lieuN = m.lieuN + (coDuyenBonus ? 1 : 0) + kyNgoBonus;   // cơ duyên + mỗi kỳ ngộ -> thêm 1 lượt rải liệu
+  const lieuN = Math.max(1, Math.round(RUN.lieuN * P)) + (coDuyenBonus ? 1 : 0) + kyNgoBonus;   // cơ duyên + mỗi kỳ ngộ -> thêm 1 lượt rải liệu
   for (let i = 0; i < lieuN; i++) { if (!D.loot.lieu.length) break; addLoot(pick(D.loot.lieu), randInt(1, 2)); }
-  if (D.loot.da.length && Math.random() < m.daChance) addLoot(pick(D.loot.da), 1 + (coDuyenBonus ? 1 : 0));
+  if (D.loot.da.length && Math.random() < RUN.daChance * P) addLoot(pick(D.loot.da), 1 + (coDuyenBonus ? 1 : 0));
 
   let doPhoId = null;
   if (cleared && D.loot.doPho) {
-    const chance = (D.loot.doPhoChance || 0) * m.doPhoMul * (coDuyenBonus ? 1.3 : 1);
+    const chance = (D.loot.doPhoChance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
     if (Math.random() < chance) { doPhoId = rollDoPhoId(D); if (doPhoId) addLoot(doPhoId, 1); }
   }
-  if (cleared && D.loot.rare) for (const r of D.loot.rare) { if (Math.random() < (r.chance || 0) * (mode === 'treo' ? 1.5 : 1)) addLoot(r.itemId, 1); }
+  if (cleared && D.loot.rare) for (const r of D.loot.rare) { if (Math.random() < (r.chance || 0) * RUN.rareMul * P) addLoot(r.itemId, 1); }
 
-  // BÍ KÍP -> Tông Môn (main->phụ 1 chiều): roll thuần, KHÔNG vào kho main; grantDungeon nạp vào biKipBag
+  // BÍ KÍP -> Tông Môn (main->phụ 1 chiều): roll thuần, KHÔNG vào kho main; grant nạp vào biKipBag
   let biKipDropId = null;
   if (cleared) {
-    const bkChance = BICANH_BK_CHANCE * m.doPhoMul * (coDuyenBonus ? 1.3 : 1);
+    const bkChance = BICANH_BK_CHANCE * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
     if (Math.random() < bkChance) biKipDropId = rollBiCanhBiKip(D.reqLevel);
   }
 
-  return { dungeonId, mode, modeLabel: m.label, cleared, reachedTang, hpPct, power, log, doPhoId, biKipDropId, loot: { items, bac, exp, honThach } };
+  return { dungeonId, cleared, reachedTang, hpPct, power, log, doPhoId, biKipDropId, loot: { items, bac, exp, honThach } };
 }
 
-// ---- CHẠY THẬT: runDungeon + nhập thưởng + lưu kết quả ----
-export function grantDungeon(state, dungeonId, mode, now) {
-  const run = runDungeon(state, dungeonId, mode);
+// ---- LỊCH LUYỆN: gộp N lượt. Bộ tích luỹ (acc) gom loot cả lịch để tổng kết + thông báo 1 lần. ----
+export function newDungeonAcc() {
+  return { items: {}, bac: 0, exp: 0, honThach: 0, clears: 0, runs: 0, doPhoIds: [], biKipDrops: [], perRun: [], lastRun: null, power: 0 };
+}
+
+// Chạy 1 lượt: nhập thưởng THẲNG vào state (loot dồn vào kho ngay) + gom vào acc.
+export function grantDungeonRun(state, dungeonId, acc, now) {
+  const run = runDungeon(state, dungeonId);
   if (!run) return null;
-  // Vạn Vật Phổ — Bí Cảnh Lục: đếm số lượt thông quan.
   if (state.codex && state.codex.dungeonRuns) state.codex.dungeonRuns[dungeonId] = (state.codex.dungeonRuns[dungeonId] || 0) + 1;
   if (run.loot.bac) state.currencies.bac = (state.currencies.bac || 0) + run.loot.bac;
   if (run.loot.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + run.loot.honThach;
   if (run.loot.exp) addSkillXp(state, 'chienDau', run.loot.exp);
   for (const id in run.loot.items) addItem(state, id, run.loot.items[id]);
-  // BÍ KÍP rơi -> nạp THẲNG vào kho bí kíp Tông Môn (main->phụ 1 chiều; side-only, KHÔNG vào kho/sức mạnh main)
+  // BÍ KÍP -> Tàng Thư Lâu Tông Môn (main->phụ 1 chiều; side-only)
   if (run.biKipDropId && state.tongMon) {
     const bag = state.tongMon.biKipBag || (state.tongMon.biKipBag = {});
     bag[run.biKipDropId] = (bag[run.biKipDropId] || 0) + 1;
     const _bk = BI_KIP_BY_ID[run.biKipDropId];
     if (_bk) run.biKipDrop = { id: run.biKipDropId, ten: _bk.ten, tier: _bk.tier, tierName: (BI_KIP_TIER[_bk.tier] || {}).name, tierColor: (BI_KIP_TIER[_bk.tier] || {}).color, he: _bk.he };
   }
+  acc.runs++; acc.bac += run.loot.bac || 0; acc.exp += run.loot.exp || 0; acc.honThach += run.loot.honThach || 0;
+  for (const id in run.loot.items) acc.items[id] = (acc.items[id] || 0) + run.loot.items[id];
+  if (run.cleared) acc.clears++;
+  if (run.doPhoId) acc.doPhoIds.push(run.doPhoId);
+  if (run.biKipDrop) acc.biKipDrops.push(run.biKipDrop);
+  acc.perRun.push({ cleared: run.cleared, hpPct: run.hpPct, loot: run.loot, doPhoId: run.doPhoId, biKipDrop: run.biKipDrop || null });
+  acc.lastRun = run; acc.power = run.power;
+  return run;
+}
+
+// Chốt cả lịch: lưu lastResult (tổng kết) + history + 1 thông báo gộp.
+export function finalizeDungeonBatch(state, dungeonId, acc, now) {
+  if (!acc || !acc.runs) return null;
   if (!state.dungeon) state.dungeon = { lastResult: null, history: [] };
-  const summary = { ...run, at: now };
+  const single = acc.runs === 1;
+  const summary = {
+    dungeonId, at: now, runs: acc.runs, clears: acc.clears,
+    loot: { items: acc.items, bac: acc.bac, exp: acc.exp, honThach: acc.honThach },
+    doPhoIds: acc.doPhoIds.slice(), biKipDrops: acc.biKipDrops.slice(), perRun: acc.perRun.slice(),
+    power: acc.power,
+    // tương thích hiển thị 1 lượt (giữ narrative + doPho/biKip đơn khi single)
+    log: single && acc.lastRun ? acc.lastRun.log : null,
+    hpPct: single && acc.lastRun ? acc.lastRun.hpPct : null,
+    cleared: acc.clears > 0,
+    doPhoId: single ? (acc.doPhoIds[0] || null) : null,
+    biKipDrop: single ? (acc.biKipDrops[0] || null) : null,
+  };
   state.dungeon.lastResult = { ...summary, seen: false };
-  state.dungeon.history = [summary, ...(state.dungeon.history || [])].slice(0, 20); // lưu FULL để bấm xem lại
-  // Thông báo Bí Cảnh (chuông + Phi Cáp Đài)
+  state.dungeon.history = [summary, ...(state.dungeon.history || [])].slice(0, 20);
+  // ---- Thông báo (chuông + Phi Cáp Đài) ----
   const _dn = (DUNGEON_BY_ID[dungeonId] || {}).name || 'Bí Cảnh';
-  const _p = []; const _lo = run.loot || {};
-  if (_lo.bac) _p.push(_lo.bac.toLocaleString('vi-VN') + ' Bạc');
-  if (_lo.exp) _p.push(_lo.exp.toLocaleString('vi-VN') + ' EXP');
-  if (_lo.honThach) _p.push(_lo.honThach + ' Hồn Thạch');
-  const _ic = Object.values(_lo.items || {}).reduce((s, q) => s + q, 0);
-  if (_ic) _p.push('+' + _ic + ' vật phẩm');
-  if (run.doPhoId) _p.push('Đồ Phổ');
-  if (run.biKipDrop) _p.push('Bí Kíp 「' + run.biKipDrop.ten + '」 → Tông Môn');
-  pushNotif(state, 'biCanh', (run.cleared ? 'Thông quan ' : 'Rút lui ') + _dn + (run.modeLabel ? ' · ' + run.modeLabel : ''), _p.join(' · '), now);
+  const _p = [];
+  if (acc.bac) _p.push(acc.bac.toLocaleString('vi-VN') + ' Bạc');
+  if (acc.exp) _p.push(acc.exp.toLocaleString('vi-VN') + ' EXP');
+  if (acc.honThach) _p.push(acc.honThach + ' Hồn Thạch');
+  const dpCount = {};
+  acc.doPhoIds.forEach((id) => { dpCount[id] = (dpCount[id] || 0) + 1; });
+  for (const id in dpCount) _p.push(itemNameHtml(id, (ITEMS[id] || {}).name || 'Đồ Phổ') + (dpCount[id] > 1 ? ' ×' + dpCount[id] : ''));
+  acc.biKipDrops.forEach((bk) => _p.push('Bí Kíp 「' + bk.ten + '」 → Tông Môn'));
+  const _items = [];
+  for (const id in acc.items) { if (id.slice(0, 3) === 'dp_') continue; _items.push(itemNameHtml(id) + ' ×' + acc.items[id]); }
+  if (_items.length) _p.push('Nhận: ' + (_items.length > 6 ? _items.slice(0, 6).join(', ') + ' … +' + (_items.length - 6) + ' loại' : _items.join(', ')));
+  const title = single
+    ? (acc.clears ? 'Thông quan ' : 'Rút lui ') + _dn
+    : 'Lịch Luyện ' + _dn + ' · ' + acc.clears + '/' + acc.runs + ' thông quan';
+  pushNotif(state, 'biCanh', title, _p.join(' · '), now);
   return state.dungeon.lastResult;
+}
+
+// Chạy NGAY N lượt liên tiếp rồi chốt (dùng cho dev / entry đơn giản).
+export function grantDungeon(state, dungeonId, count, now) {
+  if (!DUNGEON_BY_ID[dungeonId]) return null;
+  const n = Math.max(1, Math.floor(count) || 1);
+  const acc = newDungeonAcc();
+  for (let i = 0; i < n; i++) grantDungeonRun(state, dungeonId, acc, now);
+  return finalizeDungeonBatch(state, dungeonId, acc, now);
 }

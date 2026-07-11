@@ -17,7 +17,7 @@ import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
-import { grantDungeon } from './dungeon.js';
+import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
 
 export function getAction(skillId, actionId) {
@@ -158,16 +158,22 @@ export function startTravel(state, toId, now) {
 }
 
 // ---- BÍ CẢNH: hoạt động idle treo (timer-1-phát, như Khinh Công). Phí vào do STORE trừ trước. ----
-export function startDungeon(state, dungeonId, mode, now) {
+// Số lượt tối đa đặt được = trần treo máy / thời lượng 1 lượt (tối thiểu 1).
+export function maxDungeonRuns(state, D) {
+  if (!D || !D.durMs) return 1;
+  return Math.max(1, Math.floor(idleCapMs(state) / D.durMs));
+}
+// LỊCH LUYỆN: đặt N lượt liên tiếp (N*durMs <= trần treo máy). Phí do main trừ trước (N * phí vào).
+export function startDungeon(state, dungeonId, runs, now) {
   const D = DUNGEON_BY_ID[dungeonId];
   if (!D) return false;
   if (levelFromXp(state.skills['chienDau']?.xp || 0) < D.reqLevel) return false;
-  const treo = mode === 'treo';
+  const n = Math.max(1, Math.min(Math.floor(runs) || 1, maxDungeonRuns(state, D)));
   state.activity = {
-    type: 'dungeon', dungeonId, mode: treo ? 'treo' : 'nhanh',
-    cycleMs: treo ? D.treoMs : D.nhanhMs,   // tổng thời gian treo (không phải chu kỳ lặp)
-    startedAt: now, lastResolved: now,
-    progress: 0, capped: false, stalled: false,
+    type: 'dungeon', dungeonId,
+    runs: n, durMs: D.durMs, cycleMs: n * D.durMs,   // tổng thời gian cả lịch
+    startedAt: now, lastResolved: now, progress: 0,
+    acc: newDungeonAcc(),
   };
   return true;
 }
@@ -193,17 +199,21 @@ export function advance(state, now) {
     return null;
   }
 
-  // Bí Cảnh: timer 1 lần. Tới giờ -> roll 5 tầng + loot, nhập thưởng, kết thúc (nhàn rỗi).
+  // Bí Cảnh (LỊCH LUYỆN): N lượt liên tiếp. Mỗi lượt tới giờ -> roll + dồn loot vào kho NGAY (acc gom lại).
+  // Hết cả lịch -> chốt tổng kết (lastResult + thông báo). Về giữa chừng vẫn giữ loot các lượt đã xong.
   if (act.type === 'dungeon') {
-    const total = act.cycleMs || 1;
-    const elapsed = now - act.startedAt;
-    if (elapsed >= total) {
-      const result = grantDungeon(state, act.dungeonId, act.mode, now);
+    if (!act.durMs || act.runs == null) { state.activity = null; return null; }   // thủ: activity dị dạng -> gỡ, tránh NaN kẹt
+    if (!act.acc) act.acc = newDungeonAcc();
+    const done = Math.min(act.runs, Math.floor((now - act.startedAt) / (act.durMs || 1)));
+    const newRuns = done - act.acc.runs;
+    for (let k = 0; k < newRuns; k++) grantDungeonRun(state, act.dungeonId, act.acc, now);
+    if (done >= act.runs) {
+      const result = finalizeDungeonBatch(state, act.dungeonId, act.acc, now);
       state.activity = null;
-      return { dungeon: true, dungeonId: act.dungeonId, result };
+      return { dungeon: true, dungeonId: act.dungeonId, result, finished: true };
     }
-    act.progress = Math.min(1, elapsed / total);
-    return null;
+    act.progress = Math.min(1, (now - act.startedAt) / (act.cycleMs || 1));
+    return newRuns > 0 ? { dungeon: true, dungeonId: act.dungeonId, partial: true, runsDone: act.acc.runs } : null;
   }
 
   const cap = idleCapMs(state);
