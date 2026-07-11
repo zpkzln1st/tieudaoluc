@@ -20,7 +20,7 @@ function mk(level, arch, extra) {
   const atk = Math.round(1.4  * Math.pow(level, 1.30) * a.atk);
   const def = Math.round(0.6  * Math.pow(level, 1.30) * a.def);
   const spd = Math.round(70 * a.spd);
-  const exp = Math.min(arch === 'boss' ? 480 : 80, Math.round(0.5 * Math.pow(level, 1.45) * a.exp));   // tran EXP: quai thuong <=80, boss <=480 (chong lam phat EXP cap cao)
+  const exp = Math.min(80, Math.round(0.5 * Math.pow(level, 1.45) * a.exp));   // tran EXP: MOI quai (ke ca boss) <=80
   const power  = Math.round(hp * 0.22 + atk * 4);
   const statXp = Math.max(1, Math.round(level / 8));
   const time   = Math.max(6, Math.round(level * 0.12) + 5);
