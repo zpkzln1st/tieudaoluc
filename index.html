@@ -9809,118 +9809,87 @@
     </div>
   </template>
 
-  <!-- ===== Modal Cường Hóa (Lò Cường Hóa) — khung frame_cuonghoa + badge_hex + btn_gold ===== -->
-  <style>
-    .ch-modal{ width:660px; max-width:96vw; height:816px; max-height:95vh; position:relative; }
-    .ch-frame{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:6; }
-    .ch-inner{ position:absolute; inset:0; padding:70px 46px 62px; display:flex; flex-direction:column; min-height:0; }
-    .ch-hex{ position:relative; width:150px; height:150px; flex:none; display:flex; align-items:center; justify-content:center; }
-    .ch-hex > img.fr{ position:absolute; inset:0; width:100%; height:100%; }
-    .ch-hex .art{ position:relative; z-index:2; width:76px; height:76px; display:inline-flex; align-items:center; justify-content:center; filter:drop-shadow(0 3px 8px rgba(0,0,0,.7)); }
-    .ch-hex .art img{ width:100%; height:100%; object-fit:contain; }
-    .ch-hex .plus{ position:absolute; z-index:3; bottom:19px; left:50%; transform:translateX(-50%); font-size:14px; font-weight:800; color:#fcd34d; text-shadow:0 1px 3px #000,0 0 8px rgba(245,185,66,.6); }
-    .ch-mic{ width:56px; height:56px; }
-    .ch-mic img{ width:100%; height:100%; object-fit:contain; }
-    .ch-btn{ width:100%; height:56px; background:transparent; border:14px solid transparent;
-      border-image:url("images/dongphu/ui/btn_gold.webp") 48 150 fill / 14px 46px / 0 stretch;
-      cursor:pointer; font-family:'Lora',Georgia,serif; font-weight:800; font-size:18px; color:#3a2606; letter-spacing:.02em;
-      display:flex; align-items:center; justify-content:center; gap:9px; }
-    .ch-btn:hover:not(:disabled){ filter:brightness(1.05); }
-    .ch-btn:disabled{ filter:grayscale(.7) brightness(.5); cursor:not-allowed; }
-  </style>
+  <!-- ===== Modal Cường Hóa (Lò Cường Hóa) ===== -->
   <template x-if="$store.game.enhanceModal">
     <div class="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeEnhance()">
-      <div class="ch-modal" @click.stop
+      <div class="panel rounded-2xl w-[600px] max-w-[95vw] border border-amber-500/30 overflow-hidden shadow-2xl" @click.stop
            x-data="{ get g(){ return $store.game }, get id(){ return $store.game.enhanceId() } }">
-        <img class="ch-frame" src="images/dongphu/ui/frame_cuonghoa.webp" alt="" onerror="this.style.display='none'">
-        <div class="ch-inner">
-          <!-- Header -->
-          <div class="flex items-center justify-between pb-2.5 mb-1 border-b border-amber-500/20 shrink-0">
-            <span class="flex items-center gap-2.5 fserif font-bold text-[20px] gold-text"><span class="w-6 h-6 inline-flex text-amber-300" x-html="g.svg('zap','w-6 h-6')"></span>Lò Cường Hóa</span>
-            <button @click="g.closeEnhance()" class="w-8 h-8 rounded-full bg-black/30 border border-amber-500/25 text-amber-200/80 hover:text-rose-400 hover:border-rose-500 flex items-center justify-center transition" aria-label="Đóng">✕</button>
-          </div>
-          <template x-if="!id"><div class="flex-1 flex items-center justify-center text-slate-500">Slot này chưa có trang bị.</div></template>
-          <template x-if="id">
-            <div class="flex-1 flex flex-col min-h-0" x-data="{ get g(){ return $store.game }, get id(){ return $store.game.enhanceId() }, get info(){ return $store.game.enhanceInfo($store.game.enhanceId()) } }">
-              <!-- Hero: badge_hex + định danh + tiến cấp -->
-              <div class="flex items-center gap-4 pt-3 pb-1 shrink-0">
-                <div class="ch-hex">
-                  <img class="fr" src="images/dongphu/ui/badge_hex.webp" alt="" onerror="this.style.display='none'">
-                  <span class="art cursor-zoom-in" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to" x-html="g.ico(id.id, id.icon)"></span>
-                  <template x-if="g.itemPlus(id)>0"><span class="plus" x-text="'+'+g.itemPlus(id)"></span></template>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="fserif font-bold text-[21px] leading-tight truncate" :class="g.itemQuality(id).text" x-text="id.name"></div>
-                  <span class="inline-flex items-center gap-1.5 mt-2 text-[11.5px] px-2.5 py-0.5 rounded-md border" :class="g.itemQuality(id).text+' '+g.itemQuality(id).border" x-text="g.qualityName(id) + (id.itemLv ? ' · Lv'+id.itemLv : '')"></span>
-                  <template x-if="!g.enhanceMaxed(id)">
-                    <div class="flex items-center gap-3.5 mt-3">
-                      <span class="fserif text-[28px] font-extrabold leading-none text-slate-400" x-text="'+'+g.itemPlus(id)"></span>
-                      <span class="text-amber-400" x-html="g.svg('chevR','w-6 h-6')"></span>
-                      <span class="fserif text-[46px] font-extrabold leading-none text-amber-300" style="filter:drop-shadow(0 0 14px rgba(245,185,66,.5))" x-text="'+'+(g.itemPlus(id)+1)"></span>
-                    </div>
-                  </template>
-                  <template x-if="g.enhanceMaxed(id)"><div class="mt-3 text-amber-300 font-semibold fserif" x-text="'Đã đạt cường hóa tối đa (+'+g.MAX_PLUS+')'"></div></template>
-                </div>
-              </div>
-
-              <!-- Kết quả (slot cố định) -->
-              <div class="h-[30px] flex items-center justify-center font-semibold text-[14px] shrink-0">
-                <template x-if="g.enhanceMsg && g.enhanceMsg.ok"><span class="text-emerald-400" x-text="'✓ Thành công! Đạt +'+g.enhanceMsg.plus"></span></template>
-                <template x-if="g.enhanceMsg && !g.enhanceMsg.ok"><span class="text-rose-400">✗ Thất bại, nguyên liệu tiêu hao.</span></template>
-              </div>
-
-              <template x-if="!g.enhanceMaxed(id)">
-                <div class="flex-1 flex flex-col min-h-0">
-                  <!-- 2 panel (flex-1 -> cao bằng nhau, cố định bất kể số dòng) -->
-                  <div class="flex-1 grid grid-cols-2 gap-3.5 mb-3 min-h-0">
-                    <!-- Chỉ số tăng -->
-                    <div class="rounded-xl bg-ink3/40 border border-amber-500/15 p-3.5 flex flex-col min-h-0">
-                      <div class="fserif text-[13.5px] text-amber-300 font-bold mb-2 flex items-center gap-2 shrink-0"><span class="text-amber-400/80" x-html="g.svg('star','w-4 h-4')"></span>Chỉ Số Tăng<span class="flex-1 h-px bg-gradient-to-r from-amber-500/30 to-transparent"></span></div>
-                      <div class="flex-1 overflow-y-auto">
-                        <template x-for="p in g.enhancePreview(id)" :key="p.key">
-                          <div class="flex items-center justify-between py-1.5 text-[13px] border-b border-white/[0.03]"><span class="inline-flex items-center gap-2 text-slate-300"><span class="text-slate-500" x-html="g.svg(p.icon,'w-4 h-4')"></span><span x-text="p.label"></span></span><span class="tabular-nums flex items-center gap-1.5"><span class="text-slate-400" x-text="p.cur"></span><span class="text-slate-600">→</span><span class="text-slate-100 font-bold" x-text="p.next"></span><span class="text-emerald-400 text-[12px] font-bold w-9 text-right" x-text="'+'+(p.next-p.cur)"></span></span></div>
-                        </template>
-                        <template x-if="!g.enhancePreview(id).length"><div class="h-full flex flex-col items-center justify-center gap-2.5 text-center px-2"><span class="text-amber-500/40 w-8 h-8 inline-flex" x-html="g.svg('bulb','w-8 h-8')"></span><span class="text-[12px] text-slate-500 italic leading-snug">Trang bị này không có chỉ số nền để cường hóa — vẫn nâng bậc +.</span></div></template>
-                      </div>
-                    </div>
-                    <!-- Nguyên liệu (ảnh TO) -->
-                    <div class="rounded-xl bg-ink3/40 border border-amber-500/15 p-3.5 flex flex-col min-h-0">
-                      <div class="fserif text-[13.5px] text-amber-300 font-bold mb-2 flex items-center gap-2 shrink-0"><span class="text-amber-400/80" x-html="g.svg('gate','w-4 h-4')"></span>Nguyên Liệu<span class="flex-1 h-px bg-gradient-to-r from-amber-500/30 to-transparent"></span></div>
-                      <div class="flex-1 flex flex-col gap-2.5 overflow-y-auto">
-                        <div class="flex items-center gap-3">
-                          <span class="ch-mic rounded-xl bg-ink/60 border-2 flex items-center justify-center shrink-0 cursor-zoom-in overflow-hidden" :class="g.itemQuality(info.stoneId).border" @click="g.openLightbox(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon, info.stoneName)" title="Bấm để phóng to" x-html="g.ico(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon)"></span>
-                          <div class="flex-1 min-w-0"><div class="fserif text-[13.5px] font-semibold truncate" :class="g.itemQuality(info.stoneId).text" x-text="info.stoneName"></div><div class="text-[11px] mt-0.5" :class="info.stoneOk?'text-emerald-400':'text-rose-400'" x-text="info.stoneOk?'✓ Đủ':'✕ Thiếu'"></div></div>
-                          <span class="tabular-nums text-[13px] font-semibold shrink-0" :class="info.stoneOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.stoneHave)+' / '+info.stoneQty"></span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                          <span class="ch-mic rounded-xl bg-ink/60 border-2 border-rose-500/50 flex items-center justify-center shrink-0 cursor-zoom-in overflow-hidden" @click="g.openLightbox('honThach','💠','Hồn Thạch')" title="Bấm để phóng to" x-html="g.ico('honThach','💠')"></span>
-                          <div class="flex-1 min-w-0"><div class="fserif text-[13.5px] font-semibold text-rose-300 truncate">Hồn Thạch</div><div class="text-[11px] mt-0.5" :class="info.honOk?'text-emerald-400':'text-rose-400'" x-text="info.honOk?'✓ Đủ':'✕ Thiếu'"></div></div>
-                          <span class="tabular-nums text-[13px] font-semibold shrink-0" :class="info.honOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.honHave)+' / '+g.fmt(info.honThach)"></span>
-                        </div>
-                        <template x-if="info.crystalQty>0">
-                          <div class="flex items-center gap-3">
-                            <span class="ch-mic rounded-xl bg-ink/60 border-2 flex items-center justify-center shrink-0 cursor-zoom-in overflow-hidden" :class="g.itemQuality(info.crystalId).border" @click="g.openLightbox(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon, info.crystalName)" title="Bấm để phóng to" x-html="g.ico(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon)"></span>
-                            <div class="flex-1 min-w-0"><div class="fserif text-[13.5px] font-semibold truncate" :class="g.itemQuality(info.crystalId).text" x-text="info.crystalName"></div><div class="text-[11px] mt-0.5" :class="info.crystalOk?'text-emerald-400':'text-rose-400'" x-text="info.crystalOk?'✓ Đủ':'✕ Thiếu'"></div></div>
-                            <span class="tabular-nums text-[13px] font-semibold shrink-0" :class="info.crystalOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.crystalHave)+' / '+info.crystalQty"></span>
-                          </div>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Tỉ lệ -->
-                  <div class="rounded-xl bg-ink3/30 border border-amber-500/12 px-4 py-3 mb-3.5 shrink-0">
-                    <div class="flex items-center justify-between mb-2"><span class="fserif text-[13.5px] text-amber-300">Tỉ Lệ Thành Công</span><span class="fserif text-[24px] font-extrabold" :class="info.ratePct>=80?'text-emerald-400':(info.ratePct>=50?'text-amber-300':'text-rose-400')" x-text="info.ratePct+'%'"></span></div>
-                    <div class="h-3 rounded-full bg-slate-900 overflow-hidden ring-1 ring-black/40"><div class="h-full rounded-full transition-all" :class="info.ratePct>=80?'bg-gradient-to-r from-emerald-600 to-emerald-400':(info.ratePct>=50?'bg-gradient-to-r from-amber-600 to-amber-400':'bg-gradient-to-r from-rose-600 to-rose-400')" :style="'width:'+info.ratePct+'%'"></div></div>
-                    <div class="text-[11px] text-slate-500 mt-2 text-center">Thất bại: mất nguyên liệu · <span class="text-slate-400">KHÔNG tụt cấp</span>.</div>
-                  </div>
-
-                  <button @click="g.doEnhance()" :disabled="!g.enhanceCan(id)" class="ch-btn shrink-0"><span class="w-5 h-5 inline-flex" x-html="g.svg('zap','w-5 h-5')"></span>CƯỜNG HÓA</button>
-                </div>
-              </template>
-            </div>
-          </template>
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-ink2/60">
+          <span class="flex items-center gap-2 text-base font-semibold text-slate-100"><span class="text-amber-400" x-html="g.svg('zap','w-5 h-5')"></span>Lò Cường Hóa</span>
+          <button @click="g.closeEnhance()" class="text-slate-500 hover:text-rose-400 text-lg" aria-label="Đóng">✕</button>
         </div>
+        <template x-if="!id"><div class="p-10 text-center text-slate-500">Slot này chưa có trang bị.</div></template>
+        <template x-if="id">
+          <div class="p-5" x-data="{ get g(){ return $store.game }, get id(){ return $store.game.enhanceId() }, get info(){ return $store.game.enhanceInfo($store.game.enhanceId()) } }">
+            <!-- Hero: item (ô VUÔNG + vòng trận pháp) + định danh + tiến cấp -->
+            <div class="flex items-center gap-5 mb-5">
+              <div class="relative w-[110px] h-[110px] shrink-0 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full pointer-events-none text-amber-300" fill="none" stroke="currentColor" style="filter:drop-shadow(0 0 2.5px rgba(245,185,66,.55))">
+                  <rect x="5" y="5" width="90" height="90" rx="15" stroke-width="0.6" opacity=".22"/>
+                  <rect x="5" y="5" width="90" height="90" rx="15" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="0.4 6" opacity=".95">
+                    <animate attributeName="stroke-dashoffset" from="0" to="6.4" dur="1.2s" repeatCount="indefinite"/>
+                  </rect>
+                </svg>
+                <div class="relative w-[82px] h-[82px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to">
+                  <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(id.id, id.icon)"></span>
+                  <template x-if="g.itemPlus(id)>0"><span class="absolute bottom-0 right-0 text-[11px] font-bold text-amber-300 bg-ink/85 px-1.5 rounded-tl" x-text="'+'+g.itemPlus(id)"></span></template>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-lg font-semibold truncate" :class="g.itemQuality(id).text" x-text="id.name + (g.itemPlus(id)>0 ? ' +'+g.itemPlus(id) : '')"></div>
+                <span class="inline-block mt-1.5 text-[11px] px-2 py-0.5 rounded border" :class="g.itemQuality(id).bg+' '+g.itemQuality(id).text+' '+g.itemQuality(id).border" x-text="g.qualityName(id) + (id.itemLv ? ' · Lv'+id.itemLv : '')"></span>
+                <template x-if="!g.enhanceMaxed(id)">
+                  <div class="flex items-center gap-3 mt-3">
+                    <span class="text-[26px] font-bold leading-none text-slate-400" x-text="'+'+g.itemPlus(id)"></span>
+                    <span class="text-amber-400" x-html="g.svg('chevR','w-6 h-6')"></span>
+                    <span class="text-[40px] font-extrabold leading-none text-amber-300" x-text="'+'+(g.itemPlus(id)+1)"></span>
+                  </div>
+                </template>
+                <template x-if="g.enhanceMaxed(id)">
+                  <div class="mt-3 text-amber-300 font-semibold" x-text="'Đã đạt cường hóa tối đa (+'+g.MAX_PLUS+')'"></div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Thông báo kết quả (ngoài guard maxed → cú chốt +15 vẫn báo) -->
+            <template x-if="g.enhanceMsg && g.enhanceMsg.ok"><div class="text-center text-emerald-400 font-medium mb-3" x-text="'✓ Thành công! Đạt +'+g.enhanceMsg.plus"></div></template>
+            <template x-if="g.enhanceMsg && !g.enhanceMsg.ok"><div class="text-center text-rose-400 font-medium mb-3">✗ Thất bại, nguyên liệu tiêu hao.</div></template>
+
+            <template x-if="!g.enhanceMaxed(id)">
+              <div>
+                <!-- 2 cột: Chỉ số tăng | Nguyên liệu -->
+                <div class="grid grid-cols-2 gap-3.5 mb-4">
+                  <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4">
+                    <div class="text-[11px] uppercase tracking-wider text-amber-300/70 mb-2.5 font-medium">Chỉ số tăng</div>
+                    <div class="space-y-2.5">
+                      <template x-for="p in g.enhancePreview(id)" :key="p.key">
+                        <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-400"><span class="text-slate-500" x-html="g.svg(p.icon,'w-4 h-4')"></span><span x-text="p.label"></span></span><span class="tabular-nums"><span class="text-slate-400" x-text="p.cur"></span><span class="text-slate-600 mx-1">→</span><span class="text-emerald-400 font-semibold" x-text="p.next"></span><span class="text-emerald-500/70 text-[11px] ml-1" x-text="'+'+(p.next-p.cur)"></span></span></div>
+                      </template>
+                      <template x-if="!g.enhancePreview(id).length"><div class="text-[12px] text-slate-500 italic py-1">Trang bị này không có chỉ số nền để cường hóa.</div></template>
+                    </div>
+                  </div>
+                  <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4">
+                    <div class="text-[11px] uppercase tracking-wider text-amber-300/70 mb-2.5 font-medium">Nguyên liệu</div>
+                    <div class="space-y-2.5">
+                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon, info.stoneName)" title="Bấm để phóng to" x-html="g.ico(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.stoneId).text" x-text="info.stoneName"></span></span><span class="tabular-nums shrink-0" :class="info.stoneOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.stoneHave)+' / '+info.stoneQty"></span></div>
+                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox('honThach','💠','Hồn Thạch')" title="Bấm để phóng to" x-html="g.ico('honThach','💠')"></span><span class="truncate font-medium text-rose-300">Hồn Thạch</span></span><span class="tabular-nums shrink-0" :class="info.honOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.honHave)+' / '+g.fmt(info.honThach)"></span></div>
+                      <template x-if="info.crystalQty>0"><div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon, info.crystalName)" title="Bấm để phóng to" x-html="g.ico(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.crystalId).text" x-text="info.crystalName"></span></span><span class="tabular-nums shrink-0" :class="info.crystalOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.crystalHave)+' / '+info.crystalQty"></span></div></template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tỉ lệ thành công (thanh) -->
+                <div class="rounded-xl bg-ink3/40 border border-slate-800 px-4 py-3.5 mb-4">
+                  <div class="flex items-center justify-between mb-2"><span class="text-[13px] text-slate-300">Tỉ lệ thành công</span><span class="text-lg font-bold" :class="info.ratePct>=80?'text-emerald-400':(info.ratePct>=50?'text-amber-300':'text-rose-400')" x-text="info.ratePct+'%'"></span></div>
+                  <div class="h-2.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" :class="info.ratePct>=80?'bg-emerald-500':(info.ratePct>=50?'bg-amber-500':'bg-rose-500')" :style="'width:'+info.ratePct+'%'"></div></div>
+                  <div class="text-[11px] text-slate-500 mt-2 text-center">Thất bại: mất nguyên liệu, <span class="text-slate-400">KHÔNG tụt cấp</span>.</div>
+                </div>
+
+                <button @click="g.doEnhance()" :disabled="!g.enhanceCan(id)" class="w-full py-3 rounded-xl font-semibold text-base transition inline-flex items-center justify-center gap-2" :class="g.enhanceCan(id) ? 'bg-amber-500 hover:bg-amber-400 text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'"><span x-html="g.svg('zap','w-5 h-5')"></span>Cường Hóa</button>
+              </div>
+            </template>
+          </div>
+        </template>
       </div>
     </div>
   </template>
