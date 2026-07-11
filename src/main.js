@@ -312,6 +312,7 @@ const SVG_PATHS = {
   // Biểu trưng từng Bộ Pháp
   shield: '<path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5z"/>',
   flame:  '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  calendar: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   wind:   '<path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/><path d="M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>',
   scales: '<path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 6a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6a3 3 0 0 0 6 0z"/><path d="M8 21h8"/>',
@@ -1247,6 +1248,7 @@ const gameStore = {
   },
   get canClaimDaily() { return this.state.login.lastDay !== todayStr(); },
   get loginStreak() { return this.state.login.streak || 0; },
+  get dailyExpBonus() { return Math.min(20, Math.floor((this.state.login.streak || 0) / 10)); },   // +1% EXP mỗi 10 ngày chuỗi, tối đa 20%
   get loginNextIndex() {
     const prev = this.state.login.streak || 0;
     const cyc = this.LOGIN_REWARDS.length;

@@ -10329,12 +10329,15 @@
       <div class="panel rounded-2xl w-[860px] max-w-full max-h-[90dvh] flex flex-col border border-amber-500/30 shadow-2xl" @click.stop>
         <!-- Header -->
         <div class="flex items-center justify-between px-3 sm:px-5 pt-4 pb-3 border-b border-slate-800 shrink-0">
-          <div class="flex items-center gap-2.5">
-            <div class="font-bold text-lg text-amber-300">📅 Điểm Danh</div>
-            <span class="px-2 py-0.5 rounded-full bg-ink3 border border-amber-500/20 text-amber-200 text-[11px]">🔥 Chuỗi <b x-text="$store.game.loginStreak"></b> ngày</span>
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <div class="font-bold text-lg text-amber-300 flex items-center gap-2"><span class="w-5 h-5 inline-flex" x-html="$store.game.svg('calendar','w-5 h-5')"></span>Điểm Danh</div>
+            <span class="px-2.5 py-1 rounded-full bg-ink3 border border-amber-500/20 text-amber-200 text-[11px] inline-flex items-center gap-1.5" title="Chuỗi điểm danh: mỗi 10 ngày +1% EXP, tối đa 20%">
+              <span class="w-3.5 h-3.5 inline-flex text-orange-400" x-html="$store.game.svg('flame','w-3.5 h-3.5')"></span>Chuỗi <b x-text="$store.game.loginStreak"></b> ngày<template x-if="$store.game.dailyExpBonus>0"><span class="text-jade font-semibold ml-0.5">· +<span x-text="$store.game.dailyExpBonus"></span>% EXP</span></template>
+            </span>
           </div>
           <button @click="$store.game.dailyModal=false" class="text-slate-500 hover:text-rose-400 text-lg">✕</button>
         </div>
+        <div class="px-3 sm:px-5 pt-2 text-[11px] text-slate-500">Chuỗi điểm danh: <b class="text-amber-300/90">mỗi 10 ngày +1% EXP</b> (tối đa <b class="text-amber-300/90">20%</b>) — áp cho mọi nguồn EXP.</div>
         <!-- Lưới 30 ngày -->
         <div class="px-2 py-3 sm:px-5 sm:py-4 overflow-y-auto">
           <div class="grid grid-cols-7 gap-1 sm:gap-2.5">

@@ -64,7 +64,10 @@ export function ngheBySkill(skillId) { return NGHE.find((n) => n.skill === skill
 export function skillExpMultiplier(state, skillId) {
   const profs = (state && state.player && state.player.professions) || [];
   const n = ngheBySkill(skillId);
-  return (n && profs.includes(n.id)) ? 1 + n.exp / 100 : 1;
+  const prof = (n && profs.includes(n.id)) ? n.exp / 100 : 0;
+  const streak = (state && state.login && state.login.streak) || 0;
+  const daily = Math.min(20, Math.floor(streak / 10)) / 100;   // Điểm Danh: +1% EXP mỗi 10 ngày chuỗi, tối đa 20% (áp mọi nguồn EXP)
+  return 1 + prof + daily;
 }
 // Hệ số Hiệu Suất theo Nghề (giảm thời gian mỗi vòng).
 export function professionEffMult(state, skillId) {
