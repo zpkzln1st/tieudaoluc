@@ -218,7 +218,7 @@ if (state.activity) {
   if (r && r.cycles > 0) offlineReport = { ...r, awayMs: _awayMs };
   if (r && r.cycles > 0 && r.itemId) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Thu thập hoàn tất', '+' + r.cycles + ' ' + (_it ? _it.name : r.itemId) + ' · +' + r.xp + ' EXP (trong lúc vắng mặt)', now()); }
   if (r && r.ranOut) { const _it = ITEMS[r.itemId]; pushNotif(state, 'thuThap', 'Hết nguyên liệu', 'Đã dừng ' + (_it ? _it.name : 'chế tác') + ' — thu thập/mua thêm nguyên liệu rồi luyện tiếp.', now()); }
-  if (r && r.type === 'combat' && r.died && r.sess) { const _e = ENEMIES[r.enemyId]; const _s = r.sess; const _lt = dropListText(Object.keys(_s.loot || {}).map((id) => ({ id, n: _s.loot[id] })), _s.gearN || 0); pushNotif(state, 'khac', 'Trọng thương khi vắng mặt', 'Gục trước ' + (_e ? _e.name : 'yêu thú') + ' — cả phiên hạ ' + (_s.win || 0) + ' · +' + (_s.xp || 0).toLocaleString('vi-VN') + ' EXP · +' + (_s.bac || 0).toLocaleString('vi-VN') + ' Bạc' + (_lt ? ' · Nhận: ' + _lt : '') + '.', now()); }
+  if (r && r.type === 'combat' && r.died && r.sess) { const _e = ENEMIES[r.enemyId]; const _s = r.sess; const _lt = dropListText(Object.keys(_s.loot || {}).map((id) => ({ id, n: _s.loot[id] })), _s.gearN || 0); pushNotif(state, 'chienDau', 'Trọng thương khi vắng mặt', 'Gục trước ' + (_e ? _e.name : 'yêu thú') + ' — cả phiên hạ ' + (_s.win || 0) + ' · +' + (_s.xp || 0).toLocaleString('vi-VN') + ' EXP · +' + (_s.bac || 0).toLocaleString('vi-VN') + ' Bạc' + (_lt ? ' · Nhận: ' + _lt : '') + '.', now()); }
 }
 // Lò Ấp Noãn: trứng nở xong trong lúc vắng mặt -> báo 1 lần (chờ khai noãn).
 if (state.hatchery && now() >= state.hatchery.readyAt && !state.hatchery.notified) {
@@ -1520,6 +1520,7 @@ const gameStore = {
   notifFilter: 'all',
   NOTIF_TYPES: [
     { id: 'all',      label: 'Tất cả',        col: '#94a3b8', svg: 'inbox',                seal: '總' },
+    { id: 'chienDau', label: 'Chiến Đấu',     col: '#f87171', art: 'combat',     ic: '⚔️', seal: '戰' }, // nav Chiến Đấu (images/nav/combat.webp)
     { id: 'thuThap',  label: 'Thu Thập',      col: '#34d399', art: 'thaiKhoang', ic: '⛏️', seal: '采' }, // mượn art Đào Khoáng
     { id: 'yeuVuong', label: 'Yêu Vương',     col: '#fb7185', art: 'yvBachHo',   ic: '🐲', seal: '妖' }, // boss Bạch Hổ
     { id: 'biCanh',   label: 'Bí Cảnh',       col: '#a78bfa', art: 'dungeon',    ic: '🏛️', seal: '秘' }, // nav Bí Cảnh
@@ -2957,7 +2958,7 @@ const gameStore = {
     const s = a.sess || {};
     const e = this.ENEMIES[a.enemyId] || {};
     return {
-      reason, enemyId: a.enemyId, enemyName: e.name || 'Yêu thú',
+      reason, enemyId: a.enemyId, enemyName: e.name || 'Yêu thú', zone: (this.currentLocationObj || {}).name || '',
       kills: a.sessionCount || 0, xp: s.xp || 0, bac: s.bac || 0,
       win: s.win || 0, lose: s.lose || 0,
       loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })),
@@ -2974,8 +2975,13 @@ const gameStore = {
     if (!sum || (sum.kills <= 0 && sum.lose <= 0)) return;
     const gn = sum.gearN != null ? sum.gearN : (sum.gear || []).length;
     const items = dropListText(sum.loot, gn);   // liệt kê cụ thể món nhận
-    pushNotif(this.state, 'khac', (sum.reason === 'death' ? 'Trọng thương — ' : 'Thu quân — ') + sum.enemyName,
-      'Hạ ' + this.fmt(sum.kills) + ' · +' + this.fmt(sum.xp) + ' EXP · +' + this.fmt(sum.bac) + ' Bạc' + (items ? ' · Nhận: ' + items : '') + (sum.durMs > 0 ? ' · ' + this.fmtTime(Math.round(sum.durMs / 1000)) : '') + '.', now());
+    const title = (sum.reason === 'death' ? '💀 Trọng thương — ' : '⚔ Thu quân — ') + sum.enemyName + (sum.zone ? ' @ ' + sum.zone : '');
+    const p = ['Hạ ' + this.fmt(sum.kills) + ' con'];
+    if (sum.win || sum.lose) p.push('Thắng ' + this.fmt(sum.win) + ' · Bại ' + this.fmt(sum.lose) + ' vòng');
+    p.push('+' + this.fmt(sum.xp) + ' EXP · +' + this.fmt(sum.bac) + ' Bạc');
+    p.push(items ? 'Nhận: ' + items : 'không rơi vật phẩm');
+    if (sum.durMs > 0) p.push('giao chiến ' + this.fmtTime(Math.round(sum.durMs / 1000)));
+    pushNotif(this.state, 'chienDau', title, p.join(' · ') + '.', now());
   },
   // Gục khi combat chạy NỀN (đang ở trang khác / tab ẩn): advance trả died+sess -> toast + chuông.
   notifyCombatBgDeath(rep) {
@@ -2983,7 +2989,7 @@ const gameStore = {
     this.bagPeek = false;   // đóng Túi Tạm nếu đang mở (phiên nền đã kết thúc)
     if (!rep || !rep.sess) return;
     const s = rep.sess, e = this.ENEMIES[rep.enemyId] || {};
-    this.pushCombatSummaryNotif({ reason: 'death', enemyName: e.name || 'Yêu thú', kills: s.win || 0, xp: s.xp || 0, bac: s.bac || 0, win: s.win || 0, lose: s.lose || 0, loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })), gear: (s.gear || []).slice(), gearN: s.gearN || 0, durMs: 0 });
+    this.pushCombatSummaryNotif({ reason: 'death', enemyName: e.name || 'Yêu thú', zone: (this.currentLocationObj || {}).name || '', kills: s.win || 0, xp: s.xp || 0, bac: s.bac || 0, win: s.win || 0, lose: s.lose || 0, loot: Object.keys(s.loot || {}).map((id) => ({ id, n: s.loot[id] })), gear: (s.gear || []).slice(), gearN: s.gearN || 0, durMs: 0 });
   },
   // Khay Thu Hoạch (strip trên Chiến Báo) — view chuẩn hoá của act.sess.
   get combatSessView() {

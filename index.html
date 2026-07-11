@@ -3406,7 +3406,6 @@
                 </template>
                 <template x-for="n in $store.game.notifFor($store.game.notifFilter)" :key="n.id">
                   <div class="flex gap-3 px-4 py-3.5" :class="n.read?'opacity-55':''" x-data="{ t: $store.game.notifTypeMeta(n.type) }">
-                    <div class="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center" :style="'background:'+t.col+'1c;border:1px solid '+t.col+'55;color:'+t.col" x-html="$store.game.notifIcon(t, 'w-5 h-5')"></div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] px-1.5 py-0.5 rounded shrink-0" :style="'color:'+t.col+';background:'+t.col+'14;border:1px solid '+t.col+'44'" x-text="t.label"></span>
