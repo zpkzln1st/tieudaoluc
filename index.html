@@ -9823,14 +9823,14 @@
           <div class="p-5" x-data="{ get g(){ return $store.game }, get id(){ return $store.game.enhanceId() }, get info(){ return $store.game.enhanceInfo($store.game.enhanceId()) } }">
             <!-- Hero: item (ô VUÔNG + vòng trận pháp) + định danh + tiến cấp -->
             <div class="flex items-center gap-5 mb-5">
-              <div class="relative w-[110px] h-[110px] shrink-0 flex items-center justify-center">
+              <div class="relative w-[140px] h-[140px] shrink-0 flex items-center justify-center">
                 <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full pointer-events-none text-amber-300" fill="none" stroke="currentColor" style="filter:drop-shadow(0 0 2.5px rgba(245,185,66,.55))">
                   <rect x="5" y="5" width="90" height="90" rx="15" stroke-width="0.6" opacity=".22"/>
                   <rect x="5" y="5" width="90" height="90" rx="15" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="0.4 6" opacity=".95">
                     <animate attributeName="stroke-dashoffset" from="0" to="6.4" dur="1.2s" repeatCount="indefinite"/>
                   </rect>
                 </svg>
-                <div class="relative w-[82px] h-[82px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to">
+                <div class="relative w-[106px] h-[106px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to">
                   <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(id.id, id.icon)"></span>
                   <template x-if="g.itemPlus(id)>0"><span class="absolute bottom-0 right-0 text-[11px] font-bold text-amber-300 bg-ink/85 px-1.5 rounded-tl" x-text="'+'+g.itemPlus(id)"></span></template>
                 </div>
@@ -9851,15 +9851,17 @@
               </div>
             </div>
 
-            <!-- Thông báo kết quả (ngoài guard maxed → cú chốt +15 vẫn báo) -->
-            <template x-if="g.enhanceMsg && g.enhanceMsg.ok"><div class="text-center text-emerald-400 font-medium mb-3" x-text="'✓ Thành công! Đạt +'+g.enhanceMsg.plus"></div></template>
-            <template x-if="g.enhanceMsg && !g.enhanceMsg.ok"><div class="text-center text-rose-400 font-medium mb-3">✗ Thất bại, nguyên liệu tiêu hao.</div></template>
+            <!-- Thông báo kết quả — SLOT CỐ ĐỊNH (luôn chừa chỗ để modal KHÔNG nhảy khi có/không có kết quả) -->
+            <div class="h-[22px] mb-3 flex items-center justify-center text-center font-medium text-[13px]">
+              <template x-if="g.enhanceMsg && g.enhanceMsg.ok"><span class="text-emerald-400" x-text="'✓ Thành công! Đạt +'+g.enhanceMsg.plus"></span></template>
+              <template x-if="g.enhanceMsg && !g.enhanceMsg.ok"><span class="text-rose-400">✗ Thất bại, nguyên liệu tiêu hao.</span></template>
+            </div>
 
             <template x-if="!g.enhanceMaxed(id)">
               <div>
                 <!-- 2 cột: Chỉ số tăng | Nguyên liệu -->
                 <div class="grid grid-cols-2 gap-3.5 mb-4">
-                  <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4">
+                  <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4 min-h-[248px]">
                     <div class="text-[11px] uppercase tracking-wider text-amber-300/70 mb-2.5 font-medium">Chỉ số tăng</div>
                     <div class="space-y-2.5">
                       <template x-for="p in g.enhancePreview(id)" :key="p.key">
@@ -9868,7 +9870,7 @@
                       <template x-if="!g.enhancePreview(id).length"><div class="text-[12px] text-slate-500 italic py-1">Trang bị này không có chỉ số nền để cường hóa.</div></template>
                     </div>
                   </div>
-                  <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4">
+                  <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4 min-h-[248px]">
                     <div class="text-[11px] uppercase tracking-wider text-amber-300/70 mb-2.5 font-medium">Nguyên liệu</div>
                     <div class="space-y-2.5">
                       <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon, info.stoneName)" title="Bấm để phóng to" x-html="g.ico(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.stoneId).text" x-text="info.stoneName"></span></span><span class="tabular-nums shrink-0" :class="info.stoneOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.stoneHave)+' / '+info.stoneQty"></span></div>
