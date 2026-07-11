@@ -9810,6 +9810,10 @@
   </template>
 
   <!-- ===== Modal Cường Hóa (Lò Cường Hóa) ===== -->
+  <style>
+    .eh-hex{ background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat; display:grid; place-items:center;
+      font-family:'Lora',Georgia,serif; font-weight:800; text-shadow:0 1px 3px #000; line-height:1; }
+  </style>
   <template x-if="$store.game.enhanceModal">
     <div class="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeEnhance()">
       <div class="panel rounded-2xl w-[600px] max-w-[95vw] overflow-hidden relative" @click.stop
@@ -9838,17 +9842,17 @@
                 </svg>
                 <div class="relative w-[106px] h-[106px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to">
                   <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(id.id, id.icon)"></span>
-                  <template x-if="g.itemPlus(id)>0"><span class="absolute bottom-0 right-0 text-[11px] font-bold text-amber-300 bg-ink/85 px-1.5 rounded-tl" x-text="'+'+g.itemPlus(id)"></span></template>
                 </div>
+                <template x-if="g.itemPlus(id)>0"><span class="eh-hex absolute z-[2]" style="bottom:4px;right:4px;width:40px;height:43px;font-size:14px;color:#fcd34d" x-text="g.itemPlus(id)"></span></template>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="text-lg font-semibold truncate" :class="g.itemQuality(id).text" x-text="id.name + (g.itemPlus(id)>0 ? ' +'+g.itemPlus(id) : '')"></div>
                 <span class="inline-block mt-1.5 text-[11px] px-2 py-0.5 rounded border" :class="g.itemQuality(id).bg+' '+g.itemQuality(id).text+' '+g.itemQuality(id).border" x-text="g.qualityName(id) + (id.itemLv ? ' · Lv'+id.itemLv : '')"></span>
                 <template x-if="!g.enhanceMaxed(id)">
-                  <div class="flex items-center gap-3 mt-3">
-                    <span class="text-[26px] font-bold leading-none text-slate-400" x-text="'+'+g.itemPlus(id)"></span>
-                    <span class="text-amber-400" x-html="g.svg('chevR','w-6 h-6')"></span>
-                    <span class="text-[40px] font-extrabold leading-none text-amber-300" x-text="'+'+(g.itemPlus(id)+1)"></span>
+                  <div class="flex items-center gap-4 mt-3">
+                    <span class="eh-hex" style="width:54px;height:58px;font-size:21px;color:#eafaf2" x-text="g.itemPlus(id)"></span>
+                    <span class="text-amber-400" x-html="g.svg('chevR','w-7 h-7')"></span>
+                    <span class="eh-hex" style="width:62px;height:66px;font-size:25px;color:#fcd34d;filter:drop-shadow(0 0 12px rgba(245,185,66,.55))" x-text="g.itemPlus(id)+1"></span>
                   </div>
                 </template>
                 <template x-if="g.enhanceMaxed(id)">
