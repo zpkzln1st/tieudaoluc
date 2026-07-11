@@ -9812,8 +9812,14 @@
   <!-- ===== Modal Cường Hóa (Lò Cường Hóa) ===== -->
   <template x-if="$store.game.enhanceModal">
     <div class="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeEnhance()">
-      <div class="panel rounded-2xl w-[600px] max-w-[95vw] border border-amber-500/30 overflow-hidden shadow-2xl" @click.stop
+      <div class="panel rounded-2xl w-[600px] max-w-[95vw] overflow-hidden relative" @click.stop
+           style="border:1px solid rgba(94,234,212,.42);box-shadow:inset 0 0 0 4px #0b1220,inset 0 0 0 5px rgba(94,234,212,.22),0 25px 60px rgba(0,0,0,.6)"
            x-data="{ get g(){ return $store.game }, get id(){ return $store.game.enhanceId() } }">
+        <!-- KHUNG D: 4 góc ngọc -->
+        <span class="absolute pointer-events-none z-[3]" style="top:8px;left:8px;width:24px;height:24px;border:2px solid #5eead4;border-right:none;border-bottom:none;border-radius:6px 0 0 0;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
+        <span class="absolute pointer-events-none z-[3]" style="top:8px;right:8px;width:24px;height:24px;border:2px solid #5eead4;border-left:none;border-bottom:none;border-radius:0 6px 0 0;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
+        <span class="absolute pointer-events-none z-[3]" style="bottom:8px;left:8px;width:24px;height:24px;border:2px solid #5eead4;border-right:none;border-top:none;border-radius:0 0 0 6px;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
+        <span class="absolute pointer-events-none z-[3]" style="bottom:8px;right:8px;width:24px;height:24px;border:2px solid #5eead4;border-left:none;border-top:none;border-radius:0 0 6px 0;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
         <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-ink2/60">
           <span class="flex items-center gap-2 text-base font-semibold text-slate-100"><span class="text-amber-400" x-html="g.svg('zap','w-5 h-5')"></span>Lò Cường Hóa</span>
           <button @click="g.closeEnhance()" class="text-slate-500 hover:text-rose-400 text-lg" aria-label="Đóng">✕</button>
