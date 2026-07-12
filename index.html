@@ -8805,8 +8805,12 @@
         .kt-root .cung .nm{margin-top:auto;font-family:'Lora',serif;font-weight:700;font-size:14px;text-shadow:0 1px 3px #000}
         .kt-root .cung .st{font-size:10px;margin-top:1px;color:var(--ktmut)}
         .kt-root .cung .badge{position:absolute;top:8px;right:8px;font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.6);border:1px solid var(--ktline2);color:var(--ktmut)}
-        .kt-root .cung:hover:not(.locked){transform:translateY(-3px)}
-        .kt-root .cung:hover:not(.locked) img{opacity:.6}
+        .kt-root .cung .cframe{position:absolute;inset:0;pointer-events:none;border:12px solid transparent;border-image:url("images/dongphu/ui/frame_gold.webp") 150 / 12px / 0 stretch;opacity:0;transition:opacity .18s}
+        .kt-root .cung.sel .cframe{opacity:1}
+        .kt-root .cung:hover:not(.locked){transform:translateY(-3px);box-shadow:0 9px 22px -10px rgba(0,0,0,.75)}
+        .kt-root .cung:hover:not(.locked) img{opacity:.72}
+        .kt-root .cung.sel img{opacity:.8}
+        .kt-root .cung:hover:not(.locked) .vig,.kt-root .cung.sel .vig{background:linear-gradient(180deg,rgba(7,11,18,.05),rgba(7,11,18,.72))}
         .kt-root .cung.done{border-color:rgba(45,212,191,.4);box-shadow:inset 0 0 0 1px rgba(45,212,191,.2),0 0 18px -10px var(--ktjade)}
         .kt-root .cung.done .st{color:var(--ktjade)}
         .kt-root .cung.active{border-color:rgba(245,185,66,.53);box-shadow:0 0 20px -8px var(--ktgold)}
@@ -8818,7 +8822,7 @@
         .kt-root .cung.center{border:2px solid var(--ktgold);cursor:pointer}
         .kt-root .cung.center .vig{background:linear-gradient(180deg,rgba(30,16,44,.35),rgba(10,6,20,.9))}
         .kt-root .cung.center .nm{color:#e9d5ff}
-        .kt-root .cung.sel{outline:2px solid var(--ktgold);outline-offset:-1px}
+        .kt-root .cung.sel{box-shadow:0 0 24px -5px var(--ktgold)}
         .kt-root .cung .chk{position:absolute;top:7px;left:9px;color:var(--ktjade);font-size:14px;filter:drop-shadow(0 0 4px #2dd4bf)}
         .kt-root .cung .lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.5;color:var(--ktmut)}
         .kt-root .cung .lock svg{width:20px;height:20px}
@@ -8998,6 +9002,7 @@
                   <div class="cung" :class="cungCls(i)" @click="selectCung(i)">
                     <img :src="'images/dungeons/'+c.scene+'.webp'" onerror="this.style.display='none'">
                     <div class="vig"></div>
+                    <div class="cframe"></div>
                     <div class="lock" x-show="cungSt(i)==='locked'" x-html="svgi('lock')"></div>
                     <div class="badge" x-text="cungBadge(i)"></div>
                     <div class="in">
