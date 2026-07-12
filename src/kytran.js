@@ -137,6 +137,9 @@ export function kyTran() {
       const bac = Math.max(1, Math.min(20, (tier - 1) * 3 + n));
       return bac === 1 ? 'badge_hex.webp' : 'badge_hex' + bac + '.webp';
     },
+    bossBadge(i) { // Cung Chủ: Ma Đế (Trung Cung) = trùm cuối riêng, còn lại badge cung chủ chung
+      return (KT_CUNG[i] && KT_CUNG[i].id === 'maDe') ? 'badge_hexfinalboss.webp' : 'badge_hexcungchu.webp';
+    },
     rewardOf(c) { // chip thưởng: tâm pháp / kỹ năng mở khi chiếm Cung
       const out = [];
       if (c.reward && c.reward.tp) { const t = KT_TAM_PHAP.find((x) => x.id === c.reward.tp); if (t) out.push({ img: 'images/kytran/tp_' + t.id + '.webp', txt: 'Tâm Pháp · ' + t.name }); }
