@@ -8865,8 +8865,8 @@
         .kt-root .ktr-nghead{text-align:center;margin:6px 0 18px}
         .kt-root .ktr-nghead .ttl{font-family:'Lora',serif;font-weight:700;font-size:24px;background:linear-gradient(180deg,#f6e4b0,#e2c477 48%,#b8912f);-webkit-background-clip:text;background-clip:text;color:transparent}
         .kt-root .ktr-nghead .sub{font-size:12px;color:var(--ktmut);margin-top:5px}
-        .kt-root .ktr-hero{display:grid;grid-template-columns:520px minmax(0,1fr);gap:28px;align-items:center;max-width:1060px;margin:0 auto}
-        .kt-root .laban{position:relative;width:520px;max-width:100%;aspect-ratio:1;margin:0 auto;--msz:94px}
+        .kt-root .ktr-hero{display:grid;grid-template-columns:470px minmax(0,1fr);gap:24px;align-items:center;max-width:960px;margin:0 auto}
+        .kt-root .laban{position:relative;width:470px;max-width:100%;aspect-ratio:1;margin:0 auto;--msz:84px}
         .kt-root .laban>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
         .kt-root .med{position:absolute;width:var(--msz);aspect-ratio:1;transform:translate(-50%,-50%);cursor:pointer;transition:transform .15s ease;border-radius:50%}
         .kt-root .med:hover{transform:translate(-50%,-50%) scale(1.05)}
@@ -8893,16 +8893,17 @@
         .kt-root .rel{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--rc);border:1px solid var(--rcA);border-radius:20px;padding:3px 11px;background:var(--rcT)}
         .kt-root .rel .rl{color:#8a8069}
         .kt-root .ktr-perlv{margin-top:14px;font-size:12px;color:#9b9079;border:1px dashed #2e2818;border-radius:9px;padding:7px 11px;display:inline-block}
-        .kt-root .lvrow{margin-top:16px}
+        .kt-root .lvrow{margin-top:16px;display:flex;align-items:center;gap:11px}
+        .kt-root .lvhex{display:inline-grid;place-items:center;width:42px;height:46px;flex:none;background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat;color:#f3e7c7;font-family:'Lora',serif;font-weight:700;font-size:19px;line-height:1;text-shadow:0 1px 2px #000}
         .kt-root .lvrow .lb{font-size:12.5px;color:#9b9079}
-        .kt-root .lvrow .lb b{color:#e6ddca;font-size:16px;font-weight:600}
+        .kt-root .lvrow .lb b{color:#e6ddca;font-size:15px;font-weight:600}
         .kt-root .segs{display:flex;gap:3px;margin-top:16px}
         .kt-root .segs i{position:relative;flex:1;height:10px;border-radius:3px;background:#1c1810}
         .kt-root .segs i.f{background:linear-gradient(180deg,var(--ec),var(--ecT2));box-shadow:0 0 8px var(--ecA2)}
         .kt-root .segs i.ms::after{content:"◆";position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:8px;color:#4a4433}
         .kt-root .segs i.ms.f::after{color:var(--ktgold)}
         .kt-root .miles{margin-top:18px;display:flex;flex-direction:column;gap:9px}
-        .kt-root .mile{display:flex;align-items:flex-start;gap:12px;padding:10px 13px;border-radius:10px;border:1px solid #1c1811;border-left:3px solid #2a2416;background:#0d0c0a;color:#8a8069}
+        .kt-root .mile{display:flex;align-items:flex-start;gap:12px;padding:10px 13px;border-radius:10px;border:1px solid #1c1811;border-left:3px solid #2a2416;background:transparent;color:#8a8069}
         .kt-root .mile .mlv{flex:none;font-family:'Lora',serif;font-weight:600;font-size:12px;color:#6b6046;padding-top:1px;width:46px}
         .kt-root .mile .mtx{font-size:12.5px;line-height:1.45}
         .kt-root .mile .mtag{flex:none;margin-left:auto;font-size:10px;letter-spacing:.14em;color:var(--ktgold);border:1px solid rgba(201,162,75,.4);border-radius:20px;padding:2px 9px;align-self:center}
@@ -8910,11 +8911,10 @@
         .kt-root .mile.on .mlv{color:var(--ec)}
         .kt-root .mile.cap.on{border-left-color:var(--ktgold2);color:var(--ktgold2)}
         .kt-root .actrow{margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-        .kt-root .ktr-btn{display:inline-flex;align-items:center;gap:9px;padding:10px 24px;border-radius:10px;font-family:'Lora',serif;font-weight:600;font-size:14.5px;color:var(--ec);cursor:pointer;border:1px solid var(--ec);background:var(--ecT);transition:background .13s,box-shadow .13s}
-        .kt-root .ktr-btn:hover{background:var(--ecT2);box-shadow:0 0 16px var(--ecA2)}
-        .kt-root .ktr-btn.dis{opacity:.45;cursor:not-allowed}
-        .kt-root .ktr-btn.dis:hover{background:var(--ecT);box-shadow:none}
-        .kt-root .ktr-btn .cost{font-size:12.5px;color:#9b9079;font-weight:500}
+        .kt-root .ktr-goldbtn{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 16px;font-family:'Lora',serif;font-weight:700;font-size:15px;color:#f3e7c7;text-shadow:0 1px 2px rgba(0,0,0,.6);background:transparent;border:15px solid transparent;border-width:15px 46px;border-image:url("images/dongphu/ui/btn_gold.webp") 48 150 fill / 15px 46px / 0 stretch;cursor:pointer;transition:.14s}
+        .kt-root .ktr-goldbtn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+        .kt-root .ktr-goldbtn.dis{filter:grayscale(.75) brightness(.72);cursor:not-allowed;transform:none}
+        .kt-root .ktr-goldbtn .cost{font-size:12px;color:#e8dcc0;font-weight:500}
         .kt-root .have{font-size:12px;color:#8a8069}
         .kt-root .have b{color:var(--ktgold2);font-weight:600}
         /* ---- Trảm Yêu Lục + Trận Đồ Bảng ---- */
@@ -9080,7 +9080,7 @@
                   <span class="rel" :style="relVars(relOf(selHanh).by)"><span class="rl">Bị khắc ←</span> <span x-text="KT_HANH[relOf(selHanh).by].nm"></span></span>
                 </div>
                 <div class="ktr-perlv" x-text="sH.perLv"></div>
-                <div class="lvrow"><span class="lb">Cấp <b x-text="hanhLv(selHanh)"></b> / 10</span></div>
+                <div class="lvrow"><span class="lvhex" x-text="hanhLv(selHanh)"></span><span class="lb">Cấp Độ · <b x-text="hanhLv(selHanh)"></b> / 10</span></div>
                 <div class="segs">
                   <template x-for="n2 in 10" :key="n2">
                     <i :class="(n2<=hanhLv(selHanh)?'f ':'')+((n2===4||n2===7||n2===10)?'ms':'')"></i>
@@ -9096,7 +9096,7 @@
                   </template>
                 </div>
                 <div class="actrow">
-                  <button class="ktr-btn" :class="canUp(selHanh)?'':'dis'" @click="upHanh(selHanh)">
+                  <button class="ktr-goldbtn" :class="canUp(selHanh)?'':'dis'" @click="upHanh(selHanh)">
                     <span x-show="hanhLv(selHanh)<10">Nâng <span class="cost">· <img src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <span x-text="upCost(selHanh)"></span></span></span>
                     <span x-show="hanhLv(selHanh)>=10">Viên Mãn</span>
                   </button>
