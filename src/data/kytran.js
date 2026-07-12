@@ -68,7 +68,8 @@ export const KT_CUNG = [
     id: 'thienCuong', tri: '☰', nm: 'Thiên Cương', he: 'Càn · Thiên', c: '#cbd5e1',
     scene: 'coMoKiemTong', hanh: 'kim', tier: 1,
     lore: 'Thiên môn thất thủ, thần tướng hóa yêu.',
-    boss: { art: 'thuVeThanTuong', nm: 'Thủ Vệ Thần Tướng', sub: 'Trùm Thiên Cương', hp: 270, atk: 15, heavyEvery: 4, heavyMul: 1.6 },
+    story: 'Cổ trận án ngữ trời cao, thiên cơ vận chuyển bất tận, phàm phu ngước nhìn cũng phải rợn tóc gáy. Thủ Vệ Thần Tướng vốn là thần binh giữ cửa Càn, tâm khiếu nhiễm ma mà hóa yêu, trấn thủ vạn năm — chỉ kẻ ngộ được lẽ Càn Khôn Nghịch Chuyển mới đủ tư cách bước qua.',
+    boss: { art: 'thuVeThanTuong', nm: 'Thủ Vệ Thần Tướng', sub: 'Trùm Thiên Cương', epithet: 'thần binh giữ cửa Càn, nay đã nhiễm ma', hp: 270, atk: 15, heavyEvery: 4, heavyMul: 1.6 },
     mobs: [
       { art: 'thienBinh', nm: 'Thiên Binh Tàn Giáp', hp: 83, atk: 11 },
       { art: 'tinhLinh', nm: 'Tinh Linh Vẫn Quang', hp: 95, atk: 11 },
@@ -82,7 +83,8 @@ export const KT_CUNG = [
     id: 'bangUyen', tri: '☵', nm: 'Băng Uyên', he: 'Khảm · Băng', c: '#22d3ee',
     scene: 'bangTamHanDam', hanh: 'thuy', tier: 2,
     lore: 'Vạn trượng hàn uyên, nhất niệm thành băng.',
-    boss: { art: 'hanGiaoVuong', nm: 'Hàn Giao Vương', sub: 'Trùm Băng Mãng', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.8 },
+    story: 'Nơi hàn khí ngưng tụ từ cõi hư vô, vạn trượng băng nguyên ẩn chứa thứ lực lượng có thể đóng băng cả thời gian lẫn linh hồn. Hàn Giao Vương, kẻ tu luyện Băng Mãng cổ pháp, trấn thủ nơi này hàng vạn năm, chờ kẻ đủ mạnh đến phá trận, đoạt lấy bí quyết Ngưng Sương Quyết.',
+    boss: { art: 'hanGiaoVuong', nm: 'Hàn Giao Vương', sub: 'Trùm Băng Mãng', epithet: 'tu luyện Băng Mãng cổ pháp, trấn thủ vạn năm', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.8 },
     mobs: [
       { art: 'tuyetLang', nm: 'Tuyết Lang Băng Nha', hp: 111, atk: 13 },
       { art: 'bangPhachDieu', nm: 'Băng Phách Điêu', hp: 123, atk: 14 },
@@ -96,7 +98,8 @@ export const KT_CUNG = [
     id: 'thachMa', tri: '☶', nm: 'Thạch Ma', he: 'Cấn · Thạch', c: '#d6a760',
     scene: 'luuVanDong', hanh: 'tho', tier: 3,
     lore: 'Thạch khai ma tỉnh, sơn băng địa liệt.',
-    boss: { art: 'hacHung', nm: 'Thạch Hùng Vương', sub: 'Trùm Hậu Thổ', hp: 430, atk: 21, heavyEvery: 3, heavyMul: 1.7 },
+    story: 'Lòng núi nứt toác, ma khí từ mạch đất trào lên nhuộm đen từng phiến nham thạch ngàn năm. Thạch Hùng Vương thân đúc bằng kim thạch bất hoại, mỗi bước đi đủ khiến sơn cốc rung chuyển — ai muốn đoạt Kim Cang Hộ Thể, trước hết phải phá được thân giáp đá của hắn.',
+    boss: { art: 'hacHung', nm: 'Thạch Hùng Vương', sub: 'Trùm Hậu Thổ', epithet: 'thân đúc kim thạch, một bước rung sơn cốc', hp: 430, atk: 21, heavyEvery: 3, heavyMul: 1.7 },
     mobs: [
       { art: 'sonTru', nm: 'Sơn Trư Húc Thạch', hp: 139, atk: 16 },
       { art: 'daoTac', nm: 'Đạo Tặc Thạch Lũng', hp: 151, atk: 16 },
@@ -110,7 +113,8 @@ export const KT_CUNG = [
     id: 'thuyQuai', tri: '☱', nm: 'Thủy Quái', he: 'Đoài · Thủy', c: '#60a5fa',
     scene: 'thanhVanCoc', hanh: 'thuy', tier: 2,
     lore: 'Ba đào nuốt nguyệt, hải tộc loạn cương.',
-    boss: { art: 'haiYeu', nm: 'Hải Yêu Chúa', sub: 'Trùm Hải Tộc', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.7 },
+    story: 'Thủy vực mênh mông không thấy đáy, sóng dữ nuốt cả bóng trăng, hải tộc ẩn mình rình kẻ lữ khách lạc đường. Hải Yêu Chúa thống lĩnh vạn loài giao long, buông chướng khí khắp trận đồ, giữ chặt tuyệt học Ô Long Giao Tranh dưới lòng biển sâu.',
+    boss: { art: 'haiYeu', nm: 'Hải Yêu Chúa', sub: 'Trùm Hải Tộc', epithet: 'thống lĩnh vạn giao long, ẩn dưới đáy sâu', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.7 },
     mobs: [
       { art: 'giaoNhan', nm: 'Giao Nhân Trảo Ba', hp: 111, atk: 13 },
       { art: 'meVuYeu', nm: 'Vụ Yêu Hải Sương', hp: 123, atk: 14 },
@@ -124,8 +128,9 @@ export const KT_CUNG = [
     id: 'maDe', tri: '◉', nm: 'Ma Đế Điện', he: 'Trung Cung', c: '#c084fc',
     scene: 'thaiHuBiCanh', hanh: null, tier: 6,
     lore: 'Bát môn dĩ phá, ma đế lâm trần.',
+    story: 'Bát môn đã phá, cửu cung quy nhất, điện các u minh mở ra giữa tâm trận đồ — nơi tận cùng của Kỳ Trận. Thiên Ma Yêu Đế tọa trấn ngai xương, thống ngự cả tám cõi yêu ma; chỉ kẻ đã trảm tận tám Cung Chủ mới đủ tư cách nghênh chiến, tranh đoạt Thái Cực Vô Cực.',
     boss: {
-      art: 'coMaTo', nm: 'Thiên Ma Yêu Đế', sub: 'Trùm Cuối', hp: 720, atk: 32,
+      art: 'coMaTo', nm: 'Thiên Ma Yêu Đế', sub: 'Trùm Cuối', epithet: 'tọa trấn ngai xương, thống ngự tám cõi yêu ma', hp: 720, atk: 32,
       heavyEvery: 3, heavyMul: 2.0, poisonEvery: 2, poisonK: 5, poisonDmg: 13,
     },
     mobs: [
@@ -141,7 +146,8 @@ export const KT_CUNG = [
     id: 'loiDinh', tri: '☳', nm: 'Lôi Đình', he: 'Chấn · Lôi', c: '#a78bfa',
     scene: 'thienCoDiTich', hanh: 'moc', tier: 4,
     lore: 'Lôi minh cửu tiêu, vạn vật phủ phục.',
-    boss: { art: 'vanDieu', nm: 'Cửu Tiêu Lôi Bằng', sub: 'Trùm Lôi Cầm', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.8 },
+    story: 'Cửu tiêu sấm dậy, thiên lôi giáng liên hồi, vạn vật trong trận phải cúi đầu phủ phục trước uy thế phá thiên. Cửu Tiêu Lôi Bằng vỗ cánh là sét đánh ngang trời, trấn giữ Ngũ Lôi Chính Pháp — chính khí trảm tà bậc nhất cửu cung.',
+    boss: { art: 'vanDieu', nm: 'Cửu Tiêu Lôi Bằng', sub: 'Trùm Lôi Cầm', epithet: 'vỗ cánh gọi thiên lôi, uy chấn cửu tiêu', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.8 },
     mobs: [
       { art: 'phuQuangDiep', nm: 'Điện Quang Điệp', hp: 167, atk: 18 },
       { art: 'tinhLinh', nm: 'Lôi Linh Toái Điện', hp: 179, atk: 19 },
@@ -155,7 +161,8 @@ export const KT_CUNG = [
     id: 'coDia', tri: '☷', nm: 'Cổ Địa', he: 'Khôn · Địa', c: '#a3a3a3',
     scene: 'hacPhongLam', hanh: 'tho', tier: 3,
     lore: 'Hoàng sa táng cốt, cổ độc phệ tâm.',
-    boss: { art: 'luuSaQuy', nm: 'Cổ Địa Ma Quân', sub: 'Trùm Sa Quỷ', hp: 430, atk: 21, poisonEvery: 2, poisonK: 4, poisonDmg: 11 },
+    story: 'Cát vàng vùi lấp ngàn hài cốt, cổ độc luyện từ vạn xác chết gặm nhấm cả tâm trí kẻ lạc bước. Cổ Địa Ma Quân nuôi độc trùng trong huyết mạch, tẩm độc cả trận đồ — kẻ muốn học Hoá Độc Đại Pháp phải sống sót qua vạn độc phệ tâm.',
+    boss: { art: 'luuSaQuy', nm: 'Cổ Địa Ma Quân', sub: 'Trùm Sa Quỷ', epithet: 'nuôi cổ độc trong huyết mạch, tẩm độc cả trận', hp: 430, atk: 21, poisonEvery: 2, poisonK: 4, poisonDmg: 11 },
     mobs: [
       { art: 'daLang', nm: 'Sa Lang Hoang Nguyên', hp: 139, atk: 16 },
       { art: 'saMang', nm: 'Sa Mãng Độc Nha', hp: 151, atk: 16 },
@@ -169,7 +176,8 @@ export const KT_CUNG = [
     id: 'hoaDiem', tri: '☲', nm: 'Hỏa Diễm', he: 'Ly · Hỏa', c: '#fb7185',
     scene: 'xichDiemDiaCung', hanh: 'hoa', tier: 4,
     lore: 'Xích diễm liệt địa, vạn vật thành tro.',
-    boss: { art: 'hoaYeu', nm: 'Hỏa Lân Vương', sub: 'Trùm Hỏa Yêu', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.9 },
+    story: 'Lửa đỏ liếm đất, dung nham cuộn trào, vạn vật lọt vào đều hóa thành tro bụi trong chớp mắt. Hỏa Lân Vương thân phủ vảy hỏa lân, mỗi đòn nặng tựa núi lửa phun trào, giấu trong ngọn lửa nghìn năm tuyệt kỹ Hoàng Kim Nhất Kích.',
+    boss: { art: 'hoaYeu', nm: 'Hỏa Lân Vương', sub: 'Trùm Hỏa Yêu', epithet: 'thân phủ hỏa lân, một đòn tựa núi lửa', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.9 },
     mobs: [
       { art: 'daLang', nm: 'Viêm Lang Xích Diễm', hp: 167, atk: 18 },
       { art: 'phuQuangDiep', nm: 'Diễm Điệp Phần Vũ', hp: 179, atk: 19 },
@@ -183,7 +191,8 @@ export const KT_CUNG = [
     id: 'phongYeu', tri: '☴', nm: 'Phong Yêu', he: 'Tốn · Phong', c: '#34d399',
     scene: 'vanYeuSon', hanh: 'moc', tier: 5,
     lore: 'Phong khởi yêu sơn, mị ảnh mê tâm.',
-    boss: { art: 'cuuViHoTien', nm: 'Mị Ảnh Hồ Yêu', sub: 'Trùm Hồ Tiên', hp: 590, atk: 27, poisonEvery: 2, poisonK: 5, poisonDmg: 12 },
+    story: 'Gió cuốn khắp yêu sơn, ảo ảnh mê hoặc lòng người, khiến kẻ mạnh nhất cũng lạc trong mộng cảnh. Mị Ảnh Hồ Yêu tu thành chín đuôi, một ánh mắt đủ đảo lộn ngũ hành — kẻ đoạt được Ngũ Hành Đại Chuyển phải giữ vững tâm thần trước muôn trùng ảo thuật.',
+    boss: { art: 'cuuViHoTien', nm: 'Mị Ảnh Hồ Yêu', sub: 'Trùm Hồ Tiên', epithet: 'hồ yêu chín đuôi, một liếc đảo ngũ hành', hp: 590, atk: 27, poisonEvery: 2, poisonK: 5, poisonDmg: 12 },
     mobs: [
       { art: 'yeuHo', nm: 'Yêu Hồ Tam Vĩ', hp: 195, atk: 21 },
       { art: 'meVuYeu', nm: 'Mê Vụ Yêu Cơ', hp: 207, atk: 21 },

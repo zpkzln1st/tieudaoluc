@@ -111,12 +111,11 @@ export function kyTran() {
     },
     cungStLabel(i) {
       const st = this.cungSt(i);
-      if (i === 4 && st === 'locked') return 'Khoá — cần 8 Cung';
-      return { done: '✓ Đã chiếm', active: 'đang đánh', open: 'Sẵn sàng', locked: 'Cần chiếm Cung kề' }[st];
+      if (i === 4 && st === 'locked') return 'Đang Phong Ấn · cần 8 Cung';
+      return { done: 'Chiếm Lĩnh', active: 'đang đánh', open: 'Sẵn sàng', locked: 'Đang Phong Ấn' }[st];
     },
     cungBadge(i) {
       const st = this.cungSt(i);
-      if (st === 'done') return 'chiếm';
       if (st === 'active') return this.cungProg(i) + '/6 trận';
       if (i === 4) return 'Ma Đế';
       return '6 trận';
@@ -139,6 +138,12 @@ export function kyTran() {
       if (c.reward && c.reward.sk) { const s = KT_SKILLS.find((x) => x.id === c.reward.sk); if (s) out.push({ kind: 'gem', txt: 'Kỹ Năng · ' + s.name }); }
       return out;
     },
+    bossMech(b) { // chip cơ chế Cung Chủ (sát khí + đòn nặng / rải độc)
+      const t = ['Sát khí ' + b.atk];
+      if (b.heavyEvery) t.push('Đòn Nặng mỗi ' + b.heavyEvery + ' lượt');
+      if (b.poisonEvery) t.push('Rải Độc mỗi ' + b.poisonEvery + ' lượt');
+      return t;
+    },
     counterTxt(c) { // gợi ý Tương Khắc: Hành nào khắc hệ Cung này
       if (!c.hanh) return '';
       const kh = KT_KHAC.find((p) => p[1] === c.hanh);
@@ -157,9 +162,9 @@ export function kyTran() {
       const i = this.selCung;
       if (i == null) return null;
       const st = this.cungSt(i);
-      if (i === 4 && st === 'locked') return { dim: true, ic: 'lock', txt: 'Khoá — cần chiếm đủ 8 Cung ngoài' };
-      if (st === 'done') return { dim: true, ic: 'crown', txt: 'Đã trấn áp' };
-      if (st === 'locked') return { dim: true, ic: 'lock', txt: 'Cần chiếm Cung kề' };
+      if (i === 4 && st === 'locked') return { dim: true, ic: 'lock', txt: 'Đang phong ấn — cần chiếm đủ 8 Cung ngoài' };
+      if (st === 'done') return { dim: true, ic: 'crown', txt: 'Đã Trấn Áp' };
+      if (st === 'locked') return { dim: true, ic: 'lock', txt: 'Đang Phong Ấn' };
       if (this.weekLeft <= 0) return { dim: true, ic: 'lock', txt: 'Hết lượt tuần — chờ tuần mới' };
       return { dim: false, ic: 'sword', txt: st === 'active' ? 'Tiếp Trận ' + (this.cungProg(i) + 1) : 'Vào Trận · Lập Trận' };
     },

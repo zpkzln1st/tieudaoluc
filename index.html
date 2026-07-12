@@ -8823,13 +8823,21 @@
         .kt-root .dbanner .t .he{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
         .kt-root .dbanner .t .nm{font-family:'Lora',serif;font-weight:700;font-size:24px;line-height:1.05}
         .kt-root .dbody{padding:16px}
-        .kt-root .dboss{display:flex;align-items:center;gap:12px;background:#0b1220;border:1px solid var(--ktline2);border-radius:11px;padding:10px 12px;margin-bottom:12px}
-        .kt-root .dboss .av{position:relative;width:52px;height:52px;border-radius:9px;overflow:hidden;border:1px solid var(--ktrose);background:#160a10;flex:none}
+        .kt-root .ssect{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px;display:flex;align-items:center;gap:10px}
+        .kt-root .ssect::after{content:"";flex:1;height:1px;background:var(--ktline)}
+        .kt-root .dboss{display:flex;align-items:flex-start;gap:13px;background:#0b1220;border:1px solid var(--ktline2);border-radius:12px;padding:12px 14px;margin-bottom:13px}
+        .kt-root .dboss .av{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid var(--ktrose);background:#160a10;flex:none;box-shadow:0 0 18px -8px var(--ktrose)}
         .kt-root .dboss .av img{width:100%;height:100%;object-fit:cover}
-        .kt-root .avh{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;color:#fda4af;font-weight:700}
-        .kt-root .dboss .bn{font-family:'Lora',serif;font-weight:700;font-size:15px;color:#fecdd3}
-        .kt-root .dboss .bk{font-size:11px;color:var(--ktmut2)}
-        .kt-root .ktr-lore{font-family:'Lora',serif;font-style:italic;font-size:12.5px;color:var(--ktmut);margin:0 0 14px;padding-left:11px;border-left:2px solid rgba(245,185,66,.35)}
+        .kt-root .avh{position:absolute;inset:0;display:grid;place-items:center;font-size:28px;color:#fda4af;font-weight:700}
+        .kt-root .dboss .bmeta{min-width:0;flex:1;padding-top:1px}
+        .kt-root .dboss .bn{font-family:'Lora',serif;font-weight:700;font-size:17px;color:#fecdd3;line-height:1.1}
+        .kt-root .dboss .bsub{font-size:11.5px;margin-top:3px;line-height:1.4}
+        .kt-root .dboss .bsub .bep{color:var(--ktmut2)}
+        .kt-root .dboss .bmech{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+        .kt-root .mchip{font-size:10px;letter-spacing:.02em;color:var(--ktmut);border:1px solid var(--ktline2);border-radius:6px;padding:2px 7px;background:rgba(148,163,184,.06)}
+        .kt-root .mchip.hp{color:#fca5a5;border-color:rgba(251,113,133,.35)}
+        .kt-root .ktr-lore{font-family:'Lora',serif;font-style:italic;font-size:13px;color:var(--ktgold2);margin:0 0 9px;padding-left:11px;border-left:2px solid rgba(245,185,66,.45);opacity:.9}
+        .kt-root .ktr-story{font-size:12.5px;color:var(--ktmut);line-height:1.65;margin:0 0 15px;text-align:justify}
         .kt-root .sect{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px}
         .kt-root .chain{display:flex;align-items:center;gap:0;margin-bottom:16px;flex-wrap:wrap}
         .kt-root .node{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto}
@@ -8965,7 +8973,6 @@
                   <div class="cung" :class="cungCls(i)" @click="selectCung(i)">
                     <img :src="'images/dungeons/'+c.scene+'.webp'" onerror="this.style.display='none'">
                     <div class="vig"></div>
-                    <div class="chk" x-show="cungDone(i)">✓</div>
                     <div class="lock" x-show="cungSt(i)==='locked'" x-html="svgi('lock')"></div>
                     <div class="badge" x-text="cungBadge(i)"></div>
                     <div class="in">
@@ -8985,11 +8992,21 @@
                       <div class="t"><div class="he" :style="'color:'+cur.c" x-text="cur.he"></div><div class="nm fserif" x-text="cur.nm"></div></div>
                     </div>
                     <div class="dbody">
+                      <div class="ssect">Trận Chủ</div>
                       <div class="dboss">
                         <div class="av"><span class="avh fserif">妖</span><img :src="'images/enemies/'+cur.boss.art+'.webp'" style="position:relative" onerror="this.remove()"></div>
-                        <div><div class="bn fserif" x-text="cur.boss.nm"></div><div class="bk" x-text="cur.boss.sub + ' · match-3 cơ chế riêng'"></div></div>
+                        <div class="bmeta">
+                          <div class="bn fserif" x-text="cur.boss.nm"></div>
+                          <div class="bsub"><span :style="'color:'+cur.c" x-text="cur.boss.sub"></span><span x-show="cur.boss.epithet" class="bep" x-text="' — '+cur.boss.epithet"></span></div>
+                          <div class="bmech">
+                            <template x-for="(m,mi) in bossMech(cur.boss)" :key="mi">
+                              <span class="mchip" :class="mi===0?'hp':''" x-text="m"></span>
+                            </template>
+                          </div>
+                        </div>
                       </div>
                       <div class="ktr-lore" x-text="cur.lore"></div>
+                      <div class="ktr-story" x-show="cur.story" x-text="cur.story"></div>
                       <div class="sect">Chuỗi trận trong Cung</div>
                       <div class="chain">
                         <template x-for="n in 5" :key="n">
@@ -9020,7 +9037,6 @@
                 </template>
               </div>
             </div>
-            <div class="cap2">Bấm 1 Cung để xem chuỗi trận + Cung Chủ. Cung <b>đã chiếm</b> viền ngọc ✓ · <b>đang đánh</b> viền vàng · <b>khoá</b> cần chiếm Cung kề. Chiếm đủ 8 Cung ngoài → mở <b>Trung Cung Ma Đế</b>.</div>
           </div>
 
           <!-- ===== TAB: NGŨ HÀNH TRẬN NHÃN (La Bàn Bát Quái) ===== -->
