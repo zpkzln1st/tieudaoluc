@@ -8824,7 +8824,7 @@
         .kt-root .cung .lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.5;color:var(--ktmut)}
         .kt-root .cung .lock svg{width:20px;height:20px}
         /* panel chi tiết Cung */
-        .kt-root .detail{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden;height:650px;display:flex;flex-direction:column}
+        .kt-root .detail{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden;height:510px;display:flex;flex-direction:column}
         .kt-root .dwrap{flex:1;display:flex;flex-direction:column;min-height:0}
         .kt-root .dbanner{position:relative;height:160px;flex:none}
         .kt-root .dbanner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:.62}
@@ -8834,7 +8834,7 @@
         .kt-root .dchain .lb{color:#cbd5e1;text-shadow:0 1px 2px #000}
         .kt-root .dbanner .t .he{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
         .kt-root .dbanner .t .nm{font-family:'Lora',serif;font-weight:700;font-size:24px;line-height:1.05}
-        .kt-root .dbody{padding:16px;flex:1;min-height:0;display:flex;flex-direction:column}
+        .kt-root .dbody{padding:14px 16px;flex:1;min-height:0;display:flex;flex-direction:column}
         .kt-root .dcta{margin-top:auto}
         .kt-root .ssect{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px;display:flex;align-items:center;gap:10px}
         .kt-root .ssect::after{content:"";flex:1;height:1px;background:var(--ktline)}
@@ -9035,7 +9035,6 @@
                       </div>
                     </div>
                     <div class="dbody">
-                      <div class="ssect">Trận Chủ</div>
                       <div class="dboss">
                         <div class="av"><span class="avh fserif">妖</span><img :src="'images/enemies/'+cur.boss.art+'.webp'" style="position:relative" onerror="this.remove()"></div>
                         <div class="bmeta">
@@ -9050,7 +9049,6 @@
                       </div>
                       <div class="ktr-lore" x-text="cur.lore"></div>
                       <div class="ktr-story" x-show="cur.story" x-text="cur.story"></div>
-                      <div class="sect">Thưởng khi chiếm Cung</div>
                       <div class="rew">
                         <span class="rchip"><img src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <b x-text="'+'+((cur.reward&&cur.reward.hon)||KT_CONST.CUNG_HON)"></b> Trận Hồn</span>
                         <template x-for="r in rewardOf(cur)" :key="r.txt">
