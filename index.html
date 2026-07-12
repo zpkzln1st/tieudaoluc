@@ -8903,7 +8903,8 @@
         .kt-root .hub .hn b{color:var(--kttxt);font-weight:600}
         .kt-root .ktr-panel{position:relative;background-image:linear-gradient(rgba(9,14,20,.58),rgba(9,14,20,.58)),url("images/dongphu/ui/panel_bg.webp");background-size:cover;background-position:center;border:1px solid rgba(201,162,75,.22);border-radius:16px;padding:18px 22px 16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.5)}
         .kt-root .p-top{display:flex;align-items:center;gap:14px}
-        .kt-root .seal{flex:none;width:50px;height:50px;border-radius:12px;display:grid;place-items:center;font-family:'Lora',serif;font-weight:700;font-size:26px;color:var(--ec);border:1.5px solid var(--ec);background:var(--ecT);box-shadow:inset 0 0 14px rgba(0,0,0,.5),0 0 16px var(--ecA2)}
+        .kt-root .seal{position:relative;flex:none;width:50px;height:50px;border-radius:12px;display:grid;place-items:center;font-family:'Lora',serif;font-weight:700;font-size:26px;color:var(--ec);border:1.5px solid var(--ec);background:var(--ecT);box-shadow:inset 0 0 14px rgba(0,0,0,.5),0 0 16px var(--ecA2);overflow:hidden}
+        .kt-root .seal img{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:contain}
         .kt-root .p-name{font-family:'Lora',serif;font-weight:700;font-size:22px;line-height:1.15;color:var(--ec)}
         .kt-root .p-role{font-size:12px;color:#9b9079;margin-top:2px}
         .kt-root .p-quote{font-family:'Lora',serif;font-style:italic;font-size:12.5px;color:#8a8069;margin:10px 0 0;padding-left:12px;border-left:2px solid var(--ecA3)}
@@ -9095,7 +9096,7 @@
               </div>
               <section class="ktr-panel" :style="panelVars()">
                 <div class="p-top">
-                  <div class="seal" x-text="sH.han"></div>
+                  <div class="seal"><span class="fserif" x-text="sH.han"></span><img :src="'images/nguhanh/'+selHanh+'.webp'" alt="" onerror="this.remove()"></div>
                   <div>
                     <div class="p-name" x-text="sH.nm"></div>
                     <div class="p-role" x-text="sH.role"></div>
