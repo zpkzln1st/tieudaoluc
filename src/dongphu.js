@@ -176,10 +176,11 @@ export function dongPhu() {
       void this.g._tick;
       const cur = this.curHouse;
       const mongLv = (this.dp.buildings && this.dp.buildings.mongDai) || 0;
+      const tramLv = (this.dp.buildings && this.dp.buildings.tramYeuDai) || 0;
       return [
         this._durEntry('house', HOUSE_TIERS[cur].name, 'nha_' + cur, 'Nhà Chính', 'Giới Hạn Treo Máy · ' + houseCapH(cur) + ' giờ', ''),
         this._durEntry('mongDai', 'Mộng Đài', 'mongdai', 'Đăng Tiên Mộng', 'Giới Hạn Quy Đổi Tuần · ' + [60, 70, 75, 80][Math.min(3, mongLv)] + ' Nguyên Bảo', 'dangTienMong'),
-        this._durEntry('tramYeuDai', 'Trảm Yêu Đài', 'tramyeu', 'Kỳ Trận Trảm Yêu', '', ''),
+        this._durEntry('tramYeuDai', 'Trảm Yêu Đài', 'tramyeu', 'Kỳ Trận Trảm Yêu', 'Lượt Kỳ Trận Mỗi Tuần · ' + (12 + tramLv) + ' lượt', 'kyTran'),
         this._durEntry('dienVoTruong', 'Diễn Võ Trường', 'dienvo', 'Quần Hùng Kỳ Trận', '', ''),
       ];
     },

@@ -64,13 +64,16 @@ export const BUILDINGS = {
     ],
   },
   tramYeuDai: {
-    key: 'tramYeuDai', name: 'Trảm Yêu Đài', img: 'tramyeu',
-    type: 'Kỳ Trận Trảm Yêu', reqHouse: 2, maxLv: 3, buildable: false,
-    badge: 'Sắp Khai Mở', note: 'Cần tích hợp Kỳ Trận Trảm Yêu',
-    func: 'Bày trận đồ cửu cung, triệu Kỳ Trận trảm yêu ngay tại gia.',
+    key: 'tramYeuDai', name: 'Trảm Yêu Đài', img: 'tramyeu', nav: 'kyTran',
+    type: 'Kỳ Trận Trảm Yêu', reqHouse: 2, maxLv: 3, buildable: true,
+    func: 'Bày trận đồ cửu cung, triệu Kỳ Trận trảm yêu ngay tại gia — thêm lượt xuất trận mỗi tuần.',
     lore: 'Cửu cung bố trận, pháp kiếm trấn đàn. Phù hỏa nhất khởi, yêu vụ tận tán, tà khí bất xâm sơn môn.',
     tags: ['Trảm Yêu', 'Trận Đồ'],
-    eff: ['Mở Kỳ Trận Trảm Yêu', 'Mở chương gauntlet mới', 'Chế độ Nhật Trảm'],
+    eff: [
+      'Lượt Kỳ Trận Mỗi Tuần: 12 → 13',
+      '+1 lượt xuất trận · tuần → 14',
+      '+1 lượt xuất trận · tuần → 15',
+    ],
     levels: [
       { bac: 22000, buildMs: 12 * H, mats: { gach: 550, vanYeu: 550, thietKhau: 160 } },
       { bac: 110000, buildMs: 24 * H, mats: { gach: 1100, thanhNgoa: 660, luongMoc: 440 } },
@@ -261,6 +264,13 @@ export function dtmMongNganMult(state) {
 export function dongPhuThamMongOpen(state) {
   const lv = (state.dongPhu && state.dongPhu.buildings && state.dongPhu.buildings.mongDai) || 0;
   return lv >= 3 && isFunctional(state, 'mongDai', Date.now());
+}
+// Trảm Yêu Đài -> +1 lượt Kỳ Trận/tuần mỗi bậc (gate độ bền: hỏng 0% -> mất bonus, về nền).
+export function dongPhuTramYeuBonus(state) {
+  const lv = (state.dongPhu && state.dongPhu.buildings && state.dongPhu.buildings.tramYeuDai) || 0;
+  if (lv < 1) return 0;
+  if (!isFunctional(state, 'tramYeuDai', Date.now())) return 0;
+  return lv;
 }
 
 // ---- Helper hiển thị (thuần, không đụng UI) ----

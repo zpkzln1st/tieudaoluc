@@ -8,6 +8,7 @@
 import { KT_CONST, KT_HANH, KT_HANH_ORDER, KT_KHAC, KT_CUNG, KT_TAM_PHAP, KT_SKILLS } from './data/kytran.js';
 import { mountKtBattle } from './kytran_combat.js';
 import { Storage } from './engine/save.js';
+import { dongPhuTramYeuBonus } from './engine/dongphu.js';
 
 // ---------- ensure/migrate: khởi tạo state.kyTran (gọi mỗi lần load) ----------
 export function ensureKyTran(state) {
@@ -51,6 +52,7 @@ export function kyTran() {
     selCung: null,          // index Cung đang chọn trên bản đồ
     selHanh: 'moc',         // Hành đang chọn ở tab Ngũ Hành
     inBattle: false,        // đang trong trận match-3 (mount imperative)
+    confirmTrung: false,    // khóa 2-chạm cho nút Nhập Trùng (tránh xóa nhầm bản đồ)
     KT_CUNG, KT_HANH, KT_HANH_ORDER, KT_CONST, KT_TAM_PHAP, KT_SKILLS,
 
     // ---- icon SVG stroke (đồng bộ ngôn ngữ icon game — 0 emoji) ----
@@ -89,9 +91,9 @@ export function kyTran() {
       if (w.weekId !== id) { w.weekId = id; w.used = 0; }
     },
     get weekCap() {
-      // Trảm Yêu Đài (Động Phủ) cộng lượt: +1 lượt/cấp (0-power assist chậm, giống knob Mộng Đài)
+      // Trảm Yêu Đài (Động Phủ) cộng lượt: +1 lượt/bậc (0-power assist chậm, gate độ bền — giống knob Mộng Đài)
       let bonus = 0;
-      try { bonus = ((this.$store.game.state.dongPhu || {}).builds || {}).tramYeuDai || 0; } catch (e) { bonus = 0; }
+      try { bonus = dongPhuTramYeuBonus(this.$store.game.state); } catch (e) { bonus = 0; }
       return KT_CONST.WEEK_CAP + bonus;
     },
     get weekLeft() { this.weekCheck(); return Math.max(0, this.weekCap - this.kt.week.used); },
@@ -158,6 +160,27 @@ export function kyTran() {
       if (!kh) return '';
       const need = KT_HANH[kh[0]];
       return need.nm + ' khắc ' + KT_HANH[c.hanh].nm + (this.kt.nguHanh[kh[0]] >= 4 ? ' — đã mở, xuyên giáp Cung Chủ' : ' — cần ' + need.nm + ' Cấp 4');
+    },
+
+    // ---- Trùng (NG+): phá đủ 9 Cung → Nhập Trùng, tái lập bản đồ, yêu ma mạnh gấp bội ----
+    get trung() { return this.kt.trung || 1; },
+    trungRoman(n) { return ['I', 'II', 'III'][(n || 1) - 1] || String(n || 1); },
+    get mapDone() { return KT_CUNG.every((c, i) => this.cungDone(i)); },
+    get canAdvanceTrung() { return this.mapDone && this.trung < 3; },
+    get nextTrungMult() { return KT_CONST.TRUNG_MULT[this.trung] || 1; },  // hệ số HP/ATK địch của Trùng KẾ
+    armTrung() {                       // nút Nhập Trùng: chạm 1 = lên đạn, chạm 2 = xác nhận (bấm ra ngoài để hủy)
+      if (!this.canAdvanceTrung) { this.confirmTrung = false; return; }
+      if (this.confirmTrung) { this.advanceTrung(); return; }
+      this.confirmTrung = true;
+    },
+    advanceTrung() {
+      if (!this.canAdvanceTrung) return;
+      this.confirmTrung = false;
+      this.kt.trung = this.trung + 1;
+      this.kt.prog = {};              // tái lập bản đồ (GIỮ Ngũ Hành + Trận Hồn + kỹ năng/tâm pháp + Trảm Yêu Lục)
+      this.selCung = 0;              // về Thiên Cương (cửa khởi đầu)
+      try { Storage.save(this.$store.game.state); } catch (e) {}
+      try { this.$store.game.showToast('Kỳ Trận · Nhập Trùng ' + this.trungRoman(this.kt.trung) + ' — trận đồ tái lập, yêu ma mạnh gấp bội.'); } catch (e) {}
     },
 
     // ---- vào trận (mount combat imperative — ráp ở kytran_combat) ----
