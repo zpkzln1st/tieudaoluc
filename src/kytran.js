@@ -132,6 +132,11 @@ export function kyTran() {
       if (this.cungDone(i) || n <= p) return 'done';
       return (n === p + 1 && this.cungSt(i) !== 'locked') ? 'cur' : '';
     },
+    tranBadge(i, n) { // bậc 1-20 = (tier−1)×3 + số trận, clamp — cung khó badge cao, trong cung leo dần
+      const tier = (KT_CUNG[i] && KT_CUNG[i].tier) || 1;
+      const bac = Math.max(1, Math.min(20, (tier - 1) * 3 + n));
+      return bac === 1 ? 'badge_hex.webp' : 'badge_hex' + bac + '.webp';
+    },
     rewardOf(c) { // chip thưởng: tâm pháp / kỹ năng mở khi chiếm Cung
       const out = [];
       if (c.reward && c.reward.tp) { const t = KT_TAM_PHAP.find((x) => x.id === c.reward.tp); if (t) out.push({ img: 'images/kytran/tp_' + t.id + '.webp', txt: 'Tâm Pháp · ' + t.name }); }

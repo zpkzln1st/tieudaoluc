@@ -8852,10 +8852,11 @@
         .kt-root .sect{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px}
         .kt-root .chain{display:flex;align-items:center;gap:0;margin-bottom:16px;flex-wrap:wrap}
         .kt-root .node{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto}
-        .kt-root .node .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:#0b1220;border:1.5px solid var(--ktline2);color:var(--ktmut)}
-        .kt-root .node.done .dot{border-color:var(--ktjade);color:var(--ktjade);background:#0c1a1a}
-        .kt-root .node.cur .dot{border-color:var(--ktgold);color:var(--ktgold);background:#1a1508;box-shadow:0 0 14px -4px var(--ktgold)}
-        .kt-root .node.boss .dot{width:42px;height:42px;border-radius:10px;transform:rotate(45deg);border-color:var(--ktrose);color:var(--ktrose);background:#160a10}
+        .kt-root .node .dot{width:40px;height:40px;display:grid;place-items:center}
+        .kt-root .node:not(.boss) .dot img{width:100%;height:100%;object-fit:contain;filter:grayscale(.92) brightness(.5);transition:filter .2s}
+        .kt-root .node.done:not(.boss) .dot img{filter:none}
+        .kt-root .node.cur:not(.boss) .dot img{filter:drop-shadow(0 0 6px var(--ktgold))}
+        .kt-root .node.boss .dot{width:42px;height:42px;border-radius:10px;transform:rotate(45deg);border:1.5px solid var(--ktrose);color:var(--ktrose);background:#160a10}
         .kt-root .node.boss .dot span{transform:rotate(-45deg);display:grid;place-items:center}
         .kt-root .node.boss .dot svg{width:15px;height:15px}
         .kt-root .node .lb{font-size:9.5px;color:var(--ktmut2)}
@@ -9020,7 +9021,7 @@
                       <div class="dchain">
                         <template x-for="n in 5" :key="n">
                           <div style="display:contents">
-                            <div class="node" :class="chainCls(n)"><div class="dot" x-text="(cungDone(selCung)||n<=cungProg(selCung))?'✓':n"></div><div class="lb" x-text="'Trận '+n"></div></div>
+                            <div class="node" :class="chainCls(n)"><div class="dot"><img :src="'images/dongphu/ui/'+tranBadge(selCung,n)" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="lb" x-text="'Trận '+n"></div></div>
                             <div class="link" :class="(cungDone(selCung)||n<cungProg(selCung))?'done':''"></div>
                           </div>
                         </template>
