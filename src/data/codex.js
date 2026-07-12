@@ -9,6 +9,7 @@ import { ITEMS, ITEM_TYPES } from './items.js';
 import { GEAR_IDS } from './gear.js';
 import { PET_SPECIES } from './pets.js';
 import { DUNGEONS } from './dungeon.js';
+import { DANH_SI } from './danhsi.js';
 
 // Loại vật phẩm thuộc Vật Phẩm Phổ (loại trừ trang bị / trứng / đồ phổ).
 const VATPHAM_TYPES = ['go', 'khoang', 'dinh', 'ca', 'monan', 'vatlieu', 'dan', 'khac', 'moi'];
@@ -53,6 +54,13 @@ export const CODEX_CATS = [
     set: { field: 'allPct', val: 0.08, label: '+8% mọi chỉ số' },
     setLabel: 'Trọn Bí Cảnh Lục → +8% mọi chỉ số',
     list() { return DUNGEONS.map((d) => ({ id: d.id, name: d.name, icon: d.seal, color: d.color, sub: d.realm || '', group: d.realm || 'Bí Cảnh', where: 'Phi Cáp Đài / bản đồ Bí Cảnh' })); },
+  },
+  {
+    key: 'danhsi', name: 'Danh Sĩ Phổ', kind: 'danhsi', unit: 'gặp', threshold: 1,
+    per: { field: 'allPct', val: 0.003, label: '+0.3% mọi chỉ số' },
+    set: { field: 'allPct', val: 0.05, label: '+5% mọi chỉ số' },
+    setLabel: 'Trọn Danh Sĩ Phổ → +5% mọi chỉ số',
+    list() { return DANH_SI.map((d) => ({ id: d.id, name: d.ten, icon: (d.ten || '?').charAt(0), sub: d.bietHieu, he: d.nguHanh, group: (d.dao === 'chinh' ? 'Chính Đạo' : d.dao === 'ta' ? 'Tà Đạo' : 'Trung Lập'), where: 'Gặp qua Danh Sĩ Bảng / kỳ ngộ giang hồ' })); },
   },
 ];
 

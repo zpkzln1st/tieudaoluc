@@ -37,6 +37,7 @@ export function codexCount(state, catKey, entryId) {
     case 'vatpham': return (cx.obtained && cx.obtained[entryId]) || 0;
     case 'linhthu': return (cx.petSeen && cx.petSeen[entryId]) ? 1 : 0;
     case 'bicanh': return (cx.dungeonRuns && cx.dungeonRuns[entryId]) || 0;
+    case 'danhsi': return ((state.danhSi && state.danhSi.seen) || []).includes(entryId) ? 1 : 0;
     default: return 0;
   }
 }

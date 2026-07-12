@@ -2733,6 +2733,7 @@ const gameStore = {
     if (cat.kind === 'pet') return `<img src="images/pets/pet_${e.id}_base.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
     if (cat.kind === 'gear' || cat.kind === 'item') return this.ico(e.id, e.icon);
     if (cat.kind === 'dungeon') return `<img src="images/dungeons/${e.id}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
+    if (cat.kind === 'danhsi') return `<img src="images/danhsi/${e.id}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
     return `<span class="text-4xl fserif opacity-90">${e.icon || ''}</span>`;
   },
   // Phổ Lực tóm tắt (chuỗi) để hiển thị header
