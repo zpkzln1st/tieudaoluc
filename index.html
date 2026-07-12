@@ -2176,8 +2176,9 @@
               <button @click="$store.game.pvbTab='tongmon'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='tongmon'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Tông Môn Bảng</button>
               <button @click="$store.game.pvbTab='danhsi'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='danhsi'?'border-cyan/50 bg-cyan/10 text-cyan':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Bảng</button>
               <button @click="$store.game.pvbTab='dangTien'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='dangTien'?'border-violet-400/50 bg-violet-500/10 text-violet-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Mộng Cảnh Bảng</button>
+              <button @click="$store.game.pvbTab='kyTran'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='kyTran'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Trận Đồ Bảng</button>
               <button @click="$store.game.pvbTab='danhSiLuc'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='danhSiLuc'?'border-violet-400/50 bg-violet-500/10 text-violet-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Lục</button>
-              <span class="ml-auto text-slate-500 text-[11px]" x-text="$store.game.pvbTab==='caothu'?'theo Tổng Cảnh Giới':($store.game.pvbTab==='tongmon'?'theo Uy Danh':($store.game.pvbTab==='dangTien'?'theo Mộng Lực trong Đăng Tiên Mộng':($store.game.pvbTab==='danhSiLuc'?'sưu tập danh sĩ giang hồ':'20 danh sĩ chấn động giang hồ')))"></span>
+              <span class="ml-auto text-slate-500 text-[11px]" x-text="$store.game.pvbTab==='caothu'?'theo Tổng Cảnh Giới':($store.game.pvbTab==='tongmon'?'theo Uy Danh':($store.game.pvbTab==='dangTien'?'theo Mộng Lực trong Đăng Tiên Mộng':($store.game.pvbTab==='kyTran'?'theo độ sâu chinh phục Cửu Cung':($store.game.pvbTab==='danhSiLuc'?'sưu tập danh sĩ giang hồ':'20 danh sĩ chấn động giang hồ'))))"></span>
             </div>
             <!-- ===== CAO THỦ BẢNG ===== -->
             <div x-show="$store.game.pvbTab==='caothu'">
@@ -2243,6 +2244,41 @@
                         </div>
                         <div class="text-right">
                           <div class="text-[14px] font-bold tabular-nums" :class="r.isPlayer?'text-violet-200':'text-violet-300/80'" x-text="$store.game.fmt(r.score)"></div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <!-- ===== TRẬN ĐỒ BẢNG (Kỳ Trận — gộp từ view Kỳ Trận) ===== -->
+            <div x-show="$store.game.pvbTab==='kyTran'">
+              <div class="hidden sm:grid grid-cols-[44px_40px_1fr_116px] gap-2 px-2 pb-1.5 lbl">
+                <div class="text-center">Hạng</div><div></div><div>Chiến Trận Sĩ</div><div class="text-right">Điểm Trận</div>
+              </div>
+              <div class="text-[11px] text-slate-500 px-2 pb-2">Điểm = trận đã phá ×10 · Trận Cấp ×15 · diệt Ma Đế ×200 — đua danh dự, không cộng lực chiến.</div>
+              <div class="space-y-1">
+                <template x-for="r in $store.game.ktBangDisplay" :key="r.id">
+                  <div>
+                    <template x-if="r.separator"><div class="text-center text-slate-600 text-[14px] py-0.5 tracking-widest">· · ·</div></template>
+                    <template x-if="!r.separator">
+                      <div class="grid grid-cols-[40px_36px_1fr_auto] sm:grid-cols-[44px_40px_1fr_116px] gap-2 items-center px-2 py-2 rounded-lg border transition" :class="r.isPlayer ? 'bg-amber-400/10 border-amber-400/45' : 'bg-ink3/25 border-transparent hover:border-slate-700/70'">
+                        <div class="flex items-center justify-center">
+                          <span class="min-w-[1.75rem] h-7 px-1 rounded-lg flex items-center justify-center text-[12px] font-bold tabular-nums" :class="r.rank===1?'bg-amber-400/20 text-amber-300 border border-amber-500/50':(r.rank===2?'bg-slate-300/15 text-slate-100 border border-slate-400/40':(r.rank===3?'bg-orange-700/25 text-orange-300 border border-orange-600/45':'text-slate-500'))" x-text="r.rank"></span>
+                        </div>
+                        <div class="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 shrink-0" :class="r.avatar.color" x-data="{ok:true}">
+                          <img :src="'images/avatars/'+r.avatar.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                          <span x-show="!ok" x-text="r.avatar.char"></span>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[13px] font-bold fserif truncate" :class="r.isPlayer?'text-amber-200':'text-slate-200'" x-text="r.name"></span>
+                            <template x-if="r.isPlayer"><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-amber-300">Bổn Nhân</span></template>
+                          </div>
+                          <div class="text-[10.5px] text-slate-500 truncate" x-text="r.sub"></div>
+                        </div>
+                        <div class="text-right">
+                          <div class="text-[14px] font-bold tabular-nums" :class="r.isPlayer?'text-amber-200':'text-amber-300/80'" x-text="$store.game.fmt(r.score)"></div>
                         </div>
                       </div>
                     </template>
@@ -8975,7 +9011,6 @@
             <button :class="ktTab==='map'?'on':''" @click="ktTab='map'">Đại Trận Đồ</button>
             <button :class="ktTab==='nguhanh'?'on':''" @click="ktTab='nguhanh'">Ngũ Hành Trận Nhãn</button>
             <button :class="ktTab==='codex'?'on':''" @click="ktTab='codex'">Trảm Yêu Lục</button>
-            <button :class="ktTab==='rank'?'on':''" @click="ktTab='rank'">Trận Đồ Bảng</button>
           </div>
 
           <!-- ===== TRẬN MATCH-3 (mount imperative khi inBattle) ===== -->
@@ -9144,41 +9179,6 @@
                 </div>
               </div>
             </template>
-          </div>
-          <!-- ===== TAB: TRẬN ĐỒ BẢNG (bot deterministic — đua danh dự, 0 power) ===== -->
-          <div x-show="!inBattle && ktTab==='rank'">
-            <div class="ktr-cdxsec">
-              <div class="ktr-cdxhead">
-                <span class="nm fserif">Trận Đồ Bảng</span>
-                <span class="cnt">Điểm = trận đã phá ×10 · Trận Cấp ×15 · diệt Ma Đế ×200 — đua danh dự, không cộng lực chiến</span>
-              </div>
-              <div class="flex flex-col gap-1">
-                <template x-for="r in $store.game.ktBangDisplay" :key="r.id">
-                  <div>
-                    <template x-if="r.separator"><div class="text-center text-slate-600 text-[14px] py-0.5 tracking-widest">· · ·</div></template>
-                    <template x-if="!r.separator">
-                      <div class="grid grid-cols-[40px_36px_1fr_auto] sm:grid-cols-[44px_40px_1fr_116px] gap-2 items-center px-2 py-2 rounded-lg border transition" :class="r.isPlayer ? 'bg-amber-400/10 border-amber-400/45' : 'bg-black/20 border-transparent hover:border-slate-700/70'">
-                        <div class="flex items-center justify-center">
-                          <span class="min-w-[1.75rem] h-7 px-1 rounded-lg flex items-center justify-center text-[12px] font-bold tabular-nums" :class="r.rank===1?'bg-amber-400/20 text-amber-300 border border-amber-500/50':(r.rank===2?'bg-slate-300/15 text-slate-100 border border-slate-400/40':(r.rank===3?'bg-orange-700/25 text-orange-300 border border-orange-600/45':'text-slate-500'))" x-text="r.rank"></span>
-                        </div>
-                        <div class="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 shrink-0" :class="r.avatar.color" x-data="{ok:true}">
-                          <img :src="'images/avatars/'+r.avatar.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
-                          <span x-show="!ok" x-text="r.avatar.char"></span>
-                        </div>
-                        <div class="min-w-0">
-                          <div class="text-[13px] font-bold fserif truncate" :class="r.isPlayer?'text-amber-200':'text-slate-200'" x-text="r.name"></div>
-                          <div class="text-[10.5px] text-slate-500" x-text="r.sub"></div>
-                        </div>
-                        <div class="text-right pr-1">
-                          <span class="text-[14px] font-bold tabular-nums" :class="r.isPlayer?'text-amber-300':'text-slate-300'" x-text="r.score"></span>
-                          <span class="text-[10px] text-slate-500"> điểm</span>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
-                </template>
-              </div>
-            </div>
           </div>
         </div>
       </template>
