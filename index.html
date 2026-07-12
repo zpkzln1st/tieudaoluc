@@ -8814,10 +8814,12 @@
         .kt-root .cung .lock svg{width:20px;height:20px}
         /* panel chi tiết Cung */
         .kt-root .detail{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden;min-height:520px}
-        .kt-root .dbanner{position:relative;height:118px}
-        .kt-root .dbanner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
-        .kt-root .dbanner .g{position:absolute;inset:0;background:linear-gradient(90deg,#0f1521 8%,rgba(15,21,33,.55) 55%,transparent)}
-        .kt-root .dbanner .t{position:absolute;left:16px;bottom:12px}
+        .kt-root .dbanner{position:relative;height:160px}
+        .kt-root .dbanner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:.62}
+        .kt-root .dbanner .g{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,21,33,.82) 0%,rgba(15,21,33,.25) 32%,rgba(15,21,33,.2) 46%,rgba(15,21,33,.92) 100%)}
+        .kt-root .dbanner .t{position:absolute;left:16px;top:12px}
+        .kt-root .dchain{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:0;padding:6px 14px 9px}
+        .kt-root .dchain .lb{color:#cbd5e1;text-shadow:0 1px 2px #000}
         .kt-root .dbanner .t .he{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
         .kt-root .dbanner .t .nm{font-family:'Lora',serif;font-weight:700;font-size:24px;line-height:1.05}
         .kt-root .dbody{padding:16px}
@@ -8934,8 +8936,8 @@
         .kt-root .ktr-cdxcards{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
         .kt-root .ktr-mcard{display:flex;flex-direction:column}
         .kt-root .mc-frame{position:relative;aspect-ratio:1/1.06;border:13px solid transparent;border-image:url("images/dongphu/ui/frame_gold.webp") 150 / 13px / 0 stretch;background:#070b10;border-radius:12px;overflow:hidden}
-        .kt-root .mc-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-        .kt-root .mc-dark{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 26%,transparent 52%,rgba(6,9,13,.55))}
+        .kt-root .mc-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+        .kt-root .mc-dark{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 54%,rgba(6,9,13,.5))}
         .kt-root .mc-lock{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);color:#5b6675}
         .kt-root .mc-lock svg{width:26px;height:26px}
         .kt-root .mc-nm{font-family:'Lora',serif;font-size:11.5px;font-weight:600;text-align:center;margin-top:6px;min-height:15px;color:var(--ktdim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -9004,6 +9006,15 @@
                       <img :src="'images/dungeons/'+cur.scene+'.webp'" onerror="this.style.display='none'">
                       <div class="g"></div>
                       <div class="t"><div class="he" :style="'color:'+cur.c" x-text="cur.he"></div><div class="nm fserif" x-text="cur.nm"></div></div>
+                      <div class="dchain">
+                        <template x-for="n in 5" :key="n">
+                          <div style="display:contents">
+                            <div class="node" :class="chainCls(n)"><div class="dot" x-text="(cungDone(selCung)||n<=cungProg(selCung))?'✓':n"></div><div class="lb" x-text="'Trận '+n"></div></div>
+                            <div class="link" :class="(cungDone(selCung)||n<cungProg(selCung))?'done':''"></div>
+                          </div>
+                        </template>
+                        <div class="node boss" :class="cungDone(selCung)?'done':''"><div class="dot"><span x-html="svgi('crown')"></span></div><div class="lb" style="color:var(--ktrose)">Cung Chủ</div></div>
+                      </div>
                     </div>
                     <div class="dbody">
                       <div class="ssect">Trận Chủ</div>
@@ -9021,16 +9032,6 @@
                       </div>
                       <div class="ktr-lore" x-text="cur.lore"></div>
                       <div class="ktr-story" x-show="cur.story" x-text="cur.story"></div>
-                      <div class="sect">Chuỗi trận trong Cung</div>
-                      <div class="chain">
-                        <template x-for="n in 5" :key="n">
-                          <div style="display:contents">
-                            <div class="node" :class="chainCls(n)"><div class="dot" x-text="(cungDone(selCung)||n<=cungProg(selCung))?'✓':n"></div><div class="lb" x-text="'Trận '+n"></div></div>
-                            <div class="link" :class="(cungDone(selCung)||n<cungProg(selCung))?'done':''"></div>
-                          </div>
-                        </template>
-                        <div class="node boss" :class="cungDone(selCung)?'done':''"><div class="dot"><span x-html="svgi('crown')"></span></div><div class="lb" style="color:var(--ktrose)">Cung Chủ</div></div>
-                      </div>
                       <div class="sect">Thưởng khi chiếm Cung</div>
                       <div class="rew">
                         <span class="rchip"><img src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <b x-text="'+'+((cur.reward&&cur.reward.hon)||KT_CONST.CUNG_HON)"></b> Trận Hồn</span>
@@ -9137,7 +9138,6 @@
                           <div class="mc-lock" x-show="e.kills===0" x-html="svgi('lock')"></div>
                         </div>
                         <div class="mc-nm" x-text="e.kills>0 ? e.nm : ''"></div>
-                        <div class="mc-kk" x-text="e.kills>0 ? ('Đã trảm ×'+e.kills) : 'Chưa chạm trán'"></div>
                       </div>
                     </template>
                   </div>
