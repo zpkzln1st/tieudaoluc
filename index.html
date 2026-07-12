@@ -8764,6 +8764,390 @@
         </div>
       </template>
 
+      <!-- ===== VIEW: KỲ TRẬN · CỬU CUNG TRẤN YÊU (match-3 side-content — cách ly 0-power, chỉ state.kyTran) ===== -->
+      <style>
+        .kt-root{ --ktp1:#0f1521; --ktp2:#131c2b; --ktline:#1e293b; --ktline2:#26344a;
+          --kttxt:#e2e8f0; --ktmut:#94a3b8; --ktmut2:#64748b; --ktdim:#475569;
+          --ktgold:#f5b942; --ktgold2:#e8c877; --ktjade:#2dd4bf; --ktrose:#fb7185; --ktcyan:#22d3ee; --ktviolet:#c084fc;
+          color:var(--kttxt); font-size:13px; }
+        .kt-root .ktr-svgi{width:14px;height:14px;flex:none}
+        .kt-root .ktr-soul{font-family:'Lora',serif;font-weight:700;color:var(--ktgold2)}
+        /* ---- thanh đầu ---- */
+        .kt-root .ktr-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(90deg,#141020,#0d1420);border:1px solid var(--ktline2);border-radius:14px;padding:12px 16px;box-shadow:0 0 26px -14px var(--ktviolet)}
+        .kt-root .ktr-top .ttl{font-family:'Lora',serif;font-weight:700;font-size:19px;background:linear-gradient(180deg,#fff6d6,#f4d27a 55%,#d8a03a);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .kt-root .ktr-top .sub{font-size:11px;color:var(--ktmut)}
+        .kt-root .ktr-top .spacer{flex:1}
+        .kt-root .ktr-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 11px;border-radius:9px;background:#0b1220;border:1px solid var(--ktline2)}
+        .kt-root .ktr-pill b{color:var(--ktgold)} .kt-root .ktr-pill.jade b{color:var(--ktjade)} .kt-root .ktr-pill .k{color:var(--ktmut2);font-size:10.5px}
+        .kt-root .ktr-rank{display:inline-flex;align-items:center;gap:7px;font-family:'Lora',serif;font-weight:700;color:var(--ktviolet);padding:4px 12px;border-radius:9px;background:#170f26;border:1px solid rgba(192,132,252,.33)}
+        .kt-root .ktr-rank .han{font-size:14px;line-height:1}
+        /* ---- tab (text thuần theo chuẩn game) ---- */
+        .kt-root .ktr-nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+        .kt-root .ktr-nav button{font-family:'Lora',serif;font-weight:600;font-size:13px;color:var(--ktmut);background:var(--ktp1);border:1px solid var(--ktline);padding:8px 16px;border-radius:10px;cursor:pointer;transition:.13s}
+        .kt-root .ktr-nav button:hover{border-color:var(--ktline2);color:var(--kttxt)}
+        .kt-root .ktr-nav button.on{color:var(--ktgold);border-color:rgba(245,185,66,.4);background:#1a1508;box-shadow:0 0 16px -8px var(--ktgold)}
+        /* ---- bản đồ Cửu Cung ---- */
+        .kt-root .maprow{display:grid;grid-template-columns:520px minmax(0,1fr);gap:16px;align-items:start}
+        .kt-root .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;padding:12px}
+        .kt-root .cung{position:relative;aspect-ratio:1;border-radius:11px;overflow:hidden;cursor:pointer;border:1px solid var(--ktline2);background:#0a0f18;transition:.14s}
+        .kt-root .cung img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42;transition:.2s}
+        .kt-root .cung .vig{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,11,18,.15),rgba(7,11,18,.88))}
+        .kt-root .cung .in{position:absolute;inset:0;padding:9px 10px;display:flex;flex-direction:column}
+        .kt-root .cung .tri{font-size:22px;line-height:1;text-shadow:0 1px 4px #000}
+        .kt-root .cung .nm{margin-top:auto;font-family:'Lora',serif;font-weight:700;font-size:14px;text-shadow:0 1px 3px #000}
+        .kt-root .cung .st{font-size:10px;margin-top:1px;color:var(--ktmut)}
+        .kt-root .cung .badge{position:absolute;top:8px;right:8px;font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.6);border:1px solid var(--ktline2);color:var(--ktmut)}
+        .kt-root .cung:hover:not(.locked){transform:translateY(-3px)}
+        .kt-root .cung:hover:not(.locked) img{opacity:.6}
+        .kt-root .cung.done{border-color:rgba(45,212,191,.4);box-shadow:inset 0 0 0 1px rgba(45,212,191,.2),0 0 18px -10px var(--ktjade)}
+        .kt-root .cung.done .st{color:var(--ktjade)}
+        .kt-root .cung.active{border-color:rgba(245,185,66,.53);box-shadow:0 0 20px -8px var(--ktgold)}
+        .kt-root .cung.active .st{color:var(--ktgold)}
+        .kt-root .cung.open .st{color:var(--ktcyan)}
+        .kt-root .cung.locked{cursor:not-allowed}
+        .kt-root .cung.locked img{opacity:.14;filter:grayscale(1)}
+        .kt-root .cung.locked .nm,.kt-root .cung.locked .tri{color:var(--ktdim)}
+        .kt-root .cung.center{border:2px solid var(--ktgold);cursor:pointer}
+        .kt-root .cung.center .vig{background:linear-gradient(180deg,rgba(30,16,44,.35),rgba(10,6,20,.9))}
+        .kt-root .cung.center .nm{color:#e9d5ff}
+        .kt-root .cung.sel{outline:2px solid var(--ktgold);outline-offset:-1px}
+        .kt-root .cung .chk{position:absolute;top:7px;left:9px;color:var(--ktjade);font-size:14px;filter:drop-shadow(0 0 4px #2dd4bf)}
+        .kt-root .cung .lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.5;color:var(--ktmut)}
+        .kt-root .cung .lock svg{width:20px;height:20px}
+        /* panel chi tiết Cung */
+        .kt-root .detail{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden;min-height:520px}
+        .kt-root .dbanner{position:relative;height:118px}
+        .kt-root .dbanner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+        .kt-root .dbanner .g{position:absolute;inset:0;background:linear-gradient(90deg,#0f1521 8%,rgba(15,21,33,.55) 55%,transparent)}
+        .kt-root .dbanner .t{position:absolute;left:16px;bottom:12px}
+        .kt-root .dbanner .t .he{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+        .kt-root .dbanner .t .nm{font-family:'Lora',serif;font-weight:700;font-size:24px;line-height:1.05}
+        .kt-root .dbody{padding:16px}
+        .kt-root .dboss{display:flex;align-items:center;gap:12px;background:#0b1220;border:1px solid var(--ktline2);border-radius:11px;padding:10px 12px;margin-bottom:12px}
+        .kt-root .dboss .av{position:relative;width:52px;height:52px;border-radius:9px;overflow:hidden;border:1px solid var(--ktrose);background:#160a10;flex:none}
+        .kt-root .dboss .av img{width:100%;height:100%;object-fit:cover}
+        .kt-root .avh{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;color:#fda4af;font-weight:700}
+        .kt-root .dboss .bn{font-family:'Lora',serif;font-weight:700;font-size:15px;color:#fecdd3}
+        .kt-root .dboss .bk{font-size:11px;color:var(--ktmut2)}
+        .kt-root .ktr-lore{font-family:'Lora',serif;font-style:italic;font-size:12.5px;color:var(--ktmut);margin:0 0 14px;padding-left:11px;border-left:2px solid rgba(245,185,66,.35)}
+        .kt-root .sect{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px}
+        .kt-root .chain{display:flex;align-items:center;gap:0;margin-bottom:16px;flex-wrap:wrap}
+        .kt-root .node{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto}
+        .kt-root .node .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:#0b1220;border:1.5px solid var(--ktline2);color:var(--ktmut)}
+        .kt-root .node.done .dot{border-color:var(--ktjade);color:var(--ktjade);background:#0c1a1a}
+        .kt-root .node.cur .dot{border-color:var(--ktgold);color:var(--ktgold);background:#1a1508;box-shadow:0 0 14px -4px var(--ktgold)}
+        .kt-root .node.boss .dot{width:42px;height:42px;border-radius:10px;transform:rotate(45deg);border-color:var(--ktrose);color:var(--ktrose);background:#160a10}
+        .kt-root .node.boss .dot span{transform:rotate(-45deg);display:grid;place-items:center}
+        .kt-root .node.boss .dot svg{width:15px;height:15px}
+        .kt-root .node .lb{font-size:9.5px;color:var(--ktmut2)}
+        .kt-root .link{width:26px;height:2px;background:var(--ktline2);margin-top:-14px}
+        .kt-root .link.done{background:var(--ktjade)}
+        .kt-root .rew{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+        .kt-root .rchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:5px 10px;border-radius:8px;background:#0b1220;border:1px solid var(--ktline2);color:var(--kttxt)}
+        .kt-root .rchip b{color:var(--ktgold)}
+        .kt-root .rchip .ktr-svgi{color:var(--ktmut)}
+        .kt-root .ktr-counter{font-size:11.5px;color:var(--ktmut);margin:0 0 14px}
+        .kt-root .ktr-counter b{color:var(--ktcyan)}
+        .kt-root .cta{display:inline-flex;align-items:center;gap:8px;font-family:'Lora',serif;font-weight:700;font-size:14px;color:var(--ktgold);padding:10px 22px;border-radius:10px;border:1px solid rgba(245,185,66,.6);background:linear-gradient(135deg,rgba(245,185,66,.18),transparent);cursor:pointer;transition:.13s}
+        .kt-root .cta:hover{filter:brightness(1.1);transform:translateY(-1px)}
+        .kt-root .cta svg{width:15px;height:15px}
+        .kt-root .cta.dim{color:var(--ktdim);border-color:var(--ktline2);background:none;cursor:not-allowed;transform:none;filter:none}
+        .kt-root .dhint{font-size:11px;color:var(--ktmut2);margin-top:12px}
+        .kt-root .cap2{font-size:11.5px;color:var(--ktmut2);text-align:center;margin:14px auto 0;max-width:760px;line-height:1.6}
+        .kt-root .cap2 b{color:var(--ktjade)}
+        /* ---- Ngũ Hành: La Bàn Bát Quái (palette ấm cục bộ như mockup đã duyệt) ---- */
+        .kt-root .ktr-nghead{text-align:center;margin:6px 0 18px}
+        .kt-root .ktr-nghead .ttl{font-family:'Lora',serif;font-weight:700;font-size:24px;background:linear-gradient(180deg,#f6e4b0,#e2c477 48%,#b8912f);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .kt-root .ktr-nghead .sub{font-size:12px;color:var(--ktmut);margin-top:5px}
+        .kt-root .ktr-hero{display:grid;grid-template-columns:600px minmax(0,1fr);gap:34px;align-items:center}
+        .kt-root .laban{position:relative;width:600px;max-width:100%;aspect-ratio:1;margin:0 auto;--msz:108px}
+        .kt-root .laban>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+        .kt-root .med{position:absolute;width:var(--msz);aspect-ratio:1;transform:translate(-50%,-50%);cursor:pointer;transition:transform .15s ease;border-radius:50%}
+        .kt-root .med:hover{transform:translate(-50%,-50%) scale(1.05)}
+        .kt-root .med .disc{position:absolute;inset:0;border-radius:50%;border:2px solid var(--ec);background:#0c0b09;transition:box-shadow .15s ease;box-shadow:0 0 0 1px rgba(201,162,75,.14),inset 0 0 14px rgba(0,0,0,.7),0 0 18px var(--ecA2)}
+        .kt-root .med.sel .disc{box-shadow:0 0 0 3px var(--ecA3),0 0 30px var(--ecA5),inset 0 0 14px rgba(0,0,0,.7)}
+        .kt-root .med .art{position:absolute;inset:7px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:radial-gradient(78% 78% at 50% 38%,var(--ecT),#0b0a08 82%)}
+        .kt-root .med .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+        .kt-root .med .glyph{font-family:'Lora',serif;font-weight:700;font-size:calc(var(--msz)*.38);color:var(--ec);text-shadow:0 0 16px var(--ecA5);line-height:1}
+        .kt-root .med .lp{position:absolute;top:calc(100% + 5px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;color:var(--ktmut);background:rgba(12,11,9,.88);border:1px solid #2e2818;border-radius:20px;padding:2px 10px;transition:border-color .15s}
+        .kt-root .med.sel .lp{border-color:var(--ec);color:var(--kttxt)}
+        .kt-root .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:25.5%;aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:radial-gradient(#131009,#0b0a08 82%);border:1px solid rgba(201,162,75,.3);box-shadow:0 0 0 6px rgba(10,9,8,.92),inset 0 0 24px rgba(0,0,0,.7),0 0 30px var(--hA)}
+        .kt-root .hub .hg{font-family:'Lora',serif;font-weight:700;font-size:46px;line-height:1;color:var(--hc);text-shadow:0 0 22px var(--hA2)}
+        .kt-root .hub .hn{font-size:12px;color:var(--ktmut)}
+        .kt-root .hub .hn b{color:var(--kttxt);font-weight:600}
+        .kt-root .ktr-panel{position:relative;background:#100f0d;border:1px solid #221e17;border-radius:16px;padding:26px 28px 24px;overflow:hidden}
+        .kt-root .ktr-panel::before{content:"";position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,75,.55),transparent)}
+        .kt-root .ktr-panel::after{content:"";position:absolute;inset:6px;border:1px solid rgba(201,162,75,.08);border-radius:11px;pointer-events:none}
+        .kt-root .p-top{display:flex;align-items:center;gap:16px}
+        .kt-root .seal{flex:none;width:58px;height:58px;border-radius:12px;display:grid;place-items:center;font-family:'Lora',serif;font-weight:700;font-size:30px;color:var(--ec);border:1.5px solid var(--ec);background:var(--ecT);box-shadow:inset 0 0 14px rgba(0,0,0,.5),0 0 16px var(--ecA2)}
+        .kt-root .p-name{font-family:'Lora',serif;font-weight:700;font-size:26px;line-height:1.15;color:var(--ec)}
+        .kt-root .p-role{font-size:12.5px;color:#9b9079;margin-top:3px}
+        .kt-root .p-quote{font-family:'Lora',serif;font-style:italic;font-size:13px;color:#8a8069;margin:13px 0 0;padding-left:13px;border-left:2px solid var(--ecA3)}
+        .kt-root .rels{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+        .kt-root .rel{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--rc);border:1px solid var(--rcA);border-radius:20px;padding:3px 11px;background:var(--rcT)}
+        .kt-root .rel .rl{color:#8a8069}
+        .kt-root .ktr-perlv{margin-top:14px;font-size:12px;color:#9b9079;border:1px dashed #2e2818;border-radius:9px;padding:7px 11px;display:inline-block}
+        .kt-root .lvrow{margin-top:16px}
+        .kt-root .lvrow .lb{font-size:12.5px;color:#9b9079}
+        .kt-root .lvrow .lb b{color:#e6ddca;font-size:16px;font-weight:600}
+        .kt-root .segs{display:flex;gap:3px;margin-top:16px}
+        .kt-root .segs i{position:relative;flex:1;height:10px;border-radius:3px;background:#1c1810}
+        .kt-root .segs i.f{background:linear-gradient(180deg,var(--ec),var(--ecT2));box-shadow:0 0 8px var(--ecA2)}
+        .kt-root .segs i.ms::after{content:"◆";position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:8px;color:#4a4433}
+        .kt-root .segs i.ms.f::after{color:var(--ktgold)}
+        .kt-root .miles{margin-top:18px;display:flex;flex-direction:column;gap:9px}
+        .kt-root .mile{display:flex;align-items:flex-start;gap:12px;padding:10px 13px;border-radius:10px;border:1px solid #1c1811;border-left:3px solid #2a2416;background:#0d0c0a;color:#8a8069}
+        .kt-root .mile .mlv{flex:none;font-family:'Lora',serif;font-weight:600;font-size:12px;color:#6b6046;padding-top:1px;width:46px}
+        .kt-root .mile .mtx{font-size:12.5px;line-height:1.45}
+        .kt-root .mile .mtag{flex:none;margin-left:auto;font-size:10px;letter-spacing:.14em;color:var(--ktgold);border:1px solid rgba(201,162,75,.4);border-radius:20px;padding:2px 9px;align-self:center}
+        .kt-root .mile.on{border-left-color:var(--ec);background:var(--ecT);color:#e6ddca}
+        .kt-root .mile.on .mlv{color:var(--ec)}
+        .kt-root .mile.cap.on{border-left-color:var(--ktgold2);color:var(--ktgold2)}
+        .kt-root .actrow{margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+        .kt-root .ktr-btn{display:inline-flex;align-items:center;gap:9px;padding:10px 24px;border-radius:10px;font-family:'Lora',serif;font-weight:600;font-size:14.5px;color:var(--ec);cursor:pointer;border:1px solid var(--ec);background:var(--ecT);transition:background .13s,box-shadow .13s}
+        .kt-root .ktr-btn:hover{background:var(--ecT2);box-shadow:0 0 16px var(--ecA2)}
+        .kt-root .ktr-btn.dis{opacity:.45;cursor:not-allowed}
+        .kt-root .ktr-btn.dis:hover{background:var(--ecT);box-shadow:none}
+        .kt-root .ktr-btn .cost{font-size:12.5px;color:#9b9079;font-weight:500}
+        .kt-root .have{font-size:12px;color:#8a8069}
+        .kt-root .have b{color:var(--ktgold2);font-weight:600}
+        /* ---- Trảm Yêu Lục + Trận Đồ Bảng ---- */
+        .kt-root .ktr-cdxsec{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+        .kt-root .ktr-cdxhead{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+        .kt-root .ktr-cdxhead .tri{font-size:18px;line-height:1}
+        .kt-root .ktr-cdxhead .nm{font-weight:700;font-size:15px}
+        .kt-root .ktr-cdxhead .cnt{margin-left:auto;font-size:11px;color:var(--ktmut2)}
+        .kt-root .ktr-cdxgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px}
+        .kt-root .ktr-cdxcard{display:flex;align-items:center;gap:10px;background:#0b1220;border:1px solid var(--ktline2);border-radius:10px;padding:8px 10px}
+        .kt-root .ktr-cdxcard .cav{width:44px;height:44px;border-radius:8px;overflow:hidden;background:#0a0f18;flex:none;filter:grayscale(1);opacity:.35}
+        .kt-root .ktr-cdxcard .cav img{width:100%;height:100%;object-fit:cover}
+        .kt-root .ktr-cdxcard.seen .cav{filter:none;opacity:1}
+        .kt-root .ktr-cdxcard.boss.seen .cav{outline:1px solid var(--ktrose)}
+        .kt-root .ktr-cdxcard .cmeta{min-width:0}
+        .kt-root .ktr-cdxcard .cnm{font-size:12px;font-weight:600;color:var(--ktdim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .kt-root .ktr-cdxcard.seen .cnm{color:var(--kttxt)}
+        .kt-root .ktr-cdxcard.boss.seen .cnm{color:#fecdd3}
+        .kt-root .ktr-cdxcard .ckk{font-size:10px;color:var(--ktmut2)}
+        .kt-root .ktr-cdxcard.seen .ckk{color:var(--ktjade)}
+        @media(max-width:1080px){ .kt-root .ktr-hero{grid-template-columns:1fr;gap:28px} .kt-root .laban{width:480px;--msz:88px} .kt-root .hub .hg{font-size:36px} }
+        @media(max-width:960px){ .kt-root .maprow{grid-template-columns:1fr} }
+        @media(max-width:640px){ .kt-root .laban{width:330px;--msz:64px} .kt-root .med .lp{font-size:9.5px;padding:1px 7px} .kt-root .hub .hg{font-size:25px} .kt-root .hub .hn{font-size:9px} .kt-root .ktr-panel{padding:20px 16px} .kt-root .p-name{font-size:22px} .kt-root .seal{width:48px;height:48px;font-size:24px} }
+      </style>
+      <template x-if="$store.game.view==='kyTran'">
+        <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()">
+          <!-- thanh đầu -->
+          <div class="ktr-top">
+            <div>
+              <div class="ttl">Kỳ Trận · Cửu Cung Trấn Yêu</div>
+              <div class="sub">Chinh phục 9 Cung yêu ma, dồn vào Trung Cung diệt Ma Đế</div>
+            </div>
+            <div class="spacer"></div>
+            <span class="ktr-rank"><span class="han fserif">陣</span> Trận Cấp <span x-text="tranCap"></span></span>
+            <span class="ktr-pill jade" title="Lượt đánh còn lại trong tuần"><span class="k">Lượt tuần</span> <b><span x-text="weekLeft"></span> / <span x-text="weekCap"></span></b></span>
+            <span class="ktr-pill"><span class="k">Trận Hồn</span> <span class="ktr-soul">魂</span> <b x-text="$store.game.fmtC(kt.tranHon)"></b></span>
+          </div>
+          <!-- tab -->
+          <div class="ktr-nav" x-show="!inBattle">
+            <button :class="ktTab==='map'?'on':''" @click="ktTab='map'">Đại Trận Đồ</button>
+            <button :class="ktTab==='nguhanh'?'on':''" @click="ktTab='nguhanh'">Ngũ Hành Trận Nhãn</button>
+            <button :class="ktTab==='codex'?'on':''" @click="ktTab='codex'">Trảm Yêu Lục</button>
+            <button :class="ktTab==='rank'?'on':''" @click="ktTab='rank'">Trận Đồ Bảng</button>
+          </div>
+
+          <!-- ===== TRẬN MATCH-3 (mount imperative khi inBattle) ===== -->
+          <div x-show="inBattle" style="margin-top:12px"><div x-ref="battleHost"></div></div>
+
+          <!-- ===== TAB: ĐẠI TRẬN ĐỒ ===== -->
+          <div x-show="!inBattle && ktTab==='map'">
+            <div class="maprow">
+              <div class="board">
+                <template x-for="(c,i) in KT_CUNG" :key="c.id">
+                  <div class="cung" :class="cungCls(i)" @click="selectCung(i)">
+                    <img :src="'images/dungeons/'+c.scene+'.webp'" onerror="this.style.display='none'">
+                    <div class="vig"></div>
+                    <div class="chk" x-show="cungDone(i)">✓</div>
+                    <div class="lock" x-show="cungSt(i)==='locked'" x-html="svgi('lock')"></div>
+                    <div class="badge" x-text="cungBadge(i)"></div>
+                    <div class="in">
+                      <div class="tri" :style="'color:'+c.c" x-text="c.tri"></div>
+                      <div class="nm" x-text="c.nm"></div>
+                      <div class="st" x-text="cungStLabel(i)"></div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+              <div class="detail">
+                <template x-if="cur">
+                  <div>
+                    <div class="dbanner">
+                      <img :src="'images/dungeons/'+cur.scene+'.webp'" onerror="this.style.display='none'">
+                      <div class="g"></div>
+                      <div class="t"><div class="he" :style="'color:'+cur.c" x-text="cur.he"></div><div class="nm fserif" x-text="cur.nm"></div></div>
+                    </div>
+                    <div class="dbody">
+                      <div class="dboss">
+                        <div class="av"><span class="avh fserif">妖</span><img :src="'images/enemies/'+cur.boss.art+'.webp'" style="position:relative" onerror="this.remove()"></div>
+                        <div><div class="bn fserif" x-text="cur.boss.nm"></div><div class="bk" x-text="cur.boss.sub + ' · match-3 cơ chế riêng'"></div></div>
+                      </div>
+                      <div class="ktr-lore" x-text="cur.lore"></div>
+                      <div class="sect">Chuỗi trận trong Cung</div>
+                      <div class="chain">
+                        <template x-for="n in 5" :key="n">
+                          <div style="display:contents">
+                            <div class="node" :class="chainCls(n)"><div class="dot" x-text="(cungDone(selCung)||n<=cungProg(selCung))?'✓':n"></div><div class="lb" x-text="'Trận '+n"></div></div>
+                            <div class="link" :class="(cungDone(selCung)||n<cungProg(selCung))?'done':''"></div>
+                          </div>
+                        </template>
+                        <div class="node boss" :class="cungDone(selCung)?'done':''"><div class="dot"><span x-html="svgi('crown')"></span></div><div class="lb" style="color:var(--ktrose)">Cung Chủ</div></div>
+                      </div>
+                      <div class="sect">Thưởng khi chiếm Cung</div>
+                      <div class="rew">
+                        <span class="rchip"><span class="ktr-soul">魂</span> <b x-text="'+'+((cur.reward&&cur.reward.hon)||KT_CONST.CUNG_HON)"></b> Trận Hồn</span>
+                        <template x-for="r in rewardOf(cur)" :key="r.txt">
+                          <span class="rchip"><span x-html="svgi(r.kind)"></span> <span x-text="r.txt"></span></span>
+                        </template>
+                        <span class="rchip"><span x-html="svgi('book')"></span> Trảm Yêu Lục</span>
+                      </div>
+                      <div class="ktr-counter" x-show="counterTxt(cur)"><b>Tương Khắc:</b> <span x-text="counterTxt(cur)"></span></div>
+                      <template x-if="ctaInfo">
+                        <div>
+                          <button class="cta" :class="ctaInfo.dim?'dim':''" @click="!ctaInfo.dim && startBattle()"><span x-html="svgi(ctaInfo.ic)"></span> <span x-text="ctaInfo.txt"></span></button>
+                          <div class="dhint" x-show="!ctaInfo.dim">Vào trận → chọn 1 <b>Tâm Pháp</b> + 3 <b>Kỹ Năng</b> (màn Lập Trận) rồi đánh match-3. Tốn 1 lượt tuần.</div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <div class="cap2">Bấm 1 Cung để xem chuỗi trận + Cung Chủ. Cung <b>đã chiếm</b> viền ngọc ✓ · <b>đang đánh</b> viền vàng · <b>khoá</b> cần chiếm Cung kề. Chiếm đủ 8 Cung ngoài → mở <b>Trung Cung Ma Đế</b>.</div>
+          </div>
+
+          <!-- ===== TAB: NGŨ HÀNH TRẬN NHÃN (La Bàn Bát Quái) ===== -->
+          <div x-show="!inBattle && ktTab==='nguhanh'">
+            <div class="ktr-nghead">
+              <div class="ttl">Ngũ Hành Vòng Trận</div>
+              <div class="sub">Ngũ hành luân chuyển · Sinh khắc định trận — mỗi mốc mở một cơ chế mới, Tương Khắc để áp chế Cung Chủ theo hệ</div>
+            </div>
+            <div class="ktr-hero">
+              <div class="laban">
+                <svg viewBox="0 0 600 600" x-html="lbSvg" aria-hidden="true"></svg>
+                <template x-for="k in KT_HANH_ORDER" :key="k">
+                  <div class="med" :class="selHanh===k?'sel':''" :style="medVars(k)" @click="pickHanh(k)">
+                    <div class="disc"><div class="art">
+                      <span class="glyph" x-text="KT_HANH[k].han"></span>
+                      <img :src="'images/nguhanh/'+k+'.webp'" alt="" onerror="this.remove()">
+                    </div></div>
+                    <span class="lp"><b :style="'color:'+KT_HANH[k].c" x-text="KT_HANH[k].nm"></b> <span x-text="'· Cấp '+hanhLv(k)"></span></span>
+                  </div>
+                </template>
+                <div class="hub" :style="hubVars()">
+                  <div class="hg" x-text="sH.han"></div>
+                  <div class="hn"><b x-text="sH.nm"></b> <span x-text="'· Cấp '+hanhLv(selHanh)"></span></div>
+                </div>
+              </div>
+              <section class="ktr-panel" :style="panelVars()">
+                <div class="p-top">
+                  <div class="seal" x-text="sH.han"></div>
+                  <div>
+                    <div class="p-name" x-text="sH.nm"></div>
+                    <div class="p-role" x-text="sH.role"></div>
+                  </div>
+                </div>
+                <div class="p-quote" x-text="'“'+sH.quote+'”'"></div>
+                <div class="rels">
+                  <span class="rel" :style="relVars(relOf(selHanh).sinh)"><span class="rl">Tương Sinh →</span> <span x-text="KT_HANH[relOf(selHanh).sinh].nm"></span></span>
+                  <span class="rel" :style="relVars(relOf(selHanh).khac)"><span class="rl">Tương Khắc →</span> <span x-text="KT_HANH[relOf(selHanh).khac].nm"></span></span>
+                  <span class="rel" :style="relVars(relOf(selHanh).by)"><span class="rl">Bị khắc ←</span> <span x-text="KT_HANH[relOf(selHanh).by].nm"></span></span>
+                </div>
+                <div class="ktr-perlv" x-text="sH.perLv"></div>
+                <div class="lvrow"><span class="lb">Cấp <b x-text="hanhLv(selHanh)"></b> / 10</span></div>
+                <div class="segs">
+                  <template x-for="n2 in 10" :key="n2">
+                    <i :class="(n2<=hanhLv(selHanh)?'f ':'')+((n2===4||n2===7||n2===10)?'ms':'')"></i>
+                  </template>
+                </div>
+                <div class="miles">
+                  <template x-for="mm in hanhMile(selHanh)" :key="mm.lv">
+                    <div class="mile" :class="(mm.cap?'cap ':'')+(mm.on?'on':'')">
+                      <span class="mlv" x-text="'Cấp '+mm.lv"></span>
+                      <span class="mtx" x-text="mm.txt"></span>
+                      <span class="mtag" x-show="mm.cap">TUYỆT KĨ</span>
+                    </div>
+                  </template>
+                </div>
+                <div class="actrow">
+                  <button class="ktr-btn" :class="canUp(selHanh)?'':'dis'" @click="upHanh(selHanh)">
+                    <span x-show="hanhLv(selHanh)<10">Nâng <span class="cost">· <span class="ktr-soul">魂</span> <span x-text="upCost(selHanh)"></span></span></span>
+                    <span x-show="hanhLv(selHanh)>=10">Viên Mãn</span>
+                  </button>
+                  <span class="have">Đang có <b><span class="ktr-soul">魂</span> <span x-text="$store.game.fmtC(kt.tranHon)"></span></b></span>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- ===== TAB: TRẢM YÊU LỤC ===== -->
+          <div x-show="!inBattle && ktTab==='codex'">
+            <template x-for="row in codexRows" :key="row.cung.id">
+              <div class="ktr-cdxsec">
+                <div class="ktr-cdxhead">
+                  <span class="tri" :style="'color:'+row.cung.c" x-text="row.cung.tri"></span>
+                  <span class="nm fserif" x-text="row.cung.nm"></span>
+                  <span class="cnt" x-text="'Đã trảm ' + row.seen + ' / 6'"></span>
+                </div>
+                <div class="ktr-cdxgrid">
+                  <template x-for="e in row.list" :key="e.key">
+                    <div class="ktr-cdxcard" :class="(e.kills>0?'seen':'')+(e.boss?' boss':'')">
+                      <div class="cav"><img :src="'images/enemies/'+e.art+'.webp'" loading="lazy" onerror="this.style.display='none'"></div>
+                      <div class="cmeta">
+                        <div class="cnm" x-text="e.kills>0 ? e.nm : '???'"></div>
+                        <div class="ckk" x-text="e.kills>0 ? ('Đã trảm ×'+e.kills) : 'Chưa chạm trán'"></div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+          <!-- ===== TAB: TRẬN ĐỒ BẢNG (bot deterministic — đua danh dự, 0 power) ===== -->
+          <div x-show="!inBattle && ktTab==='rank'">
+            <div class="ktr-cdxsec">
+              <div class="ktr-cdxhead">
+                <span class="nm fserif">Trận Đồ Bảng</span>
+                <span class="cnt">Điểm = trận đã phá ×10 · Trận Cấp ×15 · diệt Ma Đế ×200 — đua danh dự, không cộng lực chiến</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <template x-for="r in $store.game.ktBangDisplay" :key="r.id">
+                  <div>
+                    <template x-if="r.separator"><div class="text-center text-slate-600 text-[14px] py-0.5 tracking-widest">· · ·</div></template>
+                    <template x-if="!r.separator">
+                      <div class="grid grid-cols-[40px_36px_1fr_auto] sm:grid-cols-[44px_40px_1fr_116px] gap-2 items-center px-2 py-2 rounded-lg border transition" :class="r.isPlayer ? 'bg-amber-400/10 border-amber-400/45' : 'bg-black/20 border-transparent hover:border-slate-700/70'">
+                        <div class="flex items-center justify-center">
+                          <span class="min-w-[1.75rem] h-7 px-1 rounded-lg flex items-center justify-center text-[12px] font-bold tabular-nums" :class="r.rank===1?'bg-amber-400/20 text-amber-300 border border-amber-500/50':(r.rank===2?'bg-slate-300/15 text-slate-100 border border-slate-400/40':(r.rank===3?'bg-orange-700/25 text-orange-300 border border-orange-600/45':'text-slate-500'))" x-text="r.rank"></span>
+                        </div>
+                        <div class="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 shrink-0" :class="r.avatar.color" x-data="{ok:true}">
+                          <img :src="'images/avatars/'+r.avatar.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                          <span x-show="!ok" x-text="r.avatar.char"></span>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="text-[13px] font-bold fserif truncate" :class="r.isPlayer?'text-amber-200':'text-slate-200'" x-text="r.name"></div>
+                          <div class="text-[10.5px] text-slate-500" x-text="r.sub"></div>
+                        </div>
+                        <div class="text-right pr-1">
+                          <span class="text-[14px] font-bold tabular-nums" :class="r.isPlayer?'text-amber-300':'text-slate-300'" x-text="r.score"></span>
+                          <span class="text-[10px] text-slate-500"> điểm</span>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <!-- ===== VIEW: ĐỘNG PHỦ (nhà riêng — cách ly 0-power) ===== -->
       <style>
         .dp-root{ --dpg:#c9a24b; --dpg2:#e8c877; --dpg3:#f5d089; --dpl:rgba(201,162,75,.28); --dpls:rgba(201,162,75,.16);

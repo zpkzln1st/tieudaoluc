@@ -1,0 +1,226 @@
+// ============================================================
+// DATA — Kỳ Trận · Cửu Cung Trấn Yêu (mini-game match-3, side-content 0-power).
+//   Bản đồ Bát Quái 9 Cung: mỗi Cung = 5 trận lâu la + 1 Cung Chủ.
+//   Chiếm 8 Cung ngoài → mở Trung Cung Ma Đế.
+//   art = tên file images/enemies/<art>.webp · scene = images/dungeons/<scene>.webp.
+//   Số HP/ATK là DRAFT theo công thức (mob: 55+28*tier+12*i · boss: 190+80*tier) — tune sau.
+// ============================================================
+
+export const KT_CONST = {
+  WEEK_CAP: 12,                 // lượt đánh/tuần cơ bản (Trảm Yêu Đài Động Phủ sẽ cộng thêm sau)
+  UP_BASE: 100, UP_PER_LV: 45,  // giá nâng 1 Hành = UP_BASE + lv*UP_PER_LV (Trận Hồn)
+  CUNG_HON: 300,                // Trận Hồn thưởng khi chiếm trọn 1 Cung
+  HERO_HP: 150, HERO_KHI: 100,
+  TRUNG_MULT: [1, 2.4, 5],      // hệ số HP/ATK địch theo Trùng 1/2/3 (NG+)
+};
+
+// Vòng Tương Sinh: Mộc → Hỏa → Thổ → Kim → Thủy → Mộc
+export const KT_HANH_ORDER = ['moc', 'hoa', 'tho', 'kim', 'thuy'];
+// Tương Khắc: [a khắc b]
+export const KT_KHAC = [['thuy', 'hoa'], ['hoa', 'kim'], ['kim', 'moc'], ['moc', 'tho'], ['tho', 'thuy']];
+
+// ============================================================
+// NGŨ HÀNH TRẬN NHÃN — 5 Hành đầu tư Trận Hồn (quote + mốc đã duyệt).
+//   perLv: hiệu ứng mỗi cấp · m: [cấp, mô tả, 1=mốc tối thượng]
+// ============================================================
+export const KT_HANH = {
+  moc: {
+    nm: 'Mộc', han: '木', c: '#45a877', role: 'Ô Tâm — hồi phục & tái sinh',
+    quote: 'Cỏ cháy lại xanh, thân tàn lại nở.',
+    perLv: 'Hồi máu ô Tâm +6%/cấp',
+    m: [[4, 'Hồi dư máu → tích thành Hộ Thuẫn'], [7, 'Đầu lượt hồi 3% Sinh Lực'], [10, 'Gục lần đầu → hồi 40% Sinh Lực', 1]],
+  },
+  hoa: {
+    nm: 'Hỏa', han: '火', c: '#d05a54', role: 'Ô Hỏa/Kiếm — bạo phát & thiêu đốt',
+    quote: 'Một đốm lửa nhỏ, thiêu vạn dặm khô.',
+    perLv: 'Tỉ lệ bạo kích +2%/cấp (bạo ×1.6)',
+    m: [[4, 'Xếp ≥4 ô Kiếm → thiêu địch 3 lượt'], [7, 'Địch đang cháy nhận +30% sát thương'], [10, 'Bạo kích ×2.4 và thiêu địch thêm', 1]],
+  },
+  tho: {
+    nm: 'Thổ', han: '土', c: '#c39a4c', role: 'Ô Thuẫn — giáp & phản đòn',
+    quote: 'Núi không dời, giáp không vỡ.',
+    perLv: 'Phòng ngự ô Thuẫn +6%/cấp',
+    m: [[4, 'Có Hộ Thuẫn → phản 25% sát thương bị chặn'], [7, 'Đầu lượt tích thêm Hộ Thuẫn'], [10, 'Miễn đòn nặng đầu tiên mỗi trận', 1]],
+  },
+  kim: {
+    nm: 'Kim', han: '金', c: '#a9b6c4', role: 'Ô Kiếm — xuyên giáp & bạo kích',
+    quote: 'Kiếm ra khỏi vỏ, tất thấy phân thắng bại.',
+    perLv: 'Sát thương ô Kiếm +6%/cấp',
+    m: [[4, 'Xếp ≥4 ô Kiếm → đòn ấy +50% sát thương'], [7, 'Đang có Hộ Thuẫn → bạo kích +25%'], [10, 'Đòn Kiếm kết liễu địch dưới 15% Sinh Lực', 1]],
+  },
+  thuy: {
+    nm: 'Thủy', han: '水', c: '#3f9fb8', role: 'Ô Khí — sạc chiêu & kiểm soát',
+    quote: 'Nước không tranh, mà thắng vạn vật.',
+    perLv: 'Tụ Khí từ ô Khí +5%/cấp',
+    m: [[4, 'Xếp ≥4 ô Khí → địch hoãn đòn 1 lượt'], [7, 'Dùng chiêu → sinh 2 ô Khí'], [10, 'Mỗi trận 1 lần nối lượt vượt giới hạn', 1]],
+  },
+};
+
+// ============================================================
+// 9 CUNG — thứ tự lưới 3×3 y mockup kytran_map.html (index 4 = Trung Cung).
+//   hanh: hệ ngũ hành của Cung (Tương Khắc counter Cung Chủ) — theo bát quái;
+//   Trung Cung = null (hỗn độn, không counter).
+//   tier: độ khó 1→6. reward: hon + đúng 1 tâm pháp (tp) hoặc kỹ năng (sk).
+//   Khởi đầu người chơi có sẵn: tp 'tuSa' + sk ['kiemKhi','hoanTinh','huyetSat'].
+// ============================================================
+export const KT_CUNG = [
+  {
+    id: 'thienCuong', tri: '☰', nm: 'Thiên Cương', he: 'Càn · Thiên', c: '#cbd5e1',
+    scene: 'coMoKiemTong', hanh: 'kim', tier: 1,
+    lore: 'Thiên môn thất thủ, thần tướng hóa yêu.',
+    boss: { art: 'thuVeThanTuong', nm: 'Thủ Vệ Thần Tướng', sub: 'Trùm Thiên Cương', hp: 270, atk: 15, heavyEvery: 4, heavyMul: 1.6 },
+    mobs: [
+      { art: 'thienBinh', nm: 'Thiên Binh Tàn Giáp', hp: 83, atk: 11 },
+      { art: 'tinhLinh', nm: 'Tinh Linh Vẫn Quang', hp: 95, atk: 11 },
+      { art: 'phuQuangDiep', nm: 'Phù Quang Điệp', hp: 107, atk: 12 },
+      { art: 'thienCuongVe', nm: 'Thiên Cương Vệ', hp: 119, atk: 13 },
+      { art: 'thienCuongVe', nm: 'Thiên Cương Vệ Trưởng', hp: 131, atk: 13 },
+    ],
+    reward: { hon: 300, tp: 'canKhon' },  // Càn Khôn Nghịch Chuyển — hợp cung Càn
+  },
+  {
+    id: 'bangUyen', tri: '☵', nm: 'Băng Uyên', he: 'Khảm · Băng', c: '#22d3ee',
+    scene: 'bangTamHanDam', hanh: 'thuy', tier: 2,
+    lore: 'Vạn trượng hàn uyên, nhất niệm thành băng.',
+    boss: { art: 'hanGiaoVuong', nm: 'Hàn Giao Vương', sub: 'Trùm Băng Mãng', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.8 },
+    mobs: [
+      { art: 'tuyetLang', nm: 'Tuyết Lang Băng Nha', hp: 111, atk: 13 },
+      { art: 'bangPhachDieu', nm: 'Băng Phách Điêu', hp: 123, atk: 14 },
+      { art: 'giaoNhan', nm: 'Giao Nhân Hàn Uyên', hp: 135, atk: 14 },
+      { art: 'hanGiao', nm: 'Hàn Giao Tiểu Mãng', hp: 147, atk: 15 },
+      { art: 'tuyetLang', nm: 'Tuyết Lang Đầu Đàn', hp: 159, atk: 16 },
+    ],
+    reward: { hon: 300, sk: 'ngungSuong' },  // Ngưng Sương Quyết — băng đóng sương
+  },
+  {
+    id: 'thachMa', tri: '☶', nm: 'Thạch Ma', he: 'Cấn · Thạch', c: '#d6a760',
+    scene: 'luuVanDong', hanh: 'tho', tier: 3,
+    lore: 'Thạch khai ma tỉnh, sơn băng địa liệt.',
+    boss: { art: 'hacHung', nm: 'Thạch Hùng Vương', sub: 'Trùm Hậu Thổ', hp: 430, atk: 21, heavyEvery: 3, heavyMul: 1.7 },
+    mobs: [
+      { art: 'sonTru', nm: 'Sơn Trư Húc Thạch', hp: 139, atk: 16 },
+      { art: 'daoTac', nm: 'Đạo Tặc Thạch Lũng', hp: 151, atk: 16 },
+      { art: 'tinhThachQuai', nm: 'Thạch Quái Toái Nham', hp: 163, atk: 17 },
+      { art: 'sonTacVuong', nm: 'Sơn Tặc Đầu Lĩnh', hp: 175, atk: 18 },
+      { art: 'tinhThachQuai', nm: 'Tinh Thạch Cự Linh', hp: 187, atk: 18, heavyEvery: 4, heavyMul: 1.6 },
+    ],
+    reward: { hon: 300, tp: 'kimCang' },  // Kim Cang Hộ Thể — thân như kim thạch
+  },
+  {
+    id: 'thuyQuai', tri: '☱', nm: 'Thủy Quái', he: 'Đoài · Thủy', c: '#60a5fa',
+    scene: 'thanhVanCoc', hanh: 'thuy', tier: 2,
+    lore: 'Ba đào nuốt nguyệt, hải tộc loạn cương.',
+    boss: { art: 'haiYeu', nm: 'Hải Yêu Chúa', sub: 'Trùm Hải Tộc', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.7 },
+    mobs: [
+      { art: 'giaoNhan', nm: 'Giao Nhân Trảo Ba', hp: 111, atk: 13 },
+      { art: 'meVuYeu', nm: 'Vụ Yêu Hải Sương', hp: 123, atk: 14 },
+      { art: 'saMang', nm: 'Hải Mãng Quyển Lãng', hp: 135, atk: 14 },
+      { art: 'hanGiao', nm: 'Thủy Giao Phiên Ba', hp: 147, atk: 15 },
+      { art: 'giaoNhan', nm: 'Giao Nhân Tế Ti', hp: 159, atk: 16 },
+    ],
+    reward: { hon: 300, sk: 'oLong' },  // Ô Long Giao Tranh — giao long thủy vực
+  },
+  {
+    id: 'maDe', tri: '◉', nm: 'Ma Đế Điện', he: 'Trung Cung', c: '#c084fc',
+    scene: 'thaiHuBiCanh', hanh: null, tier: 6,
+    lore: 'Bát môn dĩ phá, ma đế lâm trần.',
+    boss: {
+      art: 'coMaTo', nm: 'Thiên Ma Yêu Đế', sub: 'Trùm Cuối', hp: 720, atk: 32,
+      heavyEvery: 3, heavyMul: 2.0, poisonEvery: 2, poisonK: 5, poisonDmg: 13,
+    },
+    mobs: [
+      { art: 'hacYVe', nm: 'Hắc Y Ma Vệ', hp: 223, atk: 23 },
+      { art: 'coMa', nm: 'Cổ Ma Tiên Phong', hp: 235, atk: 24 },
+      { art: 'huyetPhucChau', nm: 'Huyết Phúc Độc Chu', hp: 247, atk: 24 },
+      { art: 'dongUMinh', nm: 'U Minh Quỷ Ảnh', hp: 259, atk: 25, heavyEvery: 4, heavyMul: 1.6 },
+      { art: 'huKhongThu', nm: 'Hư Không Ma Thú', hp: 271, atk: 26, heavyEvery: 3, heavyMul: 1.6 },
+    ],
+    reward: { hon: 300, tp: 'thaiCuc' },  // Thái Cực Vô Cực — phần thưởng tối thượng
+  },
+  {
+    id: 'loiDinh', tri: '☳', nm: 'Lôi Đình', he: 'Chấn · Lôi', c: '#a78bfa',
+    scene: 'thienCoDiTich', hanh: 'moc', tier: 4,
+    lore: 'Lôi minh cửu tiêu, vạn vật phủ phục.',
+    boss: { art: 'vanDieu', nm: 'Cửu Tiêu Lôi Bằng', sub: 'Trùm Lôi Cầm', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.8 },
+    mobs: [
+      { art: 'phuQuangDiep', nm: 'Điện Quang Điệp', hp: 167, atk: 18 },
+      { art: 'tinhLinh', nm: 'Lôi Linh Toái Điện', hp: 179, atk: 19 },
+      { art: 'bangPhachDieu', nm: 'Lôi Vũ Điêu', hp: 191, atk: 19 },
+      { art: 'thienBinh', nm: 'Lôi Bộ Thiên Binh', hp: 203, atk: 20, heavyEvery: 4, heavyMul: 1.6 },
+      { art: 'huKhongThu', nm: 'Lôi Ngục Cự Thú', hp: 215, atk: 21, heavyEvery: 3, heavyMul: 1.6 },
+    ],
+    reward: { hon: 300, sk: 'nguLoi' },  // Ngũ Lôi Chính Pháp — chính hệ Lôi
+  },
+  {
+    id: 'coDia', tri: '☷', nm: 'Cổ Địa', he: 'Khôn · Địa', c: '#a3a3a3',
+    scene: 'hacPhongLam', hanh: 'tho', tier: 3,
+    lore: 'Hoàng sa táng cốt, cổ độc phệ tâm.',
+    boss: { art: 'luuSaQuy', nm: 'Cổ Địa Ma Quân', sub: 'Trùm Sa Quỷ', hp: 430, atk: 21, poisonEvery: 2, poisonK: 4, poisonDmg: 11 },
+    mobs: [
+      { art: 'daLang', nm: 'Sa Lang Hoang Nguyên', hp: 139, atk: 16 },
+      { art: 'saMang', nm: 'Sa Mãng Độc Nha', hp: 151, atk: 16 },
+      { art: 'huyetPhucChau', nm: 'Độc Chu Kết Võng', hp: 163, atk: 17 },
+      { art: 'coMa', nm: 'Cổ Trùng Ma Nô', hp: 175, atk: 18 },
+      { art: 'saMang', nm: 'Cổ Mãng Vạn Độc', hp: 187, atk: 18, heavyEvery: 4, heavyMul: 1.6 },
+    ],
+    reward: { hon: 300, tp: 'hoaDoc' },  // Hoá Độc Đại Pháp — từ cung độc mà ra
+  },
+  {
+    id: 'hoaDiem', tri: '☲', nm: 'Hỏa Diễm', he: 'Ly · Hỏa', c: '#fb7185',
+    scene: 'xichDiemDiaCung', hanh: 'hoa', tier: 4,
+    lore: 'Xích diễm liệt địa, vạn vật thành tro.',
+    boss: { art: 'hoaYeu', nm: 'Hỏa Lân Vương', sub: 'Trùm Hỏa Yêu', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.9 },
+    mobs: [
+      { art: 'daLang', nm: 'Viêm Lang Xích Diễm', hp: 167, atk: 18 },
+      { art: 'phuQuangDiep', nm: 'Diễm Điệp Phần Vũ', hp: 179, atk: 19 },
+      { art: 'tinhLinh', nm: 'Hỏa Linh Dung Nham', hp: 191, atk: 19 },
+      { art: 'saMang', nm: 'Viêm Mãng Phún Diễm', hp: 203, atk: 20, heavyEvery: 4, heavyMul: 1.6 },
+      { art: 'sonTru', nm: 'Hỏa Trư Cuồng Bôn', hp: 215, atk: 21, heavyEvery: 3, heavyMul: 1.6 },
+    ],
+    reward: { hon: 300, sk: 'hoangKim' },  // Hoàng Kim Nhất Kích — vàng ròng luyện trong lửa
+  },
+  {
+    id: 'phongYeu', tri: '☴', nm: 'Phong Yêu', he: 'Tốn · Phong', c: '#34d399',
+    scene: 'vanYeuSon', hanh: 'moc', tier: 5,
+    lore: 'Phong khởi yêu sơn, mị ảnh mê tâm.',
+    boss: { art: 'cuuViHoTien', nm: 'Mị Ảnh Hồ Yêu', sub: 'Trùm Hồ Tiên', hp: 590, atk: 27, poisonEvery: 2, poisonK: 5, poisonDmg: 12 },
+    mobs: [
+      { art: 'yeuHo', nm: 'Yêu Hồ Tam Vĩ', hp: 195, atk: 21 },
+      { art: 'meVuYeu', nm: 'Mê Vụ Yêu Cơ', hp: 207, atk: 21 },
+      { art: 'huyenHo', nm: 'Huyền Hồ Ảo Ảnh', hp: 219, atk: 22 },
+      { art: 'yeuHo', nm: 'Yêu Hồ Lục Vĩ', hp: 231, atk: 23, heavyEvery: 4, heavyMul: 1.6 },
+      { art: 'huyenHo', nm: 'Huyền Hồ Bát Vĩ', hp: 243, atk: 23, heavyEvery: 3, heavyMul: 1.6 },
+    ],
+    reward: { hon: 300, sk: 'nguHanh' },  // Ngũ Hành Đại Chuyển — hồ tiên ảo hóa vạn vật
+  },
+];
+
+// ============================================================
+// TÂM PHÁP — chọn 1 khi Lập Trận (viết lại 1 luật bàn cờ).
+//   Khởi đầu có 'tuSa'; 4 cái còn lại mở từ reward Cung.
+// ============================================================
+export const KT_TAM_PHAP = [
+  { id: 'tuSa', name: 'Tụ Sa Thành Tháp', rule: 'Một lần xóa tính theo lũy thừa 1.5 số ô (tối đa 9 ô).', lore: 'Tích cát vi sơn — nhất kích thiên quân.', counters: '' },
+  { id: 'canKhon', name: 'Càn Khôn Nghịch Chuyển', rule: 'Sau cascade, ô rơi mới ~55% ra loại kế trong vòng sinh (Kiếm→Khí→Bảo→Tâm→Thuẫn→Kiếm).', lore: 'Vạn vật tương sinh — diệt một, sinh một.', counters: '' },
+  { id: 'hoaDoc', name: 'Hoá Độc Đại Pháp', rule: 'Ô Độc ngươi xóa nạp 1 Độc Tinh (tối đa 8); đòn Kiếm kế +4 mỗi Độc Tinh rồi xả sạch.', lore: 'Độc nhập ta tạng — hoàn lại kẻ gieo.', counters: 'poison' },
+  { id: 'kimCang', name: 'Kim Cang Hộ Thể', rule: 'Phòng Ngự giữ nguyên khi trúng đòn; mỗi lượt 25% Phòng Ngự chảy vào đòn Kiếm kế.', lore: 'Thân như kim thạch — phản chấn bách địch.', counters: 'heavy' },
+  { id: 'thaiCuc', name: 'Thái Cực Vô Cực', rule: 'Tạo ô đặc thù +15 Khí, nổ/Hợp Bích +8 Khí; trần nối lượt 2→3.', lore: 'Nhất khí hóa tam thanh — trận trung sinh trận.', counters: '' },
+];
+
+// ============================================================
+// KỸ NĂNG — chọn 3 khi Lập Trận (động từ: Khí / lượt-trận).
+//   Khởi đầu có 'kiemKhi','hoanTinh','huyetSat'; 5 cái còn lại mở từ reward Cung.
+// ============================================================
+export const KT_SKILLS = [
+  { id: 'kiemKhi', name: 'Kiếm Khí Trảm', kind: 'khi', cost: 100, tile: 'khi', icon: 'kiem', desc: 'Xả 100 Khí: 55 sát thương và quét một hàng.', lore: 'Khí tụ thành phong — kiếm khai nhất tuyến.', counters: '' },
+  { id: 'hoanTinh', name: 'Hoán Tinh Di Đẩu', kind: 'charge', charges: 3, tile: null, icon: 'swap', desc: 'Đổi tự do hai ô bất kỳ, không cần kề.', lore: 'Dời sao đổi đẩu — càn khôn tại thủ.', counters: '' },
+  { id: 'huyetSat', name: 'Huyết Sát', kind: 'khi', cost: 80, tile: 'kiem', icon: 'kiem', desc: 'Mỗi ô Kiếm trên bàn 4 sát thương và hồi 2 máu rồi vỡ.', lore: 'Kiếm khát máu tanh — một chém hồi sinh.', counters: '' },
+  { id: 'hoangKim', name: 'Hoàng Kim Nhất Kích', kind: 'stock', tile: 'bao', icon: 'bao', desc: 'Mỗi ô Bảo xếp dồn vào kho; xả kho 1 điểm = 1 sát thương.', lore: 'Vàng ròng đúc kiếm — một vựng nghìn lượng.', counters: '' },
+  { id: 'nguHanh', name: 'Ngũ Hành Đại Chuyển', kind: 'charge', charges: 2, tile: null, icon: 'convert', desc: 'Biến vùng 3×3 giữa bàn thành một loại tự chọn.', lore: 'Ngũ hành đại chuyển — sắc quy nhất thể.', counters: '' },
+  { id: 'oLong', name: 'Ô Long Giao Tranh', kind: 'charge', charges: 2, tile: 'doc', icon: 'doc', desc: 'Ô Độc địch hóa Kiếm và phản độc về địch; không có thì gieo Độc hại địch.', lore: 'Rồng đen cản ngược — độc phản về nguồn.', counters: 'poison' },
+  { id: 'ngungSuong', name: 'Ngưng Sương Quyết', kind: 'khi', cost: 50, tile: 'khi', icon: 'freeze', desc: 'Địch bỏ qua đòn kế và lượt rải Độc kế.', lore: 'Sương giăng vạn vật — tĩnh chỉ sát cơ.', counters: 'heavy' },
+  { id: 'nguLoi', name: 'Ngũ Lôi Chính Pháp', kind: 'charge', charges: 1, tile: null, icon: 'bolt', desc: '8 sát thương mỗi ô đặc thù rồi kích tất cả (Hợp Bích dây chuyền).', lore: 'Ngũ lôi oanh đỉnh — quần tà tận diệt.', counters: '' },
+];
+
+// Vòng sinh ô bàn cờ (dùng cho Tâm Pháp Càn Khôn Nghịch Chuyển)
+export const KT_SINH = { kiem: 'khi', khi: 'bao', bao: 'tim', tim: 'khien', khien: 'kiem' };

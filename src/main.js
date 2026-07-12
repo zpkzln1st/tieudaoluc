@@ -15,6 +15,7 @@ import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONST
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
+import { kyTran, ensureKyTran } from './kytran.js';                  // Kỳ Trận (match-3 Cửu Cung, cách ly)
 import { dongPhu } from './dongphu.js';                              // Động Phủ (nhà riêng — component view)
 import { ensureDongPhu, resolveDongPhu } from './engine/dongphu.js'; // Động Phủ (engine thuần)
 import { HOUSE_TIERS as DP_HOUSE_TIERS, BUILDINGS as DP_BUILDINGS } from './engine/dongphu.js';
@@ -141,7 +142,7 @@ if (!state.login) state.login = { lastDay: null, streak: 0 };
 if (!state.counters) state.counters = { produced: {}, kills: {} };
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
-ensureTongMon(state, Date.now()); ensureDangTien(state);
+ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state);
 ensureDongPhu(state); resolveDongPhu(state, Date.now());   // Động Phủ: khởi tạo + hoàn công job xong TRƯỚC advance offline & simTongMon (trần treo nhà áp cho cả khoảng vắng)
 try { simTongMon(state, Date.now(), idleCapMs(state) / 3600000); } catch (e) {} // Tông Môn (nhánh phụ): khởi tạo + tu luyện/sản lượng OFFLINE (cap = trần treo gồm bonus nhà)
 if (!state.quests) state.quests = { tutorial: { index: 0, base: 0 }, daily: { period: null, list: [] }, weekly: { period: null, list: [] }, monthly: { period: null, list: [] } };
@@ -400,7 +401,7 @@ const gameStore = {
   navTo(view) { if (view !== 'map') this._teleReturnView = null; this._applyView(view); this._pushHash('#' + view); },
   _applyView(view) { this.view = view; this.navOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
-  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu'],
+  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran'],
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
   applyHashRoute() {   // đọc URL hash -> đổi view (KHÔNG push lại, tránh lặp). Gọi khi popstate (back/forward).
     const h = location.hash || '';
@@ -1856,7 +1857,7 @@ const gameStore = {
   },
   statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
   zoneName(id) { const l = (this.LOCATIONS || []).find((x) => x.id === id); return l ? l.name : ''; },  // tên vùng (cho nhãn gathering)
   // Nghề THU THẬP (có zone trên action) → danh sách chỉ hiện tài nguyên của VÙNG đang đứng. Nghề chế tạo (không zone) hiện hết.
@@ -2070,6 +2071,29 @@ const gameStore = {
   },
   get mcbDisplay() {
     const all = this.mongCanhBang, top = all.slice(0, 50), p = all.find((r) => r.isPlayer);
+    if (!p || p.rank <= 50) return top;
+    return [...top, { separator: true, id: 'sep' }, ...all.slice(Math.max(50, p.rank - 4), p.rank + 3)];
+  },
+  // Trận Đồ Bảng (Kỳ Trận): bot deterministic từ roster chung, giống khuôn Mộng Cảnh Bảng — 0 power, đua danh dự
+  get kyTranBang() {
+    const w = this.state.world; if (!w) return [];
+    const h = (s) => { let x = 2166136261 >>> 0; s = '' + s; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return x >>> 0; };
+    const bots = genRoster(w.seed, w.createdAt).map((b) => {
+      const wins = Math.floor(Math.pow((h(b.id + ':ktwin') % 1000) / 1000, 1.8) * 55);   // 0..54 trận đã phá, lệch về thấp
+      const cap = Math.floor(Math.pow((h(b.id + ':ktcap') % 1000) / 1000, 2.0) * 29);    // Trận Cấp 0..28, lệch về thấp
+      const ma = wins >= 50 && (h(b.id + ':ktma') % 100) < 30 ? 1 : 0;
+      return { id: b.id, name: b.name, avatar: botAvatar(b), score: wins * 10 + cap * 15 + ma * 200, sub: ma ? 'Đã diệt Ma Đế' : ('Phá ' + wins + ' trận'), isPlayer: false };
+    });
+    const k = this.state.kyTran || {};
+    const capMe = Object.values(k.nguHanh || {}).reduce((s, v) => s + (v || 0), 0);
+    const me = { id: 'me', name: (this.state.player.name || 'Vô Danh'), avatar: (this.curAvatar || { id: this.avatarId, char: '道', color: 'from-slate-600 to-slate-700' }), score: (k.wins || 0) * 10 + capMe * 15 + (k.maDeKills || 0) * 200, sub: (k.maDeKills ? 'Đã diệt Ma Đế' : (k.wins ? ('Phá ' + k.wins + ' trận') : 'Chưa bày trận')), isPlayer: true };
+    const rows = bots.concat([me]);
+    rows.sort((a, b) => b.score - a.score || (a.id < b.id ? -1 : 1));
+    rows.forEach((r, i) => { r.rank = i + 1; });
+    return rows;
+  },
+  get ktBangDisplay() {
+    const all = this.kyTranBang, top = all.slice(0, 50), p = all.find((r) => r.isPlayer);
     if (!p || p.rank <= 50) return top;
     return [...top, { separator: true, id: 'sep' }, ...all.slice(Math.max(50, p.rank - 4), p.rank + 3)];
   },
@@ -3615,6 +3639,7 @@ const gameStore = {
 window.Alpine = Alpine;
 window.dangTienMong = dangTienMong;   // expose component factory cho x-data trong view Đăng Tiên Mộng
 window.dongPhu = dongPhu;             // expose component factory cho x-data trong view Động Phủ
+window.kyTran = kyTran;               // expose component factory cho x-data trong view Kỳ Trận
 Alpine.store('game', gameStore);
 Alpine.start();
 Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)

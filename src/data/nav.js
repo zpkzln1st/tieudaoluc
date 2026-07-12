@@ -20,6 +20,7 @@ export const NAV = [
     { view: 'dungeon',    name: 'Bí Cảnh',       gloss: 'Dungeon',       icon: '🏛️' },
     { view: 'worldboss',  name: 'Yêu Vương',     gloss: 'World Boss',     icon: '🐲' },
     { view: 'dangTienMong', name: 'Đăng Tiên Mộng', gloss: 'Card Roguelike', icon: '🎴' },
+    { view: 'kyTran', name: 'Kỳ Trận', gloss: 'Match-3 Combat', icon: '🀄' },
   ] },
   { title: 'Linh Thú', items: [
     { view: 'pets', name: 'Linh Thú', gloss: 'Pets', icon: '🐾' },
@@ -45,6 +46,6 @@ export const NAV = [
 export const VIEW_NAMES = {
   profile: 'Hồ Sơ', trangbi: 'Trang Bị', inventory: 'Hành Lý', map: 'Bản Đồ', nhiemVu: 'Nhiệm Vụ',
   combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương',
-  pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ',
+  pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ', kyTran: 'Kỳ Trận',
   guild: 'Bang Phái', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ',
 };
