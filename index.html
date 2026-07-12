@@ -8852,7 +8852,9 @@
         .kt-root .sect{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px}
         .kt-root .chain{display:flex;align-items:center;gap:0;margin-bottom:16px;flex-wrap:wrap}
         .kt-root .node{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto}
-        .kt-root .node .dot{position:relative;width:42px;height:42px;display:grid;place-items:center}
+        .kt-root .node .dot{position:relative;width:38px;height:38px;display:grid;place-items:center}
+        .kt-root .node.boss .dot{width:52px;height:52px}
+        .kt-root .node.boss.final .dot{width:66px;height:66px}
         .kt-root .node .dot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:filter .2s}
         .kt-root .node .dot span{position:relative;z-index:1;font-family:'Lora',serif;font-weight:700;font-size:14px;color:#f3e7c7;text-shadow:0 1px 3px #000,0 0 4px #000;line-height:1}
         .kt-root .node .dot span svg{width:16px;height:16px;display:block}
@@ -9026,7 +9028,7 @@
                             <div class="link" :class="(cungDone(selCung)||n<cungProg(selCung))?'done':''"></div>
                           </div>
                         </template>
-                        <div class="node boss" :class="cungDone(selCung)?'done':''"><div class="dot"><img :src="'images/dongphu/ui/'+bossBadge(selCung)" alt="" loading="lazy" onerror="this.style.display='none'"><span x-html="svgi('crown')"></span></div><div class="lb" style="color:var(--ktrose)">Cung Chủ</div></div>
+                        <div class="node boss" :class="(cungDone(selCung)?'done ':'')+(cur&&cur.id==='maDe'?'final':'')"><div class="dot"><img :src="'images/dongphu/ui/'+bossBadge(selCung)" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="lb" style="color:var(--ktrose)">Cung Chủ</div></div>
                       </div>
                     </div>
                     <div class="dbody">
