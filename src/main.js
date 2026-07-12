@@ -2169,12 +2169,12 @@ const gameStore = {
     if (_tmbKey !== key || !_tmbBots) {
       _tmbBots = genRoster(w.seed, w.createdAt).slice(0, 90).map((b, i) => {
         const tl = botTotalLv(b, t);
-        return { id: 'sect' + i, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], dao: ['chinh', 'ta', 'trung'][b.titleSeed % 3], master: b.name, uy: Math.round(85 * Math.pow(tl / 100, 3.8) * (0.90 + (b.actSeed % 21) * 0.01)), isPlayer: false };
+        return { id: 'sect' + i, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], dao: ['chinh', 'ta', 'trung'][b.titleSeed % 3], master: b.name, avatar: botAvatar(b), uy: Math.round(85 * Math.pow(tl / 100, 3.8) * (0.90 + (b.actSeed % 21) * 0.01)), isPlayer: false };
       });
       _tmbKey = key;
     }
     const tm = this.tm;
-    const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Vô Danh'), uy: uyDanhOf(tm) + this.lvhTitleUyBonus, isPlayer: true }]);
+    const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Vô Danh'), avatar: (this.curAvatar || { id: this.avatarId, char: '道', color: 'from-slate-600 to-slate-700' }), uy: uyDanhOf(tm) + this.lvhTitleUyBonus, isPlayer: true }]);
     rows.sort((a, b) => b.uy - a.uy || (a.id < b.id ? -1 : 1));
     rows.forEach((r, i) => { r.rank = i + 1; });
     return rows;

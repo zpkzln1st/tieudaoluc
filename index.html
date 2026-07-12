@@ -2255,7 +2255,6 @@
               <div class="hidden sm:grid grid-cols-[44px_40px_1fr_116px] gap-2 px-2 pb-1.5 lbl">
                 <div class="text-center">Hạng</div><div></div><div>Chiến Trận Sĩ</div><div class="text-right">Điểm Trận</div>
               </div>
-              <div class="text-[11px] text-slate-500 px-2 pb-2">Điểm = trận đã phá ×10 · Trận Cấp ×15 · diệt Ma Đế ×200 — đua danh dự, không cộng lực chiến.</div>
               <div class="space-y-1">
                 <template x-for="r in $store.game.ktBangDisplay" :key="r.id">
                   <div>
@@ -2287,17 +2286,21 @@
             </div>
             <!-- ===== TÔNG MÔN BẢNG ===== -->
             <div x-show="$store.game.pvbTab==='tongmon'">
-              <div class="hidden sm:grid grid-cols-[44px_1fr_96px_120px] gap-2 px-2 pb-1.5 lbl">
-                <div class="text-center">Hạng</div><div>Tông Môn</div><div class="text-center">Đạo</div><div class="text-right">Uy Danh</div>
+              <div class="hidden sm:grid grid-cols-[44px_40px_1fr_96px_116px] gap-2 px-2 pb-1.5 lbl">
+                <div class="text-center">Hạng</div><div></div><div>Tông Môn</div><div class="text-center">Đạo</div><div class="text-right">Uy Danh</div>
               </div>
               <div class="space-y-1">
                 <template x-for="r in $store.game.tmbDisplay" :key="r.id">
                   <div>
                     <template x-if="r.separator"><div class="text-center text-slate-600 text-[14px] py-0.5 tracking-widest">· · ·</div></template>
                     <template x-if="!r.separator">
-                      <div class="grid grid-cols-[40px_1fr_auto] sm:grid-cols-[44px_1fr_96px_120px] gap-2 items-center px-2 py-2 rounded-lg border transition" :class="r.isPlayer ? 'bg-amber-500/10 border-amber-500/45' : 'bg-ink3/25 border-transparent hover:border-slate-700/70'">
+                      <div class="grid grid-cols-[40px_36px_1fr_auto] sm:grid-cols-[44px_40px_1fr_96px_116px] gap-2 items-center px-2 py-2 rounded-lg border transition" :class="r.isPlayer ? 'bg-amber-500/10 border-amber-500/45' : 'bg-ink3/25 border-transparent hover:border-slate-700/70'">
                         <div class="flex items-center justify-center">
                           <span class="min-w-[1.75rem] h-7 px-1 rounded-lg flex items-center justify-center text-[12px] font-bold tabular-nums" :class="r.rank===1?'bg-amber-400/20 text-amber-300 border border-amber-500/50':(r.rank===2?'bg-slate-300/15 text-slate-100 border border-slate-400/40':(r.rank===3?'bg-orange-700/25 text-orange-300 border border-orange-600/45':'text-slate-500'))" x-text="r.rank"></span>
+                        </div>
+                        <div class="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 shrink-0" :class="r.avatar.color" x-data="{ok:true}">
+                          <img :src="'images/avatars/'+r.avatar.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                          <span x-show="!ok" x-text="r.avatar.char"></span>
                         </div>
                         <div class="min-w-0">
                           <div class="flex items-center gap-1.5 flex-wrap">
@@ -2319,21 +2322,19 @@
             </div>
             <!-- ===== DANH SĨ BẢNG ===== -->
             <div x-show="$store.game.pvbTab==='danhsi'">
-              <div class="hidden sm:grid grid-cols-[44px_1fr_92px_92px] gap-2 px-2 pb-1.5 lbl">
-                <div class="text-center">Hạng</div><div>Danh Sĩ</div><div class="text-center">Ngũ Hành</div><div class="text-right">Uy Vọng</div>
+              <div class="hidden sm:grid grid-cols-[44px_40px_1fr_92px_116px] gap-2 px-2 pb-1.5 lbl">
+                <div class="text-center">Hạng</div><div></div><div>Danh Sĩ</div><div class="text-center">Ngũ Hành</div><div class="text-right">Uy Vọng</div>
               </div>
               <div class="space-y-1">
                 <template x-for="r in $store.game.danhSiBang" :key="r.id">
-                  <div @click="$store.game.openDanhSi(r.id)" class="grid grid-cols-[40px_1fr_auto] sm:grid-cols-[44px_1fr_92px_92px] gap-2 items-center px-2 py-2 rounded-lg border border-transparent bg-ink3/25 hover:border-cyan/40 cursor-pointer transition">
+                  <div @click="$store.game.openDanhSi(r.id)" class="grid grid-cols-[40px_36px_1fr_auto] sm:grid-cols-[44px_40px_1fr_92px_116px] gap-2 items-center px-2 py-2 rounded-lg border border-transparent bg-ink3/25 hover:border-cyan/40 cursor-pointer transition">
                     <div class="flex items-center justify-center">
                       <span class="min-w-[1.75rem] h-7 px-1 rounded-lg flex items-center justify-center text-[12px] font-bold tabular-nums" :class="r.rank===1?'bg-amber-400/20 text-amber-300 border border-amber-500/50':(r.rank===2?'bg-slate-300/15 text-slate-100 border border-slate-400/40':(r.rank===3?'bg-orange-700/25 text-orange-300 border border-orange-600/45':'text-slate-500'))" x-text="r.rank"></span>
                     </div>
-                    <div class="flex items-center gap-2.5 min-w-0">
-                      <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-ink2" :style="'border:1px solid '+r.heColor+'55'"><img :src="r.face" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'"></div>
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-1.5 flex-wrap"><span class="text-[13px] font-bold fserif truncate" :style="'color:'+r.daoColor" x-text="r.ten"></span><span class="text-[10px] text-slate-500 truncate hidden sm:inline">「<span x-text="r.bietHieu"></span>」</span></div>
-                        <div class="text-[10.5px] text-slate-500 truncate" x-text="r.realmName + ' · ' + r.activityNow"></div>
-                      </div>
+                    <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-ink2" :style="'border:1px solid '+r.heColor+'55'"><img :src="r.face" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'"></div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap"><span class="text-[13px] font-bold fserif truncate" :style="'color:'+r.daoColor" x-text="r.ten"></span><span class="text-[10px] text-slate-500 truncate hidden sm:inline">「<span x-text="r.bietHieu"></span>」</span></div>
+                      <div class="text-[10.5px] text-slate-500 truncate" x-text="r.realmName + ' · ' + r.activityNow"></div>
                     </div>
                     <div class="hidden sm:flex items-center justify-center">
                       <span class="text-[10px] px-1.5 py-0.5 rounded font-bold inline-flex items-center gap-1" :style="'color:'+r.heColor+';background:rgba(0,0,0,.35);border:1px solid '+r.heColor+'55'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+r.heColor"></span><span x-text="r.heName"></span></span>
