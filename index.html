@@ -8946,8 +8946,9 @@
         .kt-root .ktr-cdxrow{display:grid;grid-template-columns:158px minmax(0,1fr);gap:18px;align-items:start;padding:16px 4px;border-top:1px solid var(--ktline)}
         .kt-root .ktr-cdxrow:first-child{border-top:none;padding-top:4px}
         .kt-root .ktr-cunginfo{padding-top:10px}
-        .kt-root .ci-emblem{width:30px;height:30px;display:grid;place-items:center;margin-bottom:9px;filter:drop-shadow(0 0 6px currentColor)}
-        .kt-root .ci-emblem svg{width:26px;height:26px}
+        .kt-root .ci-thumb{position:relative;width:58px;height:58px;border-radius:10px;overflow:hidden;border:1.5px solid var(--ktline2);margin-bottom:10px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+        .kt-root .ci-thumb img{width:100%;height:100%;object-fit:cover;opacity:.9}
+        .kt-root .ci-thumb .ci-tri{position:absolute;top:3px;left:5px;font-size:14px;line-height:1;text-shadow:0 1px 3px #000}
         .kt-root .ci-nm{font-family:'Lora',serif;font-weight:700;font-size:19px;line-height:1.12}
         .kt-root .ci-lore{font-family:'Lora',serif;font-style:italic;font-size:11.5px;color:var(--ktmut2);margin-top:5px;line-height:1.45}
         .kt-root .ktr-cdxcnt{text-align:right;font-size:11px;color:var(--ktmut2);margin-bottom:7px;letter-spacing:.02em}
@@ -9140,7 +9141,7 @@
             <template x-for="row in codexRows" :key="row.cung.id">
               <div class="ktr-cdxrow">
                 <div class="ktr-cunginfo">
-                  <div class="ci-emblem" :style="'color:'+row.cung.c" x-html="svgi('gem')"></div>
+                  <div class="ci-thumb" :style="'border-color:'+row.cung.c+'99'"><img :src="'images/dungeons/'+row.cung.scene+'.webp'" alt="" loading="lazy" onerror="this.style.display='none'"><span class="ci-tri" :style="'color:'+row.cung.c" x-text="row.cung.tri"></span></div>
                   <div class="ci-nm" :style="'color:'+row.cung.c" x-text="row.cung.nm"></div>
                   <div class="ci-lore" x-text="row.cung.lore"></div>
                 </div>
