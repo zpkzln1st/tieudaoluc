@@ -57,6 +57,7 @@ var KTB_CSS=[
 '.ktb .ktb-top{ flex:none; display:flex; align-items:center; justify-content:space-between; gap:8px; }',
 '.ktb .ktb-soul{ display:flex; align-items:baseline; gap:6px; padding:4px 12px; border-radius:99px; background:var(--ink2); border:1px solid var(--bd); font-size:.82rem; font-weight:700; color:var(--gold); }',
 '.ktb .ktb-soul .l{ font-weight:400; color:var(--tx3); font-size:.66rem; }',
+'.ktb .ktb-soul .soulic{ width:18px; height:18px; object-fit:contain; align-self:center; }',
 '.ktb .ktb-retreat{ padding:5px 12px; border-radius:8px; font-size:.72rem; font-weight:700; color:var(--tx2); background:var(--ink3); border:1px solid var(--bd); }',
 '.ktb .stage{ flex:1; min-height:0; display:flex; gap:12px; align-items:stretch; justify-content:center; }',
 '.ktb .side{ width:168px; flex:none; display:flex; flex-direction:column; gap:8px; min-height:0; }',
@@ -130,6 +131,7 @@ var KTB_CSS=[
 '.ktb .skpill.ready{ border-color:var(--cyan); box-shadow:0 0 11px -3px var(--cyan); }',
 '.ktb .skpill .skicon{ position:relative; width:30px; height:30px; flex:none; border-radius:8px; display:flex; align-items:center; justify-content:center; background:radial-gradient(120% 120% at 32% 24%,#1b2436,#0a0f1c); box-shadow:inset 0 0 0 1.4px color-mix(in srgb,var(--sc) 55%,transparent); color:var(--sc); }',
 '.ktb .skpill .skicon svg{ width:64%; height:64%; }',
+'.ktb .skpill .skicon .skart{ width:82%; height:82%; object-fit:contain; }',
 '.ktb .skpill .skicon .sktile{ position:absolute; right:-4px; bottom:-4px; width:15px; height:15px; object-fit:contain; filter:drop-shadow(0 1px 2px #000); }',
 '.ktb .skpill .skmeta{ flex:1; min-width:0; }',
 '.ktb .skpill .skmeta b{ display:block; font-family:"Lora",serif; font-size:.76rem; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
@@ -154,6 +156,8 @@ var KTB_CSS=[
 '.ktb .ltgrid{ flex:1; min-height:0; display:grid; grid-template-columns:1.05fr 0.9fr 1.15fr; gap:10px; padding:12px; overflow:hidden; }',
 '.ktb .ltcol{ min-height:0; display:flex; flex-direction:column; gap:7px; overflow-y:auto; }',
 '.ktb .tpcard{ text-align:left; padding:8px 10px; border-radius:10px; background:rgba(15,21,33,.6); border:1px solid var(--bd); color:var(--tx); }',
+'.ktb .tpcard .tphd{ display:flex; align-items:center; gap:8px; margin-bottom:3px; }',
+'.ktb .tpcard .tpcardic{ width:34px; height:34px; object-fit:contain; flex:none; }',
 '.ktb .tpcard.on{ border-color:var(--jade); box-shadow:0 0 12px -3px var(--jade); background:rgba(20,184,166,.08); }',
 '.ktb .tpcard .tpname{ font-size:.82rem; color:var(--jade); }',
 '.ktb .tpcard.on .tpname{ color:#5eead4; }',
@@ -175,9 +179,10 @@ var KTB_CSS=[
 '.ktb .skcard{ text-align:left; padding:7px 9px; border-radius:9px; background:rgba(15,21,33,.6); border:1px solid var(--bd); color:var(--tx); }',
 '.ktb .skcard.on{ border-color:var(--cyan); box-shadow:0 0 10px -3px var(--cyan); background:rgba(34,211,238,.07); }',
 '.ktb .skcard.lock{ opacity:.4; }',
-'.ktb .skcard .skhd{ display:flex; justify-content:space-between; align-items:baseline; gap:6px; }',
+'.ktb .skcard .skhd{ display:flex; align-items:center; gap:7px; }',
+'.ktb .skcard .skcardic{ width:26px; height:26px; object-fit:contain; flex:none; }',
 '.ktb .skcard .skhd span:first-child{ font-size:.78rem; }',
-'.ktb .skcard .skc{ font-size:.62rem; color:var(--gold); white-space:nowrap; }',
+'.ktb .skcard .skc{ font-size:.62rem; color:var(--gold); white-space:nowrap; margin-left:auto; }',
 '.ktb .skcard .skdesc{ font-size:.64rem; color:var(--tx2); line-height:1.32; margin-top:2px; }',
 '.ktb .ltfoot{ flex:none; padding:10px 14px; border-top:1px solid var(--bd); }',
 '.ktb .ltfoot .btn{ width:100%; padding:11px; }',
@@ -210,7 +215,7 @@ function ensureStyle(){
 var KTB_TPL=''+
 '<div class="ktb">'+
   '<div class="ktb-top">'+
-    '<div class="ktb-soul"><b class="soulv">0</b><span class="l">魂 Trận Hồn</span></div>'+
+    '<div class="ktb-soul"><img class="soulic" src="images/kytran/tranhon.webp" alt="" onerror="this.style.display=\'none\'"><b class="soulv">0</b><span class="l">Trận Hồn</span></div>'+
     '<button class="ktb-retreat" type="button">Rút Lui</button>'+
   '</div>'+
   '<div class="stage">'+
@@ -603,7 +608,8 @@ export function mountKtBattle(host, opts){
       else if(sk.kind==='charge'){ var ch=S.sk[id]?S.sk[id].charges:sk.charges; var dots=''; for(var i=0;i<sk.charges;i++) dots+='<i class="'+(i<ch?'on':'')+'"></i>'; cost='<div class="skdots">'+dots+'</div>'; }
       else { cost='<span class="skcost">Kho: '+S.goldStock+'</span>'; }
       var tileIcon = sk.tile?'<img class="sktile" src="'+TIMG[sk.tile]+'">':'';
-      slot.innerHTML='<div class="skicon" style="--sc:'+(sk.tile?TVAR[sk.tile]:'var(--cyan)')+'">'+skillIconSVG(sk.icon)+tileIcon+'</div><div class="skmeta"><b>'+sk.name+'</b>'+cost+'</div>';
+      var artIcon='<img class="skart" src="images/kytran/sk_'+id+'.webp" alt="" onerror="this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'block\'"><span class="skfb" style="display:none">'+skillIconSVG(sk.icon)+'</span>';
+      slot.innerHTML='<div class="skicon" style="--sc:'+(sk.tile?TVAR[sk.tile]:'var(--cyan)')+'">'+artIcon+tileIcon+'</div><div class="skmeta"><b>'+sk.name+'</b>'+cost+'</div>';
       slot.disabled=!ready; slot.onclick=function(){ activateSkill(id); };
       skillBarEl.appendChild(slot);
     });
@@ -634,7 +640,7 @@ export function mountKtBattle(host, opts){
       box.innerHTML=
       '<div class="lthead"><h1>Lập Trận</h1><div class="ltsub">Chọn một Tâm Pháp và '+needTxt+' Kỹ Năng</div></div>'+
       '<div class="ltgrid">'+
-        '<div class="ltcol lttp">'+tpChoices.map(function(t){ return '<button class="tpcard'+(t.id===tpSel?' on':'')+'" data-tp="'+t.id+'"><div class="tpname fserif">'+t.name+'</div><div class="tplore">'+t.lore+'</div><div class="tprule">'+t.rule+'</div></button>';
+        '<div class="ltcol lttp">'+tpChoices.map(function(t){ return '<button class="tpcard'+(t.id===tpSel?' on':'')+'" data-tp="'+t.id+'"><div class="tphd"><img class="tpcardic" src="images/kytran/tp_'+t.id+'.webp" alt="" onerror="this.style.display=\'none\'"><div class="tpname fserif">'+t.name+'</div></div><div class="tplore">'+t.lore+'</div><div class="tprule">'+t.rule+'</div></button>';
         }).join('')+'</div>'+
         '<div class="ltcol ltmid">'+
           '<div class="ltenemy'+(ctr?' countered':'')+'"><img src="'+EN.art+'" onerror="this.style.visibility=\'hidden\'"><div class="ltename fserif">'+EN.name+'</div><div class="ltemech">'+mechTxt+'</div>'+(ctr?'<div class="ltctr">◆ Khắc Chế ◆</div>':'')+'</div>'+
@@ -643,7 +649,7 @@ export function mountKtBattle(host, opts){
         '</div>'+
         '<div class="ltcol ltsk">'+
           '<div class="ltslots">'+[0,1,2].map(function(i){ var s=skSel[i]?skillById(skSel[i]):null; return '<div class="ltslot'+(s?' filled':'')+'" data-slot="'+i+'">'+(s?'<b>'+s.name+'</b>':'<span>Ô '+(i+1)+'</span>')+'</div>'; }).join('')+'</div>'+
-          '<div class="ltpool">'+skChoices.map(function(s){ var on=skSel.indexOf(s.id)>=0; var lock=skSel.length>=NEED&&!on; return '<button class="skcard'+(on?' on':'')+(lock?' lock':'')+'" data-sk="'+s.id+'"><div class="skhd"><span class="fserif">'+s.name+'</span><span class="skc">'+skCostLabel(s)+'</span></div><div class="skdesc">'+s.desc+'</div></button>';
+          '<div class="ltpool">'+skChoices.map(function(s){ var on=skSel.indexOf(s.id)>=0; var lock=skSel.length>=NEED&&!on; return '<button class="skcard'+(on?' on':'')+(lock?' lock':'')+'" data-sk="'+s.id+'"><div class="skhd"><img class="skcardic" src="images/kytran/sk_'+s.id+'.webp" alt="" onerror="this.style.display=\'none\'"><span class="fserif">'+s.name+'</span><span class="skc">'+skCostLabel(s)+'</span></div><div class="skdesc">'+s.desc+'</div></button>';
           }).join('')+'</div>'+
         '</div>'+
       '</div>'+

@@ -8772,6 +8772,8 @@
           color:var(--kttxt); font-size:13px; }
         .kt-root .ktr-svgi{width:14px;height:14px;flex:none}
         .kt-root .ktr-soul{font-family:'Lora',serif;font-weight:700;color:var(--ktgold2)}
+        .kt-root .ktr-soul-ic{width:1.25em;height:1.25em;display:inline-block;vertical-align:-0.24em;object-fit:contain}
+        .kt-root .rchip-ic{width:17px;height:17px;object-fit:contain;flex:none}
         /* ---- chip trạng thái (overlay trên banner chuẩn) ---- */
         .kt-root .ktr-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 11px;border-radius:9px;background:rgba(11,18,32,.82);border:1px solid var(--ktline2);backdrop-filter:blur(2px)}
         .kt-root .ktr-pill b{color:var(--ktgold)} .kt-root .ktr-pill.jade b{color:var(--ktjade)} .kt-root .ktr-pill .k{color:var(--ktmut2);font-size:10.5px}
@@ -8948,7 +8950,7 @@
             <div class="absolute top-3 right-3 sm:right-4 z-10 flex flex-wrap gap-2 justify-end">
               <span class="ktr-rank"><span class="han fserif">陣</span> Trận Cấp <span x-text="tranCap"></span></span>
               <span class="ktr-pill jade" title="Lượt đánh còn lại trong tuần"><span class="k">Lượt tuần</span> <b><span x-text="weekLeft"></span> / <span x-text="weekCap"></span></b></span>
-              <span class="ktr-pill"><span class="k">Trận Hồn</span> <span class="ktr-soul">魂</span> <b x-text="$store.game.fmtC(kt.tranHon)"></b></span>
+              <span class="ktr-pill"><span class="k">Trận Hồn</span> <img src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <b x-text="$store.game.fmtC(kt.tranHon)"></b></span>
             </div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[28px] gold-text leading-none fserif">Kỳ Trận · Cửu Cung Trấn Yêu</div>
@@ -9020,9 +9022,9 @@
                       </div>
                       <div class="sect">Thưởng khi chiếm Cung</div>
                       <div class="rew">
-                        <span class="rchip"><span class="ktr-soul">魂</span> <b x-text="'+'+((cur.reward&&cur.reward.hon)||KT_CONST.CUNG_HON)"></b> Trận Hồn</span>
+                        <span class="rchip"><img src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <b x-text="'+'+((cur.reward&&cur.reward.hon)||KT_CONST.CUNG_HON)"></b> Trận Hồn</span>
                         <template x-for="r in rewardOf(cur)" :key="r.txt">
-                          <span class="rchip"><span x-html="svgi(r.kind)"></span> <span x-text="r.txt"></span></span>
+                          <span class="rchip"><img :src="r.img" class="rchip-ic" alt="" onerror="this.style.display='none'"> <span x-text="r.txt"></span></span>
                         </template>
                         <span class="rchip"><span x-html="svgi('book')"></span> Trảm Yêu Lục</span>
                       </div>
@@ -9095,10 +9097,10 @@
                 </div>
                 <div class="actrow">
                   <button class="ktr-btn" :class="canUp(selHanh)?'':'dis'" @click="upHanh(selHanh)">
-                    <span x-show="hanhLv(selHanh)<10">Nâng <span class="cost">· <span class="ktr-soul">魂</span> <span x-text="upCost(selHanh)"></span></span></span>
+                    <span x-show="hanhLv(selHanh)<10">Nâng <span class="cost">· <img src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <span x-text="upCost(selHanh)"></span></span></span>
                     <span x-show="hanhLv(selHanh)>=10">Viên Mãn</span>
                   </button>
-                  <span class="have">Đang có <b><span class="ktr-soul">魂</span> <span x-text="$store.game.fmtC(kt.tranHon)"></span></b></span>
+                  <span class="have">Đang có <b><img src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <span x-text="$store.game.fmtC(kt.tranHon)"></span></b></span>
                 </div>
               </section>
             </div>

@@ -134,8 +134,8 @@ export function kyTran() {
     },
     rewardOf(c) { // chip thưởng: tâm pháp / kỹ năng mở khi chiếm Cung
       const out = [];
-      if (c.reward && c.reward.tp) { const t = KT_TAM_PHAP.find((x) => x.id === c.reward.tp); if (t) out.push({ kind: 'scroll', txt: 'Tâm Pháp · ' + t.name }); }
-      if (c.reward && c.reward.sk) { const s = KT_SKILLS.find((x) => x.id === c.reward.sk); if (s) out.push({ kind: 'gem', txt: 'Kỹ Năng · ' + s.name }); }
+      if (c.reward && c.reward.tp) { const t = KT_TAM_PHAP.find((x) => x.id === c.reward.tp); if (t) out.push({ img: 'images/kytran/tp_' + t.id + '.webp', txt: 'Tâm Pháp · ' + t.name }); }
+      if (c.reward && c.reward.sk) { const s = KT_SKILLS.find((x) => x.id === c.reward.sk); if (s) out.push({ img: 'images/kytran/sk_' + s.id + '.webp', txt: 'Kỹ Năng · ' + s.name }); }
       return out;
     },
     bossMech(b) { // chip cơ chế Cung Chủ (sát khí + đòn nặng / rải độc)
