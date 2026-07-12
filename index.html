@@ -8921,18 +8921,31 @@
         .kt-root .ktr-cdxhead .tri{font-size:18px;line-height:1}
         .kt-root .ktr-cdxhead .nm{font-weight:700;font-size:15px}
         .kt-root .ktr-cdxhead .cnt{margin-left:auto;font-size:11px;color:var(--ktmut2)}
-        .kt-root .ktr-cdxgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px}
-        .kt-root .ktr-cdxcard{display:flex;align-items:center;gap:10px;background:#0b1220;border:1px solid var(--ktline2);border-radius:10px;padding:8px 10px}
-        .kt-root .ktr-cdxcard .cav{width:44px;height:44px;border-radius:8px;overflow:hidden;background:#0a0f18;flex:none;filter:grayscale(1);opacity:.35}
-        .kt-root .ktr-cdxcard .cav img{width:100%;height:100%;object-fit:cover}
-        .kt-root .ktr-cdxcard.seen .cav{filter:none;opacity:1}
-        .kt-root .ktr-cdxcard.boss.seen .cav{outline:1px solid var(--ktrose)}
-        .kt-root .ktr-cdxcard .cmeta{min-width:0}
-        .kt-root .ktr-cdxcard .cnm{font-size:12px;font-weight:600;color:var(--ktdim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .kt-root .ktr-cdxcard.seen .cnm{color:var(--kttxt)}
-        .kt-root .ktr-cdxcard.boss.seen .cnm{color:#fecdd3}
-        .kt-root .ktr-cdxcard .ckk{font-size:10px;color:var(--ktmut2)}
-        .kt-root .ktr-cdxcard.seen .ckk{color:var(--ktjade)}
+        /* Trảm Yêu Lục — hàng Cung (info trái) + 6 thẻ quái khung frame_gold */
+        .kt-root .ktr-cdxrow{display:grid;grid-template-columns:158px minmax(0,1fr);gap:18px;align-items:start;padding:16px 4px;border-top:1px solid var(--ktline)}
+        .kt-root .ktr-cdxrow:first-child{border-top:none;padding-top:4px}
+        .kt-root .ktr-cunginfo{padding-top:10px}
+        .kt-root .ci-emblem{width:30px;height:30px;display:grid;place-items:center;margin-bottom:9px;filter:drop-shadow(0 0 6px currentColor)}
+        .kt-root .ci-emblem svg{width:26px;height:26px}
+        .kt-root .ci-nm{font-family:'Lora',serif;font-weight:700;font-size:19px;line-height:1.12}
+        .kt-root .ci-lore{font-family:'Lora',serif;font-style:italic;font-size:11.5px;color:var(--ktmut2);margin-top:5px;line-height:1.45}
+        .kt-root .ktr-cdxcnt{text-align:right;font-size:11px;color:var(--ktmut2);margin-bottom:7px;letter-spacing:.02em}
+        .kt-root .ktr-cdxcnt.has{color:var(--ktjade)}
+        .kt-root .ktr-cdxcards{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+        .kt-root .ktr-mcard{display:flex;flex-direction:column}
+        .kt-root .mc-frame{position:relative;aspect-ratio:1/1.06;border:13px solid transparent;border-image:url("images/dongphu/ui/frame_gold.webp") 150 / 13px / 0 stretch;background:#070b10;border-radius:12px;overflow:hidden}
+        .kt-root .mc-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+        .kt-root .mc-dark{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 26%,transparent 52%,rgba(6,9,13,.55))}
+        .kt-root .mc-lock{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);color:#5b6675}
+        .kt-root .mc-lock svg{width:26px;height:26px}
+        .kt-root .mc-nm{font-family:'Lora',serif;font-size:11.5px;font-weight:600;text-align:center;margin-top:6px;min-height:15px;color:var(--ktdim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .kt-root .mc-kk{font-size:10px;text-align:center;color:var(--ktmut2);margin-top:1px}
+        .kt-root .ktr-mcard:not(.seen) .mc-frame{filter:saturate(.3) brightness(.6)}
+        .kt-root .ktr-mcard:not(.seen) .mc-frame img{filter:brightness(.32) grayscale(.45)}
+        .kt-root .ktr-mcard.seen .mc-nm{color:var(--kttxt)}
+        .kt-root .ktr-mcard.seen .mc-kk{color:var(--ktjade)}
+        .kt-root .ktr-mcard.seen.boss .mc-nm{color:#fecdd3}
+        @media(max-width:820px){ .kt-root .ktr-cdxrow{grid-template-columns:1fr;gap:10px} .kt-root .ktr-cunginfo{padding-top:0} .kt-root .ktr-cdxcards{grid-template-columns:repeat(3,1fr)} }
         @media(max-width:1080px){ .kt-root .ktr-hero{grid-template-columns:1fr;gap:28px} .kt-root .laban{width:480px;--msz:88px} .kt-root .hub .hg{font-size:36px} }
         @media(max-width:960px){ .kt-root .maprow{grid-template-columns:1fr} }
         @media(max-width:640px){ .kt-root .laban{width:330px;--msz:64px} .kt-root .med .lp{font-size:9.5px;padding:1px 7px} .kt-root .hub .hg{font-size:25px} .kt-root .hub .hn{font-size:9px} .kt-root .ktr-panel{padding:20px 16px} .kt-root .p-name{font-size:22px} .kt-root .seal{width:48px;height:48px;font-size:24px} }
@@ -9107,22 +9120,27 @@
           <!-- ===== TAB: TRẢM YÊU LỤC ===== -->
           <div x-show="!inBattle && ktTab==='codex'">
             <template x-for="row in codexRows" :key="row.cung.id">
-              <div class="ktr-cdxsec">
-                <div class="ktr-cdxhead">
-                  <span class="tri" :style="'color:'+row.cung.c" x-text="row.cung.tri"></span>
-                  <span class="nm fserif" x-text="row.cung.nm"></span>
-                  <span class="cnt" x-text="'Đã trảm ' + row.seen + ' / 6'"></span>
+              <div class="ktr-cdxrow">
+                <div class="ktr-cunginfo">
+                  <div class="ci-emblem" :style="'color:'+row.cung.c" x-html="svgi('gem')"></div>
+                  <div class="ci-nm" :style="'color:'+row.cung.c" x-text="row.cung.nm"></div>
+                  <div class="ci-lore" x-text="row.cung.lore"></div>
                 </div>
-                <div class="ktr-cdxgrid">
-                  <template x-for="e in row.list" :key="e.key">
-                    <div class="ktr-cdxcard" :class="(e.kills>0?'seen':'')+(e.boss?' boss':'')">
-                      <div class="cav"><img :src="'images/enemies/'+e.art+'.webp'" loading="lazy" onerror="this.style.display='none'"></div>
-                      <div class="cmeta">
-                        <div class="cnm" x-text="e.kills>0 ? e.nm : '???'"></div>
-                        <div class="ckk" x-text="e.kills>0 ? ('Đã trảm ×'+e.kills) : 'Chưa chạm trán'"></div>
+                <div>
+                  <div class="ktr-cdxcnt" :class="row.seen>0?'has':''" x-text="'Đã trảm ' + row.seen + ' / 6'"></div>
+                  <div class="ktr-cdxcards">
+                    <template x-for="e in row.list" :key="e.key">
+                      <div class="ktr-mcard" :class="(e.kills>0?'seen':'')+(e.boss?' boss':'')">
+                        <div class="mc-frame">
+                          <img :src="'images/enemies/'+e.art+'.webp'" loading="lazy" onerror="this.style.display='none'">
+                          <div class="mc-dark"></div>
+                          <div class="mc-lock" x-show="e.kills===0" x-html="svgi('lock')"></div>
+                        </div>
+                        <div class="mc-nm" x-text="e.kills>0 ? e.nm : ''"></div>
+                        <div class="mc-kk" x-text="e.kills>0 ? ('Đã trảm ×'+e.kills) : 'Chưa chạm trán'"></div>
                       </div>
-                    </div>
-                  </template>
+                    </template>
+                  </div>
                 </div>
               </div>
             </template>
