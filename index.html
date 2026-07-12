@@ -8772,14 +8772,10 @@
           color:var(--kttxt); font-size:13px; }
         .kt-root .ktr-svgi{width:14px;height:14px;flex:none}
         .kt-root .ktr-soul{font-family:'Lora',serif;font-weight:700;color:var(--ktgold2)}
-        /* ---- thanh đầu ---- */
-        .kt-root .ktr-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(90deg,#141020,#0d1420);border:1px solid var(--ktline2);border-radius:14px;padding:12px 16px;box-shadow:0 0 26px -14px var(--ktviolet)}
-        .kt-root .ktr-top .ttl{font-family:'Lora',serif;font-weight:700;font-size:19px;background:linear-gradient(180deg,#fff6d6,#f4d27a 55%,#d8a03a);-webkit-background-clip:text;background-clip:text;color:transparent}
-        .kt-root .ktr-top .sub{font-size:11px;color:var(--ktmut)}
-        .kt-root .ktr-top .spacer{flex:1}
-        .kt-root .ktr-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 11px;border-radius:9px;background:#0b1220;border:1px solid var(--ktline2)}
+        /* ---- chip trạng thái (overlay trên banner chuẩn) ---- */
+        .kt-root .ktr-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 11px;border-radius:9px;background:rgba(11,18,32,.82);border:1px solid var(--ktline2);backdrop-filter:blur(2px)}
         .kt-root .ktr-pill b{color:var(--ktgold)} .kt-root .ktr-pill.jade b{color:var(--ktjade)} .kt-root .ktr-pill .k{color:var(--ktmut2);font-size:10.5px}
-        .kt-root .ktr-rank{display:inline-flex;align-items:center;gap:7px;font-family:'Lora',serif;font-weight:700;color:var(--ktviolet);padding:4px 12px;border-radius:9px;background:#170f26;border:1px solid rgba(192,132,252,.33)}
+        .kt-root .ktr-rank{display:inline-flex;align-items:center;gap:7px;font-family:'Lora',serif;font-weight:700;color:#d6b8ff;padding:4px 12px;border-radius:9px;background:rgba(23,15,38,.82);border:1px solid rgba(192,132,252,.4);backdrop-filter:blur(2px)}
         .kt-root .ktr-rank .han{font-size:14px;line-height:1}
         /* ---- tab (text thuần theo chuẩn game) ---- */
         .kt-root .ktr-nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
@@ -8944,15 +8940,20 @@
       <template x-if="$store.game.view==='kyTran'">
         <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()">
           <!-- thanh đầu -->
-          <div class="ktr-top">
-            <div>
-              <div class="ttl">Kỳ Trận · Cửu Cung Trấn Yêu</div>
-              <div class="sub">Chinh phục 9 Cung yêu ma, dồn vào Trung Cung diệt Ma Đế</div>
+          <!-- Banner chuẩn (đồng bộ Yêu Vương / Bí Cảnh / Nghề): min-h 160, art nền + overlay + chip trạng thái góc phải -->
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
+            <img src="images/ui/kytran_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/kytran_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 100%)"></div>
+            <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(192,132,252,.18), transparent 66%)"></div>
+            <div class="absolute top-3 right-3 sm:right-4 z-10 flex flex-wrap gap-2 justify-end">
+              <span class="ktr-rank"><span class="han fserif">陣</span> Trận Cấp <span x-text="tranCap"></span></span>
+              <span class="ktr-pill jade" title="Lượt đánh còn lại trong tuần"><span class="k">Lượt tuần</span> <b><span x-text="weekLeft"></span> / <span x-text="weekCap"></span></b></span>
+              <span class="ktr-pill"><span class="k">Trận Hồn</span> <span class="ktr-soul">魂</span> <b x-text="$store.game.fmtC(kt.tranHon)"></b></span>
             </div>
-            <div class="spacer"></div>
-            <span class="ktr-rank"><span class="han fserif">陣</span> Trận Cấp <span x-text="tranCap"></span></span>
-            <span class="ktr-pill jade" title="Lượt đánh còn lại trong tuần"><span class="k">Lượt tuần</span> <b><span x-text="weekLeft"></span> / <span x-text="weekCap"></span></b></span>
-            <span class="ktr-pill"><span class="k">Trận Hồn</span> <span class="ktr-soul">魂</span> <b x-text="$store.game.fmtC(kt.tranHon)"></b></span>
+            <div class="relative w-full p-5 md:p-6">
+              <div class="text-[28px] gold-text leading-none fserif">Kỳ Trận · Cửu Cung Trấn Yêu</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-violet-300">Cửu cung bố trận, trấn áp bát phương.</b> Chinh phục 9 Cung yêu ma, dồn vào Trung Cung diệt Thiên Ma Yêu Đế, đoạt lấy tuyệt học trấn trận.</div>
+            </div>
           </div>
           <!-- tab -->
           <div class="ktr-nav" x-show="!inBattle">
