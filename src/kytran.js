@@ -311,8 +311,8 @@ export function kyTran() {
         const dp = 'M ' + p1[0] + ' ' + p1[1] + ' A 283 283 0 0 1 ' + p2[0] + ' ' + p2[1];
         s += '<path d="' + dp + '" fill="none" stroke="url(#ktlb-sg' + i + ')" stroke-width="7" stroke-opacity=".13" stroke-linecap="round"/>';
         s += '<path d="' + dp + '" fill="none" stroke="url(#ktlb-sg' + i + ')" stroke-width="2.6" stroke-opacity=".9" stroke-linecap="round"/>';
-        const rad = d2 * Math.PI / 180, tx = -Math.sin(rad), ty = Math.cos(rad), nx = Math.cos(rad), ny = Math.sin(rad);
-        s += '<polygon points="' + (p2[0] + tx * 11) + ',' + (p2[1] + ty * 11) + ' ' + (p2[0] - tx * 3 + nx * 5.5) + ',' + (p2[1] - ty * 3 + ny * 5.5) + ' ' + (p2[0] - tx * 3 - nx * 5.5) + ',' + (p2[1] - ty * 3 - ny * 5.5) + '" fill="' + KT_HANH[b].c + '" opacity=".95"/>';
+        const dm = A[k] + 40, pm = pt(283, dm), rad = dm * Math.PI / 180, tx = -Math.sin(rad), ty = Math.cos(rad), nx = Math.cos(rad), ny = Math.sin(rad);
+        s += '<polygon points="' + (pm[0] + tx * 11) + ',' + (pm[1] + ty * 11) + ' ' + (pm[0] - tx * 3 + nx * 5.5) + ',' + (pm[1] - ty * 3 + ny * 5.5) + ' ' + (pm[0] - tx * 3 - nx * 5.5) + ',' + (pm[1] - ty * 3 - ny * 5.5) + '" fill="' + KT_HANH[b].c + '" opacity=".95"/>';
       });
       this._lbSvg = s;
       return s;
