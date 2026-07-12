@@ -8787,9 +8787,9 @@
         .kt-root .ktr-nav button:hover{border-color:var(--ktline2);color:var(--kttxt)}
         .kt-root .ktr-nav button.on{color:var(--ktgold);border-color:rgba(245,185,66,.4);background:#1a1508;box-shadow:0 0 16px -8px var(--ktgold)}
         /* ---- bản đồ Cửu Cung ---- */
-        .kt-root .maprow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:16px;align-items:stretch}
-        .kt-root .board{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:11px;background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;padding:12px}
-        .kt-root .cung{position:relative;min-height:150px;border-radius:11px;overflow:hidden;cursor:pointer;border:1px solid var(--ktline2);background:#0a0f18;transition:.14s}
+        .kt-root .maprow{display:grid;grid-template-columns:520px minmax(0,1fr);gap:16px;align-items:start}
+        .kt-root .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;padding:12px}
+        .kt-root .cung{position:relative;aspect-ratio:1;border-radius:11px;overflow:hidden;cursor:pointer;border:1px solid var(--ktline2);background:#0a0f18;transition:.14s}
         .kt-root .cung img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42;transition:.2s}
         .kt-root .cung .vig{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,11,18,.15),rgba(7,11,18,.88))}
         .kt-root .cung .in{position:absolute;inset:0;padding:9px 10px;display:flex;flex-direction:column}
@@ -8815,11 +8815,11 @@
         .kt-root .cung .lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.5;color:var(--ktmut)}
         .kt-root .cung .lock svg{width:20px;height:20px}
         /* panel chi tiết Cung */
-        .kt-root .detail{display:flex;flex-direction:column;background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden}
-        .kt-root .dbanner{position:relative;height:150px;flex:none}
-        .kt-root .dbanner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 38%;opacity:.82}
-        .kt-root .dbanner .g{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,21,33,.15) 30%,rgba(15,21,33,.72) 82%,var(--ktp1)),linear-gradient(90deg,rgba(15,21,33,.5),transparent 60%)}
-        .kt-root .dbanner .t{position:absolute;left:18px;bottom:13px}
+        .kt-root .detail{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden;min-height:520px}
+        .kt-root .dbanner{position:relative;height:118px}
+        .kt-root .dbanner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+        .kt-root .dbanner .g{position:absolute;inset:0;background:linear-gradient(90deg,#0f1521 8%,rgba(15,21,33,.55) 55%,transparent)}
+        .kt-root .dbanner .t{position:absolute;left:16px;bottom:12px}
         .kt-root .dbanner .t .he{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
         .kt-root .dbanner .t .nm{font-family:'Lora',serif;font-weight:700;font-size:24px;line-height:1.05}
         .kt-root .dbody{padding:16px}
@@ -8938,7 +8938,7 @@
         .kt-root .ktr-cdxcard .ckk{font-size:10px;color:var(--ktmut2)}
         .kt-root .ktr-cdxcard.seen .ckk{color:var(--ktjade)}
         @media(max-width:1080px){ .kt-root .ktr-hero{grid-template-columns:1fr;gap:28px} .kt-root .laban{width:480px;--msz:88px} .kt-root .hub .hg{font-size:36px} }
-        @media(max-width:960px){ .kt-root .maprow{grid-template-columns:1fr;align-items:start} .kt-root .board{grid-template-rows:none} .kt-root .cung{aspect-ratio:1;min-height:0} }
+        @media(max-width:960px){ .kt-root .maprow{grid-template-columns:1fr} }
         @media(max-width:640px){ .kt-root .laban{width:330px;--msz:64px} .kt-root .med .lp{font-size:9.5px;padding:1px 7px} .kt-root .hub .hg{font-size:25px} .kt-root .hub .hn{font-size:9px} .kt-root .ktr-panel{padding:20px 16px} .kt-root .p-name{font-size:22px} .kt-root .seal{width:48px;height:48px;font-size:24px} }
       </style>
       <template x-if="$store.game.view==='kyTran'">
