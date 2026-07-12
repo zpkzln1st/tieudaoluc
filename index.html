@@ -2177,7 +2177,6 @@
               <button @click="$store.game.pvbTab='danhsi'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='danhsi'?'border-cyan/50 bg-cyan/10 text-cyan':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Bảng</button>
               <button @click="$store.game.pvbTab='dangTien'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='dangTien'?'border-violet-400/50 bg-violet-500/10 text-violet-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Mộng Cảnh Bảng</button>
               <button @click="$store.game.pvbTab='kyTran'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='kyTran'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Trận Đồ Bảng</button>
-              <span class="ml-auto text-slate-500 text-[11px]" x-text="$store.game.pvbTab==='caothu'?'theo Tổng Cảnh Giới':($store.game.pvbTab==='tongmon'?'theo Uy Danh':($store.game.pvbTab==='dangTien'?'theo Mộng Lực trong Đăng Tiên Mộng':($store.game.pvbTab==='kyTran'?'theo độ sâu chinh phục Cửu Cung':'20 danh sĩ chấn động giang hồ')))"></span>
             </div>
             <!-- ===== CAO THỦ BẢNG ===== -->
             <div x-show="$store.game.pvbTab==='caothu'">
