@@ -225,7 +225,7 @@ var KTB_CSS=[
 '.ktb .ltbox .lt-back{ display:inline-flex; align-items:center; gap:7px; cursor:pointer; font-family:"Lora",serif; font-weight:600; font-size:13px; color:#94a3b8; padding:9px 16px; border-radius:10px; background:linear-gradient(180deg,#141d2c,#0e1622); border:1px solid #26344a; transition:.14s; }',
 '.ktb .ltbox .lt-back:hover{ color:#e2e8f0; border-color:#3a4a63; }',
 '.ktb .ltbox .lt-back svg{ width:15px; height:15px; }',
-'.ktb .ltbox .lt-go{ margin-left:auto; display:inline-block; cursor:pointer; border:15px solid transparent; border-width:15px 46px; border-image:url("images/dongphu/ui/btn_gold.webp") 48 150 fill / 15px 46px / 0 stretch; color:#f3e7c7; font-family:"Lora",serif; font-weight:700; font-size:15px; letter-spacing:.24em; text-shadow:0 1px 2px rgba(60,30,0,.55); line-height:1; padding:8px 10px; background-color:rgba(120,80,20,.14); border-radius:4px; transition:filter .15s, transform .1s; }',
+'.ktb .ltbox .lt-go{ margin-left:auto; display:inline-block; cursor:pointer; border:15px solid transparent; border-width:15px 46px; border-image:url("images/dongphu/ui/btn_gold.webp") 48 150 fill / 15px 46px / 0 stretch; color:#f3e7c7; font-family:"Lora",serif; font-weight:700; font-size:15px; letter-spacing:.24em; text-shadow:0 1px 2px rgba(60,30,0,.55); line-height:1; padding:8px 10px; background:transparent; transition:filter .15s, transform .1s; }',
 '.ktb .ltbox .lt-go:hover{ filter:brightness(1.08); } .ktb .ltbox .lt-go:active{ transform:translateY(1px); }',
 '.ktb .ltbox .lt-go.off{ filter:grayscale(.75) brightness(.72); cursor:not-allowed; pointer-events:none; }',
 '@media (max-width:767px){',
@@ -683,7 +683,7 @@ export function mountKtBattle(host, opts){
     function medHTML(kind,x,on,view,lock){
       return '<div class="mc'+(on?' on':'')+(view&&!on?' view':'')+(lock?' lock':'')+'" style="--a:'+acc(x)+'" data-k="'+kind+'" data-id="'+x.id+'">'+
         '<div class="disc"><img src="images/kytran/'+kind+'_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'">'+(on?CHK:'')+'</div>'+
-        '<div class="pil"><span class="nm fserif">'+x.name+'</span>'+(kind==='sk'?'<span class="cost">'+skCostLabel(x)+'</span>':'')+'</div></div>';
+        '<div class="pil"><span class="nm fserif">'+x.name+'</span></div></div>';
     }
     box.innerHTML=
       '<div class="lt-hdr"><div class="lt-mk"><img src="images/nav/kyTran.webp" alt="" onerror="this.remove()"></div><h1>Lập Trận</h1><div class="lt-thread"></div></div>'+
