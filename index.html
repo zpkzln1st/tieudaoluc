@@ -8878,6 +8878,8 @@
         .kt-root .cta:hover{filter:brightness(1.1);transform:translateY(-1px)}
         .kt-root .cta svg{width:15px;height:15px}
         .kt-root .cta.dim{color:var(--ktdim);border-color:var(--ktline2);background:none;cursor:not-allowed;transform:none;filter:none}
+        /* nút Phá Trận: nén padding ngang cho tấm biển btn_gold ôm khít chữ ngắn (lấp ~81%, hẹp hơn nút Nâng, cánh hoa văn không méo) */
+        .kt-root .ktr-ctago{letter-spacing:.18em;padding:8px 10px}
         .kt-root .dhint{font-size:11px;color:var(--ktmut2);margin-top:12px}
         .kt-root .cap2{font-size:11.5px;color:var(--ktmut2);text-align:center;margin:14px auto 0;max-width:760px;line-height:1.6}
         .kt-root .cap2 b{color:var(--ktjade)}
@@ -9087,7 +9089,7 @@
                       <div class="ktr-counter" x-show="counterTxt(cur)"><b>Tương Khắc:</b> <span x-text="counterTxt(cur)"></span></div>
                       <template x-if="ctaInfo">
                         <div class="dcta">
-                          <button x-show="!ctaInfo.dim" class="ktr-goldbtn" @click="startBattle()"><span x-html="svgi(ctaInfo.ic)"></span> <span x-text="ctaInfo.txt"></span></button>
+                          <button x-show="!ctaInfo.dim" class="ktr-goldbtn ktr-ctago" @click="startBattle()" x-text="ctaInfo.txt"></button>
                           <div x-show="ctaInfo.dim" class="cta dim"><span x-html="svgi(ctaInfo.ic)"></span> <span x-text="ctaInfo.txt"></span></div>
                           <div class="dhint" x-show="!ctaInfo.dim">Vào trận → chọn 1 <b>Tâm Pháp</b> + 3 <b>Kỹ Năng</b> (màn Lập Trận) rồi đánh match-3. Tốn 1 lượt tuần.</div>
                         </div>
