@@ -8824,7 +8824,7 @@
         .kt-root .cung .lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.5;color:var(--ktmut)}
         .kt-root .cung .lock svg{width:20px;height:20px}
         /* panel chi tiết Cung */
-        .kt-root .detail{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden;height:510px;display:flex;flex-direction:column}
+        .kt-root .detail{background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;overflow:hidden;min-height:510px;display:flex;flex-direction:column}
         .kt-root .dwrap{flex:1;display:flex;flex-direction:column;min-height:0}
         .kt-root .dbanner{position:relative;height:160px;flex:none}
         .kt-root .dbanner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:.62}
@@ -8835,7 +8835,8 @@
         .kt-root .dbanner .t .he{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
         .kt-root .dbanner .t .nm{font-family:'Lora',serif;font-weight:700;font-size:24px;line-height:1.05}
         .kt-root .dbody{padding:14px 16px;flex:1;min-height:0;display:flex;flex-direction:column}
-        .kt-root .dcta{margin-top:auto;text-align:right;margin-bottom:8px}
+        .kt-root .dscroll{flex:1 1 auto;min-height:0;overflow:hidden}
+        .kt-root .dcta{flex:0 0 auto;text-align:right;margin-top:10px}
         .kt-root .ssect{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px;display:flex;align-items:center;gap:10px}
         .kt-root .ssect::after{content:"";flex:1;height:1px;background:var(--ktline)}
         .kt-root .dboss{display:flex;align-items:flex-start;gap:13px;background:#0b1220;border:1px solid var(--ktline2);border-radius:12px;padding:12px 14px;margin-bottom:13px}
@@ -9065,6 +9066,7 @@
                       </div>
                     </div>
                     <div class="dbody">
+                      <div class="dscroll">
                       <div class="dboss">
                         <div class="av"><span class="avh fserif">妖</span><img :src="'images/enemies/'+cur.boss.art+'.webp'" style="position:relative" onerror="this.remove()"></div>
                         <div class="bmeta">
@@ -9087,6 +9089,7 @@
                         <span class="rchip"><span x-html="svgi('book')"></span> Trảm Yêu Lục</span>
                       </div>
                       <div class="ktr-counter" x-show="counterTxt(cur)"><b>Tương Khắc:</b> <span x-text="counterTxt(cur)"></span></div>
+                      </div>
                       <template x-if="ctaInfo">
                         <div class="dcta">
                           <button x-show="!ctaInfo.dim" class="ktr-goldbtn ktr-ctago" @click="startBattle()" x-text="ctaInfo.txt"></button>
