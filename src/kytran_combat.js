@@ -221,11 +221,11 @@ var KTB_CSS=[
 '.ktb .ltbox .lt-slot.fill img{ width:42px; height:42px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); position:relative; z-index:1; }',
 '.ktb .ltbox .lt-slot.fill .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:20px; color:color-mix(in srgb,var(--a,#2dd4bf) 78%,#cfd7e2); }',
 '.ktb .ltbox .lt-slot .cap{ position:absolute; bottom:3px; left:4px; right:4px; text-align:center; font-size:9px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
-'.ktb .ltbox .lt-foot{ flex:none; margin-top:auto; padding-top:12px; display:flex; align-items:center; gap:12px; }',
-'.ktb .ltbox .lt-back{ display:inline-flex; align-items:center; gap:7px; cursor:pointer; font-family:"Lora",serif; font-weight:600; font-size:13px; color:#94a3b8; padding:9px 16px; border-radius:10px; background:linear-gradient(180deg,#141d2c,#0e1622); border:1px solid #26344a; transition:.14s; }',
-'.ktb .ltbox .lt-back:hover{ color:#e2e8f0; border-color:#3a4a63; }',
-'.ktb .ltbox .lt-back svg{ width:15px; height:15px; }',
-'.ktb .ltbox .lt-go{ margin-left:auto; display:inline-block; cursor:pointer; border:15px solid transparent; border-width:15px 46px; border-image:url("images/dongphu/ui/btn_gold.webp") 48 150 fill / 15px 46px / 0 stretch; color:#f3e7c7; font-family:"Lora",serif; font-weight:700; font-size:15px; letter-spacing:.24em; text-shadow:0 1px 2px rgba(60,30,0,.55); line-height:1; padding:8px 10px; background:transparent; transition:filter .15s, transform .1s; }',
+'.ktb .ltbox .lt-foot{ flex:none; margin-top:auto; padding-top:12px; display:flex; align-items:center; justify-content:center; }',
+'.ktb .ltbox .lt-close{ position:absolute; top:12px; right:13px; z-index:6; width:32px; height:32px; border-radius:9px; display:grid; place-items:center; cursor:pointer; color:#94a3b8; background:rgba(15,21,33,.55); border:1px solid #26344a; transition:.14s; }',
+'.ktb .ltbox .lt-close:hover{ color:#e2e8f0; border-color:#3a4a63; background:rgba(30,41,59,.7); }',
+'.ktb .ltbox .lt-close svg{ width:16px; height:16px; }',
+'.ktb .ltbox .lt-go{ display:inline-block; cursor:pointer; border:15px solid transparent; border-width:15px 46px; border-image:url("images/dongphu/ui/btn_gold.webp") 48 150 fill / 15px 46px / 0 stretch; color:#f3e7c7; font-family:"Lora",serif; font-weight:700; font-size:15px; letter-spacing:.24em; text-shadow:0 1px 2px rgba(60,30,0,.55); line-height:1; padding:8px 10px; background:transparent; transition:filter .15s, transform .1s; }',
 '.ktb .ltbox .lt-go:hover{ filter:brightness(1.08); } .ktb .ltbox .lt-go:active{ transform:translateY(1px); }',
 '.ktb .ltbox .lt-go.off{ filter:grayscale(.75) brightness(.72); cursor:not-allowed; pointer-events:none; }',
 '@media (max-width:767px){',
@@ -319,7 +319,7 @@ export function mountKtBattle(host, opts){
   var LT={ tamPhap:lt0tp, skills:lt0sk };
 
   /* ----- lifecycle ----- */
-  var dead=false, ended=false;
+  var dead=false, ended=false, ltKeyHandler=null;
   function fireEnd(win){
     if(ended) return; ended=true;
     try{ if(opts.onEnd) opts.onEnd(win, { soul:S?S.soul:0 }); }catch(e){}
@@ -676,7 +676,7 @@ export function mountKtBattle(host, opts){
     var mechTxt = EN.poisonEvery?('Rải Ô Độc mỗi '+EN.poisonEvery+' lượt'):(EN.heavyEvery?('Đòn Nặng mỗi '+EN.heavyEvery+' lượt'):'Đánh thường');
     var CHK='<span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="#4a2e05" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg></span>';
     var MECHSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>';
-    var BACKSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+    var XSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
     function isTp(id){ for(var i=0;i<TP_DATA.length;i++) if(TP_DATA[i].id===id) return true; return false; }  /* tra thật — tpById có fallback trả tuSa cho id lạ */
     function itemById(id){ return isTp(id) ? tpById(id) : skillById(id); }
     function acc(x){ return (x&&x.accent)||'#94a3b8'; }
@@ -686,6 +686,7 @@ export function mountKtBattle(host, opts){
         '<div class="pil"><span class="nm fserif">'+x.name+'</span></div></div>';
     }
     box.innerHTML=
+      '<span class="lt-close" title="Đóng (Esc)">'+XSVG+'</span>'+
       '<div class="lt-hdr"><div class="lt-mk"><img src="images/nav/kyTran.webp" alt="" onerror="this.remove()"></div><h1>Lập Trận</h1><div class="lt-thread"></div></div>'+
       '<div class="lt-body">'+
         '<div class="lt-col"><div class="lt-colh"><span class="t fserif">Tâm Pháp</span><span class="pick lt-tppick">0 / 1</span></div><div class="lt-grid lt-tplist"></div></div>'+
@@ -693,7 +694,7 @@ export function mountKtBattle(host, opts){
           '<div class="lt-en"><div class="lbl">Địch Thủ</div><div class="frame"><img src="'+EN.art+'" alt="" onerror="this.style.visibility=\'hidden\'"></div><div class="nm fserif">'+EN.name+'</div><div class="mech">'+MECHSVG+' '+mechTxt+'</div></div>'+
           '<div class="lt-detail empty" style="--a:#334155"><div class="ph"><b class="fserif">Xem Chi Tiết</b>Bấm một Tâm Pháp hoặc Kỹ Năng để đọc công năng.</div></div>'+
           '<div class="lt-load"><div class="lt-tpwrap"><div class="lt-slotlab">Tâm Pháp</div><div class="lt-tpslot" style="--a:#f5b942"></div></div><div class="lt-divx"></div><div class="lt-skwrap"><div class="lt-slotlab">Ba Kỹ Năng</div><div class="lt-skrow"></div></div></div>'+
-          '<div class="lt-foot"><span class="lt-back fserif">'+BACKSVG+' Quay Lại</span><span class="lt-go off fserif">Phá Trận</span></div>'+
+          '<div class="lt-foot"><span class="lt-go off fserif">Phá Trận</span></div>'+
         '</div>'+
         '<div class="lt-col"><div class="lt-colh"><span class="t fserif">Kỹ Năng</span><span class="pick lt-skpick">0 / '+NEED+'</span></div><div class="lt-grid lt-sklist"></div></div>'+
       '</div>';
@@ -729,15 +730,18 @@ export function mountKtBattle(host, opts){
         LT.tamPhap=tpSel; LT.skills=skSel.slice();
         try{ if(opts.onLoadout) opts.onLoadout({ tamPhap:LT.tamPhap, skills:LT.skills.slice() }); }catch(e2){}
         commitLoadout(); return; }
-      if(e.target.closest('.lt-back')){ cancelLoadout(); return; }
+      if(e.target.closest('.lt-close')){ cancelLoadout(); return; }
     });
     box.addEventListener('mouseover', function(e){ var mc=e.target.closest('.mc'); if(!mc) return; var id=mc.getAttribute('data-id'); if(id===viewId) return; viewId=id;
       box.querySelectorAll('.mc').forEach(function(m){ m.classList.toggle('view', m.getAttribute('data-id')===id && !m.classList.contains('on')); });
       showDetail(id); });
+    ltKeyHandler=function(e){ if(e.key==='Escape'||e.keyCode===27){ e.preventDefault(); cancelLoadout(); } };
+    document.addEventListener('keydown', ltKeyHandler);
     ltAll();
   }
-  function commitLoadout(){ try{ if(opts.onBattleStart) opts.onBattleStart(); }catch(e){} overlayEl.classList.remove('show'); overlayEl.innerHTML=''; initSkillState(); renderAll(); busy=false; boardEl.classList.remove('busy'); }
-  function cancelLoadout(){ try{ if(opts.onCancel) opts.onCancel(); }catch(e){} }
+  function clearLtKey(){ if(ltKeyHandler){ document.removeEventListener('keydown', ltKeyHandler); ltKeyHandler=null; } }
+  function commitLoadout(){ clearLtKey(); try{ if(opts.onBattleStart) opts.onBattleStart(); }catch(e){} overlayEl.classList.remove('show'); overlayEl.innerHTML=''; initSkillState(); renderAll(); busy=false; boardEl.classList.remove('busy'); }
+  function cancelLoadout(){ clearLtKey(); try{ if(opts.onCancel) opts.onCancel(); }catch(e){} }
 
   /* ----- khởi trận (1 trận duy nhất) ----- */
   function startBattle(){
@@ -1095,6 +1099,7 @@ export function mountKtBattle(host, opts){
 
   function destroy(){
     dead=true;
+    clearLtKey();
     window.removeEventListener('resize', onResize);
     if(toastTimer) clearTimeout(toastTimer);
     if(devOn && window.KT3===harness){ try{ delete window.KT3; }catch(e){ window.KT3=undefined; } }
