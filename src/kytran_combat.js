@@ -46,7 +46,7 @@ function shuffleArr(a){ for(var i=a.length-1;i>0;i--){ var j=(Math.random()*(i+1
 var KTB_STYLE_ID='ktb-style';
 var KTB_CSS=[
 '.ktb{ --ink:#070b14; --ink2:#0f1521; --ink3:#141b2a; --bd:#1e293b; --jade:#14b8a6; --cyan:#22d3ee; --gold:#f5b942; --rose:#fb7185; --tx:#e2e8f0; --tx2:#94a3b8; --tx3:#64748b; --kiem:#fb7185; --tim:#22c55e; --khien:#a78bfa; --khi:#22d3ee; --bao:#f5b942;',
-'  position:relative; height:100%; min-height:420px; display:flex; flex-direction:column; gap:8px; color:var(--tx); font-size:14px; font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }',
+'  position:relative; height:min(660px,calc(100vh - 200px)); min-height:440px; display:flex; flex-direction:column; gap:8px; color:var(--tx); font-size:14px; font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }',
 '.ktb, .ktb *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }',
 '.ktb img{ -webkit-user-drag:none; user-select:none; }',
 '.ktb button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer; padding:0; }',
@@ -278,7 +278,6 @@ var KTB_TPL=''+
       '<div class="skillbar"></div>'+
     '</div></div>'+
   '</div>'+
-  '<div class="legend"></div>'+
   '<div class="overlay"></div>'+
   '<div class="picktype"></div>'+
   '<div class="toast"></div>'+
@@ -750,7 +749,7 @@ export function mountKtBattle(host, opts){
         eBurn:0, _mocRevive:false, _thoShield:false, _thuyUsed:false };
     hImg.src=HERO.art; hImg.onerror=function(){ this.style.visibility='hidden'; };
     hName.innerHTML=HERO.name+(HERO.sub?' <span class="sub">'+HERO.sub+'</span>':'');
-    buildLegend(); loadEnemy(); makeBoard(); renderAll();
+    loadEnemy(); makeBoard(); renderAll();
     requestAnimationFrame(sizeBoard); setTimeout(sizeBoard,80);
     lapTran();
   }
