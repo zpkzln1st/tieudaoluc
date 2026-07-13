@@ -123,25 +123,52 @@ var KTB_CSS=[
 '.ktb .obox h1{ font-family:"Lora",serif; font-weight:700; font-size:1.5rem; color:var(--gold); margin:0 0 4px; }',
 '.ktb .obox h1.lose{ color:var(--rose); }',
 '.ktb .obox .osub{ color:var(--tx2); font-size:.84rem; margin-bottom:14px; }',
+/* ===== Màn kết trận — Cuốn Trận Đồ (banner ngang, chân dung địch) ===== */
+'.ktb .ores{ width:520px; max-width:94vw; border-radius:16px; overflow:hidden; position:relative; border:1px solid var(--bd); background:linear-gradient(180deg,#0f1826,#0a0f1a); box-shadow:0 30px 80px -24px #000; }',
+'.ktb .ores-band{ display:flex; align-items:stretch; }',
+'.ktb .ores-port{ position:relative; width:150px; flex:none; overflow:hidden; background:#0b1020; }',
+'.ktb .ores-port>img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 15%; filter:grayscale(.4) brightness(.6); }',
+'.ktb .ores-port .fade{ position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(15,24,38,.92)); }',
+'.ktb .ores-port .glyph{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-family:"Lora",serif; font-weight:700; font-size:40px; color:var(--rose); opacity:.85; text-shadow:0 2px 10px #000; }',
+'.ktb .ores.lose .ores-port>img{ filter:grayscale(.75) brightness(.4); }',
+'.ktb .ores-main{ flex:1; min-width:0; padding:20px 22px; }',
+'.ktb .ores-main .kick{ font-size:.68rem; letter-spacing:3px; text-transform:uppercase; color:var(--jade); font-weight:700; }',
+'.ktb .ores.lose .ores-main .kick{ color:var(--rose); }',
+'.ktb .ores-main .ttl{ font-family:"Lora",serif; font-weight:700; font-size:1.42rem; color:var(--gold2); margin-top:3px; line-height:1.1; }',
+'.ktb .ores.lose .ores-main .ttl{ color:var(--rose); }',
+'.ktb .ores-main .sub{ color:var(--tx2); font-size:.8rem; margin-top:4px; font-style:italic; font-family:"Lora",serif; }',
+'.ktb .ores-loot{ margin-top:13px; display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:10px; background:rgba(245,185,66,.1); border:1px solid rgba(245,185,66,.28); }',
+'.ktb .ores-loot img{ width:22px; height:22px; object-fit:contain; }',
+'.ktb .ores-loot b{ font-family:"Lora",serif; font-weight:700; font-size:1.05rem; color:var(--gold2); }',
+'.ktb .ores-loot span{ font-size:.72rem; color:var(--tx2); }',
+'.ktb .ores-loot.dim{ background:rgba(148,163,184,.06); border-color:var(--bd); }',
+'.ktb .ores-loot.dim span{ color:var(--tx3); font-style:italic; }',
+'.ktb .ores-acts{ display:flex; gap:9px; padding:0 22px 20px; }',
+'.ktb .ores-btn{ flex:1; font-family:"Lora",serif; font-weight:700; font-size:.9rem; padding:11px; border-radius:11px; cursor:pointer; border:1px solid var(--bd2); background:linear-gradient(180deg,#141d2c,#0e1622); color:var(--tx); transition:.14s; }',
+'.ktb .ores-btn:hover{ filter:brightness(1.12); }',
+'.ktb .ores-btn:disabled{ opacity:.5; cursor:default; }',
+'.ktb .ores-btn.gold{ border:none; color:#3a2606; background:linear-gradient(180deg,#f7e2a8,#f5b942 60%,#d99f2c); box-shadow:0 4px 14px -5px rgba(245,185,66,.6); }',
 '.ktb .toast{ position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:560; background:rgba(15,21,33,.96); border:1px solid var(--bd); color:var(--tx); font-size:.8rem; padding:7px 16px; border-radius:99px; opacity:0; transition:opacity .25s; pointer-events:none; max-width:90vw; }',
 '.ktb .toast.show{ opacity:1; }',
-'.ktb .skillbar{ margin-top:4px; display:flex; flex-direction:column; gap:5px; }',
-'.ktb .skpill{ display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; text-align:left; background:rgba(15,21,33,.7); border:1px solid var(--bd); color:var(--tx); position:relative; overflow:hidden; }',
-'.ktb .skpill:disabled{ opacity:.45; cursor:not-allowed; }',
-'.ktb .skpill.ready{ border-color:var(--cyan); box-shadow:0 0 11px -3px var(--cyan); }',
-'.ktb .skpill .skicon{ position:relative; width:30px; height:30px; flex:none; border-radius:8px; display:flex; align-items:center; justify-content:center; background:radial-gradient(120% 120% at 32% 24%,#1b2436,#0a0f1c); box-shadow:inset 0 0 0 1.4px color-mix(in srgb,var(--sc) 55%,transparent); color:var(--sc); }',
-'.ktb .skpill .skicon svg{ width:64%; height:64%; }',
-'.ktb .skpill .skicon .skart{ width:82%; height:82%; object-fit:contain; }',
-'.ktb .skpill .skicon .sktile{ position:absolute; right:-4px; bottom:-4px; width:15px; height:15px; object-fit:contain; filter:drop-shadow(0 1px 2px #000); }',
-'.ktb .skpill .skmeta{ flex:1; min-width:0; }',
-'.ktb .skpill .skmeta b{ display:block; font-family:"Lora",serif; font-size:.76rem; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
-'.ktb .skpill .skcost{ font-size:.6rem; color:var(--tx3); }',
-'.ktb .skpill.ready .skcost{ color:var(--cyan); }',
-'.ktb .skpill .skdots{ display:flex; gap:3px; margin-top:2px; }',
-'.ktb .skpill .skdots i{ width:7px; height:7px; border-radius:99px; background:#334155; }',
-'.ktb .skpill .skdots i.on{ background:var(--cyan); box-shadow:0 0 5px -1px var(--cyan); }',
-'.ktb .skpill .skmeter{ position:absolute; left:0; top:0; bottom:0; width:3px; background:rgba(34,211,238,.12); }',
-'.ktb .skpill .skmeter>i{ position:absolute; bottom:0; left:0; right:0; background:var(--cyan); }',
+/* ===== Skill bar trong trận — huy chương tròn (đồng bộ Lập Trận) ===== */
+'.ktb .skillbar{ margin-top:6px; display:flex; flex-direction:column; gap:9px; }',
+'.ktb .skmed{ display:flex; align-items:center; gap:10px; text-align:left; background:none; border:none; padding:0; width:100%; }',
+'.ktb .skmed:disabled{ cursor:not-allowed; }',
+'.ktb .skmed .skdisc{ position:relative; width:54px; height:54px; flex:none; border-radius:50%; display:grid; place-items:center; background:radial-gradient(70% 70% at 50% 38%, color-mix(in srgb,var(--a) 20%,transparent), #0b1018 82%); border:2px solid color-mix(in srgb,var(--a) 40%,#1b2436); transition:border-color .15s, box-shadow .15s, filter .15s; }',
+'.ktb .skmed .skdisc>img{ width:50px; height:50px; border-radius:50%; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); position:relative; z-index:1; }',
+'.ktb .skmed .skdisc svg{ width:52%; height:52%; color:var(--a); }',
+'.ktb .skmed .skdisc .sktile{ position:absolute; right:-3px; bottom:-3px; width:17px; height:17px; object-fit:contain; z-index:2; filter:drop-shadow(0 1px 2px #000); }',
+'.ktb .skmed.ready .skdisc{ border-color:var(--a); box-shadow:0 0 0 2px color-mix(in srgb,var(--a) 30%,transparent), 0 0 18px -3px var(--a); }',
+'.ktb .skmed:not(.ready) .skdisc{ filter:grayscale(.5) brightness(.68); }',
+'.ktb .skmed .skm{ min-width:0; flex:1; }',
+'.ktb .skmed .skm .nm{ font-family:"Lora",serif; font-weight:700; font-size:.8rem; color:#eef3fa; line-height:1.12; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
+'.ktb .skmed .skm .st{ font-size:.66rem; color:var(--tx3); margin-top:2px; }',
+'.ktb .skmed.ready .skm .st{ color:color-mix(in srgb,var(--a) 82%,#dfe6f0); }',
+'.ktb .skmed .skm .mini{ height:5px; border-radius:4px; background:rgba(6,10,20,.85); overflow:hidden; margin-top:4px; }',
+'.ktb .skmed .skm .mini>i{ display:block; height:100%; background:linear-gradient(90deg, color-mix(in srgb,var(--a) 55%,#0891b2), var(--a)); }',
+'.ktb .skmed .skm .dots{ display:flex; gap:3px; margin-top:4px; }',
+'.ktb .skmed .skm .dots i{ width:8px; height:8px; border-radius:50%; background:#334155; }',
+'.ktb .skmed .skm .dots i.on{ background:var(--a); box-shadow:0 0 5px -1px var(--a); }',
 '.ktb .picktype{ position:fixed; inset:0; z-index:540; display:none; align-items:center; justify-content:center; background:rgba(3,6,14,.5); }',
 '.ktb .picktype.show{ display:flex; }',
 '.ktb .picktype .ptbox{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:340px; padding:16px; background:var(--ink2); border:1px solid var(--bd); border-radius:14px; }',
@@ -242,8 +269,9 @@ var KTB_CSS=[
 '  .ktb .ltbox .lt-detail{ height:auto; }',
 '  .ktb .side.hero .skillbar{ flex-direction:row; width:100%; flex:none; margin-top:0; }',
 '  .ktb .side.hero .fighter{ flex-wrap:wrap; }',
-'  .ktb .skpill{ flex:1; padding:6px 5px; }',
-'  .ktb .skpill .skmeta b{ font-size:.66rem; }',
+'  .ktb .skmed{ flex:1; flex-direction:column; gap:4px; text-align:center; }',
+'  .ktb .skmed .skm .nm{ font-size:.62rem; white-space:normal; }',
+'  .ktb .skmed .skm .st{ display:none; }',
 '}',
 '@media (prefers-reduced-motion:reduce){ .ktb .tile{ transition:none; } .ktb .tile.clear .tin,.ktb .tile.spawn,.ktb .shake,.ktb .flash.on,.ktb .tile.psn .tin::after,.ktb .tile.spfx-6 .deco::before,.ktb .tile.spfx-6 .deco::after,.ktb .tile.spfx-12 .deco,.ktb .tile.spfx-16 .deco::before,.ktb .combolabel.on,.ktb .fnum{ animation:none; } }'
 ].join('\n');
@@ -322,6 +350,10 @@ export function mountKtBattle(host, opts){
   function fireEnd(win){
     if(ended) return; ended=true;
     try{ if(opts.onEnd) opts.onEnd(win, { soul:S?S.soul:0 }); }catch(e){}
+  }
+  function fireNext(){   /* "Trận Kế" — báo parent đánh trận tiếp (giữ loadout) */
+    if(ended) return; ended=true;
+    try{ if(opts.onNext) opts.onNext({ soul:S?S.soul:0 }); }catch(e){}
   }
 
   /* ----- DOM ----- */
@@ -644,14 +676,16 @@ export function mountKtBattle(host, opts){
     LT.skills.forEach(function(id){
       var sk=skillById(id); if(!sk) return;
       var ready=!S.over && skillReady(sk);
-      var slot=el('button','skpill'+(ready?' ready':''));
-      var cost;
-      if(sk.kind==='khi'){ var pct=Math.min(100,S.khi/sk.cost*100); cost='<div class="skmeter"><i style="height:'+pct+'%"></i></div><span class="skcost">'+Math.floor(S.khi)+'/'+sk.cost+' Khí</span>'; }
-      else if(sk.kind==='charge'){ var ch=S.sk[id]?S.sk[id].charges:sk.charges; var dots=''; for(var i=0;i<sk.charges;i++) dots+='<i class="'+(i<ch?'on':'')+'"></i>'; cost='<div class="skdots">'+dots+'</div>'; }
-      else { cost='<span class="skcost">Kho: '+S.goldStock+'</span>'; }
-      var tileIcon = sk.tile?'<img class="sktile" src="'+TIMG[sk.tile]+'">':'';
-      var artIcon='<img class="skart" src="images/kytran/sk_'+id+'.webp" alt="" onerror="this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'block\'"><span class="skfb" style="display:none">'+skillIconSVG(sk.icon)+'</span>';
-      slot.innerHTML='<div class="skicon" style="--sc:'+(sk.tile?TVAR[sk.tile]:'var(--cyan)')+'">'+artIcon+tileIcon+'</div><div class="skmeta"><b>'+sk.name+'</b>'+cost+'</div>';
+      var acc=sk.accent||'#22d3ee';
+      var slot=el('button','skmed'+(ready?' ready':''));
+      slot.style.setProperty('--a', acc);
+      var st;
+      if(sk.kind==='khi'){ var pct=Math.min(100,S.khi/sk.cost*100); st='<div class="st">'+Math.floor(S.khi)+' / '+sk.cost+' Khí</div><div class="mini"><i style="width:'+pct+'%"></i></div>'; }
+      else if(sk.kind==='charge'){ var ch=S.sk[id]?S.sk[id].charges:sk.charges; var dots=''; for(var i=0;i<sk.charges;i++) dots+='<i class="'+(i<ch?'on':'')+'"></i>'; st='<div class="st">Còn '+ch+' lượt</div><div class="dots">'+dots+'</div>'; }
+      else { st='<div class="st">Kho Bảo: '+S.goldStock+'</div>'; }
+      var art='<img src="images/kytran/sk_'+id+'.webp" alt="" onerror="this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'block\'"><span style="display:none">'+skillIconSVG(sk.icon)+'</span>';
+      var tile = sk.tile?'<img class="sktile" src="'+TIMG[sk.tile]+'">':'';
+      slot.innerHTML='<div class="skdisc">'+art+tile+'</div><div class="skm"><div class="nm">'+sk.name+'</div>'+st+'</div>';
       slot.disabled=!ready; slot.onclick=function(){ activateSkill(id); };
       skillBarEl.appendChild(slot);
     });
@@ -751,7 +785,7 @@ export function mountKtBattle(host, opts){
     hName.innerHTML=HERO.name+(HERO.sub?' <span class="sub">'+HERO.sub+'</span>':'');
     loadEnemy(); makeBoard(); renderAll();
     requestAnimationFrame(sizeBoard); setTimeout(sizeBoard,80);
-    lapTran();
+    if(opts.skipLoadout){ commitLoadout(); } else { lapTran(); }
   }
   function loadEnemy(){
     S.enemy={ name:EN.name, sub:EN.sub||'', art:EN.art, hp:EN.hp, max:EN.hp, atk:EN.atk, heavyEvery:EN.heavyEvery||0, heavyMul:EN.heavyMul||1.8, poisonEvery:EN.poisonEvery||0, poisonK:EN.poisonK||0, poisonDmg:EN.poisonDmg||6, boss:!!EN.boss };
@@ -924,14 +958,23 @@ export function mountKtBattle(host, opts){
   function endGame(win){
     S.over=true; busy=true; boardEl.classList.add('busy');
     var o=overlayEl; o.classList.add('show'); o.innerHTML='';
-    var b=el('div','obox');
-    b.innerHTML='<h1 class="'+(win?'':'lose')+'">'+(win?'Trảm Yêu Thành Công':'Bại Trận')+'</h1>'+
-      '<div class="osub">'+(win?(S.enemy.name+' phục pháp, trận đồ thu quang.'):'Phân thân tan rã giữa trận đồ.')+'</div>'+
-      '<div style="font-size:.84rem;color:var(--gold);margin-bottom:16px">'+(win?('Thu được '+S.soul+' 魂 Trận Hồn'):'Trận Hồn lượm dở tan theo trận đồ')+'</div>'+
-      '<div style="text-align:center"><button class="btn pri okbtn" style="padding:11px 34px">Xác Nhận</button></div>';
+    var b=el('div','ores'+(win?'':' lose'));
+    var loot = win
+      ? '<div class="ores-loot"><img src="images/kytran/tranhon.webp" alt="" onerror="this.style.display=\'none\'"><b>+'+S.soul+'</b><span>Trận Hồn</span></div>'
+      : '<div class="ores-loot dim"><span>Trận Hồn lượm dở tan theo trận đồ.</span></div>';
+    var nextBtn = (win && opts.nextBattle) ? '<button class="ores-btn gold onext">Trận Kế ›</button>' : '';
+    b.innerHTML=
+      '<div class="ores-band">'+
+        '<div class="ores-port"><img src="'+S.enemy.art+'" alt="" onerror="this.style.display=\'none\'"><div class="fade"></div><span class="glyph">妖</span></div>'+
+        '<div class="ores-main"><div class="kick">'+(win?'Trảm Yêu · Thắng':'Trảm Yêu · Bại')+'</div>'+
+          '<div class="ttl">'+(win?'Trảm Yêu Thành Công':'Bại Trận')+'</div>'+
+          '<div class="sub">'+(win?(S.enemy.name+' phục pháp, trận đồ thu quang.'):'Phân thân tan rã giữa trận đồ.')+'</div>'+loot+'</div>'+
+      '</div>'+
+      '<div class="ores-acts"><button class="ores-btn ook">Xác Nhận</button>'+nextBtn+'</div>';
     o.appendChild(b);
-    var ok=b.querySelector('.okbtn');
-    ok.addEventListener('click', function(){ ok.disabled=true; fireEnd(win); });
+    b.querySelector('.ook').addEventListener('click', function(){ this.disabled=true; fireEnd(win); });
+    var nx=b.querySelector('.onext');
+    if(nx) nx.addEventListener('click', function(){ this.disabled=true; fireNext(); });
   }
   /* Rút Lui: confirm overlay nhỏ -> tính THUA, onEnd(false) ngay khi xác nhận */
   function askRetreat(){

@@ -202,6 +202,11 @@ export function kyTran() {
     _battle: null,
     startBattle() {
       if (!this.canFight || this.inBattle) return;
+      this.inBattle = true;
+      this._mountBattle(false);
+    },
+    // mount 1 trận cho Cung/prog hiện tại (skipLoadout=true khi bấm "Trận Kế": bỏ Lập Trận, giữ loadout)
+    _mountBattle(skipLoadout) {
       const i = this.selCung, c = KT_CUNG[i], p = this.cungProg(i);
       const isBoss = p >= 5;
       const raw = isBoss ? c.boss : c.mobs[p];
@@ -216,8 +221,8 @@ export function kyTran() {
       // Tương Khắc mốc Cấp 4: Hành khắc hệ Cung → +15% sát thương lên Cung Chủ hệ đó
       const mods = this.ktMods();
       if (isBoss && c.hanh) { const kh = KT_KHAC.find((x) => x[1] === c.hanh); if (kh && this.hanhLv(kh[0]) >= 4) mods.dmg *= 1.15; }
-      // trừ lượt DỜI sang lúc trận thật bắt đầu (onBattleStart) → Quay Lại ở Lập Trận không mất lượt
-      this.inBattle = true;
+      // "Trận Kế" khả dụng: còn trận trong Cung (không phải Cung Chủ) & còn lượt cho trận kế (trận này tốn 1 → cần ≥2)
+      const nextBattle = !isBoss && this.weekLeft >= 2;
       this.$nextTick(() => {
         const host = this.$refs.battleHost;
         if (!host) { this.inBattle = false; return; }
@@ -228,36 +233,49 @@ export function kyTran() {
           lt: { tamPhap: this.kt.loadout.tamPhap, skills: [...(this.kt.loadout.skills || [])] },
           pools: { tp: [...this.kt.tp], sk: [...this.kt.sk] },
           tpData: KT_TAM_PHAP, skData: KT_SKILLS,
-          mods,
+          mods, skipLoadout, nextBattle,
           onLoadout: (lt) => { this.kt.loadout = { tamPhap: lt.tamPhap, skills: [...lt.skills] }; },
           onBattleStart: () => { this.weekCheck(); this.kt.week.used++; try { Storage.save(this.$store.game.state); } catch (e) {} },
           onCancel: () => this._cancelBattle(),
           onEnd: (win, stats) => this._endBattle(win, stats || {}),
+          onNext: (stats) => this._nextBattle(stats || {}),
         });
       });
     },
-    _endBattle(win, stats) {
-      const i = this.selCung, c = KT_CUNG[i], k = this.kt;
-      if (win) {
-        k.tranHon += (stats.soul || 0);            // Trận Hồn lượm từ ô Bảo (chỉ nhận khi thắng)
-        const p = (k.prog[c.id] || 0) + 1;
-        k.prog[c.id] = p;
-        k.wins = (k.wins || 0) + 1;
-        const isBoss = p >= 6, tier = c.tier || 1;
-        let hon = 14 + 4 * tier; if (isBoss) hon *= 3;
-        k.tranHon += hon;
-        const ckey = c.id + ':' + (isBoss ? 'boss' : (p - 1));   // Trảm Yêu Lục: đếm theo Ô trong Cung (art tái dùng giữa Cung)
-        k.codex[ckey] = (k.codex[ckey] || 0) + 1;
-        if (isBoss) {                              // chiếm trọn Cung
-          k.tranHon += (c.reward && c.reward.hon) || KT_CONST.CUNG_HON;
-          if (c.reward && c.reward.tp && !k.tp.includes(c.reward.tp)) k.tp.push(c.reward.tp);
-          if (c.reward && c.reward.sk && !k.sk.includes(c.reward.sk)) k.sk.push(c.reward.sk);
-          if (c.id === 'maDe') k.maDeKills = (k.maDeKills || 0) + 1;
-        }
+    // xử thắng 1 trận (prog++, thưởng, lưu) — dùng chung cho Xác Nhận & Trận Kế
+    _applyWin(stats) {
+      const c = KT_CUNG[this.selCung], k = this.kt;
+      k.tranHon += (stats.soul || 0);            // Trận Hồn lượm từ ô Bảo (chỉ nhận khi thắng)
+      const p = (k.prog[c.id] || 0) + 1;
+      k.prog[c.id] = p;
+      k.wins = (k.wins || 0) + 1;
+      const isBoss = p >= 6, tier = c.tier || 1;
+      let hon = 14 + 4 * tier; if (isBoss) hon *= 3;
+      k.tranHon += hon;
+      const ckey = c.id + ':' + (isBoss ? 'boss' : (p - 1));   // Trảm Yêu Lục: đếm theo Ô trong Cung
+      k.codex[ckey] = (k.codex[ckey] || 0) + 1;
+      if (isBoss) {                              // chiếm trọn Cung
+        k.tranHon += (c.reward && c.reward.hon) || KT_CONST.CUNG_HON;
+        if (c.reward && c.reward.tp && !k.tp.includes(c.reward.tp)) k.tp.push(c.reward.tp);
+        if (c.reward && c.reward.sk && !k.sk.includes(c.reward.sk)) k.sk.push(c.reward.sk);
+        if (c.id === 'maDe') k.maDeKills = (k.maDeKills || 0) + 1;
       }
       try { Storage.save(this.$store.game.state); } catch (e) {}
+    },
+    _endBattle(win, stats) {   // "Xác Nhận" (hoặc thua/rút): xử thắng rồi về bản đồ
+      if (win) this._applyWin(stats);
       if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
       this.inBattle = false;
+    },
+    _nextBattle(stats) {   // "Trận Kế": xử thắng trận này rồi đánh liền trận sau (giữ loadout, bỏ Lập Trận)
+      this._applyWin(stats);
+      if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
+      if (this.cungDone(this.selCung) || this.weekLeft <= 0) {   // hết trận trong Cung / hết lượt → về bản đồ
+        this.inBattle = false;
+        try { this.$store.game.showToast(this.cungDone(this.selCung) ? 'Kỳ Trận · Đã chiếm trọn Cung!' : 'Kỳ Trận · Hết lượt tuần — chờ tuần mới.'); } catch (e) {}
+        return;
+      }
+      this._mountBattle(true);   // đánh trận kế ngay (skipLoadout)
     },
     _cancelBattle() {   // Quay Lại từ màn Lập Trận: về bản đồ, KHÔNG tính lượt (chưa trừ), không xử thắng/thua
       if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
