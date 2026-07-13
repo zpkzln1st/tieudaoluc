@@ -8836,7 +8836,7 @@
         .kt-root .dbanner .t .nm{font-family:'Lora',serif;font-weight:700;font-size:24px;line-height:1.05}
         .kt-root .dbody{padding:14px 16px;flex:1;min-height:0;display:flex;flex-direction:column}
         .kt-root .dscroll{flex:1 1 auto;min-height:0;overflow:hidden}
-        .kt-root .dcta{flex:0 0 auto;text-align:right;margin-top:10px}
+        .kt-root .dcta{flex:0 0 auto;text-align:right;margin-top:10px;margin-bottom:48px}
         .kt-root .ssect{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ktmut2);margin:0 0 8px;display:flex;align-items:center;gap:10px}
         .kt-root .ssect::after{content:"";flex:1;height:1px;background:var(--ktline)}
         .kt-root .dboss{display:flex;align-items:flex-start;gap:13px;background:#0b1220;border:1px solid var(--ktline2);border-radius:12px;padding:12px 14px;margin-bottom:13px}
@@ -9094,7 +9094,6 @@
                         <div class="dcta">
                           <button x-show="!ctaInfo.dim" class="ktr-goldbtn ktr-ctago" @click="startBattle()" x-text="ctaInfo.txt"></button>
                           <div x-show="ctaInfo.dim" class="cta dim"><span x-html="svgi(ctaInfo.ic)"></span> <span x-text="ctaInfo.txt"></span></div>
-                          <div class="dhint" x-show="!ctaInfo.dim">Vào trận → chọn 1 <b>Tâm Pháp</b> + 3 <b>Kỹ Năng</b> (màn Lập Trận) rồi đánh match-3. Tốn 1 lượt tuần.</div>
                         </div>
                       </template>
                     </div>
