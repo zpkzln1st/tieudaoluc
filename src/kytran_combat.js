@@ -149,43 +149,85 @@ var KTB_CSS=[
 '.ktb .pt-btn{ display:flex; flex-direction:column; align-items:center; gap:3px; width:78px; padding:8px 4px; border-radius:10px; background:var(--ink3); border:1px solid var(--bd); color:var(--tx); font-size:.68rem; }',
 '.ktb .pt-btn img{ width:26px; height:26px; object-fit:contain; }',
 '.ktb .pt-btn.pt-cancel{ width:100%; flex-direction:row; justify-content:center; color:var(--tx2); }',
-'.ktb .ltbox{ width:100%; max-width:880px; max-height:94dvh; display:flex; flex-direction:column; background:var(--ink2); border:1px solid var(--bd); border-radius:16px; overflow:hidden; }',
-'.ktb .lthead{ padding:14px 18px 10px; border-bottom:1px solid var(--bd); flex:none; }',
-'.ktb .lthead h1{ font-family:"Lora",serif; font-weight:700; font-size:1.3rem; color:var(--gold); margin:0; }',
-'.ktb .lthead .ltsub{ font-size:.76rem; color:var(--tx2); margin-top:2px; }',
-'.ktb .ltgrid{ flex:1; min-height:0; display:grid; grid-template-columns:1.05fr 0.9fr 1.15fr; gap:10px; padding:12px; overflow:hidden; }',
-'.ktb .ltcol{ min-height:0; display:flex; flex-direction:column; gap:7px; overflow-y:auto; }',
-'.ktb .tpcard{ text-align:left; padding:8px 10px; border-radius:10px; background:rgba(15,21,33,.6); border:1px solid var(--bd); color:var(--tx); }',
-'.ktb .tpcard .tphd{ display:flex; align-items:center; gap:8px; margin-bottom:3px; }',
-'.ktb .tpcard .tpcardic{ width:34px; height:34px; object-fit:contain; flex:none; }',
-'.ktb .tpcard.on{ border-color:var(--jade); box-shadow:0 0 12px -3px var(--jade); background:rgba(20,184,166,.08); }',
-'.ktb .tpcard .tpname{ font-size:.82rem; color:var(--jade); }',
-'.ktb .tpcard.on .tpname{ color:#5eead4; }',
-'.ktb .tpcard .tplore{ font-size:.64rem; color:var(--gold); font-style:italic; margin:2px 0 3px; }',
-'.ktb .tpcard .tprule{ font-size:.66rem; color:var(--tx2); line-height:1.35; }',
-'.ktb .ltmid{ align-items:center; text-align:center; overflow:visible; }',
-'.ktb .ltenemy{ width:100%; border-radius:12px; border:1px solid var(--bd); padding:8px; background:rgba(6,10,20,.5); }',
-'.ktb .ltenemy img{ width:100%; max-width:150px; aspect-ratio:1/1.1; object-fit:cover; object-position:50% 12%; border-radius:10px; }',
-'.ktb .ltenemy .ltename{ font-size:.9rem; margin-top:5px; }',
-'.ktb .ltenemy .ltemech{ font-size:.68rem; color:var(--rose); margin-top:2px; }',
-'.ktb .ltenemy.countered{ border-color:var(--gold); box-shadow:0 0 15px -4px var(--gold); }',
-'.ktb .ltenemy .ltctr{ margin-top:5px; font-size:.7rem; font-weight:700; color:var(--gold); letter-spacing:.08em; }',
-'.ktb .ltseal{ font-size:.72rem; color:var(--tx2); margin-top:8px; } .ktb .ltseal b{ color:var(--jade); }',
-'.ktb .ltphai{ margin-top:4px; font-family:"Lora",serif; font-weight:700; font-size:.9rem; color:var(--cyan); }',
-'.ktb .ltslots{ display:flex; gap:6px; }',
-'.ktb .ltslot{ flex:1; min-height:38px; display:flex; align-items:center; justify-content:center; text-align:center; border-radius:9px; border:1px dashed var(--bd); font-size:.62rem; color:var(--tx3); padding:3px; }',
-'.ktb .ltslot.filled{ border-style:solid; border-color:var(--cyan); color:var(--cyan); font-family:"Lora",serif; cursor:pointer; }',
-'.ktb .ltpool{ display:flex; flex-direction:column; gap:6px; }',
-'.ktb .skcard{ text-align:left; padding:7px 9px; border-radius:9px; background:rgba(15,21,33,.6); border:1px solid var(--bd); color:var(--tx); }',
-'.ktb .skcard.on{ border-color:var(--cyan); box-shadow:0 0 10px -3px var(--cyan); background:rgba(34,211,238,.07); }',
-'.ktb .skcard.lock{ opacity:.4; }',
-'.ktb .skcard .skhd{ display:flex; align-items:center; gap:7px; }',
-'.ktb .skcard .skcardic{ width:26px; height:26px; object-fit:contain; flex:none; }',
-'.ktb .skcard .skhd span:first-child{ font-size:.78rem; }',
-'.ktb .skcard .skc{ font-size:.62rem; color:var(--gold); white-space:nowrap; margin-left:auto; }',
-'.ktb .skcard .skdesc{ font-size:.64rem; color:var(--tx2); line-height:1.32; margin-top:2px; }',
-'.ktb .ltfoot{ flex:none; padding:10px 14px; border-top:1px solid var(--bd); }',
-'.ktb .ltfoot .btn{ width:100%; padding:11px; }',
+/* ===== Lập Trận v4 (scope .ktb .ltbox — tránh đụng class combat) ===== */
+'.ktb .ltbox{ width:min(1000px,96vw); height:min(660px,92dvh); overflow:hidden; position:relative; display:flex; flex-direction:column; background:linear-gradient(180deg,rgba(20,29,45,.96),rgba(11,18,32,.98)),#0b1220; border:1px solid #26344a; border-radius:18px; box-shadow:0 34px 90px -24px rgba(0,0,0,.82), inset 0 1px 0 rgba(255,255,255,.05); }',
+'.ktb .ltbox::before{ content:""; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,transparent,rgba(245,185,66,.55),transparent); opacity:.75; z-index:2; }',
+'.ktb .ltbox .lt-hdr{ flex:none; padding:12px 22px; border-bottom:1px solid #1e293b; display:flex; align-items:center; gap:13px; background:linear-gradient(180deg,rgba(30,41,59,.34),transparent); }',
+'.ktb .ltbox .lt-mk{ width:40px; height:40px; flex:none; border-radius:11px; display:grid; place-items:center; overflow:hidden; background:radial-gradient(70% 70% at 50% 32%,rgba(245,185,66,.22),#0b1018 84%); border:1px solid rgba(245,185,66,.34); box-shadow:0 0 18px -8px #f5b942; }',
+'.ktb .ltbox .lt-mk img{ width:100%; height:100%; object-fit:contain; }',
+'.ktb .ltbox .lt-mk .fb{ font-family:"Lora",serif; font-weight:700; font-size:19px; color:#f3e2b0; }',
+'.ktb .ltbox h1{ margin:0; font-family:"Lora",serif; font-weight:700; font-size:22px; letter-spacing:.6px; background:linear-gradient(180deg,#f7e2a8,#f5b942 56%,#c9932e); -webkit-background-clip:text; background-clip:text; color:transparent; }',
+'.ktb .ltbox .lt-thread{ margin-left:14px; flex:1; height:1px; background:linear-gradient(90deg,rgba(245,185,66,.3),transparent 70%); }',
+'.ktb .ltbox .lt-body{ flex:1; min-height:0; display:grid; grid-template-columns:258px 1fr 258px; gap:15px; padding:15px 17px; }',
+'.ktb .ltbox .lt-col{ display:flex; flex-direction:column; min-height:0; }',
+'.ktb .ltbox .lt-colh{ flex:none; display:flex; align-items:center; gap:8px; margin-bottom:11px; }',
+'.ktb .ltbox .lt-colh .t{ font-family:"Lora",serif; font-weight:700; font-size:15px; color:#e8c877; letter-spacing:.4px; }',
+'.ktb .ltbox .lt-colh .pick{ margin-left:auto; font-size:11px; color:#64748b; border:1px solid #26344a; border-radius:20px; padding:1px 9px; }',
+'.ktb .ltbox .lt-colh .pick b{ color:#f5b942; }',
+'.ktb .ltbox .lt-colh .pick.ok{ border-color:rgba(45,212,191,.42); color:#2dd4bf; }',
+'.ktb .ltbox .lt-colh .pick.ok b{ color:#2dd4bf; }',
+'.ktb .ltbox .lt-grid{ flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:9px 8px; align-content:start; }',
+'.ktb .ltbox .mc{ display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }',
+'.ktb .ltbox .mc .disc{ position:relative; width:78px; height:78px; border-radius:50%; display:grid; place-items:center; background:radial-gradient(70% 70% at 50% 38%,color-mix(in srgb,var(--a) 20%,transparent),#0b1018 82%); border:2px solid color-mix(in srgb,var(--a) 42%,#1b2436); transition:border-color .14s, box-shadow .14s, transform .12s; }',
+'.ktb .ltbox .mc:hover .disc{ transform:translateY(-2px); border-color:color-mix(in srgb,var(--a) 66%,#1b2436); box-shadow:0 8px 18px -10px rgba(0,0,0,.8); }',
+'.ktb .ltbox .mc .disc>img{ position:relative; z-index:1; width:74px; height:74px; border-radius:50%; object-fit:contain; filter:drop-shadow(0 3px 6px rgba(0,0,0,.5)); }',
+'.ktb .ltbox .mc .disc .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:29px; color:color-mix(in srgb,var(--a) 60%,#5b6b82); }',
+'.ktb .ltbox .mc.on .disc{ border-color:var(--a); box-shadow:0 0 0 2px color-mix(in srgb,var(--a) 32%,transparent), 0 0 22px -4px var(--a); }',
+'.ktb .ltbox .mc.view .disc{ border-color:color-mix(in srgb,var(--a) 78%,#1b2436); }',
+'.ktb .ltbox .mc.lock{ opacity:.4; } .ktb .ltbox .mc.lock .disc{ filter:grayscale(.62) brightness(.66); }',
+'.ktb .ltbox .mc .chk{ position:absolute; z-index:2; right:-2px; top:-2px; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; color:#0b1018; background:linear-gradient(180deg,#e8c877,#f5b942); border:2px solid #0b1220; box-shadow:0 2px 7px -2px rgba(0,0,0,.7); }',
+'.ktb .ltbox .mc .chk svg{ width:12px; height:12px; }',
+'.ktb .ltbox .mc .pil{ display:flex; flex-direction:column; align-items:center; gap:1px; max-width:114px; }',
+'.ktb .ltbox .mc .pil .nm{ font-size:12px; font-weight:600; color:#94a3b8; line-height:1.18; text-align:center; }',
+'.ktb .ltbox .mc.on .pil .nm{ color:color-mix(in srgb,var(--a) 80%,#ffffff); }',
+'.ktb .ltbox .mc .pil .cost{ font-size:10px; color:#64748b; }',
+'.ktb .ltbox .lt-center{ min-height:0; display:flex; flex-direction:column; }',
+'.ktb .ltbox .lt-en{ flex:none; display:flex; flex-direction:column; align-items:center; }',
+'.ktb .ltbox .lt-en .lbl{ font-size:10px; letter-spacing:3px; color:#fb7185; font-weight:700; text-transform:uppercase; opacity:.82; margin-bottom:6px; }',
+'.ktb .ltbox .lt-en .frame{ position:relative; width:132px; height:132px; border-radius:16px; display:grid; place-items:center; background:radial-gradient(72% 66% at 50% 40%,rgba(251,113,133,.17),#0a0f18 84%); border:1px solid #402a34; box-shadow:inset 0 0 0 1px rgba(245,185,66,.1), inset 0 -8px 20px rgba(0,0,0,.5), 0 10px 26px -10px rgba(0,0,0,.75); }',
+'.ktb .ltbox .lt-en .frame::before{ content:""; position:absolute; inset:5px; border-radius:12px; border:1px solid rgba(245,185,66,.15); }',
+'.ktb .ltbox .lt-en .frame img{ width:118px; height:118px; object-fit:cover; object-position:50% 12%; border-radius:11px; position:relative; z-index:1; }',
+'.ktb .ltbox .lt-en .nm{ margin-top:8px; font-family:"Lora",serif; font-weight:600; font-size:16px; color:#f2e2c4; }',
+'.ktb .ltbox .lt-en .mech{ margin-top:6px; display:inline-flex; align-items:center; gap:7px; padding:4px 11px; border-radius:20px; font-size:11.5px; font-weight:600; color:#f6cdd4; background:rgba(251,113,133,.12); border:1px solid rgba(251,113,133,.32); }',
+'.ktb .ltbox .lt-en .mech svg{ width:12px; height:12px; }',
+'.ktb .ltbox .lt-detail{ flex:none; height:126px; margin-top:11px; display:flex; gap:13px; padding:12px 13px; border-radius:14px; background:linear-gradient(180deg,#141d2e,#0f1826); border:1px solid #26344a; position:relative; overflow:hidden; }',
+'.ktb .ltbox .lt-detail::after{ content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 34px -15px color-mix(in srgb,var(--a,#334155) 60%,transparent); }',
+'.ktb .ltbox .lt-detail .big{ flex:none; width:84px; height:84px; position:relative; display:grid; place-items:center; align-self:center; border-radius:var(--br,14px); background:radial-gradient(72% 72% at 50% 38%,color-mix(in srgb,var(--a,#4a5568) 26%,transparent),#0b1018 82%); border:1px solid color-mix(in srgb,var(--a,#4a5568) 48%,#2a3245); }',
+'.ktb .ltbox .lt-detail .big img{ width:74px; height:74px; object-fit:contain; filter:drop-shadow(0 4px 8px rgba(0,0,0,.55)); position:relative; z-index:1; border-radius:var(--br,14px); }',
+'.ktb .ltbox .lt-detail .big .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:36px; color:color-mix(in srgb,var(--a,#4a5568) 72%,#cbd5e1); }',
+'.ktb .ltbox .lt-detail.tp .big, .ktb .ltbox .lt-detail.tp .big img{ --br:50%; }',
+'.ktb .ltbox .lt-detail .info{ min-width:0; flex:1; display:flex; flex-direction:column; justify-content:center; }',
+'.ktb .ltbox .lt-detail .kind{ font-size:10px; letter-spacing:2px; text-transform:uppercase; color:color-mix(in srgb,var(--a,#8a94a8) 80%,#8a94a8); font-weight:700; }',
+'.ktb .ltbox .lt-detail .nm{ margin-top:3px; font-family:"Lora",serif; font-weight:700; font-size:17px; color:#f0f5fc; line-height:1.1; }',
+'.ktb .ltbox .lt-detail .lore{ margin-top:4px; font-family:"Lora",serif; font-style:italic; font-size:11.5px; color:color-mix(in srgb,var(--a,#8a94a8) 55%,#93a1b8); line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
+'.ktb .ltbox .lt-detail .desc{ margin-top:6px; font-size:12px; line-height:1.4; color:#c4cddb; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }',
+'.ktb .ltbox .lt-detail.empty{ align-items:center; justify-content:center; }',
+'.ktb .ltbox .lt-detail.empty .ph{ text-align:center; color:#64748b; font-size:12px; }',
+'.ktb .ltbox .lt-detail.empty .ph b{ display:block; font-family:"Lora",serif; color:#94a3b8; font-size:14px; margin-bottom:3px; }',
+'.ktb .ltbox .lt-load{ flex:none; margin-top:12px; display:flex; align-items:stretch; gap:12px; }',
+'.ktb .ltbox .lt-slotlab{ font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase; color:#64748b; font-weight:700; text-align:center; margin-bottom:5px; }',
+'.ktb .ltbox .lt-tpwrap{ flex:none; display:flex; flex-direction:column; }',
+'.ktb .ltbox .lt-tpslot{ position:relative; width:70px; height:70px; border-radius:50%; display:grid; place-items:center; margin:0 auto; border:2px dashed #33425c; background:rgba(9,14,24,.5); }',
+'.ktb .ltbox .lt-tpslot.fill{ border:2px solid color-mix(in srgb,var(--a,#f5b942) 60%,#2a3245); background:radial-gradient(70% 70% at 50% 36%,color-mix(in srgb,var(--a,#f5b942) 22%,transparent),#0b1018 84%); box-shadow:0 0 18px -6px color-mix(in srgb,var(--a,#f5b942) 55%,transparent); }',
+'.ktb .ltbox .lt-tpslot.fill img{ width:64px; height:64px; border-radius:50%; object-fit:contain; filter:drop-shadow(0 2px 5px rgba(0,0,0,.5)); position:relative; z-index:1; }',
+'.ktb .ltbox .lt-tpslot .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:24px; color:#3a475d; }',
+'.ktb .ltbox .lt-tpslot.fill .g{ color:color-mix(in srgb,var(--a,#f5b942) 78%,#cfd7e2); }',
+'.ktb .ltbox .lt-divx{ flex:none; width:1px; align-self:center; height:56px; background:linear-gradient(180deg,transparent,#26344a,transparent); }',
+'.ktb .ltbox .lt-skwrap{ flex:1; }',
+'.ktb .ltbox .lt-skrow{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; }',
+'.ktb .ltbox .lt-slot{ position:relative; height:70px; border-radius:12px; display:grid; place-items:center; border:1px dashed #2c3a52; background:rgba(9,14,24,.5); }',
+'.ktb .ltbox .lt-slot .n{ font-family:"Lora",serif; font-weight:700; font-size:20px; color:#334157; }',
+'.ktb .ltbox .lt-slot.fill{ border:1px solid color-mix(in srgb,var(--a,#2dd4bf) 52%,#2a3245); background:radial-gradient(70% 70% at 50% 34%,color-mix(in srgb,var(--a,#2dd4bf) 20%,transparent),#0b1018 86%); }',
+'.ktb .ltbox .lt-slot.fill img{ width:42px; height:42px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); position:relative; z-index:1; }',
+'.ktb .ltbox .lt-slot.fill .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:20px; color:color-mix(in srgb,var(--a,#2dd4bf) 78%,#cfd7e2); }',
+'.ktb .ltbox .lt-slot .cap{ position:absolute; bottom:3px; left:4px; right:4px; text-align:center; font-size:9px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
+'.ktb .ltbox .lt-foot{ flex:none; margin-top:auto; padding-top:12px; display:flex; align-items:center; gap:12px; }',
+'.ktb .ltbox .lt-back{ display:inline-flex; align-items:center; gap:7px; cursor:pointer; font-family:"Lora",serif; font-weight:600; font-size:13px; color:#94a3b8; padding:9px 16px; border-radius:10px; background:linear-gradient(180deg,#141d2c,#0e1622); border:1px solid #26344a; transition:.14s; }',
+'.ktb .ltbox .lt-back:hover{ color:#e2e8f0; border-color:#3a4a63; }',
+'.ktb .ltbox .lt-back svg{ width:15px; height:15px; }',
+'.ktb .ltbox .lt-go{ margin-left:auto; display:inline-block; cursor:pointer; border:15px solid transparent; border-width:15px 46px; border-image:url("images/dongphu/ui/btn_gold.webp") 48 150 fill / 15px 46px / 0 stretch; color:#f3e7c7; font-family:"Lora",serif; font-weight:700; font-size:15px; letter-spacing:.24em; text-shadow:0 1px 2px rgba(60,30,0,.55); line-height:1; padding:8px 10px; background-color:rgba(120,80,20,.14); border-radius:4px; transition:filter .15s, transform .1s; }',
+'.ktb .ltbox .lt-go:hover{ filter:brightness(1.08); } .ktb .ltbox .lt-go:active{ transform:translateY(1px); }',
+'.ktb .ltbox .lt-go.off{ filter:grayscale(.75) brightness(.72); cursor:not-allowed; pointer-events:none; }',
 '@media (max-width:767px){',
 '  .ktb .stage{ flex-direction:column; gap:6px; }',
 '  .ktb .side{ width:100%; flex-direction:row; align-items:center; gap:10px; }',
@@ -194,9 +236,10 @@ var KTB_CSS=[
 '  .ktb .side .fighter .fmeta{ flex:1; } .ktb .side .fighter .fname{ margin-top:0; }',
 '  .ktb .side.hero{ order:3; } .ktb .boardcol{ order:2; } .ktb .side.enemy{ order:1; }',
 '  .ktb .tampham{ display:none; }',
-'  .ktb .ltbox{ max-width:100%; }',
-'  .ktb .ltgrid{ grid-template-columns:1fr; overflow-y:auto; }',
-'  .ktb .ltcol{ overflow:visible; }',
+'  .ktb .ltbox{ width:100%; height:auto; max-height:92dvh; overflow-y:auto; }',
+'  .ktb .ltbox .lt-body{ grid-template-columns:1fr; }',
+'  .ktb .ltbox .lt-center{ order:-1; }',
+'  .ktb .ltbox .lt-detail{ height:auto; }',
 '  .ktb .side.hero .skillbar{ flex-direction:row; width:100%; flex:none; margin-top:0; }',
 '  .ktb .side.hero .fighter{ flex-wrap:wrap; }',
 '  .ktb .skpill{ flex:1; padding:6px 5px; }',
@@ -627,44 +670,74 @@ export function mountKtBattle(host, opts){
   function skCostLabel(s){ return s.kind==='khi'?s.cost+' Khí':(s.kind==='charge'?s.charges+'/trận':'Kho Bảo'); }
   function lapTran(){
     busy=true;
-    var tpSel=LT.tamPhap, skSel=LT.skills.slice();
+    var tpSel=LT.tamPhap, skSel=LT.skills.slice(), viewId=null;
     var o=overlayEl; o.classList.add('show'); o.innerHTML='';
     var box=el('div','ltbox'); o.appendChild(box);
-    var mech = EN.poisonEvery?'poison':(EN.heavyEvery?'heavy':'');
     var mechTxt = EN.poisonEvery?('Rải Ô Độc mỗi '+EN.poisonEvery+' lượt'):(EN.heavyEvery?('Đòn Nặng mỗi '+EN.heavyEvery+' lượt'):'Đánh thường');
-    var needTxt = NEED===3?'ba':String(NEED);
-    function countered(){ if(!mech) return false; if(tpById(tpSel).counters===mech) return true;
-      for(var i=0;i<skSel.length;i++){ var s=skillById(skSel[i]); if(s&&s.counters===mech) return true; } return false; }
-    function render(){
-      var ctr=countered();
-      box.innerHTML=
-      '<div class="lthead"><h1>Lập Trận</h1><div class="ltsub">Chọn một Tâm Pháp và '+needTxt+' Kỹ Năng</div></div>'+
-      '<div class="ltgrid">'+
-        '<div class="ltcol lttp">'+tpChoices.map(function(t){ return '<button class="tpcard'+(t.id===tpSel?' on':'')+'" data-tp="'+t.id+'"><div class="tphd"><img class="tpcardic" src="images/kytran/tp_'+t.id+'.webp" alt="" onerror="this.style.display=\'none\'"><div class="tpname fserif">'+t.name+'</div></div><div class="tplore">'+t.lore+'</div><div class="tprule">'+t.rule+'</div></button>';
-        }).join('')+'</div>'+
-        '<div class="ltcol ltmid">'+
-          '<div class="ltenemy'+(ctr?' countered':'')+'"><img src="'+EN.art+'" onerror="this.style.visibility=\'hidden\'"><div class="ltename fserif">'+EN.name+'</div><div class="ltemech">'+mechTxt+'</div>'+(ctr?'<div class="ltctr">◆ Khắc Chế ◆</div>':'')+'</div>'+
-          '<div class="ltseal">Tâm Pháp: <b>'+(tpSel?tpById(tpSel).name:'—')+'</b></div>'+
-          '<div class="ltphai">'+luuPhaiName(tpSel,skSel)+'</div>'+
-        '</div>'+
-        '<div class="ltcol ltsk">'+
-          '<div class="ltslots">'+[0,1,2].map(function(i){ var s=skSel[i]?skillById(skSel[i]):null; return '<div class="ltslot'+(s?' filled':'')+'" data-slot="'+i+'">'+(s?'<b>'+s.name+'</b>':'<span>Ô '+(i+1)+'</span>')+'</div>'; }).join('')+'</div>'+
-          '<div class="ltpool">'+skChoices.map(function(s){ var on=skSel.indexOf(s.id)>=0; var lock=skSel.length>=NEED&&!on; return '<button class="skcard'+(on?' on':'')+(lock?' lock':'')+'" data-sk="'+s.id+'"><div class="skhd"><img class="skcardic" src="images/kytran/sk_'+s.id+'.webp" alt="" onerror="this.style.display=\'none\'"><span class="fserif">'+s.name+'</span><span class="skc">'+skCostLabel(s)+'</span></div><div class="skdesc">'+s.desc+'</div></button>';
-          }).join('')+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="ltfoot"><button class="btn pri ltgo"'+(skSel.length===NEED?'':' disabled')+'>Xuất Trận</button></div>';
-      box.querySelectorAll('[data-tp]').forEach(function(b){ b.onclick=function(){ tpSel=b.dataset.tp; render(); }; });
-      box.querySelectorAll('[data-sk]').forEach(function(b){ b.onclick=function(){ var id=b.dataset.sk; var i=skSel.indexOf(id); if(i>=0) skSel.splice(i,1); else if(skSel.length<NEED) skSel.push(id); render(); }; });
-      box.querySelectorAll('[data-slot]').forEach(function(b){ b.onclick=function(){ var i=+b.dataset.slot; if(skSel[i]){ skSel.splice(i,1); render(); } }; });
-      var go=box.querySelector('.ltgo');
-      if(go) go.onclick=function(){ if(skSel.length!==NEED) return; LT.tamPhap=tpSel; LT.skills=skSel.slice();
-        try{ if(opts.onLoadout) opts.onLoadout({ tamPhap:LT.tamPhap, skills:LT.skills.slice() }); }catch(e){}
-        commitLoadout(); };
+    var CHK='<span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="#4a2e05" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg></span>';
+    var MECHSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>';
+    var BACKSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+    function isTp(id){ for(var i=0;i<TP_DATA.length;i++) if(TP_DATA[i].id===id) return true; return false; }  /* tra thật — tpById có fallback trả tuSa cho id lạ */
+    function itemById(id){ return isTp(id) ? tpById(id) : skillById(id); }
+    function acc(x){ return (x&&x.accent)||'#94a3b8'; }
+    function medHTML(kind,x,on,view,lock){
+      return '<div class="mc'+(on?' on':'')+(view&&!on?' view':'')+(lock?' lock':'')+'" style="--a:'+acc(x)+'" data-k="'+kind+'" data-id="'+x.id+'">'+
+        '<div class="disc"><img src="images/kytran/'+kind+'_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'">'+(on?CHK:'')+'</div>'+
+        '<div class="pil"><span class="nm fserif">'+x.name+'</span>'+(kind==='sk'?'<span class="cost">'+skCostLabel(x)+'</span>':'')+'</div></div>';
     }
-    render();
+    box.innerHTML=
+      '<div class="lt-hdr"><div class="lt-mk"><img src="images/nav/kyTran.webp" alt="" onerror="this.remove()"></div><h1>Lập Trận</h1><div class="lt-thread"></div></div>'+
+      '<div class="lt-body">'+
+        '<div class="lt-col"><div class="lt-colh"><span class="t fserif">Tâm Pháp</span><span class="pick lt-tppick">0 / 1</span></div><div class="lt-grid lt-tplist"></div></div>'+
+        '<div class="lt-center">'+
+          '<div class="lt-en"><div class="lbl">Địch Thủ</div><div class="frame"><img src="'+EN.art+'" alt="" onerror="this.style.visibility=\'hidden\'"></div><div class="nm fserif">'+EN.name+'</div><div class="mech">'+MECHSVG+' '+mechTxt+'</div></div>'+
+          '<div class="lt-detail empty" style="--a:#334155"><div class="ph"><b class="fserif">Xem Chi Tiết</b>Bấm một Tâm Pháp hoặc Kỹ Năng để đọc công năng.</div></div>'+
+          '<div class="lt-load"><div class="lt-tpwrap"><div class="lt-slotlab">Tâm Pháp</div><div class="lt-tpslot" style="--a:#f5b942"></div></div><div class="lt-divx"></div><div class="lt-skwrap"><div class="lt-slotlab">Ba Kỹ Năng</div><div class="lt-skrow"></div></div></div>'+
+          '<div class="lt-foot"><span class="lt-back fserif">'+BACKSVG+' Quay Lại</span><span class="lt-go off fserif">Phá Trận</span></div>'+
+        '</div>'+
+        '<div class="lt-col"><div class="lt-colh"><span class="t fserif">Kỹ Năng</span><span class="pick lt-skpick">0 / '+NEED+'</span></div><div class="lt-grid lt-sklist"></div></div>'+
+      '</div>';
+    var tpListEl=box.querySelector('.lt-tplist'), skListEl=box.querySelector('.lt-sklist');
+    var tpPickEl=box.querySelector('.lt-tppick'), skPickEl=box.querySelector('.lt-skpick');
+    var detailEl=box.querySelector('.lt-detail'), tpSlotEl=box.querySelector('.lt-tpslot'), skRowEl=box.querySelector('.lt-skrow');
+    var goEl=box.querySelector('.lt-go');
+    function renderTP(){ tpListEl.innerHTML=tpChoices.map(function(t){ return medHTML('tp',t,tpSel===t.id,viewId===t.id,false); }).join('');
+      tpPickEl.textContent=(tpSel?1:0)+' / 1'; tpPickEl.classList.toggle('ok',!!tpSel); }
+    function renderSK(){ var full=skSel.length>=NEED; skListEl.innerHTML=skChoices.map(function(s){ var on=skSel.indexOf(s.id)>=0; return medHTML('sk',s,on,viewId===s.id,!on&&full); }).join('');
+      skPickEl.textContent=skSel.length+' / '+NEED; skPickEl.classList.toggle('ok',full); }
+    function showDetail(id){
+      var x=id?itemById(id):null;
+      if(!x){ detailEl.className='lt-detail empty'; detailEl.style.setProperty('--a','#334155'); detailEl.innerHTML='<div class="ph"><b class="fserif">Xem Chi Tiết</b>Bấm một Tâm Pháp hoặc Kỹ Năng để đọc công năng.</div>'; return; }
+      var tp=isTp(id); detailEl.className='lt-detail'+(tp?' tp':''); detailEl.style.setProperty('--a',acc(x));
+      var kind=tp?('Tâm Pháp · '+(x.role||'')):('Kỹ Năng · '+skCostLabel(x)); var body=tp?x.rule:x.desc;
+      detailEl.innerHTML='<div class="big"><img src="images/kytran/'+(tp?'tp':'sk')+'_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'"></div>'+
+        '<div class="info"><div class="kind">'+kind+'</div><div class="nm fserif">'+x.name+'</div><div class="lore fserif">“'+x.lore+'”</div><div class="desc">'+body+'</div></div>';
+    }
+    function renderTpSlot(){ if(!tpSel){ tpSlotEl.className='lt-tpslot'; tpSlotEl.style.setProperty('--a','#f5b942'); tpSlotEl.innerHTML=''; return; }
+      var x=tpById(tpSel); tpSlotEl.className='lt-tpslot fill'; tpSlotEl.style.setProperty('--a',acc(x)); tpSlotEl.innerHTML='<img src="images/kytran/tp_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'">'; }
+    function renderSlots(){ skRowEl.innerHTML=[0,1,2].map(function(i){ var id=skSel[i]; if(!id) return '<div class="lt-slot"><span class="n fserif">'+(i+1)+'</span></div>';
+      var x=skillById(id); return '<div class="lt-slot fill" style="--a:'+acc(x)+'"><img src="images/kytran/sk_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'"><span class="cap">'+x.name+'</span></div>'; }).join(''); }
+    function renderGo(){ goEl.classList.toggle('off', !(tpSel && skSel.length===NEED)); }
+    function ltAll(){ renderTP(); renderSK(); showDetail(viewId); renderTpSlot(); renderSlots(); renderGo(); }
+    box.addEventListener('click', function(e){
+      var mc=e.target.closest('.mc');
+      if(mc){ var k=mc.getAttribute('data-k'), id=mc.getAttribute('data-id'); viewId=id;
+        if(k==='tp'){ tpSel = (tpSel===id) ? null : id; }
+        else { var i=skSel.indexOf(id); if(i>=0) skSel.splice(i,1); else if(skSel.length<NEED) skSel.push(id); }
+        ltAll(); return; }
+      if(e.target.closest('.lt-go') && !goEl.classList.contains('off')){
+        LT.tamPhap=tpSel; LT.skills=skSel.slice();
+        try{ if(opts.onLoadout) opts.onLoadout({ tamPhap:LT.tamPhap, skills:LT.skills.slice() }); }catch(e2){}
+        commitLoadout(); return; }
+      if(e.target.closest('.lt-back')){ cancelLoadout(); return; }
+    });
+    box.addEventListener('mouseover', function(e){ var mc=e.target.closest('.mc'); if(!mc) return; var id=mc.getAttribute('data-id'); if(id===viewId) return; viewId=id;
+      box.querySelectorAll('.mc').forEach(function(m){ m.classList.toggle('view', m.getAttribute('data-id')===id && !m.classList.contains('on')); });
+      showDetail(id); });
+    ltAll();
   }
-  function commitLoadout(){ overlayEl.classList.remove('show'); overlayEl.innerHTML=''; initSkillState(); renderAll(); busy=false; boardEl.classList.remove('busy'); }
+  function commitLoadout(){ try{ if(opts.onBattleStart) opts.onBattleStart(); }catch(e){} overlayEl.classList.remove('show'); overlayEl.innerHTML=''; initSkillState(); renderAll(); busy=false; boardEl.classList.remove('busy'); }
+  function cancelLoadout(){ try{ if(opts.onCancel) opts.onCancel(); }catch(e){} }
 
   /* ----- khởi trận (1 trận duy nhất) ----- */
   function startBattle(){

@@ -216,7 +216,7 @@ export function kyTran() {
       // Tương Khắc mốc Cấp 4: Hành khắc hệ Cung → +15% sát thương lên Cung Chủ hệ đó
       const mods = this.ktMods();
       if (isBoss && c.hanh) { const kh = KT_KHAC.find((x) => x[1] === c.hanh); if (kh && this.hanhLv(kh[0]) >= 4) mods.dmg *= 1.15; }
-      this.weekCheck(); this.kt.week.used++;      // 1 lượt tuần / lần vào trận (thua vẫn tốn)
+      // trừ lượt DỜI sang lúc trận thật bắt đầu (onBattleStart) → Quay Lại ở Lập Trận không mất lượt
       this.inBattle = true;
       this.$nextTick(() => {
         const host = this.$refs.battleHost;
@@ -230,6 +230,8 @@ export function kyTran() {
           tpData: KT_TAM_PHAP, skData: KT_SKILLS,
           mods,
           onLoadout: (lt) => { this.kt.loadout = { tamPhap: lt.tamPhap, skills: [...lt.skills] }; },
+          onBattleStart: () => { this.weekCheck(); this.kt.week.used++; try { Storage.save(this.$store.game.state); } catch (e) {} },
+          onCancel: () => this._cancelBattle(),
           onEnd: (win, stats) => this._endBattle(win, stats || {}),
         });
       });
@@ -254,6 +256,10 @@ export function kyTran() {
         }
       }
       try { Storage.save(this.$store.game.state); } catch (e) {}
+      if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
+      this.inBattle = false;
+    },
+    _cancelBattle() {   // Quay Lại từ màn Lập Trận: về bản đồ, KHÔNG tính lượt (chưa trừ), không xử thắng/thua
       if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
       this.inBattle = false;
     },
