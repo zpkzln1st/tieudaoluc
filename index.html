@@ -9087,7 +9087,8 @@
                       <div class="ktr-counter" x-show="counterTxt(cur)"><b>Tương Khắc:</b> <span x-text="counterTxt(cur)"></span></div>
                       <template x-if="ctaInfo">
                         <div class="dcta">
-                          <button class="cta" :class="ctaInfo.dim?'dim':''" @click="!ctaInfo.dim && startBattle()"><span x-html="svgi(ctaInfo.ic)"></span> <span x-text="ctaInfo.txt"></span></button>
+                          <button x-show="!ctaInfo.dim" class="ktr-goldbtn" @click="startBattle()"><span x-html="svgi(ctaInfo.ic)"></span> <span x-text="ctaInfo.txt"></span></button>
+                          <div x-show="ctaInfo.dim" class="cta dim"><span x-html="svgi(ctaInfo.ic)"></span> <span x-text="ctaInfo.txt"></span></div>
                           <div class="dhint" x-show="!ctaInfo.dim">Vào trận → chọn 1 <b>Tâm Pháp</b> + 3 <b>Kỹ Năng</b> (màn Lập Trận) rồi đánh match-3. Tốn 1 lượt tuần.</div>
                         </div>
                       </template>

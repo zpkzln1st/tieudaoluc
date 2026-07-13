@@ -194,10 +194,10 @@ export function kyTran() {
       if (i == null) return null;
       const st = this.cungSt(i);
       if (i === 4 && st === 'locked') return { dim: true, ic: 'lock', txt: 'Đang phong ấn — cần chiếm đủ 8 Cung ngoài' };
-      if (st === 'done') return { dim: true, ic: 'crown', txt: 'Đã Trấn Áp' };
+      if (st === 'done') return null;                    // Cung đã chiếm: không hiện nút (bỏ "Đã Trấn Áp")
       if (st === 'locked') return { dim: true, ic: 'lock', txt: 'Đang Phong Ấn' };
       if (this.weekLeft <= 0) return { dim: true, ic: 'lock', txt: 'Hết lượt tuần — chờ tuần mới' };
-      return { dim: false, ic: 'sword', txt: st === 'active' ? 'Tiếp Trận ' + (this.cungProg(i) + 1) : 'Vào Trận · Lập Trận' };
+      return { dim: false, ic: 'sword', txt: 'Phá Trận' };
     },
     _battle: null,
     startBattle() {
