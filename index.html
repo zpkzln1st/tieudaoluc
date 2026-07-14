@@ -193,6 +193,12 @@
   @keyframes splGlow{ 0%,100%{ filter:drop-shadow(0 3px 10px rgba(245,185,66,.45)) } 50%{ filter:drop-shadow(0 3px 20px rgba(245,185,66,.8)) } }
   @keyframes splSheen{ 0%{ opacity:0; background-position:-50% 0 } 18%{ opacity:.95 } 100%{ opacity:0; background-position:150% 0 } }
   @keyframes splFill{ 0%{ width:4% } 60%{ width:72% } 100%{ width:100% } }
+  /* mobile màn cao: phóng nhân vật lấp khoảng giữa (đặt SAU base .spl-hero để override) */
+  @media (max-width:760px){
+    #gameSplash .spl-hero{ max-width:none; width:min(110vw,780px); height:min(80vh,940px); }
+    #gameSplash .spl-aura{ width:min(114vw,860px); height:min(62vh,860px); top:58%; }
+  }
+  @media (max-width:760px) and (max-aspect-ratio:9/19){ #gameSplash .spl-hero{ width:min(118vw,820px); height:min(84vh,980px); } }
   @media (prefers-reduced-motion:reduce){ #gameSplash.spl-run *{ animation-duration:.01ms !important; } }
 </style>
 <div id="gameSplash" class="spl-run">
