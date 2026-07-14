@@ -144,6 +144,92 @@
 
 <body class="text-slate-200 antialiased app-h flex flex-col overflow-hidden" x-data x-cloak>
 
+<!-- ============ LOADING SPLASH (hiện ~3s mỗi lần vào game + quay lại sau idle) ============ -->
+<style id="splash-css">
+  #gameSplash{ position:fixed; inset:0; z-index:9999; background:#05070e; overflow:hidden; opacity:1; transition:opacity .55s ease; }
+  #gameSplash.spl-out{ opacity:0; pointer-events:none; }
+  #gameSplash.spl-out *{ animation-play-state:paused !important; }
+  #gameSplash .spl-bg{ position:absolute; inset:0; z-index:0; background-image:url(images/ui/khaitich_background.webp); background-size:cover; background-position:center; transform:scale(1.03); }
+  @media (max-width:760px){ #gameSplash .spl-bg{ background-image:url(images/ui/khaitichdoc_background.webp); } }
+  #gameSplash .spl-scrim{ position:absolute; inset:0; z-index:1; background:
+    radial-gradient(120% 80% at 50% 4%, rgba(245,185,66,.16), transparent 46%),
+    radial-gradient(90% 70% at 50% 54%, transparent 30%, rgba(5,7,14,.5) 78%),
+    linear-gradient(180deg, rgba(5,7,14,.72) 0%, rgba(5,7,14,.3) 26%, rgba(5,7,14,.4) 62%, rgba(5,7,14,.92) 100%); }
+  #gameSplash .spl-aura{ position:absolute; left:50%; top:52%; transform:translate(-50%,-50%); z-index:2; width:min(80vw,760px); height:min(66vh,760px); border-radius:50%;
+    background:radial-gradient(circle, rgba(245,185,66,.26), rgba(245,185,66,.06) 46%, transparent 70%); filter:blur(16px); }
+  #gameSplash .spl-hero{ position:absolute; left:50%; bottom:0; transform:translateX(-50%); z-index:3;
+    height:min(70vh,840px); max-width:96vw; width:auto; object-fit:contain; object-position:bottom;
+    filter:drop-shadow(0 26px 50px rgba(0,0,0,.6));
+    -webkit-mask:linear-gradient(180deg,#000 70%, rgba(0,0,0,.5) 88%, transparent 100%); mask:linear-gradient(180deg,#000 70%, rgba(0,0,0,.5) 88%, transparent 100%); opacity:0; }
+  #gameSplash .spl-brand{ position:absolute; left:0; right:0; top:clamp(3%,4vh,6%); z-index:5; text-align:center; opacity:0; }
+  #gameSplash .spl-emblem{ width:clamp(76px,9vw,118px); height:auto; object-fit:contain; margin:0 auto 6px; display:block; filter:drop-shadow(0 3px 16px rgba(245,185,66,.65)); }
+  #gameSplash .spl-name{ position:relative; display:inline-block; font-family:'Lora',Georgia,serif; font-weight:700; letter-spacing:.13em; font-size:clamp(24px,3.6vw,44px); line-height:1.14; padding-bottom:.06em; text-transform:uppercase;
+    background:linear-gradient(180deg,#fff6da 0%,#fbdf95 42%,#f2b23e 66%,#b9812a 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(245,185,66,.4)); }
+  #gameSplash .spl-name::after{ content:"TIÊU DAO LỤC"; position:absolute; inset:0; opacity:0;
+    background:linear-gradient(100deg, transparent 40%, rgba(255,255,255,.85) 50%, transparent 60%); background-size:250% 100%; background-position:-50% 0;
+    -webkit-background-clip:text; background-clip:text; color:transparent; will-change:background-position, opacity; transform:translateZ(0); }
+  #gameSplash .spl-sub{ margin-top:10px; font-family:'Lora',serif; font-size:clamp(12px,1.5vw,15px); letter-spacing:.14em; color:#cdd8ea; text-shadow:0 2px 8px rgba(0,0,0,.7); }
+  #gameSplash .spl-rule{ width:min(300px,60vw); height:1px; margin:14px auto 0; background:linear-gradient(90deg,transparent,rgba(245,185,66,.6),transparent); }
+  #gameSplash .spl-load{ position:absolute; left:0; right:0; bottom:clamp(6%,7vh,9%); z-index:5; text-align:center; opacity:0; }
+  #gameSplash .spl-load .t{ font-family:'Lora',serif; font-size:12.5px; letter-spacing:.2em; color:#b9c6da; text-transform:uppercase; margin-bottom:11px; }
+  #gameSplash .spl-load .t b{ color:#fceaba; font-weight:600; }
+  #gameSplash .spl-bar{ width:min(280px,64vw); height:3px; margin:0 auto; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.1); box-shadow:0 0 0 1px rgba(245,185,66,.18); }
+  #gameSplash .spl-bar i{ display:block; height:100%; width:4%; border-radius:99px; background:linear-gradient(90deg,#c8912a,#f5b942,#fceaba); box-shadow:0 0 12px rgba(245,185,66,.7); }
+  /* animations chỉ chạy khi có .spl-run → gỡ/thêm để replay lúc quay lại */
+  #gameSplash.spl-run .spl-bg{ animation:splBg 6s ease-out forwards; }
+  #gameSplash.spl-run .spl-aura{ animation:splAura 5s ease-in-out infinite; }
+  #gameSplash.spl-run .spl-hero{ animation:splHero 1s cubic-bezier(.2,.7,.2,1) .12s forwards, splFloat 7s ease-in-out 1.1s infinite; }
+  #gameSplash.spl-run .spl-brand{ animation:splBrand .9s ease .35s forwards; }
+  #gameSplash.spl-run .spl-emblem{ animation:splGlow 4s ease-in-out infinite; }
+  #gameSplash.spl-run .spl-name::after{ animation:splSheen 1.7s ease-in-out .9s 1 forwards; }
+  #gameSplash.spl-run .spl-load{ animation:splBrand .8s ease .6s forwards; }
+  #gameSplash.spl-run .spl-bar i{ animation:splFill 2.7s ease-in-out .2s forwards; }
+  @keyframes splBg{ from{ transform:scale(1.08) } to{ transform:scale(1.02) } }
+  @keyframes splAura{ 0%,100%{ opacity:.6; transform:translate(-50%,-50%) scale(1) } 50%{ opacity:1; transform:translate(-50%,-50%) scale(1.05) } }
+  @keyframes splHero{ from{ opacity:0; transform:translateX(-50%) translateY(24px) scale(.98) } to{ opacity:1; transform:translateX(-50%) translateY(0) scale(1) } }
+  @keyframes splFloat{ 0%,100%{ transform:translateX(-50%) translateY(0) } 50%{ transform:translateX(-50%) translateY(-12px) } }
+  @keyframes splBrand{ from{ opacity:0; transform:translateY(-14px) } to{ opacity:1; transform:translateY(0) } }
+  @keyframes splGlow{ 0%,100%{ filter:drop-shadow(0 3px 10px rgba(245,185,66,.45)) } 50%{ filter:drop-shadow(0 3px 20px rgba(245,185,66,.8)) } }
+  @keyframes splSheen{ 0%{ opacity:0; background-position:-50% 0 } 18%{ opacity:.95 } 100%{ opacity:0; background-position:150% 0 } }
+  @keyframes splFill{ 0%{ width:4% } 60%{ width:72% } 100%{ width:100% } }
+  @media (prefers-reduced-motion:reduce){ #gameSplash.spl-run *{ animation-duration:.01ms !important; } }
+</style>
+<div id="gameSplash" class="spl-run">
+  <div class="spl-bg"></div>
+  <div class="spl-scrim"></div>
+  <div class="spl-aura"></div>
+  <img class="spl-hero" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
+  <div class="spl-brand">
+    <img class="spl-emblem" src="images/ui/logo-emblem.webp" alt="" onerror="this.style.display='none'">
+    <div class="spl-name">Tiêu Dao Lục</div>
+    <div class="spl-sub">Nhất Kiếm Tùy Thân - Độc Bộ Thiên Nhai</div>
+    <div class="spl-rule"></div>
+  </div>
+  <div class="spl-load">
+    <div class="t">Đang vào <b>giang hồ</b>…</div>
+    <div class="spl-bar"><i></i></div>
+  </div>
+</div>
+<script>
+  (function(){
+    var sp=document.getElementById('gameSplash'); if(!sp) return;
+    var AWAY_MS=45000, hiddenAt=0, t=null;
+    function fadeOut(){ clearTimeout(t); t=setTimeout(function(){ sp.classList.add('spl-out'); }, 3000); }
+    function replay(){
+      sp.classList.remove('spl-out'); sp.style.visibility='';
+      sp.classList.remove('spl-run'); void sp.offsetWidth; sp.classList.add('spl-run'); /* restart mọi animation kể cả ::after */
+      fadeOut();
+    }
+    fadeOut();
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden){ hiddenAt=Date.now(); }
+      else if(hiddenAt && (Date.now()-hiddenAt)>AWAY_MS){ replay(); }
+    });
+  })();
+</script>
+
+
   <!-- ============ TOP BAR ============ -->
   <header class="panel sticky top-0 z-30 flex items-center gap-2 sm:gap-4 px-2 sm:px-4 h-14">
     <button @click="$store.game.navOpen = !$store.game.navOpen" class="md:hidden w-9 h-9 -ml-1 rounded-lg flex items-center justify-center text-slate-300 hover:text-jade hover:bg-ink3 transition shrink-0" title="Menu">
@@ -218,77 +304,134 @@
     </div>
   </header>
 
-  <!-- ============ TẠO NHÂN VẬT (overlay) — giang hồ tự do: Tên + Giới tính ============ -->
+  <!-- ============ TẠO NHÂN VẬT (Khai Tịch Giang Hồ) — mobile: Ngọc Bảng ornate · desktop: Immersive ============ -->
+  <style id="create-css">
+    #createScreen{ position:fixed; inset:0; z-index:60; overflow:hidden; background:#05070e; }
+    #createScreen .cs-bg{ position:absolute; inset:0; z-index:0; background-image:url(images/ui/khaitichdoc_background.webp); background-size:cover; background-position:center; }
+    #createScreen .cs-scrim{ position:absolute; inset:0; z-index:1; background:
+      radial-gradient(120% 70% at 50% -6%, rgba(245,185,66,.16), transparent 46%),
+      linear-gradient(180deg, rgba(5,7,14,.62) 0%, rgba(5,7,14,.3) 30%, rgba(5,7,14,.5) 72%, rgba(5,7,14,.92) 100%); }
+    #createScreen .cs-scroll{ position:absolute; inset:0; z-index:5; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; align-items:center; padding:clamp(14px,4vw,26px) clamp(12px,4vw,22px) 32px; }
+    #createScreen .cs-hero-bleed{ display:none; }
+    #createScreen .cs-hero-top{ display:block; width:100%; max-width:440px; height:clamp(178px,54vw,236px); object-fit:contain; object-position:center top; margin:0 auto -8px; position:relative; z-index:2;
+      -webkit-mask:linear-gradient(180deg,#000 66%,transparent 98%); mask:linear-gradient(180deg,#000 66%,transparent 98%); filter:drop-shadow(0 16px 28px rgba(0,0,0,.6)); pointer-events:none; }
+    #createScreen .cs-panel{ position:relative; z-index:3; width:100%; max-width:520px;
+      border:22px solid transparent; border-image:url(images/dongphu/ui/frame_gold.webp) 150 / 22px / 0 stretch;
+      background:linear-gradient(rgba(9,13,20,.74),rgba(9,13,20,.74)),url(images/dongphu/ui/panel_bg.webp) center/cover; }
+    #createScreen .cs-inner{ padding:4px 6px 10px; }
+    #createScreen .cs-brand{ display:flex; align-items:center; justify-content:center; gap:11px; }
+    #createScreen .cs-brand img{ width:46px; height:46px; object-fit:contain; filter:drop-shadow(0 2px 10px rgba(245,185,66,.6)); }
+    #createScreen .cs-brand span{ font-family:'Lora',serif; font-weight:700; font-size:clamp(17px,4.4vw,22px); letter-spacing:.24em; text-transform:uppercase; background:linear-gradient(180deg,#fff6da,#f2b23e 68%,#b9812a); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    #createScreen .cs-kicker{ text-align:center; font-size:10.5px; letter-spacing:.34em; text-transform:uppercase; color:#8ea0b8; font-weight:600; margin-top:8px; }
+    #createScreen .cs-title{ text-align:center; margin:2px 0 0; font-family:'Lora',serif; font-weight:700; line-height:1.16; padding-bottom:.08em; white-space:nowrap; font-size:clamp(25px,6vw,40px); letter-spacing:.012em; background:linear-gradient(180deg,#fff8e3,#fbdf95 40%,#f2b23e 66%,#b9812a); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 2px 2px rgba(0,0,0,.6)); }
+    #createScreen .cs-tagline{ text-align:center; font-size:clamp(12px,3vw,13.5px); color:#cdd8ea; margin:7px auto 0; max-width:400px; line-height:1.5; }
+    #createScreen .cs-rule{ height:14px; margin:12px auto 2px; width:68%; background:url(images/dongphu/ui/divider.webp) center/contain no-repeat; opacity:.85; }
+    #createScreen .cs-field{ margin-top:15px; }
+    #createScreen .cs-label{ display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Lora',serif; font-weight:700; font-size:14px; color:#e9d8a6; margin-bottom:9px; }
+    #createScreen .cs-label::before,#createScreen .cs-label::after{ content:""; height:1px; flex:0 1 46px; }
+    #createScreen .cs-label::before{ background:linear-gradient(90deg,transparent,rgba(245,185,66,.5)); }
+    #createScreen .cs-label::after{ background:linear-gradient(270deg,transparent,rgba(245,185,66,.5)); }
+    #createScreen .cs-name{ width:100%; padding:12px 14px; border-radius:11px; background:rgba(6,10,18,.85); border:1px solid rgba(245,185,66,.28); color:#fff; font-size:15px; font-family:'Lora',serif; outline:none; text-align:center; }
+    #createScreen .cs-name::placeholder{ color:#6f7f96; }
+    #createScreen .cs-name:focus{ border-color:#f5b942; box-shadow:0 0 0 3px rgba(245,185,66,.14); }
+    #createScreen .cs-genrow{ display:flex; gap:10px; }
+    #createScreen .cs-gcard{ flex:1; position:relative; cursor:pointer; border-radius:12px; overflow:hidden; border:2px solid rgba(255,255,255,.13); background:#0a0f1c; transition:border-color .18s,box-shadow .18s; }
+    #createScreen .cs-gcard img{ display:block; width:100%; height:150px; object-fit:cover; object-position:center 15%; }
+    #createScreen .cs-gcard.sel{ border-color:#25d3b8; box-shadow:0 0 0 2px rgba(37,211,184,.24),0 0 24px -6px rgba(37,211,184,.6); }
+    #createScreen .cs-orbs{ display:flex; gap:9px; justify-content:space-between; }
+    #createScreen .cs-orb{ flex:1; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px; color:#8395ad; }
+    #createScreen .cs-ball{ position:relative; width:100%; aspect-ratio:1/1; max-width:62px; border-radius:50%; overflow:hidden; border:1.5px solid rgba(255,255,255,.16); display:grid; place-items:center; transition:transform .18s,box-shadow .18s,border-color .18s; }
+    #createScreen .cs-ball img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    #createScreen .cs-ball .han{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; font-family:'Lora',serif; font-size:1.5rem; font-weight:700; color:var(--c); }
+    #createScreen .cs-orb .onm{ font-size:11px; font-weight:600; }
+    #createScreen .cs-orb.sel .cs-ball{ transform:translateY(-2px) scale(1.06); border-color:var(--c); box-shadow:0 0 0 2px rgba(255,255,255,.1),0 0 22px -4px var(--c); }
+    #createScreen .cs-orb.sel{ color:#e7ecf5; }
+    #createScreen .cs-tplive{ text-align:center; margin-top:11px; min-height:34px; }
+    #createScreen .cs-tplive .n{ font-family:'Lora',serif; font-weight:700; font-size:14px; color:#f5d68a; }
+    #createScreen .cs-tplive .d{ font-size:11px; color:#94a3b8; margin-top:2px; }
+    #createScreen .cs-ctawrap{ text-align:center; margin-top:20px; }
+    #createScreen .cs-cta{ display:inline-flex; align-items:center; justify-content:center; gap:9px; cursor:pointer; position:relative; overflow:hidden; white-space:nowrap; font-family:'Lora',serif; font-weight:700; font-size:17px; letter-spacing:.08em; color:#f6d98c; text-shadow:0 0 10px rgba(245,185,66,.5); border:1.5px solid #c8912a; border-radius:12px; padding:14px 46px; background:linear-gradient(180deg,rgba(24,19,9,.92),rgba(10,8,4,.94)); box-shadow:inset 0 0 0 1px rgba(245,185,66,.2),0 0 22px -6px rgba(245,185,66,.5),0 3px 8px rgba(0,0,0,.5); transition:filter .15s,transform .12s; }
+    #createScreen .cs-cta::after{ content:""; position:absolute; top:0; bottom:0; left:0; width:55%; pointer-events:none; mix-blend-mode:screen; background:linear-gradient(105deg,transparent 24%,rgba(255,243,205,.6) 50%,transparent 76%); transform:translateX(-170%) skewX(-14deg); animation:csSheen 4s ease-in-out 1.2s infinite; }
+    @keyframes csSheen{ 0%{ transform:translateX(-170%) skewX(-14deg) } 55%,100%{ transform:translateX(360%) skewX(-14deg) } }
+    #createScreen .cs-cta:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+    #createScreen .cs-cta:disabled{ filter:grayscale(.72) brightness(.6); cursor:not-allowed; transform:none; }
+    #createScreen .cs-cta:disabled::after{ display:none; }
+    #createScreen .cs-hint{ font-size:11px; color:#6f7f97; margin-top:11px; }
+    @media (min-width:900px){
+      #createScreen .cs-bg{ background-image:url(images/ui/khaitich_background.webp); background-position:50% 42%; }
+      #createScreen .cs-scrim{ background:
+        radial-gradient(120% 90% at 70% 6%, rgba(245,185,66,.15), transparent 44%),
+        linear-gradient(90deg, rgba(5,7,14,.94) 0%, rgba(5,7,14,.8) 30%, rgba(5,7,14,.3) 58%, rgba(5,7,14,.1) 82%, rgba(5,7,14,.42) 100%),
+        linear-gradient(180deg, rgba(5,7,14,.28) 0%, transparent 30%, transparent 66%, rgba(5,7,14,.72) 100%); }
+      #createScreen .cs-scroll{ align-items:flex-start; justify-content:center; padding:0 clamp(40px,5vw,80px); }
+      #createScreen .cs-hero-top{ display:none; }
+      #createScreen .cs-hero-bleed{ display:block; position:absolute; right:-4%; bottom:0; top:0; z-index:3; pointer-events:none; height:96vh; max-height:1000px; width:auto; object-fit:contain; object-position:bottom; -webkit-mask:linear-gradient(180deg,#000 68%,transparent 100%); mask:linear-gradient(180deg,#000 68%,transparent 100%); filter:drop-shadow(0 30px 60px rgba(0,0,0,.65)); }
+      #createScreen .cs-panel{ max-width:440px; border:0; border-image:none; background:none; }
+      #createScreen .cs-inner{ padding:0; }
+      #createScreen .cs-brand{ justify-content:flex-start; }
+      #createScreen .cs-kicker,#createScreen .cs-title,#createScreen .cs-tagline{ text-align:left; }
+      #createScreen .cs-title{ font-size:clamp(28px,4vw,42px); }
+      #createScreen .cs-tagline{ margin-left:0; }
+      #createScreen .cs-rule{ display:none; }
+      #createScreen .cs-label{ justify-content:flex-start; }
+      #createScreen .cs-label::before{ display:none; }
+      #createScreen .cs-label::after{ flex:1; max-width:none; }
+      #createScreen .cs-name{ text-align:left; }
+      #createScreen .cs-gcard img{ height:158px; }
+      #createScreen::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:2px; z-index:7; pointer-events:none; background:linear-gradient(180deg,transparent,rgba(245,185,66,.42) 18%,rgba(245,185,66,.16) 78%,transparent); }
+    }
+    @media (prefers-reduced-motion:reduce){ #createScreen .cs-cta::after{ animation:none; } }
+  </style>
   <template x-if="$store.game.needsCreation">
-    <div class="fixed inset-0 z-[60] bg-ink overflow-auto">
-      <div class="max-w-[1500px] mx-auto p-6 min-h-full flex flex-col justify-center">
-        <div class="text-center mb-6">
-          <div class="text-4xl gold-text" style="font-family:'Lora',serif; font-weight:700">Khai Tịch Giang Hồ</div>
-          <div class="text-sm text-slate-400 mt-1">Một thân tự do, rong ruổi tứ phương — võ học do chính ngươi chọn.</div>
-        </div>
+    <div id="createScreen">
+      <div class="cs-bg"></div>
+      <div class="cs-scrim"></div>
+      <img class="cs-hero-bleed" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
+      <div class="cs-scroll">
+        <img class="cs-hero-top" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
+        <div class="cs-panel"><div class="cs-inner">
+          <div class="cs-brand"><img src="images/ui/logo-emblem.webp" alt="" onerror="this.style.display='none'"><span>Tiêu Dao Lục</span></div>
+          <div class="cs-kicker">Khởi Tạo Nhân Vật</div>
+          <h1 class="cs-title">Khai Tịch Giang Hồ</h1>
+          <div class="cs-tagline">Một thân tự do, rong ruổi tứ phương — võ học do chính ngươi chọn.</div>
+          <div class="cs-rule"></div>
 
-        <!-- Danh hiệu -->
-        <div class="panel rounded-lg p-4 mb-4">
-          <div class="lbl mb-2">Danh Hiệu</div>
-          <input x-model="$store.game.draftName" maxlength="16" placeholder="Nhập tên nhân vật (≥ 2 ký tự)..."
-            class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100">
-        </div>
-
-        <!-- Giới tính -->
-        <div class="panel rounded-lg p-4 mb-4">
-          <div class="lbl mb-3">Giới Tính</div>
-          <div class="grid grid-cols-2 gap-3">
-            <template x-for="g in [{id:'nam',name:'Nam',char:'男',color:'from-sky-500 to-cyan-600'},{id:'nu',name:'Nữ',char:'女',color:'from-rose-400 to-fuchsia-500'}]" :key="g.id">
-              <button @click="$store.game.pickGender(g.id)"
-                class="relative rounded-xl border-2 overflow-hidden flex flex-col transition"
-                :class="$store.game.draftGender===g.id ? 'border-jade' : 'border-slate-700 hover:border-slate-500'">
-                <div class="w-full aspect-video bg-gradient-to-br flex items-center justify-center text-white text-6xl font-bold" :class="g.color" style="font-family:'Lora',serif" x-data="{ok:true}">
-                  <img :src="`images/avatars/${g.id}.webp`" alt="" class="w-full h-full object-cover object-center" x-show="ok" @load="ok=true" @error="ok=false">
-                  <span x-show="!ok" x-text="g.char"></span>
-                </div>
-                <div class="py-3 text-center text-xl font-bold" :class="$store.game.draftGender===g.id?'bg-jade/15 text-jade':'bg-ink3 text-slate-200'" x-text="g.name"></div>
-              </button>
-            </template>
+          <div class="cs-field">
+            <div class="cs-label">Danh Hiệu</div>
+            <input class="cs-name" x-model="$store.game.draftName" maxlength="16" placeholder="Nhập tên nhân vật (≥ 2 ký tự)...">
           </div>
-          <div class="text-[11px] text-slate-500 mt-3 text-center">Dung mạo đổi sau ở Hồ Sơ. Không chọn môn phái — võ học tự ngươi chọn.</div>
-        </div>
 
-        <!-- Tâm Pháp khởi tu -->
-        <div class="panel rounded-lg p-4 mb-4">
-          <div class="flex items-baseline justify-between mb-1">
-            <div class="lbl">Tâm Pháp Khởi Tu</div>
-            <div class="text-[11px] text-slate-500">Chọn 1 nội công nhập môn</div>
+          <div class="cs-field">
+            <div class="cs-label">Giới Tính</div>
+            <div class="cs-genrow">
+              <div class="cs-gcard" :class="{'sel': $store.game.draftGender==='nam'}" @click="$store.game.pickGender('nam')"><img src="images/avatars/nam.webp" alt="" onerror="this.style.display='none'"></div>
+              <div class="cs-gcard" :class="{'sel': $store.game.draftGender==='nu'}" @click="$store.game.pickGender('nu')"><img src="images/avatars/nu.webp" alt="" onerror="this.style.display='none'"></div>
+            </div>
           </div>
-          <div class="text-[11px] text-slate-400 mb-3 leading-snug">Định <b class="text-jade">hệ ngũ hành khởi đầu</b> — tặng kèm nội công + 1 chiêu Sơ + 1 bị động cùng hệ. Hệ khác &amp; đổi Tâm Pháp học sau ở <b class="text-slate-300">Tàng Kinh Các</b>.</div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <template x-for="t in $store.game.TAM_PHAP_POOL" :key="t.id">
-              <button @click="$store.game.openTpDetail(t.id)" :title="'Xem chi tiết ' + t.name" class="relative rounded-xl border-2 overflow-hidden flex flex-col transition text-left" :class="$store.game.draftTamPhapOn(t.id) ? 'border-jade ring-2 ring-jade/30' : 'border-slate-700 hover:border-slate-500'">
-                <div class="relative w-full aspect-square">
-                  <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[t.he].grad"></div>
-                  <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:4.5rem;line-height:1" :class="$store.game.heInfo(t.he).text" x-text="$store.game.NGU_HANH[t.he].han"></span>
-                  <img :src="'images/tamphap/'+t.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
-                  <span class="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded" :class="$store.game.NGU_HANH[t.he].badge" x-text="$store.game.heName(t.he)"></span>
-                  <template x-if="$store.game.draftTamPhapOn(t.id)"><span class="absolute top-1.5 right-1.5 w-5 h-5 bg-jade text-ink rounded-full flex items-center justify-center text-[11px] font-bold shadow">✓</span></template>
-                </div>
-                <div class="p-2.5 flex-1 flex flex-col" :class="$store.game.draftTamPhapOn(t.id)?'bg-jade/10':'bg-ink3'">
-                  <div class="font-bold text-[13px]" style="font-family:'Lora',serif" :class="$store.game.heInfo(t.he).text" x-text="t.name"></div>
-                  <div class="text-[10.5px] text-slate-400 leading-snug mt-1" x-text="t.short"></div>
-                  <div class="text-[10px] mt-auto pt-1.5" :class="$store.game.draftTamPhapOn(t.id)?'text-jade font-medium':'text-jade/70'" x-text="$store.game.draftTamPhapOn(t.id) ? '✓ Đã chọn · Xem chi tiết »' : 'Xem chi tiết »'"></div>
-                </div>
-              </button>
-            </template>
-          </div>
-        </div>
 
-        <!-- Xác nhận -->
-        <div class="py-2">
-          <button @click="$store.game.createCharacter()" :disabled="!$store.game.canCreate"
-            class="w-full py-3 rounded-lg font-bold transition"
-            :class="$store.game.canCreate ? 'bg-jade text-ink hover:bg-jade/90' : 'bg-slate-800 text-slate-600 cursor-not-allowed'">
-            Vào Giang Hồ
-          </button>
-          <div class="text-center text-[11px] text-slate-600 mt-2">Cần danh hiệu (≥ 2 ký tự), giới tính &amp; Tâm Pháp.</div>
-        </div>
+          <div class="cs-field">
+            <div class="cs-label">Tâm Pháp Khởi Tu</div>
+            <div class="cs-orbs">
+              <template x-for="t in $store.game.TAM_PHAP_POOL" :key="t.id">
+                <div class="cs-orb" :class="{'sel': $store.game.draftTamPhapOn(t.id)}" :style="'--c:rgb('+$store.game.NGU_HANH[t.he].glowRgb+')'" @click="$store.game.pickTamPhap(t.id)">
+                  <div class="cs-ball">
+                    <img :src="'images/tamphap/'+t.id+'.webp'" alt="" onerror="this.style.display='none'; this.parentNode.querySelector('.han').style.display='flex'">
+                    <span class="han" x-text="$store.game.NGU_HANH[t.he].han"></span>
+                  </div>
+                  <span class="onm" x-text="$store.game.NGU_HANH[t.he].name"></span>
+                </div>
+              </template>
+            </div>
+            <div class="cs-tplive" x-show="$store.game.draftTamPhap">
+              <div class="n" x-text="($store.game.TAM_PHAP_POOL.find(t=>t.id===$store.game.draftTamPhap)||{}).name"></div>
+              <div class="d" x-text="($store.game.TAM_PHAP_POOL.find(t=>t.id===$store.game.draftTamPhap)||{}).short"></div>
+            </div>
+          </div>
+
+          <div class="cs-ctawrap">
+            <button class="cs-cta" @click="$store.game.createCharacter()" :disabled="!$store.game.canCreate">Nhập Giang Hồ</button>
+          </div>
+        </div></div>
       </div>
     </div>
   </template>
