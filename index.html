@@ -9171,7 +9171,7 @@
                           <div class="bn fserif" x-text="cur.boss.nm"></div>
                           <div class="bsub"><span :style="'color:'+cur.c" x-text="cur.boss.sub"></span><span x-show="cur.boss.epithet" class="bep" x-text="' — '+cur.boss.epithet"></span></div>
                           <div class="bmech">
-                            <template x-for="(m,mi) in bossMech(cur.boss)" :key="mi">
+                            <template x-for="(m,mi) in bossMech(cur.boss, cur.id)" :key="mi">
                               <span class="mchip" :class="mi===0?'hp':''" x-text="m"></span>
                             </template>
                           </div>

@@ -120,6 +120,12 @@ var KTB_CSS=[
 '.ktb .tile.psn .tin::after{ content:""; position:absolute; inset:0; border-radius:9px; background:radial-gradient(circle at 50% 45%, rgba(132,204,22,.45), transparent 65%); animation:ktbPsnpulse 1.4s ease-in-out infinite; }',
 '@keyframes ktbPsnpulse{ 0%,100%{opacity:.55} 50%{opacity:.95} }',
 '.ktb .tile .pcd{ position:absolute; top:1px; right:2px; z-index:2; font-size:.6rem; font-weight:700; color:#ecfccb; background:rgba(20,40,4,.85); border:1px solid #84cc16; border-radius:99px; padding:0 4px; }',
+'.ktb .tile.burn .tin{ box-shadow:0 0 0 2px #f97316, inset 0 0 13px rgba(249,115,22,.52); }',
+'.ktb .tile.burn .tin::after{ content:""; position:absolute; inset:0; border-radius:9px; background:radial-gradient(circle at 50% 80%, rgba(255,230,150,.55), rgba(249,115,22,.36) 44%, transparent 70%); animation:ktbBurnpulse 1.1s ease-in-out infinite; }',
+'.ktb .tile.burn .tin::before{ content:""; position:absolute; left:42%; bottom:22%; width:3px; height:3px; border-radius:50%; z-index:2; background:#fff0b8; box-shadow:7px 3px 0 0 #fdba74, -8px 7px 0 -.5px #fb923c, 12px 10px 0 -.5px #fca85a, -3px 14px 0 -1px #f97316, 9px 18px 0 -1px #ffd27a, -10px 22px 0 -1px #fb923c, 3px 25px 0 -1.5px #fdba74; animation:ktbEmber 1.25s linear infinite; }',
+'.ktb .tile.burn .pcd{ color:#fff7ed; background:rgba(70,20,4,.9); border-color:#fb923c; }',
+'@keyframes ktbBurnpulse{ 0%,100%{opacity:.5} 50%{opacity:.94} }',
+'@keyframes ktbEmber{ 0%{ transform:translateY(2px); opacity:0 } 22%{ opacity:1 } 100%{ transform:translateY(-44px); opacity:0 } }',
 '.ktb .tile .deco{ position:absolute; inset:0; pointer-events:none; z-index:2; }',
 '.ktb .tile.sp .tin{ box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--tc) 82%,#fff), inset 0 0 16px color-mix(in srgb,var(--tc) 50%,transparent), 0 0 16px -3px var(--tc); }',
 '.ktb .tile.sp .ticon{ filter:drop-shadow(0 0 6px var(--tc)) drop-shadow(0 2px 3px rgba(0,0,0,.6)) brightness(1.1); }',
@@ -339,7 +345,7 @@ var KTB_CSS=[
 '  .ktb .skmed .skm .nm{ font-size:.62rem; white-space:normal; }',
 '  .ktb .skmed .skm .st{ display:none; }',
 '}',
-'@media (prefers-reduced-motion:reduce){ .ktb .tile{ transition:none; } .ktb .tile.clear .tin,.ktb .tile.spawn,.ktb .shake,.ktb .flash.on,.ktb .tile.psn .tin::after,.ktb .tile.spfx-6 .deco::before,.ktb .tile.spfx-6 .deco::after,.ktb .tile.spfx-12 .deco,.ktb .tile.spfx-16 .deco::before,.ktb .combolabel.on,.ktb .fnum{ animation:none; } }'
+'@media (prefers-reduced-motion:reduce){ .ktb .tile{ transition:none; } .ktb .tile.clear .tin,.ktb .tile.spawn,.ktb .shake,.ktb .flash.on,.ktb .tile.psn .tin::after,.ktb .tile.burn .tin::after,.ktb .tile.burn .tin::before,.ktb .tile.spfx-6 .deco::before,.ktb .tile.spfx-6 .deco::after,.ktb .tile.spfx-12 .deco,.ktb .tile.spfx-16 .deco::before,.ktb .combolabel.on,.ktb .fnum{ animation:none; } }'
 ].join('\n');
 
 function ensureStyle(){
@@ -533,7 +539,9 @@ export function mountKtBattle(host, opts){
       }
       e.style.left=cellPct(c); e.style.top=cellPct(r); e.dataset.r=r; e.dataset.c=c;
       e.classList.toggle('sel', !!(sel&&sel.id===t.id));
-      e.classList.toggle('psn', !!t.poison);
+      var burning=!!(t.poison&&t.pkind==='chay');
+      e.classList.toggle('psn', !!t.poison&&!burning);
+      e.classList.toggle('burn', burning);
       var pcd=e.querySelector('.pcd');
       if(t.poison){ pcd.style.display='block'; pcd.textContent=t.pcd; } else pcd.style.display='none';
     }
@@ -1011,15 +1019,15 @@ export function mountKtBattle(host, opts){
     }
     return grantExtra;
   }
-  function spawnPoison(k, owner, pdmg){
+  function spawnPoison(k, owner, pdmg, kind){
     owner=owner||'enemy';
     var free=[]; for(var r=0;r<N;r++)for(var c=0;c<N;c++){ if(board[r][c]&&!board[r][c].poison&&!board[r][c].sp) free.push([r,c]); }
     shuffleArr(free);
-    for(var i=0;i<k&&i<free.length;i++){ var p=free[i]; board[p[0]][p[1]].poison=true; board[p[0]][p[1]].pcd=2; board[p[0]][p[1]].pown=owner; if(pdmg!=null) board[p[0]][p[1]].pdmg=pdmg; }
+    for(var i=0;i<k&&i<free.length;i++){ var p=free[i]; board[p[0]][p[1]].poison=true; board[p[0]][p[1]].pcd=2; board[p[0]][p[1]].pown=owner; if(pdmg!=null) board[p[0]][p[1]].pdmg=pdmg; if(kind==='chay') board[p[0]][p[1]].pkind='chay'; }
   }
   function tickPoison(){
     var h=0,e=0;
-    for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var t=board[r][c]; if(t&&t.poison){ t.pcd--; if(t.pcd<=0){ if(t.pown==='hero') e++; else h++; t.poison=false; delete t.pcd; delete t.pown; } } }
+    for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var t=board[r][c]; if(t&&t.poison){ t.pcd--; if(t.pcd<=0){ if(t.pown==='hero') e++; else h++; t.poison=false; delete t.pcd; delete t.pown; delete t.pkind; } } }
     return { hero:h, enemy:e };
   }
   /* Mộc C10: gục lần đầu -> hồi 40% Sinh Lực (1 lần/trận) */
@@ -1052,10 +1060,10 @@ export function mountKtBattle(host, opts){
         board[r2][c2]=B; board[r3][c3]=A; var m=hasMatch(); board[r2][c2]=A; board[r3][c3]=B; if(m) return true; } }
     return false;
   }
-  function tickPoisonSide(side){   /* độc do đối phương của `side` gieo → tick, hại `side` (pdmg riêng từng ô) */
-    var owner=side==='hero'?'enemy':'hero', hits=0, dmg=0;
-    for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var t=board[r][c]; if(t&&t.poison&&t.pown===owner){ t.pcd--; if(t.pcd<=0){ hits++; dmg+=(t.pdmg!=null?t.pdmg:(S.enemy.poisonDmg||6)); t.poison=false; delete t.pcd; delete t.pown; delete t.pdmg; } } }
-    return { hits:hits, dmg:dmg };
+  function tickPoisonSide(side){   /* độc/cháy do đối phương của `side` gieo → tick, hại `side` (pdmg riêng từng ô) */
+    var owner=side==='hero'?'enemy':'hero', hits=0, dmg=0, burn=false;
+    for(var r=0;r<N;r++)for(var c=0;c<N;c++){ var t=board[r][c]; if(t&&t.poison&&t.pown===owner){ t.pcd--; if(t.pcd<=0){ hits++; dmg+=(t.pdmg!=null?t.pdmg:(S.enemy.poisonDmg||6)); if(t.pkind==='chay') burn=true; t.poison=false; delete t.pcd; delete t.pown; delete t.pdmg; delete t.pkind; } } }
+    return { hits:hits, dmg:dmg, burn:burn };
   }
   async function startTurn(side){
     S.turn=side;
@@ -1079,14 +1087,14 @@ export function mountKtBattle(host, opts){
     /* Độc/Cháy: người-gieo (Ô Long) tick hại địch ở lượt địch; địch-gieo (Cổ Độc/Liệt Diễm) tick hại người ở lượt người */
     var pz=tickPoisonSide(side);
     if(pz.hits>0){
-      var dp=dealDmg(side, pz.dmg);
-      if(vis && dp>0){ if(side==='enemy'){ fnum('e','-'+dp+' 毒','#bef264'); flash(ePort); } else { fnum('h','-'+dp+' 毒','#bef264'); flash(hPort); shake(); } renderBoard(); renderAll(); await sleep(200); }
+      var dp=dealDmg(side, pz.dmg), gly=pz.burn?' 燃':' 毒', gcl=pz.burn?'#fb923c':'#bef264';
+      if(vis && dp>0){ if(side==='enemy'){ fnum('e','-'+dp+gly,gcl); flash(ePort); } else { fnum('h','-'+dp+gly,gcl); flash(hPort); shake(); } renderBoard(); renderAll(); await sleep(200); }
     }
     if(side==='hero') newTurnGrants();
   }
 
   /* AI: mô phỏng nước đi (clone SÂU + accumulator thuần + restore) */
-  function cloneBoard(){ var nb=[]; for(var r=0;r<N;r++){ nb[r]=[]; for(var c=0;c<N;c++){ var t=board[r][c]; nb[r][c]=t?{ id:t.id, type:t.type, sp:t.sp||null, poison:t.poison||false, pcd:t.pcd, pown:t.pown }:null; } } return nb; }
+  function cloneBoard(){ var nb=[]; for(var r=0;r<N;r++){ nb[r]=[]; for(var c=0;c<N;c++){ var t=board[r][c]; nb[r][c]=t?{ id:t.id, type:t.type, sp:t.sp||null, poison:t.poison||false, pcd:t.pcd, pown:t.pown, pkind:t.pkind }:null; } } return nb; }
   function resolveAccum(initSet, colorHint, swapCells, res){
     var step=0, pending=initSet;
     while(true){
@@ -1197,7 +1205,7 @@ export function mountKtBattle(host, opts){
     } else if(id==='coDoc'){
       spawnPoison(e.poisonK||5, 'enemy', e.poisonDmg||11); S.healCutUntil=S.totalTurns+4; out.board=true;   /* Phệ Tâm: hồi máu người −50% ~2 lượt */
     } else if(id==='lietDiem'){
-      spawnPoison(e.poisonK||5, 'enemy', e.poisonDmg||12); S.healCutUntil=S.totalTurns+4; out.dmg=dealDmg('hero', Math.round(aR*0.4)); out.board=true;   /* Hỏa DoT: 5 ô cháy + thiêu chip + Phệ Tâm */
+      spawnPoison(e.poisonK||5, 'enemy', e.poisonDmg||12, 'chay'); S.healCutUntil=S.totalTurns+4; out.dmg=dealDmg('hero', Math.round(aR*0.4)); out.board=true;   /* Hỏa DoT: 5 ô cháy + thiêu chip + Phệ Tâm */
     } else if(id==='hanNgung'){
       if(S._frozeLast){ S.debuffNextMatch=true; } else { S.heroFrozen=true; S._frozeLast=true; S.debuffNextMatch=true; }
     } else if(id==='cuongThachGiap'){

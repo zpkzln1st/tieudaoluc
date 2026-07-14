@@ -142,10 +142,13 @@ export function kyTran() {
       if (c.reward && c.reward.sk) { const s = KT_SKILLS.find((x) => x.id === c.reward.sk); if (s) out.push({ img: 'images/kytran/sk_' + s.id + '.webp', txt: 'Kỹ Năng · ' + s.name }); }
       return out;
     },
-    bossMech(b) { // chip cơ chế Cung Chủ (sát khí + đòn nặng / rải độc)
+    bossMech(b, cungId) { // chip cơ chế Cung Chủ — đọc skill ĐỐI TRẬN thật (KT_BOSS_SKILLS) cho khớp combat
       const t = ['Sát khí ' + b.atk];
       if (b.heavyEvery) t.push('Đòn Nặng mỗi ' + b.heavyEvery + ' lượt');
-      if (b.poisonEvery) t.push('Rải Độc mỗi ' + b.poisonEvery + ' lượt');
+      const sk = KT_BOSS_SKILLS[cungId] || {};
+      const seeds = [sk.sig].concat(sk.khiSkills || []);
+      if (seeds.includes('lietDiem')) t.push('Rải Lửa mỗi ' + (sk.sigEvery || 2) + ' lượt');
+      else if (seeds.includes('coDoc')) t.push('Rải Độc mỗi ' + (sk.sigEvery || 2) + ' lượt');
       return t;
     },
     counterTxt(c) { // gợi ý Tương Khắc: Hành nào khắc hệ Cung này
