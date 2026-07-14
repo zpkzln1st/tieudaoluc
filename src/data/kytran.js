@@ -209,11 +209,11 @@ export const KT_CUNG = [
 //   Khởi đầu có 'tuSa'; 4 cái còn lại mở từ reward Cung.
 // ============================================================
 export const KT_TAM_PHAP = [
-  { id: 'tuSa', name: 'Tụ Sa Thành Tháp', accent: '#f5b942', role: 'Tích Lũy', rule: 'Xóa càng nhiều ô trong một đòn, hiệu lực càng tăng vọt (một đòn 6 ô mạnh hơn hẳn hai đòn 3 ô). Tính tối đa 9 ô mỗi đòn.', lore: 'Tích cát vi sơn — nhất kích thiên quân.', counters: '' },
-  { id: 'canKhon', name: 'Càn Khôn Nghịch Chuyển', accent: '#d4b45a', role: 'Sinh Hóa', rule: 'Ô mới rơi xuống thiên về loại kế trong vòng Ngũ Hành (Kiếm, Khí, Bảo, Tâm, Thuẫn), giúp chủ động gom chuỗi liên hoàn.', lore: 'Vạn vật tương sinh — diệt một, sinh một.', counters: '' },
-  { id: 'hoaDoc', name: 'Hoá Độc Đại Pháp', accent: '#45a877', role: 'Dụng Độc', rule: 'Mỗi ô Độc của địch ngươi phá được nạp 1 Độc Tinh (tối đa 8). Đòn Kiếm kế cộng +4 sát thương mỗi Độc Tinh rồi xả sạch.', lore: 'Độc nhập ta tạng — hoàn lại kẻ gieo.', counters: 'poison' },
-  { id: 'kimCang', name: 'Kim Cang Hộ Thể', accent: '#e8c877', role: 'Kiên Thủ', rule: 'Hộ Thuẫn không mất khi trúng đòn; mỗi lượt 25% Hộ Thuẫn dồn vào đòn Kiếm kế — càng thủ, phản đòn càng nặng.', lore: 'Thân như kim thạch — phản chấn bách địch.', counters: 'heavy' },
-  { id: 'thaiCuc', name: 'Thái Cực Vô Cực', accent: '#c084fc', role: 'Vận Khí', rule: 'Tạo ô đặc biệt được +15 Khí; kích nổ hoặc Hợp Bích +8 Khí. Trần nối lượt liên tiếp tăng từ 2 lên 3.', lore: 'Nhất khí hóa tam thanh — trận trung sinh trận.', counters: '' },
+  { id: 'tuSa', name: 'Tụ Sa Thành Tháp', accent: '#f5b942', role: 'Tích Lũy', rule: 'Xóa càng nhiều ô trong một đòn, hiệu lực càng tăng vọt (một đòn 6 ô mạnh hơn hẳn hai đòn 3 ô). Tính tối đa 9 ô mỗi đòn.', lore: 'Tích cát vi sơn — nhất kích thiên quân.' },
+  { id: 'canKhon', name: 'Càn Khôn Nghịch Chuyển', accent: '#d4b45a', role: 'Sinh Hóa', rule: 'Ô mới rơi xuống thiên về loại kế trong vòng Ngũ Hành (Kiếm, Khí, Bảo, Tâm, Thuẫn), giúp chủ động gom chuỗi liên hoàn.', lore: 'Vạn vật tương sinh — diệt một, sinh một.' },
+  { id: 'hoaDoc', name: 'Hoá Độc Đại Pháp', accent: '#45a877', role: 'Dụng Độc', rule: 'Mỗi ô Độc của địch ngươi phá được nạp 1 Độc Tinh (tối đa 8). Đòn Kiếm kế cộng +4 sát thương mỗi Độc Tinh rồi xả sạch.', lore: 'Độc nhập ta tạng — hoàn lại kẻ gieo.' },
+  { id: 'kimCang', name: 'Kim Cang Hộ Thể', accent: '#e8c877', role: 'Kiên Thủ', rule: 'Mỗi lượt 25% Hộ Thuẫn hiện có dồn thẳng vào đòn Kiếm kế (không hao Hộ Thuẫn) — càng thủ, phản đòn càng nặng.', lore: 'Thân như kim thạch — phản chấn bách địch.' },
+  { id: 'thaiCuc', name: 'Thái Cực Vô Cực', accent: '#c084fc', role: 'Vận Khí', rule: 'Tạo ô đặc biệt được +15 Khí; kích nổ hoặc Hợp Bích +8 Khí. Trần nối lượt liên tiếp tăng từ 2 lên 3.', lore: 'Nhất khí hóa tam thanh — trận trung sinh trận.' },
 ];
 
 // ============================================================
@@ -221,15 +221,33 @@ export const KT_TAM_PHAP = [
 //   Khởi đầu có 'kiemKhi','hoanTinh','huyetSat'; 5 cái còn lại mở từ reward Cung.
 // ============================================================
 export const KT_SKILLS = [
-  { id: 'kiemKhi', name: 'Kiếm Khí Trảm', kind: 'khi', cost: 100, tile: 'khi', icon: 'kiem', accent: '#2dd4bf', desc: 'Chém 55 sát thương thẳng vào địch và quét sạch một hàng ô ngang trên bàn.', lore: 'Khí tụ thành phong — kiếm khai nhất tuyến.', counters: '' },
-  { id: 'hoanTinh', name: 'Hoán Tinh Di Đẩu', kind: 'charge', charges: 3, tile: null, icon: 'swap', accent: '#a78bfa', desc: 'Đổi chỗ hai ô bất kỳ trên bàn, không cần nằm kề — tự tay xếp combo.', lore: 'Dời sao đổi đẩu — càn khôn tại thủ.', counters: '' },
-  { id: 'huyetSat', name: 'Huyết Sát', kind: 'khi', cost: 80, tile: 'kiem', icon: 'kiem', accent: '#fb7185', desc: 'Mỗi ô Kiếm trên bàn nổ: mỗi ô gây 4 sát thương và hồi 2 máu cho ngươi, rồi vỡ.', lore: 'Kiếm khát máu tanh — một chém hồi sinh.', counters: '' },
-  { id: 'hoangKim', name: 'Hoàng Kim Nhất Kích', kind: 'stock', tile: 'bao', icon: 'bao', accent: '#f5b942', desc: 'Mỗi ô Bảo phá được dồn vào kho vàng; xả kho gây sát thương bằng số điểm đã tích — càng gom càng nặng.', lore: 'Vàng ròng đúc kiếm — một vựng nghìn lượng.', counters: '' },
-  { id: 'nguHanh', name: 'Ngũ Hành Đại Chuyển', kind: 'charge', charges: 2, tile: null, icon: 'convert', accent: '#22d3ee', desc: 'Biến cả vùng 3×3 giữa bàn thành một loại ô tự chọn — tạo đại combo tức thì.', lore: 'Ngũ hành đại chuyển — sắc quy nhất thể.', counters: '' },
-  { id: 'oLong', name: 'Ô Long Giao Tranh', kind: 'charge', charges: 2, tile: 'doc', icon: 'doc', accent: '#45a877', desc: 'Nếu địch có ô Độc: hóa hết thành ô Kiếm và phản độc về địch. Nếu không: gieo Độc lên địch.', lore: 'Rồng đen cản ngược — độc phản về nguồn.', counters: 'poison' },
-  { id: 'ngungSuong', name: 'Ngưng Sương Quyết', kind: 'khi', cost: 50, tile: 'khi', icon: 'freeze', accent: '#7dd3fc', desc: 'Đóng băng địch: bỏ qua đòn đánh kế và lượt rải Độc kế của địch.', lore: 'Sương giăng vạn vật — tĩnh chỉ sát cơ.', counters: 'heavy' },
-  { id: 'nguLoi', name: 'Ngũ Lôi Chính Pháp', kind: 'charge', charges: 1, tile: null, icon: 'bolt', accent: '#c084fc', desc: 'Giáng 8 sát thương lên mỗi ô đặc biệt rồi kích nổ tất cả, nổ dây chuyền Hợp Bích toàn bàn.', lore: 'Ngũ lôi oanh đỉnh — quần tà tận diệt.', counters: '' },
+  { id: 'kiemKhi', name: 'Kiếm Khí Trảm', kind: 'khi', cost: 100, tile: 'khi', icon: 'kiem', accent: '#2dd4bf', desc: 'Chém 55 sát thương thẳng vào địch và quét sạch một hàng ô ngang trên bàn.', lore: 'Khí tụ thành phong — kiếm khai nhất tuyến.' },
+  { id: 'hoanTinh', name: 'Hoán Tinh Di Đẩu', kind: 'charge', charges: 3, tile: null, icon: 'swap', accent: '#a78bfa', desc: 'Đổi chỗ hai ô bất kỳ trên bàn, không cần nằm kề — tự tay xếp combo.', lore: 'Dời sao đổi đẩu — càn khôn tại thủ.' },
+  { id: 'huyetSat', name: 'Huyết Sát', kind: 'khi', cost: 80, tile: 'kiem', icon: 'kiem', accent: '#fb7185', desc: 'Mỗi ô Kiếm trên bàn nổ: mỗi ô gây 4 sát thương và hồi 2 máu cho ngươi, rồi vỡ.', lore: 'Kiếm khát máu tanh — một chém hồi sinh.' },
+  { id: 'hoangKim', name: 'Hoàng Kim Nhất Kích', kind: 'stock', tile: 'bao', icon: 'bao', accent: '#f5b942', desc: 'Mỗi ô Bảo phá được dồn vào kho vàng; xả kho gây sát thương bằng số điểm đã tích — càng gom càng nặng.', lore: 'Vàng ròng đúc kiếm — một vựng nghìn lượng.' },
+  { id: 'nguHanh', name: 'Ngũ Hành Đại Chuyển', kind: 'charge', charges: 2, tile: null, icon: 'convert', accent: '#22d3ee', desc: 'Biến cả vùng 3×3 giữa bàn thành một loại ô ngẫu nhiên — tạo đại combo tức thì.', lore: 'Ngũ hành đại chuyển — sắc quy nhất thể.' },
+  { id: 'oLong', name: 'Ô Long Giao Tranh', kind: 'charge', charges: 2, tile: 'doc', icon: 'doc', accent: '#45a877', desc: 'Nếu địch có ô Độc: hóa hết thành ô Kiếm và phản độc về địch. Nếu không: gieo Độc lên địch.', lore: 'Rồng đen cản ngược — độc phản về nguồn.' },
+  { id: 'ngungSuong', name: 'Ngưng Sương Quyết', kind: 'khi', cost: 50, tile: 'khi', icon: 'freeze', accent: '#7dd3fc', desc: 'Đóng băng địch: bỏ qua đòn đánh kế và lượt rải Độc kế của địch.', lore: 'Sương giăng vạn vật — tĩnh chỉ sát cơ.' },
+  { id: 'nguLoi', name: 'Ngũ Lôi Chính Pháp', kind: 'charge', charges: 1, tile: null, icon: 'bolt', accent: '#c084fc', desc: 'Giáng 8 sát thương lên mỗi ô đặc biệt rồi kích nổ tất cả, nổ dây chuyền Hợp Bích toàn bàn.', lore: 'Ngũ lôi oanh đỉnh — quần tà tận diệt.' },
 ];
 
 // Vòng sinh ô bàn cờ (dùng cho Tâm Pháp Càn Khôn Nghịch Chuyển)
 export const KT_SINH = { kiem: 'khi', khi: 'bao', bao: 'tim', tim: 'khien', khien: 'kiem' };
+
+// ============================================================
+// ĐỐI TRẬN PHA 2 — KỸ NĂNG CUNG CHỦ (nạp kép: sig theo lượt + khi-skill nạp Khí + bite Sát Khí).
+//   Chỉ Cung Chủ có chiêu; lâu la KHÔNG. Số DRAFT (tune bằng harness, tính tới hero full-power).
+//   sig = chiêu DAMAGE bắn đều mỗi sigEvery lượt (telegraph 1 lượt trước) · khiSkills = chiêu khống chế/thủ khi đủ Khí.
+//   Palette: cuongTap · coDoc · lietDiem · hanNgung · cuongThachGiap · baDaoThon · cuuTieuLoi · thonKhi · maDeDietThe
+// ============================================================
+export const KT_BOSS_SKILLS = {
+  thienCuong: { atkRef: 16, sig: 'cuongTap', sigEvery: 3, khiSkills: ['thonKhi'], bite: 6 },
+  bangUyen:   { atkRef: 19, sig: 'cuongTap', sigEvery: 3, khiSkills: ['hanNgung'], bite: 8 },
+  thachMa:    { atkRef: 24, sig: 'cuongTap', sigEvery: 2, khiSkills: ['cuongThachGiap'], bite: 9, heavyMul: 1.7 },
+  thuyQuai:   { atkRef: 20, sig: 'coDoc', sigEvery: 2, khiSkills: ['baDaoThon'], bite: 8, poisonK: 5, poisonDmg: 12 },
+  loiDinh:    { atkRef: 26, sig: 'cuongTap', sigEvery: 2, khiSkills: ['cuuTieuLoi'], bite: 11, heavyMul: 1.8 },
+  coDia:      { atkRef: 24, sig: 'coDoc', sigEvery: 2, khiSkills: ['thonKhi'], bite: 9, poisonK: 5, poisonDmg: 13 },
+  hoaDiem:    { atkRef: 26, sig: 'lietDiem', sigEvery: 2, khiSkills: ['cuongTap'], bite: 11, poisonK: 5, poisonDmg: 13, heavyMul: 1.9 },
+  phongYeu:   { atkRef: 27, sig: 'hanNgung', sigEvery: 3, khiSkills: ['thonKhi'], bite: 10 },
+  maDe:       { atkRef: 33, sig: 'maDeDietThe', sigEvery: 2, khiSkills: ['cuuTieuLoi', 'coDoc'], bite: 10, poisonK: 5, poisonDmg: 13, heavyMul: 2.0 },
+};

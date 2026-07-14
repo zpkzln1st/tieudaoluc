@@ -8855,14 +8855,15 @@
         .kt-root .chain{display:flex;align-items:center;gap:0;margin-bottom:16px;flex-wrap:wrap}
         .kt-root .node{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;width:52px}
         .kt-root .node .dot{position:relative;width:38px;height:38px;display:grid;place-items:center}
-        .kt-root .node.boss .dot{width:52px;height:52px}
+        .kt-root .node.boss .dot{width:66px;height:66px}
         .kt-root .node.boss.final .dot{width:66px;height:66px}
         .kt-root .node .dot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:filter .2s}
         .kt-root .node .dot span{position:relative;z-index:1;font-family:'Lora',serif;font-weight:700;font-size:14px;color:#f3e7c7;text-shadow:0 1px 3px #000,0 0 4px #000;line-height:1}
         .kt-root .node .dot span svg{width:16px;height:16px;display:block}
-        .kt-root .node:not(.done):not(.cur):not(.boss) .dot img{filter:grayscale(.9) brightness(.52)}
+        .kt-root .node:not(.done):not(.cur) .dot img{filter:grayscale(.9) brightness(.52)}
         .kt-root .node:not(.done):not(.cur):not(.boss) .dot span{color:#818b99}
         .kt-root .node.cur .dot img{filter:drop-shadow(0 0 6px var(--ktgold))}
+        .kt-root .node.boss.done .dot img{filter:drop-shadow(0 0 8px rgba(245,185,66,.85)) brightness(1.12)}   /* Cung Chủ đã chiếm → sáng lên + glow vàng */
         .kt-root .node.boss .dot span{color:#fda4af}
         .kt-root .node .lb{font-size:9.5px;color:var(--ktmut2)}
         .kt-root .link{width:20px;height:2px;background:var(--ktline2);margin-top:-14px;flex:0 0 auto}
@@ -8986,9 +8987,32 @@
         @media(max-width:1080px){ .kt-root .ktr-hero{grid-template-columns:1fr;gap:28px} .kt-root .laban{width:480px;--msz:88px} .kt-root .hub .hg{font-size:36px} }
         @media(max-width:960px){ .kt-root .maprow{grid-template-columns:1fr} }
         @media(max-width:640px){ .kt-root .laban{width:330px;--msz:64px} .kt-root .med .lp{font-size:9.5px;padding:1px 7px} .kt-root .hub .hg{font-size:25px} .kt-root .hub .hn{font-size:9px} .kt-root .ktr-panel{padding:20px 16px} .kt-root .p-name{font-size:22px} .kt-root .seal{width:48px;height:48px;font-size:24px} }
+        /* chuỗi trận (dchain) thu nhỏ trên điện thoại — khỏi tràn/cắt node "Trận 1" & "Cung Chủ" */
+        @media(max-width:640px){ .kt-root .dchain{padding:6px 6px 9px} .kt-root .node{width:40px} .kt-root .node .dot{width:30px;height:30px} .kt-root .node.boss .dot{width:46px;height:46px} .kt-root .node.boss.final .dot{width:46px}.kt-root .node .dot span{font-size:12px} .kt-root .node .lb{font-size:8.5px} .kt-root .link{width:10px;margin-top:-11px} }
+        /* ===== Bảng Dev/Test Kỳ Trận (teleport body — class GLOBAL, không scope .kt-root) ===== */
+        .ktd-btn{position:fixed;bottom:14px;right:14px;z-index:140;font-family:'Lora',serif;font-size:11px;font-weight:700;letter-spacing:.14em;color:#062521;background:linear-gradient(180deg,#5eead4,#14b8a6);border:1px solid #00000055;border-radius:8px;padding:5px 11px;box-shadow:0 4px 14px -4px #000;cursor:pointer;opacity:.82}
+        .ktd-btn:hover{opacity:1;box-shadow:0 6px 18px -4px #000,0 0 12px -3px #2dd4bf}
+        .ktd-wrap{position:fixed;inset:0;z-index:141;background:rgba(3,5,10,.66);display:flex;align-items:center;justify-content:center;padding:16px}
+        .ktd-panel{width:min(560px,96vw);max-height:88vh;overflow-y:auto;background:linear-gradient(180deg,#0e1626,#0a0f1b);border:1px solid rgba(45,212,191,.32);border-radius:14px;box-shadow:0 30px 90px -20px #000;padding:15px 18px 18px;color:#dbe4ee;font-size:12.5px}
+        .ktd-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:8px}
+        .ktd-head .t{color:#5eead4;font-size:17px}
+        .ktd-x{color:#94a3b8;cursor:pointer;background:none;border:none;padding:0 4px;font-size:18px;line-height:1}
+        .ktd-x:hover{color:#e6edf3}
+        .ktd-panel h4{font-family:'Lora',serif;color:#2dd4bf;font-size:12.5px;margin:14px 0 6px}
+        .ktd-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+        .ktd-lbl{color:#94a3b8;font-size:11px;width:100%}
+        .ktd-lbl b{color:#e8c877}
+        .ktd-panel select,.ktd-panel input{background:#070b12;border:1px solid #33415588;border-radius:7px;color:#e6edf3;padding:5px 8px;font-size:12px}
+        .ktd-panel input{width:92px}
+        .ktd-b{background:#16233a;border:1px solid #2b3d57;color:#dbe4ee;border-radius:7px;padding:5px 10px;font-size:12px;font-family:inherit;cursor:pointer}
+        .ktd-b:hover{background:#1e2f4a;border-color:#3a4f6e}
+        .ktd-b.on{border-color:#2dd4bf;color:#5eead4;background:#0f2b2a}
+        .ktd-b.warn{border-color:#7f1d1d;color:#fca5a5;background:#1f1113}
+        .ktd-b.warn:hover{background:#2a1416}
+        .ktd-log{margin-top:12px;font-size:11px;color:#7dd3fc;border-top:1px solid #1e293b;padding-top:8px;min-height:15px}
       </style>
       <template x-if="$store.game.view==='kyTran'">
-        <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()">
+        <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()" @keydown.window="ktDevKey($event)">
           <!-- thanh đầu -->
           <!-- Banner chuẩn (đồng bộ Yêu Vương / Bí Cảnh / Nghề): min-h 160, art nền + overlay + chip trạng thái góc phải -->
           <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex items-center">
@@ -9016,6 +9040,82 @@
           <!-- ===== TRẬN MATCH-3 (mount imperative khi inBattle) ===== -->
           <div x-show="inBattle" style="margin-top:12px"><div x-ref="battleHost"></div></div>
 
+          <!-- ===== BẢNG DEV/TEST (ẩn — ?dev=1 hoặc Ctrl+Shift+D; teleport body; chỉ đụng state.kyTran) ===== -->
+          <template x-teleport="body"><div>
+            <button class="ktd-btn" x-show="devEnabled" @click="devToggle()" title="Bảng Dev Kỳ Trận (Ctrl+Shift+D)">DEV · KỲ TRẬN</button>
+            <div class="ktd-wrap" x-show="devPanel" @keydown.escape.window="devPanel=false">
+              <div class="ktd-panel" @click.outside="devPanel=false">
+                <div class="ktd-head">
+                  <span class="t fserif">Bảng Dev · Kỳ Trận</span>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <button class="ktd-b warn" @click="devOff()" title="Tắt hẳn chế độ Dev">Tắt Dev</button>
+                    <button class="ktd-x" @click="devPanel=false" aria-label="Đóng">×</button>
+                  </div>
+                </div>
+
+                <h4>Kinh Tế</h4>
+                <div class="ktd-row">
+                  <span class="ktd-lbl">Trận Hồn: <b x-text="kt.tranHon"></b> · Lượt tuần: <b x-text="weekLeft+' / '+weekCap"></b></span>
+                  <button class="ktd-b" @click="devAddHon(1000)">+1.000</button>
+                  <button class="ktd-b" @click="devAddHon(10000)">+10.000</button>
+                  <input type="number" x-model="devHon" placeholder="đặt =" @keydown.enter="devSetHon()">
+                  <button class="ktd-b" @click="devSetHon()">Đặt</button>
+                  <button class="ktd-b" @click="devFillWeek()">Đầy lượt tuần</button>
+                </div>
+
+                <h4>Ngũ Hành (áp cho mọi Hành)</h4>
+                <div class="ktd-row">
+                  <button class="ktd-b" @click="devSetHanhAll(0)">Cấp 0</button>
+                  <button class="ktd-b" @click="devSetHanhAll(4)">Cấp 4</button>
+                  <button class="ktd-b" @click="devSetHanhAll(7)">Cấp 7</button>
+                  <button class="ktd-b" @click="devSetHanhAll(10)">Cấp 10</button>
+                  <input type="number" x-model="devHanh" placeholder="0-10" @keydown.enter="devSetHanhInput()">
+                  <button class="ktd-b" @click="devSetHanhInput()">Đặt</button>
+                </div>
+
+                <h4>Mở Khóa</h4>
+                <div class="ktd-row">
+                  <button class="ktd-b" @click="devUnlockTp()">Mở hết Tâm Pháp</button>
+                  <button class="ktd-b" @click="devUnlockSk()">Mở hết Kỹ Năng</button>
+                  <button class="ktd-b" @click="devFillCodex()">Mở hết Trảm Yêu Lục</button>
+                </div>
+
+                <h4>Cung · Tiến Độ</h4>
+                <div class="ktd-row">
+                  <button class="ktd-b" :class="_devOpenAll?'on':''" @click="devOpenAll()">Mở khóa mọi Cung</button>
+                  <button class="ktd-b" @click="devConquerOuter()">Chiếm 8 Cung ngoài</button>
+                  <button class="ktd-b" @click="devConquerAll()">Chiếm trọn 9 Cung</button>
+                  <button class="ktd-b warn" @click="devResetProg()">Xoá tiến độ</button>
+                </div>
+                <div class="ktd-row" style="margin-top:6px">
+                  <span class="ktd-lbl">Đặt tiến độ 1 Cung:</span>
+                  <select x-model="devCungSel">
+                    <template x-for="c in KT_CUNG" :key="c.id"><option :value="c.id" x-text="c.nm+' ('+(kt.prog[c.id]||0)+'/6)'"></option></template>
+                  </select>
+                  <button class="ktd-b" @click="devSetProg(0)">Trận 0</button>
+                  <button class="ktd-b" @click="devSetProg(5)">→ Cung Chủ (5)</button>
+                  <button class="ktd-b" @click="devSetProg(6)">Chiếm (6)</button>
+                </div>
+
+                <h4>Trùng (NG+)</h4>
+                <div class="ktd-row">
+                  <span class="ktd-lbl">Hiện: <b x-text="'Trùng '+trungRoman(trung)"></b></span>
+                  <button class="ktd-b" @click="devSetTrung(1)">I</button>
+                  <button class="ktd-b" @click="devSetTrung(2)">II</button>
+                  <button class="ktd-b" @click="devSetTrung(3)">III</button>
+                </div>
+
+                <h4>Nhanh</h4>
+                <div class="ktd-row">
+                  <button class="ktd-b on" @click="devLoadFull()">Nạp full để test</button>
+                  <button class="ktd-b warn" @click="devResetAll()" x-text="devConfirmReset?'Bấm lần nữa để XÓA':'Reset toàn bộ Kỳ Trận'"></button>
+                </div>
+
+                <div class="ktd-log" x-text="devLog||'Sẵn sàng. Mọi thao tác chỉ đụng state.kyTran (0-power, cách ly).'"></div>
+              </div>
+            </div>
+          </div></template>
+
           <!-- ===== TAB: ĐẠI TRẬN ĐỒ ===== -->
           <div x-show="!inBattle && ktTab==='map'">
             <!-- strip Đại Viên Mãn — phá đủ 9 Cung: Nhập Trùng (NG+) hoặc trạng thái đỉnh (Trùng III) -->
@@ -9027,7 +9127,7 @@
                   <div class="vm-sub" x-show="canAdvanceTrung">Bát phương thần phục. Nhập <b>Trùng <span x-text="trungRoman(trung+1)"></span></b> tái phá trận đồ — Ngũ Hành và Trận Hồn giữ nguyên, yêu ma <b>×<span x-text="nextTrungMult"></span></b> sinh lực và sát thương.</div>
                   <div class="vm-sub" x-show="!canAdvanceTrung">Cửu cung tận phá, tam trùng quy nhất — trận đồ đã đạt đến đỉnh.</div>
                 </div>
-                <button class="cta" :class="confirmTrung?'armed':''" x-show="canAdvanceTrung" @click="armTrung()" @click.outside="confirmTrung=false"><span x-html="svgi('crown')"></span> <span x-text="(confirmTrung?'Xác nhận · Nhập Trùng ':'Nhập Trùng ') + trungRoman(trung+1)"></span></button>
+                <button class="cta" :class="confirmTrung?'armed':''" x-show="canAdvanceTrung" @click="armTrung()" @click.outside="confirmTrung=false"><span x-text="(confirmTrung?'Xác nhận · Nhập Trùng ':'Nhập Trùng ') + trungRoman(trung+1)"></span></button>
               </div>
             </template>
             <div class="maprow">
@@ -9061,7 +9161,7 @@
                             <div class="link" :class="(cungDone(selCung)||n<cungProg(selCung))?'done':''"></div>
                           </div>
                         </template>
-                        <div class="node boss" :class="(cungDone(selCung)?'done ':'')+(cur&&cur.id==='maDe'?'final':'')"><div class="dot"><img :src="'images/dongphu/ui/'+bossBadge(selCung)" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="lb" style="color:var(--ktrose)">Cung Chủ</div></div>
+                        <div class="node boss" :class="(cungDone(selCung)?'done ':'')+(!cungDone(selCung)&&cungProg(selCung)===5?'cur ':'')+(cur&&cur.id==='maDe'?'final':'')"><div class="dot"><img :src="'images/dongphu/ui/'+bossBadge(selCung)" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="lb" style="color:var(--ktrose)">Cung Chủ</div></div>
                       </div>
                     </div>
                     <div class="dbody">

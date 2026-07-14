@@ -5,7 +5,7 @@
 // (cây nâng cấp La Bàn Bát Quái) + Trảm Yêu Lục + Trận Đồ Bảng.
 // Tiền tệ riêng: Trận Hồn (chỉ kiếm/tiêu trong Kỳ Trận). Lượt đánh cap tuần.
 // ============================================================
-import { KT_CONST, KT_HANH, KT_HANH_ORDER, KT_KHAC, KT_CUNG, KT_TAM_PHAP, KT_SKILLS } from './data/kytran.js';
+import { KT_CONST, KT_HANH, KT_HANH_ORDER, KT_KHAC, KT_CUNG, KT_TAM_PHAP, KT_SKILLS, KT_BOSS_SKILLS } from './data/kytran.js';
 import { mountKtBattle } from './kytran_combat.js';
 import { Storage } from './engine/save.js';
 import { dongPhuTramYeuBonus } from './engine/dongphu.js';
@@ -59,10 +59,7 @@ export function kyTran() {
     _ICO: {
       lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
       crown: '<path d="M3 17 5 8l4.5 4L12 6.5 14.5 12 19 8l2 9Z"/><path d="M6 20.5h12"/>',
-      sword: '<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/>',
-      scroll: '<path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>',
       book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
-      gem: '<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/>',
     },
     svgi(n) {
       return '<svg class="ktr-svgi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (this._ICO[n] || '') + '</svg>';
@@ -79,6 +76,7 @@ export function kyTran() {
       let pick = KT_CUNG.findIndex((c, i) => this.cungSt(i) === 'active');
       if (pick < 0) pick = KT_CUNG.findIndex((c, i) => this.cungSt(i) === 'open');
       this.selCung = pick >= 0 ? pick : 0;
+      this.devInit();
       // Rời tab Kỳ Trận giữa trận → tháo combat (gỡ listener resize + dừng async), tính như bỏ trận
       this.$watch('$store.game.view', (v) => {
         if (v !== 'kyTran' && this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; this.inBattle = false; }
@@ -102,6 +100,7 @@ export function kyTran() {
     cungProg(i) { return this.kt.prog[KT_CUNG[i].id] || 0; },
     cungDone(i) { return this.cungProg(i) >= 6; },
     cungUnlocked(i) {
+      if (this._devOpenAll) return true;                                        // Dev: mở khóa mọi Cung để test
       if (i === 4) return KT_CUNG.every((c, j) => j === 4 || this.cungDone(j)); // Trung Cung: cần 8 Cung ngoài
       if (i === 0) return true;                                                 // Thiên Cương: cửa khởi đầu
       return ktNeighbors(i).some((n) => this.cungDone(n));
@@ -118,6 +117,7 @@ export function kyTran() {
     },
     cungBadge(i) {
       const st = this.cungSt(i);
+      if (st === 'done') return '6/6 trận';
       if (st === 'active') return this.cungProg(i) + '/6 trận';
       if (i === 4) return 'Ma Đế';
       return '6 trận';
@@ -134,14 +134,8 @@ export function kyTran() {
       if (this.cungDone(i) || n <= p) return 'done';
       return (n === p + 1 && this.cungSt(i) !== 'locked') ? 'cur' : '';
     },
-    tranBadge(i, n) { // bậc 1-20 = (tier−1)×3 + số trận, clamp — cung khó badge cao, trong cung leo dần
-      const tier = (KT_CUNG[i] && KT_CUNG[i].tier) || 1;
-      const bac = Math.max(1, Math.min(20, (tier - 1) * 3 + n));
-      return bac === 1 ? 'badge_hex.webp' : 'badge_hex' + bac + '.webp';
-    },
-    bossBadge(i) { // Cung Chủ: Ma Đế (Trung Cung) = trùm cuối riêng, còn lại badge cung chủ chung
-      return (KT_CUNG[i] && KT_CUNG[i].id === 'maDe') ? 'badge_hexfinalboss.webp' : 'badge_hexcungchu.webp';
-    },
+    tranBadge(i, n) { return 'badge_hex.webp'; },  // trận 1-5 dùng chung 1 form (như cũ); Cung Chủ = bossBadge
+    bossBadge(i) { return 'badge_hexfinalboss.webp'; },  // MỌI Cung Chủ dùng chung badge final boss (đồng đều)
     rewardOf(c) { // chip thưởng: tâm pháp / kỹ năng mở khi chiếm Cung
       const out = [];
       if (c.reward && c.reward.tp) { const t = KT_TAM_PHAP.find((x) => x.id === c.reward.tp); if (t) out.push({ img: 'images/kytran/tp_' + t.id + '.webp', txt: 'Tâm Pháp · ' + t.name }); }
@@ -200,6 +194,7 @@ export function kyTran() {
       return { dim: false, ic: 'sword', txt: 'Phá Trận' };
     },
     _battle: null,
+    _winApplied: false,          // đã ghi thắng trận hiện tại chưa (idempotent — khỏi mất/nhân đôi thưởng)
     startBattle() {
       if (!this.canFight || this.inBattle) return;
       this.inBattle = true;
@@ -207,22 +202,37 @@ export function kyTran() {
     },
     // mount 1 trận cho Cung/prog hiện tại (skipLoadout=true khi bấm "Trận Kế": bỏ Lập Trận, giữ loadout)
     _mountBattle(skipLoadout) {
+      this._winApplied = false;
       const i = this.selCung, c = KT_CUNG[i], p = this.cungProg(i);
       const isBoss = p >= 5;
       const raw = isBoss ? c.boss : c.mobs[p];
       const mult = KT_CONST.TRUNG_MULT[(this.kt.trung || 1) - 1] || 1;
+      const tier = c.tier || 1;
+      const DMG_MUL = { 1: 0.7, 2: 0.8, 3: 0.9, 4: 1, 5: 1.15, 6: 1.3 };   // ĐỐI TRẬN PHA 1: hệ số sát thương ô Kiếm địch theo tier
       const enemy = {
         name: raw.nm, sub: isBoss ? raw.sub : (c.nm + ' · Trận ' + (p + 1)),
         art: 'images/enemies/' + raw.art + '.webp',
-        hp: Math.round(raw.hp * mult), atk: Math.round(raw.atk * mult),
+        hp: Math.round(raw.hp * mult * 0.75), atk: Math.round(raw.atk * mult),   // HP ×0.75 (rebalance đối trận); atk giữ để tương thích (không dùng)
+        tier, dmgMul: (DMG_MUL[tier] || 1) * mult,                                // sát thương phẳng ô Kiếm địch (đã gộp Trùng)
         heavyEvery: raw.heavyEvery, heavyMul: raw.heavyMul,
         poisonEvery: raw.poisonEvery, poisonK: raw.poisonK, poisonDmg: raw.poisonDmg, boss: isBoss,
       };
+      // PHA 2: gán kỹ năng Cung Chủ (chỉ boss; sig/khiSkills/bite/atkRef/heavyMul override từ KT_BOSS_SKILLS)
+      if (isBoss && KT_BOSS_SKILLS[c.id]) {
+        const bs = KT_BOSS_SKILLS[c.id];
+        // Sát thương CHIÊU (bite/atkRef/poisonDmg) giữ PHẲNG — độ khó Trùng đến từ HP×mult + tile dmgMul×mult (tránh chiêu one-shot ở Trùng cao)
+        enemy.sig = bs.sig; enemy.sigEvery = bs.sigEvery; enemy.khiSkills = [...(bs.khiSkills || [])];
+        enemy.bite = bs.bite || 0; enemy.atkRef = bs.atkRef || 0;
+        if (bs.heavyMul != null) enemy.heavyMul = bs.heavyMul;
+        if (bs.poisonK != null) enemy.poisonK = bs.poisonK;
+        if (bs.poisonDmg != null) enemy.poisonDmg = bs.poisonDmg;
+      }
       // Tương Khắc mốc Cấp 4: Hành khắc hệ Cung → +15% sát thương lên Cung Chủ hệ đó
       const mods = this.ktMods();
       if (isBoss && c.hanh) { const kh = KT_KHAC.find((x) => x[1] === c.hanh); if (kh && this.hanhLv(kh[0]) >= 4) mods.dmg *= 1.15; }
       // "Trận Kế" khả dụng: còn trận trong Cung (không phải Cung Chủ) & còn lượt cho trận kế (trận này tốn 1 → cần ≥2)
       const nextBattle = !isBoss && this.weekLeft >= 2;
+      const rew = this._winRewardOf(c, p);   // thưởng thắng trận này (helper dùng chung với _applyWin → màn kết khớp bộ đếm)
       this.$nextTick(() => {
         const host = this.$refs.battleHost;
         if (!host) { this.inBattle = false; return; }
@@ -234,41 +244,57 @@ export function kyTran() {
           pools: { tp: [...this.kt.tp], sk: [...this.kt.sk] },
           tpData: KT_TAM_PHAP, skData: KT_SKILLS,
           mods, skipLoadout, nextBattle,
+          winReward: { bonus: rew.hon + rew.cungHon, unlocks: rew.unlocks },   // hiển thị tổng thực nhận ở màn kết
           onLoadout: (lt) => { this.kt.loadout = { tamPhap: lt.tamPhap, skills: [...lt.skills] }; },
           onBattleStart: () => { this.weekCheck(); this.kt.week.used++; try { Storage.save(this.$store.game.state); } catch (e) {} },
+          onResolve: (win, stats) => { if (win) this._resolveWin(stats || {}); },   // ghi thắng NGAY khi trận phân định
           onCancel: () => this._cancelBattle(),
           onEnd: (win, stats) => this._endBattle(win, stats || {}),
           onNext: (stats) => this._nextBattle(stats || {}),
         });
       });
     },
-    // xử thắng 1 trận (prog++, thưởng, lưu) — dùng chung cho Xác Nhận & Trận Kế
+    // Thưởng Trận Hồn của 1 trận thắng — NGUỒN CHÂN LÝ (dùng chung: ghi state _applyWin + hiển thị màn kết).
+    //   prevProg = prog Cung TRƯỚC khi thắng; completes = trận này chiếm trọn Cung (đủ 6). KHÔNG đổi số ở đây (cân bằng).
+    _winRewardOf(c, prevProg) {
+      const completes = (prevProg + 1) >= 6, tier = c.tier || 1;
+      let hon = 14 + 4 * tier; if (completes) hon *= 3;
+      let cungHon = 0; const unlocks = [];
+      if (completes) {
+        cungHon = (c.reward && c.reward.hon) || KT_CONST.CUNG_HON;
+        if (c.reward && c.reward.tp && !this.kt.tp.includes(c.reward.tp)) { const t = KT_TAM_PHAP.find((x) => x.id === c.reward.tp); if (t) unlocks.push('Tâm Pháp · ' + t.name); }
+        if (c.reward && c.reward.sk && !this.kt.sk.includes(c.reward.sk)) { const s = KT_SKILLS.find((x) => x.id === c.reward.sk); if (s) unlocks.push('Kỹ Năng · ' + s.name); }
+      }
+      return { completes, hon, cungHon, unlocks };
+    },
+    // xử thắng 1 trận (prog++, thưởng, lưu) — gọi 1 lần qua _resolveWin
     _applyWin(stats) {
       const c = KT_CUNG[this.selCung], k = this.kt;
-      k.tranHon += (stats.soul || 0);            // Trận Hồn lượm từ ô Bảo (chỉ nhận khi thắng)
-      const p = (k.prog[c.id] || 0) + 1;
-      k.prog[c.id] = p;
+      const prev = k.prog[c.id] || 0;
+      const rew = this._winRewardOf(c, prev);
+      k.tranHon += (stats.soul || 0) + rew.hon + rew.cungHon;   // soul (ô Bảo) + thưởng thắng + reward Cung
+      k.prog[c.id] = prev + 1;
       k.wins = (k.wins || 0) + 1;
-      const isBoss = p >= 6, tier = c.tier || 1;
-      let hon = 14 + 4 * tier; if (isBoss) hon *= 3;
-      k.tranHon += hon;
-      const ckey = c.id + ':' + (isBoss ? 'boss' : (p - 1));   // Trảm Yêu Lục: đếm theo Ô trong Cung
+      const ckey = c.id + ':' + (rew.completes ? 'boss' : prev);   // Trảm Yêu Lục: đếm theo Ô trong Cung
       k.codex[ckey] = (k.codex[ckey] || 0) + 1;
-      if (isBoss) {                              // chiếm trọn Cung
-        k.tranHon += (c.reward && c.reward.hon) || KT_CONST.CUNG_HON;
+      if (rew.completes) {                       // chiếm trọn Cung → mở khóa tâm pháp/kỹ năng
         if (c.reward && c.reward.tp && !k.tp.includes(c.reward.tp)) k.tp.push(c.reward.tp);
         if (c.reward && c.reward.sk && !k.sk.includes(c.reward.sk)) k.sk.push(c.reward.sk);
         if (c.id === 'maDe') k.maDeKills = (k.maDeKills || 0) + 1;
       }
       try { Storage.save(this.$store.game.state); } catch (e) {}
     },
-    _endBattle(win, stats) {   // "Xác Nhận" (hoặc thua/rút): xử thắng rồi về bản đồ
-      if (win) this._applyWin(stats);
+    // ghi thắng NGAY khi trận phân định (idempotent) — bảo toàn thưởng dù rời view/refresh/đóng tab trước khi bấm nút
+    _resolveWin(stats) {
+      if (this._winApplied) return;
+      this._winApplied = true;
+      this._applyWin(stats || {});
+    },
+    _endBattle(win, stats) {   // "Xác Nhận" (hoặc thua/rút): về bản đồ (thắng đã ghi ở _resolveWin lúc phân định)
       if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
       this.inBattle = false;
     },
-    _nextBattle(stats) {   // "Trận Kế": xử thắng trận này rồi đánh liền trận sau (giữ loadout, bỏ Lập Trận)
-      this._applyWin(stats);
+    _nextBattle(stats) {   // "Trận Kế": đánh liền trận sau (thắng đã ghi ở _resolveWin) — giữ loadout, bỏ Lập Trận
       if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
       if (this.cungDone(this.selCung) || this.weekLeft <= 0) {   // hết trận trong Cung / hết lượt → về bản đồ
         this.inBattle = false;
@@ -386,6 +412,57 @@ export function kyTran() {
         critMul: 1.6,
         lv: { ...n },                       // mốc Cấp 4/7/10 đọc trực tiếp
       };
+    },
+
+    // ===== BẢNG DEV/TEST (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D trong view Kỳ Trận; CHỈ đụng state.kyTran + this.*) =====
+    devEnabled: false, devPanel: false, _devOpenAll: false, devConfirmReset: false, devLog: '',
+    devCungSel: 'thienCuong', devHon: '', devHanh: '',
+    devInit() {
+      try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('kt_dev', '1'); else localStorage.removeItem('kt_dev'); } this.devEnabled = localStorage.getItem('kt_dev') === '1'; } catch (e) {}
+    },
+    ktDevKey(e) { if (e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd' || e.keyCode === 68)) { e.preventDefault(); this.devToggle(); } },
+    devToggle() { if (!this.devEnabled) { this.devEnabled = true; try { localStorage.setItem('kt_dev', '1'); } catch (e) {} } this.devPanel = !this.devPanel; },
+    devOff() { this.devEnabled = false; this.devPanel = false; this._devOpenAll = false; try { localStorage.removeItem('kt_dev'); } catch (e) {} },
+    _dlog(m) { this.devLog = m; },
+    _dsave() { try { Storage.save(this.$store.game.state); } catch (e) {} },
+    // Kinh tế
+    devAddHon(n) { this.kt.tranHon = Math.max(0, (this.kt.tranHon || 0) + n); this._dsave(); this._dlog('Trận Hồn = ' + this.kt.tranHon); },
+    devSetHon() { const v = parseInt(this.devHon, 10); if (isNaN(v)) return; this.kt.tranHon = Math.max(0, v); this.devHon = ''; this._dsave(); this._dlog('Trận Hồn = ' + this.kt.tranHon); },
+    devFillWeek() { this.weekCheck(); this.kt.week.used = 0; this._dsave(); this._dlog('Đầy lượt tuần (' + this.weekCap + ')'); },
+    // Ngũ Hành
+    devSetHanhAll(n) { const vv = Math.max(0, Math.min(10, n)); KT_HANH_ORDER.forEach((k) => { this.kt.nguHanh[k] = vv; }); this._dsave(); this._dlog('Mọi Ngũ Hành = Cấp ' + vv); },
+    devSetHanhInput() { const v = parseInt(this.devHanh, 10); if (isNaN(v)) return; this.devHanh = ''; this.devSetHanhAll(v); },
+    // Mở khóa
+    devUnlockTp() { this.kt.tp = KT_TAM_PHAP.map((t) => t.id); this._dsave(); this._dlog('Mở hết ' + this.kt.tp.length + ' Tâm Pháp'); },
+    devUnlockSk() { this.kt.sk = KT_SKILLS.map((s) => s.id); this._dsave(); this._dlog('Mở hết ' + this.kt.sk.length + ' Kỹ Năng'); },
+    // Cung / tiến độ
+    devSetProg(n) { this.kt.prog[this.devCungSel] = n; this._dsave(); const c = KT_CUNG.find((x) => x.id === this.devCungSel); this._dlog((c ? c.nm : this.devCungSel) + ' → ' + n + '/6 trận'); },
+    devConquerOuter() { KT_CUNG.forEach((c) => { if (c.id !== 'maDe') this.kt.prog[c.id] = 6; }); this._dsave(); this._dlog('Chiếm 8 Cung ngoài (mở Ma Đế)'); },
+    devConquerAll() { KT_CUNG.forEach((c) => { this.kt.prog[c.id] = 6; }); this._dsave(); this._dlog('Chiếm trọn 9 Cung (mở Nhập Trùng)'); },
+    devResetProg() { this.kt.prog = {}; this.selCung = 0; this._dsave(); this._dlog('Đã xoá tiến độ Cung'); },
+    devOpenAll() { this._devOpenAll = !this._devOpenAll; this._dlog('Mở khóa mọi Cung: ' + (this._devOpenAll ? 'BẬT' : 'tắt')); },
+    // Trùng / codex
+    devSetTrung(n) { this.kt.trung = n; this.confirmTrung = false; this._dsave(); this._dlog('Trùng = ' + this.trungRoman(n)); },
+    devFillCodex() { KT_CUNG.forEach((c) => { c.mobs.forEach((m, i) => { this.kt.codex[c.id + ':' + i] = Math.max(1, this.kt.codex[c.id + ':' + i] || 0); }); this.kt.codex[c.id + ':boss'] = Math.max(1, this.kt.codex[c.id + ':boss'] || 0); }); this._dsave(); this._dlog('Mở hết Trảm Yêu Lục'); },
+    // Combo nhanh + reset
+    devLoadFull() {
+      this.kt.tranHon = (this.kt.tranHon || 0) + 50000;
+      KT_HANH_ORDER.forEach((k) => { this.kt.nguHanh[k] = 10; });
+      this.kt.tp = KT_TAM_PHAP.map((t) => t.id);
+      this.kt.sk = KT_SKILLS.map((s) => s.id);
+      this.weekCheck(); this.kt.week.used = 0;
+      this._devOpenAll = true;
+      this._dsave();
+      this._dlog('Nạp full: +50k Trận Hồn · Ngũ Hành Cấp 10 · mở hết TP+KN · đầy lượt · mở khóa mọi Cung');
+    },
+    devResetAll() {
+      if (!this.devConfirmReset) { this.devConfirmReset = true; this._dlog('Bấm lần nữa để XÓA TOÀN BỘ Kỳ Trận'); return; }
+      this.devConfirmReset = false; this._devOpenAll = false;
+      this.$store.game.state.kyTran = {};
+      ensureKyTran(this.$store.game.state);
+      this.selCung = 0; this.selHanh = 'moc';
+      this._dsave();
+      this._dlog('Đã reset toàn bộ Kỳ Trận');
     },
   };
 }
