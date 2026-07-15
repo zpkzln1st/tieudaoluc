@@ -345,7 +345,61 @@ var KTB_CSS=[
 '  .ktb .skmed .skm .nm{ font-size:.62rem; white-space:normal; }',
 '  .ktb .skmed .skm .st{ display:none; }',
 '}',
-'@media (prefers-reduced-motion:reduce){ .ktb .tile{ transition:none; } .ktb .tile.clear .tin,.ktb .tile.spawn,.ktb .shake,.ktb .flash.on,.ktb .tile.psn .tin::after,.ktb .tile.burn .tin::after,.ktb .tile.burn .tin::before,.ktb .tile.spfx-6 .deco::before,.ktb .tile.spfx-6 .deco::after,.ktb .tile.spfx-12 .deco,.ktb .tile.spfx-16 .deco::before,.ktb .combolabel.on,.ktb .fnum{ animation:none; } }'
+'@media (prefers-reduced-motion:reduce){ .ktb .tile{ transition:none; } .ktb .tile.clear .tin,.ktb .tile.spawn,.ktb .shake,.ktb .flash.on,.ktb .tile.psn .tin::after,.ktb .tile.burn .tin::after,.ktb .tile.burn .tin::before,.ktb .tile.spfx-6 .deco::before,.ktb .tile.spfx-6 .deco::after,.ktb .tile.spfx-12 .deco,.ktb .tile.spfx-16 .deco::before,.ktb .combolabel.on,.ktb .fnum{ animation:none; } }',
+/* ===== Lap Tran 2 buoc (l2-*) — override + layout wizard ===== */
+'.ktb .ltbox{ width:min(460px,96vw); height:min(760px,94dvh); overflow:hidden; }',
+'.ktb .ltbox .lt-go{ font-size:13px; letter-spacing:.16em; padding:7px 12px; }',
+'.ktb .ltbox .l2-steps{ flex:none; display:flex; gap:8px; padding:9px 15px; }',
+'.ktb .ltbox .l2-stp{ flex:1; display:flex; align-items:center; gap:8px; padding:7px 11px; border-radius:11px; border:1px solid #26344a; background:rgba(15,21,33,.4); cursor:pointer; }',
+'.ktb .ltbox .l2-stp .no{ width:22px; height:22px; flex:none; border-radius:50%; display:grid; place-items:center; font-family:"Lora",serif; font-size:12px; font-weight:700; color:#64748b; border:1px solid #33425c; }',
+'.ktb .ltbox .l2-stp .tx{ min-width:0; } .ktb .ltbox .l2-stp .tx .k{ font-size:9px; letter-spacing:1px; text-transform:uppercase; color:#64748b; } .ktb .ltbox .l2-stp .tx .v{ font-family:"Lora",serif; font-size:13px; font-weight:600; color:#94a3b8; line-height:1.1; }',
+'.ktb .ltbox .l2-stp.on{ border-color:rgba(245,185,66,.5); background:rgba(245,185,66,.1); }',
+'.ktb .ltbox .l2-stp.on .no{ color:#3a2606; border-color:transparent; background:linear-gradient(180deg,#e8c877,#f5b942); }',
+'.ktb .ltbox .l2-stp.on .tx .v{ color:#f5d68a; }',
+'.ktb .ltbox .l2-stp.done .no{ color:#2dd4bf; border-color:rgba(45,212,191,.5); }',
+'.ktb .ltbox .l2-en{ flex:none; display:flex; align-items:center; gap:10px; margin:2px 15px 0; padding:7px 11px; border-radius:12px; background:linear-gradient(180deg,rgba(35,20,26,.55),rgba(15,10,14,.4)); border:1px solid #3a2830; }',
+'.ktb .ltbox .l2-en .por{ width:40px; height:40px; flex:none; border-radius:10px; overflow:hidden; border:1px solid rgba(245,185,66,.14); background:radial-gradient(72% 66% at 50% 40%,rgba(251,113,133,.17),#0a0f18 84%); }',
+'.ktb .ltbox .l2-en .por img{ width:100%; height:100%; object-fit:cover; object-position:50% 12%; }',
+'.ktb .ltbox .l2-en .info{ min-width:0; flex:1; }',
+'.ktb .ltbox .l2-en .lbl{ font-size:8.5px; letter-spacing:2px; color:#fb7185; font-weight:700; text-transform:uppercase; opacity:.8; }',
+'.ktb .ltbox .l2-en .nm{ font-family:"Lora",serif; font-size:14px; font-weight:700; color:#f2e2c4; }',
+'.ktb .ltbox .l2-en .mech{ font-size:11px; color:#f6cdd4; }',
+'.ktb .ltbox .l2-main{ flex:1; min-height:0; display:flex; flex-direction:column; }',
+'.ktb .ltbox .l2-step{ display:none; flex:1; min-height:0; flex-direction:column; padding:12px 15px 0; }',
+'.ktb .ltbox .l2-step.on{ display:flex; }',
+'.ktb .ltbox .l2-sech{ flex:none; display:flex; align-items:center; gap:8px; margin-bottom:11px; }',
+'.ktb .ltbox .l2-sech .t{ font-family:"Lora",serif; font-size:15px; font-weight:700; color:#e8c877; letter-spacing:.4px; }',
+'.ktb .ltbox .l2-sech .hint{ font-size:11px; color:#64748b; }',
+'.ktb .ltbox .l2-sech .pick{ margin-left:auto; font-size:11px; color:#94a3b8; border:1px solid #26344a; border-radius:20px; padding:1px 10px; }',
+'.ktb .ltbox .l2-sech .pick b{ color:#f5b942; } .ktb .ltbox .l2-sech .pick.ok{ border-color:rgba(45,212,191,.42); color:#2dd4bf; } .ktb .ltbox .l2-sech .pick.ok b{ color:#2dd4bf; }',
+'.ktb .ltbox .l2-tabs{ flex:none; display:flex; gap:7px; margin-bottom:11px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }',
+'.ktb .ltbox .l2-tabs::-webkit-scrollbar{ display:none; }',
+'.ktb .ltbox .l2-tab{ flex:none; font-size:12px; font-weight:600; padding:5px 13px; border-radius:20px; border:1px solid #26344a; color:#94a3b8; cursor:pointer; white-space:nowrap; background:rgba(15,21,33,.4); }',
+'.ktb .ltbox .l2-tab .c{ opacity:.55; font-weight:400; margin-left:3px; }',
+'.ktb .ltbox .l2-tab.on{ border-color:rgba(245,185,66,.5); color:#f5b942; background:rgba(245,185,66,.12); }',
+'.ktb .ltbox .l2-gw{ flex:1; min-height:0; overflow-y:auto; scrollbar-width:thin; padding-bottom:6px; }',
+'.ktb .ltbox .l2-g{ display:grid; gap:13px 8px; }',
+'.ktb .ltbox .l2-g.tp{ grid-template-columns:repeat(3,1fr); }',
+'.ktb .ltbox .l2-g.sk{ grid-template-columns:repeat(4,1fr); }',
+'.ktb .ltbox .l2-g .mc .disc{ width:100%; max-width:74px; height:auto; aspect-ratio:1; }',
+'.ktb .ltbox .l2-g .mc .disc>img{ width:86%; height:86%; }',
+'.ktb .ltbox .l2-g .mc .pil{ max-width:none; } .ktb .ltbox .l2-g .mc .pil .nm{ font-size:11px; }',
+'.ktb .ltbox .l2-ds{ flex:none; height:86px; margin:2px 15px 0; display:flex; gap:11px; padding:11px 12px; border-radius:14px; background:linear-gradient(180deg,#141d2e,#0f1826); border:1px solid #26344a; overflow:hidden; }',
+'.ktb .ltbox .l2-ds.empty{ align-items:center; justify-content:center; text-align:center; color:#64748b; font-size:12px; }',
+'.ktb .ltbox .l2-ds .big{ flex:none; width:56px; height:56px; align-self:center; border-radius:14px; display:grid; place-items:center; overflow:hidden; background:radial-gradient(72% 72% at 50% 38%,color-mix(in srgb,var(--a,#4a5568) 24%,transparent),#0b1018 82%); border:1px solid color-mix(in srgb,var(--a,#4a5568) 46%,#2a3245); }',
+'.ktb .ltbox .l2-ds.tp .big{ border-radius:50%; } .ktb .ltbox .l2-ds .big img{ width:84%; height:84%; object-fit:contain; }',
+'.ktb .ltbox .l2-ds .info{ min-width:0; align-self:center; }',
+'.ktb .ltbox .l2-ds .kind{ font-size:10px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700; }',
+'.ktb .ltbox .l2-ds .dnm{ font-family:"Lora",serif; font-size:15px; font-weight:700; color:#f0f5fc; margin:1px 0 3px; }',
+'.ktb .ltbox .l2-ds .desc{ font-size:11.5px; line-height:1.35; color:#c4cddb; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }',
+'.ktb .ltbox .l2-ft{ flex:none; display:flex; align-items:center; gap:10px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid #26344a; background:linear-gradient(0deg,rgba(11,18,32,.99),rgba(15,23,38,.96)); box-shadow:0 -8px 26px -10px rgba(0,0,0,.7); }',
+'.ktb .ltbox .l2-mini{ display:flex; align-items:center; gap:5px; }',
+'.ktb .ltbox .l2-mini .s{ position:relative; width:34px; height:34px; border-radius:9px; display:grid; place-items:center; border:1px dashed #2c3a52; background:rgba(9,14,24,.5); overflow:hidden; }',
+'.ktb .ltbox .l2-mini .s.tp{ border-radius:50%; }',
+'.ktb .ltbox .l2-mini .s.fill{ border-style:solid; border-color:color-mix(in srgb,var(--a) 55%,#2a3245); background:radial-gradient(70% 70% at 50% 34%,color-mix(in srgb,var(--a) 20%,transparent),#0b1018 86%); }',
+'.ktb .ltbox .l2-mini .s img{ width:82%; height:82%; object-fit:contain; }',
+'.ktb .ltbox .l2-mini .s .n{ font-family:"Lora",serif; font-size:13px; font-weight:700; color:#334157; }',
+'.ktb .ltbox .l2-mini .dv{ width:1px; height:24px; background:#26344a; margin:0 3px; }'
 ].join('\n');
 
 function ensureStyle(){
@@ -837,74 +891,65 @@ export function mountKtBattle(host, opts){
   function skCostLabel(s){ return s.kind==='khi'?s.cost+' Khí':(s.kind==='charge'?s.charges+'/trận':'Kho Bảo'); }
   function lapTran(){
     busy=true;
-    var tpSel=LT.tamPhap, skSel=LT.skills.slice(), viewId=null;
+    var SKGRP={ kiemKhi:'Sát Phạt', huyetSat:'Sát Phạt', hoangKim:'Sát Phạt', nguLoi:'Sát Phạt', hoanTinh:'Biến Ảo', nguHanh:'Biến Ảo', ngungSuong:'Khống Chế', oLong:'Khống Chế' };
+    var SKCATS=['Tất Cả','Sát Phạt','Biến Ảo','Khống Chế'];
+    var useTabs=skChoices.length>10;   /* tab phan nhom tu an khi it ky nang, bat khi nhieu */
+    var step=1, tpSel=LT.tamPhap, skSel=LT.skills.slice(), skCat='Tất Cả';
     var o=overlayEl; o.classList.add('show'); o.innerHTML='';
     var box=el('div','ltbox'); o.appendChild(box);
     var mechTxt = EN.poisonEvery?('Rải Ô Độc mỗi '+EN.poisonEvery+' lượt'):(EN.heavyEvery?('Đòn Nặng mỗi '+EN.heavyEvery+' lượt'):'Đánh thường');
     var CHK='<span class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="#4a2e05" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg></span>';
-    var MECHSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>';
+    var BOLT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;vertical-align:-1px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>';
     var XSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-    function isTp(id){ for(var i=0;i<TP_DATA.length;i++) if(TP_DATA[i].id===id) return true; return false; }  /* tra thật — tpById có fallback trả tuSa cho id lạ */
-    function itemById(id){ return isTp(id) ? tpById(id) : skillById(id); }
     function acc(x){ return (x&&x.accent)||'#94a3b8'; }
-    function medHTML(kind,x,on,view,lock){
-      return '<div class="mc'+(on?' on':'')+(view&&!on?' view':'')+(lock?' lock':'')+'" style="--a:'+acc(x)+'" data-k="'+kind+'" data-id="'+x.id+'">'+
-        '<div class="disc"><img src="images/kytran/'+kind+'_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'">'+(on?CHK:'')+'</div>'+
-        '<div class="pil"><span class="nm fserif">'+x.name+'</span></div></div>';
-    }
+    function med(kind,x,on,lock){ return '<div class="mc'+(on?' on':'')+(lock?' lock':'')+'" style="--a:'+acc(x)+'" data-k="'+kind+'" data-id="'+x.id+'"><div class="disc"><img src="images/kytran/'+kind+'_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'">'+(on?CHK:'')+'</div><div class="pil"><span class="nm fserif">'+x.name+'</span></div></div>'; }
     box.innerHTML=
       '<span class="lt-close" title="Đóng (Esc)">'+XSVG+'</span>'+
       '<div class="lt-hdr"><div class="lt-mk"><img src="images/nav/kyTran.webp" alt="" onerror="this.remove()"></div><h1>Lập Trận</h1><div class="lt-thread"></div></div>'+
-      '<div class="lt-body">'+
-        '<div class="lt-col"><div class="lt-colh"><span class="t fserif">Tâm Pháp</span><span class="pick lt-tppick">0 / 1</span></div><div class="lt-grid lt-tplist"></div></div>'+
-        '<div class="lt-center">'+
-          '<div class="lt-en"><div class="lbl">Địch Thủ</div><div class="frame"><img src="'+EN.art+'" alt="" onerror="this.style.visibility=\'hidden\'"></div><div class="nm fserif">'+EN.name+'</div><div class="mech">'+MECHSVG+' '+mechTxt+'</div></div>'+
-          '<div class="lt-detail empty" style="--a:#334155"><div class="ph"><b class="fserif">Xem Chi Tiết</b>Bấm một Tâm Pháp hoặc Kỹ Năng để đọc công năng.</div></div>'+
-          '<div class="lt-load"><div class="lt-tpwrap"><div class="lt-slotlab">Tâm Pháp</div><div class="lt-tpslot" style="--a:#f5b942"></div></div><div class="lt-divx"></div><div class="lt-skwrap"><div class="lt-slotlab">Ba Kỹ Năng</div><div class="lt-skrow"></div></div></div>'+
-          '<div class="lt-foot"><span class="lt-go off fserif">Phá Trận</span></div>'+
-        '</div>'+
-        '<div class="lt-col"><div class="lt-colh"><span class="t fserif">Kỹ Năng</span><span class="pick lt-skpick">0 / '+NEED+'</span></div><div class="lt-grid lt-sklist"></div></div>'+
-      '</div>';
-    var tpListEl=box.querySelector('.lt-tplist'), skListEl=box.querySelector('.lt-sklist');
-    var tpPickEl=box.querySelector('.lt-tppick'), skPickEl=box.querySelector('.lt-skpick');
-    var detailEl=box.querySelector('.lt-detail'), tpSlotEl=box.querySelector('.lt-tpslot'), skRowEl=box.querySelector('.lt-skrow');
-    var goEl=box.querySelector('.lt-go');
-    function renderTP(){ tpListEl.innerHTML=tpChoices.map(function(t){ return medHTML('tp',t,tpSel===t.id,viewId===t.id,false); }).join('');
-      tpPickEl.textContent=(tpSel?1:0)+' / 1'; tpPickEl.classList.toggle('ok',!!tpSel); }
-    function renderSK(){ var full=skSel.length>=NEED; skListEl.innerHTML=skChoices.map(function(s){ var on=skSel.indexOf(s.id)>=0; return medHTML('sk',s,on,viewId===s.id,!on&&full); }).join('');
+      '<div class="l2-steps"><div class="l2-stp" data-go="1"><span class="no">1</span><span class="tx"><span class="k">Bước 1</span><span class="v">Tâm Pháp</span></span></div><div class="l2-stp" data-go="2"><span class="no">2</span><span class="tx"><span class="k">Bước 2</span><span class="v">Kỹ Năng</span></span></div></div>'+
+      '<div class="l2-en"><span class="por"><img src="'+EN.art+'" alt="" onerror="this.style.visibility=\'hidden\'"></span><span class="info"><span class="lbl">Địch Thủ</span><div class="nm">'+EN.name+'</div><span class="mech">'+BOLT+' '+mechTxt+'</span></span></div>'+
+      '<div class="l2-main">'+
+        '<div class="l2-step s1 on"><div class="l2-sech"><span class="t">Tâm Pháp</span><span class="hint">chọn 1 (hoặc bỏ trống)</span><span class="pick l2-tppick">0 / 1</span></div><div class="l2-gw"><div class="l2-g tp l2-tplist"></div></div></div>'+
+        '<div class="l2-step s2"><div class="l2-sech"><span class="t">Kỹ Năng</span><span class="hint">tối đa '+NEED+'</span><span class="pick l2-skpick">0 / '+NEED+'</span></div>'+(useTabs?'<div class="l2-tabs l2-sktabs"></div>':'')+'<div class="l2-gw"><div class="l2-g sk l2-sklist"></div></div></div>'+
+      '</div>'+
+      '<div class="l2-ds empty">Bấm một Tâm Pháp để đọc công năng.</div>'+
+      '<div class="l2-ft"></div>';
+    var tpListEl=box.querySelector('.l2-tplist'), skListEl=box.querySelector('.l2-sklist'), tabsEl=box.querySelector('.l2-sktabs');
+    var tpPickEl=box.querySelector('.l2-tppick'), skPickEl=box.querySelector('.l2-skpick');
+    var detEl=box.querySelector('.l2-ds'), footEl=box.querySelector('.l2-ft');
+    function slotMini(){ var tpx=tpSel?tpById(tpSel):null; var m='<div class="s tp'+(tpx?' fill':'')+'"'+(tpx?(' style="--a:'+acc(tpx)+'"'):'')+'>'+(tpx?'<img src="images/kytran/tp_'+tpx.id+'.webp" onerror="this.style.display=\'none\'">':'<span class="n">心</span>')+'</div><div class="dv"></div>';
+      for(var i=0;i<NEED;i++){ var id=skSel[i], x=id?skillById(id):null; m+='<div class="s'+(x?' fill':'')+'"'+(x?(' style="--a:'+acc(x)+'"'):'')+'>'+(x?'<img src="images/kytran/sk_'+x.id+'.webp" onerror="this.style.display=\'none\'">':'<span class="n">'+(i+1)+'</span>')+'</div>'; } return m; }
+    function renderFoot(){ if(step===1){ footEl.innerHTML='<span class="lt-go" data-act="next" style="margin:0 auto">Chọn Kỹ Năng ›</span>'; } else { footEl.innerHTML='<div class="l2-mini">'+slotMini()+'</div><span class="lt-go" data-act="go">Phá Trận</span>'; } }
+    function renderTP(){ tpListEl.innerHTML=tpChoices.map(function(t){ return med('tp',t,tpSel===t.id,false); }).join(''); tpPickEl.textContent=(tpSel?1:0)+' / 1'; tpPickEl.classList.toggle('ok',!!tpSel); }
+    function renderSK(){ var full=skSel.length>=NEED;
+      if(tabsEl){ tabsEl.innerHTML=SKCATS.map(function(c){ var n=c==='Tất Cả'?skChoices.length:skChoices.filter(function(s){return SKGRP[s.id]===c;}).length; return '<span class="l2-tab'+(skCat===c?' on':'')+'" data-c="'+c+'">'+c+'<span class="c">'+n+'</span></span>'; }).join(''); }
+      var show=useTabs?skChoices.filter(function(s){ return skCat==='Tất Cả'||SKGRP[s.id]===skCat; }):skChoices;
+      skListEl.innerHTML=show.map(function(s){ var on=skSel.indexOf(s.id)>=0; return med('sk',s,on,!on&&full); }).join('');
       skPickEl.textContent=skSel.length+' / '+NEED; skPickEl.classList.toggle('ok',full); }
-    function showDetail(id){
-      var x=id?itemById(id):null;
-      if(!x){ detailEl.className='lt-detail empty'; detailEl.style.setProperty('--a','#334155'); detailEl.innerHTML='<div class="ph"><b class="fserif">Xem Chi Tiết</b>Bấm một Tâm Pháp hoặc Kỹ Năng để đọc công năng.</div>'; return; }
-      var tp=isTp(id); detailEl.className='lt-detail'+(tp?' tp':''); detailEl.style.setProperty('--a',acc(x));
-      var kind=tp?('Tâm Pháp · '+(x.role||'')):('Kỹ Năng · '+skCostLabel(x)); var body=tp?x.rule:x.desc;
-      detailEl.innerHTML='<div class="big"><img src="images/kytran/'+(tp?'tp':'sk')+'_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'"></div>'+
-        '<div class="info"><div class="kind">'+kind+'</div><div class="nm fserif">'+x.name+'</div><div class="lore fserif">“'+x.lore+'”</div><div class="desc">'+body+'</div></div>';
-    }
-    function renderTpSlot(){ if(!tpSel){ tpSlotEl.className='lt-tpslot'; tpSlotEl.style.setProperty('--a','#f5b942'); tpSlotEl.innerHTML=''; return; }
-      var x=tpById(tpSel); tpSlotEl.className='lt-tpslot fill'; tpSlotEl.style.setProperty('--a',acc(x)); tpSlotEl.innerHTML='<img src="images/kytran/tp_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'">'; }
-    function renderSlots(){ skRowEl.innerHTML=[0,1,2].map(function(i){ var id=skSel[i]; if(!id) return '<div class="lt-slot"><span class="n fserif">'+(i+1)+'</span></div>';
-      var x=skillById(id); return '<div class="lt-slot fill" style="--a:'+acc(x)+'"><img src="images/kytran/sk_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'"><span class="cap">'+x.name+'</span></div>'; }).join(''); }
-    function renderGo(){ goEl.classList.remove('off'); }  /* cho vao tran du chua chon Tam Phap / Ky Nang (loadout tuy chon) */
-    function ltAll(){ renderTP(); renderSK(); showDetail(viewId); renderTpSlot(); renderSlots(); renderGo(); }
+    function renderSteps(){ box.querySelectorAll('.l2-stp').forEach(function(s){ var n=+s.getAttribute('data-go'); s.classList.toggle('on',n===step); s.classList.toggle('done',n===1&&step>1); });
+      box.querySelector('.l2-step.s1').classList.toggle('on',step===1); box.querySelector('.l2-step.s2').classList.toggle('on',step===2); }
+    function showDet(kind,id){ var x=kind==='tp'?tpById(id):skillById(id); if(!x){ resetDet(); return; }
+      var tp=kind==='tp'; detEl.className='l2-ds'+(tp?' tp':''); detEl.style.setProperty('--a',acc(x));
+      var kindTxt=tp?('Tâm Pháp · '+(x.role||'')):('Kỹ Năng · '+skCostLabel(x)); var body=tp?x.rule:x.desc;
+      detEl.innerHTML='<div class="big"><img src="images/kytran/'+(tp?'tp':'sk')+'_'+x.id+'.webp" onerror="this.style.display=\'none\'"></div><div class="info"><div class="kind" style="color:'+acc(x)+'">'+kindTxt+'</div><div class="dnm">'+x.name+'</div><div class="desc">'+body+'</div></div>'; }
+    function resetDet(){ detEl.className='l2-ds empty'; detEl.style.removeProperty('--a'); detEl.textContent=(step===1?'Bấm một Tâm Pháp để đọc công năng.':'Bấm một kỹ năng để đọc công năng.'); }
+    function ltAll(){ renderTP(); renderSK(); renderSteps(); renderFoot(); }
+    function goStep(n){ step=n; ltAll(); resetDet(); var gw=box.querySelector('.l2-step.on .l2-gw'); if(gw) gw.scrollTop=0; }
     box.addEventListener('click', function(e){
-      var mc=e.target.closest('.mc');
-      if(mc){ var k=mc.getAttribute('data-k'), id=mc.getAttribute('data-id'); viewId=id;
-        if(k==='tp'){ tpSel = (tpSel===id) ? null : id; }
-        else { var i=skSel.indexOf(id); if(i>=0) skSel.splice(i,1); else if(skSel.length<NEED) skSel.push(id); }
+      if(e.target.closest('.lt-close')){ cancelLoadout(); return; }
+      var stp=e.target.closest('.l2-stp'); if(stp){ goStep(+stp.getAttribute('data-go')); return; }
+      var tab=e.target.closest('.l2-tab'); if(tab){ skCat=tab.getAttribute('data-c'); renderSK(); return; }
+      var mc=e.target.closest('.mc'); if(mc){ var k=mc.getAttribute('data-k'), id=mc.getAttribute('data-id'); showDet(k,id);
+        if(k==='tp'){ tpSel=(tpSel===id)?null:id; } else { var i=skSel.indexOf(id); if(i>=0) skSel.splice(i,1); else if(skSel.length<NEED) skSel.push(id); }
         ltAll(); return; }
-      if(e.target.closest('.lt-go') && !goEl.classList.contains('off')){
+      var go=e.target.closest('.lt-go'); if(go){ if(go.getAttribute('data-act')==='next'){ goStep(2); } else {
         LT.tamPhap=tpSel; LT.skills=skSel.slice();
         try{ if(opts.onLoadout) opts.onLoadout({ tamPhap:LT.tamPhap, skills:LT.skills.slice() }); }catch(e2){}
-        commitLoadout(); return; }
-      if(e.target.closest('.lt-close')){ cancelLoadout(); return; }
+        commitLoadout(); } return; }
     });
-    box.addEventListener('mouseover', function(e){ var mc=e.target.closest('.mc'); if(!mc) return; var id=mc.getAttribute('data-id'); if(id===viewId) return; viewId=id;
-      box.querySelectorAll('.mc').forEach(function(m){ m.classList.toggle('view', m.getAttribute('data-id')===id && !m.classList.contains('on')); });
-      showDetail(id); });
     ltKeyHandler=function(e){ if(e.key==='Escape'||e.keyCode===27){ e.preventDefault(); cancelLoadout(); } };
     document.addEventListener('keydown', ltKeyHandler);
-    ltAll();
+    ltAll(); resetDet();
   }
   function clearLtKey(){ if(ltKeyHandler){ document.removeEventListener('keydown', ltKeyHandler); ltKeyHandler=null; } }
   function commitLoadout(){ clearLtKey(); try{ if(opts.onBattleStart) opts.onBattleStart(); }catch(e){} overlayEl.classList.remove('show'); overlayEl.innerHTML=''; initSkillState(); renderAll(); busy=false; boardEl.classList.remove('busy'); }
