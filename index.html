@@ -9506,26 +9506,45 @@
         .dp-eff .val{ color:var(--dpj); font-weight:600; font-size:15px; text-align:right; }
         .dp-eff.head .lbl{ color:var(--dpi); font-size:15.5px; font-weight:600; }
         .dp-eff.head .val{ font-size:18px; }
-        /* timeline */
-        .dp-tl{ display:flex; align-items:flex-start; gap:2px; padding:26px 0 12px; margin:16px 0 4px; }
-        .dp-tlrow{ display:flex; align-items:flex-start; flex:1 1 0; min-width:0; }
-        .dp-node{ background:none; border:none; padding:0; display:flex; flex-direction:column; align-items:center; gap:7px; flex:1 1 0; min-width:0; color:var(--dpid); cursor:pointer; position:relative; }
-        .dp-node .thumb{ position:relative; width:100%; max-width:86px; aspect-ratio:1; border-radius:14px; overflow:hidden; border:1px solid var(--dpls); background:#0a1017; transition:.18s; margin:0 auto; }
-        .dp-node .thumb img{ width:100%; height:100%; object-fit:cover; }
-        .dp-node .badge{ position:absolute; top:-15px; left:50%; transform:translateX(-50%); width:32px; height:35px; display:grid; place-items:center;
-          background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat; color:#eafaf2; font-size:15px; font-weight:700; text-shadow:0 1px 2px #000; z-index:4; }
-        .dp-node .nlbl{ font-size:12.5px; text-align:center; line-height:1.2; }
-        .dp-node:hover .thumb{ transform:translateY(-2px); border-color:var(--dpl); }
-        .dp-node.owned{ color:var(--dpis); }
-        .dp-node.selected{ color:var(--dpg3); }
-        .dp-node.selected .thumb{ border-color:var(--dpg2); box-shadow:0 0 0 1px rgba(245,208,137,.5),0 0 22px rgba(201,162,75,.4); }
-        .dp-node.selected .nlbl{ font-weight:600; }
-        .dp-node.locked{ color:var(--dplock); }
-        .dp-node.locked .thumb img{ filter:grayscale(1) brightness(.42); }
-        .dp-node .lk{ position:absolute; inset:0; display:grid; place-items:center; background:rgba(6,9,13,.35); z-index:1; }
-        .dp-node .lk svg{ width:22px; height:22px; stroke:#cfd4d8; fill:none; stroke-width:1.6; }
-        .dp-arrow{ flex:0 0 auto; align-self:flex-start; margin-top:30px; color:var(--dpg2); }
-        .dp-arrow svg{ width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+        /* timeline — Lo Trinh Gia Vien (cuon ngang, design A) */
+        .dp-tl{ position:relative; max-width:100%; margin:16px 0 4px; font-family:'Lora',Georgia,serif; color:var(--dpi);
+          background:rgba(14,22,34,.88); border:1px solid var(--dpl); border-radius:16px; padding:8px 0 6px;
+          box-shadow:0 8px 26px -14px rgba(0,0,0,.7), inset 0 1px 0 rgba(245,208,137,.06); overflow:hidden; }
+        .dp-tl-hd{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:2px 15px 8px; }
+        .dp-tl-ti{ font-size:13px; font-weight:700; letter-spacing:.6px; color:var(--dpg2); display:flex; align-items:center; gap:7px; white-space:nowrap; }
+        .dp-tl-ti::before{ content:""; width:14px; height:1px; background:linear-gradient(90deg,transparent,var(--dpg)); }
+        .dp-tl-ct{ font-size:11px; color:var(--dpid); white-space:nowrap; letter-spacing:.3px; }
+        .dp-tl-ct b{ color:var(--dpg3); font-weight:700; }
+        .dp-tl-vp{ position:relative; }
+        .dp-tl-rail{ display:flex; align-items:flex-start; gap:0; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; scroll-padding-left:14px; -webkit-overflow-scrolling:touch; padding:19px 48px 6px 14px; scrollbar-width:none; }
+        .dp-tl-rail::-webkit-scrollbar{ display:none; }
+        .dp-tl-card{ position:relative; flex:0 0 auto; width:74px; display:flex; flex-direction:column; align-items:center; scroll-snap-align:start; background:none; border:0; padding:0; margin:0; cursor:pointer; color:inherit; font-family:inherit; text-align:center; -webkit-tap-highlight-color:transparent; }
+        .dp-tl-th{ position:relative; width:60px; height:60px; border-radius:12px; overflow:hidden; border:1px solid var(--dpl); background:#0b111b; box-shadow:inset 0 0 0 1px rgba(7,11,16,.6); }
+        .dp-tl-th img{ width:100%; height:100%; object-fit:cover; display:block; }
+        .dp-tl-bg{ position:absolute; top:-13px; left:50%; transform:translateX(-50%); width:30px; height:33px; z-index:3; background:center/contain no-repeat url("images/dongphu/ui/badge_hex.webp"); display:grid; place-items:center; filter:drop-shadow(0 2px 3px rgba(0,0,0,.55)); }
+        .dp-tl-bg span{ font-size:14px; font-weight:700; color:#fff; line-height:1; transform:translateY(1px); text-shadow:0 1px 2px rgba(0,0,0,.75), 0 0 5px rgba(201,162,75,.5); }
+        .dp-tl-nm{ margin-top:9px; width:74px; font-size:11.5px; line-height:1.24; font-weight:600; color:var(--dpid); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:29px; }
+        .dp-tl-card.is-current .dp-tl-th{ border-color:var(--dpg2); box-shadow:0 0 0 1px var(--dpg), 0 0 15px 1px rgba(201,162,75,.5), inset 0 0 14px rgba(245,208,137,.18); }
+        .dp-tl-card.is-current .dp-tl-nm{ color:var(--dpg3); font-weight:700; }
+        .dp-tl-tg{ margin-top:5px; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--dpj); display:inline-flex; align-items:center; gap:5px; }
+        .dp-tl-tg::before, .dp-tl-tg::after{ content:""; width:8px; height:1px; background:var(--dpj); opacity:.55; }
+        .dp-tl-card.is-locked .dp-tl-th img{ filter:grayscale(1) brightness(.42) contrast(.95); }
+        .dp-tl-card.is-locked .dp-tl-th{ border-color:var(--dpls); }
+        .dp-tl-card.is-locked .dp-tl-bg span{ color:#c6ccd2; text-shadow:0 1px 2px rgba(0,0,0,.7); }
+        .dp-tl-card.is-locked .dp-tl-nm{ color:var(--dplock); font-weight:600; }
+        .dp-tl-lk{ position:absolute; inset:0; z-index:2; display:grid; place-items:center; background:radial-gradient(circle at 50% 45%, rgba(7,11,16,.15), rgba(7,11,16,.5)); }
+        .dp-tl-lk svg{ width:19px; height:19px; opacity:.9; filter:drop-shadow(0 1px 2px rgba(0,0,0,.7)); }
+        .dp-tl-cn{ flex:0 0 auto; width:20px; height:60px; align-self:flex-start; display:grid; place-items:center; pointer-events:none; }
+        .dp-tl-cn svg{ width:9px; height:14px; }
+        .dp-tl-cn .ln{ stroke:var(--dpg); opacity:.6; }
+        .dp-tl-fd{ position:absolute; top:0; right:0; bottom:0; width:46px; z-index:4; pointer-events:none; background:linear-gradient(90deg, rgba(14,22,34,0), rgba(14,22,34,.9) 62%, rgba(14,22,34,.96)); border-radius:0 15px 15px 0; }
+        .dp-tl-ht{ position:absolute; top:50%; right:9px; transform:translateY(-50%); z-index:5; pointer-events:none; color:var(--dpg2); opacity:.85; filter:drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+        .dp-tl-ht svg{ display:block; width:11px; height:16px; }
+        /* desktop: 7 the vua khung -> can giua, khong can cuon, an fade/hint */
+        @media (min-width:901px){
+          .dp-tl-rail{ overflow-x:visible; justify-content:center; scroll-snap-type:none; padding:19px 14px 6px; }
+          .dp-tl-fd, .dp-tl-ht{ display:none; }
+        }
         /* bottom */
         .dp-bottom{ margin-top:14px; display:grid; grid-template-columns:.9fr 1.5fr .95fr; gap:18px; padding:18px 20px; }
         .dp-coltitle{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--dpg2); margin:0 0 10px; font-weight:600; }
@@ -9710,6 +9729,7 @@
           .dp-strip .round{ align-self:flex-start; }
           .dp-strip .stg{ display:flex; flex-wrap:wrap; gap:6px; }
           .dp-bdetail .dp-btn{ font-size:13px; padding:8px 22px; }
+          .dp-frame.dp-art{ border-width:24px; border-image-width:24px; }
         }
         @media (prefers-reduced-motion:reduce){ .dp-root *{ transition:none!important; animation:none!important; } }
       </style>
@@ -9768,21 +9788,32 @@
               </div>
             </div>
 
-            <!-- timeline 7 bậc -->
+            <!-- timeline 7 bậc — Lộ Trình Gia Viên (cuộn ngang) -->
             <div class="dp-tl">
-              <template x-for="(t, i) in tiers" :key="t.lv">
-                <div class="dp-tlrow">
-                  <button class="dp-node" :class="t.state" @click="selectTier(t.lv)" :title="'Bậc ' + t.lv + ': ' + t.name">
-                    <span class="badge" x-text="t.lv"></span>
-                    <span class="thumb">
-                      <img :src="`images/dongphu/${t.img}.webp`" :alt="t.name" @error="$el.style.opacity=.12">
-                      <template x-if="t.state==='locked'"><span class="lk"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3" stroke-linecap="round"/></svg></span></template>
-                    </span>
-                    <span class="nlbl" x-text="t.name"></span>
-                  </button>
-                  <span class="dp-arrow" x-show="i < tiers.length-1"><svg viewBox="0 0 24 24"><path d="M7 6l6 6-6 6M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <div class="dp-tl-hd">
+                <div class="dp-tl-ti">Lộ Trình Gia Viên</div>
+                <div class="dp-tl-ct">Bậc <b x-text="curHouse"></b> / 6</div>
+              </div>
+              <div class="dp-tl-vp">
+                <div class="dp-tl-rail">
+                  <template x-for="(t, i) in tiers" :key="t.lv">
+                    <div style="display:contents">
+                      <button class="dp-tl-card" :class="t.state==='selected' ? 'is-current' : (t.state==='locked' ? 'is-locked' : 'is-owned')" @click="selectTier(t.lv)" :title="'Bậc ' + t.lv + ': ' + t.name" type="button">
+                        <span class="dp-tl-th">
+                          <img :src="`images/dongphu/${t.img}.webp`" :alt="t.name" @error="$el.style.opacity=.12">
+                          <template x-if="t.state==='locked'"><span class="dp-tl-lk"><svg viewBox="0 0 24 24" fill="none" stroke="#cfd4d8" stroke-width="1.6"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3" stroke-linecap="round"/></svg></span></template>
+                        </span>
+                        <span class="dp-tl-bg"><span x-text="t.lv"></span></span>
+                        <span class="dp-tl-nm" x-text="t.name"></span>
+                        <template x-if="t.lv===curHouse"><span class="dp-tl-tg">Hiện tại</span></template>
+                      </button>
+                      <span class="dp-tl-cn" x-show="i < tiers.length-1"><svg viewBox="0 0 9 14" fill="none"><path class="ln" d="M1.5 1.5 L7 7 L1.5 12.5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    </div>
+                  </template>
                 </div>
-              </template>
+                <div class="dp-tl-fd"></div>
+                <div class="dp-tl-ht"><svg viewBox="0 0 11 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l6 6-6 6"/></svg></div>
+              </div>
             </div>
 
             <!-- bottom: nâng cấp bậc kế -->
