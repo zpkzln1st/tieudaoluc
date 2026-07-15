@@ -8944,6 +8944,8 @@
         .kt-root .ktr-nav button{font-family:'Lora',serif;font-weight:600;font-size:13px;color:var(--ktmut);background:var(--ktp1);border:1px solid var(--ktline);padding:8px 16px;border-radius:10px;cursor:pointer;transition:.13s}
         .kt-root .ktr-nav button:hover{border-color:var(--ktline2);color:var(--kttxt)}
         .kt-root .ktr-nav button.on{color:var(--ktgold);border-color:rgba(245,185,66,.4);background:#1a1508;box-shadow:0 0 16px -8px var(--ktgold)}
+        /* mobile: 3 tab CO DINH 1 hang (khong wrap) — thu nho vua khung, cuon ngang neu man qua hep */
+        @media(max-width:640px){ .kt-root .ktr-nav{ flex-wrap:nowrap; overflow-x:auto; gap:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch } .kt-root .ktr-nav::-webkit-scrollbar{ display:none } .kt-root .ktr-nav button{ font-size:12px; padding:8px 11px; white-space:nowrap; flex:0 0 auto } }
         /* ---- bản đồ Cửu Cung ---- */
         .kt-root .maprow{display:grid;grid-template-columns:520px minmax(0,1fr);gap:16px;align-items:start}
         .kt-root .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:var(--ktp1);border:1px solid var(--ktline);border-radius:14px;padding:12px}
