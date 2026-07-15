@@ -112,7 +112,7 @@ export function kyTran() {
     },
     cungStLabel(i) {
       const st = this.cungSt(i);
-      if (i === 4 && st === 'locked') return 'Đang Phong Ấn · cần 8 Cung';
+      if (i === 4 && st === 'locked') return 'Cần đủ 8 Cung';
       return { done: 'Chiếm Lĩnh', active: 'đang đánh', open: 'Sẵn sàng', locked: 'Đang Phong Ấn' }[st];
     },
     cungBadge(i) {

@@ -8957,7 +8957,7 @@
         .kt-root .cung .in{position:absolute;inset:0;padding:9px 10px;display:flex;flex-direction:column}
         .kt-root .cung .tri{font-size:22px;line-height:1;text-shadow:0 1px 4px #000}
         .kt-root .cung .nm{margin-top:auto;font-family:'Lora',serif;font-weight:700;font-size:14px;text-shadow:0 1px 3px #000}
-        .kt-root .cung .st{font-size:10px;margin-top:1px;color:var(--ktmut)}
+        .kt-root .cung .st{font-size:10px;margin-top:1px;color:var(--ktmut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .kt-root .cung .badge{position:absolute;top:8px;right:8px;font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.6);border:1px solid var(--ktline2);color:var(--ktmut)}
         .kt-root .cung .cframe{position:absolute;inset:0;pointer-events:none;border:12px solid transparent;border-image:url("images/dongphu/ui/frame_gold.webp") 150 / 12px / 0 stretch;opacity:0;transition:opacity .18s}
         .kt-root .cung.sel .cframe{opacity:1}
@@ -9148,7 +9148,7 @@
         .kt-root .ktr-mx{ display:none; }
         @media(max-width:768px){
           .kt-root .detail:not(.ktr-msheet), .kt-root .ktr-panel:not(.ktr-msheet){ display:none; }
-          .kt-root .detail.ktr-msheet, .kt-root .ktr-panel.ktr-msheet{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(94vw,460px); height:auto; max-height:88vh; overflow-y:auto; z-index:80; box-shadow:0 24px 70px rgba(0,0,0,.75); animation:ktrPop .2s ease; }
+          .kt-root .detail.ktr-msheet, .kt-root .ktr-panel.ktr-msheet{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(90vw,420px); height:auto; max-height:82vh; overflow-y:auto; z-index:80; box-shadow:0 24px 70px rgba(0,0,0,.75); animation:ktrPop .2s ease; }
           .kt-root .ktr-mbd.on{ display:block; position:fixed; inset:0; background:rgba(4,6,12,.72); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); z-index:79; }
           .kt-root .detail.ktr-msheet .ktr-mx, .kt-root .ktr-panel.ktr-msheet .ktr-mx{ display:flex; position:absolute; top:9px; right:9px; width:30px; height:30px; border-radius:50%; align-items:center; justify-content:center; background:rgba(0,0,0,.6); border:1px solid var(--ktline); color:#e2e8f0; font-size:15px; line-height:1; z-index:6; cursor:pointer; }
         }
