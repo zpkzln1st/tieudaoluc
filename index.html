@@ -1005,7 +1005,7 @@
                       </template>
                       <!-- ô trống -->
                       <template x-if="!slot">
-                        <div class="h-full min-h-[150px] rounded-xl border border-dashed border-amber-500/25 bg-black/20 flex flex-col items-center justify-center gap-1 text-amber-500/40">
+                        <div class="h-full min-h-[84px] sm:min-h-[150px] rounded-xl border border-dashed border-amber-500/25 bg-black/20 flex flex-col items-center justify-center gap-1 text-amber-500/40">
                           <div class="text-2xl leading-none">＋</div>
                           <div class="text-[11px]">Ô trống</div>
                         </div>
@@ -9693,11 +9693,11 @@
           .dp-root .ql-tile+.ql-tile{ border-left:none; } .dp-root .ql-tile+.ql-tile::before{ display:none; }
           .dp-root .du-foot{ flex-direction:column; align-items:stretch; } .dp-root .du-btn{ width:100%; }
           .dp-root{ grid-template-columns:1fr; }
-          .dp-rail{ flex-direction:row; border-right:none; border-bottom:1px solid var(--dpls); padding:6px 4px; overflow-x:auto; gap:6px; }
+          .dp-rail{ position:static; flex-direction:row; justify-content:center; flex-wrap:wrap; height:auto; min-height:0; border-right:none; border-bottom:1px solid var(--dpls); padding:6px 4px; overflow-x:auto; gap:6px; }
           .dp-rail::before{ display:none; }
           .dp-emblem{ display:none; }
           .dp-tassel{ display:none; }
-          .dp-navitem{ flex:0 0 auto; }
+          .dp-navitem{ flex:0 0 auto; width:auto; padding:4px 12px 2px; }
           .dp-main{ padding:12px 0 4px; }
           .dp-top{ grid-template-columns:1fr; }
           .dp-bottom{ grid-template-columns:1fr; }
@@ -9706,6 +9706,10 @@
           .dp-bsel button{ flex:0 0 140px; }
           .dp-bcenter{ height:auto; min-height:240px; }
           .dp-bdetail{ height:auto; }
+          .dp-strip{ flex-direction:column; align-items:stretch; gap:10px; }
+          .dp-strip .round{ align-self:flex-start; }
+          .dp-strip .stg{ display:flex; flex-wrap:wrap; gap:6px; }
+          .dp-bdetail .dp-btn{ font-size:13px; padding:8px 22px; }
         }
         @media (prefers-reduced-motion:reduce){ .dp-root *{ transition:none!important; animation:none!important; } }
       </style>
