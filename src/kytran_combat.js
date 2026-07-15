@@ -93,7 +93,7 @@ var KTB_CSS=[
 '.ktb .blockpip{ font-size:.66rem; color:#cbd5e1; min-height:15px; line-height:15px; }',
 '.ktb .intent{ font-size:.68rem; color:var(--rose); text-align:center; padding:2px; }',
 '.ktb .intent.heavy{ color:var(--gold); font-weight:700; }',
-'.ktb .ktb-turn{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:99px; font-family:"Lora",serif; font-weight:700; font-size:.76rem; border:1px solid var(--bd); background:var(--ink3); }',
+'.ktb .ktb-turn{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:99px; font-family:"Lora",serif; font-weight:700; font-size:.76rem; border:1px solid var(--bd); background:var(--ink3); white-space:nowrap; flex:none; }',
 '.ktb .ktb-turn .dot{ width:8px; height:8px; border-radius:99px; background:currentColor; box-shadow:0 0 7px currentColor; }',
 '.ktb .ktb-turn.hero{ color:var(--jade); border-color:color-mix(in srgb,var(--jade) 45%,var(--bd)); }',
 '.ktb .ktb-turn.enemy{ color:var(--rose); border-color:color-mix(in srgb,var(--rose) 45%,var(--bd)); }',
@@ -327,6 +327,9 @@ var KTB_CSS=[
 '.ktb .ltbox .lt-go:hover{ filter:brightness(1.08); } .ktb .ltbox .lt-go:active{ transform:translateY(1px); }',
 '.ktb .ltbox .lt-go.off{ filter:grayscale(.75) brightness(.72); cursor:not-allowed; pointer-events:none; }',
 '@media (max-width:767px){',
+'  .ktb .ktb-top{ gap:6px; }',   /* thanh trên: khỏi wrap khi chip "Đi thêm!" hiện */
+'  .ktb .ktb-soul{ flex:none; padding:4px 10px; }  .ktb .ktb-soul .l{ display:none; }',   /* ẩn nhãn "Trận Hồn" — giữ icon魂 + số, đủ chỗ cho pill lượt + Đi thêm */
+'  .ktb .ktb-turnwrap{ flex:none; }  .ktb .ktb-retreat{ flex:none; }',
 '  .ktb .stage{ flex-direction:column; gap:6px; }',
 '  .ktb .side{ width:100%; flex-direction:row; align-items:center; gap:10px; }',
 '  .ktb .side .fighter{ flex:1; flex-direction:row; align-items:center; gap:8px; }',

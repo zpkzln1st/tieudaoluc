@@ -9141,8 +9141,8 @@
         @media(max-width:1080px){ .kt-root .ktr-hero{grid-template-columns:1fr;gap:28px} .kt-root .laban{width:480px;--msz:88px} .kt-root .hub .hg{font-size:36px} }
         @media(max-width:960px){ .kt-root .maprow{grid-template-columns:1fr} }
         @media(max-width:640px){ .kt-root .laban{width:330px;--msz:64px} .kt-root .med .lp{font-size:9.5px;padding:1px 7px} .kt-root .hub .hg{font-size:25px} .kt-root .hub .hn{font-size:9px} .kt-root .ktr-panel{padding:20px 16px} .kt-root .p-name{font-size:22px} .kt-root .seal{width:48px;height:48px;font-size:24px} }
-        /* Mobile: gỡ bớt chữ/nhãn trong ô Cung — badge "6 trận"/"Ma Đế" + status "Sẵn sàng"/"Đang Phong Ấn" (màu ô đã nói lên trạng thái: xám=phong ấn, thường=sẵn sàng). Giữ quẻ + tên. */
-        @media(max-width:640px){ .kt-root .cung .badge, .kt-root .cung .st{ display:none } .kt-root .cung .nm{ margin-bottom:2px } }
+        /* Mobile: gỡ bớt chữ/nhãn/icon trong ô Cung — badge "6 trận"/"Ma Đế" + status "Sẵn sàng"/"Đang Phong Ấn" + ổ khóa (màu ô đã nói lên trạng thái: xám=phong ấn, thường=sẵn sàng). Thu nhỏ tên → 1 hàng (kể cả Thiên Cương/Ma Đế Điện). Giữ quẻ + tên. */
+        @media(max-width:640px){ .kt-root .cung .badge, .kt-root .cung .st, .kt-root .cung .lock{ display:none } .kt-root .cung .nm{ font-size:12px; line-height:1.15; white-space:nowrap; margin-bottom:2px } }
         /* chuỗi trận (dchain) thu nhỏ trên điện thoại — khỏi tràn/cắt node "Trận 1" & "Cung Chủ" */
         @media(max-width:640px){ .kt-root .dchain{padding:6px 6px 9px} .kt-root .node{width:40px} .kt-root .node .dot{width:30px;height:30px} .kt-root .node.boss .dot{width:46px;height:46px} .kt-root .node.boss.final .dot{width:46px}.kt-root .node .dot span{font-size:12px} .kt-root .node .lb{font-size:8.5px} .kt-root .link{width:10px;margin-top:-11px} }
         /* ===== Mobile: panel chi tiet -> popup modal (tap Cung/He mo popup giua man thay vi cuon xuong xa) ===== */
