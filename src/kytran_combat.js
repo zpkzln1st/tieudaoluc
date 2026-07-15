@@ -885,7 +885,7 @@ export function mountKtBattle(host, opts){
       var x=tpById(tpSel); tpSlotEl.className='lt-tpslot fill'; tpSlotEl.style.setProperty('--a',acc(x)); tpSlotEl.innerHTML='<img src="images/kytran/tp_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'">'; }
     function renderSlots(){ skRowEl.innerHTML=[0,1,2].map(function(i){ var id=skSel[i]; if(!id) return '<div class="lt-slot"><span class="n fserif">'+(i+1)+'</span></div>';
       var x=skillById(id); return '<div class="lt-slot fill" style="--a:'+acc(x)+'"><img src="images/kytran/sk_'+x.id+'.webp" alt="" onerror="this.style.display=\'none\'"><span class="cap">'+x.name+'</span></div>'; }).join(''); }
-    function renderGo(){ goEl.classList.toggle('off', !(tpSel && skSel.length===NEED)); }
+    function renderGo(){ goEl.classList.remove('off'); }  /* cho vao tran du chua chon Tam Phap / Ky Nang (loadout tuy chon) */
     function ltAll(){ renderTP(); renderSK(); showDetail(viewId); renderTpSlot(); renderSlots(); renderGo(); }
     box.addEventListener('click', function(e){
       var mc=e.target.closest('.mc');
