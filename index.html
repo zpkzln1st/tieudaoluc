@@ -9141,6 +9141,8 @@
         @media(max-width:1080px){ .kt-root .ktr-hero{grid-template-columns:1fr;gap:28px} .kt-root .laban{width:480px;--msz:88px} .kt-root .hub .hg{font-size:36px} }
         @media(max-width:960px){ .kt-root .maprow{grid-template-columns:1fr} }
         @media(max-width:640px){ .kt-root .laban{width:330px;--msz:64px} .kt-root .med .lp{font-size:9.5px;padding:1px 7px} .kt-root .hub .hg{font-size:25px} .kt-root .hub .hn{font-size:9px} .kt-root .ktr-panel{padding:20px 16px} .kt-root .p-name{font-size:22px} .kt-root .seal{width:48px;height:48px;font-size:24px} }
+        /* Mobile: gỡ bớt chữ/nhãn trong ô Cung — badge "6 trận"/"Ma Đế" + status "Sẵn sàng"/"Đang Phong Ấn" (màu ô đã nói lên trạng thái: xám=phong ấn, thường=sẵn sàng). Giữ quẻ + tên. */
+        @media(max-width:640px){ .kt-root .cung .badge, .kt-root .cung .st{ display:none } .kt-root .cung .nm{ margin-bottom:2px } }
         /* chuỗi trận (dchain) thu nhỏ trên điện thoại — khỏi tràn/cắt node "Trận 1" & "Cung Chủ" */
         @media(max-width:640px){ .kt-root .dchain{padding:6px 6px 9px} .kt-root .node{width:40px} .kt-root .node .dot{width:30px;height:30px} .kt-root .node.boss .dot{width:46px;height:46px} .kt-root .node.boss.final .dot{width:46px}.kt-root .node .dot span{font-size:12px} .kt-root .node .lb{font-size:8.5px} .kt-root .link{width:10px;margin-top:-11px} }
         /* ===== Mobile: panel chi tiet -> popup modal (tap Cung/He mo popup giua man thay vi cuon xuong xa) ===== */
@@ -9178,8 +9180,8 @@
       <template x-if="$store.game.view==='kyTran'">
         <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()" @keydown.window="ktDevKey($event)">
           <!-- thanh đầu -->
-          <!-- Banner chuẩn (đồng bộ Yêu Vương / Bí Cảnh / Nghề): min-h 160, art nền + overlay + chip trạng thái góc phải -->
-          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col sm:flex-row sm:items-center">
+          <!-- Banner chuẩn (đồng bộ Yêu Vương / Bí Cảnh / Nghề): min-h 160, art nền + overlay + chip trạng thái góc phải. Ẩn khi vào trận (mobile khỏi phải cuộn xuống board) -->
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col sm:flex-row sm:items-center">
             <img src="images/ui/kytran_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/kytran_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(192,132,252,.18), transparent 66%)"></div>

@@ -125,7 +125,7 @@ export const KT_CUNG = [
     reward: { hon: 300, sk: 'oLong' },  // Ô Long Giao Tranh — giao long thủy vực
   },
   {
-    id: 'maDe', tri: '◉', nm: 'Ma Đế Điện', he: 'Trung Cung', c: '#c084fc',
+    id: 'maDe', tri: '☯', nm: 'Ma Đế Điện', he: 'Trung Cung', c: '#c084fc',
     scene: 'thaiHuBiCanh', hanh: null, tier: 6,
     lore: 'Bát môn dĩ phá, ma đế lâm trần.',
     story: 'Bát môn đã phá, cửu cung quy nhất, điện các u minh mở ra giữa tâm trận đồ — nơi tận cùng của Kỳ Trận. Thiên Ma Yêu Đế tọa trấn ngai xương, thống ngự cả tám cõi yêu ma; chỉ kẻ đã trảm tận tám Cung Chủ mới đủ tư cách nghênh chiến, tranh đoạt Thái Cực Vô Cực.',
