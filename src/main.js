@@ -1886,7 +1886,8 @@ const gameStore = {
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
 
   // ---------- ĐÀM ĐẠO (cốt truyện NPC nghề — chương mở theo cấp nghề + hội thoại nhánh) ----------
-  dd: { open: false, skillId: null, chapter: null, node: null, log: [] },  // trạng thái phát hội thoại
+  dd: { open: false, skillId: null, chapter: null, node: null, log: [], busy: false, typing: false },  // trạng thái phát hội thoại
+  _ddTimer: null,  // hẹn giờ bung dòng (ngoài dd để không bị reset khi mở lại)
   hasDamDao(id) { const a = DAMDAO[id]; return !!(a && a.chapters && a.chapters.length); },
   // chương của 1 nghề kèm trạng thái mở/đã-đọc (unlocked theo skillLevel; seen từ state.damDao)
   damDaoChapters(id) {
@@ -1899,27 +1900,46 @@ const gameStore = {
   get ddNpcName() { const s = this.SKILLS[this.dd.skillId]; return (s && s.npc && s.npc.name) || ''; },
   get ddChapters() { return this.damDaoChapters(this.dd.skillId); },
   get ddCurChoices() { const ch = this.dd.chapter; if (!ch || !this.dd.node) return []; const n = ch.nodes[this.dd.node]; return (n && n.choices) || []; },
-  get ddAtEnd() { const ch = this.dd.chapter; if (!ch || !this.dd.node) return false; const n = ch.nodes[this.dd.node]; return !!n && !(n.choices && n.choices.length); },
-  damDaoOpen() { if (!this.hasDamDao(this.selectedSkill)) return; this.dd = { open: true, skillId: this.selectedSkill, chapter: null, node: null, log: [] }; },
-  ddClose() { this.dd.open = false; this.dd.chapter = null; },
-  ddBackToList() { this.dd.chapter = null; this.dd.node = null; this.dd.log = []; },
+  get ddAtEnd() { const ch = this.dd.chapter; if (!ch || !this.dd.node) return false; const n = ch.nodes[this.dd.node]; return !n || !(n.choices && n.choices.length); },  // node thiếu (to sai) -> coi như kết chương, tránh soft-lock
+  damDaoOpen() { if (!this.hasDamDao(this.selectedSkill)) return; this._ddStop(); this.dd = { open: true, skillId: this.selectedSkill, chapter: null, node: null, log: [], busy: false, typing: false }; },
+  ddClose() { this._ddStop(); this.dd.open = false; this.dd.chapter = null; },
+  ddBackToList() { this._ddStop(); this.dd.chapter = null; this.dd.node = null; this.dd.log = []; },
   ddPickChapter(chId) {
     const arc = DAMDAO[this.dd.skillId]; if (!arc) return;
     const ch = arc.chapters.find((c) => c.id === chId); if (!ch) return;
     const lv = this.skillLevel(this.dd.skillId);
     if (lv < ch.req) { this.showToast('Chưa tới lúc — cần nghề Lv ' + ch.req + '.'); return; }
-    this.dd.chapter = ch; this.dd.node = ch.start;
-    this.dd.log = ((ch.nodes[ch.start] || {}).say || []).map((t) => ({ who: 'npc', text: t }));
-    this._ddCheckEnd();
+    this.dd.chapter = ch; this.dd.node = ch.start; this.dd.log = [];
+    this._ddReveal(((ch.nodes[ch.start] || {}).say) || []);
   },
   ddChoose(i) {
+    if (this.dd.busy) return;   // đang bung dòng -> khoá click (footer cũng ẩn sẵn)
     const ch = this.dd.chapter; if (!ch) return;
     const node = ch.nodes[this.dd.node]; const c = node && node.choices && node.choices[i]; if (!c) return;
     this.dd.log.push({ who: 'me', text: c.t });
     this.dd.node = c.to;
-    ((ch.nodes[c.to] || {}).say || []).forEach((t) => this.dd.log.push({ who: 'npc', text: t }));
-    this._ddCheckEnd();
+    this._ddReveal(((ch.nodes[c.to] || {}).say) || []);
   },
+  // Bung lần lượt từng dòng NPC: hiện chấm "đang gõ" (delay theo độ dài) rồi mới đẩy dòng vào log
+  _ddReveal(lines) {
+    this._ddStop();
+    const queue = (lines || []).slice();
+    this.dd.busy = true; this.dd.typing = false;
+    const step = () => {
+      if (!this.dd.open || !this.dd.chapter) { this.dd.busy = false; this.dd.typing = false; return; }
+      if (!queue.length) { this.dd.typing = false; this.dd.busy = false; this._ddCheckEnd(); return; }
+      const text = queue.shift();
+      this.dd.typing = true;
+      const wait = Math.max(360, Math.min(1400, 300 + text.length * 15));
+      this._ddTimer = setTimeout(() => {
+        this.dd.typing = false;
+        this.dd.log.push({ who: 'npc', text });
+        this._ddTimer = setTimeout(step, queue.length ? 240 : 60);
+      }, wait);
+    };
+    step();
+  },
+  _ddStop() { if (this._ddTimer) { clearTimeout(this._ddTimer); this._ddTimer = null; } if (this.dd) { this.dd.busy = false; this.dd.typing = false; } },
   _ddCheckEnd() {
     if (!this.ddAtEnd) return;   // còn nhánh -> chưa xong
     const id = this.dd.skillId, chId = this.dd.chapter.id;

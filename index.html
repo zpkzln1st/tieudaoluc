@@ -1478,6 +1478,13 @@
         .dd-back{ align-self:center; padding:9px 22px; border-radius:10px; border:1px solid #26344a; background:rgba(15,21,33,.6); color:#cbd5e1; font-size:13px; font-weight:600; cursor:pointer; }
         .dd-back:hover{ border-color:#3a4a63; color:#fff; }
         .dd-end{ align-self:center; font-size:11px; color:#8a94a8; font-style:italic; margin-bottom:2px; }
+        /* Đàm Đạo: bung từng dòng — fade nhẹ khi dòng mới hiện + chấm "đang gõ" */
+        @keyframes ddLineIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+        .dd-conv > .dd-line{ animation:ddLineIn .22s ease-out both; }
+        .dd-typing{ display:inline-flex !important; align-items:center; gap:5px; padding:11px 14px !important; }
+        .dd-typing span{ width:6px; height:6px; border-radius:50%; background:#93a4bd; opacity:.32; animation:ddDot 1.1s infinite ease-in-out; }
+        .dd-typing span:nth-child(2){ animation-delay:.16s; } .dd-typing span:nth-child(3){ animation-delay:.32s; }
+        @keyframes ddDot{ 0%,64%,100%{ opacity:.28; transform:translateY(0); } 32%{ opacity:.9; transform:translateY(-3px); } }
         .sk-hero .sk-div{ display:flex; align-items:center; gap:9px; margin-top:12px; position:relative; z-index:1; }
         .sk-hero .sk-div::before, .sk-hero .sk-div::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,162,75,.4),transparent); }
         .sk-hero .sk-div span{ color:#c9a24b; font-size:8px; transform:rotate(45deg); display:inline-block; text-shadow:0 0 6px rgba(201,162,75,.6); }
@@ -11203,20 +11210,24 @@
           </div>
         </template>
 
-        <!-- Hội thoại -->
+        <!-- Hội thoại — bung từng dòng; auto-cuộn theo dòng mới nhất qua x-effect trên chính khung -->
         <template x-if="$store.game.dd.chapter">
-          <div class="dd-conv">
+          <div class="dd-conv"
+            x-effect="$store.game.dd.log.length; $store.game.dd.typing; $store.game.dd.busy; $nextTick(() => { $el.scrollTop = $el.scrollHeight; })">
             <template x-for="(l, i) in $store.game.dd.log" :key="i">
               <div class="dd-line" :class="l.who" x-text="l.text"></div>
             </template>
+            <template x-if="$store.game.dd.typing">
+              <div class="dd-line npc dd-typing"><span></span><span></span><span></span></div>
+            </template>
           </div>
         </template>
-        <template x-if="$store.game.dd.chapter">
-          <div class="dd-ft">
+        <!-- Footer ẩn khi NPC đang "gõ" (dd.busy) — hết ô trống thừa kẹt góc -->
+        <template x-if="$store.game.dd.chapter && !$store.game.dd.busy">
+          <div class="dd-ft" x-init="$nextTick(() => { const b = $el.querySelector('.dd-choice, .dd-back'); if (b && (!document.activeElement || document.activeElement === document.body)) b.focus({ preventScroll: true }); })">
             <template x-if="!$store.game.ddAtEnd">
               <template x-for="(c, i) in $store.game.ddCurChoices" :key="i">
-                <button class="dd-choice" x-text="c.t"
-                  @click="$store.game.ddChoose(i); $nextTick(() => { const e = $el.closest('.dd-box').querySelector('.dd-conv'); if (e) e.scrollTop = e.scrollHeight; })"></button>
+                <button class="dd-choice" x-text="c.t" @click="$store.game.ddChoose(i)"></button>
               </template>
             </template>
             <template x-if="$store.game.ddAtEnd">
