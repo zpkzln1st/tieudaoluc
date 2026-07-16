@@ -18,23 +18,22 @@
 // ============================================================
 
 // Khoá CÔNG KHAI của tác giả (an toàn để công khai — chỉ dùng để VERIFY).
-// >>> CHƯA CẤU HÌNH: dán khoá công khai thật (từ công cụ _tools/an_ky_tac_gia.html) vào đây.
 export const AUTHOR_PUBKEY = {
   kty: 'EC', crv: 'P-256',
-  x: '',
-  y: '',
+  x: 'hEotDuyv0UgqJC4hKe8trPhW7QQrNDxiyNXOk2Pm6fA',
+  y: 'HoG6PcbEAHaDcb4DNfEqlqsQs32jehKxZ9WmgGCgu1A',
 };
 
 // Chứng chỉ tác giả (đã ký bằng khoá riêng). name = tên hiển thị; uid = id tài khoản
 // tác giả (để hiện huy hiệu "✓ Tác Giả" đúng tài khoản); iat = thời điểm cấp.
-// >>> CHƯA CẤU HÌNH: sig rỗng -> verify trả null -> ẤN KÝ NGỦ (không hiện gì).
-//     Dán chứng chỉ thật (từ công cụ) vào đây để BẬT.
+// >>> ĐỔI TÊN: dùng "cấp lại" trong _tools/an_ky_tac_gia.html (giữ nguyên khoá riêng)
+//     -> chỉ thay AUTHOR_CERT dưới đây, KHÔNG cần đụng AUTHOR_PUBKEY.
 export const AUTHOR_CERT = {
   v: 1,
-  name: '',
-  uid: '',
-  iat: 0,
-  sig: '',
+  name: 'ArchisuS',
+  uid: '942e0821-009d-4c43-b191-a4701656d2c1',
+  iat: 1784190541,
+  sig: '60rGLoxYEiD/HgjT9DZl+BHZjTMtGGpfpj/PnjOP3QBrefH8HQ2m4dBxN4huLrEIyNCF8AaULEirVXf9DrmfXw==',
 };
 
 // Thông điệp được ký — PHẢI khớp 100% với công cụ ký (khỏi bẫy canonical-JSON).
