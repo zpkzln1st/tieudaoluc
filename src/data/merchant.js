@@ -5,7 +5,7 @@
 // ============================================================
 export const MERCHANT = {
   id: 'trieuLaoBan', name: 'Triệu Lão Bản', gloss: 'General Merchant', icon: '🏪',
-  quote: 'Khách quan thượng lộ! Dung mạo, ảnh bìa, mồi câu hảo hạng — Triệu mỗ gom đủ. Tiền trao cháo múc, không nói thách.',
+  quote: 'Bảo vật có giá, cơ duyên vô giá. Khách quan đã đến, hà tất không xem?',
 };
 
 // Đồng giá mua bằng Hồn Thạch
