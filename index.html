@@ -205,7 +205,8 @@
   <div class="spl-bg"></div>
   <div class="spl-scrim"></div>
   <div class="spl-aura"></div>
-  <img class="spl-hero" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
+  <!-- src do script bên dưới random gán (khỏi tải thừa 1 ảnh mặc định rồi bỏ) -->
+  <img class="spl-hero" alt="">
   <div class="spl-brand">
     <img class="spl-emblem" src="images/ui/logo-emblem.webp" alt="" onerror="this.style.display='none'">
     <div class="spl-name">Tiêu Dao Lục</div>
@@ -221,12 +222,37 @@
   (function(){
     var sp=document.getElementById('gameSplash'); if(!sp) return;
     var AWAY_MS=45000, hiddenAt=0, t=null;
+
+    /* ---- Ảnh nhân vật splash: bể ngẫu nhiên images/ui/khaitich_hero<N>.webp (N = 1..HERO_COUNT).
+       Random mỗi lần splash chạy (vào game / quay lại sau khi rời tab lâu), không lặp lại tấm vừa xem.
+       >>> THÊM ẢNH: chỉ cần sửa HERO_COUNT cho khớp số file hero<N> trong images/ui.
+       Thiếu/lỗi ảnh -> tự lùi về khaitich_hero.webp (không bao giờ để splash trống). ---- */
+    var HERO_COUNT=19, HERO_FALLBACK='images/ui/khaitich_hero.webp';
+    var heroEl=sp.querySelector('.spl-hero'), lastHero=0;
+    if(heroEl){
+      heroEl.onerror=function(){
+        if(this.getAttribute('data-fb')){ this.style.display='none'; return; }  /* cả ảnh dự phòng cũng lỗi -> ẩn hẳn */
+        this.setAttribute('data-fb','1'); this.src=HERO_FALLBACK;
+      };
+    }
+    function pickHero(){
+      if(!heroEl) return;
+      heroEl.removeAttribute('data-fb'); heroEl.style.display='';
+      if(HERO_COUNT<1){ heroEl.src=HERO_FALLBACK; return; }
+      var n=1;
+      if(HERO_COUNT>1){ do{ n=1+Math.floor(Math.random()*HERO_COUNT); }while(n===lastHero); }  /* né trùng tấm trước */
+      lastHero=n;
+      heroEl.src='images/ui/khaitich_hero'+n+'.webp';
+    }
+
     function fadeOut(){ clearTimeout(t); t=setTimeout(function(){ sp.classList.add('spl-out'); }, 3000); }
     function replay(){
       sp.classList.remove('spl-out'); sp.style.visibility='';
+      pickHero();  /* đổi ảnh mỗi lần splash chạy lại */
       sp.classList.remove('spl-run'); void sp.offsetWidth; sp.classList.add('spl-run'); /* restart mọi animation kể cả ::after */
       fadeOut();
     }
+    pickHero();
     fadeOut();
     document.addEventListener('visibilitychange', function(){
       if(document.hidden){ hiddenAt=Date.now(); }
