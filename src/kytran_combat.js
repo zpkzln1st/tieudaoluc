@@ -15,7 +15,6 @@ var TICON={
   khi:'<circle cx="12" cy="12" r="8"/><path d="M12 4a4 4 0 0 0 0 8 4 4 0 0 1 0 8"/>',
   bao:'<path d="M4 9h16l-2 8H6z"/><path d="M8 9c0-3 8-3 8 0"/>'
 };
-var TNAME={ kiem:'Kiếm — Sát thương', tim:'Tâm — Hồi máu', khien:'Thuẫn — Phòng ngự', khi:'Khí — Tích chiêu', bao:'Bảo — Trận Hồn' };
 var TVAR={ kiem:'var(--kiem)', tim:'var(--tim)', khien:'var(--khien)', khi:'var(--khi)', bao:'var(--bao)' };
 var TIMG={ kiem:'images/kytran/tile_kiem.webp', tim:'images/kytran/tile_tim.webp', khien:'images/kytran/tile_khien.webp', khi:'images/kytran/tile_khi.webp', bao:'images/kytran/tile_bao.webp' };
 
@@ -65,7 +64,6 @@ var KTB_CSS=[
 '.ktb button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer; padding:0; }',
 '.ktb .fserif{ font-family:"Lora",serif; font-weight:700; }',
 '.ktb .btn{ padding:8px 14px; border-radius:8px; font-weight:700; font-size:.82rem; background:var(--ink3); border:1px solid var(--bd); color:var(--tx); }',
-'.ktb .btn.pri{ background:var(--jade); border-color:var(--jade); color:#04211c; }',
 '.ktb .btn:disabled{ opacity:.4; cursor:not-allowed; }',
 '.ktb .ktb-top{ flex:none; display:flex; align-items:center; justify-content:space-between; gap:8px; }',
 '.ktb .ktb-soul{ display:flex; align-items:baseline; gap:6px; padding:4px 12px; border-radius:99px; background:var(--ink2); border:1px solid var(--bd); font-size:.82rem; font-weight:700; color:var(--gold); }',
@@ -92,7 +90,6 @@ var KTB_CSS=[
 '.ktb .bar .bt{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:.64rem; font-weight:700; text-shadow:0 1px 2px #000; }',
 '.ktb .blockpip{ font-size:.66rem; color:#cbd5e1; min-height:15px; line-height:15px; }',
 '.ktb .intent{ font-size:.68rem; color:var(--rose); text-align:center; padding:2px; }',
-'.ktb .intent.heavy{ color:var(--gold); font-weight:700; }',
 '.ktb .ktb-turn{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:99px; font-family:"Lora",serif; font-weight:700; font-size:.76rem; border:1px solid var(--bd); background:var(--ink3); white-space:nowrap; flex:none; }',
 '.ktb .ktb-turn .dot{ width:8px; height:8px; border-radius:99px; background:currentColor; box-shadow:0 0 7px currentColor; }',
 '.ktb .ktb-turn.hero{ color:var(--jade); border-color:color-mix(in srgb,var(--jade) 45%,var(--bd)); }',
@@ -163,8 +160,6 @@ var KTB_CSS=[
 '.ktb .skcue-ic.go{ animation:ktbCueIc .95s cubic-bezier(.2,.7,.3,1) forwards; }',
 '@keyframes ktbCueIc{ 0%{opacity:0; transform:translate(-50%,-50%) scale(.55) rotate(-8deg);} 20%{opacity:1; transform:translate(-50%,-50%) scale(1.06) rotate(0);} 78%{opacity:1; transform:translate(-50%,-50%) scale(1);} 100%{opacity:0; transform:translate(-50%,-50%) scale(1.04);} }',
 '.ktb .skcue.has-ic .skcue-nm{ top:72%; font-size:clamp(.92rem,3.9vw,1.5rem); }',
-'.ktb .eintent .eic{ display:inline-block; width:18px; height:18px; object-fit:contain; border-radius:50%; vertical-align:-4px; margin:0 1px; background:radial-gradient(60% 60% at 50% 40%,rgba(255,255,255,.1),#0a0f1c); border:1px solid rgba(245,185,66,.55); box-shadow:0 0 6px -1px rgba(245,185,66,.6); filter:brightness(1.18) contrast(1.06); }',
-'.ktb .eintent.heavy .eic{ border-color:currentColor; box-shadow:0 0 7px -1px currentColor; }',
 '.ktb .skcue-shard{ position:absolute; left:50%; top:50%; width:8px; height:2px; border-radius:2px; background:var(--acc); box-shadow:0 0 6px var(--acc); opacity:0; }',
 '.ktb .skcue-shard.go{ animation:ktbCueShard var(--d,420ms) ease-out .12s forwards; }',
 '@keyframes ktbCueShard{ 0%{opacity:0; transform:translate(-50%,-50%) rotate(var(--r,0deg));} 30%{opacity:1;} 100%{opacity:0; transform:translate(calc(-50% + var(--tx,0px)),calc(-50% + var(--ty,0px))) rotate(var(--r,0deg));} }',
@@ -237,16 +232,9 @@ var KTB_CSS=[
 '.ktb .skmed.emed.warn .skdisc{ border-color:color-mix(in srgb,var(--a) 80%,#1b2436); box-shadow:0 0 0 2px color-mix(in srgb,var(--a) 24%,transparent), 0 0 14px -4px var(--a); }',
 '.ktb .skmed.emed.ready .skdisc{ border-color:var(--gold); box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 40%,transparent), 0 0 20px -3px var(--gold); animation:ktbSigPulse 1.1s ease-in-out infinite; }',
 '@keyframes ktbSigPulse{ 0%,100%{ box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 40%,transparent), 0 0 20px -3px var(--gold); } 50%{ box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 55%,transparent), 0 0 28px -2px var(--gold); } }',
-/* badge đếm lượt/'!' trên đĩa chiêu boss — mặc định ẩn (desktop có status chữ đủ), CHỈ bật ở mobile (media query bên dưới) */
-'.ktb .skmed.emed .ecd{ display:none; position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 3px; border-radius:99px; background:#141d2c; border:1px solid color-mix(in srgb,var(--a) 70%,#1b2436); color:#f0e3d0; font-family:"Lora",serif; font-weight:700; font-size:10px; line-height:14px; text-align:center; z-index:3; box-shadow:0 1px 3px rgba(0,0,0,.5); }',
-'.ktb .skmed.emed .ecd.hot{ background:var(--gold); color:#3a2606; border-color:var(--gold); box-shadow:0 0 8px -1px var(--gold); }',
-'.ktb .picktype{ position:fixed; inset:0; z-index:540; display:none; align-items:center; justify-content:center; background:rgba(3,6,14,.5); }',
-'.ktb .picktype.show{ display:flex; }',
-'.ktb .picktype .ptbox{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:340px; padding:16px; background:var(--ink2); border:1px solid var(--bd); border-radius:14px; }',
-'.ktb .picktype .ptttl{ width:100%; text-align:center; font-family:"Lora",serif; font-weight:700; color:var(--gold); margin-bottom:2px; }',
-'.ktb .pt-btn{ display:flex; flex-direction:column; align-items:center; gap:3px; width:78px; padding:8px 4px; border-radius:10px; background:var(--ink3); border:1px solid var(--bd); color:var(--tx); font-size:.68rem; }',
-'.ktb .pt-btn img{ width:26px; height:26px; object-fit:contain; }',
-'.ktb .pt-btn.pt-cancel{ width:100%; flex-direction:row; justify-content:center; color:var(--tx2); }',
+/* badge trên đĩa chiêu — địch: đếm lượt/'!' · hero: số Kho Bảo (chiêu 'stock'). Mặc định ẩn (desktop đã có status chữ), CHỈ bật ở mobile (media query bên dưới) nơi .st bị ẩn cho gọn. */
+'.ktb .skmed .ecd{ display:none; position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 3px; border-radius:99px; background:#141d2c; border:1px solid color-mix(in srgb,var(--a) 70%,#1b2436); color:#f0e3d0; font-family:"Lora",serif; font-weight:700; font-size:10px; line-height:14px; text-align:center; z-index:3; box-shadow:0 1px 3px rgba(0,0,0,.5); }',
+'.ktb .skmed .ecd.hot{ background:var(--gold); color:#3a2606; border-color:var(--gold); box-shadow:0 0 8px -1px var(--gold); }',
 /* ===== Lập Trận v4 (scope .ktb .ltbox — tránh đụng class combat) ===== */
 '.ktb .ltbox{ width:min(1000px,96vw); height:min(660px,92dvh); overflow:hidden; position:relative; display:flex; flex-direction:column; background:linear-gradient(180deg,rgba(20,29,45,.96),rgba(11,18,32,.98)),#0b1220; border:1px solid #26344a; border-radius:18px; box-shadow:0 34px 90px -24px rgba(0,0,0,.82), inset 0 1px 0 rgba(255,255,255,.05); }',
 '.ktb .ltbox::before{ content:""; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,transparent,rgba(245,185,66,.55),transparent); opacity:.75; z-index:2; }',
@@ -256,15 +244,6 @@ var KTB_CSS=[
 '.ktb .ltbox .lt-mk .fb{ font-family:"Lora",serif; font-weight:700; font-size:19px; color:#f3e2b0; }',
 '.ktb .ltbox h1{ margin:0; font-family:"Lora",serif; font-weight:700; font-size:22px; letter-spacing:.6px; background:linear-gradient(180deg,#f7e2a8,#f5b942 56%,#c9932e); -webkit-background-clip:text; background-clip:text; color:transparent; }',
 '.ktb .ltbox .lt-thread{ margin-left:14px; flex:1; height:1px; background:linear-gradient(90deg,rgba(245,185,66,.3),transparent 70%); }',
-'.ktb .ltbox .lt-body{ flex:1; min-height:0; display:grid; grid-template-columns:258px 1fr 258px; gap:15px; padding:15px 17px; }',
-'.ktb .ltbox .lt-col{ display:flex; flex-direction:column; min-height:0; }',
-'.ktb .ltbox .lt-colh{ flex:none; display:flex; align-items:center; gap:8px; margin-bottom:11px; }',
-'.ktb .ltbox .lt-colh .t{ font-family:"Lora",serif; font-weight:700; font-size:15px; color:#e8c877; letter-spacing:.4px; }',
-'.ktb .ltbox .lt-colh .pick{ margin-left:auto; font-size:11px; color:#64748b; border:1px solid #26344a; border-radius:20px; padding:1px 9px; }',
-'.ktb .ltbox .lt-colh .pick b{ color:#f5b942; }',
-'.ktb .ltbox .lt-colh .pick.ok{ border-color:rgba(45,212,191,.42); color:#2dd4bf; }',
-'.ktb .ltbox .lt-colh .pick.ok b{ color:#2dd4bf; }',
-'.ktb .ltbox .lt-grid{ flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:9px 8px; align-content:start; }',
 '.ktb .ltbox .mc{ display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }',
 '.ktb .ltbox .mc .disc{ position:relative; width:78px; height:78px; border-radius:50%; display:grid; place-items:center; background:radial-gradient(70% 70% at 50% 38%,color-mix(in srgb,var(--a) 20%,transparent),#0b1018 82%); border:2px solid color-mix(in srgb,var(--a) 42%,#1b2436); transition:border-color .14s, box-shadow .14s, transform .12s; }',
 '.ktb .ltbox .mc:hover .disc{ transform:translateY(-2px); border-color:color-mix(in srgb,var(--a) 66%,#1b2436); box-shadow:0 8px 18px -10px rgba(0,0,0,.8); }',
@@ -279,47 +258,6 @@ var KTB_CSS=[
 '.ktb .ltbox .mc .pil .nm{ font-size:12px; font-weight:600; color:#94a3b8; line-height:1.18; text-align:center; }',
 '.ktb .ltbox .mc.on .pil .nm{ color:color-mix(in srgb,var(--a) 80%,#ffffff); }',
 '.ktb .ltbox .mc .pil .cost{ font-size:10px; color:#64748b; }',
-'.ktb .ltbox .lt-center{ min-height:0; display:flex; flex-direction:column; }',
-'.ktb .ltbox .lt-en{ flex:none; display:flex; flex-direction:column; align-items:center; }',
-'.ktb .ltbox .lt-en .lbl{ font-size:10px; letter-spacing:3px; color:#fb7185; font-weight:700; text-transform:uppercase; opacity:.82; margin-bottom:6px; }',
-'.ktb .ltbox .lt-en .frame{ position:relative; width:114px; height:114px; border-radius:16px; display:grid; place-items:center; background:radial-gradient(72% 66% at 50% 40%,rgba(251,113,133,.17),#0a0f18 84%); border:1px solid #402a34; box-shadow:inset 0 0 0 1px rgba(245,185,66,.1), inset 0 -8px 20px rgba(0,0,0,.5), 0 10px 26px -10px rgba(0,0,0,.75); }',
-'.ktb .ltbox .lt-en .frame::before{ content:""; position:absolute; inset:5px; border-radius:12px; border:1px solid rgba(245,185,66,.15); }',
-'.ktb .ltbox .lt-en .frame img{ width:102px; height:102px; object-fit:cover; object-position:50% 12%; border-radius:11px; position:relative; z-index:1; }',
-'.ktb .ltbox .lt-en .nm{ margin-top:8px; font-family:"Lora",serif; font-weight:600; font-size:16px; color:#f2e2c4; }',
-'.ktb .ltbox .lt-en .mech{ margin-top:6px; display:inline-flex; align-items:center; gap:7px; padding:4px 11px; border-radius:20px; font-size:11.5px; font-weight:600; color:#f6cdd4; background:rgba(251,113,133,.12); border:1px solid rgba(251,113,133,.32); }',
-'.ktb .ltbox .lt-en .mech svg{ width:12px; height:12px; }',
-'.ktb .ltbox .lt-detail{ flex:none; height:170px; margin-top:11px; display:flex; gap:13px; padding:12px 13px; border-radius:14px; background:linear-gradient(180deg,#141d2e,#0f1826); border:1px solid #26344a; position:relative; overflow:hidden; }',
-'.ktb .ltbox .lt-detail::after{ content:""; position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 34px -15px color-mix(in srgb,var(--a,#334155) 60%,transparent); }',
-'.ktb .ltbox .lt-detail .big{ flex:none; width:84px; height:84px; position:relative; display:grid; place-items:center; align-self:center; border-radius:var(--br,14px); background:radial-gradient(72% 72% at 50% 38%,color-mix(in srgb,var(--a,#4a5568) 26%,transparent),#0b1018 82%); border:1px solid color-mix(in srgb,var(--a,#4a5568) 48%,#2a3245); }',
-'.ktb .ltbox .lt-detail .big img{ width:74px; height:74px; object-fit:contain; filter:drop-shadow(0 4px 8px rgba(0,0,0,.55)); position:relative; z-index:1; border-radius:var(--br,14px); }',
-'.ktb .ltbox .lt-detail .big .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:36px; color:color-mix(in srgb,var(--a,#4a5568) 72%,#cbd5e1); }',
-'.ktb .ltbox .lt-detail.tp .big, .ktb .ltbox .lt-detail.tp .big img{ --br:50%; }',
-'.ktb .ltbox .lt-detail .info{ min-width:0; flex:1; display:flex; flex-direction:column; justify-content:center; }',
-'.ktb .ltbox .lt-detail .kind{ font-size:10px; letter-spacing:2px; text-transform:uppercase; color:color-mix(in srgb,var(--a,#8a94a8) 80%,#8a94a8); font-weight:700; }',
-'.ktb .ltbox .lt-detail .nm{ margin-top:3px; font-family:"Lora",serif; font-weight:700; font-size:17px; color:#f0f5fc; line-height:1.1; }',
-'.ktb .ltbox .lt-detail .lore{ margin-top:4px; font-family:"Lora",serif; font-style:italic; font-size:11.5px; color:color-mix(in srgb,var(--a,#8a94a8) 55%,#93a1b8); line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
-'.ktb .ltbox .lt-detail .desc{ margin-top:6px; font-size:12px; line-height:1.45; color:#c4cddb; overflow:hidden; display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; }',
-'.ktb .ltbox .lt-detail.empty{ align-items:center; justify-content:center; }',
-'.ktb .ltbox .lt-detail.empty .ph{ text-align:center; color:#64748b; font-size:12px; }',
-'.ktb .ltbox .lt-detail.empty .ph b{ display:block; font-family:"Lora",serif; color:#94a3b8; font-size:14px; margin-bottom:3px; }',
-'.ktb .ltbox .lt-load{ flex:none; margin-top:12px; display:flex; align-items:stretch; gap:12px; }',
-'.ktb .ltbox .lt-slotlab{ font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase; color:#64748b; font-weight:700; text-align:center; margin-bottom:5px; }',
-'.ktb .ltbox .lt-tpwrap{ flex:none; display:flex; flex-direction:column; }',
-'.ktb .ltbox .lt-tpslot{ position:relative; width:70px; height:70px; border-radius:50%; display:grid; place-items:center; margin:0 auto; border:2px dashed #33425c; background:rgba(9,14,24,.5); }',
-'.ktb .ltbox .lt-tpslot.fill{ border:2px solid color-mix(in srgb,var(--a,#f5b942) 60%,#2a3245); background:radial-gradient(70% 70% at 50% 36%,color-mix(in srgb,var(--a,#f5b942) 22%,transparent),#0b1018 84%); box-shadow:0 0 18px -6px color-mix(in srgb,var(--a,#f5b942) 55%,transparent); }',
-'.ktb .ltbox .lt-tpslot.fill img{ width:64px; height:64px; border-radius:50%; object-fit:contain; filter:drop-shadow(0 2px 5px rgba(0,0,0,.5)); position:relative; z-index:1; }',
-'.ktb .ltbox .lt-tpslot .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:24px; color:#3a475d; }',
-'.ktb .ltbox .lt-tpslot.fill .g{ color:color-mix(in srgb,var(--a,#f5b942) 78%,#cfd7e2); }',
-'.ktb .ltbox .lt-divx{ flex:none; width:1px; align-self:center; height:56px; background:linear-gradient(180deg,transparent,#26344a,transparent); }',
-'.ktb .ltbox .lt-skwrap{ flex:1; }',
-'.ktb .ltbox .lt-skrow{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; }',
-'.ktb .ltbox .lt-slot{ position:relative; height:70px; border-radius:12px; display:grid; place-items:center; border:1px dashed #2c3a52; background:rgba(9,14,24,.5); }',
-'.ktb .ltbox .lt-slot .n{ font-family:"Lora",serif; font-weight:700; font-size:20px; color:#334157; }',
-'.ktb .ltbox .lt-slot.fill{ border:1px solid color-mix(in srgb,var(--a,#2dd4bf) 52%,#2a3245); background:radial-gradient(70% 70% at 50% 34%,color-mix(in srgb,var(--a,#2dd4bf) 20%,transparent),#0b1018 86%); }',
-'.ktb .ltbox .lt-slot.fill img{ width:42px; height:42px; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); position:relative; z-index:1; }',
-'.ktb .ltbox .lt-slot.fill .g{ position:absolute; inset:0; display:grid; place-items:center; font-family:"Lora",serif; font-weight:700; font-size:20px; color:color-mix(in srgb,var(--a,#2dd4bf) 78%,#cfd7e2); }',
-'.ktb .ltbox .lt-slot .cap{ position:absolute; bottom:3px; left:4px; right:4px; text-align:center; font-size:9px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }',
-'.ktb .ltbox .lt-foot{ flex:none; margin-top:auto; padding-top:12px; display:flex; align-items:center; justify-content:center; }',
 '.ktb .ltbox .lt-close{ position:absolute; top:12px; right:13px; z-index:6; width:32px; height:32px; border-radius:9px; display:grid; place-items:center; cursor:pointer; color:#94a3b8; background:rgba(15,21,33,.55); border:1px solid #26344a; transition:.14s; }',
 '.ktb .ltbox .lt-close:hover{ color:#e2e8f0; border-color:#3a4a63; background:rgba(30,41,59,.7); }',
 '.ktb .ltbox .lt-close svg{ width:16px; height:16px; }',
@@ -338,16 +276,13 @@ var KTB_CSS=[
 '  .ktb .side.hero{ order:3; } .ktb .boardcol{ order:2; } .ktb .side.enemy{ order:1; }',
 '  .ktb .tampham{ display:none; }',
 '  .ktb .ltbox{ width:100%; height:auto; max-height:92dvh; overflow-y:auto; }',
-'  .ktb .ltbox .lt-body{ grid-template-columns:1fr; }',
-'  .ktb .ltbox .lt-center{ order:-1; }',
-'  .ktb .ltbox .lt-detail{ height:auto; }',
 '  .ktb .side.hero .skillbar, .ktb .side.enemy .eskillbar{ flex-direction:row; width:100%; flex:none; margin-top:0; }',
 '  .ktb .side.hero .fighter, .ktb .side.enemy .fighter{ flex-wrap:wrap; }',
 '  .ktb .eskill-hd{ display:none; }',
 '  .ktb .skmed.emed{ flex:1; min-width:0; flex-direction:column; gap:3px; text-align:center; }',
 '  .ktb .skmed.emed .skdisc{ width:38px; height:38px; }',
 '  .ktb .skmed.emed .skdisc>img{ width:34px; height:34px; }',
-'  .ktb .skmed.emed .ecd{ display:grid; place-items:center; }',
+'  .ktb .skmed .ecd{ display:grid; place-items:center; }',
 '  .ktb .skmed.emed .skm .nm{ font-size:.56rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }',
 '  .ktb .skmed.emed .skm .st{ display:none; }',
 '  .ktb .skmed{ flex:1; min-width:0; flex-direction:column; gap:3px; text-align:center; }',
@@ -355,6 +290,17 @@ var KTB_CSS=[
 '  .ktb .skmed .skdisc>img{ width:42px; height:42px; }',
 '  .ktb .skmed .skm .nm{ font-size:.58rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }',
 '  .ktb .skmed .skm .st{ display:none; }',
+'}',
+/* Màn RẤT hẹp (<=380px): vì .ktb-top đã khoá flex:none + nowrap nên không co được -> nội dung (~308px) tràn pane (~298px)
+   và nút "Rút Lui" bị cắt mất. Nén padding/font 4 mục cho vừa, vẫn giữ 1 hàng. */
+'@media (max-width:380px){',
+'  .ktb .ktb-top{ gap:4px; }',
+'  .ktb .ktb-soul{ padding:4px 7px; font-size:.74rem; }',
+'  .ktb .ktb-soul .soulic{ width:15px; height:15px; }',
+'  .ktb .ktb-turnwrap{ gap:5px; }',
+'  .ktb .ktb-turn{ padding:4px 8px; font-size:.7rem; gap:5px; }',
+'  .ktb .ktb-extra{ padding:4px 7px; font-size:.66rem; }',
+'  .ktb .ktb-retreat{ padding:5px 8px; font-size:.66rem; }',
 '}',
 '@media (prefers-reduced-motion:reduce){ .ktb .tile{ transition:none; } .ktb .tile.clear .tin,.ktb .tile.spawn,.ktb .shake,.ktb .flash.on,.ktb .tile.psn .tin::after,.ktb .tile.burn .tin::after,.ktb .tile.burn .tin::before,.ktb .tile.spfx-6 .deco::before,.ktb .tile.spfx-6 .deco::after,.ktb .tile.spfx-12 .deco,.ktb .tile.spfx-16 .deco::before,.ktb .combolabel.on,.ktb .fnum{ animation:none; } }',
 /* ===== Lap Tran 2 buoc (l2-*) — override + layout wizard ===== */
@@ -451,7 +397,6 @@ var KTB_TPL=''+
     '</div></div>'+
   '</div>'+
   '<div class="overlay"></div>'+
-  '<div class="picktype"></div>'+
   '<div class="toast"></div>'+
 '</div>';
 
@@ -490,7 +435,7 @@ export function mountKtBattle(host, opts){
   var LT={ tamPhap:lt0tp, skills:lt0sk };
 
   /* ----- lifecycle ----- */
-  var dead=false, ended=false, resolved=false, ltKeyHandler=null, ptKeyHandler=null, ptBackHandler=null;
+  var dead=false, ended=false, resolved=false, ltKeyHandler=null;
   function fireResolve(win){   /* ghi thắng 1 lần khi trận phân định — trước cả nút Xác Nhận/Trận Kế (bảo toàn thưởng mọi đường thoát) */
     if(resolved) return; resolved=true;
     try{ if(opts.onResolve) opts.onResolve(win, { soul:S?S.soul:0 }); }catch(e){}
@@ -513,7 +458,7 @@ export function mountKtBattle(host, opts){
   var eKhiBar=q('.ekhibar'), eBlockPip=q('.eblockpip'), turnPill=q('.ktb-turn'), extraBadge=q('.ktb-extra'), eSkillBar=q('.eskillbar');
   var hPort=q('.hport'), hImg=q('.himg'), hName=q('.hname'), tamPhamEl=q('.tampham');
   var hHpBar=q('.hhpbar'), hHpTxt=q('.hhptxt'), khiBar=q('.khibar'), blockPip=q('.hblockpip');   /* class riêng — tránh vớ nhầm .blockpip của địch (đứng trước trong DOM) */
-  var skillBarEl=q('.skillbar'), overlayEl=q('.overlay'), pickEl=q('.picktype'), toastEl=q('.toast');
+  var skillBarEl=q('.skillbar'), overlayEl=q('.overlay'), toastEl=q('.toast');
   var soulEl=q('.soulv'), retreatBtn=q('.ktb-retreat');
 
   function el(t,c,h){ var e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; }
@@ -590,7 +535,6 @@ export function mountKtBattle(host, opts){
     var s=(h>=60)?Math.min(w,h):Math.min(w,560); /* host chưa có chiều cao -> co theo ngang */
     boardEl.style.width=s+'px';
   }
-  function cellPct(i){ return (i*100/N)+'%'; }
   /* Định vị tile bằng transform:translate (GPU compositing) thay left/top → hết layout+paint mỗi frame khi cascade (mobile mượt hơn hẳn). % của translate tính theo CỠ TILE = 1 ô, nên c*100%,r*100% đặt đúng ô (r,c). */
   function tileXform(r,c){ return 'translate('+(c*100)+'%,'+(r*100)+'%)'; }
   function renderBoard(initial){
@@ -842,24 +786,8 @@ export function mountKtBattle(host, opts){
     busy=false; boardEl.classList.remove('busy');
   }
 
-  /* --- Ngũ Hành Đại Chuyển: chọn hệ -> biến 3×3 giữa --- */
+  /* --- Ngũ Hành Đại Chuyển: biến 3×3 giữa thành 1 hệ NGẪU NHIÊN (bước chọn hệ đã bỏ — xem activateSkill) --- */
   function convertRegion(type){ for(var r=2;r<=4;r++)for(var c=2;c<=4;c++){ board[r][c]={ id:uid++, type:type }; } }
-  function enterPickType(sk){
-    pickEl.innerHTML='';
-    var box=el('div','ptbox','<div class="ptttl">Ngũ Hành Đại Chuyển — chọn hệ</div>');
-    TYPES.forEach(function(t){ var b=el('button','pt-btn','<img src="'+TIMG[t]+'"><span>'+TNAME[t].split(' — ')[0]+'</span>'); b.onclick=function(){ closePickType(); runNguHanh(t); }; box.appendChild(b); });
-    var cancel=el('button','pt-btn pt-cancel',null); cancel.textContent='Hủy'; cancel.onclick=closePickType; box.appendChild(cancel);
-    pickEl.appendChild(box); pickEl.classList.add('show');
-    ptKeyHandler=function(e){ if(e.key==='Escape'||e.keyCode===27){ e.preventDefault(); closePickType(); } };   /* ESC = Hủy */
-    document.addEventListener('keydown', ptKeyHandler);
-    ptBackHandler=function(e){ if(e.target===pickEl) closePickType(); };   /* bấm nền = Hủy */
-    pickEl.addEventListener('click', ptBackHandler);
-  }
-  function closePickType(){
-    pickEl.classList.remove('show');
-    if(ptKeyHandler){ document.removeEventListener('keydown', ptKeyHandler); ptKeyHandler=null; }
-    if(ptBackHandler){ pickEl.removeEventListener('click', ptBackHandler); ptBackHandler=null; }
-  }
   async function runNguHanh(type){
     if(busy||S.over) return;
     busy=true; boardEl.classList.add('busy'); S._kimCangTurn=false;
@@ -883,27 +811,21 @@ export function mountKtBattle(host, opts){
       var acc=sk.accent||'#22d3ee';
       var slot=el('button','skmed'+(ready?' ready':''));
       slot.style.setProperty('--a', acc);
-      var st;
+      var st, badge='';
       if(sk.kind==='khi'){ var pct=Math.min(100,S.khi/sk.cost*100); st='<div class="st">'+Math.floor(S.khi)+' / '+sk.cost+' Khí</div><div class="mini"><i style="width:'+pct+'%"></i></div>'; }
       else if(sk.kind==='charge'){ var ch=S.sk[id]?S.sk[id].charges:sk.charges; var dots=''; for(var i=0;i<sk.charges;i++) dots+='<i class="'+(i<ch?'on':'')+'"></i>'; st='<div class="st">Còn '+ch+' lượt</div><div class="dots">'+dots+'</div>'; }
-      else { st='<div class="st">Kho Bảo: '+S.goldStock+'</div>'; }
+      /* stock: .st là kênh DUY NHẤT hiện số Kho Bảo (khác khi=.mini, charge=.dots) — mobile ẩn .st nên phải có badge trên đĩa, không thì mất sạch số mà cơ chế lại "càng gom càng nặng" */
+      else { st='<div class="st">Kho Bảo: '+S.goldStock+'</div>'; badge=''+S.goldStock; }
       var art='<img src="images/kytran/sk_'+id+'.webp" alt="" onerror="this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'block\'"><span style="display:none">'+skillIconSVG(sk.icon)+'</span>';
       var tile = sk.tile?'<img class="sktile" src="'+TIMG[sk.tile]+'">':'';
-      slot.innerHTML='<div class="skdisc">'+art+tile+'</div><div class="skm"><div class="nm">'+sk.name+'</div>'+st+'</div>';
+      var cd = badge?'<span class="ecd">'+badge+'</span>':'';
+      slot.innerHTML='<div class="skdisc">'+art+tile+cd+'</div><div class="skm"><div class="nm">'+sk.name+'</div>'+st+'</div>';
       slot.disabled=!ready; slot.onclick=function(){ activateSkill(id); };
       skillBarEl.appendChild(slot);
     });
   }
 
   /* ----- màn Lập Trận (mở đầu trận, chọn từ pools đã mở) ----- */
-  function luuPhaiName(tp,sk){
-    if(tp==='hoaDoc' && sk.indexOf('huyetSat')>=0) return 'Độc Sát Lưu';
-    if(tp==='kimCang' && sk.indexOf('ngungSuong')>=0) return 'Kim Cang Lưu';
-    if(tp==='thaiCuc' && sk.indexOf('nguLoi')>=0) return 'Lôi Trận Lưu';
-    if(tp==='tuSa') return 'Tụ Sa Lưu';
-    if(tp==='canKhon') return 'Sinh Hóa Lưu';
-    return 'Tán Tu Lưu';
-  }
   function skCostLabel(s){ return s.kind==='khi'?s.cost+' Khí':(s.kind==='charge'?s.charges+'/trận':'Kho Bảo'); }
   function lapTran(){
     busy=true;
@@ -1410,7 +1332,6 @@ export function mountKtBattle(host, opts){
     if(adjacent(sp,pos)){ attemptSwap(sp,pos); } else { sel=board[pos.r][pos.c]; renderBoard(); }
   }
 
-  function intentIc(icon){ return icon ? '<img class="eic" src="'+icon+'" alt="" onerror="this.style.display=\'none\'">' : ''; }
   /* Cột Tuyệt Học Cung Chủ (mirror hero .skmed): sig highlight + đếm "N lượt"; khi-skill "Khí x/100" + thanh mini. Mob: ẩn. */
   function renderEnemySkills(){
     if(!vis||!eSkillBar) return;
@@ -1730,7 +1651,6 @@ export function mountKtBattle(host, opts){
   function destroy(){
     dead=true;
     clearLtKey();
-    if(ptKeyHandler){ document.removeEventListener('keydown', ptKeyHandler); ptKeyHandler=null; }
     window.removeEventListener('resize', onResize);
     if(toastTimer) clearTimeout(toastTimer);
     if(devOn && window.KT3===harness){ try{ delete window.KT3; }catch(e){ window.KT3=undefined; } }
