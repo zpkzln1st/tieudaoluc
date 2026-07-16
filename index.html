@@ -11058,6 +11058,12 @@
                   class="w-full mt-2 px-3 py-2 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-sm font-medium transition disabled:opacity-50 disabled:cursor-wait"
                   x-text="$store.game.cloudSyncing ? 'Đang đồng bộ…' : 'Đồng bộ ngay'"></button>
                 <template x-if="$store.game.cloudErr"><div class="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1">⚠ <span x-text="$store.game.cloudErr"></span></div></template>
+                <!-- ID tài khoản (uid) — cho Ấn Ký Tác Giả; bấm để copy -->
+                <div class="mt-2 flex items-center gap-2 text-[11px] text-slate-500">
+                  <span class="shrink-0">ID tài khoản:</span>
+                  <code class="flex-1 min-w-0 truncate px-1.5 py-0.5 rounded bg-black/40 text-sky-300/90" x-text="($store.game.authUser&&$store.game.authUser.id)||'—'" :title="($store.game.authUser&&$store.game.authUser.id)||''"></code>
+                  <button @click="try{navigator.clipboard.writeText(($store.game.authUser&&$store.game.authUser.id)||'');$store.game.showToast('Đã copy ID tài khoản')}catch(e){}" class="shrink-0 px-2 py-0.5 rounded bg-ink3 border border-slate-700 hover:border-slate-500 text-slate-300 transition">Copy</button>
+                </div>
               </div>
             </template>
             <template x-if="!$store.game.isLoggedIn">
