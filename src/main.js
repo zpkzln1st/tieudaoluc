@@ -52,6 +52,7 @@ import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
+import { verifyAuthorCert } from './engine/author.js';
 
 let _devNowOffset = 0;                        // Dev: tua đồng hồ (session-only; reload reset). 0 = thực.
 const now = () => Date.now() + _devNowOffset;
@@ -1110,6 +1111,22 @@ const gameStore = {
   },
   openSettings() { this.settingsModal = true; },
   closeSettings() { this.settingsModal = false; },
+  // ---------- Ấn Ký Tác Giả (chứng chỉ ký số — nhận diện người thiết kế, không giả mạo được) ----------
+  author: null,          // { name, uid } sau khi verify chứng chỉ (null = chưa verify / không hợp lệ)
+  authorOpen: false,     // modal "Về Trò Chơi / Tác Giả"
+  // Verify 1 lần lúc khởi động; lưu vào window để splash (script thường) đọc được.
+  async initAuthorSeal() {
+    try {
+      const a = await verifyAuthorCert();
+      this.author = a;
+      try { window.TDL_AUTHOR = a; } catch (e) {}
+    } catch (e) { this.author = null; }
+  },
+  get authorName() { return (this.author && this.author.name) || ''; },
+  get hasAuthorSeal() { return !!(this.author && this.author.name); },
+  // Tài khoản đang đăng nhập CÓ ĐÚNG là tác giả không (uid khớp chứng chỉ đã ký) -> huy hiệu "✓ Tác Giả".
+  get isAuthorAccount() { return !!(this.author && this.author.uid && this.authUser && this.authUser.id === this.author.uid); },
+
   // ---------- Tài khoản / Cloud (Supabase Auth) ----------
   get isLoggedIn() { return !!this.authUser; },
   get authUserEmail() { return (this.authUser && this.authUser.email) || ''; },
@@ -3656,6 +3673,7 @@ Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)
 Alpine.store('game').initCloud();           // Tài khoản/Cloud: khôi phục phiên Supabase (lazy, offline-safe)
+Alpine.store('game').initAuthorSeal();      // Ấn Ký Tác Giả: verify chứng chỉ ký số (offline-safe)
 
 // Cloud save: tự đẩy định kỳ (15s) nếu save đã đổi + đẩy ngay khi ẩn/rời trang (best-effort).
 setInterval(() => { const s = window.Alpine?.store('game'); if (s) s.cloudAutoPushTick(); }, 15000);

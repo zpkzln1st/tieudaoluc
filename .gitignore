@@ -22,3 +22,6 @@ Thumbs.db
 .DS_Store
 *.tmp
 desktop.ini
+
+# Cong cu dev (tao khoa An Ky Tac Gia) — khong deploy
+_tools/

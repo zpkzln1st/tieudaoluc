@@ -124,6 +124,20 @@
     ::-webkit-scrollbar-corner{background:transparent}
     *{scrollbar-width:thin;scrollbar-color:rgba(100,116,139,.5) transparent}
     [x-cloak]{display:none!important}
+    /* ===== Ấn Ký Tác Giả (huy hiệu ✓ Tác Giả cạnh tên + con dấu góc sidebar) — glow TĨNH ===== */
+    .tacgia-badge{ display:inline-flex; align-items:center; gap:3px; padding:1px 7px 1px 5px; border-radius:999px; font-size:10px; font-weight:700; line-height:1.5; white-space:nowrap;
+      color:#fbe7b0; background:linear-gradient(180deg,rgba(245,185,66,.24),rgba(180,120,30,.16)); border:1px solid rgba(245,185,66,.5);
+      box-shadow:0 0 10px -3px rgba(245,185,66,.6), inset 0 0 6px -3px rgba(245,185,66,.5); }
+    .tacgia-badge svg{ width:11px; height:11px; }
+    .tacgia-badge.lg{ font-size:11.5px; padding:2px 10px 2px 7px; }
+    .tacgia-badge.lg svg{ width:13px; height:13px; }
+    .tacgia-seal{ display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 10px; border-radius:11px; cursor:pointer; transition:.15s;
+      border:1px solid rgba(245,185,66,.28); background:linear-gradient(180deg,rgba(30,22,10,.55),rgba(12,10,8,.4)); }
+    .tacgia-seal:hover{ border-color:rgba(245,185,66,.5); background:linear-gradient(180deg,rgba(40,29,12,.7),rgba(14,11,8,.5)); }
+    .tacgia-seal .stamp{ width:30px; height:30px; flex:none; border-radius:7px; display:grid; place-items:center; font-family:'Lora',serif; font-weight:700; font-size:17px;
+      color:#f3d488; border:1px solid rgba(245,185,66,.5); background:radial-gradient(circle at 50% 38%,rgba(245,185,66,.22),rgba(10,8,6,.5)); box-shadow:inset 0 0 8px rgba(245,185,66,.18); }
+    .tacgia-seal .st-lbl{ font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:#9a8a63; }
+    .tacgia-seal .st-name{ font-family:'Lora',serif; font-weight:700; font-size:12.5px; color:#f0d9a0; line-height:1.15; }
     b.dmg{color:#fdba74;font-weight:700} b.dmgc{color:#fb923c;font-weight:800} b.dmgr{color:#fda4af;font-weight:700}
     /* Thanh kéo ngưỡng tự ăn — custom theo tông jade (track đổ màu qua inline style) */
     .eat-range{-webkit-appearance:none;appearance:none;height:7px;border-radius:9999px;outline:none;cursor:pointer}
@@ -183,6 +197,7 @@
     -webkit-background-clip:text; background-clip:text; color:transparent; will-change:background-position, opacity; transform:translateZ(0); }
   #gameSplash .spl-sub{ margin-top:10px; font-family:'Lora',serif; font-size:clamp(12px,1.5vw,15px); letter-spacing:.14em; color:#cdd8ea; text-shadow:0 2px 8px rgba(0,0,0,.7); }
   #gameSplash .spl-rule{ width:min(300px,60vw); height:1px; margin:14px auto 0; background:linear-gradient(90deg,transparent,rgba(245,185,66,.6),transparent); }
+  #gameSplash .spl-author{ margin-top:10px; font-family:'Lora',serif; font-size:clamp(10px,1.2vw,12.5px); letter-spacing:.1em; color:#cbab5f; text-shadow:0 1px 5px rgba(0,0,0,.75); }
   #gameSplash .spl-load{ position:absolute; left:0; right:0; bottom:clamp(6%,7vh,9%); z-index:5; text-align:center; opacity:0; }
   #gameSplash .spl-load .t{ font-family:'Lora',serif; font-size:12.5px; letter-spacing:.2em; color:#b9c6da; text-transform:uppercase; margin-bottom:11px; }
   #gameSplash .spl-load .t b{ color:#fceaba; font-weight:600; }
@@ -224,6 +239,7 @@
     <div class="spl-name">Tiêu Dao Lục</div>
     <div class="spl-sub">Nhất Kiếm Tùy Thân - Độc Bộ Thiên Nhai</div>
     <div class="spl-rule"></div>
+    <div class="spl-author" style="display:none"></div>
   </div>
   <div class="spl-load">
     <div class="t">Đang vào <b>giang hồ</b>…</div>
@@ -280,6 +296,13 @@
       fadeOut();
     }
     pickHero(); pickBg();
+
+    /* Credit tác giả trên splash — đọc window.TDL_AUTHOR (do Ấn Ký Tác Giả set sau khi verify chữ ký).
+       Chỉ hiện khi chứng chỉ HỢP LỆ (verify sai -> TDL_AUTHOR=null -> không hiện gì). */
+    var authEl=sp.querySelector('.spl-author');
+    function fillAuthor(){ var a=window.TDL_AUTHOR; if(a&&a.name&&authEl){ authEl.textContent='Thiết kế · '+a.name; authEl.style.display=''; return true; } return false; }
+    if(!fillAuthor()){ var _at=setInterval(function(){ if(fillAuthor()) clearInterval(_at); },120); setTimeout(function(){ clearInterval(_at); },3000); }
+
     fadeOut();
     document.addEventListener('visibilitychange', function(){
       if(document.hidden){ hiddenAt=Date.now(); }
@@ -295,8 +318,8 @@
       <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <div class="flex items-center gap-2.5">
-      <!-- Logo emblem (ảnh; thiếu file -> ô 逍 tạm) -->
-      <div class="w-12 h-12 shrink-0 flex items-center justify-center">
+      <!-- Logo emblem (ảnh; thiếu file -> ô 逍 tạm). Bấm -> mở "Về Trò Chơi · Tác Giả". -->
+      <div class="w-12 h-12 shrink-0 flex items-center justify-center cursor-pointer" @click="$store.game.authorOpen=true" title="Về Trò Chơi · Tác Giả">
         <img src="images/ui/logo-emblem.webp" alt="Tiêu Dao Lục"
           class="w-full h-full object-contain drop-shadow-[0_0_7px_rgba(34,211,238,0.45)]"
           onerror="if(this.src.endsWith('.webp')){this.src='images/ui/logo-emblem.png'}else{this.style.display='none';this.nextElementSibling.style.display='flex'}">
@@ -511,7 +534,10 @@
           <div class="flex items-center gap-2.5">
             <div class="relative w-16 h-16 rounded-lg overflow-hidden bg-ink3 shrink-0 ring-1 ring-white/15" :style="$store.game.faceStyle"></div>
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-semibold truncate" style="font-family:'Lora',serif" x-text="$store.game.state.player.name"></div>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <div class="text-sm font-semibold truncate" style="font-family:'Lora',serif" x-text="$store.game.state.player.name"></div>
+                <span x-show="$store.game.isAuthorAccount" x-cloak class="tacgia-badge shrink-0" title="Tác Giả — xác thực bằng chữ ký số"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg>Tác Giả</span>
+              </div>
               <template x-if="$store.game.equippedTitleObj">
                 <div class="my-0.5 truncate" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
                   <span class="dh max-w-full min-w-0" :class="$store.game.titleQClass(t.q)" style="gap:.35rem"><span class="dh-txt truncate" style="font-size:11px" x-text="t.name"></span></span>
@@ -579,6 +605,15 @@
             </div>
           </div>
         </template>
+      </div>
+
+      <!-- Con dấu Ấn Ký Tác Giả (đáy sidebar) — chỉ hiện khi chứng chỉ ký số hợp lệ. Bấm mở "Về Trò Chơi". -->
+      <div x-show="$store.game.hasAuthorSeal" x-cloak class="tacgia-seal" @click="$store.game.authorOpen=true" title="Về Trò Chơi · Tác Giả">
+        <div class="stamp fserif">印</div>
+        <div class="min-w-0">
+          <div class="st-lbl">Ấn Ký Tác Giả</div>
+          <div class="st-name truncate" x-text="$store.game.authorName"></div>
+        </div>
       </div>
     </aside>
 
@@ -677,6 +712,7 @@
                 </template>
                 <div class="flex items-center gap-2">
                   <span class="text-3xl gold-text" style="font-family:'Lora',serif; font-weight:700; filter:drop-shadow(0 2px 5px rgba(0,0,0,.85)) drop-shadow(0 0 5px rgba(245,185,66,.28))" x-text="$store.game.state.player.name"></span>
+                  <span x-show="$store.game.isAuthorAccount" x-cloak class="tacgia-badge lg" style="pointer-events:auto" title="Tác Giả — xác thực bằng chữ ký số"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg>Tác Giả</span>
                 </div>
               </div>
               <div class="flex items-center gap-2 mt-2.5 flex-wrap">
@@ -11048,6 +11084,41 @@
             <button @click="$store.game.closeSettings(); $store.game.resetGame()" class="w-full px-3 py-2.5 rounded-lg bg-rose-900/30 border border-rose-700/50 text-rose-300 hover:bg-rose-900/50 text-sm transition">Khôi phục gốc — xoá toàn bộ tiến trình</button>
           </div>
           <div class="text-[10px] text-slate-600 text-center pt-1">Phím <b class="text-slate-500">F9</b>: bảng Dev/Admin (offline).</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Modal: Về Trò Chơi · Tác Giả (Ấn Ký ký số) ===== -->
+  <template x-if="$store.game.authorOpen">
+    <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/78 backdrop-blur-sm p-4" @click.self="$store.game.authorOpen=false" @keydown.escape.window="$store.game.authorOpen=false">
+      <div class="panel rounded-2xl w-[420px] max-w-full border border-amber-500/35 shadow-2xl overflow-hidden">
+        <div class="relative px-6 pt-6 pb-5 text-center" style="background:radial-gradient(120% 90% at 50% 0%, rgba(245,185,66,.14), transparent 62%)">
+          <button @click="$store.game.authorOpen=false" class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center text-sm transition">✕</button>
+          <img src="images/ui/logo-emblem.webp" alt="" class="w-16 h-16 mx-auto object-contain drop-shadow-[0_0_10px_rgba(245,185,66,.5)]" onerror="this.style.display='none'">
+          <div class="gold-text text-2xl mt-2 leading-none" style="font-family:'Lora',serif; font-weight:700">Tiêu Dao Lục</div>
+          <div class="text-[12px] text-slate-400 mt-1.5 italic fserif">Nhất Kiếm Tùy Thân · Độc Bộ Thiên Nhai</div>
+        </div>
+        <div class="px-6 pb-6">
+          <!-- Credit tác giả -->
+          <template x-if="$store.game.hasAuthorSeal">
+            <div class="rounded-xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent p-4 text-center">
+              <div class="text-[10px] uppercase tracking-[.2em] text-amber-300/70">Thiết kế & phát triển bởi</div>
+              <div class="flex items-center justify-center gap-2 mt-1.5">
+                <span class="text-xl fserif" style="color:#f3d488; font-weight:700" x-text="$store.game.authorName"></span>
+                <span class="tacgia-badge" title="Xác thực bằng chữ ký số"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg>Tác Giả</span>
+              </div>
+              <div class="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-emerald-300/90">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                <span>Xác thực bằng <b>chữ ký số</b> (ECDSA P-256)</span>
+              </div>
+              <div class="text-[10.5px] text-slate-500 mt-2 leading-relaxed">Dấu ấn này được ký bằng khoá riêng của tác giả — không thể giả mạo hay chỉnh sửa bằng bất kỳ cách nào; chỉ chính tác giả mới cấp hoặc thay đổi được.</div>
+            </div>
+          </template>
+          <template x-if="!$store.game.hasAuthorSeal">
+            <div class="rounded-xl border border-slate-700 bg-ink3/40 p-4 text-center text-[12px] text-slate-500">Ấn ký tác giả chưa được cấu hình.</div>
+          </template>
+          <div class="text-center text-[10px] text-slate-600 mt-4">© Tiêu Dao Lục</div>
         </div>
       </div>
     </div>
