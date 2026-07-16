@@ -99,7 +99,7 @@ export const SKILLS = {
   },
   luyenDan: {
     id: 'luyenDan', name: 'Luyện Đan', gloss: 'Luyện Dược', icon: '⚗️', stat: 'thanPhap',
-    npc: { name: 'Lý Dược Vương', quote: 'Coi chừng khói độc — và đừng chạm vào thứ gì phát sáng.' },
+    npc: { name: 'Lý Dược Vương', quote: 'Linh dược cứu nhân, độc thảo sát mệnh. Giữa hai thứ ấy, chỉ cách nhau một niệm.' },
     actions: [
       { id: 'hoiKhiDan',        name: 'Hồi Khí Đan',         gloss: 'Battle Potion',   itemId: 'hoiKhiDan',        reqLevel: 1, xp: 10, time: 30.0, statXp: 1, inputs: [{ itemId: 'tungMoc', qty: 2 }, { itemId: 'caTuyet', qty: 1 }] },
       { id: 'tieuPhuLinhThach',   name: 'Linh Thạch Tiều Phu',  gloss: 'Essence Crystal', itemId: 'tieuPhuLinhThach',   reqLevel: 2, xp: 20, time: 40.0, statXp: 2, inputs: [{ itemId: 'tungMoc', qty: 3 }, { itemId: 'thachKhoi', qty: 2 }] },
