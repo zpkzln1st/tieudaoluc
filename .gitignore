@@ -25,3 +25,6 @@ desktop.ini
 
 # Cong cu dev (tao khoa An Ky Tac Gia) — khong deploy
 _tools/
+
+# Anh tac gia RIENG TU: chi luu localStorage may tac gia, KHONG dua len repo public
+images/ui/author_avatar.webp

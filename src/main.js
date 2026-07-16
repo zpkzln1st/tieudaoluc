@@ -1123,11 +1123,42 @@ const gameStore = {
       this.author = a;
       try { window.TDL_AUTHOR = a; } catch (e) {}
     } catch (e) { this.author = null; }
+    this.loadAuthorAvatar();
   },
   get authorName() { return (this.author && this.author.name) || ''; },
   get hasAuthorSeal() { return !!(this.author && this.author.name); },
   // Tài khoản đang đăng nhập CÓ ĐÚNG là tác giả không (uid khớp chứng chỉ đã ký) -> huy hiệu "✓ Tác Giả".
   get isAuthorAccount() { return !!(this.author && this.author.uid && this.authUser && this.authUser.id === this.author.uid); },
+  // ---- Ảnh tác giả RIÊNG TƯ: CHỈ lưu localStorage máy tác giả, KHÔNG lên repo/cloud. Người khác thấy chữ 逍遙. ----
+  _authorAvatar: '',
+  loadAuthorAvatar() { try { this._authorAvatar = localStorage.getItem('tdl_author_avatar') || ''; } catch (e) { this._authorAvatar = ''; } },
+  // chỉ trả ảnh khi ĐÚNG tài khoản tác giả (uid khớp) VÀ có ảnh đã lưu; còn lại '' -> UI hiện chữ Hán
+  get authorAvatarSrc() { return (this.isAuthorAccount && this._authorAvatar) ? this._authorAvatar : ''; },
+  setAuthorAvatarFile(ev) {
+    const f = ev && ev.target && ev.target.files && ev.target.files[0]; if (!f) return;
+    if (!/^image\//.test(f.type)) { this.showToast('Chỉ nhận file ảnh.'); return; }
+    const rd = new FileReader();
+    rd.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const S = 256, cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+          const cx = cv.getContext('2d');
+          const side = Math.min(img.width, img.height);
+          cx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S); // center-crop vuông + thu 256
+          const url = cv.toDataURL('image/webp', 0.9);
+          localStorage.setItem('tdl_author_avatar', url);
+          this._authorAvatar = url;
+          this.showToast('Đã đặt ảnh tác giả (chỉ lưu trên máy này).');
+        } catch (e) { this.showToast('Không xử lý được ảnh.'); }
+      };
+      img.onerror = () => this.showToast('Ảnh lỗi.');
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+    try { ev.target.value = ''; } catch (e) {}
+  },
+  clearAuthorAvatar() { try { localStorage.removeItem('tdl_author_avatar'); } catch (e) {} this._authorAvatar = ''; this.showToast('Đã gỡ ảnh tác giả.'); },
 
   // ---------- Tài khoản / Cloud (Supabase Auth) ----------
   get isLoggedIn() { return !!this.authUser; },

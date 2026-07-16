@@ -142,6 +142,9 @@
       box-shadow:0 0 16px -4px rgba(245,185,66,.5), inset 0 0 10px rgba(0,0,0,.4); background:radial-gradient(circle at 50% 36%,rgba(245,185,66,.2),rgba(10,8,6,.5)); display:grid; place-items:center; }
     .tacgia-avatar img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
     .tacgia-avatar .fb{ font-family:'Lora',serif; font-weight:700; font-size:30px; color:#f3d488; }
+    /* Chữ Hán 逍遙 (Tiêu Dao) thay ảnh cho NGƯỜI KHÁC — thu vừa khung nhỏ */
+    .tacgia-seal .stamp .tg-glyph{ font-size:12.5px; letter-spacing:-1px; line-height:1; }
+    .tacgia-avatar .fb.tg-glyph2{ font-size:26px; letter-spacing:-2px; }
     .tacgia-seal .st-lbl{ font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:#9a8a63; }
     .tacgia-seal .st-name{ font-family:'Lora',serif; font-weight:700; font-size:12.5px; color:#f0d9a0; line-height:1.15; }
     b.dmg{color:#fdba74;font-weight:700} b.dmgc{color:#fb923c;font-weight:800} b.dmgr{color:#fda4af;font-weight:700}
@@ -616,7 +619,7 @@
 
       <!-- Con dấu Ấn Ký Tác Giả (đáy sidebar) — chỉ hiện khi chứng chỉ ký số hợp lệ. Bấm mở "Về Trò Chơi". -->
       <div x-show="$store.game.hasAuthorSeal" x-cloak class="tacgia-seal" @click="$store.game.authorOpen=true" title="Về Trò Chơi · Tác Giả">
-        <div class="stamp fserif"><img src="images/ui/author_avatar.webp" class="stamp-img" alt="" onerror="this.remove()"><span>印</span></div>
+        <div class="stamp fserif"><img x-show="$store.game.authorAvatarSrc" :src="$store.game.authorAvatarSrc" class="stamp-img" alt=""><span x-show="!$store.game.authorAvatarSrc" class="tg-glyph">逍遙</span></div>
         <div class="min-w-0">
           <div class="st-lbl">Tác Giả</div>
           <div class="st-name truncate" x-text="$store.game.authorName"></div>
@@ -11161,12 +11164,22 @@
           <!-- Credit tác giả -->
           <template x-if="$store.game.hasAuthorSeal">
             <div class="rounded-xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent p-4 text-center">
-              <div class="tacgia-avatar"><img src="images/ui/author_avatar.webp" alt="" onerror="this.remove()"><span class="fb fserif">印</span></div>
+              <div class="tacgia-avatar"><img x-show="$store.game.authorAvatarSrc" :src="$store.game.authorAvatarSrc" alt=""><span x-show="!$store.game.authorAvatarSrc" class="fb fserif tg-glyph2">逍遙</span></div>
               <div class="text-[10px] uppercase tracking-[.2em] text-amber-300/70">Thiết kế & phát triển bởi</div>
               <div class="flex items-center justify-center gap-2 mt-1.5">
                 <span class="text-xl fserif" style="color:#f3d488; font-weight:700" x-text="$store.game.authorName"></span>
                 <span class="tacgia-badge" title="Xác thực bằng chữ ký số"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg>Tác Giả</span>
               </div>
+              <!-- Đổi/gỡ ảnh tác giả — CHỈ tài khoản tác giả thấy; ảnh chỉ lưu trên máy này -->
+              <template x-if="$store.game.isAuthorAccount">
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-2">
+                  <label class="text-[11px] px-2.5 py-1 rounded-md border border-amber-500/40 text-amber-200/90 hover:bg-amber-500/10 cursor-pointer transition">
+                    <input type="file" accept="image/*" class="hidden" @change="$store.game.setAuthorAvatarFile($event)">Đổi ảnh
+                  </label>
+                  <button x-show="$store.game.authorAvatarSrc" @click="$store.game.clearAuthorAvatar()" class="text-[11px] px-2.5 py-1 rounded-md border border-slate-600 text-slate-400 hover:text-rose-300 hover:border-rose-500/40 transition">Gỡ ảnh</button>
+                  <span class="w-full text-[10px] text-slate-500">Ảnh chỉ lưu trên máy này — người khác thấy chữ 逍遙</span>
+                </div>
+              </template>
               <div class="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-emerald-300/80">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 <span>Đã xác thực bằng <b>chữ ký số</b></span>
