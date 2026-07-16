@@ -9729,9 +9729,13 @@
         .dp-root .ql-logrow .lt{ flex:0 0 auto; font-size:12px; color:var(--dpid); }
         .dp-root .ql-empty{ padding:16px; text-align:center; color:var(--dpid); font-style:italic; font-size:13px; border:1px dashed var(--dpls); border-radius:12px; }
         @media (max-width:900px){
-          .dp-root .ql-ov{ flex-wrap:wrap; padding:12px 20px; }
+          .dp-root .ql-ov{ flex-wrap:wrap; padding:12px 16px; }
           .dp-root .ql-fl{ width:26px; height:26px; }
-          .dp-root .ql-tile{ flex:1 1 42%; }
+          .dp-root .ql-tile{ flex:1 1 42%; padding:4px 4px; gap:8px; align-items:flex-start; }
+          .dp-root .ql-medal{ width:38px; height:38px; }
+          /* nhãn xuống dòng đủ chữ (thay vì cắt "GIỚI HẠN T..."), chữ nhỏ + số vừa cho mobile */
+          .dp-root .ql-tile .ql{ font-size:9px; white-space:normal; overflow:visible; text-overflow:clip; line-height:1.22; margin-bottom:2px; }
+          .dp-root .ql-tile .qv{ font-size:15.5px; }
           .dp-root .ql-tile+.ql-tile{ border-left:none; } .dp-root .ql-tile+.ql-tile::before{ display:none; }
           .dp-root .du-foot{ flex-direction:column; align-items:stretch; } .dp-root .du-btn{ width:100%; }
           .dp-root{ grid-template-columns:1fr; }
