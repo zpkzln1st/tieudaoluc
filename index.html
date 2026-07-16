@@ -149,8 +149,9 @@
   #gameSplash{ position:fixed; inset:0; z-index:9999; background:#05070e; overflow:hidden; opacity:1; transition:opacity .55s ease; }
   #gameSplash.spl-out{ opacity:0; pointer-events:none; }
   #gameSplash.spl-out *{ animation-play-state:paused !important; }
-  #gameSplash .spl-bg{ position:absolute; inset:0; z-index:0; background-image:url(images/ui/khaitich_background.webp); background-size:cover; background-position:center; transform:scale(1.03); }
-  @media (max-width:760px){ #gameSplash .spl-bg{ background-image:url(images/ui/khaitichdoc_background.webp); } }
+  /* nền: script random gán --spl-bg (ngang) + --spl-bgm (dọc) theo CẶP cùng index; media query vẫn tự chọn đúng biến → khỏi nghe resize. Giá trị trong var(...) là dự phòng khi JS lỗi. */
+  #gameSplash .spl-bg{ position:absolute; inset:0; z-index:0; background-image:var(--spl-bg,url(images/ui/khaitich_background.webp)); background-size:cover; background-position:center; transform:scale(1.03); }
+  @media (max-width:760px){ #gameSplash .spl-bg{ background-image:var(--spl-bgm,url(images/ui/khaitichdoc_background.webp)); } }
   #gameSplash .spl-scrim{ position:absolute; inset:0; z-index:1; background:
     radial-gradient(120% 80% at 50% 4%, rgba(245,185,66,.16), transparent 46%),
     radial-gradient(90% 70% at 50% 54%, transparent 30%, rgba(5,7,14,.5) 78%),
@@ -245,14 +246,29 @@
       heroEl.src='images/ui/khaitich_hero'+n+'.webp';
     }
 
+    /* ---- Nền splash: bể CẶP ngang/dọc CÙNG index — khaitich_background<N>.webp (ngang, PC)
+       + khaitichdoc_background<N>.webp (dọc, mobile). N=1 = file KHÔNG có số (bản gốc), N=2.. có số.
+       Ghép cặp theo index để xoay ngang/dọc vẫn cùng một cảnh. Random độc lập với hero → nhiều tổ hợp.
+       >>> THÊM NỀN: sửa BG_COUNT cho khớp, và nhớ thêm ĐỦ CẢ CẶP (ngang + dọc) cùng số. ---- */
+    var BG_COUNT=4, lastBg=0;
+    function bgUrl(prefix,n){ return 'url("images/ui/'+prefix+(n>1?n:'')+'.webp")'; }
+    function pickBg(){
+      if(BG_COUNT<1) return;
+      var n=1;
+      if(BG_COUNT>1){ do{ n=1+Math.floor(Math.random()*BG_COUNT); }while(n===lastBg); }  /* né trùng nền trước */
+      lastBg=n;
+      sp.style.setProperty('--spl-bg', bgUrl('khaitich_background',n));
+      sp.style.setProperty('--spl-bgm', bgUrl('khaitichdoc_background',n));
+    }
+
     function fadeOut(){ clearTimeout(t); t=setTimeout(function(){ sp.classList.add('spl-out'); }, 3000); }
     function replay(){
       sp.classList.remove('spl-out'); sp.style.visibility='';
-      pickHero();  /* đổi ảnh mỗi lần splash chạy lại */
+      pickHero(); pickBg();  /* đổi cả nhân vật lẫn nền mỗi lần splash chạy lại */
       sp.classList.remove('spl-run'); void sp.offsetWidth; sp.classList.add('spl-run'); /* restart mọi animation kể cả ::after */
       fadeOut();
     }
-    pickHero();
+    pickHero(); pickBg();
     fadeOut();
     document.addEventListener('visibilitychange', function(){
       if(document.hidden){ hiddenAt=Date.now(); }
