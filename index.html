@@ -1448,6 +1448,36 @@
         .sk-hero .sk-dam{ margin-top:10px; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; padding:6px 15px; border-radius:8px;
           border:1px solid rgba(201,162,75,.5); color:#f5d089; background:rgba(201,162,75,.08); cursor:pointer; transition:background .15s, border-color .15s; }
         .sk-hero .sk-dam:hover{ background:rgba(201,162,75,.16); border-color:rgba(201,162,75,.85); }
+        .sk-hero .sk-dam-new{ min-width:16px; height:16px; padding:0 4px; border-radius:99px; background:#fb7185; color:#3a0a12; font-size:10px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+        /* ===== Đàm Đạo (cốt truyện NPC nghề) ===== */
+        .dd-bd{ position:fixed; inset:0; z-index:80; background:rgba(4,6,12,.8); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:16px; }
+        .dd-box{ width:min(500px,96vw); max-height:88vh; display:flex; flex-direction:column; background:linear-gradient(180deg,#141d2c,#0d1420); border:1px solid rgba(201,162,75,.3); border-radius:16px; box-shadow:0 30px 80px -24px #000; overflow:hidden; }
+        .dd-hd{ display:flex; align-items:center; gap:12px; padding:13px 15px; border-bottom:1px solid rgba(201,162,75,.16); background:linear-gradient(180deg,rgba(201,162,75,.08),transparent); flex:none; }
+        .dd-hd .av{ width:44px; height:44px; border-radius:10px; overflow:hidden; flex:none; border:1px solid rgba(201,162,75,.35); background:#0b1018; display:grid; place-items:center; color:#c9a24b; }
+        .dd-hd .av img{ width:100%; height:100%; object-fit:contain; } .dd-hd .av svg{ width:22px; height:22px; }
+        .dd-hd .nm{ font-family:'Lora',serif; font-weight:700; font-size:16px; color:#f5d089; line-height:1.15; }
+        .dd-hd .sub{ font-size:11px; color:#94a3b8; margin-top:1px; }
+        .dd-hd .x{ margin-left:auto; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; background:rgba(0,0,0,.3); border:1px solid #26344a; color:#94a3b8; cursor:pointer; font-size:14px; }
+        .dd-hd .x:hover{ color:#fca5a5; border-color:rgba(251,113,133,.5); }
+        .dd-list{ padding:12px 14px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+        .dd-ch{ display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:11px; border:1px solid #26344a; background:rgba(15,21,33,.5); cursor:pointer; transition:.14s; }
+        .dd-ch:not(.lock):hover{ border-color:rgba(201,162,75,.5); background:rgba(201,162,75,.06); }
+        .dd-ch.lock{ opacity:.5; cursor:not-allowed; }
+        .dd-ch .no{ width:26px; height:26px; flex:none; border-radius:50%; display:grid; place-items:center; font-family:'Lora',serif; font-weight:700; font-size:13px; color:#c9a24b; border:1px solid rgba(201,162,75,.4); }
+        .dd-ch.seen .no{ color:#2dd4bf; border-color:rgba(45,212,191,.5); }
+        .dd-ch .t{ flex:1; min-width:0; text-align:left; } .dd-ch .t .tt{ font-family:'Lora',serif; font-weight:600; font-size:14px; color:#e6ddca; } .dd-ch .t .st{ font-size:11px; color:#8a94a8; margin-top:1px; }
+        .dd-ch .tag{ font-size:9.5px; padding:2px 8px; border-radius:99px; white-space:nowrap; }
+        .dd-ch .tag.new{ color:#3a0a12; background:#fb7185; font-weight:700; } .dd-ch .tag.seen{ color:#2dd4bf; border:1px solid rgba(45,212,191,.4); } .dd-ch .tag.lock{ color:#8a94a8; border:1px solid #26344a; }
+        .dd-conv{ padding:14px 16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; flex:1; min-height:120px; }
+        .dd-line{ max-width:88%; font-size:13.5px; line-height:1.5; padding:9px 13px; }
+        .dd-line.npc{ align-self:flex-start; color:#e6e9ef; background:rgba(30,41,59,.5); border:1px solid #29344a; border-radius:4px 13px 13px 13px; }
+        .dd-line.me{ align-self:flex-end; color:#0c1a17; background:linear-gradient(180deg,#5eead4,#2dd4bf); border-radius:13px 4px 13px 13px; font-weight:500; }
+        .dd-ft{ flex:none; padding:11px 14px calc(11px + env(safe-area-inset-bottom)); border-top:1px solid #1e293b; display:flex; flex-direction:column; gap:8px; background:rgba(11,18,32,.6); }
+        .dd-choice{ text-align:left; padding:10px 14px; border-radius:11px; border:1px solid rgba(201,162,75,.35); background:rgba(201,162,75,.06); color:#f0e2c0; font-size:13px; cursor:pointer; transition:.13s; }
+        .dd-choice:hover{ background:rgba(201,162,75,.15); border-color:rgba(201,162,75,.7); transform:translateX(2px); }
+        .dd-back{ align-self:center; padding:9px 22px; border-radius:10px; border:1px solid #26344a; background:rgba(15,21,33,.6); color:#cbd5e1; font-size:13px; font-weight:600; cursor:pointer; }
+        .dd-back:hover{ border-color:#3a4a63; color:#fff; }
+        .dd-end{ align-self:center; font-size:11px; color:#8a94a8; font-style:italic; margin-bottom:2px; }
         .sk-hero .sk-div{ display:flex; align-items:center; gap:9px; margin-top:12px; position:relative; z-index:1; }
         .sk-hero .sk-div::before, .sk-hero .sk-div::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,162,75,.4),transparent); }
         .sk-hero .sk-div span{ color:#c9a24b; font-size:8px; transform:rotate(45deg); display:inline-block; text-shadow:0 0 6px rgba(201,162,75,.6); }
@@ -1472,7 +1502,11 @@
                 <div class="sk-body">
                   <div class="sk-nm" x-text="$store.game.currentSkill.npc.name"></div>
                   <div class="sk-qt" x-text="'“' + $store.game.currentSkill.npc.quote + '”'"></div>
-                  <button class="sk-dam">Đàm Đạo</button>
+                  <button class="sk-dam" x-show="$store.game.hasDamDao($store.game.selectedSkill)" @click="$store.game.damDaoOpen()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Đàm Đạo
+                    <span x-show="$store.game.damDaoNewCount($store.game.selectedSkill) > 0" x-cloak class="sk-dam-new" x-text="$store.game.damDaoNewCount($store.game.selectedSkill)"></span>
+                  </button>
                 </div>
               </div>
               <div class="sk-div"><span>◆</span></div>
@@ -11138,6 +11172,62 @@
           </template>
           <div class="text-center text-[10px] text-slate-600 mt-4">© Tiêu Dao Lục</div>
         </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Modal: Đàm Đạo (cốt truyện NPC nghề — chương mở theo cấp + hội thoại nhánh) ===== -->
+  <template x-if="$store.game.dd.open">
+    <div class="dd-bd" @click.self="$store.game.ddClose()" @keydown.escape.window="$store.game.ddClose()">
+      <div class="dd-box">
+        <div class="dd-hd">
+          <div class="av" x-html="$store.game.ico($store.game.dd.skillId, '📖')"></div>
+          <div class="min-w-0">
+            <div class="nm truncate" x-text="$store.game.ddNpcName"></div>
+            <div class="sub">Đàm Đạo · <span x-text="($store.game.SKILLS[$store.game.dd.skillId]||{}).name"></span></div>
+          </div>
+          <button class="x" @click="$store.game.ddClose()" aria-label="Đóng">✕</button>
+        </div>
+
+        <!-- Danh sách chương -->
+        <template x-if="!$store.game.dd.chapter">
+          <div class="dd-list">
+            <template x-for="c in $store.game.ddChapters" :key="c.id">
+              <button class="dd-ch" :class="{ lock: !c.unlocked, seen: c.seen }" :disabled="!c.unlocked" @click="$store.game.ddPickChapter(c.id)">
+                <span class="no" x-text="c.num"></span>
+                <div class="t"><div class="tt" x-text="c.unlocked ? c.title : '？ ？ ？'"></div><div class="st" x-show="!c.unlocked" x-text="'Mở khi nghề đạt Lv ' + c.req"></div></div>
+                <span x-show="c.unlocked && !c.seen" class="tag new">Mới</span>
+                <span x-show="c.unlocked && c.seen" class="tag seen">Đã đọc</span>
+                <span x-show="!c.unlocked" class="tag lock" x-text="'Lv ' + c.req"></span>
+              </button>
+            </template>
+          </div>
+        </template>
+
+        <!-- Hội thoại -->
+        <template x-if="$store.game.dd.chapter">
+          <div class="dd-conv">
+            <template x-for="(l, i) in $store.game.dd.log" :key="i">
+              <div class="dd-line" :class="l.who" x-text="l.text"></div>
+            </template>
+          </div>
+        </template>
+        <template x-if="$store.game.dd.chapter">
+          <div class="dd-ft">
+            <template x-if="!$store.game.ddAtEnd">
+              <template x-for="(c, i) in $store.game.ddCurChoices" :key="i">
+                <button class="dd-choice" x-text="c.t"
+                  @click="$store.game.ddChoose(i); $nextTick(() => { const e = $el.closest('.dd-box').querySelector('.dd-conv'); if (e) e.scrollTop = e.scrollHeight; })"></button>
+              </template>
+            </template>
+            <template x-if="$store.game.ddAtEnd">
+              <div style="display:flex;flex-direction:column;gap:6px;align-items:center;width:100%">
+                <div class="dd-end">— Hết chương —</div>
+                <button class="dd-back" @click="$store.game.ddBackToList()">‹ Về danh sách chương</button>
+              </div>
+            </template>
+          </div>
+        </template>
       </div>
     </div>
   </template>

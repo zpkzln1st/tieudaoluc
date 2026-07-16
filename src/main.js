@@ -3,6 +3,7 @@
 // ============================================================
 import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/module.esm.js';
 import { SKILLS, STATS } from './data/skills.js';
+import { DAMDAO } from './data/damdao.js';
 import { ITEMS, QUALITY, ITEM_TYPES, DOPHO_IDS, itemNameHtml } from './data/items.js';
 import { LOCATIONS, REALM_TIERS } from './data/locations.js';
 import { AVATARS, COVERS } from './data/avatars.js';
@@ -200,6 +201,7 @@ if (!state.dungeon) state.dungeon = { lastResult: null, history: [] }; // Bí C�
 if (!Array.isArray(state.notifications)) state.notifications = []; // Thông Báo (feed chung: chuông + Phi Cáp Đài)
 if (!Array.isArray(state.pets)) state.pets = []; // Linh Thú (pet) — nở từ trứng
 if (state.hatchery === undefined) state.hatchery = null; // Lò Ấp Noãn (P3, đơn): {pet,base,eggId,eggQuality,startedAt,readyAt,durMs,notified} | null
+if (state.damDao === undefined) state.damDao = {}; // Đàm Đạo: { <skillId>: [<chapterId đã đọc xong>] } — chỉ để đánh dấu đã đọc + badge chương mới
 // Tháo trang bị VƯỢT CẤP (combatLevel tụt do dev/sửa save) -> trả về túi, không cho hưởng chỉ số lậu
 (() => {
   const _cl = levelFromXp(state.skills?.chienDau?.xp || 0);
@@ -1882,6 +1884,49 @@ const gameStore = {
   get viewName() { return VIEW_NAMES[this.view] || ''; },
   get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
+
+  // ---------- ĐÀM ĐẠO (cốt truyện NPC nghề — chương mở theo cấp nghề + hội thoại nhánh) ----------
+  dd: { open: false, skillId: null, chapter: null, node: null, log: [] },  // trạng thái phát hội thoại
+  hasDamDao(id) { const a = DAMDAO[id]; return !!(a && a.chapters && a.chapters.length); },
+  // chương của 1 nghề kèm trạng thái mở/đã-đọc (unlocked theo skillLevel; seen từ state.damDao)
+  damDaoChapters(id) {
+    const a = DAMDAO[id]; if (!a) return [];
+    const lv = this.skillLevel(id), seen = this.state.damDao[id] || [];
+    return a.chapters.map((c, i) => ({ id: c.id, title: c.title, req: c.req, num: i + 1, unlocked: lv >= c.req, seen: seen.includes(c.id) }));
+  },
+  // số chương ĐÃ MỞ mà CHƯA đọc (badge mời gọi trên nút Đàm Đạo)
+  damDaoNewCount(id) { return this.damDaoChapters(id).filter((c) => c.unlocked && !c.seen).length; },
+  get ddNpcName() { const s = this.SKILLS[this.dd.skillId]; return (s && s.npc && s.npc.name) || ''; },
+  get ddChapters() { return this.damDaoChapters(this.dd.skillId); },
+  get ddCurChoices() { const ch = this.dd.chapter; if (!ch || !this.dd.node) return []; const n = ch.nodes[this.dd.node]; return (n && n.choices) || []; },
+  get ddAtEnd() { const ch = this.dd.chapter; if (!ch || !this.dd.node) return false; const n = ch.nodes[this.dd.node]; return !!n && !(n.choices && n.choices.length); },
+  damDaoOpen() { if (!this.hasDamDao(this.selectedSkill)) return; this.dd = { open: true, skillId: this.selectedSkill, chapter: null, node: null, log: [] }; },
+  ddClose() { this.dd.open = false; this.dd.chapter = null; },
+  ddBackToList() { this.dd.chapter = null; this.dd.node = null; this.dd.log = []; },
+  ddPickChapter(chId) {
+    const arc = DAMDAO[this.dd.skillId]; if (!arc) return;
+    const ch = arc.chapters.find((c) => c.id === chId); if (!ch) return;
+    const lv = this.skillLevel(this.dd.skillId);
+    if (lv < ch.req) { this.showToast('Chưa tới lúc — cần nghề Lv ' + ch.req + '.'); return; }
+    this.dd.chapter = ch; this.dd.node = ch.start;
+    this.dd.log = ((ch.nodes[ch.start] || {}).say || []).map((t) => ({ who: 'npc', text: t }));
+    this._ddCheckEnd();
+  },
+  ddChoose(i) {
+    const ch = this.dd.chapter; if (!ch) return;
+    const node = ch.nodes[this.dd.node]; const c = node && node.choices && node.choices[i]; if (!c) return;
+    this.dd.log.push({ who: 'me', text: c.t });
+    this.dd.node = c.to;
+    ((ch.nodes[c.to] || {}).say || []).forEach((t) => this.dd.log.push({ who: 'npc', text: t }));
+    this._ddCheckEnd();
+  },
+  _ddCheckEnd() {
+    if (!this.ddAtEnd) return;   // còn nhánh -> chưa xong
+    const id = this.dd.skillId, chId = this.dd.chapter.id;
+    if (!this.state.damDao[id]) this.state.damDao[id] = [];
+    if (!this.state.damDao[id].includes(chId)) { this.state.damDao[id].push(chId); try { Storage.save(this.state); } catch (e) {} }
+  },
+
   zoneName(id) { const l = (this.LOCATIONS || []).find((x) => x.id === id); return l ? l.name : ''; },  // tên vùng (cho nhãn gathering)
   // Nghề THU THẬP (có zone trên action) → danh sách chỉ hiện tài nguyên của VÙNG đang đứng. Nghề chế tạo (không zone) hiện hết.
   get currentSkillIsGather() { return ((this.currentSkill && this.currentSkill.actions) || []).some((a) => a.zone); },
