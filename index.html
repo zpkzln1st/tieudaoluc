@@ -618,7 +618,7 @@
       <div x-show="$store.game.hasAuthorSeal" x-cloak class="tacgia-seal" @click="$store.game.authorOpen=true" title="Về Trò Chơi · Tác Giả">
         <div class="stamp fserif"><img src="images/ui/author_avatar.webp" class="stamp-img" alt="" onerror="this.remove()"><span>印</span></div>
         <div class="min-w-0">
-          <div class="st-lbl">Ấn Ký Tác Giả</div>
+          <div class="st-lbl">Tác Giả</div>
           <div class="st-name truncate" x-text="$store.game.authorName"></div>
         </div>
       </div>
@@ -11122,11 +11122,10 @@
                 <span class="text-xl fserif" style="color:#f3d488; font-weight:700" x-text="$store.game.authorName"></span>
                 <span class="tacgia-badge" title="Xác thực bằng chữ ký số"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg>Tác Giả</span>
               </div>
-              <div class="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-emerald-300/90">
+              <div class="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-emerald-300/80">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-                <span>Xác thực bằng <b>chữ ký số</b> (ECDSA P-256)</span>
+                <span>Đã xác thực bằng <b>chữ ký số</b></span>
               </div>
-              <div class="text-[10.5px] text-slate-500 mt-2 leading-relaxed">Dấu ấn này được ký bằng khoá riêng của tác giả — không thể giả mạo hay chỉnh sửa bằng bất kỳ cách nào; chỉ chính tác giả mới cấp hoặc thay đổi được.</div>
             </div>
           </template>
           <template x-if="!$store.game.hasAuthorSeal">
