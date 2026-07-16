@@ -197,7 +197,7 @@
     -webkit-background-clip:text; background-clip:text; color:transparent; will-change:background-position, opacity; transform:translateZ(0); }
   #gameSplash .spl-sub{ margin-top:10px; font-family:'Lora',serif; font-size:clamp(12px,1.5vw,15px); letter-spacing:.14em; color:#cdd8ea; text-shadow:0 2px 8px rgba(0,0,0,.7); }
   #gameSplash .spl-rule{ width:min(300px,60vw); height:1px; margin:14px auto 0; background:linear-gradient(90deg,transparent,rgba(245,185,66,.6),transparent); }
-  #gameSplash .spl-author{ margin-top:10px; font-family:'Lora',serif; font-size:clamp(10px,1.2vw,12.5px); letter-spacing:.1em; color:#cbab5f; text-shadow:0 1px 5px rgba(0,0,0,.75); }
+  #gameSplash .spl-author{ position:absolute; right:clamp(14px,3.2vw,40px); bottom:clamp(12px,2.6vh,26px); z-index:5; font-family:'Lora',serif; font-size:clamp(10px,1.2vw,12.5px); letter-spacing:.1em; color:#cbab5f; text-shadow:0 1px 6px rgba(0,0,0,.85); }
   #gameSplash .spl-load{ position:absolute; left:0; right:0; bottom:clamp(6%,7vh,9%); z-index:5; text-align:center; opacity:0; }
   #gameSplash .spl-load .t{ font-family:'Lora',serif; font-size:12.5px; letter-spacing:.2em; color:#b9c6da; text-transform:uppercase; margin-bottom:11px; }
   #gameSplash .spl-load .t b{ color:#fceaba; font-weight:600; }
@@ -239,12 +239,13 @@
     <div class="spl-name">Tiêu Dao Lục</div>
     <div class="spl-sub">Nhất Kiếm Tùy Thân - Độc Bộ Thiên Nhai</div>
     <div class="spl-rule"></div>
-    <div class="spl-author" style="display:none"></div>
   </div>
   <div class="spl-load">
     <div class="t">Đang vào <b>giang hồ</b>…</div>
     <div class="spl-bar"><i></i></div>
   </div>
+  <!-- Credit tác giả — góc phải-dưới splash (không ở giữa) -->
+  <div class="spl-author" style="display:none"></div>
 </div>
 <script>
   (function(){
@@ -300,7 +301,7 @@
     /* Credit tác giả trên splash — đọc window.TDL_AUTHOR (do Ấn Ký Tác Giả set sau khi verify chữ ký).
        Chỉ hiện khi chứng chỉ HỢP LỆ (verify sai -> TDL_AUTHOR=null -> không hiện gì). */
     var authEl=sp.querySelector('.spl-author');
-    function fillAuthor(){ var a=window.TDL_AUTHOR; if(a&&a.name&&authEl){ authEl.textContent='Thiết kế · '+a.name; authEl.style.display=''; return true; } return false; }
+    function fillAuthor(){ var a=window.TDL_AUTHOR; if(a&&a.name&&authEl){ authEl.textContent='Tác giả · '+a.name; authEl.style.display=''; return true; } return false; }
     if(!fillAuthor()){ var _at=setInterval(function(){ if(fillAuthor()) clearInterval(_at); },120); setTimeout(function(){ clearInterval(_at); },3000); }
 
     fadeOut();
