@@ -1804,7 +1804,13 @@ const gameStore = {
   get eggsInInventory() {
     return Object.keys(this.state.inventory || {})
       .filter((id) => this.ITEMS[id] && this.ITEMS[id].type === 'trung' && (this.state.inventory[id] || 0) > 0)
-      .map((id) => ({ id, qty: this.state.inventory[id], item: this.ITEMS[id] }));
+      .map((id) => {
+        const item = this.ITEMS[id], q = this.QUALITY[item.quality] || {};
+        // Tên trứng data = "<Loài> Noãn · <Bậc>" → tách bậc ra CHIP (khuôn giống panel lò ở trên) để tên không bị cắt.
+        return { id, qty: this.state.inventory[id], item,
+          eggName: String(item.name).split(' · ')[0],
+          tierName: q.name || '', tierColor: q.text || 'text-slate-300' };
+      });
   },
   // --- P3: Lò Ấp Noãn (đơn). Roll pet ở engine lúc Đặt Ấp; ở đây điều phối + tính giờ/giá. ---
   get hatchery() { return this.state.hatchery; },

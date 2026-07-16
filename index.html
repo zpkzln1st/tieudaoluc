@@ -3108,15 +3108,28 @@
               <template x-if="$store.game.eggsInInventory.length===0">
                 <div class="text-center text-slate-600 text-[12px] py-6">Tay trắng chưa một quả noãn. Hạ Yêu Vương nơi hoang dã để đoạt lấy.</div>
               </template>
+              <!-- Lò bận: báo MỘT LẦN ở đây, thay vì lặp nút "Lò Đang Bận" ở từng hàng (vừa ồn vừa ăn hết chỗ của tên) -->
+              <template x-if="$store.game.hatchery && $store.game.eggsInInventory.length">
+                <div class="mb-2 flex items-center gap-1.5 text-[10.5px] text-slate-500 italic">
+                  <span class="w-1 h-1 rounded-full bg-amber-500/70 shrink-0"></span>
+                  <span>Lò đang bận — khai noãn xong mới đặt được quả kế.</span>
+                </div>
+              </template>
               <div class="space-y-2">
                 <template x-for="e in $store.game.eggsInInventory" :key="e.id">
-                  <div class="flex items-center gap-3 p-2.5 rounded bg-ink3/50 border border-slate-800">
+                  <div class="flex items-center gap-3 p-2.5 rounded bg-ink3/50 border border-slate-800 transition-opacity" :class="$store.game.hatchery && 'opacity-60'">
                     <div class="w-11 h-11 rounded bg-ink flex items-center justify-center text-xl shrink-0 overflow-hidden" x-html="$store.game.ico(e.id, e.item.icon)"></div>
                     <div class="flex-1 min-w-0">
-                      <div class="text-[13px] font-medium truncate" :class="($store.game.QUALITY[e.item.quality]||{}).text" x-text="e.item.name + ' ×' + e.qty"></div>
-                      <div class="text-[10px] text-slate-500" x-text="'Ủ ' + $store.game.hatchDurLabel(e.item.quality) + ' · nở thú cùng dòng, chân thân tùy duyên'"></div>
+                      <div class="flex items-baseline gap-1.5 flex-wrap">
+                        <span class="text-[13px] font-medium" :class="($store.game.QUALITY[e.item.quality]||{}).text" x-text="e.eggName"></span>
+                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-black/45 border border-white/10 font-bold shrink-0" :class="e.tierColor" x-text="e.tierName"></span>
+                        <span class="text-[11px] text-slate-500 shrink-0" x-text="'×'+e.qty"></span>
+                      </div>
+                      <div class="text-[10px] text-slate-500 mt-0.5" x-text="'Ủ ' + $store.game.hatchDurLabel(e.item.quality) + ' · nở thú cùng dòng, chân thân tùy duyên'"></div>
                     </div>
-                    <button @click="$store.game.startIncubate(e.id)" :disabled="!!$store.game.hatchery" class="px-3.5 py-1.5 text-[12px] rounded bg-amber-600/85 hover:bg-amber-500 text-ink font-semibold shrink-0 disabled:opacity-40 disabled:cursor-not-allowed" x-text="$store.game.hatchery ? 'Lò Đang Bận' : 'Đặt Ấp'"></button>
+                    <template x-if="!$store.game.hatchery">
+                      <button @click="$store.game.startIncubate(e.id)" class="px-3.5 py-1.5 text-[12px] rounded bg-amber-600/85 hover:bg-amber-500 text-ink font-semibold shrink-0">Đặt Ấp</button>
+                    </template>
                   </div>
                 </template>
               </div>
