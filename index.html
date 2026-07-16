@@ -9619,8 +9619,11 @@
         /* framed art */
         .dp-frame{ position:relative; border-radius:14px; background:#070b10; border:38px solid transparent;
           border-image:url("images/dongphu/ui/frame_gold.webp") 150 / 38px / 0 stretch; box-shadow:var(--dpsh); overflow:hidden; }
-        .dp-frame .art{ width:100%; height:100%; object-fit:cover; display:block; background:linear-gradient(160deg,#12202b,#0a1017); }
-        .dp-frame .vig{ position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 70px 12px rgba(6,9,13,.7); background:radial-gradient(120% 90% at 50% 30%,transparent 55%,rgba(6,9,13,.35)); }
+        /* Art Nhà Chính: phóng to gần tràn khung (crop bớt mép tối của art) + mask mờ 4 CẠNH (kiểu splash — 2 lớp gradient GIAO nhau) để ảnh tan mượt vào khung, không mép chữ nhật cứng. Chỉnh: đổi scale (phóng) và mốc 8%/92% (độ mờ). */
+        .dp-frame .art{ width:100%; height:100%; object-fit:cover; display:block; background:linear-gradient(160deg,#12202b,#0a1017); transform:scale(1.12); transform-origin:center;
+          -webkit-mask:linear-gradient(180deg,transparent 0,#000 8%,#000 92%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%); -webkit-mask-composite:source-in;
+          mask:linear-gradient(180deg,transparent 0,#000 8%,#000 92%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%); mask-composite:intersect; }
+        .dp-frame .vig{ position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 42px rgba(6,9,13,.34); background:radial-gradient(130% 100% at 50% 32%,transparent 66%,rgba(6,9,13,.2)); }
         /* panels with parchment bg */
         .dp-panel{ background-image:linear-gradient(rgba(9,14,20,.5),rgba(9,14,20,.5)), url("images/dongphu/ui/panel_bg.webp"); background-size:cover; background-position:center;
           border:1px solid var(--dpls); border-radius:14px; box-shadow:var(--dpsh); }
