@@ -9619,10 +9619,11 @@
         /* framed art */
         .dp-frame{ position:relative; border-radius:14px; background:#070b10; border:38px solid transparent;
           border-image:url("images/dongphu/ui/frame_gold.webp") 150 / 38px / 0 stretch; box-shadow:var(--dpsh); overflow:hidden; }
-        /* Art Nhà Chính: phóng to gần tràn khung (crop bớt mép tối của art) + mask mờ 4 CẠNH (kiểu splash — 2 lớp gradient GIAO nhau) để ảnh tan mượt vào khung, không mép chữ nhật cứng. Chỉnh: đổi scale (phóng) và mốc 8%/92% (độ mờ). */
-        .dp-frame .art{ width:100%; height:100%; object-fit:cover; display:block; background:linear-gradient(160deg,#12202b,#0a1017); transform:scale(1.12); transform-origin:center;
+        /* Art Nhà Chính: mask mờ 4 CẠNH (kiểu splash — 2 lớp gradient GIAO nhau) đặt ở LỚP BỌC .art-fade (100% khung, KHÔNG scale) -> phần mờ luôn hiện; ảnh scale BÊN TRONG lớp này (phóng to gần tràn khung, crop mép tối). ĐỪNG mask trực tiếp .art vì scale sẽ đẩy phần mờ ra ngoài rồi bị overflow cắt. Chỉnh: scale (phóng) ở .art, mốc 8%/92% (độ mờ) ở .art-fade. */
+        .dp-frame .art-fade{ position:absolute; inset:0; overflow:hidden;
           -webkit-mask:linear-gradient(180deg,transparent 0,#000 8%,#000 92%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%); -webkit-mask-composite:source-in;
           mask:linear-gradient(180deg,transparent 0,#000 8%,#000 92%,transparent 100%),linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%); mask-composite:intersect; }
+        .dp-frame .art{ width:100%; height:100%; object-fit:cover; display:block; background:linear-gradient(160deg,#12202b,#0a1017); transform:scale(1.12); transform-origin:center; }
         .dp-frame .vig{ position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 42px rgba(6,9,13,.34); background:radial-gradient(130% 100% at 50% 32%,transparent 66%,rgba(6,9,13,.2)); }
         /* panels with parchment bg */
         .dp-panel{ background-image:linear-gradient(rgba(9,14,20,.5),rgba(9,14,20,.5)), url("images/dongphu/ui/panel_bg.webp"); background-size:cover; background-position:center;
@@ -9634,7 +9635,7 @@
         .dp-info h2{ margin:0 0 6px; font-size:22px; }
         .dp-desc{ font-style:italic; color:var(--dpis); font-size:14px; line-height:1.5; margin:0 0 12px; min-height:42px; }
         .dp-div{ height:16px; background:url("images/dongphu/ui/divider.webp") no-repeat center/contain; margin:2px 0 10px; }
-        .dp-efftitle{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dpg2); margin:0 0 8px; font-weight:600; }
+        .dp-efftitle{ font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--dpg2); margin:0 0 8px; font-weight:600; white-space:nowrap; }
         .dp-eff{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed rgba(201,162,75,.12); }
         .dp-eff:last-child{ border-bottom:none; }
         .dp-eff .lbl{ flex:1; color:var(--dpis); font-size:14px; }
@@ -9912,7 +9913,7 @@
           <div x-show="dpTab==='nhaChinh'">
             <div class="dp-top">
               <div class="dp-frame dp-art">
-                <img class="art" :src="`images/dongphu/${tierInfo.img}.webp`" :alt="tierInfo.name" @error="$el.style.opacity=.15">
+                <div class="art-fade"><img class="art" :src="`images/dongphu/${tierInfo.img}.webp`" :alt="tierInfo.name" @error="$el.style.opacity=.15"></div>
                 <div class="vig"></div>
               </div>
               <div class="dp-info dp-panel">
