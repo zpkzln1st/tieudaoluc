@@ -10251,7 +10251,7 @@
   </style>
   <template x-if="$store.game.locationModal">
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" x-data="{ zoom:false }" @click="$store.game.closeLocation()">
-      <div class="locm-panel rounded-2xl w-[30rem] max-w-[94vw] max-h-[92vh] flex flex-col overflow-hidden" @click.stop>
+      <div class="locm-panel rounded-2xl w-[30rem] max-w-[94vw] h-[620px] max-h-[92vh] flex flex-col overflow-hidden" @click.stop>
         <span class="locm-fl a"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
         <span class="locm-fl b"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
         <span class="locm-fl c"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
@@ -10313,8 +10313,8 @@
               <button @click="qtab='res'"     class="flex-1 py-1.5 rounded-lg text-xs font-medium transition" :class="qtab==='res'    ?'bg-jade/15 text-jade':'text-slate-400 hover:text-slate-200'">Tài Nguyên</button>
               <button @click="qtab='dungeon'" class="flex-1 py-1.5 rounded-lg text-xs font-medium transition" :class="qtab==='dungeon'?'bg-jade/15 text-jade':'text-slate-400 hover:text-slate-200'">Bí Cảnh</button>
             </div>
-            <!-- nội dung tab -->
-            <div class="flex-1 min-h-[76px] overflow-y-auto pr-0.5">
+            <!-- nội dung tab (chiều cao ổn định theo panel; căn giữa an toàn cho tab thưa/rỗng) -->
+            <div class="flex-1 min-h-0 overflow-y-auto pr-0.5 flex flex-col" style="justify-content:safe center">
               <!-- Yêu Thú -->
               <div x-show="qtab==='mob'">
                 <template x-if="$store.game.zoneMobs($store.game.modalLocation).length">
