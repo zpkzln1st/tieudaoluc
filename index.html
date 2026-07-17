@@ -1441,9 +1441,10 @@
         .sk-hero .sk-fl.f1{ top:5px; left:5px; } .sk-hero .sk-fl.f2{ top:5px; right:5px; transform:scaleX(-1); }
         .sk-hero .sk-fl.f3{ bottom:5px; left:5px; transform:scaleY(-1); } .sk-hero .sk-fl.f4{ bottom:5px; right:5px; transform:scale(-1,-1); }
         .sk-hero .sk-row{ display:flex; align-items:center; gap:18px; position:relative; z-index:1; }
-        .sk-hero .sk-ic{ width:88px; height:88px; border-radius:12px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:44px;
+        .sk-hero .sk-ic{ position:relative; width:88px; height:88px; border-radius:12px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:44px;
           background:rgba(12,18,26,.7); border:1px solid rgba(201,162,75,.35); box-shadow:inset 0 0 22px -12px #000; overflow:hidden; }
         .sk-hero .sk-ic img{ width:100%; height:100%; object-fit:contain; }
+        .sk-hero .sk-ic .sk-por{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }   /* chân dung NPC phủ kín; ảnh lỗi -> tự gỡ -> icon nghề fallback */
         .sk-hero .sk-body{ flex:1; min-width:0; }
         .sk-hero .sk-nm{ font-family:'Lora',Georgia,serif; font-size:16px; font-weight:700; color:#f5d089; letter-spacing:.02em; line-height:1.2; }
         .sk-hero .sk-qt{ font-style:italic; font-size:13.5px; color:#cbd5e1; margin-top:5px; line-height:1.45; }
@@ -1518,7 +1519,7 @@
               <span class="sk-fl f3"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
               <span class="sk-fl f4"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
               <div class="sk-row">
-                <div class="sk-ic" x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></div>
+                <div class="sk-ic"><img class="sk-por" :src="'images/damdao/'+$store.game.currentSkill.id+'.webp'" alt="" onerror="this.remove()"><span x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></span></div>
                 <div class="sk-body">
                   <div class="sk-nm" x-text="$store.game.currentSkill.npc.name"></div>
                   <div class="sk-qt" x-text="'“' + $store.game.currentSkill.npc.quote + '”'"></div>
