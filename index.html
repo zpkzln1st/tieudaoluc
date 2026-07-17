@@ -1640,9 +1640,9 @@
             <section class="panel rounded-lg p-3">
               <div class="lbl mb-2">Thống Kê</div>
               <div class="space-y-1.5 text-sm">
-                <div class="flex justify-between"><span class="text-slate-400">🔥 Đã Thu Hoạch</span><span x-text="$store.game.fmt($store.game.skillGathered($store.game.selectedSkill))"></span></div>
-                <div class="flex justify-between"><span class="text-slate-400">⚡ Tổng Tu Vi</span><span x-text="$store.game.fmt($store.game.skillTotalXp($store.game.selectedSkill))"></span></div>
-                <div class="flex justify-between"><span class="text-slate-400">⏱️ Thời Gian</span><span x-text="$store.game.skillTimeLabel($store.game.selectedSkill)"></span></div>
+                <div class="flex justify-between"><span class="text-slate-400 inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex shrink-0 text-amber-400/80" x-html="$store.game.svg('bag','w-3.5 h-3.5')"></span>Đã Thu Hoạch</span><span x-text="$store.game.fmt($store.game.skillGathered($store.game.selectedSkill))"></span></div>
+                <div class="flex justify-between"><span class="text-slate-400 inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex shrink-0 text-jade" x-html="$store.game.svg('zap','w-3.5 h-3.5')"></span>Tổng Tu Vi</span><span x-text="$store.game.fmt($store.game.skillTotalXp($store.game.selectedSkill))"></span></div>
+                <div class="flex justify-between"><span class="text-slate-400 inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex shrink-0 text-slate-400" x-html="$store.game.svg('clock','w-3.5 h-3.5')"></span>Thời Gian</span><span x-text="$store.game.skillTimeLabel($store.game.selectedSkill)"></span></div>
               </div>
             </section>
           </div>
