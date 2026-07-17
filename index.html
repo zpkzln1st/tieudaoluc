@@ -10259,7 +10259,7 @@
   </style>
   <template x-if="$store.game.locationModal">
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" x-data="{ zoom:false }" @click="$store.game.closeLocation()">
-      <div class="locm-panel rounded-2xl w-[30rem] max-w-[94vw] h-[620px] max-h-[92vh] flex flex-col overflow-hidden" @click.stop>
+      <div class="locm-panel rounded-2xl w-[30rem] max-w-[94vw] max-h-[92vh] flex flex-col overflow-hidden" @click.stop>
         <span class="locm-fl a"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
         <span class="locm-fl b"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
         <span class="locm-fl c"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
@@ -10289,7 +10289,7 @@
         </div>
 
         <!-- BODY -->
-        <div class="flex-1 min-h-0 flex flex-col px-6 pb-5 gap-4">
+        <div class="flex-1 min-h-0 flex flex-col px-6 pb-5 gap-4 overflow-y-auto">
 
           <div class="locm-dv shrink-0"><i>◆</i></div>
 
@@ -10312,7 +10312,7 @@
           </template>
 
           <!-- Có gì ở đây (TAB) -->
-          <div x-data="{ qtab: 'mob' }" class="flex-1 min-h-0 flex flex-col">
+          <div x-data="{ qtab: 'mob' }" class="flex flex-col">
             <div class="shrink-0 flex items-center gap-2.5 mb-3 text-xs uppercase tracking-[0.15em] text-[#b79b52]"><span class="h-px flex-1" style="background:linear-gradient(90deg,transparent,rgba(201,162,75,.3),transparent)"></span><span>Có Gì Ở Đây</span><span class="h-px flex-1" style="background:linear-gradient(90deg,transparent,rgba(201,162,75,.3),transparent)"></span></div>
             <!-- thanh tab -->
             <div class="shrink-0 flex gap-1 p-1 rounded-xl bg-ink3/40 locm-b mb-3">
@@ -10322,7 +10322,7 @@
               <button @click="qtab='dungeon'" class="flex-1 py-1.5 rounded-lg text-xs font-medium transition" :class="qtab==='dungeon'?'bg-jade/15 text-jade':'text-slate-400 hover:text-slate-200'">Bí Cảnh</button>
             </div>
             <!-- nội dung tab (chiều cao ổn định theo panel; căn giữa an toàn cho tab thưa/rỗng) -->
-            <div class="flex-1 min-h-0 overflow-y-auto pr-0.5 flex flex-col" style="justify-content:safe center">
+            <div class="h-[150px] overflow-y-auto pr-0.5 flex flex-col" style="justify-content:safe center">
               <!-- Yêu Thú -->
               <div x-show="qtab==='mob'">
                 <template x-if="$store.game.zoneMobs($store.game.modalLocation).length">
