@@ -835,7 +835,7 @@
               </section>
               <!-- Sinh Lực -->
               <section class="panel rounded-lg p-3">
-                <div class="flex items-center gap-2 mb-1.5"><span>❤️</span><span class="text-sm font-medium">Sinh Lực</span><span class="ml-auto text-xs text-slate-400">100 / 100</span></div>
+                <div class="flex items-center gap-2 mb-1.5"><span class="w-4 h-4 inline-flex text-rose-400" x-html="$store.game.svg('heart','w-4 h-4')"></span><span class="text-sm font-medium">Sinh Lực</span><span class="ml-auto text-xs text-slate-400">100 / 100</span></div>
                 <div class="h-2.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-rose-500 w-full"></div></div>
               </section>
               <!-- Thông Tin -->
@@ -1176,7 +1176,7 @@
                         <div class="w-full py-2 rounded-lg text-center text-[12px] font-bold bg-jade/15 border border-jade/40 text-jade">✓ Đã bái sư</div>
                       </template>
                       <template x-if="!$store.game.hasProfession(n.id) && $store.game.professionLvLocked(n.id)">
-                        <div class="w-full py-2 rounded-lg text-center text-[12px] font-medium bg-ink3/60 border border-rose-700/40 text-rose-400/90">🔒 Cần Tổng Lv <span x-text="$store.game.professionLvReq"></span></div>
+                        <div class="w-full py-2 rounded-lg text-center text-[12px] font-medium bg-ink3/60 border border-rose-700/40 text-rose-400/90"><span class="inline-flex items-center justify-center gap-1"><span class="w-3.5 h-3.5 inline-flex" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span>Cần Tổng Lv <span x-text="$store.game.professionLvReq"></span></span></div>
                       </template>
                       <template x-if="!$store.game.hasProfession(n.id) && !$store.game.professionLvLocked(n.id)">
                         <button @click="$store.game.learnProfession(n.id)" :disabled="$store.game.state.currencies.bac < $store.game.professionNextCost" class="w-full py-2 rounded-lg text-[12px] font-bold transition flex items-center justify-center gap-1.5" :class="$store.game.state.currencies.bac>=$store.game.professionNextCost ? 'bg-jade/80 hover:bg-jade text-ink' : 'bg-slate-800/60 border border-slate-700 text-slate-500 cursor-not-allowed'">
@@ -1635,7 +1635,7 @@
               </div>
               <div class="h-2 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-jade" :style="`width:${$store.game.skillProg($store.game.selectedSkill).frac*100}%`"></div></div>
               <div class="text-[11px] text-slate-500 mt-1" x-text="$store.game.fmt($store.game.skillProg($store.game.selectedSkill).need - $store.game.skillProg($store.game.selectedSkill).into) + ' EXP cần · ' + Math.round($store.game.skillProg($store.game.selectedSkill).frac*100) + '%'"></div>
-              <div class="mt-2 px-2 py-1.5 rounded bg-ink3 text-xs text-slate-500 flex items-center gap-2">🔒 Đốn Ngộ Cảnh (Ascension)</div>
+              <div class="mt-2 px-2 py-1.5 rounded bg-ink3 text-xs text-slate-500 flex items-center gap-2"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span>Đốn Ngộ Cảnh (Ascension)</div>
             </section>
             <section class="panel rounded-lg p-3">
               <div class="lbl mb-2">Thống Kê</div>
@@ -4044,7 +4044,7 @@
                     <div class="rounded-lg bg-ink3/50 border border-slate-700/60 px-3 py-2.5 mb-3">
                       <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1.5 flex items-center justify-between"><span>Trang bị · <span class="text-slate-300" x-text="$store.game.equipSlotLabel(m.equip.slot)"></span></span><template x-if="m.plus>0"><span class="text-amber-300 font-bold" x-text="'+'+m.plus"></span></template></div>
                       <template x-if="m.reqLevel > 1">
-                        <div class="text-[11px] mb-2" :class="$store.game.canEquip(m)?'text-slate-400':'text-rose-400'">⚔ Yêu cầu mang: <b x-text="$store.game.equipReqText(m)"></b><span x-show="!$store.game.canEquip(m)" x-text="' (bạn: Lv '+$store.game.equipCurLevel(m)+')'"></span></div>
+                        <div class="text-[11px] mb-2" :class="$store.game.canEquip(m)?'text-slate-400':'text-rose-400'"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('sword','w-3.5 h-3.5')"></span>Yêu cầu mang: <b x-text="$store.game.equipReqText(m)"></b><span x-show="!$store.game.canEquip(m)" x-text="' (bạn: Lv '+$store.game.equipCurLevel(m)+')'"></span></div>
                       </template>
                       <!-- THUỘC TÍNH: list dọc, tên + giá trị TÔ MÀU theo bậc roll (min→max) -->
                       <template x-if="Object.keys(m.stats||{}).length">
@@ -4067,7 +4067,7 @@
                     <div class="rounded-lg bg-ink3/50 border px-3 py-2.5 mb-3" :class="$store.game.QUALITY[m.quality].border">
                       <div class="text-[11.5px] text-slate-300 mb-1.5 leading-snug">Lĩnh ngộ để mở rèn <b :class="$store.game.QUALITY[m.quality].text" x-text="($store.game.ITEMS[m.gearId]||{}).name"></b> ở <b class="text-jade">Rèn Đúc</b> — <b class="text-amber-300">mỗi lượt chỉ rèn 1 món</b>, hết lượt phải lĩnh ngộ cuộn khác.</div>
                       <div class="text-[11px] text-slate-400 mb-2">Lượt rèn hiện có: <b class="text-emerald-300" x-text="$store.game.doPhoChargeOf(m.id)"></b></div>
-                      <button @click="$store.game.learnDoPho(m.id)" :disabled="(m.qty||0)<1" class="w-full py-2 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition disabled:opacity-40 disabled:cursor-not-allowed">📜 Lĩnh Ngộ (+1 lượt rèn)</button>
+                      <button @click="$store.game.learnDoPho(m.id)" :disabled="(m.qty||0)<1" class="w-full py-2 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('scroll','w-4 h-4')"></span>Lĩnh Ngộ (+1 lượt rèn)</button>
                     </div>
                   </template>
                   <!-- Số lượng + giá -->
@@ -4127,7 +4127,7 @@
                         <div class="text-[11px] mt-0.5">
                           <template x-if="$store.game.isCurrentLocation(loc)"><span class="text-jade">● Đang ở đây</span></template>
                           <template x-if="!$store.game.isCurrentLocation(loc) && $store.game.locUnlocked(loc)"><span class="text-emerald-400">Sẵn sàng — chạm để đến</span></template>
-                          <template x-if="!$store.game.locUnlocked(loc)"><span class="text-slate-500" x-text="'🔒 Cần Chiến Đấu Lv '+ loc.reqLevel"></span></template>
+                          <template x-if="!$store.game.locUnlocked(loc)"><span class="inline-flex items-center gap-1 text-slate-500"><span class="w-3 h-3 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3 h-3')"></span><span x-text="'Cần Chiến Đấu Lv '+ loc.reqLevel"></span></span></template>
                         </div>
                       </div>
                       <span class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-black/50 border" :class="$store.game.locTier(loc).text + ' ' + $store.game.locTier(loc).border" x-text="'Lv ' + loc.reqLevel"></span>
@@ -4193,7 +4193,7 @@
                       :class="$store.game.locUnlocked(loc) ? '' : 'grayscale opacity-45'"
                       x-html="$store.game.ico(loc.id, loc.icon)"></div>
                     <template x-if="!$store.game.locUnlocked(loc)">
-                      <span class="absolute inset-0 flex items-center justify-center text-2xl opacity-90 pointer-events-none">🔒</span>
+                      <span class="absolute inset-0 flex items-center justify-center opacity-90 pointer-events-none"><span class="w-7 h-7 inline-flex" x-html="$store.game.svg('lock','w-7 h-7')"></span></span>
                     </template>
                     <template x-if="$store.game.isCurrentLocation(loc)">
                       <span class="absolute inset-2 rounded-full ring-2 ring-jade/70 animate-pulse pointer-events-none"></span>
@@ -4232,7 +4232,7 @@
               <!-- Chú thích đáy -->
               <div class="absolute bottom-0 inset-x-0 h-10 flex items-center justify-center gap-3 sm:gap-5 px-3 rounded-b-[10px] bg-gradient-to-t from-black/75 to-transparent text-[10px] sm:text-[11px] text-slate-300 z-30">
                 <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_2px_rgba(52,211,153,0.55)]"></span>Đã mở</span>
-                <span class="flex items-center gap-1 text-slate-400">🔒 Chưa đạt cấp</span>
+                <span class="flex items-center gap-1 text-slate-400"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span>Chưa đạt cấp</span>
                 <span class="hidden md:flex items-center gap-2 text-slate-500"><span class="text-amber-300/40">◆</span>Chạm địa điểm để xem chi tiết<span class="text-amber-300/40">◆</span></span>
               </div>
 
@@ -4545,7 +4545,7 @@
                         <span class="text-slate-300/80" x-text="'Lv'+d.reqLevel"></span>
                         <span class="text-slate-600">·</span>
                         <template x-if="g.dungeonLocked(d.id)"><span class="text-slate-400">Chưa đủ cấp</span></template>
-                        <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)"><span class="text-amber-300" x-text="'⏳ '+g.dungeonRunsDone+'/'+g.dungeonRunsTotal+' · còn '+g.fmtDurHMS(g.dungeonTimeLeft())"></span></template>
+                        <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)"><span class="inline-flex items-center gap-1 text-amber-300"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="g.svg('clock','w-3.5 h-3.5')"></span><span x-text="g.dungeonRunsDone+'/'+g.dungeonRunsTotal+' · còn '+g.fmtDurHMS(g.dungeonTimeLeft())"></span></span></template>
                         <template x-if="!g.dungeonLocked(d.id) && !g.dungeonRunningHere(d.id)"><span class="text-emerald-400">● Sẵn sàng</span></template>
                       </div>
                     </div>
@@ -4702,7 +4702,7 @@
                           <button @click="g.openDungeonHistory(h)" class="w-full flex items-center gap-2 text-[11px] py-1.5 border-b border-slate-800/60 hover:bg-white/5 rounded px-1 transition text-left">
                             <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="'background:'+(h.cleared?'#34d399':'#fb7185')"></span>
                             <span class="text-slate-300 truncate flex-1" x-text="(g.DUNGEON_BY_ID[h.dungeonId]||{}).name"></span>
-                            <template x-if="h.doPhoId || (h.doPhoIds && h.doPhoIds.length)"><span class="text-amber-300" title="Đoạt Đồ Phổ">📜</span></template>
+                            <template x-if="h.doPhoId || (h.doPhoIds && h.doPhoIds.length)"><span class="text-amber-300 inline-flex" title="Đoạt Đồ Phổ"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('scroll','w-3.5 h-3.5')"></span></span></template>
                             <template x-if="(h.runs||1) > 1"><span class="text-slate-300 shrink-0" x-text="h.clears+'/'+h.runs+' TQ'"></span></template>
                             <template x-if="(h.runs||1) <= 1"><span :class="h.cleared?'text-emerald-400':'text-rose-400'" x-text="h.cleared?'Thông quan':'Rút lui'"></span></template>
                             <span class="w-3 h-3 text-slate-600 shrink-0" x-html="g.svg('chevR','w-3 h-3')"></span>
@@ -4782,7 +4782,7 @@
                             <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                               <span class="text-[11.5px] font-semibold shrink-0" :class="pr.cleared?'text-emerald-300':'text-rose-300'" x-text="'Lượt '+(i+1)+(pr.cleared?' · Thông quan':' · Rút lui')"></span>
                               <span class="text-[10px] text-slate-500" x-text="'sinh lực '+pr.hpPct+'%'"></span>
-                              <template x-if="pr.doPhoId"><span class="text-[10.5px] text-amber-300 font-medium px-1.5 py-0.5 rounded bg-amber-900/30 border border-amber-500/40" x-text="'📜 '+((g.ITEMS[pr.doPhoId]||{}).name||'Đồ Phổ')"></span></template>
+                              <template x-if="pr.doPhoId"><span class="inline-flex items-center gap-1 text-[10.5px] text-amber-300 font-medium px-1.5 py-0.5 rounded bg-amber-900/30 border border-amber-500/40"><span class="w-3 h-3 inline-flex shrink-0" x-html="g.svg('scroll','w-3 h-3')"></span><span x-text="((g.ITEMS[pr.doPhoId]||{}).name||'Đồ Phổ')"></span></span></template>
                               <template x-if="pr.biKipDrop"><span class="text-[10.5px] font-medium fserif px-1.5 py-0.5 rounded bg-black/40 border" :style="'color:'+pr.biKipDrop.tierColor+';border-color:'+pr.biKipDrop.tierColor+'66'" x-text="'笈 '+pr.biKipDrop.ten"></span></template>
                             </div>
                             <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px]">
@@ -5535,7 +5535,7 @@
                       </div>
                     </div>
                     <div class="px-5 py-3 border-t border-slate-800 shrink-0">
-                      <button @click="g.lvhPickFromHist()" class="w-full py-2 rounded-lg text-[12px] font-bold fserif transition bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25">⚡ Chọn làm đấu sĩ — Tỉ Thí tự chọn đối thủ</button>
+                      <button @click="g.lvhPickFromHist()" class="w-full py-2 rounded-lg text-[12px] font-bold fserif transition bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 inline-flex items-center justify-center gap-1.5"><span class="w-4 h-4 inline-flex" x-html="g.svg('zap','w-4 h-4')"></span>Chọn làm đấu sĩ — Tỉ Thí tự chọn đối thủ</button>
                     </div>
                   </div>
                 </div>
@@ -8502,7 +8502,7 @@
                   <div class="panel rounded-2xl p-3 relative transition dtm-enemy" :class="(e.hit?'shake ':'')+(e.hp<=0?'opacity-40 ':'cursor-pointer ')"
                        :style="'flex:1 1 0;min-width:152px;max-width:330px;'+(ei===tgtIdx()&&e.hp>0?'border-color:#f5b942;box-shadow:0 0 18px -5px #f5b942':'border-color:'+heColor(e.he)+'44')"
                        @click="e.hp>0&&(targetIdx=ei)">
-                    <div x-show="ei===tgtIdx()&&e.hp>0" class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] fserif text-gold px-1.5 rounded bg-ink2 border border-gold/40 whitespace-nowrap">⌖ Mục tiêu</div>
+                    <div x-show="ei===tgtIdx()&&e.hp>0" class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] fserif text-gold px-1.5 rounded bg-ink2 border border-gold/40 whitespace-nowrap"><span class="inline-flex items-center gap-1"><span class="w-3 h-3 inline-flex" x-html="$store.game.svg('target','w-3 h-3')"></span>Mục tiêu</span></div>
                     <button class="dtmk-btndetail absolute top-2 right-2 z-20" @click.stop="openEnemyDetail(e)" title="Chi Tiết Tàn Niệm"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-info"/></svg><span class="hidden sm:inline">Chi Tiết</span></button>
                     <div class="flex items-center gap-2.5">
                       <div class="relative shrink-0">
@@ -10637,7 +10637,7 @@
                     <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(rec).text" x-text="rec.name"></span><template x-if="g.gearHe(rec)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(rec).info.badge" x-text="g.gearHe(rec).info.han"></span></template></div>
                     <div class="flex items-center gap-1 flex-wrap">
                       <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(rec).bg+' '+g.itemQuality(rec).text+' '+g.itemQuality(rec).border" x-text="g.qualityName(rec) + (rec.itemLv ? ' · Lv'+rec.itemLv : '')"></span>
-                      <template x-if="g.equipReqOf(rec)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(rec)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(rec)"></span></template>
+                      <template x-if="g.equipReqOf(rec)>1"><span class="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(rec)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'"><span class="w-2.5 h-2.5 inline-flex shrink-0" x-html="g.svg('sword','w-2.5 h-2.5')"></span><span x-text="'Cần Lv'+g.equipReqOf(rec)"></span></span></template>
                     </div>
                     <div class="space-y-0.5 pt-0.5">
                       <template x-for="c in g.gearCompare(rec).filter(c=>c.next>0)" :key="c.key">
@@ -10673,7 +10673,7 @@
                   <div class="flex items-center gap-1.5 min-w-0"><span class="text-[13px] font-semibold truncate min-w-0" :class="g.itemQuality(it).text" x-text="it.name"></span><template x-if="g.gearHe(it)"><span class="text-[8px] px-1 rounded shrink-0" :class="g.gearHe(it).info.badge" x-text="g.gearHe(it).info.han"></span></template></div>
                   <div class="flex items-center gap-1 flex-wrap">
                     <span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.itemQuality(it).bg+' '+g.itemQuality(it).text+' '+g.itemQuality(it).border" x-text="g.qualityName(it)"></span>
-                    <template x-if="g.equipReqOf(it)>1"><span class="text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(it)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'" x-text="'⚔ Cần Lv'+g.equipReqOf(it)"></span></template>
+                    <template x-if="g.equipReqOf(it)>1"><span class="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded border" :class="g.canEquip(it)?'border-slate-600 text-slate-400':'border-rose-500/60 text-rose-300'"><span class="w-2.5 h-2.5 inline-flex shrink-0" x-html="g.svg('sword','w-2.5 h-2.5')"></span><span x-text="'Cần Lv'+g.equipReqOf(it)"></span></span></template>
                   </div>
                   <div class="space-y-0.5 pt-0.5">
                     <template x-for="c in g.gearCompare(it).filter(c=>c.next>0)" :key="c.key">
@@ -11073,7 +11073,7 @@
         <div class="flex gap-3 px-7 py-5">
           <button @click="$store.game.closeCombatSummary()" class="flex-1 py-3 rounded-2xl text-[16px] font-bold border border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white transition">Thu Quân</button>
           <template x-if="$store.game.combatSummary.reason!=='death'">
-            <button @click="$store.game.combatAgain()" class="flex-1 py-3 rounded-2xl text-[16px] font-bold bg-jade hover:brightness-110 text-ink transition">⚔ Đánh Tiếp</button>
+            <button @click="$store.game.combatAgain()" class="flex-1 py-3 rounded-2xl text-[16px] font-bold bg-jade hover:brightness-110 text-ink transition inline-flex items-center justify-center gap-2"><span class="w-5 h-5 inline-flex" x-html="$store.game.svg('sword','w-5 h-5')"></span>Đánh Tiếp</button>
           </template>
         </div>
       </div>
