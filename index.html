@@ -131,9 +131,8 @@
     .tacgia-badge svg{ width:11px; height:11px; }
     .tacgia-badge.lg{ font-size:11.5px; padding:2px 10px 2px 7px; }
     .tacgia-badge.lg svg{ width:13px; height:13px; }
-    /* Badge tác giả THU GỌN (chỉ dấu ✓) — ô hồ sơ hẹp, nhường chỗ cho tên; chữ "Tác Giả" giữ ở tooltip + modal */
-    .tacgia-badge.mini{ padding:0; gap:0; width:17px; height:17px; border-radius:50%; flex:none; }
-    .tacgia-badge.mini svg{ width:11px; height:11px; }
+    /* Ấn triện tác giả THU GỌN cạnh tên (con dấu vàng chữ Hán 作) — nhường chỗ cho tên; chữ "Tác Giả" giữ ở tooltip + con dấu đáy + modal. Glow TĨNH. */
+    .tacgia-seal-mini{ width:18px; height:18px; flex:none; border-radius:5px; display:inline-grid; place-items:center; font-family:'Lora',serif; font-weight:700; font-size:12px; line-height:1; color:#f5d472; border:1px solid rgba(245,185,66,.5); background:radial-gradient(circle at 50% 35%,rgba(245,185,66,.24),rgba(10,8,6,.55)); box-shadow:inset 0 0 6px rgba(245,185,66,.22); text-shadow:0 0 5px rgba(245,185,66,.4); }
     .tacgia-seal{ display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 10px; border-radius:11px; cursor:pointer; transition:.15s;
       border:1px solid rgba(245,185,66,.28); background:linear-gradient(180deg,rgba(30,22,10,.55),rgba(12,10,8,.4)); }
     .tacgia-seal:hover{ border-color:rgba(245,185,66,.5); background:linear-gradient(180deg,rgba(40,29,12,.7),rgba(14,11,8,.5)); }
@@ -546,7 +545,7 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 min-w-0">
                 <div class="text-sm font-semibold truncate" style="font-family:'Lora',serif" x-text="$store.game.state.player.name"></div>
-                <span x-show="$store.game.isAuthorAccount" x-cloak class="tacgia-badge mini shrink-0" title="Tác Giả — xác thực bằng chữ ký số"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17.5 19 6.5"/></svg></span>
+                <span x-show="$store.game.isAuthorAccount" x-cloak class="tacgia-seal-mini shrink-0" title="Tác Giả — xác thực bằng chữ ký số">作</span>
               </div>
               <template x-if="$store.game.equippedTitleObj">
                 <div class="my-0.5 truncate" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
