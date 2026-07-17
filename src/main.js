@@ -1059,7 +1059,7 @@ const gameStore = {
   },
   toggleGroup(title) { this.groupsOpen[title] = !this.groupsOpen[title]; },
   setProfileTab(t) { this.profileTab = t; },
-  openLightbox(id, emoji, name) { this.lightbox = { id, emoji, name }; },
+  openLightbox(id, emoji, name, src) { this.lightbox = { id, emoji, name, src: src || '' }; },   // src: ảnh trực tiếp (vd chân dung NPC) -> hiện thay icon
   closeLightbox() { this.lightbox = null; },
   // Toast nổi (tự ẩn sau 2.5s) — tái dùng cho mọi thông báo nhanh
   showToast(msg) {

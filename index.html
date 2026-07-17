@@ -1445,6 +1445,14 @@
           background:rgba(12,18,26,.7); border:1px solid rgba(201,162,75,.35); box-shadow:inset 0 0 22px -12px #000; overflow:hidden; }
         .sk-hero .sk-ic img{ width:100%; height:100%; object-fit:contain; }
         .sk-hero .sk-ic .sk-por{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }   /* chân dung NPC phủ kín; ảnh lỗi -> tự gỡ -> icon nghề fallback */
+        .sk-hero .sk-ic{ cursor:zoom-in; }
+        .sk-hero .sk-ic .av-zoom{ position:absolute; inset:0; z-index:2; display:grid; place-items:center; opacity:0; background:transparent; transition:.15s; color:#fff; pointer-events:none; }
+        .sk-hero .sk-ic:hover .av-zoom{ opacity:1; background:rgba(0,0,0,.4); }
+        .av-zoom svg{ width:26px; height:26px; }
+        .dd-hd .av{ cursor:zoom-in; }
+        .dd-hd .av .av-zoom{ position:absolute; inset:0; z-index:2; display:grid; place-items:center; opacity:0; background:transparent; transition:.15s; color:#fff; pointer-events:none; }
+        .dd-hd .av:hover .av-zoom{ opacity:1; background:rgba(0,0,0,.4); }
+        .dd-hd .av .av-zoom svg{ width:18px; height:18px; }
         .sk-hero .sk-body{ flex:1; min-width:0; }
         .sk-hero .sk-nm{ font-family:'Lora',Georgia,serif; font-size:16px; font-weight:700; color:#f5d089; letter-spacing:.02em; line-height:1.2; }
         .sk-hero .sk-qt{ font-style:italic; font-size:13.5px; color:#cbd5e1; margin-top:5px; line-height:1.45; }
@@ -1519,7 +1527,7 @@
               <span class="sk-fl f3"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
               <span class="sk-fl f4"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
               <div class="sk-row">
-                <div class="sk-ic"><img class="sk-por" :src="'images/damdao/'+$store.game.currentSkill.id+'.webp'" alt="" onerror="this.remove()"><span x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></span></div>
+                <div class="sk-ic" title="Xem chân dung lớn" @click="$store.game.openLightbox($store.game.currentSkill.id, $store.game.currentSkill.icon, $store.game.currentSkill.npc.name, 'images/damdao/'+$store.game.currentSkill.id+'.webp')"><img class="sk-por" :src="'images/damdao/'+$store.game.currentSkill.id+'.webp'" alt="" onerror="this.remove()"><span x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></span><span class="av-zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2M11 8.5v5M8.5 11h5"/></svg></span></div>
                 <div class="sk-body">
                   <div class="sk-nm" x-text="$store.game.currentSkill.npc.name"></div>
                   <div class="sk-qt" x-text="'“' + $store.game.currentSkill.npc.quote + '”'"></div>
@@ -11215,7 +11223,7 @@
     <div class="dd-bd" @click.self="$store.game.ddClose()" @keydown.escape.window="$store.game.ddClose()">
       <div class="dd-box">
         <div class="dd-hd">
-          <div class="av"><img class="av-por" :src="'images/damdao/'+$store.game.dd.skillId+'.webp'" alt="" onerror="this.remove()"><span x-html="$store.game.ico($store.game.dd.skillId, '📖')"></span></div>
+          <div class="av" title="Xem chân dung lớn" @click="$store.game.openLightbox($store.game.dd.skillId, '📖', $store.game.ddNpcName, 'images/damdao/'+$store.game.dd.skillId+'.webp')"><img class="av-por" :src="'images/damdao/'+$store.game.dd.skillId+'.webp'" alt="" onerror="this.remove()"><span x-html="$store.game.ico($store.game.dd.skillId, '📖')"></span><span class="av-zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.2-4.2M11 8.5v5M8.5 11h5"/></svg></span></div>
           <div class="min-w-0">
             <div class="nm truncate" x-text="$store.game.ddNpcName"></div>
             <div class="sub">Đàm Đạo · <span x-text="($store.game.SKILLS[$store.game.dd.skillId]||{}).name"></span></div>
@@ -11342,8 +11350,13 @@
 
   <!-- ===== Lightbox: xem ảnh phóng to (bấm icon trong modal) ===== -->
   <template x-if="$store.game.lightbox">
-    <div class="fixed inset-0 z-[80] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm p-6 cursor-zoom-out" @click="$store.game.closeLightbox()">
-      <div class="w-[70vmin] h-[70vmin] max-w-[520px] max-h-[520px] flex items-center justify-center" style="font-size:160px" x-html="$store.game.ico($store.game.lightbox.id, $store.game.lightbox.emoji)"></div>
+    <div class="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm p-6 cursor-zoom-out" @click="$store.game.closeLightbox()">
+      <template x-if="$store.game.lightbox.src">
+        <img :src="$store.game.lightbox.src" alt="" style="max-width:84vw;max-height:78vh;width:auto;height:auto;border-radius:16px;box-shadow:0 24px 90px rgba(0,0,0,.7)" onerror="this.style.display='none'">
+      </template>
+      <template x-if="!$store.game.lightbox.src">
+        <div class="w-[70vmin] h-[70vmin] max-w-[520px] max-h-[520px] flex items-center justify-center" style="font-size:160px" x-html="$store.game.ico($store.game.lightbox.id, $store.game.lightbox.emoji)"></div>
+      </template>
       <div class="mt-4 text-xl font-bold text-slate-100" x-text="$store.game.lightbox.name"></div>
       <div class="mt-1 text-xs text-slate-500">Bấm bất kỳ đâu để đóng</div>
     </div>
