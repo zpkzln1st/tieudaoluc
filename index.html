@@ -657,10 +657,10 @@
               <span>Còn lại: <b x-text="$store.game.fmtClock($store.game.actRemaining)"></b></span>
             </div>
             <template x-if="$store.game.actStalled">
-              <div class="mt-2 text-xs px-3 py-2 rounded bg-rose-900/30 border border-rose-700/40 text-rose-300">❌ Hết nguyên liệu — thu thập thêm rồi tiếp tục.</div>
+              <div class="mt-2 text-xs px-3 py-2 rounded bg-rose-900/30 border border-rose-700/40 text-rose-300"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('xcircle','w-3.5 h-3.5')"></span>Hết nguyên liệu — thu thập thêm rồi tiếp tục.</div>
             </template>
             <template x-if="$store.game.actCapped">
-              <div class="mt-2 text-xs px-3 py-2 rounded bg-amber-900/30 border border-amber-700/40 text-amber-300">⚠️ Đạt giới hạn nhàn rỗi (8h). Nhận thưởng & bắt đầu lại.</div>
+              <div class="mt-2 text-xs px-3 py-2 rounded bg-amber-900/30 border border-amber-700/40 text-amber-300"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('warn','w-3.5 h-3.5')"></span>Đạt giới hạn nhàn rỗi (8h). Nhận thưởng & bắt đầu lại.</div>
             </template>
           </div>
         </template>
@@ -801,10 +801,10 @@
                       </div>
                     </template>
                     <template x-if="$store.game.actStalled">
-                      <div class="mt-1.5 text-[10px] px-2 py-1 rounded bg-rose-900/30 border border-rose-700/40 text-rose-300">❌ Hết nguyên liệu.</div>
+                      <div class="mt-1.5 text-[10px] px-2 py-1 rounded bg-rose-900/30 border border-rose-700/40 text-rose-300"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('xcircle','w-3.5 h-3.5')"></span>Hết nguyên liệu.</div>
                     </template>
                     <template x-if="$store.game.actCapped">
-                      <div class="mt-1.5 text-[10px] px-2 py-1 rounded bg-amber-900/30 border border-amber-700/40 text-amber-300">⚠️ Đạt giới hạn nhàn rỗi.</div>
+                      <div class="mt-1.5 text-[10px] px-2 py-1 rounded bg-amber-900/30 border border-amber-700/40 text-amber-300"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('warn','w-3.5 h-3.5')"></span>Đạt giới hạn nhàn rỗi.</div>
                     </template>
                       </div>
                     </template>
@@ -1368,7 +1368,7 @@
                 </div>
               </template>
               <template x-if="$store.game.tutAllDone">
-                <div class="flex items-center gap-3 py-2 text-jade"><span class="text-2xl">🏆</span><span class="font-medium">Nhiệm vụ tân thủ đã viên mãn. Khá lắm, thiếu hiệp!</span></div>
+                <div class="flex items-center gap-3 py-2 text-jade"><span class="w-6 h-6 inline-flex shrink-0" x-html="$store.game.svg('trophy','w-6 h-6')"></span><span class="font-medium">Nhiệm vụ tân thủ đã viên mãn. Khá lắm, thiếu hiệp!</span></div>
               </template>
             </div>
           </section>
@@ -4221,8 +4221,8 @@
                       <div class="bg-black/90 backdrop-blur border border-amber-400/30 rounded-lg p-2 text-center shadow-xl">
                         <div class="text-xs font-semibold text-amber-50" x-text="loc.name"></div>
                         <div class="text-[10px] text-slate-400 mt-0.5 leading-snug" x-text="loc.desc"></div>
-                        <div class="text-[10px] mt-1" :class="$store.game.locUnlocked(loc) ? 'text-emerald-300' : 'text-rose-300'"
-                          x-text="$store.game.locUnlocked(loc) ? '✓ Đã thông' : ('🔒 Cần Chiến Đấu Lv '+loc.reqLevel)"></div>
+                        <div class="text-[10px] mt-1 inline-flex items-center gap-1" :class="$store.game.locUnlocked(loc) ? 'text-emerald-300' : 'text-rose-300'">
+                          <span class="w-2.5 h-2.5 inline-flex shrink-0" x-html="$store.game.svg($store.game.locUnlocked(loc) ? 'check' : 'lock','w-2.5 h-2.5')"></span><span x-text="$store.game.locUnlocked(loc) ? 'Đã thông' : ('Cần Chiến Đấu Lv '+loc.reqLevel)"></span></div>
                       </div>
                     </div>
                   </div>
@@ -4364,7 +4364,7 @@
                       </div>
                       <template x-if="g.bossFight.done && g.bossFight.win && g.bossFight.reward">
                         <div class="mt-3 rounded-lg p-3" style="background:linear-gradient(135deg,rgba(245,185,66,.12),transparent);border:1px solid rgba(245,185,66,.4)">
-                          <div class="text-[11px] text-amber-300 font-semibold mb-2">🎉 Chiến Lợi Phẩm</div>
+                          <div class="text-[11px] text-amber-300 font-semibold mb-2 inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="$store.game.svg('gift','w-3.5 h-3.5')"></span>Chiến Lợi Phẩm</div>
                           <div class="flex items-center gap-2 flex-wrap text-[11px]">
                             <template x-for="(qty,id) in g.bossFight.reward.items" :key="id">
                               <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-black/40 border border-slate-700"><span class="w-4 h-4 inline-flex items-center justify-center" x-html="g.ico(id,(g.ITEMS[id]||{}).icon)"></span><span :class="(g.itemQuality(id)||{}).text||'text-slate-200'" x-text="(g.ITEMS[id]||{}).name"></span><span class="text-slate-400" x-text="'×'+qty"></span></span>
@@ -4569,7 +4569,7 @@
                         <span class="text-2xl fserif" :style="'color:'+d.color" x-text="d.name"></span>
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/40 border border-slate-700 text-slate-300" x-text="'Lv '+d.reqLevel"></span>
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/40 border border-slate-700 text-slate-400" x-text="d.realm"></span>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded" :style="'background:'+d.color+'22;border:1px solid '+d.color+'55;color:'+d.color" x-text="'⚠ '+d.hazardName"></span>
+                        <span class="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded" :style="'background:'+d.color+'22;border:1px solid '+d.color+'55;color:'+d.color"><span class="w-2.5 h-2.5 inline-flex shrink-0" x-html="$store.game.svg('warn','w-2.5 h-2.5')"></span><span x-text="d.hazardName"></span></span>
                         <span class="ml-auto shrink-0 text-[11px] font-medium px-2.5 py-0.5 rounded inline-flex items-center gap-1.5" :style="'background:rgba(0,0,0,.5);border:1px solid '+d.color+'99;color:#f1e3c2'"><span class="w-3.5 h-3.5 inline-flex" :style="'color:'+d.color" x-html="g.svg('clock','w-3.5 h-3.5')"></span>Mỗi lượt <b :style="'color:'+d.color" x-text="g.fmtDurHM(g.dungeonDurSec(d.id))"></b></span>
                       </div>
                       <div class="text-[11.5px] text-slate-300 italic mt-2 leading-snug max-w-xl" x-text="'“'+d.lore+'”'"></div>
@@ -4750,7 +4750,7 @@
                     </div>
                   </template>
                   <div class="rounded-xl p-4" style="background:linear-gradient(135deg,rgba(245,185,66,.1),transparent);border:1px solid rgba(245,185,66,.35)">
-                    <div class="text-[13px] text-amber-300 font-semibold mb-3 inline-flex items-center gap-1.5" x-text="(r.runs||1) > 1 ? '🎁 Tổng thu hoạch · '+r.runs+' lượt' : '🎁 Chiến Lợi Phẩm'"></div>
+                    <div class="text-[13px] text-amber-300 font-semibold mb-3 inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('gift','w-3.5 h-3.5')"></span><span x-text="(r.runs||1) > 1 ? 'Tổng thu hoạch · '+r.runs+' lượt' : 'Chiến Lợi Phẩm'"></span></div>
                     <template x-for="(dpId,di) in (r.doPhoIds || (r.doPhoId ? [r.doPhoId] : []))" :key="di">
                       <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-black/40 border border-amber-500/50">
                         <span class="w-16 h-16 inline-flex items-center justify-center shrink-0" x-html="g.ico(dpId,'📜')"></span>
@@ -4775,7 +4775,7 @@
                   <!-- CHI TIẾT TỪNG LƯỢT (khi Lịch Luyện > 1 lượt) -->
                   <template x-if="(r.runs||1) > 1 && (r.perRun||[]).length">
                     <div>
-                      <div class="text-[13px] text-slate-300 font-semibold mb-2 inline-flex items-center gap-1.5">📋 Chi Tiết Từng Lượt</div>
+                      <div class="text-[13px] text-slate-300 font-semibold mb-2 inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 inline-flex" x-html="$store.game.svg('clipboard','w-3.5 h-3.5')"></span>Chi Tiết Từng Lượt</div>
                       <div class="space-y-1.5">
                         <template x-for="(pr,i) in r.perRun" :key="i">
                           <div class="rounded-lg bg-black/25 border border-slate-800 px-3 py-2">
@@ -6174,7 +6174,7 @@
                       <div class="grid grid-cols-2 gap-2 mb-2">
                         <div class="rounded-lg bg-ink3/50 border border-slate-800 px-2.5 py-1.5"><div class="lbl mb-0.5">Chí Hướng</div><div class="text-[12.5px] fserif text-slate-200" x-text="d.dream"></div></div>
                         <div class="rounded-lg bg-rose-500/5 border px-2.5 py-1.5" :style="'border-color:'+g.tmTamMaView(d).tier.color+'33'">
-                          <div class="flex items-center justify-between gap-2 mb-0.5"><div class="lbl text-rose-300/70">⚠ Tâm Ma</div><div class="text-[10px] fserif font-bold shrink-0" :style="'color:'+g.tmTamMaView(d).tier.color" x-text="g.tmTamMaView(d).tier.name"></div></div>
+                          <div class="flex items-center justify-between gap-2 mb-0.5"><div class="lbl text-rose-300/70"><span class="w-3 h-3 inline-flex align-[-1px] mr-1" x-html="$store.game.svg('warn','w-3 h-3')"></span>Tâm Ma</div><div class="text-[10px] fserif font-bold shrink-0" :style="'color:'+g.tmTamMaView(d).tier.color" x-text="g.tmTamMaView(d).tier.name"></div></div>
                           <div class="text-[12px] fserif text-rose-200/90 truncate" x-text="d.tamMa"></div>
                           <div class="flex items-center gap-1.5 mt-1"><div class="flex-1 h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+g.tmTamMaView(d).xpPct+'%;background:'+g.tmTamMaView(d).tier.color"></div></div><span class="text-[9px] tabular-nums fserif shrink-0" :style="'color:'+g.tmTamMaView(d).tier.color" x-text="g.tmTamMaView(d).lv+'/'+g.tmTamMaView(d).max"></span></div>
                         </div>
@@ -9955,7 +9955,7 @@
           <!-- STRIP tiến độ xây (mọi tab) -->
           <template x-if="hasJob">
             <div class="dp-job" x-data="{cfm:false}">
-              <span class="ji">🔨</span>
+              <span class="ji"><span class="w-5 h-5 inline-flex" x-html="$store.game.svg('hammer','w-5 h-5')"></span></span>
               <div class="jb">
                 <div class="jt"><span x-text="jobName"></span><span class="jr" x-text="'Còn ' + jobRemainText"></span></div>
                 <div class="jbar"><i :style="`width:${jobPct}%`"></i></div>
@@ -10155,7 +10155,7 @@
                 <p class="ql-sectitle">Đang Thi Công</p>
                 <template x-if="hasJob">
                   <div class="dp-job" x-data="{cfm:false}">
-                    <span class="ji">🔨</span>
+                    <span class="ji"><span class="w-5 h-5 inline-flex" x-html="$store.game.svg('hammer','w-5 h-5')"></span></span>
                     <div class="jb"><div class="jt"><span x-text="jobName"></span><span class="jr" x-text="'Còn ' + jobRemainText"></span></div><div class="jbar"><i :style="`width:${jobPct}%`"></i></div></div>
                     <button class="dp-cancel" @click="cfm ? (doCancel(), cfm=false) : cfm=true" x-text="cfm ? 'Chắc chắn? (mất Bạc)' : 'Hủy Xây'"></button>
                   </div>
@@ -10238,7 +10238,7 @@
       <!-- ===== VIEW: PLACEHOLDER ===== -->
       <template x-if="$store.game.isPlaceholderView">
         <section class="panel rounded-lg p-10 text-center">
-          <div class="text-5xl mb-3">🚧</div>
+          <div class="mb-3 flex justify-center text-slate-500"><span class="w-12 h-12 inline-flex" x-html="$store.game.svg('hammer','w-12 h-12')"></span></div>
           <div class="text-lg font-semibold" x-text="$store.game.viewName"></div>
           <div class="text-sm text-slate-500 mt-1">Đang hoàn thiện — sắp ra mắt.</div>
         </section>
@@ -10915,7 +10915,7 @@
   <template x-if="$store.game.confirmReset">
     <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.confirmReset=false">
       <div class="panel rounded-xl p-6 w-80 max-w-full text-center shadow-2xl border border-rose-500/40" @click.stop>
-        <div class="text-3xl mb-2">⚠️</div>
+        <div class="mb-2 flex justify-center text-amber-300"><span class="w-8 h-8 inline-flex" x-html="$store.game.svg('warn','w-8 h-8')"></span></div>
         <div class="font-bold text-lg text-rose-300">Xoá Tiến Trình?</div>
         <div class="text-sm text-slate-400 mt-2 leading-snug">Xoá sạch nhân vật, cấp độ, vật phẩm — chơi lại từ đầu (đặt lại tên &amp; giới tính). Không thể hoàn tác.</div>
         <div class="flex gap-2 mt-5">
@@ -11112,7 +11112,7 @@
     <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeSettings()">
       <div class="panel rounded-2xl w-[26rem] max-w-[94vw] overflow-hidden shadow-2xl" @click.stop>
         <div class="px-6 pt-5 pb-4 border-b border-slate-800 flex items-center justify-between">
-          <div class="text-lg font-bold flex items-center gap-2" style="font-family:'Lora',serif"><span>⚙️</span> Cài Đặt</div>
+          <div class="text-lg font-bold flex items-center gap-2" style="font-family:'Lora',serif"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('gear','w-4 h-4')"></span>Cài Đặt</div>
           <button @click="$store.game.closeSettings()" class="w-8 h-8 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
         </div>
         <div class="px-6 py-5 space-y-5">
@@ -11139,7 +11139,7 @@
                 <button @click="$store.game.cloudSyncNow()" :disabled="$store.game.cloudSyncing"
                   class="w-full mt-2 px-3 py-2 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-sm font-medium transition disabled:opacity-50 disabled:cursor-wait"
                   x-text="$store.game.cloudSyncing ? 'Đang đồng bộ…' : 'Đồng bộ ngay'"></button>
-                <template x-if="$store.game.cloudErr"><div class="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1">⚠ <span x-text="$store.game.cloudErr"></span></div></template>
+                <template x-if="$store.game.cloudErr"><div class="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1"><span class="w-3 h-3 inline-flex shrink-0" x-html="$store.game.svg('warn','w-3 h-3')"></span><span x-text="$store.game.cloudErr"></span></div></template>
                 <!-- ID tài khoản (uid) — cho Ấn Ký Tác Giả; bấm để copy -->
                 <div class="mt-2 flex items-center gap-2 text-[11px] text-slate-500">
                   <span class="shrink-0">ID tài khoản:</span>
@@ -11290,7 +11290,7 @@
     <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeAuth()">
       <div class="panel rounded-xl w-[360px] max-w-full p-5 border border-jade/40 shadow-2xl" @click.stop x-init="$nextTick(() => $refs.authEmail && $refs.authEmail.focus())">
         <div class="flex items-center justify-between mb-3">
-          <div class="font-bold text-jade flex items-center gap-2" style="font-family:'Lora',serif"><span>☁</span> Tài Khoản</div>
+          <div class="font-bold text-jade flex items-center gap-2" style="font-family:'Lora',serif"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('cloud','w-4 h-4')"></span>Tài Khoản</div>
           <button @click="$store.game.closeAuth()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center text-sm transition">✕</button>
         </div>
         <!-- Tabs Đăng nhập / Đăng ký -->
@@ -11302,7 +11302,7 @@
           class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100 text-sm mb-2">
         <input type="password" x-model="$store.game.authPass" @keydown.enter="$store.game.doAuth()" @keydown.escape="$store.game.closeAuth()" :placeholder="$store.game.authMode==='register' ? 'Mật khẩu (≥6 ký tự)' : 'Mật khẩu'" autocomplete="current-password"
           class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100 text-sm mb-2">
-        <template x-if="$store.game.authErr"><div class="text-[11px] text-rose-400 mb-2 flex items-center gap-1">⚠ <span x-text="$store.game.authErr"></span></div></template>
+        <template x-if="$store.game.authErr"><div class="text-[11px] text-rose-400 mb-2 flex items-center gap-1"><span class="w-3 h-3 inline-flex shrink-0" x-html="$store.game.svg('warn','w-3 h-3')"></span><span x-text="$store.game.authErr"></span></div></template>
         <template x-if="$store.game.authMsg"><div class="text-[11px] text-jade mb-2 flex items-center gap-1">✓ <span x-text="$store.game.authMsg"></span></div></template>
         <button @click="$store.game.doAuth()" :disabled="$store.game.authBusy"
           class="w-full py-2.5 rounded-lg font-bold text-sm transition"
@@ -11317,7 +11317,7 @@
   <template x-if="$store.game.cloudConflict">
     <div class="fixed inset-0 z-[79] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div class="panel rounded-xl w-[460px] max-w-full p-5 border border-amber-500/40 shadow-2xl" @click.stop>
-        <div class="font-bold text-amber-300 flex items-center gap-2 mb-1" style="font-family:'Lora',serif"><span>⚠</span> Hai bản tiến trình khác nhau</div>
+        <div class="font-bold text-amber-300 flex items-center gap-2 mb-1" style="font-family:'Lora',serif"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('warn','w-4 h-4')"></span>Hai bản tiến trình khác nhau</div>
         <div class="text-[12px] text-slate-400 mb-3">Chọn bản muốn giữ — bản còn lại sẽ bị ghi đè.</div>
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-lg border border-cyan/40 bg-cyan/5 p-3">
