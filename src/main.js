@@ -3,7 +3,7 @@
 // ============================================================
 import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/module.esm.js';
 import { SKILLS, STATS } from './data/skills.js';
-import { DAMDAO } from './data/damdao.js';
+import { DAMDAO, TIN_VAT, TIN_VAT_EFF_PCT } from './data/damdao.js';
 import { ITEMS, QUALITY, ITEM_TYPES, DOPHO_IDS, itemNameHtml } from './data/items.js';
 import { LOCATIONS, REALM_TIERS } from './data/locations.js';
 import { AVATARS, COVERS } from './data/avatars.js';
@@ -24,6 +24,7 @@ import { Storage } from './engine/save.js';
 import {
   startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS,
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
+  tinVatDone as _tinVatDone,
 } from './engine/activity.js';
 import { deriveCombat, combatProfile, simFight, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, TIER_STYLE, tierStyle } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
@@ -1284,6 +1285,11 @@ const gameStore = {
       const bonusChip = allSame ? ('+' + profs[0].exp + '% EXP · +' + profs[0].eff + '% Hiệu Suất / nghề') : 'Tăng EXP & Hiệu Suất / nghề';
       passive.push({ seal: '業', color: '#34d399', name: 'Nghề · ' + profs.length + ' nghề', lines: [bonusChip, ...profs.map((n) => n.name)] });
     }
+    // Tín Vật (thưởng Đàm Đạo) — mỗi cái +% hiệu suất nghề tương ứng, KHÔNG gộp tổng lực
+    const tvs = this.tinVatList;
+    if (tvs.length) {
+      passive.push({ seal: '信', color: '#eab308', name: 'Tín Vật · ' + tvs.length, lines: tvs.map((t) => t.name + ' — +' + this.tinVatPct + '% ' + t.skillName) });
+    }
     // tổng hợp -> summary sắp theo SUM_ORDER
     const summary = Object.values(agg)
       .sort((a, b) => (SUM_ORDER.indexOf(a.key) + 1 || 99) - (SUM_ORDER.indexOf(b.key) + 1 || 99))
@@ -1944,8 +1950,22 @@ const gameStore = {
     if (!this.ddAtEnd) return;   // còn nhánh -> chưa xong
     const id = this.dd.skillId, chId = this.dd.chapter.id;
     if (!this.state.damDao[id]) this.state.damDao[id] = [];
-    if (!this.state.damDao[id].includes(chId)) { this.state.damDao[id].push(chId); try { Storage.save(this.state); } catch (e) {} }
+    if (!this.state.damDao[id].includes(chId)) {
+      const wasDone = _tinVatDone(this.state, id);
+      this.state.damDao[id].push(chId);
+      try { Storage.save(this.state); } catch (e) {}
+      // vừa đọc HẾT trọn arc -> trao Tín Vật (+% hiệu suất nghề)
+      if (!wasDone && _tinVatDone(this.state, id)) {
+        const tv = TIN_VAT[id];
+        if (tv) this.showToast('Nhận Tín Vật: ' + tv.name + ' — +' + TIN_VAT_EFF_PCT + '% ' + ((this.SKILLS[id] || {}).name || 'nghề'));
+      }
+    }
   },
+  // ---- Tín Vật (thưởng Đàm Đạo): helper cho UI ----
+  tinVatPct: TIN_VAT_EFF_PCT,
+  tinVatOf(id) { return TIN_VAT[id] || null; },
+  tinVatDone(id) { return _tinVatDone(this.state, id); },
+  get tinVatList() { return Object.keys(TIN_VAT).filter((id) => this.hasDamDao(id) && _tinVatDone(this.state, id)).map((id) => ({ id, ...TIN_VAT[id], skillName: (this.SKILLS[id] || {}).name || '' })); },
 
   zoneName(id) { const l = (this.LOCATIONS || []).find((x) => x.id === id); return l ? l.name : ''; },  // tên vùng (cho nhãn gathering)
   // Nghề THU THẬP (có zone trên action) → danh sách chỉ hiện tài nguyên của VÙNG đang đứng. Nghề chế tạo (không zone) hiện hết.

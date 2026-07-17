@@ -470,3 +470,21 @@ export const DAMDAO = {
     ],
   },
 };
+
+// ============================================================
+// TÍN VẬT — phần thưởng khi đọc HẾT trọn 1 arc (4 chương) của 1 NPC nghề.
+//   Vật NPC "trao" trong truyện -> +TIN_VAT_EFF_PCT% Hiệu Suất (tốc độ) cho nghề đó.
+//   Cách ly: KHÔNG phải sức mạnh combat trực tiếp (cộng vào tốc độ như Công Cụ).
+// ============================================================
+export const TIN_VAT_EFF_PCT = 15;  // % hiệu suất (tốc độ) mỗi Tín Vật — DRAFT, tune sau
+export const TIN_VAT = {
+  phatMoc:    { name: 'Lão Phủ',        vat: 'Cây rìu mòn của lão tiều phu.',                    glyph: '斧' },
+  thaiKhoang: { name: 'Khoáng Đăng',    vat: 'Cây đèn cũ đã soi lão phu ra khỏi hầm sập.',       glyph: '燈' },
+  dieuNgu:    { name: 'Trúc Điếu',      vat: 'Cần trúc cũ theo lão hán mấy chục mùa nước.',      glyph: '釣' },
+  phanhNham:  { name: 'Khuyết Trù Đao', vat: 'Con dao bếp mẻ, thái qua vạn bữa buồn vui.',       glyph: '刀' },
+  luyenDan:   { name: 'Đan Lô',         vat: 'Cái lò con dược vương đổi bằng cả một đời.',       glyph: '爐' },
+  daTao:      { name: 'Khuyết Chùy',    vat: 'Cây búa mẻ gò lưng ba chục năm bên đe.',           glyph: '鎚' },
+  toaQuan:    { name: 'Bồ Đoàn Trống',  vat: 'Chỗ ngồi trống lão để lại — cái không cũng là trao.', glyph: '空' },
+  doanhTao:   { name: 'Tổ Xích',        vat: 'Cây thước tổ nghề, mòn nhẵn cả hai đầu.',          glyph: '尺' },
+  daLuyen:    { name: 'Cố Lô',          vat: 'Lò rèn ba trăm năm của Âu Dã Tử.',                 glyph: '冶' },
+};

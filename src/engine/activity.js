@@ -16,6 +16,7 @@ import { titleBonus } from './titles.js';
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
+import { DAMDAO, TIN_VAT_EFF_PCT } from '../data/damdao.js';   // Tín Vật: thưởng Đàm Đạo -> +% hiệu suất nghề
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
@@ -72,6 +73,14 @@ export function toolEffBonus(state, skillId) {
   return (e && e.gatherEff) || 0;
 }
 
+// ---- Tín Vật (thưởng Đàm Đạo): đọc HẾT trọn arc 1 NPC -> +TIN_VAT_EFF_PCT% hiệu suất nghề đó ----
+export function tinVatDone(state, skillId) {
+  const arc = DAMDAO[skillId]; if (!arc) return false;
+  const seen = (state.damDao && state.damDao[skillId]) || [];
+  return arc.chapters.every((c) => seen.includes(c.id));
+}
+export function tinVatEffBonus(state, skillId) { return tinVatDone(state, skillId) ? TIN_VAT_EFF_PCT / 100 : 0; }
+
 // ---- Bắt đầu hoạt động kỹ năng ----
 export function startActivity(state, skillId, actionId, now) {
   const action = getAction(skillId, actionId);
@@ -79,7 +88,7 @@ export function startActivity(state, skillId, actionId, now) {
   if (!canStartAction(state, skillId, action)) return false;
   state.activity = {
     type: 'skill', skillId, actionId,
-    cycleMs: Math.max(1, Math.round(action.time * 1000 / (professionEffMult(state, skillId) + toolEffBonus(state, skillId)))), // Nghề + Công cụ: nhanh hơn
+    cycleMs: Math.max(1, Math.round(action.time * 1000 / (professionEffMult(state, skillId) + toolEffBonus(state, skillId) + tinVatEffBonus(state, skillId)))), // Nghề + Công cụ + Tín Vật: nhanh hơn
     startedAt: now, lastResolved: now,
     sessionCount: 0, progress: 0, capped: false, stalled: false,
     buff: null, buffXpAcc: 0,
