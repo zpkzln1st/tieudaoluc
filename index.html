@@ -1323,8 +1323,8 @@
                   </div>
                 </template>
                 <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/60">
-                  <div class="text-[11.5px]"><b class="text-amber-300" x-text="g.manhTrangBi"></b><span class="text-slate-400"> Mảnh Hoàng Kim</span></div>
-                  <button @click="g.bachTrangOpen=true" class="text-[12px] font-bold px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-200 hover:border-amber-400/70 transition">Bách Trang Các</button>
+                  <div class="text-[11.5px]"><b style="color:#d6e3f2" x-text="g.manhTrangBi"></b><span class="text-slate-400"> Mảnh Hoàng Kim</span></div>
+                  <button @click="g.bachTrangOpen=true" class="text-[12px] font-bold px-3 py-1.5 rounded-lg border border-slate-400/40 bg-slate-400/10 text-slate-100 hover:border-slate-300/70 transition">Bách Trang Các</button>
                 </div>
               </div>
             </section>
@@ -1336,16 +1336,16 @@
       <!-- ===== MODAL: BÁCH TRANG CÁC (ghép Bộ Trang từ Mảnh Trang Bị Hoàng Kim) ===== -->
       <style>
         .btc-panel{ position:relative; background:linear-gradient(180deg,rgba(24,34,54,.98),rgba(11,18,32,.99)); border:1px solid #26344a; border-radius:18px; overflow:hidden; box-shadow:0 40px 100px -30px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.05); display:flex; flex-direction:column; max-height:92vh; }
-        .btc-panel::before{ content:""; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,transparent,rgba(240,198,116,.55),rgba(214,227,242,.4),transparent); z-index:2; }
+        .btc-panel::before{ content:""; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,transparent,rgba(214,227,242,.6),rgba(159,178,201,.35),transparent); z-index:2; }
         .btc-hd{ padding:18px 22px 13px; border-bottom:1px solid rgba(38,52,74,.7); position:relative; flex:none; }
-        .btc-title{ font-size:23px; font-weight:700; line-height:1.1; background:linear-gradient(120deg,#f0c674 20%,#d6e3f2 70%,#f0c674); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .btc-title{ font-size:23px; font-weight:700; line-height:1.1; background:linear-gradient(120deg,#eef4fb 12%,#d6e3f2 48%,#9fb2c9 92%); -webkit-background-clip:text; background-clip:text; color:transparent; }
         .btc-sub{ color:#8296ae; font-size:12.5px; margin-top:6px; max-width:640px; line-height:1.5; }
         .btc-x{ position:absolute; top:15px; right:15px; width:33px; height:33px; border-radius:9px; border:1px solid #26344a; background:rgba(15,23,38,.6); color:#8296ae; display:grid; place-items:center; cursor:pointer; }
         .btc-x:hover{ color:#e7eef7; border-color:#3a4c68; }
         .btc-status{ display:flex; align-items:center; gap:12px; padding:11px 22px; border-bottom:1px solid rgba(38,52,74,.7); background:linear-gradient(180deg,rgba(30,41,59,.2),transparent); flex:none; }
-        .btc-manh{ display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:11px; border:1px solid rgba(240,198,116,.32); background:rgba(240,198,116,.07); }
-        .btc-manh .sh{ width:18px; height:18px; }
-        .btc-manh b{ font-size:15px; color:#f0c674; } .btc-manh span{ font-size:12px; color:#8296ae; }
+        .btc-manh{ display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:11px; border:1px solid rgba(214,227,242,.34); background:rgba(214,227,242,.07); }
+        .btc-manh .sh{ width:18px; height:18px; filter:drop-shadow(0 0 4px rgba(214,227,242,.5)); }
+        .btc-manh b{ font-size:15px; color:#d6e3f2; } .btc-manh span{ font-size:12px; color:#8296ae; }
         .btc-body{ padding:4px 22px 18px; overflow-y:auto; }
         .btc-set{ border:1px solid #26344a; border-radius:14px; margin-top:14px; overflow:hidden; background:linear-gradient(180deg,rgba(18,27,45,.5),rgba(11,18,32,.3)); }
         .btc-sethd{ display:flex; align-items:center; gap:10px; padding:12px 15px; border-bottom:1px solid rgba(38,52,74,.55); }
@@ -1355,29 +1355,29 @@
         .btc-prog .n{ font-size:12.5px; color:#d6e3f2; font-weight:700; }
         .btc-prog .bar{ height:6px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden; margin-top:4px; }
         .btc-prog .bar>i{ display:block; height:100%; background:linear-gradient(90deg,#9fb2c9,#d6e3f2); box-shadow:0 0 8px -1px rgba(214,227,242,.5); }
-        .btc-lockban{ display:flex; align-items:center; gap:11px; padding:11px 15px; margin:11px 13px 0; border-radius:11px; background:rgba(240,198,116,.06); border:1px dashed rgba(240,198,116,.3); }
-        .btc-lockban .ic{ width:22px; height:22px; color:#f0c674; flex:none; }
-        .btc-lockban .t{ font-size:13px; font-weight:700; color:#f0c674; } .btc-lockban .s{ font-size:11.5px; color:#8296ae; margin-top:2px; }
+        .btc-lockban{ display:flex; align-items:center; gap:11px; padding:11px 15px; margin:11px 13px 0; border-radius:11px; background:rgba(214,227,242,.06); border:1px dashed rgba(214,227,242,.3); }
+        .btc-lockban .ic{ width:22px; height:22px; color:#d6e3f2; flex:none; }
+        .btc-lockban .t{ font-size:13px; font-weight:700; color:#d6e3f2; } .btc-lockban .s{ font-size:11.5px; color:#8296ae; margin-top:2px; }
         .btc-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(156px,1fr)); gap:11px; padding:13px; }
         .btc-card{ position:relative; border-radius:12px; padding:11px 9px 10px; border:1px solid #26344a; background:linear-gradient(180deg,rgba(20,30,50,.7),rgba(11,18,32,.5)); display:flex; flex-direction:column; align-items:center; text-align:center; }
         .btc-card.owned{ border-color:rgba(214,227,242,.5); background:linear-gradient(180deg,rgba(214,227,242,.09),rgba(11,18,32,.6)); }
         .btc-disc{ width:70px; height:70px; border-radius:12px; position:relative; margin-bottom:8px; display:grid; place-items:center; background:#0b1524; border:1.5px solid rgba(214,227,242,.4); box-shadow:inset 0 0 14px rgba(214,227,242,.12), 0 0 14px -5px rgba(214,227,242,.4); }
         .btc-card.owned .btc-disc{ border-color:rgba(214,227,242,.75); box-shadow:inset 0 0 16px rgba(214,227,242,.2), 0 0 17px -4px rgba(214,227,242,.6); }
         .btc-disc img{ width:86%; height:86%; object-fit:contain; filter:drop-shadow(0 3px 6px rgba(0,0,0,.5)); }
-        .btc-set.locked .btc-disc img{ filter:grayscale(1) brightness(.42); }
+        .btc-set.locked .btc-disc img{ filter:grayscale(.5) brightness(.72); }
         .btc-set.locked .btc-disc{ border-color:#2c3a52; box-shadow:none; }
-        .btc-lockmini{ position:absolute; inset:0; display:grid; place-items:center; background:rgba(6,12,22,.5); border-radius:11px; color:#9fb2c9; }
+        .btc-lockmini{ position:absolute; inset:0; display:grid; place-items:center; background:rgba(6,12,22,.32); border-radius:11px; color:#c3d2e6; z-index:4; }
         .btc-nm{ font-size:12.5px; font-weight:700; color:#d6e3f2; line-height:1.24; min-height:31px; display:flex; align-items:center; }
         .btc-set.locked .btc-nm{ color:#9fb2c9; }
         .btc-slot{ font-size:10.5px; color:#8296ae; margin-top:3px; }
         .btc-foot{ margin-top:9px; width:100%; display:flex; justify-content:center; flex-direction:column; align-items:center; gap:3px; min-height:30px; }
-        .btc-ghep{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-family:"Lora",serif; font-weight:700; font-size:12px; padding:6px 13px; border-radius:9px; color:#10203a; background:linear-gradient(180deg,#f6e6c0,#f0c674); border:1px solid rgba(255,255,255,.3); box-shadow:0 4px 12px -5px rgba(240,198,116,.6); }
+        .btc-ghep{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-family:"Lora",serif; font-weight:700; font-size:12px; padding:6px 13px; border-radius:9px; color:#10203a; background:linear-gradient(180deg,#eef4fb,#d6e3f2); border:1px solid rgba(255,255,255,.4); box-shadow:0 4px 12px -5px rgba(214,227,242,.6); }
         .btc-ghep .sh{ width:13px; height:13px; }
         .btc-ghep.disabled{ cursor:not-allowed; color:#8296ae; background:rgba(30,41,59,.5); border-color:#26344a; box-shadow:none; }
         .btc-owned{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#d6e3f2; font-family:"Lora",serif; }
         .btc-need{ font-size:10.5px; color:#d98a8a; }
         .btc-note{ padding:12px 22px 16px; font-size:11.5px; color:#8296ae; line-height:1.6; flex:none; border-top:1px solid rgba(38,52,74,.5); }
-        .btc-note b{ color:#c8a24a; }
+        .btc-note b{ color:#9fb2c9; }
       </style>
       <div class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.82)"
            x-show="$store.game.bachTrangOpen" x-cloak
@@ -1386,12 +1386,12 @@
         <div class="btc-panel w-full" style="max-width:960px">
           <div class="btc-hd">
             <div class="btc-title fserif">Bách Trang Các</div>
-            <div class="btc-sub">Gom <b style="color:#f0c674">Mảnh Trang Bị Hoàng Kim</b> từ Yêu Vương cấp cao (Lv 90+), lĩnh hội <b style="color:#d6e3f2">Đồ Phổ Bộ</b> để mở khoá, rồi ghép nên trọn từng Bộ Trang trấn thân.</div>
+            <div class="btc-sub">Gom <b style="color:#d6e3f2">Mảnh Trang Bị Hoàng Kim</b> từ Yêu Vương cấp cao (Lv 90+), lĩnh hội <b style="color:#d6e3f2">Đồ Phổ Bộ</b> để mở khoá, rồi ghép nên trọn từng Bộ Trang trấn thân.</div>
             <button class="btc-x" @click="g.bachTrangOpen=false" title="Đóng (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>
           <div class="btc-status">
             <div class="btc-manh">
-              <svg class="sh" viewBox="0 0 24 24" fill="none"><path d="M12 2 15 9l7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#e6c877" stroke="#10203a" stroke-width="1" stroke-linejoin="round"/></svg>
+              <svg class="sh" viewBox="0 0 24 24" fill="none"><path d="M12 2 15 9l7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#dbe7f5" stroke="#10203a" stroke-width="1" stroke-linejoin="round"/></svg>
               <b x-text="g.manhTrangBi"></b> <span>Mảnh Trang Bị Hoàng Kim</span>
             </div>
           </div>
@@ -1417,6 +1417,7 @@
                     <div class="btc-card" :class="g.setPieceOwned(pid) ? 'owned' : (g.setCanGhep(key,pid) ? 'affordable' : '')">
                       <div class="btc-disc">
                         <img :src="'images/equip/'+pid+'.webp'" alt="" onerror="this.style.visibility='hidden'">
+                        <i class="halo2" style="--c:#d6e3f2;--hpad:2px;--hglow:6px"></i>
                         <template x-if="!g.setUnlocked(key)"><div class="btc-lockmini"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div></template>
                       </div>
                       <div class="btc-nm" x-text="(g.ITEMS[pid]||{}).name"></div>
@@ -1426,7 +1427,7 @@
                         <template x-if="!g.setPieceOwned(pid) && g.setUnlocked(key)">
                           <button class="btc-ghep" :class="g.setCanGhep(key,pid) ? '' : 'disabled'" @click="g.ghepSetPiece(key,pid)">
                             <span x-text="'Ghép · '+g.TRANG_SETS[key].manhCost"></span>
-                            <svg class="sh" viewBox="0 0 24 24" fill="none"><path d="M12 2 15 9l7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#e6c877" stroke="#10203a" stroke-width="1" stroke-linejoin="round"/></svg>
+                            <svg class="sh" viewBox="0 0 24 24" fill="none"><path d="M12 2 15 9l7 3-7 3-3 7-3-7-7-3 7-3 3-7Z" fill="#dbe7f5" stroke="#10203a" stroke-width="1" stroke-linejoin="round"/></svg>
                           </button>
                         </template>
                         <template x-if="!g.setPieceOwned(pid) && g.setUnlocked(key) && !g.setCanGhep(key,pid)">
