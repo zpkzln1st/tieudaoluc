@@ -1975,6 +1975,11 @@ const gameStore = {
     });
     return out;
   },
+  // Bí Cảnh theo VÙNG: mỗi Bí Cảnh gắn 1 location (d.loc); phải Ở đúng vùng mới treo được
+  zoneDungeons(loc) { const id = loc && loc.id; return id ? this.DUNGEONS.filter((d) => d.loc === id) : []; },
+  dungeonAtLoc(d) { return !d || !d.loc || this.currentLocation === d.loc; },   // player đang đứng đúng vùng của Bí Cảnh?
+  dungeonLocName(d) { const l = d && d.loc && this.locationObj(d.loc); return l ? l.name : ''; },
+  goToDungeon(id) { this.selectDungeon(id); this.closeLocation(); this.navTo('dungeon'); },   // từ modal Địa Điểm nhảy vào màn Bí Cảnh
   navItemActive(it) { return this.view === it.view; },
   // Icon: tự chọn folder theo id (ICON_FOLDERS), mặc định 'items'; lỗi -> rơi về emoji
   ico(id, emoji) {
@@ -3422,6 +3427,7 @@ const gameStore = {
   startDungeonRun(id) {
     const d = this.DUNGEON_BY_ID[id]; if (!d) return;
     if (this.dungeonLocked(id)) { this.showToast('Cần Chiến Đấu Lv ' + d.reqLevel + ' để vào ' + d.name + '.'); return; }
+    if (!this.dungeonAtLoc(d)) { this.showToast('Cần bay tới ' + this.dungeonLocName(d) + ' mới treo ' + d.name + ' được.'); return; }
     if (this.dungeonRunning) { this.showToast('Đang có một lịch Bí Cảnh — chờ hoàn tất đã.'); return; }
     const n = this.dungeonRunsSel(id);
     const cost = this.dungeonBatchCost(id);

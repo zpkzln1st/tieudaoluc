@@ -23,7 +23,7 @@ const HR = 60 * MIN;
 export const DUNGEONS = [
   {
     id: 'thanhVanCoc', name: 'Thanh Vân Cốc', gloss: 'Verdant Vale', seal: '青',
-    reqLevel: 10, realm: 'Nhân Gian', theme: 'Sơn lâm thanh u', color: '#34d399',
+    reqLevel: 10, realm: 'Nhân Gian', loc: 'uLam', theme: 'Sơn lâm thanh u', color: '#34d399',
     hazard: 'thanPhap', hazardName: 'Lối Mòn Hiểm',
     lore: 'Sơn cốc xanh mướt, suối trong róc rách — chốn nhập môn của tân khách giang hồ.',
     mobs: ['Thanh Lang', 'Cẩm Mao Hổ'], boss: 'Thanh Mộc Lang Vương',
@@ -39,7 +39,7 @@ export const DUNGEONS = [
   },
   {
     id: 'hacPhongLam', name: 'Hắc Phong Lâm', gloss: 'Black Gale Wood', seal: '瘴',
-    reqLevel: 25, realm: 'Nhân Gian', theme: 'Độc lâm chướng khí', color: '#84cc16',
+    reqLevel: 25, realm: 'Nhân Gian', loc: 'huyenDo', theme: 'Độc lâm chướng khí', color: '#84cc16',
     hazard: 'sinhLuc', hazardName: 'Độc Chướng',
     lore: 'Rừng đen phủ chướng khí tía lục, nấm độc phát quang giữa sương lam.',
     mobs: ['Độc Vụ Yểm', 'Lục Lân Mãng'], boss: 'Hắc Phong Độc Chu',
@@ -55,7 +55,7 @@ export const DUNGEONS = [
   },
   {
     id: 'luuVanDong', name: 'Lưu Vân Động', gloss: 'Flowing Cloud Grotto', seal: '雲',
-    reqLevel: 40, realm: 'Bí Cảnh', theme: 'Cuồng phong huyền động', color: '#22d3ee',
+    reqLevel: 40, realm: 'Bí Cảnh', loc: 'thuyTinhDong', theme: 'Cuồng phong huyền động', color: '#22d3ee',
     hazard: 'thanPhap', hazardName: 'Cuồng Phong',
     lore: 'Động cao vách núi, mây gió cuồn cuộn — bẫy cơ quan rình kẻ chậm chân.',
     mobs: ['Phong Dực Điêu', 'Toàn Phong Hầu'], boss: 'Lưu Vân Phong Bằng',
@@ -71,7 +71,7 @@ export const DUNGEONS = [
   },
   {
     id: 'bangTamHanDam', name: 'Băng Tâm Hàn Đàm', gloss: 'Frostheart Pool', seal: '冰',
-    reqLevel: 55, realm: 'Bí Cảnh', theme: 'Hàn đàm băng động', color: '#38bdf8',
+    reqLevel: 55, realm: 'Bí Cảnh', loc: 'langTieuPhong', theme: 'Hàn đàm băng động', color: '#38bdf8',
     hazard: 'thanPhap', hazardName: 'Hàn Khí Trói Buộc',
     lore: 'Đầm băng sâu lạnh thấu xương, hàn khí trói chặt gân cốt.',
     mobs: ['Hàn Phách Quỷ', 'Băng Tinh Giao'], boss: 'Hàn Đàm Băng Cơ',
@@ -87,7 +87,7 @@ export const DUNGEONS = [
   },
   {
     id: 'xichDiemDiaCung', name: 'Xích Diệm Địa Cung', gloss: 'Crimson Flame Palace', seal: '焰',
-    reqLevel: 70, realm: 'Tiên Cảnh', theme: 'Địa hỏa cung điện', color: '#fb923c',
+    reqLevel: 70, realm: 'Tiên Cảnh', loc: 'meAoLucChau', theme: 'Địa hỏa cung điện', color: '#fb923c',
     hazard: 'hoThe', hazardName: 'Nhiệt Lực Thiêu Đốt',
     lore: 'Cung điện ngầm bên dòng dung nham, hơi nóng thiêu đốt tạng phủ.',
     mobs: ['Diệm Tinh', 'Hỏa Giáp Thần Tướng'], boss: 'Xích Diệm Hỏa Mẫu',
@@ -103,7 +103,7 @@ export const DUNGEONS = [
   },
   {
     id: 'coMoKiemTong', name: 'Cổ Mộ Kiếm Tông', gloss: 'Ancient Sword Tomb', seal: '劍',
-    reqLevel: 80, realm: 'Tiên Cảnh', theme: 'Cổ mộ kiếm trận', color: '#a5b4fc',
+    reqLevel: 80, realm: 'Tiên Cảnh', loc: 'phuKhongVien', theme: 'Cổ mộ kiếm trận', color: '#a5b4fc',
     hazard: 'linhXao', hazardName: 'Kiếm Trận Vô Hình',
     lore: 'Cổ mộ ngàn kiếm cắm đá, kiếm khí lượn lờ trong mê trận.',
     mobs: ['Thủ Mộ Kiếm Nô', 'Kiếm Trủng Lão Hồn'], boss: 'Cổ Mộ Kiếm Hồn',
@@ -119,7 +119,7 @@ export const DUNGEONS = [
   },
   {
     id: 'vanYeuSon', name: 'Vạn Yêu Sơn', gloss: 'Myriad Demon Peak', seal: '妖',
-    reqLevel: 85, realm: 'Tiên Cảnh', theme: 'Yêu thú hoành hành', color: '#e879f9',
+    reqLevel: 85, realm: 'Tiên Cảnh', loc: 'quanTinhDai', theme: 'Yêu thú hoành hành', color: '#e879f9',
     hazard: 'sinhLuc', hazardName: 'Yêu Khí Ăn Mòn',
     lore: 'Núi yêu chạng vạng máu, mắt thú lập loè, yêu khí ngút trời.',
     mobs: ['Huyết Nha Lang', 'Cửu Anh Mãng Xà'], boss: 'Vạn Yêu Chi Vương',
@@ -135,7 +135,7 @@ export const DUNGEONS = [
   },
   {
     id: 'thienCoDiTich', name: 'Thiên Cơ Di Tích', gloss: 'Heaven-Mechanism Ruins', seal: '機',
-    reqLevel: 92, realm: 'Thần Vực', theme: 'Cổ trận cơ quan', color: '#5eead4',
+    reqLevel: 92, realm: 'Thần Vực', loc: 'tichNguDao', theme: 'Cổ trận cơ quan', color: '#5eead4',
     hazard: 'linhXao', hazardName: 'Cổ Trận Cơ Quan',
     lore: 'Di tích đại trận thất truyền, bánh răng đá quay giữa phù văn lưu quang.',
     mobs: ['Cơ Quan Thạch Nhân', 'Thủ Trận Đồng Vệ'], boss: 'Thiên Cơ Cổ Linh',
@@ -151,7 +151,7 @@ export const DUNGEONS = [
   },
   {
     id: 'thaiHuBiCanh', name: 'Thái Hư Bí Cảnh', gloss: 'Grand Void Realm', seal: '虛',
-    reqLevel: 100, realm: 'Thần Vực', theme: 'Hư không thần vực', color: '#c084fc',
+    reqLevel: 100, realm: 'Thần Vực', loc: 'thienThanh', theme: 'Hư không thần vực', color: '#c084fc',
     hazard: 'linhXao', hazardName: 'Hư Không Loạn Lưu',
     lore: 'Bí cảnh ngoài chín tầng trời — đảo tiên trôi nổi, tinh vân vàng tím xoáy cuộn.',
     mobs: ['Hư Không Du Hồn', 'Tinh Vẫn Cự Thú'], boss: 'Thái Hư Đạo Quân',
