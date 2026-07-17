@@ -47,6 +47,17 @@ function rollDoPhoId(D) {
   return 'dp_' + pick(pool).id;
 }
 
+// Đồ Phổ CÔNG CỤ (rìu/cuốc/cần câu) — roll RIÊNG, pool chỉ tool -> KHÔNG làm loãng drop gear combat. Trả 'dp_<toolId>' | null.
+const TOOL_DP_SLOTS = ['riu', 'cuoc', 'canCau'];
+function rollToolDoPhoId(D) {
+  const td = D.loot.toolDoPho; if (!td) return null;
+  const bacs = Array.isArray(td.bac) ? td.bac : [td.bac];
+  const quals = bacs.map((b) => BAC_QUALITY[b]);
+  const pool = Object.values(GEAR).filter((g) => g.equip && TOOL_DP_SLOTS.includes(g.equip.slot) && quals.includes(g.quality));
+  if (!pool.length) return null;
+  return 'dp_' + pick(pool).id;
+}
+
 // ---- MÔ PHỎNG 1 LƯỢT (thuần, không mutate kho) ----
 export function runDungeon(state, dungeonId) {
   const D = DUNGEON_BY_ID[dungeonId];
@@ -143,6 +154,12 @@ export function runDungeon(state, dungeonId) {
     const chance = (D.loot.doPhoChance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
     if (Math.random() < chance) { doPhoId = rollDoPhoId(D); if (doPhoId) addLoot(doPhoId, 1); }
   }
+  // Đồ Phổ CÔNG CỤ: roll RIÊNG (pool tool), không cạnh tranh với doPho gear combat -> không loãng loot trang bị
+  let toolDoPhoId = null;
+  if (cleared && D.loot.toolDoPho) {
+    const tchance = (D.loot.toolDoPho.chance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
+    if (Math.random() < tchance) { toolDoPhoId = rollToolDoPhoId(D); if (toolDoPhoId) addLoot(toolDoPhoId, 1); }
+  }
   if (cleared && D.loot.rare) for (const r of D.loot.rare) { if (Math.random() < (r.chance || 0) * RUN.rareMul * P) addLoot(r.itemId, 1); }
 
   // BÍ KÍP -> Tông Môn (main->phụ 1 chiều): roll thuần, KHÔNG vào kho main; grant nạp vào biKipBag
@@ -152,7 +169,7 @@ export function runDungeon(state, dungeonId) {
     if (Math.random() < bkChance) biKipDropId = rollBiCanhBiKip(D.reqLevel);
   }
 
-  return { dungeonId, cleared, reachedTang, hpPct, power, log, doPhoId, biKipDropId, loot: { items, bac, exp, honThach } };
+  return { dungeonId, cleared, reachedTang, hpPct, power, log, doPhoId, toolDoPhoId, biKipDropId, loot: { items, bac, exp, honThach } };
 }
 
 // ---- LỊCH LUYỆN: gộp N lượt. Bộ tích luỹ (acc) gom loot cả lịch để tổng kết + thông báo 1 lần. ----
@@ -180,6 +197,7 @@ export function grantDungeonRun(state, dungeonId, acc, now) {
   for (const id in run.loot.items) acc.items[id] = (acc.items[id] || 0) + run.loot.items[id];
   if (run.cleared) acc.clears++;
   if (run.doPhoId) acc.doPhoIds.push(run.doPhoId);
+  if (run.toolDoPhoId) acc.doPhoIds.push(run.toolDoPhoId);   // Đồ Phổ công cụ -> hiển thị chung danh sách Đồ Phổ
   if (run.biKipDrop) acc.biKipDrops.push(run.biKipDrop);
   acc.perRun.push({ cleared: run.cleared, hpPct: run.hpPct, loot: run.loot, doPhoId: run.doPhoId, biKipDrop: run.biKipDrop || null });
   acc.lastRun = run; acc.power = run.power;

@@ -158,6 +158,8 @@ function grantReward(state, boss) {
   state.currencies.honThach = (state.currencies.honThach || 0) + wb.honThach;
   if (Math.random() < 0.10) { addItem(state, 'tinhTheYeuVuong', wb.tinhThe); r.items.tinhTheYeuVuong = wb.tinhThe; }   // Tinh Thể: 10% (KHÔNG còn đảm bảo)
   for (const e of wb.eggs) { if (Math.random() < e.chance) { addItem(state, e.itemId, 1); r.items[e.itemId] = (r.items[e.itemId] || 0) + 1; } }
+  if ((boss.reqLevel || 0) >= 90 && Math.random() < 0.20) { addItem(state, 'manhTrangBi', 1); r.items.manhTrangBi = (r.items.manhTrangBi || 0) + 1; }   // Mảnh Trang Bị Hoàng Kim: CHỈ Yêu Vương cấp >=90 (Băng Phách Lv90 · Thiên Ma Lv100) — DRAFT
+  // Đồ Phổ Bộ Kim Quang: TẠM chưa có nguồn rơi (thêm nguồn sau) — hiện chỉ dev-grant.
   return r;
 }
 

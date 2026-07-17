@@ -66,6 +66,7 @@ export const DUNGEONS = [
       lieu: ['phongMoc', 'thietKhoang', 'hungChuong', 'thuyTinhSa'],
       da: ['daCuongHoaTrung'],
       doPho: { bac: [4], slots: ['giay', 'dai', 'trangSuc'] }, doPhoChance: 0.10,
+      toolDoPho: { bac: 4, chance: 0.08 }, // Đồ Phổ công cụ bậc 4 (roll riêng, không loãng gear)
       rare: [{ itemId: 'huyenSa', chance: 0.05 }],
     },
   },
@@ -82,6 +83,7 @@ export const DUNGEONS = [
       lieu: ['hanTung', 'hanThietKhoang', 'tuyetLangBi', 'bangLanNgu', 'hanThietTinh'],
       da: ['daCuongHoaTrung', 'daCuongHoaCao'],
       doPho: { bac: [4, 5], slots: ['gang', 'trangSuc'] }, doPhoChance: 0.05,
+      toolDoPho: { bac: 5, chance: 0.06 }, // Đồ Phổ công cụ bậc 5 (roll riêng)
       rare: [],
     },
   },
@@ -98,6 +100,7 @@ export const DUNGEONS = [
       lieu: ['hoangKimSa', 'hoangKimDinh', 'hacThan', 'huyenSa'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [5], slots: ['vuKhi'] }, doPhoChance: 0.025,
+      toolDoPho: { bac: 6, chance: 0.05 }, // Đồ Phổ công cụ bậc 6 (roll riêng)
       rare: [{ itemId: 'phuQuangPhan', chance: 0.05 }],
     },
   },
@@ -114,6 +117,7 @@ export const DUNGEONS = [
       lieu: ['vanThiet', 'vanMauThach', 'vanVuLong', 'tinhTuy'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [5, 6], slots: ['vuKhi', 'mu', 'giap'] }, doPhoChance: 0.012,
+      toolDoPho: { bac: 7, chance: 0.04 }, // Đồ Phổ công cụ bậc 7 (roll riêng; sớm hơn Thái Hư, khớp cấp đeo 81)
       rare: [{ itemId: 'meVuHon', chance: 0.04 }],
     },
   },

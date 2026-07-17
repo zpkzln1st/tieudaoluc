@@ -196,6 +196,20 @@ const mkKimQuang = (id, name, slot, icon) => mkGear(id, { name, slot, itemLv: BA
 ].forEach((it) => { GEAR[it.id] = it; });
 
 export const GEAR_IDS = Object.keys(GEAR);
+// BỘ TRANG (set gear) — curate, KHÔNG rơi random. Nguồn = ghép từ "Mảnh Trang Bị Hoàng Kim" (currency CHUNG mọi bộ),
+// mở khoá từng bộ bằng "Đồ Phổ Bộ …" (blueprint riêng, rơi ở nội dung của bộ đó → kho mảnh cũ không mua sạch bộ mới).
+// Thêm bộ mới về sau = khai báo 1 entry vào TRANG_SETS (+ item Đồ Phổ + gán drop blueprint ở nội dung của bộ).
+export const KIM_QUANG_IDS = GEAR_IDS.filter((id) => ((GEAR[id].equip) || {}).set === 'kimQuang');
+export const TRANG_SETS = {
+  kimQuang: {
+    key: 'kimQuang', name: 'Bộ Kim Quang', display: 'Bạch Kim', color: '#d6e3f2',
+    pieces: KIM_QUANG_IDS,           // 7 món (mu/giap/dai/gang/giay/nhan/trangSuc)
+    manhCost: 30,                    // Mảnh / 1 món (DRAFT — tune theo cảm giác)
+    blueprintId: 'dpset_kimQuang',   // Đồ Phổ mở khoá bộ này
+    source: 'Thái Hư Bí Cảnh · Yêu Vương',
+  },
+};
+export const TRANG_SET_KEYS = Object.keys(TRANG_SETS);
 
 // ============================================================
 // RÈN ĐÚC (bước 5) — tự sinh công thức rèn từ Thỏi. "1 tier Thỏi = 1 tier gear" (doc §7).

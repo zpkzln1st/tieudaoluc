@@ -127,6 +127,8 @@ export const ITEMS = {
   daCuongHoaCao:   { id: 'daCuongHoaCao',   name: 'Đá Cường Hóa Cao',   icon: '💠', type: 'vatlieu', quality: 'tuyetPham', value: 260, desc: 'Đá cường hóa thượng phẩm, kết tinh từ thỏi quý. Dùng cho bậc cao nhất — +11 đến +15.' },
   tinhTheYeuVuong: { id: 'tinhTheYeuVuong', name: 'Tinh Thể Yêu Vương', icon: '🔮', type: 'khac', quality: 'thanPham', value: 800, boss: true, desc: 'Tinh thể ngưng từ tử khí Yêu Vương (World Boss), mạch đỏ đập như tim sống. Chất xúc tác bắt buộc để cường hóa trang bị từ +10 trở lên.' },
   linhPhach: { id: 'linhPhach', name: 'Linh Phách', icon: '🌀', type: 'khac', quality: 'tinhPham', value: 70, desc: 'Mảnh hồn phách tản ra khi phóng sanh linh thú phẩm cao — chất dẫn để Thức Tỉnh linh thú phẩm thấp.' },
+  manhTrangBi: { id: 'manhTrangBi', name: 'Mảnh Trang Bị Hoàng Kim', icon: '🔆', type: 'khac', quality: 'coBan', value: 400, boss: true, desc: 'Kim loại quý ngưng từ tà khí Yêu Vương và tầng sâu Thái Hư, lóe hoàng kim lạnh. Chất liệu chung để ghép trang bị của các Bộ Trang trấn thân.' },
+  dpset_kimQuang: { id: 'dpset_kimQuang', name: 'Đồ Phổ Bộ Kim Quang', icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Bản đồ phổ khắc bí pháp luyện Bộ Kim Quang — bạch kim hộ thân. Lĩnh hội rồi mới có thể dùng Mảnh Trang Bị Hoàng Kim ghép nên từng món của bộ.' },
 
   // --- Đan dược ---
   hoiKhiDan: { id: 'hoiKhiDan', name: 'Hồi Khí Đan', icon: '🧪', type: 'dan', quality: 'luongPham', value: 25, healNL: 60, desc: 'Đan dược hồi phục nội khí, ngậm vào chân nguyên sung mãn trở lại.' },

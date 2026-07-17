@@ -12,7 +12,7 @@ import { TUTORIAL_QUESTS, DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS } from './
 import { LINH_THACH } from './data/linhthach.js';
 import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
-import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, AFFIX } from './data/gear.js';
+import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
@@ -30,7 +30,7 @@ import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_D
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
-import { addItem, removeItem } from './engine/inventory.js';
+import { addItem, removeItem, countItem } from './engine/inventory.js';
 import { derivedStats } from './engine/stats.js';
 import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
 import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
@@ -384,6 +384,7 @@ const gameStore = {
   view: 'profile',
   profileTab: 'profile',
   codexTab: 'yeuthu', codexDetail: null,   // Vạn Vật Phổ
+  bachTrangOpen: false,                    // modal Bách Trang Các (ghép Bộ Trang)
   confirmReset: false,
   lightbox: null,
   toast: '',
@@ -2719,6 +2720,25 @@ const gameStore = {
   },
   equipHaloStyle(slotId) { return this.haloStyle(this.state.equipment && this.state.equipment[slotId]); },
   equipHaloHex(slotId) { return this.itemHaloHex(this.state.equipment && this.state.equipment[slotId]); },
+  // ---- Bách Trang Các: ghép Bộ Trang từ "Mảnh Trang Bị Hoàng Kim" (currency CHUNG) + Đồ Phổ Bộ mở khoá ----
+  TRANG_SETS, TRANG_SET_KEYS,
+  get manhTrangBi() { return countItem(this.state, 'manhTrangBi'); },   // ví mảnh chung
+  setUnlocked(key) { const s = this.TRANG_SETS[key]; return !!s && countItem(this.state, s.blueprintId) > 0; },   // đã có Đồ Phổ Bộ?
+  setPieceOwned(id) {   // đã có món này (trong túi hoặc đang mặc)?
+    if ((this.state.gearBag || []).some((g) => g && g.gearId === id)) return true;
+    const eq = this.state.equipment || {};
+    return Object.values(eq).some((g) => g && g.gearId === id);
+  },
+  setOwnedCount(key) { const s = this.TRANG_SETS[key]; return s ? s.pieces.filter((id) => this.setPieceOwned(id)).length : 0; },
+  setCanGhep(key, id) { const s = this.TRANG_SETS[key]; return !!s && s.pieces.includes(id) && this.setUnlocked(key) && !this.setPieceOwned(id) && this.manhTrangBi >= s.manhCost; },
+  ghepSetPiece(key, id) {
+    const s = this.TRANG_SETS[key];
+    if (!this.setCanGhep(key, id)) return;
+    removeItem(this.state, 'manhTrangBi', s.manhCost);
+    addGearInstance(this.state, instanceFromCatalog(id, 0));
+    Storage.save(this.state); this._tick++;
+    this.showToast('Ghép thành 「' + ((this.ITEMS[id] || {}).name || 'trang bị') + '」!');
+  },
   _spendCost(cost) { if (!cost) return true; const cur = this.costCur(cost); if ((this.state.currencies[cur] || 0) < cost[cur]) return false; this.state.currencies[cur] -= cost[cur]; return true; },
   // HỌC/MUA: trừ tiền + thêm vào sở hữu. Trả true nếu thành công.
   learnChieu(id) {
@@ -3554,6 +3574,7 @@ const gameStore = {
   devAddItem(id, qty) { if (!id || !this.ITEMS[id]) return; addItem(this.state, id, qty); this.devSave(); },
   devGiveSampleGear() { GEAR_IDS.forEach((id) => addGearInstance(this.state, rollGearInstance(id))); this.devSave(); },
   devGiveKimQuang() { GEAR_IDS.filter((id) => (((this.ITEMS[id] || {}).equip) || {}).set === 'kimQuang').forEach((id) => addGearInstance(this.state, instanceFromCatalog(id, 0))); this.devSave(); this.showToast('Nhan Bo Kim Quang (7 mon)'); },
+  devGiveTrangMats() { addItem(this.state, 'manhTrangBi', 100); TRANG_SET_KEYS.forEach((k) => addItem(this.state, this.TRANG_SETS[k].blueprintId, 1)); this.devSave(); this._tick++; this.showToast('Nhan 100 Manh Trang Bi Hoang Kim + Do Pho moi Bo (test ghep).'); },
   // Dev: roll N drop ngẫu nhiên ở cấp `lv` (test loot-hunt: phẩm + số dòng đa dạng).
   devRollDrops(lv, n) { lv = lv || this.combatLevel || 20; n = n || 20; for (let i = 0; i < n; i++) { const gi = rollMonsterDrop(lv); if (gi) addGearInstance(this.state, gi); } this.devSave(); this.showToast('Roll ' + n + ' drop @Lv' + lv); },
   devGiveStones() { ['daCuongHoaSo', 'daCuongHoaTrung', 'daCuongHoaCao', 'tinhTheYeuVuong'].forEach((id) => addItem(this.state, id, 99)); this.state.currencies.honThach = (this.state.currencies.honThach || 0) + 100000; this.devSave(); },
