@@ -82,8 +82,9 @@ var KTB_CSS=[
 '.ktb .fighter .fport .flash{ position:absolute; inset:0; background:#fff; opacity:0; mix-blend-mode:screen; }',
 '.ktb .fighter .fport .flash.on{ animation:ktbFlash .28s; } @keyframes ktbFlash{ 0%{opacity:0} 20%{opacity:.85} 100%{opacity:0} }',
 '.ktb .fighter .fport.dead{ opacity:0; transform:scale(.85); transition:.6s; }',
-'.ktb .fighter .fname{ font-family:"Lora",serif; font-weight:700; font-size:.86rem; margin-top:2px; }',
-'.ktb .fighter .fname .sub{ font-size:.64rem; color:var(--tx2); }',
+'.ktb .fighter .fname{ font-family:"Lora",serif; font-weight:700; font-size:.86rem; margin-top:2px; line-height:1.28; }',
+/* Phụ đề (Cung · Trận N / danh hiệu boss) = DÒNG RIÊNG — trước để inline nên chảy tiếp sau tên rồi ngắt giữa cụm ("Ma Đế | Điện"). Áp cho MỌI quái. */
+'.ktb .fighter .fname .sub{ display:block; font-size:.64rem; font-weight:600; color:var(--tx2); margin-top:2px; line-height:1.3; }',
 '.ktb .tampham{ font-size:.62rem; color:var(--cyan); }',
 '.ktb .bar{ height:15px; border-radius:6px; background:rgba(6,10,20,.8); border:1px solid rgba(255,255,255,.07); overflow:hidden; position:relative; }',
 '.ktb .bar>i{ display:block; height:100%; transition:width .3s; }',
