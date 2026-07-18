@@ -3942,7 +3942,6 @@
                             <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:2.4rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
                             <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-50'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             <template x-if="!$store.game.itemOwned(it)"><span class="absolute top-0.5 left-0.5 w-4 h-4 flex items-center justify-center rounded bg-ink/75 text-slate-200" x-html="$store.game.svg('lock','w-2.5 h-2.5')"></span></template>
-                            <template x-if="$store.game.itemOwned(it)"><span class="absolute bottom-0.5 right-1 text-[11px] text-jade font-bold drop-shadow">✓</span></template>
                           </div>
                           <div class="px-1 py-0.5">
                             <div class="text-[9.5px] font-semibold leading-tight truncate" :class="$store.game.heInfo(sec.he).text" x-text="it.obj.name"></div>
@@ -3978,9 +3977,10 @@
               </div>
             </div>
             <!-- THÂN: overflow HIDDEN + lore kẹp dòng -> nội dung luôn vừa khung, KHÔNG bao giờ có con lăn -->
-            <div class="flex-1 min-h-0 overflow-hidden p-3.5">
-              <div class="lbl mb-1.5">Chỉ số</div>
-              <div class="rounded-xl border border-slate-800 bg-ink3/40 divide-y divide-slate-800/70 mb-2.5">
+            <!-- THÂN: cột flex — Khẩu quyết CO theo chỗ trống còn lại + mờ dần ở đáy (không xén ngang dòng) -->
+            <div class="flex-1 min-h-0 overflow-hidden p-3.5 flex flex-col">
+              <div class="lbl mb-1.5 shrink-0">Chỉ số</div>
+              <div class="rounded-xl border border-slate-800 bg-ink3/40 divide-y divide-slate-800/70 mb-2.5 shrink-0">
                 <template x-for="r in $store.game.tkRows(it)" :key="r.k+r.v">
                   <div class="flex items-center justify-between gap-3 px-3 py-1.5">
                     <span class="text-[11px] text-slate-500 shrink-0" x-text="r.k"></span>
@@ -3989,7 +3989,7 @@
                 </template>
               </div>
               <template x-if="$store.game.tkFxChips(it).length">
-                <div>
+                <div class="shrink-0">
                   <div class="lbl mb-1.5">Hiệu ứng</div>
                   <div class="flex flex-wrap gap-1.5 mb-2.5">
                     <template x-for="f in $store.game.tkFxChips(it)" :key="f.t">
@@ -3999,10 +3999,10 @@
                 </div>
               </template>
               <template x-if="$store.game.tkFlavor">
-                <div>
-                  <div class="lbl mb-1.5">Khẩu quyết</div>
-                  <div class="text-[11.5px] text-slate-400 italic leading-relaxed pl-2.5 border-l-2 border-slate-700"
-                       style="display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden"
+                <div class="flex-1 min-h-0 flex flex-col">
+                  <div class="lbl mb-1.5 shrink-0">Khẩu quyết</div>
+                  <div class="flex-1 min-h-0 overflow-hidden text-[11.5px] text-slate-400 italic leading-relaxed pl-2.5 border-l-2 border-slate-700"
+                       style="-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent 100%);mask-image:linear-gradient(180deg,#000 78%,transparent 100%)"
                        x-text="'“'+$store.game.tkFlavor+'”'"></div>
                 </div>
               </template>
