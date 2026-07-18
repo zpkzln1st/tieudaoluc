@@ -2798,13 +2798,15 @@ const gameStore = {
       const chieu = CHIEU.filter(c => c.type === he).sort((a, b) => (TIER_ORDER[a.tier] || 0) - (TIER_ORDER[b.tier] || 0)).map(c => ({ kind: 'chieu', id: c.id, obj: c }));
       const tamphap = TAM_PHAP_POOL.filter(t => t.he === he).map(t => ({ kind: 'tamphap', id: t.id, obj: t }));
       const bidong = BI_DONG.filter(p => p.he === he).map(p => ({ kind: 'bidong', id: p.id, obj: p }));
-      // Phân loại trong từng Môn Phái: Tâm Pháp (nội công nền) · Chiêu Thức (chủ động) · Bị Động (auto)
+      // Phân loại trong từng Môn Phái: Tâm Pháp (nội công nền) · Bị Động (auto) · Chiêu Thức (chủ động).
+      // Thứ tự bám sơ đồ Bài Võ (Tâm Pháp -> Bị Động -> Chiêu Thức) và để cụm ĐÔNG nhất ở cuối
+      // -> khi màn hẹp, chỉ mình nó xuống dòng, hai cụm nhỏ vẫn nằm chung một hàng.
       const groups = [
         { key: 'tamphap', label: 'Tâm Pháp', items: tamphap },
-        { key: 'chieu', label: 'Chiêu Thức', items: chieu },
         { key: 'bidong', label: 'Bị Động', items: bidong },
+        { key: 'chieu', label: 'Chiêu Thức', items: chieu },
       ].filter(g => g.items.length);
-      const items = [...tamphap, ...chieu, ...bidong];
+      const items = [...tamphap, ...bidong, ...chieu];
       return { he, monPhai: MON_PHAI[he], items, groups };
     });
   },
