@@ -2861,6 +2861,33 @@ const gameStore = {
   tkDetail: null,
   openTkDetail(it) { this.tkDetail = it; },
   closeTkDetail() { this.tkDetail = null; },
+  // Popup LUYỆN CHẾ Tuyệt Kĩ (tách riêng khỏi thẻ để thẻ không bị dài -> không phải cuộn)
+  tkCraft: null,
+  openTkCraft(id) { this.tkCraft = id; },
+  closeTkCraft() { this.tkCraft = null; },
+  get tkCraftObj() { return this.tkCraft ? chieuById(this.tkCraft) : null; },
+  tkKindLabel(it) {
+    if (!it) return '';
+    if (it.kind === 'tamphap') return 'Nội công nền';
+    if (it.kind === 'bidong') return 'Bị động';
+    return (it.obj && it.obj.tier === 'tuyệt') ? 'Tuyệt kĩ' : 'Chiêu thức';
+  },
+  // Chip hiệu ứng cho thẻ võ học — suy thẳng từ field của món (burn/slow/stun/lifesteal/pen/crit/buff/eleDmg).
+  tkFxChips(it) {
+    const o = it && it.obj; if (!o) return [];
+    const a = [];
+    if (o.burn) a.push({ t: 'Bỏng ' + o.burn.dmg + ' × ' + o.burn.ticks + ' hiệp', c: '#fb923c' });
+    if (o.lifesteal) a.push({ t: 'Hút máu ' + Math.round(o.lifesteal * 100) + '%', c: '#f472b6' });
+    if (o.heal) a.push({ t: 'Hồi ' + Math.round(o.heal * 100) + '% máu', c: '#4ade80' });
+    if (o.stun) a.push({ t: 'Choáng ' + Math.round(o.stun * 100) + '%', c: '#fcd34d' });
+    if (o.slow) a.push({ t: 'Làm chậm ' + o.slow, c: '#7dd3fc' });
+    if (o.pen) a.push({ t: 'Xuyên giáp ' + Math.round(o.pen * 100) + '%', c: '#5eead4' });
+    if (o.critBonus) a.push({ t: 'Bạo kích +' + Math.round(o.critBonus * 100) + '%', c: '#fcd34d' });
+    if (o.buff && o.buff.dmg) a.push({ t: '+' + Math.round(o.buff.dmg * 100) + '% ST · ' + o.buff.ticks + ' hiệp', c: '#c084fc' });
+    if (o.eleDmg) a.push({ t: '+' + Math.round(o.eleDmg * 100) + '% ST hệ', c: '#fb7185' });
+    if (o.tier === 'tuyệt') a.push({ t: 'Không mua được', c: '#f0abfc' });
+    return a;
+  },
   // Ước tính sát thương chiêu từ Công thật của nhân vật (chưa trừ thủ địch — bản nền).
   tkChieuDmg(c) {
     const P = this.combatStats; if (!P || !c) return 0;
