@@ -2900,7 +2900,7 @@ const gameStore = {
     if (!it) return [];
     const o = it.obj, rows = [];
     if (it.kind === 'chieu') {
-      rows.push({ k: 'Sát thương', v: '×' + o.mult + ' ST · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true });
+      rows.push({ k: 'Sát thương', v: '×' + o.mult + ' ST · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true, full: true });
       rows.push({ k: 'Hệ', v: o.type === 'vatly' ? 'Vật lý' : heName(o.type) });
       rows.push({ k: 'Nội Lực tiêu', v: o.nl || 0 });
       rows.push({ k: 'Hồi chiêu', v: o.cd ? (o.cd + ' hiệp') : 'Tức thì' });
@@ -2914,8 +2914,10 @@ const gameStore = {
       if (o.noiLuc != null) rows.push({ k: 'Nội Lực', v: o.noiLuc });
       if (o.nlRegen != null) rows.push({ k: 'Hồi Nội Lực', v: '+' + o.nlRegen + '/đánh thường' });
     } else {
-      (o.desc || '').split('·').forEach((p, i) => { const t = p.trim(); if (t) rows.push({ k: i === 0 ? 'Hiệu ứng' : '', v: t, hl: i === 0 }); });
-      rows.push({ k: 'Loại', v: 'Bị động · luôn bật' });
+      // Gộp mọi vế của desc vào MỘT dòng "Hiệu ứng" — trước tách theo '·' nên các vế sau bị NHÃN RỖNG.
+      const parts = (o.desc || '').split('·').map((p) => p.trim()).filter(Boolean);
+      if (parts.length) rows.push({ k: 'Hiệu ứng', v: parts.join(' · '), hl: true, full: true });
+      rows.push({ k: 'Loại', v: 'Bị động · luôn bật', full: true });
     }
     return rows;
   },

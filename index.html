@@ -3936,11 +3936,11 @@
                     </div>
                     <div class="grid gap-1.5" style="grid-template-columns:repeat(auto-fill,minmax(80px,1fr))">
                       <template x-for="it in grp.items.filter(it=> !onlyLocked || !$store.game.itemOwned(it))" :key="it.kind+'_'+it.id">
-                        <button @click="$store.game.openTkDetail(it)" class="relative rounded-md overflow-hidden border text-left transition hover:brightness-110" :class="$store.game.itemMeta(it).borderCls + ' ' + ($store.game.itemOwned(it) ? '' : 'saturate-[.6]')">
+                        <button @click="$store.game.openTkDetail(it)" class="relative rounded-md overflow-hidden border text-left transition hover:brightness-110" :class="$store.game.itemMeta(it).borderCls + ' ' + ($store.game.itemOwned(it) ? '' : 'grayscale opacity-60')">
                           <div class="relative w-full" style="aspect-ratio:1">
                             <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[sec.he].grad"></div>
                             <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:2.4rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
-                            <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-50'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                            <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                           </div>
                           <div class="px-1 py-0.5">
                             <div class="text-[9.5px] font-semibold leading-tight truncate" :class="$store.game.heInfo(sec.he).text" x-text="it.obj.name"></div>
@@ -3965,11 +3965,11 @@
               <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
               <div class="absolute inset-0" style="background:radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,.10), transparent 60%)"></div>
               <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(7,11,20,.10) 0%,rgba(7,11,20,.04) 42%,rgba(11,18,32,.88) 84%,#0c1220 100%)"></div>
-              <span class="absolute top-2.5 left-2.5 z-10 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" :class="m.badgeCls" x-text="m.badgeText"></span>
               <button @click="$store.game.closeTkDetail()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 text-slate-300 hover:text-rose-400 z-10">✕</button>
               <div class="absolute bottom-0 inset-x-0 p-3.5 z-[2]">
                 <div class="text-[20px] font-bold text-white leading-tight" style="font-family:'Lora',serif;text-shadow:0 2px 10px rgba(0,0,0,.95)" x-text="it.obj.name"></div>
-                <div class="flex gap-1.5 mt-1.5 flex-wrap">
+                <div class="flex gap-1.5 mt-1.5 flex-wrap items-center">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded" :class="m.badgeCls" x-text="m.badgeText"></span>
                   <span class="text-[10px] font-bold px-2 py-0.5 rounded" :class="$store.game.NGU_HANH[m.he].badge" x-text="$store.game.heName(m.he)"></span>
                   <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-500/20 text-slate-300 border border-slate-600/50" x-text="$store.game.tkKindLabel(it)"></span>
                 </div>
@@ -3979,11 +3979,13 @@
             <!-- THÂN: cột flex — Khẩu quyết CO theo chỗ trống còn lại + mờ dần ở đáy (không xén ngang dòng) -->
             <div class="flex-1 min-h-0 overflow-hidden p-3.5 flex flex-col">
               <div class="lbl mb-1.5 shrink-0">Chỉ số</div>
-              <div class="rounded-xl border border-slate-800 bg-ink3/40 divide-y divide-slate-800/70 mb-2.5 shrink-0">
+              <!-- Chỉ số xếp 2 CỘT (tiết kiệm chiều cao cho Khẩu quyết); dòng r.full chiếm trọn hàng -->
+              <div class="grid grid-cols-2 gap-1.5 mb-2.5 shrink-0">
                 <template x-for="r in $store.game.tkRows(it)" :key="r.k+r.v">
-                  <div class="flex items-center justify-between gap-3 px-3 py-1.5">
-                    <span class="text-[11px] text-slate-500 shrink-0" x-text="r.k"></span>
-                    <span class="text-[12.5px] font-bold text-right" :class="r.hl?'text-rose-300':'text-slate-200'" x-text="r.v"></span>
+                  <div class="rounded-lg border border-slate-800 bg-ink3/40 px-2.5 py-1.5"
+                       :class="r.full?'col-span-2 flex items-center justify-between gap-3':''">
+                    <div class="text-[10px] text-slate-500 leading-tight shrink-0" x-text="r.k"></div>
+                    <div class="text-[12px] font-bold leading-tight" :class="(r.hl?'text-rose-300':'text-slate-200')+(r.full?' text-right':'')" x-text="r.v"></div>
                   </div>
                 </template>
               </div>
