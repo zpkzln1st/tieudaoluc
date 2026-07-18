@@ -3941,7 +3941,6 @@
                             <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[sec.he].grad"></div>
                             <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:2.4rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
                             <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-50'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
-                            <template x-if="!$store.game.itemOwned(it)"><span class="absolute top-0.5 left-0.5 w-4 h-4 flex items-center justify-center rounded bg-ink/75 text-slate-200" x-html="$store.game.svg('lock','w-2.5 h-2.5')"></span></template>
                           </div>
                           <div class="px-1 py-0.5">
                             <div class="text-[9.5px] font-semibold leading-tight truncate" :class="$store.game.heInfo(sec.he).text" x-text="it.obj.name"></div>
@@ -3960,7 +3959,7 @@
       <!-- ===== POPUP chi tiết võ học (Tàng Kinh Các) — bấm tile mở ===== -->
       <template x-if="$store.game.tkDetail">
         <div class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="$store.game.closeTkDetail()" @keydown.escape.window="$store.game.closeTkDetail()">
-          <div class="panel rounded-2xl w-[336px] max-w-full flex flex-col overflow-hidden" style="height:640px;max-height:92dvh" @click.stop x-data="{ it: $store.game.tkDetail, m: $store.game.itemMeta($store.game.tkDetail) }">
+          <div class="panel rounded-2xl w-[336px] max-w-full flex flex-col overflow-hidden" style="height:716px;max-height:92dvh" @click.stop x-data="{ it: $store.game.tkDetail, m: $store.game.itemMeta($store.game.tkDetail) }">
             <!-- ART header: to hơn (216px), phủ kín khung, KHÔNG còn chữ Hán chìm phía sau -->
             <div class="relative shrink-0 overflow-hidden bg-ink" style="height:216px">
               <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
