@@ -695,9 +695,10 @@ export function mountKtBattle(host, opts){
     if(counts.bao){ S.soul+=counts.bao*BAO_SOUL; if(hasSkill('hoangKim')) S.goldStock+=counts.bao*BAO_SOUL; }
   }
 
-  /* ----- kích hoạt kỹ năng (không kết thúc lượt — chỉ match mới sang lượt địch) ----- */
+  /* ----- kích hoạt kỹ năng — CHỈ trong lượt NGƯỜI, và dùng kỹ năng TÍNH LÀ 1 LƯỢT (địch cũng vậy) ----- */
   async function activateSkill(id){
     if(busy||S.over||S.tmode) return;
+    if(S.turn!=='hero'){ toast('Chỉ dùng kỹ năng trong lượt của ngươi'); return; }
     var sk=skillById(id); if(!sk||!hasSkill(id)) return;
     if(!skillReady(sk)){ toast('Chưa đủ điều kiện'); return; }
     if(id==='hoanTinh'){ enterTarget(sk); return; }
@@ -711,10 +712,9 @@ export function mountKtBattle(host, opts){
     else if(id==='ngungSuong') skNgungSuong();
     else if(id==='nguLoi') ok=await skNguLoi();
     if(dead) return;
-    if(ok!==false){ spendSkill(sk); afterSkillCast(); }
-    renderAll();
-    if(S.enemy.hp<=0){ await sleep(250); if(dead) return; winFight(); return; }
-    busy=false; boardEl.classList.remove('busy');
+    if(ok===false){ busy=false; boardEl.classList.remove('busy'); return; }   /* kỹ năng hụt (vd không có ô Kiếm) -> KHÔNG tốn lượt */
+    spendSkill(sk); afterSkillCast();
+    await afterSkillTurn();
   }
 
   async function skKiemKhi(){
@@ -786,9 +786,7 @@ export function mountKtBattle(host, opts){
     await resolveCascades(null,null);
     if(dead) return;
     spendSkill(skillById('hoanTinh')); afterSkillCast();
-    renderAll();
-    if(S.enemy.hp<=0){ await sleep(250); if(dead) return; winFight(); return; }
-    busy=false; boardEl.classList.remove('busy');
+    await afterSkillTurn();
   }
 
   /* --- Ngũ Hành Đại Chuyển: biến 3×3 giữa thành 1 hệ NGẪU NHIÊN (bước chọn hệ đã bỏ — xem activateSkill) --- */
@@ -801,9 +799,7 @@ export function mountKtBattle(host, opts){
     await resolveCascades(null,null);
     if(dead) return;
     spendSkill(skillById('nguHanh')); afterSkillCast();
-    renderAll();
-    if(S.enemy.hp<=0){ await sleep(250); if(dead) return; winFight(); return; }
-    busy=false; boardEl.classList.remove('busy');
+    await afterSkillTurn();
   }
 
   /* ----- thanh kỹ năng trong trận ----- */
@@ -952,27 +948,37 @@ export function mountKtBattle(host, opts){
     if(S.enemy.hp<=0){ await sleep(300); if(dead) return; winFight(); return; }
     if(extra && (S.extraStreak||0) < S.extraCap){ S.extraStreak=(S.extraStreak||0)+1; showExtra(true); } /* thêm lượt nhưng CAP theo Tâm Pháp (2, Thái Cực 3) */
     else if(extra && lvAt('thuy',10) && !S._thuyUsed){ S._thuyUsed=true; S.extraStreak=0; showExtra(true); combo(0,'Thủy Nghịch Càn Khôn'); } /* Thủy C10: 1 lần/trận nối lượt vượt cap */
-    else {
-      S.extraStreak=0; showExtra(false);
+    else { await endHeroTurn(); if(dead||S.over) return; }
+    if(!S._transit){ busy=false; boardEl.classList.remove('busy'); } /* giữ khóa nếu đang chuyển cảnh thắng (winFight) */
+  }
+
+  /* Kết lượt NGƯỜI -> địch đi -> trả lượt về người. DÙNG CHUNG cho: xếp match VÀ dùng kỹ năng (kỹ năng tính là 1 lượt). */
+  async function endHeroTurn(){
+    S.extraStreak=0; showExtra(false);
+    await aiTurn(); if(dead||S.over) return;
+    if(S.hp<=0){ loseFight(); return; }
+    await startTurn('hero'); if(dead||S.over) return;   /* lượt người mới: reset trần dmg + Mộc C7/Thổ C7 */
+    if(S.enemy.hp<=0){ winFight(); return; }
+    if(S.hp<=0){ loseFight(); return; }
+    /* Hàn Ngưng: người bị đóng băng → bỏ lượt người, địch đánh tiếp (frozeLast chặn băng liên tiếp) */
+    while(S.heroFrozen && !dead && !S.over){
+      S.heroFrozen=false;
+      if(vis){ combo(0,'Ngươi Bị Đóng Băng'); renderTurn(); renderAll(); await sleep(650); }
       await aiTurn(); if(dead||S.over) return;
       if(S.hp<=0){ loseFight(); return; }
-      await startTurn('hero'); if(dead||S.over) return;   /* lượt người mới: reset trần dmg + Mộc C7/Thổ C7 */
+      await startTurn('hero'); if(dead||S.over) return;
       if(S.enemy.hp<=0){ winFight(); return; }
       if(S.hp<=0){ loseFight(); return; }
-      /* Hàn Ngưng: người bị đóng băng → bỏ lượt người, địch đánh tiếp (frozeLast chặn băng liên tiếp) */
-      while(S.heroFrozen && !dead && !S.over){
-        S.heroFrozen=false;
-        if(vis){ combo(0,'Ngươi Bị Đóng Băng'); renderTurn(); renderAll(); await sleep(650); }
-        await aiTurn(); if(dead||S.over) return;
-        if(S.hp<=0){ loseFight(); return; }
-        await startTurn('hero'); if(dead||S.over) return;
-        if(S.enemy.hp<=0){ winFight(); return; }
-        if(S.hp<=0){ loseFight(); return; }
-      }
-      S._frozeLast=false;   /* lượt người bình thường diễn ra → hết chuỗi băng */
-      renderAll();
     }
-    if(!S._transit){ busy=false; boardEl.classList.remove('busy'); } /* giữ khóa nếu đang chuyển cảnh thắng (winFight) */
+    S._frozeLast=false;   /* lượt người bình thường diễn ra → hết chuỗi băng */
+    renderAll();
+  }
+  /* Phát kỹ năng THÀNH CÔNG -> tính là 1 LƯỢT -> địch đi. (Địch cũng vậy: cast = trọn lượt địch, xem aiTurn.) */
+  async function afterSkillTurn(){
+    renderAll();
+    if(S.enemy.hp<=0){ await sleep(250); if(dead) return; winFight(); return; }
+    await endHeroTurn(); if(dead||S.over) return;
+    if(!S._transit){ busy=false; boardEl.classList.remove('busy'); }
   }
   async function resolveCascades(initSet, colorHint, swapCells, actor, baseMul){
     actor=actor||'hero'; baseMul=(baseMul==null)?1:baseMul;
