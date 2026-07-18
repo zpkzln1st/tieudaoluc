@@ -18,7 +18,7 @@
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { ITEMS, itemNameHtml } from '../data/items.js';   // tên vật phẩm (tô màu phẩm chất) cho thông báo Phi Cáp Đài
 import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '../data/tongmon.js';   // rơi bí kíp về Tông Môn (main->phụ 1 chiều, side-only)
-import { deriveCombat } from '../data/votong.js';
+import { deriveCombat, TUYET_IDS } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
 import { levelFromXp, addSkillXp } from './leveling.js';
 import { addItem } from './inventory.js';
@@ -56,6 +56,15 @@ function rollToolDoPhoId(D) {
   const pool = Object.values(GEAR).filter((g) => g.equip && TOOL_DP_SLOTS.includes(g.equip.slot) && quals.includes(g.quality));
   if (!pool.length) return null;
   return 'dp_' + pick(pool).id;
+}
+
+// Đồ Phổ TUYỆT KĨ — CHỈ rơi cái người chơi chưa có (chưa cầm đồ phổ & chưa chế được chiêu) -> không rơi trùng vô ích.
+function rollChieuDoPhoId(state) {
+  const ownedChieu = (state.combat && state.combat.owned && state.combat.owned.chieu) || [];
+  const inv = state.inventory || {};
+  const pool = TUYET_IDS.filter((id) => ownedChieu.indexOf(id) < 0 && !inv['dpchieu_' + id]);
+  if (!pool.length) return null;
+  return 'dpchieu_' + pick(pool);
 }
 
 // ---- MÔ PHỎNG 1 LƯỢT (thuần, không mutate kho) ----
@@ -159,6 +168,12 @@ export function runDungeon(state, dungeonId) {
   if (cleared && D.loot.toolDoPho) {
     const tchance = (D.loot.toolDoPho.chance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
     if (Math.random() < tchance) { toolDoPhoId = rollToolDoPhoId(D); if (toolDoPhoId) addLoot(toolDoPhoId, 1); }
+  }
+  // Đồ Phổ TUYỆT KĨ: roll RIÊNG (pool tuyệt kĩ CHƯA sở hữu) -> không đụng pool gear/tool, không rơi trùng vô ích
+  let chieuDoPhoId = null;
+  if (cleared && D.loot.chieuDoPho) {
+    const cchance = (D.loot.chieuDoPho.chance || 0) * P * (coDuyenBonus ? 1.3 : 1);
+    if (Math.random() < cchance) { chieuDoPhoId = rollChieuDoPhoId(state); if (chieuDoPhoId) addLoot(chieuDoPhoId, 1); }
   }
   if (cleared && D.loot.rare) for (const r of D.loot.rare) { if (Math.random() < (r.chance || 0) * RUN.rareMul * P) addLoot(r.itemId, 1); }
 

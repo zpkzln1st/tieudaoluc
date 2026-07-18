@@ -3991,7 +3991,34 @@
               <template x-if="$store.game.itemOwned(it)">
                 <div class="w-full py-2.5 rounded-lg text-center text-sm font-bold bg-jade/15 border border-jade/40 text-jade">✓ Đã sở hữu</div>
               </template>
-              <template x-if="!$store.game.itemOwned(it)">
+              <!-- TUYỆT KĨ: không mua/học được — phải CHẾ (Đồ Phổ + liệu boss + Bạc) -->
+              <template x-if="!$store.game.itemOwned(it) && $store.game.isTuyet(it)">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2 text-[12px] px-2.5 py-2 rounded-lg border"
+                       :class="$store.game.tuyetHasDoPho(it.id)?'border-fuchsia-500/50 bg-fuchsia-500/10 text-fuchsia-200':'border-slate-700 bg-ink3/50 text-slate-400'">
+                    <span class="truncate" x-text="($store.game.ITEMS[($store.game.tuyetRecipe(it.id)||{}).dp]||{}).name||'Đồ Phổ'"></span>
+                    <span class="shrink-0 font-bold" x-text="$store.game.tuyetHasDoPho(it.id)?'✓ Đã có':'Chưa có'"></span>
+                  </div>
+                  <template x-if="!$store.game.tuyetHasDoPho(it.id)">
+                    <div class="text-[11px] text-slate-500 leading-snug">Đồ Phổ rơi ở <b class="text-slate-300">Vạn Yêu Sơn · Thiên Cơ Di Tích · Thái Hư Bí Cảnh</b> — chỉ rơi tuyệt kĩ ngươi chưa có.</div>
+                  </template>
+                  <template x-for="m in $store.game.tuyetMatsView(it.id)" :key="m.id">
+                    <div class="flex items-center justify-between gap-2 text-[12px] px-2.5 py-1.5 rounded bg-ink3/50">
+                      <span class="text-slate-300 truncate" x-text="m.name"></span>
+                      <span class="shrink-0 font-medium" :class="m.ok?'text-jade':'text-rose-300'" x-text="m.have+' / '+m.need"></span>
+                    </div>
+                  </template>
+                  <div class="flex items-center justify-between gap-2 text-[12px] px-2.5 py-1.5 rounded bg-ink3/50">
+                    <span class="text-slate-300">Bạc</span>
+                    <span class="shrink-0 font-medium" :class="($store.game.state.currencies.bac||0)>=$store.game.tuyetBacNeed(it.id)?'text-jade':'text-rose-300'"
+                          x-text="$store.game.fmt($store.game.state.currencies.bac||0)+' / '+$store.game.fmt($store.game.tuyetBacNeed(it.id))"></span>
+                  </div>
+                  <button @click="$store.game.craftTuyetKi(it.id)" :disabled="!$store.game.tuyetCanCraft(it.id)"
+                    class="w-full py-2.5 rounded-lg text-sm font-bold transition border"
+                    :class="$store.game.tuyetCanCraft(it.id)?'bg-fuchsia-500/25 border-fuchsia-400/70 text-fuchsia-100 hover:bg-fuchsia-500/35':'bg-slate-800/60 border-slate-700 text-slate-500 cursor-not-allowed'">Chế Tuyệt Kĩ</button>
+                </div>
+              </template>
+              <template x-if="!$store.game.itemOwned(it) && !$store.game.isTuyet(it)">
                 <button @click="$store.game.learnItem(it)" :disabled="!$store.game.canAffordCost($store.game.itemCost(it))" class="w-full py-2.5 rounded-lg text-sm font-bold transition border flex items-center justify-center gap-1.5" :class="!$store.game.canAffordCost($store.game.itemCost(it))?'bg-slate-800/60 border-slate-700 text-slate-500 cursor-not-allowed':($store.game.skillSource($store.game.itemCost(it))==='mua'?'bg-cyan/20 border-cyan/60 text-cyan hover:bg-cyan/30':'bg-amber-500/20 border-amber-400/60 text-amber-200 hover:bg-amber-500/30')">
                   <span x-text="$store.game.skillSource($store.game.itemCost(it))==='mua'?'Mua':'Học'"></span>
                   <span class="w-4 h-4 inline-flex items-center justify-center" x-html="$store.game.costIcon($store.game.itemCost(it))"></span>

@@ -247,6 +247,36 @@ export const CHIEU = [
     lore:'Giáng một kích trấn nhạc, đất trời nứt toác, cả ngọn núi như sụp đổ trùm xuống đầu địch. Sơn kình hậu trọng tới mức kẻ thù bị chấn cho hồn phách điên đảo, choáng váng ngã quỵ, đứng còn không vững nói chi phản kích.',
     flavor:['địa liệt thiên băng, núi non sụp đổ trùm xuống','một kích trấn nhạc, địch choáng váng ngã quỵ'],
     synergy:'Tuyệt học Hậu Thổ — sát thương nặng kèm Choáng gần như chắc chắn. Khoá địch liên hồi, xương sống lối trấn áp.' },
+
+  // ===== TUYỆT KĨ (bậc tuyệt) — KHÔNG mua/rơi thẳng. Săn boss ra Đồ Phổ -> gom liệu -> CHẾ (xem TUYET_RECIPE). =====
+  { id:'vdpt', name:'Viêm Đế Phần Thiên', type:'hoa', tier:'tuyệt', mult:4.6, nl:72, cd:10, burn:{dmg:70,ticks:8}, short:'Hỏa tối thượng + Bỏng huỷ diệt',
+    lore:'Chân hỏa luyện tới chín tầng, ngọn lửa hoá thành vương miện Viêm Đế đội trên trời cao. Một chiêu giáng xuống, đất đá chảy thành dung nham, dư diễm bám riết tám hiệp không tắt — kẻ trúng phải cháy tới khi hồn phách cũng thành tro.',
+    flavor:['viêm trụ chín tầng bùng lên ngút trời','vương diễm Viêm Đế trùm xuống thiêu rụi tất thảy','lửa đế vương liếm tới, đá cũng chảy thành nước'],
+    synergy:'Đỉnh cao Viêm Dương — Bỏng nặng nhất toàn cục. Bật Liệt Diễm Phù rồi tung, cường địch trâu máu cỡ nào cũng bị bào tới chết.' },
+  { id:'bmdh', name:'Bắc Minh Đảo Hải', type:'thuy', tier:'tuyệt', mult:4.4, nl:70, cd:10, slow:5, stun:0.5, short:'Thủy tối thượng + đóng băng nặng',
+    lore:'Dẫn nước Bắc Minh nghịch chuyển, ngọn sóng cao ngàn trượng dựng đứng rồi ập xuống. Sóng chưa chạm đất đã hoá băng, địch nhân bị đông cứng giữa vực lạnh, kinh mạch ngưng trệ, nửa phần tính mạng đã trao cho hàn khí.',
+    flavor:['sóng Bắc Minh dựng đứng rồi đổ ập xuống','ngàn trượng hàn triều hoá băng giữa không trung','băng vực phong toả, địch cứng đờ trong sóng đá'],
+    synergy:'Đỉnh cao Huyền Băng — gông nặng nhất kèm nửa phần đóng băng. Địch nhanh tới mấy cũng thành bia đứng yên.' },
+  { id:'vmqn', name:'Vạn Mộc Quy Nguyên', type:'moc', tier:'tuyệt', mult:3.2, nl:66, cd:9, burn:{dmg:78,ticks:8}, lifesteal:0.8, short:'Mộc tối thượng + Độc cực + hút 80%',
+    lore:'Triệu về cội nguồn vạn mộc, một thân thần thụ trồi lên từ hư vô, rễ độc lan kín chiến trường. Kịch độc ngàn năm thấm vào tạng phủ, tinh huyết địch theo rễ chảy ngược nuôi người thi triển — càng đánh lâu càng sung mãn.',
+    flavor:['thần thụ trồi lên, rễ độc lan kín đất','vạn rễ quấn siết, tinh huyết chảy ngược về','lục khí quy nguyên, địch rữa nát từ trong'],
+    synergy:'Đỉnh cao Thanh Mộc — Độc mạnh nhất kèm hút máu gần trọn. Ôm cả bầy quái mà máu vẫn đầy, xương sống lối trường kỳ.' },
+  { id:'tatn', name:'Thái A Trảm Thần', type:'kim', tier:'tuyệt', mult:5.0, nl:78, cd:11, pen:0.8, critBonus:0.3, short:'Kim tối thượng + xuyên giáp 80%',
+    lore:'Thái A hiện thế, một trảm chém đứt cả hư không. Kiếm quang trắng vàng loé lên rồi tắt, mọi giáp trụ thần binh đều như giấy mỏng — thần cũng phải nghiêng đầu, huống chi phàm nhân.',
+    flavor:['Thái A xuất tiêu, một trảm xé toạc hư không','kiếm quang trảm thần, giáp trụ hoá giấy vụn','một đường sáng chớp qua, thiên địa nứt đôi'],
+    synergy:'Đỉnh cao Cương Kim — sát thương cao nhất, xuyên giáp gần tuyệt đối, bạo kích khủng khiếp. Nhất kích tất sát đúng nghĩa.' },
+  { id:'bctn', name:'Bàn Cổ Trấn Nhạc', type:'tho', tier:'tuyệt', mult:4.2, nl:70, cd:10, stun:1, short:'Thổ tối thượng + Choáng CHẮC CHẮN',
+    lore:'Mô phỏng thần lực Bàn Cổ khai thiên, giáng xuống một ấn nặng tựa cả dãy núi. Mặt đất nứt toác thành vực, khe nứt rực đỏ như gân dung nham — địch nhân bị chấn cho hồn phách lìa khỏi xác, đứng còn chẳng nổi.',
+    flavor:['thạch ấn nặng tựa non cao giáng xuống','đất nứt toác, khe sâu rực đỏ dung nham','một ấn trấn nhạc, địch ngã quỵ bất động'],
+    synergy:'Đỉnh cao Hậu Thổ — Choáng CHẮC CHẮN 100%. Khoá cứng địch một hiệp trọn vẹn, dọn đường cho cả bộ liên hoàn.' },
+  { id:'vtsk', name:'Vô Tướng Sát Kiếp', type:'vatly', tier:'tuyệt', mult:4.8, nl:74, cd:10, pen:0.4, critBonus:0.25, short:'Vật lý tối thượng — miễn khắc hệ',
+    lore:'Không hình không tướng, không hệ không khí — chỉ còn thuần một đạo sát ý. Kình lực nén tới cực hạn rồi vỡ ra, không khí rách thành vệt chân không; ngũ hành sinh khắc tới đây thảy đều vô nghĩa.',
+    flavor:['kình lực vỡ ra, không khí rách thành vệt','một đạo sát ý vô hình quét ngang','vô tướng vô sắc, ngũ hành thảy vô dụng'],
+    synergy:'Đỉnh cao thuần lực — chẳng sợ khắc kháng ngũ hành. Quân bài tẩy khi gặp địch khắc hệ mình.' },
+  { id:'tnhn', name:'Thiên Nhân Hợp Nhất', type:'buff', tier:'tuyệt', mult:0, nl:64, cd:14, buff:{dmg:0.80,ticks:6}, short:'+80% sát thương trong 6 hiệp',
+    lore:'Thu tâm về một mối, thần giao cùng trời đất. Chân khí quanh thân hoá thành trụ sáng vươn thẳng lên chín tầng mây, vòng thái cực xoay quanh không dứt — trong khoảnh khắc ấy, người chính là thiên địa.',
+    flavor:['trụ sáng vươn thẳng lên chín tầng mây','vòng thái cực xoay quanh, khí thế áp cả trời','thần giao thiên địa, một niệm mà vạn pháp tuỳ tâm'],
+    synergy:'Đỉnh cao tăng ích — gần gấp đôi sát thương. Bật rồi tung Thái A hoặc Viêm Đế, một nhịp định thắng bại.' },
 ];
 export function chieuById(id){ return CHIEU.find(c=>c.id===id) || null; }
 
@@ -293,9 +323,24 @@ export const TIER_STYLE = {
   'tuyệt': { label:'Tuyệt',   text:'text-fuchsia-300', border:'border-fuchsia-500/70', badge:'bg-fuchsia-500 text-ink font-bold',   ring:'ring-1 ring-fuchsia-400/30',             glow:'shadow-[0_0_16px_rgba(217,70,239,0.34)]' },
 };
 export function tierStyle(t){ return TIER_STYLE[t] || TIER_STYLE['sơ']; }
-// Giá mặc định theo bậc (có thể override bằng trường .cost trên từng món).
-const CHIEU_TIER_COST = { 'sơ':{ bac:50000 }, 'trung':{ bac:200000 }, 'cao':{ nguyenBao:60 }, 'tuyệt':{ nguyenBao:200 } };
-export function chieuCost(c){ return (c && c.cost) || (c && CHIEU_TIER_COST[c.tier]) || { bac:50000 }; }
+// Giá mặc định theo bậc (có thể override bằng .cost trên từng món). Bậc TUYỆT = null: KHÔNG mua/học được, BẮT BUỘC chế.
+const CHIEU_TIER_COST = { 'sơ':{ bac:50000 }, 'trung':{ bac:200000 }, 'cao':{ nguyenBao:60 }, 'tuyệt':null };
+export function chieuCost(c){ if(c && c.tier==='tuyệt') return null; return (c && c.cost) || (c && CHIEU_TIER_COST[c.tier]) || { bac:50000 }; }
+
+// ---- CHẾ TUYỆT KĨ: cần Đồ Phổ (mở khoá, rơi Bí Cảnh cao) + liệu boss + Bạc. Thêm tuyệt kĩ mới = thêm 1 entry.
+//   MỌI SỐ Ở ĐÂY LÀ DRAFT — tune sau khi chơi thật. Mặc định mọi tuyệt kĩ dùng chung TUYET_MATS/TUYET_BAC,
+//   muốn lệch riêng thì thêm mats/bac vào entry của nó.
+export const TUYET_MATS = { hoPhuDauLinh:20, hachCoLinh:10, cuuViTinh:5, maToTam:2 };
+export const TUYET_BAC  = 500000;
+export const TUYET_RECIPE = {
+  vdpt:{ dp:'dpchieu_vdpt' }, bmdh:{ dp:'dpchieu_bmdh' }, vmqn:{ dp:'dpchieu_vmqn' }, tatn:{ dp:'dpchieu_tatn' },
+  bctn:{ dp:'dpchieu_bctn' }, vtsk:{ dp:'dpchieu_vtsk' }, tnhn:{ dp:'dpchieu_tnhn' },
+};
+export const TUYET_IDS = CHIEU.filter(c => c.tier === 'tuyệt').map(c => c.id);
+export function tuyetRecipe(id){
+  const r = TUYET_RECIPE[id];
+  return r ? { dp:r.dp, mats:(r.mats || TUYET_MATS), bac:(r.bac != null ? r.bac : TUYET_BAC) } : null;
+}
 export function tamPhapCost(t){ return (t && t.cost) || { bac:120000 }; }  // Tâm Pháp = nội công nền, học ở môn phái (Bạc)
 export function biDongCost(p){ return (p && p.cost) || { bac:80000 }; }   // Bị Động (auto) học ở môn phái (Bạc)
 // 'hoc' (Bạc, môn phái) vs 'mua' (Nguyên Bảo, Tiệm Bí Phổ) — suy từ loại tiền.

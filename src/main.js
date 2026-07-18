@@ -26,7 +26,7 @@ import {
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
   tinVatDone as _tinVatDone,
 } from './engine/activity.js';
-import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle } from './data/votong.js';
+import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
@@ -2743,10 +2743,39 @@ const gameStore = {
   // HỌC/MUA: trừ tiền + thêm vào sở hữu. Trả true nếu thành công.
   learnChieu(id) {
     const c = chieuById(id); if (!c || this.ownsChieu(id)) return false;
+    if (c.tier === 'tuyệt') { this.showToast('〈' + c.name + '〉 là Tuyệt Kĩ — phải CHẾ, không mua/học được.'); return false; }
     const cost = this.chieuCost(c), mua = this.skillSource(cost) === 'mua';
     if (!this.canAffordCost(cost)) { this.showToast('Không đủ ' + this.costText(cost) + ' để ' + (mua ? 'mua' : 'học') + ' 〈' + c.name + '〉.'); return false; }
     this._spendCost(cost); this.owned.chieu.push(id); Storage.save(this.state);
     this.showToast((mua ? '🪙 Đã mua bí phổ ' : '📖 Đã học ') + '〈' + c.name + '〉.'); return true;
+  },
+  // ---- CHẾ TUYỆT KĨ: cần Đồ Phổ (đã cầm) + đủ liệu boss + Bạc. Chế xong -> vào owned.chieu, tiêu hết đồ phổ + liệu. ----
+  TUYET_IDS, tuyetRecipe,
+  isTuyet(it) { return !!it && it.kind === 'chieu' && !!it.obj && it.obj.tier === 'tuyệt'; },   // item Tàng Kinh Các có phải Tuyệt Kĩ?
+  tuyetHasDoPho(id) { const r = tuyetRecipe(id); return !!r && countItem(this.state, r.dp) > 0; },
+  tuyetMatsView(id) {   // [{id,name,need,have,ok}] để UI liệt kê liệu còn thiếu
+    const r = tuyetRecipe(id); if (!r) return [];
+    return Object.keys(r.mats).map((m) => {
+      const need = r.mats[m], have = countItem(this.state, m);
+      return { id: m, name: (this.ITEMS[m] || {}).name || m, need, have, ok: have >= need };
+    });
+  },
+  tuyetBacNeed(id) { const r = tuyetRecipe(id); return r ? r.bac : 0; },
+  tuyetCanCraft(id) {
+    const r = tuyetRecipe(id); if (!r || this.ownsChieu(id) || !this.tuyetHasDoPho(id)) return false;
+    if ((this.state.currencies.bac || 0) < r.bac) return false;
+    return this.tuyetMatsView(id).every((m) => m.ok);
+  },
+  craftTuyetKi(id) {
+    const c = chieuById(id), r = tuyetRecipe(id);
+    if (!c || !r || !this.tuyetCanCraft(id)) return false;
+    removeItem(this.state, r.dp, 1);
+    Object.keys(r.mats).forEach((m) => removeItem(this.state, m, r.mats[m]));
+    this.state.currencies.bac -= r.bac;
+    this.owned.chieu.push(id);
+    Storage.save(this.state); this._tick++;
+    this.showToast('⚡ Đã chế thành Tuyệt Kĩ 《' + c.name + '》!');
+    return true;
   },
   learnTamPhap(id) {
     const t = tamPhapById(id); if (!t || this.ownsTamPhap(id)) return false;

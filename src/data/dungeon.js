@@ -134,6 +134,7 @@ export const DUNGEONS = [
       lieu: ['tinhHoaMoc', 'vanVuLong', 'tinhTuy', 'huKhongTinh'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [6], slots: ['giap', 'mu'] }, doPhoChance: 0.006,
+      chieuDoPho: { chance: 0.05 }, // Đồ Phổ Tuyệt Kĩ (chỉ ra cái chưa có) — DRAFT
       rare: [{ itemId: 'giaoChau', chance: 0.05 }, { itemId: 'hoPhuDauLinh', chance: 0.025 }],
     },
   },
@@ -150,6 +151,7 @@ export const DUNGEONS = [
       lieu: ['tramHaiMoc', 'sanHoKhoang', 'sanHoDinh', 'huKhongTinh', 'meVuHon'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [6, 7], slots: ['nhan', 'trangSuc'] }, doPhoChance: 0.003,
+      chieuDoPho: { chance: 0.07 }, // Đồ Phổ Tuyệt Kĩ — DRAFT
       rare: [{ itemId: 'hachCoLinh', chance: 0.03 }],
     },
   },
@@ -166,6 +168,7 @@ export const DUNGEONS = [
       lieu: ['thanDanMoc', 'thanTinhKhoang', 'thanTinhDinh', 'coMaHaiCot'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [7], slots: 'all' }, doPhoChance: 0.001,
+      chieuDoPho: { chance: 0.10 }, // Đồ Phổ Tuyệt Kĩ (cao nhất) — DRAFT
       rare: [
         { itemId: 'tinhTheYeuVuong', chance: 0.01 },
         { itemId: 'cuuViTinh', chance: 0.012 },

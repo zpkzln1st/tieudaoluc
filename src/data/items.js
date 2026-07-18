@@ -130,6 +130,15 @@ export const ITEMS = {
   manhTrangBi: { id: 'manhTrangBi', name: 'Mảnh Trang Bị Hoàng Kim', icon: '🔆', type: 'khac', quality: 'coBan', value: 400, boss: true, desc: 'Kim loại quý ngưng từ tà khí Yêu Vương và tầng sâu Thái Hư, lóe hoàng kim lạnh. Chất liệu chung để ghép trang bị của các Bộ Trang trấn thân.' },
   dpset_kimQuang: { id: 'dpset_kimQuang', name: 'Đồ Phổ Bộ Kim Quang', icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Bản đồ phổ khắc bí pháp luyện Bộ Kim Quang — bạch kim hộ thân. Lĩnh hội rồi mới có thể dùng Mảnh Trang Bị Hoàng Kim ghép nên từng món của bộ.' },
 
+  // --- Đồ Phổ TUYỆT KĨ (rơi Bí Cảnh cao) — mở khoá chế 1 tuyệt kĩ ở Tàng Kinh Các. Xem TUYET_RECIPE (votong.js).
+  dpchieu_vdpt: { id: 'dpchieu_vdpt', name: 'Đồ Phổ: Viêm Đế Phần Thiên', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Tàn quyển cháy sém ghi chép chân hỏa chín tầng của Viêm Đế. Lĩnh hội rồi, gom đủ liệu tinh huyết boss mới mong luyện thành.' },
+  dpchieu_bmdh: { id: 'dpchieu_bmdh', name: 'Đồ Phổ: Bắc Minh Đảo Hải', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Quyển trục lạnh buốt, chữ khắc như đóng băng trên da. Chép lại phép nghịch chuyển nước Bắc Minh dựng sóng thành băng vực.' },
+  dpchieu_vmqn: { id: 'dpchieu_vmqn', name: 'Đồ Phổ: Vạn Mộc Quy Nguyên', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Vỏ cây thần thụ ép thành quyển, gân lá còn rịn nhựa độc. Ghi phép triệu vạn mộc quy nguyên, lấy sinh cơ làm sát cơ.' },
+  dpchieu_tatn: { id: 'dpchieu_tatn', name: 'Đồ Phổ: Thái A Trảm Thần', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Phiến kim khắc chữ, mép sắc tới mức chạm vào là đứt tay. Chép lại một trảm Thái A từng chém đứt hư không.' },
+  dpchieu_bctn: { id: 'dpchieu_bctn', name: 'Đồ Phổ: Bàn Cổ Trấn Nhạc', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Bản thạch nặng trịch, mặt đá hằn vết nứt hình núi. Ghi thần lực Bàn Cổ khai thiên, một ấn trấn cả dãy nhạc sơn.' },
+  dpchieu_vtsk: { id: 'dpchieu_vtsk', name: 'Đồ Phổ: Vô Tướng Sát Kiếp', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Quyển trắng không một nét mực — phải tĩnh tâm mới đọc ra chữ. Ghi đạo sát ý vô hình vô tướng, ngũ hành chẳng khắc nổi.' },
+  dpchieu_tnhn: { id: 'dpchieu_tnhn', name: 'Đồ Phổ: Thiên Nhân Hợp Nhất', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Quyển lụa toả sáng dịu, mở ra là nghe tiếng gió trên chín tầng mây. Chép phép thu tâm về một mối, thần giao cùng trời đất.' },
+
   // --- Đan dược ---
   hoiKhiDan: { id: 'hoiKhiDan', name: 'Hồi Khí Đan', icon: '🧪', type: 'dan', quality: 'luongPham', value: 25, healNL: 60, desc: 'Đan dược hồi phục nội khí, ngậm vào chân nguyên sung mãn trở lại.' },
 
