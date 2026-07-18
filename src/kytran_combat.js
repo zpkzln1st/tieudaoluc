@@ -16,7 +16,10 @@ var TICON={
   bao:'<path d="M4 9h16l-2 8H6z"/><path d="M8 9c0-3 8-3 8 0"/>'
 };
 var TVAR={ kiem:'var(--kiem)', tim:'var(--tim)', khien:'var(--khien)', khi:'var(--khi)', bao:'var(--bao)' };
-var TIMG={ kiem:'images/kytran/tile_kiem.webp', tim:'images/kytran/tile_tim.webp', khien:'images/kytran/tile_khien.webp', khi:'images/kytran/tile_khi.webp', bao:'images/kytran/tile_bao.webp' };
+/* Bộ art quân cờ: '' = mặc định, '1' = biến thể. Random 1 bộ MỖI TRẬN (TIMGV ở mountKtBattle).
+   Thêm bộ mới về sau = thêm hậu tố vào TILE_SETS + thả art images/kytran/tile_<loại><hậu tố>.webp (đủ 5 loại). */
+var TILE_SETS=['','1'];
+function ktTileSet(v){ v=v||''; return { kiem:'images/kytran/tile_kiem'+v+'.webp', tim:'images/kytran/tile_tim'+v+'.webp', khien:'images/kytran/tile_khien'+v+'.webp', khi:'images/kytran/tile_khi'+v+'.webp', bao:'images/kytran/tile_bao'+v+'.webp' }; }
 
 var KIEM_DMG=7, TIM_HEAL=6, KHIEN_BLK=6, KHI_GAIN=12, BAO_SOUL=2;
 var SINH={ kiem:'khi', khi:'bao', bao:'tim', tim:'khien', khien:'kiem' };
@@ -405,6 +408,7 @@ var KTB_TPL=''+
    ===================================================================== */
 export function mountKtBattle(host, opts){
   ensureStyle();
+  var TIMGV=ktTileSet(TILE_SETS[Math.floor(Math.random()*TILE_SETS.length)]);   /* random bộ art quân cờ MỖI TRẬN (mặc định / biến thể) */
 
   /* ----- cấu hình từ opts (module thuần, không import) ----- */
   var HERO={ name:opts.hero.name, sub:opts.hero.sub||'', art:opts.hero.art, maxHp:opts.hero.maxHp, maxKhi:opts.hero.maxKhi };
@@ -545,7 +549,7 @@ export function mountKtBattle(host, opts){
       var e=tileEls[t.id];
       if(!e){
         e=el('div','tile'+(initial?'':' spawn')+spClass(t.sp));
-        e.innerHTML='<div class="tin" style="--tc:'+TVAR[t.type]+'"><img class="ticon" src="'+TIMG[t.type]+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><svg class="ticon-fb" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+TICON[t.type]+'</svg><span class="deco"></span><span class="pcd" style="display:none"></span></div>';
+        e.innerHTML='<div class="tin" style="--tc:'+TVAR[t.type]+'"><img class="ticon" src="'+TIMGV[t.type]+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><svg class="ticon-fb" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+TICON[t.type]+'</svg><span class="deco"></span><span class="pcd" style="display:none"></span></div>';
         e.dataset.id=t.id;
         e.addEventListener('click', function(){ onTileClick(this); });
         tileEls[t.id]=e; boardEl.appendChild(e);
@@ -817,7 +821,7 @@ export function mountKtBattle(host, opts){
       /* stock: .st là kênh DUY NHẤT hiện số Kho Bảo (khác khi=.mini, charge=.dots) — mobile ẩn .st nên phải có badge trên đĩa, không thì mất sạch số mà cơ chế lại "càng gom càng nặng" */
       else { st='<div class="st">Kho Bảo: '+S.goldStock+'</div>'; badge=''+S.goldStock; }
       var art='<img src="images/kytran/sk_'+id+'.webp" alt="" onerror="this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'block\'"><span style="display:none">'+skillIconSVG(sk.icon)+'</span>';
-      var tile = sk.tile?'<img class="sktile" src="'+TIMG[sk.tile]+'">':'';
+      var tile = sk.tile?'<img class="sktile" src="'+TIMGV[sk.tile]+'">':'';
       var cd = badge?'<span class="ecd">'+badge+'</span>':'';
       slot.innerHTML='<div class="skdisc">'+art+tile+cd+'</div><div class="skm"><div class="nm">'+sk.name+'</div>'+st+'</div>';
       slot.disabled=!ready; slot.onclick=function(){ activateSkill(id); };
