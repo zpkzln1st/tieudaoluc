@@ -1374,7 +1374,7 @@ export function mountKtBattle(host, opts){
     eIntent.className='intent eintent';   /* bỏ telegraph "sắp phát" dưới avatar — đã có ở cột huy chương chiêu boss; chỉ giữ Sát khí (mob) + Cháy */
     eIntent.textContent=(hasSkills?'':'Sát khí ô Kiếm')+((S.eBurn||0)>0?((hasSkills?'':' · ')+'燃 Cháy '+S.eBurn+' lượt'):'');
     renderEnemySkills();
-    if(eBlockPip) eBlockPip.textContent=(e.block>0?('⛨ '+e.block+'  '):'')+((e.reflect||0)>0?'↩ Phản '+Math.round(e.reflect*100)+'%':'');
+    if(eBlockPip) eBlockPip.textContent=(e.block>0?('⛨ Phòng ngự '+e.block+'  '):'')+((e.reflect||0)>0?'↩ Phản '+Math.round(e.reflect*100)+'%':'');
     hHpBar.style.width=(Math.max(0,S.hp)/HERO.maxHp*100)+'%'; hHpTxt.textContent=Math.ceil(Math.max(0,S.hp))+' / '+HERO.maxHp;
     khiBar.style.width=(S.khi/HERO.maxKhi*100)+'%';
     blockPip.textContent=S.block>0?('⛨ Phòng ngự '+S.block):'';
