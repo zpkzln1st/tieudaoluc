@@ -93,6 +93,7 @@ var KTB_CSS=[
 '.ktb .bar .bt{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:.64rem; font-weight:700; text-shadow:0 1px 2px #000; }',
 '.ktb .blockpip{ font-size:.66rem; color:#cbd5e1; min-height:15px; line-height:15px; }',
 '.ktb .intent{ font-size:.68rem; color:var(--rose); text-align:center; padding:2px; }',
+'.ktb .intent .tkico{ width:15px; height:15px; object-fit:contain; vertical-align:middle; margin:0 1px 0 3px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.6)); }',
 '.ktb .ktb-turn{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:99px; font-family:"Lora",serif; font-weight:700; font-size:.76rem; border:1px solid var(--bd); background:var(--ink3); white-space:nowrap; flex:none; }',
 '.ktb .ktb-turn .dot{ width:8px; height:8px; border-radius:99px; background:currentColor; box-shadow:0 0 7px currentColor; }',
 '.ktb .ktb-turn.hero{ color:var(--jade); border-color:color-mix(in srgb,var(--jade) 45%,var(--bd)); }',
@@ -1372,7 +1373,9 @@ export function mountKtBattle(host, opts){
     var hasKhiSk=(e.khiSkills&&e.khiSkills.length)>0, hasSkills=(!!e.sig||hasKhiSk);
     if(eKhiBar&&eKhiBar.parentNode) eKhiBar.parentNode.style.display='none';   /* thanh Khí cũ dưới HP ẩn — Khí hiện ở cột huy chương chiêu */
     eIntent.className='intent eintent';   /* bỏ telegraph "sắp phát" dưới avatar — đã có ở cột huy chương chiêu boss; chỉ giữ Sát khí (mob) + Cháy */
-    eIntent.textContent=(hasSkills?'':'Sát khí ô Kiếm')+((S.eBurn||0)>0?((hasSkills?'':' · ')+'燃 Cháy '+S.eBurn+' lượt'):'');
+    /* Mob: "Đánh bằng [ảnh ô Kiếm]" — ảnh lấy từ BỘ CỜ của trận này (TIMGV) nên luôn khớp bàn. Boss: chỉ hiện Cháy (đã có huy chương chiêu). */
+    eIntent.innerHTML=(hasSkills?'':('Đánh bằng <img class="tkico" src="'+TIMGV.kiem+'" alt="" onerror="this.style.display=\'none\'">'))
+      +((S.eBurn||0)>0?((hasSkills?'':' · ')+'燃 Cháy '+S.eBurn+' lượt'):'');
     renderEnemySkills();
     if(eBlockPip) eBlockPip.textContent=(e.block>0?('⛨ Phòng ngự '+e.block+'  '):'')+((e.reflect||0)>0?'↩ Phản '+Math.round(e.reflect*100)+'%':'');
     hHpBar.style.width=(Math.max(0,S.hp)/HERO.maxHp*100)+'%'; hHpTxt.textContent=Math.ceil(Math.max(0,S.hp))+' / '+HERO.maxHp;
