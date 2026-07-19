@@ -11938,6 +11938,13 @@
             <button @click="$store.game.devGiveTrangMats()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">🔆 Tặng 100 Mảnh + Đồ Phổ Bộ (test ghép)</button>
             <button @click="$store.game.devGiveStones()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💠 Tặng đá cường hóa + 100k Hồn Thạch</button>
           </div>
+          <div class="lbl mb-1.5 mt-4">Luyện Đan · Linh Thạch · Đan Bổ Trợ</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button @click="$store.game.devGiveDanMats()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">🌿 Tặng 99 mỗi linh thảo · linh thạch · đan</button>
+            <button @click="$store.game.devBuffOn()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">🔥 Bật thử Đan Bổ Trợ (2 họ)</button>
+            <button @click="$store.game.devBuffShort()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">⏱️ Rút buff còn 10 giây (xem lúc hết hạn)</button>
+            <button @click="$store.game.devBuffClear()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-200 text-xs">✖ Xoá hết buff</button>
+          </div>
           <div class="lbl mb-1.5 mt-4">Bí Cảnh & Đồ Phổ</div>
           <div class="flex flex-wrap items-center gap-2">
             <select x-model="$store.game.devDungeonSel" class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100 text-xs">

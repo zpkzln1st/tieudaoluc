@@ -3720,6 +3720,29 @@ const gameStore = {
     ['tinhTheYeuVuong', 'hoPhuDauLinh', 'hachCoLinh', 'cuuViTinh', 'maToTam'].forEach((id) => { if (this.ITEMS[id]) addItem(this.state, id, 5); });
     this.devSave(); this.showToast('Đã nhận ' + n + ' Trứng Linh Thú + Tinh Thể + mầm Boss (test).');
   },
+  // ---- Dev: Luyện Đan / Linh Thạch / Đan Bổ Trợ ----
+  devGiveDanMats() {
+    let n = 0;
+    Object.keys(this.ITEMS).forEach((id) => {
+      const it = this.ITEMS[id];
+      if (it.type === 'thaoDuoc' || it.type === 'dan' || this.LINH_THACH[id]) { addItem(this.state, id, 99); n++; }
+    });
+    this.devSave(); this._tick++; this.showToast('Dev: +99 mỗi món · ' + n + ' loại (linh thảo / linh thạch / đan).');
+  },
+  devBuffOn() {        // bật 2 họ (đúng trần) bằng dạng Đan 12' — dạng ngắn nhất để test hết hạn
+    ['cuongNguyenDan', 'ngoDaoDan'].forEach((id) => {
+      if ((this.state.inventory[id] || 0) < 1) addItem(this.state, id, 1);
+      useBuffDan(this.state, id, now());
+    });
+    this.devSave(); this._tick++; this.showToast('Dev: bật ' + activeBuffList(this.state, now()).length + ' họ Đan Bổ Trợ.');
+  },
+  devBuffShort() {     // kéo mọi buff còn 10 giây -> xem lúc hết hạn mà không phải đợi 2 tiếng
+    const b = ensureBuffs(this.state); let n = 0;
+    for (const k in b) if (b[k]) { b[k].untilMs = now() + 10000; n++; }
+    this.devSave(); this._tick++; this.showToast('Dev: ' + n + ' buff còn 10 giây.');
+  },
+  devBuffClear() { this.state.buffs = {}; this.devSave(); this._tick++; this.showToast('Dev: đã xoá hết buff.'); },
+
   devGiveAll() {       // TOÀN BỘ vật phẩm đã đăng ký + tiền tệ
     Object.keys(this.ITEMS).forEach((id) => { if (this.ITEMS[id].equip) addGearInstance(this.state, rollGearInstance(id)); else addItem(this.state, id, 20); });
     ['bac', 'honThach', 'nguyenBao'].forEach((k) => { this.state.currencies[k] = (this.state.currencies[k] || 0) + 1000000; });
