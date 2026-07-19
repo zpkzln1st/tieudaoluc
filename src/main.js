@@ -2006,6 +2006,12 @@ const gameStore = {
   goToDungeon(id) { this.selectDungeon(id); this.closeLocation(); this.navTo('dungeon'); },   // từ modal Địa Điểm nhảy vào màn Bí Cảnh
   navItemActive(it) { return this.view === it.view; },
   // Icon: tự chọn folder theo id (ICON_FOLDERS), mặc định 'items'; lỗi -> rơi về emoji
+  // Bù lề cho art vẽ TRÀN SÁT MÉP canvas. Trang bị render bằng object-fit:fill (kéo giãn lấp ô), nên
+  // vật thể chiếm bao nhiêu phần canvas thì đeo vào trông to bấy nhiêu. Đo thực tế:
+  //   rìu/cuốc/cần câu bậc 4-7 = 72-89% × 82-97% khung · Dược Liêm bậc 1 = 91% · Dược Liêm bậc 4-7 = 99×99%.
+  // 99% là chạm sát mép, đứng cạnh bộ cũ thành chật chội. Inset ở tầng render kéo về đúng dải trên,
+  // khỏi phải gen lại ảnh. Thêm art tràn mép về sau thì thêm 1 dòng vào đây.
+  ART_INSET: { eq_duocLiem_4: 9, eq_duocLiem_5: 9, eq_duocLiem_6: 9, eq_duocLiem_7: 9 },
   ico(id, emoji) {
     const safe = String(emoji || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     const folder = ICON_FOLDERS[id] || 'items';
@@ -2025,7 +2031,8 @@ const gameStore = {
         + `</span></span>`;
     }
     if (folder === 'equip') {   // art trang bị (KÉO GIÃN lấp khung): WEBP-FIRST -> png -> emoji.
-      return `<img src="images/equip/${id}.webp" class="w-full h-full" style="object-fit:fill" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/equip/${id}.png&quot;;}else{${drop};}'>`;
+      const pad = (this.ART_INSET && this.ART_INSET[id]) ? `;padding:${this.ART_INSET[id]}%` : '';
+      return `<img src="images/equip/${id}.webp" class="w-full h-full" style="object-fit:fill${pad}" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/equip/${id}.png&quot;;}else{${drop};}'>`;
     }
     return `<img src="images/${folder}/${id}.webp" class="w-full h-full object-contain p-0.5" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/${folder}/${id}.png&quot;;}else{${drop};}'>`;
   },
