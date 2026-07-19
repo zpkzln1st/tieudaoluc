@@ -6,7 +6,7 @@
 import { SKILLS } from '../data/skills.js';
 import { ENEMIES, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from '../data/combat.js';
 import { ITEMS } from '../data/items.js';
-import { LINH_THACH } from '../data/linhthach.js';
+import { LINH_THACH, LT_COVER_MS } from '../data/linhthach.js';
 import { combatProfile, boPhapStats, COMBAT_CYCLE_MS } from '../data/votong.js';
 import { travelTimeMs } from './travel.js';
 import { addItem, removeItem } from './inventory.js';
@@ -50,18 +50,29 @@ export function canStartAction(state, skillId, action) {
   return true;
 }
 
-// ---- Linh Thạch: lắp cho phiên (trừ 1 viên, set buff, giảm cycleMs theo hiệu suất) ----
-// Gọi ở đầu mỗi phiên skill. Nếu có lắp & còn hàng → tiêu hao 1, áp buff cho cả phiên.
-function applyLinhThach(state, act, skillId) {
-  act.buff = null;
-  const itemId = state.linhThach && state.linhThach[skillId];
-  if (!itemId) return;
+// ---- Linh Thạch: ĐỐT THEO GIỜ HOẠT ĐỘNG (không còn 1 viên/phiên) ----
+// Viên đầu trừ khi bấm Bắt Đầu; sau đó cứ LT_COVER_MS thời gian hoạt động lại đốt tiếp 1 viên
+// CÙNG LOẠI đang lắp. Hết loại đó → buff tắt, hoạt động CHẠY TIẾP bình thường.
+// effPct CỘNG vào mẫu số cycleMs (gộp cùng Nghề/Công Cụ/Tín Vật) — KHÔNG chia lần hai như trước,
+// để mọi nguồn hiệu suất nằm chung một chỗ, dễ soát trần.
+function effDenom(state, skillId, effPct) {
+  return professionEffMult(state, skillId) + toolEffBonus(state, skillId) + tinVatEffBonus(state, skillId) + (effPct || 0) / 100;
+}
+function cycleMsFor(state, skillId, action, effPct) {
+  return Math.max(1, Math.round(action.time * 1000 / effDenom(state, skillId, effPct)));
+}
+// Đốt 1 viên nếu còn; trả true nếu buff đang bật sau lời gọi.
+function burnLinhThach(state, act) {
+  act.buff = null; act.buffMsLeft = 0;
+  const itemId = act.ltId;
+  if (!itemId) return false;
   const def = LINH_THACH[itemId];
-  if (!def) return;
-  if ((state.inventory[itemId] || 0) < 1) return; // hết hàng → vẫn giữ lắp, không kích hoạt
+  if (!def) return false;
+  if ((state.inventory[itemId] || 0) < 1) return false;   // hết hàng → vẫn giữ lắp, chỉ tắt buff
   removeItem(state, itemId, 1);
-  act.buff = { itemId, expPct: def.expPct || 0, effPct: def.effPct || 0 };
-  if (def.effPct) act.cycleMs = Math.max(1, Math.round(act.cycleMs / (1 + def.effPct / 100)));
+  act.buffMsLeft = LT_COVER_MS;
+  act.buff = { itemId, expPct: def.expPct || 0, effPct: def.effPct || 0, yieldPct: def.yieldPct || 0, craftOnly: !!def.craftOnly };
+  return true;
 }
 
 // ---- Công cụ: bonus hiệu suất khai thác từ tool đang đeo (riu/cuoc/canCau) cho kĩ năng khớp ----
@@ -88,12 +99,14 @@ export function startActivity(state, skillId, actionId, now) {
   if (!canStartAction(state, skillId, action)) return false;
   state.activity = {
     type: 'skill', skillId, actionId,
-    cycleMs: Math.max(1, Math.round(action.time * 1000 / (professionEffMult(state, skillId) + toolEffBonus(state, skillId) + tinVatEffBonus(state, skillId)))), // Nghề + Công cụ + Tín Vật: nhanh hơn
+    cycleMs: cycleMsFor(state, skillId, action, 0),   // Nghề + Công cụ + Tín Vật (+ Linh Thạch nếu đốt được)
     startedAt: now, lastResolved: now,
     sessionCount: 0, progress: 0, capped: false, stalled: false,
-    buff: null, buffXpAcc: 0,
+    ltId: (state.linhThach && state.linhThach[skillId]) || null,   // loại đá đang lắp — đốt dần theo giờ
+    buff: null, buffMsLeft: 0, buffXpAcc: 0,
   };
-  applyLinhThach(state, state.activity, skillId);
+  burnLinhThach(state, state.activity);   // viên đầu trừ ngay khi bấm Bắt Đầu
+  if (state.activity.buff) state.activity.cycleMs = cycleMsFor(state, skillId, action, state.activity.buff.effPct);
   return true;
 }
 
@@ -290,14 +303,52 @@ export function advance(state, now) {
     let cyclesByCharge = Infinity;
     if (action.needsDoPho) cyclesByCharge = (((state.player && state.player.doPho) || {})[action.itemId]) || 0; // bậc 4-7: tối đa = số lượt Đồ Phổ còn
     if (action.needsDoPho && cyclesByCharge <= 0) { state.activity = null; return null; } // hết lượt Đồ Phổ -> tự dừng rèn (không treo tiến độ rỗng)
-    const cycles = Math.min(cyclesByTime, cyclesByInputs, cyclesByCharge);
+    // ---- Cắt khoảng thời gian thành TỪNG ĐOẠN phủ Linh Thạch ----
+    // Đoạn nào còn đá thì trừ 1 viên + chạy cycleMs CÓ buff; hết đá thì phần còn lại chạy cycleMs thường.
+    // Vòng lặp có trần (mỗi vòng tiêu ít nhất min(rem, LT_COVER_MS) hoặc thoát) nên không treo.
+    let capLeft = Math.min(cyclesByInputs, cyclesByCharge);
+    let rem = elapsed, leftover = 0, advancedMs = 0;
+    let cycles = 0, buffedCycles = 0;
+    // GIỮ LẠI hiệu ứng của đá đã dùng: hết đá thì burnLinhThach gán act.buff = null NGAY TRONG vòng lặp,
+    // nên KHÔNG được đọc act.buff sau vòng lặp để tính thưởng — sẽ mất trắng phần buff của các đoạn đã phủ.
+    let buffExpPct = 0, buffYieldPct = 0;
+    while (rem > 0 && capLeft > 0) {
+      if (act.buffMsLeft <= 0) burnLinhThach(state, act);          // hết đoạn -> đốt viên kế (hoặc tắt buff)
+      const buffed = !!act.buff;
+      if (buffed) { buffExpPct = act.buff.expPct || 0; buffYieldPct = act.buff.yieldPct || 0; }
+      act.cycleMs = cycleMsFor(state, act.skillId, action, buffed ? act.buff.effPct : 0);
+      const segMs = buffed ? Math.min(rem, act.buffMsLeft) : rem;
+      const avail = leftover + segMs;
+      let n = Math.floor(avail / act.cycleMs);
+      if (n > capLeft) {                                            // chạm trần nguyên liệu/Đồ Phổ giữa đoạn
+        n = capLeft;
+        const usedMs = Math.max(0, n * act.cycleMs - leftover);
+        if (buffed) act.buffMsLeft -= usedMs;
+        rem -= usedMs; advancedMs += n * act.cycleMs; leftover = 0;
+        cycles += n; if (buffed) buffedCycles += n;
+        capLeft = 0; break;
+      }
+      leftover = avail - n * act.cycleMs;
+      advancedMs += n * act.cycleMs;
+      cycles += n; if (buffed) buffedCycles += n;
+      capLeft -= n;
+      if (buffed) act.buffMsLeft -= segMs;
+      rem -= segMs;
+    }
     if (cycles > 0) {
       const mult = skillExpMultiplier(state, act.skillId);
       const gainXp = Math.max(1, Math.round(action.xp * mult));
+      // Bội Sản chỉ áp khi hành động CÓ nguyên liệu vào VÀ sản phẩm KHÔNG phải trang bị.
+      // Luật theo ACTION chứ không theo nghề: doanhTao có datSet/cat không tốn liệu (sinh vật liệu từ hư không),
+      // daTao ra gear instance (nhân đôi = thêm một lần roll affix miễn phí, phá loot-hunt).
+      const yieldOk = !!(action.inputs && action.inputs.length) && !(ITEMS[action.itemId] || {}).equip;
+      const yieldPct = yieldOk ? buffYieldPct : 0;
+      let bonusOut = 0;
       for (let i = 0; i < cycles; i++) {
         if (action.inputs) for (const inp of action.inputs) removeItem(state, inp.itemId, inp.qty);
         // Rèn gear (mọi món có .equip, gồm cả legacy tichSao/thietKiem/tichGiap) -> instance ROLL. Sản phẩm khác (thỏi/đan...) -> xếp chồng.
         if (action.itemId) { if (ITEMS[action.itemId] && ITEMS[action.itemId].equip) addGearInstance(state, rollGearInstance(action.itemId)); else addItem(state, action.itemId, 1); }
+        if (yieldPct && i < buffedCycles && Math.random() < yieldPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
         addSkillXp(state, act.skillId, gainXp);
         if (skill.stat) addStatXp(state, skill.stat, action.statXp);
         if (skill.stat2) addStatXp(state, skill.stat2, action.statXp);
@@ -305,24 +356,27 @@ export function advance(state, now) {
       // Linh Thạch: cộng phần EXP% — TÍCH LŨY phân số qua các lần advance rồi flush phần
       // nguyên. Tránh mất buff do làm tròn khi EXP nhỏ (foreground mỗi lần chỉ 1 vòng:
       // +10% của 4 = 0.4 → round = 0). Acc nằm trên activity nên bền qua reload/offline.
+      // CHỈ tính trên số vòng THẬT SỰ được phủ buff (buffedCycles), không phải toàn bộ.
       let buffXp = 0;
-      if (act.buff && act.buff.expPct) {
-        act.buffXpAcc = (act.buffXpAcc || 0) + action.xp * mult * (act.buff.expPct / 100) * cycles;
+      if (buffExpPct && buffedCycles > 0) {
+        act.buffXpAcc = (act.buffXpAcc || 0) + action.xp * mult * (buffExpPct / 100) * buffedCycles;
         buffXp = Math.floor(act.buffXpAcc);
         if (buffXp > 0) { addSkillXp(state, act.skillId, buffXp); act.buffXpAcc -= buffXp; }
       }
+      if (bonusOut && action.itemId) state.counters.produced[action.itemId] = (state.counters.produced[action.itemId] || 0) + bonusOut;
       const sk = state.skills[act.skillId];
-      if (sk) { sk.gathered = (sk.gathered || 0) + cycles; sk.timeMs = (sk.timeMs || 0) + cycles * act.cycleMs; }
+      if (sk) { sk.gathered = (sk.gathered || 0) + cycles; sk.timeMs = (sk.timeMs || 0) + advancedMs; }
       if (action.itemId) state.counters.produced[action.itemId] = (state.counters.produced[action.itemId] || 0) + cycles;
       act.sessionCount += cycles;
-      act.lastResolved += cycles * act.cycleMs;
+      act.lastResolved += advancedMs;   // các đoạn có cycleMs khác nhau -> cộng ms THẬT, không nhân cycles×cycleMs
       report = { type: 'skill', skillId: act.skillId, itemId: action.itemId, cycles, xp: cycles * gainXp + buffXp, capped: cappedByTime };
     }
     if (action.needsDoPho && cycles > 0 && state.player && state.player.doPho) { // trừ lượt Đồ Phổ đã dùng
       state.player.doPho[action.itemId] = Math.max(0, (state.player.doPho[action.itemId] || 0) - cycles);
       if (state.player.doPho[action.itemId] <= 0) delete state.player.doPho[action.itemId];
     }
-    ranOut = ((cyclesByInputs !== Infinity) && (cyclesByInputs < cyclesByTime)) || ((cyclesByCharge !== Infinity) && (cyclesByCharge < cyclesByTime));
+    // Dừng vì HẾT nguyên liệu / hết lượt Đồ Phổ (không phải vì hết thời gian): còn thời gian mà trần đã cạn.
+    ranOut = (capLeft <= 0) && (rem > 0) && ((cyclesByInputs !== Infinity) || (cyclesByCharge !== Infinity));
   }
 
   if (ranOut) {

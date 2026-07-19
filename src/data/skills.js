@@ -123,8 +123,17 @@ export const SKILLS = {
     actions: [
       // Liệu đổi sang linh thảo (nghề Hái Thuốc) — trước đây nấu đan bằng gỗ + cá, khiên cưỡng.
       { id: 'hoiKhiDan',        name: 'Hồi Khí Đan',         gloss: 'Battle Potion',   itemId: 'hoiKhiDan',        reqLevel: 1, xp: 10, time: 30.0, statXp: 1, inputs: [{ itemId: 'thanhNgaiThao', qty: 2 }] },
-      { id: 'tieuPhuLinhThach',   name: 'Linh Thạch Tiều Phu',  gloss: 'Essence Crystal', itemId: 'tieuPhuLinhThach',   reqLevel: 2, xp: 20, time: 40.0, statXp: 2, inputs: [{ itemId: 'tungMoc', qty: 3 }, { itemId: 'thachKhoi', qty: 2 }] },
-      { id: 'khoangPhuLinhThach', name: 'Linh Thạch Khoáng Phu', gloss: 'Essence Crystal', itemId: 'khoangPhuLinhThach', reqLevel: 3, xp: 22, time: 42.0, statXp: 2, inputs: [{ itemId: 'hacThan', qty: 3 }, { itemId: 'tichKhoang', qty: 2 }] },
+      // --- LINH THẠCH: 3 dòng × 3 bậc, dùng chung mọi nghề. Chỉ ăn linh thảo (không đụng nguyên liệu
+      //     bán ở Thương Điếm) -> chặn máy in Bạc ở nguồn. Cổng liệu: Sơ bậc 1 · Trung bậc 3-4 · Thượng bậc 5-6.
+      { id: 'tieuPhuLinhThach',   name: 'Tụ Khí Thạch Sơ Phẩm',     gloss: 'Qi Essence Crystal I',  itemId: 'tieuPhuLinhThach',   reqLevel: 1,  xp: 20,  time: 32.0, statXp: 2, inputs: [{ itemId: 'thanhNgaiThao', qty: 4 }] },
+      { id: 'thoiVanThachSo',     name: 'Thôi Vận Thạch Sơ Phẩm',   gloss: 'Momentum Crystal I',    itemId: 'thoiVanThachSo',     reqLevel: 1,  xp: 22,  time: 36.0, statXp: 2, inputs: [{ itemId: 'thanhNgaiThao', qty: 6 }] },
+      { id: 'boiSanThachSo',      name: 'Bội Sản Thạch Sơ Phẩm',    gloss: 'Bounty Crystal I',      itemId: 'boiSanThachSo',      reqLevel: 1,  xp: 21,  time: 34.0, statXp: 2, inputs: [{ itemId: 'thanhNgaiThao', qty: 5 }] },
+      { id: 'tuKhiThachTrung',    name: 'Tụ Khí Thạch Trung Phẩm',  gloss: 'Qi Essence Crystal II', itemId: 'tuKhiThachTrung',    reqLevel: 35, xp: 42,  time: 50.0, statXp: 5, inputs: [{ itemId: 'duongQuyCan', qty: 3 }] },
+      { id: 'thoiVanThachTrung',  name: 'Thôi Vận Thạch Trung Phẩm',gloss: 'Momentum Crystal II',   itemId: 'thoiVanThachTrung',  reqLevel: 35, xp: 48,  time: 54.0, statXp: 6, inputs: [{ itemId: 'duongQuyCan', qty: 1 }, { itemId: 'thachHocLan', qty: 2 }] },
+      { id: 'boiSanThachTrung',   name: 'Bội Sản Thạch Trung Phẩm', gloss: 'Bounty Crystal II',     itemId: 'boiSanThachTrung',   reqLevel: 35, xp: 45,  time: 52.0, statXp: 5, inputs: [{ itemId: 'duongQuyCan', qty: 2 }, { itemId: 'thachHocLan', qty: 1 }] },
+      { id: 'tuKhiThachThuong',   name: 'Tụ Khí Thạch Thượng Phẩm', gloss: 'Qi Essence Crystal III',itemId: 'tuKhiThachThuong',   reqLevel: 75, xp: 100, time: 64.0, statXp: 8, inputs: [{ itemId: 'tuyetLienHoa', qty: 3 }] },
+      { id: 'thoiVanThachThuong', name: 'Thôi Vận Thạch Thượng Phẩm',gloss:'Momentum Crystal III',  itemId: 'thoiVanThachThuong', reqLevel: 75, xp: 112, time: 68.0, statXp: 8, inputs: [{ itemId: 'tuyetLienHoa', qty: 1 }, { itemId: 'ngocTuyenSam', qty: 2 }] },
+      { id: 'boiSanThachThuong',  name: 'Bội Sản Thạch Thượng Phẩm',gloss: 'Bounty Crystal III',    itemId: 'boiSanThachThuong',  reqLevel: 75, xp: 105, time: 66.0, statXp: 8, inputs: [{ itemId: 'tuyetLienHoa', qty: 2 }, { itemId: 'ngocTuyenSam', qty: 1 }] },
     ],
   },
   daTao: {

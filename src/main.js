@@ -9,7 +9,7 @@ import { LOCATIONS, REALM_TIERS } from './data/locations.js';
 import { AVATARS, COVERS } from './data/avatars.js';
 import { LOGIN_REWARDS } from './data/daily.js';
 import { TUTORIAL_QUESTS, DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS } from './data/quests.js';
-import { LINH_THACH } from './data/linhthach.js';
+import { LINH_THACH, linhThachForSkill } from './data/linhthach.js';
 import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
 import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
@@ -2293,11 +2293,11 @@ const gameStore = {
 
   // ---------- Linh Thạch (buff per-skill) ----------
   linhThachOwned(itemId) { return this.state.inventory[itemId] || 0; },
-  hasLinhThachFamily(skillId) { return Object.values(this.LINH_THACH).some((d) => d.skillId === skillId); },
+  // Linh Thạch nay DÙNG CHUNG mọi nghề (không còn skillId) -> ô Linh Thạch hiện ở mọi nghề gather/craft.
+  hasLinhThachFamily(skillId) { return linhThachForSkill(skillId).length > 0; },
   // Các Linh Thạch hợp với skill (cho picker), kèm số viên đang có; có hàng lên đầu.
   skillLinhThachOptions(skillId) {
-    return Object.values(this.LINH_THACH)
-      .filter((d) => d.skillId === skillId)
+    return linhThachForSkill(skillId)
       .map((d) => ({ ...d, owned: this.state.inventory[d.itemId] || 0 }))
       .sort((a, b) => b.owned - a.owned);
   },

@@ -123,8 +123,19 @@ export const ITEMS = {
   vanYeu:    { id: 'vanYeu',    name: 'Ván Gỗ',   icon: '🟧', type: 'vatlieu', quality: 'luongPham', value: 10, desc: 'Tấm ván cưa phẳng, dùng dựng nhà đóng đồ.' },
   gach:      { id: 'gach',      name: 'Gạch',     icon: '🧱', type: 'vatlieu', quality: 'luongPham', value: 18, desc: 'Viên gạch nung đỏ au, vật liệu xây thành dựng vách.' },
   thietKhau: { id: 'thietKhau', name: 'Khớp Sắt', icon: '🔩', type: 'vatlieu', quality: 'tinhPham',  value: 40, desc: 'Khớp nối bằng sắt, gia cố kết cấu thêm vững chắc.' },
-  tieuPhuLinhThach:   { id: 'tieuPhuLinhThach',   name: 'Linh Thạch Tiều Phu',  icon: '💎', type: 'vatlieu', quality: 'tinhPham', value: 50, desc: 'Linh thạch ngưng từ mộc khí — lắp cho kỹ năng Đốn Củi để tăng hiệu suất.' },
-  khoangPhuLinhThach: { id: 'khoangPhuLinhThach', name: 'Linh Thạch Khoáng Phu', icon: '💠', type: 'vatlieu', quality: 'tinhPham', value: 50, desc: 'Linh thạch ngưng từ địa khí — lắp cho kỹ năng Đào Khoáng để tăng hiệu suất.' },
+  // --- LINH THẠCH (3 dòng × 3 bậc, DÙNG CHUNG mọi nghề). Bậc Sơ dòng Tụ Khí GIỮ id cũ
+  //     'tieuPhuLinhThach' để save cũ tự khớp + tái dùng art; chỉ đổi tên/mô tả/hiệu ứng.
+  tieuPhuLinhThach:   { id: 'tieuPhuLinhThach',   name: 'Tụ Khí Thạch Sơ Phẩm',    icon: '💎', type: 'vatlieu', quality: 'luongPham', value: 9,   desc: 'Ngải thảo nung thành thạch, khí tụ mờ mà chẳng tan — kẻ mới nhập nghề học một biết hai.' },
+  tuKhiThachTrung:    { id: 'tuKhiThachTrung',    name: 'Tụ Khí Thạch Trung Phẩm', icon: '💎', type: 'vatlieu', quality: 'tinhPham',  value: 40,  desc: 'Tuyết Liên ngưng khí giữa hàn phong, lõi thạch sáng lạnh — soi vào thấy đường nghề rõ hơn một bậc.' },
+  tuKhiThachThuong:   { id: 'tuKhiThachThuong',   name: 'Tụ Khí Thạch Thượng Phẩm',icon: '💎', type: 'vatlieu', quality: 'tuyetPham', value: 92,  desc: 'Vân Lộ kết tinh chín lần, khí quang cuộn trong đá như mây chưa tan — học nghề nhanh tựa nước xuôi dòng.' },
+  thoiVanThachSo:     { id: 'thoiVanThachSo',     name: 'Thôi Vận Thạch Sơ Phẩm',  icon: '🔹', type: 'vatlieu', quality: 'luongPham', value: 12,  desc: 'Tử Đằng leo nhanh, khí cũng vội — thạch này thúc tay người chậm thành tay người nhanh.' },
+  thoiVanThachTrung:  { id: 'thoiVanThachTrung',  name: 'Thôi Vận Thạch Trung Phẩm',icon: '🔹',type: 'vatlieu', quality: 'tinhPham',  value: 50,  desc: 'Ngọc Tuyền Sâm ngâm khí ngàn ngày, thạch ngưng thành ấm nóng — nhịp tay theo đó mà gấp lên.' },
+  thoiVanThachThuong: { id: 'thoiVanThachThuong', name: 'Thôi Vận Thạch Thượng Phẩm',icon:'🔹',type: 'vatlieu', quality: 'tuyetPham', value: 128, desc: 'Thất Tinh dẫn vận, thạch chuyển như bánh xe trời — một khắc làm xong việc nửa canh giờ.' },
+  boiSanThachSo:      { id: 'boiSanThachSo',      name: 'Bội Sản Thạch Sơ Phẩm',   icon: '🔸', type: 'vatlieu', quality: 'luongPham', value: 10,  desc: 'Thảo mộc bậc thấp ép thành thạch, dư khí còn vương — lò lửa gặp nó, đôi khi cho ra gấp bội.' },
+  boiSanThachTrung:   { id: 'boiSanThachTrung',   name: 'Bội Sản Thạch Trung Phẩm',icon: '🔸', type: 'vatlieu', quality: 'tinhPham',  value: 45,  desc: 'Sâm ngọc dưỡng địa khí, thạch ngậm sinh cơ — vật trong lò tự sinh thêm phần thừa.' },
+  boiSanThachThuong:  { id: 'boiSanThachThuong',  name: 'Bội Sản Thạch Thượng Phẩm',icon:'🔸', type: 'vatlieu', quality: 'tuyetPham', value: 110, desc: 'Thất Tinh Thảo tụ thất diệu, thạch này nuôi lò như nuôi ruộng — gieo một gặt đôi.' },
+  // Di sản: đã gỡ khỏi bảng LINH_THACH (không lắp được nữa), giữ item để save cũ bán đi.
+  khoangPhuLinhThach: { id: 'khoangPhuLinhThach', name: 'Linh Thạch Khoáng Phu', icon: '💠', type: 'vatlieu', quality: 'tinhPham', value: 50, desc: 'Linh thạch ngưng từ địa khí của thời trước — nay đã thất truyền cách dẫn, chỉ còn đem bán.' },
 
   // --- Vật liệu Doanh Tạo cao cấp (Động Phủ) — chế từ nghề Xây Dựng, xây/nâng nhà riêng ---
   thanhNgoa:     { id: 'thanhNgoa',     name: 'Thanh Ngõa',     icon: '🟦', type: 'vatlieu', quality: 'luongPham', value: 15,  desc: 'Ngói nung men xanh biếc, mưa gió trăm năm chẳng phai. Mái nhà lợp nó, xa trông như một dải sóng ngọc.' },
