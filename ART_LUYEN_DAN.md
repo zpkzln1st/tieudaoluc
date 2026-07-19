@@ -221,3 +221,88 @@ white background inside the disc, thin border, non-circular silhouette, margin a
 
 **Nghiệm thu:** đặt cạnh `daTao.webp` và `luyenDan.webp` phải thấy **cùng một bộ** — cùng độ dày vành,
 cùng 4 medallion ngọc, cùng nền tối, cùng độ sáng chủ thể. File 500×500 như 10 cái kia.
+
+---
+
+# LÀM LẠI — Dược Liêm bậc 4–7
+
+Bản đầu hỏng ở **hai chỗ khác nhau**, phải sửa cả hai thì mới hết cảm giác lệch:
+
+**1. Vật thể quá nhỏ trong khung.** `src/main.js:2028` render trang bị bằng `object-fit: fill` — ảnh bị kéo
+căng lấp đầy ô vuông. Nên **vật thể chiếm bao nhiêu phần canvas thì đeo vào trông to bấy nhiêu**.
+`eq_cuoc_7` chạm gần 4 mép theo đường chéo; `eq_duocLiem_7` chỉ ~65% và thừa lề dày ở dưới-trái → nhìn nhỏ hơn hẳn.
+Cộng thêm liềm vốn **cán ngắn**, tự nó đã gọn hơn rìu/cuốc/cần câu có cán dài chạy chéo.
+
+**2. Không có thang leo.** Bậc 4 là dao rựa đen, 5–6 là liềm thường, 7 là liềm đồng bóng — không mạch sáng,
+không ngọc, không hạt khí. Trong khi `eq_cuoc_7` / `eq_riu_7` đã là thần binh: mạch vàng chạy trong thân,
+ngọc phát sáng, hoa văn mây cuộn, hạt sáng bay.
+
+## KHỐI BẮT BUỘC — dán vào ĐẦU cả 4 prompt
+
+```
+Fantasy game item art of a Chinese wuxia herb-gathering sickle, single object, on a FULLY TRANSPARENT
+background (alpha channel, no backdrop, no shadow plane, no ground).
+COMPOSITION IS CRITICAL: place the sickle on a strong DIAGONAL from the lower-right to the upper-left,
+the object SPANNING ALMOST THE ENTIRE SQUARE CANVAS corner to corner, leaving only a thin even margin —
+the blade tip must nearly touch the upper-left area and the handle butt must nearly reach the lower-right.
+Give it a LONG ornate handle (roughly as long as the axe and pickaxe of the same set) so the silhouette
+reads large; do NOT draw a small stubby hand-sickle floating in the middle of the frame.
+Square 1:1, ultra-detailed painterly semi-realistic render, crisp readable silhouette, no text, no
+watermark, no signature, no border.
+Negative prompt: small object, lots of empty margin, centred tiny item, short stubby handle, plain
+farm tool, realistic photo, dull flat metal, text, watermark, background scenery, drop shadow.
+```
+
+## Thang leo 4 bậc — mỗi bậc THÊM MỘT TẦNG, không chỉ đổi màu
+
+| Bậc | Chất liệu | Thứ MỚI xuất hiện |
+|---|---|---|
+| 4 | Huyền thiết xám lạnh | khảm ngọc bích nhỏ · hoa văn khắc chìm · **chưa phát sáng** |
+| 5 | Thép trắng + ngọc lục | **mạch sáng lục nhạt** bắt đầu chạy trong sống liềm · sương đọng trên lưỡi |
+| 6 | Vàng kim + ngọc lớn | **ngọc phát sáng** ở cổ liềm · khí lục cuộn quanh · tua rua lụa |
+| 7 | Vàng + ngọc trắng | **hạt sáng bay** · linh thảo mọc ra từ khí · vầng sáng sau lưỡi |
+
+### `eq_duocLiem_4` — Huyền Thiết Liêm
+```
+...a dark meteoric-iron sickle, cold grey-black blade with a faint blue sheen and fine engraved cloud
+patterns pressed into the metal, small polished jade-green cabochons inlaid where blade meets neck,
+long dark hardwood handle bound in dark leather cord with a carved iron ferrule and a small jade bead
+at the butt. Restrained and heavy, NO glow, NO floating particles — this is the last purely mundane tier.
+```
+
+### `eq_duocLiem_5` — Lộ Ngưng Liêm
+```
+...a pale white-steel sickle with a mirror-bright curved edge, a THIN CHANNEL OF SOFT GREEN-JADE LIGHT
+running along the spine of the blade like liquid caught inside the metal, a row of dew droplets clinging
+along the cutting curve each catching a tiny prismatic highlight, faint cold mist drifting off the blade,
+long jade-green wrapped handle with silver bands. First tier where the metal is clearly ALIVE — the glow
+is subtle, only along the spine, not yet radiating outward.
+```
+
+### `eq_duocLiem_6` — Thần Nông Liêm
+```
+...an ancient ceremonial gold sickle, warm antique-gold blade engraved with archaic seal-script herb
+glyphs whose grooves glow amber from within, a LARGE luminous jade cabochon set at the neck casting green
+light onto the blade, coiling ribbons of green-gold herbal qi swirling around the whole weapon, long
+handle carved as a gnarled ginseng root with gold caps and a hanging silk tassel with a jade ring.
+Ornate and imposing — clearly a treasure, not a tool.
+```
+
+### `eq_duocLiem_7` — Thái Ất Kim Liêm
+```
+...a divine golden sickle, radiant gold crescent blade curved like a new moon with layered celestial
+filigree and white-jade inlay, brilliant golden light coursing through veins in the metal, a ring of
+luminous green-gold spirit motes slowly orbiting the blade, wisps of living spirit-herb leaves and
+tiny blossoms materialising out of the swirling qi around it, a soft radiant halo behind the blade,
+long white-jade handle with heavy gold dragon-head cap and flowing luminous ribbons trailing from the
+pommel. Overwhelming divine presence, the peak of the set — must read as powerful as the golden
+pickaxe and the winged golden axe at tier 7.
+```
+
+## Nghiệm thu trước khi thay file
+
+1. Mở cạnh `eq_cuoc_7.webp` và `eq_riu_7.webp` — bậc 7 phải **ngang cơ**, không được hiền hơn.
+2. Xếp 4 -> 5 -> 6 -> 7 thành hàng: phải thấy **thêm một tầng mỗi bậc** (khảm ngọc -> mạch sáng -> ngọc phát
+   sáng -> hạt khí), không phải chỉ đổi màu.
+3. Đo lề: vật thể phải chạm gần mép. Nếu còn viền trắng dày quanh thì đeo vào vẫn nhỏ hơn rìu/cuốc.
+4. Giữ 500×500 như 3 bộ kia (chỉ `eq_riu_7` lẻ 1254, không cần theo).
