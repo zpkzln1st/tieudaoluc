@@ -144,3 +144,45 @@ Wuxia xianxia game inventory icon of a single alchemical medicine, ONE object ce
 Wuxia xianxia game inventory icon of a single alchemical medicine, ONE object centered in frame filling about 80% of the canvas, three-quarter view slightly above eye level, semi-realistic painterly digital art with high surface detail, soft diffused studio lighting from the upper left, a very faint soft contact shadow directly beneath the object, luminous glow radiating from within the object with thin wisps of curling spirit-vapour around it, subject cleanly isolated on a FULLY TRANSPARENT background (alpha channel: no backdrop, no vignette, no dark radial gradient, no ground plane, no scenery), square 1:1 composition rendered at 244x244, no text, no watermark, no signature, no border, no frame, no UI element — FORM: the ESSENCE grade (tinh), a small faceted crystalline distillate shaped like a condensed teardrop shard, razor-sharp facets, hairline fractures leaking light, a blinding pinpoint core throwing hard light rays and flying sparks, vapour compressed tight and violent, the most ornate and brightest of the three grades. SUBJECT: beast-nurturing essence — brilliant emerald crystal pressed from nine-leaf spirit-fungus marrow, deep green facets with a single hairline gold fissure splitting the body, fierce viridian light roaring outward from the core, thin bone-white marrow striations frozen inside the stone, a ring of bright green sparks bursting away from it, wild and untamed rather than gentle, dominant emerald green with only that one thread of gold. Negative prompt: text, watermark, signature, logo, modern objects, blurry, lowres, cartoonish, oversaturated neon colors, cluttered messy background, dark radial-gradient background, round pill, loose powder, animal, mushroom.
 
 
+
+---
+
+# BỔ SUNG — Đợt 1 (nghề Hái Thuốc đã ráp xong vào game)
+
+Đường dẫn dưới đây **đã đối chiếu code thật**, không phải suy đoán:
+
+| Nhóm | Đường dẫn | Khoá theo |
+|---|---|---|
+| Icon kĩ năng | `images/skills/thaiDuoc.webp` | `SKILLS` key |
+| Huy hiệu nghề | `images/nghe/duocNong.webp` | ⚠️ **`NGHE.id`, KHÔNG phải skillId** |
+| Chân dung NPC | `images/damdao/thaiDuoc.webp` | skillId |
+| Tín vật | `images/tinvat/thaiDuoc.webp` | skillId |
+| Huy hiệu Lv100 | `images/ui/huyhieu/thaiDuoc.webp` | skillId |
+| 10 linh thảo | `images/items/<id>.webp` | itemId |
+| 7 Dược Liêm | `images/equip/eq_duocLiem_<1..7>.webp` | itemId |
+
+`images/nghe/duocNong.webp` là cái bẫy dễ sai nhất — cả 6 file kia dùng `thaiDuoc`, riêng file này dùng `duocNong`.
+
+## STYLE CHUNG cho 7 Dược Liêm
+
+Dùng chung với dàn công cụ sẵn có (`eq_riu_*`, `eq_cuoc_*`, `eq_canCau_*`):
+
+> Wuxia xianxia game item icon, single tool object floating on a FULLY TRANSPARENT background (alpha channel, no backdrop, no vignette, no ground plane), object centred filling ~85% of frame, three-quarter view, semi-realistic painterly rendering with Chinese ink-wash sensibility, soft diffuse light from upper left, muted natural palette with jade-green and antique-gold accents, restrained saturation, clean readable silhouette at small icon size, square 1:1 (244x244), only a very faint soft contact shadow. Negative prompt: text, watermark, signature, logo, background, scenery, hands, modern objects, blurry, lowres, cartoonish, oversaturated neon.
+
+Vật thể chung: **liềm hái thuốc** — lưỡi cong lưỡi liềm, cán ngắn cầm một tay. Bậc càng cao thì kim loại càng quý, hoa văn càng nhiều, khí phát ra càng rõ — nhưng **giữ nguyên dáng liềm** để nhìn là biết cùng một bộ.
+
+| id | Tên | Phần riêng của prompt |
+|---|---|---|
+| `eq_duocLiem_1` | Thiết Liêm | a crude heavy iron sickle, plain dark grey forged blade with visible hammer marks and light rust speckles, short bare hardwood handle bound with coarse hemp cord, utilitarian and worn, no ornament, no glow |
+| `eq_duocLiem_2` | Lợi Nhận Liêm | a well-honed steel sickle, blade edge ground paper-thin and mirror-bright along the cutting curve while the spine stays matte, clean polished wooden handle with a brass ferrule, a single faint cold highlight tracing the edge |
+| `eq_duocLiem_3` | Bách Thảo Liêm | a herbalist's working sickle, blade with small measuring notches filed along the spine, faint green plant-sap staining near the edge, handle wrapped in dark worn leather with a braided cord loop, a few tiny dried leaf fragments clinging to the blade |
+| `eq_duocLiem_4` | Huyền Thiết Liêm | a dark meteoric-iron sickle, near-black blade with a subtle blue-cold sheen and fine frost crystals forming along the edge, faint pale-blue cold vapour drifting off the metal, handle of dark wood with silver inlay |
+| `eq_duocLiem_5` | Lộ Ngưng Liêm | an elegant slender sickle, mirror-pale blade holding a row of dew droplets along its curve that refuse to fall, each droplet catching a tiny prismatic highlight, thin ribbon of pale mist curling from the blade, jade-green wrapped handle |
+| `eq_duocLiem_6` | Thần Nông Liêm | an ancient ceremonial sickle, warm bronze-gold blade engraved with archaic seal-script herb glyphs that glow softly amber from within the grooves, handle carved as a gnarled root with a small jade bead, faint golden herbal qi swirling around it |
+| `eq_duocLiem_7` | Thái Ất Kim Liêm | a divine golden sickle, radiant gold blade with a crescent that curves like a new moon, layered filigree of celestial patterns, a slow-turning ring of luminous green-gold spirit motes orbiting the blade, handle of white jade with gold caps, strong inner radiance and heroic presence |
+
+## Huy hiệu Lv100 — `images/ui/huyhieu/thaiDuoc.webp`
+
+Tên: **Bách Thảo Chân Nhân**. Bám đúng dàn huy hiệu 9 nghề sẵn có (xem `images/ui/huyhieu/`) rồi mới áp phần riêng:
+
+> an ornate circular achievement emblem/medallion on a FULLY TRANSPARENT background, centred, square 1:1: a golden crescent herb-sickle crossed behind a woven bamboo herb basket, framed by a wreath of nine overlapping medicinal leaves, a single luminous nine-lobed lingzhi mushroom crowning the top, antique gold and deep jade-green palette with soft inner radiance, ceremonial and prestigious, wuxia xianxia style, painterly semi-realistic, no text, no watermark
