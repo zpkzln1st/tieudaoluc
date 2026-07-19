@@ -13,5 +13,6 @@ export const BADGES = [
   { skillId: 'daTao',      name: 'Thần Binh Tượng',     icon: '🔨', desc: 'Rèn Đúc thông huyền — vạn lần tôi luyện thành thần binh.' },
   { skillId: 'toaQuan',    name: 'Thiền Tâm Đại Sư',    icon: '🧘', desc: 'Thiền Định nhập định viên mãn — tâm như chỉ thuỷ.' },
   { skillId: 'doanhTao',   name: 'Lỗ Ban Tái Thế',      icon: '🏗️', desc: 'Xây Dựng đạt tuyệt kĩ — lầu son gác tía dựng trong tay.' },
+  { skillId: 'thaiDuoc',   name: 'Bách Thảo Chân Nhân', icon: '🌿', desc: 'Hái Thuốc đến tận cùng — nhìn cỏ biết tính, chạm rễ biết niên.' },
 ];
 export const BADGE_LV = 100;   // mốc cấp kĩ năng để mở Huy Hiệu

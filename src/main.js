@@ -74,7 +74,7 @@ const TMB_SUFFIX = ['Cốc', 'Môn', 'Phái', 'Tông', 'Sơn Trang', 'Các', 'Đ
 const CYCLE_MS = COMBAT_CYCLE_MS; // 1 vòng giao chiến = 8s (nguồn chung votong.js); hết vòng mới hiện trọn chiến báo + kết quả
 const BOSS_TURN_MS = 3000;        // Yêu Vương: lộ 1 lượt (frame) mỗi 3 giây khi xem live
 // Chi phí Bạc học nghề theo BẬC (index = số nghề đã học). Leo thang mạnh (làm tròn).
-const PROF_COST = [50000, 120000, 280000, 650000, 1500000, 3500000, 8000000, 20000000, 50000000];
+const PROF_COST = [50000, 120000, 280000, 650000, 1500000, 3500000, 8000000, 20000000, 50000000, 120000000];
 const PROF_LV_STEP = 80; // mỗi 80 Tổng Lv mở thêm 1 nghề
 // Cổng Bảng Dev (F9): so HASH (FNV-1a) của mật khẩu — KHÔNG để plaintext trong source (repo deploy public).
 // Đổi mật khẩu: chạy devHash('matkhaumoi') rồi thay DEV_PASS_HASH. (Gate client-side chặn người chơi thường; F12 vẫn lách được — đã rõ, chống cheat thật cần server.)
@@ -143,6 +143,9 @@ for (const id of Object.keys(state.inventory)) {
 }
 if (!state.login) state.login = { lastDay: null, streak: 0 };
 if (!state.counters) state.counters = { produced: {}, kills: {} };
+// Save cũ nạp thẳng JSON (không deep-merge) -> thiếu key nghề mới thêm. Vá để totalLevel (quét SKILLS)
+// và engine/titles (quét state.skills) không đếm lệch nhau.
+Object.keys(SKILLS).forEach((id) => { if (!state.skills[id]) state.skills[id] = { xp: 0 }; });
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
 ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state);
@@ -1951,6 +1954,8 @@ const gameStore = {
     const e = (this.ITEMS[a.itemId] || {}).equip || {};
     if (this.forgeSlot === 'vuKhi') return e.slot === 'vuKhi';                                  // toàn bộ vũ khí
     if (['kiem', 'dao', 'cung', 'amkhi'].includes(this.forgeSlot)) return e.slot === 'vuKhi' && e.weaponType === this.forgeSlot; // tiểu loại
+    // "Công Cụ" gom CẢ 4 ô công cụ — trước đây chỉ khớp 'cuoc' nên Rìu/Cần Câu/Dược Liêm bị lọc mất.
+    if (this.forgeSlot === 'cuoc') return TOOL_SLOTS.some((t) => t.id === e.slot);
     return e.slot === this.forgeSlot;
   },
   get currentSkillActions() {
@@ -1980,7 +1985,8 @@ const gameStore = {
   zoneBosses(loc) { return this.locationEnemies(loc).filter((eid) => this.ENEMIES[eid] && this.ENEMIES[eid].isBoss); },
   zoneResources(zoneId) {
     const out = [];
-    ['phatMoc', 'thaiKhoang', 'dieuNgu'].forEach((sk) => {
+    // Quét ĐỘNG mọi nghề có action gắn zone — thêm nghề gather mới tự hiện ở tab Tài Nguyên của modal Địa Điểm.
+    Object.keys(this.SKILLS).filter((id) => (this.SKILLS[id].actions || []).some((a) => a.zone)).forEach((sk) => {
       const skill = this.SKILLS[sk]; if (!skill) return;
       (skill.actions || []).forEach((a) => { if (a.zone === zoneId) out.push({ id: a.id, name: a.name, itemId: a.itemId, reqLevel: a.reqLevel, skillName: skill.name }); });
     });

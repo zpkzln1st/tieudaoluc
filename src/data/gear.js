@@ -141,12 +141,12 @@ const WP_ICON = { kiem: '🗡️', dao: '🔪', cung: '🏹', amkhi: '🎯' };
 }));
 
 // ============================================================
-// CÔNG CỤ (tools) — Rìu/Cuốc/Cần Câu × 7 bậc. Tăng HIỆU SUẤT khai thác (gatherEff 5%→50% theo bậc).
-// Bậc 4-7 = Đồ Phổ (tự sinh dp_ ở items.js vì quality tuyetPham+). Equip vào TOOL_SLOTS (riu/cuoc/canCau).
+// CÔNG CỤ (tools) — Rìu/Cuốc/Cần Câu/Dược Liêm × 7 bậc. Tăng HIỆU SUẤT khai thác (gatherEff 5%→50% theo bậc).
+// Bậc 4-7 = Đồ Phổ (tự sinh dp_ ở items.js vì quality tuyetPham+). Equip vào TOOL_SLOTS (riu/cuoc/canCau/duocLiem).
 // ============================================================
 export const TOOL_EFF_BY_BAC = { 1: 0.05, 2: 0.10, 3: 0.20, 4: 0.25, 5: 0.35, 6: 0.40, 7: 0.50 };
-const TOOL_SLOT_SKILL = { riu: 'phatMoc', cuoc: 'thaiKhoang', canCau: 'dieuNgu' };
-const TOOL_ICON = { riu: '🪓', cuoc: '⛏️', canCau: '🎣' };
+const TOOL_SLOT_SKILL = { riu: 'phatMoc', cuoc: 'thaiKhoang', canCau: 'dieuNgu', duocLiem: 'thaiDuoc' };
+const TOOL_ICON = { riu: '🪓', cuoc: '⛏️', canCau: '🎣', duocLiem: '🌾' };
 // Nguồn lấy: bậc 1 = RÈN ĐÚC · bậc 2-3 = ĐỒ PHỔ rơi Bí Cảnh nhỏ (forceDoPho, dù phẩm chất thấp) · bậc 4-7 = Đồ Phổ (qua quality).
 function mkTool(id, name, slot, bac, desc) {
   const itemLv = BAC_LEVEL[bac];
@@ -179,6 +179,15 @@ function mkTool(id, name, slot, bac, desc) {
   mkTool('eq_canCau_5', 'Long Tu Can',       'canCau', 5, 'Dây câu bện từ râu giao long, kéo cả thủy quái lên mà chẳng đứt.'),
   mkTool('eq_canCau_6', 'Vân Mộng Điếu Can', 'canCau', 6, 'Buông câu nơi ao mây, câu được cả lý ngư nuốt mây Phù Không.'),
   mkTool('eq_canCau_7', 'Thôn Hải Thần Can', 'canCau', 7, 'Thần can thôn hải, một lần buông câu kinh động cả thủy cung long vương.'),
+
+  // ---- DƯỢC LIÊM (duocLiem → Hái Thuốc) ----
+  mkTool('eq_duocLiem_1', 'Thiết Liêm',        'duocLiem', 1, 'Liềm sắt thô nặng, lưỡi cong bám sát mặt đất, cắt cỏ thuốc gọn một nhát.'),
+  mkTool('eq_duocLiem_2', 'Lợi Nhận Liêm',     'duocLiem', 2, 'Lưỡi mài mỏng như lá lúa, cắt ngọt thân thảo mà chẳng dập nhựa.'),
+  mkTool('eq_duocLiem_3', 'Bách Thảo Liêm',    'duocLiem', 3, 'Liềm quen tay kẻ hái trăm loài cỏ, sống liềm khắc vạch đo đốt thân dược.'),
+  mkTool('eq_duocLiem_4', 'Huyền Thiết Liêm',  'duocLiem', 4, 'Rèn từ huyền thiết hàn khí, lưỡi lạnh giữ dược tính không tan theo nắng.'),
+  mkTool('eq_duocLiem_5', 'Lộ Ngưng Liêm',     'duocLiem', 5, 'Sương đọng trên lưỡi chẳng chịu rơi — cắt đúng khắc, dược lực còn nguyên.'),
+  mkTool('eq_duocLiem_6', 'Thần Nông Liêm',    'duocLiem', 6, 'Phỏng theo liềm Thần Nông nếm trăm cỏ, chạm vào là biết độc hay lành.'),
+  mkTool('eq_duocLiem_7', 'Thái Ất Kim Liêm',  'duocLiem', 7, 'Kim liềm Thái Ất, lưỡi cong ôm trọn linh khí — thần thảo vạn năm cũng ngoan ngoãn lìa gốc.'),
 ].forEach((it) => { GEAR[it.id] = it; });
 
 // ============================================================
@@ -232,8 +241,8 @@ export function thoiForLevel(itemLv) {
   for (const t of THOI_TIERS) { if ((itemLv || 1) >= t.minLv) thoi = t.thoi; else break; }
   return thoi;
 }
-const THOI_QTY_BY_SLOT = { vuKhi: 6, giap: 6, mu: 4, dai: 4, gang: 4, giay: 4, nhan: 3, trangSuc: 3, toaKy: 5, riu: 3, cuoc: 3, canCau: 2 };
-const LIEU_BY_SLOT = { giap: 'langBi', dai: 'langBi', giay: 'langBi', mu: 'langBi', gang: 'langBi', toaKy: 'langBi', vuKhi: 'tungMoc', nhan: 'tungMoc', trangSuc: 'tungMoc', riu: 'tungMoc', cuoc: 'tungMoc', canCau: 'tungMoc' };
+const THOI_QTY_BY_SLOT = { vuKhi: 6, giap: 6, mu: 4, dai: 4, gang: 4, giay: 4, nhan: 3, trangSuc: 3, toaKy: 5, riu: 3, cuoc: 3, canCau: 2, duocLiem: 2 };
+const LIEU_BY_SLOT = { giap: 'langBi', dai: 'langBi', giay: 'langBi', mu: 'langBi', gang: 'langBi', toaKy: 'langBi', vuKhi: 'tungMoc', nhan: 'tungMoc', trangSuc: 'tungMoc', riu: 'tungMoc', cuoc: 'tungMoc', canCau: 'tungMoc', duocLiem: 'tungMoc' };
 const QUALITY_FORGE_MUL = { phamPham: 1, luongPham: 1.2, tinhPham: 1.5, tuyetPham: 2, truyenThe: 2.6, thanPham: 3.4, coBan: 4.5 };
 
 // Tạo 1 công thức Rèn Đúc (action cho SKILLS.daTao) từ 1 item gear.

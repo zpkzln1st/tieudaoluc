@@ -81,6 +81,7 @@ export const TITLES = [
   t('khoangVuong', 'Khoáng Vương', 'tinhPham', 'nghe', { bacPct: 0.025 }, { kind: 'skillLv', id: 'thaiKhoang', v: 60 }, 'Đào Khoáng Lv60'),
   t('thoRen',    'Thần Thủ Thợ Rèn', 'tuyetPham', 'nghe', { atkPct: 0.015, dropPct: 0.01 }, { kind: 'skillLv', id: 'daTao', v: 60 }, 'Rèn Đúc Lv60'),
   t('luyenDanSu', 'Luyện Đan Thánh Thủ', 'tuyetPham', 'nghe', { hpPct: 0.02 }, { kind: 'skillLv', id: 'luyenDan', v: 60 }, 'Luyện Đan Lv60'),
+  t('duocNongNghe', 'Dược Nông Lão Luyện', 'luongPham', 'nghe', { bacPct: 0.02 }, { kind: 'skillLv', id: 'thaiDuoc', v: 50 }, 'Hái Thuốc Lv50'),
   t('baNghe',    'Bách Nghệ Tinh Thông', 'thanPham', 'nghe', { allPct: 0.015, bacPct: 0.03 }, { kind: 'totalLv', v: 450 }, 'Tổng Lv 450 (tinh thông bách nghệ)'),
 
   // ===== CẢNH GIỚI (gear loot-hunt) =====

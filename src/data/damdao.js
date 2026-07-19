@@ -11,6 +11,7 @@
 //   >>> THÊM NPC: thêm 1 key skillId với chapters tương tự. skillId nghề:
 //       phatMoc(Đốn Củi) thaiKhoang(Đào Khoáng) dieuNgu(Câu Cá) daLuyen(Luyện Kim)
 //       phanhNham(Nấu Ăn) luyenDan(Luyện Đan) daTao(Rèn Đúc) toaQuan(Thiền Định) doanhTao(Xây Dựng)
+//       thaiDuoc(Hái Thuốc)
 // ============================================================
 
 export const DAMDAO = {
@@ -469,6 +470,77 @@ export const DAMDAO = {
       },
     ],
   },
+
+  // ===== DƯỢC NÔNG LÃO THANH · Hái Thuốc (lão nông hái thuốc trên núi) =====
+  thaiDuoc: {
+    chapters: [
+      {
+        id: 'c1', req: 1, title: 'Thức Thảo',
+        start: 's',
+        nodes: {
+          s: { say: ['Đứng yên đã, cậu nhỏ. Nhấc bàn chân trái lên coi.', 'Dưới đế giày cậu — một gốc Đương Quy ba năm tuổi. Vừa nát.'],
+               choices: [ { t: 'Ta có thấy gì đâu.', to: 'a' }, { t: 'Cỏ dại thôi mà.', to: 'b' } ] },
+          a: { say: ['Không thấy. Ừ. Ai lên núi lần đầu cũng ngước lên cây cao, nhìn hoa đỏ.', 'Linh thảo chẳng đứng chỗ đó. Nó nằm dưới chân cậu, lẫn giữa cỏ tạp, im như nín thở.'],
+               choices: [ { t: 'Nó nấp kỹ vậy sao?', to: 'c' } ] },
+          b: { say: ['Cỏ dại với linh thảo mọc chung một bãi, cùng một sắc xanh. Trời không dán nhãn cho ai cả.', 'Kẻ phân được mặt chúng thì sống bằng núi. Kẻ không — gánh cả gánh về, đun lên chỉ được nồi nước lã.'],
+               choices: [ { t: 'Vậy phân bằng cái gì?', to: 'c' } ] },
+          c: { say: ['Nghề này chẳng bắt đầu ở tay. Bắt đầu ở MẮT.', 'Cúi xuống. Cúi cho tới khi lưng cậu quen cái gập, mắt cậu quen cái nhỏ.'],
+               choices: [ { t: 'Cúi bao lâu thì mắt mở?', to: 'e' } ] },
+          e: { say: ['Ba năm. Có kẻ mười năm. Có kẻ cả đời chỉ hái được cỏ.', 'Về đi cậu nhỏ. Giẫm nát vài trăm cây nữa, rồi mắt khắc nhận ra mặt chúng.', 'Núi còn đó. Lão Thanh còn leo được thì còn ngồi đây.'] },
+        },
+      },
+      {
+        id: 'c2', req: 20, title: 'Thu Thời',
+        start: 's',
+        nodes: {
+          s: { say: ['Cậu trở lại. Móng tay đen nhựa cỏ, gấu quần rách gai — được.', 'Mắt cậu nhận được mặt cỏ rồi. Giờ tới chữ khó: KHẮC.'],
+               choices: [ { t: 'Cây mọc đó quanh năm, hái lúc nào chẳng được.', to: 'a' }, { t: 'Xin lão chỉ cái khắc ấy.', to: 'b' } ] },
+          a: { say: ['Quanh năm à. Rễ Đương Quy phải đợi sương giáng, lá rũ sạch, nhựa dồn hết xuống dưới — bấy giờ mới nặng thuốc.', 'Hái sớm bảy ngày: cũng cái rễ ấy, cũng mùi ấy, mắt thường chẳng phân ra. Đun lên thì nhạt như củi mục.'],
+               choices: [ { t: 'Chênh có bảy ngày mà đổi cả gốc rễ?', to: 'c' } ] },
+          b: { say: ['Hoa hái lúc hàm tiếu, chớ đợi bung. Bung rồi thì linh khí theo hương mà đi.', 'Tuyết Liên trên vách, đợi sương tan giờ Mão. Mặt trời lên cao một sải — cây vẫn nguyên đó, thuốc thì đã rời rồi.'],
+               choices: [ { t: 'Cây còn nguyên mà thuốc thì mất?', to: 'c' } ] },
+          c: { say: ['Thảo mộc hữu linh, thu thái hữu thời. Sai một khắc — linh dược hoá cỏ dại.', 'Đó là câu lão Thanh trả bằng sáu mươi năm leo núi. Cậu nghe không mất gì.'],
+               choices: [ { t: 'Sao trời lại khắt khe vậy?', to: 'e' } ] },
+          e: { say: ['Trời chẳng khắt khe. Trời chỉ không đợi.', 'Cây không hẹn lại với một ai. Tới đúng khắc thì được thuốc, tới trễ thì được cỏ — nó chẳng giận, cũng chẳng thương.', 'Nhớ lấy: kẻ hái thuốc giỏi, phần lớn đời là NGỒI. Ngồi đợi cây tới khắc của nó. Về tập đợi đi cậu nhỏ.'] },
+        },
+      },
+      {
+        id: 'c3', req: 50, title: 'Nhất Khắc',
+        start: 's',
+        nodes: {
+          s: { say: ['Ngồi xuống. Chuyện này lão Thanh kể một lần thôi.', 'Bốn mươi năm trước, vợ lão nằm trong nhà, hơi thở còn mỏng hơn sợi khói bếp.'],
+               choices: [ { t: 'Lão không có thuốc cứu sao?', to: 'a' }, { t: 'Rồi lão làm gì?', to: 'b' } ] },
+          a: { say: ['Có. Trên vách Đoạn Hồn có một gốc Tuyết Liên chín cánh. Đủ kéo nàng lại.', 'Chỉ phải cái — nó chưa tới khắc. Còn ba ngày nữa mới tan sương.'],
+               choices: [ { t: 'Ba ngày… người ta đợi được sao?', to: 'c' } ] },
+          b: { say: ['Lão trèo lên vách. Ngồi cạnh gốc Tuyết Liên ấy ba ngày ba đêm.', 'Dưới kia nhà lão có người đang cạn hơi. Trên này lão ngồi đợi một bông hoa nở.'],
+               choices: [ { t: 'Lão ngồi được thật sao?', to: 'c' } ] },
+          c: { say: ['Sáng thứ ba, giờ Mão, sương tan. Lão hái.', 'Chín cánh, không sứt một sợi. Cây thuốc toàn vẹn nhất đời lão.', 'Lão chạy về. Cửa mở sẵn. Người đã lạnh từ đêm trước.'],
+               choices: [ { t: 'Sao lão không hái sớm một ngày?', to: 'd' }, { t: 'Vậy lão hối chứ?', to: 'f' } ] },
+          d: { say: ['Hái sớm thì được cỏ dại. Đem cỏ dại về, nàng cũng chết — mà chết thêm vì tay lão ẩu.', 'Lão làm đúng. Đúng từng khắc. Đúng tới mức chẳng còn ai để mà cứu.'],
+               choices: [ { t: '…', to: 'x' } ] },
+          f: { say: ['Hối? Bốn mươi năm rồi lão chưa gọi nổi tên cái nằm trong ngực này.', 'Chỉ biết một điều: trời đất có khắc của trời đất, người có khắc của người.', 'Hai cái khắc ấy chẳng bao giờ hẹn nhau.'],
+               choices: [ { t: '…', to: 'x' } ] },
+          x: { say: ['Thôi. Ngẩng lên. Vách đá kia — cậu thấy gốc Thạch Hộc chưa tới khắc chứ?', 'Dưới chân núi có kẻ đang chờ nó. Chờ không nổi ba ngày đâu.', 'Tay cậu, khắc của cậu. Lão Thanh không chọn hộ.'],
+               choices: [ { t: 'Ta hái ngay. Người không đợi được.', to: 'g' }, { t: 'Ta ngồi lại. Đợi tới khắc.', to: 'h' } ] },
+          g: { say: ['Hái. Ừ. Cậu chọn con người, bỏ cái khắc. Lão chẳng trách một câu.', 'Chỉ dặn: đừng tự dối rằng thứ trong tay cậu là linh dược. Nó là tấm lòng.', 'Tấm lòng thì ấm — mà ấm không chữa được bệnh, cậu nhỏ ạ.'] },
+          h: { say: ['Đợi. Cậu chọn giống lão năm ấy.', 'Vậy thì gánh luôn cái lão gánh bốn mươi năm nay. Nặng lắm.', 'Nhưng cây thuốc cậu hái sẽ THẬT. Cả đời này, lão chỉ giữ được mỗi chữ đó.'] },
+        },
+      },
+      {
+        id: 'c4', req: 100, title: 'Truyền Lam',
+        start: 's',
+        nodes: {
+          s: { say: ['Cậu tới. Bước chân đã biết chậm — lão nghe ra từ đầu dốc.', 'Hôm nay lão Thanh không dạy nữa. Lão TRAO.'],
+               choices: [ { t: 'Lão trao ta cái giỏ rách này?', to: 'a' }, { t: 'Ta còn chưa dám nhận.', to: 'b' } ] },
+          a: { say: ['Rách. Quai sờn ba bận, lão vá ba bận. Nó tên Lão Lam, theo lão sáu mươi năm núi.', 'Nan thưa, hạt rơi dọc đường — mấy sườn cỏ cậu hái bấy nay là nó gieo, chẳng phải lão.'],
+               choices: [ { t: 'Ta nhận.', to: 'e' } ] },
+          b: { say: ['Dám hay không, cái giỏ chẳng hỏi tới. Nó chỉ hỏi cậu có ngồi đợi được không.', 'Cậu ngồi được rồi. Lão nhìn mắt là biết — mắt đã bớt vội.'],
+               choices: [ { t: '…Ta nhận.', to: 'e' } ] },
+          e: { say: ['Cầm lấy. Từ nay núi này là của cậu, cây trên núi cũng là của cậu.', 'Cái hay của Lão Lam chẳng phải đựng được bao nhiêu. Là có ngày cậu xuống núi, giỏ rỗng không, mà lòng vẫn yên.', 'Về tay không thì được. Về với gánh cỏ dại mà gọi là linh dược — thì đừng.', 'Đi đi cậu nhỏ. Cây trên núi chẳng gọi ai. Ai tới đúng khắc, nó tự chờ sẵn ở đó.'] },
+        },
+      },
+    ],
+  },
 };
 
 // ============================================================
@@ -487,4 +559,5 @@ export const TIN_VAT = {
   toaQuan:    { name: 'Bồ Đoàn Trống',  vat: 'Chỗ ngồi trống lão để lại — cái không cũng là trao.', glyph: '空' },
   doanhTao:   { name: 'Tổ Xích',        vat: 'Cây thước tổ nghề, mòn nhẵn cả hai đầu.',          glyph: '尺' },
   daLuyen:    { name: 'Cố Lô',          vat: 'Lò rèn ba trăm năm của Âu Dã Tử.',                 glyph: '冶' },
+  thaiDuoc:   { name: 'Lão Lam',        vat: 'Giỏ trúc sờn quai, sáu mươi năm theo lão lên núi.', glyph: '簍' },
 };

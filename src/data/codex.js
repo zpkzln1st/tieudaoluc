@@ -12,8 +12,8 @@ import { DUNGEONS } from './dungeon.js';
 import { DANH_SI } from './danhsi.js';
 
 // Loại vật phẩm thuộc Vật Phẩm Phổ (loại trừ trang bị / trứng / đồ phổ).
-const VATPHAM_TYPES = ['go', 'khoang', 'dinh', 'ca', 'monan', 'vatlieu', 'dan', 'khac', 'moi'];
-const SLOT_NAME = { mu: 'Mũ', giap: 'Áo', dai: 'Đai', gang: 'Găng', giay: 'Giày', vuKhi: 'Vũ Khí', nhan: 'Nhẫn', trangSuc: 'Trang Sức', toaKy: 'Tọa Kỵ', riu: 'Rìu', cuoc: 'Cuốc', canCau: 'Cần Câu' };
+const VATPHAM_TYPES = ['go', 'khoang', 'dinh', 'ca', 'monan', 'vatlieu', 'dan', 'khac', 'moi', 'thaoDuoc'];
+const SLOT_NAME = { mu: 'Mũ', giap: 'Áo', dai: 'Đai', gang: 'Găng', giay: 'Giày', vuKhi: 'Vũ Khí', nhan: 'Nhẫn', trangSuc: 'Trang Sức', toaKy: 'Tọa Kỵ', riu: 'Rìu', cuoc: 'Cuốc', canCau: 'Cần Câu', duocLiem: 'Dược Liêm' };
 const HE_NAME = { kim: 'Hệ Kim', moc: 'Hệ Mộc', thuy: 'Hệ Thủy', hoa: 'Hệ Hỏa', tho: 'Hệ Thổ' };
 // Gom Yêu Thú theo tầng cấp (affinity quá vụn — mỗi loài 1 nhóm).
 function enemyTier(lv) { lv = lv || 1; if (lv <= 20) return 'Sơ Cấp · Lv 1–20'; if (lv <= 50) return 'Trung Cấp · Lv 21–50'; if (lv <= 80) return 'Cao Cấp · Lv 51–80'; return 'Đỉnh Cấp · Lv 81+'; }

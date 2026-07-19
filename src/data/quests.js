@@ -33,6 +33,7 @@ const kq = (id, nm, target, req, count, period) => ({ id, name: `Hạ ${count} $
 
 // ===== Bể nhiệm vụ NGÀY (20 mục, bốc 7) — đủ hệ nghề + nhiều bậc; khó dần theo cấp =====
 export const DAILY_QUESTS = [
+  pq('dq_thanhNgaiThao',  'Hái', 'Thanh Ngải Thảo',   'thanhNgaiThao',   'thaiDuoc',   1,  60, 'daily'),
   pq('dq_tungMoc',        'Đốn', 'Tùng Mộc',          'tungMoc',         'phatMoc',    1,  60, 'daily'),
   pq('dq_trucMoc',        'Đốn', 'Trúc Mộc',          'trucMoc',         'phatMoc',    8,  55, 'daily'),
   pq('dq_phongMoc',       'Đốn', 'Phong Mộc',         'phongMoc',        'phatMoc',    32, 40, 'daily'),
@@ -57,6 +58,7 @@ export const DAILY_QUESTS = [
 
 // ===== Bể nhiệm vụ TUẦN (16 mục, bốc 7) — ~6× ngày, lên tới bậc cao =====
 export const WEEKLY_QUESTS = [
+  pq('wq_tuyetLienHoa',   'Hái', 'Tuyết Liên Hoa',    'tuyetLienHoa',   'thaiDuoc',   48, 170, 'weekly'),
   pq('wq_tungMoc',        'Đốn', 'Tùng Mộc',          'tungMoc',        'phatMoc',    1,  350, 'weekly'),
   pq('wq_phongMoc',       'Đốn', 'Phong Mộc',         'phongMoc',       'phatMoc',    32, 240, 'weekly'),
   pq('wq_phuVanMoc',      'Đốn', 'Phù Vân Mộc',       'phuVanMoc',      'phatMoc',    70, 150, 'weekly'),
@@ -77,6 +79,7 @@ export const WEEKLY_QUESTS = [
 
 // ===== Bể nhiệm vụ THÁNG (14 mục, bốc 7) — lớn nhất, kèm Nguyên Bảo ở bậc cao =====
 export const MONTHLY_QUESTS = [
+  pq('mq_cuuDiepLinhChi', 'Hái', 'Cửu Diệp Linh Chi', 'cuuDiepLinhChi', 'thaiDuoc',   100, 400, 'monthly'),
   pq('mq_tungMoc',        'Đốn', 'Tùng Mộc',          'tungMoc',        'phatMoc',    1,   1200, 'monthly'),
   pq('mq_hanTung',        'Đốn', 'Hàn Tùng',          'hanTung',        'phatMoc',    48,  700,  'monthly'),
   pq('mq_thanDanMoc',     'Đốn', 'Thần Đàn Mộc',      'thanDanMoc',     'phatMoc',    100, 400,  'monthly'),

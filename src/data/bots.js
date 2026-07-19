@@ -14,22 +14,22 @@ export const RATE_JITTER = [0.55, 1.5];       // nhân thêm vào rate mỗi bot
 // Track key TRÙNG state.skills + 'chienDau'.
 export const ARCHETYPES = {
   satThu:   { id: 'satThu',   name: 'Sát Thủ',   titles: ['Kiếm Khách', 'Độc Hành Khách', 'Lãnh Diện Tu La', 'Vô Danh Kiếm'],
-    w: { chienDau: 60, phatMoc: 4, thaiKhoang: 4, dieuNgu: 3, daLuyen: 5, phanhNham: 4, luyenDan: 8, daTao: 5, toaQuan: 5, doanhTao: 2 } },
+    w: { chienDau: 60, phatMoc: 4, thaiKhoang: 4, dieuNgu: 3, daLuyen: 5, phanhNham: 4, luyenDan: 8, daTao: 5, toaQuan: 5, doanhTao: 2, thaiDuoc: 3 } },
   sanBoss:  { id: 'sanBoss',  name: 'Săn Yêu',   titles: ['Đồ Tể Yêu Vương', 'Liệp Ma Nhân', 'Trảm Yêu Sứ', 'Phục Ma Giả'],
-    w: { chienDau: 68, phatMoc: 3, thaiKhoang: 3, dieuNgu: 2, daLuyen: 4, phanhNham: 5, luyenDan: 7, daTao: 3, toaQuan: 3, doanhTao: 2 } },
+    w: { chienDau: 68, phatMoc: 3, thaiKhoang: 3, dieuNgu: 2, daLuyen: 4, phanhNham: 5, luyenDan: 7, daTao: 3, toaQuan: 3, doanhTao: 2, thaiDuoc: 2 } },
   cayNghe:  { id: 'cayNghe',  name: 'Bách Nghệ', titles: ['Bách Nghệ Tượng', 'Lão Tiều', 'Khoáng Sư', 'Thần Trù'],
-    w: { chienDau: 18, phatMoc: 16, thaiKhoang: 16, dieuNgu: 12, daLuyen: 12, phanhNham: 8, luyenDan: 6, daTao: 8, toaQuan: 2, doanhTao: 8 } },
+    w: { chienDau: 18, phatMoc: 16, thaiKhoang: 16, dieuNgu: 12, daLuyen: 12, phanhNham: 8, luyenDan: 6, daTao: 8, toaQuan: 2, doanhTao: 8, thaiDuoc: 12 } },
   phuThuong:{ id: 'phuThuong', name: 'Phú Thương', titles: ['Phú Thương', 'Tài Thần', 'Khách Thương', 'Đào Chu Công'],
-    w: { chienDau: 25, phatMoc: 10, thaiKhoang: 12, dieuNgu: 6, daLuyen: 14, phanhNham: 8, luyenDan: 8, daTao: 13, toaQuan: 2, doanhTao: 10 } },
+    w: { chienDau: 25, phatMoc: 10, thaiKhoang: 12, dieuNgu: 6, daLuyen: 14, phanhNham: 8, luyenDan: 8, daTao: 13, toaQuan: 2, doanhTao: 10, thaiDuoc: 6 } },
   loMo:     { id: 'loMo',     name: 'Tản Nhân',  titles: ['Tản Nhân', 'Du Hiệp', 'Nhàn Vân Dã Hạc', 'Quá Khách'],
-    w: { chienDau: 32, phatMoc: 10, thaiKhoang: 10, dieuNgu: 8, daLuyen: 8, phanhNham: 8, luyenDan: 6, daTao: 8, toaQuan: 4, doanhTao: 8 } },
+    w: { chienDau: 32, phatMoc: 10, thaiKhoang: 10, dieuNgu: 8, daLuyen: 8, phanhNham: 8, luyenDan: 6, daTao: 8, toaQuan: 4, doanhTao: 8, thaiDuoc: 8 } },
 };
 export const ARCHETYPE_IDS = Object.keys(ARCHETYPES);
 // Tỉ lệ xuất hiện (đám đông): nhiều tản nhân/cày nghề, ít sát thủ/săn boss đỉnh.
 export const ARCHETYPE_WEIGHTS = { loMo: 34, cayNghe: 26, satThu: 18, phuThuong: 14, sanBoss: 8 };
 
-// Track combat dùng cho cờ "đang đánh"; còn lại là 9 nghề.
-export const TRACK_KEYS = ['chienDau', 'phatMoc', 'thaiKhoang', 'dieuNgu', 'daLuyen', 'phanhNham', 'luyenDan', 'daTao', 'toaQuan', 'doanhTao'];
+// Track combat dùng cho cờ "đang đánh"; còn lại là 10 nghề.
+export const TRACK_KEYS = ['chienDau', 'phatMoc', 'thaiKhoang', 'dieuNgu', 'daLuyen', 'phanhNham', 'luyenDan', 'daTao', 'toaQuan', 'doanhTao', 'thaiDuoc'];
 
 // Pool tên Hán-Việt: HỌ × TÊN -> đủ tổ hợp cho ~200 bot không trùng.
 export const BOT_HO = [
@@ -50,11 +50,12 @@ export const TRACK_TITLES = {
   daTao:      ['Học Đồ Rèn', 'Thợ Rèn',    'Đại Tượng',    'Thần Binh Tượng'],
   toaQuan:    ['Tọa Đồ',     'Tu Sĩ',      'Thiền Giả',    'Cao Tăng'],
   doanhTao:   ['Phu Lực',    'Thợ Cả',     'Doanh Tạo Sư', 'Lỗ Ban Tái Thế'],
+  thaiDuoc:   ['Thái Dược Đồng', 'Dược Nông', 'Thái Dược Sư', 'Bách Thảo Tiên'],
 };
 // Phân loại track -> màu danh hiệu (combat/gather/craft/support).
 export const TRACK_CAT = {
   chienDau: 'combat',
-  phatMoc: 'gather', thaiKhoang: 'gather', dieuNgu: 'gather',
+  phatMoc: 'gather', thaiKhoang: 'gather', dieuNgu: 'gather', thaiDuoc: 'gather',
   daLuyen: 'craft', phanhNham: 'craft', daTao: 'craft', doanhTao: 'craft',
   luyenDan: 'support', toaQuan: 'support',
 };

@@ -16,11 +16,12 @@ export const EQUIP_SLOTS = [
   { id: 'toaKy',    name: 'Tọa Kỵ',   icon: '🐎' },   // Ngựa
 ];
 
-// Công cụ thu thập (3 slot)
+// Công cụ thu thập (4 slot)
 export const TOOL_SLOTS = [
-  { id: 'canCau', name: 'Cần Câu', icon: '🎣' },
-  { id: 'cuoc',   name: 'Cuốc',    icon: '⛏️' },
-  { id: 'riu',    name: 'Rìu',     icon: '🪓' },
+  { id: 'canCau',   name: 'Cần Câu',   icon: '🎣' },
+  { id: 'cuoc',     name: 'Cuốc',      icon: '⛏️' },
+  { id: 'riu',      name: 'Rìu',       icon: '🪓' },
+  { id: 'duocLiem', name: 'Dược Liêm', icon: '🌾' },
 ];
 
 // Slot trang bị cũ đã bỏ — dùng để migrate save (trả món đang mặc về túi).

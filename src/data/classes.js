@@ -57,6 +57,7 @@ export const NGHE = [
   { id: 'thietTuong', name: 'Thiết Tượng',  skill: 'daTao',      icon: '🔨', exp: 10, eff: 10, cost: 150, desc: 'Rèn binh khí, đúc giáp trụ — lửa đượm thép reo.' },
   { id: 'thienSu',    name: 'Thiền Sư',     skill: 'toaQuan',    icon: '🧘', exp: 10, eff: 10, cost: 120, desc: 'Tĩnh tâm ngộ đạo, vun bồi nội tâm tịch lặng.' },
   { id: 'doanhTaoSu', name: 'Doanh Tạo Sư', skill: 'doanhTao',   icon: '🏗️', exp: 10, eff: 10, cost: 150, desc: 'Bậc thầy kiến tạo, dựng động phủ vững bền.' },
+  { id: 'duocNong',   name: 'Dược Nông',    skill: 'thaiDuoc',   icon: '🌿', exp: 10, eff: 10, cost: 100, desc: 'Một giỏ trúc lội khắp sơn dã, cỏ nào là thuốc cỏ nào là độc — nhìn là biết.' },
 ];
 export function ngheBySkill(skillId) { return NGHE.find((n) => n.skill === skillId) || null; }
 

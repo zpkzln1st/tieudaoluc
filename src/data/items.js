@@ -38,6 +38,7 @@ export const ITEM_TYPES = {
   trung:   'Trứng Linh Thú',
   doPho:   'Đồ Phổ',
   moi:     'Mồi Câu',
+  thaoDuoc:'Linh Thảo',
 };
 
 export const ITEMS = {
@@ -54,6 +55,18 @@ export const ITEMS = {
   thanDanMoc: { id: 'thanDanMoc', name: 'Thần Đàn Mộc',   icon: '🟫', type: 'go', quality: 'coBan',    value: 200, desc: 'Đàn mộc thiêng trong Thiên Thành, tương truyền do thần mộc hoá thân, ngàn năm chẳng mục. Vân gỗ óng ánh kim quang, hương bay xa trăm dặm — chí bảo của bậc đại tượng.' },
 
   // --- Khoáng sản ---
+  // --- LINH THẢO (nghề Hái Thuốc) — nguyên liệu Luyện Đan; cũng phục dụng cho linh thú. 10 bậc gắn 10 vùng.
+  thanhNgaiThao:  { id: 'thanhNgaiThao',  name: 'Thanh Ngải Thảo',   icon: '🌿', type: 'thaoDuoc', quality: 'phamPham',  value: 2,   desc: 'Ngải xanh mọc dại ven bờ Lam Linh, vò nát trong tay đã dậy mùi hăng ấm.' },
+  tuDangHoa:      { id: 'tuDangHoa',      name: 'Tử Đằng Hoa',       icon: '💜', type: 'thaoDuoc', quality: 'luongPham', value: 4,   desc: 'Chùm hoa đằng tím rủ từ tán U Lâm, sắc tím thẫm lại khi chiều buông.' },
+  duongQuyCan:    { id: 'duongQuyCan',    name: 'Đương Quy Căn',     icon: '🫚', type: 'thaoDuoc', quality: 'luongPham', value: 6,   desc: 'Rễ đương quy phơi khắp chợ thuốc Huyền Đô, cắt ra ứa nhựa thơm nồng.' },
+  thachHocLan:    { id: 'thachHocLan',    name: 'Thạch Hộc Lan',     icon: '🪨', type: 'thaoDuoc', quality: 'tinhPham',  value: 11,  desc: 'Lan thạch hộc bám vách nhũ Thủy Tinh Động, thân mọng ngậm nước đá ngàn năm.' },
+  tuyetLienHoa:   { id: 'tuyetLienHoa',   name: 'Tuyết Liên Hoa',    icon: '🪷', type: 'thaoDuoc', quality: 'tuyetPham', value: 15,  desc: 'Sen trắng nở giữa tuyết Lăng Tiêu, càng rét cánh càng dày.' },
+  ngocTuyenSam:   { id: 'ngocTuyenSam',   name: 'Ngọc Tuyền Sâm',    icon: '🥕', type: 'thaoDuoc', quality: 'tuyetPham', value: 21,  desc: 'Sâm mọc quanh mạch ngọc tuyền Mê Ảo, củ trắng trong như tạc bằng ngọc.' },
+  vanLoChi:       { id: 'vanLoChi',       name: 'Vân Lộ Chi',        icon: '🍄', type: 'thaoDuoc', quality: 'truyenThe', value: 35,  desc: 'Linh chi hứng sương tầng mây Phù Không, tán nấm mềm mà nhẹ tựa khói.' },
+  thatTinhThao:   { id: 'thatTinhThao',   name: 'Thất Tinh Thảo',    icon: '✨', type: 'thaoDuoc', quality: 'truyenThe', value: 56,  desc: 'Cỏ bảy đốt dưới Quan Tinh Đài, mỗi đốt ánh một điểm sáng như sao rơi.' },
+  tramVuLan:      { id: 'tramVuLan',      name: 'Trầm Vụ Lan',       icon: '🌸', type: 'thaoDuoc', quality: 'thanPham',  value: 90,  desc: 'Lan ẩn trong sương mù Tịch Ngữ, trăm năm nở một lần, hương chìm mà chẳng bay.' },
+  cuuDiepLinhChi: { id: 'cuuDiepLinhChi', name: 'Cửu Diệp Linh Chi', icon: '🍀', type: 'thaoDuoc', quality: 'coBan',     value: 140, desc: 'Linh chi chín lá trong Thiên Thành, thân toả kim quang — người đời chỉ nghe tên, chưa từng thấy mặt.' },
+
   hacThan:    { id: 'hacThan',    name: 'Hắc Thán',    icon: '🪨', type: 'khoang', quality: 'phamPham',  value: 3,  desc: 'Than đá đen giòn, nhiên liệu chính nhóm lò luyện kim.' },
   tichKhoang: { id: 'tichKhoang', name: 'Tích Khoáng', icon: '⛰️', type: 'khoang', quality: 'phamPham',  value: 3,  desc: 'Quặng thiếc thô, luyện ra thỏi thiếc mềm dễ đúc.' },
   dongKhoang: { id: 'dongKhoang', name: 'Đồng Khoáng', icon: '🟤', type: 'khoang', quality: 'luongPham', value: 6,  desc: 'Quặng đồng ánh đỏ, luyện thành đồng dẻo bền.' },

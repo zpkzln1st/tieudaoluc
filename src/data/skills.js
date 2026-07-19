@@ -1,5 +1,5 @@
 // ============================================================
-// DATA — 9 kỹ năng. Naming HYBRID: việc đời thường = tiếng Việt tự nhiên,
+// DATA — 10 kỹ năng. Naming HYBRID: việc đời thường = tiếng Việt tự nhiên,
 // thứ huyền ảo/võ học = Hán-Việt (Luyện Đan, Linh Thạch, Hồi Khí Đan...).
 // ============================================================
 import { ITEMS } from './items.js';
@@ -60,6 +60,26 @@ export const SKILLS = {
 
   },
 
+  thaiDuoc: {
+    // Nghề gather thứ 10 — nguồn linh thảo cho Luyện Đan. CHỈ MỘT TRỤ (hoThe): thêm stat2 sẽ cho gấp đôi
+    // Tứ Trụ EXP so với Câu Cá ở cùng thời gian vòng (stat2 nhận ĐỦ statXp, không chia đôi) -> đè chết nghề đó.
+    // KHÔNG có inputs — Câu Cá là nghề gather duy nhất tốn nguyên liệu, đừng nhân đôi gánh nặng.
+    id: 'thaiDuoc', name: 'Hái Thuốc', gloss: 'Thái Dược', icon: '🌿', stat: 'hoThe',
+    npc: { name: 'Dược Nông Lão Thanh', quote: 'Thảo mộc hữu linh, thu thái hữu thời. Sai một khắc — linh dược hoá cỏ dại.' },
+    actions: [
+      { id: 'thanhNgaiThao',  name: 'Thanh Ngải Thảo',   gloss: 'Green Mugwort',    itemId: 'thanhNgaiThao',  zone: 'lamLinhCoc',    reqLevel: 1,   xp: 4,   time: 11.4, statXp: 1 },
+      { id: 'tuDangHoa',      name: 'Tử Đằng Hoa',       gloss: 'Purple Wisteria',  itemId: 'tuDangHoa',      zone: 'uLam',          reqLevel: 8,   xp: 6,   time: 13.5, statXp: 2 },
+      { id: 'duongQuyCan',    name: 'Đương Quy Căn',     gloss: 'Angelica Root',    itemId: 'duongQuyCan',    zone: 'huyenDo',       reqLevel: 18,  xp: 11,  time: 18.0, statXp: 3 },
+      { id: 'thachHocLan',    name: 'Thạch Hộc Lan',     gloss: 'Stone Orchid',     itemId: 'thachHocLan',    zone: 'thuyTinhDong',  reqLevel: 32,  xp: 20,  time: 25.0, statXp: 4 },
+      { id: 'tuyetLienHoa',   name: 'Tuyết Liên Hoa',    gloss: 'Snow Lotus',       itemId: 'tuyetLienHoa',   zone: 'langTieuPhong', reqLevel: 48,  xp: 32,  time: 31.0, statXp: 5 },
+      { id: 'ngocTuyenSam',   name: 'Ngọc Tuyền Sâm',    gloss: 'Jade Spring Ginseng', itemId: 'ngocTuyenSam', zone: 'meAoLucChau', reqLevel: 60,  xp: 46,  time: 39.0, statXp: 6 },
+      { id: 'vanLoChi',       name: 'Vân Lộ Chi',        gloss: 'Cloud Dew Fungus', itemId: 'vanLoChi',       zone: 'phuKhongVien',  reqLevel: 70,  xp: 63,  time: 47.0, statXp: 7 },
+      { id: 'thatTinhThao',   name: 'Thất Tinh Thảo',    gloss: 'Seven Star Herb',  itemId: 'thatTinhThao',   zone: 'quanTinhDai',   reqLevel: 78,  xp: 86,  time: 55.0, statXp: 8 },
+      { id: 'tramVuLan',      name: 'Trầm Vụ Lan',       gloss: 'Mistdeep Orchid',  itemId: 'tramVuLan',      zone: 'tichNguDao',    reqLevel: 92,  xp: 125, time: 65.0, statXp: 9 },
+      { id: 'cuuDiepLinhChi', name: 'Cửu Diệp Linh Chi', gloss: 'Nine-Leaf Lingzhi',itemId: 'cuuDiepLinhChi', zone: 'thienThanh',    reqLevel: 100, xp: 170, time: 76.0, statXp: 10 },
+    ],
+  },
+
   // ---------------- REFINE / CRAFT ----------------
   daLuyen: {
     id: 'daLuyen', name: 'Luyện Kim', gloss: 'Luyện Quặng', icon: '🔥', stat: 'thanPhap',
@@ -101,7 +121,8 @@ export const SKILLS = {
     id: 'luyenDan', name: 'Luyện Đan', gloss: 'Luyện Dược', icon: '⚗️', stat: 'thanPhap',
     npc: { name: 'Lý Dược Vương', quote: 'Linh dược cứu nhân, độc thảo sát mệnh. Giữa hai thứ ấy, chỉ cách nhau một niệm.' },
     actions: [
-      { id: 'hoiKhiDan',        name: 'Hồi Khí Đan',         gloss: 'Battle Potion',   itemId: 'hoiKhiDan',        reqLevel: 1, xp: 10, time: 30.0, statXp: 1, inputs: [{ itemId: 'tungMoc', qty: 2 }, { itemId: 'caTuyet', qty: 1 }] },
+      // Liệu đổi sang linh thảo (nghề Hái Thuốc) — trước đây nấu đan bằng gỗ + cá, khiên cưỡng.
+      { id: 'hoiKhiDan',        name: 'Hồi Khí Đan',         gloss: 'Battle Potion',   itemId: 'hoiKhiDan',        reqLevel: 1, xp: 10, time: 30.0, statXp: 1, inputs: [{ itemId: 'thanhNgaiThao', qty: 2 }] },
       { id: 'tieuPhuLinhThach',   name: 'Linh Thạch Tiều Phu',  gloss: 'Essence Crystal', itemId: 'tieuPhuLinhThach',   reqLevel: 2, xp: 20, time: 40.0, statXp: 2, inputs: [{ itemId: 'tungMoc', qty: 3 }, { itemId: 'thachKhoi', qty: 2 }] },
       { id: 'khoangPhuLinhThach', name: 'Linh Thạch Khoáng Phu', gloss: 'Essence Crystal', itemId: 'khoangPhuLinhThach', reqLevel: 3, xp: 22, time: 42.0, statXp: 2, inputs: [{ itemId: 'hacThan', qty: 3 }, { itemId: 'tichKhoang', qty: 2 }] },
     ],

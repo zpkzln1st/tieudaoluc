@@ -65,7 +65,7 @@ function applyLinhThach(state, act, skillId) {
 }
 
 // ---- Công cụ: bonus hiệu suất khai thác từ tool đang đeo (riu/cuoc/canCau) cho kĩ năng khớp ----
-const TOOL_FOR_SKILL = { phatMoc: 'riu', thaiKhoang: 'cuoc', dieuNgu: 'canCau' };
+const TOOL_FOR_SKILL = { phatMoc: 'riu', thaiKhoang: 'cuoc', dieuNgu: 'canCau', thaiDuoc: 'duocLiem' };
 export function toolEffBonus(state, skillId) {
   const slot = TOOL_FOR_SKILL[skillId]; if (!slot) return 0;
   const inst = state.equipment && state.equipment[slot];

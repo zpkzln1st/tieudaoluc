@@ -31,9 +31,9 @@ export const DUNGEONS = [
     durMs: 90 * MIN, pace: 1, cost: { bac: 120 },
     loot: {
       bac: [80, 160], exp: 60, honThach: [2, 5],
-      lieu: ['tungMoc', 'trucMoc', 'langBi', 'caTuyet'],
+      lieu: ['tungMoc', 'trucMoc', 'langBi', 'caTuyet', 'thanhNgaiThao'],
       da: ['daCuongHoaSo'],
-      doPho: { bac: [2], slots: ['riu', 'cuoc', 'canCau'] }, doPhoChance: 0.12, // Đồ Phổ công cụ bậc 2
+      doPho: { bac: [2], slots: ['riu', 'cuoc', 'canCau', 'duocLiem'] }, doPhoChance: 0.12, // Đồ Phổ công cụ bậc 2
       rare: [],
     },
   },
@@ -47,9 +47,9 @@ export const DUNGEONS = [
     durMs: 100 * MIN, pace: 0.8333, cost: { bac: 400 },
     loot: {
       bac: [200, 360], exp: 150, honThach: [4, 8],
-      lieu: ['bachDuongMoc', 'dongKhoang', 'langBi', 'truNha', 'hoVi'],
+      lieu: ['bachDuongMoc', 'dongKhoang', 'langBi', 'truNha', 'hoVi', 'tuDangHoa'],
       da: ['daCuongHoaSo', 'daCuongHoaTrung'],
-      doPho: { bac: [3], slots: ['riu', 'cuoc', 'canCau'] }, doPhoChance: 0.12, // Đồ Phổ công cụ bậc 3
+      doPho: { bac: [3], slots: ['riu', 'cuoc', 'canCau', 'duocLiem'] }, doPhoChance: 0.12, // Đồ Phổ công cụ bậc 3
       rare: [{ itemId: 'saMangDam', chance: 0.04 }],
     },
   },
@@ -63,7 +63,7 @@ export const DUNGEONS = [
     durMs: 110 * MIN, pace: 0.7333, cost: { bac: 1000, honThach: 5 },
     loot: {
       bac: [400, 700], exp: 360, honThach: [8, 16],
-      lieu: ['phongMoc', 'thietKhoang', 'hungChuong', 'thuyTinhSa'],
+      lieu: ['phongMoc', 'thietKhoang', 'hungChuong', 'thuyTinhSa', 'thachHocLan'],
       da: ['daCuongHoaTrung'],
       doPho: { bac: [4], slots: ['giay', 'dai', 'trangSuc'] }, doPhoChance: 0.10,
       toolDoPho: { bac: 4, chance: 0.08 }, // Đồ Phổ công cụ bậc 4 (roll riêng, không loãng gear)
@@ -80,7 +80,7 @@ export const DUNGEONS = [
     durMs: 120 * MIN, pace: 0.6667, cost: { bac: 2000, honThach: 12 },
     loot: {
       bac: [600, 1000], exp: 620, honThach: [12, 22],
-      lieu: ['hanTung', 'hanThietKhoang', 'tuyetLangBi', 'bangLanNgu', 'hanThietTinh'],
+      lieu: ['hanTung', 'hanThietKhoang', 'tuyetLangBi', 'bangLanNgu', 'hanThietTinh', 'tuyetLienHoa'],
       da: ['daCuongHoaTrung', 'daCuongHoaCao'],
       doPho: { bac: [4, 5], slots: ['gang', 'trangSuc'] }, doPhoChance: 0.05,
       toolDoPho: { bac: 5, chance: 0.06 }, // Đồ Phổ công cụ bậc 5 (roll riêng)
@@ -114,7 +114,7 @@ export const DUNGEONS = [
     durMs: 150 * MIN, pace: 0.5556, cost: { bac: 5000, honThach: 30 },
     loot: {
       bac: [1200, 2000], exp: 1600, honThach: [24, 40],
-      lieu: ['vanThiet', 'vanMauThach', 'vanVuLong', 'tinhTuy'],
+      lieu: ['vanThiet', 'vanMauThach', 'vanVuLong', 'tinhTuy', 'vanLoChi'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [5, 6], slots: ['vuKhi', 'mu', 'giap'] }, doPhoChance: 0.012,
       toolDoPho: { bac: 7, chance: 0.04 }, // Đồ Phổ công cụ bậc 7 (roll riêng; sớm hơn Thái Hư, khớp cấp đeo 81)
@@ -131,7 +131,7 @@ export const DUNGEONS = [
     durMs: 160 * MIN, pace: 0.5333, cost: { bac: 6500, honThach: 40 },
     loot: {
       bac: [1400, 2200], exp: 2600, honThach: [28, 46],
-      lieu: ['tinhHoaMoc', 'vanVuLong', 'tinhTuy', 'huKhongTinh'],
+      lieu: ['tinhHoaMoc', 'vanVuLong', 'tinhTuy', 'huKhongTinh', 'thatTinhThao'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [6], slots: ['giap', 'mu'] }, doPhoChance: 0.006,
       chieuDoPho: { chance: 0.05 }, // Đồ Phổ Tuyệt Kĩ (chỉ ra cái chưa có) — DRAFT
@@ -148,7 +148,7 @@ export const DUNGEONS = [
     durMs: 170 * MIN, pace: 0.5152, cost: { bac: 8500, honThach: 55 },
     loot: {
       bac: [1800, 2800], exp: 3600, honThach: [36, 56],
-      lieu: ['tramHaiMoc', 'sanHoKhoang', 'sanHoDinh', 'huKhongTinh', 'meVuHon'],
+      lieu: ['tramHaiMoc', 'sanHoKhoang', 'sanHoDinh', 'huKhongTinh', 'meVuHon', 'tramVuLan'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [6, 7], slots: ['nhan', 'trangSuc'] }, doPhoChance: 0.003,
       chieuDoPho: { chance: 0.07 }, // Đồ Phổ Tuyệt Kĩ — DRAFT
@@ -165,7 +165,7 @@ export const DUNGEONS = [
     durMs: 180 * MIN, pace: 0.5, cost: { bac: 12000, honThach: 80 },
     loot: {
       bac: [2500, 4000], exp: 5200, honThach: [50, 80],
-      lieu: ['thanDanMoc', 'thanTinhKhoang', 'thanTinhDinh', 'coMaHaiCot'],
+      lieu: ['thanDanMoc', 'thanTinhKhoang', 'thanTinhDinh', 'coMaHaiCot', 'cuuDiepLinhChi'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [7], slots: 'all' }, doPhoChance: 0.001,
       chieuDoPho: { chance: 0.10 }, // Đồ Phổ Tuyệt Kĩ (cao nhất) — DRAFT

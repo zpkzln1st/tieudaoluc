@@ -87,7 +87,7 @@ export function botTotalLv(bot, now) {
 }
 // "Nghề thật" của bot: NHÓM dồn effort nhiều nhất (combat/gather/craft/support), rồi 1 track CỤ THỂ trong nhóm
 // (seed theo bot -> đa dạng + đồng đạo phân bố các nghề). level = cấp track cao nhất trong nhóm (cho bậc danh hiệu).
-const CAT_TRACKS = { combat: ['chienDau'], gather: ['phatMoc', 'thaiKhoang', 'dieuNgu'], craft: ['daLuyen', 'phanhNham', 'daTao', 'doanhTao'], support: ['luyenDan', 'toaQuan'] };
+const CAT_TRACKS = { combat: ['chienDau'], gather: ['phatMoc', 'thaiKhoang', 'dieuNgu', 'thaiDuoc'], craft: ['daLuyen', 'phanhNham', 'daTao', 'doanhTao'], support: ['luyenDan', 'toaQuan'] };
 export function botDominant(bot, now) {
   const eff = botEffort(bot, now), w = archNormW(bot.arch);
   let bestCat = 'combat', bestCatXp = -1;
@@ -126,7 +126,9 @@ export function botActivity(bot, now) {
   const bucket = (bot.actSeed + Math.floor(now / 1800000)) % 5;   // đổi mỗi ~30'
   switch (bot.arch) {
     case 'sanBoss':   return bucket < 3 ? 'vây sát Yêu Vương' : ('luyện công ở ' + loc.name);
-    case 'cayNghe':   { const sk = TRACK_KEYS[1 + ((bot.actSeed + bucket) % 9)]; return (SKILLS[sk] ? SKILLS[sk].name : 'cày nghề') + ' ở ' + loc.name; }
+    // Chia theo SỐ NGHỀ THẬT (TRACK_KEYS trừ chienDau) — trước đây viết cứng số 9, thêm nghề thứ 10 là
+    // nghề cuối không bao giờ trúng -> panel "Đồng Đạo Lân Cận" của nghề đó vĩnh viễn trống, không báo lỗi.
+    case 'cayNghe':   { const sk = TRACK_KEYS[1 + ((bot.actSeed + bucket) % (TRACK_KEYS.length - 1))]; return (SKILLS[sk] ? SKILLS[sk].name : 'cày nghề') + ' ở ' + loc.name; }
     case 'phuThuong': return bucket < 2 ? 'gom hàng buôn bán' : ('rèn đúc binh khí · ' + loc.name);
     default:          return GENERIC_ACTS[bucket % GENERIC_ACTS.length] + ' ở ' + loc.name;
   }
@@ -147,9 +149,9 @@ export function ensureWorld(state, now) {
 // ============================================================
 const KIND_HEX  = { breakthrough: '#22d3ee', slayBoss: '#fb7185', rareLoot: '#fbbf24', tuyetHoc: '#c4b5fd', fortune: '#eab308' };
 const NGHE_HEX  = { gather: '#34d399', craft: '#fb923c', support: '#a78bfa' };   // màu chip theo NHÓM nghề (gather/craft/support)
-// Ấn triện Hán-tự thay icon (chất giang hồ). 5 loại tin chính + 9 ấn RIÊNG từng nghề (màu vẫn theo nhóm -> vừa sang vừa không một khuôn).
+// Ấn triện Hán-tự thay icon (chất giang hồ). 5 loại tin chính + 10 ấn RIÊNG từng nghề (màu vẫn theo nhóm -> vừa sang vừa không một khuôn).
 const KIND_SEAL = { breakthrough: '破', slayBoss: '斬', rareLoot: '寶', tuyetHoc: '訣', fortune: '緣' };
-const NGHE_SEAL = { phatMoc: '樵', thaiKhoang: '礦', dieuNgu: '漁', daTao: '鍛', daLuyen: '冶', phanhNham: '廚', doanhTao: '築', luyenDan: '丹', toaQuan: '禪' };
+const NGHE_SEAL = { phatMoc: '樵', thaiKhoang: '礦', dieuNgu: '漁', daTao: '鍛', daLuyen: '冶', phanhNham: '廚', doanhTao: '築', luyenDan: '丹', toaQuan: '禪', thaiDuoc: '藥' };
 const pickH = (h, arr) => arr[(h >>> 0) % arr.length];
 function realmOf(L) { for (let i = REALM_TIERS.length - 1; i >= 0; i--) { if (L >= REALM_TIERS[i].min) return REALM_TIERS[i]; } return REALM_TIERS[0]; }
 function openRegions(L) { const o = LOCATIONS.filter((l) => l.reqLevel <= Math.max(1, L)); return o.length ? o : [LOCATIONS[0]]; }

@@ -17,6 +17,7 @@
 // ============================================================
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { ITEMS, itemNameHtml } from '../data/items.js';   // tên vật phẩm (tô màu phẩm chất) cho thông báo Phi Cáp Đài
+import { TOOL_SLOTS } from '../data/ui.js';               // nguồn chân lý các ô công cụ -> pool Đồ Phổ công cụ suy động
 import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '../data/tongmon.js';   // rơi bí kíp về Tông Môn (main->phụ 1 chiều, side-only)
 import { deriveCombat, TUYET_IDS } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
@@ -47,8 +48,9 @@ function rollDoPhoId(D) {
   return 'dp_' + pick(pool).id;
 }
 
-// Đồ Phổ CÔNG CỤ (rìu/cuốc/cần câu) — roll RIÊNG, pool chỉ tool -> KHÔNG làm loãng drop gear combat. Trả 'dp_<toolId>' | null.
-const TOOL_DP_SLOTS = ['riu', 'cuoc', 'canCau'];
+// Đồ Phổ CÔNG CỤ (mọi ô trong TOOL_SLOTS) — roll RIÊNG, pool chỉ tool -> KHÔNG làm loãng drop gear combat. Trả 'dp_<toolId>' | null.
+// Suy ĐỘNG từ TOOL_SLOTS — thêm ô công cụ mới về sau tự lọt vào pool, khỏi sót như lần thêm Dược Liêm.
+const TOOL_DP_SLOTS = TOOL_SLOTS.map((t) => t.id);
 function rollToolDoPhoId(D) {
   const td = D.loot.toolDoPho; if (!td) return null;
   const bacs = Array.isArray(td.bac) ? td.bac : [td.bac];

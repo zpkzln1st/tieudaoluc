@@ -13,6 +13,6 @@ export const AVATAR_PRICE = 500;   // Ảnh Đại Diện / ảnh
 export const COVER_PRICE  = 1000;  // Ảnh Bìa / ảnh
 
 // Gian VẬT PHẨM (mua bằng Bạc = value × 1.2). Nguyên liệu cơ bản bậc 1 + thức ăn bậc 1 + 7 bậc mồi câu.
-export const SHOP_MAT  = ['tungMoc', 'hacThan', 'tichKhoang', 'datSet', 'cat'];
+export const SHOP_MAT  = ['tungMoc', 'hacThan', 'tichKhoang', 'datSet', 'cat', 'thanhNgaiThao'];
 export const SHOP_FOOD = ['khaoCaTuyet'];
 export const SHOP_BAIT = ['moiHongTrung', 'moiTepDong', 'moiTuuKhuc', 'moiHanTuy', 'moiVanMong', 'moiGiaoLongDan', 'moiThienCau'];
