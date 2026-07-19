@@ -1719,11 +1719,13 @@
               <template x-if="$store.game.currentSkillIsGather">
                 <div class="flex items-center justify-between px-1 pb-1.5 mb-0.5 border-b border-slate-800 text-[11px]">
                   <span class="inline-flex items-center gap-1 text-jade"><span class="w-3.5 h-3.5 inline-flex" x-html="$store.game.svg('pin','w-3.5 h-3.5')"></span>Tài nguyên tại <b x-text="$store.game.currentLocationObj.name"></b></span>
-                  <button @click="$store.game.navTo('map')" class="text-slate-500 hover:text-jade">đổi vùng ở Bản Đồ ›</button>
+                  <!-- Dùng openZoneChange (như nút Đổi vùng bên Chiến Đấu): nhớ tab đang đứng để sau khi
+                       Truyền Tống / Khinh Công tới nơi thì TỰ QUAY LẠI đây, không kẹt ở Bản Đồ. -->
+                  <button @click="$store.game.openZoneChange()" class="text-slate-500 hover:text-jade">đổi vùng ở Bản Đồ ›</button>
                 </div>
               </template>
               <template x-if="$store.game.currentSkillIsGather && $store.game.currentSkillActions.length===0">
-                <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Vùng <b class="text-slate-300" x-text="$store.game.currentLocationObj.name"></b> không có tài nguyên nghề này — đổi vùng ở <b class="text-jade">Bản Đồ</b>.</div>
+                <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Vùng <b class="text-slate-300" x-text="$store.game.currentLocationObj.name"></b> không có tài nguyên nghề này — <button @click="$store.game.openZoneChange()" class="text-jade font-bold hover:brightness-125 underline decoration-jade/40 underline-offset-2">đổi vùng ở Bản Đồ</button>.</div>
               </template>
               <!-- Rèn Đúc: chia theo LOẠI trang bị -->
               <template x-if="$store.game.selectedSkill==='daTao'">
