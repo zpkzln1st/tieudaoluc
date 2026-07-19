@@ -1,6 +1,14 @@
 # Thiết Kế — Hoàn Thiện Luyện Đan · Linh Thạch · Nghề Hái Thuốc
 
-> Trạng thái: **BẢN THIẾT KẾ, CHƯA CODE.** Mọi số là DRAFT, tune sau khi chơi thật.
+> Trạng thái: **ĐÃ CODE XONG CẢ 3 ĐỢT** (chưa push live, chưa có art). Mọi số vẫn là DRAFT, tune sau khi chơi thật.
+>
+> | Đợt | Nội dung | Commit |
+> |---|---|---|
+> | 1 | Nghề Hái Thuốc + 10 linh thảo + Dược Liêm + NPC Đàm Đạo, nối 19 file | `b0c096b` |
+> | 2 | Linh Thạch 9 viên dùng chung + đốt theo giờ + rào Bội Sản | `eee282e` |
+> | 3 | 16 đan + buff có hạn giờ + 3 ô lắp đan + Dược Lư + Phục Dụng | `3eea93b`, `1098294` |
+>
+> **Còn lại:** art (22 file đợt 1 + 24 file đan/đá — xem ART_LUYEN_DAN.md) và tune số sau khi chơi.
 > Quy trình bắt buộc: **chốt tên → ráp data → gen ảnh.** Đảo thứ tự sẽ phải đổi tên hàng chục file
 > (GitHub Pages phân biệt hoa/thường, đổi sai = ảnh vỡ im lặng trên bản live).
 
