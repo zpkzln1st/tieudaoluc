@@ -3286,7 +3286,10 @@
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 text-slate-300 border border-slate-700" x-text="$store.game.petRole(p)"></span>
                       </div>
                     </div>
-                    <button @click="$store.game.unequipActivePet()" class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-jade border border-jade/40 hover:bg-jade/10 transition">Thu Hồi</button>
+                    <div class="shrink-0 flex flex-col gap-1.5">
+                      <button @click="$store.game.openPhucDung()" class="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/10 transition">Phục Dụng</button>
+                      <button @click="$store.game.unequipActivePet()" class="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-jade border border-jade/40 hover:bg-jade/10 transition">Thu Hồi</button>
+                    </div>
                   </div>
                   <div>
                     <div class="flex items-baseline gap-2 mb-1.5"><span class="text-[12px] text-jade font-semibold">Trợ Lực Cho Chủ Nhân</span><span class="text-[10px]" :class="$store.game.petFainted ? 'text-rose-400' : 'text-slate-600'" x-text="$store.game.petFainted ? '· đang ngất, ngừng trợ lực' : '· cộng thẳng vào chủ'"></span></div>
@@ -11511,6 +11514,36 @@
             <div class="rounded-xl border border-slate-700 bg-ink3/40 p-4 text-center text-[12px] text-slate-500">Ấn ký tác giả chưa được cấu hình.</div>
           </template>
           <div class="text-center text-[10px] text-slate-600 mt-4">© Tiêu Dao Lục</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Modal: PHỤC DỤNG — cho linh thú ăn thẳng linh thảo =====
+       Đặt ở khu modal TOÀN CỤC: nút bấm nằm ở view Linh Thú, để trong template view khác thì
+       x-if của view đó không chạy -> modal không bao giờ hiện (không báo lỗi gì). -->
+  <template x-if="$store.game.phucDungPicker">
+    <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click.self="$store.game.closePhucDung()" @keydown.escape.window="$store.game.closePhucDung()">
+      <div class="panel rounded-xl w-[26rem] max-w-[94vw] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+          <div class="text-jade font-bold flex items-center gap-2"><span class="fserif text-lg leading-none">藥</span>Phục Dụng</div>
+          <button @click="$store.game.closePhucDung()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
+        </div>
+        <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug">Cho linh thú ăn thẳng linh thảo — hồi Thể Lực theo bậc cây và cộng Kinh Nghiệm. Bậc càng cao, một cây càng lời với linh thú mạnh.</div>
+        <div class="p-3 overflow-y-auto space-y-2">
+          <template x-if="$store.game.phucDungList.length===0">
+            <div class="text-sm text-slate-500 text-center py-6 leading-relaxed">Chưa có linh thảo — hái ở <b class="text-slate-300">Hái Thuốc</b>.</div>
+          </template>
+          <template x-for="h in $store.game.phucDungList" :key="h.id">
+            <button @click="$store.game.phucDung(h.id)" class="w-full flex items-center gap-3 p-2 rounded-lg border border-slate-800 bg-ink3/50 hover:border-emerald-400/60 transition text-left">
+              <div class="w-12 h-12 rounded-md flex items-center justify-center shrink-0" :class="$store.game.QUALITY[h.quality].bg" x-html="$store.game.ico(h.id, h.icon)"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate" :class="$store.game.QUALITY[h.quality].text" x-text="h.name"></div>
+                <div class="text-[11px] text-slate-400" x-text="'Hồi '+h.stamPct+'% Thể Lực · +'+h.petXp+' Kinh Nghiệm'"></div>
+                <div class="text-[10.5px] text-slate-500">còn <b x-text="'×'+h.count"></b></div>
+              </div>
+            </button>
+          </template>
         </div>
       </div>
     </div>
