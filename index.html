@@ -105,6 +105,8 @@
     .tkc-tiles { display:flex; flex-wrap:wrap; gap:.375rem; }
     .tkc-tile  { width:88px; }
     .tkc-name  { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; height:26px; }
+    /* Thanh tiến độ trong khung ornate: đặt TRÊN divider ◆ để hoa văn 4 góc (fade ở mép) không đè lên thanh */
+    .tkc-prog  { position:relative; z-index:1; margin-top:12px; display:flex; align-items:center; gap:.5rem; }
     @media (max-width:640px){
       /* Màn hẹp: bỏ vạch (chấm màu ở nhãn nhóm đã đủ tách). Cụm Chiêu Thức đằng nào cũng xuống dòng
          riêng -> cho chiếm trọn hàng + ô giãn đều lấp kín, khỏi thừa khoảng trắng mép phải. */
@@ -3901,19 +3903,24 @@
       <template x-if="$store.game.view==='tangkinhcac'">
         <div class="space-y-3" x-data="{ hf:'all', onlyLocked:false, hfList:[['all','Tất cả'],['hoa','Hỏa'],['thuy','Thủy'],['moc','Mộc'],['kim','Kim'],['tho','Thổ'],['vatly','Vật lý'],['buff','Trợ']] }">
 
-          <!-- Header -->
-          <div class="panel rounded-lg p-4">
-            <div class="flex items-start gap-3">
-              <div class="w-14 h-14 rounded-lg bg-ink3 border border-amber-500/30 flex items-center justify-center shrink-0 overflow-hidden" x-html="$store.game.ico('tangkinhcac','📖')"></div>
-              <div class="flex-1 min-w-0">
-                <div class="text-jade font-bold text-lg" style="font-family:'Lora',serif">Tàng Kinh Các</div>
-                <div class="text-[12px] text-amber-200/75 italic mt-0.5" style="font-family:'Lora',serif">Vạn quyển tàng chân ý, nhất niệm nhập võ môn.</div>
+          <!-- Header — khung ornate DÙNG CHUNG .sk-hero (đồng bộ header NPC Kỹ Năng / Động Phủ / Modal Địa Điểm) -->
+          <div class="sk-hero">
+            <span class="sk-fl f1"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+            <span class="sk-fl f2"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+            <span class="sk-fl f3"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+            <span class="sk-fl f4"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
+            <div class="sk-row">
+              <div class="sk-ic" style="cursor:default" x-html="$store.game.ico('tangkinhcac','📖')"></div>
+              <div class="sk-body">
+                <div class="sk-nm">Tàng Kinh Các</div>
+                <div class="sk-qt">“Vạn quyển tàng chân ý, nhất niệm nhập võ môn.”</div>
               </div>
             </div>
-            <div class="mt-3 flex items-center gap-2">
+            <div class="tkc-prog">
               <div class="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-jade transition-all" :style="`width:${$store.game.tangKinhTotalCount?Math.round($store.game.tangKinhOwnedCount/$store.game.tangKinhTotalCount*100):0}%`"></div></div>
               <span class="text-[11px] text-slate-400 shrink-0">Đã lĩnh ngộ <b class="text-jade" x-text="$store.game.tangKinhOwnedCount"></b>/<span x-text="$store.game.tangKinhTotalCount"></span> võ học</span>
             </div>
+            <div class="sk-div"><span>◆</span></div>
           </div>
 
           <!-- Lọc -->
