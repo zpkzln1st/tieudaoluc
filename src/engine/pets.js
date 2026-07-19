@@ -188,7 +188,8 @@ export function gainPetXp(state, amount, wins = 1) {
   const p = activePet(state);
   if (!p || !(amount > 0)) return null;
   const awk = petAwkPassive(p);
-  const amt = awk && awk.petExpBonus ? Math.round(amount * (1 + awk.petExpBonus)) : amount;
+  const base = awk && awk.petExpBonus ? amount * (1 + awk.petExpBonus) : amount;
+  const amt = Math.round(base * (1 + danBuffField(state, 'petExpPct') / 100));   // + họ Dưỡng Thú
   addSkillXp(state, 'nguThu', NGU_THU_XP_COMBAT * Math.max(1, wins));   // P7 — +Ngự Thú XP theo SỐ trận thắng (live=1, offline=done)
   return { pet: p, leveled: addXpToPet(state, p, amt) };
 }
@@ -297,7 +298,9 @@ export function petCombatCycle(state, dmg, now) {
     } else { cb.petCd = (cb.petCd || 0) - 1; }
   }
   const reduce = Math.min(gross, chia + offense);                // tổng giảm sát thương cho chủ ≤ đòn cycle
-  p.tl = Math.max(0, stam - Math.max(1, STAM_PER_CYCLE - (pas.stamCostCut || 0)) - extraStam); p.tlAt = now;   // P7 — Bền Bỉ: giảm Thể Lực tiêu/nhịp (tối thiểu vẫn tốn 1)
+  // P7 — Bền Bỉ: giảm Thể Lực tiêu/nhịp (tối thiểu vẫn tốn 1). + họ Dưỡng Thú: −% hao Thể Lực.
+  const stamCut = 1 - danBuffField(state, 'petStamCutPct') / 100;
+  p.tl = Math.max(0, stam - Math.max(1, Math.round((STAM_PER_CYCLE - (pas.stamCostCut || 0)) * stamCut)) - extraStam); p.tlAt = now;
   if (cb.petHp > 0 && cb.petHp < hpMax * PET_AUTO_PCT) { const h = petAutoHeal(state); if (h > 0) cb.petHp = Math.min(hpMax, cb.petHp + h); }
   if (cb.petHp <= 0) { cb.petHp = 0; cb.petFainted = true; }     // ngất
   if (skill) skill.heal = heal;
@@ -532,4 +535,49 @@ export function resolvePetHunts(state, now, capMs) {
     if (r) out.push(r);
   }
   return out;
+}
+
+// ============================================================
+// PHỤC DỤNG — cho linh thú ăn THẲNG linh thảo (không cần nấu thành đan).
+//   Hồi % Thể Lực TỐI ĐA (số phẳng sẽ vô dụng với pet đỉnh 700 Thể Lực) + một phần EXP linh thú.
+//   Triết lý: ĐỔI HƯỚNG chứ không tăng tổng — bình thường hái thuốc chỉ nuôi Hộ Thể, nay dồn được
+//   sang nuôi linh thú. MỌI SỐ LÀ DRAFT.
+// ============================================================
+const HERB_FEED = {   // id -> { stamPct, petXp }  (bậc 1..10)
+  thanhNgaiThao:  { stamPct: 11, petXp: 12 },
+  tuDangHoa:      { stamPct: 14, petXp: 18 },
+  duongQuyCan:    { stamPct: 17, petXp: 33 },
+  thachHocLan:    { stamPct: 20, petXp: 60 },
+  tuyetLienHoa:   { stamPct: 23, petXp: 96 },
+  ngocTuyenSam:   { stamPct: 26, petXp: 138 },
+  vanLoChi:       { stamPct: 29, petXp: 189 },
+  thatTinhThao:   { stamPct: 32, petXp: 258 },
+  tramVuLan:      { stamPct: 36, petXp: 375 },
+  cuuDiepLinhChi: { stamPct: 40, petXp: 510 },
+};
+export function phucDungGain(itemId) { return HERB_FEED[itemId] || null; }
+
+export function feedPetHerb(state, itemId, now) {
+  const g = HERB_FEED[itemId];
+  if (!g) return { ok: false, msg: 'Linh thú không dùng được thứ này.' };
+  if ((state.inventory[itemId] || 0) < 1) return { ok: false, msg: 'Không còn cây nào trong hành trang.' };
+  const p = activePet(state);
+  if (!p) return { ok: false, msg: 'Chưa có linh thú nào xuất chiến.' };
+  const max = petStamMax(p);
+  const cur = petStamView(p, now);
+  if (cur >= max && p.level >= petLevelCap(state, p)) return { ok: false, msg: 'Linh thú đã sung mãn, chưa cần phục dụng.' };
+  removeItem(state, itemId, 1);
+  const heal = Math.round(max * g.stamPct / 100);
+  p.tl = Math.min(max, cur + heal); p.tlAt = now;
+  const lv = addXpToPet(state, p, g.petXp);
+  return { ok: true, leveled: lv, heal, msg: (ITEMS[itemId] || {}).name + ' — linh thú hồi ' + heal + ' Thể Lực, +' + g.petXp + ' Kinh Nghiệm.' };
+}
+
+// Tổng % của MỘT trường từ Đan Bổ Trợ đang chạy. KHÔNG kiểm hạn ở đây — pruneBuffs chạy mỗi tick
+// bằng đồng hồ game (có dev-offset) nên state.buffs chỉ còn buff hiệu lực. Giữ pets.js không cần `now`.
+export function danBuffField(state, field) {
+  const b = state && state.buffs; if (!b) return 0;
+  let s = 0;
+  for (const k in b) { const e = b[k]; if (!e) continue; const d = (ITEMS[e.id] || {}).buff; if (d) s += (d[field] || 0); }
+  return s;
 }

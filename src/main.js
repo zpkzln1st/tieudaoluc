@@ -25,7 +25,9 @@ import {
   startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS,
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
   tinVatDone as _tinVatDone,
+  migrateDanSlots,
 } from './engine/activity.js';
+import { ensureBuffs, pruneBuffs, activeBuffList, useBuffDan, duocLuTick } from './engine/buff.js';
 import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
@@ -41,7 +43,7 @@ import { ensureTitles, syncTitles, titleBonus } from './engine/titles.js';
 import { BADGES, BADGE_LV } from './data/badges.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
@@ -146,6 +148,8 @@ if (!state.counters) state.counters = { produced: {}, kills: {} };
 // Save cũ nạp thẳng JSON (không deep-merge) -> thiếu key nghề mới thêm. Vá để totalLevel (quét SKILLS)
 // và engine/titles (quét state.skills) không đếm lệch nhau.
 Object.keys(SKILLS).forEach((id) => { if (!state.skills[id]) state.skills[id] = { xp: 0 }; });
+ensureBuffs(state);        // Đan Bổ Trợ: khởi tạo state.buffs
+migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành Hồi Sinh Lực / Hồi Nội Lực / Dược Lư
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
 ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state);
@@ -1964,6 +1968,9 @@ const gameStore = {
     if (this.selectedSkill === 'daTao' && this.forgeSlot !== 'all') out = out.filter((a) => this.forgeMatch(a));
     if (this.selectedSkill === 'daTao') out = out.filter((a) => this.forgeUnlocked(a.itemId)); // bậc 4-7 cần Đồ Phổ đã lĩnh ngộ
     if (this.skillSubTabsFor(this.selectedSkill)) { const t = this.effectiveSkillTab; out = out.filter((a) => this.skillActionCat(this.selectedSkill, a) === t); } // Luyện Kim/Luyện Đan: lọc theo tab
+    // Luyện Đan gom nhiều dòng (đan hồi + 4 họ đan bổ trợ) nên thứ tự khai báo làm cấp nhảy lộn xộn
+    // (1 -> 20 -> 40 -> 55 -> 85 rồi tụt về 20). Ép sắp theo CẤP tăng dần cho dễ đọc.
+    if (this.selectedSkill === 'luyenDan') out = [...out].sort((a, b) => (a.reqLevel || 0) - (b.reqLevel || 0));
     return out;
   },
   // Chia 2 tab: Luyện Kim (Đúc Thỏi / Đá Cường Hóa) · Luyện Đan (Linh Thạch / Đan Dược)
@@ -3214,34 +3221,97 @@ const gameStore = {
   closeDanPicker() { this.danPicker = false; },
   get luongThucItem() { const id = this.state.combat.luongThuc; return id && this.ITEMS[id] ? this.ITEMS[id] : null; },
   get luongThucCount() { const id = this.state.combat.luongThuc; return id ? (this.state.inventory[id] || 0) : 0; },
-  get danItem() { const id = this.state.combat.dan; return id && this.ITEMS[id] ? this.ITEMS[id] : null; },
-  get danCount() { const id = this.state.combat.dan; return id ? (this.state.inventory[id] || 0) : 0; },
-  danEffText(it) { if (!it) return ''; if (it.heal) return 'Hồi +' + it.heal + ' Máu'; if (it.healNL) return 'Hồi +' + it.healNL + ' Nội Lực'; return ''; },
-  get combatFoodList() {     // món ăn (type monan, có heal) trong túi -> chọn lắp; xếp theo lượng hồi tăng dần
-    return Object.keys(this.state.inventory)
-      .filter((id) => this.ITEMS[id] && this.ITEMS[id].type === 'monan' && this.ITEMS[id].heal && this.state.inventory[id] > 0)
-      .map((id) => ({ ...this.ITEMS[id], id, count: this.state.inventory[id] }))
-      .sort((a, b) => a.heal - b.heal);
+  get danItem() { const id = this.state.combat.danNL; return id && this.ITEMS[id] ? this.ITEMS[id] : null; },
+  get danCount() { const id = this.state.combat.danNL; return id ? (this.state.inventory[id] || 0) : 0; },
+  get duocLuItem() { const id = this.state.combat.duocLu; return id && this.ITEMS[id] ? this.ITEMS[id] : null; },
+  get duocLuCount() { const id = this.state.combat.duocLu; return id ? (this.state.inventory[id] || 0) : 0; },
+  danEffText(it) {
+    if (!it) return '';
+    if (it.healPct) return 'Hồi ' + it.healPct + '% Sinh Lực';
+    if (it.heal) return 'Hồi +' + it.heal + ' Sinh Lực';
+    if (it.healNL) return 'Hồi +' + it.healNL + ' Nội Lực';
+    if (it.buff) return this.buffEffText(it.buff);
+    return '';
   },
-  get combatDanList() {      // đan (type dan, hồi Máu hoặc Nội Lực) trong túi -> chọn lắp
+  // Ô "Hồi Sinh Lực": nhận CẢ Món Ăn lẫn đan hồi máu (đan hồi máu = món ăn cao cấp).
+  get combatFoodList() {
     return Object.keys(this.state.inventory)
-      .filter((id) => this.ITEMS[id] && this.ITEMS[id].type === 'dan' && (this.ITEMS[id].heal || this.ITEMS[id].healNL) && this.state.inventory[id] > 0)
+      .filter((id) => { const it = this.ITEMS[id]; return it && (it.type === 'monan' || it.type === 'dan') && (it.heal || it.healPct) && this.state.inventory[id] > 0; })
       .map((id) => ({ ...this.ITEMS[id], id, count: this.state.inventory[id] }))
-      .sort((a, b) => (a.heal || a.healNL || 0) - (b.heal || b.healNL || 0));
+      .sort((a, b) => (a.heal || 0) - (b.heal || 0) || (a.healPct || 0) - (b.healPct || 0));
+  },
+  get combatDanList() {      // ô "Hồi Nội Lực": chỉ đan healNL
+    return Object.keys(this.state.inventory)
+      .filter((id) => this.ITEMS[id] && this.ITEMS[id].type === 'dan' && this.ITEMS[id].healNL && this.state.inventory[id] > 0)
+      .map((id) => ({ ...this.ITEMS[id], id, count: this.state.inventory[id] }))
+      .sort((a, b) => (a.healNL || 0) - (b.healNL || 0));
+  },
+  get duocLuList() {         // ô "Dược Lư": đan bổ trợ (có .buff)
+    return Object.keys(this.state.inventory)
+      .filter((id) => this.ITEMS[id] && this.ITEMS[id].buff && this.state.inventory[id] > 0)
+      .map((id) => ({ ...this.ITEMS[id], id, count: this.state.inventory[id] }))
+      .sort((a, b) => (b.buff.durMs || 0) - (a.buff.durMs || 0));
   },
   equipFood(id) {
-    if (id && (!this.ITEMS[id] || !this.ITEMS[id].heal)) { this.showToast('Món này không dùng làm Món Ăn.'); return; }
+    const it = id && this.ITEMS[id];
+    if (id && !(it && (it.heal || it.healPct))) { this.showToast('Món này không dùng để hồi Sinh Lực.'); return; }
     this.state.combat.luongThuc = id || null;
     this.foodPicker = false;
     Storage.save(this.state);
-    if (id) this.showToast('Đã lắp ' + this.ITEMS[id].name + ' vào ô Món Ăn.');
+    if (id) this.showToast('Đã lắp ' + it.name + ' vào ô Hồi Sinh Lực.');
   },
   equipDan(id) {
-    if (id && (!this.ITEMS[id] || !(this.ITEMS[id].heal || this.ITEMS[id].healNL))) { this.showToast('Vật phẩm này không dùng làm Đan.'); return; }
-    this.state.combat.dan = id || null;
+    if (id && (!this.ITEMS[id] || !this.ITEMS[id].healNL)) { this.showToast('Vật phẩm này không hồi Nội Lực.'); return; }
+    this.state.combat.danNL = id || null;
     this.danPicker = false;
     Storage.save(this.state);
-    if (id) this.showToast('Đã lắp ' + this.ITEMS[id].name + ' vào ô Đan.');
+    if (id) this.showToast('Đã lắp ' + this.ITEMS[id].name + ' vào ô Hồi Nội Lực.');
+  },
+
+  // ---------- ĐAN BỔ TRỢ (buff có hạn giờ) + Dược Lư ----------
+  duocLuPicker: false,
+  openDuocLuPicker() { this.duocLuPicker = true; },
+  closeDuocLuPicker() { this.duocLuPicker = false; },
+  equipDuocLu(id) {
+    if (id && (!this.ITEMS[id] || !this.ITEMS[id].buff)) { this.showToast('Vật phẩm này không phải Đan Bổ Trợ.'); return; }
+    this.state.combat.duocLu = id || null;
+    this.duocLuPicker = false;
+    Storage.save(this.state);
+    if (id) this.showToast('Đã cắm ' + this.ITEMS[id].name + ' vào Dược Lư.');
+  },
+  buffMinutes(b) { return Math.round((b && b.durMs || 0) / 60000); },
+  buffEffText(b) {
+    if (!b) return '';
+    const p = [];
+    if (b.atkPct) p.push('+' + b.atkPct + '% Công Kích · Hộ Thể · Sinh Lực');
+    if (b.lootPct) p.push('+' + b.lootPct + '% rơi nguyên liệu · +' + (b.bacPct || 0) + '% Bạc');
+    if (b.cbExpPct) p.push('+' + b.cbExpPct + '% Kinh Nghiệm Chiến Đấu');
+    if (b.petExpPct) p.push('+' + b.petExpPct + '% Kinh Nghiệm Linh Thú · −' + (b.petStamCutPct || 0) + '% hao Thể Lực');
+    return p.join(' · ');   // thời lượng đã có chip riêng — đừng lặp lại trong ngoặc
+  },
+  get activeBuffs() { void this._tick; return activeBuffList(this.state, now()).map((a) => ({ ...a, item: this.ITEMS[a.itemId], leftMs: Math.max(0, a.untilMs - now()) })); },
+  buffLeftText(ms) { const s = Math.max(0, Math.floor(ms / 1000)); const m = Math.floor(s / 60); return m >= 60 ? (Math.floor(m / 60) + 'g' + (m % 60) + 'p') : (m > 0 ? (m + 'p' + (s % 60) + 's') : (s + 's')); },
+  uongDan(id) {
+    const r = useBuffDan(this.state, id, now());
+    this.showToast(r.msg);
+    if (r.ok) { this._tick++; Storage.save(this.state); }
+  },
+
+  // ---------- PHỤC DỤNG: cho linh thú ăn thẳng linh thảo ----------
+  // Đổi hướng chứ KHÔNG tăng tổng: một cây ≈ đúng lượng pet kiếm được trong thời gian đi hái nó.
+  phucDungPicker: false,
+  openPhucDung() { this.phucDungPicker = true; },
+  closePhucDung() { this.phucDungPicker = false; },
+  get phucDungList() {
+    return Object.keys(this.state.inventory)
+      .filter((id) => this.ITEMS[id] && this.ITEMS[id].type === 'thaoDuoc' && this.state.inventory[id] > 0)
+      .map((id) => ({ ...this.ITEMS[id], id, count: this.state.inventory[id], ...phucDungGain(id) }))
+      .sort((a, b) => (a.stamPct || 0) - (b.stamPct || 0));
+  },
+  phucDung(id) {
+    const r = feedPetHerb(this.state, id, now());
+    this.showToast(r.msg);
+    if (r.ok) { this._tick++; Storage.save(this.state); }
   },
 
   // ---------- Phường Thị ----------
@@ -3820,6 +3890,14 @@ setInterval(() => {
   if (s.state.activity) { const rep = advance(s.state, now()); if (rep && rep.ranOut) s.notifyRanOut(rep); if (rep && rep.type === 'combat' && rep.died) s.notifyCombatBgDeath(rep); }   // hết nguyên liệu / gục nền -> tự dừng + báo (cả khi tab ẩn)
   if (s.state.combat && s.state.combat.noiThuong && s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();   // suy yếu xong khi tab ẩn
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
+  // Đan Bổ Trợ: dọn buff hết hạn (deriveCombat đọc thẳng state.buffs nên phải prune bằng đồng hồ GAME),
+  // rồi để Dược Lư tự rút viên kế — CHỈ dạng Tán/Hoàn, dạng Đan phải uống tay.
+  try {
+    const gone = pruneBuffs(s.state, now());
+    if (gone.length) s._tick++;
+    const pulled = duocLuTick(s.state, now());
+    if (pulled) { s._tick++; s.showToast('Dược Lư · ' + ((s.ITEMS[pulled] || {}).name || 'Đan') + ' phát tác.'); }
+  } catch (e) {}
   s.checkTitles();        // Danh Hiệu: mở khoá mới khi đủ cột mốc -> báo toast
   if (document.hidden && s.bossFight && !s.bossFight.done) s.finishBossFightNow(); // tab nền: rafLoop bị throttle → chốt trận LIVE trong 5s, không treo
   s.resolveBossQueue();   // hàng đợi: boss giáng thế khi đang online → tự vây sát ở nền

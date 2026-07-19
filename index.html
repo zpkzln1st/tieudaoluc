@@ -2444,7 +2444,7 @@
                 <div class="lbl mb-2 text-center">Trạng Thái</div>
                 <div class="flex items-center gap-2">
                   <span class="text-rose-400 shrink-0 w-4 flex justify-center" title="Sinh Lực" x-html="$store.game.svg('heart','w-4 h-4')"></span>
-                  <div class="flex-1 h-3 rounded-full bg-slate-900 overflow-hidden ring-1 ring-slate-700/60 relative"><div class="h-full transition-all duration-300" :class="$store.game.combatHpPct>30?'bg-gradient-to-r from-rose-600 via-red-500 to-rose-400':'bg-gradient-to-r from-rose-900 to-rose-700'" :style="`width:${$store.game.combatHpPct}%`"></div><div x-show="$store.game.luongThucItem || ($store.game.danItem && $store.game.danItem.heal)" class="absolute top-0 bottom-0 w-px bg-amber-300/80 pointer-events-none" style="left:25%" title="Tự dùng dưới 25%"></div></div>
+                  <div class="flex-1 h-3 rounded-full bg-slate-900 overflow-hidden ring-1 ring-slate-700/60 relative"><div class="h-full transition-all duration-300" :class="$store.game.combatHpPct>30?'bg-gradient-to-r from-rose-600 via-red-500 to-rose-400':'bg-gradient-to-r from-rose-900 to-rose-700'" :style="`width:${$store.game.combatHpPct}%`"></div><div x-show="$store.game.luongThucItem" class="absolute top-0 bottom-0 w-px bg-amber-300/80 pointer-events-none" style="left:25%" title="Tự dùng dưới 25%"></div></div>
                   <span class="text-xs font-mono text-slate-300 shrink-0 min-w-[5.5rem] text-right whitespace-nowrap" x-text="Math.round($store.game.combatSinhLuc)+' / '+$store.game.combatMaxHp"></span>
                 </div>
                 <div class="flex items-center gap-2 mt-1.5">
@@ -2465,12 +2465,12 @@
                         <div class="w-9 h-9 rounded-md flex items-center justify-center shrink-0" :class="$store.game.QUALITY[$store.game.luongThucItem.quality].bg" x-html="$store.game.ico($store.game.luongThucItem.id, $store.game.luongThucItem.icon)"></div>
                         <div class="min-w-0">
                           <div class="text-[10.5px] leading-tight truncate" :class="$store.game.QUALITY[$store.game.luongThucItem.quality].text" x-text="$store.game.luongThucItem.name"></div>
-                          <div class="text-[9.5px] text-slate-400" x-text="'Hồi +'+$store.game.luongThucItem.heal+' · ×'+$store.game.luongThucCount"></div>
+                          <div class="text-[9.5px] text-slate-400" x-text="$store.game.danEffText($store.game.luongThucItem)+' · ×'+$store.game.luongThucCount"></div>
                         </div>
                       </div>
                     </template>
                     <template x-if="!$store.game.luongThucItem">
-                      <div class="flex items-center gap-2"><span class="text-lg leading-none">+</span><span class="text-[10.5px]">Món Ăn</span></div>
+                      <div class="flex items-center gap-2"><span class="text-lg leading-none">+</span><span class="text-[10.5px]">Hồi Sinh Lực</span></div>
                     </template>
                   </button>
                   <!-- Ô Đan -->
@@ -2486,11 +2486,39 @@
                       </div>
                     </template>
                     <template x-if="!$store.game.danItem">
-                      <div class="flex items-center gap-2"><span class="text-base leading-none fserif">丹</span><span class="text-[10.5px]">Đan</span></div>
+                      <div class="flex items-center gap-2"><span class="text-base leading-none fserif">丹</span><span class="text-[10.5px]">Hồi Nội Lực</span></div>
+                    </template>
+                  </button>
+                  <!-- Ô Dược Lư: cắm sẵn 1 loại Đan Bổ Trợ, hết hạn thì tự rút viên kế (chỉ dạng Tán/Hoàn) -->
+                  <button @click="$store.game.openDuocLuPicker()" class="w-full rounded-lg border p-2 text-left transition flex items-center gap-2 min-h-[50px]"
+                    :class="$store.game.duocLuItem ? $store.game.QUALITY[$store.game.duocLuItem.quality].border+' hover:border-jade' : 'border-dashed border-slate-700 text-slate-500 hover:border-jade hover:text-jade'">
+                    <template x-if="$store.game.duocLuItem">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-9 h-9 rounded-md flex items-center justify-center shrink-0" :class="$store.game.QUALITY[$store.game.duocLuItem.quality].bg" x-html="$store.game.ico($store.game.duocLuItem.id, $store.game.duocLuItem.icon)"></div>
+                        <div class="min-w-0">
+                          <div class="text-[10.5px] leading-tight truncate" :class="$store.game.QUALITY[$store.game.duocLuItem.quality].text" x-text="$store.game.duocLuItem.name"></div>
+                          <div class="text-[9.5px] text-slate-400" x-text="$store.game.buffMinutes($store.game.duocLuItem.buff)+' phút · ×'+$store.game.duocLuCount"></div>
+                        </div>
+                      </div>
+                    </template>
+                    <template x-if="!$store.game.duocLuItem">
+                      <div class="flex items-center gap-2"><span class="text-base leading-none fserif">爐</span><span class="text-[10.5px]">Dược Lư</span></div>
                     </template>
                   </button>
                 </div>
-                <div class="text-[10px] text-slate-500 mt-2 text-center leading-snug">Tự dùng khi Sinh Lực / Nội Lực &lt; <b class="text-amber-300">25%</b>.</div>
+                <div class="text-[10px] text-slate-500 mt-2 text-center leading-snug">Tự dùng khi Sinh Lực / Nội Lực &lt; <b class="text-amber-300">25%</b>. Dược Lư chỉ tự rút Tán và Hoàn.</div>
+                <!-- Đan Bổ Trợ đang phát tác -->
+                <template x-if="$store.game.activeBuffs.length">
+                  <div class="mt-2 pt-2 border-t border-slate-800 space-y-1">
+                    <template x-for="b in $store.game.activeBuffs" :key="b.key">
+                      <div class="flex items-center gap-1.5 text-[10px]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-jade shrink-0"></span>
+                        <span class="truncate flex-1" :class="$store.game.QUALITY[b.item.quality].text" x-text="b.item.name"></span>
+                        <span class="text-amber-300 shrink-0 tabular-nums" x-text="$store.game.buffLeftText(b.leftMs)"></span>
+                      </div>
+                    </template>
+                  </div>
+                </template>
               </section>
 
               <!-- Tiến Độ -->
@@ -2551,7 +2579,7 @@
                   </template>
                   <template x-for="d in $store.game.combatDanList" :key="d.id">
                     <button @click="$store.game.equipDan(d.id)" class="w-full flex items-center gap-3 p-2 rounded-lg border bg-ink3/50 hover:border-jade transition text-left"
-                      :class="$store.game.state.combat.dan===d.id ? 'border-jade ring-1 ring-jade/40' : 'border-slate-800'">
+                      :class="$store.game.state.combat.danNL===d.id ? 'border-jade ring-1 ring-jade/40' : 'border-slate-800'">
                       <div class="w-12 h-12 rounded-md flex items-center justify-center shrink-0" :class="$store.game.QUALITY[d.quality].bg" x-html="$store.game.ico(d.id, d.icon)"></div>
                       <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium" :class="$store.game.QUALITY[d.quality].text" x-text="d.name"></div>
@@ -2561,6 +2589,45 @@
                   </template>
                   <template x-if="$store.game.danItem">
                     <button @click="$store.game.equipDan(null)" class="w-full text-xs text-slate-500 hover:text-rose-300 py-2 transition">Gỡ đan đang lắp</button>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Chọn Đan Bổ Trợ cho Dược Lư -->
+          <template x-if="$store.game.duocLuPicker">
+            <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click.self="$store.game.closeDuocLuPicker()" @keydown.escape.window="$store.game.closeDuocLuPicker()">
+              <div class="panel rounded-xl w-[26rem] max-w-[94vw] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+                <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                  <div class="text-jade font-bold flex items-center gap-2"><span class="fserif text-lg leading-none">爐</span>Dược Lư</div>
+                  <button @click="$store.game.closeDuocLuPicker()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
+                </div>
+                <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug">Cắm sẵn một loại đan bổ trợ — hết hiệu lực thì tự rút viên kế trong hành trang. Chỉ tự rút dạng <b class="text-slate-300">Tán</b> và <b class="text-slate-300">Hoàn</b>; dạng <b class="text-slate-300">Đan</b> phải uống tay.</div>
+                <div class="p-3 overflow-y-auto space-y-2">
+                  <template x-if="$store.game.duocLuList.length===0">
+                    <div class="text-sm text-slate-500 text-center py-6 leading-relaxed">Chưa có đan bổ trợ — luyện ở <b class="text-slate-300">Luyện Đan</b>.</div>
+                  </template>
+                  <template x-for="d in $store.game.duocLuList" :key="d.id">
+                    <div class="w-full flex items-center gap-3 p-2 rounded-lg border bg-ink3/50 transition"
+                      :class="$store.game.state.combat.duocLu===d.id ? 'border-jade ring-1 ring-jade/40' : 'border-slate-800'">
+                      <div class="w-12 h-12 rounded-md flex items-center justify-center shrink-0" :class="$store.game.QUALITY[d.quality].bg" x-html="$store.game.ico(d.id, d.icon)"></div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-sm font-medium truncate" :class="$store.game.QUALITY[d.quality].text" x-text="d.name"></span>
+                          <span class="text-[9.5px] px-1.5 py-0.5 rounded shrink-0 bg-amber-900/40 text-amber-300 border border-amber-500/30" x-text="$store.game.buffMinutes(d.buff)+' phút'"></span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 leading-snug" x-text="$store.game.buffEffText(d.buff)"></div>
+                        <div class="text-[10.5px] text-slate-500">còn <b x-text="'×'+d.count"></b></div>
+                      </div>
+                      <div class="flex flex-col gap-1 shrink-0">
+                        <button @click="$store.game.uongDan(d.id)" class="px-2.5 py-1 rounded text-[11px] border border-jade/50 text-jade hover:bg-jade/10 transition">Uống ngay</button>
+                        <button @click="$store.game.equipDuocLu(d.id)" class="px-2.5 py-1 rounded text-[11px] border border-slate-700 text-slate-400 hover:border-jade hover:text-jade transition">Cắm lư</button>
+                      </div>
+                    </div>
+                  </template>
+                  <template x-if="$store.game.duocLuItem">
+                    <button @click="$store.game.equipDuocLu(null)" class="w-full text-xs text-slate-500 hover:text-rose-300 py-2 transition">Gỡ đan khỏi Dược Lư</button>
                   </template>
                 </div>
               </div>

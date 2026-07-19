@@ -7,6 +7,7 @@
 import { derivedStats, gearEle } from '../engine/stats.js';
 import { levelFromXp } from '../engine/leveling.js';
 import { titleBonus } from '../engine/titles.js';
+import { ITEMS } from './items.js';   // đọc buff của Đan Bổ Trợ (danBuffPct)
 
 // ---- NGŨ HÀNH ----
 // 5 hệ + Vật Lý + Trợ. Vòng tương khắc: Kim→Mộc→Thổ→Thủy→Hỏa→Kim.
@@ -379,6 +380,21 @@ export function starterLoadoutFor(tamPhapId){
 }
 
 // ---- Chỉ số combat dẫn xuất (Tứ Trụ + trang bị + bài võ: Tâm Pháp + 1-2 Bộ Pháp) ----
+// Tổng % từ Đan Bổ Trợ đang chạy. KHÔNG kiểm hạn ở đây — pruneBuffs (engine/buff.js) chạy mỗi tick
+// bằng đồng hồ game (có dev-offset) nên state.buffs chỉ chứa buff còn hiệu lực.
+export function danBuffPct(state){
+  const out = { atkPct:0, defPct:0, hpPct:0 };
+  const b = state && state.buffs; if(!b) return out;
+  for(const k in b){
+    const e = b[k]; if(!e) continue;
+    const d = (ITEMS[e.id] || {}).buff; if(!d) continue;
+    out.atkPct += (d.atkPct || 0) / 100;
+    out.defPct += (d.defPct || 0) / 100;
+    out.hpPct  += (d.hpPct  || 0) / 100;
+  }
+  return out;
+}
+
 export function deriveCombat(state, loadout, opts){
   const d = derivedStats(state);
   const tbn = titleBonus(state);                 // Danh Hiệu: +crit/spd/dodge nhẹ
@@ -401,10 +417,13 @@ export function deriveCombat(state, loadout, opts){
   regenPct += M.regen;
   // Tổng bonus cho hệ của Tâm Pháp (để hiển thị "Công hưởng")
   const heBonus = tamPhapHeBonus + (eleBonus[heChinh] || 0);
+  // Đan Bổ Trợ họ Cường Nguyên: +% Công/Thủ/Sinh Lực. Đọc THẲNG state.buffs (đã được prune theo
+  // đồng hồ game mỗi tick) -> giữ deriveCombat thuần, không cần truyền `now` vào đây.
+  const bf = danBuffPct(state);
   return {
-    maxHP: Math.max(1, Math.round(d.sinhLuc * (1+M.hp))),
-    atk: Math.max(1, Math.round(d.congKich * (1+M.dmg) * nt)),
-    def: Math.max(0, Math.round(d.hoThe * (1+M.def) * nt)),
+    maxHP: Math.max(1, Math.round(d.sinhLuc * (1+M.hp) * (1 + bf.hpPct))),
+    atk: Math.max(1, Math.round(d.congKich * (1+M.dmg) * nt * (1 + bf.atkPct))),
+    def: Math.max(0, Math.round(d.hoThe * (1+M.def) * nt * (1 + bf.defPct))),
     spd: Math.max(1, Math.round((100 + sl('thanPhap')*1.5 + (d.tocDo||0)) * (1+M.spd+tbn.spdPct) * nt)),
     crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.005 + M.crit + (d.baoKich||0)/100 + tbn.critPct)),
     critDmg: 1.6 + M.critDmg + (d.baoSat||0)/100,

@@ -134,6 +134,25 @@ export const SKILLS = {
       { id: 'tuKhiThachThuong',   name: 'Tụ Khí Thạch Thượng Phẩm', gloss: 'Qi Essence Crystal III',itemId: 'tuKhiThachThuong',   reqLevel: 75, xp: 100, time: 64.0, statXp: 8, inputs: [{ itemId: 'tuyetLienHoa', qty: 3 }] },
       { id: 'thoiVanThachThuong', name: 'Thôi Vận Thạch Thượng Phẩm',gloss:'Momentum Crystal III',  itemId: 'thoiVanThachThuong', reqLevel: 75, xp: 112, time: 68.0, statXp: 8, inputs: [{ itemId: 'tuyetLienHoa', qty: 1 }, { itemId: 'ngocTuyenSam', qty: 2 }] },
       { id: 'boiSanThachThuong',  name: 'Bội Sản Thạch Thượng Phẩm',gloss: 'Bounty Crystal III',    itemId: 'boiSanThachThuong',  reqLevel: 75, xp: 105, time: 66.0, statXp: 8, inputs: [{ itemId: 'tuyetLienHoa', qty: 2 }, { itemId: 'ngocTuyenSam', qty: 1 }] },
+      // --- ĐAN HỒI ---
+      { id: 'hoatHuyetDan', name: 'Hoạt Huyết Đan', gloss: 'Blood Pill',      itemId: 'hoatHuyetDan', reqLevel: 20, xp: 24, time: 34.0, statXp: 3, inputs: [{ itemId: 'duongQuyCan', qty: 3 }, { itemId: 'hacThan', qty: 1 }] },
+      { id: 'quanKhiDan',   name: 'Quán Khí Đan',   gloss: 'Greater Qi Pill', itemId: 'quanKhiDan',   reqLevel: 40, xp: 34, time: 40.0, statXp: 4, inputs: [{ itemId: 'thachHocLan', qty: 3 }, { itemId: 'hacThan', qty: 2 }] },
+      { id: 'tucMenhDan',   name: 'Tục Mệnh Đan',   gloss: 'Lifeline Pill',   itemId: 'tucMenhDan',   reqLevel: 55, xp: 44, time: 46.0, statXp: 5, inputs: [{ itemId: 'tuyetLienHoa', qty: 3 }, { itemId: 'hacThan', qty: 2 }] },
+      { id: 'hoanHonDan',   name: 'Hoàn Hồn Đan',   gloss: 'Soul Return Pill',itemId: 'hoanHonDan',   reqLevel: 85, xp: 92, time: 62.0, statXp: 8, inputs: [{ itemId: 'thatTinhThao', qty: 3 }, { itemId: 'hacThan', qty: 3 }] },
+      // --- ĐAN BỔ TRỢ (4 họ × 3 dạng). Liệu: Tán bậc 3-4 + chiến lợi phẩm thường · Hoàn bậc 6-7 ·
+      //     Đan THUẦN linh thảo bậc 9-10 (KHÔNG đụng liệu boss — đó là TUYET_MATS chế Tuyệt Kĩ).
+      { id: 'cuongNguyenTan',  name: 'Cường Nguyên Tán',  gloss: 'Vigor Powder',    itemId: 'cuongNguyenTan',  reqLevel: 20, xp: 22,  time: 45.0, statXp: 3, inputs: [{ itemId: 'duongQuyCan', qty: 2 }, { itemId: 'truNha', qty: 1 }] },
+      { id: 'cuongNguyenHoan', name: 'Cường Nguyên Hoàn', gloss: 'Vigor Pill',      itemId: 'cuongNguyenHoan', reqLevel: 55, xp: 56,  time: 60.0, statXp: 6, inputs: [{ itemId: 'ngocTuyenSam', qty: 2 }, { itemId: 'vanLoChi', qty: 1 }, { itemId: 'hungChuong', qty: 1 }] },
+      { id: 'cuongNguyenDan',  name: 'Cường Nguyên Đan',  gloss: 'Vigor Essence',   itemId: 'cuongNguyenDan',  reqLevel: 85, xp: 118, time: 85.0, statXp: 8, inputs: [{ itemId: 'tramVuLan', qty: 2 }, { itemId: 'cuuDiepLinhChi', qty: 1 }] },
+      { id: 'bachBaoTan',      name: 'Bách Bảo Tán',      gloss: 'Fortune Powder',  itemId: 'bachBaoTan',      reqLevel: 20, xp: 22,  time: 45.0, statXp: 3, inputs: [{ itemId: 'thachHocLan', qty: 2 }, { itemId: 'langBi', qty: 1 }] },
+      { id: 'bachBaoHoan',     name: 'Bách Bảo Hoàn',     gloss: 'Fortune Pill',    itemId: 'bachBaoHoan',     reqLevel: 55, xp: 56,  time: 60.0, statXp: 6, inputs: [{ itemId: 'ngocTuyenSam', qty: 1 }, { itemId: 'vanLoChi', qty: 2 }, { itemId: 'saMangDam', qty: 1 }] },
+      { id: 'bachBaoDan',      name: 'Bách Bảo Đan',      gloss: 'Fortune Essence', itemId: 'bachBaoDan',      reqLevel: 85, xp: 118, time: 85.0, statXp: 8, inputs: [{ itemId: 'tramVuLan', qty: 2 }, { itemId: 'cuuDiepLinhChi', qty: 1 }] },
+      { id: 'ngoDaoTan',       name: 'Ngộ Đạo Tán',       gloss: 'Insight Powder',  itemId: 'ngoDaoTan',       reqLevel: 20, xp: 22,  time: 45.0, statXp: 3, inputs: [{ itemId: 'thachHocLan', qty: 2 }, { itemId: 'trucMoc', qty: 1 }] },
+      { id: 'ngoDaoHoan',      name: 'Ngộ Đạo Hoàn',      gloss: 'Insight Pill',    itemId: 'ngoDaoHoan',      reqLevel: 55, xp: 56,  time: 60.0, statXp: 6, inputs: [{ itemId: 'ngocTuyenSam', qty: 2 }, { itemId: 'vanLoChi', qty: 1 }] },
+      { id: 'ngoDaoDan',       name: 'Ngộ Đạo Đan',       gloss: 'Insight Essence', itemId: 'ngoDaoDan',       reqLevel: 85, xp: 118, time: 85.0, statXp: 8, inputs: [{ itemId: 'cuuDiepLinhChi', qty: 3 }] },
+      { id: 'duongThuTan',     name: 'Dưỡng Thú Tán',     gloss: 'Beastcare Powder',itemId: 'duongThuTan',     reqLevel: 20, xp: 22,  time: 45.0, statXp: 3, inputs: [{ itemId: 'thachHocLan', qty: 2 }, { itemId: 'caTuyet', qty: 2 }] },
+      { id: 'duongThuHoan',    name: 'Dưỡng Thú Hoàn',    gloss: 'Beastcare Pill',  itemId: 'duongThuHoan',    reqLevel: 55, xp: 56,  time: 60.0, statXp: 6, inputs: [{ itemId: 'ngocTuyenSam', qty: 2 }, { itemId: 'vanLoChi', qty: 1 }] },
+      { id: 'duongThuDan',     name: 'Dưỡng Thú Đan',     gloss: 'Beastcare Essence',itemId:'duongThuDan',     reqLevel: 85, xp: 118, time: 85.0, statXp: 8, inputs: [{ itemId: 'tramVuLan', qty: 1 }, { itemId: 'cuuDiepLinhChi', qty: 2 }] },
     ],
   },
   daTao: {

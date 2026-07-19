@@ -18,6 +18,7 @@ import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DAMDAO, TIN_VAT_EFF_PCT } from '../data/damdao.js';   // Tín Vật: thưởng Đàm Đạo -> +% hiệu suất nghề
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
+import { buffVal } from './buff.js';   // Đan Bổ Trợ: +% EXP Chiến Đấu / rơi liệu / Bạc
 import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
 
@@ -124,24 +125,37 @@ export function autoEatTick(state, maxHP) {
   const cb = state.combat; if (!cb) return 0;
   const cur = cb.sinhLuc == null ? maxHP : cb.sinhLuc;
   if (cur >= maxHP * AUTO_USE_PCT) return 0;                 // còn trên 25% -> chưa dùng
-  const fid = cb.luongThuc, food = fid && ITEMS[fid];        // 1) Món Ăn
-  if (food && food.heal && (state.inventory[fid] || 0) > 0) {
-    removeItem(state, fid, 1); cb.sinhLuc = Math.min(maxHP, cur + food.heal); return 1;
-  }
-  const did = cb.dan, dan = did && ITEMS[did];               // 2) Đan hồi máu (nếu đan đang lắp hồi Sinh Lực)
-  if (dan && dan.heal && (state.inventory[did] || 0) > 0) {
-    removeItem(state, did, 1); cb.sinhLuc = Math.min(maxHP, cur + dan.heal); return 1;
+  // Ô "Hồi Sinh Lực" (cb.luongThuc) nhận CẢ Món Ăn lẫn đan hồi máu — đan hồi máu bản chất là món ăn
+  // cao cấp. heal = số phẳng (món ăn) · healPct = % Sinh Lực TỐI ĐA (đan; số phẳng vô dụng ở cấp cao).
+  const fid = cb.luongThuc, food = fid && ITEMS[fid];
+  if (food && (state.inventory[fid] || 0) > 0) {
+    const amt = food.healPct ? Math.round(maxHP * food.healPct / 100) : (food.heal || 0);
+    if (amt > 0) { removeItem(state, fid, 1); cb.sinhLuc = Math.min(maxHP, cur + amt); return 1; }
   }
   return 0;
 }
 // ---- Tự dùng Đan hồi Nội Lực khi NL < 25%. Trả lượng hồi (0 nếu không dùng). ----
 export function autoDanNL(state, maxNL, curNL) {
-  const cb = state.combat; if (!cb || !cb.dan) return 0;
-  const dan = ITEMS[cb.dan];
-  if (!dan || !dan.healNL || (state.inventory[cb.dan] || 0) <= 0) return 0;
+  const cb = state.combat; if (!cb || !cb.danNL) return 0;
+  const dan = ITEMS[cb.danNL];
+  if (!dan || !dan.healNL || (state.inventory[cb.danNL] || 0) <= 0) return 0;
   if (curNL >= maxNL * AUTO_USE_PCT) return 0;
-  removeItem(state, cb.dan, 1);
+  removeItem(state, cb.danNL, 1);
   return dan.healNL;
+}
+
+// Save cũ chỉ có MỘT ô `cb.dan` dùng chung cho cả hồi máu lẫn hồi nội lực -> tách thành 3 ô.
+// Chạy 1 lần lúc load; không được để mất món đang lắp.
+export function migrateDanSlots(state) {
+  const cb = state.combat; if (!cb) return;
+  if (cb.dan) {
+    const it = ITEMS[cb.dan] || {};
+    if (it.healNL && !cb.danNL) cb.danNL = cb.dan;
+    else if ((it.heal || it.healPct) && !cb.luongThuc) cb.luongThuc = cb.dan;
+    delete cb.dan;
+  }
+  if (cb.duocLu === undefined) cb.duocLu = null;
+  if (cb.danNL === undefined) cb.danNL = null;
 }
 
 // ---- Bắt đầu chiến đấu (Tuyệt Học Phổ — theo bài võ, vào trận đầy Sinh Lực) ----
@@ -253,15 +267,19 @@ export function advance(state, now) {
     const enemy = ENEMIES[act.enemyId];
     const cb = state.combat;
     if (cyclesByTime > 0 && enemy && cb) {
-      const mult = skillExpMultiplier(state, 'chienDau');
+      // Đan Bổ Trợ họ Ngộ Đạo: +% EXP CHIẾN ĐẤU (không đụng EXP nghề nào).
+      const mult = skillExpMultiplier(state, 'chienDau') * (1 + buffVal(state, 'cbExpPct', now) / 100);
       const gainXp = Math.max(1, Math.round(enemy.exp * mult));
       const stats = boPhapStats(cb.loadout);               // Tứ Trụ nhận EXP theo các Bộ Pháp (1-2)
       const hpLost = act.hpLostPerKill || 0;               // máu mất mỗi con (từ Suy Tính)
       const maxHP = act.maxHP || (act.maxHP = combatProfile(state, cb.loadout, enemy).maxHP); // mốc ngưỡng tự ăn (memo cho save cũ)
       const bacPer = Math.max(1, Math.round(enemy.exp * BAC_PER_EXP));   // Bạc/kill khi rơi (exp×0.5 -> L100 = 40)
       const _tb = titleBonus(state);                                     // Danh Hiệu: +Bạc/+rơi đồ nhẹ
-      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
+      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct + buffVal(state, 'bacPct', now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
       const lootMul = 1 + activeAwkVal(state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
+      // BIẾN RIÊNG cho họ Bách Bảo: CHỈ nhân vào loot nguyên liệu thường, TUYỆT ĐỐI không đụng
+      // MONSTER_DROP_CHANCE (gear 0,3%). Cộng thẳng vào lootMul là inflate luôn tỉ lệ rơi trang bị.
+      const matMul = lootMul * (1 + buffVal(state, 'lootPct', now) / 100);
       let done = 0, died = false, bacGot = 0;
       const sess = act.sess || (act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
       for (let i = 0; i < cyclesByTime; i++) {
@@ -273,7 +291,9 @@ export function advance(state, now) {
         if (hp > 0) cb.sinhLuc -= hp;
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
-        if (enemy.loot) for (const l of enemy.loot) { if (Math.random() < l.chance * lootMul * LOOT_DROP_MULT) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
+        // enemy.loot chứa CẢ 4 chiến lợi phẩm boss unique (liệu chế Tuyệt Kĩ) đi chung vòng lặp với Da Sói.
+        // noBoost -> Bách Bảo KHÔNG được thổi phồng chúng; chỉ nguyên liệu thường mới ăn matMul.
+        if (enemy.loot) for (const l of enemy.loot) { const m = l.noBoost ? lootMul : matMul; if (Math.random() < l.chance * m * LOOT_DROP_MULT) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
         if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }   // loot-hunt: rơi gear instance (offline-safe)
         if (Math.random() < BAC_DROP_CHANCE) { const bg = Math.round(bacPer * moneyMul); state.currencies.bac = (state.currencies.bac || 0) + bg; bacGot += bg; }   // Bạc rơi ~15%/kill (không phải mỗi con)
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;

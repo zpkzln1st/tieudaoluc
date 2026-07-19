@@ -57,7 +57,7 @@ export const ENEMIES = {
     lore:'Sát thủ áo đen của hắc bang, mình kín như bưng, ám khí giấu khắp người.', atkFl:'phóng một loạt ám khí', skill:{name:'Mãn Thiên Hoa Vũ',mult:1.6,cd:5,fl:'tung mưa ám khí phủ kín trời'} }),
   luuManh: mk(18, 'nhanh', { id:'luuManh', name:'Lưu Manh', gloss:'Street Thug', icon:'👊', affinity:'Lục Lâm', loot:[{itemId:'tangNgan',chance:0.20}],
     lore:'Du côn phố chợ, ra tay nhanh và bẩn, đánh lén sau lưng là sở trường.', atkFl:'thụi một quyền hèn hạ', skill:{name:'Tạp Đả Cước',mult:1.5,cd:3,fl:'tung loạn quyền cước bất kể chiêu thức'} }),
-  sonTacVuong: mk(28, 'boss', { id:'sonTacVuong', name:'Sơn Tặc Vương', gloss:'Bandit King', icon:'👑', isBoss:true, affinity:'Trùm Lục Lâm', loot:[{itemId:'hoPhuDauLinh',chance:0.04},{itemId:'hacThietPhien',chance:0.5}],
+  sonTacVuong: mk(28, 'boss', { id:'sonTacVuong', name:'Sơn Tặc Vương', gloss:'Bandit King', icon:'👑', isBoss:true, affinity:'Trùm Lục Lâm', loot:[{itemId:'hoPhuDauLinh',chance:0.04,noBoost:true},{itemId:'hacThietPhien',chance:0.5}],
     lore:'Đầu lĩnh lục lâm hùng cứ một phương, một tiếng hô là trăm tên lâu la dạ ran.', atkFl:'vung đại đao chém ngang', skill:{name:'Bá Vương Trảm',mult:2.4,cd:5,fl:'một đao bá đạo chém rạp cả hàng quân'} }),
 
   // ===== Thủy Tinh Động (Lv32) — Bí Cảnh — pha lê / hang động =====
@@ -75,7 +75,7 @@ export const ENEMIES = {
     lore:'Đại bàng băng phủ móng vuốt sương giá, bổ nhào từ trời cao xé toạc gió rét.', atkFl:'bổ nhào quặp xuống', skill:{name:'Hàn Vũ Kích',mult:1.8,cd:5,fl:'sà xuống như mũi băng tiễn từ mây'} }),
   hanGiao: mk(48, 'trau', { id:'hanGiao', name:'Hàn Giao', gloss:'Frost Serpent', icon:'🐍', affinity:'Băng Mãng', loot:[{itemId:'hanThietTinh',chance:0.22}],
     lore:'Mãng xà hàn băng cuộn mình trong động tuyết, mỗi cú quấn lạnh thấu xương tuỷ.', atkFl:'quấn siết một vòng', skill:{name:'Băng Triền',mult:1.6,cd:5,fl:'cuộn chặt phun hàn khí đóng băng'} }),
-  hanGiaoVuong: mk(58, 'boss', { id:'hanGiaoVuong', name:'Hàn Giao Vương', gloss:'Frost Serpent King', icon:'🐉', isBoss:true, affinity:'Trùm Băng Mãng', loot:[{itemId:'hachCoLinh',chance:0.03},{itemId:'hanThietTinh',chance:0.5}],
+  hanGiaoVuong: mk(58, 'boss', { id:'hanGiaoVuong', name:'Hàn Giao Vương', gloss:'Frost Serpent King', icon:'🐉', isBoss:true, affinity:'Trùm Băng Mãng', loot:[{itemId:'hachCoLinh',chance:0.03,noBoost:true},{itemId:'hanThietTinh',chance:0.5}],
     lore:'Mãng vương ngàn năm ngụ đỉnh tuyết, hơi thở một cái là cả sườn núi đóng băng.', atkFl:'phun bão băng', skill:{name:'Vạn Lý Băng Phong',mult:2.6,cd:6,slow:true,fl:'phun cuồng phong băng giá phủ trắng chiến trường'} }),
 
   // ===== Mê Ảo Lục Châu (Lv60) — Tiên Cảnh — sa mạc / ảo cảnh =====
@@ -101,7 +101,7 @@ export const ENEMIES = {
     lore:'Thần tướng giữ đài quan tinh, giáp trụ đúc từ thiên thạch cứng vô song.', atkFl:'giáng thiên thạch chuỳ', skill:{name:'Cương Kim Trấn',mult:1.7,cd:5,fl:'nện chuỳ thiên thạch chấn động cả đài'} }),
   huKhongThu: mk(78, 'nhanh', { id:'huKhongThu', name:'Hư Không Thú', gloss:'Void Beast', icon:'🌀', affinity:'Hư Thú', loot:[{itemId:'huKhongTinh',chance:0.12}],
     lore:'Dã thú sinh từ khe hư không, thân hình méo mó nuốt cả ánh sáng xung quanh.', atkFl:'nhe nanh hư không cắn', skill:{name:'Hư Không Thôn Phệ',mult:1.9,cd:5,fl:'há miệng hư vô nuốt chửng'} }),
-  cuuViHoTien: mk(88, 'boss', { id:'cuuViHoTien', name:'Cửu Vĩ Hồ Tiên', gloss:'Nine-Tail Fox', icon:'🦊', isBoss:true, affinity:'Trùm Hồ Tiên', loot:[{itemId:'cuuViTinh',chance:0.025},{itemId:'tinhTuy',chance:0.5}],
+  cuuViHoTien: mk(88, 'boss', { id:'cuuViHoTien', name:'Cửu Vĩ Hồ Tiên', gloss:'Nine-Tail Fox', icon:'🦊', isBoss:true, affinity:'Trùm Hồ Tiên', loot:[{itemId:'cuuViTinh',chance:0.025,noBoost:true},{itemId:'tinhTuy',chance:0.5}],
     lore:'Hồ tiên chín đuôi tu luyện vạn năm, một cái phẩy đuôi là mê hoặc cả vạn quân.', atkFl:'quét chín đuôi', skill:{name:'Cửu Vĩ Phần Thiên',mult:2.7,cd:6,fl:'chín đuôi hoá lửa quét sạch tám phương'} }),
 
   // ===== Tịch Ngữ Đảo (Lv92) — Thần Vực — hải đảo / sương mù =====
@@ -119,7 +119,7 @@ export const ENEMIES = {
     lore:'Ma vật thượng cổ bị phong ấn dưới thành, nay tỉnh giấc khát máu sinh linh.', atkFl:'vung ma trảo', skill:{name:'Huyết Ma Trảo',mult:2.3,cd:5,fl:'ma trảo nhuốm huyết xé toạc phòng tuyến'} }),
   thienBinh: mk(100, 'thuong', { id:'thienBinh', name:'Thiên Binh', gloss:'Heavenly Soldier', icon:'🪖', affinity:'Thiên Quân', loot:[{itemId:'thanThietTinh',chance:0.12}],
     lore:'Binh tốt nhà trời canh gác cổng thành, kỷ luật nghiêm minh, đánh theo trận pháp.', atkFl:'chém một đao', skill:{name:'Trận Pháp Hợp Kích',mult:2.0,cd:4,fl:'đồng loạt xuất thủ theo thiên trận'} }),
-  coMaTo: mk(100, 'boss', { id:'coMaTo', name:'Cổ Ma Tổ', gloss:'Demon Ancestor', icon:'😈', isBoss:true, affinity:'Trùm Ma Đạo', loot:[{itemId:'maToTam',chance:0.02},{itemId:'coMaHaiCot',chance:0.5}],
+  coMaTo: mk(100, 'boss', { id:'coMaTo', name:'Cổ Ma Tổ', gloss:'Demon Ancestor', icon:'😈', isBoss:true, affinity:'Trùm Ma Đạo', loot:[{itemId:'maToTam',chance:0.02,noBoost:true},{itemId:'coMaHaiCot',chance:0.5}],
     lore:'Thuỷ tổ của ma đạo, sức mạnh nghiêng trời lệch đất — đích đến tối hậu của mọi cao thủ giang hồ.', atkFl:'giáng ma uy', skill:{name:'Diệt Thế Ma Viêm',mult:3.0,cd:6,fl:'ma viêm huỷ diệt thiêu rụi tất thảy'} }),
 };
 

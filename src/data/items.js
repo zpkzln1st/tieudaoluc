@@ -165,6 +165,29 @@ export const ITEMS = {
 
   // --- Đan dược ---
   hoiKhiDan: { id: 'hoiKhiDan', name: 'Hồi Khí Đan', icon: '🧪', type: 'dan', quality: 'luongPham', value: 25, healNL: 60, desc: 'Đan dược hồi phục nội khí, ngậm vào chân nguyên sung mãn trở lại.' },
+  // --- ĐAN HỒI ---
+  // Dòng Nội Lực chỉ 2 bậc (maxNL phẳng 120-155 ở mọi cấp nên bậc 3 vô nghĩa).
+  // Dòng Sinh Lực dùng healPct (% Sinh Lực TỐI ĐA) — số phẳng sẽ vô dụng ở cấp cao.
+  quanKhiDan:   { id: 'quanKhiDan',   name: 'Quán Khí Đan',  icon: '🧪', type: 'dan', quality: 'tinhPham',  value: 16, healNL: 150, desc: 'Thạch hộc ngưng lộ luyện thành hoàn — nuốt xuống, khí hải đầy lại trong một hơi.' },
+  hoatHuyetDan: { id: 'hoatHuyetDan', name: 'Hoạt Huyết Đan', icon: '💊', type: 'dan', quality: 'tinhPham',  value: 8,  healPct: 30, desc: 'Đương quy dẫn huyết quy kinh — một hoàn xuống bụng, máu thịt tự liền.' },
+  tucMenhDan:   { id: 'tucMenhDan',   name: 'Tục Mệnh Đan',  icon: '💊', type: 'dan', quality: 'tuyetPham', value: 20, healPct: 45, desc: 'Tuyết liên luyện qua chín lần lửa, nối lại mạch sống nơi kẻ đã cạn máu.' },
+  hoanHonDan:   { id: 'hoanHonDan',   name: 'Hoàn Hồn Đan',  icon: '💊', type: 'dan', quality: 'truyenThe', value: 70, healPct: 60, desc: 'Thất tinh hội đỉnh, hồn đã tán còn gọi về — nửa thân sang bên kia cũng kéo ngược lại.' },
+
+  // --- ĐAN BỔ TRỢ (buff có hạn giờ) — 4 họ × 3 dạng. Tán 120' nhẹ · Hoàn 40' vừa · Đan 12' mãnh liệt.
+  //     Thứ tự cổ "hoàn tán cao đan": Đan là tinh luyện nhất -> đọc ra bậc mà không phải giải thích.
+  //     Tích buff (% × phút) GIẢM khi lên dạng: mạnh thì phải ngắn.
+  cuongNguyenTan:  { id: 'cuongNguyenTan',  name: 'Cường Nguyên Tán',  icon: '🔴', type: 'dan', quality: 'tinhPham',  value: 9,   buff: { key: 'cuongNguyen', durMs: 7200000, atkPct: 6,  defPct: 6,  hpPct: 6  }, desc: 'Đương quy tán bột hoà nanh thú nghiền mịn, khí lực âm ỉ dâng suốt hai canh giờ.' },
+  cuongNguyenHoan: { id: 'cuongNguyenHoan', name: 'Cường Nguyên Hoàn', icon: '🔴', type: 'dan', quality: 'truyenThe', value: 39,  buff: { key: 'cuongNguyen', durMs: 2400000, atkPct: 14, defPct: 14, hpPct: 14 }, desc: 'Chân gấu hầm cùng ngọc tuyền sâm, một viên xuống bụng gân cốt căng như dây cung.' },
+  cuongNguyenDan:  { id: 'cuongNguyenDan',  name: 'Cường Nguyên Đan',  icon: '🔴', type: 'dan', quality: 'coBan',     value: 148, buff: { key: 'cuongNguyen', durMs: 720000,  atkPct: 30, defPct: 30, hpPct: 30 }, desc: 'Cửu diệp linh chi ép lấy cốt tinh — huyết khí bùng lên rồi tắt, mạnh trong chớp mắt.' },
+  bachBaoTan:      { id: 'bachBaoTan',      name: 'Bách Bảo Tán',      icon: '🟡', type: 'dan', quality: 'tinhPham',  value: 11,  buff: { key: 'bachBao', durMs: 7200000, lootPct: 6,  bacPct: 6  }, desc: 'Thạch hộc lan ướp da sói phơi sương, mắt sáng tay nhanh, của rơi dọc đường chẳng sót.' },
+  bachBaoHoan:     { id: 'bachBaoHoan',     name: 'Bách Bảo Hoàn',     icon: '🟡', type: 'dan', quality: 'truyenThe', value: 46,  buff: { key: 'bachBao', durMs: 2400000, lootPct: 15, bacPct: 15 }, desc: 'Mật sa mãng luyện với vân lộ chi, xác thú nào cũng lộ ra chỗ giấu của.' },
+  bachBaoDan:      { id: 'bachBaoDan',      name: 'Bách Bảo Đan',      icon: '🟡', type: 'dan', quality: 'coBan',     value: 156, buff: { key: 'bachBao', durMs: 720000,  lootPct: 30, bacPct: 30 }, desc: 'Một viên bừng lên, trời đất phơi hết kho tàng — chỉ tiếc dược lực tan nhanh như chớp.' },
+  ngoDaoTan:       { id: 'ngoDaoTan',       name: 'Ngộ Đạo Tán',       icon: '🔵', type: 'dan', quality: 'tinhPham',  value: 11,  buff: { key: 'ngoDao', durMs: 7200000, cbExpPct: 5  }, desc: 'Trúc lịch điều thạch hộc lan, tâm tĩnh mà tỏ, đánh trăm trận ngộ ra trăm điều.' },
+  ngoDaoHoan:      { id: 'ngoDaoHoan',      name: 'Ngộ Đạo Hoàn',      icon: '🔵', type: 'dan', quality: 'truyenThe', value: 48,  buff: { key: 'ngoDao', durMs: 2400000, cbExpPct: 12 }, desc: 'Vân lộ chi hoà ngọc tuyền sâm, mỗi đòn giao phong đều hằn lại thành sở học.' },
+  ngoDaoDan:       { id: 'ngoDaoDan',       name: 'Ngộ Đạo Đan',       icon: '🔵', type: 'dan', quality: 'coBan',     value: 168, buff: { key: 'ngoDao', durMs: 720000,  cbExpPct: 25 }, desc: 'Một niệm thông suốt — sát na ấy bằng người khác khổ luyện cả tháng.' },
+  duongThuTan:     { id: 'duongThuTan',     name: 'Dưỡng Thú Tán',     icon: '🟢', type: 'dan', quality: 'tinhPham',  value: 10,  buff: { key: 'duongThu', durMs: 7200000, petExpPct: 20, petStamCutPct: 10 }, desc: 'Thạch hộc lan nấu cùng tuyết ngư, linh thú ăn vào no lâu, bước chân chẳng biết mỏi.' },
+  duongThuHoan:    { id: 'duongThuHoan',    name: 'Dưỡng Thú Hoàn',    icon: '🟢', type: 'dan', quality: 'truyenThe', value: 44,  buff: { key: 'duongThu', durMs: 2400000, petExpPct: 40, petStamCutPct: 20 }, desc: 'Vân lộ chi dẫn ngọc tuyền sâm, thú tính thuần lại mà linh trí mở ra.' },
+  duongThuDan:     { id: 'duongThuDan',     name: 'Dưỡng Thú Đan',     icon: '🟢', type: 'dan', quality: 'coBan',     value: 152, buff: { key: 'duongThu', durMs: 720000,  petExpPct: 80, petStamCutPct: 35 }, desc: 'Trầm vụ lan ép lấy tinh, linh thú nuốt vào gầm một tiếng vượt hẳn một bậc.' },
 
   // --- Trang bị ---
   tichSao:   { id: 'tichSao',   name: 'Cuốc Thiếc', icon: '⛏️', type: 'trangbi', quality: 'phamPham',  value: 40,  equip: { slot: 'cuoc',  stats: {}, gatherEff: 0.05 }, desc: 'Cây cuốc thiếc thô kệch, công cụ đào khoáng cơ bản — +5% hiệu suất.' },
