@@ -186,3 +186,38 @@ Vật thể chung: **liềm hái thuốc** — lưỡi cong lưỡi liềm, cán
 Tên: **Bách Thảo Chân Nhân**. Bám đúng dàn huy hiệu 9 nghề sẵn có (xem `images/ui/huyhieu/`) rồi mới áp phần riêng:
 
 > an ornate circular achievement emblem/medallion on a FULLY TRANSPARENT background, centred, square 1:1: a golden crescent herb-sickle crossed behind a woven bamboo herb basket, framed by a wreath of nine overlapping medicinal leaves, a single luminous nine-lobed lingzhi mushroom crowning the top, antique gold and deep jade-green palette with soft inner radiance, ceremonial and prestigious, wuxia xianxia style, painterly semi-realistic, no text, no watermark
+
+---
+
+## SỬA — Huy hiệu Lv100 `images/ui/huyhieu/thaiDuoc.webp`
+
+Prompt ngay phía trên **SAI**: viết mà chưa mở `images/ui/huyhieu/` xem bộ 10 cái sẵn có, nên ra dạng
+vòng nguyệt quế sáng màu, lệch hẳn ngôn ngữ chung. Dùng prompt dưới đây thay thế.
+
+**Ngôn ngữ chung của bộ (bám cứng, đừng sáng tạo lại):** đĩa tròn chạm sát 4 mép khung · vành vàng chạm
+khắc dày khảm ngọc bích · 4 medallion ngọc bích ở 12h/3h/6h/9h · hoa văn vàng nhọn ở đỉnh và đáy · hai
+rồng vàng cuộn trong vành · nền trong TỐI (núi mây mù + hào quang vàng toả) · chủ thể giữa bằng vàng/ngọc
+và PHÁT SÁNG TỪ TRONG · bảng màu vàng kim + ngọc bích + nâu đen, ánh sáng ấm.
+
+```
+An ornate circular Chinese wuxia achievement medallion, 1:1 square, the disc FILLING THE ENTIRE FRAME
+and bleeding to all four edges with only a hair of margin, on a fully transparent background.
+Thick heavily-carved antique-gold outer rim inlaid with carved jade-green stone panels; four round jade
+cabochon medallions set at the top, bottom, left and right of the rim; pointed ornate gold finials
+crowning the top and the bottom of the disc; two sinuous golden dragons coiled inside the rim, facing
+the centre.
+Interior: DARK and atmospheric - near-black deep-green depths with a faint misty mountain landscape and
+drifting clouds, lit by a warm golden radiance blooming from the centre, thin concentric rings of golden
+light, small floating sparks.
+Centre subject: a golden herb-gatherer's crescent sickle crossed behind a woven basket of glowing
+medicinal herbs, the basket rendered in polished gold with jade-green inlay, fresh spirit-herb leaves
+spilling over its rim and emitting a soft luminous green-gold glow from within.
+Palette: deep antique gold + jade green + near-black, warm inner light. Painterly semi-realistic,
+ultra-detailed metalwork and jade carving, ceremonial and prestigious, matching a set of ten sibling
+emblems. No text, no watermark, no signature, no flat lighting.
+Negative prompt: light background, pale wreath, laurel wreath shape, bright green flat illustration,
+white background inside the disc, thin border, non-circular silhouette, margin around the disc, text.
+```
+
+**Nghiệm thu:** đặt cạnh `daTao.webp` và `luyenDan.webp` phải thấy **cùng một bộ** — cùng độ dày vành,
+cùng 4 medallion ngọc, cùng nền tối, cùng độ sáng chủ thể. File 500×500 như 10 cái kia.
