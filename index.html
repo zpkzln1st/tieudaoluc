@@ -1062,8 +1062,14 @@
                   </div>
                   <div class="text-[10px] text-center mt-1 truncate" :class="!$store.game.state.player.avatar ? 'text-jade' : 'text-slate-400'">Mặc Định</div>
                 </button>
+                <!-- Cả ô đã là nút CHỌN rồi -> không nhét thêm nút/icon. Luật: bấm lần đầu = chọn;
+                     bấm LẠI vào cái ĐANG chọn = xem ảnh lớn. Con trỏ zoom-in chỉ hiện ở ô đang chọn,
+                     đó là tín hiệu duy nhất cần thiết. -->
                 <template x-for="av in $store.game.AVATARS.filter(a => ($store.game.state.player.ownedAvatars||[]).includes(a.id))" :key="av.id">
-                  <button x-data="{ok:false}" x-show="ok" @click="$store.game.selectAvatar(av.id)" class="group">
+                  <button x-data="{ok:false}" x-show="ok" class="group"
+                          :class="$store.game.state.player.avatar===av.id ? 'cursor-zoom-in' : ''"
+                          :title="$store.game.state.player.avatar===av.id ? 'Bấm lại để xem ảnh lớn' : av.name"
+                          @click="$store.game.state.player.avatar===av.id ? $store.game.openLightbox(av.id, '容', av.name, `images/avatars/${av.id}.webp`) : $store.game.selectAvatar(av.id)">
                     <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                          :class="$store.game.state.player.avatar===av.id ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
                       <img :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
@@ -1089,8 +1095,12 @@
                   </div>
                   <div class="text-[10px] text-center mt-1 truncate" :class="!$store.game.state.player.coverImg ? 'text-jade' : 'text-slate-400'">Giống Avatar</div>
                 </button>
+                <!-- Cùng luật với Ảnh Đại Diện: bấm lần đầu = chọn, bấm lại cái đang chọn = xem lớn. -->
                 <template x-for="av in $store.game.COVERS.filter(c => ($store.game.state.player.ownedCovers||[]).includes(c.id))" :key="'cover-'+av.id">
-                  <button @click="$store.game.selectCover(av.id)" class="group">
+                  <button class="group"
+                          :class="$store.game.state.player.coverImg===av.id ? 'cursor-zoom-in' : ''"
+                          :title="$store.game.state.player.coverImg===av.id ? 'Bấm lại để xem ảnh lớn' : av.name"
+                          @click="$store.game.state.player.coverImg===av.id ? $store.game.openLightbox(av.id, '幀', av.name, `images/avatars/${av.id}.webp`) : $store.game.selectCover(av.id)">
                     <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                          :class="$store.game.state.player.coverImg===av.id ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
                       <img :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
@@ -3135,8 +3145,11 @@
                   <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
                     <template x-for="av in $store.game.AVATARS" :key="'shop-av-'+av.id">
                       <div x-data="{ok:false}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
-                        <div class="aspect-square overflow-hidden bg-ink3">
-                          <img :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
+                        <!-- Ô ảnh vốn KHÔNG bấm được (chỉ nút Mua) -> cho bấm luôn để xem lớn.
+                             Báo hiệu bằng con trỏ zoom-in + tooltip, KHÔNG thêm icon kính lúp. -->
+                        <div class="aspect-square overflow-hidden bg-ink3 cursor-zoom-in" title="Bấm để xem ảnh lớn"
+                             @click="$store.game.openLightbox(av.id, '容', av.name, `images/avatars/${av.id}.webp`)">
+                          <img :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center transition duration-200 group-hover:brightness-110" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
                         </div>
                         <div class="p-2">
                           <div class="text-[12px] font-medium truncate text-slate-200" x-text="av.name"></div>
@@ -3163,8 +3176,9 @@
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <template x-for="cv in $store.game.COVERS" :key="'shop-cv-'+cv.id">
                       <div x-data="{ok:false}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
-                        <div class="aspect-[16/9] overflow-hidden bg-black/40">
-                          <img :src="`images/avatars/${cv.id}.webp`" class="w-full h-full object-cover" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
+                        <div class="aspect-[16/9] overflow-hidden bg-black/40 cursor-zoom-in" title="Bấm để xem ảnh lớn"
+                             @click="$store.game.openLightbox(cv.id, '幀', cv.name, `images/avatars/${cv.id}.webp`)">
+                          <img :src="`images/avatars/${cv.id}.webp`" class="w-full h-full object-cover transition duration-200 group-hover:brightness-110" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
                         </div>
                         <div class="p-2.5">
                           <div class="text-[12.5px] font-medium truncate text-slate-200" x-text="cv.name"></div>
