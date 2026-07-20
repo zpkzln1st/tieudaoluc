@@ -281,6 +281,61 @@ export const CHIEU = [
 ];
 export function chieuById(id){ return CHIEU.find(c=>c.id===id) || null; }
 
+// ============================================================
+// TẦNG CHIÊU THỨC — tiêu điểm Ngộ Tính (1 điểm mỗi cấp Chiến Đấu) để luyện sâu MỘT chiêu.
+// PHẠM VI BÓ CHẶT Ở CHIÊU THỨC. Tâm Pháp và Bị Động KHÔNG có Tầng, vì hai thứ đó tiêu thụ ở
+// khối addMod trong deriveCombat — mở sang đó sẽ phá hook một dòng ở makeFight VÀ kéo theo
+// dungeon.js (power 9 phó bản đã tune). Riêng regen: TUYỆT ĐỐI không nhân, Sinh Sinh Bất Tức
+// 2.5%/giây nhân lên là nhân vật bất tử, xoá sạch đánh đổi giữa bài công và bài thủ.
+// ============================================================
+export const TANG_MAX = 20;
+export const TANG_BANDS = [
+  // eff: viết CHO NGƯỜI CHƠI ĐỌC, không phải cho lập trình viên — câu ngắn, nói thẳng được lợi gì.
+  { at:5,  han:'窺', name:'Sơ Khuy Môn Kính',     eff:'Tốn ít Nội Lực hơn' },
+  { at:10, han:'堂', name:'Đăng Đường Nhập Thất', eff:'Tốn ít Nội Lực nữa · Bỏng, Độc cháy lâu hơn' },
+  { at:15, han:'爐', name:'Lô Hỏa Thuần Thanh',   eff:'Lĩnh ngộ Bản Mệnh Ấn của chiêu' },
+  { at:20, han:'圓', name:'Xuất Thần Nhập Hoá',   eff:'Ra chiêu nhanh hơn · uy lực gấp đôi' },
+];
+export function tangClamp(v){ return Math.max(1, Math.min(TANG_MAX, v|0)); }
+export function tangMul(t){ t = tangClamp(t); return 1 + 0.05*(t-1) + (t===TANG_MAX ? 0.05 : 0); }  // Tầng 20 = ×2.00 chẵn
+export function tangCanh(t){ let b=null; const v=tangClamp(t); TANG_BANDS.forEach(x=>{ if(v>=x.at) b=x; }); return b; }
+// Bản Mệnh Ấn (mở ở Tầng 15) — hàm THUẦN suy từ field data, mỗi chiêu đúng MỘT ấn, không cần data tay.
+// CỐ Ý không có nhánh nào đụng slow/stun/pen: đó là khống chế, Tầng không nâng khống chế.
+export function banMenhAn(c){
+  if(!c) return null;
+  if(c.buff)      return { name:'Trường Tồn',        desc:'hiệu lực kéo dài thêm 2 hiệp' };
+  if(c.burn)      return { name:'Độc Thấm Cốt',      desc:'Bỏng/Độc +30% sát thương' };
+  if(c.lifesteal) return { name:'Hấp Tinh',          desc:'+15 điểm phần trăm hút máu' };
+  if(c.heal)      return { name:'Hồi Xuân',          desc:'+6 điểm phần trăm hồi Sinh Lực' };
+  if(c.critBonus) return { name:'Nhất Kích Tất Sát', desc:'+10 điểm phần trăm bạo kích' };
+  return { name:'Trọng Kích', desc:'+25% uy lực' };
+}
+// Trả BẢN SAO chiêu đã áp Tầng — KHÔNG BAO GIỜ sửa object gốc trong CHIEU (mảng dùng chung toàn game).
+export function chieuAtTang(c, t){
+  if(!c) return c;
+  t = tangClamp(t);
+  if(t <= 1) return c;
+  const k = tangMul(t), an = t >= 15 ? banMenhAn(c) : null, has = (n)=> an && an.name === n;
+  const o = { ...c, tang: t };
+  o.mult = c.mult * k * (has('Trọng Kích') ? 1.25 : 1);
+  if(c.burn) o.burn = { dmg: Math.round(c.burn.dmg * k * (has('Độc Thấm Cốt') ? 1.30 : 1)),
+                        ticks: c.burn.ticks + (t >= 10 ? 1 : 0) };
+  if(c.lifesteal && has('Hấp Tinh'))          o.lifesteal = Math.min(0.95, c.lifesteal + 0.15);
+  if(c.heal && has('Hồi Xuân'))               o.heal = c.heal + 0.06;
+  if(c.critBonus && has('Nhất Kích Tất Sát')) o.critBonus = c.critBonus + 0.10;
+  if(c.buff && has('Trường Tồn'))             o.buff = { ...c.buff, ticks: c.buff.ticks + 2 };
+  const cut = t >= 10 ? 0.20 : (t >= 5 ? 0.10 : 0);
+  if(cut) o.nl = Math.round(c.nl * (1 - cut));
+  if(t >= TANG_MAX && c.cd >= 4) o.cd = Math.max(2, c.cd - 1);
+  return o;
+}
+// Chiêu đã áp Tầng theo state — dùng chung cho engine lẫn mọi chỗ HIỂN THỊ, để số trên UI
+// luôn khớp số thật trong trận (6 chỗ hiển thị đều phải đi qua đây).
+export function chieuOf(state, id){
+  const t = (state && state.combat && state.combat.tang && state.combat.tang[id]) || 1;
+  return chieuAtTang(chieuById(id), t);
+}
+
 // ---- Bị Động (POOL 10, mỗi ngũ hành 2: 1 "+18% ST hệ đó" + 1 đặc tính hệ đó). Chọn TỐI ĐA 2 (lắp tự do).
 //   eleDmg = +% sát thương cho chiêu CÙNG hệ với bị động (p.he). mod = hệ số chỉ số (như Bộ Pháp). regen = hồi % Sinh Lực/giây.
 export const BI_DONG = [
@@ -430,6 +485,7 @@ export function deriveCombat(state, loadout, opts){
     dodge: Math.min(0.5, Math.max(0, M.dodge + tbn.dodgePct)),
     heChinh, tamPhapHeBonus, eleBonus, heBonus,
     maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)), regenPct,
+    tang: (state && state.combat && state.combat.tang) || {},   // Tầng từng chiêu (Ngộ Tính) — makeFight áp vào
   };
 }
 
@@ -513,7 +569,9 @@ const OPEN_PHRASES={
 export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
   const he = forcedHe || rollHe(enemy);
   const f = {
-    P, chosen: chosen.map(chieuById).filter(Boolean), enemy, eName: enemy.name, eHe: he,
+    // HOOK TẦNG — đúng một chỗ. P.tang do deriveCombat mang sang; _useSkill/_pTurn/stepFight không sửa gì.
+    P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1)).filter(Boolean),
+    enemy, eName: enemy.name, eHe: he,
     p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0 },
     e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
     cds:{}, t:0, dealt:0, taken:0, over:false, result:null, log:[],

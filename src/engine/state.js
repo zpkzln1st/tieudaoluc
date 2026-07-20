@@ -39,6 +39,8 @@ export function createInitialState() {
       noiLuc: null,         // Nội Lực hiện tại (null = đầy); trôi qua nhiều trận để đan Hồi Khí có tác dụng
       loadout: { tamPhap: 'viemDuong', boPhap: ['tanToc'], biDong: ['viemDuongHoThe', 'sinhSinhBatTuc'], chieu: ['lhd', 'htd', 'ptd'] }, // bài võ: Tâm Pháp + 1-2 Bộ Pháp + 2 Bị Động + chiêu
       owned: { chieu: ['lhd', 'htd', 'ptd'], tamPhap: ['viemDuong'], biDong: ['viemDuongHoThe', 'sinhSinhBatTuc'] }, // võ học đã sở hữu (học/mua mới mở); xem DEFAULT_OWNED ở votong.js
+      tang: {},             // Tầng từng chiêu { chieuId: 1..20 } — tiêu Ngộ Tính; thiếu key = Tầng 1
+      ngoTinhThuong: 0,     // Ngộ Tính thưởng thêm ngoài EXP (để trống, chừa cho Yêu Vương/Bí Cảnh đợt sau)
     },
     activity: null,         // hoạt động đang chạy — gồm cả Khinh Công (type:'travel') — xem activity.js
     settings: { idleCapHours: 8 },

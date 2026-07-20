@@ -28,7 +28,8 @@ import {
   migrateDanSlots,
 } from './engine/activity.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, useBuffDan, duocLuTick } from './engine/buff.js';
-import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe } from './data/votong.js';
+import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
+  TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
@@ -180,6 +181,9 @@ if (Array.isArray(state.combat.loadout.chieu)) {
 // Sở hữu võ học (Bước 6): trường mới — vá save cũ bằng cách cấp sở hữu cho mọi thứ ĐANG lắp + bộ nhập môn.
 state.combat.owned = normOwned(state.combat);
 if (state.combat.suyYeuUntil == null) state.combat.suyYeuUntil = 0;
+// Tầng chiêu (Ngộ Tính) — trường mới, vá save cũ. KHÔNG bump SAVE_VERSION: thiếu key = Tầng 1, vô hại.
+if (!state.combat.tang || typeof state.combat.tang !== 'object') state.combat.tang = {};
+if (state.combat.ngoTinhThuong == null) state.combat.ngoTinhThuong = 0;
 // Ô Món Ăn + Ô Đan (tự dùng khi < 25%) — trường mới, vá save cũ
 if (state.combat.luongThuc === undefined) state.combat.luongThuc = null;
 if (state.combat.dan === undefined) state.combat.dan = null;
@@ -2881,7 +2885,10 @@ const gameStore = {
   },
   // ---- Popup chi tiết võ học (Tàng Kinh Các): bấm tile -> hiện chỉ số đầy đủ ----
   tkDetail: null,
-  openTkDetail(it) { this.tkDetail = it; },
+  // tkTab để ở STORE chứ không phải x-data cục bộ của template: template nằm trong x-if, mỗi lần
+  // Alpine dựng lại là state cục bộ mất trắng và tab tự nhảy về mặc định — trông hệt như "bấm không được".
+  tkTab: 'kq',
+  openTkDetail(it) { this.tkDetail = it; this.tkTab = 'kq'; },
   closeTkDetail() { this.tkDetail = null; },
   // Popup LUYỆN CHẾ Tuyệt Kĩ (tách riêng khỏi thẻ để thẻ không bị dài -> không phải cuộn)
   tkCraft: null,
@@ -2895,8 +2902,14 @@ const gameStore = {
     return (it.obj && it.obj.tier === 'tuyệt') ? 'Tuyệt kĩ' : 'Chiêu thức';
   },
   // Chip hiệu ứng cho thẻ võ học — suy thẳng từ field của món (burn/slow/stun/lifesteal/pen/crit/buff/eleDmg).
+  // Võ học trong popup Tàng Kinh Các, ĐÃ áp Tầng nếu là Chiêu Thức. MỌI chỗ hiển thị phải đi qua đây:
+  // đọc thẳng it.obj sẽ ra số GỐC trong khi trận thật chạy số đã nâng Tầng -> hai con số chọi nhau.
+  tkObj(it) {
+    if (!it || !it.obj) return null;
+    return it.kind === 'chieu' ? chieuOf(this.state, it.id) : it.obj;
+  },
   tkFxChips(it) {
-    const o = it && it.obj; if (!o) return [];
+    const o = this.tkObj(it); if (!o) return [];
     const a = [];
     if (o.burn) a.push({ t: 'Bỏng ' + o.burn.dmg + ' × ' + o.burn.ticks + ' hiệp', c: '#fb923c' });
     if (o.lifesteal) a.push({ t: 'Hút máu ' + Math.round(o.lifesteal * 100) + '%', c: '#f472b6' });
@@ -2920,9 +2933,9 @@ const gameStore = {
   // Các dòng chỉ số trong popup, theo loại võ học (chiêu / tâm pháp / bị động).
   tkRows(it) {
     if (!it) return [];
-    const o = it.obj, rows = [];
+    const o = this.tkObj(it), rows = [];
     if (it.kind === 'chieu') {
-      rows.push({ k: 'Sát thương', v: '×' + o.mult + ' ST · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true, full: true });
+      rows.push({ k: 'Sát thương', v: '×' + (+o.mult.toFixed(2)) + ' ST · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true, full: true });
       rows.push({ k: 'Hệ', v: o.type === 'vatly' ? 'Vật lý' : heName(o.type) });
       rows.push({ k: 'Nội Lực tiêu', v: o.nl || 0 });
       rows.push({ k: 'Hồi chiêu', v: o.cd ? (o.cd + ' hiệp') : 'Tức thì' });
@@ -2969,7 +2982,43 @@ const gameStore = {
   baiVoPanel: 'chieu',                 // panel khởi tạo khi mở ('chieu' | 'tamphap')
   openBaiVo(panel) { this.baiVoPanel = ['tamphap', 'bidong'].includes(panel) ? panel : 'chieu'; this.baiVoModal = true; },
   closeBaiVo() { this.baiVoModal = false; this.chieuDragEnd(false); },   // đóng giữa cú kéo -> huỷ sạch, đừng để kẹt
-  chieuObj(id) { return chieuById(id); },
+  chieuObj(id) { return chieuOf(this.state, id); },   // LUÔN trả chiêu ĐÃ áp Tầng -> mọi chỗ hiển thị khớp số thật trong trận
+
+  // ============ NGỘ TÍNH / TẦNG CHIÊU THỨC ============
+  // Điểm là hàm THUẦN của EXP đã cày: 1 điểm mỗi cấp Chiến Đấu (Lv100 = 99 điểm), cộng addend
+  // ngoTinhThuong (chưa dùng). Không lưu "điểm còn lại" -> không lệch, không sửa save ăn gian được.
+  TANG_MAX,
+  TANG_BANDS,
+  get ngoTinhTotal() { return Math.max(0, this.combatLevel - 1) + (this.state.combat.ngoTinhThuong || 0); },
+  get ngoTinhUsed() { const t = this.state.combat.tang || {}; let s = 0; for (const k in t) s += Math.max(0, tangClamp(t[k]) - 1); return s; },
+  // Dev tool / save nạp ngược có thể khiến đã dùng > tổng: hiện 0 và CHẶN nút, TUYỆT ĐỐI không tự hạ Tầng.
+  get ngoTinhLeft() { return Math.max(0, this.ngoTinhTotal - this.ngoTinhUsed); },
+  tangOf(id) { return tangClamp((this.state.combat.tang || {})[id] || 1); },
+  tangCanhOf(id) { return tangCanh(this.tangOf(id)); },
+  tangMulOf(id) { return tangMul(this.tangOf(id)); },
+  tangBandDone(id, at) { return this.tangOf(id) >= at; },
+  banMenhAnOf(id) { return banMenhAn(chieuById(id)); },
+  canThamNgo(id) { return this.ngoTinhLeft > 0 && this.tangOf(id) < TANG_MAX && this.ownsChieu(id); },
+  thamNgo(id) {
+    if (!this.ownsChieu(id)) { this.showToast('Chưa lĩnh ngộ chiêu này — học hoặc mua trước.'); return; }
+    if (this.tangOf(id) >= TANG_MAX) { this.showToast('Chiêu này đã Đại Viên Mãn.'); return; }
+    if (this.ngoTinhLeft <= 0) { this.showToast('Hết Ngộ Tính — lên cấp Chiến Đấu để có thêm.'); return; }
+    this.state.combat.tang[id] = this.tangOf(id) + 1;
+    this.afterLoadoutChange();
+    const c = chieuById(id), b = tangCanh(this.tangOf(id));
+    const moc = TANG_BANDS.find(x => x.at === this.tangOf(id));
+    this.showToast(moc ? (c.name + ' — ' + b.name + '! ' + moc.eff) : (c.name + ' lên Tầng ' + this.tangOf(id)));
+  },
+  tanCong(id) {                                  // hoàn Tầng của MỘT chiêu, miễn phí
+    if (this.tangOf(id) <= 1) return;
+    this.state.combat.tang[id] = this.tangOf(id) - 1;
+    this.afterLoadoutChange();
+  },
+  tayTuy() {                                     // hoàn TẤT — miễn phí, không giới hạn
+    this.state.combat.tang = {};
+    this.afterLoadoutChange();
+    this.showToast('Tẩy Tủy Phạt Mao — hoàn lại toàn bộ Ngộ Tính.');
+  },
   get equippedChieuObjs() { return this.loadout.chieu.map(id => chieuById(id)).filter(Boolean); },
   chieuEquipped(id) { return this.loadout.chieu.includes(id); },
   // --- Bị Động (pool chọn tối đa 2) ---

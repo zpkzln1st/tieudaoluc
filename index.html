@@ -126,6 +126,21 @@
        sẽ nằm dưới ảnh và không bao giờ nhìn thấy. */
     .chieu-drop::after{ content:''; position:absolute; inset:0; z-index:3; pointer-events:none;
                         box-shadow:inset 3px 0 0 0 #14b8a6; border-radius:inherit; }
+    /* ===== Hệ Tầng — dùng lại badge lục giác .eh-hex có sẵn (Động Phủ) ở CẢ BA chỗ:
+       ô điểm Ngộ Tính ở header · tile trong lưới · badge trên tab. Tỉ lệ ảnh w:h = 1:1.076. ===== */
+    .tk-hex   { position:absolute; top:2px; right:2px; z-index:3; width:26px; height:28px; font-size:11px; color:#f7e6b8; }
+    .ng-hex   { width:50px; height:54px; font-size:19px; color:#f7e6b8; flex:none; }
+    .lv-hex   { width:46px; height:50px; font-size:19px; color:#f3e7c7; flex:none; }
+    .tk-tabhex{ width:22px; height:24px; font-size:10px; color:#f7e6b8; flex:none; margin-right:-2px; }
+    /* Tab NHẸ: khối jade đặc trông dày và thô -> chỉ đổi màu chữ + gạch chân mảnh. */
+    .tk-tabs  { display:flex; gap:16px; border-bottom:1px solid #1a2130; }
+    .tk-tabs > button{ position:relative; display:flex; align-items:center; gap:6px; padding:0 4px 6px;
+                       border:0; background:transparent; color:#64748b; font-family:'Lora',serif;
+                       font-weight:700; font-size:12px; cursor:pointer; }
+    .tk-tabs > button:hover{ color:#94a3b8; }
+    .tk-tabs > button.on{ color:#14b8a6; }
+    .tk-tabs > button.on::after{ content:''; position:absolute; left:4px; right:4px; bottom:0; height:2px;
+                                 border-radius:2px; background:#14b8a6; }
     /* Banner "sự kiện chờ" Tông Môn — glow TĨNH (pulse dịu, tắt theo reduced-motion) */
     .tm-evt-glow { --gc:#a78bfa66; animation:tmEvtPulse 3.6s ease-in-out infinite; }
     @keyframes tmEvtPulse { 0%,100%{ box-shadow:0 0 0 1px var(--gc), 0 0 13px -3px var(--gc); } 50%{ box-shadow:0 0 0 1px var(--gc), 0 0 22px -1px var(--gc); } }
@@ -4026,6 +4041,23 @@
                 <div class="sk-nm">Tàng Kinh Các</div>
                 <div class="sk-qt">“Vạn quyển tàng chân ý, nhất niệm nhập võ môn.”</div>
               </div>
+              <!-- Ô điểm Ngộ Tính + Tẩy Tủy — lấp chỗ trống bên phải header. Dùng lại lục giác .eh-hex
+                   như tile trong lưới và badge trên tab, để ba chỗ cùng một ngôn ngữ. -->
+              <div class="flex items-center gap-2.5 shrink-0 rounded-xl px-3 py-2"
+                   style="border:1px solid rgba(245,185,66,.34);background:rgba(245,185,66,.06)">
+                <span class="eh-hex ng-hex" x-text="$store.game.ngoTinhLeft"></span>
+                <!-- Số điểm CHỈ nằm trong lục giác. Trước đó in thêm một lần nữa ở đây = hai số y hệt cạnh nhau. -->
+                <span>
+                  <span class="block text-[11px] uppercase tracking-[.13em] font-semibold" style="color:#c3ad7d">Ngộ Tính</span>
+                  <span class="block text-[10px] mt-0.5" style="color:#8a7c5c">điểm còn lại</span>
+                </span>
+                <button @click="$store.game.tayTuy()" :disabled="!$store.game.ngoTinhUsed"
+                        class="ml-1 px-2.5 py-1.5 rounded-lg text-[11.5px] font-bold transition"
+                        style="font-family:'Lora',serif"
+                        :class="$store.game.ngoTinhUsed ? 'text-amber-300/80 hover:text-amber-200' : 'text-slate-700 cursor-not-allowed'"
+                        :style="'font-family:Lora,serif;border:1px solid rgba(245,185,66,'+($store.game.ngoTinhUsed?'.34':'.12')+')'"
+                        title="Hoàn lại toàn bộ Ngộ Tính đã dùng — miễn phí">Tẩy Tủy</button>
+              </div>
             </div>
             <div class="tkc-prog">
               <div class="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-jade transition-all" :style="`width:${$store.game.tangKinhTotalCount?Math.round($store.game.tangKinhOwnedCount/$store.game.tangKinhTotalCount*100):0}%`"></div></div>
@@ -4072,6 +4104,11 @@
                             <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[sec.he].grad"></div>
                             <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:2.4rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
                             <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                            <!-- Badge Tầng = lục giác .eh-hex có sẵn. CHƯA nâng Tầng thì KHÔNG hiện: cả lưới 44 ô
+                                 đầy badge "1" là nhiễu vô nghĩa. -->
+                            <template x-if="it.kind==='chieu' && $store.game.itemOwned(it) && $store.game.tangOf(it.id)>1">
+                              <span class="eh-hex tk-hex" x-text="$store.game.tangOf(it.id)"></span>
+                            </template>
                           </div>
                           <div class="px-1 py-0.5">
                             <div class="tkc-name text-[9.5px] font-semibold leading-[13px]" :class="$store.game.heInfo(sec.he).text" x-text="it.obj.name"></div>
@@ -4109,6 +4146,22 @@
             <!-- THÂN: overflow HIDDEN + lore kẹp dòng -> nội dung luôn vừa khung, KHÔNG bao giờ có con lăn -->
             <!-- THÂN: cột flex — Khẩu quyết CO theo chỗ trống còn lại + mờ dần ở đáy (không xén ngang dòng) -->
             <div class="flex-1 min-h-0 overflow-hidden p-3.5 flex flex-col">
+              <!-- TAB — chỉ Chiêu Thức ĐÃ lĩnh ngộ mới có Tầng. Dùng tab thay vì chèn thêm khối vì khung
+                   popup cao CỨNG 716px và đã dùng hết chỗ: nhét thẳng vào là đẻ con lăn. -->
+              <template x-if="it.kind==='chieu' && $store.game.itemOwned(it)">
+                <!-- Tên tab KHÔNG được trùng bất kỳ tiêu đề mục nào bên trong (Chỉ Số · Hiệu Ứng · Khẩu Quyết),
+                     trùng thì người chơi bấm nhầm vào tiêu đề rồi tưởng nút hỏng. relative z-10 để chắc chắn
+                     không lớp nào đè lên nuốt cú bấm. -->
+                <div class="tk-tabs relative z-10 mb-2.5 shrink-0">
+                  <button @click="$store.game.tkTab='kq'" :class="$store.game.tkTab==='kq'?'on':''">Kĩ Năng</button>
+                  <button @click="$store.game.tkTab='tang'" :class="$store.game.tkTab==='tang'?'on':''">
+                    <span>Tu Luyện</span>
+                    <span class="eh-hex tk-tabhex" x-text="$store.game.tangOf(it.id)"></span>
+                  </button>
+                </div>
+              </template>
+
+              <div x-show="$store.game.tkTab==='kq'" class="flex-1 min-h-0 flex flex-col">
               <div class="lbl mb-1.5 shrink-0">Chỉ số</div>
               <!-- Chỉ số xếp 2 CỘT (tiết kiệm chiều cao cho Khẩu quyết); dòng r.full chiếm trọn hàng -->
               <div class="grid grid-cols-2 gap-1.5 mb-2.5 shrink-0">
@@ -4138,11 +4191,91 @@
                        x-text="'“'+$store.game.tkFlavor+'”'"></div>
                 </div>
               </template>
+              </div><!-- /tab Khẩu Quyết -->
+
+              <!-- TAB TU LUYỆN — lục giác Tầng + 4 mốc cảnh giới + 3 ô số. MỌI khối cao CỐ ĐỊNH nên đổi
+                   Tầng hay đổi chiêu đều không làm popup co giãn / đẻ con lăn. Cố ý KHÔNG bày lại hiệu ứng
+                   của từng mốc bằng chữ: nó đã hiện thành SỐ THẬT ở ba ô bên dưới, nói hai lần là thừa. -->
+              <div x-show="$store.game.tkTab==='tang'" class="flex-1 min-h-0 flex flex-col">
+                <div class="flex items-center gap-3 shrink-0">
+                  <span class="eh-hex lv-hex" x-text="$store.game.tangOf(it.id)"></span>
+                  <span class="min-w-0">
+                    <span class="block text-[14px] font-bold leading-tight" style="font-family:'Lora',serif"
+                          :class="$store.game.tangCanhOf(it.id)?'text-amber-100':'text-slate-400'"
+                          x-text="$store.game.tangCanhOf(it.id) ? $store.game.tangCanhOf(it.id).name : 'Chưa nhập môn'"></span>
+                    <span class="block text-[11px] text-slate-500 mt-0.5">Tầng <b class="text-slate-300" x-text="$store.game.tangOf(it.id)"></b> · trần <span x-text="$store.game.TANG_MAX"></span></span>
+                  </span>
+                </div>
+                <div class="flex-1 min-h-0 overflow-hidden flex flex-col gap-1 mt-2.5">
+                  <template x-for="b in $store.game.TANG_BANDS" :key="b.at">
+                    <!-- flex:1 chứ KHÔNG cố định 38px: màn thấp kẹp 92dvh chỉ còn ~128px cho khối này,
+                         để cứng là hàng thứ tư bị xén cụt. Cho 4 hàng chia đều chỗ đang có. -->
+                    <div class="flex items-center gap-2.5 px-2.5 rounded-lg border border-l-[3px]" style="flex:1 1 0;min-height:30px;max-height:44px"
+                         :class="$store.game.tangBandDone(it.id,b.at) ? 'border-slate-800 border-l-amber-400 bg-amber-400/[.06]' : 'border-slate-800 border-l-slate-700'">
+                      <span class="w-[17px] text-center text-[15px] font-bold shrink-0" style="font-family:'Lora',serif"
+                            :class="$store.game.tangBandDone(it.id,b.at)?'text-amber-300':'text-slate-600'" x-text="b.han"></span>
+                      <span class="flex-1 min-w-0">
+                        <span class="block text-[11.5px] font-bold truncate leading-tight" style="font-family:'Lora',serif"
+                              :class="$store.game.tangBandDone(it.id,b.at)?'text-amber-100':'text-slate-500'" x-text="b.name"></span>
+                        <span class="block text-[9.5px] truncate leading-tight mt-0.5"
+                              :class="$store.game.tangBandDone(it.id,b.at)?'text-amber-200/60':'text-slate-600'" x-text="b.eff"></span>
+                      </span>
+                      <span class="shrink-0 text-[9.5px] px-2 py-0.5 rounded-full border" style="font-family:'Lora',serif"
+                            :class="$store.game.tangBandDone(it.id,b.at)?'border-amber-400/40 text-amber-300':'border-slate-700 text-slate-600'"
+                            x-text="'Tầng '+b.at"></span>
+                    </div>
+                  </template>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5 mt-3 shrink-0">
+                  <div class="rounded-lg border border-slate-800 bg-ink/40 flex flex-col items-center justify-center gap-0.5" style="height:42px">
+                    <span class="text-[9px] uppercase tracking-wide text-slate-500">Uy lực</span>
+                    <span class="text-[16px] font-bold text-amber-300" style="font-family:'Lora',serif;line-height:1.2" x-text="'×'+$store.game.tangMulOf(it.id).toFixed(2)"></span>
+                  </div>
+                  <div class="rounded-lg border border-slate-800 bg-ink/40 flex flex-col items-center justify-center gap-0.5" style="height:42px">
+                    <span class="text-[9px] uppercase tracking-wide text-slate-500">Sát thương</span>
+                    <span class="text-[16px] font-bold" style="font-family:'Lora',serif;line-height:1.2"
+                          :class="it.obj.mult?'text-jade':'text-slate-600'"
+                          x-text="it.obj.mult ? $store.game.chieuObj(it.id).mult.toFixed(2) : '—'"></span>
+                  </div>
+                  <div class="rounded-lg border border-slate-800 bg-ink/40 flex flex-col items-center justify-center gap-0.5" style="height:42px">
+                    <span class="text-[9px] uppercase tracking-wide text-slate-500">Nội Lực</span>
+                    <span class="text-[16px] font-bold text-jade" style="font-family:'Lora',serif;line-height:1.2" x-text="$store.game.chieuObj(it.id).nl"></span>
+                  </div>
+                </div>
+                <!-- BẢN MỆNH ẤN = thứ DUY NHẤT khác nhau giữa các chiêu (6 loại, suy từ bản chất chiêu).
+                     Phải nói rõ nó LÀM GÌ, không thì chỉ thấy một cái tên lạ và tưởng chiêu nào cũng như nhau. -->
+                <div class="px-2.5 py-1.5 rounded-lg border mt-1 shrink-0 flex flex-col justify-center" style="height:40px"
+                     :class="$store.game.tangOf(it.id)>=15?'border-amber-400/35 bg-amber-400/[.06]':'border-slate-800 bg-ink/40'">
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-[9px] uppercase tracking-wide text-slate-500 shrink-0">Bản Mệnh Ấn</span>
+                    <span class="text-[11.5px] font-bold truncate" style="font-family:'Lora',serif"
+                          :class="$store.game.tangOf(it.id)>=15?'text-amber-300':'text-slate-500'"
+                          x-text="$store.game.banMenhAnOf(it.id).name"></span>
+                  </div>
+                  <div class="text-[9.5px] truncate shrink-0" style="line-height:13px"
+                       :class="$store.game.tangOf(it.id)>=15?'text-amber-200/60':'text-slate-600'"
+                       x-text="$store.game.tangOf(it.id)>=15 ? $store.game.banMenhAnOf(it.id).desc : 'lĩnh ngộ ở Tầng 15 — mỗi chiêu một ấn riêng'"></div>
+                </div>
+                <div class="mt-auto pt-2 shrink-0 flex">
+                  <template x-if="$store.game.tangOf(it.id) >= $store.game.TANG_MAX">
+                    <div class="flex-1 flex items-center justify-center rounded-lg border border-amber-400/50 bg-amber-400/10 text-amber-300 text-[14px] font-bold"
+                         style="font-family:'Lora',serif;height:40px">Đại Viên Mãn</div>
+                  </template>
+                  <template x-if="$store.game.tangOf(it.id) < $store.game.TANG_MAX">
+                    <button @click="$store.game.thamNgo(it.id)" :disabled="!$store.game.canThamNgo(it.id)"
+                            class="flex-1 rounded-lg text-[14px] font-bold transition border" style="font-family:'Lora',serif;height:40px"
+                            :class="$store.game.canThamNgo(it.id)?'bg-jade/15 border-jade/60 text-jade hover:bg-jade/25':'bg-slate-800/50 border-slate-700 text-slate-600 cursor-not-allowed'">Nâng Cấp</button>
+                  </template>
+                </div>
+              </div>
             </div>
             <!-- CHÂN: CTA ghim đáy, cao cố định -->
             <div class="shrink-0 p-3.5 border-t border-slate-800/80 bg-ink/40">
               <template x-if="$store.game.itemOwned(it)">
-                <div class="w-full py-2.5 rounded-lg text-center text-sm font-bold bg-jade/15 border border-jade/40 text-jade">✓ Đã sở hữu</div>
+                <!-- Chiêu Thức đã sở hữu: KHÔNG bày "✓ Đã sở hữu" nữa — tab Tu Luyện chỉ hiện khi đã sở hữu
+                     nên dòng đó nói lại điều hiển nhiên mà chiếm trọn hàng nút to nhất popup. Tâm Pháp/Bị Động
+                     không có tab Tu Luyện nên vẫn giữ. -->
+                <div x-show="it.kind!=='chieu'" class="w-full py-2.5 rounded-lg text-center text-sm font-bold bg-jade/15 border border-jade/40 text-jade">✓ Đã sở hữu</div>
               </template>
               <!-- TUYỆT KĨ: không mua/học được — phải CHẾ (Đồ Phổ + liệu boss + Bạc) -->
               <template x-if="!$store.game.itemOwned(it) && $store.game.isTuyet(it)">
