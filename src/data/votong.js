@@ -10,7 +10,7 @@ import { titleBonus } from '../engine/titles.js';
 import { ITEMS } from './items.js';   // đọc buff của Đan Bổ Trợ (danBuffPct)
 
 // ---- NGŨ HÀNH ----
-// 5 hệ + Vật Lý + Trợ. Vòng tương khắc: Kim→Mộc→Thổ→Thủy→Hỏa→Kim.
+// 5 hệ + Vô Hệ (thuần lực — không ăn khắc, không bị kháng chặn) + Trợ. Vòng tương khắc: Kim→Mộc→Thổ→Thủy→Hỏa→Kim.
 // Đánh đối tượng mình khắc: +30% · bị khắc: −20% · còn lại 100%. (chỉ ảnh hưởng sát thương)
 export const NGU_HANH = {
   kim:   { id:'kim',   name:'Kim', han:'金', text:'text-yellow-200',  badge:'bg-yellow-900/50 text-yellow-200',   dot:'bg-yellow-300', ig:'kim',   grad:'from-yellow-800/60 to-yellow-950/30',   ring:'border-yellow-500/40', glowRgb:'234,179,8' },
@@ -18,18 +18,22 @@ export const NGU_HANH = {
   thuy:  { id:'thuy',  name:'Thủy',han:'水', text:'text-sky-300',     badge:'bg-sky-900/50 text-sky-300',         dot:'bg-sky-400',    ig:'thuy',  grad:'from-sky-800/60 to-sky-950/30',         ring:'border-sky-500/40', glowRgb:'14,165,233' },
   hoa:   { id:'hoa',   name:'Hỏa', han:'火', text:'text-orange-300',  badge:'bg-orange-900/50 text-orange-300',   dot:'bg-orange-400', ig:'flame', grad:'from-orange-800/60 to-orange-950/30',   ring:'border-orange-500/40', glowRgb:'249,115,22' },
   tho:   { id:'tho',   name:'Thổ', han:'土', text:'text-amber-500',   badge:'bg-amber-900/40 text-amber-400',     dot:'bg-amber-600',  ig:'tho',   grad:'from-amber-800/60 to-amber-950/30',     ring:'border-amber-500/40', glowRgb:'217,119,6' },
-  vatly: { id:'vatly', name:'Vật Lý',han:'',  text:'text-slate-200',  badge:'bg-slate-700 text-slate-200',        dot:'bg-slate-400',  ig:'sword', grad:'from-slate-600/60 to-slate-900/30',     ring:'border-slate-400/40', glowRgb:'148,163,184' },
+  vohe:  { id:'vohe',  name:'Vô Hệ',han:'無', text:'text-slate-200',  badge:'bg-slate-700 text-slate-200',        dot:'bg-slate-400',  ig:'sword', grad:'from-slate-600/60 to-slate-900/30',     ring:'border-slate-400/40', glowRgb:'148,163,184' },
   buff:  { id:'buff',  name:'Trợ',  han:'',  text:'text-violet-300',  badge:'bg-violet-900/50 text-violet-300',   dot:'bg-violet-400', ig:'zap',   grad:'from-violet-800/60 to-violet-950/30',   ring:'border-violet-500/40', glowRgb:'139,92,246' },
 };
+// ALIAS legacy: 'vatly' (tên cũ của loại đòn thuần lực) — data/save cũ còn ghi 'vatly' vẫn render y hệt Vô Hệ.
+NGU_HANH.vatly = { ...NGU_HANH.vohe, id:'vatly' };
+// Vô Hệ = loại đòn thứ 6: KHÔNG ăn khắc ngũ hành, KHÔNG bị kháng chặn. Nhận cả alias cũ 'vatly'.
+export function isVoHe(he){ return he==='vohe' || he==='vatly'; }
 const KHAC = { kim:'moc', moc:'tho', tho:'thuy', thuy:'hoa', hoa:'kim' }; // A khắc KHAC[A]
 // Hệ số khắc/kháng của đòn hệ `atkHe` đánh vào địch hệ `defHe`.
 export function nguHanhMod(atkHe, defHe){
-  if(!atkHe || !defHe || atkHe==='vatly' || atkHe==='buff') return 0;
+  if(!atkHe || !defHe || isVoHe(atkHe) || atkHe==='buff') return 0;
   if(KHAC[atkHe]===defHe) return 0.30;   // mình khắc địch
   if(KHAC[defHe]===atkHe) return -0.20;  // địch khắc mình
   return 0;
 }
-export function heInfo(he){ return NGU_HANH[he] || NGU_HANH.vatly; }
+export function heInfo(he){ return NGU_HANH[he] || NGU_HANH.vohe; }
 export function heName(he){ return (NGU_HANH[he]||{}).name || he; }
 // 5 hệ ngũ hành thật (yêu thú roll ngẫu nhiên trong này mỗi trận).
 export const NGU_HANH_LIST = ['kim','moc','thuy','hoa','tho'];
@@ -40,17 +44,18 @@ export function rollHe(enemy){
 }
 
 // ---- Môn Phái = HỌC QUÁN MỞ (mỗi hệ 1 phái dạy võ học hệ đó). Dùng gom mục ở Tàng Kinh Các.
-//   he -> phái dạy chiêu/Tâm Pháp/Bị Động cùng hệ. (vatly/buff = võ quán/phù lục, không thuộc ngũ hành.)
+//   he -> phái dạy chiêu/Tâm Pháp/Bị Động cùng hệ. (vohe/buff = võ quán/phù lục, không thuộc ngũ hành.)
 export const MON_PHAI = {
   hoa:   { id:'hoa',   name:'Viêm Dương Tông',  han:'火', icon:'flame', desc:'Lấy hỏa luyện thân, công pháp bạo liệt — càng đánh càng hăng.' },
   thuy:  { id:'thuy',  name:'Hàn Băng Cung',    han:'水', icon:'thuy',  desc:'Lấy nhu khắc cương, hàn khí trầm ổn — thiên khống chế & bền bỉ.' },
   moc:   { id:'moc',   name:'Thanh Mộc Môn',    han:'木', icon:'moc',   desc:'Mô phỏng lẽ sinh trưởng vạn vật — độc khí âm ỉ, tự sinh tự dưỡng.' },
   kim:   { id:'kim',   name:'Cương Kim Đường',  han:'金', icon:'kim',   desc:'Chân khí ngưng như kim loại, mũi nhọn vô song — phá giáp, nhất kích tất sát.' },
   tho:   { id:'tho',   name:'Hậu Thổ Trang',    han:'土', icon:'tho',   desc:'Lấy đất dày trấn vạn vật, vững như non cao — thiên thủ & trấn áp.' },
-  vatly: { id:'vatly', name:'Bách Chiến Đường', han:'',  icon:'sword', desc:'Võ quán luyện thể thuần lực, đòn thế không dính khắc/kháng ngũ hành.' },
+  vohe:  { id:'vohe',  name:'Bách Chiến Đường', han:'',  icon:'sword', desc:'Võ quán luyện thể thuần lực, đòn thế không dính khắc/kháng ngũ hành.' },
   buff:  { id:'buff',  name:'Phù Lục Các',      han:'',  icon:'zap',   desc:'Luyện linh phù trợ chiến, tăng công lực trong khoảnh khắc quyết định.' },
 };
-export function monPhaiOf(he){ return MON_PHAI[he] || MON_PHAI.vatly; }
+MON_PHAI.vatly = MON_PHAI.vohe;   // alias legacy
+export function monPhaiOf(he){ return MON_PHAI[he] || MON_PHAI.vohe; }
 
 // ---- Tâm Pháp (nội công nền, 5 hệ — ĐỔI được). Mỗi cái 1 archetype + thiên 1 hệ.
 //   he/heBonus = +% sát thương cho chiêu CÙNG hệ. noiLuc = +Nội Lực nền. nlRegen = hồi NL/đánh thường.
@@ -142,7 +147,7 @@ export function nextSlotLevel(combatLevel){ return (Math.floor((combatLevel||0)/
 // 1 VÒNG giao chiến = 8s → cadence trao thưởng THẬT (1 con / vòng). Foreground + background + widget + dự tính đều bám mốc này.
 export const COMBAT_CYCLE_MS = 8000;
 
-// ---- Chiêu Thức — POOL ĐA HỆ (lắp tự do). type = hệ (ngũ hành/vatly/buff).
+// ---- Chiêu Thức — POOL ĐA HỆ (lắp tự do). type = hệ (ngũ hành/vohe/buff).
 //   tier sơ/trung (Bước 6 sẽ gắn nguồn). Hiệu ứng: burn(DoT) · lifesteal · stun · slow(làm chậm địch) · heal(hồi%) · pen(xuyên giáp%) · critBonus · buff.
 export const CHIEU = [
   // ===== HỎA — bạo phát & Bỏng =====
@@ -215,8 +220,8 @@ export const CHIEU = [
     flavor:['sơn kình đè sập như núi lở','mặt đất chồm lên nuốt chửng địch'],
     synergy:'Sát chiêu kèm choáng nặng — vừa đau vừa khoá địch, xương sống lối đánh Thổ trấn áp.' },
 
-  // ===== VẬT LÝ — không dính khắc/kháng ngũ hành =====
-  { id:'tpc', name:'Truy Phong Cước', type:'vatly', tier:'sơ', mult:1.5, nl:15, cd:5, stun:0.5, short:'Vật lý + 50% Choáng',
+  // ===== VÔ HỆ — không dính khắc/kháng ngũ hành =====
+  { id:'tpc', name:'Truy Phong Cước', type:'vohe', tier:'sơ', mult:1.5, nl:15, cd:5, stun:0.5, short:'Vô Hệ + 50% Choáng',
     lore:'Cước ảnh trùng điệp như gió cuốn lá bay, nhanh tới mức mắt thường khó lòng dõi theo. Một cước điểm đúng đại huyệt, địch nhân lập tức tê dại, choáng váng buông tay.',
     flavor:['cước ảnh trùng điệp như gió cuốn','gót chân xé gió điểm thẳng tới'],
     synergy:'Sát thương thuần lực — chẳng sợ khắc kháng ngũ hành. Chèn một ô để gỡ thế bị kháng.' },
@@ -270,7 +275,7 @@ export const CHIEU = [
     lore:'Mô phỏng thần lực Bàn Cổ khai thiên, giáng xuống một ấn nặng tựa cả dãy núi. Mặt đất nứt toác thành vực, khe nứt rực đỏ như gân dung nham — địch nhân bị chấn cho hồn phách lìa khỏi xác, đứng còn chẳng nổi.',
     flavor:['thạch ấn nặng tựa non cao giáng xuống','đất nứt toác, khe sâu rực đỏ dung nham','một ấn trấn nhạc, địch ngã quỵ bất động'],
     synergy:'Đỉnh cao Hậu Thổ — Choáng CHẮC CHẮN 100%. Khoá cứng địch một hiệp trọn vẹn, dọn đường cho cả bộ liên hoàn.' },
-  { id:'vtsk', name:'Vô Tướng Sát Kiếp', type:'vatly', tier:'tuyệt', mult:4.8, nl:74, cd:10, pen:0.4, critBonus:0.25, short:'Vật lý tối thượng — miễn khắc hệ',
+  { id:'vtsk', name:'Vô Tướng Sát Kiếp', type:'vohe', tier:'tuyệt', mult:4.8, nl:74, cd:10, pen:0.4, critBonus:0.25, short:'Vô Hệ tối thượng — miễn khắc hệ',
     lore:'Không hình không tướng, không hệ không khí — chỉ còn thuần một đạo sát ý. Kình lực nén tới cực hạn rồi vỡ ra, không khí rách thành vệt chân không; ngũ hành sinh khắc tới đây thảy đều vô nghĩa.',
     flavor:['kình lực vỡ ra, không khí rách thành vệt','một đạo sát ý vô hình quét ngang','vô tướng vô sắc, ngũ hành thảy vô dụng'],
     synergy:'Đỉnh cao thuần lực — chẳng sợ khắc kháng ngũ hành. Quân bài tẩy khi gặp địch khắc hệ mình.' },
@@ -483,6 +488,9 @@ export function deriveCombat(state, loadout, opts){
     crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.005 + M.crit + (d.baoKich||0)/100 + tbn.critPct)),
     critDmg: 1.6 + M.critDmg + (d.baoSat||0)/100,
     dodge: Math.min(0.5, Math.max(0, M.dodge + tbn.dodgePct)),
+    // KHUNG 5 KHÁNG NGŨ HÀNH (đại phẫu): chảy từ derivedStats (affix khang* trên giáp trụ).
+    // Đợt 1: chưa có nguồn nào cấp -> luôn toàn 0, hành vi game KHÔNG đổi. Trần kháng đặt ở Đợt 2.
+    khang: d.khang || { kim:0, moc:0, thuy:0, hoa:0, tho:0 },
     heChinh, tamPhapHeBonus, eleBonus, heBonus,
     maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)), regenPct,
     tang: (state && state.combat && state.combat.tang) || {},   // Tầng từng chiêu (Ngộ Tính) — makeFight áp vào
@@ -511,7 +519,7 @@ const ELE_PHRASES=[
 ];
 function dmgPhrase(he,d,cls,eName){
   if(he==='hoa')  return pick(HOA_PHRASES)(d,cls,eName);
-  if(he==='vatly')return pick(PHYS_PHRASES)(d,cls,eName);
+  if(isVoHe(he))  return pick(PHYS_PHRASES)(d,cls,eName);
   return pick(ELE_PHRASES)(d,cls,eName,heName(he));
 }
 const CRIT_CLAUSE=[' <span class="text-amber-300 font-bold">Một đòn chí mạng!</span>',' <span class="text-amber-300 font-bold">Trúng ngay yếu huyệt — bạo kích!</span>'];
@@ -573,7 +581,7 @@ export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
     P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1)).filter(Boolean),
     enemy, eName: enemy.name, eHe: he,
     p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0 },
-    e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
+    e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, khang:(enemy.khang||null), skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
     cds:{}, t:0, dealt:0, taken:0, over:false, result:null, log:[],
   };
   const oc = heInfo(he).text;
@@ -597,18 +605,22 @@ function _useSkill(f,c){
   // Chiêu hồi máu thuần (mult thấp vẫn đánh, kèm hồi)
   let dmg=P.atk*c.mult;
   const eleB = (c.type===P.heChinh ? P.tamPhapHeBonus : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); // Tâm Pháp(cùng hệ) + bị động theo hệ
-  const khac = nguHanhMod(c.type, e.he);                       // khắc/kháng vs hệ địch
-  if(c.type!=='vatly') dmg*=(1+eleB)*(1+khac);
+  const khac = nguHanhMod(c.type, e.he);                       // khắc/kháng vs hệ địch (Vô Hệ: luôn 0)
+  if(!isVoHe(c.type)) dmg*=(1+eleB)*(1+khac);
   if(p.buff>0) dmg*=(1+(p.buffDmg!=null?p.buffDmg:0.30));   // buffDmg do chiêu Trợ đặt (mặc định +30% cho save/đường cũ)
   const critChance = Math.min(0.95, P.crit + (c.critBonus||0));
   const crit=Math.random()<critChance; if(crit) dmg*=P.critDmg;
   const defEff = Math.max(0, e.def*(1-(c.pen||0)));            // xuyên giáp
-  dmg*=100/(100+defEff); dmg=Math.max(1,Math.round(dmg)); e.hp-=dmg; f.dealt+=dmg;
+  dmg*=100/(100+defEff);
+  // LỚP KHÁNG RIÊNG (sau đường cong Thủ, KHÔNG chia def): kháng ngũ hành của ĐỊCH chặn đòn có hệ.
+  // Vô Hệ miễn kháng. Đợt 1: quái chưa có bảng kháng (e.khang rỗng) -> nhân đúng 1. Trần kháng ở Đợt 2.
+  if(!isVoHe(c.type)) dmg*=(1-((e.khang && e.khang[c.type]) || 0));
+  dmg=Math.max(1,Math.round(dmg)); e.hp-=dmg; f.dealt+=dmg;
   const cls=crit?'dmgc':'dmg';
   let s='Ngươi '+pick(LEAD_VERB)+' '+nm+', tiêu hao <span class="text-blue-400 font-medium">'+c.nl+' Nội Lực</span> — '+dmgPhrase(c.type,dmg,cls,f.eName)+'.';
   if(crit) s+=pick(CRIT_CLAUSE);
-  if(c.type!=='vatly'&&khac>0) s+=pick(KHAC_CLAUSE);
-  if(c.type!=='vatly'&&khac<0) s+=pick(KHANG_CLAUSE);
+  if(!isVoHe(c.type)&&khac>0) s+=pick(KHAC_CLAUSE);
+  if(!isVoHe(c.type)&&khac<0) s+=pick(KHANG_CLAUSE);
   if(c.lifesteal){ const h=Math.round(dmg*c.lifesteal); p.hp=Math.min(p.maxHP,p.hp+h); s+=' <span class="text-jade">Tinh huyết địch bị hút về, ngươi hồi '+h+' sinh lực.</span>'; }
   if(c.heal){ const h=Math.round(p.maxHP*c.heal); p.hp=Math.min(p.maxHP,p.hp+h); s+=' <span class="text-jade">Chân khí điều tức, hồi '+h+' sinh lực.</span>'; }
   L(f, s, 'text-slate-200');
@@ -653,7 +665,11 @@ function _eTurn(f){
   const desc=useSk?sk.fl:(f.enemy.atkFl||'tấn công');
   if(useSk) e.skillCd=sk.cd;
   if(P.dodge && Math.random()<P.dodge){ f.dodged=(f.dodged||0)+1; L(f, '<span class="text-sky-400">▸</span> '+pick(DODGE_PHRASES)(f.eName,desc), 'text-sky-300'); return; }
-  let dmg=e.atk*mult*(100/(100+P.def)); dmg=Math.max(1,Math.round(dmg)); p.hp-=dmg; f.taken+=dmg;
+  // ĐÒN QUÁI MANG HỆ e.he (roll ở makeFight) -> chảy qua kháng ngũ hành của người chơi (P.khang).
+  // Đợt 1: P.khang mặc định toàn 0 -> nhân đúng 1, hành vi KHÔNG đổi. Trần kháng đặt ở Đợt 2.
+  let dmg=e.atk*mult*(100/(100+P.def));
+  dmg*=(1-((P.khang && P.khang[e.he]) || 0));
+  dmg=Math.max(1,Math.round(dmg)); p.hp-=dmg; f.taken+=dmg;
   let s='<span class="text-rose-400">▸</span> '+pick(ENEMY_PHRASES)(f.eName,dmg,desc);
   if(useSk&&sk.slow){ p.slow=3; s+=' <span class="text-sky-300">Hàn khí thấm cốt, thân pháp ngươi chậm lại.</span>'; }
   L(f, s, 'text-rose-300');
@@ -705,7 +721,7 @@ export function combatProfile(state, loadout, enemy){
   if(wins===0){ lvl='❌'; verdict='Nguy Hiểm'; endure='thua'; tip='Bài võ không trị nổi nó ở bất kỳ hệ nào. Tăng hút/hồi máu, đổi Bộ Pháp Kiên Thủ, hoặc luyện thêm rồi quay lại.'; }
   else {
     if(hpLost<=0){ fights=Infinity; endure='vô hạn'; } else { fights=Math.floor(P.maxHP/Math.max(1,hpLost)); endure='~'+fights+' con'; }
-    if(loseCount>0){ lvl='⚠️'; verdict='Hên Xui'; tip='Yêu thú đổi hệ mỗi trận — ngươi THUA ở '+loseCount+'/'+n+' hệ. Mang chiêu ĐA HỆ + 1 chiêu Vật Lý (không dính khắc/kháng) để trận nào cũng có đòn lợi thế.'; }
+    if(loseCount>0){ lvl='⚠️'; verdict='Hên Xui'; tip='Yêu thú đổi hệ mỗi trận — ngươi THUA ở '+loseCount+'/'+n+' hệ. Mang chiêu ĐA HỆ + 1 chiêu Vô Hệ (không dính khắc/kháng) để trận nào cũng có đòn lợi thế.'; }
     else if(fights===Infinity){ lvl='✅'; verdict='An Toàn'; tip='Hồi/hút máu gánh trọn — cày thoải mái dù địch đổi hệ liên tục.'; }
     else if(fights<=2){ lvl='❌'; verdict='Nguy Hiểm'; tip='Chỉ trụ vài con là gục. Tăng hút máu/thủ hoặc luyện thêm.'; }
     else if(fights<=12){ lvl='⚠️'; verdict='Hơi Đuối'; tip='Cày một lúc rồi phải nghỉ. Thêm chiêu hút/hồi máu hoặc Bộ Pháp Kiên Thủ để bền hơn.'; }

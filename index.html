@@ -1898,7 +1898,7 @@
           <template x-if="$store.game.baiVoModal">
             <div class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4" style="background:rgba(2,6,12,.78)" @click.self="$store.game.closeBaiVo()" @keydown.escape.window="$store.game.closeBaiVo()">
               <div class="panel rounded-xl border border-jade/30 w-full max-w-6xl h-[94dvh] sm:h-[88vh] flex flex-col overflow-hidden" @click.stop
-                   x-data="{ panel: $store.game.baiVoPanel, hf:'all', detail:null, hfList:[['all','Tất cả'],['kim','Kim'],['moc','Mộc'],['thuy','Thủy'],['hoa','Hỏa'],['tho','Thổ'],['vatly','Vật lý'],['buff','Trợ']], open(kind,id){ this.detail={kind,id} }, get cDetail(){ return (this.detail&&this.detail.kind==='chieu')?this.$store.game.chieuObj(this.detail.id):null }, get tDetail(){ return (this.detail&&this.detail.kind==='tamphap')?this.$store.game.TAM_PHAP_POOL.find(t=>t.id===this.detail.id):null }, get bDetail(){ return (this.detail&&this.detail.kind==='bidong')?this.$store.game.biDongObj(this.detail.id):null } }">
+                   x-data="{ panel: $store.game.baiVoPanel, hf:'all', detail:null, hfList:[['all','Tất cả'],['kim','Kim'],['moc','Mộc'],['thuy','Thủy'],['hoa','Hỏa'],['tho','Thổ'],['vohe','Vô Hệ'],['buff','Trợ']], open(kind,id){ this.detail={kind,id} }, get cDetail(){ return (this.detail&&this.detail.kind==='chieu')?this.$store.game.chieuObj(this.detail.id):null }, get tDetail(){ return (this.detail&&this.detail.kind==='tamphap')?this.$store.game.TAM_PHAP_POOL.find(t=>t.id===this.detail.id):null }, get bDetail(){ return (this.detail&&this.detail.kind==='bidong')?this.$store.game.biDongObj(this.detail.id):null } }">
 
                 <!-- Header -->
                 <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 shrink-0">
@@ -4027,7 +4027,7 @@
 
       <!-- ===== VIEW: TÀNG KINH CÁC (nguồn skill — Học/Mua võ học) ===== -->
       <template x-if="$store.game.view==='tangkinhcac'">
-        <div class="space-y-3" x-data="{ hf:'all', onlyLocked:false, hfList:[['all','Tất cả'],['hoa','Hỏa'],['thuy','Thủy'],['moc','Mộc'],['kim','Kim'],['tho','Thổ'],['vatly','Vật lý'],['buff','Trợ']] }">
+        <div class="space-y-3" x-data="{ hf:'all', onlyLocked:false, hfList:[['all','Tất cả'],['hoa','Hỏa'],['thuy','Thủy'],['moc','Mộc'],['kim','Kim'],['tho','Thổ'],['vohe','Vô Hệ'],['buff','Trợ']] }">
 
           <!-- Header — khung ornate DÙNG CHUNG .sk-hero (đồng bộ header NPC Kỹ Năng / Động Phủ / Modal Địa Điểm) -->
           <div class="sk-hero">
@@ -4079,7 +4079,7 @@
               <!-- header môn phái (chữ Hán thư pháp + crest art tuỳ chọn) -->
               <div class="flex items-center gap-3 mb-3 pb-2.5 border-b border-slate-800">
                 <div class="relative w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-gradient-to-br border" :class="$store.game.NGU_HANH[sec.he].grad+' '+$store.game.NGU_HANH[sec.he].ring">
-                  <span class="text-[26px] leading-none font-bold opacity-90" style="font-family:'Lora',serif" :class="$store.game.heInfo(sec.he).text" x-text="sec.monPhai.han || (sec.he==='vatly'?'武':'符')"></span>
+                  <span class="text-[26px] leading-none font-bold opacity-90" style="font-family:'Lora',serif" :class="$store.game.heInfo(sec.he).text" x-text="sec.monPhai.han || (sec.he==='vohe'?'武':'符')"></span>
                   <img :src="'images/monphai/'+sec.he+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                 </div>
                 <div class="flex-1 min-w-0">

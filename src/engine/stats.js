@@ -10,8 +10,10 @@ import { codexBonus } from './codex.js';
 import { titleBonus } from './titles.js';
 
 export function gearStats(state) {
-  // 8 stat: 5 lõi + baoKich/baoSat/tocDo (chỉ gear cấp; vào crit/critDmg/spd ở deriveCombat).
-  const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0, baoKich: 0, baoSat: 0, tocDo: 0 };
+  // 8 stat: 5 lõi + baoKich/baoSat/tocDo (chỉ gear cấp; vào crit/critDmg/spd ở deriveCombat)
+  // + khung 5 kháng ngũ hành khangKim..khangTho (đại phẫu — Đợt 1 chưa có affix nào cấp, luôn 0).
+  const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0, baoKich: 0, baoSat: 0, tocDo: 0,
+              khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0 };
   const eq = state.equipment || {};
   for (const slot of Object.keys(eq)) {
     const inst = eq[slot];
@@ -63,5 +65,7 @@ export function derivedStats(state, opts) {
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   // baoKich/baoSat/tocDo: chỉ từ gear (không Tứ Trụ/codex), chuyển thẳng cho deriveCombat.
-  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0 };
+  // khang: khung 5 kháng ngũ hành (tỉ lệ 0..1, chỉ từ giáp trụ) — Đợt 1 luôn toàn 0, deriveCombat mang sang P.khang.
+  const khang = { kim: g.khangKim || 0, moc: g.khangMoc || 0, thuy: g.khangThuy || 0, hoa: g.khangHoa || 0, tho: g.khangTho || 0 };
+  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang };
 }

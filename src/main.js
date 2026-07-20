@@ -28,7 +28,7 @@ import {
   migrateDanSlots,
 } from './engine/activity.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, useBuffDan, duocLuTick } from './engine/buff.js';
-import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
+import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
   TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
@@ -2817,7 +2817,7 @@ const gameStore = {
   },
   // --- Tàng Kinh Các: gom toàn bộ võ học theo Môn Phái (hệ) ---
   get tangKinhSections() {
-    const order = NGU_HANH_LIST.concat(['vatly', 'buff']);
+    const order = NGU_HANH_LIST.concat(['vohe', 'buff']);
     return order.map(he => {
       const chieu = CHIEU.filter(c => c.type === he).sort((a, b) => (TIER_ORDER[a.tier] || 0) - (TIER_ORDER[b.tier] || 0)).map(c => ({ kind: 'chieu', id: c.id, obj: c }));
       const tamphap = TAM_PHAP_POOL.filter(t => t.he === he).map(t => ({ kind: 'tamphap', id: t.id, obj: t }));
@@ -2927,7 +2927,7 @@ const gameStore = {
   tkChieuDmg(c) {
     const P = this.combatStats; if (!P || !c) return 0;
     let d = P.atk * (c.mult || 0);
-    if (c.type && c.type !== 'vatly') { const eleB = (c.type === P.heChinh ? (P.tamPhapHeBonus || 0) : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); d *= (1 + eleB); }
+    if (c.type && !isVoHe(c.type)) { const eleB = (c.type === P.heChinh ? (P.tamPhapHeBonus || 0) : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); d *= (1 + eleB); }
     return Math.max(1, Math.round(d));
   },
   // Các dòng chỉ số trong popup, theo loại võ học (chiêu / tâm pháp / bị động).
@@ -2936,7 +2936,7 @@ const gameStore = {
     const o = this.tkObj(it), rows = [];
     if (it.kind === 'chieu') {
       rows.push({ k: 'Sát thương', v: '×' + (+o.mult.toFixed(2)) + ' ST · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true, full: true });
-      rows.push({ k: 'Hệ', v: o.type === 'vatly' ? 'Vật lý' : heName(o.type) });
+      rows.push({ k: 'Hệ', v: heName(o.type) });
       rows.push({ k: 'Nội Lực tiêu', v: o.nl || 0 });
       rows.push({ k: 'Hồi chiêu', v: o.cd ? (o.cd + ' hiệp') : 'Tức thì' });
       if (o.burn) rows.push({ k: 'Bỏng', v: o.burn.dmg + '/hiệp × ' + o.burn.ticks + ' hiệp' });
@@ -3212,7 +3212,7 @@ const gameStore = {
     const e = this.combatSelObj; if (!e || c.type === 'buff') return 0;
     const P = this.combatStats; let d = P.atk * c.mult;
     // Hệ địch ngẫu nhiên mỗi trận → preview là ST NỀN (chưa tính khắc/kháng, sẽ ±30/20% tuỳ trận).
-    if (c.type !== 'vatly') { const eleB = (c.type === P.heChinh ? P.tamPhapHeBonus : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); d *= (1 + eleB); }
+    if (!isVoHe(c.type)) { const eleB = (c.type === P.heChinh ? P.tamPhapHeBonus : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); d *= (1 + eleB); }
     const defEff = Math.max(0, e.def * (1 - (c.pen || 0)));
     d *= 100 / (100 + defEff);
     return Math.max(1, Math.round(d));
