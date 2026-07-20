@@ -2954,7 +2954,7 @@ const gameStore = {
     if (!TAM_PHAP_POOL.some(t => t.id === id)) return;
     if (!this.ownsTamPhap(id)) { this.showToast('Chưa lĩnh hội Tâm Pháp này — học ở Tàng Kinh Các trước.'); return; }
     this.state.combat.loadout.tamPhap = id;
-    this.recomputeCombatFc(); Storage.save(this.state);
+    this.afterLoadoutChange();
     this.showToast('Đổi Tâm Pháp: ' + tamPhapById(id).name);
   },
   // --- Popup CHI TIẾT Tâm Pháp khởi tu (màn tạo NV): xem võ học hệ đó trước khi chọn ---
@@ -2968,7 +2968,7 @@ const gameStore = {
   baiVoModal: false,
   baiVoPanel: 'chieu',                 // panel khởi tạo khi mở ('chieu' | 'tamphap')
   openBaiVo(panel) { this.baiVoPanel = ['tamphap', 'bidong'].includes(panel) ? panel : 'chieu'; this.baiVoModal = true; },
-  closeBaiVo() { this.baiVoModal = false; },
+  closeBaiVo() { this.baiVoModal = false; this.chieuDragEnd(false); },   // đóng giữa cú kéo -> huỷ sạch, đừng để kẹt
   chieuObj(id) { return chieuById(id); },
   get equippedChieuObjs() { return this.loadout.chieu.map(id => chieuById(id)).filter(Boolean); },
   chieuEquipped(id) { return this.loadout.chieu.includes(id); },
@@ -2983,7 +2983,7 @@ const gameStore = {
     if (i >= 0) arr.splice(i, 1);
     else { if (!this.ownsBiDong(id)) { this.showToast('Chưa lĩnh hội Bị Động này — học ở Tàng Kinh Các trước.'); return; } if (arr.length >= this.maxBiDongSlots) { this.showToast('Tối đa ' + this.maxBiDongSlots + ' Bị Động — bỏ bớt 1 trước.'); return; } arr.push(id); }
     this.state.combat.loadout.biDong = arr;
-    this.recomputeCombatFc(); Storage.save(this.state);
+    this.afterLoadoutChange();
   },
   biDongTags(p) {
     if (!p) return [];
@@ -3056,18 +3056,105 @@ const gameStore = {
     if (i >= 0) { if (arr.length <= 1) { this.showToast('Phải giữ ít nhất 1 Bộ Pháp'); return; } arr.splice(i, 1); }
     else { if (arr.length >= 2) { this.showToast('Tối đa 2 Bộ Pháp'); return; } arr.push(id); }
     this.state.combat.loadout.boPhap = arr;
-    this.recomputeCombatFc(); Storage.save(this.state);
+    this.afterLoadoutChange();
   },
   toggleChieu(id) {
     const arr = this.state.combat.loadout.chieu, i = arr.indexOf(id), cap = this.maxChieuSlots;
     if (i >= 0) arr.splice(i, 1);
     else { if (!this.ownsChieu(id)) { this.showToast('Chưa sở hữu chiêu này — học hoặc mua trước.'); return; } if (arr.length >= cap) { this.showToast('Hết ô chiêu (' + cap + '). Mở thêm ô ở Chiến Đấu Lv ' + this.nextSlotLevel + '.'); return; } arr.push(id); }
-    this.recomputeCombatFc(); Storage.save(this.state);
+    this.afterLoadoutChange();
+  },
+  // Kéo ô chiêu đổi thứ tự ƯU TIÊN (thứ tự mảng = thứ tự engine xét ở _pTurn).
+  moveChieu(from, to) {
+    const arr = this.state.combat.loadout.chieu;
+    if (!Array.isArray(arr)) return;
+    from = from | 0; to = to | 0;
+    if (from === to || from < 0 || to < 0 || from >= arr.length || to >= arr.length) return;
+    const [m] = arr.splice(from, 1); arr.splice(to, 0, m);
+    this.afterLoadoutChange();
+  },
+  // Kéo ô bằng POINTER EVENTS chứ không phải drag-and-drop HTML5: HTML5 không phát sự kiện trên
+  // màn cảm ứng, dùng nó thì tính năng chết câm trên điện thoại. touch-action:none ở tile chặn
+  // cuộn trang tranh chấp với cú kéo.
+  // pid: BẮT BUỘC bám theo đúng ngón đã bắt đầu cú kéo. Không có nó thì ngón thứ hai chạm nhầm ô
+  // khác sẽ ghi đè trạng thái, và cú kéo của ngón thứ nhất đi sắp lại ô của ngón thứ hai.
+  chieuDrag: { i: null, over: null, active: false, x: 0, y: 0, pid: null, t: 0 },
+  _cdNet: null,
+  chieuDragStart(i, ev) {
+    if (ev.button != null && ev.button > 0) return;               // chỉ nút chuột trái / chạm
+    // Đã có cú kéo đang chạy -> bỏ qua ngón mới. Nhưng nếu cú kéo đó quá cũ thì nó là RÁC kẹt lại
+    // (mất pointerup vì lý do nào đó) — phải cho ngón mới giành quyền, không thì kéo thả chết hẳn.
+    if (this.chieuDrag.i != null && Date.now() - (this.chieuDrag.t || 0) < 10000) return;
+    this.chieuDrag = { i, over: i, active: false, x: ev.clientX, y: ev.clientY, pid: ev.pointerId, t: Date.now() };
+    try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) { /* trình duyệt cũ: bỏ qua */ }
+    this._chieuDragNet(true);
+  },
+  // LƯỚI AN TOÀN. pointerup/pointercancel có thể KHÔNG BAO GIỜ tới đúng ô: Alpine gỡ node khi sắp lại,
+  // modal đóng giữa cú kéo, ngón nhả ngoài khung. Thiếu nó thì chieuDrag kẹt và kéo thả chết tới khi
+  // tải lại trang. Nghe ở pha NỔI BỌT để handler của ô luôn chạy trước (nó mới là chỗ mở popup).
+  _chieuDragNet(on) {
+    if (on) {
+      if (this._cdNet) return;
+      this._cdNet = { up: (e) => this.chieuDragEnd(true, e), cancel: (e) => this.chieuDragEnd(false, e) };
+      window.addEventListener('pointerup', this._cdNet.up);
+      window.addEventListener('pointercancel', this._cdNet.cancel);
+    } else if (this._cdNet) {
+      window.removeEventListener('pointerup', this._cdNet.up);
+      window.removeEventListener('pointercancel', this._cdNet.cancel);
+      this._cdNet = null;
+    }
+  },
+  chieuDragMove(ev) {
+    const d = this.chieuDrag;
+    if (d.i == null || (d.pid != null && ev.pointerId !== d.pid)) return;
+    // Chưa vượt ngưỡng rung tay -> vẫn tính là cú BẤM (mở popup), không phải cú kéo.
+    if (!d.active && Math.abs(ev.clientX - d.x) + Math.abs(ev.clientY - d.y) < 6) return;
+    d.active = true;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const t = el && el.closest ? el.closest('[data-ci]') : null;
+    d.over = t ? (t.dataset.ci | 0) : d.i;
+  },
+  // commit=false (pointercancel: hệ điều hành cướp cử chỉ) -> HUỶ, tuyệt đối không sắp lại:
+  //   người chơi không hề thả tay xác nhận, mà đảo ô là đổi thật thứ tự tung chiêu.
+  // Trả true = đã kéo (nơi gọi ĐỪNG mở popup) · false = chỉ là cú bấm.
+  chieuDragEnd(commit, ev) {
+    const d = this.chieuDrag;
+    if (d.i == null) return false;                                    // không có cú kéo -> nơi gọi cứ mở popup
+    if (ev && d.pid != null && ev.pointerId !== d.pid) return true;    // ngón khác nhả -> nuốt, đừng mở popup
+    const wasDrag = d.active, from = d.i, to = d.over;
+    this.chieuDrag = { i: null, over: null, active: false, x: 0, y: 0, pid: null, t: 0 };
+    this._chieuDragNet(false);
+    if (!wasDrag) return false;
+    if (commit !== false && from != null && to != null && to !== from) this.moveChieu(from, to);
+    return true;
   },
   recomputeCombatFc() {
     const o = {};
     for (const id of this.currentLocationEnemies) o[id] = combatProfile(this.state, this.loadout, this.ENEMIES[id]);
     this.combatFc = o;
+  },
+  // LỐI VÀO DUY NHẤT sau khi ĐỔI BÀI VÕ. Tách khỏi recomputeCombatFc vì hàm đó còn được gọi từ
+  // ensureCombat (mỗi lần mở tab Chiến Đấu) và openCombatModal (mỗi lần bấm xem một con quái) —
+  // hai chỗ KHÔNG đổi gì cả. combatProfile là hàm NGẪU NHIÊN (simFight roll bạo kích/né), nên nếu
+  // nhét refreshActivityProfile vào đó thì chỉ bấm qua lại màn hình cũng roll lại máu mất mỗi con
+  // của phiên đang cày: người chơi mở/đóng Suy Tính tới khi ra số đẹp là ăn gian được, mà lỡ ăn
+  // phải roll xấu thì gục giữa phiên dù không đụng vào gì.
+  afterLoadoutChange() {
+    this.recomputeCombatFc();
+    this.refreshActivityProfile();
+    Storage.save(this.state);
+  },
+  // Bài võ đổi GIỮA phiên cày: activity.hpLostPerKill chỉ được chụp MỘT LẦN lúc startCombat
+  // (activity.js:169) còn vòng cày đọc act.hpLostPerKill, nên không cập nhật ở đây thì đổi bài võ xong
+  // máu mất mỗi con vẫn y nguyên tới khi người chơi tự dừng rồi cày lại — trông như tính năng vô dụng.
+  // Chiều ngược lại nguy hơn: đổi sang bài yếu vẫn sống bằng số cũ, tới lúc cày lại mới lăn ra gục.
+  refreshActivityProfile() {
+    const a = this.state.activity;
+    if (!a || a.type !== 'combat') return;
+    const e = this.ENEMIES[a.enemyId]; if (!e) return;
+    const pf = combatProfile(this.state, this.loadout, e);
+    a.hpLostPerKill = pf.hpLostPerKill;
+    a.maxHP = pf.maxHP;
   },
   // Thu nhỏ panel Bài Võ (khi không chỉnh loadout) -> thanh Yêu Thú nhảy lên. Persist ở settings.
   get baiVoCollapsed() { return !!(this.state.settings && this.state.settings.baiVoCollapsed); },

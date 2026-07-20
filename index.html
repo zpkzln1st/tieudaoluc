@@ -115,6 +115,17 @@
       .tkc-cum-chieu .tkc-tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); }
       .tkc-cum-chieu .tkc-tile  { width:auto; }
     }
+    /* Ô chiêu kéo được (Bài Võ) — thứ tự ô = thứ tự ƯU TIÊN engine xét, nên phải nhìn thấy số. */
+    .chieu-ord { position:absolute; top:2px; left:2px; z-index:2; width:15px; height:15px; border-radius:4px;
+                 background:rgba(7,11,20,.88); border:1px solid rgba(245,185,66,.55); color:#f5b942;
+                 font-family:'Lora',serif; font-weight:700; font-size:9.5px; line-height:13px; text-align:center; }
+    .chieu-grip{ position:absolute; bottom:2px; right:2px; z-index:2; width:11px; height:11px;
+                 fill:rgba(203,213,225,.62); pointer-events:none; }
+    /* Vạch jade TĨNH báo chỗ sắp thả. Phải là lớp con z-index cao: ô chiêu có <img> phủ absolute
+       inset-0 và art là ảnh ĐẶC (webp VP8 không alpha), nên inset box-shadow đặt trên chính button
+       sẽ nằm dưới ảnh và không bao giờ nhìn thấy. */
+    .chieu-drop::after{ content:''; position:absolute; inset:0; z-index:3; pointer-events:none;
+                        box-shadow:inset 3px 0 0 0 #14b8a6; border-radius:inherit; }
     /* Banner "sự kiện chờ" Tông Môn — glow TĨNH (pulse dịu, tắt theo reduced-motion) */
     .tm-evt-glow { --gc:#a78bfa66; animation:tmEvtPulse 3.6s ease-in-out infinite; }
     @keyframes tmEvtPulse { 0%,100%{ box-shadow:0 0 0 1px var(--gc), 0 0 13px -3px var(--gc); } 50%{ box-shadow:0 0 0 1px var(--gc), 0 0 22px -1px var(--gc); } }
@@ -1896,10 +1907,19 @@
                     </button>
                     <!-- chiêu đã lắp -->
                     <template x-for="(c,idx) in $store.game.equippedChieuObjs" :key="c.id">
-                      <button @click="open('chieu',c.id)" class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0" :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'" :title="c.name">
+                      <button :data-ci="idx" draggable="false" style="touch-action:none"
+                              @pointerdown="$store.game.chieuDragStart(idx,$event)"
+                              @pointermove="$store.game.chieuDragMove($event)"
+                              @pointerup="if(!$store.game.chieuDragEnd(true,$event)) open('chieu',c.id)"
+                              @pointercancel="$store.game.chieuDragEnd(false,$event)"
+                              class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0 cursor-grab"
+                              :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'+($store.game.chieuDrag.i===idx&&$store.game.chieuDrag.active?' opacity-40':'')+($store.game.chieuDrag.active&&$store.game.chieuDrag.over===idx&&$store.game.chieuDrag.i!==idx?' chieu-drop':'')"
+                              :title="c.name+' — ưu tiên '+(idx+1)+', kéo để đổi thứ tự'">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-8 h-8')"></span>
                         <img :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                        <span class="chieu-ord" x-text="idx+1"></span>
+                        <svg class="chieu-grip" viewBox="0 0 10 10" aria-hidden="true"><circle cx="3" cy="2" r="1"/><circle cx="7" cy="2" r="1"/><circle cx="3" cy="5" r="1"/><circle cx="7" cy="5" r="1"/><circle cx="3" cy="8" r="1"/><circle cx="7" cy="8" r="1"/></svg>
                       </button>
                     </template>
                     <!-- ô trống chiêu -->
@@ -1919,6 +1939,11 @@
                     <template x-for="n in Math.max(0,$store.game.maxBiDongSlots-$store.game.equippedBiDongObjs.length)" :key="'bdslot'+n">
                       <button @click="panel='bidong'" class="w-16 h-16 rounded-lg border-2 border-dashed border-violet-700/60 text-violet-700/80 hover:border-violet-400 hover:text-violet-300 flex items-center justify-center text-2xl shrink-0 transition">+</button>
                     </template>
+                  </div>
+                  <div class="mt-2 text-[10.5px] text-slate-500 leading-relaxed" x-show="$store.game.equippedChieuObjs.length>1">
+                    <b class="text-slate-400">Thứ tự ô chiêu là thứ tự ưu tiên</b> — kéo ô để sắp lại.
+                    Mỗi nhịp ngươi tung chiêu ưu tiên cao nhất đã hết hồi chiêu; nếu chưa đủ Nội Lực thì
+                    đánh thường để tích thêm chứ không hạ xuống tung chiêu rẻ hơn.
                   </div>
                 </div>
 

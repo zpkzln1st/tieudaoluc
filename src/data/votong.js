@@ -514,7 +514,7 @@ export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
   const he = forcedHe || rollHe(enemy);
   const f = {
     P, chosen: chosen.map(chieuById).filter(Boolean), enemy, eName: enemy.name, eHe: he,
-    p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0 },
+    p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0 },
     e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
     cds:{}, t:0, dealt:0, taken:0, over:false, result:null, log:[],
   };
@@ -529,13 +529,19 @@ function _useSkill(f,c){
   p.nl-=c.nl; f.cds[c.id]=c.cd;
   const nmCls = heInfo(c.type).text;
   const nm='<span class="'+nmCls+' font-medium">〈'+c.name+'〉</span>';
-  if(c.type==='buff'){ p.buff=c.buff.ticks; L(f,'✦ Ngươi '+pick(LEAD_VERB)+' '+nm+', tiêu hao <span class="text-blue-400 font-medium">'+c.nl+' Nội Lực</span> — '+pick(c.flavor)+', <span class="text-violet-200">công lực +30% ('+c.buff.ticks+'s)</span>.','text-violet-200'); return; }
+  // Chiêu Trợ: uy lực lấy THEO DATA (c.buff.dmg), không chôn cứng — Thiên Nhân Hợp Nhất khai +80%
+  // mà engine cũ chỉ cho +30%, tức tuyệt kĩ 500.000 Bạc + Đồ Phổ + liệu boss chạy sai suốt.
+  // Chỉ ĐÈ khi buff mới KHÔNG yếu hơn buff đang chạy — nếu không, Liệt Diễm Phù (+30%, sơ cấp)
+  // tung ngay sau Thiên Nhân Hợp Nhất (+80%, tuyệt kĩ) sẽ kéo tụt cửa sổ tuyệt kĩ xuống 30%.
+  if(c.type==='buff'){ const nd=(c.buff.dmg!=null?c.buff.dmg:0.30);
+    if(p.buff<=0 || nd>=p.buffDmg){ p.buff=c.buff.ticks; p.buffDmg=nd; }
+    L(f,'✦ Ngươi '+pick(LEAD_VERB)+' '+nm+', tiêu hao <span class="text-blue-400 font-medium">'+c.nl+' Nội Lực</span> — '+pick(c.flavor)+', <span class="text-violet-200">công lực +'+Math.round(p.buffDmg*100)+'% ('+c.buff.ticks+'s)</span>.','text-violet-200'); return; }
   // Chiêu hồi máu thuần (mult thấp vẫn đánh, kèm hồi)
   let dmg=P.atk*c.mult;
   const eleB = (c.type===P.heChinh ? P.tamPhapHeBonus : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); // Tâm Pháp(cùng hệ) + bị động theo hệ
   const khac = nguHanhMod(c.type, e.he);                       // khắc/kháng vs hệ địch
   if(c.type!=='vatly') dmg*=(1+eleB)*(1+khac);
-  if(p.buff>0) dmg*=1.30;
+  if(p.buff>0) dmg*=(1+(p.buffDmg!=null?p.buffDmg:0.30));   // buffDmg do chiêu Trợ đặt (mặc định +30% cho save/đường cũ)
   const critChance = Math.min(0.95, P.crit + (c.critBonus||0));
   const crit=Math.random()<critChance; if(crit) dmg*=P.critDmg;
   const defEff = Math.max(0, e.def*(1-(c.pen||0)));            // xuyên giáp
@@ -559,10 +565,27 @@ function _basic(f){
   p.nl=Math.min(P.maxNL,p.nl+P.nlRegen);
   L(f,'Ngươi vận kình đánh thường, giáng <b class="'+(crit?'dmgc':'dmg')+'">'+dmg+'</b> sát thương lên '+f.eName+', hồi <span class="text-blue-400 font-medium">'+P.nlRegen+' Nội Lực</span>.', 'text-slate-300');
 }
+// THỨ TỰ Ô CHIÊU = THỨ TỰ ƯU TIÊN. Dừng ở chiêu ưu tiên cao nhất đã hết hồi chiêu:
+//   đủ Nội Lực -> tung; THIẾU -> đánh thường tích Nội Lực, KHÔNG tụt xuống tung chiêu rẻ hơn.
+// Luật cũ ("chiêu sẵn sàng đầu tiên") để chiêu rẻ cd 0 hút sạch Nội Lực nên chiêu nặng ở ô sau
+// KHÔNG BAO GIỜ phát: bài mặc định ['lhd','htd','ptd'] chỉ tung mỗi Liệt Hỏa Đao.
+// ĐÁNH ĐỔI đã đo (harness _mockup/_harness_chieu.html, 40 tổ hợp bài×cấp): 30 y nguyên, 5 đỡ mất máu,
+// 5 mất máu hơn. Bài xếp chiêu RẺ trước (thứ tự mọi save cũ đang có) KHÔNG đổi một chút nào.
+// Chỗ xấu đi đều là bài xếp chiêu NẶNG trước: chờ đủ Nội Lực làm giảm nhịp tung chiêu hút máu rẻ
+// -> bền kém đi dù sát thương cộng dồn cao hơn. Đó là đánh đổi thật (bạo phát ↔ trụ dai), và người
+// chơi thấy ngay qua Suy Tính vì recomputeCombatFc chạy lại mỗi lần đổi bài võ.
 function _pTurn(f){
   const p=f.p;
   if(p.stun>0){ L(f,'Ngươi bị choáng váng, lỡ một nhịp.','text-slate-500'); return; }
-  let c=null; for(const x of f.chosen){ if((f.cds[x.id]||0)<=0 && p.nl>=x.nl){ c=x; break; } }
+  let c=null;
+  for(const x of f.chosen){
+    if(x.nl > f.P.maxNL) continue;        // vượt trần Nội Lực -> vĩnh viễn không tung được, đừng chặn cả hàng
+    if((f.cds[x.id]||0)>0) continue;      // đang hồi chiêu -> nhường chiêu kế
+    // Buff đang chạy mà chiêu Trợ này không mạnh hơn -> nhường ô kế, đừng phí lượt lẫn Nội Lực.
+    if(x.type==='buff' && p.buff>0 && ((x.buff&&x.buff.dmg)||0) <= p.buffDmg) continue;
+    if(p.nl>=x.nl) c=x;                   // sẵn sàng + đủ Nội Lực -> tung
+    break;                                // gặp chiêu ưu tiên cao nhất đã sẵn sàng -> dừng ở đây
+  }
   if(c) _useSkill(f,c); else _basic(f);
 }
 function _eTurn(f){
