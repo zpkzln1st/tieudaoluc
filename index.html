@@ -110,8 +110,11 @@
     /* ===== Thư viện võ học trong modal Bài Võ — lưới CO THEO BỀ RỘNG =====
        Trước dùng cố định md:grid-cols-5: modal rộng 1152px chia 5 ra thẻ ~210px, nhìn rất ngộp.
        auto-fill giữ thẻ quanh 120px ở mọi bề rộng, màn càng rộng càng nhiều cột chứ thẻ không phình. */
-    .bv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); gap:.5rem; }
-    @media (max-width:480px){ .bv-grid { grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); } }
+    .bv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(134px,1fr)); gap:.5rem; }
+    @media (max-width:480px){ .bv-grid { grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); } }
+    /* Tên võ học nằm NGOÀI ảnh, 2 dòng, canh giữa. Chiều cao CỐ ĐỊNH để mọi thẻ bằng nhau dù tên
+       dài ngắn khác nhau — trước để trong ảnh + truncate nên tên dài bị cắt cụt ("Băng Phách Hàn ..."). */
+    .bv-name { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; height:32px; text-align:center; }
     @media (max-width:640px){
       /* Màn hẹp: bỏ vạch (chấm màu ở nhãn nhóm đã đủ tách). Cụm Chiêu Thức đằng nào cũng xuống dòng
          riêng -> cho chiếm trọn hàng + ô giãn đều lấp kín, khỏi thừa khoảng trắng mép phải. */
@@ -1989,51 +1992,61 @@
                   </div>
                 </div>
 
-                <!-- Thư viện: lưới full-width, bấm tile mở popup chi tiết -->
+                <!-- Thư viện: CHỈ hiện võ học ĐÃ LĨNH HỘI (học/mua ở Tàng Kinh Các). Đây là chỗ CHỌN bài võ,
+                     không phải chỗ mua — nên không còn ổ khoá, không giá tiền, không làm mờ. -->
                 <div class="flex-1 min-h-0 overflow-y-auto p-3">
                   <!-- lưới CHIÊU -->
                   <div x-show="panel==='chieu'" class="bv-grid">
-                    <template x-for="c in $store.game.CHIEU.filter(c=>hf==='all'||c.type===hf)" :key="c.id">
-                      <button @click="open('chieu',c.id)" class="relative rounded-lg overflow-hidden border-2 transition" style="aspect-ratio:1" :class="$store.game.chieuEquipped(c.id)?'border-jade/50':$store.game.tierStyle(c.tier).border+' '+$store.game.tierStyle(c.tier).glow">
-                        <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
-                        <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-10 h-10')"></span>
-                        <img :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" :style="$store.game.ownsChieu(c.id)?'':'filter:grayscale(.45);opacity:.92'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
-                        <div x-show="!$store.game.ownsChieu(c.id)" class="absolute inset-0 bg-ink/15"></div>
-                        <span class="absolute top-1 right-1 text-[9px] font-bold px-1 py-px rounded shadow" :class="$store.game.tierStyle(c.tier).badge" x-text="$store.game.tierStyle(c.tier).label"></span>
-                        <template x-if="$store.game.chieuEquipped(c.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
-                        <template x-if="!$store.game.ownsChieu(c.id)"><span class="absolute top-1 left-1 w-4 h-4 flex items-center justify-center rounded bg-ink/70 text-slate-300" x-html="$store.game.svg('lock','w-3 h-3')"></span></template>
-                        <span class="absolute bottom-0 inset-x-0 bg-ink/85 px-1.5 py-1"><span class="block text-[12.5px] font-semibold truncate leading-tight" :class="$store.game.heInfo(c.type).text" x-text="c.name"></span><span x-show="$store.game.ownsChieu(c.id)" class="block text-[10.5px] text-slate-400 truncate leading-tight" x-text="$store.game.heName(c.type)"></span><span x-show="!$store.game.ownsChieu(c.id)" class="flex items-center gap-1 text-[11px] leading-tight font-semibold" :class="$store.game.skillSource($store.game.chieuCost(c))==='mua'?'text-cyan':'text-amber-300'"><span class="w-3 h-3 inline-flex items-center justify-center shrink-0" x-html="$store.game.costIcon($store.game.chieuCost(c))"></span><span x-text="$store.game.costAmt($store.game.chieuCost(c))"></span></span></span>
+                    <template x-for="c in $store.game.CHIEU.filter(c=>(hf==='all'||c.type===hf) && $store.game.ownsChieu(c.id))" :key="c.id">
+                      <button @click="open('chieu',c.id)" class="relative rounded-lg overflow-hidden border-2 transition" :class="$store.game.chieuEquipped(c.id)?'border-jade/50':$store.game.tierStyle(c.tier).border+' '+$store.game.tierStyle(c.tier).glow">
+                        <div class="relative w-full" style="aspect-ratio:1">
+                          <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
+                          <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-10 h-10')"></span>
+                          <img :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                          <span class="absolute top-1 right-1 text-[9px] font-bold px-1 py-px rounded shadow" :class="$store.game.tierStyle(c.tier).badge" x-text="$store.game.tierStyle(c.tier).label"></span>
+                          <template x-if="$store.game.chieuEquipped(c.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
+                        </div>
+                        <div class="px-1 pt-1 pb-1.5 bg-ink/85">
+                          <div class="bv-name text-[12px] font-semibold leading-[16px]" :class="$store.game.heInfo(c.type).text" x-text="c.name"></div>
+                        </div>
                       </button>
                     </template>
                   </div>
+                  <div x-show="panel==='chieu' && !$store.game.CHIEU.some(c=>(hf==='all'||c.type===hf) && $store.game.ownsChieu(c.id))" class="py-10 text-center text-[12px] text-slate-500">Chưa lĩnh hội chiêu thức nào thuộc mục này — tới <b class="text-slate-400">Tàng Kinh Các</b> để học thêm.</div>
                   <!-- lưới TÂM PHÁP -->
                   <div x-show="panel==='tamphap'" class="bv-grid">
-                    <template x-for="t in $store.game.TAM_PHAP_POOL" :key="t.id">
-                      <button @click="open('tamphap',t.id)" class="relative rounded-lg overflow-hidden border-2 transition" style="aspect-ratio:1" :class="$store.game.tamPhapOn(t.id)?'border-jade/50':'border-slate-700 hover:border-slate-500'">
-                        <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[t.he].grad"></div>
-                        <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(t.he).text" x-html="$store.game.svg($store.game.heInfo(t.he).ig,'w-10 h-10')"></span>
-                        <img :src="'images/tamphap/'+t.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" :style="$store.game.ownsTamPhap(t.id)?'':'filter:grayscale(.45);opacity:.92'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
-                        <div x-show="!$store.game.ownsTamPhap(t.id)" class="absolute inset-0 bg-ink/15"></div>
-                        <template x-if="$store.game.tamPhapOn(t.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
-                        <template x-if="!$store.game.ownsTamPhap(t.id)"><span class="absolute top-1 left-1 text-slate-300" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span></template>
-                        <span class="absolute bottom-0 inset-x-0 bg-ink/85 px-1.5 py-1"><span class="block text-[12.5px] font-semibold truncate leading-tight" :class="$store.game.heInfo(t.he).text" x-text="t.name"></span><span x-show="$store.game.ownsTamPhap(t.id)" class="block text-[10.5px] text-slate-400 truncate leading-tight" x-text="$store.game.heName(t.he)"></span><span x-show="!$store.game.ownsTamPhap(t.id)" class="flex items-center gap-1 text-[11px] leading-tight font-semibold text-amber-300"><span class="w-3 h-3 inline-flex items-center justify-center shrink-0" x-html="$store.game.costIcon($store.game.tamPhapCost(t))"></span><span x-text="$store.game.costAmt($store.game.tamPhapCost(t))"></span></span></span>
+                    <template x-for="t in $store.game.TAM_PHAP_POOL.filter(t=>$store.game.ownsTamPhap(t.id))" :key="t.id">
+                      <button @click="open('tamphap',t.id)" class="relative rounded-lg overflow-hidden border-2 transition" :class="$store.game.tamPhapOn(t.id)?'border-jade/50':'border-slate-700 hover:border-slate-500'">
+                        <div class="relative w-full" style="aspect-ratio:1">
+                          <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[t.he].grad"></div>
+                          <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(t.he).text" x-html="$store.game.svg($store.game.heInfo(t.he).ig,'w-10 h-10')"></span>
+                          <img :src="'images/tamphap/'+t.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                          <template x-if="$store.game.tamPhapOn(t.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
+                        </div>
+                        <div class="px-1 pt-1 pb-1.5 bg-ink/85">
+                          <div class="bv-name text-[12px] font-semibold leading-[16px]" :class="$store.game.heInfo(t.he).text" x-text="t.name"></div>
+                        </div>
                       </button>
                     </template>
                   </div>
+                  <div x-show="panel==='tamphap' && !$store.game.TAM_PHAP_POOL.some(t=>$store.game.ownsTamPhap(t.id))" class="py-10 text-center text-[12px] text-slate-500">Chưa lĩnh hội tâm pháp nào — tới <b class="text-slate-400">Tàng Kinh Các</b> để học thêm.</div>
                   <!-- lưới BỊ ĐỘNG (chọn tối đa 2) -->
                   <div x-show="panel==='bidong'" class="bv-grid">
-                    <template x-for="p in $store.game.BI_DONG" :key="p.id">
-                      <button @click="open('bidong',p.id)" class="relative rounded-lg overflow-hidden border-2 transition" style="aspect-ratio:1" :class="$store.game.biDongOn(p.id)?'border-jade/50':'border-slate-700 hover:border-slate-500'">
-                        <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[p.he].grad"></div>
-                        <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(p.he).text" x-html="$store.game.svg($store.game.heInfo(p.he).ig,'w-10 h-10')"></span>
-                        <img :src="'images/bidong/'+p.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" :style="$store.game.ownsBiDong(p.id)?'':'filter:grayscale(.45);opacity:.92'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
-                        <div x-show="!$store.game.ownsBiDong(p.id)" class="absolute inset-0 bg-ink/15"></div>
-                        <template x-if="$store.game.biDongOn(p.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
-                        <template x-if="!$store.game.ownsBiDong(p.id)"><span class="absolute top-1 left-1 text-slate-300" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span></template>
-                        <span class="absolute bottom-0 inset-x-0 bg-ink/85 px-1.5 py-1"><span class="block text-[12.5px] font-semibold truncate leading-tight" :class="$store.game.heInfo(p.he).text" x-text="p.name"></span><span x-show="$store.game.ownsBiDong(p.id)" class="block text-[10.5px] text-slate-400 truncate leading-tight" x-text="$store.game.heName(p.he)"></span><span x-show="!$store.game.ownsBiDong(p.id)" class="flex items-center gap-1 text-[11px] leading-tight font-semibold text-amber-300"><span class="w-3 h-3 inline-flex items-center justify-center shrink-0" x-html="$store.game.costIcon($store.game.biDongCost(p))"></span><span x-text="$store.game.costAmt($store.game.biDongCost(p))"></span></span></span>
+                    <template x-for="p in $store.game.BI_DONG.filter(p=>$store.game.ownsBiDong(p.id))" :key="p.id">
+                      <button @click="open('bidong',p.id)" class="relative rounded-lg overflow-hidden border-2 transition" :class="$store.game.biDongOn(p.id)?'border-jade/50':'border-slate-700 hover:border-slate-500'">
+                        <div class="relative w-full" style="aspect-ratio:1">
+                          <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[p.he].grad"></div>
+                          <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(p.he).text" x-html="$store.game.svg($store.game.heInfo(p.he).ig,'w-10 h-10')"></span>
+                          <img :src="'images/bidong/'+p.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                          <template x-if="$store.game.biDongOn(p.id)"><span class="absolute top-1 left-1 w-4 h-4 text-[10px] font-bold bg-jade text-ink flex items-center justify-center rounded shadow">✓</span></template>
+                        </div>
+                        <div class="px-1 pt-1 pb-1.5 bg-ink/85">
+                          <div class="bv-name text-[12px] font-semibold leading-[16px]" :class="$store.game.heInfo(p.he).text" x-text="p.name"></div>
+                        </div>
                       </button>
                     </template>
                   </div>
+                  <div x-show="panel==='bidong' && !$store.game.BI_DONG.some(p=>$store.game.ownsBiDong(p.id))" class="py-10 text-center text-[12px] text-slate-500">Chưa lĩnh hội bị động nào — tới <b class="text-slate-400">Tàng Kinh Các</b> để học thêm.</div>
                 </div>
 
                 <!-- POPUP CHI TIẾT: bấm tile/ô đã lắp -> xem + Trang bị/Gỡ/Học -->
