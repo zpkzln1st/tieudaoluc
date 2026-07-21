@@ -36,6 +36,6 @@ export const SECONDARY_STATS = [
   { name: 'Sinh Lực Tối Đa', key: 'sinhLuc',   desc: 'Máu tối đa.' },
   { name: 'Chiến Lực',       key: 'chienLuc',  desc: 'Sức chiến đấu tổng hợp.' },
   { name: 'Bạo Kích Suất',   ckey: 'crit',    kind: 'pct', desc: 'Tỉ lệ chí mạng.' },
-  { name: 'Bạo Kích Thương', ckey: 'critDmg', kind: 'mul', desc: 'Sát thương khi chí mạng.' },
+  { name: 'Sát Thương Bạo Kích', ckey: 'critDmg', kind: 'mul', desc: 'Sát thương khi chí mạng.' },
   { name: 'Khinh Công',      ckey: 'spd',     kind: 'num', desc: 'Tốc độ ra đòn.' },
 ];

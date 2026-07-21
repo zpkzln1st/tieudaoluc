@@ -301,7 +301,7 @@ export const AFFIX = {
   neTranh:   { key: 'neTranh',   name: 'Né Tránh',  lo: 3,  hi: 6,  fmt: 'flat' },
   menhTrung: { key: 'menhTrung', name: 'Chính Xác', lo: 3,  hi: 6,  fmt: 'flat' },
   baoKich:   { key: 'baoKich',   name: 'Bạo Kích',  lo: 1,  hi: 3,  fmt: 'pct' },   // % bao kich suat (vao crit)
-  baoSat:    { key: 'baoSat',    name: 'Bạo Sát',   lo: 4,  hi: 10, fmt: 'pct' },   // % bao kich thuong (vao critDmg)
+  baoSat:    { key: 'baoSat',    name: 'Sát Thương Bạo Kích', lo: 4, hi: 10, fmt: 'pct' },   // % bao kich thuong (vao critDmg)
   tocDo:     { key: 'tocDo',     name: 'Tốc Độ',    lo: 2,  hi: 6,  fmt: 'flat' },  // phang (vao spd)
   // ---- KHANG NGU HANH: SO NGUYEN DIEM phan tram, chia /100 + kep tran o derivedStats ----
   // noLv:true = KHONG nhan LV_MUL (chi nhan QUALITY_MUL). Bat buoc: k = LV_MUL x QUALITY_MUL tai bac 7
@@ -328,7 +328,7 @@ export const AFFIX = {
   // ---- DOT 5: +Tang cho MOI chieu dang lap (chi Vu Khi / Nhan / Trang Suc) ----
   // `flat` = 1..3 y nguyen, khong nhan cap cung khong nhan pham chat: day la so TANG chu khong phai
   // diem chi so, nhan len se pha thang he Tang. Tran cong don 3 dat o derivedStats.
-  tangCong:   { key: 'tangCong',   name: 'Tầng Chiêu Thức', lo: 1, hi: 3, fmt: 'flat', noLv: true, flat: true },
+  tangCong:   { key: 'tangCong',   name: 'Kĩ Năng Vốn Có', lo: 1, hi: 3, fmt: 'flat', noLv: true, flat: true },
 };
 export const AFFIX_KEYS = Object.keys(AFFIX);
 const PRIMARY_MUL = 2.0;   // dong primary to hon dong phu

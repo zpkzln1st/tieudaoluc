@@ -1358,8 +1358,7 @@
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Công Kích</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.atk)"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Tốc Độ</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.spd)"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Bạo Kích</span><span class="text-[13px] text-amber-300 font-medium" x-text="Math.round(cs.crit*100)+'%'"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Bạo Sát</span><span class="text-[13px] text-amber-300 font-medium" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50 col-span-2" title="Chỉ số Chính Xác vô hiệu hoá bớt khả năng né của yêu thú"><span class="text-[12px] text-slate-300">Chính Xác</span><span class="text-[13px] font-medium" :class="cs.hitRate>0?'text-slate-100':'text-slate-500'" x-text="'vô hiệu '+Math.round(cs.hitRate*100)+'% né của địch'"></span></div>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Sát Thương Bạo Kích</span><span class="text-[13px] text-amber-300 font-medium" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
               </div>
               <!-- Phòng Thủ -->
               <div class="text-[10px] uppercase tracking-wider text-sky-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-sky-400"></span>Phòng Thủ</div>
@@ -1369,24 +1368,16 @@
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Né Tránh</span><span class="text-[13px] font-medium" :class="cs.dodge>0?'text-sky-300':'text-slate-100'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Máu</span><span class="text-[13px] font-medium" :class="cs.regenPct>0?'text-jade':'text-slate-100'" x-text="Math.round(cs.regenPct*100)+'%/hiệp'"></span></div>
               </div>
-              <!-- Kháng Ngũ Hành — khối con RIÊNG: nhét 5 ô vào lưới 2 cột phía trên sẽ thành 9 ô, lẻ mất nửa hàng cuối -->
+              <!-- Kháng Ngũ Hành — 5 ô chữ Hán, mỗi hệ một ô. Lưới 5 cột nên không lẻ ô như lưới 2 cột. -->
               <div class="text-[10px] uppercase tracking-wider text-slate-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-slate-400"></span>Kháng Ngũ Hành</div>
-              <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+              <div class="grid grid-cols-5 gap-1.5 mb-3">
                 <template x-for="h in g.NGU_HANH_LIST" :key="h">
-                  <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50">
-                    <span class="text-[12px] text-slate-300 flex items-center gap-1.5">
-                      <span class="w-4 h-4 shrink-0" :class="g.heInfo(h).text" x-html="g.svg(g.heInfo(h).ig,'w-4 h-4')"></span>
-                      <span x-text="'Kháng '+g.heName(h)"></span>
-                    </span>
-                    <span class="text-[13px] font-medium" :class="cs.khang[h]>0?g.heInfo(h).text:'text-slate-500'" x-text="Math.round(cs.khang[h]*100)+'%'"></span>
+                  <div class="flex flex-col items-center justify-center py-1.5 rounded bg-ink3/50" :title="'Kháng '+g.heName(h)">
+                    <span class="fserif text-[17px] leading-none" :class="g.heInfo(h).text" x-text="g.NGU_HANH[h].han"></span>
+                    <span class="text-[12px] font-medium mt-1" :class="cs.khang[h]>0?g.heInfo(h).text:'text-slate-500'" x-text="Math.round(cs.khang[h]*100)+'%'"></span>
                   </div>
                 </template>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50">
-                  <span class="text-[12px] text-slate-500">Trần Kháng</span>
-                  <span class="text-[13px] text-slate-400 font-medium" x-text="Math.round(g.KHANG_CAP*100)+'%'"></span>
-                </div>
               </div>
-              <div class="text-[10px] text-slate-500 mb-3 flex items-center gap-1"><span x-html="g.svg('shield','w-3 h-3')"></span>Chỉ giáp trụ mang kháng. Yêu thú đổi hệ mỗi trận — kháng rải đều đỡ được nhiều trận hơn, kháng dồn một hệ đỡ rất nặng nhưng chỉ ở số ít trận.</div>
               <!-- Nội Công & Ngũ Hành -->
               <div class="text-[10px] uppercase tracking-wider text-jade/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-jade"></span>Nội Công · Ngũ Hành</div>
               <div class="grid grid-cols-2 gap-1.5">
@@ -6577,7 +6568,7 @@
                           <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Công Kích</span><span class="text-[11.5px] text-slate-100" x-text="g.fmt(cs.atk)"></span></div>
                           <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Tốc Độ</span><span class="text-[11.5px] text-slate-100" x-text="g.fmt(cs.spd)"></span></div>
                           <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Bạo Kích</span><span class="text-[11.5px] text-amber-300" x-text="Math.round(cs.crit*100)+'%'"></span></div>
-                          <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Bạo Sát</span><span class="text-[11.5px] text-amber-300" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
+                          <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Sát Thương Bạo Kích</span><span class="text-[11.5px] text-amber-300" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
                         </div>
                         <div>
                           <div class="text-[9.5px] uppercase tracking-wider text-sky-300/80 font-medium mb-1 flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-sky-400"></span>Phòng Thủ</div>

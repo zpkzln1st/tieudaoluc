@@ -898,7 +898,7 @@ const gameStore = {
   bkMergePickAdd(id) { if (this.bkMergeSel.length >= this.bkMergeNeed) return; const bag = (this.tm && this.tm.biKipBag) || {}; const sel = this.bkMergeSel.filter((x) => x === id).length; if ((bag[id] || 0) - sel < 1) return; this.bkMergeSel.push(id); this.bkMergeResult = null; this._tick++; },
   bkMergePickRemove(idx) { this.bkMergeSel.splice(idx, 1); this.bkMergeResult = null; this._tick++; },
   tmMergeBiKipPick() { if (this.bkMergeSel.length !== this.bkMergeNeed) { this.showToast('Chọn đủ ' + this.bkMergeNeed + ' bí kíp.'); return; } const r = mergeBiKipPick(this.state, this.bkMergeSel.slice()); if (r.ok) { this.bkMergeSel = []; this.bkMergeResult = this.biKipView(r.got.id); this.tmSave(); this._tick++; this.showToast('Hợp Nhất · ' + r.msg); } else { const bag = (this.tm && this.tm.biKipBag) || {}; const cnt = {}; this.bkMergeSel = this.bkMergeSel.filter((id) => { cnt[id] = (cnt[id] || 0) + 1; return (bag[id] || 0) >= cnt[id]; }); this.bkMergeResult = null; this._tick++; this.showToast(r.msg); } },
-  _STATN: { atk: 'Công Kích', def: 'Phòng Ngự', spd: 'Tốc Độ', maxHP: 'Sinh Lực', crit: 'Bạo Kích', dodge: 'Né Tránh', critDmg: 'Bạo Sát' },
+  _STATN: { atk: 'Công Kích', def: 'Phòng Ngự', spd: 'Tốc Độ', maxHP: 'Sinh Lực', crit: 'Bạo Kích', dodge: 'Né Tránh', critDmg: 'Sát Thương Bạo Kích' },
   biKipView(id) {
     const bk = BI_KIP_BY_ID[id]; if (!bk) return null;
     const loai = BI_KIP_LOAI[bk.loai] || {}, tier = BI_KIP_TIER[bk.tier] || {}, mods = biKipMods(bk), he = HE[bk.he] || HE.kim;
@@ -3041,7 +3041,7 @@ const gameStore = {
     const t = [];
     if (p.eleDmg) t.push('+' + Math.round(p.eleDmg * 100) + '% ST chiêu ' + heName(p.he));
     if (p.regen) t.push('Hồi ' + (p.regen * 100) + '% Sinh Lực/giây');
-    if (p.mod) { const m = p.mod, lbl = { dmg: 'Công', def: 'Thủ', hp: 'Sinh Lực', spd: 'Tốc', crit: 'Bạo kích', critDmg: 'ST bạo', nl: 'Nội Lực', nlRegen: 'hồi NL', dodge: 'Né' };
+    if (p.mod) { const m = p.mod, lbl = { dmg: 'Công', def: 'Thủ', hp: 'Sinh Lực', spd: 'Tốc', crit: 'Bạo Kích', critDmg: 'Sát Thương Bạo Kích', nl: 'Nội Lực', nlRegen: 'hồi NL', dodge: 'Né' };
       for (const k in m) t.push((m[k] > 0 ? '+' : '') + Math.round(m[k] * 100) + '% ' + (lbl[k] || k)); }
     return t;
   },
@@ -3561,9 +3561,9 @@ const gameStore = {
   // --- Hiển thị chi tiết trang bị (badge ngũ hành + so sánh) ---
   // Nhãn RÚT GỌN (modal Trang Bị + Cường Hóa). Ba bảng nhãn (đây, statLabel, gearStatIcon) đều fallback
   // `|| k` nên thiếu key nào là chỗ đó lòi chữ tiếng Anh 'khangKim' ra UI — phải thêm đủ cả ba.
-  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
-    giamNgat: 'Giảm Ngất', giamCham: 'Giảm Chậm', giamDoc: 'Giảm Độc', giamBong: 'Giảm Bỏng', giamChoang: 'Giảm Choáng', tangCong: 'Tầng' })[k] || k; },
-  // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích/Bạo Sát).
+  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
+    giamNgat: 'Giảm Ngất', giamCham: 'Giảm Chậm', giamDoc: 'Giảm Độc', giamBong: 'Giảm Bỏng', giamChoang: 'Giảm Choáng', tangCong: 'Kĩ Năng Vốn Có' })[k] || k; },
+  // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích / Sát Thương Bạo Kích).
   gearLineText(k, v) { const a = AFFIX[k]; return this.statLabel(k) + ' +' + v + (a && a.fmt === 'pct' ? '%' : ''); },
   gearVal(k, v) { const a = AFFIX[k]; return '+' + v + (a && a.fmt === 'pct' ? '%' : ''); },        // chỉ giá trị (tách khỏi tên cho list dọc)
   // Màu dòng theo BẬC ROLL (% trong [min,max]): Phàm trắng → Lương lam → Thượng chàm → Cực tím → Tuyệt cam.
@@ -3832,8 +3832,8 @@ const gameStore = {
   },
   itemTypeLabel(t) { return this.ITEM_TYPES[t] || 'Khác'; },
   equipSlotLabel(slot) { const s = (this.EQUIP_SLOTS || []).find((x) => x.id === slot) || (this.TOOL_SLOTS || []).find((x) => x.id === slot); return s ? s.name : slot; },
-  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
-    giamNgat: 'Giảm Thời Gian Ngất', giamCham: 'Giảm Thời Gian Chậm', giamDoc: 'Giảm Thời Gian Độc', giamBong: 'Giảm Thời Gian Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Tầng Chiêu Thức' })[k] || k; },
+  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
+    giamNgat: 'Giảm Thời Gian Ngất', giamCham: 'Giảm Thời Gian Chậm', giamDoc: 'Giảm Thời Gian Độc', giamBong: 'Giảm Thời Gian Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có' })[k] || k; },
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) {
     const ref = this.itemModal; if (!ref) return;
