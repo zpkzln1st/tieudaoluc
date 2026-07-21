@@ -4,7 +4,7 @@
 //      + engine mô phỏng + dự báo + log.
 // THUẦN (không Alpine). deriveCombat dùng derivedStats (Tứ Trụ + trang bị).
 // ============================================================
-import { derivedStats, gearEle, khangClamp, KHANG_CAP } from '../engine/stats.js';
+import { derivedStats, gearEle, khangClamp, KHANG_CAP, dodgeFromNeTranh, hitFromMenhTrung } from '../engine/stats.js';
 import { levelFromXp } from '../engine/leveling.js';
 import { titleBonus } from '../engine/titles.js';
 import { ITEMS } from './items.js';   // đọc buff của Đan Bổ Trợ (danBuffPct)
@@ -504,12 +504,17 @@ export function deriveCombat(state, loadout, opts){
     spd: Math.max(1, Math.round((100 + sl('thanPhap')*1.5 + (d.tocDo||0)) * (1+M.spd+tbn.spdPct) * nt)),
     crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.005 + M.crit + (d.baoKich||0)/100 + tbn.critPct)),
     critDmg: 1.6 + M.critDmg + (d.baoSat||0)/100,
-    dodge: Math.min(0.5, Math.max(0, M.dodge + tbn.dodgePct)),
+    // ĐỢT 3 — `neTranh` HẾT CHẾT: trước đây dodge chỉ đọc Bộ Pháp + Danh Hiệu, còn chỉ số Né Tránh
+    // (Thân Pháp + gear) KHÔNG chảy vào đâu cả. Nay nối qua đường cong bão hoà, có trần riêng.
+    dodge: Math.min(0.5, Math.max(0, M.dodge + tbn.dodgePct + dodgeFromNeTranh(d.neTranh))),
+    // ĐỢT 3 — `menhTrung` HẾT CHẾT: tỉ lệ vô hiệu hoá Né của yêu thú (dùng ở _eTurn).
+    hitRate: hitFromMenhTrung(d.menhTrung),
     // KHUNG 5 KHÁNG NGŨ HÀNH (đại phẫu): chảy từ derivedStats (affix khang* trên giáp trụ).
     // Đợt 1: chưa có nguồn nào cấp -> luôn toàn 0, hành vi game KHÔNG đổi. Trần kháng đặt ở Đợt 2.
     khang: d.khang || { kim:0, moc:0, thuy:0, hoa:0, tho:0 },
     heChinh, tamPhapHeBonus, eleBonus, heBonus,
-    maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)), regenPct,
+    maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)),
+    regenPct: regenPct + (d.hoiMau || 0),   // + dòng Hồi Máu trên Tọa Kỵ (Đợt 3)
     tang: (state && state.combat && state.combat.tang) || {},   // Tầng từng chiêu (Ngộ Tính) — makeFight áp vào
   };
 }
@@ -558,6 +563,12 @@ const DODGE_PHRASES=[
   (e,desc)=>`${e} ${desc} — ngươi lách mình tránh gọn, không hề hấn gì.`,
   (e,desc)=>`ngươi đảo bộ phiêu hốt, đòn ${desc} của ${e} đánh vào khoảng không.`,
 ];
+// Yêu thú né đòn của NGƯƠI (Đợt 3 — chỉ số Chính Xác chống lại cái này).
+const EMISS_PHRASES=[
+  (e)=>`${e} thân hình một thoáng nhoè đi, đòn của ngươi chém trượt vào khoảng không.`,
+  (e)=>`${e} lách mình né gọn — ngươi đánh hụt.`,
+  (e)=>`Ngươi ra đòn quá lộ, ${e} đã kịp lùi khỏi tầm.`,
+];
 const WIN_PHRASES=[
   (e,t,h,x,l)=>`✅ ${e} rống lên thê lương rồi đổ gục. Hạ sau ${t}s · Sinh Lực còn ${h}% · +${x} EXP${l?' · nhặt '+l:''}.`,
   (e,t,h,x,l)=>`✅ Một chiêu định đoạt, ${e} tắt thở đổ rạp. (${t}s · còn ${h}% · +${x} EXP${l?' · '+l:''})`,
@@ -604,7 +615,7 @@ export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
     P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1)).filter(Boolean),
     enemy, eName: enemy.name, eHe: he,
     p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0 },
-    e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, khang:enemyKhangFor(enemy, he), skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
+    e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, khang:enemyKhangFor(enemy, he), dodge:(enemy.dodge||0), skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
     cds:{}, t:0, dealt:0, taken:0, over:false, result:null, log:[],
   };
   const oc = heInfo(he).text;
@@ -625,6 +636,9 @@ function _useSkill(f,c){
   if(c.type==='buff'){ const nd=(c.buff.dmg!=null?c.buff.dmg:0.30);
     if(p.buff<=0 || nd>=p.buffDmg){ p.buff=c.buff.ticks; p.buffDmg=nd; }
     L(f,'✦ Ngươi '+pick(LEAD_VERB)+' '+nm+', tiêu hao <span class="text-blue-400 font-medium">'+c.nl+' Nội Lực</span> — '+pick(c.flavor)+', <span class="text-violet-200">công lực +'+Math.round(p.buffDmg*100)+'% ('+c.buff.ticks+'s)</span>.','text-violet-200'); return; }
+  // ĐỢT 3 — yêu thú NÉ được đòn của ngươi; Chính Xác (menhTrung → P.hitRate) vô hiệu hoá bớt cái né đó.
+  // Đặt SAU khi đã trừ Nội Lực + vào hồi chiêu: đánh trượt vẫn mất chiêu, đúng như người chơi bị né.
+  if(_eMiss(f)){ L(f, '<span class="text-slate-500">▸</span> Ngươi '+pick(LEAD_VERB)+' '+nm+' — '+pick(EMISS_PHRASES)(f.eName), 'text-slate-400'); return; }
   // Chiêu hồi máu thuần (mult thấp vẫn đánh, kèm hồi)
   let dmg=P.atk*c.mult;
   const eleB = (c.type===P.heChinh ? P.tamPhapHeBonus : 0) + ((P.eleBonus && P.eleBonus[c.type]) || 0); // Tâm Pháp(cùng hệ) + bị động theo hệ
@@ -654,8 +668,14 @@ function _useSkill(f,c){
   if(c.slow){ e.slow=c.slow; L(f,'Hàn khí ghì chặt '+f.eName+', thân pháp địch chậm hẳn lại ('+c.slow+' hiệp).','text-sky-300'); }
   if(c.stun&&Math.random()<c.stun){ e.stun=2; L(f,'Đòn trầm trọng chấn động '+f.eName+' — địch choáng váng!','text-amber-300'); }
 }
+// Yêu thú có né trúng đòn này không? Né thực = dodge của quái × (1 − Chính Xác của ngươi).
+function _eMiss(f){
+  const eD = (f.e.dodge || 0) * (1 - (f.P.hitRate || 0));
+  return eD > 0 && Math.random() < eD;
+}
 function _basic(f){
   const P=f.P, p=f.p, e=f.e;
+  if(_eMiss(f)){ p.nl=Math.min(P.maxNL,p.nl+P.nlRegen); L(f,'<span class="text-slate-500">▸</span> Ngươi vận kình đánh thường — '+pick(EMISS_PHRASES)(f.eName)+' Hồi <span class="text-blue-400 font-medium">'+P.nlRegen+' Nội Lực</span>.', 'text-slate-400'); return; }
   let dmg=P.atk; const crit=Math.random()<P.crit; if(crit)dmg*=P.critDmg;
   dmg*=100/(100+e.def); dmg=Math.max(1,Math.round(dmg)); e.hp-=dmg; f.dealt+=dmg;
   p.nl=Math.min(P.maxNL,p.nl+P.nlRegen);

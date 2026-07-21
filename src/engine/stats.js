@@ -15,12 +15,29 @@ import { titleBonus } from './titles.js';
 export const KHANG_CAP = 0.50;
 export function khangClamp(v) { return Math.max(0, Math.min(KHANG_CAP, v || 0)); }
 
+// ---- HAI CHI SO CHET, DOT 3 BAT LEN ----
+// Ca hai dung duong cong BAO HOA x/(x+K): tang nhanh luc thap, cham dan luc cao, KHONG BAO GIO cham 1.
+// Bat buoc dung dang nay chu khong tuyen tinh — neTranh/menhTrung deu leo toi ~1000 diem o do bac 7
+// (do that: neTranh 125 khong do -> 1125 do bac 7), tuyen tinh se pha tran ngay.
+export const NE_TRANH_K = 6000;   // neTranh 330 -> 5,2% ; 1125 -> 15,8% ; 3000 -> 33%
+export const NE_TRANH_CAP = 0.25; // tran RIENG cua phan ne den tu chi so (tran tong dodge van 0,50)
+export function dodgeFromNeTranh(ne) {
+  const v = Math.max(0, ne || 0);
+  return Math.min(NE_TRANH_CAP, v / (v + NE_TRANH_K));
+}
+export const MENH_TRUNG_K = 2000; // menhTrung 140 -> 6,5% ; 283 -> 12,4% ; 1014 -> 33,6%
+// Ti le VO HIEU HOA ne cua dich: 0 = khong chong duoc gi, 1 = dich khong the ne.
+export function hitFromMenhTrung(mt) {
+  const v = Math.max(0, mt || 0);
+  return v / (v + MENH_TRUNG_K);
+}
+
 export function gearStats(state) {
   // 8 stat: 5 lõi + baoKich/baoSat/tocDo (chỉ gear cấp; vào crit/critDmg/spd ở deriveCombat)
   // + khung kháng ngũ hành khangKim..khangTho + khangAll ("Kháng Tất Cả", cộng vào cả 5 hệ).
   // MỌI key ở đây là SỐ NGUYÊN ĐIỂM phần trăm (mẫu baoKich/baoSat) — xem chú thích Math.round bên dưới.
   const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0, baoKich: 0, baoSat: 0, tocDo: 0,
-              khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0, khangAll: 0 };
+              khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0, khangAll: 0, hoiMau: 0 };
   const eq = state.equipment || {};
   for (const slot of Object.keys(eq)) {
     const inst = eq[slot];
@@ -89,5 +106,7 @@ export function derivedStats(state, opts) {
   const kAll = g.khangAll || 0;
   const kh = (v) => khangClamp(((v || 0) + kAll) / 100);
   const khang = { kim: kh(g.khangKim), moc: kh(g.khangMoc), thuy: kh(g.khangThuy), hoa: kh(g.khangHoa), tho: kh(g.khangTho) };
-  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang };
+  // hoiMau (chỉ Tọa Kỵ): điểm nguyên -> tỉ lệ Sinh Lực hồi mỗi hiệp, cộng vào regenPct ở deriveCombat.
+  // KHÔNG nhân với gì khác — hồi máu là trục bất tử, mọi phép nhân lên đây đều xoá đánh đổi công/thủ.
+  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, hoiMau: (g.hoiMau || 0) / 100 };
 }

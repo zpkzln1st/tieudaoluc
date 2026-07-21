@@ -14,24 +14,38 @@ export const QUALITY_MUL = {
   truyenThe: 2.3, thanPham: 2.8, coBan: 3.4,
 };
 // Base @ itemLv1, phamPham — phân bổ vai trò theo slot (doc §3).
+// DOT 3 — PHAN VAI LAI O: Cong CHI con tren Vu Khi / Nhan / Trang Suc.
+// Giap tru (mu/giap/dai/gang/giay) = Thu + Sinh Luc + Ne + Chinh Xac + KHANG (Dot 2). Khong Cong.
+// Toa Ky = than phap + suc ben (Toc Do/Ne Tranh/Sinh Luc/Hoi Mau). Khong Cong, khong Khang.
+// Gang MAT primary congKich (no la 1 trong 3 primary Cong duy nhat) -> doi sang menhTrung.
 export const BASE_BY_SLOT = {
   vuKhi:    { congKich: 11 },                 // nguồn Công chính
   giap:     { hoThe: 6, sinhLuc: 18 },        // Thủ + Sinh Lực (gộp cả vai trò "quần")
   mu:       { hoThe: 4, menhTrung: 3 },
   dai:      { sinhLuc: 12, hoThe: 3 },
-  gang:     { congKich: 6, menhTrung: 2 },
+  gang:     { menhTrung: 6, hoThe: 2 },       // DOT 3: bo congKich -> o "Chinh Xac"
   giay:     { neTranh: 5, sinhLuc: 6 },
   nhan:     { congKich: 4, menhTrung: 2 },
-  trangSuc: { sinhLuc: 10, menhTrung: 2 },     // Dây Chuyền / Ngọc Bội
+  trangSuc: { congKich: 5, sinhLuc: 10 },     // Dây Chuyền / Ngọc Bội — DOT 3: thanh o Cong thu ba
   toaKy:    { sinhLuc: 8, neTranh: 2 },
 };
+// He so BU CONG cho 3 o giu lai Cong (Vu Khi / Nhan / Trang Suc).
+// Do tu harness: bo Cong khoi giap tru + ngua lam mat 33,3% (bac1) -> 41,2% (bac7) TONG Cong gear.
+// He so phai TANG theo PHAM CHAT chu khong theo cap: pham chat cao = nhieu dong affix hon = mat nhieu hon.
+const BU_CONG = { phamPham: 1.50, luongPham: 1.56, tinhPham: 1.64, tuyetPham: 1.69, truyenThe: 1.80, thanPham: 1.92, coBan: 2.04 };
+const CONG_SLOTS = ['vuKhi', 'nhan', 'trangSuc'];
+export function buCong(slot, key, quality) {
+  return (key === 'congKich' && CONG_SLOTS.indexOf(slot) >= 0) ? (BU_CONG[quality] || 1) : 1;
+}
 
 // Sinh chỉ số nền của 1 món: base[slot] × LV_MUL × QUALITY_MUL, làm tròn (tối thiểu 1).
 export function mkEquipStats(slot, itemLv = 1, quality = 'phamPham') {
   const base = BASE_BY_SLOT[slot] || {};
   const k = LV_MUL(itemLv) * (QUALITY_MUL[quality] || 1);
   const out = {};
-  for (const s in base) out[s] = Math.max(1, Math.round(base[s] * k));
+  // buCong: duong instanceFromCatalog (migrate save cu + Bo Kim Quang) cung phai duoc bu Cong,
+  // khong thi do di duong nay yeu han han do roll cung bac.
+  for (const s in base) out[s] = Math.max(1, Math.round(base[s] * k * buCong(slot, s, quality)));
   return out;
 }
 
@@ -300,19 +314,26 @@ export const AFFIX = {
   khangTho:  { key: 'khangTho',  name: 'Kháng Thổ',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
   // Khang Tat Ca (chi Trang Suc): cong vao CA 5 he nen dat gia tri thap hon han mot dong don he.
   khangAll:  { key: 'khangAll',  name: 'Kháng Tất Cả', lo: 1, hi: 3, fmt: 'pct', noLv: true },
+  // Hoi Mau (chi Toa Ky) — % Sinh Luc hoi moi hiep, chay vao regenPct.
+  // `flat: true` = KHONG nhan cap VA KHONG nhan pham chat. Do that voi noLv (chi bo cap): bac 7 ra
+  // 5,15%/hiep = hoi 51% mau ca tran 10s = vung BAT TU, xoa sach danh doi cong/thu. Phang 1-2% la tran.
+  hoiMau:    { key: 'hoiMau',    name: 'Hồi Máu', lo: 1, hi: 2, fmt: 'pct', noLv: true, flat: true },
 };
 export const AFFIX_KEYS = Object.keys(AFFIX);
 const PRIMARY_MUL = 2.0;   // dong primary to hon dong phu
 // He so do lon cua 1 dong affix. Tach ra ham rieng vi rollGearStats VA lineRollPct deu phai dung
 // CUNG mot cong thuc — lech nhau la mau bac roll sai am tham (luon xam 'Pham' hoac luon cam 'Tuyet').
-function affixMul(key, itemLv, quality) {
+function affixMul(slot, key, itemLv, quality) {
+  const a = AFFIX[key];
+  if (a && a.flat) return 1;                       // khong cap, khong pham chat
   const q = QUALITY_MUL[quality] || 1;
-  return (AFFIX[key] && AFFIX[key].noLv) ? q : LV_MUL(itemLv) * q;
+  const base = (a && a.noLv) ? q : LV_MUL(itemLv) * q;
+  return base * buCong(slot, key, quality);
 }
 
 // Dong CO DINH (primary) moi slot — luon nam dong 1.
 export const SLOT_PRIMARY = {
-  vuKhi: 'congKich', giap: 'hoThe', mu: 'hoThe', dai: 'sinhLuc', gang: 'congKich',
+  vuKhi: 'congKich', giap: 'hoThe', mu: 'hoThe', dai: 'sinhLuc', gang: 'menhTrung',   // DOT 3: gang bo congKich
   giay: 'neTranh', nhan: 'congKich', trangSuc: 'sinhLuc', toaKy: 'neTranh',
 };
 // Trong so affix PHU moi slot (10=cao, 4=med, 1=thap). Primary da loai (luon co o dong 1).
@@ -322,16 +343,18 @@ export const SLOT_PRIMARY = {
 const KHANG_W = { khangKim: 4, khangMoc: 4, khangThuy: 4, khangHoa: 4, khangTho: 4 };
 // MOT mon chi mang MOT dong khang ngu hanh — boc trung 1 key la khoa ca 5 lai (xem rollGearStats).
 export const KHANG_KEYS = ['khangKim', 'khangMoc', 'khangThuy', 'khangHoa', 'khangTho'];
+// DOT 3: `congKich` DA BI GO khoi ca 5 o giap tru + Toa Ky. No chi con o vuKhi/nhan/trangSuc.
+// Toa Ky doi vai thanh "than phap + suc ben": Toc Do/Ne Tranh/Sinh Luc/Hoi Mau, khong Cong khong Khang.
 export const SLOT_AFFIX_W = {
   vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
-  giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, congKich: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
-  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, congKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
-  dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, congKich: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
-  gang:     { menhTrung: 10, baoKich: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, ...KHANG_W },
-  giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, congKich: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
+  giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, hoThe: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
+  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, hoThe: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
+  dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
+  gang:     { baoKich: 10, hoThe: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, ...KHANG_W },
+  giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, neTranh: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
   nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
-  trangSuc: { hoThe: 10, menhTrung: 10, baoKich: 4, congKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6 },
-  toaKy:    { tocDo: 10, sinhLuc: 10, hoThe: 4, congKich: 4, menhTrung: 1, baoKich: 1, baoSat: 1 },
+  trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6 },
+  toaKy:    { tocDo: 10, sinhLuc: 10, neTranh: 10, hoiMau: 4, hoThe: 4, menhTrung: 1, baoKich: 1 },
 };
 // So DONG theo pham chat (primary tinh la dong 1).
 export const QUALITY_LINES = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -354,12 +377,12 @@ export function rollGearStats(slot, itemLv, quality) {
   const lines = QUALITY_LINES[quality] || 1;
   const prim = SLOT_PRIMARY[slot];
   const out = {}; const used = new Set();
-  if (prim && AFFIX[prim]) { out[prim] = Math.max(1, Math.round(rollIn(AFFIX[prim].lo, AFFIX[prim].hi) * affixMul(prim, itemLv, quality) * PRIMARY_MUL)); used.add(prim); }
+  if (prim && AFFIX[prim]) { out[prim] = Math.max(1, Math.round(rollIn(AFFIX[prim].lo, AFFIX[prim].hi) * affixMul(slot, prim, itemLv, quality) * PRIMARY_MUL)); used.add(prim); }
   const wmap = SLOT_AFFIX_W[slot] || {};
   for (let i = 1; i < lines; i++) {
     const key = wPick(wmap, used);
     if (!key || !AFFIX[key]) break;
-    out[key] = Math.max(1, Math.round(rollIn(AFFIX[key].lo, AFFIX[key].hi) * affixMul(key, itemLv, quality)));
+    out[key] = Math.max(1, Math.round(rollIn(AFFIX[key].lo, AFFIX[key].hi) * affixMul(slot, key, itemLv, quality)));
     used.add(key);
     // MOT mon = TOI DA MOT dong khang ngu hanh: boc trung 1 key thi khoa ca 5 key con lai.
     // Khong co luat nay thi giap bac 7 (7 dong, pool 12 key) gan nhu luon an 3 dong khang — do thuc te
@@ -379,7 +402,7 @@ export function setGearLookup(map) { if (map) GEAR_LOOKUP = map; }
 // Dung de to mau bac roll (Pham/Luong/Thuong/Cuc/Tuyet). null neu khong xac dinh duoc.
 export function lineRollPct(slot, quality, itemLv, key, value) {
   const a = AFFIX[key]; if (!a || value == null) return null;
-  const k = affixMul(key, itemLv, quality);        // PHAI trung cong thuc voi rollGearStats (xem affixMul)
+  const k = affixMul(slot, key, itemLv, quality);  // PHAI trung cong thuc voi rollGearStats (xem affixMul)
   const pmul = (SLOT_PRIMARY[slot] === key) ? PRIMARY_MUL : 1;
   const min = Math.max(1, Math.round(a.lo * k * pmul));
   const max = Math.max(1, Math.round(a.hi * k * pmul));
