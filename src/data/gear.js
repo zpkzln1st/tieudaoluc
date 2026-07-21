@@ -279,6 +279,7 @@ export function forgeableGear(items) {
 // ============================================================
 
 // 8 affix: range gia tri @ itemLv1 phamPham cho 1 dong PHU. Dong primary nhan PRIMARY_MUL.
+// + 6 dong KHANG NGU HANH (dai phau Dot 2) — xem chu thich `noLv` ngay duoi.
 export const AFFIX = {
   congKich:  { key: 'congKich',  name: 'Công Kích', lo: 4,  hi: 8,  fmt: 'flat' },
   hoThe:     { key: 'hoThe',     name: 'Hộ Thể',    lo: 3,  hi: 6,  fmt: 'flat' },
@@ -288,9 +289,26 @@ export const AFFIX = {
   baoKich:   { key: 'baoKich',   name: 'Bạo Kích',  lo: 1,  hi: 3,  fmt: 'pct' },   // % bao kich suat (vao crit)
   baoSat:    { key: 'baoSat',    name: 'Bạo Sát',   lo: 4,  hi: 10, fmt: 'pct' },   // % bao kich thuong (vao critDmg)
   tocDo:     { key: 'tocDo',     name: 'Tốc Độ',    lo: 2,  hi: 6,  fmt: 'flat' },  // phang (vao spd)
+  // ---- KHANG NGU HANH: SO NGUYEN DIEM phan tram, chia /100 + kep tran o derivedStats ----
+  // noLv:true = KHONG nhan LV_MUL (chi nhan QUALITY_MUL). Bat buoc: k = LV_MUL x QUALITY_MUL tai bac 7
+  // (Lv100 coBan) = 23,60 -> mot dong lo/hi 3..6 se thanh 71..142 DIEM = 71-142% khang tu MOT dong.
+  // Chi cho pham chat quyet dinh do lon -> khang van len theo do hiem, ma khong no theo cap.
+  khangKim:  { key: 'khangKim',  name: 'Kháng Kim',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  khangMoc:  { key: 'khangMoc',  name: 'Kháng Mộc',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  khangThuy: { key: 'khangThuy', name: 'Kháng Thủy', lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  khangHoa:  { key: 'khangHoa',  name: 'Kháng Hỏa',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  khangTho:  { key: 'khangTho',  name: 'Kháng Thổ',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  // Khang Tat Ca (chi Trang Suc): cong vao CA 5 he nen dat gia tri thap hon han mot dong don he.
+  khangAll:  { key: 'khangAll',  name: 'Kháng Tất Cả', lo: 1, hi: 3, fmt: 'pct', noLv: true },
 };
 export const AFFIX_KEYS = Object.keys(AFFIX);
 const PRIMARY_MUL = 2.0;   // dong primary to hon dong phu
+// He so do lon cua 1 dong affix. Tach ra ham rieng vi rollGearStats VA lineRollPct deu phai dung
+// CUNG mot cong thuc — lech nhau la mau bac roll sai am tham (luon xam 'Pham' hoac luon cam 'Tuyet').
+function affixMul(key, itemLv, quality) {
+  const q = QUALITY_MUL[quality] || 1;
+  return (AFFIX[key] && AFFIX[key].noLv) ? q : LV_MUL(itemLv) * q;
+}
 
 // Dong CO DINH (primary) moi slot — luon nam dong 1.
 export const SLOT_PRIMARY = {
@@ -298,15 +316,21 @@ export const SLOT_PRIMARY = {
   giay: 'neTranh', nhan: 'congKich', trangSuc: 'sinhLuc', toaKy: 'neTranh',
 };
 // Trong so affix PHU moi slot (10=cao, 4=med, 1=thap). Primary da loai (luon co o dong 1).
+// KHANG NGU HANH chi co tren GIAP TRU (mu/giap/dai/gang/giay) — luat da chot: Vu Khi/Nhan/Toa Ky KHONG co
+// khang. Trang Suc mang rieng 'Khang Tat Ca'. Moi he 1 key rieng, wPick chi boc MOI key mot lan nen mot
+// mon toi da 1 dong khang moi he; trong so 5 (duoi muc 10 'cao') de khang khong nuot het dong cua giap tru.
+const KHANG_W = { khangKim: 4, khangMoc: 4, khangThuy: 4, khangHoa: 4, khangTho: 4 };
+// MOT mon chi mang MOT dong khang ngu hanh — boc trung 1 key la khoa ca 5 lai (xem rollGearStats).
+export const KHANG_KEYS = ['khangKim', 'khangMoc', 'khangThuy', 'khangHoa', 'khangTho'];
 export const SLOT_AFFIX_W = {
   vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
-  giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, congKich: 4, baoKich: 1, tocDo: 1, baoSat: 1 },
-  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, congKich: 1, tocDo: 1, baoSat: 1 },
-  dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, congKich: 1, baoKich: 1, baoSat: 1 },
-  gang:     { menhTrung: 10, baoKich: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
-  giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, congKich: 1, baoKich: 1, baoSat: 1 },
+  giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, congKich: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
+  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, congKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
+  dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, congKich: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
+  gang:     { menhTrung: 10, baoKich: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, ...KHANG_W },
+  giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, congKich: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
   nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
-  trangSuc: { hoThe: 10, menhTrung: 10, baoKich: 4, congKich: 4, neTranh: 1, tocDo: 1, baoSat: 1 },
+  trangSuc: { hoThe: 10, menhTrung: 10, baoKich: 4, congKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6 },
   toaKy:    { tocDo: 10, sinhLuc: 10, hoThe: 4, congKich: 4, menhTrung: 1, baoKich: 1, baoSat: 1 },
 };
 // So DONG theo pham chat (primary tinh la dong 1).
@@ -328,16 +352,20 @@ function genUid() { _uidSeq = (_uidSeq + 1) % 1e9; return 'g' + Date.now().toStr
 // Roll bo chi so 1 mon: primary (xPRIMARY_MUL) + (lines-1) dong phu boc theo trong so slot. -> {key:val}.
 export function rollGearStats(slot, itemLv, quality) {
   const lines = QUALITY_LINES[quality] || 1;
-  const k = LV_MUL(itemLv) * (QUALITY_MUL[quality] || 1);
   const prim = SLOT_PRIMARY[slot];
   const out = {}; const used = new Set();
-  if (prim && AFFIX[prim]) { out[prim] = Math.max(1, Math.round(rollIn(AFFIX[prim].lo, AFFIX[prim].hi) * k * PRIMARY_MUL)); used.add(prim); }
+  if (prim && AFFIX[prim]) { out[prim] = Math.max(1, Math.round(rollIn(AFFIX[prim].lo, AFFIX[prim].hi) * affixMul(prim, itemLv, quality) * PRIMARY_MUL)); used.add(prim); }
   const wmap = SLOT_AFFIX_W[slot] || {};
   for (let i = 1; i < lines; i++) {
     const key = wPick(wmap, used);
     if (!key || !AFFIX[key]) break;
-    out[key] = Math.max(1, Math.round(rollIn(AFFIX[key].lo, AFFIX[key].hi) * k));
+    out[key] = Math.max(1, Math.round(rollIn(AFFIX[key].lo, AFFIX[key].hi) * affixMul(key, itemLv, quality)));
     used.add(key);
+    // MOT mon = TOI DA MOT dong khang ngu hanh: boc trung 1 key thi khoa ca 5 key con lai.
+    // Khong co luat nay thi giap bac 7 (7 dong, pool 12 key) gan nhu luon an 3 dong khang — do thuc te
+    // 44 diem/mon, nam mon thanh ~44% khang DEU ca 5 he, tuc cham tran toan tap ngay khi du do.
+    // Co luat nay: moi mon giap che MOT he -> nguoi choi tu chon rai deu hay don mot he.
+    if (KHANG_KEYS.indexOf(key) >= 0) for (const kk of KHANG_KEYS) used.add(kk);
   }
   return out;
 }
@@ -351,7 +379,7 @@ export function setGearLookup(map) { if (map) GEAR_LOOKUP = map; }
 // Dung de to mau bac roll (Pham/Luong/Thuong/Cuc/Tuyet). null neu khong xac dinh duoc.
 export function lineRollPct(slot, quality, itemLv, key, value) {
   const a = AFFIX[key]; if (!a || value == null) return null;
-  const k = LV_MUL(itemLv) * (QUALITY_MUL[quality] || 1);
+  const k = affixMul(key, itemLv, quality);        // PHAI trung cong thuc voi rollGearStats (xem affixMul)
   const pmul = (SLOT_PRIMARY[slot] === key) ? PRIMARY_MUL : 1;
   const min = Math.max(1, Math.round(a.lo * k * pmul));
   const max = Math.max(1, Math.round(a.hi * k * pmul));

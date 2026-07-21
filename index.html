@@ -1368,6 +1368,24 @@
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Né Tránh</span><span class="text-[13px] font-medium" :class="cs.dodge>0?'text-sky-300':'text-slate-100'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Máu</span><span class="text-[13px] font-medium" :class="cs.regenPct>0?'text-jade':'text-slate-100'" x-text="Math.round(cs.regenPct*100)+'%/hiệp'"></span></div>
               </div>
+              <!-- Kháng Ngũ Hành — khối con RIÊNG: nhét 5 ô vào lưới 2 cột phía trên sẽ thành 9 ô, lẻ mất nửa hàng cuối -->
+              <div class="text-[10px] uppercase tracking-wider text-slate-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-slate-400"></span>Kháng Ngũ Hành</div>
+              <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+                <template x-for="h in g.NGU_HANH_LIST" :key="h">
+                  <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50">
+                    <span class="text-[12px] text-slate-300 flex items-center gap-1.5">
+                      <span class="w-4 h-4 shrink-0" :class="g.heInfo(h).text" x-html="g.svg(g.heInfo(h).ig,'w-4 h-4')"></span>
+                      <span x-text="'Kháng '+g.heName(h)"></span>
+                    </span>
+                    <span class="text-[13px] font-medium" :class="cs.khang[h]>0?g.heInfo(h).text:'text-slate-500'" x-text="Math.round(cs.khang[h]*100)+'%'"></span>
+                  </div>
+                </template>
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50">
+                  <span class="text-[12px] text-slate-500">Trần Kháng</span>
+                  <span class="text-[13px] text-slate-400 font-medium" x-text="Math.round(g.KHANG_CAP*100)+'%'"></span>
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-500 mb-3 flex items-center gap-1"><span x-html="g.svg('shield','w-3 h-3')"></span>Chỉ giáp trụ mang kháng. Yêu thú đổi hệ mỗi trận — kháng rải đều đỡ được nhiều trận hơn, kháng dồn một hệ đỡ rất nặng nhưng chỉ ở số ít trận.</div>
               <!-- Nội Công & Ngũ Hành -->
               <div class="text-[10px] uppercase tracking-wider text-jade/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-jade"></span>Nội Công · Ngũ Hành</div>
               <div class="grid grid-cols-2 gap-1.5">
@@ -2161,6 +2179,9 @@
                     <div class="flex items-center gap-1.5 flex-wrap pr-8">
                       <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-200" x-text="$store.game.combatSelObj.affinity"></span>
                       <span class="text-[10px] px-1.5 py-0.5 rounded bg-violet-900/60 text-violet-200 inline-flex items-center gap-1" title="Mỗi trận một ngũ hành khác nhau"><span x-html="$store.game.svg('zap','w-3 h-3')"></span>Ngũ hành ngẫu nhiên</span>
+                      <template x-if="$store.game.combatSelKhangNen>0">
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700/80 text-slate-200 inline-flex items-center gap-1" title="Kháng nền, chặn đều mọi hệ"><span x-html="$store.game.svg('shield','w-3 h-3')"></span><span x-text="'Kháng nền '+Math.round($store.game.combatSelKhangNen*100)+'%'"></span></span>
+                      </template>
                     </div>
                     <div class="grid grid-cols-2 gap-1.5">
                       <div class="rounded-lg bg-ink3/70 border border-slate-700/50 px-2 py-1.5 flex items-center gap-2"><span class="w-7 h-7 rounded-md bg-rose-500/15 flex items-center justify-center text-rose-400 shrink-0" x-html="$store.game.svg('heart','w-4 h-4')"></span><div class="leading-none min-w-0"><div class="text-base font-bold" x-text="$store.game.combatSelObj.hp"></div><div class="text-[9px] text-slate-500 mt-0.5">Sinh Lực</div></div></div>
@@ -2195,6 +2216,7 @@
                     <template x-if="$store.game.myHeMatchup.bi.length"><span class="text-slate-400">· bị <b class="text-sky-300" x-text="$store.game.myHeMatchup.biNames"></b> <span class="text-sky-300/70">kháng (−20%)</span></span></template>
                   </div>
                   <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1"><span x-html="$store.game.svg('zap','w-3 h-3')"></span>Yêu thú đổi ngũ hành mỗi trận — lắp chiêu đa hệ để luôn có lợi thế.</div>
+                  <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1"><span x-html="$store.game.svg('shield','w-3 h-3')"></span>Yêu thú tự vệ hệ nó mang: đánh <b class="text-slate-400">trúng hệ của nó</b> bị chặn thêm <b class="text-slate-400" x-text="Math.round($store.game.KHANG_TU_HE*100)+'%'"></b> — nhắm hệ KHẮC nó mới lợi. Chiêu Vô Hệ không dính kháng.</div>
                 </div>
 
                 <!-- ===== Phần thưởng mỗi con (thiết kế giàu) ===== -->

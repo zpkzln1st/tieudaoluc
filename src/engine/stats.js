@@ -26,7 +26,13 @@ export function gearStats(state) {
     const inst = eq[slot];
     if (!inst || !inst.stats) continue;
     const mul = enhanceMul(inst.plus || 0);          // +8%/cấp cường hóa (theo instance)
-    for (const k of Object.keys(inst.stats)) g[k] = (g[k] || 0) + inst.stats[k] * mul;
+    for (const k of Object.keys(inst.stats)) {
+      // KHÁNG KHÔNG ĂN CƯỜNG HÓA. Nó là % có TRẦN CỨNG nên nhân lên chỉ để đâm vào trần rồi mất trắng:
+      // đo thật, bộ giáp bậc 7 cường hóa +15 chạm trần 100% số lần, tức mọi điểm cường hóa đổ vào dòng
+      // kháng đều vô nghĩa. Để cường hóa lo chỉ số thô, để phẩm chất lo kháng — hai trục tách bạch.
+      const m = k.indexOf('khang') === 0 ? 1 : mul;
+      g[k] = (g[k] || 0) + inst.stats[k] * m;
+    }
   }
   for (const k in g) g[k] = Math.round(g[k]);
   return g;
@@ -78,8 +84,8 @@ export function derivedStats(state, opts) {
   // => dmg × (1−1) = MIỄN SÁT THƯƠNG TUYỆT ĐỐI. Cả hai đều không báo lỗi. Dùng mẫu baoKich/baoSat.
   // Vì sao kẹp trần Ở ĐÂY chứ không chỉ trong công thức: derivedStats cũng là nguồn cho UI (khối Phòng
   // Thủ), nên số hiện ra phải đúng bằng số người chơi THẬT SỰ nhận, không phải số thô trước trần.
-  // Cường hóa: enhanceMul đã nhân vào điểm kháng ở gearStats (+15 ≈ ×2,20) — CỐ Ý cho cường hóa có tác
-  // dụng với món kháng; trần ở đây là thứ chặn, không phải miễn nhân.
+  // Cường hóa KHÔNG chạm tới kháng (xem gearStats) — nên trần ở đây chỉ chặn trường hợp dồn nhiều món
+  // cùng một hệ, chứ không phải chặn cường hóa.
   const kAll = g.khangAll || 0;
   const kh = (v) => khangClamp(((v || 0) + kAll) / 100);
   const khang = { kim: kh(g.khangKim), moc: kh(g.khangMoc), thuy: kh(g.khangThuy), hoa: kh(g.khangHoa), tho: kh(g.khangTho) };

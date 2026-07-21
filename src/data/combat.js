@@ -19,8 +19,16 @@ const ARCH = {
 // Roi nhan he so loai quai (thuong/nhanh/trau) -> chenh nhau trong map; boss = base * BOSS_EXP_MULT.
 const EXP_SOFT = 100;        // nguong mem: quai thuong Lv100 ~= EXP_SOFT. Nang len = cay nhanh hon toan cuc.
 const BOSS_EXP_MULT = 2.5;   // boss: EXP ~2.5 lan quai thuong cung cap
+// ---- KHANG NGU HANH CUA QUAI (dai phau Dot 2) — NEN TINH theo DANG quai ----
+// Ti le 0..1, chan deu ca 5 he. Phai sinh TRONG mk() vi `arch` KHONG duoc ghi vao object tra ve
+// (dong Object.assign duoi bo no di) -> luc chay khong con cach nao biet con quai thuoc dang nao.
+// 'trau' (bai thu) khang cao nhat, 'nhanh' (mau mong, danh dau) KHONG khang — giu dung tinh cach san co.
+// Phan khang theo HE DA ROLL nam o votong.js (KHANG_TU_HE), khong o day, vi he roll moi tran.
+const ARCH_KHANG = { thuong: 0.05, trau: 0.15, nhanh: 0, boss: 0.10 };
 function mk(level, arch, extra) {
   const a = ARCH[arch] || ARCH.thuong;
+  const kv = ARCH_KHANG[arch] || 0;
+  const khang = kv ? { kim: kv, moc: kv, thuy: kv, hoa: kv, tho: kv } : null;
   const hp  = Math.round(0.95 * Math.pow(level, 2.25) * a.hp);
   const atk = Math.round(1.4  * Math.pow(level, 1.30) * a.atk);
   const def = Math.round(0.6  * Math.pow(level, 1.30) * a.def);
@@ -31,7 +39,8 @@ function mk(level, arch, extra) {
   const power  = Math.round(hp * 0.22 + atk * 4);
   const statXp = Math.max(1, Math.round(level / 8));
   const time   = Math.max(6, Math.round(level * 0.12) + 5);
-  return Object.assign({ reqLevel: level, hp, atk, def, spd, exp, statXp, power, time }, extra);
+  // `extra` merge SAU CUNG -> extra.khang de len bang mk sinh ra (cua thoat de tune rieng tung con).
+  return Object.assign({ reqLevel: level, hp, atk, def, spd, exp, statXp, power, time, khang }, extra);
 }
 
 // ---- Kinh te combat (chinh tap trung 1 cho) ----

@@ -29,7 +29,8 @@ import {
 } from './engine/activity.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, useBuffDan, duocLuTick } from './engine/buff.js';
 import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
-  TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf } from './data/votong.js';
+  TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf,
+  KHANG_CAP, KHANG_TU_HE, enemyKhangFor } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
@@ -392,6 +393,7 @@ const gameStore = {
   SKILLS, STATS, ITEMS, QUALITY, ITEM_TYPES, LOCATIONS, REALM_TIERS, AVATARS, COVERS, LOGIN_REWARDS, TUTORIAL_QUESTS, DAILY_QUESTS, NAV,
   EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, CLASSES, CLASS_GROUPS, NGHE, ENEMIES, STANCES, MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE, LINH_THACH,
   CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, NGU_HANH, NGU_HANH_LIST, MON_PHAI, DUNGEONS, DUNGEON_BY_ID,
+  KHANG_CAP, KHANG_TU_HE,
   view: 'profile',
   profileTab: 'profile',
   codexTab: 'yeuthu', codexDetail: null,   // Vạn Vật Phổ
@@ -3060,6 +3062,9 @@ const gameStore = {
   // --- Ngũ hành helpers ---
   heName(he) { return heName(he); },
   heInfo(he) { return heInfo(he); },
+  // Kháng NỀN của yêu thú đang chọn (tĩnh, theo dáng quái — 5 hệ bằng nhau nên đọc 1 hệ là đủ).
+  // Hệ nó roll mỗi trận còn được cộng thêm KHANG_TU_HE, phần đó không hiện ở đây vì chưa biết trước.
+  get combatSelKhangNen() { const e = this.combatSelObj; const k = e && e.khang; return k ? (k.kim || 0) : 0; },
   // Yêu thú đổi hệ NGẪU NHIÊN mỗi trận → cho biết hệ Tâm Pháp của ngươi KHẮC những hệ nào / BỊ hệ nào khắc.
   get myHeMatchup() {
     const my = this.combatStats.heChinh, khac = [], bi = [];
@@ -3598,7 +3603,12 @@ const gameStore = {
   // Icon 5 kháng dùng LẠI icon hệ trong NGU_HANH[he].ig — riêng Hỏa tên icon là 'flame' chứ không phải
   // 'hoa' (SVG_PATHS không có key 'hoa'; svg() trả chuỗi RỖNG khi thiếu key nên sẽ mất icon âm thầm).
   gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart', baoKich: 'star', baoSat: 'flame', tocDo: 'wind', khangKim: 'kim', khangMoc: 'moc', khangThuy: 'thuy', khangHoa: 'flame', khangTho: 'tho', khangAll: 'shield' })[k] || 'zap'; },
-  gearGainTotal(x) { return this.gearCompare(x).reduce((s, c) => s + c.delta, 0); },             // tổng chênh stat vs món đang mặc
+  // Tổng chênh stat vs món đang mặc (dùng để xếp hạng "Đề Cử Cho Bạn").
+  // CÓ TRỌNG SỐ: cộng thô sẽ so 1 điểm Sinh Lực (bậc 7 roll 236..472) ngang 1 điểm Kháng (roll 10..20),
+  // nên món mang kháng gần như KHÔNG BAO GIỜ được đề cử dù kháng đắt hơn nhiều mỗi điểm.
+  // Số dưới là quy đổi thô về "điểm Công tương đương", chưa tune kỹ — chỉ để xếp hạng, không vào công thức trận.
+  GEAR_W: { sinhLuc: 0.25, khangKim: 6, khangMoc: 6, khangThuy: 6, khangHoa: 6, khangTho: 6, khangAll: 24, baoKich: 4, baoSat: 1.5 },
+  gearGainTotal(x) { return this.gearCompare(x).reduce((s, c) => s + c.delta * (this.GEAR_W[c.key] || 1), 0); },
   equipFilterBetter: false,                                                                       // checkbox "chỉ hiển thị tốt hơn"
   recommendedForSlot(slot) {                                                                      // món NÂNG CẤP tốt nhất (null nếu không có)
     let best = null, bestScore = 0;

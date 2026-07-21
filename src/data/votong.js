@@ -40,6 +40,20 @@ export function heInfo(he){ return NGU_HANH[he] || NGU_HANH.vohe; }
 export function heName(he){ return (NGU_HANH[he]||{}).name || he; }
 // 5 hệ ngũ hành thật (yêu thú roll ngẫu nhiên trong này mỗi trận).
 export const NGU_HANH_LIST = ['kim','moc','thuy','hoa','tho'];
+// Yêu thú TỰ VỆ hệ mình đã roll: cộng thêm chừng này kháng cho ĐÚNG hệ nó mang trong trận.
+// Cố ý đặt lên ô TRUNG TÍNH của bảng khắc — nguHanhMod(x,x)=0 nên đánh cùng hệ vốn không lợi không hại;
+// giờ thành bất lợi rõ, đẩy người chơi đi tìm hệ KHẮC nó (+30%) thay vì đánh bừa. Không phạt kép.
+export const KHANG_TU_HE = 0.20;
+// Kháng của yêu thú TRONG MỘT TRẬN = nền tĩnh theo dáng (enemy.khang, sinh ở combat.js) + tự vệ hệ đã roll.
+// LUÔN trả object MỚI: worldboss.js dùng Object.assign copy NÔNG nên bảng khang sẽ dùng chung tham chiếu
+// với data gốc — ghi đè vào đó là hỏng bảng toàn cục cho mọi trận sau.
+export function enemyKhangFor(enemy, he){
+  const base = (enemy && enemy.khang) || null;
+  const out = { kim:0, moc:0, thuy:0, hoa:0, tho:0 };
+  for(const k in out) out[k] = khangClamp(base ? base[k] : 0);
+  if(out[he] != null) out[he] = khangClamp(out[he] + KHANG_TU_HE);
+  return out;
+}
 // Hệ của yêu thú TRONG 1 TRẬN: nếu enemy.he đặt sẵn (boss) -> cố định; không -> ngẫu nhiên.
 export function rollHe(enemy){
   if(enemy && enemy.he && NGU_HANH_LIST.includes(enemy.he)) return enemy.he;
@@ -528,6 +542,12 @@ function dmgPhrase(he,d,cls,eName){
 const CRIT_CLAUSE=[' <span class="text-amber-300 font-bold">Một đòn chí mạng!</span>',' <span class="text-amber-300 font-bold">Trúng ngay yếu huyệt — bạo kích!</span>'];
 const KHAC_CLAUSE=[' <span class="text-rose-300">Ngũ hành tương khắc, uy lực tăng vọt!</span>',' <span class="text-rose-300">Đánh đúng chỗ địch sở đoản — kình lực bùng dữ dội!</span>'];
 const KHANG_CLAUSE=[' <span class="text-sky-300">Tiếc thay địch khắc chế hệ này, kình lực lụi đi quá nửa.</span>'];
+// Câu riêng cho LỚP KHÁNG (khác hẳn KHANG_CLAUSE ở trên — câu kia nói về tương KHẮC ngũ hành).
+// Không có dòng này thì người chơi thấy sát thương tụt mà không hiểu vì đâu.
+const KHANG_HE_CLAUSE=[
+  (h,p)=>` <span class="text-slate-400">Thân nó vốn nhuốm ${h} khí, kình ${h} rót vào như đá chìm biển — chặn mất ${p}%.</span>`,
+  (h,p)=>` <span class="text-slate-400">${h} khí hộ thể của địch dày như thành, gạt đi ${p}% uy lực.</span>`,
+];
 const ENEMY_PHRASES=[
   (e,d,desc)=>`${e} ${desc}, bổ vào ngươi <b class="dmgr">${d}</b> sát thương.`,
   (e,d,desc)=>`${e} ${desc} — ngươi lãnh trọn <b class="dmgr">${d}</b> trọng kích.`,
@@ -584,7 +604,7 @@ export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
     P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1)).filter(Boolean),
     enemy, eName: enemy.name, eHe: he,
     p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0 },
-    e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, khang:(enemy.khang||null), skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
+    e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, khang:enemyKhangFor(enemy, he), skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
     cds:{}, t:0, dealt:0, taken:0, over:false, result:null, log:[],
   };
   const oc = heInfo(he).text;
@@ -618,13 +638,15 @@ function _useSkill(f,c){
   // LỚP KHÁNG RIÊNG (sau đường cong Thủ, KHÔNG chia def): kháng ngũ hành của ĐỊCH chặn đòn có hệ.
   // Vô Hệ miễn kháng. khangClamp kẹp [0, KHANG_CAP] — kháng quái đến thẳng từ data nên PHẢI kẹp ở đây,
   // không thì một số > 1 gõ nhầm vào bảng sẽ cho sát thương ÂM (đánh địch thành hồi máu cho địch).
-  if(!isVoHe(c.type)) dmg*=(1-khangClamp(e.khang && e.khang[c.type]));
+  const eKh = isVoHe(c.type) ? 0 : khangClamp(e.khang && e.khang[c.type]);
+  dmg*=(1-eKh);
   dmg=Math.max(1,Math.round(dmg)); e.hp-=dmg; f.dealt+=dmg;
   const cls=crit?'dmgc':'dmg';
   let s='Ngươi '+pick(LEAD_VERB)+' '+nm+', tiêu hao <span class="text-blue-400 font-medium">'+c.nl+' Nội Lực</span> — '+dmgPhrase(c.type,dmg,cls,f.eName)+'.';
   if(crit) s+=pick(CRIT_CLAUSE);
   if(!isVoHe(c.type)&&khac>0) s+=pick(KHAC_CLAUSE);
   if(!isVoHe(c.type)&&khac<0) s+=pick(KHANG_CLAUSE);
+  if(eKh>=0.15) s+=pick(KHANG_HE_CLAUSE)(heName(c.type), Math.round(eKh*100));
   if(c.lifesteal){ const h=Math.round(dmg*c.lifesteal); p.hp=Math.min(p.maxHP,p.hp+h); s+=' <span class="text-jade">Tinh huyết địch bị hút về, ngươi hồi '+h+' sinh lực.</span>'; }
   if(c.heal){ const h=Math.round(p.maxHP*c.heal); p.hp=Math.min(p.maxHP,p.hp+h); s+=' <span class="text-jade">Chân khí điều tức, hồi '+h+' sinh lực.</span>'; }
   L(f, s, 'text-slate-200');
