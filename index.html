@@ -2058,14 +2058,19 @@
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(cDetail.type).text" x-html="$store.game.svg($store.game.heInfo(cDetail.type).ig,'w-20 h-20')"></span>
                               <img :src="'images/chieu/'+cDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             </div>
-                            <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                              <span class="text-base font-bold" style="font-family:'Lora',serif" :class="$store.game.heInfo(cDetail.type).text" x-text="cDetail.name"></span>
-                              <span class="text-[10px] px-1.5 py-0.5 rounded" :class="$store.game.NGU_HANH[cDetail.type].badge" x-text="$store.game.heName(cDetail.type)"></span>
-                              <span class="text-[10px] px-1.5 py-0.5 rounded font-bold" :class="$store.game.tierStyle(cDetail.tier).badge" x-text="'Bậc '+$store.game.tierStyle(cDetail.tier).label"></span>
-                              <span x-show="$store.game.ownsChieu(cDetail.id)" class="text-[10px] px-1.5 py-0.5 rounded bg-jade/15 text-jade border border-jade/40">Đã sở hữu</span>
-                              <span x-show="!$store.game.ownsChieu(cDetail.id)" class="text-[10px] px-1.5 py-0.5 rounded border" :class="$store.game.skillSource($store.game.chieuCost(cDetail))==='mua'?'border-cyan/50 text-cyan':'border-amber-400/50 text-amber-300'" x-text="$store.game.costText($store.game.chieuCost(cDetail))"></span>
+                            <!-- TÊN đứng riêng một dòng (nó là danh tính), rồi MỘT hàng phân loại gom hệ + bậc
+                                 + môn phái. Trước đây tên và các badge nằm chung một hàng flex-wrap nên tên bị
+                                 chèn ép và badge xuống dòng lung tung. Bỏ chip "Đã sở hữu" + chip giá: modal này
+                                 CHỈ hiện võ học đã lĩnh hội nên "đã sở hữu" luôn đúng, còn giá không bao giờ hiện. -->
+                            <div class="text-[17px] font-bold text-center leading-tight" style="font-family:'Lora',serif" :class="$store.game.heInfo(cDetail.type).text" x-text="cDetail.name"></div>
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap mt-1.5 mb-3 text-[10px]">
+                              <span class="px-1.5 py-0.5 rounded inline-flex items-center gap-1" :class="$store.game.NGU_HANH[cDetail.type].badge">
+                                <span x-show="$store.game.NGU_HANH[cDetail.type].han" class="fserif" x-text="$store.game.NGU_HANH[cDetail.type].han"></span><span x-text="$store.game.heName(cDetail.type)"></span>
+                              </span>
+                              <span class="px-1.5 py-0.5 rounded font-bold" :class="$store.game.tierStyle(cDetail.tier).badge" x-text="$store.game.tierStyle(cDetail.tier).label"></span>
+                              <span class="text-slate-600">·</span>
+                              <span class="text-slate-400" x-text="$store.game.monPhaiOf(cDetail.type).name"></span>
                             </div>
-                            <div class="text-[10px] text-slate-500 mb-1.5">Học tại <span class="text-slate-300" x-text="$store.game.monPhaiOf(cDetail.type).name"></span></div>
                             <div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] mb-2">
                               <span class="text-sky-300/90">Nội Lực <b class="text-sky-200" x-text="cDetail.nl"></b></span>
                               <span x-show="cDetail.cd" class="text-slate-400">Hồi chiêu <b class="text-slate-200" x-text="cDetail.cd+'s'"></b></span>
@@ -2085,11 +2090,14 @@
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(tDetail.he).text" x-html="$store.game.svg($store.game.heInfo(tDetail.he).ig,'w-20 h-20')"></span>
                               <img :src="'images/tamphap/'+tDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             </div>
-                            <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                              <span class="text-base font-bold" style="font-family:'Lora',serif" :class="$store.game.heInfo(tDetail.he).text" x-text="tDetail.name"></span>
-                              <span class="text-[10px] px-1.5 py-0.5 rounded" :class="$store.game.NGU_HANH[tDetail.he].badge" x-text="$store.game.heName(tDetail.he)"></span>
-                              <span x-show="$store.game.ownsTamPhap(tDetail.id)" class="text-[10px] px-1.5 py-0.5 rounded bg-jade/15 text-jade border border-jade/40">Đã lĩnh hội</span>
-                              <span x-show="!$store.game.ownsTamPhap(tDetail.id)" class="text-[10px] px-1.5 py-0.5 rounded border border-amber-400/50 text-amber-300" x-text="$store.game.costText($store.game.tamPhapCost(tDetail))"></span>
+                            <div class="text-[17px] font-bold text-center leading-tight" style="font-family:'Lora',serif" :class="$store.game.heInfo(tDetail.he).text" x-text="tDetail.name"></div>
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap mt-1.5 mb-3 text-[10px]">
+                              <span class="px-1.5 py-0.5 rounded inline-flex items-center gap-1" :class="$store.game.NGU_HANH[tDetail.he].badge">
+                                <span x-show="$store.game.NGU_HANH[tDetail.he].han" class="fserif" x-text="$store.game.NGU_HANH[tDetail.he].han"></span><span x-text="$store.game.heName(tDetail.he)"></span>
+                              </span>
+                              <span class="px-1.5 py-0.5 rounded font-bold bg-amber-500/85 text-ink">Tâm Pháp</span>
+                              <span class="text-slate-600">·</span>
+                              <span class="text-slate-400" x-text="$store.game.monPhaiOf(tDetail.he).name"></span>
                             </div>
                             <div class="text-[11px] text-jade/90 leading-snug mb-2" x-text="tDetail.desc"></div>
                             <div class="text-[11px] text-slate-300 leading-snug mb-2" x-text="tDetail.short"></div>
@@ -2104,12 +2112,14 @@
                               <span class="absolute inset-0 flex items-center justify-center opacity-30" :class="$store.game.heInfo(bDetail.he).text" x-html="$store.game.svg($store.game.heInfo(bDetail.he).ig,'w-20 h-20')"></span>
                               <img :src="'images/bidong/'+bDetail.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                             </div>
-                            <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                              <span class="text-base font-bold" style="font-family:'Lora',serif" :class="$store.game.heInfo(bDetail.he).text" x-text="bDetail.name"></span>
-                              <span class="text-[10px] px-1.5 py-0.5 rounded" :class="$store.game.NGU_HANH[bDetail.he].badge" x-text="$store.game.heName(bDetail.he)"></span>
-                              <span class="text-[10px] px-1.5 py-0.5 rounded bg-violet-900/40 text-violet-300">Bị Động</span>
-                              <span x-show="$store.game.ownsBiDong(bDetail.id)" class="text-[10px] px-1.5 py-0.5 rounded bg-jade/15 text-jade border border-jade/40">Đã lĩnh hội</span>
-                              <span x-show="!$store.game.ownsBiDong(bDetail.id)" class="text-[10px] px-1.5 py-0.5 rounded border border-amber-400/50 text-amber-300" x-text="$store.game.costText($store.game.biDongCost(bDetail))"></span>
+                            <div class="text-[17px] font-bold text-center leading-tight" style="font-family:'Lora',serif" :class="$store.game.heInfo(bDetail.he).text" x-text="bDetail.name"></div>
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap mt-1.5 mb-3 text-[10px]">
+                              <span class="px-1.5 py-0.5 rounded inline-flex items-center gap-1" :class="$store.game.NGU_HANH[bDetail.he].badge">
+                                <span x-show="$store.game.NGU_HANH[bDetail.he].han" class="fserif" x-text="$store.game.NGU_HANH[bDetail.he].han"></span><span x-text="$store.game.heName(bDetail.he)"></span>
+                              </span>
+                              <span class="px-1.5 py-0.5 rounded font-bold bg-violet-600/85 text-violet-50">Bị Động</span>
+                              <span class="text-slate-600">·</span>
+                              <span class="text-slate-400" x-text="$store.game.monPhaiOf(bDetail.he).name"></span>
                             </div>
                             <div class="flex flex-wrap gap-1 mb-2">
                               <template x-for="(tg,i) in $store.game.biDongTags(bDetail)" :key="i"><span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 border border-slate-700 text-slate-200" x-text="tg"></span></template>
@@ -2120,38 +2130,17 @@
                       </div>
                       <!-- nút hành động -->
                       <div class="px-3.5 py-3 border-t border-slate-800 shrink-0">
-                        <!-- CHIÊU: đã sở hữu -> trang bị/gỡ; chưa -> học/mua -->
-                        <template x-if="cDetail && $store.game.ownsChieu(detail.id)">
+                        <!-- CHỈ còn nút TRANG BỊ / GỠ. Ba nhánh "học/mua" cũ đã bỏ: lưới chỉ hiện võ học ĐÃ
+                             lĩnh hội nên điều kiện `!owns...` không bao giờ đúng — chúng là nhánh chết.
+                             Việc học/mua nằm ở Tàng Kinh Các. -->
+                        <template x-if="cDetail">
                           <button @click="$store.game.toggleChieu(detail.id)" class="w-full py-2.5 rounded-lg text-sm font-bold transition" :class="$store.game.chieuEquipped(detail.id)?'bg-rose-900/40 border border-rose-700/60 text-rose-300 hover:bg-rose-900/60':'bg-jade/80 hover:bg-jade text-ink'" x-text="$store.game.chieuEquipped(detail.id)?'✕ Gỡ khỏi ô':'✓ Trang bị'"></button>
                         </template>
-                        <template x-if="cDetail && !$store.game.ownsChieu(detail.id)">
-                          <button @click="$store.game.learnChieu(detail.id)" :disabled="!$store.game.canAffordCost($store.game.chieuCost(cDetail))" class="w-full py-2.5 rounded-lg text-sm font-bold transition border flex items-center justify-center gap-1.5" :class="!$store.game.canAffordCost($store.game.chieuCost(cDetail))?'bg-slate-800/60 border-slate-700 text-slate-500 cursor-not-allowed':($store.game.skillSource($store.game.chieuCost(cDetail))==='mua'?'bg-cyan/15 border-cyan/50 text-cyan hover:bg-cyan/25':'bg-amber-500/15 border-amber-400/50 text-amber-200 hover:bg-amber-500/25')">
-                            <span x-text="$store.game.skillSource($store.game.chieuCost(cDetail))==='mua'?'Mua bí phổ':'Học'"></span>
-                            <span class="w-4 h-4 inline-flex items-center justify-center" x-html="$store.game.costIcon($store.game.chieuCost(cDetail))"></span>
-                            <span x-text="$store.game.costAmt($store.game.chieuCost(cDetail))"></span>
-                          </button>
-                        </template>
-                        <!-- TÂM PHÁP -->
-                        <template x-if="tDetail && $store.game.ownsTamPhap(detail.id)">
+                        <template x-if="tDetail">
                           <button @click="$store.game.switchTamPhap(detail.id)" :disabled="$store.game.tamPhapOn(detail.id)" class="w-full py-2.5 rounded-lg text-sm font-bold transition" :class="$store.game.tamPhapOn(detail.id)?'bg-slate-800 text-slate-500 cursor-default':'bg-jade/80 hover:bg-jade text-ink'" x-text="$store.game.tamPhapOn(detail.id)?'✓ Đang dùng Tâm Pháp này':'Dùng Tâm Pháp này'"></button>
                         </template>
-                        <template x-if="tDetail && !$store.game.ownsTamPhap(detail.id)">
-                          <button @click="$store.game.learnTamPhap(detail.id)" :disabled="!$store.game.canAffordCost($store.game.tamPhapCost(tDetail))" class="w-full py-2.5 rounded-lg text-sm font-bold transition border flex items-center justify-center gap-1.5" :class="!$store.game.canAffordCost($store.game.tamPhapCost(tDetail))?'bg-slate-800/60 border-slate-700 text-slate-500 cursor-not-allowed':'bg-amber-500/15 border-amber-400/50 text-amber-200 hover:bg-amber-500/25'">
-                            <span>Học nội công</span>
-                            <span class="w-4 h-4 inline-flex items-center justify-center" x-html="$store.game.costIcon($store.game.tamPhapCost(tDetail))"></span>
-                            <span x-text="$store.game.costAmt($store.game.tamPhapCost(tDetail))"></span>
-                          </button>
-                        </template>
-                        <!-- BỊ ĐỘNG -->
-                        <template x-if="bDetail && $store.game.ownsBiDong(detail.id)">
+                        <template x-if="bDetail">
                           <button @click="$store.game.toggleBiDong(detail.id)" class="w-full py-2.5 rounded-lg text-sm font-bold transition" :class="$store.game.biDongOn(detail.id)?'bg-rose-900/40 border border-rose-700/60 text-rose-300 hover:bg-rose-900/60':'bg-jade/80 hover:bg-jade text-ink'" x-text="$store.game.biDongOn(detail.id)?'✕ Gỡ khỏi ô':'✓ Trang bị (tối đa 2)'"></button>
-                        </template>
-                        <template x-if="bDetail && !$store.game.ownsBiDong(detail.id)">
-                          <button @click="$store.game.learnBiDong(detail.id)" :disabled="!$store.game.canAffordCost($store.game.biDongCost(bDetail))" class="w-full py-2.5 rounded-lg text-sm font-bold transition border flex items-center justify-center gap-1.5" :class="!$store.game.canAffordCost($store.game.biDongCost(bDetail))?'bg-slate-800/60 border-slate-700 text-slate-500 cursor-not-allowed':'bg-amber-500/15 border-amber-400/50 text-amber-200 hover:bg-amber-500/25'">
-                            <span>Học</span>
-                            <span class="w-4 h-4 inline-flex items-center justify-center" x-html="$store.game.costIcon($store.game.biDongCost(bDetail))"></span>
-                            <span x-text="$store.game.costAmt($store.game.biDongCost(bDetail))"></span>
-                          </button>
                         </template>
                       </div>
                     </div>
