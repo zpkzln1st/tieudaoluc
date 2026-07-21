@@ -541,7 +541,9 @@ export function deriveCombat(state, loadout, opts){
     def: Math.max(0, Math.round(d.hoThe * (1+M.def) * nt * (1 + bf.defPct))),
     spd: Math.max(1, Math.round((100 + sl('thanPhap')*1.5 + (d.tocDo||0)) * (1+M.spd+tbn.spdPct) * nt)),
     crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.005 + M.crit + (d.baoKich||0)/100 + tbn.critPct)),
-    critDmg: 1.6 + M.critDmg + (d.baoSat||0)/100,
+    // NỀN 180%: đòn thường 100% thì đòn bạo kích 180%. CỐ Ý KHÔNG CÓ TRẦN — cộng thêm dòng
+    // Sát Thương Bạo Kích thì cứ thế cao lên, đúng lối các game cùng thể loại.
+    critDmg: 1.8 + M.critDmg + (d.baoSat||0)/100,
     // ĐỢT 3 — `neTranh` HẾT CHẾT: trước đây dodge chỉ đọc Bộ Pháp + Danh Hiệu, còn chỉ số Né Tránh
     // (Thân Pháp + gear) KHÔNG chảy vào đâu cả. Nay nối qua đường cong bão hoà, có trần riêng.
     dodge: Math.min(0.5, Math.max(0, M.dodge + tbn.dodgePct + dodgeFromNeTranh(d.neTranh))),
