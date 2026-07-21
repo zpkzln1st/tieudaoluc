@@ -127,8 +127,18 @@
     .chieu-ord { position:absolute; top:2px; left:2px; z-index:2; width:15px; height:15px; border-radius:4px;
                  background:rgba(7,11,20,.88); border:1px solid rgba(245,185,66,.55); color:#f5b942;
                  font-family:'Lora',serif; font-weight:700; font-size:9.5px; line-height:13px; text-align:center; }
-    .chieu-grip{ position:absolute; bottom:2px; right:2px; z-index:2; width:11px; height:11px;
-                 fill:rgba(203,213,225,.62); pointer-events:none; }
+    /* TAY CẦM. Trước là icon 11×11px ở góc — quá nhỏ để nhận ra ô này kéo được, mà lại nằm đúng chỗ
+       art dễ chìm. Nay là THANH ngang suốt đáy ô: nhìn phát biết ngay là chỗ bám, và to để dễ nhắm.
+       pointer-events:none vì chính cái nút mới là chỗ bắt sự kiện — kéo được từ BẤT KỲ đâu trên ô. */
+    .chieu-grip{ position:absolute; left:0; right:0; bottom:0; z-index:2; height:15px; pointer-events:none;
+                 display:flex; align-items:center; justify-content:center; gap:3px;
+                 background:rgba(7,11,20,.82); border-top:1px solid rgba(148,163,184,.28); }
+    .chieu-grip i{ display:block; width:3px; height:3px; border-radius:50%; background:rgba(203,213,225,.8); }
+    /* Chặn KÉO ẢNH kiểu native của trình duyệt. Không có mấy dòng này thì nhấn vào art rồi rê là
+       trình duyệt tự khởi động drag-and-drop của <img>, nó bắn pointercancel và giết cú kéo của game —
+       triệu chứng đúng là "không có điểm bám", vì ảnh phủ kín ô nên chỗ nào cũng dính. */
+    .chieu-slot, .chieu-slot * { -webkit-user-drag:none; user-select:none; -webkit-user-select:none; }
+    .chieu-slot img { -webkit-user-drag:none; pointer-events:none; }
     /* Vạch jade TĨNH báo chỗ sắp thả. Phải là lớp con z-index cao: ô chiêu có <img> phủ absolute
        inset-0 và art là ảnh ĐẶC (webp VP8 không alpha), nên inset box-shadow đặt trên chính button
        sẽ nằm dưới ảnh và không bao giờ nhìn thấy. */
@@ -1963,14 +1973,14 @@
                               @pointermove="$store.game.chieuDragMove($event)"
                               @pointerup="if(!$store.game.chieuDragEnd(true,$event)) open('chieu',c.id)"
                               @pointercancel="$store.game.chieuDragEnd(false,$event)"
-                              class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0 cursor-grab"
+                              class="chieu-slot relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0 cursor-grab"
                               :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'+($store.game.chieuDrag.active&&$store.game.chieuDrag.over===idx?' chieu-hole':'')"
                               :title="c.name+' — ưu tiên '+(idx+1)+', kéo để đổi thứ tự'">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-8 h-8')"></span>
-                        <img :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                        <img draggable="false" :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                         <span class="chieu-ord" x-text="idx+1"></span>
-                        <svg class="chieu-grip" viewBox="0 0 10 10" aria-hidden="true"><circle cx="3" cy="2" r="1"/><circle cx="7" cy="2" r="1"/><circle cx="3" cy="5" r="1"/><circle cx="7" cy="5" r="1"/><circle cx="3" cy="8" r="1"/><circle cx="7" cy="8" r="1"/></svg>
+                        <span class="chieu-grip" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                       </button>
                     </template>
                     <!-- ô trống chiêu -->
