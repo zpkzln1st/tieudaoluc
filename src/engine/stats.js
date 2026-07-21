@@ -33,6 +33,11 @@ export const CC_CAP = 0.60;
 export function ccClamp(v) { return Math.max(0, Math.min(CC_CAP, v || 0)); }
 export const CC_KEYS = ['giamNgat', 'giamCham', 'giamDoc', 'giamBong', 'giamChoang'];
 
+// Hệ số EXP từ TRANG BỊ, CHỈ dùng cho cấp CHIẾN ĐẤU (Tứ Trụ và 9 nghề KHÔNG ăn dòng này).
+// Gom vào một hàm để 4 chỗ CỘNG exp và 2 chỗ HIỆN ước tính dùng chung — lệch nhau là số trên
+// màn hình nói một đằng, EXP vào túi một nẻo.
+export function combatExpMult(state) { return 1 + (derivedStats(state).tangExp || 0); }
+
 export const MENH_TRUNG_K = 2000; // menhTrung 140 -> 6,5% ; 283 -> 12,4% ; 1014 -> 33,6%
 // Ti le VO HIEU HOA ne cua dich: 0 = khong chong duoc gi, 1 = dich khong the ne.
 export function hitFromMenhTrung(mt) {
@@ -46,7 +51,7 @@ export function gearStats(state) {
   // MỌI key ở đây là SỐ NGUYÊN ĐIỂM phần trăm (mẫu baoKich/baoSat) — xem chú thích Math.round bên dưới.
   const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0, baoKich: 0, baoSat: 0, tocDo: 0,
               khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0, khangAll: 0, hoiMau: 0,
-              giamNgat: 0, giamCham: 0, giamDoc: 0, giamBong: 0, giamChoang: 0, tangCong: 0 };
+              giamNgat: 0, giamCham: 0, giamDoc: 0, giamBong: 0, giamChoang: 0, tangCong: 0, tangExp: 0 };
   const eq = state.equipment || {};
   for (const slot of Object.keys(eq)) {
     const inst = eq[slot];
@@ -123,5 +128,5 @@ export function derivedStats(state, opts) {
                    choang: ccClamp((g.giamChoang || 0) / 100) };
   // tangCong: SỐ TẦNG cộng cho mọi chiêu đang lắp, KHÔNG phải điểm chỉ số. Trần cộng dồn 3.
   // Cắt trần ở đây (không ở gear) để ba món cùng roll Tầng vẫn không vượt được TANG_GEAR_MAX.
-  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, hoiMau: (g.hoiMau || 0) / 100, ccGiam, tangCong: Math.min(3, g.tangCong || 0) };
+  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, hoiMau: (g.hoiMau || 0) / 100, ccGiam, tangCong: Math.min(3, g.tangCong || 0), tangExp: (g.tangExp || 0) / 100 };
 }

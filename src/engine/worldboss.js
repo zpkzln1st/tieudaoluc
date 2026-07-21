@@ -14,6 +14,7 @@ import { YEU_VUONG, YEU_VUONG_BY_ID } from '../data/combat.js';
 import { addItem } from './inventory.js';
 import { addSkillXp, addStatXp } from './leveling.js';
 import { skillExpMultiplier } from '../data/classes.js';
+import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
 import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bảng dùng roster bot thật (deterministic)
 
 const HE_LIST = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
@@ -151,7 +152,7 @@ function isRareReward(rw) {
 function grantReward(state, boss) {
   const wb = boss.wb;
   const r = { exp: 0, bac: wb.bac, honThach: wb.honThach, items: {} };
-  const xp = Math.max(1, Math.round(boss.exp * skillExpMultiplier(state, 'chienDau')));
+  const xp = Math.max(1, Math.round(boss.exp * skillExpMultiplier(state, 'chienDau') * combatExpMult(state)));
   addSkillXp(state, 'chienDau', xp); r.exp = xp;
   for (const st of boPhapStats(state.combat.loadout)) addStatXp(state, st, boss.statXp * 3);
   state.currencies.bac = (state.currencies.bac || 0) + wb.bac;

@@ -35,7 +35,7 @@ import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
 import { addItem, removeItem, countItem } from './engine/inventory.js';
-import { derivedStats } from './engine/stats.js';
+import { derivedStats, combatExpMult } from './engine/stats.js';
 import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
 import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
 import { enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
@@ -2382,7 +2382,7 @@ const gameStore = {
     const cycleSec = (this.act && this.act.cycleMs) ? this.act.cycleMs / 1000 : 0;
     if (this.actIsCombat) {
       if (!this.actEnemy) return '0';
-      const mult = skillExpMultiplier(this.state, 'chienDau');
+      const mult = skillExpMultiplier(this.state, 'chienDau') * combatExpMult(this.state);
       const expPerKill = Math.max(1, Math.round(this.actEnemy.exp * mult));
       return (cycleSec > 0 ? expPerKill / cycleSec : this.actEnemy.exp / this.actEnemy.time).toFixed(2);
     }
@@ -2671,7 +2671,7 @@ const gameStore = {
     if (!e || !fc) return null;
     const roundSec = this.combatRoundSec;                 // 8s/con — không dùng thời lượng trận (sim) cho tốc độ nữa
     const kph = 3600 / roundSec;
-    const mult = skillExpMultiplier(this.state, 'chienDau');
+    const mult = skillExpMultiplier(this.state, 'chienDau') * combatExpMult(this.state);
     const expPer = Math.max(1, Math.round(e.exp * mult));
     const bacPer = Math.max(1, Math.round(e.exp * BAC_PER_EXP * BAC_DROP_CHANCE));   // Bạc KỲ VỌNG/kill (rơi ~15% × exp×0.5) — cho dự tính/giờ đúng
     let survival, endureSec;
@@ -3310,7 +3310,7 @@ const gameStore = {
   awardKill(f) {
     const e = this.ENEMIES[this.act.enemyId]; if (!e) return;
     const sess = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
-    const mult = skillExpMultiplier(this.state, 'chienDau');
+    const mult = skillExpMultiplier(this.state, 'chienDau') * combatExpMult(this.state);
     const xpGain = Math.max(1, Math.round(e.exp * mult));
     addSkillXp(this.state, 'chienDau', xpGain);
     sess.xp += xpGain; sess.win += 1;
@@ -3596,7 +3596,7 @@ const gameStore = {
   // Nhãn RÚT GỌN (modal Trang Bị + Cường Hóa). Ba bảng nhãn (đây, statLabel, gearStatIcon) đều fallback
   // `|| k` nên thiếu key nào là chỗ đó lòi chữ tiếng Anh 'khangKim' ra UI — phải thêm đủ cả ba.
   gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
-    giamNgat: 'Giảm Ngất', giamCham: 'Giảm Chậm', giamDoc: 'Giảm Độc', giamBong: 'Giảm Bỏng', giamChoang: 'Giảm Choáng', tangCong: 'Kĩ Năng Vốn Có' })[k] || k; },
+    giamNgat: 'Giảm Ngất', giamCham: 'Giảm Chậm', giamDoc: 'Giảm Độc', giamBong: 'Giảm Bỏng', giamChoang: 'Giảm Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP' })[k] || k; },
   // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích / Sát Thương Bạo Kích).
   gearLineText(k, v) { const a = AFFIX[k]; return this.statLabel(k) + ' +' + v + (a && a.fmt === 'pct' ? '%' : ''); },
   gearVal(k, v) { const a = AFFIX[k]; return '+' + v + (a && a.fmt === 'pct' ? '%' : ''); },        // chỉ giá trị (tách khỏi tên cho list dọc)
@@ -3638,12 +3638,12 @@ const gameStore = {
   // Icon 5 kháng dùng LẠI icon hệ trong NGU_HANH[he].ig — riêng Hỏa tên icon là 'flame' chứ không phải
   // 'hoa' (SVG_PATHS không có key 'hoa'; svg() trả chuỗi RỖNG khi thiếu key nên sẽ mất icon âm thầm).
   gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart', baoKich: 'star', baoSat: 'flame', tocDo: 'wind', khangKim: 'kim', khangMoc: 'moc', khangThuy: 'thuy', khangHoa: 'flame', khangTho: 'tho', khangAll: 'shield', hoiMau: 'heart',
-    giamNgat: 'crack', giamCham: 'thuy', giamDoc: 'moc', giamBong: 'flame', giamChoang: 'tho', tangCong: 'trend' })[k] || 'zap'; },
+    giamNgat: 'crack', giamCham: 'thuy', giamDoc: 'moc', giamBong: 'flame', giamChoang: 'tho', tangCong: 'trend', tangExp: 'book' })[k] || 'zap'; },
   // Tổng chênh stat vs món đang mặc (dùng để xếp hạng "Đề Cử Cho Bạn").
   // CÓ TRỌNG SỐ: cộng thô sẽ so 1 điểm Sinh Lực (bậc 7 roll 236..472) ngang 1 điểm Kháng (roll 10..20),
   // nên món mang kháng gần như KHÔNG BAO GIỜ được đề cử dù kháng đắt hơn nhiều mỗi điểm.
   // Số dưới là quy đổi thô về "điểm Công tương đương", chưa tune kỹ — chỉ để xếp hạng, không vào công thức trận.
-  GEAR_W: { sinhLuc: 0.25, khangKim: 6, khangMoc: 6, khangThuy: 6, khangHoa: 6, khangTho: 6, khangAll: 24, hoiMau: 30, baoKich: 4, baoSat: 1.5 },
+  GEAR_W: { sinhLuc: 0.25, khangKim: 6, khangMoc: 6, khangThuy: 6, khangHoa: 6, khangTho: 6, khangAll: 24, hoiMau: 30, tangExp: 12, baoKich: 4, baoSat: 1.5 },
   gearGainTotal(x) { return this.gearCompare(x).reduce((s, c) => s + c.delta * (this.GEAR_W[c.key] || 1), 0); },
   equipFilterBetter: false,                                                                       // checkbox "chỉ hiển thị tốt hơn"
   recommendedForSlot(slot) {                                                                      // món NÂNG CẤP tốt nhất (null nếu không có)
@@ -3867,7 +3867,7 @@ const gameStore = {
   itemTypeLabel(t) { return this.ITEM_TYPES[t] || 'Khác'; },
   equipSlotLabel(slot) { const s = (this.EQUIP_SLOTS || []).find((x) => x.id === slot) || (this.TOOL_SLOTS || []).find((x) => x.id === slot); return s ? s.name : slot; },
   statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
-    giamNgat: 'Giảm Thời Gian Ngất', giamCham: 'Giảm Thời Gian Chậm', giamDoc: 'Giảm Thời Gian Độc', giamBong: 'Giảm Thời Gian Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có' })[k] || k; },
+    giamNgat: 'Giảm Thời Gian Ngất', giamCham: 'Giảm Thời Gian Chậm', giamDoc: 'Giảm Thời Gian Độc', giamBong: 'Giảm Thời Gian Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP Chiến Đấu' })[k] || k; },
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) {
     const ref = this.itemModal; if (!ref) return;

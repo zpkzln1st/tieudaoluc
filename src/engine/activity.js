@@ -19,6 +19,7 @@ import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DAMDAO, TIN_VAT_EFF_PCT } from '../data/damdao.js';   // Tín Vật: thưởng Đàm Đạo -> +% hiệu suất nghề
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { buffVal } from './buff.js';   // Đan Bổ Trợ: +% EXP Chiến Đấu / rơi liệu / Bạc
+import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
 import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
 
@@ -268,7 +269,7 @@ export function advance(state, now) {
     const cb = state.combat;
     if (cyclesByTime > 0 && enemy && cb) {
       // Đan Bổ Trợ họ Ngộ Đạo: +% EXP CHIẾN ĐẤU (không đụng EXP nghề nào).
-      const mult = skillExpMultiplier(state, 'chienDau') * (1 + buffVal(state, 'cbExpPct', now) / 100);
+      const mult = skillExpMultiplier(state, 'chienDau') * (1 + buffVal(state, 'cbExpPct', now) / 100) * combatExpMult(state);
       const gainXp = Math.max(1, Math.round(enemy.exp * mult));
       const stats = boPhapStats(cb.loadout);               // Tứ Trụ nhận EXP theo các Bộ Pháp (1-2)
       const hpLost = act.hpLostPerKill || 0;               // máu mất mỗi con (từ Suy Tính)

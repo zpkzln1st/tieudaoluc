@@ -559,6 +559,7 @@ export function deriveCombat(state, loadout, opts){
     regenPct: regenPct + (d.hoiMau || 0),   // + dòng Hồi Máu trên Tọa Kỵ (Đợt 3)
     tang: (state && state.combat && state.combat.tang) || {},   // Tầng từng chiêu (Ngộ Tính) — makeFight áp vào
     tangBonus: d.tangCong || 0,                                 // ĐỢT 5: +Tầng từ trang bị (trần 3)
+    tangExp: d.tangExp || 0,                                    // +% EXP, CHỈ cấp Chiến Đấu (cho UI đọc)
   };
 }
 

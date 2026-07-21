@@ -22,6 +22,7 @@ import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '..
 import { deriveCombat, TUYET_IDS } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
 import { levelFromXp, addSkillXp } from './leveling.js';
+import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
 import { addItem } from './inventory.js';
 import { pushNotif } from './notif.js';
 
@@ -201,7 +202,7 @@ export function grantDungeonRun(state, dungeonId, acc, now) {
   if (state.codex && state.codex.dungeonRuns) state.codex.dungeonRuns[dungeonId] = (state.codex.dungeonRuns[dungeonId] || 0) + 1;
   if (run.loot.bac) state.currencies.bac = (state.currencies.bac || 0) + run.loot.bac;
   if (run.loot.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + run.loot.honThach;
-  if (run.loot.exp) addSkillXp(state, 'chienDau', run.loot.exp);
+  if (run.loot.exp) addSkillXp(state, 'chienDau', Math.max(1, Math.round(run.loot.exp * combatExpMult(state))));
   for (const id in run.loot.items) addItem(state, id, run.loot.items[id]);
   // BÍ KÍP -> Tàng Thư Lâu Tông Môn (main->phụ 1 chiều; side-only)
   if (run.biKipDropId && state.tongMon) {
