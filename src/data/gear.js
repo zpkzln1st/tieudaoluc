@@ -300,8 +300,12 @@ export const AFFIX = {
   sinhLuc:   { key: 'sinhLuc',   name: 'Sinh Lực',  lo: 10, hi: 20, fmt: 'flat' },
   neTranh:   { key: 'neTranh',   name: 'Né Tránh',  lo: 3,  hi: 6,  fmt: 'flat' },
   menhTrung: { key: 'menhTrung', name: 'Chính Xác', lo: 3,  hi: 6,  fmt: 'flat' },
-  baoKich:   { key: 'baoKich',   name: 'Bạo Kích',  lo: 1,  hi: 3,  fmt: 'pct' },   // % bao kich suat (vao crit)
-  baoSat:    { key: 'baoSat',    name: 'Sát Thương Bạo Kích', lo: 4, hi: 10, fmt: 'pct' },   // % bao kich thuong (vao critDmg)
+  // baoKich/baoSat la % nen KHONG duoc nhan cap (noLv) — y het khang. Do truoc khi sua: he so bac 7
+  // la x23,60 nen MOT dong baoKich ra 24..71 DIEM = 24-71% bao kich, ca bo ra 303 diem -> crit cham
+  // tran 0,75 o 100% so lan (bac 5 da 87%). baoSat con te hon: 682 diem = critDmg x8,42 va KHONG co tran.
+  // Nay chi nhan pham chat (x1,0 -> x3,4): crit len theo do hiem chu khong tu dong kich tran.
+  baoKich:   { key: 'baoKich',   name: 'Bạo Kích',  lo: 1,  hi: 3,  fmt: 'pct', noLv: true },   // % bao kich suat (vao crit)
+  baoSat:    { key: 'baoSat',    name: 'Sát Thương Bạo Kích', lo: 4, hi: 10, fmt: 'pct', noLv: true },   // % bao kich thuong (vao critDmg)
   tocDo:     { key: 'tocDo',     name: 'Tốc Độ',    lo: 2,  hi: 6,  fmt: 'flat' },  // phang (vao spd)
   // ---- KHANG NGU HANH: SO NGUYEN DIEM phan tram, chia /100 + kep tran o derivedStats ----
   // noLv:true = KHONG nhan LV_MUL (chi nhan QUALITY_MUL). Bat buoc: k = LV_MUL x QUALITY_MUL tai bac 7
@@ -328,8 +332,12 @@ export const AFFIX = {
   // ---- DOT 5: +Tang cho MOI chieu dang lap (chi Vu Khi / Nhan / Trang Suc) ----
   // `flat` = 1..3 y nguyen, khong nhan cap cung khong nhan pham chat: day la so TANG chu khong phai
   // diem chi so, nhan len se pha thang he Tang. Tran cong don 3 dat o derivedStats.
-  tangCong:   { key: 'tangCong',   name: 'Kĩ Năng Vốn Có', lo: 1, hi: 3, fmt: 'flat', noLv: true, flat: true },
+  // DONG HIEM NHAT GAME. `minQ: 6` = chi do bac 6 tro len moi co co roll trung, kem trong so cuc thap
+  // (xem TANG_W) -> ti le ra tuong duong mot mon do pho xin, khong phai thu gap o moi mon.
+  tangCong:   { key: 'tangCong',   name: 'Kĩ Năng Vốn Có', lo: 1, hi: 3, fmt: 'flat', noLv: true, flat: true, minQ: 6 },
 };
+// Thu hang pham chat (de doi chieu voi AFFIX[k].minQ). Pham 1 -> Co Ban 7.
+const QUALITY_RANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
 export const AFFIX_KEYS = Object.keys(AFFIX);
 const PRIMARY_MUL = 2.0;   // dong primary to hon dong phu
 // He so do lon cua 1 dong affix. Tach ra ham rieng vi rollGearStats VA lineRollPct deu phai dung
@@ -359,17 +367,22 @@ export const KHANG_KEYS = ['khangKim', 'khangMoc', 'khangThuy', 'khangHoa', 'kha
 // giamNgat KHONG nam trong bang nay — no chi len o Ao, khai rieng ben duoi.
 const CC_W = { giamCham: 3, giamDoc: 3, giamBong: 3, giamChoang: 3 };
 export const CC_ROLL_KEYS = ['giamNgat', 'giamCham', 'giamDoc', 'giamBong', 'giamChoang'];
+// `TANG_W` chi con la CO danh dau "o nay duoc phep co dong Ki Nang Von Co" (xem SLOT_AFFIX_W) —
+// gia tri bao nhieu khong quan trong vi no KHONG di qua wPick nua.
+// TI LE THAT nam o TANG_CHANCE: roll rieng mot lan, chi o do bac 6+ (AFFIX.tangCong.minQ).
+const TANG_W = 1;
+const TANG_CHANCE = 0.10;
 // DOT 3: `congKich` DA BI GO khoi ca 5 o giap tru + Toa Ky. No chi con o vuKhi/nhan/trangSuc.
 // Toa Ky doi vai thanh "than phap + suc ben": Toc Do/Ne Tranh/Sinh Luc/Hoi Mau, khong Cong khong Khang.
 export const SLOT_AFFIX_W = {
-  vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: 3 },
+  vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: TANG_W },
   giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, hoThe: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W, giamNgat: 3 },  // Ao = o DUY NHAT co giamNgat
   mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, hoThe: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   gang:     { baoKich: 10, hoThe: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, ...KHANG_W, ...CC_W },
   giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, neTranh: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
-  nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: 3 },
-  trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6, tangCong: 3 },
+  nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: TANG_W },
+  trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6, tangCong: TANG_W },
   toaKy:    { tocDo: 10, sinhLuc: 10, neTranh: 10, hoiMau: 4, hoThe: 4, menhTrung: 1, baoKich: 1 },
 };
 // So DONG theo pham chat (primary tinh la dong 1).
@@ -393,9 +406,24 @@ export function rollGearStats(slot, itemLv, quality) {
   const lines = QUALITY_LINES[quality] || 1;
   const prim = SLOT_PRIMARY[slot];
   const out = {}; const used = new Set();
+  // KHOA TRUOC cac dong co nguong pham chat (AFFIX[k].minQ) — do chua du bac thi coi nhu khong ton tai
+  // trong pool, chu khong phai "trong so thap". Nho vay dong hiem thuc su vang mat o do bac thap.
+  const qr = QUALITY_RANK[quality] || 0;
+  for (const k in AFFIX) { const a = AFFIX[k]; if (a.minQ && qr < a.minQ) used.add(k); }
   if (prim && AFFIX[prim]) { out[prim] = Math.max(1, Math.round(rollIn(AFFIX[prim].lo, AFFIX[prim].hi) * affixMul(slot, prim, itemLv, quality) * PRIMARY_MUL)); used.add(prim); }
   const wmap = SLOT_AFFIX_W[slot] || {};
-  for (let i = 1; i < lines; i++) {
+  // ---- DONG HIEM "Ki Nang Von Co": roll RIENG mot lan, KHONG tranh trong so voi cac dong thuong ----
+  // Vi sao khong dung trong so: bac 7 rut 6 dong phu tu pool chi 8 key, tuc gan nhu key nao cung duoc
+  // rut — do that, trong so 0,6 (thap nhat bang) van cho ra 38% vu khi co dong nay. Trong so khong the
+  // lam mot dong hiem o do bac cao. Roll rieng thi ti le la con so CHINH XAC minh dat ra.
+  // Trung thi no CHIEM MOT O dong phu (lines--), khong phai cong them -> mon khong tu dung manh hon.
+  let slots = lines - 1;
+  if (slots > 0 && wmap.tangCong != null && !used.has('tangCong') && Math.random() < TANG_CHANCE) {
+    out.tangCong = Math.max(1, Math.round(rollIn(AFFIX.tangCong.lo, AFFIX.tangCong.hi) * affixMul(slot, 'tangCong', itemLv, quality)));
+    slots--;
+  }
+  used.add('tangCong');                    // da xu ly xong -> loai khoi vong boc thuong duoi day
+  for (let i = 0; i < slots; i++) {
     const key = wPick(wmap, used);
     if (!key || !AFFIX[key]) break;
     out[key] = Math.max(1, Math.round(rollIn(AFFIX[key].lo, AFFIX[key].hi) * affixMul(slot, key, itemLv, quality)));
