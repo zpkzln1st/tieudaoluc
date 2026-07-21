@@ -25,6 +25,14 @@ export function dodgeFromNeTranh(ne) {
   const v = Math.max(0, ne || 0);
   return Math.min(NE_TRANH_CAP, v / (v + NE_TRANH_K));
 }
+// ---- DOT 4: GIAM THOI GIAN KHONG CHE ----
+// 5 dong tren giap tru, moi dong cat THOI GIAN cua mot hieu ung he. Tran 0,60 (khong bao gio mien han).
+// CUC KY QUAN TRONG: cac dong nay cat `ticksLeft`, TUYET DOI khong dung vao sat thuong moi hiep cua
+// Doc/Bong — DoT tru THANG mau, khong qua Phong Ngu, nen dung vao dmg la doi hoan toan y nghia dong nay.
+export const CC_CAP = 0.60;
+export function ccClamp(v) { return Math.max(0, Math.min(CC_CAP, v || 0)); }
+export const CC_KEYS = ['giamNgat', 'giamCham', 'giamDoc', 'giamBong', 'giamChoang'];
+
 export const MENH_TRUNG_K = 2000; // menhTrung 140 -> 6,5% ; 283 -> 12,4% ; 1014 -> 33,6%
 // Ti le VO HIEU HOA ne cua dich: 0 = khong chong duoc gi, 1 = dich khong the ne.
 export function hitFromMenhTrung(mt) {
@@ -37,7 +45,8 @@ export function gearStats(state) {
   // + khung kháng ngũ hành khangKim..khangTho + khangAll ("Kháng Tất Cả", cộng vào cả 5 hệ).
   // MỌI key ở đây là SỐ NGUYÊN ĐIỂM phần trăm (mẫu baoKich/baoSat) — xem chú thích Math.round bên dưới.
   const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0, baoKich: 0, baoSat: 0, tocDo: 0,
-              khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0, khangAll: 0, hoiMau: 0 };
+              khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0, khangAll: 0, hoiMau: 0,
+              giamNgat: 0, giamCham: 0, giamDoc: 0, giamBong: 0, giamChoang: 0 };
   const eq = state.equipment || {};
   for (const slot of Object.keys(eq)) {
     const inst = eq[slot];
@@ -108,5 +117,9 @@ export function derivedStats(state, opts) {
   const khang = { kim: kh(g.khangKim), moc: kh(g.khangMoc), thuy: kh(g.khangThuy), hoa: kh(g.khangHoa), tho: kh(g.khangTho) };
   // hoiMau (chỉ Tọa Kỵ): điểm nguyên -> tỉ lệ Sinh Lực hồi mỗi hiệp, cộng vào regenPct ở deriveCombat.
   // KHÔNG nhân với gì khác — hồi máu là trục bất tử, mọi phép nhân lên đây đều xoá đánh đổi công/thủ.
-  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, hoiMau: (g.hoiMau || 0) / 100 };
+  // ccGiam: 5 dòng giảm THỜI GIAN khống chế (điểm nguyên -> tỉ lệ, kẹp trần 0,60).
+  const ccGiam = { ngat: ccClamp((g.giamNgat || 0) / 100), cham: ccClamp((g.giamCham || 0) / 100),
+                   doc: ccClamp((g.giamDoc || 0) / 100), bong: ccClamp((g.giamBong || 0) / 100),
+                   choang: ccClamp((g.giamChoang || 0) / 100) };
+  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, hoiMau: (g.hoiMau || 0) / 100, ccGiam };
 }

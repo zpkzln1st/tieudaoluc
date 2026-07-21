@@ -318,6 +318,13 @@ export const AFFIX = {
   // `flat: true` = KHONG nhan cap VA KHONG nhan pham chat. Do that voi noLv (chi bo cap): bac 7 ra
   // 5,15%/hiep = hoi 51% mau ca tran 10s = vung BAT TU, xoa sach danh doi cong/thu. Phang 1-2% la tran.
   hoiMau:    { key: 'hoiMau',    name: 'Hồi Máu', lo: 1, hi: 2, fmt: 'pct', noLv: true, flat: true },
+  // ---- DOT 4: 5 dong GIAM THOI GIAN khong che (giap tru). noLv nhu khang, tran 0,60 o derivedStats.
+  // giamNgat CHI tren Ao (giap) — Ngat la hieu ung nang nhat nen dong chong no phai hiem nhat.
+  giamNgat:   { key: 'giamNgat',   name: 'Giảm Thời Gian Ngất',   lo: 4, hi: 8, fmt: 'pct', noLv: true },
+  giamCham:   { key: 'giamCham',   name: 'Giảm Thời Gian Chậm',   lo: 4, hi: 8, fmt: 'pct', noLv: true },
+  giamDoc:    { key: 'giamDoc',    name: 'Giảm Thời Gian Độc',    lo: 4, hi: 8, fmt: 'pct', noLv: true },
+  giamBong:   { key: 'giamBong',   name: 'Giảm Thời Gian Bỏng',   lo: 4, hi: 8, fmt: 'pct', noLv: true },
+  giamChoang: { key: 'giamChoang', name: 'Giảm Thời Gian Choáng', lo: 4, hi: 8, fmt: 'pct', noLv: true },
 };
 export const AFFIX_KEYS = Object.keys(AFFIX);
 const PRIMARY_MUL = 2.0;   // dong primary to hon dong phu
@@ -343,15 +350,20 @@ export const SLOT_PRIMARY = {
 const KHANG_W = { khangKim: 4, khangMoc: 4, khangThuy: 4, khangHoa: 4, khangTho: 4 };
 // MOT mon chi mang MOT dong khang ngu hanh — boc trung 1 key la khoa ca 5 lai (xem rollGearStats).
 export const KHANG_KEYS = ['khangKim', 'khangMoc', 'khangThuy', 'khangHoa', 'khangTho'];
+// DOT 4 — 5 dong giam thoi gian khong che. Cung ap luat MOT DONG MOI MON nhu khang: pool giap tru da
+// co 12 key, them 5 key nua ma khong khoa lai thi bac 7 (6 dong phu) se roll ra mot mo vun khong doc noi.
+// giamNgat KHONG nam trong bang nay — no chi len o Ao, khai rieng ben duoi.
+const CC_W = { giamCham: 3, giamDoc: 3, giamBong: 3, giamChoang: 3 };
+export const CC_ROLL_KEYS = ['giamNgat', 'giamCham', 'giamDoc', 'giamBong', 'giamChoang'];
 // DOT 3: `congKich` DA BI GO khoi ca 5 o giap tru + Toa Ky. No chi con o vuKhi/nhan/trangSuc.
 // Toa Ky doi vai thanh "than phap + suc ben": Toc Do/Ne Tranh/Sinh Luc/Hoi Mau, khong Cong khong Khang.
 export const SLOT_AFFIX_W = {
   vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
-  giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, hoThe: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
-  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, hoThe: 1, tocDo: 1, baoSat: 1, ...KHANG_W },
-  dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
-  gang:     { baoKich: 10, hoThe: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, ...KHANG_W },
-  giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, neTranh: 1, baoKich: 1, baoSat: 1, ...KHANG_W },
+  giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, hoThe: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W, giamNgat: 3 },  // Ao = o DUY NHAT co giamNgat
+  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, hoThe: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W },
+  dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
+  gang:     { baoKich: 10, hoThe: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, ...KHANG_W, ...CC_W },
+  giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, neTranh: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
   trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6 },
   toaKy:    { tocDo: 10, sinhLuc: 10, neTranh: 10, hoiMau: 4, hoThe: 4, menhTrung: 1, baoKich: 1 },
@@ -389,6 +401,8 @@ export function rollGearStats(slot, itemLv, quality) {
     // 44 diem/mon, nam mon thanh ~44% khang DEU ca 5 he, tuc cham tran toan tap ngay khi du do.
     // Co luat nay: moi mon giap che MOT he -> nguoi choi tu chon rai deu hay don mot he.
     if (KHANG_KEYS.indexOf(key) >= 0) for (const kk of KHANG_KEYS) used.add(kk);
+    // Y HET nhu khang: MOT mon toi da MOT dong giam thoi gian khong che.
+    if (CC_ROLL_KEYS.indexOf(key) >= 0) for (const kk of CC_ROLL_KEYS) used.add(kk);
   }
   return out;
 }

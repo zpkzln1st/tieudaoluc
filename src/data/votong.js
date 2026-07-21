@@ -44,6 +44,26 @@ export const NGU_HANH_LIST = ['kim','moc','thuy','hoa','tho'];
 // Cố ý đặt lên ô TRUNG TÍNH của bảng khắc — nguHanhMod(x,x)=0 nên đánh cùng hệ vốn không lợi không hại;
 // giờ thành bất lợi rõ, đẩy người chơi đi tìm hệ KHẮC nó (+30%) thay vì đánh bừa. Không phạt kép.
 export const KHANG_TU_HE = 0.20;
+// ---- ĐỢT 4: HIỆU ỨNG THEO HỆ CỦA YÊU THÚ ----
+// Đòn quái mang hệ nào thì gieo hiệu ứng của hệ đó lên NGƯỜI CHƠI. Trước Đợt 4 quái chỉ có mỗi
+// `slow` gắn cứng trên vài tuyệt kỹ — hệ của quái hoàn toàn không ảnh hưởng gì tới người chơi.
+//   Kim = Thọ Thương -> NGẤT (mất lượt VÀ chịu đòn nặng hơn — nặng nhất, nên tỉ lệ thấp nhất)
+//   Thủy = Băng Sát -> làm chậm · Mộc = Độc Sát -> độc · Hỏa = Hỏa Sát -> bỏng · Thổ = Lôi Sát -> choáng
+// `dot` = % Sinh Lực TỐI ĐA của người chơi mất mỗi hiệp (theo % chứ không phải số phẳng, để nó có
+// nghĩa như nhau ở mọi cấp). DoT trừ THẲNG máu, KHÔNG qua Phòng Ngự.
+export const HE_FX = {
+  kim:  { id:'ngat',   ten:'Ngất',   pct:0.07, ticks:1 },
+  thuy: { id:'cham',   ten:'Chậm',   pct:0.16, ticks:3 },
+  moc:  { id:'doc',    ten:'Độc',    pct:0.16, ticks:4, dot:0.015 },
+  hoa:  { id:'bong',   ten:'Bỏng',   pct:0.16, ticks:3, dot:0.020 },
+  tho:  { id:'choang', ten:'Choáng', pct:0.10, ticks:1 },
+};
+// Người chơi NGẤT thì chịu thêm chừng này sát thương (đây là điểm khác `stun` — stun chỉ mất lượt).
+export const NGAT_AMP = 0.30;
+// Thời gian hiệu ứng sau khi trừ dòng "giảm thời gian" tương ứng. Cắt TICKS, không đụng sát thương.
+export function ccTicks(baseTicks, giam){
+  return Math.max(0, Math.round(baseTicks * (1 - (giam || 0))));
+}
 // Kháng của yêu thú TRONG MỘT TRẬN = nền tĩnh theo dáng (enemy.khang, sinh ở combat.js) + tự vệ hệ đã roll.
 // LUÔN trả object MỚI: worldboss.js dùng Object.assign copy NÔNG nên bảng khang sẽ dùng chung tham chiếu
 // với data gốc — ghi đè vào đó là hỏng bảng toàn cục cho mọi trận sau.
@@ -509,6 +529,8 @@ export function deriveCombat(state, loadout, opts){
     dodge: Math.min(0.5, Math.max(0, M.dodge + tbn.dodgePct + dodgeFromNeTranh(d.neTranh))),
     // ĐỢT 3 — `menhTrung` HẾT CHẾT: tỉ lệ vô hiệu hoá Né của yêu thú (dùng ở _eTurn).
     hitRate: hitFromMenhTrung(d.menhTrung),
+    // ĐỢT 4 — 5 dòng giảm THỜI GIAN khống chế (cắt ticksLeft ở _heFx, không đụng sát thương DoT).
+    ccGiam: d.ccGiam || { ngat:0, cham:0, doc:0, bong:0, choang:0 },
     // KHUNG 5 KHÁNG NGŨ HÀNH (đại phẫu): chảy từ derivedStats (affix khang* trên giáp trụ).
     // Đợt 1: chưa có nguồn nào cấp -> luôn toàn 0, hành vi game KHÔNG đổi. Trần kháng đặt ở Đợt 2.
     khang: d.khang || { kim:0, moc:0, thuy:0, hoa:0, tho:0 },
@@ -614,7 +636,7 @@ export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
     // HOOK TẦNG — đúng một chỗ. P.tang do deriveCombat mang sang; _useSkill/_pTurn/stepFight không sửa gì.
     P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1)).filter(Boolean),
     enemy, eName: enemy.name, eHe: he,
-    p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0 },
+    p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0, ngat:0, statuses:[] },
     e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, khang:enemyKhangFor(enemy, he), dodge:(enemy.dodge||0), skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },
     cds:{}, t:0, dealt:0, taken:0, over:false, result:null, log:[],
   };
@@ -692,6 +714,7 @@ function _basic(f){
 // chơi thấy ngay qua Suy Tính vì recomputeCombatFc chạy lại mỗi lần đổi bài võ.
 function _pTurn(f){
   const p=f.p;
+  if(p.ngat>0){ L(f,'Ngươi hôn mê bất tỉnh, thân thể tê dại không nhúc nhích nổi.','text-rose-400'); return; }
   if(p.stun>0){ L(f,'Ngươi bị choáng váng, lỡ một nhịp.','text-slate-500'); return; }
   let c=null;
   for(const x of f.chosen){
@@ -716,10 +739,33 @@ function _eTurn(f){
   // cũng không thể vượt trần. Chưa có nguồn kháng nào -> toàn 0 -> nhân đúng 1.
   let dmg=e.atk*mult*(100/(100+P.def));
   dmg*=(1-khangClamp(P.khang && P.khang[e.he]));
+  if(p.ngat>0) dmg*=(1+NGAT_AMP);          // ĐỢT 4: đang Ngất thì lãnh đòn nặng hơn (khác stun)
   dmg=Math.max(1,Math.round(dmg)); p.hp-=dmg; f.taken+=dmg;
   let s='<span class="text-rose-400">▸</span> '+pick(ENEMY_PHRASES)(f.eName,dmg,desc);
+  if(p.ngat>0) s+=' <span class="text-rose-300">Ngươi đang hôn mê, đòn này lãnh trọn không đỡ nổi.</span>';
   if(useSk&&sk.slow){ p.slow=3; s+=' <span class="text-sky-300">Hàn khí thấm cốt, thân pháp ngươi chậm lại.</span>'; }
   L(f, s, 'text-rose-300');
+  s = _heFx(f, useSk);                      // ĐỢT 4: gieo hiệu ứng theo hệ của quái
+  if(s) L(f, s.h, s.c);
+}
+// Gieo hiệu ứng hệ lên người chơi. Tuyệt kỹ của quái có tỉ lệ gấp rưỡi đòn thường.
+// Mọi thời gian đều đi qua ccTicks() -> dòng "giảm thời gian" trên giáp trụ CẮT TICKS,
+// KHÔNG đụng sát thương mỗi hiệp của Độc/Bỏng (DoT trừ thẳng máu, không qua Phòng Ngự).
+function _heFx(f, useSk){
+  const P=f.P, p=f.p, e=f.e;
+  const fx = HE_FX[e.he]; if(!fx) return null;
+  if(Math.random() >= fx.pct * (useSk ? 1.5 : 1)) return null;
+  const gi = (P.ccGiam && P.ccGiam[fx.id]) || 0;
+  const n = ccTicks(fx.ticks, gi);
+  if(n <= 0) return { h:'Ngươi vận kình chấn tan '+fx.ten+' ngay khi nó vừa bám vào — giáp trụ hộ thân không phải hư danh.', c:'text-jade' };
+  if(fx.id==='ngat'){   p.ngat=Math.max(p.ngat,n);  return { h:'☠ Thọ thương phát tác, ngươi tối sầm mặt mày ngã gục — <b>Ngất '+n+' hiệp</b> (chịu đòn nặng hơn '+Math.round(NGAT_AMP*100)+'%).', c:'text-rose-400 font-semibold' }; }
+  if(fx.id==='cham'){   p.slow=Math.max(p.slow,n);  return { h:'❄ Băng sát thấm vào kinh mạch, thân pháp ngươi trì trệ — Chậm '+n+' hiệp.', c:'text-sky-300' }; }
+  if(fx.id==='choang'){ p.stun=Math.max(p.stun,n);  return { h:'⚡ Lôi sát đánh thẳng vào huyệt đạo, đầu óc ngươi ong lên — Choáng '+n+' hiệp.', c:'text-amber-300' }; }
+  const dmg = Math.max(1, Math.round(p.maxHP * fx.dot));
+  p.statuses.push({ dmg, ticksLeft:n, name:fx.ten });
+  return fx.id==='doc'
+    ? { h:'☣ Độc sát ngấm vào phủ tạng ngươi, rữa dần từ trong — Độc '+n+' hiệp.', c:'text-emerald-400' }
+    : { h:'🔥 Hỏa sát bám lấy da thịt ngươi, cháy âm ỉ không dứt — Bỏng '+n+' hiệp.', c:'text-orange-400' };
 }
 function _end(f,r){
   f.over=true; f.result=r; const e=f.enemy;
@@ -732,9 +778,13 @@ export function stepFight(f){
   f.t++;
   const P=f.P, p=f.p, e=f.e;
   if(e.statuses.length){ e.statuses.forEach(st=>{ e.hp-=st.dmg; f.dealt+=st.dmg; L(f,'☣ '+(st.name==='Độc'?'Độc tố':'Ngọn lửa')+' bào mòn '+f.eName+', hao <b class="dmg">'+st.dmg+'</b> sinh lực.', st.name==='Độc'?'text-emerald-400':'text-orange-400'); st.ticksLeft--; }); e.statuses=e.statuses.filter(s=>s.ticksLeft>0); if(e.hp<=0){ _end(f,'win'); return; } }
+  // ĐỢT 4: Độc/Bỏng do quái gieo lên NGƯỜI CHƠI — trừ thẳng máu, KHÔNG qua Phòng Ngự (giống DoT phía địch).
+  if(p.statuses.length){ p.statuses.forEach(st=>{ p.hp-=st.dmg; f.taken+=st.dmg;
+      L(f,'☣ '+(st.name==='Độc'?'Độc tố':'Ngọn lửa')+' bào mòn ngươi, hao <b class="dmgr">'+st.dmg+'</b> sinh lực.', st.name==='Độc'?'text-emerald-400':'text-orange-400'); st.ticksLeft--; });
+    p.statuses=p.statuses.filter(s=>s.ticksLeft>0); if(p.hp<=0){ _end(f,'lose'); return; } }
   const reg=Math.round(p.maxHP*P.regenPct); if(reg>0&&p.hp<p.maxHP) p.hp=Math.min(p.maxHP,p.hp+reg);
   for(const k in f.cds) if(f.cds[k]>0) f.cds[k]--;
-  if(p.buff>0)p.buff--; if(p.slow>0)p.slow--; if(p.stun>0)p.stun--; if(e.stun>0)e.stun--; if(e.slow>0)e.slow--; if(e.skillCd>0)e.skillCd--;
+  if(p.buff>0)p.buff--; if(p.slow>0)p.slow--; if(p.stun>0)p.stun--; if(p.ngat>0)p.ngat--; if(e.stun>0)e.stun--; if(e.slow>0)e.slow--; if(e.skillCd>0)e.skillCd--;
   p.gauge+=P.spd*(p.slow>0?0.6:1); e.gauge+=e.spd*(e.slow>0?0.6:1);
   if(p.gauge>=100){ p.gauge-=100; _pTurn(f); if(e.hp<=0)return _end(f,'win'); if(p.hp<=0)return _end(f,'lose'); }
   if(e.gauge>=100){ e.gauge-=100; _eTurn(f); if(p.hp<=0)return _end(f,'lose'); if(e.hp<=0)return _end(f,'win'); }
