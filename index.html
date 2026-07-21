@@ -1359,6 +1359,8 @@
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Tốc Độ</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.spd)"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Bạo Kích</span><span class="text-[13px] text-amber-300 font-medium" x-text="Math.round(cs.crit*100)+'%'"></span></div>
                 <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Sát Thương Bạo Kích</span><span class="text-[13px] text-amber-300 font-medium" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
+                <!-- col-span-2: ô thứ 5 trong lưới 2 cột, không cho span thì nó nằm trơ một mình nửa hàng cuối -->
+                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50 col-span-2" title="Vô hiệu hoá bớt khả năng né tránh của yêu thú"><span class="text-[12px] text-slate-300">Chính Xác</span><span class="text-[13px] font-medium" :class="cs.hitRate>0?'text-slate-100':'text-slate-500'" x-text="Math.round(cs.hitRate*100)+'%'"></span></div>
               </div>
               <!-- Phòng Thủ -->
               <div class="text-[10px] uppercase tracking-wider text-sky-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-sky-400"></span>Phòng Thủ</div>
