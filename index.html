@@ -132,11 +132,15 @@
     /* Vạch jade TĨNH báo chỗ sắp thả. Phải là lớp con z-index cao: ô chiêu có <img> phủ absolute
        inset-0 và art là ảnh ĐẶC (webp VP8 không alpha), nên inset box-shadow đặt trên chính button
        sẽ nằm dưới ảnh và không bao giờ nhìn thấy. */
-    .chieu-drop::after{ content:''; position:absolute; inset:0; z-index:3; pointer-events:none;
-                        box-shadow:inset 4px 0 0 0 #2dd4bf, 0 0 10px 1px rgba(45,212,191,.55); border-radius:inherit; }
-    /* Ô ĐANG NHẤC: viền đứt để phân biệt dứt khoát với ô ĐÍCH (vạch jade liền). Trước chỉ mờ đi 40%
-       nên lúc kéo người chơi không chắc mình đang cầm ô nào. Glow tĩnh, không animation. */
-    .chieu-lift{ outline:2px dashed rgba(148,163,184,.8); outline-offset:-2px; }
+    /* CHỖ SẮP THẢ. Hàng ô đã render theo thứ tự XEM TRƯỚC nên ô này chính là vị trí ô sẽ nằm —
+       vẽ nó thành "hố" viền đứt jade, nội dung ô đang nằm trong ảnh bay theo tay. */
+    .chieu-hole{ opacity:.28; outline:2px dashed #2dd4bf; outline-offset:-2px; }
+    /* ẢNH BAY THEO CON TRỎ. position:fixed nên phải đặt ngoài mọi ancestor có transform.
+       Glow TĨNH (không animation). pointer-events:none để không tự chắn elementFromPoint của chính nó. */
+    .chieu-ghost{ position:fixed; z-index:80; width:64px; height:64px; margin:-32px 0 0 -32px;
+                  pointer-events:none; border-radius:.5rem; overflow:hidden; border:2px solid #2dd4bf;
+                  box-shadow:0 10px 24px rgba(0,0,0,.65), 0 0 14px 1px rgba(45,212,191,.55); }
+    .chieu-ghost img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
     /* ===== Hệ Tầng — dùng lại badge lục giác .eh-hex có sẵn (Động Phủ) ở CẢ BA chỗ:
        ô điểm Ngộ Tính ở header · tile trong lưới · badge trên tab. Tỉ lệ ảnh w:h = 1:1.076. ===== */
     .tk-hex   { position:absolute; top:2px; right:2px; z-index:3; width:26px; height:28px; font-size:11px; color:#f7e6b8; }
@@ -1920,6 +1924,15 @@
           <!-- POPUP: Thiết Lập Bài Võ (Tâm Pháp + Chiêu Thức, art-tile 2 cột) -->
           <template x-if="$store.game.baiVoModal">
             <div class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4" style="background:rgba(2,6,12,.78)" @click.self="$store.game.closeBaiVo()" @keydown.escape.window="$store.game.closeBaiVo()">
+              <!-- ẢNH Ô BAY THEO CON TRỎ khi kéo. Đặt ở ĐÂY (con trực tiếp của lớp fixed phủ toàn màn)
+                   chứ không nhét trong hàng ô: position:fixed sẽ tính theo ancestor gần nhất có
+                   transform/filter, mà panel bên trong có overflow-hidden sẽ cắt cụt ảnh khi kéo ra mép. -->
+              <template x-if="$store.game.chieuDrag.active && $store.game.chieuDragObj">
+                <div class="chieu-ghost" :style="'left:'+$store.game.chieuDrag.gx+'px;top:'+$store.game.chieuDrag.gy+'px'">
+                  <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[$store.game.chieuDragObj.type].grad"></div>
+                  <img :src="'images/chieu/'+$store.game.chieuDragObj.id+'.webp'" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+                </div>
+              </template>
               <div class="panel rounded-xl border border-jade/30 w-full max-w-6xl h-[94dvh] sm:h-[88vh] flex flex-col overflow-hidden" @click.stop
                    x-data="{ panel: $store.game.baiVoPanel, hf:'all', detail:null, hfList:[['all','Tất cả'],['kim','Kim'],['moc','Mộc'],['thuy','Thủy'],['hoa','Hỏa'],['tho','Thổ'],['vohe','Vô Hệ'],['buff','Trợ']], open(kind,id){ this.detail={kind,id} }, get cDetail(){ return (this.detail&&this.detail.kind==='chieu')?this.$store.game.chieuObj(this.detail.id):null }, get tDetail(){ return (this.detail&&this.detail.kind==='tamphap')?this.$store.game.TAM_PHAP_POOL.find(t=>t.id===this.detail.id):null }, get bDetail(){ return (this.detail&&this.detail.kind==='bidong')?this.$store.game.biDongObj(this.detail.id):null } }">
 
@@ -1951,7 +1964,7 @@
                               @pointerup="if(!$store.game.chieuDragEnd(true,$event)) open('chieu',c.id)"
                               @pointercancel="$store.game.chieuDragEnd(false,$event)"
                               class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0 cursor-grab"
-                              :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'+($store.game.chieuDrag.i===idx&&$store.game.chieuDrag.active?' opacity-40 chieu-lift':'')+($store.game.chieuDrag.active&&$store.game.chieuDrag.over===idx&&$store.game.chieuDrag.i!==idx?' chieu-drop':'')"
+                              :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'+($store.game.chieuDrag.active&&$store.game.chieuDrag.over===idx?' chieu-hole':'')"
                               :title="c.name+' — ưu tiên '+(idx+1)+', kéo để đổi thứ tự'">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-8 h-8')"></span>

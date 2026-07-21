@@ -3021,7 +3021,24 @@ const gameStore = {
     this.afterLoadoutChange();
     this.showToast('Tẩy Tủy Phạt Mao — hoàn lại toàn bộ Ngộ Tính.');
   },
-  get equippedChieuObjs() { return this.loadout.chieu.map(id => chieuById(id)).filter(Boolean); },
+  // Trong lúc KÉO, hàng ô render theo THỨ TỰ XEM TRƯỚC: ô đang kéo đã nằm sẵn ở chỗ sắp thả, nên các
+  // ô khác TỰ DẠT RA nhường chỗ và người chơi nhìn thấy trước kết quả thay vì phải đoán.
+  // Mảng THẬT chỉ đổi lúc thả tay (moveChieu) — buông giữa chừng là mọi thứ về nguyên trạng.
+  get equippedChieuObjs() {
+    const arr = this.loadout.chieu.map(id => chieuById(id)).filter(Boolean);
+    const d = this.chieuDrag;
+    if (d.active && d.i != null && d.over != null && d.over !== d.i && d.i < arr.length && d.over < arr.length) {
+      const [m] = arr.splice(d.i, 1); arr.splice(d.over, 0, m);
+    }
+    return arr;
+  },
+  // Chiêu đang được nhấc — dùng vẽ ảnh bay theo con trỏ. Đọc theo chỉ số THẬT (d.i) nên không
+  // phụ thuộc thứ tự xem trước ở trên.
+  get chieuDragObj() {
+    const d = this.chieuDrag;
+    if (!d.active || d.i == null) return null;
+    return chieuById(this.loadout.chieu[d.i]) || null;
+  },
   chieuEquipped(id) { return this.loadout.chieu.includes(id); },
   // --- Bị Động (pool chọn tối đa 2) ---
   biDongObj(id) { return biDongById(id); },
@@ -3132,7 +3149,8 @@ const gameStore = {
   // cuộn trang tranh chấp với cú kéo.
   // pid: BẮT BUỘC bám theo đúng ngón đã bắt đầu cú kéo. Không có nó thì ngón thứ hai chạm nhầm ô
   // khác sẽ ghi đè trạng thái, và cú kéo của ngón thứ nhất đi sắp lại ô của ngón thứ hai.
-  chieuDrag: { i: null, over: null, active: false, x: 0, y: 0, pid: null, t: 0 },
+  // gx/gy = toạ độ con trỏ hiện tại, để vẽ ảnh ô bay theo tay.
+  chieuDrag: { i: null, over: null, active: false, x: 0, y: 0, gx: 0, gy: 0, pid: null, t: 0 },
   _cdNet: null,
   chieuDragStart(i, ev) {
     if (ev.button != null && ev.button > 0) return;               // chỉ nút chuột trái / chạm
@@ -3142,7 +3160,7 @@ const gameStore = {
     // mà ngón thứ hai đã bị `pid` lọc rồi. Để 10s nghĩa là hễ một cú kéo kẹt là người chơi bấm gì
     // cũng trơ suốt 10 giây — đúng triệu chứng "kéo không được" mà không hiểu vì sao.
     if (this.chieuDrag.i != null && Date.now() - (this.chieuDrag.t || 0) < 1200) return;
-    this.chieuDrag = { i, over: i, active: false, x: ev.clientX, y: ev.clientY, pid: ev.pointerId, t: Date.now() };
+    this.chieuDrag = { i, over: i, active: false, x: ev.clientX, y: ev.clientY, gx: ev.clientX, gy: ev.clientY, pid: ev.pointerId, t: Date.now() };
     try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) { /* trình duyệt cũ: bỏ qua */ }
     this._chieuDragNet(true);
   },
@@ -3165,6 +3183,7 @@ const gameStore = {
     const d = this.chieuDrag;
     if (d.i == null || (d.pid != null && ev.pointerId !== d.pid)) return;
     // Chưa vượt ngưỡng rung tay -> vẫn tính là cú BẤM (mở popup), không phải cú kéo.
+    d.gx = ev.clientX; d.gy = ev.clientY;                   // ảnh bay theo tay
     if (!d.active && Math.abs(ev.clientX - d.x) + Math.abs(ev.clientY - d.y) < 6) return;
     d.active = true;
     // Ô đích = ô GẦN CON TRỎ NHẤT, KHÔNG phải ô nằm đúng dưới con trỏ.
@@ -3191,7 +3210,7 @@ const gameStore = {
     if (d.i == null) return false;                                    // không có cú kéo -> nơi gọi cứ mở popup
     if (ev && d.pid != null && ev.pointerId !== d.pid) return true;    // ngón khác nhả -> nuốt, đừng mở popup
     const wasDrag = d.active, from = d.i, to = d.over;
-    this.chieuDrag = { i: null, over: null, active: false, x: 0, y: 0, pid: null, t: 0 };
+    this.chieuDrag = { i: null, over: null, active: false, x: 0, y: 0, gx: 0, gy: 0, pid: null, t: 0 };
     this._chieuDragNet(false);
     if (!wasDrag) return false;
     if (commit !== false && from != null && to != null && to !== from) this.moveChieu(from, to);
