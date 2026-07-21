@@ -338,8 +338,18 @@ export const TANG_BANDS = [
   { at:15, han:'爐', name:'Lô Hỏa Thuần Thanh',   eff:'Lĩnh ngộ Bản Mệnh Ấn của chiêu' },
   { at:20, han:'圓', name:'Xuất Thần Nhập Hoá',   eff:'Ra chiêu nhanh hơn · uy lực gấp đôi' },
 ];
-export function tangClamp(v){ return Math.max(1, Math.min(TANG_MAX, v|0)); }
-export function tangMul(t){ t = tangClamp(t); return 1 + 0.05*(t-1) + (t===TANG_MAX ? 0.05 : 0); }  // Tầng 20 = ×2.00 chẵn
+// ĐỢT 5 — VƯỢT TRẦN: Tầng MUA bằng Ngộ Tính trần vẫn là 20; trang bị cộng thêm tới +3 nữa.
+export const TANG_GEAR_MAX = 3;                     // trần cộng dồn từ trang bị
+export const TANG_HARD_MAX = TANG_MAX + TANG_GEAR_MAX;  // 23
+// Mỗi tầng VƯỢT mốc cộng DỐC HƠN tầng thường (0,05) — để cảm giác vượt trần thật sự đáng.
+export const TANG_OVER_STEP = 0.11;
+export function tangClamp(v){ return Math.max(1, Math.min(TANG_MAX, v|0)); }        // Tầng MUA
+export function tangTotalClamp(v){ return Math.max(1, Math.min(TANG_HARD_MAX, v|0)); } // Tầng SAU khi cộng trang bị
+export function tangMul(t){
+  const v = tangTotalClamp(t);
+  if(v <= TANG_MAX) return 1 + 0.05*(v-1) + (v===TANG_MAX ? 0.05 : 0);  // Tầng 20 = ×2.00 chẵn
+  return 2.00 + TANG_OVER_STEP*(v - TANG_MAX);                          // 21 = ×2,11 · 22 = ×2,22 · 23 = ×2,33
+}
 export function tangCanh(t){ let b=null; const v=tangClamp(t); TANG_BANDS.forEach(x=>{ if(v>=x.at) b=x; }); return b; }
 // Bản Mệnh Ấn (mở ở Tầng 15) — hàm THUẦN suy từ field data, mỗi chiêu đúng MỘT ấn, không cần data tay.
 // CỐ Ý không có nhánh nào đụng slow/stun/pen: đó là khống chế, Tầng không nâng khống chế.
@@ -353,12 +363,17 @@ export function banMenhAn(c){
   return { name:'Trọng Kích', desc:'+25% uy lực' };
 }
 // Trả BẢN SAO chiêu đã áp Tầng — KHÔNG BAO GIỜ sửa object gốc trong CHIEU (mảng dùng chung toàn game).
-export function chieuAtTang(c, t){
+// t = Tầng MUA bằng Ngộ Tính (1..20). bonus = Tầng cộng thêm từ TRANG BỊ (0..3).
+// LUẬT ĐÃ CHỐT: chỉ Tầng MUA mới tính cộng hưởng MỐC (4 mốc cảnh giới, Bản Mệnh Ấn, cắt Nội Lực,
+// giảm hồi chiêu). Nếu để affix cũng mở mốc thì một dòng trang bị sẽ nhân chồng lên cả cụm hiệu ứng
+// mốc — đúng cái bẫy đã chốt phải tránh. Trang bị CHỈ cộng uy lực thô qua tangMul.
+export function chieuAtTang(c, t, bonus){
   if(!c) return c;
   t = tangClamp(t);
-  if(t <= 1) return c;
-  const k = tangMul(t), an = t >= 15 ? banMenhAn(c) : null, has = (n)=> an && an.name === n;
-  const o = { ...c, tang: t };
+  const tot = tangTotalClamp(t + Math.max(0, Math.min(TANG_GEAR_MAX, bonus|0)));
+  if(tot <= 1) return c;
+  const k = tangMul(tot), an = t >= 15 ? banMenhAn(c) : null, has = (n)=> an && an.name === n;
+  const o = { ...c, tang: tot, tangMua: t, tangGear: tot - t };
   o.mult = c.mult * k * (has('Trọng Kích') ? 1.25 : 1);
   if(c.burn) o.burn = { dmg: Math.round(c.burn.dmg * k * (has('Độc Thấm Cốt') ? 1.30 : 1)),
                         ticks: c.burn.ticks + (t >= 10 ? 1 : 0) };
@@ -375,7 +390,10 @@ export function chieuAtTang(c, t){
 // luôn khớp số thật trong trận (6 chỗ hiển thị đều phải đi qua đây).
 export function chieuOf(state, id){
   const t = (state && state.combat && state.combat.tang && state.combat.tang[id]) || 1;
-  return chieuAtTang(chieuById(id), t);
+  // Phải cộng CẢ Tầng từ trang bị, nếu không số trên UI sẽ thấp hơn số chạy thật trong trận —
+  // đúng cái "hai con số chọi nhau" mà chú thích ở tkObj đã cảnh báo.
+  const bonus = state ? (derivedStats(state).tangCong || 0) : 0;
+  return chieuAtTang(chieuById(id), t, bonus);
 }
 
 // ---- Bị Động (POOL 10, mỗi ngũ hành 2: 1 "+18% ST hệ đó" + 1 đặc tính hệ đó). Chọn TỐI ĐA 2 (lắp tự do).
@@ -538,6 +556,7 @@ export function deriveCombat(state, loadout, opts){
     maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)),
     regenPct: regenPct + (d.hoiMau || 0),   // + dòng Hồi Máu trên Tọa Kỵ (Đợt 3)
     tang: (state && state.combat && state.combat.tang) || {},   // Tầng từng chiêu (Ngộ Tính) — makeFight áp vào
+    tangBonus: d.tangCong || 0,                                 // ĐỢT 5: +Tầng từ trang bị (trần 3)
   };
 }
 
@@ -634,7 +653,7 @@ export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
   const he = forcedHe || rollHe(enemy);
   const f = {
     // HOOK TẦNG — đúng một chỗ. P.tang do deriveCombat mang sang; _useSkill/_pTurn/stepFight không sửa gì.
-    P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1)).filter(Boolean),
+    P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1, P.tangBonus || 0)).filter(Boolean),
     enemy, eName: enemy.name, eHe: he,
     p:{ hp:(startHp!=null?startHp:P.maxHP), maxHP:P.maxHP, nl:(startNl!=null?startNl:P.maxNL), gauge:0, stun:0, slow:0, buff:0, buffDmg:0, ngat:0, statuses:[] },
     e:{ hp:enemy.hp, maxHP:enemy.hp, atk:enemy.atk, def:enemy.def, spd:enemy.spd, he, khang:enemyKhangFor(enemy, he), dodge:(enemy.dodge||0), skill:enemy.skill, gauge:0, stun:0, slow:0, skillCd:0, statuses:[] },

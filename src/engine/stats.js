@@ -46,7 +46,7 @@ export function gearStats(state) {
   // MỌI key ở đây là SỐ NGUYÊN ĐIỂM phần trăm (mẫu baoKich/baoSat) — xem chú thích Math.round bên dưới.
   const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0, baoKich: 0, baoSat: 0, tocDo: 0,
               khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0, khangAll: 0, hoiMau: 0,
-              giamNgat: 0, giamCham: 0, giamDoc: 0, giamBong: 0, giamChoang: 0 };
+              giamNgat: 0, giamCham: 0, giamDoc: 0, giamBong: 0, giamChoang: 0, tangCong: 0 };
   const eq = state.equipment || {};
   for (const slot of Object.keys(eq)) {
     const inst = eq[slot];
@@ -121,5 +121,7 @@ export function derivedStats(state, opts) {
   const ccGiam = { ngat: ccClamp((g.giamNgat || 0) / 100), cham: ccClamp((g.giamCham || 0) / 100),
                    doc: ccClamp((g.giamDoc || 0) / 100), bong: ccClamp((g.giamBong || 0) / 100),
                    choang: ccClamp((g.giamChoang || 0) / 100) };
-  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, hoiMau: (g.hoiMau || 0) / 100, ccGiam };
+  // tangCong: SỐ TẦNG cộng cho mọi chiêu đang lắp, KHÔNG phải điểm chỉ số. Trần cộng dồn 3.
+  // Cắt trần ở đây (không ở gear) để ba món cùng roll Tầng vẫn không vượt được TANG_GEAR_MAX.
+  return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, hoiMau: (g.hoiMau || 0) / 100, ccGiam, tangCong: Math.min(3, g.tangCong || 0) };
 }

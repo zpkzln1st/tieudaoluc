@@ -325,6 +325,10 @@ export const AFFIX = {
   giamDoc:    { key: 'giamDoc',    name: 'Giảm Thời Gian Độc',    lo: 4, hi: 8, fmt: 'pct', noLv: true },
   giamBong:   { key: 'giamBong',   name: 'Giảm Thời Gian Bỏng',   lo: 4, hi: 8, fmt: 'pct', noLv: true },
   giamChoang: { key: 'giamChoang', name: 'Giảm Thời Gian Choáng', lo: 4, hi: 8, fmt: 'pct', noLv: true },
+  // ---- DOT 5: +Tang cho MOI chieu dang lap (chi Vu Khi / Nhan / Trang Suc) ----
+  // `flat` = 1..3 y nguyen, khong nhan cap cung khong nhan pham chat: day la so TANG chu khong phai
+  // diem chi so, nhan len se pha thang he Tang. Tran cong don 3 dat o derivedStats.
+  tangCong:   { key: 'tangCong',   name: 'Tầng Chiêu Thức', lo: 1, hi: 3, fmt: 'flat', noLv: true, flat: true },
 };
 export const AFFIX_KEYS = Object.keys(AFFIX);
 const PRIMARY_MUL = 2.0;   // dong primary to hon dong phu
@@ -358,14 +362,14 @@ export const CC_ROLL_KEYS = ['giamNgat', 'giamCham', 'giamDoc', 'giamBong', 'gia
 // DOT 3: `congKich` DA BI GO khoi ca 5 o giap tru + Toa Ky. No chi con o vuKhi/nhan/trangSuc.
 // Toa Ky doi vai thanh "than phap + suc ben": Toc Do/Ne Tranh/Sinh Luc/Hoi Mau, khong Cong khong Khang.
 export const SLOT_AFFIX_W = {
-  vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
+  vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: 3 },
   giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, hoThe: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W, giamNgat: 3 },  // Ao = o DUY NHAT co giamNgat
   mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, hoThe: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   gang:     { baoKich: 10, hoThe: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, ...KHANG_W, ...CC_W },
   giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, neTranh: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
-  nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1 },
-  trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6 },
+  nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: 3 },
+  trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6, tangCong: 3 },
   toaKy:    { tocDo: 10, sinhLuc: 10, neTranh: 10, hoiMau: 4, hoThe: 4, menhTrung: 1, baoKich: 1 },
 };
 // So DONG theo pham chat (primary tinh la dong 1).
