@@ -1410,12 +1410,17 @@
                 <span class="text-[12px] text-slate-300">Cộng Hưởng Ngũ Hành</span>
                 <span class="text-[13px] font-bold" :class="g.heInfo(cs.heChinh).text" x-text="g.heName(cs.heChinh)+' +'+Math.round(cs.heBonus*100)+'%'"></span>
               </div>
-              <!-- Tu Luyện — nhóm cho chỉ số NGOÀI chiến đấu. Hiện mới có Tăng EXP, chừa chỗ mở rộng sau. -->
-              <div class="text-[10px] uppercase tracking-wider text-amber-300/80 font-medium mb-1.5 mt-3 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-amber-400"></span>Tu Luyện</div>
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50" title="Chỉ cộng EXP cấp Chiến Đấu — không áp cho Tứ Trụ và các nghề">
-                <span class="text-[12px] text-slate-300">Tăng EXP Chiến Đấu</span>
-                <span class="text-[13px] font-medium" :class="cs.tangExp>0?'text-amber-300':'text-slate-500'" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></span>
-              </div>
+              <!-- Tu Luyện — CHỈ hiện khi thật sự có nguồn. Tăng EXP sẽ đến từ BỘ TRANG BỊ (làm sau),
+                   không phải affix roll, nên lúc chưa có thì ẩn cả nhóm chứ đừng trơ một dòng +0%. -->
+              <template x-if="cs.tangExp > 0">
+                <div>
+                  <div class="text-[10px] uppercase tracking-wider text-amber-300/80 font-medium mb-1.5 mt-3 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-amber-400"></span>Tu Luyện</div>
+                  <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50" title="Chỉ cộng EXP cấp Chiến Đấu — không áp cho Tứ Trụ và các nghề">
+                    <span class="text-[12px] text-slate-300">Tăng EXP Chiến Đấu</span>
+                    <span class="text-[13px] font-medium text-amber-300" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></span>
+                  </div>
+                </div>
+              </template>
               <div class="lbl mt-5 mb-2">Bộ Trang</div>
               <div class="rounded-lg border border-slate-700 bg-ink3/40 p-3 space-y-2">
                 <template x-for="key in g.TRANG_SET_KEYS" :key="key">

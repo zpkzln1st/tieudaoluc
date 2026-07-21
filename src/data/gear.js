@@ -323,6 +323,9 @@ export const AFFIX = {
   // 5,15%/hiep = hoi 51% mau ca tran 10s = vung BAT TU, xoa sach danh doi cong/thu. Phang 1-2% la tran.
   hoiMau:    { key: 'hoiMau',    name: 'Hồi Máu', lo: 1, hi: 2, fmt: 'pct', noLv: true, flat: true },
   // Tang EXP — CHI cho cap CHIEN DAU (khong dinh Tu Tru, khong dinh 9 nghe). noLv nhu moi chi so %.
+  // CO Y KHONG NAM TRONG SLOT_AFFIX_W BAT KY O NAO -> do roi ngau nhien KHONG BAO GIO ra dong nay.
+  // User da chot: day se la DONG AN CUA BO TRANG BI (set bonus), lam sau. Toan bo duong tinh toan
+  // (combatExpMult + 4 cho cong EXP + 2 cho hien uoc tinh) da san, luc do chi can do gia tri vao.
   tangExp:   { key: 'tangExp',   name: 'Tăng EXP', lo: 2, hi: 5, fmt: 'pct', noLv: true },
   // ---- DOT 4: 5 dong GIAM THOI GIAN khong che (giap tru). noLv nhu khang, tran 0,60 o derivedStats.
   // giamNgat CHI tren Ao (giap) — Ngat la hieu ung nang nhat nen dong chong no phai hiem nhat.
@@ -379,12 +382,12 @@ const TANG_CHANCE = 0.10;
 export const SLOT_AFFIX_W = {
   vuKhi:    { menhTrung: 10, baoKich: 10, baoSat: 10, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: TANG_W },
   giap:     { sinhLuc: 10, neTranh: 10, menhTrung: 4, hoThe: 4, baoKich: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W, giamNgat: 3 },  // Ao = o DUY NHAT co giamNgat
-  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, hoThe: 1, tocDo: 1, baoSat: 1, tangExp: 4, ...KHANG_W, ...CC_W },
+  mu:       { sinhLuc: 10, menhTrung: 10, neTranh: 4, baoKich: 4, hoThe: 1, tocDo: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   dai:      { hoThe: 10, neTranh: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   gang:     { baoKich: 10, hoThe: 10, baoSat: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, ...KHANG_W, ...CC_W },
   giay:     { tocDo: 10, sinhLuc: 10, menhTrung: 4, hoThe: 4, neTranh: 1, baoKich: 1, baoSat: 1, ...KHANG_W, ...CC_W },
   nhan:     { baoKich: 10, baoSat: 10, menhTrung: 4, tocDo: 4, sinhLuc: 1, neTranh: 1, hoThe: 1, tangCong: TANG_W },
-  trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6, tangExp: 4, tangCong: TANG_W },
+  trangSuc: { congKich: 10, hoThe: 10, menhTrung: 4, baoKich: 4, neTranh: 1, tocDo: 1, baoSat: 1, khangAll: 6, tangCong: TANG_W },
   toaKy:    { tocDo: 10, sinhLuc: 10, neTranh: 10, hoiMau: 4, hoThe: 4, menhTrung: 1, baoKich: 1 },
 };
 // So DONG theo pham chat (primary tinh la dong 1).
