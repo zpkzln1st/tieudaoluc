@@ -181,6 +181,85 @@
     @media (min-width:1024px){ .tm-bld-row{ grid-template-columns:repeat(4,1fr); } }
     .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:.15em; color:#64748b; }
     .fserif { font-family:'Lora',serif; font-weight:700; }
+    /* ===== BẢNG CHỈ SỐ — hướng THẺ BÀI / LỆNH BÀI =====
+       Tiền tố bcs- cho MỌI class: tên trần như .card/.pill/.panel đã có chủ trong file này.
+       Chuỗi font riêng: Lora KHÔNG có glyph chữ Hán (đã đo: bề rộng trùng khít serif hệ thống),
+       nên phải xếp font serif CJK ngay sau nó, không thì chữ Hán rơi về SimSun bôi đậm giả. */
+    .bcs { --bcs-serif:'Lora','Songti SC','Noto Serif SC','Source Han Serif SC','SimSun',Georgia,serif; }
+    .bcs-tb{ --bev:9px; --acc:#94a3b8; --edge:148,163,184;
+             position:relative; padding:1px; z-index:1;
+             clip-path:polygon(var(--bev) 0,100% 0,100% calc(100% - var(--bev)),calc(100% - var(--bev)) 100%,0 100%,0 var(--bev));
+             background:linear-gradient(152deg,rgba(var(--edge),.55) 0%,rgba(var(--edge),.16) 26%,#1b2537 52%,#172032 78%,rgba(var(--edge),.24) 100%);
+             filter:drop-shadow(0 6px 11px rgba(0,0,0,.6)); }
+    .bcs-in{ height:100%;
+             clip-path:polygon(var(--bev) 0,100% 0,100% calc(100% - var(--bev)),calc(100% - var(--bev)) 100%,0 100%,0 var(--bev));
+             background:linear-gradient(158deg,#161f2f 0%,#111827 55%,#0d1320 100%); position:relative; }
+    /* LỆNH BÀI Chiến Lực */
+    .bcs-lb{ height:112px; --acc:#f5b942; --edge:245,185,66; }
+    .bcs-lbIn{ display:flex; align-items:center; gap:14px; padding:0 15px 0 13px; }
+    .bcs-wm{ position:absolute; right:14px; top:50%; transform:translateY(-48%); font-family:var(--bcs-serif);
+             font-weight:700; font-size:100px; line-height:1; color:#f5b942; opacity:.055; pointer-events:none; user-select:none; }
+    .bcs-tablet{ flex:0 0 45px; height:88px; position:relative; border-radius:22px 22px 6px 6px;
+             border:1px solid rgba(245,185,66,.44);
+             background:repeating-linear-gradient(90deg,rgba(255,255,255,.028) 0 1px,transparent 1px 5px),
+                        linear-gradient(180deg,rgba(245,185,66,.17) 0%,rgba(245,185,66,.05) 42%,rgba(20,27,42,.62) 100%);
+             box-shadow:inset 0 0 20px -7px rgba(245,185,66,.55),0 0 18px -7px rgba(245,185,66,.3);
+             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding-top:15px; }
+    .bcs-tablet::before{ content:""; position:absolute; top:8px; left:50%; margin-left:-4px; width:8px; height:8px;
+             border-radius:50%; border:1px solid rgba(245,185,66,.5); }
+    .bcs-tablet::after{ content:""; position:absolute; inset:4px; border-radius:18px 18px 4px 4px; border:1px solid rgba(245,185,66,.15); }
+    .bcs-tablet i{ font-family:var(--bcs-serif); font-style:normal; font-weight:700; font-size:21px; line-height:1;
+             color:#f5b942; text-shadow:0 0 14px rgba(245,185,66,.55); }
+    .bcs-lbTtl{ font-family:var(--bcs-serif); font-weight:700; font-size:15px; letter-spacing:.2em; color:#f5b942;
+             text-shadow:0 0 16px rgba(245,185,66,.32); }
+    .bcs-rule{ height:4px; margin:7px 0 6px; border-top:1px solid rgba(245,185,66,.32); border-bottom:1px solid rgba(245,185,66,.13); }
+    .bcs-lbNum{ position:relative; font-family:var(--bcs-serif); font-weight:700; font-size:50px; line-height:.94;
+             background:linear-gradient(180deg,#fbe7b0 0%,#f5b942 54%,#bd881f 100%);
+             -webkit-background-clip:text; background-clip:text; color:transparent; }
+    /* THẺ NHÓM — chiều cao CỨNG, mọi thẻ đúng một giá trị */
+    .bcs-card{ height:88px; }
+    .bcs-spine{ flex:0 0 36px; position:relative; display:flex; align-items:center; justify-content:center;
+             background:repeating-linear-gradient(90deg,rgba(255,255,255,.022) 0 1px,transparent 1px 5px),
+                        linear-gradient(180deg,rgba(var(--edge),.15) 0%,rgba(var(--edge),.035) 62%,transparent 100%); }
+    .bcs-spine::after{ content:""; position:absolute; top:8px; bottom:8px; right:0; width:4px;
+             border-left:1px solid rgba(var(--edge),.36); border-right:1px solid rgba(var(--edge),.14); }
+    .bcs-han{ font-family:var(--bcs-serif); font-weight:700; font-size:24px; line-height:1; color:var(--acc);
+             text-shadow:0 0 13px rgba(var(--edge),.5); }
+    .bcs-body{ flex:1 1 auto; min-width:0; padding:8px 10px; display:flex; flex-direction:column; }
+    .bcs-head{ flex:0 0 auto; height:12px; display:flex; align-items:center; gap:8px; }
+    .bcs-gn{ font-size:9.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--acc); white-space:nowrap; }
+    .bcs-dbl{ flex:1 1 auto; height:4px; border-top:1px solid rgba(var(--edge),.3); border-bottom:1px solid rgba(var(--edge),.11); }
+    .bcs-gbody{ flex:1 1 auto; display:flex; align-items:center; margin-top:6px; }
+    .bcs-lead{ flex:0 0 94px; }
+    .bcs-leadNum{ font-family:var(--bcs-serif); font-weight:700; font-size:26px; line-height:1; color:var(--acc);
+             text-shadow:0 0 15px rgba(var(--edge),.3); }
+    .bcs-leadLbl{ font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:#64748b; margin-top:4px; }
+    .bcs-cells{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:4px; }
+    .bcs-cell{ height:22px; display:flex; align-items:center; justify-content:space-between; gap:8px;
+             padding:0 8px; border-radius:4px; background:rgba(20,27,42,.62); border:1px solid rgba(30,41,59,.85); }
+    .bcs-cell .k{ font-size:11px; color:#cbd5e1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bcs-cell .v{ font-size:11.5px; font-weight:700; white-space:nowrap; }
+    /* móc ngoặc buộc CẶP ĐỐI Chính Xác - Né Tránh vào chung một khối */
+    .bcs-pair{ padding-left:9px; position:relative; }
+    .bcs-pair::before{ content:""; position:absolute; left:0; top:2px; bottom:2px; width:6px;
+             border:1px solid rgba(34,211,238,.36); border-right:0; border-radius:3px 0 0 3px; }
+    /* 5 lệnh bài con ngũ hành */
+    .bcs-els{ flex:1 1 auto; display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+    .bcs-el{ height:46px; border-radius:19px 19px 5px 5px; border:1px solid rgba(var(--e),.3);
+             background:linear-gradient(180deg,rgba(var(--e),.14) 0%,rgba(20,27,42,.55) 72%);
+             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+    .bcs-el .h{ font-family:var(--bcs-serif); font-weight:700; font-size:18px; line-height:1; color:var(--ec);
+             text-shadow:0 0 11px rgba(var(--e),.5); }
+    .bcs-el .p{ font-size:11px; font-weight:700; color:var(--ec); }
+    .bcs-el.off{ border-color:rgba(148,163,184,.16); background:rgba(13,19,32,.6); }
+    .bcs-el.off .h{ opacity:.36; text-shadow:none; }
+    .bcs-el.off .p{ color:#475569; }
+    /* nút co theo nội dung, KHÔNG full-width */
+    .bcs-btn{ flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 10px;
+             border:1px solid rgba(245,185,66,.42); border-radius:4px; cursor:pointer;
+             background:linear-gradient(180deg,rgba(245,185,66,.15),rgba(245,185,66,.04));
+             color:#f5b942; font-size:11px; font-weight:700; box-shadow:inset 0 0 12px -6px rgba(245,185,66,.8); }
+    .bcs-btn:hover{ border-color:rgba(245,185,66,.72); background:linear-gradient(180deg,rgba(245,185,66,.24),rgba(245,185,66,.08)); }
     .gold-text { font-weight:900; background:linear-gradient(180deg,#fff6d6 0%,#f4d27a 38%,#e0a83e 66%,#bd821f 100%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 1px 1px rgba(0,0,0,.55)) drop-shadow(0 0 4px rgba(245,185,66,.3)); }
     ::-webkit-scrollbar{width:4px;height:4px}
     ::-webkit-scrollbar-track{background:transparent}
@@ -1365,75 +1444,165 @@
             </section>
 
             <!-- CHỈ SỐ + BỘ TRANG -->
-            <section class="panel rounded-xl p-4" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
-              <div class="lbl mb-3">Chỉ Số Tổng</div>
-              <!-- Chiến Lực -->
-              <div class="flex items-center justify-between py-2 px-2.5 rounded bg-jade/10 border border-jade/30 mb-3">
-                <span class="text-sm text-jade font-medium">Chiến Lực</span>
-                <span class="text-lg text-jade font-bold" x-text="g.fmt(g.stats.chienLuc)"></span>
-              </div>
-              <!-- Tấn Công -->
-              <div class="text-[10px] uppercase tracking-wider text-rose-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-rose-400"></span>Tấn Công</div>
-              <div class="grid grid-cols-2 gap-1.5 mb-3">
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Công Kích</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.atk)"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Tốc Độ</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.spd)"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Bạo Kích</span><span class="text-[13px] text-amber-300 font-medium" x-text="Math.round(cs.crit*100)+'%'"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Sát Thương Bạo Kích</span><span class="text-[13px] text-amber-300 font-medium" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
-                <!-- col-span-2: ô thứ 5 trong lưới 2 cột, không cho span thì nó nằm trơ một mình nửa hàng cuối -->
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50 col-span-2" title="Vô hiệu hoá bớt khả năng né tránh của yêu thú"><span class="text-[12px] text-slate-300">Chính Xác</span><span class="text-[13px] font-medium" :class="cs.hitRate>0?'text-slate-100':'text-slate-500'" x-text="Math.round(cs.hitRate*100)+'%'"></span></div>
-              </div>
-              <!-- Phòng Thủ -->
-              <div class="text-[10px] uppercase tracking-wider text-sky-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-sky-400"></span>Phòng Thủ</div>
-              <div class="grid grid-cols-2 gap-1.5 mb-3">
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Phòng Ngự</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.def)"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Sinh Lực</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.maxHP)"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Né Tránh</span><span class="text-[13px] font-medium" :class="cs.dodge>0?'text-sky-300':'text-slate-100'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Máu</span><span class="text-[13px] font-medium" :class="cs.regenPct>0?'text-jade':'text-slate-100'" x-text="Math.round(cs.regenPct*100)+'%/hiệp'"></span></div>
-              </div>
-              <!-- Kháng Ngũ Hành — 5 ô chữ Hán, mỗi hệ một ô. Lưới 5 cột nên không lẻ ô như lưới 2 cột. -->
-              <div class="text-[10px] uppercase tracking-wider text-slate-300/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-slate-400"></span>Kháng Ngũ Hành</div>
-              <div class="grid grid-cols-5 gap-1.5 mb-3">
-                <template x-for="h in g.NGU_HANH_LIST" :key="h">
-                  <div class="flex flex-col items-center justify-center py-1.5 rounded bg-ink3/50" :title="'Kháng '+g.heName(h)">
-                    <span class="fserif text-[17px] leading-none" :class="g.heInfo(h).text" x-text="g.NGU_HANH[h].han"></span>
-                    <span class="text-[12px] font-medium mt-1" :class="cs.khang[h]>0?g.heInfo(h).text:'text-slate-500'" x-text="Math.round(cs.khang[h]*100)+'%'"></span>
+            <section class="panel bcs rounded-xl p-3.5 flex flex-col gap-2.5" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
+
+              <!-- LỆNH BÀI: Chiến Lực. Tầng cỡ chữ cao nhất (50px) — không chỉ số nào tranh được. -->
+              <div class="bcs-tb bcs-lb">
+                <div class="bcs-in bcs-lbIn">
+                  <span class="bcs-wm">戰</span>
+                  <div class="bcs-tablet"><i>戰</i><i>力</i></div>
+                  <div class="flex-1 min-w-0 relative">
+                    <div class="bcs-lbTtl">CHIẾN LỰC</div>
+                    <div class="bcs-rule"></div>
+                    <div class="text-[10.5px] text-slate-500">Chỉ số tổng thể</div>
                   </div>
-                </template>
+                  <div class="shrink-0 px-0.5"><div class="bcs-lbNum" x-text="g.fmt(g.stats.chienLuc)"></div></div>
+                </div>
               </div>
-              <!-- Nội Công & Ngũ Hành -->
-              <div class="text-[10px] uppercase tracking-wider text-jade/80 font-medium mb-1.5 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-jade"></span>Nội Công · Ngũ Hành</div>
-              <div class="grid grid-cols-2 gap-1.5">
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Nội Lực</span><span class="text-[13px] text-slate-100 font-medium" x-text="g.fmt(cs.maxNL)"></span></div>
-                <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50"><span class="text-[12px] text-slate-300">Hồi Nội Lực</span><span class="text-[13px] text-slate-100 font-medium" x-text="'+'+g.fmt(cs.nlRegen)+'/đòn'"></span></div>
+
+              <!-- 攻 TẤN CÔNG -->
+              <div class="bcs-tb bcs-card" style="--acc:#f5b942;--edge:245,185,66">
+                <div class="bcs-in flex">
+                  <div class="bcs-spine"><span class="bcs-han">攻</span></div>
+                  <div class="bcs-body">
+                    <div class="bcs-head"><span class="bcs-gn">Tấn Công</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-gbody">
+                      <div class="bcs-lead">
+                        <div class="bcs-leadNum" x-text="g.fmt(cs.atk)"></div>
+                        <div class="bcs-leadLbl">Công Kích</div>
+                      </div>
+                      <div class="bcs-cells">
+                        <div class="bcs-cell"><span class="k">Bạo Kích</span><span class="v" style="color:#f5b942" x-text="Math.round(cs.crit*100)+'%'"></span></div>
+                        <div class="bcs-cell"><span class="k">Sát Thương Bạo Kích</span><span class="v" style="color:#f5b942" x-text="'×'+cs.critDmg.toFixed(2)"></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50 mt-1.5">
-                <span class="text-[12px] text-slate-300">Cộng Hưởng Ngũ Hành</span>
-                <span class="text-[13px] font-bold" :class="g.heInfo(cs.heChinh).text" x-text="g.heName(cs.heChinh)+' +'+Math.round(cs.heBonus*100)+'%'"></span>
+
+              <!-- 守 PHÒNG THỦ -->
+              <div class="bcs-tb bcs-card" style="--acc:#14b8a6;--edge:20,184,166">
+                <div class="bcs-in flex">
+                  <div class="bcs-spine"><span class="bcs-han">守</span></div>
+                  <div class="bcs-body">
+                    <div class="bcs-head"><span class="bcs-gn">Phòng Thủ</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-gbody">
+                      <div class="bcs-lead">
+                        <div class="bcs-leadNum" x-text="g.fmt(cs.maxHP)"></div>
+                        <div class="bcs-leadLbl">Sinh Lực</div>
+                      </div>
+                      <div class="bcs-cells">
+                        <div class="bcs-cell"><span class="k">Phòng Ngự</span><span class="v" style="color:#14b8a6" x-text="g.fmt(cs.def)"></span></div>
+                        <div class="bcs-cell"><span class="k">Hồi Máu</span><span class="v" :style="cs.regenPct>0?'color:#14b8a6':'color:#64748b'" x-text="Math.round(cs.regenPct*100)+'%/hiệp'"></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <!-- Tu Luyện — CHỈ hiện khi thật sự có nguồn. Tăng EXP sẽ đến từ BỘ TRANG BỊ (làm sau),
-                   không phải affix roll, nên lúc chưa có thì ẩn cả nhóm chứ đừng trơ một dòng +0%. -->
+
+              <!-- 身 THÂN PHÁP — nơi Chính Xác gặp Né Tránh (cặp đối, có móc ngoặc ôm lấy) -->
+              <div class="bcs-tb bcs-card" style="--acc:#22d3ee;--edge:34,211,238">
+                <div class="bcs-in flex">
+                  <div class="bcs-spine"><span class="bcs-han">身</span></div>
+                  <div class="bcs-body">
+                    <div class="bcs-head"><span class="bcs-gn">Thân Pháp</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-gbody">
+                      <div class="bcs-lead">
+                        <div class="bcs-leadNum" x-text="g.fmt(cs.spd)"></div>
+                        <div class="bcs-leadLbl">Tốc Độ</div>
+                      </div>
+                      <div class="bcs-cells bcs-pair">
+                        <div class="bcs-cell" title="Vô hiệu hoá bớt khả năng né tránh của yêu thú"><span class="k">Chính Xác</span><span class="v" :style="cs.hitRate>0?'color:#22d3ee':'color:#64748b'" x-text="Math.round(cs.hitRate*100)+'%'"></span></div>
+                        <div class="bcs-cell"><span class="k">Né Tránh</span><span class="v" :style="cs.dodge>0?'color:#22d3ee':'color:#64748b'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 抗 KHÁNG NGŨ HÀNH — 5 lệnh bài con, đúng dáng thu nhỏ của lệnh bài Chiến Lực -->
+              <div class="bcs-tb bcs-card" style="--acc:#94a3b8;--edge:148,163,184">
+                <div class="bcs-in flex">
+                  <div class="bcs-spine"><span class="bcs-han">抗</span></div>
+                  <div class="bcs-body">
+                    <div class="bcs-head"><span class="bcs-gn">Kháng Ngũ Hành</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-gbody">
+                      <div class="bcs-els">
+                        <template x-for="h in g.NGU_HANH_LIST" :key="h">
+                          <div class="bcs-el" :class="cs.khang[h]>0?'':'off'"
+                               :style="'--e:'+g.NGU_HANH[h].glowRgb+';--ec:'+g.heHex(h)" :title="'Kháng '+g.heName(h)">
+                            <span class="h" x-text="g.NGU_HANH[h].han"></span>
+                            <span class="p" x-text="Math.round(cs.khang[h]*100)+'%'"></span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 氣 NỘI CÔNG — nhóm Tu Luyện một dòng đã gộp vào đây, không còn tiêu đề lẻ -->
+              <div class="bcs-tb bcs-card" style="--acc:#14b8a6;--edge:20,184,166">
+                <div class="bcs-in flex">
+                  <div class="bcs-spine"><span class="bcs-han">氣</span></div>
+                  <div class="bcs-body">
+                    <div class="bcs-head"><span class="bcs-gn">Nội Công</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-gbody">
+                      <div class="bcs-lead">
+                        <div class="bcs-leadNum" x-text="g.fmt(cs.maxNL)"></div>
+                        <div class="bcs-leadLbl">Nội Lực</div>
+                      </div>
+                      <div class="bcs-cells">
+                        <div class="bcs-cell"><span class="k">Hồi Nội Lực</span><span class="v" style="color:#14b8a6" x-text="'+'+g.fmt(cs.nlRegen)+'/đòn'"></span></div>
+                        <div class="bcs-cell"><span class="k">Cộng Hưởng</span><span class="v" :style="'color:'+g.heHex(cs.heChinh)" x-text="g.heName(cs.heChinh)+' +'+Math.round(cs.heBonus*100)+'%'"></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 修 TU LUYỆN — CHỈ hiện khi có nguồn thật (Tăng EXP sẽ đến từ Bộ Trang Bị, làm sau) -->
               <template x-if="cs.tangExp > 0">
-                <div>
-                  <div class="text-[10px] uppercase tracking-wider text-amber-300/80 font-medium mb-1.5 mt-3 flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-amber-400"></span>Tu Luyện</div>
-                  <div class="flex items-center justify-between py-1.5 px-2.5 rounded bg-ink3/50" title="Chỉ cộng EXP cấp Chiến Đấu — không áp cho Tứ Trụ và các nghề">
-                    <span class="text-[12px] text-slate-300">Tăng EXP Chiến Đấu</span>
-                    <span class="text-[13px] font-medium text-amber-300" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></span>
+                <div class="bcs-tb bcs-card" style="--acc:#f5b942;--edge:245,185,66">
+                  <div class="bcs-in flex">
+                    <div class="bcs-spine"><span class="bcs-han">修</span></div>
+                    <div class="bcs-body">
+                      <div class="bcs-head"><span class="bcs-gn">Tu Luyện</span><span class="bcs-dbl"></span></div>
+                      <div class="bcs-gbody">
+                        <div class="bcs-lead">
+                          <div class="bcs-leadNum" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></div>
+                          <div class="bcs-leadLbl">Tăng EXP</div>
+                        </div>
+                        <div class="bcs-cells">
+                          <div class="bcs-cell"><span class="k">Chỉ cấp Chiến Đấu</span><span class="v" style="color:#64748b">—</span></div>
+                          <div class="bcs-cell"><span class="k">Không áp Tứ Trụ · nghề</span><span class="v" style="color:#64748b">—</span></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </template>
-              <div class="lbl mt-5 mb-2">Bộ Trang</div>
-              <div class="rounded-lg border border-slate-700 bg-ink3/40 p-3 space-y-2">
-                <template x-for="key in g.TRANG_SET_KEYS" :key="key">
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="text-[12px] text-slate-300"><span x-text="g.TRANG_SETS[key].name"></span><span class="text-slate-500" x-text="' · '+g.TRANG_SETS[key].display"></span></div>
-                    <div class="text-[12px] font-bold" :class="g.setUnlocked(key)?'':'text-slate-500'" :style="g.setUnlocked(key)?('color:'+g.TRANG_SETS[key].color):''" x-text="g.setUnlocked(key) ? (g.setOwnedCount(key)+'/'+g.TRANG_SETS[key].pieces.length) : 'Chưa mở'"></div>
+
+              <!-- 裝 BỘ TRANG — thẻ tóm tắt; danh sách đầy đủ từng bộ nằm trong Bách Trang Các -->
+              <div class="bcs-tb bcs-card" style="--acc:#f5b942;--edge:245,185,66">
+                <div class="bcs-in flex">
+                  <div class="bcs-spine"><span class="bcs-han">裝</span></div>
+                  <div class="bcs-body">
+                    <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-gbody">
+                      <div class="bcs-lead">
+                        <div class="bcs-leadNum" x-text="g.fmt(g.manhTrangBi)"></div>
+                        <div class="bcs-leadLbl">Mảnh Hoàng Kim</div>
+                      </div>
+                      <div class="bcs-cells">
+                        <div class="bcs-cell"><span class="k">Bộ đã trọn</span><span class="v" style="color:#f5b942" x-text="g.setTronCount+' / '+g.TRANG_SET_KEYS.length"></span></div>
+                        <div class="flex justify-end"><button @click="g.bachTrangOpen=true" class="bcs-btn" type="button"><span class="fserif" style="font-size:11px;opacity:.8">閣</span>Bách Trang Các</button></div>
+                      </div>
+                    </div>
                   </div>
-                </template>
-                <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-700/60">
-                  <div class="text-[11.5px]"><b style="color:#d6e3f2" x-text="g.manhTrangBi"></b><span class="text-slate-400"> Mảnh Hoàng Kim</span></div>
-                  <button @click="g.bachTrangOpen=true" class="text-[12px] font-bold px-3 py-1.5 rounded-lg border border-slate-400/40 bg-slate-400/10 text-slate-100 hover:border-slate-300/70 transition">Bách Trang Các</button>
                 </div>
               </div>
+
             </section>
 
           </div>

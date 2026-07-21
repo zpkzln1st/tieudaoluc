@@ -2756,6 +2756,8 @@ const gameStore = {
     return Object.values(eq).some((g) => g && g.gearId === id);
   },
   setOwnedCount(key) { const s = this.TRANG_SETS[key]; return s ? s.pieces.filter((id) => this.setPieceOwned(id)).length : 0; },
+  // Số bộ ĐÃ TRỌN — thẻ 裝 trên bảng chỉ số chỉ hiện tóm tắt, danh sách từng bộ nằm ở Bách Trang Các.
+  get setTronCount() { return this.TRANG_SET_KEYS.filter((k) => this.setUnlocked(k) && this.setOwnedCount(k) >= this.TRANG_SETS[k].pieces.length).length; },
   setCanGhep(key, id) { const s = this.TRANG_SETS[key]; return !!s && s.pieces.includes(id) && this.setUnlocked(key) && !this.setPieceOwned(id) && this.manhTrangBi >= s.manhCost; },
   ghepSetPiece(key, id) {
     const s = this.TRANG_SETS[key];
@@ -3079,6 +3081,11 @@ const gameStore = {
   // --- Ngũ hành helpers ---
   heName(he) { return heName(he); },
   heInfo(he) { return heInfo(he); },
+  // Mã màu HEX theo hệ. NGU_HANH chỉ có class Tailwind (.text) và glowRgb — mà class thì không
+  // nhét vào `:style` được, còn `:class` thì không nhận biến CSS. Bảng này là cho đường `:style`.
+  _HE_HEX: { kim: '#fde68a', moc: '#6ee7b7', thuy: '#7dd3fc', hoa: '#fdba74', tho: '#fbbf24',
+             vohe: '#cbd5e1', vatly: '#cbd5e1', buff: '#c4b5fd' },
+  heHex(he) { return this._HE_HEX[he] || '#cbd5e1'; },
   // Kháng NỀN của yêu thú đang chọn (tĩnh, theo dáng quái — 5 hệ bằng nhau nên đọc 1 hệ là đủ).
   // Hệ nó roll mỗi trận còn được cộng thêm KHANG_TU_HE, phần đó không hiện ở đây vì chưa biết trước.
   get combatSelKhangNen() { const e = this.combatSelObj; const k = e && e.khang; return k ? (k.kim || 0) : 0; },
