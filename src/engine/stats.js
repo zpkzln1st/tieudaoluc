@@ -9,11 +9,18 @@ import { petBonus } from './pets.js';
 import { codexBonus } from './codex.js';
 import { titleBonus } from './titles.js';
 
+// ---- TRẦN KHÁNG NGŨ HÀNH ----
+// Đặt ở đây (tầng DƯỚI) chứ không ở votong.js: votong.js đã import derivedStats từ file này, để
+// ngược lại sẽ thành vòng import. Trần = tỉ lệ chặn tối đa của MỘT hệ (doc §1: 0,50–0,75).
+export const KHANG_CAP = 0.50;
+export function khangClamp(v) { return Math.max(0, Math.min(KHANG_CAP, v || 0)); }
+
 export function gearStats(state) {
   // 8 stat: 5 lõi + baoKich/baoSat/tocDo (chỉ gear cấp; vào crit/critDmg/spd ở deriveCombat)
-  // + khung 5 kháng ngũ hành khangKim..khangTho (đại phẫu — Đợt 1 chưa có affix nào cấp, luôn 0).
+  // + khung kháng ngũ hành khangKim..khangTho + khangAll ("Kháng Tất Cả", cộng vào cả 5 hệ).
+  // MỌI key ở đây là SỐ NGUYÊN ĐIỂM phần trăm (mẫu baoKich/baoSat) — xem chú thích Math.round bên dưới.
   const g = { congKich: 0, hoThe: 0, neTranh: 0, menhTrung: 0, sinhLuc: 0, baoKich: 0, baoSat: 0, tocDo: 0,
-              khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0 };
+              khangKim: 0, khangMoc: 0, khangThuy: 0, khangHoa: 0, khangTho: 0, khangAll: 0 };
   const eq = state.equipment || {};
   for (const slot of Object.keys(eq)) {
     const inst = eq[slot];
@@ -65,7 +72,16 @@ export function derivedStats(state, opts) {
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   // baoKich/baoSat/tocDo: chỉ từ gear (không Tứ Trụ/codex), chuyển thẳng cho deriveCombat.
-  // khang: khung 5 kháng ngũ hành (tỉ lệ 0..1, chỉ từ giáp trụ) — Đợt 1 luôn toàn 0, deriveCombat mang sang P.khang.
-  const khang = { kim: g.khangKim || 0, moc: g.khangMoc || 0, thuy: g.khangThuy || 0, hoa: g.khangHoa || 0, tho: g.khangTho || 0 };
+  // ---- KHÁNG NGŨ HÀNH: điểm nguyên -> tỉ lệ, CỘNG khangAll, rồi KẸP TRẦN ngay tại đây ----
+  // Vì sao phải là ĐIỂM NGUYÊN: gearStats chạy `Math.round` trên TỔNG của cả 5 món giáp trụ. Nếu affix
+  // ghi tỉ lệ (0,05) thì tổng 0,25 làm tròn về 0 — kháng mất trắng, im lặng; còn tổng 0,6 làm tròn về 1
+  // => dmg × (1−1) = MIỄN SÁT THƯƠNG TUYỆT ĐỐI. Cả hai đều không báo lỗi. Dùng mẫu baoKich/baoSat.
+  // Vì sao kẹp trần Ở ĐÂY chứ không chỉ trong công thức: derivedStats cũng là nguồn cho UI (khối Phòng
+  // Thủ), nên số hiện ra phải đúng bằng số người chơi THẬT SỰ nhận, không phải số thô trước trần.
+  // Cường hóa: enhanceMul đã nhân vào điểm kháng ở gearStats (+15 ≈ ×2,20) — CỐ Ý cho cường hóa có tác
+  // dụng với món kháng; trần ở đây là thứ chặn, không phải miễn nhân.
+  const kAll = g.khangAll || 0;
+  const kh = (v) => khangClamp(((v || 0) + kAll) / 100);
+  const khang = { kim: kh(g.khangKim), moc: kh(g.khangMoc), thuy: kh(g.khangThuy), hoa: kh(g.khangHoa), tho: kh(g.khangTho) };
   return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang };
 }

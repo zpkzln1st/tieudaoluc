@@ -391,7 +391,7 @@ const gameStore = {
   state,
   SKILLS, STATS, ITEMS, QUALITY, ITEM_TYPES, LOCATIONS, REALM_TIERS, AVATARS, COVERS, LOGIN_REWARDS, TUTORIAL_QUESTS, DAILY_QUESTS, NAV,
   EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, CLASSES, CLASS_GROUPS, NGHE, ENEMIES, STANCES, MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE, LINH_THACH,
-  CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, NGU_HANH, MON_PHAI, DUNGEONS, DUNGEON_BY_ID,
+  CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, NGU_HANH, NGU_HANH_LIST, MON_PHAI, DUNGEONS, DUNGEON_BY_ID,
   view: 'profile',
   profileTab: 'profile',
   codexTab: 'yeuthu', codexDetail: null,   // Vạn Vật Phổ
@@ -3554,7 +3554,9 @@ const gameStore = {
   },
   doUnequip(slot) { if (unequipItem(this.state, slot)) Storage.save(this.state); },
   // --- Hiển thị chi tiết trang bị (badge ngũ hành + so sánh) ---
-  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ' })[k] || k; },
+  // Nhãn RÚT GỌN (modal Trang Bị + Cường Hóa). Ba bảng nhãn (đây, statLabel, gearStatIcon) đều fallback
+  // `|| k` nên thiếu key nào là chỗ đó lòi chữ tiếng Anh 'khangKim' ra UI — phải thêm đủ cả ba.
+  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả' })[k] || k; },
   // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích/Bạo Sát).
   gearLineText(k, v) { const a = AFFIX[k]; return this.statLabel(k) + ' +' + v + (a && a.fmt === 'pct' ? '%' : ''); },
   gearVal(k, v) { const a = AFFIX[k]; return '+' + v + (a && a.fmt === 'pct' ? '%' : ''); },        // chỉ giá trị (tách khỏi tên cho list dọc)
@@ -3593,7 +3595,9 @@ const gameStore = {
     const keys = [...new Set([...Object.keys(next), ...Object.keys(cur)])];
     return keys.map((k) => ({ key: k, label: this.gearStatLabel(k), next: next[k] || 0, cur: cur[k] || 0, delta: (next[k] || 0) - (cur[k] || 0) }));
   },
-  gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart', baoKich: 'star', baoSat: 'flame', tocDo: 'wind' })[k] || 'zap'; },
+  // Icon 5 kháng dùng LẠI icon hệ trong NGU_HANH[he].ig — riêng Hỏa tên icon là 'flame' chứ không phải
+  // 'hoa' (SVG_PATHS không có key 'hoa'; svg() trả chuỗi RỖNG khi thiếu key nên sẽ mất icon âm thầm).
+  gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart', baoKich: 'star', baoSat: 'flame', tocDo: 'wind', khangKim: 'kim', khangMoc: 'moc', khangThuy: 'thuy', khangHoa: 'flame', khangTho: 'tho', khangAll: 'shield' })[k] || 'zap'; },
   gearGainTotal(x) { return this.gearCompare(x).reduce((s, c) => s + c.delta, 0); },             // tổng chênh stat vs món đang mặc
   equipFilterBetter: false,                                                                       // checkbox "chỉ hiển thị tốt hơn"
   recommendedForSlot(slot) {                                                                      // món NÂNG CẤP tốt nhất (null nếu không có)
@@ -3816,7 +3820,7 @@ const gameStore = {
   },
   itemTypeLabel(t) { return this.ITEM_TYPES[t] || 'Khác'; },
   equipSlotLabel(slot) { const s = (this.EQUIP_SLOTS || []).find((x) => x.id === slot) || (this.TOOL_SLOTS || []).find((x) => x.id === slot); return s ? s.name : slot; },
-  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực' })[k] || k; },
+  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Bạo Sát', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả' })[k] || k; },
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) {
     const ref = this.itemModal; if (!ref) return;

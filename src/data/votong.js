@@ -4,7 +4,7 @@
 //      + engine mô phỏng + dự báo + log.
 // THUẦN (không Alpine). deriveCombat dùng derivedStats (Tứ Trụ + trang bị).
 // ============================================================
-import { derivedStats, gearEle } from '../engine/stats.js';
+import { derivedStats, gearEle, khangClamp, KHANG_CAP } from '../engine/stats.js';
 import { levelFromXp } from '../engine/leveling.js';
 import { titleBonus } from '../engine/titles.js';
 import { ITEMS } from './items.js';   // đọc buff của Đan Bổ Trợ (danBuffPct)
@@ -25,6 +25,9 @@ export const NGU_HANH = {
 NGU_HANH.vatly = { ...NGU_HANH.vohe, id:'vatly' };
 // Vô Hệ = loại đòn thứ 6: KHÔNG ăn khắc ngũ hành, KHÔNG bị kháng chặn. Nhận cả alias cũ 'vatly'.
 export function isVoHe(he){ return he==='vohe' || he==='vatly'; }
+// Trần kháng + hàm kẹp: định nghĩa ở engine/stats.js (tầng dưới, tránh vòng import), bán lại ở đây
+// để UI và mọi thứ đã import votong.js lấy được mà không phải với sang engine/.
+export { KHANG_CAP, khangClamp };
 const KHAC = { kim:'moc', moc:'tho', tho:'thuy', thuy:'hoa', hoa:'kim' }; // A khắc KHAC[A]
 // Hệ số khắc/kháng của đòn hệ `atkHe` đánh vào địch hệ `defHe`.
 export function nguHanhMod(atkHe, defHe){
@@ -613,8 +616,9 @@ function _useSkill(f,c){
   const defEff = Math.max(0, e.def*(1-(c.pen||0)));            // xuyên giáp
   dmg*=100/(100+defEff);
   // LỚP KHÁNG RIÊNG (sau đường cong Thủ, KHÔNG chia def): kháng ngũ hành của ĐỊCH chặn đòn có hệ.
-  // Vô Hệ miễn kháng. Đợt 1: quái chưa có bảng kháng (e.khang rỗng) -> nhân đúng 1. Trần kháng ở Đợt 2.
-  if(!isVoHe(c.type)) dmg*=(1-((e.khang && e.khang[c.type]) || 0));
+  // Vô Hệ miễn kháng. khangClamp kẹp [0, KHANG_CAP] — kháng quái đến thẳng từ data nên PHẢI kẹp ở đây,
+  // không thì một số > 1 gõ nhầm vào bảng sẽ cho sát thương ÂM (đánh địch thành hồi máu cho địch).
+  if(!isVoHe(c.type)) dmg*=(1-khangClamp(e.khang && e.khang[c.type]));
   dmg=Math.max(1,Math.round(dmg)); e.hp-=dmg; f.dealt+=dmg;
   const cls=crit?'dmgc':'dmg';
   let s='Ngươi '+pick(LEAD_VERB)+' '+nm+', tiêu hao <span class="text-blue-400 font-medium">'+c.nl+' Nội Lực</span> — '+dmgPhrase(c.type,dmg,cls,f.eName)+'.';
@@ -666,9 +670,10 @@ function _eTurn(f){
   if(useSk) e.skillCd=sk.cd;
   if(P.dodge && Math.random()<P.dodge){ f.dodged=(f.dodged||0)+1; L(f, '<span class="text-sky-400">▸</span> '+pick(DODGE_PHRASES)(f.eName,desc), 'text-sky-300'); return; }
   // ĐÒN QUÁI MANG HỆ e.he (roll ở makeFight) -> chảy qua kháng ngũ hành của người chơi (P.khang).
-  // Đợt 1: P.khang mặc định toàn 0 -> nhân đúng 1, hành vi KHÔNG đổi. Trần kháng đặt ở Đợt 2.
+  // P.khang đã kẹp trần từ derivedStats; kẹp lại ở đây để đường worldboss/dev tiêm tay P.khang
+  // cũng không thể vượt trần. Chưa có nguồn kháng nào -> toàn 0 -> nhân đúng 1.
   let dmg=e.atk*mult*(100/(100+P.def));
-  dmg*=(1-((P.khang && P.khang[e.he]) || 0));
+  dmg*=(1-khangClamp(P.khang && P.khang[e.he]));
   dmg=Math.max(1,Math.round(dmg)); p.hp-=dmg; f.taken+=dmg;
   let s='<span class="text-rose-400">▸</span> '+pick(ENEMY_PHRASES)(f.eName,dmg,desc);
   if(useSk&&sk.slow){ p.slow=3; s+=' <span class="text-sky-300">Hàn khí thấm cốt, thân pháp ngươi chậm lại.</span>'; }
