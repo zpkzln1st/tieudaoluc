@@ -48,7 +48,7 @@ export const PET_OPT_POOL = [
   { id: 'critDmg',   name: 'Sát Thương Bạo Kích', lo: 4,  hi: 12, group: 'combat',  w: 6,  fmt: 'pct', cap: 30 },
   { id: 'dodgePct',  name: 'Né %',            lo: 1,  hi: 3,  group: 'combat',  w: 6,  fmt: 'pct', cap: 10 },
   { id: 'lifesteal', name: 'Hút Sinh Lực',    lo: 1,  hi: 4,  group: 'combat',  w: 4,  fmt: 'pct', cap: 6 },
-  { id: 'eleDmg',    name: 'Tăng ST Hệ',      lo: 3,  hi: 8,  group: 'combat',  w: 5,  fmt: 'pct', cap: 20 },
+  { id: 'eleDmg',    name: 'Tăng Sát Thương Hệ', lo: 3, hi: 8, group: 'combat',  w: 5,  fmt: 'pct', cap: 20 },
   { id: 'petExp',    name: 'EXP Săn Mồi',     lo: 5,  hi: 20, group: 'utility', w: 6,  fmt: 'pct' },
   { id: 'moneyFind', name: 'Bạc Rơi',         lo: 3,  hi: 10, group: 'utility', w: 3,  fmt: 'pct' },
 ];

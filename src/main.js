@@ -2920,8 +2920,8 @@ const gameStore = {
     if (o.slow) a.push({ t: 'Làm chậm ' + o.slow, c: '#7dd3fc' });
     if (o.pen) a.push({ t: 'Xuyên giáp ' + Math.round(o.pen * 100) + '%', c: '#5eead4' });
     if (o.critBonus) a.push({ t: 'Bạo kích +' + Math.round(o.critBonus * 100) + '%', c: '#fcd34d' });
-    if (o.buff && o.buff.dmg) a.push({ t: '+' + Math.round(o.buff.dmg * 100) + '% ST · ' + o.buff.ticks + ' hiệp', c: '#c084fc' });
-    if (o.eleDmg) a.push({ t: '+' + Math.round(o.eleDmg * 100) + '% ST hệ', c: '#fb7185' });
+    if (o.buff && o.buff.dmg) a.push({ t: '+' + Math.round(o.buff.dmg * 100) + '% Sát Thương · ' + o.buff.ticks + ' hiệp', c: '#c084fc' });
+    if (o.eleDmg) a.push({ t: '+' + Math.round(o.eleDmg * 100) + '% Sát Thương hệ', c: '#fb7185' });
     if (o.tier === 'tuyệt') a.push({ t: 'Không mua được', c: '#f0abfc' });
     return a;
   },
@@ -2937,7 +2937,7 @@ const gameStore = {
     if (!it) return [];
     const o = this.tkObj(it), rows = [];
     if (it.kind === 'chieu') {
-      rows.push({ k: 'Sát thương', v: '×' + (+o.mult.toFixed(2)) + ' ST · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true, full: true });
+      rows.push({ k: 'Sát Thương', v: '×' + (+o.mult.toFixed(2)) + ' · ≈' + this.fmt(this.tkChieuDmg(o)), hl: true, full: true });
       rows.push({ k: 'Hệ', v: heName(o.type) });
       rows.push({ k: 'Nội Lực tiêu', v: o.nl || 0 });
       rows.push({ k: 'Hồi chiêu', v: o.cd ? (o.cd + ' hiệp') : 'Tức thì' });
@@ -2947,7 +2947,7 @@ const gameStore = {
       if (o.pen) rows.push({ k: 'Xuyên giáp', v: Math.round(o.pen * 100) + '%' });
     } else if (it.kind === 'tamphap') {
       rows.push({ k: 'Đổi hệ', v: heName(o.he) });
-      rows.push({ k: 'Tăng ST hệ', v: '+' + Math.round((o.heBonus || 0) * 100) + '%', hl: true });
+      rows.push({ k: 'Tăng Sát Thương hệ', v: '+' + Math.round((o.heBonus || 0) * 100) + '%', hl: true });
       if (o.noiLuc != null) rows.push({ k: 'Nội Lực', v: o.noiLuc });
       if (o.nlRegen != null) rows.push({ k: 'Hồi Nội Lực', v: '+' + o.nlRegen + '/đánh thường' });
     } else {
@@ -3039,7 +3039,7 @@ const gameStore = {
   biDongTags(p) {
     if (!p) return [];
     const t = [];
-    if (p.eleDmg) t.push('+' + Math.round(p.eleDmg * 100) + '% ST chiêu ' + heName(p.he));
+    if (p.eleDmg) t.push('+' + Math.round(p.eleDmg * 100) + '% Sát Thương chiêu ' + heName(p.he));
     if (p.regen) t.push('Hồi ' + (p.regen * 100) + '% Sinh Lực/giây');
     if (p.mod) { const m = p.mod, lbl = { dmg: 'Công', def: 'Thủ', hp: 'Sinh Lực', spd: 'Tốc', crit: 'Bạo Kích', critDmg: 'Sát Thương Bạo Kích', nl: 'Nội Lực', nlRegen: 'hồi NL', dodge: 'Né' };
       for (const k in m) t.push((m[k] > 0 ? '+' : '') + Math.round(m[k] * 100) + '% ' + (lbl[k] || k)); }
@@ -3050,13 +3050,13 @@ const gameStore = {
     if (!c) return [];
     const t = [];
     if (c.burn) t.push((c.type === 'moc' ? 'Độc' : 'Bỏng') + ' ' + c.burn.dmg + '/hiệp × ' + c.burn.ticks + ' hiệp');
-    if (c.lifesteal) t.push('Hút máu ' + Math.round(c.lifesteal * 100) + '% ST');
+    if (c.lifesteal) t.push('Hút máu ' + Math.round(c.lifesteal * 100) + '% Sát Thương');
     if (c.heal) t.push('Hồi ' + Math.round(c.heal * 100) + '% Sinh Lực');
     if (c.slow) t.push('Làm chậm địch ' + c.slow + ' hiệp');
     if (c.stun) t.push('Choáng ' + Math.round(c.stun * 100) + '%');
     if (c.pen) t.push('Xuyên ' + Math.round(c.pen * 100) + '% Thủ');
     if (c.critBonus) t.push('+' + Math.round(c.critBonus * 100) + '% Bạo kích');
-    if (c.buff) t.push('+' + Math.round(c.buff.dmg * 100) + '% ST (' + c.buff.ticks + 's)');
+    if (c.buff) t.push('+' + Math.round(c.buff.dmg * 100) + '% Sát Thương (' + c.buff.ticks + 's)');
     return t;
   },
   // --- Ngũ hành helpers ---

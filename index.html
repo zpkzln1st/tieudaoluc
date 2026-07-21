@@ -1975,11 +1975,6 @@
                       <button @click="panel='bidong'" class="w-16 h-16 rounded-lg border-2 border-dashed border-violet-700/60 text-violet-700/80 hover:border-violet-400 hover:text-violet-300 flex items-center justify-center text-2xl shrink-0 transition">+</button>
                     </template>
                   </div>
-                  <div class="mt-2 text-[10.5px] text-slate-500 leading-relaxed" x-show="$store.game.equippedChieuObjs.length>1">
-                    <b class="text-slate-400">Thứ tự ô chiêu là thứ tự ưu tiên</b> — kéo ô để sắp lại.
-                    Mỗi nhịp ngươi tung chiêu ưu tiên cao nhất đã hết hồi chiêu; nếu chưa đủ Nội Lực thì
-                    đánh thường để tích thêm chứ không hạ xuống tung chiêu rẻ hơn.
-                  </div>
                 </div>
 
                 <!-- Tabs + lọc -->
@@ -2074,13 +2069,12 @@
                             <div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] mb-2">
                               <span class="text-sky-300/90">Nội Lực <b class="text-sky-200" x-text="cDetail.nl"></b></span>
                               <span x-show="cDetail.cd" class="text-slate-400">Hồi chiêu <b class="text-slate-200" x-text="cDetail.cd+'s'"></b></span>
-                              <span x-show="cDetail.type!=='buff'" class="text-orange-300/90">ST <b class="text-orange-200" x-text="'≈'+$store.game.combatChieuDmg(cDetail)"></b><span class="text-slate-500" x-text="' (×'+cDetail.mult+')'"></span></span>
+                              <span x-show="cDetail.type!=='buff'" class="text-orange-300/90">Sát Thương <b class="text-orange-200" x-text="'≈'+$store.game.combatChieuDmg(cDetail)"></b><span class="text-slate-500" x-text="' (×'+cDetail.mult+')'"></span></span>
                             </div>
                             <div class="flex flex-wrap gap-1 mb-2" x-show="$store.game.chieuTags(cDetail).length">
                               <template x-for="(tg,i) in $store.game.chieuTags(cDetail)" :key="i"><span class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 border border-slate-700 text-slate-300" x-text="tg"></span></template>
                             </div>
                             <div class="text-[11px] text-slate-400 italic leading-snug mb-2" x-text="cDetail.lore"></div>
-                            <div class="text-[11px] rounded bg-ink3/60 px-2.5 py-1.5 text-slate-300 flex items-start gap-1.5"><span class="shrink-0 mt-0.5 text-jade" x-html="$store.game.svg('bulb','w-3.5 h-3.5')"></span><span x-text="cDetail.synergy"></span></div>
                           </div>
                         </template>
                         <!-- chi tiết TÂM PHÁP -->
@@ -2227,7 +2221,7 @@
                 <div class="rounded-lg bg-ink3/40 border border-slate-700/40 px-3 py-2 mb-2">
                   <div class="text-[11px] flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                     <span class="text-slate-500">Hệ Tâm Pháp của ngươi:</span><b :class="$store.game.heInfo($store.game.combatStats.heChinh).text" x-text="$store.game.heName($store.game.combatStats.heChinh)"></b>
-                    <template x-if="$store.game.myHeMatchup.khac.length"><span class="text-slate-400">· khắc <b class="text-rose-300" x-text="$store.game.myHeMatchup.khacNames"></b> <span class="text-rose-300/70">(+30% ST)</span></span></template>
+                    <template x-if="$store.game.myHeMatchup.khac.length"><span class="text-slate-400">· khắc <b class="text-rose-300" x-text="$store.game.myHeMatchup.khacNames"></b> <span class="text-rose-300/70">(+30% Sát Thương)</span></span></template>
                     <template x-if="$store.game.myHeMatchup.bi.length"><span class="text-slate-400">· bị <b class="text-sky-300" x-text="$store.game.myHeMatchup.biNames"></b> <span class="text-sky-300/70">kháng (−20%)</span></span></template>
                   </div>
                   <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1"><span x-html="$store.game.svg('zap','w-3 h-3')"></span>Yêu thú đổi ngũ hành mỗi trận — lắp chiêu đa hệ để luôn có lợi thế.</div>
@@ -4136,7 +4130,10 @@
                     </div>
                     <div class="tkc-tiles">
                       <template x-for="it in grp.items.filter(it=> !onlyLocked || !$store.game.itemOwned(it))" :key="it.kind+'_'+it.id">
-                        <button @click="$store.game.openTkDetail(it)" class="tkc-tile relative rounded-md overflow-hidden border text-left transition hover:brightness-110" :class="$store.game.itemMeta(it).borderCls" :style="$store.game.itemOwned(it) ? '' : 'filter:grayscale(.45);opacity:.92'">
+                        <!-- Tàng Kinh Các là màn CỬA HÀNG: phân biệt đã học / chưa học là mục đích chính của màn
+                             này, nên đồ chưa học phải XÁM RÕ. (Khác modal Bài Võ — chỗ đó chỉ hiện đồ đã học
+                             nên không cần làm mờ gì cả.) grayscale nhẹ 45% từng làm hai loại trông y hệt nhau. -->
+                        <button @click="$store.game.openTkDetail(it)" class="tkc-tile relative rounded-md overflow-hidden border text-left transition hover:brightness-110" :class="$store.game.itemMeta(it).borderCls" :style="$store.game.itemOwned(it) ? '' : 'filter:grayscale(1);opacity:.72'">
                           <div class="relative w-full" style="aspect-ratio:1">
                             <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[sec.he].grad"></div>
                             <span class="absolute inset-0 flex items-center justify-center opacity-[.14] select-none" style="font-family:'Lora',serif;font-size:2.4rem;line-height:1" :class="$store.game.heInfo(sec.he).text" x-text="$store.game.itemMeta(it).han"></span>
@@ -4167,7 +4164,9 @@
           <div class="panel rounded-2xl w-[336px] max-w-full flex flex-col overflow-hidden" style="height:716px;max-height:92dvh" @click.stop x-data="{ it: $store.game.tkDetail, m: $store.game.itemMeta($store.game.tkDetail) }">
             <!-- ART header: to hơn (216px), phủ kín khung, KHÔNG còn chữ Hán chìm phía sau -->
             <div class="relative shrink-0 overflow-hidden bg-ink" style="height:216px">
-              <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :class="$store.game.itemOwned(it)?'':'grayscale opacity-60'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
+              <!-- Cùng công thức xám với ô ở lưới Tàng Kinh Các (grayscale 1 / opacity .72) — trước đây
+                   lưới dùng một mức còn popup dùng mức khác, cùng một màn mà hai kiểu. -->
+              <img :src="$store.game.itemImg(it)" class="absolute inset-0 w-full h-full object-cover" :style="$store.game.itemOwned(it)?'':'filter:grayscale(1);opacity:.72'" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
               <div class="absolute inset-0" style="background:radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,.10), transparent 60%)"></div>
               <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(7,11,20,.10) 0%,rgba(7,11,20,.04) 42%,rgba(11,18,32,.88) 84%,#0c1220 100%)"></div>
               <button @click="$store.game.closeTkDetail()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 text-slate-300 hover:text-rose-400 z-10">✕</button>
@@ -11257,7 +11256,7 @@
                     <div class="flex items-center gap-2 mb-0.5">
                       <span class="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0" :class="g.tierStyle(c.tier).badge" x-text="g.tierStyle(c.tier).label"></span>
                       <span class="text-[13px] font-medium truncate" :class="g.heInfo(he).text" x-text="c.name"></span>
-                      <span class="text-[10px] text-slate-500 ml-auto shrink-0" x-text="'ST ×'+c.mult+' · '+c.nl+' NL'"></span>
+                      <span class="text-[10px] text-slate-500 ml-auto shrink-0" x-text="'Sát Thương ×'+c.mult+' · '+c.nl+' Nội Lực'"></span>
                     </div>
                     <div class="text-[11px] text-slate-400 leading-snug" x-text="c.short"></div>
                     <div class="flex flex-wrap gap-1 mt-1.5">
