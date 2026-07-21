@@ -3138,7 +3138,10 @@ const gameStore = {
     if (ev.button != null && ev.button > 0) return;               // chỉ nút chuột trái / chạm
     // Đã có cú kéo đang chạy -> bỏ qua ngón mới. Nhưng nếu cú kéo đó quá cũ thì nó là RÁC kẹt lại
     // (mất pointerup vì lý do nào đó) — phải cho ngón mới giành quyền, không thì kéo thả chết hẳn.
-    if (this.chieuDrag.i != null && Date.now() - (this.chieuDrag.t || 0) < 10000) return;
+    // 1,2s thay vì 10s: ngưỡng này CHỈ chặn ngón thứ hai (một ngón không thể pointerdown hai lần),
+    // mà ngón thứ hai đã bị `pid` lọc rồi. Để 10s nghĩa là hễ một cú kéo kẹt là người chơi bấm gì
+    // cũng trơ suốt 10 giây — đúng triệu chứng "kéo không được" mà không hiểu vì sao.
+    if (this.chieuDrag.i != null && Date.now() - (this.chieuDrag.t || 0) < 1200) return;
     this.chieuDrag = { i, over: i, active: false, x: ev.clientX, y: ev.clientY, pid: ev.pointerId, t: Date.now() };
     try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (e) { /* trình duyệt cũ: bỏ qua */ }
     this._chieuDragNet(true);
@@ -3164,9 +3167,21 @@ const gameStore = {
     // Chưa vượt ngưỡng rung tay -> vẫn tính là cú BẤM (mở popup), không phải cú kéo.
     if (!d.active && Math.abs(ev.clientX - d.x) + Math.abs(ev.clientY - d.y) < 6) return;
     d.active = true;
-    const el = document.elementFromPoint(ev.clientX, ev.clientY);
-    const t = el && el.closest ? el.closest('[data-ci]') : null;
-    d.over = t ? (t.dataset.ci | 0) : d.i;
+    // Ô đích = ô GẦN CON TRỎ NHẤT, KHÔNG phải ô nằm đúng dưới con trỏ.
+    // Cách cũ (elementFromPoint + closest) hỏng ở hai chỗ người chơi gặp liên tục:
+    //   · con trỏ đi qua KHE HỞ giữa hai ô -> không trúng ô nào -> code cũ tụt `over` về chính ô nguồn,
+    //     nên thả tay ngay trên khe là KHÔNG ĐỔI GÌ (đúng cảm giác "kéo không được").
+    //   · con trỏ ra ngoài hàng một chút (kéo hơi cao/thấp) -> cũng mất đích y hệt.
+    // Đo khoảng cách tới TÂM từng ô thì luôn có đúng một ô thắng, kéo tha hồ lệch vẫn bắt đúng.
+    let best = d.over, bestD = Infinity;
+    document.querySelectorAll('[data-ci]').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (!r.width) return;                                   // ô đang ẩn -> bỏ qua
+      const dx = ev.clientX - (r.left + r.width / 2), dy = ev.clientY - (r.top + r.height / 2);
+      const dist = dx * dx + dy * dy;
+      if (dist < bestD) { bestD = dist; best = el.dataset.ci | 0; }
+    });
+    d.over = best;
   },
   // commit=false (pointercancel: hệ điều hành cướp cử chỉ) -> HUỶ, tuyệt đối không sắp lại:
   //   người chơi không hề thả tay xác nhận, mà đảo ô là đổi thật thứ tự tung chiêu.

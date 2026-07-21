@@ -133,7 +133,10 @@
        inset-0 và art là ảnh ĐẶC (webp VP8 không alpha), nên inset box-shadow đặt trên chính button
        sẽ nằm dưới ảnh và không bao giờ nhìn thấy. */
     .chieu-drop::after{ content:''; position:absolute; inset:0; z-index:3; pointer-events:none;
-                        box-shadow:inset 3px 0 0 0 #14b8a6; border-radius:inherit; }
+                        box-shadow:inset 4px 0 0 0 #2dd4bf, 0 0 10px 1px rgba(45,212,191,.55); border-radius:inherit; }
+    /* Ô ĐANG NHẤC: viền đứt để phân biệt dứt khoát với ô ĐÍCH (vạch jade liền). Trước chỉ mờ đi 40%
+       nên lúc kéo người chơi không chắc mình đang cầm ô nào. Glow tĩnh, không animation. */
+    .chieu-lift{ outline:2px dashed rgba(148,163,184,.8); outline-offset:-2px; }
     /* ===== Hệ Tầng — dùng lại badge lục giác .eh-hex có sẵn (Động Phủ) ở CẢ BA chỗ:
        ô điểm Ngộ Tính ở header · tile trong lưới · badge trên tab. Tỉ lệ ảnh w:h = 1:1.076. ===== */
     .tk-hex   { position:absolute; top:2px; right:2px; z-index:3; width:26px; height:28px; font-size:11px; color:#f7e6b8; }
@@ -1948,7 +1951,7 @@
                               @pointerup="if(!$store.game.chieuDragEnd(true,$event)) open('chieu',c.id)"
                               @pointercancel="$store.game.chieuDragEnd(false,$event)"
                               class="relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0 cursor-grab"
-                              :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'+($store.game.chieuDrag.i===idx&&$store.game.chieuDrag.active?' opacity-40':'')+($store.game.chieuDrag.active&&$store.game.chieuDrag.over===idx&&$store.game.chieuDrag.i!==idx?' chieu-drop':'')"
+                              :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'+($store.game.chieuDrag.i===idx&&$store.game.chieuDrag.active?' opacity-40 chieu-lift':'')+($store.game.chieuDrag.active&&$store.game.chieuDrag.over===idx&&$store.game.chieuDrag.i!==idx?' chieu-drop':'')"
                               :title="c.name+' — ưu tiên '+(idx+1)+', kéo để đổi thứ tự'">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-8 h-8')"></span>
