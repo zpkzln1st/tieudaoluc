@@ -270,6 +270,42 @@
     .bcs-el.off{ border-color:rgba(148,163,184,.16); background:rgba(13,19,32,.6); }
     .bcs-el.off .h{ opacity:.36; text-shadow:none; }
     .bcs-el.off .p{ color:#475569; }
+    /* Thẻ 抗 hai tầng: kháng ngũ hành + giảm thời gian khống chế. Cao riêng vì hai hàng ô 46px
+       không thể nhét vừa 88px của .bcs-card — đây là thẻ DUY NHẤT có hai tầng nên cho nó cỡ riêng
+       thay vì nới .bcs-card (nới là mọi thẻ khác đổi cỡ theo). */
+    /* Thẻ 抗 — MỖI HÀNG MỘT HỆ, không ô không khung, chỉ chữ số và gạch kẻ mảnh.
+       Trái là kháng của hệ đó, phải là giảm thời gian đòn do CHÍNH hệ đó gây ra (buộc theo HE_FX:
+       Kim gây Ngất · Mộc gây Độc · Thủy gây Chậm · Hỏa gây Bỏng · Thổ gây Choáng).
+       Số dùng tabular-nums để hai cột số thẳng hàng dù chữ số rộng khác nhau. */
+    .bcs-cardKC{ height:160px; }
+    .bcs-kcBody{ flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; margin-top:6px; }
+    .bcs-kcR{ display:flex; align-items:center; height:25px; border-bottom:1px solid rgba(148,163,184,.1); }
+    .bcs-kcR:last-child{ border-bottom:0; }
+    .bcs-kcR .hn{ flex:0 0 26px; font-family:var(--bcs-serif); font-weight:700; font-size:16px; line-height:1;
+             color:var(--ec); text-shadow:0 0 10px rgba(var(--e),.45); }
+    .bcs-kcR .k{ flex:0 0 104px; font-size:10.5px; color:#8296ae; white-space:nowrap; }
+    .bcs-kcR .v{ flex:0 0 44px; font-size:12px; font-weight:700; color:var(--ec); font-variant-numeric:tabular-nums; }
+    .bcs-kcR .k2{ flex:1 1 auto; min-width:0; font-size:10.5px; color:#8296ae; text-align:right;
+             padding-right:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bcs-kcR .v2{ flex:0 0 40px; font-size:12px; font-weight:700; color:var(--ec); text-align:right;
+             font-variant-numeric:tabular-nums; }
+    /* Chưa có điểm nào thì xám hẳn — nhưng chữ Hán vẫn giữ màu hệ để cột trái luôn đọc được là hệ nào. */
+    .bcs-kcR .mo{ color:#5b687a; }
+    /* Dưới sm bảng chạy một cột nên thân thẻ chỉ còn ~303px: cột phải rớt xuống 69px trong khi
+       "Giảm Thời Gian Trúng Độc" cần 131px -> cả năm nhãn bị cắt cụt. Cho mỗi hệ XUỐNG HAI DÒNG
+       thay vì rút chữ (luật dự án: không viết tắt nhãn). Thẻ cao theo nội dung ở khổ này. */
+    @media (max-width:639px){
+      .bcs-cardKC{ height:auto; }
+      /* KHOÁ CỨNG 48px chứ không để auto: đo ra hàng 48px lẫn 47px vì chiều cao dòng chữ làm tròn
+         khác nhau giữa các nhãn — lệch 1px là phạm luật "ô cùng loại đúng một chiều cao". */
+      .bcs-kcR{ height:48px; display:grid; grid-template-columns:26px minmax(0,1fr) auto;
+               align-items:center; row-gap:1px; padding:5px 0; }
+      .bcs-kcR .hn{ grid-column:1; grid-row:1 / span 2; flex:none; }
+      .bcs-kcR .k { grid-column:2; grid-row:1; flex:none; }
+      .bcs-kcR .v { grid-column:3; grid-row:1; flex:none; text-align:right; }
+      .bcs-kcR .k2{ grid-column:2; grid-row:2; flex:none; text-align:left; padding-right:0; }
+      .bcs-kcR .v2{ grid-column:3; grid-row:2; flex:none; }
+    }
     /* nút co theo nội dung, KHÔNG full-width */
     /* Ăn theo --edge/--acc của thẻ chứ KHÔNG viết cứng màu: thẻ 裝 đã đổi sang bạch kim, để vàng
        thì nút chóe lên giữa thẻ. Nút này chỉ dùng đúng một chỗ nên đổi không vạ lây đâu cả. */
@@ -316,13 +352,97 @@
     .gt-line{ height:18px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; }
     .gt-k{ font-size:11px; opacity:.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .gt-v{ font-size:12.5px; font-weight:700; text-align:right; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; }
+    /* Tiêu đề mục trong popup vật phẩm: chữ CĂN GIỮA, hai bên là vạch mảnh loe ra mép.
+       Dùng chung cho "THUỘC TÍNH" và tên Bộ Trang để hai mục cùng một dáng. */
+    .ihd{ display:flex; align-items:center; gap:10px; margin:14px 0 7px; }
+    .ihd::before, .ihd::after{ content:""; flex:1; height:1px; }
+    .ihd::before{ background:linear-gradient(90deg,transparent,rgba(45,212,191,.38)); }
+    .ihd::after{ background:linear-gradient(90deg,rgba(45,212,191,.38),transparent); }
+    .ihd > span{ flex:0 0 auto; font-family:'Lora','Noto Serif SC',serif; font-size:10px; letter-spacing:.18em;
+             color:rgba(45,212,191,.85); white-space:nowrap; }
+    .ihd > span .c{ letter-spacing:.06em; color:#64748b; }
+    /* Vạch mờ ngăn phần thông tin món với phần mua bán ở chân popup. */
+    .idiv{ height:1px; margin:14px 0 9px;
+           background:linear-gradient(90deg,transparent,rgba(148,163,184,.26) 22%,rgba(148,163,184,.26) 78%,transparent); }
+    /* Nút Bán ăn theo MÀU PHẨM CHẤT của món (--q lấy từ gtipHex, đã xử lý đúng cả đồ bộ bạch kim)
+       thay vì vàng cứng. Chữ tối vì mọi màu phẩm đều sáng. */
+    .sellbtn{ background:linear-gradient(180deg,var(--q,#f5b942),color-mix(in srgb,var(--q,#f5b942) 60%,#000));
+           color:#0b1220; box-shadow:inset 0 1px 0 rgba(255,255,255,.3); }
+    .sellbtn:hover{ background:linear-gradient(180deg,color-mix(in srgb,var(--q,#f5b942) 86%,#fff),var(--q,#f5b942)); }
+
+    /* ===== DÒNG ẨN BỘ TRANG, gắn TRÊN MÓN ĐỒ =====
+       Dùng chung cho popup chi tiết vật phẩm VÀ tooltip paper-doll. Nằm DƯỚI các dòng hiện:
+       xám sẵn từ đầu để người chơi thấy trước sẽ được gì, mặc đủ số món thì sáng lên.
+       KHÔNG khoá chiều cao dòng (khác .gt-line 18px): chữ dài phải xuống dòng chứ không được cắt. */
+    .sb-box{ margin-top:9px; padding-top:8px; border-top:1px dashed rgba(214,227,242,.2); }
+    .sb-hd{ font-size:10.5px; font-weight:700; letter-spacing:.05em; color:#d6e3f2; margin-bottom:5px;
+            text-transform:uppercase; }
+    .sb-hd .c{ color:#8296ae; font-weight:600; letter-spacing:0; }
+    .sb-row{ display:flex; gap:8px; align-items:baseline; font-size:11.5px; line-height:1.45; padding:1.5px 0; }
+    .sb-row .b{ flex:none; width:42px; font-size:10.5px; }
+    .sb-row .t{ flex:1; min-width:0; }
+    .sb-row.off{ color:#5b687a; }                        /* chưa đủ món */
+    .sb-row.off .b{ color:#4a5568; }
+    .sb-row.on{ color:#6ee7b7; }                         /* đủ món -> sáng */
+    .sb-row.on .b{ color:#9fb2c9; }
     /* Màn cảm ứng không có hover — tắt hẳn, chi tiết xem ở bảng Đổi Trang Bị. */
     @media (hover:none),(pointer:coarse){ .gtip{ display:none; } }
+
+    /* ===== OVERLAY CHÂN DUNG (paper-doll, cột giữa) =====
+       Tiền tố `cdg-` chứ KHÔNG `por-`: lớp `.por` đã có chủ trong kytran_combat.js.
+       Cao 96px cố định + justify-content:flex-end -> thiếu danh hiệu thì hàng dưới vẫn
+       đứng đúng chỗ, không nhảy. Quầng sáng ấn hệ là box-shadow TĨNH. */
+    .cdg-ov{ position:absolute; inset:auto 0 0 0; height:96px; display:flex; flex-direction:column; justify-content:flex-end;
+             padding:0 12px 10px; text-align:left;
+             background:linear-gradient(to top,rgba(7,11,20,.96),rgba(7,11,20,.88) 38%,rgba(7,11,20,.55) 72%,transparent); }
+    .cdg-dh{ height:14px; font-size:10px; font-weight:700; letter-spacing:.04em; color:#fb923c;
+             text-shadow:0 0 8px rgba(251,146,60,.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cdg-r2{ display:flex; align-items:center; gap:10px; height:34px; margin-top:6px; }
+    /* Khai chuỗi font TẠI CHỖ — --bcs-serif chỉ sống trong .bcs, ra ngoài chữ Hán rơi về SimSun. */
+    .cdg-an{ flex:none; width:34px; height:34px; border-radius:8px; display:grid; place-items:center;
+             font-family:'Lora','Noto Serif SC','Songti SC','SimSun',serif; font-weight:700; font-size:18px; color:var(--e,#94a3b8);
+             border:1px solid color-mix(in srgb,var(--e) 48%,transparent); background:color-mix(in srgb,var(--e) 12%,transparent);
+             box-shadow:0 0 14px -5px var(--e); }
+    .cdg-mid{ flex:1; min-width:0; }
+    .cdg-nm{ font-family:'Lora',serif; font-weight:700; font-size:19px; line-height:1.05; color:#f1f5f9;
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cdg-sub{ font-size:10.5px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#7c8797; }
+    .cdg-sub b{ color:var(--e,#94a3b8); font-weight:700; }
+    .cdg-cl{ flex:none; text-align:right; }
+    .cdg-cl .l{ font-size:8.5px; letter-spacing:.16em; text-transform:uppercase; color:#5f6b7d; }
+    .cdg-cl .v{ font-family:'Lora',serif; font-weight:700; font-size:17px; color:#2dd4bf; font-variant-numeric:tabular-nums; line-height:1.1; }
+    /* Bề ngang chân dung KHÔNG suy ra được từ viewport: nó là phần còn lại sau hai cột ô trang bị,
+       mà cột ô lại đổi cỡ ở `sm` còn khung ngoài đổi lưới ở `lg`. Đo thật: 1280px -> 374px,
+       nhưng 1024px (lưới lg vừa bật, ô vẫn 96px) -> chỉ 146px, tên còn 14px. Nên chốt theo
+       BỀ NGANG THẬT của chân dung bằng container query, khỏi đoán mốc màn hình. */
+    .cdg-host{ container-type:inline-size; }
+    /* Hẹp: Chiến Lực xuống hàng riêng chiếm trọn bề ngang, tên lấy lại gần gấp đôi chỗ. */
+    @container (max-width:259px){
+      .cdg-ov{ height:auto; padding:8px; }
+      .cdg-r2{ display:grid; grid-template-columns:28px 1fr; align-items:center; gap:0 7px; height:auto; }
+      .cdg-an{ width:28px; height:28px; font-size:15px; grid-row:1; }
+      .cdg-mid{ grid-column:2; }
+      .cdg-nm{ font-size:15px; }
+      .cdg-sub{ font-size:9.5px; }
+      .cdg-cl{ grid-column:1 / -1; margin-top:5px; display:flex; align-items:baseline; gap:6px; text-align:left; }
+      .cdg-cl .v{ font-size:14px; }
+    }
+    /* Siêu hẹp (khổ 1024-1199: lưới lg vừa bật mà ô vẫn 96px -> chân dung chỉ ~148px):
+       ấn hệ rời hàng, neo góc trên phải, trả trọn bề ngang cho tên. */
+    @container (max-width:179px){
+      .cdg-an{ position:absolute; top:8px; right:8px; width:24px; height:24px; font-size:13px; }
+      .cdg-r2{ grid-template-columns:1fr; }
+      .cdg-mid, .cdg-cl{ grid-column:1; }
+      .cdg-dh{ padding-right:30px; }
+    }
     .bcs-btn{ flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 10px;
              border:1px solid rgba(var(--edge),.42); border-radius:4px; cursor:pointer;
              background:linear-gradient(180deg,rgba(var(--edge),.15),rgba(var(--edge),.04));
              color:var(--acc); font-size:11px; font-weight:700; box-shadow:inset 0 0 12px -6px rgba(var(--edge),.8); }
     .bcs-btn:hover{ border-color:rgba(var(--edge),.72); background:linear-gradient(180deg,rgba(var(--edge),.24),rgba(var(--edge),.08)); }
+    /* Bản thu nhỏ để nút ngồi vừa hàng tiêu đề (.bcs-head cao 12px) — nút lồi ra 2px mỗi phía,
+       vẫn còn 4px hở tới thân thẻ nên không đè. Nhường lại một ô dưới cho dữ liệu. */
+    .bcs-btnHd{ height:16px; padding:0 8px; font-size:10px; }
     /* ===== Thẻ 裝: HAI vệt sáng bạch kim quét vòng quanh viền =====
        Vệt nằm ở pseudo phía sau, bị viền 1px của .bcs-tb xén lại nên chỉ sáng TRÊN VIỀN, không
        tràn vào ruột thẻ. overflow:hidden là bắt buộc: vệt rộng 260% nên không chặn thì nó nong
@@ -1516,6 +1636,14 @@
                             <template x-for="ln in g.gtipLines(it)" :key="ln.key">
                               <div class="gt-line" :style="'color:'+ln.color"><span class="gt-k" x-text="ln.label"></span><span class="gt-v" x-text="ln.val"></span></div>
                             </template>
+                            <template x-if="g.setBonusPanel(it)">
+                              <div class="sb-box">
+                                <div class="sb-hd"><span x-text="g.setBonusPanel(it).name"></span> <span class="c" x-text="'('+g.setBonusPanel(it).worn+'/'+g.setBonusPanel(it).total+')'"></span></div>
+                                <template x-for="r in g.setBonusPanel(it).rows" :key="r.bac">
+                                  <div class="sb-row" :class="r.on ? 'on' : 'off'"><span class="b" x-text="r.bac+' món'"></span><span class="t" x-text="r.txt"></span></div>
+                                </template>
+                              </div>
+                            </template>
                           </div>
                         </div>
                       </template>
@@ -1523,12 +1651,21 @@
                   </template>
                 </div>
                 <!-- avatar giữa -->
-                <div class="flex-1 min-w-0 relative rounded-lg overflow-hidden border border-jade/30 bg-ink2">
+                <div class="cdg-host flex-1 min-w-0 relative rounded-lg overflow-hidden border border-jade/30 bg-ink2">
                   <div class="absolute inset-0 flex items-center justify-center text-6xl text-slate-700" style="font-family:'Lora','Noto Serif SC',serif">道</div>
                   <img :src="'images/avatars/'+$store.game.avatarId+'.webp'" class="absolute inset-0 w-full h-full object-cover object-top" alt="" onerror="this.style.display='none'">
-                  <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink via-ink/70 to-transparent pt-8 pb-2 px-3 text-center">
-                    <div class="text-sm font-medium text-slate-100" x-text="$store.game.state.player.name"></div>
-                    <div class="text-[11px] text-jade" x-text="'Chiến Lực ' + $store.game.fmt($store.game.stats.chienLuc)"></div>
+                  <div class="cdg-ov">
+                    <template x-if="g.equippedTitleObj">
+                      <div class="cdg-dh" x-text="g.equippedTitleObj.name"></div>
+                    </template>
+                    <div class="cdg-r2" :style="'--e:'+g.heHex(g.tamPhapObj.he)">
+                      <div class="cdg-an" x-text="g.NGU_HANH[g.tamPhapObj.he].han"></div>
+                      <div class="cdg-mid">
+                        <div class="cdg-nm" x-text="g.state.player.name"></div>
+                        <div class="cdg-sub"><b x-text="g.tamPhapObj.name"></b><span x-text="' · Cấp ' + g.combatLevel"></span></div>
+                      </div>
+                      <div class="cdg-cl"><div class="l">Chiến Lực</div><div class="v" x-text="g.fmt(g.stats.chienLuc)"></div></div>
+                    </div>
                   </div>
                 </div>
                 <!-- cột phải -->
@@ -1569,6 +1706,14 @@
                             </template>
                             <template x-for="ln in g.gtipLines(it)" :key="ln.key">
                               <div class="gt-line" :style="'color:'+ln.color"><span class="gt-k" x-text="ln.label"></span><span class="gt-v" x-text="ln.val"></span></div>
+                            </template>
+                            <template x-if="g.setBonusPanel(it)">
+                              <div class="sb-box">
+                                <div class="sb-hd"><span x-text="g.setBonusPanel(it).name"></span> <span class="c" x-text="'('+g.setBonusPanel(it).worn+'/'+g.setBonusPanel(it).total+')'"></span></div>
+                                <template x-for="r in g.setBonusPanel(it).rows" :key="r.bac">
+                                  <div class="sb-row" :class="r.on ? 'on' : 'off'"><span class="b" x-text="r.bac+' món'"></span><span class="t" x-text="r.txt"></span></div>
+                                </template>
+                              </div>
                             </template>
                           </div>
                         </div>
@@ -1618,6 +1763,14 @@
                             </template>
                           <template x-for="ln in g.gtipLines(it)" :key="ln.key">
                             <div class="gt-line" :style="'color:'+ln.color"><span class="gt-k" x-text="ln.label"></span><span class="gt-v" x-text="ln.val"></span></div>
+                          </template>
+                          <template x-if="g.setBonusPanel(it)">
+                            <div class="sb-box">
+                              <div class="sb-hd"><span x-text="g.setBonusPanel(it).name"></span> <span class="c" x-text="'('+g.setBonusPanel(it).worn+'/'+g.setBonusPanel(it).total+')'"></span></div>
+                              <template x-for="r in g.setBonusPanel(it).rows" :key="r.bac">
+                                <div class="sb-row" :class="r.on ? 'on' : 'off'"><span class="b" x-text="r.bac+' món'"></span><span class="t" x-text="r.txt"></span></div>
+                              </template>
+                            </div>
                           </template>
                         </div>
                       </div>
@@ -1702,22 +1855,26 @@
                 </div>
               </div>
 
-              <!-- 抗 KHÁNG NGŨ HÀNH — 5 lệnh bài con, đúng dáng thu nhỏ của lệnh bài Chiến Lực -->
-              <div class="bcs-tb bcs-card" style="--acc:#94a3b8;--edge:148,163,184">
+              <!-- 抗 KHÁNG NGŨ HÀNH — 5 lệnh bài con, đúng dáng thu nhỏ của lệnh bài Chiến Lực.
+                   TẦNG DƯỚI: giảm thời gian khống chế. Xếp THẲNG CỘT với tầng trên được là nhờ HE_FX
+                   ràng buộc 1:1 (Kim gây Ngất · Mộc gây Độc · Thủy gây Chậm · Hỏa gây Bỏng · Thổ gây
+                   Choáng), nên cột nào cũng là một hệ: trên chặn sát thương hệ đó, dưới cắt thời gian
+                   đòn hệ đó gây ra. Màu vì thế lấy luôn màu hệ chứ không phải tô cho đẹp. -->
+              <div class="bcs-tb bcs-cardKC" style="--acc:#94a3b8;--edge:148,163,184">
                 <div class="bcs-in flex">
                   <div class="bcs-spine"><span class="bcs-han">抗</span></div>
                   <div class="bcs-body">
-                    <div class="bcs-head"><span class="bcs-gn">Kháng Ngũ Hành</span><span class="bcs-dbl"></span></div>
-                    <div class="bcs-gbody">
-                      <div class="bcs-els">
-                        <template x-for="h in g.NGU_HANH_LIST" :key="h">
-                          <div class="bcs-el" :class="cs.khang[h]>0?'':'off'"
-                               :style="'--e:'+g.NGU_HANH[h].glowRgb+';--ec:'+g.heHex(h)" :title="'Kháng '+g.heName(h)">
-                            <span class="h" x-text="g.NGU_HANH[h].han"></span>
-                            <span class="p" x-text="Math.round(cs.khang[h]*100)+'%'"></span>
-                          </div>
-                        </template>
-                      </div>
+                    <div class="bcs-head"><span class="bcs-gn">Kháng &amp; Giảm Thời Gian</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-kcBody">
+                      <template x-for="h in g.NGU_HANH_LIST" :key="h">
+                        <div class="bcs-kcR" :style="'--e:'+g.NGU_HANH[h].glowRgb+';--ec:'+g.heHex(h)">
+                          <span class="hn" x-text="g.NGU_HANH[h].han"></span>
+                          <span class="k"  :class="cs.khang[h]>0?'':'mo'" x-text="g.khangLabel(h)"></span>
+                          <span class="v"  :class="cs.khang[h]>0?'':'mo'" x-text="Math.round(cs.khang[h]*100)+'%'"></span>
+                          <span class="k2" :class="cs.ccGiam[g.ccOfHe(h).key]>0?'':'mo'" x-text="g.ccOfHe(h).name"></span>
+                          <span class="v2" :class="cs.ccGiam[g.ccOfHe(h).key]>0?'':'mo'" x-text="Math.round((cs.ccGiam[g.ccOfHe(h).key]||0)*100)+'%'"></span>
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>
@@ -1743,34 +1900,15 @@
                 </div>
               </div>
 
-              <!-- 修 TU LUYỆN — CHỈ hiện khi có nguồn thật (Tăng EXP sẽ đến từ Bộ Trang Bị, làm sau) -->
-              <template x-if="cs.tangExp > 0">
-                <div class="bcs-tb bcs-card" style="--acc:#4ade80;--edge:74,222,128">
-                  <div class="bcs-in flex">
-                    <div class="bcs-spine"><span class="bcs-han">修</span></div>
-                    <div class="bcs-body">
-                      <div class="bcs-head"><span class="bcs-gn">Tu Luyện</span><span class="bcs-dbl"></span></div>
-                      <div class="bcs-gbody">
-                        <div class="bcs-lead">
-                          <div class="bcs-leadNum" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></div>
-                          <div class="bcs-leadLbl">Tăng EXP</div>
-                        </div>
-                        <div class="bcs-cells">
-                          <div class="bcs-cell"><span class="k">Chỉ cấp Chiến Đấu</span><span class="v" style="color:#64748b">—</span></div>
-                          <div class="bcs-cell"><span class="k">Không áp Tứ Trụ · nghề</span><span class="v" style="color:#64748b">—</span></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <!-- 裝 BỘ TRANG — thẻ tóm tắt; danh sách đầy đủ từng bộ nằm trong Bách Trang Các -->
+              <!-- 裝 BỘ TRANG — thẻ tóm tắt; danh sách đầy đủ từng bộ nằm trong Bách Trang Các.
+                   Tăng EXP nằm ở ĐÂY chứ không có thẻ 修 riêng: nguồn duy nhất của nó là dòng ẩn bộ
+                   Hồng Ảnh, không dòng roll nào đẻ ra được. Nút Bách Trang Các dời lên hàng tiêu đề
+                   để nhường ô dưới cho dữ liệu — thẻ vẫn đúng 88px như mọi thẻ khác. -->
               <div class="bcs-tb bcs-card bcs-quet" style="--acc:#d6e3f2;--edge:214,227,242">
                 <div class="bcs-in flex">
                   <div class="bcs-spine"><span class="bcs-han">裝</span></div>
                   <div class="bcs-body">
-                    <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.bachTrangOpen=true" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
                     <div class="bcs-gbody">
                       <div class="bcs-lead">
                         <div class="bcs-leadNum" x-text="g.fmt(g.manhTrangBi)"></div>
@@ -1778,7 +1916,7 @@
                       </div>
                       <div class="bcs-cells">
                         <div class="bcs-cell"><span class="k">Viên Mãn</span><span class="v" style="color:#d6e3f2" x-text="g.setTronCount+' / '+g.TRANG_SET_KEYS.length"></span></div>
-                        <div class="flex justify-end"><button @click="g.bachTrangOpen=true" class="bcs-btn" type="button"><span class="fserif" style="font-size:11px;opacity:.8">閣</span>Bách Trang Các</button></div>
+                        <div class="bcs-cell"><span class="k">Tăng EXP Chiến Đấu</span><span class="v" :style="cs.tangExp>0?'color:#4ade80':'color:#64748b'" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></span></div>
                       </div>
                     </div>
                   </div>
@@ -1835,6 +1973,20 @@
         .btc-lockban{ display:flex; align-items:center; gap:11px; padding:11px 15px; margin:11px 13px 0; border-radius:11px; background:rgba(214,227,242,.06); border:1px dashed rgba(214,227,242,.3); }
         .btc-lockban .ic{ width:22px; height:22px; color:#d6e3f2; flex:none; }
         .btc-lockban .t{ font-size:13px; font-weight:700; color:#d6e3f2; } .btc-lockban .s{ font-size:11.5px; color:#8296ae; margin-top:2px; }
+        /* DÒNG ẨN 3/5/7 — hiện ĐỦ BA DÒNG mọi lúc, chưa đủ món thì xám + mờ để thấy trước đích đến.
+           Không animation: quầng của dòng đã kích là box-shadow TĨNH. */
+        .btc-an{ padding:11px 15px 0; }
+        .btc-anhd{ font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#8296ae; margin-bottom:7px; }
+        .btc-anrow{ display:flex; align-items:center; gap:10px; min-height:30px; padding:5px 11px; border-radius:9px;
+                    border:1px solid rgba(38,52,74,.7); background:rgba(11,18,32,.45); margin-bottom:6px; }
+        .btc-anrow .bac{ flex:none; width:46px; font-size:10.5px; font-weight:700; color:#8296ae; letter-spacing:.02em; }
+        .btc-anrow .txt{ flex:1; min-width:0; font-size:12px; color:#9fb2c9; line-height:1.35; }
+        /* Đã đủ món: viền + chữ sáng lên, thêm quầng bạch kim tĩnh. */
+        .btc-anrow.on{ border-color:rgba(214,227,242,.42); background:rgba(214,227,242,.07);
+                       box-shadow:inset 0 0 0 1px rgba(214,227,242,.07), 0 0 14px -8px rgba(214,227,242,.65); }
+        .btc-anrow.on .bac{ color:#d6e3f2; }
+        .btc-anrow.on .txt{ color:#e6eef8; }
+        .btc-anrow.off{ opacity:.42; filter:grayscale(.55); }
         .btc-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(156px,1fr)); gap:11px; padding:13px; }
         .btc-card{ position:relative; border-radius:12px; padding:11px 9px 10px; border:1px solid #26344a; background:linear-gradient(180deg,rgba(20,30,50,.7),rgba(11,18,32,.5)); display:flex; flex-direction:column; align-items:center; text-align:center; }
         .btc-card.owned{ border-color:rgba(214,227,242,.5); background:linear-gradient(180deg,rgba(214,227,242,.09),rgba(11,18,32,.6)); }
@@ -1901,6 +2053,17 @@
                     <div class="n" x-text="g.setOwnedCount(key)+'/'+g.TRANG_SETS[key].pieces.length"></div>
                     <div class="bar"><i :style="'width:'+(g.setOwnedCount(key)/g.TRANG_SETS[key].pieces.length*100)+'%'"></i></div>
                   </div>
+                </div>
+                <!-- DÒNG ẨN — đếm món ĐANG MẶC (setEquippedCount), KHÔNG phải món sở hữu như thanh
+                     tiến độ ở trên. Ghép đủ bộ để trong túi thì ba dòng vẫn xám. -->
+                <div class="btc-an">
+                  <div class="btc-anhd">Dòng Ẩn · mặc đủ số món mới kích</div>
+                  <template x-for="r in g.setBonusRows(key)" :key="r.bac">
+                    <div class="btc-anrow" :class="r.on ? 'on' : 'off'">
+                      <span class="bac" x-text="r.bac + ' món'"></span>
+                      <span class="txt" x-text="r.txt"></span>
+                    </div>
+                  </template>
                 </div>
                 <template x-if="!g.setUnlocked(key)">
                   <div class="btc-lockban">
@@ -4947,46 +5110,84 @@
       <!-- ===== POPUP: Chi tiết vật phẩm (bấm item ở Hành Lý) ===== -->
       <template x-if="$store.game.itemModal && $store.game.itemModalObj">
         <div class="fixed inset-0 z-[55] flex items-center justify-center p-4" style="background:rgba(2,6,12,.74)" @click.self="$store.game.closeItemModal()" @keydown.escape.window="$store.game.closeItemModal()">
-          <div class="panel rounded-xl border-2 w-full max-w-sm overflow-hidden" :class="$store.game.itemQuality($store.game.itemModalObj).border" @click.stop x-data="{ get m(){ return $store.game.itemModalObj } }">
+          <div class="panel rounded-xl border-2 w-full max-w-[330px] overflow-hidden" :class="$store.game.itemQuality($store.game.itemModalObj).border" @click.stop x-data="{ get m(){ return $store.game.itemModalObj } }">
             <template x-if="m">
               <div>
-                <!-- Banner art -->
-                <div class="relative h-44 flex items-center justify-center bg-gradient-to-br" :class="$store.game.itemQuality(m).grad">
-                  <div class="absolute inset-0 bg-gradient-to-t from-ink to-transparent opacity-40"></div>
-                  <button @click="$store.game.closeItemModal()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 z-10">✕</button>
-                  <div class="relative w-28 h-28 rounded-xl border-2 flex items-center justify-center bg-ink/40 cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="$store.game.itemQuality(m).border" style="box-shadow:0 0 24px rgba(0,0,0,.45)" @click="$store.game.openLightbox(m.id, m.icon, m.name)" title="Bấm để phóng to">
-                    <span class="w-24 h-24 flex items-center justify-center text-5xl" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))" x-html="$store.game.ico(m.id, m.icon)"></span>
+                <!-- ĐẦU THẺ: art nằm CẠNH tên, không còn banner cao 176px. Nút đóng neo góc popup. -->
+                <div class="relative p-4 pb-0">
+                  <button @click="$store.game.closeItemModal()" class="absolute top-3 right-3 w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 transition z-10 leading-none">✕</button>
+                  <div class="flex items-start gap-3 pr-7">
+                    <div class="relative w-16 h-16 shrink-0 rounded-lg border-2 flex items-center justify-center bg-ink/40 cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="$store.game.itemQuality(m).border" @click="$store.game.openLightbox(m.id, m.icon, m.name)" title="Bấm để phóng to">
+                      <span class="w-14 h-14 flex items-center justify-center text-3xl" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))" x-html="$store.game.ico(m.id, m.icon)"></span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-[15px] font-bold leading-tight" style="font-family:'Lora','Noto Serif SC',serif" :class="$store.game.itemQuality(m).text" x-text="m.name"></div>
+                      <!-- HAI HÀNG CỐ ĐỊNH, cố ý không để flex-wrap tự quyết: hàng trên phẩm chất,
+                           hàng dưới ô trang bị + cấp yêu cầu. Đo bề rộng thật trong cột 190px —
+                           nhồi cả ba vào một hàng thì xấu nhất là 217px (trang bị) và 258px (công cụ,
+                           thêm tên nghề) nên bất khả; còn cặp ô+cấp thì chỉ 121px và 161px, thừa chỗ.
+                           Bỏ flex-wrap để món tên ngắn hay dài đều ra ĐÚNG MỘT dáng, không lồi lõm. -->
+                      <div class="flex items-center gap-2 mt-1.5 whitespace-nowrap">
+                        <span class="text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wide font-bold border bg-ink/40" :class="$store.game.itemQuality(m).text+' '+$store.game.itemQuality(m).border" x-text="$store.game.itemQuality(m).name"></span>
+                        <template x-if="m.plus>0"><span class="text-[10px] text-amber-300 font-bold" x-text="'+'+m.plus"></span></template>
+                      </div>
+                      <template x-if="m.equip">
+                        <div class="flex items-center gap-2.5 mt-1 whitespace-nowrap">
+                          <span class="text-[10px] uppercase tracking-[0.1em] text-slate-500" x-text="$store.game.equipSlotLabel(m.equip.slot)"></span>
+                          <template x-if="m.reqLevel > 1">
+                            <span class="text-[10.5px]" :class="$store.game.canEquip(m)?'text-slate-400':'text-rose-400'" x-text="$store.game.equipReqShort(m)"></span>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
                   </div>
                 </div>
                 <!-- Info -->
-                <div class="p-4">
-                  <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                    <span class="text-lg font-bold" style="font-family:'Lora','Noto Serif SC',serif" :class="$store.game.itemQuality(m).text" x-text="m.name"></span>
-                    <span class="text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wide font-bold border bg-ink/40" :class="$store.game.itemQuality(m).text+' '+$store.game.itemQuality(m).border" x-text="$store.game.itemQuality(m).name"></span>
-                  </div>
-                  <div class="text-[11px] text-slate-500 mb-2.5">Loại: <span class="text-slate-300" x-text="$store.game.itemTypeLabel(m.type)"></span></div>
-                  <div class="text-[12px] text-slate-300 leading-snug mb-3" x-text="$store.game.itemDescOf(m)"></div>
+                <div class="p-4 pt-3">
+                  <!-- Dòng "Loại: Trang Bị" chỉ hiện với món KHÔNG phải trang bị: với trang bị thì khối
+                       ngay dưới đã ghi "Trang bị · Vũ Khí", in thêm là lặp. Mô tả cũng chỉ hiện khi món
+                       có văn thật — trang bị đều để desc rỗng nên trước đây in câu độn giống hệt nhau. -->
+                  <template x-if="!m.equip">
+                    <div class="text-[11px] text-slate-500 mb-2.5">Loại: <span class="text-slate-300" x-text="$store.game.itemTypeLabel(m.type)"></span></div>
+                  </template>
+                  <template x-if="$store.game.itemDescReal(m)">
+                    <div class="text-[12px] text-slate-300 leading-snug mb-3" x-text="$store.game.itemDescReal(m)"></div>
+                  </template>
                   <!-- Trang bị: slot + chỉ số (instance roll) -->
+                  <!-- BỎ khung viền bao quanh: ô trang bị, yêu cầu, chỉ số và dòng ẩn nằm THẲNG trên nền
+                       popup. Khung cũ vừa ăn 24px bề ngang vừa tạo cảm giác "hộp trong hộp". -->
                   <template x-if="m.equip">
-                    <div class="rounded-lg bg-ink3/50 border border-slate-700/60 px-3 py-2.5 mb-3">
-                      <div class="text-[10px] uppercase tracking-wide text-slate-500 mb-1.5 flex items-center justify-between"><span>Trang bị · <span class="text-slate-300" x-text="$store.game.equipSlotLabel(m.equip.slot)"></span></span><template x-if="m.plus>0"><span class="text-amber-300 font-bold" x-text="'+'+m.plus"></span></template></div>
-                      <template x-if="m.reqLevel > 1">
-                        <div class="text-[11px] mb-2" :class="$store.game.canEquip(m)?'text-slate-400':'text-rose-400'"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('sword','w-3.5 h-3.5')"></span>Yêu cầu mang: <b x-text="$store.game.equipReqText(m)"></b><span x-show="!$store.game.canEquip(m)" x-text="' (bạn: Lv '+$store.game.equipCurLevel(m)+')'"></span></div>
-                      </template>
+                    <div>
+                      <!-- Ô trang bị + yêu cầu cấp đã dời lên cột phải của đầu thẻ. -->
                       <!-- THUỘC TÍNH: list dọc, tên + giá trị TÔ MÀU theo bậc roll (min→max) -->
                       <template x-if="Object.keys(m.stats||{}).length">
-                        <div class="flex items-center gap-2 mb-0.5"><span class="text-[10px] tracking-[0.18em] text-jade/80" style="font-family:'Lora','Noto Serif SC',serif">THUỘC TÍNH</span><div class="flex-1 h-px bg-gradient-to-r from-jade/25 to-transparent"></div></div>
+                        <div class="ihd"><span>THUỘC TÍNH</span></div>
                       </template>
-                      <div class="divide-y divide-slate-800/50">
+                      <!-- Không gạch ngăn giữa các dòng: bảy đường kẻ mảnh làm khối chỉ số trông như bảng
+                           dữ liệu. Chỉ còn nhãn trái, số phải, cách nhau bằng khoảng đệm. -->
+                      <div>
                         <template x-for="(v,k) in (m.stats||{})" :key="k">
-                          <div class="flex items-center gap-3 py-1.5" :style="'color:'+$store.game.gearLineColor(m,k)">
+                          <div class="flex items-center gap-3 py-[3px]" :style="'color:'+$store.game.gearLineColor(m,k)">
                             <span class="text-[12.5px] flex-1" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.statLabel(k)"></span>
-                            <span class="text-[13.5px] font-bold tabular-nums" x-text="$store.game.gearVal(k,v)"></span>
+                            <span class="text-[12.5px] font-bold tabular-nums" x-text="$store.game.gearVal(k,v)"></span>
                           </div>
                         </template>
-                        <template x-if="$store.game.toolEffText(m)"><div class="flex items-center gap-3 py-1.5 text-emerald-300"><span class="text-[12.5px] flex-1" x-text="$store.game.toolEffText(m)"></span></div></template>
+                        <template x-if="$store.game.toolEffText(m)"><div class="flex items-center gap-3 py-[3px] text-emerald-300"><span class="text-[12.5px] flex-1" x-text="$store.game.toolEffText(m)"></span></div></template>
                       </div>
                       <template x-if="!Object.keys(m.stats||{}).length && !$store.game.toolEffText(m)"><div class="text-[11px] text-slate-500 py-1">Không tăng chỉ số.</div></template>
+                      <!-- DÒNG ẨN của Bộ Trang — dưới các dòng hiện. Đếm món ĐANG MẶC, nên xem đồ
+                           trong túi vẫn thấy đủ ba dòng nhưng còn xám. -->
+                      <template x-if="$store.game.setBonusPanel(m)">
+                        <div x-data="{ get sb(){ return $store.game.setBonusPanel(m) } }">
+                          <div class="ihd"><span><span x-text="sb.name.toUpperCase()"></span> <span class="c" x-text="'('+sb.worn+'/'+sb.total+')'"></span></span></div>
+                          <template x-for="r in sb.rows" :key="r.bac">
+                            <div class="flex gap-2.5 text-[11.5px] leading-[1.5] py-[1px]" :class="r.on ? 'text-emerald-300' : 'text-slate-500'">
+                              <span class="shrink-0 w-[46px]" :class="r.on ? 'text-slate-400' : 'text-slate-600'" x-text="r.bac+' món:'"></span>
+                              <span class="flex-1 min-w-0" x-text="r.txt"></span>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
                     </div>
                   </template>
                   <!-- Đồ Phổ: Lĩnh Ngộ -> mở rèn ở Rèn Đúc -->
@@ -4998,18 +5199,23 @@
                     </div>
                   </template>
                   <!-- Số lượng + giá -->
-                  <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div class="rounded-lg bg-ink3/50 border border-slate-700/50 px-3 py-2"><div class="text-[9px] uppercase tracking-wide text-slate-500">Số lượng</div><div class="text-base font-bold text-slate-100" x-text="$store.game.fmt(m.qty)"></div></div>
-                    <div class="rounded-lg bg-ink3/50 border border-slate-700/50 px-3 py-2"><div class="text-[9px] uppercase tracking-wide text-slate-500">Giá bán / cái</div><div class="text-base font-bold text-gold flex items-center gap-1"><span class="w-4 h-4 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span><span x-text="$store.game.fmt(m.value||0)"></span></div></div>
+                  <!-- Số lượng + giá: gộp thành MỘT hàng chữ thay vì hai hộp cao — hai con số này chỉ để
+                       liếc qua, không đáng chiếm cỡ chữ to bằng cả tên món. -->
+                  <div class="idiv"></div>
+                  <div class="flex items-center justify-between gap-4 mb-2 px-1 text-[11px]">
+                    <span class="text-slate-500">Số lượng <b class="text-slate-100 text-[12.5px] font-bold ml-0.5" x-text="$store.game.fmt(m.qty)"></b></span>
+                    <span class="text-slate-500 flex items-center gap-1">Giá bán
+                      <span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
+                      <b class="text-gold text-[12.5px] font-bold" x-text="$store.game.fmt(m.value||0)"></b></span>
                   </div>
                   <!-- Bán nhanh -->
                   <template x-if="(m.value||0) > 0 && m.isGear">
-                    <button @click="$store.game.sellFromModal(1)" class="w-full py-2 rounded-lg text-[12px] font-bold bg-gold/80 hover:bg-gold text-ink transition" x-text="'Bán (+'+$store.game.fmt(m.value||0)+' Bạc)'"></button>
+                    <button @click="$store.game.sellFromModal(1)" class="sellbtn w-full py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)" x-text="'Bán (+'+$store.game.fmt(m.value||0)+' Bạc)'"></button>
                   </template>
                   <template x-if="(m.value||0) > 0 && !m.isGear">
                     <div class="flex gap-2">
-                      <button @click="$store.game.sellFromModal(1)" class="flex-1 py-2 rounded-lg text-[12px] font-bold bg-ink3 border border-slate-700 hover:border-gold text-slate-200 transition">Bán 1</button>
-                      <button @click="$store.game.sellFromModal(m.qty)" class="flex-1 py-2 rounded-lg text-[12px] font-bold bg-gold/80 hover:bg-gold text-ink transition" x-text="'Bán hết (+'+$store.game.fmt((m.value||0)*m.qty)+' Bạc)'"></button>
+                      <button @click="$store.game.sellFromModal(1)" class="flex-1 py-1.5 rounded-lg text-[11.5px] font-bold bg-ink3 border border-slate-700 hover:border-gold text-slate-200 transition">Bán 1</button>
+                      <button @click="$store.game.sellFromModal(m.qty)" class="sellbtn flex-1 py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)" x-text="'Bán hết (+'+$store.game.fmt((m.value||0)*m.qty)+' Bạc)'"></button>
                     </div>
                   </template>
                 </div>

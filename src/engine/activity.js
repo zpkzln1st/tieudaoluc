@@ -20,6 +20,7 @@ import { DAMDAO, TIN_VAT_EFF_PCT } from '../data/damdao.js';   // Tín Vật: th
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { buffVal } from './buff.js';   // Đan Bổ Trợ: +% EXP Chiến Đấu / rơi liệu / Bạc
 import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
+import { consumableEffMult } from './setbonus.js';   // dòng ẩn Nhu Tình: +% hiệu lực đan dược & thức ăn
 import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
 
@@ -130,7 +131,10 @@ export function autoEatTick(state, maxHP) {
   // cao cấp. heal = số phẳng (món ăn) · healPct = % Sinh Lực TỐI ĐA (đan; số phẳng vô dụng ở cấp cao).
   const fid = cb.luongThuc, food = fid && ITEMS[fid];
   if (food && (state.inventory[fid] || 0) > 0) {
-    const amt = food.healPct ? Math.round(maxHP * food.healPct / 100) : (food.heal || 0);
+    // Dòng ẩn bậc 7 bộ Nhu Tình nhân vào ĐÂY — một chỗ này phủ cả đan lẫn món ăn, cả đánh trực
+    // tiếp lẫn cày ngoại tuyến (autoEatTick là đường DUY NHẤT biến healPct/heal thành máu).
+    const base = food.healPct ? Math.round(maxHP * food.healPct / 100) : (food.heal || 0);
+    const amt = Math.round(base * consumableEffMult(state));
     if (amt > 0) { removeItem(state, fid, 1); cb.sinhLuc = Math.min(maxHP, cur + amt); return 1; }
   }
   return 0;
@@ -142,7 +146,7 @@ export function autoDanNL(state, maxNL, curNL) {
   if (!dan || !dan.healNL || (state.inventory[cb.danNL] || 0) <= 0) return 0;
   if (curNL >= maxNL * AUTO_USE_PCT) return 0;
   removeItem(state, cb.danNL, 1);
-  return dan.healNL;
+  return Math.round(dan.healNL * consumableEffMult(state));   // dòng ẩn Nhu Tình phủ cả đan Nội Lực
 }
 
 // Save cũ chỉ có MỘT ô `cb.dan` dùng chung cho cả hồi máu lẫn hồi nội lực -> tách thành 3 ô.

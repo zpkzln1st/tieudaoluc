@@ -28,7 +28,7 @@ import {
   migrateDanSlots,
 } from './engine/activity.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, useBuffDan, duocLuTick } from './engine/buff.js';
-import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
+import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, HE_FX, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
   TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf,
   KHANG_CAP, KHANG_TU_HE, enemyKhangFor } from './data/votong.js';
 import { ENEMIES, STANCES, YEU_VUONG, YEU_VUONG_BY_ID, BAC_DROP_CHANCE, BAC_PER_EXP, LOOT_DROP_MULT } from './data/combat.js';
@@ -36,6 +36,7 @@ import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
 import { addItem, removeItem, countItem } from './engine/inventory.js';
 import { derivedStats, combatExpMult } from './engine/stats.js';
+import { equippedSetCount, SET_TIERS, SET_PCT_KEYS, SET_ELE_KEY, SET_MISC_KEYS } from './engine/setbonus.js';
 import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
 import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
 import { enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
@@ -2721,6 +2722,10 @@ const gameStore = {
   qualityRank(x) { const i = this.QUALITY_KEYS.indexOf(this._qKey(x)); return i < 0 ? 1 : i + 1; }, // 1..7
   qualityName(x) { return this.itemQuality(x).name; },
   itemDescOf(x) { const id = (x && typeof x === 'object') ? x.id : x; const it = this.ITEMS[id] || {}; return it.desc || ('Chiến lợi phẩm ' + this.itemQuality(x).name + ', thu được khi hạ yêu thú.'); },
+  // Chỉ trả lời VĂN THẬT do người viết, KHÔNG trả câu độn "Chiến lợi phẩm ..., thu được khi hạ yêu thú".
+  // Mọi món trang bị đều khai desc rỗng nên câu độn đó lặp y hệt trên từng món, lại nhắc lại đúng cái
+  // phẩm chất đã có huy hiệu ngay cạnh tên — popup chi tiết dùng hàm này để khỏi in dòng thừa.
+  itemDescReal(x) { const id = (x && typeof x === 'object') ? x.id : x; return ((this.ITEMS[id] || {}).desc) || ''; },
   QHEX: { phamPham: '#cbd5e1', luongPham: '#34d399', tinhPham: '#60a5fa', tuyetPham: '#a78bfa', truyenThe: '#e879f9', thanPham: '#fb923c', coBan: '#fbbf24' },
   // Hào quang chạy viền — ĐI THEO MÓN TRANG BỊ ở MỌI nơi hiện (ô paper-doll, Hành Lý, popup chọn trang bị...). Chỉ TRANG BỊ (gear) phẩm Sử Thi (truyenThe rank 5) TRỞ LÊN, HOẶC thuộc Bộ Trang (set — sắp ra mắt; hook setId/set). x = instance / gearView / string id. Trả hex màu phẩm hoặc null.
   SET_COLORS: { kimQuang: '#d6e3f2' },   // màu hào quang/hiển thị riêng cho từng Bộ Trang (Bạch Kim)
@@ -2769,6 +2774,51 @@ const gameStore = {
   btcChonHe(he) { this.btcHe = he; this.btcBoIdx = 0; },
   // Số bộ ĐÃ TRỌN — thẻ 裝 trên bảng chỉ số chỉ hiện tóm tắt, danh sách từng bộ nằm ở Bách Trang Các.
   get setTronCount() { return this.TRANG_SET_KEYS.filter((k) => this.setUnlocked(k) && this.setOwnedCount(k) >= this.TRANG_SETS[k].pieces.length).length; },
+  // ---------- DÒNG ẨN (3/5/7 món ĐANG MẶC) ----------
+  // setOwnedCount ở trên đếm SỞ HỮU (túi hoặc đang mặc) cho thanh tiến độ. Dòng ẩn thì phải đếm
+  // ĐANG MẶC — hai khái niệm khác nhau, dùng lẫn là để đồ trong túi cũng ăn hiệu ứng.
+  // Nhãn ô "Giảm Thời Gian" ở thẻ 抗. Buộc theo HE_FX của engine (Kim gây Ngất · Mộc gây Độc ·
+  // Thủy gây Chậm · Hỏa gây Bỏng · Thổ gây Choáng) nên cột nào cũng đúng hệ của nó; sửa HE_FX thì
+  // ô tự đi theo, không lệch.
+  // Ngất là DUY NHẤT không mang chữ "Giảm" — nó đọc là thời gian nằm bất tỉnh, user chốt vậy.
+  CC_LABEL: { ngat: 'Thời Gian Phục Hồi', doc: 'Giảm Thời Gian Trúng Độc', cham: 'Giảm Thời Gian Làm Chậm',
+    bong: 'Giảm Thời Gian Bị Bỏng', choang: 'Giảm Thời Gian Choáng' },
+  ccOfHe(he) { const fx = HE_FX[he]; return fx ? { key: fx.id, name: this.CC_LABEL[fx.id] || fx.ten } : { key: '', name: '' }; },
+  // Tên hiển thị 5 kháng — đổi sang lối tên sát thương. Khoá engine (khangKim/...) KHÔNG đổi.
+  KHANG_LABEL: { kim: 'Phòng Thủ Vật Lý', moc: 'Kháng Độc', thuy: 'Kháng Băng', hoa: 'Kháng Hỏa', tho: 'Kháng Lôi' },
+  khangLabel(he) { return this.KHANG_LABEL[he] || ('Kháng ' + heName(he)); },
+  SET_BAC: SET_TIERS,
+  setEquippedCount(key) { return equippedSetCount(this.state)[key] || 0; },
+  // Nhãn cho khoá KHÔNG thuộc bảng 21 chỉ số gearStats (kênh B/C/D). Hán-Việt ĐẦY ĐỦ, không viết tắt.
+  setBonusLabel(k, s) {
+    if (k === SET_ELE_KEY) return 'Cộng Hưởng ' + heName(s.he);
+    return ({ atkPct: 'Công Kích', defPct: 'Hộ Thể', hpPct: 'Sinh Lực', allPct: 'Toàn Bộ Chỉ Số',
+      hieuLucDan: 'Hiệu Lực Đan Dược & Thức Ăn' })[k] || this.statLabel(k);
+  },
+  // Kênh B/C/D lưu TỈ LỆ (0,12) -> ×100. Kênh A lưu ĐIỂM NGUYÊN -> in thẳng, hậu tố % tra bảng AFFIX.
+  setBonusVal(k, v) {
+    if (SET_PCT_KEYS.includes(k) || k === SET_ELE_KEY || SET_MISC_KEYS.includes(k)) return '+' + Math.round(v * 100) + '%';
+    return '+' + v + ((AFFIX[k] || {}).fmt === 'pct' ? '%' : '');
+  },
+  // Trả ĐỦ BA DÒNG mọi lúc — chưa đủ món thì `on:false` để UI làm xám, người chơi thấy trước đích đến.
+  setBonusRows(key) {
+    const s = this.TRANG_SETS[key];
+    if (!s || !s.bonus) return [];
+    const mac = this.setEquippedCount(key);
+    return this.SET_BAC.map((bac) => {
+      const tier = s.bonus[bac] || {};
+      const txt = Object.keys(tier).map((k) => this.setBonusLabel(k, s) + ' ' + this.setBonusVal(k, tier[k])).join(' · ');
+      return { bac, txt: txt || 'Chưa chốt', on: mac >= bac };
+    });
+  },
+  // Khối dòng ẩn gắn TRÊN CHÍNH MÓN ĐỒ (popup chi tiết + tooltip paper-doll): dưới các dòng hiện là
+  // ba dòng ẩn, xám sẵn, mặc đủ số món thì sáng lên. x = instance / gearView / string id.
+  setBonusPanel(x) {
+    const key = this._itemSetId(x);
+    const s = key && this.TRANG_SETS[key];
+    if (!s || !s.bonus) return null;
+    return { key, name: s.name, worn: this.setEquippedCount(key), total: s.pieces.length, rows: this.setBonusRows(key) };
+  },
   setCanGhep(key, id) { const s = this.TRANG_SETS[key]; return !!s && s.pieces.includes(id) && this.setUnlocked(key) && !this.setPieceOwned(id) && this.manhTrangBi >= s.manhCost; },
   ghepSetPiece(key, id) {
     const s = this.TRANG_SETS[key];
@@ -3653,6 +3703,9 @@ const gameStore = {
   canEquip(x) { const c = this.equipReqCtx(x); return c.req <= 1 || c.level >= c.req; },
   equipReqText(x) { const c = this.equipReqCtx(x); return c.label + ' Lv ' + c.req; },           // "Đốn Củi Lv 5" | "Chiến Đấu Lv 10"
   equipCurLevel(x) { return this.equipReqCtx(x).level; },                                         // cấp hiện tại của người chơi theo đúng loại
+  // Bản NGẮN cho chỗ chật (đầu popup vật phẩm): trang bị chiến đấu bỏ luôn chữ "Chiến Đấu" vì
+  // mọi món đều thế, nhưng CÔNG CỤ thì PHẢI giữ tên nghề — bỏ đi là không biết cần nghề nào.
+  equipReqShort(x) { const c = this.equipReqCtx(x); return c.label === 'Chiến Đấu' ? ('Cần Lv ' + c.req) : ('Cần ' + c.label + ' Lv ' + c.req); },
   doEquip(uid) {
     const v = this.gearView(findGear(this.state, uid)); if (!v) return;
     const c = this.equipReqCtx(v);
@@ -3663,8 +3716,8 @@ const gameStore = {
   // --- Hiển thị chi tiết trang bị (badge ngũ hành + so sánh) ---
   // Nhãn RÚT GỌN (modal Trang Bị + Cường Hóa). Ba bảng nhãn (đây, statLabel, gearStatIcon) đều fallback
   // `|| k` nên thiếu key nào là chỗ đó lòi chữ tiếng Anh 'khangKim' ra UI — phải thêm đủ cả ba.
-  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả',
-    giamNgat: 'Giảm Ngất', giamCham: 'Giảm Chậm', giamDoc: 'Giảm Độc', giamBong: 'Giảm Bỏng', giamChoang: 'Giảm Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP' })[k] || k; },
+  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', khangKim: 'Phòng Thủ Vật Lý', khangMoc: 'Kháng Độc', khangThuy: 'Kháng Băng', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Lôi', khangAll: 'Kháng Tất Cả',
+    giamNgat: 'Thời Gian Phục Hồi', giamCham: 'Giảm Thời Gian Làm Chậm', giamDoc: 'Giảm Thời Gian Trúng Độc', giamBong: 'Giảm Thời Gian Bị Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP' })[k] || k; },
   // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích / Sát Thương Bạo Kích).
   gearLineText(k, v) { const a = AFFIX[k]; return this.statLabel(k) + ' +' + v + (a && a.fmt === 'pct' ? '%' : ''); },
   gearVal(k, v) { const a = AFFIX[k]; return '+' + v + (a && a.fmt === 'pct' ? '%' : ''); },        // chỉ giá trị (tách khỏi tên cho list dọc)
@@ -3937,8 +3990,8 @@ const gameStore = {
   },
   itemTypeLabel(t) { return this.ITEM_TYPES[t] || 'Khác'; },
   equipSlotLabel(slot) { const s = (this.EQUIP_SLOTS || []).find((x) => x.id === slot) || (this.TOOL_SLOTS || []).find((x) => x.id === slot); return s ? s.name : slot; },
-  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả',
-    giamNgat: 'Giảm Thời Gian Ngất', giamCham: 'Giảm Thời Gian Chậm', giamDoc: 'Giảm Thời Gian Độc', giamBong: 'Giảm Thời Gian Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP Chiến Đấu' })[k] || k; },
+  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Phòng Thủ Vật Lý', khangMoc: 'Kháng Độc', khangThuy: 'Kháng Băng', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Lôi', khangAll: 'Kháng Tất Cả',
+    giamNgat: 'Thời Gian Phục Hồi', giamCham: 'Giảm Thời Gian Làm Chậm', giamDoc: 'Giảm Thời Gian Trúng Độc', giamBong: 'Giảm Thời Gian Bị Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP Chiến Đấu' })[k] || k; },
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) {
     const ref = this.itemModal; if (!ref) return;

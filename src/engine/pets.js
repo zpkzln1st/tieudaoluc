@@ -8,6 +8,9 @@ import { levelFromXp, addSkillXp, xpForLevel } from './leveling.js';
 import { LOCATIONS } from '../data/locations.js';
 import { ENEMIES } from '../data/combat.js';
 import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PET_SKILLS, AWK_PASSIVES, AWK_PASSIVE_IDS } from '../data/pets.js';
+// setbonus.js chỉ phụ thuộc data/gear.js -> import được từ đây mà KHÔNG tạo vòng (stats.js thì không:
+// nó đã import petBonus từ chính file này).
+import { consumableEffMult } from './setbonus.js';
 
 const STAT_KEYS = ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc'];
 
@@ -264,7 +267,7 @@ export function resetPetCombat(state) {
 function petAutoHeal(state) {
   const cb = state.combat; if (!cb) return 0;
   const fid = cb.luongThuc, food = fid && ITEMS[fid];
-  if (food && food.heal && (state.inventory[fid] || 0) > 0) { removeItem(state, fid, 1); return food.heal; }
+  if (food && food.heal && (state.inventory[fid] || 0) > 0) { removeItem(state, fid, 1); return Math.round(food.heal * consumableEffMult(state)); }
   const did = cb.dan, dan = did && ITEMS[did];
   if (dan && dan.heal && (state.inventory[did] || 0) > 0) { removeItem(state, did, 1); return dan.heal; }
   return 0;

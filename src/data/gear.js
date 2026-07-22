@@ -292,6 +292,103 @@ BACH_KIM_SETS.forEach((s) => {
 });
 
 export const GEAR_IDS = Object.keys(GEAR);
+
+// ============================================================
+// DÒNG ẨN CỦA BỘ TRANG — mặc đủ 3 / 5 / 7 món mới kích. CỘNG DỒN (đủ 7 thì ăn cả ba bậc).
+//
+// ĐẾM THEO MÓN ĐANG MẶC, không phải món sở hữu. setOwnedCount() ở main.js đếm SỞ HỮU (túi + đang
+// mặc) để chạy thanh tiến độ Bách Trang Các — TUYỆT ĐỐI không dùng nó làm đầu vào cho dòng ẩn.
+//
+// VÌ SAO GIÁ TRỊ ĐẶT THẤP HƠN ĐỒ RỜI: đồ bộ ghép ra bằng instanceFromCatalog nên KHÔNG có dòng affix
+// roll nào. Đo ở Lv100 trên cùng 7 ô: bộ Bạch Kim 3.519 Chiến Lực, đồ bậc 7 thường roll trung bình
+// 5.497 (−36%), lại trống hẳn Bạo Kích / Sát Thương Bạo Kích / Tốc Độ. Đó là ĐÁNH ĐỔI CÓ CHỦ Ý:
+// dòng ẩn KHÔNG bù lại phần chỉ số thô đã mất, nó trả bằng thứ không dòng roll nào đẻ ra được.
+// Vì vậy mọi dòng phụ trợ (bậc 3/5) đều cố ý để bộ VẪN THẤP HƠN đồ rời trên chính trục đó.
+//
+// BỐN KÊNH — engine tự phân loại theo TÊN KHOÁ (xem SET_PCT_KEYS/SET_ELE_KEY/SET_MISC_KEYS ở
+// engine/stats.js). Ghi sai kênh thì giá trị rơi vào hư không, KHÔNG BÁO LỖI:
+//   A. Khoá trùng tên 21 chỉ số gearStats  -> ĐIỂM NGUYÊN, cộng thẳng vào bộ tích luỹ, trần tự áp.
+//   B. atkPct / defPct / hpPct / allPct    -> TỈ LỆ (0,12 = 12%), nhân ở derivedStats. KHÔNG dòng
+//      roll nào cho % nhân — cả bảng AFFIX chỉ có điểm phẳng.
+//   C. congHuong                            -> TỈ LỆ, cộng vào Cộng Hưởng ĐÚNG HỆ CỦA BỘ (`he`).
+//   D. hieuLucDan                           -> TỈ LỆ, nhân hiệu lực đan dược + thức ăn.
+//
+// SỐ ĐO PHẢI NHỚ KHI TUNE:
+// • Giảm thời gian khống chế cắt TICK NGUYÊN: Math.round(ticks × (1−giảm)). Ngất/Choáng chỉ 1 tick
+//   -> ≤50 điểm KHÔNG LÀM GÌ CẢ, ≥51 là miễn tuyệt đối. Bỏng/Chậm 3 tick: <17→3 hiệp, 17-50→2,
+//   51-60→1. Độc 4 tick: <13→4, 13-37→3, 38-62→2. Đặt số không chạm ngưỡng = ném đi.
+// • Kháng đơn hệ chỉ ăn 1/5 số trận (quái roll hệ ngẫu nhiên mỗi trận). Trần 50 -> dừng ở 35,
+//   chừa chỗ cho dòng roll còn có nghĩa.
+// • baoSat (Sát Thương Bạo Kích) KHÔNG có trần — trục an toàn để đổ số.
+// • tangCong trần cộng dồn 3 -> cho bộ ăn 2, chừa 1 cho dòng roll hiếm nhất game.
+// • Chính Xác gần như vô dụng toàn game (né của quái chỉ 2-12%) — không lấy làm chữ ký bộ nào.
+//
+// MỌI SỐ Ở ĐÂY LÀ DRAFT.
+// ============================================================
+export const SET_BONUS = {
+  // --- VÔ HỆ: chống mọi thứ, không thiên lệch ---
+  kimQuang: {
+    3: { khangAll: 6 },                 // +6% kháng CẢ NĂM hệ — dòng roll chỉ cho 1-3 và chỉ ở Trang Sức
+    5: { khangAll: 6 },                 // cộng dồn -> 12
+    7: { allPct: 0.12 },                // Công/Thủ/Sinh Lực/Né/Chính Xác cùng ×1,12
+  },
+  // --- KIM ---
+  bachHong: {                            // CÔNG — bạo kích
+    3: { baoKich: 8 },
+    5: { baoKich: 8 },                  // tổng 16 điểm
+    7: { congHuong: 0.30 },             // Cộng Hưởng Kim +30%
+  },
+  dinhQuoc: {                            // THỦ — cứng đòn Kim
+    3: { khangKim: 15 },
+    5: { khangKim: 20 },                // tổng 35, chừa 15 cho dòng roll. Tăng dần cho khỏi đọc như tụt.
+    7: { defPct: 0.25 },
+  },
+  // --- MỘC ---
+  tuDien: {                              // CÔNG — tốc độ
+    3: { tocDo: 120 },
+    5: { tocDo: 120 },                  // tổng 240; đồ rời bậc 7 roll trung bình 459 -> vẫn thua
+    7: { congHuong: 0.30 },
+  },
+  nhuTinh: {                             // THỦ — giải độc, dưỡng thân
+    3: { khangMoc: 20 },
+    5: { giamDoc: 38 },                 // Độc 4 tick -> còn 2 hiệp (ngưỡng 38)
+    7: { hieuLucDan: 0.40 },            // đan dược + thức ăn mạnh thêm 40%
+  },
+  // --- THỦY ---
+  thuongLan: {                           // CÔNG — dập lửa
+    3: { giamBong: 17 },                // Bỏng 3 tick -> 2 hiệp
+    5: { giamBong: 34 },                // tổng 51 -> còn 1 hiệp
+    7: { congHuong: 0.30 },
+  },
+  thanhHu: {                             // THỦ — thông huyền, mở tầng chiêu
+    3: { khangThuy: 15 },
+    5: { khangThuy: 20 },
+    7: { tangCong: 2 },                 // +2 Tầng mọi chiêu đang lắp (trần 3)
+  },
+  // --- HỎA ---
+  thatSat: {                             // CÔNG — sát thủ, đòn chí mạng
+    3: { baoSat: 40 },                  // không trần
+    5: { atkPct: 0.12 },
+    7: { congHuong: 0.30 },
+  },
+  hongAnh: {                             // THỦ — BỘ TU LUYỆN, tổng +40% EXP
+    3: { tangExp: 10 },
+    5: { tangExp: 12 },
+    7: { tangExp: 18 },                 // cộng dồn = 40
+  },
+  // --- THỔ ---
+  anBang: {                              // CÔNG — trấn giữ, bền
+    3: { hpPct: 0.15 },
+    5: { giamChoang: 51 },              // Choáng 1 tick -> miễn tuyệt đối
+    7: { congHuong: 0.30 },
+  },
+  minhVuong: {                           // THỦ — bất động, miễn ngất
+    3: { khangTho: 15 },
+    5: { khangTho: 20 },
+    7: { giamNgat: 51 },                // Ngất 1 tick -> miễn tuyệt đối
+  },
+};
+
 // BỘ TRANG (set gear) — curate, KHÔNG rơi random. Nguồn = ghép từ "Mảnh Trang Bị Hoàng Kim" (currency CHUNG mọi bộ),
 // mở khoá từng bộ bằng "Đồ Phổ Bộ …" (blueprint riêng, rơi ở nội dung của bộ đó → kho mảnh cũ không mua sạch bộ mới).
 // Thêm bộ mới về sau = khai báo 1 entry vào TRANG_SETS (+ item Đồ Phổ + gán drop blueprint ở nội dung của bộ).
@@ -304,6 +401,7 @@ export const TRANG_SETS = {
     blueprintId: 'dpset_kimQuang',   // Đồ Phổ mở khoá bộ này
     source: 'Thái Hư Bí Cảnh · Yêu Vương',
     he: null,                        // Vô Hệ: không ăn khắc, không bị kháng chặn
+    bonus: SET_BONUS.kimQuang,       // dòng ẩn 3/5/7 món
   },
 };
 // 10 bộ Bạch Kim đợt 2 — cùng khuôn với Kim Quang. `source` CHƯA CHỐT nên Đồ Phổ chưa rơi ở đâu:
@@ -316,6 +414,7 @@ BACH_KIM_SETS.forEach((s) => {
     manhCost: 30,                       // DRAFT — chốt cùng lúc với nguồn rơi
     blueprintId: 'dpset_' + s.key,
     source: 'Chưa chốt — sắp ra mắt',
+    bonus: SET_BONUS[s.key] || null,    // dòng ẩn 3/5/7 món
   };
 });
 export const TRANG_SET_KEYS = Object.keys(TRANG_SETS);
@@ -399,11 +498,14 @@ export const AFFIX = {
   // noLv:true = KHONG nhan LV_MUL (chi nhan QUALITY_MUL). Bat buoc: k = LV_MUL x QUALITY_MUL tai bac 7
   // (Lv100 coBan) = 23,60 -> mot dong lo/hi 3..6 se thanh 71..142 DIEM = 71-142% khang tu MOT dong.
   // Chi cho pham chat quyet dinh do lon -> khang van len theo do hiem, ma khong no theo cap.
-  khangKim:  { key: 'khangKim',  name: 'Kháng Kim',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
-  khangMoc:  { key: 'khangMoc',  name: 'Kháng Mộc',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
-  khangThuy: { key: 'khangThuy', name: 'Kháng Thủy', lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  // TÊN HIỂN THỊ đổi sang lối tên sát thương quen thuộc (user chốt). KHOÁ giữ nguyên khangKim/khangMoc/...
+  // nên cơ chế, trần 50%, đường tính đều KHÔNG đổi một dòng nào — chỉ đổi chữ hiện ra.
+  // Ràng buộc hệ vẫn y nguyên: Kim gây Ngất · Mộc gây Độc · Thủy gây Chậm · Hỏa gây Bỏng · Thổ gây Choáng.
+  khangKim:  { key: 'khangKim',  name: 'Phòng Thủ Vật Lý', lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  khangMoc:  { key: 'khangMoc',  name: 'Kháng Độc',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  khangThuy: { key: 'khangThuy', name: 'Kháng Băng', lo: 3, hi: 6, fmt: 'pct', noLv: true },
   khangHoa:  { key: 'khangHoa',  name: 'Kháng Hỏa',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
-  khangTho:  { key: 'khangTho',  name: 'Kháng Thổ',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
+  khangTho:  { key: 'khangTho',  name: 'Kháng Lôi',  lo: 3, hi: 6, fmt: 'pct', noLv: true },
   // Khang Tat Ca (chi Trang Suc): cong vao CA 5 he nen dat gia tri thap hon han mot dong don he.
   khangAll:  { key: 'khangAll',  name: 'Kháng Tất Cả', lo: 1, hi: 3, fmt: 'pct', noLv: true },
   // DA BO HAN dong `hoiMau`. Do harness: hoi mau la % mau toi da MOI TICK, ma tran o Lv100 dai

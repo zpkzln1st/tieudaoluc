@@ -3,6 +3,10 @@
 // derived = Tứ Trụ (level) + cộng dồn từ trang bị đang mặc.
 // ============================================================
 import { ITEMS } from '../data/items.js';
+// Dòng ẩn Bộ Trang ở file riêng (setbonus.js) để pets.js cũng import được mà không tạo vòng.
+// Re-export để mọi nơi vẫn quen đường cũ `từ stats.js`.
+import { setBonus } from './setbonus.js';
+export { SET_TIERS, SET_PCT_KEYS, SET_ELE_KEY, SET_MISC_KEYS, equippedSetCount, setBonus, consumableEffMult } from './setbonus.js';
 import { levelFromXp } from './leveling.js';
 import { enhanceMul } from './enhance.js';
 import { petBonus } from './pets.js';
@@ -72,6 +76,11 @@ export function gearStats(state) {
       g[k] = (g[k] || 0) + inst.stats[k] * m;
     }
   }
+  // DÒNG ẨN kênh A — điểm nguyên, cộng SAU vòng lặp nên KHÔNG ăn cường hóa (nó không thuộc món nào).
+  // Cộng vào `g` chứ không vào phần trả về, để mọi trần ở derivedStats (kháng 0,50 · khống chế 0,60 ·
+  // tangCong 3) tự động áp mà không phải chép lại chỗ nào.
+  const sbFlat = setBonus(state).flat;
+  for (const k of Object.keys(sbFlat)) g[k] = (g[k] || 0) + sbFlat[k];
   for (const k in g) g[k] = Math.round(g[k]);
   return g;
 }
@@ -84,6 +93,10 @@ export function gearEle(state) {
     const inst = eq[slot];
     if (inst && inst.he && inst.eleDmg && e[inst.he] != null) e[inst.he] += inst.eleDmg;
   }
+  // DÒNG ẨN kênh C — Cộng Hưởng của bộ, dồn vào ĐÚNG hệ khai ở TRANG_SETS[key].he.
+  // Đồ bộ để eleDmg = 0 từng món chính là để dành chỗ cho dòng này (7 × 0,10 sẽ vỡ trận).
+  const sbEle = setBonus(state).ele;
+  for (const he of Object.keys(sbEle)) if (sbEle[he]) e[he] += sbEle[he];
   return e;
 }
 
@@ -107,12 +120,15 @@ export function derivedStats(state, opts) {
     }
   }
   // Vạn Vật Phổ (Phổ Lực) + Danh Hiệu đang đeo — % chỉ số cộng nhẹ.
-  const cx = codexBonus(state), tb = titleBonus(state);
-  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct));
-  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct));
-  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct));
-  neTranh   = Math.round(neTranh   * (1 + cx.allPct + tb.allPct));
-  menhTrung = Math.round(menhTrung * (1 + cx.allPct + tb.allPct));
+  // DÒNG ẨN kênh B (`sp`) đứng chung tầng với Vạn Vật Phổ + Danh Hiệu: CỘNG với nhau rồi mới nhân
+  // một lần, tức chúng cộng dồn chứ không nhân chồng. Không dòng roll nào cho % nhân — cả bảng
+  // AFFIX chỉ có điểm phẳng — nên đây là thứ chỉ bộ trang mới có.
+  const cx = codexBonus(state), tb = titleBonus(state), sp = setBonus(state).pct;
+  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct + sp.atkPct + sp.allPct));
+  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct + sp.defPct + sp.allPct));
+  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct + sp.hpPct  + sp.allPct));
+  neTranh   = Math.round(neTranh   * (1 + cx.allPct + tb.allPct + sp.allPct));
+  menhTrung = Math.round(menhTrung * (1 + cx.allPct + tb.allPct + sp.allPct));
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   // baoKich/baoSat/tocDo: chỉ từ gear (không Tứ Trụ/codex), chuyển thẳng cho deriveCombat.
