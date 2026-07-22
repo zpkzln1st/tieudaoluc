@@ -11,7 +11,7 @@ import { combatProfile, boPhapStats, COMBAT_CYCLE_MS } from '../data/votong.js';
 import { travelTimeMs } from './travel.js';
 import { addItem, removeItem } from './inventory.js';
 import { addGearInstance } from './equip.js';
-import { rollMonsterDrop, rollGearInstance, MONSTER_DROP_CHANCE } from '../data/gear.js';
+import { rollMonsterDrop, rollGearInstance, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV } from '../data/gear.js';
 import { titleBonus } from './titles.js';
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
@@ -300,6 +300,8 @@ export function advance(state, now) {
         // noBoost -> Bách Bảo KHÔNG được thổi phồng chúng; chỉ nguyên liệu thường mới ăn matMul.
         if (enemy.loot) for (const l of enemy.loot) { const m = l.noBoost ? lootMul : matMul; if (Math.random() < l.chance * m * LOOT_DROP_MULT) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
         if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }   // loot-hunt: rơi gear instance (offline-safe)
+        // Mảnh Trang Bị Hoàng Kim: chỉ quái Lv>=90. Ăn lootMul như mọi drop khác (Danh Hiệu Lùng Sục).
+        if ((enemy.reqLevel || 0) >= MANH_DROP_MIN_LV && Math.random() < MANH_DROP_CHANCE * lootMul) { addItem(state, 'manhTrangBi', 1); sess.loot.manhTrangBi = (sess.loot.manhTrangBi || 0) + 1; }
         if (Math.random() < BAC_DROP_CHANCE) { const bg = Math.round(bacPer * moneyMul); state.currencies.bac = (state.currencies.bac || 0) + bg; bacGot += bg; }   // Bạc rơi ~15%/kill (không phải mỗi con)
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;

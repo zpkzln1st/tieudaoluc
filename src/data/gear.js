@@ -393,27 +393,48 @@ export const SET_BONUS = {
 // mở khoá từng bộ bằng "Đồ Phổ Bộ …" (blueprint riêng, rơi ở nội dung của bộ đó → kho mảnh cũ không mua sạch bộ mới).
 // Thêm bộ mới về sau = khai báo 1 entry vào TRANG_SETS (+ item Đồ Phổ + gán drop blueprint ở nội dung của bộ).
 export const KIM_QUANG_IDS = GEAR_IDS.filter((id) => ((GEAR[id].equip) || {}).set === 'kimQuang');
+// GIÁ 1 MÓN — cần 7×60 = 420 Mảnh cho trọn bộ. Neo vào thu nhập Mảnh/ngày ở trần treo máy 8 giờ:
+// lối cày quái 8,3/ngày -> ~50 ngày · lối Bí Cảnh 10/ngày -> ~42 ngày. Mốc dòng ẩn 3 món = 180 Mảnh
+// (~3 tuần) là lần nếm vị đầu tiên. MỘT số này chỉnh dài/ngắn cả chuỗi — đừng sửa tỉ lệ rơi.
+const MANH_COST = 60;
+// Nguồn Mảnh — CHUNG cho cả 11 bộ. Màn Bách Trang Các đọc chuỗi này; sửa nguồn rơi ở
+// engine/activity.js · engine/dungeon.js · engine/worldboss.js thì phải sửa luôn câu này.
+const MANH_SOURCE = 'quái Lv 90+ · thông quan Bí Cảnh · Yêu Vương Lv 90+';
+// Bí Cảnh "nhà" của từng bộ — Đồ Phổ Bộ rơi ở đây (data/dungeon.js loot.rare). Ghép theo HỆ:
+// mỗi phó bản hệ nào giữ đúng 2 bộ hệ đó. Bảng rơi THẬT nằm ở dungeon.js — bảng này chỉ dựng chữ
+// cho màn Bách Trang Các. SỬA MỘT BÊN PHẢI SỬA BÊN KIA, lệch nhau là chỉ người chơi chạy sai chỗ.
+const BK_HOME = {
+  kimQuang: 'Thái Hư Bí Cảnh',
+  thuongLan: 'Băng Tâm Hàn Đàm', thanhHu: 'Băng Tâm Hàn Đàm',
+  hongAnh: 'Xích Diệm Địa Cung', thatSat: 'Xích Diệm Địa Cung',
+  bachHong: 'Cổ Mộ Kiếm Tông', dinhQuoc: 'Cổ Mộ Kiếm Tông',
+  nhuTinh: 'Vạn Yêu Sơn', tuDien: 'Vạn Yêu Sơn',
+  anBang: 'Thiên Cơ Di Tích', minhVuong: 'Thiên Cơ Di Tích',
+};
 export const TRANG_SETS = {
   kimQuang: {
     key: 'kimQuang', name: 'Bộ Kim Quang', display: 'Bạch Kim', color: '#d6e3f2',
     pieces: KIM_QUANG_IDS,           // 7 món (mu/giap/dai/gang/giay/nhan/trangSuc)
-    manhCost: 30,                    // Mảnh / 1 món (DRAFT — tune theo cảm giác)
+    manhCost: MANH_COST,             // Mảnh / 1 món
     blueprintId: 'dpset_kimQuang',   // Đồ Phổ mở khoá bộ này
-    source: 'Thái Hư Bí Cảnh · Yêu Vương',
+    blueprintSource: BK_HOME.kimQuang,   // Bí Cảnh rơi Đồ Phổ — màn Bách Trang Các đọc để chỉ chỗ
+    source: MANH_SOURCE,
     he: null,                        // Vô Hệ: không ăn khắc, không bị kháng chặn
     bonus: SET_BONUS.kimQuang,       // dòng ẩn 3/5/7 món
   },
 };
-// 10 bộ Bạch Kim đợt 2 — cùng khuôn với Kim Quang. `source` CHƯA CHỐT nên Đồ Phổ chưa rơi ở đâu:
-// setUnlocked() đọc số Đồ Phổ trong túi, mà không nguồn nào cấp -> mười bộ này khoá kín cho tới khi
-// chốt nguồn. Cố ý để vậy còn hơn thả nội dung nửa vời cho người chơi cày hụt.
+// 10 bộ Bạch Kim đợt 2 — cùng khuôn với Kim Quang. HAI TRỤC tách bạch: Đồ Phổ quyết ĐUỔI BỘ NÀO
+// (rơi ở Bí Cảnh nhà nó, mở cửa trong vài ngày — là CỬA, không phải TƯỜNG); Mảnh quyết BAO LÂU
+// (rơi ở quái Lv90+ · Bí Cảnh · Yêu Vương, nên cày hay chạy phó bản đều tiến — ô activity độc quyền
+// nên trói Mảnh vào một hoạt động là ép người chơi bỏ cái kia).
 BACH_KIM_SETS.forEach((s) => {
   TRANG_SETS[s.key] = {
     key: s.key, name: s.name, display: 'Bạch Kim', color: '#d6e3f2', he: s.he,
     pieces: GEAR_IDS.filter((id) => ((GEAR[id].equip) || {}).set === s.key),
-    manhCost: 30,                       // DRAFT — chốt cùng lúc với nguồn rơi
+    manhCost: MANH_COST,
     blueprintId: 'dpset_' + s.key,
-    source: 'Chưa chốt — sắp ra mắt',
+    blueprintSource: BK_HOME[s.key] || null,
+    source: MANH_SOURCE,
     bonus: SET_BONUS[s.key] || null,    // dòng ẩn 3/5/7 món
   };
 });
@@ -681,14 +702,24 @@ export function instanceFromCatalog(gearId, plus) {
 
 // ---- DROP tu quai thuong ----
 export const MONSTER_DROP_CHANCE = 0.003;   // 0.3% / kill (truoc khi nhan lootMul)
+// MANH TRANG BI HOANG KIM tu quai thuong — truc dem cua Bo Trang. Chu y: vong cay CO DINH 8s/con
+// (COMBAT_CYCLE_MS) nen tran treo may 8 gio = 3600 con/ngay -> 0,12% ra 4,3 Manh/ngay, xap xi loi
+// Bi Canh (~6/ngay). CO Y de hai loi gan bang nhau: o state.activity la DOC QUYEN, troi Manh vao
+// mot hoat dong la ep nguoi choi bo hoat dong kia suot ca thang ruoi.
+export const MANH_DROP_CHANCE = 0.0012;
+export const MANH_DROP_MIN_LV = 90;         // quai duoi cap nay khong rot (khop nguong Yeu Vuong)
 // Cuoc pham quai thuong: CAP o Cuc Hiem (Su Thi+ den tu Bi Canh/Forge).
 export const MONSTER_QUALITY_W = { phamPham: 60, luongPham: 25, tinhPham: 10, tuyetPham: 5 };
 
-// slot deo duoc -> [{id,itemLv}] asc (bo tool gatherEff).
+// slot deo duoc -> [{id,itemLv}] asc (bo tool gatherEff + bo Bo Trang).
+// `!e.set` BAT BUOC — khop voi 3 cho kia da loai Bo Trang (FORGE_POOL o duoi, DOPHO_POOL o items.js,
+// dungeonResultItems o main.js). Thieu no thi o bac 7 moi slot co 11 mon bo + 1 mon thuong -> quai
+// Lv>=92 rot 71% ra do bo pham rac, ma setPieceOwned() khong xet pham chat nen KHOA VINH VIEN quyen
+// ghep ban Co Ban. Nguon cua Bo Trang chi co MOT: ghep Manh + Do Pho Bo o Bach Trang Cac.
 export const GEAR_BY_SLOT = (() => {
   const m = {};
   for (const id of Object.keys(GEAR)) {
-    const e = GEAR[id].equip; if (!e || e.gatherEff) continue;
+    const e = GEAR[id].equip; if (!e || e.gatherEff || e.set) continue;
     (m[e.slot] = m[e.slot] || []).push({ id, itemLv: e.itemLv || 1 });
   }
   for (const s in m) m[s].sort((a, b) => a.itemLv - b.itemLv);

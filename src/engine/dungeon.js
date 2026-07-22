@@ -178,7 +178,17 @@ export function runDungeon(state, dungeonId) {
     const cchance = (D.loot.chieuDoPho.chance || 0) * P * (coDuyenBonus ? 1.3 : 1);
     if (Math.random() < cchance) { chieuDoPhoId = rollChieuDoPhoId(state); if (chieuDoPhoId) addLoot(chieuDoPhoId, 1); }
   }
-  if (cleared && D.loot.rare) for (const r of D.loot.rare) { if (Math.random() < (r.chance || 0) * RUN.rareMul * P) addLoot(r.itemId, 1); }
+  // Đồ Phổ BỘ TRANG (dpset_*) đi chung bảng `rare` nhưng CHỈ rơi bản CHƯA có — cùng lối với
+  // rollChieuDoPhoId ở trên. Lý do: setUnlocked() chỉ cần count>0 và KHÔNG tiêu Đồ Phổ, nên bản
+  // trùng vừa vô dụng vừa làm phó bản ngắn (nhiều lượt/ngày) thành mỏ Mảnh trá hình nếu sau này
+  // cho quy đổi. Bỏ qua sớm để lượt trúng rơi vào món hiếm khác.
+  if (cleared && D.loot.rare) for (const r of D.loot.rare) {
+    if (r.itemId.slice(0, 6) === 'dpset_' && ((state.inventory || {})[r.itemId] || 0) > 0) continue;
+    if (Math.random() < (r.chance || 0) * RUN.rareMul * P) addLoot(r.itemId, 1);
+  }
+  // MẢNH TRANG BỊ HOÀNG KIM: chắc chắn, KHÔNG nhân rareMul/pace — số đã cân sẵn theo lượt/ngày ở
+  // data/dungeon.js. Nhân pace vào đây là phá luôn ý đồ "phẳng giữa các phó bản Lv70+".
+  if (cleared && D.loot.manh) addLoot('manhTrangBi', D.loot.manh);
 
   // BÍ KÍP -> Tông Môn (main->phụ 1 chiều): roll thuần, KHÔNG vào kho main; grant nạp vào biKipBag
   let biKipDropId = null;

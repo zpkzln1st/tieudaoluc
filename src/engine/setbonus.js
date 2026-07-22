@@ -9,6 +9,13 @@
 import { GEAR, TRANG_SETS } from '../data/gear.js';
 
 export const SET_TIERS = [3, 5, 7];          // cộng dồn: mặc đủ 7 thì ăn cả ba bậc
+// PHẨM CHẤT HỢP LỆ của một món Bộ Trang. Đường sinh DUY NHẤT là ghepSetPiece() ->
+// instanceFromCatalog() -> chép phẩm catalog = Cổ Bản, nên mọi món bộ thật đều Cổ Bản.
+// Chốt chặn này để phòng rò bảng drop: trước đây GEAR_BY_SLOT quên loại equip.set nên quái Lv>=92
+// rơi ra món bộ phẩm rác, vẫn bật đủ dòng ẩn 3/5/7 mà không tốn Mảnh nào. Đã vá nguồn rò, nhưng
+// save cũ còn giữ mấy món đó — giữ chốt này thì chúng thành trang bị thường, vô hại.
+export const SET_QUALITY = 'coBan';
+export function isSetPieceInst(inst) { return !!inst && inst.quality === SET_QUALITY; }
 export const SET_PCT_KEYS = ['atkPct', 'defPct', 'hpPct', 'allPct'];
 export const SET_ELE_KEY = 'congHuong';
 export const SET_MISC_KEYS = ['hieuLucDan'];
@@ -21,7 +28,7 @@ export function equippedSetCount(state) {
   const eq = (state && state.equipment) || {};
   for (const slot of Object.keys(eq)) {
     const inst = eq[slot];
-    if (!inst || !inst.gearId) continue;
+    if (!inst || !inst.gearId || !isSetPieceInst(inst)) continue;   // phẩm không phải Cổ Bản -> không phải món bộ thật
     // Đọc equip.set từ catalog, KHÔNG suy từ tiền tố id: có món thường trùng tiền tố tên bộ
     // (eq_minh_vuong_khai_giap, eq_kim_quang_tien_phu) mà set = null.
     const key = (((GEAR[inst.gearId] || {}).equip) || {}).set;

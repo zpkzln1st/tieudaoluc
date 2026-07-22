@@ -12,7 +12,7 @@ import { TUTORIAL_QUESTS, DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS } from './
 import { LINH_THACH, linhThachForSkill } from './data/linhthach.js';
 import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
-import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
+import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
@@ -36,7 +36,7 @@ import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './data/dungeon.js';
 import { MERCHANT, SHOP_MAT, SHOP_FOOD, SHOP_BAIT, AVATAR_PRICE, COVER_PRICE } from './data/merchant.js';
 import { addItem, removeItem, countItem } from './engine/inventory.js';
 import { derivedStats, combatExpMult } from './engine/stats.js';
-import { equippedSetCount, SET_TIERS, SET_PCT_KEYS, SET_ELE_KEY, SET_MISC_KEYS } from './engine/setbonus.js';
+import { equippedSetCount, isSetPieceInst, SET_QUALITY, SET_TIERS, SET_PCT_KEYS, SET_ELE_KEY, SET_MISC_KEYS } from './engine/setbonus.js';
 import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
 import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
 import { enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
@@ -2729,10 +2729,18 @@ const gameStore = {
   QHEX: { phamPham: '#cbd5e1', luongPham: '#34d399', tinhPham: '#60a5fa', tuyetPham: '#a78bfa', truyenThe: '#e879f9', thanPham: '#fb923c', coBan: '#fbbf24' },
   // Hào quang chạy viền — ĐI THEO MÓN TRANG BỊ ở MỌI nơi hiện (ô paper-doll, Hành Lý, popup chọn trang bị...). Chỉ TRANG BỊ (gear) phẩm Sử Thi (truyenThe rank 5) TRỞ LÊN, HOẶC thuộc Bộ Trang (set — sắp ra mắt; hook setId/set). x = instance / gearView / string id. Trả hex màu phẩm hoặc null.
   SET_COLORS: { kimQuang: '#d6e3f2' },   // màu hào quang/hiển thị riêng cho từng Bộ Trang (Bạch Kim)
-  _itemSetId(x) {   // id Bộ Trang của 1 item (instance/gearView/string id) — tra catalog. null nếu không thuộc set.
+  // id Bộ Trang của 1 item (instance/gearView/string id) — tra catalog. null nếu không thuộc set.
+  // CHỐT PHẨM CHẤT nằm ở ĐÂY chứ không ở từng hàm hiển thị: itemQuality · itemHaloHex · haloStyle ·
+  // gtipSetName · setBonusPanel đều đi qua hàm này, nên vá một chỗ là năm mặt cùng nhất quán với
+  // equippedSetCount/setPieceOwned. Rải chốt ra từng hàm là kiểu gì cũng sót một mặt rồi cùng một
+  // món hiện "Bạch Kim, 3/7" ở tooltip mà "chưa sở hữu" ở Bách Trang Các.
+  // _qKey ĐA HÌNH: object lấy x.quality, string id lấy phẩm catalog (= Cổ Bản) -> ô xem trước ở
+  // Bách Trang Các truyền pid dạng chuỗi vẫn chạy đúng.
+  _itemSetId(x) {
     if (!x) return null;
     const def = (typeof x === 'object') ? (this.ITEMS[x.gearId] || x) : (this.ITEMS[x] || {});
-    return (def.equip && def.equip.set) || (x.equip && x.equip.set) || x.set || null;
+    const key = (def.equip && def.equip.set) || (x.equip && x.equip.set) || x.set || null;
+    return (key && this._qKey(x) === SET_QUALITY) ? key : null;
   },
   itemHaloHex(x) {
     if (!x) return null;
@@ -2755,10 +2763,13 @@ const gameStore = {
   TRANG_SETS, TRANG_SET_KEYS,
   get manhTrangBi() { return countItem(this.state, 'manhTrangBi'); },   // ví mảnh chung
   setUnlocked(key) { const s = this.TRANG_SETS[key]; return !!s && countItem(this.state, s.blueprintId) > 0; },   // đã có Đồ Phổ Bộ?
-  setPieceOwned(id) {   // đã có món này (trong túi hoặc đang mặc)?
-    if ((this.state.gearBag || []).some((g) => g && g.gearId === id)) return true;
+  // Đã có món này (trong túi hoặc đang mặc)? CHỈ tính bản Cổ Bản — xem chú thích SET_QUALITY ở
+  // engine/setbonus.js. Không lọc phẩm thì một món bộ phẩm rác còn sót trong save cũ sẽ CẤM VĨNH
+  // VIỄN quyền ghép bản thật (setCanGhep đọc thẳng hàm này).
+  setPieceOwned(id) {
+    if ((this.state.gearBag || []).some((g) => g && g.gearId === id && isSetPieceInst(g))) return true;
     const eq = this.state.equipment || {};
-    return Object.values(eq).some((g) => g && g.gearId === id);
+    return Object.values(eq).some((g) => g && g.gearId === id && isSetPieceInst(g));
   },
   setOwnedCount(key) { const s = this.TRANG_SETS[key]; return s ? s.pieces.filter((id) => this.setPieceOwned(id)).length : 0; },
   // ---- Bách Trang Các: điều hướng HAI TẦNG (cột Ngũ Hành → thanh chọn Bộ) ----
@@ -3391,6 +3402,9 @@ const gameStore = {
     if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul * LOOT_DROP_MULT) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; }
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
     if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }
+    // Mảnh Trang Bị Hoàng Kim: chỉ quái Lv>=90. PHẢI khớp nhánh offline ở engine/activity.js — lệch
+    // nhau là treo máy và đánh tại chỗ ra hai tốc độ khác nhau cho cùng một con quái.
+    if ((e.reqLevel || 0) >= MANH_DROP_MIN_LV && Math.random() < MANH_DROP_CHANCE * lootMul) { addItem(this.state, 'manhTrangBi', 1); sess.loot.manhTrangBi = (sess.loot.manhTrangBi || 0) + 1; }
     if (Math.random() < BAC_DROP_CHANCE) { const bacGain = Math.round(Math.max(1, Math.round(e.exp * BAC_PER_EXP)) * moneyMul); this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain; sess.bac += bacGain; }   // Bạc rơi ~15%/kill (không phải mỗi con)
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     this.state.combat.sinhLuc = Math.max(0, Math.round(f.p.hp));
@@ -3638,7 +3652,7 @@ const gameStore = {
   GTIP_ORDER: ['congKich', 'hoThe', 'sinhLuc', 'tocDo', 'neTranh', 'menhTrung', 'baoKich', 'baoSat',
     'khangKim', 'khangMoc', 'khangThuy', 'khangHoa', 'khangTho', 'khangAll',
     'giamNgat', 'giamCham', 'giamDoc', 'giamBong', 'giamChoang', 'tangCong', 'tangExp'],
-  gtipSetName(v) { const k = ((this.ITEMS[v.gearId] || {}).equip || {}).set; return k ? (this.TRANG_SETS[k] || {}).name : null; },
+  gtipSetName(v) { const k = this._itemSetId(v); return k ? (this.TRANG_SETS[k] || {}).name : null; },   // qua _itemSetId để ăn chốt phẩm chất
   // Màu chủ đạo của tooltip. Đồ Bộ Trang phải ra BẠCH KIM cho khớp nhãn "Bạch Kim" mà itemQuality
   // đã override — dùng thẳng QHEX thì đồ bộ (phẩm Cô Bản) ra VÀNG, chữ nói một đằng viền một nẻo.
   // itemHaloHex trả null với đồ dưới bậc 5 nên bắt buộc có đường lui, không thì tooltip mất viền.

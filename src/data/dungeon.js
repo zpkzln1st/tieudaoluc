@@ -12,6 +12,14 @@
 //     stat tốt nhất của người chơi (lucDao cưỡng / linhXao khôn / thanPhap né). Combat tầng
 //     so chiến lực (deriveCombat) vs `power` baseline (suy từ reqLevel).
 //   - ĐỒ PHỔ (Model B): drop về túi (item dp_<gearId>); phó bản thấp (Lv10/25) KHÔNG rơi đồ phổ.
+//   - BỘ TRANG (Bạch Kim) — hai trục, cả hai đều đòi THÔNG QUAN boss:
+//       `loot.manh` = số Mảnh Trang Bị Hoàng Kim CHẮC CHẮN mỗi lượt thông quan. CỐ Ý gần bằng nhau
+//         giữa mọi phó bản Lv70+ (đều ~6 Mảnh/ngày ở trần treo 8 giờ, do lượt/ngày bù lại thời
+//         lượng) — để không ép người chơi chạy đúng MỘT phó bản. Băng Tâm Lv55 trả ít hơn (4/ngày).
+//       `loot.rare` chứa `dpset_<key>` = Đồ Phổ Bộ, ghép theo HỆ: mỗi phó bản giữ đúng 2 bộ cùng hệ
+//         với nó (Thái Hư giữ Kim Quang Vô Hệ). Đây là CỬA chọn bộ, không phải tường: 10% × rareMul
+//         × pace ~ 7,5-10%/lượt nên mở trong vài ngày. Tường nằm ở 420 Mảnh/bộ.
+//         Engine tự bỏ qua bản ĐÃ CÓ (setUnlocked chỉ cần count>0 -> bản trùng là rác).
 //
 // Màu (color) = tông UI glow/viền theme (KHÔNG phải màu phẩm chất). seal = ấn Hán.
 // ============================================================
@@ -84,7 +92,8 @@ export const DUNGEONS = [
       da: ['daCuongHoaTrung', 'daCuongHoaCao'],
       doPho: { bac: [4, 5], slots: ['gang', 'trangSuc'] }, doPhoChance: 0.05,
       toolDoPho: { bac: 5, chance: 0.06 }, // Đồ Phổ công cụ bậc 5 (roll riêng)
-      rare: [],
+      manh: 1,   // Mảnh Trang Bị Hoàng Kim / lượt THÔNG QUAN — phó bản vào cửa nên trả ít nhất
+      rare: [{ itemId: 'dpset_thuongLan', chance: 0.10 }, { itemId: 'dpset_thanhHu', chance: 0.10 }],   // 2 bộ hệ Thủy
     },
   },
   {
@@ -101,7 +110,8 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [5], slots: ['vuKhi'] }, doPhoChance: 0.025,
       toolDoPho: { bac: 6, chance: 0.05 }, // Đồ Phổ công cụ bậc 6 (roll riêng)
-      rare: [{ itemId: 'phuQuangPhan', chance: 0.05 }],
+      manh: 2,
+      rare: [{ itemId: 'phuQuangPhan', chance: 0.05 }, { itemId: 'dpset_hongAnh', chance: 0.10 }, { itemId: 'dpset_thatSat', chance: 0.10 }],   // 2 bộ hệ Hỏa
     },
   },
   {
@@ -118,7 +128,8 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [5, 6], slots: ['vuKhi', 'mu', 'giap'] }, doPhoChance: 0.012,
       toolDoPho: { bac: 7, chance: 0.04 }, // Đồ Phổ công cụ bậc 7 (roll riêng; sớm hơn Thái Hư, khớp cấp đeo 81)
-      rare: [{ itemId: 'meVuHon', chance: 0.04 }],
+      manh: 2,
+      rare: [{ itemId: 'meVuHon', chance: 0.04 }, { itemId: 'dpset_bachHong', chance: 0.10 }, { itemId: 'dpset_dinhQuoc', chance: 0.10 }],   // 2 bộ hệ Kim
     },
   },
   {
@@ -135,7 +146,8 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [6], slots: ['giap', 'mu'] }, doPhoChance: 0.006,
       chieuDoPho: { chance: 0.05 }, // Đồ Phổ Tuyệt Kĩ (chỉ ra cái chưa có) — DRAFT
-      rare: [{ itemId: 'giaoChau', chance: 0.05 }, { itemId: 'hoPhuDauLinh', chance: 0.025 }],
+      manh: 2,
+      rare: [{ itemId: 'giaoChau', chance: 0.05 }, { itemId: 'hoPhuDauLinh', chance: 0.025 }, { itemId: 'dpset_nhuTinh', chance: 0.10 }, { itemId: 'dpset_tuDien', chance: 0.10 }],   // 2 bộ hệ Mộc
     },
   },
   {
@@ -152,7 +164,8 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [6, 7], slots: ['nhan', 'trangSuc'] }, doPhoChance: 0.003,
       chieuDoPho: { chance: 0.07 }, // Đồ Phổ Tuyệt Kĩ — DRAFT
-      rare: [{ itemId: 'hachCoLinh', chance: 0.03 }],
+      manh: 3,
+      rare: [{ itemId: 'hachCoLinh', chance: 0.03 }, { itemId: 'dpset_anBang', chance: 0.10 }, { itemId: 'dpset_minhVuong', chance: 0.10 }],   // 2 bộ hệ Thổ
     },
   },
   {
@@ -169,10 +182,12 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [7], slots: 'all' }, doPhoChance: 0.001,
       chieuDoPho: { chance: 0.10 }, // Đồ Phổ Tuyệt Kĩ (cao nhất) — DRAFT
+      manh: 3,
       rare: [
         { itemId: 'tinhTheYeuVuong', chance: 0.01 },
         { itemId: 'cuuViTinh', chance: 0.012 },
         { itemId: 'maToTam', chance: 0.008 },
+        { itemId: 'dpset_kimQuang', chance: 0.10 },   // Kim Quang Vô Hệ — không thuộc phó bản hệ nào
       ],
     },
   },

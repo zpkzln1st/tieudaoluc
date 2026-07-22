@@ -159,8 +159,11 @@ function grantReward(state, boss) {
   state.currencies.honThach = (state.currencies.honThach || 0) + wb.honThach;
   if (Math.random() < 0.10) { addItem(state, 'tinhTheYeuVuong', wb.tinhThe); r.items.tinhTheYeuVuong = wb.tinhThe; }   // Tinh Thể: 10% (KHÔNG còn đảm bảo)
   for (const e of wb.eggs) { if (Math.random() < e.chance) { addItem(state, e.itemId, 1); r.items[e.itemId] = (r.items[e.itemId] || 0) + 1; } }
-  if ((boss.reqLevel || 0) >= 90 && Math.random() < 0.20) { addItem(state, 'manhTrangBi', 1); r.items.manhTrangBi = (r.items.manhTrangBi || 0) + 1; }   // Mảnh Trang Bị Hoàng Kim: CHỈ Yêu Vương cấp >=90 (Băng Phách Lv90 · Thiên Ma Lv100) — DRAFT
-  // Đồ Phổ Bộ Kim Quang: TẠM chưa có nguồn rơi (thêm nguồn sau) — hiện chỉ dev-grant.
+  // MẢNH TRANG BỊ HOÀNG KIM: CHẮC CHẮN 2 mỗi trận thắng, chỉ Yêu Vương cấp >=90 (Băng Phách Lv90 ·
+  // Thiên Ma Lv100). Trước là 20% × 1 — mà resolveBossQueue chỉ hạ ĐÚNG MỘT lượt/boss mỗi lần vào
+  // game, nên hai con này trần ~2 trận/ngày: 0,4 Mảnh/ngày, tức 1050 ngày một bộ. Đây là trục CHUNG
+  // (cày quái và Bí Cảnh mỗi lối ~4-6 Mảnh/ngày nữa) nên phần Yêu Vương phải chắc chắn, không hên xui.
+  if ((boss.reqLevel || 0) >= 90) { addItem(state, 'manhTrangBi', 2); r.items.manhTrangBi = (r.items.manhTrangBi || 0) + 2; }
   return r;
 }
 

@@ -2018,7 +2018,7 @@
         <div class="btc-panel w-full" style="max-width:960px">
           <div class="btc-hd">
             <div class="btc-title fserif">Bách Trang Các</div>
-            <div class="btc-sub">Gom <b style="color:#d6e3f2">Mảnh Trang Bị Hoàng Kim</b> từ Yêu Vương cấp cao (Lv 90+), lĩnh hội <b style="color:#d6e3f2">Đồ Phổ Bộ</b> để mở khoá, rồi ghép nên trọn từng Bộ Trang trấn thân.</div>
+            <div class="btc-sub">Gom <b style="color:#d6e3f2">Mảnh Trang Bị Hoàng Kim</b> từ <span x-text="g.TRANG_SETS[g.TRANG_SET_KEYS[0]].source"></span>, lĩnh hội <b style="color:#d6e3f2">Đồ Phổ Bộ</b> để mở khoá, rồi ghép nên trọn từng Bộ Trang trấn thân.</div>
             <button class="btc-x" @click="g.bachTrangOpen=false" title="Đóng (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>
           <div class="btc-status">
@@ -2071,7 +2071,7 @@
                 <template x-if="!g.setUnlocked(key)">
                   <div class="btc-lockban">
                     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-                    <div><div class="t">Cần <span x-text="(g.ITEMS[g.TRANG_SETS[key].blueprintId]||{}).name"></span></div><div class="s">Đồ Phổ sắp có cách thu thập — lĩnh hội rồi mới ghép được bộ này.</div></div>
+                    <div><div class="t">Cần <span x-text="(g.ITEMS[g.TRANG_SETS[key].blueprintId]||{}).name"></span></div><div class="s">Rơi ở <b style="color:#d6e3f2" x-text="g.TRANG_SETS[key].blueprintSource"></b> — thông quan bí cảnh đó để lĩnh hội, rồi mới ghép được bộ này.</div></div>
                   </div>
                 </template>
                 <div class="btc-grid">
@@ -5207,9 +5207,15 @@
                   <div class="idiv"></div>
                   <div class="flex items-center justify-between gap-4 mb-2 px-1 text-[11px]">
                     <span class="text-slate-500">Số lượng <b class="text-slate-100 text-[12.5px] font-bold ml-0.5" x-text="$store.game.fmt(m.qty)"></b></span>
-                    <span class="text-slate-500 flex items-center gap-1">Giá bán
-                      <span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
-                      <b class="text-gold text-[12.5px] font-bold" x-text="$store.game.fmt(m.value||0)"></b></span>
+                    <!-- value 0 = món không bán được (Mảnh, Đồ Phổ Bộ) -> giấu luôn hàng giá, đừng in "Giá bán 0". -->
+                    <template x-if="(m.value||0) > 0">
+                      <span class="text-slate-500 flex items-center gap-1">Giá bán
+                        <span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
+                        <b class="text-gold text-[12.5px] font-bold" x-text="$store.game.fmt(m.value||0)"></b></span>
+                    </template>
+                    <template x-if="(m.value||0) <= 0">
+                      <span class="text-slate-600">Không bán được</span>
+                    </template>
                   </div>
                   <!-- Bán nhanh -->
                   <template x-if="(m.value||0) > 0 && m.isGear">
