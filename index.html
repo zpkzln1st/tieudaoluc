@@ -271,11 +271,74 @@
     .bcs-el.off .h{ opacity:.36; text-shadow:none; }
     .bcs-el.off .p{ color:#475569; }
     /* nút co theo nội dung, KHÔNG full-width */
+    /* Ăn theo --edge/--acc của thẻ chứ KHÔNG viết cứng màu: thẻ 裝 đã đổi sang bạch kim, để vàng
+       thì nút chóe lên giữa thẻ. Nút này chỉ dùng đúng một chỗ nên đổi không vạ lây đâu cả. */
+    /* ===== TOOLTIP TRANG BỊ (rê chuột trên paper-doll) =====
+       Rộng CỨNG 220px: ở dải 1024-1199px chân dung co lại chỉ còn ~223px, rộng hơn là đè trọn cột
+       đối diện. z-index 30 chứ KHÔNG cao hơn — modal Đổi Trang Bị là z-50, Cường Hóa z-55; tooltip
+       vượt lên sẽ treo lơ lửng trên modal. pointer-events:none để chuột xuyên qua, không cướp hover. */
+    .gslot{ position:relative; display:block; }
+    .gtip{ position:absolute; width:220px; z-index:30; pointer-events:none; opacity:0; transition:opacity .13s ease;
+           background:#0a111d; border:1px solid var(--q,#475569); border-radius:10px; padding:0 0 9px;
+           box-shadow:0 12px 30px rgba(0,0,0,.66); text-align:left; overflow:hidden; }
+    .gslot:hover .gtip, .gtip.on{ opacity:1; transition-delay:.06s; }
+    /* Luôn mở VÀO TRONG (phía chân dung) nên 220px không bao giờ lọt ra ngoài khung — khỏi đo bằng JS.
+       Khe 15px chứ không 10px: ô đang mang quầng sáng loang 15px, sát quá thì viền lẫn vào hào quang. */
+    .gtip-r{ left:calc(100% + 15px); }  .gtip-l{ right:calc(100% + 15px); }
+    .gtip-at{ top:0; }                  .gtip-ab{ bottom:0; }
+    .gtip-up{ bottom:calc(100% + 15px); left:0; }
+    .gtip-up::after{ bottom:-12px; left:calc(var(--mui,38px) - 6px); border-top-color:var(--q,#475569); }
+    .gtip::after{ content:""; position:absolute; border:6px solid transparent; }
+    .gtip-r::after{ right:100%; border-right-color:var(--q,#475569); }
+    .gtip-l::after{ left:100%; border-left-color:var(--q,#475569); }
+    .gtip-at::after{ top:34px; } .gtip-ab::after{ bottom:34px; }
+    .gt-hd{ display:flex; align-items:stretch; }
+    .gt-spine{ flex:0 0 34px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:8px 0;
+               background:linear-gradient(180deg,color-mix(in srgb,var(--q) 16%,transparent),transparent);
+               border-right:1px solid color-mix(in srgb,var(--q) 26%,transparent); }
+    /* Khai chuỗi font TẠI CHỖ — biến --bcs-serif chỉ sống trong .bcs, ra ngoài là chữ Hán rơi về SimSun. */
+    .gt-han{ font-family:'Lora','Noto Serif SC','Songti SC','SimSun',serif; font-weight:700; font-size:21px; line-height:1; color:var(--q,#94a3b8); }
+    .gt-plus{ font-family:'Lora',Georgia,serif; font-weight:800; font-size:10px; line-height:1; color:#fcd34d; text-shadow:0 1px 2px #000; }
+    .gt-body{ flex:1; min-width:0; padding:8px 10px 0; }
+    .gt-nmwrap{ height:38px; display:flex; align-items:flex-end; }
+    .gt-nm{ font-family:'Lora','Noto Serif SC',serif; font-weight:700; font-size:14px; line-height:1.2; color:var(--q,#e2e8f0);
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+    .gt-meta{ font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:#7c8797; margin-top:5px; }
+    .gt-meta b{ color:var(--q,#94a3b8); font-weight:700; }
+    .gt-chips{ display:flex; flex-wrap:wrap; gap:5px; margin:8px 10px 0; }
+    /* height khoá cứng: thẻ hệ có chữ Hán 12px nên cao hơn thẻ bộ 2px nếu để đệm tự tính. */
+    .gt-chip{ display:inline-flex; align-items:center; gap:5px; height:21px; padding:0 8px; border-radius:6px; font-size:9.5px;
+              border:1px solid color-mix(in srgb,var(--e) 42%,transparent); background:color-mix(in srgb,var(--e) 10%,transparent); color:var(--e); }
+    .gt-chip .h{ font-family:'Lora','Noto Serif SC',serif; font-weight:700; font-size:12px; }
+    .gt-rule{ height:1px; margin:9px 0 8px; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--q) 55%,transparent),transparent); }
+    .gt-stats{ padding:0 10px; }
+    /* KHÔNG có cột bậc roll: màu con số đã mang trọn thông tin đó (gearLineColor 5 bậc). */
+    .gt-line{ height:18px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; }
+    .gt-k{ font-size:11px; opacity:.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .gt-v{ font-size:12.5px; font-weight:700; text-align:right; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; }
+    /* Màn cảm ứng không có hover — tắt hẳn, chi tiết xem ở bảng Đổi Trang Bị. */
+    @media (hover:none),(pointer:coarse){ .gtip{ display:none; } }
     .bcs-btn{ flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 10px;
-             border:1px solid rgba(245,185,66,.42); border-radius:4px; cursor:pointer;
-             background:linear-gradient(180deg,rgba(245,185,66,.15),rgba(245,185,66,.04));
-             color:#f5b942; font-size:11px; font-weight:700; box-shadow:inset 0 0 12px -6px rgba(245,185,66,.8); }
-    .bcs-btn:hover{ border-color:rgba(245,185,66,.72); background:linear-gradient(180deg,rgba(245,185,66,.24),rgba(245,185,66,.08)); }
+             border:1px solid rgba(var(--edge),.42); border-radius:4px; cursor:pointer;
+             background:linear-gradient(180deg,rgba(var(--edge),.15),rgba(var(--edge),.04));
+             color:var(--acc); font-size:11px; font-weight:700; box-shadow:inset 0 0 12px -6px rgba(var(--edge),.8); }
+    .bcs-btn:hover{ border-color:rgba(var(--edge),.72); background:linear-gradient(180deg,rgba(var(--edge),.24),rgba(var(--edge),.08)); }
+    /* ===== Thẻ 裝: HAI vệt sáng bạch kim quét vòng quanh viền =====
+       Vệt nằm ở pseudo phía sau, bị viền 1px của .bcs-tb xén lại nên chỉ sáng TRÊN VIỀN, không
+       tràn vào ruột thẻ. overflow:hidden là bắt buộc: vệt rộng 260% nên không chặn thì nó nong
+       vùng cuộn của cả trang ra (clip-path chỉ xén lúc VẼ, không xén phạm vi cuộn). */
+    .bcs-tb.bcs-quet{ background:#1b2537; overflow:hidden; }
+    .bcs-tb.bcs-quet::before{ content:""; position:absolute; left:50%; top:50%; width:260%; aspect-ratio:1;
+             translate:-50% -50%; pointer-events:none;
+             background:conic-gradient(from 0deg,
+                        transparent 0 8%,  rgba(var(--edge),.30) 18%, rgba(var(--edge),.95) 25%,
+                        rgba(var(--edge),.30) 32%, transparent 42% 58%,
+                        rgba(var(--edge),.30) 68%, rgba(var(--edge),.95) 75%,
+                        rgba(var(--edge),.30) 82%, transparent 92% 100%);
+             animation:bcsQuet 7s linear infinite; }
+    @keyframes bcsQuet{ to{ rotate:360deg; } }
+    /* Người bật "giảm chuyển động" trong hệ điều hành thì tắt hẳn, trả về viền tĩnh. */
+    @media (prefers-reduced-motion: reduce){ .bcs-tb.bcs-quet::before{ animation:none; } }
     .gold-text { font-weight:900; background:linear-gradient(180deg,#fff6d6 0%,#f4d27a 38%,#e0a83e 66%,#bd821f 100%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 1px 1px rgba(0,0,0,.55)) drop-shadow(0 0 4px rgba(245,185,66,.3)); }
     ::-webkit-scrollbar{width:4px;height:4px}
     ::-webkit-scrollbar-track{background:transparent}
@@ -1109,10 +1172,10 @@
                 </div>
                 <div class="grid grid-cols-7 gap-1.5">
                   <template x-for="sid in eqSlots" :key="sid">
-                    <button @click="$store.game.navTo('trangbi')" :title="$store.game.slotName(sid)"
+                    <button @click="$store.game.navTo('trangbi')" :title="$store.game.equippedItem(sid) ? '' : $store.game.slotName(sid)"
                       class="relative aspect-square rounded-md overflow-hidden transition"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700/70 hover:border-slate-500'">
-                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template>
+                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template>
                       <template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="absolute top-0.5 right-0.5 text-[8px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[8px] text-slate-600 px-0.5 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>
                     </button>
@@ -1404,7 +1467,7 @@
 
       <!-- ===== VIEW: TRANG BỊ (paper-doll C1) ===== -->
       <template x-if="$store.game.view==='trangbi'">
-        <div class="max-w-5xl" x-data="{ L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu','duocLiem'] }">
+        <div class="max-w-5xl" x-data="{ get g(){ return $store.game }, L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu','duocLiem'] }">
           <div class="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-4">
 
             <!-- PAPER-DOLL -->
@@ -1416,13 +1479,47 @@
               <div class="flex gap-3 items-stretch justify-center">
                 <!-- cột trái -->
                 <div class="flex flex-col gap-3 shrink-0">
-                  <template x-for="sid in L" :key="sid">
-                    <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
+                  <template x-for="(sid,i) in L" :key="sid">
+                    <span class="gslot">
+                    <button @click="$store.game.openEquip(sid)" :title="$store.game.equippedItem(sid) ? '' : $store.game.slotName(sid)"
                       class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :style="$store.game.equipHaloHex(sid) ? ('box-shadow:0 0 15px -2px '+$store.game.equipHaloHex(sid)) : ''"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="eh-hex absolute" style="top:3px;right:3px;width:27px;height:29px;font-size:11px;color:#fcd34d;z-index:2" x-text="$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="eh-hex absolute" style="top:3px;right:3px;width:27px;height:29px;font-size:11px;color:#fcd34d;z-index:2" x-text="$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
+                      <template x-if="g.equippedItem(sid)">
+                        <div :class="'gtip gtip-r ' + (i<2 ? 'gtip-at' : 'gtip-ab')" x-data="{ get g(){ return $store.game }, get it(){ return $store.game.equippedItem(sid) } }" :style="'--q:'+g.gtipHex(it)">
+                          <div class="gt-hd">
+                            <div class="gt-spine">
+                              <span class="gt-han" x-text="g.GTIP_HAN[sid]"></span>
+                              <template x-if="it.plus>0"><span class="gt-plus" x-text="'+'+it.plus"></span></template>
+                            </div>
+                            <div class="gt-body">
+                              <div class="gt-nmwrap"><div class="gt-nm" x-text="g.gtipName(it)"></div></div>
+                              <div class="gt-meta"><b x-text="g.qualityName(g.state.equipment[sid])"></b><span x-text="' · '+g.slotName(sid)+' · Cấp '+it.itemLv"></span></div>
+                            </div>
+                          </div>
+                          <template x-if="g.gtipSetName(it) || it.he">
+                            <div class="gt-chips">
+                              <template x-if="g.gtipSetName(it)"><span class="gt-chip" :style="'--e:'+g.gtipHex(it)" x-text="g.gtipSetName(it)"></span></template>
+                              <template x-if="it.he"><span class="gt-chip" :style="'--e:'+g.heHex(it.he)"><span class="h" x-text="g.NGU_HANH[it.he].han"></span><span x-text="g.heName(it.he)"></span></span></template>
+                            </div>
+                          </template>
+                          <div class="gt-rule"></div>
+                          <div class="gt-stats">
+                            <template x-if="g.gtipToolLine(it)">
+                              <div class="gt-line" style="color:#34d399"><span class="gt-k" x-text="g.gtipToolLine(it).label"></span><span class="gt-v" x-text="g.gtipToolLine(it).val"></span></div>
+                            </template>
+                            <template x-if="!g.gtipLines(it).length && !g.gtipToolLine(it)">
+                              <div class="gt-line" style="color:#64748b"><span class="gt-k">Món này không có chỉ số</span></div>
+                            </template>
+                            <template x-for="ln in g.gtipLines(it)" :key="ln.key">
+                              <div class="gt-line" :style="'color:'+ln.color"><span class="gt-k" x-text="ln.label"></span><span class="gt-v" x-text="ln.val"></span></div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                      </span>
                   </template>
                 </div>
                 <!-- avatar giữa -->
@@ -1436,26 +1533,95 @@
                 </div>
                 <!-- cột phải -->
                 <div class="flex flex-col gap-3 shrink-0">
-                  <template x-for="sid in R" :key="sid">
-                    <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
+                  <template x-for="(sid,i) in R" :key="sid">
+                    <span class="gslot">
+                    <button @click="$store.game.openEquip(sid)" :title="$store.game.equippedItem(sid) ? '' : $store.game.slotName(sid)"
                       class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                       :style="$store.game.equipHaloHex(sid) ? ('box-shadow:0 0 15px -2px '+$store.game.equipHaloHex(sid)) : ''"
                       :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="eh-hex absolute" style="top:3px;right:3px;width:27px;height:29px;font-size:11px;color:#fcd34d;z-index:2" x-text="$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                      <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="eh-hex absolute" style="top:3px;right:3px;width:27px;height:29px;font-size:11px;color:#fcd34d;z-index:2" x-text="$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                       <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                    </button>
+                      <template x-if="g.equippedItem(sid)">
+                        <div :class="'gtip gtip-l ' + (i<2 ? 'gtip-at' : 'gtip-ab')" x-data="{ get g(){ return $store.game }, get it(){ return $store.game.equippedItem(sid) } }" :style="'--q:'+g.gtipHex(it)">
+                          <div class="gt-hd">
+                            <div class="gt-spine">
+                              <span class="gt-han" x-text="g.GTIP_HAN[sid]"></span>
+                              <template x-if="it.plus>0"><span class="gt-plus" x-text="'+'+it.plus"></span></template>
+                            </div>
+                            <div class="gt-body">
+                              <div class="gt-nmwrap"><div class="gt-nm" x-text="g.gtipName(it)"></div></div>
+                              <div class="gt-meta"><b x-text="g.qualityName(g.state.equipment[sid])"></b><span x-text="' · '+g.slotName(sid)+' · Cấp '+it.itemLv"></span></div>
+                            </div>
+                          </div>
+                          <template x-if="g.gtipSetName(it) || it.he">
+                            <div class="gt-chips">
+                              <template x-if="g.gtipSetName(it)"><span class="gt-chip" :style="'--e:'+g.gtipHex(it)" x-text="g.gtipSetName(it)"></span></template>
+                              <template x-if="it.he"><span class="gt-chip" :style="'--e:'+g.heHex(it.he)"><span class="h" x-text="g.NGU_HANH[it.he].han"></span><span x-text="g.heName(it.he)"></span></span></template>
+                            </div>
+                          </template>
+                          <div class="gt-rule"></div>
+                          <div class="gt-stats">
+                            <template x-if="g.gtipToolLine(it)">
+                              <div class="gt-line" style="color:#34d399"><span class="gt-k" x-text="g.gtipToolLine(it).label"></span><span class="gt-v" x-text="g.gtipToolLine(it).val"></span></div>
+                            </template>
+                            <template x-if="!g.gtipLines(it).length && !g.gtipToolLine(it)">
+                              <div class="gt-line" style="color:#64748b"><span class="gt-k">Món này không có chỉ số</span></div>
+                            </template>
+                            <template x-for="ln in g.gtipLines(it)" :key="ln.key">
+                              <div class="gt-line" :style="'color:'+ln.color"><span class="gt-k" x-text="ln.label"></span><span class="gt-v" x-text="ln.val"></span></div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                      </span>
                   </template>
                 </div>
               </div>
               <!-- thanh dưới: Tọa Kỵ + công cụ -->
-              <div class="flex flex-wrap gap-3 mt-3 justify-center">
-                <template x-for="sid in B" :key="sid">
-                  <button @click="$store.game.openEquip(sid)" :title="$store.game.slotName(sid)"
+              <div class="flex flex-wrap gap-3 mt-3 justify-center relative" x-data="{ hovB:null, hovP:{x:0,y:0,mui:38} }">
+                <template x-for="(sid,i) in B" :key="sid">
+                  <span class="gslot">
+                  <button @click="$store.game.openEquip(sid); hovB=null" @mouseenter="hovB=sid; hovP=$store.game.gtipRowPos($el)" @mouseleave="hovB=null" :title="$store.game.equippedItem(sid) ? '' : $store.game.slotName(sid)"
                     class="relative w-16 sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                     :style="$store.game.equipHaloHex(sid) ? ('box-shadow:0 0 15px -2px '+$store.game.equipHaloHex(sid)) : ''"
                     :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
-                    <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"</i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="eh-hex absolute" style="top:3px;right:3px;width:27px;height:29px;font-size:11px;color:#fcd34d;z-index:2" x-text="$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
+                    <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="eh-hex absolute" style="top:3px;right:3px;width:27px;height:29px;font-size:11px;color:#fcd34d;z-index:2" x-text="$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
                     <template x-if="!$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center text-[11px] text-slate-500 px-1 text-center leading-tight" x-text="$store.game.slotName(sid)"></span></template>                  </button>
+                    </span>
                 </template>
+                    <template x-if="hovB && g.equippedItem(hovB)">
+                      <div class="gtip gtip-up on" x-data="{ get g(){ return $store.game }, get it(){ return $store.game.equippedItem(hovB) } }"
+                           :style="'--q:'+g.gtipHex(it)+';--mui:'+hovP.mui+'px;left:'+hovP.x+'px;bottom:'+hovP.y+'px'">
+                        <div class="gt-hd">
+                          <div class="gt-spine">
+                            <span class="gt-han" x-text="g.GTIP_HAN[hovB]"></span>
+                            <template x-if="it.plus>0"><span class="gt-plus" x-text="'+'+it.plus"></span></template>
+                          </div>
+                          <div class="gt-body">
+                            <div class="gt-nmwrap"><div class="gt-nm" x-text="g.gtipName(it)"></div></div>
+                            <div class="gt-meta"><b x-text="g.qualityName(g.state.equipment[hovB])"></b><span x-text="' · '+g.slotName(hovB)+' · Cấp '+it.itemLv"></span></div>
+                          </div>
+                        </div>
+                        <template x-if="g.gtipSetName(it) || it.he">
+                          <div class="gt-chips">
+                            <template x-if="g.gtipSetName(it)"><span class="gt-chip" :style="'--e:'+g.gtipHex(it)" x-text="g.gtipSetName(it)"></span></template>
+                            <template x-if="it.he"><span class="gt-chip" :style="'--e:'+g.heHex(it.he)"><span class="h" x-text="g.NGU_HANH[it.he].han"></span><span x-text="g.heName(it.he)"></span></span></template>
+                          </div>
+                        </template>
+                        <div class="gt-rule"></div>
+                        <div class="gt-stats">
+                            <template x-if="g.gtipToolLine(it)">
+                              <div class="gt-line" style="color:#34d399"><span class="gt-k" x-text="g.gtipToolLine(it).label"></span><span class="gt-v" x-text="g.gtipToolLine(it).val"></span></div>
+                            </template>
+                            <template x-if="!g.gtipLines(it).length && !g.gtipToolLine(it)">
+                              <div class="gt-line" style="color:#64748b"><span class="gt-k">Món này không có chỉ số</span></div>
+                            </template>
+                          <template x-for="ln in g.gtipLines(it)" :key="ln.key">
+                            <div class="gt-line" :style="'color:'+ln.color"><span class="gt-k" x-text="ln.label"></span><span class="gt-v" x-text="ln.val"></span></div>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
               </div>
             </section>
 
@@ -1496,6 +1662,26 @@
                 </div>
               </div>
 
+              <!-- 氣 NỘI CÔNG — nhóm Tu Luyện một dòng đã gộp vào đây, không còn tiêu đề lẻ -->
+              <div class="bcs-tb bcs-card" style="--acc:#a78bfa;--edge:167,139,250">
+                <div class="bcs-in flex">
+                  <div class="bcs-spine"><span class="bcs-han">氣</span></div>
+                  <div class="bcs-body">
+                    <div class="bcs-head"><span class="bcs-gn">Nội Công</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-gbody">
+                      <div class="bcs-lead">
+                        <div class="bcs-leadNum" x-text="g.fmt(cs.maxNL)"></div>
+                        <div class="bcs-leadLbl">Nội Lực</div>
+                      </div>
+                      <div class="bcs-cells">
+                        <div class="bcs-cell"><span class="k">Hồi Nội Lực</span><span class="v" style="color:#a78bfa" x-text="'+'+g.fmt(cs.nlRegen)+'/đòn'"></span></div>
+                        <div class="bcs-cell"><span class="k">Cộng Hưởng</span><span class="v" :style="'color:'+g.heHex(cs.heChinh)" x-text="g.heName(cs.heChinh)+' +'+Math.round(cs.heBonus*100)+'%'"></span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- 守 PHÒNG THỦ -->
               <div class="bcs-tb bcs-card" style="--acc:#14b8a6;--edge:20,184,166">
                 <div class="bcs-in flex">
@@ -1509,27 +1695,7 @@
                       </div>
                       <div class="bcs-cells">
                         <div class="bcs-cell"><span class="k">Sinh Lực</span><span class="v" style="color:#14b8a6" x-text="g.fmt(cs.maxHP)"></span></div>
-                        <div class="bcs-cell"><span class="k">Hồi Máu</span><span class="v" :style="cs.regenPct>0?'color:#14b8a6':'color:#64748b'" x-text="Math.round(cs.regenPct*100)+'%/hiệp'"></span></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 身 THÂN PHÁP — nơi Chính Xác gặp Né Tránh (cặp đối, có móc ngoặc ôm lấy) -->
-              <div class="bcs-tb bcs-card" style="--acc:#22d3ee;--edge:34,211,238">
-                <div class="bcs-in flex">
-                  <div class="bcs-spine"><span class="bcs-han">身</span></div>
-                  <div class="bcs-body">
-                    <div class="bcs-head"><span class="bcs-gn">Thân Pháp</span><span class="bcs-dbl"></span></div>
-                    <div class="bcs-gbody">
-                      <div class="bcs-lead">
-                        <div class="bcs-leadNum" x-text="g.fmt(cs.spd)"></div>
-                        <div class="bcs-leadLbl">Tốc Độ</div>
-                      </div>
-                      <div class="bcs-cells bcs-pair">
-                        <div class="bcs-cell" title="Vô hiệu hoá bớt khả năng né tránh của yêu thú"><span class="k">Chính Xác</span><span class="v" :style="cs.hitRate>0?'color:#22d3ee':'color:#64748b'" x-text="Math.round(cs.hitRate*100)+'%'"></span></div>
-                        <div class="bcs-cell"><span class="k">Né Tránh</span><span class="v" :style="cs.dodge>0?'color:#22d3ee':'color:#64748b'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
+                        <div class="bcs-cell"><span class="k">Giảm Sát Thương</span><span class="v" :style="cs.giamNhan>0?'color:#14b8a6':'color:#64748b'" x-text="Math.round(cs.giamNhan*100)+'%'"></span></div>
                       </div>
                     </div>
                   </div>
@@ -1557,20 +1723,20 @@
                 </div>
               </div>
 
-              <!-- 氣 NỘI CÔNG — nhóm Tu Luyện một dòng đã gộp vào đây, không còn tiêu đề lẻ -->
-              <div class="bcs-tb bcs-card" style="--acc:#14b8a6;--edge:20,184,166">
+              <!-- 身 THÂN PHÁP — nơi Chính Xác gặp Né Tránh (cặp đối, có móc ngoặc ôm lấy) -->
+              <div class="bcs-tb bcs-card" style="--acc:#22d3ee;--edge:34,211,238">
                 <div class="bcs-in flex">
-                  <div class="bcs-spine"><span class="bcs-han">氣</span></div>
+                  <div class="bcs-spine"><span class="bcs-han">身</span></div>
                   <div class="bcs-body">
-                    <div class="bcs-head"><span class="bcs-gn">Nội Công</span><span class="bcs-dbl"></span></div>
+                    <div class="bcs-head"><span class="bcs-gn">Thân Pháp</span><span class="bcs-dbl"></span></div>
                     <div class="bcs-gbody">
                       <div class="bcs-lead">
-                        <div class="bcs-leadNum" x-text="g.fmt(cs.maxNL)"></div>
-                        <div class="bcs-leadLbl">Nội Lực</div>
+                        <div class="bcs-leadNum" x-text="g.fmt(cs.spd)"></div>
+                        <div class="bcs-leadLbl">Tốc Độ</div>
                       </div>
-                      <div class="bcs-cells">
-                        <div class="bcs-cell"><span class="k">Hồi Nội Lực</span><span class="v" style="color:#14b8a6" x-text="'+'+g.fmt(cs.nlRegen)+'/đòn'"></span></div>
-                        <div class="bcs-cell"><span class="k">Cộng Hưởng</span><span class="v" :style="'color:'+g.heHex(cs.heChinh)" x-text="g.heName(cs.heChinh)+' +'+Math.round(cs.heBonus*100)+'%'"></span></div>
+                      <div class="bcs-cells bcs-pair">
+                        <div class="bcs-cell" title="Vô hiệu hoá bớt khả năng né tránh của yêu thú"><span class="k">Chính Xác</span><span class="v" :style="cs.hitRate>0?'color:#22d3ee':'color:#64748b'" x-text="Math.round(cs.hitRate*100)+'%'"></span></div>
+                        <div class="bcs-cell"><span class="k">Né Tránh</span><span class="v" :style="cs.dodge>0?'color:#22d3ee':'color:#64748b'" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
                       </div>
                     </div>
                   </div>
@@ -1579,7 +1745,7 @@
 
               <!-- 修 TU LUYỆN — CHỈ hiện khi có nguồn thật (Tăng EXP sẽ đến từ Bộ Trang Bị, làm sau) -->
               <template x-if="cs.tangExp > 0">
-                <div class="bcs-tb bcs-card" style="--acc:#f5b942;--edge:245,185,66">
+                <div class="bcs-tb bcs-card" style="--acc:#4ade80;--edge:74,222,128">
                   <div class="bcs-in flex">
                     <div class="bcs-spine"><span class="bcs-han">修</span></div>
                     <div class="bcs-body">
@@ -1600,7 +1766,7 @@
               </template>
 
               <!-- 裝 BỘ TRANG — thẻ tóm tắt; danh sách đầy đủ từng bộ nằm trong Bách Trang Các -->
-              <div class="bcs-tb bcs-card" style="--acc:#f5b942;--edge:245,185,66">
+              <div class="bcs-tb bcs-card bcs-quet" style="--acc:#d6e3f2;--edge:214,227,242">
                 <div class="bcs-in flex">
                   <div class="bcs-spine"><span class="bcs-han">裝</span></div>
                   <div class="bcs-body">
@@ -1611,7 +1777,7 @@
                         <div class="bcs-leadLbl">Mảnh Hoàng Kim</div>
                       </div>
                       <div class="bcs-cells">
-                        <div class="bcs-cell"><span class="k">Bộ đã trọn</span><span class="v" style="color:#f5b942" x-text="g.setTronCount+' / '+g.TRANG_SET_KEYS.length"></span></div>
+                        <div class="bcs-cell"><span class="k">Viên Mãn</span><span class="v" style="color:#d6e3f2" x-text="g.setTronCount+' / '+g.TRANG_SET_KEYS.length"></span></div>
                         <div class="flex justify-end"><button @click="g.bachTrangOpen=true" class="bcs-btn" type="button"><span class="fserif" style="font-size:11px;opacity:.8">閣</span>Bách Trang Các</button></div>
                       </div>
                     </div>
@@ -1639,6 +1805,25 @@
         .btc-manh .sh{ width:18px; height:18px; filter:drop-shadow(0 0 4px rgba(214,227,242,.5)); }
         .btc-manh b{ font-size:15px; color:#d6e3f2; } .btc-manh span{ font-size:12px; color:#8296ae; }
         .btc-body{ padding:4px 22px 18px; overflow-y:auto; }
+        /* ===== Điều hướng HAI TẦNG: cột Ngũ Hành (trái) → thanh chọn Bộ (ngang, trong thân) ===== */
+        .btc-split{ display:flex; min-height:0; }
+        .btc-rail{ flex:none; width:150px; border-right:1px solid rgba(38,52,74,.7); padding:12px 10px 16px; display:flex; flex-direction:column; gap:6px; }
+        .btc-split .btc-body{ flex:1; min-width:0; padding-top:0; }
+        .btc-he{ --c:148,163,184; display:flex; align-items:center; gap:10px; cursor:pointer; width:100%; padding:9px 12px; border-radius:11px; border:1px solid #26344a; background:linear-gradient(180deg,rgba(20,30,50,.6),rgba(11,18,32,.4)); transition:.14s; }
+        .btc-he:hover{ border-color:rgba(var(--c),.5); }
+        .btc-he .han{ font-family:'Lora','Noto Serif SC',serif; font-weight:700; font-size:20px; line-height:1; color:rgb(var(--c)); opacity:.55; }
+        .btc-he .n{ font-family:'Lora','Noto Serif SC',serif; font-weight:700; font-size:13.5px; color:#9fb2c9; white-space:nowrap; }
+        .btc-he.on{ border-color:rgba(var(--c),.62); background:linear-gradient(180deg,rgba(var(--c),.16),rgba(11,18,32,.55)); box-shadow:0 0 18px -6px rgba(var(--c),.75), inset 0 1px 0 rgba(255,255,255,.06); }
+        .btc-he.on .han{ opacity:1; text-shadow:0 0 12px rgba(var(--c),.55); }
+        .btc-he.on .n{ color:#eef4fb; }
+        /* min-height GIỮ CHỖ: Vô Hệ chỉ có một bộ nên thanh chọn Bộ rỗng — không chừa chỗ thì cả
+           khung tụt 46px và cột hệ nhảy mỗi lần bấm sang Vô Hệ. 46 = 12 (đệm trên) + 32 (nút) + 2. */
+        .btc-bo{ --c:148,163,184; display:flex; gap:7px; padding:12px 0 2px; flex-wrap:wrap; min-height:47px; }
+        /* height KHOÁ CỨNG chứ không để đệm dọc tự tính: chiều cao nút phụ thuộc metric font, mà
+           Lora ở đây cao hơn font mặc định 3px — đủ để thanh rỗng (Vô Hệ) lệch với thanh có nút. */
+        .btc-bo button{ cursor:pointer; font-family:'Lora','Noto Serif SC',serif; font-weight:700; font-size:12.5px; height:33px; padding:0 15px; display:inline-flex; align-items:center; border-radius:10px; white-space:nowrap; transition:.14s; border:1px solid #26344a; color:#8296ae; background:linear-gradient(180deg,rgba(20,30,50,.55),rgba(11,18,32,.35)); }
+        .btc-bo button:hover{ color:#c3d2e6; border-color:rgba(var(--c),.45); }
+        .btc-bo button.on{ color:#eef4fb; border-color:rgba(var(--c),.62); background:linear-gradient(180deg,rgba(var(--c),.18),rgba(11,18,32,.5)); box-shadow:0 0 14px -6px rgba(var(--c),.7); }
         .btc-set{ border:1px solid #26344a; border-radius:14px; margin-top:14px; overflow:hidden; background:linear-gradient(180deg,rgba(18,27,45,.5),rgba(11,18,32,.3)); }
         .btc-sethd{ display:flex; align-items:center; gap:10px; padding:12px 15px; border-bottom:1px solid rgba(38,52,74,.55); }
         .btc-setnm{ font-size:16px; font-weight:700; color:#d6e3f2; }
@@ -1687,8 +1872,27 @@
               <b x-text="g.manhTrangBi"></b> <span>Mảnh Trang Bị Hoàng Kim</span>
             </div>
           </div>
-          <div class="btc-body">
-            <template x-for="key in g.TRANG_SET_KEYS" :key="key">
+          <div class="btc-split">
+            <!-- TẦNG 1: cột Ngũ Hành. 5 hệ × 2 bộ + Kim Quang (Vô Hệ) = 11. -->
+            <div class="btc-rail">
+              <template x-for="he in g.BTC_HE_ORDER" :key="he">
+                <button type="button" class="btc-he" :class="g.btcHe===he ? 'on' : ''"
+                        :style="'--c:'+g.NGU_HANH[he].glowRgb" @click="g.btcChonHe(he)">
+                  <span class="han" x-text="g.NGU_HANH[he].han"></span>
+                  <span class="n" x-text="g.NGU_HANH[he].name"></span>
+                </button>
+              </template>
+            </div>
+            <div class="btc-body">
+              <!-- TẦNG 2: thanh chọn Bộ. Hệ chỉ có MỘT bộ thì mảng rỗng -> không nút nào, nhưng
+                   thanh vẫn giữ 46px (min-height) để khung không nhảy lúc bấm sang Vô Hệ. -->
+              <div class="btc-bo" :style="'--c:'+g.NGU_HANH[g.btcHe].glowRgb">
+                <template x-for="(bk, bi) in (g.btcSetsCuaHe.length > 1 ? g.btcSetsCuaHe : [])" :key="bk">
+                  <button type="button" :class="g.btcBoIdx===bi ? 'on' : ''" @click="g.btcBoIdx=bi"
+                          x-text="g.TRANG_SETS[bk].name.replace(/^Bộ /,'')"></button>
+                </template>
+              </div>
+            <template x-for="key in (g.btcSetKey ? [g.btcSetKey] : [])" :key="key">
               <div class="btc-set" :class="g.setUnlocked(key) ? '' : 'locked'">
                 <div class="btc-sethd">
                   <div class="btc-setnm fserif" x-text="g.TRANG_SETS[key].name"></div>
@@ -1731,6 +1935,7 @@
                 </div>
               </div>
             </template>
+            </div>
           </div>
           <div class="btc-note">Mỗi món tốn <b><span x-text="g.TRANG_SETS[g.TRANG_SET_KEYS[0]].manhCost"></span> Mảnh</b> · ghép ra <b>đúng món chọn</b> (không lo trùng). Cần <b>Đồ Phổ Bộ</b> tương ứng mới mở khoá bộ đó.</div>
         </div>
@@ -4725,7 +4930,7 @@
                 <template x-for="it in grp.items" :key="it.uid || it.id">
                   <button @click="$store.game.openItemModal(it.uid || it.id)" class="group flex flex-col items-center gap-1 text-center" :title="it.name+' — bấm xem chi tiết'">
                     <div class="relative w-full aspect-square rounded flex items-center justify-center ring-1 transition group-hover:ring-2 group-hover:brightness-110" :class="$store.game.itemQuality(it).bg + ' ' + $store.game.itemQuality(it).ring">
-                      <template x-if="$store.game.itemHaloHex(it)"><i class="halo2" :style="$store.game.haloStyle(it)"</i></template>
+                      <template x-if="$store.game.itemHaloHex(it)"><i class="halo2" :style="$store.game.haloStyle(it)"></i></template>
                       <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-3xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="$store.game.ico(it.id, it.icon)"></span>
                       <template x-if="it.qty"><span class="absolute bottom-0.5 right-1 text-[10px] font-bold text-slate-200" x-text="$store.game.fmt(it.qty)"></span></template>
                       <template x-if="it.plus>0"><span class="absolute top-0.5 right-0.5 text-[9px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+it.plus"></span></template>
@@ -4789,7 +4994,7 @@
                     <div class="rounded-lg bg-ink3/50 border px-3 py-2.5 mb-3" :class="$store.game.QUALITY[m.quality].border">
                       <div class="text-[11.5px] text-slate-300 mb-1.5 leading-snug">Lĩnh ngộ để mở rèn <b :class="$store.game.QUALITY[m.quality].text" x-text="($store.game.ITEMS[m.gearId]||{}).name"></b> ở <b class="text-jade">Rèn Đúc</b> — <b class="text-amber-300">mỗi lượt chỉ rèn 1 món</b>, hết lượt phải lĩnh ngộ cuộn khác.</div>
                       <div class="text-[11px] text-slate-400 mb-2">Lượt rèn hiện có: <b class="text-emerald-300" x-text="$store.game.doPhoChargeOf(m.id)"></b></div>
-                      <button @click="$store.game.learnDoPho(m.id)" :disabled="(m.qty||0)<1" class="w-full py-2 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('scroll','w-4 h-4')"></span>Lĩnh Ngộ (+1 lượt rèn)</button>
+                      <button @click="$store.game.learnDoPho(m.id)" :disabled="(m.qty||0)<1" class="w-full py-2 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5">Lĩnh Ngộ</button>
                     </div>
                   </template>
                   <!-- Số lượng + giá -->
@@ -6799,7 +7004,7 @@
                           <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Phòng Ngự</span><span class="text-[11.5px] text-slate-100" x-text="g.fmt(cs.def)"></span></div>
                           <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Sinh Lực</span><span class="text-[11.5px] text-slate-100" x-text="g.fmt(cs.maxHP)"></span></div>
                           <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Né Tránh</span><span class="text-[11.5px] text-sky-300" x-text="Math.round(cs.dodge*100)+'%'"></span></div>
-                          <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Hồi Máu</span><span class="text-[11.5px] text-jade" x-text="Math.round(cs.regenPct*100)+'%/hiệp'"></span></div>
+                          <div class="flex justify-between py-0.5"><span class="text-[11px] text-slate-400">Giảm Sát Thương</span><span class="text-[11.5px] text-jade" x-text="Math.round(cs.giamNhan*100)+'%'"></span></div>
                         </div>
                         <div>
                           <div class="text-[9.5px] uppercase tracking-wider text-jade/80 font-medium mb-1 flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-jade"></span>Nội Công · Ngũ Hành</div>
@@ -11388,7 +11593,7 @@
             <template x-for="it in g.othersForSlot(slot)" :key="it.uid">
               <div class="flex items-center gap-3 p-2 rounded-lg bg-ink3/40 border border-slate-800">
                 <div class="shrink-0 flex flex-col items-center">
-                  <div class="relative w-12 h-12 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :style="g.itemHaloHex(it) ? ('box-shadow:0 0 15px -2px '+g.itemHaloHex(it)) : ''" :class="g.itemQuality(it).border + ' ' + g.itemQuality(it).grad"><template x-if="g.itemHaloHex(it)"><i class="halo2" :style="g.haloStyle(it)"</i></template><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(it.id, it.icon)"></span><template x-if="it.plus>0"><span class="absolute top-0 right-0 text-[8px] text-amber-300 bg-ink/80 rounded-bl px-0.5" x-text="'+'+it.plus"></span></template></div>
+                  <div class="relative w-12 h-12 rounded-lg border overflow-hidden bg-gradient-to-br flex items-center justify-center" :style="g.itemHaloHex(it) ? ('box-shadow:0 0 15px -2px '+g.itemHaloHex(it)) : ''" :class="g.itemQuality(it).border + ' ' + g.itemQuality(it).grad"><template x-if="g.itemHaloHex(it)"><i class="halo2" :style="g.haloStyle(it)"></i></template><span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(it.id, it.icon)"></span><template x-if="it.plus>0"><span class="absolute top-0 right-0 text-[8px] text-amber-300 bg-ink/80 rounded-bl px-0.5" x-text="'+'+it.plus"></span></template></div>
                   <div class="flex gap-px mt-1"><template x-for="s in g.qualityRank(it)" :key="s"><span class="text-[7px] leading-none text-amber-400">★</span></template></div>
                 </div>
                 <div class="flex-1 min-w-0 space-y-1">
@@ -11503,11 +11708,11 @@
     </div>
   </template>
 
-  <!-- ===== Modal Cường Hóa (Lò Cường Hóa) ===== -->
+  <!-- ===== Modal Cường Hóa Trang Bị ===== -->
   <style>
     .eh-hex{ background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat; display:grid; place-items:center;
       font-family:'Lora','Noto Serif SC',Georgia,serif; font-weight:800; text-shadow:0 1px 3px #000; line-height:1; }
-    /* nen panel_bg cho Lo Cuong Hoa (dung chung texture rong-goc voi Dong Phu) */
+    /* nen panel_bg cho Cuong Hoa Trang Bi (dung chung texture rong-goc voi Dong Phu) */
     .eh-panel{ background-color:#0f1521;
       background-image:linear-gradient(rgba(9,14,20,.5),rgba(9,14,20,.5)), url("images/dongphu/ui/panel_bg.webp");
       background-size:100% 100%; background-position:center; }
@@ -11523,7 +11728,7 @@
         <span class="absolute pointer-events-none z-[3]" style="bottom:8px;left:8px;width:24px;height:24px;border:2px solid #5eead4;border-right:none;border-top:none;border-radius:0 0 0 6px;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
         <span class="absolute pointer-events-none z-[3]" style="bottom:8px;right:8px;width:24px;height:24px;border:2px solid #5eead4;border-left:none;border-top:none;border-radius:0 0 6px 0;filter:drop-shadow(0 0 4px rgba(94,234,212,.4))"></span>
         <div class="flex items-center justify-between px-5 py-3.5">
-          <span class="flex items-center gap-2 text-base font-semibold text-slate-100"><span class="text-amber-400" x-html="g.svg('zap','w-5 h-5')"></span>Lò Cường Hóa</span>
+          <span class="flex items-center gap-2 text-base font-semibold text-slate-100">Cường Hóa Trang Bị</span>
           <button @click="g.closeEnhance()" class="text-slate-500 hover:text-rose-400 text-lg" aria-label="Đóng">✕</button>
         </div>
         <template x-if="!id"><div class="p-10 text-center text-slate-500">Slot này chưa có trang bị.</div></template>
@@ -11573,7 +11778,7 @@
                     <div class="text-[11px] uppercase tracking-wider text-amber-300/70 mb-2.5 font-medium">Chỉ số tăng</div>
                     <div class="space-y-2.5">
                       <template x-for="p in g.enhancePreview(id)" :key="p.key">
-                        <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-400"><span class="text-slate-500" x-html="g.svg(p.icon,'w-4 h-4')"></span><span x-text="p.label"></span></span><span class="tabular-nums"><span class="text-slate-400" x-text="p.cur"></span><span class="text-slate-600 mx-1">→</span><span class="text-emerald-400 font-semibold" x-text="p.next"></span><span class="text-emerald-500/70 text-[11px] ml-1" x-text="'+'+(p.next-p.cur)"></span></span></div>
+                        <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-400"><span x-text="p.label"></span></span><span class="tabular-nums"><span class="text-slate-400" x-text="p.cur"></span><span class="text-slate-600 mx-1">→</span><span class="text-emerald-400 font-semibold" x-text="p.next"></span><span class="text-emerald-500/70 text-[11px] ml-1" x-text="'+'+(p.next-p.cur)"></span></span></div>
                       </template>
                       <template x-if="!g.enhancePreview(id).length"><div class="text-[12px] text-slate-500 italic py-1">Trang bị này không có chỉ số nền để cường hóa.</div></template>
                     </div>
@@ -11581,9 +11786,9 @@
                   <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4 min-h-[248px]">
                     <div class="text-[11px] uppercase tracking-wider text-amber-300/70 mb-2.5 font-medium">Nguyên liệu</div>
                     <div class="space-y-2.5">
-                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon, info.stoneName)" title="Bấm để phóng to" x-html="g.ico(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.stoneId).text" x-text="info.stoneName"></span></span><span class="tabular-nums shrink-0" :class="info.stoneOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.stoneHave)+' / '+info.stoneQty"></span></div>
-                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox('honThach','💠','Hồn Thạch')" title="Bấm để phóng to" x-html="g.ico('honThach','💠')"></span><span class="truncate font-medium text-rose-300">Hồn Thạch</span></span><span class="tabular-nums shrink-0" :class="info.honOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.honHave)+' / '+g.fmt(info.honThach)"></span></div>
-                      <template x-if="info.crystalQty>0"><div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-5 h-5 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon, info.crystalName)" title="Bấm để phóng to" x-html="g.ico(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.crystalId).text" x-text="info.crystalName"></span></span><span class="tabular-nums shrink-0" :class="info.crystalOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.crystalHave)+' / '+info.crystalQty"></span></div></template>
+                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon, info.stoneName)" title="Bấm để phóng to" x-html="g.ico(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.stoneId).text" x-text="info.stoneName"></span></span><span class="tabular-nums shrink-0" :class="info.stoneOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.stoneHave)+' / '+info.stoneQty"></span></div>
+                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox('honThach','💠','Hồn Thạch')" title="Bấm để phóng to" x-html="g.ico('honThach','💠')"></span><span class="truncate font-medium text-rose-300">Hồn Thạch</span></span><span class="tabular-nums shrink-0" :class="info.honOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.honHave)+' / '+g.fmt(info.honThach)"></span></div>
+                      <template x-if="info.crystalQty>0"><div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon, info.crystalName)" title="Bấm để phóng to" x-html="g.ico(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.crystalId).text" x-text="info.crystalName"></span></span><span class="tabular-nums shrink-0" :class="info.crystalOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.crystalHave)+' / '+info.crystalQty"></span></div></template>
                     </div>
                   </div>
                 </div>
@@ -11596,7 +11801,7 @@
                 </div>
 
                 <div class="flex justify-center">
-                  <button @click="g.doEnhance()" :disabled="!g.enhanceCan(id)" class="dp-btn inline-flex items-center justify-center gap-2" :class="!g.enhanceCan(id) && 'off'"><span x-html="g.svg('zap','w-5 h-5')"></span>Cường Hóa</button>
+                  <button @click="g.doEnhance()" :disabled="!g.enhanceCan(id)" class="dp-btn inline-flex items-center justify-center gap-2" :class="!g.enhanceCan(id) && 'off'">Cường Hóa</button>
                 </div>
               </div>
             </template>

@@ -153,6 +153,18 @@ export const ITEMS = {
   linhPhach: { id: 'linhPhach', name: 'Linh Phách', icon: '🌀', type: 'khac', quality: 'tinhPham', value: 70, desc: 'Mảnh hồn phách tản ra khi phóng sanh linh thú phẩm cao — chất dẫn để Thức Tỉnh linh thú phẩm thấp.' },
   manhTrangBi: { id: 'manhTrangBi', name: 'Mảnh Trang Bị Hoàng Kim', icon: '🔆', type: 'khac', quality: 'coBan', value: 400, boss: true, desc: 'Kim loại quý ngưng từ tà khí Yêu Vương và tầng sâu Thái Hư, lóe hoàng kim lạnh. Chất liệu chung để ghép trang bị của các Bộ Trang trấn thân.' },
   dpset_kimQuang: { id: 'dpset_kimQuang', name: 'Đồ Phổ Bộ Kim Quang', icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Bản đồ phổ khắc bí pháp luyện Bộ Kim Quang — bạch kim hộ thân. Lĩnh hội rồi mới có thể dùng Mảnh Trang Bị Hoàng Kim ghép nên từng món của bộ.' },
+  // --- Đồ Phổ 10 BỘ BẠCH KIM (đợt 2). CHƯA CÓ NGUỒN RƠI: chưa gắn vào Bí Cảnh/Yêu Vương nào,
+  //     nên mười bộ này còn khoá kín. Chốt nguồn xong chỉ cần gán drop, không phải sửa gì ở đây.
+  dpset_anBang:    { id: 'dpset_anBang',    name: 'Đồ Phổ Bộ An Bang',    icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Quyển đồ phổ nặng như đá núi, giở ra nghe tiếng chuông trấn. Ghi phép luyện giáp trụ của kẻ đứng chắn cho một phương bờ cõi.' },
+  dpset_nhuTinh:   { id: 'dpset_nhuTinh',   name: 'Đồ Phổ Bộ Nhu Tình',   icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Lụa mỏng thêu chỉ bạc, chữ mềm như nét nước. Chép phép luyện y giáp của nữ hiệp lấy nhu thắng cương, thương mà không tàn.' },
+  dpset_bachHong:  { id: 'dpset_bachHong',  name: 'Đồ Phổ Bộ Bạch Hồng',  icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Quyển trục trắng vắt một vệt mực chéo như cầu vồng xuyên trời. Ghi phép luyện trang bị dành cho kẻ một kiếm phân sinh tử.' },
+  dpset_thuongLan: { id: 'dpset_thuongLan', name: 'Đồ Phổ Bộ Thương Lan', icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Da giao long ép thành quyển, sờ vào lạnh buốt tận xương. Chép phép luyện giáp hàn khí, nước không thấm lửa không bén.' },
+  dpset_dinhQuoc:  { id: 'dpset_dinhQuoc',  name: 'Đồ Phổ Bộ Định Quốc',  icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Bản khắc trên phiến thiết dày, mép còn vết đao chém. Ghi phép luyện giáp nặng của tướng soái đạp trận bình cương.' },
+  dpset_thanhHu:   { id: 'dpset_thanhHu',   name: 'Đồ Phổ Bộ Thanh Hư',   icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Quyển giấy dó nhẹ như mây, cầm lâu tưởng sắp bay khỏi tay. Chép phép luyện đạo bào ngưng thần, gió qua tay áo mà tay áo không động.' },
+  dpset_hongAnh:   { id: 'dpset_hongAnh',   name: 'Đồ Phổ Bộ Hồng Ảnh',   icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Quyển bọc vải đỏ sẫm, chữ chỉ hiện dưới ánh trăng. Ghi phép luyện dạ hành y của kẻ đi trong bóng, giết xong mới có người thấy.' },
+  dpset_tuDien:    { id: 'dpset_tuDien',    name: 'Đồ Phổ Bộ Tử Điện',    icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Mặt quyển còn rịn mùi khét, nét chữ nứt hình tia chớp. Chép phép luyện chiến giáp lôi đình, chớp đi trước tiếng sấm theo sau.' },
+  dpset_thatSat:   { id: 'dpset_thatSat',   name: 'Đồ Phổ Bộ Thất Sát',   icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Quyển da thuộc thấm màu huyết dụ, mở ra sát khí xộc lên mũi. Ghi phép luyện giáp trụ dưới sao Thất Sát, đã ra đòn là không có đường lui.' },
+  dpset_minhVuong: { id: 'dpset_minhVuong', name: 'Đồ Phổ Bộ Minh Vương', icon: '📜', type: 'khac', quality: 'coBan', value: 1000, boss: true, desc: 'Kinh quyển vàng sẫm in dấu ấn kim cang, đặt xuống là không nhấc lên nổi. Chép phép luyện giáp bất hoại của Minh Vương phẫn nộ.' },
 
   // --- Đồ Phổ TUYỆT KĨ (rơi Bí Cảnh cao) — mở khoá chế 1 tuyệt kĩ ở Tàng Kinh Các. Xem TUYET_RECIPE (votong.js).
   dpchieu_vdpt: { id: 'dpchieu_vdpt', name: 'Đồ Phổ: Viêm Đế Phần Thiên', icon: '📜', type: 'khac', quality: 'coBan', value: 900, boss: true, desc: 'Tàn quyển cháy sém ghi chép chân hỏa chín tầng của Viêm Đế. Lĩnh hội rồi, gom đủ liệu tinh huyết boss mới mong luyện thành.' },
@@ -337,7 +349,9 @@ const DP_LORE = {
 const DOPHO_QUALITIES = ['tuyetPham', 'truyenThe', 'thanPham', 'coBan'];
 export const DOPHO_IDS = [];
 Object.values(GEAR)
-  .filter((g) => g && g.equip && (DOPHO_QUALITIES.includes(g.quality) || g.equip.forceDoPho))
+  // `!g.equip.set`: đồ BỘ TRANG không rèn được — nó đến từ ghép Mảnh + Đồ Phổ Bộ. Không loại thì
+  // mỗi món trong bộ tự đẻ thêm một "Đồ Phổ: <tên món>" chẳng nguồn nào phát ra (11 bộ = 77 món rác).
+  .filter((g) => g && g.equip && !g.equip.set && (DOPHO_QUALITIES.includes(g.quality) || g.equip.forceDoPho))
   .forEach((g) => {
     const id = 'dp_' + g.id;
     ITEMS[id] = {

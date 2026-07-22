@@ -4,7 +4,7 @@
 //      + engine mô phỏng + dự báo + log.
 // THUẦN (không Alpine). deriveCombat dùng derivedStats (Tứ Trụ + trang bị).
 // ============================================================
-import { derivedStats, gearEle, khangClamp, KHANG_CAP, dodgeFromNeTranh, hitFromMenhTrung } from '../engine/stats.js';
+import { derivedStats, gearEle, khangClamp, KHANG_CAP, giamNhanClamp, GIAM_NHAN_CAP, dodgeFromNeTranh, hitFromMenhTrung } from '../engine/stats.js';
 import { levelFromXp } from '../engine/leveling.js';
 import { titleBonus } from '../engine/titles.js';
 import { ITEMS } from './items.js';   // đọc buff của Đan Bổ Trợ (danBuffPct)
@@ -109,9 +109,9 @@ export const TAM_PHAP_POOL = [
     short:'Trầm tĩnh như nước sâu, nội lực dồi dào — thiên khống chế & bền.',
     lore:'Lấy nhu khắc cương, chân khí hàn lương trầm ổn, nội tức bất tận đủ tung khống chế liên hồi.' },
   { id:'thanhMoc', name:'Thanh Mộc Trường Sinh Công', he:'moc', heBonus:0.20, noiLuc:30, nlRegen:11,
-    mod:{ regen:0.02, hp:0.08 },
-    desc:'+20% Sát Thương Mộc · hồi 2% Sinh Lực/hiệp · +8% Sinh Lực',
-    short:'Sinh cơ bất tuyệt — độc & hồi máu song hành, trụ rất bền.',
+    mod:{ giamNhan:0.06, hp:0.08 },
+    desc:'+20% Sát Thương Mộc · giảm 6% Sát Thương phải chịu · +8% Sinh Lực',
+    short:'Sinh cơ bất tuyệt — độc & sức bền song hành, trụ rất lâu.',
     lore:'Mô phỏng lẽ sinh trưởng của thảo mộc, tự sinh tự dưỡng, độc khí ngấm ngầm hao mòn địch nhân.' },
   { id:'cuongKim', name:'Cương Kim Quyết', he:'kim', heBonus:0.20, noiLuc:20, nlRegen:10,
     mod:{ crit:0.10, critDmg:0.30, dmg:0.05, def:-0.05 },
@@ -140,8 +140,8 @@ export const BO_PHAP = [
     pros:['+28% Công','+8% Bạo kích'], cons:['−20% Phòng thủ'],
     desc:'Lao thẳng tấn sát, bất chấp phòng bị. Hạ quái cực nhanh song thân mong manh — nên phối hút máu hoặc né để bù.' },
   { id:'kienThu',   name:'Kiên Thủ Bộ', gloss:'Phòng Thủ', stat:'hoThe', icon:'🛡️', ig:'shield',
-    mod:{ def:0.35, hp:0.18, regen:0.015, dmg:-0.15, spd:-0.10 },
-    pros:['+35% Thủ','+18% Sinh Lực','hồi 1.5%/hiệp'], cons:['−15% Công','−10% Tốc'],
+    mod:{ def:0.35, hp:0.18, giamNhan:0.10, dmg:-0.15, spd:-0.10 },
+    pros:["+35% Thủ","+18% Sinh Lực","giảm 10% Sát Thương phải chịu"], cons:['−15% Công','−10% Tốc'],
     desc:'Vững như bàn thạch, ôm đòn trường kỳ không gục. Hiếm khi Trọng Thương nhưng hạ quái rất chậm — hợp cày qua đêm an toàn.' },
   { id:'tanToc',    name:'Tấn Tốc Bộ', gloss:'Tốc Độ & Né', stat:'thanPhap', icon:'💨', ig:'wind',
     mod:{ spd:0.28, dodge:0.14, dmg:-0.10, def:-0.10 },
@@ -327,8 +327,8 @@ export function chieuById(id){ return CHIEU.find(c=>c.id===id) || null; }
 // TẦNG CHIÊU THỨC — tiêu điểm Ngộ Tính (1 điểm mỗi cấp Chiến Đấu) để luyện sâu MỘT chiêu.
 // PHẠM VI BÓ CHẶT Ở CHIÊU THỨC. Tâm Pháp và Bị Động KHÔNG có Tầng, vì hai thứ đó tiêu thụ ở
 // khối addMod trong deriveCombat — mở sang đó sẽ phá hook một dòng ở makeFight VÀ kéo theo
-// dungeon.js (power 9 phó bản đã tune). Riêng regen: TUYỆT ĐỐI không nhân, Sinh Sinh Bất Tức
-// 2.5%/giây nhân lên là nhân vật bất tử, xoá sạch đánh đổi giữa bài công và bài thủ.
+// dungeon.js (power 9 phó bản đã tune). Riêng `giamNhan`: TUYỆT ĐỐI không nhân — nó là tỉ lệ cắt
+// thẳng đòn đánh vào, nhân lên là chạm trần 0,40 rồi mất trắng, hoặc tệ hơn là miễn thương.
 // ============================================================
 export const TANG_MAX = 20;
 export const TANG_BANDS = [
@@ -404,7 +404,7 @@ export const BI_DONG = [
   { id:'loiNhanQuyet',  name:'Lợi Nhận Quyết',  he:'kim', mod:{ crit:0.10, critDmg:0.20 }, desc:'+10% Bạo Kích · +20% Sát Thương Bạo Kích', lore:'Tâm pháp luyện cho ý niệm sắc bén như mũi nhọn, một lòng tìm tới yếu huyệt. Nhất kích tất sát — đã ra tay là nhắm chỗ hiểm, trúng thì kinh thiên động địa.' },
   // MỘC — sinh trưởng, hồi phục
   { id:'thanhMocHoThe', name:'Thanh Mộc Hộ Thể', he:'moc', eleDmg:0.18, desc:'+18% sát thương chiêu Mộc', lore:'Mượn sinh khí thảo mộc dưỡng chân nguyên, lục khí tuần hoàn trong người không dứt. Mỗi chiêu Mộc tung ra đều mang sức sống bừng bừng của vạn vật lúc xuân về.' },
-  { id:'sinhSinhBatTuc',name:'Sinh Sinh Bất Tức', he:'moc', regen:0.025, desc:'hồi 2.5% Sinh Lực mỗi giây', lore:'Mô phỏng lẽ sinh trưởng của cỏ cây, thương tích vừa thành đã tự khép miệng liền da. Sinh cơ bất tuyệt, dẫu trọng thương vẫn âm thầm hồi lại nguyên khí.' },
+  { id:'sinhSinhBatTuc',name:'Sinh Sinh Bất Tức', he:'moc', mod:{ giamNhan:0.18 }, desc:"giảm 18% Sát Thương phải chịu", lore:'Mô phỏng lẽ sinh trưởng của cỏ cây — thân mềm mà dai, gân thịt nuốt bớt lực đòn như cành liễu nuốt gió bão. Sinh cơ bất tuyệt, cong xuống rồi lại vươn, chém mãi không đứt.' },
   // THỦY — nhu nhược, nội lực
   { id:'huyenBangHoThe',name:'Huyền Băng Hộ Thể', he:'thuy', eleDmg:0.18, desc:'+18% sát thương chiêu Thủy', lore:'Hàn khí Huyền Băng bao bọc châu thân, lạnh thấu mà trầm ổn vô cùng. Chiêu Thuỷ trong tay người thêm phần âm nhu mà hàn liệt, chạm vào là buốt tới tận xương.' },
   { id:'daiChuThien',   name:'Đại Chu Thiên',   he:'thuy', mod:{ nl:0.25, nlRegen:0.40 }, desc:'+25% Nội Lực · +40% hồi Nội Lực', lore:'Khai thông đại chu thiên, chân khí lưu chuyển khắp kinh mạch như trăm sông cùng đổ về biển. Nội tức bất tận, tuyệt kỹ tung liên hồi mà khí hải chẳng hề vơi cạn.' },
@@ -518,18 +518,18 @@ export function deriveCombat(state, loadout, opts){
   const nt = 1;
   const tp = tamPhapById(loadout && loadout.tamPhap);
   const heChinh = tp.he, tamPhapHeBonus = tp.heBonus || 0;
-  let regenPct = 0;
   // bonus % sát thương theo TỪNG hệ (từ bị động "+18% ST hệ X")
   const eleBonus = { kim:0, moc:0, thuy:0, hoa:0, tho:0 };
   // gộp hệ số chỉ số của Tâm Pháp + 1-2 Bộ Pháp + tối đa 2 Bị Động đang chọn
-  const M = { dmg:0, def:0, spd:0, hp:0, crit:0, critDmg:0, nl:0, nlRegen:0, regen:0, dodge:0 };
+  // `regen` ĐÃ BỎ KHỎI BẢNG NÀY — cơ chế hồi máu mỗi hiệp không còn (xem AFFIX trong gear.js).
+  // Chỗ của nó là `giamNhan`: cắt thẳng một tỉ lệ đòn đánh vào, KHÔNG mạnh lên theo độ dài trận.
+  const M = { dmg:0, def:0, spd:0, hp:0, crit:0, critDmg:0, nl:0, nlRegen:0, giamNhan:0, dodge:0 };
   const addMod = (m)=>{ if(m) for(const k in M) M[k]+=(m[k]||0); };
   addMod(tp.mod);
   normBoPhap(loadout).forEach(id=>addMod(boPhapById(id).mod));
-  normBiDong(loadout).forEach(id=>{ const p=biDongById(id); if(!p) return; addMod(p.mod); if(p.regen) regenPct+=p.regen; if(p.eleDmg && eleBonus[p.he]!=null) eleBonus[p.he]+=p.eleDmg; });
+  normBiDong(loadout).forEach(id=>{ const p=biDongById(id); if(!p) return; addMod(p.mod); if(p.eleDmg && eleBonus[p.he]!=null) eleBonus[p.he]+=p.eleDmg; });
   // + cộng hưởng Ngũ Hành từ TRANG BỊ đang mặc (mỗi món he + eleDmg) → chảy thẳng vào ST chiêu cùng hệ
   const gEle = gearEle(state); for(const h in eleBonus) eleBonus[h] += (gEle[h] || 0);
-  regenPct += M.regen;
   // Tổng bonus cho hệ của Tâm Pháp (để hiển thị "Công hưởng")
   const heBonus = tamPhapHeBonus + (eleBonus[heChinh] || 0);
   // Đan Bổ Trợ họ Cường Nguyên: +% Công/Thủ/Sinh Lực. Đọc THẲNG state.buffs (đã được prune theo
@@ -540,7 +540,12 @@ export function deriveCombat(state, loadout, opts){
     atk: Math.max(1, Math.round(d.congKich * (1+M.dmg) * nt * (1 + bf.atkPct))),
     def: Math.max(0, Math.round(d.hoThe * (1+M.def) * nt * (1 + bf.defPct))),
     spd: Math.max(1, Math.round((100 + sl('thanPhap')*1.5 + (d.tocDo||0)) * (1+M.spd+tbn.spdPct) * nt)),
-    crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.005 + M.crit + (d.baoKich||0)/100 + tbn.critPct)),
+    // LINH XẢO CHỈ CÒN 0,0017/cấp (trước là 0,005). Lý do: hệ số cũ cho Linh Xảo Lv100 nguyên
+    // 50% bạo kích, cộng nền 5% thành 55% — tức MỘT chỉ số Tứ Trụ tự nó ăn hết 55/75 điểm trần,
+    // chỉ chừa 20 điểm cho Tâm Pháp (+15) + danh hiệu (+5) + MỌI dòng Bạo Kích trên trang bị.
+    // Hậu quả: đồ bậc cao roll trúng Bạo Kích là rơi thẳng vào trần, mất trắng, âm thầm.
+    // Nay Lv100 cho 17% (tổng 22%) — cả bốn nguồn cùng có chỗ, dòng roll lại có nghĩa.
+    crit: Math.min(0.75, Math.max(0, 0.05 + sl('linhXao')*0.0017 + M.crit + (d.baoKich||0)/100 + tbn.critPct)),
     // NỀN 180%: đòn thường 100% thì đòn bạo kích 180%. CỐ Ý KHÔNG CÓ TRẦN — cộng thêm dòng
     // Sát Thương Bạo Kích thì cứ thế cao lên, đúng lối các game cùng thể loại.
     critDmg: 1.8 + M.critDmg + (d.baoSat||0)/100,
@@ -556,7 +561,8 @@ export function deriveCombat(state, loadout, opts){
     khang: d.khang || { kim:0, moc:0, thuy:0, hoa:0, tho:0 },
     heChinh, tamPhapHeBonus, eleBonus, heBonus,
     maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)),
-    regenPct: regenPct + (d.hoiMau || 0),   // + dòng Hồi Máu trên Tọa Kỵ (Đợt 3)
+    // GIẢM SÁT THƯƠNG PHẢI CHỊU — thay chỗ của hồi máu mỗi hiệp (đã bỏ). Kẹp trần 0,40.
+    giamNhan: giamNhanClamp(M.giamNhan), giamNhanCap: GIAM_NHAN_CAP,
     tang: (state && state.combat && state.combat.tang) || {},   // Tầng từng chiêu (Ngộ Tính) — makeFight áp vào
     tangBonus: d.tangCong || 0,                                 // ĐỢT 5: +Tầng từ trang bị (trần 3)
     tangExp: d.tangExp || 0,                                    // +% EXP, CHỈ cấp Chiến Đấu (cho UI đọc)
@@ -761,6 +767,7 @@ function _eTurn(f){
   // cũng không thể vượt trần. Chưa có nguồn kháng nào -> toàn 0 -> nhân đúng 1.
   let dmg=e.atk*mult*(100/(100+P.def));
   dmg*=(1-khangClamp(P.khang && P.khang[e.he]));
+  dmg*=(1-(P.giamNhan||0));                // giảm sát thương phải chịu (Tâm Pháp / Bộ Pháp / Bị Động), trần 0,40
   if(p.ngat>0) dmg*=(1+NGAT_AMP);          // ĐỢT 4: đang Ngất thì lãnh đòn nặng hơn (khác stun)
   dmg=Math.max(1,Math.round(dmg)); p.hp-=dmg; f.taken+=dmg;
   let s='<span class="text-rose-400">▸</span> '+pick(ENEMY_PHRASES)(f.eName,dmg,desc);
@@ -804,7 +811,7 @@ export function stepFight(f){
   if(p.statuses.length){ p.statuses.forEach(st=>{ p.hp-=st.dmg; f.taken+=st.dmg;
       L(f,'☣ '+(st.name==='Độc'?'Độc tố':'Ngọn lửa')+' bào mòn ngươi, hao <b class="dmgr">'+st.dmg+'</b> sinh lực.', st.name==='Độc'?'text-emerald-400':'text-orange-400'); st.ticksLeft--; });
     p.statuses=p.statuses.filter(s=>s.ticksLeft>0); if(p.hp<=0){ _end(f,'lose'); return; } }
-  const reg=Math.round(p.maxHP*P.regenPct); if(reg>0&&p.hp<p.maxHP) p.hp=Math.min(p.maxHP,p.hp+reg);
+  // (Đã bỏ dòng hồi máu mỗi hiệp. Trong trận chỉ còn hồi bằng đan dược / thức ăn / chiêu Thủy Liêm Quyết.)
   for(const k in f.cds) if(f.cds[k]>0) f.cds[k]--;
   if(p.buff>0)p.buff--; if(p.slow>0)p.slow--; if(p.stun>0)p.stun--; if(p.ngat>0)p.ngat--; if(e.stun>0)e.stun--; if(e.slow>0)e.slow--; if(e.skillCd>0)e.skillCd--;
   p.gauge+=P.spd*(p.slow>0?0.6:1); e.gauge+=e.spd*(e.slow>0?0.6:1);

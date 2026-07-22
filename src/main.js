@@ -2756,6 +2756,17 @@ const gameStore = {
     return Object.values(eq).some((g) => g && g.gearId === id);
   },
   setOwnedCount(key) { const s = this.TRANG_SETS[key]; return s ? s.pieces.filter((id) => this.setPieceOwned(id)).length : 0; },
+  // ---- Bách Trang Các: điều hướng HAI TẦNG (cột Ngũ Hành → thanh chọn Bộ) ----
+  // 11 bộ xếp chồng là gần 6000px cuộn dọc. Chia hệ rồi chọn bộ thì mỗi lần chỉ dựng MỘT bộ.
+  BTC_HE_ORDER: ['kim', 'moc', 'thuy', 'hoa', 'tho', 'vohe'],
+  btcHe: 'kim',      // hệ đang chọn ở cột trái
+  btcBoIdx: 0,       // vị trí bộ trong hệ đó (thanh ngang)
+  // Kim Quang khai `he: null` (Vô Hệ) — quy về 'vohe' để cùng một khoá với bảng NGU_HANH.
+  btcHeOf(key) { return (this.TRANG_SETS[key] || {}).he || 'vohe'; },
+  get btcSetsCuaHe() { return this.TRANG_SET_KEYS.filter((k) => this.btcHeOf(k) === this.btcHe); },
+  // Kẹp chỉ số: đổi hệ mà quên reset thì btcBoIdx có thể trỏ ra ngoài mảng -> undefined -> vỡ view.
+  get btcSetKey() { const a = this.btcSetsCuaHe; return a[Math.min(this.btcBoIdx, Math.max(0, a.length - 1))] || null; },
+  btcChonHe(he) { this.btcHe = he; this.btcBoIdx = 0; },
   // Số bộ ĐÃ TRỌN — thẻ 裝 trên bảng chỉ số chỉ hiện tóm tắt, danh sách từng bộ nằm ở Bách Trang Các.
   get setTronCount() { return this.TRANG_SET_KEYS.filter((k) => this.setUnlocked(k) && this.setOwnedCount(k) >= this.TRANG_SETS[k].pieces.length).length; },
   setCanGhep(key, id) { const s = this.TRANG_SETS[key]; return !!s && s.pieces.includes(id) && this.setUnlocked(key) && !this.setPieceOwned(id) && this.manhTrangBi >= s.manhCost; },
@@ -3569,6 +3580,56 @@ const gameStore = {
     };
   },
   equippedItem(slotId) { return this.gearView(this.state.equipment && this.state.equipment[slotId]); },
+  // ---------- Tooltip trang bị (rê chuột trên paper-doll) ----------
+  // BẤM ô giờ mở bảng Đổi Trang Bị, nên không còn chỗ nào xem chi tiết món ĐANG MẶC. Tooltip lấp chỗ đó.
+  GTIP_HAN: { mu: '冠', giap: '甲', dai: '帶', gang: '手', giay: '履', vuKhi: '兵', nhan: '戒',
+              trangSuc: '珮', toaKy: '騎', riu: '斧', cuoc: '鋤', canCau: '釣', duocLiem: '鐮' },
+  // THỨ TỰ CỨNG, không theo Object.keys: món nào cũng xếp giống nhau thì mắt quen vị trí, liếc là thấy.
+  GTIP_ORDER: ['congKich', 'hoThe', 'sinhLuc', 'tocDo', 'neTranh', 'menhTrung', 'baoKich', 'baoSat',
+    'khangKim', 'khangMoc', 'khangThuy', 'khangHoa', 'khangTho', 'khangAll',
+    'giamNgat', 'giamCham', 'giamDoc', 'giamBong', 'giamChoang', 'tangCong', 'tangExp'],
+  gtipSetName(v) { const k = ((this.ITEMS[v.gearId] || {}).equip || {}).set; return k ? (this.TRANG_SETS[k] || {}).name : null; },
+  // Màu chủ đạo của tooltip. Đồ Bộ Trang phải ra BẠCH KIM cho khớp nhãn "Bạch Kim" mà itemQuality
+  // đã override — dùng thẳng QHEX thì đồ bộ (phẩm Cô Bản) ra VÀNG, chữ nói một đằng viền một nẻo.
+  // itemHaloHex trả null với đồ dưới bậc 5 nên bắt buộc có đường lui, không thì tooltip mất viền.
+  gtipHex(x) { return this.itemHaloHex(x) || this.QHEX[this._qKey(x)] || '#cbd5e1'; },
+  // Vị trí tooltip HÀNG DƯỚI. Hàng này là flex-wrap nên không neo theo từng ô được (xuống 2 hàng là
+  // mọi luật theo chỉ số sai hết) — nhưng neo cứng vào mép hàng thì món nào cũng hiện một chỗ.
+  // Nên: một tooltip dùng chung, mỗi lần rê thì TÍNH lại toạ độ theo đúng ô đang rê.
+  //   x = giữa ô − nửa bề rộng tooltip, rồi KẸP trong lòng hàng để không lòi ra ngoài khung.
+  //   y đo từ ĐÁY hàng lên, nhờ vậy hàng có wrap xuống dòng thì tooltip vẫn nằm ngay trên đúng ô đó.
+  //   mui = tâm ô so với mép trái tooltip, để mũi nhọn luôn chỉ vào ô chứ không lệch đi.
+  // CÔNG CỤ (Rìu/Cuốc/Cần Câu/Dược Liêm) khai `stats: {}` RỖNG — sức mạnh của nó nằm ở `gatherEff`.
+  // Không bắt riêng thì tooltip công cụ trống trơn, chỉ có mỗi tên với tên ô.
+  gtipToolLine(v) {
+    if (!v || !v.gatherEff) return null;
+    const sk = v.gatherSkill && this.SKILLS[v.gatherSkill];
+    return { label: 'Hiệu Suất' + (sk ? ' ' + sk.name : ''), val: '+' + Math.round(v.gatherEff * 100) + '%' };
+  },
+  GTIP_W: 220,
+  gtipRowPos(el) {
+    const o = el.parentElement, r = o.parentElement;          // o = .gslot, r = hàng (position:relative)
+    const giua = o.offsetLeft + o.offsetWidth / 2;
+    const x = Math.max(0, Math.min(giua - this.GTIP_W / 2, r.offsetWidth - this.GTIP_W));
+    return { x, y: r.offsetHeight - o.offsetTop + 15, mui: Math.max(10, Math.min(giua - x, this.GTIP_W - 10)) };
+  },
+  // Tên món BỎ tiền tố tên bộ: "Minh Vương Hộ Tâm Giáp" -> "Hộ Tâm Giáp". Tên bộ đi xuống thẻ riêng,
+  // nhờ vậy tên gọn đúng MỘT dòng trong khổ 220px mà vẫn không giấu mất thông tin nào.
+  gtipName(v) {
+    const bo = this.gtipSetName(v); if (!bo) return v.name;
+    const t = bo.replace(/^Bộ /, '');
+    return v.name.indexOf(t + ' ') === 0 ? v.name.slice(t.length + 1) : v.name;
+  },
+  // Các dòng chỉ số đã sắp thứ tự + kèm sẵn nhãn/giá trị/màu bậc roll.
+  // statLabel (KHÔNG phải gearStatLabel) vì bảng kia viết tắt 'Công'/'Thủ'/'Né' — phạm luật nhãn đầy đủ.
+  gtipLines(v) {
+    if (!v || !v.stats) return [];
+    const ks = Object.keys(v.stats);
+    const seen = {}; const out = [];
+    for (const k of this.GTIP_ORDER) if (v.stats[k] != null) { seen[k] = 1; out.push(k); }
+    for (const k of ks) if (!seen[k]) out.push(k);            // key lạ rơi xuống cuối, không nuốt mất
+    return out.map((k) => ({ key: k, label: this.statLabel(k), val: this.gearVal(k, v.stats[k]), color: this.gearLineColor(v, k) }));
+  },
   slotName(slotId) {
     const s = [...this.EQUIP_SLOTS, ...this.TOOL_SLOTS].find((x) => x.id === slotId);
     return s ? s.name : slotId;
@@ -3602,7 +3663,7 @@ const gameStore = {
   // --- Hiển thị chi tiết trang bị (badge ngũ hành + so sánh) ---
   // Nhãn RÚT GỌN (modal Trang Bị + Cường Hóa). Ba bảng nhãn (đây, statLabel, gearStatIcon) đều fallback
   // `|| k` nên thiếu key nào là chỗ đó lòi chữ tiếng Anh 'khangKim' ra UI — phải thêm đủ cả ba.
-  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
+  gearStatLabel(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả',
     giamNgat: 'Giảm Ngất', giamCham: 'Giảm Chậm', giamDoc: 'Giảm Độc', giamBong: 'Giảm Bỏng', giamChoang: 'Giảm Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP' })[k] || k; },
   // Dòng chỉ số gear ở popup: tên đầy đủ + giá trị + đơn vị (% cho Bạo Kích / Sát Thương Bạo Kích).
   gearLineText(k, v) { const a = AFFIX[k]; return this.statLabel(k) + ' +' + v + (a && a.fmt === 'pct' ? '%' : ''); },
@@ -3644,13 +3705,13 @@ const gameStore = {
   },
   // Icon 5 kháng dùng LẠI icon hệ trong NGU_HANH[he].ig — riêng Hỏa tên icon là 'flame' chứ không phải
   // 'hoa' (SVG_PATHS không có key 'hoa'; svg() trả chuỗi RỖNG khi thiếu key nên sẽ mất icon âm thầm).
-  gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart', baoKich: 'star', baoSat: 'flame', tocDo: 'wind', khangKim: 'kim', khangMoc: 'moc', khangThuy: 'thuy', khangHoa: 'flame', khangTho: 'tho', khangAll: 'shield', hoiMau: 'heart',
+  gearStatIcon(k) { return ({ congKich: 'sword', hoThe: 'shield', neTranh: 'steps', menhTrung: 'scope', sinhLuc: 'heart', baoKich: 'star', baoSat: 'flame', tocDo: 'wind', khangKim: 'kim', khangMoc: 'moc', khangThuy: 'thuy', khangHoa: 'flame', khangTho: 'tho', khangAll: 'shield',
     giamNgat: 'crack', giamCham: 'thuy', giamDoc: 'moc', giamBong: 'flame', giamChoang: 'tho', tangCong: 'trend', tangExp: 'book' })[k] || 'zap'; },
   // Tổng chênh stat vs món đang mặc (dùng để xếp hạng "Đề Cử Cho Bạn").
   // CÓ TRỌNG SỐ: cộng thô sẽ so 1 điểm Sinh Lực (bậc 7 roll 236..472) ngang 1 điểm Kháng (roll 10..20),
   // nên món mang kháng gần như KHÔNG BAO GIỜ được đề cử dù kháng đắt hơn nhiều mỗi điểm.
   // Số dưới là quy đổi thô về "điểm Công tương đương", chưa tune kỹ — chỉ để xếp hạng, không vào công thức trận.
-  GEAR_W: { sinhLuc: 0.25, khangKim: 6, khangMoc: 6, khangThuy: 6, khangHoa: 6, khangTho: 6, khangAll: 24, hoiMau: 30, tangExp: 12, baoKich: 4, baoSat: 1.5 },
+  GEAR_W: { sinhLuc: 0.25, khangKim: 6, khangMoc: 6, khangThuy: 6, khangHoa: 6, khangTho: 6, khangAll: 24, tangExp: 12, baoKich: 4, baoSat: 1.5 },
   gearGainTotal(x) { return this.gearCompare(x).reduce((s, c) => s + c.delta * (this.GEAR_W[c.key] || 1), 0); },
   equipFilterBetter: false,                                                                       // checkbox "chỉ hiển thị tốt hơn"
   recommendedForSlot(slot) {                                                                      // món NÂNG CẤP tốt nhất (null nếu không có)
@@ -3836,7 +3897,10 @@ const gameStore = {
     const BQ = { 1: 'phamPham', 2: 'luongPham', 3: 'tinhPham', 4: 'tuyetPham', 5: 'truyenThe', 6: 'thanPham', 7: 'coBan' };
     const quals = dp.bac.map((b) => BQ[b]);
     return Object.values(this.ITEMS)
-      .filter((it) => it.equip && it.equip.itemLv && quals.includes(it.quality) && (dp.slots === 'all' || dp.slots.includes(it.equip.slot)))
+      // `!it.equip.set` BẮT BUỘC phải khớp với rollDoPhoId (engine/dungeon.js) — bên đó đã loại đồ
+      // Bộ Trang khỏi pool từ đầu. Thiếu điều kiện này thì bảng xem trước KHOE ra hàng chục Đồ Phổ
+      // vĩnh viễn không rơi, người chơi cày mòn mỏi một thứ không tồn tại.
+      .filter((it) => it.equip && it.equip.itemLv && !it.equip.set && quals.includes(it.quality) && (dp.slots === 'all' || dp.slots.includes(it.equip.slot)))
       .map((it) => 'dp_' + it.id);
   },
   dungeonPoolId: null,
@@ -3873,7 +3937,7 @@ const gameStore = {
   },
   itemTypeLabel(t) { return this.ITEM_TYPES[t] || 'Khác'; },
   equipSlotLabel(slot) { const s = (this.EQUIP_SLOTS || []).find((x) => x.id === slot) || (this.TOOL_SLOTS || []).find((x) => x.id === slot); return s ? s.name : slot; },
-  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả', hoiMau: 'Hồi Máu',
+  statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Kháng Kim', khangMoc: 'Kháng Mộc', khangThuy: 'Kháng Thủy', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Thổ', khangAll: 'Kháng Tất Cả',
     giamNgat: 'Giảm Thời Gian Ngất', giamCham: 'Giảm Thời Gian Chậm', giamDoc: 'Giảm Thời Gian Độc', giamBong: 'Giảm Thời Gian Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP Chiến Đấu' })[k] || k; },
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) {
