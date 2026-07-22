@@ -354,12 +354,15 @@
     .gt-v{ font-size:12.5px; font-weight:700; text-align:right; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; }
     /* Tiêu đề mục trong popup vật phẩm: chữ CĂN GIỮA, hai bên là vạch mảnh loe ra mép.
        Dùng chung cho "THUỘC TÍNH" và tên Bộ Trang để hai mục cùng một dáng. */
-    .ihd{ display:flex; align-items:center; gap:10px; margin:14px 0 7px; }
+    /* --ih = màu phẩm chất của món, lấy qua gtipHex — CÙNG một hàm với nút Bán và tooltip trang bị,
+       nên đồ bộ ra bạch kim chứ không ra vàng của phẩm gốc Cô Bản. Mặc định ngọc bích khi món không
+       có phẩm chất (vật phẩm thường không có mục THUỘC TÍNH nên hiếm khi chạm tới). */
+    .ihd{ display:flex; align-items:center; gap:10px; margin:14px 0 7px; --ih:#2dd4bf; }
     .ihd::before, .ihd::after{ content:""; flex:1; height:1px; }
-    .ihd::before{ background:linear-gradient(90deg,transparent,rgba(45,212,191,.38)); }
-    .ihd::after{ background:linear-gradient(90deg,rgba(45,212,191,.38),transparent); }
+    .ihd::before{ background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ih) 40%,transparent)); }
+    .ihd::after{ background:linear-gradient(90deg,color-mix(in srgb,var(--ih) 40%,transparent),transparent); }
     .ihd > span{ flex:0 0 auto; font-family:'Lora','Noto Serif SC',serif; font-size:10px; letter-spacing:.18em;
-             color:rgba(45,212,191,.85); white-space:nowrap; }
+             color:color-mix(in srgb,var(--ih) 88%,transparent); white-space:nowrap; }
     .ihd > span .c{ letter-spacing:.06em; color:#64748b; }
     /* Vạch mờ ngăn phần thông tin món với phần mua bán ở chân popup. */
     .idiv{ height:1px; margin:14px 0 9px;
@@ -5161,7 +5164,7 @@
                       <!-- Ô trang bị + yêu cầu cấp đã dời lên cột phải của đầu thẻ. -->
                       <!-- THUỘC TÍNH: list dọc, tên + giá trị TÔ MÀU theo bậc roll (min→max) -->
                       <template x-if="Object.keys(m.stats||{}).length">
-                        <div class="ihd"><span>THUỘC TÍNH</span></div>
+                        <div class="ihd" :style="'--ih:'+$store.game.gtipHex(m)"><span>THUỘC TÍNH</span></div>
                       </template>
                       <!-- Không gạch ngăn giữa các dòng: bảy đường kẻ mảnh làm khối chỉ số trông như bảng
                            dữ liệu. Chỉ còn nhãn trái, số phải, cách nhau bằng khoảng đệm. -->
@@ -5179,7 +5182,7 @@
                            trong túi vẫn thấy đủ ba dòng nhưng còn xám. -->
                       <template x-if="$store.game.setBonusPanel(m)">
                         <div x-data="{ get sb(){ return $store.game.setBonusPanel(m) } }">
-                          <div class="ihd"><span><span x-text="sb.name.toUpperCase()"></span> <span class="c" x-text="'('+sb.worn+'/'+sb.total+')'"></span></span></div>
+                          <div class="ihd" :style="'--ih:'+$store.game.gtipHex(m)"><span><span x-text="sb.name.toUpperCase()"></span> <span class="c" x-text="'('+sb.worn+'/'+sb.total+')'"></span></span></div>
                           <template x-for="r in sb.rows" :key="r.bac">
                             <div class="flex gap-2.5 text-[11.5px] leading-[1.5] py-[1px]" :class="r.on ? 'text-emerald-300' : 'text-slate-500'">
                               <span class="shrink-0 w-[46px]" :class="r.on ? 'text-slate-400' : 'text-slate-600'" x-text="r.bac+' món:'"></span>
