@@ -1595,9 +1595,12 @@
         @media (max-width:1023px){
           .bcs.tb-stats{ display:none; }
           .bcs.tb-stats.open{ display:flex; position:fixed; inset:0; z-index:72; margin:0; border-radius:0;
-            width:auto; max-width:none; overflow-y:auto;
+            width:auto; max-width:none; overflow-y:auto; overflow-x:hidden;
             padding:14px 14px calc(20px + env(safe-area-inset-bottom));
             background:linear-gradient(180deg,#141d2c,#0b1220); }
+          /* .tb-stats-scale khi scale co width:calc(100%/s) > 100% (bu be ngang cho transform) -> layout
+             box rong hon man hinh -> sinh THANH CUON NGANG du noi dung nhin thay van vua. overflow-x:hidden
+             o tren cat phan thua vo hinh do; noi dung (da transform ve dung 100%) khong bi mat. */
           /* Thẻ bcs cao CO DINH (88/112px). Overlay flex-col cao 100vh -> con bi co (flex-shrink:1) lam
              scrollHeight sai -> hang cuoi cat du cuon het. flex:none giu nguyen cao, cuon dung. */
           .bcs.tb-stats.open > *{ flex:0 0 auto; }
@@ -1606,7 +1609,7 @@
         /* Boc auto-fit: giu gap nhu section cu (10px). transform-origin top-left de width:calc(100%/s)
            bu lai be ngang khi scale (khong bi co ngang / khong le trong 2 ben). Desktop statScale=1 nen
            khong co transform -> hien nhu cu. */
-        .tb-stats-scale{ display:flex; flex-direction:column; gap:10px; transform-origin:top left; }
+        .tb-stats-scale{ display:flex; flex-direction:column; gap:10px; transform-origin:top center; }
         /* DESKTOP (>=1024px) TUYET DOI khong scale: statScale co the con sot 0.7x tu lan do mobile ->
            inline transform se ep meo cot phai. !important chan cung, desktop luon nhu cu. */
         @media (min-width:1024px){ .tb-stats-scale{ transform:none !important; width:auto !important; margin-bottom:0 !important; } }
@@ -1835,7 +1838,7 @@
               </div>
 
               <!-- Bọc mọi thẻ để AUTO-FIT (mobile): scale vừa đúng 1 màn hình, khỏi cuộn. Desktop statScale=1 -> KHÔNG transform. -->
-              <div class="tb-stats-scale" :style="statScale<1 ? ('width:calc(100%/'+statScale+');transform:scale('+statScale+');margin-bottom:-'+Math.round(fitNat*(1-statScale))+'px') : ''">
+              <div class="tb-stats-scale" :style="statScale<1 ? ('transform:scale('+statScale+');margin-bottom:-'+Math.round(fitNat*(1-statScale))+'px') : ''">
 
               <!-- LỆNH BÀI: Chiến Lực. MOBILE popup ẨN (Chiến Lực đã hiện ở thẻ avatar — user chốt); desktop cột phải GIỮ. -->
               <div class="bcs-tb bcs-lb hidden lg:block">
