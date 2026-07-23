@@ -1972,7 +1972,9 @@
 
       <!-- ===== MODAL: BÁCH TRANG CÁC (ghép Bộ Trang từ Mảnh Trang Bị Hoàng Kim) ===== -->
       <style>
-        .btc-panel{ position:relative; background:linear-gradient(180deg,rgba(24,34,54,.98),rgba(11,18,32,.99)); border:1px solid #26344a; border-radius:18px; overflow:hidden; box-shadow:0 40px 100px -30px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.05); display:flex; flex-direction:column; max-height:92vh; }
+        /* max-height DVH (khong phai vh): mobile thanh trinh duyet an bot vung thay -> 92vh cao hon
+           thuc te -> panel bi cat DINH + DAY (header + note). dvh = chieu cao thay that. vh de fallback. */
+        .btc-panel{ position:relative; background:linear-gradient(180deg,rgba(24,34,54,.98),rgba(11,18,32,.99)); border:1px solid #26344a; border-radius:18px; overflow:hidden; box-shadow:0 40px 100px -30px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.05); display:flex; flex-direction:column; max-height:92vh; max-height:92dvh; }
         .btc-panel::before{ content:""; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,transparent,rgba(214,227,242,.6),rgba(159,178,201,.35),transparent); z-index:2; }
         .btc-hd{ padding:18px 22px 13px; border-bottom:1px solid rgba(38,52,74,.7); position:relative; flex:none; }
         .btc-title{ font-size:23px; font-weight:700; line-height:1.1; background:linear-gradient(120deg,#eef4fb 12%,#d6e3f2 48%,#9fb2c9 92%); -webkit-background-clip:text; background-clip:text; color:transparent; }
@@ -2363,9 +2365,13 @@
         .sk-hero .sk-div span{ color:#c9a24b; font-size:8px; transform:rotate(45deg); display:inline-block; text-shadow:0 0 6px rgba(201,162,75,.6); }
         @media (max-width:640px){
           .sk-hero{ padding:13px 15px; }
-          .sk-hero .sk-row{ gap:13px; }
+          /* WRAP: o Ngo Tinh (tkc-ngo, shrink-0 ~200px) ep .sk-body con ~90px lam cau lore vo moi
+             tu 1 dong + de len o. Cho .sk-row wrap -> o Ngo Tinh xuong hang 2 full-width, lore lay
+             lai be ngang. Header khac (icon + body) chi 2 con nen KHONG wrap. */
+          .sk-hero .sk-row{ gap:12px 13px; flex-wrap:wrap; }
           .sk-hero .sk-ic{ width:66px; height:66px; font-size:34px; }
           .sk-hero .sk-nm{ font-size:14px; } .sk-hero .sk-qt{ font-size:12.5px; }
+          .sk-hero .tkc-ngo{ width:100%; margin-top:2px; }
         }
       </style>
       <template x-if="$store.game.view==='skill'">
@@ -4723,7 +4729,7 @@
               </div>
               <!-- Ô điểm Ngộ Tính + Tẩy Tủy — lấp chỗ trống bên phải header. Dùng lại lục giác .eh-hex
                    như tile trong lưới và badge trên tab, để ba chỗ cùng một ngôn ngữ. -->
-              <div class="flex items-center gap-2.5 shrink-0 rounded-xl px-3 py-2"
+              <div class="tkc-ngo flex items-center gap-2.5 shrink-0 rounded-xl px-3 py-2"
                    style="border:1px solid rgba(245,185,66,.34);background:rgba(245,185,66,.06)">
                 <span class="eh-hex ng-hex" x-text="$store.game.ngoTinhLeft"></span>
                 <!-- Số điểm CHỈ nằm trong lục giác. Trước đó in thêm một lần nữa ở đây = hai số y hệt cạnh nhau. -->
