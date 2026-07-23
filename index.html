@@ -1601,12 +1601,26 @@
           /* Thẻ bcs cao CO DINH (88/112px). Overlay flex-col cao 100vh -> con bi co (flex-shrink:1) lam
              scrollHeight sai -> hang cuoi cat du cuon het. flex:none giu nguyen cao, cuon dung. */
           .bcs.tb-stats.open > *{ flex:0 0 auto; }
+          .bcs.tb-stats.open .tb-stats-scale > *{ flex:0 0 auto; }
         }
+        /* Boc auto-fit: giu gap nhu section cu (10px). transform-origin top-left de width:calc(100%/s)
+           bu lai be ngang khi scale (khong bi co ngang / khong le trong 2 ben). Desktop statScale=1 nen
+           khong co transform -> hien nhu cu. */
+        .tb-stats-scale{ display:flex; flex-direction:column; gap:10px; transform-origin:top left; }
+        /* DESKTOP (>=1024px) TUYET DOI khong scale: statScale co the con sot 0.7x tu lan do mobile ->
+           inline transform se ep meo cot phai. !important chan cung, desktop luon nhu cu. */
+        @media (min-width:1024px){ .tb-stats-scale{ transform:none !important; width:auto !important; margin-bottom:0 !important; } }
+        /* CHONG LAG khi CUON: tam DUNG hao quang xoay (conic-gradient + drop-shadow filter = repaint nang
+           nhat, chay tren MOI o trang bi). Cuon xong ~160ms tu chay lai. Nhin tinh khong doi. */
+        html.io-scrolling .halo2::before{ animation-play-state:paused !important; }
       </style>
 
       <!-- ===== VIEW: TRANG BỊ (paper-doll C1) ===== -->
       <template x-if="$store.game.view==='trangbi'">
-        <div class="max-w-5xl" x-data="{ get g(){ return $store.game }, L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu','duocLiem'], statOpen:false }"
+        <div class="max-w-5xl" x-data="{ get g(){ return $store.game }, L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu','duocLiem'], statOpen:false, statScale:1, fitNat:0,
+               fitStat(){ this.statScale=1; this.$nextTick(()=>{ const w=document.querySelector('.tb-stats.open .tb-stats-scale'); if(!w) return; const nat=w.scrollHeight; this.fitNat=nat; const hd=document.querySelector('.tb-stats.open .tb-stats-hd'); const avail=window.innerHeight-40-(hd?hd.offsetHeight+14:48); this.statScale = nat>avail ? Math.max(0.6, avail/nat) : 1; }); } }"
+             x-effect="statOpen && $nextTick(()=>fitStat())"
+             @resize.window.debounce.120ms="statOpen && fitStat()"
              @keydown.escape.window="statOpen=false">
           <div class="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-4">
 
@@ -1820,8 +1834,11 @@
                 </button>
               </div>
 
-              <!-- LỆNH BÀI: Chiến Lực. Tầng cỡ chữ cao nhất (50px) — không chỉ số nào tranh được. -->
-              <div class="bcs-tb bcs-lb">
+              <!-- Bọc mọi thẻ để AUTO-FIT (mobile): scale vừa đúng 1 màn hình, khỏi cuộn. Desktop statScale=1 -> KHÔNG transform. -->
+              <div class="tb-stats-scale" :style="statScale<1 ? ('width:calc(100%/'+statScale+');transform:scale('+statScale+');margin-bottom:-'+Math.round(fitNat*(1-statScale))+'px') : ''">
+
+              <!-- LỆNH BÀI: Chiến Lực. MOBILE popup ẨN (Chiến Lực đã hiện ở thẻ avatar — user chốt); desktop cột phải GIỮ. -->
+              <div class="bcs-tb bcs-lb hidden lg:block">
                 <div class="bcs-in bcs-lbIn">
                   <span class="bcs-wm">戰</span>
                   <div class="bcs-tablet"><i>戰</i><i>力</i></div>
@@ -1963,6 +1980,8 @@
                   </div>
                 </div>
               </div>
+
+              </div><!-- /.tb-stats-scale (bọc auto-fit) -->
 
             </section>
 
@@ -13020,6 +13039,17 @@
       </div>
     </div>
   </template>
+
+  <!-- CHONG LAG khi CUON: gan class html.io-scrolling trong luc cuon -> CSS tam dung hao quang xoay
+       (halo2 conic + filter, repaint nang tren moi o trang bi). capture:true bat moi vung cuon (mainPane,
+       popup...). Cuon dung ~160ms thi go class -> hao quang chay lai. passive -> khong can scroll. -->
+  <script>
+    (function(){
+      var root=document.documentElement, t=0;
+      function onScroll(){ if(!root.classList.contains('io-scrolling')) root.classList.add('io-scrolling'); clearTimeout(t); t=setTimeout(function(){ root.classList.remove('io-scrolling'); }, 160); }
+      document.addEventListener('scroll', onScroll, { passive:true, capture:true });
+    })();
+  </script>
 
 </body>
 </html>
