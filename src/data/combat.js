@@ -13,6 +13,12 @@ const ARCH = {
   trau:   { hp: 1.6, atk: 0.9,  def: 1.45,spd: 0.85, exp: 1.3 },
   nhanh:  { hp: 0.7, atk: 1.25, def: 0.85,spd: 1.32, exp: 1.1 },
   boss:   { hp: 6,   atk: 1.45, def: 1.3, spd: 0.95, exp: 9 },
+  // TINH ANH: khoi mau lon, danh vua — de build da min-max (giet quai thuong trong 3-6 luot nen gan
+  // nhu khong mat mau) co MUC TIEU that su mat mau. Do tren build coBan+6 tuyet: ~30% mau/con, THANG
+  // 100%, tru ~3 con roi phai hoi -> that thu nhung khong phai tuong. Build trang bi vua chua kham
+  // noi (fight qua dai -> het mau truoc khi giet) nen tu nhien gated. KHONG phai boss (khong isBoss),
+  // cay 8s/con nhu quai thuong. hp/atk chot bang harness (hp3.6x atk1.2x quai thuong Lv100).
+  tinhAnh: { hp: 3.6, atk: 1.2, def: 1.4, spd: 0.9, exp: 5 },
 };
 // EXP: SOFT-CAP theo cap (tang dan, KHONG phang) -> map cap cao cho EXP NHIEU HON map thap.
 // Cong thuc: base = raw / (1 + raw/EXP_SOFT). raw = 0.5*L^1.45. base tien dan toi ~EXP_SOFT nhung luon tang theo L.
@@ -30,12 +36,16 @@ const ARCH_KHANG = { thuong: 0.05, trau: 0.15, nhanh: 0, boss: 0.10 };
 // 'nhanh' ne nhieu nhat (dung tinh cach), 'trau' gan nhu khong ne. 4 con viet tay = 0 (vung tan thu).
 const ARCH_DODGE = { thuong: 0.05, trau: 0.02, nhanh: 0.12, boss: 0.08 };
 function mk(level, arch, extra) {
+  extra = extra || {};
+  // hpMul/atkMul: tune tinh chinh TUNG con ma khong dung ca dang (arch). Vd buff nhe quai endgame
+  // Lv100 ma khong lam le map thap. Doc o day roi XOA khoi object tra ve (khong phai field runtime).
+  const hpMul = extra.hpMul || 1, atkMul = extra.atkMul || 1;
   const a = ARCH[arch] || ARCH.thuong;
   const kv = ARCH_KHANG[arch] || 0;
   const khang = kv ? { kim: kv, moc: kv, thuy: kv, hoa: kv, tho: kv } : null;
   const dodge = ARCH_DODGE[arch] || 0;
-  const hp  = Math.round(0.95 * Math.pow(level, 2.25) * a.hp);
-  const atk = Math.round(1.4  * Math.pow(level, 1.30) * a.atk);
+  const hp  = Math.round(0.95 * Math.pow(level, 2.25) * a.hp * hpMul);
+  const atk = Math.round(1.4  * Math.pow(level, 1.30) * a.atk * atkMul);
   const def = Math.round(0.6  * Math.pow(level, 1.30) * a.def);
   const spd = Math.round(70 * a.spd);
   const rawE = 0.5 * Math.pow(level, 1.45);
@@ -45,7 +55,9 @@ function mk(level, arch, extra) {
   const statXp = Math.max(1, Math.round(level / 8));
   const time   = Math.max(6, Math.round(level * 0.12) + 5);
   // `extra` merge SAU CUNG -> extra.khang de len bang mk sinh ra (cua thoat de tune rieng tung con).
-  return Object.assign({ reqLevel: level, hp, atk, def, spd, exp, statXp, power, time, khang, dodge }, extra);
+  const out = Object.assign({ reqLevel: level, hp, atk, def, spd, exp, statXp, power, time, khang, dodge }, extra);
+  delete out.hpMul; delete out.atkMul;   // levers cua mk, khong phai field runtime
+  return out;
 }
 
 // ---- Kinh te combat (chinh tap trung 1 cho) ----
@@ -127,12 +139,21 @@ export const ENEMIES = {
     lore:'Người cá cổ xưa giữ kho báu đáy biển, giọng hát mê hoặc, tay phóng thuỷ tiễn.', atkFl:'phóng thuỷ tiễn', skill:{name:'Cuồng Đào Kích',mult:1.9,cd:5,fl:'gọi sóng dữ chồm lên cuốn phăng tất cả'} }),
 
   // ===== Thiên Thành (Lv100) — Thần Vực — toà thành tối thượng =====
-  thuVeThanTuong: mk(100, 'trau', { id:'thuVeThanTuong', name:'Thủ Vệ Thần Tướng', gloss:'Divine Guardian', icon:'⚔️', affinity:'Thần Tướng', loot:[{itemId:'thanThietTinh',chance:0.16}],
+  // 3 quai thuong Lv100: buff NHE +30% mau (hpMul 1.3) — CHU Y de kill mang trong luong hon, khong dung
+  // atk (atk cao lam nguoi choi trang bi vua gan chet 1 tran). Build min-max van giet nhanh nen chi cam
+  // nhan them chut; muc tieu that su cua ho la Bat Diet Kim Cang (tinh anh) o duoi.
+  thuVeThanTuong: mk(100, 'trau', { id:'thuVeThanTuong', name:'Thủ Vệ Thần Tướng', gloss:'Divine Guardian', icon:'⚔️', affinity:'Thần Tướng', hpMul:1.3, loot:[{itemId:'thanThietTinh',chance:0.16}],
     lore:'Thần tướng trấn giữ thiên thành, giáp vàng chói lọi, một thương đâm thủng vạn quân.', atkFl:'đâm một thương', skill:{name:'Thiên Quân Nhất Kích',mult:2.2,cd:5,fl:'dồn thần lực vào một thương xuyên thấu'} }),
-  coMa: mk(100, 'nhanh', { id:'coMa', name:'Cổ Ma', gloss:'Ancient Demon', icon:'👹', affinity:'Ma Vật', loot:[{itemId:'coMaHaiCot',chance:0.12}],
+  coMa: mk(100, 'nhanh', { id:'coMa', name:'Cổ Ma', gloss:'Ancient Demon', icon:'👹', affinity:'Ma Vật', hpMul:1.3, loot:[{itemId:'coMaHaiCot',chance:0.12}],
     lore:'Ma vật thượng cổ bị phong ấn dưới thành, nay tỉnh giấc khát máu sinh linh.', atkFl:'vung ma trảo', skill:{name:'Huyết Ma Trảo',mult:2.3,cd:5,fl:'ma trảo nhuốm huyết xé toạc phòng tuyến'} }),
-  thienBinh: mk(100, 'thuong', { id:'thienBinh', name:'Thiên Binh', gloss:'Heavenly Soldier', icon:'🪖', affinity:'Thiên Quân', loot:[{itemId:'thanThietTinh',chance:0.12}],
+  thienBinh: mk(100, 'thuong', { id:'thienBinh', name:'Thiên Binh', gloss:'Heavenly Soldier', icon:'🪖', affinity:'Thiên Quân', hpMul:1.3, loot:[{itemId:'thanThietTinh',chance:0.12}],
     lore:'Binh tốt nhà trời canh gác cổng thành, kỷ luật nghiêm minh, đánh theo trận pháp.', atkFl:'chém một đao', skill:{name:'Trận Pháp Hợp Kích',mult:2.0,cd:4,fl:'đồng loạt xuất thủ theo thiên trận'} }),
+  // TINH ANH Thiên Thành — khoi mau lon cho build da min-max co MUC TIEU mat mau that su. Thuong chi la
+  // than thiet tinh doi hao (0.30) + drop he thong nen (Manh 0.12% · gear 0.3% · Bac): CO Y KHONG cho
+  // tinhTheYeuVuong o day — no la nut chan +10->+15 (~6.4/ngay tu boss); cay 8s/con thi 3% = ~13/gio,
+  // vo nut chan. Cung KHONG ghi manhTrangBi (da co duong he thong, ghi them la dup kinh te Manh).
+  batDietKimCang: mk(100, 'tinhAnh', { id:'batDietKimCang', name:'Bất Diệt Kim Cang', gloss:'Undying Vajra', icon:'🗿', affinity:'Hộ Pháp Kim Cang', loot:[{itemId:'thanThietTinh',chance:0.30}],
+    lore:'Kim thân cao chục trượng đúc từ xá lợi vạn phật, đứng trấn cổng trời — đao thương chạm vào chỉ nghe tiếng ngân, thân nó ngàn năm không sứt một vết.', atkFl:'giáng kim quyền', skill:{name:'Bất Hoại Kim Luân',mult:2.6,cd:6,fl:'kim luân sau lưng xoay tít, mỗi vòng dội một chấn kình đè nát đối thủ'} }),
   coMaTo: mk(100, 'boss', { id:'coMaTo', name:'Cổ Ma Tổ', gloss:'Demon Ancestor', icon:'😈', isBoss:true, affinity:'Trùm Ma Đạo', loot:[{itemId:'maToTam',chance:0.02,noBoost:true},{itemId:'coMaHaiCot',chance:0.5}],
     lore:'Thuỷ tổ của ma đạo, sức mạnh nghiêng trời lệch đất — đích đến tối hậu của mọi cao thủ giang hồ.', atkFl:'giáng ma uy', skill:{name:'Diệt Thế Ma Viêm',mult:3.0,cd:6,fl:'ma viêm huỷ diệt thiêu rụi tất thảy'} }),
 };

@@ -27,7 +27,7 @@ import {
   tinVatDone as _tinVatDone,
   migrateDanSlots,
 } from './engine/activity.js';
-import { ensureBuffs, pruneBuffs, activeBuffList, useBuffDan, duocLuTick } from './engine/buff.js';
+import { ensureBuffs, pruneBuffs, activeBuffList, buffVal, useBuffDan, duocLuTick } from './engine/buff.js';
 import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, HE_FX, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
   TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf,
   KHANG_CAP, KHANG_TU_HE, enemyKhangFor } from './data/votong.js';
@@ -2692,6 +2692,16 @@ const gameStore = {
   get loadout() { return this.state.combat.loadout; },
   get combatStats() { return deriveCombat(this.state, this.loadout); },
   get combatMaxHp() { return this.combatStats.maxHP; },
+  // Cộng Hưởng hệ PHỤ: khi mặc Bộ Trang lệch hệ Tâm Pháp (vd bộ Hỏa + Tâm Pháp Thủy), dòng ẩn 7 món
+  // +30% Sát Thương hệ đó CÓ tác dụng thật trong trận (chiêu cùng hệ ăn eleBonus[he]) nhưng KHÔNG
+  // hiện ở ô Cộng Hưởng — ô đó chỉ đọc heChinh. Hàm này trả các hệ KHÁC heChinh còn dư cộng hưởng để
+  // gắn thêm chip, khỏi để người chơi tưởng dòng ẩn đắt nhất của bộ là đồ trang trí.
+  congHuongPhu() {
+    const cs = this.combatStats; const el = cs.eleBonus || {};
+    const out = [];
+    for (const he of NGU_HANH_LIST) { if (he === cs.heChinh) continue; if ((el[he] || 0) > 0.0001) out.push({ he, name: heName(he), hex: this.heHex(he), pct: Math.round(el[he] * 100) }); }
+    return out;
+  },
   // ===== NGUỒN SKILL (Bước 6): sở hữu / học (Bạc) / mua (Nguyên Bảo) =====
   get owned() { return this.state.combat.owned || (this.state.combat.owned = normOwned(this.state.combat)); },
   ownsChieu(id) { return this.owned.chieu.includes(id); },
@@ -3389,7 +3399,11 @@ const gameStore = {
   awardKill(f) {
     const e = this.ENEMIES[this.act.enemyId]; if (!e) return;
     const sess = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
-    const mult = skillExpMultiplier(this.state, 'chienDau') * combatExpMult(this.state);
+    // Nhân thưởng PHẢI khớp từng vế với nhánh treo máy (engine/activity.js) — nếu không, uống đan
+    // bổ trợ rồi NGỒI XEM tab Chiến Đấu thì đan trơ, mà alt-tab đi thì đan ăn. Ba vế đan (Ngộ Đạo
+    // cbExpPct · Bách Bảo bacPct · Bách Bảo lootPct) trước đây thiếu ở đây nên chỉ chạy khi offline.
+    const _now = Date.now();
+    const mult = skillExpMultiplier(this.state, 'chienDau') * (1 + buffVal(this.state, 'cbExpPct', _now) / 100) * combatExpMult(this.state);
     const xpGain = Math.max(1, Math.round(e.exp * mult));
     addSkillXp(this.state, 'chienDau', xpGain);
     sess.xp += xpGain; sess.win += 1;
@@ -3397,9 +3411,12 @@ const gameStore = {
     if (rp && rp.leveled) this.showToast(this.petName(rp.pet) + ' lên Cảnh Lv ' + rp.pet.level + '.');
     for (const st of boPhapStats(this.loadout)) addStatXp(this.state, st, e.statXp);
     const _tb = titleBonus(this.state);                                       // Danh Hiệu: +Bạc/+rơi đồ nhẹ
-    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct;  // P7 — Tham Tài
+    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct + buffVal(this.state, 'bacPct', _now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
     const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
-    if (e.loot) for (const l of e.loot) if (Math.random() < l.chance * lootMul * LOOT_DROP_MULT) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; }
+    // Bách Bảo lootPct CHỈ nhân loot nguyên liệu thường (matMul), TUYỆT ĐỐI không đụng
+    // MONSTER_DROP_CHANCE (gear 0,3%) — y hệt luật ở activity.js.
+    const matMul = lootMul * (1 + buffVal(this.state, 'lootPct', _now) / 100);
+    if (e.loot) for (const l of e.loot) { const m = l.noBoost ? lootMul : matMul; if (Math.random() < l.chance * m * LOOT_DROP_MULT) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
     if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }
     // Mảnh Trang Bị Hoàng Kim: chỉ quái Lv>=90. PHẢI khớp nhánh offline ở engine/activity.js — lệch
@@ -4088,8 +4105,9 @@ const gameStore = {
     ensureCodex(this.state); const cx = this.state.codex;
     if (!this.state.counters) this.state.counters = {};
     if (!this.state.counters.kills) this.state.counters.kills = {};
-    CODEX_CATS.forEach((cat) => { (cat.entries || []).forEach((e) => { const need = cat.threshold || 1; switch (cat.key) { case 'yeuthu': this.state.counters.kills[e.id] = Math.max(this.state.counters.kills[e.id] || 0, need); break; case 'binhkhi': cx.obtained[e.id] = Math.max(cx.obtained[e.id] || 0, 1); break; case 'vatpham': cx.obtained[e.id] = Math.max(cx.obtained[e.id] || 0, need); break; case 'linhthu': cx.petSeen[e.id] = 1; break; case 'bicanh': cx.dungeonRuns[e.id] = Math.max(cx.dungeonRuns[e.id] || 0, need); break; } }); });
-    this.devSave(); this._tick++; this.showToast('Dev: hoàn tất Vạn Vật Phổ (5 phổ).');
+    if (!this.state.danhSi) this.state.danhSi = {}; if (!Array.isArray(this.state.danhSi.seen)) this.state.danhSi.seen = [];
+    CODEX_CATS.forEach((cat) => { (cat.entries || []).forEach((e) => { const need = cat.threshold || 1; switch (cat.key) { case 'yeuthu': this.state.counters.kills[e.id] = Math.max(this.state.counters.kills[e.id] || 0, need); break; case 'binhkhi': case 'bachtrang': cx.obtained[e.id] = Math.max(cx.obtained[e.id] || 0, 1); break; case 'vatpham': cx.obtained[e.id] = Math.max(cx.obtained[e.id] || 0, need); break; case 'linhthu': cx.petSeen[e.id] = 1; break; case 'bicanh': cx.dungeonRuns[e.id] = Math.max(cx.dungeonRuns[e.id] || 0, need); break; case 'danhsi': if (!this.state.danhSi.seen.includes(e.id)) this.state.danhSi.seen.push(e.id); break; } }); });
+    this.devSave(); this._tick++; this.showToast('Dev: hoàn tất Vạn Vật Phổ (' + CODEX_CATS.length + ' phổ).');
   },
   devClearSuyYeu() { this.recoverFromSuyYeu(); },
   devBossReadyAll() { const bs = ensureBoss(this.state); YEU_VUONG.forEach((b) => { bs.cd[b.id] = 0; bossResetHp(this.state, b.id); }); bs.healUntil = 0; this.devSave(); this._tick++; this.showToast('Dev: mọi Yêu Vương sẵn sàng (reset CD + HP đầy).'); },
@@ -4206,11 +4224,15 @@ function rafLoop() {
   const s = window.Alpine?.store('game');
   if (s) {
     const liveOn = s.view === 'combat' && s.state.activity && s.state.activity.type === 'combat' && !s.state.combat.noiThuong;
+    // RỜI màn combat -> ZERO vòng đếm foreground. Nếu không, `_cycleStart` giữ mốc cũ; lúc quay lại
+    // `t - _cycleStart >= CYCLE_MS` đúng NGAY -> phát thêm 1 vòng (awardKill) cho khoảng vắng mặt mà
+    // advance() ĐÃ tính qua lastResolved -> thưởng đúp, farm được ~2× bằng cách alt-tab mỗi ~8s.
+    if (!liveOn && s._cycleStart) s._cycleStart = 0;
     if (liveOn) {
       const t = now();
       s.state.activity.lastResolved = t;   // tạm dừng batch khi đang xem chiến báo theo chu kỳ
       s._cycleNow = t;                      // cho thanh tiến độ vòng cập nhật mượt
-      if (!s._cycleStart) { s._cycleStart = t; }                            // vào trận: bắt đầu đếm từ 0 (chưa đánh)
+      if (!s._cycleStart) { s._cycleStart = t; }                            // vào/QUAY LẠI trận: đếm lại từ 0 (chưa đánh), KHÔNG phát vòng cho phần vắng
       else if (t - s._cycleStart >= CYCLE_MS) { s._cycleStart = t; s.resolveCycle(); } // đếm đủ 8s -> ra vòng
     } else if (s.state.activity) {
       const rep = advance(s.state, now());

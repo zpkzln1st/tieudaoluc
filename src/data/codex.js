@@ -6,7 +6,7 @@
 // ============================================================
 import { ENEMIES } from './combat.js';
 import { ITEMS, ITEM_TYPES } from './items.js';
-import { GEAR_IDS } from './gear.js';
+import { GEAR_IDS, TRANG_SETS } from './gear.js';
 import { PET_SPECIES } from './pets.js';
 import { DUNGEONS } from './dungeon.js';
 import { DANH_SI } from './danhsi.js';
@@ -32,7 +32,10 @@ export const CODEX_CATS = [
     per: { field: 'defPct', val: 0.001, label: '+0.1% Thủ' },
     set: { field: 'allPct', val: 0.05, label: '+5% mọi chỉ số' },
     setLabel: 'Trọn Binh Khí Phổ → +5% mọi chỉ số',
-    list() { return GEAR_IDS.map((id) => ITEMS[id]).filter(Boolean).map((g) => ({ id: g.id, name: g.name, icon: g.icon, quality: g.quality, sub: SLOT_NAME[(g.equip && g.equip.slot)] || '', group: SLOT_NAME[(g.equip && g.equip.slot)] || 'Khác', where: 'Rơi / Rèn Đúc / Thương Điếm' })); },
+    // `!g.equip.set`: Bộ Trang (Bạch Kim) TÁCH sang phổ riêng "Bách Trang Các" — không kể ở đây, nếu
+    // không 77 món bộ độn vào làm mốc "trọn bộ +5%" bất khả (nguồn ghép cực chậm), lại lẫn phẩm Cổ Bản
+    // vào các nhóm ô Mũ/Áo/... của đồ thường.
+    list() { return GEAR_IDS.map((id) => ITEMS[id]).filter((g) => g && !(g.equip && g.equip.set)).map((g) => ({ id: g.id, name: g.name, icon: g.icon, quality: g.quality, sub: SLOT_NAME[(g.equip && g.equip.slot)] || '', group: SLOT_NAME[(g.equip && g.equip.slot)] || 'Khác', where: 'Rơi / Rèn Đúc / Thương Điếm' })); },
   },
   {
     key: 'vatpham', name: 'Vật Phẩm Phổ', kind: 'item', unit: 'nhận', threshold: 10000,
@@ -61,6 +64,16 @@ export const CODEX_CATS = [
     set: { field: 'allPct', val: 0.05, label: '+5% mọi chỉ số' },
     setLabel: 'Trọn Danh Sĩ Phổ → +5% mọi chỉ số',
     list() { return DANH_SI.map((d) => ({ id: d.id, name: d.ten, icon: (d.ten || '?').charAt(0), sub: d.bietHieu, he: d.nguHanh, group: (d.dao === 'chinh' ? 'Chính Đạo' : d.dao === 'ta' ? 'Tà Đạo' : 'Trung Lập'), where: 'Gặp qua Danh Sĩ Bảng / kỳ ngộ giang hồ' })); },
+  },
+  {
+    // BÁCH TRANG CÁC — phổ riêng cho 77 món Bộ Trang (Bạch Kim), tách khỏi Binh Khí Phổ. Đếm y như
+    // binhkhi (obtained>0 -> đủ), nhóm theo TÊN BỘ nên 11 bộ đọc thành 11 mục. Thưởng thiên PHÒNG THỦ
+    // hợp lore "trấn thân". SỐ DRAFT — nguồn ghép cực chậm (420 Mảnh/bộ) nên trọn phổ là chặng rất xa.
+    key: 'bachtrang', name: 'Bách Trang Các', kind: 'gear', unit: 'ghép', threshold: 1,
+    per: { field: 'defPct', val: 0.002, label: '+0.2% Thủ' },
+    set: { field: 'allPct', val: 0.08, label: '+8% mọi chỉ số' },
+    setLabel: 'Trọn Bách Trang Các → +8% mọi chỉ số',
+    list() { return GEAR_IDS.map((id) => ITEMS[id]).filter((g) => g && g.equip && g.equip.set).map((g) => ({ id: g.id, name: g.name, icon: g.icon, quality: g.quality, sub: SLOT_NAME[g.equip.slot] || '', he: g.equip.he || null, group: (TRANG_SETS[g.equip.set] || {}).name || 'Bộ Trang', where: 'Ghép Mảnh + Đồ Phổ Bộ ở Bách Trang Các' })); },
   },
 ];
 

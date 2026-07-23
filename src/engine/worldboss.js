@@ -15,6 +15,7 @@ import { addItem } from './inventory.js';
 import { addSkillXp, addStatXp } from './leveling.js';
 import { skillExpMultiplier } from '../data/classes.js';
 import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
+import { buffVal } from './buff.js';           // đan Ngộ Đạo (+EXP Chiến Đấu)
 import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bảng dùng roster bot thật (deterministic)
 
 const HE_LIST = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
@@ -108,7 +109,7 @@ export function runBossFight(state, bossId, he) {
 // Trao thưởng THẮNG + bật cooldown + đổi hệ + ghi lịch sử. Trả reward.
 export function applyBossWin(state, bossId, now) {
   const boss = YEU_VUONG_BY_ID[bossId]; if (!boss) return null;
-  const reward = grantReward(state, boss);
+  const reward = grantReward(state, boss, now);
   const b = ensureBoss(state);
   b.cd[bossId] = now + boss.wb.cdHours * 3600 * 1000;   // hồi sinh
   delete b.he[bossId];                                  // lần sau đổi hệ
@@ -148,11 +149,11 @@ function isRareReward(rw) {
   return Object.keys(rw.items).some((id) => id.startsWith('egg_') && id.endsWith('_than'));
 }
 
-// Cấp thưởng THẮNG. Trả { exp, bac, honThach, items:{itemId:qty} }.
-function grantReward(state, boss) {
+// Cấp thưởng THẮNG. Trả { exp, bac, honThach, items:{itemId:qty} }. `now` để đan Ngộ Đạo (cbExpPct) ăn.
+function grantReward(state, boss, now) {
   const wb = boss.wb;
   const r = { exp: 0, bac: wb.bac, honThach: wb.honThach, items: {} };
-  const xp = Math.max(1, Math.round(boss.exp * skillExpMultiplier(state, 'chienDau') * combatExpMult(state)));
+  const xp = Math.max(1, Math.round(boss.exp * skillExpMultiplier(state, 'chienDau') * (1 + buffVal(state, 'cbExpPct', now || 0) / 100) * combatExpMult(state)));
   addSkillXp(state, 'chienDau', xp); r.exp = xp;
   for (const st of boPhapStats(state.combat.loadout)) addStatXp(state, st, boss.statXp * 3);
   state.currencies.bac = (state.currencies.bac || 0) + wb.bac;

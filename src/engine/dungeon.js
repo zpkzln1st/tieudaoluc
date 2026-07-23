@@ -23,6 +23,8 @@ import { deriveCombat, TUYET_IDS } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
 import { levelFromXp, addSkillXp } from './leveling.js';
 import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
+import { skillExpMultiplier } from '../data/classes.js';   // chuỗi Điểm Danh (+EXP mọi nguồn) — Bí Cảnh trước bỏ sót
+import { buffVal } from './buff.js';                       // đan Ngộ Đạo (+EXP Chiến Đấu)
 import { addItem } from './inventory.js';
 import { pushNotif } from './notif.js';
 
@@ -212,7 +214,9 @@ export function grantDungeonRun(state, dungeonId, acc, now) {
   if (state.codex && state.codex.dungeonRuns) state.codex.dungeonRuns[dungeonId] = (state.codex.dungeonRuns[dungeonId] || 0) + 1;
   if (run.loot.bac) state.currencies.bac = (state.currencies.bac || 0) + run.loot.bac;
   if (run.loot.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + run.loot.honThach;
-  if (run.loot.exp) addSkillXp(state, 'chienDau', Math.max(1, Math.round(run.loot.exp * combatExpMult(state))));
+  // EXP Bí Cảnh ăn ĐỦ hệ số như cày quái: Điểm Danh (skillExpMultiplier) + đan Ngộ Đạo (cbExpPct) +
+  // Tăng EXP trang bị (combatExpMult). Trước chỉ có vế cuối nên chuỗi đăng nhập và đan trơ trong Bí Cảnh.
+  if (run.loot.exp) addSkillXp(state, 'chienDau', Math.max(1, Math.round(run.loot.exp * skillExpMultiplier(state, 'chienDau') * (1 + buffVal(state, 'cbExpPct', now) / 100) * combatExpMult(state))));
   for (const id in run.loot.items) addItem(state, id, run.loot.items[id]);
   // BÍ KÍP -> Tàng Thư Lâu Tông Môn (main->phụ 1 chiều; side-only)
   if (run.biKipDropId && state.tongMon) {

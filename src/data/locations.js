@@ -15,7 +15,7 @@ export const LOCATIONS = [
   { id: 'phuKhongVien', name: 'Phù Không Hoa Viên', gloss: 'Floating Gardens', reqLevel: 70, icon: '🌸', mapX: 45, mapY: 49, desc: 'Vườn hoa lơ lửng giữa tầng mây Aetheria.',           enemies: ['hoaYeu', 'vanDieu', 'phuQuangDiep'] },
   { id: 'quanTinhDai',  name: 'Quan Tinh Đài',  gloss: 'Celestial Observatory', reqLevel: 78, icon: '🔭', mapX: 27, mapY: 77, desc: 'Đài quan sát tinh tú, nơi linh khí hội tụ.',         enemies: ['tinhLinh', 'thienCuongVe', 'huKhongThu', 'cuuViHoTien'] },
   { id: 'tichNguDao',   name: 'Tịch Ngữ Đảo',   gloss: 'Isle of Whispers',    reqLevel: 92,  icon: '🏝️', mapX: 56, mapY: 77, desc: 'Hải đảo bí ẩn, sương mù vây phủ tịch mịch.',         enemies: ['haiYeu', 'meVuYeu', 'giaoNhan'] },
-  { id: 'thienThanh',   name: 'Thiên Thành',    gloss: 'The Citadel',         reqLevel: 100, icon: '🏯', mapX: 86, mapY: 75, desc: 'Tòa thành tối thượng — đích đến của cao thủ.',        enemies: ['thuVeThanTuong', 'coMa', 'thienBinh', 'coMaTo'] },
+  { id: 'thienThanh',   name: 'Thiên Thành',    gloss: 'The Citadel',         reqLevel: 100, icon: '🏯', mapX: 86, mapY: 75, desc: 'Tòa thành tối thượng — đích đến của cao thủ.',        enemies: ['thuVeThanTuong', 'coMa', 'thienBinh', 'batDietKimCang', 'coMaTo'] },
 ];
 
 // ============================================================

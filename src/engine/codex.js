@@ -33,7 +33,7 @@ export function codexCount(state, catKey, entryId) {
   const cx = state.codex || {};
   switch (catKey) {
     case 'yeuthu': return ((state.counters && state.counters.kills) || {})[entryId] || 0;
-    case 'binhkhi': return ((cx.obtained && cx.obtained[entryId]) || 0) > 0 ? 1 : 0;
+    case 'binhkhi': case 'bachtrang': return ((cx.obtained && cx.obtained[entryId]) || 0) > 0 ? 1 : 0;   // món bộ ghép xong -> addGearInstance ghi cx.obtained (chung đường với đồ thường)
     case 'vatpham': return (cx.obtained && cx.obtained[entryId]) || 0;
     case 'linhthu': return (cx.petSeen && cx.petSeen[entryId]) ? 1 : 0;
     case 'bicanh': return (cx.dungeonRuns && cx.dungeonRuns[entryId]) || 0;
