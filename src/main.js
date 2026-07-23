@@ -428,7 +428,7 @@ const gameStore = {
   _teleReturnView: null,   // Đổi vùng từ 1 tab -> nhớ tab đó để tự quay lại sau khi Truyền Tống/Khinh Công tới nơi
   openZoneChange() { this._teleReturnView = this.view; this.navTo('map'); },   // combat bấm "Đổi vùng"
   navTo(view) { if (view !== 'map') this._teleReturnView = null; this._applyView(view); this._pushHash('#' + view); },
-  _applyView(view) { this.view = view; this.navOpen = false; this.statOpen = false; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  _applyView(view) { this.view = view; this.navOpen = false; this.statOpen = false; this.bachTrangOpen = false; this._modals.length = 0; if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
   _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran'],
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
@@ -444,14 +444,23 @@ const gameStore = {
     else { try { history.replaceState({ h: '#' + this.view }, '', '#' + this.view); } catch (e) {} }
   },
 
-  // ---------- Popup Bảng Chỉ Số (mobile) — GẮN HISTORY: vuốt-back ĐÓNG popup (không lùi tab) ----------
-  // Trước: statOpen chỉ là biến, vuốt-back = popstate -> applyHashRoute nhảy về tab trước (Hồ Sơ).
-  // Nay: mở -> pushState 1 entry (cùng hash); vuốt-back pop entry đó -> popstate thấy statOpen -> chỉ
-  // đóng popup, KHÔNG route. Đóng bằng nút/nền/Esc đều đi qua history.back() -> cùng một đường đóng.
+  // ---------- MODAL + HISTORY: vuốt-back ĐÓNG modal đang mở, KHÔNG lùi tab ----------
+  // App dùng hash-routing (mỗi tab 1 #view; popstate -> applyHashRoute). Modal muốn "vuốt-back = đóng"
+  // thì mở qua pushModalHistory (đẩy 1 entry history cùng hash); popstate thấy stack CÒN modal thì đóng
+  // modal top + return (KHÔNG route). Đóng bằng nút/nền/Esc = backCloseModal() = history.back() -> cùng
+  // một đường. _applyView (rời tab) dọn stack + tắt cờ. Thêm modal mới: openX -> pushModalHistory(closer).
+  _modals: [],
+  pushModalHistory(closeFn) { this._modals.push({ close: closeFn }); try { history.pushState({ m: 1 }, '', location.hash); } catch (e) {} },
+  backCloseModal() { if (!this._modals.length) return; try { history.back(); } catch (e) { this._popModalNow(); } },
+  _popModalNow() { const m = this._modals.pop(); if (m && m.close) m.close(); },
+
+  // Popup Bảng Chỉ Số (mobile)
   statOpen: false, statScale: 1, fitNat: 0,
-  openStat() { this.statOpen = true; try { history.pushState({ statModal: 1 }, '', location.hash); } catch (e) {} },
-  closeStat() { if (!this.statOpen) return; try { history.back(); } catch (e) { this.statOpen = false; } },
-  _closeStatNow() { this.statOpen = false; },
+  openStat() { this.statOpen = true; this.pushModalHistory(() => { this.statOpen = false; }); },
+  closeStat() { if (this.statOpen) this.backCloseModal(); },
+  // Modal Bách Trang Các — cùng cơ chế
+  openBachTrang() { this.bachTrangOpen = true; this.pushModalHistory(() => { this.bachTrangOpen = false; }); },
+  closeBachTrang() { if (this.bachTrangOpen) this.backCloseModal(); },
   fitStat() {
     this.statScale = 1;
     const doit = () => {
@@ -4222,7 +4231,7 @@ window.kyTran = kyTran;               // expose component factory cho x-data tro
 Alpine.store('game', gameStore);
 Alpine.start();
 Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)
-window.addEventListener('popstate', () => { const s = window.Alpine?.store('game'); if (!s) return; if (s.statOpen) { s._closeStatNow(); return; } s.applyHashRoute(); });   // popup Bảng Chỉ Số mở -> vuốt-back chỉ ĐÓNG popup, KHÔNG route tab
+window.addEventListener('popstate', () => { const s = window.Alpine?.store('game'); if (!s) return; if (s._modals && s._modals.length) { s._popModalNow(); return; } s.applyHashRoute(); });   // modal đang mở -> vuốt-back chỉ ĐÓNG modal top, KHÔNG route tab
 Alpine.store('game').ensureQuests();
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo

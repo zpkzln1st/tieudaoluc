@@ -1967,7 +1967,7 @@
                   <div class="bcs-in flex">
                     <div class="bcs-spine"><span class="bcs-han">裝</span></div>
                     <div class="bcs-body">
-                      <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.bachTrangOpen=true" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
+                      <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.openBachTrang()" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
                       <div class="bcs-gbody">
                         <div class="bcs-lead">
                           <div class="bcs-leadNum" x-text="g.fmt(g.manhTrangBi)"></div>
@@ -1997,7 +1997,7 @@
               <div class="bcs-in flex">
                 <div class="bcs-spine"><span class="bcs-han">裝</span></div>
                 <div class="bcs-body">
-                  <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.bachTrangOpen=true" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
+                  <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.openBachTrang()" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
                   <div class="bcs-gbody">
                     <div class="bcs-lead">
                       <div class="bcs-leadNum" x-text="g.fmt(g.manhTrangBi)"></div>
@@ -2132,13 +2132,13 @@
       </style>
       <div class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.82)"
            x-show="$store.game.bachTrangOpen" x-cloak
-           @click.self="$store.game.bachTrangOpen=false" @keydown.escape.window="$store.game.bachTrangOpen=false"
+           @click.self="$store.game.closeBachTrang()" @keydown.escape.window="$store.game.closeBachTrang()"
            x-data="{ get g(){ return $store.game } }">
         <div class="btc-panel w-full" style="max-width:960px">
           <div class="btc-hd">
             <div class="btc-title fserif">Bách Trang Các</div>
             <div class="btc-sub">Gom <b style="color:#d6e3f2">Mảnh Trang Bị Hoàng Kim</b> từ <span x-text="g.TRANG_SETS[g.TRANG_SET_KEYS[0]].source"></span>, lĩnh hội <b style="color:#d6e3f2">Đồ Phổ Bộ</b> để mở khoá, rồi ghép nên trọn từng Bộ Trang trấn thân.</div>
-            <button class="btc-x" @click="g.bachTrangOpen=false" title="Đóng (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            <button class="btc-x" @click="g.closeBachTrang()" title="Đóng (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>
           <div class="btc-status">
             <div class="btc-manh">
