@@ -1797,23 +1797,17 @@
                       </div>
                     </template>
               </div>
+              <!-- Nút mở Bảng Chỉ Số — TRONG khung paper-doll (user chốt), chữ nhỏ, KHÔNG lặp 戰/Chiến Lực
+                   (Chiến Lực đã hiện ở thẻ avatar). Co theo nội dung (không full-width). Desktop ẩn (có cột phải). -->
+              <div class="lg:hidden flex justify-center mt-3">
+                <button type="button" @click="statOpen=true"
+                        class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[11.5px] font-bold text-jade transition"
+                        style="border:1px solid rgba(20,184,166,.32); background:rgba(20,184,166,.06)">
+                  Chi Tiết Chỉ Số
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
+              </div>
             </section>
-
-            <!-- MOBILE: nút mở bảng chỉ số (desktop ẩn — đã có cột phải). Chiến Lực hiện luôn cho liếc nhanh. -->
-            <button type="button" @click="statOpen=true"
-                    class="lg:hidden panel rounded-xl px-4 py-3 flex items-center justify-between gap-3 text-left"
-                    style="border:1px solid rgba(245,185,66,.28)">
-              <span class="flex items-center gap-2.5">
-                <span class="fserif text-gold text-[19px] font-bold leading-none">戰</span>
-                <span class="flex flex-col leading-tight">
-                  <span class="text-[9.5px] uppercase tracking-wider text-slate-500">Chiến Lực</span>
-                  <span class="text-gold font-bold text-[17px] leading-none" x-text="g.fmt(g.stats.chienLuc)"></span>
-                </span>
-              </span>
-              <span class="flex items-center gap-1.5 text-[12px] font-bold text-jade">Chi Tiết Chỉ Số
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
-              </span>
-            </button>
 
             <!-- CHỈ SỐ + BỘ TRANG. DESKTOP: cột phải như cũ. MOBILE: ẩn inline, mở fullscreen khi statOpen
                  (class tb-stats + .open ở style Trang Bị) — TÁI DÙNG chính markup này, không nhân đôi. -->
@@ -1946,32 +1940,33 @@
                 </div>
               </div>
 
-              <!-- 裝 BỘ TRANG — thẻ tóm tắt; danh sách đầy đủ từng bộ nằm trong Bách Trang Các.
-                   Tăng EXP nằm ở ĐÂY chứ không có thẻ 修 riêng: nguồn duy nhất của nó là dòng ẩn bộ
-                   Hồng Ảnh, không dòng roll nào đẻ ra được. Nút Bách Trang Các dời lên hàng tiêu đề
-                   để nhường ô dưới cho dữ liệu — thẻ vẫn đúng 88px như mọi thẻ khác. -->
-              <div class="bcs-tb bcs-card bcs-quet" style="--acc:#d6e3f2;--edge:214,227,242">
-                <div class="bcs-in flex">
-                  <div class="bcs-spine"><span class="bcs-han">裝</span></div>
-                  <div class="bcs-body">
-                    <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.bachTrangOpen=true" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
-                    <div class="bcs-gbody">
-                      <div class="bcs-lead">
-                        <div class="bcs-leadNum" x-text="g.fmt(g.manhTrangBi)"></div>
-                        <div class="bcs-leadLbl">Mảnh Hoàng Kim</div>
-                      </div>
-                      <div class="bcs-cells">
-                        <div class="bcs-cell"><span class="k">Viên Mãn</span><span class="v" style="color:#d6e3f2" x-text="g.setTronCount+' / '+g.TRANG_SET_KEYS.length"></span></div>
-                        <div class="bcs-cell"><span class="k">Tăng EXP Chiến Đấu</span><span class="v" :style="cs.tangExp>0?'color:#4ade80':'color:#64748b'" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></span></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
             </section>
 
           </div>
+
+          <!-- 裝 BỘ TRANG — TÁCH RIÊNG xuống chân tab Trang Bị (user gửi mẫu). Cửa vào Bách Trang Các đứng
+               ĐỘC LẬP nên bấm được ngay; trước nằm trong popup Chỉ Số (z cao hơn modal) nên bị che, không bấm được. -->
+          <section class="panel bcs rounded-xl p-3.5 mt-4" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
+            <div class="bcs-tb bcs-card bcs-quet" style="--acc:#d6e3f2;--edge:214,227,242">
+              <div class="bcs-in flex">
+                <div class="bcs-spine"><span class="bcs-han">裝</span></div>
+                <div class="bcs-body">
+                  <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.bachTrangOpen=true" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
+                  <div class="bcs-gbody">
+                    <div class="bcs-lead">
+                      <div class="bcs-leadNum" x-text="g.fmt(g.manhTrangBi)"></div>
+                      <div class="bcs-leadLbl">Mảnh Hoàng Kim</div>
+                    </div>
+                    <div class="bcs-cells">
+                      <div class="bcs-cell"><span class="k">Viên Mãn</span><span class="v" style="color:#d6e3f2" x-text="g.setTronCount+' / '+g.TRANG_SET_KEYS.length"></span></div>
+                      <div class="bcs-cell"><span class="k">Tăng EXP Chiến Đấu</span><span class="v" :style="cs.tangExp>0?'color:#4ade80':'color:#64748b'" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </template>
 
@@ -2064,21 +2059,28 @@
           .btc-status{ padding:8px 15px; }
           .btc-manh{ padding:5px 10px; } .btc-manh b{ font-size:14px; } .btc-manh span{ font-size:11px; }
           .btc-split{ flex-direction:column; flex:1; min-height:0; overflow-y:auto; }
-          /* rail = hang chip ngang gon: chu Han + ten NHO lai (user: "text ngu hanh qua to") */
-          .btc-rail{ width:auto; flex-direction:row; flex-wrap:wrap; border-right:none; border-bottom:1px solid rgba(38,52,74,.7); padding:9px 14px; gap:6px; flex:none; }
-          .btc-he{ width:auto; padding:5px 9px; gap:6px; }
-          .btc-he .han{ font-size:15px; } .btc-he .n{ font-size:11.5px; }
-          .btc-split .btc-body{ overflow:visible; padding:0 15px 14px; }
-          .btc-bo{ padding:10px 0 2px; min-height:0; gap:6px; }
-          .btc-bo button{ font-size:11.5px; height:29px; padding:0 12px; }
-          .btc-set{ margin-top:10px; }
-          /* ten bo NHO lai (user: "ten bo qua to"); header gon 1 hang */
-          .btc-sethd{ flex-wrap:wrap; gap:7px 9px; padding:9px 12px; }
-          .btc-setnm{ white-space:nowrap; font-size:14px; }
-          .btc-tag{ font-size:9px; padding:2px 8px; }
-          .btc-prog{ min-width:0; margin-left:auto; } .btc-prog .n{ font-size:11.5px; }
-          .btc-an{ padding:9px 12px 0; } .btc-anhd{ font-size:9px; margin-bottom:5px; }
-          .btc-grid{ grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:9px; padding:11px; }
+          /* NGU HANH 1 HANG (user): 6 chip flex:1 co deu, KHONG wrap. Chu Han + ten nho de vua. */
+          .btc-rail{ width:auto; flex-direction:row; flex-wrap:nowrap; border-right:none; border-bottom:1px solid rgba(38,52,74,.7); padding:9px 11px; gap:5px; flex:none; }
+          .btc-he{ flex:1 1 0; min-width:0; justify-content:center; padding:5px 3px; gap:4px; }
+          .btc-he .han{ font-size:13px; } .btc-he .n{ font-size:10.5px; white-space:nowrap; }
+          .btc-split .btc-body{ overflow:visible; padding:0 14px 14px; }
+          /* set selector nho lai (user) */
+          .btc-bo{ padding:9px 0 2px; min-height:0; gap:6px; }
+          .btc-bo button{ font-size:11px; height:27px; padding:0 10px; }
+          .btc-set{ margin-top:9px; }
+          /* ten bo nho; header gon 1 hang */
+          .btc-sethd{ flex-wrap:wrap; gap:6px 9px; padding:8px 11px; }
+          .btc-setnm{ white-space:nowrap; font-size:13.5px; }
+          .btc-tag{ font-size:8.5px; padding:2px 7px; }
+          .btc-prog{ min-width:0; margin-left:auto; } .btc-prog .n{ font-size:11px; }
+          /* dong an: sat hon (user: "khoang cach text lam lai") */
+          .btc-an{ padding:8px 11px 0; } .btc-anhd{ font-size:9px; margin-bottom:4px; letter-spacing:.1em; }
+          .btc-anrow{ min-height:25px; padding:4px 9px; } .btc-anrow .bac{ width:40px; font-size:10px; } .btc-anrow .txt{ font-size:11.5px; }
+          /* BAN KHOA gon han HAN (user: "cai nay chiem khong gian rat nhieu") */
+          .btc-lockban{ padding:7px 10px; gap:8px; margin:8px 11px 0; }
+          .btc-lockban .ic{ width:16px; height:16px; }
+          .btc-lockban .t{ font-size:11.5px; } .btc-lockban .s{ font-size:10px; line-height:1.3; margin-top:1px; }
+          .btc-grid{ grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:9px; padding:10px; }
         }
       </style>
       <div class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.82)"
