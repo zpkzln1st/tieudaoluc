@@ -1620,11 +1620,10 @@
 
       <!-- ===== VIEW: TRANG BỊ (paper-doll C1) ===== -->
       <template x-if="$store.game.view==='trangbi'">
-        <div class="max-w-5xl" x-data="{ get g(){ return $store.game }, L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu','duocLiem'], statOpen:false, statScale:1, fitNat:0,
-               fitStat(){ this.statScale=1; this.$nextTick(()=>{ const w=document.querySelector('.tb-stats.open .tb-stats-scale'); if(!w) return; const nat=w.scrollHeight; this.fitNat=nat; const hd=document.querySelector('.tb-stats.open .tb-stats-hd'); const avail=window.innerHeight-40-(hd?hd.offsetHeight+14:48); this.statScale = nat>avail ? Math.max(0.6, avail/nat) : 1; }); } }"
-             x-effect="statOpen && $nextTick(()=>fitStat())"
-             @resize.window.debounce.120ms="statOpen && fitStat()"
-             @keydown.escape.window="statOpen=false">
+        <div class="max-w-5xl" x-data="{ get g(){ return $store.game }, L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu','duocLiem'] }"
+             x-effect="$store.game.statOpen && $store.game.fitStat()"
+             @resize.window.debounce.120ms="$store.game.statOpen && $store.game.fitStat()"
+             @keydown.escape.window="$store.game.closeStat()">
           <div class="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-4">
 
             <!-- PAPER-DOLL -->
@@ -1817,7 +1816,7 @@
               <!-- Nút mở Bảng Chỉ Số — TRONG khung paper-doll (user chốt), chữ nhỏ, KHÔNG lặp 戰/Chiến Lực
                    (Chiến Lực đã hiện ở thẻ avatar). Co theo nội dung (không full-width). Desktop ẩn (có cột phải). -->
               <div class="lg:hidden flex justify-center mt-3">
-                <button type="button" @click="statOpen=true"
+                <button type="button" @click="$store.game.openStat()"
                         class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[11.5px] font-bold text-jade transition"
                         style="border:1px solid rgba(20,184,166,.32); background:rgba(20,184,166,.06)">
                   Chi Tiết Chỉ Số
@@ -1828,17 +1827,17 @@
 
             <!-- CHỈ SỐ + BỘ TRANG. DESKTOP: cột phải như cũ. MOBILE: ẩn inline, mở fullscreen khi statOpen
                  (class tb-stats + .open ở style Trang Bị) — TÁI DÙNG chính markup này, không nhân đôi. -->
-            <section class="panel bcs tb-stats rounded-xl p-3.5 flex flex-col gap-2.5" :class="statOpen ? 'open' : ''" @click.self="statOpen=false" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
+            <section class="panel bcs tb-stats rounded-xl p-3.5 flex flex-col gap-2.5" :class="$store.game.statOpen ? 'open' : ''" @click.self="$store.game.closeStat()" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
               <!-- header popup (mobile only) -->
               <div class="tb-stats-hd lg:hidden flex items-center justify-between mb-0.5">
                 <div class="lbl">Bảng Chỉ Số</div>
-                <button type="button" @click="statOpen=false" class="w-8 h-8 rounded-lg grid place-items-center text-slate-400 hover:text-slate-100" style="border:1px solid #26344a">
+                <button type="button" @click="$store.game.closeStat()" class="w-8 h-8 rounded-lg grid place-items-center text-slate-400 hover:text-slate-100" style="border:1px solid #26344a">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
               </div>
 
               <!-- Bọc mọi thẻ để AUTO-FIT (mobile): scale vừa đúng 1 màn hình, khỏi cuộn. Desktop statScale=1 -> KHÔNG transform. -->
-              <div class="tb-stats-scale" :style="statScale<1 ? ('transform:scale('+statScale+');margin-bottom:-'+Math.round(fitNat*(1-statScale))+'px') : ''">
+              <div class="tb-stats-scale" :style="$store.game.statScale<1 ? ('transform:scale('+$store.game.statScale+');margin-bottom:-'+Math.round($store.game.fitNat*(1-$store.game.statScale))+'px') : ''">
 
               <!-- LỆNH BÀI: Chiến Lực. MOBILE popup ẨN (Chiến Lực đã hiện ở thẻ avatar — user chốt); desktop cột phải GIỮ. -->
               <div class="bcs-tb bcs-lb hidden lg:block">
