@@ -1940,14 +1940,38 @@
                 </div>
               </div>
 
+              <!-- 裝 BỘ TRANG — DESKTOP giữ NGUYÊN chỗ cũ trong bảng chỉ số (hidden lg:block). Mobile KHÔNG
+                   ở đây (bảng chỉ số thành popup, không muốn 裝 trong popup) — bản mobile là thẻ tách riêng
+                   dưới grid (lg:hidden). Hai bản, mỗi breakpoint hiện đúng một. -->
+              <div class="hidden lg:block">
+                <div class="bcs-tb bcs-card bcs-quet" style="--acc:#d6e3f2;--edge:214,227,242">
+                  <div class="bcs-in flex">
+                    <div class="bcs-spine"><span class="bcs-han">裝</span></div>
+                    <div class="bcs-body">
+                      <div class="bcs-head"><span class="bcs-gn">Bộ Trang</span><span class="bcs-dbl"></span><button @click="g.bachTrangOpen=true" class="bcs-btn bcs-btnHd" type="button"><span class="fserif" style="font-size:10px;opacity:.8">閣</span>Bách Trang Các</button></div>
+                      <div class="bcs-gbody">
+                        <div class="bcs-lead">
+                          <div class="bcs-leadNum" x-text="g.fmt(g.manhTrangBi)"></div>
+                          <div class="bcs-leadLbl">Mảnh Hoàng Kim</div>
+                        </div>
+                        <div class="bcs-cells">
+                          <div class="bcs-cell"><span class="k">Viên Mãn</span><span class="v" style="color:#d6e3f2" x-text="g.setTronCount+' / '+g.TRANG_SET_KEYS.length"></span></div>
+                          <div class="bcs-cell"><span class="k">Tăng EXP Chiến Đấu</span><span class="v" :style="cs.tangExp>0?'color:#4ade80':'color:#64748b'" x-text="'+'+Math.round(cs.tangExp*100)+'%'"></span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
             </section>
 
           </div>
 
-          <!-- 裝 BỘ TRANG — TÁCH RIÊNG xuống chân tab Trang Bị (user gửi mẫu). Cửa vào Bách Trang Các đứng
-               ĐỘC LẬP nên bấm được ngay; trước nằm trong popup Chỉ Số (z cao hơn modal) nên bị che, không bấm được. -->
-          <section class="panel bcs rounded-xl p-3.5 mt-4" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
+          <!-- 裝 BỘ TRANG (BẢN MOBILE) — thẻ tách riêng xuống chân tab (user gửi mẫu), CHỈ mobile (lg:hidden).
+               Desktop dùng bản trong bảng chỉ số ở trên. Cửa Bách Trang Các đứng độc lập nên bấm mở bình
+               thường; trước (khi 裝 nằm trong popup Chỉ Số z-72 > modal z-70) bị che nên "không bấm được". -->
+          <section class="lg:hidden panel bcs rounded-xl p-3.5 mt-4" x-data="{ get g(){ return $store.game }, get cs(){ return $store.game.combatStats } }">
             <div class="bcs-tb bcs-card bcs-quet" style="--acc:#d6e3f2;--edge:214,227,242">
               <div class="bcs-in flex">
                 <div class="bcs-spine"><span class="bcs-han">裝</span></div>
