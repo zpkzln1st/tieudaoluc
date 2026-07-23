@@ -2011,6 +2011,24 @@
         .btc-need{ font-size:10.5px; color:#d98a8a; }
         .btc-note{ padding:12px 22px 16px; font-size:11.5px; color:#8296ae; line-height:1.6; flex:none; border-top:1px solid rgba(38,52,74,.5); }
         .btc-note b{ color:#9fb2c9; }
+        /* MOBILE (<=640px): rail 150px cung an nua khung 353px -> than con ~200px lam ten bo + dong an
+           xuong 3 dong. Xep DOC: rail thanh hang chip ngang tren dau (wrap), than full-width ben duoi;
+           bot padding hong 22->15 de lay lai be ngang; ca .btc-split cuon nhu 1 khoi. */
+        @media (max-width:640px){
+          .btc-hd{ padding:15px 15px 11px; }
+          .btc-title{ font-size:20px; }
+          .btc-x{ top:12px; right:12px; }
+          .btc-status{ padding:10px 15px; }
+          .btc-note{ padding:11px 15px 14px; }
+          .btc-split{ flex-direction:column; flex:1; min-height:0; overflow-y:auto; }
+          .btc-rail{ width:auto; flex-direction:row; flex-wrap:wrap; border-right:none; border-bottom:1px solid rgba(38,52,74,.7); padding:11px 15px; gap:7px; flex:none; }
+          .btc-he{ width:auto; padding:7px 12px; }
+          .btc-split .btc-body{ overflow:visible; padding:0 15px 14px; }
+          .btc-sethd{ flex-wrap:wrap; gap:8px 10px; }
+          .btc-setnm{ white-space:nowrap; }
+          .btc-prog{ min-width:0; margin-left:auto; }
+          .btc-grid{ grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:9px; padding:11px; }
+        }
       </style>
       <div class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.82)"
            x-show="$store.game.bachTrangOpen" x-cloak
