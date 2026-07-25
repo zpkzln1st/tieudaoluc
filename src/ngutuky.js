@@ -72,13 +72,23 @@ function injectStyle() {
 .ntk-hint{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);font-size:10.5px;color:var(--txt3);background:rgba(6,16,22,.5);padding:3px 10px;border-radius:99px;border:1px solid rgba(140,200,215,.14);pointer-events:none;z-index:4}
 .ntk-toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;font-size:12px;color:#eaf3f7;background:rgba(8,22,30,.9);border:1px solid rgba(140,200,215,.25);padding:6px 14px;border-radius:99px;pointer-events:none;transition:.2s;z-index:6}
 .ntk-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.ntk-banner{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(4,10,16,.66);z-index:7;text-align:center;padding:20px}
+.ntk-banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,10,16,.74);z-index:7;text-align:center;padding:20px}
 .ntk-banner.show{display:flex}
-.ntk-banner .bt{font-family:var(--serif);font-weight:700;font-size:30px;letter-spacing:.03em;color:var(--gold2);text-shadow:0 3px 24px rgba(230,192,121,.4)}
-.ntk-banner .bs{font-size:13px;color:var(--txt2)}
-.ntk-banner .btns{display:flex;gap:10px;margin-top:6px}
-.ntk-banner .gbtn{padding:10px 22px;border-radius:11px;cursor:pointer;font-family:var(--serif);font-weight:700;font-size:14px;letter-spacing:.04em;color:#2a1d04;border:1px solid #f0d78f;background:linear-gradient(180deg,#f6dc9c,#e0b45f)}
+.ntk-end{position:relative;min-width:270px;max-width:90%;padding:24px 30px 20px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(15,29,38,.97),rgba(8,17,24,.98));border:1px solid rgba(140,200,215,.16);box-shadow:0 30px 70px -30px #000,inset 0 1px 0 rgba(255,255,255,.04)}
+.ntk-banner.show .ntk-end{animation:ntkPop .3s cubic-bezier(.2,.7,.3,1)}
+@keyframes ntkPop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.ntk-end::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc,#e6c079),transparent)}
+.ntk-end.win{--acc:#f4d99a}.ntk-end.lose{--acc:#93a7b0}.ntk-end.draw{--acc:#5dcaa5}
+.ntk-banner .bt{font-family:var(--serif);font-weight:700;font-size:29px;letter-spacing:.03em;color:var(--acc,#f4d99a);text-shadow:0 3px 22px rgba(0,0,0,.5)}
+.ntk-end-rule{width:60px;height:1px;margin:11px auto 10px;background:linear-gradient(90deg,transparent,var(--acc,#e6c079),transparent);opacity:.75}
+.ntk-banner .bs{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--txt2);line-height:1.5;max-width:330px;margin:0 auto}
+.ntk-end-rw{display:none;margin-top:13px;font-family:var(--serif);font-size:12.5px;font-weight:600;color:#f4d99a;background:rgba(230,192,121,.13);border:1px solid rgba(230,192,121,.5);border-radius:99px;padding:4px 15px}
+.ntk-end-rw.show{display:inline-block}
+.ntk-banner .btns{display:flex;gap:10px;margin-top:18px;justify-content:center}
+.ntk-banner .gbtn{padding:9px 22px;border-radius:10px;cursor:pointer;font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--gold2);background:rgba(9,18,25,.5);border:1px solid rgba(230,192,121,.5);transition:background .15s,border-color .15s}
+.ntk-banner .gbtn:hover{background:rgba(230,192,121,.14);border-color:var(--gold2)}
 .ntk-banner .gbtn.ghost{color:#cfe2ea;border-color:#33424a;background:#101c26}
+.ntk-banner .gbtn.ghost:hover{border-color:#5f7d8b;background:#16242e}
 .ntk-chat{position:absolute;left:50%;bottom:8px;transform:translateX(-50%) translateY(10px);width:min(560px,92%);opacity:0;pointer-events:none;transition:.16s;z-index:8;display:flex;flex-direction:column;gap:7px;background:rgba(19,36,46,.9);border:1px solid rgba(140,200,215,.24);border-radius:14px;padding:9px 10px;box-shadow:0 18px 44px -22px #000}
 .ntk-chat.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
 .ntk-chat-ps{display:flex;flex-wrap:wrap;gap:5px}
@@ -165,7 +175,7 @@ function mountNguTu(host, opts) {
         '<div class="ntk-chat-row"><input class="ntk-chat-in" type="text" maxlength="60" autocomplete="off" placeholder="Nhập lời muốn nói…"><button class="ntk-chat-send">Gửi</button></div>' +
       '</div>' +
       '' +
-      '<div class="ntk-banner"><div class="bt"></div><div class="bs"></div><div class="btns"><span class="gbtn" data-a="again">Chơi Lại</span><span class="gbtn ghost" data-a="exit">Về</span></div></div>' +
+      '<div class="ntk-banner"><div class="ntk-end"><div class="bt"></div><div class="ntk-end-rule"></div><div class="bs"></div><div class="ntk-end-rw"></div><div class="btns"><span class="gbtn" data-a="again">Chơi Lại</span><span class="gbtn ghost" data-a="exit">Về</span></div></div></div>' +
     '</div>';
 
   const root = host.firstElementChild;
@@ -396,10 +406,11 @@ function mountNguTu(host, opts) {
   function endGame(result, line) {
     over = true; clearGhost(); stopTimer(); updConfirm();
     if (line) for (let i = 0; i < line.length; i++) { const mm = meshAt[key(line[i][0], line[i][1])]; if (mm) { mm.material = mm.material.clone(); mm.material.emissive = new THREE.Color(0xe6c079); mm.material.emissiveIntensity = 0.85; mm.scale.set(1.16, 1.5, 1.16); } }
-    const b = $('.ntk-banner'), bt = b.querySelector('.bt'), bs = b.querySelector('.bs');
-    if (result === 1) { bt.textContent = 'Bạn Thắng!'; bs.textContent = opp.name + ': 「' + pick(LINES.lose) + '」'; }
-    else if (result === 2) { bt.textContent = 'Bạn Thua'; bs.textContent = opp.name + ': 「' + pick(LINES.win) + '」'; }
-    else { bt.textContent = 'Hòa Cờ'; bs.textContent = opp.name + ': 「' + pick(LINES.draw) + '」'; }
+    const b = $('.ntk-banner'), end = b.querySelector('.ntk-end'), bt = b.querySelector('.bt'), bs = b.querySelector('.bs'), rw = b.querySelector('.ntk-end-rw');
+    end.classList.remove('win', 'lose', 'draw'); rw.classList.remove('show');
+    if (result === 1) { end.classList.add('win'); bt.textContent = 'Bạn Thắng!'; bs.textContent = opp.name + ': 「' + pick(LINES.lose) + '」'; rw.textContent = 'Kỳ Hồn +12'; rw.classList.add('show'); }
+    else if (result === 2) { end.classList.add('lose'); bt.textContent = 'Bạn Thua'; bs.textContent = opp.name + ': 「' + pick(LINES.win) + '」'; }
+    else { end.classList.add('draw'); bt.textContent = 'Hòa Cờ'; bs.textContent = opp.name + ': 「' + pick(LINES.draw) + '」'; }
     b.classList.add('show');
     try { if (opts.onEnd) opts.onEnd(result); } catch (e) {}
   }
@@ -462,7 +473,7 @@ export function nguTuKy() {
     get ntk() { return this.$store.game.state.nguTu; },
     // danh sách đối thủ: Danh Sĩ Giang Hồ (đối thủ thật, sau này thêm "người chơi online")
     get opponents() { try { return (this.$store.game.danhSiBang || []).slice(); } catch (e) { return []; } },
-    recOf(id) { const r = (this.ntk.rec || {})[id]; return r ? (r.w + 'T ' + r.l + 'B') : 'Chưa đấu'; },
+    recOf(id) { const r = (this.ntk.rec || {})[id]; return r ? (r.w + ' Thắng ' + r.l + ' Bại') : 'Chưa đấu'; },
     diffOf(o) { const rp = (o && o.rankPower) || 500; return Math.max(0.15, Math.min(0.95, (rp - 400) / 620)); },
     diffLabel(o) { const d = this.diffOf(o); return d < 0.35 ? 'Dễ' : d < 0.6 ? 'Vừa' : d < 0.8 ? 'Khó' : 'Cao Thủ'; },
     // gom Danh Sĩ theo tầng (Cao Thủ/Khó/Vừa/Dễ) cho lưới Kỳ Đài
