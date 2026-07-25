@@ -102,7 +102,7 @@ function injectStyle() {
 .ntk-chat-in::placeholder{color:var(--txt3)}
 .ntk-chat-send{flex:none;padding:6px 15px;border-radius:9px;cursor:pointer;font-size:12px;color:#2a1d04;border:1px solid #f0d78f;background:linear-gradient(180deg,#f6dc9c,#e0b45f);font-family:var(--serif);font-weight:700}
 .ntk-chat-send:active{transform:scale(.95)}
-@media (max-width:600px){.ntk-root{aspect-ratio:2/3;max-height:86dvh}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ntk-toast.show{transform:translateY(0)}.ntk-chat{bottom:74px;width:94%}}
+@media (max-width:600px){.ntk-root{aspect-ratio:5/6;max-height:88dvh}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ntk-toast.show{transform:translateY(0)}.ntk-chat{bottom:74px;width:94%}}
 `;
   document.head.appendChild(st);
 }
@@ -490,7 +490,41 @@ function mountNguTu(host, opts) {
   function onMove(e) { if (!dragging) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; if (Math.abs(dx) + Math.abs(dy) > 4) movedFlag = true; lastX = e.clientX; lastY = e.clientY; if (autorot) { sph.theta -= dx * 0.006; sph.phi = Math.max(0.3, Math.min(1.18, sph.phi - dy * 0.005)); updCam(); } }
   function onUp(e) { if (dragging && !movedFlag && !autorot) tapBoard(e); dragging = false; }
   function tapBoard(e) { if (over || current !== HUMAN) return; const rect = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1; pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1; raycaster.setFromCamera(pointer, camera); const pt = new THREE.Vector3(); if (raycaster.ray.intersectPlane(rayPlane, pt)) { const c = Math.round((pt.x + 4) / spacing), r = Math.round((pt.z + 4) / spacing); if (!inb(c, r) || board[r][c] !== 0) return; if (ghost && ghost.c === c && ghost.r === r) { confirmMove(); return; } setGhost(c, r); } }
-  function onResize() { if (!renderer) return; const a = W() / H(); camera.aspect = a; camera.updateProjectionMatrix(); renderer.setSize(W(), H()); sph.r = Math.max(12.4, Math.min(21, 13.5 / a)); SPH0.r = sph.r; if (scene && scene.fog) { scene.fog.near = sph.r * 0.97; scene.fog.far = sph.r * 2.42; } updCam(); }   // màn hẹp/dọc: kéo camera lùi cho thấy trọn bàn + co giãn fog theo r (khỏi xỉn màu)
+  // Bàn có lọt khung ở khoảng cách r không — đo góc THẬT của 6 điểm mép (bàn 9.25 × 9.25).
+  function fits(r, phi, fovY, fovX) {
+    const cy = r * Math.cos(phi), cz = r * Math.sin(phi);
+    const dy = -Math.cos(phi), dz = -Math.sin(phi);
+    const hb = 4.63, m = 0.995;
+    for (let i = 0; i < 6; i++) {
+      const sx = (i % 3 === 0) ? -hb : (i % 3 === 1 ? 0 : hb);
+      const sz = (i < 3) ? -hb : hb;
+      const vy = 0.05 - cy, vz = sz - cz;
+      const fwd = vy * dy + vz * dz;
+      if (fwd <= 0.01) return false;
+      const uy = vy - fwd * dy, uz = vz - fwd * dz;
+      if (Math.atan2(Math.sqrt(uy * uy + uz * uz), fwd) > fovY / 2 * m) return false;   // dọc
+      if (Math.atan2(Math.abs(sx), fwd) > fovX / 2 * m) return false;                   // ngang
+    }
+    return true;
+  }
+  function onResize() {
+    if (!renderer) return;
+    const w = W(), h = H(); renderer.setSize(w, h);
+    const ar = w / h, portrait = ar < 1.05;
+    // Mobile: CHỪA dải nút dưới rồi khớp bàn vào ĐÚNG phần còn lại -> nút không đè bàn, hết khoảng trống.
+    const BTN = portrait ? 74 : 0, uh = Math.max(80, h - BTN), a = w / uh;
+    camera.aspect = a;
+    const phi = portrait ? Math.max(0.38, 0.66 - (1.05 - ar) * 0.45) : 0.66;   // màn dọc -> nhìn từ trên xuống hơn
+    SPH0.phi = phi; if (!autorot && !ret) sph.phi = phi;
+    const fovY = camera.fov * Math.PI / 180, fovX = 2 * Math.atan(Math.tan(fovY / 2) * a);
+    let lo = 7, hi = 40;
+    for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (fits(mid, phi, fovY, fovX)) hi = mid; else lo = mid; }
+    sph.r = hi; SPH0.r = hi;
+    if (scene && scene.fog) { scene.fog.near = sph.r * 0.97; scene.fog.far = sph.r * 2.42; }   // co giãn fog theo r (khỏi xỉn màu)
+    camera.updateProjectionMatrix();
+    if (BTN) camera.setViewOffset(w, uh, 0, 0, w, h); else camera.clearViewOffset();
+    updCam();
+  }
   function animate() { rafId = requestAnimationFrame(animate); if (ret) { ret.t = Math.min(1, ret.t + 0.05); const e = 1 - Math.pow(1 - ret.t, 3); sph.r = ret.r + (SPH0.r - ret.r) * e; sph.theta = ret.theta + (SPH0.theta - ret.theta) * e; sph.phi = ret.phi + (SPH0.phi - ret.phi) * e; updCam(); if (ret.t >= 1) ret = null; } if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 7.6) ar[i] = -0.2; } pa.needsUpdate = true; } renderer.render(scene, camera); }
 
   function glowTex(col) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d'); const g = x.createRadialGradient(128, 128, 0, 128, 128, 128); g.addColorStop(0, 'rgba(' + col + ',0.8)'); g.addColorStop(0.5, 'rgba(' + col + ',0.28)'); g.addColorStop(1, 'rgba(' + col + ',0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; return t; }

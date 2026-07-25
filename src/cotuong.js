@@ -120,7 +120,7 @@ function injectStyle() {
 .ct-banner .gbtn{padding:9px 22px;border-radius:10px;cursor:pointer;font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--gold2);background:rgba(20,14,9,.5);border:1px solid rgba(224,180,95,.5);transition:background .15s,border-color .15s}
 .ct-banner .gbtn:hover{background:rgba(224,180,95,.14);border-color:var(--gold2)}
 .ct-banner .gbtn.ghost{color:#d9cfbe;border-color:#463829;background:#1b1410}
-@media (max-width:600px){.ct-root{aspect-ratio:2/3;max-height:86dvh}.ct-title{left:10px;top:8px}.ct-title .hz{font-size:22px}.ct-title .vz{font-size:11px}.ct-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ct-b{width:auto}.ct-b .ic{width:40px;height:40px}.ct-b span{font-size:9.5px}.ct-right{right:8px;top:8px;gap:6px}.ct-pc{width:134px;padding:5px 8px 5px 5px}.ct-av{width:30px;height:30px}.ct-pc .nm{font-size:11px}.ct-pc .rr{font-size:9px}.ct-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ct-toast.show{transform:translateY(0)}.ct-chk{top:78px}.ct-chat{bottom:74px;width:94%}}
+@media (max-width:600px){.ct-root{aspect-ratio:5/6;max-height:88dvh}.ct-title{left:10px;top:8px}.ct-title .hz{font-size:22px}.ct-title .vz{font-size:11px}.ct-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ct-b{width:auto}.ct-b .ic{width:40px;height:40px}.ct-b span{font-size:9.5px}.ct-right{right:8px;top:8px;gap:6px}.ct-pc{width:134px;padding:5px 8px 5px 5px}.ct-av{width:30px;height:30px}.ct-pc .nm{font-size:11px}.ct-pc .rr{font-size:9px}.ct-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ct-toast.show{transform:translateY(0)}.ct-chk{top:78px}.ct-chat{bottom:74px;width:94%}}
 `;
   document.head.appendChild(st);
 }
@@ -620,18 +620,40 @@ function mountCoTuong(host, opts) {
   }
 
   function updCam() { camera.position.set(target.x + sph.r * Math.sin(sph.phi) * Math.sin(sph.theta), target.y + sph.r * Math.cos(sph.phi), target.z + sph.r * Math.sin(sph.phi) * Math.cos(sph.theta)); camera.lookAt(target); }
+  // Bàn có lọt khung ở khoảng cách r không — đo góc THẬT của 6 điểm mép (2 hàng × 3 cột).
+  function fits(r, phi, fovY, fovX) {
+    const cy = r * Math.cos(phi), cz = r * Math.sin(phi);
+    const dy = -Math.cos(phi), dz = -Math.sin(phi);
+    const hw = WU / 2, hd = HU / 2, m = 0.995;
+    for (let i = 0; i < 6; i++) {
+      const sx = (i % 3 === 0) ? -hw : (i % 3 === 1 ? 0 : hw);
+      const sz = (i < 3) ? -hd : hd;
+      const vy = TOPY - cy, vz = sz - cz;
+      const fwd = vy * dy + vz * dz;
+      if (fwd <= 0.01) return false;
+      const uy = vy - fwd * dy, uz = vz - fwd * dz;
+      if (Math.atan2(Math.sqrt(uy * uy + uz * uz), fwd) > fovY / 2 * m) return false;   // dọc
+      if (Math.atan2(Math.abs(sx), fwd) > fovX / 2 * m) return false;                   // ngang
+    }
+    return true;
+  }
   function onResize() {
     if (!renderer) return;
-    const a = W() / H(); camera.aspect = a; camera.updateProjectionMatrix(); renderer.setSize(W(), H());
-    // Khớp khung THẬT (không dùng số áng chừng): tính khoảng cách cần cho CẢ bề ngang lẫn chiều sâu.
-    // Bàn cờ tướng cao 9x10 ô -> nếu thiếu, hàng quân gần camera bị cắt (đo được: r=14.2 cho mép gần 21.7° > 18°).
-    const fovY = camera.fov * Math.PI / 180;
-    const fovX = 2 * Math.atan(Math.tan(fovY / 2) * a);
-    const elev = Math.atan2(Math.cos(SPH0.phi), Math.sin(SPH0.phi));   // góc nhìn xuống
-    const needH = (HU * Math.sin(elev) / 2) / Math.tan(fovY / 2);      // chiều sâu bàn khi chiếu lên màn
-    const needW = (WU / 2) / Math.tan(fovX / 2);
-    sph.r = Math.max(14, Math.min(34, Math.max(needH * 1.30, needW * 1.10)));   // biên: dọc rộng hơn vì mép gần bị phối cảnh phóng to
-    SPH0.r = sph.r; updCam();
+    const w = W(), h = H(); renderer.setSize(w, h);
+    const ar = w / h, portrait = ar < 1.05;
+    // Mobile: CHỪA dải nút dưới rồi khớp bàn vào đúng phần còn lại -> nút không đè lên quân, hết khoảng trống.
+    const BTN = portrait ? 74 : 0, uh = Math.max(80, h - BTN), a = w / uh;
+    camera.aspect = a;
+    // màn càng dọc thì nhìn càng từ trên xuống -> bàn "đứng" hơn, lấp khung cao tốt hơn
+    const phi = portrait ? Math.max(0.34, 0.60 - (1.05 - ar) * 0.50) : 0.60;
+    SPH0.phi = phi; if (!autorot && !ret) sph.phi = phi;
+    const fovY = camera.fov * Math.PI / 180, fovX = 2 * Math.atan(Math.tan(fovY / 2) * a);
+    let lo = 8, hi = 46;
+    for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (fits(mid, phi, fovY, fovX)) hi = mid; else lo = mid; }
+    sph.r = hi; SPH0.r = hi;
+    camera.updateProjectionMatrix();
+    if (BTN) camera.setViewOffset(w, uh, 0, 0, w, h); else camera.clearViewOffset();
+    updCam();
   }
   function animate() {
     rafId = requestAnimationFrame(animate);
