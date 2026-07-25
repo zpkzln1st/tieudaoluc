@@ -120,7 +120,7 @@ function injectStyle() {
 .ct-banner .gbtn{padding:9px 22px;border-radius:10px;cursor:pointer;font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--gold2);background:rgba(20,14,9,.5);border:1px solid rgba(224,180,95,.5);transition:background .15s,border-color .15s}
 .ct-banner .gbtn:hover{background:rgba(224,180,95,.14);border-color:var(--gold2)}
 .ct-banner .gbtn.ghost{color:#d9cfbe;border-color:#463829;background:#1b1410}
-@media (max-width:600px){.ct-root{aspect-ratio:5/6;max-height:88dvh}.ct-title{left:10px;top:8px}.ct-title .hz{font-size:22px}.ct-title .vz{font-size:11px}.ct-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ct-b{width:auto}.ct-b .ic{width:40px;height:40px}.ct-b span{font-size:9.5px}.ct-right{right:8px;top:8px;gap:6px}.ct-pc{width:134px;padding:5px 8px 5px 5px}.ct-av{width:30px;height:30px}.ct-pc .nm{font-size:11px}.ct-pc .rr{font-size:9px}.ct-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ct-toast.show{transform:translateY(0)}.ct-chk{top:78px}.ct-chat{bottom:74px;width:94%}}
+@media (max-width:600px){.ct-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ct-title{left:10px;top:8px}.ct-title .hz{font-size:22px}.ct-title .vz{font-size:11px}.ct-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ct-b{width:auto}.ct-b .ic{width:40px;height:40px}.ct-b span{font-size:9.5px}.ct-right{right:8px;top:8px;gap:6px}.ct-pc{width:134px;padding:5px 8px 5px 5px}.ct-av{width:30px;height:30px}.ct-pc .nm{font-size:11px}.ct-pc .rr{font-size:9px}.ct-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ct-toast.show{transform:translateY(0)}.ct-chk{top:78px}.ct-chat{bottom:74px;width:94%}}
 `;
   document.head.appendChild(st);
 }
@@ -641,8 +641,10 @@ function mountCoTuong(host, opts) {
     if (!renderer) return;
     const w = W(), h = H(); renderer.setSize(w, h);
     const ar = w / h, portrait = ar < 1.05;
-    // Mobile: CHỪA dải nút dưới rồi khớp bàn vào đúng phần còn lại -> nút không đè lên quân, hết khoảng trống.
-    const BTN = portrait ? 74 : 0, uh = Math.max(80, h - BTN), a = w / uh;
+    // Mobile: CHỪA dải TRÊN (thẻ tên đấu thủ) + dải DƯỚI (hàng nút), bàn khớp vào ĐÚNG khoảng giữa
+    // -> khung kéo dài lấp màn mà bàn vẫn không đè lên thẻ tên / nút.
+    const BTN = portrait ? 72 : 0, TOP = portrait ? 86 : 0;
+    const uh = Math.max(80, h - BTN - TOP), a = w / uh;
     camera.aspect = a;
     // màn càng dọc thì nhìn càng từ trên xuống -> bàn "đứng" hơn, lấp khung cao tốt hơn
     const phi = portrait ? Math.max(0.34, 0.60 - (1.05 - ar) * 0.50) : 0.60;
@@ -652,7 +654,7 @@ function mountCoTuong(host, opts) {
     for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (fits(mid, phi, fovY, fovX)) hi = mid; else lo = mid; }
     sph.r = hi; SPH0.r = hi;
     camera.updateProjectionMatrix();
-    if (BTN) camera.setViewOffset(w, uh, 0, 0, w, h); else camera.clearViewOffset();
+    if (BTN || TOP) camera.setViewOffset(w, uh, 0, -TOP, w, h); else camera.clearViewOffset();
     updCam();
   }
   function animate() {

@@ -102,7 +102,7 @@ function injectStyle() {
 .ntk-chat-in::placeholder{color:var(--txt3)}
 .ntk-chat-send{flex:none;padding:6px 15px;border-radius:9px;cursor:pointer;font-size:12px;color:#2a1d04;border:1px solid #f0d78f;background:linear-gradient(180deg,#f6dc9c,#e0b45f);font-family:var(--serif);font-weight:700}
 .ntk-chat-send:active{transform:scale(.95)}
-@media (max-width:600px){.ntk-root{aspect-ratio:5/6;max-height:88dvh}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ntk-toast.show{transform:translateY(0)}.ntk-chat{bottom:74px;width:94%}}
+@media (max-width:600px){.ntk-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ntk-toast.show{transform:translateY(0)}.ntk-chat{bottom:74px;width:94%}}
 `;
   document.head.appendChild(st);
 }
@@ -511,8 +511,10 @@ function mountNguTu(host, opts) {
     if (!renderer) return;
     const w = W(), h = H(); renderer.setSize(w, h);
     const ar = w / h, portrait = ar < 1.05;
-    // Mobile: CHỪA dải nút dưới rồi khớp bàn vào ĐÚNG phần còn lại -> nút không đè bàn, hết khoảng trống.
-    const BTN = portrait ? 74 : 0, uh = Math.max(80, h - BTN), a = w / uh;
+    // Mobile: CHỪA dải TRÊN (thẻ tên đấu thủ) + dải DƯỚI (hàng nút), bàn khớp vào ĐÚNG khoảng giữa
+    // -> khung kéo dài lấp màn mà bàn vẫn không đè lên thẻ tên / nút.
+    const BTN = portrait ? 72 : 0, TOP = portrait ? 86 : 0;
+    const uh = Math.max(80, h - BTN - TOP), a = w / uh;
     camera.aspect = a;
     const phi = portrait ? Math.max(0.38, 0.66 - (1.05 - ar) * 0.45) : 0.66;   // màn dọc -> nhìn từ trên xuống hơn
     SPH0.phi = phi; if (!autorot && !ret) sph.phi = phi;
@@ -522,7 +524,7 @@ function mountNguTu(host, opts) {
     sph.r = hi; SPH0.r = hi;
     if (scene && scene.fog) { scene.fog.near = sph.r * 0.97; scene.fog.far = sph.r * 2.42; }   // co giãn fog theo r (khỏi xỉn màu)
     camera.updateProjectionMatrix();
-    if (BTN) camera.setViewOffset(w, uh, 0, 0, w, h); else camera.clearViewOffset();
+    if (BTN || TOP) camera.setViewOffset(w, uh, 0, -TOP, w, h); else camera.clearViewOffset();
     updCam();
   }
   function animate() { rafId = requestAnimationFrame(animate); if (ret) { ret.t = Math.min(1, ret.t + 0.05); const e = 1 - Math.pow(1 - ret.t, 3); sph.r = ret.r + (SPH0.r - ret.r) * e; sph.theta = ret.theta + (SPH0.theta - ret.theta) * e; sph.phi = ret.phi + (SPH0.phi - ret.phi) * e; updCam(); if (ret.t >= 1) ret = null; } if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 7.6) ar[i] = -0.2; } pa.needsUpdate = true; } renderer.render(scene, camera); }
