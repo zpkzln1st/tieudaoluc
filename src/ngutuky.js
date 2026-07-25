@@ -49,7 +49,7 @@ function injectStyle() {
 .ntk-left{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:9px;z-index:4}
 .ntk-b{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--txt2);cursor:pointer;width:46px}
 .ntk-b .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(10,26,34,.6);border:1px solid rgba(140,200,215,.22);color:var(--cy);transition:.12s}
-.ntk-b .ic svg{width:16px;height:16px}
+.ntk-b .ic svg{width:19px;height:19px}
 .ntk-b span{font-size:9.5px;white-space:nowrap;text-align:center}
 .ntk-b:hover .ic{border-color:var(--cy2);color:#fff}
 .ntk-b:active .ic{transform:scale(.92)}
