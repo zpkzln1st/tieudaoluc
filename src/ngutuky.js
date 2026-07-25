@@ -168,7 +168,7 @@ function mountNguTu(host, opts) {
       '<div class="ntk-right">' +
         '<div class="ntk-pc wait" data-c="ai"><img class="ntk-av" alt="" src="' + opp.art + '" onerror="this.style.visibility=\'hidden\'"><div><div class="nm">' + opp.name + '</div><div class="rr"><span class="ntk-dot w"></span><span class="rs">Chờ</span></div></div></div>' +
         '<div class="ntk-pc act" data-c="you"><img class="ntk-av" alt="" src="' + pl.art + '" onerror="this.style.visibility=\'hidden\'"><div><div class="nm">' + pl.name + '</div><div class="rr"><span class="ntk-dot b"></span><span class="rs">Đang đi…</span></div></div></div>' +
-        '<div class="ntk-timer">Đếm giờ<span class="pill">0:30</span></div>' +
+        '' +
       '</div>' +
       '<div class="ntk-toast"></div>' +
       '<div class="ntk-chat">' +
@@ -187,7 +187,7 @@ function mountNguTu(host, opts) {
   // ---- state ----
   const N = 15, HUMAN = 1, AI = 2;
   let spacing = 8 / 14;
-  let board = [], meshAt = {}, moves = [], ghost = null, current = HUMAN, over = false, secs = 30, timerId = null, saidN = 0;
+  let board = [], meshAt = {}, moves = [], ghost = null, current = HUMAN, over = false, saidN = 0;
   let renderer, scene, camera, boardGroup, raycaster, pointer, rayPlane, particles = null, rafId = 0;
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SPH0 = { r: 12.4, theta: 0, phi: 0.66 };   // góc nhìn mặc định (bàn cố định)
@@ -386,8 +386,8 @@ function mountNguTu(host, opts) {
   function clearGhost() { if (ghost) { boardGroup.remove(ghost.mesh); ghost = null; } updConfirm(); }
   function setGhost(c, r) { if (over || current !== HUMAN) return; if (!inb(c, r) || board[r][c] !== 0) return; if (!ghost) { ghost = { c, r, mesh: makeMesh(HUMAN, true) }; boardGroup.add(ghost.mesh); } ghost.c = c; ghost.r = r; ghost.mesh.position.set(wx(c), 0.1, wx(r)); updConfirm(); }
   function commit(c, r, color) { board[r][c] = color; const m = makeMesh(color, false); m.position.set(wx(c), 0.1, wx(r)); m.castShadow = true; boardGroup.add(m); meshAt[key(c, r)] = m; moves.push({ c, r, color }); return m; }
-  function confirmMove() { if (over || !ghost || current !== HUMAN) return; const c = ghost.c, r = ghost.r; clearGhost(); commit(c, r, HUMAN); if (winLineAt(c, r, HUMAN)) return endGame(1, winLineAt(c, r, HUMAN)); if (moves.length >= N * N) return endGame(0, null); current = AI; turnUI(); resetTimer(); setTimeout(aiTurn, 440); }
-  function aiTurn() { if (over) return; const wasThreat = !!findWinning(HUMAN); const mv = aiPick(); if (!mv) return endGame(0, null); commit(mv.c, mv.r, AI); const wl = winLineAt(mv.c, mv.r, AI); if (wl) return endGame(2, wl); if (moves.length >= N * N) return endGame(0, null); current = HUMAN; turnUI(); resetTimer(); maybeBossSay(wasThreat, mv); }
+  function confirmMove() { if (over || !ghost || current !== HUMAN) return; const c = ghost.c, r = ghost.r; clearGhost(); commit(c, r, HUMAN); if (winLineAt(c, r, HUMAN)) return endGame(1, winLineAt(c, r, HUMAN)); if (moves.length >= N * N) return endGame(0, null); current = AI; turnUI(); setTimeout(aiTurn, 440); }
+  function aiTurn() { if (over) return; const wasThreat = !!findWinning(HUMAN); const mv = aiPick(); if (!mv) return endGame(0, null); commit(mv.c, mv.r, AI); const wl = winLineAt(mv.c, mv.r, AI); if (wl) return endGame(2, wl); if (moves.length >= N * N) return endGame(0, null); current = HUMAN; turnUI(); maybeBossSay(wasThreat, mv); }
 
   function winLineAt(c, r, color) { for (let k = 0; k < 4; k++) { const dx = DIRS[k][0], dy = DIRS[k][1]; const cells = [[c, r]]; let i; for (i = 1; inb(c + dx * i, r + dy * i) && board[r + dy * i][c + dx * i] === color; i++) cells.push([c + dx * i, r + dy * i]); for (i = 1; inb(c - dx * i, r - dy * i) && board[r - dy * i][c - dx * i] === color; i++) cells.unshift([c - dx * i, r - dy * i]); if (cells.length >= 5) return cells.slice(0, 5); } return null; }
   function runScore(cnt, ends) { if (cnt >= 5) return 1e6; if (cnt === 4) return ends >= 2 ? 50000 : (ends === 1 ? 4200 : 0); if (cnt === 3) return ends >= 2 ? 4200 : (ends === 1 ? 320 : 0); if (cnt === 2) return ends >= 2 ? 220 : (ends === 1 ? 22 : 0); return ends * 3 + 1; }
@@ -405,7 +405,7 @@ function mountNguTu(host, opts) {
   }
 
   function endGame(result, line) {
-    over = true; clearGhost(); stopTimer(); updConfirm();
+    over = true; clearGhost(); updConfirm();
     if (line) for (let i = 0; i < line.length; i++) { const mm = meshAt[key(line[i][0], line[i][1])]; if (mm) { mm.material = mm.material.clone(); mm.material.emissive = new THREE.Color(0xe6c079); mm.material.emissiveIntensity = 0.85; mm.scale.set(1.16, 1.5, 1.16); } }
     const b = $('.ntk-banner'), end = b.querySelector('.ntk-end'), bt = b.querySelector('.bt'), bs = b.querySelector('.bs'), rw = b.querySelector('.ntk-end-rw');
     end.classList.remove('win', 'lose', 'draw'); rw.classList.remove('show');
@@ -415,8 +415,8 @@ function mountNguTu(host, opts) {
     b.classList.add('show');
     try { if (opts.onEnd) opts.onEnd(result); } catch (e) {}
   }
-  function undo() { if (over) return; clearGhost(); let n = 0; while (n < 2 && moves.length > 0) { const mv = moves.pop(); const mm = meshAt[key(mv.c, mv.r)]; if (mm) { boardGroup.remove(mm); delete meshAt[key(mv.c, mv.r)]; } board[mv.r][mv.c] = 0; n++; } current = HUMAN; over = false; turnUI(); resetTimer(); }
-  function resetGame() { for (const k in meshAt) if (meshAt.hasOwnProperty(k)) boardGroup.remove(meshAt[k]); meshAt = {}; moves = []; clearGhost(); board = []; for (let r = 0; r < N; r++) { board[r] = []; for (let c = 0; c < N; c++) board[r][c] = 0; } current = HUMAN; over = false; saidN = 0; $('.ntk-banner').classList.remove('show'); turnUI(); resetTimer(); updConfirm(); try { setTimeout(function () { if (!over) bossSay('start'); }, 750); } catch (e) {} }
+  function undo() { if (over) return; clearGhost(); let n = 0; while (n < 2 && moves.length > 0) { const mv = moves.pop(); const mm = meshAt[key(mv.c, mv.r)]; if (mm) { boardGroup.remove(mm); delete meshAt[key(mv.c, mv.r)]; } board[mv.r][mv.c] = 0; n++; } current = HUMAN; over = false; turnUI(); }
+  function resetGame() { for (const k in meshAt) if (meshAt.hasOwnProperty(k)) boardGroup.remove(meshAt[k]); meshAt = {}; moves = []; clearGhost(); board = []; for (let r = 0; r < N; r++) { board[r] = []; for (let c = 0; c < N; c++) board[r][c] = 0; } current = HUMAN; over = false; saidN = 0; $('.ntk-banner').classList.remove('show'); turnUI(); updConfirm(); try { setTimeout(function () { if (!over) bossSay('start'); }, 750); } catch (e) {} }
 
   function turnUI() { const you = $('[data-c="you"]'), ai = $('[data-c="ai"]'); if (current === HUMAN) { you.classList.add('act'); you.classList.remove('wait'); ai.classList.remove('act'); ai.classList.add('wait'); } else { ai.classList.add('act'); ai.classList.remove('wait'); you.classList.remove('act'); you.classList.add('wait'); } you.querySelector('.rs').textContent = current === HUMAN ? 'Đang đi…' : 'Chờ'; ai.querySelector('.rs').textContent = current === AI ? 'Đang tính…' : 'Chờ'; }
   function updConfirm() { const b = $('[data-a="confirm"]'); if (!b) return; if (ghost && !over) { b.classList.remove('dis'); b.classList.add('ready'); } else { b.classList.add('dis'); b.classList.remove('ready'); } }
@@ -426,10 +426,7 @@ function mountNguTu(host, opts) {
   function sendChat() { const inp = $('.ntk-chat-in'); if (!inp) return; sayPlayer(inp.value); inp.value = ''; }
   function fillPresets() { const box = $('.ntk-chat-ps'); if (!box) return; const pool = PLAYER_PRESETS.slice(), pk = []; for (let i = 0; i < 5 && pool.length; i++) pk.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]); box.innerHTML = pk.map(() => '<span class="ntk-chip"></span>').join(''); box.querySelectorAll('.ntk-chip').forEach((c, i) => { c.textContent = pk[i]; c.addEventListener('click', () => sayPlayer(pk[i])); }); }
   function onKey(e) { if (e.key !== 'Escape') return; const box = $('.ntk-chat'); if (box && box.classList.contains('show')) { e.preventDefault(); box.classList.remove('show'); const inp = $('.ntk-chat-in'); if (inp) inp.blur(); } }   // ESC: đóng khung chat
-  function renderTimer() { const t = $('.ntk-timer .pill'); if (t) { t.textContent = '0:' + (secs < 10 ? '0' : '') + secs; t.classList.toggle('low', secs < 10); } }
-  function resetTimer() { secs = 30; renderTimer(); startTimer(); }
-  function startTimer() { stopTimer(); timerId = setInterval(() => { if (over) return; secs--; if (secs < 0) secs = 0; renderTimer(); if (secs === 0) stopTimer(); }, 1000); }
-  function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+  // (đã bỏ đồng hồ đếm giờ)
 
   function act(a) {
     if (a === 'confirm') confirmMove();
@@ -446,7 +443,7 @@ function mountNguTu(host, opts) {
   function onMove(e) { if (!dragging) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; if (Math.abs(dx) + Math.abs(dy) > 4) movedFlag = true; lastX = e.clientX; lastY = e.clientY; if (autorot) { sph.theta -= dx * 0.006; sph.phi = Math.max(0.3, Math.min(1.18, sph.phi - dy * 0.005)); updCam(); } }
   function onUp(e) { if (dragging && !movedFlag && !autorot) tapBoard(e); dragging = false; }
   function tapBoard(e) { if (over || current !== HUMAN) return; const rect = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1; pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1; raycaster.setFromCamera(pointer, camera); const pt = new THREE.Vector3(); if (raycaster.ray.intersectPlane(rayPlane, pt)) { const c = Math.round((pt.x + 4) / spacing), r = Math.round((pt.z + 4) / spacing); if (!inb(c, r) || board[r][c] !== 0) return; if (ghost && ghost.c === c && ghost.r === r) { confirmMove(); return; } setGhost(c, r); } }
-  function onResize() { if (!renderer) return; camera.aspect = W() / H(); camera.updateProjectionMatrix(); renderer.setSize(W(), H()); }
+  function onResize() { if (!renderer) return; const a = W() / H(); camera.aspect = a; camera.updateProjectionMatrix(); renderer.setSize(W(), H()); sph.r = Math.max(12.4, Math.min(20, 13.5 / a)); SPH0.r = sph.r; updCam(); }   // màn hẹp/dọc: kéo camera lùi cho thấy trọn bàn
   function animate() { rafId = requestAnimationFrame(animate); if (ret) { ret.t = Math.min(1, ret.t + 0.05); const e = 1 - Math.pow(1 - ret.t, 3); sph.r = ret.r + (SPH0.r - ret.r) * e; sph.theta = ret.theta + (SPH0.theta - ret.theta) * e; sph.phi = ret.phi + (SPH0.phi - ret.phi) * e; updCam(); if (ret.t >= 1) ret = null; } if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 7.6) ar[i] = -0.2; } pa.needsUpdate = true; } renderer.render(scene, camera); }
 
   function glowTex(col) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d'); const g = x.createRadialGradient(128, 128, 0, 128, 128, 128); g.addColorStop(0, 'rgba(' + col + ',0.8)'); g.addColorStop(0.5, 'rgba(' + col + ',0.28)'); g.addColorStop(1, 'rgba(' + col + ',0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; return t; }
@@ -456,7 +453,7 @@ function mountNguTu(host, opts) {
   function gradTex(forEnv) { const cv = document.createElement('canvas'); cv.width = 16; cv.height = 256; const x = cv.getContext('2d'); const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#1c4c5c'); g.addColorStop(0.42, '#123846'); g.addColorStop(0.76, '#0b232d'); g.addColorStop(1, '#071620'); x.fillStyle = g; x.fillRect(0, 0, 16, 256); const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; if (forEnv) t.mapping = THREE.EquirectangularReflectionMapping; return t; }
 
   return {
-    destroy() { over = true; stopTimer(); if (rafId) cancelAnimationFrame(rafId); window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey); try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {} host.innerHTML = ''; },
+    destroy() { over = true; if (rafId) cancelAnimationFrame(rafId); window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey); try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {} host.innerHTML = ''; },
     resize() { onResize(); },
   };
 }
