@@ -16,6 +16,7 @@ import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONST
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
+import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
 import { kyTran, ensureKyTran } from './kytran.js';                  // Kỳ Trận (match-3 Cửu Cung, cách ly)
 import { dongPhu } from './dongphu.js';                              // Động Phủ (nhà riêng — component view)
 import { ensureDongPhu, resolveDongPhu } from './engine/dongphu.js'; // Động Phủ (engine thuần)
@@ -155,7 +156,7 @@ ensureBuffs(state);        // Đan Bổ Trợ: khởi tạo state.buffs
 migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành Hồi Sinh Lực / Hồi Nội Lực / Dược Lư
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
-ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state);
+ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state); ensureNguTu(state);
 ensureDongPhu(state); resolveDongPhu(state, Date.now());   // Động Phủ: khởi tạo + hoàn công job xong TRƯỚC advance offline & simTongMon (trần treo nhà áp cho cả khoảng vắng)
 try { simTongMon(state, Date.now(), idleCapMs(state) / 3600000); } catch (e) {} // Tông Môn (nhánh phụ): khởi tạo + tu luyện/sản lượng OFFLINE (cap = trần treo gồm bonus nhà)
 if (!state.quests) state.quests = { tutorial: { index: 0, base: 0 }, daily: { period: null, list: [] }, weekly: { period: null, list: [] }, monthly: { period: null, list: [] } };
@@ -428,9 +429,11 @@ const gameStore = {
   _teleReturnView: null,   // Đổi vùng từ 1 tab -> nhớ tab đó để tự quay lại sau khi Truyền Tống/Khinh Công tới nơi
   openZoneChange() { this._teleReturnView = this.view; this.navTo('map'); },   // combat bấm "Đổi vùng"
   navTo(view) { if (view !== 'map') this._teleReturnView = null; this._applyView(view); this._pushHash('#' + view); },
+  _ntkOpp: null,
+  openNguTu(id) { this._ntkOpp = id || null; this.navTo('nguTuKy'); },   // deep-link Ngũ Tử Kỳ từ Hồ Sơ Danh Sĩ
   _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
-  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran'],
+  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy'],
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
   applyHashRoute() {   // đọc URL hash -> đổi view (KHÔNG push lại, tránh lặp). Gọi khi popstate (back/forward).
     const h = location.hash || '';
@@ -1922,7 +1925,7 @@ const gameStore = {
   },
   statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
 
   // ---------- ĐÀM ĐẠO (cốt truyện NPC nghề — chương mở theo cấp nghề + hội thoại nhánh) ----------
@@ -4253,6 +4256,7 @@ window.Alpine = Alpine;
 window.dangTienMong = dangTienMong;   // expose component factory cho x-data trong view Đăng Tiên Mộng
 window.dongPhu = dongPhu;             // expose component factory cho x-data trong view Động Phủ
 window.kyTran = kyTran;               // expose component factory cho x-data trong view Kỳ Trận
+window.nguTuKy = nguTuKy;             // expose component factory cho x-data trong view Ngũ Tử Kỳ
 Alpine.store('game', gameStore);
 Alpine.start();
 Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)

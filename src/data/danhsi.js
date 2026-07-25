@@ -735,7 +735,7 @@ export const DANH_SI = [
   {
     "id": "doDuocMaCo",
     "ten": "Đỗ Dược",
-    "bietHieu": "Vạn Độc Cô「萬毒姑」",
+    "bietHieu": "Vạn Độc Cô",
     "sex": "nu",
     "dao": "ta",
     "nguHanh": "moc",
@@ -796,7 +796,7 @@ export const DANH_SI = [
   {
     "id": "doCoTuyHan",
     "ten": "Đỗ Cô Tuý",
-    "bietHieu": "Tuý Quyền Cuồng Tẩu「醉拳狂叟」",
+    "bietHieu": "Tuý Quyền Cuồng Tẩu",
     "sex": "nam",
     "dao": "trung",
     "nguHanh": "thuy",
@@ -857,7 +857,7 @@ export const DANH_SI = [
   {
     "id": "langToCam",
     "ten": "Lăng Tố Cầm",
-    "bietHieu": "Đoạn Huyền Cầm Tiên「斷絃琴仙」",
+    "bietHieu": "Đoạn Huyền Cầm Tiên",
     "sex": "nu",
     "dao": "chinh",
     "nguHanh": "kim",
@@ -918,7 +918,7 @@ export const DANH_SI = [
   {
     "id": "doanMocVoTranh",
     "ten": "Đoan Mộc Vô Tranh",
-    "bietHieu": "Cơ Quan Vô Tranh Sinh「機關無爭生」",
+    "bietHieu": "Cơ Quan Vô Tranh Sinh",
     "sex": "nam",
     "dao": "trung",
     "nguHanh": "tho",

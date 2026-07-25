@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <!-- Font Hán thư pháp mềm (Ngũ Tử Kỳ) — chỉ nạp đúng 3 glyph 五子棋 -->
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&text=%E4%BA%94%E5%AD%90%E6%A3%8B&display=swap" rel="stylesheet">
 
   <!-- Font chữ Hán. Lora KHÔNG có một glyph CJK nào — thiếu font này thì mọi chữ Hán rơi về
        SimSun và bị bôi đậm giả. Noto Serif SC bản RÚT GỌN: tham số &text= chỉ nạp ĐÚNG 338
@@ -3825,7 +3827,8 @@
                 <div class="shrink-0 flex items-center justify-between gap-3 px-4 py-2.5 border-t border-slate-800" style="background:rgba(15,21,33,.5)">
                   <div class="text-[11px] text-slate-500 italic truncate" x-text="'“'+p.tamCanh+'”'"></div>
                   <div class="flex items-center gap-3 shrink-0">
-                    <span class="text-[11px] text-slate-500">Hạng <b class="text-cyan" x-text="p.rank"></b>/<span x-text="p.total"></span> Danh Sĩ</span>
+                    <span class="text-[11px] text-slate-500 hidden sm:inline">Hạng <b class="text-cyan" x-text="p.rank"></b>/<span x-text="p.total"></span> Danh Sĩ</span>
+                    <button @click="$store.game.openNguTu(p.id)" class="px-4 py-1.5 rounded-lg text-[12px] text-cyan-200 border border-cyan-500/50 hover:border-cyan-400 hover:text-cyan-100 transition">Tỷ Thí Ngũ Tử Kỳ</button>
                     <button @click="$store.game.closeDanhSi()" class="px-4 py-1.5 rounded-lg text-[12px] text-slate-300 border border-slate-700 hover:border-slate-500">Đóng</button>
                   </div>
                 </div>
@@ -10906,6 +10909,68 @@
                 </div>
               </div>
             </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== VIEW: NGŨ TỬ KỲ (cờ caro 3D — mini-game, cách ly 0-power) ===== -->
+      <template x-if="$store.game.view==='nguTuKy'">
+        <div class="max-w-[1200px] mx-auto" x-data="nguTuKy()" x-init="ntkInit()">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[150px] flex flex-col justify-center">
+            <img src="images/ui/ngutuky_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/ngutuky_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
+            <div class="relative px-5 py-5 sm:px-6">
+              <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">五子棋</span> Ngũ Tử Kỳ</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-cyan-300">Kỳ phùng địch thủ, ngũ tử liên châu.</b> Bày một ván cờ, mời Danh Sĩ Giang Hồ so tài — ai xếp được năm quân liền trước, người ấy thắng.</div>
+              <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="ntk.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(ntk.kyHon)"></b></div>
+            </div>
+          </div>
+          <style>
+            .ntk-card{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;cursor:pointer;border:1px solid #1d3a45;background:#0c1c24;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;isolation:isolate}
+            .ntk-card:hover{transform:translateY(-4px);border-color:var(--tier);box-shadow:0 16px 34px -18px #000,0 0 0 1px var(--tier)}
+            .ntk-card-por{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 16%}
+            .ntk-card-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,12,18,0) 34%,rgba(6,12,18,.62) 60%,rgba(5,10,15,.94) 100%)}
+            .ntk-card-tier{position:absolute;top:8px;left:8px;font-size:10.5px;font-weight:600;letter-spacing:.03em;color:#0b0f15;padding:2.5px 9px;border-radius:99px;box-shadow:0 2px 10px -3px rgba(0,0,0,.6)}
+            .ntk-card-meta{position:absolute;left:11px;right:11px;bottom:10px;display:flex;flex-direction:column;gap:1px;z-index:2;transition:transform .24s cubic-bezier(.2,.6,.35,1)}
+            .ntk-card:hover .ntk-card-meta{transform:translateY(-26px)}
+            .ntk-card-nm{font-size:14.5px;font-weight:700;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.7);line-height:1.2}
+            .ntk-card-bh{font-size:11px;color:#9fe4f0;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+            .ntk-card-rec{font-size:10.5px;color:#9fb8bd;margin-top:3px;transition:opacity .16s ease}
+            .ntk-card:hover .ntk-card-rec{opacity:0}
+            .ntk-card-cta{position:absolute;left:11px;right:11px;bottom:11px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.06em;color:#f4d99a;background:rgba(9,18,25,.62);border:1px solid rgba(230,192,121,.55);border-radius:9px;padding:6px 0;opacity:0;transform:translateY(8px);transition:opacity .22s ease,transform .24s cubic-bezier(.2,.6,.35,1),background .15s,border-color .15s;z-index:3}
+            .ntk-card:hover .ntk-card-cta{opacity:1;transform:translateY(0)}
+            .ntk-card-cta:hover{background:rgba(230,192,121,.14);border-color:#f4d99a}
+          </style>
+          <div x-show="!inBattle" class="mt-5 space-y-5">
+            <template x-for="tier in tiers" :key="tier.name">
+              <div>
+                <div class="flex items-center gap-3 mb-3" :style="'color:'+tier.color">
+                  <span class="text-[15px] font-semibold tracking-wide fserif" x-text="tier.name"></span>
+                  <span class="text-[11px] text-slate-500" x-text="tier.list.length+' vị'"></span>
+                  <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,'+tier.color+',transparent);opacity:.5'"></span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  <template x-for="o in tier.list" :key="o.id">
+                    <div class="ntk-card" :style="'--tier:'+tier.color" @click="challenge(o)">
+                      <img class="ntk-card-por" :src="faceOf(o)" alt="" onerror="this.style.opacity=0">
+                      <span class="ntk-card-scrim"></span>
+                      <span class="ntk-card-tier" :style="'background:'+tier.color" x-text="diffLabel(o)"></span>
+                      <span class="ntk-card-meta">
+                        <span class="ntk-card-nm fserif" x-text="o.ten"></span>
+                        <span class="ntk-card-bh" x-text="o.bietHieu||''"></span>
+                        <span class="ntk-card-rec" x-text="recOf(o.id)"></span>
+                      </span>
+                      <span class="ntk-card-cta fserif">Khiêu Chiến</span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div x-show="inBattle" style="margin-top:12px">
+            <div x-show="loading" class="text-center text-slate-400 py-10 fserif">Đang triệu hồi kỳ bàn 3D…</div>
+            <div x-show="loadErr" class="text-center text-rose-400 py-10" x-text="loadErr"></div>
+            <div x-ref="boardHost"></div>
           </div>
         </div>
       </template>
