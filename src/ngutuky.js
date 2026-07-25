@@ -36,7 +36,7 @@ function injectStyle() {
   const st = document.createElement('style');
   st.id = 'ntk-style';
   st.textContent = `
-.ntk-root{position:relative;width:100%;max-width:900px;margin:0 auto;aspect-ratio:16/10;border-radius:16px;overflow:hidden;background:#070d13;box-shadow:0 24px 60px -30px #000;border:1px solid #16303b;touch-action:none;user-select:none;
+.ntk-root{position:relative;width:100%;max-width:100%;margin:0 auto;aspect-ratio:16/10;border-radius:16px;overflow:hidden;background:#070d13;box-shadow:0 24px 60px -30px #000;border:1px solid #16303b;touch-action:none;user-select:none;
   --cy:#9fe4f0;--cy2:#33d6c0;--gold:#e6c079;--gold2:#f4d99a;--jade:#2dd4bf;--txt:#eaf3f8;--txt2:#9fb8bd;--txt3:#5f7d8b;--warn:#ff6b6b;--serif:'Lora','Noto Serif SC',Georgia,serif}
 .ntk-root *{box-sizing:border-box}
 .ntk-scene{position:absolute;inset:0}
