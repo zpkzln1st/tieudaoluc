@@ -50,6 +50,7 @@ export function titleUnlocked(state, c) {
       return false;
     }
     case 'bac':        return (state.currencies?.bac || 0) >= c.v;
+    case 'nguTuKyHon': return (state.nguTu?.kyHon || 0) >= c.v;   // Ngũ Tử Kỳ — Kỳ Hồn tích luỹ (CHỈ đọc state.nguTu)
     case 'dtmSc': {     // Đăng Tiên Mộng — Sát Cảnh cao nhất qua mọi mộng thân (CHỈ đọc state.dangTien; DTM không ghi ngược vào titles)
       const m = state.dangTien && state.dangTien.scMaxByHero;
       if (!m) return false; const vals = Object.values(m); return (vals.length ? Math.max(0, ...vals) : 0) >= c.v;

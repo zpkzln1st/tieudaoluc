@@ -477,6 +477,9 @@ export function nguTuKy() {
     // gom Danh Sĩ theo tầng (Cao Thủ/Khó/Vừa/Dễ) cho lưới Kỳ Đài
     get tiers() { const g = { 'Cao Thủ': [], 'Khó': [], 'Vừa': [], 'Dễ': [] }; this.opponents.forEach((o) => { const t = this.diffLabel(o); if (g[t]) g[t].push(o); }); const col = { 'Cao Thủ': '#e6c079', 'Khó': '#f0997b', 'Vừa': '#5dcaa5', 'Dễ': '#97c459' }; return ['Cao Thủ', 'Khó', 'Vừa', 'Dễ'].filter((t) => g[t].length).map((t) => ({ name: t, color: col[t], list: g[t] })); },
     faceOf(o) { return (o && o.face) || ('images/danhsi/' + (o && o.id) + '.webp'); },   // truyền nhân (kế vị) mượn chân dung tổ tiên qua o.face
+    // Kỳ Nghệ — mốc danh hiệu theo Kỳ Hồn tích luỹ (PHẢI khớp titles.js loai 'kyNghe')
+    kyNghe: [{ v: 500, name: 'Kỳ Đồ' }, { v: 5000, name: 'Diệu Thủ' }, { v: 50000, name: 'Quốc Thủ' }, { v: 500000, name: 'Kỳ Bá' }, { v: 5000000, name: 'Thiên Hạ Đệ Nhất Kỳ' }],
+    get kyNgheState() { const k = this.ntk.kyHon || 0; let cur = null, next = null; for (const m of this.kyNghe) { if (k >= m.v) cur = m; else { next = m; break; } } return { cur, next, k }; },
 
     ntkInit() {
       ensureNguTu(this.$store.game.state);
@@ -510,7 +513,7 @@ export function nguTuKy() {
     },
     _recordResult(id, result) {
       const n = this.ntk; if (!n.rec[id]) n.rec[id] = { w: 0, l: 0 };
-      if (result === 1) { n.rec[id].w++; n.wins++; n.kyHon += 12; }
+      if (result === 1) { n.rec[id].w++; n.wins++; n.kyHon += 12; try { this.$store.game.checkTitles(); } catch (e) {} }   // mở khoá danh hiệu Kỳ Nghệ tức thì
       else if (result === 2) { n.rec[id].l++; }
       try { Storage.save(this.$store.game.state); } catch (e) {}
     },
