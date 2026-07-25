@@ -99,11 +99,11 @@ export const TITLES = [
   t('dangTienVoCuc', 'Đăng Tiên Vô Cực',  'thanPham',  'mongCanh', {}, { kind: 'dtmSc', v: 15 }, 'Đăng Tiên Mộng: chinh phục Sát Cảnh 15'),
 
   // ===== KỲ NGHỆ (Ngũ Tử Kỳ — theo Kỳ Hồn tích luỹ; CỐ SẮC 0 chỉ số: vinh danh kỳ thủ, không thêm lực) =====
-  t('kyDo',     'Kỳ Đồ',                'luongPham', 'kyNghe', {}, { kind: 'nguTuKyHon', v: 500 },     'Ngũ Tử Kỳ: tích 500 Kỳ Hồn'),
-  t('dieuThu',  'Diệu Thủ',             'tinhPham',  'kyNghe', {}, { kind: 'nguTuKyHon', v: 5000 },    'Ngũ Tử Kỳ: tích 5.000 Kỳ Hồn'),
-  t('quocThu',  'Quốc Thủ',             'tuyetPham', 'kyNghe', {}, { kind: 'nguTuKyHon', v: 50000 },   'Ngũ Tử Kỳ: tích 50.000 Kỳ Hồn'),
-  t('kyBa',     'Kỳ Bá',                'truyenThe', 'kyNghe', {}, { kind: 'nguTuKyHon', v: 500000 },  'Ngũ Tử Kỳ: tích 500.000 Kỳ Hồn'),
-  t('kyDeNhat', 'Thiên Hạ Đệ Nhất Kỳ',  'coBan',     'kyNghe', {}, { kind: 'nguTuKyHon', v: 5000000 }, 'Ngũ Tử Kỳ: tích 5.000.000 Kỳ Hồn'),
+  t('kyDo',     'Kỳ Đồ',                'luongPham', 'kyNghe', {}, { kind: 'nguTuKyHon', v: 500 },     'Kỳ Nghệ: tích 500 Kỳ Hồn (mọi bàn cờ)'),
+  t('dieuThu',  'Diệu Thủ',             'tinhPham',  'kyNghe', {}, { kind: 'nguTuKyHon', v: 5000 },    'Kỳ Nghệ: tích 5.000 Kỳ Hồn (mọi bàn cờ)'),
+  t('quocThu',  'Quốc Thủ',             'tuyetPham', 'kyNghe', {}, { kind: 'nguTuKyHon', v: 50000 },   'Kỳ Nghệ: tích 50.000 Kỳ Hồn (mọi bàn cờ)'),
+  t('kyBa',     'Kỳ Bá',                'truyenThe', 'kyNghe', {}, { kind: 'nguTuKyHon', v: 500000 },  'Kỳ Nghệ: tích 500.000 Kỳ Hồn (mọi bàn cờ)'),
+  t('kyDeNhat', 'Thiên Hạ Đệ Nhất Kỳ',  'coBan',     'kyNghe', {}, { kind: 'nguTuKyHon', v: 5000000 }, 'Kỳ Nghệ: tích 5.000.000 Kỳ Hồn (mọi bàn cờ)'),
 ];
 
 export const TITLE_BY_ID = {};

@@ -6,14 +6,15 @@
 //   sau cắm PvP online (Supabase) chỉ cần thay nguồn "nước đi đối thủ".
 // ============================================================
 import { Storage } from './engine/save.js';
+import { addKyHon, getKyHon, kyNgheOf, KY_NGHE } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Cờ Tướng
 
 // ---------- ensure/migrate: khởi tạo state.nguTu (gọi mỗi lần load) ----------
 export function ensureNguTu(state) {
   if (!state.nguTu) state.nguTu = {};
   const n = state.nguTu;
   if (!n.rec) n.rec = {};            // { danhsiId: { w, l } }
-  if (n.kyHon == null) n.kyHon = 0;  // Kỳ Hồn — tiền tệ riêng (thắng được, tiêu sau)
   if (n.wins == null) n.wins = 0;    // tổng ván thắng
+  // Kỳ Hồn KHÔNG để ở đây nữa: dùng CHUNG state.kyHon (engine/kyhon.js) với Cờ Tướng.
 }
 
 // ---------- lazy-load Three.js (chỉ khi vào ván, khỏi nặng lúc load game) ----------
@@ -36,7 +37,7 @@ function injectStyle() {
   const st = document.createElement('style');
   st.id = 'ntk-style';
   st.textContent = `
-.ntk-root{position:relative;width:100%;max-width:100%;margin:0 auto;aspect-ratio:16/10;border-radius:16px;overflow:hidden;background:#070d13;box-shadow:0 24px 60px -30px #000;border:1px solid #16303b;touch-action:none;user-select:none;
+.ntk-root{position:relative;width:100%;max-width:100%;margin:0 auto;aspect-ratio:16/11;max-height:80dvh;border-radius:16px;overflow:hidden;background:#070d13;box-shadow:0 24px 60px -30px #000;border:1px solid #16303b;touch-action:none;user-select:none;
   --cy:#9fe4f0;--cy2:#33d6c0;--gold:#e6c079;--gold2:#f4d99a;--jade:#2dd4bf;--txt:#eaf3f8;--txt2:#9fb8bd;--txt3:#5f7d8b;--warn:#ff6b6b;--serif:'Lora','Noto Serif SC',Georgia,serif}
 .ntk-root *{box-sizing:border-box}
 .ntk-scene{position:absolute;inset:0}
@@ -523,9 +524,10 @@ export function nguTuKy() {
     // gom Danh Sĩ theo tầng (Cao Thủ/Khó/Vừa/Dễ) cho lưới Kỳ Đài
     get tiers() { const g = { 'Cao Thủ': [], 'Khó': [], 'Vừa': [], 'Dễ': [] }; this.opponents.forEach((o) => { const t = this.diffLabel(o); if (g[t]) g[t].push(o); }); const col = { 'Cao Thủ': '#e6c079', 'Khó': '#f0997b', 'Vừa': '#5dcaa5', 'Dễ': '#97c459' }; return ['Cao Thủ', 'Khó', 'Vừa', 'Dễ'].filter((t) => g[t].length).map((t) => ({ name: t, color: col[t], list: g[t] })); },
     faceOf(o) { return (o && o.face) || ('images/danhsi/' + (o && o.id) + '.webp'); },   // truyền nhân (kế vị) mượn chân dung tổ tiên qua o.face
-    // Kỳ Nghệ — mốc danh hiệu theo Kỳ Hồn tích luỹ (PHẢI khớp titles.js loai 'kyNghe')
-    kyNghe: [{ v: 500, name: 'Kỳ Đồ' }, { v: 5000, name: 'Diệu Thủ' }, { v: 50000, name: 'Quốc Thủ' }, { v: 500000, name: 'Kỳ Bá' }, { v: 5000000, name: 'Thiên Hạ Đệ Nhất Kỳ' }],
-    get kyNgheState() { const k = this.ntk.kyHon || 0; let cur = null, next = null; for (const m of this.kyNghe) { if (k >= m.v) cur = m; else { next = m; break; } } return { cur, next, k }; },
+    // Kỳ Hồn + Kỳ Nghệ: dùng CHUNG state.kyHon với Cờ Tướng (mốc ở engine/kyhon.js)
+    kyNghe: KY_NGHE,
+    get kyHon() { return getKyHon(this.$store.game.state); },
+    get kyNgheState() { return kyNgheOf(this.$store.game.state); },
 
     ntkInit() {
       ensureNguTu(this.$store.game.state);
@@ -559,7 +561,7 @@ export function nguTuKy() {
     },
     _recordResult(id, result) {
       const n = this.ntk; if (!n.rec[id]) n.rec[id] = { w: 0, l: 0 };
-      if (result === 1) { n.rec[id].w++; n.wins++; n.kyHon += 12; try { this.$store.game.checkTitles(); } catch (e) {} }   // mở khoá danh hiệu Kỳ Nghệ tức thì
+      if (result === 1) { n.rec[id].w++; n.wins++; addKyHon(this.$store.game.state, 12); try { this.$store.game.checkTitles(); } catch (e) {} }   // Kỳ Hồn CHUNG + mở khoá Kỳ Nghệ tức thì
       else if (result === 2) { n.rec[id].l++; }
       try { Storage.save(this.$store.game.state); } catch (e) {}
     },

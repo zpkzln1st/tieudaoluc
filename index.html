@@ -10,7 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
   <!-- Font Hán thư pháp mềm (Ngũ Tử Kỳ) — chỉ nạp đúng 3 glyph 五子棋 -->
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&text=%E4%BA%94%E5%AD%90%E6%A3%8B&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&text=%E4%BA%94%E5%AD%90%E6%A3%8B%E8%B1%A1&display=swap" rel="stylesheet">
+  <!-- Cờ Tướng: chữ Hán trên QUÂN + 楚河漢界 vẽ vào canvas 3D. Noto Serif TC = Tống thể PHỒN THỂ
+       (Ma Shan Zheng chỉ có giản thể -> 車馬將帥傌俥砲 sẽ rơi về font hệ thống). Subset đúng 18 chữ.
+       ⚠ Thêm chữ Hán MỚI cho cờ thì PHẢI thêm vào chuỗi &text= dưới đây. -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&text=%E5%B8%A5%E4%BB%95%E7%9B%B8%E5%82%8C%E4%BF%A5%E7%82%AE%E5%85%B5%E5%B0%87%E5%A3%AB%E8%B1%A1%E9%A6%AC%E8%BB%8A%E7%A0%B2%E5%8D%92%E6%A5%9A%E6%B2%B3%E6%BC%A2%E7%95%8C&display=swap" rel="stylesheet">
 
   <!-- Font chữ Hán. Lora KHÔNG có một glyph CJK nào — thiếu font này thì mọi chữ Hán rơi về
        SimSun và bị bôi đậm giả. Noto Serif SC bản RÚT GỌN: tham số &text= chỉ nạp ĐÚNG 338
@@ -10913,6 +10917,26 @@
         </div>
       </template>
 
+      <!-- Thẻ chân dung "Kỳ Đài" — DÙNG CHUNG cho Ngũ Tử Kỳ + Cờ Tướng.
+           PHẢI để NGOÀI mọi khối template x-if: nằm trong đó thì CSS chỉ tồn tại khi đang ở đúng view ấy. -->
+      <style>
+        .ntk-card{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:1px solid #1d3a45;background:#0c1c24;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;isolation:isolate}
+        .ntk-card:hover{transform:translateY(-4px);border-color:var(--tier);box-shadow:0 16px 34px -18px #000,0 0 0 1px var(--tier)}
+        .ntk-card-por{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 16%}
+        .ntk-card-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,12,18,0) 34%,rgba(6,12,18,.62) 60%,rgba(5,10,15,.94) 100%)}
+        .ntk-card-tier{position:absolute;top:8px;left:8px;font-size:10.5px;font-weight:600;letter-spacing:.03em;color:#0b0f15;padding:2.5px 9px;border-radius:99px;box-shadow:0 2px 10px -3px rgba(0,0,0,.6)}
+        .ntk-card-meta{position:absolute;left:11px;right:11px;bottom:10px;display:flex;flex-direction:column;gap:1px;z-index:2;transition:transform .24s cubic-bezier(.2,.6,.35,1)}
+        .ntk-card:hover .ntk-card-meta{transform:translateY(-26px)}
+        .ntk-card-nm{font-size:14.5px;font-weight:700;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.7);line-height:1.2}
+        .ntk-card-bh{font-size:11px;color:#9fe4f0;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+        .ntk-card-rec{font-size:10.5px;color:#9fb8bd;margin-top:3px;transition:opacity .16s ease}
+        .ntk-card:hover .ntk-card-rec{opacity:0}
+        .ntk-card-cta{position:absolute;left:11px;right:11px;bottom:11px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.06em;color:#f4d99a;background:rgba(9,18,25,.62);border:1px solid rgba(230,192,121,.55);border-radius:9px;padding:6px 0;cursor:pointer;opacity:0;transform:translateY(8px);transition:opacity .22s ease,transform .24s cubic-bezier(.2,.6,.35,1),background .15s,border-color .15s;z-index:3}
+        .ntk-card:hover .ntk-card-cta{opacity:1;transform:translateY(0)}
+        .ntk-card-cta:hover{background:rgba(230,192,121,.14);border-color:#f4d99a}
+        @media (hover:none){.ntk-card-meta{transform:translateY(-26px)}.ntk-card-rec{opacity:0}.ntk-card-cta{opacity:1;transform:none}}
+      </style>
+
       <!-- ===== VIEW: NGŨ TỬ KỲ (cờ caro 3D — mini-game, cách ly 0-power) ===== -->
       <template x-if="$store.game.view==='nguTuKy'">
         <div class="max-w-[1200px] mx-auto" x-data="nguTuKy()" x-init="ntkInit()">
@@ -10922,27 +10946,10 @@
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">五子棋</span> Ngũ Tử Kỳ</div>
               <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-cyan-300">Nhân sinh như kỳ, lạc tử vô hối.</b></div>
-              <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="ntk.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(ntk.kyHon)"></b></div>
+              <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="ntk.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
             </div>
           </div>
-          <style>
-            .ntk-card{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:1px solid #1d3a45;background:#0c1c24;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;isolation:isolate}
-            .ntk-card:hover{transform:translateY(-4px);border-color:var(--tier);box-shadow:0 16px 34px -18px #000,0 0 0 1px var(--tier)}
-            .ntk-card-por{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 16%}
-            .ntk-card-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,12,18,0) 34%,rgba(6,12,18,.62) 60%,rgba(5,10,15,.94) 100%)}
-            .ntk-card-tier{position:absolute;top:8px;left:8px;font-size:10.5px;font-weight:600;letter-spacing:.03em;color:#0b0f15;padding:2.5px 9px;border-radius:99px;box-shadow:0 2px 10px -3px rgba(0,0,0,.6)}
-            .ntk-card-meta{position:absolute;left:11px;right:11px;bottom:10px;display:flex;flex-direction:column;gap:1px;z-index:2;transition:transform .24s cubic-bezier(.2,.6,.35,1)}
-            .ntk-card:hover .ntk-card-meta{transform:translateY(-26px)}
-            .ntk-card-nm{font-size:14.5px;font-weight:700;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.7);line-height:1.2}
-            .ntk-card-bh{font-size:11px;color:#9fe4f0;text-shadow:0 1px 6px rgba(0,0,0,.8)}
-            .ntk-card-rec{font-size:10.5px;color:#9fb8bd;margin-top:3px;transition:opacity .16s ease}
-            .ntk-card:hover .ntk-card-rec{opacity:0}
-            .ntk-card-cta{position:absolute;left:11px;right:11px;bottom:11px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.06em;color:#f4d99a;background:rgba(9,18,25,.62);border:1px solid rgba(230,192,121,.55);border-radius:9px;padding:6px 0;cursor:pointer;opacity:0;transform:translateY(8px);transition:opacity .22s ease,transform .24s cubic-bezier(.2,.6,.35,1),background .15s,border-color .15s;z-index:3}
-            .ntk-card:hover .ntk-card-cta{opacity:1;transform:translateY(0)}
-            .ntk-card-cta:hover{background:rgba(230,192,121,.14);border-color:#f4d99a}
-            @media (hover:none){.ntk-card-meta{transform:translateY(-26px)}.ntk-card-rec{opacity:0}.ntk-card-cta{opacity:1;transform:none}}
-          </style>
           <div x-show="!inBattle" class="mt-5 space-y-5">
             <template x-for="tier in tiers" :key="tier.name">
               <div>
@@ -10971,6 +10978,53 @@
           </div>
           <div x-show="inBattle" style="margin-top:12px">
             <div x-show="loading" class="text-center text-slate-400 py-10 fserif">Đang triệu hồi kỳ bàn 3D…</div>
+            <div x-show="loadErr" class="text-center text-rose-400 py-10" x-text="loadErr"></div>
+            <div x-ref="boardHost"></div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== VIEW: CỜ TƯỚNG (象棋 3D — mini-game, cách ly 0-power) ===== -->
+      <template x-if="$store.game.view==='coTuong'">
+        <div class="max-w-[1200px] mx-auto" x-data="coTuong()" x-init="ctInit()">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[150px] flex flex-col justify-center">
+            <img src="images/ui/cotuong_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/cotuong_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
+            <div class="relative px-5 py-5 sm:px-6">
+              <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">象棋</span> Cờ Tướng</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Quan kỳ bất ngữ chân quân tử.</b></div>
+              <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="ct.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
+              <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
+            </div>
+          </div>
+          <div x-show="!inBattle" class="mt-5 space-y-5">
+            <template x-for="tier in tiers" :key="tier.name">
+              <div>
+                <div class="flex items-center gap-3 mb-3" :style="'color:'+tier.color">
+                  <span class="text-[15px] font-semibold tracking-wide fserif" x-text="tier.name"></span>
+                  <span class="text-[11px] text-slate-500" x-text="tier.list.length+' vị'"></span>
+                  <span class="flex-1 h-px" :style="'background:linear-gradient(90deg,'+tier.color+',transparent);opacity:.5'"></span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  <template x-for="o in tier.list" :key="o.id">
+                    <div class="ntk-card" :style="'--tier:'+tier.color">
+                      <img class="ntk-card-por" :src="faceOf(o)" alt="" onerror="this.style.opacity=0">
+                      <span class="ntk-card-scrim"></span>
+                      <span class="ntk-card-tier" :style="'background:'+tier.color" x-text="diffLabel(o)"></span>
+                      <span class="ntk-card-meta">
+                        <span class="ntk-card-nm fserif" x-text="o.ten"></span>
+                        <span class="ntk-card-bh" x-text="o.bietHieu||''"></span>
+                        <span class="ntk-card-rec" x-text="recOf(o.id)"></span>
+                      </span>
+                      <span class="ntk-card-cta fserif" @click="challenge(o)">Khiêu Chiến</span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div x-show="inBattle" style="margin-top:12px">
+            <div x-show="loading" class="text-center text-slate-400 py-10 fserif">Đang bày kỳ bàn 3D…</div>
             <div x-show="loadErr" class="text-center text-rose-400 py-10" x-text="loadErr"></div>
             <div x-ref="boardHost"></div>
           </div>
