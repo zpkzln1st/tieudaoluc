@@ -152,7 +152,7 @@ function mountNguTu(host, opts) {
   const THREE = window.THREE;
   const opp = opts.opponent || { name: 'Đối Thủ', art: '' };
   const pl = opts.player || { name: 'Bạn', art: '' };
-  const diff = Math.max(0.1, Math.min(0.98, opts.difficulty == null ? 0.6 : opts.difficulty));
+  const diff = Math.max(0.1, Math.min(1, opts.difficulty == null ? 0.6 : opts.difficulty));
 
   host.innerHTML =
     '<div class="ntk-root">' +
@@ -397,10 +397,10 @@ function mountNguTu(host, opts) {
   function aiPick() {
     let m = findWinning(AI); if (m) return m;
     // độ khó thấp -> đôi khi KHÔNG chặn (blunder)
-    const blunder = Math.random() > (0.35 + diff * 0.6);
+    const blunder = Math.random() > (0.35 + diff * 0.65);   // diff=1 -> 0% sẩy tay (luôn chặn)
     if (!blunder) { m = findWinning(HUMAN); if (m) return m; }
     const cands = candidates(); let best = null, bs = -1;
-    for (let i = 0; i < cands.length; i++) { const cc = cands[i]; let s = evalCell(cc.c, cc.r, AI) + (0.5 + diff * 0.5) * evalCell(cc.c, cc.r, HUMAN) + Math.random() * (2 + (1 - diff) * 30); if (s > bs) { bs = s; best = cc; } }
+    for (let i = 0; i < cands.length; i++) { const cc = cands[i]; let s = evalCell(cc.c, cc.r, AI) + (0.6 + diff * 0.5) * evalCell(cc.c, cc.r, HUMAN) + Math.random() * (0.5 + (1 - diff) * 30); if (s > bs) { bs = s; best = cc; } }
     return best || { c: 7, r: 7 };
   }
 
@@ -506,7 +506,7 @@ export function nguTuKy() {
       this._battle = mountNguTu(host, {
         opponent: { name: o.ten || 'Đối Thủ', art: this.faceOf(o) },
         player: { name: (g.state.player || {}).name || 'Bạn', art: g.avatarSrc },
-        difficulty: this.diffOf(o),
+        difficulty: 1,   // TẤT CẢ đối thủ đánh ở mức khó tối đa (tier chỉ còn là nhãn lore theo rank)
         onEnd: (result) => this._recordResult(o.id, result),
         onExit: () => this._exit(),
       });
