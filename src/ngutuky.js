@@ -394,13 +394,59 @@ function mountNguTu(host, opts) {
   function evalCell(c, r, color) { let total = 0; for (let k = 0; k < 4; k++) { const dx = DIRS[k][0], dy = DIRS[k][1]; let cnt = 1, ends = 0, i; for (i = 1; inb(c + dx * i, r + dy * i) && board[r + dy * i][c + dx * i] === color; i++) cnt++; if (inb(c + dx * i, r + dy * i) && board[r + dy * i][c + dx * i] === 0) ends++; for (i = 1; inb(c - dx * i, r - dy * i) && board[r - dy * i][c - dx * i] === color; i++) cnt++; if (inb(c - dx * i, r - dy * i) && board[r - dy * i][c - dx * i] === 0) ends++; total += runScore(cnt, ends); } return total; }
   function findWinning(color) { for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { if (board[r][c] !== 0) continue; board[r][c] = color; const w = winLineAt(c, r, color); board[r][c] = 0; if (w) return { c, r }; } return null; }
   function candidates() { let any = false; const res = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c] !== 0) any = true; if (!any) return [{ c: 7, r: 7 }]; const seen = {}; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { if (board[r][c] === 0) continue; for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) { const nc = c + dc, nr = r + dr; if (inb(nc, nr) && board[nr][nc] === 0) { const k = key(nc, nr); if (!seen[k]) { seen[k] = 1; res.push({ c: nc, r: nr }); } } } } return res; }
+  // ===== Nhận diện đe doạ (đọc mẫu trên đường 9 ô quanh ô đặt; xử cả NGẮT QUÃNG) =====
+  function lineStr(c, r, dx, dy, color) {   // '.' trống · 'A' quân color (kể cả ô đang xét) · 'H' đối thủ · 'X' ngoài bàn
+    let s = '';
+    for (let k = -4; k <= 4; k++) {
+      if (k === 0) { s += 'A'; continue; }
+      const nc = c + dx * k, nr = r + dy * k;
+      if (!inb(nc, nr)) { s += 'X'; continue; }
+      const v = board[nr][nc]; s += v === 0 ? '.' : (v === color ? 'A' : 'H');
+    }
+    return s;
+  }
+  const RE_FOUR = /AAAA\.|\.AAAA|AAA\.A|A\.AAA|AA\.AA/, RE_O3 = /\.AAA\.|\.AA\.A\.|\.A\.AA\./;
+  function threatOf(c, r, color) {   // giả lập đặt color tại (c,r) -> đếm: ngũ / tứ-hở / tứ / tam-hở theo 4 hướng
+    let five = 0, of = 0, four = 0, o3 = 0;
+    for (let d = 0; d < 4; d++) {
+      const s = lineStr(c, r, DIRS[d][0], DIRS[d][1], color);
+      if (s.indexOf('AAAAA') >= 0) five++;
+      else if (s.indexOf('.AAAA.') >= 0) of++;
+      else if (RE_FOUR.test(s)) four++;
+      else if (RE_O3.test(s)) o3++;
+    }
+    return { five, of, four, o3 };
+  }
+  function forceLv(t) {   // mức "buộc nước" của một ô
+    if (t.five) return 1e6;                       // thành 5 = thắng
+    if (t.of) return 1e5;                         // tứ hở = thắng chắc (chặn 1 đầu vẫn thua)
+    if (t.four >= 2) return 9e4;                  // song tứ (đòn đôi)
+    if (t.four >= 1 && t.o3 >= 1) return 8e4;     // tứ + tam (đòn đôi)
+    if (t.o3 >= 2) return 6e4;                    // song/tam/tứ tam (đòn đôi/ba/bốn)
+    if (t.four >= 1) return 1500;                 // tứ đơn (buộc chặn)
+    if (t.o3 >= 1) return 400;                    // tam hở đơn
+    return 0;
+  }
   function aiPick() {
-    let m = findWinning(AI); if (m) return m;
-    // độ khó thấp -> đôi khi KHÔNG chặn (blunder)
-    const blunder = Math.random() > (0.35 + diff * 0.65);   // diff=1 -> 0% sẩy tay (luôn chặn)
-    if (!blunder) { m = findWinning(HUMAN); if (m) return m; }
-    const cands = candidates(); let best = null, bs = -1;
-    for (let i = 0; i < cands.length; i++) { const cc = cands[i]; let s = evalCell(cc.c, cc.r, AI) + (0.6 + diff * 0.5) * evalCell(cc.c, cc.r, HUMAN) + Math.random() * (0.5 + (1 - diff) * 30); if (s > bs) { bs = s; best = cc; } }
+    const cands = candidates(), n = cands.length;
+    const la = new Array(n), lh = new Array(n);
+    let bestA = cands[0] || { c: 7, r: 7 }, avA = -1, bestH = cands[0], avH = -1;
+    for (let i = 0; i < n; i++) {
+      const cc = cands[i];
+      la[i] = forceLv(threatOf(cc.c, cc.r, AI)); if (la[i] > avA) { avA = la[i]; bestA = cc; }
+      lh[i] = forceLv(threatOf(cc.c, cc.r, HUMAN)); if (lh[i] > avH) { avH = lh[i]; bestH = cc; }
+    }
+    if (avA >= 1e6) return bestA;   // 1) AI thành 5 luôn
+    if (avH >= 1e6) return bestH;   // 2) chặn đối thủ sắp thành 5
+    if (avA >= 6e4) return bestA;   // 3) AI có đòn thắng (tứ hở / song tứ / tứ+tam / song tam) -> tung ra
+    if (avH >= 6e4) return bestH;   // 4) chặn ĐÒN ĐÔI/BA/BỐN của đối thủ TRƯỚC khi thành hình
+    // 5) thế cờ: công (forceLv AI) + thủ (forceLv HUMAN, ưu tiên hơn) + điểm pattern nhỏ + nhiễu (≈0 khi diff cao)
+    let best = bestA, bs = -1e18;
+    for (let i = 0; i < n; i++) {
+      const cc = cands[i];
+      const s = la[i] + 1.15 * lh[i] + 0.02 * evalCell(cc.c, cc.r, AI) + 0.02 * evalCell(cc.c, cc.r, HUMAN) + Math.random() * (0.5 + (1 - diff) * 40);
+      if (s > bs) { bs = s; best = cc; }
+    }
     return best || { c: 7, r: 7 };
   }
 
