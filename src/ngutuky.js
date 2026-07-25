@@ -101,6 +101,7 @@ function injectStyle() {
 .ntk-chat-in::placeholder{color:var(--txt3)}
 .ntk-chat-send{flex:none;padding:6px 15px;border-radius:9px;cursor:pointer;font-size:12px;color:#2a1d04;border:1px solid #f0d78f;background:linear-gradient(180deg,#f6dc9c,#e0b45f);font-family:var(--serif);font-weight:700}
 .ntk-chat-send:active{transform:scale(.95)}
+@media (max-width:600px){.ntk-root{aspect-ratio:3/4}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-timer{font-size:10px}.ntk-timer .pill{font-size:12px;padding:2px 9px}.ntk-toast{max-width:82%;font-size:11px}.ntk-chat{bottom:74px;width:94%}}
 `;
   document.head.appendChild(st);
 }
