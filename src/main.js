@@ -328,7 +328,11 @@ NGHE.forEach((n) => { ICON_FOLDERS[n.id] = 'nghe'; }); // nghề: images/nghe/<i
 Object.keys(STATS).forEach((id) => { ICON_FOLDERS[id] = 'stats'; });
 LOCATIONS.forEach((l) => { ICON_FOLDERS[l.id] = 'locations'; });
 REALM_TIERS.forEach((t) => { ICON_FOLDERS[t.id] = 'tiers'; });
-NAV.forEach((g) => (g.items || []).forEach((it) => { ICON_FOLDERS[it.view] = 'nav'; }));
+NAV.forEach((g) => (g.items || []).forEach((it) => {   // gồm CẢ mục con lồng (Thiên Cơ Các) kẻo icon con đi tìm nhầm thư mục
+  if (it.view) ICON_FOLDERS[it.view] = 'nav';
+  if (it.id) ICON_FOLDERS[it.id] = 'nav';
+  (it.children || []).forEach((c) => { if (c.view) ICON_FOLDERS[c.view] = 'nav'; });
+}));
 ICON_FOLDERS['phongVanBang'] = 'ui';   // GHI ĐÈ SAU NAV: icon BXH ở images/ui/phongVanBang.webp (cùng chỗ banner)
 ['bac', 'honThach', 'nguyenBao'].forEach((id) => { ICON_FOLDERS[id] = 'currency'; });
 if (MERCHANT && MERCHANT.id) ICON_FOLDERS[MERCHANT.id] = 'npc';
@@ -1145,6 +1149,11 @@ const gameStore = {
     else if (a.skillId) this.navToSkill(a.skillId);
   },
   toggleGroup(title) { this.groupsOpen[title] = !this.groupsOpen[title]; },
+  // ---- mục con lồng trong nav (Thiên Cơ Các): mặc định ĐÓNG, tự mở nếu đang ở 1 view con ----
+  subOpen: {},
+  toggleSub(name) { this.subOpen[name] = !this.subOpen[name]; },
+  subHasActive(it) { return !!(it && it.children && it.children.some((c) => c.view === this.view)); },
+  subIsOpen(it) { return !!(this.subOpen[it.name] || this.subHasActive(it)); },
   setProfileTab(t) { this.profileTab = t; },
   openLightbox(id, emoji, name, src) { this.lightbox = { id, emoji, name, src: src || '' }; },   // src: ảnh trực tiếp (vd chân dung NPC) -> hiện thay icon
   closeLightbox() { this.lightbox = null; },
