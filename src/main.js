@@ -328,11 +328,7 @@ NGHE.forEach((n) => { ICON_FOLDERS[n.id] = 'nghe'; }); // nghề: images/nghe/<i
 Object.keys(STATS).forEach((id) => { ICON_FOLDERS[id] = 'stats'; });
 LOCATIONS.forEach((l) => { ICON_FOLDERS[l.id] = 'locations'; });
 REALM_TIERS.forEach((t) => { ICON_FOLDERS[t.id] = 'tiers'; });
-NAV.forEach((g) => (g.items || []).forEach((it) => {   // gồm CẢ mục con lồng (Thiên Cơ Các) kẻo icon con đi tìm nhầm thư mục
-  if (it.view) ICON_FOLDERS[it.view] = 'nav';
-  if (it.id) ICON_FOLDERS[it.id] = 'nav';
-  (it.children || []).forEach((c) => { if (c.view) ICON_FOLDERS[c.view] = 'nav'; });
-}));
+NAV.forEach((g) => (g.items || []).forEach((it) => { ICON_FOLDERS[it.view] = 'nav'; }));
 ICON_FOLDERS['phongVanBang'] = 'ui';   // GHI ĐÈ SAU NAV: icon BXH ở images/ui/phongVanBang.webp (cùng chỗ banner)
 ['bac', 'honThach', 'nguyenBao'].forEach((id) => { ICON_FOLDERS[id] = 'currency'; });
 if (MERCHANT && MERCHANT.id) ICON_FOLDERS[MERCHANT.id] = 'npc';
@@ -435,7 +431,7 @@ const gameStore = {
   // ---------- Điều hướng ----------
   _teleReturnView: null,   // Đổi vùng từ 1 tab -> nhớ tab đó để tự quay lại sau khi Truyền Tống/Khinh Công tới nơi
   openZoneChange() { this._teleReturnView = this.view; this.navTo('map'); },   // combat bấm "Đổi vùng"
-  navTo(view) { this.subFly = null; if (view !== 'map') this._teleReturnView = null; this._applyView(view); this._pushHash('#' + view); },
+  navTo(view) { if (view !== 'map') this._teleReturnView = null; this._applyView(view); this._pushHash('#' + view); },
   _ntkOpp: null,
   openNguTu(id) { this._ntkOpp = id || null; this.navTo('nguTuKy'); },   // deep-link Ngũ Tử Kỳ từ Hồ Sơ Danh Sĩ
   _ctOpp: null,
@@ -1149,19 +1145,6 @@ const gameStore = {
     else if (a.skillId) this.navToSkill(a.skillId);
   },
   toggleGroup(title) { this.groupsOpen[title] = !this.groupsOpen[title]; },
-  // ---- mục gom trong nav (Thiên Cơ Các): bấm -> BẢNG NỔI bên cạnh ----
-  // Dùng position:fixed + toạ độ tính từ nút, vì thanh nav có cuộn dọc nên panel absolute sẽ bị cắt.
-  subFly: null,
-  subHasActive(it) { return !!(it && it.children && it.children.some((c) => c.view === this.view)); },
-  openSubFly(it, ev) {
-    if (this.subFly && this.subFly.name === it.name) { this.subFly = null; return; }   // bấm lại = đóng
-    const r = ev.currentTarget.getBoundingClientRect(), W = 224, GAP = 8;
-    let x = r.right + GAP;
-    if (x + W > window.innerWidth - 8) x = Math.max(8, r.left - W - GAP);              // hết chỗ bên phải -> lật sang trái
-    const maxY = window.innerHeight - (it.children.length * 42 + 46) - 12;
-    this.subFly = { name: it.name, items: it.children, x: Math.round(x), y: Math.round(Math.max(8, Math.min(r.top, maxY))) };
-  },
-  closeSubFly() { this.subFly = null; },
   setProfileTab(t) { this.profileTab = t; },
   openLightbox(id, emoji, name, src) { this.lightbox = { id, emoji, name, src: src || '' }; },   // src: ảnh trực tiếp (vd chân dung NPC) -> hiện thay icon
   closeLightbox() { this.lightbox = null; },

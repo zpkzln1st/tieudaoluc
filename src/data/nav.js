@@ -19,13 +19,13 @@ export const NAV = [
     { view: 'combat',     name: 'Chiến Đấu',     gloss: 'Battle',        icon: '⚔️' },
     { view: 'dungeon',    name: 'Bí Cảnh',       gloss: 'Dungeon',       icon: '🏛️' },
     { view: 'worldboss',  name: 'Yêu Vương',     gloss: 'World Boss',     icon: '🐲' },
-    // Thiên Cơ Các — gom mini-game vào 1 mục, bấm mới xổ ra (thêm game mới thì thêm vào children)
-    { id: 'thienCoCac', name: 'Thiên Cơ Các', gloss: 'Mini-games', icon: '🎲', children: [
-      { view: 'dangTienMong', name: 'Đăng Tiên Mộng', gloss: 'Card Roguelike', icon: '🎴' },
-      { view: 'kyTran', name: 'Kỳ Trận', gloss: 'Match-3 Combat', icon: '🀄' },
-      { view: 'nguTuKy', name: 'Ngũ Tử Kỳ', gloss: 'Gomoku 3D', icon: '⚫' },
-      { view: 'coTuong', name: 'Cờ Tướng', gloss: 'Xiangqi 3D', icon: '♟' },
-    ] },
+  ] },
+  // Thiên Cơ Các — nhóm RIÊNG cho mini-game (tách khỏi Chiến Đấu). Thêm game mới thì thêm vào đây.
+  { title: 'Thiên Cơ Các', items: [
+    { view: 'dangTienMong', name: 'Đăng Tiên Mộng', gloss: 'Card Roguelike', icon: '🎴' },
+    { view: 'kyTran', name: 'Kỳ Trận', gloss: 'Match-3 Combat', icon: '🀄' },
+    { view: 'nguTuKy', name: 'Ngũ Tử Kỳ', gloss: 'Gomoku 3D', icon: '⚫' },
+    { view: 'coTuong', name: 'Cờ Tướng', gloss: 'Xiangqi 3D', icon: '♟' },
   ] },
   { title: 'Linh Thú', items: [
     { view: 'pets', name: 'Linh Thú', gloss: 'Pets', icon: '🐾' },

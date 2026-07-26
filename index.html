@@ -959,32 +959,16 @@
               </template>
               <template x-if="!group.skills">
                 <div class="space-y-1">
-                  <template x-for="it in group.items" :key="it.view || it.name">
-                    <div>
-                      <!-- mục thường -->
-                      <template x-if="!it.children">
-                        <button @click="$store.game.navTo(it.view)"
-                          class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
-                          :class="$store.game.navItemActive(it) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
-                          <span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(it.view, it.icon)"></span>
-                          <span class="flex-1" x-text="it.name"></span>
-                          <template x-if="it.view==='nhiemVu' && $store.game.hasClaimableQuest"><span class="w-2 h-2 rounded-full bg-rose-500 shrink-0" title="Có nhiệm vụ nhận được"></span></template>
-                          <template x-if="it.view==='dongPhu' && $store.game.state.dongPhu && $store.game.state.dongPhu.doneUnseen"><span class="w-2 h-2 rounded-full bg-rose-500 shrink-0" title="Công trình vừa hoàn công"></span></template>
-                          <template x-if="it.soon"><span class="text-[9px] text-slate-600">sắp</span></template>
-                        </button>
-                      </template>
-                      <!-- mục gom (Thiên Cơ Các): bấm -> mở BẢNG NỔI bên cạnh (xem panel cuối sidebar) -->
-                      <template x-if="it.children">
-                        <button @click.stop="$store.game.openSubFly(it, $event)"
-                          class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
-                          :class="($store.game.subHasActive(it) || ($store.game.subFly && $store.game.subFly.name===it.name)) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
-                          <span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(it.id || it.name, it.icon)"></span>
-                          <span class="flex-1" x-text="it.name"></span>
-                          <span class="text-[11px] text-slate-500 shrink-0" x-text="it.children.length"></span>
-                          <span class="text-slate-500 shrink-0">▸</span>
-                        </button>
-                      </template>
-                    </div>
+                  <template x-for="it in group.items" :key="it.view">
+                    <button @click="$store.game.navTo(it.view)"
+                      class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
+                      :class="$store.game.navItemActive(it) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
+                      <span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(it.view, it.icon)"></span>
+                      <span class="flex-1" x-text="it.name"></span>
+                      <template x-if="it.view==='nhiemVu' && $store.game.hasClaimableQuest"><span class="w-2 h-2 rounded-full bg-rose-500 shrink-0" title="Có nhiệm vụ nhận được"></span></template>
+                      <template x-if="it.view==='dongPhu' && $store.game.state.dongPhu && $store.game.state.dongPhu.doneUnseen"><span class="w-2 h-2 rounded-full bg-rose-500 shrink-0" title="Công trình vừa hoàn công"></span></template>
+                      <template x-if="it.soon"><span class="text-[9px] text-slate-600">sắp</span></template>
+                    </button>
                   </template>
                 </div>
               </template>
@@ -1002,26 +986,6 @@
         </div>
       </div>
     </aside>
-
-    <!-- BẢNG NỔI cho mục gom trong nav (Thiên Cơ Các). Đặt NGOÀI <aside> vì thanh nav có cuộn dọc:
-         nằm trong đó thì panel bị cắt mất. Dùng position:fixed, toạ độ do openSubFly tính từ nút. -->
-    <template x-if="$store.game.subFly">
-      <div class="fixed z-[80] panel rounded-xl p-2 shadow-2xl border border-jade/35"
-        :style="'left:'+$store.game.subFly.x+'px;top:'+$store.game.subFly.y+'px;width:224px'"
-        @click.outside="$store.game.closeSubFly()" @keydown.escape.window="$store.game.closeSubFly()">
-        <div class="text-[11px] text-slate-500 px-2 pb-1.5 fserif" x-text="$store.game.subFly.name"></div>
-        <div class="space-y-1">
-          <template x-for="c in $store.game.subFly.items" :key="c.view">
-            <button @click="$store.game.navTo(c.view)"
-              class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
-              :class="$store.game.view===c.view ? 'bg-ink3 ring-1 ring-jade/40' : ''">
-              <span class="w-[1.9rem] h-[1.9rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(c.view, c.icon)"></span>
-              <span class="flex-1 text-[13px]" x-text="c.name"></span>
-            </button>
-          </template>
-        </div>
-      </div>
-    </template>
 
     <!-- CỘT GIỮA -->
     <main id="mainPane" class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden space-y-3 pb-20 sm:pb-4">
