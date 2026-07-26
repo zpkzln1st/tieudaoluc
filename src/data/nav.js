@@ -26,6 +26,7 @@ export const NAV = [
     { view: 'kyTran', name: 'Kỳ Trận', gloss: 'Match-3 Combat', icon: '🀄' },
     { view: 'nguTuKy', name: 'Ngũ Tử Kỳ', gloss: 'Gomoku 3D', icon: '⚫' },
     { view: 'coTuong', name: 'Cờ Tướng', gloss: 'Xiangqi 3D', icon: '♟' },
+    { view: 'coVua', name: 'Cờ Vua', gloss: 'Chess 3D', icon: '♛' },
   ] },
   { title: 'Linh Thú', items: [
     { view: 'pets', name: 'Linh Thú', gloss: 'Pets', icon: '🐾' },
@@ -51,6 +52,6 @@ export const NAV = [
 export const VIEW_NAMES = {
   profile: 'Hồ Sơ', trangbi: 'Trang Bị', inventory: 'Hành Lý', map: 'Bản Đồ', nhiemVu: 'Nhiệm Vụ',
   combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương',
-  pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ', kyTran: 'Kỳ Trận', nguTuKy: 'Ngũ Tử Kỳ', coTuong: 'Cờ Tướng',
+  pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ', kyTran: 'Kỳ Trận', nguTuKy: 'Ngũ Tử Kỳ', coTuong: 'Cờ Tướng', coVua: 'Cờ Vua',
   guild: 'Bang Phái', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ',
 };

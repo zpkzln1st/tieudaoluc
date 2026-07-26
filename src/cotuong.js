@@ -7,6 +7,7 @@
 // ============================================================
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Ngũ Tử Kỳ
+import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào ván), KHÔNG import tĩnh:
 // import tĩnh mà engine lỗi cú pháp thì VỠ CẢ GAME; nạp động thì hỏng cũng chỉ hỏng riêng Cờ Tướng.
@@ -105,7 +106,12 @@ function injectStyle() {
 .ct-chat-in:focus{border-color:var(--gold)}
 .ct-chat-in::placeholder{color:var(--txt3)}
 .ct-chat-send{flex:none;padding:6px 15px;border-radius:9px;cursor:pointer;font-size:12px;color:#2a1d04;border:1px solid #f0d78f;background:linear-gradient(180deg,#f6dc9c,#e0b45f);font-family:var(--serif);font-weight:700}
-.ct-banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,5,3,.76);z-index:7;text-align:center;padding:20px}
+.ct-view{position:absolute;left:50%;bottom:16px;transform:translateX(-50%) translateY(12px);opacity:0;pointer-events:none;transition:.16s;z-index:9;display:flex;align-items:center;gap:8px;background:rgba(30,22,14,.95);border:1px solid rgba(224,180,95,.32);border-radius:14px;padding:9px 12px;box-shadow:0 18px 44px -22px #000}
+.ct-view.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.ct-view .lb{font-family:var(--serif);font-size:12px;color:var(--txt2);white-space:nowrap}
+.ct-view .op{font-family:var(--serif);font-size:12.5px;color:var(--gold2);background:rgba(48,35,22,.8);border:1px solid rgba(224,180,95,.3);border-radius:9px;padding:6px 14px;cursor:pointer;transition:.12s;white-space:nowrap}
+.ct-view .op:hover{border-color:var(--gold2);background:rgba(224,180,95,.16);color:#fff}
+.ct-banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,5,3,.76);z-index:10;text-align:center;padding:20px}
 .ct-banner.show{display:flex}
 .ct-end{position:relative;min-width:270px;max-width:90%;padding:24px 30px 20px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(40,29,19,.97),rgba(20,14,9,.98));border:1px solid rgba(224,180,95,.2);box-shadow:0 30px 70px -30px #000}
 .ct-banner.show .ct-end{animation:ctPop .3s cubic-bezier(.2,.7,.3,1)}
@@ -121,7 +127,7 @@ function injectStyle() {
 .ct-banner .gbtn{padding:9px 22px;border-radius:10px;cursor:pointer;font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--gold2);background:rgba(20,14,9,.5);border:1px solid rgba(224,180,95,.5);transition:background .15s,border-color .15s}
 .ct-banner .gbtn:hover{background:rgba(224,180,95,.14);border-color:var(--gold2)}
 .ct-banner .gbtn.ghost{color:#d9cfbe;border-color:#463829;background:#1b1410}
-@media (max-width:600px){.ct-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ct-title{left:10px;top:8px}.ct-title .hz{font-size:22px}.ct-title .vz{font-size:11px}.ct-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ct-b{width:auto}.ct-b .ic{width:40px;height:40px}.ct-b span{font-size:9.5px}.ct-right{right:8px;top:8px;gap:6px}.ct-pc{width:134px;padding:5px 8px 5px 5px}.ct-av{width:30px;height:30px}.ct-pc .nm{font-size:11px}.ct-pc .rr{font-size:9px}.ct-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ct-toast.show{transform:translateY(0)}.ct-chk{top:78px}.ct-chat{bottom:74px;width:94%}}
+@media (max-width:600px){.ct-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ct-title{left:10px;top:8px}.ct-title .hz{font-size:22px}.ct-title .vz{font-size:11px}.ct-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ct-b{width:auto}.ct-b .ic{width:40px;height:40px}.ct-b span{font-size:9.5px}.ct-right{right:8px;top:8px;gap:6px}.ct-pc{width:134px;padding:5px 8px 5px 5px}.ct-av{width:30px;height:30px}.ct-pc .nm{font-size:11px}.ct-pc .rr{font-size:9px}.ct-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ct-toast.show{transform:translateY(0)}.ct-chk{top:78px}.ct-chat{bottom:74px;width:94%}.ct-view{bottom:74px;gap:6px;padding:8px 10px}.ct-view .lb{display:none}.ct-view .op{padding:6px 11px;font-size:12px}}
 `;
   document.head.appendChild(st);
 }
@@ -264,6 +270,8 @@ function mountCoTuong(host, opts) {
       '</div>' +
       '<div class="ct-toast"></div>' +
       '<div class="ct-chk">C H I Ế U</div>' +
+      '<div class="ct-view"><span class="lb">Xoay bàn tới góc bạn thích</span>' +
+        '<span class="op" data-a="saveview">Khoá Góc Nhìn</span><span class="op" data-a="resetview">Về Mặc Định</span></div>' +
       '<div class="ct-chat">' +
         '<div class="ct-chat-ps"></div>' +
         '<div class="ct-chat-row"><input class="ct-chat-in" type="text" maxlength="60" autocomplete="off" placeholder="Nhập lời muốn nói…"><button class="ct-chat-send">Gửi</button></div>' +
@@ -285,8 +293,18 @@ function mountCoTuong(host, opts) {
   let sel = null, hints = [], pieceMesh = {}, anims = [];
   let renderer, scene, camera, boardGroup, raycaster, pointer, rayPlane, particles = null, rafId = 0;
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Camera có ĐÍCH riêng + GIẢM CHẤN (đồng bộ cảm giác với Cờ Vua / Ngũ Tử Kỳ):
+  // kéo 1:1 rồi dừng phắt là thứ làm cảm giác "cứng". CỐ Ý KHÔNG có quán tính — thả tay là đứng.
   const SPH0 = { r: 15.4, theta: 0, phi: 0.60 };
-  let target, sph = { r: 15.4, theta: 0, phi: 0.60 }, dragging = false, movedFlag = false, lastX = 0, lastY = 0, autorot = false, ret = null;
+  let target, sph = { r: 15.4, theta: 0, phi: 0.60 }, tgt = { r: 15.4, theta: 0, phi: 0.60 };
+  let dragging = false, movedFlag = false, lastX = 0, lastY = 0, autorot = false, ret = null;
+  // THẾ HỆ ván: mỗi lần dựng ván mới / kết ván / tháo bàn là tăng 1. Mọi setTimeout mang theo số thế hệ
+  // lúc hẹn, khác số hiện tại là bỏ qua -> hẹn giờ của ván cũ không đi quân vào ván mới.
+  let van = 0;
+  const hen = (f, ms) => { const v = van; setTimeout(() => { if (v === van && !over) f(v); }, ms); };
+  let lockView = opts.view || null;     // góc người chơi đã khoá RIÊNG cho bàn này, null = tự canh
+  let fitR = 15.4;                      // khoảng cách VỪA KHUNG ở cỡ màn hiện tại — mốc quy đổi mức phóng
+  let firstFit = true;                  // lần khớp khung ĐẦU TIÊN phải đặt thẳng, không giảm chấn
   let pieceGeo, faceGeoR, lacquer, selRing, hintGeo, hintMat, shGeo, shMat, faceCache = {};
 
   let _lastLine = '';
@@ -471,8 +489,9 @@ function mountCoTuong(host, opts) {
     raycaster = new THREE.Raycaster(); pointer = new THREE.Vector2();
     const el = renderer.domElement;
     el.addEventListener('pointerdown', onDown); el.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp); window.addEventListener('resize', onResize);
-    window.addEventListener('keydown', onKey);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onCancel);
+    window.addEventListener('resize', onResize); window.addEventListener('keydown', onKey);
     root.querySelectorAll('.ct-b,[data-a]').forEach((b) => b.addEventListener('click', () => act(b.getAttribute('data-a'))));
     const sendB = $('.ct-chat-send'), chatIn = $('.ct-chat-in');
     if (sendB) sendB.addEventListener('click', sendChat);
@@ -536,14 +555,17 @@ function mountCoTuong(host, opts) {
     clearHints();
     turnRed = false;              // người chơi cầm ĐỎ -> tới lượt ĐEN (AI)
     afterMove();
-    if (!over) setTimeout(aiTurn, 480);
+    if (!over) hen(aiTurn, 480);
   }
-  function aiTurn() {
-    if (over) return;
+  // ⚠ HAI CHỐT, thiếu cái nào cũng chết: `v !== van` chặn hẹn giờ của VÁN CŨ (bấm Chơi Lại giữa lúc
+  // đối thủ đang chờ đi), còn `turnRed === HUMAN_RED` chặn AI cướp lượt của người chơi.
+  function aiTurn(v) {
+    if (over || v !== van || turnRed === HUMAN_RED) return;
     const wasCheck = inCheck(board, !HUMAN_RED);
     let mv = null;
     // ĐỘ KHÓ TỐI ĐA: để engine làm sâu dần tới 20 tầng, chỉ chặn bằng thời gian; KHÔNG nhiễu ngẫu nhiên.
     try { mv = searchBest(board, !HUMAN_RED, { depth: 20, timeMs: 2400, rand: 0 }); } catch (e) { mv = null; }
+    if (over || v !== van) return;             // ván có thể đã kết thúc trong lúc máy nghĩ
     if (!mv) { const ms = legalMoves(board, !HUMAN_RED); mv = ms.length ? ms[(Math.random() * ms.length) | 0] : null; }
     if (!mv) return endGame(1, 'Đối thủ hết nước đi.');
     const cap = doMove(board, mv);
@@ -570,7 +592,8 @@ function mountCoTuong(host, opts) {
   }
 
   function endGame(result, why) {
-    over = true; clearHints();
+    over = true; van++; clearHints();
+    stopSpectate(false);                        // kẹt Quan Chiến qua màn kết thì ván sau bấm không ăn
     const chk = $('.ct-chk'); if (chk) chk.classList.remove('show');
     const b = $('.ct-banner'), end = b.querySelector('.ct-end'), bt = b.querySelector('.bt'), bs = b.querySelector('.bs'), rw = b.querySelector('.ct-end-rw');
     end.classList.remove('win', 'lose', 'draw'); rw.classList.remove('show');
@@ -583,19 +606,21 @@ function mountCoTuong(host, opts) {
   }
 
   function resetGame(saved) {
+    van++;                                      // sang THẾ HỆ ván mới -> hẹn giờ của ván cũ tự hết hiệu lực
     const rb = (saved && saved.b) ? decodeBoard(saved.b) : null;   // khôi phục ván dở nếu có
     board = rb || initBoard();
     turnRed = rb ? (saved.red !== false) : true;
     over = false; saidN = 0; anims = [];
+    stopSpectate(false);                        // ván mới phải chạm được quân ngay
     clearHints(); buildPieces();
     $('.ct-banner').classList.remove('show');
     const chk = $('.ct-chk'); if (chk) chk.classList.remove('show');
     turnUI();
     if (rb) {
       toast('Tiếp tục ván dở');
-      if (!turnRed) setTimeout(() => { if (!over) aiTurn(); }, 700);   // đang tới lượt đối thủ
+      if (!turnRed) hen(aiTurn, 700);           // đang tới lượt đối thủ
     } else {
-      try { setTimeout(() => { if (!over) bossSay('start'); }, 750); } catch (e) {}
+      hen(() => bossSay('start'), 750);
     }
   }
   function persist() {   // lưu thế cờ sau MỖI nước để F5 / rời view vẫn vào lại được
@@ -611,7 +636,7 @@ function mountCoTuong(host, opts) {
     ai.querySelector('.rs').textContent = myTurn ? 'Chờ' : 'Đang tính…';
   }
   function toast(t) { const el = $('.ct-toast'); el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1800); }
-  function sayPlayer(text) { const t = String(text || '').trim(); if (!t) return; toast(pl.name + ': 「' + t + '」'); if (!over && Math.random() < 0.5) setTimeout(() => { if (!over) bossSay('reply'); }, 850); }
+  function sayPlayer(text) { const t = String(text || '').trim(); if (!t) return; toast(pl.name + ': 「' + t + '」'); if (!over && Math.random() < 0.5) hen(() => bossSay('reply'), 850); }
   function sendChat() { const inp = $('.ct-chat-in'); if (!inp) return; sayPlayer(inp.value); inp.value = ''; }
   function fillPresets() {
     const box = $('.ct-chat-ps'); if (!box) return;
@@ -622,24 +647,106 @@ function mountCoTuong(host, opts) {
   }
   function onKey(e) { if (e.key !== 'Escape') return; const box = $('.ct-chat'); if (box && box.classList.contains('show')) { e.preventDefault(); box.classList.remove('show'); const inp = $('.ct-chat-in'); if (inp) inp.blur(); } }
 
+  // ---------- Quan Chiến (xoay tự do) ----------
+  // Gỡ số vòng đã xoay: giảm chấn đuổi theo hiệu số, để nguyên 5 vòng thì camera quay ngược 5 vòng.
+  function normTheta() {
+    let th = sph.theta % (Math.PI * 2);
+    if (th > Math.PI) th -= Math.PI * 2; else if (th < -Math.PI) th += Math.PI * 2;
+    sph.theta = th;
+  }
+  function startSpectate() {
+    autorot = true; ret = null;
+    tgt.theta = sph.theta; tgt.phi = sph.phi; tgt.r = sph.r;   // bám camera ĐANG ở đâu, đừng trôi tiếp về đích cũ
+    const chat = $('.ct-chat'); if (chat) chat.classList.remove('show');
+    $('.ct-view').classList.add('show');
+    toast('Quan Chiến — kéo, lăn chuột hoặc chụm hai ngón để chỉnh bàn');
+  }
+  // ⚠ PHẢI gọi cả ở endGame/resetGame: bỏ sót thì ván mới vẫn kẹt autorot=true,
+  // mà onUp chỉ gọi tapBoard khi !autorot -> bàn cờ bấm không ăn, nhìn như game chết.
+  function stopSpectate(noiGi) {
+    if (!autorot) return;
+    autorot = false;
+    const bar = $('.ct-view'); if (bar) bar.classList.remove('show');
+    normTheta();
+    ret = 1; tgt.theta = SPH0.theta; tgt.phi = SPH0.phi; tgt.r = SPH0.r;
+    if (noiGi) toast(lockView ? 'Đã cố định — đưa bàn về góc nhìn đã khoá' : 'Đã cố định — đưa bàn về góc nhìn ban đầu');
+  }
+
   function act(a) {
     if (a === 'resign') { if (!over) endGame(2, 'Các hạ nhận thua.'); }
-    else if (a === 'draw') { if (!over) { toast(opp.name + ': "Được, hòa vậy."'); setTimeout(() => { if (!over) endGame(0, ''); }, 700); } }
-    else if (a === 'spectate') { autorot = !autorot; if (autorot) { ret = null; toast('Quan Chiến — kéo/xoay bàn cờ (tạm dừng đánh)'); } else { let th = sph.theta % (Math.PI * 2); if (th > Math.PI) th -= Math.PI * 2; else if (th < -Math.PI) th += Math.PI * 2; ret = { r: sph.r, theta: th, phi: sph.phi, t: 0 }; toast('Đã cố định — đưa bàn về góc nhìn ban đầu'); } }
-    else if (a === 'chat') { const box = $('.ct-chat'); if (!box) return; const show = !box.classList.contains('show'); box.classList.toggle('show', show); if (show) { fillPresets(); const inp = $('.ct-chat-in'); if (inp) setTimeout(() => inp.focus(), 40); } }
+    else if (a === 'draw') { if (!over) { toast(opp.name + ': "Được, hòa vậy."'); hen(() => endGame(0, ''), 700); } }
+    else if (a === 'spectate') { if (autorot) stopSpectate(true); else startSpectate(); }
+    // Khoá góc: ghi TỈ LỆ phóng (r / khoảng cách vừa khung) chứ không ghi r — đổi cỡ màn thì
+    // khoảng cách vừa khung tính lại, nhân tỉ lệ này vào là ra đúng góc đã khoá.
+    else if (a === 'saveview') {
+      // Đo lại khoảng cách vừa khung THEO GÓC VỪA CHỈNH: fitR đang giữ số của lần khớp khung gần nhất.
+      const f = fitAt(sph.phi) || fitR || sph.r || 1;
+      lockView = { theta: sph.theta, phi: sph.phi, zoom: sph.r / f };
+      try { if (opts.onSaveView) lockView = opts.onSaveView(lockView) || lockView; } catch (e) {}
+      fitR = f;
+      SPH0.theta = lockView.theta; SPH0.phi = lockView.phi; SPH0.r = f * lockView.zoom;
+      toast('Đã khoá góc nhìn cho bàn này');
+    }
+    else if (a === 'resetview') {
+      lockView = null;
+      try { if (opts.onResetView) opts.onResetView(); } catch (e) {}
+      normTheta();
+      onResize();
+      ret = 1; tgt.theta = SPH0.theta; tgt.phi = SPH0.phi; tgt.r = SPH0.r;
+      toast('Đã bỏ khoá — bàn cờ trở lại góc mặc định');
+    }
+    else if (a === 'chat') {
+      const box = $('.ct-chat'); if (!box) return;
+      const show = !box.classList.contains('show');
+      if (show && autorot) stopSpectate(false);     // hai bảng cùng nằm đáy giữa -> chỉ mở MỘT
+      box.classList.toggle('show', show);
+      if (show) { fillPresets(); const inp = $('.ct-chat-in'); if (inp) setTimeout(() => inp.focus(), 40); }
+    }
     else if (a === 'again') resetGame();
     else if (a === 'exit') { try { if (opts.onExit) opts.onExit(); } catch (e) {} }
   }
 
-  function onDown(e) { dragging = true; movedFlag = false; lastX = e.clientX; lastY = e.clientY; }
+  function clampPhi(p) { return Math.max(0.16, Math.min(1.18, p)); }
+  // ⚠ PHẢI theo dõi TỪNG NGÓN: dùng chung một cặp lastX/lastY thì ngón thứ hai chạm xuống sẽ ghi đè,
+  // rồi dx tính bằng hiệu toạ độ với ngón KIA -> bàn giật loạn khi chạm hai ngón trên điện thoại.
+  const ngon = {};
+  let dragId = -1, pinch0 = 0, pinchR0 = 0;
+  function twoIds() { const k = Object.keys(ngon); return k.length >= 2 ? k.slice(0, 2) : null; }
+  function pinchDist() { const k = twoIds(); if (!k) return 0; const a = ngon[k[0]], b = ngon[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y); }
+  function zoomTo(r) { const lo = fitR * 0.62, hi = fitR * 1.55; tgt.r = Math.max(lo, Math.min(hi, r)); }
+  function onDown(e) {
+    ngon[e.pointerId] = { x: e.clientX, y: e.clientY };
+    if (twoIds() && autorot) { pinch0 = pinchDist(); pinchR0 = tgt.r; dragging = false; movedFlag = true; return; }
+    if (dragId >= 0) return;
+    dragId = e.pointerId; dragging = true; movedFlag = false; lastX = e.clientX; lastY = e.clientY;
+    const el = renderer.domElement; if (el.setPointerCapture) { try { el.setPointerCapture(e.pointerId); } catch (er) {} }
+  }
   function onMove(e) {
-    if (!dragging) return;
+    if (ngon[e.pointerId]) { ngon[e.pointerId].x = e.clientX; ngon[e.pointerId].y = e.clientY; }
+    if (twoIds() && autorot) {                    // chụm/giãn hai ngón -> phóng/thu
+      const d = pinchDist();
+      if (pinch0 > 8 && d > 8) { ret = null; zoomTo(pinchR0 * (pinch0 / d)); }
+      return;
+    }
+    if (!dragging || e.pointerId !== dragId) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
     if (Math.abs(dx) + Math.abs(dy) > 4) movedFlag = true;
     lastX = e.clientX; lastY = e.clientY;
-    if (autorot) { sph.theta -= dx * 0.006; sph.phi = Math.max(0.16, Math.min(1.18, sph.phi - dy * 0.005)); updCam(); }
+    if (!autorot) return;
+    ret = null;
+    // Đích đi theo tay 1:1; cái mượt là do giảm chấn ở animate() ĐUỔI THEO đích, không phải quán tính.
+    tgt.theta -= dx * 0.006; tgt.phi = clampPhi(tgt.phi - dy * 0.005);
   }
-  function onUp(e) { if (dragging && !movedFlag && !autorot) tapBoard(e); dragging = false; }
+  function onUp(e) {
+    delete ngon[e.pointerId];
+    if (Object.keys(ngon).length < 2) pinch0 = 0;
+    if (e.pointerId !== dragId) return;
+    if (dragging && !movedFlag && !autorot) tapBoard(e);
+    dragging = false; dragId = -1;
+  }
+  // Trình duyệt di động HUỶ pointer khi nhận ra cử chỉ cuộn/hệ thống — không nghe thì kẹt dragging = true.
+  function onCancel(e) { delete ngon[e.pointerId]; pinch0 = 0; if (e.pointerId === dragId) { dragging = false; dragId = -1; } }
+  function onWheel(e) { if (!autorot) return; e.preventDefault(); ret = null; zoomTo((tgt.r || sph.r) * (1 + e.deltaY * 0.0011)); }
   function tapBoard(e) {
     if (over || turnRed !== HUMAN_RED) return;
     const rect = renderer.domElement.getBoundingClientRect();
@@ -661,21 +768,33 @@ function mountCoTuong(host, opts) {
 
   function updCam() { camera.position.set(target.x + sph.r * Math.sin(sph.phi) * Math.sin(sph.theta), target.y + sph.r * Math.cos(sph.phi), target.z + sph.r * Math.sin(sph.phi) * Math.cos(sph.theta)); camera.lookAt(target); }
   // Bàn có lọt khung ở khoảng cách r không — đo góc THẬT của 6 điểm mép (2 hàng × 3 cột).
-  function fits(r, phi, fovY, fovX) {
+  // ⚠ PHẢI tính cả GÓC XOAY NGANG: xoay bàn chéo thì bề ngang nhìn thấy nở ra tới ~1,4 lần.
+  // Xoay camera đi theta = xoay BÀN đi -theta rồi đo như lúc theta = 0.
+  function fits(r, phi, fovY, fovX, theta) {
     const cy = r * Math.cos(phi), cz = r * Math.sin(phi);
     const dy = -Math.cos(phi), dz = -Math.sin(phi);
     const hw = WU / 2, hd = HU / 2, m = 0.995;
-    for (let i = 0; i < 6; i++) {
-      const sx = (i % 3 === 0) ? -hw : (i % 3 === 1 ? 0 : hw);
-      const sz = (i < 3) ? -hd : hd;
-      const vy = TOPY - cy, vz = sz - cz;
+    const ct = Math.cos(theta || 0), st = Math.sin(theta || 0);
+    const pts = [];
+    for (let i = 0; i < 6; i++) pts.push([(i % 3 === 0) ? -hw : (i % 3 === 1 ? 0 : hw), (i < 3) ? -hd : hd]);
+    [[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd]].forEach((q) => pts.push(q));   // 4 góc bàn: xoay chéo là chúng lòi ra trước
+    for (let i = 0; i < pts.length; i++) {
+      const px = pts[i][0] * ct - pts[i][1] * st, pz = pts[i][0] * st + pts[i][1] * ct;
+      const vy = TOPY - cy, vz = pz - cz;
       const fwd = vy * dy + vz * dz;
       if (fwd <= 0.01) return false;
       const uy = vy - fwd * dy, uz = vz - fwd * dz;
       if (Math.atan2(Math.sqrt(uy * uy + uz * uz), fwd) > fovY / 2 * m) return false;   // dọc
-      if (Math.atan2(Math.abs(sx), fwd) > fovX / 2 * m) return false;                   // ngang
+      if (Math.atan2(Math.abs(px), fwd) > fovX / 2 * m) return false;                   // ngang
     }
     return true;
+  }
+  // Khoảng cách VỪA KHUNG cho một góc bất kỳ (dùng khi khoá góc, không chỉ lúc resize).
+  let _fovY = 0.6283, _fovX = 0.6283;
+  function fitAt(phi, theta) {
+    let lo = 8, hi = 46;
+    for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (fits(mid, phi, _fovY, _fovX, theta === undefined ? sph.theta : theta)) hi = mid; else lo = mid; }
+    return hi;
   }
   function onResize() {
     if (!renderer) return;
@@ -686,20 +805,40 @@ function mountCoTuong(host, opts) {
     const BTN = portrait ? 72 : 0, TOP = portrait ? 86 : 0;
     const uh = Math.max(80, h - BTN - TOP), a = w / uh;
     camera.aspect = a;
+    // Góc KHOÁ (nếu có) đè lên góc tự canh; khoảng cách vẫn tính lại theo khung THẬT rồi mới
+    // nhân tỉ lệ phóng — không thì đổi cỡ màn là bàn lòi ra ngoài.
     // màn càng dọc thì nhìn càng từ trên xuống -> bàn "đứng" hơn, lấp khung cao tốt hơn
-    const phi = portrait ? Math.max(0.34, 0.60 - (1.05 - ar) * 0.50) : 0.60;
-    SPH0.phi = phi; if (!autorot && !ret) sph.phi = phi;
-    const fovY = camera.fov * Math.PI / 180, fovX = 2 * Math.atan(Math.tan(fovY / 2) * a);
-    let lo = 8, hi = 46;
-    for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (fits(mid, phi, fovY, fovX)) hi = mid; else lo = mid; }
-    sph.r = hi; SPH0.r = hi;
+    const G = lockView;
+    const phi = G ? G.phi : (portrait ? Math.max(0.34, 0.60 - (1.05 - ar) * 0.50) : 0.60);
+    const theta = G ? G.theta : 0;
+    SPH0.phi = phi; SPH0.theta = theta;
+    _fovY = camera.fov * Math.PI / 180; _fovX = 2 * Math.atan(Math.tan(_fovY / 2) * a);
+    const truoc = fitR;                                           // mốc cũ, để giữ nguyên mức phóng khi đổi khung
+    fitR = fitAt(phi, theta);
+    SPH0.r = fitR * (G ? G.zoom : 1);
+    if (autorot) {
+      // ĐANG xoay tự do: KHÔNG giật góc của người chơi, nhưng khoảng cách VẪN phải bám khung mới
+      // (bản trước bọc cả cụm này trong !autorot -> đổi cỡ màn giữa lúc Quan Chiến là bàn lệch hẳn).
+      const tiLe = truoc ? (sph.r / truoc) : 1;
+      tgt.r = fitAt(sph.phi) * tiLe; sph.r = tgt.r;
+    } else {
+      tgt.phi = phi; tgt.theta = theta; tgt.r = SPH0.r;
+      if (!ret) { sph.phi = phi; if (G) sph.theta = theta; }
+      // LẦN ĐẦU (và khi xoay ngang/dọc làm khoảng cách đổi mạnh) phải ĐẶT THẲNG, không thả cho
+      // giảm chấn bò tới: r khởi tạo là 15,4 mà màn dọc cần ~25 -> khung đầu tiên bàn cờ bị CẮT.
+      if (firstFit || Math.abs(sph.r - SPH0.r) > SPH0.r * 0.25) { sph.r = SPH0.r; firstFit = false; }
+    }
     camera.updateProjectionMatrix();
     if (BTN || TOP) camera.setViewOffset(w, uh, 0, -TOP, w, h); else camera.clearViewOffset();
     updCam();
   }
   function animate() {
     rafId = requestAnimationFrame(animate);
-    if (ret) { ret.t = Math.min(1, ret.t + 0.05); const e = 1 - Math.pow(1 - ret.t, 3); sph.r = ret.r + (SPH0.r - ret.r) * e; sph.theta = ret.theta + (SPH0.theta - ret.theta) * e; sph.phi = ret.phi + (SPH0.phi - ret.phi) * e; updCam(); if (ret.t >= 1) ret = null; }
+    // camera ĐUỔI THEO đích (giảm chấn) -> mọi thao tác đều mềm, không giật
+    const k = 0.16, dt = tgt.theta - sph.theta, dp = tgt.phi - sph.phi, drr = tgt.r - sph.r;
+    if (Math.abs(dt) > 1e-5 || Math.abs(dp) > 1e-5 || Math.abs(drr) > 1e-4) {
+      sph.theta += dt * k; sph.phi += dp * k; sph.r += drr * k * 0.9; updCam();
+    } else if (ret) ret = null;
     if (anims.length) {
       for (let i = anims.length - 1; i >= 0; i--) {
         const a = anims[i]; a.t = Math.min(1, a.t + 0.11);
@@ -722,8 +861,9 @@ function mountCoTuong(host, opts) {
 
   return {
     destroy() {
-      over = true; if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey);
+      over = true; van++; if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel);
+      window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey);
       try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {}
       host.innerHTML = '';
     },
@@ -766,15 +906,27 @@ export function coTuong() {
       ensureCoTuong(this.$store.game.state);
       const pre = this.$store.game._ctOpp; this.$store.game._ctOpp = null;
       if (pre) { const o = this.opponents.find((x) => x.id === pre); if (o) this.$nextTick(() => this.challenge(o)); }
-      this.$watch('$store.game.view', (v) => { if (v !== 'coTuong' && this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; this.inBattle = false; } });
+      // ⚠ ĐỪNG đặt điều kiện `&& this._battle`: rời view TRONG LÚC còn đang tải Three.js/font thì
+      // _battle vẫn null, watcher bỏ qua, rồi _mount() chạy muộn trên host đã bị gỡ khỏi DOM -> dựng
+      // hẳn một WebGLRenderer + vòng rAF + listener window KHÔNG AI huỷ được. Lặp vài lần là hết
+      // ngữ cảnh WebGL, MỌI bàn cờ 3D báo lỗi cho tới khi tải lại trang.
+      this.$watch('$store.game.view', (v) => {
+        if (v === 'coTuong') return;
+        this._boSo = true;
+        if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
+        this.inBattle = false; this.loading = false;
+      });
     },
     challenge(o, saved) {
       if (this.inBattle) return;
+      this._boSo = false;
       this.opp = o; this._saved = saved || null; this.loadErr = ''; this.loading = true; this.inBattle = true;
       Promise.all([ensureThree(), ensureEngine(), ensureFont()]).then(() => { this.loading = false; this.$nextTick(() => this._mount()); })
         .catch((e) => { this.loading = false; this.inBattle = false; this.loadErr = String(e && e.message || e); });
     },
     _mount() {
+      // Rời view giữa lúc tải xong -> KHÔNG dựng bàn nữa (xem chú thích ở ctInit).
+      if (this._boSo || this.$store.game.view !== 'coTuong') { this._boSo = false; this.inBattle = false; return; }
       const host = this.$refs.boardHost;
       if (!host) { this.inBattle = false; return; }
       host.innerHTML = '';
@@ -784,6 +936,9 @@ export function coTuong() {
         player: { name: (g.state.player || {}).name || 'Bạn', art: g.avatarSrc },
         difficulty: 1,   // TẤT CẢ Danh Sĩ đánh ở mức cao nhất (nhãn tầng chỉ còn là lore theo rank)
         saved: this._saved,
+        view: getGocNhin(g.state, 'coTuong'),          // góc nhìn đã khoá RIÊNG của bàn này
+        onSaveView: (v) => { const r = saveGocNhin(g.state, 'coTuong', v); try { Storage.save(g.state); } catch (e) {} return r; },
+        onResetView: () => { clearGocNhin(g.state, 'coTuong'); try { Storage.save(g.state); } catch (e) {} },
         onMove: (snap) => this._persist(o.id, snap),
         onEnd: (result) => this._recordResult(o.id, result),
         onExit: () => this._exit(),

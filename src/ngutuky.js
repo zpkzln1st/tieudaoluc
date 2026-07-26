@@ -7,6 +7,7 @@
 // ============================================================
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf, KY_NGHE } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Cờ Tướng
+import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
 
 // ---------- ensure/migrate: khởi tạo state.nguTu (gọi mỗi lần load) ----------
 export function ensureNguTu(state) {
@@ -74,7 +75,12 @@ function injectStyle() {
 .ntk-hint{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);font-size:10.5px;color:var(--txt3);background:rgba(6,16,22,.5);padding:3px 10px;border-radius:99px;border:1px solid rgba(140,200,215,.14);pointer-events:none;z-index:4}
 .ntk-toast{position:absolute;left:50%;top:14px;transform:translateX(-50%) translateY(-8px);opacity:0;font-size:12px;color:#eaf3f7;background:rgba(8,22,30,.9);border:1px solid rgba(140,200,215,.25);padding:6px 14px;border-radius:99px;pointer-events:none;transition:.2s;z-index:6}
 .ntk-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.ntk-banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,10,16,.74);z-index:7;text-align:center;padding:20px}
+.ntk-view{position:absolute;left:50%;bottom:16px;transform:translateX(-50%) translateY(12px);opacity:0;pointer-events:none;transition:.16s;z-index:9;display:flex;align-items:center;gap:8px;background:rgba(19,36,46,.94);border:1px solid rgba(140,200,215,.3);border-radius:14px;padding:9px 12px;box-shadow:0 18px 44px -22px #000}
+.ntk-view.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.ntk-view .lb{font-family:var(--serif);font-size:12px;color:var(--txt2);white-space:nowrap}
+.ntk-view .op{font-family:var(--serif);font-size:12.5px;color:var(--cy2);background:rgba(24,50,62,.85);border:1px solid rgba(140,200,215,.28);border-radius:9px;padding:6px 14px;cursor:pointer;transition:.12s;white-space:nowrap}
+.ntk-view .op:hover{border-color:var(--cy2);background:rgba(140,200,215,.16);color:#fff}
+.ntk-banner{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,10,16,.74);z-index:10;text-align:center;padding:20px}
 .ntk-banner.show{display:flex}
 .ntk-end{position:relative;min-width:270px;max-width:90%;padding:24px 30px 20px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(15,29,38,.97),rgba(8,17,24,.98));border:1px solid rgba(140,200,215,.16);box-shadow:0 30px 70px -30px #000,inset 0 1px 0 rgba(255,255,255,.04)}
 .ntk-banner.show .ntk-end{animation:ntkPop .3s cubic-bezier(.2,.7,.3,1)}
@@ -103,7 +109,7 @@ function injectStyle() {
 .ntk-chat-in::placeholder{color:var(--txt3)}
 .ntk-chat-send{flex:none;padding:6px 15px;border-radius:9px;cursor:pointer;font-size:12px;color:#2a1d04;border:1px solid #f0d78f;background:linear-gradient(180deg,#f6dc9c,#e0b45f);font-family:var(--serif);font-weight:700}
 .ntk-chat-send:active{transform:scale(.95)}
-@media (max-width:600px){.ntk-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ntk-toast.show{transform:translateY(0)}.ntk-chat{bottom:74px;width:94%}}
+@media (max-width:600px){.ntk-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ntk-toast.show{transform:translateY(0)}.ntk-chat{bottom:74px;width:94%}.ntk-view{bottom:74px;gap:6px;padding:8px 10px}.ntk-view .lb{display:none}.ntk-view .op{padding:6px 11px;font-size:12px}}
 `;
   document.head.appendChild(st);
 }
@@ -173,6 +179,8 @@ function mountNguTu(host, opts) {
         '' +
       '</div>' +
       '<div class="ntk-toast"></div>' +
+      '<div class="ntk-view"><span class="lb">Xoay bàn tới góc bạn thích</span>' +
+        '<span class="op" data-a="saveview">Khoá Góc Nhìn</span><span class="op" data-a="resetview">Về Mặc Định</span></div>' +
       '<div class="ntk-chat">' +
         '<div class="ntk-chat-ps"></div>' +
         '<div class="ntk-chat-row"><input class="ntk-chat-in" type="text" maxlength="60" autocomplete="off" placeholder="Nhập lời muốn nói…"><button class="ntk-chat-send">Gửi</button></div>' +
@@ -192,8 +200,18 @@ function mountNguTu(host, opts) {
   let board = [], meshAt = {}, moves = [], ghost = null, current = HUMAN, over = false, saidN = 0;
   let renderer, scene, camera, boardGroup, raycaster, pointer, rayPlane, particles = null, rafId = 0;
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Camera có ĐÍCH riêng + GIẢM CHẤN (đồng bộ cảm giác với Cờ Tướng / Cờ Vua):
+  // kéo 1:1 rồi dừng phắt là thứ làm cảm giác "cứng". CỐ Ý KHÔNG có quán tính — thả tay là đứng.
   const SPH0 = { r: 12.4, theta: 0, phi: 0.66 };   // góc nhìn mặc định (bàn cố định)
-  let target, sph = { r: 12.4, theta: 0, phi: 0.66 }, dragging = false, movedFlag = false, lastX = 0, lastY = 0, autorot = false, ret = null;
+  let target, sph = { r: 12.4, theta: 0, phi: 0.66 }, tgt = { r: 12.4, theta: 0, phi: 0.66 };
+  let dragging = false, movedFlag = false, lastX = 0, lastY = 0, autorot = false, ret = null;
+  // THẾ HỆ ván: mỗi lần dựng ván mới / kết ván / tháo bàn là tăng 1. Mọi setTimeout mang theo số thế hệ
+  // lúc hẹn, khác số hiện tại là bỏ qua -> hẹn giờ của ván cũ không đi quân vào ván mới.
+  let van = 0;
+  const hen = (f, ms) => { const v = van; setTimeout(() => { if (v === van && !over) f(v); }, ms); };
+  let lockView = opts.view || null;     // góc người chơi đã khoá RIÊNG cho bàn này, null = tự canh
+  let fitR = 12.4;                      // khoảng cách VỪA KHUNG ở cỡ màn hiện tại — mốc quy đổi mức phóng
+  let firstFit = true;                  // lần khớp khung ĐẦU TIÊN phải đặt thẳng, không giảm chấn
   let stoneGeo, matB, matW, matBg, matWg;
   const DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
   const inb = (c, r) => c >= 0 && c < N && r >= 0 && r < N;
@@ -375,7 +393,9 @@ function mountNguTu(host, opts) {
     matWg = matW.clone(); matWg.transparent = true; matWg.opacity = 0.42;
     const el = renderer.domElement;
     el.addEventListener('pointerdown', onDown); el.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp); window.addEventListener('resize', onResize);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onCancel);
+    window.addEventListener('resize', onResize);
     root.querySelectorAll('.ntk-b,[data-a]').forEach((b) => b.addEventListener('click', () => act(b.getAttribute('data-a'))));
     const sendB = $('.ntk-chat-send'), chatIn = $('.ntk-chat-in');
     if (sendB) sendB.addEventListener('click', sendChat);
@@ -388,8 +408,9 @@ function mountNguTu(host, opts) {
   function clearGhost() { if (ghost) { boardGroup.remove(ghost.mesh); ghost = null; } updConfirm(); }
   function setGhost(c, r) { if (over || current !== HUMAN) return; if (!inb(c, r) || board[r][c] !== 0) return; if (!ghost) { ghost = { c, r, mesh: makeMesh(HUMAN, true) }; boardGroup.add(ghost.mesh); } ghost.c = c; ghost.r = r; ghost.mesh.position.set(wx(c), 0.1, wx(r)); updConfirm(); }
   function commit(c, r, color) { board[r][c] = color; const m = makeMesh(color, false); m.position.set(wx(c), 0.1, wx(r)); m.castShadow = true; boardGroup.add(m); meshAt[key(c, r)] = m; moves.push({ c, r, color }); return m; }
-  function confirmMove() { if (over || !ghost || current !== HUMAN) return; const c = ghost.c, r = ghost.r; clearGhost(); commit(c, r, HUMAN); if (winLineAt(c, r, HUMAN)) return endGame(1, winLineAt(c, r, HUMAN)); if (moves.length >= N * N) return endGame(0, null); current = AI; turnUI(); persist(); setTimeout(aiTurn, 440); }
-  function aiTurn() { if (over) return; const wasThreat = !!findWinning(HUMAN); const mv = aiPick(); if (!mv) return endGame(0, null); commit(mv.c, mv.r, AI); const wl = winLineAt(mv.c, mv.r, AI); if (wl) return endGame(2, wl); if (moves.length >= N * N) return endGame(0, null); current = HUMAN; turnUI(); persist(); maybeBossSay(wasThreat, mv); }
+  function confirmMove() { if (over || !ghost || current !== HUMAN) return; const c = ghost.c, r = ghost.r; clearGhost(); commit(c, r, HUMAN); if (winLineAt(c, r, HUMAN)) return endGame(1, winLineAt(c, r, HUMAN)); if (moves.length >= N * N) return endGame(0, null); current = AI; turnUI(); persist(); hen(aiTurn, 440); }
+  // ⚠ HAI CHỐT: `v !== van` chặn hẹn giờ của VÁN CŨ, `current !== AI` chặn AI cướp lượt người chơi.
+  function aiTurn(v) { if (over || v !== van || current !== AI) return; const wasThreat = !!findWinning(HUMAN); const mv = aiPick(); if (!mv) return endGame(0, null); commit(mv.c, mv.r, AI); const wl = winLineAt(mv.c, mv.r, AI); if (wl) return endGame(2, wl); if (moves.length >= N * N) return endGame(0, null); current = HUMAN; turnUI(); persist(); maybeBossSay(wasThreat, mv); }
 
   function winLineAt(c, r, color) { for (let k = 0; k < 4; k++) { const dx = DIRS[k][0], dy = DIRS[k][1]; const cells = [[c, r]]; let i; for (i = 1; inb(c + dx * i, r + dy * i) && board[r + dy * i][c + dx * i] === color; i++) cells.push([c + dx * i, r + dy * i]); for (i = 1; inb(c - dx * i, r - dy * i) && board[r - dy * i][c - dx * i] === color; i++) cells.unshift([c - dx * i, r - dy * i]); if (cells.length >= 5) return cells.slice(0, 5); } return null; }
   function runScore(cnt, ends) { if (cnt >= 5) return 1e6; if (cnt === 4) return ends >= 2 ? 50000 : (ends === 1 ? 4200 : 0); if (cnt === 3) return ends >= 2 ? 4200 : (ends === 1 ? 320 : 0); if (cnt === 2) return ends >= 2 ? 220 : (ends === 1 ? 22 : 0); return ends * 3 + 1; }
@@ -453,7 +474,9 @@ function mountNguTu(host, opts) {
   }
 
   function endGame(result, line) {
-    over = true; clearGhost(); updConfirm();
+    over = true; van++;
+    stopSpectate(false);                        // kẹt Quan Chiến qua màn kết thì ván sau bấm không ăn
+    clearGhost(); updConfirm();
     if (line) for (let i = 0; i < line.length; i++) { const mm = meshAt[key(line[i][0], line[i][1])]; if (mm) { mm.material = mm.material.clone(); mm.material.emissive = new THREE.Color(0xe6c079); mm.material.emissiveIntensity = 0.85; mm.scale.set(1.16, 1.5, 1.16); } }
     const b = $('.ntk-banner'), end = b.querySelector('.ntk-end'), bt = b.querySelector('.bt'), bs = b.querySelector('.bs'), rw = b.querySelector('.ntk-end-rw');
     end.classList.remove('win', 'lose', 'draw'); rw.classList.remove('show');
@@ -465,6 +488,8 @@ function mountNguTu(host, opts) {
   }
   function undo() { if (over) return; clearGhost(); let n = 0; while (n < 2 && moves.length > 0) { const mv = moves.pop(); const mm = meshAt[key(mv.c, mv.r)]; if (mm) { boardGroup.remove(mm); delete meshAt[key(mv.c, mv.r)]; } board[mv.r][mv.c] = 0; n++; } current = HUMAN; over = false; turnUI(); }
   function resetGame(saved) {
+    van++;                                      // sang THẾ HỆ ván mới -> hẹn giờ của ván cũ tự hết hiệu lực
+    stopSpectate(false);                        // ván mới phải chạm được quân ngay
     for (const k in meshAt) if (meshAt.hasOwnProperty(k)) boardGroup.remove(meshAt[k]);
     meshAt = {}; moves = []; clearGhost();
     board = []; for (let r = 0; r < N; r++) { board[r] = []; for (let c = 0; c < N; c++) board[r][c] = 0; }
@@ -494,43 +519,142 @@ function mountNguTu(host, opts) {
   function updConfirm() { const b = $('[data-a="confirm"]'); if (!b) return; if (ghost && !over) { b.classList.remove('dis'); b.classList.add('ready'); } else { b.classList.add('dis'); b.classList.remove('ready'); } }
   function toast(t) { const el = $('.ntk-toast'); el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1500); }
   // ---- Trò Chuyện: người chơi gõ tự do hoặc bấm câu có sẵn; đối thủ đôi khi đáp lại ----
-  function sayPlayer(text) { const t = String(text || '').trim(); if (!t) return; toast(pl.name + ': 「' + t + '」'); if (!over && Math.random() < 0.5) setTimeout(() => { if (!over) bossSay('reply'); }, 850); }
+  function sayPlayer(text) { const t = String(text || '').trim(); if (!t) return; toast(pl.name + ': 「' + t + '」'); if (!over && Math.random() < 0.5) hen(() => bossSay('reply'), 850); }
   function sendChat() { const inp = $('.ntk-chat-in'); if (!inp) return; sayPlayer(inp.value); inp.value = ''; }
   function fillPresets() { const box = $('.ntk-chat-ps'); if (!box) return; const pool = PLAYER_PRESETS.slice(), pk = []; for (let i = 0; i < 5 && pool.length; i++) pk.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]); box.innerHTML = pk.map(() => '<span class="ntk-chip"></span>').join(''); box.querySelectorAll('.ntk-chip').forEach((c, i) => { c.textContent = pk[i]; c.addEventListener('click', () => sayPlayer(pk[i])); }); }
   function onKey(e) { if (e.key !== 'Escape') return; const box = $('.ntk-chat'); if (box && box.classList.contains('show')) { e.preventDefault(); box.classList.remove('show'); const inp = $('.ntk-chat-in'); if (inp) inp.blur(); } }   // ESC: đóng khung chat
   // (đã bỏ đồng hồ đếm giờ)
 
+  // ---------- Quan Chiến (xoay tự do) ----------
+  // Gỡ số vòng đã xoay: giảm chấn đuổi theo hiệu số, để nguyên 5 vòng thì camera quay ngược 5 vòng.
+  function normTheta() {
+    let th = sph.theta % (Math.PI * 2);
+    if (th > Math.PI) th -= Math.PI * 2; else if (th < -Math.PI) th += Math.PI * 2;
+    sph.theta = th;
+  }
+  function startSpectate() {
+    autorot = true; ret = null;
+    tgt.theta = sph.theta; tgt.phi = sph.phi; tgt.r = sph.r;   // bám camera ĐANG ở đâu, đừng trôi tiếp về đích cũ
+    const chat = $('.ntk-chat'); if (chat) chat.classList.remove('show');
+    $('.ntk-view').classList.add('show');
+    toast('Quan Chiến — kéo, lăn chuột hoặc chụm hai ngón để chỉnh bàn');
+  }
+  // ⚠ PHẢI gọi cả ở endGame/resetGame: bỏ sót thì ván mới vẫn kẹt autorot=true,
+  // mà onUp chỉ gọi tapBoard khi !autorot -> bàn cờ bấm không ăn, nhìn như game chết.
+  function stopSpectate(noiGi) {
+    if (!autorot) return;
+    autorot = false;
+    const bar = $('.ntk-view'); if (bar) bar.classList.remove('show');
+    normTheta();
+    ret = 1; tgt.theta = SPH0.theta; tgt.phi = SPH0.phi; tgt.r = SPH0.r;
+    if (noiGi) toast(lockView ? 'Đã cố định — đưa bàn về góc nhìn đã khoá' : 'Đã cố định — đưa bàn về góc nhìn ban đầu');
+  }
+
   function act(a) {
     if (a === 'confirm') confirmMove();
     else if (a === 'undo') undo();
     else if (a === 'resign') { if (!over) endGame(2, null); }
-    else if (a === 'draw') { if (!over) { toast(opp.name + ': "Được, hòa vậy."'); setTimeout(() => { if (!over) endGame(0, null); }, 700); } }
-    else if (a === 'spectate') { autorot = !autorot; if (autorot) { ret = null; toast('Quan Chiến — kéo/xoay bàn cờ (tạm dừng đánh)'); } else { let th = sph.theta % (Math.PI * 2); if (th > Math.PI) th -= Math.PI * 2; else if (th < -Math.PI) th += Math.PI * 2; ret = { r: sph.r, theta: th, phi: sph.phi, t: 0 }; toast('Đã cố định — đưa bàn về góc nhìn ban đầu'); } }
-    else if (a === 'chat') { const box = $('.ntk-chat'); if (!box) return; const show = !box.classList.contains('show'); box.classList.toggle('show', show); if (show) { fillPresets(); const inp = $('.ntk-chat-in'); if (inp) setTimeout(() => inp.focus(), 40); } }
+    else if (a === 'draw') { if (!over) { toast(opp.name + ': "Được, hòa vậy."'); hen(() => endGame(0, null), 700); } }
+    else if (a === 'spectate') { if (autorot) stopSpectate(true); else startSpectate(); }
+    // Khoá góc: ghi TỈ LỆ phóng (r / khoảng cách vừa khung) chứ không ghi r — đổi cỡ màn thì
+    // khoảng cách vừa khung tính lại, nhân tỉ lệ này vào là ra đúng góc đã khoá.
+    else if (a === 'saveview') {
+      // Đo lại khoảng cách vừa khung THEO GÓC VỪA CHỈNH: fitR đang giữ số của lần khớp khung gần nhất.
+      const f = fitAt(sph.phi) || fitR || sph.r || 1;
+      lockView = { theta: sph.theta, phi: sph.phi, zoom: sph.r / f };
+      try { if (opts.onSaveView) lockView = opts.onSaveView(lockView) || lockView; } catch (e) {}
+      fitR = f;
+      SPH0.theta = lockView.theta; SPH0.phi = lockView.phi; SPH0.r = f * lockView.zoom;
+      toast('Đã khoá góc nhìn cho bàn này');
+    }
+    else if (a === 'resetview') {
+      lockView = null;
+      try { if (opts.onResetView) opts.onResetView(); } catch (e) {}
+      normTheta();
+      onResize();
+      ret = 1; tgt.theta = SPH0.theta; tgt.phi = SPH0.phi; tgt.r = SPH0.r;
+      toast('Đã bỏ khoá — bàn cờ trở lại góc mặc định');
+    }
+    else if (a === 'chat') {
+      const box = $('.ntk-chat'); if (!box) return;
+      const show = !box.classList.contains('show');
+      if (show && autorot) stopSpectate(false);     // hai bảng cùng nằm đáy giữa -> chỉ mở MỘT
+      box.classList.toggle('show', show);
+      if (show) { fillPresets(); const inp = $('.ntk-chat-in'); if (inp) setTimeout(() => inp.focus(), 40); }
+    }
     else if (a === 'again') resetGame();
     else if (a === 'exit') { try { if (opts.onExit) opts.onExit(); } catch (e) {} }
   }
 
-  function onDown(e) { dragging = true; movedFlag = false; lastX = e.clientX; lastY = e.clientY; }
-  function onMove(e) { if (!dragging) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; if (Math.abs(dx) + Math.abs(dy) > 4) movedFlag = true; lastX = e.clientX; lastY = e.clientY; if (autorot) { sph.theta -= dx * 0.006; sph.phi = Math.max(0.3, Math.min(1.18, sph.phi - dy * 0.005)); updCam(); } }
-  function onUp(e) { if (dragging && !movedFlag && !autorot) tapBoard(e); dragging = false; }
+  function clampPhi(p) { return Math.max(0.3, Math.min(1.18, p)); }
+  // ⚠ PHẢI theo dõi TỪNG NGÓN: dùng chung một cặp lastX/lastY thì ngón thứ hai chạm xuống sẽ ghi đè,
+  // rồi dx tính bằng hiệu toạ độ với ngón KIA -> bàn giật loạn khi chạm hai ngón trên điện thoại.
+  const ngon = {};
+  let dragId = -1, pinch0 = 0, pinchR0 = 0;
+  function twoIds() { const k = Object.keys(ngon); return k.length >= 2 ? k.slice(0, 2) : null; }
+  function pinchDist() { const k = twoIds(); if (!k) return 0; const a = ngon[k[0]], b = ngon[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y); }
+  function zoomTo(r) { const lo = fitR * 0.62, hi = fitR * 1.55; tgt.r = Math.max(lo, Math.min(hi, r)); }
+  function onDown(e) {
+    ngon[e.pointerId] = { x: e.clientX, y: e.clientY };
+    if (twoIds() && autorot) { pinch0 = pinchDist(); pinchR0 = tgt.r; dragging = false; movedFlag = true; return; }
+    if (dragId >= 0) return;
+    dragId = e.pointerId; dragging = true; movedFlag = false; lastX = e.clientX; lastY = e.clientY;
+    const el = renderer.domElement; if (el.setPointerCapture) { try { el.setPointerCapture(e.pointerId); } catch (er) {} }
+  }
+  // Đích đi theo tay 1:1; cái mượt là do giảm chấn ở animate() ĐUỔI THEO đích, không phải quán tính.
+  function onMove(e) {
+    if (ngon[e.pointerId]) { ngon[e.pointerId].x = e.clientX; ngon[e.pointerId].y = e.clientY; }
+    if (twoIds() && autorot) {                    // chụm/giãn hai ngón -> phóng/thu
+      const d = pinchDist();
+      if (pinch0 > 8 && d > 8) { ret = null; zoomTo(pinchR0 * (pinch0 / d)); }
+      return;
+    }
+    if (!dragging || e.pointerId !== dragId) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    if (Math.abs(dx) + Math.abs(dy) > 4) movedFlag = true;
+    lastX = e.clientX; lastY = e.clientY;
+    if (!autorot) return;
+    ret = null; tgt.theta -= dx * 0.006; tgt.phi = clampPhi(tgt.phi - dy * 0.005);
+  }
+  function onUp(e) {
+    delete ngon[e.pointerId];
+    if (Object.keys(ngon).length < 2) pinch0 = 0;
+    if (e.pointerId !== dragId) return;
+    if (dragging && !movedFlag && !autorot) tapBoard(e);
+    dragging = false; dragId = -1;
+  }
+  // Trình duyệt di động HUỶ pointer khi nhận ra cử chỉ cuộn/hệ thống — không nghe thì kẹt dragging = true.
+  function onCancel(e) { delete ngon[e.pointerId]; pinch0 = 0; if (e.pointerId === dragId) { dragging = false; dragId = -1; } }
+  function onWheel(e) { if (!autorot) return; e.preventDefault(); ret = null; zoomTo((tgt.r || sph.r) * (1 + e.deltaY * 0.0011)); }
   function tapBoard(e) { if (over || current !== HUMAN) return; const rect = renderer.domElement.getBoundingClientRect(); pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1; pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1; raycaster.setFromCamera(pointer, camera); const pt = new THREE.Vector3(); if (raycaster.ray.intersectPlane(rayPlane, pt)) { const c = Math.round((pt.x + 4) / spacing), r = Math.round((pt.z + 4) / spacing); if (!inb(c, r) || board[r][c] !== 0) return; if (ghost && ghost.c === c && ghost.r === r) { confirmMove(); return; } setGhost(c, r); } }
   // Bàn có lọt khung ở khoảng cách r không — đo góc THẬT của 6 điểm mép (bàn 9.25 × 9.25).
-  function fits(r, phi, fovY, fovX) {
+  // ⚠ PHẢI tính cả GÓC XOAY NGANG: xoay bàn 45° thì bề ngang nhìn thấy nở ra tới 1,41 lần.
+  // Xoay camera đi theta = xoay BÀN đi -theta rồi đo như lúc theta = 0.
+  function fits(r, phi, fovY, fovX, theta) {
     const cy = r * Math.cos(phi), cz = r * Math.sin(phi);
     const dy = -Math.cos(phi), dz = -Math.sin(phi);
     const hb = 4.63, m = 0.995;
-    for (let i = 0; i < 6; i++) {
-      const sx = (i % 3 === 0) ? -hb : (i % 3 === 1 ? 0 : hb);
-      const sz = (i < 3) ? -hb : hb;
-      const vy = 0.05 - cy, vz = sz - cz;
+    const ct = Math.cos(theta || 0), st = Math.sin(theta || 0);
+    const pts = [];
+    for (let i = 0; i < 6; i++) pts.push([(i % 3 === 0) ? -hb : (i % 3 === 1 ? 0 : hb), (i < 3) ? -hb : hb]);
+    [[-hb, -hb], [hb, -hb], [-hb, hb], [hb, hb]].forEach((q) => pts.push(q));   // 4 góc bàn: xoay chéo là chúng lòi ra trước
+    for (let i = 0; i < pts.length; i++) {
+      const px = pts[i][0] * ct - pts[i][1] * st, pz = pts[i][0] * st + pts[i][1] * ct;
+      const vy = 0.05 - cy, vz = pz - cz;
       const fwd = vy * dy + vz * dz;
       if (fwd <= 0.01) return false;
       const uy = vy - fwd * dy, uz = vz - fwd * dz;
       if (Math.atan2(Math.sqrt(uy * uy + uz * uz), fwd) > fovY / 2 * m) return false;   // dọc
-      if (Math.atan2(Math.abs(sx), fwd) > fovX / 2 * m) return false;                   // ngang
+      if (Math.atan2(Math.abs(px), fwd) > fovX / 2 * m) return false;                   // ngang
     }
     return true;
+  }
+  // Khoảng cách VỪA KHUNG cho một góc bất kỳ (dùng khi khoá góc, không chỉ lúc resize).
+  let _fovY = 0.6283, _fovX = 0.6283;
+  function fitAt(phi, theta) {
+    let lo = 7, hi = 40;
+    for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (fits(mid, phi, _fovY, _fovX, theta === undefined ? sph.theta : theta)) hi = mid; else lo = mid; }
+    return hi;
   }
   function onResize() {
     if (!renderer) return;
@@ -541,18 +665,35 @@ function mountNguTu(host, opts) {
     const BTN = portrait ? 72 : 0, TOP = portrait ? 86 : 0;
     const uh = Math.max(80, h - BTN - TOP), a = w / uh;
     camera.aspect = a;
-    const phi = portrait ? Math.max(0.38, 0.66 - (1.05 - ar) * 0.45) : 0.66;   // màn dọc -> nhìn từ trên xuống hơn
-    SPH0.phi = phi; if (!autorot && !ret) sph.phi = phi;
-    const fovY = camera.fov * Math.PI / 180, fovX = 2 * Math.atan(Math.tan(fovY / 2) * a);
-    let lo = 7, hi = 40;
-    for (let i = 0; i < 26; i++) { const mid = (lo + hi) / 2; if (fits(mid, phi, fovY, fovX)) hi = mid; else lo = mid; }
-    sph.r = hi; SPH0.r = hi;
+    // Góc KHOÁ (nếu có) đè lên góc tự canh; khoảng cách vẫn tính lại theo khung THẬT rồi mới
+    // nhân tỉ lệ phóng — không thì đổi cỡ màn là bàn lòi ra ngoài.
+    const G = lockView;
+    const phi = G ? G.phi : (portrait ? Math.max(0.38, 0.66 - (1.05 - ar) * 0.45) : 0.66);   // màn dọc -> nhìn từ trên xuống hơn
+    const theta = G ? G.theta : 0;
+    SPH0.phi = phi; SPH0.theta = theta;
+    _fovY = camera.fov * Math.PI / 180; _fovX = 2 * Math.atan(Math.tan(_fovY / 2) * a);
+    const truoc = fitR;                                           // mốc cũ, để giữ nguyên mức phóng khi đổi khung
+    fitR = fitAt(phi, theta);
+    SPH0.r = fitR * (G ? G.zoom : 1);
+    if (autorot) {
+      // ĐANG xoay tự do: KHÔNG giật góc của người chơi, nhưng khoảng cách VẪN phải bám khung mới
+      // (bản trước bọc cả cụm này trong !autorot -> đổi cỡ màn giữa lúc Quan Chiến là bàn lệch hẳn).
+      const tiLe = truoc ? (sph.r / truoc) : 1;
+      tgt.r = fitAt(sph.phi) * tiLe; sph.r = tgt.r;
+    } else {
+      tgt.phi = phi; tgt.theta = theta; tgt.r = SPH0.r;
+      if (!ret) { sph.phi = phi; if (G) sph.theta = theta; }
+      // LẦN ĐẦU (và khi xoay ngang/dọc làm khoảng cách đổi mạnh) phải ĐẶT THẲNG, không thả cho
+      // giảm chấn bò tới: r khởi tạo là 15 mà màn dọc cần ~24 -> khung đầu tiên bàn cờ bị CẮT.
+      if (firstFit || Math.abs(sph.r - SPH0.r) > SPH0.r * 0.25) { sph.r = SPH0.r; firstFit = false; }
+    }
     if (scene && scene.fog) { scene.fog.near = sph.r * 0.97; scene.fog.far = sph.r * 2.42; }   // co giãn fog theo r (khỏi xỉn màu)
     camera.updateProjectionMatrix();
     if (BTN || TOP) camera.setViewOffset(w, uh, 0, -TOP, w, h); else camera.clearViewOffset();
     updCam();
   }
-  function animate() { rafId = requestAnimationFrame(animate); if (ret) { ret.t = Math.min(1, ret.t + 0.05); const e = 1 - Math.pow(1 - ret.t, 3); sph.r = ret.r + (SPH0.r - ret.r) * e; sph.theta = ret.theta + (SPH0.theta - ret.theta) * e; sph.phi = ret.phi + (SPH0.phi - ret.phi) * e; updCam(); if (ret.t >= 1) ret = null; } if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 7.6) ar[i] = -0.2; } pa.needsUpdate = true; } renderer.render(scene, camera); }
+  // camera ĐUỔI THEO đích (giảm chấn) -> mọi thao tác đều mềm, không giật
+  function animate() { rafId = requestAnimationFrame(animate); const k = 0.16, dt = tgt.theta - sph.theta, dp = tgt.phi - sph.phi, drr = tgt.r - sph.r; if (Math.abs(dt) > 1e-5 || Math.abs(dp) > 1e-5 || Math.abs(drr) > 1e-4) { sph.theta += dt * k; sph.phi += dp * k; sph.r += drr * k * 0.9; updCam(); } else if (ret) ret = null; if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 7.6) ar[i] = -0.2; } pa.needsUpdate = true; } renderer.render(scene, camera); }
 
   function glowTex(col) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d'); const g = x.createRadialGradient(128, 128, 0, 128, 128, 128); g.addColorStop(0, 'rgba(' + col + ',0.8)'); g.addColorStop(0.5, 'rgba(' + col + ',0.28)'); g.addColorStop(1, 'rgba(' + col + ',0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; return t; }
   function dotTex() { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.4, 'rgba(185,236,247,0.5)'); g.addColorStop(1, 'rgba(185,236,247,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(cv); }
@@ -561,7 +702,7 @@ function mountNguTu(host, opts) {
   function gradTex(forEnv) { const cv = document.createElement('canvas'); cv.width = 16; cv.height = 256; const x = cv.getContext('2d'); const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#1c4c5c'); g.addColorStop(0.42, '#123846'); g.addColorStop(0.76, '#0b232d'); g.addColorStop(1, '#071620'); x.fillStyle = g; x.fillRect(0, 0, 16, 256); const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; if (forEnv) t.mapping = THREE.EquirectangularReflectionMapping; return t; }
 
   return {
-    destroy() { over = true; if (rafId) cancelAnimationFrame(rafId); window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey); try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {} host.innerHTML = ''; },
+    destroy() { over = true; van++; if (rafId) cancelAnimationFrame(rafId); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel); window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey); try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {} host.innerHTML = ''; },
     resize() { onResize(); },
   };
 }
@@ -602,11 +743,20 @@ export function nguTuKy() {
       const pre = this.$store.game._ntkOpp; this.$store.game._ntkOpp = null;
       if (pre) { const o = this.opponents.find((x) => x.id === pre); if (o) this.$nextTick(() => this.challenge(o)); }
       // rời view giữa ván → tháo bàn (tính bỏ ván, không ghi thua)
-      this.$watch('$store.game.view', (v) => { if (v !== 'nguTuKy' && this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; this.inBattle = false; } });
+      // ⚠ ĐỪNG đặt điều kiện `&& this._battle`: rời view TRONG LÚC còn đang tải Three.js thì _battle
+      // vẫn null, watcher bỏ qua, rồi _mount() chạy muộn trên host đã bị gỡ khỏi DOM -> dựng hẳn một
+      // WebGLRenderer + vòng rAF + listener window KHÔNG AI huỷ được.
+      this.$watch('$store.game.view', (v) => {
+        if (v === 'nguTuKy') return;
+        this._boSo = true;
+        if (this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; }
+        this.inBattle = false; this.loading = false;
+      });
     },
 
     challenge(o, saved) {
       if (this.inBattle) return;
+      this._boSo = false;
       this.opp = o; this._saved = saved || null; this.loadErr = ''; this.loading = true; this.inBattle = true;
       ensureThree().then(() => {
         this.loading = false;
@@ -614,6 +764,8 @@ export function nguTuKy() {
       }).catch((e) => { this.loading = false; this.inBattle = false; this.loadErr = String(e && e.message || e); });
     },
     _mount() {
+      // Rời view giữa lúc tải xong -> KHÔNG dựng bàn nữa (xem chú thích ở ntkInit).
+      if (this._boSo || this.$store.game.view !== 'nguTuKy') { this._boSo = false; this.inBattle = false; return; }
       const host = this.$refs.boardHost;
       if (!host) { this.inBattle = false; return; }
       host.innerHTML = '';
@@ -623,6 +775,9 @@ export function nguTuKy() {
         player: { name: (g.state.player || {}).name || 'Bạn', art: g.avatarSrc },
         difficulty: 1,   // TẤT CẢ đối thủ đánh ở mức khó tối đa (tier chỉ còn là nhãn lore theo rank)
         saved: this._saved,
+        view: getGocNhin(g.state, 'nguTu'),          // góc nhìn đã khoá RIÊNG của bàn này
+        onSaveView: (v) => { const r = saveGocNhin(g.state, 'nguTu', v); try { Storage.save(g.state); } catch (e) {} return r; },
+        onResetView: () => { clearGocNhin(g.state, 'nguTu'); try { Storage.save(g.state); } catch (e) {} },
         onMove: (snap) => this._persist(o.id, snap),
         onEnd: (result) => this._recordResult(o.id, result),
         onExit: () => this._exit(),
