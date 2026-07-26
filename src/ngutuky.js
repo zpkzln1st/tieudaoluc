@@ -14,6 +14,7 @@ export function ensureNguTu(state) {
   const n = state.nguTu;
   if (!n.rec) n.rec = {};            // { danhsiId: { w, l } }
   if (n.wins == null) n.wins = 0;    // tổng ván thắng
+  if (n.game === undefined) n.game = null;   // ván dở (giữ qua F5)
   // Kỳ Hồn KHÔNG để ở đây nữa: dùng CHUNG state.kyHon (engine/kyhon.js) với Cờ Tướng.
 }
 
@@ -328,7 +329,7 @@ function mountNguTu(host, opts) {
   function bossSay(cat) { const l = pick(LINES[cat]); if (l) toast(opp.name + ': 「' + l + '」'); }
   function maybeBossSay(wasThreat, mv) { if (saidN >= 4 || Math.random() > 0.34) return; saidN++; let cat = 'banter'; if (wasThreat) cat = 'defend'; else if (evalCell(mv.c, mv.r, AI) >= 4000) cat = 'press'; bossSay(cat); }   // giới hạn ~4 câu/ván cho đỡ rối
 
-  try { init(); resetGame(); animate(); } catch (e) { fb(String(e && e.message || e)); return { destroy() {}, resize() {} }; }
+  try { init(); resetGame(opts.saved); animate(); } catch (e) { fb(String(e && e.message || e)); return { destroy() {}, resize() {} }; }
   setTimeout(onResize, 120); setTimeout(onResize, 500);
 
   function W() { return scEl.clientWidth || 720; }
@@ -387,8 +388,8 @@ function mountNguTu(host, opts) {
   function clearGhost() { if (ghost) { boardGroup.remove(ghost.mesh); ghost = null; } updConfirm(); }
   function setGhost(c, r) { if (over || current !== HUMAN) return; if (!inb(c, r) || board[r][c] !== 0) return; if (!ghost) { ghost = { c, r, mesh: makeMesh(HUMAN, true) }; boardGroup.add(ghost.mesh); } ghost.c = c; ghost.r = r; ghost.mesh.position.set(wx(c), 0.1, wx(r)); updConfirm(); }
   function commit(c, r, color) { board[r][c] = color; const m = makeMesh(color, false); m.position.set(wx(c), 0.1, wx(r)); m.castShadow = true; boardGroup.add(m); meshAt[key(c, r)] = m; moves.push({ c, r, color }); return m; }
-  function confirmMove() { if (over || !ghost || current !== HUMAN) return; const c = ghost.c, r = ghost.r; clearGhost(); commit(c, r, HUMAN); if (winLineAt(c, r, HUMAN)) return endGame(1, winLineAt(c, r, HUMAN)); if (moves.length >= N * N) return endGame(0, null); current = AI; turnUI(); setTimeout(aiTurn, 440); }
-  function aiTurn() { if (over) return; const wasThreat = !!findWinning(HUMAN); const mv = aiPick(); if (!mv) return endGame(0, null); commit(mv.c, mv.r, AI); const wl = winLineAt(mv.c, mv.r, AI); if (wl) return endGame(2, wl); if (moves.length >= N * N) return endGame(0, null); current = HUMAN; turnUI(); maybeBossSay(wasThreat, mv); }
+  function confirmMove() { if (over || !ghost || current !== HUMAN) return; const c = ghost.c, r = ghost.r; clearGhost(); commit(c, r, HUMAN); if (winLineAt(c, r, HUMAN)) return endGame(1, winLineAt(c, r, HUMAN)); if (moves.length >= N * N) return endGame(0, null); current = AI; turnUI(); persist(); setTimeout(aiTurn, 440); }
+  function aiTurn() { if (over) return; const wasThreat = !!findWinning(HUMAN); const mv = aiPick(); if (!mv) return endGame(0, null); commit(mv.c, mv.r, AI); const wl = winLineAt(mv.c, mv.r, AI); if (wl) return endGame(2, wl); if (moves.length >= N * N) return endGame(0, null); current = HUMAN; turnUI(); persist(); maybeBossSay(wasThreat, mv); }
 
   function winLineAt(c, r, color) { for (let k = 0; k < 4; k++) { const dx = DIRS[k][0], dy = DIRS[k][1]; const cells = [[c, r]]; let i; for (i = 1; inb(c + dx * i, r + dy * i) && board[r + dy * i][c + dx * i] === color; i++) cells.push([c + dx * i, r + dy * i]); for (i = 1; inb(c - dx * i, r - dy * i) && board[r - dy * i][c - dx * i] === color; i++) cells.unshift([c - dx * i, r - dy * i]); if (cells.length >= 5) return cells.slice(0, 5); } return null; }
   function runScore(cnt, ends) { if (cnt >= 5) return 1e6; if (cnt === 4) return ends >= 2 ? 50000 : (ends === 1 ? 4200 : 0); if (cnt === 3) return ends >= 2 ? 4200 : (ends === 1 ? 320 : 0); if (cnt === 2) return ends >= 2 ? 220 : (ends === 1 ? 22 : 0); return ends * 3 + 1; }
@@ -463,7 +464,31 @@ function mountNguTu(host, opts) {
     try { if (opts.onEnd) opts.onEnd(result); } catch (e) {}
   }
   function undo() { if (over) return; clearGhost(); let n = 0; while (n < 2 && moves.length > 0) { const mv = moves.pop(); const mm = meshAt[key(mv.c, mv.r)]; if (mm) { boardGroup.remove(mm); delete meshAt[key(mv.c, mv.r)]; } board[mv.r][mv.c] = 0; n++; } current = HUMAN; over = false; turnUI(); }
-  function resetGame() { for (const k in meshAt) if (meshAt.hasOwnProperty(k)) boardGroup.remove(meshAt[k]); meshAt = {}; moves = []; clearGhost(); board = []; for (let r = 0; r < N; r++) { board[r] = []; for (let c = 0; c < N; c++) board[r][c] = 0; } current = HUMAN; over = false; saidN = 0; $('.ntk-banner').classList.remove('show'); turnUI(); updConfirm(); try { setTimeout(function () { if (!over) bossSay('start'); }, 750); } catch (e) {} }
+  function resetGame(saved) {
+    for (const k in meshAt) if (meshAt.hasOwnProperty(k)) boardGroup.remove(meshAt[k]);
+    meshAt = {}; moves = []; clearGhost();
+    board = []; for (let r = 0; r < N; r++) { board[r] = []; for (let c = 0; c < N; c++) board[r][c] = 0; }
+    const s = (saved && typeof saved.b === 'string' && saved.b.length === N * N) ? saved.b : null;
+    if (s) {   // khôi phục ván dở: dựng lại quân trên bàn
+      for (let i = 0; i < N * N; i++) {
+        const v = s.charCodeAt(i) - 48; if (v !== HUMAN && v !== AI) continue;
+        const c = i % N, r = (i / N) | 0;
+        commit(c, r, v);
+      }
+    }
+    current = s ? (saved.cur === AI ? AI : HUMAN) : HUMAN;
+    over = false; saidN = 0;
+    $('.ntk-banner').classList.remove('show'); turnUI(); updConfirm();
+    if (s) { toast('Tiếp tục ván dở'); if (current === AI) setTimeout(function () { if (!over) aiTurn(); }, 700); }
+    else { try { setTimeout(function () { if (!over) bossSay('start'); }, 750); } catch (e) {} }
+  }
+  function persist() {   // lưu sau MỖI nước để F5 / rời view vẫn vào lại được
+    try {
+      if (!opts.onMove) return;
+      let s = ''; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) s += board[r][c];
+      opts.onMove({ b: s, cur: current });
+    } catch (e) {}
+  }
 
   function turnUI() { const you = $('[data-c="you"]'), ai = $('[data-c="ai"]'); if (current === HUMAN) { you.classList.add('act'); you.classList.remove('wait'); ai.classList.remove('act'); ai.classList.add('wait'); } else { ai.classList.add('act'); ai.classList.remove('wait'); you.classList.remove('act'); you.classList.add('wait'); } you.querySelector('.rs').textContent = current === HUMAN ? 'Đang đi…' : 'Chờ'; ai.querySelector('.rs').textContent = current === AI ? 'Đang tính…' : 'Chờ'; }
   function updConfirm() { const b = $('[data-a="confirm"]'); if (!b) return; if (ghost && !over) { b.classList.remove('dis'); b.classList.add('ready'); } else { b.classList.add('dis'); b.classList.remove('ready'); } }
@@ -565,6 +590,12 @@ export function nguTuKy() {
     get kyHon() { return getKyHon(this.$store.game.state); },
     get kyNgheState() { return kyNgheOf(this.$store.game.state); },
 
+    // ---- ván dở: giữ qua F5 / rời view giữa chừng ----
+    get savedGame() { const g = this.ntk && this.ntk.game; return (g && g.b && g.oppId) ? g : null; },
+    get savedOpp() { const g = this.savedGame; return g ? this.opponents.find((x) => x.id === g.oppId) : null; },
+    resumeSaved() { const o = this.savedOpp; if (o) this.challenge(o, this.savedGame); },
+    dropSaved() { if (this.ntk) this.ntk.game = null; try { Storage.save(this.$store.game.state); } catch (e) {} },
+
     ntkInit() {
       ensureNguTu(this.$store.game.state);
       // deep-link: openNguTu(id) đặt sẵn _ntkOpp trên store
@@ -574,9 +605,9 @@ export function nguTuKy() {
       this.$watch('$store.game.view', (v) => { if (v !== 'nguTuKy' && this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; this.inBattle = false; } });
     },
 
-    challenge(o) {
+    challenge(o, saved) {
       if (this.inBattle) return;
-      this.opp = o; this.loadErr = ''; this.loading = true; this.inBattle = true;
+      this.opp = o; this._saved = saved || null; this.loadErr = ''; this.loading = true; this.inBattle = true;
       ensureThree().then(() => {
         this.loading = false;
         this.$nextTick(() => this._mount());
@@ -591,12 +622,21 @@ export function nguTuKy() {
         opponent: { name: o.ten || 'Đối Thủ', art: this.faceOf(o) },
         player: { name: (g.state.player || {}).name || 'Bạn', art: g.avatarSrc },
         difficulty: 1,   // TẤT CẢ đối thủ đánh ở mức khó tối đa (tier chỉ còn là nhãn lore theo rank)
+        saved: this._saved,
+        onMove: (snap) => this._persist(o.id, snap),
         onEnd: (result) => this._recordResult(o.id, result),
         onExit: () => this._exit(),
       });
+      this._saved = null;
+    },
+    _persist(id, snap) {
+      const n = this.ntk; if (!n) return;
+      n.game = { oppId: id, b: snap.b, cur: snap.cur };
+      try { Storage.save(this.$store.game.state); } catch (e) {}
     },
     _recordResult(id, result) {
       const n = this.ntk; if (!n.rec[id]) n.rec[id] = { w: 0, l: 0 };
+      n.game = null;   // ván đã xong -> bỏ bản lưu dở
       if (result === 1) { n.rec[id].w++; n.wins++; addKyHon(this.$store.game.state, 12); try { this.$store.game.checkTitles(); } catch (e) {} }   // Kỳ Hồn CHUNG + mở khoá Kỳ Nghệ tức thì
       else if (result === 2) { n.rec[id].l++; }
       try { Storage.save(this.$store.game.state); } catch (e) {}

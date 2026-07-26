@@ -25,6 +25,7 @@ export function ensureCoTuong(state) {
   const n = state.coTuong;
   if (!n.rec) n.rec = {};            // { danhsiId: { w, l } }
   if (n.wins == null) n.wins = 0;
+  if (n.game === undefined) n.game = null;   // ván dở (giữ qua F5)
   // Kỳ Hồn dùng CHUNG với Ngũ Tử Kỳ: nguồn duy nhất state.kyHon (engine/kyhon.js).
 }
 
@@ -200,6 +201,33 @@ const LINES = {
     'Vui thì vui, mà đến lượt hạ quân của các hạ rồi.', 'Nghe các hạ kể, suýt nữa quên mất cả lượt cờ.',
   ],
 };
+
+// ---------- Lưu/khôi phục ván dở (F5, rời view giữa chừng) ----------
+// Thế cờ nén thành chuỗi 90 ký tự: '.' ô trống · CHỮ HOA = ĐỎ · chữ thường = ĐEN.
+export function encodeBoard(b) {
+  let s = '';
+  for (let r = 0; r < 10; r++) for (let c = 0; c < 9; c++) {
+    const p = b[r][c];
+    s += p ? (p.red ? p.t : p.t.toLowerCase()) : '.';
+  }
+  return s;
+}
+export function decodeBoard(s) {
+  if (typeof s !== 'string' || s.length !== 90) return null;
+  const b = [];
+  for (let r = 0; r < 10; r++) {
+    const row = [];
+    for (let c = 0; c < 9; c++) {
+      const ch = s[r * 9 + c];
+      if (ch === '.') { row.push(null); continue; }
+      const up = ch.toUpperCase();
+      if ('KAEHRCS'.indexOf(up) < 0) return null;
+      row.push({ t: up, red: ch === up });
+    }
+    b.push(row);
+  }
+  return b;
+}
 
 const HAN = {
   red: { K: '帥', A: '仕', E: '相', H: '傌', R: '俥', C: '炮', S: '兵' },
@@ -514,7 +542,8 @@ function mountCoTuong(host, opts) {
     if (over) return;
     const wasCheck = inCheck(board, !HUMAN_RED);
     let mv = null;
-    try { mv = searchBest(board, !HUMAN_RED, { depth: 2 + Math.round(diff * 3), timeMs: 300 + Math.round(diff * 900), rand: (1 - diff) * 0.35 }); } catch (e) { mv = null; }
+    // ĐỘ KHÓ TỐI ĐA: để engine làm sâu dần tới 20 tầng, chỉ chặn bằng thời gian; KHÔNG nhiễu ngẫu nhiên.
+    try { mv = searchBest(board, !HUMAN_RED, { depth: 20, timeMs: 2400, rand: 0 }); } catch (e) { mv = null; }
     if (!mv) { const ms = legalMoves(board, !HUMAN_RED); mv = ms.length ? ms[(Math.random() * ms.length) | 0] : null; }
     if (!mv) return endGame(1, 'Đối thủ hết nước đi.');
     const cap = doMove(board, mv);
@@ -531,6 +560,7 @@ function mountCoTuong(host, opts) {
       const humanLost = (turnRed === HUMAN_RED);
       return endGame(humanLost ? 2 : 1, checked ? 'Chiếu bí!' : 'Hết nước đi!');
     }
+    persist();
   }
   function maybeBossSay(wasCheck) {
     if (saidN >= 4 || Math.random() > 0.34) return; saidN++;
@@ -552,14 +582,24 @@ function mountCoTuong(host, opts) {
     try { if (opts.onEnd) opts.onEnd(result); } catch (e) {}
   }
 
-  function resetGame() {
-    board = initBoard();
-    turnRed = true; over = false; saidN = 0; anims = [];
+  function resetGame(saved) {
+    const rb = (saved && saved.b) ? decodeBoard(saved.b) : null;   // khôi phục ván dở nếu có
+    board = rb || initBoard();
+    turnRed = rb ? (saved.red !== false) : true;
+    over = false; saidN = 0; anims = [];
     clearHints(); buildPieces();
     $('.ct-banner').classList.remove('show');
     const chk = $('.ct-chk'); if (chk) chk.classList.remove('show');
     turnUI();
-    try { setTimeout(() => { if (!over) bossSay('start'); }, 750); } catch (e) {}
+    if (rb) {
+      toast('Tiếp tục ván dở');
+      if (!turnRed) setTimeout(() => { if (!over) aiTurn(); }, 700);   // đang tới lượt đối thủ
+    } else {
+      try { setTimeout(() => { if (!over) bossSay('start'); }, 750); } catch (e) {}
+    }
+  }
+  function persist() {   // lưu thế cờ sau MỖI nước để F5 / rời view vẫn vào lại được
+    try { if (opts.onMove) opts.onMove({ b: encodeBoard(board), red: turnRed }); } catch (e) {}
   }
 
   function turnUI() {
@@ -677,7 +717,7 @@ function mountCoTuong(host, opts) {
   }
 
   // KHỞI ĐỘNG PHẢI Ở CUỐI: init() dùng NG/NGRID (const) — gọi sớm hơn dòng khai báo sẽ vướng vùng chết tạm thời.
-  try { init(); resetGame(); animate(); } catch (e) { fb(String(e && e.message || e)); return { destroy() {}, resize() {} }; }
+  try { init(); resetGame(opts.saved); animate(); } catch (e) { fb(String(e && e.message || e)); return { destroy() {}, resize() {} }; }
   setTimeout(onResize, 120); setTimeout(onResize, 500);
 
   return {
@@ -716,15 +756,21 @@ export function coTuong() {
       return ['Cao Thủ', 'Khó', 'Vừa', 'Dễ'].filter((t) => g[t].length).map((t) => ({ name: t, color: col[t], list: g[t] }));
     },
 
+    // ---- ván dở: giữ qua F5 / rời view giữa chừng ----
+    get savedGame() { const g = this.ct && this.ct.game; return (g && g.b && g.oppId) ? g : null; },
+    get savedOpp() { const g = this.savedGame; return g ? this.opponents.find((x) => x.id === g.oppId) : null; },
+    resumeSaved() { const o = this.savedOpp; if (o) this.challenge(o, this.savedGame); },
+    dropSaved() { if (this.ct) this.ct.game = null; try { Storage.save(this.$store.game.state); } catch (e) {} },
+
     ctInit() {
       ensureCoTuong(this.$store.game.state);
       const pre = this.$store.game._ctOpp; this.$store.game._ctOpp = null;
       if (pre) { const o = this.opponents.find((x) => x.id === pre); if (o) this.$nextTick(() => this.challenge(o)); }
       this.$watch('$store.game.view', (v) => { if (v !== 'coTuong' && this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; this.inBattle = false; } });
     },
-    challenge(o) {
+    challenge(o, saved) {
       if (this.inBattle) return;
-      this.opp = o; this.loadErr = ''; this.loading = true; this.inBattle = true;
+      this.opp = o; this._saved = saved || null; this.loadErr = ''; this.loading = true; this.inBattle = true;
       Promise.all([ensureThree(), ensureEngine(), ensureFont()]).then(() => { this.loading = false; this.$nextTick(() => this._mount()); })
         .catch((e) => { this.loading = false; this.inBattle = false; this.loadErr = String(e && e.message || e); });
     },
@@ -736,13 +782,22 @@ export function coTuong() {
       this._battle = mountCoTuong(host, {
         opponent: { name: o.ten || 'Đối Thủ', art: this.faceOf(o) },
         player: { name: (g.state.player || {}).name || 'Bạn', art: g.avatarSrc },
-        difficulty: this.diffOf(o),
+        difficulty: 1,   // TẤT CẢ Danh Sĩ đánh ở mức cao nhất (nhãn tầng chỉ còn là lore theo rank)
+        saved: this._saved,
+        onMove: (snap) => this._persist(o.id, snap),
         onEnd: (result) => this._recordResult(o.id, result),
         onExit: () => this._exit(),
       });
+      this._saved = null;
+    },
+    _persist(id, snap) {
+      const n = this.ct; if (!n) return;
+      n.game = { oppId: id, b: snap.b, red: snap.red };
+      try { Storage.save(this.$store.game.state); } catch (e) {}
     },
     _recordResult(id, result) {
       const n = this.ct; if (!n.rec[id]) n.rec[id] = { w: 0, l: 0 };
+      n.game = null;   // ván đã xong -> bỏ bản lưu dở
       if (result === 1) { n.rec[id].w++; n.wins++; addKyHon(this.$store.game.state, 20); try { this.$store.game.checkTitles(); } catch (e) {} }   // Kỳ Hồn CHUNG + mở khoá Kỳ Nghệ tức thì
       else if (result === 2) { n.rec[id].l++; }
       try { Storage.save(this.$store.game.state); } catch (e) {}
