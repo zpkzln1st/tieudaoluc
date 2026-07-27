@@ -18,8 +18,9 @@ import { createInitialState } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
 import { coTuong, ensureCoTuong } from './cotuong.js';               // Cờ Tướng (象棋 3D, cách ly)
-import { coVua, ensureCoVua } from './covua.js';
-import { tuuLau, ensureTuuLau } from './tuulau.js';                 // Tửu Lâu (quán rượu giang hồ, cách ly)                     // Cờ Vua (西洋棋 3D, cách ly)
+import { coVua, ensureCoVua } from './covua.js';                     // Cờ Vua (西洋棋 3D, cách ly)
+import { tuuLau, ensureTuuLau } from './tuulau.js';                  // Tửu Lâu (quán rượu giang hồ, cách ly)
+import { kiemHanFont } from './engine/hanfont.js';      // chữ Hán: nguồn chân lý + máy tự soát font
 import { ensureKyHon } from './engine/kyhon.js';                     // Kỳ Hồn dùng chung cho mọi bàn cờ
 import { ensureGocNhin } from './engine/gocnhin.js';                 // Góc nhìn bàn cờ người chơi tự khoá (dùng chung 3 bàn)
 import { kyTran, ensureKyTran } from './kytran.js';                  // Kỳ Trận (match-3 Cửu Cung, cách ly)
@@ -4280,6 +4281,9 @@ Alpine.store('game').ensureQuests();
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)
+// Soát chữ Hán: quên thêm chữ mới vào chuỗi &text= thì Console kêu ngay, khỏi phải tự mắt bắt.
+// kiemHanFont() tự nạp cả hai font rồi mới đo nên gọi lúc nào cũng được.
+setTimeout(() => { try { kiemHanFont(); } catch (e) {} }, 1500);
 Alpine.store('game').initCloud();           // Tài khoản/Cloud: khôi phục phiên Supabase (lazy, offline-safe)
 Alpine.store('game').initAuthorSeal();      // Ấn Ký Tác Giả: verify chứng chỉ ký số (offline-safe)
 
