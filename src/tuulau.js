@@ -55,6 +55,14 @@ export function tuuLau() {
     hoiDuocKhach(k) { try { return hoiDuoc(this.g.state, k.id, Date.now()); } catch (e) { return false; } },
     duTien(k) { return this.bac >= k.gia; },
 
+    // Câu GẦN NHẤT của chính khách này trên bảng — truyền xuống engine để nó bốc câu khác,
+    // không thì bấm liên tục ra y một câu (đúng chỗ bản đầu bị chê sơ sài).
+    cauCuoi(k) {
+      const ds = this.banTin || [];
+      for (let i = 0; i < ds.length; i++) if (ds[i].who === k.ten) return ds[i].txt;
+      return '';
+    },
+
     tlInit() {
       ensureTuuLau(this.g.state);
       this.doiChip();
@@ -69,7 +77,7 @@ export function tuuLau() {
       if (this.bac < k.gia) { g.showToast('Không đủ Bạc — chén này cần ' + g.fmt(k.gia) + '.'); return; }
       g.state.currencies.bac -= k.gia;
       const t = ensureTuuLau(g.state); t.chen++;
-      themDong(g.state, 'dap', k.ten, k.mau, loiMoiRuou(k, now), now);
+      themDong(g.state, 'dap', k.ten, k.mau, loiMoiRuou(k, now, this.cauCuoi(k)), now);
       const tin = tinDon(k, now);
       if (tin) { t.nghe++; themDong(g.state, 'tin', k.ten, k.mau, tin, now + 1); }
       else themDong(g.state, 'dap', k.ten, k.mau, 'Chuyện thì có, nhưng chưa tới lúc nói.', now + 1);
@@ -83,7 +91,7 @@ export function tuuLau() {
       if (!hoiDuoc(g.state, k.id, now)) { g.showToast(k.ten + ' vừa kể xong, để lát nữa hẵng hỏi.'); return; }
       const t = ensureTuuLau(g.state);
       t.hoiLan[k.id] = now;
-      themDong(g.state, 'dap', k.ten, k.mau, loiHoiChuyen(k, now), now);
+      themDong(g.state, 'dap', k.ten, k.mau, loiHoiChuyen(k, now, this.cauCuoi(k)), now);
       try { Storage.save(g.state); } catch (e) {}
     },
 
@@ -100,7 +108,7 @@ export function tuuLau() {
       if (ds.length) {
         const k = ds[(Math.random() * ds.length) | 0];
         setTimeout(() => {
-          try { themDong(g.state, 'dap', k.ten, k.mau, loiHoiChuyen(k, Date.now()), Date.now()); Storage.save(g.state); } catch (e) {}
+          try { themDong(g.state, 'dap', k.ten, k.mau, loiHoiChuyen(k, Date.now(), this.cauCuoi(k)), Date.now()); Storage.save(g.state); } catch (e) {}
         }, 700);
       }
       try { Storage.save(g.state); } catch (e) {}
