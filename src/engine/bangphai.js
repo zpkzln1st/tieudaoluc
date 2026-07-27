@@ -42,6 +42,12 @@ function h32(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) {
 function mix(a, b) { let h = (a ^ Math.imul(b >>> 0, 2654435761)) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; return h >>> 0; }
 const pick = (h, arr) => arr[(h >>> 0) % arr.length];
 
+export const ID_TU_LAP = 'bangTuLap';        // id riêng cho bang do người chơi lập
+export const LV_LAP_BANG = 200;              // Tổng Lv tối thiểu để lập bang — mốc giữa game
+export const NOI_MO = 200;                   // biên chiêu mộ: theo được người mạnh hơn mình tới +200 Tổng Lv
+export const PHI_LAP_BANG = 50000;           // Bạc — sink một chiều
+const NHAT_KY_MAX = 60;
+
 export function ensureBangPhai(state) {
   if (!state.bangPhai) state.bangPhai = {};
   const b = state.bangPhai;
@@ -49,11 +55,56 @@ export function ensureBangPhai(state) {
   if (typeof b.congTich !== 'number') b.congTich = 0;
   if (typeof b.gopBac !== 'number') b.gopBac = 0;
   if (typeof b.vaoLuc !== 'number') b.vaoLuc = 0;
+  if (b.tuLap === undefined) b.tuLap = null;      // bang DO NGƯỜI CHƠI LẬP (chỉ cái này mới lưu save)
+  if (!Array.isArray(b.nhatKy)) b.nhatKy = [];
+  if (!b.vu || typeof b.vu !== 'object') b.vu = { ngay: 0, xong: [], moc: null };
   return b;
+}
+
+export function ghiNhatKy(state, txt, now) {
+  const b = ensureBangPhai(state), ts = now || Date.now();
+  b.nhatKy.unshift({ id: 'nk' + ts + '_' + Math.round(Math.random() * 1e6), txt, ts });
+  if (b.nhatKy.length > NHAT_KY_MAX) b.nhatKy.length = NHAT_KY_MAX;
+  return b.nhatKy[0];
 }
 
 export const nhiemKyCua = (now) => Math.floor((now || Date.now()) / NHIEM_KY_MS);
 export const nhiemKyConLai = (now) => NHIEM_KY_MS - ((now || Date.now()) % NHIEM_KY_MS);
+
+// ============================================================
+// TÁN TU — bot không thuộc bang nào. Đây là nguồn CHIÊU MỘ cho bang tự lập.
+// (Nếu 200 bot đều có bang thì người chơi lập bang xong chẳng mời được ai.)
+// ============================================================
+const TAN_TU_PCT = 30;
+const laTanTu = (seed, i) => (mix(mix(seed >>> 0, 0x5EED), i) % 100) < TAN_TU_PCT;
+
+/** Giá chiêu mộ: cao thủ thì đắt. Sink Bạc một chiều. */
+export const giaChieuMo = (tongLv) => Math.round(2000 + Math.max(0, tongLv || 0) * 240);
+
+/**
+ * ⚠ CÂN BẰNG: cao thủ KHÔNG theo kẻ yếu hơn mình.
+ * Chỉ chiêu mộ được tán tu có Tổng Lv ≤ Tổng Lv của người chơi.
+ * Không có luật này thì vừa lập bang đã bốc trọn 25 tán tu mạnh nhất -> chiếm ngay 8/10 vùng,
+ * bang dựng sẵn thành vô nghĩa (đo được lúc chưa chặn).
+ */
+export function danhSachTanTu(world, now, tongLvNguoiChoi) {
+  const t = now || Date.now();
+  const seed = (world && world.seed) || 1, createdAt = (world && world.createdAt) || 0;
+  const roster = genRoster(seed, createdAt) || [];
+  // Tán tu yếu nhất đã ~Tổng Lv 388 nên phải có biên NOI_MO, không thì lập bang xong chẳng mời được ai.
+  const tran = (tongLvNguoiChoi == null) ? Infinity : Math.max(0, tongLvNguoiChoi) + NOI_MO;
+  const out = [];
+  for (let i = 0; i < roster.length; i++) {
+    if (!laTanTu(seed, i)) continue;
+    const b = roster[i], tong = botTotalLv(b, t);
+    out.push({
+      id: b.id, ten: b.name, lv: botCombatLv(b, t), tong,
+      hieu: botTitle(b, t), av: botAvatar(b), gia: giaChieuMo(tong),
+      theoDuoc: tong <= tran,
+    });
+  }
+  return out.sort((a, b) => b.tong - a.tong);
+}
 
 // ============================================================
 // DANH SÁCH BANG — suy từ seed. Bang chủ = Danh Sĩ, thành viên = bot.
@@ -65,9 +116,11 @@ export function danhSachBang(world, now) {
   const ds = danhSiList(t) || [];
   const out = [];
 
-  // Chia 200 bot thành 12 nhóm rời nhau — mỗi bot chỉ thuộc ĐÚNG một bang, không trùng.
+  // Chia bot thành 12 nhóm rời nhau — mỗi bot chỉ thuộc ĐÚNG một bang, không trùng.
+  // CHỪA ~30% làm TÁN TU (không bang) -> đó là nguồn để người chơi chiêu mộ khi tự lập bang.
   const nhom = []; for (let i = 0; i < SO_BANG; i++) nhom.push([]);
   for (let i = 0; i < roster.length; i++) {
+    if (laTanTu(seed, i)) continue;
     const g = mix(mix(seed >>> 0, 0x8AD1), i) % SO_BANG;
     if (nhom[g].length < CAP_THANH_VIEN) nhom[g].push(roster[i]);
   }
@@ -97,18 +150,57 @@ export function danhSachBang(world, now) {
   return out;
 }
 
-export function bangTheoId(world, now, id) {
+// ============================================================
+// BANG DO NGƯỜI CHƠI LẬP — dựng thành ĐỐI TƯỢNG CÙNG DẠNG với 12 bang kia,
+// để nó xếp hạng và tranh địa bàn ngang hàng, không phải hệ riêng cắm thêm.
+// ============================================================
+export function bangTuLap(state, world, now, tenNguoiChoi) {
+  const b = ensureBangPhai(state), L = b.tuLap;
+  if (!L) return null;
+  const t = now || Date.now();
+  const seed = (world && world.seed) || 1, createdAt = (world && world.createdAt) || 0;
+  const roster = genRoster(seed, createdAt) || [];
+  const theoId = {}; roster.forEach((r) => { theoId[r.id] = r; });
+  const tv = (L.thanhVien || []).map((id) => theoId[id]).filter(Boolean).map((r) => ({
+    id: r.id, ten: r.name, lv: botCombatLv(r, t), tong: botTotalLv(r, t),
+    hieu: botTitle(r, t), av: botAvatar(r),
+  })).sort((a, b2) => b2.lv - a.lv);
+  // Uy = sức thành viên + quỹ bang (1000 Bạc = 1 uy) -> góp quỹ có tác dụng THẬT lên tranh địa bàn
+  const uy = tv.reduce((s, m) => s + m.tong, 0) + Math.floor((L.quy || 0) / 1000);
+  return {
+    id: ID_TU_LAP, laCuaTa: true,
+    ten: L.ten, chuTen: tenNguoiChoi || 'Ngươi', chuId: null,
+    chuAnh: '', chuMau: '#f3d9a8', chuDao: 'Bang chủ',
+    tonChi: L.tonChi || '', thanhVien: tv, soTv: tv.length, uy,
+    quy: L.quy || 0, lapLuc: L.lapLuc || 0,
+    cap: Math.max(1, Math.min(20, 1 + Math.floor(uy / 900))),
+    canTong: 0,
+  };
+}
+
+/** 12 bang + (nếu có) bang tự lập, xếp hạng chung. Đây là danh sách dùng cho MỌI chỗ. */
+export function toanCanh(state, world, now, tenNguoiChoi) {
+  const ds = danhSachBang(world, now);
+  const mine = state ? bangTuLap(state, world, now, tenNguoiChoi) : null;
+  const all = mine ? ds.concat([mine]) : ds;
+  all.sort((a, b) => b.uy - a.uy);
+  all.forEach((b, i) => { b.hang = i + 1; });
+  return all;
+}
+
+export function bangTheoId(world, now, id, state, tenNguoiChoi) {
   if (!id) return null;
-  return danhSachBang(world, now).find((b) => b.id === id) || null;
+  if (id === ID_TU_LAP) return state ? bangTuLap(state, world, now, tenNguoiChoi) : null;
+  return toanCanh(state, world, now, tenNguoiChoi).find((b) => b.id === id) || null;
 }
 
 // ============================================================
 // ĐỊA BÀN — 10 vùng, mỗi nhiệm kỳ (7 ngày) xét lại ai trấn giữ.
 // Bang uy càng cao càng dễ chiếm vùng cấp cao. Deterministic theo (seed, nhiệm kỳ).
 // ============================================================
-export function diaBan(world, now) {
+export function diaBan(world, now, state, tenNguoiChoi) {
   const t = now || Date.now(), nk = nhiemKyCua(t);
-  const bangs = danhSachBang(world, t);
+  const bangs = toanCanh(state, world, t, tenNguoiChoi);   // bang tự lập TRANH NGANG HÀNG
   const seed = (world && world.seed) || 1;
   return LOCATIONS.map((loc, i) => {
     // ứng viên: bang nào cũng tranh, nhưng trọng số = uy × nhiễu theo (vùng, nhiệm kỳ)
@@ -131,9 +223,9 @@ export function diaBan(world, now) {
 }
 
 /** Số vùng một bang đang trấn giữ. */
-export function soDiaBan(world, now, bangId) {
+export function soDiaBan(world, now, bangId, state, tenNguoiChoi) {
   if (!bangId) return 0;
-  return diaBan(world, now).filter((v) => v.chuBangId === bangId).length;
+  return diaBan(world, now, state, tenNguoiChoi).filter((v) => v.chuBangId === bangId).length;
 }
 
 // ============================================================
@@ -170,4 +262,113 @@ export function roiBang(state) {
   const b = ensureBangPhai(state);
   b.bangId = null; b.congTich = 0; b.gopBac = 0; b.vaoLuc = 0;
   return b;
+}
+
+// ============================================================
+// TỰ LẬP BANG
+// ============================================================
+/** Tên hợp lệ chưa? Trả '' nếu ok, ngược lại trả lý do. */
+export function loiTenBang(ten, world, now) {
+  const s = String(ten || '').trim();
+  if (s.length < 2) return 'Tên bang phải từ 2 chữ trở lên.';
+  if (s.length > 16) return 'Tên bang không quá 16 chữ.';
+  if (/[<>&"'/\\]/.test(s)) return 'Tên bang có ký tự không dùng được.';
+  const trung = danhSachBang(world, now).some((b) => b.ten.toLowerCase() === s.toLowerCase());
+  if (trung) return 'Giang hồ đã có bang tên này rồi.';
+  return '';
+}
+
+export function lapBang(state, { ten, tonChi }, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  b.tuLap = { ten: String(ten).trim(), tonChi: String(tonChi || '').trim(), lapLuc: t, quy: 0, thanhVien: [] };
+  b.bangId = ID_TU_LAP; b.vaoLuc = t; b.congTich = 0; b.gopBac = 0;
+  ghiNhatKy(state, 'Lập bang <b>' + b.tuLap.ten + '</b>, dựng cờ tại giang hồ.', t);
+  return b.tuLap;
+}
+
+/** Giải tán: xoá sạch bang + Công Tích. Không hoàn Bạc. */
+export function giaiTan(state, now) {
+  const b = ensureBangPhai(state), ten = b.tuLap ? b.tuLap.ten : '';
+  b.tuLap = null; b.bangId = null; b.congTich = 0; b.gopBac = 0; b.vaoLuc = 0;
+  if (ten) ghiNhatKy(state, 'Giải tán <b>' + ten + '</b>. Cờ hạ, người tan.', now);
+  return b;
+}
+
+export function chieuMo(state, tt, now, tongLvNguoiChoi) {
+  const b = ensureBangPhai(state);
+  if (!b.tuLap || !tt) return false;
+  if (b.tuLap.thanhVien.length >= CAP_THANH_VIEN) return false;
+  if (b.tuLap.thanhVien.indexOf(tt.id) >= 0) return false;
+  // cao thủ không theo kẻ yếu hơn mình
+  if (tongLvNguoiChoi != null && (tt.tong || 0) > tongLvNguoiChoi + NOI_MO) return false;
+  b.tuLap.thanhVien.push(tt.id);
+  ghiNhatKy(state, '<b>' + tt.ten + '</b> (Lv ' + tt.lv + ') nhập bang.', now);
+  return true;
+}
+export function duoiNguoi(state, tt, now) {
+  const b = ensureBangPhai(state);
+  if (!b.tuLap) return false;
+  const i = b.tuLap.thanhVien.indexOf(tt.id);
+  if (i < 0) return false;
+  b.tuLap.thanhVien.splice(i, 1);
+  ghiNhatKy(state, '<b>' + tt.ten + '</b> rời bang.', now);
+  return true;
+}
+/** Góp vào QUỸ bang tự lập — quỹ tính vào uy (1000 Bạc = 1 uy) nên có tác dụng thật lên địa bàn. */
+export function gopQuy(state, bac, now) {
+  const b = ensureBangPhai(state), n = Math.max(0, Math.floor(bac || 0));
+  if (!b.tuLap || n <= 0) return 0;
+  b.tuLap.quy = (b.tuLap.quy || 0) + n;
+  b.congTich += n; b.gopBac += n;
+  ghiNhatKy(state, 'Góp <b>' + n.toLocaleString('vi-VN') + '</b> Bạc vào bang khố.', now);
+  return n;
+}
+
+// ============================================================
+// BANG VỤ — 3 việc mỗi ngày. Thưởng CÔNG TÍCH (0-power), không cho chỉ số.
+// Đo bằng cách chụp MỐC đầu ngày rồi lấy hiệu — khỏi phải thêm bộ đếm riêng.
+// ============================================================
+const NGAY_MS = 86400000;
+export const ngayCua = (now) => Math.floor((now || Date.now()) / NGAY_MS);
+
+function tongKills(state) {
+  const k = (state.counters && state.counters.kills) || {};
+  let s = 0; for (const id in k) if (Object.prototype.hasOwnProperty.call(k, id)) s += k[id] || 0;
+  return s;
+}
+function tongChen(state) { return (state.tuuLau && state.tuuLau.chen) || 0; }
+
+const VU = [
+  { id: 'gop', ten: 'Góp bang khố 5.000 Bạc', can: 5000, thuong: 500, do: (s, m) => Math.max(0, (s.bangPhai.gopBac || 0) - m.gopBac) },
+  { id: 'san', ten: 'Săn 20 yêu thú', can: 20, thuong: 400, do: (s, m) => Math.max(0, tongKills(s) - m.kills) },
+  { id: 'ruou', ten: 'Mời 3 chén ở Tửu Lâu', can: 3, thuong: 300, do: (s, m) => Math.max(0, tongChen(s) - m.chen) },
+];
+
+/** Gọi mỗi khi mở view — tự sang ngày mới thì chụp lại mốc. */
+export function ensureVu(state, now) {
+  const b = ensureBangPhai(state), ng = ngayCua(now);
+  if (b.vu.ngay !== ng || !b.vu.moc) {
+    b.vu = { ngay: ng, xong: [], moc: { gopBac: b.gopBac || 0, kills: tongKills(state), chen: tongChen(state) } };
+  }
+  return b.vu;
+}
+
+export function danhSachVu(state, now) {
+  const b = ensureBangPhai(state), v = ensureVu(state, now);
+  return VU.map((x) => {
+    const dat = Math.min(x.can, x.do(state, v.moc));
+    return { id: x.id, ten: x.ten, can: x.can, dat, xong: v.xong.indexOf(x.id) >= 0, dat100: dat >= x.can, thuong: x.thuong };
+  });
+}
+
+/** Nhận thưởng một việc đã đạt. Trả số Công Tích cộng thêm (0 nếu không nhận được). */
+export function nhanThuongVu(state, id, now) {
+  const b = ensureBangPhai(state), v = ensureVu(state, now);
+  const x = VU.find((y) => y.id === id); if (!x) return 0;
+  if (v.xong.indexOf(id) >= 0) return 0;
+  if (x.do(state, v.moc) < x.can) return 0;
+  v.xong.push(id);
+  b.congTich += x.thuong;
+  ghiNhatKy(state, 'Hoàn thành bang vụ — <b>' + x.ten + '</b>, được ' + x.thuong + ' Công Tích.', now);
+  return x.thuong;
 }

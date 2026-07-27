@@ -10959,7 +10959,7 @@
       <!-- ===== VIEW: NGŨ TỬ KỲ (cờ caro 3D — mini-game, cách ly 0-power) ===== -->
       <template x-if="$store.game.view==='nguTuKy'">
         <div class="max-w-[1200px] mx-auto" x-data="nguTuKy()" x-init="ntkInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[150px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/ngutuky_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/ngutuky_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
@@ -11015,7 +11015,7 @@
       <!-- ===== VIEW: CỜ TƯỚNG (象棋 3D — mini-game, cách ly 0-power) ===== -->
       <template x-if="$store.game.view==='coTuong'">
         <div class="max-w-[1200px] mx-auto" x-data="coTuong()" x-init="ctInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[150px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/cotuong_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/cotuong_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
@@ -11071,7 +11071,7 @@
       <!-- ===== VIEW: CỜ VUA (西洋棋 3D — mini-game, cách ly 0-power) ===== -->
       <template x-if="$store.game.view==='coVua'">
         <div class="max-w-[1200px] mx-auto" x-data="coVua()" x-init="cvInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[150px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/covua_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/covua_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
@@ -11130,7 +11130,7 @@
       <template x-if="$store.game.view==='guild'">
         <div class="max-w-[1200px] mx-auto" x-data="bangPhai()" x-init="bpInit()">
 
-          <div class="relative panel rounded-xl overflow-hidden min-h-[130px] flex flex-col justify-center">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/bangphai_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/bangphai_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5">
@@ -11158,7 +11158,12 @@
                     <div class="text-[11.5px] text-slate-400 mt-0.5">Bang chủ <b :style="'color:'+bangCuaTa.chuMau" x-text="bangCuaTa.chuTen"></b> <span class="text-slate-600" x-text="bangCuaTa.chuDao"></span></div>
                     <div class="text-[12px] text-slate-300 italic mt-1.5" x-text="'“'+bangCuaTa.tonChi+'”'"></div>
                   </div>
-                  <button @click="xinRoi()" class="shrink-0 px-3 py-1.5 rounded-lg text-[11.5px] fserif text-slate-400 border border-slate-700 hover:border-rose-500/60 hover:text-rose-300 transition">Rời Bang</button>
+                  <template x-if="!laBangChu">
+                    <button @click="xinRoi()" class="shrink-0 px-3 py-1.5 rounded-lg text-[11.5px] fserif text-slate-400 border border-slate-700 hover:border-rose-500/60 hover:text-rose-300 transition">Rời Bang</button>
+                  </template>
+                  <template x-if="laBangChu">
+                    <button @click="xinGiaiTan()" class="shrink-0 px-3 py-1.5 rounded-lg text-[11.5px] fserif text-slate-400 border border-slate-700 hover:border-rose-500/60 hover:text-rose-300 transition">Giải Tán</button>
+                  </template>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4">
@@ -11189,8 +11194,30 @@
                   </div>
                 </div>
 
+                <!-- BANG VỤ: 3 việc mỗi ngày, thưởng Công Tích (0-power) -->
                 <div class="mt-4 pt-3 border-t border-slate-800">
-                  <div class="lbl mb-2">Bang Chúng <span class="text-slate-600 normal-case" x-text="'· ' + bangCuaTa.soTv + ' người'"></span></div>
+                  <div class="lbl mb-2">Bang Vụ Hôm Nay</div>
+                  <div class="space-y-1.5">
+                    <template x-for="v in vu" :key="v.id">
+                      <div class="flex items-center gap-2.5 rounded-lg bg-ink2/50 border border-slate-800 px-2.5 py-2">
+                        <div class="min-w-0 flex-1">
+                          <div class="text-[12px] text-slate-200" x-text="v.ten"></div>
+                          <div class="h-1.5 rounded-full bg-ink mt-1 overflow-hidden">
+                            <div class="h-full rounded-full transition-all" :style="'width:'+Math.min(100, v.dat/v.can*100)+'%;background:linear-gradient(90deg,#0d9488,#22d3ee)'"></div>
+                          </div>
+                        </div>
+                        <div class="text-[10.5px] text-slate-500 shrink-0 tabular-nums" x-text="$store.game.fmt(v.dat)+'/'+$store.game.fmt(v.can)"></div>
+                        <button @click="nhanVu(v)" :disabled="!v.dat100 || v.xong"
+                          class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif border transition"
+                          :class="v.xong ? 'text-slate-600 border-slate-800' : (v.dat100 ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default')"
+                          x-text="v.xong ? 'Đã nhận' : ('+' + v.thuong)"></button>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800">
+                  <div class="lbl mb-2">Bang Chúng <span class="text-slate-600 normal-case" x-text="'· ' + bangCuaTa.soTv + '/' + tranTv + ' người'"></span></div>
                   <div class="max-h-[300px] overflow-y-auto divide-y divide-slate-800/60">
                     <template x-for="m in bangCuaTa.thanhVien" :key="m.id">
                       <div class="flex items-center gap-2.5 py-1.5">
@@ -11203,10 +11230,48 @@
                           <div class="text-[10.5px] text-slate-600 truncate" x-text="m.hieu"></div>
                         </div>
                         <div class="text-[11px] text-slate-500 shrink-0" x-text="'Lv '+m.lv"></div>
+                        <template x-if="laBangChu">
+                          <button @click="duoi(m)" class="shrink-0 text-[10.5px] text-slate-600 hover:text-rose-400 transition px-1">đuổi</button>
+                        </template>
                       </div>
+                    </template>
+                    <template x-if="!bangCuaTa.soTv">
+                      <div class="text-[11.5px] text-slate-600 italic py-3 text-center">Bang còn trống. Chiêu mộ tán tu ở dưới.</div>
                     </template>
                   </div>
                 </div>
+
+                <!-- CHIÊU MỘ: chỉ bang chủ (bang do mình lập) -->
+                <template x-if="laBangChu">
+                  <div class="mt-4 pt-3 border-t border-slate-800">
+                    <div class="flex items-baseline justify-between mb-1">
+                      <div class="lbl">Chiêu Mộ Tán Tu</div>
+                      <div class="text-[11px] text-slate-500" x-text="daMo.length + '/' + tranTv"></div>
+                    </div>
+                    <div class="text-[11px] text-slate-600 mb-2">Cao thủ không theo kẻ yếu hơn mình quá xa — chỉ mời được người có Tổng Lv không quá <b class="text-slate-500" x-text="tongLv + bienMo"></b>.</div>
+                    <div class="max-h-[260px] overflow-y-auto divide-y divide-slate-800/60">
+                      <template x-for="t in tanTu" :key="t.id">
+                        <div class="flex items-center gap-2.5 py-1.5" :class="daCoNguoi(t.id) ? 'opacity-40' : ''">
+                          <div class="w-7 h-7 rounded-full overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[11px] text-white/90" :class="t.av.color" x-data="{ok:true}">
+                            <img :src="'images/avatars/'+t.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                            <span x-show="!ok" class="fserif" x-text="t.av.char"></span>
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <div class="text-[12.5px] text-slate-200 truncate" x-text="t.ten"></div>
+                            <div class="text-[10.5px] text-slate-600 truncate" x-text="t.hieu + ' · Tổng Lv ' + t.tong"></div>
+                          </div>
+                          <template x-if="daCoNguoi(t.id)"><span class="text-[10.5px] text-jade shrink-0">đã trong bang</span></template>
+                          <template x-if="!daCoNguoi(t.id)">
+                            <button @click="mo(t)" :disabled="!t.theoDuoc || bac < t.gia"
+                              class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif border transition"
+                              :class="(t.theoDuoc && bac >= t.gia) ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                              x-text="t.theoDuoc ? ('Mời · ' + $store.game.fmt(t.gia)) : 'Không theo'"></button>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
               </div>
 
               <div class="panel rounded-xl overflow-hidden">
@@ -11229,6 +11294,22 @@
                     </div>
                   </template>
                 </div>
+
+                <div class="px-4 py-2.5 border-t border-b border-slate-800 flex items-center justify-between">
+                  <div class="text-jade font-bold fserif">Nhật Ký Bang</div>
+                  <div class="text-[10.5px] text-slate-600" x-text="nhatKy.length + ' mục'"></div>
+                </div>
+                <div class="max-h-[240px] overflow-y-auto divide-y divide-slate-800/60">
+                  <template x-for="n in nhatKy" :key="n.id">
+                    <div class="px-3.5 py-2">
+                      <div class="text-[12px] text-slate-300 leading-snug" x-html="n.txt"></div>
+                      <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="$store.game.notifAgo(n.ts)"></div>
+                    </div>
+                  </template>
+                  <template x-if="!nhatKy.length">
+                    <div class="px-3.5 py-4 text-[11.5px] text-slate-600 italic text-center">Chưa có gì đáng ghi.</div>
+                  </template>
+                </div>
               </div>
             </div>
           </template>
@@ -11236,7 +11317,52 @@
           <!-- CHƯA VÀO BANG -> duyệt danh sách -->
           <template x-if="!bangCuaTa">
             <div class="mt-4 space-y-2.5">
-              <div class="text-[12px] text-slate-500 px-1">Chọn một bang để xin gia nhập. Bang mạnh kén người hơn — xét theo <b class="text-slate-400">Tổng Lv</b> của ngươi (đang có <b class="text-cyan-300" x-text="tongLv"></b>).</div>
+              <!-- TỰ LẬP BANG -->
+              <div class="panel rounded-xl p-3.5 border border-amber-500/25">
+                <div class="flex items-start justify-between gap-3 flex-wrap">
+                  <div class="min-w-0">
+                    <div class="fserif text-[15px] text-amber-200">Tự Dựng Cờ</div>
+                    <div class="text-[11.5px] text-slate-400 mt-0.5">Không muốn dưới trướng ai thì tự lập bang, tự chiêu mộ tán tu.</div>
+                    <div class="text-[11px] text-slate-500 mt-1">
+                      Cần <b :class="tongLv >= lvCanLap ? 'text-jade' : 'text-rose-400'" x-text="'Tổng Lv ' + lvCanLap"></b>
+                      · <b :class="bac >= phiLap ? 'text-jade' : 'text-rose-400'" x-text="$store.game.fmt(phiLap) + ' Bạc'"></b>
+                      <span class="text-slate-600" x-text="'(đang có Tổng Lv ' + tongLv + ')'"></span>
+                    </div>
+                  </div>
+                  <button @click="moForm = !moForm" :disabled="!lapDuoc"
+                    class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] fserif border transition"
+                    :class="lapDuoc ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                    x-text="moForm ? 'Thôi' : 'Lập Bang'"></button>
+                </div>
+                <template x-if="moForm">
+                  <div class="mt-3 pt-3 border-t border-slate-800 space-y-2.5">
+                    <div>
+                      <div class="lbl mb-1">Tên Bang</div>
+                      <input x-model="tenMoi" type="text" maxlength="16" placeholder="Ví dụ: Cửu U Bang"
+                        class="w-full bg-ink border border-slate-700 rounded-lg px-3 py-1.5 text-[13px] text-slate-200 fserif outline-none focus:border-amber-500/60">
+                      <template x-if="loiTen"><div class="text-[11px] text-rose-400 mt-1" x-text="loiTen"></div></template>
+                    </div>
+                    <div>
+                      <div class="lbl mb-1">Tôn Chỉ</div>
+                      <div class="flex flex-wrap gap-1.5">
+                        <template x-for="t in tonChiSan" :key="t">
+                          <span @click="tonChiMoi = t"
+                            class="text-[11px] fserif rounded-full px-2.5 py-1 cursor-pointer border transition"
+                            :class="tonChiMoi === t ? 'text-amber-200 border-amber-500/60 bg-amber-500/10' : 'text-slate-400 border-slate-700 hover:border-slate-500'"
+                            x-text="t"></span>
+                        </template>
+                      </div>
+                    </div>
+                    <button @click="lap()" :disabled="!!loiTen || !tenMoi.trim()"
+                      class="px-4 py-1.5 rounded-lg text-[12px] fserif border transition"
+                      :class="(!loiTen && tenMoi.trim()) ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'">
+                      Dựng Cờ · <span x-text="$store.game.fmt(phiLap)"></span> Bạc
+                    </button>
+                  </div>
+                </template>
+              </div>
+
+              <div class="text-[12px] text-slate-500 px-1">Hoặc chọn một bang để xin gia nhập. Bang mạnh kén người hơn — xét theo <b class="text-slate-400">Tổng Lv</b> của ngươi (đang có <b class="text-cyan-300" x-text="tongLv"></b>).</div>
               <template x-for="b in dsBang" :key="b.id">
                 <div class="panel rounded-xl p-3">
                   <div class="flex items-start gap-3">
@@ -11286,10 +11412,11 @@
       <template x-if="$store.game.view==='tavern'">
         <div class="max-w-[1200px] mx-auto" x-data="tuuLau()" x-init="tlInit()">
 
-          <div class="panel rounded-xl p-4 sm:p-5 relative overflow-hidden">
-            <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(120% 100% at 0% 0%, rgba(224,180,95,.12), transparent 58%)"></div>
-            <div class="relative">
-              <div class="text-[22px] sm:text-[26px] gold-text fserif" style="line-height:1.32">
+          <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+            <img src="images/ui/tuulau_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/tuulau_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
+            <div class="relative px-5 py-5">
+              <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32">
                 <span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">酒楼</span> Tửu Lâu
               </div>
               <div class="text-[13px] text-slate-300/90 leading-snug mt-1.5 fserif">
