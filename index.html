@@ -11119,6 +11119,132 @@
         </div>
       </template>
 
+      <!-- ===== VIEW: TỬU LÂU (quán rượu giang hồ — cách ly 0-power) =====
+           Khách trong quán KHÔNG lưu vào save: suy từ (seed thế giới + mốc 30 phút) ở
+           engine/tuulau.js, nên F5 vẫn ra đúng người đó. Chỉ bảng tin là dữ liệu thật. -->
+      <template x-if="$store.game.view==='tavern'">
+        <div class="max-w-[1200px] mx-auto" x-data="tuuLau()" x-init="tlInit()">
+
+          <div class="panel rounded-xl p-4 sm:p-5 relative overflow-hidden">
+            <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(120% 100% at 0% 0%, rgba(224,180,95,.12), transparent 58%)"></div>
+            <div class="relative">
+              <div class="text-[22px] sm:text-[26px] gold-text fserif" style="line-height:1.32">
+                <span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">酒樓</span> Tửu Lâu
+              </div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-1.5 fserif">
+                <b class="text-amber-300">Rượu vào lời ra, giang hồ cả ở trong chén.</b>
+              </div>
+              <div class="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-slate-400">
+                <span>Đã mời <b class="text-amber-300" x-text="tl.chen"></b> chén</span>
+                <span>Nghe được <b class="text-cyan-300" x-text="tl.nghe"></b> tin đồn</span>
+                <span class="text-slate-500">Lượt khách đổi sau <b class="text-slate-300" x-text="conLai"></b></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 lg:grid lg:grid-cols-[1fr_380px] lg:gap-4 lg:items-start space-y-4 lg:space-y-0">
+
+            <!-- TRÁI: bàn rượu -->
+            <div class="panel rounded-xl p-3 sm:p-4 min-w-0">
+              <div class="flex items-baseline justify-between mb-3">
+                <div class="text-jade font-bold fserif">Bàn Rượu <span class="text-slate-500 text-[12px] font-normal" x-text="'· ' + khach.length + '/' + soGhe + ' ghế'"></span></div>
+                <span class="text-[11px] text-slate-600 hidden sm:block">Mời rượu để nghe chuyện</span>
+              </div>
+              <div class="grid gap-2.5 sm:grid-cols-2">
+                <template x-for="k in khach" :key="k.id">
+                  <div class="rounded-xl border border-slate-800 bg-ink2/50 p-3 flex gap-3 min-w-0">
+                    <div class="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-ink3 border border-slate-700 flex items-center justify-center">
+                      <template x-if="k.loai==='danhsi'">
+                        <img :src="k.anh" alt="" class="w-full h-full object-cover" style="object-position:50% 18%" onerror="this.remove()">
+                      </template>
+                      <template x-if="k.loai==='bot'">
+                        <div class="w-full h-full flex items-center justify-center text-[15px] text-white/90 bg-gradient-to-br" :class="k.av.color" x-data="{ok:true}">
+                          <img :src="'images/avatars/'+k.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                          <span x-show="!ok" class="fserif" x-text="k.av.char"></span>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-baseline gap-2 min-w-0">
+                        <b class="fserif text-[13.5px] truncate" :style="'color:'+k.mau" x-text="k.ten"></b>
+                        <span class="text-[10.5px] text-slate-500 truncate" x-text="k.phu"></span>
+                      </div>
+                      <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="k.cap"></div>
+                      <div class="text-[12px] text-slate-300 italic leading-snug mt-1.5" x-text="'“'+k.cau+'”'"></div>
+                      <div class="flex flex-wrap items-center gap-2 mt-2.5">
+                        <button @click="moiRuou(k)" :disabled="!duTien(k)"
+                          class="px-3 py-1 rounded-lg text-[11.5px] fserif border transition"
+                          :class="duTien(k) ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'">
+                          Mời Rượu · <span x-text="$store.game.fmt(k.gia)"></span>
+                        </button>
+                        <button @click="hoiChuyen(k)"
+                          class="px-3 py-1 rounded-lg text-[11.5px] fserif border transition"
+                          :class="hoiDuocKhach(k) ? 'text-cyan-200 border-cyan-500/50 hover:border-cyan-400 hover:bg-cyan-500/10' : 'text-slate-600 border-slate-800'">
+                          Hỏi Chuyện
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+
+              <!-- góp chuyện -->
+              <div class="mt-4 pt-3 border-t border-slate-800">
+                <div class="lbl mb-2">Góp Chuyện</div>
+                <div class="flex flex-wrap gap-1.5 mb-2">
+                  <template x-for="c in chips" :key="c">
+                    <span @click="gopChuyen(c)" class="text-[11px] fserif text-slate-400 bg-ink3 border border-slate-700 rounded-full px-2.5 py-1 cursor-pointer hover:border-jade/50 hover:text-slate-200 transition" x-text="c"></span>
+                  </template>
+                </div>
+                <div class="flex gap-2">
+                  <input x-model="loi" @keydown.enter="gopChuyen()" type="text" maxlength="80" placeholder="Nói một câu…"
+                    class="flex-1 min-w-0 bg-ink border border-slate-700 rounded-lg px-3 py-1.5 text-[12.5px] text-slate-200 fserif outline-none focus:border-jade/60">
+                  <button @click="gopChuyen()" class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] fserif text-amber-200 border border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10 transition">Nói</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PHẢI: bảng tin — trộn chuyện trong quán + tin giang hồ -->
+            <div class="panel rounded-xl overflow-hidden">
+              <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-800">
+                <div class="text-jade font-bold fserif">Chuyện Trong Quán</div>
+                <div class="text-[10.5px] text-slate-600">Nghe lỏm bốn phương</div>
+              </div>
+              <div class="divide-y divide-slate-800/60 max-h-[560px] overflow-y-auto">
+                <template x-for="n in banTin" :key="n.id">
+                  <div class="px-3.5 py-2.5">
+                    <div class="text-[12.5px] leading-snug">
+                      <b class="fserif" :style="'color:'+n.whoHex" x-text="n.who"></b>
+                      <span class="text-slate-300" x-html="n.txt"></span>
+                    </div>
+                    <div class="text-[10.5px] mt-0.5 flex items-center gap-2">
+                      <span :class="n.kind==='tin' ? 'text-cyan-400/80' : n.kind==='loi' ? 'text-amber-300/80' : 'text-slate-600'"
+                        x-text="n.kind==='tin' ? 'tin đồn' : n.kind==='loi' ? 'ngươi nói' : 'đáp lời'"></span>
+                      <span class="text-slate-600" x-text="$store.game.notifAgo(n.ts)"></span>
+                    </div>
+                  </div>
+                </template>
+                <template x-for="n in $store.game.jiangHuFeed" :key="'jh'+n.id">
+                  <div class="flex gap-3 px-3.5 py-2.5">
+                    <div class="relative shrink-0 w-8 h-8">
+                      <div class="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90" :class="n.av.color" x-data="{ok:true}">
+                        <img :src="'images/avatars/'+n.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                        <span x-show="!ok" class="fserif" x-text="n.av.char"></span>
+                      </div>
+                      <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full" :style="'background:'+n.hex+';box-shadow:0 0 0 2px #0f1521'"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-[12.5px] leading-snug"><b class="fserif" :style="'color:'+n.whoHex" x-text="n.who"></b> <span class="text-slate-300" x-html="n.txt"></span></div>
+                      <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="$store.game.notifAgo(n.ts)"></div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <!-- ===== VIEW: ĐỘNG PHỦ (nhà riêng — cách ly 0-power) ===== -->
       <style>
         .dp-root{ --dpg:#c9a24b; --dpg2:#e8c877; --dpg3:#f5d089; --dpl:rgba(201,162,75,.28); --dpls:rgba(201,162,75,.16);
