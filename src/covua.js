@@ -983,8 +983,31 @@ function mountCoVua(host, opts) {
       if (firstFit || Math.abs(sph.r - SPH0.r) > SPH0.r * 0.25) { sph.r = SPH0.r; firstFit = false; }
     }
     camera.updateProjectionMatrix();
-    if (BTN || TOP) camera.setViewOffset(w, uh, 0, -TOP, w, h); else camera.clearViewOffset();
+    camera.setViewOffset(w, uh, 0, -TOP, w, h);
     updCam();
+    // ⚠ CÂN DỌC. fits() chỉ bảo đảm bàn LỌT khung, KHÔNG bảo đảm nằm GIỮA: mép gần chiếu to hơn
+    // mép xa nên hộp bao luôn bị đẩy lệch. Đo hộp bao THẬT trên màn rồi dịch khung bù lại.
+    // Tăng offsetY thì nội dung dâng LÊN.
+    const lech = ndcGiua();
+    if (isFinite(lech) && Math.abs(lech) > 0.002) { camera.setViewOffset(w, uh, 0, -TOP + lech * h / 2, w, h); updCam(); }
+  }
+  // Tâm dọc hộp bao (bàn + ĐỈNH QUÂN) trên màn, đơn vị NDC (-1 = đỉnh khung, +1 = đáy khung).
+  // NaN khi chưa đo được (điểm ra sau lưng camera) -> bên gọi bỏ qua, không dịch bừa.
+  function ndcGiua() {
+    if (!camera) return NaN;
+    camera.updateMatrixWorld();
+    const hw = WU / 2, hd = HU / 2, v = new THREE.Vector3();
+    const pts = [];
+    [[-hw, -hd], [0, -hd], [hw, -hd], [-hw, hd], [0, hd], [hw, hd], [-hw, 0], [hw, 0]].forEach((q) => pts.push([q[0], TOPY, q[1]]));
+    [-3.5, 0, 3.5].forEach((x) => [-3.5, 3.5].forEach((z) => pts.push([x, TOPY + PTOP, z])));   // đỉnh quân hàng cuối
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      v.set(pts[i][0], pts[i][1], pts[i][2]).project(camera);
+      const y = -v.y;
+      if (!isFinite(y) || Math.abs(y) > 5) return NaN;
+      if (y < lo) lo = y; if (y > hi) hi = y;
+    }
+    return (lo + hi) / 2;
   }
   function animate() {
     rafId = requestAnimationFrame(animate);

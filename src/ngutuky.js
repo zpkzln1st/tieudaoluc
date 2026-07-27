@@ -689,8 +689,29 @@ function mountNguTu(host, opts) {
     }
     if (scene && scene.fog) { scene.fog.near = sph.r * 0.97; scene.fog.far = sph.r * 2.42; }   // co giãn fog theo r (khỏi xỉn màu)
     camera.updateProjectionMatrix();
-    if (BTN || TOP) camera.setViewOffset(w, uh, 0, -TOP, w, h); else camera.clearViewOffset();
+    camera.setViewOffset(w, uh, 0, -TOP, w, h);
     updCam();
+    // ⚠ CÂN DỌC. fits() chỉ bảo đảm bàn LỌT khung, KHÔNG bảo đảm nằm GIỮA: mép gần chiếu to hơn
+    // mép xa nên hộp bao luôn bị đẩy lệch. Đo hộp bao THẬT trên màn rồi dịch khung bù lại.
+    // Tăng offsetY thì nội dung dâng LÊN.
+    const lech = ndcGiua();
+    if (isFinite(lech) && Math.abs(lech) > 0.002) { camera.setViewOffset(w, uh, 0, -TOP + lech * h / 2, w, h); updCam(); }
+  }
+  // Tâm dọc hộp bao bàn cờ trên màn, đơn vị NDC (-1 = đỉnh khung, +1 = đáy khung).
+  // NaN khi chưa đo được (điểm ra sau lưng camera) -> bên gọi bỏ qua, không dịch bừa.
+  function ndcGiua() {
+    if (!camera) return NaN;
+    camera.updateMatrixWorld();
+    const hb = 4.63, v = new THREE.Vector3();
+    const pts = [[-hb, -hb], [0, -hb], [hb, -hb], [-hb, hb], [0, hb], [hb, hb], [-hb, 0], [hb, 0]];
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      v.set(pts[i][0], 0.05, pts[i][1]).project(camera);
+      const y = -v.y;
+      if (!isFinite(y) || Math.abs(y) > 5) return NaN;
+      if (y < lo) lo = y; if (y > hi) hi = y;
+    }
+    return (lo + hi) / 2;
   }
   // camera ĐUỔI THEO đích (giảm chấn) -> mọi thao tác đều mềm, không giật
   function animate() { rafId = requestAnimationFrame(animate); const k = 0.16, dt = tgt.theta - sph.theta, dp = tgt.phi - sph.phi, drr = tgt.r - sph.r; if (Math.abs(dt) > 1e-5 || Math.abs(dp) > 1e-5 || Math.abs(drr) > 1e-4) { sph.theta += dt * k; sph.phi += dp * k; sph.r += drr * k * 0.9; updCam(); } else if (ret) ret = null; if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 7.6) ar[i] = -0.2; } pa.needsUpdate = true; } renderer.render(scene, camera); }

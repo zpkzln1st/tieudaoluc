@@ -3482,12 +3482,14 @@
           <div class="grid lg:grid-cols-[1fr_330px] gap-3 items-start">
           <!-- Bảng -->
           <div class="panel rounded-xl p-3 sm:p-4">
-            <div class="flex flex-wrap items-center gap-2 mb-3 px-1">
-              <button @click="$store.game.pvbTab='caothu'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='caothu'?'border-jade/50 bg-jade/10 text-jade':'border-slate-700 text-slate-400 hover:border-slate-600'">Cao Thủ Bảng</button>
-              <button @click="$store.game.pvbTab='tongmon'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='tongmon'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Tông Môn Bảng</button>
-              <button @click="$store.game.pvbTab='danhsi'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='danhsi'?'border-cyan/50 bg-cyan/10 text-cyan':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Bảng</button>
-              <button @click="$store.game.pvbTab='dangTien'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='dangTien'?'border-violet-400/50 bg-violet-500/10 text-violet-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Mộng Cảnh Bảng</button>
-              <button @click="$store.game.pvbTab='kyTran'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition" :class="$store.game.pvbTab==='kyTran'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Trận Đồ Bảng</button>
+            <!-- Mobile: 5 tab wrap thành 3 dòng và dòng cuối chỉ có 1 tab đứng lẻ.
+                 -> một hàng VUỐT NGANG, đỡ tốn chiều cao mà không còn tab mồ côi. Từ sm trở lên wrap như cũ. -->
+            <div class="flex flex-nowrap sm:flex-wrap items-center gap-2 mb-3 px-1 overflow-x-auto sm:overflow-visible no-scrollbar">
+              <button @click="$store.game.pvbTab='caothu'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition shrink-0" :class="$store.game.pvbTab==='caothu'?'border-jade/50 bg-jade/10 text-jade':'border-slate-700 text-slate-400 hover:border-slate-600'">Cao Thủ Bảng</button>
+              <button @click="$store.game.pvbTab='tongmon'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition shrink-0" :class="$store.game.pvbTab==='tongmon'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Tông Môn Bảng</button>
+              <button @click="$store.game.pvbTab='danhsi'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition shrink-0" :class="$store.game.pvbTab==='danhsi'?'border-cyan/50 bg-cyan/10 text-cyan':'border-slate-700 text-slate-400 hover:border-slate-600'">Danh Sĩ Bảng</button>
+              <button @click="$store.game.pvbTab='dangTien'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition shrink-0" :class="$store.game.pvbTab==='dangTien'?'border-violet-400/50 bg-violet-500/10 text-violet-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Mộng Cảnh Bảng</button>
+              <button @click="$store.game.pvbTab='kyTran'" class="text-[13px] font-bold fserif px-3 py-1.5 rounded-lg border transition shrink-0" :class="$store.game.pvbTab==='kyTran'?'border-amber-500/50 bg-amber-500/10 text-amber-200':'border-slate-700 text-slate-400 hover:border-slate-600'">Trận Đồ Bảng</button>
             </div>
             <!-- ===== CAO THỦ BẢNG ===== -->
             <div x-show="$store.game.pvbTab==='caothu'">
@@ -3830,12 +3832,18 @@
                   </div>
                 </div>
                 <!-- FOOTER -->
-                <div class="shrink-0 flex items-center justify-between gap-3 px-4 py-2.5 border-t border-slate-800" style="background:rgba(15,21,33,.5)">
-                  <div class="text-[11px] text-slate-500 italic truncate" x-text="'“'+p.tamCanh+'”'"></div>
-                  <div class="flex items-center gap-3 shrink-0">
-                    <span class="text-[11px] text-slate-500 hidden sm:inline">Hạng <b class="text-cyan" x-text="p.rank"></b>/<span x-text="p.total"></span> Danh Sĩ</span>
-                    <button @click="$store.game.openNguTu(p.id)" class="px-4 py-1.5 rounded-lg text-[12px] text-cyan-200 border border-cyan-500/50 hover:border-cyan-400 hover:text-cyan-100 transition">Tỷ Thí Ngũ Tử Kỳ</button>
-                    <button @click="$store.game.closeDanhSi()" class="px-4 py-1.5 rounded-lg text-[12px] text-slate-300 border border-slate-700 hover:border-slate-500">Đóng</button>
+                <!-- FOOTER. Ba bàn cờ đều mở được từ đây (openNguTu/openCoTuong/openCoVua đã có sẵn
+                     trong store từ lâu nhưng trước giờ chỉ Ngũ Tử Kỳ được nối dây).
+                     Chữ "Tỷ Thí" tách ra làm nhãn chung, khỏi lặp 3 lần cho khỏi tràn hàng. -->
+                <div class="shrink-0 flex items-center justify-between gap-x-3 gap-y-2 px-4 py-2.5 border-t border-slate-800 flex-wrap" style="background:rgba(15,21,33,.5)">
+                  <div class="text-[11px] text-slate-500 italic truncate min-w-0 flex-1" x-text="'“'+p.tamCanh+'”'"></div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-[11px] text-slate-500 hidden xl:inline">Hạng <b class="text-cyan" x-text="p.rank"></b>/<span x-text="p.total"></span> Danh Sĩ</span>
+                    <span class="text-[11px] text-slate-500 shrink-0">Tỷ Thí</span>
+                    <button @click="$store.game.openNguTu(p.id)" class="px-3 py-1.5 rounded-lg text-[12px] shrink-0 text-cyan-200 border border-cyan-500/50 hover:border-cyan-400 hover:text-cyan-100 transition">Ngũ Tử Kỳ</button>
+                    <button @click="$store.game.openCoTuong(p.id)" class="px-3 py-1.5 rounded-lg text-[12px] shrink-0 text-amber-200 border border-amber-500/50 hover:border-amber-400 hover:text-amber-100 transition">Cờ Tướng</button>
+                    <button @click="$store.game.openCoVua(p.id)" class="px-3 py-1.5 rounded-lg text-[12px] shrink-0 text-slate-200 border border-slate-400/50 hover:border-slate-300 hover:text-white transition">Cờ Vua</button>
+                    <button @click="$store.game.closeDanhSi()" class="px-3 py-1.5 rounded-lg text-[12px] shrink-0 text-slate-300 border border-slate-700 hover:border-slate-500">Đóng</button>
                   </div>
                 </div>
               </div>
@@ -5126,9 +5134,10 @@
           </div>
 
           <!-- Tabs -->
-          <div class="panel rounded-lg p-2 flex items-center gap-1.5 flex-wrap">
+          <!-- Mobile: 7 phổ wrap thành 4 dòng, dòng cuối trơ một tab. -> hàng VUỐT NGANG. -->
+          <div class="panel rounded-lg p-2 flex items-center gap-1.5 flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible no-scrollbar">
             <template x-for="c in g.codexCats" :key="c.key">
-              <button @click="g.codexTab=c.key; g.codexDetail=null" class="px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition" :class="g.codexTab===c.key ? 'bg-jade text-ink' : 'bg-ink3 text-slate-400 hover:text-slate-200'">
+              <button @click="g.codexTab=c.key; g.codexDetail=null" class="px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 transition shrink-0" :class="g.codexTab===c.key ? 'bg-jade text-ink' : 'bg-ink3 text-slate-400 hover:text-slate-200'">
                 <span x-text="c.name"></span>
                 <span class="text-[10px] px-1.5 rounded-full" :class="g.codexTab===c.key?'bg-ink/20 text-ink':'bg-ink2 text-slate-500'" x-text="g.codexCatDoneN(c)+'/'+c.entries.length"></span>
               </button>
