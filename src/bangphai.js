@@ -115,14 +115,19 @@ export function bangPhai() {
     },
 
     xuat() {
-      const g = this.g, c = this.ct;
+      const g = this.g;
+      // Chốt lại chu kỳ TRƯỚC: nếu vừa lật chu kỳ đúng lúc bấm thì mục tiêu đã khác,
+      // xuatTran sẽ trả 0 mà toast vẫn báo thành công — đánh vào khoảng không.
+      try { ensureCongThanh(g.state, this.world, Date.now(), this.combatLv); } catch (e) {}
+      this._t = Date.now();
+      const c = this.ct;
       if (!c) return;
       if (c.daNhan) { g.showToast('Thành đã hạ rồi — chờ trận sau.'); return; }
       if (c.luot >= c.tranLuot) { g.showToast('Hết ' + c.tranLuot + ' lượt xuất trận của chu kỳ này.'); return; }
       if (c.cdConMs > 0) { g.showToast('Còn phải lấy sức ' + this.choTxt(c.cdConMs) + ' nữa.'); return; }
       const d = dameMotTran(g.state, c.boss.id, c.he);
       if (!d) { g.showToast('Chưa bày bài võ thì xuất trận sao được.'); return; }
-      xuatTran(g.state, d, Date.now());
+      if (!xuatTran(g.state, d, Date.now())) { g.showToast('Chưa xuất trận được lúc này.'); return; }
       this._t = Date.now();                       // ép mọi getter tính lại ngay
       const w = chotCongThanh(g.state, this.bangCuaTa, this.world, Date.now(), this.combatLv);
       try { Storage.save(g.state); } catch (e) {}
