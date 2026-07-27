@@ -11144,6 +11144,81 @@
             </div>
           </div>
 
+          <!-- ===== CÔNG THÀNH — cả bang vây một Yêu Vương =====
+               Tái dùng nguyên YEU_VUONG + bộ mô phỏng trận của engine/worldboss.js (hàm
+               dameMotTran), KHÔNG đụng state.boss: không cooldown Yêu Vương, không dưỡng
+               thương, không thưởng đồ. Thắng chỉ được Công Tích + uy tạm 24 giờ (0-power).
+               Bang chúng bào tường liên tục theo thời gian nên chạy cả lúc đóng game. -->
+          <template x-if="bangCuaTa && ct">
+            <div class="panel rounded-xl overflow-hidden mt-4"
+                 :class="ct.daNhan ? 'border border-amber-500/30' : ''">
+              <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                <div class="text-jade font-bold fserif">Công Thành</div>
+                <div class="text-[10.5px] text-slate-600">Trận sau sau <b class="text-slate-400" x-text="choTxt(ct.conLaiMs)"></b></div>
+              </div>
+
+              <div class="p-3 sm:p-4">
+                <div class="flex items-start gap-3 flex-wrap">
+                  <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 flex items-center justify-center border"
+                       :style="'font-size:34px; background:radial-gradient(circle,' + $store.game.heHex(ct.he) + '33,#05070d); border-color:' + $store.game.heHex(ct.he) + '55'"
+                       x-html="$store.game.ico(ct.boss.id, ct.boss.icon)"></div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                      <b class="fserif text-[15.5px] text-rose-200" x-text="ct.boss.name"></b>
+                      <span class="text-[10.5px] px-1.5 py-[1px] rounded-full border"
+                            :style="'color:' + $store.game.heHex(ct.he) + '; border-color:' + $store.game.heHex(ct.he) + '55'"
+                            x-text="'Hệ ' + $store.game.heInfo(ct.he).name"></span>
+                      <span class="text-[10.5px] text-slate-600" x-text="'Lv ' + ct.boss.reqLevel"></span>
+                    </div>
+                    <div class="text-[11.5px] text-slate-400 mt-1 leading-relaxed">
+                      Nó chiếm cứ một góc giang hồ. Bang chúng đã vây sẵn — bào tường suốt cả lúc ngươi không có mặt,
+                      nhưng <b class="text-slate-300">một mình họ không hạ nổi</b>.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tường thành: đoạn xám = công của bang chúng, đoạn vàng = công của ngươi -->
+                <div class="mt-3">
+                  <div class="flex items-baseline justify-between gap-2 text-[11px] mb-1 flex-wrap">
+                    <span class="text-slate-500">Tường thành</span>
+                    <span class="text-slate-500 tabular-nums">
+                      <b :class="ct.thang ? 'text-jade' : 'text-slate-300'" x-text="$store.game.fmt(ct.tong)"></b>
+                      / <span x-text="$store.game.fmt(ct.thanhHuyet)"></span>
+                      <b class="ml-1" :class="ct.thang ? 'text-jade' : 'text-amber-300'" x-text="ct.pct + '%'"></b>
+                    </span>
+                  </div>
+                  <div class="h-3 rounded-full bg-ink overflow-hidden flex border border-slate-800">
+                    <div class="h-full transition-all" :style="'width:' + Math.min(100, ct.dameBot / Math.max(1, ct.thanhHuyet) * 100) + '%; background:linear-gradient(90deg,#334155,#64748b)'"></div>
+                    <div class="h-full transition-all" :style="'width:' + Math.min(100 - Math.min(100, ct.dameBot / Math.max(1, ct.thanhHuyet) * 100), ct.dameNguoi / Math.max(1, ct.thanhHuyet) * 100) + '%; background:linear-gradient(90deg,#b45309,#fbbf24)'"></div>
+                  </div>
+                  <div class="flex items-center gap-x-4 gap-y-1 text-[10.5px] text-slate-500 mt-1.5 flex-wrap">
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span>Bang chúng <b class="text-slate-400" x-text="$store.game.fmt(ct.dameBot)"></b></span>
+                    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Của ngươi <b class="text-amber-300" x-text="$store.game.fmt(ct.dameNguoi)"></b> <span class="text-slate-600" x-text="'(' + ct.pctNguoi + '%)'"></span></span>
+                  </div>
+                </div>
+
+                <div class="mt-3 pt-3 border-t border-slate-800 flex items-center gap-3 flex-wrap">
+                  <template x-if="!ct.daNhan">
+                    <button @click="xuat()" :disabled="ct.luot >= ct.tranLuot || ct.cdConMs > 0"
+                      class="px-4 py-1.5 rounded-lg text-[12.5px] fserif border transition"
+                      :class="(ct.luot < ct.tranLuot && ct.cdConMs <= 0) ? 'text-rose-200 border-rose-500/50 hover:border-rose-400 hover:bg-rose-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                      x-text="ct.cdConMs > 0 ? ('Lấy sức · ' + choTxt(ct.cdConMs)) : (ct.luot >= ct.tranLuot ? 'Hết lượt' : 'Xuất Trận')"></button>
+                  </template>
+                  <template x-if="!ct.daNhan">
+                    <span class="text-[11px] text-slate-500">
+                      Còn <b class="text-slate-300" x-text="(ct.tranLuot - ct.luot)"></b>/<span x-text="ct.tranLuot"></span> lượt chu kỳ này ·
+                      hạ được thành thì bang thêm <b class="text-amber-300" x-text="'+' + uyTamSe"></b> uy tạm
+                    </span>
+                  </template>
+                  <template x-if="ct.daNhan">
+                    <div class="text-[12px] text-jade">Thành đã hạ. Uy tạm <b class="text-amber-300" x-text="'+' + uyTam"></b> còn <b class="text-amber-300" x-text="uyTamCon"></b>.</div>
+                  </template>
+                  <span class="text-[10.5px] text-slate-600 ml-auto">Thắng chỉ được Công Tích + uy tạm — <b class="text-slate-500">không cộng chỉ số, không rơi đồ</b>.</span>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- ===== THẾ LỰC ĐỒ — 10 vùng ai đang trấn giữ =====
                Dùng LẠI nền images/ui/worldmap.webp + toạ độ mapX/mapY của LOCATIONS nên vị trí
                khớp y hệt bản đồ hành trình. Mỗi vùng là một ấn cờ nhỏ tô màu bang đang giữ —
@@ -11250,7 +11325,12 @@
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4">
                   <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
-                    <div class="lbl">Uy Danh</div><div class="text-[16px] font-bold text-amber-300" x-text="$store.game.fmt(bangCuaTa.uy)"></div></div>
+                    <div class="lbl">Uy Danh</div>
+                    <div class="text-[16px] font-bold text-amber-300" x-text="$store.game.fmt(bangCuaTa.uy)"></div>
+                    <template x-if="uyTam">
+                      <div class="text-[10px] text-jade leading-tight" x-text="'gồm +' + uyTam + ' uy tạm · còn ' + uyTamCon"></div>
+                    </template>
+                  </div>
                   <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
                     <div class="lbl">Thành Viên</div><div class="text-[16px] font-bold text-cyan-300" x-text="bangCuaTa.soTv + '/' + tranTv"></div></div>
                   <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
@@ -11320,6 +11400,10 @@
                         <div class="shrink-0 text-right leading-tight">
                           <div class="text-[11.5px] text-slate-300 tabular-nums" x-text="'Lv '+m.lv"></div>
                           <div class="text-[10px] text-slate-600 tabular-nums" x-text="'Tổng '+m.tong"></div>
+                          <!-- công lao trận Công Thành đang diễn ra -->
+                          <template x-if="ct && congCua(m.id)">
+                            <div class="text-[10px] text-slate-500 tabular-nums" x-text="'bào ' + $store.game.fmt(congCua(m.id))"></div>
+                          </template>
                         </div>
                         <template x-if="laBangChu">
                           <button @click="duoi(m)" class="shrink-0 text-[10.5px] text-slate-600 hover:text-rose-400 transition px-1 self-center">đuổi</button>

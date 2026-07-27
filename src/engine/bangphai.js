@@ -17,6 +17,7 @@ import { LOCATIONS } from '../data/locations.js';
 import { danhSiList } from './danhsi.js';
 import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant } from './bots.js';
 import { CAT_HEX } from '../data/bots.js';
+import { YEU_VUONG } from '../data/combat.js';
 
 export const SO_BANG = 12;
 export const CAP_THANH_VIEN = 25;      // trần thành viên mỗi bang
@@ -66,6 +67,7 @@ export function ensureBangPhai(state) {
   if (typeof b.gopBac !== 'number') b.gopBac = 0;
   if (typeof b.vaoLuc !== 'number') b.vaoLuc = 0;
   if (typeof b.roiLuc !== 'number') b.roiLuc = 0; // mốc rời bang gần nhất -> khoá cửa CHO_VAO_LAI_MS
+  if (!b.ct || typeof b.ct !== 'object') b.ct = { ky: -1, bossId: '', gop: 0, luot: 0, cdDen: 0, thangKy: -1, uyTam: 0, uyDen: 0 };
   if (b.tuLap === undefined) b.tuLap = null;      // bang DO NGƯỜI CHƠI LẬP (chỉ cái này mới lưu save)
   if (!Array.isArray(b.nhatKy)) b.nhatKy = [];
   if (!b.vu || typeof b.vu !== 'object') b.vu = { ngay: 0, xong: [], moc: null };
@@ -203,11 +205,22 @@ export function bangTuLap(state, world, now, tenNguoiChoi) {
   };
 }
 
-/** 12 bang + (nếu có) bang tự lập, xếp hạng chung. Đây là danh sách dùng cho MỌI chỗ. */
+/**
+ * 12 bang + (nếu có) bang tự lập, xếp hạng chung. Đây là danh sách dùng cho MỌI chỗ.
+ * UY TẠM thắng Công Thành cộng vào bang người chơi đang ở — đây chính là chỗ nó ăn vào
+ * tranh địa bàn (diaBan gọi hàm này), chứ không phải một con số trưng cho vui.
+ */
 export function toanCanh(state, world, now, tenNguoiChoi) {
   const ds = danhSachBang(world, now);
   const mine = state ? bangTuLap(state, world, now, tenNguoiChoi) : null;
   const all = mine ? ds.concat([mine]) : ds;
+  if (state) {
+    const them = uyTamCua(state, now), bid = state.bangPhai && state.bangPhai.bangId;
+    if (them > 0 && bid) {
+      const b = all.find((x) => x.id === bid);
+      if (b) { b.uy += them; b.uyTam = them; }
+    }
+  }
   all.sort((a, b) => b.uy - a.uy);
   all.forEach((b, i) => { b.hang = i + 1; });
   return all;
@@ -315,8 +328,11 @@ export function roiBang(state, now) {
   const b = ensureBangPhai(state);
   b.bangId = null; b.congTich = 0; b.gopBac = 0; b.vaoLuc = 0;
   b.roiLuc = now || Date.now();
+  xoaCongThanh(b);       // uy tạm là công của BANG CŨ, mang sang bang mới thì vô lý
   return b;
 }
+/** Xoá sạch phần Công Thành — dùng khi rời/giải tán bang. */
+function xoaCongThanh(b) { b.ct = { ky: -1, bossId: '', gop: 0, luot: 0, cdDen: 0, thangKy: -1, uyTam: 0, uyDen: 0 }; }
 
 // ============================================================
 // TỰ LẬP BANG
@@ -348,6 +364,7 @@ export function giaiTan(state, now) {
   const b = ensureBangPhai(state), ten = b.tuLap ? b.tuLap.ten : '';
   b.tuLap = null; b.bangId = null; b.congTich = 0; b.gopBac = 0; b.vaoLuc = 0;
   b.roiLuc = now || Date.now();
+  xoaCongThanh(b);
   if (ten) ghiNhatKy(state, 'Giải tán <b>' + ten + '</b>. Cờ hạ, người tan.', now);
   return b;
 }
@@ -429,4 +446,148 @@ export function nhanThuongVu(state, id, now) {
   b.congTich += x.thuong;
   ghiNhatKy(state, 'Hoàn thành bang vụ — <b>' + x.ten + '</b>, được ' + x.thuong + ' Công Tích.', now);
   return x.thuong;
+}
+
+// ============================================================
+// CÔNG THÀNH — cả bang vây một Yêu Vương đang chiếm cứ giang hồ. Chu kỳ 12 giờ.
+//
+// Vì sao dựng thế này:
+//   · Tái dùng nguyên YEU_VUONG + bộ mô phỏng trận của worldboss.js — không đẻ thêm hệ combat.
+//   · Bang chúng (bot) góp sát thương LIÊN TỤC theo thời gian, suy từ seed nên chạy cả lúc
+//     offline, không cần vòng lặp nền, không lưu gì ngoài phần của người chơi.
+//   · Bot MỘT MÌNH không phá nổi thành (đo được ~50-78% tường tuỳ số bang chúng) — phải có
+//     người chơi xuất trận góp nốt. Đó là chỗ người chơi thấy mình có ích cho bang.
+//
+// ⚠ 0-POWER: thắng KHÔNG cho EXP / vật phẩm / Bạc — chỉ Công Tích (danh xưng) và UY TẠM.
+//    Uy tạm cộng vào uy bang trong 24 giờ nên ảnh hưởng THẬT lên tranh địa bàn, mà địa bàn
+//    cũng chỉ là danh tiếng. Không đụng một sợi tóc nào của kinh tế chính.
+//    Cũng KHÔNG đụng state.boss: không cooldown Yêu Vương, không dưỡng thương, không thưởng.
+// ============================================================
+export const CT_CHU_KY_MS = 12 * 3600 * 1000;       // mỗi ngày hai trận công thành
+export const CT_LUOT_TRAN = 6;                      // trần số lần người chơi xuất trận một chu kỳ
+export const CT_CD_MS = 30 * 60 * 1000;             // nghỉ lấy sức giữa hai lần
+// Uy tạm tính theo TỈ LỆ uy bang chứ không phải con số chết: thế giới càng lâu bot càng mạnh,
+// uy bang từ ~3.900 (save mới) lên hơn 10.000 (save cũ) — một con số cố định sẽ quá nặng lúc đầu
+// rồi thành vô nghĩa về sau. 12% là mức đo được vừa đủ lật 1 vùng ở khoảng 1/3 số nhiệm kỳ.
+export const CT_UY_TAM_PCT = 0.12;
+export const CT_UY_TAM_MIN = 400, CT_UY_TAM_MAX = 2500;
+export const CT_UY_TAM_MS = 24 * 3600 * 1000;       // uy tạm sống 24 giờ
+export const uyTamThuong = (uyBang) =>
+  Math.max(CT_UY_TAM_MIN, Math.min(CT_UY_TAM_MAX, Math.round(Math.max(0, uyBang || 0) * CT_UY_TAM_PCT)));
+const CT_TRAN_NEN = 3;                              // tường thành = (3 + 0,45×số bang chúng) × máu Yêu Vương
+const CT_TRAN_MOI_NGUOI = 0.45;
+const CT_GIO_MOI_NGUOI = 0.037;                     // mỗi bang chúng bào 3,7% máu Yêu Vương mỗi giờ
+const CT_THUONG_NEN = 300, CT_THUONG_CONG = 900;    // Công Tích: nền + phần theo công lao
+
+export const kyCongThanh = (now) => Math.floor((now || Date.now()) / CT_CHU_KY_MS);
+export const kyConLaiMs = (now) => CT_CHU_KY_MS - ((now || Date.now()) % CT_CHU_KY_MS);
+
+/**
+ * Yêu Vương của chu kỳ này — bốc trong 3 con CAO NHẤT mà người chơi đã mở khoá.
+ * Chọn theo cấp NGƯỜI CHƠI (không theo cấp bang) để ai cũng đánh được con vừa sức mình:
+ * tường thành và sát thương người chơi đều tỉ lệ với máu con đó nên công thức cân ở mọi cấp.
+ */
+export function bossCongThanh(world, now, combatLv) {
+  const mo = YEU_VUONG.filter((b) => b.reqLevel <= Math.max(10, combatLv || 0));
+  const pool = mo.length ? mo.slice(Math.max(0, mo.length - 3)) : [YEU_VUONG[0]];
+  const h = mix(mix(((world && world.seed) || 1) ^ 0x0C7A, 0x51E6), kyCongThanh(now));
+  return pool[h % pool.length];
+}
+/** Ngũ hành của Yêu Vương trong chu kỳ — cố định cả chu kỳ để mọi lần xuất trận cùng điều kiện. */
+const HE_CT = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
+export function heCongThanh(world, now) {
+  return HE_CT[mix(mix(((world && world.seed) || 1) ^ 0x33E1, 0x77B4), kyCongThanh(now)) % HE_CT.length];
+}
+
+/** Chuyển sang chu kỳ mới thì chốt lại mục tiêu + xoá công lao kỳ cũ. Uy tạm giữ nguyên tới lúc hết hạn. */
+export function ensureCongThanh(state, world, now, combatLv) {
+  const b = ensureBangPhai(state), t = now || Date.now(), ky = kyCongThanh(t);
+  if (b.ct.ky !== ky) {
+    b.ct.ky = ky; b.ct.bossId = bossCongThanh(world, t, combatLv).id;
+    b.ct.gop = 0; b.ct.luot = 0; b.ct.cdDen = 0;
+  }
+  return b.ct;
+}
+
+/** Công lao của MỘT bang chúng trong chu kỳ (cộng dồn theo giờ) — deterministic theo seed. */
+function gopMoiGio(m, boss, seed, ky) {
+  const j = 0.6 + (mix(mix((seed >>> 0) ^ 0x7A11, ky), h32(m.id)) % 1000) / 1000 * 0.8;   // 0,6-1,4
+  const hop = Math.max(0.75, Math.min(1.15, m.lv / Math.max(10, boss.reqLevel)));         // cấp so với Yêu Vương
+  return boss.hp * CT_GIO_MOI_NGUOI * j * hop;
+}
+
+/**
+ * Toàn cảnh trận công thành. THUẦN — không ghi state.
+ * Trả { boss, he, thanhHuyet, dameBot, dameNguoi, tong, pct, thang, cong[] , conLaiMs, luot, cdConMs }
+ */
+export function congThanh(state, bang, world, now, combatLv) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  const ky = kyCongThanh(t), seed = (world && world.seed) || 1;
+  const boss = bang ? (YEU_VUONG.find((x) => x.id === b.ct.bossId) || bossCongThanh(world, t, combatLv)) : null;
+  if (!bang || !boss) return null;
+  const tv = bang.thanhVien || [];
+  const gioTroi = Math.min(CT_CHU_KY_MS, t - ky * CT_CHU_KY_MS) / 3600000;
+  const thanhHuyet = Math.round(boss.hp * (CT_TRAN_NEN + tv.length * CT_TRAN_MOI_NGUOI));
+  const cong = tv.map((m) => ({ id: m.id, ten: m.ten, dame: Math.round(gopMoiGio(m, boss, seed, ky) * gioTroi) }));
+  const dameBot = cong.reduce((s, x) => s + x.dame, 0);
+  const dameNguoi = (b.ct.ky === ky) ? (b.ct.gop || 0) : 0;
+  const tong = dameBot + dameNguoi;
+  cong.sort((x, y) => y.dame - x.dame);
+  return {
+    boss, he: heCongThanh(world, t), thanhHuyet,
+    dameBot, dameNguoi, tong,
+    pct: Math.min(100, Math.round(tong / Math.max(1, thanhHuyet) * 100)),
+    pctNguoi: Math.min(100, Math.round(dameNguoi / Math.max(1, thanhHuyet) * 100)),
+    thang: tong >= thanhHuyet,
+    daNhan: b.ct.thangKy === ky,
+    cong,
+    conLaiMs: kyConLaiMs(t),
+    luot: (b.ct.ky === ky) ? (b.ct.luot || 0) : 0, tranLuot: CT_LUOT_TRAN,
+    cdConMs: Math.max(0, (b.ct.cdDen || 0) - t),
+  };
+}
+
+/** Ghi một lượt xuất trận. `dame` do lớp view lấy từ bộ mô phỏng của worldboss.js. Trả số ghi được. */
+export function xuatTran(state, dame, now) {
+  const b = ensureBangPhai(state), t = now || Date.now(), ky = kyCongThanh(t);
+  if (b.ct.ky !== ky) return 0;
+  if ((b.ct.luot || 0) >= CT_LUOT_TRAN) return 0;
+  if (t < (b.ct.cdDen || 0)) return 0;
+  const d = Math.max(0, Math.round(dame || 0));
+  b.ct.gop = (b.ct.gop || 0) + d;
+  b.ct.luot = (b.ct.luot || 0) + 1;
+  b.ct.cdDen = t + CT_CD_MS;
+  return d;
+}
+
+/**
+ * Hạ được thành thì chốt thưởng — gọi lúc mở view, mỗi nhịp tick và sau mỗi lượt xuất trận
+ * (thành có thể vỡ nhờ bang chúng bào lúc người chơi offline). Trả null nếu chưa tới lúc.
+ */
+export function chotCongThanh(state, bang, world, now, combatLv) {
+  const b = ensureBangPhai(state), t = now || Date.now(), ky = kyCongThanh(t);
+  const ct = congThanh(state, bang, world, t, combatLv);
+  if (!ct || !ct.thang || b.ct.thangKy === ky) return null;
+  b.ct.thangKy = ky;
+  // Trừ uy tạm đang có ra khỏi mốc gốc — nếu không, thắng liên tiếp trong 24 giờ sẽ tự nhân lên.
+  const uy = uyTamThuong((bang.uy || 0) - uyTamCua(state, t));
+  b.ct.uyTam = uy; b.ct.uyDen = t + CT_UY_TAM_MS;
+  const tiLe = Math.min(1, ct.dameNguoi / Math.max(1, ct.thanhHuyet));
+  const thuong = CT_THUONG_NEN + Math.round(tiLe * CT_THUONG_CONG);
+  b.congTich += thuong;
+  ghiNhatKy(state, 'Hạ <b>' + ct.boss.name + '</b> — bang uy chấn động, được ' + thuong
+    + ' Công Tích và <b>' + uy + '</b> uy tạm trong 24 giờ.', t);
+  return { thuong, uyTam: uy, boss: ct.boss.name, tiLe: Math.round(tiLe * 100) };
+}
+
+/** Uy tạm còn hiệu lực (0 nếu hết hạn / chưa có). */
+export function uyTamCua(state, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  if (!b.ct || !b.ct.uyTam || t >= (b.ct.uyDen || 0)) return 0;
+  return b.ct.uyTam;
+}
+export function uyTamConMs(state, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  if (!b.ct || !b.ct.uyTam) return 0;
+  return Math.max(0, (b.ct.uyDen || 0) - t);
 }

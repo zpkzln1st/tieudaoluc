@@ -12,7 +12,9 @@ import {
   danhSachTanTu, loiTenBang, lapBang, giaiTan, chieuMo, duoiNguoi, gopQuy,
   danhSachVu, nhanThuongVu, ensureVu, ID_TU_LAP, LV_LAP_BANG, PHI_LAP_BANG, NOI_MO,
   choConLai, dangCho, CHO_VAO_LAI_MS,
+  congThanh, xuatTran, chotCongThanh, ensureCongThanh, uyTamCua, uyTamConMs, CT_UY_TAM_PCT, uyTamThuong,
 } from './engine/bangphai.js';
+import { dameMotTran } from './engine/worldboss.js';   // mượn bộ mô phỏng trận, KHÔNG đụng state.boss
 
 export { ensureBangPhai };
 
@@ -80,6 +82,53 @@ export function bangPhai() {
     duSuc(b) { return duSucVao(b, this.tongLv); },
     chiTiet(b) { this.xemBang = (this.xemBang === b.id) ? null : b.id; },
     giuVung(bangId) { return this.vung.filter((v) => v.chuBangId === bangId); },
+
+    // ---------- CÔNG THÀNH ----------
+    get combatLv() { return this.g.combatLevel || 1; },
+    get ct() {
+      void this._t;
+      try { return congThanh(this.g.state, this.bangCuaTa, this.world, Date.now(), this.combatLv); } catch (e) { return null; }
+    },
+    get uyTam() { void this._t; try { return uyTamCua(this.g.state, Date.now()); } catch (e) { return 0; } },
+    get uyTamCon() { void this._t; try { return this.choTxt(uyTamConMs(this.g.state, Date.now())); } catch (e) { return ''; } },
+    /** Hạ được thành thì bang sẽ thêm bao nhiêu uy tạm — cho người chơi biết trước công sức đổi lấy gì. */
+    get uyTamSe() {
+      const b = this.bangCuaTa; if (!b) return 0;
+      return uyTamThuong((b.uy || 0) - this.uyTam);
+    },
+    get uyTamPct() { return Math.round(CT_UY_TAM_PCT * 100); },
+    /** Công lao của một bang chúng trong trận này (để ghép vào bảng Bang Chúng). */
+    congCua(id) { const c = this.ct; if (!c) return 0; const x = c.cong.find((y) => y.id === id); return x ? x.dame : 0; },
+
+    /** Chốt thưởng nếu thành đã vỡ — gọi lúc mở view + mỗi nhịp, vì bang chúng bào cả lúc offline. */
+    _soatCT() {
+      const g = this.g;
+      if (!this.bp || !this.bp.bangId) return;
+      try {
+        ensureCongThanh(g.state, this.world, Date.now(), this.combatLv);
+        const w = chotCongThanh(g.state, this.bangCuaTa, this.world, Date.now(), this.combatLv);
+        if (w) {
+          try { Storage.save(g.state); } catch (e) {}
+          g.showToast('Hạ ' + w.boss + ' — bang được ' + g.fmt(w.thuong) + ' Công Tích, uy tạm +' + w.uyTam + '.');
+        }
+      } catch (e) {}
+    },
+
+    xuat() {
+      const g = this.g, c = this.ct;
+      if (!c) return;
+      if (c.daNhan) { g.showToast('Thành đã hạ rồi — chờ trận sau.'); return; }
+      if (c.luot >= c.tranLuot) { g.showToast('Hết ' + c.tranLuot + ' lượt xuất trận của chu kỳ này.'); return; }
+      if (c.cdConMs > 0) { g.showToast('Còn phải lấy sức ' + this.choTxt(c.cdConMs) + ' nữa.'); return; }
+      const d = dameMotTran(g.state, c.boss.id, c.he);
+      if (!d) { g.showToast('Chưa bày bài võ thì xuất trận sao được.'); return; }
+      xuatTran(g.state, d, Date.now());
+      this._t = Date.now();                       // ép mọi getter tính lại ngay
+      const w = chotCongThanh(g.state, this.bangCuaTa, this.world, Date.now(), this.combatLv);
+      try { Storage.save(g.state); } catch (e) {}
+      if (w) g.showToast('Hạ ' + w.boss + '! Được ' + g.fmt(w.thuong) + ' Công Tích, uy tạm +' + w.uyTam + ' trong 24 giờ.');
+      else g.showToast('Xuất trận — bào ' + g.fmt(d) + ' sát thương của ' + c.boss.name + '.');
+    },
 
     // ---------- THẾ LỰC ĐỒ ----------
     // Bản đồ dùng lại đúng nền images/ui/worldmap.webp + toạ độ mapX/mapY của LOCATIONS,
@@ -176,7 +225,8 @@ export function bangPhai() {
       ensureBangPhai(this.g.state);
       ensureVu(this.g.state, Date.now());
       this._t = Date.now();
-      this._iv = setInterval(() => { this._t = Date.now(); }, 60000);
+      this._soatCT();
+      this._iv = setInterval(() => { this._t = Date.now(); this._soatCT(); }, 60000);
       this.$watch('$store.game.view', (v) => { if (v !== 'guild' && this._iv) { clearInterval(this._iv); this._iv = 0; } });
     },
 
