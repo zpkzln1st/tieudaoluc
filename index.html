@@ -1296,9 +1296,7 @@
                 </div>
               </section>
               <!-- Trang Bị: các ô đang mang + link trang riêng -->
-              <!-- 14 ô = 2 hàng x 7, khớp grid-cols-7 bên dưới. Trước là 13 nên hàng cuối hụt 1 ô.
-                   ⚠ Thêm ô trang bị mới thì phải thêm vào ĐÂY nữa (danh sách này khai cứng, không suy từ EQUIP_SLOTS). -->
-              <section class="panel rounded-lg p-3" x-data="{ eqSlots:['mu','giap','dai','gang','vuKhi','trangSuc','nhan','giay','toaKy','phiPhong','canCau','cuoc','riu','duocLiem'] }">
+              <section class="panel rounded-lg p-3" x-data="{ eqSlots:['mu','giap','dai','gang','vuKhi','trangSuc','nhan','giay','toaKy','canCau','cuoc','riu','duocLiem'] }">
                 <div class="flex items-center justify-between mb-2">
                   <div class="lbl">Trang Bị</div>
                   <button @click="$store.game.navTo('trangbi')" class="text-[11px] text-jade hover:underline inline-flex items-center gap-0.5">Chi tiết <span>›</span></button>
@@ -1630,7 +1628,7 @@
 
       <!-- ===== VIEW: TRANG BỊ (paper-doll C1) ===== -->
       <template x-if="$store.game.view==='trangbi'">
-        <div class="max-w-5xl" x-data="{ get g(){ return $store.game }, L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','phiPhong','canCau','cuoc','riu','duocLiem'] }"
+        <div class="max-w-5xl" x-data="{ get g(){ return $store.game }, L:['mu','giap','dai','gang'], R:['vuKhi','trangSuc','nhan','giay'], B:['toaKy','canCau','cuoc','riu','duocLiem'] }"
              x-effect="$store.game.statOpen && $store.game.fitStat()"
              @resize.window.debounce.120ms="$store.game.statOpen && $store.game.fitStat()"
              @keydown.escape.window="$store.game.closeStat()">
@@ -1768,16 +1766,13 @@
                   </template>
                 </div>
               </div>
-              <!-- Thanh dưới: Tọa Kỵ + Phi Phong + 4 công cụ = 6 ô.
-                   MOBILE 3 cột (2 hàng 3) — ô to, dễ chạm.
-                   DESKTOP 6 cột: KHÔNG dùng flex-wrap + w-24 cố định nữa, vì 6 ô cần 636px mà khung
-                   chỉ ~526px nên nó ngắt 4+2 rất xấu. Nay ô co theo cột và chỉ CHẶN TRẦN ở 6rem,
-                   khung rộng thì vẫn đúng 96px như cũ, khung hẹp thì nhỏ lại chứ không rớt hàng. -->
-              <div class="grid grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-3 mt-3 relative" x-data="{ hovB:null, hovP:{x:0,y:0,mui:38} }">
+              <!-- thanh dưới: Tọa Kỵ + công cụ. MOBILE: grid 5 cột để 5 ô KHÔNG rớt hàng (flex-wrap cũ
+                   rớt 4+1); DESKTOP giữ flex như cũ. Ô mobile co theo cột (w-full) nên vừa khít 1 hàng. -->
+              <div class="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap sm:gap-3 mt-3 sm:justify-center relative" x-data="{ hovB:null, hovP:{x:0,y:0,mui:38} }">
                 <template x-for="(sid,i) in B" :key="sid">
                   <span class="gslot">
                   <button @click="$store.game.openEquip(sid); hovB=null" @mouseenter="hovB=sid; hovP=$store.game.gtipRowPos($el)" @mouseleave="hovB=null" :title="$store.game.equippedItem(sid) ? '' : $store.game.slotName(sid)"
-                    class="relative w-full sm:max-w-[6rem] sm:mx-auto h-16 sm:h-24 rounded-lg overflow-hidden transition"
+                    class="relative w-full sm:w-24 h-16 sm:h-24 rounded-lg overflow-hidden transition"
                     :style="$store.game.equipHaloHex(sid) ? ('box-shadow:0 0 15px -2px '+$store.game.equipHaloHex(sid)) : ''"
                     :class="$store.game.equippedItem(sid) ? ('bg-ink2 border-2 ' + $store.game.itemQuality($store.game.state.equipment[sid]).border) : 'bg-ink3 border border-dashed border-slate-700 hover:border-slate-500'">
                     <template x-if="$store.game.equipHaloHex(sid)"><i class="halo2" :style="$store.game.equipHaloStyle(sid)"></i></template><template x-if="$store.game.equippedItem(sid)"><span class="absolute inset-0 inline-flex items-center justify-center" x-html="$store.game.ico($store.game.equippedItem(sid).id, $store.game.equippedItem(sid).icon)"></span></template><template x-if="$store.game.itemPlus($store.game.state.equipment[sid])>0"><span class="eh-hex absolute" style="top:3px;right:3px;width:27px;height:29px;font-size:11px;color:#fcd34d;z-index:2" x-text="$store.game.itemPlus($store.game.state.equipment[sid])"></span></template>
