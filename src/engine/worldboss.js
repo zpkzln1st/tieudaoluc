@@ -106,24 +106,6 @@ export function runBossFight(state, bossId, he) {
   return { win, timeout, frames, he, pMax, bMax, bHpEnd, dealt: f.dealt, taken: f.taken, t: f.t };
 }
 
-/**
- * CÔNG THÀNH (Bang Phái) — sát thương người chơi gây ra trong MỘT lượt vây.
- * Cố ý KHÔNG dùng runBossFight: hàm đó đọc/ghi máu carry-over trong state.boss và gắn với
- * đường thưởng Yêu Vương. Ở đây chỉ mượn BỘ MÔ PHỎNG TRẬN:
- *   · boss luôn MÁU ĐẦY -> mọi lượt cùng thước đo, không ăn theo tiến độ Yêu Vương thường;
- *   · KHÔNG chạm state.boss (không cooldown, không dưỡng thương, không đổi hệ);
- *   · KHÔNG trao thưởng gì — Công Thành là 0-power, chỉ đổi lấy Công Tích + uy tạm.
- * Trả số sát thương (0 nếu chưa có loadout).
- */
-export function dameMotTran(state, bossId, he) {
-  const boss = YEU_VUONG_BY_ID[bossId];
-  if (!boss || !state.combat || !state.combat.loadout) return 0;
-  const P = deriveCombat(state, state.combat.loadout, { ignoreNoiThuong: true });
-  const f = makeFight(P, state.combat.loadout.chieu, boss, P.maxHP, he || HE_LIST[0]);
-  let g = 0; while (!f.over && g++ < 600) stepFight(f);
-  return Math.max(0, Math.round(f.dealt || 0));
-}
-
 // Trao thưởng THẮNG + bật cooldown + đổi hệ + ghi lịch sử. Trả reward.
 export function applyBossWin(state, bossId, now) {
   const boss = YEU_VUONG_BY_ID[bossId]; if (!boss) return null;
