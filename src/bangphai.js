@@ -81,6 +81,34 @@ export function bangPhai() {
     chiTiet(b) { this.xemBang = (this.xemBang === b.id) ? null : b.id; },
     giuVung(bangId) { return this.vung.filter((v) => v.chuBangId === bangId); },
 
+    // ---------- THẾ LỰC ĐỒ ----------
+    // Bản đồ dùng lại đúng nền images/ui/worldmap.webp + toạ độ mapX/mapY của LOCATIONS,
+    // nên vị trí 10 vùng khớp y hệt bản đồ hành trình — nhìn là biết ngay đang nói tới đâu.
+    vungChon: null,
+    get vungXem() {
+      const ds = this.vung;
+      if (this.vungChon) { const v = ds.find((x) => x.id === this.vungChon); if (v) return v; }
+      return ds.find((x) => x.chuBangId === (this.bp && this.bp.bangId)) || null;
+    },
+    chonVung(v) { this.vungChon = (this.vungChon === v.id) ? null : v.id; },
+    laDatTa(v) { return !!(this.bp && this.bp.bangId) && v.chuBangId === this.bp.bangId; },
+    /** Sít sao -> chữ: 0-4% giằng co, 5-14% hơn mong manh, 15%+ vững ghế. */
+    theTran(v) {
+      if (v.sit <= 4) return { txt: 'giằng co', mau: '#fb7185' };
+      if (v.sit <= 14) return { txt: 'hơn mong manh', mau: '#fbbf24' };
+      return { txt: 'vững ghế', mau: '#34d399' };
+    },
+    /** Các thế lực đang chia nhau giang hồ (xếp theo số vùng), cho dải chú giải dưới bản đồ. */
+    get theLuc() {
+      const m = {};
+      for (const v of this.vung) {
+        if (!v.chuBangId) continue;
+        if (!m[v.chuBangId]) m[v.chuBangId] = { id: v.chuBangId, ten: v.chuBang, mau: v.chuMau, so: 0 };
+        m[v.chuBangId].so++;
+      }
+      return Object.values(m).sort((a, b) => b.so - a.so);
+    },
+
     // --- form lập bang ---
     moForm: false,
     tenMoi: '',

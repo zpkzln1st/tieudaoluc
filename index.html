@@ -11144,6 +11144,88 @@
             </div>
           </div>
 
+          <!-- ===== THẾ LỰC ĐỒ — 10 vùng ai đang trấn giữ =====
+               Dùng LẠI nền images/ui/worldmap.webp + toạ độ mapX/mapY của LOCATIONS nên vị trí
+               khớp y hệt bản đồ hành trình. Mỗi vùng là một ấn cờ nhỏ tô màu bang đang giữ —
+               chỉ chấm màu 7px, KHÔNG tô mảng nguyên sắc rộng đè lên tranh nền. -->
+          <template x-if="bangCuaTa">
+            <div class="panel rounded-xl overflow-hidden mt-4">
+              <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                <div class="text-jade font-bold fserif">Thế Lực Đồ</div>
+                <div class="text-[10.5px] text-slate-600">Bang ngươi giữ <b class="text-amber-300" x-text="soVung"></b>/10 vùng · xét lại sau <b class="text-slate-400" x-text="conLai"></b></div>
+              </div>
+
+              <div class="p-3 sm:p-4 md:grid md:grid-cols-[minmax(0,1fr)_236px] md:gap-4 md:items-start space-y-3 md:space-y-0">
+                <div class="min-w-0">
+                  <div class="relative w-full max-w-[560px] mx-auto rounded-lg overflow-hidden border border-slate-700/70"
+                       style="aspect-ratio:3/2; background:#0a0e16 url('images/ui/worldmap.webp') center/cover no-repeat">
+                    <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(6,9,16,.55) 100%)"></div>
+
+                    <!-- Ấn cờ: hình 19px nhưng nút bọc 36px cho ngón tay chạm trúng.
+                         Trên máy 375 hai ấn gần nhau còn cách 56px nên 36px không chồng lên nhau. -->
+                    <template x-for="v in vung" :key="v.id">
+                      <button type="button" @click="chonVung(v)" @mouseenter="vungChon = v.id"
+                        class="absolute -translate-x-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center group"
+                        :style="`left:${v.mapX}%; top:${v.mapY}%`" :aria-label="v.ten">
+                        <span class="block w-[19px] h-[19px] rotate-45 rounded-[4px] border-[1.5px] transition-transform duration-150 group-hover:scale-125"
+                              :style="'border-color:' + v.chuMau + '; background:rgba(8,12,20,.72); box-shadow:0 2px 6px rgba(0,0,0,.65)'
+                                      + (vungXem && vungXem.id === v.id ? ', 0 0 0 3px ' + v.chuMau + '55' : '')"></span>
+                        <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[7px] h-[7px] rounded-full pointer-events-none"
+                              :style="'background:' + v.chuMau"></span>
+                        <template x-if="laDatTa(v)">
+                          <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[30px] h-[30px] rounded-full pointer-events-none"
+                                :style="'box-shadow:0 0 0 1.5px ' + v.chuMau + '99, 0 0 10px ' + v.chuMau + '66'"></span>
+                        </template>
+                      </button>
+                    </template>
+                  </div>
+
+                  <!-- Thẻ vùng đang xem — để DƯỚI bản đồ, không lồng vào trong.
+                       Lồng vào thì trên máy 375 (bản đồ chỉ 330×220) nó che mất 3 ấn cờ hàng dưới. -->
+                  <div class="max-w-[560px] mx-auto mt-2">
+                    <template x-if="vungXem">
+                      <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                        <div class="flex items-baseline gap-2 flex-wrap">
+                          <b class="fserif text-[12.5px] text-slate-100" x-text="vungXem.ten"></b>
+                          <span class="text-[10px] text-slate-500" x-text="'Lv ' + vungXem.reqLevel"></span>
+                          <span class="text-[10px] ml-auto" :style="'color:' + theTran(vungXem).mau" x-text="theTran(vungXem).txt + ' · cách ' + vungXem.sit + '%'"></span>
+                        </div>
+                        <div class="text-[11px] mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <span class="w-2 h-2 rounded-full shrink-0" :style="'background:' + vungXem.chuMau"></span>
+                          <b :class="laDatTa(vungXem) ? 'text-amber-300' : 'text-slate-300'" x-text="vungXem.chuBang"></b>
+                          <span class="text-slate-600">tranh với</span>
+                          <span class="w-2 h-2 rounded-full shrink-0" :style="'background:' + vungXem.doiThuMau"></span>
+                          <span class="text-slate-400" x-text="vungXem.doiThu"></span>
+                        </div>
+                      </div>
+                    </template>
+                    <template x-if="!vungXem">
+                      <div class="rounded-lg bg-ink2/40 border border-slate-800 px-2.5 py-2 text-[11px] text-slate-500 italic text-center">
+                        Bang ngươi chưa giữ được vùng nào — chạm một ấn cờ để xem ai đang trấn giữ.
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- Ai đang chia nhau giang hồ -->
+                <div class="min-w-0">
+                  <div class="lbl mb-1.5">Chia Nhau Giang Hồ</div>
+                  <div class="space-y-1">
+                    <template x-for="t in theLuc" :key="t.id">
+                      <div class="flex items-center gap-2 rounded-lg px-2 py-1.5 border"
+                           :class="t.id === bp.bangId ? 'bg-amber-500/8 border-amber-500/30' : 'bg-ink2/40 border-slate-800'">
+                        <span class="w-2.5 h-2.5 rotate-45 rounded-[2px] shrink-0" :style="'background:' + t.mau"></span>
+                        <span class="text-[12px] truncate min-w-0 flex-1" :class="t.id === bp.bangId ? 'text-amber-200' : 'text-slate-300'" x-text="t.ten"></span>
+                        <span class="text-[11px] text-slate-500 shrink-0 tabular-nums" x-text="t.so + ' vùng'"></span>
+                      </div>
+                    </template>
+                  </div>
+                  <div class="text-[10.5px] text-slate-600 mt-2 leading-relaxed">Địa bàn chỉ là danh tiếng — <b class="text-slate-500">không cộng chỉ số</b> cho ai.</div>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- ĐANG Ở TRONG BANG -->
           <template x-if="bangCuaTa">
             <div class="mt-4 lg:grid lg:grid-cols-[1fr_360px] lg:gap-4 lg:items-start space-y-4 lg:space-y-0">
@@ -11217,20 +11299,30 @@
 
                 <div class="mt-4 pt-3 border-t border-slate-800">
                   <div class="lbl mb-2">Bang Chúng <span class="text-slate-600 normal-case" x-text="'· ' + bangCuaTa.soTv + '/' + tranTv + ' người'"></span></div>
-                  <div class="max-h-[300px] overflow-y-auto divide-y divide-slate-800/60">
+                  <!-- Bot đã có sẵn lối chơi / nghề đỉnh / việc đang làm trong engine bots.js.
+                       Trước đây bảng này chỉ lấy tên + cấp nên ai cũng như ai — nay lấy nốt. -->
+                  <div class="max-h-[420px] overflow-y-auto divide-y divide-slate-800/60">
                     <template x-for="m in bangCuaTa.thanhVien" :key="m.id">
-                      <div class="flex items-center gap-2.5 py-1.5">
-                        <div class="w-7 h-7 rounded-full overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[11px] text-white/90" :class="m.av.color" x-data="{ok:true}">
+                      <div class="flex items-start gap-2.5 py-2">
+                        <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[13px] text-white/90 border border-slate-700/70" :class="m.av.color" x-data="{ok:true}">
                           <img :src="'images/avatars/'+m.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
                           <span x-show="!ok" class="fserif" x-text="m.av.char"></span>
                         </div>
                         <div class="min-w-0 flex-1">
-                          <div class="text-[12.5px] text-slate-200 truncate" x-text="m.ten"></div>
-                          <div class="text-[10.5px] text-slate-600 truncate" x-text="m.hieu"></div>
+                          <div class="flex items-baseline gap-1.5 flex-wrap">
+                            <b class="text-[12.5px] text-slate-200" x-text="m.ten"></b>
+                            <span class="text-[10px] px-1.5 py-[1px] rounded-full border shrink-0"
+                                  :style="'color:' + m.mau + '; border-color:' + m.mau + '55'" x-text="m.hieu"></span>
+                            <span class="text-[10px] text-slate-600 shrink-0" x-text="m.loai"></span>
+                          </div>
+                          <div class="text-[10.5px] text-slate-500 italic truncate mt-0.5" x-text="'đang ' + m.lam"></div>
                         </div>
-                        <div class="text-[11px] text-slate-500 shrink-0" x-text="'Lv '+m.lv"></div>
+                        <div class="shrink-0 text-right leading-tight">
+                          <div class="text-[11.5px] text-slate-300 tabular-nums" x-text="'Lv '+m.lv"></div>
+                          <div class="text-[10px] text-slate-600 tabular-nums" x-text="'Tổng '+m.tong"></div>
+                        </div>
                         <template x-if="laBangChu">
-                          <button @click="duoi(m)" class="shrink-0 text-[10.5px] text-slate-600 hover:text-rose-400 transition px-1">đuổi</button>
+                          <button @click="duoi(m)" class="shrink-0 text-[10.5px] text-slate-600 hover:text-rose-400 transition px-1 self-center">đuổi</button>
                         </template>
                       </div>
                     </template>
@@ -11280,16 +11372,27 @@
                 </div>
                 <div class="divide-y divide-slate-800/60">
                   <template x-for="v in vung" :key="v.id">
-                    <div class="px-3.5 py-2.5" :class="v.chuBangId === bp.bangId ? 'bg-amber-500/5' : ''">
-                      <div class="flex items-baseline justify-between gap-2">
-                        <b class="text-[12.5px] fserif text-slate-200" x-text="v.ten"></b>
-                        <span class="text-[10.5px] text-slate-600 shrink-0" x-text="'Lv '+v.reqLevel"></span>
+                    <div class="px-3.5 py-2.5 cursor-pointer transition-colors"
+                         :class="laDatTa(v) ? 'bg-amber-500/5' : (vungChon === v.id ? 'bg-slate-500/8' : 'hover:bg-slate-500/5')"
+                         @click="chonVung(v)">
+                      <div class="flex items-baseline gap-2">
+                        <span class="w-2 h-2 rotate-45 rounded-[1px] shrink-0 self-center" :style="'background:' + v.chuMau"></span>
+                        <b class="text-[12.5px] fserif text-slate-200 min-w-0 truncate" x-text="v.ten"></b>
+                        <span class="text-[10.5px] text-slate-600 shrink-0 ml-auto" x-text="'Lv '+v.reqLevel"></span>
                       </div>
-                      <div class="text-[11.5px] mt-0.5">
+                      <div class="text-[11.5px] mt-0.5 pl-4">
                         <span class="text-slate-500">Trấn giữ:</span>
-                        <b :class="v.chuBangId === bp.bangId ? 'text-amber-300' : 'text-slate-300'" x-text="v.chuBang"></b>
+                        <b :class="laDatTa(v) ? 'text-amber-300' : 'text-slate-300'" x-text="v.chuBang"></b>
                       </div>
-                      <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="'Tranh chấp: ' + v.doiThu + ' · cách ' + v.sit + '%'"></div>
+                      <!-- Thanh sít sao: phần đầy = ưu thế của kẻ trấn giữ so với kẻ đứng nhì.
+                           Càng ngắn càng dễ đổi chủ sang nhiệm kỳ sau. -->
+                      <div class="pl-4 mt-1.5 flex items-center gap-2">
+                        <div class="h-1.5 rounded-full bg-ink flex-1 overflow-hidden min-w-0">
+                          <div class="h-full rounded-full" :style="'width:' + Math.max(4, Math.min(100, v.sit)) + '%; background:linear-gradient(90deg,' + v.doiThuMau + '66,' + v.chuMau + ')'"></div>
+                        </div>
+                        <span class="text-[10px] shrink-0 tabular-nums" :style="'color:' + theTran(v).mau" x-text="theTran(v).txt"></span>
+                      </div>
+                      <div class="text-[10.5px] text-slate-600 mt-1 pl-4 truncate" x-text="'Đối thủ: ' + v.doiThu + ' · cách ' + v.sit + '%'"></div>
                     </div>
                   </template>
                 </div>
@@ -11380,6 +11483,7 @@
                     <img :src="b.chuAnh" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0" style="object-position:50% 18%" onerror="this.style.visibility='hidden'">
                     <div class="min-w-0 flex-1">
                       <div class="flex items-baseline gap-2 flex-wrap">
+                        <span class="w-2 h-2 rotate-45 rounded-[1px] shrink-0 self-center" :style="'background:' + b.mauCo"></span>
                         <b class="fserif text-[14px] text-amber-200" x-text="b.ten"></b>
                         <span class="text-[10.5px] text-slate-600" x-text="'Hạng ' + b.hang + ' · Cấp ' + b.cap"></span>
                       </div>
@@ -11403,10 +11507,15 @@
                     <div class="mt-3 pt-3 border-t border-slate-800">
                       <div class="text-[12px] text-slate-300 italic mb-2" x-text="'“'+b.tonChi+'”'"></div>
                       <div class="text-[11px] text-slate-500 mb-1.5" x-text="giuVung(b.id).length ? ('Trấn giữ: ' + giuVung(b.id).map(v=>v.ten).join(' · ')) : 'Chưa giữ được vùng nào'"></div>
-                      <div class="lbl mb-1">Bang chúng mạnh nhất</div>
-                      <div class="flex flex-wrap gap-x-4 gap-y-1">
+                      <div class="lbl mb-1.5">Bang chúng mạnh nhất</div>
+                      <div class="flex flex-wrap gap-1.5">
                         <template x-for="m in b.thanhVien.slice(0,8)" :key="m.id">
-                          <span class="text-[11.5px] text-slate-400"><b class="text-slate-300" x-text="m.ten"></b> <span class="text-slate-600" x-text="'Lv '+m.lv"></span></span>
+                          <span class="inline-flex items-baseline gap-1.5 text-[11px] rounded-lg border border-slate-800 bg-ink2/40 px-2 py-1">
+                            <span class="w-1.5 h-1.5 rounded-full self-center shrink-0" :style="'background:' + m.mau"></span>
+                            <b class="text-slate-300" x-text="m.ten"></b>
+                            <span class="text-slate-600" x-text="m.hieu"></span>
+                            <span class="text-slate-500 tabular-nums" x-text="'Lv '+m.lv"></span>
+                          </span>
                         </template>
                       </div>
                     </div>

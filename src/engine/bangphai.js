@@ -15,7 +15,8 @@
 // ============================================================
 import { LOCATIONS } from '../data/locations.js';
 import { danhSiList } from './danhsi.js';
-import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar } from './bots.js';
+import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant } from './bots.js';
+import { CAT_HEX } from '../data/bots.js';
 
 export const SO_BANG = 12;
 export const CAP_THANH_VIEN = 25;      // trần thành viên mỗi bang
@@ -37,6 +38,15 @@ const TON_CHI = [
   'Bang quy ba điều, phạm một điều là ra khỏi cửa.',
   'Tiền trao cháo múc, ân oán phân minh.',
 ];
+
+// Màu CỜ của từng bang — dùng cho bản đồ thế lực + chấm màu cạnh tên.
+// KHÔNG mượn daoColor của bang chủ: 12 Danh Sĩ có thể trùng màu đạo, mà trên bản đồ trùng màu là
+// nhìn không ra ai giữ vùng nào. Bảng cố định theo chỉ số bang -> luôn phân biệt được.
+const MAU_BANG = [
+  '#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399', '#2dd4bf',
+  '#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#e2e8f0', '#94a3b8',
+];
+export const MAU_TU_LAP = '#f3d9a8';   // bang mình lập — vàng ngà, tách hẳn khỏi 12 màu kia
 
 function h32(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; }
 function mix(a, b) { let h = (a ^ Math.imul(b >>> 0, 2654435761)) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; return h >>> 0; }
@@ -110,6 +120,23 @@ export function danhSachTanTu(world, now, tongLvNguoiChoi) {
 // ============================================================
 // DANH SÁCH BANG — suy từ seed. Bang chủ = Danh Sĩ, thành viên = bot.
 // ============================================================
+
+/**
+ * Hồ sơ một bang chúng. Bot đã có sẵn nghề thật / lối chơi / việc đang làm trong engine bots.js —
+ * trước đây bảng bang chúng chỉ lấy tên + cấp nên ai cũng như ai. Lấy nốt cho ra con người:
+ *   loai = lối chơi (Sát Thủ / Săn Yêu / Bách Nghệ / Phú Thương / Tản Nhân)
+ *   nghe = nhóm nghề đỉnh + màu theo nhóm   ·   lam = đang làm gì lúc này (đổi theo giờ)
+ */
+export function moTaThanhVien(b, t) {
+  const d = botDominant(b, t);
+  return {
+    id: b.id, ten: b.name, lv: botCombatLv(b, t), tong: botTotalLv(b, t),
+    hieu: botTitle(b, t), av: botAvatar(b),
+    loai: botArchName(b), lam: botActivity(b, t),
+    nhom: d.cat, mau: CAT_HEX[d.cat] || '#94a3b8',
+  };
+}
+
 export function danhSachBang(world, now) {
   const t = now || Date.now();
   const seed = (world && world.seed) || 1, createdAt = (world && world.createdAt) || 0;
@@ -129,18 +156,16 @@ export function danhSachBang(world, now) {
   for (let i = 0; i < SO_BANG; i++) {
     const h = mix(mix(seed >>> 0, 0x51B7), i);
     const chu = ds.length ? ds[(h + i * 7) % ds.length] : null;
-    const tv = nhom[i].map((b) => ({
-      id: b.id, ten: b.name, lv: botCombatLv(b, t), tong: botTotalLv(b, t),
-      hieu: botTitle(b, t), av: botAvatar(b),
-    })).sort((a, b) => b.lv - a.lv);
+    const tv = nhom[i].map((b) => moTaThanhVien(b, t)).sort((a, b) => b.lv - a.lv);
     const uy = tv.reduce((s, m) => s + m.tong, 0) + (chu ? Math.round((chu.rankPower || 500) / 2) : 0);
+    const lvTB = tv.length ? Math.round(tv.reduce((s, m) => s + m.lv, 0) / tv.length) : 1;
     out.push({
-      id: 'bang' + i,
+      id: 'bang' + i, mauCo: MAU_BANG[i % MAU_BANG.length],
       ten: pick(mix(h, 3), HO_BANG) + ' ' + DUOI_BANG[i % DUOI_BANG.length],
       chuTen: chu ? chu.ten : '—', chuId: chu ? chu.id : null,
       chuAnh: chu ? chu.face : '', chuMau: chu ? (chu.daoColor || '#e2e8f0') : '#94a3b8',
       chuDao: chu ? chu.daoName : '', tonChi: pick(mix(h, 11), TON_CHI),
-      thanhVien: tv, soTv: tv.length, uy,
+      thanhVien: tv, soTv: tv.length, uy, lvTB,
       cap: Math.max(1, Math.min(20, 1 + Math.floor(uy / 900))),
       // yêu cầu gia nhập: bang mạnh thì kén người hơn
       canTong: Math.max(5, Math.round(uy / 260)),
@@ -162,17 +187,16 @@ export function bangTuLap(state, world, now, tenNguoiChoi) {
   const seed = (world && world.seed) || 1, createdAt = (world && world.createdAt) || 0;
   const roster = genRoster(seed, createdAt) || [];
   const theoId = {}; roster.forEach((r) => { theoId[r.id] = r; });
-  const tv = (L.thanhVien || []).map((id) => theoId[id]).filter(Boolean).map((r) => ({
-    id: r.id, ten: r.name, lv: botCombatLv(r, t), tong: botTotalLv(r, t),
-    hieu: botTitle(r, t), av: botAvatar(r),
-  })).sort((a, b2) => b2.lv - a.lv);
+  const tv = (L.thanhVien || []).map((id) => theoId[id]).filter(Boolean)
+    .map((r) => moTaThanhVien(r, t)).sort((a, b2) => b2.lv - a.lv);
   // Uy = sức thành viên + quỹ bang (1000 Bạc = 1 uy) -> góp quỹ có tác dụng THẬT lên tranh địa bàn
   const uy = tv.reduce((s, m) => s + m.tong, 0) + Math.floor((L.quy || 0) / 1000);
   return {
-    id: ID_TU_LAP, laCuaTa: true,
+    id: ID_TU_LAP, laCuaTa: true, mauCo: MAU_TU_LAP,
     ten: L.ten, chuTen: tenNguoiChoi || 'Ngươi', chuId: null,
     chuAnh: '', chuMau: '#f3d9a8', chuDao: 'Bang chủ',
     tonChi: L.tonChi || '', thanhVien: tv, soTv: tv.length, uy,
+    lvTB: tv.length ? Math.round(tv.reduce((s, m) => s + m.lv, 0) / tv.length) : 1,
     quy: L.quy || 0, lapLuc: L.lapLuc || 0,
     cap: Math.max(1, Math.min(20, 1 + Math.floor(uy / 900))),
     canTong: 0,
@@ -210,15 +234,24 @@ export function diaBan(world, now, state, tenNguoiChoi) {
     // 10 vùng đều hiện "cách 0%". Giờ cùng một thang điểm nên độ sít sao là thật.
     const diem = bangs.map((b) => {
       const nhieu = 0.65 + (mix(mix(seed ^ 0x33C1, nk * 31 + i), h32(b.id)) % 1000) / 1000 * 0.7;
-      return { b, d: b.uy * nhieu / (1 + loc.reqLevel / 60) };   // vùng cấp cao khó giữ hơn
+      // ⚠ Thừa số cũ `/(1 + reqLevel/60)` GIỐNG NHAU cho mọi bang trong cùng một vùng nên
+      // triệt tiêu cả trong so sánh lẫn trong tỉ số `sit` — câu "vùng cấp cao khó giữ hơn"
+      // trước đây hoàn toàn không có tác dụng. Nay thay bằng HỢP CẤP: vùng cấp cao chỉ bang
+      // có bang chúng đủ mạnh mới trấn nổi.
+      const hop = Math.max(0.45, Math.min(1.15, (b.lvTB || 1) / Math.max(20, loc.reqLevel)));
+      // Nén uy bằng luỹ thừa 0.6: đất đai không chia theo sức mạnh tuyệt đối. Để nguyên uy thì
+      // bang hạng 8 trở xuống gần như KHÔNG BAO GIỜ giữ nổi một vùng (đo 120 seed: 3/1200 vùng),
+      // mà bang yếu lại chính là chỗ người mới vào được -> địa bàn thành nội dung chết với họ.
+      return { b, d: Math.pow(Math.max(1, b.uy), 0.6) * nhieu * hop };
     }).sort((x, y) => y.d - x.d);
     const best = diem[0], nhi = diem[1];
     return {
       id: loc.id, ten: loc.name, reqLevel: loc.reqLevel,
       icon: loc.icon, mapX: loc.mapX, mapY: loc.mapY,
       chuBangId: best ? best.b.id : null, chuBang: best ? best.b.ten : '—',
-      chuMau: best ? best.b.chuMau : '#94a3b8', chuHang: best ? best.b.hang : 0,
+      chuMau: best ? best.b.mauCo : '#94a3b8', chuHang: best ? best.b.hang : 0,
       doiThuId: nhi ? nhi.b.id : null, doiThu: nhi ? nhi.b.ten : '—',
+      doiThuMau: nhi ? nhi.b.mauCo : '#64748b',
       // % cách biệt giữa kẻ trấn giữ và kẻ đứng nhì: 0 = ngang ngửa (sắp đổi chủ), càng cao càng chắc ghế.
       sit: (best && nhi) ? Math.max(0, Math.min(100, Math.round((1 - nhi.d / best.d) * 100))) : 100,
     };
