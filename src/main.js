@@ -479,7 +479,7 @@ const gameStore = {
     ['locationModal', 'closeLocation'], ['combatModal', 'closeCombatModal'], ['dsProfile', 'closeDanhSi'],
     ['petDetailObj', 'closePetDetail'], ['tkDetail', 'closeTkDetail'], ['tkCraft', 'closeTkCraft'],
     ['codexDetail', 'closeCodex'], ['dungeonPoolId', 'closeDungeonPool'], ['tpDetail', 'closeTpDetail'],
-    ['lightbox', 'closeLightbox'], ['tmFaceFull', 'closeFaceFull'],
+    ['lightbox', 'closeLightbox'], ['tmFaceFull', 'closeFaceFull'], ['xacNhan', 'dongXacNhan'],
   ],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
@@ -1156,6 +1156,21 @@ const gameStore = {
   setProfileTab(t) { this.profileTab = t; },
   openLightbox(id, emoji, name, src) { this.lightbox = { id, emoji, name, src: src || '' }; },   // src: ảnh trực tiếp (vd chân dung NPC) -> hiện thay icon
   closeLightbox() { this.lightbox = null; },
+  // ---------- HỎI XÁC NHẬN (modal TRONG GAME — thay confirm() gốc của trình duyệt) ----------
+  // confirm() gốc hiện hộp thoại hệ điều hành, lạc hẳn khỏi giao diện game (và trên di động
+  // còn khoá cả trang). Dùng chung một modal cho MỌI việc cần hỏi lại.
+  //   $store.game.hoiXacNhan({ tieuDe, loi, canhBao, nut, huy, nguy, xong() {...} })
+  //   · loi/canhBao nhận HTML (x-html) — được phép in đậm số liệu.
+  //   · nguy:true -> nút chốt màu đỏ (việc mất mát không lấy lại được).
+  //   · xong() chỉ chạy khi người chơi bấm nút chốt; đóng bằng ✕/nền/Esc/vuốt-back = huỷ.
+  // Cờ 'xacNhan' đã nằm trong _MODALS nên vuốt-back tự đóng, không cần đụng gì thêm.
+  xacNhan: null,
+  hoiXacNhan(o) {
+    this.xacNhan = Object.assign({ tieuDe: 'Xác Nhận', loi: '', canhBao: '', nut: 'Đồng Ý', huy: 'Thôi', nguy: false, xong: null }, o || {});
+  },
+  dongXacNhan() { this.xacNhan = null; },
+  chotXacNhan() { const o = this.xacNhan; this.xacNhan = null; if (o && typeof o.xong === 'function') o.xong(); },
+
   // Toast nổi (tự ẩn sau 2.5s) — tái dùng cho mọi thông báo nhanh
   showToast(msg) {
     this.toast = msg;

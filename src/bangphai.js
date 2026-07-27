@@ -11,6 +11,7 @@ import {
   duSucVao, bacCua, congHien, vaoBang, roiBang, nhiemKyConLai, CAP_THANH_VIEN,
   danhSachTanTu, loiTenBang, lapBang, giaiTan, chieuMo, duoiNguoi, gopQuy,
   danhSachVu, nhanThuongVu, ensureVu, ID_TU_LAP, LV_LAP_BANG, PHI_LAP_BANG, NOI_MO,
+  choConLai, dangCho, CHO_VAO_LAI_MS,
 } from './engine/bangphai.js';
 
 export { ensureBangPhai };
@@ -45,7 +46,7 @@ export function bangPhai() {
     get lvCanLap() { return LV_LAP_BANG; },
     get phiLap() { return PHI_LAP_BANG; },
     get bienMo() { return NOI_MO; },
-    get lapDuoc() { return this.tongLv >= LV_LAP_BANG && this.bac >= PHI_LAP_BANG && !this.bp.bangId; },
+    get lapDuoc() { return this.tongLv >= LV_LAP_BANG && this.bac >= PHI_LAP_BANG && !this.bp.bangId && !this.dangCho; },
     get tanTu() { void this._t; try { return danhSachTanTu(this.world, Date.now(), this.tongLv); } catch (e) { return []; } },
     get daMo() { return (this.bp && this.bp.tuLap) ? (this.bp.tuLap.thanhVien || []) : []; },
     daCoNguoi(id) { return this.daMo.indexOf(id) >= 0; },
@@ -65,6 +66,17 @@ export function bangPhai() {
     get mucGop() { return MUC_GOP; },
     get tranTv() { return CAP_THANH_VIEN; },
 
+    // --- cửa đóng 24 giờ sau khi rời/giải tán bang ---
+    get choMs() { void this._t; try { return choConLai(this.g.state, Date.now()); } catch (e) { return 0; } },
+    get dangCho() { return this.choMs > 0; },
+    get choConTxt() { return this.choTxt(this.choMs); },
+    /** ms -> "X giờ Y phút" (dưới 1 phút thì làm tròn lên 1 phút, đừng để hiện 0). */
+    choTxt(ms) {
+      const p = Math.ceil(Math.max(0, ms) / 60000), gi = Math.floor(p / 60), ph = p % 60;
+      if (gi >= 1) return gi + ' giờ' + (ph ? ' ' + ph + ' phút' : '');
+      return Math.max(1, ph) + ' phút';
+    },
+
     duSuc(b) { return duSucVao(b, this.tongLv); },
     chiTiet(b) { this.xemBang = (this.xemBang === b.id) ? null : b.id; },
     giuVung(bangId) { return this.vung.filter((v) => v.chuBangId === bangId); },
@@ -78,22 +90,34 @@ export function bangPhai() {
     lap() {
       const g = this.g;
       if (this.bp.bangId) { g.showToast('Phải rời bang hiện tại trước đã.'); return; }
+      if (this.dangCho) { g.showToast('Vừa rời bang — còn ' + this.choConTxt + ' nữa mới dựng cờ được.'); return; }
       if (this.tongLv < LV_LAP_BANG) { g.showToast('Cần Tổng Lv ' + LV_LAP_BANG + ' mới đủ danh vọng lập bang.'); return; }
       if (this.bac < PHI_LAP_BANG) { g.showToast('Cần ' + g.fmt(PHI_LAP_BANG) + ' Bạc để dựng cờ.'); return; }
       const loi = loiTenBang(this.tenMoi, this.world, Date.now());
       if (loi) { g.showToast(loi); return; }
+      // Trừ Bạc SAU khi engine gật đầu — engine cũng tự chặn (đang ở bang / cửa còn đóng),
+      // đừng để mất 50.000 Bạc mà bang không dựng lên.
+      if (!lapBang(g.state, { ten: this.tenMoi.trim(), tonChi: this.tonChiMoi }, Date.now())) { g.showToast('Chưa dựng cờ được lúc này.'); return; }
       g.state.currencies.bac -= PHI_LAP_BANG;
-      lapBang(g.state, { ten: this.tenMoi.trim(), tonChi: this.tonChiMoi }, Date.now());
       this.moForm = false; this.tenMoi = '';
       try { Storage.save(g.state); } catch (e) {}
       g.showToast('Đã dựng cờ — bang của ngươi đã có tên trên giang hồ.');
     },
     xinGiaiTan() {
       const g = this.g, b = this.bp.tuLap; if (!b) return;
-      if (!confirm('Giải tán ' + b.ten + '?\n\nToàn bộ người trong bang tan hết, Công Tích về 0, quỹ bang mất trắng. Không hoàn Bạc.')) return;
-      giaiTan(g.state, Date.now());
-      try { Storage.save(g.state); } catch (e) {}
-      g.showToast('Bang đã giải tán.');
+      g.hoiXacNhan({
+        tieuDe: 'Hạ Cờ Giải Tán?',
+        loi: 'Giải tán <b class="text-amber-200">' + b.ten + '</b> — cờ hạ, người tan, tên bang xoá khỏi giang hồ.',
+        canhBao: 'Toàn bộ <b>' + b.thanhVien.length + ' người</b> trong bang tan hết · Công Tích <b>' + g.fmt(this.bp.congTich)
+          + '</b> về 0 · quỹ bang <b>' + g.fmt(b.quy || 0) + ' Bạc</b> mất trắng, không hoàn.<br>Phải chờ <b>'
+          + this.choTxt(CHO_VAO_LAI_MS) + '</b> mới được vào hoặc lập bang khác.',
+        nut: 'Giải Tán', huy: 'Giữ Bang', nguy: true,
+        xong: () => {
+          giaiTan(g.state, Date.now());
+          try { Storage.save(g.state); } catch (e) {}
+          g.showToast('Bang đã giải tán.');
+        },
+      });
     },
     mo(tt) {
       const g = this.g;
@@ -131,8 +155,9 @@ export function bangPhai() {
     xinVao(b) {
       const g = this.g;
       if (this.bp.bangId) { g.showToast('Đang ở ' + (this.bangCuaTa ? this.bangCuaTa.ten : 'một bang') + ' — phải rời trước đã.'); return; }
+      if (this.dangCho) { g.showToast('Vừa rời bang — còn ' + this.choConTxt + ' nữa mới xin vào được.'); return; }
       if (!this.duSuc(b)) { g.showToast(b.ten + ' chỉ nhận người Tổng Lv ' + b.canTong + ' trở lên.'); return; }
-      vaoBang(g.state, b.id, Date.now());
+      if (!vaoBang(g.state, b.id, Date.now())) { g.showToast('Chưa vào bang được lúc này.'); return; }
       this.xemBang = null;
       try { Storage.save(g.state); } catch (e) {}
       g.showToast('Đã gia nhập ' + b.ten + '.');
@@ -142,10 +167,18 @@ export function bangPhai() {
     xinRoi() {
       const g = this.g, b = this.bangCuaTa;
       if (!b) return;
-      if (!confirm('Rời ' + b.ten + '?\n\nCông Tích ' + g.fmt(this.bp.congTich) + ' sẽ MẤT SẠCH và không lấy lại được.')) return;
-      roiBang(g.state);
-      try { Storage.save(g.state); } catch (e) {}
-      g.showToast('Đã rời bang. Công Tích về 0.');
+      g.hoiXacNhan({
+        tieuDe: 'Rời Bang?',
+        loi: 'Rời <b class="text-amber-200">' + b.ten + '</b> — từ nay là người dưng.',
+        canhBao: 'Công Tích <b>' + g.fmt(this.bp.congTich) + '</b> MẤT SẠCH, không lấy lại được.<br>Giang hồ có quy củ: rời rồi phải chờ <b>'
+          + this.choTxt(CHO_VAO_LAI_MS) + '</b> mới được vào hoặc lập bang khác.',
+        nut: 'Rời Bang', huy: 'Ở Lại', nguy: true,
+        xong: () => {
+          roiBang(g.state, Date.now());
+          try { Storage.save(g.state); } catch (e) {}
+          g.showToast('Đã rời bang. Công Tích về 0.');
+        },
+      });
     },
 
     gop(n) {

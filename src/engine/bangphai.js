@@ -55,6 +55,7 @@ export function ensureBangPhai(state) {
   if (typeof b.congTich !== 'number') b.congTich = 0;
   if (typeof b.gopBac !== 'number') b.gopBac = 0;
   if (typeof b.vaoLuc !== 'number') b.vaoLuc = 0;
+  if (typeof b.roiLuc !== 'number') b.roiLuc = 0; // mốc rời bang gần nhất -> khoá cửa CHO_VAO_LAI_MS
   if (b.tuLap === undefined) b.tuLap = null;      // bang DO NGƯỜI CHƠI LẬP (chỉ cái này mới lưu save)
   if (!Array.isArray(b.nhatKy)) b.nhatKy = [];
   if (!b.vu || typeof b.vu !== 'object') b.vu = { ngay: 0, xong: [], moc: null };
@@ -203,21 +204,23 @@ export function diaBan(world, now, state, tenNguoiChoi) {
   const bangs = toanCanh(state, world, t, tenNguoiChoi);   // bang tự lập TRANH NGANG HÀNG
   const seed = (world && world.seed) || 1;
   return LOCATIONS.map((loc, i) => {
-    // ứng viên: bang nào cũng tranh, nhưng trọng số = uy × nhiễu theo (vùng, nhiệm kỳ)
-    let best = null, bestDiem = -1;
-    bangs.forEach((b) => {
+    // Ứng viên: bang nào cũng tranh, trọng số = uy × nhiễu theo (vùng, nhiệm kỳ).
+    // ⚠ Chấm điểm MỘT LẦN rồi xếp hạng — trước đây kẻ trấn giữ và kẻ đứng nhì dùng HAI hàm
+    // nhiễu khác nhau (0x33C1 vs 0x77A2) nên hiệu số vô nghĩa: `sit` ra âm, kẹp về 0 -> cả
+    // 10 vùng đều hiện "cách 0%". Giờ cùng một thang điểm nên độ sít sao là thật.
+    const diem = bangs.map((b) => {
       const nhieu = 0.65 + (mix(mix(seed ^ 0x33C1, nk * 31 + i), h32(b.id)) % 1000) / 1000 * 0.7;
-      const diem = b.uy * nhieu / (1 + loc.reqLevel / 60);   // vùng cấp cao khó giữ hơn
-      if (diem > bestDiem) { bestDiem = diem; best = b; }
-    });
-    const tranh = bangs.filter((b) => b !== best)
-      .map((b) => ({ b, d: b.uy * (0.65 + (mix(mix(seed ^ 0x77A2, nk * 31 + i), h32(b.id)) % 1000) / 1000 * 0.7) }))
-      .sort((x, y) => y.d - x.d)[0];
+      return { b, d: b.uy * nhieu / (1 + loc.reqLevel / 60) };   // vùng cấp cao khó giữ hơn
+    }).sort((x, y) => y.d - x.d);
+    const best = diem[0], nhi = diem[1];
     return {
       id: loc.id, ten: loc.name, reqLevel: loc.reqLevel,
-      chuBangId: best ? best.id : null, chuBang: best ? best.ten : '—',
-      doiThu: tranh ? tranh.b.ten : '—',
-      sit: tranh ? Math.max(0, Math.round((1 - tranh.d / bestDiem) * 100)) : 100,   // % cách biệt
+      icon: loc.icon, mapX: loc.mapX, mapY: loc.mapY,
+      chuBangId: best ? best.b.id : null, chuBang: best ? best.b.ten : '—',
+      chuMau: best ? best.b.chuMau : '#94a3b8', chuHang: best ? best.b.hang : 0,
+      doiThuId: nhi ? nhi.b.id : null, doiThu: nhi ? nhi.b.ten : '—',
+      // % cách biệt giữa kẻ trấn giữ và kẻ đứng nhì: 0 = ngang ngửa (sắp đổi chủ), càng cao càng chắc ghế.
+      sit: (best && nhi) ? Math.max(0, Math.min(100, Math.round((1 - nhi.d / best.d) * 100))) : 100,
     };
   });
 }
@@ -252,15 +255,33 @@ export function congHien(state, bac) {
   return n;
 }
 
-export function vaoBang(state, bangId, now) {
+// ------------------------------------------------------------
+// CỬA ĐÓNG SAU KHI RỜI BANG — 24 giờ mới được vào/lập bang khác.
+// Không có nó thì người chơi nhảy bang tuỳ ý: thấy bang nào sắp thắng địa bàn thì nhảy sang,
+// thua thì nhảy đi — chọn bang mất hết sức nặng. Cùng lý do với việc rời bang mất sạch Công Tích.
+// ------------------------------------------------------------
+export const CHO_VAO_LAI_MS = 24 * 3600 * 1000;
+/** Còn bao nhiêu mili-giây nữa mới được vào bang. 0 = vào được ngay. */
+export function choConLai(state, now) {
   const b = ensureBangPhai(state);
-  b.bangId = bangId; b.vaoLuc = now || Date.now();
-  return b;
+  if (!b.roiLuc) return 0;
+  return Math.max(0, b.roiLuc + CHO_VAO_LAI_MS - (now || Date.now()));
 }
-/** Rời bang: MẤT SẠCH Công Tích — cố ý, để việc chọn bang có sức nặng. */
-export function roiBang(state) {
+export function dangCho(state, now) { return choConLai(state, now) > 0; }
+
+/** Vào bang. Trả false nếu đang ở bang khác / cửa còn đóng. */
+export function vaoBang(state, bangId, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  if (b.bangId) return false;
+  if (dangCho(state, t)) return false;
+  b.bangId = bangId; b.vaoLuc = t;
+  return true;
+}
+/** Rời bang: MẤT SẠCH Công Tích — cố ý, để việc chọn bang có sức nặng. Đóng cửa 24 giờ. */
+export function roiBang(state, now) {
   const b = ensureBangPhai(state);
   b.bangId = null; b.congTich = 0; b.gopBac = 0; b.vaoLuc = 0;
+  b.roiLuc = now || Date.now();
   return b;
 }
 
@@ -278,18 +299,22 @@ export function loiTenBang(ten, world, now) {
   return '';
 }
 
+/** Lập bang. Trả null nếu đang ở bang khác / cửa còn đóng (giống vaoBang — cùng một luật). */
 export function lapBang(state, { ten, tonChi }, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
+  if (b.bangId) return null;
+  if (dangCho(state, t)) return null;
   b.tuLap = { ten: String(ten).trim(), tonChi: String(tonChi || '').trim(), lapLuc: t, quy: 0, thanhVien: [] };
   b.bangId = ID_TU_LAP; b.vaoLuc = t; b.congTich = 0; b.gopBac = 0;
   ghiNhatKy(state, 'Lập bang <b>' + b.tuLap.ten + '</b>, dựng cờ tại giang hồ.', t);
   return b.tuLap;
 }
 
-/** Giải tán: xoá sạch bang + Công Tích. Không hoàn Bạc. */
+/** Giải tán: xoá sạch bang + Công Tích. Không hoàn Bạc. Cũng đóng cửa 24 giờ như rời bang. */
 export function giaiTan(state, now) {
   const b = ensureBangPhai(state), ten = b.tuLap ? b.tuLap.ten : '';
   b.tuLap = null; b.bangId = null; b.congTich = 0; b.gopBac = 0; b.vaoLuc = 0;
+  b.roiLuc = now || Date.now();
   if (ten) ghiNhatKy(state, 'Giải tán <b>' + ten + '</b>. Cờ hạ, người tan.', now);
   return b;
 }
