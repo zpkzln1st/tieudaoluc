@@ -11124,6 +11124,162 @@
         </div>
       </template>
 
+      <!-- ===== VIEW: BANG PHÁI (thế lực giang hồ — cách ly 0-power) =====
+           KHÁC Tông Môn: ở đây người chơi là NGƯỜI GIA NHẬP, không phải chưởng môn.
+           12 bang + địa bàn suy từ seed thế giới (engine/bangphai.js), không lưu vào save. -->
+      <template x-if="$store.game.view==='guild'">
+        <div class="max-w-[1200px] mx-auto" x-data="bangPhai()" x-init="bpInit()">
+
+          <div class="relative panel rounded-xl overflow-hidden min-h-[130px] flex flex-col justify-center">
+            <img src="images/ui/bangphai_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/bangphai_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
+            <div class="relative px-5 py-5">
+              <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32">Bang Phái</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-1.5 fserif"><b class="text-amber-300">Một mình là khách, có bang là thế.</b></div>
+              <div class="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-slate-400">
+                <template x-if="bangCuaTa"><span>Đang ở <b class="text-amber-300" x-text="bangCuaTa.ten"></b></span></template>
+                <template x-if="!bangCuaTa"><span class="text-slate-500">Chưa gia nhập bang nào</span></template>
+                <span>Địa bàn xét lại sau <b class="text-slate-300" x-text="conLai"></b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ĐANG Ở TRONG BANG -->
+          <template x-if="bangCuaTa">
+            <div class="mt-4 lg:grid lg:grid-cols-[1fr_360px] lg:gap-4 lg:items-start space-y-4 lg:space-y-0">
+              <div class="panel rounded-xl p-3 sm:p-4 min-w-0">
+                <div class="flex items-start gap-3 flex-wrap">
+                  <img :src="bangCuaTa.chuAnh" alt="" class="w-14 h-14 rounded-lg object-cover shrink-0" style="object-position:50% 18%" onerror="this.style.visibility='hidden'">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                      <b class="fserif text-[16px] text-amber-200" x-text="bangCuaTa.ten"></b>
+                      <span class="text-[11px] text-slate-500" x-text="'Hạng ' + bangCuaTa.hang + ' · Cấp ' + bangCuaTa.cap"></span>
+                    </div>
+                    <div class="text-[11.5px] text-slate-400 mt-0.5">Bang chủ <b :style="'color:'+bangCuaTa.chuMau" x-text="bangCuaTa.chuTen"></b> <span class="text-slate-600" x-text="bangCuaTa.chuDao"></span></div>
+                    <div class="text-[12px] text-slate-300 italic mt-1.5" x-text="'“'+bangCuaTa.tonChi+'”'"></div>
+                  </div>
+                  <button @click="xinRoi()" class="shrink-0 px-3 py-1.5 rounded-lg text-[11.5px] fserif text-slate-400 border border-slate-700 hover:border-rose-500/60 hover:text-rose-300 transition">Rời Bang</button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4">
+                  <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
+                    <div class="lbl">Uy Danh</div><div class="text-[16px] font-bold text-amber-300" x-text="$store.game.fmt(bangCuaTa.uy)"></div></div>
+                  <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
+                    <div class="lbl">Thành Viên</div><div class="text-[16px] font-bold text-cyan-300" x-text="bangCuaTa.soTv + '/' + tranTv"></div></div>
+                  <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
+                    <div class="lbl">Địa Bàn</div><div class="text-[16px] font-bold text-jade" x-text="soVung + ' vùng'"></div></div>
+                  <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
+                    <div class="lbl">Bậc Của Ngươi</div><div class="text-[15px] font-bold" :style="'color:'+bac2.mau" x-text="bac2.ten"></div></div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800">
+                  <div class="flex items-baseline justify-between mb-2">
+                    <div class="lbl">Cống Hiến</div>
+                    <div class="text-[11.5px] text-slate-400">Công Tích <b class="text-amber-300" x-text="$store.game.fmt(bp.congTich)"></b></div>
+                  </div>
+                  <div class="text-[11px] text-slate-600 mb-2">1 Bạc đổi 1 Công Tích. Công Tích chỉ lên bậc trong bang, <b class="text-slate-500">không cộng chỉ số</b>.</div>
+                  <div class="flex flex-wrap gap-2">
+                    <template x-for="m in mucGop" :key="m">
+                      <button @click="gop(m)" :disabled="bac < m"
+                        class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
+                        :class="bac >= m ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'">
+                        Góp <span x-text="$store.game.fmt(m)"></span>
+                      </button>
+                    </template>
+                  </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800">
+                  <div class="lbl mb-2">Bang Chúng <span class="text-slate-600 normal-case" x-text="'· ' + bangCuaTa.soTv + ' người'"></span></div>
+                  <div class="max-h-[300px] overflow-y-auto divide-y divide-slate-800/60">
+                    <template x-for="m in bangCuaTa.thanhVien" :key="m.id">
+                      <div class="flex items-center gap-2.5 py-1.5">
+                        <div class="w-7 h-7 rounded-full overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[11px] text-white/90" :class="m.av.color" x-data="{ok:true}">
+                          <img :src="'images/avatars/'+m.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                          <span x-show="!ok" class="fserif" x-text="m.av.char"></span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <div class="text-[12.5px] text-slate-200 truncate" x-text="m.ten"></div>
+                          <div class="text-[10.5px] text-slate-600 truncate" x-text="m.hieu"></div>
+                        </div>
+                        <div class="text-[11px] text-slate-500 shrink-0" x-text="'Lv '+m.lv"></div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel rounded-xl overflow-hidden">
+                <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                  <div class="text-jade font-bold fserif">Địa Bàn Giang Hồ</div>
+                  <div class="text-[10.5px] text-slate-600">10 vùng</div>
+                </div>
+                <div class="divide-y divide-slate-800/60">
+                  <template x-for="v in vung" :key="v.id">
+                    <div class="px-3.5 py-2.5" :class="v.chuBangId === bp.bangId ? 'bg-amber-500/5' : ''">
+                      <div class="flex items-baseline justify-between gap-2">
+                        <b class="text-[12.5px] fserif text-slate-200" x-text="v.ten"></b>
+                        <span class="text-[10.5px] text-slate-600 shrink-0" x-text="'Lv '+v.reqLevel"></span>
+                      </div>
+                      <div class="text-[11.5px] mt-0.5">
+                        <span class="text-slate-500">Trấn giữ:</span>
+                        <b :class="v.chuBangId === bp.bangId ? 'text-amber-300' : 'text-slate-300'" x-text="v.chuBang"></b>
+                      </div>
+                      <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="'Tranh chấp: ' + v.doiThu + ' · cách ' + v.sit + '%'"></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- CHƯA VÀO BANG -> duyệt danh sách -->
+          <template x-if="!bangCuaTa">
+            <div class="mt-4 space-y-2.5">
+              <div class="text-[12px] text-slate-500 px-1">Chọn một bang để xin gia nhập. Bang mạnh kén người hơn — xét theo <b class="text-slate-400">Tổng Lv</b> của ngươi (đang có <b class="text-cyan-300" x-text="tongLv"></b>).</div>
+              <template x-for="b in dsBang" :key="b.id">
+                <div class="panel rounded-xl p-3">
+                  <div class="flex items-start gap-3">
+                    <img :src="b.chuAnh" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0" style="object-position:50% 18%" onerror="this.style.visibility='hidden'">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-baseline gap-2 flex-wrap">
+                        <b class="fserif text-[14px] text-amber-200" x-text="b.ten"></b>
+                        <span class="text-[10.5px] text-slate-600" x-text="'Hạng ' + b.hang + ' · Cấp ' + b.cap"></span>
+                      </div>
+                      <div class="text-[11px] text-slate-400 mt-0.5">Bang chủ <b :style="'color:'+b.chuMau" x-text="b.chuTen"></b></div>
+                      <div class="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500 mt-1">
+                        <span>Uy <b class="text-slate-300" x-text="$store.game.fmt(b.uy)"></b></span>
+                        <span x-text="b.soTv + '/' + tranTv + ' người'"></span>
+                        <span x-text="giuVung(b.id).length + ' địa bàn'"></span>
+                        <span :class="duSuc(b) ? 'text-jade' : 'text-rose-400'" x-text="'cần Tổng Lv ' + b.canTong"></span>
+                      </div>
+                    </div>
+                    <div class="shrink-0 flex flex-col gap-1.5">
+                      <button @click="xinVao(b)" :disabled="!duSuc(b)"
+                        class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
+                        :class="duSuc(b) ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'">Xin Gia Nhập</button>
+                      <button @click="chiTiet(b)" class="px-3 py-1.5 rounded-lg text-[11.5px] text-slate-400 border border-slate-700 hover:border-slate-500 transition" x-text="xemBang===b.id ? 'Thu Gọn' : 'Xem Kỹ'"></button>
+                    </div>
+                  </div>
+                  <template x-if="xemBang===b.id">
+                    <div class="mt-3 pt-3 border-t border-slate-800">
+                      <div class="text-[12px] text-slate-300 italic mb-2" x-text="'“'+b.tonChi+'”'"></div>
+                      <div class="text-[11px] text-slate-500 mb-1.5" x-text="giuVung(b.id).length ? ('Trấn giữ: ' + giuVung(b.id).map(v=>v.ten).join(' · ')) : 'Chưa giữ được vùng nào'"></div>
+                      <div class="lbl mb-1">Bang chúng mạnh nhất</div>
+                      <div class="flex flex-wrap gap-x-4 gap-y-1">
+                        <template x-for="m in b.thanhVien.slice(0,8)" :key="m.id">
+                          <span class="text-[11.5px] text-slate-400"><b class="text-slate-300" x-text="m.ten"></b> <span class="text-slate-600" x-text="'Lv '+m.lv"></span></span>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </template>
+
       <!-- ===== VIEW: TỬU LÂU (quán rượu giang hồ — cách ly 0-power) =====
            Khách trong quán KHÔNG lưu vào save: suy từ (seed thế giới + mốc 30 phút) ở
            engine/tuulau.js, nên F5 vẫn ra đúng người đó. Chỉ bảng tin là dữ liệu thật. -->

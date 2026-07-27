@@ -42,7 +42,7 @@ export const NAV = [
     { view: 'market',   name: 'Sàn Giao Dịch',  gloss: 'Market',   icon: '⚖️', soon: true },
   ] },
   { title: 'Khác', items: [
-    { view: 'guild',      name: 'Bang Phái',  gloss: 'Guild',      icon: '🏯', soon: true },
+    { view: 'guild',      name: 'Bang Phái',  gloss: 'Guild',      icon: '🏯' },
     { view: 'tavern',     name: 'Tửu Lâu',    gloss: 'Tavern',     icon: '🍶' },
     { view: 'collection', name: 'Vạn Vật Phổ', gloss: 'Collection', icon: '📖' },
   ] },
