@@ -3,7 +3,8 @@
 // SECONDARY_STATS.key -> lấy giá trị thật từ derivedStats; không key -> '—'.
 // ============================================================
 
-// Trang bị chính (9 slot) — chốt 2026-06-11. art bỏ vào images/equip/<id>.png.
+// Trang bị chính (10 slot) — chốt 2026-06-11, thêm Phi Phong 2026-07-27.
+// art bỏ vào images/equip/<id>.png.
 export const EQUIP_SLOTS = [
   { id: 'mu',       name: 'Mũ',       icon: '⛑️' },
   { id: 'giap',     name: 'Giáp',     icon: '🥋' },
@@ -14,6 +15,9 @@ export const EQUIP_SLOTS = [
   { id: 'nhan',     name: 'Nhẫn',     icon: '💍' },
   { id: 'trangSuc', name: 'Trang Sức',icon: '📿' },   // Dây Chuyền / Ngọc Bội
   { id: 'toaKy',    name: 'Tọa Kỵ',   icon: '🐎' },   // Ngựa
+  // Ô mở sẵn, CHƯA có món nào rơi vào (data/gear.js chưa khai báo món slot phiPhong)
+  // -> ô luôn trống cho tới khi thêm món. state.equipment là object thưa nên không cần migrate save.
+  { id: 'phiPhong', name: 'Phi Phong',icon: '🧥' },   // Áo choàng
 ];
 
 // Công cụ thu thập (4 slot)
