@@ -4166,14 +4166,17 @@
                   <div class="h-2 rounded-full bg-ink overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+(pr.frac*100)+'%;background:linear-gradient(90deg,#0d9488,#22d3ee)'"></div></div>
                 </div>
               </div>
-              <button @click="$store.game.openHuntTrack()" class="group text-center px-4 py-2 rounded-xl bg-ink2/60 border border-slate-700/60 shrink-0 hover:border-jade/50 hover:bg-ink2 transition cursor-pointer" title="Xem tiến độ Lịch Luyện">
+              <!-- Màn hẹp: hàng này wrap, nút bị đẩy xuống dòng riêng. Nếu để co theo nội dung thì nó
+                   nằm lệch trái, chừa một mảng trống bên phải (đo được 122px nút / 201px trống ở màn 375).
+                   -> xuống dòng thì chiếm TRỌN bề ngang; từ sm trở lên trả về co theo nội dung như cũ. -->
+              <button @click="$store.game.openHuntTrack()" class="group text-center px-4 py-2 rounded-xl bg-ink2/60 border border-slate-700/60 w-full sm:w-auto shrink-0 hover:border-jade/50 hover:bg-ink2 transition cursor-pointer" title="Xem tiến độ Lịch Luyện">
                 <div class="lbl mb-1 flex items-center justify-center gap-1">Slot Săn Mồi <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-600 group-hover:text-jade transition" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
                 <div class="flex items-baseline justify-center gap-0.5 leading-none">
                   <b class="text-[19px] text-jade tabular-nums" x-text="$store.game.huntSlotsUsedV"></b>
                   <span class="text-[13px] text-slate-500 tabular-nums" x-text="'/ '+$store.game.huntSlotsV"></span>
                   <span class="text-[10px] text-slate-500 ml-1">đang săn</span>
                 </div>
-                <div class="mx-auto mt-1.5 h-1.5 w-24 rounded-full bg-slate-800 overflow-hidden">
+                <div class="mx-auto mt-1.5 h-1.5 w-full sm:w-24 rounded-full bg-slate-800 overflow-hidden">
                   <div class="h-full rounded-full bg-jade transition-all" :style="`width:${$store.game.huntSlotsV ? Math.round($store.game.huntSlotsUsedV / $store.game.huntSlotsV * 100) : 0}%;box-shadow:0 0 6px #14b8a6`"></div>
                 </div>
                 <div class="text-[10px] text-slate-500 mt-1">mở thêm ở Lv <span class="text-slate-400" x-text="$store.game.nextSlotLv"></span></div>
