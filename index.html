@@ -11191,6 +11191,10 @@
         .kho-tip .ic{ width:34px; height:34px; flex:none; display:grid; place-items:center; font-size:19px;
                       background:#070908; border:1px solid color-mix(in srgb,var(--q) 55%,transparent); border-radius:8px; }
         @media (hover:none),(pointer:coarse){ .kho-tip{ display:none; } }
+        /* Ô kho: viền đặt bằng :style theo sắc phẩm chất (alpha 55). Rê vào thì SÁNG LÊN bằng
+           filter chứ không đổi màu bằng JS — khỏi phải gắn hai handler chuột cho từng ô. */
+        .kho-o{ filter:brightness(1); transition:filter .12s ease, border-color .12s ease; }
+        .kho-o:hover{ filter:brightness(1.75); }
       </style>
       <template x-if="$store.game.view==='guild'">
         <div class="max-w-[1200px] mx-auto" x-data="bangPhai()" x-init="bpInit()">
@@ -11444,12 +11448,15 @@
                       <!-- CHIỀU CAO CHỐT CỨNG (h- chứ không phải max-h-): lọc còn 7 món thì khối
                            co lại, cả tab nhảy lên nhảy xuống mỗi lần bấm chip. Ô trống thà để
                            trống chứ không cho đổi cỡ. -->
-                      <div class="h-[212px] overflow-y-auto pr-1 mb-3">
+                      <div class="h-[212px] overflow-y-auto pr-1 mb-3" style="scrollbar-gutter:stable">
                         <template x-if="khoHien.length">
                           <div class="grid gap-1.5"
                              style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr))">
                           <template x-for="it in khoHien" :key="it.id">
-                            <div class="relative group aspect-square rounded-lg border border-slate-800 bg-ink2/50 hover:border-jade/50 transition cursor-pointer"
+                            <!-- Viền theo SẮC PHẨM CHẤT của món — cùng lối với ô trang bị và tooltip, nhìn lướt
+                                 đã phân được đồ thường với đồ hiếm mà không cần rê chuột. -->
+                            <div class="relative group aspect-square rounded-lg border bg-ink2/50 transition cursor-pointer kho-o"
+                                 :style="'border-color:' + it.mau + '55'"
                                  @mouseenter="moTip($event, it)" @mouseleave="dongTip()"
                                  @click="dongTip(); $store.game.openItemModal(it.id)">
                               <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
@@ -11478,11 +11485,12 @@
                         </div>
                       </div>
                       <div class="grid gap-1.5 h-[212px] overflow-y-auto pr-1 content-start"
-                           style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr))">
+                           style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr));scrollbar-gutter:stable">
                         <template x-for="it in gopHien" :key="it.id">
                           <button @click="gopVaoKho(it, Math.min(it.so, 10))"
                             @mouseenter="moTip($event, it)" @mouseleave="dongTip()"
-                            class="relative aspect-square rounded-lg border border-slate-800 bg-ink2/40 hover:border-jade/50 transition">
+                            class="relative aspect-square rounded-lg border bg-ink2/40 transition kho-o"
+                            :style="'border-color:' + it.mau + '55'">
                             <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
                             <span class="absolute bottom-0 right-0.5 text-[9px] tabular-nums text-slate-400 leading-none px-0.5 rounded bg-black/70" x-text="fmt(it.so)"></span>
                           </button>
