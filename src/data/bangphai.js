@@ -93,9 +93,14 @@ export const CUA_HANG_BANG = [
   { id: 'ch_bac', tienTe: 'bac', itemId: null, so: 6000, gia: 500, han: 5, capBang: 1,
     ten: 'Bạc', ico: 'bac', emoji: '🟡', nhom: 'tien',
     desc: 'Ngân khố Tiên Minh đổi ra bạc vụn — tiêu gì cũng được.' },
-  { id: 'ch_danHoiSinh', itemId: 'danHoiSinhLuc', so: 10, gia: 400, han: 4, capBang: 1,
-    ten: 'Đan Hồi Sinh Lực', ico: 'danHoiSinhLuc', emoji: '🧪', nhom: 'dan',
-    desc: 'Đan phòng thân — nhét đầy ô lương thực rồi cứ thế treo máy.' },
+  // ⚠ Chỗ này từng bán `danHoiSinhLuc` — một id KHÔNG HỀ CÓ trong ITEMS. Mua vào là addItem()
+  // ghi thẳng id ma vào túi VÀ vào codex.obtained (Vạn Vật Phổ đếm luôn món không tồn tại),
+  // mà ico() không tìm ra ảnh nên rơi về emoji, đứng cạnh mấy món có art nhìn lạc hẳn.
+  // Nay dùng Hoạt Huyết Đan: có thật, có sẵn art, healPct 30 nên nằm ô Hồi Sinh Lực chạy đúng
+  // như lời mô tả (autoEatTick đọc healPct). Luyện Đan Lv 20 mới tự làm được -> mua vẫn đáng.
+  { id: 'ch_danHoiSinh', itemId: 'hoatHuyetDan', so: 20, gia: 400, han: 4, capBang: 1,
+    ten: 'Hoạt Huyết Đan', ico: 'hoatHuyetDan', emoji: '💊', nhom: 'dan',
+    desc: 'Đan phòng thân — nhét đầy ô Hồi Sinh Lực rồi cứ thế treo máy.' },
   { id: 'ch_honThach', tienTe: 'honThach', itemId: null, so: 200, gia: 700, han: 3, capBang: 1,
     ten: 'Hồn Thạch', ico: 'honThach', emoji: '🔴', nhom: 'tien',
     desc: 'Hồn thạch luyện khí — dùng cho cường hoá và Linh Thú.' },
