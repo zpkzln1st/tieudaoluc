@@ -436,6 +436,8 @@ export function bangPhai() {
     // hàng, mọi chi tiết dồn vào popup khi bấm.
     /** Chữ đỡ cho thẻ kĩ năng khi chưa có art. */
     knHan(id) { return KY_NANG_HAN[id] || '訣'; },
+    /** Triện nhóm nghề trên thẻ minh chúng. Bốn chữ đều có sẵn trong subset Noto Serif SC. */
+    nhomHan(n) { return ({ combat: '武', gather: '採', craft: '鍛', support: '丹' })[n] || '侠'; },
     /** Bản khắc của một công trình: chữ Hán + sắc riêng (TILE_KHAC ở data/bangphai.js). */
     khac(id) { return TILE_KHAC[id] || { han: '殿', mau: '#94a3b8', phu: '' }; },
     /**
