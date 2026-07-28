@@ -24,7 +24,7 @@ import {
   bossBang, xuatTranBoss, chotBossBang, moBossBang,
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, KY_NANG_BANG, giaKyNang,
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
-  MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG,
+  MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG,
 } from './engine/bangphai.js';
 import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU } from './data/bangphai.js';
 
@@ -43,9 +43,12 @@ export function bangPhai() {
     _t: 0, _iv: 0,
     tab: 'nha',             // nha · thanhVien · nhiemVu · cuaHang · kyNang · congTrinh · chinhPhat · boss · thietLap
     moForm: false, tenMoi: '', tonChiMoi: TON_CHI_SAN[0],
-    loNguoi: null,          // id thành viên đang mở bảng thao tác
+    loNguoi: null,          // id minh chúng đang mở bảng thao tác
+    hoSo: null,             // id minh chúng đang mở HỒ SƠ đầy đủ
     timTanTu: '',
     vungChon: null,
+    bacGop: '',             // ô tự điền số Bạc cống hiến
+    xemHetNhatKy: false,
 
     get g() { return this.$store.game; },
     get bp() { return this.g.state.bangPhai; },
@@ -89,6 +92,24 @@ export function bangPhai() {
     },
     get nhatKy() { return (this.bp && this.bp.nhatKy) || []; },
     get mucGop() { return MUC_GOP; },
+    get bacMoiMinhCong() { return BAC_MOI_MINH_CONG; },
+    /** Số Bạc trong ô tự điền, đã lọc rác. 0 nghĩa là chưa nhập gì dùng được. */
+    get bacGopSo() { const n = Math.floor(Number(String(this.bacGop).replace(/[^0-9]/g, '')) || 0); return n > 0 ? n : 0; },
+    get bacGopDuoc() { return this.bacGopSo > 0 && this.bacGopSo <= this.bac; },
+    /** Góp chừng này thì được bao nhiêu Minh Cống — cho người chơi thấy trước, khỏi phải tự chia. */
+    get bacGopRaMinhCong() { return Math.floor(this.bacGopSo / BAC_MOI_MINH_CONG); },
+    /** Nhật ký hiện ra: mặc định 12 mục gần nhất, không dùng con lăn riêng. */
+    get nhatKyHien() { return this.xemHetNhatKy ? this.nhatKy : this.nhatKy.slice(0, 12); },
+    /** Hồ sơ đầy đủ của một minh chúng (mở bằng nút Xem Thông Tin). */
+    get hoSoXem() { return this.hoSo ? (this.tv.find((m) => m.id === this.hoSo) || null) : null; },
+    xemHoSo(m) { this.hoSo = (this.hoSo === m.id ? null : m.id); },
+    /** Ngày vào minh -> chữ. */
+    vaoLucTxt(ts) {
+      if (!ts) return 'không rõ';
+      const d = Math.floor((Date.now() - ts) / 86400000);
+      if (d >= 1) return d + ' ngày trước';
+      return this.gioTxt(Date.now() - ts) + ' trước';
+    },
     get chucList() { return CHUC.filter((c) => c.id !== 'bangChu'); },
 
     // ---------- kho ----------
@@ -292,15 +313,25 @@ export function bangPhai() {
     // ---------- cống hiến ----------
     gop(n) {
       const g = this.g, so = Math.floor(n || 0);
-      if (!this.bang) { g.showToast('Chưa có bang.'); return; }
+      if (!this.bang) { g.showToast('Chưa lập Tiên Minh.'); return; }
+      if (so <= 0) { g.showToast('Nhập số Bạc muốn góp đã.'); return; }
       if (this.bac < so) { g.showToast('Không đủ Bạc — cần ' + this.fmt(so) + '.'); return; }
       g.state.currencies.bac -= so;
-      const capTruoc = this.bang.cap;
+      const capTruoc = this.bang.cap, mcTruoc = this.bang.bangCong;
       const them = congHien(g.state, so, Date.now());
+      const mc = this.bang.bangCong - mcTruoc;
       this._luu();
-      g.showToast('Cống hiến ' + this.fmt(them) + ' — Công Tích ' + this.fmt(this.congTich)
-        + (this.bang.cap > capTruoc ? ' · bang lên cấp ' + this.bang.cap : ''));
+      g.showToast('Cống hiến ' + this.fmt(them) + ' Bạc — được ' + this.fmt(them) + ' Công Tích'
+        + (mc > 0 ? ' và ' + this.fmt(mc) + ' Minh Cống' : '')
+        + (this.bang.cap > capTruoc ? ' · Tiên Minh lên cấp ' + this.bang.cap : '') + '.');
     },
+    /** Góp đúng số trong ô tự điền. */
+    gopTuy() {
+      if (!this.bacGopDuoc) { this.g.showToast(this.bacGopSo > 0 ? 'Không đủ Bạc.' : 'Nhập số Bạc muốn góp đã.'); return; }
+      this.gop(this.bacGopSo);
+      this.bacGop = '';
+    },
+    gopHet() { this.bacGop = String(this.bac); },
 
     // ---------- kho ----------
     gopVaoKho(it, so) {

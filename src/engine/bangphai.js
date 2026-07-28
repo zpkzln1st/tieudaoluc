@@ -24,14 +24,14 @@ import {
   NV_BANG, NV_BANG_MOI_KY, NV_BANG_KY_MS, TRUY_NA_MOI_NGAY, TRUY_NA_BAC,
   MUA_MS, CP_MOI_KILL, CP_MOI_BOSS, CP_BUFF_HANG, CP_THONG_TRI_HE_SO, MUA_THUONG_BANG,
   BOSS_BANG_KY_MS, BOSS_BANG_LUOT, BOSS_BANG_CD_MS, BOSS_BANG_MAU_HE_SO,
-  QUYEN_MAC_DINH,
+  QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
 } from '../data/bangphai.js';
 
 export {
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, TV_TRAN, CAP_BANG_MAX,
   KY_NANG_BANG, KY_NANG_BY_ID, giaKyNang, CUA_HANG_BANG, CONG_TRINH, CONG_TRINH_BY_ID,
   giaCongTrinh, gioCongTrinh, NV_BANG, TRUY_NA_BAC, MUA_MS, CP_BUFF_HANG, MUA_THUONG_BANG,
-  BOSS_BANG_LUOT, bangCongCanCho, QUYEN_MAC_DINH,
+  BOSS_BANG_LUOT, bangCongCanCho, QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
 };
 
 const GIO = 3600000, NGAY_MS = 86400000;
@@ -90,6 +90,9 @@ function bangMoi(ten, tonChi, now) {
  * Ghi một dòng nhật ký. `ai` (tuỳ chọn) = hồ sơ người liên quan { ten, av, phu } để dòng nhật ký
  * hiện được CHÂN DUNG + thông tin, chứ không phải một dòng chữ trơ.
  */
+/** Tên người tô đúng màu nhóm nghề của họ — nhật ký toàn chữ trắng thì nhìn không ra ai. */
+export const tenMau = (ho) => '<b style="color:' + (ho.mau || '#e2e8f0') + '">' + ho.ten + '</b>';
+
 export function ghiNhatKy(state, txt, now, ai) {
   const b = ensureBangPhai(state), ts = now || Date.now();
   b.nhatKy.unshift({ id: 'nk' + ts + '_' + (b.nhatKy.length + 1) + '_' + Math.round(Math.random() * 1e5), txt, ts, ai: ai || null });
@@ -240,8 +243,8 @@ export function chieuMo(state, botId, world, now) {
   b.bang.tv.push({ id: botId, chuc: CHUC_THAP, vaoLuc: t, gopBac: 0, ct: 0, cp: 0, vung });
   b.bang.donXin = (b.bang.donXin || []).filter((x) => x !== botId);
   const ho = moTaBot(r, t);
-  ghiNhatKy(state, '<b>' + ho.ten + '</b> nhập minh.', t,
-    { ten: ho.ten, av: ho.av, phu: ho.hieu + ' · ' + ho.loai + ' · Lv ' + ho.lv + ' · Tổng Lv ' + ho.tong });
+  ghiNhatKy(state, tenMau(ho) + ' nhập minh.', t,
+    { ten: ho.ten, av: ho.av, mau: ho.mau, phu: ho.hieu + ' · ' + ho.loai + ' · Lv ' + ho.lv + ' · Tổng Lv ' + ho.tong });
   return true;
 }
 
@@ -254,8 +257,8 @@ export function kichNguoi(state, botId, world, now) {
   const r = roster.find((x) => x.id === botId);
   const ho = r ? moTaBot(r, now || Date.now()) : null;
   b.bang.tv.splice(i, 1);
-  ghiNhatKy(state, '<b>' + (ho ? ho.ten : 'Một người') + '</b> bị đuổi khỏi minh.', now,
-    ho ? { ten: ho.ten, av: ho.av, phu: ho.hieu + ' · Lv ' + ho.lv } : null);
+  ghiNhatKy(state, (ho ? tenMau(ho) : '<b>Một người</b>') + ' bị đuổi khỏi minh.', now,
+    ho ? { ten: ho.ten, av: ho.av, mau: ho.mau, phu: ho.hieu + ' · ' + ho.loai + ' · Lv ' + ho.lv } : null);
   return true;
 }
 
@@ -277,8 +280,9 @@ export function doiChuc(state, botId, len, now, world) {
   const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
   const r = roster.find((x) => x.id === botId);
   const ho = r ? moTaBot(r, now || Date.now()) : null;
-  ghiNhatKy(state, '<b>' + (ho ? ho.ten : 'Một người') + '</b> ' + (len ? 'được thăng làm ' : 'bị giáng xuống ') + moi.ten + '.', now,
-    ho ? { ten: ho.ten, av: ho.av, phu: ho.hieu + ' · Lv ' + ho.lv } : null);
+  ghiNhatKy(state, (ho ? tenMau(ho) : '<b>Một người</b>') + ' ' + (len ? 'được thăng làm ' : 'bị giáng xuống ')
+    + '<b style="color:' + moi.mau + '">' + moi.ten + '</b>.', now,
+    ho ? { ten: ho.ten, av: ho.av, mau: ho.mau, phu: ho.hieu + ' · ' + ho.loai + ' · Lv ' + ho.lv } : null);
   return '';
 }
 
@@ -303,13 +307,16 @@ export function sinhDonXin(state, world, now) {
 }
 
 // ---------- CỐNG HIẾN ----------
-/** Góp Bạc: 1 Bạc = 1 Công Tích cho ngươi, đồng thời +Bang Cống và +quỹ bang. KHÔNG tự trừ Bạc. */
+/**
+ * Góp Bạc: 1 Bạc = 1 Công Tích cho ngươi, Bạc vào Minh Khố, và cứ BAC_MOI_MINH_CONG Bạc
+ * đổi được 1 Minh Cống. KHÔNG tự trừ Bạc — lớp view lo việc đó.
+ */
 export function congHien(state, bac, now) {
   const b = ensureBangPhai(state), n = Math.max(0, Math.floor(bac || 0));
   if (!b.bang || n <= 0) return 0;
   b.congTich += n; b.congTichTong += n; b.gopBac += n;
   b.bang.quy += n;
-  themBangCong(state, Math.round(n / 20), now);               // 20 Bạc = 1 Bang Cống
+  themBangCong(state, Math.floor(n / BAC_MOI_MINH_CONG), now);
   return n;
 }
 
