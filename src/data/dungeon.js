@@ -93,7 +93,7 @@ export const DUNGEONS = [
       doPho: { bac: [4, 5], slots: ['gang', 'trangSuc'] }, doPhoChance: 0.05,
       toolDoPho: { bac: 5, chance: 0.06 }, // Đồ Phổ công cụ bậc 5 (roll riêng)
       manh: 1,   // Mảnh Trang Bị Hoàng Kim / lượt THÔNG QUAN — phó bản vào cửa nên trả ít nhất
-      rare: [{ itemId: 'dpset_thuongLan', chance: 0.10 }, { itemId: 'dpset_thanhHu', chance: 0.10 }],   // 2 bộ hệ Thủy
+      rare: [{ itemId: 'dpset_thuongLan', chance: 0.05 }, { itemId: 'dpset_thanhHu', chance: 0.05 }],   // 2 bộ hệ Thủy
     },
   },
   {
@@ -111,7 +111,7 @@ export const DUNGEONS = [
       doPho: { bac: [5], slots: ['vuKhi'] }, doPhoChance: 0.025,
       toolDoPho: { bac: 6, chance: 0.05 }, // Đồ Phổ công cụ bậc 6 (roll riêng)
       manh: 2,
-      rare: [{ itemId: 'phuQuangPhan', chance: 0.05 }, { itemId: 'dpset_hongAnh', chance: 0.10 }, { itemId: 'dpset_thatSat', chance: 0.10 }],   // 2 bộ hệ Hỏa
+      rare: [{ itemId: 'phuQuangPhan', chance: 0.05 }, { itemId: 'dpset_hongAnh', chance: 0.025 }, { itemId: 'dpset_thatSat', chance: 0.025 }],   // 2 bộ hệ Hỏa
     },
   },
   {
@@ -129,7 +129,7 @@ export const DUNGEONS = [
       doPho: { bac: [5, 6], slots: ['vuKhi', 'mu', 'giap'] }, doPhoChance: 0.012,
       toolDoPho: { bac: 7, chance: 0.04 }, // Đồ Phổ công cụ bậc 7 (roll riêng; sớm hơn Thái Hư, khớp cấp đeo 81)
       manh: 2,
-      rare: [{ itemId: 'meVuHon', chance: 0.04 }, { itemId: 'dpset_bachHong', chance: 0.10 }, { itemId: 'dpset_dinhQuoc', chance: 0.10 }],   // 2 bộ hệ Kim
+      rare: [{ itemId: 'meVuHon', chance: 0.04 }, { itemId: 'dpset_bachHong', chance: 0.012 }, { itemId: 'dpset_dinhQuoc', chance: 0.012 }],   // 2 bộ hệ Kim
     },
   },
   {
@@ -145,9 +145,9 @@ export const DUNGEONS = [
       lieu: ['tinhHoaMoc', 'vanVuLong', 'tinhTuy', 'huKhongTinh', 'thatTinhThao'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [6], slots: ['giap', 'mu'] }, doPhoChance: 0.006,
-      chieuDoPho: { chance: 0.05 }, // Đồ Phổ Tuyệt Kĩ (chỉ ra cái chưa có) — DRAFT
+      chieuDoPho: { chance: 0.006 }, // Đồ Phổ Tuyệt Kĩ — BẰNG doPhoChance cùng bậc
       manh: 2,
-      rare: [{ itemId: 'giaoChau', chance: 0.05 }, { itemId: 'hoPhuDauLinh', chance: 0.025 }, { itemId: 'dpset_nhuTinh', chance: 0.10 }, { itemId: 'dpset_tuDien', chance: 0.10 }],   // 2 bộ hệ Mộc
+      rare: [{ itemId: 'giaoChau', chance: 0.05 }, { itemId: 'hoPhuDauLinh', chance: 0.025 }, { itemId: 'dpset_nhuTinh', chance: 0.006 }, { itemId: 'dpset_tuDien', chance: 0.006 }],   // 2 bộ hệ Mộc
     },
   },
   {
@@ -163,9 +163,9 @@ export const DUNGEONS = [
       lieu: ['tramHaiMoc', 'sanHoKhoang', 'sanHoDinh', 'huKhongTinh', 'meVuHon', 'tramVuLan'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [6, 7], slots: ['nhan', 'trangSuc'] }, doPhoChance: 0.003,
-      chieuDoPho: { chance: 0.07 }, // Đồ Phổ Tuyệt Kĩ — DRAFT
+      chieuDoPho: { chance: 0.003 }, // Đồ Phổ Tuyệt Kĩ — BẰNG doPhoChance cùng bậc
       manh: 3,
-      rare: [{ itemId: 'hachCoLinh', chance: 0.03 }, { itemId: 'dpset_anBang', chance: 0.10 }, { itemId: 'dpset_minhVuong', chance: 0.10 }],   // 2 bộ hệ Thổ
+      rare: [{ itemId: 'hachCoLinh', chance: 0.03 }, { itemId: 'dpset_anBang', chance: 0.003 }, { itemId: 'dpset_minhVuong', chance: 0.003 }],   // 2 bộ hệ Thổ
     },
   },
   {
@@ -181,13 +181,13 @@ export const DUNGEONS = [
       lieu: ['thanDanMoc', 'thanTinhKhoang', 'thanTinhDinh', 'coMaHaiCot', 'cuuDiepLinhChi'],
       da: ['daCuongHoaCao'],
       doPho: { bac: [7], slots: 'all' }, doPhoChance: 0.001,
-      chieuDoPho: { chance: 0.10 }, // Đồ Phổ Tuyệt Kĩ (cao nhất) — DRAFT
+      chieuDoPho: { chance: 0.001 }, // Đồ Phổ Tuyệt Kĩ — BẰNG doPhoChance cùng bậc
       manh: 3,
       rare: [
         { itemId: 'tinhTheYeuVuong', chance: 0.01 },
         { itemId: 'cuuViTinh', chance: 0.012 },
         { itemId: 'maToTam', chance: 0.008 },
-        { itemId: 'dpset_kimQuang', chance: 0.10 },   // Kim Quang Vô Hệ — không thuộc phó bản hệ nào
+        { itemId: 'dpset_kimQuang', chance: 0.001 },   // Kim Quang Vô Hệ — không thuộc phó bản hệ nào
       ],
     },
   },

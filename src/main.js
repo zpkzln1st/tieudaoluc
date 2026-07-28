@@ -2150,6 +2150,18 @@ const gameStore = {
         + inner
         + `</span></span>`;
     }
+    // ĐỒ PHỔ BỘ TRANG (dpset_) và ĐỒ PHỔ TUYỆT KĨ (dpchieu_): cũng là đồ phổ, phải mang cùng
+    // hình cuộn — trước đó rơi về emoji 📜 nên đứng lẫn trong lưới Bảo Vật nhìn như hàng lỗi.
+    // dpset_ lồng emblem BỘ TRANG ở giữa (nếu có art bộ); dpchieu_ có cuộn riêng dopho_chieu.
+    if (id && (id.startsWith('dpset_') || id.startsWith('dpchieu_'))) {
+      const laChieu = id.startsWith('dpchieu_');
+      const bgFile = laChieu ? 'dopho_chieu' : 'dopho_7';
+      // Cuộn TRƠN, không lồng art ở giữa: chưa có art riêng cho từng Bộ Trang, lồng ô rỗng
+      // vào giữa cuộn còn xấu hơn. Tên bên dưới đủ phân biệt; muốn đẹp hẳn thì phải vẽ 11 tấm.
+      return `<span class="relative block w-full h-full">`
+        + `<img src="images/items/${bgFile}.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/items/${bgFile}.png&quot;;}else{${drop};}'>`
+        + `</span>`;
+    }
     if (folder === 'equip') {   // art trang bị (KÉO GIÃN lấp khung): WEBP-FIRST -> png -> emoji.
       const pad = (this.ART_INSET && this.ART_INSET[id]) ? `;padding:${this.ART_INSET[id]}%` : '';
       return `<img src="images/equip/${id}.webp" class="w-full h-full" style="object-fit:fill${pad}" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/equip/${id}.png&quot;;}else{${drop};}'>`;
@@ -4102,7 +4114,10 @@ const gameStore = {
       // Bộ Trang khỏi pool từ đầu. Thiếu điều kiện này thì bảng xem trước KHOE ra hàng chục Đồ Phổ
       // vĩnh viễn không rơi, người chơi cày mòn mỏi một thứ không tồn tại.
       .filter((it) => it.equip && it.equip.itemLv && !it.equip.set && quals.includes(it.quality) && (dp.slots === 'all' || dp.slots.includes(it.equip.slot)))
-      .map((it) => 'dp_' + it.id);
+      .map((it) => 'dp_' + it.id)
+      // Đồ Phổ Bộ Trang + Đồ Phổ Tuyệt Kĩ cũng LÀ đồ phổ của phó bản này — trước đó chúng chỉ
+      // nằm lẻ trong lưới Bảo Vật, không có mặt trong Danh Mục Đồ Phổ nên tra không ra.
+      .concat((d.loot.rare || []).filter((r) => String(r.itemId || '').startsWith('dpset_')).map((r) => r.itemId));
   },
   dungeonPoolId: null,
   openDungeonPool(id) { this.dungeonPoolId = id; },
