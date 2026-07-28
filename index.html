@@ -11134,6 +11134,9 @@
         .bp-hang{ width:28px; height:30px; font-size:12px; color:#64748b; }
         .bp-hang-top{ background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat;
                       text-shadow:0 1px 2px #000, 0 0 6px rgba(0,0,0,.8); }
+        /* Cờ chủ ở Chiến Khu — chỉ hiện ở vùng chính Tiên Minh mình đang dẫn. */
+        .bp-cochu{ display:inline-block; width:15px; height:16px;
+                   background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat; }
       </style>
       <template x-if="$store.game.view==='guild'">
         <div class="max-w-[1200px] mx-auto" x-data="bangPhai()" x-init="bpInit()">
@@ -11915,8 +11918,10 @@
                                :class="(vungXem && vungXem.id===v.id) ? 'bg-slate-500/8' : 'hover:bg-slate-500/5'"
                                @click="chonVung(v)">
                             <!-- ẢNH VÙNG THẬT (images/locations/<id>.webp) — game có sẵn cả 10 tấm -->
-                            <div class="w-[58px] h-[58px] rounded-lg overflow-hidden shrink-0 border relative flex items-center justify-center"
-                                 :style="'border-color:' + ((v.diemTa && v.chu) ? v.chu.mauCo : '#26324a') + '66;background:#0a0f1a'">
+                            <!-- Không viền màu theo phái dẫn đầu: màu đó đã có ở tên phái ngay dưới,
+                                 tô thêm vào khung ảnh chỉ làm hàng nào cũng loang một sắc khác nhau. -->
+                            <div class="w-[58px] h-[58px] rounded-lg overflow-hidden shrink-0 relative flex items-center justify-center"
+                                 style="background:#0a0f1a">
                               <span class="w-full h-full flex items-center justify-center" style="font-size:30px"
                                     x-html="$store.game.ico(v.id, '🏞️')"></span>
                               <template x-if="v.thongTri">
@@ -11930,8 +11935,12 @@
                                 <span class="text-[10.5px] ml-auto tabular-nums shrink-0" :class="v.diemTa ? 'text-amber-300' : 'text-slate-600'"
                                       x-text="v.diemTa ? ('hạng ' + v.hangTa + ' · ' + fmt(v.diemTa) + ' điểm') : 'chưa có điểm'"></span>
                               </div>
+                              <!-- badge_hex CHỈ đóng khi phái dẫn đầu là Tiên Minh của mình — đóng cả
+                                   10 hàng thì nó thành hoa văn, không còn là tin gì. -->
                               <div class="text-[11px] mt-1 flex items-center gap-1.5 flex-wrap">
-                                <span class="w-2.5 h-2.5 rotate-45 rounded-[1px] shrink-0" :style="'background:'+(v.chu?v.chu.mauCo:'#475569')"></span>
+                                <template x-if="v.chu && v.chu.laTa">
+                                  <span class="bp-cochu shrink-0"></span>
+                                </template>
                                 <span class="text-slate-500">Dẫn đầu</span>
                                 <b :class="v.chu && v.chu.laTa ? 'text-amber-300' : 'text-slate-300'" x-text="v.chu ? v.chu.ten : '—'"></b>
                                 <span class="text-slate-600" x-text="v.chu ? ('· cấp ' + v.chu.cap) : ''"></span>
