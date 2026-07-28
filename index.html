@@ -11177,8 +11177,41 @@
         @media (min-width:640px){ .bp-anmua{ width:70px; height:75px; }
                                   .bp-anmua .n{ font-size:25px; } .bp-anmua .lb{ font-size:8.5px; } }
       </style>
+      <style>
+        /* Tooltip Minh Khố — cùng khuôn với tooltip trang bị (.gtip): nền ink, viền theo SẮC
+           PHẨM CHẤT của món, đổ bóng sâu, hiện mượt. Khác một chỗ: FIXED chứ không absolute,
+           vì ô nằm trong khối cuộn — absolute là bị khối đó cắt cụt.
+           pointer-events:none để chuột xuyên qua, không cướp hover của ô bên dưới.
+           Máy cảm ứng không rê chuột được nên ẩn hẳn — ở đó bấm ô ra modal vật phẩm. */
+        .kho-tip{ position:fixed; width:236px; z-index:70; pointer-events:none;
+                  background:#0a111d; border:1px solid var(--q,#475569); border-radius:10px;
+                  box-shadow:0 12px 30px rgba(0,0,0,.66); overflow:hidden; }
+        .kho-tip .hd{ display:flex; align-items:center; gap:9px; padding:9px 10px;
+                      background:linear-gradient(120deg,color-mix(in srgb,var(--q) 18%,transparent),transparent); }
+        .kho-tip .ic{ width:34px; height:34px; flex:none; display:grid; place-items:center; font-size:19px;
+                      background:#070908; border:1px solid color-mix(in srgb,var(--q) 55%,transparent); border-radius:8px; }
+        @media (hover:none),(pointer:coarse){ .kho-tip{ display:none; } }
+      </style>
       <template x-if="$store.game.view==='guild'">
         <div class="max-w-[1200px] mx-auto" x-data="bangPhai()" x-init="bpInit()">
+          <!-- Tooltip vẽ MỘT lần cho cả trang, không phải mỗi ô một cái. -->
+          <template x-if="khoTip">
+            <div class="kho-tip" :style="'--q:' + khoTip.mau + ';left:' + khoTip.x + 'px;top:' + khoTip.y + 'px'">
+              <div class="hd">
+                <span class="ic" x-html="$store.game.ico(khoTip.id, khoTip.icon)"></span>
+                <div class="min-w-0">
+                  <div class="fserif text-[12.5px] leading-tight" :style="'color:' + khoTip.mau" x-text="khoTip.ten"></div>
+                  <div class="text-[10.5px] text-slate-500 leading-tight mt-0.5">
+                    <span x-text="'×' + fmt(khoTip.so)"></span>
+                    <template x-if="khoTip.pham"><span> · <span x-text="khoTip.pham"></span></span></template>
+                  </div>
+                </div>
+              </div>
+              <template x-if="khoTip.desc">
+                <div class="text-[11px] text-slate-400 leading-snug px-2.5 pb-2.5 pt-0.5" x-text="khoTip.desc"></div>
+              </template>
+            </div>
+          </template>
 
           <!-- BANNER -->
           <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
@@ -11417,7 +11450,8 @@
                              style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr))">
                           <template x-for="it in khoHien" :key="it.id">
                             <div class="relative group aspect-square rounded-lg border border-slate-800 bg-ink2/50 hover:border-jade/50 transition cursor-pointer"
-                                 :title="it.goi" @click="$store.game.openItemModal(it.id)">
+                                 @mouseenter="moTip($event, it)" @mouseleave="dongTip()"
+                                 @click="dongTip(); $store.game.openItemModal(it.id)">
                               <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
                               <span class="absolute bottom-0 right-0.5 text-[9px] tabular-nums text-amber-300 leading-none px-0.5 rounded bg-black/70" x-text="fmt(it.so)"></span>
                               <!-- Nút rút chỉ hiện khi rê vào: bày sẵn thì mỗi ô một chữ "rút" lấn hết icon. -->
@@ -11446,7 +11480,8 @@
                       <div class="grid gap-1.5 h-[212px] overflow-y-auto pr-1 content-start"
                            style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr))">
                         <template x-for="it in gopHien" :key="it.id">
-                          <button @click="gopVaoKho(it, Math.min(it.so, 10))" :title="it.goi + '\n\nBấm để góp 10 món vào Minh Khố.'"
+                          <button @click="gopVaoKho(it, Math.min(it.so, 10))"
+                            @mouseenter="moTip($event, it)" @mouseleave="dongTip()"
                             class="relative aspect-square rounded-lg border border-slate-800 bg-ink2/40 hover:border-jade/50 transition">
                             <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
                             <span class="absolute bottom-0 right-0.5 text-[9px] tabular-nums text-slate-400 leading-none px-0.5 rounded bg-black/70" x-text="fmt(it.so)"></span>

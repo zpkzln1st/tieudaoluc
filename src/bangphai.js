@@ -163,11 +163,26 @@ export function bangPhai() {
       return {
         id, so, ten, icon: it.icon || '📦', nhom: this.nhomCua(id),
         mau: q.hex || '#cbd5e1',
-        // Tooltip gốc của trình duyệt: chắc chắn có ở mọi máy, không đẻ thêm lớp nổi đè lung tung.
-        // Máy cảm ứng không rê chuột được -> bấm vào ô mở luôn modal vật phẩm (đủ thông tin hơn).
-        goi: ten + ' ×' + this.fmt(so) + (q.name ? '\n' + q.name : '') + (it.desc ? '\n\n' + it.desc : ''),
+        pham: q.name || '', desc: it.desc || '',
       };
     },
+
+    // ---------- tooltip Minh Khố ----------
+    // ⚠ KHÔNG dùng thuộc tính `title` gốc: nó ra hộp xám của hệ điều hành, chậm, không màu,
+    // lạc hẳn khỏi cả game. Game đã có khuôn tooltip riêng (.gtip cho trang bị) — dựng theo đó.
+    // Phải là FIXED chứ không absolute: ô nằm trong khối `overflow-y-auto`, tooltip absolute
+    // sẽ bị khối đó cắt cụt.
+    khoTip: null,
+    moTip(ev, it) {
+      const r = ev.currentTarget.getBoundingClientRect();
+      const W = 236, KHE = 12;
+      // Mở sang phải; sát mép phải quá thì lật sang trái. Trên/dưới thì kẹp trong khung nhìn.
+      let x = r.right + KHE;
+      if (x + W > innerWidth - 8) x = Math.max(8, r.left - KHE - W);
+      const y = Math.max(8, Math.min(r.top, innerHeight - 190));
+      this.khoTip = { ...it, x, y };
+    },
+    dongTip() { this.khoTip = null; },
     get khoList() {
       if (!this.bang) return [];
       return Object.keys(this.bang.kho).map((id) => this._oVatPham(id, this.bang.kho[id]))
