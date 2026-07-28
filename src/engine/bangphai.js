@@ -18,6 +18,16 @@ import { YEU_VUONG, YEU_VUONG_BY_ID, ENEMIES } from '../data/combat.js';
 import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant, botTracks } from './bots.js';
 import { CAT_HEX } from '../data/bots.js';
 import { ITEMS } from '../data/items.js';   // nguồn chân lý tên + lời văn vật phẩm
+import { pushNotif } from './notif.js';     // thuần state, không DOM — dùng chung với chuông + Phi Cáp Đài
+
+/**
+ * Báo lên Phi Cáp Đài. CHỈ dùng cho việc XẢY RA KHI NGƯỜI CHƠI KHÔNG NGỒI ĐÓ, hoặc việc lớn
+ * cần quay lại xử lí (đơn xin, thưởng chưa lĩnh). Việc do chính tay người chơi vừa bấm thì
+ * KHÔNG báo — bấm xong lại nhận thư báo mình vừa bấm là rác.
+ */
+function baoMinh(state, tieuDe, than, now) {
+  pushNotif(state, 'tienMinh', tieuDe, than, now || Date.now());
+}
 import {
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, TV_NEN, TV_MOI_CAP, TV_TRAN,
   CAP_BANG_MAX, bangCongCanCho, KY_NANG_BANG, KY_NANG_BY_ID, giaKyNang,
@@ -403,7 +413,10 @@ export function sinhDonXin(state, world, now) {
     if (!r || daCo.has(r.id) || don.has(r.id)) continue;
     don.add(r.id);
   }
+  const truoc = (b.bang.donXin || []).length;
   b.bang.donXin = [...don].slice(-12);                        // giữ tối đa 12 đơn gần nhất
+  const them = b.bang.donXin.length - truoc;
+  if (them > 0) baoMinh(state, 'Có người xin nhập minh', them + ' người nghe danh ' + b.bang.ten + ' mà tìm tới cửa — sang tab Chiêu Mộ duyệt đơn (nhận không tốn Bạc).', t);
 }
 
 /**
@@ -459,7 +472,10 @@ export function themBangCong(state, diem, now) {
     b.bang.bangCong -= bangCongCanCho(b.bang.cap);
     b.bang.cap += 1; len++;
   }
-  if (len) ghiNhatKy(state, 'Tiên Minh thăng lên <b>cấp ' + b.bang.cap + '</b>.', now);
+  if (len) {
+    ghiNhatKy(state, "Tiên Minh thăng lên <b>cấp " + b.bang.cap + "</b>.", now);
+    baoMinh(state, "Tiên Minh thăng cấp", b.bang.ten + " lên cấp " + b.bang.cap + " — mở thêm suất minh chúng, hàng trong Minh Hội Các và bậc kĩ năng.", now);
+  }
   return len;
 }
 
@@ -650,7 +666,8 @@ export function soatXayDung(state, now) {
   b.bang.congTrinh[id] = Math.max(b.bang.congTrinh[id] | 0, lv);
   b.bang.xayDung = null;
   const ct = CONG_TRINH_BY_ID[id];
-  ghiNhatKy(state, '<b>' + (ct ? ct.ten : id) + '</b> xây xong, đạt cấp ' + lv + '.', t);
+  ghiNhatKy(state, "<b>" + (ct ? ct.ten : id) + "</b> xây xong, đạt cấp " + lv + ".", t);
+  baoMinh(state, "Công trình hoàn công", (ct ? ct.ten : id) + " đã xây xong, đạt cấp " + lv + ".", t);
   return { id, lv, ten: ct ? ct.ten : id };
 }
 
@@ -845,7 +862,8 @@ export function ensureMua(state, now) {
   if (b.bang.cpMua !== mua) {
     b.bang.cpMua = mua; b.bang.cpVung = {}; b.bang.cpTong = 0; b.bang.hangVung = {};
     b.muaThuong = { mua: mua - 1, hang: b.muaThuong ? b.muaThuong.hang : 0, daNhan: false };
-    ghiNhatKy(state, 'Mùa Chinh Phạt mới bắt đầu — điểm về 0, tranh lại từ đầu.', now);
+    ghiNhatKy(state, "Mùa Chinh Phạt mới bắt đầu — điểm về 0, tranh lại từ đầu.", now);
+    baoMinh(state, "Mùa Chinh Phạt mới", "Điểm mọi vùng về 0, tranh lại từ đầu. Hạng mùa trước đã chốt.", now);
   }
 }
 /** Cộng điểm Chinh Phạt cho bang tại một vùng. Gọi từ đường thưởng khi giết quái. */
@@ -922,6 +940,10 @@ export function chotHangMua(state, world, now) {
   const ds = bangXepHangMua(state, world, now);
   const ta = ds.find((x) => x.laTa);
   b.muaThuong.hang = ta ? ta.hang : 0;
+  // Thưởng mùa phải TỰ TAY LĨNH — không báo thì người chơi không biết mà vào lấy.
+  const thuong = b.muaThuong.hang >= 1 ? (MUA_THUONG_BANG[b.muaThuong.hang - 1] || 0) : 0;
+  if (thuong) baoMinh(state, 'Thưởng mùa Chinh Phạt', 'Mùa vừa qua Tiên Minh xếp hạng ' + b.muaThuong.hang
+    + ' — có ' + thuong + ' Hồn Thạch chờ lĩnh ở tab Chinh Phạt.', now);
 }
 
 // ============================================================
@@ -971,7 +993,7 @@ export function bossBang(state, world, now) {
   const ds = thanhVien(state, world, t);
   // Bang chúng bào liên tục nhưng CỐ Ý không đủ: chỗ còn lại là phần người chơi phải đánh.
   const cong = ds.map((m) => ({
-    id: m.id, ten: m.ten,
+    id: m.id, ten: m.ten, av: m.av, mau: m.mau, chucTen: m.chucTen, chucMau: m.chucMau,
     // ⚠ He so nay chinh sao cho ca bang chung gop lai chi toi ~55-60% mau boss sau tron 7 ngay.
     // Cao hon thi tuan nao boss cung tu chet, nguoi choi khoi phai danh.
     dame: Math.round(boss.hp * 0.00080 * (0.7 + m.lv / 130) * (1 + m.chucBac * 0.05) * troiGio),
@@ -1013,6 +1035,9 @@ export function chotBossBang(state, world, now) {
   themBangCong(state, Math.round(ct / 4), t);
   themCpVung(state, LOCATIONS[Math.min(LOCATIONS.length - 1, Math.floor((r.boss.reqLevel || 10) / 11))].id, CP_MOI_BOSS, t);
   ghiNhatKy(state, 'Cả minh hạ <b>' + r.boss.name + '</b> — công của ngươi ' + Math.round(tiLe * 100) + '%.', t);
+  baoMinh(state, 'Hạ ' + r.boss.name,
+    'Cả minh vây đánh hạ được ' + r.boss.name + ' (Lv ' + (r.boss.reqLevel || '?') + '). Công của ngươi '
+    + Math.round(tiLe * 100) + '% — lĩnh ' + ct + ' Công Tích, ' + honThach + ' Hồn Thạch, ' + manh + ' Mảnh Trang Bị.', t);
   return { ct, honThach, manh, boss: r.boss.name, tiLe: Math.round(tiLe * 100) };
 }
 

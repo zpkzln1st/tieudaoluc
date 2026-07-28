@@ -1673,6 +1673,7 @@ const gameStore = {
     { id: 'biCanh',   label: 'Bí Cảnh',       col: '#a78bfa', art: 'dungeon',    ic: '🏛️', seal: '秘' }, // nav Bí Cảnh
     { id: 'linhThu',  label: 'Linh Thú',      col: '#14b8a6', art: 'pets',       ic: '🐾', seal: '獸' }, // nav Linh Thú
     { id: 'dongPhu',  label: 'Động Phủ',      col: '#c9a24b', art: 'dongPhu',    ic: '🏠', seal: '府' }, // nav Động Phủ
+    { id: 'tienMinh', label: 'Tiên Minh',     col: '#f5b942', art: 'guild',      ic: '🏯', seal: '盟' }, // nav Tiên Minh (images/nav/guild.webp)
     { id: 'khac',     label: 'Khác',          col: '#fbbf24', svg: 'star',                 seal: '他' },
     { id: 'sanGD',    label: 'Sàn Giao Dịch', col: '#22d3ee', art: 'market',     ic: '⚖️', seal: '易' }, // nav Sàn Giao Dịch
   ],
