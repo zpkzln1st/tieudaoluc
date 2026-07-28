@@ -22,6 +22,8 @@ import { coVua, ensureCoVua } from './covua.js';                     // Cờ Vua
 import { tuuLau, ensureTuuLau } from './tuulau.js';
 import { bangPhai, ensureBangPhai } from './bangphai.js';            // Bang Phái (lập bang, chinh phạt, boss bang)
 import { ghiKillChinhPhat } from './engine/bangphai.js';             // điểm Chinh Phạt khi hạ quái                  // Tửu Lâu (quán rượu giang hồ, cách ly)
+import * as BP from './engine/bangphai.js';                          // bảng Dev: gọi đúng hàm engine, không ghi tay state
+import * as TL from './engine/tuulau.js';                            // bảng Dev: nuôi Giao Tình để thử cửa chiêu mộ
 import { kiemHanFont } from './engine/hanfont.js';      // chữ Hán: nguồn chân lý + máy tự soát font
 import { ensureKyHon } from './engine/kyhon.js';                     // Kỳ Hồn dùng chung cho mọi bàn cờ
 import { ensureGocNhin } from './engine/gocnhin.js';                 // Góc nhìn bàn cờ người chơi tự khoá (dùng chung 3 bàn)
@@ -4234,6 +4236,109 @@ const gameStore = {
   devTmRealmAll(realm) { const t = this.tm; if (!t) return; realm = Math.max(0, Math.min(9, Math.floor(realm || 0))); t.disciples.forEach((d) => { d.realm = Math.min(realm, disciCap(d)); d.xp = 0; d.breakReady = false; d.awaiting = false; }); this.devSave(); this.showToast('Dev: mọi đệ tử về ' + REALMS[realm].name); },
   devTmBreakReadyAll() { const t = this.tm; if (!t) return; let n = 0; t.disciples.forEach((d) => { if (!d.awaiting && !d.lichLuyenUntil && d.realm < disciCap(d)) { d.xp = 1; d.breakReady = true; n++; } }); this.devSave(); this.showToast('Dev: ' + n + ' đệ tử → Bình Cảnh (test đột phá)'); },
   devTmFinishTimers() { const n = now(), t = this.tm; if (!t) return; t.disciples.forEach((d) => { if (d.lichLuyenUntil) d.lichLuyenUntil = n - 1; if (d.linhNgoUntil) d.linhNgoUntil = n - 1; if (d.giangUntil) d.giangUntil = n - 1; }); (t.brewing || []).forEach((b) => { b.until = n - 1; }); ((t.duocVien || {}).plots || []).forEach((p) => { if (p) p.until = n - 1; }); this.devSave(); this.showToast('Dev: hoàn tất Lịch Luyện / Lĩnh Ngộ / Thính Giảng / Lò đan / Dược Viên'); },
+  // ---- Dev: TIÊN MINH ----
+  // Mọi nút ở đây đi qua ĐÚNG hàm engine mà người chơi dùng (lapBang/chieuMo/themGiaoTinh/
+  // sinhDonXin/ghiKillChinhPhat...), chỉ nới điều kiện đầu vào. Ghi thẳng vào state là test
+  // một đằng người chơi chạy một nẻo — thứ cần thử chính là mấy cái cửa chặn đó.
+  devBpCapMinh: 20, devBpCtLv: 5, devBpKnLv: 5, devBpMoi: 10,
+  get devBp() { return (this.state.bangPhai && this.state.bangPhai.bang) || null; },
+  devBpLap() {
+    ensureBangPhai(this.state);
+    if (this.devBp) { this.showToast('Dev: đã có Tiên Minh rồi.'); return; }
+    if (!BP.lapBang(this.state, { ten: 'Thiên Cơ Minh', tonChi: 'Lấy nghĩa làm đầu.' }, now())) { this.showToast('Dev: không lập được.'); return; }
+    this.devSave(); this._tick++; this.showToast('Dev: đã lập Thiên Cơ Minh (bỏ qua phí + Tổng Lv).');
+  },
+  devBpTaiNguyen() {
+    const b = this.devBp; if (!b) { this.showToast('Dev: chưa có Tiên Minh.'); return; }
+    b.quy = (b.quy || 0) + 5000000;
+    this.state.bangPhai.congTich = (this.state.bangPhai.congTich || 0) + 200000;
+    this.state.bangPhai.congTichTong = (this.state.bangPhai.congTichTong || 0) + 200000;
+    b.bangCong = (b.bangCong || 0) + 100000;
+    this.devSave(); this._tick++; this.showToast('Dev: +5.000.000 Bạc quỹ · +200.000 Công Tích · +100.000 Minh Cống');
+  },
+  devBpCap(lv) {
+    const b = this.devBp; if (!b) return;
+    b.cap = Math.max(1, Math.min(BP.CAP_BANG_MAX, Math.floor(lv || 1)));
+    this.devSave(); this._tick++; this.showToast('Dev: Tiên Minh Cấp ' + b.cap);
+  },
+  devBpCongTrinh(lv) {
+    const b = this.devBp; if (!b) return;
+    lv = Math.max(0, Math.min(10, Math.floor(lv || 0)));
+    BP.CONG_TRINH.forEach((c) => { b.congTrinh[c.id] = lv; });
+    b.xayDung = null;
+    this.devSave(); this._tick++; this.showToast('Dev: mọi công trình → cấp ' + lv);
+  },
+  devBpKyNang(lv) {
+    const b = this.devBp; if (!b) return;
+    lv = Math.max(0, Math.min(5, Math.floor(lv || 0)));
+    BP.KY_NANG_BANG.forEach((k) => { b.kyNang[k.id] = lv; });
+    this.devSave(); this._tick++; this.showToast('Dev: mọi kĩ năng → cấp ' + lv + ' (Binh Khí Khố phải đủ cấp mới ăn)');
+  },
+  /** Mời người qua ĐÚNG cửa chieuMo(): nuôi đủ Giao Tình trước rồi mới mời, y như người chơi. */
+  devBpMoiNguoi(n) {
+    const b = this.devBp; if (!b) { this.showToast('Dev: chưa có Tiên Minh.'); return; }
+    const t = now(), PHIEN = 30 * 60000;
+    const ds = BP.danhSachTanTu(this.state, this.state.world, t);
+    let vao = 0;
+    for (const x of ds) {
+      if (vao >= (n || 10)) break;
+      const can = BP.giaoTinhCan(x.tong);
+      for (let i = 0; i < can; i++) TL.themGiaoTinh(this.state, x.id, t + i * PHIEN);
+      if (BP.chieuMo(this.state, x.id, this.state.world, t)) vao++;
+    }
+    this.devSave(); this._tick++;
+    this.showToast('Dev: mời được ' + vao + ' người (đã nuôi đủ Giao Tình trước).');
+  },
+  /** Làm quen 6 người mà CHƯA mời — để xem lưới "Người Quen Ở Tửu Lâu". */
+  devBpLamQuen() {
+    const t = now(), PHIEN = 30 * 60000;
+    const ds = BP.danhSachTanTu(this.state, this.state.world, t).slice(0, 6);
+    ds.forEach((x, k) => {
+      const can = BP.giaoTinhCan(x.tong);
+      const bac = (k % 2 === 0) ? can : Math.max(1, can - 1);   // xen kẽ: đủ bậc / còn thiếu một bận
+      for (let i = 0; i < bac; i++) TL.themGiaoTinh(this.state, x.id, t + i * PHIEN);
+    });
+    this.devSave(); this._tick++; this.showToast('Dev: quen ' + ds.length + ' người ở Tửu Lâu (một nửa còn thiếu bận rượu).');
+  },
+  devBpDonXin() {
+    const b = this.devBp; if (!b) return;
+    b._donSlot = -1;                       // gỡ chốt 6 giờ rồi cho sinh ngay
+    BP.sinhDonXin(this.state, this.state.world, now());
+    this.devSave(); this._tick++; this.showToast('Dev: sinh đơn xin nhập minh (đang có ' + (b.donXin || []).length + ' đơn).');
+  },
+  devBpDoiBangHien() {
+    // Bảng Chiêu Hiền suy từ mốc 4 giờ. Không sửa được đồng hồ -> đẩy người trên bảng vào
+    // danh sách đơn xin, họ rớt khỏi bảng và lượt sau tự lấp người mới.
+    const b = this.devBp; if (!b) return;
+    const cu = BP.bangChieuHien(this.state, this.state.world, now()).map((x) => x.id);
+    b.donXin = [...new Set([...(b.donXin || []), ...cu])].slice(-12);
+    this.devSave(); this._tick++; this.showToast('Dev: đẩy ' + cu.length + ' người trên bảng sang Đơn Xin — bảng tự lấp lượt mới.');
+  },
+  devBpXongNhiemVu() {
+    const b = this.devBp; if (!b) return;
+    const w = this.state.world, t = now();
+    const ds = BP.danhSachNv(this.state, w, t);
+    // `nv.moc` là MỐC ĐẦU KỲ ({kills, produced, bac, boss}) — phần "của ngươi" = số hiện tại
+    // trừ mốc. Hạ mốc xuống bằng đúng chỉ tiêu là việc thành xong, không phải đẻ khoá theo id.
+    const nv = this.state.bangPhai.nv; if (!nv || !nv.moc) return;
+    const khoa = { kill: 'kills', gather: 'produced', bac: 'bac', boss: 'boss' };
+    ds.forEach((q) => { const k = khoa[q.loai]; if (k) nv.moc[k] = (nv.moc[k] || 0) - q.can; });
+    this.devSave(); this._tick++; this.showToast('Dev: ' + ds.length + ' Minh Vụ đủ chỉ tiêu — bấm Lĩnh Thưởng.');
+  },
+  devBpChinhPhat() {
+    const b = this.devBp; if (!b) return;
+    // themCpVung(state, locId, diem, now) — cộng thẳng số điểm. ghiKillChinhPhat() chỉ cộng
+    // được 1 con quái mỗi lần (tham số thứ ba là CỜ BOSS, không phải số điểm).
+    LOCATIONS.forEach((l, i) => { BP.themCpVung(this.state, l.id, 4000 - i * 300, now()); });
+    this.devSave(); this._tick++; this.showToast('Dev: bơm điểm Chinh Phạt cho cả ' + LOCATIONS.length + ' vùng.');
+  },
+  devBpBoss() {
+    const b = this.devBp; if (!b) return;
+    b.congTrinh.tramYeuDai = Math.max(1, b.congTrinh.tramYeuDai || 0);
+    const bb = this.state.bangPhai.bossB; if (bb) bb.cdDen = 0;
+    this.devSave(); this._tick++; this.showToast('Dev: mở Trảm Yêu Đài + hồi lượt xuất trận.');
+  },
+
   // ---- Dev: Bí Kíp (BK1-5) ----
   devBkTier: 'all',
   devTmGiveBiKip(tier, n) { const t = this.tm; if (!t) return; n = n || 5; tier = tier || this.devBkTier || 'all'; let c = 0; BI_KIP.forEach((b) => { if (tier === 'all' || b.tier === tier) { biKipBagAdd(this.state, b.id, n); c++; } }); this.devSave(); this._tick++; this.showToast('Dev: +' + n + ' mỗi bí kíp' + (tier === 'all' ? '' : ' bậc ' + (BI_KIP_TIER[tier] || {}).name) + ' (' + c + ' loại)'); },

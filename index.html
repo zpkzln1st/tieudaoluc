@@ -14515,7 +14515,7 @@
 
         <!-- Tabs -->
         <div class="flex gap-1 mb-3.5 bg-ink3/40 rounded-lg p-1 shrink-0">
-          <template x-for="tb in [{k:'char',l:'Nhân Vật'},{k:'item',l:'Vật Phẩm'},{k:'pet',l:'Linh Thú'},{k:'tongmon',l:'Tông Môn'},{k:'sys',l:'Hệ Thống'}]" :key="tb.k">
+          <template x-for="tb in [{k:'char',l:'Nhân Vật'},{k:'item',l:'Vật Phẩm'},{k:'pet',l:'Linh Thú'},{k:'tongmon',l:'Tông Môn'},{k:'tienminh',l:'Tiên Minh'},{k:'sys',l:'Hệ Thống'}]" :key="tb.k">
             <button @click="$store.game.setDevTab(tb.k)" class="flex-1 px-2 py-1.5 rounded text-[12px] font-medium transition border" :class="$store.game.devTab===tb.k ? 'bg-amber-500/20 text-amber-200 border-amber-500/40' : 'text-slate-400 hover:text-slate-200 border-transparent'" x-text="tb.l"></button>
           </template>
         </div>
@@ -14705,6 +14705,70 @@
                 <button @click="$store.game.devTmSeedDiplomacy(119,4)" class="px-3 py-1 rounded bg-sky-900/40 border border-sky-700/50 text-sky-200 text-xs">🤝 Gieo bang giao (cận Kết Minh)</button>
                 <button @click="$store.game.devTmClearCooldowns()" class="px-3 py-1 rounded bg-ink3 border border-slate-700 text-slate-300 text-xs">Reset CD (Luận Võ/Đãi Khách/Đấu Giá)</button>
                 <button @click="$store.game.devTmClearDrama()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-xs">Gột sạch cờ/tâm ma/phản đồ</button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- ===== TAB: TIÊN MINH =====
+             Mọi nút gọi ĐÚNG hàm engine người chơi dùng, chỉ nới điều kiện đầu vào — thứ cần
+             thử chính là mấy cửa chặn đó (Giao Tình, cấp minh, hạn ngày). -->
+        <div x-show="$store.game.devTab==='tienminh'">
+          <template x-if="!$store.game.devBp">
+            <div>
+              <div class="text-[12px] text-slate-500 italic mb-3">Chưa lập Tiên Minh.</div>
+              <button @click="$store.game.devBpLap()" class="px-3 py-1.5 rounded bg-amber-500/85 hover:bg-amber-500 text-ink text-xs font-bold">Lập Tiên Minh ngay (bỏ qua phí + Tổng Lv)</button>
+            </div>
+          </template>
+          <template x-if="$store.game.devBp">
+            <div>
+              <div class="grid grid-cols-2 gap-1 text-xs text-slate-400 mb-4 bg-ink3/60 rounded-lg p-2.5">
+                <div>Tiên Minh: <b class="text-amber-200" x-text="$store.game.devBp.ten"></b></div>
+                <div>Cấp: <b class="text-slate-200" x-text="$store.game.devBp.cap"></b></div>
+                <div>Minh chúng: <b class="text-slate-200" x-text="$store.game.devBp.tv.length"></b></div>
+                <div>Công Tích: <b class="text-violet-300" x-text="$store.game.fmt($store.game.state.bangPhai.congTich)"></b></div>
+              </div>
+
+              <div class="lbl mb-1.5">Tài nguyên & cấp</div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <button @click="$store.game.devBpTaiNguyen()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">💰 +Bạc quỹ · Công Tích · Minh Cống</button>
+              </div>
+              <div class="flex items-center gap-2 mb-4 text-sm">
+                <span class="text-slate-300 shrink-0">Tiên Minh → Cấp</span>
+                <input type="number" min="1" max="100" x-model.number="$store.game.devBpCapMinh" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100">
+                <button @click="$store.game.devBpCap($store.game.devBpCapMinh)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Áp</button>
+              </div>
+
+              <div class="lbl mb-1.5">Công trình & kĩ năng</div>
+              <div class="flex items-center gap-2 mb-2 text-sm">
+                <span class="text-slate-300 shrink-0">Mọi công trình → Cấp</span>
+                <input type="number" min="0" max="10" x-model.number="$store.game.devBpCtLv" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100">
+                <button @click="$store.game.devBpCongTrinh($store.game.devBpCtLv)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Áp</button>
+              </div>
+              <div class="flex items-center gap-2 mb-4 text-sm">
+                <span class="text-slate-300 shrink-0">Mọi kĩ năng → Cấp</span>
+                <input type="number" min="0" max="5" x-model.number="$store.game.devBpKnLv" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100">
+                <button @click="$store.game.devBpKyNang($store.game.devBpKnLv)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Áp</button>
+              </div>
+
+              <div class="lbl mb-1.5">Chiêu mộ <span class="text-slate-600 normal-case tracking-normal">· ba đường vào minh</span></div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <button @click="$store.game.devBpLamQuen()" class="px-3 py-1 rounded bg-teal-900/40 border border-teal-600/50 text-teal-200 text-xs">🍶 Quen 6 người ở Tửu Lâu</button>
+                <button @click="$store.game.devBpDonXin()" class="px-3 py-1 rounded bg-amber-900/40 border border-amber-700/50 text-amber-200 text-xs">📜 Sinh Đơn Xin Nhập Minh</button>
+                <button @click="$store.game.devBpDoiBangHien()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">🔄 Thay lượt Bảng Chiêu Hiền</button>
+              </div>
+              <div class="flex items-center gap-2 mb-4 text-sm">
+                <span class="text-slate-300 shrink-0">Mời thẳng</span>
+                <input type="number" min="1" max="25" x-model.number="$store.game.devBpMoi" class="w-16 px-2 py-1 rounded bg-ink3 border border-slate-700 text-slate-100">
+                <span class="text-slate-500 text-xs shrink-0">người</span>
+                <button @click="$store.game.devBpMoiNguoi($store.game.devBpMoi)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Mời</button>
+              </div>
+
+              <div class="lbl mb-1.5">Minh Vụ · Chinh Phạt · Trảm Yêu</div>
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <button @click="$store.game.devBpXongNhiemVu()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">✅ Minh Vụ đủ chỉ tiêu</button>
+                <button @click="$store.game.devBpChinhPhat()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">⚔ Bơm điểm Chinh Phạt 10 vùng</button>
+                <button @click="$store.game.devBpBoss()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-xs">🐯 Mở Trảm Yêu Đài + hồi lượt</button>
               </div>
             </div>
           </template>
