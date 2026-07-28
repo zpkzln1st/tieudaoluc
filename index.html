@@ -12023,7 +12023,7 @@
                 <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/78 backdrop-blur-sm p-3 sm:p-4"
                      @click.self="g.closeBpCongTrinh()" @keydown.escape.window="g.closeBpCongTrinh()"
                      x-data="{ get ct(){ return ctDangMo } }">
-                  <div class="panel rounded-2xl w-[460px] max-w-full max-h-[90dvh] flex flex-col overflow-hidden border shadow-2xl"
+                  <div class="panel rounded-2xl w-[460px] max-w-full h-[528px] max-h-[92dvh] flex flex-col overflow-hidden border shadow-2xl"
                        :style="'border-color:' + (ct.lv ? '#f5b94255' : '#33415577')" @click.stop>
 
                     <div class="flex gap-3.5 p-4 shrink-0 border-b border-slate-800"
@@ -12067,19 +12067,20 @@
                         </div>
                       </div>
 
-                      <template x-if="ct.lv < ct.maxLv">
-                        <div class="grid grid-cols-2 gap-2 items-stretch">
-                          <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
-                            <div class="lbl leading-tight">Cần Bạc</div>
-                            <div class="text-[14px] font-bold leading-tight tabular-nums"
-                                 :class="bang.quy >= ct.gia ? 'text-jade' : 'text-rose-400'" x-text="fmt(ct.gia)"></div>
-                          </div>
-                          <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
-                            <div class="lbl leading-tight">Thời Gian Xây</div>
-                            <div class="text-[14px] font-bold text-slate-200 leading-tight" x-text="ct.gio + ' giờ'"></div>
-                          </div>
+                      <div class="grid grid-cols-2 gap-2 items-stretch">
+                        <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                          <div class="lbl leading-tight">Cần Bạc</div>
+                          <div class="text-[14px] font-bold leading-tight tabular-nums"
+                               :class="ct.lv >= ct.maxLv ? 'text-slate-600' : (bang.quy >= ct.gia ? 'text-jade' : 'text-rose-400')"
+                               x-text="ct.lv >= ct.maxLv ? '—' : fmt(ct.gia)"></div>
                         </div>
-                      </template>
+                        <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                          <div class="lbl leading-tight">Thời Gian Xây</div>
+                          <div class="text-[14px] font-bold leading-tight"
+                               :class="ct.lv >= ct.maxLv ? 'text-slate-600' : 'text-slate-200'"
+                               x-text="ct.lv >= ct.maxLv ? '—' : (ct.gio + ' giờ')"></div>
+                        </div>
+                      </div>
 
                       <div class="text-[11.5px] text-slate-500 leading-relaxed">
                         Trong Minh Khố đang có <b class="text-jade" x-text="fmt(bang.quy)"></b> Bạc.
@@ -12087,22 +12088,25 @@
                         Xây xong ngay cả khi ngươi tắt game.
                       </div>
 
-                      <template x-if="dangXay">
-                        <div class="rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2 text-[12px] text-amber-200">
-                          Đang xây <b x-text="dangXay.ten"></b> cấp <span x-text="dangXay.lv"></span> — còn
-                          <b x-text="gioTxt(dangXay.conMs)"></b>. Mỗi lúc chỉ xây được một công trình.
-                        </div>
-                      </template>
+                      <!-- Ô này LUÔN chiếm chỗ, chỉ đổi nội dung — nếu để x-if thì lúc nó hiện ra
+                           popup giật cao lên đúng lúc người chơi vừa bấm nút. -->
+                      <div class="rounded-lg border px-3 py-2 text-[12px] min-h-[52px] flex items-center"
+                           :class="dangXay ? 'border-amber-500/30 bg-amber-500/8 text-amber-200' : 'border-slate-800 bg-ink2/40 text-slate-600'">
+                        <template x-if="dangXay">
+                          <span>Đang xây <b x-text="dangXay.ten"></b> cấp <span x-text="dangXay.lv"></span> — còn
+                            <b x-text="gioTxt(dangXay.conMs)"></b>. Mỗi lúc chỉ xây được một công trình.</span>
+                        </template>
+                        <template x-if="!dangXay">
+                          <span class="italic">Chưa có công trình nào đang xây. Mỗi lúc chỉ xây được một cái.</span>
+                        </template>
+                      </div>
                     </div>
 
                     <div class="px-4 py-3 border-t border-slate-800 flex flex-wrap items-center gap-2 shrink-0">
-                      <template x-if="ct.lv < ct.maxLv">
-                        <button @click="xay(ct)" :disabled="!ct.xayDuoc"
-                          class="px-4 py-1.5 rounded-lg text-[12.5px] fserif border transition"
-                          :class="ct.xayDuoc ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
-                          x-text="ct.lv ? ('Nâng Cấp ' + (ct.lv+1)) : 'Khởi Công'"></button>
-                      </template>
-                      <template x-if="ct.lv >= ct.maxLv"><span class="text-[12.5px] text-jade">Đã tới cấp cao nhất</span></template>
+                      <button @click="xay(ct)" :disabled="!ct.xayDuoc || ct.lv >= ct.maxLv"
+                        class="px-4 py-1.5 rounded-lg text-[12.5px] fserif border transition"
+                        :class="(ct.xayDuoc && ct.lv < ct.maxLv) ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                        x-text="ct.lv >= ct.maxLv ? 'Đã tới cấp cao nhất' : (ct.lv ? ('Nâng Cấp ' + (ct.lv+1)) : 'Khởi Công')"></button>
                       <button @click="g.closeBpCongTrinh()" class="ml-auto px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Đóng</button>
                     </div>
                   </div>
@@ -12116,7 +12120,7 @@
     <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/78 backdrop-blur-sm p-3 sm:p-4"
          @click.self="g.closeBpHoSo()" @keydown.escape.window="g.closeBpHoSo()"
          x-data="{ get h(){ return $store.game.bpHoSo } }">
-      <div class="panel rounded-2xl w-[540px] max-w-full max-h-[90dvh] flex flex-col overflow-hidden border shadow-2xl"
+      <div class="panel rounded-2xl w-[540px] max-w-full h-[740px] max-h-[92dvh] flex flex-col overflow-hidden border shadow-2xl"
            :style="'border-color:' + h.mau + '44'" @click.stop>
 
         <!-- đầu: chân dung + danh tính -->
