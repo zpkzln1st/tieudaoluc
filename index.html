@@ -11475,13 +11475,36 @@
                               <div class="text-[10.5px] text-slate-500 italic truncate mt-0.5" x-text="'đang ' + m.lam"></div>
                               <div class="text-[10.5px] text-slate-600 mt-0.5 flex flex-wrap gap-x-1.5 leading-snug">
                                 <span>Cày ở <span class="text-slate-500" x-text="tenVung(m.vung)"></span></span>
-                                <span class="text-slate-700">·</span>
-                                <span>góp <span class="text-slate-400" x-text="fmt(m.gopBac)"></span> Bạc</span>
-                                <span class="text-slate-700">·</span>
-                                <span><span class="text-slate-400" x-text="fmt(m.cp)"></span> điểm Chinh Phạt</span>
+                                <!-- Máy hẹp không đủ chỗ cho cột đóng góp -> số quay về nằm inline ở đây. -->
+                                <span class="md:hidden text-slate-700">·</span>
+                                <span class="md:hidden">góp <span class="text-slate-400" x-text="fmt(m.gopBac)"></span> Bạc</span>
+                                <span class="md:hidden text-slate-700">·</span>
+                                <span class="md:hidden"><span class="text-slate-400" x-text="fmt(m.cp)"></span> điểm Chinh Phạt</span>
                               </div>
                             </div>
-                            <div class="shrink-0 text-right leading-tight">
+
+                            <!-- CỘT ĐÓNG GÓP — lấp đúng khoảng trống giữa thông tin và cấp.
+                                 Vạch đo theo NGƯỜI GÓP NHIỀU NHẤT trong minh, nên liếc một cái là
+                                 thấy ai đang gánh ai đang ăn không — đây mới là việc màn này sinh ra.
+                                 Bang chủ dựa vào đó mà thăng / hạ / đuổi. -->
+                            <div class="hidden md:block shrink-0 w-[168px] self-center">
+                              <div class="flex items-baseline justify-between gap-1.5">
+                                <span class="text-[9.5px] uppercase tracking-[.1em] text-slate-600">Bạc Góp</span>
+                                <span class="text-[10.5px] tabular-nums text-amber-200/90" x-text="fmt(m.gopBac)"></span>
+                              </div>
+                              <div class="h-[3px] rounded-full bg-ink overflow-hidden mt-[3px]">
+                                <div class="h-full rounded-full" :style="'width:' + gopPct(m.gopBac, gopBacMax) + '%;background:linear-gradient(90deg,#b45309,#f5b942)'"></div>
+                              </div>
+                              <div class="flex items-baseline justify-between gap-1.5 mt-1.5">
+                                <span class="text-[9.5px] uppercase tracking-[.1em] text-slate-600">Chinh Phạt</span>
+                                <span class="text-[10.5px] tabular-nums text-cyan-300/90" x-text="fmt(m.cp)"></span>
+                              </div>
+                              <div class="h-[3px] rounded-full bg-ink overflow-hidden mt-[3px]">
+                                <div class="h-full rounded-full" :style="'width:' + gopPct(m.cp, cpMax) + '%;background:linear-gradient(90deg,#0e7490,#22d3ee)'"></div>
+                              </div>
+                            </div>
+
+                            <div class="shrink-0 text-right leading-tight w-[52px]">
                               <div class="text-[11.5px] text-slate-300 tabular-nums" x-text="'Lv '+m.lv"></div>
                               <div class="text-[10px] text-slate-600 tabular-nums" x-text="'Tổng '+m.tong"></div>
                             </div>

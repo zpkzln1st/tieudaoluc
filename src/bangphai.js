@@ -76,6 +76,12 @@ export function bangPhai() {
     get bangCongPct() { return this.bang ? Math.min(100, Math.round(this.bang.bangCong / Math.max(1, this.bangCongCan) * 100)) : 0; },
     get tranTv() { return this.bang ? tranThanhVien(this.bang) : 0; },
     get tv() { void this._t; try { return thanhVien(this.g.state, this.world, Date.now()); } catch (e) { return []; } },
+    // Mốc để vẽ vạch đóng góp: người GÓP NHIỀU NHẤT trong minh, không phải một số cố định.
+    // Minh mới lập ai cũng 0 thì vạch trống trơn — đúng, chưa ai góp gì thật.
+    get gopBacMax() { return this.tv.reduce((s, m) => Math.max(s, m.gopBac || 0), 0); },
+    get cpMax() { return this.tv.reduce((s, m) => Math.max(s, m.cp || 0), 0); },
+    /** Bề rộng vạch. Góp 0 thì để TRỐNG HẲN — kẻ ăn không phải nhìn ra ngay. */
+    gopPct(v, max) { return (!v || !max) ? 0 : Math.max(3, Math.round((v / max) * 100)); },
     get donXin() {
       void this._t;
       if (!this.bang) return [];
