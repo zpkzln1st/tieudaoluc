@@ -11509,100 +11509,123 @@
                 </div>
               </template>
 
-              <!-- ===== TAB: CHIÊU MỘ (tách hẳn khỏi Minh Chúng cho khỏi chen chỗ) ===== -->
+              <!-- ===== TAB: CHIÊU MỘ — ba lưới thẻ, cùng khuôn với Minh Chúng =====
+                   Ba đường vào minh, mỗi đường một lưới: tự nộp đơn · quen ở Tửu Lâu · bảng công khai.
+                   Thẻ giống hệt thẻ minh chúng để nhìn ra ngay "người này rồi sẽ nằm ở màn kia". -->
               <template x-if="tab==='chieuMo'">
-                <div class="space-y-4">
+                <div class="space-y-5">
                   <template x-if="donXin.length">
-                    <div class="panel rounded-xl overflow-hidden border border-amber-500/25">
-                      <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                        <div class="text-amber-200 font-bold fserif">Đơn Xin Gia Nhập</div>
-                        <div class="text-[10.5px] text-slate-600" x-text="donXin.length + ' người đang chờ · nhận thì không tốn Bạc'"></div>
+                    <div>
+                      <div class="flex items-baseline justify-between gap-2 mb-2 flex-wrap">
+                        <div class="text-amber-200 font-bold fserif">Đơn Xin Nhập Minh
+                          <span class="text-[11px] text-slate-500 font-normal" x-text="donXin.length + ' người'"></span>
+                        </div>
+                        <div class="text-[10.5px] text-slate-600">không tốn Bạc</div>
                       </div>
-                      <div class="divide-y divide-slate-800/60">
+                      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         <template x-for="t in donXin" :key="t.id">
-                          <div class="flex items-center gap-2.5 px-3.5 py-2">
-                            <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[13px] text-white/90 border border-slate-700/70" :class="t.av.color" x-data="{ok:true}">
-                              <img :src="'images/avatars/'+t.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
-                              <span x-show="!ok" class="fserif" x-text="t.av.char"></span>
+                          <div class="relative panel rounded-xl overflow-hidden border" style="border-color:rgba(245,185,66,.4)">
+                            <div class="relative" :style="'aspect-ratio:3/4;background:linear-gradient(160deg,' + t.mau + '22,#0f1521 72%)'">
+                              <div class="absolute inset-0 flex items-center justify-center fserif text-[3.2rem]" :style="'color:' + t.mau + '33'" x-text="nhomHan(t.nhom)"></div>
+                              <img :src="'images/avatars/' + t.av.id + '.webp'" alt="" loading="lazy" decoding="async"
+                                   class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.remove()">
+                              <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold text-amber-200 border-amber-500/60" x-text="t.loai"></span>
+                              <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:' + t.mau" x-text="nhomHan(t.nhom)"></span>
+                              <span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-amber-500 text-ink font-bold">Tự Tìm Đến</span>
                             </div>
-                            <div class="min-w-0 flex-1">
-                              <div class="text-[12.5px] truncate" :style="'color:'+t.mau" x-text="t.ten"></div>
-                              <div class="text-[10.5px] text-slate-600 truncate" x-text="t.hieu + ' · ' + t.loai + ' · Lv ' + t.lv + ' · Tổng Lv ' + t.tong"></div>
+                            <div class="p-2 bg-ink3/40">
+                              <div class="fserif text-[13px] truncate" :style="'color:' + t.mau" x-text="t.ten"></div>
+                              <div class="text-[10.5px] mt-0.5 fserif leading-tight truncate text-slate-300" x-text="t.hieu"></div>
+                              <div class="text-[9px] text-slate-500 fserif leading-tight truncate" x-text="'Lv ' + t.lv + ' · Tổng ' + t.tong"></div>
+                              <div class="flex gap-1.5 mt-1.5">
+                                <button @click="duyet(t, true)" :disabled="tv.length >= tranTv"
+                                  class="flex-1 px-1 py-1 rounded-lg text-[11px] fserif border transition"
+                                  :class="tv.length < tranTv ? 'text-jade border-jade/45 hover:bg-jade/10' : 'text-slate-600 border-slate-800 cursor-default'">Nhận</button>
+                                <button @click="duyet(t, false)" class="px-2 py-1 rounded-lg text-[11px] fserif text-slate-500 border border-slate-800 hover:border-rose-500/50 hover:text-rose-300 transition">Thôi</button>
+                              </div>
                             </div>
-                            <button @click="duyet(t, true)" class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif text-jade border border-jade/45 hover:bg-jade/10 transition">Nhận</button>
-                            <button @click="duyet(t, false)" class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif text-slate-500 border border-slate-800 hover:border-rose-500/50 hover:text-rose-300 transition">Từ chối</button>
                           </div>
                         </template>
                       </div>
                     </div>
                   </template>
 
-                  <!-- NGƯỜI QUEN Ở TỬU LÂU — nuôi Giao Tình bên quán, tiêu ở đây.
-                       Chưa đủ bậc thì nút khoá và nói thẳng còn thiếu mấy bận rượu. -->
                   <template x-if="quen.length">
-                    <div class="panel rounded-xl overflow-hidden border border-jade/25">
-                      <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-                        <div class="text-jade font-bold fserif">Người Quen Ở Tửu Lâu</div>
-                        <div class="text-[10.5px] text-slate-600" x-text="quen.length + ' người · mỗi bậc Giao Tình bớt 10% lễ mời'"></div>
+                    <div>
+                      <div class="flex items-baseline justify-between gap-2 mb-2 flex-wrap">
+                        <div class="text-jade font-bold fserif">Người Quen Ở Tửu Lâu
+                          <span class="text-[11px] text-slate-500 font-normal" x-text="quen.length + ' người'"></span>
+                        </div>
+                        <div class="text-[10.5px] text-slate-600">mỗi bậc Giao Tình bớt 10% lễ mời</div>
                       </div>
-                      <div class="divide-y divide-slate-800/60">
+                      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         <template x-for="t in quen" :key="t.id">
-                          <div class="flex items-center gap-2.5 px-3.5 py-2">
-                            <div class="w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 border border-slate-700/70" :class="t.av.color" x-data="{ok:true}">
-                              <img :src="'images/avatars/'+t.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
-                              <span x-show="!ok" class="fserif" x-text="t.av.char"></span>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                              <div class="text-[12.5px] truncate" :style="'color:'+t.mau" x-text="t.ten"></div>
-                              <div class="text-[10.5px] text-slate-600 truncate" x-text="t.hieu + ' · ' + t.loai + ' · Tổng Lv ' + t.tong"></div>
-                            </div>
-                            <!-- Hạt Giao Tình: chỉ vẽ đúng số bậc NGƯỜI NÀY đòi (t.can), hạt đặc là
-                                 đã thân tới đó. Vẽ đủ 5 hạt thì ai cũng như ai, không thấy cao thủ kén hơn. -->
-                            <div class="shrink-0 flex items-center gap-[3px]" :title="'Giao Tình ' + t.bac + '/' + t.can">
-                              <template x-for="i in t.can" :key="i">
-                                <span class="w-[6px] h-[6px] rounded-full"
-                                      :style="i <= t.bac ? 'background:#14b8a6' : 'background:transparent;box-shadow:inset 0 0 0 1px #3d4a63'"></span>
+                          <div class="relative panel rounded-xl overflow-hidden border"
+                               :style="'border-color:' + (t.du ? 'rgba(20,184,166,.45)' : '#26324a')">
+                            <div class="relative" :style="'aspect-ratio:3/4;background:linear-gradient(160deg,' + t.mau + '22,#0f1521 72%)'">
+                              <div class="absolute inset-0 flex items-center justify-center fserif text-[3.2rem]" :style="'color:' + t.mau + '33'" x-text="nhomHan(t.nhom)"></div>
+                              <img :src="'images/avatars/' + t.av.id + '.webp'" alt="" loading="lazy" decoding="async"
+                                   class="absolute inset-0 w-full h-full object-cover object-top"
+                                   :style="t.du ? '' : 'filter:grayscale(.55) brightness(.72)'" onerror="this.remove()">
+                              <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold text-slate-300 border-slate-600" x-text="t.loai"></span>
+                              <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:' + t.mau" x-text="nhomHan(t.nhom)"></span>
+                              <!-- Hạt Giao Tình: vẽ đúng số bậc NGƯỜI NÀY đòi. Vẽ đủ 5 thì ai cũng
+                                   như ai, không thấy cao thủ kén hơn. -->
+                              <span class="absolute bottom-1.5 left-1.5 flex items-center gap-[3px] px-1.5 py-1 rounded bg-ink/80" :title="'Giao Tình ' + t.bac + '/' + t.can">
+                                <template x-for="i in t.can" :key="i">
+                                  <span class="w-[6px] h-[6px] rounded-full"
+                                        :style="i <= t.bac ? 'background:#14b8a6' : 'background:transparent;box-shadow:inset 0 0 0 1px #4a5878'"></span>
+                                </template>
+                              </span>
+                              <template x-if="t.bac">
+                                <span class="absolute bottom-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded bg-jade text-ink font-bold" x-text="'−' + (t.bac * 10) + '%'"></span>
                               </template>
                             </div>
-                            <button @click="mo(t)" :disabled="!t.du || bac < t.gia || tv.length >= tranTv"
-                              class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif border transition whitespace-nowrap"
-                              :class="(t.du && bac >= t.gia && tv.length < tranTv) ? 'text-jade border-jade/50 hover:bg-jade/10' : 'text-slate-600 border-slate-800 cursor-default'"
-                              x-text="t.du ? ('Mời · ' + fmt(t.gia)) : ('Còn ' + (t.can - t.bac) + ' bận rượu')"></button>
+                            <div class="p-2 bg-ink3/40">
+                              <div class="fserif text-[13px] truncate" :style="'color:' + t.mau" x-text="t.ten"></div>
+                              <div class="text-[10.5px] mt-0.5 fserif leading-tight truncate text-slate-300" x-text="t.hieu"></div>
+                              <div class="text-[9px] text-slate-500 fserif leading-tight truncate" x-text="'Lv ' + t.lv + ' · Tổng ' + t.tong"></div>
+                              <button @click="mo(t)" :disabled="!t.du || bac < t.gia || tv.length >= tranTv"
+                                class="w-full mt-1.5 px-1 py-1 rounded-lg text-[11px] fserif border transition truncate"
+                                :class="(t.du && bac >= t.gia && tv.length < tranTv) ? 'text-jade border-jade/50 hover:bg-jade/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                                x-text="t.du ? ('Mời · ' + fmt(t.gia)) : ('Còn ' + (t.can - t.bac) + ' bận rượu')"></button>
+                            </div>
                           </div>
                         </template>
                       </div>
                     </div>
                   </template>
 
-                  <!-- BẢNG CHIÊU HIỀN — vài người bất kỳ, đổi theo giờ, giá đầy đủ. -->
-                  <div class="panel rounded-xl overflow-hidden flex flex-col">
-                    <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap shrink-0">
+                  <div>
+                    <div class="flex items-baseline justify-between gap-2 mb-2 flex-wrap">
                       <div class="text-jade font-bold fserif">Bảng Chiêu Hiền</div>
-                      <div class="text-[10.5px] text-slate-600">thay lượt sau <b class="text-slate-400" x-text="bangDoiSau"></b></div>
+                      <div class="text-[10.5px] text-slate-600">thay lượt sau <b class="text-slate-400" x-text="bangDoiSau"></b>
+                        · chỗ trống <b class="text-slate-400" x-text="(tranTv - tv.length)"></b> suất</div>
                     </div>
-                    <div class="divide-y divide-slate-800/60">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                       <template x-for="t in bangHien" :key="t.id">
-                        <div class="flex items-center gap-2.5 px-3.5 py-2">
-                          <div class="w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 border border-slate-700/70" :class="t.av.color" x-data="{ok:true}">
-                            <img :src="'images/avatars/'+t.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
-                            <span x-show="!ok" class="fserif" x-text="t.av.char"></span>
+                        <div class="relative panel rounded-xl overflow-hidden border" style="border-color:#26324a">
+                          <div class="relative" :style="'aspect-ratio:3/4;background:linear-gradient(160deg,' + t.mau + '22,#0f1521 72%)'">
+                            <div class="absolute inset-0 flex items-center justify-center fserif text-[3.2rem]" :style="'color:' + t.mau + '33'" x-text="nhomHan(t.nhom)"></div>
+                            <img :src="'images/avatars/' + t.av.id + '.webp'" alt="" loading="lazy" decoding="async"
+                                 class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.remove()">
+                            <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold text-slate-300 border-slate-600" x-text="t.loai"></span>
+                            <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:' + t.mau" x-text="nhomHan(t.nhom)"></span>
+                            <template x-if="t.bac">
+                              <span class="absolute bottom-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded bg-jade text-ink font-bold" x-text="'−' + (t.bac * 10) + '%'"></span>
+                            </template>
                           </div>
-                          <div class="min-w-0 flex-1">
-                            <div class="text-[12.5px] truncate" :style="'color:'+t.mau" x-text="t.ten"></div>
-                            <div class="text-[10.5px] text-slate-600 truncate" x-text="t.hieu + ' · ' + t.loai + ' · Tổng Lv ' + t.tong"></div>
+                          <div class="p-2 bg-ink3/40">
+                            <div class="fserif text-[13px] truncate" :style="'color:' + t.mau" x-text="t.ten"></div>
+                            <div class="text-[10.5px] mt-0.5 fserif leading-tight truncate text-slate-300" x-text="t.hieu"></div>
+                            <div class="text-[9px] text-slate-500 fserif leading-tight truncate" x-text="'Lv ' + t.lv + ' · Tổng ' + t.tong"></div>
+                            <button @click="mo(t)" :disabled="bac < t.gia || tv.length >= tranTv"
+                              class="w-full mt-1.5 px-1 py-1 rounded-lg text-[11px] fserif border transition truncate"
+                              :class="(bac >= t.gia && tv.length < tranTv) ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                              x-text="'Mời · ' + fmt(t.gia)"></button>
                           </div>
-                          <template x-if="t.bac">
-                            <span class="shrink-0 text-[10px] text-jade/80 whitespace-nowrap" x-text="'−' + (t.bac * 10) + '%'"></span>
-                          </template>
-                          <button @click="mo(t)" :disabled="bac < t.gia || tv.length >= tranTv"
-                            class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif border transition whitespace-nowrap"
-                            :class="(bac >= t.gia && tv.length < tranTv) ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
-                            x-text="'Mời · ' + fmt(t.gia)"></button>
                         </div>
                       </template>
-                    </div>
-                    <div class="px-4 py-2 border-t border-slate-800 text-[10.5px] text-slate-600">
-                      Chỗ trống: <b class="text-slate-400" x-text="(tranTv - tv.length)"></b> suất
                     </div>
                   </div>
                 </div>
@@ -11616,26 +11639,38 @@
                       <div class="text-jade font-bold fserif">Minh Vụ</div>
                       <div class="text-[10.5px] text-slate-600">Cả minh cùng góp · đổi việc sau <b class="text-slate-400" x-text="nvConLai"></b></div>
                     </div>
+                    <!-- Mỗi việc là MỘT khối hai cột, không phải năm tầng chồng lên nhau như trước:
+                         trái là tiến độ, phải là thưởng + nút. Bỏ dòng mô tả — tên việc và con số
+                         đã nói hết, thêm câu giải nữa chỉ đẩy khối dài ra. -->
                     <div class="divide-y divide-slate-800/60">
                       <template x-for="q in nv" :key="q.id">
-                        <div class="px-3.5 py-3">
-                          <div class="flex items-baseline justify-between gap-2 flex-wrap">
-                            <b class="text-[13.5px] fserif text-slate-200" x-text="q.ten"></b>
-                            <span class="text-[11px] text-slate-500 tabular-nums" x-text="fmt(q.dat) + ' / ' + fmt(q.can)"></span>
+                        <!-- Máy hẹp: xếp DỌC. Ép hai cột cạnh nhau ở 375 thì cột trái còn ~215px,
+                             chữ xuống dòng lung tung, hàng cao thấp so le 96-158px. -->
+                        <div class="px-3.5 py-3 flex flex-col sm:flex-row gap-2 sm:gap-3.5 sm:items-center"
+                             :class="q.dat100 && !q.xong ? 'bg-amber-500/[.06]' : ''">
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-baseline gap-2 flex-wrap">
+                              <b class="text-[13.5px] fserif" :class="q.xong ? 'text-slate-500' : 'text-slate-100'" x-text="q.ten"></b>
+                              <span class="text-[11px] tabular-nums ml-auto" :class="q.dat100 ? 'text-amber-300' : 'text-slate-500'"
+                                    x-text="fmt(q.dat) + ' / ' + fmt(q.can)"></span>
+                            </div>
+                            <div class="h-2 rounded-full bg-ink mt-1.5 overflow-hidden flex">
+                              <div class="h-full" :style="'width:'+pct(q.cuaTa,q.can)+'%;background:linear-gradient(90deg,#0d9488,#22d3ee)'"></div>
+                              <div class="h-full" :style="'width:'+Math.min(100-pct(q.cuaTa,q.can), pct(q.cuaBang,q.can))+'%;background:linear-gradient(90deg,#334155,#64748b)'"></div>
+                            </div>
+                            <div class="flex items-center gap-x-3.5 gap-y-1 text-[10.5px] text-slate-600 mt-1.5 flex-wrap">
+                              <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>Ngươi <b class="text-cyan-300" x-text="fmt(q.cuaTa)"></b></span>
+                              <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span>Minh chúng <b class="text-slate-400" x-text="fmt(q.cuaBang)"></b></span>
+                            </div>
                           </div>
-                          <div class="text-[11.5px] text-slate-500 mt-0.5" x-text="q.desc"></div>
-                          <div class="h-2 rounded-full bg-ink mt-2 overflow-hidden flex">
-                            <div class="h-full" :style="'width:'+pct(q.cuaTa,q.can)+'%;background:linear-gradient(90deg,#0d9488,#22d3ee)'"></div>
-                            <div class="h-full" :style="'width:'+Math.min(100-pct(q.cuaTa,q.can), pct(q.cuaBang,q.can))+'%;background:linear-gradient(90deg,#334155,#64748b)'"></div>
-                          </div>
-                          <div class="flex items-center gap-x-4 gap-y-1 text-[10.5px] text-slate-500 mt-1.5 flex-wrap">
-                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>Của ngươi <b class="text-cyan-300" x-text="fmt(q.cuaTa)"></b></span>
-                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span>Minh chúng <b class="text-slate-400" x-text="fmt(q.cuaBang)"></b></span>
-                            <span class="ml-auto text-amber-300" x-text="'+' + q.ct + ' Công Tích · +' + q.bangCong + ' Minh Cống'"></span>
-                          </div>
-                          <div class="mt-2">
+                          <!-- Cột phải CHỐT CỨNG bề rộng: nút đổi chữ ("Chưa xong" -> "Lĩnh Thưởng")
+                               mà cột co giãn thì cả hàng nhích ngang, nhìn giật. -->
+                          <div class="shrink-0 w-full sm:w-[150px] text-left sm:text-right">
+                            <div class="text-[10.5px] text-amber-300 leading-tight inline sm:block" x-text="'+' + q.ct + ' Công Tích'"></div>
+                            <span class="text-slate-700 text-[10.5px] sm:hidden"> · </span>
+                            <div class="text-[10.5px] text-jade leading-tight inline sm:block" x-text="'+' + q.bangCong + ' Minh Cống'"></div>
                             <button @click="linhNv(q)" :disabled="!q.dat100 || q.xong"
-                              class="px-3 py-1 rounded-lg text-[11.5px] fserif border transition"
+                              class="w-full mt-1.5 px-2 py-1 rounded-lg text-[11.5px] fserif border transition"
                               :class="q.xong ? 'text-slate-600 border-slate-800' : (q.dat100 ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default')"
                               x-text="q.xong ? 'Đã lĩnh' : (q.dat100 ? 'Lĩnh Thưởng' : 'Chưa xong')"></button>
                           </div>
@@ -11649,34 +11684,49 @@
                       <div class="text-jade font-bold fserif">Bảng Truy Nã</div>
                       <div class="text-[10.5px] text-slate-600">Đổi mỗi ngày · mục tiêu chọn theo cấp Chiến Đấu của ngươi</div>
                     </div>
+                    <!-- Cùng nhịp với Minh Vụ: trái tiến độ, phải nút. Thêm vạch sắc bậc chạy dọc
+                         mép trái để bốn bậc lệnh phân biệt được mà không phải đọc chữ. -->
                     <div class="divide-y divide-slate-800/60">
                       <template x-for="q in truyNa" :key="q.id">
-                        <div class="px-3.5 py-2.5">
-                          <div class="flex items-baseline gap-2 flex-wrap">
-                            <span class="text-[10.5px] px-1.5 py-[1px] rounded-full border shrink-0"
-                                  :style="'color:'+q.bacMau+';border-color:'+q.bacMau+'55'" x-text="q.bacTen"></span>
-                            <b class="text-[13px] fserif text-slate-200" x-text="'Trảm ' + q.so + ' × ' + q.ten"></b>
-                            <span class="text-[10.5px] text-slate-600" x-text="'Lv ' + q.reqLv"></span>
+                        <div class="relative px-3.5 py-2.5 flex flex-col sm:flex-row gap-2 sm:gap-3.5 sm:items-center"
+                             :class="q.dat100 && !q.xong ? 'bg-amber-500/[.06]' : ''">
+                          <span class="absolute inset-y-0 left-0 w-[3px]" :style="'background:' + q.bacMau + (q.xong ? '33' : 'aa')"></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-baseline gap-2 flex-wrap">
+                              <span class="text-[9.5px] px-1.5 py-[1px] rounded-full border shrink-0"
+                                    :style="'color:'+q.bacMau+';border-color:'+q.bacMau+'55'" x-text="q.bacTen"></span>
+                              <b class="text-[13px] fserif" :class="q.xong ? 'text-slate-500' : 'text-slate-100'" x-text="'Trảm ' + q.so + ' × ' + q.ten"></b>
+                              <span class="text-[10.5px] text-slate-600" x-text="'Lv ' + q.reqLv"></span>
+                              <template x-if="q.daNhan && !q.xong">
+                                <span class="text-[11px] tabular-nums ml-auto" :class="q.dat100 ? 'text-amber-300' : 'text-slate-500'" x-text="q.dat + '/' + q.so"></span>
+                              </template>
+                            </div>
+                            <!-- Thanh chỉ mọc khi ĐÃ NHẬN LỆNH; chưa nhận mà bày thanh 0% thì
+                                 nhìn như đang dở dang. Vẫn chiếm chỗ để hàng không cao thấp so le. -->
+                            <div class="h-1.5 rounded-full mt-1.5 overflow-hidden" :class="q.daNhan && !q.xong ? 'bg-ink' : 'bg-transparent'">
+                              <template x-if="q.daNhan && !q.xong">
+                                <div class="h-full rounded-full" :style="'width:' + pct(q.dat, q.so) + '%;background:linear-gradient(90deg,' + q.bacMau + '77,' + q.bacMau + ')'"></div>
+                              </template>
+                            </div>
+                            <div class="flex items-center gap-x-3 gap-y-1 mt-1.5 flex-wrap text-[10.5px]">
+                              <span class="text-amber-300" x-text="'+' + q.ct + ' Công Tích'"></span>
+                              <span class="text-slate-400" x-text="'+' + fmt(q.bac_) + ' Bạc'"></span>
+                              <template x-if="q.manh"><span class="text-violet-300" x-text="'+' + q.manh + ' Mảnh Trang Bị'"></span></template>
+                            </div>
                           </div>
-                          <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                            <span class="text-[11px] text-amber-300" x-text="'+' + q.ct + ' Công Tích'"></span>
-                            <span class="text-[11px] text-slate-400" x-text="'+' + fmt(q.bac_) + ' Bạc'"></span>
-                            <template x-if="q.manh"><span class="text-[11px] text-violet-300" x-text="'+' + q.manh + ' Mảnh Trang Bị'"></span></template>
-                            <template x-if="q.daNhan && !q.xong">
-                              <span class="text-[11px] text-slate-500 tabular-nums ml-auto" x-text="q.dat + '/' + q.so"></span>
-                            </template>
-                          </div>
-                          <div class="mt-2">
+                          <div class="shrink-0 w-full sm:w-[150px]">
                             <template x-if="!q.daNhan">
-                              <button @click="nhanTn(q)" class="px-3 py-1 rounded-lg text-[11.5px] fserif text-jade border border-jade/45 hover:bg-jade/10 transition">Nhận Lệnh</button>
+                              <button @click="nhanTn(q)" class="w-full px-2 py-1 rounded-lg text-[11.5px] fserif text-jade border border-jade/45 hover:bg-jade/10 transition">Nhận Lệnh</button>
                             </template>
                             <template x-if="q.daNhan && !q.xong">
                               <button @click="nopTn(q)" :disabled="!q.dat100"
-                                class="px-3 py-1 rounded-lg text-[11.5px] fserif border transition"
+                                class="w-full px-2 py-1 rounded-lg text-[11.5px] fserif border transition"
                                 :class="q.dat100 ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
                                 x-text="q.dat100 ? 'Nộp Lệnh' : 'Đang truy lùng'"></button>
                             </template>
-                            <template x-if="q.xong"><span class="text-[11.5px] text-slate-600">Đã nộp</span></template>
+                            <template x-if="q.xong">
+                              <div class="w-full px-2 py-1 rounded-lg text-[11.5px] fserif text-slate-600 border border-slate-800 text-center">Đã nộp</div>
+                            </template>
                           </div>
                         </div>
                       </template>
