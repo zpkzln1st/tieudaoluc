@@ -13,7 +13,7 @@ import { addItem, removeItem } from './inventory.js';
 import { addGearInstance } from './equip.js';
 import { rollMonsterDrop, rollGearInstance, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV } from '../data/gear.js';
 import { titleBonus } from './titles.js';
-import { bangNgheBonus } from './bangbuff.js';
+import { bangNgheBonus, bangKyNangBonus } from './bangbuff.js';
 import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: điểm Chinh Phạt khi hạ quái (nhánh treo máy)
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
@@ -286,8 +286,12 @@ export function advance(state, now) {
       const maxHP = act.maxHP || (act.maxHP = combatProfile(state, cb.loadout, enemy).maxHP); // mốc ngưỡng tự ăn (memo cho save cũ)
       const bacPer = Math.max(1, Math.round(enemy.exp * BAC_PER_EXP));   // Bạc/kill khi rơi (exp×0.5 -> L100 = 40)
       const _tb = titleBonus(state);                                     // Danh Hiệu: +Bạc/+rơi đồ nhẹ
-      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct + buffVal(state, 'bacPct', now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
-      const lootMul = 1 + activeAwkVal(state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
+      // ⚠ `_bg` PHẢI có mặt ở CẢ HAI đường thưởng (đây + awardKill ở main.js). Thiếu ở đâu là
+      // kĩ năng bang TRƠ ở đó — Tham Tài Quyết / Lùng Sục Quyết từng chết hẳn vì cả hai chỗ
+      // đều chỉ đọc danh hiệu: tốn 1.600×5 Công Tích, ô hiện "+4.0% Bạc Nhặt", mà không ăn gì.
+      const _bg = bangKyNangBonus(state);                                // Kĩ năng bang: Tham Tài / Lùng Sục
+      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct + _bg.bacPct + buffVal(state, 'bacPct', now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
+      const lootMul = 1 + activeAwkVal(state, 'lootBonus') + _tb.dropPct + _bg.dropPct;   // P7 — Lùng Sục
       // BIẾN RIÊNG cho họ Bách Bảo: CHỈ nhân vào loot nguyên liệu thường, TUYỆT ĐỐI không đụng
       // MONSTER_DROP_CHANCE (gear 0,3%). Cộng thẳng vào lootMul là inflate luôn tỉ lệ rơi trang bị.
       const matMul = lootMul * (1 + buffVal(state, 'lootPct', now) / 100);

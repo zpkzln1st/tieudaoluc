@@ -6121,9 +6121,14 @@
                         <span class="w-24 h-24 inline-flex items-center justify-center" x-html="g.ico(dpId,'📜')"></span>
                         <span class="text-[12px] text-center leading-tight font-medium" :class="g.itemQuality(dpId).text" x-text="(g.ITEMS[dpId]||{}).name"></span>
                         <!-- "riêng bản này" đối lại với "một bản bất kỳ" ở đầu popup — hai vế đó
-                             gánh trọn ý nghĩa, khỏi phải giảng thêm câu nào. -->
-                        <template x-if="dpId.startsWith('dpset_')">
+                             gánh trọn ý nghĩa, khỏi phải giảng thêm câu nào.
+                             ĐÃ CÓ thì THAY HẲN dòng tỉ lệ, không để cạnh nhau: engine bỏ qua bản
+                             đã có (`continue` khi túi ≥1) nên con số kia thành sai, để lại là nói dối. -->
+                        <template x-if="dpId.startsWith('dpset_') && !g.coDoPhoBo(dpId)">
                           <span class="text-[10px] text-amber-300/90" x-text="g.pctText(g.dungeonSetChance(dd.id, dpId)) + ' riêng bản này'"></span>
+                        </template>
+                        <template x-if="dpId.startsWith('dpset_') && g.coDoPhoBo(dpId)">
+                          <span class="text-[10px] font-semibold text-emerald-400">✓ Đã có · không rơi nữa</span>
                         </template>
                         <template x-if="g.doPhoChargeOf(dpId) > 0"><span class="text-[10px] font-semibold text-emerald-400" x-text="'✓ Có '+g.doPhoChargeOf(dpId)+' lượt rèn'"></span></template>
                       </button>
@@ -11390,8 +11395,12 @@
                         <div class="text-jade font-bold fserif">Minh Khố</div>
                         <div class="text-[11px] text-slate-600"><span x-text="khoList.length"></span>/<span x-text="oKho"></span> ô</div>
                       </div>
+                      <!-- CHỐT TRẦN CHIỀU CAO + cuộn trong: kho càng nhiều món thì khối này càng
+                           dài ra vô hạn, đẩy "Góp Từ Hành Lý" tụt mãi xuống dưới, muốn góp một
+                           món phải cuộn qua cả trăm ô. Nay mỗi khối tự cuộn, hai khối luôn thấy
+                           được cùng lúc. -->
                       <template x-if="khoList.length">
-                        <div class="flex flex-wrap gap-1.5 mb-3">
+                        <div class="flex flex-wrap gap-1.5 mb-3 max-h-[212px] overflow-y-auto pr-1">
                           <template x-for="it in khoList" :key="it.id">
                             <div class="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-ink2/50 px-2 py-1">
                               <span class="w-4 h-4 inline-flex text-[13px]" x-html="$store.game.ico(it.id, it.icon)"></span>
@@ -11406,7 +11415,7 @@
                         <div class="text-[11.5px] text-slate-600 italic py-2">Kho còn trống.</div>
                       </template>
                       <div class="lbl mb-1.5">Góp Từ Hành Lý</div>
-                      <div class="flex flex-wrap gap-1.5">
+                      <div class="flex flex-wrap gap-1.5 max-h-[212px] overflow-y-auto pr-1">
                         <template x-for="it in gopDuoc" :key="it.id">
                           <button @click="gopVaoKho(it, Math.min(it.so, 10))"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-ink2/40 px-2 py-1 hover:border-jade/50 transition">
@@ -11607,16 +11616,11 @@
                                    :style="t.du ? '' : 'filter:grayscale(.55) brightness(.72)'" onerror="this.remove()">
                               <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold text-slate-300 border-slate-600" x-text="t.loai"></span>
                               <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:' + t.mau" x-text="nhomHan(t.nhom)"></span>
-                              <!-- Hạt Giao Tình: vẽ đúng số bậc NGƯỜI NÀY đòi. Vẽ đủ 5 thì ai cũng
-                                   như ai, không thấy cao thủ kén hơn. -->
-                              <span class="absolute bottom-1.5 left-1.5 flex items-center gap-[3px] px-1.5 py-1 rounded bg-ink/80" :title="'Giao Tình ' + t.bac + '/' + t.can">
-                                <template x-for="i in t.can" :key="i">
-                                  <span class="w-[6px] h-[6px] rounded-full"
-                                        :style="i <= t.bac ? 'background:#14b8a6' : 'background:transparent;box-shadow:inset 0 0 0 1px #4a5878'"></span>
-                                </template>
-                              </span>
+                              <!-- KHÔNG vẽ hạt Giao Tình ở đây: nút dưới chân thẻ đã nói thẳng
+                                   "Còn N bận rượu", còn phần đã thân thì chip −N% bên cạnh nói rồi.
+                                   Ba chấm nhỏ nằm trên chân dung chỉ thành vệt bẩn, mà chẳng thêm tin. -->
                               <template x-if="t.bac">
-                                <span class="absolute bottom-1.5 right-1.5 text-[8px] px-1.5 py-0.5 rounded bg-jade text-ink font-bold" x-text="'−' + (t.bac * 10) + '%'"></span>
+                                <span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-jade text-ink font-bold" x-text="'−' + (t.bac * 10) + '%'"></span>
                               </template>
                             </div>
                             <div class="p-2 bg-ink3/40">
@@ -11899,7 +11903,7 @@
                             <span class="text-[10.5px] text-rose-400 text-center leading-tight" x-text="kn.chanBoi"></span>
                           </template>
                           <template x-if="kn.moKhoa && !kn.chanBoi && kn.lv >= kn.maxLv">
-                            <span class="text-[11.5px] fserif text-jade">Đã tới trần</span>
+                            <span class="text-[11.5px] fserif text-jade">Đã đạt cấp tối đa</span>
                           </template>
                           <template x-if="kn.moKhoa && !kn.chanBoi && kn.lv < kn.maxLv">
                             <button @click="hoc(kn)" :disabled="!kn.nangDuoc"

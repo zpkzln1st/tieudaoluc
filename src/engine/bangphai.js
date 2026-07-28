@@ -73,7 +73,24 @@ export const bossKyConLai = (now) => BOSS_BANG_KY_MS - ((now || Date.now()) % BO
 // ============================================================
 // STATE
 // ============================================================
+/**
+ * Dọn `danHoiSinhLuc` khỏi save cũ. Id này CHƯA TỪNG có trong ITEMS — Minh Hội Các từng bán
+ * nhầm nó, addItem() ghi thẳng id ma vào túi, vào Minh Khố và vào codex.obtained (Vạn Vật Phổ
+ * đếm cả món không tồn tại). Đã sửa cửa hàng nhưng save cũ vẫn ôm đống rác đó, hiện ra là
+ * dòng "danHoiSinhLuc ×38" trong kho — có tên máy chứ không có tên người.
+ * ⚠ Chỉ xoá ĐÚNG id này, không quét mọi id lạ: gear instance và đồ phổ nằm ở nhánh khác.
+ */
+const MA_CU = 'danHoiSinhLuc';
+function donIdMa(state) {
+  if (!state) return;
+  if (state.inventory) delete state.inventory[MA_CU];
+  if (state.codex && state.codex.obtained) delete state.codex.obtained[MA_CU];
+  const b = state.bangPhai && state.bangPhai.bang;
+  if (b && b.kho) delete b.kho[MA_CU];
+}
+
 export function ensureBangPhai(state) {
+  donIdMa(state);
   if (!state.bangPhai || typeof state.bangPhai !== 'object') state.bangPhai = {};
   const b = state.bangPhai;
   if (b.bang === undefined) b.bang = null;

@@ -22,6 +22,7 @@ import { coVua, ensureCoVua } from './covua.js';                     // Cờ Vua
 import { tuuLau, ensureTuuLau } from './tuulau.js';
 import { bangPhai, ensureBangPhai } from './bangphai.js';            // Bang Phái (lập bang, chinh phạt, boss bang)
 import { ghiKillChinhPhat } from './engine/bangphai.js';             // điểm Chinh Phạt khi hạ quái                  // Tửu Lâu (quán rượu giang hồ, cách ly)
+import { bangKyNangBonus } from './engine/bangbuff.js';              // kĩ năng bang: +Bạc/+rơi đồ ở awardKill
 import * as BP from './engine/bangphai.js';                          // bảng Dev: gọi đúng hàm engine, không ghi tay state
 import * as TL from './engine/tuulau.js';                            // bảng Dev: nuôi Giao Tình để thử cửa chiêu mộ
 import { kiemHanFont } from './engine/hanfont.js';      // chữ Hán: nguồn chân lý + máy tự soát font
@@ -3536,8 +3537,11 @@ const gameStore = {
     if (rp && rp.leveled) this.showToast(this.petName(rp.pet) + ' lên Cảnh Lv ' + rp.pet.level + '.');
     for (const st of boPhapStats(this.loadout)) addStatXp(this.state, st, e.statXp);
     const _tb = titleBonus(this.state);                                       // Danh Hiệu: +Bạc/+rơi đồ nhẹ
-    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct + buffVal(this.state, 'bacPct', _now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
-    const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct;   // P7 — Lùng Sục
+    // ⚠ Khớp TỪNG VẾ với nhánh treo máy ở engine/activity.js — lệch một vế là cùng con quái mà
+    // hai đường cho ra hai số khác nhau, hoặc kĩ năng bang trơ ở một bên.
+    const _bg = bangKyNangBonus(this.state);                                  // Kĩ năng bang: Tham Tài / Lùng Sục
+    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct + _bg.bacPct + buffVal(this.state, 'bacPct', _now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
+    const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct + _bg.dropPct;   // P7 — Lùng Sục
     // Bách Bảo lootPct CHỈ nhân loot nguyên liệu thường (matMul), TUYỆT ĐỐI không đụng
     // MONSTER_DROP_CHANCE (gear 0,3%) — y hệt luật ở activity.js.
     const matMul = lootMul * (1 + buffVal(this.state, 'lootPct', _now) / 100);
@@ -4124,6 +4128,12 @@ const gameStore = {
   closeDungeonPool() { this.dungeonPoolId = null; },
   get dungeonPoolObj() { return this.dungeonPoolId ? this.DUNGEON_BY_ID[this.dungeonPoolId] : null; },
   get dungeonPoolList() { return this.dungeonPoolId ? this.dungeonDoPhoList(this.dungeonPoolId) : []; },
+  /**
+   * Đã có bản Đồ Phổ Bộ này chưa. Khớp ĐÚNG điều kiện engine dùng để BỎ QUA khi rơi
+   * (engine/dungeon.js: `continue` nếu inventory[dpset_*] > 0) — mở khoá bộ chỉ cần count>0
+   * và KHÔNG tiêu đồ phổ, nên bản trùng vô dụng, engine không cho rơi nữa.
+   */
+  coDoPhoBo(dpId) { return ((this.state.inventory || {})[dpId] || 0) > 0; },
   /** Tỉ lệ đoạt một Đồ Phổ Bộ cụ thể ở phó bản này (lượt bốc RIÊNG, không chung rổ đồ phổ trang bị). */
   dungeonSetChance(dungeonId, setId) {
     const d = this.DUNGEON_BY_ID[dungeonId]; if (!d) return 0;
