@@ -11771,7 +11771,7 @@
                           <div class="flex items-center justify-between text-[10.5px] mb-2 gap-2 flex-wrap">
                             <span class="text-slate-600" x-text="'Còn ' + h.conLai + '/' + h.han + ' lượt hôm nay'"></span>
                             <template x-if="!h.moKhoa">
-                              <span class="text-rose-400" x-text="'khoá — cần Minh cấp ' + h.capBang"></span>
+                              <span class="text-rose-400 whitespace-nowrap" x-text="'Cần Tiên Minh Cấp ' + h.capBang"></span>
                             </template>
                           </div>
                           <div class="h-1 rounded-full bg-ink overflow-hidden mb-2.5">
@@ -11812,18 +11812,24 @@
                       <div class="relative panel rounded-xl overflow-hidden flex flex-col"
                            :class="kn.moKhoa ? '' : 'opacity-55'"
                            :style="kn.lv ? 'border-color:rgba(167,139,250,.4)' : ''">
-                        <!-- 3:2 chứ không vuông: ô vuông ở lưới 4 cột đội thẻ lên gần 290px, nhìn
-                             chình ình. Nằm ngang cắt hơn 1/3 chiều cao mà art vẫn đủ chỗ. -->
-                        <div class="relative overflow-hidden" style="aspect-ratio:3/2">
+                        <!-- Ô 4:3 + NEO 28%, KHÔNG phải neo giữa. Art thật là ảnh VUÔNG 1254×1254,
+                             chủ thể dồn nửa trên: đo 8 tấm được tâm chi tiết 29-50%, dải chứa chi
+                             tiết 5-76%. Ô 4:3 thấy 75% chiều cao ảnh; neo giữa (50%) thì thấy
+                             12,5-87,5% -> xén mất đầu 4 tấm có chủ thể cao. Neo 28% dời khung lên,
+                             thấy 7-82% -> ôm gần trọn. Ô 3:2 chỉ thấy 66,7% nên xén nặng hơn nữa.
+                             Vẽ lại art khác khuôn thì phải đo lại hai số này. -->
+                        <div class="relative overflow-hidden" style="aspect-ratio:4/3">
                           <!-- Nền chữ nằm TRƯỚC trong DOM, ảnh chồng lên. Không dùng z-index âm:
                                thẻ chỉ `position:relative` nên -z-10 chui xuống dưới cả nền panel. -->
                           <div class="absolute inset-0" style="background:linear-gradient(158deg,#1a1430,#0b0d1a)"></div>
                           <span class="absolute inset-0 grid place-items-center fserif select-none"
                                 :style="'font-size:clamp(24px,2.6vw,32px);color:' + (kn.lv ? '#a78bfa' : '#3f3a5c')"
                                 x-text="knHan(kn.id)"></span>
-                          <img :src="'images/tienminh/kn/' + kn.id + '.webp'" alt=""
+                          <!-- Không lazy: cả 8 thẻ nằm gọn một màn, hoãn tải chẳng lợi gì mà lại
+                               thấy ô trống nhấp nháy. (Lưới minh chúng thì có, vì tới 25 thẻ.) -->
+                          <img :src="'images/tienminh/kn/' + kn.id + '.webp'" alt="" decoding="async"
                                class="absolute inset-0 w-full h-full object-cover"
-                               :style="kn.lv ? '' : 'filter:grayscale(1) brightness(.5)'"
+                               :style="'object-position:50% 28%;' + (kn.lv ? '' : 'filter:grayscale(1) brightness(.5)')"
                                onerror="this.remove()">
                           <div class="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
                                style="background:linear-gradient(180deg,transparent,rgba(6,9,16,.92))"></div>
@@ -11847,7 +11853,7 @@
                              đúng một hàng, không thì nâng một cấp là cả lưới nhảy. -->
                         <div class="px-2 py-1.5 flex items-center justify-center min-h-[36px]" style="background:#0b0e16">
                           <template x-if="!kn.moKhoa">
-                            <span class="text-[10.5px] text-rose-400 text-center leading-tight" x-text="'Minh cấp ' + kn.capBang"></span>
+                            <span class="text-[10.5px] text-rose-400 text-center leading-tight" x-text="'Cần Tiên Minh Cấp ' + kn.capBang"></span>
                           </template>
                             <template x-if="kn.moKhoa && kn.chanBoi">
                             <span class="text-[10.5px] text-rose-400 text-center leading-tight" x-text="kn.chanBoi"></span>

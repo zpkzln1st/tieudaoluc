@@ -168,7 +168,9 @@ export function bangPhai() {
           keTiep: (kn.moiCap * (lv + 1) * 100).toFixed(1),
           moKhoa: this.capBang >= kn.capBang,
           nangDuoc: this.capBang >= kn.capBang && lv < tran && this.congTich >= giaKyNang(kn, lv + 1),
-          chanBoi: lv >= tran && lv < kn.maxLv ? 'Binh Khí Khố' : '',
+          // Câu ĐẦY ĐỦ ngay trong dữ liệu, đừng để lớp view ghép thêm chữ — thẻ mới quên ghép
+          // là ra đúng hai chữ "Binh Khí Khố" trơ trọi, đọc không hiểu đòi gì.
+          chanBoi: lv >= tran && lv < kn.maxLv ? 'Cần nâng Binh Khí Khố' : '',
         };
       });
     },
@@ -178,8 +180,10 @@ export function bangPhai() {
       void this._t;
       try {
         return danhSachHang(this.g.state, Date.now()).map((h) => {
+          // ⚠ KHÔNG ghi đè `ten`/`desc` — danhSachHang() đã lấy đúng từ ITEMS rồi; lấy lại từ
+          // CUA_HANG_BANG là xoá trắng lời văn của mọi món có itemId (data không còn giữ nữa).
           const d = CUA_HANG_BANG.find((x) => x.id === h.id) || {};
-          return { ...h, ico: d.ico, emoji: d.emoji, desc: d.desc, nhom: d.nhom, mau: CH_NHOM_MAU[d.nhom] || '#94a3b8' };
+          return { ...h, ico: d.ico, emoji: d.emoji, nhom: d.nhom, mau: CH_NHOM_MAU[d.nhom] || '#94a3b8' };
         });
       } catch (e) { return []; }
     },

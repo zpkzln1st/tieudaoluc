@@ -17,6 +17,7 @@ import { LOCATIONS } from '../data/locations.js';
 import { YEU_VUONG, YEU_VUONG_BY_ID, ENEMIES } from '../data/combat.js';
 import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant, botTracks } from './bots.js';
 import { CAT_HEX } from '../data/bots.js';
+import { ITEMS } from '../data/items.js';   // nguồn chân lý tên + lời văn vật phẩm
 import {
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, TV_NEN, TV_MOI_CAP, TV_TRAN,
   CAP_BANG_MAX, bangCongCanCho, KY_NANG_BANG, KY_NANG_BY_ID, giaKyNang,
@@ -586,10 +587,20 @@ export function ensureChSo(state, now) {
 export function danhSachHang(state, now) {
   const b = ensureBangPhai(state), s = ensureChSo(state, now);
   const cap = b.bang ? b.bang.cap : 0;
-  return CUA_HANG_BANG.map((h) => ({
-    ...h, daMua: s.mua[h.id] | 0, conLai: Math.max(0, h.han - (s.mua[h.id] | 0)),
-    moKhoa: cap >= h.capBang, muaDuoc: cap >= h.capBang && (s.mua[h.id] | 0) < h.han && b.congTich >= h.gia,
-  }));
+  return CUA_HANG_BANG.map((h) => {
+    // TÊN + LỜI VĂN LẤY THẲNG TỪ ITEMS, không chép tay sang bảng cửa hàng. Chép tay là đẻ ra
+    // bản thứ hai rồi lệch: đã dính vụ cửa hàng ghi "Ghép đủ bộ Hoàng Kim..." còn ITEMS ghi
+    // "Kim loại quý ngưng từ tà khí Yêu Vương...", tên thì rụng mất chữ "Hoàng Kim".
+    // Tiền tệ không có mục trong ITEMS nên vẫn dùng ten/desc ghi ở data.
+    const it = h.itemId ? ITEMS[h.itemId] : null;
+    return {
+      ...h,
+      ten: (it && it.name) || h.ten || h.itemId || h.id,
+      desc: (it && it.desc) || h.desc || '',
+      daMua: s.mua[h.id] | 0, conLai: Math.max(0, h.han - (s.mua[h.id] | 0)),
+      moKhoa: cap >= h.capBang, muaDuoc: cap >= h.capBang && (s.mua[h.id] | 0) < h.han && b.congTich >= h.gia,
+    };
+  });
 }
 /**
  * Mua một món. KHÔNG tự phát vật phẩm/tiền — trả đơn hàng để lớp view gọi addItem/cộng tiền,

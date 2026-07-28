@@ -89,30 +89,35 @@ export const giaKyNang = (kn, lv) => Math.round(kn.giaNen * Math.pow(1.85, Math.
 // Tiêu Công Tích. `han` = trần mua mỗi ngày (chống dồn Công Tích đổi ồ ạt phá kinh tế).
 // `ico` = khoá cho hàm ico() của store (item id hoặc id tiền tệ) · `emoji` = dự phòng khi chưa có art.
 // `nhom` chỉ để tô màu thẻ, không ảnh hưởng luật.
+//
+// ⚠ MÓN CÓ `itemId` THÌ KHÔNG GHI `ten`/`desc` Ở ĐÂY. Lore của vật phẩm đã do tác giả viết
+// sẵn trong data/items.js; chép tay sang đây là đẻ ra bản thứ hai rồi lệch nhau — đã dính:
+// cửa hàng ghi "Ghép đủ bộ Hoàng Kim..." trong khi ITEMS ghi "Kim loại quý ngưng từ tà khí
+// Yêu Vương và tầng sâu Thái Hư...", tên thì cụt mất chữ "Hoàng Kim".
+// danhSachHang() tự lấy `name`/`desc` từ ITEMS. Chỉ TIỀN TỆ mới ghi tay (không có ITEMS entry).
 export const CUA_HANG_BANG = [
   { id: 'ch_bac', tienTe: 'bac', itemId: null, so: 6000, gia: 500, han: 5, capBang: 1,
+    // Ba dòng tiền tệ dưới đây bám đúng bảng A. TIỀN TỆ trong docs/NOI_DUNG_GAME.md
+    // (nói TIÊU VÀO ĐÂU), không bịa thêm lore — tiền tệ vốn không có mục trong ITEMS.
     ten: 'Bạc', ico: 'bac', emoji: '🟡', nhom: 'tien',
-    desc: 'Ngân khố Tiên Minh đổi ra bạc vụn — tiêu gì cũng được.' },
+    desc: 'Tiêu vào nguyên liệu, đan dược, công cụ và phí Bí Cảnh.' },
   // ⚠ Chỗ này từng bán `danHoiSinhLuc` — một id KHÔNG HỀ CÓ trong ITEMS. Mua vào là addItem()
   // ghi thẳng id ma vào túi VÀ vào codex.obtained (Vạn Vật Phổ đếm luôn món không tồn tại),
   // mà ico() không tìm ra ảnh nên rơi về emoji, đứng cạnh mấy món có art nhìn lạc hẳn.
   // Nay dùng Hoạt Huyết Đan: có thật, có sẵn art, healPct 30 nên nằm ô Hồi Sinh Lực chạy đúng
   // như lời mô tả (autoEatTick đọc healPct). Luyện Đan Lv 20 mới tự làm được -> mua vẫn đáng.
   { id: 'ch_danHoiSinh', itemId: 'hoatHuyetDan', so: 20, gia: 400, han: 4, capBang: 1,
-    ten: 'Hoạt Huyết Đan', ico: 'hoatHuyetDan', emoji: '💊', nhom: 'dan',
-    desc: 'Đan phòng thân — nhét đầy ô Hồi Sinh Lực rồi cứ thế treo máy.' },
+    ico: 'hoatHuyetDan', emoji: '💊', nhom: 'dan' },
   { id: 'ch_honThach', tienTe: 'honThach', itemId: null, so: 200, gia: 700, han: 3, capBang: 1,
     ten: 'Hồn Thạch', ico: 'honThach', emoji: '🔴', nhom: 'tien',
-    desc: 'Hồn thạch luyện khí — dùng cho cường hoá và Linh Thú.' },
+    desc: 'Tiêu vào linh thạch, đan dược và Linh Thú bậc cao.' },
   { id: 'ch_manh', itemId: 'manhTrangBi', so: 2, gia: 1500, han: 2, capBang: 4,
-    ten: 'Mảnh Trang Bị', ico: 'manhTrangBi', emoji: '🧩', nhom: 'hiem',
-    desc: 'Ghép đủ bộ Hoàng Kim. Đường lấy Mảnh nhanh nhất ngoài Bí Cảnh.' },
+    ico: 'manhTrangBi', emoji: '🧩', nhom: 'hiem' },
   { id: 'ch_tinhThe', itemId: 'tinhTheYeuVuong', so: 1, gia: 2600, han: 1, capBang: 10,
-    ten: 'Tinh Thể Yêu Vương', ico: 'tinhTheYeuVuong', emoji: '💠', nhom: 'hiem',
-    desc: 'Kết tinh yêu khí. Chém Yêu Vương cả buổi chưa chắc rơi một viên.' },
+    ico: 'tinhTheYeuVuong', emoji: '💠', nhom: 'hiem' },
   { id: 'ch_nguyenBao', tienTe: 'nguyenBao', itemId: null, so: 30, gia: 4000, han: 1, capBang: 16,
     ten: 'Nguyên Bảo', ico: 'nguyenBao', emoji: '🔷', nhom: 'quy',
-    desc: 'Của hiếm trong Minh Khố — chỉ Tiên Minh lớn mới đổi nổi.' },
+    desc: 'Tiêu vào dung mạo, ô chứa và đổi tên — không mua được sức mạnh.' },
 ];
 // ---------- DẤU TRIỆN CÔNG TRÌNH ----------
 // Năm tấm art cùng một tông (đêm xanh + vàng kim) nên nhìn lướt dễ lẫn. Mỗi công trình
