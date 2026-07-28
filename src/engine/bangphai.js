@@ -36,7 +36,7 @@ import {
   MUA_MS, CP_MOI_KILL, CP_MOI_BOSS, CP_BUFF_HANG, CP_THONG_TRI_HE_SO, MUA_THUONG_BANG,
   BOSS_BANG_KY_MS, BOSS_BANG_LUOT, BOSS_BANG_CD_MS, BOSS_BANG_MAU_HE_SO,
   QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
-  CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, GIAO_TINH_GIAM_BAC, giaoTinhCan,
+  CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, GIAO_TINH_GIAM_BAC, giaoTinhCan, KN_TRAN_THEO_CT,
 } from '../data/bangphai.js';
 // Giao Tình nuôi ở Tửu Lâu, tiêu ở đây. engine/tuulau.js chỉ nạp data + bots nên KHÔNG vòng.
 import { danhSachQuen, bacGiaoTinh } from './tuulau.js';
@@ -424,7 +424,8 @@ export function sinhDonXin(state, world, now) {
   const roster = genRoster(seed, (world && world.createdAt) || 0) || [];
   const daCo = new Set(b.bang.tv.map((m) => m.id));
   const don = new Set(b.bang.donXin || []);
-  const soXin = 1 + (mix(mix(seed, 0x2C7), slot) % 2);
+  // Phi Cáp Trạm: mỗi cấp thêm một người tìm tới cửa mỗi lượt.
+  const soXin = 1 + capCongTrinh(state, 'phicaptram') + (mix(mix(seed, 0x2C7), slot) % 2);
   for (let k = 0; k < soXin; k++) {
     const r = roster[mix(mix(seed ^ 0x77, slot), k) % roster.length];
     if (!r || daCo.has(r.id) || don.has(r.id)) continue;
@@ -591,9 +592,11 @@ export function capKyNang(state, id) {
 export function tranKyNang(state, kn) {
   const b = ensureBangPhai(state);
   if (!b.bang) return 0;
-  const laChien = ['atkPct', 'defPct', 'hpPct'].includes(kn.key);
-  if (!laChien) return kn.maxLv;
-  return Math.min(kn.maxLv, (b.bang.congTrinh.binhKhiKho | 0));
+  // Mỗi nhóm kĩ năng do MỘT công trình mở trần (bảng KN_TRAN_THEO_CT ở data). Khoá không có
+  // trong bảng thì không ai chặn. Cấp ĐÃ HỌC không bị lấy lại — trần chỉ chặn nâng tiếp.
+  const ctId = KN_TRAN_THEO_CT[kn.key];
+  if (!ctId) return kn.maxLv;
+  return Math.min(kn.maxLv, (b.bang.congTrinh[ctId] | 0));
 }
 /** Học/nâng một kĩ năng. Trả '' nếu xong, ngược lại trả lý do. */
 export function hocKyNang(state, id, now) {
@@ -894,7 +897,11 @@ export function themCpVung(state, locId, diem, now) {
 }
 /** Người chơi hạ một con quái ở vùng `locId`. `laBoss` -> điểm dày hơn nhiều. */
 export function ghiKillChinhPhat(state, locId, laBoss, now) {
-  return themCpVung(state, locId, laBoss ? CP_MOI_BOSS : CP_MOI_KILL, now);
+  // Thí Kiếm Đài: mỗi cấp thêm 1 điểm mỗi con. Cộng cho CẢ quái thường lẫn Yêu Vương — đài
+  // mài nghề chứ không phân biệt đánh con gì. Đây là điểm móc DUY NHẤT nên cả hai đường thưởng
+  // (awardKill ở main.js và nhánh treo máy ở activity.js) đều đi qua, không lệch nhau được.
+  const them = capCongTrinh(state, 'thikiemdai');
+  return themCpVung(state, locId, (laBoss ? CP_MOI_BOSS : CP_MOI_KILL) + them, now);
 }
 
 /** Bảng xếp hạng MỘT vùng: bang AI + bang ta, sắp theo điểm. Tự gắn hạng cho bang ta. */
@@ -1022,14 +1029,17 @@ export function bossBang(state, world, now) {
     boss, mau, dameBot, dameTa, tong,
     pct: Math.min(100, Math.round(tong / Math.max(1, mau) * 100)),
     thang: tong >= mau, daNhan: b.bossB.thangKy === ky,
-    cong, luot: b.bossB.ky === ky ? (b.bossB.luot | 0) : 0, tranLuot: BOSS_BANG_LUOT,
+    // Diễn Võ Trường: mỗi cấp thêm một lượt xuất trận trong tuần.
+    cong, luot: b.bossB.ky === ky ? (b.bossB.luot | 0) : 0,
+    tranLuot: BOSS_BANG_LUOT + capCongTrinh(state, 'dienvotruong'),
     cdConMs: Math.max(0, (b.bossB.cdDen || 0) - t), conLaiMs: bossKyConLai(t),
   };
 }
 export function xuatTranBoss(state, dame, now) {
   const b = ensureBangPhai(state), t = now || Date.now(), ky = bossKyCua(t);
   if (!b.bang || b.bossB.ky !== ky) return 0;
-  if ((b.bossB.luot | 0) >= BOSS_BANG_LUOT) return 0;
+  // Trần lượt phải KHỚP với bossBang(): thiếu Diễn Võ Trường ở đây là UI cho bấm mà engine chặn.
+  if ((b.bossB.luot | 0) >= BOSS_BANG_LUOT + capCongTrinh(state, 'dienvotruong')) return 0;
   if (t < (b.bossB.cdDen || 0)) return 0;
   const d = Math.max(0, Math.round(dame || 0));
   b.bossB.gop = (b.bossB.gop || 0) + d;

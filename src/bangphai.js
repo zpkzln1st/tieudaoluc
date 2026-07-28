@@ -27,7 +27,7 @@ import {
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
   MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG, MUA_MS,
 } from './engine/bangphai.js';
-import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG, KY_NANG_HAN } from './data/bangphai.js';
+import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG, KY_NANG_HAN, KN_TRAN_THEO_CT } from './data/bangphai.js';
 
 export { ensureBangPhai };
 
@@ -169,8 +169,11 @@ export function bangPhai() {
           moKhoa: this.capBang >= kn.capBang,
           nangDuoc: this.capBang >= kn.capBang && lv < tran && this.congTich >= giaKyNang(kn, lv + 1),
           // Câu ĐẦY ĐỦ ngay trong dữ liệu, đừng để lớp view ghép thêm chữ — thẻ mới quên ghép
-          // là ra đúng hai chữ "Binh Khí Khố" trơ trọi, đọc không hiểu đòi gì.
-          chanBoi: lv >= tran && lv < kn.maxLv ? 'Cần nâng Binh Khí Khố' : '',
+          // là ra đúng hai chữ trơ trọi, đọc không hiểu đòi gì.
+          // ⚠ Tên công trình phải TRA RA, không ghi cứng: mỗi nhóm kĩ năng do một công trình
+          // khác nhau gác trần (KN_TRAN_THEO_CT), ghi cứng là chỉ sai cho 8/12 cây.
+          chanBoi: lv >= tran && lv < kn.maxLv
+            ? ('Cần nâng ' + ((CONG_TRINH_BY_ID[KN_TRAN_THEO_CT[kn.key]] || {}).ten || 'công trình')) : '',
         };
       });
     },

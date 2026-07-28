@@ -144,6 +144,12 @@ export const TILE_KHAC = {
   tuLinhTri:  { han: '靈', mau: '#22d3ee', phu: 'Linh khí' },
   bangKho:    { han: '庫', mau: '#c08457', phu: 'Kho tàng' },
   tramYeuDai: { han: '斬', mau: '#fb7185', phu: 'Trảm yêu' },
+  // 5 công trình thêm sau — chữ chọn theo chữ ĐÃ CÓ trong subset (煉/藏/演/驛/試 chưa có).
+  luyendanphong: { han: '丹', mau: '#34d399', phu: 'Luyện đan' },
+  tangkinhcac:   { han: '閣', mau: '#a78bfa', phu: 'Tàng kinh' },
+  dienvotruong:  { han: '武', mau: '#f87171', phu: 'Diễn võ' },
+  phicaptram:    { han: '飛', mau: '#60a5fa', phu: 'Phi cáp' },
+  thikiemdai:    { han: '劍', mau: '#e879f9', phu: 'Thí kiếm' },
 };
 
 // ---------- KHUNG ART CÔNG TRÌNH ----------
@@ -183,7 +189,32 @@ export const CONG_TRINH = [
   { id: 'tramYeuDai', ten: 'Trảm Yêu Đài',  maxLv: 10, gioXay: 8,  bacNen: 22000,
     desc: 'Đài triệu Yêu Vương. Mỗi tuần gọi một con về cho cả minh xúm vào đánh, cấp càng cao con càng dữ và thưởng càng dày.',
     moTaCap: (lv) => [['Yêu Vương mỗi tuần', lv ? ('bậc ' + lv) : 'chưa gọi được']] },
+  // ---- 5 công trình thêm sau ----
+  // ⚠ ID = ĐÚNG TÊN FILE ART tác giả đã đặt (viết thường liền, khác lối camelCase của 5 cái cũ).
+  // Giữ nguyên chứ không đổi cho "đẹp": art tra theo images/tienminh/<id>.webp, đổi id là mất ảnh.
+  { id: 'luyendanphong', ten: 'Luyện Đan Phòng', maxLv: 10, gioXay: 5,  bacNen: 14000,
+    desc: 'Phòng luyện đan. Xây tới cấp nào thì bốn quyết kiếm chác — Tham Tài, Lùng Sục, Thổ Mộc, Toạ Quan — học được tới cấp đó.',
+    moTaCap: (lv) => [['Giới hạn quyết kiếm chác', lv ? ('cấp ' + lv) : 'chưa mở']] },
+  { id: 'tangkinhcac',   ten: 'Tàng Kinh Các',   maxLv: 10, gioXay: 6,  bacNen: 17000,
+    desc: 'Gác chứa kinh. Xây tới cấp nào thì bốn quyết tu luyện — Ngộ Đạo, Tụ Hồn, Tầm Bảo, Mục Thú — học được tới cấp đó.',
+    moTaCap: (lv) => [['Giới hạn quyết tu luyện', lv ? ('cấp ' + lv) : 'chưa mở']] },
+  { id: 'dienvotruong',  ten: 'Diễn Võ Trường',  maxLv: 10, gioXay: 7,  bacNen: 20000,
+    desc: 'Sân luyện võ. Minh chúng tập trận quen tay, mỗi tuần ngươi được thêm lượt xuất trận đánh Yêu Vương.',
+    moTaCap: (lv) => [['Lượt xuất trận mỗi tuần', (BOSS_BANG_LUOT + lv) + ' lượt']] },
+  { id: 'phicaptram',    ten: 'Phi Cáp Trạm',    maxLv: 10, gioXay: 4,  bacNen: 11000,
+    desc: 'Trạm chim đưa thư. Danh tiếng Tiên Minh bay xa, người tìm tới cửa xin nhập minh dày hơn.',
+    moTaCap: (lv) => [['Đơn xin mỗi lượt', (1 + lv) + '-' + (2 + lv) + ' người']] },
+  { id: 'thikiemdai',    ten: 'Thí Kiếm Đài',    maxLv: 10, gioXay: 8,  bacNen: 24000,
+    desc: 'Đài tỉ kiếm. Minh chúng mài nghề trên đài, ra ngoài chém quái ghi được nhiều điểm Chinh Phạt hơn.',
+    moTaCap: (lv) => [['Điểm Chinh Phạt mỗi con', (CP_MOI_KILL + lv) + ' điểm']] },
 ];
+// Nhóm kĩ năng nào bị công trình nào chặn trần. Khoá KHÔNG có trong bảng này thì không ai chặn.
+// Cấp ĐÃ HỌC không bao giờ bị lấy lại — trần chỉ chặn việc nâng tiếp (xem hocKyNang).
+export const KN_TRAN_THEO_CT = {
+  atkPct: 'binhKhiKho', defPct: 'binhKhiKho', hpPct: 'binhKhiKho', allPct: 'binhKhiKho',
+  bacPct: 'luyendanphong', dropPct: 'luyendanphong', nghePct: 'luyendanphong', ngheExpPct: 'luyendanphong',
+  expPct: 'tangkinhcac', honThachPct: 'tangkinhcac', bcDoPhoPct: 'tangkinhcac', petExpPct: 'tangkinhcac',
+};
 export const CONG_TRINH_BY_ID = Object.fromEntries(CONG_TRINH.map((c) => [c.id, c]));
 /** Bạc để nâng công trình lên cấp `lv`. */
 export const giaCongTrinh = (ct, lv) => Math.round(ct.bacNen * Math.pow(1.7, Math.max(0, lv - 1)));
