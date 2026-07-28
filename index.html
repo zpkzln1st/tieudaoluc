@@ -13964,7 +13964,7 @@
           </div>
         </div>
         <div class="text-slate-400 italic leading-snug" style="padding:6px 20px 4px;font-size:12px">
-          Hành trạng: <span class="text-slate-200 not-italic fserif" x-text="$store.game.offlineActText"></span>
+          Trạng thái: <span class="text-slate-200 not-italic fserif" x-text="$store.game.offlineActText"></span>
         </div>
         <!-- Thu hoạch: đóng KHUNG như ô "Ngươi vắng giang hồ" phía trên. Để trần thì mấy dòng chữ này
              trôi lơ lửng giữa thiệp, phá cấu trúc thẻ. -->
@@ -13973,7 +13973,9 @@
             <div class="uppercase text-slate-500" style="font-size:10px;letter-spacing:.12em;margin-bottom:2px">Thu hoạch</div>
             <template x-for="(gn,i) in $store.game.offlineGains" :key="i">
               <div class="flex items-baseline justify-between gap-3" style="padding:5px 0" :style="i>0 ? 'border-top:1px solid rgba(148,163,184,.10)' : ''">
-                <span class="text-slate-300 truncate" style="font-size:12.5px" :style="gn.hex ? 'color:'+gn.hex : ''" x-text="gn.label"></span>
+                <!-- CẢ HAI VẾ cùng `fserif`: trước đó nhãn trái để font sans mặc định còn số phải
+                     dùng fserif, nên ngay trong MỘT dòng đã có hai kiểu chữ đứng cạnh nhau. -->
+                <span class="fserif text-slate-300 truncate" style="font-size:12.5px" :style="gn.hex ? 'color:'+gn.hex : ''" x-text="gn.label"></span>
                 <span class="fserif shrink-0 tabular-nums" style="font-size:13.5px" :class="gn.cls" x-text="gn.amount"></span>
               </div>
             </template>
