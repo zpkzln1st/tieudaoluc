@@ -22,9 +22,15 @@
 export const HAN_TIEU_DE = '五子棋象西洋酒楼';
 // Noto Serif TC (quân + chữ trên bàn Cờ Tướng) — phồn thể.
 export const HAN_CO_TUONG = '帥仕相傌俥炮兵將士象馬車砲卒楚河漢界';
+// Noto Serif SC — font gánh MỌI chữ Hán trong thân bài (class .fserif). Subset của nó nằm ở
+// một chuỗi &text= dài ~338 chữ trong <head>, TRƯỚC ĐÂY KHÔNG AI SOÁT. Dưới đây là những chữ
+// Hán do code sinh ra (không nằm sẵn trong data) — phải soát để khỏi lặng lẽ rơi về SimSun.
+//   總 Tổng Đàn · 兵 Binh Khí Khố · 靈 Tụ Linh Trì · 庫 Minh Khố · 斬 Trảm Yêu Đài · 記 nhật ký
+export const HAN_THAN_BAI = '總兵靈庫斬記';
 
 const FONT_TIEU_DE = '"Ma Shan Zheng"';
 const FONT_CO_TUONG = '"Noto Serif TC"';
+const FONT_THAN_BAI = '"Noto Serif SC"';
 
 // Vẽ 1 glyph ra canvas rồi trả mảng pixel — cách DUY NHẤT đáng tin để biết font có thật sự áp dụng.
 function veGlyph(ch, font, px) {
@@ -57,6 +63,7 @@ export async function kiemHanFont() {
     await Promise.all([
       document.fonts.load('400 26px ' + FONT_TIEU_DE, HAN_TIEU_DE),
       document.fonts.load('700 100px ' + FONT_CO_TUONG, HAN_CO_TUONG),
+      document.fonts.load('700 100px ' + FONT_THAN_BAI, HAN_THAN_BAI),
     ]);
     await document.fonts.ready;
   } catch (e) { return []; }
@@ -66,6 +73,7 @@ export async function kiemHanFont() {
   try {
     soat(HAN_TIEU_DE, FONT_TIEU_DE, 'Ma Shan Zheng');
     soat(HAN_CO_TUONG, FONT_CO_TUONG, 'Noto Serif TC');
+    soat(HAN_THAN_BAI, FONT_THAN_BAI, 'Noto Serif SC');
   } catch (e) { return []; }
   if (hong.length) {
     console.warn(

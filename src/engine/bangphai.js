@@ -80,7 +80,6 @@ function bangMoi(ten, tonChi, now) {
     cap: 1, bangCong: 0, quy: 0,
     kho: {}, kyNang: {},
     congTrinh: { tongDan: 1, binhKhiKho: 0, tuLinhTri: 0, bangKho: 0, tramYeuDai: 0 },
-    viTri: {},              // vị trí công trình trên nền, { id: {x,y} } theo % khung — xem viTriCongTrinh()
     xayDung: null,
     quyen: Object.assign({}, QUYEN_MAC_DINH),
     tv: [], donXin: [],
@@ -513,46 +512,6 @@ export function muaHang(state, id, now) {
 }
 
 // ---------- CÔNG TRÌNH ----------
-// ---------- VỊ TRÍ CÔNG TRÌNH TRÊN NỀN ----------
-// Lưu theo PHẦN TRĂM khung chứ không phải pixel: nền co giãn theo bề ngang màn hình, lưu pixel
-// thì đổi máy là công trình bay ra ngoài.
-const VI_TRI_MAC_DINH = {
-  tongDan:    { x: 46, y: 30 },
-  binhKhiKho: { x: 20, y: 52 },
-  tuLinhTri:  { x: 70, y: 48 },
-  bangKho:    { x: 33, y: 72 },
-  tramYeuDai: { x: 62, y: 74 },
-};
-export function viTriCongTrinh(state, id) {
-  const b = ensureBangPhai(state);
-  if (!b.bang) return VI_TRI_MAC_DINH[id] || { x: 50, y: 50 };
-  if (!b.bang.viTri) b.bang.viTri = {};
-  return b.bang.viTri[id] || VI_TRI_MAC_DINH[id] || { x: 50, y: 50 };
-}
-// Toạ độ là TÂM ô nên phải chừa lề, kẹp 0-100 thì nửa ô lòi ra ngoài khung.
-// ⚠ Đây chỉ là LƯỚI AN TOÀN thô. Lề THẬT do lớp view tính, vì ô to bao nhiêu phần trăm khung
-// còn tuỳ bề ngang màn hình — chỉ chỗ có DOM mới đo được.
-const LE_X = 2, LE_Y = 2;
-/** Ghi vị trí mới (kẹp trong khung, chừa lề để ô không lòi ra ngoài). Trả vị trí đã kẹp. */
-export function datViTri(state, id, x, y) {
-  const b = ensureBangPhai(state);
-  if (!b.bang) return null;
-  if (!b.bang.viTri) b.bang.viTri = {};
-  const v = {
-    x: Math.max(LE_X, Math.min(100 - LE_X, +x || 0)),
-    y: Math.max(LE_Y, Math.min(100 - LE_Y, +y || 0)),
-  };
-  b.bang.viTri[id] = v;
-  return v;
-}
-/** Xếp lại toàn bộ về chỗ mặc định. */
-export function xepLaiViTri(state) {
-  const b = ensureBangPhai(state);
-  if (!b.bang) return false;
-  b.bang.viTri = {};
-  return true;
-}
-
 export function capCongTrinh(state, id) {
   const b = ensureBangPhai(state);
   return (b.bang && b.bang.congTrinh[id]) | 0;

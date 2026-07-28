@@ -16,11 +16,11 @@ Code đã cắm sẵn `onerror` cho cả 6 ảnh: thiếu ảnh nào thì ô đ�
 | # | Mục đích | Tên file | Nơi để | Kích thước · nền |
 |---|---|---|---|---|
 | 1 | **Nền sơn thuỷ** cả màn Công Trình (công trình cắm/kéo thả lên trên) | `nen.webp` | `images/tienminh/` | **2048×1152 (16:9)** · liền, KHÔNG chữ |
-| 2 | Tile **Tổng Đàn** | `tongDan.webp` | `images/tienminh/buildings/` | **512×384 (4:3)** · nền trong suốt |
-| 3 | Tile **Binh Khí Khố** | `binhKhiKho.webp` | `images/tienminh/buildings/` | 512×384 · trong suốt |
-| 4 | Tile **Tụ Linh Trì** | `tuLinhTri.webp` | `images/tienminh/buildings/` | 512×384 · trong suốt |
-| 5 | Tile **Minh Khố** | `bangKho.webp` ⚠ | `images/tienminh/buildings/` | 512×384 · trong suốt |
-| 6 | Tile **Trảm Yêu Đài** | `tramYeuDai.webp` | `images/tienminh/buildings/` | 512×384 · trong suốt |
+| 2 | Tile **Tổng Đàn** | `tongDan.webp` | `images/tienminh/` | **512×384 (4:3)** · nền trong suốt |
+| 3 | Tile **Binh Khí Khố** | `binhKhiKho.webp` | `images/tienminh/` | 512×384 · trong suốt |
+| 4 | Tile **Tụ Linh Trì** | `tuLinhTri.webp` | `images/tienminh/` | 512×384 · trong suốt |
+| 5 | Tile **Minh Khố** | `bangKho.webp` ⚠ | `images/tienminh/` | 512×384 · trong suốt |
+| 6 | Tile **Trảm Yêu Đài** | `tramYeuDai.webp` | `images/tienminh/` | 512×384 · trong suốt |
 
 > ⚠ **Minh Khố phải đặt tên file là `bangKho.webp`** — id trong code từ bản cũ là `bangKho`,
 > đổi id thì save của ông hỏng. Tên hiển thị đã là "Minh Khố", chỉ tên file giữ nguyên.
@@ -73,7 +73,7 @@ no text, no watermark, 2048x1152 16:9
 
 ---
 
-## 2. TỔNG ĐÀN — `images/tienminh/buildings/tongDan.webp`
+## 2. TỔNG ĐÀN — `images/tienminh/tongDan.webp`
 
 Trụ sở, công trình lớn nhất và uy nghi nhất trong bộ. Mái cong, cột đỏ sẫm, đèn lồng vàng.
 
@@ -92,7 +92,7 @@ static soft glow, ultra detailed, no text, no watermark, 512x384
 
 ---
 
-## 3. BINH KHÍ KHỐ — `images/tienminh/buildings/binhKhiKho.webp`
+## 3. BINH KHÍ KHỐ — `images/tienminh/binhKhiKho.webp`
 
 Kho binh khí + lò rèn. Chất **sắt, lửa cam**, thô ráp hơn Tổng Đàn.
 
@@ -111,7 +111,7 @@ static soft glow, ultra detailed, no text, no watermark, 512x384
 
 ---
 
-## 4. TỤ LINH TRÌ — `images/tienminh/buildings/tuLinhTri.webp`
+## 4. TỤ LINH TRÌ — `images/tienminh/tuLinhTri.webp`
 
 Ao tụ linh khí. Đây là cái **sáng nhất** bộ — dùng jade/cyan làm chủ đạo.
 
@@ -131,7 +131,7 @@ static soft glow, ultra detailed, no text, no watermark, 512x384
 
 ---
 
-## 5. MINH KHỐ — `images/tienminh/buildings/bangKho.webp`
+## 5. MINH KHỐ — `images/tienminh/bangKho.webp`
 
 Kho chung. Chất **chắc nịch, kín, có khoá** — đối lập với Tụ Linh Trì.
 
@@ -150,7 +150,7 @@ static soft glow, ultra detailed, no text, no watermark, 512x384
 
 ---
 
-## 6. TRẢM YÊU ĐÀI — `images/tienminh/buildings/tramYeuDai.webp`
+## 6. TRẢM YÊU ĐÀI — `images/tienminh/tramYeuDai.webp`
 
 Đài triệu Yêu Vương. Cái **dữ nhất** bộ — dùng đỏ rose `#fb7185` làm nhấn thay vì vàng.
 
@@ -180,3 +180,21 @@ static soft glow, ultra detailed, no text, no watermark, 512x384
    nhau nhìn lệch ngay.
 4. **Cùng nguồn sáng**: ánh trăng từ trên xuống hơi chếch trái, đèn/lửa là nguồn phụ ấm.
 5. Tỉ lệ to nhỏ giữa các công trình cứ vẽ **đầy khung 512×384** — code lo việc thu nhỏ.
+
+---
+
+# ⚠ BẢN NÀY ĐÃ NGƯNG DÙNG (2026-07-28)
+
+Đã làm art theo bản này rồi **bỏ**: thu nhỏ xuống cỡ tile (76-112px) thì công trình thành mấy
+vệt mờ, lại thêm ba tấm lệch khuôn (1536×1024 vs 1024×1024, vùng trong suốt chừa 0-22%) nên
+đặt cạnh nhau to nhỏ không đều. Nhìn tệ hơn hẳn chữ khắc.
+
+**Nay công trình là BẢN KHẮC CHỮ** — `TILE_KHAC` trong `src/data/bangphai.js`. Không cần art.
+
+Nếu sau này muốn quay lại art thì đọc kỹ hai chỗ đã sai:
+1. **Cùng khuôn tuyệt đối** — cùng tỉ lệ ảnh VÀ cùng lề trong suốt, nếu không phải bù hệ số
+   phóng từng tấm (đã thử, đo được vùng công trình chiếm 64%-90% chiều cao khung).
+2. **Vẽ cho cỡ hiển thị thật** (76-112px), đừng vẽ chi tiết 1536px rồi thu nhỏ.
+
+Nền `images/tienminh/nen.webp` thì **vẫn dùng được** nếu muốn — code còn nhận, thiếu file thì
+tự rơi về nền vẽ bằng CSS (sương núi + ánh trăng).

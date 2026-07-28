@@ -17,7 +17,7 @@ import {
   gopKho, rutKho, duQuyen, datQuyen, oKhoToiDa,
   capKyNang, tranKyNang, hocKyNang,
   danhSachHang, muaHang,
-  capCongTrinh, xayCongTrinh, soatXayDung, viTriCongTrinh, datViTri, xepLaiViTri,
+  capCongTrinh, xayCongTrinh, soatXayDung,
   danhSachNv, nhanNv, nvKyConLai,
   danhSachTruyNa, nhanTruyNa, nopTruyNa,
   chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai, soMua,
@@ -26,7 +26,7 @@ import {
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
   MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG, MUA_MS,
 } from './engine/bangphai.js';
-import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU } from './data/bangphai.js';
+import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC } from './data/bangphai.js';
 
 export { ensureBangPhai };
 
@@ -172,50 +172,11 @@ export function bangPhai() {
       } catch (e) { return []; }
     },
 
-    // ---------- công trình: kéo thả trên nền ----------
-    // Port thẳng cách làm của Mộng Giang Hồ (js/systems/buildings.js · startDrag): bắt
-    // pointerdown rồi nghe pointermove/pointerup trên window, di quá 4px thì tính là KÉO,
-    // dưới 4px thì tính là BẤM. Nhờ vậy một cử chỉ lo được cả hai việc, và vì là pointer
-    // event thuần (không phải drag native của HTML5) nên chạy luôn trên cảm ứng.
-    keoCT: null,            // id công trình đang kéo
-    viTri(id) { void this._t; try { return viTriCongTrinh(this.g.state, id); } catch (e) { return { x: 50, y: 50 }; } },
-    batKeo(ct, ev) {
-      const the = ev.currentTarget, khung = the.parentElement;
-      if (!khung) return;
-      const r0 = khung.getBoundingClientRect();
-      const v0 = this.viTri(ct.id);
-      const x0 = ev.clientX, y0 = ev.clientY;
-      let dangKeo = false;
-      // Lề = nửa ô, quy ra phần trăm khung. Đo tại chỗ vì ô 112px trên khung 1008 là 5,6%
-      // nhưng trên khung 351 (máy 375) lại là 16% — kẹp bằng số cứng là ô lòi ra ngoài.
-      const leX = the.offsetWidth / 2 / r0.width * 100;
-      const leY = the.offsetHeight / 2 / r0.height * 100;
-      const kep = (v, le) => Math.max(le, Math.min(100 - le, v));
-      const di = (e) => {
-        const dx = e.clientX - x0, dy = e.clientY - y0;
-        if (!dangKeo && (Math.abs(dx) + Math.abs(dy)) > 4) { dangKeo = true; this.keoCT = ct.id; }
-        if (!dangKeo) return;
-        datViTri(this.g.state, ct.id,
-          kep(v0.x + dx / r0.width * 100, leX),
-          kep(v0.y + dy / r0.height * 100, leY));
-        this._t = Date.now();
-      };
-      const nha = () => {
-        window.removeEventListener('pointermove', di);
-        window.removeEventListener('pointerup', nha);
-        window.removeEventListener('pointercancel', nha);
-        if (dangKeo) { this.keoCT = null; this._luu(); }
-        else this.g.bpCongTrinh = ct.id;                          // không kéo = bấm mở POPUP
-      };
-      window.addEventListener('pointermove', di);
-      window.addEventListener('pointerup', nha);
-      window.addEventListener('pointercancel', nha);
-      ev.preventDefault();
-    },
+    /** Bản khắc của một công trình: chữ Hán + sắc riêng. */
+    khac(id) { return TILE_KHAC[id] || { han: '殿', mau: '#94a3b8', phu: '' }; },
     /** Công trình đang mở popup — tra lại từ danh sách nên số liệu luôn tươi sau khi nâng cấp. */
     get moCT() { return this.g.bpCongTrinh; },
     get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },
-    xepLai() { xepLaiViTri(this.g.state); this._luu(); this.g.showToast('Đã xếp lại công trình về chỗ cũ.'); },
 
     // ---------- công trình ----------
     get congTrinh() {
@@ -441,52 +402,15 @@ export function bangPhai() {
       this._luu(); g.showToast('Đổi được ' + don.ten + '.');
     },
 
-    // ---------- công trình: kéo thả trên nền ----------
-    // Port thẳng cách làm của Mộng Giang Hồ (js/systems/buildings.js · startDrag): bắt
-    // pointerdown rồi nghe pointermove/pointerup trên window, di quá 4px thì tính là KÉO,
-    // dưới 4px thì tính là BẤM. Nhờ vậy một cử chỉ lo được cả hai việc, và vì là pointer
-    // event thuần (không phải drag native của HTML5) nên chạy luôn trên cảm ứng.
-    keoCT: null,            // id công trình đang kéo
-    viTri(id) { void this._t; try { return viTriCongTrinh(this.g.state, id); } catch (e) { return { x: 50, y: 50 }; } },
-    batKeo(ct, ev) {
-      const the = ev.currentTarget, khung = the.parentElement;
-      if (!khung) return;
-      const r0 = khung.getBoundingClientRect();
-      const v0 = this.viTri(ct.id);
-      const x0 = ev.clientX, y0 = ev.clientY;
-      let dangKeo = false;
-      // Lề = nửa ô, quy ra phần trăm khung. Đo tại chỗ vì ô 112px trên khung 1008 là 5,6%
-      // nhưng trên khung 351 (máy 375) lại là 16% — kẹp bằng số cứng là ô lòi ra ngoài.
-      const leX = the.offsetWidth / 2 / r0.width * 100;
-      const leY = the.offsetHeight / 2 / r0.height * 100;
-      const kep = (v, le) => Math.max(le, Math.min(100 - le, v));
-      const di = (e) => {
-        const dx = e.clientX - x0, dy = e.clientY - y0;
-        if (!dangKeo && (Math.abs(dx) + Math.abs(dy)) > 4) { dangKeo = true; this.keoCT = ct.id; }
-        if (!dangKeo) return;
-        datViTri(this.g.state, ct.id,
-          kep(v0.x + dx / r0.width * 100, leX),
-          kep(v0.y + dy / r0.height * 100, leY));
-        this._t = Date.now();
-      };
-      const nha = () => {
-        window.removeEventListener('pointermove', di);
-        window.removeEventListener('pointerup', nha);
-        window.removeEventListener('pointercancel', nha);
-        if (dangKeo) { this.keoCT = null; this._luu(); }
-        else this.g.bpCongTrinh = ct.id;                          // không kéo = bấm mở POPUP
-      };
-      window.addEventListener('pointermove', di);
-      window.addEventListener('pointerup', nha);
-      window.addEventListener('pointercancel', nha);
-      ev.preventDefault();
-    },
+    // ---------- công trình ----------
+    // Không kéo thả: bỏ nền sơn thuỷ rồi thì kéo thả chẳng để sắp vào đâu. Thẻ xếp thành
+    // hàng, mọi chi tiết dồn vào popup khi bấm.
+    /** Bản khắc của một công trình: chữ Hán + sắc riêng (TILE_KHAC ở data/bangphai.js). */
+    khac(id) { return TILE_KHAC[id] || { han: '殿', mau: '#94a3b8', phu: '' }; },
     /** Công trình đang mở popup — tra lại từ danh sách nên số liệu luôn tươi sau khi nâng cấp. */
     get moCT() { return this.g.bpCongTrinh; },
     get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },
-    xepLai() { xepLaiViTri(this.g.state); this._luu(); this.g.showToast('Đã xếp lại công trình về chỗ cũ.'); },
 
-    // ---------- công trình ----------
     xay(ct) {
       const g = this.g;
       const loi = xayCongTrinh(g.state, ct.id, Date.now());
