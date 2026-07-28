@@ -106,7 +106,20 @@ export function ghiNhatKy(state, txt, now, ai) {
 // ============================================================
 // TÁN TU — bot chưa vào bang nào, là nguồn chiêu mộ.
 // ============================================================
-export const giaChieuMo = (tongLv) => Math.round(1200 + Math.max(0, tongLv || 0) * 90);
+/**
+ * Bạc để mời một tán tu — **bình phương Tổng Lv rồi nhân 2**, làm tròn tới trăm.
+ * Bảng cũ `1200 + Lv×90` gần như phẳng: Lv 494 chỉ đắt hơn Lv 390 có 1,26 lần, nhìn
+ * danh sách không thấy ai đáng giá hơn ai. Bình phương làm cao thủ đắt hẳn:
+ *   Lv 100 → 20.000 · Lv 250 → 125.000 · Lv 450 → 405.000 · Lv 659 → 868.600
+ * Đo trên 200 bot thật (danh sách xếp giảm dần, dải Tổng Lv 73-659 suốt đời thế giới):
+ *   chênh lệch đắt nhất/rẻ nhất trong MỘT danh sách 6,2× → **50×** (ngày 1),
+ *   2,4× → 6,1× (năm thứ nhất). Ở dải Lv 450-500 giá đúng ~10 lần bảng cũ.
+ *   Gom đủ 22 người mạnh nhất: 890.000 → 8,4 triệu Bạc (xây trọn Tổng Đàn hết 3,4 triệu).
+ */
+export const giaChieuMo = (tongLv) => {
+  const lv = Math.max(0, tongLv || 0);
+  return Math.max(2000, Math.round((lv * lv) / 50) * 100);
+};
 
 /** Hồ sơ một bot: lấy nốt nghề thật / lối chơi / việc đang làm chứ không chỉ tên với cấp. */
 export function moTaBot(r, t) {
