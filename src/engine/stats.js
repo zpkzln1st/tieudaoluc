@@ -126,11 +126,13 @@ export function derivedStats(state, opts) {
   // một lần, tức chúng cộng dồn chứ không nhân chồng. Không dòng roll nào cho % nhân — cả bảng
   // AFFIX chỉ có điểm phẳng — nên đây là thứ chỉ bộ trang mới có.
   const cx = codexBonus(state), tb = titleBonus(state), sp = setBonus(state).pct, bg = bangKyNangBonus(state);
-  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct + sp.atkPct + sp.allPct + bg.atkPct));
-  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct + sp.defPct + sp.allPct + bg.defPct));
-  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct + sp.hpPct  + sp.allPct + bg.hpPct));
-  neTranh   = Math.round(neTranh   * (1 + cx.allPct + tb.allPct + sp.allPct));
-  menhTrung = Math.round(menhTrung * (1 + cx.allPct + tb.allPct + sp.allPct));
+  // `bg.allPct` = Hợp Lực Quyết (kĩ năng bang) — đứng CÙNG TẦNG với codex/danh hiệu/bộ trang:
+  // cộng hết rồi mới nhân một lần, không nhân chồng.
+  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct + sp.atkPct + sp.allPct + bg.atkPct + bg.allPct));
+  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct + sp.defPct + sp.allPct + bg.defPct + bg.allPct));
+  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct + sp.hpPct  + sp.allPct + bg.hpPct  + bg.allPct));
+  neTranh   = Math.round(neTranh   * (1 + cx.allPct + tb.allPct + sp.allPct + bg.allPct));
+  menhTrung = Math.round(menhTrung * (1 + cx.allPct + tb.allPct + sp.allPct + bg.allPct));
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   // baoKich/baoSat/tocDo: chỉ từ gear (không Tứ Trụ/codex), chuyển thẳng cho deriveCombat.

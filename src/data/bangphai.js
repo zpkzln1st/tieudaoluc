@@ -74,6 +74,16 @@ export const KY_NANG_BANG = [
   { id: 'thamTaiQuyet',  ten: 'Tham Tài Quyết',    key: 'bacPct',    moiCap: 0.008, maxLv: 5, capBang: 8,  giaNen: 1600, han: 'Bạc Nhặt' },
   { id: 'thoMocChanQuyet',ten:'Thổ Mộc Chân Quyết',key: 'nghePct',   moiCap: 0.008, maxLv: 5, capBang: 5,  giaNen: 1500, han: 'Nghề Khai Thác' },
   { id: 'toaQuanQuyet',  ten: 'Toạ Quan Quyết',    key: 'ngheExpPct',moiCap: 0.006, maxLv: 5, capBang: 12, giaNen: 1800, han: 'EXP Nghề' },
+  // ---- 4 cây thêm sau. Mỗi `key` dưới đây ĐỀU CÓ CHỖ TIÊU THỤ THẬT, đã cắm tay:
+  //   allPct       -> engine/stats.js  (nhân vào Công/Thủ/Sinh Lực/Né/Mệnh, cùng tầng codex+danh hiệu)
+  //   honThachPct  -> engine/dungeon.js (thưởng Hồn Thạch mỗi lượt thông quan)
+  //   bcDoPhoPct   -> engine/dungeon.js (tỉ lệ đoạt Đồ Phổ trang bị + công cụ)
+  //   petExpPct    -> engine/pets.js    (EXP Linh Thú đang mang)
+  // ⚠ Thêm key mới mà quên cắm là ra đúng vụ Tham Tài/Lùng Sục: ô hiện "+x%" mà không ăn gì.
+  { id: 'hopLucQuyet',   ten: 'Hợp Lực Quyết',     key: 'allPct',      moiCap: 0.003, maxLv: 5, capBang: 15, giaNen: 2400, han: 'Toàn Chỉ Số' },
+  { id: 'tuHonQuyet',    ten: 'Tụ Hồn Quyết',      key: 'honThachPct', moiCap: 0.008, maxLv: 5, capBang: 6,  giaNen: 1500, han: 'Hồn Thạch Bí Cảnh' },
+  { id: 'tamBaoQuyet',   ten: 'Tầm Bảo Quyết',     key: 'bcDoPhoPct',  moiCap: 0.008, maxLv: 5, capBang: 10, giaNen: 1700, han: 'Đồ Phổ Bí Cảnh' },
+  { id: 'mucThuQuyet',   ten: 'Mục Thú Quyết',     key: 'petExpPct',   moiCap: 0.008, maxLv: 5, capBang: 4,  giaNen: 1300, han: 'EXP Linh Thú' },
 ];
 export const KY_NANG_BY_ID = Object.fromEntries(KY_NANG_BANG.map((k) => [k.id, k]));
 // Chữ đỡ khi CHƯA CÓ ART (images/tienminh/kn/<id>.webp — xem docs/ART_KYNANG_TIENMINH.md).
@@ -81,6 +91,10 @@ export const KY_NANG_BY_ID = Object.fromEntries(KY_NANG_BANG.map((k) => [k.id, k
 export const KY_NANG_HAN = {
   cuongTheQuyet: '剛', lucBatSon: '力', hoThanCuongKhi: '護', ngoDaoTamKinh: '悟',
   lungSucQuyet: '窺', thamTaiQuyet: '財', thoMocChanQuyet: '土', toaQuanQuyet: '禪',
+  // Bốn chữ này CHỌN THEO CHỮ ĐÃ CÓ trong subset, không theo mặt chữ của tên: 搜/牧 chưa có,
+  // thêm glyph chỉ vì hai ô đỡ thì không đáng. Triện không buộc phải trùng chữ trong tên
+  // (Tụ Linh Trì đóng 靈, Trảm Yêu Đài đóng 斬 — cùng lối).
+  hopLucQuyet: '合', tuHonQuyet: '魂', tamBaoQuyet: '秘', mucThuQuyet: '獸',
 };
 /** Công Tích để nâng kĩ năng lên cấp `lv` (1..maxLv). Cấp sau đắt hơn cấp trước. */
 export const giaKyNang = (kn, lv) => Math.round(kn.giaNen * Math.pow(1.85, Math.max(0, lv - 1)));

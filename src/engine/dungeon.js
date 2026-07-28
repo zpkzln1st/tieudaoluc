@@ -27,6 +27,7 @@ import { skillExpMultiplier } from '../data/classes.js';   // chuỗi Điểm Da
 import { buffVal } from './buff.js';                       // đan Ngộ Đạo (+EXP Chiến Đấu)
 import { addItem } from './inventory.js';
 import { pushNotif } from './notif.js';
+import { bangKyNangBonus } from './bangbuff.js';   // Tụ Hồn Quyết (+Hồn Thạch) · Tầm Bảo Quyết (+tỉ lệ Đồ Phổ)
 
 // ---- Hằng số cân bằng (TUNE) ----
 // Thưởng NỀN mỗi lượt (kế thừa "Treo Luyện" cũ). Nhân thêm D.pace để giữ loot/giờ khi durMs rút ngắn.
@@ -157,7 +158,8 @@ export function runDungeon(state, dungeonId) {
   const partialMul = cleared ? 1 : 0.4;
   const bac = Math.round(randInt(D.loot.bac[0], D.loot.bac[1]) * RUN.bacMul * P * partialMul);
   const exp = Math.round((D.loot.exp || 0) * RUN.expMul * P * (cleared ? 1 : 0.5));
-  const honThach = Math.round(randInt(D.loot.honThach[0], D.loot.honThach[1]) * RUN.honMul * P * partialMul);
+  const _bg = bangKyNangBonus(state);   // kĩ năng bang: Tụ Hồn Quyết · Tầm Bảo Quyết
+  const honThach = Math.round(randInt(D.loot.honThach[0], D.loot.honThach[1]) * RUN.honMul * P * partialMul * (1 + _bg.honThachPct));
 
   const lieuN = Math.max(1, Math.round(RUN.lieuN * P)) + (coDuyenBonus ? 1 : 0) + kyNgoBonus;   // cơ duyên + mỗi kỳ ngộ -> thêm 1 lượt rải liệu
   for (let i = 0; i < lieuN; i++) { if (!D.loot.lieu.length) break; addLoot(pick(D.loot.lieu), randInt(1, 2)); }
@@ -165,13 +167,13 @@ export function runDungeon(state, dungeonId) {
 
   let doPhoId = null;
   if (cleared && D.loot.doPho) {
-    const chance = (D.loot.doPhoChance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
+    const chance = (D.loot.doPhoChance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1) * (1 + _bg.bcDoPhoPct);
     if (Math.random() < chance) { doPhoId = rollDoPhoId(D); if (doPhoId) addLoot(doPhoId, 1); }
   }
   // Đồ Phổ CÔNG CỤ: roll RIÊNG (pool tool), không cạnh tranh với doPho gear combat -> không loãng loot trang bị
   let toolDoPhoId = null;
   if (cleared && D.loot.toolDoPho) {
-    const tchance = (D.loot.toolDoPho.chance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
+    const tchance = (D.loot.toolDoPho.chance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1) * (1 + _bg.bcDoPhoPct);
     if (Math.random() < tchance) { toolDoPhoId = rollToolDoPhoId(D); if (toolDoPhoId) addLoot(toolDoPhoId, 1); }
   }
   // Đồ Phổ TUYỆT KĨ: roll RIÊNG (pool tuyệt kĩ CHƯA sở hữu) -> không đụng pool gear/tool, không rơi trùng vô ích

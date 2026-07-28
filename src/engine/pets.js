@@ -11,6 +11,7 @@ import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PE
 // setbonus.js chỉ phụ thuộc data/gear.js -> import được từ đây mà KHÔNG tạo vòng (stats.js thì không:
 // nó đã import petBonus từ chính file này).
 import { consumableEffMult } from './setbonus.js';
+import { bangKyNangBonus } from './bangbuff.js';   // Mục Thú Quyết: +EXP Linh Thú
 
 const STAT_KEYS = ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc'];
 
@@ -192,7 +193,8 @@ export function gainPetXp(state, amount, wins = 1) {
   if (!p || !(amount > 0)) return null;
   const awk = petAwkPassive(p);
   const base = awk && awk.petExpBonus ? amount * (1 + awk.petExpBonus) : amount;
-  const amt = Math.round(base * (1 + danBuffField(state, 'petExpPct') / 100));   // + họ Dưỡng Thú
+  // + họ Dưỡng Thú (đan) + Mục Thú Quyết (kĩ năng bang) — hai nguồn CỘNG với nhau rồi nhân một lần.
+  const amt = Math.round(base * (1 + danBuffField(state, 'petExpPct') / 100 + bangKyNangBonus(state).petExpPct));
   addSkillXp(state, 'nguThu', NGU_THU_XP_COMBAT * Math.max(1, wins));   // P7 — +Ngự Thú XP theo SỐ trận thắng (live=1, offline=done)
   return { pet: p, leveled: addXpToPet(state, p, amt) };
 }

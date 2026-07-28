@@ -1,4 +1,4 @@
-# ART — KĨ NĂNG TIÊN MINH (8 icon)
+# ART — KĨ NĂNG TIÊN MINH (12 icon)
 
 Thả file vào `images/tienminh/kn/<id>.webp` — **vuông 1:1, khuyên 1024×1024**, không nền trong suốt.
 Code đã cắm sẵn: thiếu file nào thì ô đó tự rơi về chữ Hán trên nền sơn mài tím, **thả file vào là chạy, không cần sửa code.**
@@ -15,6 +15,10 @@ Code đã cắm sẵn: thiếu file nào thì ô đó tự rơi về chữ Hán 
 | 6 | Tham Tài Quyết | `thamTaiQuyet.webp` | Bạc Nhặt |
 | 7 | Thổ Mộc Chân Quyết | `thoMocChanQuyet.webp` | Nghề Khai Thác |
 | 8 | Toạ Quan Quyết | `toaQuanQuyet.webp` | EXP Nghề |
+| 9 | Hợp Lực Quyết | `hopLucQuyet.webp` | Toàn Chỉ Số |
+| 10 | Tụ Hồn Quyết | `tuHonQuyet.webp` | Hồn Thạch Bí Cảnh |
+| 11 | Tầm Bảo Quyết | `tamBaoQuyet.webp` | Tỉ Lệ Đồ Phổ Bí Cảnh |
+| 12 | Mục Thú Quyết | `mucThuQuyet.webp` | EXP Linh Thú |
 
 ---
 
@@ -71,6 +75,26 @@ a woodcutter axe and a miner pick crossed and driven into a raw boulder, a seam 
 ### 8. toaQuanQuyet — Toạ Quan Quyết *(EXP Nghề)*
 ```
 a lone figure seated cross-legged on a flat rock at the summit above a sea of clouds, seen small against a vast sky, a single ring of pale golden light behind the head, an incense burner trailing one thin line of smoke beside them, violet pre-dawn sky, stillness and scale
+```
+
+### 9. hopLucQuyet — Hợp Lực Quyết *(Toàn Chỉ Số)*
+```
+five armoured martial figures kneeling in a tight ring seen from slightly above, their raised palms pressed together at the centre where a single knot of golden qi ignites, thin threads of light running from each person into that knot, faces in shadow under the helms, violet-indigo haze pooling around the ring, unity and gathered strength
+```
+
+### 10. tuHonQuyet — Tụ Hồn Quyết *(Hồn Thạch Bí Cảnh)*
+```
+a cracked stone altar bowl brimming with jagged crimson soul-crystals, faint wisps of pale spirit-light spiralling down out of the dark and sinking into the shards, the crystals lit from within with a slow red glow, cold violet-indigo cave air, gold veining running through the altar rim
+```
+
+### 11. tamBaoQuyet — Tầm Bảo Quyết *(Tỉ Lệ Đồ Phổ Bí Cảnh)*
+```
+a rolled silk blueprint scroll wedged in a cracked stone wall, one corner pulled loose and glowing gold along its edge, a bronze seeking-needle floating point-first toward it on a thread of light, dust motes caught in the beam, violet-indigo ruin depths behind, the thrill of the find
+```
+
+### 12. mucThuQuyet — Mục Thú Quyết *(EXP Linh Thú)*
+```
+a young spirit-beast curled asleep on a flat rock, a human hand resting on its brow, golden qi flowing from the palm along the creature's spine and settling into its fur as faint glowing sigils, the beast's form part fox part qilin, violet-indigo night mist, tender and quiet
 ```
 
 ---
