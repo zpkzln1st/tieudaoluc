@@ -11737,7 +11737,7 @@
                   <div class="panel rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
                     <div>
                       <div class="text-jade font-bold fserif text-[15px]">Công Trình Tiên Minh</div>
-                      <div class="text-[11.5px] text-slate-500 mt-0.5">Bấm một công trình để xem chi tiết và nâng cấp · xây bằng Bạc trong Minh Khố</div>
+                      <div class="text-[11.5px] text-slate-500 mt-0.5">Bấm để xem chi tiết</div>
                     </div>
                     <div class="rounded-lg border border-jade/35 bg-jade/8 px-3 py-1.5 text-right shrink-0">
                       <div class="text-[9.5px] uppercase tracking-[.14em] text-jade/70">Minh Khố</div>
@@ -11748,7 +11748,7 @@
                   <template x-if="dangXay">
                     <div class="panel rounded-xl px-4 py-2.5 mt-3 border border-amber-500/25 flex items-center gap-3 flex-wrap">
                       <span class="text-[12.5px] text-amber-200 fserif">Đang xây <b x-text="dangXay.ten"></b> cấp <span x-text="dangXay.lv"></span></span>
-                      <span class="text-[11.5px] text-slate-400">còn <b class="text-slate-200" x-text="gioTxt(dangXay.conMs)"></b> — chạy tiếp cả khi ngươi tắt game</span>
+                      <span class="text-[11.5px] text-slate-400">còn <b class="text-slate-200" x-text="gioTxt(dangXay.conMs)"></b></span>
                     </div>
                   </template>
 
@@ -12136,23 +12136,12 @@
                         </div>
                       </div>
 
-                      <div class="text-[11.5px] text-slate-500 leading-relaxed">
-                        Trong Minh Khố đang có <b class="text-jade" x-text="fmt(bang.quy)"></b> Bạc.
-                        Công trình không vượt được cấp minh (đang là <b class="text-slate-300" x-text="capBang"></b>).
-                        Xây xong ngay cả khi ngươi tắt game.
-                      </div>
-
-                      <!-- Ô này LUÔN chiếm chỗ, chỉ đổi nội dung — nếu để x-if thì lúc nó hiện ra
-                           popup giật cao lên đúng lúc người chơi vừa bấm nút. -->
+                      <!-- Ô này LUÔN chiếm chỗ, chỉ đổi nội dung — để x-if thì lúc nó hiện ra
+                           popup giật cao lên đúng lúc người chơi vừa bấm nút.
+                           ⚠ Chỉ nói ĐANG VƯỚNG GÌ. Không dặn dò, không nhắc luật khi luật chưa chặn ai. -->
                       <div class="rounded-lg border px-3 py-2 text-[12px] min-h-[52px] flex items-center"
-                           :class="dangXay ? 'border-amber-500/30 bg-amber-500/8 text-amber-200' : 'border-slate-800 bg-ink2/40 text-slate-600'">
-                        <template x-if="dangXay">
-                          <span>Đang xây <b x-text="dangXay.ten"></b> cấp <span x-text="dangXay.lv"></span> — còn
-                            <b x-text="gioTxt(dangXay.conMs)"></b>. Mỗi lúc chỉ xây được một công trình.</span>
-                        </template>
-                        <template x-if="!dangXay">
-                          <span class="italic">Chưa có công trình nào đang xây. Mỗi lúc chỉ xây được một cái.</span>
-                        </template>
+                           :class="canTro ? 'border-amber-500/30 bg-amber-500/8 text-amber-200' : 'border-slate-800 bg-ink2/40 text-slate-600'">
+                        <span x-text="canTro || 'Nâng cấp được.'" :class="canTro ? '' : 'italic'"></span>
                       </div>
                     </div>
 

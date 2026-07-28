@@ -176,6 +176,18 @@ export function bangPhai() {
     khac(id) { return TILE_KHAC[id] || { han: '殿', mau: '#94a3b8', phu: '' }; },
     /** Công trình đang mở popup — tra lại từ danh sách nên số liệu luôn tươi sau khi nâng cấp. */
     get moCT() { return this.g.bpCongTrinh; },
+    /**
+     * MỘT câu nói vì sao chưa nâng được, '' nếu nâng được.
+     * Chỉ nói cái ĐANG CHẶN — không nhắc luật khi luật chưa chặn ai.
+     */
+    get canTro() {
+      const ct = this.ctDangMo; if (!ct) return '';
+      if (ct.lv >= ct.maxLv) return 'Đã tới cấp cao nhất.';
+      if (this.dangXay) return 'Đang xây ' + this.dangXay.ten + ' cấp ' + this.dangXay.lv + ', còn ' + this.gioTxt(this.dangXay.conMs) + '.';
+      if (ct.lv + 1 > this.capBang) return 'Tiên Minh phải lên cấp ' + (ct.lv + 1) + ' đã (đang cấp ' + this.capBang + ').';
+      if (this.bang.quy < ct.gia) return 'Minh Khố thiếu ' + this.fmt(ct.gia - this.bang.quy) + ' Bạc.';
+      return '';
+    },
     get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },
 
     // ---------- công trình ----------
@@ -409,6 +421,18 @@ export function bangPhai() {
     khac(id) { return TILE_KHAC[id] || { han: '殿', mau: '#94a3b8', phu: '' }; },
     /** Công trình đang mở popup — tra lại từ danh sách nên số liệu luôn tươi sau khi nâng cấp. */
     get moCT() { return this.g.bpCongTrinh; },
+    /**
+     * MỘT câu nói vì sao chưa nâng được, '' nếu nâng được.
+     * Chỉ nói cái ĐANG CHẶN — không nhắc luật khi luật chưa chặn ai.
+     */
+    get canTro() {
+      const ct = this.ctDangMo; if (!ct) return '';
+      if (ct.lv >= ct.maxLv) return 'Đã tới cấp cao nhất.';
+      if (this.dangXay) return 'Đang xây ' + this.dangXay.ten + ' cấp ' + this.dangXay.lv + ', còn ' + this.gioTxt(this.dangXay.conMs) + '.';
+      if (ct.lv + 1 > this.capBang) return 'Tiên Minh phải lên cấp ' + (ct.lv + 1) + ' đã (đang cấp ' + this.capBang + ').';
+      if (this.bang.quy < ct.gia) return 'Minh Khố thiếu ' + this.fmt(ct.gia - this.bang.quy) + ' Bạc.';
+      return '';
+    },
     get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },
 
     xay(ct) {
