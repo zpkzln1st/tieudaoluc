@@ -11135,7 +11135,7 @@
           <div class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/bangphai_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/bangphai_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
-            <div class="relative px-5 py-5">
+            <div class="relative px-5 py-5 pr-[84px] sm:pr-[210px]">
               <template x-if="!bang">
                 <div>
                   <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32">Tiên Minh</div>
@@ -11171,6 +11171,29 @@
                 </div>
               </template>
             </div>
+
+            <!-- PHÙ HIỆU MÙA: ấn tròn góc phải banner, vòng ngoài chạy theo phần mùa đã trôi -->
+            <template x-if="bang">
+              <div class="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-2.5">
+                <div class="hidden sm:block text-right">
+                  <div class="text-[9.5px] uppercase tracking-[.16em] text-amber-500/70">Chinh Phạt</div>
+                  <div class="text-[11.5px] text-slate-400 leading-tight">Kết mùa sau</div>
+                  <div class="text-[12.5px] fserif text-amber-200 leading-tight" x-text="muaConLaiTxt"></div>
+                </div>
+                <div class="relative w-[62px] h-[62px] sm:w-[72px] sm:h-[72px] shrink-0"
+                     :title="'Mùa ' + soMua + ' · còn ' + muaConLaiTxt">
+                  <div class="absolute inset-0 rounded-full"
+                       :style="'background:conic-gradient(#f5b942 ' + muaPct + '%, rgba(148,163,184,.20) 0)'"></div>
+                  <div class="absolute inset-[3px] rounded-full flex flex-col items-center justify-center border border-amber-500/35"
+                       style="background:radial-gradient(circle at 50% 34%,#1d2537,#0a0f19)">
+                    <div class="text-[8.5px] uppercase tracking-[.18em] text-amber-500/80 leading-none">Mùa</div>
+                    <div class="fserif text-[23px] sm:text-[26px] leading-none mt-0.5"
+                         style="background:linear-gradient(180deg,#fde9b8,#f5b942 62%,#b7791f);-webkit-background-clip:text;background-clip:text;color:transparent"
+                         x-text="soMua"></div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- ============ CHƯA CÓ BANG: DỰNG CỜ ============ -->
@@ -11770,7 +11793,7 @@
                                  :class="ct.lv ? 'text-slate-400' : 'text-slate-600'"
                                  x-text="ct.lv ? ('Cấp ' + ct.lv) : '—'"></div>
                             <template x-if="ct.dangXay">
-                              <div class="absolute -top-1.5 -right-1.5 text-[9.5px] font-bold px-1.5 py-[1px] rounded-full bg-amber-500/85 text-ink pointer-events-none">đang xây</div>
+                              <div class="absolute top-1 right-1 text-[9px] font-bold px-1.5 py-[1px] rounded-full bg-amber-500/90 text-ink pointer-events-none whitespace-nowrap">đang xây</div>
                             </template>
                           </div>
                         </div>
@@ -11791,7 +11814,7 @@
                   <div class="panel rounded-xl p-3.5">
                     <div class="flex items-baseline justify-between gap-2 flex-wrap">
                       <div class="text-jade font-bold fserif">Chinh Phạt</div>
-                      <div class="text-[11px] text-slate-500">Mùa kết thúc sau <b class="text-slate-300" x-text="muaConLaiTxt"></b></div>
+                      <div class="text-[11px] text-slate-500">Mùa <b class="text-amber-300" x-text="soMua"></b> · mỗi mùa 30 ngày · còn <b class="text-slate-300" x-text="muaConLaiTxt"></b></div>
                     </div>
                     <div class="text-[12px] text-slate-400 mt-1.5 leading-relaxed">
                       Đánh quái ở vùng nào thì sinh <b class="text-cyan-300">điểm Chinh Phạt</b> cho bang ở đúng vùng đó.
@@ -11814,25 +11837,38 @@
                       </div>
                       <div class="divide-y divide-slate-800/60">
                         <template x-for="v in cp" :key="v.id">
-                          <div class="px-3.5 py-2.5 cursor-pointer transition-colors"
+                          <div class="flex gap-3 px-3.5 py-2.5 cursor-pointer transition-colors"
                                :class="(vungXem && vungXem.id===v.id) ? 'bg-slate-500/8' : 'hover:bg-slate-500/5'"
                                @click="chonVung(v)">
-                            <div class="flex items-baseline gap-2 flex-wrap">
-                              <b class="text-[12.5px] fserif text-slate-200" x-text="v.ten"></b>
-                              <span class="text-[10.5px] text-slate-600" x-text="'Lv '+v.reqLevel"></span>
+                            <!-- ẢNH VÙNG THẬT (images/locations/<id>.webp) — game có sẵn cả 10 tấm -->
+                            <div class="w-[58px] h-[58px] rounded-lg overflow-hidden shrink-0 border relative flex items-center justify-center"
+                                 :style="'border-color:' + ((v.diemTa && v.chu) ? v.chu.mauCo : '#26324a') + '66;background:#0a0f1a'">
+                              <span class="w-full h-full flex items-center justify-center" style="font-size:30px"
+                                    x-html="$store.game.ico(v.id, '🏞️')"></span>
                               <template x-if="v.thongTri">
-                                <span class="text-[10px] px-1.5 py-[1px] rounded-full border border-rose-500/40 text-rose-300">Thống Trị</span>
+                                <span class="absolute inset-x-0 bottom-0 text-[8.5px] text-center bg-rose-600/85 text-white leading-[13px]">Thống Trị</span>
                               </template>
-                              <span class="text-[10.5px] ml-auto" :class="v.hangTa && v.diemTa ? 'text-amber-300' : 'text-slate-600'"
-                                    x-text="v.diemTa ? ('hạng ' + v.hangTa + ' · ' + fmt(v.diemTa) + ' điểm') : 'chưa có điểm'"></span>
                             </div>
-                            <div class="text-[11px] mt-0.5 flex items-center gap-1.5 flex-wrap">
-                              <span class="w-2 h-2 rounded-full shrink-0" :style="'background:'+(v.chu?v.chu.mauCo:'#475569')"></span>
-                              <span class="text-slate-500">Dẫn đầu:</span>
-                              <b :class="v.chu && v.chu.laTa ? 'text-amber-300' : 'text-slate-300'" x-text="v.chu ? v.chu.ten : '—'"></b>
-                              <template x-if="v.buffTa">
-                                <span class="ml-auto text-[10.5px] text-jade" x-text="'+' + Math.round(v.buffTa*100) + '% tốc độ nghề ở đây'"></span>
-                              </template>
+                            <div class="min-w-0 flex-1">
+                              <div class="flex items-baseline gap-2 flex-wrap">
+                                <b class="text-[13px] fserif text-slate-100" x-text="v.ten"></b>
+                                <span class="text-[10.5px] text-slate-600" x-text="'Lv '+v.reqLevel"></span>
+                                <span class="text-[10.5px] ml-auto tabular-nums shrink-0" :class="v.diemTa ? 'text-amber-300' : 'text-slate-600'"
+                                      x-text="v.diemTa ? ('hạng ' + v.hangTa + ' · ' + fmt(v.diemTa) + ' điểm') : 'chưa có điểm'"></span>
+                              </div>
+                              <div class="text-[11px] mt-1 flex items-center gap-1.5 flex-wrap">
+                                <span class="w-2.5 h-2.5 rotate-45 rounded-[1px] shrink-0" :style="'background:'+(v.chu?v.chu.mauCo:'#475569')"></span>
+                                <span class="text-slate-500">Dẫn đầu</span>
+                                <b :class="v.chu && v.chu.laTa ? 'text-amber-300' : 'text-slate-300'" x-text="v.chu ? v.chu.ten : '—'"></b>
+                                <span class="text-slate-600" x-text="v.chu ? ('· cấp ' + v.chu.cap) : ''"></span>
+                              </div>
+                              <div class="flex items-center gap-2 mt-1.5">
+                                <div class="h-1.5 rounded-full bg-ink flex-1 overflow-hidden min-w-0">
+                                  <div class="h-full rounded-full" :style="'width:' + Math.max(2, Math.min(100, Math.round(v.diemTa / Math.max(1, v.chu ? v.chu.diem : 1) * 100))) + '%;background:linear-gradient(90deg,#b45309,#f5b942)'"></div>
+                                </div>
+                                <span class="text-[10px] shrink-0" :class="v.buffTa ? 'text-jade' : 'text-slate-600'"
+                                      x-text="v.buffTa ? ('+' + Math.round(v.buffTa*100) + '% nghề') : 'chưa có buff'"></span>
+                              </div>
                             </div>
                           </div>
                         </template>
@@ -11846,11 +11882,22 @@
                         </div>
                         <div class="divide-y divide-slate-800/60">
                           <template x-for="r in bxhVung" :key="r.id">
-                            <div class="flex items-center gap-2 px-3.5 py-1.5" :class="r.laTa ? 'bg-amber-500/8' : ''">
-                              <span class="w-5 text-[11px] text-slate-600 tabular-nums" x-text="r.hang"></span>
-                              <span class="w-2 h-2 rounded-full shrink-0" :style="'background:'+r.mauCo"></span>
-                              <span class="min-w-0 flex-1 text-[12px] truncate" :class="r.laTa ? 'text-amber-200' : 'text-slate-300'" x-text="r.ten"></span>
-                              <span class="text-[11px] text-slate-500 tabular-nums shrink-0" x-text="fmt(r.diem)"></span>
+                            <div class="relative flex items-center gap-2.5 px-3.5 py-2 overflow-hidden" :class="r.laTa ? 'bg-amber-500/8' : ''">
+                              <!-- thanh tỉ lệ chạy NGẦM sau chữ: nhìn phát biết ai hơn ai bao nhiêu -->
+                              <div class="absolute inset-y-0 left-0 pointer-events-none"
+                                   :style="'width:' + Math.round(r.diem / Math.max(1, bxhVung[0].diem) * 100) + '%;background:linear-gradient(90deg,' + r.mauCo + '22, transparent)'"></div>
+                              <!-- huy chương ba hạng đầu, từ hạng 4 để số trơn -->
+                              <span class="relative w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold tabular-nums"
+                                    :style="r.hang <= 3 ? ('background:radial-gradient(circle at 50% 35%,' + hangMau(r.hang) + ',' + hangMau(r.hang) + '99);color:#0a0f19')
+                                                        : 'color:#64748b'"
+                                    x-text="r.hang"></span>
+                              <!-- cờ bang: hình phướn nhỏ thay chấm tròn -->
+                              <span class="relative w-[7px] h-[18px] shrink-0" :style="'background:'+r.mauCo+';clip-path:polygon(0 0,100% 0,100% 74%,50% 100%,0 74%)'"></span>
+                              <div class="relative min-w-0 flex-1">
+                                <div class="text-[12.5px] truncate" :class="r.laTa ? 'text-amber-200 font-bold' : 'text-slate-200'" x-text="r.ten"></div>
+                                <div class="text-[10px] text-slate-600" x-text="'cấp ' + r.cap"></div>
+                              </div>
+                              <span class="relative text-[12px] tabular-nums shrink-0" :class="r.laTa ? 'text-amber-300' : 'text-slate-400'" x-text="fmt(r.diem)"></span>
                             </div>
                           </template>
                         </div>
@@ -11863,14 +11910,24 @@
                         </div>
                         <div class="divide-y divide-slate-800/60">
                           <template x-for="r in bxhMua" :key="r.id">
-                            <div class="flex items-center gap-2 px-3.5 py-1.5" :class="r.laTa ? 'bg-amber-500/8' : ''">
-                              <span class="w-5 text-[11px] text-slate-600 tabular-nums" x-text="r.hang"></span>
-                              <span class="w-2 h-2 rounded-full shrink-0" :style="'background:'+r.mauCo"></span>
-                              <span class="min-w-0 flex-1 text-[12px] truncate" :class="r.laTa ? 'text-amber-200' : 'text-slate-300'" x-text="r.ten"></span>
-                              <template x-if="r.thuong">
-                                <span class="text-[10px] text-violet-300 shrink-0" x-text="fmt(r.thuong) + ' Hồn Thạch'"></span>
-                              </template>
-                              <span class="text-[11px] text-slate-500 tabular-nums shrink-0 w-[62px] text-right" x-text="fmt(r.diem)"></span>
+                            <div class="relative flex items-center gap-2.5 px-3.5 py-2 overflow-hidden" :class="r.laTa ? 'bg-amber-500/8' : ''">
+                              <div class="absolute inset-y-0 left-0 pointer-events-none"
+                                   :style="'width:' + Math.round(r.diem / Math.max(1, bxhMua[0].diem) * 100) + '%;background:linear-gradient(90deg,' + r.mauCo + '22, transparent)'"></div>
+                              <span class="relative w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold tabular-nums"
+                                    :style="r.hang <= 3 ? ('background:radial-gradient(circle at 50% 35%,' + hangMau(r.hang) + ',' + hangMau(r.hang) + '99);color:#0a0f19')
+                                                        : 'color:#64748b'"
+                                    x-text="r.hang"></span>
+                              <span class="relative w-[7px] h-[18px] shrink-0" :style="'background:'+r.mauCo+';clip-path:polygon(0 0,100% 0,100% 74%,50% 100%,0 74%)'"></span>
+                              <div class="relative min-w-0 flex-1">
+                                <div class="text-[12.5px] truncate" :class="r.laTa ? 'text-amber-200 font-bold' : 'text-slate-200'" x-text="r.ten"></div>
+                                <div class="text-[10px] flex items-center gap-1.5">
+                                  <span class="text-slate-600" x-text="'cấp ' + r.cap"></span>
+                                  <template x-if="r.thuong">
+                                    <span class="text-violet-300" x-text="'thưởng ' + fmt(r.thuong) + ' Hồn Thạch'"></span>
+                                  </template>
+                                </div>
+                              </div>
+                              <span class="relative text-[12px] tabular-nums shrink-0" :class="r.laTa ? 'text-amber-300' : 'text-slate-400'" x-text="fmt(r.diem)"></span>
                             </div>
                           </template>
                         </div>

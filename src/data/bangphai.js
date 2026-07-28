@@ -122,7 +122,7 @@ export const TRUY_NA_BAC = [
 ];
 
 // ---------- CHINH PHẠT + MÙA ----------
-export const MUA_MS = 60 * 24 * 3600 * 1000;         // một mùa ~2 tháng (khớp docs I5)
+export const MUA_MS = 30 * 24 * 3600 * 1000;         // một mùa 30 ngày
 export const CP_MOI_KILL = 5;                        // điểm Chinh Phạt mỗi con quái người chơi hạ
 export const CP_MOI_BOSS = 420;                      // hạ Yêu Vương
 /** Buff nghề khai thác theo thứ hạng của bang trong một vùng. Chỉ số 0 = hạng 1. */

@@ -20,11 +20,11 @@ import {
   capCongTrinh, xayCongTrinh, soatXayDung, viTriCongTrinh, datViTri, xepLaiViTri,
   danhSachNv, nhanNv, nvKyConLai,
   danhSachTruyNa, nhanTruyNa, nopTruyNa,
-  chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai,
+  chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai, soMua,
   bossBang, xuatTranBoss, chotBossBang, moBossBang,
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, KY_NANG_BANG, giaKyNang,
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
-  MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG,
+  MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG, MUA_MS,
 } from './engine/bangphai.js';
 import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU } from './data/bangphai.js';
 
@@ -250,6 +250,11 @@ export function bangPhai() {
     get cp() { void this._t; try { return chinhPhat(this.g.state, this.world, Date.now()); } catch (e) { return []; } },
     get bxhMua() { void this._t; try { return bangXepHangMua(this.g.state, this.world, Date.now()); } catch (e) { return []; } },
     get muaConLaiTxt() { void this._t; return this.gioTxt(muaConLai(Date.now())); },
+    get soMua() { void this._t; try { return soMua(this.world, Date.now()); } catch (e) { return 1; } },
+    /** Đã đi được bao nhiêu phần trăm mùa — cho vòng tiến độ trên phù hiệu mùa. */
+    get muaPct() { void this._t; return Math.round((1 - muaConLai(Date.now()) / MUA_MS) * 100); },
+    /** Huy chương ba hạng đầu; từ hạng 4 trở đi để số trơn. */
+    hangMau(h) { return ({ 1: '#f5b942', 2: '#cbd5e1', 3: '#c08457' })[h] || '#475569'; },
     get vungXem() {
       const ds = this.cp;
       if (this.vungChon) { const v = ds.find((x) => x.id === this.vungChon); if (v) return v; }

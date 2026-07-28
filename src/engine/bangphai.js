@@ -46,6 +46,9 @@ const r01 = (h) => (h % 100000) / 100000;
 
 export const ngayCua = (now) => Math.floor((now || Date.now()) / NGAY_MS);
 export const muaCua = (now) => Math.floor((now || Date.now()) / MUA_MS);
+/** Mùa thứ mấy — đếm từ lúc lập thế giới. muaCua() trả số tuyệt đối (~1980), vô nghĩa với người chơi. */
+export const soMua = (world, now) =>
+  Math.max(1, muaCua(now) - muaCua((world && world.createdAt) || 0) + 1);
 export const muaConLai = (now) => MUA_MS - ((now || Date.now()) % MUA_MS);
 export const nvKyCua = (now) => Math.floor((now || Date.now()) / NV_BANG_KY_MS);
 export const nvKyConLai = (now) => NV_BANG_KY_MS - ((now || Date.now()) % NV_BANG_KY_MS);
