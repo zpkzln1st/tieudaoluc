@@ -4124,6 +4124,12 @@ const gameStore = {
   closeDungeonPool() { this.dungeonPoolId = null; },
   get dungeonPoolObj() { return this.dungeonPoolId ? this.DUNGEON_BY_ID[this.dungeonPoolId] : null; },
   get dungeonPoolList() { return this.dungeonPoolId ? this.dungeonDoPhoList(this.dungeonPoolId) : []; },
+  /** Tỉ lệ đoạt một Đồ Phổ Bộ cụ thể ở phó bản này (lượt bốc RIÊNG, không chung rổ đồ phổ trang bị). */
+  dungeonSetChance(dungeonId, setId) {
+    const d = this.DUNGEON_BY_ID[dungeonId]; if (!d) return 0;
+    const r = (d.loot.rare || []).find((x) => x.itemId === setId);
+    return r ? r.chance : 0;
+  },
 
   // ======================= ĐỒ PHỔ (Lĩnh Ngộ -> mở Rèn Đúc) =======================
   doPhoCharges(gearId) { return (((this.state.player && this.state.player.doPho) || {})[gearId]) || 0; }, // số LƯỢT rèn còn của 1 gear

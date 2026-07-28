@@ -5975,7 +5975,10 @@
                             <span class="text-[8.5px] uppercase text-slate-500 leading-none">Bạc</span>
                           </div>
                         </div>
-                        <template x-for="r in (d.loot.rare||[])" :key="r.itemId">
+                        <!-- LỌC BỎ `dpset_`: chúng đã nằm trong Danh Mục Đồ Phổ (bấm ô Đồ Phổ ở
+                             đầu lưới là ra). Bày thêm ô riêng ngoài này là hiện MỘT THỨ HAI LẦN,
+                             mà ngoài đây lại chỉ có cuộn trơn + con số, không đọc ra là bộ nào. -->
+                        <template x-for="r in (d.loot.rare||[]).filter((x) => !String(x.itemId||'').startsWith('dpset_'))" :key="r.itemId">
                           <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border cursor-zoom-in" :class="g.itemQuality(r.itemId).border" @click="g.openLightbox(r.itemId,(g.ITEMS[r.itemId]||{}).icon,(g.ITEMS[r.itemId]||{}).name)">
                             <span class="absolute top-0.5 right-0.5 z-10 text-[8px] font-bold px-1 rounded bg-black/70 border border-slate-600 text-slate-300">hiếm</span>
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
@@ -6114,6 +6117,11 @@
                       <button @click="g.closeDungeonPool(); g.openItemModal(dpId)" class="rounded-lg bg-black/40 border p-2.5 flex flex-col items-center gap-2 transition hover:bg-white/5 hover:brightness-110" :class="g.itemQuality(dpId).border" title="Bấm xem chi tiết · phóng to">
                         <span class="w-24 h-24 inline-flex items-center justify-center" x-html="g.ico(dpId,'📜')"></span>
                         <span class="text-[12px] text-center leading-tight font-medium" :class="g.itemQuality(dpId).text" x-text="(g.ITEMS[dpId]||{}).name"></span>
+                        <!-- Đồ Phổ Bộ Trang bốc RIÊNG một lượt, không chung rổ với đồ phổ trang bị,
+                             nên tỉ lệ ghi ở đầu popup không nói cho nó — ghi thẳng vào ô. -->
+                        <template x-if="dpId.startsWith('dpset_')">
+                          <span class="text-[10px] text-amber-300/90" x-text="'lượt riêng · ' + g.pctText(g.dungeonSetChance(dd.id, dpId))"></span>
+                        </template>
                         <template x-if="g.doPhoChargeOf(dpId) > 0"><span class="text-[10px] font-semibold text-emerald-400" x-text="'✓ Có '+g.doPhoChargeOf(dpId)+' lượt rèn'"></span></template>
                       </button>
                     </template>
