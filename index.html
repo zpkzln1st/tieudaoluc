@@ -12013,39 +12013,39 @@
           <!-- số liệu chính -->
           <div>
             <div class="lbl mb-1.5">Thực Lực</div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Chiến Đấu</div><div class="text-[15px] font-bold text-slate-100" x-text="'Lv ' + h.lv"></div></div>
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Tổng Cảnh Giới</div><div class="text-[15px] font-bold text-slate-100" x-text="h.tong"></div></div>
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Vùng Trấn Giữ</div><div class="text-[13px] font-bold text-jade" x-text="h.vungTen"></div></div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 items-stretch">
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Chiến Đấu</div><div class="text-[15px] font-bold text-slate-100 leading-tight" x-text="'Lv ' + h.lv"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Tổng Cảnh Giới</div><div class="text-[15px] font-bold text-slate-100 leading-tight" x-text="h.tong"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Trấn Giữ</div><div class="text-[13px] font-bold text-jade leading-tight break-words" x-text="h.vungTen"></div></div>
             </div>
           </div>
 
           <!-- đóng góp -->
           <div>
             <div class="lbl mb-1.5">Đóng Góp Cho Tiên Minh</div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Bạc Nộp Minh Khố</div><div class="text-[15px] font-bold text-amber-300" x-text="fmt(h.gopBac)"></div></div>
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Điểm Chinh Phạt</div><div class="text-[15px] font-bold text-cyan-300" x-text="fmt(h.cp)"></div></div>
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Sát Thương Trảm Yêu</div><div class="text-[15px] font-bold text-rose-300" x-text="h.dameBoss ? fmt(h.dameBoss) : '—'"></div></div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 items-stretch">
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Nộp Minh Khố</div><div class="text-[15px] font-bold text-amber-300 leading-tight" x-text="fmt(h.gopBac)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Chinh Phạt</div><div class="text-[15px] font-bold text-cyan-300 leading-tight" x-text="fmt(h.cp)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Trảm Yêu</div><div class="text-[15px] font-bold text-rose-300 leading-tight" x-text="h.dameBoss ? fmt(h.dameBoss) : '—'"></div></div>
             </div>
           </div>
 
           <!-- sản lượng mỗi giờ -->
           <div>
             <div class="lbl mb-1.5">Làm Ra Mỗi Giờ</div>
-            <div class="grid grid-cols-3 gap-2">
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Bạc</div><div class="text-[14px] font-bold text-amber-300" x-text="fmt(h.san.bac)"></div></div>
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Minh Cống</div><div class="text-[14px] font-bold text-jade" x-text="fmt(h.san.bangCong)"></div></div>
-              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                <div class="lbl">Chinh Phạt</div><div class="text-[14px] font-bold text-cyan-300" x-text="fmt(h.san.cp)"></div></div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 items-stretch">
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Bạc</div><div class="text-[14px] font-bold text-amber-300 leading-tight" x-text="fmt(h.san.bac)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Minh Cống</div><div class="text-[14px] font-bold text-jade leading-tight" x-text="fmt(h.san.bangCong)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
+                <div class="lbl leading-tight">Chinh Phạt</div><div class="text-[14px] font-bold text-cyan-300 leading-tight" x-text="fmt(h.san.cp)"></div></div>
             </div>
           </div>
 
@@ -12057,7 +12057,7 @@
                 <div class="flex items-center gap-2.5">
                   <span class="w-[92px] shrink-0 text-[11.5px] text-slate-400 truncate" x-text="n.ten"></span>
                   <div class="flex-1 h-1.5 rounded-full bg-ink overflow-hidden min-w-0">
-                    <div class="h-full rounded-full" :style="'width:' + Math.min(100, n.lv) + '%;background:linear-gradient(90deg,' + h.mau + '66,' + h.mau + ')'"></div>
+                    <div class="h-full rounded-full" :style="'width:' + Math.max(4, Math.round(n.lv / Math.max(1, h.nghe[0].lv) * 100)) + '%;background:linear-gradient(90deg,' + h.mau + '66,' + h.mau + ')'"></div>
                   </div>
                   <span class="w-[42px] shrink-0 text-right text-[11.5px] text-slate-300 tabular-nums" x-text="'Lv ' + n.lv"></span>
                 </div>

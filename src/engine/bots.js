@@ -110,7 +110,12 @@ export function botArchName(bot) { return ARCHETYPES[bot.arch].name; }      // t
 /** Cấp TỪNG track của một bot (Chiến Đấu + 10 nghề) — cho bảng hồ sơ chi tiết. */
 export function botTracks(bot, now) {
   const eff = botEffort(bot, now), w = archNormW(bot.arch);
-  return TRACK_KEYS.map((k) => ({ key: k, ten: (SKILLS[k] || {}).name || k, lv: levelFromXp(eff * w[k]) }));
+  // ⚠ 'chienDau' KHÔNG nằm trong SKILLS (nó là track chiến đấu, không phải nghề) nên
+  // (SKILLS[k]||{}).name rơi về hiện nguyên khoá "chienDau" trên giao diện. Phải vá tay.
+  return TRACK_KEYS.map((k) => ({
+    key: k, ten: k === 'chienDau' ? 'Chiến Đấu' : ((SKILLS[k] || {}).name || k),
+    lv: levelFromXp(eff * w[k]),
+  }));
 }
 export function botAvatar(bot) {   // {id,char,color} — id sect ngoài AVATARS vẫn trả đúng id (ảnh load) + char/màu mặc định
   const a = AVATARS.find((x) => x.id === bot.avatarId);
