@@ -11633,44 +11633,40 @@
 
               <!-- ===== TAB: NHIỆM VỤ ===== -->
               <template x-if="tab==='nhiemVu'">
-                <div class="space-y-4">
-                  <div class="panel rounded-xl overflow-hidden">
-                    <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                <div class="space-y-5">
+                  <!-- LƯỚI THẺ chứ không phải hàng ngang trải hết bề ngang: một việc trải 1.100px
+                       thì tên dạt trái, con số dạt phải, giữa trống hoác, thanh dài mà mảnh dính.
+                       Hai cột kéo mỗi thẻ về ~540px — chữ, thanh và nút gom lại thành một cụm. -->
+                  <div>
+                    <div class="flex items-baseline justify-between gap-2 mb-2 flex-wrap">
                       <div class="text-jade font-bold fserif">Minh Vụ</div>
                       <div class="text-[10.5px] text-slate-600">Cả minh cùng góp · đổi việc sau <b class="text-slate-400" x-text="nvConLai"></b></div>
                     </div>
-                    <!-- Mỗi việc là MỘT khối hai cột, không phải năm tầng chồng lên nhau như trước:
-                         trái là tiến độ, phải là thưởng + nút. Bỏ dòng mô tả — tên việc và con số
-                         đã nói hết, thêm câu giải nữa chỉ đẩy khối dài ra. -->
-                    <div class="divide-y divide-slate-800/60">
+                    <div class="grid sm:grid-cols-2 gap-3">
                       <template x-for="q in nv" :key="q.id">
-                        <!-- Máy hẹp: xếp DỌC. Ép hai cột cạnh nhau ở 375 thì cột trái còn ~215px,
-                             chữ xuống dòng lung tung, hàng cao thấp so le 96-158px. -->
-                        <div class="px-3.5 py-3 flex flex-col sm:flex-row gap-2 sm:gap-3.5 sm:items-center"
-                             :class="q.dat100 && !q.xong ? 'bg-amber-500/[.06]' : ''">
-                          <div class="min-w-0 flex-1">
-                            <div class="flex items-baseline gap-2 flex-wrap">
-                              <b class="text-[13.5px] fserif" :class="q.xong ? 'text-slate-500' : 'text-slate-100'" x-text="q.ten"></b>
-                              <span class="text-[11px] tabular-nums ml-auto" :class="q.dat100 ? 'text-amber-300' : 'text-slate-500'"
-                                    x-text="fmt(q.dat) + ' / ' + fmt(q.can)"></span>
-                            </div>
-                            <div class="h-2 rounded-full bg-ink mt-1.5 overflow-hidden flex">
-                              <div class="h-full" :style="'width:'+pct(q.cuaTa,q.can)+'%;background:linear-gradient(90deg,#0d9488,#22d3ee)'"></div>
-                              <div class="h-full" :style="'width:'+Math.min(100-pct(q.cuaTa,q.can), pct(q.cuaBang,q.can))+'%;background:linear-gradient(90deg,#334155,#64748b)'"></div>
-                            </div>
-                            <div class="flex items-center gap-x-3.5 gap-y-1 text-[10.5px] text-slate-600 mt-1.5 flex-wrap">
-                              <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>Ngươi <b class="text-cyan-300" x-text="fmt(q.cuaTa)"></b></span>
-                              <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span>Minh chúng <b class="text-slate-400" x-text="fmt(q.cuaBang)"></b></span>
-                            </div>
+                        <div class="panel rounded-xl px-3.5 py-3 flex flex-col"
+                             :style="q.dat100 && !q.xong ? 'border-color:rgba(245,185,66,.45);background:rgba(245,185,66,.06)' : ''">
+                          <div class="flex items-baseline gap-2">
+                            <b class="text-[14px] fserif min-w-0 truncate" :class="q.xong ? 'text-slate-500' : 'text-slate-100'" x-text="q.ten"></b>
+                            <span class="text-[11.5px] tabular-nums ml-auto shrink-0" :class="q.dat100 ? 'text-amber-300' : 'text-slate-500'"
+                                  x-text="fmt(q.dat) + ' / ' + fmt(q.can)"></span>
                           </div>
-                          <!-- Cột phải CHỐT CỨNG bề rộng: nút đổi chữ ("Chưa xong" -> "Lĩnh Thưởng")
-                               mà cột co giãn thì cả hàng nhích ngang, nhìn giật. -->
-                          <div class="shrink-0 w-full sm:w-[150px] text-left sm:text-right">
-                            <div class="text-[10.5px] text-amber-300 leading-tight inline sm:block" x-text="'+' + q.ct + ' Công Tích'"></div>
-                            <span class="text-slate-700 text-[10.5px] sm:hidden"> · </span>
-                            <div class="text-[10.5px] text-jade leading-tight inline sm:block" x-text="'+' + q.bangCong + ' Minh Cống'"></div>
+                          <div class="h-2.5 rounded-full bg-ink mt-2 overflow-hidden flex">
+                            <div class="h-full" :style="'width:'+pct(q.cuaTa,q.can)+'%;background:linear-gradient(90deg,#0d9488,#22d3ee)'"></div>
+                            <div class="h-full" :style="'width:'+Math.min(100-pct(q.cuaTa,q.can), pct(q.cuaBang,q.can))+'%;background:linear-gradient(90deg,#334155,#64748b)'"></div>
+                          </div>
+                          <div class="flex items-center gap-x-3.5 gap-y-1 text-[10.5px] text-slate-600 mt-1.5 flex-wrap">
+                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>Ngươi <b class="text-cyan-300" x-text="fmt(q.cuaTa)"></b></span>
+                            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span>Minh chúng <b class="text-slate-400" x-text="fmt(q.cuaBang)"></b></span>
+                          </div>
+                          <!-- mt-auto: thẻ nào tên dài xuống hai dòng thì chân vẫn tụt xuống đáy,
+                               hai thẻ cạnh nhau không lệch nút. -->
+                          <div class="flex items-center gap-2 mt-auto pt-2.5 flex-wrap">
+                            <span class="text-[11px] text-amber-300" x-text="'+' + q.ct + ' Công Tích'"></span>
+                            <span class="text-slate-700 text-[11px]">·</span>
+                            <span class="text-[11px] text-jade" x-text="'+' + q.bangCong + ' Minh Cống'"></span>
                             <button @click="linhNv(q)" :disabled="!q.dat100 || q.xong"
-                              class="w-full mt-1.5 px-2 py-1 rounded-lg text-[11.5px] fserif border transition"
+                              class="ml-auto shrink-0 px-3 py-1 rounded-lg text-[11.5px] fserif border transition"
                               :class="q.xong ? 'text-slate-600 border-slate-800' : (q.dat100 ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default')"
                               x-text="q.xong ? 'Đã lĩnh' : (q.dat100 ? 'Lĩnh Thưởng' : 'Chưa xong')"></button>
                           </div>
@@ -11679,54 +11675,60 @@
                     </div>
                   </div>
 
-                  <div class="panel rounded-xl overflow-hidden">
-                    <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <div class="flex items-baseline justify-between gap-2 mb-2 flex-wrap">
                       <div class="text-jade font-bold fserif">Bảng Truy Nã</div>
-                      <div class="text-[10.5px] text-slate-600">Đổi mỗi ngày · mục tiêu chọn theo cấp Chiến Đấu của ngươi</div>
+                      <div class="text-[10.5px] text-slate-600">Đổi mỗi ngày · mục tiêu theo cấp Chiến Đấu của ngươi</div>
                     </div>
-                    <!-- Cùng nhịp với Minh Vụ: trái tiến độ, phải nút. Thêm vạch sắc bậc chạy dọc
-                         mép trái để bốn bậc lệnh phân biệt được mà không phải đọc chữ. -->
-                    <div class="divide-y divide-slate-800/60">
+                    <!-- Cùng khuôn thẻ với Minh Vụ. Vạch sắc bậc chạy dọc mép trái để bốn bậc lệnh
+                         phân biệt được mà không phải đọc chữ. -->
+                    <div class="grid sm:grid-cols-2 gap-3">
                       <template x-for="q in truyNa" :key="q.id">
-                        <div class="relative px-3.5 py-2.5 flex flex-col sm:flex-row gap-2 sm:gap-3.5 sm:items-center"
-                             :class="q.dat100 && !q.xong ? 'bg-amber-500/[.06]' : ''">
+                        <div class="relative panel rounded-xl overflow-hidden pl-4 pr-3.5 py-3 flex flex-col"
+                             :style="q.dat100 && !q.xong ? 'border-color:rgba(245,185,66,.45);background:rgba(245,185,66,.06)' : ''">
                           <span class="absolute inset-y-0 left-0 w-[3px]" :style="'background:' + q.bacMau + (q.xong ? '33' : 'aa')"></span>
-                          <div class="min-w-0 flex-1">
-                            <div class="flex items-baseline gap-2 flex-wrap">
-                              <span class="text-[9.5px] px-1.5 py-[1px] rounded-full border shrink-0"
-                                    :style="'color:'+q.bacMau+';border-color:'+q.bacMau+'55'" x-text="q.bacTen"></span>
-                              <b class="text-[13px] fserif" :class="q.xong ? 'text-slate-500' : 'text-slate-100'" x-text="'Trảm ' + q.so + ' × ' + q.ten"></b>
-                              <span class="text-[10.5px] text-slate-600" x-text="'Lv ' + q.reqLv"></span>
-                              <template x-if="q.daNhan && !q.xong">
-                                <span class="text-[11px] tabular-nums ml-auto" :class="q.dat100 ? 'text-amber-300' : 'text-slate-500'" x-text="q.dat + '/' + q.so"></span>
-                              </template>
-                            </div>
-                            <!-- Thanh chỉ mọc khi ĐÃ NHẬN LỆNH; chưa nhận mà bày thanh 0% thì
-                                 nhìn như đang dở dang. Vẫn chiếm chỗ để hàng không cao thấp so le. -->
-                            <div class="h-1.5 rounded-full mt-1.5 overflow-hidden" :class="q.daNhan && !q.xong ? 'bg-ink' : 'bg-transparent'">
-                              <template x-if="q.daNhan && !q.xong">
-                                <div class="h-full rounded-full" :style="'width:' + pct(q.dat, q.so) + '%;background:linear-gradient(90deg,' + q.bacMau + '77,' + q.bacMau + ')'"></div>
-                              </template>
-                            </div>
-                            <div class="flex items-center gap-x-3 gap-y-1 mt-1.5 flex-wrap text-[10.5px]">
-                              <span class="text-amber-300" x-text="'+' + q.ct + ' Công Tích'"></span>
-                              <span class="text-slate-400" x-text="'+' + fmt(q.bac_) + ' Bạc'"></span>
-                              <template x-if="q.manh"><span class="text-violet-300" x-text="'+' + q.manh + ' Mảnh Trang Bị'"></span></template>
-                            </div>
+                          <!-- flex-wrap + KHÔNG truncate: tên Yêu Vương dài (vd "Trảm 1 × Bạch Ngạch
+                               Hổ Vương") ở máy 375 bị cắt cụt mất luôn tên con quái. Cho xuống dòng. -->
+                          <div class="flex items-baseline gap-x-2 gap-y-1 flex-wrap">
+                            <span class="text-[9.5px] px-1.5 py-[1px] rounded-full border shrink-0"
+                                  :style="'color:'+q.bacMau+';border-color:'+q.bacMau+'55'" x-text="q.bacTen"></span>
+                            <b class="text-[13.5px] fserif" :class="q.xong ? 'text-slate-500' : 'text-slate-100'" x-text="'Trảm ' + q.so + ' × ' + q.ten"></b>
+                            <span class="text-[10.5px] text-slate-600 shrink-0" x-text="'Lv ' + q.reqLv"></span>
+                            <span class="text-[11.5px] tabular-nums ml-auto shrink-0"
+                                  :class="q.dat100 ? 'text-amber-300' : 'text-slate-500'"
+                                  x-text="q.daNhan && !q.xong ? (q.dat + '/' + q.so) : ''"></span>
                           </div>
-                          <div class="shrink-0 w-full sm:w-[150px]">
-                            <template x-if="!q.daNhan">
-                              <button @click="nhanTn(q)" class="w-full px-2 py-1 rounded-lg text-[11.5px] fserif text-jade border border-jade/45 hover:bg-jade/10 transition">Nhận Lệnh</button>
-                            </template>
+                          <!-- Thanh chỉ mọc khi ĐÃ NHẬN LỆNH; chưa nhận mà bày thanh 0% thì nhìn
+                               như đang dở dang. Vẫn chiếm chỗ để hai thẻ cạnh nhau không so le. -->
+                          <div class="h-2.5 rounded-full mt-2 overflow-hidden" :class="q.daNhan && !q.xong ? 'bg-ink' : 'bg-transparent'">
                             <template x-if="q.daNhan && !q.xong">
-                              <button @click="nopTn(q)" :disabled="!q.dat100"
-                                class="w-full px-2 py-1 rounded-lg text-[11.5px] fserif border transition"
-                                :class="q.dat100 ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
-                                x-text="q.dat100 ? 'Nộp Lệnh' : 'Đang truy lùng'"></button>
+                              <div class="h-full rounded-full" :style="'width:' + pct(q.dat, q.so) + '%;background:linear-gradient(90deg,' + q.bacMau + '77,' + q.bacMau + ')'"></div>
                             </template>
-                            <template x-if="q.xong">
-                              <div class="w-full px-2 py-1 rounded-lg text-[11.5px] fserif text-slate-600 border border-slate-800 text-center">Đã nộp</div>
+                          </div>
+                          <div class="flex items-center gap-2 mt-auto pt-2.5 flex-wrap text-[11px]">
+                            <span class="text-amber-300" x-text="'+' + q.ct + ' Công Tích'"></span>
+                            <span class="text-slate-700">·</span>
+                            <span class="text-slate-400" x-text="'+' + fmt(q.bac_) + ' Bạc'"></span>
+                            <template x-if="q.manh">
+                              <span class="text-slate-700">·</span>
                             </template>
+                            <template x-if="q.manh">
+                              <span class="text-violet-300" x-text="'+' + q.manh + ' Mảnh Trang Bị'"></span>
+                            </template>
+                            <span class="ml-auto shrink-0">
+                              <template x-if="!q.daNhan">
+                                <button @click="nhanTn(q)" class="px-3 py-1 rounded-lg text-[11.5px] fserif text-jade border border-jade/45 hover:bg-jade/10 transition">Nhận Lệnh</button>
+                              </template>
+                              <template x-if="q.daNhan && !q.xong">
+                                <button @click="nopTn(q)" :disabled="!q.dat100"
+                                  class="px-3 py-1 rounded-lg text-[11.5px] fserif border transition"
+                                  :class="q.dat100 ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                                  x-text="q.dat100 ? 'Nộp Lệnh' : 'Đang truy lùng'"></button>
+                              </template>
+                              <template x-if="q.xong">
+                                <span class="inline-block px-3 py-1 rounded-lg text-[11.5px] fserif text-slate-600 border border-slate-800">Đã nộp</span>
+                              </template>
+                            </span>
                           </div>
                         </div>
                       </template>
