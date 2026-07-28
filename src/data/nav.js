@@ -42,7 +42,7 @@ export const NAV = [
     { view: 'market',   name: 'Sàn Giao Dịch',  gloss: 'Market',   icon: '⚖️', soon: true },
   ] },
   { title: 'Khác', items: [
-    { view: 'guild',      name: 'Bang Phái',  gloss: 'Guild',      icon: '🏯' },
+    { view: 'guild',      name: 'Tiên Minh',  gloss: 'Guild',      icon: '🏯' },
     { view: 'tavern',     name: 'Tửu Lâu',    gloss: 'Tavern',     icon: '🍶' },
     { view: 'collection', name: 'Vạn Vật Phổ', gloss: 'Collection', icon: '📖' },
   ] },
@@ -53,5 +53,5 @@ export const VIEW_NAMES = {
   profile: 'Hồ Sơ', trangbi: 'Trang Bị', inventory: 'Hành Lý', map: 'Bản Đồ', nhiemVu: 'Nhiệm Vụ',
   combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương',
   pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ', kyTran: 'Kỳ Trận', nguTuKy: 'Ngũ Tử Kỳ', coTuong: 'Cờ Tướng', coVua: 'Cờ Vua',
-  guild: 'Bang Phái', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ',
+  guild: 'Tiên Minh', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ',
 };

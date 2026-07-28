@@ -48,16 +48,31 @@ export const KY_NANG_BY_ID = Object.fromEntries(KY_NANG_BANG.map((k) => [k.id, k
 /** Công Tích để nâng kĩ năng lên cấp `lv` (1..maxLv). Cấp sau đắt hơn cấp trước. */
 export const giaKyNang = (kn, lv) => Math.round(kn.giaNen * Math.pow(1.85, Math.max(0, lv - 1)));
 
-// ---------- CỬA HÀNG BANG ----------
+// ---------- CỬA HÀNG (Minh Hội Các) ----------
 // Tiêu Công Tích. `han` = trần mua mỗi ngày (chống dồn Công Tích đổi ồ ạt phá kinh tế).
+// `ico` = khoá cho hàm ico() của store (item id hoặc id tiền tệ) · `emoji` = dự phòng khi chưa có art.
+// `nhom` chỉ để tô màu thẻ, không ảnh hưởng luật.
 export const CUA_HANG_BANG = [
-  { id: 'ch_honThach',  itemId: null, tienTe: 'honThach', so: 200, gia: 700,  han: 3,  capBang: 1,  ten: 'Hồn Thạch ×200' },
-  { id: 'ch_bac',       itemId: null, tienTe: 'bac',      so: 6000,gia: 500,  han: 5,  capBang: 1,  ten: 'Bạc ×6.000' },
-  { id: 'ch_danHoiSinh',itemId: 'danHoiSinhLuc', so: 10,  gia: 400,  han: 4,  capBang: 1,  ten: 'Đan Hồi Sinh Lực ×10' },
-  { id: 'ch_manh',      itemId: 'manhTrangBi',   so: 2,   gia: 1500, han: 2,  capBang: 4,  ten: 'Mảnh Trang Bị ×2' },
-  { id: 'ch_tinhThe',   itemId: 'tinhTheYeuVuong', so: 1, gia: 2600, han: 1,  capBang: 10, ten: 'Tinh Thể Yêu Vương ×1' },
-  { id: 'ch_nguyenBao', itemId: null, tienTe: 'nguyenBao', so: 30,  gia: 4000, han: 1, capBang: 16, ten: 'Nguyên Bảo ×30' },
+  { id: 'ch_bac', tienTe: 'bac', itemId: null, so: 6000, gia: 500, han: 5, capBang: 1,
+    ten: 'Bạc', ico: 'bac', emoji: '🟡', nhom: 'tien',
+    desc: 'Ngân khố Tiên Minh đổi ra bạc vụn — tiêu gì cũng được.' },
+  { id: 'ch_danHoiSinh', itemId: 'danHoiSinhLuc', so: 10, gia: 400, han: 4, capBang: 1,
+    ten: 'Đan Hồi Sinh Lực', ico: 'danHoiSinhLuc', emoji: '🧪', nhom: 'dan',
+    desc: 'Đan phòng thân — nhét đầy ô lương thực rồi cứ thế treo máy.' },
+  { id: 'ch_honThach', tienTe: 'honThach', itemId: null, so: 200, gia: 700, han: 3, capBang: 1,
+    ten: 'Hồn Thạch', ico: 'honThach', emoji: '🔴', nhom: 'tien',
+    desc: 'Hồn thạch luyện khí — dùng cho cường hoá và Linh Thú.' },
+  { id: 'ch_manh', itemId: 'manhTrangBi', so: 2, gia: 1500, han: 2, capBang: 4,
+    ten: 'Mảnh Trang Bị', ico: 'manhTrangBi', emoji: '🧩', nhom: 'hiem',
+    desc: 'Ghép đủ bộ Hoàng Kim. Đường lấy Mảnh nhanh nhất ngoài Bí Cảnh.' },
+  { id: 'ch_tinhThe', itemId: 'tinhTheYeuVuong', so: 1, gia: 2600, han: 1, capBang: 10,
+    ten: 'Tinh Thể Yêu Vương', ico: 'tinhTheYeuVuong', emoji: '💠', nhom: 'hiem',
+    desc: 'Kết tinh yêu khí. Chém Yêu Vương cả buổi chưa chắc rơi một viên.' },
+  { id: 'ch_nguyenBao', tienTe: 'nguyenBao', itemId: null, so: 30, gia: 4000, han: 1, capBang: 16,
+    ten: 'Nguyên Bảo', ico: 'nguyenBao', emoji: '🔷', nhom: 'quy',
+    desc: 'Của hiếm trong Minh Khố — chỉ Tiên Minh lớn mới đổi nổi.' },
 ];
+export const CH_NHOM_MAU = { tien: '#fbbf24', dan: '#5dcaa5', hiem: '#a78bfa', quy: '#22d3ee' };
 
 // ---------- CÔNG TRÌNH BANG ----------
 // Xây bằng Bạc trong bang khố + thời gian. Mỗi cái mở/khuếch đại một mảng khác nhau.

@@ -86,9 +86,13 @@ function bangMoi(ten, tonChi, now) {
   };
 }
 
-export function ghiNhatKy(state, txt, now) {
+/**
+ * Ghi một dòng nhật ký. `ai` (tuỳ chọn) = hồ sơ người liên quan { ten, av, phu } để dòng nhật ký
+ * hiện được CHÂN DUNG + thông tin, chứ không phải một dòng chữ trơ.
+ */
+export function ghiNhatKy(state, txt, now, ai) {
   const b = ensureBangPhai(state), ts = now || Date.now();
-  b.nhatKy.unshift({ id: 'nk' + ts + '_' + (b.nhatKy.length + 1) + '_' + Math.round(Math.random() * 1e5), txt, ts });
+  b.nhatKy.unshift({ id: 'nk' + ts + '_' + (b.nhatKy.length + 1) + '_' + Math.round(Math.random() * 1e5), txt, ts, ai: ai || null });
   if (b.nhatKy.length > NHAT_KY_MAX) b.nhatKy.length = NHAT_KY_MAX;
   return b.nhatKy[0];
 }
@@ -235,7 +239,9 @@ export function chieuMo(state, botId, world, now) {
   const vung = LOCATIONS[mix(h32(botId), 0x1D3) % LOCATIONS.length].id;
   b.bang.tv.push({ id: botId, chuc: CHUC_THAP, vaoLuc: t, gopBac: 0, ct: 0, cp: 0, vung });
   b.bang.donXin = (b.bang.donXin || []).filter((x) => x !== botId);
-  ghiNhatKy(state, '<b>' + r.name + '</b> nhập bang.', t);
+  const ho = moTaBot(r, t);
+  ghiNhatKy(state, '<b>' + ho.ten + '</b> nhập minh.', t,
+    { ten: ho.ten, av: ho.av, phu: ho.hieu + ' · ' + ho.loai + ' · Lv ' + ho.lv + ' · Tổng Lv ' + ho.tong });
   return true;
 }
 
@@ -246,8 +252,10 @@ export function kichNguoi(state, botId, world, now) {
   const i = b.bang.tv.findIndex((m) => m.id === botId); if (i < 0) return false;
   const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
   const r = roster.find((x) => x.id === botId);
+  const ho = r ? moTaBot(r, now || Date.now()) : null;
   b.bang.tv.splice(i, 1);
-  ghiNhatKy(state, '<b>' + (r ? r.name : 'Một người') + '</b> bị đuổi khỏi bang.', now);
+  ghiNhatKy(state, '<b>' + (ho ? ho.ten : 'Một người') + '</b> bị đuổi khỏi minh.', now,
+    ho ? { ten: ho.ten, av: ho.av, phu: ho.hieu + ' · Lv ' + ho.lv } : null);
   return true;
 }
 
@@ -268,7 +276,9 @@ export function doiChuc(state, botId, len, now, world) {
   m.chuc = moi.id;
   const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
   const r = roster.find((x) => x.id === botId);
-  ghiNhatKy(state, '<b>' + (r ? r.name : 'Một người') + '</b> ' + (len ? 'được thăng làm ' : 'bị giáng xuống ') + moi.ten + '.', now);
+  const ho = r ? moTaBot(r, now || Date.now()) : null;
+  ghiNhatKy(state, '<b>' + (ho ? ho.ten : 'Một người') + '</b> ' + (len ? 'được thăng làm ' : 'bị giáng xuống ') + moi.ten + '.', now,
+    ho ? { ten: ho.ten, av: ho.av, phu: ho.hieu + ' · Lv ' + ho.lv } : null);
   return '';
 }
 
@@ -314,7 +324,7 @@ export function themBangCong(state, diem, now) {
     b.bang.bangCong -= bangCongCanCho(b.bang.cap);
     b.bang.cap += 1; len++;
   }
-  if (len) ghiNhatKy(state, 'Bang thăng lên <b>cấp ' + b.bang.cap + '</b>.', now);
+  if (len) ghiNhatKy(state, 'Tiên Minh thăng lên <b>cấp ' + b.bang.cap + '</b>.', now);
   return len;
 }
 
@@ -429,7 +439,7 @@ export function hocKyNang(state, id, now) {
   if (b.congTich < gia) return 'Thiếu Công Tích — cần ' + gia + '.';
   b.congTich -= gia;
   b.bang.kyNang[id] = lv + 1;
-  ghiNhatKy(state, 'Bang luyện thành <b>' + kn.ten + '</b> cấp ' + (lv + 1) + '.', now);
+  ghiNhatKy(state, 'Toàn minh luyện thành <b>' + kn.ten + '</b> cấp ' + (lv + 1) + '.', now);
   return '';
 }
 
@@ -591,7 +601,7 @@ export function nhanNv(state, world, id, now) {
   v.xong.push(id);
   themCongTich(state, q.ct);
   themBangCong(state, q.bangCong, now);
-  ghiNhatKy(state, 'Hoàn thành bang vụ <b>' + q.ten + '</b> — được ' + q.ct + ' Công Tích.', now);
+  ghiNhatKy(state, 'Hoàn thành minh vụ <b>' + q.ten + '</b> — được ' + q.ct + ' Công Tích.', now);
   return q.ct;
 }
 
@@ -754,7 +764,7 @@ export function nhanThuongMua(state, world, now) {
   const hang = b.muaThuong.hang | 0;
   const thuong = hang >= 1 ? (MUA_THUONG_BANG[hang - 1] || 0) : 0;
   b.muaThuong.daNhan = true;
-  if (thuong) ghiNhatKy(state, 'Kết mùa — bang xếp hạng <b>' + hang + '</b>, lĩnh ' + thuong + ' Hồn Thạch.', now);
+  if (thuong) ghiNhatKy(state, 'Kết mùa — Tiên Minh xếp hạng <b>' + hang + '</b>, lĩnh ' + thuong + ' Hồn Thạch.', now);
   return thuong;
 }
 /** Chốt hạng mùa vừa qua (gọi khi phát hiện sang mùa mới). */
@@ -838,7 +848,7 @@ export function chotBossBang(state, world, now) {
   themCongTich(state, ct);
   themBangCong(state, Math.round(ct / 4), t);
   themCpVung(state, LOCATIONS[Math.min(LOCATIONS.length - 1, Math.floor((r.boss.reqLevel || 10) / 11))].id, CP_MOI_BOSS, t);
-  ghiNhatKy(state, 'Cả bang hạ <b>' + r.boss.name + '</b> — công của ngươi ' + Math.round(tiLe * 100) + '%.', t);
+  ghiNhatKy(state, 'Cả minh hạ <b>' + r.boss.name + '</b> — công của ngươi ' + Math.round(tiLe * 100) + '%.', t);
   return { ct, honThach, manh, boss: r.boss.name, tiLe: Math.round(tiLe * 100) };
 }
 

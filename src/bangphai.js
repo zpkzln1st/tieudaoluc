@@ -26,7 +26,7 @@ import {
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
   MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG,
 } from './engine/bangphai.js';
-import { QUYEN_LABEL } from './data/bangphai.js';
+import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU } from './data/bangphai.js';
 
 export { ensureBangPhai };
 
@@ -41,7 +41,7 @@ const TON_CHI_SAN = [
 export function bangPhai() {
   return {
     _t: 0, _iv: 0,
-    tab: 'nha',             // nha · thanhVien · nhiemVu · cuaHang · kyNang · congTrinh · chinhPhat · boss
+    tab: 'nha',             // nha · thanhVien · nhiemVu · cuaHang · kyNang · congTrinh · chinhPhat · boss · thietLap
     moForm: false, tenMoi: '', tonChiMoi: TON_CHI_SAN[0],
     loNguoi: null,          // id thành viên đang mở bảng thao tác
     timTanTu: '',
@@ -55,6 +55,8 @@ export function bangPhai() {
     get tongLv() { return this.g.totalLevel || 0; },
     get combatLv() { return this.g.combatLevel || 1; },
     get fmt() { return this.g.fmt; },
+    /** Tên người chơi — Minh Chủ là CHÍNH NGƯƠI, hiện đúng tên chứ không phải chữ "ngươi". */
+    get tenTa() { return (this.g.state.player || {}).name || 'Vô Danh'; },
 
     // ---------- điều kiện lập bang ----------
     get lvCanLap() { return LV_LAP_BANG; },
@@ -128,7 +130,15 @@ export function bangPhai() {
     },
 
     // ---------- cửa hàng ----------
-    get hang() { void this._t; try { return danhSachHang(this.g.state, Date.now()); } catch (e) { return []; } },
+    get hang() {
+      void this._t;
+      try {
+        return danhSachHang(this.g.state, Date.now()).map((h) => {
+          const d = CUA_HANG_BANG.find((x) => x.id === h.id) || {};
+          return { ...h, ico: d.ico, emoji: d.emoji, desc: d.desc, nhom: d.nhom, mau: CH_NHOM_MAU[d.nhom] || '#94a3b8' };
+        });
+      } catch (e) { return []; }
+    },
 
     // ---------- công trình ----------
     get congTrinh() {
