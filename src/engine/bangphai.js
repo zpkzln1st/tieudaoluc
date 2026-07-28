@@ -25,13 +25,17 @@ import {
   MUA_MS, CP_MOI_KILL, CP_MOI_BOSS, CP_BUFF_HANG, CP_THONG_TRI_HE_SO, MUA_THUONG_BANG,
   BOSS_BANG_KY_MS, BOSS_BANG_LUOT, BOSS_BANG_CD_MS, BOSS_BANG_MAU_HE_SO,
   QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
+  CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, GIAO_TINH_GIAM_BAC, giaoTinhCan,
 } from '../data/bangphai.js';
+// Giao Tình nuôi ở Tửu Lâu, tiêu ở đây. engine/tuulau.js chỉ nạp data + bots nên KHÔNG vòng.
+import { danhSachQuen, bacGiaoTinh } from './tuulau.js';
 
 export {
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, TV_TRAN, CAP_BANG_MAX,
   KY_NANG_BANG, KY_NANG_BY_ID, giaKyNang, CUA_HANG_BANG, CONG_TRINH, CONG_TRINH_BY_ID,
   giaCongTrinh, gioCongTrinh, NV_BANG, TRUY_NA_BAC, MUA_MS, CP_BUFF_HANG, MUA_THUONG_BANG,
   BOSS_BANG_LUOT, bangCongCanCho, QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
+  CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, giaoTinhCan,
 };
 
 const GIO = 3600000, NGAY_MS = 86400000;
@@ -116,10 +120,80 @@ export function ghiNhatKy(state, txt, now, ai) {
  *   2,4× → 6,1× (năm thứ nhất). Ở dải Lv 450-500 giá đúng ~10 lần bảng cũ.
  *   Gom đủ 22 người mạnh nhất: 890.000 → 8,4 triệu Bạc (xây trọn Tổng Đàn hết 3,4 triệu).
  */
-export const giaChieuMo = (tongLv) => {
+export const giaChieuMo = (tongLv, bacQuen) => {
   const lv = Math.max(0, tongLv || 0);
-  return Math.max(2000, Math.round((lv * lv) / 50) * 100);
+  const goc = Math.max(2000, Math.round((lv * lv) / 50) * 100);
+  const bac = Math.min(GIAO_TINH_TRAN, Math.max(0, bacQuen | 0));
+  if (!bac) return goc;
+  return Math.max(2000, Math.round((goc * (100 - bac * GIAO_TINH_GIAM_BAC)) / 100 / 100) * 100);
 };
+
+/**
+ * BẢNG CHIÊU HIỀN — vài tán tu bất kỳ, đổi mỗi CHIEU_HIEN_MS, GIÁ ĐẦY ĐỦ.
+ * Suy từ (seed + mốc bảng) nên không lưu gì: F5 vẫn đúng người đó, hết giờ là thay lượt khác.
+ * Cố ý bốc từ TRỌN 200 bot chứ không chỉ phần đỉnh — dải cấp rộng thì giá mới có chênh lệch
+ * thật, và cao thủ mới đáng là thứ phải săn chứ không phải món bày sẵn trên kệ.
+ */
+/** ID những người đang trên Bảng Chiêu Hiền. Tách riêng vì `chieuMo` cần tra mà không cần hồ sơ. */
+function idsChieuHien(state, world, now) {
+  const t = now || Date.now(), b = ensureBangPhai(state);
+  const ra = new Set();
+  if (!b.bang) return ra;
+  const seed = (world && world.seed) || 1;
+  const roster = genRoster(seed, (world && world.createdAt) || 0) || [];
+  if (!roster.length) return ra;
+  const daCo = new Set(b.bang.tv.map((m) => m.id));
+  const don = new Set(b.bang.donXin || []);
+  const moc = Math.floor(t / CHIEU_HIEN_MS);
+  for (let k = 0; k < roster.length && ra.size < CHIEU_HIEN_N; k++) {
+    const r = roster[mix(mix(seed ^ 0x5B3, moc), k) % roster.length];
+    if (!r || ra.has(r.id) || daCo.has(r.id) || don.has(r.id)) continue;
+    ra.add(r.id);
+  }
+  return ra;
+}
+export function bangChieuHien(state, world, now) {
+  const t = now || Date.now();
+  const ids = idsChieuHien(state, world, t);
+  if (!ids.size) return [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  return roster.filter((r) => ids.has(r.id)).map((r) => {
+    const o = moTaBot(r, t);
+    // Quen rồi thì bảng cũng tính giá quen — không đời nào bắt trả đắt hơn vì gặp lại ở chỗ khác.
+    o.bac = bacGiaoTinh(state, r.id);
+    o.giaGoc = giaChieuMo(o.tong);
+    o.gia = giaChieuMo(o.tong, o.bac);
+    o.nguon = 'bang';
+    return o;
+  }).sort((x, y) => y.tong - x.tong);
+}
+/** Còn bao lâu thì Bảng Chiêu Hiền thay lượt khác. */
+export const chieuHienConLai = (now) => CHIEU_HIEN_MS - ((now || Date.now()) % CHIEU_HIEN_MS);
+
+/**
+ * NGƯỜI QUEN Ở TỬU LÂU — ai đã cùng ngươi uống rượu / hỏi chuyện.
+ * Ở lại đây cho tới khi mời được hoặc họ đã vào minh; KHÔNG đổi theo giờ như Bảng Chiêu Hiền.
+ * `du` = đã đủ bậc để họ chịu nghe lời mời chưa (cao thủ kén hơn, xem giaoTinhCan).
+ */
+export function nguoiQuen(state, world, now) {
+  const t = now || Date.now(), b = ensureBangPhai(state);
+  if (!b.bang) return [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  if (!roster.length) return [];
+  const daCo = new Set(b.bang.tv.map((m) => m.id));
+  const don = new Set(b.bang.donXin || []);
+  const byId = new Map(roster.map((r) => [r.id, r]));
+  return danhSachQuen(state).map((q) => {
+    const r = byId.get(q.botId);
+    if (!r || daCo.has(r.id) || don.has(r.id)) return null;
+    const o = moTaBot(r, t);
+    o.bac = q.bac; o.can = giaoTinhCan(o.tong); o.du = q.bac >= o.can;
+    o.giaGoc = giaChieuMo(o.tong);
+    o.gia = giaChieuMo(o.tong, q.bac);
+    o.nguon = 'quen';
+    return o;
+  }).filter(Boolean).sort((x, y) => (y.du - x.du) || (y.tong - x.tong));
+}
 
 /** Hồ sơ một bot: lấy nốt nghề thật / lối chơi / việc đang làm chứ không chỉ tên với cấp. */
 export function moTaBot(r, t) {
@@ -253,6 +327,15 @@ export function chieuMo(state, botId, world, now) {
   if (b.bang.tv.some((m) => m.id === botId)) return false;
   const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
   const r = roster.find((x) => x.id === botId); if (!r) return false;
+  // CỬA GIAO TÌNH — chặn ở đây chứ không ở lớp view, để không đường nào lách được.
+  // Người trên Bảng Chiêu Hiền là đường công khai, ai cũng mời được (chỉ đắt hơn).
+  // Ngoài bảng ra thì phải quen đủ bậc: cao thủ kén hơn (giaoTinhCan).
+  // Duyệt đơn xin vào minh đi đường riêng (duyet -> chieuMo sau khi đã gỡ khỏi donXin), nên
+  // phải cho qua: người ta tự tìm tới cửa thì không có lý gì bắt đi uống rượu làm quen.
+  const trongDon = (b.bang.donXin || []).includes(botId);
+  if (!trongDon && !idsChieuHien(state, world, t).has(botId)) {
+    if (bacGiaoTinh(state, botId) < giaoTinhCan(botTotalLv(r, t))) return false;
+  }
   // Mỗi người cày một vùng riêng — điểm Chinh Phạt của họ đổ vào đúng vùng đó, nên bang
   // đông người thì phủ được nhiều vùng chứ không dồn hết một chỗ.
   const vung = LOCATIONS[mix(h32(botId), 0x1D3) % LOCATIONS.length].id;

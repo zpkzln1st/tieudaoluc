@@ -22,11 +22,12 @@ import {
   danhSachTruyNa, nhanTruyNa, nopTruyNa,
   chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai, soMua,
   bossBang, xuatTranBoss, chotBossBang, moBossBang,
+  bangChieuHien, nguoiQuen, chieuHienConLai, GIAO_TINH_TRAN,
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, KY_NANG_BANG, giaKyNang,
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
   MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG, MUA_MS,
 } from './engine/bangphai.js';
-import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG } from './data/bangphai.js';
+import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG, KY_NANG_HAN } from './data/bangphai.js';
 
 export { ensureBangPhai };
 
@@ -46,7 +47,6 @@ export function bangPhai() {
     tab: 'nha',             // nha · thanhVien · nhiemVu · cuaHang · kyNang · congTrinh · chinhPhat · boss · thietLap
     moForm: false, tenMoi: '', tonChiMoi: TON_CHI_SAN[0],
     loNguoi: null,          // id minh chúng đang mở bảng thao tác
-    timTanTu: '',
     vungChon: null,
     bacGop: '',             // ô tự điền số Bạc cống hiến
     xemHetNhatKy: false,
@@ -82,15 +82,21 @@ export function bangPhai() {
       const ids = new Set(this.bang.donXin || []);
       try { return danhSachTanTu(this.g.state, this.world, Date.now()).filter((x) => ids.has(x.id)); } catch (e) { return []; }
     },
-    get tanTu() {
+    // ---------- chiêu mộ: ba đường, không còn chợ 40 người ----------
+    /** Bảng Chiêu Hiền — vài người bất kỳ, đổi theo giờ, giá đầy đủ. */
+    get bangHien() {
       void this._t;
       if (!this.bang) return [];
-      try {
-        const q = this.timTanTu.trim().toLowerCase();
-        const ds = danhSachTanTu(this.g.state, this.world, Date.now());
-        return (q ? ds.filter((x) => x.ten.toLowerCase().includes(q)) : ds).slice(0, 40);
-      } catch (e) { return []; }
+      try { return bangChieuHien(this.g.state, this.world, Date.now()); } catch (e) { return []; }
     },
+    /** Người quen ở Tửu Lâu — đủ bậc Giao Tình mới mời được, giá rẻ dần theo bậc. */
+    get quen() {
+      void this._t;
+      if (!this.bang) return [];
+      try { return nguoiQuen(this.g.state, this.world, Date.now()); } catch (e) { return []; }
+    },
+    get bangDoiSau() { void this._t; return this.gioTxt(chieuHienConLai(Date.now())); },
+    get giaoTinhTran() { return GIAO_TINH_TRAN; },
     get nhatKy() { return (this.bp && this.bp.nhatKy) || []; },
     get mucGop() { return MUC_GOP; },
     get bacMoiMinhCong() { return BAC_MOI_MINH_CONG; },
@@ -308,6 +314,11 @@ export function bangPhai() {
       const g = this.g;
       if (!this.bang) return;
       if (this.tv.length >= this.tranTv) { g.showToast('Bang đã đủ ' + this.tranTv + ' người — nâng Tổng Đàn để thêm suất.'); return; }
+      // Cửa Giao Tình: nói đúng còn thiếu mấy bận rượu, đừng bắt người ta đoán.
+      if (t.du === false) {
+        g.showToast(t.ten + ' chưa đủ thân — còn ' + (t.can - t.bac) + ' bận nữa ở Tửu Lâu.');
+        return;
+      }
       if (this.bac < t.gia) { g.showToast('Cần ' + this.fmt(t.gia) + ' Bạc để mời ' + t.ten + '.'); return; }
       if (!chieuMo(g.state, t.id, this.world, Date.now())) { g.showToast('Không mời được người này.'); return; }
       g.state.currencies.bac -= t.gia;
@@ -417,6 +428,8 @@ export function bangPhai() {
     // ---------- công trình ----------
     // Không kéo thả: bỏ nền sơn thuỷ rồi thì kéo thả chẳng để sắp vào đâu. Thẻ xếp thành
     // hàng, mọi chi tiết dồn vào popup khi bấm.
+    /** Chữ đỡ cho thẻ kĩ năng khi chưa có art. */
+    knHan(id) { return KY_NANG_HAN[id] || '訣'; },
     /** Bản khắc của một công trình: chữ Hán + sắc riêng (TILE_KHAC ở data/bangphai.js). */
     khac(id) { return TILE_KHAC[id] || { han: '殿', mau: '#94a3b8', phu: '' }; },
     /**

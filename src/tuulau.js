@@ -10,7 +10,9 @@ import { Storage } from './engine/save.js';
 import {
   ensureTuuLau, khachTrongQuan, loiMoiRuou, loiHoiChuyen, tinDon,
   hoiDuoc, themDong, phienConLai, KHACH_N,
+  themGiaoTinh, bacGiaoTinh, lenBacDuoc,
 } from './engine/tuulau.js';
+import { GIAO_TINH_TRAN, giaoTinhCan } from './data/bangphai.js';
 
 export { ensureTuuLau };
 
@@ -42,7 +44,9 @@ export function tuuLau() {
     // Khách: tính lại mỗi khi _t đổi (đồng hồ 20s) -> tự sang lượt khách mới khi hết phiên.
     get khach() {
       void this._t;
-      try { return khachTrongQuan(this.g.state.world, Date.now()); } catch (e) { return []; }
+      // Truyền `state` vào để một ghế bot ưu tiên người đã quen — không thì Giao Tình
+      // gần như không nuôi nổi (200 bot, mỗi phiên rút 2).
+      try { return khachTrongQuan(this.g.state.world, Date.now(), this.g.state); } catch (e) { return []; }
     },
     get conLai() {
       void this._t;
@@ -63,6 +67,13 @@ export function tuuLau() {
       return '';
     },
 
+    // ---- Giao Tình: chỉ bot mới có (Danh Sĩ là NPC cốt truyện, không nhập minh được) ----
+    get gtTran() { return GIAO_TINH_TRAN; },
+    gtBac(k) { void this._t; return k.botId ? bacGiaoTinh(this.g.state, k.botId) : 0; },
+    /** Bậc cần để mời được người này vào Tiên Minh — cao thủ kén hơn. */
+    gtCan(k) { return k.botId ? giaoTinhCan(k.tong) : 0; },
+    gtLenDuoc(k) { void this._t; return k.botId ? lenBacDuoc(this.g.state, k.botId, Date.now()) : false; },
+
     tlInit() {
       ensureTuuLau(this.g.state);
       this.doiChip();
@@ -81,8 +92,10 @@ export function tuuLau() {
       const tin = tinDon(k, now);
       if (tin) { t.nghe++; themDong(g.state, 'tin', k.ten, k.mau, tin, now + 1); }
       else themDong(g.state, 'dap', k.ten, k.mau, 'Chuyện thì có, nhưng chưa tới lúc nói.', now + 1);
+      const bac = themGiaoTinh(g.state, k.botId, now);
       try { Storage.save(g.state); } catch (e) {}
-      g.showToast(tin ? k.ten + ' kể cho ngươi một chuyện.' : k.ten + ' nhận chén rượu.');
+      if (bac) g.showToast(k.ten + ' thân thêm một bậc — Giao Tình ' + bac + '/' + GIAO_TINH_TRAN + '.');
+      else g.showToast(tin ? k.ten + ' kể cho ngươi một chuyện.' : k.ten + ' nhận chén rượu.');
     },
 
     // ---- hỏi chuyện: miễn phí, mỗi khách 1 lần / 6 giờ ----
@@ -92,7 +105,9 @@ export function tuuLau() {
       const t = ensureTuuLau(g.state);
       t.hoiLan[k.id] = now;
       themDong(g.state, 'dap', k.ten, k.mau, loiHoiChuyen(k, now, this.cauCuoi(k)), now);
+      const bac = themGiaoTinh(g.state, k.botId, now);
       try { Storage.save(g.state); } catch (e) {}
+      if (bac) g.showToast(k.ten + ' thân thêm một bậc — Giao Tình ' + bac + '/' + GIAO_TINH_TRAN + '.');
     },
 
     // ---- người chơi góp chuyện ----

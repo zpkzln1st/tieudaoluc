@@ -25,6 +25,31 @@ export const TV_NEN = 12;              // trần thành viên ở cấp bang 1
 export const TV_MOI_CAP = 1;           // mỗi 5 cấp bang thêm 1 suất
 export const TV_TRAN = 25;             // trần tuyệt đối (khớp docs I4)
 
+// ---------- CHIÊU MỘ: BA ĐƯỜNG, KHÔNG CÒN CHỢ ----------
+// Trước đây tab Chiêu Mộ bày thẳng 40 tán tu mạnh nhất — thành cái chợ, mua là xong, và
+// vì chỉ lấy phần đỉnh của 200 người nên dải cấp rất hẹp, ai cũng na ná ai.
+// Nay ba đường, mỗi đường một tính:
+//   1. ĐƠN XIN NHẬP MINH  — người tự tìm đến, mỗi 6 giờ (sinhDonXin), duyệt là vào, KHÔNG tốn Bạc.
+//   2. BẢNG CHIÊU HIỀN    — vài tán tu bất kỳ, đổi theo giờ, GIÁ ĐẦY ĐỦ. Không cần quen biết.
+//   3. NGƯỜI QUEN Ở TỬU LÂU — ai đã cùng ngươi uống rượu / hỏi chuyện. Phải đủ bậc Giao Tình
+//      họ mới chịu nghe lời mời, bù lại giá rẻ dần theo bậc.
+export const CHIEU_HIEN_N = 5;                    // số người trên Bảng Chiêu Hiền mỗi lượt
+export const CHIEU_HIEN_MS = 4 * 60 * 60 * 1000;  // đổi bảng mỗi 4 giờ
+
+// ---------- GIAO TÌNH (nuôi ở Tửu Lâu, tiêu ở Chiêu Mộ) ----------
+// Bậc chứ không phải điểm — nhìn phát biết còn phải gặp mấy lần nữa.
+// Mỗi phiên Tửu Lâu (30 phút) một người chỉ lên được MỘT bậc, nên không thể đổ Bạc mua đứt.
+export const GIAO_TINH_TRAN = 5;
+export const GIAO_TINH_GIAM_BAC = 10;             // mỗi bậc bớt 10% giá mời (bậc 5 = bớt 50%)
+// Bao nhiêu bậc thì họ chịu nghe lời mời — CAO THỦ KÉN HƠN. Xét từ trên xuống.
+export const GIAO_TINH_CAN = [
+  { tuTong: 400, can: 3 },
+  { tuTong: 200, can: 2 },
+  { tuTong: 0,   can: 1 },
+];
+/** Số bậc Giao Tình cần để mời được một người Tổng Lv `tong`. */
+export const giaoTinhCan = (tong) => (GIAO_TINH_CAN.find((m) => (tong || 0) >= m.tuTong) || { can: 1 }).can;
+
 // ---------- CỐNG HIẾN ----------
 // Bao nhiêu Bạc đổi được 1 Minh Cống. Để 20 thì góp một lần 200.000 Bạc là nhảy mấy cấp minh
 // ngay — cấp minh mất hết ý nghĩa. Nay 5.000: Bạc chỉ là đường phụ, đường chính là minh chúng
@@ -41,16 +66,22 @@ export const bangCongCanCho = (cap) => Math.round(400 * Math.pow(Math.max(1, cap
 // ⚠ CỘNG CHỈ SỐ THẬT nhưng ÍT — cả cây học tối đa chỉ tới mức dưới đây, cố ý đặt thấp.
 // key trùng đúng tên khoá mà derivedStats/awardKill/effDenom đang đọc, khỏi phải dịch tên.
 export const KY_NANG_BANG = [
-  { id: 'cuongTheQuyet', ten: 'Cương Thể Quyết',   key: 'hpPct',     moiCap: 0.004, maxLv: 5, capBang: 1,  giaNen: 900,  han: 'Sinh Lực', desc: 'Toàn minh luyện thể, gân cốt dày thêm một tầng.' },
-  { id: 'lucBatSon',     ten: 'Lực Bạt Sơn',       key: 'atkPct',    moiCap: 0.004, maxLv: 5, capBang: 1,  giaNen: 900,  han: 'Công Kích', desc: 'Đao pháp Tiên Minh truyền lại, một chiêu nặng hơn một chiêu.' },
-  { id: 'hoThanCuongKhi',ten: 'Hộ Thân Cương Khí', key: 'defPct',    moiCap: 0.004, maxLv: 5, capBang: 3,  giaNen: 1100, han: 'Phòng Ngự', desc: 'Cương khí hộ thân, đòn tới người còn chừa một lớp.' },
-  { id: 'ngoDaoTamKinh', ten: 'Ngộ Đạo Tâm Kinh',  key: 'expPct',    moiCap: 0.006, maxLv: 5, capBang: 5,  giaNen: 1400, han: 'EXP Chiến Đấu', desc: 'Minh chúng giảng võ cho nhau, ngộ ra nhanh hơn.' },
-  { id: 'lungSucQuyet',  ten: 'Lùng Sục Quyết',    key: 'dropPct',   moiCap: 0.006, maxLv: 5, capBang: 8,  giaNen: 1600, han: 'Tỉ Lệ Rơi', desc: 'Tiên Minh có bản đồ riêng — biết chỗ nào yêu thú giấu của.' },
-  { id: 'thamTaiQuyet',  ten: 'Tham Tài Quyết',    key: 'bacPct',    moiCap: 0.008, maxLv: 5, capBang: 8,  giaNen: 1600, han: 'Bạc Nhặt', desc: 'Tiên Minh lo đường tiêu thụ, cùng một món bán được giá hơn.' },
-  { id: 'thoMocChanQuyet',ten:'Thổ Mộc Chân Quyết',key: 'nghePct',   moiCap: 0.008, maxLv: 5, capBang: 5,  giaNen: 1500, han: 'Nghề Khai Thác', desc: 'Bí truyền khai khoáng đốn mộc — tay nghề nhanh hơn người ngoài.' },
-  { id: 'toaQuanQuyet',  ten: 'Toạ Quan Quyết',    key: 'ngheExpPct',moiCap: 0.006, maxLv: 5, capBang: 12, giaNen: 1800, han: 'EXP Nghề', desc: 'Học nghề trong minh có người chỉ, tiến bộ nhanh hơn tự mò.' },
+  { id: 'cuongTheQuyet', ten: 'Cương Thể Quyết',   key: 'hpPct',     moiCap: 0.004, maxLv: 5, capBang: 1,  giaNen: 900,  han: 'Sinh Lực' },
+  { id: 'lucBatSon',     ten: 'Lực Bạt Sơn',       key: 'atkPct',    moiCap: 0.004, maxLv: 5, capBang: 1,  giaNen: 900,  han: 'Công Kích' },
+  { id: 'hoThanCuongKhi',ten: 'Hộ Thân Cương Khí', key: 'defPct',    moiCap: 0.004, maxLv: 5, capBang: 3,  giaNen: 1100, han: 'Phòng Ngự' },
+  { id: 'ngoDaoTamKinh', ten: 'Ngộ Đạo Tâm Kinh',  key: 'expPct',    moiCap: 0.006, maxLv: 5, capBang: 5,  giaNen: 1400, han: 'EXP Chiến Đấu' },
+  { id: 'lungSucQuyet',  ten: 'Lùng Sục Quyết',    key: 'dropPct',   moiCap: 0.006, maxLv: 5, capBang: 8,  giaNen: 1600, han: 'Tỉ Lệ Rơi' },
+  { id: 'thamTaiQuyet',  ten: 'Tham Tài Quyết',    key: 'bacPct',    moiCap: 0.008, maxLv: 5, capBang: 8,  giaNen: 1600, han: 'Bạc Nhặt' },
+  { id: 'thoMocChanQuyet',ten:'Thổ Mộc Chân Quyết',key: 'nghePct',   moiCap: 0.008, maxLv: 5, capBang: 5,  giaNen: 1500, han: 'Nghề Khai Thác' },
+  { id: 'toaQuanQuyet',  ten: 'Toạ Quan Quyết',    key: 'ngheExpPct',moiCap: 0.006, maxLv: 5, capBang: 12, giaNen: 1800, han: 'EXP Nghề' },
 ];
 export const KY_NANG_BY_ID = Object.fromEntries(KY_NANG_BANG.map((k) => [k.id, k]));
+// Chữ đỡ khi CHƯA CÓ ART (images/tienminh/kn/<id>.webp — xem docs/ART_KYNANG_TIENMINH.md).
+// Cả 8 chữ đã nằm sẵn trong subset Noto Serif SC nên không phải đụng vào <head>.
+export const KY_NANG_HAN = {
+  cuongTheQuyet: '剛', lucBatSon: '力', hoThanCuongKhi: '護', ngoDaoTamKinh: '悟',
+  lungSucQuyet: '窺', thamTaiQuyet: '財', thoMocChanQuyet: '土', toaQuanQuyet: '禪',
+};
 /** Công Tích để nâng kĩ năng lên cấp `lv` (1..maxLv). Cấp sau đắt hơn cấp trước. */
 export const giaKyNang = (kn, lv) => Math.round(kn.giaNen * Math.pow(1.85, Math.max(0, lv - 1)));
 
@@ -138,10 +169,10 @@ export const gioCongTrinh = (ct, lv) => Math.round(ct.gioXay * Math.pow(1.35, Ma
 // `loai` quyết định lấy số ở đâu: kill = tổng quái hạ · gather = tổng vật phẩm nghề làm ra
 // · bac = Bạc nộp bang khố · boss = số lần hạ Yêu Vương.
 export const NV_BANG = [
-  { id: 'nvb_san',   loai: 'kill',   ten: 'Vây Sát Yêu Thú',    can: 900,   ct: 700, bangCong: 260, desc: 'Cả minh hạ đủ số yêu thú.' },
-  { id: 'nvb_khai',  loai: 'gather', ten: 'Khai Sơn Phá Thạch', can: 700,   ct: 700, bangCong: 260, desc: 'Cả minh làm ra đủ số vật phẩm nghề.' },
-  { id: 'nvb_bac',   loai: 'bac',    ten: 'Sung Doanh Minh Khố',can: 90000, ct: 650, bangCong: 300, desc: 'Cả minh nộp đủ Bạc vào Minh Khố.' },
-  { id: 'nvb_boss',  loai: 'boss',   ten: 'Trảm Yêu Trừ Hại',   can: 8,     ct: 800, bangCong: 320, desc: 'Cả minh hạ đủ số Yêu Vương.' },
+  { id: 'nvb_san',   loai: 'kill',   ten: 'Vây Sát Yêu Thú',    can: 900,   ct: 700, bangCong: 260 },
+  { id: 'nvb_khai',  loai: 'gather', ten: 'Khai Sơn Phá Thạch', can: 700,   ct: 700, bangCong: 260 },
+  { id: 'nvb_bac',   loai: 'bac',    ten: 'Sung Doanh Minh Khố',can: 90000, ct: 650, bangCong: 300 },
+  { id: 'nvb_boss',  loai: 'boss',   ten: 'Trảm Yêu Trừ Hại',   can: 8,     ct: 800, bangCong: 320 },
 ];
 export const NV_BANG_MOI_KY = 2;          // mỗi kỳ bốc 2 việc
 export const NV_BANG_KY_MS = 7 * 24 * 3600 * 1000;   // đổi việc mỗi tuần

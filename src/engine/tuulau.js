@@ -12,8 +12,9 @@
 // ============================================================
 import { LOCATIONS } from '../data/locations.js';
 import { YEU_VUONG } from '../data/combat.js';
+import { GIAO_TINH_TRAN, giaoTinhCan } from '../data/bangphai.js';   // bảng số thuần, không kéo theo engine nào
 import { danhSiList } from './danhsi.js';
-import { genRoster, botAvatar, botTitle, botCombatLv, botActivity } from './bots.js';
+import { genRoster, botAvatar, botTitle, botCombatLv, botTotalLv, botActivity } from './bots.js';
 
 export const PHIEN_MS = 30 * 60 * 1000;   // đổi lượt khách mỗi 30 phút
 export const KHACH_N = 4;                 // 4 ghế
@@ -32,7 +33,47 @@ export function ensureTuuLau(state) {
   if (!t.hoiLan) t.hoiLan = {};                   // { khachId: ts lần hỏi chuyện gần nhất }
   if (typeof t.chen !== 'number') t.chen = 0;     // số chén đã mời (đếm cho vui)
   if (typeof t.nghe !== 'number') t.nghe = 0;     // số tin đồn đã nghe
+  if (!t.giaoTinh) t.giaoTinh = {};               // { botId: bậc 1..GIAO_TINH_TRAN }
+  if (!t.gtPhien) t.gtPhien = {};                 // { botId: phiên gần nhất đã lên bậc }
   return t;
+}
+
+// ---------- GIAO TÌNH ----------
+// Nuôi ở đây, tiêu ở tab Chiêu Mộ của Tiên Minh (đủ bậc mới mời được, và rẻ dần theo bậc).
+// CHỈ bot mới có Giao Tình — Danh Sĩ là NPC cốt truyện, không nhập minh được.
+// ⚠ Chặn theo PHIÊN chứ không theo lần bấm: Mời Rượu không có nguội, để trống thì cứ đổ Bạc
+// là mua đứt quan hệ trong một phút. Mỗi phiên 30 phút một người chỉ lên MỘT bậc.
+
+/** Bậc Giao Tình hiện có với một người (0 = chưa quen). */
+export function bacGiaoTinh(state, botId) {
+  if (!botId) return 0;
+  const t = ensureTuuLau(state);
+  return t.giaoTinh[botId] | 0;
+}
+/** Phiên này người đó còn lên bậc được không. */
+export function lenBacDuoc(state, botId, now) {
+  if (!botId) return false;
+  const t = ensureTuuLau(state);
+  if ((t.giaoTinh[botId] | 0) >= GIAO_TINH_TRAN) return false;
+  return t.gtPhien[botId] !== phienCua(now);
+}
+/**
+ * Cộng một bậc Giao Tình. Trả BẬC MỚI nếu lên được, 0 nếu không (đã trần / đã lên phiên này).
+ * Gọi từ cả Mời Rượu lẫn Hỏi Chuyện — hai đường đều là "gặp mặt", không phân biệt.
+ */
+export function themGiaoTinh(state, botId, now) {
+  if (!lenBacDuoc(state, botId, now)) return 0;
+  const t = ensureTuuLau(state);
+  t.giaoTinh[botId] = (t.giaoTinh[botId] | 0) + 1;
+  t.gtPhien[botId] = phienCua(now);
+  return t.giaoTinh[botId];
+}
+/** Mọi người đã quen: [{ botId, bac }] — Chiêu Mộ tra lại cấp và giá từ đây. */
+export function danhSachQuen(state) {
+  const t = ensureTuuLau(state);
+  return Object.keys(t.giaoTinh)
+    .filter((id) => (t.giaoTinh[id] | 0) > 0)
+    .map((id) => ({ botId: id, bac: t.giaoTinh[id] | 0 }));
 }
 
 export const phienCua = (now) => Math.floor((now || Date.now()) / PHIEN_MS);
@@ -130,8 +171,14 @@ const TIN_NGUOI = [
 
 // ============================================================
 // KHÁCH TRONG QUÁN — 2 Danh Sĩ + 2 bot, suy từ seed + phiên.
+//
+// ⚠ MỘT NGOẠI LỆ với luật "khách suy hoàn toàn từ seed": nếu truyền `state` vào thì GHẾ BOT
+// THỨ HAI ưu tiên người ngươi đã quen mà chưa đủ bậc mời. Không có ngoại lệ này thì Giao Tình
+// bất khả thi — 200 bot, mỗi phiên rút 2, gặp lại đúng một người là 1/100 mỗi lượt, nuôi lên
+// bậc 3 phải chờ hàng trăm giờ. Vẫn tất định (chọn theo seed+phiên), F5 ra đúng người đó.
+// Không truyền `state` thì chạy y như cũ — chỗ nào chỉ cần xem quán vẫn gọi được.
 // ============================================================
-export function khachTrongQuan(world, now) {
+export function khachTrongQuan(world, now, state) {
   const t = now || Date.now(), ph = phienCua(t);
   const seed = (world && world.seed) || 1, createdAt = (world && world.createdAt) || 0;
   const base = mix(seed >>> 0, ph);
@@ -162,14 +209,32 @@ export function khachTrongQuan(world, now) {
   const roster = genRoster(seed, createdAt);
   if (roster && roster.length) {
     const j0 = mix(base, 211) % roster.length;
-    const j1 = (j0 + 1 + (mix(base, 307) % Math.max(1, roster.length - 1))) % roster.length;
+    let j1 = (j0 + 1 + (mix(base, 307) % Math.max(1, roster.length - 1))) % roster.length;
+    // GHẾ THỨ HAI: 55% lượt dành cho người quen ĐANG DỞ DANG — để Giao Tình nuôi được.
+    // "Dở dang" = chưa đủ bậc để mời VÀ chưa ở trong minh. Không lọc hai vế này thì cái ghế
+    // phí vào người đã mời được rồi (hoặc đã là minh chúng), mà mặt thì cứ lặp lại.
+    if (state && (mix(base, 907) % 100) < 55) {
+      const bang = state.bangPhai && state.bangPhai.bang;
+      const trongMinh = new Set(bang ? (bang.tv || []).map((m) => m.id) : []);
+      const doDang = [];
+      for (const q of danhSachQuen(state)) {
+        if (trongMinh.has(q.botId)) continue;
+        const i = roster.findIndex((b) => b.id === q.botId);
+        if (i < 0 || i === j0) continue;
+        if (q.bac >= giaoTinhCan(botTotalLv(roster[i], t))) continue;   // mời được rồi thì thôi
+        doDang.push(i);
+      }
+      if (doDang.length) j1 = doDang[mix(base, 1103) % doDang.length];
+    }
     [j0, j1].forEach((j, k) => {
       const b = roster[j], av = botAvatar(b), lv = botCombatLv(b, t);
       const viec = botActivity(b, t);                   // việc bot ĐANG làm thật (dùng chung với Đồng Đạo Lân Cận)
       const h = mix(base, 401 + k);
       out.push({
-        id: 'bot:' + j, loai: 'bot', ten: b.name, phu: botTitle(b, t),
-        av, mau: '#cbd5e1', cap: 'Chiến Đấu Lv ' + lv, viec, lv,
+        // `id` là khoá của bảng tin / nguội hỏi chuyện (giữ nguyên dạng cũ để save cũ không lệch).
+        // `botId` là khoá THẬT của con bot — Giao Tình và Chiêu Mộ đều tra bằng nó.
+        id: 'bot:' + j, botId: b.id, loai: 'bot', ten: b.name, phu: botTitle(b, t),
+        av, mau: '#cbd5e1', cap: 'Chiến Đấu Lv ' + lv, viec, lv, tong: botTotalLv(b, t),
         cau: (h % 100) < 40 ? `Dạo này ta ${viec}, mệt đứt hơi.` : pick(h, CAU_NGOI),
         gia: giaRuou(80 + lv * 6),
       });

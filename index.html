@@ -11128,6 +11128,13 @@
            Người chơi LẬP BANG và làm BANG CHỦ (nên mới có quyền kích/thăng/hạ chức, đặt quyền,
            duyệt đơn, xây công trình). 12 bang AI suy từ seed là ĐỐI THỦ trên bảng Chinh Phạt.
            Luật ở engine/bangphai.js (thuần, kiểm bằng node); buff chỉ số ở engine/bangbuff.js. -->
+      <style>
+        /* Ô hạng ở hai bảng xếp hạng. Ba hạng đầu đóng badge_hex (dùng chung với Động Phủ /
+           Kỳ Trận), từ hạng 4 để số trơn — nhưng CÙNG KÍCH THƯỚC để cột số không so le. */
+        .bp-hang{ width:28px; height:30px; font-size:12px; color:#64748b; }
+        .bp-hang-top{ background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat;
+                      text-shadow:0 1px 2px #000, 0 0 6px rgba(0,0,0,.8); }
+      </style>
       <template x-if="$store.game.view==='guild'">
         <div class="max-w-[1200px] mx-auto" x-data="bangPhai()" x-init="bpInit()">
 
@@ -11522,14 +11529,51 @@
                     </div>
                   </template>
 
+                  <!-- NGƯỜI QUEN Ở TỬU LÂU — nuôi Giao Tình bên quán, tiêu ở đây.
+                       Chưa đủ bậc thì nút khoá và nói thẳng còn thiếu mấy bận rượu. -->
+                  <template x-if="quen.length">
+                    <div class="panel rounded-xl overflow-hidden border border-jade/25">
+                      <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                        <div class="text-jade font-bold fserif">Người Quen Ở Tửu Lâu</div>
+                        <div class="text-[10.5px] text-slate-600" x-text="quen.length + ' người · mỗi bậc Giao Tình bớt 10% lễ mời'"></div>
+                      </div>
+                      <div class="divide-y divide-slate-800/60">
+                        <template x-for="t in quen" :key="t.id">
+                          <div class="flex items-center gap-2.5 px-3.5 py-2">
+                            <div class="w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 border border-slate-700/70" :class="t.av.color" x-data="{ok:true}">
+                              <img :src="'images/avatars/'+t.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                              <span x-show="!ok" class="fserif" x-text="t.av.char"></span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                              <div class="text-[12.5px] truncate" :style="'color:'+t.mau" x-text="t.ten"></div>
+                              <div class="text-[10.5px] text-slate-600 truncate" x-text="t.hieu + ' · ' + t.loai + ' · Tổng Lv ' + t.tong"></div>
+                            </div>
+                            <!-- Hạt Giao Tình: chỉ vẽ đúng số bậc NGƯỜI NÀY đòi (t.can), hạt đặc là
+                                 đã thân tới đó. Vẽ đủ 5 hạt thì ai cũng như ai, không thấy cao thủ kén hơn. -->
+                            <div class="shrink-0 flex items-center gap-[3px]" :title="'Giao Tình ' + t.bac + '/' + t.can">
+                              <template x-for="i in t.can" :key="i">
+                                <span class="w-[6px] h-[6px] rounded-full"
+                                      :style="i <= t.bac ? 'background:#14b8a6' : 'background:transparent;box-shadow:inset 0 0 0 1px #3d4a63'"></span>
+                              </template>
+                            </div>
+                            <button @click="mo(t)" :disabled="!t.du || bac < t.gia || tv.length >= tranTv"
+                              class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif border transition whitespace-nowrap"
+                              :class="(t.du && bac >= t.gia && tv.length < tranTv) ? 'text-jade border-jade/50 hover:bg-jade/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                              x-text="t.du ? ('Mời · ' + fmt(t.gia)) : ('Còn ' + (t.can - t.bac) + ' bận rượu')"></button>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- BẢNG CHIÊU HIỀN — vài người bất kỳ, đổi theo giờ, giá đầy đủ. -->
                   <div class="panel rounded-xl overflow-hidden flex flex-col">
                     <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap shrink-0">
-                      <div class="text-jade font-bold fserif">Chiêu Mộ Tán Tu</div>
-                      <input x-model="timTanTu" type="text" placeholder="tìm tên…"
-                        class="bg-ink border border-slate-700 rounded-lg px-2.5 py-1 text-[11.5px] text-slate-300 outline-none focus:border-jade/50 w-[130px]">
+                      <div class="text-jade font-bold fserif">Bảng Chiêu Hiền</div>
+                      <div class="text-[10.5px] text-slate-600">thay lượt sau <b class="text-slate-400" x-text="bangDoiSau"></b></div>
                     </div>
                     <div class="divide-y divide-slate-800/60">
-                      <template x-for="t in tanTu" :key="t.id">
+                      <template x-for="t in bangHien" :key="t.id">
                         <div class="flex items-center gap-2.5 px-3.5 py-2">
                           <div class="w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[12px] text-white/90 border border-slate-700/70" :class="t.av.color" x-data="{ok:true}">
                             <img :src="'images/avatars/'+t.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
@@ -11539,16 +11583,18 @@
                             <div class="text-[12.5px] truncate" :style="'color:'+t.mau" x-text="t.ten"></div>
                             <div class="text-[10.5px] text-slate-600 truncate" x-text="t.hieu + ' · ' + t.loai + ' · Tổng Lv ' + t.tong"></div>
                           </div>
+                          <template x-if="t.bac">
+                            <span class="shrink-0 text-[10px] text-jade/80 whitespace-nowrap" x-text="'−' + (t.bac * 10) + '%'"></span>
+                          </template>
                           <button @click="mo(t)" :disabled="bac < t.gia || tv.length >= tranTv"
-                            class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif border transition"
+                            class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif border transition whitespace-nowrap"
                             :class="(bac >= t.gia && tv.length < tranTv) ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
                             x-text="'Mời · ' + fmt(t.gia)"></button>
                         </div>
                       </template>
                     </div>
                     <div class="px-4 py-2 border-t border-slate-800 text-[10.5px] text-slate-600">
-                      Hiện 40 người mạnh nhất chưa vào minh — gõ tên để tìm người khác.
-                      Chỗ trống: <b class="text-slate-400" x-text="(tranTv - tv.length)"></b> suất.
+                      Chỗ trống: <b class="text-slate-400" x-text="(tranTv - tv.length)"></b> suất
                     </div>
                   </div>
                 </div>
@@ -11689,38 +11735,71 @@
               </template>
 
               <!-- ===== TAB: KĨ NĂNG ===== -->
+              <!-- ===== TAB: KĨ NĂNG — lưới thẻ có art =====
+                   Không dòng chú dưới tên: con số ngay bên cạnh đã nói đủ.
+                   Art: images/tienminh/kn/<id>.webp (xem docs/ART_KYNANG_TIENMINH.md); thiếu ảnh
+                   thì rơi về chữ Hán trên nền sơn mài, thả file vào là chạy. -->
               <template x-if="tab==='kyNang'">
-                <div class="panel rounded-xl overflow-hidden">
-                  <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-                    <div class="text-jade font-bold fserif">Kĩ Năng Tiên Minh</div>
-                    <div class="text-[10.5px] text-slate-600">Cộng chỉ số thật cho nhân vật — mức nhỏ, cả cây tối đa dưới 4% mỗi dòng</div>
+                <div>
+                  <div class="panel rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+                    <div class="text-jade font-bold fserif text-[15px]">Kĩ Năng Tiên Minh</div>
+                    <div class="rounded-lg border border-violet-500/35 bg-violet-500/8 px-3 py-1.5 text-right shrink-0">
+                      <div class="text-[9.5px] uppercase tracking-[.14em] text-violet-300/70">Công Tích</div>
+                      <div class="text-[15px] fserif text-violet-200 leading-tight" x-text="fmt(congTich)"></div>
+                    </div>
                   </div>
-                  <div class="divide-y divide-slate-800/60">
+
+                  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-3">
                     <template x-for="kn in kyNang" :key="kn.id">
-                      <div class="px-3.5 py-3" :class="kn.moKhoa ? '' : 'opacity-45'">
-                        <div class="flex items-baseline gap-2 flex-wrap">
-                          <b class="text-[13.5px] fserif text-slate-200" x-text="kn.ten"></b>
-                          <span class="text-[10.5px] text-slate-600" x-text="'cấp ' + kn.lv + '/' + kn.maxLv"></span>
-                          <span class="text-[11px] text-jade ml-auto" x-text="'+' + kn.hienTai + '% ' + kn.han"></span>
+                      <div class="relative panel rounded-xl overflow-hidden flex flex-col"
+                           :class="kn.moKhoa ? '' : 'opacity-55'"
+                           :style="kn.lv ? 'border-color:rgba(167,139,250,.4)' : ''">
+                        <div class="relative overflow-hidden" style="aspect-ratio:1/1">
+                          <!-- Nền chữ nằm TRƯỚC trong DOM, ảnh chồng lên. Không dùng z-index âm:
+                               thẻ chỉ `position:relative` nên -z-10 chui xuống dưới cả nền panel. -->
+                          <div class="absolute inset-0" style="background:linear-gradient(158deg,#1a1430,#0b0d1a)"></div>
+                          <span class="absolute inset-0 grid place-items-center fserif select-none"
+                                :style="'font-size:clamp(30px,4vw,42px);color:' + (kn.lv ? '#a78bfa' : '#3f3a5c')"
+                                x-text="knHan(kn.id)"></span>
+                          <img :src="'images/tienminh/kn/' + kn.id + '.webp'" alt=""
+                               class="absolute inset-0 w-full h-full object-cover"
+                               :style="kn.lv ? '' : 'filter:grayscale(1) brightness(.5)'"
+                               onerror="this.remove()">
+                          <div class="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
+                               style="background:linear-gradient(180deg,transparent,rgba(6,9,16,.92))"></div>
+                          <div class="absolute inset-x-0 bottom-0 px-2 pb-1.5">
+                            <div class="text-[12px] fserif truncate leading-tight"
+                                 :class="kn.lv ? 'text-violet-200' : 'text-slate-400'" x-text="kn.ten"></div>
+                            <div class="flex items-center justify-between gap-1 mt-1">
+                              <span class="flex items-center gap-[3px]">
+                                <template x-for="i in kn.maxLv" :key="i">
+                                  <span class="w-[5px] h-[5px] rounded-full"
+                                        :style="i <= kn.lv ? 'background:#a78bfa' : 'background:transparent;box-shadow:inset 0 0 0 1px #3d3a5c'"></span>
+                                </template>
+                              </span>
+                              <span class="text-[10.5px] text-jade tabular-nums whitespace-nowrap"
+                                    x-text="'+' + kn.hienTai + '%'"></span>
+                            </div>
+                          </div>
                         </div>
-                        <div class="text-[11.5px] text-slate-500 mt-0.5" x-text="kn.desc"></div>
-                        <div class="h-1.5 rounded-full bg-ink mt-2 overflow-hidden">
-                          <div class="h-full rounded-full" :style="'width:'+pct(kn.lv,kn.maxLv)+'%;background:linear-gradient(90deg,#7c3aed,#a78bfa)'"></div>
-                        </div>
-                        <div class="flex items-center gap-2 mt-2 flex-wrap">
-                          <template x-if="kn.lv < kn.maxLv">
-                            <button @click="hoc(kn)" :disabled="!kn.nangDuoc"
-                              class="px-3 py-1 rounded-lg text-[11.5px] fserif border transition"
-                              :class="kn.nangDuoc ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
-                              x-text="'Nâng · ' + fmt(kn.gia) + ' Công Tích'"></button>
-                          </template>
-                          <template x-if="kn.lv >= kn.maxLv"><span class="text-[11.5px] text-jade">Đã tới trần</span></template>
-                          <span class="text-[10.5px] text-slate-600" x-text="kn.lv < kn.maxLv ? ('lên cấp sau: +' + kn.keTiep + '%') : ''"></span>
-                          <template x-if="kn.chanBoi">
-                            <span class="text-[10.5px] text-rose-400" x-text="'cần nâng ' + kn.chanBoi"></span>
-                          </template>
+
+                        <!-- Chân thẻ CHỐT CỨNG chiều cao: nút và chip điều kiện thay nhau chiếm
+                             đúng một hàng, không thì nâng một cấp là cả lưới nhảy. -->
+                        <div class="px-2 py-2 flex items-center justify-center min-h-[42px]" style="background:#0b0e16">
                           <template x-if="!kn.moKhoa">
-                            <span class="text-[10.5px] text-rose-400" x-text="'cần Minh cấp ' + kn.capBang"></span>
+                            <span class="text-[10.5px] text-rose-400 text-center leading-tight" x-text="'Minh cấp ' + kn.capBang"></span>
+                          </template>
+                            <template x-if="kn.moKhoa && kn.chanBoi">
+                            <span class="text-[10.5px] text-rose-400 text-center leading-tight" x-text="kn.chanBoi"></span>
+                          </template>
+                          <template x-if="kn.moKhoa && !kn.chanBoi && kn.lv >= kn.maxLv">
+                            <span class="text-[11.5px] fserif text-jade">Đã tới trần</span>
+                          </template>
+                          <template x-if="kn.moKhoa && !kn.chanBoi && kn.lv < kn.maxLv">
+                            <button @click="hoc(kn)" :disabled="!kn.nangDuoc"
+                              class="px-2.5 py-1 rounded-lg text-[11px] fserif border transition whitespace-nowrap"
+                              :class="kn.nangDuoc ? 'text-violet-200 border-violet-500/50 hover:bg-violet-500/10' : 'text-slate-600 border-slate-800 cursor-default'"
+                              x-text="fmt(kn.gia) + ' Công Tích'"></button>
                           </template>
                         </div>
                       </div>
@@ -11881,13 +11960,11 @@
                               <!-- thanh tỉ lệ chạy NGẦM sau chữ: nhìn phát biết ai hơn ai bao nhiêu -->
                               <div class="absolute inset-y-0 left-0 pointer-events-none"
                                    :style="'width:' + Math.round(r.diem / Math.max(1, bxhVung[0].diem) * 100) + '%;background:linear-gradient(90deg,' + r.mauCo + '22, transparent)'"></div>
-                              <!-- huy chương ba hạng đầu, từ hạng 4 để số trơn -->
-                              <span class="relative w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold tabular-nums"
-                                    :style="r.hang <= 3 ? ('background:radial-gradient(circle at 50% 35%,' + hangMau(r.hang) + ',' + hangMau(r.hang) + '99);color:#0a0f19')
-                                                        : 'color:#64748b'"
+                              <!-- ba hạng đầu đóng badge_hex, từ hạng 4 để số trơn -->
+                              <span class="relative shrink-0 grid place-items-center fserif font-bold tabular-nums bp-hang"
+                                    :class="r.hang <= 3 ? 'bp-hang-top' : ''"
+                                    :style="r.hang <= 3 ? ('color:' + hangMau(r.hang)) : ''"
                                     x-text="r.hang"></span>
-                              <!-- cờ bang: hình phướn nhỏ thay chấm tròn -->
-                              <span class="relative w-[7px] h-[18px] shrink-0" :style="'background:'+r.mauCo+';clip-path:polygon(0 0,100% 0,100% 74%,50% 100%,0 74%)'"></span>
                               <div class="relative min-w-0 flex-1">
                                 <div class="text-[12.5px] truncate" :class="r.laTa ? 'text-amber-200 font-bold' : 'text-slate-200'" x-text="r.ten"></div>
                                 <div class="text-[10px] text-slate-600" x-text="'cấp ' + r.cap"></div>
@@ -11908,11 +11985,10 @@
                             <div class="relative flex items-center gap-2.5 px-3.5 py-2 overflow-hidden" :class="r.laTa ? 'bg-amber-500/8' : ''">
                               <div class="absolute inset-y-0 left-0 pointer-events-none"
                                    :style="'width:' + Math.round(r.diem / Math.max(1, bxhMua[0].diem) * 100) + '%;background:linear-gradient(90deg,' + r.mauCo + '22, transparent)'"></div>
-                              <span class="relative w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold tabular-nums"
-                                    :style="r.hang <= 3 ? ('background:radial-gradient(circle at 50% 35%,' + hangMau(r.hang) + ',' + hangMau(r.hang) + '99);color:#0a0f19')
-                                                        : 'color:#64748b'"
+                              <span class="relative shrink-0 grid place-items-center fserif font-bold tabular-nums bp-hang"
+                                    :class="r.hang <= 3 ? 'bp-hang-top' : ''"
+                                    :style="r.hang <= 3 ? ('color:' + hangMau(r.hang)) : ''"
                                     x-text="r.hang"></span>
-                              <span class="relative w-[7px] h-[18px] shrink-0" :style="'background:'+r.mauCo+';clip-path:polygon(0 0,100% 0,100% 74%,50% 100%,0 74%)'"></span>
                               <div class="relative min-w-0 flex-1">
                                 <div class="text-[12.5px] truncate" :class="r.laTa ? 'text-amber-200 font-bold' : 'text-slate-200'" x-text="r.ten"></div>
                                 <div class="text-[10px] flex items-center gap-1.5">
@@ -12327,7 +12403,24 @@
                         <b class="fserif text-[13.5px] truncate" :style="'color:'+k.mau" x-text="k.ten"></b>
                         <span class="text-[10.5px] text-slate-500 truncate" x-text="k.phu"></span>
                       </div>
-                      <div class="text-[10.5px] text-slate-600 mt-0.5" x-text="k.cap"></div>
+                      <!-- Giao Tình nằm CHUNG HÀNG với cấp: hàng này luôn có nên chén rượu đầu
+                           tiên không đẩy thẻ cao thêm một dòng. Danh Sĩ không có (NPC cốt truyện,
+                           không nhập minh được) nên hàng vẫn y nguyên. -->
+                      <div class="text-[10.5px] text-slate-600 mt-0.5 flex items-center gap-2 flex-wrap">
+                        <span x-text="k.cap"></span>
+                        <template x-if="k.botId">
+                          <span class="inline-flex items-center gap-1.5">
+                            <span class="text-slate-700">·</span>
+                            <span :class="gtBac(k) >= gtCan(k) ? 'text-jade' : 'text-slate-500'">Giao Tình</span>
+                            <span class="inline-flex items-center gap-[3px]">
+                              <template x-for="i in gtCan(k)" :key="i">
+                                <span class="w-[6px] h-[6px] rounded-full"
+                                      :style="i <= gtBac(k) ? 'background:#14b8a6' : 'background:transparent;box-shadow:inset 0 0 0 1px #3d4a63'"></span>
+                              </template>
+                            </span>
+                          </span>
+                        </template>
+                      </div>
                       <div class="text-[12px] text-slate-300 italic leading-snug mt-1.5" x-text="'“'+k.cau+'”'"></div>
                       <div class="flex flex-wrap items-center gap-2 mt-2.5">
                         <button @click="moiRuou(k)" :disabled="!duTien(k)"
