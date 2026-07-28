@@ -1,6 +1,6 @@
 # ART — KĨ NĂNG TIÊN MINH (8 icon)
 
-Thả file vào `images/tienminh/kn/<id>.webp` — **vuông 1:1, khuyên 512×512**, không nền trong suốt.
+Thả file vào `images/tienminh/kn/<id>.webp` — **ngang 3:2, khuyên 768×512**, không nền trong suốt.
 Code đã cắm sẵn: thiếu file nào thì ô đó tự rơi về chữ Hán trên nền sơn mài tím, **thả file vào là chạy, không cần sửa code.**
 
 ⚠ **Tên file = đúng id**, không dấu, camelCase. Đổi tên là ô đó không hiện.
@@ -23,12 +23,12 @@ Code đã cắm sẵn: thiếu file nào thì ô đó tự rơi về chữ Hán 
 Tám icon phải nhìn ra là **một bộ**. Đoạn này lo việc đó, chỉ đổi đoạn mô tả riêng bên dưới.
 
 ```
-Wuxia martial-arts skill icon, painterly Chinese ink-wash blended with semi-realistic game art, single centered subject filling the frame, dark ink-black background with deep violet-indigo haze, antique gold and violet accents, static inner glow (no lens flare, no motion blur), fine ink linework, subtle mist at the base, cinematic rim light from upper left, muted palette, ultra detailed, no text, no letters, no border frame, no UI elements, 1:1 square —
+Wuxia martial-arts skill icon, painterly Chinese ink-wash blended with semi-realistic game art, single centered subject filling the frame, dark ink-black background with deep violet-indigo haze, antique gold and violet accents, static inner glow (no lens flare, no motion blur), fine ink linework, subtle mist at the base, cinematic rim light from upper left, muted palette, ultra detailed, no text, no letters, no border frame, no UI elements, 3:2 horizontal —
 ```
 
 **Ba luật cứng** (lệch là lạc bộ):
 1. **KHÔNG chữ, KHÔNG khung viền** — code tự đóng khung và ghi tên đè lên đáy ảnh.
-2. **Chừa đáy ảnh** — 30% dưới bị dải tối phủ để đặt tên + hạt cấp. Đừng để chi tiết quan trọng ở đó.
+2. **Chừa đáy ảnh** — nửa dưới bị dải tối phủ để đặt tên + hạt cấp. Đừng để chi tiết quan trọng ở đó.
 3. **Tông tím-chàm + vàng cổ** — đây là sắc riêng của Kĩ Năng Tiên Minh, khác hẳn năm art công trình (đêm xanh lam).
 
 ---
@@ -77,7 +77,7 @@ a lone figure seated cross-legged on a flat rock at the summit above a sea of cl
 
 ## SAU KHI GEN
 
-1. Xuất **.webp**, vuông, khuyên 512×512 (dưới ~200 KB/tấm).
+1. Xuất **.webp**, ngang 3:2, khuyên 768×512 (dưới ~200 KB/tấm).
 2. Đặt vào `images/tienminh/kn/` đúng tên bảng trên.
 3. Mở tab **Tiên Minh → Kĩ Năng** xem — không cần sửa dòng code nào.
 4. Tấm nào chưa gen thì ô đó vẫn là chữ Hán, không vỡ layout.
