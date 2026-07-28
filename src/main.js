@@ -19,7 +19,9 @@ import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Ti
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
 import { coTuong, ensureCoTuong } from './cotuong.js';               // Cờ Tướng (象棋 3D, cách ly)
 import { coVua, ensureCoVua } from './covua.js';                     // Cờ Vua (西洋棋 3D, cách ly)
-import { tuuLau, ensureTuuLau } from './tuulau.js';                  // Tửu Lâu (quán rượu giang hồ, cách ly)
+import { tuuLau, ensureTuuLau } from './tuulau.js';
+import { bangPhai, ensureBangPhai } from './bangphai.js';            // Bang Phái (lập bang, chinh phạt, boss bang)
+import { ghiKillChinhPhat } from './engine/bangphai.js';             // điểm Chinh Phạt khi hạ quái                  // Tửu Lâu (quán rượu giang hồ, cách ly)
 import { kiemHanFont } from './engine/hanfont.js';      // chữ Hán: nguồn chân lý + máy tự soát font
 import { ensureKyHon } from './engine/kyhon.js';                     // Kỳ Hồn dùng chung cho mọi bàn cờ
 import { ensureGocNhin } from './engine/gocnhin.js';                 // Góc nhìn bàn cờ người chơi tự khoá (dùng chung 3 bàn)
@@ -162,8 +164,7 @@ ensureBuffs(state);        // Đan Bổ Trợ: khởi tạo state.buffs
 migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành Hồi Sinh Lực / Hồi Nội Lực / Dược Lư
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
-ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state); ensureNguTu(state); ensureCoTuong(state); ensureCoVua(state); ensureTuuLau(state);
-delete state.bangPhai;     // Bang Phái bản cũ đã gỡ (2026-07-27) — dọn số liệu chết để bản thiết kế lại không đụng phải khuôn cũ
+ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state); ensureNguTu(state); ensureCoTuong(state); ensureCoVua(state); ensureTuuLau(state); ensureBangPhai(state);
 ensureKyHon(state);        // Kỳ Hồn CHUNG (mọi bàn cờ) — PHẢI sau các ensure trên để gộp được số của save cũ
 ensureGocNhin(state);      // Góc nhìn bàn cờ đã khoá (null = mỗi bàn tự canh)
 ensureDongPhu(state); resolveDongPhu(state, Date.now());   // Động Phủ: khởi tạo + hoàn công job xong TRƯỚC advance offline & simTongMon (trần treo nhà áp cho cả khoảng vắng)
@@ -446,7 +447,7 @@ const gameStore = {
   openCoVua(id) { this._cvOpp = id || null; this.navTo('coVua'); },      // deep-link Cờ Vua từ Hồ Sơ Danh Sĩ
   _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
-  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tavern'],
+  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tavern', 'guild'],
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
   applyHashRoute() {   // đọc URL hash -> đổi view (KHÔNG push lại, tránh lặp). Gọi khi popstate (back/forward).
     const h = location.hash || '';
@@ -1953,7 +1954,7 @@ const gameStore = {
   },
   statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tavern'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tavern', 'guild'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
 
   // ---------- ĐÀM ĐẠO (cốt truyện NPC nghề — chương mở theo cấp nghề + hội thoại nhánh) ----------
@@ -3509,6 +3510,10 @@ const gameStore = {
     if ((e.reqLevel || 0) >= MANH_DROP_MIN_LV && Math.random() < MANH_DROP_CHANCE * lootMul) { addItem(this.state, 'manhTrangBi', 1); sess.loot.manhTrangBi = (sess.loot.manhTrangBi || 0) + 1; }
     if (Math.random() < BAC_DROP_CHANCE) { const bacGain = Math.round(Math.max(1, Math.round(e.exp * BAC_PER_EXP)) * moneyMul); this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain; sess.bac += bacGain; }   // Bạc rơi ~15%/kill (không phải mỗi con)
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
+    // BANG PHÁI — Chinh Phạt: hạ quái ở vùng nào thì sinh điểm cho bang ở ĐÚNG vùng đó.
+    // ⚠ PHẢI khớp từng vế với nhánh treo máy trong engine/activity.js, nếu không thì ngồi xem
+    // tab Chiến Đấu và alt-tab đi lại ra hai tốc độ tranh hạng khác nhau cho cùng một con quái.
+    try { ghiKillChinhPhat(this.state, this.state.player.location, false, _now); } catch (e) {}
     this.state.combat.sinhLuc = Math.max(0, Math.round(f.p.hp));
     const sk = this.state.skills['chienDau']; if (sk) { sk.gathered = (sk.gathered || 0) + 1; sk.timeMs = (sk.timeMs || 0) + (this.act.cycleMs || 1000); }
     this.act.sessionCount = (this.act.sessionCount || 0) + 1;
@@ -4287,7 +4292,8 @@ window.kyTran = kyTran;               // expose component factory cho x-data tro
 window.nguTuKy = nguTuKy;             // expose component factory cho x-data trong view Ngũ Tử Kỳ
 window.coTuong = coTuong;             // expose component factory cho x-data trong view Cờ Tướng
 window.coVua = coVua;                 // expose component factory cho x-data trong view Cờ Vua
-window.tuuLau = tuuLau;               // expose component factory cho x-data trong view Tửu Lâu
+window.tuuLau = tuuLau;           // expose component factory cho x-data trong view Tửu Lâu
+window.bangPhai = bangPhai;           // expose factory cho x-data view Bang Phái
 Alpine.store('game', gameStore);
 Alpine.start();
 Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)

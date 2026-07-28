@@ -5,6 +5,7 @@
 import { ITEMS } from '../data/items.js';
 // Dòng ẩn Bộ Trang ở file riêng (setbonus.js) để pets.js cũng import được mà không tạo vòng.
 // Re-export để mọi nơi vẫn quen đường cũ `từ stats.js`.
+import { bangKyNangBonus, bangExpBonus } from './bangbuff.js';   // Bang Phái: kĩ năng bang (+% nhỏ) + Tụ Linh Trì
 import { setBonus } from './setbonus.js';
 export { SET_TIERS, SET_PCT_KEYS, SET_ELE_KEY, SET_MISC_KEYS, equippedSetCount, setBonus, consumableEffMult } from './setbonus.js';
 import { levelFromXp } from './leveling.js';
@@ -47,7 +48,8 @@ export function giamNhanClamp(v) { return Math.max(0, Math.min(GIAM_NHAN_CAP, v 
 // Hệ số EXP từ TRANG BỊ, CHỈ dùng cho cấp CHIẾN ĐẤU (Tứ Trụ và 9 nghề KHÔNG ăn dòng này).
 // Gom vào một hàm để 4 chỗ CỘNG exp và 2 chỗ HIỆN ước tính dùng chung — lệch nhau là số trên
 // màn hình nói một đằng, EXP vào túi một nẻo.
-export function combatExpMult(state) { return 1 + (derivedStats(state).tangExp || 0); }
+// EXP Chiến Đấu: dòng Tăng EXP trên trang bị + Ngộ Đạo Tâm Kinh + Tụ Linh Trì của bang.
+export function combatExpMult(state) { return 1 + (derivedStats(state).tangExp || 0) + bangExpBonus(state); }
 
 export const MENH_TRUNG_K = 2000; // menhTrung 140 -> 6,5% ; 283 -> 12,4% ; 1014 -> 33,6%
 // Ti le VO HIEU HOA ne cua dich: 0 = khong chong duoc gi, 1 = dich khong the ne.
@@ -123,10 +125,10 @@ export function derivedStats(state, opts) {
   // DÒNG ẨN kênh B (`sp`) đứng chung tầng với Vạn Vật Phổ + Danh Hiệu: CỘNG với nhau rồi mới nhân
   // một lần, tức chúng cộng dồn chứ không nhân chồng. Không dòng roll nào cho % nhân — cả bảng
   // AFFIX chỉ có điểm phẳng — nên đây là thứ chỉ bộ trang mới có.
-  const cx = codexBonus(state), tb = titleBonus(state), sp = setBonus(state).pct;
-  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct + sp.atkPct + sp.allPct));
-  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct + sp.defPct + sp.allPct));
-  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct + sp.hpPct  + sp.allPct));
+  const cx = codexBonus(state), tb = titleBonus(state), sp = setBonus(state).pct, bg = bangKyNangBonus(state);
+  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct + sp.atkPct + sp.allPct + bg.atkPct));
+  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct + sp.defPct + sp.allPct + bg.defPct));
+  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct + sp.hpPct  + sp.allPct + bg.hpPct));
   neTranh   = Math.round(neTranh   * (1 + cx.allPct + tb.allPct + sp.allPct));
   menhTrung = Math.round(menhTrung * (1 + cx.allPct + tb.allPct + sp.allPct));
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);

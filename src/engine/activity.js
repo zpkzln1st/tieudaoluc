@@ -13,6 +13,8 @@ import { addItem, removeItem } from './inventory.js';
 import { addGearInstance } from './equip.js';
 import { rollMonsterDrop, rollGearInstance, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV } from '../data/gear.js';
 import { titleBonus } from './titles.js';
+import { bangNgheBonus } from './bangbuff.js';
+import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: điểm Chinh Phạt khi hạ quái (nhánh treo máy)
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
@@ -59,7 +61,7 @@ export function canStartAction(state, skillId, action) {
 // effPct CỘNG vào mẫu số cycleMs (gộp cùng Nghề/Công Cụ/Tín Vật) — KHÔNG chia lần hai như trước,
 // để mọi nguồn hiệu suất nằm chung một chỗ, dễ soát trần.
 function effDenom(state, skillId, effPct) {
-  return professionEffMult(state, skillId) + toolEffBonus(state, skillId) + tinVatEffBonus(state, skillId) + (effPct || 0) / 100;
+  return professionEffMult(state, skillId) + toolEffBonus(state, skillId) + tinVatEffBonus(state, skillId) + bangEff(state) + (effPct || 0) / 100;
 }
 function cycleMsFor(state, skillId, action, effPct) {
   return Math.max(1, Math.round(action.time * 1000 / effDenom(state, skillId, effPct)));
@@ -80,6 +82,10 @@ function burnLinhThach(state, act) {
 
 // ---- Công cụ: bonus hiệu suất khai thác từ tool đang đeo (riu/cuoc/canCau) cho kĩ năng khớp ----
 const TOOL_FOR_SKILL = { phatMoc: 'riu', thaiKhoang: 'cuoc', dieuNgu: 'canCau', thaiDuoc: 'duocLiem' };
+/** Buff nghề từ Bang Phái: Thổ Mộc Chân Quyết (mọi nơi) + thứ hạng Chinh Phạt tại vùng đang đứng. */
+function bangEff(state) {
+  try { return bangNgheBonus(state, (state.player && state.player.location) || ''); } catch (e) { return 0; }
+}
 export function toolEffBonus(state, skillId) {
   const slot = TOOL_FOR_SKILL[skillId]; if (!slot) return 0;
   const inst = state.equipment && state.equipment[slot];
@@ -295,6 +301,7 @@ export function advance(state, now) {
         if (hp > 0 && cb.sinhLuc - hp <= 0) { died = true; break; }        // gục ở con này
         if (hp > 0) cb.sinhLuc -= hp;
         addSkillXp(state, 'chienDau', gainXp);             // EXP vào thẳng (không mất khi gục)
+        try { ghiKillChinhPhat(state, (state.player && state.player.location) || '', false, now); } catch (e) {}   // Bang Phái — Chinh Phạt (khớp awardKill ở main.js)
         for (const st of stats) addStatXp(state, st, enemy.statXp);
         // enemy.loot chứa CẢ 4 chiến lợi phẩm boss unique (liệu chế Tuyệt Kĩ) đi chung vòng lặp với Da Sói.
         // noBoost -> Bách Bảo KHÔNG được thổi phồng chúng; chỉ nguyên liệu thường mới ăn matMul.

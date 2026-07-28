@@ -1,0 +1,401 @@
+// ============================================================
+// BANG PHÁI — view (Alpine). Luật nằm ở engine THUẦN src/engine/bangphai.js.
+// Ở đây chỉ: đọc getter, gọi engine, trừ/cộng tiền-vật phẩm của người chơi, báo toast.
+//
+// ⚠ Người chơi là BANG CHỦ bang mình lập. 12 bang AI là đối thủ trên bảng Chinh Phạt.
+// ============================================================
+import { Storage } from './engine/save.js';
+import { addItem } from './engine/inventory.js';
+import { ITEMS } from './data/items.js';
+import { LOCATIONS } from './data/locations.js';
+import { dameMotTranBoss } from './engine/worldboss.js';
+import {
+  ensureBangPhai, ghiNhatKy, nhipBang,
+  lapBang, giaiTan, loiTenBang, tranThanhVien,
+  thanhVien, danhSachTanTu, chieuMo, kichNguoi, doiChuc,
+  congHien, themCongTich, thuSan,
+  gopKho, rutKho, duQuyen, datQuyen, oKhoToiDa,
+  capKyNang, tranKyNang, hocKyNang,
+  danhSachHang, muaHang,
+  capCongTrinh, xayCongTrinh, soatXayDung,
+  danhSachNv, nhanNv, nvKyConLai,
+  danhSachTruyNa, nhanTruyNa, nopTruyNa,
+  chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai,
+  bossBang, xuatTranBoss, chotBossBang, moBossBang,
+  CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, KY_NANG_BANG, giaKyNang,
+  CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
+  MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG,
+} from './engine/bangphai.js';
+import { QUYEN_LABEL } from './data/bangphai.js';
+
+export { ensureBangPhai };
+
+const MUC_GOP = [2000, 20000, 200000];
+const TON_CHI_SAN = [
+  'Lấy nghĩa làm đầu, lấy đao làm lý.',
+  'Vào bang là huynh đệ, ra bang là người dưng.',
+  'Không hỏi xuất thân, chỉ hỏi bản lĩnh.',
+  'Bang quy ba điều, phạm một điều là ra khỏi cửa.',
+];
+
+export function bangPhai() {
+  return {
+    _t: 0, _iv: 0,
+    tab: 'nha',             // nha · thanhVien · nhiemVu · cuaHang · kyNang · congTrinh · chinhPhat · boss
+    moForm: false, tenMoi: '', tonChiMoi: TON_CHI_SAN[0],
+    loNguoi: null,          // id thành viên đang mở bảng thao tác
+    timTanTu: '',
+    vungChon: null,
+
+    get g() { return this.$store.game; },
+    get bp() { return this.g.state.bangPhai; },
+    get bang() { return this.bp && this.bp.bang; },
+    get world() { return this.g.state.world; },
+    get bac() { return (this.g.state.currencies || {}).bac || 0; },
+    get tongLv() { return this.g.totalLevel || 0; },
+    get combatLv() { return this.g.combatLevel || 1; },
+    get fmt() { return this.g.fmt; },
+
+    // ---------- điều kiện lập bang ----------
+    get lvCanLap() { return LV_LAP_BANG; },
+    get phiLap() { return PHI_LAP_BANG; },
+    get lapDuoc() { return !this.bang && this.tongLv >= LV_LAP_BANG && this.bac >= PHI_LAP_BANG; },
+    get tonChiSan() { return TON_CHI_SAN; },
+    get loiTen() { return this.tenMoi.trim() ? loiTenBang(this.tenMoi) : ''; },
+
+    // ---------- tổng quan ----------
+    get congTich() { return this.bp ? this.bp.congTich : 0; },
+    get capBang() { return this.bang ? this.bang.cap : 0; },
+    get bangCongCan() { return this.bang ? bangCongCanCho(this.bang.cap) : 1; },
+    get bangCongPct() { return this.bang ? Math.min(100, Math.round(this.bang.bangCong / Math.max(1, this.bangCongCan) * 100)) : 0; },
+    get tranTv() { return this.bang ? tranThanhVien(this.bang) : 0; },
+    get tv() { void this._t; try { return thanhVien(this.g.state, this.world, Date.now()); } catch (e) { return []; } },
+    get donXin() {
+      void this._t;
+      if (!this.bang) return [];
+      const ids = new Set(this.bang.donXin || []);
+      try { return danhSachTanTu(this.g.state, this.world, Date.now()).filter((x) => ids.has(x.id)); } catch (e) { return []; }
+    },
+    get tanTu() {
+      void this._t;
+      if (!this.bang) return [];
+      try {
+        const q = this.timTanTu.trim().toLowerCase();
+        const ds = danhSachTanTu(this.g.state, this.world, Date.now());
+        return (q ? ds.filter((x) => x.ten.toLowerCase().includes(q)) : ds).slice(0, 40);
+      } catch (e) { return []; }
+    },
+    get nhatKy() { return (this.bp && this.bp.nhatKy) || []; },
+    get mucGop() { return MUC_GOP; },
+    get chucList() { return CHUC.filter((c) => c.id !== 'bangChu'); },
+
+    // ---------- kho ----------
+    get khoList() {
+      if (!this.bang) return [];
+      return Object.keys(this.bang.kho).map((id) => ({
+        id, so: this.bang.kho[id], ten: (ITEMS[id] || {}).name || id, icon: (ITEMS[id] || {}).icon || '📦',
+      })).sort((a, b) => b.so - a.so);
+    },
+    get oKho() { return this.bang ? oKhoToiDa(this.bang) : 0; },
+    /** Vật phẩm trong túi người chơi có thể góp vào kho bang. */
+    get gopDuoc() {
+      const inv = this.g.state.inventory || {};
+      return Object.keys(inv).filter((id) => inv[id] > 0 && !(ITEMS[id] || {}).equip)
+        .map((id) => ({ id, so: inv[id], ten: (ITEMS[id] || {}).name || id, icon: (ITEMS[id] || {}).icon || '📦' }))
+        .sort((a, b) => b.so - a.so).slice(0, 24);
+    },
+    get quyenList() {
+      if (!this.bang) return [];
+      return Object.keys(QUYEN_MAC_DINH).map((k) => ({ k, ten: QUYEN_LABEL[k] || k, bac: this.bang.quyen[k] | 0 }));
+    },
+
+    // ---------- kĩ năng ----------
+    get kyNang() {
+      void this._t;
+      if (!this.bang) return [];
+      return KY_NANG_BANG.map((kn) => {
+        const lv = capKyNang(this.g.state, kn.id), tran = tranKyNang(this.g.state, kn);
+        return {
+          ...kn, lv, tran,
+          gia: lv < kn.maxLv ? giaKyNang(kn, lv + 1) : 0,
+          hienTai: (kn.moiCap * lv * 100).toFixed(1),
+          keTiep: (kn.moiCap * (lv + 1) * 100).toFixed(1),
+          moKhoa: this.capBang >= kn.capBang,
+          nangDuoc: this.capBang >= kn.capBang && lv < tran && this.congTich >= giaKyNang(kn, lv + 1),
+          chanBoi: lv >= tran && lv < kn.maxLv ? 'Binh Khí Khố' : '',
+        };
+      });
+    },
+
+    // ---------- cửa hàng ----------
+    get hang() { void this._t; try { return danhSachHang(this.g.state, Date.now()); } catch (e) { return []; } },
+
+    // ---------- công trình ----------
+    get congTrinh() {
+      void this._t;
+      if (!this.bang) return [];
+      return CONG_TRINH.map((ct) => {
+        const lv = capCongTrinh(this.g.state, ct.id), sau = lv + 1;
+        const dangXay = this.bang.xayDung && this.bang.xayDung.id === ct.id;
+        return {
+          ...ct, lv, moTa: ct.moTaCap(lv),
+          moTaSau: sau <= ct.maxLv ? ct.moTaCap(sau) : '',
+          gia: sau <= ct.maxLv ? giaCongTrinh(ct, sau) : 0,
+          gio: sau <= ct.maxLv ? gioCongTrinh(ct, sau) : 0,
+          dangXay, conLai: dangXay ? this.g.notifAgo ? Math.max(0, this.bang.xayDung.xong - Date.now()) : 0 : 0,
+          xayDuoc: !this.bang.xayDung && sau <= ct.maxLv && sau <= this.capBang && this.bang.quy >= giaCongTrinh(ct, sau),
+        };
+      });
+    },
+    get dangXay() {
+      void this._t;
+      if (!this.bang || !this.bang.xayDung) return null;
+      const x = this.bang.xayDung, ct = CONG_TRINH_BY_ID[x.id] || {};
+      return { ten: ct.ten || x.id, lv: x.lv, conMs: Math.max(0, x.xong - Date.now()) };
+    },
+
+    // ---------- nhiệm vụ ----------
+    get nv() { void this._t; try { return danhSachNv(this.g.state, this.world, Date.now()); } catch (e) { return []; } },
+    get nvConLai() { void this._t; return this.gioTxt(nvKyConLai(Date.now())); },
+    get truyNa() { void this._t; try { return danhSachTruyNa(this.g.state, this.world, Date.now(), this.combatLv); } catch (e) { return []; } },
+
+    // ---------- chinh phạt ----------
+    get cp() { void this._t; try { return chinhPhat(this.g.state, this.world, Date.now()); } catch (e) { return []; } },
+    get bxhMua() { void this._t; try { return bangXepHangMua(this.g.state, this.world, Date.now()); } catch (e) { return []; } },
+    get muaConLaiTxt() { void this._t; return this.gioTxt(muaConLai(Date.now())); },
+    get vungXem() {
+      const ds = this.cp;
+      if (this.vungChon) { const v = ds.find((x) => x.id === this.vungChon); if (v) return v; }
+      return ds.find((x) => x.hangTa > 0 && x.diemTa > 0) || ds[0] || null;
+    },
+    get bxhVung() {
+      void this._t;
+      const v = this.vungXem; if (!v) return [];
+      try { return bangXepHangVung(this.g.state, this.world, v.id, Date.now()).ds.slice(0, 8); } catch (e) { return []; }
+    },
+    get coThuongMua() { return !!(this.bp && this.bp.muaThuong && !this.bp.muaThuong.daNhan && (this.bp.muaThuong.hang | 0) >= 1); },
+    get hangMuaTruoc() { return this.bp && this.bp.muaThuong ? (this.bp.muaThuong.hang | 0) : 0; },
+
+    // ---------- boss bang ----------
+    get moBoss() { return moBossBang(this.g.state); },
+    get boss() { void this._t; try { return bossBang(this.g.state, this.world, Date.now()); } catch (e) { return null; } },
+
+    // ---------- tiện ----------
+    /** ms -> "X ngày Y giờ" / "X giờ Y phút" / "X phút". */
+    gioTxt(ms) {
+      const p = Math.ceil(Math.max(0, ms) / 60000);
+      const ng = Math.floor(p / 1440), gi = Math.floor((p % 1440) / 60), ph = p % 60;
+      if (ng >= 1) return ng + ' ngày' + (gi ? ' ' + gi + ' giờ' : '');
+      if (gi >= 1) return gi + ' giờ' + (ph ? ' ' + ph + ' phút' : '');
+      return Math.max(1, ph) + ' phút';
+    },
+    tenVung(id) { const l = LOCATIONS.find((x) => x.id === id); return l ? l.name : id; },
+    mauCoTa() { return MAU_BANG_TA; },
+    chucTen(id) { return (CHUC_BY_ID[id] || {}).ten || id; },
+    pct(a, b) { return Math.min(100, Math.round((a || 0) / Math.max(1, b || 1) * 100)); },
+
+    // ============================================================
+    // THAO TÁC
+    // ============================================================
+    _luu() { try { Storage.save(this.g.state); } catch (e) {} this._t = Date.now(); },
+    _nhip() {
+      try {
+        const r = nhipBang(this.g.state, this.world, Date.now(), this.combatLv);
+        if (r && r.xong) this.g.showToast(r.xong.ten + ' xây xong — đạt cấp ' + r.xong.lv + '.');
+        if (r && r.boss) {
+          this.g.state.currencies.honThach = (this.g.state.currencies.honThach || 0) + r.boss.honThach;
+          if (r.boss.manh) addItem(this.g.state, 'manhTrangBi', r.boss.manh);
+          this.g.showToast('Cả bang hạ ' + r.boss.boss + ' — ' + this.fmt(r.boss.ct) + ' Công Tích, '
+            + this.fmt(r.boss.honThach) + ' Hồn Thạch, ' + r.boss.manh + ' Mảnh.');
+        }
+        if (r) this._luu();
+      } catch (e) {}
+    },
+
+    lap() {
+      const g = this.g;
+      if (this.bang) { g.showToast('Ngươi đã có bang rồi.'); return; }
+      if (this.tongLv < LV_LAP_BANG) { g.showToast('Cần Tổng Lv ' + LV_LAP_BANG + ' mới đủ danh vọng lập bang.'); return; }
+      if (this.bac < PHI_LAP_BANG) { g.showToast('Cần ' + this.fmt(PHI_LAP_BANG) + ' Bạc để dựng cờ.'); return; }
+      const loi = loiTenBang(this.tenMoi);
+      if (loi) { g.showToast(loi); return; }
+      if (!lapBang(g.state, { ten: this.tenMoi.trim(), tonChi: this.tonChiMoi }, Date.now())) { g.showToast('Chưa dựng cờ được.'); return; }
+      g.state.currencies.bac -= PHI_LAP_BANG;
+      this.moForm = false; this.tenMoi = ''; this.tab = 'nha';
+      this._nhip(); this._luu();
+      g.showToast('Đã dựng cờ — Bang Chủ là ngươi.');
+    },
+    xinGiaiTan() {
+      const g = this.g, b = this.bang; if (!b) return;
+      g.hoiXacNhan({
+        tieuDe: 'Hạ Cờ Giải Tán?',
+        loi: 'Giải tán <b class="text-amber-200">' + b.ten + '</b> — cờ hạ, người tan, tên bang xoá khỏi giang hồ.',
+        canhBao: 'Mất sạch: <b>' + b.tv.length + ' thành viên</b> · cấp bang <b>' + b.cap + '</b> · quỹ <b>'
+          + this.fmt(b.quy) + ' Bạc</b> · toàn bộ kĩ năng, công trình, đồ trong kho và <b>' + this.fmt(this.congTich)
+          + ' Công Tích</b>. Không hoàn lại gì.',
+        nut: 'Giải Tán', huy: 'Giữ Bang', nguy: true,
+        xong: () => { giaiTan(g.state, Date.now()); this._luu(); g.showToast('Bang đã giải tán.'); },
+      });
+    },
+
+    // ---------- thành viên ----------
+    mo(t) {
+      const g = this.g;
+      if (!this.bang) return;
+      if (this.tv.length >= this.tranTv) { g.showToast('Bang đã đủ ' + this.tranTv + ' người — nâng Tổng Đàn để thêm suất.'); return; }
+      if (this.bac < t.gia) { g.showToast('Cần ' + this.fmt(t.gia) + ' Bạc để mời ' + t.ten + '.'); return; }
+      if (!chieuMo(g.state, t.id, this.world, Date.now())) { g.showToast('Không mời được người này.'); return; }
+      g.state.currencies.bac -= t.gia;
+      this._luu(); g.showToast(t.ten + ' đã nhập bang.');
+    },
+    duyet(t, nhan) {
+      const g = this.g; if (!this.bang) return;
+      if (nhan) {
+        if (this.tv.length >= this.tranTv) { g.showToast('Bang đã đủ người.'); return; }
+        chieuMo(g.state, t.id, this.world, Date.now());     // duyệt đơn thì KHÔNG tốn Bạc
+        g.showToast(t.ten + ' được nhận vào bang.');
+      } else {
+        this.bang.donXin = (this.bang.donXin || []).filter((x) => x !== t.id);
+        g.showToast('Đã từ chối ' + t.ten + '.');
+      }
+      this._luu();
+    },
+    kich(m) {
+      const g = this.g;
+      g.hoiXacNhan({
+        tieuDe: 'Đuổi Khỏi Bang?',
+        loi: 'Đuổi <b class="text-amber-200">' + m.ten + '</b> (' + m.chucTen + ') khỏi bang.',
+        canhBao: 'Công lao đã góp của người này mất theo. Muốn nhận lại thì phải chiêu mộ từ đầu, tốn Bạc.',
+        nut: 'Đuổi', huy: 'Thôi', nguy: true,
+        xong: () => { kichNguoi(g.state, m.id, this.world, Date.now()); this.loNguoi = null; this._luu(); g.showToast('Đã đuổi ' + m.ten + '.'); },
+      });
+    },
+    thang(m, len) {
+      const g = this.g;
+      const loi = doiChuc(g.state, m.id, len, Date.now(), this.world);
+      if (loi) { g.showToast(loi); return; }
+      this._luu();
+      g.showToast(m.ten + (len ? ' được thăng chức.' : ' bị giáng chức.'));
+    },
+    datQ(k, bac) { datQuyen(this.g.state, k, bac); this._luu(); },
+
+    // ---------- cống hiến ----------
+    gop(n) {
+      const g = this.g, so = Math.floor(n || 0);
+      if (!this.bang) { g.showToast('Chưa có bang.'); return; }
+      if (this.bac < so) { g.showToast('Không đủ Bạc — cần ' + this.fmt(so) + '.'); return; }
+      g.state.currencies.bac -= so;
+      const capTruoc = this.bang.cap;
+      const them = congHien(g.state, so, Date.now());
+      this._luu();
+      g.showToast('Cống hiến ' + this.fmt(them) + ' — Công Tích ' + this.fmt(this.congTich)
+        + (this.bang.cap > capTruoc ? ' · bang lên cấp ' + this.bang.cap : ''));
+    },
+
+    // ---------- kho ----------
+    gopVaoKho(it, so) {
+      const g = this.g, n = Math.min(it.so, so);
+      if (!n) return;
+      if (!gopKho(g.state, it.id, n)) { g.showToast('Kho bang đã đầy ô.'); return; }
+      g.state.inventory[it.id] -= n;
+      if (g.state.inventory[it.id] <= 0) delete g.state.inventory[it.id];
+      this._luu(); g.showToast('Góp ' + n + ' ' + it.ten + ' vào kho bang.');
+    },
+    rutTuKho(it, so) {
+      const g = this.g;
+      const lay = rutKho(g.state, it.id, Math.min(it.so, so));
+      if (!lay) { g.showToast('Không rút được.'); return; }
+      addItem(g.state, it.id, lay);
+      this._luu(); g.showToast('Rút ' + lay + ' ' + it.ten + '.');
+    },
+
+    // ---------- kĩ năng ----------
+    hoc(kn) {
+      const g = this.g;
+      const loi = hocKyNang(g.state, kn.id, Date.now());
+      if (loi) { g.showToast(loi); return; }
+      this._luu(); g.showToast('Luyện thành ' + kn.ten + ' cấp ' + capKyNang(g.state, kn.id) + '.');
+    },
+
+    // ---------- cửa hàng ----------
+    muaMon(h) {
+      const g = this.g;
+      const don = muaHang(g.state, h.id, Date.now());
+      if (!don) { g.showToast('Không mua được — xem lại cấp bang, Công Tích hoặc hạn ngày.'); return; }
+      if (don.tienTe) g.state.currencies[don.tienTe] = (g.state.currencies[don.tienTe] || 0) + don.so;
+      else if (don.itemId) addItem(g.state, don.itemId, don.so);
+      this._luu(); g.showToast('Đổi được ' + don.ten + '.');
+    },
+
+    // ---------- công trình ----------
+    xay(ct) {
+      const g = this.g;
+      const loi = xayCongTrinh(g.state, ct.id, Date.now());
+      if (loi) { g.showToast(loi); return; }
+      this._luu(); g.showToast('Khởi công ' + ct.ten + ' cấp ' + (ct.lv + 1) + '.');
+    },
+
+    // ---------- nhiệm vụ ----------
+    linhNv(q) {
+      const g = this.g;
+      const n = nhanNv(g.state, this.world, q.id, Date.now());
+      if (!n) { g.showToast('Việc này chưa xong.'); return; }
+      this._luu(); g.showToast('Hoàn thành ' + q.ten + ' — được ' + n + ' Công Tích.');
+    },
+    nhanTn(q) {
+      const g = this.g;
+      if (!nhanTruyNa(g.state, this.world, q.id, Date.now(), this.combatLv)) { g.showToast('Không nhận được lệnh này.'); return; }
+      this._luu(); g.showToast('Đã nhận ' + q.bacTen + ' — trảm ' + q.so + ' ' + q.ten + '.');
+    },
+    nopTn(q) {
+      const g = this.g;
+      const r = nopTruyNa(g.state, this.world, q.id, Date.now(), this.combatLv);
+      if (!r) { g.showToast('Chưa đủ số, chưa nộp được.'); return; }
+      g.state.currencies.bac = (g.state.currencies.bac || 0) + r.bac;
+      if (r.manh) addItem(g.state, 'manhTrangBi', r.manh);
+      this._luu();
+      g.showToast('Nộp lệnh — ' + r.ct + ' Công Tích, ' + this.fmt(r.bac) + ' Bạc'
+        + (r.manh ? ', ' + r.manh + ' Mảnh Trang Bị' : '') + '.');
+    },
+
+    // ---------- mùa ----------
+    linhMua() {
+      const g = this.g;
+      const n = nhanThuongMua(g.state, this.world, Date.now());
+      if (!n) { g.showToast('Chưa có thưởng mùa để lĩnh.'); return; }
+      g.state.currencies.honThach = (g.state.currencies.honThach || 0) + n;
+      this._luu(); g.showToast('Lĩnh thưởng mùa — ' + this.fmt(n) + ' Hồn Thạch.');
+    },
+    chonVung(v) { this.vungChon = v.id; },
+
+    // ---------- boss bang ----------
+    xuatTran() {
+      const g = this.g, c = this.boss;
+      if (!c) return;
+      if (c.daNhan) { g.showToast('Boss tuần này đã hạ — chờ tuần sau.'); return; }
+      if (c.luot >= c.tranLuot) { g.showToast('Hết ' + c.tranLuot + ' lượt tuần này.'); return; }
+      if (c.cdConMs > 0) { g.showToast('Còn phải lấy sức ' + this.gioTxt(c.cdConMs) + '.'); return; }
+      const d = dameMotTranBoss(g.state, c.boss.id);
+      if (!d) { g.showToast('Chưa bày bài võ thì xuất trận sao được.'); return; }
+      if (!xuatTranBoss(g.state, d, Date.now())) { g.showToast('Chưa xuất trận được lúc này.'); return; }
+      this._t = Date.now();
+      const w = chotBossBang(g.state, this.world, Date.now());
+      if (w) {
+        g.state.currencies.honThach = (g.state.currencies.honThach || 0) + w.honThach;
+        if (w.manh) addItem(g.state, 'manhTrangBi', w.manh);
+        g.showToast('Hạ ' + w.boss + '! ' + this.fmt(w.ct) + ' Công Tích, ' + this.fmt(w.honThach) + ' Hồn Thạch, ' + w.manh + ' Mảnh.');
+      } else {
+        g.showToast('Xuất trận — bào ' + this.fmt(d) + ' sát thương.');
+      }
+      this._luu();
+    },
+
+    bpInit() {
+      ensureBangPhai(this.g.state);
+      this._t = Date.now();
+      this._nhip();
+      this._iv = setInterval(() => { this._t = Date.now(); this._nhip(); }, 60000);
+      this.$watch('$store.game.view', (v) => { if (v !== 'guild' && this._iv) { clearInterval(this._iv); this._iv = 0; } });
+    },
+  };
+}
