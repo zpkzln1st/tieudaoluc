@@ -12110,14 +12110,33 @@
                         </div>
                       </div>
 
+                      <!-- Mỗi vế MỘT DÒNG: nhãn xám bên trái, số đậm bên phải. -->
                       <div class="grid grid-cols-2 gap-2 items-stretch">
-                        <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
-                          <div class="lbl leading-tight">Hiện Tại</div>
-                          <div class="text-[12.5px] font-bold text-jade leading-tight" x-text="ct.lv ? ct.moTa : 'chưa xây'"></div>
+                        <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-2 min-h-[54px]">
+                          <div class="lbl leading-tight mb-1">Hiện Tại</div>
+                          <template x-if="!ct.lv"><div class="text-[12.5px] text-slate-600 italic">chưa xây</div></template>
+                          <template x-if="ct.lv">
+                            <div class="space-y-0.5">
+                              <template x-for="d in ct.moTa" :key="d[0]">
+                                <div class="text-[11.5px] leading-snug">
+                                  <span class="text-slate-500" x-text="d[0]"></span>
+                                  <b class="text-jade" x-text="d[1]"></b>
+                                </div>
+                              </template>
+                            </div>
+                          </template>
                         </div>
-                        <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5 flex flex-col justify-between min-h-[54px]">
-                          <div class="lbl leading-tight">Sau Khi Nâng</div>
-                          <div class="text-[12.5px] font-bold text-amber-300 leading-tight" x-text="ct.moTaSau || '—'"></div>
+                        <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-2 min-h-[54px]">
+                          <div class="lbl leading-tight mb-1">Sau Khi Nâng</div>
+                          <template x-if="!ct.moTaSau.length"><div class="text-[12.5px] text-slate-600">—</div></template>
+                          <div class="space-y-0.5">
+                            <template x-for="d in ct.moTaSau" :key="d[0]">
+                              <div class="text-[11.5px] leading-snug">
+                                <span class="text-slate-500" x-text="d[0]"></span>
+                                <b class="text-amber-300" x-text="d[1]"></b>
+                              </div>
+                            </template>
+                          </div>
                         </div>
                       </div>
 

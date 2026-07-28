@@ -107,23 +107,24 @@ export const CH_NHOM_MAU = { tien: '#fbbf24', dan: '#5dcaa5', hiem: '#a78bfa', q
 // Xây bằng Bạc trong bang khố + thời gian. Mỗi cái mở/khuếch đại một mảng khác nhau.
 // ⚠ LỜI VĂN: desc chỉ nói CÔNG TRÌNH NÀY LÀM GÌ, một câu, KHÔNG kèm số — số đã nằm ở hai ô
 // "Hiện Tại / Sau Khi Nâng" ngay dưới, nhắc lại là thừa và rối.
-// moTaCap la KET QUA THẬT ở cấp đó, viết như đọc bảng: danh từ + số, không thành câu.
+// moTaCap trả MẢNG [nhãn, giá trị] — mỗi vế MỘT DÒNG, đọc như đọc bảng chứ không phải câu văn.
+// Ghi KẾT QUẢ THẬT ở cấp đó ("Chỗ cho 13 người"), không ghi mức cộng thêm ("+1 suất").
 export const CONG_TRINH = [
   { id: 'tongDan',    ten: 'Tổng Đàn',      maxLv: 10, gioXay: 4,  bacNen: 12000,
     desc: 'Nhà chính. Nâng lên thì chứa được nhiều người hơn, và minh chúng nộp Minh Cống nhanh hơn.',
-    moTaCap: (lv) => 'Chỗ cho ' + (12 + lv) + ' người · Minh Cống +' + (lv * 4) + '%' },
+    moTaCap: (lv) => [['Giới hạn thành viên', (12 + lv) + ' người'], ['Minh Cống', '+' + (lv * 4) + '%']] },
   { id: 'binhKhiKho', ten: 'Binh Khí Khố',  maxLv: 10, gioXay: 5,  bacNen: 15000,
     desc: 'Kho vũ khí. Xây tới cấp nào thì ba kĩ năng Công Kích, Phòng Ngự, Sinh Lực học được tới cấp đó.',
-    moTaCap: (lv) => lv ? ('Học Công · Thủ · Máu tới cấp ' + lv) : 'Chưa học được ba kĩ năng đó' },
+    moTaCap: (lv) => [['Giới hạn kĩ năng chiến đấu', lv ? ('cấp ' + lv) : 'chưa mở']] },
   { id: 'tuLinhTri',  ten: 'Tụ Linh Trì',   maxLv: 10, gioXay: 6,  bacNen: 18000,
     desc: 'Ao linh khí. Ai trong minh đi đánh quái cũng được thêm kinh nghiệm.',
-    moTaCap: (lv) => 'Mọi người +' + (lv * 2) + '% kinh nghiệm đánh quái' },
+    moTaCap: (lv) => [['Kinh nghiệm đánh quái', '+' + (lv * 2) + '%'], ['Áp cho', 'cả Tiên Minh']] },
   { id: 'bangKho',    ten: 'Minh Khố',      maxLv: 10, gioXay: 4,  bacNen: 10000,
     desc: 'Kho chung. Chứa được nhiều loại đồ hơn, và minh chúng nộp Bạc về nhiều hơn.',
-    moTaCap: (lv) => 'Chứa ' + (40 + lv * 20) + ' loại đồ · Bạc nộp về +' + (lv * 5) + '%' },
+    moTaCap: (lv) => [['Sức chứa kho', (40 + lv * 20) + ' loại đồ'], ['Bạc minh chúng nộp về', '+' + (lv * 5) + '%']] },
   { id: 'tramYeuDai', ten: 'Trảm Yêu Đài',  maxLv: 10, gioXay: 8,  bacNen: 22000,
     desc: 'Đài triệu Yêu Vương. Mỗi tuần gọi một con về cho cả minh xúm vào đánh, cấp càng cao con càng dữ và thưởng càng dày.',
-    moTaCap: (lv) => lv ? ('Yêu Vương bậc ' + lv + ' mỗi tuần') : 'Chưa gọi được Yêu Vương' },
+    moTaCap: (lv) => [['Yêu Vương mỗi tuần', lv ? ('bậc ' + lv) : 'chưa gọi được']] },
 ];
 export const CONG_TRINH_BY_ID = Object.fromEntries(CONG_TRINH.map((c) => [c.id, c]));
 /** Bạc để nâng công trình lên cấp `lv`. */

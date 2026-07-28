@@ -199,7 +199,7 @@ export function bangPhai() {
         const dangXay = this.bang.xayDung && this.bang.xayDung.id === ct.id;
         return {
           ...ct, lv, moTa: ct.moTaCap(lv),
-          moTaSau: sau <= ct.maxLv ? ct.moTaCap(sau) : '',
+          moTaSau: sau <= ct.maxLv ? ct.moTaCap(sau) : [],
           gia: sau <= ct.maxLv ? giaCongTrinh(ct, sau) : 0,
           gio: sau <= ct.maxLv ? gioCongTrinh(ct, sau) : 0,
           dangXay, conLai: dangXay ? this.g.notifAgo ? Math.max(0, this.bang.xayDung.xong - Date.now()) : 0 : 0,
