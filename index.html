@@ -11469,7 +11469,12 @@
                           <div class="relative" :style="'aspect-ratio:3/4;background:linear-gradient(160deg,' + m.mau + '22,#0f1521 72%)'">
                             <div class="absolute inset-0 flex items-center justify-center fserif text-[3.2rem]"
                                  :style="'color:' + m.mau + '33'" x-text="nhomHan(m.nhom)"></div>
+                            <!-- ⚠ NẶNG: ảnh avatar gốc 1254×1254 (~226 KB) mà ô này chỉ 169×226.
+                                 Một minh 25 người = 39 triệu pixel phải giải mã, gấp ~10 lần chỗ
+                                 thật sự cần. lazy + async cắt phần ngoài tầm nhìn; muốn hết hẳn
+                                 thì phải xuất bản thu nhỏ ~320px (xem docs/ART_TIENMINH.md). -->
                             <img :src="'images/avatars/' + m.av.id + '.webp'" alt=""
+                                 loading="lazy" decoding="async"
                                  class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.remove()">
                             <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold"
                                   :style="'color:' + m.chucMau + ';border-color:' + m.chucMau + '66'" x-text="m.chucTen"></span>
