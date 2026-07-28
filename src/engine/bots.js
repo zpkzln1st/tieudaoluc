@@ -107,6 +107,11 @@ export function botCatFor(track) { return TRACK_CAT[track] || 'combat'; }   // n
 export function botTitle(bot, now) { const d = botDominant(bot, now); return botTitleFor(d.track, d.level); }
 export function botCat(bot, now) { return botCatFor(botDominant(bot, now).track); }
 export function botArchName(bot) { return ARCHETYPES[bot.arch].name; }      // tên loại playstyle
+/** Cấp TỪNG track của một bot (Chiến Đấu + 10 nghề) — cho bảng hồ sơ chi tiết. */
+export function botTracks(bot, now) {
+  const eff = botEffort(bot, now), w = archNormW(bot.arch);
+  return TRACK_KEYS.map((k) => ({ key: k, ten: (SKILLS[k] || {}).name || k, lv: levelFromXp(eff * w[k]) }));
+}
 export function botAvatar(bot) {   // {id,char,color} — id sect ngoài AVATARS vẫn trả đúng id (ảnh load) + char/màu mặc định
   const a = AVATARS.find((x) => x.id === bot.avatarId);
   return a ? { id: a.id, char: a.char, color: a.color } : { id: bot.avatarId, char: '侠', color: 'from-slate-600 to-slate-700' };

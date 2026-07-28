@@ -12,7 +12,7 @@ import { dameMotTranBoss } from './engine/worldboss.js';
 import {
   ensureBangPhai, ghiNhatKy, nhipBang,
   lapBang, giaiTan, loiTenBang, tranThanhVien,
-  thanhVien, danhSachTanTu, chieuMo, kichNguoi, doiChuc,
+  thanhVien, danhSachTanTu, chieuMo, kichNguoi, doiChuc, hoSoMinhChung,
   congHien, themCongTich, thuSan,
   gopKho, rutKho, duQuyen, datQuyen, oKhoToiDa,
   capKyNang, tranKyNang, hocKyNang,
@@ -30,7 +30,9 @@ import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU } from './data/bangphai.js';
 
 export { ensureBangPhai };
 
-const MUC_GOP = [2000, 20000, 200000];
+// Ba mức nhanh — CỐ Ý là bội của BAC_MOI_MINH_CONG để bấm phát nào cũng ra số Minh Cống
+// tròn trịa. Để mức 2.000 như trước thì bấm xong được 0 Minh Cống, nhìn như hỏng.
+const MUC_GOP = [5000, 50000, 500000];
 const TON_CHI_SAN = [
   'Lấy nghĩa làm đầu, lấy đao làm lý.',
   'Vào bang là huynh đệ, ra bang là người dưng.',
@@ -44,7 +46,6 @@ export function bangPhai() {
     tab: 'nha',             // nha · thanhVien · nhiemVu · cuaHang · kyNang · congTrinh · chinhPhat · boss · thietLap
     moForm: false, tenMoi: '', tonChiMoi: TON_CHI_SAN[0],
     loNguoi: null,          // id minh chúng đang mở bảng thao tác
-    hoSo: null,             // id minh chúng đang mở HỒ SƠ đầy đủ
     timTanTu: '',
     vungChon: null,
     bacGop: '',             // ô tự điền số Bạc cống hiến
@@ -98,11 +99,21 @@ export function bangPhai() {
     get bacGopDuoc() { return this.bacGopSo > 0 && this.bacGopSo <= this.bac; },
     /** Góp chừng này thì được bao nhiêu Minh Cống — cho người chơi thấy trước, khỏi phải tự chia. */
     get bacGopRaMinhCong() { return Math.floor(this.bacGopSo / BAC_MOI_MINH_CONG); },
+    /** Phần lẻ không đủ đổi Minh Cống (vẫn thành Công Tích 1:1 nên không mất gì). */
+    get bacGopDu() { return this.bacGopSo % BAC_MOI_MINH_CONG; },
+    /** Cắt phần lẻ, để lại đúng bội của tỉ giá. */
+    lamTron() { const n = this.bacGopSo - this.bacGopDu; this.bacGop = n > 0 ? String(n) : ''; },
     /** Nhật ký hiện ra: mặc định 12 mục gần nhất, không dùng con lăn riêng. */
     get nhatKyHien() { return this.xemHetNhatKy ? this.nhatKy : this.nhatKy.slice(0, 12); },
     /** Hồ sơ đầy đủ của một minh chúng (mở bằng nút Xem Thông Tin). */
-    get hoSoXem() { return this.hoSo ? (this.tv.find((m) => m.id === this.hoSo) || null) : null; },
-    xemHoSo(m) { this.hoSo = (this.hoSo === m.id ? null : m.id); },
+    /** Mở popup hồ sơ. Cờ nằm ở store nên bộ chặn _MODALS lo luôn việc vuốt-back. */
+    xemHoSo(m) {
+      try {
+        const h = hoSoMinhChung(this.g.state, this.world, m.id, Date.now());
+        if (!h) { this.g.showToast('Không tìm thấy người này.'); return; }
+        this.g.bpHoSo = h;
+      } catch (e) { this.g.showToast('Không mở được hồ sơ.'); }
+    },
     /** Ngày vào minh -> chữ. */
     vaoLucTxt(ts) {
       if (!ts) return 'không rõ';
@@ -309,6 +320,18 @@ export function bangPhai() {
       g.showToast(m.ten + (len ? ' được thăng chức.' : ' bị giáng chức.'));
     },
     datQ(k, bac) { datQuyen(this.g.state, k, bac); this._luu(); },
+    /** Thăng/hạ/đuổi ngay trong popup hồ sơ — xong thì dựng lại hồ sơ cho số liệu tươi. */
+    hsThang(len) {
+      const h = this.g.bpHoSo; if (!h) return;
+      this.thang(h, len);
+      const moi = hoSoMinhChung(this.g.state, this.world, h.id, Date.now());
+      this.g.bpHoSo = moi || null;
+    },
+    hsKich() {
+      const h = this.g.bpHoSo; if (!h) return;
+      this.g.closeBpHoSo();
+      this.kich(h);
+    },
 
     // ---------- cống hiến ----------
     gop(n) {

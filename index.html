@@ -11229,13 +11229,18 @@
               <!-- TAB -->
               <div class="flex flex-wrap gap-1.5 mb-3">
                 <template x-for="t in [
-                    {id:'nha',ten:'Tổng Đàn'},{id:'thanhVien',ten:'Minh Chúng'},{id:'nhiemVu',ten:'Minh Vụ'},
-                    {id:'cuaHang',ten:'Minh Hội Các'},{id:'kyNang',ten:'Kĩ Năng'},{id:'congTrinh',ten:'Công Trình'},
-                    {id:'chinhPhat',ten:'Chinh Phạt'},{id:'boss',ten:'Trảm Yêu'},{id:'thietLap',ten:'Thiết Lập'}]" :key="t.id">
+                    {id:'nha',ten:'Tổng Đàn'},{id:'thanhVien',ten:'Minh Chúng'},{id:'chieuMo',ten:'Chiêu Mộ'},
+                    {id:'nhiemVu',ten:'Minh Vụ'},{id:'cuaHang',ten:'Minh Hội Các'},{id:'kyNang',ten:'Kĩ Năng'},
+                    {id:'congTrinh',ten:'Công Trình'},{id:'chinhPhat',ten:'Chinh Phạt'},{id:'boss',ten:'Trảm Yêu'},
+                    {id:'thietLap',ten:'Thiết Lập'}]" :key="t.id">
                   <button @click="tab = t.id"
-                    class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
-                    :class="tab === t.id ? 'text-amber-200 border-amber-500/55 bg-amber-500/10' : 'text-slate-400 border-slate-800 hover:border-slate-600'"
-                    x-text="t.ten"></button>
+                    class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition inline-flex items-center gap-1.5"
+                    :class="tab === t.id ? 'text-amber-200 border-amber-500/55 bg-amber-500/10' : 'text-slate-400 border-slate-800 hover:border-slate-600'">
+                    <span x-text="t.ten"></span>
+                    <template x-if="t.id === 'chieuMo' && donXin.length">
+                      <span class="text-[10px] rounded-full bg-rose-500/25 text-rose-200 px-1.5 leading-[15px]" x-text="donXin.length"></span>
+                    </template>
+                  </button>
                 </template>
               </div>
 
@@ -11274,35 +11279,37 @@
                           <b class="text-slate-400" x-text="fmt(bacMoiMinhCong)"></b> Bạc đổi 1 Minh Cống
                         </div>
                       </div>
-                      <div class="flex flex-wrap gap-2">
+                      <!-- MỘT khối duy nhất: ô nhập là chính, ba nút nhanh chỉ điền hộ vào ô.
+                           Ba mức đều là bội của tỉ giá nên bấm cái nào cũng ra số Minh Cống tròn. -->
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <input x-model="bacGop" type="text" inputmode="numeric" placeholder="nhập số Bạc"
+                          class="bg-ink border border-slate-700 rounded-lg px-3 py-2 text-[14px] text-slate-100 tabular-nums outline-none focus:border-amber-500/60 w-[168px]">
+                        <button @click="gopTuy()" :disabled="!bacGopDuoc"
+                          class="px-4 py-2 rounded-lg text-[13px] fserif border transition"
+                          :class="bacGopDuoc ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'">Cống Hiến</button>
+                      </div>
+                      <div class="flex flex-wrap gap-1.5 mt-2">
                         <template x-for="m in mucGop" :key="m">
-                          <button @click="gop(m)" :disabled="bac < m"
-                            class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
-                            :class="bac >= m ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'">
-                            Góp <span x-text="fmt(m)"></span>
+                          <button @click="bacGop = String(m)"
+                            class="px-2.5 py-1 rounded-lg text-[11.5px] fserif border transition"
+                            :class="bac >= m ? 'text-slate-300 border-slate-700 hover:border-amber-500/60 hover:text-amber-200' : 'text-slate-600 border-slate-800'">
+                            <span x-text="fmt(m)"></span>
+                            <span class="text-slate-600" x-text="'(+' + fmt(Math.floor(m / bacMoiMinhCong)) + ')'"></span>
                           </button>
                         </template>
+                        <button @click="gopHet()" class="px-2.5 py-1 rounded-lg text-[11.5px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Toàn Bộ</button>
+                        <button @click="lamTron()" :disabled="bacGopSo < bacMoiMinhCong"
+                          class="px-2.5 py-1 rounded-lg text-[11.5px] fserif border transition"
+                          :class="bacGopSo >= bacMoiMinhCong ? 'text-slate-400 border-slate-700 hover:border-slate-500' : 'text-slate-700 border-slate-800 cursor-default'">Làm Tròn</button>
                       </div>
-                      <!-- Ô tự điền: góp đúng số mình muốn, không bị bó vào ba mức có sẵn -->
-                      <div class="mt-3 pt-3 border-t border-slate-800">
-                        <div class="lbl mb-1.5">Góp Số Khác</div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <input x-model="bacGop" type="text" inputmode="numeric" placeholder="nhập số Bạc"
-                            class="bg-ink border border-slate-700 rounded-lg px-3 py-1.5 text-[13px] text-slate-200 tabular-nums outline-none focus:border-amber-500/60 w-[150px]">
-                          <button @click="gopHet()" class="px-2.5 py-1.5 rounded-lg text-[11.5px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Toàn Bộ</button>
-                          <button @click="gopTuy()" :disabled="!bacGopDuoc"
-                            class="px-4 py-1.5 rounded-lg text-[12px] fserif border transition"
-                            :class="bacGopDuoc ? 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/10' : 'text-slate-600 border-slate-800 cursor-default'">Cống Hiến</button>
-                        </div>
-                        <div class="text-[11px] mt-2" :class="bacGopSo > bac ? 'text-rose-400' : 'text-slate-500'">
-                          <template x-if="bacGopSo > 0 && bacGopSo <= bac">
-                            <span>Góp <b class="text-amber-300" x-text="fmt(bacGopSo)"></b> Bạc → được
-                              <b class="text-cyan-300" x-text="fmt(bacGopSo)"></b> Công Tích và
-                              <b class="text-jade" x-text="fmt(bacGopRaMinhCong)"></b> Minh Cống.</span>
-                          </template>
-                          <template x-if="bacGopSo > bac"><span>Không đủ Bạc — ngươi chỉ có <b x-text="fmt(bac)"></b>.</span></template>
-                          <template x-if="bacGopSo <= 0"><span>Đang có <b class="text-slate-300" x-text="fmt(bac)"></b> Bạc.</span></template>
-                        </div>
+                      <div class="text-[11.5px] mt-2.5" :class="bacGopSo > bac ? 'text-rose-400' : 'text-slate-500'">
+                        <template x-if="bacGopSo > 0 && bacGopSo <= bac">
+                          <span>Góp <b class="text-amber-300" x-text="fmt(bacGopSo)"></b> Bạc → được
+                            <b class="text-cyan-300" x-text="fmt(bacGopSo)"></b> Công Tích và
+                            <b class="text-jade" x-text="fmt(bacGopRaMinhCong)"></b> Minh Cống<template x-if="bacGopDu"><span class="text-slate-600" x-text="' (lẻ ' + fmt(bacGopDu) + ' Bạc chỉ thành Công Tích)'"></span></template>.</span>
+                        </template>
+                        <template x-if="bacGopSo > bac"><span>Không đủ Bạc — ngươi chỉ có <b x-text="fmt(bac)"></b>.</span></template>
+                        <template x-if="bacGopSo <= 0"><span>Đang có <b class="text-slate-300" x-text="fmt(bac)"></b> Bạc. Ba nút dưới ghi sẵn số Minh Cống đổi được.</span></template>
                       </div>
                     </div>
 
@@ -11384,12 +11391,11 @@
 
               <!-- ===== TAB: THÀNH VIÊN ===== -->
               <template x-if="tab==='thanhVien'">
-                <div class="lg:grid lg:grid-cols-[1fr_360px] lg:gap-4 lg:items-start space-y-4 lg:space-y-0">
-                  <div class="space-y-4 min-w-0">
-                  <template x-if="donXin.length">
+                <div class="space-y-4">
+                  <template x-if="false">
                     <div class="panel rounded-xl overflow-hidden border border-amber-500/25">
                       <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                        <div class="text-amber-200 font-bold fserif">Đơn Xin Vào Bang</div>
+                        <div class="text-amber-200 font-bold fserif">(đã chuyển sang tab Chiêu Mộ)</div>
                         <div class="text-[10.5px] text-slate-600" x-text="donXin.length + ' người'"></div>
                       </div>
                       <div class="divide-y divide-slate-800/60">
@@ -11449,57 +11455,51 @@
                           </div>
                           <template x-if="loNguoi === m.id">
                             <div class="px-3.5 pb-2.5 pt-0.5 flex flex-wrap gap-2">
-                              <button @click="xemHoSo(m)" class="px-2.5 py-1 rounded-lg text-[11px] fserif text-cyan-200 border border-cyan/45 hover:bg-cyan/10 transition"
-                                x-text="hoSo === m.id ? 'Đóng Hồ Sơ' : 'Xem Thông Tin'"></button>
+                              <button @click="xemHoSo(m)" class="px-2.5 py-1 rounded-lg text-[11px] fserif text-cyan-200 border border-cyan/45 hover:bg-cyan/10 transition">Xem Thông Tin</button>
                               <button @click="thang(m, true)" class="px-2.5 py-1 rounded-lg text-[11px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Thăng Chức</button>
                               <button @click="thang(m, false)" class="px-2.5 py-1 rounded-lg text-[11px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Hạ Chức</button>
                               <button @click="kich(m)" class="px-2.5 py-1 rounded-lg text-[11px] fserif text-rose-300 border border-rose-500/45 hover:bg-rose-500/10 transition">Đuổi Khỏi Minh</button>
                             </div>
                           </template>
-                          <!-- HỒ SƠ ĐẦY ĐỦ: chân dung to + mọi thứ engine biết về người này -->
-                          <template x-if="hoSo === m.id">
-                            <div class="mx-3 mb-3 rounded-xl border p-3.5" :style="'border-color:'+m.mau+'44;background:linear-gradient(140deg,'+m.mau+'0f,rgba(7,11,20,.6) 62%)'">
-                              <div class="flex gap-3.5 flex-wrap">
-                                <div class="w-[74px] h-[92px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[28px] text-white/90 border" :class="m.av.color" :style="'border-color:'+m.mau+'55'" x-data="{ok:true}">
-                                  <img :src="'images/avatars/'+m.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
-                                  <span x-show="!ok" class="fserif" x-text="m.av.char"></span>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                  <div class="flex items-baseline gap-2 flex-wrap">
-                                    <b class="fserif text-[16px]" :style="'color:'+m.mau" x-text="m.ten"></b>
-                                    <span class="text-[10.5px] px-1.5 py-[1px] rounded-full border" :style="'color:'+m.chucMau+';border-color:'+m.chucMau+'55'" x-text="m.chucTen"></span>
-                                  </div>
-                                  <div class="text-[12px] text-slate-400 mt-1" x-text="m.hieu + ' · ' + m.loai"></div>
-                                  <div class="text-[12px] text-slate-400 italic mt-1" x-text="'Đang ' + m.lam + '.'"></div>
-                                </div>
-                              </div>
-                              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-                                <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                                  <div class="lbl">Chiến Đấu</div><div class="text-[14px] font-bold text-slate-100" x-text="'Lv ' + m.lv"></div></div>
-                                <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                                  <div class="lbl">Tổng Cảnh Giới</div><div class="text-[14px] font-bold text-slate-100" x-text="m.tong"></div></div>
-                                <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                                  <div class="lbl">Vùng Trấn Giữ</div><div class="text-[13px] font-bold text-jade" x-text="tenVung(m.vung)"></div></div>
-                                <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                                  <div class="lbl">Bạc Nộp Minh Khố</div><div class="text-[14px] font-bold text-amber-300" x-text="fmt(m.gopBac)"></div></div>
-                                <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                                  <div class="lbl">Điểm Chinh Phạt</div><div class="text-[14px] font-bold text-cyan-300" x-text="fmt(m.cp)"></div></div>
-                                <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
-                                  <div class="lbl">Vào Minh</div><div class="text-[13px] font-bold text-slate-300" x-text="vaoLucTxt(m.vaoLuc)"></div></div>
-                              </div>
-                            </div>
-                          </template>
                         </div>
                       </template>
                       <template x-if="!tv.length">
-                        <div class="px-3.5 py-4 text-[11.5px] text-slate-600 italic text-center">Tiên Minh còn trống. Chiêu mộ tán tu ở cột bên.</div>
+                        <div class="px-3.5 py-4 text-[11.5px] text-slate-600 italic text-center">Tiên Minh còn trống — sang tab <b class="text-slate-400">Chiêu Mộ</b> tìm người.</div>
                       </template>
                     </div>
                   </div>
-                  </div>
+                </div>
+              </template>
 
-                  <!-- Chiêu mộ ĐỨNG CỘT RIÊNG: danh sách minh chúng dài bao nhiêu cũng không đẩy nó xuống -->
-                  <div class="panel rounded-xl overflow-hidden flex flex-col lg:sticky lg:top-3">
+              <!-- ===== TAB: CHIÊU MỘ (tách hẳn khỏi Minh Chúng cho khỏi chen chỗ) ===== -->
+              <template x-if="tab==='chieuMo'">
+                <div class="space-y-4">
+                  <template x-if="donXin.length">
+                    <div class="panel rounded-xl overflow-hidden border border-amber-500/25">
+                      <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                        <div class="text-amber-200 font-bold fserif">Đơn Xin Gia Nhập</div>
+                        <div class="text-[10.5px] text-slate-600" x-text="donXin.length + ' người đang chờ · nhận thì không tốn Bạc'"></div>
+                      </div>
+                      <div class="divide-y divide-slate-800/60">
+                        <template x-for="t in donXin" :key="t.id">
+                          <div class="flex items-center gap-2.5 px-3.5 py-2">
+                            <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[13px] text-white/90 border border-slate-700/70" :class="t.av.color" x-data="{ok:true}">
+                              <img :src="'images/avatars/'+t.av.id+'.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+                              <span x-show="!ok" class="fserif" x-text="t.av.char"></span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                              <div class="text-[12.5px] truncate" :style="'color:'+t.mau" x-text="t.ten"></div>
+                              <div class="text-[10.5px] text-slate-600 truncate" x-text="t.hieu + ' · ' + t.loai + ' · Lv ' + t.lv + ' · Tổng Lv ' + t.tong"></div>
+                            </div>
+                            <button @click="duyet(t, true)" class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif text-jade border border-jade/45 hover:bg-jade/10 transition">Nhận</button>
+                            <button @click="duyet(t, false)" class="shrink-0 px-2.5 py-1 rounded-lg text-[11px] fserif text-slate-500 border border-slate-800 hover:border-rose-500/50 hover:text-rose-300 transition">Từ chối</button>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div class="panel rounded-xl overflow-hidden flex flex-col">
                     <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap shrink-0">
                       <div class="text-jade font-bold fserif">Chiêu Mộ Tán Tu</div>
                       <input x-model="timTanTu" type="text" placeholder="tìm tên…"
@@ -11522,6 +11522,10 @@
                             x-text="'Mời · ' + fmt(t.gia)"></button>
                         </div>
                       </template>
+                    </div>
+                    <div class="px-4 py-2 border-t border-slate-800 text-[10.5px] text-slate-600">
+                      Hiện 40 người mạnh nhất chưa vào minh — gõ tên để tìm người khác.
+                      Chỗ trống: <b class="text-slate-400" x-text="(tranTv - tv.length)"></b> suất.
                     </div>
                   </div>
                 </div>
@@ -11974,6 +11978,103 @@
                   </div>
                 </div>
               </template>
+
+              <!-- ===== HỒ SƠ MINH CHÚNG (Tiên Minh) =====
+       Cờ `bpHoSo` nằm ở store và đã ghi vào _MODALS nên vuốt-back tự đóng.
+       Dữ liệu do view Tiên Minh dựng sẵn bằng hoSoMinhChung(), modal chỉ vẽ. -->
+  <template x-if="$store.game.bpHoSo">
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/78 backdrop-blur-sm p-3 sm:p-4"
+         @click.self="g.closeBpHoSo()" @keydown.escape.window="g.closeBpHoSo()"
+         x-data="{ get h(){ return $store.game.bpHoSo } }">
+      <div class="panel rounded-2xl w-[540px] max-w-full max-h-[90dvh] flex flex-col overflow-hidden border shadow-2xl"
+           :style="'border-color:' + h.mau + '44'" @click.stop>
+
+        <!-- đầu: chân dung + danh tính -->
+        <div class="flex gap-3.5 p-4 shrink-0 border-b border-slate-800"
+             :style="'background:linear-gradient(120deg,' + h.mau + '18, transparent 64%)'">
+          <div class="w-[92px] h-[118px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br flex items-center justify-center text-[34px] text-white/90 border"
+               :class="h.av.color" :style="'border-color:' + h.mau + '55'" x-data="{ok:true}">
+            <img :src="'images/avatars/' + h.av.id + '.webp'" class="w-full h-full object-cover" x-show="ok" @load="ok=true" @error="ok=false" alt="">
+            <span x-show="!ok" class="fserif" x-text="h.av.char"></span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <b class="fserif text-[19px]" :style="'color:' + h.mau" x-text="h.ten"></b>
+              <span class="text-[10.5px] px-1.5 py-[1px] rounded-full border" :style="'color:' + h.chucMau + ';border-color:' + h.chucMau + '55'" x-text="h.chucTen"></span>
+            </div>
+            <div class="text-[12.5px] mt-1" :style="'color:' + h.mau + 'cc'" x-text="h.hieu"></div>
+            <div class="text-[12px] text-slate-400 mt-0.5" x-text="h.loai + ' · gia nhập ' + vaoLucTxt(h.vaoLuc)"></div>
+            <div class="text-[12px] text-slate-400 italic mt-1.5" x-text="'Đang ' + h.lam + '.'"></div>
+          </div>
+          <button @click="g.closeBpHoSo()" class="shrink-0 text-slate-500 hover:text-rose-400 text-xl leading-none self-start">✕</button>
+        </div>
+
+        <div class="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-3.5">
+          <!-- số liệu chính -->
+          <div>
+            <div class="lbl mb-1.5">Thực Lực</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Chiến Đấu</div><div class="text-[15px] font-bold text-slate-100" x-text="'Lv ' + h.lv"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Tổng Cảnh Giới</div><div class="text-[15px] font-bold text-slate-100" x-text="h.tong"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Vùng Trấn Giữ</div><div class="text-[13px] font-bold text-jade" x-text="h.vungTen"></div></div>
+            </div>
+          </div>
+
+          <!-- đóng góp -->
+          <div>
+            <div class="lbl mb-1.5">Đóng Góp Cho Tiên Minh</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Bạc Nộp Minh Khố</div><div class="text-[15px] font-bold text-amber-300" x-text="fmt(h.gopBac)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Điểm Chinh Phạt</div><div class="text-[15px] font-bold text-cyan-300" x-text="fmt(h.cp)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Sát Thương Trảm Yêu</div><div class="text-[15px] font-bold text-rose-300" x-text="h.dameBoss ? fmt(h.dameBoss) : '—'"></div></div>
+            </div>
+          </div>
+
+          <!-- sản lượng mỗi giờ -->
+          <div>
+            <div class="lbl mb-1.5">Làm Ra Mỗi Giờ</div>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Bạc</div><div class="text-[14px] font-bold text-amber-300" x-text="fmt(h.san.bac)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Minh Cống</div><div class="text-[14px] font-bold text-jade" x-text="fmt(h.san.bangCong)"></div></div>
+              <div class="rounded-lg bg-ink2/60 border border-slate-800 px-2.5 py-1.5">
+                <div class="lbl">Chinh Phạt</div><div class="text-[14px] font-bold text-cyan-300" x-text="fmt(h.san.cp)"></div></div>
+            </div>
+          </div>
+
+          <!-- cấp từng nghề -->
+          <div>
+            <div class="lbl mb-1.5">Cảnh Giới Từng Nghề</div>
+            <div class="space-y-1">
+              <template x-for="n in h.nghe" :key="n.key">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-[92px] shrink-0 text-[11.5px] text-slate-400 truncate" x-text="n.ten"></span>
+                  <div class="flex-1 h-1.5 rounded-full bg-ink overflow-hidden min-w-0">
+                    <div class="h-full rounded-full" :style="'width:' + Math.min(100, n.lv) + '%;background:linear-gradient(90deg,' + h.mau + '66,' + h.mau + ')'"></div>
+                  </div>
+                  <span class="w-[42px] shrink-0 text-right text-[11.5px] text-slate-300 tabular-nums" x-text="'Lv ' + n.lv"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 py-3 border-t border-slate-800 flex flex-wrap gap-2 shrink-0">
+          <button @click="hsThang(true)" class="px-3 py-1.5 rounded-lg text-[12px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Thăng Chức</button>
+          <button @click="hsThang(false)" class="px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Hạ Chức</button>
+          <button @click="hsKich()" class="px-3 py-1.5 rounded-lg text-[12px] fserif text-rose-300 border border-rose-500/45 hover:bg-rose-500/10 transition">Đuổi Khỏi Minh</button>
+          <button @click="g.closeBpHoSo()" class="ml-auto px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </template>
 
             </div>
           </template>

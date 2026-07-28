@@ -15,7 +15,7 @@
 // ============================================================
 import { LOCATIONS } from '../data/locations.js';
 import { YEU_VUONG, YEU_VUONG_BY_ID, ENEMIES } from '../data/combat.js';
-import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant } from './bots.js';
+import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant, botTracks } from './bots.js';
 import { CAT_HEX } from '../data/bots.js';
 import {
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, TV_NEN, TV_MOI_CAP, TV_TRAN,
@@ -304,6 +304,34 @@ export function sinhDonXin(state, world, now) {
     don.add(r.id);
   }
   b.bang.donXin = [...don].slice(-12);                        // giữ tối đa 12 đơn gần nhất
+}
+
+/**
+ * HỒ SƠ CHI TIẾT một minh chúng — dựng riêng cho popup Xem Thông Tin, không nhét vào
+ * thanhVien() vì đắt hơn (tính cấp cả 11 track) mà danh sách thì gọi mỗi nhịp.
+ * Trả null nếu người này không còn trong minh.
+ */
+export function hoSoMinhChung(state, world, botId, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  if (!b.bang) return null;
+  const raw = b.bang.tv.find((m) => m.id === botId); if (!raw) return null;
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const r = roster.find((x) => x.id === botId); if (!r) return null;
+  const o = moTaBot(r, t);
+  const c = CHUC_BY_ID[raw.chuc] || CHUC_BY_ID.tanNhap;
+  const san = sanMoiGio(o, c.bac);
+  // công lao trong trận Trảm Yêu đang diễn ra (nếu đã mở Trảm Yêu Đài)
+  let dameBoss = 0;
+  try { const bb = bossBang(state, world, t); if (bb) { const x = bb.cong.find((y) => y.id === botId); dameBoss = x ? x.dame : 0; } } catch (e) {}
+  return Object.assign(o, {
+    chuc: c.id, chucTen: c.ten, chucBac: c.bac, chucMau: c.mau,
+    vaoLuc: raw.vaoLuc || 0, gopBac: raw.gopBac || 0, cp: raw.cp || 0,
+    vung: raw.vung || LOCATIONS[0].id,
+    vungTen: (LOCATIONS.find((l) => l.id === (raw.vung || '')) || LOCATIONS[0]).name,
+    san,                                   // { bac, bangCong, cp } mỗi giờ
+    dameBoss,
+    nghe: botTracks(r, t).filter((x) => x.lv > 0).sort((x, y) => y.lv - x.lv),
+  });
 }
 
 // ---------- CỐNG HIẾN ----------

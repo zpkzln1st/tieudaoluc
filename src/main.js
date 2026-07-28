@@ -481,6 +481,7 @@ const gameStore = {
     ['petDetailObj', 'closePetDetail'], ['tkDetail', 'closeTkDetail'], ['tkCraft', 'closeTkCraft'],
     ['codexDetail', 'closeCodex'], ['dungeonPoolId', 'closeDungeonPool'], ['tpDetail', 'closeTpDetail'],
     ['lightbox', 'closeLightbox'], ['tmFaceFull', 'closeFaceFull'], ['xacNhan', 'dongXacNhan'],
+    ['bpHoSo', 'closeBpHoSo'],
   ],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
@@ -1157,6 +1158,11 @@ const gameStore = {
   setProfileTab(t) { this.profileTab = t; },
   openLightbox(id, emoji, name, src) { this.lightbox = { id, emoji, name, src: src || '' }; },   // src: ảnh trực tiếp (vd chân dung NPC) -> hiện thay icon
   closeLightbox() { this.lightbox = null; },
+  // Hồ sơ minh chúng (Tiên Minh) — cờ để ở store cho bộ chặn _MODALS lo vuốt-back.
+  // Dữ liệu do view Tiên Minh dựng sẵn rồi gán vào, modal chỉ việc vẽ.
+  bpHoSo: null,
+  closeBpHoSo() { this.bpHoSo = null; },
+
   // ---------- HỎI XÁC NHẬN (modal TRONG GAME — thay confirm() gốc của trình duyệt) ----------
   // confirm() gốc hiện hộp thoại hệ điều hành, lạc hẳn khỏi giao diện game (và trên di động
   // còn khoá cả trang). Dùng chung một modal cho MỌI việc cần hỏi lại.
