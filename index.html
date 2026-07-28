@@ -6109,7 +6109,10 @@
                   <button @click="g.closeDungeonPool()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400">✕</button>
                   <div class="text-[12px]" :style="'color:'+dd.color" x-text="dd.name"></div>
                   <div class="text-lg fserif text-amber-200">Danh Mục Đồ Phổ</div>
-                  <div class="text-[11px] text-slate-400 mt-0.5 leading-snug">Bậc <span x-text="dd.loot.doPho.bac.join(' / ')"></span> · tỉ lệ đoạt <b class="text-amber-300" x-text="g.pctText(g.dungeonDoPhoChance(dd.id))"></b> mỗi lượt thông quan.</div>
+                  <!-- Hai con số trong popup ĐO HAI THỨ KHÁC NHAU, phải nói rõ kẻo đọc tưởng cùng loại:
+                       · đồ phổ trang bị = MỘT lượt bốc chung cả nhóm, trúng thì ra một bản bất kỳ
+                       · đồ phổ Bộ       = mỗi bản MỘT lượt bốc riêng, trúng bản nào ra bản đó -->
+                  <div class="text-[11px] text-slate-400 mt-0.5 leading-snug">Bậc <span x-text="dd.loot.doPho.bac.join(' / ')"></span> · <b class="text-amber-300" x-text="g.pctText(g.dungeonDoPhoChance(dd.id))"></b> ra <b class="text-slate-300">một bản bất kỳ</b> trong nhóm, mỗi lượt thông quan.</div>
                 </div>
                 <div class="p-5 overflow-y-auto">
                   <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -6117,10 +6120,10 @@
                       <button @click="g.closeDungeonPool(); g.openItemModal(dpId)" class="rounded-lg bg-black/40 border p-2.5 flex flex-col items-center gap-2 transition hover:bg-white/5 hover:brightness-110" :class="g.itemQuality(dpId).border" title="Bấm xem chi tiết · phóng to">
                         <span class="w-24 h-24 inline-flex items-center justify-center" x-html="g.ico(dpId,'📜')"></span>
                         <span class="text-[12px] text-center leading-tight font-medium" :class="g.itemQuality(dpId).text" x-text="(g.ITEMS[dpId]||{}).name"></span>
-                        <!-- Đồ Phổ Bộ Trang bốc RIÊNG một lượt, không chung rổ với đồ phổ trang bị,
-                             nên tỉ lệ ghi ở đầu popup không nói cho nó — ghi thẳng vào ô. -->
+                        <!-- "riêng bản này" đối lại với "một bản bất kỳ" ở đầu popup — hai vế đó
+                             gánh trọn ý nghĩa, khỏi phải giảng thêm câu nào. -->
                         <template x-if="dpId.startsWith('dpset_')">
-                          <span class="text-[10px] text-amber-300/90" x-text="'lượt riêng · ' + g.pctText(g.dungeonSetChance(dd.id, dpId))"></span>
+                          <span class="text-[10px] text-amber-300/90" x-text="g.pctText(g.dungeonSetChance(dd.id, dpId)) + ' riêng bản này'"></span>
                         </template>
                         <template x-if="g.doPhoChargeOf(dpId) > 0"><span class="text-[10px] font-semibold text-emerald-400" x-text="'✓ Có '+g.doPhoChargeOf(dpId)+' lượt rèn'"></span></template>
                       </button>
