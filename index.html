@@ -11176,6 +11176,14 @@
                       filter:drop-shadow(0 1px 2px rgba(0,0,0,.9)); }
         @media (min-width:640px){ .bp-anmua{ width:70px; height:75px; }
                                   .bp-anmua .n{ font-size:25px; } .bp-anmua .lb{ font-size:8.5px; } }
+        /* Lưới Công Trình — 10 thẻ chia CHẴN. Chia cột tự do ra 6+4 lệch hàng; ở đây chỉ nhận
+           ước của 10: 5 cột (2 hàng) khi đủ rộng, 2 cột (5 hàng) khi hẹp. Đo container chứ
+           không đo cửa sổ: khung này nằm trong cột giữa, hai bên còn thanh điều hướng. */
+        .bp-ct-wrap{ container-type:inline-size; }
+        .bp-ct-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+        /* Ngưỡng 700 = bề rộng khung ở cửa sổ 1024 (đo được 754) vẫn còn 5 cột, thẻ 141px —
+           đúng cỡ bản cũ. Dưới nữa mới rơi về 2 cột, lúc đó thẻ 243px ở cửa sổ 768. */
+        @container (min-width:700px){ .bp-ct-grid{ grid-template-columns:repeat(5,minmax(0,1fr)); } }
       </style>
       <style>
         /* Tooltip Minh Khố — cùng khuôn với tooltip trang bị (.gtip): nền ink, viền theo SẮC
@@ -11855,16 +11863,8 @@
               <!-- ===== TAB: CỬA HÀNG ===== -->
               <template x-if="tab==='cuaHang'">
                 <div>
-                  <div class="panel rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-                    <div>
-                      <div class="text-jade font-bold fserif text-[15px]">Minh Hội Các</div>
-                      <div class="text-[11.5px] text-slate-500 mt-0.5">Đổi bằng Công Tích. Mỗi món có hạn lượt riêng, sang ngày mới lại đầy.</div>
-                    </div>
-                    <div class="rounded-lg border border-cyan/35 bg-cyan/8 px-3 py-1.5 text-right shrink-0">
-                      <div class="text-[9.5px] uppercase tracking-[.14em] text-cyan/70">Công Tích</div>
-                      <div class="text-[16px] fserif text-cyan-300 leading-tight" x-text="fmt(congTich)"></div>
-                    </div>
-                  </div>
+                  <!-- Không banner phụ: tên tab và Công Tích đều đã nằm sẵn phía trên. -->
+                  <div class="text-[11.5px] text-slate-500 px-1">Đổi bằng Công Tích. Mỗi món có hạn lượt riêng, sang ngày mới lại đầy.</div>
 
                   <div class="grid gap-3 mt-3 sm:grid-cols-2 xl:grid-cols-3">
                     <template x-for="h in hang" :key="h.id">
@@ -11916,16 +11916,9 @@
                    thì rơi về chữ Hán trên nền sơn mài, thả file vào là chạy. -->
               <template x-if="tab==='kyNang'">
                 <div>
-                  <div class="panel rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-                    <div class="text-jade font-bold fserif text-[15px]">Kĩ Năng Tiên Minh</div>
-                    <div class="rounded-lg border border-violet-500/35 bg-violet-500/8 px-3 py-1.5 text-right shrink-0">
-                      <div class="text-[9.5px] uppercase tracking-[.14em] text-violet-300/70">Công Tích</div>
-                      <div class="text-[15px] fserif text-violet-200 leading-tight" x-text="fmt(congTich)"></div>
-                    </div>
-                  </div>
-
+                  <!-- Không banner phụ: tên tab và Công Tích đều đã nằm sẵn phía trên. -->
                   <!-- Cùng lối tự chia cột với lưới Công Trình — nay 12 cây, ép cột cứng là bóp thẻ. -->
-                  <div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fill,minmax(168px,1fr))">
+                  <div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(168px,1fr))">
                     <template x-for="kn in kyNang" :key="kn.id">
                       <div class="relative panel rounded-xl overflow-hidden flex flex-col"
                            :class="kn.moKhoa ? '' : 'opacity-55'"
@@ -11998,17 +11991,10 @@
                    Năm tấm cùng tông đêm xanh nên giữ thêm SẮC RIÊNG + DẤU TRIỆN chữ Hán
                    (TILE_KHAC) để nhìn lướt vẫn phân biệt được. -->
               <template x-if="tab==='congTrinh'">
-                <div>
-                  <div class="panel rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-                    <div>
-                      <div class="text-jade font-bold fserif text-[15px]">Công Trình Tiên Minh</div>
-                      <div class="text-[11.5px] text-slate-500 mt-0.5">Bấm để xem chi tiết</div>
-                    </div>
-                    <div class="rounded-lg border border-jade/35 bg-jade/8 px-3 py-1.5 text-right shrink-0">
-                      <div class="text-[9.5px] uppercase tracking-[.14em] text-jade/70">Minh Khố</div>
-                      <div class="text-[15px] fserif text-jade leading-tight" x-text="fmt(bang.quy)"></div>
-                    </div>
-                  </div>
+                <div class="bp-ct-wrap">
+                  <!-- KHÔNG banner phụ: tên tab đã nằm trên thanh tab, Minh Khố đã nằm trên banner
+                       chính. Vẽ lại là trùng, mà mỗi dòng thừa đẩy hàng thẻ thứ hai rớt khỏi màn. -->
+                  <div class="text-[11.5px] text-slate-500 px-1">Bấm để xem chi tiết</div>
 
                   <template x-if="dangXay">
                     <div class="panel rounded-xl px-4 py-2.5 mt-3 border border-amber-500/25 flex items-center gap-3 flex-wrap">
@@ -12017,10 +12003,9 @@
                     </div>
                   </template>
 
-                  <!-- TỰ CHIA CỘT theo bề ngang, không ép cứng 5 cột: 10 công trình mà ép 5 cột
-                       thì ở khung 1024 mỗi thẻ chỉ còn 141px — art bị bóp, chữ chen nhau. Nay mỗi
-                       thẻ giữ tối thiểu 168px, thừa chỗ thì giãn đều, hẹp thì tự xuống hàng. -->
-                  <div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fill,minmax(168px,1fr))">
+                  <!-- 10 công trình xếp ĐÚNG 5 CỘT × 2 HÀNG BẰNG NHAU. Chia cột tự do thì ra
+                       6+4 lệch hàng. Hẹp lại thì rơi về 2 cột (5 hàng) — vẫn chia chẵn. -->
+                  <div class="grid gap-3 mt-3 bp-ct-grid">
                     <template x-for="ct in congTrinh" :key="ct.id">
                       <!-- THẺ ART: vạch sắc trên đỉnh · art vuông · dấu triện chữ Hán góc trái
                            · hàng hạt cấp · ba trạng thái phân biệt bằng viền và độ sáng. -->
