@@ -17,7 +17,7 @@ import {
   gopKho, rutKho, duQuyen, datQuyen, oKhoToiDa,
   capKyNang, tranKyNang, hocKyNang,
   danhSachHang, muaHang,
-  capCongTrinh, xayCongTrinh, soatXayDung,
+  capCongTrinh, xayCongTrinh, soatXayDung, viTriCongTrinh, datViTri, xepLaiViTri,
   danhSachNv, nhanNv, nvKyConLai,
   danhSachTruyNa, nhanTruyNa, nopTruyNa,
   chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai,
@@ -171,6 +171,50 @@ export function bangPhai() {
         });
       } catch (e) { return []; }
     },
+
+    // ---------- công trình: kéo thả trên nền ----------
+    // Port thẳng cách làm của Mộng Giang Hồ (js/systems/buildings.js · startDrag): bắt
+    // pointerdown rồi nghe pointermove/pointerup trên window, di quá 4px thì tính là KÉO,
+    // dưới 4px thì tính là BẤM. Nhờ vậy một cử chỉ lo được cả hai việc, và vì là pointer
+    // event thuần (không phải drag native của HTML5) nên chạy luôn trên cảm ứng.
+    keoCT: null,            // id công trình đang kéo
+    viTri(id) { void this._t; try { return viTriCongTrinh(this.g.state, id); } catch (e) { return { x: 50, y: 50 }; } },
+    batKeo(ct, ev) {
+      const the = ev.currentTarget, khung = the.parentElement;
+      if (!khung) return;
+      const r0 = khung.getBoundingClientRect();
+      const v0 = this.viTri(ct.id);
+      const x0 = ev.clientX, y0 = ev.clientY;
+      let dangKeo = false;
+      // Lề = nửa ô, quy ra phần trăm khung. Đo tại chỗ vì ô 112px trên khung 1008 là 5,6%
+      // nhưng trên khung 351 (máy 375) lại là 16% — kẹp bằng số cứng là ô lòi ra ngoài.
+      const leX = the.offsetWidth / 2 / r0.width * 100;
+      const leY = the.offsetHeight / 2 / r0.height * 100;
+      const kep = (v, le) => Math.max(le, Math.min(100 - le, v));
+      const di = (e) => {
+        const dx = e.clientX - x0, dy = e.clientY - y0;
+        if (!dangKeo && (Math.abs(dx) + Math.abs(dy)) > 4) { dangKeo = true; this.keoCT = ct.id; }
+        if (!dangKeo) return;
+        datViTri(this.g.state, ct.id,
+          kep(v0.x + dx / r0.width * 100, leX),
+          kep(v0.y + dy / r0.height * 100, leY));
+        this._t = Date.now();
+      };
+      const nha = () => {
+        window.removeEventListener('pointermove', di);
+        window.removeEventListener('pointerup', nha);
+        window.removeEventListener('pointercancel', nha);
+        if (dangKeo) { this.keoCT = null; this._luu(); }
+        else this.moCT = (this.moCT === ct.id ? null : ct.id);   // không kéo = bấm mở bảng
+      };
+      window.addEventListener('pointermove', di);
+      window.addEventListener('pointerup', nha);
+      window.addEventListener('pointercancel', nha);
+      ev.preventDefault();
+    },
+    moCT: null,
+    get ctDangMo() { const id = this.moCT; return id ? this.congTrinh.find((x) => x.id === id) : null; },
+    xepLai() { xepLaiViTri(this.g.state); this._luu(); this.g.showToast('Đã xếp lại công trình về chỗ cũ.'); },
 
     // ---------- công trình ----------
     get congTrinh() {
@@ -390,6 +434,50 @@ export function bangPhai() {
       else if (don.itemId) addItem(g.state, don.itemId, don.so);
       this._luu(); g.showToast('Đổi được ' + don.ten + '.');
     },
+
+    // ---------- công trình: kéo thả trên nền ----------
+    // Port thẳng cách làm của Mộng Giang Hồ (js/systems/buildings.js · startDrag): bắt
+    // pointerdown rồi nghe pointermove/pointerup trên window, di quá 4px thì tính là KÉO,
+    // dưới 4px thì tính là BẤM. Nhờ vậy một cử chỉ lo được cả hai việc, và vì là pointer
+    // event thuần (không phải drag native của HTML5) nên chạy luôn trên cảm ứng.
+    keoCT: null,            // id công trình đang kéo
+    viTri(id) { void this._t; try { return viTriCongTrinh(this.g.state, id); } catch (e) { return { x: 50, y: 50 }; } },
+    batKeo(ct, ev) {
+      const the = ev.currentTarget, khung = the.parentElement;
+      if (!khung) return;
+      const r0 = khung.getBoundingClientRect();
+      const v0 = this.viTri(ct.id);
+      const x0 = ev.clientX, y0 = ev.clientY;
+      let dangKeo = false;
+      // Lề = nửa ô, quy ra phần trăm khung. Đo tại chỗ vì ô 112px trên khung 1008 là 5,6%
+      // nhưng trên khung 351 (máy 375) lại là 16% — kẹp bằng số cứng là ô lòi ra ngoài.
+      const leX = the.offsetWidth / 2 / r0.width * 100;
+      const leY = the.offsetHeight / 2 / r0.height * 100;
+      const kep = (v, le) => Math.max(le, Math.min(100 - le, v));
+      const di = (e) => {
+        const dx = e.clientX - x0, dy = e.clientY - y0;
+        if (!dangKeo && (Math.abs(dx) + Math.abs(dy)) > 4) { dangKeo = true; this.keoCT = ct.id; }
+        if (!dangKeo) return;
+        datViTri(this.g.state, ct.id,
+          kep(v0.x + dx / r0.width * 100, leX),
+          kep(v0.y + dy / r0.height * 100, leY));
+        this._t = Date.now();
+      };
+      const nha = () => {
+        window.removeEventListener('pointermove', di);
+        window.removeEventListener('pointerup', nha);
+        window.removeEventListener('pointercancel', nha);
+        if (dangKeo) { this.keoCT = null; this._luu(); }
+        else this.moCT = (this.moCT === ct.id ? null : ct.id);   // không kéo = bấm mở bảng
+      };
+      window.addEventListener('pointermove', di);
+      window.addEventListener('pointerup', nha);
+      window.addEventListener('pointercancel', nha);
+      ev.preventDefault();
+    },
+    moCT: null,
+    get ctDangMo() { const id = this.moCT; return id ? this.congTrinh.find((x) => x.id === id) : null; },
+    xepLai() { xepLaiViTri(this.g.state); this._luu(); this.g.showToast('Đã xếp lại công trình về chỗ cũ.'); },
 
     // ---------- công trình ----------
     xay(ct) {
