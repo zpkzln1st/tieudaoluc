@@ -11729,9 +11729,11 @@
                 </div>
               </template>
 
-              <!-- ===== TAB: CÔNG TRÌNH — hàng thẻ khắc chữ, bấm thẻ ra popup chi tiết =====
+              <!-- ===== TAB: CÔNG TRÌNH — hàng thẻ art, bấm thẻ ra popup chi tiết =====
                    Không nền, không kéo thả: bỏ nền rồi thì kéo thả chẳng để sắp vào đâu.
-                   Thẻ là BẢN KHẮC CHỮ (TILE_KHAC ở data/bangphai.js), mọi chi tiết dồn vào popup. -->
+                   Mặt thẻ là ART (images/tienminh/<id>.webp), mọi chi tiết dồn vào popup.
+                   Năm tấm cùng tông đêm xanh nên giữ thêm SẮC RIÊNG + DẤU TRIỆN chữ Hán
+                   (TILE_KHAC) để nhìn lướt vẫn phân biệt được. -->
               <template x-if="tab==='congTrinh'">
                 <div>
                   <div class="panel rounded-xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
@@ -11754,32 +11756,32 @@
 
                   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-3">
                     <template x-for="ct in congTrinh" :key="ct.id">
-                      <!-- BẢN KHẮC: vạch sắc trên đỉnh · bốn góc dấu triện · chữ Hán theo sắc riêng
+                      <!-- THẺ ART: vạch sắc trên đỉnh · art vuông · dấu triện chữ Hán góc trái
                            · hàng hạt cấp · ba trạng thái phân biệt bằng viền và độ sáng. -->
                       <div class="relative rounded-xl overflow-hidden transition cursor-pointer"
                            @click="g.bpCongTrinh = ct.id"
                            :style="'border:1px ' + (ct.lv ? 'solid ' + khac(ct.id).mau + '55' : 'dashed #3d4a63')
-                                   + ';background:linear-gradient(158deg,rgba(18,25,39,.94),rgba(8,12,20,.96))'
-                                   + (ct.lv ? ';box-shadow:0 6px 18px rgba(0,0,0,.45), inset 0 0 22px ' + khac(ct.id).mau + '14' : '')
+                                   + ';background:#080c14'
+                                   + (ct.lv ? ';box-shadow:0 6px 18px rgba(0,0,0,.45)' : '')
                                    + (moCT===ct.id ? ';outline:2px solid ' + khac(ct.id).mau + 'aa;outline-offset:1px' : '')">
                         <div class="h-[2px] w-full"
                              :style="'background:linear-gradient(90deg,transparent,' + khac(ct.id).mau + (ct.lv ? 'cc' : '33') + ',transparent)'"></div>
 
-                        <div class="relative flex items-center justify-center" style="aspect-ratio:1/1">
-                          <template x-for="g2 in ['top-1.5 left-1.5 border-t border-l','top-1.5 right-1.5 border-t border-r','bottom-1.5 left-1.5 border-b border-l','bottom-1.5 right-1.5 border-b border-r']" :key="g2">
-                            <span class="absolute w-2.5 h-2.5" :class="g2" :style="'border-color:' + khac(ct.id).mau + (ct.lv ? '66' : '2e')"></span>
-                          </template>
-                          <span class="fserif select-none leading-none"
-                                :style="'font-size:clamp(34px,4.4vw,46px);'
-                                        + (ct.lv ? ('color:' + khac(ct.id).mau + ';text-shadow:0 0 16px ' + khac(ct.id).mau + '4d, 0 2px 3px #000')
-                                                 : 'color:#3f4a63;text-shadow:0 1px 2px #000')"
+                        <div class="relative overflow-hidden" style="aspect-ratio:1/1">
+                          <div class="absolute inset-0" :style="artCT(ct.id, ct.lv)"></div>
+                          <!-- vuốt tối hai đầu: đỉnh cho dấu triện nổi, đáy nối liền xuống chân thẻ -->
+                          <div class="absolute inset-0 pointer-events-none"
+                               style="background:linear-gradient(180deg,rgba(6,9,16,.42),transparent 24%,transparent 56%,rgba(6,9,16,.9))"></div>
+                          <span class="absolute top-1 left-1 w-[21px] h-[21px] rounded-[5px] flex items-center justify-center fserif leading-none select-none"
+                                :style="'font-size:13px;background:rgba(5,8,14,.74);border:1px solid ' + khac(ct.id).mau + (ct.lv ? '77' : '33')
+                                        + ';color:' + (ct.lv ? khac(ct.id).mau : '#5b6a85')"
                                 x-text="khac(ct.id).han"></span>
                           <template x-if="!ct.lv">
-                            <span class="absolute inset-x-0 bottom-0 text-[9.5px] text-center text-slate-500 bg-black/45 leading-[15px] fserif">chưa dựng</span>
+                            <span class="absolute inset-x-0 bottom-0 text-[9.5px] text-center text-slate-400 bg-black/55 leading-[15px] fserif">chưa dựng</span>
                           </template>
                         </div>
 
-                        <div class="px-2 pb-2 pt-1" style="background:linear-gradient(180deg,transparent,rgba(0,0,0,.35))">
+                        <div class="px-2 pb-2 pt-1.5" style="background:#080c14">
                           <div class="text-[12px] fserif text-center truncate leading-tight"
                                :style="'color:' + (ct.lv ? khac(ct.id).mau : '#64748b')" x-text="ct.ten"></div>
                           <div class="flex items-center justify-center gap-[2px] mt-1">
@@ -12078,15 +12080,12 @@
 
                     <div class="flex gap-3.5 p-4 shrink-0 border-b border-slate-800"
                          style="background:linear-gradient(120deg,rgba(245,185,66,.12),transparent 64%)">
-                      <div class="w-[86px] h-[86px] rounded-xl overflow-hidden shrink-0 relative flex items-center justify-center"
-                           :style="'border:1px ' + (ct.lv ? 'solid ' + khac(ct.id).mau + '66' : 'dashed #3d4a63')
-                                   + ';background:linear-gradient(158deg,rgba(18,25,39,.95),rgba(8,12,20,.97))'
-                                   + (ct.lv ? ';box-shadow:inset 0 0 26px ' + khac(ct.id).mau + '1f' : '')">
-                        <template x-for="g in ['top-1.5 left-1.5 border-t border-l','top-1.5 right-1.5 border-t border-r','bottom-1.5 left-1.5 border-b border-l','bottom-1.5 right-1.5 border-b border-r']" :key="g">
-                          <span class="absolute w-2.5 h-2.5" :class="g" :style="'border-color:' + khac(ct.id).mau + (ct.lv ? '77' : '33')"></span>
-                        </template>
-                        <span class="fserif leading-none select-none"
-                              :style="'font-size:44px;' + (ct.lv ? ('color:' + khac(ct.id).mau + ';text-shadow:0 0 18px ' + khac(ct.id).mau + '55, 0 2px 4px #000') : 'color:#3f4a63')"
+                      <div class="w-[86px] h-[86px] rounded-xl overflow-hidden shrink-0 relative"
+                           :style="'border:1px ' + (ct.lv ? 'solid ' + khac(ct.id).mau + '66' : 'dashed #3d4a63') + ';background:#080c14'">
+                        <div class="absolute inset-0" :style="artCT(ct.id, ct.lv)"></div>
+                        <span class="absolute top-1 left-1 w-[21px] h-[21px] rounded-[5px] flex items-center justify-center fserif leading-none select-none"
+                              :style="'font-size:13px;background:rgba(5,8,14,.74);border:1px solid ' + khac(ct.id).mau + (ct.lv ? '77' : '33')
+                                      + ';color:' + (ct.lv ? khac(ct.id).mau : '#5b6a85')"
                               x-text="khac(ct.id).han"></span>
                       </div>
                       <div class="min-w-0 flex-1">

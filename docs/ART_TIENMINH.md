@@ -183,18 +183,29 @@ static soft glow, ultra detailed, no text, no watermark, 512x384
 
 ---
 
-# ⚠ BẢN NÀY ĐÃ NGƯNG DÙNG (2026-07-28)
+# ⚠ BẢN YÊU CẦU Ở TRÊN ĐÃ CŨ — art đang chạy là BỘ KHÁC (2026-07-28)
 
-Đã làm art theo bản này rồi **bỏ**: thu nhỏ xuống cỡ tile (76-112px) thì công trình thành mấy
-vệt mờ, lại thêm ba tấm lệch khuôn (1536×1024 vs 1024×1024, vùng trong suốt chừa 0-22%) nên
-đặt cạnh nhau to nhỏ không đều. Nhìn tệ hơn hẳn chữ khắc.
+## Bộ ĐANG DÙNG
+`images/tienminh/<id>.webp` — **1254×1254, nền liền, KHÔNG trong suốt**, cảnh đêm đầy khung
+(trăng + núi sương + kiến trúc chính giữa). Năm tấm **cùng khuôn tuyệt đối**.
 
-**Nay công trình là BẢN KHẮC CHỮ** — `TILE_KHAC` trong `src/data/bangphai.js`. Không cần art.
+Code: thẻ ở tab Công Trình lấy ảnh làm mặt thẻ, khung phóng/neo chung là `ART_CT_KHUNG`
+(`src/data/bangphai.js`), dựng style qua `artCT(id, daDung)` (`src/bangphai.js`).
+Đo trên canvas cả năm tấm: tâm chi tiết theo chiều dọc **46,2-48,8%**, dải chứa 70% chi tiết
+**16-84%** → trên là trời, dưới là sân. Đo tiếp **đỉnh kiến trúc** (dải giữa 32% bề ngang,
+đếm biên ngang gắt): bangKho **7,0%** · tuLinhTri 8,5% · tramYeuDai 10,5% · tongDan 12,3% ·
+binhKhiKho 14,0%. Nên neo `50% 33%/118%` — khung thấy 5,0%→89,8%, cắt 5% trời và 10% sân,
+kiến trúc to thêm 18%, chóp thấp nhất còn dư 2 điểm phần trăm.
+**⚠ Đừng phóng quá 120%** — thử 128% thì cắt tới 8,4%, ăn mất chóp Minh Khố.
+Chưa dựng thì `grayscale(1) brightness(.42)`.
 
-Nếu sau này muốn quay lại art thì đọc kỹ hai chỗ đã sai:
-1. **Cùng khuôn tuyệt đối** — cùng tỉ lệ ảnh VÀ cùng lề trong suốt, nếu không phải bù hệ số
-   phóng từng tấm (đã thử, đo được vùng công trình chiếm 64%-90% chiều cao khung).
-2. **Vẽ cho cỡ hiển thị thật** (76-112px), đừng vẽ chi tiết 1536px rồi thu nhỏ.
+Art cùng một tông đêm xanh nên nhìn lướt dễ lẫn — mỗi thẻ giữ thêm **sắc riêng** (viền, vạch
+đỉnh, tên) và **dấu triện chữ Hán** góc trái (`TILE_KHAC`).
 
-Nền `images/tienminh/nen.webp` thì **vẫn dùng được** nếu muốn — code còn nhận, thiếu file thì
-tự rơi về nền vẽ bằng CSS (sương núi + ánh trăng).
+## Bộ CŨ đã bỏ — hai chỗ đã sai, vẽ lại thì tránh
+1. **Cùng khuôn tuyệt đối** — bộ cũ lệch (1536×1024 vs 1024×1024, lề trong suốt chừa 0-22%)
+   nên vùng công trình chiếm 64%-90% chiều cao khung, đặt cạnh nhau to nhỏ không đều.
+2. **Vẽ cảnh đầy khung, đừng vẽ vật thể rời trên nền trong suốt** — vật thể rời thu xuống cỡ
+   thẻ (76-112px) thành mấy vệt mờ. Bộ mới đầy khung nên thu nhỏ vẫn đọc được khối.
+
+Nền `images/tienminh/nen.webp` **không còn dùng** — bỏ nền sơn thuỷ + kéo thả từ `1cfead1`.

@@ -78,10 +78,11 @@ export const CUA_HANG_BANG = [
     ten: 'Nguyên Bảo', ico: 'nguyenBao', emoji: '🔷', nhom: 'quy',
     desc: 'Của hiếm trong Minh Khố — chỉ Tiên Minh lớn mới đổi nổi.' },
 ];
-// ---------- BẢN KHẮC CÔNG TRÌNH (tile chữ) ----------
-// Không dùng art: mỗi công trình là một TẤM KHẮC chữ Hán, mỗi cái một sắc riêng để nhìn
-// lướt qua cũng phân biệt được. Chữ đều nằm trong subset Noto Serif SC (xem HAN_THAN_BAI
-// ở engine/hanfont.js — có máy tự soát, thêm chữ mới mà quên khai là Console kêu ngay).
+// ---------- DẤU TRIỆN CÔNG TRÌNH ----------
+// Năm tấm art cùng một tông (đêm xanh + vàng kim) nên nhìn lướt dễ lẫn. Mỗi công trình
+// giữ thêm MỘT SẮC RIÊNG (viền thẻ, vạch đỉnh, tên) và MỘT CHỮ HÁN đóng triện ở góc art.
+// Chữ đều nằm trong subset Noto Serif SC (xem HAN_THAN_BAI ở engine/hanfont.js — có máy
+// tự soát, thêm chữ mới mà quên khai là Console kêu ngay).
 export const TILE_KHAC = {
   tongDan:    { han: '總', mau: '#f5b942', phu: 'Trụ sở' },
   binhKhiKho: { han: '兵', mau: '#fb923c', phu: 'Binh khí' },
@@ -90,16 +91,18 @@ export const TILE_KHAC = {
   tramYeuDai: { han: '斬', mau: '#fb7185', phu: 'Trảm yêu' },
 };
 
-// ---------- CHỈNH CỠ TILE CÔNG TRÌNH (chỉ dùng khi có art) ----------
-// ⚠ Năm tấm art không cùng khuôn: ảnh gốc 1536×1024 (3:2) hoặc 1024×1024 (1:1), phần trong
-// suốt chừa quanh cũng khác nhau, nên VÙNG CÔNG TRÌNH THẬT chiếm từ 64% đến 90% chiều cao
-// khung. Cứ để object-contain thì Tụ Linh Trì bé tí còn Trảm Yêu Đài to vống lên.
-// Hệ số dưới đây đưa cả năm về cùng ~84% chiều cao khung. Đo bằng cách quét alpha từng ảnh:
-//   tongDan 79% · binhKhiKho 85% · tuLinhTri 64% · bangKho 73% · tramYeuDai 90%
-// Nếu sau này vẽ lại art cho cùng khuôn thì đặt hết về 1.
-export const TILE_SCALE = {
-  tongDan: 1.06, binhKhiKho: 0.99, tuLinhTri: 1.31, bangKho: 1.15, tramYeuDai: 0.93,
-};
+// ---------- KHUNG ART CÔNG TRÌNH ----------
+// Bộ art (images/tienminh/<id>.webp) CÙNG MỘT KHUÔN: cả năm tấm 1254×1254, nền liền, không
+// có lề trong suốt — nên KHÔNG cần hệ số riêng từng tấm như bộ cũ.
+// Đo trên canvas (dải giữa 32% bề ngang, đếm biên ngang gắt > 18 mức sáng):
+//   ĐỈNH kiến trúc — bangKho 7,0% · tuLinhTri 8,5% · tramYeuDai 10,5% · tongDan 12,3%
+//                    · binhKhiKho 14,0%  → chỗ thấp nhất là 7,0%.
+//   Quét biên độ sáng từng hàng: dải chứa 70% chi tiết là 16-84% → trên là trời, dưới là sân.
+// Chọn phóng 118% neo 50%/33%: khung thấy 5,0%→89,8% ảnh gốc, tức CẮT 5% trời trên và 10%
+// sân dưới. Khối kiến trúc to thêm 18% mà chóp thấp nhất (7,0%) vẫn dư 2 điểm phần trăm.
+// ⚠ Đừng phóng quá 120% — 128% cắt tới 8,4% là ăn mất chóp Minh Khố.
+// Vẽ lại art khác khuôn thì phải đo lại hai số này.
+export const ART_CT_KHUNG = '50% 33%/118% no-repeat';
 
 export const CH_NHOM_MAU = { tien: '#fbbf24', dan: '#5dcaa5', hiem: '#a78bfa', quy: '#22d3ee' };
 

@@ -26,7 +26,7 @@ import {
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
   MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG, MUA_MS,
 } from './engine/bangphai.js';
-import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC } from './data/bangphai.js';
+import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG } from './data/bangphai.js';
 
 export { ensureBangPhai };
 
@@ -419,6 +419,14 @@ export function bangPhai() {
     // hàng, mọi chi tiết dồn vào popup khi bấm.
     /** Bản khắc của một công trình: chữ Hán + sắc riêng (TILE_KHAC ở data/bangphai.js). */
     khac(id) { return TILE_KHAC[id] || { han: '殿', mau: '#94a3b8', phu: '' }; },
+    /**
+     * Nền art của một công trình (khung phóng/neo chung — ART_CT_KHUNG ở data/bangphai.js).
+     * Chưa dựng thì xám và tối hẳn, để nhìn phát biết ô nào còn trống.
+     */
+    artCT(id, daDung) {
+      return 'background:url(images/tienminh/' + id + '.webp) ' + ART_CT_KHUNG
+             + (daDung ? '' : ';filter:grayscale(1) brightness(.42)');
+    },
     /** Công trình đang mở popup — tra lại từ danh sách nên số liệu luôn tươi sau khi nâng cấp. */
     get moCT() { return this.g.bpCongTrinh; },
     /**
