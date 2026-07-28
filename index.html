@@ -11395,36 +11395,66 @@
                         <div class="text-jade font-bold fserif">Minh Khố</div>
                         <div class="text-[11px] text-slate-600"><span x-text="khoList.length"></span>/<span x-text="oKho"></span> ô</div>
                       </div>
-                      <!-- CHỐT TRẦN CHIỀU CAO + cuộn trong: kho càng nhiều món thì khối này càng
-                           dài ra vô hạn, đẩy "Góp Từ Hành Lý" tụt mãi xuống dưới, muốn góp một
-                           món phải cuộn qua cả trăm ô. Nay mỗi khối tự cuộn, hai khối luôn thấy
-                           được cùng lúc. -->
-                      <template x-if="khoList.length">
-                        <div class="flex flex-wrap gap-1.5 mb-3 max-h-[212px] overflow-y-auto pr-1">
-                          <template x-for="it in khoList" :key="it.id">
-                            <div class="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-ink2/50 px-2 py-1">
-                              <span class="w-4 h-4 inline-flex text-[13px]" x-html="$store.game.ico(it.id, it.icon)"></span>
-                              <span class="text-[11.5px] text-slate-300" x-text="it.ten"></span>
-                              <span class="text-[11px] text-amber-300 tabular-nums" x-text="'×'+it.so"></span>
-                              <button @click="rutTuKho(it, 1)" class="text-[10.5px] text-slate-600 hover:text-jade px-1">rút</button>
+                      <!-- Ô ICON, không phải thẻ chữ: một dòng chữ mỗi món thì 49 món đã tràn cả
+                           màn. Icon 44px xếp lưới -> nhìn phát thấy hết, tên+số lượng+lời văn dồn
+                           vào TOOLTIP (rê chuột). Máy cảm ứng không rê được -> bấm ô mở modal
+                           vật phẩm, còn đủ thông tin hơn tooltip.
+                           Khung CHỐT CỨNG 212px và tự cuộn: thêm bao nhiêu món cũng không đội tab. -->
+                      <div class="flex flex-wrap gap-1 mb-2">
+                        <template x-for="n in nhomList" :key="n.id">
+                          <button @click="khoLoc = n.id"
+                            class="px-2 py-0.5 rounded-full text-[10.5px] fserif border transition"
+                            :class="khoLoc === n.id ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                            x-text="n.ten"></button>
+                        </template>
+                      </div>
+                      <!-- CHIỀU CAO CHỐT CỨNG (h- chứ không phải max-h-): lọc còn 7 món thì khối
+                           co lại, cả tab nhảy lên nhảy xuống mỗi lần bấm chip. Ô trống thà để
+                           trống chứ không cho đổi cỡ. -->
+                      <div class="h-[212px] overflow-y-auto pr-1 mb-3">
+                        <template x-if="khoHien.length">
+                          <div class="grid gap-1.5"
+                             style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr))">
+                          <template x-for="it in khoHien" :key="it.id">
+                            <div class="relative group aspect-square rounded-lg border border-slate-800 bg-ink2/50 hover:border-jade/50 transition cursor-pointer"
+                                 :title="it.goi" @click="$store.game.openItemModal(it.id)">
+                              <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
+                              <span class="absolute bottom-0 right-0.5 text-[9px] tabular-nums text-amber-300 leading-none px-0.5 rounded bg-black/70" x-text="fmt(it.so)"></span>
+                              <!-- Nút rút chỉ hiện khi rê vào: bày sẵn thì mỗi ô một chữ "rút" lấn hết icon. -->
+                              <button @click.stop="rutTuKho(it, 1)"
+                                class="absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition text-[9px] leading-none px-1 py-0.5 rounded bg-black/80 text-slate-400 hover:text-jade">rút</button>
                             </div>
                           </template>
+                          </div>
+                        </template>
+                        <template x-if="!khoHien.length">
+                          <div class="text-[11.5px] text-slate-600 italic py-2" x-text="khoList.length ? 'Nhóm này chưa có gì trong kho.' : 'Kho còn trống.'"></div>
+                        </template>
+                      </div>
+
+                      <div class="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                        <div class="lbl">Góp Từ Hành Lý</div>
+                        <div class="flex flex-wrap gap-1">
+                          <template x-for="n in nhomList" :key="n.id">
+                            <button @click="gopLoc = n.id"
+                              class="px-2 py-0.5 rounded-full text-[10.5px] fserif border transition"
+                              :class="gopLoc === n.id ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                              x-text="n.ten"></button>
+                          </template>
                         </div>
-                      </template>
-                      <template x-if="!khoList.length">
-                        <div class="text-[11.5px] text-slate-600 italic py-2">Kho còn trống.</div>
-                      </template>
-                      <div class="lbl mb-1.5">Góp Từ Hành Lý</div>
-                      <div class="flex flex-wrap gap-1.5 max-h-[212px] overflow-y-auto pr-1">
-                        <template x-for="it in gopDuoc" :key="it.id">
-                          <button @click="gopVaoKho(it, Math.min(it.so, 10))"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-ink2/40 px-2 py-1 hover:border-jade/50 transition">
-                            <span class="w-4 h-4 inline-flex text-[13px]" x-html="$store.game.ico(it.id, it.icon)"></span>
-                            <span class="text-[11.5px] text-slate-300" x-text="it.ten"></span>
-                            <span class="text-[10.5px] text-slate-600 tabular-nums" x-text="'×'+it.so"></span>
+                      </div>
+                      <div class="grid gap-1.5 h-[212px] overflow-y-auto pr-1 content-start"
+                           style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr))">
+                        <template x-for="it in gopHien" :key="it.id">
+                          <button @click="gopVaoKho(it, Math.min(it.so, 10))" :title="it.goi + '\n\nBấm để góp 10 món vào Minh Khố.'"
+                            class="relative aspect-square rounded-lg border border-slate-800 bg-ink2/40 hover:border-jade/50 transition">
+                            <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
+                            <span class="absolute bottom-0 right-0.5 text-[9px] tabular-nums text-slate-400 leading-none px-0.5 rounded bg-black/70" x-text="fmt(it.so)"></span>
                           </button>
                         </template>
-                        <template x-if="!gopDuoc.length"><span class="text-[11.5px] text-slate-600 italic">Hành lý chưa có gì góp được.</span></template>
+                        <template x-if="!gopHien.length">
+                          <span class="col-span-full text-[11.5px] text-slate-600 italic" x-text="gopDuoc.length ? 'Nhóm này trong hành lý chưa có gì.' : 'Hành lý chưa có gì góp được.'"></span>
+                        </template>
                       </div>
                     </div>
                   </div>
@@ -11851,7 +11881,8 @@
                     </div>
                   </div>
 
-                  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-3">
+                  <!-- Cùng lối tự chia cột với lưới Công Trình — nay 12 cây, ép cột cứng là bóp thẻ. -->
+                  <div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fill,minmax(168px,1fr))">
                     <template x-for="kn in kyNang" :key="kn.id">
                       <div class="relative panel rounded-xl overflow-hidden flex flex-col"
                            :class="kn.moKhoa ? '' : 'opacity-55'"
@@ -11943,7 +11974,10 @@
                     </div>
                   </template>
 
-                  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-3">
+                  <!-- TỰ CHIA CỘT theo bề ngang, không ép cứng 5 cột: 10 công trình mà ép 5 cột
+                       thì ở khung 1024 mỗi thẻ chỉ còn 141px — art bị bóp, chữ chen nhau. Nay mỗi
+                       thẻ giữ tối thiểu 168px, thừa chỗ thì giãn đều, hẹp thì tự xuống hàng. -->
+                  <div class="grid gap-3 mt-3" style="grid-template-columns:repeat(auto-fill,minmax(168px,1fr))">
                     <template x-for="ct in congTrinh" :key="ct.id">
                       <!-- THẺ ART: vạch sắc trên đỉnh · art vuông · dấu triện chữ Hán góc trái
                            · hàng hạt cấp · ba trạng thái phân biệt bằng viền và độ sáng. -->

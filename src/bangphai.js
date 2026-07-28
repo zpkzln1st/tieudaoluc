@@ -136,19 +136,54 @@ export function bangPhai() {
     get chucList() { return CHUC.filter((c) => c.id !== 'bangChu'); },
 
     // ---------- kho ----------
+    khoLoc: 'all',      // chip lọc đang chọn ở Minh Khố
+    gopLoc: 'all',      // chip lọc ở khối Góp Từ Hành Lý
+    /** Gộp `type` của ITEMS thành mấy NHÓM đọc được — 12 loại nguyên bản thì thanh lọc dài hơn cả kho. */
+    nhomCua(id) {
+      const t = (ITEMS[id] || {}).type || 'khac';
+      if (t === 'dan' || t === 'monan' || t === 'moi') return 'dung';
+      if (t === 'khoang' || t === 'go' || t === 'ca' || t === 'thaoDuoc') return 'tho';
+      if (t === 'dinh' || t === 'vatlieu') return 'che';
+      return 'khac';
+    },
+    get nhomList() {
+      return [
+        { id: 'all',  ten: 'Tất Cả' },
+        { id: 'tho',  ten: 'Nguyên Liệu Thô' },
+        { id: 'che',  ten: 'Liệu Đã Luyện' },
+        { id: 'dung', ten: 'Đan Dược & Món Ăn' },
+        { id: 'khac', ten: 'Khác' },
+      ];
+    },
+    /** Một dòng vật phẩm trong kho/hành lý — gom sẵn mọi thứ tooltip cần, khỏi tra lại trong view. */
+    _oVatPham(id, so) {
+      const it = ITEMS[id] || {};
+      const q = (this.g.QUALITY || {})[it.quality] || {};
+      const ten = it.name || id;
+      return {
+        id, so, ten, icon: it.icon || '📦', nhom: this.nhomCua(id),
+        mau: q.hex || '#cbd5e1',
+        // Tooltip gốc của trình duyệt: chắc chắn có ở mọi máy, không đẻ thêm lớp nổi đè lung tung.
+        // Máy cảm ứng không rê chuột được -> bấm vào ô mở luôn modal vật phẩm (đủ thông tin hơn).
+        goi: ten + ' ×' + this.fmt(so) + (q.name ? '\n' + q.name : '') + (it.desc ? '\n\n' + it.desc : ''),
+      };
+    },
     get khoList() {
       if (!this.bang) return [];
-      return Object.keys(this.bang.kho).map((id) => ({
-        id, so: this.bang.kho[id], ten: (ITEMS[id] || {}).name || id, icon: (ITEMS[id] || {}).icon || '📦',
-      })).sort((a, b) => b.so - a.so);
+      return Object.keys(this.bang.kho).map((id) => this._oVatPham(id, this.bang.kho[id]))
+        .sort((a, b) => b.so - a.so);
     },
+    get khoHien() { return this.khoLoc === 'all' ? this.khoList : this.khoList.filter((x) => x.nhom === this.khoLoc); },
+    get gopHien() { return this.gopLoc === 'all' ? this.gopDuoc : this.gopDuoc.filter((x) => x.nhom === this.gopLoc); },
     get oKho() { return this.bang ? oKhoToiDa(this.bang) : 0; },
     /** Vật phẩm trong túi người chơi có thể góp vào kho bang. */
     get gopDuoc() {
       const inv = this.g.state.inventory || {};
+      // Bỏ trần 24 món: đã có thanh lọc theo nhóm + khối tự cuộn nên không sợ dài, mà cắt cứng
+      // thì món xếp thứ 25 trở đi vĩnh viễn không góp được — người chơi không hiểu vì sao.
       return Object.keys(inv).filter((id) => inv[id] > 0 && !(ITEMS[id] || {}).equip)
-        .map((id) => ({ id, so: inv[id], ten: (ITEMS[id] || {}).name || id, icon: (ITEMS[id] || {}).icon || '📦' }))
-        .sort((a, b) => b.so - a.so).slice(0, 24);
+        .map((id) => this._oVatPham(id, inv[id]))
+        .sort((a, b) => b.so - a.so);
     },
     get quyenList() {
       if (!this.bang) return [];
