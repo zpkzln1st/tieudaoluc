@@ -11137,6 +11137,17 @@
         /* Cờ chủ ở Chiến Khu — chỉ hiện ở vùng chính Tiên Minh mình đang dẫn. */
         .bp-cochu{ display:inline-block; width:15px; height:16px;
                    background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat; }
+        /* Cấp minh đóng triện ngay sau tên minh trên banner. Số CĂN GIỮA tuyệt đối trong lòng
+           triện — để chữ chảy theo dòng thì nó tụt xuống dưới đáy hình lục giác. */
+        /* Triện KHÔNG được đội dòng tên lên. Tên 22px line-height 1.32 -> hộp dòng ~29px;
+           28px -> ~37px. Triện đóng vừa trong hộp đó nên hàng cao đúng bằng lúc chưa có triện. */
+        .bp-capminh{ position:relative; display:inline-grid; place-items:center; width:27px; height:29px;
+                     background:url("images/dongphu/ui/badge_hex.webp") center/contain no-repeat;
+                     filter:drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
+        .bp-capminh .n{ font-size:12px; line-height:1; color:#f3e7c7;
+                        text-shadow:0 1px 2px #000, 0 0 7px rgba(0,0,0,.8); }
+        @media (min-width:640px){ .bp-capminh{ width:35px; height:37px; }
+                                  .bp-capminh .n{ font-size:15px; } }
       </style>
       <template x-if="$store.game.view==='guild'">
         <div class="max-w-[1200px] mx-auto" x-data="bangPhai()" x-init="bpInit()">
@@ -11154,16 +11165,20 @@
               </template>
               <template x-if="bang">
                 <div>
-                  <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32" x-text="bang.ten"></div>
+                  <!-- Cấp minh đóng badge_hex NGAY SAU TÊN, không nằm chung hàng ô thống kê nữa:
+                       cấp là thứ nói "minh này lớn cỡ nào", đứng cạnh tên mới đúng chỗ, mà hàng
+                       dưới cũng bớt được một ô. `items-baseline` để triện tụt xuống ngang chân chữ. -->
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32" x-text="bang.ten"></span>
+                    <span class="bp-capminh shrink-0" :title="'Tiên Minh Cấp ' + capBang">
+                      <b class="n fserif" x-text="capBang"></b>
+                    </span>
+                  </div>
                   <div class="text-[12.5px] text-slate-300/90 leading-snug mt-1 fserif italic" x-text="'“' + (bang.tonChi || 'Chưa đặt tôn chỉ') + '”'"></div>
                   <div class="mt-3 flex flex-wrap items-stretch gap-2">
                     <div class="rounded-lg border border-amber-500/30 bg-black/35 px-2.5 py-1.5 backdrop-blur-[2px]">
                       <div class="text-[9.5px] uppercase tracking-[.14em] text-amber-500/70">Minh Chủ</div>
                       <div class="text-[13px] fserif text-amber-200 leading-tight" x-text="tenTa"></div>
-                    </div>
-                    <div class="rounded-lg border border-slate-700/70 bg-black/35 px-2.5 py-1.5 backdrop-blur-[2px]">
-                      <div class="text-[9.5px] uppercase tracking-[.14em] text-slate-500">Cấp Minh</div>
-                      <div class="text-[13px] fserif text-slate-100 leading-tight" x-text="capBang"></div>
                     </div>
                     <div class="rounded-lg border border-slate-700/70 bg-black/35 px-2.5 py-1.5 backdrop-blur-[2px]">
                       <div class="text-[9.5px] uppercase tracking-[.14em] text-slate-500">Minh Chúng</div>
@@ -12095,7 +12110,7 @@
                     <div class="panel rounded-xl overflow-hidden">
                       <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
                         <div class="text-jade font-bold fserif">Trảm Yêu Đài</div>
-                        <div class="text-[10.5px] text-slate-600">Đổi con sau <b class="text-slate-400" x-text="gioTxt(boss.conLaiMs)"></b></div>
+                        <div class="text-[10.5px] text-slate-600">Yêu Vương mới sau <b class="text-slate-400" x-text="gioTxt(boss.conLaiMs)"></b></div>
                       </div>
                       <div class="p-3 sm:p-4">
                         <div class="flex items-start gap-3 flex-wrap">
@@ -12141,7 +12156,7 @@
                             <span class="text-[11px] text-slate-500">Còn <b class="text-slate-300" x-text="(boss.tranLuot - boss.luot)"></b>/<span x-text="boss.tranLuot"></span> lượt tuần này</span>
                           </template>
                           <template x-if="boss.daNhan">
-                            <div class="text-[12px] text-jade">Đã hạ boss tuần này. Chờ con mới.</div>
+                            <div class="text-[12px] text-jade">Tuần này đã hạ xong — chờ Yêu Vương mới.</div>
                           </template>
                         </div>
 
@@ -13902,22 +13917,30 @@
   <!-- ===== Vùng thông báo — mọi thông báo về CÙNG vị trí giữa-dưới; canh giữa bằng flex (không transform) nên chỉ mờ dần, không trượt ngang ===== -->
   <div class="fixed bottom-6 inset-x-0 z-[80] flex flex-col items-center gap-2 px-4 pointer-events-none">
     <!-- (Báo cáo Hồi Trình đã tách ra overlay riêng "Phi Cáp Truyền Thư" bên dưới) -->
-    <!-- Thông báo nhanh (tự ẩn sau 2.5s) -->
-    <div x-show="$store.game.toast" x-transition.opacity x-cloak
-         class="px-5 py-3 rounded-xl bg-black/90 border border-jade/40 text-sm text-slate-100 shadow-2xl"
-         x-text="$store.game.toast"></div>
   </div>
 
-  <!-- Loot float: vật phẩm thu được khi online — bay lên & tan (đỡ nhàm chán) -->
+  <!-- ===== KHAY THÔNG BÁO — MỘT khay cho MỌI loại =====
+       Trước đây hai đường tách hẳn: toast là hộp chữ trơn ở giữa-dưới, loot float là thẻ có
+       icon ở góc phải. Mua một món trong cửa hàng có khi nhả cả hai, hai phách ở hai góc màn.
+       Nay chung khay, chung khuôn thẻ, chung hoạt ảnh. Ô icon CHỈ MỌC khi có icon; dòng có
+       số lượng (loot) thì chữ to hơn, dòng chữ suông (toast) thì cỡ vừa — vẫn một họ. -->
   <style>
     @keyframes lootfloat{ 0%{opacity:0;transform:translateY(12px) scale(.82)} 9%{opacity:1;transform:translateY(0) scale(1.05)} 15%{transform:translateY(0) scale(1)} 82%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-12px)} }
     .lootfloat{ animation:lootfloat 3s ease-out forwards; }
   </style>
-  <div class="fixed bottom-24 right-5 z-[80] flex flex-col items-end gap-2.5 pointer-events-none" x-cloak>
+  <div class="fixed bottom-24 right-5 z-[80] flex flex-col items-end gap-2.5 pointer-events-none max-w-[min(420px,calc(100vw-2.5rem))]" x-cloak>
     <template x-for="f in $store.game.lootFloats" :key="f.id">
-      <div class="lootfloat flex items-center gap-3.5 pl-3 pr-6 py-3 rounded-2xl" :style="'border:1px solid '+f.color+'b3;background:linear-gradient(120deg,'+f.color+'2e,'+f.color+'12);box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 18px -6px '+f.color+'99'">
-        <span class="w-11 h-11 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" :style="'background:#0c1420;border:1px solid '+f.color+'66'" x-html="f.icon"></span>
-        <span class="text-[20px] font-medium whitespace-nowrap" :style="'color:'+f.color"><b x-text="'+' + f.n"></b> <span x-text="f.name"></span></span>
+      <div class="lootfloat flex items-center gap-3 rounded-2xl" :class="f.icon ? 'pl-3 pr-5 py-2.5' : 'px-4 py-2.5'"
+           :style="'border:1px solid '+f.color+'b3;background:linear-gradient(120deg,'+f.color+'2e,'+f.color+'12);box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 18px -6px '+f.color+'99'">
+        <template x-if="f.icon">
+          <span class="w-10 h-10 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" :style="'background:#0c1420;border:1px solid '+f.color+'66'" x-html="f.icon"></span>
+        </template>
+        <template x-if="f.n">
+          <span class="text-[19px] font-medium whitespace-nowrap" :style="'color:'+f.color"><b x-text="'+' + f.n"></b> <span x-text="f.txt"></span></span>
+        </template>
+        <template x-if="!f.n">
+          <span class="text-[13.5px] leading-snug" :style="'color:'+f.color" x-text="f.txt"></span>
+        </template>
       </div>
     </template>
   </div>

@@ -615,7 +615,10 @@ export function muaHang(state, id, now) {
   if (b.congTich < h.gia) return null;
   b.congTich -= h.gia;
   s.mua[h.id] = (s.mua[h.id] | 0) + 1;
-  return { itemId: h.itemId || null, tienTe: h.tienTe || null, so: h.so, ten: h.ten };
+  // ⚠ `ten` phải tra ITEMS trước: món có itemId KHÔNG còn giữ `ten` ở data nữa (lore lấy từ
+  // ITEMS). Lấy thẳng h.ten là ra "Đổi được undefined."
+  const it = h.itemId ? ITEMS[h.itemId] : null;
+  return { itemId: h.itemId || null, tienTe: h.tienTe || null, so: h.so, ten: (it && it.name) || h.ten || h.itemId || h.id };
 }
 
 // ---------- CÔNG TRÌNH ----------
@@ -927,16 +930,32 @@ export function chotHangMua(state, world, now) {
 export function moBossBang(state) { return capCongTrinh(state, 'tramYeuDai') > 0; }
 
 export function bossBangCua(world, now, capDai) {
-  const mo = YEU_VUONG.filter((x) => x.reqLevel <= Math.min(100, 10 + (capDai | 0) * 12));
-  const pool = mo.length ? mo : [YEU_VUONG[0]];
+  const tran = Math.min(100, 10 + (capDai | 0) * 12);
+  const mo = YEU_VUONG.filter((x) => x.reqLevel <= tran);
+  const pool0 = mo.length ? mo : [YEU_VUONG[0]];
+  // ⚠ CHỈ lọc theo trần rồi bốc đều là SAI: nâng Trảm Yêu Đài lên max chỉ làm rổ TO RA, mà
+  // bốc đều thì vẫn hay ra con Lv 10 — người chơi đổ cả triệu Bạc vào đài mà boss y như cũ.
+  // Nay bốc trong DẢI TRÊN của rổ (từ con mạnh nhất trở xuống 24 cấp): đài càng cao thì
+  // Yêu Vương càng dữ, mà vẫn đổi con mỗi tuần chứ không đóng đinh một con.
+  const cao = pool0.reduce((m, x) => Math.max(m, x.reqLevel), 0);
+  const pool = pool0.filter((x) => x.reqLevel >= cao - 24);
   const h = mix(mix(((world && world.seed) || 1) ^ 0x7B0, 0x2A9), bossKyCua(now));
   return pool[h % pool.length];
 }
 export function ensureBossBang(state, world, now) {
   const b = ensureBangPhai(state), ky = bossKyCua(now);
   if (!b.bang) return b.bossB;
+  const capDai = capCongTrinh(state, 'tramYeuDai');
   if (b.bossB.ky !== ky) {
-    b.bossB = { ky, bossId: bossBangCua(world, now, capCongTrinh(state, 'tramYeuDai')).id, gop: 0, luot: 0, cdDen: 0, thangKy: b.bossB.thangKy };
+    b.bossB = { ky, bossId: bossBangCua(world, now, capDai).id, gop: 0, luot: 0, cdDen: 0, thangKy: b.bossB.thangKy };
+    return b.bossB;
+  }
+  // Nâng Trảm Yêu Đài giữa kỳ: con đã chốt từ lúc đài còn thấp vẫn nằm đó tới hết tuần, người
+  // chơi đổ cả đống Bạc vào đài mà boss y như cũ. Nay CHƯA AI ĐÁNH thì bốc lại theo đài mới.
+  // Đã có người bổ nhát nào rồi thì thôi — đổi con giữa trận là xoá trắng công lao cả minh.
+  if (!(b.bossB.gop | 0) && !(b.bossB.luot | 0)) {
+    const nen = bossBangCua(world, now, capDai);
+    if (nen && nen.id !== b.bossB.bossId) b.bossB.bossId = nen.id;
   }
   return b.bossB;
 }

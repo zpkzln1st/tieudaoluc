@@ -1184,19 +1184,34 @@ const gameStore = {
   chotXacNhan() { const o = this.xacNhan; this.xacNhan = null; if (o && typeof o.xong === 'function') o.xong(); },
 
   // Toast nổi (tự ẩn sau 2.5s) — tái dùng cho mọi thông báo nhanh
-  showToast(msg) {
-    this.toast = msg;
-    const id = ++this._toastId;
-    setTimeout(() => { if (this._toastId === id) this.toast = ''; }, 2500);
-  },
-  // Loot float: hiện vật phẩm vừa thu được (khi online) — bay lên & tan, đỡ nhàm chán.
-  qualHex(q) { return ({ phamPham: '#cbd5e1', luongPham: '#34d399', tinhPham: '#60a5fa', tuyetPham: '#a78bfa', truyenThe: '#e879f9', thanPham: '#fb923c', coBan: '#fbbf24' })[q] || '#2dd4bf'; },
-  _lootFloat(icon, n, name, color) {
+  // ============================================================
+  // KHAY THÔNG BÁO — MỘT khay duy nhất cho MỌI loại.
+  // Trước đây hai đường tách hẳn: toast là hộp chữ trơn ở giữa-dưới, loot float là thẻ có
+  // icon ở góc phải. Cùng một hành động (mua món trong cửa hàng) có khi nhả cả hai, hai
+  // phách khác nhau ở hai góc màn — nhìn rời rạc.
+  // Nay chung `notis`, chung khuôn thẻ, chung chỗ, chung hoạt ảnh. Ô icon chỉ mọc khi CÓ icon.
+  // ⚠ `showToast` giữ nguyên chữ ký (280 chỗ gọi chỉ truyền một chuỗi) — đối số thứ hai là tuỳ chọn.
+  // ============================================================
+  _noti(o) {
     const id = ++this._lootId;
-    this.lootFloats.push({ id, icon, name, n, color: color || '#2dd4bf' });
+    this.lootFloats.push({ id, icon: o.icon || '', txt: o.txt, n: o.n, color: o.color || '#2dd4bf' });
     if (this.lootFloats.length > 5) this.lootFloats.shift();
-    setTimeout(() => { const i = this.lootFloats.findIndex((f) => f.id === id); if (i >= 0) this.lootFloats.splice(i, 1); }, 3000);
+    setTimeout(() => { const i = this.lootFloats.findIndex((f) => f.id === id); if (i >= 0) this.lootFloats.splice(i, 1); }, o.ms || 3000);
   },
+  /**
+   * @param {string} msg
+   * @param {{icon?:string, color?:string}} [o] icon = HTML từ ico()/svg(); color = sắc viền.
+   */
+  showToast(msg, o) {
+    if (!msg) return;
+    // Cùng một câu đang hiện thì DỘI LẠI thay vì chồng thêm — vài chỗ gọi trong vòng lặp,
+    // không chặn là năm thẻ y hệt nhau xếp chồng.
+    const cu = this.lootFloats.find((f) => !f.n && f.txt === msg);
+    if (cu) { cu.id = ++this._lootId; return; }
+    this._noti({ txt: msg, icon: (o && o.icon) || '', color: (o && o.color) || '#2dd4bf', ms: 2600 });
+  },
+  qualHex(q) { return ({ phamPham: '#cbd5e1', luongPham: '#34d399', tinhPham: '#60a5fa', tuyetPham: '#a78bfa', truyenThe: '#e879f9', thanPham: '#fb923c', coBan: '#fbbf24' })[q] || '#2dd4bf'; },
+  _lootFloat(icon, n, name, color) { this._noti({ icon, txt: name, n, color, ms: 3000 }); },
   showLootPop(itemId, n) { const it = this.ITEMS[itemId] || {}; this._lootFloat(this.ico(itemId, it.icon || '📦'), n, it.name || itemId, this.qualHex(it.quality)); },
   // Popup phần thưởng nhiệm vụ — ĐỒNG BỘ loot float, tô theo loại: Bạc(vàng)/Hồn Thạch(hồng)/Nguyên Bảo(lam). Egg giữ toast riêng.
   showRewardPop(r) {
