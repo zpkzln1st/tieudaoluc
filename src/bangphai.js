@@ -205,15 +205,16 @@ export function bangPhai() {
         window.removeEventListener('pointerup', nha);
         window.removeEventListener('pointercancel', nha);
         if (dangKeo) { this.keoCT = null; this._luu(); }
-        else this.moCT = (this.moCT === ct.id ? null : ct.id);   // không kéo = bấm mở bảng
+        else this.g.bpCongTrinh = ct.id;                          // không kéo = bấm mở POPUP
       };
       window.addEventListener('pointermove', di);
       window.addEventListener('pointerup', nha);
       window.addEventListener('pointercancel', nha);
       ev.preventDefault();
     },
-    moCT: null,
-    get ctDangMo() { const id = this.moCT; return id ? this.congTrinh.find((x) => x.id === id) : null; },
+    /** Công trình đang mở popup — tra lại từ danh sách nên số liệu luôn tươi sau khi nâng cấp. */
+    get moCT() { return this.g.bpCongTrinh; },
+    get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },
     xepLai() { xepLaiViTri(this.g.state); this._luu(); this.g.showToast('Đã xếp lại công trình về chỗ cũ.'); },
 
     // ---------- công trình ----------
@@ -468,15 +469,16 @@ export function bangPhai() {
         window.removeEventListener('pointerup', nha);
         window.removeEventListener('pointercancel', nha);
         if (dangKeo) { this.keoCT = null; this._luu(); }
-        else this.moCT = (this.moCT === ct.id ? null : ct.id);   // không kéo = bấm mở bảng
+        else this.g.bpCongTrinh = ct.id;                          // không kéo = bấm mở POPUP
       };
       window.addEventListener('pointermove', di);
       window.addEventListener('pointerup', nha);
       window.addEventListener('pointercancel', nha);
       ev.preventDefault();
     },
-    moCT: null,
-    get ctDangMo() { const id = this.moCT; return id ? this.congTrinh.find((x) => x.id === id) : null; },
+    /** Công trình đang mở popup — tra lại từ danh sách nên số liệu luôn tươi sau khi nâng cấp. */
+    get moCT() { return this.g.bpCongTrinh; },
+    get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },
     xepLai() { xepLaiViTri(this.g.state); this._luu(); this.g.showToast('Đã xếp lại công trình về chỗ cũ.'); },
 
     // ---------- công trình ----------

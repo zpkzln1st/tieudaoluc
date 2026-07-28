@@ -481,7 +481,7 @@ const gameStore = {
     ['petDetailObj', 'closePetDetail'], ['tkDetail', 'closeTkDetail'], ['tkCraft', 'closeTkCraft'],
     ['codexDetail', 'closeCodex'], ['dungeonPoolId', 'closeDungeonPool'], ['tpDetail', 'closeTpDetail'],
     ['lightbox', 'closeLightbox'], ['tmFaceFull', 'closeFaceFull'], ['xacNhan', 'dongXacNhan'],
-    ['bpHoSo', 'closeBpHoSo'],
+    ['bpHoSo', 'closeBpHoSo'], ['bpCongTrinh', 'closeBpCongTrinh'],
   ],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
@@ -1162,6 +1162,9 @@ const gameStore = {
   // Dữ liệu do view Tiên Minh dựng sẵn rồi gán vào, modal chỉ việc vẽ.
   bpHoSo: null,
   closeBpHoSo() { this.bpHoSo = null; },
+  // Công trình Tiên Minh đang mở bảng — giữ id, view tự tra ra dữ liệu tươi mỗi lần vẽ.
+  bpCongTrinh: null,
+  closeBpCongTrinh() { this.bpCongTrinh = null; },
 
   // ---------- HỎI XÁC NHẬN (modal TRONG GAME — thay confirm() gốc của trình duyệt) ----------
   // confirm() gốc hiện hộp thoại hệ điều hành, lạc hẳn khỏi giao diện game (và trên di động
