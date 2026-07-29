@@ -62,8 +62,11 @@ function dungNguonTinh() {
   }
   for (const e of Object.values(ENEMIES)) them('Quái', 3, e.id, e.name, 'Lv ' + e.reqLevel, { loai: 'tra', bang: 'quai', hang: e.id },
     { thu: 'enemies', ten: e.id, emoji: e.icon });
+  // ⚠ Art Yêu Vương nằm ở `images/items/`, KHÔNG phải `images/enemies/` — vì view Yêu Vương
+  //   gọi ico() mà ico() mặc định về thư mục items khi id không có trong ICON_FOLDERS.
+  //   Trỏ sang enemies thì 10 con boss đều rơi về icon nét.
   for (const y of YEU_VUONG) them('Yêu Vương', 3, y.id, y.name, 'Lv ' + y.reqLevel, { loai: 'tra', bang: 'yeuvuong', hang: y.id },
-    { thu: 'enemies', ten: y.id, emoji: y.icon });
+    { thu: 'items', ten: y.id, bieu: 'crack' });
   for (const d of DUNGEONS) them('Bí Cảnh', 4, d.id, d.name, 'Lv ' + d.reqLevel, { loai: 'tra', bang: 'bicanh', hang: d.id },
     { thu: 'dungeons', ten: d.id, bieu: 'gate' });
   for (const l of LOCATIONS) them('Vùng', 4, l.id, l.name, 'Lv ' + l.reqLevel, { loai: 'tra', bang: 'vung', hang: l.id },
@@ -157,3 +160,6 @@ export function timKiem(q, { world, now, tranNhom = MOI_NHOM } = {}) {
 
 /** Vài gợi ý lúc ô tìm còn trống — cho người chơi biết tìm được những gì. */
 export const GOI_Y = ['Hắc Thán', 'Bạch Hổ', 'Liệt Hỏa Đao', 'Thiên Thành', 'Đào Khoáng'];
+
+/** Chỉ mục tĩnh — chỉ dùng cho bài kiểm (soi nguồn ảnh có trỏ đúng thư mục không). */
+export const _chiMucDeKiem = () => nguonTinh();
