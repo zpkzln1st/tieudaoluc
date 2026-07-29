@@ -934,6 +934,10 @@
             <button @click="$store.game.showToast('Bằng Hữu — sắp ra mắt')" title="Bằng hữu" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </button>
+            <!-- Cẩm Nang: cùng bộ icon nét 1.8 với bốn nút kia (sách mở) — đừng thay bằng emoji. -->
+            <button @click="$store.game.openCamNang()" title="Cẩm Nang" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
+              <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5C10.5 6 8.5 5.2 5.5 5.2H3v13h2.5c3 0 5 .8 6.5 2.3"/><path d="M12 7.5c1.5-1.5 3.5-2.3 6.5-2.3H21v13h-2.5c-3 0-5 .8-6.5 2.3"/><path d="M12 7.5v13"/></svg>
+            </button>
             <button @click="$store.game.openSettings()" title="Cài đặt" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
@@ -14189,6 +14193,137 @@
           </template>
         </div>
         <div class="px-4 py-2.5 border-t border-slate-800 text-[10.5px] text-slate-500 text-center shrink-0">Chỉ hiện đồ rơi phiên này · bấm 1 món xem chi tiết · kho đầy đủ ở <b class="text-slate-300">Hành Lý</b>.</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== MODAL: CẨM NANG (wiki trong game) =====
+       Hai cột: mục lục trái (có ô tìm, bỏ dấu vẫn ra) · nội dung phải.
+       Màn hẹp thì chồng thành một cột: xem mục lục -> bấm -> đọc -> nút quay lại.
+       Khung CHỐT CỨNG chiều cao, chỉ cột cuộn — đổi mục không làm modal nhảy. -->
+  <style>
+    .cn-modal{ width:min(1120px,96vw); height:min(760px,92dvh); }
+    .cn-body{ display:grid; grid-template-columns:248px minmax(0,1fr); min-height:0; }
+    .cn-doc h4{ font-family:'Lora','Noto Serif SC',serif; color:#7dd3c0; font-size:13px; margin:14px 0 5px; }
+    .cn-doc p{ font-size:12.8px; line-height:1.72; color:#94a3b8; margin:0 0 9px; }
+    .cn-doc p b{ color:#e2e8f0; font-weight:600; }
+    .cn-doc ul{ margin:0 0 10px; padding:0; list-style:none; }
+    .cn-doc li{ position:relative; padding-left:15px; font-size:12.8px; line-height:1.66; color:#94a3b8; margin-bottom:4px; }
+    .cn-doc li::before{ content:''; position:absolute; left:2px; top:9px; width:4px; height:4px; border-radius:9999px; background:#3f7d72; }
+    .cn-doc li b{ color:#e2e8f0; font-weight:600; }
+    .cn-doc table{ width:100%; border-collapse:collapse; margin:2px 0 11px; font-size:12.3px; }
+    .cn-doc th{ text-align:left; font-weight:600; color:#64748b; font-size:10px; letter-spacing:.1em;
+                text-transform:uppercase; padding:5px 9px; border-bottom:1px solid #1e293b; white-space:nowrap; }
+    .cn-doc td{ padding:6px 9px; color:#cbd5e1; border-bottom:1px solid #131c2b; vertical-align:top; }
+    .cn-doc tr:last-child td{ border-bottom:0; }
+    .cn-doc td:first-child{ color:#e2e8f0; }
+    .cn-luu{ border:1px solid rgba(245,185,66,.3); background:rgba(245,185,66,.07); color:#fcd9a0;
+             border-radius:9px; padding:8px 11px; font-size:12.3px; line-height:1.6; margin:2px 0 11px; }
+    .cn-luu b{ color:#fde9b8; }
+    /* Bảng rộng thì tự cuộn TRONG khung, không đẩy cả trang lệch ngang. */
+    .cn-tbl{ overflow-x:auto; }
+    /* Hai ngưỡng phải TRÙNG với Tailwind đang dùng trong markup, không thì có dải bề rộng
+       mà lưới đã một cột nhưng cả hai cột vẫn hiện (md=768), hoặc modal tràn 100vw mà
+       vẫn còn padding p-4 (sm=640). */
+    @media (max-width:767.98px){ .cn-body{ grid-template-columns:minmax(0,1fr); } }
+    @media (max-width:639.98px){ .cn-modal{ width:100vw; height:100dvh; max-width:100vw; border-radius:0; } }
+  </style>
+  <template x-if="$store.game.camNangOpen">
+    <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/78 backdrop-blur-sm p-0 sm:p-4"
+         x-data="camNang()" @click.self="dong()" @keydown.escape.window="dong()">
+      <div class="panel cn-modal rounded-none sm:rounded-2xl flex flex-col overflow-hidden border border-jade/25 shadow-2xl" @click.stop>
+
+        <!-- Đầu modal -->
+        <div class="px-4 sm:px-5 py-3 border-b border-slate-800 flex items-center gap-3 shrink-0"
+             style="background:linear-gradient(120deg,rgba(45,212,191,.10),transparent 62%)">
+          <div class="text-jade font-bold fserif text-[16px] shrink-0">Cẩm Nang</div>
+          <div class="text-[11px] text-slate-600 hidden sm:block" x-text="tongMuc + ' mục'"></div>
+          <button @click="dong()" class="ml-auto w-8 h-8 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition shrink-0">✕</button>
+        </div>
+
+        <div class="cn-body flex-1 min-h-0">
+          <!-- MỤC LỤC -->
+          <div class="border-r border-slate-800 flex flex-col min-h-0" :class="dangDoc ? 'hidden md:flex' : 'flex'">
+            <div class="p-2.5 border-b border-slate-800/70 shrink-0">
+              <div class="relative">
+                <input x-ref="oTim" x-model="q" type="text" placeholder="Tìm trong Cẩm Nang…"
+                       class="w-full bg-ink3/70 border border-slate-700 rounded-lg pl-8 pr-7 py-1.5 text-[12.5px] text-slate-200 placeholder-slate-600 focus:outline-none focus:border-jade/50">
+                <svg class="w-[14px] h-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <button x-show="q" @click="xoaTim()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-[13px] leading-none">✕</button>
+              </div>
+              <div x-show="q" class="text-[10.5px] text-slate-600 mt-1.5 px-0.5" x-text="soHop + ' mục khớp'"></div>
+            </div>
+            <div class="flex-1 min-h-0 overflow-y-auto px-2 py-2">
+              <template x-if="!mucLuc.length">
+                <div class="text-[12px] text-slate-600 italic px-2 py-6 text-center">Không có mục nào khớp.</div>
+              </template>
+              <template x-for="g in mucLuc" :key="g.id">
+                <div class="mb-2.5">
+                  <div class="flex items-center gap-1.5 px-1.5 mb-1">
+                    <span class="fserif text-[11px] text-jade/50 leading-none" x-text="g.han"></span>
+                    <span class="lbl" x-text="g.ten"></span>
+                  </div>
+                  <template x-for="m in g.muc" :key="m.id">
+                    <button @click="chon(m.id)"
+                            class="w-full text-left px-2 py-1.5 rounded-lg transition mb-0.5"
+                            :class="mucId === m.id ? 'bg-jade/12 text-jade' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'">
+                      <div class="text-[12.5px] fserif leading-tight" x-text="m.ten"></div>
+                      <div class="text-[10.5px] text-slate-600 leading-snug mt-0.5" x-text="m.tom"></div>
+                    </button>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- NỘI DUNG -->
+          <div class="flex flex-col min-h-0" :class="dangDoc ? 'flex' : 'hidden md:flex'">
+            <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800/70 shrink-0 flex items-center gap-2.5">
+              <button @click="dangDoc = false" class="md:hidden text-slate-500 hover:text-jade text-[12px] fserif shrink-0">‹ Mục Lục</button>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="fserif text-[11px] text-jade/45 leading-none" x-text="hanNhom"></span>
+                  <span class="lbl" x-text="tenNhom"></span>
+                </div>
+                <div class="fserif text-[15.5px] text-slate-100 leading-tight truncate" x-text="muc.ten"></div>
+              </div>
+            </div>
+
+            <div x-ref="than" class="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-3 cn-doc">
+              <template x-for="(k, i) in muc.khoi" :key="i">
+                <div>
+                  <template x-if="k[0]==='h'"><h4 x-text="k[1]"></h4></template>
+                  <template x-if="k[0]==='p'"><p x-html="k[1]"></p></template>
+                  <template x-if="k[0]==='luu'"><div class="cn-luu" x-html="k[1]"></div></template>
+                  <template x-if="k[0]==='ds'">
+                    <ul><template x-for="(d, j) in k[1]" :key="j"><li x-html="d"></li></template></ul>
+                  </template>
+                  <template x-if="k[0]==='bang'">
+                    <div class="cn-tbl">
+                      <table>
+                        <thead><tr><template x-for="(c, j) in k[1]" :key="j"><th x-text="c"></th></template></tr></thead>
+                        <tbody>
+                          <template x-for="(r, j) in k[2]" :key="j">
+                            <tr><template x-for="(o, x) in r" :key="x"><td x-html="o"></td></template></tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+
+            <div class="px-4 sm:px-5 py-2.5 border-t border-slate-800 shrink-0 flex items-center gap-2">
+              <button @click="nhay(-1)" :disabled="!coTruoc"
+                      class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
+                      :class="coTruoc ? 'text-slate-300 border-slate-700 hover:border-jade/50 hover:text-jade' : 'text-slate-700 border-slate-800 cursor-default'">‹ Mục Trước</button>
+              <button @click="nhay(1)" :disabled="!coSau"
+                      class="ml-auto px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
+                      :class="coSau ? 'text-slate-300 border-slate-700 hover:border-jade/50 hover:text-jade' : 'text-slate-700 border-slate-800 cursor-default'">Mục Sau ›</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </template>

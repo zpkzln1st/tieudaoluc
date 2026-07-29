@@ -21,6 +21,7 @@ import { coTuong, ensureCoTuong } from './cotuong.js';               // Cờ Tư
 import { coVua, ensureCoVua } from './covua.js';                     // Cờ Vua (西洋棋 3D, cách ly)
 import { tuuLau, ensureTuuLau } from './tuulau.js';
 import { bangPhai, ensureBangPhai } from './bangphai.js';            // Bang Phái (lập bang, chinh phạt, boss bang)
+import { camNang } from './camnang.js';                              // Cẩm Nang (wiki trong game)
 import { ghiKillChinhPhat } from './engine/bangphai.js';             // điểm Chinh Phạt khi hạ quái                  // Tửu Lâu (quán rượu giang hồ, cách ly)
 import { bangKyNangBonus } from './engine/bangbuff.js';              // kĩ năng bang: +Bạc/+rơi đồ ở awardKill
 import * as BP from './engine/bangphai.js';                          // bảng Dev: gọi đúng hàm engine, không ghi tay state
@@ -475,7 +476,7 @@ const gameStore = {
   // THÊM MODAL MỚI: nhét tên cờ (boolean, đóng=set false) hoặc ['cờ','closeMethod'] (ref) vào _MODALS. HẾT.
   // CỜ đọc `this[cờ]` truthy = đang mở (dùng được cả boolean lẫn getter/ref như dsProfile/petDetailObj).
   _MODALS: [
-    'statOpen', 'bachTrangOpen', 'settingsModal', 'hieuUngOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
+    'statOpen', 'bachTrangOpen', 'settingsModal', 'camNangOpen', 'hieuUngOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
     'boPhapModal', 'baiVoModal', 'shopOpen', 'soSachOpen', 'gioiLuatOpen', 'luanVoOpen', 'daiKhachOpen',
     'tangThuOpen', 'bkMergeOpen', 'giftOpen', 'dailyModal', 'foodPicker', 'danPicker', 'duocLuPicker',
     'phucDungPicker', 'toSuOpen', 'tmEvtOpen', 'tmRecruitOpen', 'tmBagOpen', 'tmCraftOpen', 'tmDuocOpen', 'tmRealmGuideOpen',
@@ -1229,6 +1230,12 @@ const gameStore = {
   },
   openSettings() { this.settingsModal = true; },
   closeSettings() { this.settingsModal = false; },
+  // ---------- Cẩm Nang (wiki trong game) ----------
+  // Chỉ một cờ. Mọi trạng thái khác (mục đang đọc, ô tìm) nằm trong x-data của modal —
+  // đóng rồi mở lại là về mục đầu, đúng ý: mở Cẩm Nang thường là để tra thứ khác.
+  camNangOpen: false,
+  openCamNang() { this.camNangOpen = true; },
+  closeCamNang() { this.camNangOpen = false; },
   // ---------- Ấn Ký Tác Giả (chứng chỉ ký số — nhận diện người thiết kế, không giả mạo được) ----------
   author: null,          // { name, uid } sau khi verify chứng chỉ (null = chưa verify / không hợp lệ)
   authorOpen: false,     // modal "Về Trò Chơi / Tác Giả"
@@ -4455,6 +4462,7 @@ window.coTuong = coTuong;             // expose component factory cho x-data tro
 window.coVua = coVua;                 // expose component factory cho x-data trong view Cờ Vua
 window.tuuLau = tuuLau;           // expose component factory cho x-data trong view Tửu Lâu
 window.bangPhai = bangPhai;           // expose factory cho x-data view Bang Phái
+window.camNang = camNang;             // expose factory cho x-data modal Cẩm Nang
 Alpine.store('game', gameStore);
 Alpine.start();
 Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)
