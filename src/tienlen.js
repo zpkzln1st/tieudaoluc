@@ -8,6 +8,7 @@
 // ============================================================
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
+import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Tiến Lên, không vỡ cả game.
@@ -28,9 +29,11 @@ export function ensureTienLen(state) {
   if (!n.rec) n.rec = {};              // { chieuId: { van, nhat, bet } }
   if (n.van == null) n.van = 0;        // tổng số ván đã chơi
   if (n.nhat == null) n.nhat = 0;      // tổng số lần về Nhất
-  if (n.lai == null) n.lai = 0;        // lãi/lỗ Bạc cộng dồn
+  if (n.lai == null) n.lai = 0;        // lãi/lỗ TRÙ MÃ cộng dồn (không phải Bạc)
   if (n.game === undefined) n.game = null;   // ván dở (giữ qua F5) = { chieuId, van }
   // Kỳ Hồn dùng CHUNG: nguồn duy nhất state.kyHon (engine/kyhon.js).
+  // Trù Mã dùng CHUNG cho mọi trò có cược: nguồn duy nhất state.truMa (engine/truma.js).
+  ensureTruMa(state);
 }
 
 // ---------- lazy-load Three.js ----------
@@ -249,7 +252,7 @@ function mountTienLen(host, opts) {
       '<div class="tl-scene"></div><div class="tl-vig"></div><div class="tl-turn"></div>' +
       '<div class="tl-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:11.5px;color:#7d6c58"></div></div>' +
       '<div class="tl-title"><span class="hz">越南跑得快</span><span class="vz">Tiến Lên</span></div>' +
-      '<div class="tl-chieu">' + (opts.chieu || '') + ' · cược ' + fmt(cuoc) + ' Bạc mỗi cửa</div>' +
+      '<div class="tl-chieu">' + (opts.chieu || '') + ' · cược ' + fmt(cuoc) + ' Trù Mã mỗi cửa</div>' +
       '<div class="tl-cur"><span class="dot"></span><span class="ct"></span></div>' +
       '<div class="tl-left">' +
         '<span class="tl-b" data-a="spectate"><span class="ic">' + ic('eye') + '</span><span>Quan Chiến</span></span>' +
@@ -1662,7 +1665,20 @@ export function tienLen() {
     get tl() { return this.$store.game.state.tienLen; },
     get kyHon() { return getKyHon(this.$store.game.state); },
     get kyNgheState() { return kyNgheOf(this.$store.game.state); },
+    // ⚠ Chiếu bài KHÔNG đụng Bạc nhân vật. Mọi cược ăn thua bằng TRÙ MÃ.
+    get truMa() { void this.$store.game._tick; return soTruMa(this.$store.game.state); },
     get bac() { return (this.$store.game.state.currencies || {}).bac || 0; },
+    get mucDoi() { return MUC_DOI; },
+    get tiGia() { return TI_GIA; },
+    doiChip(bac) {
+      const st = this.$store.game.state;
+      const r = doiTruMa(st, bac);
+      if (!r.ok) { try { this.$store.game.showToast(r.loi); } catch (e) { } return; }
+      st.currencies.bac -= r.tru;
+      try { Storage.save(st); } catch (e) { }
+      this.$store.game._tick++;
+      try { this.$store.game.showToast('Đổi ' + fmt(r.tru) + ' Bạc lấy ' + fmt(r.nhan) + ' Trù Mã.'); } catch (e) { }
+    },
 
     _ds(id) { try { return (this.$store.game.danhSiBang || []).find((x) => x.id === id) || null; } catch (e) { return null; } },
     faceOf(o) { return (o && o.face) || ('images/danhsi/' + (o && o.id) + '.webp'); },
@@ -1678,7 +1694,7 @@ export function tienLen() {
       return CHIEU.map((c) => ({
         ...c,
         list: c.ds.map((id) => this._ds(id)).filter(Boolean),
-        khoa: this.bac < c.cuoc * 4,
+        khoa: this.truMa < c.cuoc * 4,
         can: c.cuoc * 4,
       }));
     },
@@ -1704,7 +1720,7 @@ export function tienLen() {
 
     nhapChieu(c, saved) {
       if (this.inBattle) return;
-      if (this.bac < c.cuoc * 4) { try { this.$store.game.toast('Chưa đủ Bạc để ngồi chiếu này.'); } catch (e) { } return; }
+      if (this.truMa < c.cuoc * 4) { try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — đổi thêm ở Sảnh Bài.'); } catch (e) { } return; }
       // ngồi chiếu KHÁC thì bỏ ván dở cũ — mỗi lúc chỉ giữ một ván
       if (!saved && this.savedGame && this.savedGame.chieuId !== c.id) this.dropSaved();
       this._boSo = false; this._saved = saved || null;
@@ -1746,15 +1762,18 @@ export function tienLen() {
       try { Storage.save(this.$store.game.state); } catch (e) { }
     },
 
-    /** Ăn/chung Bạc THẬT + ghi sổ. Bạc không cho tụt xuống âm. */
+    /**
+     * Ăn/chung bằng TRÙ MÃ + ghi sổ.
+     * ⚠ TUYỆT ĐỐI KHÔNG cộng vào state.currencies.bac — thắng bài mà ra Bạc thì
+     *   ngồi chiếu vài ván là giàu, hỏng cả đường cày. Xem engine/truma.js.
+     */
     _ketVan(id, kq) {
       const st = this.$store.game.state, n = this.tl;
       if (!n.rec[id]) n.rec[id] = { van: 0, nhat: 0, bet: 0 };
       n.rec[id].van++; n.van++;
       if (kq.hang === 1) { n.rec[id].nhat++; n.nhat++; }
       if (kq.hang === 4) n.rec[id].bet++;
-      if (!st.currencies) st.currencies = {};
-      st.currencies.bac = Math.max(0, (st.currencies.bac || 0) + (kq.bac || 0));
+      ghiVan(st, kq.bac || 0);
       n.lai = (n.lai || 0) + (kq.bac || 0);
       if (kq.kyHon) { addKyHon(st, kq.kyHon); try { this.$store.game.checkTitles(); } catch (e) { } }
       try { Storage.save(st); } catch (e) { }
