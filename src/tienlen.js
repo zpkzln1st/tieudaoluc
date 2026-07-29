@@ -887,10 +887,12 @@ function mountTienLen(host, opts) {
     return o;
   }
 
-  // ⚠ Lá bài đánh ra phóng ×2 ⇒ dày 2 × (GEO.nua × 2) ≈ 0.066. Bước xếp chồng PHẢI lớn hơn con số đó,
-  //   không thì lá sau CẮM XUYÊN lá trước và mặt bài lá dưới trồi lên, nhìn như bị cắt mất một khúc.
+  // Bước xếp chồng = ĐÚNG bề dày một lá + kẽ hở nhỏ chống z-fighting.
+  // Bề dày thật một lá = 2 × GEO.nua = 2 × (CT/2 + BEVC + 0.0016) = 0.0332.
+  // Bề dày KHÔNG còn bị phóng theo (xem m.scale.set(2,2,1) dưới), nên bước cũ 0.072
+  // giờ là thừa hơn gấp đôi — để nguyên thì lá nằm lơ lửng cách nhau.
   var pileN = 0, lopLa = 0;
-  var DAY_LA = 0.072, PILE_MAX = 20;
+  var DAY_LA = 0.035, PILE_MAX = 12;
   function raBaiRa(s, cards) {
     var g = handGroups[s], i, k = 0;
     var n = cards.length, mid = (n - 1) / 2;
@@ -900,7 +902,10 @@ function mountTienLen(host, opts) {
       for (j = 0; j < g.children.length; j++) if (g.children[j].userData.card === c) { m = g.children[j]; break; }
       if (!m) { m = taoLa(c); }
       else g.remove(m);
-      m.scale.setScalar(2);            // bài đánh ra to gấp đôi cho dễ nhìn giữa bàn
+      // Phóng MẶT bài ×2 cho dễ nhìn giữa bàn, nhưng GIỮ NGUYÊN BỀ DÀY (trục z là bề dày,
+      // vì hình được đùn theo z rồi mới xoay nằm ngang). Trước đây setScalar(2) phóng cả bề
+      // dày lên 0,066 — lá bài ném xuống bàn mà tự dày gấp đôi, chồng lên thành núi.
+      m.scale.set(2, 2, 1);
       m.children[1].visible = true;
       pileGroup.add(m);
       var ang = (lop * 0.9) % (Math.PI * 2);
