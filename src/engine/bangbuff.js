@@ -14,12 +14,6 @@ import { KY_NANG_BY_ID, CP_BUFF_HANG } from '../data/bangphai.js';
 const Z = { atkPct: 0, defPct: 0, hpPct: 0, allPct: 0, expPct: 0, dropPct: 0, bacPct: 0, nghePct: 0, ngheExpPct: 0,
   honThachPct: 0, bcDoPhoPct: 0, petExpPct: 0 };
 
-/** Người chơi có đang ở trong bang không (chỉ có bang do mình lập). */
-export function coBang(state) {
-  const b = state && state.bangPhai;
-  return !!(b && b.bang);
-}
-
 /**
  * Tổng % từ CÂY KĨ NĂNG BANG đã học. Trả đủ mọi khoá, luôn là số.
  * Cố ý gộp cả khoá không phải chỉ số (nghePct/ngheExpPct) vào một chỗ cho dễ soát trần.

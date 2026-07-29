@@ -42,7 +42,7 @@ export const CHIEU_HIEN_MS = 4 * 60 * 60 * 1000;  // đổi bảng mỗi 4 giờ
 export const GIAO_TINH_TRAN = 5;
 export const GIAO_TINH_GIAM_BAC = 10;             // mỗi bậc bớt 10% giá mời (bậc 5 = bớt 50%)
 // Bao nhiêu bậc thì họ chịu nghe lời mời — CAO THỦ KÉN HƠN. Xét từ trên xuống.
-export const GIAO_TINH_CAN = [
+const GIAO_TINH_CAN = [
   { tuTong: 400, can: 3 },
   { tuTong: 200, can: 2 },
   { tuTong: 0,   can: 1 },

@@ -7,25 +7,24 @@
 import { Storage } from './engine/save.js';
 import { addItem } from './engine/inventory.js';
 import { ITEMS } from './data/items.js';
-import { LOCATIONS } from './data/locations.js';
 import { dameMotTranBoss } from './engine/worldboss.js';
 import {
-  ensureBangPhai, ghiNhatKy, nhipBang,
+  ensureBangPhai, nhipBang,
   lapBang, giaiTan, loiTenBang, tranThanhVien,
   thanhVien, danhSachTanTu, chieuMo, kichNguoi, doiChuc, hoSoMinhChung,
-  congHien, themCongTich, thuSan,
-  gopKho, rutKho, duQuyen, datQuyen, oKhoToiDa,
+  congHien,
+  gopKho, rutKho, datQuyen, oKhoToiDa,
   capKyNang, tranKyNang, hocKyNang,
   danhSachHang, muaHang,
-  capCongTrinh, xayCongTrinh, soatXayDung,
+  capCongTrinh, xayCongTrinh,
   danhSachNv, nhanNv, nvKyConLai,
   danhSachTruyNa, nhanTruyNa, nopTruyNa,
   chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai, soMua,
   bossBang, xuatTranBoss, chotBossBang, moBossBang,
-  bangChieuHien, nguoiQuen, chieuHienConLai, GIAO_TINH_TRAN,
+  bangChieuHien, nguoiQuen, chieuHienConLai,
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, KY_NANG_BANG, giaKyNang,
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
-  MAU_BANG_TA, QUYEN_MAC_DINH, BOSS_BANG_LUOT, CP_BUFF_HANG, BAC_MOI_MINH_CONG, MUA_MS,
+  QUYEN_MAC_DINH, BAC_MOI_MINH_CONG, MUA_MS,
 } from './engine/bangphai.js';
 import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG, KY_NANG_HAN, KN_TRAN_THEO_CT } from './data/bangphai.js';
 
@@ -79,7 +78,6 @@ export function bangPhai() {
     // Mốc để vẽ vạch đóng góp: người GÓP NHIỀU NHẤT trong minh, không phải một số cố định.
     // Minh mới lập ai cũng 0 thì vạch trống trơn — đúng, chưa ai góp gì thật.
     get gopBacMax() { return this.tv.reduce((s, m) => Math.max(s, m.gopBac || 0), 0); },
-    get cpMax() { return this.tv.reduce((s, m) => Math.max(s, m.cp || 0), 0); },
     /** Bề rộng vạch. Góp 0 thì để TRỐNG HẲN — kẻ ăn không phải nhìn ra ngay. */
     gopPct(v, max) { return (!v || !max) ? 0 : Math.max(3, Math.round((v / max) * 100)); },
     get donXin() {
@@ -102,7 +100,6 @@ export function bangPhai() {
       try { return nguoiQuen(this.g.state, this.world, Date.now()); } catch (e) { return []; }
     },
     get bangDoiSau() { void this._t; return this.gioTxt(chieuHienConLai(Date.now())); },
-    get giaoTinhTran() { return GIAO_TINH_TRAN; },
     get nhatKy() { return (this.bp && this.bp.nhatKy) || []; },
     get mucGop() { return MUC_GOP; },
     get bacMoiMinhCong() { return BAC_MOI_MINH_CONG; },
@@ -323,8 +320,6 @@ export function bangPhai() {
       if (gi >= 1) return gi + ' giờ' + (ph ? ' ' + ph + ' phút' : '');
       return Math.max(1, ph) + ' phút';
     },
-    tenVung(id) { const l = LOCATIONS.find((x) => x.id === id); return l ? l.name : id; },
-    mauCoTa() { return MAU_BANG_TA; },
     chucTen(id) { return (CHUC_BY_ID[id] || {}).ten || id; },
     pct(a, b) { return Math.min(100, Math.round((a || 0) / Math.max(1, b || 1) * 100)); },
 

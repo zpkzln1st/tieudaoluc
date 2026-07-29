@@ -59,16 +59,16 @@ function mix(a, b) { let h = (a ^ Math.imul(b >>> 0, 2654435761)) >>> 0; h ^= h 
 const pick = (h, arr) => arr[(h >>> 0) % arr.length];
 const r01 = (h) => (h % 100000) / 100000;
 
-export const ngayCua = (now) => Math.floor((now || Date.now()) / NGAY_MS);
-export const muaCua = (now) => Math.floor((now || Date.now()) / MUA_MS);
+const ngayCua = (now) => Math.floor((now || Date.now()) / NGAY_MS);
+const muaCua = (now) => Math.floor((now || Date.now()) / MUA_MS);
 /** Mùa thứ mấy — đếm từ lúc lập thế giới. muaCua() trả số tuyệt đối (~1980), vô nghĩa với người chơi. */
 export const soMua = (world, now) =>
   Math.max(1, muaCua(now) - muaCua((world && world.createdAt) || 0) + 1);
 export const muaConLai = (now) => MUA_MS - ((now || Date.now()) % MUA_MS);
-export const nvKyCua = (now) => Math.floor((now || Date.now()) / NV_BANG_KY_MS);
+const nvKyCua = (now) => Math.floor((now || Date.now()) / NV_BANG_KY_MS);
 export const nvKyConLai = (now) => NV_BANG_KY_MS - ((now || Date.now()) % NV_BANG_KY_MS);
-export const bossKyCua = (now) => Math.floor((now || Date.now()) / BOSS_BANG_KY_MS);
-export const bossKyConLai = (now) => BOSS_BANG_KY_MS - ((now || Date.now()) % BOSS_BANG_KY_MS);
+const bossKyCua = (now) => Math.floor((now || Date.now()) / BOSS_BANG_KY_MS);
+const bossKyConLai = (now) => BOSS_BANG_KY_MS - ((now || Date.now()) % BOSS_BANG_KY_MS);
 
 // ============================================================
 // STATE
@@ -126,9 +126,9 @@ function bangMoi(ten, tonChi, now) {
  * hiện được CHÂN DUNG + thông tin, chứ không phải một dòng chữ trơ.
  */
 /** Tên người tô đúng màu nhóm nghề của họ — nhật ký toàn chữ trắng thì nhìn không ra ai. */
-export const tenMau = (ho) => '<b style="color:' + (ho.mau || '#e2e8f0') + '">' + ho.ten + '</b>';
+const tenMau = (ho) => '<b style="color:' + (ho.mau || '#e2e8f0') + '">' + ho.ten + '</b>';
 
-export function ghiNhatKy(state, txt, now, ai) {
+function ghiNhatKy(state, txt, now, ai) {
   const b = ensureBangPhai(state), ts = now || Date.now();
   b.nhatKy.unshift({ id: 'nk' + ts + '_' + (b.nhatKy.length + 1) + '_' + Math.round(Math.random() * 1e5), txt, ts, ai: ai || null });
   if (b.nhatKy.length > NHAT_KY_MAX) b.nhatKy.length = NHAT_KY_MAX;
@@ -224,7 +224,7 @@ export function nguoiQuen(state, world, now) {
 }
 
 /** Hồ sơ một bot: lấy nốt nghề thật / lối chơi / việc đang làm chứ không chỉ tên với cấp. */
-export function moTaBot(r, t) {
+function moTaBot(r, t) {
   const d = botDominant(r, t);
   return {
     id: r.id, ten: r.name, lv: botCombatLv(r, t), tong: botTotalLv(r, t),
@@ -249,18 +249,18 @@ export function danhSachTanTu(state, world, now) {
 // ============================================================
 // 12 BANG AI — ĐỐI THỦ trên bảng Chinh Phạt. Không lưu save, suy từ seed.
 // ============================================================
-export const SO_BANG_AI = 12;
+const SO_BANG_AI = 12;
 const HO_BANG = ['Thanh', 'Huyền', 'Xích', 'Bạch', 'Kim', 'Vân', 'Lôi', 'Hải', 'Cửu', 'Thiết', 'Ngọc', 'Phi'];
 const DUOI_BANG = ['Long Bang', 'Kiếm Minh', 'Đao Hội', 'Phong Đường', 'Sa Môn', 'Vũ Các', 'Tiêu Cục', 'Sơn Trại', 'Thủy Trại', 'Thương Hội', 'Ẩn Cốc', 'Minh Giáo'];
 const MAU_BANG = ['#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#e2e8f0', '#94a3b8'];
-export const MAU_BANG_TA = '#f5b942';
+const MAU_BANG_TA = '#f5b942';
 
 /**
  * Bang AI: tên, cấp, số người, và TỐC ĐỘ ĐIỂM CHINH PHẠT mỗi giờ ở từng vùng.
  * Tốc độ cố định theo (seed, mùa, bang, vùng) nên bảng xếp hạng bò lên đều trong suốt mùa —
  * người chơi thấy mình đang bị đuổi kịp chứ không phải một bảng số đứng im.
  */
-export function bangAI(world, now) {
+function bangAI(world, now) {
   const t = now || Date.now(), seed = (world && world.seed) || 1, mua = muaCua(t);
   const troiGio = Math.max(0, (t - mua * MUA_MS) / GIO);
   const out = [];
@@ -498,7 +498,7 @@ export function themBangCong(state, diem, now) {
 }
 
 /** Cộng Công Tích cho người chơi (từ nhiệm vụ, truy nã, boss...). */
-export function themCongTich(state, n) {
+function themCongTich(state, n) {
   const b = ensureBangPhai(state), v = Math.max(0, Math.round(n || 0));
   if (!b.bang || !v) return 0;
   b.congTich += v; b.congTichTong += v;
@@ -615,7 +615,7 @@ export function hocKyNang(state, id, now) {
 }
 
 // ---------- CỬA HÀNG BANG ----------
-export function ensureChSo(state, now) {
+function ensureChSo(state, now) {
   const b = ensureBangPhai(state), ng = ngayCua(now);
   if (b.chSo.ngay !== ng) b.chSo = { ngay: ng, mua: {} };
   return b.chSo;
@@ -745,7 +745,7 @@ function gopCuaBangChung(state, world, loai, now) {
   return Math.round(s * troiGio);
 }
 
-export function ensureNv(state, world, now) {
+function ensureNv(state, world, now) {
   const b = ensureBangPhai(state), ky = nvKyCua(now);
   if (!b.bang) return b.nv;
   if (b.nv.ky !== ky || !b.nv.moc || !b.nv.ds.length) {
@@ -802,7 +802,7 @@ const QUAI_LIST = Object.keys(ENEMIES || {}).map((id) => ({ id, ...ENEMIES[id] }
  * thành ba khoảng cấp cho ba bậc đầu. Bốc bừa cả bảng thì lệnh "Truy Nã Thường" lại nhắm
  * con Lv 92 — nhận xong không giết nổi.
  */
-export function ensureTruyNa(state, world, now, combatLv) {
+function ensureTruyNa(state, world, now, combatLv) {
   const b = ensureBangPhai(state), ng = ngayCua(now);
   if (!b.bang) return b.truyNa;
   const lv = Math.max(1, combatLv || 1);

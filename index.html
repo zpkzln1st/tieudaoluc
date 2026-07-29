@@ -11369,18 +11369,10 @@
               <template x-if="tab==='nha'">
                 <div class="lg:grid lg:grid-cols-[1fr_340px] lg:gap-4 lg:items-start space-y-4 lg:space-y-0">
                   <div class="space-y-4 min-w-0">
+                    <!-- Bốn ô Cấp Minh · Minh Khố · Minh Chúng · Công Tích đã bỏ: cả bốn đều
+                         đang hiện trên banner ngay phía trên. Chừa lại đúng thứ banner không có. -->
                     <div class="panel rounded-xl p-3 sm:p-4">
-                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                        <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
-                          <div class="lbl">Cấp Minh</div><div class="text-[17px] font-bold text-amber-300" x-text="capBang"></div></div>
-                        <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
-                          <div class="lbl">Minh Khố</div><div class="text-[17px] font-bold text-jade" x-text="fmt(bang.quy)"></div></div>
-                        <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
-                          <div class="lbl">Minh Chúng</div><div class="text-[17px] font-bold text-cyan-300" x-text="tv.length + '/' + tranTv"></div></div>
-                        <div class="rounded-lg bg-ink2/60 border border-slate-800 p-2.5">
-                          <div class="lbl">Công Tích</div><div class="text-[17px] font-bold text-violet-300" x-text="fmt(congTich)"></div></div>
-                      </div>
-                      <div class="mt-3">
+                      <div>
                         <div class="flex items-baseline justify-between text-[11.5px] mb-1">
                           <span class="lbl">Minh Cống lên cấp <span x-text="capBang + 1"></span></span>
                           <span class="text-slate-500 tabular-nums" x-text="fmt(bang.bangCong) + ' / ' + fmt(bangCongCan)"></span>
