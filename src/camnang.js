@@ -51,6 +51,21 @@ export function camNang() {
     get g() { return this.$store.game; },
     get tuKhoa() { return boDau(this.q.trim()); },
 
+    /**
+     * Tìm Kiếm gọi `openCamNangTai(bang, hang)` -> mở thẳng trang chi tiết của mục đó.
+     * Cờ dùng một lần rồi xoá, kẻo lần sau mở Cẩm Nang vẫn nhảy về chỗ cũ.
+     */
+    cnInit() {
+      const d = this.g.camNangDich;
+      if (!d) return;
+      this.g.camNangDich = null;
+      if (!CN_DB_BY_ID[d.bang]) return;
+      this.che = 'db';
+      this.bangId = d.bang;
+      this.chonId = d.hang;
+      this.dangDoc = true;
+    },
+
     // ---------- chung ----------
     doiChe(c) {
       this.che = c; this.q = ''; this.chonId = null; this.hien = BUOC;

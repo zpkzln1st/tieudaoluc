@@ -260,7 +260,7 @@ const MAU_BANG_TA = '#f5b942';
  * Tốc độ cố định theo (seed, mùa, bang, vùng) nên bảng xếp hạng bò lên đều trong suốt mùa —
  * người chơi thấy mình đang bị đuổi kịp chứ không phải một bảng số đứng im.
  */
-function bangAI(world, now) {
+export function bangAI(world, now) {
   const t = now || Date.now(), seed = (world && world.seed) || 1, mua = muaCua(t);
   const troiGio = Math.max(0, (t - mua * MUA_MS) / GIO);
   const out = [];

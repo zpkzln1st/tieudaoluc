@@ -22,8 +22,9 @@ import { coVua, ensureCoVua } from './covua.js';                     // Cờ Vua
 import { tienLen, ensureTienLen } from './tienlen.js';               // Tiến Lên Miền Nam (bàn bài 3D, cược Bạc)
 import { tuuLau, ensureTuuLau } from './tuulau.js';
 import { bangPhai, ensureBangPhai } from './bangphai.js';            // Bang Phái (lập bang, chinh phạt, boss bang)
-import { camNang } from './camnang.js';                              // Cẩm Nang (wiki trong game)
-import { ghiKillChinhPhat } from './engine/bangphai.js';             // điểm Chinh Phạt khi hạ quái                  // Tửu Lâu (quán rượu giang hồ, cách ly)
+import { camNang } from './camnang.js';
+import { timKiemUI } from './timkiem.js';                            // Tim Kiem chung (go ra moi thu, bam la toi trang co san)                              // Cẩm Nang (wiki trong game)
+import { ghiKillChinhPhat, hoSoMinhChung } from './engine/bangphai.js';             // điểm Chinh Phạt khi hạ quái                  // Tửu Lâu (quán rượu giang hồ, cách ly)
 import { bangKyNangBonus } from './engine/bangbuff.js';              // kĩ năng bang: +Bạc/+rơi đồ ở awardKill
 import * as BP from './engine/bangphai.js';                          // bảng Dev: gọi đúng hàm engine, không ghi tay state
 import * as TL from './engine/tuulau.js';                            // bảng Dev: nuôi Giao Tình để thử cửa chiêu mộ
@@ -477,7 +478,7 @@ const gameStore = {
   // THÊM MODAL MỚI: nhét tên cờ (boolean, đóng=set false) hoặc ['cờ','closeMethod'] (ref) vào _MODALS. HẾT.
   // CỜ đọc `this[cờ]` truthy = đang mở (dùng được cả boolean lẫn getter/ref như dsProfile/petDetailObj).
   _MODALS: [
-    'statOpen', 'bachTrangOpen', 'settingsModal', 'camNangOpen', 'hieuUngOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
+    'statOpen', 'bachTrangOpen', 'settingsModal', 'camNangOpen', 'timOpen', 'hieuUngOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
     'boPhapModal', 'baiVoModal', 'shopOpen', 'soSachOpen', 'gioiLuatOpen', 'luanVoOpen', 'daiKhachOpen',
     'tangThuOpen', 'bkMergeOpen', 'giftOpen', 'dailyModal', 'foodPicker', 'danPicker', 'duocLuPicker',
     'phucDungPicker', 'toSuOpen', 'tmEvtOpen', 'tmRecruitOpen', 'tmBagOpen', 'tmCraftOpen', 'tmDuocOpen', 'tmRealmGuideOpen',
@@ -1235,8 +1236,36 @@ const gameStore = {
   // Chỉ một cờ. Mọi trạng thái khác (mục đang đọc, ô tìm) nằm trong x-data của modal —
   // đóng rồi mở lại là về mục đầu, đúng ý: mở Cẩm Nang thường là để tra thứ khác.
   camNangOpen: false,
+  // Đích mở sẵn khi Tìm Kiếm bấm vào một mục: { bang, hang }. camNang() đọc rồi xoá.
+  camNangDich: null,
   openCamNang() { this.camNangOpen = true; },
   closeCamNang() { this.camNangOpen = false; },
+  /** Mở Cẩm Nang ngay tại trang chi tiết của một thực thể. */
+  openCamNangTai(bang, hang) { this.camNangDich = { bang, hang }; this.camNangOpen = true; },
+
+  // ---------- Tìm Kiếm chung ----------
+  // Máy tìm chỉ TÌM; mỗi kết quả kèm đường đi tới trang ĐÃ CÓ SẴN. Không đẻ trang mới.
+  timOpen: false,
+  openTim() { this.timOpen = true; },
+  closeTim() { this.timOpen = false; },
+  /** Đưa người chơi tới đúng trang của một kết quả tìm kiếm. */
+  diToiKetQua(m) {
+    const d = m && m.di; if (!d) return;
+    this.timOpen = false;
+    if (d.loai === 'tra') { this.openCamNangTai(d.bang, d.hang); return; }
+    if (d.loai === 'danhsi') { this.openDanhSi(d.id); return; }
+    if (d.loai === 'bot') {
+      // hoSoMinhChung() chỉ dựng được hồ sơ cho người ĐANG Ở TRONG minh của mình.
+      // Người giang hồ ngoài minh thì trang thật của họ là Phong Vân Bảng.
+      const h = hoSoMinhChung(this.state, this.state.world, d.id, now());
+      if (h) { this.bpHoSo = h; return; }
+      this.navTo('phongVanBang');
+      this.showToast('〈' + m.ten + '〉 — tìm trên Phong Vân Bảng.');
+      return;
+    }
+    if (d.loai === 'bang') { this.bpTabDich = 'chinhPhat'; this.navTo('guild'); }
+  },
+  bpTabDich: null,
   // ---------- Ấn Ký Tác Giả (chứng chỉ ký số — nhận diện người thiết kế, không giả mạo được) ----------
   author: null,          // { name, uid } sau khi verify chứng chỉ (null = chưa verify / không hợp lệ)
   authorOpen: false,     // modal "Về Trò Chơi / Tác Giả"
@@ -4464,7 +4493,8 @@ window.coVua = coVua;                 // expose component factory cho x-data tro
 window.tienLen = tienLen;             // expose component factory cho x-data trong view Tiến Lên
 window.tuuLau = tuuLau;           // expose component factory cho x-data trong view Tửu Lâu
 window.bangPhai = bangPhai;           // expose factory cho x-data view Bang Phái
-window.camNang = camNang;             // expose factory cho x-data modal Cẩm Nang
+window.camNang = camNang;
+window.timKiemUI = timKiemUI;   // expose factory cho x-data modal Tim Kiem             // expose factory cho x-data modal Cẩm Nang
 Alpine.store('game', gameStore);
 Alpine.start();
 Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)

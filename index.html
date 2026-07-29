@@ -928,7 +928,7 @@
             <button @click="$store.game.showToast('Phi Cáp · nhắn tin — sắp ra mắt')" title="Trò chuyện" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
-            <button @click="$store.game.showToast('Tìm kiếm — sắp ra mắt')" title="Tìm kiếm" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
+            <button @click="$store.game.openTim()" title="Tìm kiếm" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </button>
             <button @click="$store.game.showToast('Bằng Hữu — sắp ra mắt')" title="Bằng hữu" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
@@ -14258,6 +14258,94 @@
     </div>
   </template>
 
+  <!-- ===== MODAL: TÌM KIẾM CHUNG =====
+       Gõ một chữ, ra mọi thứ có tên đó, gom theo nhóm. Bấm một kết quả là tới thẳng
+       trang chi tiết ĐÃ CÓ SẴN (Cẩm Nang Tra Cứu / Hồ Sơ Danh Sĩ / Hồ Sơ nhân vật /
+       bảng Chinh Phạt) — modal này không tự vẽ trang chi tiết nào. -->
+  <style>
+    .tk-modal{ width:min(680px,96vw); max-height:min(660px,88dvh); }
+    .tk-o{ width:100%; background:transparent; border:0; outline:none; color:#e2e8f0;
+           font-size:15px; font-family:'Lora','Noto Serif SC',serif; }
+    .tk-o::placeholder{ color:#475569; }
+    .tk-hang{ display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:9px;
+              cursor:pointer; transition:background .12s; }
+    .tk-hang:hover, .tk-hang.chon{ background:#16212f; }
+    .tk-ic{ width:32px; height:32px; flex:none; display:grid; place-items:center; font-size:18px;
+            border-radius:8px; background:#0a1018; border:1px solid #1e293b; overflow:hidden; }
+    .tk-ten{ font-size:13px; color:#e2e8f0; line-height:1.3; }
+    .tk-phu{ font-size:10.5px; color:#64748b; line-height:1.3; margin-top:1px; }
+    .tk-nhan{ font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:#3f7d72;
+              font-weight:700; padding:0 10px; margin:9px 0 3px; display:flex; gap:8px; align-items:baseline; }
+    .tk-nhan i{ font-style:normal; color:#475569; letter-spacing:0; text-transform:none; font-size:10px; }
+    .tk-goi{ font-size:11.5px; color:#64748b; border:1px solid #29384e; border-radius:9999px;
+             padding:3px 10px; cursor:pointer; transition:border-color .12s, color .12s; }
+    .tk-goi:hover{ border-color:#3f7d72; color:#7dd3c0; }
+  </style>
+  <template x-if="$store.game.timOpen">
+    <div class="fixed inset-0 z-[78] flex items-start justify-center bg-black/78 backdrop-blur-sm p-3 sm:pt-[9vh]"
+         x-data="timKiemUI()" x-init="tkInit()" @click.self="$store.game.closeTim()"
+         @keydown.escape.window="$store.game.closeTim()">
+      <div class="panel tk-modal rounded-2xl flex flex-col overflow-hidden border border-jade/25 shadow-2xl" @click.stop>
+
+        <!-- ô gõ -->
+        <div class="flex items-center gap-2.5 px-4 py-3 border-b border-slate-800 shrink-0">
+          <svg class="w-[17px] h-[17px] text-jade/70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input x-ref="o" x-model="q" type="text" class="tk-o"
+                 placeholder="Tìm vật phẩm, quái, nhân vật, Tiên Minh…"
+                 @keydown.arrow-down.prevent="di(1)" @keydown.arrow-up.prevent="di(-1)"
+                 @keydown.enter.prevent="mo()">
+          <button x-show="q" @click="q=''; $refs.o.focus()" class="text-slate-500 hover:text-slate-300 text-[15px] leading-none shrink-0">✕</button>
+          <button @click="$store.game.closeTim()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition shrink-0 text-[13px]">Esc</button>
+        </div>
+
+        <div class="flex-1 min-h-0 overflow-y-auto py-2">
+          <!-- chưa gõ gì -->
+          <template x-if="kq.rong">
+            <div class="px-4 py-6">
+              <div class="text-[12px] text-slate-600 mb-2.5">Gõ ít nhất hai chữ. Thử:</div>
+              <div class="flex flex-wrap gap-2">
+                <template x-for="g in goiY" :key="g">
+                  <button class="tk-goi" @click="q = g; $refs.o.focus()" x-text="g"></button>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- không có gì khớp -->
+          <template x-if="!kq.rong && !kq.tong">
+            <div class="px-4 py-10 text-center text-[12.5px] text-slate-600 italic">Không tìm thấy gì khớp.</div>
+          </template>
+
+          <!-- kết quả -->
+          <template x-for="g in kq.nhom" :key="g.ten">
+            <div>
+              <div class="tk-nhan">
+                <span x-text="g.ten"></span>
+                <i x-show="g.tong > g.ds.length" x-text="'còn ' + (g.tong - g.ds.length)"></i>
+              </div>
+              <template x-for="m in g.ds" :key="m.id">
+                <div class="tk-hang mx-2" :class="thu(m) === cho ? 'chon' : ''"
+                     @click="$store.game.diToiKetQua(m)" @mouseenter="cho = thu(m)">
+                  <span class="tk-ic" x-html="bieu(m)"></span>
+                  <div class="min-w-0 flex-1">
+                    <div class="tk-ten truncate" :style="mauCua(m)" x-text="m.ten"></div>
+                    <div class="tk-phu truncate" x-text="m.phu"></div>
+                  </div>
+                  <span class="text-[10px] text-slate-600 shrink-0" x-text="dich(m)"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <div class="px-4 py-2 border-t border-slate-800 shrink-0 flex items-center gap-3 text-[10.5px] text-slate-600">
+          <span>↑↓ chọn</span><span>Enter mở</span>
+          <span class="ml-auto" x-show="kq.tong" x-text="kq.tong + ' kết quả'"></span>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <!-- ===== MODAL: CẨM NANG (wiki trong game) =====
        Hai cột: mục lục trái (có ô tìm, bỏ dấu vẫn ra) · nội dung phải.
        Màn hẹp thì chồng thành một cột: xem mục lục -> bấm -> đọc -> nút quay lại.
@@ -14333,7 +14421,7 @@
   </style>
   <template x-if="$store.game.camNangOpen">
     <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/78 backdrop-blur-sm p-0 sm:p-4"
-         x-data="camNang()" @click.self="dong()" @keydown.escape.window="dong()">
+         x-data="camNang()" x-init="cnInit()" @click.self="dong()" @keydown.escape.window="dong()">
       <div class="panel cn-modal rounded-none sm:rounded-2xl flex flex-col overflow-hidden border border-jade/25 shadow-2xl" @click.stop>
 
         <!-- Đầu modal: hai chế độ. TRA CỨU là chính (cơ sở dữ liệu), CƠ CHẾ là phần luật. -->

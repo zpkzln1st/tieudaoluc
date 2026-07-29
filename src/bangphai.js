@@ -580,6 +580,9 @@ export function bangPhai() {
 
     bpInit() {
       ensureBangPhai(this.g.state);
+      // Tìm Kiếm bấm vào một Tiên Minh -> nhảy thẳng sang bảng Chinh Phạt, chỗ duy nhất
+      // bày các minh khác. Cờ dùng một lần rồi xoá, kẻo lần sau vào lại vẫn nhảy.
+      if (this.g.bpTabDich) { this.tab = this.g.bpTabDich; this.g.bpTabDich = null; }
       this._t = Date.now();
       this._nhip();
       this._iv = setInterval(() => { this._t = Date.now(); this._nhip(); }, 60000);
