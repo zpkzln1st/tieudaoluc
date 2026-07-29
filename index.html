@@ -17,7 +17,7 @@
        Google cũng vô ích, nó lặng lẽ rơi về serif. Đã dính: 酒楼 ra 酒 thư pháp + 樓 serif,
        hai chữ cạnh nhau hai kiểu. Phải dùng 酒楼. Kiểm bằng cách VẼ RA CANVAS rồi so pixel với
        serif — document.fonts.check() trả true cho cả glyph font không có, KHÔNG tin được. -->
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&text=%E4%BA%94%E5%AD%90%E6%A3%8B%E8%B1%A1%E8%A5%BF%E6%B4%8B%E9%85%92%E6%A5%BC&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&text=%E4%BA%94%E5%AD%90%E6%A3%8B%E8%B1%A1%E8%A5%BF%E6%B4%8B%E9%85%92%E6%A5%BC%E8%B6%8A%E5%8D%97%E8%B7%91%E5%BE%97%E5%BF%AB&display=swap" rel="stylesheet">
   <!-- Cờ Tướng: chữ Hán trên QUÂN + 楚河漢界 vẽ vào canvas 3D. Noto Serif TC = Tống thể PHỒN THỂ
        (Ma Shan Zheng chỉ có giản thể -> 車馬將帥傌俥砲 sẽ rơi về font hệ thống). Subset đúng 18 chữ.
        ⚠ Thêm chữ Hán MỚI cho cờ thì PHẢI thêm vào chuỗi &text= dưới đây. -->
@@ -11138,6 +11138,67 @@
           </div>
           <div x-show="inBattle" style="margin-top:12px">
             <div x-show="loading" class="text-center text-slate-400 py-10 fserif">Đang bày kỳ bàn 3D…</div>
+            <div x-show="loadErr" class="text-center text-rose-400 py-10" x-text="loadErr"></div>
+            <div x-ref="boardHost"></div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== VIEW: TIẾN LÊN MIỀN NAM =====
+           Chọn theo CHIẾU (bàn 3 Danh Sĩ cố định + một mức cược) chứ không chọn lẻ từng đối thủ
+           như các bàn cờ — Tiến Lên cần đủ 3 người mới thành ván. Cược bằng Bạc THẬT. -->
+      <template x-if="$store.game.view==='tienLen'">
+        <div class="max-w-[1200px] mx-auto" x-data="tienLen()" x-init="tlInit()">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+            <img src="images/ui/tienlen_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/tienlen_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
+            <div class="relative px-5 py-5 sm:px-6">
+              <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">越南跑得快</span> Tiến Lên</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài chia mười ba lá, ai hết trước thì kẻ đó cầm trịch cả chiếu.</b></div>
+              <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="tl.van"></b> ván · Về Nhất: <b class="text-amber-300" x-text="tl.nhat"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
+              <div class="mt-1.5 text-[12px] text-slate-400">Lãi lỗ cộng dồn: <b :class="(tl.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((tl.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(tl.lai||0)) + ' Bạc'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
+            </div>
+          </div>
+
+          <div x-show="!inBattle && savedChieu" class="mt-4 panel rounded-xl p-3 flex items-center gap-3 border border-amber-400/40">
+            <div class="tls-quat shrink-0" style="width:96px;height:74px">
+              <template x-for="o in (savedChieu ? savedChieu.list : [])" :key="o.id">
+                <img :src="faceOf(o)" alt="" style="width:44px;height:58px" onerror="this.style.visibility='hidden'">
+              </template>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-[13px] fserif text-amber-200">Còn ván dở ở <b x-text="savedChieu ? savedChieu.ten : ''"></b></div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Ván bài được giữ lại khi bạn thoát hoặc tải lại trang.</div>
+            </div>
+            <span class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
+            <span class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+          </div>
+
+          <div x-show="!inBattle" class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <template x-for="c in chieuList" :key="c.id">
+              <div class="tls-chieu fserif" :class="c.khoa ? 'locked' : ''" @click="!c.khoa && nhapChieu(c)">
+                <div class="tls-quat">
+                  <template x-for="o in c.list" :key="o.id">
+                    <img :src="faceOf(o)" alt="" onerror="this.style.visibility='hidden'">
+                  </template>
+                </div>
+                <div class="tls-i">
+                  <div class="tls-tn" x-text="c.ten"></div>
+                  <div class="tls-lo" x-text="c.lore"></div>
+                  <div class="tls-ds" x-text="c.list.map(o=>o.ten).join(' · ')"></div>
+                  <div class="tls-mt">
+                    <span class="tls-tag" :style="'color:'+mauTang(c)+';border-color:'+mauTang(c)+'66'" x-text="tenTang(c)"></span>
+                    <span class="tls-tag" x-text="'Cược ' + $store.game.fmtC(c.cuoc) + ' Bạc mỗi cửa'"></span>
+                    <span class="tls-tag" x-show="!c.khoa && recOf(c.id)" x-text="recOf(c.id)"></span>
+                    <span class="tls-tag warn" x-show="c.khoa" x-text="'Cần ít nhất ' + $store.game.fmtC(c.can) + ' Bạc mới được ngồi'"></span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div x-show="inBattle" style="margin-top:12px">
+            <div x-show="loading" class="text-center text-slate-400 py-10 fserif">Đang bày chiếu bài 3D…</div>
             <div x-show="loadErr" class="text-center text-rose-400 py-10" x-text="loadErr"></div>
             <div x-ref="boardHost"></div>
           </div>
