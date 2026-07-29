@@ -7,6 +7,12 @@
 // ============================================================
 import { CN_NHOM, CN_MUC, CN_MUC_BY_ID, cnText } from './data/camnang.js';
 import { CN_DB, CN_DB_BY_ID, CN_DB_NHOM, MAU_PHAM, MAU_HE } from './data/camnang_db.js';
+import {
+  bangMocCap, expGiuaCap, expDenCap, viecCua, dsNghe, tocDo,
+  gioMotViec, duongNhanhNhat, soSanhViec, MAX_LEVEL,
+} from './data/camnang_tinh.js';
+
+const MOC_CAP = bangMocCap();   // 99 dòng, dựng một lần
 
 // Bỏ dấu để gõ "ngu hanh" vẫn ra "ngũ hành".
 const DAU = new RegExp('[̀-ͯ]', 'g');
@@ -32,7 +38,7 @@ const BUOC = 60;   // mỗi lần hiện thêm bấy nhiêu hàng
 
 export function camNang() {
   return {
-    che: 'db',              // 'db' = Tra Cứu · 'co' = Cơ Chế
+    che: 'db',              // 'db' = Tra Cứu · 'co' = Cơ Chế · 'tinh' = Tính Toán
     q: '',
     bangId: CN_DB[0].id,
     mucId: CN_MUC[0].id,
@@ -145,5 +151,51 @@ export function camNang() {
     },
     get coTruoc() { return CN_MUC.findIndex((m) => m.id === this.mucId) > 0; },
     get coSau() { return CN_MUC.findIndex((m) => m.id === this.mucId) < CN_MUC.length - 1; },
+
+    // ---------- TÍNH TOÁN ----------
+    ngheId: 'thaiKhoang',
+    tuLv: 1,
+    denLv: MAX_LEVEL,
+    // Hiệu suất cộng thêm, tính bằng phần trăm. 0 = trần trụi, 60 = +60%.
+    effPct: 0,
+    moMoc: false,           // mở bảng mốc EXP từng cấp
+
+    get dsNghe() { return dsNghe(); },
+    get tenNghe() { return (this.dsNghe.find((x) => x.id === this.ngheId) || {}).ten || ''; },
+    /** Hệ số đưa vào công thức: chu kỳ thực = cơ sở ÷ hệ số. */
+    get eff() { return 1 + (Number(this.effPct) || 0) / 100; },
+    get tu() { return Math.max(1, Math.min(MAX_LEVEL - 1, Number(this.tuLv) || 1)); },
+    get den() { return Math.max(this.tu + 1, Math.min(MAX_LEVEL, Number(this.denLv) || MAX_LEVEL)); },
+
+    chonNghe(id) { this.ngheId = id; },
+
+    get expCan() { return expGiuaCap(this.tu, this.den); },
+    get nhanhNhat() { return duongNhanhNhat(this.ngheId, this.tu, this.den, this.eff); },
+    get soSanh() { return soSanhViec(this.ngheId, this.den, this.eff); },
+    /** Đúng câu hỏi "cùng nghề, làm việc khác thì bao lâu" — tính từ CÙNG mốc cấp. */
+    get soSanhCungMoc() {
+      return viecCua(this.ngheId).map((v) => {
+        const t = tocDo(v, this.eff);
+        const r = gioMotViec(v, this.tu, this.den, this.eff);
+        return {
+          ...v, giayThuc: t.giay, expGio: t.expGio,
+          gio: r.gio, luot: r.luot, khoa: v.reqLevel > this.tu,
+        };
+      });
+    },
+    get mocCap() { return MOC_CAP; },
+    get tongToanBo() { return expDenCap(MAX_LEVEL); },
+
+    // ---------- định dạng ----------
+    fs(x) { return Math.round(x).toLocaleString('vi-VN'); },
+    /** Giờ -> "3 ngày 4 giờ" / "12,5 giờ" / "48 phút". Số trần trụi khó hình dung. */
+    fgio(h) {
+      if (!isFinite(h) || h <= 0) return '—';
+      if (h < 1) return Math.round(h * 60) + ' phút';
+      if (h < 48) return (Math.round(h * 10) / 10).toLocaleString('vi-VN') + ' giờ';
+      const ngay = Math.floor(h / 24), du = Math.round(h - ngay * 24);
+      return ngay.toLocaleString('vi-VN') + ' ngày' + (du ? ' ' + du + ' giờ' : '');
+    },
+    fgiay(s) { return (Math.round(s * 10) / 10).toLocaleString('vi-VN') + ' giây'; },
   };
 }

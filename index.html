@@ -14302,6 +14302,27 @@
     .cn-luoi tbody tr:hover td{ background:#111a27; }
     .cn-luoi td .cham{ display:inline-block; width:6px; height:6px; border-radius:9999px;
                        margin-right:6px; vertical-align:middle; }
+    /* ---- MÁY TÍNH MỐC CẤP ---- */
+    .cn-nhap{ display:flex; flex-wrap:wrap; gap:10px; margin:2px 0 12px; }
+    .cn-nhap label{ display:flex; flex-direction:column; gap:4px; font-size:10px; letter-spacing:.1em;
+                    text-transform:uppercase; color:#64748b; font-weight:700; }
+    .cn-nhap input{ width:92px; background:#0b1220; border:1px solid #29384e; border-radius:8px;
+                    padding:6px 9px; color:#e2e8f0; font-size:13px; font-variant-numeric:tabular-nums; }
+    .cn-nhap input:focus{ outline:none; border-color:#3f9e8d; }
+    .cn-nhap .hau{ position:relative; display:inline-flex; align-items:center; }
+    .cn-nhap .hau i{ position:absolute; right:9px; font-style:normal; color:#64748b; font-size:12px; pointer-events:none; }
+    .cn-nhap .hau input{ padding-right:24px; }
+    /* Ba ô kết quả — CHỐT CỨNG chiều cao để đổi nghề không làm cả trang giật. */
+    .cn-ket{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; margin-bottom:4px; }
+    .cn-ket > div{ height:60px; display:flex; flex-direction:column; justify-content:center; gap:3px;
+                   background:#0c1421; border:1px solid #1e293b; border-radius:10px; padding:0 12px; }
+    .cn-ket b{ font-family:'Lora','Noto Serif SC',serif; font-size:18px; color:#e2e8f0; line-height:1;
+               font-variant-numeric:tabular-nums; }
+    .cn-ket b.jade{ color:#5eead4; }
+    .cn-doc td.jade, .cn-doc .jade{ color:#5eead4; }
+    /* Việc chưa mở khoá ở cấp bắt đầu: làm mờ chứ KHÔNG giấu — vẫn cần để so sánh. */
+    .cn-doc tr.mo td{ opacity:.45; }
+    .cn-doc tr.moc td{ background:#101a28; }
     /* Bảng rộng thì tự cuộn TRONG khung, không đẩy cả trang lệch ngang. */
     .cn-tbl{ overflow-x:auto; }
     /* Hai ngưỡng phải TRÙNG với Tailwind đang dùng trong markup, không thì có dải bề rộng
@@ -14324,6 +14345,8 @@
                     :class="che==='db' ? 'bg-jade/15 text-jade' : 'text-slate-400 hover:text-slate-200'">Tra Cứu</button>
             <button @click="doiChe('co')" class="px-2.5 py-1 rounded-[6px] text-[12px] fserif transition"
                     :class="che==='co' ? 'bg-jade/15 text-jade' : 'text-slate-400 hover:text-slate-200'">Cơ Chế</button>
+            <button @click="doiChe('tinh')" class="px-2.5 py-1 rounded-[6px] text-[12px] fserif transition"
+                    :class="che==='tinh' ? 'bg-jade/15 text-jade' : 'text-slate-400 hover:text-slate-200'">Tính Toán</button>
           </div>
           <div class="text-[11px] text-slate-600 hidden md:block"
                x-text="che==='db' ? (tongThucThe.toLocaleString('vi-VN') + ' mục dữ liệu') : (tongMuc + ' trang')"></div>
@@ -14333,7 +14356,7 @@
         <div class="cn-body flex-1 min-h-0">
           <!-- ================= RÌA TRÁI ================= -->
           <div class="border-r border-slate-800 flex flex-col min-h-0" :class="dangDoc ? 'hidden md:flex' : 'flex'">
-            <div class="p-2.5 border-b border-slate-800/70 shrink-0">
+            <div class="p-2.5 border-b border-slate-800/70 shrink-0" x-show="che!=='tinh'">
               <div class="relative">
                 <input x-ref="oTim" x-model="q" @input="hien = 60" type="text"
                        :placeholder="che==='db' ? 'Tìm trong ' + bang.ten + '…' : 'Tìm trang cơ chế…'"
@@ -14359,6 +14382,20 @@
                         </button>
                       </template>
                     </div>
+                  </template>
+                </div>
+              </template>
+
+              <!-- danh sách nghề cho máy tính -->
+              <template x-if="che==='tinh'">
+                <div>
+                  <div class="lbl px-1.5 mb-1">Chọn nghề</div>
+                  <template x-for="g in dsNghe" :key="g.id">
+                    <button @click="chonNghe(g.id); dangDoc = true"
+                            class="w-full text-left px-2 py-1.5 rounded-lg transition mb-0.5"
+                            :class="ngheId === g.id ? 'bg-jade/12 text-jade' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'">
+                      <span class="text-[12.5px] fserif leading-tight" x-text="g.ten"></span>
+                    </button>
                   </template>
                 </div>
               </template>
@@ -14530,6 +14567,123 @@
                   <button @click="nhay(1)" :disabled="!coSau"
                           class="ml-auto px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
                           :class="coSau ? 'text-slate-300 border-slate-700 hover:border-jade/50 hover:text-jade' : 'text-slate-700 border-slate-800 cursor-default'">Trang Sau ›</button>
+                </div>
+              </div>
+            </template>
+            <!-- ---------- TÍNH TOÁN ---------- -->
+            <template x-if="che==='tinh'">
+              <div class="flex flex-col min-h-0 flex-1">
+                <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800/70 shrink-0 flex items-center gap-2.5">
+                  <button @click="dangDoc = false" class="md:hidden text-slate-500 hover:text-jade text-[12px] fserif shrink-0">‹ Nghề</button>
+                  <div class="min-w-0">
+                    <div class="lbl">Máy Tính Mốc Cấp</div>
+                    <div class="fserif text-[15.5px] text-slate-100 leading-tight truncate" x-text="tenNghe"></div>
+                  </div>
+                </div>
+
+                <div x-ref="than" class="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-3 cn-doc">
+                  <!-- Ô nhập -->
+                  <div class="cn-nhap">
+                    <label>Từ cấp
+                      <input type="number" min="1" :max="99" x-model.number="tuLv"></label>
+                    <label>Lên cấp
+                      <input type="number" min="2" :max="100" x-model.number="denLv"></label>
+                    <label>Hiệu suất cộng thêm
+                      <span class="hau"><input type="number" min="0" max="900" step="5" x-model.number="effPct"><i>%</i></span></label>
+                  </div>
+
+                  <!-- Kết quả chính -->
+                  <div class="cn-ket">
+                    <div>
+                      <div class="lbl">Kinh nghiệm cần</div>
+                      <b x-text="fs(expCan)"></b>
+                    </div>
+                    <div>
+                      <div class="lbl">Nhanh nhất mất</div>
+                      <b class="jade" x-text="fgio(nhanhNhat.gio)"></b>
+                    </div>
+                    <div>
+                      <div class="lbl">Đổi việc</div>
+                      <b x-text="Math.max(0, nhanhNhat.chang.length - 1) + ' lần'"></b>
+                    </div>
+                  </div>
+                  <p class="text-[11.5px] text-slate-500 mt-1 mb-3">
+                    “Nhanh nhất” = mỗi cấp luôn chọn việc cho nhiều kinh nghiệm mỗi giờ nhất trong số đã mở khoá.
+                  </p>
+
+                  <!-- So sánh từng nguyên liệu — câu hỏi chính -->
+                  <h4>Cùng nghề, làm việc nào thì bao lâu</h4>
+                  <div class="cn-tbl">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Việc</th><th>Vùng</th><th>Cấp mở</th>
+                          <th style="text-align:right">Kinh nghiệm</th>
+                          <th style="text-align:right">Mỗi lượt</th>
+                          <th style="text-align:right">Kinh nghiệm/giờ</th>
+                          <th style="text-align:right">Số lượt</th>
+                          <th style="text-align:right">Mất bao lâu</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <template x-for="v in soSanhCungMoc" :key="v.id">
+                          <tr :class="v.khoa ? 'mo' : ''">
+                            <td x-text="v.ten"></td>
+                            <td x-text="v.vung"></td>
+                            <td x-text="'Lv ' + v.reqLevel"></td>
+                            <td style="text-align:right" x-text="fs(v.exp)"></td>
+                            <td style="text-align:right" x-text="fgiay(v.giayThuc)"></td>
+                            <td style="text-align:right" x-text="fs(v.expGio)"></td>
+                            <td style="text-align:right" x-text="fs(v.luot)"></td>
+                            <td style="text-align:right" :class="v.khoa ? '' : 'jade'" x-text="fgio(v.gio)"></td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="text-[11.5px] text-slate-500 -mt-1 mb-3">
+                    Dòng mờ là việc <b class="text-slate-400">chưa mở ở cấp bắt đầu</b> — số giờ chỉ để so sánh, chưa tính đoạn phải cày lên cho đủ cấp.
+                  </p>
+
+                  <!-- Chặng của đường nhanh nhất -->
+                  <h4>Đường nhanh nhất đi qua</h4>
+                  <div class="cn-tbl">
+                    <table>
+                      <thead><tr><th>Đoạn cấp</th><th>Làm việc</th><th style="text-align:right">Mất bao lâu</th></tr></thead>
+                      <tbody>
+                        <template x-for="(c, i) in nhanhNhat.chang" :key="i">
+                          <tr>
+                            <td x-text="'Lv ' + c.tuLv + ' → ' + c.denLv"></td>
+                            <td x-text="c.ten"></td>
+                            <td style="text-align:right" x-text="fgio(c.gio)"></td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Mốc EXP từng cấp -->
+                  <h4>Mốc kinh nghiệm từng cấp</h4>
+                  <p>Tổng từ cấp 1 lên cấp <b x-text="100"></b>: <b class="text-jade" x-text="fs(tongToanBo)"></b> kinh nghiệm. Dùng chung cho Chiến Đấu, cả mười nghề và Linh Thú.</p>
+                  <button @click="moMoc = !moMoc"
+                          class="px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-300 border border-slate-700 hover:border-jade/50 hover:text-jade transition mb-2"
+                          x-text="moMoc ? 'Thu bảng 99 mốc' : 'Xem bảng 99 mốc'"></button>
+                  <template x-if="moMoc">
+                    <div class="cn-tbl">
+                      <table>
+                        <thead><tr><th>Lên cấp</th><th style="text-align:right">Cần riêng cấp này</th><th style="text-align:right">Tích luỹ từ cấp 1</th></tr></thead>
+                        <tbody>
+                          <template x-for="m in mocCap" :key="m.lv">
+                            <tr :class="(m.len % 10 === 0) ? 'moc' : ''">
+                              <td x-text="m.lv + ' → ' + m.len"></td>
+                              <td style="text-align:right" x-text="fs(m.can)"></td>
+                              <td style="text-align:right" x-text="fs(m.tong)"></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </template>
                 </div>
               </div>
             </template>
