@@ -14326,7 +14326,7 @@
               <template x-for="m in g.ds" :key="m.id">
                 <div class="tk-hang mx-2" :class="thu(m) === cho ? 'chon' : ''"
                      @click="$store.game.diToiKetQua(m)" @mouseenter="cho = thu(m)">
-                  <span class="tk-ic" x-html="bieu(m)"></span>
+                  <span class="tk-ic" x-html="$store.game.icoTim(m)"></span>
                   <div class="min-w-0 flex-1">
                     <div class="tk-ten truncate" :style="mauCua(m)" x-text="m.ten"></div>
                     <div class="tk-phu truncate" x-text="m.phu"></div>

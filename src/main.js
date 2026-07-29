@@ -403,6 +403,7 @@ const SVG_PATHS = {
   hammer: '<path d="M15 12l-8.373 8.373a1 1 0 1 1-3-3L12 9"/><path d="M18 15l4-4"/><path d="M21.5 11.5 19.586 9.586A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8a2 2 0 0 1-1.5 1.5"/>',
   xcircle: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
   check:  '<path d="M5 12.5 10 17.5 19 6.5"/>',
+  nguoi:  '<path d="M19 21v-1.5a4.5 4.5 0 0 0-4.5-4.5h-5A4.5 4.5 0 0 0 5 19.5V21"/><circle cx="12" cy="7.5" r="4"/>',
 };
 
 // ---- Store game ----
@@ -1242,6 +1243,31 @@ const gameStore = {
   closeCamNang() { this.camNangOpen = false; },
   /** Mở Cẩm Nang ngay tại trang chi tiết của một thực thể. */
   openCamNangTai(bang, hang) { this.camNangDich = { bang, hang }; this.camNangOpen = true; },
+
+  /**
+   * Ảnh cho một dòng kết quả Tìm Kiếm.
+   * ⚠ PHẢI là hàm trên STORE, gọi bằng `$store.game.icoTim(m)`. Bản đầu để hàm này
+   * trong thành phần Alpine và gọi `this.g.ico(...)`; trong phạm vi x-for thì `this`
+   * là scope con nên biểu thức trả undefined -> ô ảnh RỖNG mà Console không báo gì.
+   */
+  icoTim(m) {
+    const a = (m && m.anh) || {};
+    const duPhong = this.svg(a.bieu || 'info', 'w-[17px] h-[17px] text-jade/55');
+    // Đồ Phổ không có một file ảnh riêng — nó là ảnh GHÉP (cuộn theo bậc + art món
+    // lồng giữa) do ico() dựng. Giao lại cho ico(), đừng tự đi tìm file.
+    if (m && typeof m.id === 'string' && /^(dp_|dpset_|dpchieu_)/.test(m.id)) {
+      return '<span class="block w-full h-full">' + this.ico(m.id, '📜') + '</span>';
+    }
+    if (!a.thu || !a.ten) return duPhong;
+    // ⚠ ĐỪNG nhét SVG vào trong `onerror`: dấu nháy kép bị HTML giải mã TRƯỚC khi JS chạy
+    //   nên chuỗi đứt giữa chừng, ảnh hỏng thì đứng nguyên đó thay vì rơi về dự phòng.
+    //   Nay xếp CHỒNG: dự phòng nằm dưới, ảnh phủ lên; ảnh hỏng thì tự gỡ, lộ dự phòng.
+    return '<span class="relative block w-full h-full">'
+      + '<span class="absolute inset-0 grid place-items-center">' + duPhong + '</span>'
+      + `<img src="images/${a.thu}/${a.ten}.webp" class="absolute inset-0 w-full h-full object-contain p-0.5" alt=""`
+      + ` onerror='if(this.src.endsWith("webp")){this.src="images/${a.thu}/${a.ten}.png";}else{this.remove();}'>`
+      + '</span>';
+  },
 
   // ---------- Tìm Kiếm chung ----------
   // Máy tìm chỉ TÌM; mỗi kết quả kèm đường đi tới trang ĐÃ CÓ SẴN. Không đẻ trang mới.

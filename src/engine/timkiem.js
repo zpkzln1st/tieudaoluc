@@ -38,32 +38,51 @@ export const MOI_NHOM = 4;
 // ---------- nguồn TĨNH: dựng chỉ mục đúng một lần ----------
 function dungNguonTinh() {
   const ra = [];
-  const them = (nhom, thuTu, id, ten, phu, di) => ra.push({ nhom, thuTu, id, ten, phu, di, _k: boDau(ten) });
+  // `anh` = { thu, ten?, bieu? } — CHO BIẾT LẤY ẢNH Ở ĐÂU (mỗi loại một thư mục riêng:
+  //   items · equip · enemies · dungeons · locations · chieu · bophap · bidong · pets · danhsi)
+  // `bieu` là tên icon nét trong SVG_PATHS, dùng khi loại đó chưa có art.
+  // ⚠ ĐỪNG dùng chữ Hán làm dự phòng: font tiêu đề nạp dạng subset qua `&text=`, chữ nào
+  //   không khai báo là rơi font. Đã đo bằng glyphCoTrongFont(): cả 11 chữ định dùng đều thiếu.
+  const them = (nhom, thuTu, id, ten, phu, di, anh) =>
+    ra.push({ nhom, thuTu, id, ten, phu, di, anh: anh || { bieu: 'info' }, _k: boDau(ten) });
 
   // Vật phẩm (trừ trang bị — trang bị có bảng riêng)
   for (const i of Object.values(ITEMS)) {
     if (!i || i.type === 'trangbi') continue;
-    them('Vật Phẩm', 1, i.id, i.name, i.desc || '', { loai: 'tra', bang: 'vatpham', hang: i.id });
+    them('Vật Phẩm', 1, i.id, i.name, i.desc || '', { loai: 'tra', bang: 'vatpham', hang: i.id },
+      { thu: 'items', ten: i.id, emoji: i.icon });
   }
   // Trang bị + công cụ
   for (const id of GEAR_IDS) {
     const g = GEAR[id]; if (!g) continue;
     const cc = laCongCu(g);
     them(cc ? 'Công Cụ' : 'Trang Bị', 2, id, g.name,
-      'Cấp ' + ((g.equip || {}).reqLevel || 1), { loai: 'tra', bang: cc ? 'congcu' : 'trangbi', hang: id });
+      'Cấp ' + ((g.equip || {}).reqLevel || 1), { loai: 'tra', bang: cc ? 'congcu' : 'trangbi', hang: id },
+      { thu: 'equip', ten: id, emoji: g.icon });
   }
-  for (const e of Object.values(ENEMIES)) them('Quái', 3, e.id, e.name, 'Lv ' + e.reqLevel, { loai: 'tra', bang: 'quai', hang: e.id });
-  for (const y of YEU_VUONG) them('Yêu Vương', 3, y.id, y.name, 'Lv ' + y.reqLevel, { loai: 'tra', bang: 'yeuvuong', hang: y.id });
-  for (const d of DUNGEONS) them('Bí Cảnh', 4, d.id, d.name, 'Lv ' + d.reqLevel, { loai: 'tra', bang: 'bicanh', hang: d.id });
-  for (const l of LOCATIONS) them('Vùng', 4, l.id, l.name, 'Lv ' + l.reqLevel, { loai: 'tra', bang: 'vung', hang: l.id });
-  for (const s of Object.values(SKILLS)) them('Nghề', 5, s.id, s.name, s.gloss || '', { loai: 'tra', bang: 'nghe', hang: s.id });
-  for (const c of CHIEU) them('Chiêu Thức', 5, c.id, c.name, c.short || '', { loai: 'tra', bang: 'chieu', hang: c.id });
-  for (const t of TAM_PHAP_POOL) them('Tâm Pháp', 5, t.id, t.name, t.short || '', { loai: 'tra', bang: 'tamphap', hang: t.id });
-  for (const b of BO_PHAP) them('Bộ Pháp', 5, b.id, b.name, b.gloss || '', { loai: 'tra', bang: 'bophap', hang: b.id });
-  for (const b of BI_DONG) them('Bị Động', 5, b.id, b.name, '', { loai: 'tra', bang: 'bidong', hang: b.id });
-  for (const s of Object.values(PET_SPECIES)) them('Linh Thú', 6, s.base, s.name, s.role || '', { loai: 'tra', bang: 'linhthu', hang: s.base });
-  for (const t of TITLES) them('Danh Hiệu', 6, t.id, t.name, t.src || '', { loai: 'tra', bang: 'danhhieu', hang: t.id });
-  for (const b of BI_KIP) them('Bí Kíp', 6, b.id, b.ten, '', { loai: 'tra', bang: 'bikip', hang: b.id });
+  for (const e of Object.values(ENEMIES)) them('Quái', 3, e.id, e.name, 'Lv ' + e.reqLevel, { loai: 'tra', bang: 'quai', hang: e.id },
+    { thu: 'enemies', ten: e.id, emoji: e.icon });
+  for (const y of YEU_VUONG) them('Yêu Vương', 3, y.id, y.name, 'Lv ' + y.reqLevel, { loai: 'tra', bang: 'yeuvuong', hang: y.id },
+    { thu: 'enemies', ten: y.id, emoji: y.icon });
+  for (const d of DUNGEONS) them('Bí Cảnh', 4, d.id, d.name, 'Lv ' + d.reqLevel, { loai: 'tra', bang: 'bicanh', hang: d.id },
+    { thu: 'dungeons', ten: d.id, bieu: 'gate' });
+  for (const l of LOCATIONS) them('Vùng', 4, l.id, l.name, 'Lv ' + l.reqLevel, { loai: 'tra', bang: 'vung', hang: l.id },
+    { thu: 'locations', ten: l.id, emoji: l.icon });
+  for (const s of Object.values(SKILLS)) them('Nghề', 5, s.id, s.name, s.gloss || '', { loai: 'tra', bang: 'nghe', hang: s.id },
+    { bieu: 'hammer' });
+  for (const c of CHIEU) them('Chiêu Thức', 5, c.id, c.name, c.short || '', { loai: 'tra', bang: 'chieu', hang: c.id },
+    { thu: 'chieu', ten: c.id, bieu: 'sword' });
+  for (const t of TAM_PHAP_POOL) them('Tâm Pháp', 5, t.id, t.name, t.short || '', { loai: 'tra', bang: 'tamphap', hang: t.id },
+    { bieu: 'bulb' });
+  for (const b of BO_PHAP) them('Bộ Pháp', 5, b.id, b.name, b.gloss || '', { loai: 'tra', bang: 'bophap', hang: b.id },
+    { thu: 'bophap', ten: b.id, bieu: 'steps' });
+  for (const b of BI_DONG) them('Bị Động', 5, b.id, b.name, '', { loai: 'tra', bang: 'bidong', hang: b.id },
+    { thu: 'bidong', ten: b.id, bieu: 'shield' });
+  for (const s of Object.values(PET_SPECIES)) them('Linh Thú', 6, s.base, s.name, s.role || '', { loai: 'tra', bang: 'linhthu', hang: s.base },
+    { thu: 'pets', ten: 'pet_' + s.base + '_base', emoji: s.emoji });
+  for (const t of TITLES) them('Danh Hiệu', 6, t.id, t.name, t.src || '', { loai: 'tra', bang: 'danhhieu', hang: t.id },
+    { bieu: 'trophy' });
+  for (const b of BI_KIP) them('Bí Kíp', 6, b.id, b.ten, '', { loai: 'tra', bang: 'bikip', hang: b.id }, { bieu: 'book' });
   return ra;
 }
 let _TINH = null;
@@ -79,21 +98,22 @@ function nguonSong(world, now) {
     ra.push({
       nhom: 'Danh Sĩ', thuTu: 0, id: d.id, ten: d.ten || d.name,
       phu: [d.monPhai, d.hieu].filter(Boolean).join(' · '),
-      di: { loai: 'danhsi', id: d.id }, _k: boDau(d.ten || d.name),
+      di: { loai: 'danhsi', id: d.id }, anh: { thu: 'danhsi', ten: d.id, bieu: 'nguoi' },
+      _k: boDau(d.ten || d.name),
     });
   }
   for (const b of (genRoster(seed, (world && world.createdAt) || 0) || [])) {
     ra.push({
       nhom: 'Nhân Vật', thuTu: 0, id: b.id, ten: b.ten || b.name,
       phu: 'Tổng Lv ' + botTotalLv(b, now),
-      di: { loai: 'bot', id: b.id }, _k: boDau(b.ten || b.name),
+      di: { loai: 'bot', id: b.id }, anh: { bieu: 'nguoi' }, _k: boDau(b.ten || b.name),
     });
   }
   for (const g of (bangAI(world, now) || [])) {
     ra.push({
       nhom: 'Tiên Minh', thuTu: 0, id: g.id, ten: g.ten,
       phu: 'Cấp ' + g.cap + ' · ' + g.soTv + ' người',
-      di: { loai: 'bang', id: g.id }, _k: boDau(g.ten),
+      di: { loai: 'bang', id: g.id }, anh: { bieu: 'gate' }, _k: boDau(g.ten),
     });
   }
   return ra;

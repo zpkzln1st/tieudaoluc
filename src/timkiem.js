@@ -50,17 +50,6 @@ export function timKiemUI() {
       if (m) this.g.diToiKetQua(m);
     },
 
-    /** Biểu tượng: món nào có art thật thì lấy art, không thì để chữ Hán của nhóm. */
-    bieu(m) {
-      if (m.di.loai === 'tra') {
-        const it = ITEMS[m.id];
-        if (it) return this.g.ico(m.id, it.icon || '📦');
-        return this.g.ico(m.id, '📘');
-      }
-      const dau = { danhsi: '士', bot: '人', bang: '盟' }[m.di.loai] || '?';
-      return '<span class="fserif text-jade/70" style="font-size:15px">' + dau + '</span>';
-    },
-
     /** Tên món tô theo phẩm chất, giống mọi chỗ khác trong game. */
     mauCua(m) {
       const it = ITEMS[m.id];
