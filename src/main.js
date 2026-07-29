@@ -4301,7 +4301,7 @@ const gameStore = {
     this.state.bangPhai.congTich = (this.state.bangPhai.congTich || 0) + 200000;
     this.state.bangPhai.congTichTong = (this.state.bangPhai.congTichTong || 0) + 200000;
     b.bangCong = (b.bangCong || 0) + 100000;
-    this.devSave(); this._tick++; this.showToast('Dev: +5.000.000 Bạc quỹ · +200.000 Công Tích · +100.000 Minh Cống');
+    this.devSave(); this._tick++; this.showToast('Dev: +5.000.000 Bạc Ngân Khố · +200.000 Công Tích · +100.000 Minh Cống');
   },
   devBpCap(lv) {
     const b = this.devBp; if (!b) return;

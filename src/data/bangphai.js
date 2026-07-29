@@ -226,7 +226,7 @@ export const gioCongTrinh = (ct, lv) => Math.round(ct.gioXay * Math.pow(1.35, Ma
 export const NV_BANG = [
   { id: 'nvb_san',   loai: 'kill',   ten: 'Vây Sát Yêu Thú',    can: 900,   ct: 700, bangCong: 260 },
   { id: 'nvb_khai',  loai: 'gather', ten: 'Khai Sơn Phá Thạch', can: 700,   ct: 700, bangCong: 260 },
-  { id: 'nvb_bac',   loai: 'bac',    ten: 'Sung Doanh Minh Khố',can: 90000, ct: 650, bangCong: 300 },
+  { id: 'nvb_bac',   loai: 'bac',    ten: 'Sung Doanh Ngân Khố',can: 90000, ct: 650, bangCong: 300 },
   { id: 'nvb_boss',  loai: 'boss',   ten: 'Trảm Yêu Trừ Hại',   can: 8,     ct: 800, bangCong: 320 },
 ];
 export const NV_BANG_MOI_KY = 2;          // mỗi kỳ bốc 2 việc

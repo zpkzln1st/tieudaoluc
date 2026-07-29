@@ -251,7 +251,7 @@ export function bangPhai() {
       if (ct.lv >= ct.maxLv) return 'Đã tới cấp cao nhất.';
       if (this.dangXay) return 'Đang xây ' + this.dangXay.ten + ' cấp ' + this.dangXay.lv + ', còn ' + this.gioTxt(this.dangXay.conMs) + '.';
       if (ct.lv + 1 > this.capBang) return 'Tiên Minh phải lên cấp ' + (ct.lv + 1) + ' đã (đang cấp ' + this.capBang + ').';
-      if (this.bang.quy < ct.gia) return 'Minh Khố thiếu ' + this.fmt(ct.gia - this.bang.quy) + ' Bạc.';
+      if (this.bang.quy < ct.gia) return 'Ngân Khố thiếu ' + this.fmt(ct.gia - this.bang.quy) + ' Bạc.';
       return '';
     },
     get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },
@@ -359,8 +359,8 @@ export function bangPhai() {
       g.hoiXacNhan({
         tieuDe: 'Hạ Cờ Giải Tán?',
         loi: 'Giải tán <b class="text-amber-200">' + b.ten + '</b> — cờ hạ, người tan, tên bang xoá khỏi giang hồ.',
-        canhBao: 'Mất sạch: <b>' + b.tv.length + ' thành viên</b> · cấp bang <b>' + b.cap + '</b> · quỹ <b>'
-          + this.fmt(b.quy) + ' Bạc</b> · toàn bộ kĩ năng, công trình, đồ trong kho và <b>' + this.fmt(this.congTich)
+        canhBao: 'Mất sạch: <b>' + b.tv.length + ' thành viên</b> · cấp bang <b>' + b.cap + '</b> · Ngân Khố <b>'
+          + this.fmt(b.quy) + ' Bạc</b> · toàn bộ kĩ năng, công trình, đồ trong Minh Khố và <b>' + this.fmt(this.congTich)
           + ' Công Tích</b>. Không hoàn lại gì.',
         nut: 'Giải Tán', huy: 'Giữ Bang', nguy: true,
         xong: () => { giaiTan(g.state, Date.now()); this._luu(); g.showToast('Bang đã giải tán.'); },
@@ -511,7 +511,7 @@ export function bangPhai() {
       if (ct.lv >= ct.maxLv) return 'Đã tới cấp cao nhất.';
       if (this.dangXay) return 'Đang xây ' + this.dangXay.ten + ' cấp ' + this.dangXay.lv + ', còn ' + this.gioTxt(this.dangXay.conMs) + '.';
       if (ct.lv + 1 > this.capBang) return 'Tiên Minh phải lên cấp ' + (ct.lv + 1) + ' đã (đang cấp ' + this.capBang + ').';
-      if (this.bang.quy < ct.gia) return 'Minh Khố thiếu ' + this.fmt(ct.gia - this.bang.quy) + ' Bạc.';
+      if (this.bang.quy < ct.gia) return 'Ngân Khố thiếu ' + this.fmt(ct.gia - this.bang.quy) + ' Bạc.';
       return '';
     },
     get ctDangMo() { const id = this.g.bpCongTrinh; return id ? (this.congTrinh.find((x) => x.id === id) || null) : null; },

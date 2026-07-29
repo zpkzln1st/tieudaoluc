@@ -467,7 +467,7 @@ export function hoSoMinhChung(state, world, botId, now) {
 
 // ---------- CỐNG HIẾN ----------
 /**
- * Góp Bạc: 1 Bạc = 1 Công Tích cho ngươi, Bạc vào Minh Khố, và cứ BAC_MOI_MINH_CONG Bạc
+ * Góp Bạc: 1 Bạc = 1 Công Tích cho ngươi, Bạc vào Ngân Khố, và cứ BAC_MOI_MINH_CONG Bạc
  * đổi được 1 Minh Cống. KHÔNG tự trừ Bạc — lớp view lo việc đó.
  */
 export function congHien(state, bac, now) {
@@ -671,7 +671,7 @@ export function xayCongTrinh(state, id, now) {
   if (lv > ct.maxLv) return 'Đã tới cấp cao nhất.';
   if (lv > b.bang.cap) return 'Công trình không vượt được cấp bang (' + b.bang.cap + ').';
   const gia = giaCongTrinh(ct, lv);
-  if (b.bang.quy < gia) return 'Quỹ bang thiếu — cần ' + gia + ' Bạc.';
+  if (b.bang.quy < gia) return 'Ngân Khố thiếu — cần ' + gia + ' Bạc.';
   b.bang.quy -= gia;
   b.bang.xayDung = { id, lv, xong: t + gioCongTrinh(ct, lv) * GIO };
   ghiNhatKy(state, 'Khởi công <b>' + ct.ten + '</b> cấp ' + lv + '.', t);
