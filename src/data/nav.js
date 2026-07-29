@@ -40,7 +40,7 @@ export const NAV = [
   ] },
   { title: 'Giao Thương', items: [
     { view: 'merchant', name: 'Thương Điếm',    gloss: 'Merchant', icon: '🏪' },
-    { view: 'market',   name: 'Sàn Giao Dịch',  gloss: 'Market',   icon: '⚖️', soon: true },
+    { view: 'market',   name: 'Sàn Giao Dịch',  gloss: 'Market',   icon: '⚖️' },
   ] },
   { title: 'Khác', items: [
     { view: 'guild',      name: 'Tiên Minh',  gloss: 'Guild',      icon: '🏯' },
