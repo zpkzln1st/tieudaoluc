@@ -327,9 +327,11 @@ function fmtClock(sec) {
   return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
-// ---- groupsOpen mặc định: mở hết ----
+// ---- groupsOpen mặc định: mở hết, TRỪ nhóm khai báo `thuGon` trong data/nav.js ----
+// Không lưu vào save: mở ra rồi tải lại trang thì nhóm `thuGon` gấp lại như cũ,
+// đúng ý "luôn ở trạng thái thu gọn, chỉ mở khi người chơi bấm".
 const groupsOpen = {};
-NAV.forEach((g) => { groupsOpen[g.title] = true; });
+NAV.forEach((g) => { groupsOpen[g.title] = !g.thuGon; });
 
 // ---- Bản đồ icon: id -> thư mục ảnh (ico() tự tìm đúng folder, không cần sửa chỗ gọi) ----
 const ICON_FOLDERS = {};

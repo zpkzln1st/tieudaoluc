@@ -21,7 +21,9 @@ export const NAV = [
     { view: 'worldboss',  name: 'Yêu Vương',     gloss: 'World Boss',     icon: '🐲' },
   ] },
   // Thiên Cơ Các — nhóm RIÊNG cho mini-game (tách khỏi Chiến Đấu). Thêm game mới thì thêm vào đây.
-  { title: 'Thiên Cơ Các', items: [
+  // `thuGon: true` -> mặc định GẤP LẠI, chỉ mở khi người chơi tự bấm. Nhóm này dài nhất
+  // (6 trò) mà lại là nhánh phụ, để mở sẵn thì đẩy mọi nhóm dưới nó rớt khỏi tầm mắt.
+  { title: 'Thiên Cơ Các', thuGon: true, items: [
     { view: 'dangTienMong', name: 'Đăng Tiên Mộng', gloss: 'Card Roguelike', icon: '🎴' },
     { view: 'kyTran', name: 'Kỳ Trận', gloss: 'Match-3 Combat', icon: '🀄' },
     { view: 'nguTuKy', name: 'Ngũ Tử Kỳ', gloss: 'Gomoku 3D', icon: '⚫' },
