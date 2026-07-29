@@ -1,34 +1,42 @@
 // ============================================================
-// DATA — CẨM NANG (wiki trong game). Giải thích MỌI tính năng.
+// DATA — CẨM NANG, phần CƠ CHẾ (luật + công thức).
+// Phần cơ sở dữ liệu tra cứu nằm ở `camnang_db.js`.
 //
-// ⚠ MỌI CON SỐ ĐỀU RÚT TỪ BẢNG SỐ THẬT, không chép tay. Sửa bảng số ->
-//   Cẩm Nang tự đổi theo. Chép tay là kiểu gì cũng lệch sau vài lần tune.
+// ⚠ VĂN PHONG: đây là tài liệu TRA CỨU. Viết như sách tra: câu trần thuật,
+//   gọi "người chơi", nêu số và điều kiện. KHÔNG xưng hô kiểu kể chuyện,
+//   KHÔNG bình luận, KHÔNG đùa. Lời văn có chất võ hiệp để ở lore trong game,
+//   không để ở đây.
+// ⚠ MỌI CON SỐ RÚT TỪ BẢNG SỐ THẬT, không chép tay.
 //
-// Khối nội dung (mảng `khoi`), mỗi phần tử là một mảng:
-//   ['h',  'Tiêu đề nhỏ']
-//   ['p',  'Đoạn văn — nhận <b> <i>']
-//   ['ds', ['gạch đầu dòng', ...]]
-//   ['bang', ['Cột 1','Cột 2'], [['ô','ô'], ...]]
-//   ['luu', 'Khung lưu ý màu hổ phách — chỉ dùng cho cái dễ mất tiền/mất đồ']
+// Khối nội dung:
+//   ['h', 'Tiêu đề nhỏ'] · ['p', 'Đoạn'] · ['ds', [...]] ·
+//   ['bang', [cột], [[ô]]] · ['ct', 'Công thức'] · ['luu', 'Điểm cần lưu ý']
 // ============================================================
 import { SKILLS, STATS } from './skills.js';
 import { LOCATIONS, REALM_TIERS } from './locations.js';
 import { QUALITY, ITEM_TYPES, ITEMS, DOPHO_IDS, EGG_IDS } from './items.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS } from './ui.js';
-import { AFFIX_KEYS, TRANG_SET_KEYS, BACH_KIM_SETS, GEAR_IDS, THOI_TIERS, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV } from './gear.js';
+import {
+  AFFIX_KEYS, TRANG_SETS, GEAR_IDS, THOI_TIERS, QUALITY_LINES,
+  MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, MONSTER_QUALITY_W,
+} from './gear.js';
 import {
   NGU_HANH_LIST, HE_FX, KHANG_CAP, KHANG_TU_HE, NGAT_AMP, TANG_MAX, TANG_HARD_MAX,
   TANG_GEAR_MAX, TANG_OVER_STEP, COMBAT_CYCLE_MS, TANG_BANDS, TAM_PHAP_POOL, BO_PHAP,
   CHIEU, BI_DONG, TUYET_IDS, TUYET_BAC, MON_PHAI, nguHanhMod,
 } from './votong.js';
-import { STANCES, YEU_VUONG, BAC_DROP_CHANCE, BAC_PER_EXP, ENEMIES } from './combat.js';
+import { STANCES, YEU_VUONG, BAC_DROP_CHANCE, BAC_PER_EXP, ENEMIES, LOOT_DROP_MULT } from './combat.js';
 import { DUNGEONS } from './dungeon.js';
 import { PET_SPECIES, PET_QUALITY, AWK_PASSIVE_IDS, PET_OPT_POOL, PET_SKILLS } from './pets.js';
 import { CODEX_CATS } from './codex.js';
 import { TITLES, TITLE_LOAI } from './titles.js';
 import { BADGES, BADGE_LV } from './badges.js';
 import { REALMS, BUILD_KEYS, PILL_KEYS, BI_KIP, BI_KIP_LOAI, APT, DIPLO_TIERS, TAMMA_MAX, SUB_STAGES } from './tongmon.js';
-import { CONG_TRINH, KY_NANG_BANG, CUA_HANG_BANG, NV_BANG, TV_TRAN, CAP_BANG_MAX, BAC_MOI_MINH_CONG, CP_BUFF_HANG, MUA_THUONG_BANG, BOSS_BANG_LUOT } from './bangphai.js';
+import {
+  CONG_TRINH, KY_NANG_BANG, CUA_HANG_BANG, NV_BANG, TV_TRAN, CAP_BANG_MAX,
+  BAC_MOI_MINH_CONG, CP_BUFF_HANG, MUA_THUONG_BANG, BOSS_BANG_LUOT, LV_LAP_BANG, PHI_LAP_BANG,
+  TRUY_NA_MOI_NGAY, MUA_MS, CP_MOI_KILL,
+} from './bangphai.js';
 import { DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS, TUTORIAL_QUESTS } from './quests.js';
 import { LOGIN_REWARDS } from './daily.js';
 import { DANH_SI } from './danhsi.js';
@@ -37,13 +45,13 @@ import { LINH_THACH } from './linhthach.js';
 
 // ---------- số rút từ bảng thật ----------
 const n = (x) => (Array.isArray(x) ? x.length : Object.keys(x).length);
-const pc = (x) => Math.round(x * 100) + '%';
-const KHAC_LOI = pc(nguHanhMod('kim', 'moc'));            // đánh vào hệ mình khắc
-const KHAC_THIET = pc(Math.abs(nguHanhMod('moc', 'kim'))); // đánh vào hệ khắc mình
-const NHIP = (COMBAT_CYCLE_MS / 1000) + ' giây';
+const pc = (x, d = 0) => (x * 100).toFixed(d).replace(/\.?0+$/, '') + '%';
+const sn = (x) => Number(x).toLocaleString('vi-VN');
+const KHAC_LOI = pc(nguHanhMod('kim', 'moc'));
+const KHAC_THIET = pc(Math.abs(nguHanhMod('moc', 'kim')));
+const NHIP_GIAY = COMBAT_CYCLE_MS / 1000;
 const HE5 = NGU_HANH_LIST.map((h) => h.name).join(' · ');
-const VUNG_DAU = LOCATIONS[0].name;
-const VUNG_CUOI = LOCATIONS[LOCATIONS.length - 1].name;
+const MUA_NGAY = Math.round(MUA_MS / 86400000);
 
 export const CN_NHOM = [
   { id: 'nhapmon',  ten: 'Nhập Môn',        han: '始' },
@@ -60,611 +68,676 @@ export const CN_NHOM = [
 export const CN_MUC = [
   // ================= NHẬP MÔN =================
   {
-    id: 'tongquan', nhom: 'nhapmon', ten: 'Trò Chơi Này Là Gì',
-    tom: 'Nhàn tu — đặt việc rồi đi, quay lại lấy thành quả.',
+    id: 'tongquan', nhom: 'nhapmon', ten: 'Tổng Quan',
+    tom: 'Thể loại nhàn tu, ba trục phát triển song song.',
     khoi: [
-      ['p', 'Tiêu Dao Lục là trò <b>nhàn tu</b> (idle): ngươi chọn một việc — đốn củi, luyện đan, đi săn — rồi để đó. Việc vẫn chạy khi ngươi đóng trình duyệt, lúc quay lại thu về đủ.'],
-      ['p', 'Không có lớp nhân vật cố định. Mọi hướng đều mở: cày nghề, đánh quái, nuôi đệ tử, dựng bang, chơi cờ. Ngươi mạnh theo hướng nào là do ngươi dồn thời gian vào đâu.'],
-      ['h', 'Ba trục lớn'],
-      ['bang', ['Trục', 'Làm gì', 'Được gì'], [
-        ['Nghề', 'Thu hoạch · chế tạo', 'Nguyên liệu · Bạc · cấp nghề'],
-        ['Võ', 'Đánh quái · Bí Cảnh · Yêu Vương', 'Cấp chiến đấu · trang bị · Hồn Thạch'],
-        ['Thế lực', 'Tông Môn · Tiên Minh', 'Đệ tử, bang chúng làm hộ · buff cả nhà'],
+      ['p', 'Tiêu Dao Lục là trò chơi <b>nhàn tu</b> (idle) chạy trên trình duyệt. Người chơi đặt một hoạt động, hoạt động tiếp tục chạy khi đóng trình duyệt, và được tính bù khi mở lại.'],
+      ['p', 'Không có lớp nhân vật cố định. Ba trục phát triển chạy song song và nuôi lẫn nhau:'],
+      ['bang', ['Trục', 'Hoạt động', 'Sản phẩm'], [
+        ['Nghề', 'Thu hoạch, chế tạo', 'Nguyên liệu, trang bị, Bạc, cấp nghề'],
+        ['Võ', 'Đánh quái, Bí Cảnh, Yêu Vương', 'Cấp Chiến Đấu, trang bị, Hồn Thạch, trứng Linh Thú'],
+        ['Thế lực', 'Tông Môn, Tiên Minh', 'Hệ số cộng thêm cho hai trục trên'],
       ]],
-      ['p', 'Ba trục nuôi nhau: nghề rèn ra trang bị cho võ, võ mở vùng mới cho nghề, thế lực cộng phần trăm cho cả hai.'],
+      ['bang', ['Quy mô', 'Số lượng'], [
+        ['Nghề', sn(n(SKILLS))], ['Vùng bản đồ', sn(n(LOCATIONS))],
+        ['Loại quái', sn(n(ENEMIES))], ['Yêu Vương', sn(n(YEU_VUONG))],
+        ['Bí Cảnh', sn(n(DUNGEONS))], ['Vật phẩm', sn(n(ITEMS))],
+        ['Trang bị mẫu', sn(n(GEAR_IDS))], ['Chiêu thức', sn(n(CHIEU))],
+        ['Danh hiệu', sn(n(TITLES))],
+      ]],
     ],
   },
   {
     id: 'treomay', nhom: 'nhapmon', ten: 'Treo Máy & Ngoại Tuyến',
-    tom: 'Việc chạy tiếp khi tắt game. Chỉ một việc một lúc.',
+    tom: 'Một hoạt động tại một thời điểm; tiến độ tính bù khi vắng mặt.',
     khoi: [
-      ['p', 'Mỗi lúc ngươi chỉ làm <b>một việc</b>. Đổi việc là bỏ việc cũ. Việc đang làm hiện ở thanh trên cùng.'],
+      ['p', 'Tại mỗi thời điểm chỉ có <b>một hoạt động chính</b>: làm nghề, chiến đấu, hoặc di chuyển. Chọn hoạt động mới sẽ dừng hoạt động cũ. Bí Cảnh chạy theo lịch riêng, không chiếm chỗ hoạt động chính.'],
       ['ds', [
-        'Đóng trình duyệt vẫn tính — lúc mở lại, trò chơi cộng bù phần thời gian vắng.',
-        'Ngồi xem hay tắt máy đều ra <b>cùng một số</b>. Không có kiểu ngồi canh thì được nhiều hơn.',
-        'Chiến đấu chạy theo nhịp <b>' + NHIP + '</b> một vòng; mỗi vòng kết một trận.',
+        'Tiến độ khi đóng trình duyệt được tính bù lúc mở lại, giới hạn bởi trần ngoại tuyến.',
+        'Trần ngoại tuyến cơ sở 8 giờ, nới thêm theo bậc Động Phủ.',
+        'Kết quả khi treo máy và khi ngồi xem là <b>như nhau</b>. Hai đường thưởng dùng chung hệ số.',
       ]],
-      ['luu', 'Túi đầy thì thu hoạch <b>dừng</b>, không tự bán. Đi xa nhớ dọn Hành Lý trước.'],
+      ['h', 'Điều kiện tự dừng'],
+      ['bang', ['Tình huống', 'Hệ quả'], [
+        ['Hành lý đầy', 'Hoạt động thu hoạch dừng'],
+        ['Hết nguyên liệu đầu vào', 'Hoạt động chế tạo dừng'],
+        ['Hết Linh Thạch', 'Hoạt động tiếp tục, mất phần cộng thêm'],
+        ['Nhân vật gục', 'Chuyển sang trạng thái Suy Yếu, hết thời gian mới đánh tiếp'],
+      ]],
     ],
   },
   {
-    id: 'tiente', nhom: 'nhapmon', ten: 'Ba Loại Tiền',
-    tom: 'Bạc tiêu vặt · Hồn Thạch quý · Nguyên Bảo hiếm nhất.',
+    id: 'tiente', nhom: 'nhapmon', ten: 'Tiền Tệ',
+    tom: 'Ba loại: Bạc, Hồn Thạch, Nguyên Bảo.',
     khoi: [
-      ['bang', ['Loại', 'Kiếm ở đâu', 'Tiêu vào đâu'], [
-        ['Bạc', 'Bán đồ · đánh quái (' + pc(BAC_DROP_CHANCE) + ' số trận) · nhiệm vụ', 'Mua bán · cường hoá · lộ phí · xây dựng'],
-        ['Hồn Thạch', 'Yêu Vương · Bí Cảnh · nhiệm vụ tuần/tháng · mùa Chinh Phạt', 'Đổi vật phẩm quý · mở khoá'],
-        ['Nguyên Bảo', 'Nhiệm vụ tháng · mốc lớn', 'Thứ hiếm nhất, đừng tiêu bừa'],
+      ['bang', ['Loại', 'Nguồn chính', 'Dùng vào'], [
+        ['Bạc', 'Bán vật phẩm, đánh quái, nhiệm vụ, Bí Cảnh', 'Mua bán, cường hoá, Truyền Tống, xây dựng, cống hiến Tiên Minh'],
+        ['Hồn Thạch', 'Yêu Vương, Bí Cảnh, nhiệm vụ tuần và tháng, thưởng mùa Chinh Phạt', 'Phí vào Bí Cảnh cấp cao, vật phẩm quý'],
+        ['Nguyên Bảo', 'Nhiệm vụ tháng, mốc lớn', 'Nguồn hiếm nhất'],
       ]],
-      ['p', 'Đánh quái còn ra Bạc theo kinh nghiệm: <b>' + BAC_PER_EXP + ' Bạc</b> mỗi điểm kinh nghiệm.'],
-      ['luu', 'Trò chơi <b>không bán vật phẩm bằng tiền thật</b>. Mọi thứ đều kiếm được trong game.'],
+      ['h', 'Bạc rơi từ quái'],
+      ['ct', 'Bạc mỗi lần rơi = round(EXP quái × ' + BAC_PER_EXP + ') × hệ số thưởng Bạc'],
+      ['p', 'Xác suất rơi Bạc mỗi trận: <b>' + pc(BAC_DROP_CHANCE) + '</b>.'],
+      ['p', 'Trò chơi không bán vật phẩm bằng tiền thật.'],
     ],
   },
   {
     id: 'capdo', nhom: 'nhapmon', ten: 'Cấp Độ & Cảnh Giới',
-    tom: 'Mỗi nghề một cấp riêng. Tổng Lv là tổng tất cả.',
+    tom: 'Mỗi nghề một cấp riêng; Tổng Lv là tổng tất cả.',
     khoi: [
-      ['p', 'Không có một cấp chung. <b>Mỗi nghề một cấp riêng</b> (tối đa 100), cộng thêm cấp Chiến Đấu. Cộng hết lại thành <b>Tổng Lv</b> — con số hiện dưới tên ngươi.'],
-      ['p', 'Tổng Lv là thước đo chung: mở vùng, mở nghề mới (mỗi 80 Tổng Lv mở thêm một nghề), tính lộ phí Truyền Tống, và là điều kiện lập Tiên Minh.'],
-      ['h', 'Bốn cảnh giới theo cấp'],
+      ['p', 'Mỗi nghề có cấp riêng, trần 100, cộng thêm cấp Chiến Đấu. <b>Tổng Lv</b> là tổng các cấp đó.'],
+      ['h', 'Tổng Lv quyết định'],
+      ['ds', [
+        'Mở nghề mới — mỗi 80 Tổng Lv mở thêm một nghề, chi phí tăng dần.',
+        'Phí Truyền Tống — xem trang Bản Đồ.',
+        'Điều kiện lập Tiên Minh — cần Tổng Lv ' + sn(LV_LAP_BANG) + '.',
+      ]],
+      ['h', 'Bốn cảnh giới bản đồ'],
       ['bang', ['Cảnh giới', 'Khoảng cấp'], REALM_TIERS.map((r) => [r.name, r.range])],
-      ['p', 'Cảnh giới đổi màu khung, đổi nền hồ sơ, và là mốc cho một số danh hiệu.'],
     ],
   },
   {
     id: 'luutru', nhom: 'nhapmon', ten: 'Lưu Trữ & Tài Khoản',
-    tom: 'Tự lưu trong máy; đăng nhập thì có thêm bản trên mây.',
+    tom: 'Lưu cục bộ; đăng nhập thêm bản đám mây.',
     khoi: [
       ['ds', [
-        'Trò chơi <b>tự lưu</b> vào trình duyệt sau mỗi thay đổi lớn.',
-        'Đăng nhập tài khoản thì có thêm <b>bản lưu trên mây</b> — đổi máy vẫn chơi tiếp.',
-        'Xoá dữ liệu trình duyệt là mất bản trong máy. Đăng nhập trước cho chắc.',
+        'Trò chơi tự lưu vào trình duyệt sau mỗi thay đổi lớn.',
+        'Đăng nhập tài khoản bổ sung bản lưu đám mây, dùng để đổi thiết bị.',
+        'Xoá dữ liệu trình duyệt làm mất bản cục bộ nếu chưa đồng bộ.',
       ]],
-      ['p', 'Cài đặt (bánh răng cạnh thẻ nhân vật) có chỗ tải bản lưu xuống và nạp lại.'],
+      ['p', 'Cửa sổ Cài Đặt có chức năng tải bản lưu xuống và nạp lại.'],
     ],
   },
 
   // ================= NHÂN VẬT =================
   {
     id: 'tutru', nhom: 'nhanvat', ten: 'Tứ Trụ & Chỉ Số',
-    tom: 'Bốn trụ gốc sinh ra mọi chỉ số chiến đấu.',
+    tom: 'Bốn trụ gốc sinh ra chỉ số chiến đấu.',
     khoi: [
-      ['bang', ['Trụ', 'Nghĩa'], Object.values(STATS).map((s) => [s.name, s.gloss])],
-      ['p', 'Bốn trụ này lên theo cấp và theo trang bị, rồi sinh ra các chỉ số chiến đấu:'],
-      ['bang', ['Chỉ số', 'Nghĩa'], SECONDARY_STATS.map((s) => [s.name, s.desc])],
-      ['p', '<b>Chiến Lực</b> gộp tất cả thành một số để so nhanh — dùng để ước lượng, không phải công thức sát thương.'],
+      ['bang', ['Trụ', 'Tương ứng'], Object.values(STATS).map((s) => [s.name, s.gloss])],
+      ['p', 'Tứ Trụ tăng theo cấp và theo trang bị, rồi quy thành các chỉ số chiến đấu:'],
+      ['bang', ['Chỉ số', 'Ý nghĩa'], SECONDARY_STATS.map((s) => [s.name, s.desc])],
+      ['p', 'Chiến Lực là chỉ số tổng hợp dùng để so sánh nhanh, không tham gia trực tiếp vào công thức sát thương.'],
+      ['h', 'Thế đứng'],
+      ['bang', ['Thế', 'Thiên về', 'Trụ gắn'], STANCES.map((s) => [s.name, s.gloss, (STATS[s.stat] || {}).name || s.stat])],
     ],
   },
   {
     id: 'trangbi', nhom: 'nhanvat', ten: 'Trang Bị',
-    tom: n(EQUIP_SLOTS) + ' ô chính, mỗi ô một vai riêng.',
+    tom: sn(n(EQUIP_SLOTS)) + ' ô, ' + sn(n(QUALITY)) + ' bậc phẩm chất.',
     khoi: [
-      ['p', 'Có <b>' + n(EQUIP_SLOTS) + ' ô trang bị chính</b>: ' + EQUIP_SLOTS.map((s) => s.name).join(' · ') + '.'],
-      ['h', 'Phân vai ô — đừng mong ô nào cũng cộng công'],
-      ['ds', [
-        '<b>Vũ Khí · Nhẫn · Trang Sức</b> — ba ô mang Công Kích.',
-        '<b>Mũ · Giáp · Đai Lưng</b> — thiên phòng ngự và Sinh Lực.',
-        '<b>Găng · Giày · Tọa Kỵ</b> — thiên Né Tránh, Chính Xác, tốc độ.',
+      ['p', 'Có <b>' + n(EQUIP_SLOTS) + ' ô trang bị chiến đấu</b>. Vai trò từng ô đã được phân định trong bảng số:'],
+      ['bang', ['Nhóm ô', 'Ô', 'Thiên về'], [
+        ['Tấn công', 'Vũ Khí · Nhẫn · Trang Sức', 'Công Kích, sát thương hệ'],
+        ['Phòng ngự', 'Mũ · Giáp · Đai Lưng', 'Hộ Thể, Sinh Lực'],
+        ['Cơ động', 'Găng · Giày · Tọa Kỵ', 'Né Tránh, Chính Xác, tốc độ'],
       ]],
-      ['p', 'Mỗi món có <b>phẩm chất</b> quyết định số dòng phụ. Bảy bậc, từ thấp lên cao:'],
-      ['bang', ['Phẩm chất'], Object.values(QUALITY).map((q) => [q.name])],
-      ['p', 'Kho trang bị hiện có <b>' + n(GEAR_IDS) + ' món</b> mẫu; món rơi ra là <i>bản riêng</i> — cùng tên nhưng chỉ số mỗi cái một khác.'],
+      ['h', 'Phẩm chất và số dòng phụ'],
+      ['bang', ['Phẩm chất', 'Số dòng phụ tối đa'],
+        Object.keys(QUALITY).map((q) => [QUALITY[q].name, sn(QUALITY_LINES[q] || 0)])],
+      ['p', 'Món rơi hoặc rèn ra là <b>bản riêng</b>: cùng tên nhưng dòng phụ bốc khác nhau. Xem chi tiết từng món ở bảng <b>Trang Bị</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'dongan', nhom: 'nhanvat', ten: 'Dòng Phụ & Cường Hoá',
-    tom: n(AFFIX_KEYS) + ' loại dòng phụ; cường hoá bằng Bạc và thỏi.',
+    tom: sn(n(AFFIX_KEYS)) + ' loại dòng phụ; ' + sn(n(THOI_TIERS)) + ' bậc thỏi cường hoá.',
     khoi: [
-      ['p', 'Món càng cao phẩm càng nhiều <b>dòng phụ</b> — bốc ngẫu nhiên từ <b>' + n(AFFIX_KEYS) + ' loại</b> (bạo kích, hút máu, kháng ngũ hành, tốc độ nghề…). Cùng một cái áo, hai người nhặt được hai bộ dòng khác nhau.'],
-      ['p', 'Ô nào bốc dòng nào là có luật riêng: vũ khí mới ra hút máu, giày mới ra Né Tránh. Xem chi tiết ngay trong khung thông tin của món.'],
+      ['p', 'Dòng phụ bốc ngẫu nhiên từ <b>' + n(AFFIX_KEYS) + ' loại</b>. Mỗi ô có bộ trọng số riêng, nên dòng nào ra ở ô nào là cố định theo bảng số. Xem bảng <b>Dòng Phụ</b> trong Tra Cứu để biết khoảng giá trị và ô bốc được.'],
       ['h', 'Cường hoá'],
       ['ds', [
-        'Tốn <b>Bạc</b> và <b>thỏi kim loại</b> đúng bậc — có <b>' + n(THOI_TIERS) + ' bậc thỏi</b>, chọn theo cấp món.',
-        'Cường hoá càng cao càng dễ hụt. Hụt thì <b>không mất món</b>, chỉ mất phí.',
+        'Tốn Bạc và thỏi kim loại đúng bậc — có <b>' + n(THOI_TIERS) + ' bậc thỏi</b>.',
+        'Thất bại không mất món, chỉ mất phí.',
+        'Các mốc cường hoá cao cần Tinh Thể Yêu Vương.',
       ]],
-      ['h', 'Món rơi từ quái'],
-      ['ds', [
-        'Quái thường rơi trang bị nguyên món với xác suất <b>' + (MONSTER_DROP_CHANCE * 100).toFixed(2) + '%</b>.',
-        'Từ cấp <b>' + MANH_DROP_MIN_LV + '</b> trở lên mới rơi mảnh ghép hàng đỉnh, xác suất <b>' + (MANH_DROP_CHANCE * 100).toFixed(2) + '%</b>.',
-      ]],
+      ['h', 'Trang bị rơi từ quái'],
+      ['ct', 'Xác suất rơi trang bị = ' + pc(MONSTER_DROP_CHANCE, 2) + ' × hệ số thưởng rơi đồ'],
+      ['bang', ['Phẩm chất', 'Trọng số khi đã rơi', 'Xác suất tuyệt đối mỗi trận'],
+        Object.entries(MONSTER_QUALITY_W || {}).map(([q, w]) => {
+          const tong = Object.values(MONSTER_QUALITY_W).reduce((s, x) => s + x, 0);
+          return [(QUALITY[q] || {}).name || q, pc(w / tong), pc(MONSTER_DROP_CHANCE * (w / tong), 3)];
+        })],
+      ['ct', 'Xác suất rơi Mảnh Trang Bị = ' + pc(MANH_DROP_CHANCE, 3) + ' × hệ số thưởng rơi đồ  (chỉ quái từ Lv ' + MANH_DROP_MIN_LV + ')'],
+      ['p', 'Ở mức cơ sở, kỳ vọng khoảng <b>' + sn(Math.round(1 / MONSTER_DROP_CHANCE)) + ' trận</b> một món trang bị.'],
     ],
   },
   {
     id: 'botrang', nhom: 'nhanvat', ten: 'Bộ Trang',
-    tom: 'Mặc đủ 3 / 5 / 7 món cùng bộ thì mở dòng ẩn.',
+    tom: sn(n(TRANG_SETS)) + ' bộ; dòng ẩn mở ở mốc 3, 5, 7 món.',
     khoi: [
-      ['p', 'Có <b>' + n(TRANG_SET_KEYS) + ' bộ trang</b> thường và <b>' + n(BACH_KIM_SETS) + ' bộ Bạch Kim</b> hàng đỉnh. Mặc đủ số món cùng một bộ thì mở <b>dòng ẩn</b> — mốc 3, 5 và 7 món.'],
-      ['ds', [
-        'Dòng ẩn cộng thẳng vào chỉ số, không cần kích hoạt.',
-        'Mốc sau bao gồm mốc trước: đủ 7 món thì ăn cả ba mốc.',
-        'Tab <b>Bách Trang Các</b> trong Vạn Vật Phổ ghi đủ món của từng bộ và chỗ kiếm.',
-      ]],
+      ['p', 'Có <b>' + n(TRANG_SETS) + ' bộ trang</b>. Mặc đủ số món cùng một bộ mở dòng ẩn tại mốc 3, 5 và 7. Mốc sau bao gồm mốc trước.'],
+      ['p', 'Bộ hạng <b>Bạch Kim</b> ghép từ Mảnh Trang Bị theo đồ phổ bộ; đồ phổ rơi ở Bí Cảnh cấp cao.'],
+      ['p', 'Bảng <b>Bộ Trang</b> trong Tra Cứu ghi đủ dòng ẩn từng mốc, số mảnh mỗi món, và nơi rơi đồ phổ.'],
     ],
   },
   {
     id: 'congcu', nhom: 'nhanvat', ten: 'Công Cụ Làm Nghề',
-    tom: n(TOOL_SLOTS) + ' ô công cụ — quyết định tốc độ thu hoạch.',
+    tom: sn(n(TOOL_SLOTS)) + ' ô công cụ; cộng thẳng vào hiệu suất nghề.',
     khoi: [
-      ['p', 'Ngoài trang bị chiến đấu còn <b>' + n(TOOL_SLOTS) + ' ô công cụ</b>: ' + TOOL_SLOTS.map((s) => s.name).join(' · ') + '.'],
-      ['p', 'Công cụ <b>không đánh nhau</b> — chúng rút ngắn thời gian mỗi lần thu hoạch. Công cụ bậc càng cao càng nhanh.'],
-      ['p', 'Công cụ kiếm được bằng nghề Rèn Đúc, mua ở Thương Điếm, hoặc rơi trong Bí Cảnh.'],
+      ['bang', ['Ô công cụ', 'Nghề dùng'], [
+        ['Rìu', 'Đốn Củi'], ['Cuốc', 'Đào Khoáng'], ['Cần Câu', 'Câu Cá'], ['Dược Liêm', 'Hái Thuốc'],
+      ]],
+      ['p', 'Công cụ không tham gia chiến đấu. Phần cộng của công cụ vào thẳng mẫu số hiệu suất:'],
+      ['ct', 'Chu kỳ thực = thời gian cơ sở ÷ tổng hệ số hiệu suất'],
+      ['p', 'Nguồn: rèn bằng nghề Rèn Đúc, mua ở Thương Điếm, hoặc rơi trong Bí Cảnh. Xem bảng <b>Công Cụ</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'hanhly', nhom: 'nhanvat', ten: 'Hành Lý',
-    tom: n(ITEM_TYPES) + ' loại vật phẩm, lọc theo nhóm.',
+    tom: sn(n(ITEMS)) + ' vật phẩm, ' + sn(n(ITEM_TYPES)) + ' loại.',
     khoi: [
-      ['p', 'Hành Lý chia <b>' + n(ITEM_TYPES) + ' loại</b>: ' + Object.values(ITEM_TYPES).map((t) => t.name || t).join(' · ') + '.'],
-      ['p', 'Trò chơi có <b>' + n(ITEMS) + ' vật phẩm</b>, trong đó <b>' + n(DOPHO_IDS) + ' đồ phổ</b> (công thức chế tạo) và <b>' + n(EGG_IDS) + ' trứng linh thú</b>.'],
+      ['bang', ['Loại', 'Số vật phẩm'],
+        Object.keys(ITEM_TYPES).map((t) => [
+          (typeof ITEM_TYPES[t] === 'string' ? ITEM_TYPES[t] : ITEM_TYPES[t].name),
+          sn(Object.values(ITEMS).filter((i) => i.type === t).length),
+        ])],
       ['ds', [
-        'Bấm một món để xem chi tiết, dùng, hoặc bán.',
-        'Món xếp chồng theo id — cùng tên thì gộp một ô, trừ trang bị (mỗi món một bản riêng).',
+        'Vật phẩm thường xếp chồng theo mã; trang bị giữ từng bản riêng.',
+        'Trong đó có <b>' + n(DOPHO_IDS) + ' đồ phổ</b> và <b>' + n(EGG_IDS) + ' trứng Linh Thú</b>.',
       ]],
-      ['luu', 'Túi đầy thì mọi việc thu hoạch <b>dừng lại</b>.'],
+      ['luu', 'Hành lý đầy làm mọi hoạt động thu hoạch dừng lại.'],
     ],
   },
   {
     id: 'dongphu', nhom: 'nhanvat', ten: 'Động Phủ',
-    tom: 'Nhà riêng — nới trần treo máy và mở tiện ích.',
+    tom: 'Nới trần ngoại tuyến và mở công trình tiện ích.',
     khoi: [
-      ['p', 'Động Phủ là nhà riêng của ngươi. Hai việc chính:'],
-      ['ds', [
-        '<b>Nới trần treo máy</b> — nhà càng cao cấp thì lần vắng mặt càng được tính bù nhiều giờ hơn.',
-        '<b>Mở công trình tiện ích</b> — mỗi công trình một tác dụng riêng, xây bằng Bạc và nguyên liệu, mất thời gian thực.',
+      ['bang', ['Chức năng', 'Chi tiết'], [
+        ['Nới trần ngoại tuyến', 'Bậc nhà càng cao, số giờ tính bù càng nhiều'],
+        ['Công trình tiện ích', 'Xây bằng Bạc và nguyên liệu, mất thời gian thực'],
+        ['Cửa vào Thiên Cơ Các', 'Các trò nhỏ đặt tại đây'],
       ]],
-      ['p', 'Công trình có <b>độ bền</b>: để lâu không sửa thì hỏng dần và ngừng tác dụng. Sửa tốn ít hơn xây mới nhiều.'],
-      ['p', 'Động Phủ cũng là cửa vào mấy trò nhỏ trong Thiên Cơ Các.'],
+      ['p', 'Công trình có <b>độ bền</b> giảm dần theo thời gian. Công trình hỏng ngừng tác dụng cho tới khi sửa; phí sửa thấp hơn phí xây mới.'],
     ],
   },
 
   // ================= NGHỀ =================
   {
-    id: 'muoinghe', nhom: 'nghe', ten: 'Mười Nghề',
-    tom: n(SKILLS) + ' nghề — nửa thu hoạch, nửa chế tạo.',
+    id: 'muoinghe', nhom: 'nghe', ten: 'Danh Sách Nghề',
+    tom: sn(n(SKILLS)) + ' nghề, trần cấp 100 mỗi nghề.',
     khoi: [
       ['bang', ['Nghề', 'Việc'], Object.values(SKILLS).map((s) => [s.name, s.gloss || ''])],
-      ['p', 'Mỗi nghề có cấp riêng (tối đa 100) và kinh nghiệm riêng. Cấp nghề cao thì mở nguyên liệu tốt hơn, làm nhanh hơn, và cộng vào Tổng Lv.'],
-      ['p', 'Mở nghề mới cần <b>Tổng Lv</b> đủ và một khoản Bạc — mỗi 80 Tổng Lv mở thêm một nghề, giá tăng dần.'],
+      ['p', 'Mỗi nghề có cấp và kinh nghiệm riêng, trần 100. Mở nghề mới cần Tổng Lv đủ và một khoản Bạc; cứ mỗi 80 Tổng Lv mở thêm một nghề, chi phí tăng dần.'],
     ],
   },
   {
     id: 'thuhoach', nhom: 'nghe', ten: 'Thu Hoạch & Chế Tạo',
-    tom: 'Nghề thu ra nguyên liệu, nghề chế biến chúng thành đồ.',
+    tom: 'Công thức chu kỳ và các nguồn hiệu suất.',
     khoi: [
-      ['h', 'Nghề thu hoạch'],
-      ['p', 'Chọn một nguyên liệu trong vùng đang đứng rồi để đó. Mỗi lần xong được nguyên liệu và kinh nghiệm nghề. Cần công cụ đúng loại mới nhanh.'],
-      ['h', 'Nghề chế tạo'],
-      ['p', 'Cần <b>đồ phổ</b> (công thức) và đủ nguyên liệu. Có <b>' + n(DOPHO_IDS) + ' đồ phổ</b> trong trò chơi — mua, rơi từ quái, hoặc thưởng nhiệm vụ.'],
-      ['luu', 'Nguyên liệu cấp cao chỉ có ở vùng cấp cao. Muốn đồ xịn thì phải đủ sức đứng ở vùng đó.'],
+      ['ct', 'Chu kỳ thực = thời gian cơ sở ÷ tổng hệ số hiệu suất'],
+      ['h', 'Các nguồn cùng cộng vào mẫu số'],
+      ['ds', [
+        'Cấp nghề', 'Công cụ đang gắn', 'Tín Vật từ Đàm Đạo',
+        'Kĩ năng Tiên Minh nhánh nghề', 'Linh Thạch đang đốt',
+        'Buff Chinh Phạt của vùng đang đứng',
+      ]],
+      ['h', 'Hai kiểu nghề'],
+      ['bang', ['Kiểu', 'Đầu vào', 'Đầu ra'], [
+        ['Thu hoạch', 'Không cần nguyên liệu (trừ Câu Cá tốn mồi)', 'Nguyên liệu thô, kinh nghiệm nghề'],
+        ['Chế tạo', 'Nguyên liệu + đồ phổ', 'Vật phẩm thành phẩm, kinh nghiệm nghề'],
+      ]],
+      ['p', 'Nguyên liệu bậc cao chỉ có ở vùng cấp cao. Có <b>' + n(DOPHO_IDS) + ' đồ phổ</b> trong trò chơi.'],
     ],
   },
   {
     id: 'linhthach', nhom: 'nghe', ten: 'Linh Thạch',
-    tom: n(LINH_THACH) + ' loại đá phụ trợ, cắm vào để làm nghề nhanh hơn.',
+    tom: sn(n(LINH_THACH)) + ' loại, cộng kinh nghiệm / hiệu suất / sản lượng.',
     khoi: [
-      ['p', 'Linh Thạch là đá phụ trợ dùng khi làm nghề — có <b>' + n(LINH_THACH) + ' loại</b>, chia ba nhánh (tụ khí, thời vận, bội sản) và ba bậc Sơ · Trung · Thượng.'],
+      ['p', 'Linh Thạch là vật phẩm tiêu hao dùng khi làm nghề. Ba nhánh tác dụng: kinh nghiệm nghề, hiệu suất (rút ngắn chu kỳ), sản lượng mỗi lượt.'],
       ['ds', [
-        'Kích hoạt xong thì có tác dụng trong một khoảng thời gian rồi hết.',
-        'Mỗi nhánh hợp một kiểu nghề khác nhau — xem mô tả từng viên.',
+        'Mỗi viên phủ một khoảng thời gian hoạt động, hết thì tự đốt viên cùng loại kế tiếp.',
+        'Hết sạch thì hoạt động vẫn chạy, chỉ mất phần cộng thêm.',
       ]],
+      ['p', 'Bảng <b>Linh Thạch</b> trong Tra Cứu ghi mức cộng của từng viên.'],
     ],
   },
   {
     id: 'damdao', nhom: 'nghe', ten: 'Đàm Đạo',
-    tom: 'Mỗi nghề có một bậc thầy để trò chuyện.',
+    tom: sn(n(DAMDAO)) + ' mạch truyện, mỗi nghề một bậc thầy.',
     khoi: [
-      ['p', '<b>' + n(DAMDAO) + ' nghề</b> đều có một bậc thầy riêng. Trò chuyện với họ mở dần mạch truyện của nghề đó.'],
-      ['p', 'Cửa vào nằm ngay trang của nghề. Chuyện mở theo cấp nghề — cấp càng cao càng nghe được nhiều.'],
+      ['p', 'Mỗi nghề có một nhân vật bậc thầy và một mạch truyện mở dần theo cấp nghề. Cửa vào nằm tại trang của nghề.'],
+      ['p', 'Hoàn tất mạch truyện của một nghề cấp <b>Tín Vật</b>, cộng hiệu suất cố định cho nghề đó.'],
     ],
   },
 
   // ================= CHIẾN ĐẤU =================
   {
-    id: 'vongdau', nhom: 'chiendau', ten: 'Vòng Đấu Diễn Ra Sao',
-    tom: 'Mỗi ' + NHIP + ' một trận, tự đánh.',
+    id: 'vongdau', nhom: 'chiendau', ten: 'Vòng Đấu',
+    tom: 'Nhịp ' + NHIP_GIAY + ' giây một trận, diễn tự động.',
     khoi: [
-      ['p', 'Chọn một con quái trong vùng rồi để đó. Cứ <b>' + NHIP + '</b> là xong một trận. Thắng thì được kinh nghiệm, Bạc, và có thể rơi đồ.'],
-      ['p', 'Trận đấu tự diễn: nhân vật ra chiêu theo bộ chiêu ngươi đã xếp, tốn Nội Lực, chờ hồi chiêu. Ngươi không bấm gì trong trận — mọi quyết định nằm ở lúc chuẩn bị.'],
-      ['h', 'Thế đứng'],
-      ['bang', ['Thế', 'Thiên về'], STANCES.map((s) => [s.name, s.gloss])],
-      ['p', 'Trò chơi có <b>' + n(ENEMIES) + ' loại quái</b> rải khắp <b>' + n(LOCATIONS) + ' vùng</b>, từ ' + VUNG_DAU + ' tới ' + VUNG_CUOI + '.'],
+      ['p', 'Chiến đấu diễn tự động. Hệ thống nhàn tu chuẩn hoá mỗi vòng cày là <b>' + NHIP_GIAY + ' giây</b>, tương ứng một trận.'],
+      ['ds', [
+        'Bộ chiêu đã xếp quyết định thứ tự ra chiêu, mức tiêu Nội Lực và hồi chiêu.',
+        'Sinh Lực duy trì bằng món ăn và đan dược gắn ở ô tự dùng.',
+        'Gục thì chuyển sang trạng thái Suy Yếu, hết thời gian mới đánh tiếp. Vật phẩm đã nhận không mất.',
+      ]],
+      ['p', 'Có <b>' + n(ENEMIES) + ' loại quái</b> phân bố trên <b>' + n(LOCATIONS) + ' vùng</b>. Chỉ số từng con xem ở bảng <b>Quái</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'nguhanh', nhom: 'chiendau', ten: 'Ngũ Hành Khắc Chế',
-    tom: 'Đánh trúng hệ mình khắc: +' + KHAC_LOI + '. Bị khắc: −' + KHAC_THIET + '.',
+    tom: 'Khắc +' + KHAC_LOI + ', bị khắc −' + KHAC_THIET + '.',
     khoi: [
-      ['p', 'Năm hệ: <b>' + HE5 + '</b>. Ngoài ra còn <b>Vô Hệ</b> — đòn không thuộc hệ nào, không được lợi cũng không bị thiệt.'],
-      ['bang', ['Tình huống', 'Sát thương'], [
+      ['p', 'Năm hệ: <b>' + HE5 + '</b>. Ngoài ra có <b>Vô Hệ</b> — đòn không thuộc hệ nào, không chịu và không hưởng khắc chế.'],
+      ['ct', 'Vòng khắc: Kim → Mộc → Thổ → Thủy → Hỏa → Kim'],
+      ['bang', ['Quan hệ', 'Hệ số sát thương'], [
         ['Đánh vào hệ mình khắc', '+' + KHAC_LOI],
         ['Đánh vào hệ khắc mình', '−' + KHAC_THIET],
         ['Cùng hệ hoặc Vô Hệ', 'không đổi'],
       ]],
-      ['p', 'Vòng khắc: Kim khắc Mộc · Mộc khắc Thổ · Thổ khắc Thủy · Thủy khắc Hỏa · Hỏa khắc Kim.'],
-      ['luu', 'Đừng dồn hết bộ chiêu vào một hệ. Gặp đúng con khắc mình là mất <b>' + KHAC_THIET + '</b> sát thương suốt trận.'],
+      ['p', 'Có <b>' + n(MON_PHAI) + ' môn phái</b> đặt tên cho các nhánh võ học theo hệ. Chọn nhánh không khoá việc học chiêu của nhánh khác.'],
     ],
   },
   {
     id: 'khang', nhom: 'chiendau', ten: 'Kháng Ngũ Hành',
-    tom: 'Trần kháng ' + pc(KHANG_CAP) + '. Tâm Pháp cho sẵn ' + pc(KHANG_TU_HE) + ' kháng hệ mình.',
+    tom: 'Trần kháng ' + pc(KHANG_CAP) + '; Tâm Pháp cho sẵn ' + pc(KHANG_TU_HE) + ' hệ mình.',
     khoi: [
-      ['p', 'Mỗi hệ có một chỉ số kháng riêng. Kháng <b>giảm thẳng</b> sát thương của hệ đó đánh vào ngươi.'],
-      ['ds', [
-        'Trần kháng <b>' + pc(KHANG_CAP) + '</b> — cộng thêm nữa cũng không ăn.',
-        'Tâm Pháp cho sẵn <b>' + pc(KHANG_TU_HE) + '</b> kháng đúng hệ của nó.',
-        'Kháng còn đến từ dòng phụ trang bị, bộ trang, đan dược.',
+      ['p', 'Mỗi hệ có một chỉ số kháng riêng, giảm trực tiếp sát thương của hệ đó.'],
+      ['bang', ['Mục', 'Giá trị'], [
+        ['Trần kháng mỗi hệ', pc(KHANG_CAP)],
+        ['Kháng sẵn có từ Tâm Pháp cho hệ của nó', pc(KHANG_TU_HE)],
       ]],
-      ['p', 'Quái cũng có kháng. Con nào kháng cao hệ nào thì đánh hệ đó vào rất phí.'],
+      ['h', 'Nguồn kháng'],
+      ['ds', ['Tâm Pháp', 'Dòng phụ trang bị', 'Dòng ẩn Bộ Trang', 'Đan dược']],
+      ['p', 'Quái cũng có kháng riêng. Chỉ số kháng từng con ghi trong bảng <b>Quái</b> và <b>Yêu Vương</b> ở Tra Cứu.'],
     ],
   },
   {
     id: 'hieuung', nhom: 'chiendau', ten: 'Hiệu Ứng Theo Hệ',
-    tom: 'Mỗi hệ gây một hiệu ứng khác nhau khi trúng đòn.',
+    tom: 'Mỗi hệ một hiệu ứng, có tỉ lệ và số nhịp riêng.',
     khoi: [
-      ['bang', ['Hệ', 'Hiệu ứng', 'Tỉ lệ', 'Kéo dài'],
-        Object.entries(HE_FX).map(([he, f]) => {
-          const ten = (NGU_HANH_LIST.find((x) => x.id === he) || {}).name || he;
-          return [ten, f.ten, pc(f.pct), f.ticks + ' nhịp'];
-        })],
-      ['p', '<b>Độc</b> và <b>Bỏng</b> còn gặm máu mỗi nhịp. <b>Chậm</b> kéo lùi lượt ra đòn. <b>Choáng</b> và <b>Ngất</b> bỏ hẳn lượt.'],
-      ['p', 'Đòn đánh vào mục tiêu <b>đang Ngất</b> mạnh thêm <b>' + pc(NGAT_AMP) + '</b> — đây là chỗ để dồn sát chiêu.'],
+      ['bang', ['Hệ', 'Hiệu ứng', 'Tỉ lệ', 'Số nhịp', 'Sát thương mỗi nhịp'],
+        Object.entries(HE_FX).map(([he, f]) => [
+          (NGU_HANH_LIST.find((x) => x.id === he) || {}).name || he,
+          f.ten, pc(f.pct), sn(f.ticks), f.dot ? pc(f.dot, 1) + ' Sinh Lực tối đa' : '—',
+        ])],
+      ['bang', ['Hiệu ứng', 'Tác động'], [
+        ['Độc · Bỏng', 'Gây sát thương mỗi nhịp'],
+        ['Chậm', 'Kéo lùi lượt ra đòn'],
+        ['Choáng · Ngất', 'Bỏ lượt'],
+      ]],
+      ['ct', 'Sát thương vào mục tiêu đang Ngất × ' + (1 + NGAT_AMP)],
     ],
   },
   {
-    id: 'vohoc', nhom: 'chiendau', ten: 'Võ Học: Bốn Thứ Phải Xếp',
-    tom: 'Tâm Pháp · Chiêu Thức · Bộ Pháp · Bị Động.',
+    id: 'vohoc', nhom: 'chiendau', ten: 'Võ Học',
+    tom: 'Tâm Pháp · Chiêu Thức · Bộ Pháp · Bị Động · Tuyệt Học.',
     khoi: [
-      ['p', 'Tất cả nằm ở <b>Tàng Kinh Các</b> — nơi học, xếp ô, và luyện tầng.'],
-      ['h', 'Tâm Pháp — ' + n(TAM_PHAP_POOL) + ' bộ, đổi được'],
-      ['p', 'Tâm Pháp định hệ chính, Nội Lực, và cộng một nhóm chỉ số. Đây là quyết định lớn nhất — đổi Tâm Pháp là đổi cả lối đánh.'],
-      ['bang', ['Tâm Pháp', 'Lối'], TAM_PHAP_POOL.map((t) => [t.name, t.short])],
-      ['h', 'Chiêu Thức — ' + n(CHIEU) + ' chiêu'],
-      ['p', 'Xếp vào các ô chiêu; số ô mở thêm theo cấp. Mỗi chiêu tốn Nội Lực, có hồi chiêu riêng, thuộc một hệ. Bốn bậc: Sơ · Trung · Cao · Tuyệt.'],
-      ['h', 'Bộ Pháp — ' + n(BO_PHAP) + ' bộ'],
-      ['p', 'Bộ Pháp là bộ chỉnh chỉ số: được mặt này thì mất mặt kia. Ví dụ Quân Hành Bộ cộng đều công-thủ-tốc nhưng gần như không bạo kích.'],
-      ['h', 'Bị Động — ' + n(BI_DONG) + ' món'],
-      ['p', 'Bị Động chạy nền suốt trận, không cần ra tay. Hộ thể, hồi máu, tăng sát thương theo hệ.'],
-      ['h', 'Tuyệt Học — ' + n(TUYET_IDS) + ' môn'],
-      ['p', 'Bậc cao nhất. Cần đồ phổ riêng, nguyên liệu hiếm, và <b>' + TUYET_BAC.toLocaleString('vi-VN') + ' Bạc</b> để luyện.'],
-      ['p', 'Có <b>' + n(MON_PHAI) + ' môn phái</b> đặt tên cho các nhánh võ học — chọn Tâm Pháp nào là theo mạch môn phái đó, nhưng không khoá: ngươi vẫn học được chiêu của nhánh khác.'],
+      ['p', 'Toàn bộ võ học quản lý ở <b>Tàng Kinh Các</b>.'],
+      ['bang', ['Thành phần', 'Số lượng', 'Vai trò'], [
+        ['Tâm Pháp', sn(n(TAM_PHAP_POOL)), 'Định hệ chính, Nội Lực tối đa, hồi Nội Lực, một nhóm chỉ số'],
+        ['Chiêu Thức', sn(n(CHIEU)), 'Đòn đánh; có hệ, bậc, hệ số, giá Nội Lực, hồi chiêu'],
+        ['Bộ Pháp', sn(n(BO_PHAP)), 'Bộ chỉnh chỉ số theo đánh đổi'],
+        ['Bị Động', sn(n(BI_DONG)), 'Chạy nền suốt trận'],
+        ['Tuyệt Học', sn(n(TUYET_IDS)), 'Bậc cao nhất; cần đồ phổ, nguyên liệu hiếm và ' + sn(TUYET_BAC) + ' Bạc'],
+      ]],
+      ['p', 'Chiêu thức chia bốn bậc: Sơ · Trung · Cao · Tuyệt. Số ô chiêu mở thêm theo cấp Chiến Đấu.'],
+      ['p', 'Chỉ số cụ thể của từng món xem ở các bảng <b>Chiêu Thức</b>, <b>Tâm Pháp</b>, <b>Bộ Pháp</b>, <b>Bị Động</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'tang', nhom: 'chiendau', ten: 'Tầng Võ Học',
-    tom: 'Luyện một chiêu lên tầng cao để mạnh hơn và mở cảnh giới.',
+    tom: 'Trần luyện ' + TANG_MAX + ', trần thật ' + TANG_HARD_MAX + '.',
     khoi: [
-      ['p', 'Mỗi chiêu luyện lên được tới <b>tầng ' + TANG_MAX + '</b>. Trang bị cộng thêm tối đa <b>' + TANG_GEAR_MAX + ' tầng</b>, nên trần thật là <b>' + TANG_HARD_MAX + '</b>.'],
-      ['p', 'Mỗi tầng cộng khoảng <b>' + pc(TANG_OVER_STEP) + '</b> uy lực. Ngoài ra có bốn mốc mở cảnh giới:'],
-      ['bang', ['Mốc', 'Cảnh giới', 'Được gì'], TANG_BANDS.map((b) => ['Tầng ' + b.at, b.name, b.eff])],
-      ['luu', 'Dồn một chiêu lên tầng cao <b>đáng hơn</b> rải đều nhiều chiêu — mốc tầng ' + TANG_BANDS[TANG_BANDS.length - 1].at + ' nhân đôi uy lực.'],
+      ['bang', ['Mục', 'Giá trị'], [
+        ['Trần luyện trực tiếp', sn(TANG_MAX)],
+        ['Trang bị cộng thêm tối đa', '+' + sn(TANG_GEAR_MAX)],
+        ['Trần thật', sn(TANG_HARD_MAX)],
+        ['Uy lực mỗi tầng', '+' + pc(TANG_OVER_STEP, 0)],
+      ]],
+      ['h', 'Bốn mốc cảnh giới'],
+      ['bang', ['Mốc', 'Cảnh giới', 'Mở thêm'], TANG_BANDS.map((b) => ['Tầng ' + b.at, b.name, b.eff])],
+      ['p', 'Do mốc tầng ' + TANG_BANDS[TANG_BANDS.length - 1].at + ' nhân đôi uy lực, dồn tầng vào ít chiêu chủ lực cho tổng sát thương cao hơn rải đều.'],
     ],
   },
   {
     id: 'bicanh', nhom: 'chiendau', ten: 'Bí Cảnh',
-    tom: n(DUNGEONS) + ' phó bản nhàn tu — vào rồi chờ, xong lấy thưởng.',
+    tom: sn(n(DUNGEONS)) + ' phó bản chạy theo lịch thời gian thực.',
     khoi: [
-      ['p', 'Bí Cảnh là phó bản chạy theo thời gian thực: chọn một cái, đủ điều kiện thì vào, hết giờ quay lại lĩnh thưởng.'],
-      ['bang', ['Bí Cảnh', 'Cấp'], DUNGEONS.map((d) => [d.name, 'Lv ' + (d.reqLevel || d.lv)])],
+      ['p', 'Bí Cảnh chạy theo lịch riêng, không chiếm chỗ hoạt động chính. Mỗi lượt đi qua các tầng theo cấu hình của phó bản đó rồi kết ở thủ lĩnh.'],
+      ['bang', ['Bí Cảnh', 'Cấp cần', 'Thời lượng', 'Phí vào'],
+        DUNGEONS.map((d) => [
+          d.name, 'Lv ' + d.reqLevel, Math.round(d.durMs / 60000) + ' phút',
+          [(d.cost || {}).bac ? sn(d.cost.bac) + ' Bạc' : null, (d.cost || {}).honThach ? sn(d.cost.honThach) + ' Hồn Thạch' : null].filter(Boolean).join(' + ') || '—',
+        ])],
       ['ds', [
-        'Thưởng gồm Hồn Thạch, trang bị, công cụ bậc cao, và cơ hội ra Bí Kíp cho Tông Môn.',
-        'Vào Bí Cảnh <b>không chặn</b> việc khác — vẫn treo nghề song song.',
+        'Chỉ thông quan thủ lĩnh mới bốc đồ phổ và vật phẩm hiếm.',
+        'Rút lui giữa chừng vẫn giữ một phần Bạc, kinh nghiệm và Hồn Thạch.',
+        'Mảnh Trang Bị là phần thưởng chắc chắn khi thông quan, không phải bốc.',
       ]],
+      ['p', 'Tỉ lệ từng khoản thưởng ghi ở bảng <b>Bí Cảnh</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'yeuvuong', nhom: 'chiendau', ten: 'Yêu Vương',
-    tom: n(YEU_VUONG) + ' trùm thế giới, mỗi con một chu kỳ hồi.',
+    tom: sn(n(YEU_VUONG)) + ' trùm thế giới, đánh theo lượt.',
     khoi: [
-      ['p', 'Yêu Vương là trùm riêng, đánh theo lượt chứ không treo máy. Thắng được Hồn Thạch, Tinh Thể, Bạc, và <b>trứng linh thú</b>.'],
-      ['bang', ['Yêu Vương', 'Cấp cần'], YEU_VUONG.map((y) => [y.name, 'Lv ' + y.reqLevel])],
+      ['p', 'Yêu Vương đánh theo lượt, không treo máy. Mỗi con có thời gian hồi riêng sau khi bị hạ.'],
+      ['bang', ['Yêu Vương', 'Cấp cần', 'Hồi', 'Tinh Thể', 'Hồn Thạch', 'Bạc'],
+        YEU_VUONG.map((y) => [
+          y.name, 'Lv ' + y.reqLevel, ((y.wb || {}).cdHours || 0) + ' giờ',
+          sn((y.wb || {}).tinhThe || 0), sn((y.wb || {}).honThach || 0), sn((y.wb || {}).bac || 0),
+        ])],
       ['ds', [
-        'Mỗi con có thời gian hồi riêng — hạ xong phải chờ mới đánh lại.',
-        'Thua thì phải dưỡng thương một lúc.',
-        'Trứng linh thú chỉ rơi ở đây, xác suất rất thấp — trứng càng quý càng hiếm.',
+        'Yêu Vương không rơi trang bị ngẫu nhiên.',
+        'Trứng Linh Thú chỉ rơi ở đây. Tỉ lệ từng bậc trứng xem ở bảng <b>Yêu Vương</b> trong Tra Cứu.',
+        'Thua trận phải dưỡng thương trước khi đánh lại.',
       ]],
     ],
   },
 
   // ================= LINH THÚ =================
   {
-    id: 'linhthu_co', nhom: 'linhthu', ten: 'Linh Thú Là Gì',
-    tom: n(PET_SPECIES) + ' loài, ' + n(PET_QUALITY) + ' bậc phẩm chất.',
+    id: 'linhthu_co', nhom: 'linhthu', ten: 'Linh Thú',
+    tom: sn(n(PET_SPECIES)) + ' loài, ' + sn(n(PET_QUALITY)) + ' bậc phẩm chất.',
     khoi: [
-      ['p', 'Linh Thú nở từ trứng rơi ở Yêu Vương. Có <b>' + n(PET_SPECIES) + ' loài</b>: ' + Object.values(PET_SPECIES).map((s) => s.name || s.ten).join(' · ') + '.'],
-      ['p', 'Phẩm chất trứng quyết định phẩm chất thú — <b>' + n(PET_QUALITY) + ' bậc</b>, cùng thang với trang bị.'],
-      ['ds', [
-        'Ấp trứng mất thời gian thực; phẩm càng cao ấp càng lâu.',
-        'Thú có chỉ số riêng, lên cấp riêng, ăn riêng.',
+      ['p', 'Linh Thú nở từ trứng rơi ở Yêu Vương. Phẩm chất trứng quyết định phẩm chất thú; thang phẩm chất giống trang bị.'],
+      ['bang', ['Mục', 'Số lượng'], [
+        ['Loài', sn(n(PET_SPECIES))], ['Bậc phẩm chất', sn(n(PET_QUALITY))],
+        ['Kỹ năng', sn(n(PET_SKILLS))], ['Tiềm năng bốc lúc nở', sn(n(PET_OPT_POOL))],
+        ['Bị động thức tỉnh', sn(n(AWK_PASSIVE_IDS))],
       ]],
+      ['p', 'Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng <b>Linh Thú</b> trong Tra Cứu.'],
     ],
   },
   {
-    id: 'linhthu_ky', nhom: 'linhthu', ten: 'Kỹ Năng & Thức Tỉnh',
-    tom: n(PET_SKILLS) + ' kỹ năng · ' + n(AWK_PASSIVE_IDS) + ' bị động thức tỉnh.',
+    id: 'linhthu_ky', nhom: 'linhthu', ten: 'Thức Tỉnh & Hợp Nhất',
+    tom: 'Mở bị động mới; có thể thất bại.',
     khoi: [
-      ['p', 'Mỗi thú mang kỹ năng riêng (<b>' + n(PET_SKILLS) + ' loại</b>) và có <b>' + n(PET_OPT_POOL) + ' tiềm năng</b> bốc ngẫu nhiên lúc nở.'],
-      ['p', '<b>Thức tỉnh</b> mở thêm bị động — có <b>' + n(AWK_PASSIVE_IDS) + ' bị động</b> trong bể. Thức tỉnh cần vật phẩm chuyên dụng và có thể thất bại.'],
+      ['p', 'Thức Tỉnh mở thêm bị động từ bể <b>' + n(AWK_PASSIVE_IDS) + ' loại</b>. Cần vật phẩm chuyên dụng và có thể thất bại.'],
+      ['p', 'Hợp nhất cho phép tiêu nhiều thú để cải thiện một con mục tiêu.'],
     ],
   },
   {
     id: 'linhthu_dung', nhom: 'linhthu', ten: 'Ngự Thú & Săn Mồi',
-    tom: 'Mang theo đánh nhau, hoặc thả đi săn kiếm đồ.',
+    tom: 'Mang theo chiến đấu, hoặc thả săn nền.',
     khoi: [
-      ['h', 'Ngự Thú'],
-      ['p', 'Mang một con theo người: nó cộng chỉ số và tham chiến cùng ngươi.'],
-      ['h', 'Săn Mồi'],
-      ['p', 'Thả thú đi săn theo kiểu nhàn tu — chạy nền, hết giờ mang đồ về. Không cần ngươi trông.'],
-      ['luu', 'Thú đói thì tụt hiệu quả. Cho ăn bằng món ăn từ nghề Trù Sư.'],
+      ['bang', ['Chế độ', 'Tác dụng'], [
+        ['Ngự Thú', 'Thú cộng chỉ số cho người chơi và tham chiến'],
+        ['Săn Mồi', 'Thú đi săn nền theo thời gian thực, mang vật phẩm về'],
+      ]],
+      ['p', 'Thú đói làm giảm hiệu quả. Thức ăn đến từ nghề Trù Sư và vật phẩm dưỡng thú.'],
     ],
   },
 
   // ================= TÔNG MÔN =================
   {
-    id: 'tongmon_co', nhom: 'tongmon', ten: 'Tông Môn Là Gì',
-    tom: 'Ngươi làm chưởng môn, nuôi đệ tử làm hộ.',
+    id: 'tongmon_co', nhom: 'tongmon', ten: 'Tông Môn',
+    tom: 'Người chơi làm chưởng môn, nuôi đệ tử.',
     khoi: [
-      ['p', 'Tông Môn là <b>gia nghiệp</b> của ngươi — ngươi là chưởng môn. Đệ tử tự tu luyện, tự làm việc, mang thành quả về cho tông.'],
-      ['p', 'Khác Tiên Minh ở chỗ: <b>Tông Môn là nuôi</b> (chiều sâu, dài hạn), <b>Tiên Minh là đánh</b> (tranh hạng theo mùa).'],
-      ['h', 'Đệ tử'],
-      ['ds', [
-        'Mỗi đệ tử có <b>tư chất</b> (' + Object.values(APT).map((a) => a.name).join(' · ') + '), hệ ngũ hành, và tính cách riêng.',
-        'Tư chất quyết định tốc tu luyện và trần cấp — Thiên Tư gấp <b>' + APT.thien.mul + ' lần</b> Trung Tư.',
-        'Số đệ tử nuôi được tăng theo công trình.',
+      ['p', 'Tông Môn là nhánh phát triển dài hạn. Người chơi làm chưởng môn; đệ tử tự tu luyện và làm việc, mang thành quả về cho tông.'],
+      ['bang', ['Nhánh', 'Vai trò'], [
+        ['Tông Môn', 'Nuôi dưỡng, chiều sâu, dài hạn'],
+        ['Tiên Minh', 'Tranh hạng theo mùa, hoạt động bang'],
       ]],
+      ['h', 'Tư chất đệ tử'],
+      ['bang', ['Tư chất', 'Hệ số tu luyện', 'Trần'],
+        Object.values(APT).map((a) => [a.name, '×' + a.mul, sn(a.cap)])],
+      ['p', 'Mỗi đệ tử còn có hệ ngũ hành và tính cách riêng. Số đệ tử nuôi được tăng theo công trình Tụ Hiền Đường.'],
     ],
   },
   {
     id: 'tongmon_tu', nhom: 'tongmon', ten: 'Tu Luyện & Cảnh Giới',
-    tom: n(REALMS) + ' cảnh giới, mỗi cảnh chia ' + n(SUB_STAGES) + ' tầng nhỏ.',
+    tom: sn(n(REALMS)) + ' cảnh giới × ' + sn(n(SUB_STAGES)) + ' tầng nhỏ.',
     khoi: [
-      ['p', 'Đệ tử tu từ thấp lên cao qua <b>' + n(REALMS) + ' cảnh giới</b>: ' + REALMS.map((r) => r.ten || r.name).join(' · ') + '.'],
-      ['p', 'Mỗi cảnh giới chia <b>' + n(SUB_STAGES) + ' tầng nhỏ</b>. Lên cảnh giới mới cần <b>đan phá cảnh</b> đúng bậc — có <b>' + n(PILL_KEYS) + ' loại đan</b>, luyện ở Y Quán.'],
-      ['h', 'Tâm Ma & Thiên Kiếp'],
-      ['ds', [
-        '<b>Tâm Ma</b> — đệ tử tu lâu sinh tâm ma, tối đa <b>' + TAMMA_MAX + ' tầng</b>. Tâm ma nặng thì tu chậm và dễ hỏng việc.',
-        '<b>Thiên Kiếp</b> — vượt cảnh giới lớn phải độ kiếp. Hỏng thì tụt cảnh giới, nặng thì mất đệ tử.',
+      ['bang', ['Cảnh giới'], REALMS.map((r) => [r.ten || r.name])],
+      ['p', 'Mỗi cảnh giới chia <b>' + n(SUB_STAGES) + ' tầng nhỏ</b>. Lên cảnh giới mới cần <b>đan phá cảnh</b> đúng bậc — có <b>' + n(PILL_KEYS) + ' loại</b>, luyện ở Y Quán.'],
+      ['h', 'Hai rào cản'],
+      ['bang', ['Rào', 'Mô tả', 'Hệ quả'], [
+        ['Tâm Ma', 'Tích theo thời gian tu luyện, tối đa ' + TAMMA_MAX + ' tầng', 'Giảm tốc tu luyện, tăng rủi ro'],
+        ['Thiên Kiếp', 'Xảy ra khi vượt cảnh giới lớn', 'Thất bại thì tụt cảnh giới hoặc mất đệ tử'],
       ]],
-      ['luu', 'Đừng ép đệ tử tư chất thấp lên cảnh giới cao — tỉ lệ qua kiếp thấp, mất người là mất trắng.'],
+      ['luu', 'Đệ tử tư chất thấp có tỉ lệ qua Thiên Kiếp thấp. Mất đệ tử là mất toàn bộ tiến độ của đệ tử đó.'],
     ],
   },
   {
     id: 'tongmon_ct', nhom: 'tongmon', ten: 'Công Trình Tông Môn',
-    tom: n(BUILD_KEYS) + ' công trình, mỗi cái một chức năng.',
+    tom: sn(n(BUILD_KEYS)) + ' công trình.',
     khoi: [
-      ['p', 'Có <b>' + n(BUILD_KEYS) + ' công trình</b>. Xây và nâng bằng nguyên liệu tông môn, mất thời gian thực.'],
-      ['ds', [
-        '<b>Tụ Hiền Đường</b> — chiêu nạp đệ tử, nới trần số người.',
-        '<b>Diễn Võ Trường</b> — đệ tử luyện võ.',
-        '<b>Tàng Thư Lâu</b> — chứa và học Bí Kíp.',
-        '<b>Y Quán</b> — luyện đan, số lò tăng theo cấp.',
-        '<b>Dược Viên</b> — trồng linh dược, số luống tăng theo cấp.',
-        '<b>Giới Luật Đường</b> — trị đệ tử hư, giảm tâm ma.',
-        '<b>Tụ Linh Trận</b> — tăng tốc tu luyện toàn tông.',
+      ['bang', ['Công trình', 'Chức năng'], [
+        ['Tụ Hiền Đường', 'Chiêu nạp đệ tử, nới trần số người'],
+        ['Diễn Võ Trường', 'Đệ tử luyện võ'],
+        ['Tàng Thư Lâu', 'Chứa và học Bí Kíp, chặn trần bậc học được'],
+        ['Y Quán', 'Luyện đan; số lò tăng theo cấp'],
+        ['Dược Viên', 'Trồng linh dược; số luống tăng theo cấp'],
+        ['Giới Luật Đường', 'Xử lý đệ tử phạm giới, giảm Tâm Ma'],
+        ['Tụ Linh Trận', 'Tăng tốc tu luyện toàn tông'],
       ]],
+      ['p', 'Tổng cộng <b>' + n(BUILD_KEYS) + ' công trình</b>. Xây và nâng bằng nguyên liệu tông môn, mất thời gian thực.'],
     ],
   },
   {
     id: 'tongmon_bk', nhom: 'tongmon', ten: 'Bí Kíp',
-    tom: n(BI_KIP) + ' bí kíp chia ' + n(BI_KIP_LOAI) + ' nhánh võ học.',
+    tom: sn(n(BI_KIP)) + ' bí kíp, ' + sn(n(BI_KIP_LOAI)) + ' nhánh.',
     khoi: [
-      ['p', 'Bí Kíp là võ học truyền cho đệ tử. <b>' + n(BI_KIP) + ' bộ</b>, chia <b>' + n(BI_KIP_LOAI) + ' nhánh</b>:'],
-      ['bang', ['Nhánh', 'Thiên về'], Object.values(BI_KIP_LOAI).map((l) => [
-        l.name,
-        Object.entries(l.prof).map(([k, v]) => k + ' +' + Math.round(v * 100) + '%').join(' · '),
-      ])],
+      ['bang', ['Nhánh', 'Cộng cho đệ tử'],
+        Object.values(BI_KIP_LOAI).map((l) => [
+          l.name, Object.entries(l.prof).map(([k, v]) => k + ' +' + pc(v)).join(' · '),
+        ])],
       ['ds', [
-        'Bí Kíp có bốn bậc; bậc càng cao càng cần Tàng Thư Lâu cấp cao mới học được.',
-        'Kiếm ở đấu giá Tàng Thư Lâu, hoặc rơi trong Bí Cảnh.',
-        'Bí Kíp trùng thì ghép lên bậc cao hơn.',
+        'Bí kíp chia bốn bậc; bậc học được bị Tàng Thư Lâu chặn trần.',
+        'Nguồn: đấu giá Tàng Thư Lâu và Bí Cảnh.',
+        'Bí kíp trùng ghép lên bậc cao hơn.',
       ]],
+      ['p', 'Danh sách đầy đủ ở bảng <b>Bí Kíp</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'tongmon_ng', nhom: 'tongmon', ten: 'Ngoại Giao',
-    tom: 'Kết giao với các thế lực khác để mở lợi ích.',
+    tom: sn(n(DIPLO_TIERS)) + ' bậc quan hệ.',
     khoi: [
-      ['p', 'Bang giao đo bằng điểm thân thiết, chia <b>' + n(DIPLO_TIERS) + ' bậc</b>: ' + DIPLO_TIERS.map((d) => d.name).join(' → ') + '.'],
-      ['p', 'Tặng lễ, mời làm khách, luận võ đều cộng điểm. Lên bậc <b>' + DIPLO_TIERS[DIPLO_TIERS.length - 1].name + '</b> thì mở quyền lợi riêng.'],
+      ['bang', ['Bậc', 'Điểm tối thiểu'], DIPLO_TIERS.map((d) => [d.name, sn(d.min)])],
+      ['p', 'Tặng lễ, mời làm khách và luận võ đều cộng điểm quan hệ. Bậc cao mở quyền lợi riêng.'],
     ],
   },
 
   // ================= TIÊN MINH =================
   {
     id: 'tienminh_co', nhom: 'tienminh', ten: 'Lập Tiên Minh',
-    tom: 'Ngươi làm Minh Chủ, tự chiêu mộ minh chúng.',
+    tom: 'Cần Tổng Lv ' + sn(LV_LAP_BANG) + ' và ' + sn(PHI_LAP_BANG) + ' Bạc.',
     khoi: [
-      ['p', 'Tiên Minh là bang hội. Ngươi <b>tự lập và làm Minh Chủ</b> — không xin vào bang người khác. Các Tiên Minh khác là <b>đối thủ</b> trên bảng Chinh Phạt.'],
-      ['ds', [
-        'Cần đủ Tổng Lv và một khoản Bạc để dựng cờ.',
-        'Cấp minh tối đa <b>' + CAP_BANG_MAX + '</b>, sức chứa tới <b>' + TV_TRAN + ' người</b>.',
-        'Chiêu mộ ba đường: Đơn Xin · Bảng Chiêu Hiền · người quen ở Tửu Lâu.',
+      ['p', 'Người chơi tự lập Tiên Minh và giữ chức Minh Chủ. Các Tiên Minh khác trong giang hồ là đối thủ trên bảng Chinh Phạt, không phải nơi xin gia nhập.'],
+      ['bang', ['Mục', 'Giá trị'], [
+        ['Tổng Lv yêu cầu', sn(LV_LAP_BANG)], ['Phí lập', sn(PHI_LAP_BANG) + ' Bạc'],
+        ['Trần cấp minh', sn(CAP_BANG_MAX)], ['Sức chứa tối đa', sn(TV_TRAN) + ' người'],
       ]],
-      ['p', 'Minh Chủ có quyền thăng, hạ, kích người, đặt quyền cho từng chức, duyệt đơn, và giải tán.'],
+      ['h', 'Ba đường chiêu mộ'],
+      ['ds', ['Đơn Xin Nhập Minh', 'Bảng Chiêu Hiền', 'Người quen ở Tửu Lâu qua Giao Tình']],
+      ['p', 'Minh Chủ có quyền thăng, hạ, kích người, đặt quyền theo chức, duyệt đơn và giải tán.'],
     ],
   },
   {
     id: 'tienminh_cong', nhom: 'tienminh', ten: 'Minh Cống & Công Tích',
-    tom: 'Góp Bạc lấy Công Tích cho mình, Minh Cống cho minh.',
+    tom: 'Góp Bạc sinh hai loại điểm.',
     khoi: [
-      ['p', 'Góp Bạc vào <b>Ngân Khố</b> thì được hai thứ:'],
-      ['bang', ['Được gì', 'Tỉ giá'], [
-        ['Công Tích — của riêng ngươi, dùng mua đồ và học kĩ năng', '1 Bạc = 1 Công Tích'],
-        ['Minh Cống — điểm lên cấp minh', BAC_MOI_MINH_CONG.toLocaleString('vi-VN') + ' Bạc = 1 Minh Cống'],
+      ['bang', ['Điểm', 'Thuộc về', 'Tỉ giá', 'Dùng vào'], [
+        ['Công Tích', 'Cá nhân', '1 Bạc = 1 Công Tích', 'Học kĩ năng, mua ở Minh Hội Các'],
+        ['Minh Cống', 'Tiên Minh', sn(BAC_MOI_MINH_CONG) + ' Bạc = 1 Minh Cống', 'Nâng cấp minh'],
       ]],
-      ['p', 'Hai kho khác nhau: <b>Ngân Khố</b> giữ Bạc, <b>Minh Khố</b> giữ vật phẩm.'],
+      ['bang', ['Kho', 'Chứa'], [
+        ['Ngân Khố', 'Bạc'], ['Minh Khố', 'Vật phẩm'],
+      ]],
     ],
   },
   {
-    id: 'tienminh_ct', nhom: 'tienminh', ten: 'Công Trình & Kĩ Năng Minh',
-    tom: n(CONG_TRINH) + ' công trình · ' + n(KY_NANG_BANG) + ' kĩ năng.',
+    id: 'tienminh_ct', nhom: 'tienminh', ten: 'Công Trình & Kĩ Năng',
+    tom: sn(n(CONG_TRINH)) + ' công trình · ' + sn(n(KY_NANG_BANG)) + ' kĩ năng.',
     khoi: [
-      ['p', '<b>' + n(CONG_TRINH) + ' công trình</b> xây bằng Bạc trong Ngân Khố, mất thời gian thực, không vượt được cấp minh. Mỗi lúc chỉ xây một cái.'],
-      ['p', '<b>' + n(KY_NANG_BANG) + ' kĩ năng</b> học bằng Công Tích, cộng chỉ số thật cho cả minh — công, thủ, máu, kinh nghiệm, Bạc, tốc độ nghề. Mỗi nhóm kĩ năng bị một công trình chặn trần cấp.'],
+      ['p', 'Công trình xây bằng Bạc trong Ngân Khố, mất thời gian thực, không vượt được cấp minh. Mỗi lúc chỉ xây một công trình.'],
+      ['p', 'Kĩ năng học bằng Công Tích, cộng chỉ số thật cho mọi thành viên. Mỗi nhánh kĩ năng bị một công trình chặn trần cấp.'],
+      ['h', 'Tổng cộng khi học hết cây kĩ năng'],
+      ['bang', ['Cộng vào', 'Tổng'],
+        (() => {
+          const gom = {};
+          for (const k of KY_NANG_BANG) gom[k.key] = (gom[k.key] || 0) + k.moiCap * k.maxLv;
+          return Object.entries(gom).map(([k, v]) => [k, '+' + pc(v, 1)]);
+        })()],
       ['p', 'Minh Hội Các bán <b>' + n(CUA_HANG_BANG) + ' món</b> đổi bằng Công Tích, hạn lượt theo ngày, mở khoá dần theo cấp minh.'],
     ],
   },
   {
     id: 'tienminh_vu', nhom: 'tienminh', ten: 'Minh Vụ & Truy Nã',
-    tom: 'Việc chung cả minh góp, và lệnh săn cá nhân.',
+    tom: sn(n(NV_BANG)) + ' loại minh vụ · ' + sn(TRUY_NA_MOI_NGAY) + ' lệnh truy nã mỗi ngày.',
     khoi: [
-      ['h', 'Minh Vụ'],
-      ['p', '<b>' + n(NV_BANG) + ' loại việc</b> ra theo kỳ, cả minh cùng góp. Chỉ tiêu co giãn theo số người — minh đông thì chỉ tiêu cao hơn.'],
-      ['h', 'Truy Nã'],
-      ['p', 'Mỗi ngày bốn lệnh, đủ bốn bậc. Mục tiêu chọn theo cấp của ngươi. Nhận lệnh xong đi trảm đủ số rồi về nộp.'],
-      ['luu', 'Nhận lệnh mới chụp mốc — số quái giết <b>trước khi nhận</b> không tính.'],
+      ['bang', ['Hoạt động', 'Phạm vi', 'Chu kỳ'], [
+        ['Minh Vụ', 'Cả minh cùng góp, chỉ tiêu co giãn theo số thành viên', 'Theo kỳ'],
+        ['Truy Nã', 'Cá nhân, mục tiêu chọn theo cấp người chơi', sn(TRUY_NA_MOI_NGAY) + ' lệnh mỗi ngày, đủ bốn bậc'],
+      ]],
+      ['luu', 'Truy Nã chụp mốc số quái đã hạ tại thời điểm <b>nhận lệnh</b>. Quái hạ trước khi nhận không được tính.'],
     ],
   },
   {
     id: 'tienminh_cp', nhom: 'tienminh', ten: 'Chinh Phạt & Mùa',
-    tom: 'Đánh quái ở vùng nào thì ghi điểm cho minh ở vùng đó.',
+    tom: 'Mùa ' + sn(MUA_NGAY) + ' ngày; hạng vùng cho buff nghề.',
     khoi: [
-      ['p', 'Trảm quái trong một vùng sinh <b>điểm Chinh Phạt</b> cho Tiên Minh ở đúng vùng ấy. Cả ' + n(LOCATIONS) + ' vùng đều tranh được.'],
-      ['bang', ['Hạng trong vùng', 'Cả minh được'], CP_BUFF_HANG.map((v, i) => ['Hạng ' + (i + 1), '+' + Math.round(v * 100) + '% tốc độ Nghề Khai Thác ở vùng đó'])],
-      ['h', 'Mùa'],
-      ['p', 'Mùa kết thì chốt hạng tổng và phát thưởng Hồn Thạch:'],
-      ['bang', ['Hạng mùa', 'Hồn Thạch'], MUA_THUONG_BANG.map((v, i) => ['Hạng ' + (i + 1), v.toLocaleString('vi-VN')])],
+      ['ct', 'Điểm Chinh Phạt = ' + sn(CP_MOI_KILL) + ' điểm mỗi lần hạ quái, ghi cho vùng đang đứng'],
+      ['bang', ['Hạng trong vùng', 'Cả minh được'],
+        CP_BUFF_HANG.map((v, i) => ['Hạng ' + (i + 1), '+' + pc(v) + ' tốc độ Nghề Khai Thác tại vùng đó'])],
+      ['h', 'Kết mùa'],
+      ['bang', ['Hạng tổng', 'Hồn Thạch'],
+        MUA_THUONG_BANG.map((v, i) => ['Hạng ' + (i + 1), sn(v)])],
+      ['p', 'Một mùa dài <b>' + sn(MUA_NGAY) + ' ngày</b>. Cả ' + n(LOCATIONS) + ' vùng đều tranh được.'],
     ],
   },
   {
     id: 'tienminh_boss', nhom: 'tienminh', ten: 'Trảm Yêu Đài',
-    tom: 'Boss riêng của minh, cả minh xúm vào đánh.',
+    tom: BOSS_BANG_LUOT + ' lượt mỗi người mỗi kỳ.',
     khoi: [
-      ['p', 'Xây xong Trảm Yêu Đài thì mỗi kỳ minh triệu về một con Yêu Vương riêng. Cả minh cùng bào máu.'],
-      ['ds', [
-        'Mỗi người <b>' + BOSS_BANG_LUOT + ' lượt</b> mỗi kỳ, giữa hai lượt phải nghỉ.',
-        'Đài càng cao cấp thì con càng dữ và thưởng càng dày.',
-        'Thưởng chia theo phần công của từng người.',
+      ['p', 'Sau khi xây Trảm Yêu Đài, mỗi kỳ minh triệu về một trùm riêng. Cả minh cùng gây sát thương.'],
+      ['bang', ['Mục', 'Giá trị'], [
+        ['Lượt mỗi người mỗi kỳ', sn(BOSS_BANG_LUOT)],
+        ['Cấp đài', 'Quyết định độ mạnh của trùm và mức thưởng'],
+        ['Chia thưởng', 'Theo phần sát thương đã đóng góp'],
       ]],
-      ['luu', 'Đây là boss <b>riêng của minh</b> — không đụng gì tới Yêu Vương ngoài thế giới, không dùng chung lượt.'],
+      ['luu', 'Trùm này tách hoàn toàn khỏi Yêu Vương thế giới: không dùng chung lượt, không dùng chung thời gian hồi.'],
     ],
   },
 
   // ================= GIANG HỒ =================
   {
     id: 'bando', nhom: 'giangho', ten: 'Bản Đồ & Di Chuyển',
-    tom: n(LOCATIONS) + ' vùng, mỗi vùng một bộ tài nguyên và quái riêng.',
+    tom: sn(n(LOCATIONS)) + ' vùng.',
     khoi: [
-      ['bang', ['Vùng', 'Cấp cần'], LOCATIONS.map((l) => [l.name, 'Lv ' + l.reqLevel])],
-      ['ds', [
-        'Đi bộ mất thời gian thực theo khoảng cách.',
-        '<b>Truyền Tống</b> đi ngay, phí tính bằng <b>Tổng Lv × khoảng cách</b> Bạc.',
-        'Vùng khoá thì phải đủ cấp mới vào.',
-      ]],
+      ['bang', ['Vùng', 'Cấp cần', 'Số loại quái'],
+        LOCATIONS.map((l) => [l.name, 'Lv ' + l.reqLevel, sn((l.enemies || []).length)])],
+      ['ct', 'Phí Truyền Tống = Tổng Lv × khoảng cách  (Bạc)'],
+      ['p', 'Đi bộ mất thời gian thực theo khoảng cách. Truyền Tống đến ngay nhưng tốn Bạc. Vùng khoá cần đủ cấp mới vào.'],
     ],
   },
   {
     id: 'nhiemvu', nhom: 'giangho', ten: 'Nhiệm Vụ',
-    tom: 'Tân thủ · ngày · tuần · tháng.',
+    tom: 'Bốn nhóm theo chu kỳ.',
     khoi: [
-      ['bang', ['Loại', 'Số việc', 'Làm mới'], [
-        ['Tân Thủ', n(TUTORIAL_QUESTS), 'một lần'],
-        ['Hằng ngày', n(DAILY_QUESTS), 'mỗi ngày'],
-        ['Hằng tuần', n(WEEKLY_QUESTS), 'mỗi tuần'],
-        ['Hằng tháng', n(MONTHLY_QUESTS), 'mỗi tháng'],
+      ['bang', ['Nhóm', 'Số việc', 'Làm mới', 'Thưởng'], [
+        ['Tân Thủ', sn(n(TUTORIAL_QUESTS)), 'một lần', 'Bạc'],
+        ['Hằng ngày', sn(n(DAILY_QUESTS)), 'mỗi ngày', 'Bạc'],
+        ['Hằng tuần', sn(n(WEEKLY_QUESTS)), 'mỗi tuần', 'Bạc, Hồn Thạch'],
+        ['Hằng tháng', sn(n(MONTHLY_QUESTS)), 'mỗi tháng', 'Bạc, Hồn Thạch, Nguyên Bảo'],
       ]],
-      ['p', 'Việc lấy theo cấp của ngươi — cấp càng cao thì chỉ tiêu và thưởng càng lớn. Thưởng gồm Bạc, Hồn Thạch, và Nguyên Bảo ở việc tháng.'],
+      ['p', 'Việc được chọn theo cấp người chơi; chỉ tiêu và thưởng co giãn theo đó.'],
     ],
   },
   {
     id: 'phicap', nhom: 'giangho', ten: 'Phi Cáp Đài',
-    tom: 'Nơi gom mọi tin: thưởng, sự kiện, tin giang hồ.',
+    tom: 'Trung tâm thông báo.',
     khoi: [
-      ['p', 'Mọi thứ xảy ra lúc ngươi vắng mặt đều báo về đây: việc xong, đồ rơi hiếm, đệ tử phá cảnh, tin Tiên Minh, chuyện giang hồ.'],
-      ['p', 'Tin có thưởng thì lĩnh ngay tại chỗ. Chấm xanh trên chuông là còn tin chưa đọc.'],
+      ['p', 'Gom mọi sự kiện xảy ra khi người chơi vắng mặt: hoạt động hoàn tất, vật phẩm hiếm, đệ tử phá cảnh, tin Tiên Minh, sự kiện giang hồ.'],
+      ['p', 'Thông báo có thưởng lĩnh trực tiếp tại chỗ. Chấm xanh trên chuông báo còn tin chưa đọc.'],
     ],
   },
   {
     id: 'phongvan', nhom: 'giangho', ten: 'Phong Vân Bảng',
     tom: 'Bảng xếp hạng toàn giang hồ.',
     khoi: [
-      ['p', 'So ngươi với các cao thủ khác trong giang hồ — theo Tổng Lv, theo từng nghề, theo Chiến Lực.'],
-      ['p', 'Giang hồ có sẵn một lứa cao thủ tự sống: họ lên cấp, đổi việc, đổi vùng theo thời gian thật. Không phải bảng chết.'],
+      ['p', 'Xếp hạng theo Tổng Lv, theo từng nghề, và theo Chiến Lực.'],
+      ['p', 'Giang hồ có sẵn một lứa cao thủ mô phỏng: họ lên cấp, đổi hoạt động và đổi vùng theo thời gian thực, nên thứ hạng thay đổi liên tục.'],
     ],
   },
   {
     id: 'danhsi', nhom: 'giangho', ten: 'Danh Sĩ',
-    tom: n(DANH_SI) + ' nhân vật có tiểu sử, quan hệ, và tâm trạng.',
+    tom: sn(n(DANH_SI)) + ' nhân vật có tiểu sử và quan hệ.',
     khoi: [
-      ['p', '<b>' + n(DANH_SI) + ' Danh Sĩ</b> là lớp nhân vật sâu nhất trong giang hồ: mỗi người một xuất thân, một môn phái, một mạch đời riêng, và quan hệ với nhau.'],
-      ['ds', [
-        'Xem Hồ Sơ để biết họ đang ở đâu, làm gì, tâm trạng thế nào.',
-        'Mời tỷ thí cờ, mời rượu ở Tửu Lâu, kết giao dần.',
-        'Thân đủ thì mời vào Tiên Minh của ngươi.',
+      ['p', '<b>' + n(DANH_SI) + ' Danh Sĩ</b> là lớp nhân vật mô phỏng sâu nhất: mỗi người có xuất thân, môn phái, mạch đời, tâm trạng và quan hệ với nhau.'],
+      ['bang', ['Tương tác', 'Nơi'], [
+        ['Xem hồ sơ', 'Trang Danh Sĩ'],
+        ['Tỷ thí cờ', 'Hồ sơ Danh Sĩ'],
+        ['Mời rượu, hỏi chuyện', 'Tửu Lâu'],
+        ['Mời vào Tiên Minh', 'Tab Chiêu Mộ, cần đủ Giao Tình'],
       ]],
     ],
   },
   {
     id: 'tuulau', nhom: 'giangho', ten: 'Tửu Lâu',
-    tom: 'Quán rượu — nghe tin đồn, kết giao.',
+    tom: 'Khách đổi theo phiên; không cho chỉ số.',
     khoi: [
-      ['p', 'Mỗi phiên quán có khách khác nhau: vài Danh Sĩ, vài cao thủ giang hồ. Sang phiên thì đổi người.'],
-      ['ds', [
-        '<b>Mời Rượu</b> — tốn Bạc, đổi lấy lời thoại và tin đồn.',
-        '<b>Hỏi Chuyện</b> — miễn phí nhưng mỗi khách chỉ hỏi được cách quãng.',
-        '<b>Góp Chuyện</b> — ngươi tự thêm một câu vào bảng tin.',
+      ['bang', ['Hành động', 'Chi phí', 'Kết quả'], [
+        ['Mời Rượu', 'Bạc', 'Lời thoại và tin đồn'],
+        ['Hỏi Chuyện', 'Miễn phí', 'Lời thoại; mỗi khách có thời gian chờ'],
+        ['Góp Chuyện', 'Miễn phí', 'Thêm một dòng vào bảng tin'],
       ]],
-      ['luu', 'Tửu Lâu <b>không cho chỉ số, không cho vật phẩm</b>. Đây là chỗ kết giao, không phải chỗ cày.'],
+      ['p', 'Khách mỗi phiên gồm một số Danh Sĩ và một số cao thủ giang hồ, đổi khi sang phiên mới.'],
+      ['luu', 'Tửu Lâu không cấp chỉ số hay vật phẩm. Đây là nơi kết giao và thu tin.'],
     ],
   },
   {
     id: 'thuongdiem', nhom: 'giangho', ten: 'Thương Điếm',
-    tom: 'Mua nguyên liệu, mồi câu, ảnh đại diện.',
+    tom: 'Mua nguyên liệu cơ bản, bán đồ thừa.',
     khoi: [
-      ['p', 'Thương Điếm bán nguyên liệu cơ bản, mồi câu, món ăn, và các thứ trang trí như ảnh đại diện, ảnh nền hồ sơ.'],
-      ['p', 'Bán đồ thừa cũng ở đây. Giá bán theo phẩm chất và cấp món.'],
-      ['p', '<b>Sàn Giao Dịch</b> giữa người chơi đang phát triển.'],
+      ['p', 'Bán nguyên liệu cơ bản, mồi câu, món ăn, và vật phẩm trang trí như ảnh đại diện và ảnh nền hồ sơ.'],
+      ['p', 'Giá bán lại phụ thuộc phẩm chất và cấp món. Sàn Giao Dịch giữa người chơi đang phát triển.'],
     ],
   },
 
   // ================= SƯU TẬP & KHÁC =================
   {
     id: 'vanvat', nhom: 'suutap', ten: 'Vạn Vật Phổ',
-    tom: n(CODEX_CATS) + ' phổ sưu tập, đủ bộ thì cộng chỉ số.',
+    tom: sn(n(CODEX_CATS)) + ' phổ sưu tập.',
     khoi: [
-      ['p', 'Gặp thứ gì lần đầu là tự ghi vào phổ. Càng ghi nhiều càng cộng chỉ số.'],
-      ['bang', ['Phổ', 'Ghi gì', 'Đủ bộ được'], CODEX_CATS.map((c) => [c.name, c.unit || '—', (c.set && c.set.label) || '—'])],
-      ['p', 'Mỗi mục còn cộng lẻ theo số lượng — ví dụ Yêu Thú Phổ cộng dần theo số quái đã trảm.'],
+      ['p', 'Gặp một thực thể lần đầu sẽ tự ghi vào phổ tương ứng. Phổ cộng chỉ số theo hai mức: cộng lẻ theo số lượng, và cộng khi đủ bộ.'],
+      ['bang', ['Phổ', 'Đếm theo', 'Số mục', 'Đủ bộ'],
+        CODEX_CATS.map((c) => [c.name, c.unit || '—', sn(c.total || (c.entries || []).length), (c.set || {}).label || '—'])],
     ],
   },
   {
     id: 'danhhieu', nhom: 'suutap', ten: 'Danh Hiệu',
-    tom: n(TITLES) + ' danh hiệu chia ' + n(TITLE_LOAI) + ' loại.',
+    tom: sn(n(TITLES)) + ' danh hiệu, ' + sn(n(TITLE_LOAI)) + ' loại.',
     khoi: [
-      ['p', 'Danh hiệu mở khi đạt mốc. Đeo một cái thì hiện cạnh tên <b>và cộng chỉ số thật</b>.'],
-      ['bang', ['Loại danh hiệu'], Object.values(TITLE_LOAI).map((v) => [v])],
-      ['p', 'Xem đủ danh sách và điều kiện ở trang Hồ Sơ.'],
+      ['p', 'Danh hiệu mở khi đạt mốc điều kiện. Đeo một danh hiệu vừa hiển thị cạnh tên vừa cộng chỉ số thật.'],
+      ['bang', ['Loại', 'Số danh hiệu'],
+        Object.entries(TITLE_LOAI).map(([k, v]) => [v, sn(TITLES.filter((t) => t.loai === k).length)])],
+      ['p', 'Điều kiện và mức cộng của từng danh hiệu ghi ở bảng <b>Danh Hiệu</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'huyhieu', nhom: 'suutap', ten: 'Huy Hiệu',
-    tom: n(BADGES) + ' huy hiệu — mốc cấp ' + BADGE_LV + ' của từng nghề.',
+    tom: sn(n(BADGES)) + ' huy hiệu, mốc cấp ' + BADGE_LV + '.',
     khoi: [
-      ['p', 'Mỗi nghề đưa lên <b>cấp ' + BADGE_LV + '</b> thì được một huy hiệu. Đủ bộ <b>' + n(BADGES) + ' cái</b> là đã cày trọn mọi nghề.'],
-      ['bang', ['Huy hiệu'], BADGES.map((b) => [b.name || b.ten])],
+      ['p', 'Mỗi nghề đạt <b>cấp ' + BADGE_LV + '</b> cấp một huy hiệu. Đủ bộ <b>' + n(BADGES) + ' huy hiệu</b> tương ứng cày trọn mọi nghề.'],
+      ['p', 'Danh sách ở bảng <b>Huy Hiệu</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'diemdanh', nhom: 'suutap', ten: 'Điểm Danh',
-    tom: n(LOGIN_REWARDS) + ' mốc thưởng theo chuỗi ngày vào chơi.',
+    tom: sn(n(LOGIN_REWARDS)) + ' mốc theo chuỗi ngày.',
     khoi: [
-      ['p', 'Vào chơi mỗi ngày là điểm danh. Chuỗi càng dài thưởng càng lớn — có <b>' + n(LOGIN_REWARDS) + ' mốc</b>.'],
-      ['p', 'Một số mốc cho buff cộng kinh nghiệm mọi nguồn trong một khoảng thời gian.'],
-      ['luu', 'Đứt chuỗi là quay lại từ đầu.'],
+      ['p', 'Điểm danh tính theo chuỗi ngày vào chơi liên tiếp, có <b>' + n(LOGIN_REWARDS) + ' mốc thưởng</b>.'],
+      ['p', 'Một số mốc cấp buff cộng kinh nghiệm mọi nguồn trong một khoảng thời gian.'],
+      ['luu', 'Đứt chuỗi thì chuỗi tính lại từ đầu.'],
     ],
   },
   {
     id: 'thiencoc', nhom: 'suutap', ten: 'Thiên Cơ Các',
-    tom: 'Năm trò nhỏ, tách hẳn khỏi kinh tế chính.',
+    tom: 'Sáu trò nhỏ, cách ly khỏi kinh tế chính.',
     khoi: [
-      ['bang', ['Trò', 'Kiểu'], [
-        ['Đăng Tiên Mộng', 'Thẻ bài leo tầng — 20 tầng, 5 trùm, di vật'],
-        ['Kỳ Trận Trảm Yêu', 'Xếp ba ô để đánh quái, có meta Cửu Cung'],
-        ['Ngũ Tử Kỳ', 'Cờ caro bàn 3D, đấu Danh Sĩ, có khẩu chiến'],
-        ['Cờ Tướng', 'Cờ tướng bàn 3D, máy đánh thật'],
-        ['Cờ Vua', 'Cờ vua bàn 3D, máy đánh thật'],
+      ['bang', ['Trò', 'Thể loại', 'Quy mô'], [
+        ['Đăng Tiên Mộng', 'Thẻ bài leo tầng', '20 tầng, 5 thủ lĩnh, có di vật'],
+        ['Kỳ Trận Trảm Yêu', 'Xếp ba ô đánh quái', 'Có meta Cửu Cung, cap theo tuần'],
+        ['Ngũ Tử Kỳ', 'Cờ caro bàn 3D', 'Đấu Danh Sĩ, có khẩu chiến'],
+        ['Cờ Tướng', 'Cờ tướng bàn 3D', 'Máy đánh bằng thuật toán riêng'],
+        ['Cờ Vua', 'Cờ vua bàn 3D', 'Máy đánh bằng thuật toán riêng'],
+        ['Tiến Lên Miền Nam', 'Đánh bài bàn 3D', 'Ba máy đối thủ, cược bằng Bạc'],
       ]],
-      ['p', 'Cờ Tướng và Ngũ Tử Kỳ dùng chung <b>Kỳ Hồn</b> và danh hiệu Kỳ Nghệ.'],
-      ['luu', 'Mấy trò này <b>cách ly</b> khỏi kinh tế chính — chơi cho vui và lấy danh hiệu, không phá cân bằng cày cuốc.'],
+      ['p', 'Cờ Tướng và Ngũ Tử Kỳ dùng chung điểm Kỳ Hồn và danh hiệu Kỳ Nghệ.'],
+      ['luu', 'Các trò này cách ly khỏi kinh tế chính, không ảnh hưởng cân bằng cày cuốc.'],
     ],
   },
 ];
@@ -673,7 +746,7 @@ export const CN_MUC = [
 export function cnText(m) {
   const ra = [m.ten, m.tom];
   for (const k of m.khoi) {
-    if (k[0] === 'p' || k[0] === 'h' || k[0] === 'luu') ra.push(k[1]);
+    if (k[0] === 'p' || k[0] === 'h' || k[0] === 'luu' || k[0] === 'ct') ra.push(k[1]);
     else if (k[0] === 'ds') ra.push(k[1].join(' '));
     else if (k[0] === 'bang') { ra.push(k[1].join(' ')); k[2].forEach((r) => ra.push(r.join(' '))); }
   }

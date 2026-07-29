@@ -14281,6 +14281,27 @@
     .cn-luu{ border:1px solid rgba(245,185,66,.3); background:rgba(245,185,66,.07); color:#fcd9a0;
              border-radius:9px; padding:8px 11px; font-size:12.3px; line-height:1.6; margin:2px 0 11px; }
     .cn-luu b{ color:#fde9b8; }
+    /* Khối công thức — chữ đều nét, nền tối, để phân biệt hẳn với văn xuôi. */
+    .cn-ct{ font-family:Consolas,'Courier New',monospace; font-size:12.2px; color:#9ae6d0;
+            background:#070c14; border:1px solid #1e293b; border-radius:8px;
+            padding:9px 12px; margin:2px 0 11px; overflow-x:auto; white-space:nowrap; }
+    /* LƯỚI TRA CỨU — bảng dữ liệu chính. Đầu cột DÍNH khi cuộn, bấm để sắp xếp. */
+    /* min-width để màn hẹp thì lưới CUỘN NGANG trong khung, chứ không bóp cột thành một chữ
+       một dòng. Khung bọc (x-ref="luoi") đã overflow:auto sẵn nên trang không lệch. */
+    .cn-luoi{ width:100%; min-width:680px; border-collapse:collapse; font-size:12.2px; }
+    .cn-luoi th{ position:sticky; top:0; z-index:2; background:#0e1622; color:#7dd3c0;
+                 font-size:10px; letter-spacing:.09em; text-transform:uppercase; font-weight:700;
+                 text-align:left; padding:7px 10px; border-bottom:1px solid #23324a;
+                 white-space:nowrap; cursor:pointer; user-select:none; }
+    .cn-luoi th:hover{ color:#a7f3e0; }
+    .cn-luoi th.so, .cn-luoi td.so{ text-align:right; }
+    .cn-luoi th .dau{ margin-left:4px; color:#f5b942; }
+    .cn-luoi td{ padding:6px 10px; color:#cbd5e1; border-bottom:1px solid #121b28;
+                 vertical-align:top; max-width:280px; }
+    .cn-luoi tbody tr{ cursor:pointer; }
+    .cn-luoi tbody tr:hover td{ background:#111a27; }
+    .cn-luoi td .cham{ display:inline-block; width:6px; height:6px; border-radius:9999px;
+                       margin-right:6px; vertical-align:middle; }
     /* Bảng rộng thì tự cuộn TRONG khung, không đẩy cả trang lệch ngang. */
     .cn-tbl{ overflow-x:auto; }
     /* Hai ngưỡng phải TRÙNG với Tailwind đang dùng trong markup, không thì có dải bề rộng
@@ -14294,95 +14315,224 @@
          x-data="camNang()" @click.self="dong()" @keydown.escape.window="dong()">
       <div class="panel cn-modal rounded-none sm:rounded-2xl flex flex-col overflow-hidden border border-jade/25 shadow-2xl" @click.stop>
 
-        <!-- Đầu modal -->
-        <div class="px-4 sm:px-5 py-3 border-b border-slate-800 flex items-center gap-3 shrink-0"
+        <!-- Đầu modal: hai chế độ. TRA CỨU là chính (cơ sở dữ liệu), CƠ CHẾ là phần luật. -->
+        <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800 flex items-center gap-3 shrink-0"
              style="background:linear-gradient(120deg,rgba(45,212,191,.10),transparent 62%)">
           <div class="text-jade font-bold fserif text-[16px] shrink-0">Cẩm Nang</div>
-          <div class="text-[11px] text-slate-600 hidden sm:block" x-text="tongMuc + ' mục'"></div>
+          <div class="flex items-center gap-1 rounded-lg border border-slate-700/80 p-0.5 shrink-0">
+            <button @click="doiChe('db')" class="px-2.5 py-1 rounded-[6px] text-[12px] fserif transition"
+                    :class="che==='db' ? 'bg-jade/15 text-jade' : 'text-slate-400 hover:text-slate-200'">Tra Cứu</button>
+            <button @click="doiChe('co')" class="px-2.5 py-1 rounded-[6px] text-[12px] fserif transition"
+                    :class="che==='co' ? 'bg-jade/15 text-jade' : 'text-slate-400 hover:text-slate-200'">Cơ Chế</button>
+          </div>
+          <div class="text-[11px] text-slate-600 hidden md:block"
+               x-text="che==='db' ? (tongThucThe.toLocaleString('vi-VN') + ' mục dữ liệu') : (tongMuc + ' trang')"></div>
           <button @click="dong()" class="ml-auto w-8 h-8 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition shrink-0">✕</button>
         </div>
 
         <div class="cn-body flex-1 min-h-0">
-          <!-- MỤC LỤC -->
+          <!-- ================= RÌA TRÁI ================= -->
           <div class="border-r border-slate-800 flex flex-col min-h-0" :class="dangDoc ? 'hidden md:flex' : 'flex'">
             <div class="p-2.5 border-b border-slate-800/70 shrink-0">
               <div class="relative">
-                <input x-ref="oTim" x-model="q" type="text" placeholder="Tìm trong Cẩm Nang…"
+                <input x-ref="oTim" x-model="q" @input="hien = 60" type="text"
+                       :placeholder="che==='db' ? 'Tìm trong ' + bang.ten + '…' : 'Tìm trang cơ chế…'"
                        class="w-full bg-ink3/70 border border-slate-700 rounded-lg pl-8 pr-7 py-1.5 text-[12.5px] text-slate-200 placeholder-slate-600 focus:outline-none focus:border-jade/50">
                 <svg class="w-[14px] h-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <button x-show="q" @click="xoaTim()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-[13px] leading-none">✕</button>
               </div>
-              <div x-show="q" class="text-[10.5px] text-slate-600 mt-1.5 px-0.5" x-text="soHop + ' mục khớp'"></div>
             </div>
+
             <div class="flex-1 min-h-0 overflow-y-auto px-2 py-2">
-              <template x-if="!mucLuc.length">
-                <div class="text-[12px] text-slate-600 italic px-2 py-6 text-center">Không có mục nào khớp.</div>
+              <!-- danh mục bảng tra cứu -->
+              <template x-if="che==='db'">
+                <div>
+                  <template x-for="g in dbNhom" :key="g.ten">
+                    <div class="mb-2.5">
+                      <div class="lbl px-1.5 mb-1" x-text="g.ten"></div>
+                      <template x-for="b in g.bang" :key="b.id">
+                        <button @click="chonBang(b.id)"
+                                class="w-full text-left px-2 py-1.5 rounded-lg transition mb-0.5 flex items-baseline gap-2"
+                                :class="bangId === b.id ? 'bg-jade/12 text-jade' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'">
+                          <span class="text-[12.5px] fserif leading-tight flex-1 min-w-0" x-text="b.ten"></span>
+                          <span class="text-[10.5px] tabular-nums shrink-0" :class="bangId === b.id ? 'text-jade/70' : 'text-slate-600'" x-text="soHangCua(b.id)"></span>
+                        </button>
+                      </template>
+                    </div>
+                  </template>
+                </div>
               </template>
-              <template x-for="g in mucLuc" :key="g.id">
-                <div class="mb-2.5">
-                  <div class="flex items-center gap-1.5 px-1.5 mb-1">
-                    <span class="fserif text-[11px] text-jade/50 leading-none" x-text="g.han"></span>
-                    <span class="lbl" x-text="g.ten"></span>
-                  </div>
-                  <template x-for="m in g.muc" :key="m.id">
-                    <button @click="chon(m.id)"
-                            class="w-full text-left px-2 py-1.5 rounded-lg transition mb-0.5"
-                            :class="mucId === m.id ? 'bg-jade/12 text-jade' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'">
-                      <div class="text-[12.5px] fserif leading-tight" x-text="m.ten"></div>
-                      <div class="text-[10.5px] text-slate-600 leading-snug mt-0.5" x-text="m.tom"></div>
-                    </button>
+
+              <!-- mục lục cơ chế -->
+              <template x-if="che==='co'">
+                <div>
+                  <template x-if="!mucLuc.length">
+                    <div class="text-[12px] text-slate-600 italic px-2 py-6 text-center">Không có trang nào khớp.</div>
+                  </template>
+                  <template x-for="g in mucLuc" :key="g.id">
+                    <div class="mb-2.5">
+                      <div class="flex items-center gap-1.5 px-1.5 mb-1">
+                        <span class="fserif text-[11px] text-jade/50 leading-none" x-text="g.han"></span>
+                        <span class="lbl" x-text="g.ten"></span>
+                      </div>
+                      <template x-for="m in g.muc" :key="m.id">
+                        <button @click="chonMuc(m.id)"
+                                class="w-full text-left px-2 py-1.5 rounded-lg transition mb-0.5"
+                                :class="mucId === m.id ? 'bg-jade/12 text-jade' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'">
+                          <div class="text-[12.5px] fserif leading-tight" x-text="m.ten"></div>
+                          <div class="text-[10.5px] text-slate-600 leading-snug mt-0.5" x-text="m.tom"></div>
+                        </button>
+                      </template>
+                    </div>
                   </template>
                 </div>
               </template>
             </div>
           </div>
 
-          <!-- NỘI DUNG -->
+          <!-- ================= KHUNG PHẢI ================= -->
           <div class="flex flex-col min-h-0" :class="dangDoc ? 'flex' : 'hidden md:flex'">
-            <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800/70 shrink-0 flex items-center gap-2.5">
-              <button @click="dangDoc = false" class="md:hidden text-slate-500 hover:text-jade text-[12px] fserif shrink-0">‹ Mục Lục</button>
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <span class="fserif text-[11px] text-jade/45 leading-none" x-text="hanNhom"></span>
-                  <span class="lbl" x-text="tenNhom"></span>
-                </div>
-                <div class="fserif text-[15.5px] text-slate-100 leading-tight truncate" x-text="muc.ten"></div>
-              </div>
-            </div>
 
-            <div x-ref="than" class="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-3 cn-doc">
-              <template x-for="(k, i) in muc.khoi" :key="i">
-                <div>
-                  <template x-if="k[0]==='h'"><h4 x-text="k[1]"></h4></template>
-                  <template x-if="k[0]==='p'"><p x-html="k[1]"></p></template>
-                  <template x-if="k[0]==='luu'"><div class="cn-luu" x-html="k[1]"></div></template>
-                  <template x-if="k[0]==='ds'">
-                    <ul><template x-for="(d, j) in k[1]" :key="j"><li x-html="d"></li></template></ul>
-                  </template>
-                  <template x-if="k[0]==='bang'">
-                    <div class="cn-tbl">
-                      <table>
-                        <thead><tr><template x-for="(c, j) in k[1]" :key="j"><th x-text="c"></th></template></tr></thead>
+            <!-- ---------- TRA CỨU ---------- -->
+            <template x-if="che==='db'">
+              <div class="flex flex-col min-h-0 flex-1">
+
+                <!-- BẢNG -->
+                <template x-if="!hangChon">
+                  <div class="flex flex-col min-h-0 flex-1">
+                    <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800/70 shrink-0 flex items-baseline gap-2.5 flex-wrap">
+                      <button @click="dangDoc = false" class="md:hidden text-slate-500 hover:text-jade text-[12px] fserif shrink-0">‹ Danh Mục</button>
+                      <div class="fserif text-[15.5px] text-slate-100 leading-tight" x-text="bang.ten"></div>
+                      <div class="text-[11px] text-slate-600"
+                           x-text="hangLoc.length.toLocaleString('vi-VN') + ' / ' + soHangCua(bangId).toLocaleString('vi-VN') + ' ' + bang.dv"></div>
+                    </div>
+                    <div x-ref="luoi" class="flex-1 min-h-0 overflow-auto cn-doc">
+                      <table class="cn-luoi">
+                        <thead>
+                          <tr>
+                            <template x-for="c in bang.cot" :key="c.k">
+                              <th @click="sapXep(c.k)" :class="c.so ? 'so' : ''">
+                                <span x-text="c.ten"></span><span class="dau" x-text="dauSap(c.k)"></span>
+                              </th>
+                            </template>
+                          </tr>
+                        </thead>
                         <tbody>
-                          <template x-for="(r, j) in k[2]" :key="j">
-                            <tr><template x-for="(o, x) in r" :key="x"><td x-html="o"></td></template></tr>
+                          <template x-for="h in hangHien" :key="h.id">
+                            <tr @click="moHang(h)">
+                              <template x-for="(c, i) in bang.cot" :key="c.k">
+                                <td :class="c.so ? 'so' : ''">
+                                  <span x-show="i===0 && h._pham" class="cham" :style="'background:' + $store.game.qualHex(h._pham)"></span><span x-text="oHien(h, c)"></span>
+                                </td>
+                              </template>
+                            </tr>
                           </template>
                         </tbody>
                       </table>
+                      <template x-if="!hangLoc.length">
+                        <div class="text-[12px] text-slate-600 italic px-5 py-8 text-center">Không có mục nào khớp.</div>
+                      </template>
+                      <template x-if="conNua">
+                        <div class="px-5 py-3">
+                          <button @click="themHang()" class="px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-300 border border-slate-700 hover:border-jade/50 hover:text-jade transition"
+                                  x-text="'Hiện thêm ' + Math.min(60, conNua) + ' / còn ' + conNua.toLocaleString('vi-VN')"></button>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- CHI TIẾT MỘT MỤC -->
+                <template x-if="hangChon">
+                  <div class="flex flex-col min-h-0 flex-1">
+                    <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800/70 shrink-0 flex items-center gap-2.5">
+                      <button @click="chonId = null" class="text-slate-500 hover:text-jade text-[12px] fserif shrink-0">‹ <span x-text="bang.ten"></span></button>
+                      <div class="min-w-0">
+                        <div class="fserif text-[15.5px] leading-tight truncate"
+                             :style="hangChon._pham ? ('color:' + $store.game.qualHex(hangChon._pham)) : 'color:#f1f5f9'"
+                             x-text="hangChon.ten"></div>
+                      </div>
+                    </div>
+                    <div x-ref="than" class="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-3 cn-doc">
+                      <template x-for="(k, i) in khoiChiTiet" :key="i">
+                        <div>
+                          <template x-if="k[0]==='h'"><h4 x-text="k[1]"></h4></template>
+                          <template x-if="k[0]==='p'"><p x-html="k[1]"></p></template>
+                          <template x-if="k[0]==='ct'"><div class="cn-ct" x-text="k[1]"></div></template>
+                          <template x-if="k[0]==='luu'"><div class="cn-luu" x-html="k[1]"></div></template>
+                          <template x-if="k[0]==='ds'">
+                            <ul><template x-for="(d, j) in k[1]" :key="j"><li x-html="d"></li></template></ul>
+                          </template>
+                          <template x-if="k[0]==='bang'">
+                            <div class="cn-tbl">
+                              <table>
+                                <thead><tr><template x-for="(c, j) in k[1]" :key="j"><th x-text="c"></th></template></tr></thead>
+                                <tbody>
+                                  <template x-for="(r, j) in k[2]" :key="j">
+                                    <tr><template x-for="(o, x) in r" :key="x"><td x-html="o"></td></template></tr>
+                                  </template>
+                                </tbody>
+                              </table>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
+
+            <!-- ---------- CƠ CHẾ ---------- -->
+            <template x-if="che==='co'">
+              <div class="flex flex-col min-h-0 flex-1">
+                <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800/70 shrink-0 flex items-center gap-2.5">
+                  <button @click="dangDoc = false" class="md:hidden text-slate-500 hover:text-jade text-[12px] fserif shrink-0">‹ Mục Lục</button>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="fserif text-[11px] text-jade/45 leading-none" x-text="hanNhom"></span>
+                      <span class="lbl" x-text="tenNhom"></span>
+                    </div>
+                    <div class="fserif text-[15.5px] text-slate-100 leading-tight truncate" x-text="muc.ten"></div>
+                  </div>
+                </div>
+
+                <div x-ref="than" class="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-3 cn-doc">
+                  <template x-for="(k, i) in muc.khoi" :key="i">
+                    <div>
+                      <template x-if="k[0]==='h'"><h4 x-text="k[1]"></h4></template>
+                      <template x-if="k[0]==='p'"><p x-html="k[1]"></p></template>
+                      <template x-if="k[0]==='ct'"><div class="cn-ct" x-text="k[1]"></div></template>
+                      <template x-if="k[0]==='luu'"><div class="cn-luu" x-html="k[1]"></div></template>
+                      <template x-if="k[0]==='ds'">
+                        <ul><template x-for="(d, j) in k[1]" :key="j"><li x-html="d"></li></template></ul>
+                      </template>
+                      <template x-if="k[0]==='bang'">
+                        <div class="cn-tbl">
+                          <table>
+                            <thead><tr><template x-for="(c, j) in k[1]" :key="j"><th x-text="c"></th></template></tr></thead>
+                            <tbody>
+                              <template x-for="(r, j) in k[2]" :key="j">
+                                <tr><template x-for="(o, x) in r" :key="x"><td x-html="o"></td></template></tr>
+                              </template>
+                            </tbody>
+                          </table>
+                        </div>
+                      </template>
                     </div>
                   </template>
                 </div>
-              </template>
-            </div>
 
-            <div class="px-4 sm:px-5 py-2.5 border-t border-slate-800 shrink-0 flex items-center gap-2">
-              <button @click="nhay(-1)" :disabled="!coTruoc"
-                      class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
-                      :class="coTruoc ? 'text-slate-300 border-slate-700 hover:border-jade/50 hover:text-jade' : 'text-slate-700 border-slate-800 cursor-default'">‹ Mục Trước</button>
-              <button @click="nhay(1)" :disabled="!coSau"
-                      class="ml-auto px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
-                      :class="coSau ? 'text-slate-300 border-slate-700 hover:border-jade/50 hover:text-jade' : 'text-slate-700 border-slate-800 cursor-default'">Mục Sau ›</button>
-            </div>
+                <div class="px-4 sm:px-5 py-2.5 border-t border-slate-800 shrink-0 flex items-center gap-2">
+                  <button @click="nhay(-1)" :disabled="!coTruoc"
+                          class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
+                          :class="coTruoc ? 'text-slate-300 border-slate-700 hover:border-jade/50 hover:text-jade' : 'text-slate-700 border-slate-800 cursor-default'">‹ Trang Trước</button>
+                  <button @click="nhay(1)" :disabled="!coSau"
+                          class="ml-auto px-3 py-1.5 rounded-lg text-[12px] fserif border transition"
+                          :class="coSau ? 'text-slate-300 border-slate-700 hover:border-jade/50 hover:text-jade' : 'text-slate-700 border-slate-800 cursor-default'">Trang Sau ›</button>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
