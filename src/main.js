@@ -22,8 +22,7 @@ import { coVua, ensureCoVua } from './covua.js';                     // Cờ Vua
 import { tienLen, ensureTienLen } from './tienlen.js';               // Tiến Lên Miền Nam (bàn bài 3D, cược Bạc)
 import { tuuLau, ensureTuuLau } from './tuulau.js';
 import { bangPhai, ensureBangPhai } from './bangphai.js';            // Bang Phái (lập bang, chinh phạt, boss bang)
-import { camNang } from './camnang.js';
-import { san, ensureSan } from './san.js';                           // Sàn Giao Dịch (sổ lệnh hai chiều, bot vừa bán vừa mua)
+import { camNang } from './camnang.js';                              // Cẩm Nang (wiki trong game)
 import { ghiKillChinhPhat } from './engine/bangphai.js';             // điểm Chinh Phạt khi hạ quái                  // Tửu Lâu (quán rượu giang hồ, cách ly)
 import { bangKyNangBonus } from './engine/bangbuff.js';              // kĩ năng bang: +Bạc/+rơi đồ ở awardKill
 import * as BP from './engine/bangphai.js';                          // bảng Dev: gọi đúng hàm engine, không ghi tay state
@@ -453,7 +452,7 @@ const gameStore = {
   openCoVua(id) { this._cvOpp = id || null; this.navTo('coVua'); },      // deep-link Cờ Vua từ Hồ Sơ Danh Sĩ
   _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
-  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'tavern', 'guild', 'market'],
+  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'tavern', 'guild'],
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
   applyHashRoute() {   // đọc URL hash -> đổi view (KHÔNG push lại, tránh lặp). Gọi khi popstate (back/forward).
     const h = location.hash || '';
@@ -1991,7 +1990,7 @@ const gameStore = {
   },
   statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'tavern', 'guild', 'market'].includes(this.view); },
+  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'tavern', 'guild'].includes(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
 
   // ---------- ĐÀM ĐẠO (cốt truyện NPC nghề — chương mở theo cấp nghề + hội thoại nhánh) ----------
@@ -4463,7 +4462,6 @@ window.nguTuKy = nguTuKy;             // expose component factory cho x-data tro
 window.coTuong = coTuong;             // expose component factory cho x-data trong view Cờ Tướng
 window.coVua = coVua;                 // expose component factory cho x-data trong view Cờ Vua
 window.tienLen = tienLen;             // expose component factory cho x-data trong view Tiến Lên
-window.san = san;                // expose factory cho x-data view San Giao Dich
 window.tuuLau = tuuLau;           // expose component factory cho x-data trong view Tửu Lâu
 window.bangPhai = bangPhai;           // expose factory cho x-data view Bang Phái
 window.camNang = camNang;             // expose factory cho x-data modal Cẩm Nang
