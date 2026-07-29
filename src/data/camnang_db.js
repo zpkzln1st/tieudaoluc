@@ -29,8 +29,21 @@ import { CODEX_CATS } from './codex.js';
 const so = (x) => (x == null ? '—' : Number(x).toLocaleString('vi-VN'));
 const pct = (x, chuSo = 2) => (x == null ? '—' : (x * 100).toFixed(chuSo).replace(/\.?0+$/, '') + '%');
 const tenPham = (q) => (QUALITY[q] || {}).name || q;
-const mauPham = (q) => (QUALITY[q] || {}).hex || '#cbd5e1';
 const tenHe = (h) => (NGU_HANH[h] || {}).name || (h ? h : 'Vô Hệ');
+
+// ---------- MÀU ----------
+// Phẩm chất và ngũ hành đều đã có mã màu trong bảng số. Dùng lại đúng mã đó để
+// Cẩm Nang không lệch màu với phần còn lại của trò chơi.
+export const MAU_PHAM = Object.fromEntries(Object.entries(QUALITY).map(([k, v]) => [k, v.hex]));
+// NGU_HANH giữ màu ở `glowRgb` dạng "r,g,b" (dùng cho box-shadow), không có hex sẵn.
+export const MAU_HE = Object.fromEntries(
+  Object.entries(NGU_HANH).map(([k, v]) => [k, v.glowRgb ? 'rgb(' + v.glowRgb + ')' : '#94a3b8']),
+);
+const mauPham = (q) => MAU_PHAM[q] || '#cbd5e1';
+const mauHe = (h) => MAU_HE[h] || MAU_HE.vohe || '#94a3b8';
+/** Nhuộm một giá trị trong khối chi tiết (khối nhận HTML). */
+const oPham = (q) => '<b style="color:' + mauPham(q) + '">' + tenPham(q) + '</b>';
+const oHe = (h) => '<b style="color:' + mauHe(h) + '">' + tenHe(h) + '</b>';
 const tenItem = (id) => (ITEMS[id] || {}).name || id;
 const tenO = (s) => (EQUIP_SLOTS.find((x) => x.id === s) || TOOL_SLOTS.find((x) => x.id === s) || {}).name || s;
 // ⚠ ITEM_TYPES là { khoá: 'Tên' } — CHUỖI, không phải object. Viết `.name` là ra undefined.
@@ -124,7 +137,7 @@ export const CN_DB = [
           ['Phân loại', e.affinity || '—'],
         ]],
         ...(e.khang ? [['h', 'Kháng ngũ hành'],
-          ['bang', ['Hệ', 'Kháng'], Object.entries(e.khang).map(([k, v]) => [tenHe(k), pct(v, 1)])]] : []),
+          ['bang', ['Hệ', 'Kháng'], Object.entries(e.khang).map(([k, v]) => [oHe(k), pct(v, 1)])]] : []),
         ['h', 'Chiêu thức'],
         ['bang', ['Chiêu', 'Hệ số', 'Hồi chiêu'], [[(e.skill || {}).name || '—', (e.skill || {}).mult ? '×' + e.skill.mult : '—', (e.skill || {}).cd ? e.skill.cd + ' nhịp' : '—']]],
         ['h', 'Vật phẩm rơi'],
@@ -163,7 +176,7 @@ export const CN_DB = [
           ['Né Tránh', y.dodge ? pct(y.dodge, 1) : '—'], ['Hồi chiêu', w.cdHours ? w.cdHours + ' giờ' : '—'],
         ]],
         ...(y.khang ? [['h', 'Kháng ngũ hành'],
-          ['bang', ['Hệ', 'Kháng'], Object.entries(y.khang).map(([k, v]) => [tenHe(k), pct(v, 1)])]] : []),
+          ['bang', ['Hệ', 'Kháng'], Object.entries(y.khang).map(([k, v]) => [oHe(k), pct(v, 1)])]] : []),
         ['h', 'Chiêu thức'],
         ['bang', ['Chiêu', 'Hệ số', 'Hồi chiêu'], [[(y.skill || {}).name || '—', (y.skill || {}).mult ? '×' + y.skill.mult : '—', (y.skill || {}).cd ? y.skill.cd + ' nhịp' : '—']]],
         ['h', 'Phần thưởng mỗi lần hạ'],
@@ -242,16 +255,16 @@ export const CN_DB = [
   {
     id: 'trangbi', ten: 'Trang Bị', nhom: 'Vật Phẩm', dv: 'món',
     cot: [
-      { k: 'ten', ten: 'Tên' }, { k: 'o', ten: 'Ô' }, { k: 'pham', ten: 'Phẩm chất' },
+      { k: 'ten', ten: 'Tên' }, { k: 'o', ten: 'Ô' }, { k: 'pham', ten: 'Phẩm chất', mau: 'pham' },
       { k: 'itemLv', ten: 'Cấp món', so: true }, { k: 'reqLv', ten: 'Cấp cần', so: true },
-      { k: 'he', ten: 'Hệ' }, { k: 'chiSo', ten: 'Chỉ số gốc' }, { k: 'bo', ten: 'Bộ' },
+      { k: 'he', ten: 'Hệ', mau: 'he' }, { k: 'chiSo', ten: 'Chỉ số gốc' }, { k: 'bo', ten: 'Bộ' },
       { k: 'gia', ten: 'Giá bán', so: true },
     ],
     hang: () => GEAR_IDS.filter((id) => !laCongCu(GEAR[id])).map((id) => {
       const g = GEAR[id], q = g.equip || {};
       return {
         id, ten: g.name, _icon: g.icon, _pham: g.quality, pham: tenPham(g.quality),
-        o: tenO(q.slot), itemLv: q.itemLv, reqLv: q.reqLevel, he: tenHe(q.he),
+        o: tenO(q.slot), itemLv: q.itemLv, reqLv: q.reqLevel, he: tenHe(q.he), _he: q.he || 'vohe',
         chiSo: Object.entries(q.stats || {}).map(([k, v]) => ((AFFIX[k] || {}).name || k) + ' ' + so(v)).join(' · ') || '—',
         bo: (TRANG_SETS[q.set] || {}).name || '—', gia: g.value, _g: g,
       };
@@ -263,9 +276,9 @@ export const CN_DB = [
       return [
         ...(g.desc ? [['p', g.desc]] : []),
         ['bang', ['Mục', 'Giá trị'], [
-          ['Ô trang bị', tenO(q.slot)], ['Phẩm chất', tenPham(g.quality)],
+          ['Ô trang bị', tenO(q.slot)], ['Phẩm chất', oPham(g.quality)],
           ['Cấp món', so(q.itemLv)], ['Cấp yêu cầu', 'Lv ' + so(q.reqLevel)],
-          ['Hệ', tenHe(q.he)], ['Sát thương hệ', q.eleDmg ? so(q.eleDmg) : '—'],
+          ['Hệ', oHe(q.he)], ['Sát thương hệ', q.eleDmg ? so(q.eleDmg) : '—'],
           ['Loại vũ khí', q.weaponType || '—'], ['Giá bán', so(g.value) + ' Bạc'],
           ['Số dòng phụ tối đa', so(QUALITY_LINES[g.quality])],
         ]],
@@ -286,7 +299,7 @@ export const CN_DB = [
     id: 'congcu', ten: 'Công Cụ', nhom: 'Vật Phẩm', dv: 'công cụ',
     cot: [
       { k: 'ten', ten: 'Tên' }, { k: 'o', ten: 'Ô' }, { k: 'nghe', ten: 'Nghề' },
-      { k: 'pham', ten: 'Phẩm chất' }, { k: 'reqLv', ten: 'Cấp cần', so: true },
+      { k: 'pham', ten: 'Phẩm chất', mau: 'pham' }, { k: 'reqLv', ten: 'Cấp cần', so: true },
       { k: 'eff', ten: 'Hiệu suất' }, { k: 'gia', ten: 'Giá bán', so: true },
     ],
     hang: () => GEAR_IDS.filter((id) => laCongCu(GEAR[id])).map((id) => {
@@ -303,7 +316,7 @@ export const CN_DB = [
         ...(g.desc ? [['p', g.desc]] : []),
         ['bang', ['Mục', 'Giá trị'], [
           ['Ô công cụ', tenO(q.slot)], ['Dùng cho nghề', tenNghe(q.gatherSkill)],
-          ['Phẩm chất', tenPham(g.quality)], ['Cấp món', so(q.itemLv)],
+          ['Phẩm chất', oPham(g.quality)], ['Cấp món', so(q.itemLv)],
           ['Cấp yêu cầu', 'Lv ' + so(q.reqLevel)],
           ['Cộng hiệu suất', '+' + pct(q.gatherEff || 0, 0)], ['Giá bán', so(g.value) + ' Bạc'],
         ]],
@@ -319,7 +332,7 @@ export const CN_DB = [
   {
     id: 'vatpham', ten: 'Vật Phẩm', nhom: 'Vật Phẩm', dv: 'vật phẩm',
     cot: [
-      { k: 'ten', ten: 'Tên' }, { k: 'loai', ten: 'Loại' }, { k: 'pham', ten: 'Phẩm chất' },
+      { k: 'ten', ten: 'Tên' }, { k: 'loai', ten: 'Loại' }, { k: 'pham', ten: 'Phẩm chất', mau: 'pham' },
       { k: 'gia', ten: 'Giá bán', so: true }, { k: 'dung', ten: 'Công dụng' }, { k: 'nguon', ten: 'Nguồn' },
     ],
     hang: () => Object.values(ITEMS).filter((i) => i.type !== 'trangbi').map((i) => ({
@@ -340,7 +353,7 @@ export const CN_DB = [
       return [
         ...(i.desc ? [['p', i.desc]] : []),
         ['bang', ['Mục', 'Giá trị'], [
-          ['Loại', tenLoai(i.type)], ['Phẩm chất', tenPham(i.quality)], ['Giá bán', so(i.value) + ' Bạc'],
+          ['Loại', tenLoai(i.type)], ['Phẩm chất', oPham(i.quality)], ['Giá bán', so(i.value) + ' Bạc'],
           ...(i.heal ? [['Hồi Sinh Lực', so(i.heal)]] : []),
           ...(i.healPct ? [['Hồi Sinh Lực', pct(i.healPct, 0)]] : []),
           ...(i.healNL ? [['Hồi Nội Lực', so(i.healNL)]] : []),
@@ -360,7 +373,7 @@ export const CN_DB = [
   {
     id: 'chieu', ten: 'Chiêu Thức', nhom: 'Võ Học', dv: 'chiêu',
     cot: [
-      { k: 'ten', ten: 'Tên' }, { k: 'he', ten: 'Hệ' }, { k: 'bac', ten: 'Bậc' },
+      { k: 'ten', ten: 'Tên' }, { k: 'he', ten: 'Hệ', mau: 'he' }, { k: 'bac', ten: 'Bậc' },
       { k: 'mult', ten: 'Hệ số', so: true }, { k: 'nl', ten: 'Nội Lực', so: true },
       { k: 'cd', ten: 'Hồi chiêu', so: true }, { k: 'vai', ten: 'Vai trò' },
     ],
@@ -375,7 +388,7 @@ export const CN_DB = [
       return [
         ['p', c.lore || ''],
         ['bang', ['Mục', 'Giá trị'], [
-          ['Hệ', tenHe(c.type)], ['Bậc', TIER_LABEL[c.tier] || c.tier],
+          ['Hệ', oHe(c.type)], ['Bậc', TIER_LABEL[c.tier] || c.tier],
           ['Hệ số sát thương', '×' + c.mult], ['Tiêu Nội Lực', so(c.nl)],
           ['Hồi chiêu', c.cd ? c.cd + ' nhịp' : 'không hồi chiêu'],
           ...(fx ? [['Hiệu ứng kèm', fx.ten + ' — ' + pct(fx.pct, 0) + ', ' + fx.ticks + ' nhịp']] : []),
@@ -389,7 +402,7 @@ export const CN_DB = [
   {
     id: 'tamphap', ten: 'Tâm Pháp', nhom: 'Võ Học', dv: 'bộ',
     cot: [
-      { k: 'ten', ten: 'Tên' }, { k: 'he', ten: 'Hệ' }, { k: 'heBonus', ten: 'Cộng hệ' },
+      { k: 'ten', ten: 'Tên' }, { k: 'he', ten: 'Hệ', mau: 'he' }, { k: 'heBonus', ten: 'Cộng hệ' },
       { k: 'noiLuc', ten: 'Nội Lực', so: true }, { k: 'regen', ten: 'Hồi mỗi đòn', so: true },
       { k: 'mod', ten: 'Chỉnh chỉ số' },
     ],
@@ -402,7 +415,7 @@ export const CN_DB = [
     chiTiet: (h) => [
       ['p', h._t.lore || ''],
       ['bang', ['Mục', 'Giá trị'], [
-        ['Hệ chính', tenHe(h._t.he)], ['Cộng sát thương hệ', pct(h._t.heBonus, 0)],
+        ['Hệ chính', oHe(h._t.he)], ['Cộng sát thương hệ', pct(h._t.heBonus, 0)],
         ['Nội Lực tối đa', '+' + so(h._t.noiLuc)], ['Hồi Nội Lực mỗi đòn thường', so(h._t.nlRegen)],
       ]],
       ['h', 'Chỉnh chỉ số'],
@@ -431,7 +444,7 @@ export const CN_DB = [
   // ============ BỊ ĐỘNG ============
   {
     id: 'bidong', ten: 'Bị Động', nhom: 'Võ Học', dv: 'món',
-    cot: [{ k: 'ten', ten: 'Tên' }, { k: 'he', ten: 'Hệ' }, { k: 'tac', ten: 'Tác dụng' }],
+    cot: [{ k: 'ten', ten: 'Tên' }, { k: 'he', ten: 'Hệ', mau: 'he' }, { k: 'tac', ten: 'Tác dụng' }],
     hang: () => BI_DONG.map((b) => ({
       id: b.id, ten: b.name, he: tenHe(b.type || b.he), _he: b.type || b.he,
       tac: b.desc || b.short || '—', _b: b,
@@ -481,7 +494,7 @@ export const CN_DB = [
     }),
     chiTiet: (h) => [
       ['bang', ['Mục', 'Giá trị'], [
-        ['Hạng', h.hang], ['Hệ', h.he], ['Số món', so(h.soMon)],
+        ['Hạng', h.hang], ['Hệ', oHe(h._s.he)], ['Số món', so(h.soMon)],
         ...(h._s.manhCost ? [['Mảnh Trang Bị mỗi món', so(h._s.manhCost)]] : []),
         ...(h._s.blueprintSource ? [['Đồ phổ bộ rơi ở', h._s.blueprintSource]] : []),
         ...(h._s.source ? [['Nguồn mảnh', h._s.source]] : []),
@@ -548,7 +561,7 @@ export const CN_DB = [
   // ============ LINH THÚ ============
   {
     id: 'linhthu', ten: 'Linh Thú', nhom: 'Linh Thú', dv: 'loài',
-    cot: [{ k: 'ten', ten: 'Loài' }, { k: 'he', ten: 'Hệ' }, { k: 'kyNang', ten: 'Kỹ năng' }],
+    cot: [{ k: 'ten', ten: 'Loài' }, { k: 'he', ten: 'Hệ', mau: 'he' }, { k: 'kyNang', ten: 'Kỹ năng' }],
     hang: () => Object.values(PET_SPECIES).map((s) => ({
       id: s.id, ten: s.name, _icon: s.icon, he: tenHe(s.he), _he: s.he,
       kyNang: (PET_SKILLS[s.skill] || {}).name || s.skill || '—', _s: s,
@@ -558,10 +571,10 @@ export const CN_DB = [
       return [
         ...(s.lore ? [['p', s.lore]] : []),
         ['bang', ['Mục', 'Giá trị'], [
-          ['Hệ', tenHe(s.he)], ['Kỹ năng', k.name || '—'], ['Tác dụng kỹ năng', k.desc || '—'],
+          ['Hệ', oHe(s.he)], ['Kỹ năng', k.name || '—'], ['Tác dụng kỹ năng', k.desc || '—'],
         ]],
         ['h', 'Bảy bậc phẩm chất'],
-        ['bang', ['Phẩm chất'], Object.keys(PET_QUALITY).map((q) => [tenPham(q)])],
+        ['bang', ['Phẩm chất'], Object.keys(PET_QUALITY).map((q) => [oPham(q)])],
         ['p', 'Phẩm chất trứng quyết định phẩm chất thú. Tiềm năng bốc ngẫu nhiên lúc nở từ ' + PET_OPT_POOL.length + ' loại; Thức Tỉnh mở thêm bị động từ ' + Object.keys(AWK_PASSIVES).length + ' loại.'],
       ];
     },
@@ -572,7 +585,7 @@ export const CN_DB = [
     id: 'danhhieu', ten: 'Danh Hiệu', nhom: 'Sưu Tập', dv: 'danh hiệu',
     cot: [
       { k: 'ten', ten: 'Danh hiệu' }, { k: 'loai', ten: 'Loại' },
-      { k: 'pham', ten: 'Phẩm chất' }, { k: 'dk', ten: 'Điều kiện' }, { k: 'thuong', ten: 'Cộng' },
+      { k: 'pham', ten: 'Phẩm chất', mau: 'pham' }, { k: 'dk', ten: 'Điều kiện' }, { k: 'thuong', ten: 'Cộng' },
     ],
     hang: () => TITLES.map((t) => ({
       id: t.id, ten: t.name, _pham: t.q, pham: tenPham(t.q),
@@ -583,7 +596,7 @@ export const CN_DB = [
     })),
     chiTiet: (h) => [
       ['bang', ['Mục', 'Giá trị'], [
-        ['Loại', h.loai], ['Phẩm chất', h.pham], ['Điều kiện mở', h.dk], ['Cộng chỉ số', h.thuong],
+        ['Loại', h.loai], ['Phẩm chất', oPham(h._t.q)], ['Điều kiện mở', h.dk], ['Cộng chỉ số', h.thuong],
       ]],
       ...(h._t.cond ? [['h', 'Điều kiện tính bằng'],
         ['bang', ['Khoá', 'Giá trị'], Object.entries(h._t.cond).map(([k, v]) => [k, String(v)])]] : []),

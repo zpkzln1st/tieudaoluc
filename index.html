@@ -14422,7 +14422,7 @@
                             <tr @click="moHang(h)">
                               <template x-for="(c, i) in bang.cot" :key="c.k">
                                 <td :class="c.so ? 'so' : ''">
-                                  <span x-show="i===0 && h._pham" class="cham" :style="'background:' + $store.game.qualHex(h._pham)"></span><span x-text="oHien(h, c)"></span>
+                                  <span x-show="i===0 && h._pham" class="cham" :style="'background:' + $store.game.qualHex(h._pham)"></span><span :style="mauO(h, c) ? ('color:' + mauO(h, c)) : ''" x-text="oHien(h, c)"></span>
                                 </td>
                               </template>
                             </tr>

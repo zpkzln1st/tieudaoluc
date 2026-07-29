@@ -6,7 +6,7 @@
 // Chỉ ĐỌC dữ liệu tĩnh, không đụng state, không lưu gì.
 // ============================================================
 import { CN_NHOM, CN_MUC, CN_MUC_BY_ID, cnText } from './data/camnang.js';
-import { CN_DB, CN_DB_BY_ID, CN_DB_NHOM } from './data/camnang_db.js';
+import { CN_DB, CN_DB_BY_ID, CN_DB_NHOM, MAU_PHAM, MAU_HE } from './data/camnang_db.js';
 
 // Bỏ dấu để gõ "ngu hanh" vẫn ra "ngũ hành".
 const DAU = new RegExp('[̀-ͯ]', 'g');
@@ -89,6 +89,16 @@ export function camNang() {
       const v = h[c.k];
       if (c.so && typeof v === 'number') return v.toLocaleString('vi-VN');
       return v;
+    },
+    /**
+     * Màu chữ của ô — CHỈ hai cột Phẩm Chất và Hệ, lấy đúng mã màu bảng số đang dùng
+     * ở phần còn lại của trò chơi. Tô thêm cột nào nữa là bảng thành loang lổ, mất
+     * tác dụng của chính hai cột này.
+     */
+    mauO(h, c) {
+      if (c.mau === 'pham' && h._pham) return MAU_PHAM[h._pham] || '';
+      if (c.mau === 'he') return MAU_HE[h._he || 'vohe'] || '';
+      return '';
     },
 
     sapXep(k) {
