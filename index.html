@@ -17,7 +17,7 @@
        Google cũng vô ích, nó lặng lẽ rơi về serif. Đã dính: 酒楼 ra 酒 thư pháp + 樓 serif,
        hai chữ cạnh nhau hai kiểu. Phải dùng 酒楼. Kiểm bằng cách VẼ RA CANVAS rồi so pixel với
        serif — document.fonts.check() trả true cho cả glyph font không có, KHÔNG tin được. -->
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&text=%E4%BA%94%E5%AD%90%E6%A3%8B%E8%B1%A1%E8%A5%BF%E6%B4%8B%E9%85%92%E6%A5%BC%E8%B6%8A%E5%8D%97%E8%B7%91%E5%BE%97%E5%BF%AB&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&text=%E4%BA%94%E5%AD%90%E6%A3%8B%E8%B1%A1%E8%A5%BF%E6%B4%8B%E9%85%92%E6%A5%BC%E8%B6%8A%E5%8D%97%E8%B7%91%E5%BE%97%E5%BF%AB%E5%8D%81%E4%B8%89%E6%B0%B4&display=swap" rel="stylesheet">
   <!-- Cờ Tướng: chữ Hán trên QUÂN + 楚河漢界 vẽ vào canvas 3D. Noto Serif TC = Tống thể PHỒN THỂ
        (Ma Shan Zheng chỉ có giản thể -> 車馬將帥傌俥砲 sẽ rơi về font hệ thống). Subset đúng 18 chữ.
        ⚠ Thêm chữ Hán MỚI cho cờ thì PHẢI thêm vào chuỗi &text= dưới đây. -->
@@ -11278,6 +11278,125 @@
         </div>
       </template>
 
+
+      <!-- ===== VIEW: BINH XẬP XÁM (十三水) =====
+           Khác Tiến Lên ở CƠ CHẾ: không đánh theo lượt, mỗi nhà tự xếp 13 lá thành ba chi
+           (Đầu 3 · Giữa 5 · Cuối 5) rồi lật so cùng lúc. Đơn vị ăn thua là CHI.
+           Cược bằng TRÙ MÃ như mọi chiếu bài — KHÔNG đụng Bạc nhân vật (engine/truma.js). -->
+      <template x-if="$store.game.view==='binh'">
+        <div class="max-w-[1200px] mx-auto" x-data="binh()" x-init="bxInit()">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+            <img src="images/ui/binh_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/binh_banner.png'}else{this.style.display='none'}">
+            <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
+            <div class="relative px-5 py-5 sm:px-6">
+              <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">十三水</span> Binh Xập Xám</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Mười ba lá trong tay là mệnh, chia làm ba chi là ý. Đặt hụt một chi, cả làng ăn ngược.</b></div>
+              <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="bx.van"></b> ván · Ván ăn: <b class="text-amber-300" x-text="bx.thang"></b> · Sâm Banh: <b class="text-amber-300" x-text="bx.samBanh"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
+              <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(bx.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((bx.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(bx.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
+
+              <div class="mt-3 flex items-center gap-2.5 flex-wrap">
+                <span class="text-[12px] text-slate-400">Trù Mã:</span>
+                <b class="text-[15px] fserif text-amber-300 tabular-nums" x-text="$store.game.fmtC(truMa)"></b>
+                <button @click="$store.game.openTruMa()"
+                        class="px-3 py-1 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== POPUP: ĐỔI TRÙ MÃ =====
+               ⚠ Phải DỰNG LẠI ở đây chứ không dùng chung với view Tiến Lên: markup kia nằm trong
+               <template x-if="view==='tienLen'"> nên rời view là nó biến mất khỏi DOM. -->
+          <template x-if="$store.game.truMaOpen">
+            <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/78 backdrop-blur-sm p-3 sm:p-4"
+                 @click.self="$store.game.closeTruMa()" @keydown.escape.window="$store.game.closeTruMa()">
+              <div class="panel rounded-2xl w-[380px] max-w-full overflow-hidden border border-amber-500/30 shadow-2xl" @click.stop>
+
+                <div class="px-4 py-3 border-b border-slate-800 flex items-center gap-2.5"
+                     style="background:linear-gradient(120deg,rgba(245,185,66,.12),transparent 64%)">
+                  <div class="fserif text-[16px] text-amber-200">Đổi Trù Mã</div>
+                  <button @click="$store.game.closeTruMa()" class="ml-auto w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
+                </div>
+
+                <div class="px-4 py-3.5 space-y-3">
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="rounded-lg bg-ink2/60 border border-slate-800 px-3 py-2">
+                      <div class="lbl leading-tight">Bạc đang có</div>
+                      <div class="text-[15px] fserif text-slate-100 tabular-nums leading-tight mt-0.5" x-text="$store.game.fmtC(bac)"></div>
+                    </div>
+                    <div class="rounded-lg bg-ink2/60 border border-slate-800 px-3 py-2">
+                      <div class="lbl leading-tight">Trù Mã đang có</div>
+                      <div class="text-[15px] fserif text-amber-300 tabular-nums leading-tight mt-0.5" x-text="$store.game.fmtC(truMa)"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="lbl mb-1.5">Đổi bao nhiêu Bạc</div>
+                    <div class="flex items-center gap-2">
+                      <input type="number" min="1" x-model.number="doiSo"
+                             class="flex-1 min-w-0 bg-ink3/70 border border-slate-700 rounded-lg px-3 py-1.5 text-[13.5px] text-slate-100 tabular-nums focus:outline-none focus:border-amber-500/60">
+                      <button @click="doiTatCa()" class="px-2.5 py-1.5 rounded-lg text-[11.5px] fserif text-slate-300 border border-slate-700 hover:border-slate-500 transition shrink-0">Tất cả</button>
+                    </div>
+                    <div class="flex gap-1.5 flex-wrap mt-2">
+                      <template x-for="m in mucDoi" :key="m">
+                        <button @click="datMuc(m)"
+                                class="px-2.5 py-1 rounded-lg text-[11.5px] fserif border transition"
+                                :class="bac >= m ? 'text-amber-200 border-amber-500/40 hover:bg-amber-500/10' : 'text-slate-700 border-slate-800 cursor-default'"
+                                x-text="$store.game.fmtC(m)"></button>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div class="rounded-lg bg-ink2/60 border border-slate-800 px-3 py-2 flex items-baseline justify-between">
+                    <span class="text-[12px] text-slate-500">Nhận được</span>
+                    <b class="text-[16px] fserif text-amber-300 tabular-nums" x-text="$store.game.fmtC(doiNhan) + ' Trù Mã'"></b>
+                  </div>
+
+                  <div class="rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2 text-[12px] text-amber-200/90 leading-relaxed">
+                    Đổi <b>một chiều</b>. Trù Mã chỉ tiêu được ở chiếu bài, không đổi ngược lại thành Bạc.
+                  </div>
+                </div>
+
+                <div class="px-4 py-3 border-t border-slate-800 flex items-center gap-2">
+                  <button @click="$store.game.closeTruMa()" class="px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Thôi</button>
+                  <button @click="doiChip(doiSo)" :disabled="!doiHopLe"
+                          class="ml-auto px-4 py-1.5 rounded-lg text-[12.5px] fserif border transition"
+                          :class="doiHopLe ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-700 border-slate-800 cursor-default'"
+                          x-text="doiHopLe ? 'Đổi' : (bac < 1 ? 'Không có Bạc' : 'Không đủ Bạc')"></button>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <div x-show="!inBattle" class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <template x-for="c in chieuList" :key="c.id">
+              <div class="bxs-chieu fserif" :class="c.khoa ? 'locked' : ''" @click="!c.khoa && nhapChieu(c)">
+                <div class="bxs-bac">
+                  <template x-for="o in c.list" :key="o.id">
+                    <img :src="faceOf(o)" alt="" onerror="this.style.visibility='hidden'">
+                  </template>
+                </div>
+                <div class="bxs-i">
+                  <div class="bxs-tn" x-text="c.ten"></div>
+                  <div class="bxs-lo" x-text="c.lore"></div>
+                  <div class="bxs-ds" x-text="c.list.map(o=>o.ten).join(' · ')"></div>
+                  <div class="bxs-mt">
+                    <span class="bxs-tag" :style="'color:'+mauTang(c)+';border-color:'+mauTang(c)+'66'" x-text="tenTang(c)"></span>
+                    <span class="bxs-tag" x-text="'Cược ' + $store.game.fmtC(c.cuoc) + ' Trù Mã mỗi chi'"></span>
+                    <span class="bxs-tag" x-show="!c.khoa && recOf(c.id)" x-text="recOf(c.id)"></span>
+                    <span class="bxs-tag warn" x-show="c.khoa" x-text="'Cần ít nhất ' + $store.game.fmtC(c.can) + ' Trù Mã mới được ngồi'"></span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div x-show="inBattle" style="margin-top:12px">
+            <div x-show="loading" class="text-center text-slate-400 py-10 fserif">Đang bày chiếu bài 3D…</div>
+            <div x-show="loadErr" class="text-center text-rose-400 py-10" x-text="loadErr"></div>
+            <div x-ref="boardHost"></div>
+          </div>
+        </div>
+      </template>
       <!-- ===== VIEW: BANG PHÁI =====
            Người chơi LẬP BANG và làm BANG CHỦ (nên mới có quyền kích/thăng/hạ chức, đặt quyền,
            duyệt đơn, xây công trình). 12 bang AI suy từ seed là ĐỐI THỦ trên bảng Chinh Phạt.

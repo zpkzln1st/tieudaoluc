@@ -19,7 +19,7 @@
 // ============================================================
 
 // Ma Shan Zheng (tiêu đề) — mọi chữ ở đây PHẢI là giản thể hoặc chữ chung hai lối viết.
-export const HAN_TIEU_DE = '五子棋象西洋酒楼越南跑得快';
+export const HAN_TIEU_DE = '五子棋象西洋酒楼越南跑得快十三水';
 // Noto Serif TC (quân + chữ trên bàn Cờ Tướng) — phồn thể.
 export const HAN_CO_TUONG = '帥仕相傌俥炮兵將士象馬車砲卒楚河漢界';
 // Noto Serif SC — font gánh MỌI chữ Hán trong thân bài (class .fserif). Subset của nó nằm ở

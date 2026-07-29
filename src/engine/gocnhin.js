@@ -9,7 +9,7 @@
 //   Nên chỉ ghi: góc xoay ngang (theta), góc ngẩng (phi), mức phóng zoom = r / r_vừa_khung.
 // ============================================================
 
-const BANS = ['coVua', 'coTuong', 'nguTu', 'tienLen'];
+const BANS = ['coVua', 'coTuong', 'nguTu', 'tienLen', 'binh'];
 const PHI_MIN = 0.16, PHI_MAX = 1.20;    // ngẩng quá thấp thì bàn thành sợi chỉ, quá cao thì mất khối
 const ZOOM_MIN = 0.62, ZOOM_MAX = 1.55;  // chặn hai đầu để góc lưu ở máy này không vỡ khung ở máy khác
 
