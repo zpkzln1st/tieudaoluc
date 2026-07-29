@@ -19,7 +19,7 @@ import { EQUIP_SLOTS, TOOL_SLOTS } from './ui.js';
 import { CHIEU, TAM_PHAP_POOL, BO_PHAP, BI_DONG, NGU_HANH, TIER_LABEL, TUYET_IDS, TUYET_RECIPE, HE_FX } from './votong.js';
 import { PET_SPECIES, PET_SKILLS, AWK_PASSIVES, PET_OPT_POOL, PET_QUALITY } from './pets.js';
 import { TITLES, TITLE_LOAI, titleBonusText } from './titles.js';
-import { BADGES } from './badges.js';
+import { BADGES, BADGE_LV } from './badges.js';
 import { BI_KIP, BI_KIP_LOAI, BI_KIP_TIER, PILLS, BUILDINGS } from './tongmon.js';
 import { KY_NANG_BANG, CONG_TRINH, CUA_HANG_BANG } from './bangphai.js';
 import { LINH_THACH } from './linhthach.js';
@@ -27,7 +27,7 @@ import { CODEX_CATS } from './codex.js';
 
 // ---------- tiện ----------
 const so = (x) => (x == null ? '—' : Number(x).toLocaleString('vi-VN'));
-const pct = (x, chuSo = 2) => (x == null ? '—' : (x * 100).toFixed(chuSo).replace(/\.?0+$/, '') + '%');
+const pct = (x, chuSo = 2) => (x == null ? '—' : (x * 100).toFixed(chuSo).replace(/\.?0+$/, '').replace('.', ',') + '%');
 const tenPham = (q) => (QUALITY[q] || {}).name || q;
 const tenHe = (h) => (NGU_HANH[h] || {}).name || (h ? h : 'Vô Hệ');
 
@@ -50,7 +50,37 @@ const tenO = (s) => (EQUIP_SLOTS.find((x) => x.id === s) || TOOL_SLOTS.find((x) 
 const tenLoai = (t) => (typeof ITEM_TYPES[t] === 'string' ? ITEM_TYPES[t] : (ITEM_TYPES[t] || {}).name) || t;
 const O_CONG_CU = TOOL_SLOTS.map((t) => t.id);
 const laCongCu = (g) => O_CONG_CU.includes(((g || {}).equip || {}).slot);
-const tenNghe = (id) => (SKILLS[id] || {}).name || id;
+const tenNghe = (id) => (SKILLS[id] || {}).name || (id === 'chienDau' ? 'Chiến Đấu' : id);
+
+// ---------- NHÃN KHOÁ ----------
+// ⚠ Bảng số dùng khoá tiếng Anh (atk, maxHP, critDmg…) để tính toán. Bày thẳng ra
+// màn hình là sai luật nhãn Hán-Việt đầy đủ. Mọi chỗ hiển thị phải đi qua đây.
+// Nguồn ưu tiên: AFFIX[k].name (đã có sẵn tên tiếng Việt cho phần lớn khoá).
+const NHAN_THEM = {
+  atk: 'Công Kích', def: 'Phòng Ngự', maxHP: 'Sinh Lực', spd: 'Khinh Công',
+  crit: 'Bạo Kích', critDmg: 'Sát Thương Bạo Kích', dodge: 'Né Tránh',
+  atkPct: 'Công Kích', defPct: 'Phòng Ngự', hpPct: 'Sinh Lực', allPct: 'Mọi chỉ số',
+  expPct: 'Kinh nghiệm Chiến Đấu', dropPct: 'Tỉ lệ rơi', bacPct: 'Bạc nhặt được',
+  nghePct: 'Tốc độ Nghề Khai Thác', ngheExpPct: 'Kinh nghiệm nghề',
+  honThachPct: 'Hồn Thạch Bí Cảnh', bcDoPhoPct: 'Đồ phổ Bí Cảnh', petExpPct: 'Kinh nghiệm Linh Thú',
+  khangAll: 'Kháng mọi hệ', baoKich: 'Bạo Kích', congHuong: 'Cộng Hưởng',
+  giamChoang: 'Giảm Choáng', giamNhan: 'Giảm sát thương phải chịu',
+  sinhLuc: 'Sinh Lực', hoThe: 'Hộ Thể', congKich: 'Công Kích',
+  dmg: 'Sát Thương', hp: 'Sinh Lực', eleDmg: 'Sát Thương Hệ', gatherEff: 'Hiệu suất nghề',
+  lucDao: 'Lực Đạo', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo',
+  neTranh: 'Né Tránh', menhTrung: 'Chính Xác',
+};
+// Vạn Vật Phổ đếm theo đơn vị khác nhau; `unit` trong bảng số là ĐỘNG TỪ dùng giữa câu.
+const NHAN_DEM = {
+  yeuthu: 'Số lần hạ mỗi loài', binhkhi: 'Số món đã sở hữu', vatpham: 'Số vật phẩm đã nhận',
+  linhthu: 'Số Linh Thú đã nở', bicanh: 'Số lượt đã thông quan', danhsi: 'Số Danh Sĩ đã gặp',
+  bachtrang: 'Số món đã ghép',
+};
+const nhanKhoa = (k) => (AFFIX[k] || {}).name || NHAN_THEM[k] || k;
+/** "atk +18% · crit +5%" -> "Công Kích +18% · Bạo Kích +5%" */
+const moTaBonus = (o) => Object.entries(o || {})
+  .map(([k, v]) => nhanKhoa(k) + ' +' + (v > 0 && v < 1 ? pct(v, 1) : so(v)))
+  .join(' · ') || '—';
 
 // ---------- CHỈ MỤC NGUỒN: món này kiếm ở đâu ----------
 // Quét ngược mọi bảng số một lần lúc nạp. Đây là thứ khiến tra cứu có ích:
@@ -287,7 +317,7 @@ export const CN_DB = [
         ...(bo ? [['h', 'Dòng ẩn — ' + ((TRANG_SETS[boKey] || {}).name || boKey)],
           ['bang', ['Mốc', 'Cộng thêm'],
             Object.entries(bo).map(([moc, th]) => [moc + ' món',
-              Object.entries(th).map(([k, v]) => ((AFFIX[k] || {}).name || k) + ' +' + (v > 0 && v < 1 ? pct(v, 0) : so(v))).join(' · ')])]] : []),
+              Object.entries(th).map(([k, v]) => nhanKhoa(k) + ' +' + (v > 0 && v < 1 ? pct(v, 0) : so(v))).join(' · ')])]] : []),
         ['h', 'Nguồn kiếm'],
         ...khoiNguon(h.id),
       ];
@@ -409,7 +439,7 @@ export const CN_DB = [
     hang: () => TAM_PHAP_POOL.map((t) => ({
       id: t.id, ten: t.name, he: tenHe(t.he), _he: t.he, heBonus: pct(t.heBonus, 0),
       noiLuc: t.noiLuc, regen: t.nlRegen,
-      mod: Object.entries(t.mod || {}).map(([k, v]) => k + ' ' + (v > 0 ? '+' : '') + pct(v, 0)).join(' · '),
+      mod: Object.entries(t.mod || {}).map(([k, v]) => nhanKhoa(k) + ' ' + (v > 0 ? '+' : '') + pct(v, 0)).join(' · '),
       _t: t,
     })),
     chiTiet: (h) => [
@@ -419,7 +449,7 @@ export const CN_DB = [
         ['Nội Lực tối đa', '+' + so(h._t.noiLuc)], ['Hồi Nội Lực mỗi đòn thường', so(h._t.nlRegen)],
       ]],
       ['h', 'Chỉnh chỉ số'],
-      ['bang', ['Chỉ số', 'Thay đổi'], Object.entries(h._t.mod || {}).map(([k, v]) => [k, (v > 0 ? '+' : '') + pct(v, 0)])],
+      ['bang', ['Chỉ số', 'Thay đổi'], Object.entries(h._t.mod || {}).map(([k, v]) => [nhanKhoa(k), (v > 0 ? '+' : '') + pct(v, 0)])],
       ['p', h._t.desc || ''],
     ],
   },
@@ -437,7 +467,7 @@ export const CN_DB = [
     })),
     chiTiet: (h) => [
       ['p', h._b.desc || ''],
-      ['bang', ['Chỉ số', 'Thay đổi'], Object.entries(h._b.mod || {}).map(([k, v]) => [k, (v > 0 ? '+' : '') + pct(v, 0)])],
+      ['bang', ['Chỉ số', 'Thay đổi'], Object.entries(h._b.mod || {}).map(([k, v]) => [nhanKhoa(k), (v > 0 ? '+' : '') + pct(v, 0)])],
     ],
   },
 
@@ -484,7 +514,7 @@ export const CN_DB = [
     ],
     hang: () => Object.keys(TRANG_SETS).map((key) => {
       const s = TRANG_SETS[key] || {}, b = s.bonus || SET_BONUS[key] || {};
-      const mo = (n) => Object.entries(b[n] || {}).map(([k, v]) => ((AFFIX[k] || {}).name || k) + ' +' + (v > 0 && v < 1 ? pct(v, 0) : so(v))).join(' · ') || '—';
+      const mo = (n) => Object.entries(b[n] || {}).map(([k, v]) => nhanKhoa(k) + ' +' + (v > 0 && v < 1 ? pct(v, 0) : so(v))).join(' · ') || '—';
       const mon = GEAR_IDS.filter((g) => (GEAR[g].equip || {}).set === key);
       return {
         id: key, ten: s.name || key, hang: s.display || 'Thường', he: tenHe(s.he),
@@ -561,18 +591,30 @@ export const CN_DB = [
   // ============ LINH THÚ ============
   {
     id: 'linhthu', ten: 'Linh Thú', nhom: 'Linh Thú', dv: 'loài',
-    cot: [{ k: 'ten', ten: 'Loài' }, { k: 'he', ten: 'Hệ', mau: 'he' }, { k: 'kyNang', ten: 'Kỹ năng' }],
-    hang: () => Object.values(PET_SPECIES).map((s) => ({
-      id: s.id, ten: s.name, _icon: s.icon, he: tenHe(s.he), _he: s.he,
-      kyNang: (PET_SKILLS[s.skill] || {}).name || s.skill || '—', _s: s,
-    })),
+    cot: [
+      { k: 'ten', ten: 'Loài' }, { k: 'he', ten: 'Hệ', mau: 'he' }, { k: 'vai', ten: 'Vai trò' },
+      { k: 'truTru', ten: 'Trụ chính' }, { k: 'cong', ten: 'Công Kích', so: true },
+      { k: 'thu', ten: 'Hộ Thể', so: true }, { k: 'mau', ten: 'Sinh Lực', so: true },
+      { k: 'ne', ten: 'Né Tránh', so: true }, { k: 'trung', ten: 'Chính Xác', so: true },
+    ],
+    hang: () => Object.entries(PET_SPECIES).map(([key, s]) => {
+      const st = s.stats || {};
+      return {
+        id: s.base || key, ten: s.name, _icon: s.emoji, he: tenHe(s.he), _he: s.he,
+        vai: s.role || '—', truTru: nhanKhoa(s.tuTru),
+        cong: st.congKich || 0, thu: st.hoThe || 0, mau: st.sinhLuc || 0,
+        ne: st.neTranh || 0, trung: st.menhTrung || 0, _s: s,
+      };
+    }),
     chiTiet: (h) => {
-      const s = h._s, k = PET_SKILLS[s.skill] || {};
+      const s = h._s, st = s.stats || {};
       return [
         ...(s.lore ? [['p', s.lore]] : []),
         ['bang', ['Mục', 'Giá trị'], [
-          ['Hệ', oHe(s.he)], ['Kỹ năng', k.name || '—'], ['Tác dụng kỹ năng', k.desc || '—'],
+          ['Hệ', oHe(s.he)], ['Vai trò', s.role || '—'], ['Trụ chính', nhanKhoa(s.tuTru)],
         ]],
+        ['h', 'Chỉ số nền mỗi cấp'],
+        ['bang', ['Chỉ số', 'Giá trị'], Object.entries(st).map(([k2, v]) => [nhanKhoa(k2), so(v)])],
         ['h', 'Bảy bậc phẩm chất'],
         ['bang', ['Phẩm chất'], Object.keys(PET_QUALITY).map((q) => [oPham(q)])],
         ['p', 'Phẩm chất trứng quyết định phẩm chất thú. Tiềm năng bốc ngẫu nhiên lúc nở từ ' + PET_OPT_POOL.length + ' loại; Thức Tỉnh mở thêm bị động từ ' + Object.keys(AWK_PASSIVES).length + ' loại.'],
@@ -608,8 +650,8 @@ export const CN_DB = [
     id: 'huyhieu', ten: 'Huy Hiệu', nhom: 'Sưu Tập', dv: 'huy hiệu',
     cot: [{ k: 'ten', ten: 'Huy hiệu' }, { k: 'nghe', ten: 'Nghề' }, { k: 'dk', ten: 'Điều kiện' }],
     hang: () => BADGES.map((b) => ({
-      id: b.id, ten: b.name, nghe: (SKILLS[b.skill] || {}).name || b.skill || '—',
-      dk: b.req || ('Đưa nghề lên cấp 100'), _b: b,
+      id: b.skillId, ten: b.name, nghe: tenNghe(b.skillId),
+      dk: 'Đưa ' + tenNghe(b.skillId) + ' lên cấp ' + BADGE_LV, _b: b,
     })),
     chiTiet: (h) => [
       ...(h._b.desc ? [['p', h._b.desc]] : []),
@@ -627,7 +669,7 @@ export const CN_DB = [
     hang: () => BI_KIP.map((b) => ({
       id: b.id, ten: b.ten || b.name, nhanh: (BI_KIP_LOAI[b.loai] || {}).name || b.loai,
       bac: (BI_KIP_TIER[b.tier] || {}).name || b.tier,
-      cong: Object.entries((BI_KIP_LOAI[b.loai] || {}).prof || {}).map(([k, v]) => k + ' +' + pct(v, 0)).join(' · ') || '—',
+      cong: moTaBonus((BI_KIP_LOAI[b.loai] || {}).prof),
       _b: b,
     })),
     chiTiet: (h) => [
@@ -660,7 +702,7 @@ export const CN_DB = [
       { k: 'capBang', ten: 'Cấp minh cần', so: true }, { k: 'gia', ten: 'Công Tích nền', so: true },
     ],
     hang: () => KY_NANG_BANG.map((k) => ({
-      id: k.id, ten: k.ten, tac: k.key, moiCap: pct(k.moiCap, 1),
+      id: k.id, ten: k.ten, tac: k.han || nhanKhoa(k.key), moiCap: pct(k.moiCap, 1),
       maxLv: k.maxLv, capBang: k.capBang, gia: k.giaNen, _k: k,
     })),
     chiTiet: (h) => [
@@ -749,11 +791,12 @@ export const CN_DB = [
   {
     id: 'vanvat', ten: 'Vạn Vật Phổ', nhom: 'Sưu Tập', dv: 'phổ',
     cot: [
-      { k: 'ten', ten: 'Phổ' }, { k: 'dv', ten: 'Đếm theo' },
+      { k: 'ten', ten: 'Phổ' }, { k: 'dv', ten: 'Tính theo' },
       { k: 'muc', ten: 'Số mục', so: true }, { k: 'le', ten: 'Cộng lẻ' }, { k: 'bo', ten: 'Đủ bộ' },
     ],
     hang: () => CODEX_CATS.map((c) => ({
-      id: c.key, ten: c.name, dv: c.unit || '—', muc: c.total || (c.entries || []).length,
+      id: c.key, ten: c.name, dv: NHAN_DEM[c.key] || ('Số lần ' + (c.unit || 'ghi nhận')),
+      muc: c.total || (c.entries || []).length,
       le: (c.per || {}).label || '—', bo: (c.set || {}).label || '—', _c: c,
     })),
     chiTiet: (h) => [

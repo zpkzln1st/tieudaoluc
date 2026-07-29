@@ -52,6 +52,16 @@ const KHAC_THIET = pc(Math.abs(nguHanhMod('moc', 'kim')));
 const NHIP_GIAY = COMBAT_CYCLE_MS / 1000;
 const HE5 = NGU_HANH_LIST.map((h) => h.name).join(' · ');
 const MUA_NGAY = Math.round(MUA_MS / 86400000);
+// ⚠ Bảng số dùng khoá tiếng Anh để tính. Hiển thị phải đi qua đây, không bày khoá thô.
+const NHAN_KHOA = {
+  atk: 'Công Kích', def: 'Phòng Ngự', maxHP: 'Sinh Lực', spd: 'Khinh Công',
+  crit: 'Bạo Kích', critDmg: 'Sát Thương Bạo Kích', dodge: 'Né Tránh',
+  atkPct: 'Công Kích', defPct: 'Phòng Ngự', hpPct: 'Sinh Lực', allPct: 'Mọi chỉ số',
+  expPct: 'Kinh nghiệm Chiến Đấu', dropPct: 'Tỉ lệ rơi', bacPct: 'Bạc nhặt được',
+  nghePct: 'Tốc độ Nghề Khai Thác', ngheExpPct: 'Kinh nghiệm nghề',
+  honThachPct: 'Hồn Thạch Bí Cảnh', bcDoPhoPct: 'Đồ phổ Bí Cảnh', petExpPct: 'Kinh nghiệm Linh Thú',
+};
+const nhanKhoa = (k) => NHAN_KHOA[k] || k;
 
 export const CN_NHOM = [
   { id: 'nhapmon',  ten: 'Nhập Môn',        han: '始' },
@@ -511,7 +521,7 @@ export const CN_MUC = [
     khoi: [
       ['bang', ['Nhánh', 'Cộng cho đệ tử'],
         Object.values(BI_KIP_LOAI).map((l) => [
-          l.name, Object.entries(l.prof).map(([k, v]) => k + ' +' + pc(v)).join(' · '),
+          l.name, Object.entries(l.prof).map(([k, v]) => nhanKhoa(k) + ' +' + pc(v)).join(' · '),
         ])],
       ['ds', [
         'Bí kíp chia bốn bậc; bậc học được bị Tàng Thư Lâu chặn trần.',
@@ -568,7 +578,7 @@ export const CN_MUC = [
       ['bang', ['Cộng vào', 'Tổng'],
         (() => {
           const gom = {};
-          for (const k of KY_NANG_BANG) gom[k.key] = (gom[k.key] || 0) + k.moiCap * k.maxLv;
+          for (const k of KY_NANG_BANG) gom[k.han || nhanKhoa(k.key)] = (gom[k.han || nhanKhoa(k.key)] || 0) + k.moiCap * k.maxLv;
           return Object.entries(gom).map(([k, v]) => [k, '+' + pc(v, 1)]);
         })()],
       ['p', 'Minh Hội Các bán <b>' + n(CUA_HANG_BANG) + ' món</b> đổi bằng Công Tích, hạn lượt theo ngày, mở khoá dần theo cấp minh.'],
