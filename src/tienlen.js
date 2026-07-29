@@ -1670,6 +1670,13 @@ export function tienLen() {
     get bac() { return (this.$store.game.state.currencies || {}).bac || 0; },
     get mucDoi() { return MUC_DOI; },
     get tiGia() { return TI_GIA; },
+
+    // ---- cửa đổi Trù Mã (popup) ----
+    doiSo: 5000,
+    get doiHopLe() { const n = Math.floor(this.doiSo || 0); return n > 0 && n <= this.bac; },
+    get doiNhan() { return Math.max(0, Math.floor(this.doiSo || 0)) * TI_GIA; },
+    datMuc(m) { this.doiSo = Math.min(m, this.bac) || m; },
+    doiTatCa() { this.doiSo = this.bac; },
     doiChip(bac) {
       const st = this.$store.game.state;
       const r = doiTruMa(st, bac);
@@ -1677,6 +1684,7 @@ export function tienLen() {
       st.currencies.bac -= r.tru;
       try { Storage.save(st); } catch (e) { }
       this.$store.game._tick++;
+      this.$store.game.closeTruMa();
       try { this.$store.game.showToast('Đổi ' + fmt(r.tru) + ' Bạc lấy ' + fmt(r.nhan) + ' Trù Mã.'); } catch (e) { }
     },
 

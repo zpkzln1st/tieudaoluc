@@ -11154,25 +11154,84 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">越南跑得快</span> Tiến Lên</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài chia mười ba lá, ai hết trước thì kẻ đó cầm trịch cả chiếu.</b></div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài đến tay là mệnh, nước ra tay là ý. Ai dứt mười ba lá trước, kẻ ấy cầm trịch cả chiếu.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="tl.van"></b> ván · Về Nhất: <b class="text-amber-300" x-text="tl.nhat"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lãi lỗ cộng dồn: <b :class="(tl.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((tl.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(tl.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
-              <!-- CỬA ĐỔI TRÙ MÃ — một chiều. Chiếu bài không đụng Bạc nhân vật, nên
-                   phải có chỗ nạp, và phải nói rõ là không đổi ngược lại được. -->
-              <div class="mt-3 flex items-center gap-2 flex-wrap">
+              <!-- Số Trù Mã + MỘT nút. Dải bốn nút đổi bày thẳng trên banner làm rối mắt;
+                   dồn hết vào popup thì banner gọn mà chỗ đổi lại rộng rãi hơn. -->
+              <div class="mt-3 flex items-center gap-2.5 flex-wrap">
                 <span class="text-[12px] text-slate-400">Trù Mã:</span>
                 <b class="text-[15px] fserif text-amber-300 tabular-nums" x-text="$store.game.fmtC(truMa)"></b>
-                <span class="text-[11px] text-slate-600">· đổi từ Bạc, không đổi ngược</span>
-                <template x-for="m in mucDoi" :key="m">
-                  <button @click="doiChip(m)" :disabled="bac < m"
-                          class="px-2.5 py-1 rounded-lg text-[11.5px] fserif border transition"
-                          :class="bac >= m ? 'text-amber-200 border-amber-500/45 hover:bg-amber-500/10' : 'text-slate-700 border-slate-800 cursor-default'"
-                          x-text="'+' + $store.game.fmtC(m)"></button>
-                </template>
+                <button @click="$store.game.openTruMa()"
+                        class="px-3 py-1 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
               </div>
             </div>
           </div>
+
+          <!-- ===== POPUP: ĐỔI TRÙ MÃ =====
+               Một chiều, và phải nói thẳng điều đó NGAY TRONG popup — đây là chỗ
+               người chơi dễ hiểu nhầm nhất. Cờ ở store nên vuốt-back tự đóng. -->
+          <template x-if="$store.game.truMaOpen">
+            <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/78 backdrop-blur-sm p-3 sm:p-4"
+                 @click.self="$store.game.closeTruMa()" @keydown.escape.window="$store.game.closeTruMa()">
+              <div class="panel rounded-2xl w-[380px] max-w-full overflow-hidden border border-amber-500/30 shadow-2xl" @click.stop>
+
+                <div class="px-4 py-3 border-b border-slate-800 flex items-center gap-2.5"
+                     style="background:linear-gradient(120deg,rgba(245,185,66,.12),transparent 64%)">
+                  <div class="fserif text-[16px] text-amber-200">Đổi Trù Mã</div>
+                  <button @click="$store.game.closeTruMa()" class="ml-auto w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
+                </div>
+
+                <div class="px-4 py-3.5 space-y-3">
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="rounded-lg bg-ink2/60 border border-slate-800 px-3 py-2">
+                      <div class="lbl leading-tight">Bạc đang có</div>
+                      <div class="text-[15px] fserif text-slate-100 tabular-nums leading-tight mt-0.5" x-text="$store.game.fmtC(bac)"></div>
+                    </div>
+                    <div class="rounded-lg bg-ink2/60 border border-slate-800 px-3 py-2">
+                      <div class="lbl leading-tight">Trù Mã đang có</div>
+                      <div class="text-[15px] fserif text-amber-300 tabular-nums leading-tight mt-0.5" x-text="$store.game.fmtC(truMa)"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="lbl mb-1.5">Đổi bao nhiêu Bạc</div>
+                    <div class="flex items-center gap-2">
+                      <input type="number" min="1" x-model.number="doiSo"
+                             class="flex-1 min-w-0 bg-ink3/70 border border-slate-700 rounded-lg px-3 py-1.5 text-[13.5px] text-slate-100 tabular-nums focus:outline-none focus:border-amber-500/60">
+                      <button @click="doiTatCa()" class="px-2.5 py-1.5 rounded-lg text-[11.5px] fserif text-slate-300 border border-slate-700 hover:border-slate-500 transition shrink-0">Tất cả</button>
+                    </div>
+                    <div class="flex gap-1.5 flex-wrap mt-2">
+                      <template x-for="m in mucDoi" :key="m">
+                        <button @click="datMuc(m)"
+                                class="px-2.5 py-1 rounded-lg text-[11.5px] fserif border transition"
+                                :class="bac >= m ? 'text-amber-200 border-amber-500/40 hover:bg-amber-500/10' : 'text-slate-700 border-slate-800 cursor-default'"
+                                x-text="$store.game.fmtC(m)"></button>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div class="rounded-lg bg-ink2/60 border border-slate-800 px-3 py-2 flex items-baseline justify-between">
+                    <span class="text-[12px] text-slate-500">Nhận được</span>
+                    <b class="text-[16px] fserif text-amber-300 tabular-nums" x-text="$store.game.fmtC(doiNhan) + ' Trù Mã'"></b>
+                  </div>
+
+                  <div class="rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2 text-[12px] text-amber-200/90 leading-relaxed">
+                    Đổi <b>một chiều</b>. Trù Mã chỉ tiêu được ở chiếu bài, không đổi ngược lại thành Bạc.
+                  </div>
+                </div>
+
+                <div class="px-4 py-3 border-t border-slate-800 flex items-center gap-2">
+                  <button @click="$store.game.closeTruMa()" class="px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-400 border border-slate-700 hover:border-slate-500 transition">Thôi</button>
+                  <button @click="doiChip(doiSo)" :disabled="!doiHopLe"
+                          class="ml-auto px-4 py-1.5 rounded-lg text-[12.5px] fserif border transition"
+                          :class="doiHopLe ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-700 border-slate-800 cursor-default'"
+                          x-text="doiHopLe ? 'Đổi' : (bac < 1 ? 'Không có Bạc' : 'Không đủ Bạc')"></button>
+                </div>
+              </div>
+            </div>
+          </template>
 
           <div x-show="!inBattle && savedChieu" class="mt-4 panel rounded-xl p-3 flex items-center gap-3 border border-amber-400/40">
             <div class="tls-quat shrink-0" style="width:96px;height:74px">

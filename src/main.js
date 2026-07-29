@@ -479,7 +479,7 @@ const gameStore = {
   // THÊM MODAL MỚI: nhét tên cờ (boolean, đóng=set false) hoặc ['cờ','closeMethod'] (ref) vào _MODALS. HẾT.
   // CỜ đọc `this[cờ]` truthy = đang mở (dùng được cả boolean lẫn getter/ref như dsProfile/petDetailObj).
   _MODALS: [
-    'statOpen', 'bachTrangOpen', 'settingsModal', 'camNangOpen', 'timOpen', 'hieuUngOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
+    'statOpen', 'bachTrangOpen', 'settingsModal', 'camNangOpen', 'timOpen', 'truMaOpen', 'hieuUngOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
     'boPhapModal', 'baiVoModal', 'shopOpen', 'soSachOpen', 'gioiLuatOpen', 'luanVoOpen', 'daiKhachOpen',
     'tangThuOpen', 'bkMergeOpen', 'giftOpen', 'dailyModal', 'foodPicker', 'danPicker', 'duocLuPicker',
     'phucDungPicker', 'toSuOpen', 'tmEvtOpen', 'tmRecruitOpen', 'tmBagOpen', 'tmCraftOpen', 'tmDuocOpen', 'tmRealmGuideOpen',
@@ -1237,6 +1237,10 @@ const gameStore = {
   // Chỉ một cờ. Mọi trạng thái khác (mục đang đọc, ô tìm) nằm trong x-data của modal —
   // đóng rồi mở lại là về mục đầu, đúng ý: mở Cẩm Nang thường là để tra thứ khác.
   camNangOpen: false,
+  // Cua doi Tru Ma (popup) — co o store de vuot-back tu dong.
+  truMaOpen: false,
+  openTruMa() { this.truMaOpen = true; },
+  closeTruMa() { this.truMaOpen = false; },
   // Đích mở sẵn khi Tìm Kiếm bấm vào một mục: { bang, hang }. camNang() đọc rồi xoá.
   camNangDich: null,
   openCamNang() { this.camNangOpen = true; },
