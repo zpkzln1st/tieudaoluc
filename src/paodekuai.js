@@ -56,8 +56,7 @@ function ensureThree() {
 }
 'use strict';
 
-var TAY = ['Nam', 'Đông', 'Bắc', 'Tây'];      // cửa 0 = người chơi, đi vòng 0→1→2→3
-var HANG_TEN = ['Nhất', 'Nhì', 'Ba', 'Bét'];
+var TAY = ['Nam', 'Hữu', 'Tả'];            // cửa 0 = người chơi, đi vòng 0→1→2 (bàn BA người)
 
 // ---------- kích thước (đơn vị thế giới) ----------
 var R_BAN = 7.15, TH = 0.52, TOPY = TH / 2;       // bàn bát giác
@@ -221,19 +220,21 @@ var SVG = {
 function ic(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + SVG[n] + '</svg>'; }
 
 // ---------- lời thoại NPC ----------
+// ⚠ Viết RIÊNG cho Phao Đắc Khoái, đừng bê của Tiến Lên sang. Trò này KHÔNG có Heo, KHÔNG có
+// tiền thối, KHÔNG có hạng Nhì/Bét — ván dừng ngay khi có người chạy hết bài. Hàng chặt duy nhất
+// là BOM tứ quý. Lá to nhất là lá Hai, và cả bộ 48 lá chỉ có ĐÚNG MỘT lá.
 var LOI = {
-  vao: ['Chia bài đi, tay tôi đang ngứa.', 'Ván này ai cầm Ba Bích thì mở màn.', 'Bài bạc là chuyện nhỏ, thua keo này ta bày keo khác.', 'Ngồi xuống thì đừng tính đường rút.', 'Lâu rồi mới có người dám ngồi cùng chiếu.'],
-  heo: ['Heo đây, ai chặt được thì chặt.', 'Con này chắc không ai đè nổi đâu nhỉ.', 'Thả Heo dò đường một cái.', 'Tôi ra Heo, các vị liệu mà giữ hàng.'],
-  chatDuoc: ['Chặt! Cất Heo đi mà tiếc.', 'Đợi mãi mới có con Heo để chém.', 'Hàng này tôi giữ từ đầu ván đấy.', 'Xin lỗi, tứ quý nằm sẵn trong tay rồi.'],
-  biChat: ['Thôi xong, đụng hàng chặt rồi.', 'Giấu kỹ thế cơ à.', 'Tôi tưởng cả làng hết hàng chặt rồi chứ.', 'Đau, con Heo đó tôi tính để về đấy.'],
+  vao: ['Chia bài đi, tay tôi đang ngứa.', 'Ai cầm Ba Cơ thì mở lượt nhé.', 'Bài bạc là chuyện nhỏ, thua keo này ta bày keo khác.', 'Ngồi xuống thì đừng tính đường rút.', 'Lâu rồi mới có người dám ngồi cùng chiếu.'],
+  heo: ['Lá Hai đây, cả bộ có mỗi một con.', 'Con này chắc không ai đè nổi đâu nhỉ.', 'Thả lá Hai dò đường một cái.', 'Tôi ra lá Hai, các vị liệu mà giữ bom.'],
+  chatDuoc: ['Bom! Cất bài đi mà tiếc.', 'Đợi mãi mới có chỗ thả bom.', 'Tứ quý này tôi giữ từ đầu ván đấy.', 'Xin lỗi, bốn con nằm sẵn trong tay rồi.'],
+  biChat: ['Thôi xong, dính bom rồi.', 'Giấu kỹ thế cơ à.', 'Tôi tưởng cả làng hết bom rồi chứ.', 'Đau, bộ đó tôi tính để chạy đấy.'],
   bo: ['Không đè nổi, tôi bỏ.', 'Bài tôi kẹt, mời các vị.', 'Bỏ lượt, để dành sức.', 'Nước này tôi chịu.'],
-  sapVe: ['Tôi còn hai lá thôi đấy, liệu mà chặn.', 'Sắp hết bài rồi, ai chặn được không?', 'Một lượt nữa là tôi về.'],
-  veNhat: ['Về Nhất! Thu tiền thôi.', 'Bài đẹp thì đánh kiểu gì cũng thắng.', 'Tôi đi trước, các vị chia nhau phần thối nhé.'],
-  thua: ['Bét rồi, hôm nay tay tôi lạnh quá.', 'Bài xấu thì đành chịu, ván sau gỡ.', 'Thua tâm phục, không kêu ca.'],
-  khen: ['Nước đó đẹp đấy.', 'Tay bài này chắc chơi lâu năm rồi.', 'Được, các hạ có nghề.'],
+  sapVe: ['Tôi còn một lá thôi đấy, liệu mà chặn.', 'Sắp hết bài rồi, ai chặn được không?', 'Một lượt nữa là tôi trắng tay.'],
+  veNhat: ['Chạy hết rồi! Đếm bài đi các vị.', 'Bài đẹp thì đánh kiểu gì cũng thắng.', 'Tôi đi trước, bài đọng lại các vị tự tính nhé.'],
+  thua: ['Bài đọng cả nắm, hôm nay tay tôi lạnh quá.', 'Bài xấu thì đành chịu, ván sau gỡ.', 'Thua tâm phục, không kêu ca.'],
   dap: ['Nói ít thôi, đánh đi.', 'Ừ thì cứ đánh rồi biết.', 'Còn lâu mới tới lượt các hạ mừng.', 'Hay lắm, để xem cuối ván ai cười.', 'Được, tôi nghe đây.']
 };
-var CHIP_NGUOI = ['Chia bài đi.', 'Bài này khó nhằn đấy.', 'Chặt luôn cho nhanh.', 'Ai còn Heo thì ra đi.', 'Ván này tôi không nhường.', 'Nước đó đẹp thật.', 'Thua keo này bày keo khác.', 'Từ từ, để tôi tính đã.'];
+var CHIP_NGUOI = ['Chia bài đi.', 'Bài này khó nhằn đấy.', 'Thả bom cho nhanh.', 'Ai còn lá Hai thì ra đi.', 'Ván này tôi không nhường.', 'Nước đó đẹp thật.', 'Thua keo này bày keo khác.', 'Từ từ, để tôi tính đã.'];
 
 // ============================================================
 function mountPaoDeKuai(host, opts) {
