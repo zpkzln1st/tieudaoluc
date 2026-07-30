@@ -3558,7 +3558,7 @@ const gameStore = {
   get suyYeuRemainSec() { void this._cycleNow; const u = this.state.combat.suyYeuUntil; return u ? Math.max(0, Math.ceil((u - now()) / 1000)) : 0; },
   recoverFromSuyYeu() { this.state.combat.noiThuong = false; this.state.combat.sinhLuc = null; this.state.combat.noiLuc = null; this.state.combat.suyYeuUntil = 0; Storage.save(this.state); this.showToast('Vết thương đã lành — Sinh Lực hồi đầy, có thể chiến đấu tiếp.'); },
   // --- Chiến báo theo CHU KỲ (mỗi vòng 8s = 1 trận; hết vòng mới hiện trọn chiến báo + kết quả) ---
-  chienBao: [],             // mảng các BLOCK trận: { lines:[{h,c}], won }
+  chienBao: [],             // mảng các BLOCK trận: { no, html, won, he } — html đã gộp sẵn, xem resolveCycle
   _cycleStart: 0,           // mốc bắt đầu vòng hiện tại (0 = chưa chạy; vòng đầu chỉ ra sau khi đếm đủ 8s)
   _cycleNow: 0,             // nhịp thời gian (rafLoop cập nhật) -> thanh tiến độ vòng phản ứng
   _nlNow: null,             // Nội Lực sau trận gần nhất (đồng bộ với log)
@@ -3572,32 +3572,47 @@ const gameStore = {
   resolveCycle() {
     if (!this.actIsCombat || this.combatNoiThuong) return;
     const enemy = this.ENEMIES[this.act.enemyId]; if (!enemy) return;
-    autoEatTick(this.state, this.combatMaxHp);            // tự dùng Món Ăn / Đan hồi máu khi Sinh Lực < 25%
-    const maxNL = this.combatMaxNL;                       // Nội Lực trôi qua các trận + tự dùng đan hồi Nội Lực < 25%
+    // ⚠ Lấy bộ chỉ số RA MỘT LẦN rồi dùng lại. `combatStats` là getter KHÔNG có bộ nhớ đệm, mỗi
+    //   lượt đọc là một lần `deriveCombat` đầy đủ (đo được 202 µs qua proxy). Bản cũ đọc qua
+    //   `combatMaxHp` · `combatMaxNL` · `combatSinhLuc` · `combatStats` là bốn lần dẫn xuất
+    //   trong cùng một khung — mà khung này vốn đã là khung nặng nhất của cả trận.
+    const cs = this.combatStats;
+    const maxHP = cs.maxHP;
+    autoEatTick(this.state, maxHP);                       // tự dùng Món Ăn / Đan hồi máu khi Sinh Lực < 25%
+    const maxNL = Math.round(cs.maxNL);                   // Nội Lực trôi qua các trận + tự dùng đan hồi Nội Lực < 25%
     let nl = this.state.combat.noiLuc == null ? maxNL : this.state.combat.noiLuc;
     const rNL = autoDanNL(this.state, maxNL, nl); if (rNL) nl = Math.min(maxNL, nl + rNL);
-    const hp0 = this.combatSinhLuc;                          // máu trước trận (cho Linh Thú chia lửa)
-    const f = makeFight(this.combatStats, this.loadout.chieu, enemy, this.combatSinhLuc, null, nl);
+    const sl0 = this.state.combat.sinhLuc;
+    const hp0 = sl0 == null ? maxHP : Math.max(0, Math.min(sl0, maxHP));   // máu trước trận (cho Linh Thú chia lửa)
+    const f = makeFight(cs, this.loadout.chieu, enemy, hp0, null, nl);
     let g = 0; while (!f.over && g < 400) { stepFight(f); g++; }
     this.state.combat.noiLuc = Math.round(f.p.nl);        // lưu Nội Lực còn lại (trôi sang trận sau)
     this._nlNow = this.state.combat.noiLuc;               // đồng bộ thanh Nội Lực với log
     this._roundNo = (this._roundNo || 0) + 1;             // đánh số vòng
-    this.chienBao.unshift({ no: this._roundNo, lines: f.log.slice(), won: f.result === 'win', he: f.eHe });
-    if (this.chienBao.length > 12) this.chienBao = this.chienBao.slice(0, 12);
-    const box = document.getElementById('chienBaoBox'); if (box) box.scrollTop = 0;
+    const dong = f.log.slice();
     if (f.result === 'win') {
       this.awardKill(f);                                    // đã lưu state.combat.sinhLuc = HP còn lại
       const dmg = Math.max(0, hp0 - this.state.combat.sinhLuc);
       const pc = petCombatCycle(this.state, dmg, now());    // Linh Thú: chia lửa + bị động + chủ động
       const add = (pc.absorb || 0) + (pc.heal || 0);
-      if (add > 0) this.state.combat.sinhLuc = Math.min(this.combatMaxHp, this.state.combat.sinhLuc + add);
-      if (pc.skill && this.chienBao[0]) {                   // tuyệt kĩ phát -> dòng riêng trong chiến báo
+      if (add > 0) this.state.combat.sinhLuc = Math.min(maxHP, this.state.combat.sinhLuc + add);
+      if (pc.skill) {                                       // tuyệt kĩ phát -> dòng riêng trong chiến báo
         const pn = this.petName(this.activePetObj);
         let h = '<span class="text-jade">✦</span> ' + pn + ' thi triển 〈' + pc.skill.name + '〉, giáng <b class="dmg">' + this.fmt(pc.skill.dmg) + '</b> sát thương phụ trợ';
         if (pc.skill.heal > 0) h += ', hồi <span class="text-jade">' + this.fmt(pc.skill.heal) + '</span> sinh lực cho chủ';
-        this.chienBao[0].lines.push({ h: h + '.', c: 'text-jade' });
+        dong.push({ h: h + '.', c: 'text-jade' });
       }
     } else this.combatDeath();
+    // ⚠ Gộp cả khối thành MỘT chuỗi HTML rồi mới đưa vào mảng. Bản cũ để template chạy
+    //   `x-for` từng dòng với `x-html` ⇒ mỗi vòng đánh là ~20 lần phân tích HTML + ~40 hiệu ứng
+    //   Alpine mới, dồn hết vào đúng cái khung kết vòng (đo trên máy user: khung 49,4ms).
+    //   Mấy dòng này BẤT BIẾN sau khi tạo nên gộp sẵn là an toàn.
+    let html = '';
+    for (let i = 0; i < dong.length; i++) html += '<div class="mb-0.5 ' + (dong[i].c || '') + '">' + dong[i].h + '</div>';
+    // ⚠ CẮT TẠI CHỖ bằng splice, đừng gán mảng mới: gán mảng mới bắt Alpine dựng lại cả 12 khối.
+    this.chienBao.unshift({ no: this._roundNo, html: html, won: f.result === 'win', he: f.eHe });
+    if (this.chienBao.length > 12) this.chienBao.splice(12);
+    const box = document.getElementById('chienBaoBox'); if (box) box.scrollTop = 0;
   },
   awardKill(f) {
     const e = this.ENEMIES[this.act.enemyId]; if (!e) return;

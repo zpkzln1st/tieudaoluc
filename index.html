@@ -3243,7 +3243,10 @@
                         <span class="flex-1 border-t border-dashed border-slate-700/70"></span>
                         <span x-text="fb.won?'Thắng':'Bại'"></span>
                       </div>
-                      <template x-for="(l,j) in fb.lines" :key="j"><div class="mb-0.5" :class="l.c" x-html="l.h"></div></template>
+                      <!-- ⚠ MỘT x-html cho cả khối. Trước đây x-for từng dòng: mỗi vòng đánh đẻ
+                           ~20 lần phân tích HTML + ~40 hiệu ứng Alpine, dồn vào đúng khung kết
+                           vòng (đo trên máy thật: khung 49,4ms). Chuỗi đã gộp sẵn ở resolveCycle. -->
+                      <div x-html="fb.html"></div>
                     </div>
                   </template>
                 </div>
