@@ -8,7 +8,7 @@
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf, KY_NGHE } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Cờ Tướng
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
-import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung, vuaKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // ---------- ensure/migrate: khởi tạo state.nguTu (gọi mỗi lần load) ----------
 export function ensureNguTu(state) {
@@ -497,6 +497,7 @@ function mountNguTu(host, opts) {
     else if (result === 2) { end.classList.add('lose'); bt.textContent = 'Bạn Thua'; bs.textContent = opp.name + ': 「' + pick(LINES.win) + '」'; }
     else { end.classList.add('draw'); bt.textContent = 'Hòa Cờ'; bs.textContent = opp.name + ': 「' + pick(LINES.draw) + '」'; }
     b.classList.add('show');
+    vuaKhung(end, root);   // ep bang tong ket vua khung, khoi phai lan chuot
     try { if (opts.onEnd) opts.onEnd(result); } catch (e) {}
   }
   function undo() { if (over) return; clearGhost(); let n = 0; while (n < 2 && moves.length > 0) { const mv = moves.pop(); const mm = meshAt[key(mv.c, mv.r)]; if (mm) { boardGroup.remove(mm); delete meshAt[key(mv.c, mv.r)]; } board[mv.r][mv.c] = 0; n++; } current = HUMAN; over = false; turnUI(); }
@@ -672,6 +673,7 @@ function mountNguTu(host, opts) {
   function onResize() {
     if (!renderer) return;
     capKhung(root);                     // khung thấp -> chrome rút gọn (xem engine/toanman.js)
+    if ($('.ntk-banner').classList.contains('show')) vuaKhung($('.ntk-end'), root);
     const w = W(), h = H(); renderer.setSize(w, h);
     const ar = w / h, portrait = ar < 1.05;
     // Mobile: CHỪA dải TRÊN (thẻ tên đấu thủ) + dải DƯỚI (hàng nút), bàn khớp vào ĐÚNG khoảng giữa

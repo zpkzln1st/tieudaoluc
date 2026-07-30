@@ -82,6 +82,44 @@ export function capKhung(root) {
   root.classList.toggle('kh-nho', root.clientHeight < 460);
 }
 
+/**
+ * Ép một bảng (bảng tổng kết cuối ván) VỪA HẲN trong khung bàn — user chốt 2026-07-30:
+ * *"thiết kế cho phần kết thúc này k cần lăn chuột đc k … tôi k muốn lăn chuột để xem cái kết quả"*.
+ * Đo chiều cao THẬT rồi thu nhỏ bằng `transform: scale`, thay vì cho cuộn.
+ * ⚠ Phải gọi SAU khi bảng đã hiện (đang `display:none` thì đo ra 0).
+ * ⚠ Phải gỡ `max-height` + `overflow` tạm thời mới đo được chiều cao thật, không thì CSS đã kẹp
+ *   sẵn rồi, đo ra đúng bằng khung và tưởng là vừa.
+ * @param {Element} bang  thẻ bảng (vd .bx-end)
+ * @param {Element} khung thẻ gốc của bàn
+ */
+export function vuaKhung(bang, khung) {
+  if (!bang || !khung) return;
+  // ⚠ Chữ (Lora / Ma Shan Zheng) nạp SAU nên lần đo đầu ra thấp hơn thật ⇒ thu chưa đủ, bảng
+  //   vẫn thò khỏi khung. Hẹn đo lại một nhịp nữa cho chắc.
+  if (!bang._tmLai) {
+    bang._tmLai = 1;
+    setTimeout(function () { bang._tmLai = 0; if (bang.offsetParent) vuaKhung(bang, khung); }, 260);
+  }
+  const s = bang.style;
+  s.removeProperty('transform');
+  s.maxHeight = 'none';
+  s.overflow = 'visible';
+  const cao = bang.offsetHeight, rong = bang.offsetWidth;
+  if (!cao || !rong) return;
+  const H = khung.clientHeight - 14, W = khung.clientWidth - 14;
+  let k = Math.min(1, H / cao, W / rong);
+  bang.dataset.tm = cao + '/' + rong + ' trong ' + H + '/' + W + ' -> ' + k.toFixed(3);   // để trang đo đọc
+  if (k >= 0.999) { s.removeProperty('transform'); s.maxHeight = ''; s.overflow = ''; return; }
+  // Thu quá 0,52 thì chữ bé không đọc nổi — dừng ở đó và trả lại quyền cuộn cho phần dư.
+  if (k < 0.52) { k = 0.52; s.maxHeight = Math.round(H / k) + 'px'; s.overflow = 'auto'; }
+  s.transformOrigin = 'center center';
+  // ⚠ PHẢI `!important`: bảng có sẵn animation bung ra (`bxPop`) mà **animation thắng style nội
+  //   tuyến thường** — đặt suông thì tỉ lệ thu bị animation nuốt, bảng vẫn thò khỏi khung
+  //   (đo được: tính đúng 0,821 mà thực tế vẫn là 0,97 của khung hình đầu animation).
+  //   Chỉ `!important` của tác giả mới đứng trên animation trong thứ tự tầng bậc.
+  s.setProperty('transform', 'scale(' + k.toFixed(3) + ')', 'important');
+}
+
 function camUng() {
   try { return window.matchMedia && matchMedia('(pointer:coarse)').matches; } catch (e) { return false; }
 }

@@ -3,11 +3,13 @@
 // Tiến Lên Trung Quốc). User chốt 2026-07-30: ngồi xuống chiếu thì KHÔNG chia bài ngay,
 // chờ khoảng 5 giây có số đếm ngược giữa bàn rồi mới chia.
 //
-// Chỉ đếm ở ván ĐẦU của chiếu (lúc vừa ngồi xuống). Bấm "Ván Mới" thì chia luôn — đang ngồi
-// sẵn ở bàn rồi, bắt chờ thêm 5 giây mỗi ván là phiền.
+// Ván ĐẦU của chiếu (vừa ngồi xuống) đếm 5 giây; bấm "Ván Mới" đếm 3 giây — user chốt
+// 2026-07-30: *"mỗi lần xong 1 ván, bấm ván mới cũng cần thời gian 3 giây mới chia bài nha"*.
+// Bày lại ván dở (tải lại trang) thì KHÔNG đếm — bài đang nằm sẵn trên bàn.
 // ============================================================
 
-export const GIAY_CHIA = 5;
+export const GIAY_CHIA = 5;        // ván đầu của chiếu
+export const GIAY_VAN_MOI = 3;     // bấm "Ván Mới"
 
 function themStyle() {
   if (document.getElementById('dc-style')) return;

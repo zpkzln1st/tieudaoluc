@@ -10,8 +10,8 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
-import { demChia } from './engine/demchia.js';   // đếm ngược 5 giây rồi mới chia bài
+import { ganToanMan, nutToanManHTML, capKhung, vuaKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { demChia, GIAY_CHIA, GIAY_VAN_MOI } from './engine/demchia.js';   // đếm ngược rồi mới chia bài
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Tiến Lên, không vỡ cả game.
 let E = null;
@@ -1119,6 +1119,7 @@ function mountTienLen(host, opts) {
   function onResize() {
     if (!renderer) return;
     capKhung(root);                      // khung thấp -> chrome rút gọn (xem engine/toanman.js)
+    if ($('.tl-banner').classList.contains('show')) vuaKhung($('.tl-end'), root);
     renderer.setSize(W(), H());
     // Khổ dọc chừa dải trên cho tiêu đề, dải dưới cho hàng icon + hàng nút.
     var doc = W() / H() < 1;
@@ -1417,7 +1418,7 @@ function mountTienLen(host, opts) {
     };
     // Ván ĐẦU của chiếu: đếm ngược 5 giây giữa bàn cho người chơi kịp nhìn chiếu rồi mới chia.
     // "Ván Mới" thì chia luôn — đang ngồi sẵn ở bàn, bắt chờ thêm mỗi ván là phiền.
-    if (dem) huyDem = demChia(root, chia); else chia();
+    if (dem) huyDem = demChia(root, chia, dem); else chia();
   }
 
   function sangLuot() {
@@ -1552,6 +1553,7 @@ function mountTienLen(host, opts) {
       '<span>Bạc ' + (kq.dong[0] >= 0 ? '+' : '−') + fmt(Math.abs(kq.dong[0])) + '</span>';
 
     $('.tl-banner').classList.add('show');
+    vuaKhung($('.tl-end'), root);      // ép bảng vừa khung, khỏi phải lăn chuột xem kết quả
     if (bet >= 1) npcNoi(bet, 'thua', true);
     capNhatSeat(); capNhatCur();
     if (opts.onEnd) opts.onEnd({ hang: hangToi, bac: kq.dong[0], kyHon: kyHon });
@@ -1595,7 +1597,7 @@ function mountTienLen(host, opts) {
       c.classList.toggle('show', show);
       if (show) { napChip(); setTimeout(function () { $('.tl-chat-in').focus(); }, 40); }
     } else if (a === 'again') {
-      vanMoi(null);                 // "Ván Mới" luôn chia lại từ đầu
+      vanMoi(null, GIAY_VAN_MOI);   // "Ván Mới" chia lại từ đầu, đếm 3 giây
     } else if (a === 'exit' || a === 'leave') {
       if (opts.onExit) opts.onExit();
     }
@@ -1670,7 +1672,7 @@ function mountTienLen(host, opts) {
     if (opts.gocNhin) { sph.theta = opts.gocNhin.theta; sph.phi = opts.gocNhin.phi; sph.zoom = opts.gocNhin.zoom || 1; }
     canKhung();
     // Ván đầu của chiếu: đếm ngược 5 giây rồi mới chia. Bày lại ván dở thì KHÔNG đếm.
-    vanMoi(opts.saved || null, !opts.saved);
+    vanMoi(opts.saved || null, opts.saved ? 0 : GIAY_CHIA);
     setTimeout(onResize, 120); setTimeout(onResize, 480);
     setTimeout(datSeat, 900); setTimeout(datSeat, 2000);   // chân dung tải xong thì thẻ đổi cỡ, canh lại
     animate(0);

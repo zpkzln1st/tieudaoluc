@@ -13,8 +13,8 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
-import { demChia } from './engine/demchia.js';   // đếm ngược 5 giây rồi mới chia bài
+import { ganToanMan, nutToanManHTML, capKhung, vuaKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { demChia, GIAY_CHIA, GIAY_VAN_MOI } from './engine/demchia.js';   // đếm ngược rồi mới chia bài
 
 /** Sổ riêng của Binh Xập Xám. Cách ly hoàn toàn với phần cày chính. */
 export function ensureBinh(state) {
@@ -374,7 +374,11 @@ function injectStyle() {
     // ===== popup xếp bài =====
     '.bxp-wrap{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,9,14,.72);z-index:14;padding:14px}',
     '.bxp-wrap.show{display:flex}',
-    '.bxp{width:min(840px,98%);max-height:96%;overflow:auto;border-radius:16px;padding:14px 16px 12px;',
+    // ⚠ `width:fit-content` chứ đừng chốt `min(840px,98%)`: khung NGANG rộng hơn khối bài nhiều
+    //   nên bảng chiếm hết bề ngang mà khối bài dồn về mép trái, thừa hẳn một mảng bên phải
+    //   (user chụp được). Bảng ôm sát nội dung thì tự nằm giữa màn.
+    '.bxp{width:fit-content;min-width:min(320px,96%);max-width:min(840px,98%);max-height:96%;',
+    '  overflow:auto;border-radius:16px;padding:14px 16px 12px;',
     '  background:linear-gradient(180deg,rgba(19,27,40,.99),rgba(11,16,24,.99));border:1px solid rgba(230,192,121,.24)}',
     '.bxp-top{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}',
     '.bxp-top b{font-family:var(--serif);font-size:16px;color:var(--gold2)}',
@@ -396,7 +400,9 @@ function injectStyle() {
     // đổi lại tốn chiều dọc: khối bài cao 3 lá thay vì 2. Cỡ lá giữ nguyên vì vẫn vừa popup.
     // Nhãn chi tách hẳn thành CỘT RIÊNG bên trái — dán đè lên lá thì che mất mặt bài,
     // để bên phải thì hàng 5 lá đẩy nó lòi khỏi popup.
-    '.bxp-chong{padding:2px 0 4px}',
+    // Khối ba chi luôn nằm GIỮA bảng — đầu bảng (tiêu đề + đồng hồ) có khi rộng hơn khối bài,
+    // để mặc định là khối bài lệch trái.
+    '.bxp-chong{padding:2px 0 4px;display:flex;flex-direction:column;align-items:center}',
     // Nhãn chi và hàng bài là HAI Ô CỦA MỘT FLEX, không còn dán tuyệt đối: cột nhãn chỉ cần
     // đổi hướng flex là nhảy lên trên hàng bài, khỏi tính lại toạ độ cho khổ hẹp.
     '.bxp-chi{display:flex;align-items:center;gap:12px}',
@@ -1324,6 +1330,7 @@ function onResize() {
   // to bằng khung không còn chỗ nào không đè lên bài, và hàng nút thì to lấn hết bàn.
   capKhung(root);
   coLaPopup();                       // xoay ngang / vào toàn màn hình là bảng xếp phải tính lại cỡ lá
+  if ($('.bx-banner').classList.contains('show')) vuaKhung($('.bx-end'), root);
   if (!renderer) return;
   renderer.setSize(W(), H());
   var z = sph.zoom || 1; target.set(0, 0, 0); canKhung(); sph.zoom = z; updCam();
@@ -1498,6 +1505,7 @@ function hienTong() {
   //    Nó vừa dài vừa lặp — `chiTiet` ghi khoản thưởng một lần cho MỖI nhà bị so, nên một bộ
   //    Thùng Phá Sảnh hiện ra ba lần y hệt nhau. Số thưởng đã nằm trong ô chi rồi.
   $('.bx-banner').classList.add('show');
+  vuaKhung($('.bx-end'), root);      // ép bảng vừa khung, khỏi phải lăn chuột xem kết quả
   // Đếm số nhà mình sập trọn ba chi (Sâm Banh) — dùng cho sổ thành tích.
   var samBanh = 0, dTa = kqVan.dg[0];
   if (dTa && !kqVan.mb[0] && !kqVan.lung[0]) {
@@ -1693,7 +1701,8 @@ function choTreo(ben, k, w, h, rw, rh) {
 /** Giá của một chỗ treo: đè lên bài nặng nhất, rồi đến đè chrome / thẻ khác, rồi lòi khỏi khung. */
 function giaTreo(p, w, h, khoi, can, rw, rh) {
   var b = { x0: p[0] - w / 2, y0: p[1] - h / 2, x1: p[0] + w / 2, y1: p[1] + h / 2 }, g = 0, i;
-  for (i = 0; i < khoi.length; i++) g += chongNhau(b, khoi[i]) * 2.2;
+  // Đè lên BÀI là tệ nhất (che mất mặt bài) — nặng gấp đôi đè lên chrome hay đè lên thẻ khác.
+  for (i = 0; i < khoi.length; i++) g += chongNhau(b, khoi[i]) * 5.0;
   for (i = 0; i < can.length; i++) g += chongNhau(b, can[i]) * 1.4;
   var lo = Math.max(0, -b.x0) + Math.max(0, b.x1 - rw) + Math.max(0, -b.y0) + Math.max(0, b.y1 - rh);
   return g + lo * 130;
@@ -1803,9 +1812,8 @@ function vanMoi(dem) {
       moPopup();
     });
   };
-  // Ván ĐẦU của chiếu: đếm ngược 5 giây giữa bàn cho người chơi kịp nhìn chiếu, rồi mới chia.
-  // "Ván Mới" thì chia luôn — đang ngồi sẵn ở bàn, bắt chờ thêm mỗi ván là phiền.
-  if (dem) { $('.bx-canh').textContent = 'Vào chiếu — sắp chia bài'; huyDem = demChia(root, chia); }
+  // Đếm ngược giữa bàn rồi mới chia: ván ĐẦU của chiếu 5 giây, "Ván Mới" 3 giây.
+  if (dem) { $('.bx-canh').textContent = 'Sắp chia bài'; huyDem = demChia(root, chia, dem); }
   else chia();
 }
 // ================= vòng vẽ =================
@@ -1867,7 +1875,7 @@ root.addEventListener('click', function (e) {
   else if (a === 'xoa') xepLai();
   else if (a === 'dong') dongPopup();   // đóng KHÔNG phải binh — đồng hồ vẫn chạy, mở lại được
   else if (a === 'mo') { if (!daBinh) moPopup(); }
-  else if (a === 'again') vanMoi();
+  else if (a === 'again') vanMoi(GIAY_VAN_MOI);   // ván mới: đếm 3 giây
   else if (a === 'spectate') {
     spectate = !spectate;
     if (spectate) toast('Quan Chiến: kéo để xoay bàn, lăn chuột để phóng.');
@@ -1892,7 +1900,7 @@ try {
     sph.zoom = opts.gocNhin.zoom || 1;
     updCam();
   }
-  vanMoi(true);                 // ván đầu của chiếu: đếm ngược 5 giây rồi mới chia
+  vanMoi(GIAY_CHIA);            // ván đầu của chiếu: đếm ngược 5 giây rồi mới chia
   setTimeout(onResize, 120); setTimeout(onResize, 480);
   animate(0);
   // Móc chẩn đoán: trang đo ngoài đọc được vị trí THẬT của từng lá trên bàn, khỏi chép lại
