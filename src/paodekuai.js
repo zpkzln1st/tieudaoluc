@@ -15,13 +15,13 @@ import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồ
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
 
-// Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Tiến Lên, không vỡ cả game.
+// Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Phao Đắc Khoái, không vỡ cả game.
 let E = null;
 function ensureEngine() {
   if (E) return Promise.resolve();
   return import('./engine/paodekuai.js').then((m) => {
     const need = ['deal', 'classify', 'beats', 'genMoves', 'duocBo', 'aiPick', 'ketSo', 'tenBo'];
-    for (const k of need) if (typeof m[k] !== 'function') throw new Error('Engine Tiến Lên thiếu hàm ' + k + '.');
+    for (const k of need) if (typeof m[k] !== 'function') throw new Error('Engine Phao Đắc Khoái thiếu hàm ' + k + '.');
     E = m;
   });
 }
@@ -30,9 +30,10 @@ function ensureEngine() {
 export function ensurePaoDeKuai(state) {
   if (!state.paoDeKuai) state.paoDeKuai = {};
   const n = state.paoDeKuai;
-  if (!n.rec) n.rec = {};              // { chieuId: { van, nhat, bet } }
+  if (!n.rec) n.rec = {};              // { chieuId: { van, nhat, bom } }
   if (n.van == null) n.van = 0;        // tổng số ván đã chơi
-  if (n.nhat == null) n.nhat = 0;      // tổng số lần về Nhất
+  if (n.nhat == null) n.nhat = 0;      // tổng số ván chạy hết bài trước
+  if (n.bom == null) n.bom = 0;        // tổng số quả bom đã đánh
   if (n.lai == null) n.lai = 0;        // lãi/lỗ TRÙ MÃ cộng dồn (không phải Bạc)
   if (n.game === undefined) n.game = null;   // ván dở (giữ qua F5) = { chieuId, van }
   // Kỳ Hồn dùng CHUNG: nguồn duy nhất state.kyHon (engine/kyhon.js).
@@ -53,7 +54,6 @@ function ensureThree() {
   });
   return window._ntkThreeP;
 }
-
 'use strict';
 
 var TAY = ['Nam', 'Đông', 'Bắc', 'Tây'];      // cửa 0 = người chơi, đi vòng 0→1→2→3
@@ -246,7 +246,7 @@ function mountPaoDeKuai(host, opts) {
 
   // cửa 0 = người chơi; 1,2,3 = Đông, Bắc, Tây
   var CUA = [{ ten: nguoi.ten, bietHieu: 'Khách qua đường', art: nguoi.art, rank: 0 }];
-  for (var q = 0; q < 3; q++) {
+  for (var q = 0; q < 2; q++) {                 // bàn BA người: chỉ hai đối thủ
     var d = doiThu[q] || { ten: 'Đối Thủ', bietHieu: '', rank: 700, id: '' };
     CUA.push({ ten: d.ten, bietHieu: d.bietHieu, art: d.art || ('../images/danhsi/' + d.id + '.webp'), rank: d.rank });
   }
@@ -255,7 +255,7 @@ function mountPaoDeKuai(host, opts) {
     '<div class="pk-root">' +
       '<div class="pk-scene"></div><div class="pk-vig"></div><div class="pk-turn"></div>' +
       '<div class="pk-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:11.5px;color:#7d6c58"></div></div>' +
-      '<div class="pk-title"><span class="hz">越南跑得快</span><span class="vz">Tiến Lên</span></div>' +
+      '<div class="pk-title"><span class="hz">中国跑得快</span><span class="vz">Tiến Lên Trung Quốc</span></div>' +
       '<div class="pk-chieu">' + (opts.chieu || '') + ' · cược ' + fmt(cuoc) + ' Trù Mã mỗi cửa</div>' +
       '<div class="pk-cur"><span class="dot"></span><span class="ct"></span></div>' +
       '<div class="pk-left">' +
@@ -400,13 +400,15 @@ function mountPaoDeKuai(host, opts) {
     var W = 220, H = 308, cv = document.createElement('canvas');   // lá bài nay to gấp đôi ⇒ cần nhiều điểm ảnh hơn
     cv.width = W * 13; cv.height = H * 4;
     var x = cv.getContext('2d');
-    for (var s = 0; s < 3; s++) for (var r = 0; r < 13; r++) veMatBai(x, r * W, s * H, W, H, r, s);
+    // ⚠ biến `s` ở ĐÂY là CHẤT BÀI (4 chất), KHÔNG phải cửa ngồi — bàn ba người vẫn phải vẽ đủ BỐN hàng.
+    // Đổi nhầm thành 3 thì hàng chất Cơ không được vẽ, mọi lá ♥ ra một miếng đen thui.
+    for (var s = 0; s < 4; s++) for (var r = 0; r < 13; r++) veMatBai(x, r * W, s * H, W, H, r, s);
 
     return loNet(new THREE.CanvasTexture(cv));
   }
 
   function veMatBai(x, X0, Y0, W, H, r, s) {
-    var ky = TL.RANK_KY[r], mau = MAU_CHAT[s], ve = VE_CHAT[s], heo = (r === 12), ach = (r === 11);
+    var ky = TL.BAC_KY[r], mau = MAU_CHAT[s], ve = VE_CHAT[s], heo = (r === 12), ach = (r === 11);
     var pad = W * 0.035, rr = W * 0.085;
     x.save(); x.translate(X0, Y0);
     // nền ngà, hơi ngả vàng ở rìa
@@ -766,7 +768,7 @@ function mountPaoDeKuai(host, opts) {
   /** UV con trong atlas cho lá `c`. */
   function matGeoFor(c) {
     var g = GEO.mat.clone();
-    var r = TL.rankOf(c), s = TL.suitOf(c);
+    var r = TL.bacOf(c), s = TL.chatOf(c);
     var u0 = r / 13, du = 1 / 13, v0 = 1 - (s + 1) / 4, dv = 1 / 4;
     var m = 0.004;   // co vào chút cho khỏi rỉ pixel ô bên cạnh
     var uv = g.attributes.uv;
@@ -823,13 +825,16 @@ function mountPaoDeKuai(host, opts) {
     // ⚠ y phải đủ cao: lá nghiêng 58° nên ĐÁY lá tụt xuống 0.48 so với tâm. Để y=0.72 thì đáy rơi xuống
     //   0.24 — thấp hơn mặt nỉ (0.264) và vành gỗ (0.316) ⇒ hai đầu bài bị vành gỗ CẮT NGANG mất chân.
     //   y=0.90 ⇒ đáy ở 0.42, nổi hẳn trên vành, đúng kiểu bài đang cầm trên tay.
-    // BA cửa, cách nhau 120°. Góc ngồi φ đo trong mặt phẳng xz (pos = R·cosφ, ·, R·sinφ);
-    // hướng quay để bài ngoảnh vào tâm bàn là **rotY = φ − π/2** (mình ở φ=90° nên rotY=0).
-    //   mình  φ = 90°  (mép gần)      · nhà Hữu φ = −30° (góc trên phải) · nhà Tả φ = 210° (góc trên trái)
-    // Bỏ trống hẳn mép xa: ba người mà kê một nhà ở chính giữa mép xa thì hai bên trống huơ.
-    { pos: [0, 0.90, 3.95], rotY: 0, tilt: -1.02, arc: 0, step: 0.52, scale: 1.88 },
-    { pos: [3.94, 0.30, -2.28], rotY: -2 * Math.PI / 3, tilt: Math.PI / 2, arc: 0, step: 0.28, scale: 0.72 },
-    { pos: [-3.94, 0.30, -2.28], rotY: 2 * Math.PI / 3, tilt: Math.PI / 2, arc: 0, step: 0.28, scale: 0.72 }
+    // ⚠ BA cửa: mình ở mép gần, hai nhà kia HAI BÊN (trái · phải). KHÔNG có nhà đối diện —
+    // user chốt bằng ảnh mẫu. Bản trước kê hai nhà ở hai góc trên (φ = ±120°) thì quạt bài
+    // chạy chéo vào giữa bàn, nhìn ra hai dải xiên — HỎNG, đừng làm lại.
+    // rotY = ∓π/2 làm quạt bài chạy dọc trục z ⇒ trên màn là một CỘT DỌC gọn ở mép trái/phải.
+    //
+    // ⚠ 16 lá chứ không phải 13 như Tiến Lên: giữ step 0.52 là trải 14.7, thò hẳn ra ngoài mép bàn.
+    // 0.41 cho trải 11.6 — đúng bằng bề ngang Tiến Lên vẫn dùng, lá lộ 59% (bậc+chất chỉ chiếm 27%).
+    { pos: [0, 0.90, 3.95], rotY: 0, tilt: -1.02, arc: 0, step: 0.41, scale: 1.88 },
+    { pos: [4.45, 0.30, -0.95], rotY: -Math.PI / 2, tilt: Math.PI / 2, arc: 0, step: 0.24, scale: 0.72 },
+    { pos: [-4.45, 0.30, -0.95], rotY: Math.PI / 2, tilt: Math.PI / 2, arc: 0, step: 0.24, scale: 0.72 }
   ];
 
   /**
@@ -838,7 +843,7 @@ function mountPaoDeKuai(host, opts) {
    */
   function anchorOf(s) {
     var A = HAND_ANCHOR[s];
-    if (s === 0 && W() / H() < 1) return { pos: A.pos, rotY: A.rotY, tilt: A.tilt, arc: 0, step: 0.50, scale: 2.0 };
+    if (s === 0 && W() / H() < 1) return { pos: A.pos, rotY: A.rotY, tilt: A.tilt, arc: 0, step: 0.39, scale: 2.0 };
     return A;
   }
 
@@ -889,12 +894,18 @@ function mountPaoDeKuai(host, opts) {
     }
   }
 
-  /** Xếp bài theo bộ: các lá thuộc cùng một bộ đứng liền nhau. */
+  /**
+   * Xếp bài theo bộ: các lá cùng bậc đứng liền nhau, bậc nào NHIỀU lá đứng trước.
+   * PDK không có hàm tháo bài sẵn như Tiến Lên nên gom tay bằng chính bảng đếm bậc —
+   * đủ để mắt thấy ngay "chỗ này có tứ quý, chỗ kia có đôi".
+   */
   function xepTheoBo(list) {
-    var gs = TL.analyze(list).groups.slice();
+    var m = {};
+    for (var i = 0; i < list.length; i++) (m[TL.bacOf(list[i])] || (m[TL.bacOf(list[i])] = [])).push(list[i]);
+    var gs = Object.keys(m).map(Number).map(function (b) { return m[b]; });
     gs.sort(function (a, b) { return b.length - a.length || a[0] - b[0]; });
     var o = [];
-    for (var i = 0; i < gs.length; i++) for (var j = 0; j < gs[i].length; j++) o.push(gs[i][j]);
+    for (var g = 0; g < gs.length; g++) for (var j = 0; j < gs[g].length; j++) o.push(gs[g][j]);
     return o;
   }
 
@@ -989,7 +1000,7 @@ function mountPaoDeKuai(host, opts) {
       p.push(new THREE.Vector3(Math.cos(a) * Rm, -TH / 2, Math.sin(a) * Rm));
     }
     for (s = 0; s < 3; s++) {
-      [0, 6, 12].forEach(function (i2) { Array.prototype.push.apply(p, gocLa(s, i2, 13)); });
+      [0, 8, 15].forEach(function (i2) { Array.prototype.push.apply(p, gocLa(s, i2, 16)); });   // 16 lá, không phải 13
     }
     return p;
   }
@@ -1115,10 +1126,10 @@ function mountPaoDeKuai(host, opts) {
     }
   }
   // neo thẻ tên ra NGOÀI mép bàn, không thì nó nằm đè lên chính bài của nhà đó
-  // BA cửa: cả hai nhà đối thủ đều ngồi phía TRÊN, nên thẻ tên treo lệch ra hai góc trên.
-  var SEAT_ANCHOR = [null, new THREE.Vector3(6.9, 3.2, -3.9), new THREE.Vector3(-6.9, 3.2, -3.9)];
+  // Hai nhà ngồi hai bên ⇒ thẻ tên treo ở hai góc TRÊN, lệch hẳn ra ngoài cột bài.
+  var SEAT_ANCHOR = [null, new THREE.Vector3(8.4, 2.2, -1.2), new THREE.Vector3(-8.4, 2.2, -1.2)];
   // Khung hẹp thì thẻ tên đứng CỐ ĐỊNH: bám theo vị trí 3D ở màn nhỏ là kiểu gì cũng có lúc lòi ra mép.
-  var SEAT_CO_DINH = [null, { x: 0.84, y: 0.15 }, { x: 0.16, y: 0.15 }];
+  var SEAT_CO_DINH = [null, { x: 0.86, y: 0.40 }, { x: 0.14, y: 0.40 }];
   // ⚠ ĐỪNG gọi mỗi khung: mỗi lượt gọi là 6 lần getBoundingClientRect ⇒ 6 lần ép trình duyệt
   // tính lại bố cục. Camera đứng yên thì vị trí thẻ cũng đứng yên — chỉ gọi khi camera/nội dung đổi.
   function datSeat() {
@@ -1133,21 +1144,10 @@ function mountPaoDeKuai(host, opts) {
         var v = SEAT_ANCHOR[s].clone().project(camera);
         px = (v.x * 0.5 + 0.5) * rc.w; py = (-v.y * 0.5 + 0.5) * rc.h;
       }
-      // Nhà ĐỐI DIỆN: ghim sát đỉnh VÀ ép đáy thẻ nằm trên mép bài của chính nhà đó — đo bằng
-      // cách chiếu góc lá bài ra màn, chứ đoán một con số cố định là kiểu gì cũng có lúc đè.
-      // CẢ HAI nhà đối thủ đều ở phía trên (bàn ba người) nên nhà nào cũng phải ép đáy thẻ
-      // nằm trên mép bài của chính nó — đo bằng cách chiếu góc lá bài ra màn.
-      if (!hep) {
-        py = h / 2 + 40;
-        var n2 = hands[s].length, yTop = 1e9;
-        if (n2) [0, n2 - 1].forEach(function (i2) {
-          gocLa(s, i2, n2).forEach(function (g3) {
-            var yy = (-g3.clone().project(camera).y * 0.5 + 0.5) * rc.h;
-            if (yy < yTop) yTop = yy;
-          });
-        });
-        if (isFinite(yTop)) py = Math.min(py, Math.max(h / 2 + 6, yTop - h / 2 - 10));
-      }
+      // ⚠ KHÔNG ghim thẻ lên đỉnh khung. Đó là luật của bàn BỐN người (nhà đối diện nằm sát mép xa
+      // nên thẻ phải trốn lên trên). Bàn ba người thì hai nhà ngồi HAI BÊN, thẻ treo ngang cột bài
+      // của chính họ mới đọc ra ai là ai — mà ghim lên đỉnh thì nó còn đè lên tiêu đề và toast.
+      // Không cần chốt chống đè: thẻ ở x = ±8.4, cột bài ở ±4.45, cách nhau hẳn theo trục ngang.
       px = Math.max(w / 2 + 5, Math.min(rc.w - w / 2 - 5, px));
       py = Math.max(h / 2 + (hep ? 76 : 6), Math.min(rc.h - h / 2 - 74, py));
       el.style.left = px + 'px'; el.style.top = py + 'px';
@@ -1165,7 +1165,7 @@ function mountPaoDeKuai(host, opts) {
       var n = el.querySelector('.ct .n');
       if (hands[s].length === 0) {
         var h = xong.indexOf(s);
-        n.textContent = 'Về ' + HANG_TEN[h >= 0 ? h : 3];
+        n.textContent = 'Hết bài';
       } else n.textContent = hands[s].length + ' lá' + (daBo[s] ? ' · đã bỏ lượt' : '');
     }
     datSeat();      // chữ đổi ⇒ bề rộng thẻ đổi ⇒ phải canh lại
@@ -1325,6 +1325,7 @@ function mountPaoDeKuai(host, opts) {
   function vanMoi(saved) {
     if (saved && saved.hands && saved.hands.length === 3) { khoiPhuc(saved); return; }
     var _chia = TL.deal(rnd); hands = _chia.tay;
+    bomDem = [0, 0, 0]; thaVe = -1; loiTu = -1; loiCho = -1;
     cur = null; curCards = []; daBo = [false, false, false]; raBai = [false, false, false];
     // ⚠ PDK: cầm 3♥ chỉ để ĐI TRƯỚC — lượt mở màn KHÔNG bắt buộc phải kèm lá đó (khác Tiến Lên,
     // ở đó bộ đầu ván buộc có Ba Bích). Nên `moBai` để false luôn, mọi chốt ăn theo nó tự tắt.
@@ -1383,28 +1384,28 @@ function mountPaoDeKuai(host, opts) {
     if (chanS && bo.loai === 'don' && bo.hi < maxLe) { loiTu = s; loiCho = keS; }
     else if (chanS && bo.loai === 'don') { loiTu = -1; loiCho = -1; }
     if (!hands[s].length && loiCho === -1 && loiTu >= 0 && s === ((loiTu + 1) % 3)) thaVe = loiTu;
-    cur = bo; curCards = cards.slice(); chuBai = s; raBai[s] = true; moBai = false;
+    cur = bo; curCards = cards.slice(); chuBai = s; raBai[s] = true;
     if (s === 0) chon = {};
     raBaiRa(s, cards);
     xepLai(s, true);        // PHẢI gom cả bài của người chơi, không thì đánh xong để lại khe trống
     if (biChat && chuCu !== s) {
-      cue(bo.loai === 'tuQuy' ? 'Tứ Quý Chặt!' : (bo.doi === 4 ? 'Bốn Đôi Thông Chặt!' : 'Ba Đôi Thông Chặt!'),
-        3, s === 0 ? 'Bạn' : CUA[s].ten);
+      // PDK chỉ có MỘT hàng chặt: bom tứ quý. Mỗi quả còn ăn thêm 5 điểm từ mỗi nhà.
+      cue('Bom ' + TL.BAC_TEN[bo.hi] + '!', 3, s === 0 ? 'Bạn' : CUA[s].ten);
       if (chuCu !== 0) npcNoi(chuCu, 'biChat');
       npcNoi(s, 'chatDuoc', s !== 0 && rnd() < 0.6);
-    } else if (bo.bac === 12 && (bo.loai === 'rac' || bo.loai === 'doi' || bo.loai === 'ba')) {
-      cue(bo.loai === 'rac' ? 'Heo!' : (bo.loai === 'doi' ? 'Đôi Heo!' : 'Ba Con Heo!'),
-        2, s === 0 ? 'Bạn' : CUA[s].ten);
+    } else if (bo.hi === 12 && (bo.loai === 'don' || bo.loai === 'doi')) {
+      // Cả bộ 48 lá chỉ có ĐÚNG MỘT lá Hai, nên nó ra là đáng báo.
+      cue('Lá Hai!', 2, s === 0 ? 'Bạn' : CUA[s].ten);
       if (s !== 0) npcNoi(s, 'heo');
     }
     if (hands[s].length === 1 && s !== 0) npcNoi(s, 'sapVe');
     if (!hands[s].length) {
       xong.push(s);
-      var h2 = xong.length;
-      cue(h2 === 1 ? 'Về Nhất!' : (h2 === 2 ? 'Về Nhì' : 'Về Ba'), h2 === 1 ? 4 : (h2 === 2 ? 2 : 1),
-        s === 0 ? 'Bạn' : CUA[s].ten);
-      if (s !== 0) npcNoi(s, h2 === 1 ? 'veNhat' : 'khen', h2 === 1);
-      if (xong.length >= 3) { setTimeout(ketVan, 1050); capNhatSeat(); return; }
+      // ⚠ PDK dừng NGAY khi có người chạy hết bài — hai nhà kia chấm theo số lá còn lại,
+      // không đánh tiếp để phân hạng nhì/ba như Tiến Lên.
+      cue('Chạy Hết Bài!', 4, s === 0 ? 'Bạn' : CUA[s].ten);
+      if (s !== 0) npcNoi(s, 'veNhat', true);
+      setTimeout(ketVan, 1050); capNhatSeat(); return;
     }
     capNhatSeat(); capNhatCur(); capNhatNut();
     setTimeout(sangLuot, tucThi ? 6 : 380);
@@ -1522,7 +1523,7 @@ function mountPaoDeKuai(host, opts) {
     } else if (a === 'saveview') {
       spectate = false; $('.pk-view').classList.remove('show');
       if (opts.onSaveView) opts.onSaveView({ theta: sph.theta, phi: sph.phi, zoom: sph.zoom || 1 });
-      toast('Đã khoá góc nhìn cho bàn Tiến Lên.');
+      toast('Đã khoá góc nhìn cho bàn này.');
     } else if (a === 'resetview') {
       sph.theta = 0; sph.phi = 0.60; sph.zoom = 1;
       target.set(0, 0, 0); canKhung();
@@ -1610,6 +1611,8 @@ function mountPaoDeKuai(host, opts) {
     setTimeout(onResize, 120); setTimeout(onResize, 480);
     setTimeout(datSeat, 900); setTimeout(datSeat, 2000);   // chân dung tải xong thì thẻ đổi cỡ, canh lại
     animate(0);
+    // móc chẩn đoán cho trang mockup — đọc được TỪNG lá thay vì ngồi đoán qua ảnh
+    window.__pdk = { scene: scene, camera: camera, handGroups: handGroups, hands: hands, MAT: MAT, GEO: GEO };
   } catch (err) {
     fb(String(err && err.message || err));
     if (window.console) console.error(err);
@@ -1628,30 +1631,30 @@ function mountPaoDeKuai(host, opts) {
   };
 }
 
-// ============================================================
-// SẢNH BÀI — mỗi "chiếu" là một bàn cố định gồm 3 Danh Sĩ cùng tầng + một mức cược.
-// Tiến Lên cần đủ 3 đối thủ nên chọn theo CHIẾU, không chọn lẻ từng người như bàn cờ.
-// ============================================================
+
 export const CHIEU = [
-  { id: 'tungPhong', ten: 'Chiếu Tùng Phong', cuoc: 200, tang: 1,
-    lore: 'Bàn bài dưới gốc tùng, mấy tay lãng khách đánh cho qua buổi chiều.',
-    ds: ['thanhVuTieuKiem', 'nhamTuyDao', 'doCoTuyHan'] },
-  { id: 'luuVan', ten: 'Chiếu Lưu Vân', cuoc: 1000, tang: 1,
-    lore: 'Khách thương hồ ghé qua, đặt túi tiền xuống rồi mới ngồi.',
-    ds: ['doanMocVoTranh', 'lacBangNhi', 'tieuVuTinh'] },
-  { id: 'kimTon', ten: 'Chiếu Kim Tôn', cuoc: 5000, tang: 2,
+  { id: 'truongDinh', ten: 'Chiếu Trường Đình', cuoc: 20, tang: 1,
+    lore: 'Quán nước đầu đường, hai người khách chờ đò rủ nhau đánh cho hết buổi.',
+    ds: ['thanhVuTieuKiem', 'nhamTuyDao'] },
+  { id: 'thaoLu', ten: 'Chiếu Thảo Lư', cuoc: 100, tang: 1,
+    lore: 'Mái tranh ba gian, bài chia nhanh, ai chậm tay là ôm cả nắm bài ế.',
+    ds: ['doanMocVoTranh', 'lacBangNhi'] },
+  { id: 'kimTon', ten: 'Chiếu Kim Tôn', cuoc: 500, tang: 2,
     lore: 'Rượu rót ba tuần, bài chia ba ván, chưa ai chịu đứng dậy trước.',
-    ds: ['huyetTiBaCo', 'doDuocMaCo', 'huyetDoTangNguyen'] },
-  { id: 'ngocTran', ten: 'Chiếu Ngọc Trản', cuoc: 20000, tang: 2,
+    ds: ['huyetTiBaCo', 'doDuocMaCo'] },
+  { id: 'ngocTran', ten: 'Chiếu Ngọc Trản', cuoc: 2000, tang: 2,
     lore: 'Chén ngọc đặt giữa bàn — thắng thì uống, thua thì trả tiền rượu cả chiếu.',
-    ds: ['toUyenNghiet', 'namCungLietHoa', 'doanMucPhong'] },
-  { id: 'vanDai', ten: 'Chiếu Vân Đài', cuoc: 100000, tang: 3,
-    lore: 'Ba tay bài đều có danh trên giang hồ. Ngồi xuống là đã mất nửa phần thắng.',
-    ds: ['bangPhachNuHiep', 'langToCam', 'coNhanMaiKiem'] },
-  { id: 'thienNguyen', ten: 'Chiếu Thiên Nguyên', cuoc: 500000, tang: 4,
+    ds: ['toUyenNghiet', 'namCungLietHoa'] },
+  { id: 'vanDai', ten: 'Chiếu Vân Đài', cuoc: 10000, tang: 3,
+    lore: 'Hai tay bài đều có danh trên giang hồ. Ngồi xuống là đã mất nửa phần thắng.',
+    ds: ['bangPhachNuHiep', 'coNhanMaiKiem'] },
+  { id: 'thienNguyen', ten: 'Chiếu Thiên Nguyên', cuoc: 50000, tang: 4,
     lore: 'Chiếu cao nhất trong thiên hạ. Người thường không được mời ngồi.',
-    ds: ['vanVongNuong', 'moDungPhiTuyet', 'lacVoTran'] },
+    ds: ['vanVongNuong', 'lacVoTran'] },
 ];
+/** Trù Mã cần có để ngồi: gánh nổi ván xấu nhất (16 lá còn tay × 2 vì chưa ra được lá nào,
+ *  cộng vài quả bom của làng). */
+const HE_SO_NGOI = 45;
 const TANG_TEN = ['', 'Sơ Nhập', 'Thành Danh', 'Cao Thủ', 'Tuyệt Đỉnh'];
 const TANG_MAU = ['', '#97c459', '#5dcaa5', '#f0997b', '#e6c079'];
 
@@ -1732,15 +1735,15 @@ export function paoDeKuai() {
     // Chưa ngồi thì trả '' — thẻ ẩn luôn chip, đỡ một dòng chữ thừa trên MỌI chiếu lúc mới vào.
     recOf(id) {
       const r = (this.pk.rec || {})[id];
-      return (r && r.van) ? (r.nhat + ' lần về Nhất / ' + r.van + ' ván') : '';
+      return (r && r.van) ? (r.nhat + ' lần chạy nhất / ' + r.van + ' ván') : '';
     },
-    // Ngồi được khi đủ tiền chung cho ván nặng nhất (bét + thối có thể tới 4 cược).
+    // Ngồi được khi gánh nổi ván xấu nhất (16 lá đọng tay, nhân đôi, cộng bom của làng).
     get chieuList() {
       return CHIEU.map((c) => ({
         ...c,
         list: c.ds.map((id) => this._ds(id)).filter(Boolean),
-        khoa: this.truMa < c.cuoc * 4,
-        can: c.cuoc * 4,
+        khoa: this.truMa < c.cuoc * HE_SO_NGOI,
+        can: c.cuoc * HE_SO_NGOI,
       }));
     },
 
@@ -1765,7 +1768,7 @@ export function paoDeKuai() {
 
     nhapChieu(c, saved) {
       if (this.inBattle) return;
-      if (this.truMa < c.cuoc * 4) { try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — đổi thêm ở Sảnh Bài.'); } catch (e) { } return; }
+      if (this.truMa < c.cuoc * HE_SO_NGOI) { try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — đổi thêm ở Sảnh Bài.'); } catch (e) { } return; }
       // ngồi chiếu KHÁC thì bỏ ván dở cũ — mỗi lúc chỉ giữ một ván
       if (!saved && this.savedGame && this.savedGame.chieuId !== c.id) this.dropSaved();
       this._boSo = false; this._saved = saved || null;
@@ -1814,10 +1817,10 @@ export function paoDeKuai() {
      */
     _ketVan(id, kq) {
       const st = this.$store.game.state, n = this.pk;
-      if (!n.rec[id]) n.rec[id] = { van: 0, nhat: 0, bet: 0 };
+      if (!n.rec[id]) n.rec[id] = { van: 0, nhat: 0, bom: 0 };
       n.rec[id].van++; n.van++;
-      if (kq.hang === 1) { n.rec[id].nhat++; n.nhat++; }
-      if (kq.hang === 4) n.rec[id].bet++;
+      if (kq.veNhat) { n.rec[id].nhat++; n.nhat++; }
+      if (kq.bom) { n.rec[id].bom += kq.bom; n.bom = (n.bom || 0) + kq.bom; }
       ghiVan(st, kq.bac || 0);
       n.lai = (n.lai || 0) + (kq.bac || 0);
       if (kq.kyHon) { addKyHon(st, kq.kyHon); try { this.$store.game.checkTitles(); } catch (e) { } }
