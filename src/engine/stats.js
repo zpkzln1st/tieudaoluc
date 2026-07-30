@@ -49,7 +49,10 @@ export function giamNhanClamp(v) { return Math.max(0, Math.min(GIAM_NHAN_CAP, v 
 // Gom vào một hàm để 4 chỗ CỘNG exp và 2 chỗ HIỆN ước tính dùng chung — lệch nhau là số trên
 // màn hình nói một đằng, EXP vào túi một nẻo.
 // EXP Chiến Đấu: dòng Tăng EXP trên trang bị + Ngộ Đạo Tâm Kinh + Tụ Linh Trì của bang.
-export function combatExpMult(state) { return 1 + (derivedStats(state).tangExp || 0) + bangExpBonus(state); }
+// ⚠ Truyền SẴN bộ chỉ số đã dẫn xuất vào (`d`) nếu chỗ gọi đã có. Không truyền thì hàm này chạy
+//   THÊM một lần `derivedStats` đầy đủ (đo được 125 µs, 2.452 lượt đọc qua proxy) chỉ để lấy đúng
+//   một con số `tangExp` — mà chỗ gọi trong vòng đánh thì vừa dẫn xuất xong.
+export function combatExpMult(state, d) { return 1 + ((d || derivedStats(state)).tangExp || 0) + bangExpBonus(state); }
 
 export const MENH_TRUNG_K = 2000; // menhTrung 140 -> 6,5% ; 283 -> 12,4% ; 1014 -> 33,6%
 // Ti le VO HIEU HOA ne cua dich: 0 = khong chong duoc gi, 1 = dich khong the ne.

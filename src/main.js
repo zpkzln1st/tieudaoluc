@@ -3394,7 +3394,18 @@ const gameStore = {
     const s = c.sinhLuc;
     return s == null ? this.combatMaxHp : Math.max(0, Math.min(s, this.combatMaxHp));
   },
-  get combatHpPct() { return this.combatMaxHp ? this.combatSinhLuc / this.combatMaxHp * 100 : 0; },
+  // ⚠ Đọc `combatStats` MỘT lần. Bản cũ `this.combatMaxHp ? this.combatSinhLuc / this.combatMaxHp`
+  //   gọi ba lần dẫn xuất chỉ số cho MỘT thanh máu (combatSinhLuc bên trong lại đọc combatMaxHp
+  //   lần nữa). Thanh này bám hai chỗ (:class và :style) nên thành SÁU lần — đo được 1,39ms trên
+  //   máy bàn, cỡ 7–11ms trên điện thoại, dồn vào đúng khung kết vòng.
+  get combatHpPct() {
+    const m = this.combatStats.maxHP;
+    if (!m) return 0;
+    const c = this.state.combat;
+    if (c.noiThuong && c.suyYeuUntil) return Math.max(0, Math.min(1, 1 - (c.suyYeuUntil - now()) / SUY_YEU_MS)) * 100;
+    const s = c.sinhLuc;
+    return (s == null ? m : Math.max(0, Math.min(s, m))) / m * 100;
+  },
   get combatNoiThuong() { return this.state.combat.noiThuong; },
   get combatSelObj() { return this.combatSel ? this.ENEMIES[this.combatSel] : null; },
   get boPhapSel() { return normBoPhap(this.loadout); },          // mảng 1-2 id đang chọn
@@ -3565,7 +3576,13 @@ const gameStore = {
   _roundNo: 0,              // số thứ tự vòng giao chiến (đánh số vào chiến báo)
   get combatMaxNL() { return Math.round(this.combatStats.maxNL); },
   get combatNoiLucNow() { const v = this.state.combat.noiLuc; return v == null ? this.combatMaxNL : Math.max(0, Math.min(Math.round(v), this.combatMaxNL)); },
-  get combatNoiLucPct() { return this.combatMaxNL ? this.combatNoiLucNow / this.combatMaxNL * 100 : 0; },
+  // ⚠ Cùng bẫy như combatHpPct: đọc bộ chỉ số MỘT lần thay vì ba.
+  get combatNoiLucPct() {
+    const m = Math.round(this.combatStats.maxNL);
+    if (!m) return 0;
+    const v = this.state.combat.noiLuc;
+    return (v == null ? m : Math.max(0, Math.min(Math.round(v), m))) / m * 100;
+  },
   get cycleProgressPct() { if (!this.actIsCombat || !this._cycleStart) return 0; return Math.max(0, Math.min(100, (this._cycleNow - this._cycleStart) / CYCLE_MS * 100)); },
   get cycleRemainSec() { if (!this.actIsCombat || !this._cycleStart) return Math.ceil(CYCLE_MS / 1000); return Math.max(0, Math.ceil((CYCLE_MS - (this._cycleNow - this._cycleStart)) / 1000)); },
   // Giải quyết TRỌN 1 trận trong tích tắc, dồn chiến báo + kết quả thành 1 block hiện cùng lúc
@@ -3591,7 +3608,7 @@ const gameStore = {
     this._roundNo = (this._roundNo || 0) + 1;             // đánh số vòng
     const dong = f.log.slice();
     if (f.result === 'win') {
-      this.awardKill(f);                                    // đã lưu state.combat.sinhLuc = HP còn lại
+      this.awardKill(f, cs);                                // đã lưu state.combat.sinhLuc = HP còn lại
       const dmg = Math.max(0, hp0 - this.state.combat.sinhLuc);
       const pc = petCombatCycle(this.state, dmg, now());    // Linh Thú: chia lửa + bị động + chủ động
       const add = (pc.absorb || 0) + (pc.heal || 0);
@@ -3612,16 +3629,21 @@ const gameStore = {
     // ⚠ CẮT TẠI CHỖ bằng splice, đừng gán mảng mới: gán mảng mới bắt Alpine dựng lại cả 12 khối.
     this.chienBao.unshift({ no: this._roundNo, html: html, won: f.result === 'win', he: f.eHe });
     if (this.chienBao.length > 12) this.chienBao.splice(12);
-    const box = document.getElementById('chienBaoBox'); if (box) box.scrollTop = 0;
+    // ⚠ Đặt scrollTop là ÉP trình duyệt tính lại bố cục NGAY, mà lúc này Alpine còn đang thay
+    //   nội dung hộp ⇒ tính bố cục hai lần trong một khung. Dời sang khung sau.
+    requestAnimationFrame(function () { const box = document.getElementById('chienBaoBox'); if (box) box.scrollTop = 0; });
   },
-  awardKill(f) {
+  awardKill(f, cs) {
     const e = this.ENEMIES[this.act.enemyId]; if (!e) return;
     const sess = this.act.sess || (this.act.sess = { xp: 0, bac: 0, win: 0, lose: 0, loot: {}, gear: [], gearN: 0 });   // thu hoạch phiên (save cũ giữa trận -> tự vá)
     // Nhân thưởng PHẢI khớp từng vế với nhánh treo máy (engine/activity.js) — nếu không, uống đan
     // bổ trợ rồi NGỒI XEM tab Chiến Đấu thì đan trơ, mà alt-tab đi thì đan ăn. Ba vế đan (Ngộ Đạo
     // cbExpPct · Bách Bảo bacPct · Bách Bảo lootPct) trước đây thiếu ở đây nên chỉ chạy khi offline.
     const _now = Date.now();
-    const mult = skillExpMultiplier(this.state, 'chienDau') * (1 + buffVal(this.state, 'cbExpPct', _now) / 100) * combatExpMult(this.state);
+    // ⚠ Truyền sẵn bộ chỉ số (deriveCombat có phơi `tangExp` ở votong.js:568) — không truyền thì
+    //   `combatExpMult` chạy THÊM một lần `derivedStats` đầy đủ chỉ để lấy đúng con số ấy,
+    //   ngay trong cái khung nặng nhất của trận.
+    const mult = skillExpMultiplier(this.state, 'chienDau') * (1 + buffVal(this.state, 'cbExpPct', _now) / 100) * combatExpMult(this.state, cs);
     const xpGain = Math.max(1, Math.round(e.exp * mult));
     addSkillXp(this.state, 'chienDau', xpGain);
     sess.xp += xpGain; sess.win += 1;
