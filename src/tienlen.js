@@ -291,6 +291,9 @@ function mountTienLen(host, opts) {
   var chon = {};                     // mã lá đang được chọn (cửa 0)
   var over = false, xepBo = false, dangCho = false, saidN = 0;
   var moBai = true;                  // lượt mở màn phải có Ba Bích
+  // Ai về Nhất ván trước — ván sau người đó mở lượt. null = chưa đánh ván nào ở chiếu này.
+  // Chỉ sống trong một lần ngồi chiếu; rời chiếu là quên, đúng nghĩa "trong một chiếu".
+  var viTruoc = null;
 
   // ---------- Three ----------
   var renderer, scene, camera, banGroup, pileGroup, raf = 0;
@@ -1312,8 +1315,12 @@ function mountTienLen(host, opts) {
     if (saved && saved.hands && saved.hands.length === 4) { khoiPhuc(saved); return; }
     hands = TL.deal(rnd);
     cur = null; curCards = []; daBo = [false, false, false, false]; raBai = [false, false, false, false];
-    xong = []; chon = {}; over = false; saidN = 0; moBai = true; dangCho = true;
-    for (var s = 0; s < 4; s++) if (hands[s].indexOf(0) >= 0) { luot = s; chuBai = s; }
+    // Ván ĐẦU của chiếu: ai cầm Ba Bích thì mở, và bộ đầu buộc kèm lá đó.
+    // Từ ván sau: NGƯỜI VỀ NHẤT ván trước được đi trước, và bỏ luôn ràng buộc Ba Bích —
+    // giữ ràng buộc đó thì người mở lượt lại không phải người cầm bài, đánh không được.
+    xong = []; chon = {}; over = false; saidN = 0; moBai = (viTruoc == null); dangCho = true;
+    if (viTruoc != null) { luot = viTruoc; chuBai = viTruoc; }
+    else for (var s = 0; s < 4; s++) if (hands[s].indexOf(0) >= 0) { luot = s; chuBai = s; }
     $('.tl-banner').classList.remove('show');
     chiaBaiAnim();
     capNhatSeat(); capNhatCur(); capNhatNut();
@@ -1374,6 +1381,7 @@ function mountTienLen(host, opts) {
     if (hands[s].length === 1 && s !== 0) npcNoi(s, 'sapVe');
     if (!hands[s].length) {
       xong.push(s);
+      if (xong.length === 1) viTruoc = s;      // về Nhất ⇒ ván sau người này mở lượt
       var h2 = xong.length;
       cue(h2 === 1 ? 'Về Nhất!' : (h2 === 2 ? 'Về Nhì' : 'Về Ba'), h2 === 1 ? 4 : (h2 === 2 ? 2 : 1),
         s === 0 ? 'Bạn' : CUA[s].ten);

@@ -295,6 +295,9 @@ function mountPaoDeKuai(host, opts) {
   var chon = {};                     // mã lá đang được chọn (cửa 0)
   var over = false, xepBo = false, dangCho = false, saidN = 0;
   var moBai = false;                 // PDK không có luật "bộ đầu ván phải kèm lá 3"
+  // Ai chạy hết bài ván trước — ván sau người đó mở lượt (thay cho luật "ai cầm 3♥").
+  // Chỉ sống trong một lần ngồi chiếu; rời chiếu là quên.
+  var viTruoc = null;
   var bomDem = [0, 0, 0];            // số quả bom mỗi nhà đã đánh — mỗi quả ăn 5 điểm từ MỖI đối thủ
   // Nghi án "thả người về" (放走包赔): đánh BÀI LẺ không phải lá lẻ lớn nhất trong tay lúc nhà kế
   // chỉ còn 1 lá, rồi nhà đó về ngay. Người phạm gánh luôn phần điểm của nhà thứ ba.
@@ -1330,7 +1333,8 @@ function mountPaoDeKuai(host, opts) {
     // ⚠ PDK: cầm 3♥ chỉ để ĐI TRƯỚC — lượt mở màn KHÔNG bắt buộc phải kèm lá đó (khác Tiến Lên,
     // ở đó bộ đầu ván buộc có Ba Bích). Nên `moBai` để false luôn, mọi chốt ăn theo nó tự tắt.
     xong = []; chon = {}; over = false; saidN = 0; moBai = false; dangCho = true;
-    luot = _chia.diTruoc; chuBai = luot;
+    // Ván đầu chiếu: ai cầm 3♥ đi trước. Từ ván sau: người chạy hết bài ván trước mở lượt.
+    luot = (viTruoc == null) ? _chia.diTruoc : viTruoc; chuBai = luot;
     $('.pk-banner').classList.remove('show');
     chiaBaiAnim();
     capNhatSeat(); capNhatCur(); capNhatNut();
@@ -1403,6 +1407,7 @@ function mountPaoDeKuai(host, opts) {
       xong.push(s);
       // ⚠ PDK dừng NGAY khi có người chạy hết bài — hai nhà kia chấm theo số lá còn lại,
       // không đánh tiếp để phân hạng nhì/ba như Tiến Lên.
+      viTruoc = s;                             // ván sau người này mở lượt
       cue('Chạy Hết Bài!', 4, s === 0 ? 'Bạn' : CUA[s].ten);
       if (s !== 0) npcNoi(s, 'veNhat', true);
       setTimeout(ketVan, 1050); capNhatSeat(); return;
@@ -1630,7 +1635,6 @@ function mountPaoDeKuai(host, opts) {
     },
   };
 }
-
 
 export const CHIEU = [
   { id: 'truongDinh', ten: 'Chiếu Trường Đình', cuoc: 20, tang: 1,
