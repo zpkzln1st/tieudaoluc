@@ -141,6 +141,7 @@ function injectStyle() {
     '@keyframes tlSkShard{0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--r,0deg))}30%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--tx,0px)),calc(-50% + var(--ty,0px))) rotate(var(--r,0deg))}}',
     // bậc thấp thì bỏ bớt lớp cho đỡ ồn: bậc 0 chỉ có chữ, bậc 1 thêm chớp
     '.tl-skcue.b0 .sk-streak,.tl-skcue.b0 .sk-flash,.tl-skcue.b0 .sk-shard,.tl-skcue.b1 .sk-streak,.tl-skcue.b1 .sk-shard{display:none}',
+    '.tl-skcue.b0 .sk-nm,.tl-skcue.b1 .sk-nm{padding:5px 20px;border-radius:99px;background:rgba(8,12,18,.66);box-shadow:0 3px 16px -5px #000,inset 0 0 0 1px rgba(255,255,255,.06)}',
     '.tl-scene.sk{animation:tlShake .34s ease}',
     '@keyframes tlShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-1px)}80%{transform:translate(3px,1px)}}',
     '.tl-skcue.giu .sk-nm{opacity:1;animation:none;transform:translate(-50%,-50%) scale(1)}',

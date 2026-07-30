@@ -191,6 +191,7 @@ function injectStyle() {
     '.pk-tab tr.me td{color:var(--txt)}',
     '.pk-tab tr.me td:first-child{color:var(--gold2);font-weight:600}',
     '.pk-tab .pos{color:#7fd6b5}.pk-tab .neg{color:var(--warn)}',
+    '.pk-skcue.b0 .sk-nm,.pk-skcue.b1 .sk-nm{padding:5px 20px;border-radius:99px;background:rgba(8,12,18,.66);box-shadow:0 3px 16px -5px #000,inset 0 0 0 1px rgba(255,255,255,.06)}',
     '.pk-tab .sub{display:block;font-size:10px;color:var(--txt3);font-style:italic;margin-top:2px}',
     '.pk-rw{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}',
     '.pk-rw span{font-family:var(--serif);font-size:12px;font-weight:600;color:var(--gold2);background:rgba(230,192,121,.12);border:1px solid rgba(230,192,121,.45);border-radius:99px;padding:4px 14px}',
@@ -1618,6 +1619,13 @@ function mountPaoDeKuai(host, opts) {
     animate(0);
     // móc chẩn đoán cho trang mockup — đọc được TỪNG lá thay vì ngồi đoán qua ảnh
     window.__pdk = { scene: scene, camera: camera, handGroups: handGroups, hands: hands, MAT: MAT, GEO: GEO };
+    // ?cue=0..4 — dựng sẵn một chữ báo rồi GIỮ NGUYÊN để chụp ảnh (hiệu ứng thật chỉ hơn một giây).
+    if (opts.cueThu != null) {
+      giuCue = true;
+      var CUE_THU = ['Bỏ Lượt', 'Đánh Tự Do', 'Lá Hai!', 'Bom Già!', 'Chạy Hết Bài!'];
+      var bt = Math.max(0, Math.min(4, opts.cueThu | 0));
+      setTimeout(function () { cue(CUE_THU[bt], bt, 'Nhậm Tuý Đạo'); }, 400);
+    }
   } catch (err) {
     fb(String(err && err.message || err));
     if (window.console) console.error(err);
