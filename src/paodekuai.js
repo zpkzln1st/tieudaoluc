@@ -14,6 +14,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
+import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Phao Đắc Khoái, không vỡ cả game.
 let E = null;
@@ -198,6 +199,8 @@ function injectStyle() {
     // mobile
     // ⚠ KHÔNG đặt min-height cạnh aspect-ratio: chiều cao tối thiểu sẽ kéo chiều rộng phình ra
     //   quá màn hình (390px → 577px) và cả trang tràn ngang.
+    // ⚠ ĐÃ THỬ cho khung cao 84dvh như Binh Xập Xám rồi BỎ: bàn này canh khung theo BỀ NGANG nên
+    // khung cao thêm chỉ đẻ ra hai dải trống trên/dưới, bàn không to lên tí nào. Tỉ lệ 3/4 vừa khít.
     '@media (max-width:600px){.pk-root{aspect-ratio:3/4;max-height:86dvh}',
     '  .pk-title{left:10px;top:6px}.pk-title .hz{font-size:17px}.pk-title .vz{font-size:11px}.pk-chieu{left:11px;top:27px;font-size:9.5px}',
     '  .pk-left{left:0;right:0;top:auto;bottom:56px;transform:none;flex-direction:row;justify-content:center;gap:14px}',
@@ -261,6 +264,7 @@ function mountPaoDeKuai(host, opts) {
       '<div class="pk-chieu">' + (opts.chieu || '') + ' · cược ' + fmt(cuoc) + ' Trù Mã mỗi cửa</div>' +
       '<div class="pk-cur"><span class="dot"></span><span class="ct"></span></div>' +
       '<div class="pk-left">' +
+        nutToanManHTML('pk') +
         '<span class="pk-b" data-a="spectate"><span class="ic">' + ic('eye') + '</span><span>Quan Chiến</span></span>' +
         '<span class="pk-b" data-a="chat"><span class="ic">' + ic('chat') + '</span><span>Trò Chuyện</span></span>' +
         '<span class="pk-b" data-a="exit"><span class="ic">' + ic('exit') + '</span><span>Rời Chiếu</span></span>' +
@@ -285,6 +289,8 @@ function mountPaoDeKuai(host, opts) {
   var root = host.firstElementChild;
   var $ = function (s) { return root.querySelector(s); };
   var scEl = $('.pk-scene');
+  // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
+  var tm = ganToanMan(root, function () { onResize(); });
   function fb(m) { var d = $('.pk-fb'); d.style.display = 'flex'; if (m) d.querySelector('.fm').textContent = m; }
   function fmt(n) { return (n | 0).toLocaleString('vi-VN'); }
 
@@ -1635,6 +1641,7 @@ function mountPaoDeKuai(host, opts) {
   return {
     destroy: function () {
       cancelAnimationFrame(raf);
+      tm.destroy();                     // rời chiếu mà còn phủ màn hình là kẹt ở màn đen
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);

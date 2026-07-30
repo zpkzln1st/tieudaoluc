@@ -13,6 +13,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
+import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 /** Sổ riêng của Binh Xập Xám. Cách ly hoàn toàn với phần cày chính. */
 export function ensureBinh(state) {
@@ -215,6 +216,7 @@ function mountBinh(host, opts) {
         '</div>' +
       '</div></div>' +
       '<div class="bx-left">' +
+        nutToanManHTML('bx') +
         '<span class="bx-b" data-a="spectate"><span class="ic">' + ic('eye') + '</span><span>Quan Chiến</span></span>' +
         '<span class="bx-b" data-a="exit"><span class="ic">' + ic('exit') + '</span><span>Rời Chiếu</span></span>' +
       '</div>' +
@@ -229,6 +231,9 @@ function mountBinh(host, opts) {
   var root = host.firstElementChild;
   var $ = function (s) { return root.querySelector(s); };
   var scEl = $('.bx-scene');
+  // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
+  // Vào ra đều phải tính lại camera + cỡ renderer ⇒ truyền thẳng onResize.
+  var tm = ganToanMan(root, function () { onResize(); coLaPopup(); });
   function fmt(n) { return (n | 0).toLocaleString('vi-VN'); }
 
 
@@ -324,6 +329,12 @@ function injectStyle() {
     '.bx-nhan .th:empty{display:none}',
     '.bx-nhan.sam{border-color:rgba(230,192,121,.75);box-shadow:0 0 15px -3px rgba(230,192,121,.5)}',
     '.bx-nhan.xau{border-color:rgba(214,109,79,.55)}',
+    // Khung thấp (điện thoại nằm ngang): bốn khối bài chiếm gần hết mặt nỉ, thẻ to là kiểu gì
+    // cũng đè lên bài — rút thẻ nhỏ lại thì mới còn chỗ đặt.
+    '.bx-nho .bx-nhan{padding:2px 6px;gap:5px;max-width:184px}',
+    '.bx-nho .bx-nhan .av{width:22px;height:22px;border-radius:5px}',
+    '.bx-nho .bx-nhan .nm{font-size:9px}.bx-nho .bx-nhan .hg{font-size:11px}',
+    '.bx-nho .bx-nhan .ch{font-size:9.5px}.bx-nho .bx-nhan .th{font-size:8.5px}',
     // ===== dấu báo cạnh khối bài =====
     // ===== báo sự kiện giữa bàn — cùng khuôn skillCue đã dùng ở Tiến Lên =====
     '.bx-skcue{position:absolute;inset:0;z-index:11;pointer-events:none;overflow:hidden}',
@@ -357,43 +368,72 @@ function injectStyle() {
     '.bxp-x:hover{color:var(--gold2)}',
     '.bxp-canh{font-family:var(--serif);font-size:12px;color:var(--txt2)}',
     '.bxp-canh.xau{color:var(--warn);font-weight:700;font-size:14px}',
+    // Khổ hẹp: bốn thứ (tiêu đề · dòng nhắc · đồng hồ · ✕) không đứng nổi một hàng — dòng nhắc
+    // xuống hàng riêng, hàng trên chỉ còn tiêu đề + đồng hồ + ✕.
+    '.bxp.hep .bxp-top{flex-wrap:wrap;gap:5px 8px;margin-bottom:6px}',
+    '.bxp.hep .bxp-canh{order:9;flex-basis:100%;font-size:10.5px}',
+    '.bxp.hep .bxp-canh.xau{font-size:12px}',
+    '.bxp.hep .bxp-mb{font-size:10.5px;padding:4px 9px;margin-bottom:6px}',
     '.bxp-mb{font-family:var(--serif);font-size:11.5px;color:#f4d99a;background:rgba(230,192,121,.1);border:1px solid rgba(230,192,121,.4);border-radius:9px;padding:5px 11px;margin-bottom:8px}',
     // Ba hàng TÁCH HẲN nhau (user chốt) — bỏ kiểu chồng bậc thang cũ. Đọc từng chi rõ hơn hẳn,
     // đổi lại tốn chiều dọc: khối bài cao 3 lá thay vì 2. Cỡ lá giữ nguyên vì vẫn vừa popup.
     // Nhãn chi tách hẳn thành CỘT RIÊNG bên trái — dán đè lên lá thì che mất mặt bài,
     // để bên phải thì hàng 5 lá đẩy nó lòi khỏi popup.
-    '.bxp-chong{position:relative;padding:2px 0 4px 104px}',
-    '.bxp-r{display:flex;gap:10px;align-items:flex-start;position:relative}',
-    '.bxp-r+.bxp-r{margin-top:12px}',
-    '.bxp-r.r1{z-index:1}.bxp-r.r2{z-index:2}.bxp-r.r3{z-index:3}',
-    '.bxp-tag{position:absolute;left:-100px;top:50%;transform:translateY(-50%);width:92px;text-align:right;white-space:nowrap;pointer-events:none}',
+    '.bxp-chong{padding:2px 0 4px}',
+    // Nhãn chi và hàng bài là HAI Ô CỦA MỘT FLEX, không còn dán tuyệt đối: cột nhãn chỉ cần
+    // đổi hướng flex là nhảy lên trên hàng bài, khỏi tính lại toạ độ cho khổ hẹp.
+    '.bxp-chi{display:flex;align-items:center;gap:12px}',
+    '.bxp-chi+.bxp-chi{margin-top:12px}',
+    '.bxp-r{display:flex;gap:10px;align-items:flex-start}',
+    '.bxp-tag{width:92px;flex:none;text-align:right;white-space:nowrap;pointer-events:none}',
     '.bxp-tag b{display:block;font-family:var(--serif);font-size:12.5px;color:var(--gold2)}',
+    // Khổ HẸP (điện thoại dựng): nhãn lên một dòng riêng phía trên, hàng bài lấy TRỌN bề ngang
+    // — cột nhãn 104px trên màn 412px là ăn mất một phần năm chỗ của bài.
+    '.bxp.hep .bxp-chi{flex-direction:column;align-items:flex-start;gap:2px}',
+    '.bxp.hep .bxp-chi+.bxp-chi{margin-top:8px}',
+    '.bxp.hep .bxp-r{gap:6px}',
+    '.bxp.hep .bxp-tag{width:auto;text-align:left;display:flex;align-items:baseline;gap:8px}',
+    '.bxp.hep .bxp-tag b{display:inline;font-size:11px}',
+    '.bxp.hep .bxp-hang{margin-top:0}',
     // Chip hạng bài — màu + quầng leo dần theo bậc. Cho xuống dòng được: "Thùng Phá Sảnh"
     // dài hơn cột nhãn, để nowrap thì nó thò hẳn ra ngoài popup.
     '.bxp-hang{display:inline-block;margin-top:5px;padding:2px 5px;border-radius:99px;',
     '  font-family:var(--serif);font-size:10px;font-weight:600;line-height:1.35;',
     '  white-space:normal;max-width:100%;text-align:center}',
-    '.bxp-la{width:118px;height:165px;border-radius:8px;flex:none;cursor:grab;touch-action:none;',
-    '  box-shadow:0 3px 10px -3px #000}',
+    // ⚠ Cỡ lá do JS ĐO rồi đặt (`coLaPopup`), không còn media query đoán mò: khung bàn nằm
+    //   trong trang nên bề ngang của nó KHÔNG bằng bề ngang màn hình — đoán theo màn là tràn.
+    //   Ảnh mặt bài cắt bằng background-size theo PHẦN TRĂM nên co giãn theo, khỏi đụng.
+    '.bxp-la{width:var(--bxp-la,118px);height:calc(var(--bxp-la,118px) * 1.398);',
+    '  border-radius:8px;flex:none;cursor:grab;touch-action:none;box-shadow:0 3px 10px -3px #000}',
     // KHÔNG nhấc lá khi rê chuột — bài nảy lên nảy xuống lúc quét mắt rất rối
     '.bxp-la.sel{z-index:9;box-shadow:0 0 0 3px #f4d99a,0 0 22px -2px rgba(244,217,154,.7),0 8px 16px -5px #000}',
     '.bxp-la.bay{z-index:10}',
     '.bxp-la:active{cursor:grabbing}',
     '.bxp-act{display:flex;gap:9px;justify-content:center;margin-top:10px}',
-    // Mốc theo CHIỀU CAO — ba hàng tách nhau tốn 624px, màn thấp (laptop 1366x768) sẽ phải cuộn.
-    // ⚠ Phải đặt TRƯỚC hai mốc theo bề ngang: máy hẹp-và-thấp thì mốc bề ngang mới được thắng,
-    // không thì điện thoại lại bị kéo lá to lên.
-    '@media (max-height:820px){.bxp-la{width:86px;height:120px}.bxp-r{gap:8px}.bxp-r+.bxp-r{margin-top:9px}.bxp-chong{padding-left:88px}.bxp-tag{left:-84px;width:76px}.bxp-tag b{font-size:11px}.bxp-hang{font-size:9.5px;padding:2px 6px;margin-top:4px}}',
-    '@media (max-width:900px){.bxp-la{width:88px;height:123px}.bxp-r{gap:8px}.bxp-r+.bxp-r{margin-top:10px}.bxp-chong{padding-left:88px}.bxp-tag{left:-84px;width:76px}.bxp-tag b{font-size:11px}.bxp-hang{font-size:9.5px;padding:2px 6px;margin-top:4px}}',
-    '@media (max-width:600px){.bxp-la{width:62px;height:87px;border-radius:6px}.bxp-r{gap:6px}.bxp-r+.bxp-r{margin-top:8px}.bxp-chong{padding-left:64px}.bxp-tag{left:-62px;width:56px}.bxp-tag b{font-size:9.5px}.bxp-hang{font-size:8.5px;padding:1px 5px;margin-top:3px}}',
     '.bx-end .btns{display:flex;gap:10px;margin-top:16px;justify-content:center}',
-    '@media (max-width:600px){.bx-root{aspect-ratio:3/4;max-height:86dvh}',
-    '  .bx-title{left:10px;top:6px}.bx-title .hz{font-size:19px}.bx-title .vz{font-size:11px}.bx-sub{top:28px;left:11px;font-size:9.5px}',
-    '  .bx-canh{top:48px;font-size:10.5px;max-width:94%;overflow:hidden;text-overflow:ellipsis}',
+    // ================= khổ ĐIỆN THOẠI DỰNG =================
+    // Khung bàn LẤP ĐẦY chiều cao còn lại thay vì ôm tỉ lệ 3/4: tỉ lệ cứng để thừa gần 240px
+    // trống dưới khung trong khi bàn thì bé.
+    '@media (max-width:600px){.bx-root{aspect-ratio:auto;height:84dvh;max-height:none;min-height:360px}',
+    // ⚠ Mặt 3D thụt vào, chừa hai DẢI CHROME trên/dưới. Nhờ vậy camera canh khung trong dải giữa,
+    //   bài không bao giờ chạm tới thanh tiêu đề hay hàng nút — thẻ tên cũng thế (datNhan kẹp
+    //   trong đúng dải này). Đây là cách chặn tận gốc chuyện chữ đè lên bài.
+    // Dải trên 64px: thẻ tên nhà Bắc lúc cuối ván cao tới ~60px, dải mỏng hơn là nó không còn
+    // chỗ treo phía trên khối bài, phải rơi xuống dưới rồi cấn vào khối bài nhà Tây.
+    // Cắt bớt chiều cao dải giữa gần như KHÔNG làm bàn nhỏ đi: màn dọc canh khung theo BỀ NGANG.
+    '  .bx-scene{inset:64px 0 92px}',
+    '  .bx-title{left:10px;top:6px}.bx-title .hz{font-size:19px}.bx-title .vz{font-size:11px}.bx-sub{top:26px;left:11px;font-size:9.5px}',
+    '  .bx-canh{top:9px;right:10px;font-size:10.5px;padding:4px 11px;max-width:52%;overflow:hidden;text-overflow:ellipsis}',
     '  .bx-right{right:8px;gap:6px}.bx-chi{font-size:10px;padding:4px 8px}',
-    '  .bx-left{left:0;right:0;top:auto;bottom:56px;transform:none;flex-direction:row;justify-content:center;gap:14px}',
-    '  .bx-b{width:auto}.bx-act{bottom:9px;gap:6px}.bx-btn{padding:6px 12px;font-size:11.5px}',
-    '  .bx-toast{top:70px;left:10px;font-size:11px}}'
+    '  .bx-left{left:0;right:0;top:auto;bottom:50px;transform:none;flex-direction:row;justify-content:center;gap:16px}',
+    '  .bx-b{width:auto}.bx-b .ic{width:30px;height:30px}.bx-b .ic svg{width:16px;height:16px}.bx-b span{font-size:9px}',
+    '  .bx-act{bottom:8px;gap:6px}.bx-btn{padding:6px 12px;font-size:11.5px}',
+    '  .bx-toast{top:44px;left:10px;font-size:11px}',
+    // Thẻ tên co lại: màn hẹp thì lề quanh khối bài chỉ còn vài chục px.
+    '  .bx-nhan{padding:3px 7px;gap:6px;max-width:196px}',
+    '  .bx-nhan .av{width:27px;height:27px;border-radius:6px}',
+    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}.bx-nhan .th{font-size:9px}',
+    '  .bxp-wrap{padding:8px}.bxp{padding:10px 10px 9px}.bxp-top b{font-size:14px}}'
   ].join('\n');
   document.head.appendChild(st);
 }
@@ -775,7 +815,7 @@ var khu = [[], [], [], []];
 var xepNha = [null, null, null, null];
 var chon = {}, daBinh = false, over = false;
 
-var renderer, scene, camera, banGroup, raf = 0;
+var renderer, scene, camera, banGroup, raf = 0, ro = null;
 var sph = { r: 17, theta: 0, phi: 0.60, zoom: 1 }, rFit = 17, target = new THREE.Vector3(0, 0, 0);
 var R_CAM = 20;
 var drag = false, moved = 0, lx = 0, ly = 0, spectate = false;
@@ -875,6 +915,13 @@ function init3D() {
   window.addEventListener('pointerup', onUp);
   el.addEventListener('wheel', onWheel, { passive: false });
   window.addEventListener('resize', onResize);
+  // ⚠ Bám `window.onresize` KHÔNG đủ: khung bàn còn đổi cỡ khi trang tự bày lại (sidebar hiện/ẩn),
+  //   khi vào toàn màn hình bằng đường CSS, khi máy xoay. Đo THẲNG cái khung mới chắc.
+  //   Đã dính: đổi bề ngang cửa sổ mà bảng Xếp Bài giữ nguyên cỡ lá cũ ⇒ tràn ngang 47px.
+  if (window.ResizeObserver) {
+    ro = new ResizeObserver(function () { onResize(); });
+    ro.observe(root);
+  }
 }
 
 function matGeoFor(c) {
@@ -1012,13 +1059,15 @@ function vePopup() {
   var h = '<div class="bxp-chong">';
   for (var k = 1; k <= 3; k++) {
     var dg = khu[k].length === SUC[k] ? B.danhGia(khu[k]) : null;
-    h += '<div class="bxp-r r' + k + '" data-khu="' + k + '">' +
-      khu[k].map(function (c) { return laHTML(c, laChon === c ? 'sel' : ''); }).join('') +
+    h += '<div class="bxp-chi">' +
       '<span class="bxp-tag"><b>' + kh[k] + '</b>' + hangHTML(dg) + '</span>' +
-      '</div>';
+      '<div class="bxp-r r' + k + '" data-khu="' + k + '">' +
+      khu[k].map(function (c) { return laHTML(c, laChon === c ? 'sel' : ''); }).join('') +
+      '</div></div>';
   }
   h += '</div>';
   p.querySelector('.bxp-body').innerHTML = h;
+  coLaPopup();
 
   var du = khu[1].length === 3 && khu[2].length === 5 && khu[3].length === 5;
   var lung = du && !B.hopLe(khu[1], khu[2], khu[3]);
@@ -1031,6 +1080,42 @@ function vePopup() {
   var mbEl = p.querySelector('.bxp-mb');
   mbEl.style.display = mb ? '' : 'none';
   if (mb) mbEl.innerHTML = '<b>' + mb.ten + '</b> — ' + mb.mo + ' (ăn ' + mb.chi + ' chi mỗi nhà)';
+}
+/**
+ * Cỡ lá trong bảng Xếp Bài — ĐO khung rồi tính, không đoán bằng media query.
+ * Media query ăn theo bề ngang MÀN HÌNH, mà bảng này nằm trong khung bàn nằm trong trang:
+ * trên máy 412px thì hàng 5 lá 62px + cột nhãn 64px = 398px, khung chỉ có 344px ⇒ tràn ngang,
+ * lá thứ năm bị cắt (đúng lỗi user chụp). Tính từ bề ngang THẬT thì không bao giờ tràn.
+ */
+function coLaPopup() {
+  var p = $('.bxp');
+  if (!p) return;
+  // Nhãn chi lên trên hàng bài khi cột nhãn 104px ăn quá nhiều bề ngang. Khung NGANG (điện thoại
+  // xoay ngang / toàn màn hình) thì ngược lại: thừa ngang, thiếu dọc ⇒ giữ cột nhãn để đỡ tốn
+  // ba dòng chiều cao.
+  var hep = root.clientWidth < 520;
+  p.classList.toggle('hep', hep);
+  var khe = hep ? 6 : 10;                       // khe giữa hai lá (khớp .bxp-r gap)
+  var vien = hep ? 8 : 14;                      // .bxp-wrap padding
+  var dem = hep ? 20 : 32;                      // .bxp padding trái+phải
+  var cot = hep ? 0 : 104;                      // cột nhãn chi (92 + gap 12)
+  var wKhung = Math.min(840, root.clientWidth - vien * 2) - dem;
+  var w = Math.min(118, Math.floor((wKhung - cot - 4 * khe) / 5));
+  w = Math.max(30, w);
+  p.style.setProperty('--bxp-la', w + 'px');
+  // Cao quá thì phải cuộn — ĐO thật rồi rút, đừng cộng nhẩm chiều cao từng phần (đầu bảng ·
+  // dòng Mậu Binh · ba nhãn chi · hàng nút đều co giãn theo nội dung).
+  // ⚠ Rút theo TỪNG NẤC CỐ ĐỊNH thì màn thấp (điện thoại nằm ngang) chạy hết vòng vẫn còn tràn.
+  //   Chia phần thừa cho ba hàng rồi đổi sang bề rộng là hai vòng đã khít.
+  if (!$('.bxp-wrap').classList.contains('show')) return;
+  for (var i = 0; i < 6; i++) {
+    var thua = p.scrollHeight - p.clientHeight;
+    if (thua <= 1 || w <= 30) break;
+    var moi = Math.floor(w - (thua / 3) / 1.398 - 1);
+    if (moi >= w) moi = w - 2;
+    w = Math.max(30, moi);
+    p.style.setProperty('--bxp-la', w + 'px');
+  }
 }
 function moPopup() { $('.bxp-wrap').classList.add('show'); vePopup(); veDongHo(); }
 function dongPopup() { $('.bxp-wrap').classList.remove('show'); }
@@ -1145,7 +1230,10 @@ function moc() {
   // ⚠ Ôm trọn vành gỗ (R_BAN 7.15) là thứ ghìm cỡ lá trên MÀN HÌNH nhiều nhất — vành chỉ là
   // khung trang trí. Ngắm sát mép nỉ, chấp nhận cắt bớt vành, thì mọi thứ to thêm ~1/5.
   // (Cùng cách đã dùng cho màn dọc ở Tiến Lên.)
-  var Rm = (W() / H() < 1) ? R_NI + 0.30 : R_NI + 0.42;
+  // Màn DỌC: ngắm hẹp hơn cả mép nỉ (chấp nhận cắt hai chỏm trái/phải của bát giác) — bốn khối
+  // bài vẫn lọt trọn vì chúng mới là mốc rộng nhất, mà bài thì to thêm ~1/6. Màn dọc vốn thừa
+  // chiều cao và thiếu bề ngang, giữ trọn vành nỉ chỉ để đổi lấy bài bé.
+  var Rm = (W() / H() < 1) ? R_NI - 0.55 : R_NI + 0.42;
   for (i = 0; i < 8; i++) {
     var a = Math.PI / 8 + i * Math.PI / 4;
     p.push(new THREE.Vector3(Math.cos(a) * Rm, TOPY, Math.sin(a) * Rm));
@@ -1203,6 +1291,10 @@ function updCam() {
   camera.position.copy(camAt(R_CAM)); camera.lookAt(target);
 }
 function onResize() {
+  // Khung THẤP (điện thoại xoay ngang, cửa sổ bé): thẻ tên rút gọn lại, không thì bốn thẻ
+  // to bằng khung không còn chỗ nào không đè lên bài.
+  root.classList.toggle('bx-nho', root.clientHeight < 430);
+  coLaPopup();                       // xoay ngang / vào toàn màn hình là bảng xếp phải tính lại cỡ lá
   if (!renderer) return;
   renderer.setSize(W(), H());
   var z = sph.zoom || 1; target.set(0, 0, 0); canKhung(); sph.zoom = z; updCam();
@@ -1409,6 +1501,7 @@ function taoNhan() {
       '<div class="d2"><span class="hg"></span><span class="ch"></span></div>' +
       '<div class="th"></div></div>';
     root.appendChild(d); nhanEl[s] = d;
+    canhCu[s] = BC.nhanGoc ? BC.MEP[s] : BC.nhanCho(s);   // khung đầu đã đúng hướng gốc, khỏi nhấp nháy
   }
 }
 // ================= nội dung ván trên thẻ chân dung =================
@@ -1518,51 +1611,119 @@ function hopKhu(s, rc) {
   return { x0: x0, x1: x1, y0: y0, y1: y1 };
 }
 
+/** Diện tích chồng nhau của hai hộp (px²) — 0 là rời hẳn. */
+function chongNhau(a, b) {
+  var w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+  var h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
+  return (w > 0 && h > 0) ? w * h : 0;
+}
+
+// Hộp của chrome cố định trong khung (tiêu đề · pill trạng thái · hàng nút): thẻ tên phải
+// tránh, không thì trên máy hẹp nó nằm chồng đúng lên chữ. Đo lại mỗi 30 khung cho nhẹ.
+var chromeHop = [], chromeDem = 0;
+var CHROME_SEL = ['.bx-title', '.bx-sub', '.bx-canh', '.bx-left', '.bx-act'];
+function hopChrome() {
+  if (chromeDem-- > 0) return chromeHop;
+  chromeDem = 30;
+  var rr = root.getBoundingClientRect(), out = [];
+  for (var i = 0; i < CHROME_SEL.length; i++) {
+    var e = root.querySelector(CHROME_SEL[i]);
+    if (!e || e.offsetParent === null) continue;
+    var b = e.getBoundingClientRect();
+    if (!b.width || !b.height) continue;
+    out.push({ x0: b.left - rr.left, y0: b.top - rr.top, x1: b.right - rr.left, y1: b.bottom - rr.top });
+  }
+  chromeHop = out;
+  return out;
+}
+
+/** Mấy chỗ có thể treo thẻ ở một hướng — chỗ đầu là chỗ đẹp nhất của hướng đó. */
+function choTreo(ben, k, w, h, rw, rh) {
+  var cx = (k.x0 + k.x1) / 2, cy = (k.y0 + k.y1) / 2, m = 6, out = [], i, j;
+  if (ben === 'tren' || ben === 'duoi') {
+    var y = (ben === 'tren') ? k.y0 - h / 2 - m : k.y1 + h / 2 + m;
+    var xs = [cx, k.x0 + w / 2, k.x1 - w / 2, w / 2 + 6, rw - w / 2 - 6];
+    for (i = 0; i < xs.length; i++) out.push([xs[i], y]);
+  } else {
+    // Chỗ đầu là GHIM RA MÉP KHUNG (bốn mảng tối quanh bát giác vốn bỏ không, thẻ ra đó thì
+    // mặt bài sạch hẳn); chỗ sau là bám sát mép khối bài, dùng khi mép khung không đủ chỗ.
+    var xs2 = (ben === 'trai')
+      ? [Math.min(w / 2 + 10, k.x0 - w / 2 - m), k.x0 - w / 2 - m]
+      : [Math.max(rw - w / 2 - 10, k.x1 + w / 2 + m), k.x1 + w / 2 + m];
+    var ys = [cy, k.y0 + h / 2, k.y1 - h / 2, h / 2 + 6, rh - h / 2 - 6];
+    for (i = 0; i < xs2.length; i++) for (j = 0; j < ys.length; j++) out.push([xs2[i], ys[j]]);
+  }
+  return out;
+}
+
+/** Giá của một chỗ treo: đè lên bài nặng nhất, rồi đến đè chrome / thẻ khác, rồi lòi khỏi khung. */
+function giaTreo(p, w, h, khoi, can, rw, rh) {
+  var b = { x0: p[0] - w / 2, y0: p[1] - h / 2, x1: p[0] + w / 2, y1: p[1] + h / 2 }, g = 0, i;
+  for (i = 0; i < khoi.length; i++) g += chongNhau(b, khoi[i]) * 2.2;
+  for (i = 0; i < can.length; i++) g += chongNhau(b, can[i]) * 1.4;
+  var lo = Math.max(0, -b.x0) + Math.max(0, b.x1 - rw) + Math.max(0, -b.y0) + Math.max(0, b.y1 - rh);
+  return g + lo * 130;
+}
+
+var canhCu = [null, null, null, null];      // hướng đã chọn khung trước — giữ cho thẻ khỏi nhảy qua nhảy lại
+
 /**
  * ⚠ Chỗ đặt thẻ tên phải ĐO, đừng đoán. Bản cũ nhích cứng ±1.35 theo z — khu bài sâu lên
  * (ba chi tách hẳn) là thẻ rơi ngay vào giữa hàng chi Đầu. Cách đúng: chiếu BỐN GÓC khu bài
  * ra màn, lấy mép, rồi đặt thẻ sát ngoài mép đó. (Tiến Lên đã sai đúng kiểu này ba vòng liền.)
+ *
+ * ⚠ Và ĐO thôi chưa đủ: trên điện thoại dựng, lề hai bên khối bài gần bằng 0 nên chỗ "đúng"
+ * theo hướng ngồi lại là chỗ đè lên bài (user chụp đúng cảnh đó). Nên mỗi thẻ nay THỬ bốn
+ * hướng × mấy nấc trượt, chấm điểm theo diện tích đè lên bài / chrome / thẻ đã đặt, lấy chỗ
+ * rẻ nhất. Máy rộng thì hướng gốc vẫn luôn thắng vì nó không đè gì (giá 0).
  */
 function datNhan() {
   if (!camera) return;
   var rc = { w: scEl.clientWidth, h: scEl.clientHeight };
-  for (var s = 0; s < 4; s++) {
-    var hk = hopKhu(s, rc), x0 = hk.x0, x1 = hk.x1, y0 = hk.y0, y1 = hk.y1;
-    var el = nhanEl[s];
+  if (!rc.w || !rc.h) return;
+  // Mặt 3D có thể thụt vào trong khung (khổ điện thoại chừa hai dải chrome) — toạ độ thẻ tính
+  // theo ROOT nên phải cộng chỗ thụt, quên là cả bốn thẻ lệch lên trên đúng bằng dải đó.
+  var ox = scEl.offsetLeft, oy = scEl.offsetTop;
+  var rw = root.clientWidth, rh = root.clientHeight;
+  var khoi = [], s;
+  for (s = 0; s < 4; s++) {
+    var k0 = hopKhu(s, rc);
+    khoi.push({ x0: k0.x0 + ox, y0: k0.y0 + oy, x1: k0.x1 + ox, y1: k0.y1 + oy });
+  }
+  var can = hopChrome().slice();
+  var thuTu = [0, 2, 1, 3];                 // đặt nhà mình + nhà đối diện trước, hai bên nhường sau
+  for (var q = 0; q < 4; q++) {
+    s = thuTu[q];
+    var el = nhanEl[s], kh = khoi[s], cu = canhCu[s];
     // ⚠ Thẻ Đông/Tây phải CO theo lề thật giữa khối bài và mép khung. Chặn cứng một con số
     // là có ván thẻ nở rộng hơn lề (dòng Sâm Banh hai tên nhà) rồi bị clamp đẩy ngược vào đè bài.
-    if (BC.nhanGoc) {
-      var mp0 = BC.MEP[s];
-      if (mp0 === 'trai' || mp0 === 'phai') {
-        var le = (mp0 === 'trai' ? x0 : rc.w - x1) - 16;
-        el.style.maxWidth = Math.max(130, Math.round(le)) + 'px';
-      }
-    }
+    if (cu === 'trai' || cu === 'phai') {
+      var le = (cu === 'trai' ? kh.x0 : rw - kh.x1) - 16;
+      el.style.maxWidth = Math.max(130, Math.round(le)) + 'px';
+    } else el.style.maxWidth = '';
     var rr = el.getBoundingClientRect();
     var w = rr.width || 90, h = rr.height || 40;
-    var px = (x0 + x1) / 2, py;
-    if (BC.nhanGoc) {
-      // ghim ra mép khung theo hướng ngồi; trục còn lại vẫn bám tâm khu bài của chính nhà đó
-      var mp = BC.MEP[s];
-      // ⚠ Ghim mép khung RỒI còn phải chặn không cho lấn vào khối bài: thẻ nở thêm dòng
-      // (Sâm Banh liệt kê hai tên nhà) là bề rộng vọt lên, ghim suông thì nó thò vào đè bài.
-      if (mp === 'trai') { px = Math.min(w / 2 + 10, x0 - w / 2 - 6); py = (y0 + y1) / 2; }
-      else if (mp === 'phai') { px = Math.max(rc.w - w / 2 - 10, x1 + w / 2 + 6); py = (y0 + y1) / 2; }
-      // Nam/Bắc bám sát mép khối bài chứ KHÔNG ghim vào mép khung: thẻ nở thêm dòng thì nó
-      // tự nới ra ngoài. Ghim vào mép khung thì thẻ cao lên là phình ngược vào bài.
-      else if (mp === 'tren') py = y0 - h / 2 - 4;
-      else py = y1 + h / 2 + 4;
-    } else {
-      var ben = BC.nhanCho(s);
-      if (ben === 'trai') { px = x0 - w / 2 - 8; py = (y0 + y1) / 2; }
-      else py = (ben === 'duoi') ? (y1 + h / 2 + 5) : (y0 - h / 2 - 5);
+    var uu = BC.nhanGoc ? BC.MEP[s] : BC.nhanCho(s);
+    var ds = [uu], moi = ['duoi', 'tren', 'phai', 'trai'], d, v;
+    for (d = 0; d < moi.length; d++) if (moi[d] !== uu) ds.push(moi[d]);
+    var re = null, reCanh = uu;
+    for (d = 0; d < ds.length; d++) {
+      var pos = choTreo(ds[d], kh, w, h, rw, rh);
+      for (v = 0; v < pos.length; v++) {
+        var gia = giaTreo(pos[v], w, h, khoi, can, rw, rh) + d * 45 + v * 12;
+        if (ds[d] === cu) gia -= 300;       // đang đứng đó rồi thì đừng nhảy vì chênh vài chục px²
+        if (!re || gia < re.g) { re = { g: gia, p: pos[v] }; reCanh = ds[d]; }
+      }
     }
-    px = Math.max(w / 2 + 5, Math.min(rc.w - w / 2 - 5, px));
-    // Nhà Bắc chỉ chừa ~54px tới mép khung nên biên trên phải sát, không thì clamp đẩy đè lên bài.
-    py = Math.max(h / 2 + 4, Math.min(rc.h - h / 2 - 8, py));
+    canhCu[s] = reCanh;
+    var px = Math.max(w / 2 + 4, Math.min(rw - w / 2 - 4, re.p[0]));
+    var py = Math.max(h / 2 + 4, Math.min(rh - h / 2 - 4, re.p[1]));
     el.style.left = px + 'px'; el.style.top = py + 'px';
+    can.push({ x0: px - w / 2, y0: py - h / 2, x1: px + w / 2, y1: py + h / 2 });
   }
+  khoiCuoi = khoi;      // trang đo ngoài đọc để kiểm thẻ có đè lên bài không
 }
+var khoiCuoi = [];
 
 function vanMoi() {
   hands = B.deal(rnd);
@@ -1694,7 +1855,10 @@ try {
     NEO_SO: NEO_SO, R_NI: R_NI, R_BAN: R_BAN, CW: CW, CH: CH,
     SC_SO: SC_SO, BC: BC, bao: BC.bao(),
     STEP_SO: BC.step, BUOC_Z: BC.buocZ || 0,
-    bayNha: bayNha, xepNha: xepNha
+    bayNha: bayNha, xepNha: xepNha,
+    root: root, nhanEl: nhanEl,
+    khoi: function () { return khoiCuoi; },       // hộp bốn khối bài theo toạ độ root
+    chrome: hopChrome
   };
 } catch (err) {
   var d = $('.bx-fb'); d.style.display = 'flex'; d.querySelector('.fm').textContent = String(err && err.message || err);
@@ -1705,6 +1869,8 @@ return {
   destroy: function () {
     cancelAnimationFrame(raf);
     tatDongHo();
+    tm.destroy();                       // rời chiếu mà còn phủ màn hình là kẹt ở màn đen
+    if (ro) { ro.disconnect(); ro = null; }
     window.removeEventListener("keydown", onPhim);
     window.removeEventListener("resize", onResize);
     window.removeEventListener("pointermove", onMove);

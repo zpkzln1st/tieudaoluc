@@ -8,6 +8,7 @@
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf, KY_NGHE } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Cờ Tướng
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
+import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // ---------- ensure/migrate: khởi tạo state.nguTu (gọi mỗi lần load) ----------
 export function ensureNguTu(state) {
@@ -168,6 +169,7 @@ function mountNguTu(host, opts) {
       '<div class="ntk-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:12px;color:#5f7d8b"></div></div>' +
       '<div class="ntk-title"><span class="hz">五子棋</span><span class="vz">Ngũ Tử Kỳ</span></div>' +
       '<div class="ntk-left">' +
+        nutToanManHTML('ntk') +
         '<span class="ntk-b" data-a="spectate"><span class="ic">' + ic('eye') + '</span><span>Quan Chiến</span></span>' +
         '<span class="ntk-b" data-a="resign"><span class="ic">' + ic('flag') + '</span><span>Nhận Thua</span></span>' +
         '<span class="ntk-b" data-a="draw"><span class="ic">' + ic('draw') + '</span><span>Cầu Hòa</span></span>' +
@@ -192,6 +194,8 @@ function mountNguTu(host, opts) {
   const root = host.firstElementChild;
   const $ = (s) => root.querySelector(s);
   const scEl = $('.ntk-scene');
+  // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
+  const tm = ganToanMan(root, () => onResize());
   const fb = (msg) => { const d = $('.ntk-fb'); d.style.display = 'flex'; if (msg) d.querySelector('.fm').textContent = msg; };
 
   // ---- state ----
@@ -723,7 +727,7 @@ function mountNguTu(host, opts) {
   function gradTex(forEnv) { const cv = document.createElement('canvas'); cv.width = 16; cv.height = 256; const x = cv.getContext('2d'); const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#1c4c5c'); g.addColorStop(0.42, '#123846'); g.addColorStop(0.76, '#0b232d'); g.addColorStop(1, '#071620'); x.fillStyle = g; x.fillRect(0, 0, 16, 256); const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; if (forEnv) t.mapping = THREE.EquirectangularReflectionMapping; return t; }
 
   return {
-    destroy() { over = true; van++; if (rafId) cancelAnimationFrame(rafId); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel); window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey); try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {} host.innerHTML = ''; },
+    destroy() { over = true; van++; if (rafId) cancelAnimationFrame(rafId); tm.destroy(); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel); window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey); try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {} host.innerHTML = ''; },
     resize() { onResize(); },
   };
 }

@@ -8,6 +8,7 @@
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Ngũ Tử Kỳ
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
+import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào ván), KHÔNG import tĩnh:
 // import tĩnh mà engine lỗi cú pháp thì VỠ CẢ GAME; nạp động thì hỏng cũng chỉ hỏng riêng Cờ Tướng.
@@ -259,6 +260,7 @@ function mountCoTuong(host, opts) {
       '<div class="ct-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:12px;color:#7c705f"></div></div>' +
       '<div class="ct-title"><span class="hz">象棋</span><span class="vz">Cờ Tướng</span></div>' +
       '<div class="ct-left">' +
+        nutToanManHTML('ct') +
         '<span class="ct-b" data-a="spectate"><span class="ic">' + ic('eye') + '</span><span>Quan Chiến</span></span>' +
         '<span class="ct-b" data-a="resign"><span class="ic">' + ic('flag') + '</span><span>Nhận Thua</span></span>' +
         '<span class="ct-b" data-a="draw"><span class="ic">' + ic('draw') + '</span><span>Cầu Hòa</span></span>' +
@@ -282,6 +284,8 @@ function mountCoTuong(host, opts) {
   const root = host.firstElementChild;
   const $ = (s) => root.querySelector(s);
   const scEl = $('.ct-scene');
+  // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
+  const tm = ganToanMan(root, () => onResize());
   const fb = (msg) => { const d = $('.ct-fb'); d.style.display = 'flex'; if (msg) d.querySelector('.fm').textContent = msg; };
 
   // ---- kích thước bàn (1 đơn vị = 1 ô) ----
@@ -884,6 +888,7 @@ function mountCoTuong(host, opts) {
     destroy() {
       over = true; van++; if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onCancel);
+      tm.destroy();                     // rời bàn mà còn phủ màn hình là kẹt ở màn đen
       window.removeEventListener('resize', onResize); window.removeEventListener('keydown', onKey);
       try { if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss(); } } catch (e) {}
       host.innerHTML = '';
