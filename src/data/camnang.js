@@ -736,7 +736,7 @@ export const CN_MUC = [
   },
   {
     id: 'thiencoc', nhom: 'suutap', ten: 'Thiên Cơ Các',
-    tom: 'Bảy trò nhỏ, cách ly khỏi kinh tế chính.',
+    tom: 'Tám trò nhỏ, cách ly khỏi kinh tế chính.',
     khoi: [
       ['bang', ['Trò', 'Thể loại', 'Quy mô'], [
         ['Đăng Tiên Mộng', 'Thẻ bài leo tầng', '20 tầng, 5 thủ lĩnh, có di vật'],
@@ -746,10 +746,11 @@ export const CN_MUC = [
         ['Cờ Vua', 'Cờ vua bàn 3D', 'Máy đánh bằng thuật toán riêng'],
         ['Tiến Lên Miền Nam', 'Đánh bài bàn 3D', 'Ba máy đối thủ, đánh theo lượt, cược Trù Mã'],
         ['Binh Xập Xám', 'Xếp bài bàn 3D', 'Bốn nhà, mỗi nhà xếp 13 lá thành ba chi, cược Trù Mã'],
+        ['Tiến Lên Trung Quốc', 'Đánh bài bàn 3D', 'Ba nhà, bộ 48 lá, cược Trù Mã'],
       ]],
       ['p', 'Cờ Tướng và Ngũ Tử Kỳ dùng chung điểm Kỳ Hồn và danh hiệu Kỳ Nghệ.'],
       ['h', 'Trù Mã — đồng riêng của chiếu bài'],
-      ['p', 'Tiến Lên và Binh Xập Xám cược bằng <b>Trù Mã</b>, không phải Bạc. Đổi Bạc lấy Trù Mã theo tỉ giá <b>1 đổi 1</b>, và chỉ đổi được một chiều.'],
+      ['p', 'Ba trò bài — Tiến Lên, Tiến Lên Trung Quốc và Binh Xập Xám — cược bằng <b>Trù Mã</b>, không phải Bạc. Đổi Bạc lấy Trù Mã theo tỉ giá <b>1 đổi 1</b>, và chỉ đổi được một chiều.'],
       ['luu', 'Trù Mã <b>không đổi ngược lại thành Bạc</b>. Nhờ vậy thắng bài không sinh ra Bạc — các trò này cách ly khỏi kinh tế chính, không ảnh hưởng cân bằng cày cuốc.'],
     ],
   },
