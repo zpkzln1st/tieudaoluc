@@ -13,8 +13,13 @@ export const Storage = {
   save(state) {
     if (_locked) return false;   // đang áp dụng cloud save / chờ reload
     try {
-      state.lastSave = Date.now();
-      localStorage.setItem(KEY, JSON.stringify(state));
+      state.lastSave = Date.now();     // ghi QUA proxy để mọi chỗ bám lastSave còn cập nhật
+      // ⚠ Bóc lớp proxy của Alpine TRƯỚC khi chuyển thành chuỗi: JSON.stringify đọc hàng nghìn
+      //   thuộc tính, mỗi lượt đọc qua proxy đắt gấp ~5 lần. Đo được với save 112KB:
+      //   qua proxy 3,05ms · trên vật thô 0,60ms (bản thân localStorage chỉ 0,025ms).
+      //   Cứ 5 giây chặn luồng chính 3ms là chắc chắn rớt một khung.
+      const tho = (window.Alpine && window.Alpine.raw) ? window.Alpine.raw(state) : state;
+      localStorage.setItem(KEY, JSON.stringify(tho));
       return true;
     } catch (e) {
       console.warn('Lưu thất bại:', e);

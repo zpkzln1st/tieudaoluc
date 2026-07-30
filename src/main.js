@@ -3380,9 +3380,14 @@ const gameStore = {
   get maxChieuSlots() { return maxChieuSlots(this.combatLevel); },
   get nextSlotLevel() { return nextSlotLevel(this.combatLevel); },
   get combatSinhLuc() {
-    void this._cycleNow;                                  // nudge: rafLoop bơm _cycleNow lúc suy yếu -> thanh HP hồi mượt
     const c = this.state.combat;
     if (c.noiThuong && c.suyYeuUntil) {                   // suy yếu: HP hồi tuyến tính 0 -> đầy trong 60s
+      // ⚠⚠ CHỖ NÀY TỪNG NGỐN 14% CPU. `void this._cycleNow` trước đây nằm ở ĐẦU getter, mà rafLoop
+      //   bơm `_cycleNow` MỖI KHUNG khi đang đánh ⇒ getter này hỏng mỗi khung ⇒ kéo theo
+      //   combatMaxHp -> combatStats -> deriveCombat() -> codexBonus() (duyệt 417 mục Vạn Vật Phổ).
+      //   Đo được: 2,39 ms mỗi khung = 143 ms mỗi giây, trong khi cái nhúc nhích ấy CHỈ cần cho
+      //   thanh HP lúc Suy Yếu. Nên nó phải nằm TRONG nhánh này, đừng đưa ra ngoài lần nữa.
+      void this._cycleNow;
       const frac = Math.max(0, Math.min(1, 1 - (c.suyYeuUntil - now()) / SUY_YEU_MS));
       return Math.round(this.combatMaxHp * frac);
     }
