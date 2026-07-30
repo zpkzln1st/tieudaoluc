@@ -78,6 +78,7 @@ import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // d
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
+import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
 
 let _devNowOffset = 0;                        // Dev: tua đồng hồ (session-only; reload reset). 0 = thực.
 const now = () => Date.now() + _devNowOffset;
@@ -1431,6 +1432,12 @@ const gameStore = {
   saveBio() { this.state.player.bio = (this.bioDraft || '').slice(0, 250); this.bioModal = false; Storage.save(this.state); this.showToast('Đã lưu tiểu sử.'); },
   // ---------- Điểm Danh ----------
   openDaily() { this.dailyModal = true; },
+  /**
+   * Thu một tấm modal cho VỪA MÀN HÌNH thay vì bắt cuộn (user chốt: "đừng có con lăn, tự co giãn
+   * theo màn hình lớn nhỏ"). Dùng chung hàm `vuaKhung` đang chạy cho bảng tổng kết ván bài,
+   * chỉ khác là khung ở đây là cả màn hình.
+   */
+  vuaManHinh(el) { try { vuaKhung(el, document.documentElement); } catch (e) { } },
   // ===== HIỆU ỨNG: tổng hợp mọi hiệu ứng/bonus đang tác động lên nhân vật (Linh Thạch hoạt động + passive: Linh Thú/Danh Hiệu/Vạn Vật Phổ/Nghề). =====
   hieuUngOpen: false,
   openHieuUng() { this.hieuUngOpen = true; },
