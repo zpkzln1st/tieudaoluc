@@ -694,9 +694,13 @@
     <button @click="$store.game.navOpen = !$store.game.navOpen" class="md:hidden w-9 h-9 -ml-1 rounded-lg flex items-center justify-center text-slate-300 hover:text-jade hover:bg-ink3 transition shrink-0" title="Menu">
       <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
-    <div class="flex items-center gap-2.5">
-      <!-- Logo emblem (ảnh; thiếu file -> ô 逍 tạm). Bấm -> mở "Về Trò Chơi · Tác Giả". -->
-      <div class="w-12 h-12 shrink-0 flex items-center justify-center cursor-pointer" @click="$store.game.authorOpen=true" title="Về Trò Chơi · Tác Giả">
+    <!-- Bấm cả cụm (emblem + tên game) -> về Hồ Sơ, đúng thói quen bấm logo là về trang chủ.
+         ⚠ Chỗ này TRƯỚC ĐÂY mở "Về Trò Chơi · Tác Giả"; panel đó vẫn vào được bằng con dấu
+         Ấn Ký Tác Giả ở đáy sidebar, nên gán lại không mất cửa nào. -->
+    <div class="flex items-center gap-2.5 cursor-pointer transition hover:opacity-90"
+         @click="$store.game.navTo('profile')" title="Về Hồ Sơ">
+      <!-- Logo emblem (ảnh; thiếu file -> ô 逍 tạm). -->
+      <div class="w-12 h-12 shrink-0 flex items-center justify-center">
         <img src="images/ui/logo-emblem.webp" alt="Tiêu Dao Lục"
           class="w-full h-full object-contain drop-shadow-[0_0_7px_rgba(34,211,238,0.45)]"
           onerror="if(this.src.endsWith('.webp')){this.src='images/ui/logo-emblem.png'}else{this.style.display='none';this.nextElementSibling.style.display='flex'}">
