@@ -9,7 +9,7 @@
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
-import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào ván), KHÔNG import tĩnh:
 // import tĩnh mà engine lỗi cú pháp thì VỠ CẢ GAME; nạp động thì hỏng cũng chỉ hỏng riêng Cờ Vua.
@@ -123,6 +123,16 @@ function injectStyle() {
 .cv-banner .gbtn{padding:9px 22px;border-radius:10px;cursor:pointer;font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--gold2);background:rgba(20,14,9,.5);border:1px solid rgba(224,180,95,.5);transition:background .15s,border-color .15s}
 .cv-banner .gbtn:hover{background:rgba(224,180,95,.14);border-color:var(--gold2)}
 .cv-banner .gbtn.ghost{color:#d9cfbe;border-color:#463829;background:#1b1410}
+/* KHUNG THẤP (điện thoại nằm ngang, kể cả lúc phủ toàn màn hình) — lớp do capKhung() gắn.
+   Media query KHÔNG thay được: nó đo màn hình, còn đây phải đo CHÍNH khung bàn.
+   Chrome cỡ máy bàn trên khung cao ~330px thì nút to lấn hết bàn cờ. */
+.kh-nho .cv-title{left:10px;top:7px}.kh-nho .cv-title .hz{font-size:19px}.kh-nho .cv-title .vz{font-size:11px}
+.kh-nho .cv-left{left:8px;gap:6px}.kh-nho .cv-b{width:auto}
+.kh-nho .cv-b .ic{width:27px;height:27px}.kh-nho .cv-b .ic svg{width:15px;height:15px}.kh-nho .cv-b span{font-size:8.5px}
+.kh-nho .cv-right{right:8px;top:7px;gap:5px}.kh-nho .cv-pc{width:124px;padding:4px 7px 4px 4px}.kh-nho .cv-av{width:26px;height:26px}
+.kh-nho .cv-pc .nm{font-size:10.5px}.kh-nho .cv-pc .rr{font-size:9px}
+.kh-nho .cv-promo,.kh-nho .cv-view{bottom:10px;gap:6px;padding:6px 9px}.kh-nho .cv-promo .op,.kh-nho .cv-view .op{padding:5px 10px;font-size:11.5px}
+.kh-nho .cv-chat{bottom:10px}
 @media (max-width:600px){.cv-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.cv-title{left:10px;top:8px}.cv-title .hz{font-size:22px}.cv-title .vz{font-size:11px}.cv-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.cv-b{width:auto}.cv-b .ic{width:40px;height:40px}.cv-b span{font-size:9.5px}.cv-right{right:8px;top:8px;gap:6px}.cv-pc{width:134px;padding:5px 8px 5px 5px}.cv-av{width:30px;height:30px}.cv-pc .nm{font-size:11px}.cv-pc .rr{font-size:9px}.cv-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.cv-toast.show{transform:translateY(0)}.cv-chk{top:78px}.cv-chat{bottom:74px;width:94%}.cv-promo,.cv-view{bottom:74px;gap:6px;padding:8px 10px}.cv-promo .lb,.cv-view .lb{display:none}.cv-promo .op,.cv-view .op{padding:6px 11px;font-size:12px}}
 `;
   document.head.appendChild(st);
@@ -958,6 +968,7 @@ function mountCoVua(host, opts) {
   }
   function onResize() {
     if (!renderer) return;
+    capKhung(root);                     // khung thấp -> chrome rút gọn (xem engine/toanman.js)
     const w = W(), h = H(); renderer.setSize(w, h);
     const ar = w / h, portrait = ar < 1.05;
     // Mobile: CHỪA dải TRÊN (thẻ tên) + dải DƯỚI (hàng nút) để bàn không đè lên chúng.

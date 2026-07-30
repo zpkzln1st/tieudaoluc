@@ -2590,7 +2590,7 @@
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[26px] gold-text leading-none fserif">Sơn Dã Liệp Trường</div>
               <div class="text-[11px] text-slate-300 flex items-center gap-1 mt-2"><span class="text-rose-300/80 shrink-0" x-html="$store.game.svg('pin','w-3 h-3')"></span><span x-text="$store.game.currentLocationObj.name"></span></div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Hoang sơn thâm cốc, dị thú chiếm cứ tứ phương, hung hiểm khó lường.</b> Nơi đây dần trở thành thí luyện chi địa của võ lâm nhân sĩ, lấy sinh tử định thành bại, dùng <b class="text-amber-300">thực lực đoạt cơ duyên</b>.</div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Hoang sơn thâm cốc, dị thú chiếm cứ tứ phương, hung hiểm khó lường.</b> Nơi đây dần trở thành thí luyện chi địa của võ lâm nhân sĩ, lấy sinh tử định thành bại, dùng <b class="text-amber-300">thực lực đoạt cơ duyên</b>.</div>
               <div class="flex items-center gap-2 mt-3">
                 <span class="px-2.5 py-1 rounded-md bg-ink3/80 backdrop-blur-sm border border-slate-700 text-xs whitespace-nowrap">Chiến Lực <b class="text-jade" x-text="$store.game.fmt($store.game.chienLuc)"></b></span>
                 <button @click="$store.game.openZoneChange()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-ink3/80 backdrop-blur-sm border border-slate-700 hover:border-jade text-slate-300"><span x-html="$store.game.svg('map','w-3.5 h-3.5')"></span>Đổi vùng</button>
@@ -5559,7 +5559,7 @@
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(244,63,94,.18), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[28px] gold-text leading-none fserif">Vây Sát Yêu Vương</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Yêu Vương giáng thế, yêu khí trùng thiên.</b> Chư hiệp hợp lực tru ma, đoạt <b class="text-amber-300">Linh Bảo</b>, tranh đoạt vô thượng cơ duyên.</div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Yêu Vương giáng thế, yêu khí trùng thiên.</b> Chư hiệp hợp lực tru ma, đoạt <b class="text-amber-300">Linh Bảo</b>, tranh đoạt vô thượng cơ duyên.</div>
             </div>
           </div>
 
@@ -5825,7 +5825,7 @@
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(45,212,191,.16), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[28px] gold-text leading-none fserif">Bí Cảnh Tầm Bảo</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Linh khí hội tụ, bảo khố hiện thế.</b> Trong mê cung cổ xưa ẩn giấu vô số trân bảo cùng truyền thừa thất lạc. Hãy tiến vào 9 tầng bí cảnh, tìm kiếm cơ duyên, thu thập <b class="text-amber-300">Đồ Phổ</b>, trang bị phẩm chất cao, Hồn Thạch và các nguyên liệu hiếm.</div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Linh khí hội tụ, bảo khố hiện thế.</b> Trong mê cung cổ xưa ẩn giấu vô số trân bảo cùng truyền thừa thất lạc. Hãy tiến vào 9 tầng bí cảnh, tìm kiếm cơ duyên, thu thập <b class="text-amber-300">Đồ Phổ</b>, trang bị phẩm chất cao, Hồn Thạch và các nguyên liệu hiếm.</div>
             </div>
           </div>
 
@@ -10673,7 +10673,7 @@
         <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()" @keydown.window="ktDevKey($event)">
           <!-- thanh đầu -->
           <!-- Banner chuẩn (đồng bộ Yêu Vương / Bí Cảnh / Nghề): min-h 160, art nền + overlay + chip trạng thái góc phải. Ẩn khi vào trận (mobile khỏi phải cuộn xuống board) -->
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col sm:flex-row sm:items-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col sm:flex-row sm:items-center">
             <img src="images/ui/kytran_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/kytran_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(192,132,252,.18), transparent 66%)"></div>
@@ -10685,7 +10685,7 @@
             </div>
             <div class="relative w-full px-5 pb-5 pt-1 sm:p-6">
               <div class="text-[22px] sm:text-[28px] gold-text leading-none fserif">Kỳ Trận · Cửu Cung Trấn Yêu</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-violet-300">Cửu cung bố trận, trấn áp bát phương.</b> Chinh phục 9 Cung yêu ma, dồn vào Trung Cung diệt Thiên Ma Yêu Đế, đoạt lấy tuyệt học trấn trận.</div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-violet-300">Cửu cung bố trận, trấn áp bát phương.</b> Chinh phục 9 Cung yêu ma, dồn vào Trung Cung diệt Thiên Ma Yêu Đế, đoạt lấy tuyệt học trấn trận.</div>
             </div>
           </div>
           <!-- tab -->
@@ -10983,12 +10983,12 @@
       <!-- ===== VIEW: NGŨ TỬ KỲ (cờ caro 3D — mini-game, cách ly 0-power) ===== -->
       <template x-if="$store.game.view==='nguTuKy'">
         <div class="max-w-[1200px] mx-auto" x-data="nguTuKy()" x-init="ntkInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/ngutuky_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/ngutuky_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">五子棋</span> Ngũ Tử Kỳ</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-cyan-300">Nhân sinh như kỳ, lạc tử vô hối.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-cyan-300">Nhân sinh như kỳ, lạc tử vô hối.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="ntk.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
             </div>
@@ -11039,12 +11039,12 @@
       <!-- ===== VIEW: CỜ TƯỚNG (象棋 3D — mini-game, cách ly 0-power) ===== -->
       <template x-if="$store.game.view==='coTuong'">
         <div class="max-w-[1200px] mx-auto" x-data="coTuong()" x-init="ctInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/cotuong_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/cotuong_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">象棋</span> Cờ Tướng</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Hán giới chia đôi bờ, xe pháo mã dàn trận. Tướng chẳng rời cửu cung — hơn thua ở đường vây, không ở nước chém.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Hán giới chia đôi bờ, xe pháo mã dàn trận. Tướng chẳng rời cửu cung — hơn thua ở đường vây, không ở nước chém.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="ct.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
             </div>
@@ -11095,12 +11095,12 @@
       <!-- ===== VIEW: CỜ VUA (西洋棋 3D — mini-game, cách ly 0-power) ===== -->
       <template x-if="$store.game.view==='coVua'">
         <div class="max-w-[1200px] mx-auto" x-data="coVua()" x-init="cvInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/covua_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/covua_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">西洋棋</span> Cờ Vua</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Đen trắng đối diện, mỗi quân một lối, không quân nào đi thay quân khác. Dồn được vua vào chỗ tận thì cuộc tàn.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Đen trắng đối diện, mỗi quân một lối, không quân nào đi thay quân khác. Dồn được vua vào chỗ tận thì cuộc tàn.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="cv.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
             </div>
@@ -11153,22 +11153,22 @@
            như các bàn cờ — Tiến Lên cần đủ 3 người mới thành ván. Cược bằng TRÙ MÃ — đồng riêng của chiếu bài, KHÔNG dính Bạc nhân vật (engine/truma.js). -->
       <template x-if="$store.game.view==='tienLen'">
         <div class="max-w-[1200px] mx-auto" x-data="tienLen()" x-init="tlInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/tienlen_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/tienlen_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">越南跑得快</span> Tiến Lên</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài ra như kiếm rút — nhanh nửa nhịp thì đoạt tiên cơ, chậm nửa nhịp thì bị khoá tay. Ai trút sạch trước, kẻ ấy cầm trịch cả chiếu.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài ra như kiếm rút — nhanh nửa nhịp thì đoạt tiên cơ, chậm nửa nhịp thì bị khoá tay. Ai trút sạch trước, kẻ ấy cầm trịch cả chiếu.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="tl.van"></b> ván · Về Nhất: <b class="text-amber-300" x-text="tl.nhat"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(tl.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((tl.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(tl.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
               <!-- Số Trù Mã + MỘT nút. Dải bốn nút đổi bày thẳng trên banner làm rối mắt;
                    dồn hết vào popup thì banner gọn mà chỗ đổi lại rộng rãi hơn. -->
-              <div class="mt-3 flex items-center gap-2.5 flex-wrap">
+              <div class="mt-2 flex items-center gap-2.5 flex-wrap">
                 <span class="text-[12px] text-slate-400">Trù Mã:</span>
                 <b class="text-[15px] fserif text-amber-300 tabular-nums" x-text="$store.game.fmtC(truMa)"></b>
                 <button @click="$store.game.openTruMa()"
-                        class="px-3 py-1 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
+                        class="px-3 py-0.5 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
               </div>
             </div>
           </div>
@@ -11289,20 +11289,20 @@
            Cược bằng TRÙ MÃ như mọi chiếu bài — KHÔNG đụng Bạc nhân vật (engine/truma.js). -->
       <template x-if="$store.game.view==='binh'">
         <div class="max-w-[1200px] mx-auto" x-data="binh()" x-init="bxInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/binh_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/binh_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">十三水</span> Binh Xập Xám</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài không đánh, chỉ bày. Trước nhẹ sau nặng, ba chi thành trận — bày sai một chi thì chưa lật đã tự vỡ.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài không đánh, chỉ bày. Trước nhẹ sau nặng, ba chi thành trận — bày sai một chi thì chưa lật đã tự vỡ.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="bx.van"></b> ván · Ván ăn: <b class="text-amber-300" x-text="bx.thang"></b> · Sâm Banh: <b class="text-amber-300" x-text="bx.samBanh"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(bx.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((bx.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(bx.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
-              <div class="mt-3 flex items-center gap-2.5 flex-wrap">
+              <div class="mt-2 flex items-center gap-2.5 flex-wrap">
                 <span class="text-[12px] text-slate-400">Trù Mã:</span>
                 <b class="text-[15px] fserif text-amber-300 tabular-nums" x-text="$store.game.fmtC(truMa)"></b>
                 <button @click="$store.game.openTruMa()"
-                        class="px-3 py-1 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
+                        class="px-3 py-0.5 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
               </div>
             </div>
           </div>
@@ -11403,22 +11403,22 @@
       </template>
       <template x-if="$store.game.view==='paoDeKuai'">
         <div class="max-w-[1200px] mx-auto" x-data="paoDeKuai()" x-init="pkInit()">
-          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[160px] flex flex-col justify-center">
+          <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col justify-center">
             <img src="images/ui/paodekuai_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/paodekuai_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">中国跑得快</span> Tiến Lên Trung Quốc</div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Ba nhà một bàn, bốn mươi tám lá — ít người thì ít chỗ lùi. Tên đã là chạy cho nhanh: chần chừ nửa hơi là mất cửa.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Ba nhà một bàn, bốn mươi tám lá — ít người thì ít chỗ lùi. Tên đã là chạy cho nhanh: chần chừ nửa hơi là mất cửa.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="pk.van"></b> ván · Chạy nhất: <b class="text-amber-300" x-text="pk.nhat"></b> · Bom: <b class="text-amber-300" x-text="pk.bom||0"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(pk.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((pk.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(pk.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
               <!-- Số Trù Mã + MỘT nút. Dải bốn nút đổi bày thẳng trên banner làm rối mắt;
                    dồn hết vào popup thì banner gọn mà chỗ đổi lại rộng rãi hơn. -->
-              <div class="mt-3 flex items-center gap-2.5 flex-wrap">
+              <div class="mt-2 flex items-center gap-2.5 flex-wrap">
                 <span class="text-[12px] text-slate-400">Trù Mã:</span>
                 <b class="text-[15px] fserif text-amber-300 tabular-nums" x-text="$store.game.fmtC(truMa)"></b>
                 <button @click="$store.game.openTruMa()"
-                        class="px-3 py-1 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
+                        class="px-3 py-0.5 rounded-lg text-[11.5px] fserif text-amber-200 border border-amber-500/45 hover:bg-amber-500/10 transition">Đổi Trù Mã</button>
               </div>
             </div>
           </div>

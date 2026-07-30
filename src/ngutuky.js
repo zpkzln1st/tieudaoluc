@@ -8,7 +8,7 @@
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf, KY_NGHE } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Cờ Tướng
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
-import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // ---------- ensure/migrate: khởi tạo state.nguTu (gọi mỗi lần load) ----------
 export function ensureNguTu(state) {
@@ -110,6 +110,15 @@ function injectStyle() {
 .ntk-chat-in::placeholder{color:var(--txt3)}
 .ntk-chat-send{flex:none;padding:6px 15px;border-radius:9px;cursor:pointer;font-size:12px;color:#2a1d04;border:1px solid #f0d78f;background:linear-gradient(180deg,#f6dc9c,#e0b45f);font-family:var(--serif);font-weight:700}
 .ntk-chat-send:active{transform:scale(.95)}
+/* KHUNG THẤP (điện thoại nằm ngang, kể cả lúc phủ toàn màn hình) — lớp do capKhung() gắn.
+   Media query KHÔNG thay được: nó đo màn hình, còn đây phải đo CHÍNH khung bàn. */
+.kh-nho .ntk-title{left:10px;top:7px}.kh-nho .ntk-title .hz{font-size:19px}.kh-nho .ntk-title .vz{font-size:11px}
+.kh-nho .ntk-left{left:8px;gap:6px}.kh-nho .ntk-b{width:auto}
+.kh-nho .ntk-b .ic{width:27px;height:27px}.kh-nho .ntk-b .ic svg{width:15px;height:15px}.kh-nho .ntk-b span{font-size:8.5px}
+.kh-nho .ntk-right{right:8px;top:7px;gap:5px}.kh-nho .ntk-pc{width:124px;padding:4px 7px 4px 4px}.kh-nho .ntk-av{width:26px;height:26px}
+.kh-nho .ntk-pc .nm{font-size:10.5px}.kh-nho .ntk-pc .rr{font-size:9px}
+.kh-nho .ntk-view{bottom:10px;gap:6px;padding:6px 9px}.kh-nho .ntk-view .op{padding:5px 10px;font-size:11.5px}
+.kh-nho .ntk-chat{bottom:10px}
 @media (max-width:600px){.ntk-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ntk-title{left:10px;top:8px}.ntk-title .hz{font-size:22px}.ntk-title .vz{font-size:11px}.ntk-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ntk-b{width:auto}.ntk-b .ic{width:40px;height:40px}.ntk-b .ic svg{width:21px;height:21px}.ntk-b span{font-size:9.5px}.ntk-right{right:8px;top:8px;gap:6px}.ntk-pc{width:134px;padding:5px 8px 5px 5px}.ntk-av{width:30px;height:30px}.ntk-pc .nm{font-size:11px}.ntk-pc .rr{font-size:9px}.ntk-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ntk-toast.show{transform:translateY(0)}.ntk-chat{bottom:74px;width:94%}.ntk-view{bottom:74px;gap:6px;padding:8px 10px}.ntk-view .lb{display:none}.ntk-view .op{padding:6px 11px;font-size:12px}}
 `;
   document.head.appendChild(st);
@@ -662,6 +671,7 @@ function mountNguTu(host, opts) {
   }
   function onResize() {
     if (!renderer) return;
+    capKhung(root);                     // khung thấp -> chrome rút gọn (xem engine/toanman.js)
     const w = W(), h = H(); renderer.setSize(w, h);
     const ar = w / h, portrait = ar < 1.05;
     // Mobile: CHỪA dải TRÊN (thẻ tên đấu thủ) + dải DƯỚI (hàng nút), bàn khớp vào ĐÚNG khoảng giữa

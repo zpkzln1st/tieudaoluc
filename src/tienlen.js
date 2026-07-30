@@ -10,7 +10,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Tiến Lên, không vỡ cả game.
 let E = null;
@@ -193,19 +193,35 @@ function injectStyle() {
     '.tl-rw{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}',
     '.tl-rw span{font-family:var(--serif);font-size:12px;font-weight:600;color:var(--gold2);background:rgba(230,192,121,.12);border:1px solid rgba(230,192,121,.45);border-radius:99px;padding:4px 14px}',
     '.tl-end .btns{display:flex;gap:10px;margin-top:16px;justify-content:center}',
+    // ===== KHUNG THẤP (điện thoại nằm ngang, kể cả lúc phủ toàn màn hình) — lớp do capKhung() gắn.
+    // Media query KHÔNG thay được: nó đo MÀN HÌNH, còn đây phải đo CHÍNH khung bàn.
+    // Chrome cỡ máy bàn trên khung cao ~330px thì nút to lấn hết bàn (user: "nút to quá").
+    '.kh-nho .tl-title{left:10px;top:7px}.kh-nho .tl-title .hz{font-size:18px}.kh-nho .tl-title .vz{font-size:11px}',
+    '.kh-nho .tl-chieu{left:11px;top:29px;font-size:9.5px}',
+    // ⚠ Pill trạng thái phải HẠ XUỐNG: khung ngang mà thấp thì tiêu đề dài chạm ngay pill đặt
+    //   giữa đỉnh (user chụp được cảnh đè). Hạ xuống dưới tiêu đề, vẫn nằm trên mặt nỉ trống.
+    '.kh-nho .tl-cur{top:38px;font-size:11px;padding:4px 11px;max-width:76%}',
+    // width:auto — nhãn dài hơn ô 46px thì tràn ra hai bên rồi bị mép khung xén mất chữ đầu
+    '.kh-nho .tl-left{left:8px;gap:6px;top:64%}.kh-nho .tl-b{width:auto}',
+    '.kh-nho .tl-b .ic{width:27px;height:27px}.kh-nho .tl-b .ic svg{width:15px;height:15px}.kh-nho .tl-b span{font-size:8.5px}',
+    '.kh-nho .tl-act{bottom:8px;gap:6px}.kh-nho .tl-btn{padding:5px 13px;font-size:11.5px}',
+    '.kh-nho .tl-seat{padding:3px 7px 3px 3px;gap:5px}.kh-nho .tl-av{width:26px;height:26px}',
+    '.kh-nho .tl-seat .nm{font-size:10.5px}.kh-nho .tl-seat .bh{display:none}.kh-nho .tl-seat .ct{font-size:9px}',
+    '.kh-nho .tl-chat,.kh-nho .tl-view{bottom:52px}',
     // mobile
     // ⚠ KHÔNG đặt min-height cạnh aspect-ratio: chiều cao tối thiểu sẽ kéo chiều rộng phình ra
     //   quá màn hình (390px → 577px) và cả trang tràn ngang.
-    // ⚠ ĐÃ THỬ cho khung cao 84dvh như Binh Xập Xám rồi BỎ: bàn này canh khung theo BỀ NGANG nên
-    // khung cao thêm chỉ đẻ ra hai dải trống trên/dưới, bàn không to lên tí nào. Tỉ lệ 3/4 vừa khít.
-    '@media (max-width:600px){.tl-root{aspect-ratio:3/4;max-height:86dvh}',
+    // Khung LẤP ĐẦY chiều cao còn lại (tỉ lệ 3/4 để thừa hơn 200px trống dưới khung), và bàn
+    // chỉ được canh trong DẢI GIỮA (xem DAI_TREN/DAI_DUOI ở onResize) nên hàng icon + hàng nút
+    // nằm hẳn dưới mặt bàn thay vì đè lên.
+    '@media (max-width:600px){.tl-root{aspect-ratio:auto;height:86dvh;max-height:none}',
     '  .tl-title{left:10px;top:6px}.tl-title .hz{font-size:17px}.tl-title .vz{font-size:11px}.tl-chieu{left:11px;top:27px;font-size:9.5px}',
-    '  .tl-left{left:0;right:0;top:auto;bottom:56px;transform:none;flex-direction:row;justify-content:center;gap:14px}',
+    '  .tl-left{left:0;right:0;top:auto;bottom:82px;transform:none;flex-direction:row;justify-content:center;gap:14px}',
     '  .tl-b{width:auto}.tl-b .ic{width:33px;height:33px}',
-    '  .tl-act{bottom:9px;gap:5px;flex-wrap:wrap;justify-content:center;width:97%}.tl-btn{padding:6px 11px;font-size:11.5px}',
+    '  .tl-act{bottom:14px;gap:5px;flex-wrap:wrap;justify-content:center;width:97%}.tl-btn{padding:6px 11px;font-size:11.5px}',
     '  .tl-seat{padding:3px 7px 3px 3px;gap:5px;max-width:46%}.tl-av{width:25px;height:25px}.tl-seat .nm{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tl-seat .bh{display:none}.tl-seat .ct{font-size:9px}',
     '  .tl-cur{font-size:10.5px;padding:4px 10px;top:47px;max-width:94%;overflow:hidden;text-overflow:ellipsis;display:block;white-space:nowrap}',
-    '  .tl-toast{font-size:11px;top:68px;left:10px;max-width:calc(100% - 20px)}.tl-chat{bottom:96px}.tl-view{bottom:96px}.tl-view .lb{display:none}',
+    '  .tl-toast{font-size:11px;top:68px;left:10px;max-width:calc(100% - 20px)}.tl-chat{bottom:132px}.tl-view{bottom:132px}.tl-view .lb{display:none}',
     '  .tl-end{padding:18px 16px 14px}.tl-end .bt{font-size:22px}.tl-tab{font-size:11px}}'
   ].join('\n');
   document.head.appendChild(st);
@@ -837,7 +853,18 @@ function mountTienLen(host, opts) {
    */
   function anchorOf(s) {
     var A = HAND_ANCHOR[s];
-    if (s === 0 && W() / H() < 1) return { pos: A.pos, rotY: A.rotY, tilt: A.tilt, arc: 0, step: 0.50, scale: 2.0 };
+    if (s !== 0) return A;
+    // ⚠ Khổ DỌC: bó bài chính là thứ ghìm khung ngắm chứ không phải mặt nỉ — nửa bề ngang bó
+    //   6·0,50·2,0 + 0,70 = 6,70 trong khi nửa mặt nỉ chỉ 5,41. Siết bước còn 0,40 thì bó rộng
+    //   5,50 ≈ mặt nỉ ⇒ ràng buộc chuyển về mặt nỉ, CẢ BÀN LẪN BÀI to thêm ~1/5.
+    //   Lộ 57% mặt lá (bậc + chất chiếm 27% góc trên-trái) nên vẫn đọc trọn.
+    if (W() / H() < 1) return { pos: A.pos, rotY: A.rotY, tilt: A.tilt, arc: 0, step: 0.40, scale: 2.0 };
+    // Khung THẤP (điện thoại nằm ngang / toàn màn hình): user kêu lá bài mình bé.
+    // ⚠ Tăng `scale` suông là VÔ ÍCH: bó 13 lá rộng 13.05 > mặt nỉ 11.1 nên chính nó đang ghìm
+    //   khung ngắm — lá to lên thì camera lùi ra đúng bằng ấy. Phải cho CHỒNG SÂU hơn để tổng
+    //   bề ngang không tăng: step 0.52→0.42 · scale 1.88→2.20 ⇒ lá to thêm ~1/6, bó lại hẹp hơn.
+    //   Lộ 60% mặt lá, mà bậc + chất nằm gọn trong góc trên-trái (~27%) nên vẫn đọc trọn.
+    if (H() < 460) return { pos: A.pos, rotY: A.rotY, tilt: A.tilt, arc: 0, step: 0.42, scale: 2.20 };
     return A;
   }
 
@@ -1002,16 +1029,27 @@ function mountTienLen(host, opts) {
       target.y + r * Math.cos(sph.phi),
       target.z + r * Math.sin(sph.phi) * Math.cos(sph.theta));
   }
+  // ===== DẢI CHROME chừa ra ở khổ dọc =====
+  // Khổ dọc: hàng icon + hàng nút nằm đè lên mặt bàn (user chụp được), trong khi dưới khung còn
+  // trống. Cách chữa: chừa hẳn hai dải, bàn chỉ được canh trong DẢI GIỮA, rồi dùng
+  // `camera.setViewOffset` đẩy ảnh xuống cho đúng chỗ. (Cùng cách Cờ Vua đã dùng.)
+  var DAI_TREN = 0, DAI_DUOI = 0, boQuaDai = false;
+  function caoDai() { return Math.max(80, H() - DAI_TREN - DAI_DUOI); }
   /** Đặt bề cao khung ngắm (đơn vị thế giới) — với trực giao đây mới là thứ quyết định to/nhỏ. */
   function datKhoOng(size) {
-    var a = W() / H();
+    var uh = caoDai(), a = W() / uh;
     camera.left = -size * a / 2; camera.right = size * a / 2;
     camera.top = size / 2; camera.bottom = -size / 2;
+    // ⚠ Lúc ĐANG canh khung phải TẮT view offset: `project()` trả toạ độ theo cả khung ảnh,
+    //   bật offset thì vòng nhị phân lại canh bàn cho vừa CẢ khung, mất sạch hai dải vừa chừa.
+    if (!boQuaDai && (DAI_TREN || DAI_DUOI)) camera.setViewOffset(W(), uh, 0, -DAI_TREN, W(), H());
+    else camera.clearViewOffset();
     camera.updateProjectionMatrix();
   }
   /** Nhị phân tìm khung ngắm NHỎ nhất mà mọi điểm mốc còn lọt, rồi bù lệch cho CÂN. */
   function canKhung() {
     if (!camera) return;
+    boQuaDai = true;                     // canh trong DẢI GIỮA, xong mới bật lại view offset
     // màn dọc: chiều ngang là ràng buộc, siết nhẹ hơn kẻo bàn bị đẩy ra xa thành bé tí
     var pts = moc(), LIM = (W() / H() < 1) ? 0.975 : 0.945;
     function boxAt(size) {
@@ -1041,11 +1079,12 @@ function mountTienLen(host, opts) {
       // dịch tâm ngắm theo hai trục màn hình để hộp bao về giữa
       var right = new THREE.Vector3(), up = new THREE.Vector3();
       camera.matrixWorld.extractBasis(right, up, new THREE.Vector3());
-      var hH = rFit, hW = hH * (W() / H());          // trực giao: khung ngắm CHÍNH LÀ bề rộng thế giới
+      var hH = rFit, hW = hH * (W() / caoDai());     // trực giao: khung ngắm CHÍNH LÀ bề rộng thế giới
       target.addScaledVector(right, cx * hW / 2);
       target.addScaledVector(up, cy * hH / 2);
       target.y = Math.max(-1.4, Math.min(1.4, target.y));
     }
+    boQuaDai = false;
     updCam();
   }
   function updCam() {
@@ -1054,10 +1093,36 @@ function mountTienLen(host, opts) {
     camera.position.copy(camAt(R_CAM)); camera.lookAt(target);
     datSeat();      // thẻ tên bám theo camera — chỉ cần tính lại ĐÚNG LÚC camera đổi
   }
+  /**
+   * Bàn canh khung theo BỀ NGANG nên chiều cao nó chiếm ÍT hơn dải giữa. Nếu để nguyên (canh
+   * giữa dải) thì thừa hai khoảng trống trên và dưới, mà khoảng dưới nằm chen giữa bàn và hàng
+   * nút — nhìn rời rạc. Dồn hết phần thừa LÊN TRÊN: bàn nằm thấp, hàng nút ôm sát mép bàn.
+   */
+  function donDaiTren() {
+    if (!DAI_DUOI) return;
+    var pts = moc(), mny = 9, mxy = -9, i, v;
+    for (i = 0; i < pts.length; i++) {
+      v = pts[i].clone().project(camera);
+      if (v.y < mny) mny = v.y;
+      if (v.y > mxy) mxy = v.y;
+    }
+    var hHop = (mxy - mny) / 2 * H();               // chiều cao hộp bao trên màn (px)
+    // ⚠ Có TRẦN: dồn hết phần thừa lên trên thì trên đầu thành một mảng đen to tướng, nhìn còn
+    //   trống hơn lúc chưa sửa. Chừa quá 26% chiều cao là thôi, phần còn lại để dưới cho cân.
+    var tren = Math.max(44, Math.min(Math.round(H() * 0.26), H() - DAI_DUOI - hHop - 12));
+    if (Math.abs(tren - DAI_TREN) < 5) return;      // chốt chống dội qua dội lại
+    DAI_TREN = tren;
+    canKhung();
+  }
   function onResize() {
     if (!renderer) return;
+    capKhung(root);                      // khung thấp -> chrome rút gọn (xem engine/toanman.js)
     renderer.setSize(W(), H());
-    var z = sph.zoom || 1; target.set(0, 0, 0); canKhung(); sph.zoom = z; updCam();
+    // Khổ dọc chừa dải trên cho tiêu đề, dải dưới cho hàng icon + hàng nút.
+    var doc = W() / H() < 1;
+    DAI_TREN = doc ? 44 : 0;
+    DAI_DUOI = doc ? 150 : 0;
+    var z = sph.zoom || 1; target.set(0, 0, 0); canKhung(); donDaiTren(); sph.zoom = z; updCam();
   }
 
   // ---------- tương tác ----------
@@ -1126,7 +1191,10 @@ function mountTienLen(host, opts) {
       var el = seatEls[s], w = el.getBoundingClientRect().width || 150, h = el.getBoundingClientRect().height || 44;
       var px, py;
       if (hep) {
-        px = SEAT_CO_DINH[s].x * rc.w; py = SEAT_CO_DINH[s].y * rc.h;
+        // ⚠ Tỉ lệ tính theo DẢI GIỮA, không phải cả khung: khổ dọc nay chừa dải trên/dưới cho
+        //   chrome nên bàn nằm thấp — lấy theo cả khung là thẻ tên trôi lên trên, rời hẳn bài.
+        px = SEAT_CO_DINH[s].x * rc.w;
+        py = DAI_TREN + SEAT_CO_DINH[s].y * Math.max(80, rc.h - DAI_TREN - DAI_DUOI);
       } else {
         var v = SEAT_ANCHOR[s].clone().project(camera);
         px = (v.x * 0.5 + 0.5) * rc.w; py = (-v.y * 0.5 + 0.5) * rc.h;
@@ -1145,7 +1213,10 @@ function mountTienLen(host, opts) {
         if (isFinite(yTop)) py = Math.min(py, Math.max(h / 2 + 6, yTop - h / 2 - 10));
       }
       px = Math.max(w / 2 + 5, Math.min(rc.w - w / 2 - 5, px));
-      py = Math.max(h / 2 + (hep ? 76 : 6), Math.min(rc.h - h / 2 - 74, py));
+      // Kẹp trong DẢI GIỮA (dải trên/dưới là chỗ của chrome); khổ ngang không chừa dải nên
+      // DAI_TREN/DAI_DUOI = 0 và công thức tự trở về như cũ.
+      var yLo = DAI_TREN + 6 + h / 2, yHi = rc.h - (DAI_DUOI || 74) - 6 - h / 2;
+      py = Math.max(yLo, Math.min(Math.max(yLo, yHi), py));
       el.style.left = px + 'px'; el.style.top = py + 'px';
       // Bong bóng thoại xuống DƯỚI thẻ (để phía trên thì nó đè tiêu đề) và phải CLAMP RIÊNG theo
       // bề rộng của chính nó — bám tâm thẻ thì nhà ngồi sát mép là lời thoại bị cắt cụt.
@@ -1669,8 +1740,15 @@ function injectSanhStyle() {
     '  background:rgba(230,192,121,.09);border:1px solid rgba(230,192,121,.3)}',
     '.tls-tag.warn{color:#e08a8a;border-color:rgba(224,120,120,.45);background:rgba(224,120,120,.1)}',
     // KHÔNG có nút "Nhập Chiếu": bấm vào cả thẻ là vào chiếu rồi, thêm nút chỉ tổ đè lên chip thành tích.
-    '@media (max-width:640px){.tls-chieu{gap:11px;padding:11px}.tls-quat{width:96px;height:74px}',
-    '  .tls-quat img{width:44px;height:58px}.tls-quat img:nth-child(2){left:26px}.tls-quat img:nth-child(3){left:52px}}',
+    // Khổ điện thoại: một chiếu cũ cao tới ~250px (lời giới thiệu 2 dòng · tên ba Danh Sĩ 2 dòng ·
+    // ba thẻ mỗi thẻ một dòng) ⇒ nhìn xong một chiếu đã hết màn. Rút mỗi dòng dài về MỘT dòng
+    // có dấu ba chấm, thẻ nhỏ lại cho hai thẻ chung một hàng ⇒ còn ~100px.
+    '@media (max-width:640px){.tls-chieu{gap:10px;padding:10px}.tls-quat{width:80px;height:62px}',
+    '  .tls-quat img{width:37px;height:48px}.tls-quat img:nth-child(1){top:9px}.tls-quat img:nth-child(2){left:21px;top:4px}.tls-quat img:nth-child(3){left:42px;top:9px}',
+    '  .tls-tn{font-size:14px}',
+    '  .tls-lo{font-size:10.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '  .tls-ds{font-size:10.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '  .tls-mt{gap:6px;margin-top:6px}.tls-tag{font-size:10px;padding:2px 8px}}',
   ].join('\n');
   document.head.appendChild(st);
 }

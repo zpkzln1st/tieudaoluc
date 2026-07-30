@@ -72,6 +72,16 @@ export function dangToanMan(el) {
   return elNative() === el || giaEl === el;
 }
 
+/**
+ * Gắn lớp `kh-nho` khi KHUNG BÀN thấp — điện thoại nằm ngang (kể cả lúc phủ toàn màn hình),
+ * cửa sổ bé. Mỗi bàn tự khai kiểu rút gọn của mình dưới `.kh-nho`.
+ * ⚠ Không thay được bằng media query: media query đo MÀN HÌNH, mà khung bàn nằm trong trang nên
+ *   cao hơn hay thấp hơn màn hình đều được. Gọi trong onResize của từng bàn.
+ */
+export function capKhung(root) {
+  root.classList.toggle('kh-nho', root.clientHeight < 460);
+}
+
 function camUng() {
   try { return window.matchMedia && matchMedia('(pointer:coarse)').matches; } catch (e) { return false; }
 }

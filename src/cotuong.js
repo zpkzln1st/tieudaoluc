@@ -8,7 +8,7 @@
 import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Ngũ Tử Kỳ
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
-import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào ván), KHÔNG import tĩnh:
 // import tĩnh mà engine lỗi cú pháp thì VỠ CẢ GAME; nạp động thì hỏng cũng chỉ hỏng riêng Cờ Tướng.
@@ -128,6 +128,15 @@ function injectStyle() {
 .ct-banner .gbtn{padding:9px 22px;border-radius:10px;cursor:pointer;font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.04em;color:var(--gold2);background:rgba(20,14,9,.5);border:1px solid rgba(224,180,95,.5);transition:background .15s,border-color .15s}
 .ct-banner .gbtn:hover{background:rgba(224,180,95,.14);border-color:var(--gold2)}
 .ct-banner .gbtn.ghost{color:#d9cfbe;border-color:#463829;background:#1b1410}
+/* KHUNG THẤP (điện thoại nằm ngang, kể cả lúc phủ toàn màn hình) — lớp do capKhung() gắn.
+   Media query KHÔNG thay được: nó đo màn hình, còn đây phải đo CHÍNH khung bàn. */
+.kh-nho .ct-title{left:10px;top:7px}.kh-nho .ct-title .hz{font-size:19px}.kh-nho .ct-title .vz{font-size:11px}
+.kh-nho .ct-left{left:8px;gap:6px}.kh-nho .ct-b{width:auto}
+.kh-nho .ct-b .ic{width:27px;height:27px}.kh-nho .ct-b .ic svg{width:15px;height:15px}.kh-nho .ct-b span{font-size:8.5px}
+.kh-nho .ct-right{right:8px;top:7px;gap:5px}.kh-nho .ct-pc{width:124px;padding:4px 7px 4px 4px}.kh-nho .ct-av{width:26px;height:26px}
+.kh-nho .ct-pc .nm{font-size:10.5px}.kh-nho .ct-pc .rr{font-size:9px}
+.kh-nho .ct-view{bottom:10px;gap:6px;padding:6px 9px}.kh-nho .ct-view .op{padding:5px 10px;font-size:11.5px}
+.kh-nho .ct-chat{bottom:10px}
 @media (max-width:600px){.ct-root{aspect-ratio:5/6;min-height:84dvh;max-height:90dvh}.ct-title{left:10px;top:8px}.ct-title .hz{font-size:22px}.ct-title .vz{font-size:11px}.ct-left{left:0;right:0;bottom:9px;top:auto;transform:none;flex-direction:row;justify-content:center;gap:15px;z-index:5}.ct-b{width:auto}.ct-b .ic{width:40px;height:40px}.ct-b span{font-size:9.5px}.ct-right{right:8px;top:8px;gap:6px}.ct-pc{width:134px;padding:5px 8px 5px 5px}.ct-av{width:30px;height:30px}.ct-pc .nm{font-size:11px}.ct-pc .rr{font-size:9px}.ct-toast{left:10px;top:44px;text-align:left;max-width:calc(100% - 152px);font-size:11px;transform:translateY(-6px)}.ct-toast.show{transform:translateY(0)}.ct-chk{top:78px}.ct-chat{bottom:74px;width:94%}.ct-view{bottom:74px;gap:6px;padding:8px 10px}.ct-view .lb{display:none}.ct-view .op{padding:6px 11px;font-size:12px}}
 `;
   document.head.appendChild(st);
@@ -802,6 +811,7 @@ function mountCoTuong(host, opts) {
   }
   function onResize() {
     if (!renderer) return;
+    capKhung(root);                     // khung thấp -> chrome rút gọn (xem engine/toanman.js)
     const w = W(), h = H(); renderer.setSize(w, h);
     const ar = w / h, portrait = ar < 1.05;
     // Mobile: CHỪA dải TRÊN (thẻ tên đấu thủ) + dải DƯỚI (hàng nút), bàn khớp vào ĐÚNG khoảng giữa

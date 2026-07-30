@@ -13,7 +13,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 /** Sổ riêng của Binh Xập Xám. Cách ly hoàn toàn với phần cày chính. */
 export function ensureBinh(state) {
@@ -329,12 +329,20 @@ function injectStyle() {
     '.bx-nhan .th:empty{display:none}',
     '.bx-nhan.sam{border-color:rgba(230,192,121,.75);box-shadow:0 0 15px -3px rgba(230,192,121,.5)}',
     '.bx-nhan.xau{border-color:rgba(214,109,79,.55)}',
-    // Khung thấp (điện thoại nằm ngang): bốn khối bài chiếm gần hết mặt nỉ, thẻ to là kiểu gì
-    // cũng đè lên bài — rút thẻ nhỏ lại thì mới còn chỗ đặt.
-    '.bx-nho .bx-nhan{padding:2px 6px;gap:5px;max-width:184px}',
-    '.bx-nho .bx-nhan .av{width:22px;height:22px;border-radius:5px}',
-    '.bx-nho .bx-nhan .nm{font-size:9px}.bx-nho .bx-nhan .hg{font-size:11px}',
-    '.bx-nho .bx-nhan .ch{font-size:9.5px}.bx-nho .bx-nhan .th{font-size:8.5px}',
+    // ===== KHUNG THẤP (điện thoại nằm ngang, kể cả lúc phủ toàn màn hình) =====
+    // Bốn khối bài chiếm gần hết mặt nỉ, thẻ to là kiểu gì cũng đè lên bài; chrome cỡ máy bàn
+    // trên khung cao ~330px thì nút to lấn hết bàn (user: "nút lúc phóng to màn hình to quá").
+    '.kh-nho .bx-nhan{padding:2px 6px;gap:5px;max-width:184px}',
+    '.kh-nho .bx-nhan .av{width:22px;height:22px;border-radius:5px}',
+    '.kh-nho .bx-nhan .nm{font-size:9px}.kh-nho .bx-nhan .hg{font-size:11px}',
+    '.kh-nho .bx-nhan .ch{font-size:9.5px}.kh-nho .bx-nhan .th{font-size:8.5px}',
+    '.kh-nho .bx-title{left:10px;top:7px}.kh-nho .bx-title .hz{font-size:18px}.kh-nho .bx-title .vz{font-size:11px}',
+    '.kh-nho .bx-sub{top:28px;left:11px;font-size:9.5px}',
+    '.kh-nho .bx-canh{top:8px;right:10px;font-size:10.5px;padding:4px 11px;max-width:46%;overflow:hidden;text-overflow:ellipsis}',
+    // width:auto — nhãn dài hơn ô 46px thì tràn ra hai bên rồi bị mép khung xén mất chữ đầu
+    '.kh-nho .bx-left{left:8px;gap:6px}.kh-nho .bx-b{width:auto}',
+    '.kh-nho .bx-b .ic{width:27px;height:27px}.kh-nho .bx-b .ic svg{width:15px;height:15px}.kh-nho .bx-b span{font-size:8.5px}',
+    '.kh-nho .bx-act{bottom:8px}.kh-nho .bx-btn{padding:5px 13px;font-size:11.5px}',
     // ===== dấu báo cạnh khối bài =====
     // ===== báo sự kiện giữa bàn — cùng khuôn skillCue đã dùng ở Tiến Lên =====
     '.bx-skcue{position:absolute;inset:0;z-index:11;pointer-events:none;overflow:hidden}',
@@ -1291,9 +1299,9 @@ function updCam() {
   camera.position.copy(camAt(R_CAM)); camera.lookAt(target);
 }
 function onResize() {
-  // Khung THẤP (điện thoại xoay ngang, cửa sổ bé): thẻ tên rút gọn lại, không thì bốn thẻ
-  // to bằng khung không còn chỗ nào không đè lên bài.
-  root.classList.toggle('bx-nho', root.clientHeight < 430);
+  // Khung THẤP (điện thoại xoay ngang, cửa sổ bé): chrome rút gọn lại, không thì bốn thẻ
+  // to bằng khung không còn chỗ nào không đè lên bài, và hàng nút thì to lấn hết bàn.
+  capKhung(root);
   coLaPopup();                       // xoay ngang / vào toàn màn hình là bảng xếp phải tính lại cỡ lá
   if (!renderer) return;
   renderer.setSize(W(), H());
@@ -1939,8 +1947,15 @@ function injectSanhStyle() {
     '.bxs-tag{font-size:11px;border-radius:99px;padding:3px 11px;white-space:nowrap;color:#d9c39a;',
     '  background:rgba(230,192,121,.09);border:1px solid rgba(230,192,121,.3)}',
     '.bxs-tag.warn{color:#e08a8a;border-color:rgba(224,120,120,.45);background:rgba(224,120,120,.1)}',
-    '@media (max-width:640px){.bxs-chieu{gap:11px;padding:11px}.bxs-bac{width:96px;height:74px}',
-    '  .bxs-bac img{width:44px;height:56px}.bxs-bac img:nth-child(2){left:25px}.bxs-bac img:nth-child(3){left:50px}}',
+    // Khổ điện thoại: một chiếu cũ cao tới ~250px (lời giới thiệu 2 dòng · tên ba Danh Sĩ 2 dòng ·
+    // ba thẻ mỗi thẻ một dòng) ⇒ nhìn xong một chiếu đã hết màn. Rút mỗi dòng dài về MỘT dòng
+    // có dấu ba chấm, thẻ nhỏ lại cho hai thẻ chung một hàng ⇒ còn ~100px.
+    '@media (max-width:640px){.bxs-chieu{gap:10px;padding:10px}.bxs-bac{width:80px;height:62px}',
+    '  .bxs-bac img{width:37px;height:47px}.bxs-bac img:nth-child(2){left:21px;top:8px}.bxs-bac img:nth-child(3){left:42px;top:16px}',
+    '  .bxs-tn{font-size:14px}',
+    '  .bxs-lo{font-size:10.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '  .bxs-ds{font-size:10.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '  .bxs-mt{gap:6px;margin-top:6px}.bxs-tag{font-size:10px;padding:2px 8px}}',
   ].join('\n');
   document.head.appendChild(st);
 }
