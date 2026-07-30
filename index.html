@@ -2604,7 +2604,7 @@
             <img loading="lazy" decoding="async" src="images/ui/combat_banner.webp" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:center right" onerror="if(this.src.endsWith('.webp')){this.src='images/ui/combat_banner.png'}else{this.style.display='none'}">
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 74%,rgba(11,14,22,.24) 100%)"></div>
             <div class="relative w-full p-5 md:p-6">
-              <div class="text-[26px] gold-text leading-none fserif">Sơn Dã Liệp Trường</div>
+              <div class="text-[26px] gold-text fserif">Sơn Dã Liệp Trường</div>
               <div class="text-[11px] text-slate-300 flex items-center gap-1 mt-2"><span class="text-rose-300/80 shrink-0" x-html="$store.game.svg('pin','w-3 h-3')"></span><span x-text="$store.game.currentLocationObj.name"></span></div>
               <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Hoang sơn thâm cốc, dị thú chiếm cứ tứ phương, hung hiểm khó lường.</b> Nơi đây dần trở thành thí luyện chi địa của võ lâm nhân sĩ, lấy sinh tử định thành bại, dùng <b class="text-amber-300">thực lực đoạt cơ duyên</b>.</div>
               <div class="flex items-center gap-2 mt-3">
@@ -3469,8 +3469,8 @@
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(245,185,66,.13), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="flex items-center gap-2.5">
-                <span class="w-8 h-8 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('phongVanBang','🏆')"></span>
-                <div class="text-[28px] gold-text leading-none fserif">Phong Vân Bảng</div>
+                <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-ink3 border border-amber-500/30 inline-flex items-center justify-center shrink-0 overflow-hidden p-1.5" x-html="$store.game.ico('phongVanBang','🏆')"></span>
+                <div class="text-[28px] gold-text fserif">Phong Vân Bảng</div>
               </div>
               <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif">Phong vân tụ hội, quần hùng tranh danh. Nhất bảng phân cao hạ, nhất chiến định giang hồ.</div>
               <template x-if="$store.game.playerRow">
@@ -3932,7 +3932,7 @@
             <div class="relative w-full p-5 md:p-6 flex items-center gap-4">
               <div class="w-16 h-16 rounded-lg bg-ink3 border border-amber-500/30 flex items-center justify-center text-4xl shrink-0 overflow-hidden" x-html="$store.game.ico($store.game.MERCHANT.id, $store.game.MERCHANT.icon)"></div>
               <div class="flex-1 min-w-0">
-                <div class="text-[26px] gold-text leading-none fserif">Thương Điếm</div>
+                <div class="text-[26px] gold-text fserif">Thương Điếm</div>
                 <div class="text-[12.5px] text-slate-300 leading-snug mt-1.5 max-w-xl italic" x-text="'“'+$store.game.MERCHANT.quote+'”'"></div>
               </div>
             </div>
@@ -4064,8 +4064,8 @@
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(52,211,153,.15), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="flex items-center gap-2.5">
-                <span class="w-8 h-8 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('pets','🐾')"></span>
-                <div class="text-[28px] gold-text leading-none fserif">Linh Thú</div>
+                <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-ink3 border border-amber-500/30 inline-flex items-center justify-center shrink-0 overflow-hidden p-1.5" x-html="$store.game.ico('pets','🐾')"></span>
+                <div class="text-[28px] gold-text fserif">Linh Thú</div>
               </div>
               <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif"><b class="text-jade">Linh thú thông linh, huyết mạch thiên thành.</b> Thu phục dưỡng thành, đồng hành chinh chiến, hộ đạo tu tiên.</div>
             </div>
@@ -4749,8 +4749,8 @@
             <div class="relative w-full p-5 md:p-6">
               <div class="flex items-center gap-2.5">
                 <!-- Icon TỔNG Phi Cáp Đài — ĐỒNG BỘ với nav (ico load images/nav/phiCapDai.webp|png; thiếu -> 🔔) -->
-                <span class="w-8 h-8 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico('phiCapDai', '🔔')"></span>
-                <div class="text-[28px] gold-text leading-none fserif">Phi Cáp Đài</div>
+                <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-ink3 border border-amber-500/30 inline-flex items-center justify-center shrink-0 overflow-hidden p-1.5" x-html="$store.game.ico('phiCapDai', '🔔')"></span>
+                <div class="text-[28px] gold-text fserif">Phi Cáp Đài</div>
               </div>
               <div class="text-[13.5px] text-slate-300/90 leading-snug mt-2 max-w-xl" style="font-family:'Lora','Noto Serif SC',serif" >Phi cáp vượt vạn lý, nhất thư động giang hồ.</div>
             </div>
@@ -5155,7 +5155,7 @@
                 <span class="hidden w-full h-full items-center justify-center" x-html="g.svg('book','w-8 h-8')"></span>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-[26px] gold-text leading-none fserif">Vạn Vật Phổ</div>
+                <div class="text-[26px] gold-text fserif">Vạn Vật Phổ</div>
                 <div class="text-[12.5px] text-slate-300 mt-1.5 italic max-w-md" style="font-family:'Lora','Noto Serif SC',serif">"Kỳ trân thiên hạ, thu lục tứ phương."</div>
                 <div class="flex items-center gap-2 mt-2.5 flex-wrap">
                   <span class="px-2.5 py-1 rounded-md bg-ink3/80 backdrop-blur-sm border border-slate-700 text-[11px]">Thu lục <b class="text-jade" x-text="g.codexTotalDone"></b>/<span x-text="g.codexTotalAll"></span> · <b class="text-jade" x-text="g.codexTotalAll?Math.round(g.codexTotalDone/g.codexTotalAll*100)+'%':'0%'"></b></span>
@@ -5577,7 +5577,7 @@
             <!-- Glow đỏ tinh tế bên phải (giữ chất Yêu Vương) -->
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(244,63,94,.18), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
-              <div class="text-[28px] gold-text leading-none fserif">Vây Sát Yêu Vương</div>
+              <div class="text-[28px] gold-text fserif">Vây Sát Yêu Vương</div>
               <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-rose-300">Yêu Vương giáng thế, yêu khí trùng thiên.</b> Chư hiệp hợp lực tru ma, đoạt <b class="text-amber-300">Linh Bảo</b>, tranh đoạt vô thượng cơ duyên.</div>
             </div>
           </div>
@@ -5843,7 +5843,7 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 40%,rgba(11,14,22,.5) 100%)"></div>
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(45,212,191,.16), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
-              <div class="text-[28px] gold-text leading-none fserif">Bí Cảnh Tầm Bảo</div>
+              <div class="text-[28px] gold-text fserif">Bí Cảnh Tầm Bảo</div>
               <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Linh khí hội tụ, bảo khố hiện thế.</b> Trong mê cung cổ xưa ẩn giấu vô số trân bảo cùng truyền thừa thất lạc. Hãy tiến vào 9 tầng bí cảnh, tìm kiếm cơ duyên, thu thập <b class="text-amber-300">Đồ Phổ</b>, trang bị phẩm chất cao, Hồn Thạch và các nguyên liệu hiếm.</div>
             </div>
           </div>
@@ -9606,7 +9606,7 @@
           <div class="dtm-hdr flex items-center justify-between mb-3" x-show="phase!=='lobby'">
             <div class="flex items-center gap-2">
               <span class="relative w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px] overflow-hidden" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢<img loading="lazy" decoding="async" src="images/dtm/emblem.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()"></span>
-              <div><div class="fserif text-lg gold-text leading-none">Đăng Tiên Mộng</div></div>
+              <div><div class="fserif text-lg gold-text">Đăng Tiên Mộng</div></div>
             </div>
             <div class="dtm-hdr-r flex items-center gap-3 text-[12px]">
               <button @click="openWiki()" class="dtmk-btndetail" title="Bách Khoa Võ Học"><svg class="dtmk-ic" viewBox="0 0 24 24"><use href="#dtmk-i-book"/></svg><span class="hidden sm:inline">Bách Khoa</span></button>
@@ -10703,7 +10703,7 @@
               <span class="ktr-pill"><span class="k">Trận Hồn</span> <img loading="lazy" decoding="async" src="images/kytran/tranhon.webp" class="ktr-soul-ic" alt="魂"> <b x-text="$store.game.fmtC(kt.tranHon)"></b></span>
             </div>
             <div class="relative w-full px-5 pb-5 pt-1 sm:p-6">
-              <div class="text-[22px] sm:text-[28px] gold-text leading-none fserif">Kỳ Trận · Cửu Cung Trấn Yêu</div>
+              <div class="text-[22px] sm:text-[28px] gold-text fserif">Kỳ Trận · Cửu Cung Trấn Yêu</div>
               <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-violet-300">Cửu cung bố trận, trấn áp bát phương.</b> Chinh phục 9 Cung yêu ma, dồn vào Trung Cung diệt Thiên Ma Yêu Đế, đoạt lấy tuyệt học trấn trận.</div>
             </div>
           </div>

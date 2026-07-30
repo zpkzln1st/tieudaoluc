@@ -2236,11 +2236,22 @@ const gameStore = {
     if (id && (id.startsWith('dpset_') || id.startsWith('dpchieu_'))) {
       const laChieu = id.startsWith('dpchieu_');
       const bgFile = laChieu ? 'dopho_chieu' : 'dopho_7';
-      // Cuộn TRƠN, không lồng art ở giữa: chưa có art riêng cho từng Bộ Trang, lồng ô rỗng
-      // vào giữa cuộn còn xấu hơn. Tên bên dưới đủ phân biệt; muốn đẹp hẳn thì phải vẽ 11 tấm.
-      return `<span class="relative block w-full h-full">`
-        + `<img src="images/items/${bgFile}.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/items/${bgFile}.png&quot;;}else{${drop};}'>`
-        + `</span>`;
+      const nen = `<img src="images/items/${bgFile}.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/items/${bgFile}.png&quot;;}else{${drop};}'>`;
+      // ĐỒ PHỔ TUYỆT KĨ: LỒNG ART CHIÊU vào giữa cuộn, y như đồ phổ trang bị lồng art món đồ
+      // (user hỏi 2026-07-30: "đồ phổ kĩ năng sao k lồng hình ảnh vào như trang bị vậy").
+      // Mã chiêu nằm ngay sau `dpchieu_` và trùng đúng tên tệp trong images/chieu/ (vmqn, tatn…).
+      if (laChieu) {
+        const cid = id.slice(8);
+        const qq2 = ((this.ITEMS && this.ITEMS[id]) || {}).quality;
+        const bd2 = ((this.QUALITY && this.QUALITY[qq2]) || {}).border || 'border-amber-500/50';
+        return `<span class="relative block w-full h-full">` + nen
+          + `<span class="absolute overflow-hidden border ${bd2}" style="left:50%;top:49%;transform:translate(-50%,-50%);width:46%;height:46%;border-radius:14%;background:#070908">`
+          + `<img src="images/chieu/${cid}.webp" class="w-full h-full object-cover" alt="" onerror='this.parentElement.remove()'>`
+          + `</span></span>`;
+      }
+      // ĐỒ PHỔ BỘ TRANG: cuộn TRƠN — chưa có art riêng cho từng Bộ Trang, lồng ô rỗng vào giữa
+      // còn xấu hơn. Tên bên dưới đủ phân biệt; muốn đẹp hẳn thì phải vẽ 11 tấm.
+      return `<span class="relative block w-full h-full">` + nen + `</span>`;
     }
     if (folder === 'equip') {   // art trang bị (KÉO GIÃN lấp khung): WEBP-FIRST -> png -> emoji.
       const pad = (this.ART_INSET && this.ART_INSET[id]) ? `;padding:${this.ART_INSET[id]}%` : '';
