@@ -9,6 +9,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Ngũ Tử Kỳ
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
 import { ganToanMan, nutToanManHTML, capKhung, vuaKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { taoTuChinh, nhipDam } from './engine/muot.js';   // tự chỉnh tỉ lệ điểm ảnh + nhịp cho việc phụ
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào ván), KHÔNG import tĩnh:
 // import tĩnh mà engine lỗi cú pháp thì VỠ CẢ GAME; nạp động thì hỏng cũng chỉ hỏng riêng Cờ Tướng.
@@ -305,6 +306,8 @@ function mountCoTuong(host, opts) {
   let board = null, HUMAN_RED = true, turnRed = true, over = false, saidN = 0;
   let sel = null, hints = [], pieceMesh = {}, anims = [];
   let renderer, scene, camera, boardGroup, raycaster, pointer, rayPlane, particles = null, rafId = 0;
+  let tuChinh = () => {}, canBong = true;              // bộ tự chỉnh tỉ lệ điểm ảnh · cờ "còn phải vẽ lại bóng"
+  const nhipBui = nhipDam(33);                          // bụi bay ~30 nhịp/giây là đủ
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Camera có ĐÍCH riêng + GIẢM CHẤN (đồng bộ cảm giác với Cờ Vua / Ngũ Tử Kỳ):
   // kéo 1:1 rồi dừng phắt là thứ làm cảm giác "cứng". CỐ Ý KHÔNG có quán tính — thả tay là đứng.
@@ -438,11 +441,13 @@ function mountCoTuong(host, opts) {
 
   function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    tuChinh = taoTuChinh(renderer, onResize);    // tỉ lệ điểm ảnh do bộ tự chỉnh đặt, xem engine/muot.js
     renderer.setSize(W(), H());
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.98;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.autoUpdate = false;       // chỉ vẽ lại bóng khi có quân động (xem animate)
+    renderer.shadowMap.needsUpdate = true;
     scEl.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
@@ -869,8 +874,9 @@ function mountCoTuong(host, opts) {
     }
     return (lo + hi) / 2;
   }
-  function animate() {
+  function animate(t) {
     rafId = requestAnimationFrame(animate);
+    tuChinh(t);                                  // tự hạ/nâng tỉ lệ điểm ảnh theo sức máy
     // camera ĐUỔI THEO đích (giảm chấn) -> mọi thao tác đều mềm, không giật
     const k = 0.16, dt = tgt.theta - sph.theta, dp = tgt.phi - sph.phi, drr = tgt.r - sph.r;
     if (Math.abs(dt) > 1e-5 || Math.abs(dp) > 1e-5 || Math.abs(drr) > 1e-4) {
@@ -888,7 +894,14 @@ function mountCoTuong(host, opts) {
         if (a.t >= 1) anims.splice(i, 1);
       }
     }
-    if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 8.2) ar[i] = -0.3; } pa.needsUpdate = true; }
+    // Bụi bay chạy theo nhịp ~33ms thay vì mỗi khung (xem chú thích cùng chỗ ở covua.js).
+    if (particles && nhipBui(t)) {
+      const pa = particles.geometry.attributes.position, ar = pa.array;
+      for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0176; if (ar[i] > 8.2) ar[i] = -0.3; }
+      pa.needsUpdate = true;
+    }
+    if (anims.length) { renderer.shadowMap.needsUpdate = true; canBong = true; }
+    else if (canBong) { renderer.shadowMap.needsUpdate = true; canBong = false; }
     renderer.render(scene, camera);
   }
 

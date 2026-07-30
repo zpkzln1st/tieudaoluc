@@ -77,6 +77,7 @@ import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, a
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
 import { verifyAuthorCert } from './engine/author.js';
+import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 
 let _devNowOffset = 0;                        // Dev: tua đồng hồ (session-only; reload reset). 0 = thực.
 const now = () => Date.now() + _devNowOffset;
@@ -4595,6 +4596,7 @@ function rafLoop() {
   requestAnimationFrame(rafLoop);
 }
 requestAnimationFrame(rafLoop);
+tuBatFPS();                       // vào bằng `?fps=1` là có đồng hồ khung hình ngay trên máy thật
 
 // ---- Tự lưu + tiến độ nền mỗi 5s ----
 setInterval(() => {

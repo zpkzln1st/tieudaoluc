@@ -15,6 +15,7 @@ import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engin
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
 import { ganToanMan, nutToanManHTML, capKhung, vuaKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 import { demChia, GIAY_CHIA, GIAY_VAN_MOI } from './engine/demchia.js';   // đếm ngược rồi mới chia bài
+import { taoTuChinh, nhipDam } from './engine/muot.js';   // tự chỉnh tỉ lệ điểm ảnh + nhịp cho việc phụ
 
 /** Sổ riêng của Binh Xập Xám. Cách ly hoàn toàn với phần cày chính. */
 export function ensureBinh(state) {
@@ -850,6 +851,8 @@ var xepNha = [null, null, null, null];
 var chon = {}, daBinh = false, over = false;
 
 var renderer, scene, camera, banGroup, raf = 0, ro = null;
+var tuChinh = function () { };                // bộ tự chỉnh tỉ lệ điểm ảnh (engine/muot.js)
+var nhipBui = nhipDam(33);                    // bụi bay ~30 nhịp/giây là đủ, khỏi nạp lại vùng đệm 120 lần
 var sph = { r: 17, theta: 0, phi: 0.60, zoom: 1 }, rFit = 17, target = new THREE.Vector3(0, 0, 0);
 var R_CAM = 20;
 var drag = false, moved = 0, lx = 0, ly = 0, spectate = false;
@@ -865,7 +868,7 @@ function H() { return scEl.clientHeight || 620; }
 // ================= dựng cảnh =================
 function init3D() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  tuChinh = taoTuChinh(renderer, onResize);    // tỉ lệ điểm ảnh do bộ tự chỉnh đặt, xem engine/muot.js
   renderer.setSize(W(), H());
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1820,12 +1823,15 @@ function vanMoi(dem) {
 var last = 0;
 function animate(ts) {
   raf = requestAnimationFrame(animate);
+  tuChinh(ts);                       // tự hạ/nâng tỉ lệ điểm ảnh theo sức máy
   var dt = last ? Math.min(0.05, (ts - last) / 1000) : 0.016; last = ts;
   stepTweens(dt);
   if (nhanBan || tweens.length) { datNhan(); nhanBan = false; }
-  if (particles) {
+  // Bụi bay: nhích trên CPU rồi nạp lại cả vùng đệm. Ở màn 120Hz mà chạy mỗi khung là 120 lần
+  // nạp mỗi giây cho thứ mắt không phân biệt nổi với 30 lần ⇒ chạy theo nhịp, bù quãng đường.
+  if (particles && nhipBui(ts)) {
     var pa = particles.geometry.attributes.position, ar = pa.array;
-    for (var i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 8.2) ar[i] = -0.3; }
+    for (var i = 1; i < ar.length; i += 3) { ar[i] += 0.0176; if (ar[i] > 8.2) ar[i] = -0.3; }
     pa.needsUpdate = true;
   }
   if (tweens.length) { renderer.shadowMap.needsUpdate = true; boCanShadow = true; }

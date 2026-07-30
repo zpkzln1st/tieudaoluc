@@ -120,6 +120,16 @@
     .app-h { height: 100vh; height: 100dvh; }
     /* Chặn cuộn/đẩy ngang toàn trang: số tiền lớn ở header không làm vỡ layout các màn khác */
     html, body { overflow-x: hidden; }
+    /* ===== MƯỢT TRÊN MÁY CẢM ỨNG =====
+       backdrop-filter là thứ ĐẮT NHẤT với GPU điện thoại: mỗi lớp bắt trình duyệt chụp lại nền
+       phía sau rồi làm mờ, LẶP LẠI MỖI KHUNG — mà trang này có 73 chỗ dùng, riêng nền modal thì
+       phủ kín màn hình. Nền đã có màu tối sẵn (bg-black/70…) nên bỏ mờ gần như không đổi mặt,
+       đổi lại cuộn và mở modal hết khựng. Máy bàn giữ nguyên hiệu ứng. */
+    @media (pointer: coarse) {
+      [class*="backdrop-blur"] { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    }
+    /* Kéo/cuộn trong trang không lôi cả trang nảy theo (Android Chrome hay dính) */
+    html { overscroll-behavior-y: none; }
     /* Dải cuộn ngang gọn (vd nhóm tiền tệ header) — ẩn thanh cuộn */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

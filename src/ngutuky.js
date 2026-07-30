@@ -9,6 +9,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf, KY_NGHE } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG với Cờ Tướng
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';   // góc nhìn bàn cờ, mỗi bàn khoá riêng
 import { ganToanMan, nutToanManHTML, capKhung, vuaKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { taoTuChinh, nhipDam } from './engine/muot.js';   // tự chỉnh tỉ lệ điểm ảnh + nhịp cho việc phụ
 
 // ---------- ensure/migrate: khởi tạo state.nguTu (gọi mỗi lần load) ----------
 export function ensureNguTu(state) {
@@ -212,6 +213,8 @@ function mountNguTu(host, opts) {
   let spacing = 8 / 14;
   let board = [], meshAt = {}, moves = [], ghost = null, current = HUMAN, over = false, saidN = 0;
   let renderer, scene, camera, boardGroup, raycaster, pointer, rayPlane, particles = null, rafId = 0;
+  let tuChinh = () => {};                               // bộ tự chỉnh tỉ lệ điểm ảnh
+  const nhipBui = nhipDam(33);                          // bụi bay ~30 nhịp/giây là đủ
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Camera có ĐÍCH riêng + GIẢM CHẤN (đồng bộ cảm giác với Cờ Tướng / Cờ Vua):
   // kéo 1:1 rồi dừng phắt là thứ làm cảm giác "cứng". CỐ Ý KHÔNG có quán tính — thả tay là đứng.
@@ -368,11 +371,13 @@ function mountNguTu(host, opts) {
 
   function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    tuChinh = taoTuChinh(renderer, onResize);    // tỉ lệ điểm ảnh do bộ tự chỉnh đặt, xem engine/muot.js
     renderer.setSize(W(), H());
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.06;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.autoUpdate = false;       // chỉ vẽ lại bóng khi bàn đổi (datBong)
+    renderer.shadowMap.needsUpdate = true;
     scEl.appendChild(renderer.domElement);
     scene = new THREE.Scene();
     scene.background = gradTex(false);
@@ -420,7 +425,7 @@ function mountNguTu(host, opts) {
   function makeMesh(color, gh) { return new THREE.Mesh(stoneGeo, gh ? (color === HUMAN ? matBg : matWg) : (color === HUMAN ? matB : matW)); }
   function clearGhost() { if (ghost) { boardGroup.remove(ghost.mesh); ghost = null; } updConfirm(); }
   function setGhost(c, r) { if (over || current !== HUMAN) return; if (!inb(c, r) || board[r][c] !== 0) return; if (!ghost) { ghost = { c, r, mesh: makeMesh(HUMAN, true) }; boardGroup.add(ghost.mesh); } ghost.c = c; ghost.r = r; ghost.mesh.position.set(wx(c), 0.1, wx(r)); updConfirm(); }
-  function commit(c, r, color) { board[r][c] = color; const m = makeMesh(color, false); m.position.set(wx(c), 0.1, wx(r)); m.castShadow = true; boardGroup.add(m); meshAt[key(c, r)] = m; moves.push({ c, r, color }); return m; }
+  function commit(c, r, color) { board[r][c] = color; const m = makeMesh(color, false); m.position.set(wx(c), 0.1, wx(r)); m.castShadow = true; boardGroup.add(m); meshAt[key(c, r)] = m; moves.push({ c, r, color }); datBong(); return m; }
   function confirmMove() { if (over || !ghost || current !== HUMAN) return; const c = ghost.c, r = ghost.r; clearGhost(); commit(c, r, HUMAN); if (winLineAt(c, r, HUMAN)) return endGame(1, winLineAt(c, r, HUMAN)); if (moves.length >= N * N) return endGame(0, null); current = AI; turnUI(); persist(); hen(aiTurn, 440); }
   // ⚠ HAI CHỐT: `v !== van` chặn hẹn giờ của VÁN CŨ, `current !== AI` chặn AI cướp lượt người chơi.
   function aiTurn(v) { if (over || v !== van || current !== AI) return; const wasThreat = !!findWinning(HUMAN); const mv = aiPick(); if (!mv) return endGame(0, null); commit(mv.c, mv.r, AI); const wl = winLineAt(mv.c, mv.r, AI); if (wl) return endGame(2, wl); if (moves.length >= N * N) return endGame(0, null); current = HUMAN; turnUI(); persist(); maybeBossSay(wasThreat, mv); }
@@ -505,7 +510,7 @@ function mountNguTu(host, opts) {
     van++;                                      // sang THẾ HỆ ván mới -> hẹn giờ của ván cũ tự hết hiệu lực
     stopSpectate(false);                        // ván mới phải chạm được quân ngay
     for (const k in meshAt) if (meshAt.hasOwnProperty(k)) boardGroup.remove(meshAt[k]);
-    meshAt = {}; moves = []; clearGhost();
+    meshAt = {}; moves = []; clearGhost(); datBong();
     board = []; for (let r = 0; r < N; r++) { board[r] = []; for (let c = 0; c < N; c++) board[r][c] = 0; }
     const s = (saved && typeof saved.b === 'string' && saved.b.length === N * N) ? saved.b : null;
     if (s) {   // khôi phục ván dở: dựng lại quân trên bàn
@@ -730,7 +735,23 @@ function mountNguTu(host, opts) {
     return (lo + hi) / 2;
   }
   // camera ĐUỔI THEO đích (giảm chấn) -> mọi thao tác đều mềm, không giật
-  function animate() { rafId = requestAnimationFrame(animate); const k = 0.16, dt = tgt.theta - sph.theta, dp = tgt.phi - sph.phi, drr = tgt.r - sph.r; if (Math.abs(dt) > 1e-5 || Math.abs(dp) > 1e-5 || Math.abs(drr) > 1e-4) { sph.theta += dt * k; sph.phi += dp * k; sph.r += drr * k * 0.9; updCam(); } else if (ret) ret = null; if (particles) { const pa = particles.geometry.attributes.position, ar = pa.array; for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 7.6) ar[i] = -0.2; } pa.needsUpdate = true; } renderer.render(scene, camera); }
+  function animate(t) {
+    rafId = requestAnimationFrame(animate);
+    tuChinh(t);                                  // tự hạ/nâng tỉ lệ điểm ảnh theo sức máy
+    const k = 0.16, dt = tgt.theta - sph.theta, dp = tgt.phi - sph.phi, drr = tgt.r - sph.r;
+    if (Math.abs(dt) > 1e-5 || Math.abs(dp) > 1e-5 || Math.abs(drr) > 1e-4) { sph.theta += dt * k; sph.phi += dp * k; sph.r += drr * k * 0.9; updCam(); }
+    else if (ret) ret = null;
+    // Bụi bay chạy theo nhịp ~33ms thay vì mỗi khung (xem chú thích cùng chỗ ở covua.js).
+    if (particles && nhipBui(t)) {
+      const pa = particles.geometry.attributes.position, ar = pa.array;
+      for (let i = 1; i < ar.length; i += 3) { ar[i] += 0.0176; if (ar[i] > 7.6) ar[i] = -0.2; }
+      pa.needsUpdate = true;
+    }
+    // Bàn cờ caro không có quân bay: bóng chỉ đổi lúc đặt quân, `datBong()` tự bật needsUpdate.
+    renderer.render(scene, camera);
+  }
+  /** Gọi khi bàn đổi (đặt quân / ván mới) để vẽ lại bản đồ bóng đúng một lần. */
+  function datBong() { if (renderer) renderer.shadowMap.needsUpdate = true; }
 
   function glowTex(col) { const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d'); const g = x.createRadialGradient(128, 128, 0, 128, 128, 128); g.addColorStop(0, 'rgba(' + col + ',0.8)'); g.addColorStop(0.5, 'rgba(' + col + ',0.28)'); g.addColorStop(1, 'rgba(' + col + ',0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; return t; }
   function dotTex() { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.4, 'rgba(185,236,247,0.5)'); g.addColorStop(1, 'rgba(185,236,247,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(cv); }

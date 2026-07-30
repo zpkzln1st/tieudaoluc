@@ -16,6 +16,7 @@ import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engin
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
 import { ganToanMan, nutToanManHTML, capKhung, vuaKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 import { demChia, GIAY_CHIA, GIAY_VAN_MOI } from './engine/demchia.js';   // đếm ngược rồi mới chia bài
+import { taoTuChinh, nhipDam } from './engine/muot.js';   // tự chỉnh tỉ lệ điểm ảnh + nhịp cho việc phụ
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Phao Đắc Khoái, không vỡ cả game.
 let E = null;
@@ -330,6 +331,8 @@ function mountPaoDeKuai(host, opts) {
 
   // ---------- Three ----------
   var renderer, scene, camera, banGroup, pileGroup, raf = 0;
+  var tuChinh = function () { };                // bộ tự chỉnh tỉ lệ điểm ảnh (engine/muot.js)
+  var nhipBui = nhipDam(33);                    // bụi bay ~30 nhịp/giây là đủ
   var sph = { r: 17, theta: 0, phi: 0.60 }, rFit = 17, target = new THREE.Vector3(0, 0, 0);
   var drag = false, moved = 0, lx = 0, ly = 0, spectate = false;
   var tweens = [], meshOf = {}, handGroups = [], atlasTex = null, backTex = null, particles = null;
@@ -681,7 +684,7 @@ function mountPaoDeKuai(host, opts) {
 
   function init3D() {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    tuChinh = taoTuChinh(renderer, onResize);    // tỉ lệ điểm ảnh do bộ tự chỉnh đặt, xem engine/muot.js
     renderer.setSize(W(), H());
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1677,12 +1680,15 @@ function mountPaoDeKuai(host, opts) {
   var last = 0;
   function animate(ts) {
     raf = requestAnimationFrame(animate);
+    tuChinh(ts);                       // tự hạ/nâng tỉ lệ điểm ảnh theo sức máy
     var dt = last ? Math.min(0.05, (ts - last) / 1000) : 0.016; last = ts;
     stepTweens(dt);
     stepMo(dt);
-    if (particles) {
+    // Bụi bay chạy theo nhịp ~33ms thay vì mỗi khung — mắt không phân biệt nổi mà đỡ hẳn
+    // 120 lần nạp lại vùng đệm mỗi giây trên màn 120Hz.
+    if (particles && nhipBui(ts)) {
       var pa = particles.geometry.attributes.position, ar = pa.array;
-      for (var i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 8.2) ar[i] = -0.3; }
+      for (var i = 1; i < ar.length; i += 3) { ar[i] += 0.0176; if (ar[i] > 8.2) ar[i] = -0.3; }
       pa.needsUpdate = true;
     }
     // Bản đồ bóng CHỈ vẽ lại khi có gì đang động. Để autoUpdate thì nó dựng lại toàn cảnh MỖI khung,
