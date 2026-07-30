@@ -13,7 +13,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung, tuVaoToanMan } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 /** Sổ riêng của Binh Xập Xám. Cách ly hoàn toàn với phần cày chính. */
 export function ensureBinh(state) {
@@ -223,7 +223,7 @@ function mountBinh(host, opts) {
       '<div class="bx-act"><span class="bx-btn" data-a="mo">Mở Bảng Xếp Bài</span></div>' +
       '<div class="bx-toast"></div>' +
       '<div class="bx-banner"><div class="bx-end"><div class="bt"></div><div class="rule"></div><div class="bs"></div>' +
-        '<table class="bx-luoi"></table><div class="bx-ghi"></div>' +
+        '<table class="bx-luoi"></table>' +
         '<div class="btns"><span class="bx-btn pri" data-a="again">Ván Mới</span><span class="bx-btn ghost" data-a="exit">Rời Chiếu</span></div>' +
       '</div></div>' +
     '</div>';
@@ -233,7 +233,9 @@ function mountBinh(host, opts) {
   var scEl = $('.bx-scene');
   // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
   // Vào ra đều phải tính lại camera + cỡ renderer ⇒ truyền thẳng onResize.
-  var tm = ganToanMan(root, function () { onResize(); coLaPopup(); });
+  // ⚠ Phủ THẺ BỌC NGOÀI (host) chứ không phải khung bàn — vào chiếu là phủ luôn trong nhịp bấm,
+  //   lúc đó khung bàn chưa dựng xong. Nút vẫn nằm trong khung bàn, ganToanMan tự tìm ra.
+  var tm = ganToanMan(host, function () { onResize(); coLaPopup(); });
   function fmt(n) { return (n | 0).toLocaleString('vi-VN'); }
 
 
@@ -294,16 +296,24 @@ function injectStyle() {
     '.bx-tab .sub{display:block;font-size:10px;color:var(--txt3);font-style:italic;margin-top:2px}',
     '.bx-tab .sub .xau{color:var(--warn)}.bx-tab .sub .mb{color:#f4d99a}',
     // bảng LƯỚI: hàng = ba chi, cột = bốn nhà — nhìn phát thấy chi nào ăn chi nào thua
-    '.bx-luoi{width:100%;border-collapse:collapse;font-family:var(--serif);font-size:11.5px}',
-    '.bx-luoi th{font-size:10px;font-weight:600;color:var(--txt3);padding:0 5px 5px;text-align:center;border-bottom:1px solid rgba(230,192,121,.16)}',
+    '.bx-luoi{width:100%;border-collapse:collapse;font-family:var(--serif);font-size:11.5px;table-layout:fixed}',
+    '.bx-luoi th{font-size:10px;font-weight:600;color:var(--txt3);padding:0 4px 6px;text-align:center;border-bottom:1px solid rgba(230,192,121,.16);vertical-align:bottom}',
     '.bx-luoi th.me{color:var(--gold2)}',
-    '.bx-luoi td{padding:6px 5px;color:var(--txt2);text-align:center;border-bottom:1px solid rgba(230,192,121,.07)}',
-    '.bx-luoi td.lb{text-align:left;color:var(--txt3);font-size:10.5px;white-space:nowrap}',
+    // Chân dung + tên trên đầu cột. Tên PHẢI một dòng có dấu ba chấm: "Tề Mạc Sơn" mà cho xuống
+    // dòng thì đầu bảng cao gấp ba, đẩy bảng tràn khỏi khung ở khổ điện thoại.
+    '.bx-luoi th .av{display:block;width:26px;height:26px;border-radius:7px;object-fit:cover;object-position:50% 16%;',
+    '  margin:0 auto 4px;border:1px solid rgba(230,192,121,.35);background:#141c28}',
+    '.bx-luoi th .nm{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.bx-luoi td{padding:7px 4px;color:var(--txt2);text-align:center;border-bottom:1px solid rgba(230,192,121,.07);line-height:1.3}',
+    '.bx-luoi td.lb{text-align:left;color:var(--txt3);font-size:10.5px;white-space:nowrap;width:64px}',
     '.bx-luoi td.me{color:var(--txt)}',
+    // Cột của mình sáng lên thành một dải dọc — liếc là biết cột nào đọc trước.
+    '.bx-luoi th.me,.bx-luoi td.me{background:rgba(230,192,121,.07)}',
     '.bx-luoi td b{display:block;font-size:11px;margin-top:2px}',
     '.bx-luoi .pos{color:#7fd6b5}.bx-luoi .neg{color:var(--warn)}',
-    '.bx-luoi tr.tong td{border-bottom:0;padding-top:9px;font-weight:600}',
-    '.bx-ghi{margin-top:10px;font-family:var(--serif);font-size:10.5px;font-style:italic;color:var(--txt3);line-height:1.6;text-align:center}',
+    '.bx-luoi tr.tong td{border-bottom:0;padding-top:9px;padding-bottom:8px;font-weight:600;background:rgba(230,192,121,.09)}',
+    '.bx-luoi tr.tong td.me{background:rgba(230,192,121,.15)}',
+    '.bx-luoi tr.tong td:first-child{border-radius:9px 0 0 9px}.bx-luoi tr.tong td:last-child{border-radius:0 9px 9px 0}',
     // nhãn tên nhà bám theo khu bài trên bàn
     '.bx-nhan{position:absolute;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5;',
     '  display:flex;align-items:center;gap:8px;',
@@ -438,10 +448,21 @@ function injectStyle() {
     '  .bx-act{bottom:8px;gap:6px}.bx-btn{padding:6px 12px;font-size:11.5px}',
     '  .bx-toast{top:44px;left:10px;font-size:11px}',
     // Thẻ tên co lại: màn hẹp thì lề quanh khối bài chỉ còn vài chục px.
-    '  .bx-nhan{padding:3px 7px;gap:6px;max-width:196px}',
+    // ⚠ 152px chứ không rộng hơn: khe nỉ trống giữa hai khối bài trên màn dọc chỉ ~137px, thẻ
+    //   rộng hơn khe thì đặt đâu cũng cấn vào bài.
+    '  .bx-nhan{padding:3px 7px;gap:6px;max-width:152px}',
     '  .bx-nhan .av{width:27px;height:27px;border-radius:6px}',
-    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}.bx-nhan .th{font-size:9px}',
-    '  .bxp-wrap{padding:8px}.bxp{padding:10px 10px 9px}.bxp-top b{font-size:14px}}'
+    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}',
+    // ⚠ Dòng "thưởng bộ" ẨN ở màn dọc: nó làm thẻ cao lên ba dòng, mà khe nỉ trống chỉ đủ cho
+    //   thẻ hai dòng ⇒ thẻ đành đè lên bài (đo được 1.087 px² lúc so chi Đầu). Khoản thưởng
+    //   ĐÃ nằm trong số chi ăn/thua ngay cạnh rồi, không mất thông tin.
+    '  .bx-nhan .th{display:none}',
+    '  .bxp-wrap{padding:8px}.bxp{padding:10px 10px 9px}.bxp-top b{font-size:14px}',
+    // Bảng tổng kết: cột hẹp nên chữ và ảnh phải nhỏ lại, không thì "Thùng Phá Sảnh" vỡ ba dòng.
+    '  .bx-banner{padding:10px}.bx-end{padding:16px 12px 14px}.bx-end .bt{font-size:22px}.bx-end .bs{font-size:11.5px;margin-bottom:10px}',
+    '  .bx-luoi{font-size:10px}.bx-luoi th{font-size:9px;padding:0 2px 5px}',
+    '  .bx-luoi th .av{width:22px;height:22px;border-radius:6px;margin-bottom:3px}',
+    '  .bx-luoi td{padding:5px 2px}.bx-luoi td.lb{font-size:9.5px;width:52px}.bx-luoi td b{font-size:10px}}'
   ].join('\n');
   document.head.appendChild(st);
 }
@@ -1297,6 +1318,7 @@ function updCam() {
   if (!camera) return;
   datKhoOng(rFit * (sph.zoom || 1));
   camera.position.copy(camAt(R_CAM)); camera.lookAt(target);
+  nhanBan = true;                    // camera đổi ⇒ khối bài chiếu ra chỗ khác ⇒ treo lại thẻ
 }
 function onResize() {
   // Khung THẤP (điện thoại xoay ngang, cửa sổ bé): chrome rút gọn lại, không thì bốn thẻ
@@ -1444,7 +1466,12 @@ function hienTong() {
   // bảng LƯỚI: hàng = ba chi, cột = bốn nhà. Nhìn phát thấy ngay chi nào ăn chi nào thua.
   var CHI_TEN = ['Chi Đầu', 'Chi Giữa', 'Chi Cuối'];
   var h = '<tr><th></th>';
-  for (var s3 = 0; s3 < 4; s3++) h += '<th class="' + (s3 === 0 ? 'me' : '') + '">' + (s3 === 0 ? 'Bạn' : CUA[s3].ten) + '</th>';
+  for (var s3 = 0; s3 < 4; s3++) {
+    // Chân dung trên đầu cột: nhìn mặt là biết cột nào của ai, khỏi phải đọc tên bị cắt cụt.
+    var av3 = (s3 > 0 && CUA[s3].art) ? '<img class="av" src="' + CUA[s3].art + '" alt="" onerror="this.remove()">' : '';
+    h += '<th class="' + (s3 === 0 ? 'me' : '') + '">' + av3 +
+      '<span class="nm">' + (s3 === 0 ? 'Bạn' : CUA[s3].ten) + '</span></th>';
+  }
   h += '</tr>';
   for (var r = 0; r < 3; r++) {
     h += '<tr><td class="lb">' + CHI_TEN[r] + '</td>';
@@ -1468,14 +1495,9 @@ function hienTong() {
   h += '</tr>';
   el.querySelector('.bx-luoi').innerHTML = h;
 
-  var ghi = [];
-  for (var s6 = 0; s6 < 4; s6++) {
-    (kqVan.chiTiet[s6] || []).forEach(function (ct) {
-      if (ct.ly.indexOf('Hạng') === 0) return;
-      ghi.push((s6 === 0 ? 'Bạn' : CUA[s6].ten) + ': ' + ct.ly + ' (' + (ct.chi > 0 ? '+' : '') + ct.chi + ' chi)');
-    });
-  }
-  el.querySelector('.bx-ghi').innerHTML = ghi.length ? ghi.join(' · ') : '';
+  // ⛔ ĐÃ BỎ dòng liệt kê thưởng bộ dưới bảng (user: "bỏ cái dòng giải thích dài ngoằn đi").
+  //    Nó vừa dài vừa lặp — `chiTiet` ghi khoản thưởng một lần cho MỖI nhà bị so, nên một bộ
+  //    Thùng Phá Sảnh hiện ra ba lần y hệt nhau. Số thưởng đã nằm trong ô chi rồi.
   $('.bx-banner').classList.add('show');
   // Đếm số nhà mình sập trọn ba chi (Sâm Banh) — dùng cho sổ thành tích.
   var samBanh = 0, dTa = kqVan.dg[0];
@@ -1516,6 +1538,7 @@ function taoNhan() {
 // Hạng bài + ăn/thua nằm NGAY CẠNH chân dung (user chốt), không tách ra dấu báo riêng:
 // một chỗ duy nhất để đọc "nhà này là ai · chi này bài gì · ăn hay thua".
 function anChe() {
+  nhanBan = true;
   for (var s = 0; s < 4; s++) {
     var el = nhanEl[s];
     el.className = 'bx-nhan';
@@ -1547,6 +1570,7 @@ function netChiCua(s, r) {
 }
 
 function veChe(r) {
+  nhanBan = true;                    // đổi chữ trong thẻ ⇒ thẻ đổi cỡ ⇒ phải tính lại chỗ treo
   for (var s = 0; s < 4; s++) {
     var el = nhanEl[s], hg = el.querySelector('.hg'), kq = el.querySelector('.ch'), th = el.querySelector('.th');
     var d = kqVan.dg[s];
@@ -1650,7 +1674,10 @@ function choTreo(ben, k, w, h, rw, rh) {
   var cx = (k.x0 + k.x1) / 2, cy = (k.y0 + k.y1) / 2, m = 6, out = [], i, j;
   if (ben === 'tren' || ben === 'duoi') {
     var y = (ben === 'tren') ? k.y0 - h / 2 - m : k.y1 + h / 2 + m;
-    var xs = [cx, k.x0 + w / 2, k.x1 - w / 2, w / 2 + 6, rw - w / 2 - 6];
+    // Hai chỗ cuối là CHÉO GÓC (lệch hẳn sang bên cạnh khối): bốn "góc" của thế chữ thập là
+    // vùng nỉ trống duy nhất còn lại trên màn dọc, không cho thử thì thẻ đành đè lên bài.
+    var xs = [cx, k.x0 + w / 2, k.x1 - w / 2, w / 2 + 6, rw - w / 2 - 6,
+      k.x0 - w / 2 - 8, k.x1 + w / 2 + 8];
     for (i = 0; i < xs.length; i++) out.push([xs[i], y]);
   } else {
     // Chỗ đầu là GHIM RA MÉP KHUNG (bốn mảng tối quanh bát giác vốn bỏ không, thẻ ra đó thì
@@ -1674,6 +1701,10 @@ function giaTreo(p, w, h, khoi, can, rw, rh) {
 }
 
 var canhCu = [null, null, null, null];      // hướng đã chọn khung trước — giữ cho thẻ khỏi nhảy qua nhảy lại
+// Cờ "phải treo lại thẻ". ⚠ ĐỪNG chạy datNhan mỗi khung: một lượt là 4 getBoundingClientRect +
+// ~80 phép thử chỗ treo, ép trình duyệt tính lại bố cục 60 lần/giây ⇒ lúc so chi thấy GIẬT ở
+// thẻ tên (user báo). Camera đứng yên và chữ không đổi thì thẻ cũng đứng yên.
+var nhanBan = true;
 
 /**
  * ⚠ Chỗ đặt thẻ tên phải ĐO, đừng đoán. Bản cũ nhích cứng ±1.35 theo z — khu bài sâu lên
@@ -1775,7 +1806,7 @@ function animate(ts) {
   raf = requestAnimationFrame(animate);
   var dt = last ? Math.min(0.05, (ts - last) / 1000) : 0.016; last = ts;
   stepTweens(dt);
-  datNhan();
+  if (nhanBan || tweens.length) { datNhan(); nhanBan = false; }
   if (particles) {
     var pa = particles.geometry.attributes.position, ar = pa.array;
     for (var i = 1; i < ar.length; i += 3) { ar[i] += 0.0032; if (ar[i] > 8.2) ar[i] = -0.3; }
@@ -2036,6 +2067,9 @@ export function binh() {
       }
       this._boSo = false;
       this.chieu = c; this.loadErr = ''; this.loading = true; this.inBattle = true;
+      // Ngồi xuống chiếu là phủ kín màn hình luôn (máy cảm ứng). ⚠ Phải gọi ngay ở nhịp bấm này,
+      // chờ nạp xong 3D thì trình duyệt đã hết "transient activation" và từ chối.
+      this.$nextTick(() => tuVaoToanMan(this.$refs.boardHost));
       Promise.all([ensureThree(), ensureEngine()])
         .then(() => { this.loading = false; this.$nextTick(() => this._mount()); })
         .catch((e) => { this.loading = false; this.inBattle = false; this.loadErr = String(e && e.message || e); });

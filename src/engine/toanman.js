@@ -42,9 +42,12 @@ function themStyle() {
   const st = document.createElement('style');
   st.id = 'tm-style';
   st.textContent = [
-    // Khung bàn vốn bị ghìm bởi aspect-ratio + max-height (82dvh) — vào toàn màn hình phải gỡ hết,
-    // không thì nó vẫn giữ đúng khung cũ giữa màn đen.
-    '.tm-full{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;',
+    // ⚠ Thứ được phủ kín màn là thẻ BỌC NGOÀI (host), không phải khung bàn: vào trận là phủ luôn
+    //   (xem tuVaoToanMan) mà lúc đó bàn 3D còn chưa nạp xong, chưa có khung bàn nào để phủ.
+    //   Khung bàn nằm bên trong, bị ghìm bởi aspect-ratio + max-height (82dvh) nên phải gỡ hết,
+    //   không thì nó vẫn giữ đúng khung cũ giữa màn đen.
+    '.tm-full{width:100%!important;height:100%!important;margin:0!important;background:#0b0e16}',
+    '.tm-full > *{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;',
     '  min-height:0!important;aspect-ratio:auto!important;margin:0!important;border-radius:0!important;',
     '  border:0!important;box-shadow:none!important}',
     '.tm-gia{position:fixed!important;inset:0!important;z-index:2147483000!important;height:100dvh!important;width:100vw!important}',
@@ -158,6 +161,18 @@ export function tatToanMan(el) {
 
 export function chuyenToanMan(el) {
   if (dangToanMan(el)) tatToanMan(el); else batToanMan(el);
+}
+
+/**
+ * Vào trận là phủ kín màn hình luôn — CHỈ trên máy cảm ứng (máy bàn thì đang xem trang mà
+ * bỗng nhiên chiếm hết màn là giật mình).
+ * ⚠ Phải gọi NGAY trong nhịp bấm của người chơi: Fullscreen API đòi "transient activation",
+ *   chờ nạp xong Three.js rồi mới gọi là trình duyệt từ chối. Gọi ở `$nextTick` vẫn kịp
+ *   (cửa sổ hoạt hoá kéo dài vài giây), nhưng đừng chờ lâu hơn thế.
+ */
+export function tuVaoToanMan(el) {
+  if (!el || !camUng() || dangToanMan(el)) return;
+  batToanMan(el);
 }
 
 let daNoi = false;

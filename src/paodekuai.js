@@ -14,7 +14,7 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung, tuVaoToanMan } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Phao Đắc Khoái, không vỡ cả game.
 let E = null;
@@ -305,7 +305,8 @@ function mountPaoDeKuai(host, opts) {
   var $ = function (s) { return root.querySelector(s); };
   var scEl = $('.pk-scene');
   // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
-  var tm = ganToanMan(root, function () { onResize(); });
+  // ⚠ Phủ THẺ BỌC NGOÀI (host) chứ không phải khung bàn — xem chú thích ở binh.js.
+  var tm = ganToanMan(host, function () { onResize(); });
   function fb(m) { var d = $('.pk-fb'); d.style.display = 'flex'; if (m) d.querySelector('.fm').textContent = m; }
   function fmt(n) { return (n | 0).toLocaleString('vi-VN'); }
 
@@ -1867,6 +1868,9 @@ export function paoDeKuai() {
       if (!saved && this.savedGame && this.savedGame.chieuId !== c.id) this.dropSaved();
       this._boSo = false; this._saved = saved || null;
       this.chieu = c; this.loadErr = ''; this.loading = true; this.inBattle = true;
+      // Ngồi xuống chiếu là phủ kín màn hình luôn (máy cảm ứng). ⚠ Phải gọi ngay ở nhịp bấm này,
+      // chờ nạp xong 3D thì trình duyệt đã hết "transient activation" và từ chối.
+      this.$nextTick(() => tuVaoToanMan(this.$refs.boardHost));
       Promise.all([ensureThree(), ensureEngine()])
         .then(() => { this.loading = false; this.$nextTick(() => this._mount()); })
         .catch((e) => { this.loading = false; this.inBattle = false; this.loadErr = String(e && e.message || e); });

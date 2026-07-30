@@ -10993,14 +10993,16 @@
               <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
             </div>
           </div>
-          <div x-show="!inBattle && savedOpp" class="mt-4 panel rounded-xl p-3 flex items-center gap-3 border border-amber-400/40">
+          <div x-show="!inBattle && savedOpp" class="mt-4 panel rounded-xl p-3 flex flex-wrap items-center gap-3 border border-amber-400/40">
             <img class="w-12 h-12 rounded-lg object-cover shrink-0" style="object-position:50% 20%" :src="savedOpp ? faceOf(savedOpp) : ''" alt="" onerror="this.style.visibility='hidden'">
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 basis-[150px]">
               <div class="text-[13px] fserif text-amber-200">Còn ván dở với <b x-text="savedOpp ? savedOpp.ten : ''"></b></div>
-              <div class="text-[11px] text-slate-400 mt-0.5">Ván cờ được giữ lại khi bạn thoát hoặc tải lại trang.</div>
+              <div class="hidden sm:block text-[11px] text-slate-400 mt-0.5">Ván cờ được giữ lại khi bạn thoát hoặc tải lại trang.</div>
             </div>
-            <span class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
-            <span class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            <div class="flex items-center gap-2 shrink-0">
+            <span class="px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
+            <span class="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            </div>
           </div>
           <div x-show="!inBattle" class="mt-5 space-y-5">
             <template x-for="tier in tiers" :key="tier.name">
@@ -11044,19 +11046,21 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">象棋</span> Cờ Tướng</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Hán giới chia đôi bờ, xe pháo mã dàn trận. Tướng chẳng rời cửu cung — hơn thua ở đường vây, không ở nước chém.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Khám phá nghệ thuật điều binh khiển tướng, vận dụng chiến thuật để từng bước đánh bại đối thủ.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="ct.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
             </div>
           </div>
-          <div x-show="!inBattle && savedOpp" class="mt-4 panel rounded-xl p-3 flex items-center gap-3 border border-amber-400/40">
+          <div x-show="!inBattle && savedOpp" class="mt-4 panel rounded-xl p-3 flex flex-wrap items-center gap-3 border border-amber-400/40">
             <img class="w-12 h-12 rounded-lg object-cover shrink-0" style="object-position:50% 20%" :src="savedOpp ? faceOf(savedOpp) : ''" alt="" onerror="this.style.visibility='hidden'">
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 basis-[150px]">
               <div class="text-[13px] fserif text-amber-200">Còn ván dở với <b x-text="savedOpp ? savedOpp.ten : ''"></b></div>
-              <div class="text-[11px] text-slate-400 mt-0.5">Ván cờ được giữ lại khi bạn thoát hoặc tải lại trang.</div>
+              <div class="hidden sm:block text-[11px] text-slate-400 mt-0.5">Ván cờ được giữ lại khi bạn thoát hoặc tải lại trang.</div>
             </div>
-            <span class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
-            <span class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            <div class="flex items-center gap-2 shrink-0">
+            <span class="px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
+            <span class="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            </div>
           </div>
           <div x-show="!inBattle" class="mt-5 space-y-5">
             <template x-for="tier in tiers" :key="tier.name">
@@ -11100,19 +11104,21 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">西洋棋</span> Cờ Vua</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Đen trắng đối diện, mỗi quân một lối, không quân nào đi thay quân khác. Dồn được vua vào chỗ tận thì cuộc tàn.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Thử sức với bộ môn cờ trí tuệ kinh điển, nơi mỗi nước đi đều quyết định cục diện ván đấu.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Tổng Thắng: <b class="text-cyan-300" x-text="cv.wins"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
             </div>
           </div>
-          <div x-show="!inBattle && savedOpp" class="mt-4 panel rounded-xl p-3 flex items-center gap-3 border border-amber-400/40">
+          <div x-show="!inBattle && savedOpp" class="mt-4 panel rounded-xl p-3 flex flex-wrap items-center gap-3 border border-amber-400/40">
             <img class="w-12 h-12 rounded-lg object-cover shrink-0" style="object-position:50% 20%" :src="savedOpp ? faceOf(savedOpp) : ''" alt="" onerror="this.style.visibility='hidden'">
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 basis-[150px]">
               <div class="text-[13px] fserif text-amber-200">Còn ván dở với <b x-text="savedOpp ? savedOpp.ten : ''"></b></div>
-              <div class="text-[11px] text-slate-400 mt-0.5">Ván cờ được giữ lại khi bạn thoát hoặc tải lại trang.</div>
+              <div class="hidden sm:block text-[11px] text-slate-400 mt-0.5">Ván cờ được giữ lại khi bạn thoát hoặc tải lại trang.</div>
             </div>
-            <span class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
-            <span class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            <div class="flex items-center gap-2 shrink-0">
+            <span class="px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
+            <span class="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            </div>
           </div>
           <div x-show="!inBattle" class="mt-5 space-y-5">
             <template x-for="tier in tiers" :key="tier.name">
@@ -11158,7 +11164,7 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">越南跑得快</span> Tiến Lên</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài ra như kiếm rút — nhanh nửa nhịp thì đoạt tiên cơ, chậm nửa nhịp thì bị khoá tay. Ai trút sạch trước, kẻ ấy cầm trịch cả chiếu.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Trải nghiệm trò chơi bài quen thuộc, tính toán từng lượt đánh để về nhất trước mọi đối thủ.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="tl.van"></b> ván · Về Nhất: <b class="text-amber-300" x-text="tl.nhat"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(tl.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((tl.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(tl.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
@@ -11237,18 +11243,20 @@
             </div>
           </template>
 
-          <div x-show="!inBattle && savedChieu" class="mt-4 panel rounded-xl p-3 flex items-center gap-3 border border-amber-400/40">
+          <div x-show="!inBattle && savedChieu" class="mt-4 panel rounded-xl p-3 flex flex-wrap items-center gap-3 border border-amber-400/40">
             <div class="tls-quat shrink-0" style="width:96px;height:74px">
               <template x-for="o in (savedChieu ? savedChieu.list : [])" :key="o.id">
                 <img :src="faceOf(o)" alt="" style="width:44px;height:58px" onerror="this.style.visibility='hidden'">
               </template>
             </div>
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 basis-[150px]">
               <div class="text-[13px] fserif text-amber-200">Còn ván dở ở <b x-text="savedChieu ? savedChieu.ten : ''"></b></div>
-              <div class="text-[11px] text-slate-400 mt-0.5">Ván bài được giữ lại khi bạn thoát hoặc tải lại trang.</div>
+              <div class="hidden sm:block text-[11px] text-slate-400 mt-0.5">Ván bài được giữ lại khi bạn thoát hoặc tải lại trang.</div>
             </div>
-            <span class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
-            <span class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            <div class="flex items-center gap-2 shrink-0">
+            <span class="px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
+            <span class="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            </div>
           </div>
 
           <div x-show="!inBattle" class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -11294,7 +11302,7 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">十三水</span> Binh Xập Xám</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Bài không đánh, chỉ bày. Trước nhẹ sau nặng, ba chi thành trận — bày sai một chi thì chưa lật đã tự vỡ.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Sắp xếp 13 lá bài thành ba chi hoàn chỉnh, vận dụng chiến thuật xếp bài để giành chiến thắng.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="bx.van"></b> ván · Ván ăn: <b class="text-amber-300" x-text="bx.thang"></b> · Sâm Banh: <b class="text-amber-300" x-text="bx.samBanh"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(bx.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((bx.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(bx.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
@@ -11408,7 +11416,7 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">中国跑得快</span> Tiến Lên Trung Quốc</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Ba nhà một bàn, bốn mươi tám lá — ít người thì ít chỗ lùi. Tên đã là chạy cho nhanh: chần chừ nửa hơi là mất cửa.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Làm quen với lối chơi Tiến Lên phiên bản Trung Hoa, mang đến trải nghiệm mới lạ cùng nhiều chiến thuật hấp dẫn.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="pk.van"></b> ván · Chạy nhất: <b class="text-amber-300" x-text="pk.nhat"></b> · Bom: <b class="text-amber-300" x-text="pk.bom||0"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(pk.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((pk.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(pk.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
@@ -11487,18 +11495,20 @@
             </div>
           </template>
 
-          <div x-show="!inBattle && savedChieu" class="mt-4 panel rounded-xl p-3 flex items-center gap-3 border border-amber-400/40">
+          <div x-show="!inBattle && savedChieu" class="mt-4 panel rounded-xl p-3 flex flex-wrap items-center gap-3 border border-amber-400/40">
             <div class="pks-quat shrink-0" style="width:96px;height:74px">
               <template x-for="o in (savedChieu ? savedChieu.list : [])" :key="o.id">
                 <img :src="faceOf(o)" alt="" style="width:44px;height:58px" onerror="this.style.visibility='hidden'">
               </template>
             </div>
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 basis-[150px]">
               <div class="text-[13px] fserif text-amber-200">Còn ván dở ở <b x-text="savedChieu ? savedChieu.ten : ''"></b></div>
-              <div class="text-[11px] text-slate-400 mt-0.5">Ván bài được giữ lại khi bạn thoát hoặc tải lại trang.</div>
+              <div class="hidden sm:block text-[11px] text-slate-400 mt-0.5">Ván bài được giữ lại khi bạn thoát hoặc tải lại trang.</div>
             </div>
-            <span class="shrink-0 px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
-            <span class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            <div class="flex items-center gap-2 shrink-0">
+            <span class="px-4 py-1.5 rounded-lg text-[12px] cursor-pointer fserif text-amber-200 border border-amber-400/60 hover:bg-amber-400/15" @click="resumeSaved()">Tiếp Tục</span>
+            <span class="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer text-slate-400 border border-slate-700 hover:border-slate-500" @click="dropSaved()">Bỏ Ván</span>
+            </div>
           </div>
 
           <div x-show="!inBattle" class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-3">
