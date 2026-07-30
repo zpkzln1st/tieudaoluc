@@ -260,7 +260,7 @@ function mountCoVua(host, opts) {
   const $ = (s) => root.querySelector(s);
   const scEl = $('.cv-scene');
   // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
-  const tm = ganToanMan(host, () => onResize());   // phủ THẺ BỌC NGOÀI, xem chú thích ở binh.js
+  const tm = ganToanMan(root, () => onResize());
   const fb = (msg) => { const d = $('.cv-fb'); d.style.display = 'flex'; if (msg) d.querySelector('.fm').textContent = msg; };
 
   // ---- kích thước bàn (1 ô = 1 đơn vị, theo mockup đã chốt) ----

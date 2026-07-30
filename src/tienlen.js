@@ -10,7 +10,8 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML, capKhung, tuVaoToanMan } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { demChia } from './engine/demchia.js';   // đếm ngược 5 giây rồi mới chia bài
 
 // Engine luật+AI nạp ĐỘNG (chỉ khi vào chiếu) — hỏng thì chỉ hỏng riêng Tiến Lên, không vỡ cả game.
 let E = null;
@@ -301,8 +302,8 @@ function mountTienLen(host, opts) {
   var $ = function (s) { return root.querySelector(s); };
   var scEl = $('.tl-scene');
   // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
-  // ⚠ Phủ THẺ BỌC NGOÀI (host) chứ không phải khung bàn — xem chú thích ở binh.js.
-  var tm = ganToanMan(host, function () { onResize(); });
+  var tm = ganToanMan(root, function () { onResize(); });
+  var huyDem = null;                   // hàm dừng đếm ngược trước khi chia bài
   function fb(m) { var d = $('.tl-fb'); d.style.display = 'flex'; if (m) d.querySelector('.fm').textContent = m; }
   function fmt(n) { return (n | 0).toLocaleString('vi-VN'); }
 
@@ -1390,7 +1391,8 @@ function mountTienLen(host, opts) {
     if (luot !== 0) setTimeout(aiDi, 700);
   }
 
-  function vanMoi(saved) {
+  function vanMoi(saved, dem) {
+    if (huyDem) { huyDem(); huyDem = null; }
     if (saved && saved.hands && saved.hands.length === 4) { khoiPhuc(saved); return; }
     hands = TL.deal(rnd);
     cur = null; curCards = []; daBo = [false, false, false, false]; raBai = [false, false, false, false];
@@ -1401,15 +1403,21 @@ function mountTienLen(host, opts) {
     if (viTruoc != null) { luot = viTruoc; chuBai = viTruoc; }
     else for (var s = 0; s < 4; s++) if (hands[s].indexOf(0) >= 0) { luot = s; chuBai = s; }
     $('.tl-banner').classList.remove('show');
-    chiaBaiAnim();
-    capNhatSeat(); capNhatCur(); capNhatNut();
-    setTimeout(function () {
-      npcNoi(1 + Math.floor(rnd() * 3), 'vao', true);
-      toast(luot === 0 ? 'Bạn cầm Ba Bích — mở lượt, bộ đầu phải có lá này.' : CUA[luot].ten + ' cầm Ba Bích, mở lượt.');
-      dangCho = false; capNhatNut();
-      if (luot !== 0) setTimeout(aiDi, 700);
-      else if (opts.tuChoi) setTimeout(tuDanhHo, 200);
-    }, tucThi ? 30 : 1000);
+    capNhatSeat(); capNhatCur(); capNhatNut();       // bày sẵn thẻ tên + thanh trạng thái trước khi đếm
+    var chia = function () {
+      chiaBaiAnim();
+      capNhatSeat(); capNhatCur(); capNhatNut();
+      setTimeout(function () {
+        npcNoi(1 + Math.floor(rnd() * 3), 'vao', true);
+        toast(luot === 0 ? 'Bạn cầm Ba Bích — mở lượt, bộ đầu phải có lá này.' : CUA[luot].ten + ' cầm Ba Bích, mở lượt.');
+        dangCho = false; capNhatNut();
+        if (luot !== 0) setTimeout(aiDi, 700);
+        else if (opts.tuChoi) setTimeout(tuDanhHo, 200);
+      }, tucThi ? 30 : 1000);
+    };
+    // Ván ĐẦU của chiếu: đếm ngược 5 giây giữa bàn cho người chơi kịp nhìn chiếu rồi mới chia.
+    // "Ván Mới" thì chia luôn — đang ngồi sẵn ở bàn, bắt chờ thêm mỗi ván là phiền.
+    if (dem) huyDem = demChia(root, chia); else chia();
   }
 
   function sangLuot() {
@@ -1661,7 +1669,8 @@ function mountTienLen(host, opts) {
     sph.zoom = 1;
     if (opts.gocNhin) { sph.theta = opts.gocNhin.theta; sph.phi = opts.gocNhin.phi; sph.zoom = opts.gocNhin.zoom || 1; }
     canKhung();
-    vanMoi(opts.saved || null);    // có ván dở thì bày lại, không thì chia mới
+    // Ván đầu của chiếu: đếm ngược 5 giây rồi mới chia. Bày lại ván dở thì KHÔNG đếm.
+    vanMoi(opts.saved || null, !opts.saved);
     setTimeout(onResize, 120); setTimeout(onResize, 480);
     setTimeout(datSeat, 900); setTimeout(datSeat, 2000);   // chân dung tải xong thì thẻ đổi cỡ, canh lại
     animate(0);
@@ -1673,6 +1682,7 @@ function mountTienLen(host, opts) {
   return {
     destroy: function () {
       cancelAnimationFrame(raf);
+      if (huyDem) { huyDem(); huyDem = null; }
       tm.destroy();                     // rời chiếu mà còn phủ màn hình là kẹt ở màn đen
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onMove);
@@ -1833,9 +1843,8 @@ export function tienLen() {
       if (!saved && this.savedGame && this.savedGame.chieuId !== c.id) this.dropSaved();
       this._boSo = false; this._saved = saved || null;
       this.chieu = c; this.loadErr = ''; this.loading = true; this.inBattle = true;
-      // Ngồi xuống chiếu là phủ kín màn hình luôn (máy cảm ứng). ⚠ Phải gọi ngay ở nhịp bấm này,
-      // chờ nạp xong 3D thì trình duyệt đã hết "transient activation" và từ chối.
-      this.$nextTick(() => tuVaoToanMan(this.$refs.boardHost));
+      // ⛔ ĐÃ THỬ tự phủ màn hình khi ngồi xuống chiếu — USER BÁC 2026-07-30, phải tự bấm nút
+      //    Toàn Màn Hình. Đừng làm lại.
       Promise.all([ensureThree(), ensureEngine()])
         .then(() => { this.loading = false; this.$nextTick(() => this._mount()); })
         .catch((e) => { this.loading = false; this.inBattle = false; this.loadErr = String(e && e.message || e); });

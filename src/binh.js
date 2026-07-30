@@ -13,7 +13,8 @@ import { Storage } from './engine/save.js';
 import { addKyHon, getKyHon, kyNgheOf } from './engine/kyhon.js';   // Kỳ Hồn + danh hiệu Kỳ Nghệ dùng CHUNG
 import { ensureTruMa, soTruMa, doiTruMa, ghiVan, MUC_DOI, TI_GIA } from './engine/truma.js';   // đồng riêng của chiếu bài
 import { getGocNhin, saveGocNhin, clearGocNhin } from './engine/gocnhin.js';
-import { ganToanMan, nutToanManHTML, capKhung, tuVaoToanMan } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { ganToanMan, nutToanManHTML, capKhung } from './engine/toanman.js';   // phủ kín màn hình + khoá hướng ngang
+import { demChia } from './engine/demchia.js';   // đếm ngược 5 giây rồi mới chia bài
 
 /** Sổ riêng của Binh Xập Xám. Cách ly hoàn toàn với phần cày chính. */
 export function ensureBinh(state) {
@@ -233,9 +234,7 @@ function mountBinh(host, opts) {
   var scEl = $('.bx-scene');
   // Toàn màn hình: phủ CHÍNH thẻ gốc nên vào là mất sạch thanh đầu trang / sidebar / banner.
   // Vào ra đều phải tính lại camera + cỡ renderer ⇒ truyền thẳng onResize.
-  // ⚠ Phủ THẺ BỌC NGOÀI (host) chứ không phải khung bàn — vào chiếu là phủ luôn trong nhịp bấm,
-  //   lúc đó khung bàn chưa dựng xong. Nút vẫn nằm trong khung bàn, ganToanMan tự tìm ra.
-  var tm = ganToanMan(host, function () { onResize(); coLaPopup(); });
+  var tm = ganToanMan(root, function () { onResize(); coLaPopup(); });
   function fmt(n) { return (n | 0).toLocaleString('vi-VN'); }
 
 
@@ -1700,6 +1699,7 @@ function giaTreo(p, w, h, khoi, can, rw, rh) {
   return g + lo * 130;
 }
 
+var huyDem = null;                          // hàm dừng đếm ngược trước khi chia bài
 var canhCu = [null, null, null, null];      // hướng đã chọn khung trước — giữ cho thẻ khỏi nhảy qua nhảy lại
 // Cờ "phải treo lại thẻ". ⚠ ĐỪNG chạy datNhan mỗi khung: một lượt là 4 getBoundingClientRect +
 // ~80 phép thử chỗ treo, ép trình duyệt tính lại bố cục 60 lần/giây ⇒ lúc so chi thấy GIẬT ở
@@ -1764,12 +1764,13 @@ function datNhan() {
 }
 var khoiCuoi = [];
 
-function vanMoi() {
+function vanMoi(dem) {
   hands = B.deal(rnd);
   khu = [hands[0].slice(), [], [], []];
   xepNha = [null, null, null, null];
   chon = {}; daBinh = false; over = false; kqVan = null;
   tatDongHo();
+  if (huyDem) { huyDem(); huyDem = null; }
   $('.bx-banner').classList.remove('show');
   $('.bx-act').style.display = '';
   $('.bx-canh').textContent = 'Đang chia bài…';
@@ -1792,13 +1793,20 @@ function vanMoi() {
   }
   for (var s = 0; s < 4; s++) { nhanEl[s].querySelector('.hg').textContent = ''; nhanEl[s].querySelector('.ch').textContent = ''; }
   anChe();
-  // chia bài xong RỒI mới bật bảng xếp — bật ngay thì người chơi không kịp thấy bàn
-  chiaBaiAnim(function () {
-    if (daBinh) return;                 // đã binh trước khi chia xong thì đừng mở lại bảng
-    tuDong();                           // binh sẵn một thế hợp lệ; người chơi chỉ đổi chỗ cho vừa ý
-    batDongHo();                        // đếm ngược bắt đầu từ lúc bảng hiện ra, không phải từ lúc chia
-    moPopup();
-  });
+  var chia = function () {
+    $('.bx-canh').textContent = 'Đang chia bài…';
+    // chia bài xong RỒI mới bật bảng xếp — bật ngay thì người chơi không kịp thấy bàn
+    chiaBaiAnim(function () {
+      if (daBinh) return;               // đã binh trước khi chia xong thì đừng mở lại bảng
+      tuDong();                         // binh sẵn một thế hợp lệ; người chơi chỉ đổi chỗ cho vừa ý
+      batDongHo();                      // đếm ngược bắt đầu từ lúc bảng hiện ra, không phải từ lúc chia
+      moPopup();
+    });
+  };
+  // Ván ĐẦU của chiếu: đếm ngược 5 giây giữa bàn cho người chơi kịp nhìn chiếu, rồi mới chia.
+  // "Ván Mới" thì chia luôn — đang ngồi sẵn ở bàn, bắt chờ thêm mỗi ván là phiền.
+  if (dem) { $('.bx-canh').textContent = 'Vào chiếu — sắp chia bài'; huyDem = demChia(root, chia); }
+  else chia();
 }
 // ================= vòng vẽ =================
 var last = 0;
@@ -1884,7 +1892,7 @@ try {
     sph.zoom = opts.gocNhin.zoom || 1;
     updCam();
   }
-  vanMoi();
+  vanMoi(true);                 // ván đầu của chiếu: đếm ngược 5 giây rồi mới chia
   setTimeout(onResize, 120); setTimeout(onResize, 480);
   animate(0);
   // Móc chẩn đoán: trang đo ngoài đọc được vị trí THẬT của từng lá trên bàn, khỏi chép lại
@@ -1908,6 +1916,7 @@ return {
   destroy: function () {
     cancelAnimationFrame(raf);
     tatDongHo();
+    if (huyDem) { huyDem(); huyDem = null; }
     tm.destroy();                       // rời chiếu mà còn phủ màn hình là kẹt ở màn đen
     if (ro) { ro.disconnect(); ro = null; }
     window.removeEventListener("keydown", onPhim);
@@ -2067,9 +2076,9 @@ export function binh() {
       }
       this._boSo = false;
       this.chieu = c; this.loadErr = ''; this.loading = true; this.inBattle = true;
-      // Ngồi xuống chiếu là phủ kín màn hình luôn (máy cảm ứng). ⚠ Phải gọi ngay ở nhịp bấm này,
-      // chờ nạp xong 3D thì trình duyệt đã hết "transient activation" và từ chối.
-      this.$nextTick(() => tuVaoToanMan(this.$refs.boardHost));
+      // ⛔ ĐÃ THỬ tự phủ màn hình khi ngồi xuống chiếu — USER BÁC 2026-07-30: *"k dc, bỏ cơ chế
+      //    tự full màn hình đi, vẫn phải cần thao tác vào nút phóng to thì game mới toàn màn
+      //    hình hoàn chỉnh được"*. Đừng làm lại.
       Promise.all([ensureThree(), ensureEngine()])
         .then(() => { this.loading = false; this.$nextTick(() => this._mount()); })
         .catch((e) => { this.loading = false; this.inBattle = false; this.loadErr = String(e && e.message || e); });
