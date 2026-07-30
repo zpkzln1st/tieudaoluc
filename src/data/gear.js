@@ -236,43 +236,43 @@ const BK_ICON = { mu: '⛑️', giap: '🥋', dai: '🎗️', gang: '🧤', giay
 // id món = 'eq_' + slug + '_' + hậu tố; ô suy ra từ ĐOẠN CUỐI của hậu tố (quan/giap/dai/uyen/ngoa/gioi/boi).
 // Tên hiển thị = tên bộ (bỏ chữ "Bộ") + tên món, giống lối đặt của Kim Quang.
 export const BACH_KIM_SETS = [
-  { key: 'anBang', slug: 'an_bang', name: 'Bộ An Bang', he: 'tho', req: 55, pieces: {
+  { key: 'anBang', han: '安邦', slug: 'an_bang', name: 'Bộ An Bang', he: 'tho', req: 55, pieces: {
       tran_nhac_quan: 'Trấn Nhạc Quan', ho_quoc_giap: 'Hộ Quốc Giáp', dinh_son_dai: 'Định Sơn Đái',
       ban_thach_uyen: 'Bàn Thạch Uyển', tran_dia_ngoa: 'Trấn Địa Ngoa', tran_tam_gioi: 'Trấn Tâm Giới',
       ho_linh_boi: 'Hộ Linh Bội' } },
-  { key: 'nhuTinh', slug: 'nhu_tinh', name: 'Bộ Nhu Tình', he: 'moc', req: 55, pieces: {
+  { key: 'nhuTinh', han: '柔情', slug: 'nhu_tinh', name: 'Bộ Nhu Tình', he: 'moc', req: 55, pieces: {
       luu_hoa_quan: 'Lưu Hoa Quan', ngoc_vu_giap: 'Ngọc Vũ Giáp', toa_huong_dai: 'Tỏa Hương Đái',
       lien_tam_uyen: 'Liên Tâm Uyển', lang_ba_ngoa: 'Lăng Ba Ngoa', ngung_mong_gioi: 'Ngưng Mộng Giới',
       tam_nguyet_boi: 'Tâm Nguyệt Bội' } },
-  { key: 'bachHong', slug: 'bach_hong', name: 'Bộ Bạch Hồng', he: 'kim', req: 60, pieces: {
+  { key: 'bachHong', han: '白虹', slug: 'bach_hong', name: 'Bộ Bạch Hồng', he: 'kim', req: 60, pieces: {
       xung_tieu_quan: 'Xung Tiêu Quan', luu_quang_giap: 'Lưu Quang Giáp', toa_van_dai: 'Tỏa Vân Đái',
       pha_anh_uyen: 'Phá Ảnh Uyển', truy_phong_ngoa: 'Truy Phong Ngoa', ngung_nguyet_gioi: 'Ngưng Nguyệt Giới',
       huyen_quang_boi: 'Huyền Quang Bội' } },
-  { key: 'thuongLan', slug: 'thuong_lan', name: 'Bộ Thương Lan', he: 'thuy', req: 60, pieces: {
+  { key: 'thuongLan', han: '沧澜', slug: 'thuong_lan', name: 'Bộ Thương Lan', he: 'thuy', req: 60, pieces: {
       kinh_dao_quan: 'Kình Đào Quan', han_nguyet_giap: 'Hàn Nguyệt Giáp', hoanh_giang_dai: 'Hoành Giang Đái',
       pha_lang_uyen: 'Phá Lãng Uyển', dap_lang_ngoa: 'Đạp Lãng Ngoa', ngung_suong_gioi: 'Ngưng Sương Giới',
       hai_tam_boi: 'Hải Tâm Bội' } },
-  { key: 'dinhQuoc', slug: 'dinh_quoc', name: 'Bộ Định Quốc', he: 'kim', req: 65, pieces: {
+  { key: 'dinhQuoc', han: '定国', slug: 'dinh_quoc', name: 'Bộ Định Quốc', he: 'kim', req: 65, pieces: {
       thien_uy_quan: 'Thiên Uy Quan', huyen_giap: 'Huyền Giáp', tran_quan_dai: 'Trấn Quân Đái',
       thiet_ho_uyen: 'Thiết Hộ Uyển', dap_tran_ngoa: 'Đạp Trận Ngoa', ho_menh_gioi: 'Hộ Mệnh Giới',
       long_van_boi: 'Long Vân Bội' } },
-  { key: 'thanhHu', slug: 'thanh_hu', name: 'Bộ Thanh Hư', he: 'thuy', req: 65, pieces: {
+  { key: 'thanhHu', han: '清虚', slug: 'thanh_hu', name: 'Bộ Thanh Hư', he: 'thuy', req: 65, pieces: {
       lang_van_quan: 'Lăng Vân Quan', ngu_phong_giap: 'Ngự Phong Giáp', toa_linh_dai: 'Tỏa Linh Đái',
       van_tu_uyen: 'Vân Tụ Uyển', truc_van_ngoa: 'Trục Vân Ngoa', ngung_than_gioi: 'Ngưng Thần Giới',
       huyen_ngoc_boi: 'Huyền Ngọc Bội' } },
-  { key: 'hongAnh', slug: 'hong_anh', name: 'Bộ Hồng Ảnh', he: 'hoa', req: 70, pieces: {
+  { key: 'hongAnh', han: '红影', slug: 'hong_anh', name: 'Bộ Hồng Ảnh', he: 'hoa', req: 70, pieces: {
       vo_tung_quan: 'Vô Tung Quan', am_hanh_giap: 'Ám Hành Giáp', toa_hon_dai: 'Tỏa Hồn Đái',
       liet_ngan_uyen: 'Liệt Ngân Uyển', me_tung_ngoa: 'Mê Tung Ngoa', nhiep_phach_gioi: 'Nhiếp Phách Giới',
       tan_nguyet_boi: 'Tàn Nguyệt Bội' } },
-  { key: 'tuDien', slug: 'tu_dien', name: 'Bộ Tử Điện', he: 'moc', req: 70, pieces: {
+  { key: 'tuDien', han: '紫电', slug: 'tu_dien', name: 'Bộ Tử Điện', he: 'moc', req: 70, pieces: {
       chan_dinh_quan: 'Chấn Đình Quan', kinh_loi_giap: 'Kinh Lôi Giáp', bon_loi_dai: 'Bôn Lôi Đái',
       liet_dien_uyen: 'Liệt Điện Uyển', dien_bo_ngoa: 'Điện Bộ Ngoa', ngung_quang_gioi: 'Ngưng Quang Giới',
       huyen_loi_boi: 'Huyền Lôi Bội' } },
-  { key: 'thatSat', slug: 'that_sat', name: 'Bộ Thất Sát', he: 'hoa', req: 75, pieces: {
+  { key: 'thatSat', han: '七杀', slug: 'that_sat', name: 'Bộ Thất Sát', he: 'hoa', req: 75, pieces: {
       tham_lang_quan: 'Tham Lang Quan', huyen_minh_giap: 'Huyền Minh Giáp', doat_menh_dai: 'Đoạt Mệnh Đái',
       doan_mach_uyen: 'Đoạn Mạch Uyển', truy_anh_ngoa: 'Truy Ảnh Ngoa', ngung_huyet_gioi: 'Ngưng Huyết Giới',
       pha_quan_boi: 'Phá Quân Bội' } },
-  { key: 'minhVuong', slug: 'minh_vuong', name: 'Bộ Minh Vương', he: 'tho', req: 81, pieces: {
+  { key: 'minhVuong', han: '明王', slug: 'minh_vuong', name: 'Bộ Minh Vương', he: 'tho', req: 81, pieces: {
       tran_thien_quan: 'Trấn Thiên Quan', ho_tam_giap: 'Hộ Tâm Giáp', toa_son_dai: 'Tỏa Sơn Đái',
       kim_cang_uyen: 'Kim Cang Uyển', dap_van_ngoa: 'Đạp Vân Ngoa', tran_hon_gioi: 'Trấn Hồn Giới',
       tran_bat_dong_boi: 'Trấn Bất Động Bội' } },
@@ -413,7 +413,7 @@ const BK_HOME = {
 };
 export const TRANG_SETS = {
   kimQuang: {
-    key: 'kimQuang', name: 'Bộ Kim Quang', display: 'Bạch Kim', color: '#d6e3f2',
+    key: 'kimQuang', han: '金光', name: 'Bộ Kim Quang', display: 'Bạch Kim', color: '#d6e3f2',
     pieces: KIM_QUANG_IDS,           // 7 món (mu/giap/dai/gang/giay/nhan/trangSuc)
     manhCost: MANH_COST,             // Mảnh / 1 món
     blueprintId: 'dpset_kimQuang',   // Đồ Phổ mở khoá bộ này
@@ -429,7 +429,7 @@ export const TRANG_SETS = {
 // nên trói Mảnh vào một hoạt động là ép người chơi bỏ cái kia).
 BACH_KIM_SETS.forEach((s) => {
   TRANG_SETS[s.key] = {
-    key: s.key, name: s.name, display: 'Bạch Kim', color: '#d6e3f2', he: s.he,
+    key: s.key, name: s.name, han: s.han, display: 'Bạch Kim', color: '#d6e3f2', he: s.he,
     pieces: GEAR_IDS.filter((id) => ((GEAR[id].equip) || {}).set === s.key),
     manhCost: MANH_COST,
     blueprintId: 'dpset_' + s.key,
