@@ -2249,21 +2249,9 @@ const gameStore = {
           + `<img src="images/chieu/${cid}.webp" class="w-full h-full object-cover" alt="" onerror='this.parentElement.remove()'>`
           + `</span></span>`;
       }
-      // ĐỒ PHỔ BỘ TRANG: chưa có art riêng cho từng bộ nên 11 cuộn nhìn y hệt nhau (user chỉ ra
-      // 2026-07-30: "same same"). Cách rẻ mà đọc được ngay: LỒNG HAI CHỮ HÁN tên bộ vào giữa
-      // cuộn (Kim Quang -> 金光). Chữ lấy từ TRANG_SETS[key].han.
-      // ⚠ Chữ Hán mới PHẢI khai ở `HAN_TIEU_DE` (engine/hanfont.js) và chuỗi `&text=` trong
-      //   <head>, không thì rơi về SimSun nhìn lạc hẳn — xem gotcha-tieudao-lora-khong-han.
-      const bo = (this.TRANG_SETS || {})[id.slice(6)];
-      const han = bo && bo.han;
-      if (!han) return `<span class="relative block w-full h-full">` + nen + `</span>`;
-      // `container-type:size` để cỡ chữ tính theo Ô (cqmin) — cuộn này hiện ở đủ cỡ, từ ô kho
-      // 44px tới lightbox 520px, chốt px là chỗ thì tràn chỗ thì bé li ti.
-      return `<span class="relative block w-full h-full" style="container-type:size">` + nen
-        + `<span class="absolute inset-0 flex items-center justify-center pointer-events-none" style="padding-top:4%">`
-        + `<span style="font-family:'Ma Shan Zheng',cursive;font-weight:400;font-size:34cqmin;line-height:1;`
-        + `color:#3a2a12;text-shadow:0 1px 0 rgba(255,240,205,.55);letter-spacing:.04em">${han}</span>`
-        + `</span></span>`;
+      // ĐỒ PHỔ BỘ TRANG: cuộn TRƠN — chưa có art riêng cho từng Bộ Trang, lồng ô rỗng vào giữa
+      // còn xấu hơn. Tên bên dưới đủ phân biệt; muốn đẹp hẳn thì phải vẽ 11 tấm.
+      return `<span class="relative block w-full h-full">` + nen + `</span>`;
     }
     if (folder === 'equip') {   // art trang bị (KÉO GIÃN lấp khung): WEBP-FIRST -> png -> emoji.
       const pad = (this.ART_INSET && this.ART_INSET[id]) ? `;padding:${this.ART_INSET[id]}%` : '';

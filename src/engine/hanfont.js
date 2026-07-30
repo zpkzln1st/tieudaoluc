@@ -19,9 +19,7 @@
 // ============================================================
 
 // Ma Shan Zheng (tiêu đề) — mọi chữ ở đây PHẢI là giản thể hoặc chữ chung hai lối viết.
-// ⚠ Kèm cả 11 tên Bộ Trang (2 chữ mỗi bộ) — chúng nằm giữa cuộn Đồ Phổ Bộ, xem `ico()` ở main.js.
-//   Đều là GIẢN THỂ (沧澜 chứ không 滄瀾, 红影 chứ không 紅影…): Ma Shan Zheng không có phồn thể.
-export const HAN_TIEU_DE = '五子棋象西洋酒楼越南跑得快十三水中国金光安邦柔情白虹沧澜定清虚红影紫电七杀明王';
+export const HAN_TIEU_DE = '五子棋象西洋酒楼越南跑得快十三水中国';
 // Noto Serif TC (quân + chữ trên bàn Cờ Tướng) — phồn thể.
 export const HAN_CO_TUONG = '帥仕相傌俥炮兵將士象馬車砲卒楚河漢界';
 // Noto Serif SC — font gánh MỌI chữ Hán trong thân bài (class .fserif). Subset của nó nằm ở
