@@ -325,7 +325,26 @@ var TS = [6.44, 0.35, 4, 16.25, 2, 9, 4, 0.5, 6, 13.03];
 /** Nạp bộ tham số khác (công cụ dò dùng). */
 function napThamSoAI(ts) { for (var i = 0; i < TS.length && i < ts.length; i++) TS[i] = ts[i]; }
 
+/**
+ * aiPick(hand, cur, ctx, rnd) -> { cards, dg } hoặc null = bỏ lượt.
+ *   ctx = { conLai:[3], toi, kho, chanCua }
+ *   ctx còn nhận thêm (thông tin CÔNG KHAI ở bàn): daRa:[mã lá đã đánh] · daBo:[3]
+ *   — có đủ thì bật được PIMC (mô phỏng phối bài), xem cuối tệp.
+ */
 function aiPick(hand, cur, ctx, rnd) {
+  ctx = ctx || {}; rnd = rnd || Math.random;
+  var kho = ctx.kho == null ? 0.75 : ctx.kho;
+  // ⚠ Thứ tự vế && là CỐ Ý: bot dưới `khoTu` không tiêu số ngẫu nhiên nào ⇒ chiếu thấp
+  //   giữ nguyên hành vi cũ không sai một li.
+  if (PIMC.bat && ctx.daRa && kho > PIMC.khoTu && rnd() < tiLePimc(kho)) {
+    var r = aiPimc(hand, cur, ctx, rnd);
+    if (r !== undefined) return r;           // undefined = không đủ điều kiện, rơi về heuristic
+  }
+  return aiHeuristic(hand, cur, ctx, rnd);
+}
+
+/** Bộ óc HEURISTIC một nước — cũng là chính sách đánh nốt ván của PIMC. */
+function aiHeuristic(hand, cur, ctx, rnd) {
   ctx = ctx || {}; rnd = rnd || Math.random;
   var mv = genMoves(hand, cur, { chanCua: ctx.chanCua });
   if (!mv.length) return null;
@@ -392,6 +411,181 @@ function ketSo(nguoiVe, conLai, chuaDanh, bom, thaVe) {
   return d;
 }
 
+// ============================================================
+// PIMC — MÔ PHỎNG PHỐI BÀI (xem bản Tiến Lên để biết ý tưởng đầy đủ).
+// Khác Tiến Lên ba chỗ: 3 nhà · bộ 48 lá · ván DỪNG ngay khi có người về hết bài.
+// ⚠ Chỉ đọc thông tin CÔNG KHAI (số lá từng nhà, lá đã đánh, ai đã bỏ lượt).
+// ============================================================
+var PIMC = {
+  bat: true, phoi: 64, ungVien: 6, nguong: 48, khoTu: 0.55,
+  hanMs: 120        // TRẦN thời gian nghĩ một lượt (0 = không hạn)
+};
+
+/**
+ * Tỉ lệ lượt được nghĩ bằng PIMC, theo độ khó `kho`. `khoTu` → 0% · 1,0 → 100%.
+ * ⚠ DỐC THOẢI chứ không ngưỡng cứng — heuristic có nhiễu theo độ khó (`rnd()*(1-kho)*14`)
+ * còn PIMC thì không, cắt cứng là bậc thang độ khó giữa các chiếu gãy. Xem bản Tiến Lên.
+ */
+function tiLePimc(d) {
+  if (PIMC.khoTu >= 1) return 0;
+  var t = (d - PIMC.khoTu) / (1 - PIMC.khoTu);
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+}
+/** Chỉnh tham số PIMC (công cụ đo dùng). */
+function napPimc(c) { for (var k in c) if (Object.prototype.hasOwnProperty.call(c, k)) PIMC[k] = c[k]; }
+
+/** Lá ĐÃ ĐÁNH = trọn bộ 48 lá trừ bài còn trên tay ba nhà. Thông tin ai ngồi bàn cũng biết. */
+function daRaTu(hands) {
+  var co = {}, i, j, out = [], d = boBai();
+  for (i = 0; i < hands.length; i++) for (j = 0; j < hands[i].length; j++) co[hands[i][j]] = 1;
+  for (i = 0; i < d.length; i++) if (!co[d[i]]) out.push(d[i]);
+  return out;
+}
+
+/** Chia `an` (lá chưa thấy) cho hai nhà kia theo đúng số lá họ đang cầm. */
+function phoiBai(an, ctx, rp) {
+  var d = an.slice(), i, j, t;
+  for (i = d.length - 1; i > 0; i--) { j = (rp() * (i + 1)) | 0; t = d[i]; d[i] = d[j]; d[j] = t; }
+  var tay = [[], [], []], p = 0, s;
+  for (s = 0; s < 3; s++) {
+    if (s === ctx.toi) continue;
+    for (i = 0; i < ctx.conLai[s]; i++) tay[s].push(d[p++]);
+    tay[s].sort(function (a, b) { return a - b; });
+  }
+  return tay;
+}
+
+/** Đánh nốt ván, mọi nhà dùng heuristic. Trả ĐIỂM của nhà `toiLa`. */
+function danhNot(hands, cur, toi, chuBai, daBo, chuaDanh, bom, toiLa, rp) {
+  var lap = 0, s, nguoiVe = -1;
+  while (nguoiVe < 0 && lap++ < 600) {
+    var chanCua = hands[(toi + 1) % 3].length === 1;
+    var ctx2 = { conLai: [hands[0].length, hands[1].length, hands[2].length], toi: toi, kho: 1, chanCua: chanCua };
+    var mv = aiHeuristic(hands[toi], cur, ctx2, rp);
+    if (!mv && cur && !duocBo(hands[toi], cur, { chanCua: chanCua })) {
+      var ds = genMoves(hands[toi], cur, { chanCua: chanCua });      // bị chặn cửa thì không được bỏ
+      if (ds.length) mv = ds[0];
+    }
+    if (!mv || !mv.cards || !mv.cards.length) {
+      if (cur) daBo[toi] = true;
+      toi = (toi + 1) % 3;
+    } else {
+      var ban = mv.cards;
+      cur = classify(ban);
+      if (cur && cur.loai === 'bom') bom[toi]++;
+      chuBai = toi; chuaDanh[toi] = 0;
+      hands[toi] = hands[toi].filter(function (c) { return ban.indexOf(c) < 0; });
+      if (!hands[toi].length) { nguoiVe = toi; break; }
+      toi = (toi + 1) % 3;
+    }
+    var theo = 0;
+    for (s = 0; s < 3; s++) if (s !== chuBai && hands[s].length && !daBo[s]) theo++;
+    if (!theo) {
+      cur = null;
+      for (s = 0; s < 3; s++) daBo[s] = false;
+      toi = hands[chuBai].length ? chuBai : (chuBai + 1) % 3;
+    }
+  }
+  if (nguoiVe < 0) {          // ván không kết thúc trong hạn lặp — lấy nhà ít lá nhất
+    nguoiVe = 0;
+    for (s = 1; s < 3; s++) if (hands[s].length < hands[nguoiVe].length) nguoiVe = s;
+  }
+  return ketSo(nguoiVe, [hands[0].length, hands[1].length, hands[2].length], chuaDanh, bom, -1)[toiLa];
+}
+
+/** aiPimc -> {cards,dg} · null (bỏ lượt) · undefined (không đủ điều kiện). */
+function aiPimc(hand, cur, ctx, rand) {
+  var moves = genMoves(hand, cur, { chanCua: ctx.chanCua }), i, s, d;
+  if (!moves.length) return null;
+  for (i = 0; i < moves.length; i++) if (moves[i].cards.length === hand.length) return moves[i];   // về được thì về
+
+  var tong = 0;
+  for (s = 0; s < 3; s++) tong += ctx.conLai[s];
+  if (tong > PIMC.nguong) return undefined;
+
+  var thay = {}, k, bo = boBai();
+  for (k = 0; k < hand.length; k++) thay[hand[k]] = 1;
+  for (k = 0; k < ctx.daRa.length; k++) thay[ctx.daRa[k]] = 1;
+  var an = [];
+  for (k = 0; k < bo.length; k++) if (!thay[bo[k]]) an.push(bo[k]);
+  var can = 0;
+  for (s = 0; s < 3; s++) if (s !== ctx.toi) can += ctx.conLai[s];
+  if (an.length !== can || !can) return undefined;
+
+  // lọc ứng viên bằng heuristic — chấm y hệt `aiHeuristic` nhưng KHÔNG đụng rnd
+  var kho = 1, gapNguy = false;
+  for (i = 0; i < ctx.conLai.length; i++) if (i !== ctx.toi && ctx.conLai[i] > 0 && ctx.conLai[i] <= 2) gapNguy = true;
+  var diemH = [];
+  for (k = 0; k < moves.length; k++) {
+    var m = moves[k], con = boDi(hand, m.cards);
+    var sc = -uocLuot(con) * TS[0] - con.length * TS[1];
+    if (con.length === 0) sc += 1000;
+    if (m.dg.loai === 'bom') sc -= gapNguy ? TS[2] : TS[3];
+    if (m.dg.hi === HAI) sc -= gapNguy ? TS[4] : TS[5];
+    if (m.dg.loai === 'don' && m.dg.hi >= 10) sc -= TS[6];
+    if (!cur) sc += m.cards.length * TS[7];
+    if (gapNguy && cur) sc += TS[8];
+    diemH.push(sc);
+  }
+  var thuTu = [];
+  for (i = 0; i < moves.length; i++) thuTu.push(i);
+  thuTu.sort(function (a, b) { return diemH[b] - diemH[a]; });
+  var uv = [];
+  for (i = 0; i < thuTu.length && uv.length < PIMC.ungVien; i++) uv.push(moves[thuTu[i]]);
+  if (cur && duocBo(hand, cur, { chanCua: ctx.chanCua })) uv.push(null);   // bỏ lượt cũng là một lựa chọn
+  if (uv.length < 2) return uv[0] === undefined ? undefined : uv[0];
+
+  var diem = [];
+  for (i = 0; i < uv.length; i++) diem.push(0);
+  var goc = (rand() * 4294967296) | 0;
+  var daBoGoc = ctx.daBo ? ctx.daBo.slice() : [false, false, false];
+  var chuaGoc = [];
+  for (s = 0; s < 3; s++) chuaGoc.push(ctx.conLai[s] >= 16 ? 1 : 0);   // còn đủ 16 lá = chưa ra lá nào
+
+  // ⚠ Trần thời gian — xem ghi chú ở bản Tiến Lên. Mọi ứng viên luôn được chấm trên CÙNG
+  //   số phối bài (cắt ở đầu vòng), nên rút bớt không làm lệch phép so.
+  var moc = PIMC.hanMs > 0 ? Date.now() + PIMC.hanMs : 0;
+
+  for (d = 0; d < PIMC.phoi; d++) {
+    if (moc && d > 0 && Date.now() > moc) break;      // luôn chạy trọn ít nhất MỘT phối bài
+    var tay = phoiBai(an, ctx, mulberry32(goc + d * 2654435761));
+    for (i = 0; i < uv.length; i++) {
+      var hands = [], chon = uv[i];
+      for (s = 0; s < 3; s++) hands.push(s === ctx.toi ? hand.slice() : tay[s].slice());
+      var daBo = daBoGoc.slice(), chuaDanh = chuaGoc.slice(), bom = [0, 0, 0];
+      var c = cur, chuBai = ctx.chuBai == null ? ctx.toi : ctx.chuBai, toi = ctx.toi;
+
+      if (chon) {
+        var ban = chon.cards;
+        hands[toi] = hands[toi].filter(function (x) { return ban.indexOf(x) < 0; });
+        c = classify(ban);
+        if (c && c.loai === 'bom') bom[toi]++;
+        chuBai = toi; chuaDanh[toi] = 0;
+        if (!hands[toi].length) {          // nước này về hết bài — chấm ngay, khỏi mô phỏng
+          diem[i] += ketSo(toi, [hands[0].length, hands[1].length, hands[2].length], chuaDanh, bom, -1)[ctx.toi];
+          continue;
+        }
+      } else {
+        daBo[toi] = true;
+      }
+      toi = (toi + 1) % 3;
+      var theo = 0;
+      for (s = 0; s < 3; s++) if (s !== chuBai && hands[s].length && !daBo[s]) theo++;
+      if (!theo) {
+        c = null;
+        for (s = 0; s < 3; s++) daBo[s] = false;
+        toi = hands[chuBai].length ? chuBai : (chuBai + 1) % 3;
+      }
+      // CÙNG một hạt cho mọi ứng viên trong cùng phối bài
+      diem[i] += danhNot(hands, c, toi, chuBai, daBo, chuaDanh, bom, ctx.toi, mulberry32(goc ^ (d * 40503 + 7)));
+    }
+  }
+
+  var bi = 0;
+  for (i = 1; i < uv.length; i++) if (diem[i] > diem[bi]) bi = i;
+  return uv[bi];
+}
+
 function tenBo(dg) {
   if (!dg) return '';
   var b = BAC_TEN[dg.hi];
@@ -416,4 +610,5 @@ export {
   bacOf, chatOf, cardKy, cardTen,
   mulberry32, boBai, deal,
   classify, beats, genMoves, duocBo, uocLuot, aiPick, ketSo, tenBo, napThamSoAI,
+  aiHeuristic, aiPimc, napPimc, daRaTu,
 };

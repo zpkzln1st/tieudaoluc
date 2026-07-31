@@ -19,7 +19,7 @@ let E = null;
 function ensureEngine() {
   if (E) return Promise.resolve();
   return import('./engine/tienlen.js').then((m) => {
-    const need = ['deal', 'classify', 'beats', 'genMoves', 'aiPick', 'goiY', 'ketSo', 'tenBo'];
+    const need = ['deal', 'classify', 'beats', 'genMoves', 'aiPick', 'goiY', 'ketSo', 'tenBo', 'daRaTu'];
     for (const k of need) if (typeof m[k] !== 'function') throw new Error('Engine Tiến Lên thiếu hàm ' + k + '.');
     E = m;
   });
@@ -1582,7 +1582,12 @@ function mountTienLen(host, opts) {
   function aiDi() {
     if (over || luot === 0) return;
     var s = luot;
-    var ctx = { conLai: [hands[0].length, hands[1].length, hands[2].length, hands[3].length], toi: s, chuBai: chuBai };
+    // ctx gồm cả thông tin CÔNG KHAI của bàn (lá đã đánh · ai đã bỏ lượt · thứ tự về) để AI
+    // mô phỏng phối bài được. KHÔNG bao giờ đưa `hands` vào đây — đó mới là nhìn trộm bài.
+    var ctx = {
+      conLai: [hands[0].length, hands[1].length, hands[2].length, hands[3].length], toi: s, chuBai: chuBai,
+      daRa: TL.daRaTu(hands), daBo: daBo.slice(), xong: xong.slice()
+    };
     var diff = Math.max(0.15, Math.min(0.96, (CUA[s].rank - 480) / 500));
     var pick2 = null;
     if (moBai) {

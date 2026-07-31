@@ -23,7 +23,7 @@ let E = null;
 function ensureEngine() {
   if (E) return Promise.resolve();
   return import('./engine/paodekuai.js').then((m) => {
-    const need = ['deal', 'classify', 'beats', 'genMoves', 'duocBo', 'aiPick', 'ketSo', 'tenBo'];
+    const need = ['deal', 'classify', 'beats', 'genMoves', 'duocBo', 'aiPick', 'ketSo', 'tenBo', 'daRaTu'];
     for (const k of need) if (typeof m[k] !== 'function') throw new Error('Engine Phao Đắc Khoái thiếu hàm ' + k + '.');
     E = m;
   });
@@ -1567,7 +1567,11 @@ function mountPaoDeKuai(host, opts) {
     var conLai = [hands[0].length, hands[1].length, hands[2].length];
     var diff = Math.max(0.15, Math.min(0.96, (CUA[s].rank - 480) / 500));
     // chanCua: nhà kế còn ĐÚNG 1 lá ⇒ không được bỏ lượt nếu còn nước chặn (有大必出 rút gọn)
-    var ctx = { conLai: conLai, toi: s, kho: diff, chanCua: conLai[(s + 1) % 3] === 1 };
+    // Thêm thông tin CÔNG KHAI của bàn cho AI mô phỏng phối bài. KHÔNG đưa `hands` vào ctx.
+    var ctx = {
+      conLai: conLai, toi: s, kho: diff, chanCua: conLai[(s + 1) % 3] === 1,
+      chuBai: chuBai, daRa: TL.daRaTu(hands), daBo: daBo.slice()
+    };
     var pick2 = null;
     if (moBai) {
       var mv = TL.genMoves(hands[s], null).filter(function (m) { return m.cards.indexOf(0) >= 0; });
