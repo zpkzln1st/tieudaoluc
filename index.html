@@ -585,6 +585,14 @@
   #gameSplash .spl-load .t{ font-family:'Lora','Noto Serif SC',serif; font-size:12.5px; letter-spacing:.2em; color:#b9c6da; text-transform:uppercase; margin-bottom:11px; }
   #gameSplash .spl-load .t b{ color:#fceaba; font-weight:600; }
   #gameSplash .spl-bar{ width:min(280px,64vw); height:3px; margin:0 auto; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.1); box-shadow:0 0 0 1px rgba(245,185,66,.18); }
+  /* Mẹo tân thủ. ⚠ TÁCH KHỎI DÒNG CHẢY của .spl-load (`bottom:100%`): mẹo dài 1 dòng hay 4 dòng
+     là tuỳ câu bốc được, để nó nằm trong dòng chảy thì .spl-load neo theo `bottom` sẽ bị đẩy
+     ⇒ thanh nạp mỗi lần vào game một chỗ. Treo lên trên, nở NGƯỢC LÊN chỗ trống. */
+  #gameSplash .spl-meo{ position:absolute; left:50%; bottom:100%; transform:translateX(-50%);
+    width:min(560px,86vw); margin-bottom:20px; font-size:12.5px; line-height:1.65;
+    color:#93a3b8; letter-spacing:.01em; text-align:center; text-wrap:balance; }
+  #gameSplash .spl-meo b{ color:#cbb37a; font-weight:600; letter-spacing:.06em; }
+  @media (max-width:760px){ #gameSplash .spl-meo{ font-size:12px; width:90vw; margin-bottom:16px; } }
   #gameSplash .spl-bar i{ display:block; height:100%; width:4%; border-radius:99px; background:linear-gradient(90deg,#c8912a,#f5b942,#fceaba); box-shadow:0 0 12px rgba(245,185,66,.7); }
   /* animations chỉ chạy khi có .spl-run → gỡ/thêm để replay lúc quay lại */
   #gameSplash.spl-run .spl-bg{ animation:splBg 6s ease-out forwards; }
@@ -626,6 +634,7 @@
   <div class="spl-load">
     <div class="t">Đang vào <b>giang hồ</b>…</div>
     <div class="spl-bar"><i></i></div>
+    <div class="spl-meo"></div>
   </div>
   <!-- Credit tác giả — góc phải-dưới splash (không ở giữa) -->
   <div class="spl-author" style="display:none"></div>
@@ -641,6 +650,50 @@
     var showOnLoad = !_la || (Date.now()-_la) >= AWAY_MS;   /* lần đầu / không có mốc -> hiện */
     ['pointerdown','keydown','pointermove','wheel','touchstart'].forEach(function(ev){ try{ window.addEventListener(ev, markActive, {passive:true}); }catch(e){} });
     markActive();
+
+    /* ---- MẸO TÂN THỦ: mỗi lần splash chạy thì rút một câu, không lặp câu vừa xem.
+       ⚠ Chữ do USER chốt từng câu — đừng tự biên tập lại cho "hay hơn".
+       ⚠ Mọi câu phải ĐÚNG với mã nguồn; sai một câu là dẫn người chơi đi sai cả buổi. ---- */
+    var SPL_MEO=[
+      'Mỗi lúc chỉ có thể thực hiện một hoạt động chính. Chọn việc mới thì việc đang làm sẽ tự dừng.',
+      'Khi rời game, nhân vật vẫn tiếp tục hoạt động tối đa 8 giờ. Nâng cấp Động Phủ để kéo dài thời gian này.',
+      'Bí Cảnh cũng được tính là một hoạt động chính. Khi cho nhân vật vào Bí Cảnh, công việc đang làm sẽ tự dừng lại.',
+      'Đóng trình duyệt vẫn được tính tiến độ, nhưng chỉ trong giới hạn thời gian ngoại tuyến. Nhớ quay lại nhận thành quả trước khi đầy thời gian.',
+      'Công cụ càng tốt thì tốc độ làm nghề càng nhanh. Đừng dùng mãi công cụ ban đầu khi đã có món tốt hơn.',
+      'Ngũ hành khắc chế theo vòng: Kim khắc Mộc, Mộc khắc Thổ, Thổ khắc Thủy, Thủy khắc Hỏa, Hỏa khắc Kim.',
+      'Đánh vào kẻ địch thuộc hệ bị mình khắc sẽ gây thêm sát thương. Ngược lại, gặp hệ khắc mình sẽ chịu bất lợi.',
+      'Đòn Vô Hệ không được hưởng lợi từ khắc chế, nhưng cũng không bị hệ nào áp chế.',
+      'Kháng ngũ hành trên trang bị có tác dụng rõ rệt trong chiến đấu. Đừng chỉ chăm chăm nhìn Công và Thủ.',
+      'Khi bị hạ gục, nhân vật sẽ rơi vào trạng thái Suy Yếu trong 60 giây. Hãy chờ hồi phục rồi mới tiếp tục chiến đấu.',
+      'Mặc đủ 3, 5 hoặc 7 món cùng một Bộ Trang sẽ mở thêm hiệu ứng ẩn. Gom đủ bộ thường có lợi hơn dùng nhiều món rời.',
+      'Bách Trang Các lưu lại mọi trang bị bạn từng nhặt được, kể cả những món đã bán hoặc tháo bỏ.',
+      'Dòng phụ của trang bị có thể được nâng cấp. Gặp món có chỉ số tốt thì nên đầu tư lâu dài, thay vì đổi đồ liên tục.',
+      'Trang bị khác hệ vẫn có thể sử dụng, nhưng sẽ không nhận đủ hiệu quả Cộng Hưởng.',
+      'Khi vào Thiên Cơ Các, nên bật Toàn Màn Hình để bàn chơi rộng và dễ quan sát hơn.',
+      'Dùng nút Quan Chiến để xoay bàn. Khi tìm được góc nhìn vừa ý, hãy khóa lại. Mỗi bàn sẽ ghi nhớ góc nhìn riêng.',
+      'Trù Mã được đổi từ Bạc và không thể đổi ngược trở lại. Hãy cân nhắc kỹ trước khi tham gia các chiếu có mức cược cao.',
+      'Chiếu càng cao thì đối thủ càng mạnh. Người mới nên bắt đầu từ chiếu thấp để làm quen luật chơi.',
+      'Cờ Tướng và Ngũ Tử Kỳ cùng tích lũy Kỳ Hồn. Chơi trò nào cũng góp phần nâng tiến độ chung.',
+      'Cả ba trò bài đều có mục xem lại luật ngay tại bàn, nên không cần phải học thuộc từ trước.',
+      'Tông Môn dùng để chiêu mộ và bồi dưỡng đệ tử; Bang Phái dùng cho tranh đấu và hoạt động tập thể. Hai hệ thống có vai trò riêng, không thay thế cho nhau.',
+      'Chinh Phạt được tính theo mùa. Đánh quái trong từng khu vực sẽ giúp Bang Phái tích lũy điểm tại khu vực đó.',
+      'Hai mươi Danh Sĩ đều có hồ sơ và câu chuyện riêng. Họ vẫn tiếp tục hoạt động, thay đổi và phát triển ngay cả khi bạn rời game.',
+      'Ghé Tửu Lâu, mời rượu và trò chuyện để nghe tin giang hồ, đồng thời làm quen với các nhân vật trong bảng Danh Sĩ.',
+      'Đàm Đạo với chín vị sư phụ nghề nghiệp sẽ lần lượt mở ra câu chuyện và quá khứ của từng người.',
+      'Vạn Vật Phổ mang lại Phổ Lực lâu dài. Khi nhặt được vật phẩm mới, nhớ vào đăng ký để nhận thêm lợi ích.',
+      'Danh Hiệu được mở theo từng cột mốc. Danh hiệu đang đeo sẽ cộng chỉ số thật, không chỉ dùng để trang trí.',
+      'Khi không biết một tính năng nằm ở đâu, hãy bấm biểu tượng kính lúp trong thẻ nhân vật rồi nhập tên cần tìm.',
+      'Cẩm Nang, với biểu tượng quyển sách, giải thích toàn bộ tính năng trong game. Các số liệu được lấy trực tiếp từ hệ thống hiện tại.',
+      'Linh Thú có thể được cử đi Săn Mồi song song với các hoạt động khác, kể cả khi bạn đang làm nghề hoặc chiến đấu.'
+    ];
+    var meoEl=sp.querySelector('.spl-meo'), lastMeo=-1;
+    function pickMeo(){
+      if(!meoEl||!SPL_MEO.length) return;
+      var i=0;
+      if(SPL_MEO.length>1){ do{ i=Math.floor(Math.random()*SPL_MEO.length); }while(i===lastMeo); }
+      lastMeo=i;
+      meoEl.innerHTML='<b>Mẹo:</b> '+SPL_MEO[i];
+    }
 
     /* ---- Ảnh nhân vật splash: bể ngẫu nhiên images/ui/khaitich_hero<N>.webp (N = 1..HERO_COUNT).
        Random mỗi lần splash chạy (vào game / quay lại sau khi rời tab lâu), không lặp lại tấm vừa xem.
@@ -682,12 +735,12 @@
     function fadeOut(){ clearTimeout(t); t=setTimeout(function(){ sp.classList.add('spl-out'); }, 3000); }
     function replay(){
       sp.style.display=''; sp.classList.remove('spl-out'); sp.style.visibility='';
-      pickHero(); pickBg();  /* đổi cả nhân vật lẫn nền mỗi lần splash chạy lại */
+      pickHero(); pickBg(); pickMeo();  /* đổi cả nhân vật, nền lẫn mẹo mỗi lần splash chạy lại */
       sp.classList.remove('spl-run'); void sp.offsetWidth; sp.classList.add('spl-run'); /* restart mọi animation kể cả ::after */
       fadeOut();
     }
     /* Lần load: CHỈ chạy splash nếu vừa rời máy >= 5'; không thì ẩn ngay (vào thẳng game) */
-    if(showOnLoad){ pickHero(); pickBg(); }
+    if(showOnLoad){ pickHero(); pickBg(); pickMeo(); }
     else { sp.classList.remove('spl-run'); sp.style.display='none'; }
 
     /* Credit tác giả trên splash — đọc window.TDL_AUTHOR (do Ấn Ký Tác Giả set sau khi verify chữ ký).

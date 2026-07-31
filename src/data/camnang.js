@@ -101,7 +101,7 @@ export const CN_MUC = [
     id: 'treomay', nhom: 'nhapmon', ten: 'Treo Máy & Ngoại Tuyến',
     tom: 'Một hoạt động tại một thời điểm; tiến độ tính bù khi vắng mặt.',
     khoi: [
-      ['p', 'Tại mỗi thời điểm chỉ có <b>một hoạt động chính</b>: làm nghề, chiến đấu, hoặc di chuyển. Chọn hoạt động mới sẽ dừng hoạt động cũ. Bí Cảnh chạy theo lịch riêng, không chiếm chỗ hoạt động chính.'],
+      ['p', 'Tại mỗi thời điểm chỉ có <b>một hoạt động chính</b>: làm nghề, chiến đấu, di chuyển, hoặc Bí Cảnh. Chọn hoạt động mới sẽ dừng hoạt động cũ.'],
       ['ds', [
         'Tiến độ khi đóng trình duyệt được tính bù lúc mở lại, giới hạn bởi trần ngoại tuyến.',
         'Trần ngoại tuyến cơ sở 8 giờ, nới thêm theo bậc Động Phủ.',
@@ -403,7 +403,7 @@ export const CN_MUC = [
     id: 'bicanh', nhom: 'chiendau', ten: 'Bí Cảnh',
     tom: sn(n(DUNGEONS)) + ' phó bản chạy theo lịch thời gian thực.',
     khoi: [
-      ['p', 'Bí Cảnh chạy theo lịch riêng, không chiếm chỗ hoạt động chính. Mỗi lượt đi qua các tầng theo cấu hình của phó bản đó rồi kết ở thủ lĩnh.'],
+      ['p', 'Bí Cảnh <b>chiếm chỗ hoạt động chính</b> — đặt lịch là dừng việc đang làm. Mỗi lượt đi qua các tầng theo cấu hình của phó bản đó rồi kết ở thủ lĩnh.'],
       ['bang', ['Bí Cảnh', 'Cấp cần', 'Thời lượng', 'Phí vào'],
         DUNGEONS.map((d) => [
           d.name, 'Lv ' + d.reqLevel, Math.round(d.durMs / 60000) + ' phút',
