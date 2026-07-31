@@ -314,6 +314,17 @@ function uocLuot(hand) {
  * AI chọn nước. `ctx = { conLai: [số lá của 3 nhà], toi, chanCua, kho }`.
  * `kho` 0..1 — độ khó, càng cao càng ít đánh ngẫu nhiên.
  */
+/**
+ * BỘ THAM SỐ CHẤM NƯỚC — dò bằng TỰ ĐẤU (`_mockup/_pdk_ai_tinh.mjs`), không phải bịa.
+ *   0 mỗi lượt còn phải đánh · 1 mỗi lá còn trên tay · 2 phá bom lúc NGUY · 3 lúc thường
+ *   4 phá lá Hai lúc NGUY · 5 lúc thường · 6 phá lá lẻ lớn · 7 mở vòng đẩy nhiều lá
+ *   8 đang phải chặn · 9 ngưỡng bỏ lượt
+ * ⚠ Đổi cách chấm là phải DÒ LẠI.
+ */
+var TS = [10, 0.35, 4, 26, 2, 9, 4, 0.5, 6, 6];
+/** Nạp bộ tham số khác (công cụ dò dùng). */
+function napThamSoAI(ts) { for (var i = 0; i < TS.length && i < ts.length; i++) TS[i] = ts[i]; }
+
 function aiPick(hand, cur, ctx, rnd) {
   ctx = ctx || {}; rnd = rnd || Math.random;
   var mv = genMoves(hand, cur, { chanCua: ctx.chanCua });
@@ -329,20 +340,20 @@ function aiPick(hand, cur, ctx, rnd) {
   var best = null, bestSc = -1e9;
   for (var k = 0; k < mv.length; k++) {
     var m = mv[k], con = boDi(hand, m.cards);
-    var sc = -uocLuot(con) * 10 - con.length * 0.35;
-    if (con.length === 0) sc += 1000;                    // về được thì về ngay
-    if (m.dg.loai === 'bom') sc -= gapNguy ? 4 : 26;     // giữ bom, trừ khi phải chặn gấp
-    if (m.dg.hi === HAI) sc -= gapNguy ? 2 : 9;          // giữ lá Hai
-    if (m.dg.loai === 'don' && m.dg.hi >= 10) sc -= 4;   // đừng phá lá lẻ lớn sớm
-    if (!cur) sc += m.cards.length * 0.5;                // mở vòng thì đẩy được nhiều lá càng tốt
-    if (gapNguy && cur) sc += 6;                         // đang phải chặn thì cứ chặn
+    var sc = -uocLuot(con) * TS[0] - con.length * TS[1];
+    if (con.length === 0) sc += 1000;                       // về được thì về ngay
+    if (m.dg.loai === 'bom') sc -= gapNguy ? TS[2] : TS[3]; // giữ bom, trừ khi phải chặn gấp
+    if (m.dg.hi === HAI) sc -= gapNguy ? TS[4] : TS[5];     // giữ lá Hai
+    if (m.dg.loai === 'don' && m.dg.hi >= 10) sc -= TS[6];  // đừng phá lá lẻ lớn sớm
+    if (!cur) sc += m.cards.length * TS[7];                 // mở vòng thì đẩy được nhiều lá càng tốt
+    if (gapNguy && cur) sc += TS[8];                        // đang phải chặn thì cứ chặn
     sc += rnd() * (1 - kho) * 14;
     if (sc > bestSc) { bestSc = sc; best = m; }
   }
   // được phép bỏ lượt mà nước tốt nhất vẫn tệ thì bỏ
   if (cur && duocBo(hand, cur, { chanCua: ctx.chanCua })) {
-    var giu = uocLuot(hand) * 10 + hand.length * 0.35;
-    if (-bestSc > -(-giu) + 6 && rnd() < kho) return null;
+    var giu = uocLuot(hand) * TS[0] + hand.length * TS[1];
+    if (-bestSc > -(-giu) + TS[9] && rnd() < kho) return null;
   }
   return best;
 }
@@ -404,5 +415,5 @@ export {
   KEM_MOI_BO, TU_QUY_KEM, EP_CHAN_CUA, EP_LA_LON_NHAT, PHAT_THA_VE,
   bacOf, chatOf, cardKy, cardTen,
   mulberry32, boBai, deal,
-  classify, beats, genMoves, duocBo, uocLuot, aiPick, ketSo, tenBo,
+  classify, beats, genMoves, duocBo, uocLuot, aiPick, ketSo, tenBo, napThamSoAI,
 };
