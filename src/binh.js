@@ -403,7 +403,11 @@ function injectStyle() {
     // để bên phải thì hàng 5 lá đẩy nó lòi khỏi popup.
     // Khối ba chi luôn nằm GIỮA bảng — đầu bảng (tiêu đề + đồng hồ) có khi rộng hơn khối bài,
     // để mặc định là khối bài lệch trái.
-    '.bxp-chong{padding:2px 0 4px;display:flex;flex-direction:column;align-items:center}',
+    // ⚠ Căn giữa phải đặt ở KHỐI, đừng đặt ở từng hàng: `align-items:center` canh RIÊNG mỗi
+    //   hàng nên chi Đầu (3 lá) bị đẩy thụt vào giữa, không thẳng cột với hai chi 5 lá.
+    //   `width:max-content` + `margin:0 auto` cho cả khối đứng giữa, còn ba hàng xếp TRÁI.
+    '.bxp-chong{padding:2px 0 4px;display:flex;flex-direction:column;align-items:flex-start;',
+    '  width:max-content;max-width:100%;margin:0 auto}',
     // Nhãn chi và hàng bài là HAI Ô CỦA MỘT FLEX, không còn dán tuyệt đối: cột nhãn chỉ cần
     // đổi hướng flex là nhảy lên trên hàng bài, khỏi tính lại toạ độ cho khổ hẹp.
     '.bxp-chi{display:flex;align-items:center;gap:12px}',
@@ -1701,6 +1705,14 @@ function choTreo(ben, k, w, h, rw, rh) {
   return out;
 }
 
+// ⚠ Giá cho mỗi px LỆCH khỏi khối bài của chính nhà đó (đo vuông góc với hướng treo).
+// Không có nó thì một chỗ trống ở tận mép bên kia màn có giá 0 ⇒ thẻ bay sang đó, thẻ nhà
+// đối diện nằm ở mép trái màn (user chụp được lúc so chi).
+// ⚠ Có VÙNG CHẾT: trong 130px đầu thì MIỄN PHÍ. Né tại chỗ vài chục px để khỏi đè lên bài là
+// việc đúng, phạt nó là ép thẻ đè bài (đo được: bỏ vùng chết thì đè bài ở khổ dọc tăng lên).
+// Quá 130px mới tính tiền, 14 px²/px — một cú nhảy 270px thành ~2.000, thua hẳn chỗ sạch gần nhà.
+var GIA_LECH = 14, VUNG_CHET = 130;
+
 /** Giá của một chỗ treo: đè lên bài nặng nhất, rồi đến đè chrome / thẻ khác, rồi lòi khỏi khung. */
 function giaTreo(p, w, h, khoi, can, rw, rh) {
   var b = { x0: p[0] - w / 2, y0: p[1] - h / 2, x1: p[0] + w / 2, y1: p[1] + h / 2 }, g = 0, i;
@@ -1758,10 +1770,24 @@ function datNhan() {
     var ds = [uu], moi = ['duoi', 'tren', 'phai', 'trai'], d, v;
     for (d = 0; d < moi.length; d++) if (moi[d] !== uu) ds.push(moi[d]);
     var re = null, reCanh = uu;
+    var kcx = (kh.x0 + kh.x1) / 2, kcy = (kh.y0 + kh.y1) / 2;
+    // Được phép đi xa RA NGOÀI theo đúng hướng gốc của nhà đó (nhà Tây ghim ra mép trái khung,
+    // nhà Bắc dạt lên đỉnh…) — đó là chủ ý. Mọi hướng khác đều là "trôi khỏi chỗ ngồi" và
+    // PHẢI tính tiền, kể cả trượt ngang.
+    // ⚠ Hai bản sai đã đo được: (a) phạt cả hai trục ⇒ chỗ ghim mép khung của nhà Đông/Tây
+    //   cũng bị phạt rồi thua một chỗ giữa bàn; (b) tha CẢ TRỤC của hướng gốc ⇒ thẻ nhà Tây
+    //   nhảy sang tận mép PHẢI (lệch 551px) vì đi theo trục x là miễn phí cả hai chiều.
+    //   Đúng là tha MỘT CHIỀU: ra ngoài thì miễn, vào trong / trượt ngang thì tính.
     for (d = 0; d < ds.length; d++) {
       var pos = choTreo(ds[d], kh, w, h, rw, rh);
       for (v = 0; v < pos.length; v++) {
-        var gia = giaTreo(pos[v], w, h, khoi, can, rw, rh) + d * 45 + v * 12;
+        var dx = pos[v][0] - kcx, dy = pos[v][1] - kcy, lech;
+        if (uu === 'trai') lech = Math.max(0, dx) + Math.abs(dy);
+        else if (uu === 'phai') lech = Math.max(0, -dx) + Math.abs(dy);
+        else if (uu === 'tren') lech = Math.max(0, dy) + Math.abs(dx);
+        else lech = Math.max(0, -dy) + Math.abs(dx);
+        var gia = giaTreo(pos[v], w, h, khoi, can, rw, rh)
+          + Math.max(0, lech - VUNG_CHET) * GIA_LECH + d * 45 + v * 12;
         if (ds[d] === cu) gia -= 300;       // đang đứng đó rồi thì đừng nhảy vì chênh vài chục px²
         if (!re || gia < re.g) { re = { g: gia, p: pos[v] }; reCanh = ds[d]; }
       }
@@ -1919,7 +1945,8 @@ try {
     bayNha: bayNha, xepNha: xepNha,
     root: root, nhanEl: nhanEl,
     khoi: function () { return khoiCuoi; },       // hộp bốn khối bài theo toạ độ root
-    chrome: hopChrome
+    chrome: hopChrome,
+    canh: function () { return canhCu; }          // hướng treo đang chọn của bốn thẻ tên
   };
 } catch (err) {
   var d = $('.bx-fb'); d.style.display = 'flex'; d.querySelector('.fm').textContent = String(err && err.message || err);

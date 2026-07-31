@@ -200,9 +200,11 @@ function injectStyle() {
     // Chrome cỡ máy bàn trên khung cao ~330px thì nút to lấn hết bàn (user: "nút to quá").
     '.kh-nho .tl-title{left:10px;top:7px}.kh-nho .tl-title .hz{font-size:18px}.kh-nho .tl-title .vz{font-size:11px}',
     '.kh-nho .tl-chieu{left:11px;top:29px;font-size:9.5px}',
-    // ⚠ Pill trạng thái phải HẠ XUỐNG: khung ngang mà thấp thì tiêu đề dài chạm ngay pill đặt
-    //   giữa đỉnh (user chụp được cảnh đè). Hạ xuống dưới tiêu đề, vẫn nằm trên mặt nỉ trống.
-    '.kh-nho .tl-cur{top:38px;font-size:11px;padding:4px 11px;max-width:76%}',
+    // ⚠ Pill trạng thái nằm CÙNG HÀNG với tiêu đề, KHÔNG hạ xuống dưới nữa: hạ xuống thì nó rơi
+    //   đúng chỗ thẻ tên nhà đối diện (user chụp được cảnh avatar đè lên chữ nhắc). Chỗ đứng do
+    //   `datCur()` ĐO mà ra — canh giữa khoảng trống còn lại bên phải tiêu đề, khỏi đụng cả hai.
+    '.kh-nho .tl-cur{top:7px;left:0;transform:none;font-size:11px;padding:4px 11px;overflow:hidden}',
+    '.kh-nho .tl-cur .ct{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     // width:auto — nhãn dài hơn ô 46px thì tràn ra hai bên rồi bị mép khung xén mất chữ đầu
     '.kh-nho .tl-left{left:8px;gap:6px;top:64%}.kh-nho .tl-b{width:auto}',
     '.kh-nho .tl-b .ic{width:27px;height:27px}.kh-nho .tl-b .ic svg{width:15px;height:15px}.kh-nho .tl-b span{font-size:8.5px}',
@@ -1129,6 +1131,7 @@ function mountTienLen(host, opts) {
     DAI_TREN = doc ? 44 : 0;
     DAI_DUOI = doc ? 150 : 0;
     var z = sph.zoom || 1; target.set(0, 0, 0); canKhung(); donDaiTren(); sph.zoom = z; updCam();
+    datCur();                            // đổi khổ ⇒ tiêu đề đổi cỡ ⇒ khoảng trống của pill đổi
   }
 
   // ---------- tương tác ----------
@@ -1230,6 +1233,7 @@ function mountTienLen(host, opts) {
       var sx = Math.max(sw / 2 + 6, Math.min(rc.w - sw / 2 - 6, px));
       sEl.style.left = sx + 'px'; sEl.style.top = (py + h / 2 + 6) + 'px';
     }
+    datCur();      // pill dải trên phải né thẻ nhà đối diện ⇒ thẻ đứng đâu rồi mới đặt pill
   }
   function capNhatSeat() {
     for (var s = 1; s < 4; s++) {
@@ -1303,12 +1307,43 @@ function mountTienLen(host, opts) {
     var t = $('.tl-toast'); t.textContent = m; t.classList.add('show');
     clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('show'); }, 2100);
   }
+  /**
+   * Chỗ đứng của pill trạng thái ở khung THẤP (điện thoại nằm ngang). Khổ đó dải trên đã có
+   * tiêu đề bên trái VÀ thẻ tên nhà đối diện ghim giữa đỉnh — pill phải luồn vào khoảng trống
+   * còn lại. ĐO cả hai rồi mới đặt: đoán một con số là kiểu gì cũng có ván đè lên một trong hai
+   * (user đã chụp được cả hai kiểu đè). Khung cao thì trả về giữa đỉnh như CSS gốc.
+   */
+  function datCur() {
+    var el = $('.tl-cur');
+    if (!root.classList.contains('kh-nho')) { el.style.left = ''; el.style.maxWidth = ''; return; }
+    var rr = root.getBoundingClientRect(), lo = 0, i;
+    var ds = ['.tl-title', '.tl-chieu'];
+    for (i = 0; i < ds.length; i++) {
+      var e = root.querySelector(ds[i]); if (!e) continue;
+      lo = Math.max(lo, e.getBoundingClientRect().right - rr.left);
+    }
+    lo += 10;
+    var hi = rr.width - 10, cao = el.getBoundingClientRect().height || 26;
+    var s2 = seatEls[2];
+    if (s2) {
+      var q = s2.getBoundingClientRect(), y0 = q.top - rr.top, y1 = q.bottom - rr.top;
+      // Chỉ né khi thẻ tên CẮT NGANG hàng của pill; thẻ nằm thấp hơn thì pill cứ trải rộng.
+      if (y0 < 7 + cao + 4 && y1 > 3) lo = Math.max(lo, q.right - rr.left + 8);
+    }
+    el.style.maxWidth = Math.max(110, hi - lo) + 'px';
+    el.style.left = lo + 'px';
+  }
   function capNhatCur() {
     var el = $('.tl-cur'), c = el.querySelector('.ct');
     if (over) { el.style.display = 'none'; return; }
     el.style.display = '';
+    // Khung thấp: bỏ vế "của <tên nhà>" — nhà vừa đánh đã sáng viền và bài của họ đang ngửa
+    // giữa bàn, nhắc lại tên chỉ ăn mất chỗ của vế quan trọng nhất là "lượt bạn".
+    var nho = root.classList.contains('kh-nho');
     if (!cur) c.innerHTML = (luot === 0 ? '<b>Lượt bạn</b> — được đánh tự do' : '<b>' + CUA[luot].ten + '</b> đang mở lượt');
-    else c.innerHTML = 'Phải đè <b>' + TL.tenBo(cur) + '</b> của ' + CUA[chuBai].ten + (luot === 0 ? ' — <b>lượt bạn</b>' : '');
+    else c.innerHTML = 'Phải đè <b>' + TL.tenBo(cur) + '</b>' + (nho ? '' : ' của ' + CUA[chuBai].ten) +
+      (luot === 0 ? ' — <b>lượt bạn</b>' : '');
+    datCur();
   }
   /**
    * Mờ những lá KHÔNG góp được vào bất kỳ nước hợp lệ nào — nhìn phát biết ngay còn đường nào không,
