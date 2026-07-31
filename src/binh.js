@@ -1050,6 +1050,25 @@ function bayNha(s, lat) {
 }
 function bayTatCa(lat) { for (var s = 0; s < 4; s++) bayNha(s, lat); }
 
+/** Dọn sạch bài trên bàn. Gọi NGAY khi bấm "Ván Mới" — để bài ván cũ nằm đó suốt lúc đếm ngược
+ *  thì số đếm chồng lên bài, nhìn rối (user chụp được). */
+function donBan() {
+  for (var s = 0; s < 4; s++) {
+    var g = nhaGroup[s];
+    while (g.children.length) g.remove(g.children[0]);
+  }
+}
+
+/** Tâm mặt bàn trên màn (px theo `root`) — bàn nào cũng dựng quanh gốc toạ độ thế giới. */
+function tamBan() {
+  if (!camera) return null;
+  var v = new THREE.Vector3(0, 0, 0).project(camera);
+  return {
+    x: (v.x * 0.5 + 0.5) * scEl.clientWidth + scEl.offsetLeft,
+    y: (-v.y * 0.5 + 0.5) * scEl.clientHeight + scEl.offsetTop
+  };
+}
+
 /** Chia bài: 52 lá bay từ giữa bàn ra bốn khu. Gọi `xong` khi bay hết. */
 function chiaBaiAnim(xong) {
   var giua = new THREE.Vector3(0, TOPY + 0.9, 0);
@@ -1693,6 +1712,9 @@ function choTreo(ben, k, w, h, rw, rh) {
   var cx = (k.x0 + k.x1) / 2, cy = (k.y0 + k.y1) / 2, m = 6;
   if (ben === 'tren') return [[cx, k.y0 - h / 2 - m]];
   if (ben === 'duoi') return [[cx, k.y1 + h / 2 + m]];
+  // Chéo lên góc trên-trái: ra khỏi dải x của khối bài rồi ngang mép trên nó — mảng nỉ ở góc
+  // vốn bỏ không, thẻ ra đó thì mặt bài sạch mà vẫn rõ là của nhà trên.
+  if (ben === 'trenTrai') return [[k.x0 - w / 2 - 10, k.y0 + h / 2 - 4]];
   // Đông/Tây: GHIM RA MÉP KHUNG (bốn mảng tối quanh bát giác vốn bỏ không, thẻ ra đó thì mặt
   // bài sạch hẳn); mép khung không đủ chỗ thì lùi vào sát mép khối bài.
   if (ben === 'trai') return [[Math.min(w / 2 + 10, k.x0 - w / 2 - m), cy]];
@@ -1712,12 +1734,13 @@ var nhanBan = true;
 // Hướng treo thẻ tên — CHỈ theo chỗ ngồi và khổ khung, tuyệt đối không theo bài. Thứ tự nhà:
 // 0 Nam (mình) · 1 Đông · 2 Bắc (đối diện) · 3 Tây.
 // ⚠ Cả hai bảng đều là SỐ ĐO, không phải suy đoán (`_mockup/_binh_nhan.html`):
-//   NGANG 915×412: bàn ăn gần trọn chiều cao nên TRÊN khối nhà Bắc không còn chỗ — ghim 'tren'
-//     là thẻ bị kẹp xuống, đè 591 px² lên chính bài nhà đó. Cho nhà Bắc treo XUỐNG, vào giữa
-//     thế chữ thập (chỗ nỉ trống): đo lại đè bài 0.
+//   NGANG: bàn ăn gần trọn chiều cao nên NGAY TRÊN khối nhà Bắc không còn chỗ — ghim 'tren' là
+//     thẻ bị kẹp xuống, đè 591 px² lên chính bài nhà đó. Treo 'duoi' thì lọt vào giữa thế chữ
+//     thập, sạch nhưng user chỉ mũi tên sang GÓC TRÊN-TRÁI của nỉ (2026-07-31) ⇒ 'trenTrai':
+//     nhích sang trái khối bài rồi lên ngang mép trên nó, đúng mảng nỉ đang bỏ không.
 //   DỌC 412×915: khung chỉ 388px, hai bên khối Đông/Tây gần hết lề ⇒ hai nhà đó cũng treo xuống;
 //     riêng nhà Bắc thì phía trên rộng rãi nên giữ 'tren' (đè bài 0).
-var HUONG_NGANG = ['duoi', 'phai', 'duoi', 'trai'];
+var HUONG_NGANG = ['duoi', 'phai', 'trenTrai', 'trai'];
 var HUONG_DOC = ['duoi', 'duoi', 'tren', 'duoi'];
 function huongNhan(s, rw, rh) {
   if (!BC.nhanGoc) return BC.nhanCho(s);            // hai kiểu bày kia tự khai hướng của mình
@@ -1770,6 +1793,7 @@ function vanMoi(dem) {
   khu = [hands[0].slice(), [], [], []];
   xepNha = [null, null, null, null];
   chon = {}; daBinh = false; over = false; kqVan = null;
+  donBan();                   // dọn bài ván cũ TRƯỚC khi đếm ngược, đừng để số đếm chồng lên bài
   tatDongHo();
   if (huyDem) { huyDem(); huyDem = null; }
   $('.bx-banner').classList.remove('show');
@@ -1805,7 +1829,7 @@ function vanMoi(dem) {
     });
   };
   // Đếm ngược giữa bàn rồi mới chia: ván ĐẦU của chiếu 5 giây, "Ván Mới" 3 giây.
-  if (dem) { $('.bx-canh').textContent = 'Sắp chia bài'; huyDem = demChia(root, chia, dem); }
+  if (dem) { $('.bx-canh').textContent = 'Sắp chia bài'; huyDem = demChia(root, chia, dem, tamBan); }
   else chia();
 }
 // ================= vòng vẽ =================
@@ -1907,6 +1931,7 @@ try {
     STEP_SO: BC.step, BUOC_Z: BC.buocZ || 0,
     bayNha: bayNha, xepNha: xepNha,
     root: root, nhanEl: nhanEl,
+    tamBan: tamBan,                               // tâm mặt bàn trên màn (trang đo dùng)
     khoi: function () { return khoiCuoi; },       // hộp bốn khối bài theo toạ độ root
     chrome: hopChrome,
     canh: function () { return canhCu; }          // hướng treo đang chọn của bốn thẻ tên

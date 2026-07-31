@@ -1212,6 +1212,16 @@ function mountPaoDeKuai(host, opts) {
   var SEAT_CO_DINH = [null, { x: 0.86, y: 0.40 }, { x: 0.14, y: 0.40 }];
   // ⚠ ĐỪNG gọi mỗi khung: mỗi lượt gọi là 6 lần getBoundingClientRect ⇒ 6 lần ép trình duyệt
   // tính lại bố cục. Camera đứng yên thì vị trí thẻ cũng đứng yên — chỉ gọi khi camera/nội dung đổi.
+  /** Tâm mặt bàn trên màn (px theo `root`) — bàn dựng quanh gốc toạ độ thế giới.
+   *  ⚠ Khổ dọc có `setViewOffset` kéo bàn xuống, nên tâm bàn KHÔNG phải tâm khung. */
+  function tamBan() {
+    if (!camera) return null;
+    var v = new THREE.Vector3(0, 0, 0).project(camera);
+    return {
+      x: (v.x * 0.5 + 0.5) * scEl.clientWidth + scEl.offsetLeft,
+      y: (-v.y * 0.5 + 0.5) * scEl.clientHeight + scEl.offsetTop
+    };
+  }
   function datSeat() {
     if (!camera || !seatEls[1]) return;
     var rc = { w: scEl.clientWidth, h: scEl.clientHeight }, hep = rc.w < 620;
@@ -1433,7 +1443,7 @@ function mountPaoDeKuai(host, opts) {
       }, tucThi ? 30 : 1000);
     };
     // Ván ĐẦU của chiếu: đếm ngược 5 giây giữa bàn rồi mới chia. "Ván Mới" thì chia luôn.
-    if (dem) huyDem = demChia(root, chia, dem); else chia();
+    if (dem) huyDem = demChia(root, chia, dem, tamBan); else chia();
   }
 
   function sangLuot() {

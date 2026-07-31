@@ -20,19 +20,20 @@ function themStyle() {
     '.dc-wrap{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;',
     '  justify-content:center;gap:8px;z-index:10;pointer-events:none}',
     '.dc-wrap.show{display:flex}',
-    '.dc-nhan{font-family:var(--serif,Georgia,serif);font-size:13px;letter-spacing:.14em;',
+    '.dc-nhan{font-family:var(--serif,Georgia,serif);font-size:12px;letter-spacing:.14em;',
     '  text-transform:uppercase;color:var(--txt2,#b6a68f);text-shadow:0 2px 10px #000}',
-    '.dc-so{font-family:var(--serif,Georgia,serif);font-weight:700;font-size:86px;line-height:1;',
+    // ⚠ Cỡ số user chốt 2026-07-31 ("số đếm ngược hơi to"): 86px che gần hết mặt nỉ.
+    '.dc-so{font-family:var(--serif,Georgia,serif);font-weight:700;font-size:56px;line-height:1;',
     '  color:var(--gold2,#f4d99a);text-shadow:0 0 30px rgba(230,192,121,.55),0 4px 16px #000;',
     '  animation:dcNhay .92s cubic-bezier(.2,.7,.3,1)}',
     // Vòng sáng mảnh quanh số cho ra dáng "đang đếm", vẫn TĨNH sau khi nảy xong.
-    '.dc-so::after{content:"";position:absolute;left:50%;top:50%;width:132px;height:132px;',
+    '.dc-so::after{content:"";position:absolute;left:50%;top:50%;width:92px;height:92px;',
     '  transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(230,192,121,.22);',
     '  box-shadow:0 0 40px -12px rgba(230,192,121,.5) inset}',
     '.dc-so{position:relative}',
     '@keyframes dcNhay{0%{transform:scale(1.55);opacity:0}24%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:.94}}',
     '@media (prefers-reduced-motion:reduce){.dc-so{animation:none}}',
-    '@media (max-width:600px){.dc-so{font-size:62px}.dc-so::after{width:100px;height:100px}.dc-nhan{font-size:11.5px}}',
+    '@media (max-width:600px){.dc-so{font-size:44px}.dc-so::after{width:74px;height:74px}.dc-nhan{font-size:11px}}',
   ].join('\n');
   document.head.appendChild(st);
 }
@@ -42,9 +43,12 @@ function themStyle() {
  * @param {Element} root   thẻ gốc của bàn (đã có sẵn biến màu)
  * @param {Function} xong  gọi khi đếm hết — chỗ đặt lệnh chia bài
  * @param {number} [giay]  số giây, mặc định GIAY_CHIA
+ * @param {Function} [tam] trả {x,y} TÂM MẶT BÀN theo toạ độ `root` (px). ⚠ Không truyền thì số
+ *   đếm nằm giữa KHUNG — mà khung có dải chrome trên/dưới và camera có thể lệch tâm, nên số rơi
+ *   lệch khỏi bàn (user chụp được). Bàn nào cũng lấy được bằng cách chiếu gốc toạ độ thế giới.
  * @returns {Function} huỷ — gọi khi rời bàn / ván mới để dừng đồng hồ và giấu số
  */
-export function demChia(root, xong, giay) {
+export function demChia(root, xong, giay, tam) {
   themStyle();
   let n = (giay == null ? GIAY_CHIA : giay), t = null, het = false;
   let el = root.querySelector('.dc-wrap');
@@ -56,6 +60,13 @@ export function demChia(root, xong, giay) {
   }
   const so = el.querySelector('.dc-so');
   el.classList.add('show');
+  function canhTam() {
+    if (!tam) { el.style.transform = ''; return; }
+    let p; try { p = tam(); } catch (e) { return; }
+    if (!p) return;
+    el.style.transform = 'translate(' + Math.round(p.x - root.clientWidth / 2) + 'px,' +
+      Math.round(p.y - root.clientHeight / 2) + 'px)';
+  }
 
   function thoi() {
     if (t) clearTimeout(t);
@@ -65,6 +76,7 @@ export function demChia(root, xong, giay) {
   function nhip() {
     if (het) return;
     if (n <= 0) { thoi(); try { xong(); } catch (e) { if (window.console) console.error(e); } return; }
+    canhTam();                 // camera vừa canh lại khung ⇒ tâm bàn đổi, bám theo mỗi giây
     so.textContent = n;
     // ⚠ Phải gỡ rồi ép tính lại bố cục thì animation mới chạy LẠI cho con số mới; đặt cùng
     //   một tên animation mà không gỡ thì trình duyệt coi như không có gì đổi, số nhảy khô khốc.
