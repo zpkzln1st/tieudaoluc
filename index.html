@@ -592,19 +592,13 @@
      ⚠ Treo bằng `bottom:100%`, TÁCH khỏi dòng chảy của .spl-load: mẹo bốc được có câu 1 dòng
      có câu 3 dòng, để trong dòng chảy thì .spl-load neo `bottom` bị đẩy ⇒ thanh nạp mỗi lần
      vào game một chỗ. */
+  /* ⛔ ĐÃ THỬ RỒI GỠ: lót một dải mờ dưới dòng mẹo cho dễ đọc — user bác, "k cần thiết".
+     Chữ chỉ dựa vào màu sáng + đổ bóng. Đừng lót nền lại. */
   #gameSplash .spl-meo{ position:absolute; left:50%; bottom:100%; transform:translateX(-50%);
-    width:100vw; margin-bottom:18px; padding:20px 0; font-size:13px; line-height:1.75;
+    width:min(620px,54vw); margin-bottom:18px; font-size:13px; line-height:1.75;
     color:#eaf0f8; font-weight:500; letter-spacing:.012em; text-align:center;
     text-shadow:0 1px 3px rgba(0,0,0,.9), 0 0 16px rgba(0,0,0,.55); }
-  /* Tấm phủ: DẢI NGANG tràn hết bề ngang, nhoè dần về CẢ BỐN PHÍA nên không có mép nào lộ ra —
-     đọc như một lớp tối của chính bức tranh, không phải cái hộp dán đè lên. */
-  #gameSplash .spl-meo::before{ content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
-    background:linear-gradient(to bottom, rgba(4,7,12,0), rgba(4,7,12,.66) 34%, rgba(4,7,12,.66) 66%, rgba(4,7,12,0));
-    /* ⚠ Vùng ĐẶC phải RỘNG HƠN khối chữ: `.w` tối đa 620px trên màn 1280 là đúng 26%–74%,
-       để mask đặc từ 26% thì mép chữ rơi trúng chỗ đang nhoè, dòng dài bị nhạt hai đầu. */
-    -webkit-mask-image:linear-gradient(to right, rgba(0,0,0,0), #000 17%, #000 83%, rgba(0,0,0,0));
-    mask-image:linear-gradient(to right, rgba(0,0,0,0), #000 17%, #000 83%, rgba(0,0,0,0)); }
-  #gameSplash .spl-meo .w{ display:inline-block; max-width:min(620px,54vw); text-wrap:balance; }
+  #gameSplash .spl-meo .w{ display:inline-block; text-wrap:balance; }
   #gameSplash .spl-meo b{ color:#f7d491; font-weight:700; letter-spacing:.06em; }
   /* Điện thoại: ẩn hẳn — màn hẹp thì mẹo che mất ảnh nhân vật (user chốt). */
   @media (max-width:760px){ #gameSplash .spl-meo{ display:none; } }
