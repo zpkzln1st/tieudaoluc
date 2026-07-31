@@ -254,6 +254,18 @@ function analyze(hand) {
 
 // ---------- AI ----------
 /**
+ * BỘ THAM SỐ CHẤM NƯỚC — dò bằng TỰ ĐẤU (`_mockup/_tl_ai_tinh.mjs`), không phải bịa.
+ *   0 bớt được một lượt · 1 bài còn rối · 2 lá cao · 3 xả nhiều lá
+ *   4 phá Heo lúc NGUY · 5 phá Heo lúc thường · 6 đốt hàng chặt lúc NGUY · 7 lúc thường
+ *   8 chặt Heo · 9 phí giành lượt · 10 gần hết bài · 11 chặn người sắp về
+ *   12 ngưỡng bỏ lượt lúc NGUY · 13 ngưỡng bỏ lượt thường
+ * ⚠ Đổi cách chấm là phải DÒ LẠI: bộ số này bám chặt vào công thức quanh nó.
+ */
+var TS = [41.96, 6.86, 0.55, 4, 26.11, 168.48, 48, 305.86, 74.25, 5, 22.88, 97.2, 150, 64.19];
+/** Nạp bộ tham số khác (công cụ dò dùng). */
+function napThamSoAI(ts) { for (var i = 0; i < TS.length && i < ts.length; i++) TS[i] = ts[i]; }
+
+/**
  * aiPick(hand, cur, ctx, diff, rnd) -> mảng lá muốn đánh, hoặc null = bỏ lượt.
  *   ctx = { conLai:[4 số lá còn của từng cửa], toi:index, chuBai:index (người ra bộ hiện tại) }
  *   diff 0..1 — càng cao càng tính kỹ, càng thấp càng hay đánh hớ.
@@ -280,26 +292,25 @@ function aiPick(hand, cur, ctx, diff, rnd) {
     if (!rest.length) { best = mv; bestSc = 1e9; break; }          // đánh hết = về nhất, chọn ngay
 
     var sauLuot = analyze(rest).luot;
-    sc += (base - sauLuot) * 30;            // bớt được một lượt phải đánh = rất đáng
-    sc -= sauLuot * 6;                      // bài càng gọn càng tốt
-    sc -= bo.hi * 0.55;                     // ưu tiên xả lá thấp
-    sc += cards.length * 4;                 // xả được nhiều lá là tốt
+    sc += (base - sauLuot) * TS[0];          // bớt được một lượt phải đánh = rất đáng
+    sc -= sauLuot * TS[1];                   // bài càng gọn càng tốt
+    sc -= bo.hi * TS[2];                     // ưu tiên xả lá thấp
+    sc += cards.length * TS[3];              // xả được nhiều lá là tốt
 
-    if (bo.bac === 12) sc -= nguy ? 26 : 78;               // Heo: để dành chặn, đừng phá sớm
-    if (laHangChat(bo) && !laHangChat(cur)) sc -= nguy ? 30 : 120;   // đừng đốt hàng chặt vô cớ
-    if (cur && laHangChat(bo) && cur.bac === 12) sc += 55;           // chặt Heo thì đáng
+    if (bo.bac === 12) sc -= nguy ? TS[4] : TS[5];                        // Heo: để dành chặn
+    if (laHangChat(bo) && !laHangChat(cur)) sc -= nguy ? TS[6] : TS[7];   // đừng đốt hàng chặt vô cớ
+    if (cur && laHangChat(bo) && cur.bac === 12) sc += TS[8];             // chặt Heo thì đáng
 
-    // đang phải theo mà nước này phá vỡ một bộ đang liền: phạt
     if (cur) {
-      sc -= 8;
-      if (n <= 5) sc += 20;                 // gần hết bài thì cứ giành lượt
-      if (nguy) sc += 45;                   // chặn người sắp về
+      sc -= TS[9];
+      if (n <= 5) sc += TS[10];              // gần hết bài thì cứ giành lượt
+      if (nguy) sc += TS[11];                // chặn người sắp về
     }
     if (sc > bestSc) { bestSc = sc; best = mv; }
   }
 
   // ngưỡng bỏ lượt: đang phải theo, nước rẻ nhất vẫn đắt thì nhường
-  if (cur && bestSc < (nguy ? -150 : -34) && rand() < 0.55 + diff * 0.4) return null;
+  if (cur && bestSc < (nguy ? -TS[12] : -TS[13]) && rand() < 0.55 + diff * 0.4) return null;
 
   // đánh hớ theo độ khó: tay non thỉnh thoảng bốc bừa một nước hợp lệ
   if (rand() > 0.35 + diff * 0.65) {
@@ -362,5 +373,5 @@ export {
   rankOf, suitOf, cardTen, cardKy,
   mulberry32, deal,
   classify, beats, laHangChat, tenBo,
-  genMoves, analyze, aiPick, goiY, ketSo, theoBac
+  genMoves, analyze, aiPick, goiY, ketSo, theoBac, napThamSoAI
 };
