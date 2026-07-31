@@ -323,15 +323,17 @@ function injectStyle() {
     '.bx-nhan{position:absolute;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5;',
     '  display:flex;align-items:center;gap:8px;',
     '  background:rgba(11,17,26,.82);border:1px solid #1e2b3a;border-radius:10px;padding:4px 10px;',
-    // ⚠ Bề rộng CỐ ĐỊNH, không phải max-width (user chốt 2026-07-31: "text nhiều là sẽ bị lệch").
+    // ⚠ Bề rộng CỐ ĐỊNH, không phải max-width (user chốt 2026-07-31: "text nhiều là sẽ bị lệch",
+    //   nhắc lại: "thẻ tên nên cố định chứ đừng tự kéo dài ra theo text").
     //   Thẻ co giãn theo chữ ⇒ mỗi nhịp so chi hộp một cỡ ⇒ máy tính lại chỗ treo ⇒ thẻ NHẢY.
-    //   Khoá cứng thì hộp đứng yên suốt ván, chữ đổi cũng không xê dịch. Số đo bề rộng cần cho
-    //   trường hợp dài nhất ("Thùng Phá Sảnh" + "Mất 12 chi") ở từng cỡ chữ.
-    '  white-space:nowrap;width:212px;box-sizing:border-box}',
+    // ⚠ 140px chứ không phải 212: MÁY BÀN mới lộ ra. Lề trái/phải mặt nỉ chỉ ~150px, thẻ 212px
+    //   không lọt nên bị clamp đẩy NGƯỢC vào khối bài (user chụp: đè 66px bề ngang). Xuống ba
+    //   dòng như khổ dọc thì hẹp còn 140px, lọt hẳn lề.
+    '  white-space:nowrap;width:140px;box-sizing:border-box}',
     '.bx-nhan .tx{min-width:0}',
-    // ⚠ Chân dung 36px: khu nhà Bắc đã đẩy sát mép nỉ nên chỗ còn lại tới mép khung rất hẹp,
+    // ⚠ Chân dung 32px: khu nhà Bắc đã đẩy sát mép nỉ nên chỗ còn lại tới mép khung rất hẹp,
     // ảnh to hơn là thẻ cao lên và đè xuống mép bài.
-    '.bx-nhan .av{width:36px;height:36px;border-radius:8px;object-fit:cover;flex:none;',
+    '.bx-nhan .av{width:32px;height:32px;border-radius:8px;object-fit:cover;flex:none;',
     '  border:1px solid rgba(230,192,121,.42);background:#141c28}',
     '.bx-nhan .tx{text-align:left}',
     '.bx-nhan .nm{font-family:var(--serif);font-size:11px;color:var(--txt3);line-height:1.25}',
@@ -341,20 +343,23 @@ function injectStyle() {
     //   Hạng dài quá thì cắt đuôi bằng "…"; số chi (vế người chơi cần nhất) không bao giờ co.
     // ⚠ min-height: lúc chưa so chi thì `.hg`/`.ch` rỗng, dòng này XẸP còn 0 ⇒ thẻ cao 18px,
     //   tới nhịp so chi đầu tiên nở lên 28px là thẻ nhích một cái. Chừa sẵn chỗ thì đứng im hẳn.
-    '.bx-nhan .d2{display:flex;align-items:baseline;gap:8px;margin-top:1px;flex-wrap:nowrap;min-width:0;min-height:17px}',
-    '.bx-nhan .hg{font-family:var(--serif);font-size:13.5px;font-weight:700;letter-spacing:.02em;line-height:1.25;',
-    '  min-width:0;overflow:hidden;text-overflow:ellipsis}',
-    '.bx-nhan .ch{font-family:var(--serif);font-size:11.5px;font-weight:600;color:var(--txt2);flex:none;margin-left:auto}',
+    // MÁY BÀN cũng xuống BA DÒNG (tên · tên bài · ăn/mất mấy chi) — cùng khuôn với khổ dọc.
+    // Để hạng bài và số chi chung một dòng thì thẻ phải rộng 212px, mà lề nỉ chỉ ~150px.
+    '.bx-nhan .d2{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin-top:1px;',
+    '  flex-wrap:nowrap;min-width:0;min-height:32px}',
+    '.bx-nhan .hg{font-family:var(--serif);font-size:12.5px;font-weight:700;letter-spacing:.02em;line-height:1.25;',
+    '  max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}',
+    '.bx-nhan .ch{font-family:var(--serif);font-size:11px;font-weight:600;color:var(--txt2);flex:none}',
     '.bx-nhan .ch.pos{color:#7fd6b5}.bx-nhan .ch.neg{color:var(--warn)}',
     '.bx-nhan.sam{border-color:rgba(230,192,121,.75);box-shadow:0 0 15px -3px rgba(230,192,121,.5)}',
     '.bx-nhan.xau{border-color:rgba(214,109,79,.55)}',
     // ===== KHUNG THẤP (điện thoại nằm ngang, kể cả lúc phủ toàn màn hình) =====
     // Bốn khối bài chiếm gần hết mặt nỉ, thẻ to là kiểu gì cũng đè lên bài; chrome cỡ máy bàn
     // trên khung cao ~330px thì nút to lấn hết bàn (user: "nút lúc phóng to màn hình to quá").
-    '.kh-nho .bx-nhan{padding:2px 6px;gap:5px;width:170px}',
+    '.kh-nho .bx-nhan{padding:2px 6px;gap:5px;width:136px}',
     '.kh-nho .bx-nhan .av{width:22px;height:22px;border-radius:5px}',
     '.kh-nho .bx-nhan .nm{font-size:9px}.kh-nho .bx-nhan .hg{font-size:11px}',
-    '.kh-nho .bx-nhan .ch{font-size:9.5px}.kh-nho .bx-nhan .d2{min-height:14px}',
+    '.kh-nho .bx-nhan .ch{font-size:9.5px}.kh-nho .bx-nhan .d2{min-height:26px}',
     '.kh-nho .bx-title{left:10px;top:7px}.kh-nho .bx-title .hz{font-size:18px}.kh-nho .bx-title .vz{font-size:11px}',
     '.kh-nho .bx-sub{top:28px;left:11px;font-size:9.5px}',
     '.kh-nho .bx-canh{top:8px;right:10px;font-size:10.5px;padding:4px 11px;max-width:46%;overflow:hidden;text-overflow:ellipsis}',
@@ -1764,6 +1769,8 @@ function choTreo(ben, k, w, h, rw, rh) {
   // Chéo lên góc trên-phải: ra khỏi dải x của khối bài rồi ngang mép trên nó — mảng nỉ ở góc
   // vốn bỏ không, thẻ ra đó thì mặt bài sạch mà vẫn rõ là của nhà trên.
   if (ben === 'trenPhai') return [[k.x1 + w / 2 + 10, k.y0 + h / 2 - 4]];
+  // Chéo xuống góc dưới-trái — dùng khi treo thẳng xuống thì đụng hàng nút.
+  if (ben === 'duoiTrai') return [[k.x0 - w / 2 - 10, k.y1 - h / 2 + 4]];
   // Đông/Tây: GHIM RA MÉP KHUNG (bốn mảng tối quanh bát giác vốn bỏ không, thẻ ra đó thì mặt
   // bài sạch hẳn); mép khung không đủ chỗ thì lùi vào sát mép khối bài.
   if (ben === 'trai') return [[Math.min(w / 2 + 10, k.x0 - w / 2 - m), cy]];
@@ -1822,16 +1829,28 @@ function datNhan() {
     var k0 = hopKhu(s, rc);
     khoi.push({ x0: k0.x0 + ox, y0: k0.y0 + oy, x1: k0.x1 + ox, y1: k0.y1 + oy });
   }
+  // Mép trên của dải hàng nút dưới cùng. ⚠ ĐO từ chính `.bx-act` là SAI: hàng nút bị ẩn lúc so
+  // chi ⇒ số đo đổi giữa ván ⇒ thẻ đổi hướng giữa ván, đúng cái "bay" mà user bác. Lấy HẰNG SỐ
+  // theo cỡ chữ của từng khổ — dải đó vốn cố định.
+  var dayAct = rh - (root.classList.contains('kh-nho') ? 46 : 66);
   for (s = 0; s < 4; s++) {
     var el = nhanEl[s], kh = khoi[s];
     var rr = el.getBoundingClientRect();
     var w = rr.width || 90, h = rr.height || 40;
     var uu = huongNhan(s, rw, rh);
+    // ⚠ Khung CAO (máy bàn): dưới khối bài nhà mình còn hàng nút, khe giữa hai thứ không đủ cho
+    //   thẻ. Ép lên là thẻ đè chính bài mình (đo được 3.097 px² ở 1280×800). Chuyển sang treo
+    //   CHÉO xuống góc dưới-trái — mảng nỉ đó vốn bỏ không. Vẫn cố định: chỉ phụ thuộc khung.
+    if (uu === 'duoi' && dayAct && dayAct - h - 12 < kh.y1) uu = 'duoiTrai';
     // Chỗ ĐẦU TIÊN của hướng đó — không thử chỗ nào khác, không chấm điểm gì cả.
     var p = choTreo(uu, kh, w, h, rw, rh)[0];
     canhCu[s] = uu;
     var px = Math.max(w / 2 + 4, Math.min(rw - w / 2 - 4, p[0]));
     var py = Math.max(h / 2 + 4, Math.min(rh - h / 2 - 4, p[1]));
+    // ⚠ Chặn dưới bằng HÀNG NÚT: máy bàn khung cao thì khối bài nhà mình nằm thấp, thẻ treo
+    //   dưới nó rơi trúng nút "Mở Bảng Xếp Bài" (đo được 748 px²). Đây là chốt CỐ ĐỊNH — hàng
+    //   nút đứng yên nên thẻ vẫn đứng yên, không phải đi tìm chỗ như bản cũ.
+    if (dayAct) py = Math.min(py, dayAct - h / 2 - 6);
     el.style.left = px + 'px'; el.style.top = py + 'px';
   }
   khoiCuoi = khoi;      // trang đo ngoài đọc để kiểm thẻ có đè lên bài không
