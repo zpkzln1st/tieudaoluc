@@ -589,10 +589,16 @@
      là tuỳ câu bốc được, để nó nằm trong dòng chảy thì .spl-load neo theo `bottom` sẽ bị đẩy
      ⇒ thanh nạp mỗi lần vào game một chỗ. Treo lên trên, nở NGƯỢC LÊN chỗ trống. */
   #gameSplash .spl-meo{ position:absolute; left:50%; bottom:100%; transform:translateX(-50%);
-    width:min(560px,86vw); margin-bottom:20px; font-size:12.5px; line-height:1.65;
-    color:#93a3b8; letter-spacing:.01em; text-align:center; text-wrap:balance; }
-  #gameSplash .spl-meo b{ color:#cbb37a; font-weight:600; letter-spacing:.06em; }
-  @media (max-width:760px){ #gameSplash .spl-meo{ font-size:12px; width:90vw; margin-bottom:16px; } }
+    width:min(560px,86vw); margin-bottom:20px; font-size:13px; line-height:1.7;
+    color:#e8eef7; font-weight:500; letter-spacing:.01em; text-align:center; text-wrap:balance;
+    /* ⚠ Ảnh nhân vật bốc NGẪU NHIÊN trong 19 tấm — có tấm nền sáng trắng. Chỉ đổi màu chữ là
+       không đủ, phải có nền tối riêng dưới chữ thì tấm nào cũng đọc được. Nền toả mềm,
+       không viền cứng, để không thành một cái hộp dán đè lên tranh. */
+    padding:10px 18px;
+    background:radial-gradient(72% 130% at 50% 50%, rgba(6,9,14,.72), rgba(6,9,14,.42) 62%, transparent 100%);
+    text-shadow:0 1px 3px rgba(0,0,0,.85), 0 0 14px rgba(0,0,0,.6); }
+  #gameSplash .spl-meo b{ color:#f5cf87; font-weight:700; letter-spacing:.06em; }
+  @media (max-width:760px){ #gameSplash .spl-meo{ font-size:12.5px; width:92vw; margin-bottom:16px; padding:9px 14px; } }
   #gameSplash .spl-bar i{ display:block; height:100%; width:4%; border-radius:99px; background:linear-gradient(90deg,#c8912a,#f5b942,#fceaba); box-shadow:0 0 12px rgba(245,185,66,.7); }
   /* animations chỉ chạy khi có .spl-run → gỡ/thêm để replay lúc quay lại */
   #gameSplash.spl-run .spl-bg{ animation:splBg 6s ease-out forwards; }
