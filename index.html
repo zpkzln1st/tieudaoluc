@@ -15896,6 +15896,21 @@
             </label>
             <button @click="$store.game.devPanel=false; $store.game.resetGame()" class="px-3 py-1.5 rounded bg-rose-900/40 border border-rose-700/50 text-rose-300 text-sm">Reset toàn bộ</button>
           </div>
+          <div class="lbl mb-1.5">Chạy nhanh thời gian
+            <span class="text-slate-600 normal-case tracking-normal"
+              x-text="$store.game.devHeSo > 1 ? ('· đang x' + $store.game.devHeSo + ' — 1 giây thực = ' + $store.game.devQuyDoi) : '· đang chạy tốc độ thực'"></span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <template x-for="k in [100, 1000, 5000]" :key="k">
+              <button @click="$store.game.devDatHeSo(k)"
+                :class="$store.game.devHeSo === k ? 'bg-jade/25 border-jade text-jade' : 'bg-amber-900/30 border-amber-600/50 text-amber-200'"
+                class="px-3 py-1 rounded border text-xs" x-text="'x' + k"></button>
+            </template>
+            <button @click="$store.game.devDatHeSo(1)"
+              :class="$store.game.devHeSo === 1 ? 'bg-jade/25 border-jade text-jade' : 'bg-ink3 border-slate-700 text-slate-300'"
+              class="px-3 py-1 rounded border text-xs">Tốc độ thực</button>
+          </div>
+          <div class="text-[10px] text-slate-600 mb-3">Đồng hồ game chạy nhanh liên tục. Nghề/tu luyện vẫn ăn trần tích luỹ như khi offline, nên chạy nhanh không phá trần. Session-only. Đổi hệ số không làm giờ nhảy giật.</div>
           <div class="lbl mb-1.5">Tua đồng hồ <span class="text-slate-600 normal-case tracking-normal" x-text="'· lệch ' + $store.game.devNowOffsetDays + ' ngày'"></span></div>
           <div class="flex flex-wrap items-center gap-2 mb-2">
             <button @click="$store.game.devNowOffsetAdd(1)" class="px-3 py-1 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-200 text-xs">+1 ngày</button>

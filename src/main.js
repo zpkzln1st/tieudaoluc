@@ -81,7 +81,13 @@ import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ k
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
 
 let _devNowOffset = 0;                        // Dev: tua đồng hồ (session-only; reload reset). 0 = thực.
-const now = () => Date.now() + _devNowOffset;
+// Dev: CHẠY NHANH thời gian (khác "tua" ở trên — tua là nhảy một phát, cái này chạy liên tục).
+//   `_devTichLuy` chốt phần đã tăng tốc tới `_devMocThuc`, nên đổi hệ số KHÔNG làm giờ nhảy giật.
+let _devHeSo = 1;                             // 1 = tốc độ thực
+let _devMocThuc = Date.now();
+let _devTichLuy = 0;
+const _devThem = () => _devTichLuy + (Date.now() - _devMocThuc) * (_devHeSo - 1);
+const now = () => Date.now() + _devNowOffset + _devThem();
 // Helper toàn cục cho link 「gia bảo」 trong biên niên (x-html không gắn được @click Alpine) -> mở chi tiết món
 if (typeof window !== 'undefined') window.tmShowItem = (id) => { try { const s = window.Alpine && window.Alpine.store('game'); if (s) s.openItemModal(id); } catch (e) {} };
 let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-reactive) — memo theo (seed:createdAt:phút)
@@ -4532,7 +4538,30 @@ const gameStore = {
   devTmClearCooldowns() { const t = this.tm; if (!t) return; t.disciples.forEach((d) => { d.luanVoCdUntil = 0; d.gioiLuatCdUntil = 0; }); if (t.diplomacy && t.diplomacy.ties) Object.keys(t.diplomacy.ties).forEach((k) => { t.diplomacy.ties[k].lastVisit = 0; }); t.shopCd = {}; if (t.bkAuction) t.bkAuction.at = 0; this.devSave(); this._tick++; this.showToast('Dev: reset CD Luận Võ / Giới Luật / Đãi Khách / Đấu Giá.'); },
   devTmSeedDiplomacy(rep, n) { const t = this.tm; if (!t) return; rep = (rep == null) ? 119 : rep; n = n || 4; if (!t.diplomacy) t.diplomacy = { ties: {} }; if (!t.diplomacy.ties) t.diplomacy.ties = {}; for (let i = 0; i < n; i++) t.diplomacy.ties['sect' + i] = { rep, lastVisit: 0 }; this.devSave(); this._tick++; this.showToast('Dev: gieo bang giao ' + n + ' phái (rep ' + rep + '). Vào Đãi Khách Các → Tiếp Đãi để vượt ngưỡng Kết Minh.'); },
   // ---- Dev: tua đồng hồ game (session-only; reload về thực). Chủ yếu xem Danh Sĩ tử vong/truyền nhân + bot + timer Tông Môn. ----
-  get devNowOffsetDays() { void this._tick; return Math.round(_devNowOffset / 8640000) / 10; },
+  get devNowOffsetDays() { void this._tick; return Math.round((_devNowOffset + _devThem()) / 8640000) / 10; },
+  // ---- Dev: CHẠY NHANH thời gian (x100 / x1000 / x5000) ----
+  get devHeSo() { void this._tick; return _devHeSo; },
+  devDatHeSo(k) {
+    k = k || 1;
+    _devTichLuy = _devThem();                 // chốt phần đã tăng tốc TRƯỚC khi đổi hệ số, không thì giờ nhảy giật
+    _devMocThuc = Date.now();
+    _devHeSo = k;
+    this._tick++;
+    try { this.tmTick(); } catch (e) {}
+    this.showToast(k > 1
+      ? ('Dev: thời gian chạy nhanh x' + k + ' (1 giây thực = ' + this.devQuyDoi + ').')
+      : 'Dev: thời gian về tốc độ thực.');
+  },
+  /** Một giây thực bằng bao nhiêu thời gian trong game — cho nhãn dễ đọc. */
+  get devQuyDoi() {
+    void this._tick;
+    const s = _devHeSo;
+    if (s <= 1) return '1 giây';
+    if (s < 60) return s + ' giây';
+    if (s < 3600) return Math.round(s / 60 * 10) / 10 + ' phút';
+    if (s < 86400) return Math.round(s / 3600 * 10) / 10 + ' giờ';
+    return Math.round(s / 86400 * 10) / 10 + ' ngày';
+  },
   devNowOffsetAdd(days) { _devNowOffset += (days || 0) * 86400000; this._tick++; try { this.tmTick(); } catch (e) {} this.showToast('Dev: tua đồng hồ ' + (days >= 0 ? '+' : '') + days + ' ngày (tổng ' + this.devNowOffsetDays + 'd). Quan sát Danh Sĩ/bot; reload về thực.'); },
   devNowOffsetClear() {
     const t0 = Date.now();   // gỡ kẹt mọi timer wall-clock tương lai (do tua đồng hồ) về thực trước khi zero offset
@@ -4546,7 +4575,9 @@ const gameStore = {
       if (t.bkAuction && t.bkAuction.at > t0) t.bkAuction.at = 0;
       if (t.recruitAt > t0) t.recruitAt = t0;
     }
-    _devNowOffset = 0; this._tick++; this.devSave(); this.showToast('Dev: về đồng hồ thực (gỡ kẹt timer tương lai).');
+    _devNowOffset = 0;
+    _devHeSo = 1; _devTichLuy = 0; _devMocThuc = Date.now();   // tắt luôn CHẠY NHANH, không thì đồng hồ lại vọt đi ngay
+    this._tick++; this.devSave(); this.showToast('Dev: về đồng hồ thực (gỡ kẹt timer tương lai).');
   },
   devTmFireEvent() { if (this.devTmEventSel) this.devFireEvent(this.devTmEventSel); else this.showToast('Chọn sự kiện trước.'); },
   devExport() {
