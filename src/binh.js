@@ -318,8 +318,11 @@ function injectStyle() {
     '.bx-nhan{position:absolute;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5;',
     '  display:flex;align-items:center;gap:8px;',
     '  background:rgba(11,17,26,.82);border:1px solid #1e2b3a;border-radius:10px;padding:4px 10px;',
-    // ⚠ Phải chặn bề rộng: dòng Sâm Banh có thể liệt kê hai tên nhà, thẻ nở ra là thò vào đè bài.
-    '  white-space:nowrap;max-width:236px}',
+    // ⚠ Bề rộng CỐ ĐỊNH, không phải max-width (user chốt 2026-07-31: "text nhiều là sẽ bị lệch").
+    //   Thẻ co giãn theo chữ ⇒ mỗi nhịp so chi hộp một cỡ ⇒ máy tính lại chỗ treo ⇒ thẻ NHẢY.
+    //   Khoá cứng thì hộp đứng yên suốt ván, chữ đổi cũng không xê dịch. Số đo bề rộng cần cho
+    //   trường hợp dài nhất ("Thùng Phá Sảnh" + "Mất 12 chi") ở từng cỡ chữ.
+    '  white-space:nowrap;width:212px;box-sizing:border-box}',
     '.bx-nhan .tx{min-width:0}',
     // ⚠ Chân dung 36px: khu nhà Bắc đã đẩy sát mép nỉ nên chỗ còn lại tới mép khung rất hẹp,
     // ảnh to hơn là thẻ cao lên và đè xuống mép bài.
@@ -329,23 +332,24 @@ function injectStyle() {
     '.bx-nhan .nm{font-family:var(--serif);font-size:11px;color:var(--txt3);line-height:1.25}',
     // Hạng bài + kết quả chi nằm CHUNG một dòng — thẻ nhà Bắc chỉ chừa ~65px tới mép khung,
     // tách thành hai dòng nữa là thẻ cao quá, bị đẩy đè lên bài.
-    // wrap: thẻ Đông/Tây bị bó theo lề, hạng dài như "Thùng Phá Sảnh" mà không cho xuống dòng
-    // thì số chi tràn đè lên tên hạng
-    '.bx-nhan .d2{display:flex;align-items:baseline;gap:8px;margin-top:1px;flex-wrap:wrap}',
-    '.bx-nhan .hg{font-family:var(--serif);font-size:13.5px;font-weight:700;letter-spacing:.02em;line-height:1.25}',
-    '.bx-nhan .ch{font-family:var(--serif);font-size:11.5px;font-weight:600;color:var(--txt2)}',
+    // ⚠ KHÔNG cho xuống dòng: hộp đã khoá bề rộng, wrap là thẻ cao thêm một dòng ⇒ lại nhảy.
+    //   Hạng dài quá thì cắt đuôi bằng "…"; số chi (vế người chơi cần nhất) không bao giờ co.
+    // ⚠ min-height: lúc chưa so chi thì `.hg`/`.ch` rỗng, dòng này XẸP còn 0 ⇒ thẻ cao 18px,
+    //   tới nhịp so chi đầu tiên nở lên 28px là thẻ nhích một cái. Chừa sẵn chỗ thì đứng im hẳn.
+    '.bx-nhan .d2{display:flex;align-items:baseline;gap:8px;margin-top:1px;flex-wrap:nowrap;min-width:0;min-height:17px}',
+    '.bx-nhan .hg{font-family:var(--serif);font-size:13.5px;font-weight:700;letter-spacing:.02em;line-height:1.25;',
+    '  min-width:0;overflow:hidden;text-overflow:ellipsis}',
+    '.bx-nhan .ch{font-family:var(--serif);font-size:11.5px;font-weight:600;color:var(--txt2);flex:none;margin-left:auto}',
     '.bx-nhan .ch.pos{color:#7fd6b5}.bx-nhan .ch.neg{color:var(--warn)}',
-    '.bx-nhan .th{font-family:var(--serif);font-size:10px;font-style:italic;color:#e6c079;margin-top:1px;line-height:1.3;white-space:normal}',
-    '.bx-nhan .th:empty{display:none}',
     '.bx-nhan.sam{border-color:rgba(230,192,121,.75);box-shadow:0 0 15px -3px rgba(230,192,121,.5)}',
     '.bx-nhan.xau{border-color:rgba(214,109,79,.55)}',
     // ===== KHUNG THẤP (điện thoại nằm ngang, kể cả lúc phủ toàn màn hình) =====
     // Bốn khối bài chiếm gần hết mặt nỉ, thẻ to là kiểu gì cũng đè lên bài; chrome cỡ máy bàn
     // trên khung cao ~330px thì nút to lấn hết bàn (user: "nút lúc phóng to màn hình to quá").
-    '.kh-nho .bx-nhan{padding:2px 6px;gap:5px;max-width:184px}',
+    '.kh-nho .bx-nhan{padding:2px 6px;gap:5px;width:170px}',
     '.kh-nho .bx-nhan .av{width:22px;height:22px;border-radius:5px}',
     '.kh-nho .bx-nhan .nm{font-size:9px}.kh-nho .bx-nhan .hg{font-size:11px}',
-    '.kh-nho .bx-nhan .ch{font-size:9.5px}.kh-nho .bx-nhan .th{font-size:8.5px}',
+    '.kh-nho .bx-nhan .ch{font-size:9.5px}.kh-nho .bx-nhan .d2{min-height:14px}',
     '.kh-nho .bx-title{left:10px;top:7px}.kh-nho .bx-title .hz{font-size:18px}.kh-nho .bx-title .vz{font-size:11px}',
     '.kh-nho .bx-sub{top:28px;left:11px;font-size:9.5px}',
     '.kh-nho .bx-canh{top:8px;right:10px;font-size:10.5px;padding:4px 11px;max-width:46%;overflow:hidden;text-overflow:ellipsis}',
@@ -460,13 +464,9 @@ function injectStyle() {
     // Thẻ tên co lại: màn hẹp thì lề quanh khối bài chỉ còn vài chục px.
     // ⚠ 152px chứ không rộng hơn: khe nỉ trống giữa hai khối bài trên màn dọc chỉ ~137px, thẻ
     //   rộng hơn khe thì đặt đâu cũng cấn vào bài.
-    '  .bx-nhan{padding:3px 7px;gap:6px;max-width:152px}',
+    '  .bx-nhan{padding:3px 7px;gap:6px;width:148px}',
     '  .bx-nhan .av{width:27px;height:27px;border-radius:6px}',
-    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}',
-    // ⚠ Dòng "thưởng bộ" ẨN ở màn dọc: nó làm thẻ cao lên ba dòng, mà khe nỉ trống chỉ đủ cho
-    //   thẻ hai dòng ⇒ thẻ đành đè lên bài (đo được 1.087 px² lúc so chi Đầu). Khoản thưởng
-    //   ĐÃ nằm trong số chi ăn/thua ngay cạnh rồi, không mất thông tin.
-    '  .bx-nhan .th{display:none}',
+    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}.bx-nhan .d2{min-height:15px}',
     '  .bxp-wrap{padding:8px}.bxp{padding:10px 10px 9px}.bxp-top b{font-size:14px}',
     // Bảng tổng kết: cột hẹp nên chữ và ảnh phải nhỏ lại, không thì "Thùng Phá Sảnh" vỡ ba dòng.
     '  .bx-banner{padding:10px}.bx-end{padding:16px 12px 14px}.bx-end .bt{font-size:22px}.bx-end .bs{font-size:11.5px;margin-bottom:10px}',
@@ -1252,7 +1252,18 @@ function tuDong() {
   khu = [[], sx(x.dau), sx(x.giua), sx(x.cuoi)];   // chỉ sắp MỘT lần lúc máy binh, sau đó giữ nguyên chỗ
   laChon = null; vePopup();
 }
-function xepLai() { tuDong(); }        // không còn "dọn hết ra", chỉ binh lại theo máy
+/**
+ * Bày 13 lá vào ba chi ĐÚNG THỨ TỰ CHIA, không sắp gì cả (user chốt 2026-07-31: "chia bài xong,
+ * khoan tự xếp đã, để bài lộn xộn"). Máy chia đã trả bài xếp theo mã lá nên phải ĐẢO lại,
+ * không thì nó vẫn ra thứ tự tăng dần — nhìn như đã sắp hộ.
+ */
+function lonXon() {
+  var d = hands[0].slice(), i, j, t;
+  for (i = d.length - 1; i > 0; i--) { j = Math.floor(rnd() * (i + 1)); t = d[i]; d[i] = d[j]; d[j] = t; }
+  khu = [[], d.slice(0, 3), d.slice(3, 8), d.slice(8, 13)];
+  laChon = null; vePopup();
+}
+function xepLai() { lonXon(); }        // "Xếp Lại" = trả về thế lộn xộn lúc mới chia, làm lại từ đầu
 // ================= camera =================
 function camAt(r) {
   return new THREE.Vector3(
@@ -1541,9 +1552,11 @@ function taoNhan() {
     // Nhà mình không có art nên thẻ chỉ có chữ (flex tự co lại, không để ô trống).
     d.innerHTML = (s > 0 && CUA[s].art
       ? '<img class="av" src="' + CUA[s].art + '" alt="" onerror="this.remove()">' : '') +
+      // ⚠ ĐÚNG HAI DÒNG, không hơn (user chốt 2026-07-31): tên nhân vật · tên bài + ăn/mất mấy chi.
+      // Dòng phụ cũ ("Thưởng bộ…", "Sâm Banh…", "Bị sập bởi…") làm thẻ nở thêm dòng giữa lúc so chi
+      // ⇒ thẻ đổi cỡ ⇒ nhảy chỗ liên tục. Sâm Banh vẫn nhận ra được: viền thẻ vàng (lớp `sam`).
       '<div class="tx"><div class="nm">' + (s === 0 ? 'Bạn' : CUA[s].ten) + '</div>' +
-      '<div class="d2"><span class="hg"></span><span class="ch"></span></div>' +
-      '<div class="th"></div></div>';
+      '<div class="d2"><span class="hg"></span><span class="ch"></span></div></div>';
     root.appendChild(d); nhanEl[s] = d;
     canhCu[s] = BC.nhanGoc ? BC.MEP[s] : BC.nhanCho(s);   // khung đầu đã đúng hướng gốc, khỏi nhấp nháy
   }
@@ -1558,7 +1571,6 @@ function anChe() {
     el.className = 'bx-nhan';
     el.querySelector('.hg').textContent = '';
     el.querySelector('.ch').textContent = '';
-    el.querySelector('.th').textContent = '';
   }
 }
 
@@ -1586,10 +1598,9 @@ function netChiCua(s, r) {
 function veChe(r) {
   nhanBan = true;                    // đổi chữ trong thẻ ⇒ thẻ đổi cỡ ⇒ phải tính lại chỗ treo
   for (var s = 0; s < 4; s++) {
-    var el = nhanEl[s], hg = el.querySelector('.hg'), kq = el.querySelector('.ch'), th = el.querySelector('.th');
+    var el = nhanEl[s], hg = el.querySelector('.hg'), kq = el.querySelector('.ch');
     var d = kqVan.dg[s];
     el.className = 'bx-nhan';
-    th.textContent = '';
     hg.style.textShadow = '';
     if (kqVan.mb[s]) {
       hg.textContent = kqVan.mb[s].ten; hg.style.color = '#f4d99a';
@@ -1605,18 +1616,18 @@ function veChe(r) {
       el.className = 'bx-nhan xau';
       continue;
     }
-    var thg = B.thuongChi(r, d[r]), n = netChiCua(s, r);
+    var n = netChiCua(s, r);
     hg.textContent = B.tenHang(d[r]);
     hg.style.color = MAU_HANG[d[r].hang];
     hg.style.textShadow = QUANG_HANG[d[r].hang] >= 0.5 ? '0 0 10px ' + rgba(MAU_HANG[d[r].hang], 0.6) : '';
     kq.textContent = n > 0 ? ('Ăn ' + n + ' chi') : n < 0 ? ('Mất ' + (-n) + ' chi') : 'Hòa';
     kq.className = 'ch ' + (n > 0 ? 'pos' : n < 0 ? 'neg' : '');
-    if (thg) th.textContent = 'Thưởng bộ +' + thg + ' mỗi nhà';
     // Sâm Banh chỉ biết được sau khi so xong CẢ BA chi ⇒ chỉ ghép vào nhịp chi Cuối.
     // ⚠ CÓ HAI VẾ: mình sập nhà kia (+3 nữa, thành ăn 6) và mình BỊ SẬP (−3 nữa, thành mất 6).
     // Chỉ đếm vế ăn là số cộng ra sẽ thiếu — máy đo bắt được 4196/16000 lượt lệch vì đúng lỗi này.
+    // Số chi ở `.ch` ĐÃ gồm cả hai vế; thẻ chỉ đổi VIỀN, không thêm chữ (thêm chữ là thẻ nhảy).
     if (r === 2) {
-      var an = [], bi = [];
+      var an = 0, bi = 0;
       for (var k = 0; k < 4; k++) {
         if (k === s || !kqVan.dg[k] || kqVan.mb[k] || kqVan.lung[k]) continue;
         var t1 = 0, t2 = 0;
@@ -1624,15 +1635,10 @@ function veChe(r) {
           var x = B.soChi(d[v], kqVan.dg[k][v]);
           if (x > 0) t1++; else if (x < 0) t2++;
         }
-        if (t1 === 3) an.push(CUA[k].ten);
-        if (t2 === 3) bi.push(CUA[k].ten);
+        if (t1 === 3) an++;
+        if (t2 === 3) bi++;
       }
-      var d1 = an.length ? 'Sâm Banh ' + an.join(', ') : '';
-      var d2 = bi.length ? 'Bị sập bởi ' + bi.join(', ') : '';
-      if (d1 || d2) {
-        th.textContent = [d1, d2].filter(Boolean).join(' · ');
-        el.className = 'bx-nhan ' + (an.length ? 'sam' : 'xau');
-      }
+      if (an || bi) el.className = 'bx-nhan ' + (an ? 'sam' : 'xau');
     }
   }
   // ⚠ Đặt lại thẻ SAU khi điền chữ. Đo lúc thẻ còn một dòng rồi giữ nguyên tâm thì lúc nở ra
@@ -1758,12 +1764,8 @@ function datNhan() {
   for (var q = 0; q < 4; q++) {
     s = thuTu[q];
     var el = nhanEl[s], kh = khoi[s], cu = canhCu[s];
-    // ⚠ Thẻ Đông/Tây phải CO theo lề thật giữa khối bài và mép khung. Chặn cứng một con số
-    // là có ván thẻ nở rộng hơn lề (dòng Sâm Banh hai tên nhà) rồi bị clamp đẩy ngược vào đè bài.
-    if (cu === 'trai' || cu === 'phai') {
-      var le = (cu === 'trai' ? kh.x0 : rw - kh.x1) - 16;
-      el.style.maxWidth = Math.max(130, Math.round(le)) + 'px';
-    } else el.style.maxWidth = '';
+    // (Bản cũ co bề rộng thẻ Đông/Tây theo lề — bỏ rồi: bề rộng nay KHOÁ CỨNG trong CSS nên
+    //  hộp không còn phụ thuộc chữ, mà co theo lề thì lại thành một nguồn đổi cỡ khác.)
     var rr = el.getBoundingClientRect();
     var w = rr.width || 90, h = rr.height || 40;
     var uu = BC.nhanGoc ? BC.MEP[s] : BC.nhanCho(s);
@@ -1836,7 +1838,7 @@ function vanMoi(dem) {
     // chia bài xong RỒI mới bật bảng xếp — bật ngay thì người chơi không kịp thấy bàn
     chiaBaiAnim(function () {
       if (daBinh) return;               // đã binh trước khi chia xong thì đừng mở lại bảng
-      tuDong();                         // binh sẵn một thế hợp lệ; người chơi chỉ đổi chỗ cho vừa ý
+      lonXon();                         // để bài LỘN XỘN, người chơi tự binh (nút Xếp Tự Động vẫn còn)
       batDongHo();                      // đếm ngược bắt đầu từ lúc bảng hiện ra, không phải từ lúc chia
       moPopup();
     });

@@ -1717,6 +1717,26 @@ function mountTienLen(host, opts) {
     setTimeout(onResize, 120); setTimeout(onResize, 480);
     setTimeout(datSeat, 900); setTimeout(datSeat, 2000);   // chân dung tải xong thì thẻ đổi cỡ, canh lại
     animate(0);
+    // Móc chẩn đoán: trang đo ngoài đọc được TỈ LỆ ĐIỂM ẢNH đang dùng + cỡ THẬT của một lá bài
+    // trên màn, khỏi ngồi đoán xem mờ là do vẽ thiếu điểm ảnh hay do ảnh mặt bài bị phóng.
+    window.__tl = {
+      renderer: renderer, camera: camera, scene: scene, handGroups: handGroups,
+      CW: CW, CH: CH, root: root, scEl: scEl,
+      /** Cỡ một lá trên tay mình, quy ra ĐIỂM ẢNH THẬT của máy. */
+      coLa: function () {
+        var g = handGroups[0]; if (!g || !g.children.length) return null;
+        var m = g.children[Math.floor(g.children.length / 2)];
+        var w = scEl.clientWidth, h = scEl.clientHeight, tl = renderer.getPixelRatio();
+        var v = new THREE.Vector3(), mn = [1e9, 1e9], mx = [-1e9, -1e9];
+        [[-CW / 2, 0, -CH / 2], [CW / 2, 0, -CH / 2], [-CW / 2, 0, CH / 2], [CW / 2, 0, CH / 2]].forEach(function (p) {
+          v.set(p[0], p[1], p[2]); m.localToWorld(v); v.project(camera);
+          var qx = (v.x * 0.5 + 0.5) * w, qy = (-v.y * 0.5 + 0.5) * h;
+          mn[0] = Math.min(mn[0], qx); mx[0] = Math.max(mx[0], qx);
+          mn[1] = Math.min(mn[1], qy); mx[1] = Math.max(mx[1], qy);
+        });
+        return { css: [mx[0] - mn[0], mx[1] - mn[1]], tiLe: tl, diem: [(mx[0] - mn[0]) * tl, (mx[1] - mn[1]) * tl] };
+      }
+    };
   } catch (err) {
     fb(String(err && err.message || err));
     if (window.console) console.error(err);
