@@ -321,7 +321,7 @@ function uocLuot(hand) {
  *   8 đang phải chặn · 9 ngưỡng bỏ lượt
  * ⚠ Đổi cách chấm là phải DÒ LẠI.
  */
-var TS = [10, 0.35, 4, 26, 2, 9, 4, 0.5, 6, 6];
+var TS = [6.44, 0.35, 4, 16.25, 2, 9, 4, 0.5, 6, 13.03];
 /** Nạp bộ tham số khác (công cụ dò dùng). */
 function napThamSoAI(ts) { for (var i = 0; i < TS.length && i < ts.length; i++) TS[i] = ts[i]; }
 
