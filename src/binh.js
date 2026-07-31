@@ -452,10 +452,12 @@ function injectStyle() {
     '.bxp.hep .bxp-hang{margin-top:0}',
     // Chip THƯỞNG CHI — vàng, DÒNG RIÊNG ngay dưới chip hạng bài (cột nhãn chỉ 92px, để chung
     // một dòng với "Thùng Phá Sảnh" là bị xén mất — chụp thấy).
-    '.bxp-thg{display:block;margin-top:4px;padding:2px 6px;border-radius:99px;',
+    // ⚠ `display:block` KHÔNG kèm `width:max-content` thì viên thuốc kéo dài hết cột nhãn, nhìn
+    //   như thanh trạng thái chứ không ra cái chip (user chụp được). Ôm sát chữ, canh phải theo cột.
+    '.bxp-thg{display:block;width:max-content;margin-left:auto;margin-top:4px;padding:2px 6px;border-radius:99px;',
     '  font-family:var(--serif);font-size:9.5px;font-weight:700;line-height:1.35;white-space:nowrap;',
     '  color:#f4d99a;background:rgba(230,192,121,.12);border:1px solid rgba(230,192,121,.5)}',
-    '.bxp.hep .bxp-thg{display:inline-block;margin-top:0}',
+    '.bxp.hep .bxp-thg{display:inline-block;width:auto;margin-left:0;margin-top:0}',
     // Chip hạng bài — màu + quầng leo dần theo bậc. Cho xuống dòng được: "Thùng Phá Sảnh"
     // dài hơn cột nhãn, để nowrap thì nó thò hẳn ra ngoài popup.
     '.bxp-hang{display:inline-block;margin-top:5px;padding:2px 5px;border-radius:99px;',
