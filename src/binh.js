@@ -384,7 +384,8 @@ function injectStyle() {
     // ⚠ `width:fit-content` chứ đừng chốt `min(840px,98%)`: khung NGANG rộng hơn khối bài nhiều
     //   nên bảng chiếm hết bề ngang mà khối bài dồn về mép trái, thừa hẳn một mảng bên phải
     //   (user chụp được). Bảng ôm sát nội dung thì tự nằm giữa màn.
-    '.bxp{width:fit-content;min-width:min(320px,96%);max-width:min(840px,98%);max-height:96%;',
+    // width do datRongPopup() đặt (tính từ cỡ lá) — KHÔNG dùng fit-content, xem chú thích ở đó.
+    '.bxp{box-sizing:border-box;max-width:min(840px,98%);max-height:96%;',
     '  overflow:auto;border-radius:16px;padding:14px 16px 12px;',
     '  background:linear-gradient(180deg,rgba(19,27,40,.99),rgba(11,16,24,.99));border:1px solid rgba(230,192,121,.24)}',
     '.bxp-top{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}',
@@ -394,7 +395,9 @@ function injectStyle() {
     '.bxp-dh.gap{color:var(--warn)}',
     '.bxp-x{font-size:15px;line-height:1;color:var(--txt3);cursor:pointer;padding:2px 2px 2px 4px;align-self:center}',
     '.bxp-x:hover{color:var(--gold2)}',
-    '.bxp-canh{font-family:var(--serif);font-size:12px;color:var(--txt2)}',
+    // Bảng đã khoá bề rộng ⇒ dòng nhắc phải CO và cắt đuôi, để nó xuống dòng là bảng cao lên.
+    '.bxp-canh{font-family:var(--serif);font-size:12px;color:var(--txt2);flex:1;min-width:0;',
+    '  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.bxp-canh.xau{color:var(--warn);font-weight:700;font-size:14px}',
     // Khổ hẹp: bốn thứ (tiêu đề · dòng nhắc · đồng hồ · ✕) không đứng nổi một hàng — dòng nhắc
     // xuống hàng riêng, hàng trên chỉ còn tiêu đề + đồng hồ + ✕.
@@ -463,12 +466,15 @@ function injectStyle() {
     '  .bx-b{width:auto}.bx-b .ic{width:30px;height:30px}.bx-b .ic svg{width:16px;height:16px}.bx-b span{font-size:9px}',
     '  .bx-act{bottom:8px;gap:6px}.bx-btn{padding:6px 12px;font-size:11.5px}',
     '  .bx-toast{top:44px;left:10px;font-size:11px}',
-    // Thẻ tên co lại: màn hẹp thì lề quanh khối bài chỉ còn vài chục px.
-    // ⚠ 152px chứ không rộng hơn: khe nỉ trống giữa hai khối bài trên màn dọc chỉ ~137px, thẻ
-    //   rộng hơn khe thì đặt đâu cũng cấn vào bài.
-    '  .bx-nhan{padding:3px 7px;gap:6px;width:148px}',
+    // ⚠ MÀN DỌC: thẻ nằm NGANG (hạng bài và số chi chung một dòng) là bề rộng ăn 148px, mà khe
+    //   nỉ giữa hai khối bài chỉ ~137px ⇒ đặt đâu cũng cấn vào bài (đo được 440–499 px²).
+    //   User chốt 2026-07-31: màn dọc cho thẻ XUỐNG BA DÒNG — tên · tên bài · ăn/mất mấy chi.
+    //   Cao thêm một dòng nhưng HẸP còn 128px, lọt hẳn vào khe: đo lại đè bài 0 cả bốn nhà.
+    '  .bx-nhan{padding:3px 7px;gap:6px;width:128px}',
     '  .bx-nhan .av{width:27px;height:27px;border-radius:6px}',
-    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}.bx-nhan .d2{min-height:15px}',
+    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}',
+    '  .bx-nhan .d2{flex-direction:column;align-items:flex-start;gap:0;min-height:29px}',
+    '  .bx-nhan .hg{max-width:100%}.bx-nhan .ch{margin-left:0}',
     '  .bxp-wrap{padding:8px}.bxp{padding:10px 10px 9px}.bxp-top b{font-size:14px}',
     // Bảng tổng kết: cột hẹp nên chữ và ảnh phải nhỏ lại, không thì "Thùng Phá Sảnh" vỡ ba dòng.
     '  .bx-banner{padding:10px}.bx-end{padding:16px 12px 14px}.bx-end .bt{font-size:22px}.bx-end .bs{font-size:11.5px;margin-bottom:10px}',
@@ -1165,6 +1171,7 @@ function coLaPopup() {
   var w = Math.min(118, Math.floor((wKhung - cot - 4 * khe) / 5));
   w = Math.max(30, w);
   p.style.setProperty('--bxp-la', w + 'px');
+  datRongPopup(p, w, cot, khe, dem);
   // Cao quá thì phải cuộn — ĐO thật rồi rút, đừng cộng nhẩm chiều cao từng phần (đầu bảng ·
   // dòng Mậu Binh · ba nhãn chi · hàng nút đều co giãn theo nội dung).
   // ⚠ Rút theo TỪNG NẤC CỐ ĐỊNH thì màn thấp (điện thoại nằm ngang) chạy hết vòng vẫn còn tràn.
@@ -1177,7 +1184,19 @@ function coLaPopup() {
     if (moi >= w) moi = w - 2;
     w = Math.max(30, moi);
     p.style.setProperty('--bxp-la', w + 'px');
+    datRongPopup(p, w, cot, khe, dem);
   }
+}
+
+/**
+ * Bề rộng bảng Xếp Bài phải TÍNH TỪ CỠ LÁ, không để `fit-content` (user chốt 2026-07-31:
+ * "popup binh bài thì cố định kích thước, tránh thay đổi khi bấm tự động xếp").
+ * `fit-content` bám nội dung rộng nhất — mà nội dung đổi mỗi lần bấm: chip hạng bài dài ngắn
+ * khác nhau ("Mậu Thầu" ↔ "Thùng Phá Sảnh") và dòng nhắc đổi giữa "Kéo một lá…" ↔ "Binh Lủng…".
+ * Hàng bài luôn là 5 lá nên bề rộng suy từ đó là CỐ ĐỊNH suốt ván.
+ */
+function datRongPopup(p, w, cot, khe, dem) {
+  p.style.width = (cot + 5 * w + 4 * khe + dem) + 'px';
 }
 function moPopup() { $('.bxp-wrap').classList.add('show'); vePopup(); veDongHo(); }
 function dongPopup() { $('.bxp-wrap').classList.remove('show'); }
@@ -1712,9 +1731,9 @@ function choTreo(ben, k, w, h, rw, rh) {
   var cx = (k.x0 + k.x1) / 2, cy = (k.y0 + k.y1) / 2, m = 6;
   if (ben === 'tren') return [[cx, k.y0 - h / 2 - m]];
   if (ben === 'duoi') return [[cx, k.y1 + h / 2 + m]];
-  // Chéo lên góc trên-trái: ra khỏi dải x của khối bài rồi ngang mép trên nó — mảng nỉ ở góc
+  // Chéo lên góc trên-phải: ra khỏi dải x của khối bài rồi ngang mép trên nó — mảng nỉ ở góc
   // vốn bỏ không, thẻ ra đó thì mặt bài sạch mà vẫn rõ là của nhà trên.
-  if (ben === 'trenTrai') return [[k.x0 - w / 2 - 10, k.y0 + h / 2 - 4]];
+  if (ben === 'trenPhai') return [[k.x1 + w / 2 + 10, k.y0 + h / 2 - 4]];
   // Đông/Tây: GHIM RA MÉP KHUNG (bốn mảng tối quanh bát giác vốn bỏ không, thẻ ra đó thì mặt
   // bài sạch hẳn); mép khung không đủ chỗ thì lùi vào sát mép khối bài.
   if (ben === 'trai') return [[Math.min(w / 2 + 10, k.x0 - w / 2 - m), cy]];
@@ -1736,11 +1755,12 @@ var nhanBan = true;
 // ⚠ Cả hai bảng đều là SỐ ĐO, không phải suy đoán (`_mockup/_binh_nhan.html`):
 //   NGANG: bàn ăn gần trọn chiều cao nên NGAY TRÊN khối nhà Bắc không còn chỗ — ghim 'tren' là
 //     thẻ bị kẹp xuống, đè 591 px² lên chính bài nhà đó. Treo 'duoi' thì lọt vào giữa thế chữ
-//     thập, sạch nhưng user chỉ mũi tên sang GÓC TRÊN-TRÁI của nỉ (2026-07-31) ⇒ 'trenTrai':
-//     nhích sang trái khối bài rồi lên ngang mép trên nó, đúng mảng nỉ đang bỏ không.
+//     thập, sạch nhưng user muốn ra góc nỉ ⇒ 'trenPhai': nhích sang PHẢI khối bài rồi lên ngang
+//     mép trên nó. ⚠ Góc TRÁI đã thử rồi bỏ (user chụp): ở khổ toàn màn hình nó đè lên dòng
+//     "Chiếu … · cược … Trù Mã mỗi chi" của thông tin phòng.
 //   DỌC 412×915: khung chỉ 388px, hai bên khối Đông/Tây gần hết lề ⇒ hai nhà đó cũng treo xuống;
 //     riêng nhà Bắc thì phía trên rộng rãi nên giữ 'tren' (đè bài 0).
-var HUONG_NGANG = ['duoi', 'phai', 'trenTrai', 'trai'];
+var HUONG_NGANG = ['duoi', 'phai', 'trenPhai', 'trai'];
 var HUONG_DOC = ['duoi', 'duoi', 'tren', 'duoi'];
 function huongNhan(s, rw, rh) {
   if (!BC.nhanGoc) return BC.nhanCho(s);            // hai kiểu bày kia tự khai hướng của mình

@@ -22,18 +22,18 @@ function themStyle() {
     '.dc-wrap.show{display:flex}',
     '.dc-nhan{font-family:var(--serif,Georgia,serif);font-size:12px;letter-spacing:.14em;',
     '  text-transform:uppercase;color:var(--txt2,#b6a68f);text-shadow:0 2px 10px #000}',
-    // ⚠ Cỡ số user chốt 2026-07-31 ("số đếm ngược hơi to"): 86px che gần hết mặt nỉ.
-    '.dc-so{font-family:var(--serif,Georgia,serif);font-weight:700;font-size:56px;line-height:1;',
+    // ⚠ Cỡ số user chốt 2026-07-31, hai vòng: 86 → 56 → 46px ("thu nhỏ thêm 1 chút nữa").
+    '.dc-so{font-family:var(--serif,Georgia,serif);font-weight:700;font-size:46px;line-height:1;',
     '  color:var(--gold2,#f4d99a);text-shadow:0 0 30px rgba(230,192,121,.55),0 4px 16px #000;',
     '  animation:dcNhay .92s cubic-bezier(.2,.7,.3,1)}',
     // Vòng sáng mảnh quanh số cho ra dáng "đang đếm", vẫn TĨNH sau khi nảy xong.
-    '.dc-so::after{content:"";position:absolute;left:50%;top:50%;width:92px;height:92px;',
+    '.dc-so::after{content:"";position:absolute;left:50%;top:50%;width:78px;height:78px;',
     '  transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(230,192,121,.22);',
     '  box-shadow:0 0 40px -12px rgba(230,192,121,.5) inset}',
     '.dc-so{position:relative}',
     '@keyframes dcNhay{0%{transform:scale(1.55);opacity:0}24%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:.94}}',
     '@media (prefers-reduced-motion:reduce){.dc-so{animation:none}}',
-    '@media (max-width:600px){.dc-so{font-size:44px}.dc-so::after{width:74px;height:74px}.dc-nhan{font-size:11px}}',
+    '@media (max-width:600px){.dc-so{font-size:36px}.dc-so::after{width:62px;height:62px}.dc-nhan{font-size:10.5px}}',
   ].join('\n');
   document.head.appendChild(st);
 }
@@ -64,8 +64,12 @@ export function demChia(root, xong, giay, tam) {
     if (!tam) { el.style.transform = ''; return; }
     let p; try { p = tam(); } catch (e) { return; }
     if (!p) return;
+    // ⚠ Neo TÂM CON SỐ vào tâm bàn, đừng neo tâm cả cụm: nhãn "Chia bài sau" nằm phía trên nên
+    // canh cả cụm là con số tụt xuống dưới tâm bàn (user: "đẩy cả cụm lên trên một tí").
+    // `offsetTop` không đổi theo transform nên đo một lần rồi bù là đủ.
+    const lech = so.offsetTop + so.offsetHeight / 2 - el.clientHeight / 2;
     el.style.transform = 'translate(' + Math.round(p.x - root.clientWidth / 2) + 'px,' +
-      Math.round(p.y - root.clientHeight / 2) + 'px)';
+      Math.round(p.y - root.clientHeight / 2 - lech) + 'px)';
   }
 
   function thoi() {
