@@ -354,7 +354,9 @@ function injectStyle() {
     '.kh-nho .bx-sub{top:28px;left:11px;font-size:9.5px}',
     '.kh-nho .bx-canh{top:8px;right:10px;font-size:10.5px;padding:4px 11px;max-width:46%;overflow:hidden;text-overflow:ellipsis}',
     // width:auto — nhãn dài hơn ô 46px thì tràn ra hai bên rồi bị mép khung xén mất chữ đầu
-    '.kh-nho .bx-left{left:8px;gap:6px}.kh-nho .bx-b{width:auto}',
+    // top:74% — thẻ tên nhà Tây nay ghim CỐ ĐỊNH ở mép trái, ngang tầm khối bài (~48% chiều cao).
+    // Cột nút để 66% là mép trên của nó chui vào dưới thẻ (chụp thấy icon Thu Nhỏ bị che một nửa).
+    '.kh-nho .bx-left{left:8px;gap:6px;top:74%}.kh-nho .bx-b{width:auto}',
     '.kh-nho .bx-b .ic{width:27px;height:27px}.kh-nho .bx-b .ic svg{width:15px;height:15px}.kh-nho .bx-b span{font-size:8.5px}',
     '.kh-nho .bx-act{bottom:8px}.kh-nho .bx-btn{padding:5px 13px;font-size:11.5px}',
     // ===== dấu báo cạnh khối bài =====
@@ -1604,7 +1606,7 @@ function veChe(r) {
     hg.style.textShadow = '';
     if (kqVan.mb[s]) {
       hg.textContent = kqVan.mb[s].ten; hg.style.color = '#f4d99a';
-      kq.textContent = 'ăn trắng ' + kqVan.mb[s].chi + ' chi/nhà';
+      kq.textContent = 'Ăn trắng ' + kqVan.mb[s].chi + ' chi';   // bỏ "/nhà": thẻ khoá bề rộng, chữ dài là cắt đuôi tên bài
       kq.className = 'ch pos';
       el.className = 'bx-nhan sam';
       continue;
@@ -1663,15 +1665,9 @@ function hopKhu(s, rc) {
   return { x0: x0, x1: x1, y0: y0, y1: y1 };
 }
 
-/** Diện tích chồng nhau của hai hộp (px²) — 0 là rời hẳn. */
-function chongNhau(a, b) {
-  var w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
-  var h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
-  return (w > 0 && h > 0) ? w * h : 0;
-}
-
-// Hộp của chrome cố định trong khung (tiêu đề · pill trạng thái · hàng nút): thẻ tên phải
-// tránh, không thì trên máy hẹp nó nằm chồng đúng lên chữ. Đo lại mỗi 30 khung cho nhẹ.
+// Hộp của chrome cố định trong khung (tiêu đề · pill trạng thái · hàng nút).
+// Nay chỉ còn TRANG ĐO ngoài dùng (`window.__binh.chrome`) để kiểm thẻ có chồng lên chữ không —
+// bản thân việc đặt thẻ không tra tới nữa. Đo lại mỗi 30 khung cho nhẹ.
 var chromeHop = [], chromeDem = 0;
 var CHROME_SEL = ['.bx-title', '.bx-sub', '.bx-canh', '.bx-left', '.bx-act'];
 function hopChrome() {
@@ -1689,62 +1685,56 @@ function hopChrome() {
   return out;
 }
 
-/** Mấy chỗ có thể treo thẻ ở một hướng — chỗ đầu là chỗ đẹp nhất của hướng đó. */
+/**
+ * Chỗ treo thẻ ở một hướng — MỘT chỗ duy nhất, canh giữa cạnh đó của khối bài.
+ * (Bản cũ trả về bảy chỗ cho máy chấm điểm chọn; nay không còn máy chấm điểm nữa.)
+ */
 function choTreo(ben, k, w, h, rw, rh) {
-  var cx = (k.x0 + k.x1) / 2, cy = (k.y0 + k.y1) / 2, m = 6, out = [], i, j;
-  if (ben === 'tren' || ben === 'duoi') {
-    var y = (ben === 'tren') ? k.y0 - h / 2 - m : k.y1 + h / 2 + m;
-    // Hai chỗ cuối là CHÉO GÓC (lệch hẳn sang bên cạnh khối): bốn "góc" của thế chữ thập là
-    // vùng nỉ trống duy nhất còn lại trên màn dọc, không cho thử thì thẻ đành đè lên bài.
-    var xs = [cx, k.x0 + w / 2, k.x1 - w / 2, w / 2 + 6, rw - w / 2 - 6,
-      k.x0 - w / 2 - 8, k.x1 + w / 2 + 8];
-    for (i = 0; i < xs.length; i++) out.push([xs[i], y]);
-  } else {
-    // Chỗ đầu là GHIM RA MÉP KHUNG (bốn mảng tối quanh bát giác vốn bỏ không, thẻ ra đó thì
-    // mặt bài sạch hẳn); chỗ sau là bám sát mép khối bài, dùng khi mép khung không đủ chỗ.
-    var xs2 = (ben === 'trai')
-      ? [Math.min(w / 2 + 10, k.x0 - w / 2 - m), k.x0 - w / 2 - m]
-      : [Math.max(rw - w / 2 - 10, k.x1 + w / 2 + m), k.x1 + w / 2 + m];
-    var ys = [cy, k.y0 + h / 2, k.y1 - h / 2, h / 2 + 6, rh - h / 2 - 6];
-    for (i = 0; i < xs2.length; i++) for (j = 0; j < ys.length; j++) out.push([xs2[i], ys[j]]);
-  }
-  return out;
+  var cx = (k.x0 + k.x1) / 2, cy = (k.y0 + k.y1) / 2, m = 6;
+  if (ben === 'tren') return [[cx, k.y0 - h / 2 - m]];
+  if (ben === 'duoi') return [[cx, k.y1 + h / 2 + m]];
+  // Đông/Tây: GHIM RA MÉP KHUNG (bốn mảng tối quanh bát giác vốn bỏ không, thẻ ra đó thì mặt
+  // bài sạch hẳn); mép khung không đủ chỗ thì lùi vào sát mép khối bài.
+  if (ben === 'trai') return [[Math.min(w / 2 + 10, k.x0 - w / 2 - m), cy]];
+  return [[Math.max(rw - w / 2 - 10, k.x1 + w / 2 + m), cy]];
 }
 
-// ⚠ Giá cho mỗi px LỆCH khỏi khối bài của chính nhà đó (đo vuông góc với hướng treo).
-// Không có nó thì một chỗ trống ở tận mép bên kia màn có giá 0 ⇒ thẻ bay sang đó, thẻ nhà
-// đối diện nằm ở mép trái màn (user chụp được lúc so chi).
-// ⚠ Có VÙNG CHẾT: trong 130px đầu thì MIỄN PHÍ. Né tại chỗ vài chục px để khỏi đè lên bài là
-// việc đúng, phạt nó là ép thẻ đè bài (đo được: bỏ vùng chết thì đè bài ở khổ dọc tăng lên).
-// Quá 130px mới tính tiền, 14 px²/px — một cú nhảy 270px thành ~2.000, thua hẳn chỗ sạch gần nhà.
-var GIA_LECH = 14, VUNG_CHET = 130;
-
-/** Giá của một chỗ treo: đè lên bài nặng nhất, rồi đến đè chrome / thẻ khác, rồi lòi khỏi khung. */
-function giaTreo(p, w, h, khoi, can, rw, rh) {
-  var b = { x0: p[0] - w / 2, y0: p[1] - h / 2, x1: p[0] + w / 2, y1: p[1] + h / 2 }, g = 0, i;
-  // Đè lên BÀI là tệ nhất (che mất mặt bài) — nặng gấp đôi đè lên chrome hay đè lên thẻ khác.
-  for (i = 0; i < khoi.length; i++) g += chongNhau(b, khoi[i]) * 5.0;
-  for (i = 0; i < can.length; i++) g += chongNhau(b, can[i]) * 1.4;
-  var lo = Math.max(0, -b.x0) + Math.max(0, b.x1 - rw) + Math.max(0, -b.y0) + Math.max(0, b.y1 - rh);
-  return g + lo * 130;
-}
+// (Đã GỠ `GIA_LECH` / `giaTreo` — bộ chấm điểm chỗ treo. Chính nó làm thẻ bay: mỗi ván một thế
+//  bài khác ⇒ chỗ "rẻ nhất" khác ⇒ thẻ rơi vào góc khác. Xem chú thích ở `datNhan`.)
 
 var huyDem = null;                          // hàm dừng đếm ngược trước khi chia bài
-var canhCu = [null, null, null, null];      // hướng đã chọn khung trước — giữ cho thẻ khỏi nhảy qua nhảy lại
+var canhCu = [null, null, null, null];      // hướng treo của bốn thẻ (trang đo ngoài đọc)
 // Cờ "phải treo lại thẻ". ⚠ ĐỪNG chạy datNhan mỗi khung: một lượt là 4 getBoundingClientRect +
 // ~80 phép thử chỗ treo, ép trình duyệt tính lại bố cục 60 lần/giây ⇒ lúc so chi thấy GIẬT ở
 // thẻ tên (user báo). Camera đứng yên và chữ không đổi thì thẻ cũng đứng yên.
 var nhanBan = true;
 
+// Hướng treo thẻ tên — CHỈ theo chỗ ngồi và khổ khung, tuyệt đối không theo bài. Thứ tự nhà:
+// 0 Nam (mình) · 1 Đông · 2 Bắc (đối diện) · 3 Tây.
+// ⚠ Cả hai bảng đều là SỐ ĐO, không phải suy đoán (`_mockup/_binh_nhan.html`):
+//   NGANG 915×412: bàn ăn gần trọn chiều cao nên TRÊN khối nhà Bắc không còn chỗ — ghim 'tren'
+//     là thẻ bị kẹp xuống, đè 591 px² lên chính bài nhà đó. Cho nhà Bắc treo XUỐNG, vào giữa
+//     thế chữ thập (chỗ nỉ trống): đo lại đè bài 0.
+//   DỌC 412×915: khung chỉ 388px, hai bên khối Đông/Tây gần hết lề ⇒ hai nhà đó cũng treo xuống;
+//     riêng nhà Bắc thì phía trên rộng rãi nên giữ 'tren' (đè bài 0).
+var HUONG_NGANG = ['duoi', 'phai', 'duoi', 'trai'];
+var HUONG_DOC = ['duoi', 'duoi', 'tren', 'duoi'];
+function huongNhan(s, rw, rh) {
+  if (!BC.nhanGoc) return BC.nhanCho(s);            // hai kiểu bày kia tự khai hướng của mình
+  return (rw < rh ? HUONG_DOC : HUONG_NGANG)[s];
+}
+
 /**
  * ⚠ Chỗ đặt thẻ tên phải ĐO, đừng đoán. Bản cũ nhích cứng ±1.35 theo z — khu bài sâu lên
  * (ba chi tách hẳn) là thẻ rơi ngay vào giữa hàng chi Đầu. Cách đúng: chiếu BỐN GÓC khu bài
- * ra màn, lấy mép, rồi đặt thẻ sát ngoài mép đó. (Tiến Lên đã sai đúng kiểu này ba vòng liền.)
+ * ra màn, lấy mép, rồi đặt thẻ sát ngoài mép đó.
  *
- * ⚠ Và ĐO thôi chưa đủ: trên điện thoại dựng, lề hai bên khối bài gần bằng 0 nên chỗ "đúng"
- * theo hướng ngồi lại là chỗ đè lên bài (user chụp đúng cảnh đó). Nên mỗi thẻ nay THỬ bốn
- * hướng × mấy nấc trượt, chấm điểm theo diện tích đè lên bài / chrome / thẻ đã đặt, lấy chỗ
- * rẻ nhất. Máy rộng thì hướng gốc vẫn luôn thắng vì nó không đè gì (giá 0).
+ * ⚠⚠ KHÔNG CÒN TÌM KIẾM / CHẤM ĐIỂM CHỖ TREO (user chốt 2026-07-31: *"tag tên này cứ bay liên
+ * tục, chúng ta không cố định được vị trí của nó à"*). Bản trước thử bốn hướng × bảy nấc trượt
+ * rồi lấy chỗ "rẻ nhất" theo diện tích đè — hệ quả là mỗi ván / mỗi nhịp so chi thẻ lại rơi vào
+ * một góc khác nhau, nhìn như bay. Nay: MỖI NHÀ MỘT HƯỚNG CỐ ĐỊNH, lấy đúng chỗ đầu tiên của
+ * hướng đó. Bàn đứng yên thì thẻ đứng yên, không có ngoại lệ nào.
+ * Đổi lại phải chấp nhận đôi khi thẻ cấn mép khối bài ở khổ hẹp — user chọn ĐỨNG YÊN.
  */
 function datNhan() {
   if (!camera) return;
@@ -1759,46 +1749,17 @@ function datNhan() {
     var k0 = hopKhu(s, rc);
     khoi.push({ x0: k0.x0 + ox, y0: k0.y0 + oy, x1: k0.x1 + ox, y1: k0.y1 + oy });
   }
-  var can = hopChrome().slice();
-  var thuTu = [0, 2, 1, 3];                 // đặt nhà mình + nhà đối diện trước, hai bên nhường sau
-  for (var q = 0; q < 4; q++) {
-    s = thuTu[q];
-    var el = nhanEl[s], kh = khoi[s], cu = canhCu[s];
-    // (Bản cũ co bề rộng thẻ Đông/Tây theo lề — bỏ rồi: bề rộng nay KHOÁ CỨNG trong CSS nên
-    //  hộp không còn phụ thuộc chữ, mà co theo lề thì lại thành một nguồn đổi cỡ khác.)
+  for (s = 0; s < 4; s++) {
+    var el = nhanEl[s], kh = khoi[s];
     var rr = el.getBoundingClientRect();
     var w = rr.width || 90, h = rr.height || 40;
-    var uu = BC.nhanGoc ? BC.MEP[s] : BC.nhanCho(s);
-    var ds = [uu], moi = ['duoi', 'tren', 'phai', 'trai'], d, v;
-    for (d = 0; d < moi.length; d++) if (moi[d] !== uu) ds.push(moi[d]);
-    var re = null, reCanh = uu;
-    var kcx = (kh.x0 + kh.x1) / 2, kcy = (kh.y0 + kh.y1) / 2;
-    // Được phép đi xa RA NGOÀI theo đúng hướng gốc của nhà đó (nhà Tây ghim ra mép trái khung,
-    // nhà Bắc dạt lên đỉnh…) — đó là chủ ý. Mọi hướng khác đều là "trôi khỏi chỗ ngồi" và
-    // PHẢI tính tiền, kể cả trượt ngang.
-    // ⚠ Hai bản sai đã đo được: (a) phạt cả hai trục ⇒ chỗ ghim mép khung của nhà Đông/Tây
-    //   cũng bị phạt rồi thua một chỗ giữa bàn; (b) tha CẢ TRỤC của hướng gốc ⇒ thẻ nhà Tây
-    //   nhảy sang tận mép PHẢI (lệch 551px) vì đi theo trục x là miễn phí cả hai chiều.
-    //   Đúng là tha MỘT CHIỀU: ra ngoài thì miễn, vào trong / trượt ngang thì tính.
-    for (d = 0; d < ds.length; d++) {
-      var pos = choTreo(ds[d], kh, w, h, rw, rh);
-      for (v = 0; v < pos.length; v++) {
-        var dx = pos[v][0] - kcx, dy = pos[v][1] - kcy, lech;
-        if (uu === 'trai') lech = Math.max(0, dx) + Math.abs(dy);
-        else if (uu === 'phai') lech = Math.max(0, -dx) + Math.abs(dy);
-        else if (uu === 'tren') lech = Math.max(0, dy) + Math.abs(dx);
-        else lech = Math.max(0, -dy) + Math.abs(dx);
-        var gia = giaTreo(pos[v], w, h, khoi, can, rw, rh)
-          + Math.max(0, lech - VUNG_CHET) * GIA_LECH + d * 45 + v * 12;
-        if (ds[d] === cu) gia -= 300;       // đang đứng đó rồi thì đừng nhảy vì chênh vài chục px²
-        if (!re || gia < re.g) { re = { g: gia, p: pos[v] }; reCanh = ds[d]; }
-      }
-    }
-    canhCu[s] = reCanh;
-    var px = Math.max(w / 2 + 4, Math.min(rw - w / 2 - 4, re.p[0]));
-    var py = Math.max(h / 2 + 4, Math.min(rh - h / 2 - 4, re.p[1]));
+    var uu = huongNhan(s, rw, rh);
+    // Chỗ ĐẦU TIÊN của hướng đó — không thử chỗ nào khác, không chấm điểm gì cả.
+    var p = choTreo(uu, kh, w, h, rw, rh)[0];
+    canhCu[s] = uu;
+    var px = Math.max(w / 2 + 4, Math.min(rw - w / 2 - 4, p[0]));
+    var py = Math.max(h / 2 + 4, Math.min(rh - h / 2 - 4, p[1]));
     el.style.left = px + 'px'; el.style.top = py + 'px';
-    can.push({ x0: px - w / 2, y0: py - h / 2, x1: px + w / 2, y1: py + h / 2 });
   }
   khoiCuoi = khoi;      // trang đo ngoài đọc để kiểm thẻ có đè lên bài không
 }
