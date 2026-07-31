@@ -321,8 +321,9 @@ function injectStyle() {
     '.bx-luoi tr.tong td:first-child{border-radius:9px 0 0 9px}.bx-luoi tr.tong td:last-child{border-radius:0 9px 9px 0}',
     // nhãn tên nhà bám theo khu bài trên bàn
     '.bx-nhan{position:absolute;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5;',
-    '  display:flex;align-items:center;gap:8px;',
-    '  background:rgba(11,17,26,.82);border:1px solid #1e2b3a;border-radius:10px;padding:4px 10px;',
+    '  display:flex;align-items:center;gap:7px;',
+    // Nền đậm hơn (.82 → .92): thẻ nằm trên mặt nỉ sáng, mờ quá thì chữ khó đọc (user 2026-07-31).
+    '  background:rgba(9,14,22,.92);border:1px solid #24344a;border-radius:10px;padding:4px 8px;',
     // ⚠ Bề rộng CỐ ĐỊNH, không phải max-width (user chốt 2026-07-31: "text nhiều là sẽ bị lệch",
     //   nhắc lại: "thẻ tên nên cố định chứ đừng tự kéo dài ra theo text").
     //   Thẻ co giãn theo chữ ⇒ mỗi nhịp so chi hộp một cỡ ⇒ máy tính lại chỗ treo ⇒ thẻ NHẢY.
@@ -333,10 +334,17 @@ function injectStyle() {
     '.bx-nhan .tx{min-width:0}',
     // ⚠ Chân dung 32px: khu nhà Bắc đã đẩy sát mép nỉ nên chỗ còn lại tới mép khung rất hẹp,
     // ảnh to hơn là thẻ cao lên và đè xuống mép bài.
-    '.bx-nhan .av{width:32px;height:32px;border-radius:8px;object-fit:cover;flex:none;',
+    '.bx-nhan .av{width:30px;height:30px;border-radius:8px;object-fit:cover;flex:none;',
     '  border:1px solid rgba(230,192,121,.42);background:#141c28}',
-    '.bx-nhan .tx{text-align:left}',
-    '.bx-nhan .nm{font-family:var(--serif);font-size:11px;color:var(--txt3);line-height:1.25}',
+    '.bx-nhan .tx{text-align:left;flex:1;min-width:0}',
+    // ⚠ Tên PHẢI cắt đuôi: hộp khoá bề rộng mà `.nm` không có overflow thì tên bốn chữ
+    //   ("Nam Cung Liệt Hỏa") LÒI HẲN ra ngoài nền thẻ (user chụp được).
+    // ⚠ Và phải đủ sáng: `--txt3` trên mặt nỉ là đọc không ra — nâng lên `--txt2` + đậm + đổ bóng.
+    // ⚠ line-height tính bằng PX chứ không phải tỉ lệ: `vuaTen()` rút cỡ chữ cho tên dài, để tỉ lệ
+    //   thì rút chữ là hộp thấp đi vài px — lại thành thẻ đổi cỡ.
+    '.bx-nhan .nm{font-family:var(--serif);font-size:10.5px;font-weight:600;color:var(--txt2);',
+    '  line-height:14px;max-width:100%;overflow:hidden;text-overflow:ellipsis;',
+    '  text-shadow:0 1px 3px rgba(0,0,0,.85)}',
     // Hạng bài + kết quả chi nằm CHUNG một dòng — thẻ nhà Bắc chỉ chừa ~65px tới mép khung,
     // tách thành hai dòng nữa là thẻ cao quá, bị đẩy đè lên bài.
     // ⚠ KHÔNG cho xuống dòng: hộp đã khoá bề rộng, wrap là thẻ cao thêm một dòng ⇒ lại nhảy.
@@ -358,7 +366,7 @@ function injectStyle() {
     // trên khung cao ~330px thì nút to lấn hết bàn (user: "nút lúc phóng to màn hình to quá").
     '.kh-nho .bx-nhan{padding:2px 6px;gap:5px;width:136px}',
     '.kh-nho .bx-nhan .av{width:22px;height:22px;border-radius:5px}',
-    '.kh-nho .bx-nhan .nm{font-size:9px}.kh-nho .bx-nhan .hg{font-size:11px}',
+    '.kh-nho .bx-nhan .nm{font-size:9.5px;line-height:12px}.kh-nho .bx-nhan .hg{font-size:11px}',
     '.kh-nho .bx-nhan .ch{font-size:9.5px}.kh-nho .bx-nhan .d2{min-height:26px}',
     '.kh-nho .bx-title{left:10px;top:7px}.kh-nho .bx-title .hz{font-size:18px}.kh-nho .bx-title .vz{font-size:11px}',
     '.kh-nho .bx-sub{top:28px;left:11px;font-size:9.5px}',
@@ -491,7 +499,7 @@ function injectStyle() {
     //   sát mép khung nên bề rộng phải ≤ 112px mới lọt. Lấy 108 cho có lề.
     '  .bx-nhan{padding:3px 6px;gap:5px;width:108px}',
     '  .bx-nhan .av{width:24px;height:24px;border-radius:6px}',
-    '  .bx-nhan .nm{font-size:9px}.bx-nhan .hg{font-size:10.5px}.bx-nhan .ch{font-size:9.5px}',
+    '  .bx-nhan .nm{font-size:9px;line-height:11px}.bx-nhan .hg{font-size:10.5px}.bx-nhan .ch{font-size:9.5px}',
     '  .bx-nhan .d2{flex-direction:column;align-items:flex-start;gap:0;min-height:27px}',
     '  .bx-nhan .hg{max-width:100%}.bx-nhan .ch{margin-left:0}',
     '  .bxp-wrap{padding:8px}.bxp{padding:10px 10px 9px}.bxp-top b{font-size:14px}',
@@ -1799,6 +1807,25 @@ var nhanBan = true;
 //     riêng nhà Bắc thì phía trên rộng rãi nên giữ 'tren' (đè bài 0).
 var HUONG_NGANG = ['duoi', 'phai', 'trenPhai', 'trai'];
 var HUONG_DOC = ['duoi', 'duoi', 'tren', 'duoi'];
+/**
+ * Rút cỡ chữ TÊN cho vừa bề rộng thẻ (thẻ khoá cứng nên tên bốn chữ như "Nam Cung Liệt Hỏa" không
+ * lọt). Cắt đuôi "…" thì mất tên — người chơi cần đọc ĐỦ tên đối thủ. Chiều cao dòng khoá bằng px
+ * nên rút chữ KHÔNG làm hộp đổi cỡ. Tên cố định cả phiên ⇒ rút một lần rồi thôi (vòng lặp thoát
+ * ngay ở lần gọi sau vì đã vừa).
+ */
+function vuaTen(el, kho) {
+  var nm = el.querySelector('.nm');
+  if (!nm) return;
+  // Đổi khổ ⇒ cỡ chữ gốc khác ⇒ phải trả về cỡ CSS rồi rút lại, không thì giữ nguyên cỡ đã rút
+  // của khổ cũ (đổi từ điện thoại sang máy bàn là tên bé tí).
+  if (nm.dataset.kho !== kho) { nm.dataset.kho = kho; nm.style.fontSize = ''; }
+  for (var i = 0; i < 8 && nm.scrollWidth > nm.clientWidth + 1; i++) {
+    var cx = parseFloat(getComputedStyle(nm).fontSize) || 10.5;
+    if (cx <= 8) break;                 // sàn 8px: nhỏ hơn nữa là đọc không ra, thà cắt một chữ
+    nm.style.fontSize = (cx - 0.5) + 'px';
+  }
+}
+
 function huongNhan(s, rw, rh) {
   if (!BC.nhanGoc) return BC.nhanCho(s);            // hai kiểu bày kia tự khai hướng của mình
   return (rw < rh ? HUONG_DOC : HUONG_NGANG)[s];
@@ -1832,9 +1859,12 @@ function datNhan() {
   // Mép trên của dải hàng nút dưới cùng. ⚠ ĐO từ chính `.bx-act` là SAI: hàng nút bị ẩn lúc so
   // chi ⇒ số đo đổi giữa ván ⇒ thẻ đổi hướng giữa ván, đúng cái "bay" mà user bác. Lấy HẰNG SỐ
   // theo cỡ chữ của từng khổ — dải đó vốn cố định.
-  var dayAct = rh - (root.classList.contains('kh-nho') ? 46 : 66);
+  var khNho = root.classList.contains('kh-nho');
+  var dayAct = rh - (khNho ? 46 : 66);
+  var khoChu = khNho ? 'n' : (rw < rh ? 'd' : 'b');   // ba khổ, ba cỡ chữ gốc khác nhau
   for (s = 0; s < 4; s++) {
     var el = nhanEl[s], kh = khoi[s];
+    vuaTen(el, khoChu);               // tên dài phải CO LẠI cho vừa, đừng cắt cụt
     var rr = el.getBoundingClientRect();
     var w = rr.width || 90, h = rr.height || 40;
     var uu = huongNhan(s, rw, rh);
