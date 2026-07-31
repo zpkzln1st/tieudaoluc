@@ -1131,6 +1131,7 @@ function mountTienLen(host, opts) {
     DAI_TREN = doc ? 44 : 0;
     DAI_DUOI = doc ? 150 : 0;
     var z = sph.zoom || 1; target.set(0, 0, 0); canKhung(); donDaiTren(); sph.zoom = z; updCam();
+    chotHopBai();                        // camera đổi ⇒ hộp bài chiếu ra màn đổi ⇒ đo lại
     datCur();                            // đổi khổ ⇒ tiêu đề đổi cỡ ⇒ khoảng trống của pill đổi
   }
 
@@ -1203,6 +1204,31 @@ function mountTienLen(host, opts) {
       y: (-v.y * 0.5 + 0.5) * scEl.clientHeight + scEl.offsetTop
     };
   }
+  /** Hộp bao bài của nhà `s` trên màn (px theo `root`). */
+  function hopBai(s) {
+    var g = handGroups[s]; if (!camera || !g || !g.children.length) return null;
+    var w = scEl.clientWidth, h = scEl.clientHeight, v = new THREE.Vector3();
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    var goc = [[-CW / 2, 0, -CH / 2], [CW / 2, 0, -CH / 2], [-CW / 2, 0, CH / 2], [CW / 2, 0, CH / 2]];
+    for (var i = 0; i < g.children.length; i++) {
+      var m = g.children[i];
+      for (var k = 0; k < 4; k++) {
+        v.set(goc[k][0], goc[k][1], goc[k][2]); m.localToWorld(v); v.project(camera);
+        var qx = (v.x * 0.5 + 0.5) * w + scEl.offsetLeft, qy = (-v.y * 0.5 + 0.5) * h + scEl.offsetTop;
+        if (qx < x0) x0 = qx; if (qx > x1) x1 = qx;
+        if (qy < y0) y0 = qy; if (qy > y1) y1 = qy;
+      }
+    }
+    return { x0: x0, y0: y0, x1: x1, y1: y1 };
+  }
+  /**
+   * Hộp bài lúc ĐỦ LÁ, chốt một lần ngay sau khi chia xong. Bài chỉ VƠI ĐI trong ván nên thẻ né
+   * được hộp này là né được suốt ván — mà thẻ thì đứng yên, không bám theo số lá còn lại.
+   * ⚠ Đừng đo trong lúc bài đang bay: hộp lúc đó là hộp giữa bàn.
+   */
+  var hopDay = [];
+  function chotHopBai() { for (var s = 1; s < 4; s++) hopDay[s] = hopBai(s); }
+
   function datSeat() {
     if (!camera || !seatEls[1]) return;
     var rc = { w: scEl.clientWidth, h: scEl.clientHeight }, hep = rc.w < 620;
@@ -1214,6 +1240,10 @@ function mountTienLen(host, opts) {
         //   chrome nên bàn nằm thấp — lấy theo cả khung là thẻ tên trôi lên trên, rời hẳn bài.
         px = SEAT_CO_DINH[s].x * rc.w;
         py = DAI_TREN + SEAT_CO_DINH[s].y * Math.max(80, rc.h - DAI_TREN - DAI_DUOI);
+        // ⚠ Tỉ lệ cứng đoán không nổi: máy 360×800 (khung 336×686) thẻ nhà bên phải vẫn cấn
+        //   190 px² vào chính cột bài của họ, máy 412 thì hở đúng 2px. ĐO hộp bài (chốt lúc đủ
+        //   lá) rồi treo thẻ lên TRÊN nó — số nào cũng đúng, mà vẫn đứng yên vì hộp đã chốt.
+        if (hopDay[s]) py = Math.min(py, hopDay[s].y0 - h / 2 - 14);
       } else {
         var v = SEAT_ANCHOR[s].clone().project(camera);
         px = (v.x * 0.5 + 0.5) * rc.w; py = (-v.y * 0.5 + 0.5) * rc.h;
@@ -1456,6 +1486,8 @@ function mountTienLen(host, opts) {
     var chia = function () {
       chiaBaiAnim();
       capNhatSeat(); capNhatCur(); capNhatNut();
+      // Chốt hộp bài SAU khi bài bay xong (đo lúc đang bay là ra hộp giữa bàn), rồi treo lại thẻ.
+      setTimeout(function () { chotHopBai(); datSeat(); }, tucThi ? 60 : 1200);
       setTimeout(function () {
         npcNoi(1 + Math.floor(rnd() * 3), 'vao', true);
         toast(luot === 0 ? 'Bạn cầm Ba Bích — mở lượt, bộ đầu phải có lá này.' : CUA[luot].ten + ' cầm Ba Bích, mở lượt.');
@@ -1732,6 +1764,23 @@ function mountTienLen(host, opts) {
     window.__tl = {
       renderer: renderer, camera: camera, scene: scene, handGroups: handGroups,
       CW: CW, CH: CH, root: root, scEl: scEl,
+      /** Hộp bao bài của nhà `s` trên màn (px theo `root`) — trang đo kiểm thẻ tên có đè không. */
+      hopTay: function (s) {
+        var g = handGroups[s]; if (!g || !g.children.length) return null;
+        var w = scEl.clientWidth, h = scEl.clientHeight, v = new THREE.Vector3();
+        var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+        for (var i = 0; i < g.children.length; i++) {
+          var m = g.children[i];
+          [[-CW / 2, 0, -CH / 2], [CW / 2, 0, -CH / 2], [-CW / 2, 0, CH / 2], [CW / 2, 0, CH / 2]].forEach(function (p) {
+            v.set(p[0], p[1], p[2]); m.localToWorld(v); v.project(camera);
+            var qx = (v.x * 0.5 + 0.5) * w + scEl.offsetLeft, qy = (-v.y * 0.5 + 0.5) * h + scEl.offsetTop;
+            if (qx < x0) x0 = qx; if (qx > x1) x1 = qx;
+            if (qy < y0) y0 = qy; if (qy > y1) y1 = qy;
+          });
+        }
+        return { x0: x0, y0: y0, x1: x1, y1: y1 };
+      },
+      seatEls: seatEls,
       /** Cỡ một lá trên tay mình, quy ra ĐIỂM ẢNH THẬT của máy. */
       coLa: function () {
         var g = handGroups[0]; if (!g || !g.children.length) return null;

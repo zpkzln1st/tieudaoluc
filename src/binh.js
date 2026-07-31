@@ -183,7 +183,12 @@ function mountBinh(host, opts) {
   opts = opts || {};
   var cuoc = opts.cuoc || 1000;
   var rnd = opts.seed ? B.mulberry32(opts.seed) : Math.random;
-  var CUA = [{ ten: (opts.nguoiChoi && opts.nguoiChoi.ten) || 'Bạn' }];
+  // ⚠ Giữ cả `art` của người chơi: bảng tổng kết và thẻ tên cần chân dung, trước đây bỏ đi nên
+  // cột của mình trơ mỗi chữ "Bạn" (user chê nhạt 2026-07-31).
+  var CUA = [{
+    ten: (opts.nguoiChoi && opts.nguoiChoi.ten) || 'Bạn',
+    art: (opts.nguoiChoi && opts.nguoiChoi.art) || ''
+  }];
   for (var q = 0; q < 3; q++) {
     var d = (opts.doiThu && opts.doiThu[q]) || {};
     CUA.push({ ten: d.ten || ('Nhà ' + TAY[q + 1]), bietHieu: d.bietHieu || '', art: d.art || '' });
@@ -432,6 +437,12 @@ function injectStyle() {
     '.bxp.hep .bxp-tag{width:auto;text-align:left;display:flex;align-items:baseline;gap:8px}',
     '.bxp.hep .bxp-tag b{display:inline;font-size:11px}',
     '.bxp.hep .bxp-hang{margin-top:0}',
+    // Chip THƯỞNG CHI — vàng, DÒNG RIÊNG ngay dưới chip hạng bài (cột nhãn chỉ 92px, để chung
+    // một dòng với "Thùng Phá Sảnh" là bị xén mất — chụp thấy).
+    '.bxp-thg{display:block;margin-top:4px;padding:2px 6px;border-radius:99px;',
+    '  font-family:var(--serif);font-size:9.5px;font-weight:700;line-height:1.35;white-space:nowrap;',
+    '  color:#f4d99a;background:rgba(230,192,121,.12);border:1px solid rgba(230,192,121,.5)}',
+    '.bxp.hep .bxp-thg{display:inline-block;margin-top:0}',
     // Chip hạng bài — màu + quầng leo dần theo bậc. Cho xuống dòng được: "Thùng Phá Sảnh"
     // dài hơn cột nhãn, để nowrap thì nó thò hẳn ra ngoài popup.
     '.bxp-hang{display:inline-block;margin-top:5px;padding:2px 5px;border-radius:99px;',
@@ -469,11 +480,14 @@ function injectStyle() {
     // ⚠ MÀN DỌC: thẻ nằm NGANG (hạng bài và số chi chung một dòng) là bề rộng ăn 148px, mà khe
     //   nỉ giữa hai khối bài chỉ ~137px ⇒ đặt đâu cũng cấn vào bài (đo được 440–499 px²).
     //   User chốt 2026-07-31: màn dọc cho thẻ XUỐNG BA DÒNG — tên · tên bài · ăn/mất mấy chi.
-    //   Cao thêm một dòng nhưng HẸP còn 128px, lọt hẳn vào khe: đo lại đè bài 0 cả bốn nhà.
-    '  .bx-nhan{padding:3px 7px;gap:6px;width:128px}',
-    '  .bx-nhan .av{width:27px;height:27px;border-radius:6px}',
-    '  .bx-nhan .nm{font-size:9.5px}.bx-nhan .hg{font-size:11.5px}.bx-nhan .ch{font-size:10px}',
-    '  .bx-nhan .d2{flex-direction:column;align-items:flex-start;gap:0;min-height:29px}',
+    //   ⚠ 108px chứ không phải 128: máy HẸP mới lộ ra. Đo ba khổ (360 · 412 · 450):
+    //   ở 360×800 (khung 336px) thẻ 128px còn đè 598–694 px² lên khối bài nhà mình — user chụp
+    //   được và bảo "cắt bớt phần thừa". Chặn trên là mép trái khối bài Nam: thẻ nhà Tây ghim
+    //   sát mép khung nên bề rộng phải ≤ 112px mới lọt. Lấy 108 cho có lề.
+    '  .bx-nhan{padding:3px 6px;gap:5px;width:108px}',
+    '  .bx-nhan .av{width:24px;height:24px;border-radius:6px}',
+    '  .bx-nhan .nm{font-size:9px}.bx-nhan .hg{font-size:10.5px}.bx-nhan .ch{font-size:9.5px}',
+    '  .bx-nhan .d2{flex-direction:column;align-items:flex-start;gap:0;min-height:27px}',
     '  .bx-nhan .hg{max-width:100%}.bx-nhan .ch{margin-left:0}',
     '  .bxp-wrap{padding:8px}.bxp{padding:10px 10px 9px}.bxp-top b{font-size:14px}',
     // Bảng tổng kết: cột hẹp nên chữ và ảnh phải nhỏ lại, không thì "Thùng Phá Sảnh" vỡ ba dòng.
@@ -1127,8 +1141,12 @@ function vePopup() {
   var h = '<div class="bxp-chong">';
   for (var k = 1; k <= 3; k++) {
     var dg = khu[k].length === SUC[k] ? B.danhGia(khu[k]) : null;
+    // Thưởng chi của bộ lớn (Xám chi 3 · Cù Lũ 2 · Tứ Quý 8 · Thùng Phá Sảnh 10) — người chơi
+    // phải THẤY nó lúc còn đang xếp thì mới cân nhắc được, chứ chấm xong rồi mới biết thì muộn.
+    var thg = dg ? B.thuongChi(k - 1, dg) : 0;
     h += '<div class="bxp-chi">' +
-      '<span class="bxp-tag"><b>' + kh[k] + '</b>' + hangHTML(dg) + '</span>' +
+      '<span class="bxp-tag"><b>' + kh[k] + '</b>' + hangHTML(dg) +
+      (thg ? '<span class="bxp-thg">+' + thg + ' chi</span>' : '') + '</span>' +
       '<div class="bxp-r r' + k + '" data-khu="' + k + '">' +
       khu[k].map(function (c) { return laHTML(c, laChon === c ? 'sel' : ''); }).join('') +
       '</div></div>';
@@ -1144,10 +1162,13 @@ function vePopup() {
   else c.textContent = 'Kéo một lá thả sang lá khác để đổi chỗ';
   c.classList.toggle('xau', !!lung);
   p.querySelector('[data-a="binh"]').className = 'bx-btn pri' + (du && !lung ? '' : ' dis');
-  var mb = B.mauBinh(hands[0]);
+  // Mậu Binh có HAI đường: theo 13 lá (bốc được là có, xếp kiểu gì cũng ăn) và theo CÁCH XẾP
+  // (Ba Thùng / Ba Sảnh — phải tự binh ra mới có). Đường thứ hai trước đây không hiện ở đâu cả,
+  // người chơi xếp trúng mà không biết (user hỏi 2026-07-31).
+  var mb = B.mauBinh(hands[0]) || (du && !lung ? B.mauBinhXep(khu[1], khu[2], khu[3]) : null);
   var mbEl = p.querySelector('.bxp-mb');
   mbEl.style.display = mb ? '' : 'none';
-  if (mb) mbEl.innerHTML = '<b>' + mb.ten + '</b> — ' + mb.mo + ' (ăn ' + mb.chi + ' chi mỗi nhà)';
+  if (mb) mbEl.innerHTML = '<b>' + mb.ten + '</b> — ' + mb.mo + ' (ăn trắng ' + mb.chi + ' chi mỗi nhà)';
 }
 /**
  * Cỡ lá trong bảng Xếp Bài — ĐO khung rồi tính, không đoán bằng media query.
@@ -1524,29 +1545,38 @@ function hienTong() {
   el.className = 'bx-end ' + (toi > 0 ? 'win' : toi < 0 ? 'lose' : 'hoa');
   el.querySelector('.bt').textContent = toi > 0 ? 'Ăn ' + toi + ' Chi' : toi < 0 ? 'Chung ' + (-toi) + ' Chi' : 'Hoà Cả Làng';
   var mb = kqVan.mb[0];
-  el.querySelector('.bs').textContent = kqVan.lung[0] ? 'Binh lủng — thua sạch ba chi với cả làng.'
-    : mb ? (mb.ten + ' — ' + mb.mo) : '';
+  // Dòng phụ: nói rõ AI binh được cái gì, đừng thả trơ tên bộ (user chê nhạt 2026-07-31).
+  el.querySelector('.bs').innerHTML = kqVan.lung[0] ? 'Binh lủng — thua sạch ba chi với cả làng.'
+    : mb ? (CUA[0].ten + ' binh được <b style="color:var(--gold2)">' + mb.ten + '</b> — ' + mb.mo +
+      ' Ăn trắng ' + mb.chi + ' chi mỗi nhà.') : '';
 
   // bảng LƯỚI: hàng = ba chi, cột = bốn nhà. Nhìn phát thấy ngay chi nào ăn chi nào thua.
   var CHI_TEN = ['Chi Đầu', 'Chi Giữa', 'Chi Cuối'];
   var h = '<tr><th></th>';
   for (var s3 = 0; s3 < 4; s3++) {
     // Chân dung trên đầu cột: nhìn mặt là biết cột nào của ai, khỏi phải đọc tên bị cắt cụt.
-    var av3 = (s3 > 0 && CUA[s3].art) ? '<img class="av" src="' + CUA[s3].art + '" alt="" onerror="this.remove()">' : '';
+    // Cột của mình cũng có chân dung + TÊN NHÂN VẬT (không còn trơ chữ "Bạn").
+    var av3 = CUA[s3].art ? '<img class="av" src="' + CUA[s3].art + '" alt="" onerror="this.remove()">' : '';
     h += '<th class="' + (s3 === 0 ? 'me' : '') + '">' + av3 +
-      '<span class="nm">' + (s3 === 0 ? 'Bạn' : CUA[s3].ten) + '</span></th>';
+      '<span class="nm">' + CUA[s3].ten + '</span></th>';
   }
   h += '</tr>';
   for (var r = 0; r < 3; r++) {
     h += '<tr><td class="lb">' + CHI_TEN[r] + '</td>';
     for (var s4 = 0; s4 < 4; s4++) {
-      var d = kqVan.dg[s4], n = 0, txt = '—';
-      if (d && !kqVan.mb[s4] && !kqVan.lung[s4]) {
+      var d = kqVan.dg[s4], n = 0, txt = '—', duoi = '';
+      var thuong = kqVan.mb[s4] || kqVan.lung[s4];    // ăn trắng / binh lủng: không so từng chi
+      if (d && !thuong) {
         n = netChiCua(s4, r);       // DÙNG CHUNG công thức với thẻ, không thì hai chỗ lệch nhau
         txt = '<span style="color:' + MAU_HANG[d[r].hang] + '">' + B.tenHang(d[r]) + '</span>';
+        duoi = '<b class="' + (n > 0 ? 'pos' : n < 0 ? 'neg' : '') + '">' + (n > 0 ? '+' : '') + n + '</b>';
+      } else if (d) {
+        // ⚠ Trước đây ba ô này chỉ là dấu gạch ngang — user: "khó nhìn lắm". Nhà ăn trắng vẫn có
+        //   bài tử tế, cứ hiện hạng của từng chi; chỗ điểm ghi lý do thay vì con số.
+        txt = '<span style="color:' + MAU_HANG[d[r].hang] + '">' + B.tenHang(d[r]) + '</span>';
+        duoi = '<b class="' + (kqVan.mb[s4] ? 'pos' : 'neg') + '">' + (kqVan.mb[s4] ? 'ăn trắng' : 'lủng') + '</b>';
       }
-      h += '<td class="' + (s4 === 0 ? 'me' : '') + '">' + txt +
-        (d && !kqVan.mb[s4] && !kqVan.lung[s4] ? '<b class="' + (n > 0 ? 'pos' : n < 0 ? 'neg' : '') + '">' + (n > 0 ? '+' : '') + n + '</b>' : '') + '</td>';
+      h += '<td class="' + (s4 === 0 ? 'me' : '') + '">' + txt + duoi + '</td>';
     }
     h += '</tr>';
   }
@@ -1590,7 +1620,7 @@ function taoNhan() {
     d.className = 'bx-nhan';
     // Chân dung Danh Sĩ ngay trong thẻ — nhìn mặt là biết đang so với ai, khỏi đọc tên.
     // Nhà mình không có art nên thẻ chỉ có chữ (flex tự co lại, không để ô trống).
-    d.innerHTML = (s > 0 && CUA[s].art
+    d.innerHTML = (CUA[s].art
       ? '<img class="av" src="' + CUA[s].art + '" alt="" onerror="this.remove()">' : '') +
       // ⚠ ĐÚNG HAI DÒNG, không hơn (user chốt 2026-07-31): tên nhân vật · tên bài + ăn/mất mấy chi.
       // Dòng phụ cũ ("Thưởng bộ…", "Sâm Banh…", "Bị sập bởi…") làm thẻ nở thêm dòng giữa lúc so chi
