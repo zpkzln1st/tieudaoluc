@@ -2687,7 +2687,9 @@
                   <button @click="$store.game.closeBoPhap()" class="w-7 h-7 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400">✕</button>
                 </div>
                 <div class="text-[11px] text-slate-400 mb-3">Chọn <b class="text-slate-200">1–2</b> Bộ Pháp: mỗi bộ rèn một Tứ Trụ; chọn 2 thì luyện cả hai, hiệu ứng cộng dồn.</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <!-- auto-rows-fr: hàng cuối ít thẻ hơn nên vốn thấp hơn hai hàng trên 15px,
+                     nhìn ra ngay là thẻ to thẻ nhỏ. Ép mọi hàng cao bằng nhau. -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 auto-rows-fr">
                   <template x-for="b in $store.game.BO_PHAP" :key="b.id">
                     <button @click="$store.game.toggleBoPhap(b.id)" class="text-left rounded-lg border p-3 transition flex gap-3" :class="$store.game.boPhapOn(b.id)?'border-jade bg-jade/10':'border-slate-700 bg-ink3 hover:border-slate-500'">
                       <div class="relative w-14 h-14 rounded-md overflow-hidden border shrink-0" :class="$store.game.boPhapOn(b.id)?'border-jade/70':'border-slate-700'">
@@ -2699,14 +2701,20 @@
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
                           <span class="font-semibold text-sm" :class="$store.game.boPhapOn(b.id)?'text-jade':'text-slate-200'" x-text="b.name"></span>
                           <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700/70 text-slate-300" x-text="b.gloss"></span>
-                          <span x-show="$store.game.boPhapOn(b.id)" class="ml-auto text-jade text-[11px] font-bold whitespace-nowrap">✓ Đang dùng</span>
                         </div>
                         <div class="text-[11px] mb-1 leading-snug"><span class="text-jade">✦ <span x-text="b.pros.join(' · ')"></span></span></div>
                         <div class="text-[11px] mb-1 leading-snug text-rose-300">✗ <span x-text="b.cons.join(' · ')"></span></div>
                         <!-- cắt còn 2 dòng: câu lore dài ngắn không đều, để nguyên thì thẻ so le nhau
                              và cả bảng dài thêm hẳn một hàng -->
                         <div class="text-[11px] text-slate-400 leading-snug line-clamp-2" :title="b.desc" x-text="b.desc"></div>
-                        <div class="text-[10px] text-slate-500 mt-1.5">Rèn Tứ Trụ: <b class="text-slate-300" x-text="$store.game.STATS[b.stat].name"></b></div>
+                        <!-- ⚠ "Đang dùng" neo vào ĐÂY chứ không nằm ở hàng tiêu đề: hàng tiêu đề
+                             `flex-wrap` nên nhãn bị đẩy xuống dòng riêng tuỳ độ dài TÊN từng bộ ⇒ thẻ
+                             đang chọn cao hơn thẻ thường, mà mỗi bộ nhãn rơi một chỗ. Hàng "Rèn Tứ Trụ"
+                             thì thẻ nào cũng có và luôn ngắn ⇒ chỗ treo cố định, không đội cao thẻ. -->
+                        <div class="text-[10px] text-slate-500 mt-1.5 flex items-center gap-2">
+                          <span class="min-w-0 truncate">Rèn Tứ Trụ: <b class="text-slate-300" x-text="$store.game.STATS[b.stat].name"></b></span>
+                          <span x-show="$store.game.boPhapOn(b.id)" class="ml-auto shrink-0 text-jade text-[10px] font-bold whitespace-nowrap">✓ Đang dùng</span>
+                        </div>
                       </div>
                     </button>
                   </template>
