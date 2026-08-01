@@ -4045,12 +4045,16 @@
                   <div class="text-jade font-bold fserif mb-3">Ảnh Đại Diện</div>
                   <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
                     <template x-for="av in $store.game.AVATARS" :key="'shop-av-'+av.id">
-                      <div x-data="{ok:false}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
+                      <!-- ⚠ ok BẮT ĐẦU LÀ true: trước đây `{ok:false}` + `@load="ok=true"` nghĩa là
+                           thẻ nằm `display:none` cho tới khi ảnh tải xong. Ảnh lại để `loading="lazy"`
+                           mà ảnh trong hộp ẩn thì trình duyệt hoãn tải ⇒ vào Thương Điếm thấy TRỐNG TRƠN,
+                           đổi tab một cái là đếm lại từ đầu. Nay hiện ngay, chỉ ô nào THIẾU ART mới tự ẩn. -->
+                      <div x-data="{ok:true}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
                         <!-- Ô ảnh vốn KHÔNG bấm được (chỉ nút Mua) -> cho bấm luôn để xem lớn.
                              Báo hiệu bằng con trỏ zoom-in + tooltip, KHÔNG thêm icon kính lúp. -->
                         <div class="aspect-square overflow-hidden bg-ink3 cursor-zoom-in" title="Bấm để xem ảnh lớn"
                              @click="$store.game.openLightbox(av.id, '容', av.name, `images/avatars/${av.id}.webp`)">
-                          <img loading="lazy" decoding="async" :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center transition duration-200 group-hover:brightness-110" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
+                          <img loading="lazy" decoding="async" :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center transition duration-200 group-hover:brightness-110" @error="ok=false">
                         </div>
                         <div class="p-2">
                           <div class="text-[12px] font-medium truncate text-slate-200" x-text="av.name"></div>
@@ -4076,10 +4080,14 @@
                   <div class="text-jade font-bold fserif mb-3">Ảnh Bìa</div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <template x-for="cv in $store.game.COVERS" :key="'shop-cv-'+cv.id">
-                      <div x-data="{ok:false}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
+                      <!-- ⚠ ok BẮT ĐẦU LÀ true: trước đây `{ok:false}` + `@load="ok=true"` nghĩa là
+                           thẻ nằm `display:none` cho tới khi ảnh tải xong. Ảnh lại để `loading="lazy"`
+                           mà ảnh trong hộp ẩn thì trình duyệt hoãn tải ⇒ vào Thương Điếm thấy TRỐNG TRƠN,
+                           đổi tab một cái là đếm lại từ đầu. Nay hiện ngay, chỉ ô nào THIẾU ART mới tự ẩn. -->
+                      <div x-data="{ok:true}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
                         <div class="aspect-[16/9] overflow-hidden bg-black/40 cursor-zoom-in" title="Bấm để xem ảnh lớn"
                              @click="$store.game.openLightbox(cv.id, '幀', cv.name, `images/avatars/${cv.id}.webp`)">
-                          <img loading="lazy" decoding="async" :src="`images/avatars/${cv.id}.webp`" class="w-full h-full object-cover transition duration-200 group-hover:brightness-110" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
+                          <img loading="lazy" decoding="async" :src="`images/avatars/${cv.id}.webp`" class="w-full h-full object-cover transition duration-200 group-hover:brightness-110" @error="ok=false">
                         </div>
                         <div class="p-2.5">
                           <div class="text-[12.5px] font-medium truncate text-slate-200" x-text="cv.name"></div>
