@@ -3944,13 +3944,16 @@ const gameStore = {
     this.buyVatPham(this.muaModal.id, this.muaQty);
     this.closeMua();
   },
+  /** Trả { n, bac } đã bán được — chỗ gọi cần con số THẬT để báo, đừng tự nhân lại. */
   sellItem(itemId, qty) {
     const have = this.state.inventory[itemId] || 0;
     qty = Math.min(qty, have);
-    if (qty <= 0) return;
-    this.state.currencies.bac += (this.ITEMS[itemId]?.value || 0) * qty;
+    if (qty <= 0) return { n: 0, bac: 0 };
+    const bac = (this.ITEMS[itemId]?.value || 0) * qty;
+    this.state.currencies.bac += bac;
     removeItem(this.state, itemId, qty);
     Storage.save(this.state);
+    return { n: qty, bac };
   },
   // ---------- Gộp trang bị TRƠN thành một ô có số lượng ----------
   /** Món "trơn" = không có DÒNG CHỈ SỐ nào và chưa cường hoá ⇒ mọi cái giống hệt nhau. */
@@ -3983,18 +3986,21 @@ const gameStore = {
   },
   /** Số món trong chồng của item đang mở ở popup (1 = không phải chồng). */
   get itemModalStackN() { const r = this.itemModal; return typeof r === 'string' ? this.gearStackUids(r).length : 0; },
-  /** Bán `n` món trong chồng trơn. Trả số món đã bán. */
+  /** Bán `n` món trong chồng trơn. Trả { n, bac } đã bán được. */
   sellGearStack(uid, n) {
     const uids = this.gearStackUids(uid);
     const so = Math.max(1, Math.min(Math.floor(n) || 1, uids.length));
-    for (let i = 0; i < so; i++) this.sellGear(uids[i]);
-    return so;
+    let bac = 0;
+    for (let i = 0; i < so; i++) bac += this.sellGear(uids[i]);
+    return { n: so, bac };
   },
-  sellGear(uid) {                                  // bán 1 instance gear (theo uid trong túi)
+  sellGear(uid) {                                  // bán 1 instance gear (theo uid trong túi) -> Bạc thu được
     const inst = removeGearByUid(this.state, uid);
-    if (!inst) return;
-    this.state.currencies.bac = (this.state.currencies.bac || 0) + ((this.ITEMS[inst.gearId] || {}).value || 0);
+    if (!inst) return 0;
+    const bac = (this.ITEMS[inst.gearId] || {}).value || 0;
+    this.state.currencies.bac = (this.state.currencies.bac || 0) + bac;
     Storage.save(this.state);
+    return bac;
   },
   // Khoe gear rơi — chỉ Hiếm trở lên (tránh spam Thường/Tốt).
   notifyGearDrop(inst) {
@@ -4417,15 +4423,26 @@ const gameStore = {
   equipSlotLabel(slot) { const s = (this.EQUIP_SLOTS || []).find((x) => x.id === slot) || (this.TOOL_SLOTS || []).find((x) => x.id === slot); return s ? s.name : slot; },
   statLabel(k) { return ({ congKich: 'Công Kích', hoThe: 'Hộ Thể', neTranh: 'Né Tránh', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực', baoKich: 'Bạo Kích', baoSat: 'Sát Thương Bạo Kích', tocDo: 'Tốc Độ', thanPhap: 'Thân Pháp', linhXao: 'Linh Xảo', lucDao: 'Lực Đạo', noiLuc: 'Nội Lực', khangKim: 'Phòng Thủ Vật Lý', khangMoc: 'Kháng Độc', khangThuy: 'Kháng Băng', khangHoa: 'Kháng Hỏa', khangTho: 'Kháng Lôi', khangAll: 'Kháng Tất Cả',
     giamNgat: 'Thời Gian Phục Hồi', giamCham: 'Giảm Thời Gian Làm Chậm', giamDoc: 'Giảm Thời Gian Trúng Độc', giamBong: 'Giảm Thời Gian Bị Bỏng', giamChoang: 'Giảm Thời Gian Choáng', tangCong: 'Kĩ Năng Vốn Có', tangExp: 'Tăng EXP Chiến Đấu' })[k] || k; },
+  /** Báo đã bán — số lượng + Bạc THẬT thu được. Bán mà không báo thì không biết được bao nhiêu. */
+  baoDaBan(ten, n, bac) {
+    if (!n) return;
+    this.showToast('Đã bán ' + (n > 1 ? this.fmt(n) + ' ' : '') + '〈' + ten + '〉 · +' + this.fmt(bac) + ' Bạc');
+  },
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) {
     const ref = this.itemModal; if (!ref) return;
+    // ⚠ Lấy TÊN trước khi bán — bán xong instance đã bị gỡ khỏi túi, tra lại là mất tên.
     if (findGear(this.state, ref)) {
-      const n = this.sellGearStack(ref, qty);      // món trơn xếp chồng -> bán được cả chồng một nhát
-      if (n > 1) this.showToast('Đã bán ' + this.fmt(n) + ' món.');
+      const g = findGear(this.state, ref);
+      const ten = (this.ITEMS[g.gearId] || {}).name || 'trang bị';
+      const r = this.sellGearStack(ref, qty);      // món trơn xếp chồng -> bán cả chồng một nhát
+      this.baoDaBan(ten, r.n, r.bac);
       this.closeItemModal(); return;
     }
-    this.sellItem(ref, qty); if (!(this.state.inventory[ref] > 0)) this.closeItemModal();
+    const ten = (this.ITEMS[ref] || {}).name || 'vật phẩm';
+    const r = this.sellItem(ref, qty);
+    this.baoDaBan(ten, r.n, r.bac);
+    if (!(this.state.inventory[ref] > 0)) this.closeItemModal();
   },
 
   // ---------- Dev / Admin (offline) — cổng mật khẩu F9 ----------
