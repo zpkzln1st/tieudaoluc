@@ -3922,6 +3922,18 @@ const gameStore = {
     const tran = Math.max(1, this.muaToiDa);      // hết Bạc thì vẫn cho về 1 để nút tự mờ đi
     this.muaQty = Math.max(1, Math.min(Math.floor(n) || 1, tran));
   },
+  /**
+   * GÕ THẲNG vào ô số. Khác `muaDatQty` ở chỗ CHO PHÉP RỖNG (qty = 0) — kẹp về 1 ngay
+   * mỗi lần gõ thì xoá trắng để nhập số mới là ô nhảy lại '1', không gõ nổi.
+   * Chỉ chặn TRẦN, không đôn lên; số 0 thì nút Mua tự mờ (muaDuBac đòi qty > 0).
+   */
+  muaNhap(v) {
+    const s = String(v == null ? '' : v).replace(/[^\d]/g, '');
+    if (!s) { this.muaQty = 0; return; }
+    this.muaQty = Math.min(parseInt(s, 10), Math.max(1, this.muaToiDa));
+  },
+  /** Rời ô / bấm Mua: đưa về số hợp lệ để không kẹt ở rỗng. */
+  muaChot() { if (!(this.muaQty > 0)) this.muaDatQty(1); },
   muaThemQty(d) { this.muaDatQty(this.muaQty + d); },
   xacNhanMua() {
     if (!this.muaModal || !this.muaDuBac) return;

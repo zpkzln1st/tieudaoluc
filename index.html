@@ -4159,9 +4159,14 @@
 
                 <div class="mt-3.5 flex items-center gap-2">
                   <button @click="$store.game.muaThemQty(-1)" class="w-8 h-8 shrink-0 rounded bg-ink3 border border-slate-700 hover:border-jade/50 text-slate-300">−</button>
-                  <input type="number" min="1" :max="$store.game.muaToiDa" :value="$store.game.muaQty"
-                         @input="$store.game.muaDatQty($event.target.value)"
-                         @keydown.enter="$store.game.xacNhanMua()"
+                  <!-- ⚠ `type=text` + `inputmode=numeric`: type=number đẻ ra hai mũi tên tăng giảm
+                       thừa (đã có nút −/+ rồi) và chặn ký tự theo kiểu riêng của từng trình duyệt.
+                       ⚠ `|| ''` để ô XOÁ TRẮNG ĐƯỢC — bind thẳng số thì gõ lại là nhảy về 1. -->
+                  <input type="text" inputmode="numeric" :value="$store.game.muaQty || ''"
+                         @input="$store.game.muaNhap($event.target.value)"
+                         @focus="$event.target.select()"
+                         @blur="$store.game.muaChot()"
+                         @keydown.enter="$store.game.muaChot(); $store.game.xacNhanMua()"
                          class="flex-1 min-w-0 h-8 text-center rounded bg-ink border border-slate-700 text-slate-100 text-sm">
                   <button @click="$store.game.muaThemQty(1)" class="w-8 h-8 shrink-0 rounded bg-ink3 border border-slate-700 hover:border-jade/50 text-slate-300">＋</button>
                 </div>
