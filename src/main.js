@@ -3952,6 +3952,44 @@ const gameStore = {
     removeItem(this.state, itemId, qty);
     Storage.save(this.state);
   },
+  // ---------- Gộp trang bị TRƠN thành một ô có số lượng ----------
+  /** Món "trơn" = không có DÒNG CHỈ SỐ nào và chưa cường hoá ⇒ mọi cái giống hệt nhau. */
+  gearTron(g) { return !!g && (!g.stats || Object.keys(g.stats).length === 0) && !(g.plus > 0); },
+  _khoaTron(g) { return g.gearId + '|' + g.quality + '|' + (g.he || ''); },
+  /**
+   * Công cụ làm nghề không roll chỉ số nên cả trăm cái Cuốc Thiếc y hệt nhau — để rời ra thì
+   * Hành Lý dài cả màn hình và phải bán từng cái một.
+   * ⚠ Món CÓ chỉ số thì mỗi cái mỗi khác (dòng phụ roll riêng), KHÔNG được gộp.
+   */
+  gomGearTron(views) {
+    const out = [], map = {};
+    for (const v of views) {
+      if (!this.gearTron(v)) { out.push(v); continue; }
+      const k = this._khoaTron(v);
+      if (map[k]) { map[k].qty++; continue; }
+      map[k] = { ...v, qty: 1 };
+      out.push(map[k]);
+    }
+    return out;
+  },
+  /** Mọi uid nằm cùng một chồng trơn với `uid`. Tính lại từ túi, không tin mảng đã dựng. */
+  gearStackUids(uid) {
+    const bag = this.state.gearBag || [];
+    const me = bag.find((g) => g && g.uid === uid);
+    if (!me) return [];
+    if (!this.gearTron(me)) return [uid];
+    const k = this._khoaTron(me);
+    return bag.filter((g) => this.gearTron(g) && this._khoaTron(g) === k).map((g) => g.uid);
+  },
+  /** Số món trong chồng của item đang mở ở popup (1 = không phải chồng). */
+  get itemModalStackN() { const r = this.itemModal; return typeof r === 'string' ? this.gearStackUids(r).length : 0; },
+  /** Bán `n` món trong chồng trơn. Trả số món đã bán. */
+  sellGearStack(uid, n) {
+    const uids = this.gearStackUids(uid);
+    const so = Math.max(1, Math.min(Math.floor(n) || 1, uids.length));
+    for (let i = 0; i < so; i++) this.sellGear(uids[i]);
+    return so;
+  },
   sellGear(uid) {                                  // bán 1 instance gear (theo uid trong túi)
     const inst = removeGearByUid(this.state, uid);
     if (!inst) return;
@@ -4177,9 +4215,9 @@ const gameStore = {
       const t = item.type || 'khac';
       (groups[t] = groups[t] || []).push({ ...item, qty });
     }
-    // Gear loot-hunt: instance trong túi -> nhóm "Trang Bị" (phẩm cao -> thấp).
-    const gear = (this.state.gearBag || []).map((inst) => this.gearView(inst)).filter(Boolean)
-      .sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.itemLv || 0) - (a.itemLv || 0));
+    // Gear loot-hunt: instance trong túi -> nhóm "Trang Bị" (phẩm cao -> thấp), món TRƠN gộp lại.
+    const gear = this.gomGearTron((this.state.gearBag || []).map((inst) => this.gearView(inst)).filter(Boolean)
+      .sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.itemLv || 0) - (a.itemLv || 0)));
     if (gear.length) groups['trangbi'] = (groups['trangbi'] || []).concat(gear);
     return Object.keys(groups).map((t) => ({
       type: t,
@@ -4362,7 +4400,11 @@ const gameStore = {
   // Bán nhanh từ popup chi tiết
   sellFromModal(qty) {
     const ref = this.itemModal; if (!ref) return;
-    if (findGear(this.state, ref)) { this.sellGear(ref); this.closeItemModal(); return; }
+    if (findGear(this.state, ref)) {
+      const n = this.sellGearStack(ref, qty);      // món trơn xếp chồng -> bán được cả chồng một nhát
+      if (n > 1) this.showToast('Đã bán ' + this.fmt(n) + ' món.');
+      this.closeItemModal(); return;
+    }
     this.sellItem(ref, qty); if (!(this.state.inventory[ref] > 0)) this.closeItemModal();
   },
 

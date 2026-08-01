@@ -5544,7 +5544,14 @@
                     </template>
                   </div>
                   <!-- Bán nhanh -->
-                  <template x-if="(m.value||0) > 0 && m.isGear">
+                  <!-- Món TRƠN xếp chồng: cho bán cả chồng, khỏi bấm từng cái -->
+                  <template x-if="(m.value||0) > 0 && m.isGear && $store.game.itemModalStackN > 1">
+                    <div class="flex gap-2">
+                      <button @click="$store.game.sellFromModal(1)" class="flex-1 py-1.5 rounded-lg text-[11.5px] font-bold bg-ink3 border border-slate-700 hover:border-gold text-slate-200 transition">Bán 1</button>
+                      <button @click="$store.game.sellFromModal($store.game.itemModalStackN)" class="sellbtn flex-1 py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)" x-text="'Bán hết '+$store.game.itemModalStackN+' món (+'+$store.game.fmt((m.value||0)*$store.game.itemModalStackN)+' Bạc)'"></button>
+                    </div>
+                  </template>
+                  <template x-if="(m.value||0) > 0 && m.isGear && $store.game.itemModalStackN <= 1">
                     <button @click="$store.game.sellFromModal(1)" class="sellbtn w-full py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)" x-text="'Bán (+'+$store.game.fmt(m.value||0)+' Bạc)'"></button>
                   </template>
                   <template x-if="(m.value||0) > 0 && !m.isGear">

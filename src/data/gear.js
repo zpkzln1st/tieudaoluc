@@ -100,7 +100,7 @@ export const GEAR = {};
   mkBac('eq_hoa_diem_chien_thu', 'Hỏa Diệm Chiến Thủ','gang', 6),
   mkBac('eq_loi_dinh_thu_sao',   'Lôi Đình Thủ Sáo',  'gang', 7),
   // ---- GIÀY (giay) ----
-  mkBac('eq_vai_giay',   'Vải Giày',   'giay', 1),
+  mkBac('eq_vai_giay',   'Giày Vải',   'giay', 1),   // ⚠ chỉ đổi TÊN HIỆN, giữ nguyên id vì id nằm trong save
   mkBac('eq_lang_ba_ly', 'Lang Ba Lý', 'giay', 2),
   mkBac('eq_tien_van_ly','Tiên Vân Lý','giay', 3),
   mkBac('eq_phi_van_ly', 'Phi Vân Lý', 'giay', 4),
