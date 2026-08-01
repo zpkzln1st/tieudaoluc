@@ -45,7 +45,8 @@ export function createInitialState() {
     activity: null,         // hoạt động đang chạy — gồm cả Khinh Công (type:'travel') — xem activity.js
     settings: { idleCapHours: 8 },
     login: { lastDay: null, streak: 0 },     // điểm danh
-    titles: { owned: ['soNhap'], equipped: 'soNhap' },   // Danh Hiệu: sở hữu + đang đeo (ensureTitles backfill khi load)
+    titles: { owned: [], equipped: null },   // Danh Hiệu: sở hữu + đang đeo. KHÔNG cho sẵn cái nào —
+                                             // 'Sơ Nhập Giang Hồ' nay là thưởng của chuỗi Nhiệm Vụ Tân Thủ.
     counters: { produced: {}, kills: {} },   // đếm chính xác cho nhiệm vụ
     quests: {
       tutorial: { index: 0, base: 0 },

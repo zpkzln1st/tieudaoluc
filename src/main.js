@@ -1595,6 +1595,9 @@ const gameStore = {
   setBadgeFx(skillId, fx) { if (!this.state.player.badgeFx) this.state.player.badgeFx = {}; this.state.player.badgeFx[skillId] = fx; Storage.save(this.state); },
   // -- Tân thủ --
   get tutAllDone() { return this.state.quests.tutorial.index >= this.TUTORIAL_QUESTS.length; },
+  // Danh hiệu thưởng cho việc xong TRỌN chuỗi Tân Thủ. Lấy theo ĐIỀU KIỆN chứ không ghim id —
+  // đổi danh hiệu thưởng trong data/titles.js thì bảng nhiệm vụ tự hiện theo.
+  get tutTitle() { return TITLES.find((t) => t.cond && t.cond.kind === 'tutorial') || null; },
   get tutQuest() { return this.TUTORIAL_QUESTS[this.state.quests.tutorial.index] || null; },
   get tutProgress() {
     const q = this.tutQuest; if (!q) return 0;

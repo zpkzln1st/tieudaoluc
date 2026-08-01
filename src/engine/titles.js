@@ -6,6 +6,7 @@ import { levelFromXp } from './leveling.js';
 import { codexCatDone } from './codex.js';
 import { CODEX_CATS } from '../data/codex.js';
 import { TITLES, TITLE_BY_ID } from '../data/titles.js';
+import { TUTORIAL_QUESTS } from '../data/quests.js';
 
 const QORDER = ['phamPham', 'luongPham', 'tinhPham', 'tuyetPham', 'truyenThe', 'thanPham', 'coBan'];
 const qRank = (q) => { const i = QORDER.indexOf(q); return i < 0 ? 0 : i; };
@@ -14,8 +15,9 @@ const lv = (xp) => levelFromXp(xp || 0);
 export function ensureTitles(state) {
   if (!state.titles || typeof state.titles !== 'object') state.titles = { owned: [], equipped: null };
   if (!Array.isArray(state.titles.owned)) state.titles.owned = [];
-  if (!state.titles.owned.includes('soNhap')) state.titles.owned.push('soNhap');   // danh hiệu khởi đầu
-  if (!state.titles.equipped || !TITLE_BY_ID[state.titles.equipped]) state.titles.equipped = 'soNhap';
+  // ⛔ KHÔNG cấp sẵn danh hiệu nào. 'Sơ Nhập Giang Hồ' là thưởng của chuỗi Nhiệm Vụ Tân Thủ
+  //    (xem cond `tutorial`). Chưa có danh hiệu thì mọi chỗ hiện đều có x-if nên tự ẩn dòng.
+  if (state.titles.equipped && !TITLE_BY_ID[state.titles.equipped]) state.titles.equipped = null;
   return state.titles;
 }
 
@@ -24,6 +26,9 @@ export function titleUnlocked(state, c) {
   if (!c) return false;
   switch (c.kind) {
     case 'create':     return true;
+    // Xong TRỌN chuỗi Tân Thủ. Danh hiệu chỉ ĐƯỢC THÊM vào `owned`, không bao giờ bị gỡ,
+    // nên save cũ đã có 'Sơ Nhập Giang Hồ' thì vẫn giữ nguyên sau khi đổi điều kiện này.
+    case 'tutorial':   return (state.quests?.tutorial?.index || 0) >= TUTORIAL_QUESTS.length;
     case 'combatLv':   return lv(state.skills?.chienDau?.xp) >= c.v;
     case 'totalLv': {
       let tot = lv(state.skills?.chienDau?.xp);
@@ -68,6 +73,9 @@ export function syncTitles(state) {
     if (owned.includes(tt.id)) continue;
     if (titleUnlocked(state, tt.cond)) { owned.push(tt.id); newly.push(tt.id); }
   }
+  // Chưa đeo gì mà vừa mở được cái đầu tiên thì đeo luôn — không thì người chơi nhận thưởng
+  // xong nhìn thẻ nhân vật vẫn trống, tưởng chưa được gì.
+  if (!state.titles.equipped && newly.length) state.titles.equipped = newly[0];
   return newly;
 }
 

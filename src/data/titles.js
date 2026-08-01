@@ -25,7 +25,7 @@ const t = (id, name, q, loai, bonus, cond, src) => ({ id, name, q, loai, bonus, 
 
 export const TITLES = [
   // ===== KHỞI ĐẦU =====
-  t('soNhap', 'Sơ Nhập Giang Hồ', 'phamPham', 'chien', { atkPct: 0.01 }, { kind: 'create' }, 'Bước chân vào giang hồ'),
+  t('soNhap', 'Sơ Nhập Giang Hồ', 'phamPham', 'chien', { atkPct: 0.01 }, { kind: 'tutorial' }, 'Hoàn thành Nhiệm Vụ Tân Thủ'),
 
   // ===== CHIẾN (Công / Bạo Kích) — theo Chiến Đấu Lv + tổng sát =====
   t('tieuHuu',    'Tiểu Hữu Danh Khí', 'luongPham', 'chien', { atkPct: 0.015 }, { kind: 'combatLv', v: 15 }, 'Đạt Chiến Đấu Lv15'),
