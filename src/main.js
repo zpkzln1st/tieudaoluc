@@ -495,6 +495,7 @@ const gameStore = {
     'boPhapModal', 'baiVoModal', 'shopOpen', 'soSachOpen', 'gioiLuatOpen', 'luanVoOpen', 'daiKhachOpen',
     'tangThuOpen', 'bkMergeOpen', 'giftOpen', 'dailyModal', 'foodPicker', 'danPicker', 'duocLuPicker',
     'phucDungPicker', 'toSuOpen', 'tmEvtOpen', 'tmRecruitOpen', 'tmBagOpen', 'tmCraftOpen', 'tmDuocOpen', 'tmRealmGuideOpen',
+    ['muaModal', 'closeMua'],
     ['itemModal', 'closeItemModal'], ['equipModal', 'closeEquip'], ['enhanceModal', 'closeEnhance'],
     ['locationModal', 'closeLocation'], ['combatModal', 'closeCombatModal'], ['dsProfile', 'closeDanhSi'],
     ['petDetailObj', 'closePetDetail'], ['tkDetail', 'closeTkDetail'], ['tkCraft', 'closeTkCraft'],
@@ -3891,13 +3892,41 @@ const gameStore = {
     this.showToast('Đã mua Ảnh Bìa 〈' + ((this.COVERS.find((c) => c.id === id) || {}).name || '') + '〉.');
   },
   vatPhamPrice(id) { return Math.ceil((this.ITEMS[id] ? this.ITEMS[id].value : 0) * 1.2); },
-  buyVatPham(id) {
-    const price = this.vatPhamPrice(id);
+  buyVatPham(id, qty) {
+    const n = Math.max(1, Math.floor(qty || 1));
+    const price = this.vatPhamPrice(id) * n;
     if ((this.state.currencies.bac || 0) < price) { this.showToast('Không đủ Bạc (cần ' + this.fmt(price) + ').'); return; }
     this.state.currencies.bac -= price;
-    addItem(this.state, id, 1);
+    addItem(this.state, id, n);
     Storage.save(this.state);
-    this.showToast('Đã mua 〈' + ((this.ITEMS[id] || {}).name || '') + '〉.');
+    this.showToast('Đã mua ' + (n > 1 ? this.fmt(n) + ' ' : '') + '〈' + ((this.ITEMS[id] || {}).name || '') + '〉.');
+  },
+
+  // ---------- Thương Điếm: mua theo SỐ LƯỢNG ----------
+  MUA_TRAN: 9999,                 // trần một lần mua — có nhiều Bạc mấy cũng không nhập số vô hạn
+  muaModal: null,                 // { id } — món đang chọn mua
+  muaQty: 1,
+  openMua(id) { if (!this.ITEMS[id]) return; this.muaModal = { id }; this.muaQty = 1; },
+  closeMua() { this.muaModal = null; },
+  get muaItem() { return this.muaModal ? (this.ITEMS[this.muaModal.id] || null) : null; },
+  get muaDonGia() { return this.muaModal ? this.vatPhamPrice(this.muaModal.id) : 0; },
+  /** Mua được nhiều nhất bao nhiêu với số Bạc đang có (đã chặn trần). */
+  get muaToiDa() {
+    const g = this.muaDonGia;
+    if (g <= 0) return this.MUA_TRAN;
+    return Math.max(0, Math.min(this.MUA_TRAN, Math.floor((this.state.currencies.bac || 0) / g)));
+  },
+  get muaTong() { return this.muaDonGia * this.muaQty; },
+  get muaDuBac() { return this.muaQty > 0 && (this.state.currencies.bac || 0) >= this.muaTong; },
+  muaDatQty(n) {
+    const tran = Math.max(1, this.muaToiDa);      // hết Bạc thì vẫn cho về 1 để nút tự mờ đi
+    this.muaQty = Math.max(1, Math.min(Math.floor(n) || 1, tran));
+  },
+  muaThemQty(d) { this.muaDatQty(this.muaQty + d); },
+  xacNhanMua() {
+    if (!this.muaModal || !this.muaDuBac) return;
+    this.buyVatPham(this.muaModal.id, this.muaQty);
+    this.closeMua();
   },
   sellItem(itemId, qty) {
     const have = this.state.inventory[itemId] || 0;

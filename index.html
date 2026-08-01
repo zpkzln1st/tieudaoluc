@@ -4119,7 +4119,7 @@
                             </div>
                             <div class="shrink-0 flex items-center gap-3">
                               <div class="text-[13.5px] text-gold font-semibold flex items-center gap-1.5"><span class="w-5 h-5 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span><span x-text="$store.game.fmt($store.game.vatPhamPrice(id))"></span></div>
-                              <button @click="$store.game.buyVatPham(id)" :disabled="($store.game.state.currencies.bac||0) < $store.game.vatPhamPrice(id)" class="px-4 py-1.5 text-[12px] rounded font-semibold transition" :class="($store.game.state.currencies.bac||0) >= $store.game.vatPhamPrice(id) ? 'bg-jade/85 hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'">Mua</button>
+                              <button @click="$store.game.openMua(id)" :disabled="($store.game.state.currencies.bac||0) < $store.game.vatPhamPrice(id)" class="px-4 py-1.5 text-[12px] rounded font-semibold transition" :class="($store.game.state.currencies.bac||0) >= $store.game.vatPhamPrice(id) ? 'bg-jade/85 hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'">Mua</button>
                             </div>
                           </div>
                         </template>
@@ -4130,6 +4130,63 @@
               </template>
             </div>
           </div>
+
+          <!-- POPUP: chọn SỐ LƯỢNG mua (trước đây bấm Mua là mua đúng 1 món, mua nhiều rất mỏi tay) -->
+          <template x-if="$store.game.muaModal">
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(2,6,12,.72)"
+                 @click.self="$store.game.closeMua()" @keydown.escape.window="$store.game.closeMua()">
+              <div class="panel rounded-xl border border-jade/30 w-80 max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-4" @click.stop>
+                <div class="flex items-start gap-3">
+                  <div class="w-12 h-12 rounded bg-ink flex items-center justify-center text-xl shrink-0 overflow-hidden"
+                       x-html="$store.game.ico($store.game.muaModal.id, $store.game.muaItem.icon)"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-[13px] font-medium truncate" :class="$store.game.QUALITY[$store.game.muaItem.quality].text" x-text="$store.game.muaItem.name"></div>
+                    <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      Đơn giá <span class="w-4 h-4 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
+                      <b class="text-gold" x-text="$store.game.fmt($store.game.muaDonGia)"></b>
+                    </div>
+                  </div>
+                  <button @click="$store.game.closeMua()" class="shrink-0 text-slate-500 hover:text-rose-400">✕</button>
+                </div>
+
+                <div class="mt-3.5 flex items-center gap-2">
+                  <button @click="$store.game.muaThemQty(-1)" class="w-8 h-8 shrink-0 rounded bg-ink3 border border-slate-700 hover:border-jade/50 text-slate-300">−</button>
+                  <input type="number" min="1" :max="$store.game.muaToiDa" :value="$store.game.muaQty"
+                         @input="$store.game.muaDatQty($event.target.value)"
+                         @keydown.enter="$store.game.xacNhanMua()"
+                         class="flex-1 min-w-0 h-8 text-center rounded bg-ink border border-slate-700 text-slate-100 text-sm">
+                  <button @click="$store.game.muaThemQty(1)" class="w-8 h-8 shrink-0 rounded bg-ink3 border border-slate-700 hover:border-jade/50 text-slate-300">＋</button>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                  <template x-for="n in [1, 10, 100]" :key="'mq'+n">
+                    <button @click="$store.game.muaDatQty(n)" class="px-2.5 py-1 rounded text-[11px] bg-ink3 border border-slate-700 hover:border-jade/50 text-slate-300" x-text="'×' + n"></button>
+                  </template>
+                  <button @click="$store.game.muaDatQty($store.game.muaToiDa)"
+                          class="px-2.5 py-1 rounded text-[11px] bg-ink3 border border-slate-700 hover:border-jade/50 text-slate-300">Tối đa</button>
+                  <span class="ml-auto self-center text-[10px] text-slate-600">Mua được tối đa <b class="text-slate-400" x-text="$store.game.fmt($store.game.muaToiDa)"></b></span>
+                </div>
+
+                <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between gap-2">
+                  <span class="text-[11px] text-slate-500">Thành tiền</span>
+                  <span class="flex items-center gap-1.5 font-semibold" :class="$store.game.muaDuBac ? 'text-gold' : 'text-rose-400'">
+                    <span class="w-5 h-5 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
+                    <span x-text="$store.game.fmt($store.game.muaTong)"></span>
+                  </span>
+                </div>
+                <!-- luật chỉ hiện khi đang CHẶN -->
+                <template x-if="!$store.game.muaDuBac">
+                  <div class="mt-1.5 text-[11px] text-rose-400">Không đủ Bạc.</div>
+                </template>
+
+                <div class="mt-3.5 flex items-center justify-end gap-2">
+                  <button @click="$store.game.closeMua()" class="px-3 py-1.5 rounded text-sm bg-ink3 border border-slate-700 text-slate-300 hover:border-slate-500">Huỷ</button>
+                  <button @click="$store.game.xacNhanMua()" :disabled="!$store.game.muaDuBac"
+                          class="px-4 py-1.5 rounded text-sm font-medium transition"
+                          :class="$store.game.muaDuBac ? 'bg-jade/85 hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'">Mua</button>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </template>
 
