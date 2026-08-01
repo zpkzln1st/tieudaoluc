@@ -14716,8 +14716,11 @@
           </div>
         </div>
         <!-- Chiến Lợi Phẩm -->
-        <div class="flex items-center gap-2.5 px-7 pt-4 pb-2 text-[13px] tracking-[.13em] uppercase text-slate-500"><span class="shrink-0">Chiến Lợi Phẩm</span><template x-if="$store.game.combatSummaryItemCount"><span class="tracking-normal normal-case text-slate-300 shrink-0" x-text="'· '+$store.game.combatSummaryItemCount+' vật phẩm'"></span></template><span class="flex-1 h-px bg-slate-800"></span></div>
-        <div class="px-7 flex flex-wrap gap-3 max-h-[248px] overflow-y-auto pb-1">
+        <div class="flex items-center gap-2.5 px-7 pt-4 pb-2 text-[13px] tracking-[.13em] uppercase text-slate-500"><span class="shrink-0">Chiến Lợi Phẩm</span><template x-if="$store.game.combatSummaryLootN"><span class="tracking-normal normal-case text-slate-300 shrink-0" x-text="'· '+$store.game.fmt($store.game.combatSummaryLootN)+' nguyên liệu'"></span></template><template x-if="$store.game.combatSummaryGearN"><span class="tracking-normal normal-case text-amber-300/90 shrink-0" x-text="'· '+$store.game.fmt($store.game.combatSummaryGearN)+' trang bị'"></span></template><span class="flex-1 h-px bg-slate-800"></span></div>
+        <!-- ⚠ Khung cuộn cắt NGANG GIỮA hàng ô nên nhìn như lưới bị vỡ. Nhoè dần ở mép dưới
+             để hàng bị cắt đọc ra là "còn nữa, cuộn xuống" chứ không phải hỏng. -->
+        <div class="px-7 flex flex-wrap gap-3 max-h-[248px] overflow-y-auto pb-2"
+             style="-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent)">
           <template x-if="!$store.game.combatSummary.loot.length && !$store.game.combatSummary.gear.length"><span class="text-[13px] text-slate-600 italic">— trận này chưa rơi vật phẩm —</span></template>
           <template x-for="l in $store.game.combatSummary.loot" :key="l.id">
             <span class="cbti cbti-lg" :style="'animation:none;--q:'+$store.game.qualHex(($store.game.ITEMS[l.id]||{}).quality)" :title="(($store.game.ITEMS[l.id]||{}).name||l.id)+' ×'+l.n">
@@ -14729,8 +14732,14 @@
               <span class="w-20 h-20 inline-flex items-center justify-center text-6xl" x-html="$store.game.ico(g.gearId, '🗡')"></span>
             </span>
           </template>
+          <!-- ⚠ Phải là MỘT Ô đúng khổ như các ô kia. Để chữ trần thì nó nhét vào giữa lưới ô
+               vuông, cao thấp khác hẳn, nhìn như lưới bị vỡ. -->
           <template x-if="$store.game.combatSummary.gearN > $store.game.combatSummary.gear.length">
-            <span class="text-[13px] text-amber-300/80 self-center" x-text="'+'+($store.game.combatSummary.gearN-$store.game.combatSummary.gear.length)+' trang bị nữa'"></span>
+            <span class="cbti cbti-lg !border-dashed !border-amber-500/35 !bg-amber-500/[0.06] flex flex-col items-center justify-center gap-0.5 text-amber-300/90"
+                  :title="'Còn ' + ($store.game.combatSummary.gearN-$store.game.combatSummary.gear.length) + ' trang bị nữa — xem đầy đủ ở Hành Lý'">
+              <span class="text-[19px] font-bold leading-none" x-text="'+'+($store.game.combatSummary.gearN-$store.game.combatSummary.gear.length)"></span>
+              <span class="text-[10px] leading-tight opacity-80">trang bị</span>
+            </span>
           </template>
         </div>
         <!-- Footer -->

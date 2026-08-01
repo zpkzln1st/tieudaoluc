@@ -3736,6 +3736,10 @@ const gameStore = {
   closeCombatSummary() { this.combatSummary = null; },
   combatAgain() { const s = this.combatSummary; this.combatSummary = null; if (s && s.enemyId) this.fight(s.enemyId); },
   get combatSummaryItemCount() { const s = this.combatSummary; if (!s) return 0; return s.loot.reduce((a, l) => a + l.n, 0) + (s.gearN != null ? s.gearN : s.gear.length); },
+  // ⚠ Tách RIÊNG nguyên liệu và trang bị. Gộp thành một số "N vật phẩm" thì đọc không khớp với
+  //   dòng "+N trang bị" ngay bên dưới (một bên đếm cả kho, một bên chỉ đếm trang bị).
+  get combatSummaryLootN() { const s = this.combatSummary; return s ? s.loot.reduce((a, l) => a + l.n, 0) : 0; },
+  get combatSummaryGearN() { const s = this.combatSummary; if (!s) return 0; return s.gearN != null ? s.gearN : (s.gear || []).length; },
   // Ghi tổng kết vào chuông/Phi Cáp Đài — MỌI đường kết thúc phiên có đánh đấm (dừng tay/gục/đổi vùng).
   pushCombatSummaryNotif(sum) {
     if (!sum || (sum.kills <= 0 && sum.lose <= 0)) return;
