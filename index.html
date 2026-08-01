@@ -2679,13 +2679,15 @@
           <!-- POPUP: Chọn Bộ Pháp (1-2) -->
           <template x-if="$store.game.boPhapModal">
             <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(2,6,12,.7)" @click.self="$store.game.closeBoPhap()" @keydown.escape.window="$store.game.closeBoPhap()">
-              <div class="panel rounded-xl border border-jade/30 max-w-2xl w-full max-h-[86vh] overflow-y-auto p-4" @click.stop>
+              <!-- max-w-4xl: đủ chỗ cho BA cột ở màn ≥1024 ⇒ 8 bộ xuống còn 3 hàng thay vì 4,
+                   hết phải lăn chuột. Hẹp hơn thì grid tự rơi về 2 rồi 1 cột. -->
+              <div class="panel rounded-xl border border-jade/30 max-w-4xl w-full max-h-[86vh] overflow-y-auto p-4" @click.stop>
                 <div class="flex items-center justify-between mb-1">
                   <div class="text-jade font-bold text-base flex items-center gap-2">Chọn Bộ Pháp <span class="text-xs text-slate-500 font-normal" x-text="'('+$store.game.boPhapSel.length+'/2)'"></span></div>
                   <button @click="$store.game.closeBoPhap()" class="w-7 h-7 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400">✕</button>
                 </div>
                 <div class="text-[11px] text-slate-400 mb-3">Chọn <b class="text-slate-200">1–2</b> Bộ Pháp: mỗi bộ rèn một Tứ Trụ; chọn 2 thì luyện cả hai, hiệu ứng cộng dồn.</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   <template x-for="b in $store.game.BO_PHAP" :key="b.id">
                     <button @click="$store.game.toggleBoPhap(b.id)" class="text-left rounded-lg border p-3 transition flex gap-3" :class="$store.game.boPhapOn(b.id)?'border-jade bg-jade/10':'border-slate-700 bg-ink3 hover:border-slate-500'">
                       <div class="relative w-14 h-14 rounded-md overflow-hidden border shrink-0" :class="$store.game.boPhapOn(b.id)?'border-jade/70':'border-slate-700'">
@@ -2701,7 +2703,9 @@
                         </div>
                         <div class="text-[11px] mb-1 leading-snug"><span class="text-jade">✦ <span x-text="b.pros.join(' · ')"></span></span></div>
                         <div class="text-[11px] mb-1 leading-snug text-rose-300">✗ <span x-text="b.cons.join(' · ')"></span></div>
-                        <div class="text-[11px] text-slate-400 leading-snug" x-text="b.desc"></div>
+                        <!-- cắt còn 2 dòng: câu lore dài ngắn không đều, để nguyên thì thẻ so le nhau
+                             và cả bảng dài thêm hẳn một hàng -->
+                        <div class="text-[11px] text-slate-400 leading-snug line-clamp-2" :title="b.desc" x-text="b.desc"></div>
                         <div class="text-[10px] text-slate-500 mt-1.5">Rèn Tứ Trụ: <b class="text-slate-300" x-text="$store.game.STATS[b.stat].name"></b></div>
                       </div>
                     </button>
