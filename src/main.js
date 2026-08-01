@@ -4239,8 +4239,28 @@ const gameStore = {
   },
   // ---------- Popup chi tiết vật phẩm (bấm item ở Hành Lý) ----------
   itemModal: null,                               // ref đang xem: string id (xếp chồng) HOẶC uid gear instance
-  openItemModal(ref) { if (findGear(this.state, ref) || this.ITEMS[ref]) this.itemModal = ref; },
+  openItemModal(ref) { if (findGear(this.state, ref) || this.ITEMS[ref]) { this.itemModal = ref; this.banQty = 1; } },
   closeItemModal() { this.itemModal = null; },
+
+  // ---------- Bán theo SỐ LƯỢNG TỰ CHỌN (popup chi tiết vật phẩm) ----------
+  banQty: 1,
+  /** Bán được nhiều nhất bao nhiêu: chồng trang bị trơn -> số món; vật phẩm -> số đang có. */
+  get itemModalMax() {
+    const r = this.itemModal;
+    if (!r) return 0;
+    if (findGear(this.state, r)) return this.gearStackUids(r).length;
+    return this.state.inventory[r] || 0;
+  },
+  // Cùng khuôn với ô số lượng ở Thương Điếm: cho gõ tự do, RỖNG được, chỉ chặn trần;
+  // kẹp về 1 ngay mỗi lần gõ thì xoá trắng để nhập số mới là ô nhảy lại.
+  banNhap(v) {
+    const s = String(v == null ? '' : v).replace(/[^\d]/g, '');
+    if (!s) { this.banQty = 0; return; }
+    this.banQty = Math.min(parseInt(s, 10), Math.max(1, this.itemModalMax));
+  },
+  banDatQty(n) { this.banQty = Math.max(1, Math.min(Math.floor(n) || 1, Math.max(1, this.itemModalMax))); },
+  banThemQty(d) { this.banDatQty(this.banQty + d); },
+  banChot() { if (!(this.banQty > 0)) this.banDatQty(1); },
 
   // ======================= BÍ CẢNH (Dungeon idle) =======================
   dungeonSel: null,
