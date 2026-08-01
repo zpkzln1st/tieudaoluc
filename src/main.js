@@ -2571,7 +2571,9 @@ const gameStore = {
   get mSkillId() { return this.actionModal ? this.actionModal.skillId : null; },
   get mHasLTFamily() { return this.mSkillId ? this.hasLinhThachFamily(this.mSkillId) : false; },
   get mLinhThach() { return this.mSkillId ? this.currentLinhThach(this.mSkillId) : null; },
-  get mLTOptions() { return this.mSkillId ? this.skillLinhThachOptions(this.mSkillId) : []; },
+  // CHỈ hiện viên ĐANG CÓ. Liệt kê cả viên chưa có thì bảng chọn dài ra vô ích, mà càng về
+  // cuối game càng nhiều loại ⇒ tràn khỏi khung. Chưa có viên nào thì bảng tự báo dòng rỗng.
+  get mLTOptions() { return this.mSkillId ? this.skillLinhThachOptions(this.mSkillId).filter((o) => o.owned > 0) : []; },
   // Buff của hoạt động đang chạy (badge ở thẻ hoạt động)
   get actBuff() { return (this.act && this.act.buff) ? this.act.buff : null; },
   get actBuffText() { return this.actBuff ? this.linhThachEffectText(this.actBuff) : ''; },

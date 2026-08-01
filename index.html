@@ -14017,7 +14017,9 @@
   <!-- ===== Modal hành động (mở khi bấm 1 hành động) ===== -->
   <template x-if="$store.game.actionModal">
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click="$store.game.closeAction()">
-      <div class="panel rounded-xl p-5 w-80 max-w-full" @click.stop>
+      <!-- ⚠ max-h + overflow: nội dung modal co giãn (danh sách Linh Thạch, Nguyên Liệu nhiều
+           dòng). Không chặn thì panel cao quá màn là tràn ra ngoài và KHÔNG cuộn được. -->
+      <div class="panel rounded-xl p-5 w-80 max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto" @click.stop>
         <div class="flex justify-between items-center mb-1">
           <span class="text-xs text-slate-500" x-text="$store.game.modalSkill.name"></span>
           <button @click="$store.game.closeAction()" class="text-slate-500 hover:text-rose-400">✕</button>
@@ -14088,8 +14090,13 @@
                 </button>
               </template>
 
-              <!-- Picker: chọn từ túi đồ -->
-              <div x-show="pick" x-cloak class="mt-1.5 space-y-1">
+              <!-- Picker: chọn từ túi đồ. Chỉ liệt kê viên ĐANG CÓ (xem `mLTOptions`);
+                   danh sách có vùng cuộn riêng để cuối game nhiều loại cũng không đội khung lên. -->
+              <div x-show="pick" x-cloak class="mt-1.5">
+              <div class="space-y-1 max-h-[38vh] overflow-y-auto pr-0.5">
+                <template x-if="!$store.game.mLTOptions.length">
+                  <div class="text-[11px] text-slate-500 text-center px-1 py-2">Chưa có Linh Thạch nào trong Hành Lý.</div>
+                </template>
                 <template x-for="opt in $store.game.mLTOptions" :key="opt.itemId">
                   <button @click="if(opt.owned>0){ $store.game.assignLinhThach($store.game.mSkillId, opt.itemId); pick=false }"
                     :disabled="opt.owned<=0"
@@ -14103,7 +14110,9 @@
                     <span class="text-[10px] shrink-0" :class="opt.owned>0?'text-slate-400':'text-rose-400'" x-text="'×'+opt.owned"></span>
                   </button>
                 </template>
-                <div class="text-[10px] text-slate-600 px-1 pt-0.5">Linh Thạch luyện ở <b class="text-slate-500">Luyện Đan</b>.</div>
+              </div>
+              <!-- dòng chỉ chỗ luyện để NGOÀI vùng cuộn — cuộn danh sách thì nó vẫn còn đó -->
+              <div class="text-[10px] text-slate-600 px-1 pt-1">Linh Thạch luyện ở <b class="text-slate-500">Luyện Đan</b>.</div>
               </div>
             </div>
           </template>
