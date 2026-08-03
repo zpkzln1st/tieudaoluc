@@ -69,6 +69,7 @@ import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
+import { BICANH_BK_CHANCE, biCanhBkMaxTier } from './data/tongmon.js';   // Bí Kíp rơi từ Bí Cảnh -> bày được trong lưới Bảo Vật
 import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, thienKiepOf, kiepOdds, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_KEYS, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, BK_AUCTION_REFRESH_H, BK_MERGE_N, LICH_LUYEN_H, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
@@ -4520,6 +4521,25 @@ const gameStore = {
   dungeonDurSec(id) { const d = this.DUNGEON_BY_ID[id]; return d ? d.durMs / 1000 : 0; },
   // Tỉ lệ đoạt Đồ Phổ THỰC mỗi lượt thông quan = base × doPhoMul(1.6) × pace (khớp engine runDungeon).
   dungeonDoPhoChance(id) { const d = this.DUNGEON_BY_ID[id]; if (!d || !d.loot || !d.loot.doPho) return 0; return (d.loot.doPhoChance || 0) * 1.6 * (d.pace || 1); },
+  // Ba thứ dưới đây CÓ RƠI THẬT nhưng trước đây không có ô nào trong lưới Bảo Vật, nên người chơi
+  // nhặt được mà tra không ra nguồn. Ba hệ số phải khớp ĐÚNG engine (src/engine/dungeon.js):
+  // doPhoMul = 1.6, nhân `pace`; riêng Mảnh là số CHẮC CHẮN, KHÔNG nhân gì.
+  dungeonToolDoPhoChance(id) { const d = this.DUNGEON_BY_ID[id]; const t = d && d.loot && d.loot.toolDoPho; return t ? (t.chance || 0) * 1.6 * (d.pace || 1) : 0; },
+  dungeonBiKipChance(id) { const d = this.DUNGEON_BY_ID[id]; if (!d) return 0; return BICANH_BK_CHANCE * 1.6 * (d.pace || 1); },
+  /** Bậc bí kíp CAO NHẤT phó bản này với tới — ô Bảo Vật mượn art của một bản ở bậc đó làm mặt,
+   *  thay vì bày icon vector chung chung. Cùng luật với `rollBiCanhBiKip` (lọc theo reqLevel). */
+  dungeonBiKipMau(id) {
+    const d = this.DUNGEON_BY_ID[id]; if (!d) return null;
+    const maxIdx = BI_KIP_TIER_ORDER.indexOf(biCanhBkMaxTier(d.reqLevel));
+    const pool = BI_KIP.filter((b) => BI_KIP_TIER_ORDER.indexOf(b.tier) <= maxIdx);   // ⚠ dùng biến module, `this.BI_KIP` không có trên store
+    if (!pool.length) return null;
+    const cao = pool[pool.length - 1];
+    return { id: cao.id, tierName: (BI_KIP_TIER[cao.tier] || {}).name || '', tierColor: (BI_KIP_TIER[cao.tier] || {}).color || '#67e8f9' };
+  },
+  dungeonManh(id) { const d = this.DUNGEON_BY_ID[id]; return (d && d.loot && d.loot.manh) || 0; },
+  // ⚠ Tuyệt Kĩ KHÁC hai loại trên: engine chỉ nhân `pace`, KHÔNG nhân doPhoMul (xem `cchance`
+  // trong src/engine/dungeon.js). Chép nhầm hệ số là bày sai tỉ lệ cho người chơi.
+  dungeonChieuDoPhoChance(id) { const d = this.DUNGEON_BY_ID[id]; const c = d && d.loot && d.loot.chieuDoPho; return c ? (c.chance || 0) * (d.pace || 1) : 0; },
   // ---- LỊCH LUYỆN: chọn số lượt (picker) ----
   dungeonRunsPick: {},
   dungeonMaxRuns(id) { void this._tick; const d = this.DUNGEON_BY_ID[id]; return d ? maxDungeonRuns(this.state, d) : 1; },
@@ -4582,12 +4602,22 @@ const gameStore = {
     const dp = d.loot.doPho;
     const BQ = { 1: 'phamPham', 2: 'luongPham', 3: 'tinhPham', 4: 'tuyetPham', 5: 'truyenThe', 6: 'thanPham', 7: 'coBan' };
     const quals = dp.bac.map((b) => BQ[b]);
+    // ⚠ Đồ Phổ CÔNG CỤ bốc RIÊNG (`loot.toolDoPho`, pool TOOL_SLOTS, bậc khác hẳn) nên KHÔNG lọt
+    // qua bộ lọc dưới. Thiếu đoạn này thì người chơi nhặt được cuộn Rìu/Cuốc từ phó bản vũ khí mà
+    // tra danh mục không thấy — đúng chỗ user hỏi "đồ phổ không liên quan sao vẫn rơi".
+    const td = d.loot.toolDoPho;
+    const oCongCu = td ? (this.TOOL_SLOTS || []).map((t) => t.id) : [];
+    const qualTool = td ? (Array.isArray(td.bac) ? td.bac : [td.bac]).map((b) => BQ[b]) : [];
+    const dsCongCu = td ? Object.values(this.ITEMS)
+      .filter((it) => it.equip && it.equip.itemLv && !it.equip.set && qualTool.includes(it.quality) && oCongCu.includes(it.equip.slot))
+      .map((it) => 'dp_' + it.id) : [];
     return Object.values(this.ITEMS)
       // `!it.equip.set` BẮT BUỘC phải khớp với rollDoPhoId (engine/dungeon.js) — bên đó đã loại đồ
       // Bộ Trang khỏi pool từ đầu. Thiếu điều kiện này thì bảng xem trước KHOE ra hàng chục Đồ Phổ
       // vĩnh viễn không rơi, người chơi cày mòn mỏi một thứ không tồn tại.
       .filter((it) => it.equip && it.equip.itemLv && !it.equip.set && quals.includes(it.quality) && (dp.slots === 'all' || dp.slots.includes(it.equip.slot)))
       .map((it) => 'dp_' + it.id)
+      .concat(dsCongCu)
       // Đồ Phổ Bộ Trang + Đồ Phổ Tuyệt Kĩ cũng LÀ đồ phổ của phó bản này — trước đó chúng chỉ
       // nằm lẻ trong lưới Bảo Vật, không có mặt trong Danh Mục Đồ Phổ nên tra không ra.
       .concat((d.loot.rare || []).filter((r) => String(r.itemId || '').startsWith('dpset_')).map((r) => r.itemId));

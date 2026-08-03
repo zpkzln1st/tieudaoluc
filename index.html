@@ -793,7 +793,7 @@
         <span class="text-jade font-medium" x-text="$store.game.actName"></span>
         <template x-if="!$store.game.actIsTravel && !$store.game.actIsDungeon"><span class="text-slate-400" x-text="'+' + $store.game.act.sessionCount"></span></template>
         <template x-if="$store.game.actIsTravel"><span class="text-slate-400 font-mono" x-text="$store.game.fmtTime($store.game.travelRemainSec)"></span></template>
-        <template x-if="$store.game.actIsDungeon"><span class="text-slate-400" x-text="$store.game.fmtDurHMS($store.game.dungeonTimeLeft())"></span></template>
+        <template x-if="$store.game.actIsDungeon"><span class="text-slate-400 whitespace-nowrap tabular-nums" x-text="$store.game.fmtClock($store.game.dungeonTimeLeft())"></span></template>
         <div class="w-16 h-1.5 rounded-full bg-slate-700 overflow-hidden">
           <div class="h-full bg-gold" :style="`width:${$store.game.actProgressPct}%`"></div>
         </div>
@@ -1246,7 +1246,7 @@
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-slate-400">
                       <span class="text-jade" x-text="$store.game.actIsDungeon ? 'Đang khám phá' : ('Thu được +' + $store.game.act.sessionCount)"></span>
-                      <span :class="$store.game.actIsDungeon ? '' : 'font-mono'" x-text="$store.game.actIsDungeon ? ('còn ' + $store.game.fmtDurHMS($store.game.dungeonTimeLeft())) : $store.game.fmtClock($store.game.actRemaining)"></span>
+                      <span class="whitespace-nowrap tabular-nums" :class="$store.game.actIsDungeon ? '' : 'font-mono'" x-text="$store.game.actIsDungeon ? ('còn ' + $store.game.fmtClock($store.game.dungeonTimeLeft())) : $store.game.fmtClock($store.game.actRemaining)"></span>
                     </div>
                     <template x-if="$store.game.actBuff">
                       <div class="mt-1.5 flex items-center gap-1.5 text-[10px] px-2 py-1 rounded bg-jade/10 border border-jade/30 text-jade">
@@ -6090,7 +6090,11 @@
                         <span class="text-slate-300/80" x-text="'Lv'+d.reqLevel"></span>
                         <span class="text-slate-600">·</span>
                         <template x-if="g.dungeonLocked(d.id)"><span class="text-slate-400">Chưa đủ cấp</span></template>
-                        <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)"><span class="inline-flex items-center gap-1 text-amber-300"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="g.svg('clock','w-3.5 h-3.5')"></span><span x-text="g.dungeonRunsDone+'/'+g.dungeonRunsTotal+' · còn '+g.fmtDurHMS(g.dungeonTimeLeft())"></span></span></template>
+                        <!-- ⚠ Đếm ngược ở đây nhảy TỪNG GIÂY. `fmtDurHMS` ra "1 giờ 24 phút 25 giây"
+                             — chữ dài ngắn khác nhau mỗi giây nên cả dòng co giật, xuống dòng loạn.
+                             `fmtClock` ra 01:24:25, khổ CỐ ĐỊNH; thêm `tabular-nums` cho mọi chữ số
+                             rộng bằng nhau và `whitespace-nowrap` để không bao giờ gãy dòng. -->
+                        <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)"><span class="inline-flex items-center gap-1 text-amber-300 whitespace-nowrap tabular-nums"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="g.svg('clock','w-3.5 h-3.5')"></span><span x-text="g.dungeonRunsDone+'/'+g.dungeonRunsTotal+' · còn '+g.fmtClock(g.dungeonTimeLeft())"></span></span></template>
                         <template x-if="!g.dungeonLocked(d.id) && !g.dungeonRunningHere(d.id)"><span class="text-emerald-400">● Sẵn sàng</span></template>
                       </div>
                     </div>
@@ -6140,7 +6144,7 @@
                     <!-- đang chạy phó bản NÀY -->
                     <template x-if="!g.dungeonLocked(d.id) && g.dungeonRunningHere(d.id)">
                       <div>
-                        <div class="flex items-center justify-between mb-1.5"><span class="text-[12px] fserif" :style="'color:'+d.color" x-text="'Lịch Luyện · lượt '+Math.min(g.dungeonRunsDone+1, g.dungeonRunsTotal)+'/'+g.dungeonRunsTotal"></span><span class="text-[12px] text-slate-300" x-text="'còn '+g.fmtDurHMS(g.dungeonTimeLeft())"></span></div>
+                        <div class="flex items-center justify-between mb-1.5"><span class="text-[12px] fserif" :style="'color:'+d.color" x-text="'Lịch Luyện · lượt '+Math.min(g.dungeonRunsDone+1, g.dungeonRunsTotal)+'/'+g.dungeonRunsTotal"></span><span class="text-[12px] text-slate-300 whitespace-nowrap tabular-nums" x-text="'còn '+g.fmtClock(g.dungeonTimeLeft())"></span></div>
                         <div class="h-3 rounded-full bg-slate-800 overflow-hidden border border-black/50"><div class="h-full rounded-full transition-all" :style="'width:'+g.dungeonRunPct+'%;background:linear-gradient(90deg,'+d.color+','+d.color+'88)'"></div></div>
                       </div>
                     </template>
@@ -6198,7 +6202,9 @@
                             </div>
                           </div>
                         </template>
-                        <template x-for="lid in d.loot.lieu.slice(0,3)" :key="lid">
+                        <!-- ⚠ BỎ `slice(0,3)`: Xích Diệm khai 4 liệu, ô thứ tư (Huyền Sa) rơi thật
+                             mà lưới cắt mất -> người chơi nhặt được thứ không có trong bảng. -->
+                        <template x-for="lid in d.loot.lieu" :key="lid">
                           <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border cursor-zoom-in" :class="g.itemQuality(lid).border" @click="g.openLightbox(lid,(g.ITEMS[lid]||{}).icon,(g.ITEMS[lid]||{}).name)">
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
                               <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(lid,(g.ITEMS[lid]||{}).icon)"></span>
@@ -6236,10 +6242,53 @@
                             <span class="absolute top-0.5 right-0.5 z-10 text-[8px] font-bold px-1 rounded bg-black/70 border border-slate-600 text-slate-300">hiếm</span>
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
                               <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(r.itemId,(g.ITEMS[r.itemId]||{}).icon)"></span>
-                              <span class="text-[8.5px] leading-none" :class="g.itemQuality(r.itemId).text" x-text="(r.chance*100).toFixed(1)+'%'"></span>
+                              <span class="text-[10px] font-bold leading-none" :class="g.itemQuality(r.itemId).text" x-text="(r.chance*100).toFixed(1)+'%'"></span>
+                              <!-- Trước chỉ có con số: nhặt được rồi vẫn không biết ô này là món gì. -->
+                              <span class="text-[8px] leading-tight text-slate-400 truncate w-full" x-text="(g.ITEMS[r.itemId]||{}).name"></span>
                             </div>
                           </div>
                         </template>
+                        <!-- BA Ô DƯỚI ĐÂY TRƯỚC KHÔNG CÓ, trong khi engine vẫn thả đều mỗi lượt
+                             thông quan — người chơi nhặt được mà tra bảng không thấy nguồn. -->
+                        <template x-if="d.loot.toolDoPho">
+                          <div @click="g.openDungeonPool(d.id)" class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-emerald-500/45 cursor-pointer hover:border-emerald-400 transition" title="Bấm xem danh mục Đồ Phổ">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center"><img loading="lazy" decoding="async" :src="g.doPhoScroll([d.loot.toolDoPho.bac])" class="w-full h-full object-contain" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'📜',style:'font-size:20px'}))}"></span>
+                              <span class="text-[10px] font-bold leading-none text-emerald-300" x-text="g.pctText(g.dungeonToolDoPhoChance(d.id))"></span>
+                              <span class="text-[8px] leading-tight text-emerald-300/80" x-text="'Đồ Phổ Công Cụ Bậc '+d.loot.toolDoPho.bac"></span>
+                            </div>
+                          </div>
+                        </template>
+                        <template x-if="d.loot.chieuDoPho">
+                          <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-fuchsia-500/45">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center"><img loading="lazy" decoding="async" src="images/items/dopho_chieu.webp" class="w-full h-full object-contain" alt="" onerror="this.remove()"></span>
+                              <span class="text-[10px] font-bold leading-none text-fuchsia-300" x-text="g.pctText(g.dungeonChieuDoPhoChance(d.id))"></span>
+                              <span class="text-[8px] leading-tight text-fuchsia-300/80">Đồ Phổ Tuyệt Kĩ</span>
+                            </div>
+                          </div>
+                        </template>
+                        <template x-if="d.loot.manh">
+                          <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border cursor-zoom-in" :class="g.itemQuality('manhTrangBi').border" @click="g.openLightbox('manhTrangBi',(g.ITEMS.manhTrangBi||{}).icon,(g.ITEMS.manhTrangBi||{}).name)">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico('manhTrangBi','🔶')"></span>
+                              <span class="text-[10px] font-bold leading-none" :class="g.itemQuality('manhTrangBi').text" x-text="'×'+d.loot.manh+' chắc chắn'"></span>
+                              <span class="text-[8px] leading-tight text-slate-400 truncate w-full">Mảnh Trang Bị Hoàng Kim</span>
+                            </div>
+                          </div>
+                        </template>
+                        <!-- Mặt ô mượn ART THẬT của một bí kíp ở bậc cao nhất phó bản này với tới —
+                             không bày icon vector chung chung, cũng không trám bằng chữ/emoji. -->
+                        <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-cyan-500/40" x-data="{ get bk(){ return g.dungeonBiKipMau(d.id) } }">
+                          <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                            <span class="relative w-10 h-10 rounded-md overflow-hidden inline-flex items-center justify-center">
+                              <span class="w-8 h-8 inline-flex items-center justify-center text-cyan-300/90" x-html="g.svg('book','w-8 h-8')"></span>
+                              <template x-if="bk"><img loading="lazy" decoding="async" :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template>
+                            </span>
+                            <span class="text-[10px] font-bold leading-none text-cyan-300" x-text="g.pctText(g.dungeonBiKipChance(d.id))"></span>
+                            <span class="text-[8px] leading-tight text-cyan-300/80">Bí Kíp → Tàng Thư Lâu</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <!-- Lịch Sử -->
@@ -6251,7 +6300,10 @@
                             <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="'background:'+(h.cleared?'#34d399':'#fb7185')"></span>
                             <span class="text-slate-300 truncate flex-1" x-text="(g.DUNGEON_BY_ID[h.dungeonId]||{}).name"></span>
                             <template x-if="h.doPhoId || (h.doPhoIds && h.doPhoIds.length)"><span class="text-amber-300 inline-flex" title="Đoạt Đồ Phổ"><span class="w-3.5 h-3.5 inline-flex" x-html="g.svg('scroll','w-3.5 h-3.5')"></span></span></template>
-                            <template x-if="(h.runs||1) > 1"><span class="text-slate-300 shrink-0" x-text="h.clears+'/'+h.runs+' TQ'"></span></template>
+                            <!-- "TQ" là viết tắt, mà ngay dòng dưới (lượt đơn) đã ghi đủ "Thông quan"
+                                 — hai dòng cùng bảng gọi một thứ bằng hai kiểu. Tên phó bản có
+                                 `truncate flex-1` nên viết đủ chữ cũng không đẩy tràn hàng. -->
+                            <template x-if="(h.runs||1) > 1"><span class="text-slate-300 shrink-0 whitespace-nowrap tabular-nums" x-text="h.clears+'/'+h.runs+' thông quan'"></span></template>
                             <template x-if="(h.runs||1) <= 1"><span :class="h.cleared?'text-emerald-400':'text-rose-400'" x-text="h.cleared?'Thông quan':'Rút lui'"></span></template>
                             <span class="w-3 h-3 text-slate-600 shrink-0" x-html="g.svg('chevR','w-3 h-3')"></span>
                           </button>
