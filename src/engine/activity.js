@@ -102,12 +102,15 @@ export function tinVatDone(state, skillId) {
 export function tinVatEffBonus(state, skillId) { return tinVatDone(state, skillId) ? TIN_VAT_EFF_PCT / 100 : 0; }
 
 // ---- Bắt đầu hoạt động kỹ năng ----
-export function startActivity(state, skillId, actionId, now) {
+// `soLuot` = làm đúng ngần ấy lượt rồi tự dừng. 0 / bỏ trống = chạy tới khi hết nguyên liệu
+// hoặc chạm trần nhàn rỗi (nếp cũ).
+export function startActivity(state, skillId, actionId, now, soLuot) {
   const action = getAction(skillId, actionId);
   if (!action) return false;
   if (!canStartAction(state, skillId, action)) return false;
   state.activity = {
     type: 'skill', skillId, actionId,
+    limit: Math.max(0, Math.floor(soLuot || 0)),
     cycleMs: cycleMsFor(state, skillId, action, 0),   // Nghề + Công cụ + Tín Vật (+ Linh Thạch nếu đốt được)
     startedAt: now, lastResolved: now,
     sessionCount: 0, progress: 0, capped: false, stalled: false,
@@ -345,7 +348,9 @@ export function advance(state, now) {
     // ---- Cắt khoảng thời gian thành TỪNG ĐOẠN phủ Linh Thạch ----
     // Đoạn nào còn đá thì trừ 1 viên + chạy cycleMs CÓ buff; hết đá thì phần còn lại chạy cycleMs thường.
     // Vòng lặp có trần (mỗi vòng tiêu ít nhất min(rem, LT_COVER_MS) hoặc thoát) nên không treo.
-    let capLeft = Math.min(cyclesByInputs, cyclesByCharge);
+    // Số lượt người chơi đặt ở modal — trần thứ BA, ngang hàng với nguyên liệu và lượt Đồ Phổ.
+    const conLuot = act.limit > 0 ? Math.max(0, act.limit - (act.sessionCount || 0)) : Infinity;
+    let capLeft = Math.min(cyclesByInputs, cyclesByCharge, conLuot);
     let rem = elapsed, leftover = 0, advancedMs = 0;
     let cycles = 0, buffedCycles = 0;
     // ⚠⚠ ĐỪNG trừ thẳng `segMs` vào `buffMsLeft`. `lastResolved` chỉ tiến theo VÒNG ĐÃ XONG,
@@ -431,6 +436,14 @@ export function advance(state, now) {
     if (action.needsDoPho && cycles > 0 && state.player && state.player.doPho) { // trừ lượt Đồ Phổ đã dùng
       state.player.doPho[action.itemId] = Math.max(0, (state.player.doPho[action.itemId] || 0) - cycles);
       if (state.player.doPho[action.itemId] <= 0) delete state.player.doPho[action.itemId];
+    }
+    // Làm ĐỦ SỐ LƯỢT đã đặt -> dừng hẳn. Khác "hết nguyên liệu": đây là việc xong theo ý người
+    // chơi, nên báo bằng lời khác và KHÔNG dựng cờ stalled.
+    if (act.limit > 0 && (act.sessionCount || 0) >= act.limit) {
+      const xong = report || { type: 'skill', skillId: act.skillId, itemId: action.itemId, cycles: 0, xp: 0 };
+      xong.doneLimit = true; xong.limit = act.limit;
+      state.activity = null;
+      return xong;
     }
     // Dừng vì HẾT nguyên liệu / hết lượt Đồ Phổ (không phải vì hết thời gian): còn thời gian mà trần đã cạn.
     ranOut = (capLeft <= 0) && (rem > 0) && ((cyclesByInputs !== Infinity) || (cyclesByCharge !== Infinity));

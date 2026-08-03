@@ -14298,13 +14298,32 @@
             </div>
           </div>
         </template>
+        <!-- SỐ LƯỢT — để trống là chạy tới khi hết liệu / chạm trần nhàn rỗi (nếp cũ), gõ số vào
+             thì làm đủ ngần ấy rồi tự dừng. Cùng khuôn ô số lượng với Thương Điếm và popup bán. -->
+        <div class="mt-3">
+          <div class="lbl mb-1">Số Lượt</div>
+          <div class="flex items-center gap-2">
+            <button @click="$store.game.mLuotThem(-1)" class="w-8 h-8 shrink-0 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-300">−</button>
+            <input type="text" inputmode="numeric" placeholder="Không giới hạn"
+                   :value="$store.game.mLuot || ''"
+                   @input="$store.game.mLuotNhap($event.target.value)"
+                   @focus="$event.target.select()"
+                   @keydown.enter="$store.game.startFromModal()"
+                   class="flex-1 min-w-0 h-8 text-center rounded bg-ink border border-slate-700 text-slate-100 text-sm placeholder:text-slate-600 placeholder:text-[11px]">
+            <button @click="$store.game.mLuotThem(1)" class="w-8 h-8 shrink-0 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-300">＋</button>
+            <!-- "Tối Đa" chỉ có nghĩa khi hành động ăn nguyên liệu; nghề thu thập không có trần nên giấu. -->
+            <template x-if="$store.game.mLuotMax > 0">
+              <button @click="$store.game.mLuotDat($store.game.mLuotMax)" class="shrink-0 px-2.5 h-8 rounded text-[11px] bg-ink3 border border-slate-700 hover:border-jade text-slate-300">Tối Đa</button>
+            </template>
+          </div>
+        </div>
         <div class="flex gap-2 mt-4">
           <button class="flex-1 py-2 rounded bg-ink3 border border-slate-700 text-sm text-slate-400">Xem</button>
           <button @click="$store.game.startFromModal()"
             :disabled="!$store.game.canStart($store.game.actionModal.skillId, $store.game.modalAction)"
             class="flex-1 py-2 rounded font-medium text-sm transition"
             :class="$store.game.canStart($store.game.actionModal.skillId, $store.game.modalAction) ? 'bg-jade/80 hover:bg-jade text-ink' : 'bg-slate-800 text-slate-600 cursor-not-allowed'">
-            <span x-text="$store.game.startLabel($store.game.actionModal.skillId, $store.game.modalAction)"></span>
+            <span x-text="$store.game.mBatDauLabel"></span>
           </button>
         </div>
       </div>

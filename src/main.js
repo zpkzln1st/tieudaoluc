@@ -1244,6 +1244,13 @@ const gameStore = {
     for (const c of this.rewardChips(r)) { const m = M[c.id]; if (m) this._lootFloat(this.ico(c.id, c.emoji), c.amt, m.nm, m.c); }
   },
   // Hết nguyên liệu -> hoạt động tự dừng (engine advance trả ranOut): toast + chuông cho rõ lý do.
+  /** Làm đủ số lượt đã đặt -> báo XONG VIỆC, không phải báo lỗi như hết nguyên liệu. */
+  notifyDoneLimit(rep) {
+    const nm = ((this.ITEMS[rep.itemId] || {}).name) || ((this.SKILLS[rep.skillId] || {}).name) || 'chế tác';
+    this.showToast('Xong ' + this.fmt(rep.limit) + ' lượt — ' + nm + '.');
+    pushNotif(this.state, 'thuThap', 'Xong số lượt đã đặt', 'Đã làm đủ ' + this.fmt(rep.limit) + ' lượt ' + nm + '.', now());
+    Storage.save(this.state);
+  },
   notifyRanOut(rep) {
     const nm = ((this.ITEMS[rep.itemId] || {}).name) || ((this.SKILLS[rep.skillId] || {}).name) || 'chế tác';
     this.showToast('Hết nguyên liệu — đã dừng: ' + nm + '.');
@@ -2525,8 +2532,37 @@ const gameStore = {
   skillTimeLabel(id) { return this.fmtTime((this.state.skills[id]?.timeMs || 0) / 1000); },
 
   actionModal: null,
-  openAction(skillId, actionId) { this.actionModal = { skillId, actionId }; },
+  openAction(skillId, actionId) { this.actionModal = { skillId, actionId }; this.mLuot = 0; },
   closeAction() { this.actionModal = null; },
+
+  // ---------- SỐ LƯỢT: làm đúng ngần ấy lượt rồi tự dừng ----------
+  // Ô để TRỐNG (0) = chạy tới khi hết nguyên liệu / chạm trần nhàn rỗi, đúng nếp cũ. Gõ số vào
+  // thì làm đủ ngần ấy rồi dừng. Cùng khuôn ô số lượng với Thương Điếm và popup bán: cho gõ tự
+  // do, XOÁ TRẮNG được, chỉ chặn trần — kẹp về 1 mỗi lần gõ thì không nhập nổi số nhiều chữ số.
+  mLuot: 0,
+  /** Làm được nhiều nhất bao nhiêu lượt: theo nguyên liệu đang có (và lượt Đồ Phổ). 0 = không có trần. */
+  get mLuotMax() {
+    const a = this.modalAction; if (!a) return 0;
+    let max = Infinity;
+    for (const inp of this.actionInputs(a)) max = Math.min(max, Math.floor(inp.have / inp.need));
+    if (a.needsDoPho) max = Math.min(max, ((this.state.player && this.state.player.doPho) || {})[a.itemId] || 0);
+    return max === Infinity ? 0 : Math.max(0, max);
+  },
+  mLuotNhap(v) {
+    const s = String(v == null ? '' : v).replace(/[^\d]/g, '');
+    if (!s) { this.mLuot = 0; return; }
+    const tran = this.mLuotMax || 99999;
+    this.mLuot = Math.min(parseInt(s, 10), tran);
+  },
+  mLuotDat(n) { const tran = this.mLuotMax || 99999; this.mLuot = Math.max(0, Math.min(Math.floor(n) || 0, tran)); },
+  mLuotThem(d) { this.mLuotDat(this.mLuot + d); },
+  /** Chữ trên nút: có đặt số thì in luôn số lượt, khỏi phải liếc ngược lên ô nhập. */
+  get mBatDauLabel() {
+    const m = this.actionModal; if (!m) return 'Bắt Đầu';
+    const goc = this.startLabel(m.skillId, this.modalAction);
+    if (goc !== 'Bắt Đầu' || !(this.mLuot > 0)) return goc;
+    return 'Bắt Đầu ' + this.fmt(this.mLuot) + ' lượt';
+  },
   get modalSkill() { return this.actionModal ? this.SKILLS[this.actionModal.skillId] : null; },
   get modalAction() { return this.actionModal ? getAction(this.actionModal.skillId, this.actionModal.actionId) : null; },
   // EXP chỉ số phụ (Tứ Trụ) nhận MỖI LẦN làm hành động — vd Đào Khoáng = Lực Đạo (Sức Mạnh) + Hộ Thể.
@@ -2540,7 +2576,7 @@ const gameStore = {
   },
   startFromModal() {
     if (!this.actionModal) return;
-    this.start(this.actionModal.skillId, this.actionModal.actionId);
+    this.start(this.actionModal.skillId, this.actionModal.actionId, this.mLuot);
     this.closeAction();
   },
 
@@ -2684,9 +2720,9 @@ const gameStore = {
     return 'Đang ' + (nghe || act || 'hành tẩu');
   },
 
-  start(skillId, actionId) {
+  start(skillId, actionId, soLuot) {
     const prev = this.buildCombatSummary('manual');   // đang đánh dở -> chốt phiên combat cũ vào chuông (không mất dấu)
-    if (startActivity(this.state, skillId, actionId, now())) { if (prev) this.pushCombatSummaryNotif(prev); Storage.save(this.state); }
+    if (startActivity(this.state, skillId, actionId, now(), soLuot)) { if (prev) this.pushCombatSummaryNotif(prev); Storage.save(this.state); }
   },
   stop() {
     const a = this.state.activity;
@@ -4977,6 +5013,7 @@ function rafLoop() {
       if (rep && rep.type === 'skill' && rep.cycles > 0 && rep.itemId) s.showLootPop(rep.itemId, rep.cycles);   // online: bắn loot float mỗi khi thu vật phẩm
       if (rep && rep.arrived && s._teleReturnView) { const v = s._teleReturnView; s._teleReturnView = null; s.navTo(v); }   // Khinh Công tới nơi -> quay lại tab đã bấm "Đổi vùng"
       if (rep && rep.ranOut) s.notifyRanOut(rep);   // hết nguyên liệu -> hoạt động tự dừng, báo rõ lý do
+      if (rep && rep.doneLimit) s.notifyDoneLimit(rep);   // làm đủ số lượt đã đặt -> báo xong việc
       if (rep && rep.type === 'combat' && rep.died) s.notifyCombatBgDeath(rep);   // gục khi combat chạy nền -> toast + tổng kết vào chuông
     }
     // Suy yếu: bơm _cycleNow để thanh HP hồi mượt; đủ 60s -> tự khỏi (chạy cả khi không ở màn combat)
@@ -5003,7 +5040,7 @@ tuBatFPS();                       // vào bằng `?fps=1` là có đồng hồ k
 setInterval(() => {
   const s = window.Alpine?.store('game');
   if (!s) return;
-  if (s.state.activity) { const rep = advance(s.state, now()); if (rep && rep.ranOut) s.notifyRanOut(rep); if (rep && rep.type === 'combat' && rep.died) s.notifyCombatBgDeath(rep); }   // hết nguyên liệu / gục nền -> tự dừng + báo (cả khi tab ẩn)
+  if (s.state.activity) { const rep = advance(s.state, now()); if (rep && rep.ranOut) s.notifyRanOut(rep); if (rep && rep.doneLimit) s.notifyDoneLimit(rep); if (rep && rep.type === 'combat' && rep.died) s.notifyCombatBgDeath(rep); }   // hết nguyên liệu / xong số lượt / gục nền -> tự dừng + báo (cả khi tab ẩn)
   if (s.state.combat && s.state.combat.noiThuong && s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();   // suy yếu xong khi tab ẩn
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
   // Đan Bổ Trợ: dọn buff hết hạn (deriveCombat đọc thẳng state.buffs nên phải prune bằng đồng hồ GAME),
