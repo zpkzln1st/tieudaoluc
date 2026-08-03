@@ -147,7 +147,7 @@ export function bangPhai() {
       return [
         { id: 'all',  ten: 'Tất Cả' },
         { id: 'tho',  ten: 'Nguyên Liệu Thô' },
-        { id: 'che',  ten: 'Liệu Đã Luyện' },
+        { id: 'che',  ten: 'Vật Liệu Chế Tác' },   // đổi cùng Hành Lý: "Liệu Đã Luyện" user đọc không hiểu
         { id: 'dung', ten: 'Đan Dược & Món Ăn' },
         { id: 'khac', ten: 'Khác' },
       ];

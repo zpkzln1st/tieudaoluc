@@ -4296,10 +4296,13 @@ const gameStore = {
   hlTabTB: 'all',
   hlChon: false,          // đang ở chế độ chọn nhiều món?
   hlSel: {},              // { ref: true } — ref = uid (trang bị) hoặc id (vật phẩm xếp chồng)
+  // ⚠ Tab `che` từng tên là "Liệu Đã Luyện" — user đọc không hiểu. Trong đó là Thỏi Kim Loại +
+  // gạch/ngói/ván + Đá Cường Hóa + Linh Thạch: đều CHẾ ra và đều dùng để CHẾ tiếp.
+  // (Minh Khố bên `src/bangphai.js` dùng chung tên này — đổi thì đổi cả hai.)
   get hlTabs() {
     return [
       { id: 'all', ten: 'Tất Cả' }, { id: 'trangbi', ten: 'Trang Bị' },
-      { id: 'tho', ten: 'Nguyên Liệu Thô' }, { id: 'che', ten: 'Liệu Đã Luyện' },
+      { id: 'tho', ten: 'Nguyên Liệu Thô' }, { id: 'che', ten: 'Vật Liệu Chế Tác' },
       { id: 'dan', ten: 'Đan Dược' }, { id: 'monan', ten: 'Món Ăn' },
       { id: 'doPho', ten: 'Đồ Phổ' }, { id: 'khac', ten: 'Khác' },
     ];
