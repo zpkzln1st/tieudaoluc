@@ -185,13 +185,25 @@ for (const id of Object.keys(state.inventory)) {
 // ⚠ Giữ nguyên `plus` và `uid` — người chơi đã cường hoá thì không được mất.
 {
   const buSet = (inst) => {
-    if (!inst || !inst.gearId || inst.rolls) return inst;
+    if (!inst || !inst.gearId) return inst;
     const e = ((ITEMS[inst.gearId] || {}).equip) || {};
-    if (!e.set) return inst;                                  // chỉ món BỘ mới bù
-    const moi = rollSetPieceInstance(inst.gearId);
-    if (!moi) return inst;
-    moi.uid = inst.uid; moi.plus = inst.plus || 0;
-    return moi;
+    if (!e.set) return inst;                                  // chỉ món BỘ mới đụng tới
+    if (!inst.rolls) {                                        // bản CŨ NHẤT: chưa có dòng roll -> bù hẳn
+      const moi = rollSetPieceInstance(inst.gearId);
+      if (!moi) return inst;
+      moi.uid = inst.uid; moi.plus = inst.plus || 0;
+      return moi;
+    }
+    // ⚠ Món ghép trong khoảng GIỮA hai lần sửa: ĐÃ có dòng roll (nên nhánh trên bỏ qua) nhưng
+    // thứ tự vẫn của bản cũ — dòng cốt nằm lẫn giữa đám dòng roll. Xếp lại, KHÔNG roll lại
+    // (roll lại là đổi chỉ số món người chơi đang mặc).
+    const cot = Object.keys(e.stats || {});
+    inst.setCore = cot;                                       // bản giữa có thể thiếu hẳn setCore
+    const gop = {};
+    for (const k of cot) if (inst.stats && k in inst.stats) gop[k] = inst.stats[k];
+    for (const k in (inst.stats || {})) if (!(k in gop)) gop[k] = inst.stats[k];
+    inst.stats = gop;
+    return inst;
   };
   for (const slot in state.equipment) state.equipment[slot] = buSet(state.equipment[slot]);
   if (Array.isArray(state.gearBag)) state.gearBag = state.gearBag.map(buSet);
