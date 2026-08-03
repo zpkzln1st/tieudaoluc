@@ -4642,6 +4642,29 @@ const gameStore = {
   get dungeonPoolObj() { return this.dungeonPoolId ? this.DUNGEON_BY_ID[this.dungeonPoolId] : null; },
   get dungeonPoolList() { return this.dungeonPoolId ? this.dungeonDoPhoList(this.dungeonPoolId) : []; },
   /**
+   * Danh Mục Đồ Phổ CHIA NHÓM. ⚠⚠ Dồn hết vào một rổ là NÓI SAI: đồ phổ trang bị, đồ phổ công cụ
+   * và đồ phổ Bộ là BA lượt bốc RIÊNG, khác bậc khác tỉ lệ. Bản trước in một dòng "Bậc 4 · 12%"
+   * rồi liệt kê cả 4 cuộn công cụ ở dưới — 4 cuộn đó thật ra là bậc 4 · 9%, lượt bốc khác hẳn.
+   */
+  dungeonDoPhoNhom(id) {
+    const d = this.DUNGEON_BY_ID[id]; if (!d || !d.loot) return [];
+    const oCC = (this.TOOL_SLOTS || []).map((t) => t.id);
+    const laTool = (dpId) => {
+      const g = this.ITEMS[String(dpId).slice(3)];
+      return !!(g && g.equip && oCC.includes(g.equip.slot));
+    };
+    const het = this.dungeonDoPhoList(id);
+    const out = [];
+    const gear = het.filter((x) => x.startsWith('dp_') && !laTool(x));
+    if (gear.length) out.push({ key: 'gear', ten: 'Đồ Phổ Trang Bị', bac: (d.loot.doPho.bac || []).join(' / '), pct: this.pctText(this.dungeonDoPhoChance(id)), ids: gear });
+    const tool = het.filter((x) => x.startsWith('dp_') && laTool(x));
+    if (tool.length) out.push({ key: 'tool', ten: 'Đồ Phổ Công Cụ', bac: String((d.loot.toolDoPho || {}).bac || ''), pct: this.pctText(this.dungeonToolDoPhoChance(id)), ids: tool });
+    const bo = het.filter((x) => x.startsWith('dpset_'));
+    if (bo.length) out.push({ key: 'set', ten: 'Đồ Phổ Bộ Trang', bac: '', pct: '', rieng: true, ids: bo });
+    return out;
+  },
+  get dungeonPoolNhom() { return this.dungeonPoolId ? this.dungeonDoPhoNhom(this.dungeonPoolId) : []; },
+  /**
    * Đã có bản Đồ Phổ Bộ này chưa. Khớp ĐÚNG điều kiện engine dùng để BỎ QUA khi rơi
    * (engine/dungeon.js: `continue` nếu inventory[dpset_*] > 0) — mở khoá bộ chỉ cần count>0
    * và KHÔNG tiêu đồ phổ, nên bản trùng vô dụng, engine không cho rơi nữa.

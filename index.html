@@ -6284,7 +6284,7 @@
                           <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
                             <span class="relative w-10 h-10 rounded-md overflow-hidden inline-flex items-center justify-center">
                               <span class="w-8 h-8 inline-flex items-center justify-center text-cyan-300/90" x-html="g.svg('book','w-8 h-8')"></span>
-                              <template x-if="bk"><img loading="lazy" decoding="async" :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template>
+                              <template x-if="bk"><img decoding="async" :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template>
                             </span>
                             <span class="text-[10px] font-bold leading-none text-cyan-300" x-text="g.pctText(g.dungeonBiKipChance(d.id))"></span>
                             <span class="text-[8px] leading-tight text-cyan-300/80" x-text="bk ? ('Bí Kíp · tới bậc '+bk.tierName) : 'Bí Kíp'"></span>
@@ -6415,32 +6415,41 @@
                   <button @click="g.closeDungeonPool()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400">✕</button>
                   <div class="text-[12px]" :style="'color:'+dd.color" x-text="dd.name"></div>
                   <div class="text-lg fserif text-amber-200">Danh Mục Đồ Phổ</div>
-                  <!-- Hai con số trong popup ĐO HAI THỨ KHÁC NHAU, phải nói rõ kẻo đọc tưởng cùng loại:
-                       · đồ phổ trang bị = MỘT lượt bốc chung cả nhóm, trúng thì ra một bản bất kỳ
-                       · đồ phổ Bộ       = mỗi bản MỘT lượt bốc riêng, trúng bản nào ra bản đó -->
-                  <div class="text-[11px] text-slate-400 mt-0.5 leading-snug">Bậc <span x-text="dd.loot.doPho.bac.join(' / ')"></span> · <b class="text-amber-300" x-text="g.pctText(g.dungeonDoPhoChance(dd.id))"></b> ra <b class="text-slate-300">một bản bất kỳ</b> trong nhóm, mỗi lượt thông quan.</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5 leading-snug">Mỗi nhóm là <b class="text-slate-300">một lượt bốc riêng</b>, mỗi lượt thông quan.</div>
                 </div>
-                <div class="p-5 overflow-y-auto">
-                  <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    <template x-for="dpId in g.dungeonPoolList" :key="dpId">
-                      <button @click="g.closeDungeonPool(); g.openItemModal(dpId)" class="rounded-lg bg-black/40 border p-2.5 flex flex-col items-center gap-2 transition hover:bg-white/5 hover:brightness-110" :class="g.itemQuality(dpId).border" title="Bấm xem chi tiết · phóng to">
-                        <span class="w-24 h-24 inline-flex items-center justify-center" x-html="g.ico(dpId,'📜')"></span>
-                        <span class="text-[12px] text-center leading-tight font-medium" :class="g.itemQuality(dpId).text" x-text="(g.ITEMS[dpId]||{}).name"></span>
-                        <!-- "riêng bản này" đối lại với "một bản bất kỳ" ở đầu popup — hai vế đó
-                             gánh trọn ý nghĩa, khỏi phải giảng thêm câu nào.
-                             ĐÃ CÓ thì THAY HẲN dòng tỉ lệ, không để cạnh nhau: engine bỏ qua bản
-                             đã có (`continue` khi túi ≥1) nên con số kia thành sai, để lại là nói dối. -->
-                        <template x-if="dpId.startsWith('dpset_') && !g.coDoPhoBo(dpId)">
-                          <span class="text-[10px] text-amber-300/90" x-text="g.pctText(g.dungeonSetChance(dd.id, dpId)) + ' riêng bản này'"></span>
+                <div class="p-5 overflow-y-auto space-y-4">
+                  <!-- ⚠⚠ CHIA NHÓM. Dồn chung một rổ rồi in mỗi một dòng "Bậc 4 · 12%" là NÓI SAI:
+                       đồ phổ trang bị / công cụ / Bộ Trang là BA lượt bốc riêng, khác bậc khác tỉ lệ. -->
+                  <template x-for="nh in g.dungeonPoolNhom" :key="nh.key">
+                    <div>
+                      <div class="flex items-baseline gap-2 mb-2 pb-1 border-b border-slate-800">
+                        <span class="text-[12px] fserif text-amber-200" x-text="nh.ten"></span>
+                        <template x-if="nh.bac"><span class="text-[10.5px] text-slate-500" x-text="'Bậc '+nh.bac"></span></template>
+                        <span class="ml-auto text-[10.5px] text-slate-400">
+                          <template x-if="!nh.rieng"><span><b class="text-amber-300" x-text="nh.pct"></b> ra <b class="text-slate-300">một bản bất kỳ</b></span></template>
+                          <template x-if="nh.rieng"><span>mỗi bản một lượt bốc <b class="text-slate-300">riêng</b></span></template>
+                        </span>
+                      </div>
+                      <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                        <template x-for="dpId in nh.ids" :key="dpId">
+                          <button @click="g.closeDungeonPool(); g.openItemModal(dpId)" class="rounded-lg bg-black/40 border p-2.5 flex flex-col items-center gap-2 transition hover:bg-white/5 hover:brightness-110" :class="g.itemQuality(dpId).border" title="Bấm xem chi tiết · phóng to">
+                            <span class="w-24 h-24 inline-flex items-center justify-center" x-html="g.ico(dpId,'📜')"></span>
+                            <span class="text-[12px] text-center leading-tight font-medium" :class="g.itemQuality(dpId).text" x-text="(g.ITEMS[dpId]||{}).name"></span>
+                            <!-- ĐÃ CÓ thì THAY HẲN dòng tỉ lệ, không để cạnh nhau: engine bỏ qua bản
+                                 đã có (`continue` khi túi ≥1) nên con số kia thành sai. -->
+                            <template x-if="dpId.startsWith('dpset_') && !g.coDoPhoBo(dpId)">
+                              <span class="text-[10px] text-amber-300/90" x-text="g.pctText(g.dungeonSetChance(dd.id, dpId)) + ' riêng bản này'"></span>
+                            </template>
+                            <template x-if="dpId.startsWith('dpset_') && g.coDoPhoBo(dpId)">
+                              <span class="text-[10px] font-semibold text-emerald-400">✓ Đã có · không rơi nữa</span>
+                            </template>
+                            <template x-if="g.doPhoChargeOf(dpId) > 0"><span class="text-[10px] font-semibold text-emerald-400" x-text="'✓ Có '+g.doPhoChargeOf(dpId)+' lượt rèn'"></span></template>
+                          </button>
                         </template>
-                        <template x-if="dpId.startsWith('dpset_') && g.coDoPhoBo(dpId)">
-                          <span class="text-[10px] font-semibold text-emerald-400">✓ Đã có · không rơi nữa</span>
-                        </template>
-                        <template x-if="g.doPhoChargeOf(dpId) > 0"><span class="text-[10px] font-semibold text-emerald-400" x-text="'✓ Có '+g.doPhoChargeOf(dpId)+' lượt rèn'"></span></template>
-                      </button>
-                    </template>
-                    <template x-if="!g.dungeonPoolList.length"><div class="col-span-full text-center text-[12px] text-slate-600 py-6">Phó bản này không rơi Đồ Phổ.</div></template>
-                  </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template x-if="!g.dungeonPoolNhom.length"><div class="text-center text-[12px] text-slate-600 py-6">Phó bản này không rơi Đồ Phổ.</div></template>
                 </div>
               </div>
             </div>
@@ -6463,7 +6472,11 @@
                       <div class="rounded-lg bg-black/40 border p-2.5 flex flex-col items-center gap-1.5" :style="'border-color:'+bk.tierColor+'55'">
                         <span class="relative w-20 h-20 rounded-md overflow-hidden bg-ink3 inline-flex items-center justify-center">
                           <span class="w-10 h-10 inline-flex items-center justify-center text-cyan-300/70" x-html="g.svg('book','w-10 h-10')"></span>
-                          <img loading="lazy" decoding="async" :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                          <!-- ⚠ KHÔNG `loading="lazy"` ở đây: modal do người chơi bấm mới mở, 16 ảnh
+                               nằm trọn trong khung. Để lazy thì Chrome hoãn tuỳ lúc ⇒ MỖI LẦN MỞ một
+                               nhóm ảnh khác nhau kịp hiện, số còn lại trơ khung sách — nhìn y như
+                               thiếu art trong khi file có đủ trên đĩa. -->
+                          <img decoding="async" :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
                         </span>
                         <span class="text-[12px] text-center leading-tight font-medium text-slate-200" x-text="bk.ten"></span>
                         <span class="text-[10px] font-semibold" :style="'color:'+bk.tierColor" x-text="'Bậc '+bk.tierName"></span>
