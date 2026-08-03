@@ -5569,7 +5569,9 @@
                            dữ liệu. Chỉ còn nhãn trái, số phải, cách nhau bằng khoảng đệm. -->
                       <div>
                         <template x-for="(v,k) in (m.stats||{})" :key="k">
-                          <div class="flex items-center gap-3 py-[3px]" :style="'color:'+$store.game.gearLineColor(m,k)">
+                          <!-- Dòng CỐT Bộ Trang: bạch kim + in đậm. Chỉ đổi màu thôi thì lẫn với
+                               dòng roll bậc Phàm (cũng trắng nhạt) — đo bằng mắt trên ảnh thật. -->
+                          <div class="flex items-center gap-3 py-[3px]" :style="'color:'+$store.game.gearLineColor(m,k)" :class="$store.game.gearLineCore(m,k) ? 'font-semibold' : ''">
                             <span class="text-[12.5px] flex-1" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.statLabel(k)"></span>
                             <span class="text-[12.5px] font-bold tabular-nums" x-text="$store.game.gearVal(k,v)"></span>
                           </div>

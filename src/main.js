@@ -4159,7 +4159,9 @@ const gameStore = {
       type: b.type || 'trangbi', value: b.value || 0, quality: inst.quality, stats: inst.stats || {},
       itemLv: inst.itemLv || e.itemLv || 1, reqLevel: inst.reqLevel || e.reqLevel || 1, plus: inst.plus || 0,
       he: inst.he || null, eleDmg: inst.eleDmg || 0, slot: e.slot, weaponType: e.weaponType || null,
-      gatherEff: e.gatherEff || 0, gatherSkill: e.gatherSkill || null, rolls: inst.rolls || null, equip: e, _inst: inst,
+      gatherEff: e.gatherEff || 0, gatherSkill: e.gatherSkill || null, rolls: inst.rolls || null,
+      setCore: inst.setCore || null,          // dòng cốt Bộ Trang -> tô màu Bạch Kim (xem gearLineColor)
+      equip: e, _inst: inst,
     };
   },
   equippedItem(slotId) { return this.gearView(this.state.equipment && this.state.equipment[slotId]); },
@@ -4256,7 +4258,13 @@ const gameStore = {
   gearVal(k, v) { const a = AFFIX[k]; return '+' + v + (a && a.fmt === 'pct' ? '%' : ''); },        // chỉ giá trị (tách khỏi tên cho list dọc)
   // Màu dòng theo BẬC ROLL (% trong [min,max]): Phàm trắng → Lương lam → Thượng chàm → Cực tím → Tuyệt cam.
   // KHÔNG dùng lục/đỏ (để dành cho mũi tên so sánh ▲/▼). Món cũ/migrate (không rolls) = xám trung tính.
+  /** Dòng này có phải dòng CỐT của Bộ Trang không (để tô bạch kim + in đậm). */
+  gearLineCore(view, k) { return !!(view && view.setCore && view.setCore.indexOf(k) >= 0); },
   gearLineColor(view, k) {
+    // Dòng CỐT của Bộ Trang: tô BẠCH KIM, cùng màu với `SET_COLORS` dùng cho hào quang và tên món.
+    // ⚠ Không dùng lớp shimmer `.q-set`: nó tô bằng `background-clip:text` nên đuôi chữ `g`
+    // ("Kháng", "Công") bị cắt mất — xem gotcha chữ vàng cắt đuôi chữ.
+    if (this.gearLineCore(view, k)) return this.SET_COLORS.kimQuang;
     const pct = view && view.rolls && view.rolls[k];
     if (pct == null) return '#94a3b8';   // neutral xám
     if (pct < 0.25) return '#cbd5e1';     // Phàm  - trắng
