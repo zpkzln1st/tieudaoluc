@@ -4300,16 +4300,21 @@ const gameStore = {
     return [
       { id: 'all', ten: 'Tất Cả' }, { id: 'trangbi', ten: 'Trang Bị' },
       { id: 'tho', ten: 'Nguyên Liệu Thô' }, { id: 'che', ten: 'Liệu Đã Luyện' },
-      { id: 'dung', ten: 'Đan Dược & Món Ăn' }, { id: 'khac', ten: 'Khác' },
+      { id: 'dan', ten: 'Đan Dược' }, { id: 'monan', ten: 'Món Ăn' },
+      { id: 'doPho', ten: 'Đồ Phổ' }, { id: 'khac', ten: 'Khác' },
     ];
   },
   get hlTabsTB() {
     return [{ id: 'all', ten: 'Tất Cả' }]
       .concat(this.EQUIP_SLOTS.map((s) => ({ id: s.id, ten: s.name })), [{ id: 'congcu', ten: 'Công Cụ' }]);
   },
+  // ⚠ Mồi Câu (`moi`) về Khác chứ không đi cùng Đan Dược / Món Ăn: nó không phải thứ để dùng
+  // lên người. Trước gộp chung khi hai loại kia còn chung một tab.
   hlNhomCua(t) {
     if (t === 'trangbi') return 'trangbi';
-    if (t === 'dan' || t === 'monan' || t === 'moi') return 'dung';
+    if (t === 'dan') return 'dan';
+    if (t === 'monan') return 'monan';
+    if (t === 'doPho') return 'doPho';
     if (t === 'go' || t === 'khoang' || t === 'ca' || t === 'thaoDuoc') return 'tho';
     if (t === 'dinh' || t === 'vatlieu') return 'che';
     return 'khac';
