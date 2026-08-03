@@ -80,6 +80,12 @@ import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
 
+// Thứ hạng phẩm chất — dựng MỘT LẦN. `qualityRank` nằm trên đường sắp xếp của mọi danh sách
+// đồ đạc (Hành Lý, danh sách trang bị, loot, Linh Thú); tính lại `Object.keys` trong đó là
+// cấp phát một mảng cho từng phép so.
+const QKEYS = Object.keys(QUALITY);
+const QRANK = QKEYS.reduce((o, k, i) => { o[k] = i + 1; return o; }, {});
+
 let _devNowOffset = 0;                        // Dev: tua đồng hồ (session-only; reload reset). 0 = thực.
 // Dev: CHẠY NHANH thời gian (khác "tua" ở trên — tua là nhảy một phát, cái này chạy liên tục).
 //   `_devTichLuy` chốt phần đã tăng tốc tới `_devMocThuc`, nên đổi hệ số KHÔNG làm giờ nhảy giật.
@@ -464,7 +470,7 @@ const gameStore = {
   openCoTuong(id) { this._ctOpp = id || null; this.navTo('coTuong'); },  // deep-link Cờ Tướng từ Hồ Sơ Danh Sĩ
   _cvOpp: null,
   openCoVua(id) { this._cvOpp = id || null; this.navTo('coVua'); },      // deep-link Cờ Vua từ Hồ Sơ Danh Sĩ
-  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
   _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'binh', 'paoDeKuai', 'tavern', 'guild'],
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
@@ -2956,8 +2962,13 @@ const gameStore = {
     if (this._itemSetId(x)) return Object.assign({}, base, { name: 'Bạch Kim', text: 'q-set', border: 'border-slate-300/70', bg: 'bg-slate-300/10', ring: 'ring-slate-300/60', grad: 'from-slate-300/25 to-ink3/15' });
     return base;
   },
-  get QUALITY_KEYS() { return Object.keys(this.QUALITY); },                                   // thứ tự thấp -> cao
-  qualityRank(x) { const i = this.QUALITY_KEYS.indexOf(this._qKey(x)); return i < 0 ? 1 : i + 1; }, // 1..7
+  // ⚠ Bảng thứ hạng dựng MỘT LẦN ở mức module (QKEYS/QRANK ngay dưới phần import), KHÔNG
+  // `Object.keys(this.QUALITY)` mỗi lần gọi. Đo thật: sắp 400 trang bị theo phẩm chất tốn
+  // 16,6ms vì mỗi phép so gọi qualityRank hai lần, mỗi lần lại cấp phát một mảng khoá qua
+  // proxy Alpine. Đổi sang tra bảng còn ~1ms — hàm này nằm trên đường sắp xếp của Hành Lý,
+  // danh sách trang bị, loot và Linh Thú.
+  get QUALITY_KEYS() { return QKEYS; },                                   // thứ tự thấp -> cao
+  qualityRank(x) { return QRANK[this._qKey(x)] || 1; },                   // 1..7
   qualityName(x) { return this.itemQuality(x).name; },
   itemDescOf(x) { const id = (x && typeof x === 'object') ? x.id : x; const it = this.ITEMS[id] || {}; return it.desc || ('Chiến lợi phẩm ' + this.itemQuality(x).name + ', thu được khi hạ yêu thú.'); },
   // Chỉ trả lời VĂN THẬT do người viết, KHÔNG trả câu độn "Chiến lợi phẩm ..., thu được khi hạ yêu thú".
@@ -4230,6 +4241,124 @@ const gameStore = {
       label: this.ITEM_TYPES[t] || 'Khác',
       items: t === 'trangbi' ? groups[t] : groups[t].sort((a, b) => b.qty - a.qty),
     }));
+  },
+
+  // ---------- Hành Lý: thanh tab · tab phụ Trang Bị · chọn nhiều món để bán ----------
+  // Tab CẤP 1 gom 12 `type` của ITEMS thành 6 nhóm đọc được — cùng cách chia với Minh Khố
+  // bên Bang Phái, chỉ tách thêm Trang Bị ra riêng vì nó là nhóm đông nhất.
+  // ⚠ Danh sách tab CỐ ĐỊNH, không mọc/rụng theo túi đang có gì: chỗ bấm phải đứng yên
+  // giữa hai lần vào, không phụ thuộc dữ liệu.
+  hlTab: 'all',
+  hlTabTB: 'all',
+  hlChon: false,          // đang ở chế độ chọn nhiều món?
+  hlSel: {},              // { ref: true } — ref = uid (trang bị) hoặc id (vật phẩm xếp chồng)
+  get hlTabs() {
+    return [
+      { id: 'all', ten: 'Tất Cả' }, { id: 'trangbi', ten: 'Trang Bị' },
+      { id: 'tho', ten: 'Nguyên Liệu Thô' }, { id: 'che', ten: 'Liệu Đã Luyện' },
+      { id: 'dung', ten: 'Đan Dược & Món Ăn' }, { id: 'khac', ten: 'Khác' },
+    ];
+  },
+  get hlTabsTB() {
+    return [{ id: 'all', ten: 'Tất Cả' }]
+      .concat(this.EQUIP_SLOTS.map((s) => ({ id: s.id, ten: s.name })), [{ id: 'congcu', ten: 'Công Cụ' }]);
+  },
+  hlNhomCua(t) {
+    if (t === 'trangbi') return 'trangbi';
+    if (t === 'dan' || t === 'monan' || t === 'moi') return 'dung';
+    if (t === 'go' || t === 'khoang' || t === 'ca' || t === 'thaoDuoc') return 'tho';
+    if (t === 'dinh' || t === 'vatlieu') return 'che';
+    return 'khac';
+  },
+  // Đổi tab thì XOÁ chỗ đã chọn: bán được gì phải là đúng thứ đang nhìn thấy.
+  hlDatTab(id) { if (this.hlTab === id) return; this.hlTab = id; this.hlSel = {}; },
+  hlDatTabTB(id) { if (this.hlTabTB === id) return; this.hlTabTB = id; this.hlSel = {}; },
+  /** Nhóm đang hiện theo tab. Tab Trang Bị chia theo Ô (Vũ Khí, Mũ, ... , 4 ô công cụ). */
+  get hlNhom() {
+    const src = this.inventoryByType;
+    if (this.hlTab !== 'trangbi') {
+      return this.hlTab === 'all' ? src : src.filter((g) => this.hlNhomCua(g.type) === this.hlTab);
+    }
+    const gear = (src.find((g) => g.type === 'trangbi') || { items: [] }).items;
+    const oList = [...this.EQUIP_SLOTS, ...this.TOOL_SLOTS];
+    const sub = this.hlTabTB;
+    const laCongCu = {}; for (const t of this.TOOL_SLOTS) laCongCu[t.id] = 1;
+    // MỘT lượt gom theo ô — lọc 13 lần trên túi 400 món tốn 2ms, chia thùng chỉ còn một vòng.
+    const thung = {};
+    for (const g of gear) {
+      if (sub !== 'all' && (sub === 'congcu' ? !laCongCu[g.slot] : g.slot !== sub)) continue;
+      (thung[g.slot] = thung[g.slot] || []).push(g);
+    }
+    const out = [], daXep = {};
+    for (const o of oList) {
+      daXep[o.id] = 1;
+      const items = thung[o.id];
+      if (items && items.length) out.push({ type: 'o_' + o.id, label: o.name, items });
+    }
+    const le = [];
+    for (const k in thung) if (!daXep[k]) le.push(...thung[k]);
+    if (le.length) out.push({ type: 'o_khac', label: 'Khác', items: le });
+    return out;
+  },
+  /** Mọi món ĐANG NHÌN THẤY (phẳng) — mọi thao tác chọn/bán chỉ đụng tới đây. */
+  get hlHien() { const o = []; for (const g of this.hlNhom) for (const it of g.items) o.push(it); return o; },
+  hlRef(it) { return it.uid || it.id; },
+  hlBanDuoc(it) { return (it.value || 0) > 0; },     // value 0 = Mảnh / Đồ Phổ Bộ: không bán được
+  hlDaChon(it) { return !!this.hlSel[this.hlRef(it)]; },
+  hlBatChon() { this.hlChon = !this.hlChon; this.hlSel = {}; },
+  hlBam(it) { if (this.hlChon) this.hlDao(it); else this.openItemModal(this.hlRef(it)); },
+  hlDao(it) {
+    if (!this.hlBanDuoc(it)) return;
+    const k = this.hlRef(it);
+    if (this.hlSel[k]) delete this.hlSel[k]; else this.hlSel[k] = true;
+  },
+  hlChonTatCa() { for (const it of this.hlHien) if (this.hlBanDuoc(it)) this.hlSel[this.hlRef(it)] = true; },
+  hlBoChon() { this.hlSel = {}; },
+  hlSoPham(q) { let n = 0; for (const it of this.hlHien) if (this.hlBanDuoc(it) && this._qKey(it) === q) n++; return n; },
+  /** Hàng nút phẩm chất — đếm CẢ BẢY trong MỘT lượt. Bảy nút gọi `hlSoPham` riêng là bảy
+   *  lần dựng lại danh sách; x-for trên hàm này chỉ dựng một lần. */
+  get hlPhamHang() {
+    const dem = {};
+    for (const it of this.hlHien) { if (!this.hlBanDuoc(it)) continue; const k = this._qKey(it); dem[k] = (dem[k] || 0) + 1; }
+    return this.QUALITY_KEYS.map((q) => ({ q, ten: this.QUALITY[q].name, hex: this.QUALITY[q].hex, co: dem[q] || 0 }));
+  },
+  /** Bấm một phẩm chất: chưa chọn hết thì chọn hết, đã chọn hết thì bỏ — một nút hai chiều. */
+  hlChonPham(q) {
+    const ds = this.hlHien.filter((it) => this.hlBanDuoc(it) && this._qKey(it) === q);
+    if (!ds.length) return;
+    const du = ds.every((it) => this.hlSel[this.hlRef(it)]);
+    for (const it of ds) { const k = this.hlRef(it); if (du) delete this.hlSel[k]; else this.hlSel[k] = true; }
+  },
+  /** o = số ô đã chọn · n = tổng số món (chồng tính đủ) · bac = tiền thu về · quy = món Hiếm trở lên. */
+  get hlChonInfo() {
+    let o = 0, n = 0, bac = 0, quy = 0;
+    for (const it of this.hlHien) {
+      if (!this.hlSel[this.hlRef(it)] || !this.hlBanDuoc(it)) continue;
+      const q = it.qty || 1;
+      o++; n += q; bac += (it.value || 0) * q;
+      if (this.qualityRank(it) >= 3) quy += q;
+    }
+    return { o, n, bac, quy };
+  },
+  hlBanChon() {
+    const ds = this.hlHien.filter((it) => this.hlSel[this.hlRef(it)] && this.hlBanDuoc(it));
+    if (!ds.length) return;
+    const c = this.hlChonInfo;
+    this.hoiXacNhan({
+      tieuDe: 'Bán Hàng Loạt', nut: 'Bán', nguy: true,
+      loi: 'Bán <b class="text-slate-100">' + this.fmt(c.n) + '</b> món · thu về <b class="text-gold">' + this.fmt(c.bac) + '</b> Bạc.',
+      canhBao: c.quy ? ('Trong đó có <b>' + this.fmt(c.quy) + '</b> món phẩm Hiếm trở lên.') : '',
+      xong: () => {
+        let n = 0, bac = 0;
+        for (const it of ds) {
+          const r = it.uid ? this.sellGearStack(it.uid, this.gearStackUids(it.uid).length)
+            : this.sellItem(it.id, this.state.inventory[it.id] || 0);
+          n += r.n; bac += r.bac;
+        }
+        this.hlSel = {};
+        this.showToast('Đã bán ' + this.fmt(n) + ' món · +' + this.fmt(bac) + ' Bạc');
+      },
+    });
   },
 
   // ---------- Túi Tạm (CHỈ đồ rơi phiên đánh hiện tại, KHÔNG phải cả kho; chỉ ĐỌC, nguồn = combatSessView) ----------
