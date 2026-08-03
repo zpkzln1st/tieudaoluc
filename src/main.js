@@ -9,7 +9,7 @@ import { LOCATIONS, REALM_TIERS } from './data/locations.js';
 import { AVATARS, COVERS } from './data/avatars.js';
 import { LOGIN_REWARDS } from './data/daily.js';
 import { TUTORIAL_QUESTS, DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS } from './data/quests.js';
-import { LINH_THACH, linhThachForSkill } from './data/linhthach.js';
+import { LINH_THACH, LT_COVER_MS, linhThachForSkill } from './data/linhthach.js';
 import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
 import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
@@ -2561,13 +2561,38 @@ const gameStore = {
     const def = this.LINH_THACH[itemId];
     return def ? { itemId, ...def } : null;
   },
+  // ⚠ THIẾU `yieldPct` là cả ba viên Bội Sản Thạch ra chuỗi RỖNG — người chơi mở ra chỉ thấy
+  // tên, không biết viên đó làm gì. Mỗi khi thêm dòng mới vào LINH_THACH phải thêm ở đây.
   linhThachEffectText(def) {
     if (!def) return '';
     const p = [];
-    if (def.expPct) p.push('+' + def.expPct + '% EXP');
+    if (def.expPct) p.push('+' + def.expPct + '% EXP Nghề');
     if (def.effPct) p.push('+' + def.effPct + '% Hiệu Suất');
+    if (def.yieldPct) p.push(def.yieldPct + '% Nhân Đôi Sản Vật');
     return p.join(' · ');
   },
+  // ---------- Theo dõi Linh Thạch: viên đang đốt còn bao lâu · cả kho đủ dùng bao lâu ----------
+  // Một viên phủ LT_COVER_MS thời gian HOẠT ĐỘNG (không phải thời gian thực): tắt máy thì đá đứng yên.
+  LT_COVER_MS,
+  get ltCoverText() { return fmtDurHM(LT_COVER_MS / 1000); },
+  ltTheoDoi(skillId) {
+    void this._tick;                                     // đếm ngược theo từng giây
+    const cur = this.currentLinhThach(skillId); if (!cur) return null;
+    const kho = this.state.inventory[cur.itemId] || 0;
+    const a = this.state.activity;
+    const dangDot = !!(a && a.type === 'skill' && a.skillId === skillId && a.buff && a.buff.itemId === cur.itemId);
+    const conMs = dangDot ? Math.max(0, a.buffMsLeft || 0) : 0;
+    return { itemId: cur.itemId, kho, dangDot, conMs, tongMs: conMs + kho * LT_COVER_MS };
+  },
+  get mLtTheoDoi() { return this.mSkillId ? this.ltTheoDoi(this.mSkillId) : null; },
+  /** HAI dòng theo dõi, mỗi dòng một vai trò cố định — nhồi chung một dòng thì lúc số dài
+   *  lúc số ngắn, khung co giãn theo từng giây. Dòng dưới rỗng lúc chưa chạy nhưng vẫn giữ chỗ. */
+  ltKhoText(t) {
+    if (!t) return '';
+    if (!t.kho) return t.dangDot ? 'Viên cuối cùng — hết là tắt' : 'Đã hết — sẽ không kích hoạt';
+    return 'Còn ' + this.fmt(t.kho) + ' viên · đủ dùng ' + fmtDurHM(t.tongMs / 1000);
+  },
+  ltVienText(t) { return (t && t.dangDot) ? ('Viên đang dùng còn ' + fmtDurHMS(t.conMs / 1000)) : ''; },
   assignLinhThach(skillId, itemId) {
     if (!this.state.linhThach) this.state.linhThach = {};
     this.state.linhThach[skillId] = itemId;
@@ -2587,6 +2612,8 @@ const gameStore = {
   // Buff của hoạt động đang chạy (badge ở thẻ hoạt động)
   get actBuff() { return (this.act && this.act.buff) ? this.act.buff : null; },
   get actBuffText() { return this.actBuff ? this.linhThachEffectText(this.actBuff) : ''; },
+  /** Đếm ngược viên đá đang đốt, hiện ở thẻ hoạt động. */
+  get actBuffLeftText() { void this._tick; const a = this.act; return (a && a.buff) ? fmtTime(Math.max(0, a.buffMsLeft || 0) / 1000) : ''; },
 
   // ---------- Hoạt động (skill + combat) ----------
   get hasActivity() { return !!this.state.activity; },

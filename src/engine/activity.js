@@ -113,6 +113,7 @@ export function startActivity(state, skillId, actionId, now) {
     sessionCount: 0, progress: 0, capped: false, stalled: false,
     ltId: (state.linhThach && state.linhThach[skillId]) || null,   // loại đá đang lắp — đốt dần theo giờ
     buff: null, buffMsLeft: 0, buffXpAcc: 0,
+    buffAt: now,       // MỐC đã tính đá tới đâu — xem ghi chú ở advance()
   };
   burnLinhThach(state, state.activity);   // viên đầu trừ ngay khi bấm Bắt Đầu
   if (state.activity.buff) state.activity.cycleMs = cycleMsFor(state, skillId, action, state.activity.buff.effPct);
@@ -347,6 +348,19 @@ export function advance(state, now) {
     let capLeft = Math.min(cyclesByInputs, cyclesByCharge);
     let rem = elapsed, leftover = 0, advancedMs = 0;
     let cycles = 0, buffedCycles = 0;
+    // ⚠⚠ ĐỪNG trừ thẳng `segMs` vào `buffMsLeft`. `lastResolved` chỉ tiến theo VÒNG ĐÃ XONG,
+    // nên phần lẻ chưa đủ một vòng nằm lại trong `elapsed` của MỌI lần gọi sau — trừ thẳng là
+    // tính đi tính lại đúng phần lẻ đó. advance() chạy mỗi khung hình ⇒ đo được: 60 phút đốt
+    // 1.070 viên thay vì 3 (gấp 357 lần), càng mở game nhìn thì đá càng bay.
+    // `buffAt` là MỐC THẬT đã tính đá tới đâu: chỉ tính phần [buffAt → mốc hiện tại].
+    const moc = act.lastResolved + elapsed;                                   // "bây giờ" sau khi chặn trần nhàn rỗi
+    if (act.buffAt == null || act.buffAt < act.lastResolved) act.buffAt = act.lastResolved;   // save cũ chưa có mốc
+    let daTinh = Math.min(elapsed, act.buffAt - act.lastResolved);            // đầu cửa sổ này đã tính rồi bao nhiêu
+    const truDa = (msDoan) => {                                               // trừ đá phần CHƯA từng tính
+      const moi = Math.max(0, msDoan - daTinh);
+      daTinh = Math.max(0, daTinh - msDoan);
+      return moi;
+    };
     // GIỮ LẠI hiệu ứng của đá đã dùng: hết đá thì burnLinhThach gán act.buff = null NGAY TRONG vòng lặp,
     // nên KHÔNG được đọc act.buff sau vòng lặp để tính thưởng — sẽ mất trắng phần buff của các đoạn đã phủ.
     let buffExpPct = 0, buffYieldPct = 0;
@@ -355,13 +369,16 @@ export function advance(state, now) {
       const buffed = !!act.buff;
       if (buffed) { buffExpPct = act.buff.expPct || 0; buffYieldPct = act.buff.yieldPct || 0; }
       act.cycleMs = cycleMsFor(state, act.skillId, action, buffed ? act.buff.effPct : 0);
-      const segMs = buffed ? Math.min(rem, act.buffMsLeft) : rem;
+      // Đoạn phủ đá dài bằng: phần ĐẦU cửa sổ đã tính đá rồi (`daTinh`) + phần đá còn lại.
+      // Cộng `daTinh` vào đây thì đoạn cắt và phép trừ khớp nhau, đá cạn đúng lúc đoạn kết thúc.
+      const segMs = buffed ? Math.min(rem, daTinh + act.buffMsLeft) : rem;
       const avail = leftover + segMs;
       let n = Math.floor(avail / act.cycleMs);
       if (n > capLeft) {                                            // chạm trần nguyên liệu/Đồ Phổ giữa đoạn
         n = capLeft;
         const usedMs = Math.max(0, n * act.cycleMs - leftover);
-        if (buffed) act.buffMsLeft -= usedMs;
+        const truA = truDa(usedMs);
+        if (buffed) act.buffMsLeft -= truA;
         rem -= usedMs; advancedMs += n * act.cycleMs; leftover = 0;
         cycles += n; if (buffed) buffedCycles += n;
         capLeft = 0; break;
@@ -370,9 +387,11 @@ export function advance(state, now) {
       advancedMs += n * act.cycleMs;
       cycles += n; if (buffed) buffedCycles += n;
       capLeft -= n;
-      if (buffed) act.buffMsLeft -= segMs;
+      const truB = truDa(segMs);
+      if (buffed) act.buffMsLeft -= truB;
       rem -= segMs;
     }
+    act.buffAt = Math.max(act.buffAt, moc);   // chốt mốc: lần gọi sau không tính lại khúc này nữa
     if (cycles > 0) {
       const mult = skillExpMultiplier(state, act.skillId);
       const gainXp = Math.max(1, Math.round(action.xp * mult));
