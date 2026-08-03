@@ -4648,18 +4648,34 @@ const gameStore = {
    */
   dungeonDoPhoNhom(id) {
     const d = this.DUNGEON_BY_ID[id]; if (!d || !d.loot) return [];
+    const BQ = { 1: 'phamPham', 2: 'luongPham', 3: 'tinhPham', 4: 'tuyetPham', 5: 'truyenThe', 6: 'thanPham', 7: 'coBan' };
     const oCC = (this.TOOL_SLOTS || []).map((t) => t.id);
-    const laTool = (dpId) => {
-      const g = this.ITEMS[String(dpId).slice(3)];
-      return !!(g && g.equip && oCC.includes(g.equip.slot));
+    // ⚠⚠ Chia theo NGUỒN BỐC, KHÔNG theo ô của món. Phó bản thấp (Thanh Vân Cốc) khai
+    // `doPho.slots` CHÍNH LÀ bốn ô công cụ — chia theo ô thì cả nhóm đó bị đẩy sang nhánh
+    // `toolDoPho` rồi ăn tỉ lệ 0% vì phó bản đó không có `toolDoPho`. Đo được: hiện "0%".
+    const locTheo = (bacs, slots) => {
+      const quals = bacs.map((b) => BQ[b]);
+      return Object.values(this.ITEMS)
+        .filter((it) => it.equip && it.equip.itemLv && !it.equip.set && quals.includes(it.quality)
+          && (slots === 'all' || slots.includes(it.equip.slot)))
+        .map((it) => 'dp_' + it.id);
     };
-    const het = this.dungeonDoPhoList(id);
     const out = [];
-    const gear = het.filter((x) => x.startsWith('dp_') && !laTool(x));
-    if (gear.length) out.push({ key: 'gear', ten: 'Đồ Phổ Trang Bị', bac: (d.loot.doPho.bac || []).join(' / '), pct: this.pctText(this.dungeonDoPhoChance(id)), ids: gear });
-    const tool = het.filter((x) => x.startsWith('dp_') && laTool(x));
-    if (tool.length) out.push({ key: 'tool', ten: 'Đồ Phổ Công Cụ', bac: String((d.loot.toolDoPho || {}).bac || ''), pct: this.pctText(this.dungeonToolDoPhoChance(id)), ids: tool });
-    const bo = het.filter((x) => x.startsWith('dpset_'));
+    const dp = d.loot.doPho;
+    if (dp) {
+      const ids = locTheo(dp.bac || [], dp.slots);
+      // Nhãn theo NỘI DUNG thật: pool toàn ô công cụ thì gọi đúng tên nó.
+      const toanCC = dp.slots !== 'all' && (dp.slots || []).every((s) => oCC.includes(s));
+      if (ids.length) out.push({ key: 'gear', ten: toanCC ? 'Đồ Phổ Công Cụ' : 'Đồ Phổ Trang Bị',
+        bac: (dp.bac || []).join(' / '), pct: this.pctText(this.dungeonDoPhoChance(id)), ids });
+    }
+    const td = d.loot.toolDoPho;
+    if (td) {
+      const ids = locTheo(Array.isArray(td.bac) ? td.bac : [td.bac], oCC);
+      if (ids.length) out.push({ key: 'tool', ten: 'Đồ Phổ Công Cụ', bac: String(td.bac),
+        pct: this.pctText(this.dungeonToolDoPhoChance(id)), ids });
+    }
+    const bo = (d.loot.rare || []).filter((r) => String(r.itemId || '').startsWith('dpset_')).map((r) => r.itemId);
     if (bo.length) out.push({ key: 'set', ten: 'Đồ Phổ Bộ Trang', bac: '', pct: '', rieng: true, ids: bo });
     return out;
   },
