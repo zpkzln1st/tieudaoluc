@@ -1596,7 +1596,34 @@ const gameStore = {
   get titlesFlat() {
     const ti = this.state.titles || { owned: [], equipped: null };
     const owned = ti.owned || [], eq = ti.equipped;
-    return TITLES.map((tt) => ({ id: tt.id, name: tt.name, q: tt.q, loai: TITLE_LOAI[tt.loai] || tt.loai, src: tt.src, owned: owned.includes(tt.id), on: eq === tt.id, bonusText: titleBonusText(tt) }));
+    // `loaiKey` = khoá gốc (để thanh tab gom nhóm); `loai` = tên hiện trên thẻ.
+    return TITLES.map((tt) => ({ id: tt.id, name: tt.name, q: tt.q, loaiKey: tt.loai, loai: TITLE_LOAI[tt.loai] || tt.loai, src: tt.src, owned: owned.includes(tt.id), on: eq === tt.id, bonusText: titleBonusText(tt) }));
+  },
+  // ---------- Tàng Hiệu Các: thanh tab + đã mở nhảy lên trên ----------
+  // Cùng khuôn với Hành Lý: một tab Tất Cả, còn lại gom 13 `loai` thành 5 nhóm đọc được.
+  // ⚠ Danh sách tab CỐ ĐỊNH, không mọc/rụng theo số danh hiệu đang có.
+  thTab: 'all',
+  get thTabs() {
+    return [
+      { id: 'all', ten: 'Tất Cả' }, { id: 'chienDau', ten: 'Chiến Đấu' },
+      { id: 'thamHiem', ten: 'Thám Hiểm' }, { id: 'sinhHoat', ten: 'Sinh Hoạt' },
+      { id: 'canhGioi', ten: 'Cảnh Giới' }, { id: 'kyNghe', ten: 'Kỳ Nghệ' },
+    ];
+  },
+  thNhomCua(loai) {
+    if (loai === 'chien' || loai === 'thu' || loai === 'toc' || loai === 'toan') return 'chienDau';
+    if (loai === 'biCanh' || loai === 'boss' || loai === 'mongCanh') return 'thamHiem';
+    if (loai === 'nghe' || loai === 'suu' || loai === 'phu' || loai === 'thuCung') return 'sinhHoat';
+    if (loai === 'canhGioi') return 'canhGioi';
+    if (loai === 'kyNghe') return 'kyNghe';
+    return 'sinhHoat';   // lưới hứng: loại mới thêm sau rơi vào đây chứ không biến mất
+  },
+  thDatTab(id) { this.thTab = id; },
+  /** Danh hiệu đang hiện: lọc theo tab, rồi ĐANG DÙNG → ĐÃ MỞ → CHƯA MỞ (giữ thứ tự gốc trong mỗi bậc). */
+  get thHien() {
+    const ds = this.thTab === 'all' ? this.titlesFlat : this.titlesFlat.filter((x) => this.thNhomCua(x.loaiKey) === this.thTab);
+    const bac = (x) => (x.on ? 0 : (x.owned ? 1 : 2));
+    return ds.map((x, i) => ({ x, i })).sort((a, b) => bac(a.x) - bac(b.x) || a.i - b.i).map((o) => o.x);
   },
   get titleOwnedCount() { return ((this.state.titles || {}).owned || []).length; },
   get titleTotalCount() { return TITLES.length; },

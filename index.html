@@ -1661,10 +1661,18 @@
             <section class="panel rounded-lg p-4 sm:p-5">
               <div class="flex items-center justify-between mb-4">
                 <div class="lbl">Tàng Hiệu Các</div>
-                <div class="text-[12px] text-slate-400">Đã mở <b class="text-jade" x-text="$store.game.titleOwnedCount"></b>/<span x-text="$store.game.titleTotalCount"></span></div>
+                <div class="text-[12px] text-slate-400 whitespace-nowrap tabular-nums">Đã mở <b class="text-jade" x-text="$store.game.titleOwnedCount"></b>/<span x-text="$store.game.titleTotalCount"></span></div>
+              </div>
+              <!-- THANH TAB — cùng khuôn Hành Lý, danh sách CỐ ĐỊNH không đổi theo dữ liệu. -->
+              <div class="flex flex-wrap gap-1 mb-3">
+                <template x-for="t in $store.game.thTabs" :key="t.id">
+                  <button @click="$store.game.thDatTab(t.id)" class="px-2.5 py-0.5 rounded-full text-[11px] fserif border transition"
+                    :class="$store.game.thTab === t.id ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                    x-text="t.ten"></button>
+                </template>
               </div>
               <div class="grid sm:grid-cols-2 gap-2.5">
-                <template x-for="it in $store.game.titlesFlat" :key="it.id">
+                <template x-for="it in $store.game.thHien" :key="it.id">
                   <div class="th-card rounded-xl px-4 py-3 border transition" :class="it.owned ? (it.on ? 'th-on border-jade/60 bg-jade/10' : 'border-slate-700/70 bg-ink3/40 cursor-pointer hover:border-jade/50 hover:bg-jade/5') : 'border-slate-800/60 bg-black/20 opacity-50'" @click="it.owned && !it.on && $store.game.titleEquip(it.id)">
                     <!-- Hàng 1: danh hiệu (co/wrap được) + phân loại (ghim phải, KHÔNG rớt dòng) -->
                     <div class="flex items-center gap-2">
