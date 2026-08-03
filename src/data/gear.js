@@ -706,10 +706,16 @@ export function rollSetPieceInstance(gearId) {
   const base = GEAR_LOOKUP[gearId]; if (!base || !base.equip) return null;
   const inst = rollGearInstance(gearId); if (!inst) return null;
   const cot = { ...(base.equip.stats || {}) };
+  // ⚠ DỰNG LẠI object theo thứ tự CỐT TRƯỚC — mọi chỗ hiện chỉ số đều lặp theo thứ tự khoá của
+  // `stats`, nên xếp ở đây là xếp cho cả popup lẫn tooltip lẫn bảng so, khỏi sửa từng view.
+  // Gán thẳng `inst.stats[k] += cot[k]` thì khoá trùng vẫn nằm nguyên chỗ cũ giữa đám dòng roll.
+  const gop = {};
   for (const k in cot) {
-    inst.stats[k] = (inst.stats[k] || 0) + cot[k];
+    gop[k] = (inst.stats[k] || 0) + cot[k];
     if (inst.rolls) delete inst.rolls[k];
   }
+  for (const k in inst.stats) if (!(k in gop)) gop[k] = inst.stats[k];
+  inst.stats = gop;
   inst.setCore = Object.keys(cot);            // view dùng để đánh dấu dòng cốt
   return inst;
 }
