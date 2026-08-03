@@ -2551,11 +2551,23 @@
             <!-- Đang Luyện (live) — chỉ hiện khi NGHỀ ĐANG XEM cũng là nghề đang chạy -->
             <template x-if="$store.game.hasActivity && $store.game.act.skillId === $store.game.selectedSkill">
               <div class="panel rounded-lg p-3 border border-jade/30">
-                <div class="flex items-center gap-2 mb-2">
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
                   <span class="inline-block w-1.5 h-1.5 rounded-full bg-jade animate-pulse shrink-0"></span>
-                  <span class="lbl">Đang Luyện</span>
+                  <span class="lbl whitespace-nowrap">Đang Luyện</span>
+                  <!-- Chip Linh Thạch neo NGAY SAU nhãn: bề rộng nhãn không đổi nên chip đứng một
+                       chỗ, không trôi theo số EXP/s bên phải. Đếm ngược khổ cố định (00:19:41).
+                       ⚠ Khổ hẹp (đo ở 380) thì nhồi vào hàng này là TÊN bị bóp mất, chỉ còn cái
+                       đồng hồ — nên dưới `sm` cho chip xuống HÀNG RIÊNG, đủ chỗ in trọn tên. -->
+                  <template x-if="$store.game.actLtChip">
+                    <span class="order-last basis-full sm:order-none sm:basis-auto min-w-0 inline-flex items-center gap-1.5 text-[10.5px] px-2 py-0.5 rounded-full border"
+                      :class="$store.game.actLtChip.het ? 'bg-rose-900/25 border-rose-700/40 text-rose-300' : 'bg-jade/10 border-jade/30 text-jade'">
+                      <span class="w-3.5 h-3.5 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico($store.game.actLtChip.itemId, ($store.game.ITEMS[$store.game.actLtChip.itemId]||{}).icon)"></span>
+                      <span class="truncate" x-text="$store.game.actLtChip.ten"></span>
+                      <span class="shrink-0 tabular-nums" x-text="$store.game.actLtChip.het ? 'đã hết' : ('còn ' + $store.game.actLtChip.con)"></span>
+                    </span>
+                  </template>
                   <span class="flex-1"></span>
-                  <span class="text-[11px] text-slate-400" x-text="$store.game.actExpPerSec + ' EXP/s'"></span>
+                  <span class="text-[11px] text-slate-400 shrink-0" x-text="$store.game.actExpPerSec + ' EXP/s'"></span>
                   <button @click="$store.game.refreshActivity()" title="Làm mới" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade text-xs">↻</button>
                   <button @click="$store.game.stop()" title="Dừng" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 text-xs">✕</button>
                 </div>

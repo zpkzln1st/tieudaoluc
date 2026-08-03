@@ -2612,8 +2612,25 @@ const gameStore = {
   // Buff của hoạt động đang chạy (badge ở thẻ hoạt động)
   get actBuff() { return (this.act && this.act.buff) ? this.act.buff : null; },
   get actBuffText() { return this.actBuff ? this.linhThachEffectText(this.actBuff) : ''; },
-  /** Đếm ngược viên đá đang đốt, hiện ở thẻ hoạt động. */
-  get actBuffLeftText() { void this._tick; const a = this.act; return (a && a.buff) ? fmtTime(Math.max(0, a.buffMsLeft || 0) / 1000) : ''; },
+  // ⚠ Đếm ngược dùng `fmtClock` (00:19:41) chứ KHÔNG phải `fmtTime` ("19m41s"): khổ chữ cố định
+  // nên con số không co giãn từng giây, chỗ đặt đứng yên.
+  /** Đếm ngược viên đá đang đốt, hiện ở thẻ hoạt động (cột Hồ Sơ). */
+  get actBuffLeftText() { void this._tick; const a = this.act; return (a && a.buff) ? fmtClock(Math.max(0, a.buffMsLeft || 0) / 1000) : ''; },
+  /** Chip ở thẻ "Đang Luyện" của màn kỹ năng: tên viên đang dùng + đếm ngược, hoặc báo đã hết.
+   *  Không lắp đá thì trả null — không bày chip rỗng. */
+  get actLtChip() {
+    void this._tick;
+    const a = this.act;
+    if (!a || a.type !== 'skill') return null;
+    const id = (a.buff && a.buff.itemId) || a.ltId;
+    if (!id) return null;
+    return {
+      itemId: id,
+      ten: (this.ITEMS[id] || {}).name || 'Linh Thạch',
+      con: a.buff ? fmtClock(Math.max(0, a.buffMsLeft || 0) / 1000) : '',
+      het: !a.buff,
+    };
+  },
 
   // ---------- Hoạt động (skill + combat) ----------
   get hasActivity() { return !!this.state.activity; },
