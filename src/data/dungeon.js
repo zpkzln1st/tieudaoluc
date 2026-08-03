@@ -13,9 +13,12 @@
 //     so chiến lực (deriveCombat) vs `power` baseline (suy từ reqLevel).
 //   - ĐỒ PHỔ (Model B): drop về túi (item dp_<gearId>); phó bản thấp (Lv10/25) KHÔNG rơi đồ phổ.
 //   - BỘ TRANG (Bạch Kim) — hai trục, cả hai đều đòi THÔNG QUAN boss:
-//       `loot.manh` = số Mảnh Trang Bị Hoàng Kim CHẮC CHẮN mỗi lượt thông quan. CỐ Ý gần bằng nhau
-//         giữa mọi phó bản Lv70+ (đều ~6 Mảnh/ngày ở trần treo 8 giờ, do lượt/ngày bù lại thời
-//         lượng) — để không ép người chơi chạy đúng MỘT phó bản. Băng Tâm Lv55 trả ít hơn (4/ngày).
+//       `loot.manh` + `loot.manhChance` = Mảnh Trang Bị Hoàng Kim mỗi lượt thông quan.
+//         ⭐ ĐỔI 2026-08-03 (user chốt): SỐ LƯỢNG ĐỒNG BỘ 1 viên ở mọi phó bản, chỉ khác TỈ LỆ,
+//         và tỉ lệ TĂNG DẦN theo cấp phó bản — chạy bí cảnh cao thì ăn chắc hơn:
+//              Lv70 45%   Lv80 60%   Lv85 72%   Lv92 86%   Lv100 100%
+//         Bí Cảnh dưới Lv70 KHÔNG rơi Mảnh nữa (Băng Tâm Lv55 trước có, nay bỏ).
+//         ⚠ `manhChance` KHÔNG nhân pace/rareMul — số đã là tỉ lệ cuối cùng, sửa ở đây là ra đó.
 //       `loot.rare` chứa `dpset_<key>` = Đồ Phổ Bộ, ghép theo HỆ: mỗi phó bản giữ đúng 2 bộ cùng hệ
 //         với nó (Thái Hư giữ Kim Quang Vô Hệ). Đây là CỬA chọn bộ, không phải tường: 10% × rareMul
 //         × pace ~ 7,5-10%/lượt nên mở trong vài ngày. Tường nằm ở 420 Mảnh/bộ.
@@ -92,7 +95,7 @@ export const DUNGEONS = [
       da: ['daCuongHoaTrung', 'daCuongHoaCao'],
       doPho: { bac: [4, 5], slots: ['gang', 'trangSuc'] }, doPhoChance: 0.05,
       toolDoPho: { bac: 5, chance: 0.06 }, // Đồ Phổ công cụ bậc 5 (roll riêng)
-      manh: 1,   // Mảnh Trang Bị Hoàng Kim / lượt THÔNG QUAN — phó bản vào cửa nên trả ít nhất
+      // ⛔ KHÔNG rơi Mảnh: từ 2026-08-03 chỉ Bí Cảnh Lv70 trở lên mới trả Mảnh (user chốt).
       rare: [{ itemId: 'dpset_thuongLan', chance: 0.05 }, { itemId: 'dpset_thanhHu', chance: 0.05 }],   // 2 bộ hệ Thủy
     },
   },
@@ -110,7 +113,7 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [5], slots: ['vuKhi'] }, doPhoChance: 0.025,
       toolDoPho: { bac: 6, chance: 0.05 }, // Đồ Phổ công cụ bậc 6 (roll riêng)
-      manh: 2,
+      manh: 1, manhChance: 0.45,   // Mảnh: ĐỒNG BỘ 1 viên mọi phó bản, chỉ khác TỈ LỆ (xem ghi chú đầu file)
       rare: [{ itemId: 'phuQuangPhan', chance: 0.05 }, { itemId: 'dpset_hongAnh', chance: 0.025 }, { itemId: 'dpset_thatSat', chance: 0.025 }],   // 2 bộ hệ Hỏa
     },
   },
@@ -128,7 +131,7 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [5, 6], slots: ['vuKhi', 'mu', 'giap'] }, doPhoChance: 0.012,
       toolDoPho: { bac: 7, chance: 0.04 }, // Đồ Phổ công cụ bậc 7 (roll riêng; sớm hơn Thái Hư, khớp cấp đeo 81)
-      manh: 2,
+      manh: 1, manhChance: 0.60,
       rare: [{ itemId: 'meVuHon', chance: 0.04 }, { itemId: 'dpset_bachHong', chance: 0.012 }, { itemId: 'dpset_dinhQuoc', chance: 0.012 }],   // 2 bộ hệ Kim
     },
   },
@@ -146,7 +149,7 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [6], slots: ['giap', 'mu'] }, doPhoChance: 0.006,
       chieuDoPho: { chance: 0.006 }, // Đồ Phổ Tuyệt Kĩ — BẰNG doPhoChance cùng bậc
-      manh: 2,
+      manh: 1, manhChance: 0.72,
       rare: [{ itemId: 'giaoChau', chance: 0.05 }, { itemId: 'hoPhuDauLinh', chance: 0.025 }, { itemId: 'dpset_nhuTinh', chance: 0.006 }, { itemId: 'dpset_tuDien', chance: 0.006 }],   // 2 bộ hệ Mộc
     },
   },
@@ -164,7 +167,7 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [6, 7], slots: ['nhan', 'trangSuc'] }, doPhoChance: 0.003,
       chieuDoPho: { chance: 0.003 }, // Đồ Phổ Tuyệt Kĩ — BẰNG doPhoChance cùng bậc
-      manh: 3,
+      manh: 1, manhChance: 0.86,
       rare: [{ itemId: 'hachCoLinh', chance: 0.03 }, { itemId: 'dpset_anBang', chance: 0.003 }, { itemId: 'dpset_minhVuong', chance: 0.003 }],   // 2 bộ hệ Thổ
     },
   },
@@ -182,7 +185,7 @@ export const DUNGEONS = [
       da: ['daCuongHoaCao'],
       doPho: { bac: [7], slots: 'all' }, doPhoChance: 0.001,
       chieuDoPho: { chance: 0.001 }, // Đồ Phổ Tuyệt Kĩ — BẰNG doPhoChance cùng bậc
-      manh: 3,
+      manh: 1, manhChance: 1,
       rare: [
         { itemId: 'tinhTheYeuVuong', chance: 0.01 },
         { itemId: 'cuuViTinh', chance: 0.012 },

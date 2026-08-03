@@ -6272,21 +6272,22 @@
                           <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border cursor-zoom-in" :class="g.itemQuality('manhTrangBi').border" @click="g.openLightbox('manhTrangBi',(g.ITEMS.manhTrangBi||{}).icon,(g.ITEMS.manhTrangBi||{}).name)">
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
                               <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico('manhTrangBi','🔶')"></span>
-                              <span class="text-[10px] font-bold leading-none" :class="g.itemQuality('manhTrangBi').text" x-text="'×'+d.loot.manh+' chắc chắn'"></span>
-                              <span class="text-[8px] leading-tight text-slate-400 truncate w-full">Mảnh Trang Bị Hoàng Kim</span>
+                              <span class="text-[10px] font-bold leading-none" :class="g.itemQuality('manhTrangBi').text" x-text="g.pctText(g.dungeonManhChance(d.id))"></span>
+                              <span class="text-[8px] leading-tight text-slate-400 truncate w-full" x-text="'Mảnh Trang Bị ×'+d.loot.manh"></span>
                             </div>
                           </div>
                         </template>
-                        <!-- Mặt ô mượn ART THẬT của một bí kíp ở bậc cao nhất phó bản này với tới —
-                             không bày icon vector chung chung, cũng không trám bằng chữ/emoji. -->
-                        <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-cyan-500/40" x-data="{ get bk(){ return g.dungeonBiKipMau(d.id) } }">
+                        <!-- Bí Kíp KHÔNG cố định một bản: bốc từ cả nhóm theo cấp phó bản. Nên ô này
+                             bấm được để mở DANH MỤC (cùng lối với ô Đồ Phổ) — trước đó chỉ có mỗi
+                             con số, người chơi không biết rơi ra bí kíp gì. -->
+                        <div @click="g.openBkPool(d.id)" class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-cyan-500/45 cursor-pointer hover:border-cyan-400 transition" title="Bấm xem danh mục Bí Kíp" x-data="{ get bk(){ return g.dungeonBiKipMau(d.id) } }">
                           <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
                             <span class="relative w-10 h-10 rounded-md overflow-hidden inline-flex items-center justify-center">
                               <span class="w-8 h-8 inline-flex items-center justify-center text-cyan-300/90" x-html="g.svg('book','w-8 h-8')"></span>
                               <template x-if="bk"><img loading="lazy" decoding="async" :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()"></template>
                             </span>
                             <span class="text-[10px] font-bold leading-none text-cyan-300" x-text="g.pctText(g.dungeonBiKipChance(d.id))"></span>
-                            <span class="text-[8px] leading-tight text-cyan-300/80">Bí Kíp → Tàng Thư Lâu</span>
+                            <span class="text-[8px] leading-tight text-cyan-300/80" x-text="bk ? ('Bí Kíp · tới bậc '+bk.tierName) : 'Bí Kíp'"></span>
                           </div>
                         </div>
                       </div>
@@ -6439,6 +6440,36 @@
                       </button>
                     </template>
                     <template x-if="!g.dungeonPoolList.length"><div class="col-span-full text-center text-[12px] text-slate-600 py-6">Phó bản này không rơi Đồ Phổ.</div></template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- DANH MỤC BÍ KÍP — cùng khuôn với Danh Mục Đồ Phổ. Bí kíp bốc từ cả nhóm theo cấp
+               phó bản nên phải kể ra được nhóm đó gồm những gì. -->
+          <template x-if="g.bkPoolId && g.bkPoolObj">
+            <div class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)" @click.self="g.closeBkPool()" @keydown.escape.window="g.closeBkPool()" x-data="{ get dd(){ return g.bkPoolObj } }">
+              <div class="panel rounded-xl border-2 w-full max-w-3xl overflow-hidden max-h-[90dvh] flex flex-col" :style="'border-color:'+dd.color+'88'">
+                <div class="relative p-4 shrink-0" :style="'background:linear-gradient(135deg,'+dd.color+'22,transparent)'">
+                  <button @click="g.closeBkPool()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400">✕</button>
+                  <div class="text-[12px]" :style="'color:'+dd.color" x-text="dd.name"></div>
+                  <div class="text-lg fserif text-cyan-200">Danh Mục Bí Kíp</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5 leading-snug"><b class="text-cyan-300" x-text="g.pctText(g.dungeonBiKipChance(dd.id))"></b> ra <b class="text-slate-300">một bản bất kỳ</b> trong nhóm, mỗi lượt thông quan. Bí kíp vào thẳng <b class="text-slate-300">Tàng Thư Lâu</b> của Tông Môn.</div>
+                </div>
+                <div class="p-5 overflow-y-auto">
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <template x-for="bk in g.bkPoolList" :key="bk.id">
+                      <div class="rounded-lg bg-black/40 border p-2.5 flex flex-col items-center gap-1.5" :style="'border-color:'+bk.tierColor+'55'">
+                        <span class="relative w-20 h-20 rounded-md overflow-hidden bg-ink3 inline-flex items-center justify-center">
+                          <span class="w-10 h-10 inline-flex items-center justify-center text-cyan-300/70" x-html="g.svg('book','w-10 h-10')"></span>
+                          <img loading="lazy" decoding="async" :src="'images/tongmon/bikip/'+bk.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" alt="" onerror="this.remove()">
+                        </span>
+                        <span class="text-[12px] text-center leading-tight font-medium text-slate-200" x-text="bk.ten"></span>
+                        <span class="text-[10px] font-semibold" :style="'color:'+bk.tierColor" x-text="'Bậc '+bk.tierName"></span>
+                      </div>
+                    </template>
+                    <template x-if="!g.bkPoolList.length"><div class="col-span-full text-center text-[12px] text-slate-600 py-6">Phó bản này không rơi Bí Kíp.</div></template>
                   </div>
                 </div>
               </div>

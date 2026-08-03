@@ -315,8 +315,9 @@ export function advance(state, now) {
         // noBoost -> Bách Bảo KHÔNG được thổi phồng chúng; chỉ nguyên liệu thường mới ăn matMul.
         if (enemy.loot) for (const l of enemy.loot) { const m = l.noBoost ? lootMul : matMul; if (Math.random() < l.chance * m * LOOT_DROP_MULT) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
         if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }   // loot-hunt: rơi gear instance (offline-safe)
-        // Mảnh Trang Bị Hoàng Kim: chỉ quái Lv>=90. Ăn lootMul như mọi drop khác (Danh Hiệu Lùng Sục).
-        if ((enemy.reqLevel || 0) >= MANH_DROP_MIN_LV && Math.random() < MANH_DROP_CHANCE * lootMul) { addItem(state, 'manhTrangBi', 1); sess.loot.manhTrangBi = (sess.loot.manhTrangBi || 0) + 1; }
+        // ⛔ Mảnh Trang Bị Hoàng Kim KHÔNG còn rơi từ quái (user chốt 2026-08-03). Nay chỉ hai
+        // đường: thông quan Bí Cảnh Lv70+ và Yêu Vương Lv90+. Giữ MANH_DROP_* trong data để khỏi
+        // vỡ chỗ khác đọc, nhưng đường cày quái đã đóng.
         if (Math.random() < BAC_DROP_CHANCE) { const bg = Math.round(bacPer * moneyMul); state.currencies.bac = (state.currencies.bac || 0) + bg; bacGot += bg; }   // Bạc rơi ~15%/kill (không phải mỗi con)
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;

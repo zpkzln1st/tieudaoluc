@@ -206,7 +206,8 @@ export const CN_MUC = [
           const tong = Object.values(MONSTER_QUALITY_W).reduce((s, x) => s + x, 0);
           return [(QUALITY[q] || {}).name || q, pc(w / tong), pc(MONSTER_DROP_CHANCE * (w / tong), 3)];
         })],
-      ['ct', 'Xác suất rơi Mảnh Trang Bị = ' + pc(MANH_DROP_CHANCE, 3) + ' × hệ số thưởng rơi đồ  (chỉ quái từ Lv ' + MANH_DROP_MIN_LV + ')'],
+      // ⛔ Quái KHÔNG còn rơi Mảnh Trang Bị (2026-08-03) — nay chỉ thông quan Bí Cảnh Lv70+ và Yêu Vương Lv90+.
+      ['ct', 'Quái không rơi Mảnh Trang Bị Hoàng Kim — Mảnh chỉ đến từ thông quan Bí Cảnh Lv 70+ và Yêu Vương Lv 90+.'],
       ['p', 'Ở mức cơ sở, kỳ vọng khoảng <b>' + sn(Math.round(1 / MONSTER_DROP_CHANCE)) + ' trận</b> một món trang bị.'],
     ],
   },

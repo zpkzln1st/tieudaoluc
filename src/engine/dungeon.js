@@ -192,7 +192,10 @@ export function runDungeon(state, dungeonId) {
   }
   // MẢNH TRANG BỊ HOÀNG KIM: chắc chắn, KHÔNG nhân rareMul/pace — số đã cân sẵn theo lượt/ngày ở
   // data/dungeon.js. Nhân pace vào đây là phá luôn ý đồ "phẳng giữa các phó bản Lv70+".
-  if (cleared && D.loot.manh) addLoot('manhTrangBi', D.loot.manh);
+  // Số lượng ĐỒNG BỘ 1 viên, khác nhau ở TỈ LỆ (`manhChance`, tăng dần theo cấp phó bản).
+  // ⚠ KHÔNG nhân rareMul/pace — `manhChance` đã là tỉ lệ cuối cùng, nhân thêm là bảng hiện một
+  // đằng engine thả một nẻo.
+  if (cleared && D.loot.manh && Math.random() < (D.loot.manhChance == null ? 1 : D.loot.manhChance)) addLoot('manhTrangBi', D.loot.manh);
 
   // BÍ KÍP -> Tông Môn (main->phụ 1 chiều): roll thuần, KHÔNG vào kho main; grant nạp vào biKipBag
   let biKipDropId = null;

@@ -506,7 +506,7 @@ const gameStore = {
     ['itemModal', 'closeItemModal'], ['equipModal', 'closeEquip'], ['enhanceModal', 'closeEnhance'],
     ['locationModal', 'closeLocation'], ['combatModal', 'closeCombatModal'], ['dsProfile', 'closeDanhSi'],
     ['petDetailObj', 'closePetDetail'], ['tkDetail', 'closeTkDetail'], ['tkCraft', 'closeTkCraft'],
-    ['codexDetail', 'closeCodex'], ['dungeonPoolId', 'closeDungeonPool'], ['tpDetail', 'closeTpDetail'],
+    ['codexDetail', 'closeCodex'], ['dungeonPoolId', 'closeDungeonPool'], ['bkPoolId', 'closeBkPool'], ['tpDetail', 'closeTpDetail'],
     ['lightbox', 'closeLightbox'], ['tmFaceFull', 'closeFaceFull'], ['xacNhan', 'dongXacNhan'],
     ['bpHoSo', 'closeBpHoSo'], ['bpCongTrinh', 'closeBpCongTrinh'],
   ],
@@ -3784,9 +3784,9 @@ const gameStore = {
     if (e.loot) for (const l of e.loot) { const m = l.noBoost ? lootMul : matMul; if (Math.random() < l.chance * m * LOOT_DROP_MULT) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
     if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }
-    // Mảnh Trang Bị Hoàng Kim: chỉ quái Lv>=90. PHẢI khớp nhánh offline ở engine/activity.js — lệch
-    // nhau là treo máy và đánh tại chỗ ra hai tốc độ khác nhau cho cùng một con quái.
-    if ((e.reqLevel || 0) >= MANH_DROP_MIN_LV && Math.random() < MANH_DROP_CHANCE * lootMul) { addItem(this.state, 'manhTrangBi', 1); sess.loot.manhTrangBi = (sess.loot.manhTrangBi || 0) + 1; }
+    // ⛔ Mảnh Trang Bị Hoàng Kim KHÔNG còn rơi từ quái (user chốt 2026-08-03) — gỡ Ở CẢ HAI ĐƯỜNG
+    // (đây là đường đánh tại chỗ, đường treo máy ở engine/activity.js). Sót một vế là hai lối cày
+    // ra hai tốc độ khác nhau cho cùng một con quái.
     if (Math.random() < BAC_DROP_CHANCE) { const bacGain = Math.round(Math.max(1, Math.round(e.exp * BAC_PER_EXP)) * moneyMul); this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain; sess.bac += bacGain; }   // Bạc rơi ~15%/kill (không phải mỗi con)
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     // BANG PHÁI — Chinh Phạt: hạ quái ở vùng nào thì sinh điểm cho bang ở ĐÚNG vùng đó.
@@ -4526,17 +4526,31 @@ const gameStore = {
   // doPhoMul = 1.6, nhân `pace`; riêng Mảnh là số CHẮC CHẮN, KHÔNG nhân gì.
   dungeonToolDoPhoChance(id) { const d = this.DUNGEON_BY_ID[id]; const t = d && d.loot && d.loot.toolDoPho; return t ? (t.chance || 0) * 1.6 * (d.pace || 1) : 0; },
   dungeonBiKipChance(id) { const d = this.DUNGEON_BY_ID[id]; if (!d) return 0; return BICANH_BK_CHANCE * 1.6 * (d.pace || 1); },
-  /** Bậc bí kíp CAO NHẤT phó bản này với tới — ô Bảo Vật mượn art của một bản ở bậc đó làm mặt,
-   *  thay vì bày icon vector chung chung. Cùng luật với `rollBiCanhBiKip` (lọc theo reqLevel). */
-  dungeonBiKipMau(id) {
-    const d = this.DUNGEON_BY_ID[id]; if (!d) return null;
+  /** Danh sách bí kíp phó bản này CÓ THỂ thả — cùng luật lọc với `rollBiCanhBiKip` (theo reqLevel).
+   *  ⚠ dùng biến module `BI_KIP`, `this.BI_KIP` không có trên store. */
+  dungeonBiKipList(id) {
+    const d = this.DUNGEON_BY_ID[id]; if (!d) return [];
     const maxIdx = BI_KIP_TIER_ORDER.indexOf(biCanhBkMaxTier(d.reqLevel));
-    const pool = BI_KIP.filter((b) => BI_KIP_TIER_ORDER.indexOf(b.tier) <= maxIdx);   // ⚠ dùng biến module, `this.BI_KIP` không có trên store
-    if (!pool.length) return null;
-    const cao = pool[pool.length - 1];
-    return { id: cao.id, tierName: (BI_KIP_TIER[cao.tier] || {}).name || '', tierColor: (BI_KIP_TIER[cao.tier] || {}).color || '#67e8f9' };
+    return BI_KIP.filter((b) => BI_KIP_TIER_ORDER.indexOf(b.tier) <= maxIdx)
+      .map((b) => ({ id: b.id, ten: b.ten, loai: b.loai, he: b.he, lore: b.lore,
+        tierName: (BI_KIP_TIER[b.tier] || {}).name || b.tier, tierColor: (BI_KIP_TIER[b.tier] || {}).color || '#67e8f9' }));
   },
+  /** Mặt ô Bảo Vật + dòng chữ dưới nó: mượn art bản bậc cao nhất, ghi rõ ĐẾN BẬC NÀO. */
+  dungeonBiKipMau(id) {
+    const ds = this.dungeonBiKipList(id);
+    if (!ds.length) return null;
+    const cao = ds[ds.length - 1];
+    return { id: cao.id, so: ds.length, tierName: cao.tierName, tierColor: cao.tierColor };
+  },
+  // ---- Danh Mục Bí Kíp (bấm ô Bí Kíp ở lưới Bảo Vật) ----
+  bkPoolId: null,
+  openBkPool(id) { this.bkPoolId = id; },
+  closeBkPool() { this.bkPoolId = null; },
+  get bkPoolObj() { return this.bkPoolId ? this.DUNGEON_BY_ID[this.bkPoolId] : null; },
+  get bkPoolList() { return this.bkPoolId ? this.dungeonBiKipList(this.bkPoolId) : []; },
   dungeonManh(id) { const d = this.DUNGEON_BY_ID[id]; return (d && d.loot && d.loot.manh) || 0; },
+  /** Tỉ lệ ra Mảnh mỗi lượt thông quan. `manhChance` là tỉ lệ CUỐI, không nhân pace/rareMul. */
+  dungeonManhChance(id) { const d = this.DUNGEON_BY_ID[id]; const l = d && d.loot; if (!l || !l.manh) return 0; return l.manhChance == null ? 1 : l.manhChance; },
   // ⚠ Tuyệt Kĩ KHÁC hai loại trên: engine chỉ nhân `pace`, KHÔNG nhân doPhoMul (xem `cchance`
   // trong src/engine/dungeon.js). Chép nhầm hệ số là bày sai tỉ lệ cho người chơi.
   dungeonChieuDoPhoChance(id) { const d = this.DUNGEON_BY_ID[id]; const c = d && d.loot && d.loot.chieuDoPho; return c ? (c.chance || 0) * (d.pace || 1) : 0; },
