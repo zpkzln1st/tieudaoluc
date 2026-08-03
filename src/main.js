@@ -12,7 +12,7 @@ import { TUTORIAL_QUESTS, DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS } from './
 import { LINH_THACH, LT_COVER_MS, linhThachForSkill } from './data/linhthach.js';
 import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
-import { GEAR_IDS, instanceFromCatalog, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
+import { GEAR_IDS, instanceFromCatalog, rollSetPieceInstance, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
@@ -177,6 +177,24 @@ for (const id of Object.keys(state.inventory)) {
     for (let i = 0; i < qty; i++) { const inst = instanceFromCatalog(id, 0); if (inst) state.gearBag.push(inst); }
     delete state.inventory[id];
   }
+}
+// MIGRATION MÓN BỘ (idempotent): món bộ ghép TRƯỚC 2026-08-03 chỉ có 2 dòng cốt, không dòng roll
+// -> kẹt yếu hơn đồ rời 46% vĩnh viễn. Bù cho chúng đúng phần roll mà bản mới có.
+// ⚠ Nhận diện bằng "CÓ equip.set mà THIẾU rolls" — chạy một lần là có `rolls`, lần sau không lọt
+// vào nữa. KHÔNG dùng cờ riêng trong save: cờ dễ mất khi nhập save cũ, còn dấu hiệu này tự mang.
+// ⚠ Giữ nguyên `plus` và `uid` — người chơi đã cường hoá thì không được mất.
+{
+  const buSet = (inst) => {
+    if (!inst || !inst.gearId || inst.rolls) return inst;
+    const e = ((ITEMS[inst.gearId] || {}).equip) || {};
+    if (!e.set) return inst;                                  // chỉ món BỘ mới bù
+    const moi = rollSetPieceInstance(inst.gearId);
+    if (!moi) return inst;
+    moi.uid = inst.uid; moi.plus = inst.plus || 0;
+    return moi;
+  };
+  for (const slot in state.equipment) state.equipment[slot] = buSet(state.equipment[slot]);
+  if (Array.isArray(state.gearBag)) state.gearBag = state.gearBag.map(buSet);
 }
 if (!state.login) state.login = { lastDay: null, streak: 0 };
 if (!state.counters) state.counters = { produced: {}, kills: {} };
@@ -3165,7 +3183,7 @@ const gameStore = {
     const s = this.TRANG_SETS[key];
     if (!this.setCanGhep(key, id)) return;
     removeItem(this.state, 'manhTrangBi', s.manhCost);
-    addGearInstance(this.state, instanceFromCatalog(id, 0));
+    addGearInstance(this.state, rollSetPieceInstance(id));   // dòng cốt CỘNG THÊM vào dòng roll (xem gear.js)
     Storage.save(this.state); this._tick++;
     this.showToast('Ghép thành 「' + ((this.ITEMS[id] || {}).name || 'trang bị') + '」!');
   },

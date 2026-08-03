@@ -299,11 +299,13 @@ export const GEAR_IDS = Object.keys(GEAR);
 // ĐẾM THEO MÓN ĐANG MẶC, không phải món sở hữu. setOwnedCount() ở main.js đếm SỞ HỮU (túi + đang
 // mặc) để chạy thanh tiến độ Bách Trang Các — TUYỆT ĐỐI không dùng nó làm đầu vào cho dòng ẩn.
 //
-// VÌ SAO GIÁ TRỊ ĐẶT THẤP HƠN ĐỒ RỜI: đồ bộ ghép ra bằng instanceFromCatalog nên KHÔNG có dòng affix
-// roll nào. Đo ở Lv100 trên cùng 7 ô: bộ Bạch Kim 3.519 Chiến Lực, đồ bậc 7 thường roll trung bình
-// 5.497 (−36%), lại trống hẳn Bạo Kích / Sát Thương Bạo Kích / Tốc Độ. Đó là ĐÁNH ĐỔI CÓ CHỦ Ý:
-// dòng ẩn KHÔNG bù lại phần chỉ số thô đã mất, nó trả bằng thứ không dòng roll nào đẻ ra được.
-// Vì vậy mọi dòng phụ trợ (bậc 3/5) đều cố ý để bộ VẪN THẤP HƠN đồ rời trên chính trục đó.
+// ⚠ ĐÃ ĐẢO 2026-08-03 (user chốt sau khi xem bảng số). Ghi chú CŨ ở đây từng nói bộ thấp hơn đồ
+// rời là "đánh đổi có chủ ý" — nhưng đo lại ra chênh quá nặng: Lv90 cùng 7 ô, bộ 2.256 Chiến Lực
+// vs đồ rời trung bình 4.174 (−46%), và bộ trống hẳn Bạo Kích / Tốc Độ / cả 5 kháng, trong khi
+// giá là 420 Mảnh (~175 ngày). Dòng ẩn 3/5/7 không bù nổi khoảng đó.
+// NAY: món bộ ghép ra bằng `rollSetPieceInstance` — roll đủ dòng như đồ rời cùng phẩm, RỒI cộng
+// 2 dòng cốt cố định lên trên. Bộ nhỉnh hơn đồ rời đúng bằng phần cốt + ăn thêm dòng ẩn.
+// Vì vậy hai dòng cốt dưới đây CỐ Ý để nhỏ: chúng là phần THÊM, không phải toàn bộ sức mạnh món.
 //
 // BỐN KÊNH — engine tự phân loại theo TÊN KHOÁ (xem SET_PCT_KEYS/SET_ELE_KEY/SET_MISC_KEYS ở
 // engine/stats.js). Ghi sai kênh thì giá trị rơi vào hư không, KHÔNG BÁO LỖI:
@@ -691,6 +693,27 @@ export function rollGearInstance(gearId, opt) {
   };
 }
 // Instance DETERMINISTIC tu catalog (migration / gear cu) — giu NGUYEN stat & pham chat catalog (khong doi suc manh nguoi dang choi).
+/**
+ * MÓN BỘ TRANG ghép ở Bách Trang Các — dòng CỐT cố định CỘNG THÊM vào dòng roll như đồ rời.
+ * ⭐ Đổi 2026-08-03 (user chốt sau khi xem số): trước đây món bộ dựng bằng `instanceFromCatalog`
+ * nên chỉ có ĐÚNG 2 dòng cốt, đo ra thua đồ rời cùng ô cùng phẩm **46%** Chiến Lực ở Lv90
+ * (2.256 vs 4.174) và trống hẳn Bạo Kích / Tốc Độ / kháng — trong khi giá là 420 Mảnh.
+ * Nay: roll đủ dòng như đồ rời cùng phẩm, RỒI cộng 2 dòng cốt lên trên ⇒ bộ nhỉnh hơn đồ rời
+ * đúng bằng phần cốt, cộng thêm dòng ẩn 3/5/7 món.
+ * ⚠ Dòng nào đã cộng cốt thì XOÁ `rolls[k]`: % roll của nó không còn đúng, giữ lại là khoe số sai.
+ */
+export function rollSetPieceInstance(gearId) {
+  const base = GEAR_LOOKUP[gearId]; if (!base || !base.equip) return null;
+  const inst = rollGearInstance(gearId); if (!inst) return null;
+  const cot = { ...(base.equip.stats || {}) };
+  for (const k in cot) {
+    inst.stats[k] = (inst.stats[k] || 0) + cot[k];
+    if (inst.rolls) delete inst.rolls[k];
+  }
+  inst.setCore = Object.keys(cot);            // view dùng để đánh dấu dòng cốt
+  return inst;
+}
+
 export function instanceFromCatalog(gearId, plus) {
   const base = GEAR_LOOKUP[gearId]; if (!base || !base.equip) return null;
   const e = base.equip;
