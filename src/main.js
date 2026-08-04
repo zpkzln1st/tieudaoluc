@@ -943,8 +943,10 @@ const gameStore = {
       return { key: 'd' + d.uid, isBot: false, isMine: true, uid: d.uid, name: d.name, han: d.han, face: this.tmFace(d), color: (APT[d.apt] || {}).color || '#cbd5e1', he: d.he, heName: hi.name, heHan: hi.han, heColor: hi.color, loaiCat: lc, loaiCatName: lc ? CAT_NAME[lc] : '', sub: (REALMS[d.realm] || {}).name || '', chienLuc: st.chienLuc, skillIds: (d.skills || []).slice(), w: rec.w, l: rec.l, pts: rec.pts };
     });
     const all = [...mine, ...this._lvhBots(w, tnow, season)].sort((a, b) => b.chienLuc - a.chienLuc);
-    all.forEach((e, i) => { e.rank = i + 1; });
-    return { entries: all, season, nextMs: Math.max(0, (season + 1) * LVH_PERIOD - tnow), mine, total: all.length };
+    // ⚠ Hàng bot lấy từ mảng đã nhớ ở tầng module — Alpine không theo dõi. Ghi `rank` đè lên
+    //   chính nó thì màn không vẽ lại khi thứ hạng đổi. Trả về hàng MỚI. (Xem `leaderboard`.)
+    const xepHang = all.map((e, i) => ({ ...e, rank: i + 1 }));
+    return { entries: xepHang, season, nextMs: Math.max(0, (season + 1) * LVH_PERIOD - tnow), mine, total: xepHang.length };
   },
   get lvhNextText() { void this._tick; const ms = this.lvhBoard.nextMs, h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000); return h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm'); },
   get lvhMyRank() { void this._tick; const mine = this.lvhBoard.entries.filter((e) => e.isMine); return mine.length ? Math.min(...mine.map((e) => e.rank)) : 0; },
@@ -2605,8 +2607,12 @@ const gameStore = {
     });
     const rows = _lbBots.concat(this.nguoiThatRows, extra);
     rows.sort((a, b) => b.totalLv - a.totalLv || b.combatLv - a.combatLv || (a.id < b.id ? -1 : 1));
-    rows.forEach((r, i) => { r.rank = i + 1; });
-    return rows;
+    // ⚠⚠ TRẢ VỀ HÀNG MỚI, đừng ghi `rank` đè lên chính đối tượng bot.
+    //   `_lbBots` là mảng nhớ ở tầng module — nằm NGOÀI store nên Alpine không theo dõi. Sửa
+    //   `r.rank` sau lần vẽ đầu thì màn KHÔNG vẽ lại: người thật đọc từ cloud về tới SAU, bot
+    //   giữ nguyên số hạng cũ ⇒ hai người cùng đứng hạng 1. Dữ liệu đúng mà DOM sai.
+    //   Hàng người thật không dính vì `nguoiThatRows` dựng đối tượng mới mỗi lần gọi.
+    return rows.map((r, i) => ({ ...r, rank: i + 1 }));
   },
   get lbTotal() { return BOT_COUNT + this.nguoiThatRows.length + 1; },
   /** Bấm một hàng NGƯỜI THẬT trên bảng -> mở hồ sơ công khai của họ. Bot thì không có gì để mở. */
@@ -2742,8 +2748,9 @@ const gameStore = {
     const tm = this.tm;
     const rows = _tmbBots.concat([{ id: 'mysect', name: (tm.name || 'Tông Môn'), dao: tm.dao, master: (this.state.player.name || 'Vô Danh'), avatar: (this.curAvatar || { id: this.avatarId, char: '道', color: 'from-slate-600 to-slate-700' }), uy: uyDanhOf(tm) + this.lvhTitleUyBonus, isPlayer: true }]);
     rows.sort((a, b) => b.uy - a.uy || (a.id < b.id ? -1 : 1));
-    rows.forEach((r, i) => { r.rank = i + 1; });
-    return rows;
+    // ⚠ `_tmbBots` là mảng nhớ ở tầng module — cùng bẫy với `leaderboard`: ghi `rank` đè lên
+    //   chính nó thì màn giữ số hạng cũ khi người chơi lên cấp. Trả về hàng MỚI.
+    return rows.map((r, i) => ({ ...r, rank: i + 1 }));
   },
   get tongMonRow() { return this.tongMonBang.find((r) => r.isPlayer) || null; },
   get tmbDisplay() { const lb = this.tongMonBang, p = this.tongMonRow; const top = lb.slice(0, 50); if (!p || p.rank <= 50) return top; const i = p.rank - 1; return [...top, { separator: true, id: 'tsep' }, ...lb.slice(Math.max(50, i - 3), Math.min(lb.length, i + 4))]; },
