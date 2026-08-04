@@ -1599,6 +1599,28 @@ const gameStore = {
     if (r.eggPham) c.push({ id: 'egg', amt: r.eggPham, cls: 'text-emerald-300', emoji: '🥚' });
     return c;
   },
+  // ---------- Khối "Khác" ở thẻ Hồ Sơ ----------
+  // ⚠ Mỗi mục TỰ KHAI đường mở. Bản cũ viết tay danh sách chữ rồi so tên bằng `===` ở ba chỗ,
+  // nên Vạn Vật Phổ đã LIVE mà vẫn kẹt nhãn "sắp ›" — thêm màn mới nhưng quên sửa cả ba chỗ.
+  // Nay chỉ mục KHÔNG có `di` mới là "sắp ›".
+  get khacRows() {
+    return [
+      { ten: 'Điểm Danh', mo: true, cham: true, lam: 'daily' },
+      { ten: 'Thống Kê' },
+      { ten: 'Tương Tác' },
+      { ten: 'Giao Dịch' },
+      { ten: 'Vạn Vật Phổ', mo: true, di: 'collection' },
+      { ten: 'Hiệu Ứng', mo: true, lam: 'hieuUng' },
+      { ten: 'Mã Giới Thiệu' },
+    ];
+  },
+  khacMo(m) {
+    if (!m || !m.mo) return;
+    if (m.di) { this.navTo(m.di); return; }
+    if (m.lam === 'daily') { this.openDaily(); return; }
+    if (m.lam === 'hieuUng') { this.openHieuUng(); return; }
+  },
+
   // ---------- Danh Hiệu ----------
   checkTitles() {
     const newly = syncTitles(this.state, now());   // ⚠ dùng đồng hồ GAME (có tua/chạy nhanh của Bảng Dev)

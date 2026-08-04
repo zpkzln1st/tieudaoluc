@@ -1273,19 +1273,21 @@
               <!-- More -->
               <section class="panel rounded-lg p-3">
                 <div class="lbl mb-2">Khác</div>
-                <template x-for="m in ['Điểm Danh','Thống Kê','Tương Tác','Giao Dịch','Vạn Vật Phổ','Hiệu Ứng','Mã Giới Thiệu']" :key="m">
+                <!-- ⚠ Danh sách này TỪNG viết tay nên Vạn Vật Phổ (đã LIVE, view `collection`, có
+                     sẵn trong thanh điều hướng) vẫn bị gắn nhãn "sắp ›" và bấm không ra gì.
+                     Nay mỗi mục tự khai đường mở; chỉ mục KHÔNG có đường mở mới là "sắp ›". -->
+                <template x-for="m in $store.game.khacRows" :key="m.ten">
                   <div class="flex items-center justify-between px-2 py-2 rounded text-sm transition"
-                       :class="(m==='Điểm Danh'||m==='Hiệu Ứng') ? 'hover:bg-ink3 cursor-pointer text-slate-200' : 'text-slate-300'"
-                       @click="m==='Điểm Danh' ? $store.game.openDaily() : (m==='Hiệu Ứng' ? $store.game.openHieuUng() : null)">
-                    <span x-text="m"></span>
-                    <template x-if="m==='Điểm Danh'">
+                       :class="m.mo ? 'hover:bg-ink3 cursor-pointer text-slate-200' : 'text-slate-300'"
+                       @click="m.mo && $store.game.khacMo(m)">
+                    <span x-text="m.ten"></span>
+                    <template x-if="m.mo">
                       <span class="flex items-center gap-1.5 text-[10px]">
-                        <template x-if="$store.game.canClaimDaily"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span></template>
+                        <template x-if="m.cham && $store.game.canClaimDaily"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span></template>
                         <span class="text-jade">Mở ›</span>
                       </span>
                     </template>
-                    <template x-if="m==='Hiệu Ứng'"><span class="text-[10px] text-jade">Mở ›</span></template>
-                    <template x-if="m!=='Điểm Danh' && m!=='Hiệu Ứng'"><span class="text-[10px] text-slate-600">sắp ›</span></template>
+                    <template x-if="!m.mo"><span class="text-[10px] text-slate-600">sắp ›</span></template>
                   </div>
                 </template>
               </section>
