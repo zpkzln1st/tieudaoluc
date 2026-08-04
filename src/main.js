@@ -65,7 +65,7 @@ import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './en
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
-import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, genJiangHuFeed } from './engine/bots.js';
+import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, donNguoiAnCu, conBaoLauCoNguoiMoi, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
@@ -218,6 +218,21 @@ migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành H�
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
 ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state); ensureNguTu(state); ensureCoTuong(state); ensureCoVua(state); ensureTienLen(state); ensureBinh(state); ensurePaoDeKuai(state); ensureTuuLau(state); ensureBangPhai(state);
+// MÁY CHỦ CHUNG — phải chạy TRƯỚC mọi thứ đọc danh sách người giang hồ.
+// Save cũ mang seed riêng thì đây là lúc nhập máy chủ chung; người của giang hồ riêng cũ (và
+// người đã ẩn cư) bị gỡ khỏi Tiên Minh / đơn xin / giao tình, rồi báo NGƯỜI CHƠI một lần.
+try {
+  const _w = ensureWorld(state, Date.now());
+  const _k = donNguoiAnCu(state, _w, Date.now());
+  if (_k.roiMinh || _k.boDon || _k.quenCu) {
+    pushNotif(state, 'tienMinh', 'Giang hồ đổi thay',
+      'Từ nay mọi người chơi đứng chung một giang hồ.'
+      + (_k.roiMinh ? ' <b>' + _k.roiMinh + '</b> minh chúng đã ẩn cư, rời khỏi Tiên Minh.' : '')
+      + (_k.boDon ? ' <b>' + _k.boDon + '</b> đơn xin nhập minh không còn hiệu lực.' : '')
+      + (_k.quenCu ? ' Giao tình với <b>' + _k.quenCu + '</b> người cũ đã phai.' : '')
+      + ' Người mới sẽ lần lượt nhập giang hồ.', Date.now());
+  }
+} catch (e) {}
 ensureKyHon(state);        // Kỳ Hồn CHUNG (mọi bàn cờ) — PHẢI sau các ensure trên để gộp được số của save cũ
 ensureGocNhin(state);      // Góc nhìn bàn cờ đã khoá (null = mỗi bàn tự canh)
 ensureDongPhu(state); resolveDongPhu(state, Date.now());   // Động Phủ: khởi tạo + hoàn công job xong TRƯỚC advance offline & simTongMon (trần treo nhà áp cho cả khoảng vắng)
@@ -890,7 +905,7 @@ const gameStore = {
   _lvhBots(w, tnow, season) {
     const key = w.seed + ':' + w.createdAt + ':' + season;
     if (_lvhBotsKey === key && _lvhBotsCache) return _lvhBotsCache;
-    const roster = genRoster(w.seed, w.createdAt).slice(0, LVH_BOT_N);
+    const roster = genRoster(w.seed, w.createdAt, now()).slice(0, LVH_BOT_N);
     _lvhBotsCache = roster.map((b, i) => {
       const seed = lvHash(b.name + '|lvh'), clv = botCombatLv(b, tnow);
       const chienLuc = Math.round(60 + clv * clv * 0.16 * (0.9 + (seed % 21) / 100));   // DRAFT scale ~disciPower
@@ -1002,7 +1017,7 @@ const gameStore = {
     void this._tick;
     const w = this.state.world, t = this.tm; if (!w || !t) return { envoys: [], allyCount: 0, lv: 0, giftDiem: DIPLO_GIFT_DIEM };
     const lv = this.tmBuildLv('daiKhachCac'), tnow = now(), count = Math.min(16, 4 + 2 * lv);
-    const roster = genRoster(w.seed, w.createdAt), ties = (t.diplomacy && t.diplomacy.ties) || {};
+    const roster = genRoster(w.seed, w.createdAt, now()), ties = (t.diplomacy && t.diplomacy.ties) || {};
     const envoys = roster.slice(0, count).map((b, i) => {
       const sectId = 'sect' + i, daoKey = ['chinh', 'ta', 'trung'][b.titleSeed % 3], di = this.daoInfo(daoKey), tl = botTotalLv(b, tnow);
       const tie = ties[sectId] || { rep: 0, lastVisit: 0 }, tier = diploTier(tie.rep), nextMin = diploNextMin(tie.rep);
@@ -2559,7 +2574,7 @@ const gameStore = {
     const w = this.state.world; if (!w) return [];
     const t = now(), key = w.seed + ':' + w.createdAt + ':' + Math.floor(t / 60000);
     if (_lbBotKey !== key || !_lbBots) {
-      _lbBots = genRoster(w.seed, w.createdAt).map((b) => {
+      _lbBots = genRoster(w.seed, w.createdAt, now()).map((b) => {
         const d = botDominant(b, t);                                 // 1 lần -> danh hiệu + màu theo nghề thật
         return {
           id: b.id, name: b.name, title: botTitleFor(d.track, d.level), catHex: CAT_HEX[botCatFor(d.track)] || '#94a3b8',
@@ -2589,6 +2604,11 @@ const gameStore = {
     return rows;
   },
   get lbTotal() { return BOT_COUNT + 1; },
+  /** "Người mới nhập giang hồ sau ~2 giờ" — cho thấy giang hồ có vào có ra, không phải ảnh chụp đứng yên. */
+  get lbNguoiMoiSau() {
+    const w = this.state.world; if (!w) return '';
+    return this.fmtTime(Math.max(0, Math.round(conBaoLauCoNguoiMoi(w.createdAt, now()) / 1000)));
+  },
   get playerRow() { return this.leaderboard.find((r) => r.isPlayer) || null; },
   get lbTop() { return this.leaderboard.slice(0, 50); },
   get lbNeighbors() {                                                // người chơi ngoài top 50 -> lân cận hạng mình, KHÔNG chồng top 50
@@ -2601,7 +2621,7 @@ const gameStore = {
   get mongCanhBang() {
     const w = this.state.world; if (!w) return [];
     const h = (s) => { let x = 2166136261 >>> 0; s = '' + s; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return x >>> 0; };
-    const bots = genRoster(w.seed, w.createdAt).map((b) => {
+    const bots = genRoster(w.seed, w.createdAt, now()).map((b) => {
       const depth = 1 + Math.floor(Math.pow((h(b.id + ':dtmdeep') % 1000) / 1000, 1.7) * 7);   // 1..8, lệch về thấp
       const scm = Math.floor(Math.pow((h(b.id + ':dtmsc') % 1000) / 1000, 2.1) * 16);           // 0..15, lệch về thấp
       return { id: b.id, name: b.name, avatar: botAvatar(b), deepest: depth, score: depth * 10 + scm * 50, sub: 'Mộng sâu Tầng ' + depth, isPlayer: false };
@@ -2623,7 +2643,7 @@ const gameStore = {
   get kyTranBang() {
     const w = this.state.world; if (!w) return [];
     const h = (s) => { let x = 2166136261 >>> 0; s = '' + s; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return x >>> 0; };
-    const bots = genRoster(w.seed, w.createdAt).map((b) => {
+    const bots = genRoster(w.seed, w.createdAt, now()).map((b) => {
       const wins = Math.floor(Math.pow((h(b.id + ':ktwin') % 1000) / 1000, 1.8) * 55);   // 0..54 trận đã phá, lệch về thấp
       const cap = Math.floor(Math.pow((h(b.id + ':ktcap') % 1000) / 1000, 2.0) * 29);    // Trận Cấp 0..28, lệch về thấp
       const ma = wins >= 50 && (h(b.id + ':ktma') % 100) < 30 ? 1 : 0;
@@ -2647,7 +2667,7 @@ const gameStore = {
     const w = this.state.world; if (!w || !skillId) return { bots: [], count: 0 };
     const t = now(), key = skillId + ':' + Math.floor(t / 60000);
     if (_nbKey === key && _nbData) return _nbData;
-    const matched = nearbyBotsBy(genRoster(w.seed, w.createdAt), skillId, t);
+    const matched = nearbyBotsBy(genRoster(w.seed, w.createdAt, now()), skillId, t);
     _nbData = { bots: matched.slice(0, 5).map((b) => botAvatar(b)), count: matched.length };
     _nbKey = key;
     return _nbData;
@@ -2706,7 +2726,7 @@ const gameStore = {
     const w = this.state.world; if (!w || !this.tm) return [];
     const t = now(), key = w.seed + ':' + w.createdAt + ':' + Math.floor(t / 60000);
     if (_tmbKey !== key || !_tmbBots) {
-      _tmbBots = genRoster(w.seed, w.createdAt).slice(0, 90).map((b, i) => {
+      _tmbBots = genRoster(w.seed, w.createdAt, now()).slice(0, 90).map((b, i) => {
         const tl = botTotalLv(b, t);
         return { id: 'sect' + i, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], dao: ['chinh', 'ta', 'trung'][b.titleSeed % 3], master: b.name, avatar: botAvatar(b), uy: Math.round(85 * Math.pow(tl / 100, 3.8) * (0.90 + (b.actSeed % 21) * 0.01)), isPlayer: false };
       });

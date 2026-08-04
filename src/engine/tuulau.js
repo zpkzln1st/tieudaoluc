@@ -206,7 +206,7 @@ export function khachTrongQuan(world, now, state) {
     });
   }
 
-  const roster = genRoster(seed, createdAt);
+  const roster = genRoster(seed, createdAt, now);
   if (roster && roster.length) {
     const j0 = mix(base, 211) % roster.length;
     let j1 = (j0 + 1 + (mix(base, 307) % Math.max(1, roster.length - 1))) % roster.length;

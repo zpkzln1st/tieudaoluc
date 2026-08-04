@@ -218,7 +218,7 @@ export function genBossFeed(boss, seed, createdAt, now) {
   const k0 = Math.floor(now / BOSS_FEED_PERIOD_MS), ck = seed + ':' + createdAt + ':' + k0;
   if (_bfKey !== ck) { _bfKey = ck; _bfMap = {}; }                 // đổi slot/seed -> xoá cache
   if (_bfMap[boss.id]) return _bfMap[boss.id];
-  const roster = genRoster(seed, createdAt), salt = strHash(boss.id), tier = boss.wb, firstNm = boss.name.split(' ')[0];
+  const roster = genRoster(seed, createdAt, now), salt = strHash(boss.id), tier = boss.wb, firstNm = boss.name.split(' ')[0];
   let hunters = roster.filter((b) => botCombatLv(b, now) >= boss.reqLevel);   // bot đủ sức khiêu chiến boss này
   if (hunters.length < 4) hunters = roster.slice().sort((a, c) => botCombatLv(c, now) - botCombatLv(a, now)).slice(0, 12);
   const out = [];

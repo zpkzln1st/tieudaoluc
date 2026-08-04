@@ -5,10 +5,35 @@
 
 export const BOT_COUNT = 200;                 // dân số "đám đông"
 export const BASE_RATE_PER_DAY = 95000;       // xp-effort / ngày-online (calibrate pace; tune theo phân bố)
-export const BORNAT_SPREAD_DAYS = [3, 365];   // "tuổi" bot — LỆCH về trẻ (rng^2): đa số mới, ít lão làng gần trần
-export const BORNAT_SKEW = 2;                 // số mũ lệch tuổi
 export const ONLINE_FRAC = [0.12, 0.6];       // bot không on 24/7
 export const RATE_JITTER = [0.55, 1.5];       // nhân thêm vào rate mỗi bot -> đa dạng
+
+// ============================================================
+// MÁY CHỦ CHUNG — mọi tài khoản đứng trong CÙNG một giang hồ.
+// Trước đây mỗi save tự random `seed` và lấy `createdAt` = lúc tạo nhân vật, nên hai tài khoản
+// mở Phong Vân Bảng ra hai bảng 200 người KHÁC HẲN nhau. Chốt cứng hai số này thì ai cũng thấy
+// cùng một giang hồ — điều kiện cần để người thật xen vào giữa được.
+// ⚠ ĐỔI HAI SỐ NÀY = ĐỔI CẢ GIANG HỒ của mọi người chơi. Đừng đụng khi đã có người chơi thật.
+// ============================================================
+export const MAY_CHU_SEED = 20260804;
+export const MAY_CHU_MO_LUC = Date.UTC(2026, 7, 4);   // 2026-08-04 — ngày mở máy chủ
+
+// ---- Người NHẬP giang hồ rải đều theo thời gian ----
+// ⚠ Bản cũ hồi tố tuổi 3-365 ngày ngay lúc bot ra đời. Hậu quả đo được: ngày đầu người chơi ở Lv1
+// mà bot thấp nhất đã Lv8, giữa bảng Lv33 — không ai cùng vạch xuất phát. Lên máy chủ chung thì
+// sàn còn dâng mãi: năm thứ 5 không ai dưới Lv54, 70/200 người đã chạm trần Lv100.
+// NAY: người đến liên tục, ai ở lâu nhất thì ẩn cư rời bảng. Tuổi luôn trải đều 0 → TUOI_AN_CU_NGAY
+// nên SÀN ĐỨNG YÊN mãi mãi (đo: năm 0/1/3/5 đều sàn Lv1, giữa bảng ~42).
+export const TUOI_AN_CU_NGAY = 365;            // ở giang hồ bao lâu thì ẩn cư
+export const SO_LAO_LANG = 10;                 // lão làng KHÔNG ẩn cư — giữ cho giang hồ còn cao thủ chạm trần
+export const LAO_LANG_SINH_TRUOC = [300, 40];  // lão làng thứ j sinh trước ngày mở máy chủ: 300 + j*40 ngày
+export const LAO_LANG_ONLINE = [0.45, 0.75];   // lão làng chuyên cần hơn đám đông
+// Tên lão làng viết TAY, họ nằm NGOÀI bảng BOT_HO nên không bao giờ đụng tên người trong dòng
+// luân chuyển. Đây là mười cái tên người chơi sẽ thấy mãi ở đầu bảng — đáng để đặt cho ra chất.
+export const LAO_LANG_TEN = [
+  'Nhạc Vô Tranh', 'Kim Thác Đao', 'Thẩm Bất Hối', 'Doãn Trường Canh', 'Khuất Hoài Sương',
+  'Tiết Tàn Dương', 'Ngụy Thanh Minh', 'Lôi Chấn Sơn', 'Hoắc Vong Xuyên', 'Từ Bán Sinh',
+];
 
 // Tỉ trọng EFFORT trên 10 track (chienDau + 9 nghề). Số tương đối — engine tự chuẩn hoá tổng=1.
 // Track key TRÙNG state.skills + 'chienDau'.

@@ -3683,6 +3683,9 @@
                   <span class="text-slate-300">Hạng của ngươi</span>
                   <b class="text-jade text-[15px]" x-text="'#'+$store.game.playerRow.rank"></b>
                   <span class="text-slate-500" x-text="'/ '+$store.game.fmt($store.game.lbTotal)+' cao thủ'"></span>
+                  <!-- Giang hồ có VÀO CÓ RA. Không nói ra thì người chơi tưởng bảng là ảnh chụp đứng yên. -->
+                  <span class="hidden sm:inline text-slate-700">·</span>
+                  <span class="hidden sm:inline text-slate-500">Người mới nhập giang hồ sau <b class="text-slate-400" x-text="$store.game.lbNguoiMoiSau"></b></span>
                 </div>
               </template>
             </div>

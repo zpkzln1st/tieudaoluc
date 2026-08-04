@@ -31,6 +31,7 @@ import { PET_SPECIES, PET_QUALITY, AWK_PASSIVE_IDS, PET_OPT_POOL, PET_SKILLS } f
 import { CODEX_CATS } from './codex.js';
 import { TITLES, TITLE_LOAI } from './titles.js';
 import { BADGES, BADGE_LV } from './badges.js';
+import { BOT_COUNT, TUOI_AN_CU_NGAY, SO_LAO_LANG } from './bots.js';
 import { REALMS, BUILD_KEYS, PILL_KEYS, BI_KIP, BI_KIP_LOAI, APT, DIPLO_TIERS, TAMMA_MAX, SUB_STAGES } from './tongmon.js';
 import {
   CONG_TRINH, KY_NANG_BANG, CUA_HANG_BANG, NV_BANG, TV_TRAN, CAP_BANG_MAX,
@@ -699,7 +700,11 @@ export const CN_MUC = [
     tom: 'Bảng xếp hạng toàn giang hồ.',
     khoi: [
       ['p', 'Xếp hạng theo Tổng Lv, theo từng nghề, và theo Chiến Lực.'],
-      ['p', 'Giang hồ có sẵn một lứa cao thủ mô phỏng: họ lên cấp, đổi hoạt động và đổi vùng theo thời gian thực, nên thứ hạng thay đổi liên tục.'],
+      ['p', 'Giang hồ có sẵn ' + sn(BOT_COUNT) + ' cao thủ mô phỏng: họ lên cấp, đổi hoạt động và đổi vùng theo thời gian thực, nên thứ hạng thay đổi liên tục.'],
+      ['p', 'Mọi tài khoản đứng chung <b>một giang hồ</b>. Cùng một lúc, ai mở Phong Vân Bảng cũng thấy đúng những người ấy.'],
+      ['p', 'Cứ khoảng <b>' + sn(Math.round(TUOI_AN_CU_NGAY * 24 / (BOT_COUNT - SO_LAO_LANG))) + ' giờ</b> lại có một người nhập giang hồ. Ai đã ở đủ <b>' + sn(TUOI_AN_CU_NGAY) + ' ngày</b> thì ẩn cư, rời bảng.'],
+      ['p', 'Nhờ vậy lúc nào cũng có người mới chân ướt chân ráo để đua, chứ bảng không toàn cao thủ.'],
+      ['luu', 'Riêng <b>' + sn(SO_LAO_LANG) + ' lão làng</b> không ẩn cư. Họ ở lại mãi, giữ chỗ đỉnh bảng.'],
     ],
   },
   {

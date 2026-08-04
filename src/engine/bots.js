@@ -10,7 +10,8 @@ import { QUALITY } from '../data/items.js';
 import { YEU_VUONG } from '../data/combat.js';
 import {
   ARCHETYPES, ARCHETYPE_IDS, ARCHETYPE_WEIGHTS, BOT_COUNT, BASE_RATE_PER_DAY,
-  BORNAT_SPREAD_DAYS, BORNAT_SKEW, ONLINE_FRAC, RATE_JITTER, TRACK_KEYS, BOT_HO, BOT_TEN,
+  MAY_CHU_SEED, MAY_CHU_MO_LUC, TUOI_AN_CU_NGAY, SO_LAO_LANG, LAO_LANG_SINH_TRUOC, LAO_LANG_ONLINE, LAO_LANG_TEN,
+  ONLINE_FRAC, RATE_JITTER, TRACK_KEYS, BOT_HO, BOT_TEN,
   TRACK_TITLES, TRACK_CAT, CAT_HEX, BOT_AVATAR_IDS,
   FEED_PERIOD_MS, FEED_SHOW, FEED_BREAK_WINDOW_MS, FEED_TREASURES, FEED_TUYET_HOC,
   FEED_FORGE, FEED_DAN, FEED_MOC, FEED_KHOANG, FEED_NGU,
@@ -34,7 +35,6 @@ export function hash2(a, b) {
   h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
   return (h ^ (h >>> 16)) >>> 0;
 }
-const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
 const lerp = (rng, [lo, hi]) => lo + rng() * (hi - lo);
 function weightedArch(rng) {
   const tot = ARCHETYPE_IDS.reduce((s, id) => s + (ARCHETYPE_WEIGHTS[id] || 1), 0);
@@ -43,31 +43,88 @@ function weightedArch(rng) {
   return ARCHETYPE_IDS[ARCHETYPE_IDS.length - 1];
 }
 
-// ---- Roster: sinh THUẦN từ world.seed + createdAt (cache theo seed) ----
+// ============================================================
+// ROSTER — giang hồ tại thời điểm `now`. THUẦN, suy ra từ (seed, mốc mở máy chủ, now).
+//
+// Người đến LIÊN TỤC, cách nhau CHU_KY; ai ở đủ TUOI_AN_CU_NGAY thì ẩn cư rời bảng. Nên tại
+// mọi thời điểm, tuổi trải đều 0 → TUOI_AN_CU_NGAY và SÀN KHÔNG BAO GIỜ DÂNG.
+// Cộng thêm SO_LAO_LANG người KHÔNG ẩn cư, sinh trước ngày mở máy chủ — để giang hồ luôn có
+// vài cao thủ chạm trần cho người chơi có đích mà leo.
+//
+// ⚠ TÊN phải là hàm THUẦN của số thứ tự đến. Bản cũ khử trùng tên bằng vòng thử-lại trên CẢ
+//   danh sách; làm thế ở đây thì tên một người sẽ ĐỔI khi có người khác nhập/rời giang hồ.
+//
+// ⚠⚠ Cách đặt tên đã SAI MỘT LẦN, ghi lại cho khỏi vấp lại. Bản đầu dùng MỘT hoán vị trên ô
+//   tên rồi tách `họ = ô % số họ` và `tên = ô / số họ`. Hai vế ấy không độc lập: đo được TÊN
+//   RIÊNG DỒN CỤC gấp 1,5 lần bốc ngẫu nhiên (dồn nhất 14 người so với 7-9), và tệ hơn là
+//   dồn THEO THỨ HẠNG — sáu "Vân Thâm" nằm liền nhau ở đầu Phong Vân Bảng. Bảng số không bắt
+//   được, chỉ ảnh chụp mới lộ.
+//   NAY: họ và tên đi HAI bước riêng, mỗi bước nguyên tố cùng nhau với pool của nó. Theo định
+//   lý thặng dư Trung Hoa, cặp (họ, tên) lặp lại sau đúng BCNN(số họ, số tên) lượt — miễn
+//   BCNN > quân số luân chuyển thì không ai trùng tên, mà tên riêng rải đều tuyệt đối.
+// ============================================================
+const SO_LUAN = Math.max(1, BOT_COUNT - SO_LAO_LANG);          // số người trong dòng luân chuyển
+const CHU_KY_MS = (TUOI_AN_CU_NGAY * DAY_MS) / SO_LUAN;         // bao lâu thì có một người mới
+const ucln = (a, b) => (b ? ucln(b, a % b) : a);
+const buocCho = (m, moi) => { let k = Math.max(2, Math.floor(m * moi)); while (ucln(k, m) !== 1) k++; return k; };
+const BUOC_HO = buocCho(BOT_HO.length, 0.618);
+const BUOC_TEN = buocCho(BOT_TEN.length, 0.382);
+/** Chu kì lặp lại của cặp (họ, tên) = BCNN. PHẢI lớn hơn SO_LUAN thì mới chắc không ai trùng tên. */
+export const CHU_KI_TEN = (BOT_HO.length * BOT_TEN.length) / ucln(BOT_HO.length, BOT_TEN.length);
+const modP = (a, m) => ((a % m) + m) % m;
+function tenTheoSo(n) {
+  return BOT_HO[modP(n * BUOC_HO, BOT_HO.length)] + ' ' + BOT_TEN[modP(n * BUOC_TEN, BOT_TEN.length)];
+}
+
+/** Một người trong dòng luân chuyển, suy từ SỐ THỨ TỰ ĐẾN `n` (n âm = thế hệ khai phái). */
+function nguoiThuN(seed, moLuc, n) {
+  const rng = mulberry32(hash2(seed, (n | 0) * 2 + 1));
+  const arch = weightedArch(rng);
+  return {
+    id: 'bot' + n, name: tenTheoSo(n), arch,
+    bornAt: Math.round(moLuc + n * CHU_KY_MS),
+    rate: lerp(rng, RATE_JITTER),
+    onlineFrac: lerp(rng, ONLINE_FRAC),
+    titleSeed: Math.floor(rng() * 1000),
+    actSeed: Math.floor(rng() * 1000),
+    avatarId: BOT_AVATAR_IDS[Math.floor(rng() * BOT_AVATAR_IDS.length)],
+  };
+}
+/** Lão làng thứ j — KHÔNG ẩn cư, ô tên nằm ở phần chừa riêng nên không đụng dòng luân chuyển. */
+function laoLangThuJ(seed, moLuc, j) {
+  const rng = mulberry32(hash2(seed ^ 0x1AA, j + 1));
+  const arch = weightedArch(rng);
+  return {
+    id: 'lao' + j, name: LAO_LANG_TEN[j % LAO_LANG_TEN.length], arch, laoLang: true,
+    bornAt: moLuc - (LAO_LANG_SINH_TRUOC[0] + j * LAO_LANG_SINH_TRUOC[1]) * DAY_MS,
+    rate: lerp(rng, RATE_JITTER),
+    onlineFrac: lerp(rng, LAO_LANG_ONLINE),
+    titleSeed: Math.floor(rng() * 1000),
+    actSeed: Math.floor(rng() * 1000),
+    avatarId: BOT_AVATAR_IDS[Math.floor(rng() * BOT_AVATAR_IDS.length)],
+  };
+}
+
+// Cache theo (seed, mốc mở, số thứ tự người mới nhất) — chỉ dựng lại khi THẬT SỰ có người mới.
 let _cacheKey = null, _cacheRoster = null;
-export function genRoster(seed, createdAt) {
-  const ck = seed + ':' + createdAt;
+export function genRoster(seedIn, moLucIn, now) {
+  // ⚠ Lưới an toàn: nhiều chỗ gọi kèm `|| 0` cho mốc mở. Để nguyên số 0 thì mọi người sinh ở
+  //   năm 1970 -> ai cũng chạm trần Lv100. Thiếu thì rơi về đúng hằng số máy chủ.
+  const seed = seedIn || MAY_CHU_SEED, moLuc = moLucIn || MAY_CHU_MO_LUC;
+  const t = now || Date.now();
+  const nMoi = Math.floor((t - moLuc) / CHU_KY_MS);
+  const ck = seed + ':' + moLuc + ':' + nMoi;
   if (_cacheKey === ck && _cacheRoster) return _cacheRoster;
-  const used = new Set(), out = [];
-  for (let i = 0; i < BOT_COUNT; i++) {
-    const rng = mulberry32(hash2(seed, i + 1));
-    const arch = weightedArch(rng);
-    let name, guard = 0;
-    do { name = pick(rng, BOT_HO) + ' ' + pick(rng, BOT_TEN); guard++; } while (used.has(name) && guard < 12);
-    used.add(name);
-    const ageDays = BORNAT_SPREAD_DAYS[0] + (BORNAT_SPREAD_DAYS[1] - BORNAT_SPREAD_DAYS[0]) * Math.pow(rng(), BORNAT_SKEW);   // lệch về trẻ
-    out.push({
-      id: 'bot' + i, name, arch,
-      bornAt: createdAt - Math.round(ageDays * DAY_MS),
-      rate: lerp(rng, RATE_JITTER),
-      onlineFrac: lerp(rng, ONLINE_FRAC),
-      titleSeed: Math.floor(rng() * 1000),
-      actSeed: Math.floor(rng() * 1000),
-      avatarId: BOT_AVATAR_IDS[Math.floor(rng() * BOT_AVATAR_IDS.length)],   // rng CUỐI — pool có-art, giữ nguyên các draw trước
-    });
-  }
+  const out = [];
+  for (let k = 0; k < SO_LUAN; k++) out.push(nguoiThuN(seed, moLuc, nMoi - k));
+  for (let j = 0; j < SO_LAO_LANG; j++) out.push(laoLangThuJ(seed, moLuc, j));
   _cacheKey = ck; _cacheRoster = out;
   return out;
+}
+/** Còn bao lâu nữa thì có người nhập giang hồ (ms) — cho dòng chữ ở Phong Vân Bảng. */
+export function conBaoLauCoNguoiMoi(moLuc, now) {
+  const t = now || Date.now();
+  return CHU_KY_MS - (((t - moLuc) % CHU_KY_MS) + CHU_KY_MS) % CHU_KY_MS;
 }
 
 // ---- Tiến trình (suy ra, monotonic theo now) ----
@@ -144,12 +201,54 @@ export function botActivity(bot, now) {
   }
 }
 
-// ---- Khởi tạo world (seed + createdAt) nếu thiếu — gọi on-load (như ensureQuests) ----
+// ---- Khởi tạo world — gọi on-load (như ensureQuests) ----
+// MÁY CHỦ CHUNG: seed + mốc mở là HẰNG SỐ, không còn random theo từng save. Save cũ mang seed
+// riêng thì chuyển sang máy chủ chung và ghi lại mốc chuyển (`nhapMayChu`) để chỉ dọn một lần.
 export function ensureWorld(state, now) {
-  if (!state.world || typeof state.world.seed !== 'number') {
-    state.world = { seed: (Math.floor(Math.random() * 2147483646) + 1), createdAt: now };
+  const cu = state.world;
+  if (!cu || cu.seed !== MAY_CHU_SEED || cu.createdAt !== MAY_CHU_MO_LUC) {
+    state.world = {
+      seed: MAY_CHU_SEED, createdAt: MAY_CHU_MO_LUC,
+      nhapMayChu: now,                                   // lúc save này nhập máy chủ chung
+      seedRieng: (cu && typeof cu.seed === 'number') ? cu.seed : null,   // seed riêng cũ (chỉ để tra)
+    };
   }
   return state.world;
+}
+
+/**
+ * Dọn tham chiếu tới người ĐÃ ẨN CƯ (hoặc thuộc giang hồ riêng cũ trước khi nhập máy chủ chung).
+ * Ba chỗ trong save giữ mã người: thành viên Tiên Minh, đơn xin nhập minh, và giao tình Tửu Lâu.
+ * ⚠ Bỏ qua bước này thì Tiên Minh treo thành viên "ma": tra roster không ra, hồ sơ trả null.
+ * Trả { roiMinh, boDon, quenCu } để lớp trên báo người chơi MỘT lần.
+ */
+export function donNguoiAnCu(state, world, now) {
+  const con = new Set(genRoster(world.seed, world.createdAt, now).map((b) => b.id));
+  const ket = { roiMinh: 0, boDon: 0, quenCu: 0, ten: [] };
+  const bp = state.bangPhai;
+  if (bp && bp.bang) {
+    if (Array.isArray(bp.bang.tv)) {
+      const giu = bp.bang.tv.filter((m) => m && con.has(m.id));
+      ket.roiMinh = bp.bang.tv.length - giu.length;
+      bp.bang.tv = giu;
+    }
+    if (Array.isArray(bp.bang.donXin)) {
+      const giu = bp.bang.donXin.filter((id) => con.has(id));
+      ket.boDon = bp.bang.donXin.length - giu.length;
+      bp.bang.donXin = giu;
+    }
+  }
+  const tl = state.tuuLau;
+  if (tl && tl.giaoTinh) {
+    for (const id in tl.giaoTinh) {
+      if (con.has(id)) continue;
+      delete tl.giaoTinh[id];
+      if (tl.gtPhien) delete tl.gtPhien[id];
+      if (tl.hoiLan) delete tl.hoiLan[id];
+      ket.quenCu++;
+    }
+  }
+  return ket;
 }
 
 // ============================================================
@@ -260,7 +359,7 @@ export function genJiangHuFeed(seed, createdAt, now) {
   const k0 = Math.floor(now / FEED_PERIOD_MS);
   const ck = seed + ':' + createdAt + ':' + k0;
   if (_feedKey === ck && _feedList) return _feedList;
-  const roster = genRoster(seed, createdAt), out = [];
+  const roster = genRoster(seed, createdAt, now), out = [];
   const jitMax = Math.max(1, Math.floor(FEED_PERIOD_MS * 0.6));       // lệch ts về QUÁ KHỨ (< PERIOD) -> giờ "X phút trước" tự nhiên, vẫn ≤ now
   for (let i = 0; i < FEED_SHOW; i++) {
     const slot = k0 - i; if (slot < 0) break;

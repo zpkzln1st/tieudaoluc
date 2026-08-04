@@ -168,7 +168,7 @@ function idsChieuHien(state, world, now) {
   const ra = new Set();
   if (!b.bang) return ra;
   const seed = (world && world.seed) || 1;
-  const roster = genRoster(seed, (world && world.createdAt) || 0) || [];
+  const roster = genRoster(seed, (world && world.createdAt) || 0, t) || [];
   if (!roster.length) return ra;
   const daCo = new Set(b.bang.tv.map((m) => m.id));
   const don = new Set(b.bang.donXin || []);
@@ -184,7 +184,7 @@ export function bangChieuHien(state, world, now) {
   const t = now || Date.now();
   const ids = idsChieuHien(state, world, t);
   if (!ids.size) return [];
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   return roster.filter((r) => ids.has(r.id)).map((r) => {
     const o = moTaBot(r, t);
     // Quen rồi thì bảng cũng tính giá quen — không đời nào bắt trả đắt hơn vì gặp lại ở chỗ khác.
@@ -206,7 +206,7 @@ export const chieuHienConLai = (now) => CHIEU_HIEN_MS - ((now || Date.now()) % C
 export function nguoiQuen(state, world, now) {
   const t = now || Date.now(), b = ensureBangPhai(state);
   if (!b.bang) return [];
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   if (!roster.length) return [];
   const daCo = new Set(b.bang.tv.map((m) => m.id));
   const don = new Set(b.bang.donXin || []);
@@ -236,7 +236,7 @@ function moTaBot(r, t) {
 /** Bot chưa ở trong bang người chơi. Sắp theo sức giảm dần. */
 export function danhSachTanTu(state, world, now) {
   const t = now || Date.now(), b = ensureBangPhai(state);
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   const daCo = new Set((b.bang ? b.bang.tv : []).map((m) => m.id));
   const donXin = new Set((b.bang ? b.bang.donXin : []) || []);
   return roster.filter((r) => !daCo.has(r.id)).map((r) => {
@@ -332,7 +332,7 @@ export function giaiTan(state, now) {
 export function thanhVien(state, world, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang) return [];
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   const theoId = {}; roster.forEach((r) => { theoId[r.id] = r; });
   return b.bang.tv.map((m) => {
     const r = theoId[m.id]; if (!r) return null;
@@ -353,7 +353,7 @@ export function chieuMo(state, botId, world, now) {
   if (!b.bang || !botId) return false;
   if (b.bang.tv.length >= tranThanhVien(b.bang)) return false;
   if (b.bang.tv.some((m) => m.id === botId)) return false;
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   const r = roster.find((x) => x.id === botId); if (!r) return false;
   // CỬA GIAO TÌNH — chặn ở đây chứ không ở lớp view, để không đường nào lách được.
   // Người trên Bảng Chiêu Hiền là đường công khai, ai cũng mời được (chỉ đắt hơn).
@@ -377,10 +377,10 @@ export function chieuMo(state, botId, world, now) {
 
 /** Kích khỏi bang. Bang chủ không kích được chính mình (người chơi không nằm trong danh sách). */
 export function kichNguoi(state, botId, world, now) {
-  const b = ensureBangPhai(state);
+  const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang) return false;
   const i = b.bang.tv.findIndex((m) => m.id === botId); if (i < 0) return false;
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   const r = roster.find((x) => x.id === botId);
   const ho = r ? moTaBot(r, now || Date.now()) : null;
   b.bang.tv.splice(i, 1);
@@ -391,7 +391,7 @@ export function kichNguoi(state, botId, world, now) {
 
 /** Đổi chức. `len` = true thăng, false hạ. Trả '' nếu xong, ngược lại trả lý do. */
 export function doiChuc(state, botId, len, now, world) {
-  const b = ensureBangPhai(state);
+  const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang) return 'Chưa có bang.';
   const m = b.bang.tv.find((x) => x.id === botId); if (!m) return 'Không có người này.';
   const cur = CHUC_BY_ID[m.chuc] || CHUC_BY_ID[CHUC_THAP];
@@ -404,7 +404,7 @@ export function doiChuc(state, botId, len, now, world) {
     if (dang >= moi.tran) return moi.ten + ' chỉ có ' + moi.tran + ' suất, đã đủ người.';
   }
   m.chuc = moi.id;
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   const r = roster.find((x) => x.id === botId);
   const ho = r ? moTaBot(r, now || Date.now()) : null;
   ghiNhatKy(state, (ho ? tenMau(ho) : '<b>Một người</b>') + ' ' + (len ? 'được thăng làm ' : 'bị giáng xuống ')
@@ -421,7 +421,7 @@ export function sinhDonXin(state, world, now) {
   const slot = Math.floor(t / (6 * GIO));                    // mỗi 6 giờ xét một lượt
   if (b.bang._donSlot === slot) return;
   b.bang._donSlot = slot;
-  const roster = genRoster(seed, (world && world.createdAt) || 0) || [];
+  const roster = genRoster(seed, (world && world.createdAt) || 0, t) || [];
   const daCo = new Set(b.bang.tv.map((m) => m.id));
   const don = new Set(b.bang.donXin || []);
   // Phi Cáp Trạm: mỗi cấp thêm một người tìm tới cửa mỗi lượt.
@@ -446,7 +446,7 @@ export function hoSoMinhChung(state, world, botId, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang) return null;
   const raw = b.bang.tv.find((m) => m.id === botId); if (!raw) return null;
-  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0) || [];
+  const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   const r = roster.find((x) => x.id === botId); if (!r) return null;
   const o = moTaBot(r, t);
   const c = CHUC_BY_ID[raw.chuc] || CHUC_BY_ID.tanNhap;

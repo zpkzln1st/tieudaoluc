@@ -105,7 +105,7 @@ function nguonSong(world, now) {
       _k: boDau(d.ten || d.name),
     });
   }
-  for (const b of (genRoster(seed, (world && world.createdAt) || 0) || [])) {
+  for (const b of (genRoster(seed, (world && world.createdAt) || 0, now) || [])) {
     ra.push({
       nhom: 'Nhân Vật', thuTu: 0, id: b.id, ten: b.ten || b.name,
       phu: 'Tổng Lv ' + botTotalLv(b, now),
