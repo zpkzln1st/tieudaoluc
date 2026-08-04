@@ -1437,14 +1437,55 @@
                   </template>
                 </section>
               </div>
-              <!-- Showcase -->
+              <!-- ===== TRƯNG BÀY — giá khoe đồ =====
+                   Bảy ô là VỊ TRÍ cố định, không phải hàng đợi: hạ món ở ô giữa thì hai bên đứng yên.
+                   Ô giữ THAM CHIẾU chứ không giữ bản sao — bán món đi là ô tự trống. -->
               <section class="panel rounded-lg p-3">
-                <div class="lbl mb-2">Trưng Bày</div>
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <div class="lbl">Trưng Bày</div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-[9.5px] text-slate-500 tabular-nums" x-text="$store.game.tbSoTreo + '/7 ô'"></span>
+                    <button @click="$store.game.tbBatSua()" class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap"
+                      :class="$store.game.tbSua ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                      x-text="$store.game.tbSua ? 'Xong' : 'Sắp Xếp'"></button>
+                  </div>
+                </div>
                 <div class="grid grid-cols-7 gap-2">
-                  <template x-for="i in 7" :key="i">
-                    <div class="aspect-square rounded bg-ink3 border border-dashed border-slate-700"></div>
+                  <template x-for="o in $store.game.trungBayView" :key="o.i">
+                    <button @click="$store.game.tbBam(o)"
+                      :title="o.co ? ($store.game.tbTen(o) + ($store.game.tbSua ? ' — bấm để hạ xuống' : ' — bấm xem chi tiết')) : 'Ô trống — bấm để treo đồ lên'"
+                      class="relative aspect-square rounded flex items-center justify-center transition hover:brightness-110">
+                      <!-- Ô TRỐNG: luôn có dấu ＋ mờ để thấy ngay là bấm được. -->
+                      <template x-if="!o.co">
+                        <span class="absolute inset-0 rounded bg-ink3 border border-dashed flex items-center justify-center text-slate-700 text-lg leading-none transition"
+                              :class="$store.game.tbSua ? 'border-jade/45 text-jade/60' : 'border-slate-700 hover:border-slate-500'">＋</span>
+                      </template>
+                      <!-- TRANG BỊ · VẬT PHẨM: cùng khuôn ô với Hành Lý (nền + viền theo phẩm chất + hào quang). -->
+                      <template x-if="o.co && o.k !== 'pet'">
+                        <span class="absolute inset-0 rounded ring-1 flex items-center justify-center" :class="$store.game.itemQuality(o.obj).bg + ' ' + $store.game.itemQuality(o.obj).ring">
+                          <template x-if="$store.game.itemHaloHex(o.obj)"><i class="halo2" :style="$store.game.haloStyle(o.obj)"></i></template>
+                          <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-2xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="$store.game.ico(o.obj.id, o.obj.icon)"></span>
+                          <template x-if="o.obj.plus > 0"><span class="absolute top-0.5 right-0.5 text-[8px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+o.obj.plus"></span></template>
+                          <template x-if="o.k === 'item' && o.obj.qty > 1"><span class="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-200" x-text="$store.game.fmt(o.obj.qty)"></span></template>
+                        </span>
+                      </template>
+                      <!-- LINH THÚ: art riêng, viền theo phẩm chất thú. -->
+                      <template x-if="o.co && o.k === 'pet'">
+                        <span class="absolute inset-0 rounded border overflow-hidden flex items-center justify-center bg-ink2" :class="$store.game.petQ(o.obj).border">
+                          <span class="absolute inset-0" x-html="$store.game.petArtTag(o.obj)"></span>
+                          <span class="absolute bottom-0.5 left-0.5 w-1.5 h-1.5 rounded-full" :style="'background:'+$store.game.petElColor(o.obj)"></span>
+                        </span>
+                      </template>
+                      <!-- Đang Sắp Xếp: ô có món hiện dấu ✕ để hạ xuống. -->
+                      <template x-if="o.co && $store.game.tbSua">
+                        <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center leading-none z-10">✕</span>
+                      </template>
+                    </button>
                   </template>
                 </div>
+                <!-- Dòng chỉ dẫn LUÔN có mặt, chỉ đổi chữ: khối không cao thấp theo số món đang treo. -->
+                <div class="text-[10px] text-slate-600 mt-2 leading-tight"
+                     x-text="$store.game.tbSua ? 'Bấm món để hạ xuống · bấm ô trống để treo món khác.' : ($store.game.tbSoTreo ? 'Bấm món để xem chi tiết · Sắp Xếp để đổi chỗ.' : 'Giá còn trống — bấm một ô để treo trang bị, vật phẩm hay linh thú lên khoe.')"></div>
               </section>
               <!-- Trang Bị: các ô đang mang + link trang riêng -->
               <section class="panel rounded-lg p-3" x-data="{ eqSlots:['mu','giap','dai','gang','vuKhi','trangSuc','nhan','giay','toaKy','canCau','cuoc','riu','duocLiem'] }">
@@ -5700,12 +5741,76 @@
                               x-text="'Bán '+$store.game.fmt($store.game.banQty||1)+' (+'+$store.game.fmt((m.value||0)*($store.game.banQty||1))+' Bạc)'"></button>
                     </div>
                   </template>
-                  <template x-if="(m.value||0) > 0 && $store.game.itemModalMax <= 1">
+                  <!-- ⚠ `=== 1` chứ KHÔNG phải `<= 1`: món đang mặc và món chưa có trong túi đều ra 0.
+                       Để `<= 1` thì hai thứ đó cũng mọc ra nút Bán, bấm vào không bán được gì. -->
+                  <template x-if="(m.value||0) > 0 && $store.game.itemModalMax === 1">
                     <button @click="$store.game.sellFromModal(1)" class="sellbtn w-full py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)" x-text="'Bán (+'+$store.game.fmt(m.value||0)+' Bạc)'"></button>
+                  </template>
+                  <template x-if="m.dangMac">
+                    <div class="text-[11px] text-jade text-center py-1">Đang mặc trên người.</div>
+                  </template>
+                  <template x-if="!m.isGear && !(m.qty > 0)">
+                    <div class="text-[11px] text-slate-500 text-center py-1">Chưa có món này trong hành lý.</div>
                   </template>
                 </div>
               </div>
             </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== POPUP: chọn thứ treo lên giá Trưng Bày (bấm một ô ở Hồ Sơ) ===== -->
+      <template x-if="$store.game.tbChonMo">
+        <div class="fixed inset-0 z-[56] flex items-center justify-center p-4" style="background:rgba(2,6,12,.74)" @click.self="$store.game.tbDong()" @keydown.escape.window="$store.game.tbDong()">
+          <div class="panel rounded-xl border border-jade/25 w-full max-w-[430px] max-h-[82dvh] flex flex-col overflow-hidden" @click.stop x-data="{ get g(){ return $store.game } }">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 shrink-0">
+              <div class="min-w-0">
+                <div class="text-[14px] font-bold text-slate-100 leading-tight" style="font-family:'Lora','Noto Serif SC',serif">Treo Lên Giá</div>
+                <div class="text-[10.5px] text-slate-500" x-text="'Ô thứ ' + (g.tbChon + 1)"></div>
+              </div>
+              <button @click="g.tbDong()" class="w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 leading-none shrink-0">✕</button>
+            </div>
+            <!-- Ba tab CỐ ĐỊNH, không mọc/rụng theo thứ đang có: chỗ bấm phải đứng yên giữa hai lần mở. -->
+            <div class="flex flex-wrap gap-1 px-4 py-2 border-b border-slate-800 shrink-0">
+              <template x-for="t in g.tbTabs" :key="t.id">
+                <button @click="g.tbDatTab(t.id)" class="px-2.5 py-0.5 rounded-full text-[11px] fserif border transition"
+                  :class="g.tbTab === t.id ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                  x-text="t.ten"></button>
+              </template>
+            </div>
+            <div class="flex-1 min-h-0 overflow-y-auto p-3">
+              <template x-if="!g.tbNguon.length">
+                <div class="text-[12px] text-slate-600 text-center py-8">Chưa có gì để treo ở mục này.</div>
+              </template>
+              <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(64px,1fr))">
+                <template x-for="n in g.tbNguon" :key="n.k + ':' + n.ref">
+                  <button @click="g.tbDat(n.k, n.ref)" class="group flex flex-col items-center gap-1 text-center" :title="n.ten">
+                    <div class="relative w-full aspect-square rounded flex items-center justify-center transition group-hover:brightness-110">
+                      <template x-if="n.k !== 'pet'">
+                        <span class="absolute inset-0 rounded ring-1 flex items-center justify-center" :class="g.itemQuality(n.obj).bg + ' ' + g.itemQuality(n.obj).ring">
+                          <template x-if="g.itemHaloHex(n.obj)"><i class="halo2" :style="g.haloStyle(n.obj)"></i></template>
+                          <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-2xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="g.ico(n.obj.id, n.obj.icon)"></span>
+                          <template x-if="n.obj.plus > 0"><span class="absolute top-0.5 right-0.5 text-[8px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+n.obj.plus"></span></template>
+                          <template x-if="n.obj.qty > 1"><span class="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-200" x-text="g.fmt(n.obj.qty)"></span></template>
+                        </span>
+                      </template>
+                      <template x-if="n.k === 'pet'">
+                        <span class="absolute inset-0 rounded border overflow-hidden flex items-center justify-center bg-ink2" :class="g.petQ(n.obj).border">
+                          <span class="absolute inset-0" x-html="g.petArtTag(n.obj)"></span>
+                          <span class="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-200" x-text="'Lv'+(n.obj.level||1)"></span>
+                        </span>
+                      </template>
+                      <!-- Đã treo ở ô khác: đánh dấu để khỏi treo trùng rồi ngơ ngác vì ô cũ trống đi. -->
+                      <template x-if="g.tbDaTreo(n.k, n.ref)">
+                        <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-jade text-ink text-[10px] font-bold flex items-center justify-center leading-none z-10">✓</span>
+                      </template>
+                    </div>
+                    <span class="text-[9.5px] leading-tight line-clamp-2 w-full min-h-[22px] opacity-80 group-hover:opacity-100"
+                          :class="n.k === 'pet' ? g.petQ(n.obj).text : g.itemQuality(n.obj).text" x-text="n.ten"></span>
+                  </button>
+                </template>
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -14489,7 +14594,10 @@
           </div>
         </div>
         <div class="flex gap-2 mt-4">
-          <button class="flex-1 py-2 rounded bg-ink3 border border-slate-700 text-sm text-slate-400">Xem</button>
+          <!-- "Xem" từ bản mockup vốn không nối vào đâu. Nay mở đúng thẻ vật phẩm mà hành động
+               này làm ra — xem chỉ số trước rồi mới quyết định có làm hay không. -->
+          <button @click="$store.game.openItemModal($store.game.modalAction.itemId)"
+            class="flex-1 py-2 rounded bg-ink3 border border-slate-700 hover:border-jade text-sm text-slate-300 transition">Xem Vật Phẩm</button>
           <button @click="$store.game.startFromModal()"
             :disabled="!$store.game.canStart($store.game.actionModal.skillId, $store.game.modalAction)"
             class="flex-1 py-2 rounded font-medium text-sm transition"

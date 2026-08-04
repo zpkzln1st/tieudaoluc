@@ -254,6 +254,19 @@ export const CN_MUC = [
     ],
   },
   {
+    id: 'trungbay', nhom: 'nhanvat', ten: 'Trưng Bày',
+    tom: 'Bảy ô khoe đồ ở Hồ Sơ.',
+    khoi: [
+      ['p', 'Giá Trưng Bày nằm ở trang <b>Hồ Sơ</b>, ngay trên khối Trang Bị.'],
+      ['p', 'Treo được ba thứ: <b>trang bị</b>, <b>vật phẩm trong túi</b> và <b>linh thú</b>.'],
+      ['p', 'Bấm một ô trống là mở bảng chọn. Bấm món đã treo là mở thẻ chi tiết của nó.'],
+      ['p', 'Nút <b>Sắp Xếp</b> đổi sang chế độ hạ đồ xuống. Bấm <b>Xong</b> để quay lại.'],
+      ['p', 'Giá chỉ <b>trỏ tới</b> thứ ngươi đang có. Bán món hay thả linh thú thì ô tự trống.'],
+      ['p', 'Mỗi thứ chỉ treo được một ô. Treo nó sang ô mới thì ô cũ tự nhường chỗ.'],
+      ['luu', 'Trưng Bày thuần trang trí — không cộng một điểm chỉ số nào.'],
+    ],
+  },
+  {
     id: 'dongphu', nhom: 'nhanvat', ten: 'Động Phủ',
     tom: 'Nới trần ngoại tuyến và mở công trình tiện ích.',
     khoi: [

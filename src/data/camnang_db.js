@@ -503,7 +503,9 @@ export const CN_DB = [
     ],
     hang: () => Object.values(AFFIX).map((a) => ({
       id: a.key, ten: a.name, khoang: a.lo + ' – ' + a.hi + (a.fmt === 'pct' ? '%' : ''),
-      kieu: a.fmt === 'pct' ? 'phần trăm' : 'điểm',
+      // ⚠ VIẾT HOA chữ đầu như mọi nhãn khác trong bảng (Giáp, Thường, Độc): bài kiểm
+      //    _check_camnang_db bắt ô nào là một từ viết thường coi như nhãn bị cụt.
+      kieu: a.fmt === 'pct' ? 'Phần trăm' : 'Điểm',
       o: (O_CUA_AFFIX[a.key] || []).join(', ') || 'mọi ô',
     })),
     chiTiet: (h) => [

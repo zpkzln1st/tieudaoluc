@@ -278,6 +278,11 @@ if (state.travel) state.travel = null; // bỏ field cũ (Khinh Công giờ là 
 if (!state.dungeon) state.dungeon = { lastResult: null, history: [] }; // Bí Cảnh: kết quả lần chạy gần nhất + lịch sử
 if (!Array.isArray(state.notifications)) state.notifications = []; // Thông Báo (feed chung: chuông + Phi Cáp Đài)
 if (!Array.isArray(state.pets)) state.pets = []; // Linh Thú (pet) — nở từ trứng
+// Giá Trưng Bày ở Hồ Sơ: BẢY ô cố định, ô trống là `null`. Mỗi ô giữ THAM CHIẾU {k,ref}
+// chứ không giữ bản sao — bán hay thả mất thì ô tự trống, giá không khoe món đã không còn.
+if (!Array.isArray(state.trungBay)) state.trungBay = [];
+state.trungBay.length = 7;
+for (let i = 0; i < 7; i++) if (!state.trungBay[i] || !state.trungBay[i].k) state.trungBay[i] = null;
 if (state.hatchery === undefined) state.hatchery = null; // Lò Ấp Noãn (P3, đơn): {pet,base,eggId,eggQuality,startedAt,readyAt,durMs,notified} | null
 if (state.damDao === undefined) state.damDao = {}; // Đàm Đạo: { <skillId>: [<chapterId đã đọc xong>] } — chỉ để đánh dấu đã đọc + badge chương mới
 // Tháo trang bị VƯỢT CẤP (combatLevel tụt do dev/sửa save) -> trả về túi, không cho hưởng chỉ số lậu
@@ -539,6 +544,10 @@ const gameStore = {
     ['codexDetail', 'closeCodex'], ['dungeonPoolId', 'closeDungeonPool'], ['bkPoolId', 'closeBkPool'], ['tpDetail', 'closeTpDetail'],
     ['lightbox', 'closeLightbox'], ['tmFaceFull', 'closeFaceFull'], ['xacNhan', 'dongXacNhan'],
     ['bpHoSo', 'closeBpHoSo'], ['bpCongTrinh', 'closeBpCongTrinh'],
+    // ⚠ Bảng chọn Trưng Bày phải đăng ký bằng `tbChonMo` chứ KHÔNG phải `tbChon`:
+    //   ô thứ nhất có số hiệu 0, mà 0 là giá trị giả — đăng ký thẳng thì vuốt-back
+    //   ở đúng ô đầu tiên lại lùi cả tab thay vì đóng bảng.
+    ['tbChonMo', 'tbDong'],
   ],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
@@ -4637,10 +4646,16 @@ const gameStore = {
     const ds = this.hlHien.filter((it) => this.hlSel[this.hlRef(it)] && this.hlBanDuoc(it));
     if (!ds.length) return;
     const c = this.hlChonInfo;
+    // Món đang treo ở Trưng Bày thì báo trước: bán xong ô trên giá sẽ trống.
+    const treo = ds.filter((it) => this.tbDaTreo(it.uid ? 'gear' : 'item', this.hlRef(it))).length;
+    const canhBao = [
+      c.quy ? ('Trong đó có <b>' + this.fmt(c.quy) + '</b> món phẩm Hiếm trở lên.') : '',
+      treo ? ('<b>' + this.fmt(treo) + '</b> món đang treo ở Trưng Bày — bán xong ô trên giá sẽ trống.') : '',
+    ].filter(Boolean).join(' ');
     this.hoiXacNhan({
       tieuDe: 'Bán Hàng Loạt', nut: 'Bán', nguy: true,
       loi: 'Bán <b class="text-slate-100">' + this.fmt(c.n) + '</b> món · thu về <b class="text-gold">' + this.fmt(c.bac) + '</b> Bạc.',
-      canhBao: c.quy ? ('Trong đó có <b>' + this.fmt(c.quy) + '</b> món phẩm Hiếm trở lên.') : '',
+      canhBao,
       xong: () => {
         let n = 0, bac = 0;
         for (const it of ds) {
@@ -4652,6 +4667,86 @@ const gameStore = {
         this.showToast('Đã bán ' + this.fmt(n) + ' món · +' + this.fmt(bac) + ' Bạc');
       },
     });
+  },
+
+  // ---------- Trưng Bày (giá khoe đồ ở Hồ Sơ) ----------
+  // BẢY ô cố định. Mỗi ô giữ THAM CHIẾU tới thứ đang có thật, KHÔNG giữ bản sao.
+  // Bán món hay thả linh thú thì ô tự trống — giá chỉ khoe thứ còn nằm trong tay.
+  // ⚠ Ô là VỊ TRÍ, không phải hàng đợi: gỡ ô số 3 thì ô 4-5-6 đứng yên, không dồn lên.
+  TB_O: 7,
+  tbSua: false,        // đang ở chế độ Sắp Xếp (bấm ô có món = hạ xuống)
+  tbChon: null,        // ô đang mở bảng chọn (null = bảng đóng)
+  tbTab: 'gear',       // gear | item | pet
+  /** Bảy ô đã giải nghĩa. Ô trỏ tới thứ không còn -> trả về ô TRỐNG (getter không tự ghi state). */
+  get trungBayView() {
+    const gia = this.state.trungBay || [], out = [];
+    for (let i = 0; i < this.TB_O; i++) {
+      const o = gia[i]; let e = { i, co: false, k: '', ref: null, obj: null };
+      if (o && o.k === 'gear') {
+        const g = findGear(this.state, o.ref);
+        if (g) e = { i, co: true, k: 'gear', ref: o.ref, obj: this.gearView(g) };
+      } else if (o && o.k === 'item') {
+        const it = this.ITEMS[o.ref], n = (this.state.inventory || {})[o.ref] || 0;
+        if (it && n > 0) e = { i, co: true, k: 'item', ref: o.ref, obj: { ...it, id: o.ref, qty: n } };
+      } else if (o && o.k === 'pet') {
+        const p = (this.state.pets || []).find((x) => x.id === o.ref);
+        if (p) e = { i, co: true, k: 'pet', ref: o.ref, obj: p };
+      }
+      out.push(e);
+    }
+    return out;
+  },
+  get tbSoTreo() { let n = 0; for (const e of this.trungBayView) if (e.co) n++; return n; },
+  tbTen(e) { return (!e || !e.co) ? '' : (e.k === 'pet' ? this.petName(e.obj) : (e.obj.name || '')); },
+  tbBatSua() { this.tbSua = !this.tbSua; },
+  /** Bấm một ô: trống -> mở bảng chọn; có món -> xem chi tiết, hoặc hạ xuống khi đang Sắp Xếp. */
+  tbBam(e) {
+    if (!e.co) { this.tbMo(e.i); return; }
+    if (this.tbSua) { this.tbHa(e.i); return; }
+    if (e.k === 'pet') { this.openPetDetail(e.ref); return; }
+    this.openItemModal(e.ref);
+  },
+  tbHa(i) {
+    const gia = this.state.trungBay || [];
+    const ten = this.tbTen(this.trungBayView[i]);      // ⚠ lấy tên TRƯỚC khi xoá, xoá rồi là mất tên
+    gia[i] = null; Storage.save(this.state);
+    if (ten) this.showToast('Đã hạ 〈' + ten + '〉 khỏi giá Trưng Bày.');
+  },
+  tbMo(i) { this.tbChon = i; this.tbTab = 'gear'; },
+  tbDong() { this.tbChon = null; },
+  get tbChonMo() { return this.tbChon !== null; },      // cờ cho _MODALS (xem chú thích ở đó)
+  tbDaTreo(k, ref) { return (this.state.trungBay || []).some((o) => o && o.k === k && o.ref === ref); },
+  tbDat(k, ref) {
+    const i = this.tbChon; if (i == null) return;
+    const gia = this.state.trungBay || [];
+    for (let j = 0; j < this.TB_O; j++) if (gia[j] && gia[j].k === k && gia[j].ref === ref) gia[j] = null;   // một thứ chỉ treo một ô
+    gia[i] = { k, ref };
+    this.tbChon = null; this.tbSua = false; Storage.save(this.state);
+    this.showToast('Đã treo 〈' + this.tbTen(this.trungBayView[i]) + '〉 lên giá Trưng Bày.');
+  },
+  get tbTabs() { return [{ id: 'gear', ten: 'Trang Bị' }, { id: 'item', ten: 'Vật Phẩm' }, { id: 'pet', ten: 'Linh Thú' }]; },
+  tbDatTab(id) { this.tbTab = id; },
+  /** Nguồn treo được theo tab. Trang Bị lấy CẢ món đang mặc lẫn món trong túi. */
+  get tbNguon() {
+    if (this.tbTab === 'pet') {
+      return (this.state.pets || []).slice()
+        .sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.level || 0) - (a.level || 0))
+        .map((p) => ({ k: 'pet', ref: p.id, ten: this.petName(p), obj: p }));
+    }
+    if (this.tbTab === 'item') {
+      const out = [];
+      for (const id in (this.state.inventory || {})) {
+        const n = this.state.inventory[id], it = this.ITEMS[id];
+        if (!n || !it) continue;
+        out.push({ k: 'item', ref: id, ten: it.name, obj: { ...it, id, qty: n } });
+      }
+      return out.sort((a, b) => this.qualityRank(b.obj) - this.qualityRank(a.obj) || a.ten.localeCompare(b.ten, 'vi'));
+    }
+    const mac = [];
+    for (const s in (this.state.equipment || {})) if (this.state.equipment[s]) mac.push(this.state.equipment[s]);
+    const ds = mac.concat(this.state.gearBag || []).map((g) => this.gearView(g)).filter(Boolean)
+      .sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.itemLv || 0) - (a.itemLv || 0));
+    return this.gomGearTron(ds).map((v) => ({ k: 'gear', ref: v.uid, ten: v.name, obj: v }));
   },
 
   // ---------- Túi Tạm (CHỈ đồ rơi phiên đánh hiện tại, KHÔNG phải cả kho; chỉ ĐỌC, nguồn = combatSessView) ----------
@@ -4916,10 +5011,14 @@ const gameStore = {
     if (!forceDoPho && ['phamPham', 'luongPham', 'tinhPham'].includes(it.quality)) return true;
     return this.doPhoCharges(itemId) > 0; // bậc 4-7 + tool bậc 2-3: còn lượt Đồ Phổ mới hiện ở Rèn Đúc
   },
+  /** Món này có đang mặc trên người không (chứ không nằm trong túi)? */
+  gearDangMac(uid) { const eq = this.state.equipment || {}; for (const s in eq) if (eq[s] && eq[s].uid === uid) return true; return false; },
   get itemModalObj() {
     const ref = this.itemModal; if (!ref) return null;
     const g = findGear(this.state, ref);
-    if (g) return { ...this.gearView(g), qty: 1, isGear: true };     // gear instance
+    // ⚠ Từ giá Trưng Bày mở được thẻ của món ĐANG MẶC — đường này Hành Lý không có.
+    //    Món đang mặc không nằm trong túi nên không bán tại chỗ được; đánh dấu để thẻ nói rõ.
+    if (g) return { ...this.gearView(g), qty: 1, isGear: true, dangMac: this.gearDangMac(ref) };     // gear instance
     const it = this.ITEMS[ref];
     return it ? { ...it, qty: this.state.inventory[ref] || 0, isGear: false } : null;
   },
