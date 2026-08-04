@@ -74,3 +74,38 @@ export async function cloudPushSave(state) {
   if (error) return { ok: false, reason: error.message };
   return { ok: true };
 }
+
+// ============================================================
+// HO SO CONG KHAI (dot A2) — bang `ho_so_cong_khai`, KHONG phai bang `saves`.
+// Bang nay AI CUNG DOC DUOC (do la ca muc dich cua viec khoe); chi chu moi ghi duoc dong minh.
+// Luat that nam o RLS phia Supabase — xem docs/SQL_HO_SO_CONG_KHAI.sql.
+// ⚠ Chua chay tep SQL do thi moi ham duoi day tra loi "khong tim thay bang"; game van chay
+//   binh thuong vi caller nuot loi. Thieu bang KHONG duoc lam vo duong luu save.
+// ============================================================
+
+/** Day ho so cua CHINH MINH len. `hoSo` la ban CHUP (khong phai tham chieu vao save). */
+export async function cloudPushHoSo(hoSo) {
+  const sb = await getClient();
+  const uid = await _uid();
+  if (!uid) return { ok: false, reason: 'no-auth' };
+  const { error } = await sb.from('ho_so_cong_khai').upsert(
+    { user_id: uid, ...hoSo, cap_nhat: new Date().toISOString() },
+    { onConflict: 'user_id' },
+  );
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
+/** Doc ho so cong khai cua MOT NGUOI theo ma tai khoan. Khong can dang nhap. */
+export async function cloudLoadHoSo(uid) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { data, error } = await sb.from('ho_so_cong_khai')
+    .select('user_id,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu,trung_bay,cap_nhat')
+    .eq('user_id', uid).maybeSingle();
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, row: data };            // row = null neu nguoi do chua khoe gi
+}
+
+/** Ma tai khoan cua chinh minh — de dung duong dan khoe. */
+export async function cloudMyUid() { return _uid(); }

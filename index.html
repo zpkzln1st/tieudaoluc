@@ -1445,6 +1445,10 @@
                   <div class="lbl">Trưng Bày</div>
                   <div class="flex items-center gap-2 shrink-0">
                     <span class="text-[9.5px] text-slate-500 tabular-nums" x-text="$store.game.tbSoTreo + '/7 ô'"></span>
+                    <!-- Khoe: đẩy bản chụp giá lên cloud rồi chép đường dẫn. Cần đăng nhập vì giá cất trên cloud. -->
+                    <button @click="$store.game.layLinkKhoe()" :disabled="$store.game.khoeDang"
+                      class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap text-amber-300/90 border-amber-600/40 hover:border-amber-400 disabled:opacity-40"
+                      x-text="$store.game.khoeDang ? 'Đang gửi…' : 'Khoe'"></button>
                     <button @click="$store.game.tbBatSua()" class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap"
                       :class="$store.game.tbSua ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
                       x-text="$store.game.tbSua ? 'Xong' : 'Sắp Xếp'"></button>
@@ -1485,7 +1489,15 @@
                 </div>
                 <!-- Dòng chỉ dẫn LUÔN có mặt, chỉ đổi chữ: khối không cao thấp theo số món đang treo. -->
                 <div class="text-[10px] text-slate-600 mt-2 leading-tight"
-                     x-text="$store.game.tbSua ? 'Bấm món để hạ xuống · bấm ô trống để treo món khác.' : ($store.game.tbSoTreo ? 'Bấm món để xem chi tiết · Sắp Xếp để đổi chỗ.' : 'Giá còn trống — bấm một ô để treo trang bị, vật phẩm hay linh thú lên khoe.')"></div>
+                     x-text="$store.game.tbSua ? 'Bấm món để hạ xuống · bấm ô trống để treo món khác.' : ($store.game.tbSoTreo ? 'Bấm món để xem chi tiết · Sắp Xếp để đổi chỗ · Khoe để lấy đường dẫn.' : 'Giá còn trống — bấm một ô để treo trang bị, vật phẩm hay linh thú lên khoe.')"></div>
+                <!-- Chép tự động hỏng (trình duyệt chặn) thì bày đường dẫn ra để tự chép. -->
+                <template x-if="$store.game.khoeLink">
+                  <div class="mt-2 flex items-center gap-2">
+                    <input readonly :value="$store.game.khoeLink" @focus="$event.target.select()"
+                           class="flex-1 min-w-0 h-7 px-2 rounded bg-ink border border-slate-700 text-[10px] text-slate-300">
+                    <button @click="$store.game.khoeLink=''" class="shrink-0 w-7 h-7 rounded text-slate-500 hover:text-rose-400 text-xs">✕</button>
+                  </div>
+                </template>
               </section>
               <!-- Trang Bị: các ô đang mang + link trang riêng -->
               <section class="panel rounded-lg p-3" x-data="{ eqSlots:['mu','giap','dai','gang','vuKhi','trangSuc','nhan','giay','toaKy','canCau','cuoc','riu','duocLiem'] }">
@@ -5814,6 +5826,102 @@
                 </template>
               </div>
             </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== POPUP: HỒ SƠ NGƯỜI KHÁC (mở từ đường dẫn ?hoso=<mã>) =====
+           Dữ liệu là BẢN CHỤP trên cloud, không phải save của họ — nên có mốc giờ cập nhật. -->
+      <template x-if="$store.game.hoSoKhachMo">
+        <div class="fixed inset-0 z-[58] flex items-center justify-center p-4" style="background:rgba(2,6,12,.82)" @click.self="$store.game.dongHoSoKhach()" @keydown.escape.window="$store.game.dongHoSoKhach()">
+          <div class="panel rounded-xl border border-amber-600/30 w-full max-w-[460px] max-h-[86dvh] flex flex-col overflow-hidden" @click.stop
+               x-data="{ get g(){ return $store.game }, get h(){ return $store.game.hoSoKhach }, xem:null }">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 shrink-0">
+              <div class="text-[13px] fserif text-amber-200/90">Hồ Sơ Giang Hồ</div>
+              <button @click="g.dongHoSoKhach()" class="w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 leading-none shrink-0">✕</button>
+            </div>
+            <template x-if="g.hoSoKhachTai">
+              <div class="px-4 py-10 text-center text-[12px] text-slate-500">Đang tìm người này…</div>
+            </template>
+            <template x-if="g.hoSoKhachLoi">
+              <div class="px-4 py-10 text-center text-[12px] text-slate-500" x-text="g.hoSoKhachLoi"></div>
+            </template>
+            <template x-if="h">
+              <div class="flex-1 min-h-0 overflow-y-auto p-4">
+                <div class="flex items-start gap-3">
+                  <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-ink3 border border-slate-700 flex items-center justify-center">
+                    <img loading="lazy" decoding="async" :src="'images/avatars/'+(h.avatar||'nam1')+'.webp'" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-[17px] font-bold text-slate-100 fserif truncate" x-text="h.ten"></div>
+                    <template x-if="h.danh_hieu"><div class="text-[11px] text-amber-300/90 truncate" x-text="h.danh_hieu"></div></template>
+                    <div class="flex flex-wrap gap-1.5 mt-1.5 text-[10.5px]">
+                      <span class="px-2 py-0.5 rounded bg-ink3 text-slate-300">Tổng Cấp <b class="text-jade" x-text="g.fmt(h.tong_cap)"></b></span>
+                      <span class="px-2 py-0.5 rounded bg-ink3 text-slate-300">Chiến Đấu <b class="text-jade" x-text="g.fmt(h.chien_dau)"></b></span>
+                      <span class="px-2 py-0.5 rounded bg-ink3 text-slate-300">Chiến Lực <b class="text-amber-300" x-text="g.fmt(h.chien_luc)"></b></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="lbl mt-4 mb-2">Trưng Bày</div>
+                <template x-if="!(h.trung_bay||[]).length">
+                  <div class="text-[11.5px] text-slate-600 py-4 text-center">Giá còn trống.</div>
+                </template>
+                <div class="grid grid-cols-7 gap-2">
+                  <template x-for="(c,i) in (h.trung_bay||[])" :key="i">
+                    <button @click="xem = (xem===i ? null : i)" :title="c.ten"
+                      class="relative aspect-square rounded flex items-center justify-center transition hover:brightness-110"
+                      :class="xem===i ? 'ring-2 ring-amber-300' : ''">
+                      <template x-if="c.k !== 'pet'">
+                        <span class="absolute inset-0 rounded ring-1 flex items-center justify-center" :class="g.QUALITY[c.pham].bg + ' ' + g.QUALITY[c.pham].ring">
+                          <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-2xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="g.ico(c.id, c.icon)"></span>
+                          <template x-if="c.plus > 0"><span class="absolute top-0.5 right-0.5 text-[8px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+c.plus"></span></template>
+                          <template x-if="c.sl > 1"><span class="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-200" x-text="g.fmt(c.sl)"></span></template>
+                        </span>
+                      </template>
+                      <template x-if="c.k === 'pet'">
+                        <span class="absolute inset-0 rounded border overflow-hidden flex items-center justify-center bg-ink2" :class="g.QUALITY[c.pham].border">
+                          <span class="absolute inset-0" x-html="g.hsAnhThu(c)"></span>
+                        </span>
+                      </template>
+                    </button>
+                  </template>
+                </div>
+                <!-- Bấm một ô thì bày chi tiết NGAY DƯỚI lưới, không đẻ popup chồng popup. -->
+                <template x-if="xem !== null && (h.trung_bay||[])[xem]">
+                  <div class="mt-3 rounded-lg border p-3" :class="g.QUALITY[h.trung_bay[xem].pham].border" x-data="{ get c(){ return h.trung_bay[xem] } }">
+                    <div class="flex items-baseline justify-between gap-2">
+                      <div class="text-[13.5px] font-bold fserif" :class="g.QUALITY[c.pham].text" x-text="c.ten"></div>
+                      <div class="text-[10px] shrink-0" :class="g.QUALITY[c.pham].text" x-text="g.QUALITY[c.pham].name"></div>
+                    </div>
+                    <template x-if="c.k === 'pet'">
+                      <div class="text-[11px] text-slate-400 mt-1" x-text="'Linh Thú · Lv ' + c.cap + (c.thuc ? ' · đã Thức Tỉnh' : '')"></div>
+                    </template>
+                    <template x-if="c.k === 'item'">
+                      <div class="text-[11px] text-slate-400 mt-1" x-text="'Vật phẩm · ' + g.fmt(c.sl||1) + ' cái'"></div>
+                    </template>
+                    <template x-if="c.k === 'gear'">
+                      <div class="mt-1">
+                        <div class="text-[11px] text-slate-400" x-text="g.equipSlotLabel(c.o) + ' · Cấp món ' + c.capMon + (c.plus ? ' · +' + c.plus : '')"></div>
+                        <template x-if="(c.chiSo||[]).length">
+                          <div class="mt-1.5">
+                            <template x-for="s in c.chiSo" :key="s.ten">
+                              <div class="flex items-center justify-between gap-3 py-[2px] text-[12px] text-slate-300">
+                                <span x-text="s.ten"></span><span class="font-bold tabular-nums" x-text="g.fmt(s.v)"></span>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+                <!-- Nói thẳng: số là do máy người đó khai, chưa có máy chủ kiểm. -->
+                <div class="text-[10px] text-slate-600 mt-4 leading-snug">
+                  Cập nhật <b class="text-slate-500" x-text="g.notifAgo(new Date(h.cap_nhat).getTime())"></b>.
+                  Số trên hồ sơ do máy người chơi đó khai, máy chủ chưa kiểm.
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </template>

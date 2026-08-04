@@ -76,7 +76,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid } from './cloud.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
@@ -563,6 +563,7 @@ const gameStore = {
     //   ô thứ nhất có số hiệu 0, mà 0 là giá trị giả — đăng ký thẳng thì vuốt-back
     //   ở đúng ô đầu tiên lại lùi cả tab thay vì đóng bảng.
     ['tbChonMo', 'tbDong'],
+    ['hoSoKhachMo', 'dongHoSoKhach'],
   ],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
@@ -1459,7 +1460,11 @@ const gameStore = {
     this.cloudSyncing = true;
     try {
       const r = await cloudPushSave(this.state);
-      if (r.ok) { this._cloudLastPushed = this.state.lastSave || 0; this.cloudLastSync = now(); this.cloudErr = ''; return true; }
+      if (r.ok) {
+        this._cloudLastPushed = this.state.lastSave || 0; this.cloudLastSync = now(); this.cloudErr = '';
+        this._dayHoSo();                       // hồ sơ khoe đi kèm save — 142 byte, không chờ kết quả
+        return true;
+      }
       this.cloudErr = cloudErrVi(r.reason); return false;
     } catch (e) { this.cloudErr = 'Không kết nối cloud.'; return false; }
     finally { this.cloudSyncing = false; }
@@ -4744,6 +4749,85 @@ const gameStore = {
     this.tbChon = null; this.tbSua = false; Storage.save(this.state);
     this.showToast('Đã treo 〈' + this.tbTen(this.trungBayView[i]) + '〉 lên giá Trưng Bày.');
   },
+  // ---------- Hồ Sơ Công Khai (đợt A2 — khoe giá cho người khác xem) ----------
+  // ⚠ Giá trong máy giữ THAM CHIẾU tới đồ của mình; người ngoài không tra ra được. Muốn khoe
+  //   thì phải CHỤP LẠI thành dữ liệu tự đứng một mình. Bản chụp có mốc giờ nên người xem biết
+  //   nó cũ tới đâu — giá thật đổi mà chưa đồng bộ thì bản khoe vẫn là bản cũ.
+  get trungBayChup() {
+    return this.trungBayView.filter((o) => o.co).map((o) => {
+      if (o.k === 'pet') {
+        const p = o.obj;
+        return { k: 'pet', ten: this.petName(p), base: p.base, thuc: !!p.evolved, pham: p.quality, cap: p.level || 1 };
+      }
+      const v = o.obj;
+      const c = { k: o.k, id: v.id, ten: v.name, icon: v.icon || '', pham: v.quality };
+      if (o.k === 'item') { c.sl = v.qty || 1; return c; }
+      c.o = v.slot; c.plus = v.plus || 0; c.capMon = v.itemLv || 1;
+      c.chiSo = Object.keys(v.stats || {}).map((k) => ({ ten: this.statLabel(k), v: v.stats[k] }));
+      if (v.he) c.he = v.he;
+      return c;
+    });
+  },
+  get hoSoCongKhaiData() {
+    const t = this.equippedTitleObj;
+    return {
+      ten: this.state.player.name || 'Vô Danh',
+      tong_cap: this.totalLevel | 0,
+      chien_dau: this.combatLevel | 0,
+      chien_luc: Math.round(this.chienLuc || 0),
+      avatar: this.state.player.avatar || null,
+      danh_hieu: t ? t.name : null,
+      trung_bay: this.trungBayChup,
+    };
+  },
+  // Bảng `ho_so_cong_khai` có thể CHƯA được dựng (cần chạy docs/SQL_HO_SO_CONG_KHAI.sql).
+  // Thiếu bảng thì nuốt lỗi — đường lưu save KHÔNG được vỡ theo.
+  async _dayHoSo() {
+    try { await cloudPushHoSo(this.hoSoCongKhaiData); } catch (e) { /* chưa dựng bảng — bỏ qua */ }
+  },
+  khoeLink: '',
+  khoeDang: false,
+  async layLinkKhoe() {
+    if (!this.isLoggedIn) { this.showToast('Phải đăng nhập mới khoe được — giá cất trên cloud.'); return; }
+    this.khoeDang = true;
+    try {
+      await this._dayHoSo();
+      const uid = await cloudMyUid();
+      if (!uid) { this.showToast('Chưa lấy được mã tài khoản.'); return; }
+      const url = location.origin + location.pathname + '?hoso=' + uid;
+      this.khoeLink = url;
+      try { await navigator.clipboard.writeText(url); this.showToast('Đã chép đường dẫn — gửi cho ai cũng xem được giá của ngươi.'); }
+      catch (e) { this.showToast('Chép không được. Đường dẫn hiện ngay dưới giá, tự chép nhé.'); }
+    } catch (e) { this.showToast('Chưa khoe được — kiểm tra kết nối.'); }
+    finally { this.khoeDang = false; }
+  },
+  // ---- Xem hồ sơ NGƯỜI KHÁC (mở từ đường dẫn ?hoso=...) ----
+  hoSoKhach: null, hoSoKhachTai: false, hoSoKhachLoi: '',
+  async xemHoSoKhach(uid) {
+    this.hoSoKhach = null; this.hoSoKhachLoi = ''; this.hoSoKhachTai = true;
+    try {
+      const r = await cloudLoadHoSo(uid);
+      if (!r.ok) this.hoSoKhachLoi = 'Không đọc được hồ sơ.';
+      else if (!r.row) this.hoSoKhachLoi = 'Người này chưa khoe gì cả.';
+      else this.hoSoKhach = r.row;
+    } catch (e) { this.hoSoKhachLoi = 'Không kết nối được.'; }
+    finally { this.hoSoKhachTai = false; }
+  },
+  dongHoSoKhach() {
+    this.hoSoKhach = null; this.hoSoKhachLoi = ''; this.hoSoKhachTai = false;
+    // Gỡ ?hoso= khỏi thanh địa chỉ, không thì F5 lại mở đúng hồ sơ đó mãi.
+    try { const u = new URL(location.href); u.searchParams.delete('hoso'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {}
+  },
+  get hoSoKhachMo() { return !!(this.hoSoKhach || this.hoSoKhachTai || this.hoSoKhachLoi); },
+  /** Có ?hoso= trên URL thì mở luôn hồ sơ người đó — gọi một lần lúc khởi động. */
+  initHoSoKhach() {
+    try {
+      const uid = new URL(location.href).searchParams.get('hoso');
+      if (uid) this.xemHoSoKhach(uid);
+    } catch (e) {}
+  },
+  hsAnhThu(c) { const f = 'pet_' + c.base + '_' + (c.thuc ? 'awk' : 'base'); return `<img src="images/pets/${f}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src="images/pets/${f}.png";}else{this.remove();}'>`; },
+
   get tbTabs() { return [{ id: 'gear', ten: 'Trang Bị' }, { id: 'item', ten: 'Vật Phẩm' }, { id: 'pet', ten: 'Linh Thú' }]; },
   tbDatTab(id) { this.tbTab = id; },
   /** Nguồn treo được theo tab. Trang Bị lấy CẢ món đang mặc lẫn món trong túi. */
@@ -5384,6 +5468,7 @@ Alpine.store('game').ensureQuests();
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)
+Alpine.store('game').initHoSoKhach();       // Có ?hoso=<mã> trên đường dẫn -> mở hồ sơ người đó
 // Soát chữ Hán: quên thêm chữ mới vào chuỗi &text= thì Console kêu ngay, khỏi phải tự mắt bắt.
 // kiemHanFont() tự nạp cả hai font rồi mới đo nên gọi lúc nào cũng được.
 setTimeout(() => { try { kiemHanFont(); } catch (e) {} }, 1500);
