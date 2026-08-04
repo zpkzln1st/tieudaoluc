@@ -1390,20 +1390,44 @@
                   </template>
                 </section>
                 <section class="panel rounded-lg p-3 h-28" x-data="{ get bd(){ return $store.game.bdKinhNghiem } }">
-                  <div class="lbl mb-1">Kinh Nghiệm</div>
-                  <template x-if="bd.hang.length">
-                    <div class="h-16 flex flex-col justify-center gap-[3px]">
-                      <template x-for="h in bd.hang" :key="h.id">
-                        <div class="flex items-center gap-1.5">
-                          <span class="text-[9px] text-slate-400 w-[52px] shrink-0 truncate" x-text="h.ten"></span>
-                          <div class="flex-1 h-[7px] rounded-full bg-ink3 overflow-hidden min-w-0"><div class="h-full rounded-full bg-gradient-to-r from-jade to-cyan" :style="'width:'+h.pct+'%'"></div></div>
-                          <span class="text-[9px] text-slate-500 w-[26px] shrink-0 text-right tabular-nums" x-text="h.pct+'%'"></span>
-                        </div>
-                      </template>
+                  <div class="flex items-baseline justify-between mb-1">
+                    <span class="lbl">Kinh Nghiệm</span>
+                    <template x-if="bd.tong"><span class="text-[9.5px] text-slate-500 tabular-nums" x-text="'+' + $store.game.fmt(bd.tong) + ' · 7 ngày'"></span></template>
+                  </div>
+                  <template x-if="bd.tong">
+                    <div class="h-16 flex flex-col">
+                      <!-- ⚠⚠ CHẤM TRÒN LÀ THẺ HTML, KHÔNG phải <circle> trong SVG: `<template x-for>`
+                           đặt bên trong <svg> thì Alpine dựng nội dung template bằng namespace HTML,
+                           thẻ sinh ra không phải SVGElement nên KHÔNG vẽ — đo được 1/7 chấm.
+                           ⚠ `preserveAspectRatio="none"` cho đường phủ trọn khung; bù lại nét sẽ méo
+                           nên path phải có `vector-effect="non-scaling-stroke"`. -->
+                      <div class="relative flex-1 min-h-0">
+                        <svg viewBox="0 0 100 34" preserveAspectRatio="none" class="absolute inset-0 w-full h-full">
+                          <defs>
+                            <linearGradient id="knFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.40"/>
+                              <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+                            </linearGradient>
+                          </defs>
+                          <path :d="bd.nen" fill="url(#knFill)"></path>
+                          <path :d="bd.duong" fill="none" stroke="#5eead4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+                        </svg>
+                        <template x-for="p in bd.diem" :key="p.k">
+                          <span class="absolute rounded-full border border-ink -translate-x-1/2 -translate-y-1/2"
+                                :class="p.homNay ? 'w-[7px] h-[7px] bg-teal-200' : 'w-[5px] h-[5px] bg-teal-300'"
+                                :style="'left:'+p.x+'%;top:'+(p.y/34*100)+'%'"
+                                :title="p.nhan + ' · +' + $store.game.fmt(p.v) + ' EXP'"></span>
+                        </template>
+                      </div>
+                      <div class="flex justify-between mt-1">
+                        <template x-for="p in bd.diem" :key="p.k">
+                          <span class="text-[8px] leading-none" :class="p.homNay ? 'text-jade' : 'text-slate-600'" x-text="p.nhan"></span>
+                        </template>
+                      </div>
                     </div>
                   </template>
-                  <template x-if="!bd.hang.length">
-                    <div class="h-16 flex items-center justify-center text-[10px] text-slate-600">Chưa có tu vi nào.</div>
+                  <template x-if="!bd.tong">
+                    <div class="h-16 flex items-center justify-center text-[10px] text-slate-600 text-center px-2">Chưa có kinh nghiệm — sổ ghi bắt đầu từ hôm nay.</div>
                   </template>
                 </section>
               </div>

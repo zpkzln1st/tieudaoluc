@@ -1644,20 +1644,39 @@ const gameStore = {
     out.forEach((x) => { x.pct = (max && x.v) ? Math.max(3, Math.round(x.v / max * 100)) : 0; });
     return { cot: out, max, tong: out.reduce((s, x) => s + x.v, 0) };
   },
-  /** Kinh Nghiệm: tỉ trọng tu vi theo nghề. Dữ liệu CÓ SẴN trong save, không cần sổ ghi mới.
-   *  Lấy 4 nghề cao nhất, phần còn lại gộp "Khác" — 11 hàng không lọt khung 64px. */
+  /** Kinh Nghiệm: TỔNG EXP nhận mỗi ngày, 7 ngày — vẽ đường cong (user chốt 2026-08-04).
+   *  ⛔ Bản cũ vẽ tỉ trọng tu vi theo nghề rồi gộp phần dư thành "Khác": user bác vì "Khác" 60%
+   *  còn bốn hàng bày ra đều 10% — tức thứ gộp lại LỚN HƠN mọi thứ hiện ra, biểu đồ nói được
+   *  đúng một điều là "phần lớn nằm ở chỗ không cho xem".
+   *  Toạ độ tính SẴN Ở ĐÂY (không tính trong view) để bài kiểm soát được đường vẽ. */
   get bdKinhNghiem() {
     void this._tick;
-    const sk = this.state.skills || {};
-    const ds = Object.keys(this.SKILLS).map((id) => ({ id, ten: this.SKILLS[id].name, xp: sk[id]?.xp || 0 }))
-      .filter((x) => x.xp > 0).sort((a, b) => b.xp - a.xp);
-    const tong = ds.reduce((s, x) => s + x.xp, 0);
-    if (!tong) return { hang: [], tong: 0 };
-    const top = ds.slice(0, 4);
-    const du = ds.slice(4).reduce((s, x) => s + x.xp, 0);
-    if (du > 0) top.push({ id: '_khac', ten: 'Khác', xp: du });
-    top.forEach((x) => { x.pct = Math.max(2, Math.round(x.xp / tong * 100)); });
-    return { hang: top, tong };
+    const nk = this.state.nhatKyNgay || {};
+    const t = now();
+    const diem = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(t - i * 86400000);
+      const k = khoaNgay(d.getTime());
+      diem.push({ k, nhan: String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'),
+        v: (nk[k] || {}).exp || 0, homNay: i === 0 });
+    }
+    const tong = diem.reduce((s, x) => s + x.v, 0);
+    if (!tong) return { diem: [], tong: 0, duong: '', nen: '' };
+    const max = diem.reduce((m, x) => Math.max(m, x.v), 0);
+    const W = 100, H = 34, TREN = 4, DAY = 31;      // chừa mép trên/dưới cho chấm tròn khỏi bị cắt
+    diem.forEach((p, i) => {
+      p.x = +(i * (W / (diem.length - 1))).toFixed(2);
+      p.y = +(DAY - (p.v / max) * (DAY - TREN)).toFixed(2);
+    });
+    // Catmull-Rom -> cubic Bézier: đường mượt mà vẫn ĐI QUA đúng mọi điểm (spline thường thì không).
+    let duong = 'M' + diem[0].x + ' ' + diem[0].y;
+    for (let i = 0; i < diem.length - 1; i++) {
+      const p0 = diem[i - 1] || diem[i], p1 = diem[i], p2 = diem[i + 1], p3 = diem[i + 2] || p2;
+      const c1x = +(p1.x + (p2.x - p0.x) / 6).toFixed(2), c1y = +(p1.y + (p2.y - p0.y) / 6).toFixed(2);
+      const c2x = +(p2.x - (p3.x - p1.x) / 6).toFixed(2), c2y = +(p2.y - (p3.y - p1.y) / 6).toFixed(2);
+      duong += ' C' + c1x + ' ' + c1y + ',' + c2x + ' ' + c2y + ',' + p2.x + ' ' + p2.y;
+    }
+    return { diem, tong, max, duong, nen: duong + ' L' + W + ' ' + H + ' L0 ' + H + ' Z' };
   },
 
   // ---------- THỐNG KÊ (popup) ----------
