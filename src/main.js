@@ -1601,7 +1601,7 @@ const gameStore = {
   },
   // ---------- Danh Hiệu ----------
   checkTitles() {
-    const newly = syncTitles(this.state);
+    const newly = syncTitles(this.state, now());   // ⚠ dùng đồng hồ GAME (có tua/chạy nhanh của Bảng Dev)
     for (const id of newly) { const tt = TITLE_BY_ID[id]; if (tt) this.showToast('🏅 Mở khoá Danh Hiệu 〘' + tt.name + '〙!'); }
   },
   get equippedTitleObj() { const eq = this.state.titles && this.state.titles.equipped; return eq ? (TITLE_BY_ID[eq] || null) : null; },
@@ -1609,7 +1609,18 @@ const gameStore = {
     const ti = this.state.titles || { owned: [], equipped: null };
     const owned = ti.owned || [], eq = ti.equipped;
     // `loaiKey` = khoá gốc (để thanh tab gom nhóm); `loai` = tên hiện trên thẻ.
-    return TITLES.map((tt) => ({ id: tt.id, name: tt.name, q: tt.q, loaiKey: tt.loai, loai: TITLE_LOAI[tt.loai] || tt.loai, src: tt.src, owned: owned.includes(tt.id), on: eq === tt.id, bonusText: titleBonusText(tt) }));
+    // `moLuc` = mốc mở khoá đã định dạng; rỗng với danh hiệu mở TRƯỚC khi có sổ ghi (không bịa ngày).
+    const moAt = ti.moAt || {};
+    return TITLES.map((tt) => ({ id: tt.id, name: tt.name, q: tt.q, loaiKey: tt.loai, loai: TITLE_LOAI[tt.loai] || tt.loai, src: tt.src, owned: owned.includes(tt.id), on: eq === tt.id, bonusText: titleBonusText(tt), moLuc: this.titleMoLuc(moAt[tt.id]) }));
+  },
+  /** Mốc mở khoá -> "10:54 04/08/2026". Không có mốc thì trả rỗng, view tự giấu.
+   *  ⚠ KHÔNG chèn dấu `·` giữa giờ và ngày: dòng nguồn vốn dài, có dấu phân cách là trình duyệt
+   *  coi đó là hai cụm rồi ngắt ngay giữa mốc thời gian — đo thấy "· 04/08/2026" rơi xuống dòng riêng. */
+  titleMoLuc(ts) {
+    if (!ts) return '';
+    const d = new Date(ts); if (isNaN(d.getTime())) return '';
+    const h = (x) => String(x).padStart(2, '0');
+    return h(d.getHours()) + ':' + h(d.getMinutes()) + ' ' + h(d.getDate()) + '/' + h(d.getMonth() + 1) + '/' + d.getFullYear();
   },
   // ---------- Tàng Hiệu Các: thanh tab + đã mở nhảy lên trên ----------
   // Cùng khuôn với Hành Lý: một tab Tất Cả, còn lại gom 13 `loai` thành 5 nhóm đọc được.
@@ -4880,7 +4891,7 @@ const gameStore = {
   // ---- Dev: võ học / nghề / danh hiệu / codex / suy yếu / boss (nhân vật chính) ----
   devUnlockAllVoHoc() { this.state.combat.owned = { chieu: CHIEU.map((c) => c.id), tamPhap: TAM_PHAP_POOL.map((t) => t.id), biDong: BI_DONG.map((p) => p.id) }; this.devSave(); this._tick++; this.showToast('Dev: mở khoá TOÀN BỘ võ học (chiêu/tâm pháp/bị động).'); },
   devLearnAllNghe() { this.state.player.professions = NGHE.map((n) => n.id); this.devSave(); this._tick++; this.showToast('Dev: học TẤT CẢ ' + NGHE.length + ' nghề.'); },
-  devUnlockAllTitles() { ensureTitles(this.state); if (!this.state.titles) this.state.titles = { owned: [], equipped: null }; this.state.titles.owned = TITLES.map((t) => t.id); this.devSave(); this._tick++; this.showToast('Dev: mở khoá TOÀN BỘ ' + TITLES.length + ' Danh Hiệu.'); },
+  devUnlockAllTitles() { ensureTitles(this.state); if (!this.state.titles) this.state.titles = { owned: [], equipped: null }; this.state.titles.owned = TITLES.map((t) => t.id); const _t = now(); TITLES.forEach((t) => { if (!this.state.titles.moAt[t.id]) this.state.titles.moAt[t.id] = _t; }); this.devSave(); this._tick++; this.showToast('Dev: mở khoá TOÀN BỘ ' + TITLES.length + ' Danh Hiệu.'); },
   devCompleteCodex() {
     ensureCodex(this.state); const cx = this.state.codex;
     if (!this.state.counters) this.state.counters = {};

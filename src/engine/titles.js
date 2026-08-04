@@ -15,6 +15,9 @@ const lv = (xp) => levelFromXp(xp || 0);
 export function ensureTitles(state) {
   if (!state.titles || typeof state.titles !== 'object') state.titles = { owned: [], equipped: null };
   if (!Array.isArray(state.titles.owned)) state.titles.owned = [];
+  // `moAt` = mốc mở khoá từng danh hiệu { id: timestamp }. Danh hiệu mở TRƯỚC khi có sổ này
+  // KHÔNG được bịa mốc — để trống, chỗ hiển thị tự giấu dòng ngày.
+  if (!state.titles.moAt || typeof state.titles.moAt !== 'object') state.titles.moAt = {};
   // ⛔ KHÔNG cấp sẵn danh hiệu nào. 'Sơ Nhập Giang Hồ' là thưởng của chuỗi Nhiệm Vụ Tân Thủ
   //    (xem cond `tutorial`). Chưa có danh hiệu thì mọi chỗ hiện đều có x-if nên tự ẩn dòng.
   if (state.titles.equipped && !TITLE_BY_ID[state.titles.equipped]) state.titles.equipped = null;
@@ -65,13 +68,14 @@ export function titleUnlocked(state, c) {
 }
 
 // Quét toàn bộ -> mở khoá những danh hiệu mới đủ điều kiện. Trả [id...] mới mở (để báo).
-export function syncTitles(state) {
+export function syncTitles(state, now) {
   ensureTitles(state);
   const owned = state.titles.owned;
+  const moc = now || Date.now();
   const newly = [];
   for (const tt of TITLES) {
     if (owned.includes(tt.id)) continue;
-    if (titleUnlocked(state, tt.cond)) { owned.push(tt.id); newly.push(tt.id); }
+    if (titleUnlocked(state, tt.cond)) { owned.push(tt.id); state.titles.moAt[tt.id] = moc; newly.push(tt.id); }
   }
   // Chưa đeo gì mà vừa mở được cái đầu tiên thì đeo luôn — không thì người chơi nhận thưởng
   // xong nhìn thẻ nhân vật vẫn trống, tưởng chưa được gì.

@@ -1683,7 +1683,12 @@
                     <div class="flex items-center justify-between gap-3 mt-1.5">
                       <div class="min-w-0">
                         <div class="text-[12px] text-jade/90" x-text="it.bonusText"></div>
-                        <div class="text-[11px] text-slate-500 mt-0.5" x-text="(it.owned ? 'Nguồn: ' : '') + it.src"></div>
+                        <!-- Mốc mở khoá nối SAU nguồn. Danh hiệu mở trước khi có sổ ghi thì `moLuc`
+                             rỗng -> dòng giữ nguyên như cũ, không hiện dấu chấm giữa lửng lơ. -->
+                        <div class="text-[11px] text-slate-500 mt-0.5">
+                          <span x-text="(it.owned ? 'Nguồn: ' : '') + it.src"></span>
+                          <template x-if="it.owned && it.moLuc"><span class="text-slate-600"> · mở khoá <span class="tabular-nums whitespace-nowrap" x-text="it.moLuc"></span></span></template>
+                        </div>
                       </div>
                       <template x-if="it.on"><span class="shrink-0 inline-flex items-center gap-1 text-[11px] text-jade font-semibold"><svg viewBox="0 0 24 24" class="w-3 h-3"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Đang dùng</span></template>
                       <template x-if="!it.owned"><span class="shrink-0 text-[11px] text-slate-600">Chưa mở</span></template>
