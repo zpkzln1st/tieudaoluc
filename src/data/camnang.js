@@ -45,7 +45,12 @@ import { LINH_THACH } from './linhthach.js';
 
 // ---------- số rút từ bảng thật ----------
 const n = (x) => (Array.isArray(x) ? x.length : Object.keys(x).length);
-const pc = (x, d = 0) => (x * 100).toFixed(d).replace(/\.?0+$/, '') + '%';
+// ⚠⚠ Bản cũ cắt số 0 cuối bằng một mẫu có dấu chấm TUỲ CHỌN — nên nó ĂN LUÔN số 0 của phần
+// nguyên khi không có dấu chấm: 20 -> "2", 50 -> "5",
+// 100 -> "1". Trần kháng 50% từng hiện là "5%". Sai im lặng vì con số vẫn hợp lệ.
+// Cắt số 0 thừa CHỈ khi thật sự có phần thập phân.
+const goZeroThua = (s) => (s.indexOf('.') < 0 ? s : s.replace(/0+$/, '').replace(/\.$/, ''));
+const pc = (x, d = 0) => goZeroThua((x * 100).toFixed(d)) + '%';
 const sn = (x) => Number(x).toLocaleString('vi-VN');
 const KHAC_LOI = pc(nguHanhMod('kim', 'moc'));
 const KHAC_THIET = pc(Math.abs(nguHanhMod('moc', 'kim')));
@@ -350,6 +355,27 @@ export const CN_MUC = [
       ['h', 'Nguồn kháng'],
       ['ds', ['Tâm Pháp', 'Dòng phụ trang bị', 'Dòng ẩn Bộ Trang', 'Đan dược']],
       ['p', 'Quái cũng có kháng riêng. Chỉ số kháng từng con ghi trong bảng <b>Quái</b> và <b>Yêu Vương</b> ở Tra Cứu.'],
+    ],
+  },
+  {
+    // User doc "Cong Huong Kim +30%" o dong an Bo Trang ma khong hieu la gi — ca 50 trang Cam Nang
+    // truoc do KHONG mot chu nao noi ve no. So lay tu bang that: TAM_PHAP_POOL[].heBonus.
+    id: 'conghuong', nhom: 'chiendau', ten: 'Cộng Hưởng Ngũ Hành',
+    tom: 'Cộng thẳng % sát thương cho chiêu ĐÚNG hệ đó.',
+    khoi: [
+      ['p', '<b>Cộng Hưởng</b> của một hệ là <b>phần trăm sát thương cộng thêm cho những chiêu thuộc đúng hệ ấy</b>. Cộng Hưởng Kim chỉ làm mạnh chiêu hệ Kim, không đụng tới chiêu hệ khác.'],
+      ['ct', 'Sát thương chiêu = sát thương gốc × (1 + Cộng Hưởng của hệ chiêu đó)'],
+      ['h', 'Ba nguồn Cộng Hưởng'],
+      ['bang', ['Nguồn', 'Cho hệ nào', 'Mức'], [
+        ['Tâm Pháp', 'hệ của chính Tâm Pháp', '+' + pc(((TAM_PHAP_POOL[0] || {}).heBonus) || 0.2)],
+        ['Bị động võ học', 'hệ ghi trên bị động', 'theo từng bị động'],
+        ['Trang bị mang hệ', 'hệ của món đồ', 'theo từng món'],
+      ]],
+      ['p', 'Dòng ẩn <b>7 món</b> của Bộ Trang cũng đổ vào đây — đó là lý do nó ghi dạng “Cộng Hưởng Kim +30%”.'],
+      ['h', 'Khi bộ đồ lệch hệ Tâm Pháp'],
+      ['p', 'Cộng Hưởng <b>không mất đi</b>, nhưng chỉ ăn vào chiêu đúng hệ của nó. Mang Tâm Pháp Hỏa mà mặc bộ cho Cộng Hưởng Kim thì 30% ấy chỉ cộng cho chiêu hệ Kim đang lắp; chiêu hệ Hỏa không nhận gì.'],
+      ['p', 'Ô <b>Cộng Hưởng</b> ở bảng chỉ số chỉ hiện <b>hệ chính</b> (hệ của Tâm Pháp). Các hệ lệch hiện thành chip nhỏ ngay cạnh — nhìn đó để biết mình đang dư Cộng Hưởng ở hệ nào.'],
+      ['p', 'Cộng Hưởng <b>khác Khắc Chế</b>: Khắc Chế so hệ mình với hệ đối thủ, còn Cộng Hưởng chỉ nhìn hệ của chính chiêu mình đánh ra.'],
     ],
   },
   {

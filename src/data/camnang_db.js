@@ -27,7 +27,13 @@ import { CODEX_CATS } from './codex.js';
 
 // ---------- tiện ----------
 const so = (x) => (x == null ? '—' : Number(x).toLocaleString('vi-VN'));
-const pct = (x, chuSo = 2) => (x == null ? '—' : (x * 100).toFixed(chuSo).replace(/\.?0+$/, '').replace('.', ',') + '%');
+// ⚠⚠ Bản cũ cắt số 0 cuối bằng một mẫu có dấu chấm TUỲ CHỌN — nên nó ĂN MẤT SỐ 0 CUỐI của PHẦN
+// NGUYÊN khi không có dấu chấm (chuSo = 0): 30 -> "3", 50 -> "5", 100 -> "1".
+// Bảng Bộ Trang gọi `pct(v, 0)` nên dòng ẩn
+// "Cộng Hưởng +30%" hiện ra thành "+3%". Sai im lặng vì "3%" vẫn là con số hợp lệ.
+// Cắt số 0 thừa CHỈ khi thật sự có phần thập phân.
+const goZeroThua = (s) => (s.indexOf('.') < 0 ? s : s.replace(/0+$/, '').replace(/\.$/, ''));
+const pct = (x, chuSo = 2) => (x == null ? '—' : goZeroThua((x * 100).toFixed(chuSo)).replace('.', ',') + '%');
 const tenPham = (q) => (QUALITY[q] || {}).name || q;
 const tenHe = (h) => (NGU_HANH[h] || {}).name || (h ? h : 'Vô Hệ');
 
@@ -488,20 +494,24 @@ export const CN_DB = [
   // ============ DÒNG PHỤ ============
   {
     id: 'affix', ten: 'Dòng Phụ', nhom: 'Vật Phẩm', dv: 'dòng',
+    // ⚠ Nhãn cột phải nói bằng lời NGƯỜI CHƠI, không phải lời người viết engine. Bản cũ dùng
+    // "Khoảng bốc / Kiểu / Bốc được ở ô" — user đọc không hiểu "bốc" là gì (đó là từ nội bộ chỉ
+    // việc roll chỉ số). Nay gọi thẳng thứ họ nhìn thấy trên món đồ.
     cot: [
-      { k: 'ten', ten: 'Dòng' }, { k: 'khoang', ten: 'Khoảng bốc' },
-      { k: 'kieu', ten: 'Kiểu' }, { k: 'o', ten: 'Bốc được ở ô' },
+      { k: 'ten', ten: 'Dòng' }, { k: 'khoang', ten: 'Giá trị mỗi dòng' },
+      { k: 'kieu', ten: 'Đơn vị' }, { k: 'o', ten: 'Xuất hiện ở ô' },
     ],
     hang: () => Object.values(AFFIX).map((a) => ({
       id: a.key, ten: a.name, khoang: a.lo + ' – ' + a.hi + (a.fmt === 'pct' ? '%' : ''),
-      kieu: a.fmt === 'pct' ? 'phần trăm' : 'số cộng thẳng',
+      kieu: a.fmt === 'pct' ? 'phần trăm' : 'điểm',
       o: (O_CUA_AFFIX[a.key] || []).join(', ') || 'mọi ô',
     })),
     chiTiet: (h) => [
       ['bang', ['Mục', 'Giá trị'], [
-        ['Khoảng giá trị bốc', h.khoang], ['Kiểu', h.kieu], ['Ô có thể bốc ra', h.o],
+        ['Giá trị mỗi dòng', h.khoang], ['Đơn vị', h.kieu], ['Xuất hiện ở ô', h.o],
       ]],
-      ['p', 'Số dòng phụ một món mang được quyết định bởi phẩm chất, không phải bởi cấp món.'],
+      ['p', 'Mỗi món trang bị rơi ra sẽ nhận ngẫu nhiên vài dòng phụ, giá trị nằm trong khoảng ghi ở trên. Số dòng nhiều hay ít là do <b>phẩm chất</b> của món quyết định, không phải cấp món.'],
+      ['p', 'Cùng một dòng, món nào lăn được số gần cận trên hơn thì <b>tên dòng đổi màu sáng hơn</b> — nhìn màu là biết món đó tốt tới đâu.'],
     ],
   },
 
