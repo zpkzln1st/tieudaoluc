@@ -107,5 +107,20 @@ export async function cloudLoadHoSo(uid) {
   return { ok: true, row: data };            // row = null neu nguoi do chua khoe gi
 }
 
+/**
+ * Danh sach NGUOI CHOI THAT de ghep vao Phong Van Bang.
+ * KHONG lay cot `trung_bay` (nang nhat, ma bang xep hang khong ve toi) — bam vao mot nguoi thi
+ * `cloudLoadHoSo` moi doc trong ho so. Khong can dang nhap.
+ */
+export async function cloudLoadBangNguoiThat(gioiHan) {
+  const sb = await getClient();
+  const { data, error } = await sb.from('ho_so_cong_khai')
+    .select('user_id,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu,cap_nhat')
+    .order('tong_cap', { ascending: false })
+    .limit(Math.max(1, Math.min(500, gioiHan || 200)));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+
 /** Ma tai khoan cua chinh minh — de dung duong dan khoe. */
 export async function cloudMyUid() { return _uid(); }

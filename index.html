@@ -3753,7 +3753,10 @@
                 <div>
                   <template x-if="r.separator"><div class="text-center text-slate-600 text-[14px] py-0.5 tracking-widest">· · ·</div></template>
                   <template x-if="!r.separator">
-                    <div class="grid grid-cols-[40px_36px_1fr_auto] sm:grid-cols-[44px_40px_1fr_84px_116px] gap-2 items-center px-2 py-2 rounded-lg border transition" :class="r.isPlayer ? 'bg-jade/10 border-jade/45' : (r.isLegend ? 'bg-amber-500/[.07] border-amber-500/30' : 'bg-ink3/25 border-transparent hover:border-slate-700/70')">
+                    <!-- Hàng NGƯỜI CHƠI THẬT tô cyan + bấm được để xem hồ sơ. Bot thì không có gì để mở. -->
+                    <div @click="$store.game.lbBam(r)" :title="r.laNguoiThat ? 'Xem hồ sơ ' + r.name : ''"
+                      class="grid grid-cols-[40px_36px_1fr_auto] sm:grid-cols-[44px_40px_1fr_84px_116px] gap-2 items-center px-2 py-2 rounded-lg border transition"
+                      :class="(r.isPlayer ? 'bg-jade/10 border-jade/45' : (r.laNguoiThat ? 'bg-cyan/[.09] border-cyan/40 cursor-pointer hover:border-cyan/80' : (r.isLegend ? 'bg-amber-500/[.07] border-amber-500/30' : 'bg-ink3/25 border-transparent hover:border-slate-700/70')))">
                       <div class="flex items-center justify-center">
                         <span class="min-w-[1.75rem] h-7 px-1 rounded-lg flex items-center justify-center text-[12px] font-bold tabular-nums" :class="r.rank===1?'bg-amber-400/20 text-amber-300 border border-amber-500/50':(r.rank===2?'bg-slate-300/15 text-slate-100 border border-slate-400/40':(r.rank===3?'bg-orange-700/25 text-orange-300 border border-orange-600/45':'text-slate-500'))" x-text="r.rank"></span>
                       </div>
@@ -3765,7 +3768,13 @@
                         <div class="flex items-center gap-1.5 flex-wrap">
                           <span class="text-[13px] font-bold fserif truncate" :class="r.isPlayer?'text-jade':''" :style="r.isPlayer?'':('color:'+r.catHex)" x-text="r.name"></span>
                           <template x-if="r.isPlayer"><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-jade">Bổn Nhân</span></template>
-                          <template x-if="!r.isPlayer"><span class="text-[9.5px] px-1.5 py-0.5 rounded-full border" :style="'color:'+r.catHex+';border-color:'+r.catHex+'55'" x-text="r.title"></span></template>
+                          <!-- Người thật đeo thêm huy hiệu riêng: đứng cùng 200 bot mà không nói ra thì
+                               không ai phân biệt được đâu là người, đâu là máy. -->
+                          <!-- ⚠ `bg-cyan` chứ KHÔNG phải `bg-cyan-400`: bảng màu dự án khai `cyan` là
+                               MỘT màu phẳng nên mọi lớp `cyan-<số>` đều không tồn tại — chữ tối trên
+                               nền trong suốt, huy hiệu tàng hình. Bài kiểm số không bắt được, ảnh chụp mới lộ. -->
+                          <template x-if="r.laNguoiThat"><span class="text-[9px] px-1.5 py-0.5 rounded font-bold text-ink bg-cyan">Người Chơi</span></template>
+                          <template x-if="!r.isPlayer && r.title"><span class="text-[9.5px] px-1.5 py-0.5 rounded-full border" :style="'color:'+r.catHex+';border-color:'+r.catHex+'55'" x-text="r.title"></span></template>
                         </div>
                         <div class="text-[10.5px] text-slate-500 truncate" x-text="'đang ' + r.activity"></div>
                       </div>

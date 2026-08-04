@@ -76,7 +76,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat } from './cloud.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
@@ -521,7 +521,7 @@ const gameStore = {
   openCoTuong(id) { this._ctOpp = id || null; this.navTo('coTuong'); },  // deep-link Cờ Tướng từ Hồ Sơ Danh Sĩ
   _cvOpp: null,
   openCoVua(id) { this._cvOpp = id || null; this.navTo('coVua'); },      // deep-link Cờ Vua từ Hồ Sơ Danh Sĩ
-  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'phongVanBang') this.taiNguoiThat(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
   _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'binh', 'paoDeKuai', 'tavern', 'guild'],
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
@@ -2603,12 +2603,14 @@ const gameStore = {
         combatLv: this.combatLevel, totalLv: this.totalLevel + 8 + i * 5 + (jit % 12), activity: 'vân du thiên hạ — rạng danh sư môn', isPlayer: false, isLegend: true,
       });
     });
-    const rows = _lbBots.concat(extra);
+    const rows = _lbBots.concat(this.nguoiThatRows, extra);
     rows.sort((a, b) => b.totalLv - a.totalLv || b.combatLv - a.combatLv || (a.id < b.id ? -1 : 1));
     rows.forEach((r, i) => { r.rank = i + 1; });
     return rows;
   },
-  get lbTotal() { return BOT_COUNT + 1; },
+  get lbTotal() { return BOT_COUNT + this.nguoiThatRows.length + 1; },
+  /** Bấm một hàng NGƯỜI THẬT trên bảng -> mở hồ sơ công khai của họ. Bot thì không có gì để mở. */
+  lbBam(r) { if (r && r.laNguoiThat && r.uid) this.xemHoSoKhach(r.uid); },
   /** "Người mới nhập giang hồ sau ~2 giờ" — cho thấy giang hồ có vào có ra, không phải ảnh chụp đứng yên. */
   get lbNguoiMoiSau() {
     const w = this.state.world; if (!w) return '';
@@ -4783,7 +4785,10 @@ const gameStore = {
   // Bảng `ho_so_cong_khai` có thể CHƯA được dựng (cần chạy docs/SQL_HO_SO_CONG_KHAI.sql).
   // Thiếu bảng thì nuốt lỗi — đường lưu save KHÔNG được vỡ theo.
   async _dayHoSo() {
-    try { await cloudPushHoSo(this.hoSoCongKhaiData); } catch (e) { /* chưa dựng bảng — bỏ qua */ }
+    try {
+      const r = await cloudPushHoSo(this.hoSoCongKhaiData);
+      if (r && r.ok) this.taiNguoiThat(true);      // vừa ghi xong thì đọc lại bảng cho tươi
+    } catch (e) { /* chưa dựng bảng — bỏ qua */ }
   },
   khoeLink: '',
   khoeDang: false,
@@ -4827,6 +4832,38 @@ const gameStore = {
     } catch (e) {}
   },
   hsAnhThu(c) { const f = 'pet_' + c.base + '_' + (c.thuc ? 'awk' : 'base'); return `<img src="images/pets/${f}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src="images/pets/${f}.png";}else{this.remove();}'>`; },
+
+  // ---- NGƯỜI CHƠI THẬT trên Phong Vân Bảng ----
+  // ⚠ Trước đây bảng ghép 200 bot với DUY NHẤT bản thân mình. Hai tài khoản thấy chung một
+  //   giang hồ nhưng KHÔNG thấy nhau. Nay đọc thêm bảng `ho_so_cong_khai`.
+  // ⚠ Không đọc mỗi nhịp vẽ — đó là gọi mạng. Đọc theo hẹn giờ, còn bảng thì đọc bản đã nhớ.
+  nguoiThat: [], _ntLucTai: 0, _ntDangTai: false,
+  NT_NGUOI_MOI_MS: 60000,
+  async taiNguoiThat(ep) {
+    if (this._ntDangTai) return;
+    if (!ep && now() - this._ntLucTai < this.NT_NGUOI_MOI_MS) return;
+    this._ntDangTai = true;
+    try {
+      const r = await cloudLoadBangNguoiThat(200);
+      if (r.ok) { this.nguoiThat = r.rows; this._ntLucTai = now(); }
+    } catch (e) { /* chưa dựng bảng / mất mạng — bảng vẫn chạy với bot */ }
+    finally { this._ntDangTai = false; }
+  },
+  /** Hàng người thật đã dựng thành khuôn của bảng xếp hạng. Bỏ CHÍNH MÌNH — hàng của mình
+   *  lấy từ state trong máy, tươi hơn bản chụp trên cloud. */
+  get nguoiThatRows() {
+    const me = (this.authUser && this.authUser.id) || null;
+    return (this.nguoiThat || []).filter((r) => r && r.user_id && r.user_id !== me).map((r) => ({
+      id: 'nt:' + r.user_id, uid: r.user_id, name: r.ten || 'Vô Danh',
+      // Không có danh hiệu thì để TRỐNG chứ đừng ghi "Người Chơi": huy hiệu cyan bên cạnh
+      // đã nói câu đó rồi, in thêm là hai chip y hệt nhau nằm cạnh nhau.
+      title: r.danh_hieu || '', catHex: '#22d3ee',
+      avatar: { id: r.avatar || '__none__', char: '侠', color: 'from-cyan-800 to-teal-900' },
+      combatLv: r.chien_dau | 0, totalLv: r.tong_cap | 0,
+      activity: 'hành tẩu giang hồ' + ((t) => (t ? ' · ghi nhận ' + this.notifAgo(t) : ''))(r.cap_nhat ? new Date(r.cap_nhat).getTime() : 0),
+      isPlayer: false, laNguoiThat: true,
+    }));
+  },
 
   get tbTabs() { return [{ id: 'gear', ten: 'Trang Bị' }, { id: 'item', ten: 'Vật Phẩm' }, { id: 'pet', ten: 'Linh Thú' }]; },
   tbDatTab(id) { this.tbTab = id; },
@@ -5469,6 +5506,9 @@ Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)
 Alpine.store('game').initHoSoKhach();       // Có ?hoso=<mã> trên đường dẫn -> mở hồ sơ người đó
+// Đọc người chơi thật cho Phong Vân Bảng. Hoãn 2 giây: lúc mở game còn bận nạp, mà bảng này
+// không phải thứ nhìn thấy ngay. Vào tab Phong Vân Bảng thì đọc lại (có hẹn giờ chặn dồn).
+setTimeout(() => { try { Alpine.store('game').taiNguoiThat(); } catch (e) {} }, 2000);
 // Soát chữ Hán: quên thêm chữ mới vào chuỗi &text= thì Console kêu ngay, khỏi phải tự mắt bắt.
 // kiemHanFont() tự nạp cả hai font rồi mới đo nên gọi lúc nào cũng được.
 setTimeout(() => { try { kiemHanFont(); } catch (e) {} }, 1500);
