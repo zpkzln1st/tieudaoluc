@@ -1373,29 +1373,35 @@
               <!-- Charts -->
               <div class="grid grid-cols-2 gap-3">
                 <!-- Khung CHỐT CỨNG h-28 như cũ: có số hay chưa thì cao vẫn thế, hàng dưới không nhún. -->
-                <section class="panel rounded-lg p-3 h-28" x-data="{ get bd(){ return $store.game.bdHoatDong } }">
+                <!-- Khung cao thêm 30% (112 -> 146px) cho biểu đồ thở; hai ô PHẢI bằng nhau. -->
+                <section class="panel rounded-lg p-3 h-[146px]" x-data="{ get bd(){ return $store.game.bdHoatDong } }">
                   <div class="lbl mb-1">Hoạt Động (7 ngày)</div>
                   <template x-if="bd.tong">
-                    <div class="h-16 flex items-end gap-1">
+                    <!-- ⚠ Chiều cao cột dùng `height:%` của ô chứa, KHÔNG phải số px nhân sẵn:
+                         đổi chiều cao khung là cột tự co theo, khỏi phải dò lại hệ số. -->
+                    <div class="h-[104px] flex items-stretch gap-1">
                       <template x-for="c in bd.cot" :key="c.k">
-                        <div class="flex-1 flex flex-col items-center gap-0.5 min-w-0" :title="c.nhan + ' · ' + $store.game.fmt(c.luot) + ' lượt · ' + $store.game.fmt(c.kill) + ' quái'">
-                          <div class="w-full rounded-t transition-all" :class="c.homNay ? 'bg-jade' : 'bg-jade/45'" :style="'height:'+(c.pct*0.44)+'px'"></div>
-                          <span class="text-[8px] leading-none text-slate-600 truncate w-full text-center" x-text="c.nhan"></span>
+                        <div class="flex-1 flex flex-col items-center min-w-0" :title="c.nhan + ' · ' + $store.game.fmt(c.luot) + ' lượt · ' + $store.game.fmt(c.kill) + ' quái'">
+                          <div class="flex-1 w-full min-h-0 flex items-end justify-center">
+                            <!-- Cột THON: trước để `w-full` nên bảy cột dính nhau thành mảng đặc. -->
+                            <div class="w-[52%] max-w-[15px] rounded-t transition-all" :class="c.homNay ? 'bg-jade' : 'bg-jade/40'" :style="'height:'+c.pct+'%'"></div>
+                          </div>
+                          <span class="text-[8px] leading-none mt-1.5 truncate w-full text-center" :class="c.homNay ? 'text-jade' : 'text-slate-600'" x-text="c.nhan"></span>
                         </div>
                       </template>
                     </div>
                   </template>
                   <template x-if="!bd.tong">
-                    <div class="h-16 flex items-center justify-center text-[10px] text-slate-600 text-center px-2">Chưa có số liệu — sổ ghi bắt đầu từ hôm nay.</div>
+                    <div class="h-[104px] flex items-center justify-center text-[10px] text-slate-600 text-center px-2">Chưa có số liệu — sổ ghi bắt đầu từ hôm nay.</div>
                   </template>
                 </section>
-                <section class="panel rounded-lg p-3 h-28" x-data="{ get bd(){ return $store.game.bdKinhNghiem } }">
+                <section class="panel rounded-lg p-3 h-[146px]" x-data="{ get bd(){ return $store.game.bdKinhNghiem } }">
                   <div class="flex items-baseline justify-between mb-1">
                     <span class="lbl">Kinh Nghiệm</span>
                     <template x-if="bd.tong"><span class="text-[9.5px] text-slate-500 tabular-nums" x-text="'+' + $store.game.fmt(bd.tong) + ' · 7 ngày'"></span></template>
                   </div>
                   <template x-if="bd.tong">
-                    <div class="h-16 flex flex-col">
+                    <div class="h-[104px] flex flex-col">
                       <!-- ⚠⚠ CHẤM TRÒN LÀ THẺ HTML, KHÔNG phải <circle> trong SVG: `<template x-for>`
                            đặt bên trong <svg> thì Alpine dựng nội dung template bằng namespace HTML,
                            thẻ sinh ra không phải SVGElement nên KHÔNG vẽ — đo được 1/7 chấm.
@@ -1427,7 +1433,7 @@
                     </div>
                   </template>
                   <template x-if="!bd.tong">
-                    <div class="h-16 flex items-center justify-center text-[10px] text-slate-600 text-center px-2">Chưa có kinh nghiệm — sổ ghi bắt đầu từ hôm nay.</div>
+                    <div class="h-[104px] flex items-center justify-center text-[10px] text-slate-600 text-center px-2">Chưa có kinh nghiệm — sổ ghi bắt đầu từ hôm nay.</div>
                   </template>
                 </section>
               </div>
