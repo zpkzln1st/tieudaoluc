@@ -15833,6 +15833,34 @@
   </template>
 
   <!-- ===== Modal Hiệu Ứng (tổng hợp bonus đang áp lên nhân vật) ===== -->
+  <!-- ===== POPUP: THỐNG KÊ ===== -->
+  <template x-if="$store.game.thongKeOpen">
+    <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click.self="$store.game.closeThongKe()" @keydown.escape.window="$store.game.closeThongKe()">
+      <div class="panel rounded-2xl w-[460px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-amber-500/30 shadow-2xl">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(245,185,66,.1),transparent)">
+          <div class="flex items-center gap-2.5"><span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[15px]" style="color:#f5b942;border:1px solid rgba(245,185,66,.4);background:rgba(245,185,66,.1)">錄</span><div class="fserif text-[17px] text-gold leading-none">Thống Kê</div></div>
+          <button @click="$store.game.closeThongKe()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
+        </div>
+        <div class="p-4 overflow-y-auto space-y-3.5">
+          <template x-for="g in $store.game.thongKe" :key="g.nhom">
+            <div>
+              <div class="lbl mb-1.5" x-text="g.nhom"></div>
+              <div class="space-y-1">
+                <template x-for="r in g.dong" :key="r[0]">
+                  <!-- Nhãn co được, số ghim phải và KHÔNG gãy dòng: số dài mấy cũng đứng một cột. -->
+                  <div class="flex items-center justify-between gap-3 px-3 py-1.5 rounded-lg bg-ink2/50 border border-slate-800">
+                    <span class="text-[12px] text-slate-400 min-w-0 truncate" x-text="r[0]"></span>
+                    <span class="text-[12.5px] font-bold text-slate-100 shrink-0 whitespace-nowrap tabular-nums" x-text="r[1]"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <template x-if="$store.game.hieuUngOpen">
     <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click.self="$store.game.closeHieuUng()" @keydown.escape.window="$store.game.closeHieuUng()">
       <div class="panel rounded-2xl w-[480px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-cyan/30 shadow-2xl" x-data="{ get fx(){ return $store.game.hieuUngEffects } }">

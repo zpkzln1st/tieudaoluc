@@ -528,7 +528,7 @@ const gameStore = {
   // THÊM MODAL MỚI: nhét tên cờ (boolean, đóng=set false) hoặc ['cờ','closeMethod'] (ref) vào _MODALS. HẾT.
   // CỜ đọc `this[cờ]` truthy = đang mở (dùng được cả boolean lẫn getter/ref như dsProfile/petDetailObj).
   _MODALS: [
-    'statOpen', 'bachTrangOpen', 'settingsModal', 'camNangOpen', 'timOpen', 'truMaOpen', 'hieuUngOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
+    'statOpen', 'bachTrangOpen', 'settingsModal', 'camNangOpen', 'timOpen', 'truMaOpen', 'hieuUngOpen', 'thongKeOpen', 'huntTrackOpen', 'bioModal', 'tamPhapModal',
     'boPhapModal', 'baiVoModal', 'shopOpen', 'soSachOpen', 'gioiLuatOpen', 'luanVoOpen', 'daiKhachOpen',
     'tangThuOpen', 'bkMergeOpen', 'giftOpen', 'dailyModal', 'foodPicker', 'danPicker', 'duocLuPicker',
     'phucDungPicker', 'toSuOpen', 'tmEvtOpen', 'tmRecruitOpen', 'tmBagOpen', 'tmCraftOpen', 'tmDuocOpen', 'tmRealmGuideOpen',
@@ -1603,12 +1603,13 @@ const gameStore = {
   // ⚠ Mỗi mục TỰ KHAI đường mở. Bản cũ viết tay danh sách chữ rồi so tên bằng `===` ở ba chỗ,
   // nên Vạn Vật Phổ đã LIVE mà vẫn kẹt nhãn "sắp ›" — thêm màn mới nhưng quên sửa cả ba chỗ.
   // Nay chỉ mục KHÔNG có `di` mới là "sắp ›".
+  // ⛔ ĐÃ BỎ 2026-08-04 (user chốt): 'Giao Dịch' — Sàn Giao Dịch đã gỡ hẳn ở `31ac9c9`, để lại là
+  // hứa với người chơi thứ mình đã quyết không làm. 'Tương Tác' — trùng vai với Danh Sĩ · Tửu Lâu
+  // · Phong Vân Bảng. 'Mã Giới Thiệu' GIỮ: chờ có người chơi thật thì mới có nghĩa.
   get khacRows() {
     return [
       { ten: 'Điểm Danh', mo: true, cham: true, lam: 'daily' },
-      { ten: 'Thống Kê' },
-      { ten: 'Tương Tác' },
-      { ten: 'Giao Dịch' },
+      { ten: 'Thống Kê', mo: true, lam: 'thongKe' },
       { ten: 'Vạn Vật Phổ', mo: true, di: 'collection' },
       { ten: 'Hiệu Ứng', mo: true, lam: 'hieuUng' },
       { ten: 'Mã Giới Thiệu' },
@@ -1619,6 +1620,52 @@ const gameStore = {
     if (m.di) { this.navTo(m.di); return; }
     if (m.lam === 'daily') { this.openDaily(); return; }
     if (m.lam === 'hieuUng') { this.openHieuUng(); return; }
+    if (m.lam === 'thongKe') { this.openThongKe(); return; }
+  },
+
+  // ---------- THỐNG KÊ (popup) ----------
+  // Mọi số ĐỌC TỪ SAVE, không đếm lại và không đoán. Nhóm nào không có số thật thì không bịa dòng.
+  thongKeOpen: false,
+  openThongKe() { this.thongKeOpen = true; },
+  closeThongKe() { this.thongKeOpen = false; },
+  get thongKe() {
+    void this._tick;
+    const s = this.state;
+    const kills = s.counters?.kills || {};
+    const sk = s.skills || {};
+    let tongHa = 0; for (const k in kills) tongHa += kills[k] || 0;
+    let tongLuot = 0, tongMs = 0;
+    for (const id in sk) { if (id === 'chienDau') continue; tongLuot += sk[id].gathered || 0; tongMs += sk[id].timeMs || 0; }
+    // Nghề chăm nhất: theo THỜI GIAN đã bỏ ra, không theo số lượt (nghề vòng ngắn sẽ luôn thắng).
+    let chamNhat = null;
+    for (const id in sk) { if (id === 'chienDau' || !this.SKILLS[id]) continue; if (!chamNhat || (sk[id].timeMs || 0) > (sk[chamNhat].timeMs || 0)) chamNhat = id; }
+    const ls = this.dungeonHistory || [];
+    const thongQuan = ls.reduce((a, h) => a + (h.clears != null ? h.clears : (h.cleared ? 1 : 0)), 0);
+    const gearCo = (s.gearBag || []).length + Object.values(s.equipment || {}).filter(Boolean).length;
+    return [
+      { nhom: 'Chiến Đấu', dong: [
+        ['Yêu thú đã hạ', this.fmt(tongHa)],
+        ['Loại yêu thú từng gặp', this.fmt(Object.keys(kills).length)],
+        ['Bí Cảnh đã thông quan', this.fmt(thongQuan)],
+        ['Cấp Chiến Đấu', this.fmt(this.combatLevel)],
+      ] },
+      { nhom: 'Nghề Nghiệp', dong: [
+        ['Tổng lượt thu hoạch', this.fmt(tongLuot)],
+        ['Thời gian đã bỏ ra', this.fmtTime(tongMs / 1000)],
+        ['Nghề chăm nhất', chamNhat ? (this.SKILLS[chamNhat].name + ' · ' + this.fmtTime((sk[chamNhat].timeMs || 0) / 1000)) : '—'],
+        ['Tổng Cấp', this.fmt(this.totalLevel)],
+      ] },
+      { nhom: 'Gia Sản', dong: [
+        ['Bạc', this.fmt(s.currencies?.bac || 0)],
+        ['Hồn Thạch', this.fmt(s.currencies?.honThach || 0)],
+        ['Nguyên Bảo', this.fmt(s.currencies?.nguyenBao || 0)],
+        ['Trang bị đang giữ', this.fmt(gearCo)],
+      ] },
+      { nhom: 'Sưu Tập', dong: [
+        ['Vạn Vật Phổ', this.fmt(this.codexTotalDone) + '/' + this.fmt(this.codexTotalAll)],
+        ['Danh Hiệu đã mở', this.fmt(this.titleOwnedCount) + '/' + this.fmt(this.titleTotalCount)],
+      ] },
+    ];
   },
 
   // ---------- Danh Hiệu ----------
