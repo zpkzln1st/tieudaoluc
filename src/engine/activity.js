@@ -101,6 +101,32 @@ export function tinVatDone(state, skillId) {
 }
 export function tinVatEffBonus(state, skillId) { return tinVatDone(state, skillId) ? TIN_VAT_EFF_PCT / 100 : 0; }
 
+// ============================================================
+// NHẬT KÝ NGÀY — sổ ghi để vẽ biểu đồ "Hoạt Động (7 ngày)" ở màn Hồ Sơ.
+// ⚠ Game trước đây KHÔNG lưu bất kỳ số liệu nào theo ngày, nên biểu đồ chỉ có số TỪ LÚC THÊM SỔ
+// này trở đi — không dựng lại được quá khứ.
+// ⚠ PHẢI gọi ở CẢ HAI đường thưởng (treo máy ở đây · đánh tại chỗ ở main.js awardKill). Sót một
+// vế là hai lối chơi ghi ra hai bộ số khác nhau — đúng cái bẫy đã dính ở Mảnh Trang Bị.
+// ============================================================
+export const NHATKY_NGAY_GIU = 30;         // giữ 30 ngày gần nhất, đủ cho biểu đồ 7 ngày mà save không phình
+export function khoaNgay(ts) {
+  const d = new Date(ts);
+  const p = (x) => String(x).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+export function ghiNhatKyNgay(state, now, them) {
+  if (!them) return;
+  if (!state.nhatKyNgay || typeof state.nhatKyNgay !== 'object') state.nhatKyNgay = {};
+  const k = khoaNgay(now);
+  const o = state.nhatKyNgay[k] || (state.nhatKyNgay[k] = { luot: 0, kill: 0, exp: 0 });
+  o.luot += them.luot || 0; o.kill += them.kill || 0; o.exp += them.exp || 0;
+  const keys = Object.keys(state.nhatKyNgay);
+  if (keys.length > NHATKY_NGAY_GIU) {           // cắt bớt ngày cũ nhất, giữ save gọn
+    keys.sort();
+    for (let i = 0; i < keys.length - NHATKY_NGAY_GIU; i++) delete state.nhatKyNgay[keys[i]];
+  }
+}
+
 // ---- Bắt đầu hoạt động kỹ năng ----
 // `soLuot` = làm đúng ngần ấy lượt rồi tự dừng. 0 / bỏ trống = chạy tới khi hết nguyên liệu
 // hoặc chạm trần nhàn rỗi (nếp cũ).
@@ -323,6 +349,7 @@ export function advance(state, now) {
         done++;
       }
       sess.xp += done * gainXp; sess.bac += bacGot; sess.win += done; if (died) sess.lose += 1;
+      ghiNhatKyNgay(state, now, { kill: done, exp: done * gainXp });   // đường TREO MÁY — vế kia ở main.js awardKill
       if (done > 0) gainPetXp(state, Math.round(gainXp * 0.5) * done, done);   // Linh Thú đang mang ăn 50% EXP/trận (gộp offline) + Ngự Thú XP × done
       const sk = state.skills['chienDau'];
       if (sk) { sk.gathered = (sk.gathered || 0) + done; sk.timeMs = (sk.timeMs || 0) + done * act.cycleMs; }
@@ -426,6 +453,7 @@ export function advance(state, now) {
         buffXp = Math.floor(act.buffXpAcc);
         if (buffXp > 0) { addSkillXp(state, act.skillId, buffXp); act.buffXpAcc -= buffXp; }
       }
+      ghiNhatKyNgay(state, now, { luot: cycles, exp: cycles * gainXp + buffXp });
       if (bonusOut && action.itemId) state.counters.produced[action.itemId] = (state.counters.produced[action.itemId] || 0) + bonusOut;
       const sk = state.skills[act.skillId];
       if (sk) { sk.gathered = (sk.gathered || 0) + cycles; sk.timeMs = (sk.timeMs || 0) + advancedMs; }

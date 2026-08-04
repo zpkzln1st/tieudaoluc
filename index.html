@@ -1372,13 +1372,39 @@
               </section>
               <!-- Charts -->
               <div class="grid grid-cols-2 gap-3">
-                <section class="panel rounded-lg p-3 h-28">
+                <!-- Khung CHỐT CỨNG h-28 như cũ: có số hay chưa thì cao vẫn thế, hàng dưới không nhún. -->
+                <section class="panel rounded-lg p-3 h-28" x-data="{ get bd(){ return $store.game.bdHoatDong } }">
                   <div class="lbl mb-1">Hoạt Động (7 ngày)</div>
-                  <div class="h-16 flex items-center justify-center text-[10px] text-slate-600">[ biểu đồ — sắp ]</div>
+                  <template x-if="bd.tong">
+                    <div class="h-16 flex items-end gap-1">
+                      <template x-for="c in bd.cot" :key="c.k">
+                        <div class="flex-1 flex flex-col items-center gap-0.5 min-w-0" :title="c.nhan + ' · ' + $store.game.fmt(c.luot) + ' lượt · ' + $store.game.fmt(c.kill) + ' quái'">
+                          <div class="w-full rounded-t transition-all" :class="c.homNay ? 'bg-jade' : 'bg-jade/45'" :style="'height:'+(c.pct*0.44)+'px'"></div>
+                          <span class="text-[8px] leading-none text-slate-600 truncate w-full text-center" x-text="c.nhan"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                  <template x-if="!bd.tong">
+                    <div class="h-16 flex items-center justify-center text-[10px] text-slate-600 text-center px-2">Chưa có số liệu — sổ ghi bắt đầu từ hôm nay.</div>
+                  </template>
                 </section>
-                <section class="panel rounded-lg p-3 h-28">
+                <section class="panel rounded-lg p-3 h-28" x-data="{ get bd(){ return $store.game.bdKinhNghiem } }">
                   <div class="lbl mb-1">Kinh Nghiệm</div>
-                  <div class="h-16 flex items-center justify-center text-[10px] text-slate-600">[ biểu đồ — sắp ]</div>
+                  <template x-if="bd.hang.length">
+                    <div class="h-16 flex flex-col justify-center gap-[3px]">
+                      <template x-for="h in bd.hang" :key="h.id">
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-[9px] text-slate-400 w-[52px] shrink-0 truncate" x-text="h.ten"></span>
+                          <div class="flex-1 h-[7px] rounded-full bg-ink3 overflow-hidden min-w-0"><div class="h-full rounded-full bg-gradient-to-r from-jade to-cyan" :style="'width:'+h.pct+'%'"></div></div>
+                          <span class="text-[9px] text-slate-500 w-[26px] shrink-0 text-right tabular-nums" x-text="h.pct+'%'"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                  <template x-if="!bd.hang.length">
+                    <div class="h-16 flex items-center justify-center text-[10px] text-slate-600">Chưa có tu vi nào.</div>
+                  </template>
                 </section>
               </div>
               <!-- Showcase -->

@@ -39,7 +39,7 @@ import { ensureDongPhu, resolveDongPhu } from './engine/dongphu.js'; // Động 
 import { HOUSE_TIERS as DP_HOUSE_TIERS, BUILDINGS as DP_BUILDINGS } from './engine/dongphu.js';
 import { Storage } from './engine/save.js';
 import {
-  startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS,
+  startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS, ghiNhatKyNgay, khoaNgay,
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
   tinVatDone as _tinVatDone,
   migrateDanSlots,
@@ -1621,6 +1621,43 @@ const gameStore = {
     if (m.lam === 'daily') { this.openDaily(); return; }
     if (m.lam === 'hieuUng') { this.openHieuUng(); return; }
     if (m.lam === 'thongKe') { this.openThongKe(); return; }
+  },
+
+  // ---------- HAI BIỂU ĐỒ Ở MÀN HỒ SƠ ----------
+  /** Hoạt Động 7 ngày: mỗi cột = số lượt thu hoạch + số quái hạ trong ngày đó.
+   *  Ngày chưa có số thì cột rỗng — KHÔNG giấu cột, không thì trục ngày co giãn theo dữ liệu. */
+  get bdHoatDong() {
+    void this._tick;
+    const nk = this.state.nhatKyNgay || {};
+    const out = [];
+    const t = now();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(t - i * 86400000);
+      const k = khoaNgay(d.getTime());
+      const o = nk[k] || {};
+      out.push({ k, nhan: String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'),
+        v: (o.luot || 0) + (o.kill || 0), luot: o.luot || 0, kill: o.kill || 0, homNay: i === 0 });
+    }
+    const max = out.reduce((m, x) => Math.max(m, x.v), 0);
+    // Sàn 3% để ngày ít việc vẫn thấy được cột — nhưng CHỈ khi ngày đó CÓ số.
+    // Áp sàn cho cả ngày rỗng thì bảy ngày không chơi vẫn hiện bảy cột lùn, đọc ra "có hoạt động".
+    out.forEach((x) => { x.pct = (max && x.v) ? Math.max(3, Math.round(x.v / max * 100)) : 0; });
+    return { cot: out, max, tong: out.reduce((s, x) => s + x.v, 0) };
+  },
+  /** Kinh Nghiệm: tỉ trọng tu vi theo nghề. Dữ liệu CÓ SẴN trong save, không cần sổ ghi mới.
+   *  Lấy 4 nghề cao nhất, phần còn lại gộp "Khác" — 11 hàng không lọt khung 64px. */
+  get bdKinhNghiem() {
+    void this._tick;
+    const sk = this.state.skills || {};
+    const ds = Object.keys(this.SKILLS).map((id) => ({ id, ten: this.SKILLS[id].name, xp: sk[id]?.xp || 0 }))
+      .filter((x) => x.xp > 0).sort((a, b) => b.xp - a.xp);
+    const tong = ds.reduce((s, x) => s + x.xp, 0);
+    if (!tong) return { hang: [], tong: 0 };
+    const top = ds.slice(0, 4);
+    const du = ds.slice(4).reduce((s, x) => s + x.xp, 0);
+    if (du > 0) top.push({ id: '_khac', ten: 'Khác', xp: du });
+    top.forEach((x) => { x.pct = Math.max(2, Math.round(x.xp / tong * 100)); });
+    return { hang: top, tong };
   },
 
   // ---------- THỐNG KÊ (popup) ----------
@@ -3926,6 +3963,9 @@ const gameStore = {
     // ra hai tốc độ khác nhau cho cùng một con quái.
     if (Math.random() < BAC_DROP_CHANCE) { const bacGain = Math.round(Math.max(1, Math.round(e.exp * BAC_PER_EXP)) * moneyMul); this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain; sess.bac += bacGain; }   // Bạc rơi ~15%/kill (không phải mỗi con)
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
+    // ⚠ Dùng `now()` (đồng hồ GAME) chứ không phải `_now` (Date.now) — bên engine ghi bằng đồng hồ
+    // game, lấy hai đồng hồ khác nhau là tua giờ ở Bảng Dev sẽ ghi vào hai NGÀY khác nhau.
+    ghiNhatKyNgay(this.state, now(), { kill: 1, exp: xpGain });   // đường ĐÁNH TẠI CHỖ — vế kia ở engine/activity.js
     // BANG PHÁI — Chinh Phạt: hạ quái ở vùng nào thì sinh điểm cho bang ở ĐÚNG vùng đó.
     // ⚠ PHẢI khớp từng vế với nhánh treo máy trong engine/activity.js, nếu không thì ngồi xem
     // tab Chiến Đấu và alt-tab đi lại ra hai tốc độ tranh hạng khác nhau cho cùng một con quái.
