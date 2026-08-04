@@ -738,7 +738,11 @@ export const CN_MUC = [
     id: 'danhhieu', nhom: 'suutap', ten: 'Danh Hiệu',
     tom: sn(n(TITLES)) + ' danh hiệu, ' + sn(n(TITLE_LOAI)) + ' loại.',
     khoi: [
-      ['p', 'Danh hiệu mở khi đạt mốc điều kiện. Đeo một danh hiệu vừa hiển thị cạnh tên vừa cộng chỉ số thật.'],
+      ['p', 'Đạt đủ điều kiện thì danh hiệu tự mở khoá.'],
+      ['p', '<b>Chỉ danh hiệu đang đeo mới cộng chỉ số.</b> Mở được nhiều cũng không cộng dồn — mỗi lúc chỉ đeo được một cái.'],
+      ['p', 'Dòng chỉ số ghi trên mỗi thẻ là <b>số bạn sẽ nhận nếu đeo cái đó</b>, không phải số đang có.'],
+      ['p', 'Vào <b>Tàng Hiệu Các</b>, bấm một danh hiệu đã mở là đeo. Danh hiệu đang đeo hiện ngay cạnh tên nhân vật.'],
+      ['p', 'Game không tự đeo hộ. Mở khoá xong phải tự vào chọn.'],
       ['bang', ['Loại', 'Số danh hiệu'],
         Object.entries(TITLE_LOAI).map(([k, v]) => [v, sn(TITLES.filter((t) => t.loai === k).length)])],
       ['p', 'Điều kiện và mức cộng của từng danh hiệu ghi ở bảng <b>Danh Hiệu</b> trong Tra Cứu.'],

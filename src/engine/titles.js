@@ -77,9 +77,8 @@ export function syncTitles(state, now) {
     if (owned.includes(tt.id)) continue;
     if (titleUnlocked(state, tt.cond)) { owned.push(tt.id); state.titles.moAt[tt.id] = moc; newly.push(tt.id); }
   }
-  // Chưa đeo gì mà vừa mở được cái đầu tiên thì đeo luôn — không thì người chơi nhận thưởng
-  // xong nhìn thẻ nhân vật vẫn trống, tưởng chưa được gì.
-  if (!state.titles.equipped && newly.length) state.titles.equipped = newly[0];
+  // ⛔ KHÔNG tự đeo hộ (user chốt 2026-08-04). Trước đây mở được cái đầu tiên là game tự đeo luôn;
+  // nay để người chơi tự chọn. Toast báo mở khoá vẫn còn nên không sợ họ không biết.
   return newly;
 }
 
