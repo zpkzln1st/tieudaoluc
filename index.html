@@ -5858,8 +5858,12 @@
             <template x-if="h">
               <div class="flex-1 min-h-0 overflow-y-auto p-4">
                 <div class="flex items-start gap-3">
-                  <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-ink3 border border-slate-700 flex items-center justify-center">
-                    <img loading="lazy" decoding="async" :src="'images/avatars/'+(h.avatar||'nam1')+'.webp'" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                  <!-- Ảnh hỏng / hồ sơ cũ chưa có ảnh -> lộ chữ 侠 nằm dưới, không để ô trống trơn. -->
+                  <div class="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-ink3 border border-slate-700 flex items-center justify-center">
+                    <span class="text-2xl text-slate-600">侠</span>
+                    <template x-if="h.avatar">
+                      <img loading="lazy" decoding="async" :src="'images/avatars/'+h.avatar+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                    </template>
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="text-[17px] font-bold text-slate-100 fserif truncate" x-text="h.ten"></div>

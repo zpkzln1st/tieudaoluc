@@ -4784,7 +4784,9 @@ const gameStore = {
       tong_cap: this.totalLevel | 0,
       chien_dau: this.combatLevel | 0,
       chien_luc: Math.round(this.chienLuc || 0),
-      avatar: this.state.player.avatar || null,
+      // ⚠ Đẩy `avatarId` (mã ĐÃ GIẢI) chứ KHÔNG phải `state.player.avatar`: trường đó RỖNG khi
+      //   người chơi còn dùng ảnh mặc định theo giới tính. Đẩy rỗng thì bên kia không có ảnh mà vẽ.
+      avatar: this.avatarId || null,
       danh_hieu: t ? t.name : null,
       trung_bay: this.trungBayChup,
     };
@@ -4865,7 +4867,9 @@ const gameStore = {
       // Không có danh hiệu thì để TRỐNG chứ đừng ghi "Người Chơi": huy hiệu cyan bên cạnh
       // đã nói câu đó rồi, in thêm là hai chip y hệt nhau nằm cạnh nhau.
       title: r.danh_hieu || '', catHex: '#22d3ee',
-      avatar: { id: r.avatar || '__none__', char: '侠', color: 'from-cyan-800 to-teal-900' },
+      // ⚠ Gradient dự phòng phải dùng màu CÓ THẬT. `cyan` trong dự án là màu phẳng nên
+      //   `from-cyan-800` không tồn tại — hỏng ảnh là ô trống trơn thay vì nền có màu.
+      avatar: { id: r.avatar || '__none__', char: '侠', color: 'from-teal-700 to-slate-800' },
       combatLv: r.chien_dau | 0, totalLv: r.tong_cap | 0,
       activity: 'hành tẩu giang hồ' + ((t) => (t ? ' · ghi nhận ' + this.notifAgo(t) : ''))(r.cap_nhat ? new Date(r.cap_nhat).getTime() : 0),
       isPlayer: false, laNguoiThat: true,
