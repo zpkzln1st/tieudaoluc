@@ -66,10 +66,10 @@ insert into public.tran_he_so (khoa, gia_tri) values
   ('bu_nhan_roi_giay', 50400),  -- 14 gio: tran treo toi da cua Dong Phu
   ('bac_san_toi_thieu', 5000000), -- duoi muc nay thi khong buon ghi so Bac
   -- ⚠ CHAN TUYET DOI: mot lan ghi khong duoc tang qua ngan nay xp o BAT KY track nao.
-  --   = 0.5 x ca duong len cap 100 (1.386.509 xp).
+  --   = 0.08 x ca duong len cap 100 (20.166.012 xp).
   --   Day moi la cai bat duoc gian lan tho. Tran theo nhip mot minh KHONG du: nhip cua
   --   Chien Dau suy tu "enemy.time" la nhip MOI DON nen cao gap ~35 lan that.
-  ('tran_moi_lan_ghi', 693255)
+  ('tran_moi_lan_ghi', 1613281)
 on conflict (khoa) do update set gia_tri = excluded.gia_tri;
 
 -- Cung ly do voi bang tren: khong bat RLS thi ke gian tu sua he so.
