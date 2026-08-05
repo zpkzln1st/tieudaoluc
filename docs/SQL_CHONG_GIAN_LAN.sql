@@ -29,6 +29,12 @@ insert into public.tran_toc_do (khoa, xp_giay) values
   ('toaQuan', 0.5000)
 on conflict (khoa) do update set xp_giay = excluded.xp_giay;
 
+-- ⚠⚠ BAT RLS CHO CA BANG TRAN. Supabase cap quyen cho khoa an danh tren moi bang trong "public";
+--   khong bat RLS thi ke gian TU NANG TRAN len vo cuc roi muon khai gi thi khai — chot thanh
+--   do trang tri. Bat RLS ma KHONG dat luat nao = khong ai doc/ghi duoc.
+--   Chot van chay binh thuong vi no la "security definer", chay bang quyen chu bang nen di vong qua RLS.
+alter table public.tran_toc_do enable row level security;
+
 -- ---------- 2. SO NGHI VAN ----------
 create table if not exists public.nghi_van (
   id        bigserial primary key,
@@ -65,6 +71,9 @@ insert into public.tran_he_so (khoa, gia_tri) values
   --   Chien Dau suy tu "enemy.time" la nhip MOI DON nen cao gap ~35 lan that.
   ('tran_moi_lan_ghi', 693255)
 on conflict (khoa) do update set gia_tri = excluded.gia_tri;
+
+-- Cung ly do voi bang tren: khong bat RLS thi ke gian tu sua he so.
+alter table public.tran_he_so enable row level security;
 
 -- ---------- 4. CHOT: chay moi lan save duoc ghi de ----------
 -- ⚠ Lay THOI GIAN CUA MAY CHU (now() so voi OLD.updated_at), khong tin moc gio cua client.
