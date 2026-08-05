@@ -963,16 +963,82 @@
       #createScreen::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:2px; z-index:7; pointer-events:none; background:linear-gradient(180deg,transparent,rgba(245,185,66,.42) 18%,rgba(245,185,66,.16) 78%,transparent); }
     }
     @media (prefers-reduced-motion:reduce){ #createScreen .cs-cta::after{ animation:none; } }
+    /* ===== BƯỚC MỘT: TÀI KHOẢN (dùng chung khung Khai Tịch) ===== */
+    #createScreen .cs-chodoi{ text-align:center; color:#94a3b8; font-size:13.5px; padding:26px 0 8px; letter-spacing:.04em; }
+    #createScreen .cs-loi{ margin-top:10px; padding:8px 11px; border-radius:9px; font-size:12.5px; line-height:1.5;
+      color:#fda4af; border:1px solid rgba(190,18,60,.45); background:rgba(159,18,57,.16); }
+    #createScreen .cs-nhac{ margin-top:10px; padding:8px 11px; border-radius:9px; font-size:12.5px; line-height:1.5;
+      color:#6ee7b7; border:1px solid rgba(16,185,129,.4); background:rgba(6,95,70,.2); }
+    #createScreen .cs-doi{ margin-top:14px; font-size:12.5px; color:#94a3b8; }
+    #createScreen .cs-doi button{ color:#f6d98c; font-weight:700; margin-left:5px; text-decoration:underline; text-underline-offset:3px; }
+    #createScreen .cs-doi button:hover{ color:#fde9a9; }
   </style>
-  <template x-if="$store.game.needsCreation">
+  <!-- ⚠ MÀN KHAI TỊCH NAY CÓ HAI BƯỚC: tài khoản -> nhân vật (user chốt 2026-08-05).
+       Dùng CHUNG một khung: cùng nền, cùng khối chữ, đổi ruột. Dựng màn đăng nhập riêng thì
+       phải chép lại trọn bộ CSS `cs-*`, mà hai bản CSS song song là chắc chắn lệch nhau. -->
+  <template x-if="$store.game.needsCreation || $store.game.needsAuth">
     <div id="createScreen">
       <div class="cs-bg"></div>
       <div class="cs-scrim"></div>
       <img loading="lazy" decoding="async" class="cs-hero-bleed" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
       <div class="cs-scroll">
         <img loading="lazy" decoding="async" class="cs-hero-top" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
-        <div class="cs-panel"><div class="cs-inner">
+        <div class="cs-panel"><div class="cs-inner" x-data="{ get g(){ return $store.game } }">
           <div class="cs-brand"><img loading="lazy" decoding="async" src="images/ui/logo-emblem.webp" alt="" onerror="this.style.display='none'"><span>Tiêu Dao Lục</span></div>
+
+          <!-- ⚠ ĐANG CHỜ thì không vẽ bước nào cả. Hai lúc phải chờ: đang khôi phục phiên
+               (vẽ form là người đã đăng nhập thấy chớp màn đăng nhập, tưởng bị đá ra), và vừa
+               đăng nhập xong đang kéo nhân vật từ cloud về (vẽ form tạo nhân vật là họ tưởng
+               game quên mất mình là ai). -->
+          <template x-if="g.khaiTichChoDoi">
+            <div>
+              <div class="cs-kicker">Tiêu Dao Lục</div>
+              <div class="cs-chodoi" x-text="g.napCloud ? 'Đang tải tiến trình từ cloud…' : 'Đang kiểm tra tài khoản…'"></div>
+            </div>
+          </template>
+
+          <!-- ===== BƯỚC MỘT: TÀI KHOẢN ===== -->
+          <template x-if="!g.khaiTichChoDoi && g.needsAuth">
+            <div>
+              <div class="cs-kicker">Bước Một</div>
+              <h1 class="cs-title">Nhập Môn</h1>
+              <div class="cs-tagline" x-text="g.authMode==='register' ? 'Lập tài khoản để tiến trình theo ngươi qua mọi máy.' : 'Đăng nhập để tiếp tục hành trình.'"></div>
+              <div class="cs-rule"></div>
+
+              <div>
+                  <template x-if="g.cloudHong">
+                    <div class="cs-loi">Không kết nối được máy chủ. Kiểm tra mạng rồi tải lại trang.</div>
+                  </template>
+                  <div class="cs-field">
+                    <div class="cs-label">Thư Điện Tử</div>
+                    <input class="cs-name" type="email" autocomplete="email" x-model="$store.game.authEmail"
+                           placeholder="ten@email.com" @keydown.enter="g.doAuth()">
+                  </div>
+                  <div class="cs-field">
+                    <div class="cs-label">Mật Khẩu</div>
+                    <input class="cs-name" type="password" x-model="$store.game.authPass"
+                           :autocomplete="g.authMode==='register' ? 'new-password' : 'current-password'"
+                           placeholder="tối thiểu 6 ký tự" @keydown.enter="g.doAuth()">
+                  </div>
+                  <template x-if="g.authErr"><div class="cs-loi" x-text="g.authErr"></div></template>
+                  <template x-if="g.authMsg"><div class="cs-nhac" x-text="g.authMsg"></div></template>
+
+                  <div class="cs-ctawrap">
+                    <button class="cs-cta" @click="g.doAuth()" :disabled="g.authBusy"
+                      x-text="g.authBusy ? 'Đang Xử Lý…' : (g.authMode==='register' ? 'Lập Tài Khoản' : 'Đăng Nhập')"></button>
+                    <div class="cs-doi">
+                      <span x-text="g.authMode==='register' ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'"></span>
+                      <button @click="g.setAuthMode(g.authMode==='register' ? 'login' : 'register')"
+                        x-text="g.authMode==='register' ? 'Đăng nhập' : 'Lập tài khoản mới'"></button>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- ===== BƯỚC HAI: NHÂN VẬT ===== -->
+          <template x-if="!g.khaiTichChoDoi && !g.needsAuth">
+            <div>
           <div class="cs-kicker">Khởi Tạo Nhân Vật</div>
           <h1 class="cs-title">Khai Tịch Giang Hồ</h1>
           <div class="cs-tagline">Một thân tự do, rong ruổi tứ phương — võ học do chính ngươi chọn.</div>
@@ -1013,6 +1079,8 @@
           <div class="cs-ctawrap">
             <button class="cs-cta" @click="$store.game.createCharacter()" :disabled="!$store.game.canCreate">Nhập Giang Hồ</button>
           </div>
+            </div>
+          </template>
         </div></div>
       </div>
     </div>

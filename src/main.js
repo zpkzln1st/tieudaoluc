@@ -1542,7 +1542,13 @@ const gameStore = {
       this.authUser = await cloudGetUser();
       await cloudOnAuth((user) => { this.authUser = user; });
       if (this.authUser) this.cloudSyncOnLogin();   // đã đăng nhập sẵn (reload) -> kéo/so cloud
-    } catch (e) { /* không kết nối được cloud — bỏ qua, game vẫn chạy offline */ }
+    } catch (e) {
+      // Không nạp được SDK (mất mạng / CDN bị chặn). Game vẫn chạy offline; riêng người CHƯA có
+      // nhân vật thì màn đăng nhập phải nói rõ lý do, đừng bắt họ nhìn form rồi bấm vào hư không.
+      this.cloudHong = true;
+    } finally {
+      this.authKiemTra = false;
+    }
   },
   openAuth() { this.authErr = ''; this.authMsg = ''; this.authPass = ''; this.authOpen = true; },
   closeAuth() { this.authOpen = false; this.authErr = ''; this.authMsg = ''; this.authPass = ''; },
@@ -1610,6 +1616,7 @@ const gameStore = {
   },
   // Ghi đè localStorage bằng bản cloud rồi tải lại trang (nạp sạch state mới).
   _applyCloudSave(cloudData) {
+    this.napCloud = true;   // giữ màn Khai Tịch ở trạng thái CHỜ, đừng để form tạo nhân vật chớp lên
     Storage.lock();   // chặn autosave RAM cũ ghi đè trong lúc chờ reload
     try { localStorage.setItem('tieudao_save_v1', JSON.stringify(cloudData)); } catch (e) {}
     this._cloudLastPushed = (cloudData && cloudData.lastSave) || 0;
@@ -2663,7 +2670,33 @@ const gameStore = {
   },
 
   // ---------- Tạo nhân vật (giang hồ tự do: chỉ Nam/Nữ) ----------
-  get needsCreation() { return !this.state.player.created; },
+  // ============================================================
+  // CỔNG VÀO — phải có tài khoản mới tạo được nhân vật (user chốt 2026-08-05).
+  //
+  // ⚠⚠ CỔNG ĐẶT TRƯỚC MÀN TẠO NHÂN VẬT, KHÔNG đặt trước cả game. Khác biệt nằm ở người ĐÃ CÓ
+  //   nhân vật trên máy này:
+  //   · Chặn cả họ thì mất mạng một cái là không ai mở được game đã chơi bao lâu nay — mà game
+  //     này vốn OFFLINE-FIRST, cloud chỉ là chỗ cất save.
+  //   · Chặn ở đây thì MỌI người chơi mới đều phải có tài khoản (muốn chơi là phải tạo nhân vật),
+  //     còn người cũ không bị khoá ngoài cửa vì mạng.
+  //   Muốn chặn cứng cả người cũ thì bỏ vế `&& !this.state.player.created` — một dòng.
+  //
+  // ⚠ Ba trạng thái chứ không phải hai: lúc mới mở game còn ĐANG khôi phục phiên Supabase
+  //   (`authKiemTra`). Coi "chưa biết" là "chưa đăng nhập" thì người đã đăng nhập vẫn bị chớp
+  //   màn đăng nhập mỗi lần tải trang.
+  authKiemTra: true,     // đang khôi phục phiên
+  cloudHong: false,      // không nạp được SDK / mất mạng
+  get needsAuth() { return !this.isLoggedIn && !this.state.player.created; },
+  /** Đang khôi phục phiên: chưa biết có tài khoản hay chưa -> đừng vẽ form vội. */
+  get authDangDoi() { return this.authKiemTra && this.needsAuth; },
+  napCloud: false,       // vừa đăng nhập, đang kéo nhân vật từ cloud về (sắp tải lại trang)
+  /**
+   * Màn Khai Tịch đang PHẢI CHỜ.
+   * ⚠ Không có cờ này thì người đăng nhập bằng tài khoản ĐÃ CÓ nhân vật sẽ thấy màn tạo nhân vật
+   *   chớp lên 0,7 giây rồi trang tải lại — trông như game quên mất mình là ai.
+   */
+  get khaiTichChoDoi() { return this.authDangDoi || this.napCloud; },
+  get needsCreation() { return !this.state.player.created && !this.needsAuth; },
   pickGender(g) { this.draftGender = g; },
   pickTamPhap(id) { this.draftTamPhap = id; },
   draftTamPhapOn(id) { return this.draftTamPhap === id; },
@@ -2682,6 +2715,10 @@ const gameStore = {
     lo.chieu = kit.chieu.slice(0, this.maxChieuSlots);
     this.state.combat.owned = { chieu: kit.chieu.slice(), tamPhap: [kit.tamPhap], biDong: kit.biDong.slice() };
     Storage.save(this.state);
+    // Gắn nhân vật vào tài khoản NGAY, đừng đợi nhịp đẩy 15 giây. Người chơi vừa lập tài khoản
+    // xong mà đóng tab luôn thì cloud trống, mở máy khác ra lại bắt tạo nhân vật lần nữa.
+    // ⚠ KHÔNG `await`: lỗi mạng ở đây không được làm hỏng việc vào game.
+    try { this._cloudPushNow(); } catch (e) {}
   },
   get className() { return 'Giang Hồ Tự Do'; },
   get genderLabel() { return this.state.player.gender === 'nu' ? 'Nữ' : (this.state.player.gender === 'nam' ? 'Nam' : '—'); },
