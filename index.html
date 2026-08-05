@@ -15944,13 +15944,11 @@
           <!-- Lưu trữ -->
           <div>
             <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Lưu Trữ</div>
-            <div class="grid grid-cols-2 gap-2">
+            <!-- ⛔ ĐÃ BỎ nút "Nhập bản lưu" (user chốt 2026-08-05). Nút co theo nội dung, không full-width. -->
+            <div>
               <button @click="$store.game.devExport()" class="px-3 py-2 rounded-lg bg-ink3 border border-slate-700 hover:border-jade text-sm text-slate-200 transition">⬇ Xuất bản lưu</button>
-              <label class="px-3 py-2 rounded-lg bg-ink3 border border-slate-700 hover:border-jade text-sm text-slate-200 cursor-pointer text-center transition">⬆ Nhập bản lưu
-                <input type="file" accept="application/json" class="hidden" @change="$store.game.devImport($event)">
-              </label>
             </div>
-            <div class="text-[11px] text-slate-500 mt-1.5">Xuất file .json để sao lưu / chuyển máy.</div>
+            <div class="text-[11px] text-slate-500 mt-1.5">Xuất file .json để cất giữ. Chuyển máy thì đăng nhập rồi đồng bộ cloud.</div>
           </div>
           <!-- Nguy hiểm -->
           <div>

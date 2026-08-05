@@ -5535,6 +5535,11 @@ const gameStore = {
     a.click();
     URL.revokeObjectURL(a.href);
   },
+  // ⛔ Nút "Nhập bản lưu" ở màn CÀI ĐẶT đã gỡ (user chốt 2026-08-05). Hàm này VẪN CÒN vì bảng
+  //   Dev F9 (tab Hệ Thống) gọi nó — xoá hàm là hỏng bảng Dev. ĐỪNG trả nút về màn Cài Đặt.
+  //   ⚠ Gỡ nút KHÔNG phải là chống gian lận: sửa `localStorage` bằng Console vẫn được như thường.
+  //   Cái chặn thật là chốt phía máy chủ (docs/SQL_CHONG_GIAN_LAN.sql) — nó soi bản lưu lúc đẩy
+  //   lên, sửa bằng đường nào cũng bắt. Bỏ nút chỉ để bớt một lối mời gọi.
   devImport(ev) {
     const file = ev.target.files && ev.target.files[0];
     if (!file) return;
