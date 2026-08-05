@@ -18,6 +18,7 @@ import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang b�
 import { buffVal } from './buff.js';           // đan Ngộ Đạo (+EXP Chiến Đấu)
 import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bảng dùng roster bot thật (deterministic)
 import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: hạ Yêu Vương cho điểm Chinh Phạt dày
+import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 
 const HE_LIST = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
 const HISTORY_CAP = 40;
@@ -38,7 +39,7 @@ export const BOSS_HEAL_MS = 180000;               // dưỡng thương 3 phút s
 // Ngũ hành hiện tại của boss (roll + lưu nếu chưa có).
 export function bossHe(state, bossId) {
   const b = ensureBoss(state);
-  if (!b.he[bossId]) b.he[bossId] = HE_LIST[Math.floor(Math.random() * HE_LIST.length)];
+  if (!b.he[bossId]) b.he[bossId] = HE_LIST[Math.floor(rng(state, 'yvHe') * HE_LIST.length)];
   return b.he[bossId];
 }
 export function bossCdEnd(state, bossId) { return ensureBoss(state).cd[bossId] || 0; }
@@ -69,7 +70,7 @@ export function bossPredict(state, bossId) {
   const fightBoss = Object.assign({}, boss, { hp: bossCurHp(state, bossId) });  // dự báo theo máu hiện tại (carry-over)
   const N = 7; let wins = 0, hpLostSum = 0;
   for (let i = 0; i < N; i++) {
-    const f = makeFight(P, state.combat.loadout.chieu, fightBoss, P.maxHP, he);
+    const f = makeFight(P, state.combat.loadout.chieu, fightBoss, P.maxHP, he, undefined, rngHam(state, 'yvTran'));
     let g = 0; while (!f.over && g++ < 600) stepFight(f);
     if (f.result === 'win' || f.e.hp <= 0) wins++;
     hpLostSum += Math.max(0, P.maxHP - f.p.hp);
@@ -92,7 +93,7 @@ export function runBossFight(state, bossId, he) {
   const bMax = boss.hp;                                   // máu tối đa GỐC (cho thanh hiển thị %)
   const curHp = bossCurHp(state, bossId);                 // máu HIỆN TẠI (carry-over)
   const fightBoss = Object.assign({}, boss, { hp: curHp });  // boss khởi đầu ở máu hiện tại
-  const f = makeFight(P, state.combat.loadout.chieu, fightBoss, P.maxHP, he);
+  const f = makeFight(P, state.combat.loadout.chieu, fightBoss, P.maxHP, he, undefined, rngHam(state, 'yvTran'));
   const pMax = f.p.maxHP;
   const frames = [{ t: f.t, pHp: pMax, pMax, bHp: curHp, bMax, lines: f.log.slice() }];
   let prev = f.log.length, guard = 0;
@@ -117,7 +118,7 @@ export function dameMotTranBoss(state, bossId, he) {
   const boss = YEU_VUONG_BY_ID[bossId];
   if (!boss || !state.combat || !state.combat.loadout) return 0;
   const P = deriveCombat(state, state.combat.loadout, { ignoreNoiThuong: true });
-  const f = makeFight(P, state.combat.loadout.chieu, boss, P.maxHP, he || HE_LIST[0]);
+  const f = makeFight(P, state.combat.loadout.chieu, boss, P.maxHP, he || HE_LIST[0], undefined, rngHam(state, 'yvTran'));
   let g = 0; while (!f.over && g++ < 600) stepFight(f);
   return Math.max(0, Math.round(f.dealt || 0));
 }
@@ -175,8 +176,8 @@ function grantReward(state, boss, now) {
   for (const st of boPhapStats(state.combat.loadout)) addStatXp(state, st, boss.statXp * 3);
   state.currencies.bac = (state.currencies.bac || 0) + wb.bac;
   state.currencies.honThach = (state.currencies.honThach || 0) + wb.honThach;
-  if (Math.random() < 0.10) { addItem(state, 'tinhTheYeuVuong', wb.tinhThe); r.items.tinhTheYeuVuong = wb.tinhThe; }   // Tinh Thể: 10% (KHÔNG còn đảm bảo)
-  for (const e of wb.eggs) { if (Math.random() < e.chance) { addItem(state, e.itemId, 1); r.items[e.itemId] = (r.items[e.itemId] || 0) + 1; } }
+  if (rng(state, 'yvTinhThe') < 0.10) { addItem(state, 'tinhTheYeuVuong', wb.tinhThe); r.items.tinhTheYeuVuong = wb.tinhThe; }   // Tinh Thể: 10% (KHÔNG còn đảm bảo)
+  for (const e of wb.eggs) { if (rng(state, 'yvTrung') < e.chance) { addItem(state, e.itemId, 1); r.items[e.itemId] = (r.items[e.itemId] || 0) + 1; } }
   // MẢNH TRANG BỊ HOÀNG KIM: CHẮC CHẮN 2 mỗi trận thắng, chỉ Yêu Vương cấp >=90 (Băng Phách Lv90 ·
   // Thiên Ma Lv100). Trước là 20% × 1 — mà resolveBossQueue chỉ hạ ĐÚNG MỘT lượt/boss mỗi lần vào
   // game, nên hai con này trần ~2 trận/ngày: 0,4 Mảnh/ngày, tức 1050 ngày một bộ. Đây là trục CHUNG

@@ -68,6 +68,34 @@ export function rngPick(state, mien, arr) {
 export function rngHam(state, mien) { return () => rng(state, mien); }
 
 /**
+ * Bộ sinh số RỜI — KHÔNG đụng tới bộ đếm trong save.
+ *
+ * ⚠⚠ Dành cho những chỗ chạy MỖI NHỊP VẼ, điển hình là `combatProfile` (dự đoán đánh quái hiện
+ *   trên màn Chiến Đấu). Nếu mấy chỗ đó ăn vào bộ đếm chung thì số đếm trong save sẽ phụ thuộc
+ *   vào việc người chơi NHÌN MÀN HÌNH BAO NHIÊU LẦN — máy chủ tính lại không tài nào khớp.
+ *
+ * Gieo từ một khoá ổn định (hạt giống + mã quái + cấp) thì dự đoán vừa lặp lại được, vừa hết
+ * nhảy số mỗi lần vẽ lại.
+ */
+export function rngRieng(hat) {
+  let a = (hat | 0) || 1;
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Băm một chuỗi thành số nguyên — để dựng khoá gieo cho `rngRieng`. */
+export function rngKhoa(s) {
+  let h = 2166136261 >>> 0;
+  const t = String(s == null ? '' : s);
+  for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+
+/**
  * Mã ĐẾM ĐƯỢC cho dòng nhật ký — thay `Math.round(Math.random()*1e6)`.
  * Mã ngẫu nhiên làm hai lần chạy ra hai save khác nhau dù mọi thứ khác y hệt.
  */

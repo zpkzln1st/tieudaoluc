@@ -62,7 +62,7 @@ import { TITLES, TITLE_BY_ID, TITLE_LOAI, titleBonusText } from './data/titles.j
 import { ensureTitles, syncTitles, titleBonus } from './engine/titles.js';
 import { BADGES, BADGE_LV } from './data/badges.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
-import { ensureRng } from './engine/rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
+import { ensureRng, rng, rngHam } from './engine/rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
@@ -1646,7 +1646,7 @@ const gameStore = {
     if (r.eggPham) {   // Trứng Linh Thú phẩm Thường — NGẪU NHIÊN loài (vốn khởi đầu cho người chơi mới)
       const eggs = Object.keys(this.ITEMS).filter((id) => id.startsWith('egg_') && id.endsWith('_pham'));
       if (eggs.length) {
-        const id = eggs[Math.floor(Math.random() * eggs.length)];
+        const id = eggs[Math.floor(rng(this.state, 'trungThuong') * eggs.length)];
         addItem(this.state, id, r.eggPham);
         this.showToast('🥚 Nhận ' + ((this.ITEMS[id] || {}).name || 'Trứng Linh Thú') + ' — ấp nở ở Lò Ấp Noãn (tab Linh Thú).');
       }
@@ -1913,7 +1913,7 @@ const gameStore = {
     const usable = elig.length >= want ? elig : cfg.pool;
     // Bốc ngẫu nhiên `want` cái rồi xếp lại theo thứ tự gốc cho ổn định.
     const idx = usable.map((_, i) => i);
-    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng(this.state, 'nhiemVu') * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
     const chosen = idx.slice(0, want).sort((a, b) => a - b);
     st.period = cur;
     st.list = chosen.map((i) => ({ id: usable[i].id, base: this.counterValue(usable[i]), claimed: false }));
@@ -3996,7 +3996,7 @@ const gameStore = {
     const rNL = autoDanNL(this.state, maxNL, nl); if (rNL) nl = Math.min(maxNL, nl + rNL);
     const sl0 = this.state.combat.sinhLuc;
     const hp0 = sl0 == null ? maxHP : Math.max(0, Math.min(sl0, maxHP));   // máu trước trận (cho Linh Thú chia lửa)
-    const f = makeFight(cs, this.loadout.chieu, enemy, hp0, null, nl);
+    const f = makeFight(cs, this.loadout.chieu, enemy, hp0, null, nl, rngHam(this.state, 'tranTaiCho'));
     let g = 0; while (!f.over && g < 400) { stepFight(f); g++; }
     this.state.combat.noiLuc = Math.round(f.p.nl);        // lưu Nội Lực còn lại (trôi sang trận sau)
     this._nlNow = this.state.combat.noiLuc;               // đồng bộ thanh Nội Lực với log
@@ -4054,13 +4054,13 @@ const gameStore = {
     // Bách Bảo lootPct CHỈ nhân loot nguyên liệu thường (matMul), TUYỆT ĐỐI không đụng
     // MONSTER_DROP_CHANCE (gear 0,3%) — y hệt luật ở activity.js.
     const matMul = lootMul * (1 + buffVal(this.state, 'lootPct', _now) / 100);
-    if (e.loot) for (const l of e.loot) { const m = l.noBoost ? lootMul : matMul; if (Math.random() < l.chance * m * LOOT_DROP_MULT) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
+    if (e.loot) for (const l of e.loot) { const m = l.noBoost ? lootMul : matMul; if (rng(this.state, 'ropVat') < l.chance * m * LOOT_DROP_MULT) { addItem(this.state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
     // Loot-hunt: rơi gear instance (tỉ lệ rất nhỏ × lootMul; phẩm cao siêu hiếm, cap Cực Hiếm ở quái thường).
-    if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }
+    if (rng(this.state, 'ropDo') < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(e.reqLevel || 1, rngHam(this.state, 'ropDo')); if (gi) { addGearInstance(this.state, gi); this.notifyGearDrop(gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }
     // ⛔ Mảnh Trang Bị Hoàng Kim KHÔNG còn rơi từ quái (user chốt 2026-08-03) — gỡ Ở CẢ HAI ĐƯỜNG
     // (đây là đường đánh tại chỗ, đường treo máy ở engine/activity.js). Sót một vế là hai lối cày
     // ra hai tốc độ khác nhau cho cùng một con quái.
-    if (Math.random() < BAC_DROP_CHANCE) { const bacGain = Math.round(Math.max(1, Math.round(e.exp * BAC_PER_EXP)) * moneyMul); this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain; sess.bac += bacGain; }   // Bạc rơi ~15%/kill (không phải mỗi con)
+    if (rng(this.state, 'ropBac') < BAC_DROP_CHANCE) { const bacGain = Math.round(Math.max(1, Math.round(e.exp * BAC_PER_EXP)) * moneyMul); this.state.currencies.bac = (this.state.currencies.bac || 0) + bacGain; sess.bac += bacGain; }   // Bạc rơi ~15%/kill (không phải mỗi con)
     this.state.counters.kills[this.act.enemyId] = (this.state.counters.kills[this.act.enemyId] || 0) + 1;
     // ⚠ Dùng `now()` (đồng hồ GAME) chứ không phải `_now` (Date.now) — bên engine ghi bằng đồng hồ
     // game, lấy hai đồng hồ khác nhau là tua giờ ở Bảng Dev sẽ ghi vào hai NGÀY khác nhau.

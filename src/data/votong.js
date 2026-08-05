@@ -8,6 +8,7 @@ import { derivedStats, gearEle, khangClamp, KHANG_CAP, giamNhanClamp, GIAM_NHAN_
 import { levelFromXp } from '../engine/leveling.js';
 import { titleBonus } from '../engine/titles.js';
 import { ITEMS } from './items.js';   // đọc buff của Đan Bổ Trợ (danBuffPct)
+import { rngRieng, rngKhoa } from '../engine/rng.js';   // bộ sinh số RỜI cho dự đoán (không đụng bộ đếm trong save)
 
 // ---- NGŨ HÀNH ----
 // 5 hệ + Vô Hệ (thuần lực — không ăn khắc, không bị kháng chặn) + Trợ. Vòng tương khắc: Kim→Mộc→Thổ→Thủy→Hỏa→Kim.
@@ -75,9 +76,9 @@ export function enemyKhangFor(enemy, he){
   return out;
 }
 // Hệ của yêu thú TRONG 1 TRẬN: nếu enemy.he đặt sẵn (boss) -> cố định; không -> ngẫu nhiên.
-export function rollHe(enemy){
+export function rollHe(enemy, rnd){
   if(enemy && enemy.he && NGU_HANH_LIST.includes(enemy.he)) return enemy.he;
-  return NGU_HANH_LIST[Math.floor(Math.random()*NGU_HANH_LIST.length)];
+  return NGU_HANH_LIST[Math.floor((rnd || Math.random)()*NGU_HANH_LIST.length)];
 }
 
 // ---- Môn Phái = HỌC QUÁN MỞ (mỗi hệ 1 phái dạy võ học hệ đó). Dùng gom mục ở Tàng Kinh Các.
@@ -658,9 +659,11 @@ const OPEN_PHRASES={
 
 // ===== Trận đấu STEP-được (chiến báo trực tiếp + offline batch) =====
 // forcedHe: ép hệ yêu thú (dùng cho dự báo trung bình); không truyền -> roll ngẫu nhiên mỗi trận.
-export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl){
-  const he = forcedHe || rollHe(enemy);
+export function makeFight(P, chosen, enemy, startHp, forcedHe, startNl, rnd){
+  const he = forcedHe || rollHe(enemy, rnd);
   const f = {
+    // ⚠ Bốc số của trận GẮN LÊN ĐÂY. Không tiêm thì rơi về Math.random (đường lui cho công cụ dev).
+    rnd: rnd || Math.random,
     // HOOK TẦNG — đúng một chỗ. P.tang do deriveCombat mang sang; _useSkill/_pTurn/stepFight không sửa gì.
     P, chosen: chosen.map(id => chieuAtTang(chieuById(id), (P.tang && P.tang[id]) || 1, P.tangBonus || 0)).filter(Boolean),
     enemy, eName: enemy.name, eHe: he,
@@ -696,7 +699,7 @@ function _useSkill(f,c){
   if(!isVoHe(c.type)) dmg*=(1+eleB)*(1+khac);
   if(p.buff>0) dmg*=(1+(p.buffDmg!=null?p.buffDmg:0.30));   // buffDmg do chiêu Trợ đặt (mặc định +30% cho save/đường cũ)
   const critChance = Math.min(0.95, P.crit + (c.critBonus||0));
-  const crit=Math.random()<critChance; if(crit) dmg*=P.critDmg;
+  const crit=f.rnd()<critChance; if(crit) dmg*=P.critDmg;
   const defEff = Math.max(0, e.def*(1-(c.pen||0)));            // xuyên giáp
   dmg*=100/(100+defEff);
   // LỚP KHÁNG RIÊNG (sau đường cong Thủ, KHÔNG chia def): kháng ngũ hành của ĐỊCH chặn đòn có hệ.
@@ -716,17 +719,17 @@ function _useSkill(f,c){
   L(f, s, 'text-slate-200');
   if(c.burn){ const dotName=(c.type==='moc'?'Độc':'Bỏng'); e.statuses.push({dmg:c.burn.dmg,ticksLeft:c.burn.ticks,name:dotName}); L(f,(c.type==='moc'?'Độc tố ngấm vào ':'Tàn diễm bám lấy ')+f.eName+', '+(c.type==='moc'?'phủ tạng rữa dần':'da thịt cháy âm ỉ')+' — '+dotName+' ('+c.burn.ticks+' hiệp).', heInfo(c.type).text); }
   if(c.slow){ e.slow=c.slow; L(f,'Hàn khí ghì chặt '+f.eName+', thân pháp địch chậm hẳn lại ('+c.slow+' hiệp).','text-sky-300'); }
-  if(c.stun&&Math.random()<c.stun){ e.stun=2; L(f,'Đòn trầm trọng chấn động '+f.eName+' — địch choáng váng!','text-amber-300'); }
+  if(c.stun&&f.rnd()<c.stun){ e.stun=2; L(f,'Đòn trầm trọng chấn động '+f.eName+' — địch choáng váng!','text-amber-300'); }
 }
 // Yêu thú có né trúng đòn này không? Né thực = dodge của quái × (1 − Chính Xác của ngươi).
 function _eMiss(f){
   const eD = (f.e.dodge || 0) * (1 - (f.P.hitRate || 0));
-  return eD > 0 && Math.random() < eD;
+  return eD > 0 && f.rnd() < eD;
 }
 function _basic(f){
   const P=f.P, p=f.p, e=f.e;
   if(_eMiss(f)){ p.nl=Math.min(P.maxNL,p.nl+P.nlRegen); L(f,'<span class="text-slate-500">▸</span> Ngươi vận kình đánh thường — '+pick(EMISS_PHRASES)(f.eName)+' Hồi <span class="text-blue-400 font-medium">'+P.nlRegen+' Nội Lực</span>.', 'text-slate-400'); return; }
-  let dmg=P.atk; const crit=Math.random()<P.crit; if(crit)dmg*=P.critDmg;
+  let dmg=P.atk; const crit=f.rnd()<P.crit; if(crit)dmg*=P.critDmg;
   dmg*=100/(100+e.def); dmg=Math.max(1,Math.round(dmg)); e.hp-=dmg; f.dealt+=dmg;
   p.nl=Math.min(P.maxNL,p.nl+P.nlRegen);
   L(f,'Ngươi vận kình đánh thường, giáng <b class="'+(crit?'dmgc':'dmg')+'">'+dmg+'</b> sát thương lên '+f.eName+', hồi <span class="text-blue-400 font-medium">'+P.nlRegen+' Nội Lực</span>.', 'text-slate-300');
@@ -761,7 +764,7 @@ function _eTurn(f){
   const useSk=sk&&e.skillCd<=0, mult=useSk?sk.mult:1.0;
   const desc=useSk?sk.fl:(f.enemy.atkFl||'tấn công');
   if(useSk) e.skillCd=sk.cd;
-  if(P.dodge && Math.random()<P.dodge){ f.dodged=(f.dodged||0)+1; L(f, '<span class="text-sky-400">▸</span> '+pick(DODGE_PHRASES)(f.eName,desc), 'text-sky-300'); return; }
+  if(P.dodge && f.rnd()<P.dodge){ f.dodged=(f.dodged||0)+1; L(f, '<span class="text-sky-400">▸</span> '+pick(DODGE_PHRASES)(f.eName,desc), 'text-sky-300'); return; }
   // ĐÒN QUÁI MANG HỆ e.he (roll ở makeFight) -> chảy qua kháng ngũ hành của người chơi (P.khang).
   // P.khang đã kẹp trần từ derivedStats; kẹp lại ở đây để đường worldboss/dev tiêm tay P.khang
   // cũng không thể vượt trần. Chưa có nguồn kháng nào -> toàn 0 -> nhân đúng 1.
@@ -783,7 +786,7 @@ function _eTurn(f){
 function _heFx(f, useSk){
   const P=f.P, p=f.p, e=f.e;
   const fx = HE_FX[e.he]; if(!fx) return null;
-  if(Math.random() >= fx.pct * (useSk ? 1.5 : 1)) return null;
+  if(f.rnd() >= fx.pct * (useSk ? 1.5 : 1)) return null;
   const gi = (P.ccGiam && P.ccGiam[fx.id]) || 0;
   const n = ccTicks(fx.ticks, gi);
   if(n <= 0) return { h:'Ngươi vận kình chấn tan '+fx.ten+' ngay khi nó vừa bám vào — giáp trụ hộ thân không phải hư danh.', c:'text-jade' };
@@ -820,7 +823,7 @@ export function stepFight(f){
 }
 // Mô phỏng tới khi xong (cho hồ sơ / offline batch).
 export function simFight(P, chosen, enemy, opts={}){
-  const f=makeFight(P, chosen, enemy, opts.startHp, opts.forcedHe);
+  const f=makeFight(P, chosen, enemy, opts.startHp, opts.forcedHe, undefined, opts.rnd);
   let g=0; while(!f.over && g++<400) stepFight(f);
   if(!f.over) f.result = f.e.hp<=0?'win':'lose'; // hết giờ chưa hạ được địch -> coi THUA (không ép 'win' lạc quan, tránh verdict sai)
   return { result:f.result, t:f.t, dealt:f.dealt, taken:f.taken, hpAfter:Math.max(0,f.p.hp), log:opts.log?f.log:[] };
@@ -833,8 +836,14 @@ export function combatProfile(state, loadout, enemy){
   const fixed = enemy.he && NGU_HANH_LIST.includes(enemy.he);
   const elems = fixed ? [enemy.he] : NGU_HANH_LIST;
   let sumT=0, sumHp=0, sumDps=0, wins=0;
+  // ⚠⚠ DÙNG BỘ SINH SỐ RỜI, KHÔNG đụng bộ đếm trong save. Hàm này chạy MỖI NHỊP VẼ ở màn Chiến
+  //   Đấu; ăn vào bộ đếm chung thì số đếm sẽ phụ thuộc vào việc người chơi nhìn màn hình bao
+  //   nhiêu lần — máy chủ tính lại không tài nào khớp.
+  //   Khoá gieo lấy từ hạt giống + mã quái + sức đánh, nên dự đoán vừa lặp lại được vừa hết
+  //   nhảy số mỗi lần vẽ lại (trước đây mỗi lần render ra một con số khác).
+  const rnd = rngRieng(((state && state.rngHat) | 0) ^ rngKhoa(enemy.id) ^ ((P.atk | 0) * 31 + (P.maxHP | 0)));
   elems.forEach(he=>{
-    const f = simFight(P, loadout.chieu, enemy, { startHp:P.maxHP, log:false, forcedHe:he });
+    const f = simFight(P, loadout.chieu, enemy, { startHp:P.maxHP, log:false, forcedHe:he, rnd });
     sumT += f.t; sumHp += Math.max(0, P.maxHP - f.hpAfter); sumDps += f.dealt/Math.max(1,f.t);
     if(f.result==='win') wins++;
   });
