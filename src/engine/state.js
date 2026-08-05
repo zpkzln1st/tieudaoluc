@@ -5,6 +5,19 @@ import { SKILLS } from '../data/skills.js';
 
 export const SAVE_VERSION = 1;
 
+// ============================================================
+// CÀI ĐẶT NGƯỜI CHƠI — một bảng DUY NHẤT, dùng cho cả người mới lẫn vá save cũ.
+// ⚠ Thêm khoá mới thì CHỈ thêm ở đây. `capNhatCaiDat()` bên main.js đổ mặc định vào save cũ
+//   nên người đang chơi có ngay khoá mới mà không cần bump SAVE_VERSION.
+// ============================================================
+export const CAI_DAT_MAC_DINH = {
+  idleCapHours: 8,        // trần treo máy NỀN (Động Phủ cộng thêm — xem idleCapMs)
+  giamHieuUng: false,     // tắt hiệu ứng chuyển động trang trí
+  netHinh: 'tuDong',      // 'muot' (trần tỉ lệ điểm ảnh 1,5) | 'tuDong' (vẽ đúng độ phân giải màn)
+  nguongBaoRoiDo: 2,      // phẩm tối thiểu để nổi toast lúc rơi trang bị (mốc trong QUALITY_KEYS)
+  hoiKhiBan: true,        // hỏi lại trước khi bán hàng loạt
+};
+
 export function createInitialState() {
   const skills = {};
   Object.keys(SKILLS).forEach((id) => { skills[id] = { xp: 0 }; });
@@ -43,7 +56,9 @@ export function createInitialState() {
       ngoTinhThuong: 0,     // Ngộ Tính thưởng thêm ngoài EXP (để trống, chừa cho Yêu Vương/Bí Cảnh đợt sau)
     },
     activity: null,         // hoạt động đang chạy — gồm cả Khinh Công (type:'travel') — xem activity.js
-    settings: { idleCapHours: 8 },
+    // ⚠ Mặc định NẰM Ở `CAI_DAT_MAC_DINH` ngay dưới, đừng gõ tay hai nơi: save cũ được vá bằng
+    //   chính bảng đó lúc nạp (main.js), lệch một khoá là người cũ và người mới chơi hai game khác nhau.
+    settings: { ...CAI_DAT_MAC_DINH },
     login: { lastDay: null, streak: 0 },     // điểm danh
     titles: { owned: [], equipped: null },   // Danh Hiệu: sở hữu + đang đeo. KHÔNG cho sẵn cái nào —
                                              // 'Sơ Nhập Giang Hồ' nay là thưởng của chuỗi Nhiệm Vụ Tân Thủ.

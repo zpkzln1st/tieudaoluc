@@ -14,7 +14,7 @@ import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
 import { GEAR_IDS, instanceFromCatalog, rollSetPieceInstance, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
-import { createInitialState } from './engine/state.js';
+import { createInitialState, CAI_DAT_MAC_DINH, SAVE_VERSION } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
 import { coTuong, ensureCoTuong } from './cotuong.js';               // Cờ Tướng (象棋 3D, cách ly)
@@ -81,6 +81,7 @@ import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, clou
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
+import { datTranNet } from './engine/muot.js';   // Cài Đặt → Chất Lượng Hình: trần tỉ lệ điểm ảnh cho bàn 3D
 
 // Thứ hạng phẩm chất — dựng MỘT LẦN. `qualityRank` nằm trên đường sắp xếp của mọi danh sách
 // đồ đạc (Hành Lý, danh sách trang bị, loot, Linh Thú); tính lại `Object.keys` trong đó là
@@ -219,6 +220,9 @@ if (!state.counters) state.counters = { produced: {}, kills: {} };
 Object.keys(SKILLS).forEach((id) => { if (!state.skills[id]) state.skills[id] = { xp: 0 }; });
 ensureBuffs(state);        // Đan Bổ Trợ: khởi tạo state.buffs
 migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành Hồi Sinh Lực / Hồi Nội Lực / Dược Lư
+// Cài Đặt: đổ mặc định vào save cũ (giữ nguyên khoá người chơi đã đổi). Không cần bump SAVE_VERSION.
+if (!state.settings || typeof state.settings !== 'object') state.settings = {};
+for (const k of Object.keys(CAI_DAT_MAC_DINH)) if (state.settings[k] === undefined) state.settings[k] = CAI_DAT_MAC_DINH[k];
 // Bộ sinh số CÓ HẠT GIỐNG (Đợt D) — phải gieo TRƯỚC `advance()` offline ở dưới, không thì lượt
 // tính bù đầu tiên sau khi cập nhật vẫn rơi vào đường Math.random cũ.
 ensureRng(state);
@@ -1324,6 +1328,79 @@ const gameStore = {
   },
   openSettings() { this.settingsModal = true; },
   closeSettings() { this.settingsModal = false; },
+
+  // ============================================================
+  // CÀI ĐẶT NGƯỜI CHƠI
+  // Mặc định nằm ở `CAI_DAT_MAC_DINH` (engine/state.js) — save cũ đã được vá lúc nạp.
+  // ⚠ Mọi thay đổi đi qua `datCaiDat()`: nó lưu VÀ áp dụng ngay. Sửa thẳng `state.settings`
+  //   thì ô giao diện đổi mà hiệu ứng/độ nét không đổi cho tới lần tải trang sau.
+  // ============================================================
+  get caiDat() { return this.state.settings || (this.state.settings = { ...CAI_DAT_MAC_DINH }); },
+  datCaiDat(khoa, giaTri) {
+    this.caiDat[khoa] = giaTri;
+    this.apDungCaiDat();
+    Storage.save(this.state);
+    this._tick++;
+  },
+  /** Đổ cài đặt xuống những chỗ THẬT SỰ dùng nó. Gọi lúc khởi động và sau mỗi lần đổi. */
+  apDungCaiDat() {
+    try {
+      // Hiệu ứng: một lớp trên thẻ gốc, CSS lo phần còn lại (xem `.giam-hieu-ung` trong index.html).
+      document.documentElement.classList.toggle('giam-hieu-ung', !!this.caiDat.giamHieuUng);
+      // Độ nét bàn 3D: trần tỉ lệ điểm ảnh. 'muot' = 1,5 · 'tuDong' = vẽ đúng độ phân giải màn.
+      datTranNet(this.caiDat.netHinh === 'muot' ? 1.5 : 3);
+    } catch (e) {}
+  },
+  /** Trần treo máy THẬT = nền + bậc Động Phủ. ⚠ Ô cũ chỉ đọc `idleCapHours` nên nhà bậc 6 vẫn ghi "8 giờ". */
+  get idleCapText() {
+    const h = idleCapMs(this.state) / 3600000;
+    const nen = this.caiDat.idleCapHours || 8;
+    const them = Math.round((h - nen) * 10) / 10;
+    return them > 0 ? (h + ' giờ (' + nen + ' + ' + them + ' Động Phủ)') : (h + ' giờ');
+  },
+
+  // ---- Toàn Màn Hình: công tắc CHUNG cho cả game (bàn cờ vẫn có nút riêng của nó) ----
+  // ⚠ KHÔNG lưu vào save và KHÔNG tự bật. Tự phủ màn lúc vào chiếu đã bị bác một lần rồi.
+  // ⚠⚠ CỐ Ý KHÔNG dùng `batToanMan` của engine/toanman.js: hàm đó gọi `khoaNgang()` — khoá màn
+  //   sang NẰM NGANG vì nó sinh ra cho bàn cờ. Game chơi dọc, khoá ngang là xoay ngang cả game.
+  //   Nó còn có đường lui "toàn màn hình giả" bằng CSS, áp lên thẻ gốc thì vô nghĩa.
+  toanManTick: 0,
+  get dangToanManHinh() {
+    this.toanManTick;   // chạm để Alpine tính lại sau mỗi lần đổi
+    try { return !!(document.fullscreenElement || document.webkitFullscreenElement); } catch (e) { return false; }
+  },
+  chuyenToanManHinh() {
+    try {
+      if (this.dangToanManHinh) {
+        const ex = document.exitFullscreen || document.webkitExitFullscreen;
+        if (ex) { const p = ex.call(document); if (p && p.catch) p.catch(() => {}); }
+      } else {
+        const el = document.documentElement;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) { this.showToast('Trình duyệt này không phủ toàn màn hình được.'); return; }
+        const p = req.call(el, { navigationUI: 'hide' });
+        if (p && p.catch) p.catch(() => this.showToast('Trình duyệt từ chối phủ toàn màn hình.'));
+      }
+    } catch (e) { this.showToast('Không phủ toàn màn hình được.'); }
+  },
+
+  /**
+   * Ba mức báo rơi trang bị. Tên phẩm LẤY TỪ bảng QUALITY, không gõ tay —
+   * đổi tên phẩm trong data mà nhãn ở đây đứng im thì người chơi chọn một đằng hiểu một nẻo.
+   */
+  get mucBaoRoiDo() {
+    const ten = (i) => ((this.QUALITY[this.QUALITY_KEYS[i]] || {}).name || '?');
+    return [{ v: 0, ten: 'Mọi Phẩm' }, { v: 2, ten: 'Từ ' + ten(2) }, { v: 4, ten: 'Từ ' + ten(4) }];
+  },
+
+  // ---- Về Tiêu Dao Lục ----
+  get phienBanText() { return 'Bản lưu v' + SAVE_VERSION; },
+  get tacGiaText() { return (this.author && this.author.name) || 'ArchisuS'; },
+  /** Ngày ký chứng chỉ tác giả — mốc "đóng ấn", không phải ngày cập nhật. */
+  get anKyText() {
+    const t = this.author && this.author.iat;
+    return t ? new Date(t * 1000).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+  },
   // ---------- Cẩm Nang (wiki trong game) ----------
   // Chỉ một cờ. Mọi trạng thái khác (mục đang đọc, ô tìm) nằm trong x-data của modal —
   // đóng rồi mở lại là về mục đầu, đúng ý: mở Cẩm Nang thường là để tra thứ khác.
@@ -4400,7 +4477,8 @@ const gameStore = {
   notifyGearDrop(inst) {
     if (!inst) return;
     const rank = this.QUALITY_KEYS.indexOf(inst.quality);
-    if (rank < 2) return;
+    // Ngưỡng do người chơi đặt (Cài Đặt → Thông Báo). Mặc định 2 = giữ nguyên nếp cũ.
+    if (rank < (this.caiDat.nguongBaoRoiDo != null ? this.caiDat.nguongBaoRoiDo : 2)) return;
     const q = this.QUALITY[inst.quality] || {}; const nm = (this.ITEMS[inst.gearId] || {}).name || 'trang bị';
     this.showToast('✦ Rơi ' + (q.name || '') + ' 〈' + nm + '〉 · ' + Object.keys(inst.stats).length + ' dòng!');
   },
@@ -4749,20 +4827,25 @@ const gameStore = {
       c.quy ? ('Trong đó có <b>' + this.fmt(c.quy) + '</b> món phẩm Hiếm trở lên.') : '',
       treo ? ('<b>' + this.fmt(treo) + '</b> món đang treo ở Trưng Bày — bán xong ô trên giá sẽ trống.') : '',
     ].filter(Boolean).join(' ');
+    const banThat = () => {
+      let n = 0, bac = 0;
+      for (const it of ds) {
+        const r = it.uid ? this.sellGearStack(it.uid, this.gearStackUids(it.uid).length)
+          : this.sellItem(it.id, this.state.inventory[it.id] || 0);
+        n += r.n; bac += r.bac;
+      }
+      this.hlSel = {};
+      this.showToast('Đã bán ' + this.fmt(n) + ' món · +' + this.fmt(bac) + ' Bạc');
+    };
+    // Cài Đặt → Hỏi Xác Nhận. Tắt thì bán thẳng lô TOÀN PHẨM THƯỜNG.
+    // ⚠ Lô có món phẩm Hiếm trở lên, hoặc có món đang treo ở Trưng Bày, thì VẪN HỎI — đó là hai
+    //   thứ mất đi không lấy lại được. Cài đặt này để bớt phiền, không phải để bỏ phanh.
+    if (!this.caiDat.hoiKhiBan && !canhBao) { banThat(); return; }
     this.hoiXacNhan({
       tieuDe: 'Bán Hàng Loạt', nut: 'Bán', nguy: true,
       loi: 'Bán <b class="text-slate-100">' + this.fmt(c.n) + '</b> món · thu về <b class="text-gold">' + this.fmt(c.bac) + '</b> Bạc.',
       canhBao,
-      xong: () => {
-        let n = 0, bac = 0;
-        for (const it of ds) {
-          const r = it.uid ? this.sellGearStack(it.uid, this.gearStackUids(it.uid).length)
-            : this.sellItem(it.id, this.state.inventory[it.id] || 0);
-          n += r.n; bac += r.bac;
-        }
-        this.hlSel = {};
-        this.showToast('Đã bán ' + this.fmt(n) + ' món · +' + this.fmt(bac) + ' Bạc');
-      },
+      xong: banThat,
     });
   },
 
@@ -5581,6 +5664,11 @@ Alpine.store('game').initRoute();           // Hash routing: mở đúng tab the
 Alpine.store('game').initModalHistory();    // Bộ chặn modal: vuốt-back đóng modal đang mở (reactive theo _MODALS)
 window.addEventListener('popstate', () => { const s = window.Alpine?.store('game'); if (!s) return; if (s._mGuard > 0) { s._mGuard--; return; } if (s._mstack && s._mstack.length) { s._modalBack(); return; } s.applyHashRoute(); });   // modal đang mở -> vuốt-back chỉ ĐÓNG modal top, KHÔNG route tab
 Alpine.store('game').ensureQuests();
+Alpine.store('game').apDungCaiDat();        // Cài Đặt: đổ "giảm hiệu ứng" + trần độ nét xuống ngay khi mở game
+// Nhãn Toàn Màn Hình phải theo trạng thái THẬT: người chơi bấm ESC hay F11 thì trình duyệt tự
+// thoát, không đi qua nút của mình. Không nghe sự kiện này là nhãn kẹt ở "Thoát Toàn Màn Hình".
+['fullscreenchange', 'webkitfullscreenchange'].forEach((e) =>
+  document.addEventListener(e, () => { const s = Alpine.store('game'); if (s) s.toanManTick++; }));
 Alpine.store('game').checkBossAwayOnce();   // resolve hàng đợi Yêu Vương đã giáng thế lúc vắng mặt
 Alpine.store('game').huntsOnLoad();         // Săn Mồi: gộp tiến trình lúc vắng mặt + thông báo
 Alpine.store('game').initWorld();           // Giang Hồ AI: khởi tạo world seed (roster bot)

@@ -20,6 +20,22 @@ const MUC = [3, 2.5, 2, 1.75, 1.5, 1.25, 1];
 /** Nấc DÙNG ĐỂ ĐO nhịp màn hình lúc mới vào — thấp cho chắc chắn không phải mình làm nghẽn. */
 const MUC_DO = 1.25;
 
+// ============================================================
+// TRẦN NGƯỜI CHƠI TỰ ĐẶT (Cài Đặt → Chất Lượng Hình)
+// ⚠ Đặt ở TẦNG MODULE chứ không truyền qua tham số: sáu bàn 3D đều gọi `taoTuChinh(renderer,
+//   onResize)` với đúng hai tham số. Thêm tham số thứ ba là phải sửa sáu chỗ gọi, mà sót một
+//   chỗ thì bàn đó lặng lẽ không nghe cài đặt — lỗi im lặng đúng kiểu khó tìm nhất.
+// ⚠ Đây là TRẦN, không phải giá trị ép: bộ tự chỉnh vẫn được HẠ xuống khi máy đuối.
+//   Người chọn "ưu tiên mượt" là chấp nhận mờ để máy thở, không phải khoá cứng một nấc.
+// ============================================================
+let _tranNet = 3;
+/** `muc`: 1.5 (ưu tiên mượt) · 3 (tự động — vẽ đúng độ phân giải màn). */
+export function datTranNet(muc) {
+  const v = Number(muc);
+  _tranNet = (isFinite(v) && v > 0) ? v : 3;
+}
+export function layTranNet() { return _tranNet; }
+
 /**
  * Bộ tự chỉnh tỉ lệ điểm ảnh.
  *
@@ -41,13 +57,19 @@ const MUC_DO = 1.25;
  */
 export function taoTuChinh(renderer, datLaiCo) {
   const dpr = window.devicePixelRatio || 1;
+  // Nấc nét nhất = min(DPR của màn, trần người chơi đặt). Lấy TẠI ĐÂY chứ không lấy lúc nạp
+  // module: người chơi đổi cài đặt rồi mở bàn khác là bàn đó phải nghe theo ngay.
+  const tran = Math.min(dpr, _tranNet);
   let i = 0;
-  while (i < MUC.length - 1 && MUC[i] > dpr) i++;      // nấc nét nhất = đúng DPR của màn (trần 3)
+  while (i < MUC.length - 1 && MUC[i] > tran) i++;
   const dinh = i;
-  const dat = () => renderer.setPixelRatio(Math.min(dpr, MUC[i]));
+  // ⚠⚠ KẸP THEO `tran`, KHÔNG kẹp theo `dpr`. Vòng nâng lại (`i--`) KHÔNG có chốt `i > dinh`,
+  //   nên nó leo được lên nấc nét hơn cả nấc khởi đầu. Kẹp bằng `dpr` thì người chọn "ưu tiên
+  //   mượt" (trần 1,5) trên máy DPR 3 vẫn bị đẩy lên 1,75 — cài đặt thành đồ trang trí.
+  const dat = () => renderer.setPixelRatio(Math.min(tran, MUC[i]));
 
   let nhipMan = 0, mau = [], daDo = 0;
-  renderer.setPixelRatio(Math.min(dpr, MUC_DO));       // giai đoạn ĐO
+  renderer.setPixelRatio(Math.min(tran, MUC_DO));      // giai đoạn ĐO
   let truoc = 0, cong = 0, dem = 0;
   // Nấc CAO NHẤT đã tự chứng minh là chạy không nổi. Không bao giờ quay lại nấc đó nữa —
   // thiếu chốt này thì hạ/nâng cứ đập qua đập lại, mỗi lần đổi là một nhịp canh khung, thấy giật.
