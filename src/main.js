@@ -76,7 +76,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua } from './cloud.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
@@ -563,7 +563,7 @@ const gameStore = {
     //   ô thứ nhất có số hiệu 0, mà 0 là giá trị giả — đăng ký thẳng thì vuốt-back
     //   ở đúng ô đầu tiên lại lùi cả tab thay vì đóng bảng.
     ['tbChonMo', 'tbDong'],
-    ['hoSoKhachMo', 'dongHoSoKhach'],
+    ['hoSoKhachMo', 'dongHoSoKhach'], ['gsMo', 'dongGiamSat'],
   ],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
@@ -1395,6 +1395,39 @@ const gameStore = {
   get hasAuthorSeal() { return !!(this.author && this.author.name); },
   // Tài khoản đang đăng nhập CÓ ĐÚNG là tác giả không (uid khớp chứng chỉ đã ký) -> huy hiệu "✓ Tác Giả".
   get isAuthorAccount() { return !!(this.author && this.author.uid && this.authUser && this.authUser.id === this.author.uid); },
+
+  // ---------- GIÁM SÁT (đợt C) — chỉ tài khoản tác giả ----------
+  // ⚠⚠ `isAuthorAccount` chỉ để ẨN/HIỆN màn này. Nó KHÔNG phải hàng rào — ai sửa mã client
+  //   cũng bật được panel. Hàng rào thật là luật RLS ở Supabase (docs/SQL_GIAM_SAT.sql):
+  //   bật được panel mà không có token đúng uid thì mọi truy vấn trả về RỖNG.
+  gsMo: false, gsTai: false, gsLoi: '', gsRows: [], gsChon: null, gsChiTiet: [], gsLocTacGia: true,
+  openGiamSat() { this.gsMo = true; this.taiGiamSat(); },
+  dongGiamSat() { this.gsMo = false; this.gsChon = null; this.gsChiTiet = []; },
+  async taiGiamSat() {
+    this.gsTai = true; this.gsLoi = '';
+    try {
+      const r = await cloudNghiVanGom(100);
+      if (!r.ok) this.gsLoi = 'Không đọc được sổ — kiểm tra đã chạy SQL_GIAM_SAT.sql chưa.';
+      else this.gsRows = r.rows;
+    } catch (e) { this.gsLoi = 'Không kết nối được.'; }
+    finally { this.gsTai = false; }
+  },
+  /** Bỏ dòng của chính tác giả — bảng dev (F9) tự báo động nên nó luôn đứng đầu sổ. */
+  get gsHien() {
+    const ds = this.gsRows || [];
+    return this.gsLocTacGia ? ds.filter((r) => !r.la_tac_gia) : ds;
+  },
+  get gsSoTacGia() { return (this.gsRows || []).filter((r) => r.la_tac_gia).length; },
+  async gsXem(uid) {
+    if (this.gsChon === uid) { this.gsChon = null; this.gsChiTiet = []; return; }
+    this.gsChon = uid; this.gsChiTiet = [];
+    try { const r = await cloudNghiVanCua(uid, 20); if (r.ok) this.gsChiTiet = r.rows; } catch (e) {}
+  },
+  /** Một dòng nghi vấn -> câu chữ đọc được: "Chiến Đấu +20.166.012 (gấp 12,5 lần trần)". */
+  gsDongChu(d) {
+    const ten = (k) => (k === 'bac' ? 'Bạc' : (k === 'chienDau' ? 'Chiến Đấu' : ((this.SKILLS[k] || {}).name || k)));
+    return (d.chi_tiet || []).map((x) => ten(x.khoa) + ' +' + this.fmt(x.tang) + ' (gấp ' + x.gap + ' lần trần)').join(' · ');
+  },
 
   // ---------- Tài khoản / Cloud (Supabase Auth) ----------
   get isLoggedIn() { return !!this.authUser; },

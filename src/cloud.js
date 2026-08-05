@@ -124,3 +124,33 @@ export async function cloudLoadBangNguoiThat(gioiHan) {
 
 /** Ma tai khoan cua chinh minh — de dung duong dan khoe. */
 export async function cloudMyUid() { return _uid(); }
+
+// ============================================================
+// GIAM SAT (dot C) — chi tai khoan TAC GIA doc duoc.
+// ⚠ Hang rao la RLS phia Supabase (xem docs/SQL_GIAM_SAT.sql), KHONG phai `isAuthorAccount`
+//   trong game. Getter do chi de an/hien giao dien; ai sua ma client cung bat duoc panel,
+//   nhung khong co token dung uid thi may ham duoi day tra ve RONG.
+// ============================================================
+
+/** Gom so nghi van theo tai khoan — mot dong moi nguoi, khong keo ca so ve may. */
+export async function cloudNghiVanGom(gioiHan) {
+  const sb = await getClient();
+  const { data, error } = await sb.from('nghi_van_gom')
+    .select('user_id,so_dong,gan_nhat,gap_nhat,la_tac_gia')
+    .order('gan_nhat', { ascending: false })
+    .limit(Math.max(1, Math.min(200, gioiHan || 50)));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+
+/** Cac dong nghi van cua MOT tai khoan. */
+export async function cloudNghiVanCua(uid, gioiHan) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { data, error } = await sb.from('nghi_van')
+    .select('id,luc,giay,chi_tiet')
+    .eq('user_id', uid).order('luc', { ascending: false })
+    .limit(Math.max(1, Math.min(100, gioiHan || 20)));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
