@@ -12,30 +12,31 @@ import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PE
 // nó đã import petBonus từ chính file này).
 import { consumableEffMult } from './setbonus.js';
 import { bangKyNangBonus } from './bangbuff.js';   // Mục Thú Quyết: +EXP Linh Thú
+import { rng } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 
 const STAT_KEYS = ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc'];
 
-function rollEggQuality(eggQ) {
+function rollEggQuality(state, eggQ) {
   const t = EGG_TO_PET_Q[eggQ] || EGG_TO_PET_Q.phamPham;
-  let r = Math.random(), acc = 0;
+  let r = rng(state, 'noan'), acc = 0;
   for (const [q, p] of t) { acc += p; if (r < acc) return q; }
   return t[t.length - 1][0];
 }
 
-function weightedPick(pool) {
+function weightedPick(state, pool) {
   const tot = pool.reduce((s, o) => s + o.w, 0);
-  let r = Math.random() * tot;
+  let r = rng(state, 'diBam') * tot;
   for (const o of pool) { r -= o.w; if (r <= 0) return o; }
   return pool[pool.length - 1];
 }
-function rollOptVal(o, pq) {
-  const pos = Math.max(0, Math.min(1, pq.bias + (Math.random() - 0.5) * 0.25));
+function rollOptVal(state, o, pq) {
+  const pos = Math.max(0, Math.min(1, pq.bias + (rng(state, 'diBam') - 0.5) * 0.25));
   let v = Math.round((o.lo + pos * (o.hi - o.lo)) * pq.qMul);
   v = Math.max(o.lo, v);
   if (o.cap) v = Math.min(v, o.cap);
   return v;
 }
-function rollOpts(quality) {
+function rollOpts(state, quality) {
   const pq = PET_QUALITY[quality]; const n = pq.optSlots;
   const used = new Set(); const out = [];
   const combat = PET_OPT_POOL.filter((o) => o.group === 'combat');
@@ -44,15 +45,15 @@ function rollOpts(quality) {
     for (let i = 0; i < count; i++) {
       const avail = pool.filter((o) => !used.has(o.id));
       if (!avail.length) break;
-      const o = weightedPick(avail); used.add(o.id);
-      out.push({ id: o.id, val: rollOptVal(o, pq) });
+      const o = weightedPick(state, avail); used.add(o.id);
+      out.push({ id: o.id, val: rollOptVal(state, o, pq) });
     }
   };
   pick(combat, Math.min(2, n));    // ≤2 opt combat-stat (chống cap nuốt)
   pick(util, n - out.length);      // còn lại utility
   pick(combat, n - out.length);    // util hết -> thêm combat
-  if (Math.random() < 0.25 && !used.has('eleDmg') && out.length) {  // 25% ép 1 opt = eleDmg cùng hệ
-    out[out.length - 1] = { id: 'eleDmg', val: rollOptVal(PET_OPT_BY_ID.eleDmg, pq) };
+  if (rng(state, 'diBam') < 0.25 && !used.has('eleDmg') && out.length) {  // 25% ép 1 opt = eleDmg cùng hệ
+    out[out.length - 1] = { id: 'eleDmg', val: rollOptVal(state, PET_OPT_BY_ID.eleDmg, pq) };
   }
   return out;
 }
@@ -68,7 +69,7 @@ function rollPet(base, quality, state) {
     }
   }
   state._petSeq = (state._petSeq || 0) + 1;
-  return { id: 'pet' + state._petSeq, base, quality, level: 1, xp: 0, baseStats, growth, opts: rollOpts(quality), equipped: false, evolved: false };
+  return { id: 'pet' + state._petSeq, base, quality, level: 1, xp: 0, baseStats, growth, opts: rollOpts(state, quality), equipped: false, evolved: false };
 }
 
 // Ấp nở 1 trứng -> trả pet (đã push vào state.pets) hoặc null.
@@ -77,7 +78,7 @@ export function hatchEgg(state, eggId) {
   if (!egg || egg.type !== 'trung' || !egg.petBase) return null;
   if ((state.inventory[eggId] || 0) < 1) return null;
   removeItem(state, eggId, 1);
-  const pet = rollPet(egg.petBase, rollEggQuality(egg.quality), state);
+  const pet = rollPet(egg.petBase, rollEggQuality(state, egg.quality), state);
   if (!Array.isArray(state.pets)) state.pets = [];
   state.pets.push(pet);
   if (state.codex && state.codex.petSeen && pet.base) state.codex.petSeen[pet.base] = 1; // Vạn Vật Phổ — Linh Thú Phổ
@@ -101,7 +102,7 @@ export function startIncubation(state, eggId, now) {
   if (!egg || egg.type !== 'trung' || !egg.petBase) return null;
   if ((state.inventory[eggId] || 0) < 1) return null;
   removeItem(state, eggId, 1);
-  const pet = rollPet(egg.petBase, rollEggQuality(egg.quality), state);
+  const pet = rollPet(egg.petBase, rollEggQuality(state, egg.quality), state);
   const dur = hatchDurMs(egg.quality);
   state.hatchery = { pet, base: egg.petBase, eggId, eggQuality: egg.quality, startedAt: now, readyAt: now + dur, durMs: dur, notified: false };
   return state.hatchery;
@@ -332,7 +333,7 @@ export function upgradePetQuality(pet) {
   pet.quality = Q_ORDER[i + 1];
   recomputePetStats(pet);
   const need = PET_QUALITY[pet.quality].optSlots - (pet.opts ? pet.opts.length : 0);   // mở thêm ô opt nếu phẩm mới nhiều hơn
-  if (need > 0) pet.opts = (pet.opts || []).concat(rollOpts(pet.quality).slice(0, need));
+  if (need > 0) pet.opts = (pet.opts || []).concat(rollOpts(state, pet.quality).slice(0, need));
   return true;
 }
 // % chỉ số donor mà target HẤP THỤ (vĩnh viễn): cùng dòng+phẩm 5% / cùng 1 thứ 3% / khác 1%.
@@ -371,7 +372,7 @@ export function fuseMany(state, targetId, donorIds) {
   const leveled = addXpToPet(state, t, xp);
   let upgraded = false;
   const upChance = 1 - pSurv;
-  if (upChance > 0 && Math.random() < upChance) upgraded = upgradePetQuality(t);
+  if (upChance > 0 && rng(state, 'dungHop') < upChance) upgraded = upgradePetQuality(t);
   return { target: t, count: donors.length, xp, leveled, absorbed, upgraded };
 }
 // Phần thưởng phóng sanh (Bạc luôn; Hồn Thạch ≥Tuyệt; Linh Phách ≥Tinh).
@@ -420,17 +421,17 @@ export function awakenAfford(state, pet) {
   const c = awakenCost(pet);
   return (state.currencies.honThach || 0) >= c.honThach && (state.inventory[c.matId] || 0) >= c.matQty;
 }
-function addOneOpt(pet) {   // khai mở thêm 1 dị bẩm (opt mới, không trùng id sẵn có)
+function addOneOpt(state, pet) {   // khai mở thêm 1 dị bẩm (opt mới, không trùng id sẵn có)
   const pq = PET_QUALITY[pet.quality];
   const used = new Set((pet.opts || []).map((o) => o.id));
   const avail = PET_OPT_POOL.filter((o) => !used.has(o.id));
   if (!avail.length) return null;
-  const o = weightedPick(avail);
-  const opt = { id: o.id, val: rollOptVal(o, pq) };
+  const o = weightedPick(state, avail);
+  const opt = { id: o.id, val: rollOptVal(state, o, pq) };
   pet.opts = (pet.opts || []).concat(opt);
   return opt;
 }
-function pickAwkPassive() { return AWK_PASSIVE_IDS[Math.floor(Math.random() * AWK_PASSIVE_IDS.length)]; }
+function pickAwkPassive(state) { return AWK_PASSIVE_IDS[Math.floor(rng(state, 'thucTinh') * AWK_PASSIVE_IDS.length)]; }
 // Thực thi thức tỉnh. Trả tóm tắt { pet, cost, newOpt, awkPassive, mutated } | null.
 export function awakenPet(state, id) {
   const p = (state.pets || []).find((x) => x.id === id);
@@ -439,10 +440,10 @@ export function awakenPet(state, id) {
   state.currencies.honThach = (state.currencies.honThach || 0) - c.honThach;
   removeItem(state, c.matId, c.matQty);
   p.evolved = true;
-  const newOpt = addOneOpt(p);
-  p.awkPassive = pickAwkPassive();
+  const newOpt = addOneOpt(state, p);
+  p.awkPassive = pickAwkPassive(state);
   let mutated = false;
-  if (Math.random() < 0.15) mutated = upgradePetQuality(p);   // 15% biến dị thăng 1 phẩm (recompute stat + mở opt slot nếu có)
+  if (rng(state, 'thucTinh') < 0.15) mutated = upgradePetQuality(p);   // 15% biến dị thăng 1 phẩm (recompute stat + mở opt slot nếu có)
   return { pet: p, cost: c, newOpt, awkPassive: p.awkPassive, mutated };
 }
 
@@ -467,11 +468,11 @@ function huntExpPerTick(pet) {
   return Math.max(1, Math.round(pet.level * 4 * (1 + (e ? e.val / 100 : 0)) * 0.4));
 }
 function huntNguThuXp(loc) { return 2 + Math.round((loc.reqLevel || 1) / 6); }   // vùng cao -> luyện Ngự Thú nhanh hơn
-function rollHuntLoot(loc, loot) {
+function rollHuntLoot(state, loc, loot) {
   for (const eid of (loc.enemies || [])) {
     const e = ENEMIES[eid];
     if (!e || !e.loot) continue;
-    for (const l of e.loot) if (Math.random() < l.chance * HUNT_LOOT_MULT) loot[l.itemId] = (loot[l.itemId] || 0) + 1;
+    for (const l of e.loot) if (rng(state, 'sanMoi') < l.chance * HUNT_LOOT_MULT) loot[l.itemId] = (loot[l.itemId] || 0) + 1;
   }
 }
 // Phái 1 pet đi săn tại vùng. Trả pet | null (sai điều kiện: bận / hết slot / chưa đủ cấp vùng).
@@ -510,7 +511,7 @@ function resolveOneHunt(state, p, now, capMs) {
       if ((p.tl == null ? max : p.tl) < HUNT_STAM_COST) { p.state = 'rest'; p.tlAt = cursor; continue; }
       if (cursor + HUNT_TICK_MS > now) break;                         // chưa đủ 1 lượt 10'
       cursor += HUNT_TICK_MS;
-      exp += huntExpPerTick(p); nguXp += huntNguThuXp(loc); rollHuntLoot(loc, loot); ticks++;
+      exp += huntExpPerTick(p); nguXp += huntNguThuXp(loc); rollHuntLoot(state, loc, loot); ticks++;
       p.tl = (p.tl == null ? max : p.tl) - HUNT_STAM_COST;
       if (p.tl < HUNT_STAM_COST) { p.state = 'rest'; p.tlAt = cursor; }   // kiệt -> Dưỡng Sức
     } else {                                                          // rest: nghỉ tới đầy rồi tự săn lại

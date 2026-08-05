@@ -1177,8 +1177,8 @@ const gameStore = {
   },
   get tmRecruitCost() { return recruitCost(this.tm).bac; },
   tmCanRecruit() { return this.tm.disciples.length < this.tmSlot(); },
-  openRecruit() { if (!this.tmCanRecruit()) { this.showToast('Hết slot — nâng Tụ Hiền Đường'); return; } if (!this.tm.recruitPool || !this.tm.recruitPool.length) refreshRecruitPool(this.tm, now()); this.tmRecruitOpen = true; },
-  tmRecruit(idx) { if (doRecruit(this.state, idx)) { this.tmSave(); this.showToast('Thu nhận đệ tử mới!'); if (!this.tm.recruitPool.length) refreshRecruitPool(this.tm, now()); } else this.showToast('Thiếu Bạc hoặc hết slot'); },
+  openRecruit() { if (!this.tmCanRecruit()) { this.showToast('Hết slot — nâng Tụ Hiền Đường'); return; } if (!this.tm.recruitPool || !this.tm.recruitPool.length) refreshRecruitPool(this.state, this.tm, now()); this.tmRecruitOpen = true; },
+  tmRecruit(idx) { if (doRecruit(this.state, idx)) { this.tmSave(); this.showToast('Thu nhận đệ tử mới!'); if (!this.tm.recruitPool.length) refreshRecruitPool(this.state, this.tm, now()); } else this.showToast('Thiếu Bạc hoặc hết slot'); },
   // Đổi lứa Chiêu Hiền: tốn Hồn Thạch, giới hạn 3 lần/24h (engine doRecruitReset).
   get tmResetInfo() { void this._tick; return recruitResetInfo(this.tm, now()); },
   tmCanReset() { const i = this.tmResetInfo; return i.left > 0 && (this.state.currencies.honThach || 0) >= i.cost; },
@@ -4583,7 +4583,7 @@ const gameStore = {
   },
   doEnhance() {
     const inst = this.enhanceInst(); if (!inst) return;
-    const r = tryEnhance(this.state, inst);
+    const r = tryEnhance(this.state, inst, rng(this.state, 'cuongHoa'));
     if (r.ok) { this.enhanceMsg = r.success ? { ok: true, plus: r.plus } : { ok: false }; Storage.save(this.state); }
   },
 

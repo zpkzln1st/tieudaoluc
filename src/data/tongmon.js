@@ -171,7 +171,7 @@ export const PILL_PHAM_KEYS = PILL_PHAM.map((p) => p.key);   // thứ tự THẤ
 export const PILL_PHAM_BY_KEY = {}; PILL_PHAM.forEach((p) => { PILL_PHAM_BY_KEY[p.key] = p; });
 export function pillPham(key) { return PILL_PHAM_BY_KEY[key] || PILL_PHAM[0]; }
 // Roll phẩm 1 mẻ đan: bậc Y Quán + Khí Vận đẩy phẩm cao. Trả key.
-export function rollPillPham(yQuanLv, khiVan) {
+export function rollPillPham(yQuanLv, khiVan, rnd) {
   const lift = Math.max(0, (yQuanLv || 0) * 0.6 + (((khiVan == null ? 50 : khiVan) - 50) / 50) * 1.6);
   const w = {
     ha:     Math.max(1, 10 - lift * 1.6),
@@ -179,7 +179,7 @@ export function rollPillPham(yQuanLv, khiVan) {
     thuong: Math.max(0.2, (lift - 1) * 0.8),
     cuc:    Math.max(0.04, (lift - 3.2) * 0.6),
   };
-  let tot = 0; PILL_PHAM_KEYS.forEach((k) => (tot += w[k])); let r = Math.random() * tot;
+  let tot = 0; PILL_PHAM_KEYS.forEach((k) => (tot += w[k])); let r = (rnd || Math.random)() * tot;
   for (const k of PILL_PHAM_KEYS) { r -= w[k]; if (r <= 0) return k; } return 'ha';
 }
 
@@ -287,9 +287,9 @@ export const BK_AUCTION_SLOTS = 4;            // số lô mỗi phiên
 export const BK_AUCTION_REFRESH_H = 8;        // giờ làm mới phiên (bán hết -> đợi phiên sau = rate-limit "assist CHẬM")
 export const BK_AUCTION_PRICE = { 'sơ': 60, 'trung': 200, 'cao': 650, 'tuyệt': 1600 };   // Điểm theo bậc
 export const BK_TIER_GATE  = { 'sơ': 0, 'trung': 1, 'cao': 3, 'tuyệt': 5 };               // cấp Tàng Thư Lâu tối thiểu để lô bậc này xuất hiện
-export function bkLotPrice(tier) { return Math.round((BK_AUCTION_PRICE[tier] || 100) * (0.9 + Math.random() * 0.3)); }
+export function bkLotPrice(tier, rnd) { return Math.round((BK_AUCTION_PRICE[tier] || 100) * (0.9 + (rnd || Math.random)() * 0.3)); }
 // sinh 1 phiên đấu giá: chọn (không trùng) theo weight bậc (sơ/trung dễ ra, cao/tuyệt hiếm), lọc theo gate cấp Tàng Thư Lâu
-export function genBkAuction(tangThuLv) {
+export function genBkAuction(tangThuLv, rnd) {
   const lv = tangThuLv || 0;
   const pool = BI_KIP.filter((b) => (BK_TIER_GATE[b.tier] || 0) <= lv);
   const used = new Set(), lots = [];
@@ -297,11 +297,11 @@ export function genBkAuction(tangThuLv) {
   while (lots.length < BK_AUCTION_SLOTS && guard++ < 300) {
     let tot = 0; pool.forEach((b) => { if (!used.has(b.id)) tot += (BI_KIP_TIER[b.tier] || {}).weight || 1; });
     if (tot <= 0) break;
-    let r = Math.random() * tot, pick = null;
+    let r = (rnd || Math.random)() * tot, pick = null;
     for (const b of pool) { if (used.has(b.id)) continue; r -= (BI_KIP_TIER[b.tier] || {}).weight || 1; if (r <= 0) { pick = b; break; } }
     if (!pick) break;
     used.add(pick.id);
-    lots.push({ id: pick.id, price: bkLotPrice(pick.tier) });
+    lots.push({ id: pick.id, price: bkLotPrice(pick.tier, rnd) });
   }
   return lots;
 }
@@ -315,12 +315,12 @@ export function biCanhBkMaxTier(reqLevel) {
   if (lv >= 40) return 'trung';
   return 'sơ';
 }
-export function rollBiCanhBiKip(reqLevel) {
+export function rollBiCanhBiKip(reqLevel, rnd) {
   const maxIdx = BI_KIP_TIER_ORDER.indexOf(biCanhBkMaxTier(reqLevel));
   const pool = BI_KIP.filter((b) => BI_KIP_TIER_ORDER.indexOf(b.tier) <= maxIdx);
   if (!pool.length) return null;
   let tot = 0; pool.forEach((b) => { tot += (BI_KIP_TIER[b.tier] || {}).weight || 1; });
-  let r = Math.random() * tot;
+  let r = (rnd || Math.random)() * tot;
   for (const b of pool) { r -= (BI_KIP_TIER[b.tier] || {}).weight || 1; if (r <= 0) return b.id; }
   return pool[0].id;
 }
@@ -383,19 +383,19 @@ export function buildCost(lv) { return { bac: Math.round(800 * Math.pow(1.9, lv)
 
 // ---- Sinh 1 đệ tử ngẫu nhiên (ứng viên chiêu mộ / starter) ----
 let _uidc = 1;
-export function genDisciple(opt = {}) {
-  const pick = (a) => a[Math.floor(Math.random() * a.length)];
-  const wPick = (keys, weightOf) => { let t = 0; keys.forEach((k) => (t += weightOf(k))); let r = Math.random() * t; for (const k of keys) { r -= weightOf(k); if (r <= 0) return k; } return keys[0]; };
-  const sex = opt.sex || (Math.random() < 0.5 ? 'nam' : 'nu');
+export function genDisciple(opt = {}, rnd) {
+  const pick = (a) => a[Math.floor((rnd || Math.random)() * a.length)];
+  const wPick = (keys, weightOf) => { let t = 0; keys.forEach((k) => (t += weightOf(k))); let r = (rnd || Math.random)() * t; for (const k of keys) { r -= weightOf(k); if (r <= 0) return k; } return keys[0]; };
+  const sex = opt.sex || ((rnd || Math.random)() < 0.5 ? 'nam' : 'nu');
   const apt = opt.apt || wPick(APT_KEYS, (k) => APT[k].w);
   const origin = opt.origin || pick(ORIGINS).key;
-  const i = Math.floor(Math.random() * (sex === 'nam' ? TEN_NAM : TEN_NU).length);
+  const i = Math.floor((rnd || Math.random)() * (sex === 'nam' ? TEN_NAM : TEN_NU).length);
   const ten = sex === 'nam' ? TEN_NAM[i] : TEN_NU[i];
   const han = (sex === 'nam' ? HAN_NAM : HAN_NU)[i] || '俠';
-  const nT = Math.random() < 0.35 ? 2 : 1;
+  const nT = (rnd || Math.random)() < 0.35 ? 2 : 1;
   const traits = []; while (traits.length < nT) { const t = pick(TRAITS); if (!traits.includes(t)) traits.push(t); }
   return {
-    uid: 'd' + (Date.now().toString(36)) + (_uidc++),
+    uid: 'd' + (rnd ? Math.floor(rnd() * 2176782336).toString(36) : (Date.now().toString(36) + (_uidc++))),
     name: opt.name || (pick(HO) + ' ' + ten),
     sex, han: opt.han || han, origin, originLabel: originLabelOf(origin, sex), bio: originBioOf(origin, sex), apt,
     he: opt.he || pick(HE_KEYS),
@@ -407,7 +407,7 @@ export function genDisciple(opt = {}) {
     gear: {},                               // { slotId: gearInstance } — Gia Bảo, side-only
     state: 'tu',                            // tu | rest
     awaiting: false,                        // chờ Đắc Đạo -> chọn Xuất Sư/Trưởng Lão
-    bornAt: Date.now(),
+    bornAt: opt.now || Date.now(),   // ⚠ nhận mốc giờ từ ngoài để tính lại được (Đợt D)
   };
 }
 

@@ -59,7 +59,8 @@ const M = (text, effects, chronicle, tease) => ({ tone: 'trung',text, effects: e
 const APT_RANK = { pham: 0, trung: 1, thuong: 2, tuyet: 3, thien: 4 };
 const lowApt = (pool) => pool.slice().sort((a, b) => APT_RANK[a.apt] - APT_RANK[b.apt])[0] || null;
 const highApt = (pool) => pool.slice().sort((a, b) => APT_RANK[b.apt] - APT_RANK[a.apt])[0] || null;
-const rnd = (pool) => (pool.length ? pool[Math.floor(Math.random() * pool.length)] : null);
+// ⚠ Nhận hàm sinh số từ ngoài (Đợt D): không tiêm thì rơi về Math.random.
+const rnd = (pool, r) => (pool.length ? pool[Math.floor((r || Math.random)() * pool.length)] : null);
 
 // ============================================================
 // NHÓM A — DRAMA ĐỆ TỬ NỘI BỘ
@@ -71,10 +72,10 @@ const A1 = {
   pick: (t) => {
     const pool = t.disciples.filter((d) => !d.awaiting);
     // 2 đệ tử khác nhau (ưu tiên khác giới cho thuận chuyện, không bắt buộc)
-    const a = pool[Math.floor(Math.random() * pool.length)];
+    const a = pool[Math.floor((t._rnd || Math.random)() * pool.length)];
     const rest = pool.filter((d) => d.uid !== a.uid);
     const pref = rest.filter((d) => d.sex !== a.sex);
-    const b = (pref.length ? pref : rest)[Math.floor(Math.random() * (pref.length ? pref.length : rest.length))];
+    const b = (pref.length ? pref : rest)[Math.floor((t._rnd || Math.random)() * (pref.length ? pref.length : rest.length))];
     return [a.uid, b.uid];
   },
   story: (c) =>
@@ -135,7 +136,7 @@ const E1 = {
   id: 'E1', grp: 'E', kind: 'auto', han: '霞', title: 'Triêu Hà Mãn Sơn', weight: 6, cdH: 18,
   cond: (t) => t.disciples.length >= 1,
   auto: (c) => {
-    const d = c.t.disciples[Math.floor(Math.random() * c.t.disciples.length)];
+    const d = c.t.disciples[Math.floor(c.rng() * c.t.disciples.length)];
     return G(
       `Một sớm mây ráng đỏ rực sơn môn. ${d.name} ngồi xếp bằng nơi mỏm đá, hô hấp cùng trời đất — linh khí tụ về như suối. Cả tông đều thấy lòng nhẹ tênh.`,
       [ { khiVan: 3 } ],
@@ -354,7 +355,7 @@ const B1 = {
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
         const arrogant = pool.filter((d) => c.anyTrait(['Cao Ngạo', 'Cuồng Ngạo', 'Hiếu Chiến'], d));
-        const d = arrogant.length ? rnd(arrogant) : rnd(pool);
+        const d = arrogant.length ? rnd(arrogant, c.rng) : rnd(pool, c.rng);
         return c.lucky(0.5)
           ? G(
               `${d.name} chắp kiếm khinh khỉnh: "Lão hủ cũng dám xưng cao nhân?" Mộ Vân Tẩu mỉm cười, một ngón tay điểm bay thanh kiếm. ${d.name} ngã sõng soài, bừng tỉnh, dập đầu bái lạy thành tâm. Lão đỡ dậy, truyền cho mấy đường chân quyết — kẻ ngông cuồng từ đó học được chữ "khiêm".`,
@@ -403,7 +404,7 @@ const B2 = {
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
         const shrewd = pool.filter((d) => c.anyTrait(['Mưu Trí', 'Cô Độc', 'Thận Trọng'], d));
-        const d = shrewd.length ? rnd(shrewd) : rnd(pool);
+        const d = shrewd.length ? rnd(shrewd, c.rng) : rnd(pool, c.rng);
         return c.lucky(0.55)
           ? G(
               `${d.name} chắp tay điềm đạm, vài câu hỏi xoáy khiến Bách Hiểu Sinh toát mồ hôi. "Mực này pha nghệ, giấy này hun khói — ông định lừa ai?" Thương nhân cứng họng, đành hạ giá còn nửa rồi cút thẳng. Cả tông được phen hả dạ, bạc tiêu chẳng đáng là bao.`,
@@ -439,7 +440,7 @@ const B2 = {
       flavor: 'Ra lệnh khám tay nải, lục soát lai lịch tấm bản đồ.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
-        const d = rnd(pool);
+        const d = rnd(pool, c.rng);
         return c.dao === 'chinh'
           ? B(
               `Ngươi quát đệ tử khám tay nải, quả nhiên lòi ra cả xấp đồ ăn cắp. Bách Hiểu Sinh quỳ sụp van xin. Ngươi tịch thu bản đồ, sung công đồ gian, đuổi hắn đi. Đồ thì lấy được không tốn một đồng, song dân hành thương rỉ tai nhau: "Tông ấy hà khắc, chớ dây." Từ nay khách buôn ngại ghé.`,
@@ -486,7 +487,7 @@ const B3 = {
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
         const clever = pool.filter((d) => c.anyTrait(['Mưu Trí', 'Thận Trọng', 'Cô Độc'], d));
-        const d = clever.length ? rnd(clever) : rnd(pool);
+        const d = clever.length ? rnd(clever, c.rng) : rnd(pool, c.rng);
         return c.lucky(0.55)
           ? G(
               `${d.name} tiếp khách, trà ba tuần mà lời như cờ vây. Vài câu gài khéo, sứ giả lỡ miệng để lộ: môn phái kia gần đây nội bộ lục đục, khí thế đang suy. ${d.name} ghi nhớ, tiễn khách rồi mật báo lên điện. Biết người biết ta, trận sau ung dung.`,
@@ -525,7 +526,7 @@ const C1 = {
     const pool = t.disciples.filter((d) => !d.awaiting);
     const a = highApt(pool);                                   // đệ tử mạnh nhất ra mặt
     const rest = pool.filter((d) => d.uid !== a.uid);
-    const b = lowApt(rest) || rest[Math.floor(Math.random() * rest.length)];  // quân cờ "trá bại"
+    const b = lowApt(rest) || rest[Math.floor((t._rnd || Math.random)() * rest.length)];  // quân cờ "trá bại"
     return [a.uid, b.uid];
   },
   story: (c) =>
@@ -588,7 +589,7 @@ const C2 = {
     const rest = pool.filter((d) => d.uid !== a.uid);
     // ưu tiên đệ tử Mưu Trí cho nhánh "ngư ông", nếu không có thì lấy ngẫu nhiên
     const muu = rest.find((d) => d.traits.includes('Mưu Trí'));
-    const b = muu || rest[Math.floor(Math.random() * rest.length)];
+    const b = muu || rest[Math.floor((t._rnd || Math.random)() * rest.length)];
     return [a.uid, b.uid];
   },
   story: (c) =>
@@ -649,7 +650,7 @@ const D1 = {
     if (!pool.length) return [];
     // ưu tiên kẻ đã gieo mầm: tamMaSeed / oanTham / batPhuc, rồi tới kẻ tâm ma "tối" nhất
     const seeded = pool.filter((d) => d.flags && (d.flags.tamMaSeed || d.flags.oanTham || d.flags.batPhuc));
-    if (seeded.length) return [seeded[Math.floor(Math.random() * seeded.length)].uid];
+    if (seeded.length) return [seeded[Math.floor((t._rnd || Math.random)() * seeded.length)].uid];
     const dark = pool.slice().sort((a, b) => ((b.tamMaLv || 0) + (b.tamMaXp || 0)) - ((a.tamMaLv || 0) + (a.tamMaXp || 0)))[0];
     return [dark.uid];
   },
@@ -900,7 +901,7 @@ const E2 = {
   id: 'E2', grp: 'E', kind: 'auto', han: '霜', title: 'Đạp Sương Luyện Kiếm', weight: 6, cdH: 20,
   cond: (t) => t.disciples.length >= 1,
   auto: (c) => {
-    const d = rnd(c.t.disciples);
+    const d = rnd(c.t.disciples, c.rng);
     return G(
       `Đêm sương giăng kín Diễn Võ Trường, trăng treo như một lưỡi cong bạc. ${d.name} một mình múa kiếm dưới ánh hàn quang, mỗi chiêu khuấy sương thành lụa trắng cuộn quanh thân. Phu sương đọng trên mi mà người chẳng hay, chỉ thấy kiếm với trăng đã hợp làm một.`,
       [ { khiVan: 3 } ],
@@ -913,7 +914,7 @@ const E3 = {
   id: 'E3', grp: 'E', kind: 'auto', han: '俠', title: 'Hiệp Cốt Cứu Thôn', weight: 5, cdH: 24,
   cond: (t) => t.disciples.length >= 1,
   auto: (c) => {
-    const d = rnd(c.t.disciples);
+    const d = rnd(c.t.disciples, c.rng);
     return G(
       `Thôn nhỏ chân núi gặp lũ quét, ${d.name} đang xuống chợ mua giấy bút thì gặp. Người chẳng nói chẳng rằng, vận công đỡ một góc đê sắp vỡ suốt một canh giờ, lại cõng từng đứa trẻ qua dòng nước xiết. Dân thôn dập đầu tạ ơn, người chỉ phủi tay áo mà đi, để lại sau lưng tên hiệu một môn phái.`,
       [ { uy: 40 }, { khiVan: 2 } ],
@@ -926,7 +927,7 @@ const E4 = {
   id: 'E4', grp: 'E', kind: 'auto', han: '靈', title: 'Cổ Vật Hiện Linh', weight: 5, cdH: 24,
   cond: (t) => t.disciples.length >= 1,
   auto: (c) => {
-    const d = rnd(c.t.disciples);
+    const d = rnd(c.t.disciples, c.rng);
     return G(
       `Nửa đêm Tàng Bảo Các bỗng sáng rực một góc. ${d.name} gác đêm chạy tới, thấy một món cổ vật phủ bụi từ đời khai tông đang tự ngân lên từng đợt hào quang ấm, như nhận ra người hữu duyên. Linh khí cả tông theo đó mà rộn lên một nhịp, ai nấy đều cảm thấy đạo tâm sáng tỏ hơn thường ngày.`,
       [ { khiVan: 4 } ],
@@ -939,7 +940,7 @@ const E5 = {
   id: 'E5', grp: 'E', kind: 'auto', han: '聚', title: 'Môn Quy Tụ Hội', weight: 6, cdH: 24,
   cond: (t) => t.disciples.length >= 3,
   auto: (c) => {
-    const d = rnd(c.t.disciples);
+    const d = rnd(c.t.disciples, c.rng);
     return G(
       `Trăng tròn cuối tháng, cả môn tụ về đại sảnh. Rượu quê rót đầy, ${d.name} kể lại buổi mới chân ướt chân ráo nhập sơn môn, khiến cả bàn cười vang. Tiền bối luận đạo, hậu bối tỉ thí cho vui, lửa ấm hắt lên những gương mặt cùng một mái nhà. Một đêm như thế, lòng tông môn lại khít thêm một phần.`,
       [ { uy: 30 }, { khiVan: 3 } ],
@@ -955,9 +956,9 @@ const F1 = {
   id: 'F1', grp: 'F', kind: 'auto', han: '採', title: 'Linh Dược Phùng Thời', weight: 6, cdH: 20,
   cond: (t) => t.disciples.length >= 1,
   auto: (c) => {
-    const d = rnd(c.t.disciples);
-    const pick = rnd(['mat_tulinhthao', 'mat_hantinh', 'mat_bachnien', 'mat_huyenthiet']);
-    const n = 2 + Math.floor(Math.random() * 2);   // 2-3
+    const d = rnd(c.t.disciples, c.rng);
+    const pick = rnd(['mat_tulinhthao', 'mat_hantinh', 'mat_bachnien', 'mat_huyenthiet'], c.rng);
+    const n = 2 + Math.floor(c.rng() * 2);   // 2-3
     return G(
       `${d.name} men theo khe núi sau cơn mưa, bỗng ngửi thấy một mùi dược thơm mát lạ thường. Vạch đám rêu phong, một khóm linh dược ẩn dưới gốc cổ thụ hiện ra, lá còn đọng sương lấp lánh linh khí. Người mừng rỡ hái trọn, gói vào tay áo mang về Túi Đồ.`,
       [ { mat: { id: pick, n } }, { khiVan: 2 } ],
@@ -1056,7 +1057,7 @@ const F4 = {
   id: 'F4', grp: 'F', kind: 'auto', han: '寶', title: 'Thiên Tài Giáng Thế', weight: 3, cdH: 72,
   cond: (t) => t.disciples.length >= 1,
   auto: (c) => {
-    const d = rnd(c.t.disciples);
+    const d = rnd(c.t.disciples, c.rng);
     return G(
       `Một đêm sao băng xối xả như mưa, một vệt sáng kéo dài rạch ngang trời rồi đáp xuống hậu sơn. ${d.name} cùng mấy đệ tử lần theo, thấy nơi sao rơi mọc lên một đóa linh chi phát quang ngũ sắc, quanh nó tinh hồn thạch kết tinh từng tảng. Thiên tài địa bảo trăm năm khó gặp — cả tông thắp hương tạ trời, rồi cung kính thu về.`,
       [ { mat: { id: 'mat_cuudiep', n: 3 } }, { mat: { id: 'mat_tinhhon', n: 4 } }, { uy: 80 }, { khiVan: 3 } ],

@@ -28,7 +28,7 @@ import { buffVal } from './buff.js';                       // đan Ngộ Đạo 
 import { addItem } from './inventory.js';
 import { pushNotif } from './notif.js';
 import { bangKyNangBonus } from './bangbuff.js';   // Tụ Hồn Quyết (+Hồn Thạch) · Tầm Bảo Quyết (+tỉ lệ Đồ Phổ)
-import { rng } from './rng.js';                   // bốc số CÓ HẠT GIỐNG — máy chủ tính lại được (Đợt D)
+import { rng, rngHam } from './rng.js';           // bốc số CÓ HẠT GIỐNG — máy chủ tính lại được (Đợt D)
 
 // ---- Hằng số cân bằng (TUNE) ----
 // Thưởng NỀN mỗi lượt (kế thừa "Treo Luyện" cũ). Nhân thêm D.pace để giữ loot/giờ khi durMs rút ngắn.
@@ -202,7 +202,7 @@ export function runDungeon(state, dungeonId) {
   let biKipDropId = null;
   if (cleared) {
     const bkChance = BICANH_BK_CHANCE * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1);
-    if (rng(state, 'bcBiKip') < bkChance) biKipDropId = rollBiCanhBiKip(D.reqLevel);
+    if (rng(state, 'bcBiKip') < bkChance) biKipDropId = rollBiCanhBiKip(D.reqLevel, rngHam(state, 'bcBiKip'));
   }
 
   return { dungeonId, cleared, reachedTang, hpPct, power, log, doPhoId, toolDoPhoId, biKipDropId, loot: { items, bac, exp, honThach } };

@@ -4,6 +4,7 @@
 // ============================================================
 import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
+import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { luanVo, luanVoCycle, luanVoMarginLabel, LOAI_CAT } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
@@ -29,10 +30,10 @@ export function ensureTongMon(state, nowMs) {
       lastSimAt: nowMs || Date.now(),
     };
     // đệ tử khởi đầu: "Tiểu Thất" (ăn mày · Trung Tư · Kim · Lì Lợm)
-    const d0 = genDisciple({ name: 'Tiểu Thất', sex: 'nam', han: '七', origin: 'anMay', apt: 'trung', he: 'kim' });
+    const d0 = genDisciple({ name: 'Tiểu Thất', sex: 'nam', han: '七', origin: 'anMay', apt: 'trung', he: 'kim', now: nowMs || Date.now() }, rngHam(state, 'deTu'));
     d0.traits = ['Lì Lợm']; d0.tamMa = 'Hắc ám sát niệm';
     t.disciples.push(d0);
-    refreshRecruitPool(t, nowMs || Date.now());
+    refreshRecruitPool(state, t, nowMs || Date.now());
     state.tongMon = t;
     return;
   }
@@ -96,10 +97,13 @@ const chip = (label, color) => ({ label, color });
 
 function resolveCast(t, uids) { return (uids || []).map((u) => t.disciples.find((d) => d.uid === u)).filter(Boolean); }
 
-function evtCtx(t, cast, rebel) {
+function evtCtx(state, t, cast, rebel) {
   const main = cast[0] || null, second = cast[1] || null;
   const khiVan = t.khiVan || 50;
-  const rng = () => Math.random();
+  // ⚠ Đợt D: bốc số CÓ HẠT GIỐNG. Sự kiện gọi ev.pick(t) — chỉ nhận t chứ không nhận state,
+  //   nên gắn tạm hàm sinh số lên chính t. Hàm KHÔNG lọt vào save (JSON bỏ qua giá trị hàm).
+  const rng = rngHam(state, 'tongMon');
+  t._rnd = rng;
   const lucky = (base) => rng() < Math.max(0.03, Math.min(0.97, (base == null ? 0.5 : base) + (khiVan - 50) / 200));
   const hasTrait = (tr, who) => { const w = who || main; return !!(w && w.traits && w.traits.includes(tr)); };
   const anyTrait = (trs, who) => trs.some((tr) => hasTrait(tr, who));
@@ -140,7 +144,7 @@ function fireEvent(state, t, eid, payload, now) {
   if (payload && payload.castUids) cast = resolveCast(t, payload.castUids);
   else if (ev.pick) { try { cast = resolveCast(t, ev.pick(t) || []); } catch (e) { cast = []; } }
   const rebel = (payload && payload.rebelFrom) ? (t.events.rebels.find((r) => r.fromUid === payload.rebelFrom) || null) : null;
-  const ctx = evtCtx(t, cast, rebel);
+  const ctx = evtCtx(state, t, cast, rebel);
   t.events.cd[eid] = now + (ev.cdH || 24) * 3600 * 1000;
   if (ev.kind === 'auto') { let oc; try { oc = ev.auto(ctx); } catch (e) { return false; } if (oc) applyOutcome(state, t, ev, oc, cast, rebel, now); return true; }
   let story = ''; try { story = ev.story ? ev.story(ctx) : ''; } catch (e) { story = ''; }
@@ -166,7 +170,7 @@ function fireRandomOne(state, t, now) {
   const pool = TM_EVENTS.filter((ev) => eventEligibleRandom(t, ev, now));
   if (!pool.length) return false;
   let tot = 0; pool.forEach((e) => (tot += e.weight || 10));
-  let r = Math.random() * tot, ev = pool[0];
+  let r = rng(state, 'tongMon') * tot, ev = pool[0];
   for (const e of pool) { r -= (e.weight || 10); if (r <= 0) { ev = e; break; } }
   return fireEvent(state, t, ev.id, {}, now);
 }
@@ -184,7 +188,7 @@ function rollEvents(state, t, dtSec, now) {
   const lambda = (EVT_LAMBDA_H / 3600) * dtSec;
   if (lambda <= 0) return;
   let k = 0, p = 1; const L = Math.exp(-lambda);          // Poisson(lambda) — Knuth
-  do { k++; p *= Math.random(); } while (p > L && k < 60);
+  do { k++; p *= rng(state, 'tongMon'); } while (p > L && k < 60);
   let count = Math.min(EVT_MAXGEN, k - 1);
   while (count-- > 0 && t.events.pending.length < EVT_PENDING_CAP) fireRandomOne(state, t, now);
 }
@@ -205,14 +209,14 @@ function accrueTamMa(state, t, dtSec, now) {
       if (!hasPending && t.events.pending.length < EVT_PENDING_CAP) { d.tamMaLv = newLv; d.tamMaXp = 0; fireEvent(state, t, 'TMK', { castUids: [d.uid] }, now); }
       else d.tamMaXp = 1;                                             // pegged, chờ slot pending
     } else {                                                         // bậc thấp -> AUTO tự áp chế
-      d.tamMaLv = newLv; d.tamMaXp = 0; autoTamMa(t, d);
+      d.tamMaLv = newLv; d.tamMaXp = 0; autoTamMa(state, t, d);
     }
   }
 }
-function autoTamMa(t, d) {
+function autoTamMa(state, t, d) {
   const tier = tamMaTier(d.tamMaLv);
   chronicle(t, `${d.name} đêm khuya tâm ma quấy nhiễu, tự toạ thiền áp chế — đạo tâm gợn sóng (${tier.name}).`);
-  if (Math.random() < 0.22) { if (!d.flags) d.flags = {}; d.flags.tamMaSeed = true; }   // tâm ma chưa trị, dễ gieo mầm sâu hơn
+  if (rng(state, 'tamMa') < 0.22) { if (!d.flags) d.flags = {}; d.flags.tamMaSeed = true; }   // tâm ma chưa trị, dễ gieo mầm sâu hơn
 }
 
 // ---- API: người chơi chọn 1 lựa chọn ở pending[pendingIdx] -> trả OUTCOME hiển thị (Hồi Kết) ----
@@ -223,7 +227,7 @@ export function resolveEvent(state, pendingIdx, choiceIdx) {
   const cast = resolveCast(t, p.castUids || []);
   const rebel = p.rebelFrom ? (t.events.rebels.find((r) => r.fromUid === p.rebelFrom) || null) : null;
   const ch = ev.choices[choiceIdx]; if (!ch) return null;
-  const ctx = evtCtx(t, cast, rebel);
+  const ctx = evtCtx(state, t, cast, rebel);
   let oc; try { oc = ch.resolve(ctx); } catch (e) { oc = { tone: 'trung', text: 'Chuyện qua đi như gió thoảng.', effects: [], chronicle: '' }; }
   const now = Date.now();
   const chips = applyOutcome(state, t, ev, oc, cast, rebel, now);
@@ -318,8 +322,8 @@ export function simTongMon(state, nowMs, capHours) {
 export function slotCount(t) { return BUILDINGS.tuHien.slotBase + BUILDINGS.tuHien.slotPerLv * ((t.buildings.tuHien || 1) - 1); }
 
 // ---- Chiêu mộ ----
-export function refreshRecruitPool(t, nowMs) {
-  t.recruitPool = [genDisciple(), genDisciple(), genDisciple()];
+export function refreshRecruitPool(state, t, nowMs) {
+  t.recruitPool = [genDisciple({ now: nowMs }, rngHam(state, 'deTu')), genDisciple({ now: nowMs }, rngHam(state, 'deTu')), genDisciple({ now: nowMs }, rngHam(state, 'deTu'))];
   t.recruitAt = nowMs;
 }
 export function recruitCost(t) { return { bac: 500 + 200 * t.disciples.length }; } // tốn Bạc (sink 1 chiều)
@@ -354,7 +358,7 @@ export function doRecruitReset(state, nowMs) {
   if ((state.currencies.honThach || 0) < RECRUIT_RESET_COST) return { ok: false, msg: `Không đủ Hồn Thạch (cần ${RECRUIT_RESET_COST}).` };
   state.currencies.honThach -= RECRUIT_RESET_COST;
   t.recruitResetCount = (t.recruitResetCount || 0) + 1;
-  refreshRecruitPool(t, nowMs);
+  refreshRecruitPool(state, t, nowMs);
   return { ok: true, msg: `Đổi lứa mới · -${RECRUIT_RESET_COST} Hồn Thạch (${t.recruitResetCount}/${RECRUIT_RESET_MAX})` };
 }
 
@@ -404,7 +408,7 @@ export function doBreakthrough(state, uid) {
   // ---- ĐỘ THIÊN KIẾP (cảnh cao, có rủi ro) ----
   const phamBonus = (PILL_PHAM_BY_KEY[pham] || {}).breakBonus || 0;
   const odds = kiepOdds(d, phamBonus, t.khiVan), oddsPct = Math.round(odds * 100);
-  if (Math.random() < odds) {                          // THÀNH CÔNG
+  if (rng(state, 'toaQuan') < odds) {                          // THÀNH CÔNG
     d.realm++; d.xp = 0; d.breakReady = false; d.kiepCdUntil = 0;
     const toName = REALMS[d.realm].name;
     if (d.realm >= cap && cap >= 9) d.awaiting = true;
@@ -415,7 +419,7 @@ export function doBreakthrough(state, uid) {
       chips: [{ label: 'Đột phá ' + toName, color: '#fbbf24' }, { label: '+' + uy + ' Uy Danh', color: '#fbbf24' }] } };
   }
   // ---- THẤT BẠI ----
-  if (kiep.deadly && Math.random() < (kiep.deathOnFail || 0)) {     // TỬ VONG (chỉ cảnh tử)
+  if (kiep.deadly && rng(state, 'toaQuan') < (kiep.deathOnFail || 0)) {     // TỬ VONG (chỉ cảnh tử)
     const i = t.disciples.findIndex((x) => x.uid === d.uid); if (i >= 0) t.disciples.splice(i, 1);
     if (!Array.isArray(t.fallen)) t.fallen = [];
     t.fallen.push({ name: d.name, han: d.han, apt: d.apt, he: d.he, realm: d.realm, tamMa: d.tamMa, cause: 'thienKiep', at: Date.now() });
@@ -446,7 +450,7 @@ export function startBrew(state, pillId, nowMs) {
   for (const m in pill.recipe) { if (((t.mats || {})[m] || 0) < pill.recipe[m]) return { ok: false, msg: `Thiếu ${(MATS[m] || {}).name} (cần ${pill.recipe[m]}).` }; }
   for (const m in pill.recipe) t.mats[m] -= pill.recipe[m];
   const now = nowMs || Date.now(), h = pillBrewH(pillId);
-  t.brewing.push({ pill: pillId, at: now, until: now + h * 3600000, pham: rollPillPham(t.buildings.yQuan || 0, t.khiVan) });   // phẩm chốt lúc khởi lò
+  t.brewing.push({ pill: pillId, at: now, until: now + h * 3600000, pham: rollPillPham(t.buildings.yQuan || 0, t.khiVan, rngHam(state, 'luyenDan')) });   // phẩm chốt lúc khởi lò
   return { ok: true, msg: `Khởi lò luyện ${pill.name} (${h}h).` };
 }
 export function collectBrew(state, brewIdx, nowMs) {
@@ -516,7 +520,7 @@ export function disciplineDisciple(state, uid, nowMs) {
   d.gioiLuatCdUntil = now + GIOI_LUAT_CD_H * 3600000;
   // phản tác: tâm ma cao + tính ngạo -> phạt mà sinh bất phục
   const resist = Math.min(0.5, 0.08 + 0.06 * (d.tamMaLv || 0) + ((d.traits || []).some((tr) => ['Cuồng Ngạo', 'Cao Ngạo', 'Hiếu Chiến'].includes(tr)) ? 0.12 : 0));
-  if (Math.random() < resist) {
+  if (rng(state, 'giaoHuan') < resist) {
     if (!d.flags) d.flags = {};
     d.flags.batPhuc = true;
     t.khiVan = Math.max(0, (t.khiVan || 50) - 2);
@@ -743,7 +747,7 @@ export function bkAuctionRefresh(state, nowMs) {
   if (!t.bkAuction || typeof t.bkAuction !== 'object') t.bkAuction = { lots: [], at: 0 };
   if (!Array.isArray(t.bkAuction.lots)) t.bkAuction.lots = [];
   if ((nowMs - (t.bkAuction.at || 0)) >= BK_AUCTION_REFRESH_H * 3600000) {   // chỉ làm mới theo GIỜ (bán hết -> đợi phiên sau, không tự refresh tức thì)
-    t.bkAuction.lots = genBkAuction(t.buildings.tangThu || 0);
+    t.bkAuction.lots = genBkAuction(t.buildings.tangThu || 0, rngHam(state, 'dauGia'));
     t.bkAuction.at = nowMs;
   }
 }
@@ -766,7 +770,7 @@ export function mergeBiKip(state, tier) {
   let rem = need; const bag = t.biKipBag;
   for (const id in bag) { if (rem <= 0) break; const bk = BI_KIP_BY_ID[id]; if (!bk || bk.tier !== tier) continue; const take = Math.min(rem, bag[id]); bag[id] -= take; rem -= take; if (bag[id] <= 0) delete bag[id]; }
   const pool = BI_KIP.filter((b) => b.tier === nextTier);
-  const got = pool[Math.floor(Math.random() * pool.length)];
+  const got = pool[Math.floor(rng(state, 'biKip') * pool.length)];
   biKipBagAdd(state, got.id, 1);
   chronicle(t, `Hợp nhất ${need} bí kíp ${(BI_KIP_TIER[tier] || {}).name} — lĩnh hội 「${got.ten}」 (${(BI_KIP_TIER[nextTier] || {}).name})!`);
   return { ok: true, got: { id: got.id, ten: got.ten, tier: nextTier }, msg: `Hợp nhất thành 「${got.ten}」` };
@@ -787,7 +791,7 @@ export function mergeBiKipPick(state, ids) {
   for (const id in want) if ((bag[id] || 0) < want[id]) return { ok: false, msg: 'Kho không đủ bí kíp đã chọn.' };
   for (const id in want) { bag[id] -= want[id]; if (bag[id] <= 0) delete bag[id]; }
   const pool = BI_KIP.filter((b) => b.tier === nextTier);
-  const got = pool[Math.floor(Math.random() * pool.length)];
+  const got = pool[Math.floor(rng(state, 'biKip') * pool.length)];
   biKipBagAdd(state, got.id, 1);
   chronicle(t, `Hợp nhất ${need} bí kíp ${(BI_KIP_TIER[tier] || {}).name} — lĩnh hội 「${got.ten}」 (${(BI_KIP_TIER[nextTier] || {}).name})!`);
   return { ok: true, got: { id: got.id, ten: got.ten, tier: nextTier }, msg: `Hợp nhất thành 「${got.ten}」` };
@@ -846,12 +850,12 @@ export function upgradeBuilding(state, key) {
 }
 
 // ---- Đấu Giá Hội: tiêu Điểm Đấu Giá (t.diem). Phần thưởng SIDE-ONLY / cosmetic ----
-function boostedApt() {                                   // lứa Chiêu Hiền Lệnh: thiên về tư chất cao
+function boostedApt(state) {                                   // lứa Chiêu Hiền Lệnh: thiên về tư chất cao
   const w = { pham: 6, trung: 16, thuong: 34, tuyet: 30, thien: 14 };
-  let tot = 0; APT_KEYS.forEach((k) => (tot += w[k])); let r = Math.random() * tot;
+  let tot = 0; APT_KEYS.forEach((k) => (tot += w[k])); let r = rng(state, 'chieuHien') * tot;
   for (const k of APT_KEYS) { r -= w[k]; if (r <= 0) return k; } return 'thuong';
 }
-function shopRefreshPool(t) { t.recruitPool = [genDisciple({ apt: boostedApt() }), genDisciple({ apt: boostedApt() }), genDisciple({ apt: boostedApt() })]; t.recruitAt = Date.now(); }
+function shopRefreshPool(state, t) { t.recruitPool = [genDisciple({ apt: boostedApt(state), now: t.lastSimAt || 0 }, rngHam(state, 'deTu')), genDisciple({ apt: boostedApt(state), now: t.lastSimAt || 0 }, rngHam(state, 'deTu')), genDisciple({ apt: boostedApt(state), now: t.lastSimAt || 0 }, rngHam(state, 'deTu'))]; t.recruitAt = Date.now(); }
 export function tmShopBuy(state, id, opt = {}) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };
   const item = TM_SHOP.find((x) => x.id === id); if (!item) return { ok: false, msg: 'Không có mục này' };
@@ -860,7 +864,7 @@ export function tmShopBuy(state, id, opt = {}) {
   if (item.cdH && ((t.shopCd && t.shopCd[id]) || 0) > nowMs) return { ok: false, msg: item.name + ' đang tĩnh dưỡng — đợi phiên sau' };
   switch (id) {
     case 'khiVan': t.khiVan = Math.min(100, (t.khiVan || 50) + 15); break;
-    case 'recruit': shopRefreshPool(t); break;
+    case 'recruit': shopRefreshPool(state, t); break;
     case 'advisor': { let n = 0; for (const d of t.disciples) { if (d.state === 'tu' && !d.awaiting && d.realm < disciCap(d)) { d.xp = Math.min(0.99, (d.xp || 0) + 0.25); n++; } } if (!n) return { ok: false, msg: 'Không có đệ tử đang tu' }; break; }
     case 'calm': { for (const d of t.disciples) { if (d.flags) ['oanTham', 'tamMaSeed', 'batPhuc', 'tinhTrieu'].forEach((k) => { delete d.flags[k]; }); } break; }
     case 'rename': { const nm = (opt.name || '').trim().slice(0, 16); if (!nm) return { ok: false, msg: 'Tên không hợp lệ' }; t.name = nm; break; }
