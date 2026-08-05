@@ -14,7 +14,7 @@ import { NAV, VIEW_NAMES } from './data/nav.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
 import { GEAR_IDS, instanceFromCatalog, rollSetPieceInstance, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
-import { createInitialState, CAI_DAT_MAC_DINH, SAVE_VERSION } from './engine/state.js';
+import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
 import { coTuong, ensureCoTuong } from './cotuong.js';               // Cờ Tướng (象棋 3D, cách ly)
@@ -1393,14 +1393,11 @@ const gameStore = {
     return [{ v: 0, ten: 'Mọi Phẩm' }, { v: 2, ten: 'Từ ' + ten(2) }, { v: 4, ten: 'Từ ' + ten(4) }];
   },
 
-  // ---- Về Tiêu Dao Lục ----
-  get phienBanText() { return 'Bản lưu v' + SAVE_VERSION; },
+  // ---- Về Trò Chơi ----
+  // ⛔ ĐÃ GỠ `phienBanText` và `anKyText`. Chúng bày `SAVE_VERSION` và ngày ký chứng chỉ ra mặt
+  //   người chơi dưới dạng "Phiên Bản: Bản lưu v1" / "Ấn Ký: 16/07/2026" — trường nội bộ, người
+  //   chơi đọc không ra nghĩa gì. Màn "Về Trò Chơi · Tác Giả" (`authorOpen`) mới là chỗ kể chuyện đó.
   get tacGiaText() { return (this.author && this.author.name) || 'ArchisuS'; },
-  /** Ngày ký chứng chỉ tác giả — mốc "đóng ấn", không phải ngày cập nhật. */
-  get anKyText() {
-    const t = this.author && this.author.iat;
-    return t ? new Date(t * 1000).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
-  },
   // ---------- Cẩm Nang (wiki trong game) ----------
   // Chỉ một cờ. Mọi trạng thái khác (mục đang đọc, ô tìm) nằm trong x-data của modal —
   // đóng rồi mở lại là về mục đầu, đúng ý: mở Cẩm Nang thường là để tra thứ khác.
