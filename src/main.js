@@ -62,6 +62,7 @@ import { TITLES, TITLE_BY_ID, TITLE_LOAI, titleBonusText } from './data/titles.j
 import { ensureTitles, syncTitles, titleBonus } from './engine/titles.js';
 import { BADGES, BADGE_LV } from './data/badges.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
+import { ensureRng } from './engine/rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
@@ -215,6 +216,9 @@ if (!state.counters) state.counters = { produced: {}, kills: {} };
 Object.keys(SKILLS).forEach((id) => { if (!state.skills[id]) state.skills[id] = { xp: 0 }; });
 ensureBuffs(state);        // Đan Bổ Trợ: khởi tạo state.buffs
 migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành Hồi Sinh Lực / Hồi Nội Lực / Dược Lư
+// Bộ sinh số CÓ HẠT GIỐNG (Đợt D) — phải gieo TRƯỚC `advance()` offline ở dưới, không thì lượt
+// tính bù đầu tiên sau khi cập nhật vẫn rơi vào đường Math.random cũ.
+ensureRng(state);
 ensureCodex(state); // Vạn Vật Phổ: khởi tạo + backfill tiến độ đã chơi (kills/obtained/pets/dungeon)
 ensureTitles(state); syncTitles(state); // Danh Hiệu: khởi tạo + mở khoá theo tiến độ đã chơi (IM LẶNG khi load)
 ensureTongMon(state, Date.now()); ensureDangTien(state); ensureKyTran(state); ensureNguTu(state); ensureCoTuong(state); ensureCoVua(state); ensureTienLen(state); ensureBinh(state); ensurePaoDeKuai(state); ensureTuuLau(state); ensureBangPhai(state);

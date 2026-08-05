@@ -15,6 +15,7 @@ import { rollMonsterDrop, rollGearInstance, MONSTER_DROP_CHANCE, MANH_DROP_CHANC
 import { titleBonus } from './titles.js';
 import { bangNgheBonus, bangKyNangBonus } from './bangbuff.js';
 import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: điểm Chinh Phạt khi hạ quái (nhánh treo máy)
+import { rng, rngHam } from './rng.js';                    // bốc số CÓ HẠT GIỐNG — máy chủ tính lại được (Đợt D)
 import { addSkillXp, addStatXp, levelFromXp } from './leveling.js';
 import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
@@ -339,12 +340,12 @@ export function advance(state, now) {
         for (const st of stats) addStatXp(state, st, enemy.statXp);
         // enemy.loot chứa CẢ 4 chiến lợi phẩm boss unique (liệu chế Tuyệt Kĩ) đi chung vòng lặp với Da Sói.
         // noBoost -> Bách Bảo KHÔNG được thổi phồng chúng; chỉ nguyên liệu thường mới ăn matMul.
-        if (enemy.loot) for (const l of enemy.loot) { const m = l.noBoost ? lootMul : matMul; if (Math.random() < l.chance * m * LOOT_DROP_MULT) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
-        if (Math.random() < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }   // loot-hunt: rơi gear instance (offline-safe)
+        if (enemy.loot) for (const l of enemy.loot) { const m = l.noBoost ? lootMul : matMul; if (rng(state, 'ropVat') < l.chance * m * LOOT_DROP_MULT) { addItem(state, l.itemId, 1); sess.loot[l.itemId] = (sess.loot[l.itemId] || 0) + 1; } }
+        if (rng(state, 'ropDo') < MONSTER_DROP_CHANCE * lootMul) { const gi = rollMonsterDrop(enemy.reqLevel || 1, rngHam(state, 'ropDo')); if (gi) { addGearInstance(state, gi); sess.gearN = (sess.gearN || 0) + 1; if ((sess.gear || (sess.gear = [])).length < 12) sess.gear.push({ gearId: gi.gearId, quality: gi.quality, uid: gi.uid }); } }   // loot-hunt: rơi gear instance (offline-safe)
         // ⛔ Mảnh Trang Bị Hoàng Kim KHÔNG còn rơi từ quái (user chốt 2026-08-03). Nay chỉ hai
         // đường: thông quan Bí Cảnh Lv70+ và Yêu Vương Lv90+. Giữ MANH_DROP_* trong data để khỏi
         // vỡ chỗ khác đọc, nhưng đường cày quái đã đóng.
-        if (Math.random() < BAC_DROP_CHANCE) { const bg = Math.round(bacPer * moneyMul); state.currencies.bac = (state.currencies.bac || 0) + bg; bacGot += bg; }   // Bạc rơi ~15%/kill (không phải mỗi con)
+        if (rng(state, 'ropBac') < BAC_DROP_CHANCE) { const bg = Math.round(bacPer * moneyMul); state.currencies.bac = (state.currencies.bac || 0) + bg; bacGot += bg; }   // Bạc rơi ~15%/kill (không phải mỗi con)
         state.counters.kills[act.enemyId] = (state.counters.kills[act.enemyId] || 0) + 1;
         done++;
       }
@@ -437,8 +438,8 @@ export function advance(state, now) {
       for (let i = 0; i < cycles; i++) {
         if (action.inputs) for (const inp of action.inputs) removeItem(state, inp.itemId, inp.qty);
         // Rèn gear (mọi món có .equip, gồm cả legacy tichSao/thietKiem/tichGiap) -> instance ROLL. Sản phẩm khác (thỏi/đan...) -> xếp chồng.
-        if (action.itemId) { if (ITEMS[action.itemId] && ITEMS[action.itemId].equip) addGearInstance(state, rollGearInstance(action.itemId)); else addItem(state, action.itemId, 1); }
-        if (yieldPct && i < buffedCycles && Math.random() < yieldPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
+        if (action.itemId) { if (ITEMS[action.itemId] && ITEMS[action.itemId].equip) addGearInstance(state, rollGearInstance(action.itemId, null, rngHam(state, 'renDo'))); else addItem(state, action.itemId, 1); }
+        if (yieldPct && i < buffedCycles && rng(state, 'boiSan') < yieldPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
         addSkillXp(state, act.skillId, gainXp);
         if (skill.stat) addStatXp(state, skill.stat, action.statXp);
         if (skill.stat2) addStatXp(state, skill.stat2, action.statXp);

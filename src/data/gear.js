@@ -609,21 +609,22 @@ export const SLOT_AFFIX_W = {
 // So DONG theo pham chat (primary tinh la dong 1).
 export const QUALITY_LINES = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
 
-function rollIn(lo, hi) { return lo + Math.random() * (hi - lo); }
+function rollIn(lo, hi, rnd) { return lo + (rnd || Math.random)() * (hi - lo); }
 // Boc 1 key tu {key:weight}, bo cac key trong `used` (Set). null neu het.
-function wPick(wmap, used) {
+function wPick(wmap, used, rnd) {
   let tot = 0; const ks = [];
   for (const k in wmap) { if (used.has(k)) continue; ks.push(k); tot += wmap[k]; }
   if (!ks.length || tot <= 0) return null;
-  let r = Math.random() * tot;
+  let r = (rnd || Math.random)() * tot;
   for (const k of ks) { r -= wmap[k]; if (r <= 0) return k; }
   return ks[ks.length - 1];
 }
 let _uidSeq = 0;
-function genUid() { _uidSeq = (_uidSeq + 1) % 1e9; return 'g' + Date.now().toString(36) + '_' + _uidSeq.toString(36); }
+// ⚠ Mã món phải suy được từ hạt giống, không thì hai lần tính ra hai save khác nhau dù mọi thứ y hệt.
+function genUid(rnd) { if (rnd) return 'g' + Math.floor(rnd() * 2176782336).toString(36) + '_' + Math.floor(rnd() * 46656).toString(36); _uidSeq = (_uidSeq + 1) % 1e9; return 'g' + Date.now().toString(36) + '_' + _uidSeq.toString(36); }
 
 // Roll bo chi so 1 mon: primary (xPRIMARY_MUL) + (lines-1) dong phu boc theo trong so slot. -> {key:val}.
-export function rollGearStats(slot, itemLv, quality) {
+export function rollGearStats(slot, itemLv, quality, rnd) {
   const lines = QUALITY_LINES[quality] || 1;
   const prim = SLOT_PRIMARY[slot];
   const out = {}; const used = new Set();
@@ -631,7 +632,7 @@ export function rollGearStats(slot, itemLv, quality) {
   // trong pool, chu khong phai "trong so thap". Nho vay dong hiem thuc su vang mat o do bac thap.
   const qr = QUALITY_RANK[quality] || 0;
   for (const k in AFFIX) { const a = AFFIX[k]; if (a.minQ && qr < a.minQ) used.add(k); }
-  if (prim && AFFIX[prim]) { out[prim] = Math.max(1, Math.round(rollIn(AFFIX[prim].lo, AFFIX[prim].hi) * affixMul(slot, prim, itemLv, quality) * PRIMARY_MUL)); used.add(prim); }
+  if (prim && AFFIX[prim]) { out[prim] = Math.max(1, Math.round(rollIn(AFFIX[prim].lo, AFFIX[prim].hi, rnd) * affixMul(slot, prim, itemLv, quality) * PRIMARY_MUL)); used.add(prim); }
   const wmap = SLOT_AFFIX_W[slot] || {};
   // ---- DONG HIEM "Ki Nang Von Co": roll RIENG mot lan, KHONG tranh trong so voi cac dong thuong ----
   // Vi sao khong dung trong so: bac 7 rut 6 dong phu tu pool chi 8 key, tuc gan nhu key nao cung duoc
@@ -639,15 +640,15 @@ export function rollGearStats(slot, itemLv, quality) {
   // lam mot dong hiem o do bac cao. Roll rieng thi ti le la con so CHINH XAC minh dat ra.
   // Trung thi no CHIEM MOT O dong phu (lines--), khong phai cong them -> mon khong tu dung manh hon.
   let slots = lines - 1;
-  if (slots > 0 && wmap.tangCong != null && !used.has('tangCong') && Math.random() < TANG_CHANCE) {
-    out.tangCong = Math.max(1, Math.round(rollIn(AFFIX.tangCong.lo, AFFIX.tangCong.hi) * affixMul(slot, 'tangCong', itemLv, quality)));
+  if (slots > 0 && wmap.tangCong != null && !used.has('tangCong') && (rnd || Math.random)() < TANG_CHANCE) {
+    out.tangCong = Math.max(1, Math.round(rollIn(AFFIX.tangCong.lo, AFFIX.tangCong.hi, rnd) * affixMul(slot, 'tangCong', itemLv, quality)));
     slots--;
   }
   used.add('tangCong');                    // da xu ly xong -> loai khoi vong boc thuong duoi day
   for (let i = 0; i < slots; i++) {
-    const key = wPick(wmap, used);
+    const key = wPick(wmap, used, rnd);
     if (!key || !AFFIX[key]) break;
-    out[key] = Math.max(1, Math.round(rollIn(AFFIX[key].lo, AFFIX[key].hi) * affixMul(slot, key, itemLv, quality)));
+    out[key] = Math.max(1, Math.round(rollIn(AFFIX[key].lo, AFFIX[key].hi, rnd) * affixMul(slot, key, itemLv, quality)));
     used.add(key);
     // MOT mon = TOI DA MOT dong khang ngu hanh: boc trung 1 key thi khoa ca 5 key con lai.
     // Khong co luat nay thi giap bac 7 (7 dong, pool 12 key) gan nhu luon an 3 dong khang — do thuc te
@@ -678,17 +679,17 @@ export function lineRollPct(slot, quality, itemLv, key, value) {
 }
 
 // Tao 1 INSTANCE gear ROLL tu base catalog. opt: { itemLv?, quality? } (mac dinh lay tu base).
-export function rollGearInstance(gearId, opt) {
+export function rollGearInstance(gearId, opt, rnd) {
   const base = GEAR_LOOKUP[gearId]; if (!base || !base.equip) return null;
   const e = base.equip;
   const itemLv = (opt && opt.itemLv) || e.itemLv || 1;
   const quality = (opt && opt.quality) || base.quality || 'phamPham';
   const he = e.he || null;
-  const stats = e.gatherEff ? {} : rollGearStats(e.slot, itemLv, quality);   // tool: khong roll stat
+  const stats = e.gatherEff ? {} : rollGearStats(e.slot, itemLv, quality, rnd);   // tool: khong roll stat
   const rolls = {};
   for (const k in stats) rolls[k] = lineRollPct(e.slot, quality, itemLv, k, stats[k]);   // luu % roll moi dong -> to mau bac
   return {
-    uid: genUid(), gearId, itemLv, quality, reqLevel: e.reqLevel || 1,
+    uid: genUid(rnd), gearId, itemLv, quality, reqLevel: e.reqLevel || 1,
     stats, rolls, he, eleDmg: he ? (e.eleDmg || 0.10) : 0, plus: 0,
   };
 }
@@ -720,11 +721,11 @@ export function rollSetPieceInstance(gearId) {
   return inst;
 }
 
-export function instanceFromCatalog(gearId, plus) {
+export function instanceFromCatalog(gearId, plus, rnd) {
   const base = GEAR_LOOKUP[gearId]; if (!base || !base.equip) return null;
   const e = base.equip;
   return {
-    uid: genUid(), gearId, itemLv: e.itemLv || 1, quality: base.quality || 'phamPham', reqLevel: e.reqLevel || 1,
+    uid: genUid(rnd), gearId, itemLv: e.itemLv || 1, quality: base.quality || 'phamPham', reqLevel: e.reqLevel || 1,
     stats: { ...(e.stats || {}) }, he: e.he || null, eleDmg: e.eleDmg || 0, plus: plus || 0,
   };
 }
@@ -756,24 +757,24 @@ export const GEAR_BY_SLOT = (() => {
 })();
 const DROP_SLOTS = Object.keys(GEAR_BY_SLOT);
 
-export function rollQuality(wmap) {
+export function rollQuality(wmap, rnd) {
   let tot = 0; for (const q in wmap) tot += wmap[q];
-  let r = Math.random() * tot;
+  let r = (rnd || Math.random)() * tot;
   for (const q in wmap) { r -= wmap[q]; if (r <= 0) return q; }
   return 'phamPham';
 }
 // Chon base (gearId) co tier itemLv gan `level` nhat, slot ngau nhien (vu khi gom nhieu loai cung tier -> random loai).
-export function pickDropBase(level) {
-  const slot = DROP_SLOTS[Math.floor(Math.random() * DROP_SLOTS.length)];
+export function pickDropBase(level, rnd) {
+  const slot = DROP_SLOTS[Math.floor((rnd || Math.random)() * DROP_SLOTS.length)];
   const arr = GEAR_BY_SLOT[slot] || []; if (!arr.length) return null;
   let best = arr[0], bd = Infinity;
   for (const x of arr) { const d = Math.abs(x.itemLv - level); if (d < bd) { bd = d; best = x; } }
   const near = arr.filter((x) => x.itemLv === best.itemLv);
-  return near[Math.floor(Math.random() * near.length)].id;
+  return near[Math.floor((rnd || Math.random)() * near.length)].id;
 }
 // Roll 1 drop gear tu quai cap `level` -> instance (hoac null).
-export function rollMonsterDrop(level) {
-  const gearId = pickDropBase(Math.max(1, level || 1));
+export function rollMonsterDrop(level, rnd) {
+  const gearId = pickDropBase(Math.max(1, level || 1), rnd);
   if (!gearId) return null;
-  return rollGearInstance(gearId, { quality: rollQuality(MONSTER_QUALITY_W) });
+  return rollGearInstance(gearId, { quality: rollQuality(MONSTER_QUALITY_W, rnd) }, rnd);
 }
