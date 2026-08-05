@@ -40,13 +40,28 @@ create or replace view public.nghi_van_gom as
          max(luc)                                        as gan_nhat,
          max((select max((x->>'gap')::numeric)
               from jsonb_array_elements(chi_tiet) x))    as gap_nhat,
-         bool_or(la_tac_gia)                             as la_tac_gia
+         bool_or(la_tac_gia)                             as la_tac_gia,
+         count(*) filter (where da_chan)                 as so_lan_chan
     from public.nghi_van
    group by user_id;
+
+-- ---------- 4. MIEN TRU: tac gia doc va sua ----------
+-- ⚠ CUA THOAT HIEM cho nguoi bi chan oan. Chot tu choi ghi de IM LANG (tra `null` trong trigger),
+--   nen nguoi bi chan nham se thay save ngung dong bo ma khong tu go duoc. Them uid ho vao day
+--   la ho ghi lai duoc ngay. Van con ghi so day du.
+-- ⚠ Tac gia la nguoi DUY NHAT sua duoc bang nay; luat neo vao auth.uid() nhu moi luat khac.
+drop policy if exists "mien_tru_tac_gia_doc" on public.mien_tru;
+create policy "mien_tru_tac_gia_doc" on public.mien_tru
+  for select using (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
+drop policy if exists "mien_tru_tac_gia_them" on public.mien_tru;
+create policy "mien_tru_tac_gia_them" on public.mien_tru
+  for insert with check (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
+drop policy if exists "mien_tru_tac_gia_go" on public.mien_tru;
+create policy "mien_tru_tac_gia_go" on public.mien_tru
+  for delete using (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
 
 -- ============================================================
 -- ⚠ NHUNG GI DOT NAY KHONG LAM
 -- · Khong cho tac gia SUA hay XOA save cua nguoi khac. Chi doc.
--- · Khong tu khoa tai khoan. Ghi so xong van do nguoi doc quyet dinh.
--- · Chot van CHUA CHAN (xem SQL_CHONG_GIAN_LAN.sql). Xem so mot thoi gian roi hay tinh.
+-- · Khong tu khoa tai khoan. Chot chi tu choi mot LAN GHI, khong dong tai khoan.
 -- ============================================================

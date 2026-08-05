@@ -77,7 +77,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo } from './cloud.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
@@ -132,6 +132,9 @@ function authErrVi(msg) {
 // Dịch lỗi Cloud save (DB/RLS) sang tiếng Việt.
 function cloudErrVi(msg) {
   const m = (msg || '').toLowerCase();
+  // Chốt chống gian lận từ chối bản lưu (docs/SQL_CHONG_GIAN_LAN.sql). Nói thẳng cho người chơi
+  // biết, đừng để họ tưởng đã đồng bộ xong — xem chú thích ở cloudPushSave.
+  if (m === 'tu-choi') return 'Máy chủ từ chối bản lưu này — tiến trình tăng quá nhanh. Nhắn tác giả nếu bạn chơi bình thường.';
   if (m.includes('does not exist') || m.includes('relation') || m.includes('schema cache')) return 'Chưa tạo bảng lưu trên cloud (chạy SQL khởi tạo).';
   if (m.includes('row-level security') || m.includes('rls') || m.includes('policy')) return 'Quyền cloud chưa đúng (kiểm tra RLS bảng saves).';
   if (m.includes('jwt') || m.includes('expired') || m.includes('not authenticated')) return 'Phiên hết hạn — đăng nhập lại.';
@@ -1404,7 +1407,7 @@ const gameStore = {
   // ⚠⚠ `isAuthorAccount` chỉ để ẨN/HIỆN màn này. Nó KHÔNG phải hàng rào — ai sửa mã client
   //   cũng bật được panel. Hàng rào thật là luật RLS ở Supabase (docs/SQL_GIAM_SAT.sql):
   //   bật được panel mà không có token đúng uid thì mọi truy vấn trả về RỖNG.
-  gsMo: false, gsTai: false, gsLoi: '', gsRows: [], gsChon: null, gsChiTiet: [], gsLocTacGia: true,
+  gsMo: false, gsTai: false, gsLoi: '', gsRows: [], gsChon: null, gsChiTiet: [], gsLocTacGia: true, gsMienTru: [],
   openGiamSat() { this.gsMo = true; this.taiGiamSat(); },
   dongGiamSat() { this.gsMo = false; this.gsChon = null; this.gsChiTiet = []; },
   async taiGiamSat() {
@@ -1413,8 +1416,20 @@ const gameStore = {
       const r = await cloudNghiVanGom(100);
       if (!r.ok) this.gsLoi = 'Không đọc được sổ — kiểm tra đã chạy SQL_GIAM_SAT.sql chưa.';
       else this.gsRows = r.rows;
+      // Danh sách miễn trừ đọc RỜI: bảng khác, luật khác. Lỗi ở đây không được xoá sổ nghi vấn.
+      try { const m = await cloudMienTruDs(); if (m.ok) this.gsMienTru = m.rows.map((x) => x.user_id); } catch (e) {}
     } catch (e) { this.gsLoi = 'Không kết nối được.'; }
     finally { this.gsTai = false; }
+  },
+  gsDuocMien(uid) { return (this.gsMienTru || []).includes(uid); },
+  /** Bật/tắt miễn trừ cho một tài khoản — cửa thoát hiểm khi chốt chặn oan. */
+  async gsDoiMienTru(uid) {
+    if (!uid) return;
+    const dangMien = this.gsDuocMien(uid);
+    const r = dangMien ? await cloudMienTruBo(uid) : await cloudMienTruThem(uid, 'gỡ tay ở màn Giám Sát');
+    if (!r.ok) { this.showToast('Không đổi được miễn trừ.'); return; }
+    this.gsMienTru = dangMien ? this.gsMienTru.filter((x) => x !== uid) : this.gsMienTru.concat([uid]);
+    this.showToast(dangMien ? 'Đã bỏ miễn trừ.' : 'Đã miễn trừ — tài khoản này ghi save lại được.');
   },
   /** Bỏ dòng của chính tác giả — bảng dev (F9) tự báo động nên nó luôn đứng đầu sổ. */
   get gsHien() {
@@ -1427,10 +1442,21 @@ const gameStore = {
     this.gsChon = uid; this.gsChiTiet = [];
     try { const r = await cloudNghiVanCua(uid, 20); if (r.ok) this.gsChiTiet = r.rows; } catch (e) {}
   },
-  /** Một dòng nghi vấn -> câu chữ đọc được: "Chiến Đấu +20.166.012 (gấp 12,5 lần trần)". */
+  /** Tên bốn phép kiểm — mã khoá của máy chủ đổi sang lời người đọc được. */
+  GS_PHEP: {
+    nhip: 'vượt trần tốc độ',
+    quy_gio: 'giờ làm nhiều hơn đồng hồ',
+    xp_khong_gio: 'kinh nghiệm không có giờ làm',
+    khoa_boc_so: 'số con hạ không khớp lần bốc số',
+  },
+  /** Một dòng nghi vấn -> câu chữ đọc được: "Chiến Đấu +20.166.012 · kinh nghiệm không có giờ làm · gấp 268 lần trần". */
   gsDongChu(d) {
-    const ten = (k) => (k === 'bac' ? 'Bạc' : (k === 'chienDau' ? 'Chiến Đấu' : ((this.SKILLS[k] || {}).name || k)));
-    return (d.chi_tiet || []).map((x) => ten(x.khoa) + ' +' + this.fmt(x.tang) + ' (gấp ' + x.gap + ' lần trần)').join(' · ');
+    const ten = (k) => (k === 'bac' ? 'Bạc' : k === 'tong' ? 'Tổng giờ làm' : k === 'kills' ? 'Số con đã hạ'
+      : k === 'chienDau' ? 'Chiến Đấu' : ((this.SKILLS[k] || {}).name || k));
+    return (d.chi_tiet || []).map((x) => {
+      const p = this.GS_PHEP[x.phep];
+      return ten(x.khoa) + ' +' + this.fmt(x.tang) + (p ? ' · ' + p : '') + ' · gấp ' + x.gap + ' lần trần';
+    }).join('  |  ');
   },
 
   // ---------- Tài khoản / Cloud (Supabase Auth) ----------

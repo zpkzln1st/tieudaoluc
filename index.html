@@ -36,7 +36,16 @@
     tailwind.config = { theme: { extend: {
       colors: {
         ink: '#070b14', ink2: '#0f1521', ink3: '#141b2a',
-        jade: '#14b8a6', cyan: '#22d3ee', gold: '#f5b942',
+        jade: '#14b8a6', gold: '#f5b942',
+        // ⚠⚠ `cyan` PHẢI là THANG BẬC, không được là một màu phẳng.
+        // Khai `cyan: '#22d3ee'` (chuỗi) sẽ ĐÈ MẤT cả thang cyan mặc định của Tailwind ⇒ 60 chỗ
+        // đang dùng `text-cyan-300` / `border-cyan-500/45` / `bg-cyan-900/40` thành lớp KHÔNG
+        // TỒN TẠI. Đo thật: `text-cyan-300` không tô gì (chữ ăn màu cha), `border-cyan-500/45`
+        // rơi về viền xám `rgb(229,231,235)`. Mọi bài kiểm số vẫn xanh — chỉ ảnh chụp mới lộ.
+        // `DEFAULT` giữ nguyên `text-cyan` phẳng đang dùng ở những chỗ đã sửa trước đây.
+        cyan: { DEFAULT: '#22d3ee',
+          50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9', 400: '#22d3ee',
+          500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63', 950: '#083344' },
       },
       // LƯỚI AN TOÀN CHỮ HÁN. Vài chục chỗ có chữ Hán nằm ngoài mọi khối serif (nút ＋,
       // ngoặc 「」, chữ hệ ngũ hành trên thẻ trang bị, nhãn máu Yêu Vương...). Xếp
@@ -5976,7 +5985,7 @@
                       <span class="shrink-0 text-[11px] font-bold" :class="r.gap_nhat >= 10 ? 'text-rose-300' : 'text-amber-300'" x-text="'gấp ' + r.gap_nhat"></span>
                     </div>
                     <div class="flex items-center justify-between gap-3 mt-0.5 text-[10.5px] text-slate-500">
-                      <span x-text="g.fmt(r.so_dong) + ' lần bị ghi'"></span>
+                      <span x-text="g.fmt(r.so_dong) + ' lần bị ghi' + (r.so_lan_chan ? ' · ' + g.fmt(r.so_lan_chan) + ' lần bị chặn' : '')"></span>
                       <span x-text="g.notifAgo(new Date(r.gan_nhat).getTime())"></span>
                     </div>
                   </button>
@@ -5985,17 +5994,27 @@
                       <template x-if="!g.gsChiTiet.length"><div class="text-[10.5px] text-slate-600 py-1.5">Đang đọc…</div></template>
                       <template x-for="d in g.gsChiTiet" :key="d.id">
                         <div class="py-1">
-                          <div class="text-[10px] text-slate-600" x-text="g.notifAgo(new Date(d.luc).getTime()) + ' · cách lần ghi trước ' + Math.round(d.giay) + ' giây'"></div>
+                          <div class="text-[10px] text-slate-600" x-text="g.notifAgo(new Date(d.luc).getTime()) + ' · cách lần ghi trước ' + Math.round(d.giay) + ' giây' + (d.da_chan ? ' · đã chặn' : '')"></div>
                           <div class="text-[11px] text-slate-300 leading-snug" x-text="g.gsDongChu(d)"></div>
                         </div>
                       </template>
+                      <!-- Cửa thoát hiểm: chốt từ chối ghi đè IM LẶNG nên người bị chặn oan không tự gỡ được.
+                           Nút LUÔN có mặt, chỉ đổi chữ — xem feedback UI phải đứng yên. -->
+                      <div class="mt-1.5 pt-1.5 border-t border-slate-800/70 flex items-center gap-2">
+                        <button @click="g.gsDoiMienTru(r.user_id)"
+                          class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap"
+                          :class="g.gsDuocMien(r.user_id) ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-400 border-slate-700 hover:border-slate-500'"
+                          x-text="g.gsDuocMien(r.user_id) ? 'Bỏ Miễn Trừ' : 'Miễn Trừ'"></button>
+                        <span class="text-[10px] text-slate-600" x-text="g.gsDuocMien(r.user_id) ? 'Đang được ghi save bình thường.' : 'Đang chịu chốt chặn.'"></span>
+                      </div>
                     </div>
                   </template>
                 </div>
               </template>
             </div>
             <div class="px-4 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 leading-snug shrink-0">
-              Chốt đang ở bước <b class="text-slate-500">ghi sổ</b> — nó chưa chặn ai. Trần đặt rộng để không bắt oan người chơi thật.
+              Vượt trần thì ghi sổ. Vượt từ <b class="text-slate-500">3 lần</b> trở lên thì máy chủ từ chối luôn bản lưu đó.
+              Tài khoản của ngươi không bao giờ bị chặn.
             </div>
           </div>
         </div>

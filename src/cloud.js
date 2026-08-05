@@ -63,16 +63,30 @@ export async function cloudLoadSave() {
   return { ok: true, row: data };   // data = null neu chua co dong
 }
 // Day (upsert) save len cloud. Tra { ok, reason }.
+// ⚠⚠ XIN TRA VE DONG (`.select`) LA CO Y, dung bo di. Chot chong gian lan (docs/SQL_CHONG_GIAN_LAN.sql)
+//   tu choi mot ban luu bang cach tra `null` trong trigger BEFORE UPDATE. Postgres bo qua lenh ghi de
+//   ma KHONG bao loi — khong xin dong tra ve thi day la mot ca "thanh cong" gia, save ngung dong bo
+//   vinh vien ma nguoi choi khong bao gio biet.
+//   (Chot khong dung `raise exception` vi loi se cuon nguoc ca dong so nghi van vua ghi.)
 export async function cloudPushSave(state) {
   const sb = await getClient();
   const uid = await _uid();
   if (!uid) return { ok: false, reason: 'no-auth' };
-  const { error } = await sb.from('saves').upsert(
-    { user_id: uid, data: state, last_save: state.lastSave || 0, updated_at: new Date().toISOString() },
+  const moc = state.lastSave || 0;
+  const { data, error } = await sb.from('saves').upsert(
+    { user_id: uid, data: state, last_save: moc, updated_at: new Date().toISOString() },
     { onConflict: 'user_id' },
-  );
+  ).select('last_save');
   if (error) return { ok: false, reason: error.message };
-  return { ok: true };
+  if (data && data.length) return { ok: true };
+  // ⚠⚠ KHONG bao "bi tu choi" ngay. Bao oan o day la CA LANG mat dong bo: rong co the do
+  //   PostgREST/RLS khong tra dong ve chu chua chac chot da chan. Doc lai mot lan cho chac —
+  //   chi ton them mot luot goi trong dung truong hop hiem nay.
+  try {
+    const lai = await cloudLoadSave();
+    if (lai.ok && lai.row && (lai.row.last_save || 0) >= moc) return { ok: true };
+  } catch (e) { return { ok: false, reason: 'khong doc lai duoc' }; }
+  return { ok: false, reason: 'tu-choi' };
 }
 
 // ============================================================
@@ -136,7 +150,7 @@ export async function cloudMyUid() { return _uid(); }
 export async function cloudNghiVanGom(gioiHan) {
   const sb = await getClient();
   const { data, error } = await sb.from('nghi_van_gom')
-    .select('user_id,so_dong,gan_nhat,gap_nhat,la_tac_gia')
+    .select('user_id,so_dong,gan_nhat,gap_nhat,la_tac_gia,so_lan_chan')
     .order('gan_nhat', { ascending: false })
     .limit(Math.max(1, Math.min(200, gioiHan || 50)));
   if (error) return { ok: false, reason: error.message };
@@ -148,9 +162,31 @@ export async function cloudNghiVanCua(uid, gioiHan) {
   if (!uid) return { ok: false, reason: 'no-uid' };
   const sb = await getClient();
   const { data, error } = await sb.from('nghi_van')
-    .select('id,luc,giay,chi_tiet')
+    .select('id,luc,giay,chi_tiet,da_chan')
     .eq('user_id', uid).order('luc', { ascending: false })
     .limit(Math.max(1, Math.min(100, gioiHan || 20)));
   if (error) return { ok: false, reason: error.message };
   return { ok: true, rows: data || [] };
+}
+
+// ---- MIEN TRU: cua thoat hiem cho nguoi bi chan oan (chi tac gia sua duoc — RLS) ----
+export async function cloudMienTruDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('mien_tru').select('user_id,ly_do,luc');
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+export async function cloudMienTruThem(uid, lyDo) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { error } = await sb.from('mien_tru').upsert({ user_id: uid, ly_do: lyDo || '' }, { onConflict: 'user_id' });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+export async function cloudMienTruBo(uid) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { error } = await sb.from('mien_tru').delete().eq('user_id', uid);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
 }
