@@ -190,3 +190,94 @@ export async function cloudMienTruBo(uid) {
   if (error) return { ok: false, reason: error.message };
   return { ok: true };
 }
+
+// ============================================================
+// LENH BAI — bang `su_kien`, `qua_tang`, `khoa_tai_khoan` (xem docs/SQL_LENH_BAI.sql).
+// ⚠ Chua chay tep SQL do thi moi ham duoi day tra loi "khong tim thay bang". Caller PHAI nuot loi:
+//   thieu bang chi duoc lam mat tinh nang su kien, KHONG duoc lam vo duong luu save.
+// ⚠ Hang rao la RLS phia Supabase, KHONG phai man Lenh Bai trong game.
+// ============================================================
+
+/** Doc lich sau su kien. KHONG can dang nhap — ai cung phai biet su kien nao dang mo. */
+export async function cloudSuKienDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('su_kien')
+    .select('ma,ten,mo_luc,dong_luc,chi_tac_gia,cau_hinh');
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+
+/** Dat lich mot su kien. Chi tac gia ghi duoc (RLS chan, khong phai giao dien chan). */
+export async function cloudSuKienDat(ma, moLuc, dongLuc, chiTacGia, cauHinh) {
+  if (!ma) return { ok: false, reason: 'no-ma' };
+  const sb = await getClient();
+  const { error } = await sb.from('su_kien').update({
+    mo_luc: moLuc ? new Date(moLuc).toISOString() : null,
+    dong_luc: dongLuc ? new Date(dongLuc).toISOString() : null,
+    chi_tac_gia: !!chiTacGia,
+    cau_hinh: cauHinh || {},
+    cap_nhat: new Date().toISOString(),
+  }).eq('ma', ma);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
+// ---- HOP QUA ----
+/** Qua CHUA NHAN cua chinh minh. */
+export async function cloudQuaChoNhan() {
+  const sb = await getClient();
+  const uid = await _uid();
+  if (!uid) return { ok: false, reason: 'no-auth' };
+  const { data, error } = await sb.from('qua_tang')
+    .select('id,noi_dung,loi_nhan,tao_luc')
+    .eq('user_id', uid).is('nhan_luc', null)
+    .order('tao_luc', { ascending: true }).limit(50);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+
+/**
+ * Nhan mot mon qua. Goi HAM tren may chu chu KHONG update thang.
+ * ⚠⚠ Bang `qua_tang` co y KHONG cap quyen update cho ai: cho chu dong tu update thi ho set nguoc
+ *   `nhan_luc` ve null duoc, tuc nhan mot mon qua vo han lan. Ham `nhan_qua_tang` danh dau va tra
+ *   noi dung trong DUNG MOT lenh, goi lan hai tra null.
+ * Tra { ok, noiDung } — noiDung null nghia la khong con gi de nhan.
+ */
+export async function cloudNhanQua(id) {
+  const sb = await getClient();
+  const { data, error } = await sb.rpc('nhan_qua_tang', { p_id: id });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, noiDung: data || null };
+}
+
+/** Tac gia phat qua cho mot tai khoan. */
+export async function cloudPhatQua(uid, noiDung, loiNhan) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { error } = await sb.from('qua_tang')
+    .insert({ user_id: uid, noi_dung: noiDung || {}, loi_nhan: loiNhan || '' });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
+// ---- KHOA TAI KHOAN ----
+export async function cloudKhoaDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('khoa_tai_khoan').select('user_id,ly_do,luc');
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+export async function cloudKhoaThem(uid, lyDo) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { error } = await sb.from('khoa_tai_khoan').upsert({ user_id: uid, ly_do: lyDo || '' }, { onConflict: 'user_id' });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+export async function cloudKhoaBo(uid) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { error } = await sb.from('khoa_tai_khoan').delete().eq('user_id', uid);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
