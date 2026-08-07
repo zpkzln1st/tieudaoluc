@@ -33,8 +33,14 @@ insert into public.tran_toc_do (khoa, xp_giay) values
   ('luyenDan', 1.6471),
   ('phanhNham', 1.2857),
   ('phatMoc', 2.2667),
+  ('thaiDang', 21.0526),
   ('thaiDuoc', 2.2368),
   ('thaiKhoang', 2.2436),
+  ('thaiLien', 21.0526),
+  ('thaiNguyet', 21.0526),
+  ('thaiPhuc', 21.0526),
+  ('thaiThanh', 21.0526),
+  ('thaiTuyet', 21.0526),
   ('toaQuan', 0.5000)
 on conflict (khoa) do update set xp_giay = excluded.xp_giay;
 
@@ -84,14 +90,14 @@ insert into public.tran_he_so (khoa, gia_tri) values
   ('bu_nhan_roi_giay', 50400),  -- 14 gio: tran treo toi da (8h nen + 6h Dong Phu)
   ('bac_san_toi_thieu', 5000000), -- duoi muc nay thi khong buon ghi so Bac
   -- ⚠ CHAN TUYET DOI: mot lan ghi khong duoc tang qua ngan nay xp o BAT KY track nao.
-  --   = 0.08 x ca duong len cap 100 (20.166.012 xp).
-  ('tran_moi_lan_ghi', 1613281),
+  --   = 0.11 x ca duong len cap 100 (20.166.012 xp).
+  ('tran_moi_lan_ghi', 2218261),
   -- ---- tang 2 ----
   ('nhip_danh_ms', 8000),       -- COMBAT_CYCLE_MS: mot con mot vong
   ('he_so_gio', 1.5),                -- quy gio lam duoc phep vuot dong ho bao nhieu lan
   -- Phu cap "thuong theo cuc" cho Chien Dau: Bi Canh mot lich day (14h) + tron luot Yeu Vuong,
   -- da nhan he so nhan EXP toi da (3.38x). Hai nguon nay KHONG ghi timeMs nao.
-  ('phu_cap_chien_dau', 75023),
+  ('phu_cap_chien_dau', 78978),
   ('sai_so_boc_so', 2),        -- khoa boc so: cho lech ngan nay lan boc
   -- ⚠⚠ CHAN: chi TU CHOI ghi de khi vuot tran tu ngan nay lan tro len. Duoi muc do chi ghi so.
   --   Do that: nguoi choi that manh nhat cach tran 3.0 lan (Chien Dau) / 3.1 lan (nghe),
@@ -156,9 +162,9 @@ begin
   select gia_tri into sai_so   from tran_he_so where khoa = 'sai_so_boc_so';
   select gia_tri into gap_chan from tran_he_so where khoa = 'gap_de_chan';
   hs := coalesce(hs, 10); bu := coalesce(bu, 50400);
-  bac_san := coalesce(bac_san, 5000000); tran_lan := coalesce(tran_lan, 1613281);
+  bac_san := coalesce(bac_san, 5000000); tran_lan := coalesce(tran_lan, 2218261);
   nhip_ms := coalesce(nhip_ms, 8000); hs_gio := coalesce(hs_gio, 1.5);
-  phu_cap := coalesce(phu_cap, 75023); sai_so := coalesce(sai_so, 2);
+  phu_cap := coalesce(phu_cap, 78978); sai_so := coalesce(sai_so, 2);
   gap_chan := coalesce(gap_chan, 3);
 
   giay := greatest(0, extract(epoch from (now() - OLD.updated_at)));
@@ -257,6 +263,34 @@ begin
     end if;
   end if;
 
+  -- ===== TANG 2D: NGOAI SU KIEN =====
+  -- Sau ki nang su kien chi cay duoc khi su kien MO (bang su_kien cua Lenh Bai). Ke sua client
+  -- de tu thay su kien mo se cay duoc o may minh, nhung day save len la lo ngay o day.
+  -- Phep so: cua so ghi [OLD.updated_at, now()] phai GIAO voi cua so mo [mo_luc, dong_luc + 1h].
+  --   · Nguoi choi that cay trong su kien roi mat mang, may ngay sau moi day duoc save:
+  --     OLD.updated_at (lan day truoc) van nam TRUOC dong_luc -> giao -> KHONG oan.
+  --   · Ke cay sau khi dong (ca hai moc deu sau dong_luc + 1h) -> khong giao -> ghi so + chan.
+  -- ⚠ to_regclass: bang su_kien thuoc SQL_LENH_BAI.sql — chua chay tep do thi bo qua phep kiem,
+  --   dung de chot no lam ca lang mat luu save.
+  if to_regclass('public.su_kien') is not null then
+    for r in select * from (values ('thaiPhuc', 'tet'), ('thaiThanh', 'xuan'), ('thaiLien', 'doanNgo'), ('thaiDang', 'vuLan'), ('thaiNguyet', 'trungThu'), ('thaiTuyet', 'giangSinh')) as t(khoa, ma) loop
+      cu  := so_jsonb(OLD.data->'skills'->r.khoa->'xp');
+      moi := so_jsonb(NEW.data->'skills'->r.khoa->'xp');
+      tang := moi - cu;
+      if tang <= 0 then continue; end if;
+      if not exists (
+        select 1 from public.su_kien s
+         where s.ma = r.ma and s.mo_luc is not null and s.dong_luc is not null
+           and s.mo_luc < now() and OLD.updated_at < s.dong_luc + interval '1 hour'
+      ) then
+        gap_nay := gap_chan;   -- du nguong chan; van qua duong mien_tru/tac gia nhu moi phep khac
+        gap_lon := greatest(gap_lon, gap_nay);
+        vuot := vuot || jsonb_build_object('phep', 'ngoai_su_kien', 'khoa', r.khoa, 'tang', tang,
+                  'tran', 0, 'gap', round(gap_nay, 1));
+      end if;
+    end loop;
+  end if;
+
   -- ===== GHI SO + CHAN =====
   if jsonb_array_length(vuot) > 0 then
     -- Tai khoan tac gia dung bang dev (F9) nen se tu bao dong. Danh dau de con loc ra.
@@ -293,8 +327,9 @@ create trigger kiem_toc_do_tren_saves
 -- Tang 1 (dong ho may chu): sua Bac, nhan do, tua dong ho may minh.
 -- Tang 2A (quy gio lam):    thoi phong thoi gian hoat dong.
 -- Tang 2B (xp phai co gio): sua thang so xp / nhay cap — ke ca nhay TUNG IT MOT nhieu lan,
---                           vi khong co gio lam thi tran chi con phu cap 75.023 xp.
+--                           vi khong co gio lam thi tran chi con phu cap 78.978 xp.
 -- Tang 2C (khoa boc so):    sua so con da ha ma khong di qua engine.
+-- Tang 2D (ngoai su kien):  cay ki nang su kien ngoai khoang mo/dong cua bang su_kien.
 -- KHONG bat: cay nhanh hon that trong pham vi he so an toan 10 lan.
 --
 -- CHAN tu 3 lan tran tro len — TRU tai khoan tac gia va uid trong bang mien_tru.

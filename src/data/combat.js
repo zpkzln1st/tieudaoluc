@@ -228,3 +228,8 @@ export const YEU_VUONG = [
     { wb: { cdHours: 12, tinhThe: 3, honThach: 600, bac: 15000, eggBase: 'thienMa',    eggs: eggDrops('thienMa') } }),
 ];
 export const YEU_VUONG_BY_ID = Object.fromEntries(YEU_VUONG.map((b) => [b.id, b]));
+
+// Xuat may sinh quai cho data/sukien.js dung LAI — dung chep cong thuc sang tep khac
+// (chep la hai ban lech nhau luc nao khong biet; bai kiem _do_sukien tung phai dung lai y het).
+// ⚠ mk() VO DUNG o cap 1 (mau 1 / EXP 0) — quai cap 1 phai viet tay theo khuon Soi Hoang.
+export const mkQuai = mk;

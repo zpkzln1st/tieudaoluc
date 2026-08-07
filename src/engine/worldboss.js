@@ -19,6 +19,7 @@ import { buffVal } from './buff.js';           // đan Ngộ Đạo (+EXP Chiế
 import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bảng dùng roster bot thật (deterministic)
 import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: hạ Yêu Vương cho điểm Chinh Phạt dày
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
+import { skMo, congDiem, moPhuKien } from './sukien.js';   // Yêu Vương SỰ KIỆN: thưởng Điểm + mở Bội
 
 const HE_LIST = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
 const HISTORY_CAP = 40;
@@ -176,6 +177,14 @@ function grantReward(state, boss, now) {
   for (const st of boPhapStats(state.combat.loadout)) addStatXp(state, st, boss.statXp * 3);
   state.currencies.bac = (state.currencies.bac || 0) + wb.bac;
   state.currencies.honThach = (state.currencies.honThach || 0) + wb.honThach;
+  // YÊU VƯƠNG SỰ KIỆN: thưởng Điểm + mở Bội lần THẮNG đầu. KHÔNG Tinh Thể (nút chặn +10→+15),
+  // KHÔNG trứng thường, KHÔNG Mảnh — docs/THIET_KE_SU_KIEN.md I9. Trả sớm để khỏi lọt xuống các roll dưới.
+  if (boss.suKien) {
+    r.diem = wb.diem || 0;
+    if (r.diem) congDiem(state, r.diem);
+    if (wb.phuKien) { const mo = moPhuKien(state, boss.suKien, wb.phuKien.loai, wb.phuKien.bac); if (mo) r.phuKienMo = mo; }
+    return r;
+  }
   if (rng(state, 'yvTinhThe') < 0.10) { addItem(state, 'tinhTheYeuVuong', wb.tinhThe); r.items.tinhTheYeuVuong = wb.tinhThe; }   // Tinh Thể: 10% (KHÔNG còn đảm bảo)
   for (const e of wb.eggs) { if (rng(state, 'yvTrung') < e.chance) { addItem(state, e.itemId, 1); r.items[e.itemId] = (r.items[e.itemId] || 0) + 1; } }
   // MẢNH TRANG BỊ HOÀNG KIM: CHẮC CHẮN 2 mỗi trận thắng, chỉ Yêu Vương cấp >=90 (Băng Phách Lv90 ·
@@ -194,6 +203,8 @@ export function resolveBossQueue(state, now, isUnlocked) {
   for (const boss of YEU_VUONG) {
     const id = boss.id;
     if (!bossQueued(state, id)) continue;
+    // Boss SỰ KIỆN mà sự kiện đã đóng: gỡ khỏi hàng đợi, KHÔNG đánh — đóng cửa là thôi.
+    if (boss.suKien && !skMo(state, boss.suKien, now)) { setBossQueue(state, id, false); continue; }
     if (isUnlocked && !isUnlocked(boss)) continue;
     if (now < bossCdEnd(state, id)) continue;       // chưa giáng thế
     const he = bossHe(state, id);

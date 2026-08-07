@@ -19,6 +19,8 @@ export const NAV = [
     { view: 'combat',     name: 'Chiến Đấu',     gloss: 'Battle',        icon: '⚔️' },
     { view: 'dungeon',    name: 'Bí Cảnh',       gloss: 'Dungeon',       icon: '🏛️' },
     { view: 'worldboss',  name: 'Yêu Vương',     gloss: 'World Boss',     icon: '🐲' },
+    // Sự Kiện: mục CHỈ HIỆN khi có sự kiện đang mở / sắp mở (index.html x-show svNavHien)
+    { view: 'suKien',     name: 'Sự Kiện',       gloss: 'Event',          icon: '🏮' },
   ] },
   // Thiên Cơ Các — nhóm RIÊNG cho mini-game (tách khỏi Chiến Đấu). Thêm game mới thì thêm vào đây.
   // `thuGon: true` -> mặc định GẤP LẠI, chỉ mở khi người chơi tự bấm. Nhóm này dài nhất
@@ -56,7 +58,7 @@ export const NAV = [
 // Tên hiển thị cho mỗi view (cho tiêu đề trang placeholder)
 export const VIEW_NAMES = {
   profile: 'Hồ Sơ', trangbi: 'Trang Bị', inventory: 'Hành Lý', map: 'Bản Đồ', nhiemVu: 'Nhiệm Vụ',
-  combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương',
+  combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương', suKien: 'Sự Kiện',
   pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ', kyTran: 'Kỳ Trận', nguTuKy: 'Ngũ Tử Kỳ', coTuong: 'Cờ Tướng', coVua: 'Cờ Vua', tienLen: 'Tiến Lên', binh: 'Binh Xập Xám', paoDeKuai: 'Tiến Lên Trung Quốc',
   guild: 'Tiên Minh', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ',
 };

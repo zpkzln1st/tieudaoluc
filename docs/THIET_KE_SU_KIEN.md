@@ -110,7 +110,7 @@ Cày liên tục, leo thang từ cấp một, trừ hai dòng cuối là vào l�
 | Năm hai, vào lại ở cấp 64, có đủ phụ kiện | 112 | 99 | 33.537 |
 | Năm ba, vào lại ở cấp 83, có đủ phụ kiện | 112 | 100 | 34.480 |
 
-**Đường cong này là chủ ý.** Người chơi vừa phải vẫn mua được món quan trọng nhất là quả trứng Thần Phẩm.
+**Đường cong này là chủ ý.** Người chơi vừa phải vẫn mua được món quan trọng nhất là quả trứng Linh Thú sự kiện.
 Người chơi chăm chỉ vét sạch gian hàng giới hạn. Người quay lại năm thứ hai không còn gì để mua một lần nữa nên toàn bộ điểm chảy sang gian tiêu hao.
 
 ## I8. Hai ô Phụ Kiện Sự Kiện
@@ -487,15 +487,25 @@ Năm gian hàng. Cấu trúc giống hệt nhau ở cả sáu sự kiện, chỉ
 
 | món | điểm |
 |---|---|
-| Trứng Linh Thú sự kiện · Thần Phẩm | 6.000 |
-| Trứng Linh Thú sự kiện · Linh Phẩm | 1.800 |
-| Trứng Linh Thú sự kiện · Phàm Phẩm | 400 |
+| **Trứng Linh Thú sự kiện · Hiếm** | **3.000** |
 | Danh hiệu của sự kiện | 3.000 |
 | Ảnh đại diện sự kiện, hai mẫu | 1.200 mỗi mẫu |
 | Ảnh bìa sự kiện | 2.000 |
 
-**Cộng cả gian: 15.600 điểm.**
-Danh hiệu và hai loại ảnh mua một lần là có vĩnh viễn. Năm sau gian này chỉ còn ba quả trứng, tức 8.200 điểm.
+**Cộng cả gian: 10.400 điểm.**
+Danh hiệu và hai loại ảnh mua một lần là có vĩnh viễn. Năm sau gian này chỉ còn quả trứng, tức 3.000 điểm.
+
+### ⚠ Linh Thú sự kiện chỉ có MỘT phẩm chất
+
+Trứng thường trong game có ba bậc Phàm, Linh, Thần. **Linh Thú sự kiện thì không** — chỉ một bậc **Hiếm** (`tinhPham`, hậu tố tệp `_linh`).
+
+Ba lý do:
+- **Bậc Phàm nở ra Linh Thú rác.** Bảng `EGG_TO_PET_Q` cho trứng Phàm ra 70% Thường và 30% Tốt. Người chơi ít cày bỏ tiền mua rồi nhận về con Linh Thú tệ nhất game — đó là phần thưởng an ủi, không phải quà sự kiện.
+- **Bậc Thần đảo lộn kinh tế trứng.** Trứng Thần hiện chỉ rơi 0,02% từ Yêu Vương. Bán được bằng điểm là mở một cửa quá rộng.
+- **Một bậc thì ai cũng nhận đúng một thứ.** Đó mới là cảm giác "quà giới hạn".
+
+Bậc Hiếm nở ra 55% Hiếm, 35% Cực Hiếm, 10% Sử Thi — tử tế mà không phá cân bằng.
+Mua lại ở những năm sau vẫn có nghĩa, vì mỗi quả trứng bốc chỉ số và dòng phụ khác nhau.
 
 ## III3. Gian Đan Dược — tiêu hao, giống nhau ở mọi sự kiện
 
@@ -546,15 +556,18 @@ Ba viên Thượng Phẩm, công thức Luyện Đan cấp 75. Một viên phủ
 
 | kiểu chơi | điểm thu | hàng giới hạn cần | dư |
 |---|---|---|---|
-| Năm một, chơi ít | 3.224 | 15.600 | thiếu 12.377 |
-| Năm một, chơi vừa | 7.416 | 15.600 | thiếu 8.184 |
-| Năm một, chơi chăm | 17.310 | 15.600 | dư 1.710 |
-| Năm một, chăm và đủ bốn phụ kiện | 26.959 | 15.600 | dư 11.359 |
-| Năm hai, vào lại ở cấp 64 | 33.537 | 8.200 | **dư 25.337** |
-| Năm ba, vào lại ở cấp 83 | 34.480 | 8.200 | **dư 26.280** |
+| Năm một, chơi ít | 3.224 | 10.400 | thiếu 7.176 |
+| Năm một, chơi vừa | 7.416 | 10.400 | thiếu 2.984 |
+| Năm một, chơi chăm | 17.310 | 10.400 | dư 6.910 |
+| Năm một, chăm và đủ bốn phụ kiện | 26.959 | 10.400 | dư 16.559 |
+| Năm hai, vào lại ở cấp 64 | 33.537 | 3.000 | **dư 30.537** |
+| Năm ba, vào lại ở cấp 83 | 34.480 | 3.000 | **dư 31.480** |
 
-Người chơi ít và chơi vừa không mua nổi cả gian giới hạn nên phải chọn. Cả hai đều thừa sức mua quả trứng Thần Phẩm 6.000 điểm — món quan trọng nhất.
-Người quay lại năm thứ hai dư hơn hai mươi lăm nghìn điểm. Số đó đổi ra khoảng **180 viên Ngộ Đạo Đan**, tức ba mươi sáu giờ buff kinh nghiệm, rải dần tới sự kiện sau.
+**Giá trứng đặt ở 3.000 là có tính toán.** Người chơi ít nhất bảng — hai giờ mỗi ngày — thu được 3.224 điểm.
+Họ vừa đủ mua con Linh Thú sự kiện và không mua thêm được gì. Đó là đúng ý: **ai cũng lấy được con thú, còn lại phải cày.**
+Bản cũ ba bậc trứng thì người chơi ít chỉ với tới quả 400 điểm, tức con Linh Thú tệ nhất game.
+
+Người quay lại năm thứ hai dư hơn ba mươi nghìn điểm. Số đó đổi ra khoảng **218 viên Ngộ Đạo Đan**, tức bốn mươi ba giờ buff kinh nghiệm, rải dần tới sự kiện sau.
 
 ---
 

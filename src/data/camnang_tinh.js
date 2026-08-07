@@ -47,7 +47,8 @@ export function expDenCap(lv) { return expGiuaCap(1, lv); }
  */
 export function viecCua(ngheId) {
   if (ngheId === 'chienDau') {
-    return Object.values(ENEMIES).map((e) => ({
+    // SU KIEN: quai su kien khong vao may tinh (chi co mat 14 ngay/nam)
+    return Object.values(ENEMIES).filter((e) => !e.suKien).map((e) => ({
       id: e.id, ten: e.name, exp: e.exp, giay: e.time, reqLevel: e.reqLevel,
       vung: (LOCATIONS.filter((l) => (l.enemies || []).includes(e.id))[0] || {}).name || '—',
     }));
@@ -61,7 +62,8 @@ export function viecCua(ngheId) {
 
 /** Danh sách nghề dùng được cho máy tính (10 nghề + Chiến Đấu). */
 export function dsNghe() {
-  const ra = Object.values(SKILLS).map((s) => ({ id: s.id, ten: s.name }));
+  // SU KIEN: ki nang su kien khong vao may tinh EXP — chi mo 14 ngay/nam, bang so rieng.
+  const ra = Object.values(SKILLS).filter((s) => !s.suKien).map((s) => ({ id: s.id, ten: s.name }));
   ra.unshift({ id: 'chienDau', ten: 'Chiến Đấu' });
   return ra;
 }

@@ -1147,7 +1147,7 @@
             <div x-show="$store.game.groupsOpen[group.title]" class="space-y-1">
               <template x-if="group.skills">
                 <div class="space-y-1">
-                  <template x-for="sid in Object.keys($store.game.SKILLS)" :key="sid">
+                  <template x-for="sid in $store.game.skillIdsHienThi" :key="sid">
                     <button @click="$store.game.navToSkill(sid)"
                       class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
                       :class="($store.game.view==='skill' && $store.game.selectedSkill===sid) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
@@ -1161,7 +1161,7 @@
               <template x-if="!group.skills">
                 <div class="space-y-1">
                   <template x-for="it in group.items" :key="it.view">
-                    <button @click="$store.game.navTo(it.view)"
+                    <button @click="$store.game.navTo(it.view)" x-show="it.view!=='suKien' || $store.game.svNavHien"
                       class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
                       :class="$store.game.navItemActive(it) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
                       <span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(it.view, it.icon)"></span>
@@ -1629,7 +1629,7 @@
               <section class="panel rounded-lg p-3">
                 <div class="lbl mb-2">Kỹ Năng</div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <template x-for="sid in Object.keys($store.game.SKILLS)" :key="sid">
+                  <template x-for="sid in $store.game.skillIdsHienThi" :key="sid">
                     <button @click="$store.game.navToSkill(sid)" class="bg-ink3 rounded p-2 flex items-center gap-2 hover:ring-1 hover:ring-jade/40">
                       <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
                       <span class="text-xs flex-1 text-left truncate" x-text="$store.game.SKILLS[sid].name"></span>
@@ -2822,7 +2822,11 @@
                   <button @click="$store.game.openZoneChange()" class="text-slate-500 hover:text-jade">đổi vùng ở Bản Đồ ›</button>
                 </div>
               </template>
-              <template x-if="$store.game.currentSkillIsGather && $store.game.currentSkillActions.length===0">
+              <!-- Kĩ năng SỰ KIỆN đứng ngoài bản đồ sự kiện: chỉ đúng MỘT nút đưa tới nơi -->
+              <template x-if="($store.game.SKILLS[$store.game.selectedSkill]||{}).suKien && $store.game.currentSkillActions.length===0">
+                <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Nghề này chỉ làm được trong <b class="text-amber-300" x-text="(($store.game.svDef||{}).loc||{}).name || ''"></b> — <button @click="$store.game.svToiBanDo()" class="text-amber-300 font-bold hover:brightness-125 underline decoration-amber-500/40 underline-offset-2">tới đó ngay</button>.</div>
+              </template>
+              <template x-if="$store.game.currentSkillIsGather && !($store.game.SKILLS[$store.game.selectedSkill]||{}).suKien && $store.game.currentSkillActions.length===0">
                 <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Vùng <b class="text-slate-300" x-text="$store.game.currentLocationObj.name"></b> không có tài nguyên nghề này — <button @click="$store.game.openZoneChange()" class="text-jade font-bold hover:brightness-125 underline decoration-jade/40 underline-offset-2">đổi vùng ở Bản Đồ</button>.</div>
               </template>
               <!-- Rèn Đúc: chia theo LOẠI trang bị -->
@@ -6324,7 +6328,7 @@
               </aside>
 
               <!-- Landmark: đảo neo đúng tâm toạ độ, tên + Lv treo chính giữa dưới đảo -->
-              <template x-for="loc in $store.game.LOCATIONS" :key="loc.id">
+              <template x-for="loc in $store.game.locHienThi" :key="loc.id">
                 <div class="absolute -translate-x-1/2 -translate-y-1/2 group z-10"
                      :style="`left:${loc.mapX}%; top:${loc.mapY}%`">
                   <!-- Đảo (chính giữa điểm neo) -->
@@ -6651,6 +6655,126 @@
 
             </div>
           </div>
+        </div>
+      </template>
+
+      <!-- ===== VIEW: SỰ KIỆN (6 lễ/năm — docs/THIET_KE_SU_KIEN.md; bật/tắt bằng Lệnh Bài) ===== -->
+      <template x-if="$store.game.view==='suKien'">
+        <div class="space-y-3" x-data="{ get g(){ return $store.game } }">
+          <!-- Chưa có sự kiện mở -->
+          <template x-if="!g.svDef">
+            <div class="panel rounded-xl border border-slate-800 p-6 text-center">
+              <div class="text-[15px] fserif text-slate-300">Chưa có sự kiện nào đang mở.</div>
+              <template x-if="g.svSapMoText"><div class="text-[12.5px] text-amber-300 mt-2" x-text="g.svSapMoText"></div></template>
+            </div>
+          </template>
+
+          <template x-if="g.svDef">
+            <div class="space-y-3" x-data="{ get sv(){ return $store.game.svDef } }">
+              <!-- Banner -->
+              <div class="panel rounded-xl border p-4" :style="'border-color:' + sv.color + '55'">
+                <div class="flex items-start gap-3 flex-wrap">
+                  <div class="min-w-0 flex-1">
+                    <div class="text-[17px] font-bold fserif goldtext leading-snug" x-text="sv.ten"></div>
+                    <div class="text-[12px] text-slate-400 mt-0.5" x-text="sv.moTa"></div>
+                    <div class="text-[11.5px] mt-1" :style="'color:' + sv.color" x-text="g.suKienConLaiText"></div>
+                  </div>
+                  <div class="shrink-0 flex flex-col items-end gap-1.5">
+                    <div class="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-600/40 text-right">
+                      <div class="text-[10px] text-slate-500">Điểm Sự Kiện</div>
+                      <div class="text-[16px] font-bold text-amber-300" x-text="g.fmt(g.svDiem)"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-1.5 mt-3">
+                  <template x-if="g.currentLocation !== sv.loc.id">
+                    <button @click="g.svToiBanDo()" class="px-2.5 py-1 rounded-lg border text-[12.5px] transition"
+                      :style="'border-color:' + sv.color + '66; color:' + sv.color" x-text="'Tới ' + sv.loc.name"></button>
+                  </template>
+                  <template x-if="g.currentLocation === sv.loc.id">
+                    <button @click="g.navTo('combat')" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-slate-500 text-[12.5px] transition">Đánh Quái</button>
+                  </template>
+                  <button @click="g.navTo('worldboss')" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-slate-500 text-[12.5px] transition">Yêu Vương</button>
+                  <button @click="g.navTo('dungeon')" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-slate-500 text-[12.5px] transition">Bí Cảnh</button>
+                </div>
+              </div>
+
+              <!-- Đổi vật phẩm lấy Điểm -->
+              <div class="panel rounded-xl border border-slate-800 p-4">
+                <div class="text-[13px] font-bold fserif text-slate-200 mb-2">Đổi Vật Phẩm · theo bó 10</div>
+                <div class="space-y-1.5">
+                  <template x-for="v in g.svVatPham" :key="v.id">
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/20 border border-slate-800">
+                      <span class="w-7 h-7 inline-flex items-center justify-center text-[16px] shrink-0" x-html="g.ico(v.id, v.icon)"></span>
+                      <span class="text-[12.5px] text-slate-200 truncate min-w-0 flex-1" x-text="v.name"></span>
+                      <span class="text-[11.5px] text-slate-500 shrink-0" x-text="'có ' + g.fmt(v.co)"></span>
+                      <span class="text-[11.5px] text-amber-300/80 shrink-0 w-[5.4rem] text-right whitespace-nowrap" x-text="'10 → ' + v.diem10 + ' Điểm'"></span>
+                      <button @click="g.svDoi(v.id)" :disabled="v.co < 10"
+                        class="shrink-0 px-2.5 py-0.5 rounded-full text-[11.5px] fserif border transition disabled:opacity-35"
+                        :class="v.co >= 10 ? 'text-amber-200 border-amber-600/50 bg-amber-500/10 hover:bg-amber-500/20' : 'text-slate-600 border-slate-800'"
+                        x-text="v.co >= 10 ? ('Đổi +' + v.doiDuoc) : 'Đổi'"></button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Phụ kiện sự kiện -->
+              <div class="panel rounded-xl border border-slate-800 p-4">
+                <div class="text-[13px] font-bold fserif text-slate-200 mb-2">Phụ Kiện Sự Kiện · chỉ hiệu lực trong <span x-text="sv.loc.name"></span></div>
+                <div class="grid sm:grid-cols-2 gap-2">
+                  <template x-for="p in g.svPhuKien" :key="p.loai">
+                    <div class="px-3 py-2 rounded-lg bg-black/20 border" :class="p.co ? 'border-amber-600/40' : 'border-slate-800'">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[15px]" x-text="p.loai === 'boi' ? '📿' : '🔮'"></span>
+                        <span class="text-[12.5px] fserif" :class="p.co ? 'text-amber-200' : 'text-slate-400'" x-text="p.ten + (p.co === 'thuong' ? ' · Thượng' : p.co === 'so' ? ' · Sơ' : '')"></span>
+                        <span class="ml-auto text-[10.5px] shrink-0" :class="p.co ? 'text-jade' : 'text-slate-600'" x-text="p.co ? 'Đã mở' : 'Rơi từ ' + p.nguon"></span>
+                      </div>
+                      <div class="text-[10.5px] text-slate-500 mt-0.5" x-text="p.eff"></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Quầy đổi thưởng -->
+              <div class="panel rounded-xl border border-slate-800 p-4">
+                <div class="flex items-baseline gap-2 mb-2 flex-wrap">
+                  <div class="text-[13px] font-bold fserif text-slate-200" x-text="'Quầy ' + sv.quay.ten"></div>
+                  <div class="text-[10.5px] text-slate-500" x-text="'Chủ quầy · ' + sv.quay.chu"></div>
+                </div>
+                <!-- Gian Trân Phẩm -->
+                <div class="text-[11px] text-amber-300/80 fserif mb-1.5">Gian Trân Phẩm</div>
+                <div class="space-y-1.5 mb-3">
+                  <template x-for="r in g.svTranPham" :key="r.loai">
+                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/20 border border-slate-800">
+                      <span class="text-[15px] shrink-0" x-text="r.icon"></span>
+                      <span class="text-[12.5px] text-slate-200 truncate min-w-0 flex-1" x-text="r.ten"></span>
+                      <span class="text-[10.5px] text-slate-600 shrink-0" x-text="r.han"></span>
+                      <span class="text-[11.5px] text-amber-300 shrink-0 w-[3.6rem] text-right" x-text="g.fmt(r.gia)"></span>
+                      <button @click="g.svMuaTranPham(r.loai)" :disabled="r.daMua || !r.du"
+                        class="shrink-0 px-2.5 py-0.5 rounded-full text-[11.5px] fserif border transition disabled:opacity-35"
+                        :class="r.daMua ? 'text-slate-600 border-slate-800' : (r.du ? 'text-amber-200 border-amber-600/50 bg-amber-500/10 hover:bg-amber-500/20' : 'text-slate-600 border-slate-800')"
+                        x-text="r.daMua ? 'Đã có' : 'Đổi'"></button>
+                    </div>
+                  </template>
+                </div>
+                <!-- Bốn gian tiêu hao -->
+                <template x-for="(gian, gi) in g.svTieuHao" :key="gian.gian">
+                  <div class="mb-2.5">
+                    <div class="text-[11px] text-slate-400 fserif mb-1.5" x-text="'Gian ' + gian.gian"></div>
+                    <div class="flex flex-wrap gap-1.5">
+                      <template x-for="(mon, mi) in gian.ds" :key="mi">
+                        <button @click="g.svMuaTieuHao(gi, mi)" :disabled="g.svDiem < mon.diem"
+                          class="px-2.5 py-1 rounded-lg bg-black/20 border border-slate-800 hover:border-amber-600/40 text-left transition disabled:opacity-40">
+                          <span class="text-[11.5px] text-slate-200" x-text="g.svTenMon(mon) + (mon.qty > 1 ? ' ×' + mon.qty : '')"></span>
+                          <span class="text-[10.5px] text-amber-300/80 ml-1" x-text="mon.diem + ' Điểm'"></span>
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
         </div>
       </template>
 
@@ -16768,7 +16892,7 @@
             <button @click="$store.game.devSetAllLevel($store.game.devLvInput)" class="px-3 py-1 rounded bg-jade/80 hover:bg-jade text-ink text-xs font-medium">Áp</button>
           </div>
           <div class="grid grid-cols-2 gap-1 text-[11px]">
-            <template x-for="sid in Object.keys($store.game.SKILLS)" :key="sid">
+            <template x-for="sid in $store.game.skillIdsHienThi" :key="sid">
               <div class="flex items-center justify-between bg-ink3 rounded px-2 py-1">
                 <span class="truncate" x-text="$store.game.SKILLS[sid].name + ' · Lv' + $store.game.skillLevel(sid)"></span>
                 <button @click="$store.game.devAddSkillXp(sid,1000)" class="text-jade shrink-0 ml-1">+1k</button>

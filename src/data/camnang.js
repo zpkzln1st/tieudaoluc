@@ -46,6 +46,8 @@ import { LINH_THACH } from './linhthach.js';
 
 // ---------- số rút từ bảng thật ----------
 const n = (x) => (Array.isArray(x) ? x.length : Object.keys(x).length);
+// SU KIEN: Cam Nang dem/bang chi tinh the gioi THUONG TRUC — thuc the su kien (co suKien) dung ngoai.
+const nTT = (x) => (Array.isArray(x) ? x : Object.values(x)).filter((v) => !v || !v.suKien).length;
 // ⚠⚠ Bản cũ cắt số 0 cuối bằng một mẫu có dấu chấm TUỲ CHỌN — nên nó ĂN LUÔN số 0 của phần
 // nguyên khi không có dấu chấm: 20 -> "2", 50 -> "5",
 // 100 -> "1". Trần kháng 50% từng hiện là "5%". Sai im lặng vì con số vẫn hợp lệ.
@@ -95,11 +97,11 @@ export const CN_MUC = [
         ['Thế lực', 'Tông Môn, Tiên Minh', 'Hệ số cộng thêm cho hai trục trên'],
       ]],
       ['bang', ['Quy mô', 'Số lượng'], [
-        ['Nghề', sn(n(SKILLS))], ['Vùng bản đồ', sn(n(LOCATIONS))],
-        ['Loại quái', sn(n(ENEMIES))], ['Yêu Vương', sn(n(YEU_VUONG))],
-        ['Bí Cảnh', sn(n(DUNGEONS))], ['Vật phẩm', sn(n(ITEMS))],
+        ['Nghề', sn(nTT(SKILLS))], ['Vùng bản đồ', sn(nTT(LOCATIONS))],
+        ['Loại quái', sn(nTT(ENEMIES))], ['Yêu Vương', sn(nTT(YEU_VUONG))],
+        ['Bí Cảnh', sn(nTT(DUNGEONS))], ['Vật phẩm', sn(nTT(ITEMS))],
         ['Trang bị mẫu', sn(n(GEAR_IDS))], ['Chiêu thức', sn(n(CHIEU))],
-        ['Danh hiệu', sn(n(TITLES))],
+        ['Danh hiệu', sn(nTT(TITLES))],
       ]],
     ],
   },
@@ -240,7 +242,7 @@ export const CN_MUC = [
   },
   {
     id: 'hanhly', nhom: 'nhanvat', ten: 'Hành Lý',
-    tom: sn(n(ITEMS)) + ' vật phẩm, ' + sn(n(ITEM_TYPES)) + ' loại.',
+    tom: sn(nTT(ITEMS)) + ' vật phẩm, ' + sn(n(ITEM_TYPES)) + ' loại.',
     khoi: [
       ['bang', ['Loại', 'Số vật phẩm'],
         Object.keys(ITEM_TYPES).map((t) => [
@@ -283,9 +285,9 @@ export const CN_MUC = [
   // ================= NGHỀ =================
   {
     id: 'muoinghe', nhom: 'nghe', ten: 'Danh Sách Nghề',
-    tom: sn(n(SKILLS)) + ' nghề, trần cấp 100 mỗi nghề.',
+    tom: sn(nTT(SKILLS)) + ' nghề, trần cấp 100 mỗi nghề.',
     khoi: [
-      ['bang', ['Nghề', 'Việc'], Object.values(SKILLS).map((s) => [s.name, s.gloss || ''])],
+      ['bang', ['Nghề', 'Việc'], Object.values(SKILLS).filter((s) => !s.suKien).map((s) => [s.name, s.gloss || ''])],
       ['p', 'Mỗi nghề có cấp và kinh nghiệm riêng, trần 100. Mở nghề mới cần Tổng Lv đủ và một khoản Bạc; cứ mỗi 80 Tổng Lv mở thêm một nghề, chi phí tăng dần.'],
     ],
   },
@@ -340,7 +342,7 @@ export const CN_MUC = [
         'Sinh Lực duy trì bằng món ăn và đan dược gắn ở ô tự dùng.',
         'Gục thì chuyển sang trạng thái Suy Yếu, hết thời gian mới đánh tiếp. Vật phẩm đã nhận không mất.',
       ]],
-      ['p', 'Có <b>' + n(ENEMIES) + ' loại quái</b> phân bố trên <b>' + n(LOCATIONS) + ' vùng</b>. Chỉ số từng con xem ở bảng <b>Quái</b> trong Tra Cứu.'],
+      ['p', 'Có <b>' + nTT(ENEMIES) + ' loại quái</b> phân bố trên <b>' + nTT(LOCATIONS) + ' vùng</b>. Chỉ số từng con xem ở bảng <b>Quái</b> trong Tra Cứu.'],
     ],
   },
   {
@@ -442,11 +444,11 @@ export const CN_MUC = [
   },
   {
     id: 'bicanh', nhom: 'chiendau', ten: 'Bí Cảnh',
-    tom: sn(n(DUNGEONS)) + ' phó bản chạy theo lịch thời gian thực.',
+    tom: sn(nTT(DUNGEONS)) + ' phó bản chạy theo lịch thời gian thực.',
     khoi: [
       ['p', 'Bí Cảnh <b>chiếm chỗ hoạt động chính</b> — đặt lịch là dừng việc đang làm. Mỗi lượt đi qua các tầng theo cấu hình của phó bản đó rồi kết ở thủ lĩnh.'],
       ['bang', ['Bí Cảnh', 'Cấp cần', 'Thời lượng', 'Phí vào'],
-        DUNGEONS.map((d) => [
+        DUNGEONS.filter((d) => !d.suKien).map((d) => [
           d.name, 'Lv ' + d.reqLevel, Math.round(d.durMs / 60000) + ' phút',
           [(d.cost || {}).bac ? sn(d.cost.bac) + ' Bạc' : null, (d.cost || {}).honThach ? sn(d.cost.honThach) + ' Hồn Thạch' : null].filter(Boolean).join(' + ') || '—',
         ])],
@@ -460,11 +462,11 @@ export const CN_MUC = [
   },
   {
     id: 'yeuvuong', nhom: 'chiendau', ten: 'Yêu Vương',
-    tom: sn(n(YEU_VUONG)) + ' trùm thế giới, đánh theo lượt.',
+    tom: sn(nTT(YEU_VUONG)) + ' trùm thế giới, đánh theo lượt.',
     khoi: [
       ['p', 'Yêu Vương đánh theo lượt, không treo máy. Mỗi con có thời gian hồi riêng sau khi bị hạ.'],
       ['bang', ['Yêu Vương', 'Cấp cần', 'Hồi', 'Tinh Thể', 'Hồn Thạch', 'Bạc'],
-        YEU_VUONG.map((y) => [
+        YEU_VUONG.filter((y) => !y.suKien).map((y) => [
           y.name, 'Lv ' + y.reqLevel, ((y.wb || {}).cdHours || 0) + ' giờ',
           sn((y.wb || {}).tinhThe || 0), sn((y.wb || {}).honThach || 0), sn((y.wb || {}).bac || 0),
         ])],
@@ -646,7 +648,7 @@ export const CN_MUC = [
       ['h', 'Kết mùa'],
       ['bang', ['Hạng tổng', 'Hồn Thạch'],
         MUA_THUONG_BANG.map((v, i) => ['Hạng ' + (i + 1), sn(v)])],
-      ['p', 'Một mùa dài <b>' + sn(MUA_NGAY) + ' ngày</b>. Cả ' + n(LOCATIONS) + ' vùng đều tranh được.'],
+      ['p', 'Một mùa dài <b>' + sn(MUA_NGAY) + ' ngày</b>. Cả ' + nTT(LOCATIONS) + ' vùng đều tranh được.'],
     ],
   },
   {
@@ -666,10 +668,10 @@ export const CN_MUC = [
   // ================= GIANG HỒ =================
   {
     id: 'bando', nhom: 'giangho', ten: 'Bản Đồ & Di Chuyển',
-    tom: sn(n(LOCATIONS)) + ' vùng.',
+    tom: sn(nTT(LOCATIONS)) + ' vùng.',
     khoi: [
       ['bang', ['Vùng', 'Cấp cần', 'Số loại quái'],
-        LOCATIONS.map((l) => [l.name, 'Lv ' + l.reqLevel, sn((l.enemies || []).length)])],
+        LOCATIONS.filter((l) => !l.suKien).map((l) => [l.name, 'Lv ' + l.reqLevel, sn((l.enemies || []).length)])],
       ['ct', 'Phí Truyền Tống = Tổng Lv × khoảng cách  (Bạc)'],
       ['p', 'Đi bộ mất thời gian thực theo khoảng cách. Truyền Tống đến ngay nhưng tốn Bạc. Vùng khoá cần đủ cấp mới vào.'],
     ],
@@ -754,7 +756,7 @@ export const CN_MUC = [
   },
   {
     id: 'danhhieu', nhom: 'suutap', ten: 'Danh Hiệu',
-    tom: sn(n(TITLES)) + ' danh hiệu, ' + sn(n(TITLE_LOAI)) + ' loại.',
+    tom: sn(nTT(TITLES)) + ' danh hiệu, ' + sn(n(TITLE_LOAI)) + ' loại.',
     khoi: [
       ['p', 'Đạt đủ điều kiện thì danh hiệu tự mở khoá.'],
       ['p', '<b>Chỉ danh hiệu đang đeo mới cộng chỉ số.</b> Mở được nhiều cũng không cộng dồn — mỗi lúc chỉ đeo được một cái.'],

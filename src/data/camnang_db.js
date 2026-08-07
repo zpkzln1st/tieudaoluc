@@ -155,7 +155,8 @@ export const CN_DB = [
       { k: 'exp', ten: 'EXP', so: true }, { k: 'power', ten: 'Chiến Lực', so: true },
       { k: 'roi', ten: 'Rơi' },
     ],
-    hang: () => Object.values(ENEMIES).map((e) => ({
+    // SU KIEN: Cam Nang chi noi ve the gioi THUONG TRUC — loc co suKien (cung vi tu voi engine/timkiem.js).
+    hang: () => Object.values(ENEMIES).filter((e) => !e.suKien).map((e) => ({
       id: e.id, ten: e.name, _icon: e.icon, vung: vungQuai(e.id), lv: e.reqLevel,
       hp: e.hp, atk: e.atk, def: e.def, spd: e.spd, exp: e.exp, power: e.power,
       roi: (e.loot || []).map((l) => tenItem(l.itemId) + ' ' + pct(l.chance, 1)).join(' · ') || '—',
@@ -195,7 +196,7 @@ export const CN_DB = [
       { k: 'tinhThe', ten: 'Tinh Thể', so: true }, { k: 'honThach', ten: 'Hồn Thạch', so: true },
       { k: 'bac', ten: 'Bạc', so: true },
     ],
-    hang: () => YEU_VUONG.map((y) => ({
+    hang: () => YEU_VUONG.filter((y) => !y.suKien).map((y) => ({
       id: y.id, ten: y.name, _icon: y.icon, lv: y.reqLevel, hp: y.hp, atk: y.atk, def: y.def,
       hoi: (y.wb || {}).cdHours ? y.wb.cdHours + ' giờ' : '—',
       _hoiSo: (y.wb || {}).cdHours || 0,
@@ -237,7 +238,7 @@ export const CN_DB = [
       { k: 'bac', ten: 'Bạc' }, { k: 'ht', ten: 'Hồn Thạch' },
       { k: 'manh', ten: 'Mảnh', so: true }, { k: 'hiem', ten: 'Vật phẩm hiếm' },
     ],
-    hang: () => DUNGEONS.map((d) => {
+    hang: () => DUNGEONS.filter((d) => !d.suKien).map((d) => {
       const L = d.loot || {}, c = d.cost || {};
       return {
         id: d.id, ten: d.name, lv: d.reqLevel, _phut: Math.round(d.durMs / 60000),
@@ -371,7 +372,7 @@ export const CN_DB = [
       { k: 'ten', ten: 'Tên' }, { k: 'loai', ten: 'Loại' }, { k: 'pham', ten: 'Phẩm chất', mau: 'pham' },
       { k: 'gia', ten: 'Giá bán', so: true }, { k: 'dung', ten: 'Công dụng' }, { k: 'nguon', ten: 'Nguồn' },
     ],
-    hang: () => Object.values(ITEMS).filter((i) => i.type !== 'trangbi').map((i) => ({
+    hang: () => Object.values(ITEMS).filter((i) => i.type !== 'trangbi' && !i.suKien).map((i) => ({
       id: i.id, ten: i.name, _icon: i.icon, _pham: i.quality, pham: tenPham(i.quality),
       loai: tenLoai(i.type), gia: i.value,
       dung: [
@@ -558,7 +559,7 @@ export const CN_DB = [
       { k: 'ten', ten: 'Vùng' }, { k: 'lv', ten: 'Lv', so: true }, { k: 'canh', ten: 'Cảnh giới' },
       { k: 'soQuai', ten: 'Số quái', so: true }, { k: 'quai', ten: 'Quái' },
     ],
-    hang: () => LOCATIONS.map((l) => {
+    hang: () => LOCATIONS.filter((l) => !l.suKien).map((l) => {
       const ds = Object.values(ENEMIES).filter((e) => (VUNG_CUA_QUAI[e.id] || []).includes(l.name));
       const canh = ['Nhân Gian', 'Bí Cảnh', 'Tiên Cảnh', 'Thần Vực'];
       const t = l.reqLevel >= 90 ? 3 : l.reqLevel >= 60 ? 2 : l.reqLevel >= 30 ? 1 : 0;
@@ -586,7 +587,7 @@ export const CN_DB = [
   {
     id: 'nghe', ten: 'Nghề', nhom: 'Thế Giới', dv: 'nghề',
     cot: [{ k: 'ten', ten: 'Nghề' }, { k: 'viec', ten: 'Việc' }, { k: 'congCu', ten: 'Công cụ' }],
-    hang: () => Object.values(SKILLS).map((s) => ({
+    hang: () => Object.values(SKILLS).filter((s) => !s.suKien).map((s) => ({
       id: s.id, ten: s.name, viec: s.gloss || '—',
       congCu: (TOOL_SLOTS.find((t) => (s.tool || '') === t.id) || {}).name || '—', _s: s,
     })),

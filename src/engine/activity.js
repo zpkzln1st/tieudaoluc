@@ -26,6 +26,7 @@ import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang b�
 import { consumableEffMult } from './setbonus.js';   // dòng ẩn Nhu Tình: +% hiệu lực đan dược & thức ăn
 import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
+import { skMo, skMocDong, skEffBonus, skExpBonus } from './sukien.js';   // Sự Kiện: kĩ năng riêng 6 bậc
 
 export function getAction(skillId, actionId) {
   const skill = SKILLS[skillId];
@@ -62,6 +63,11 @@ export function canStartAction(state, skillId, action) {
 // effPct CỘNG vào mẫu số cycleMs (gộp cùng Nghề/Công Cụ/Tín Vật) — KHÔNG chia lần hai như trước,
 // để mọi nguồn hiệu suất nằm chung một chỗ, dễ soát trần.
 function effDenom(state, skillId, effPct) {
+  // KĨ NĂNG SỰ KIỆN: hiệu suất CHỈ ăn phụ kiện Bội (0/15/30%) — KHÔNG Nghề/Công Cụ/Tín Vật/bang/
+  // Linh Thạch. Trần chống gian lận của sáu track sự kiện tính đúng theo vế này; thêm bất kỳ
+  // nguồn nào vào đây là phải sinh lại SQL_CHONG_GIAN_LAN.sql và user chạy lại.
+  const _sk = SKILLS[skillId];
+  if (_sk && _sk.suKien) return 1 + skEffBonus(state, skillId);
   return professionEffMult(state, skillId) + toolEffBonus(state, skillId) + tinVatEffBonus(state, skillId) + bangEff(state) + (effPct || 0) / 100;
 }
 function cycleMsFor(state, skillId, action, effPct) {
@@ -135,13 +141,20 @@ export function startActivity(state, skillId, actionId, now, soLuot) {
   const action = getAction(skillId, actionId);
   if (!action) return false;
   if (!canStartAction(state, skillId, action)) return false;
+  // KĨ NĂNG SỰ KIỆN: sự kiện phải ĐANG MỞ và người chơi phải ĐỨNG TRONG bản đồ sự kiện.
+  // UI có lọc rồi nhưng engine vẫn chặn — kẻ sửa client mà cày ngoài giờ thì phép kiểm
+  // ngoai_su_kien phía máy chủ ghi sổ; chặn ở đây để NGƯỜI THẬT không dính oan vì lệch giờ.
+  const _skDef = SKILLS[skillId];
+  const _laSuKien = !!(_skDef && _skDef.suKien);
+  if (_laSuKien && (!skMo(state, _skDef.suKien, now) || (action.zone && state.player.location !== action.zone))) return false;
   state.activity = {
     type: 'skill', skillId, actionId,
     limit: Math.max(0, Math.floor(soLuot || 0)),
     cycleMs: cycleMsFor(state, skillId, action, 0),   // Nghề + Công cụ + Tín Vật (+ Linh Thạch nếu đốt được)
     startedAt: now, lastResolved: now,
     sessionCount: 0, progress: 0, capped: false, stalled: false,
-    ltId: (state.linhThach && state.linhThach[skillId]) || null,   // loại đá đang lắp — đốt dần theo giờ
+    // ⛔ Kĩ năng sự kiện KHÔNG lắp Linh Thạch — ô Bội/Ấn đã làm đúng việc đó (docs/THIET_KE_SU_KIEN.md III5).
+    ltId: _laSuKien ? null : ((state.linhThach && state.linhThach[skillId]) || null),
     buff: null, buffMsLeft: 0, buffXpAcc: 0,
     buffAt: now,       // MỐC đã tính đá tới đâu — xem ghi chú ở advance()
   };
@@ -362,6 +375,15 @@ export function advance(state, now) {
   } else {
     const skill = SKILLS[act.skillId];
     const action = getAction(act.skillId, act.actionId);
+    // SỰ KIỆN ĐÓNG GIỮA LÚC TREO MÁY: chỉ tính thưởng tới MỐC ĐÓNG, phần sau bỏ.
+    // Mốc là thời gian tuyệt đối đã đệm trong save nên tính được cả khi ngoại tuyến.
+    if (skill && skill.suKien) {
+      const _dong = skMocDong(state, skill.suKien);
+      if (_dong && now > _dong) {
+        if (act.lastResolved >= _dong) { state.activity = null; return null; }   // đã quá giờ từ trước -> dừng hẳn
+        elapsed = Math.min(elapsed, _dong - act.lastResolved);
+      }
+    }
     let cyclesByInputs = Infinity;
     if (action.inputs && action.inputs.length) {
       for (const inp of action.inputs) {
@@ -427,7 +449,9 @@ export function advance(state, now) {
     }
     act.buffAt = Math.max(act.buffAt, moc);   // chốt mốc: lần gọi sau không tính lại khúc này nữa
     if (cycles > 0) {
-      const mult = skillExpMultiplier(state, act.skillId);
+      // KĨ NĂNG SỰ KIỆN: EXP chỉ ăn phụ kiện Ấn (0/20/40%) — KHÔNG Nghề/Điểm Danh. Cùng lý do
+      // với effDenom ở trên: trần chống gian lận của track sự kiện tính đúng theo vế này.
+      const mult = (skill && skill.suKien) ? 1 + skExpBonus(state, act.skillId) : skillExpMultiplier(state, act.skillId);
       const gainXp = Math.max(1, Math.round(action.xp * mult));
       // Bội Sản chỉ áp khi hành động CÓ nguyên liệu vào VÀ sản phẩm KHÔNG phải trang bị.
       // Luật theo ACTION chứ không theo nghề: doanhTao có datSet/cat không tốn liệu (sinh vật liệu từ hư không),

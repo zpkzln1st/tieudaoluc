@@ -63,8 +63,13 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 **S8 · Linh Thú** *(dọc 3:4)*
 `Wuxia xianxia spirit-beast companion, full-body creature, semi-realistic painterly digital art, appealing collectible creature design, soft magical aura matching its element, cinematic rim lighting, dark atmospheric background, no text, no border —`
 
-**S9 · Trứng Linh Thú** *(vuông, ~256×256)*
-`Fantasy spirit-beast egg icon, single ornate egg centered, semi-realistic painterly digital art, patterned shell with faint inner glow, resting on nothing, plain dark neutral background, no text, no border —`
+**S9 · Trứng Linh Thú** *(vuông, ~512×512)* — **MỘT tệp mỗi sự kiện**, hậu tố `_linh`.
+Linh Thú sự kiện chỉ có **một phẩm chất duy nhất là Hiếm** (`tinhPham`), nên chỉ cần đúng một bức.
+⚠ Khuôn soi từ `egg_bachHo_linh.webp` đang chạy trong game — bám đúng vào, đừng tự nghĩ kiểu khác.
+Đặc điểm bậc Hiếm: **vẫn nguyên hình quả trứng**, hoa văn vàng **vẽ LÊN mặt vỏ**, một viên đá quý giữa
+mặt trước. Không có khung lồng ba chiều — cái đó là của bậc Truyền Thuyết, đừng vẽ nhầm sang.
+
+`a single upright egg centered in frame, semi-realistic painterly digital art, ornate gold filigree flame-vines painted across the shell surface in a symmetrical pattern rising from the base, one faceted gem set at the front centre, plain egg silhouette with no cage or stand, plain pure white background, soft even lighting, no shadow, no text, no border —`
 
 **S10 · Ảnh đại diện** *(vuông 1:1, ~512×512, crop vào mặt)*
 `Wuxia xianxia character portrait avatar, head and shoulders, semi-realistic painterly digital art, face clearly readable at small size, festive seasonal costume, cinematic soft lighting, no text, no border —`
@@ -139,9 +144,8 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 **`images/pets/kimDongNgu.webp`** · S8
 `a golden carp spirit-fish swimming through mid-air, scales of layered polished gold, long flowing crimson fins like silk banners, whiskers trailing sparks, faint gold Kim-element aura, poised as if about to leap a dragon gate`
 
-**`images/items/egg_kimDongNgu.webp`** · S9
-`an egg patterned with overlapping golden carp scales, warm gold light pulsing between the scales, tiny red fin-like ridge along the top`
-
+**`images/items/egg_kimDongNgu_linh.webp`** · S9
+`carp-scale shell, gold filigree rising like leaping fins and water spray, a red gem at the front centre`
 ## Ảnh đại diện · S10
 | tệp | phần riêng |
 |---|---|
@@ -210,9 +214,8 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 **`images/pets/thaiVuDiep.webp`** · S8
 `a large spirit butterfly with five-colored iridescent wings that shift like oil on water, delicate feathered antennae, trailing motes of pollen light, faint green Moc-element aura, wings caught mid-beat`
 
-**`images/items/egg_thaiVuDiep.webp`** · S9
-`an egg with a chrysalis-like silken sheen banded in five soft colors, faint rainbow shimmer moving across the surface, tiny green vine curling around its base`
-
+**`images/items/egg_thaiVuDiep_linh.webp`** · S9
+`pastel chrysalis shell, gold filigree spreading like butterfly wing veins, a green gem at the front centre`
 ## Ảnh đại diện · S10
 | tệp | phần riêng |
 |---|---|
@@ -281,9 +284,8 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 **`images/pets/xichDiemLongCau.webp`** · S8
 `a crimson dragon-horse foal, scaled hide the color of hot coals, mane and tail of living flame, small horn buds and fin-like ears, hooves leaving scorch marks in the air, faint red Hoa-element aura`
 
-**`images/items/egg_xichDiemLongCau.webp`** · S9
-`an egg of dark scarlet shell with glowing molten cracks running across it, faint heat shimmer, small flame-shaped ridge at the top`
-
+**`images/items/egg_xichDiemLongCau_linh.webp`** · S9
+`molten-cracked scarlet shell, gold filigree curling like rising flame tongues, an amber gem at the front centre`
 ## Ảnh đại diện · S10
 | tệp | phần riêng |
 |---|---|
@@ -352,9 +354,8 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 **`images/pets/uMinhMieu.webp`** · S8
 `a sleek black underworld cat, fur that swallows light, two faint pale-gold ring markings on its brow, eyes like cold lanterns, tail tip dissolving into dark mist, faint ochre Tho-element aura, walking without sound`
 
-**`images/items/egg_uMinhMieu.webp`** · S9
-`a matte black egg with faint pale-gold ring markings, thin cold mist pooling around its base, a single dim ember of light visible deep inside`
-
+**`images/items/egg_uMinhMieu_linh.webp`** · S9
+`black shell, gold filigree curling like cat whiskers and drifting smoke, a violet gem at the front centre`
 ## Ảnh đại diện · S10
 | tệp | phần riêng |
 |---|---|
@@ -423,9 +424,8 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 **`images/pets/ngocTho.webp`** · S8
 `a jade rabbit spirit, coat of luminous white with faint jade-green translucence at the ear tips, large calm red eyes, a tiny jade pestle held against its chest, faint blue Thuy-element aura, sitting upright`
 
-**`images/items/egg_ngocTho.webp`** · S9
-`a pale moon-white egg with faint jade-green veining, cold silver light pulsing softly inside, a ring of tiny frost crystals around its base`
-
+**`images/items/egg_ngocTho_linh.webp`** · S9
+`moon-white shell, gold filigree curling like cassia sprays and crescent moons, a jade gem at the front centre`
 ## Ảnh đại diện · S10
 | tệp | phần riêng |
 |---|---|
@@ -494,9 +494,8 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 **`images/pets/bachLoc.webp`** · S8
 `a young white deer spirit, coat of pure snow-white with faint frost patterning along the flank, small budding antlers hung with two tiny brass bells, warm dark eyes, faint blue Thuy-element aura, standing on untouched snow leaving no prints`
 
-**`images/items/egg_bachLoc.webp`** · S9
-`a snow-white egg with fine frost-fern patterns etched across the shell, a soft pale-blue glow within, a tiny brass bell tied to a cord around its middle`
-
+**`images/items/egg_bachLoc_linh.webp`** · S9
+`frost-fern shell, gold filigree branching like antlers and pine needles, a pale-blue gem at the front centre`
 ## Ảnh đại diện · S10
 | tệp | phần riêng |
 |---|---|
@@ -518,5 +517,5 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 - **Sáu bộ phải khác nhau về TÔNG MÀU** để nhìn là biết đang ở sự kiện nào: Tết đỏ-vàng · Mùa Xuân xanh non-hồng phấn · Đoan Ngọ vàng nắng-xanh nước · Vu Lan chàm-đỏ đèn · Trung Thu lam bạc-vàng quế · Giáng Sinh xanh lạnh-hổ phách ấm.
 - **Icon vật phẩm phải đọc được ở 64 pixel.** Một vật, một bóng đổ, nền phẳng. Đừng vẽ cảnh.
 - **Ảnh bìa hồ sơ chừa trống một phần ba bên trái** vì chỗ đó bị chữ đè lên.
-- **Trứng Linh Thú chỉ cần một tệp cho mỗi loài.** Ba phẩm Thần, Linh, Phàm dùng chung art, khác nhau ở màu viền khung do giao diện tô.
+- **Trứng Linh Thú cần ĐỦ BA TỆP cho mỗi loài** — Phàm, Linh, Thần là ba bức vẽ khác hẳn nhau, không phải một bức đổi màu viền. Xem khối S9. Kho đang có 10 loài × 3 phẩm; làm thiếu một phẩm là ô đó trắng trơn trong game.
 - **Yêu Vương phải trông nặng ký hơn quái thường rõ rệt.** Góc máy thấp, hào quang, cảnh nền động.

@@ -79,6 +79,8 @@ import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, a
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan } from './engine/lenhbai.js';
+import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, tenPhuKien } from './data/sukien.js';
+import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, phuKienCua, donSuKien } from './engine/sukien.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
@@ -246,6 +248,8 @@ try {
   }
 } catch (e) {}
 ensureLenhBai(state);      // Sự kiện: dựng ô đệm hai mốc thời gian. Save cũ chưa có ô này.
+ensureSuKien(state);       // Sự kiện: Điểm + phụ kiện + sổ đã-mua
+try { donSuKien(state, Date.now()); } catch (e) {}   // sự kiện đã đóng -> vật phẩm bốc hơi, người về làng (mốc đệm trong save, chạy được cả offline)
 ensureKyHon(state);        // Kỳ Hồn CHUNG (mọi bàn cờ) — PHẢI sau các ensure trên để gộp được số của save cũ
 ensureGocNhin(state);      // Góc nhìn bàn cờ đã khoá (null = mỗi bàn tự canh)
 ensureDongPhu(state); resolveDongPhu(state, Date.now());   // Động Phủ: khởi tạo + hoàn công job xong TRƯỚC advance offline & simTongMon (trần treo nhà áp cho cả khoảng vắng)
@@ -1589,7 +1593,14 @@ const gameStore = {
   async taiSuKien() {
     try {
       const r = await cloudSuKienDs();
-      if (r.ok) demSuKien(this.state, r.rows, now());
+      if (!r.ok) return;
+      demSuKien(this.state, r.rows, now());
+      // Lịch vừa đệm xong: sự kiện nào đã đóng thì dọn ngay, và BÁO một lần — đừng im lặng nuốt đồ.
+      const daLam = donSuKien(this.state, now());
+      const mat = daLam.filter((x) => x.viec === 'vatPham');
+      if (mat.length) this.showToast('Sự kiện đã đóng — ' + mat.length + ' loại vật phẩm sự kiện đã tan biến.');
+      if (daLam.some((x) => x.viec === 'veLang')) this.showToast('Sự kiện đã đóng — ngươi được đưa về ' + this.LOCATIONS[0].name + '.');
+      this._tick++;
     } catch (e) {}
   },
   get suKienDangChay() { void this._tick; return suKienHienHanh(this.state, now(), this.isAuthorAccount); },
@@ -1626,6 +1637,104 @@ const gameStore = {
       return dem;
     } catch (e) { return 0; }
   },
+
+  // ---------- SỰ KIỆN — màn chơi (view 'suKien') ----------
+  // Trạng thái mở/đóng đọc qua suKienDangChay (đã có ở trên, tôn trọng cờ chi_tac_gia).
+  get svDef() { const ma = this.suKienDangChay; return ma ? SU_KIEN_BY_MA[ma] : null; },
+  /** Danh sách nghề cho sidebar: kĩ năng sự kiện chỉ hiện khi sự kiện của nó đang mở. */
+  get skillIdsHienThi() {
+    void this._tick;
+    return Object.keys(this.SKILLS).filter((id) => { const s = this.SKILLS[id]; return !s.suKien || this.svMoCua(s.suKien); });
+  },
+  get svDiem() { void this._tick; return (this.state.suKien && this.state.suKien.diem) || 0; },
+  svMoCua(ma) { void this._tick; return suKienDangMo(this.state, ma, now(), this.isAuthorAccount); },
+  /** Nav chỉ hiện mục Sự Kiện khi có sự kiện đang mở hoặc sắp mở trong 7 ngày. */
+  get svNavHien() {
+    void this._tick;
+    if (this.suKienDangChay) return true;
+    const sm = suKienSapMo(this.state, now(), this.isAuthorAccount);
+    return !!(sm && sm.con < 7 * 86400000);
+  },
+  get svSapMoText() {
+    void this._tick;
+    const sm = suKienSapMo(this.state, now(), this.isAuthorAccount);
+    if (!sm) return '';
+    const ng = Math.floor(sm.con / 86400000), h = Math.floor((sm.con % 86400000) / 3600000);
+    return (SU_KIEN_BY_MA[sm.ma] || {}).ten + ' mở sau ' + (ng > 0 ? ng + ' ngày ' + h + ' giờ' : h + ' giờ');
+  },
+  /** 6 vật phẩm sự kiện đang mở + số đang có + điểm đổi được. */
+  get svVatPham() {
+    void this._tick;
+    const d = this.svDef; if (!d) return [];
+    return d.vatPham.map((v, i) => {
+      const co = this.state.inventory[v.id] || 0;
+      return { id: v.id, name: v.name, icon: v.icon, bac: i + 1, co, diem10: SK_BAC[i].diem10,
+        doiDuoc: Math.floor(co / 10) * SK_BAC[i].diem10 };
+    });
+  },
+  get svPhuKien() {
+    void this._tick;
+    const d = this.svDef; if (!d) return [];
+    const pk = phuKienCua(this.state, d.ma);
+    return [
+      { loai: 'boi', ten: d.phuKien.boi, nguon: 'Yêu Vương', co: pk.boiThuong ? 'thuong' : (pk.boiSo ? 'so' : null), eff: '+15% / +30% hiệu suất' },
+      { loai: 'an', ten: d.phuKien.an, nguon: 'Bí Cảnh', co: pk.anThuong ? 'thuong' : (pk.anSo ? 'so' : null), eff: '+20% / +40% kinh nghiệm' },
+    ];
+  },
+  get svTranPham() {
+    void this._tick;
+    const d = this.svDef; if (!d) return [];
+    const rows = [
+      { loai: 'trung', ten: d.pet.name + ' Noãn · Hiếm', icon: '🥚', gia: QUAY_GIA.trung, han: 'mỗi đợt' },
+      { loai: 'danhHieu', ten: 'Danh hiệu ' + d.danhHieu.name, icon: '🏷️', gia: QUAY_GIA.danhHieu, han: 'vĩnh viễn' },
+      { loai: 'avatar:' + d.avatar[0], ten: 'Ảnh đại diện · Nam', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
+      { loai: 'avatar:' + d.avatar[1], ten: 'Ảnh đại diện · Nữ', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
+      { loai: 'cover:' + d.cover, ten: 'Ảnh bìa sự kiện', icon: '🏞️', gia: QUAY_GIA.cover, han: 'vĩnh viễn' },
+    ];
+    return rows.map((r) => Object.assign(r, { daMua: this.svDaMua(r.loai), du: this.svDiem >= r.gia }));
+  },
+  svDaMua(loai) {
+    const d = this.svDef; if (!d) return false;
+    const goc = loai.split(':');
+    if (goc[0] === 'danhHieu') return ((this.state.titles || {}).owned || []).includes(d.danhHieu.id);
+    if (goc[0] === 'avatar') return ((this.state.player || {}).ownedAvatars || []).includes(goc[1]);
+    if (goc[0] === 'cover') return ((this.state.player || {}).ownedCovers || []).includes(goc[1]);
+    return daMuaTrongDot(this.state, d.ma, loai);
+  },
+  get svTieuHao() { return QUAY_TIEU_HAO; },
+  svTenMon(mon) { return mon.tienTe ? ({ honThach: 'Hồn Thạch', nguyenBao: 'Nguyên Bảo' })[mon.tienTe] : (mon.monAnSuKien ? ((this.svDef || {}).monAn || {}).name : ((this.ITEMS[mon.itemId] || {}).name || mon.itemId)); },
+  svDoi(itemId) {
+    const r = doiVatPham(this.state, itemId, now());
+    if (!r.ok) { this.showToast(r.msg); return; }
+    this._tick++;
+    this.showToast('Đổi ' + r.soVat + ' vật phẩm lấy ' + r.diem + ' Điểm Sự Kiện.');
+  },
+  svMuaTranPham(loai) {
+    const d = this.svDef; if (!d) return;
+    if (this.svDaMua(loai)) { this.showToast('Đã có rồi.'); return; }
+    const r = muaTranPham(this.state, d.ma, loai, now());
+    if (!r.ok) { this.showToast(r.msg); return; }
+    // Phần đụng titles/avatar nằm ngoài engine thuần — làm ở đây.
+    const goc = loai.split(':');
+    if (goc[0] === 'danhHieu') { ensureTitles(this.state); const t = this.state.titles; if (!t.owned.includes(d.danhHieu.id)) { t.owned.push(d.danhHieu.id); t.moAt[d.danhHieu.id] = now(); } }
+    if (goc[0] === 'avatar') { const p = this.state.player; if (!p.ownedAvatars.includes(goc[1])) p.ownedAvatars.push(goc[1]); }
+    if (goc[0] === 'cover') { const p = this.state.player; if (!p.ownedCovers.includes(goc[1])) p.ownedCovers.push(goc[1]); }
+    Storage.save(this.state); this._tick++;
+    this.showToast('Đã đổi ' + r.gia + ' Điểm.');
+  },
+  svMuaTieuHao(g, i) {
+    const d = this.svDef; if (!d) return;
+    const r = muaTieuHao(this.state, d.ma, g, i, now());
+    if (!r.ok) { this.showToast(r.msg); return; }
+    this._tick++;
+    this.showToast('Nhận ' + r.qty + ' ' + (r.ten === 'honThach' ? 'Hồn Thạch' : r.ten === 'nguyenBao' ? 'Nguyên Bảo' : r.ten) + '.');
+  },
+  svToiBanDo() {
+    const d = this.svDef; if (!d) return;
+    if (this.currentLocation === d.loc.id) { this._applyView('combat'); return; }
+    this.startKhinhCong(d.loc.id);
+  },
+  svTenPhuKien(ma, khoa) { return tenPhuKien(ma, khoa); },
 
   // ---------- GIÁM SÁT (đợt C) — chỉ tài khoản tác giả ----------
   // ⚠⚠ `isAuthorAccount` chỉ để ẨN/HIỆN màn này. Nó KHÔNG phải hàng rào — ai sửa mã client
@@ -1690,7 +1799,8 @@ const gameStore = {
   async initCloud() {
     try {
       this.authUser = await cloudGetUser();
-      await cloudOnAuth((user) => { this.authUser = user; });
+      await cloudOnAuth((user) => { this.authUser = user; try { datCoTacGia(this.state, this.isAuthorAccount); } catch (e) {} });
+      try { datCoTacGia(this.state, this.isAuthorAccount); } catch (e) {}   // cờ CHỈ để thấy sự kiện chạy thử (chi_tac_gia); hàng rào thật là RLS
       if (this.authUser) this.cloudSyncOnLogin();   // đã đăng nhập sẵn (reload) -> kéo/so cloud
       // Lịch sự kiện đọc được KHÔNG CẦN đăng nhập — ai cũng phải biết sự kiện nào đang mở.
       // ⚠ Hoãn 2 giây như đường Phong Vân Bảng: đừng tranh băng thông với lượt kéo save lúc mở game.
@@ -2331,6 +2441,8 @@ const gameStore = {
     if (rw.honThach) p.push(this.fmt(rw.honThach) + ' Hồn Thạch');
     if (rw.bac) p.push(this.fmt(rw.bac) + ' Bạc');
     if (rw.exp) p.push(this.fmt(rw.exp) + ' EXP');
+    if (rw.diem) p.push(rw.diem + ' Điểm Sự Kiện');
+    if (rw.phuKienMo && this.suKienDangChay) p.push('Mở ' + tenPhuKien(this.suKienDangChay, rw.phuKienMo));
     return p.length ? 'Đoạt: ' + p.join(' · ') : 'Đã hạ gục.';
   },
   // ===== LINH THÚ (pet) =====
@@ -3148,9 +3260,11 @@ const gameStore = {
   // ---------- Linh Thạch (buff per-skill) ----------
   linhThachOwned(itemId) { return this.state.inventory[itemId] || 0; },
   // Linh Thạch nay DÙNG CHUNG mọi nghề (không còn skillId) -> ô Linh Thạch hiện ở mọi nghề gather/craft.
-  hasLinhThachFamily(skillId) { return linhThachForSkill(skillId).length > 0; },
+  // ⛔ Kĩ năng SỰ KIỆN không lắp Linh Thạch — ô Bội/Ấn đã làm đúng việc đó, chồng tầng ba là nhân dồn hệ số.
+  hasLinhThachFamily(skillId) { const s = this.SKILLS[skillId]; if (s && s.suKien) return false; return linhThachForSkill(skillId).length > 0; },
   // Các Linh Thạch hợp với skill (cho picker), kèm số viên đang có; có hàng lên đầu.
   skillLinhThachOptions(skillId) {
+    const s = this.SKILLS[skillId]; if (s && s.suKien) return [];
     return linhThachForSkill(skillId)
       .map((d) => ({ ...d, owned: this.state.inventory[d.itemId] || 0 }))
       .sort((a, b) => b.owned - a.owned);
@@ -3337,7 +3451,8 @@ const gameStore = {
   bossFight: null,                                    // trận LIVE: { id, he, frames, total, idx, pMax,bMax,pHp,bHp, log:[], turn, done, win, reward }
   _bossFrameAt: 0,                                    // mốc lộ frame gần nhất
   _bossAwayChecked: false,                            // đã resolve hàng đợi lúc load chưa
-  get yeuVuongList() { return YEU_VUONG; },
+  // Boss SỰ KIỆN chỉ hiện khi sự kiện của nó đang mở — đóng cửa là rail sạch như cũ.
+  get yeuVuongList() { void this._tick; return YEU_VUONG.filter((b) => !b.suKien || this.svMoCua(b.suKien)); },
   get bossSelObj() { return YEU_VUONG_BY_ID[this.bossSel] || YEU_VUONG[0]; }, // THUẦN (không ghi state khi render); bossSel set ở ensureCombat
   selectBoss(id) { if (YEU_VUONG_BY_ID[id]) this.bossSel = id; },
   bossHe(id) { return bossHe(this.state, id); },
@@ -3451,6 +3566,7 @@ const gameStore = {
     if (rw.items && rw.items.tinhTheYeuVuong) parts.push(rw.items.tinhTheYeuVuong + '× Tinh Thể');
     if (rw.items) for (const k in rw.items) if (k.startsWith('egg_')) { const tier = k.endsWith('_than') ? 'Thần' : k.endsWith('_linh') ? 'Linh' : 'Phàm'; parts.push('Trứng ' + tier); }
     if (rw.honThach) parts.push(this.fmt(rw.honThach) + ' Hồn Thạch');
+    if (rw.diem) parts.push(rw.diem + ' Điểm Sự Kiện');
     return parts.join(' · ') || 'chiến lợi phẩm';
   },
   agoText(t) {
@@ -3466,11 +3582,14 @@ const gameStore = {
   // Tầng cảnh giới của 1 mốc cấp
   tierOf(level) { return this.REALM_TIERS.find(t => level >= t.min && level < t.max) || this.REALM_TIERS[this.REALM_TIERS.length - 1]; },
   locTier(loc) { return this.tierOf(loc.reqLevel); },
-  locsInTier(t) { return this.LOCATIONS.filter((l) => l.reqLevel >= t.min && l.reqLevel < t.max); },   // nhóm vùng theo tầng cảnh giới (cho list mobile)
+  // Vùng HIỆN trên bản đồ: 10 vùng gốc + bản đồ sự kiện KHI sự kiện đang mở. Đóng là biến khỏi map.
+  get locHienThi() { void this._tick; return this.LOCATIONS.filter((l) => !l.suKien || this.svMoCua(l.suKien)); },
+  locsInTier(t) { return this.locHienThi.filter((l) => l.reqLevel >= t.min && l.reqLevel < t.max); },   // nhóm vùng theo tầng cảnh giới (cho list mobile); vùng sự kiện reqLevel 1 -> nằm tầng Nhân Gian khi mở
   isCurrentTier(t) { const lv = this.combatLevel; return lv >= t.min && lv < t.max; },
   // Đường linh khí cong (quadratic) giữa các vùng kế tiếp; bow nhẹ lên cho mềm
   get mapSegments() {
-    const L = this.LOCATIONS, segs = [];
+    // ⚠ Chỉ nối 10 vùng gốc — nối vào vùng sự kiện là vẽ đường tới một chấm lúc có lúc không.
+    const L = this.LOCATIONS.filter((l) => !l.suKien), segs = [];
     for (let i = 0; i < L.length - 1; i++) {
       const a = L[i], b = L[i + 1];
       const mx = (a.mapX + b.mapX) / 2, my = (a.mapY + b.mapY) / 2 - 9;
@@ -3501,6 +3620,7 @@ const gameStore = {
   teleportTo(id) {
     const loc = this.locationObj(id);
     if (!loc || id === this.currentLocation || !this.locUnlocked(loc)) return;
+    if (loc.suKien && !this.svMoCua(loc.suKien)) { this.showToast('Sự kiện chưa mở.'); return; }
     const cost = this.teleCost(loc);
     if (this.state.currencies.bac < cost) return;
     this.state.currencies.bac -= cost;
@@ -3520,6 +3640,7 @@ const gameStore = {
   startKhinhCong(id) {
     const loc = this.locationObj(id);
     if (!loc || id === this.currentLocation || !this.locUnlocked(loc)) return;
+    if (loc.suKien && !this.svMoCua(loc.suKien)) { this.showToast('Sự kiện chưa mở.'); return; }
     const prev = this.buildCombatSummary('manual');   // đang đánh dở -> chốt phiên combat cũ vào chuông
     if (startTravel(this.state, id, now())) { if (prev) this.pushCombatSummaryNotif(prev); Storage.save(this.state); }
     this.closeLocation();
@@ -4103,7 +4224,10 @@ const gameStore = {
   ensureCombat() {
     const list = this.currentLocationEnemies;
     if (!this.combatSel || !list.includes(this.combatSel)) this.combatSel = list[0] || null;
-    if (!this.bossSel || !YEU_VUONG_BY_ID[this.bossSel]) { const fb = YEU_VUONG.find((b) => this.combatLevel >= b.reqLevel) || YEU_VUONG[0]; this.bossSel = fb.id; } // set Yêu Vương mặc định ở đây (bossSelObj giờ THUẦN)
+    // Mặc định lấy từ DANH SÁCH ĐANG HIỆN (yeuVuongList đã lọc boss sự kiện đóng) — kẻo chọn trúng boss tàng hình.
+    const yvHien = this.yeuVuongList;
+    const selDangAn = this.bossSel && YEU_VUONG_BY_ID[this.bossSel] && !yvHien.some((b) => b.id === this.bossSel);
+    if (!this.bossSel || !YEU_VUONG_BY_ID[this.bossSel] || selDangAn) { const fb = yvHien.find((b) => this.combatLevel >= b.reqLevel) || yvHien[0] || YEU_VUONG[0]; this.bossSel = fb.id; } // set Yêu Vương mặc định ở đây (bossSelObj giờ THUẦN)
     this.recomputeCombatFc();
   },
   // Popup Suy Tính: bấm vào quái -> chọn + mở bảng chi tiết
@@ -5275,12 +5399,15 @@ const gameStore = {
   dungeonSel: null,
   ensureDungeon() {
     if (!this.state.dungeon) this.state.dungeon = { lastResult: null, history: [] };
-    if (!this.dungeonSel || !this.DUNGEON_BY_ID[this.dungeonSel]) {
-      const first = this.DUNGEONS.find((d) => this.combatLevel >= d.reqLevel) || this.DUNGEONS[0];
+    const ds = this.dungeonList;   // đã lọc Bí Cảnh sự kiện đóng — kẻo mặc định trúng phó bản tàng hình
+    const selAn = this.dungeonSel && this.DUNGEON_BY_ID[this.dungeonSel] && !ds.some((d) => d.id === this.dungeonSel);
+    if (!this.dungeonSel || !this.DUNGEON_BY_ID[this.dungeonSel] || selAn) {
+      const first = ds.find((d) => this.combatLevel >= d.reqLevel) || ds[0];
       this.dungeonSel = first ? first.id : null;
     }
   },
-  get dungeonList() { return this.DUNGEONS; },
+  // Bí Cảnh SỰ KIỆN chỉ hiện khi sự kiện của nó đang mở.
+  get dungeonList() { void this._tick; return this.DUNGEONS.filter((d) => !d.suKien || this.svMoCua(d.suKien)); },
   get dungeonSelObj() { return this.dungeonSel ? this.DUNGEON_BY_ID[this.dungeonSel] : null; },
   selectDungeon(id) { if (this.DUNGEON_BY_ID[id]) this.dungeonSel = id; },
   dungeonLocked(id) { void this._tick; const d = this.DUNGEON_BY_ID[id]; return !d || this.combatLevel < d.reqLevel; },

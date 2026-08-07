@@ -47,8 +47,9 @@ function dungNguonTinh() {
     ra.push({ nhom, thuTu, id, ten, phu, di, anh: anh || { bieu: 'info' }, _k: boDau(ten) });
 
   // Vật phẩm (trừ trang bị — trang bị có bảng riêng)
+  // SU KIEN: loc thuc the mang co suKien — CUNG vi tu voi camnang_db.js; lech mot ben la _check_timkiem do (duong 'tra' tro toi hang khong co that).
   for (const i of Object.values(ITEMS)) {
-    if (!i || i.type === 'trangbi') continue;
+    if (!i || i.type === 'trangbi' || i.suKien) continue;
     them('Vật Phẩm', 1, i.id, i.name, i.desc || '', { loai: 'tra', bang: 'vatpham', hang: i.id },
       { thu: 'items', ten: i.id, emoji: i.icon });
   }
@@ -60,19 +61,19 @@ function dungNguonTinh() {
       'Cấp ' + ((g.equip || {}).reqLevel || 1), { loai: 'tra', bang: cc ? 'congcu' : 'trangbi', hang: id },
       { thu: 'equip', ten: id, emoji: g.icon });
   }
-  for (const e of Object.values(ENEMIES)) them('Quái', 3, e.id, e.name, 'Lv ' + e.reqLevel, { loai: 'tra', bang: 'quai', hang: e.id },
-    { thu: 'enemies', ten: e.id, emoji: e.icon });
+  for (const e of Object.values(ENEMIES)) { if (e.suKien) continue; them('Quái', 3, e.id, e.name, 'Lv ' + e.reqLevel, { loai: 'tra', bang: 'quai', hang: e.id },
+    { thu: 'enemies', ten: e.id, emoji: e.icon }); }
   // ⚠ Art Yêu Vương nằm ở `images/items/`, KHÔNG phải `images/enemies/` — vì view Yêu Vương
   //   gọi ico() mà ico() mặc định về thư mục items khi id không có trong ICON_FOLDERS.
   //   Trỏ sang enemies thì 10 con boss đều rơi về icon nét.
-  for (const y of YEU_VUONG) them('Yêu Vương', 3, y.id, y.name, 'Lv ' + y.reqLevel, { loai: 'tra', bang: 'yeuvuong', hang: y.id },
-    { thu: 'items', ten: y.id, bieu: 'crack' });
-  for (const d of DUNGEONS) them('Bí Cảnh', 4, d.id, d.name, 'Lv ' + d.reqLevel, { loai: 'tra', bang: 'bicanh', hang: d.id },
-    { thu: 'dungeons', ten: d.id, bieu: 'gate' });
-  for (const l of LOCATIONS) them('Vùng', 4, l.id, l.name, 'Lv ' + l.reqLevel, { loai: 'tra', bang: 'vung', hang: l.id },
-    { thu: 'locations', ten: l.id, emoji: l.icon });
-  for (const s of Object.values(SKILLS)) them('Nghề', 5, s.id, s.name, s.gloss || '', { loai: 'tra', bang: 'nghe', hang: s.id },
-    { bieu: 'hammer' });
+  for (const y of YEU_VUONG) { if (y.suKien) continue; them('Yêu Vương', 3, y.id, y.name, 'Lv ' + y.reqLevel, { loai: 'tra', bang: 'yeuvuong', hang: y.id },
+    { thu: 'items', ten: y.id, bieu: 'crack' }); }
+  for (const d of DUNGEONS) { if (d.suKien) continue; them('Bí Cảnh', 4, d.id, d.name, 'Lv ' + d.reqLevel, { loai: 'tra', bang: 'bicanh', hang: d.id },
+    { thu: 'dungeons', ten: d.id, bieu: 'gate' }); }
+  for (const l of LOCATIONS) { if (l.suKien) continue; them('Vùng', 4, l.id, l.name, 'Lv ' + l.reqLevel, { loai: 'tra', bang: 'vung', hang: l.id },
+    { thu: 'locations', ten: l.id, emoji: l.icon }); }
+  for (const s of Object.values(SKILLS)) { if (s.suKien) continue; them('Nghề', 5, s.id, s.name, s.gloss || '', { loai: 'tra', bang: 'nghe', hang: s.id },
+    { bieu: 'hammer' }); }
   for (const c of CHIEU) them('Chiêu Thức', 5, c.id, c.name, c.short || '', { loai: 'tra', bang: 'chieu', hang: c.id },
     { thu: 'chieu', ten: c.id, bieu: 'sword' });
   for (const t of TAM_PHAP_POOL) them('Tâm Pháp', 5, t.id, t.name, t.short || '', { loai: 'tra', bang: 'tamphap', hang: t.id },
@@ -81,10 +82,10 @@ function dungNguonTinh() {
     { thu: 'bophap', ten: b.id, bieu: 'steps' });
   for (const b of BI_DONG) them('Bị Động', 5, b.id, b.name, '', { loai: 'tra', bang: 'bidong', hang: b.id },
     { thu: 'bidong', ten: b.id, bieu: 'shield' });
-  for (const s of Object.values(PET_SPECIES)) them('Linh Thú', 6, s.base, s.name, s.role || '', { loai: 'tra', bang: 'linhthu', hang: s.base },
-    { thu: 'pets', ten: 'pet_' + s.base + '_base', emoji: s.emoji });
-  for (const t of TITLES) them('Danh Hiệu', 6, t.id, t.name, t.src || '', { loai: 'tra', bang: 'danhhieu', hang: t.id },
-    { bieu: 'trophy' });
+  for (const s of Object.values(PET_SPECIES)) { if (s.suKien) continue; them('Linh Thú', 6, s.base, s.name, s.role || '', { loai: 'tra', bang: 'linhthu', hang: s.base },
+    { thu: 'pets', ten: 'pet_' + s.base + '_base', emoji: s.emoji }); }
+  for (const t of TITLES) { if (t.suKien) continue; them('Danh Hiệu', 6, t.id, t.name, t.src || '', { loai: 'tra', bang: 'danhhieu', hang: t.id },
+    { bieu: 'trophy' }); }
   for (const b of BI_KIP) them('Bí Kíp', 6, b.id, b.ten, '', { loai: 'tra', bang: 'bikip', hang: b.id }, { bieu: 'book' });
   return ra;
 }

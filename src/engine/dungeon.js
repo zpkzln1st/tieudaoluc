@@ -29,6 +29,8 @@ import { addItem } from './inventory.js';
 import { pushNotif } from './notif.js';
 import { bangKyNangBonus } from './bangbuff.js';   // Tụ Hồn Quyết (+Hồn Thạch) · Tầm Bảo Quyết (+tỉ lệ Đồ Phổ)
 import { rng, rngHam } from './rng.js';           // bốc số CÓ HẠT GIỐNG — máy chủ tính lại được (Đợt D)
+import { congDiem, moPhuKien } from './sukien.js';   // Bí Cảnh SỰ KIỆN: thưởng Điểm + mở Ấn
+import { tenPhuKien } from '../data/sukien.js';      // tên phụ kiện cho thông báo
 
 // ---- Hằng số cân bằng (TUNE) ----
 // Thưởng NỀN mỗi lượt (kế thừa "Treo Luyện" cũ). Nhân thêm D.pace để giữ loot/giờ khi durMs rút ngắn.
@@ -231,6 +233,17 @@ export function grantDungeonRun(state, dungeonId, acc, now) {
     const _bk = BI_KIP_BY_ID[run.biKipDropId];
     if (_bk) run.biKipDrop = { id: run.biKipDropId, ten: _bk.ten, tier: _bk.tier, tierName: (BI_KIP_TIER[_bk.tier] || {}).name, tierColor: (BI_KIP_TIER[_bk.tier] || {}).color, he: _bk.he };
   }
+  // BÍ CẢNH SỰ KIỆN: Điểm mỗi lượt (thông quan trọn, rút lui 40%) + mở phụ kiện Ấn lần THÔNG QUAN đầu.
+  // ⚠ grantDungeonRun KHÔNG có sẵn biến D như runDungeon — phải tự tra. Đã dính: mượn tên `D`
+  //   của hàm bên trên là ReferenceError ngay lượt chạy đầu.
+  const _D = DUNGEON_BY_ID[dungeonId];
+  if (_D && _D.suKien) {
+    run.diem = Math.round((_D.diem || 0) * (run.cleared ? 1 : 0.4));
+    if (run.diem) congDiem(state, run.diem);
+    if (run.cleared && _D.phuKien) { const mo = moPhuKien(state, _D.suKien, _D.phuKien.loai, _D.phuKien.bac); if (mo) run.phuKienMo = mo; }
+    acc.diem = (acc.diem || 0) + (run.diem || 0);
+    if (run.phuKienMo) acc.phuKienMo = run.phuKienMo;
+  }
   acc.runs++; acc.bac += run.loot.bac || 0; acc.exp += run.loot.exp || 0; acc.honThach += run.loot.honThach || 0;
   for (const id in run.loot.items) acc.items[id] = (acc.items[id] || 0) + run.loot.items[id];
   if (run.cleared) acc.clears++;
@@ -249,6 +262,7 @@ export function finalizeDungeonBatch(state, dungeonId, acc, now) {
   const single = acc.runs === 1;
   const summary = {
     dungeonId, at: now, runs: acc.runs, clears: acc.clears,
+    diem: acc.diem || 0, phuKienMo: acc.phuKienMo || null,   // Sự Kiện: Điểm + phụ kiện Ấn vừa mở
     loot: { items: acc.items, bac: acc.bac, exp: acc.exp, honThach: acc.honThach },
     doPhoIds: acc.doPhoIds.slice(), biKipDrops: acc.biKipDrops.slice(), perRun: acc.perRun.slice(),
     power: acc.power,
@@ -267,6 +281,8 @@ export function finalizeDungeonBatch(state, dungeonId, acc, now) {
   if (acc.bac) _p.push(acc.bac.toLocaleString('vi-VN') + ' Bạc');
   if (acc.exp) _p.push(acc.exp.toLocaleString('vi-VN') + ' EXP');
   if (acc.honThach) _p.push(acc.honThach + ' Hồn Thạch');
+  if (acc.diem) _p.push('<b class="text-amber-300">' + acc.diem + ' Điểm Sự Kiện</b>');
+  if (acc.phuKienMo) { const _sk = (DUNGEON_BY_ID[dungeonId] || {}).suKien; _p.push('<b class="text-amber-300">Mở ' + tenPhuKien(_sk, acc.phuKienMo) + '</b>'); }
   const dpCount = {};
   acc.doPhoIds.forEach((id) => { dpCount[id] = (dpCount[id] || 0) + 1; });
   for (const id in dpCount) _p.push(itemNameHtml(id, (ITEMS[id] || {}).name || 'Đồ Phổ') + (dpCount[id] > 1 ? ' ×' + dpCount[id] : ''));
