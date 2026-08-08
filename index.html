@@ -1628,8 +1628,10 @@
               <!-- Kỹ Năng grid -->
               <section class="panel rounded-lg p-3">
                 <div class="lbl mb-2">Kỹ Năng</div>
+                <!-- skillIdsHoSo (KHÔNG phải skillIdsHienThi): ở đây kĩ năng sự kiện nằm cố định,
+                     sự kiện đóng vẫn thấy cấp đã cày. Thanh dọc mới là chỗ ẩn/hiện theo sự kiện. -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <template x-for="sid in $store.game.skillIdsHienThi" :key="sid">
+                  <template x-for="sid in $store.game.skillIdsHoSo" :key="sid">
                     <button @click="$store.game.navToSkill(sid)" class="bg-ink3 rounded p-2 flex items-center gap-2 hover:ring-1 hover:ring-jade/40">
                       <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
                       <span class="text-xs flex-1 text-left truncate" x-text="$store.game.SKILLS[sid].name"></span>
@@ -2023,6 +2025,29 @@
                 <div class="cdg-host flex-1 min-w-0 relative rounded-lg overflow-hidden border border-jade/30 bg-ink2">
                   <div class="absolute inset-0 flex items-center justify-center text-6xl text-slate-700" style="font-family:'Lora','Noto Serif SC',serif">道</div>
                   <img loading="lazy" decoding="async" :src="'images/avatars/'+$store.game.avatarId+'.webp'" class="absolute inset-0 w-full h-full object-cover object-top" alt="" onerror="this.style.display='none'">
+                  <!-- Hai ô Phụ Kiện Sự Kiện đè góc trên phải chân dung. Chỉ hiện khi có sự kiện
+                       đang chạy — hết sự kiện là phụ kiện mất tác dụng, để lại hai ô trống là rác. -->
+                  <template x-if="g.suKienDangChay">
+                    <div class="absolute top-2 right-2 z-10 flex flex-col gap-1.5">
+                      <template x-for="p in g.svPhuKien" :key="p.loai">
+                        <!-- ⚠ Ô trống nằm ĐÈ nền art sáng: mờ 25% + viền nhạt là nhìn như không có ô
+                             (đo thật: có trong DOM, 44x44, mắt không thấy). Nền đen đặc + viền rõ hơn.
+                             Bấm mở đúng bảng Đổi Trang Bị như mọi ô khác — cùng một đường equip. -->
+                        <button @click="g.openEquip(p.slot)"
+                          class="relative w-11 h-11 rounded-lg border overflow-hidden transition hover:brightness-125"
+                          :class="p.co ? 'border-amber-500/70 bg-black/60' : 'border-dashed border-slate-300/45 bg-black/70'"
+                          :style="p.co ? 'box-shadow:0 0 13px -3px rgba(245,185,66,.8), inset 0 0 12px rgba(245,185,66,.16)' : 'box-shadow:0 2px 8px rgba(0,0,0,.7)'"
+                          :title="p.ten + (p.co === 'thuong' ? ' · Thượng — bấm để tháo/đổi' : p.co === 'so' ? ' · Sơ — bấm để tháo/đổi' : (p.coTui ? ' — có trong túi, bấm để lắp' : ' — chưa có, rơi 0,5% từ ' + p.nguon))">
+                          <span class="absolute inset-0 inline-flex items-center justify-center p-0.5"
+                            :class="p.co ? '' : 'opacity-45 grayscale'" x-html="g.ico(p.art, p.loai === 'boi' ? '📿' : '🔮')"></span>
+                          <!-- Có trong túi mà chưa lắp: chấm ngọc nhắc bấm vào. Không có thì không nhắc. -->
+                          <template x-if="!p.co && p.coTui">
+                            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-jade ring-2 ring-ink"></span>
+                          </template>
+                        </button>
+                      </template>
+                    </div>
+                  </template>
                   <div class="cdg-ov">
                     <template x-if="g.equippedTitleObj">
                       <div class="cdg-dh" x-text="g.equippedTitleObj.name"></div>
@@ -6771,13 +6796,16 @@
                 </div>
                 <div class="grid sm:grid-cols-2 gap-2 mt-2">
                   <template x-for="p in g.svPhuKien" :key="p.loai">
-                    <div class="px-3 py-2 rounded-lg bg-black/20 border" :class="p.co ? 'border-amber-600/40' : 'border-slate-800'">
+                    <button @click="g.openEquip(p.slot)" class="text-left px-3 py-2 rounded-lg bg-black/20 border transition hover:border-jade/50"
+                      :class="p.co ? 'border-amber-600/40' : 'border-slate-800'">
                       <div class="flex items-center gap-2">
                         <span class="text-[12.5px] fserif" :class="p.co ? 'text-amber-200' : 'text-slate-400'" x-text="p.ten + (p.co === 'thuong' ? ' · Thượng' : p.co === 'so' ? ' · Sơ' : '')"></span>
-                        <span class="ml-auto text-[10.5px] shrink-0" :class="p.co ? 'text-jade' : 'text-slate-600'" x-text="p.co ? 'Đã mở' : 'Rơi từ ' + p.nguon"></span>
+                        <!-- Ba trạng thái KHÁC NHAU, đừng gộp: đang đeo · có trong túi chưa lắp · chưa có. -->
+                        <span class="ml-auto text-[10.5px] shrink-0" :class="p.co ? 'text-jade' : (p.coTui ? 'text-amber-300' : 'text-slate-600')"
+                          x-text="p.co ? 'Đang đeo' : (p.coTui ? 'Có trong túi — bấm để lắp' : 'Rơi 0,5% từ ' + p.nguon)"></span>
                       </div>
                       <div class="text-[10.5px] text-slate-500 mt-0.5" x-text="p.eff"></div>
-                    </div>
+                    </button>
                   </template>
                 </div>
               </div>

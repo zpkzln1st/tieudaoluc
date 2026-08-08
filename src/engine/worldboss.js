@@ -19,7 +19,8 @@ import { buffVal } from './buff.js';           // đan Ngộ Đạo (+EXP Chiế
 import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bảng dùng roster bot thật (deterministic)
 import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: hạ Yêu Vương cho điểm Chinh Phạt dày
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
-import { skMo, congDiem, moPhuKien } from './sukien.js';   // Yêu Vương SỰ KIỆN: thưởng Điểm + mở Bội
+import { skMo, congDiem, thaPhuKien } from './sukien.js';   // Yêu Vương SỰ KIỆN: thưởng Điểm + thả Bội 0,5%
+import { PHU_KIEN_ROI } from '../data/sukien.js';
 
 const HE_LIST = ['kim', 'moc', 'thuy', 'hoa', 'tho'];
 const HISTORY_CAP = 40;
@@ -182,7 +183,11 @@ function grantReward(state, boss, now) {
   if (boss.suKien) {
     r.diem = wb.diem || 0;
     if (r.diem) congDiem(state, r.diem);
-    if (wb.phuKien) { const mo = moPhuKien(state, boss.suKien, wb.phuKien.loai, wb.phuKien.bac); if (mo) r.phuKienMo = mo; }
+    // Phụ kiện Bội: VẬT PHẨM rơi 0,5% (user chốt 2026-08-08), không còn "thắng lần đầu là có".
+    if (wb.phuKien && rng(state, 'skPhuKien') < PHU_KIEN_ROI) {
+      const id = thaPhuKien(state, boss.suKien, wb.phuKien.loai, wb.phuKien.bac, rngHam(state, 'skPhuKien'));
+      if (id) r.phuKienRoi = id;
+    }
     return r;
   }
   if (rng(state, 'yvTinhThe') < 0.10) { addItem(state, 'tinhTheYeuVuong', wb.tinhThe); r.items.tinhTheYeuVuong = wb.tinhThe; }   // Tinh Thể: 10% (KHÔNG còn đảm bảo)

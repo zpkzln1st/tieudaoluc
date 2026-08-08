@@ -378,6 +378,28 @@ export const SU_KIEN_DS = [
 ];
 export const SU_KIEN_BY_MA = Object.fromEntries(SU_KIEN_DS.map((s) => [s.ma, s]));
 
+/** Tên hiển thị của phụ kiện: 'boiSo' của Trung Thu -> 'Nguyệt Hoa Bội · Sơ'. */
+export function tenPhuKien(ma, khoa) {
+  const s = SU_KIEN_BY_MA[ma];
+  if (!s || !khoa) return khoa || '';
+  const ten = khoa.indexOf('boi') === 0 ? s.phuKien.boi : s.phuKien.an;
+  return ten + (khoa.slice(-2) === 'So' ? ' · Sơ' : ' · Thượng');
+}
+
+// ---- Art phụ kiện: id ảnh suy TỪ TÊN, không gõ tay 24 chuỗi ----
+// 'Xuân Huy Bội' + 'so' -> 'eq_sk_xuan_huy_boi_so' (art ở images/equip/).
+// ⚠⚠ KHỐI NÀY PHẢI ĐỨNG TRƯỚC vòng `for (const sk of SU_KIEN_DS)` bên dưới: vòng đó gọi
+//   artPhuKien để đặt id vật phẩm, mà `boDauSK` khai bằng `const` — để dưới là TDZ, cả tệp
+//   data không nạp được và game trắng màn.
+// ⚠ Phép suy này phải khớp TỪNG TỆP với docs/ART_SU_KIEN.md — _check_art_sukien đối chiếu cả 24.
+const boDauSK = (s) => String(s == null ? '' : s)
+  .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+export function artPhuKien(ma, loai, bac) {
+  const s = SU_KIEN_BY_MA[ma];
+  if (!s || !loai || !bac) return '';
+  return 'eq_sk_' + boDauSK(loai === 'boi' ? s.phuKien.boi : s.phuKien.an).trim().replace(/\s+/g, '_') + '_' + bac;
+}
+
 // ============================================================
 // QUẦY ĐỔI THƯỞNG (docs/THIET_KE_SU_KIEN.md Phần III)
 //   Gian Trân Phẩm: theo TỪNG sự kiện (suy từ SU_KIEN_DS ở giao diện).
@@ -505,6 +527,26 @@ for (const sk of SU_KIEN_DS) {
   ITEMS[sk.monAn.id] = { id: sk.monAn.id, name: sk.monAn.name, icon: sk.monAn.icon, type: 'monan',
     quality: 'luongPham', value: 30, healPct: 25, desc: sk.monAn.desc };
 
+  // ---- PHỤ KIỆN = VẬT PHẨM THẬT, mang được, lắp/tháo được (user chốt 2026-08-08) ----
+  // Trước đây là CỜ ĐÁNH DẤU trong save, hạ boss lần đầu là tự có. Nay rơi 0,5% và nằm trong
+  // túi gear như mọi trang bị khác — cùng một đường equip/unequip, không đẻ đường riêng.
+  // ⚠ Id PHẢI trùng tên tệp art (artPhuKien) — cả bảng ICON_FOLDERS lẫn ART_SU_KIEN.md neo vào đó.
+  // ⚠ `value: 0` -> KHÔNG bán được. Rơi 0,5% mà lỡ tay bán hàng loạt thì mất trắng cả đợt.
+  // ⚠ GIỮ sau khi sự kiện đóng (như trứng, món ăn). Chúng chỉ có tác dụng trong bản đồ sự kiện
+  //   của chính nó, nên giữ lại không phá cân bằng — mà bốc hơi một món 0,5% thì quá tàn.
+  for (const loai of ['boi', 'an']) for (const bac of ['so', 'thuong']) {
+    const id = artPhuKien(ma, loai, bac);
+    const ten = tenPhuKien(ma, loai + (bac === 'thuong' ? 'Thuong' : 'So'));
+    const pct = loai === 'boi' ? PHU_KIEN_EFF[loai + (bac === 'thuong' ? 'Thuong' : 'So')]
+                               : PHU_KIEN_EXP[loai + (bac === 'thuong' ? 'Thuong' : 'So')];
+    ITEMS[id] = { id, name: ten, icon: loai === 'boi' ? '📿' : '🔮', type: 'skPhuKien',
+      quality: bac === 'thuong' ? 'tuyetPham' : 'tinhPham', value: 0, suKien: ma, khongBocHoi: true,
+      pkLoai: loai, pkBac: bac,
+      equip: { slot: loai === 'boi' ? 'skBoi' : 'skAn', reqLevel: 1, itemLv: 1 },
+      desc: (loai === 'boi' ? 'Tăng ' + Math.round(pct * 100) + '% hiệu suất' : 'Tăng ' + Math.round(pct * 100) + '% kinh nghiệm')
+        + ' kĩ năng ' + sk.skill.name + '. Chỉ hiệu lực trong ' + sk.loc.name + '.' };
+  }
+
   // ---- Ảnh đại diện + ảnh bìa: GHI DANH MỤC ngay, kể cả khi chưa có art.
   //      Thiếu mục thì sau này thả art vào cũng không bao giờ hiện, vì picker lọc theo AVATARS/COVERS.
   //      Bày ra quầy hay chưa thì do CO_ART_DUNG_MAO quyết định (xem ghi chú ở hằng số đó).
@@ -517,7 +559,10 @@ for (const sk of SU_KIEN_DS) {
     cond: { kind: 'suKienQuay' }, src: 'Đổi 3.000 Điểm ở quầy ' + sk.quay.ten, suKien: ma });
 }
 ITEM_TYPES.suKien = 'Sự Kiện';
+ITEM_TYPES.skPhuKien = 'Phụ Kiện Sự Kiện';
 TITLE_LOAI.suKien = 'Sự Kiện';
+/** Tỉ lệ rơi phụ kiện — user chốt 0,5% (2026-08-08). Yêu Vương thả Bội, Bí Cảnh thả Ấn. */
+export const PHU_KIEN_ROI = 0.005;
 
 // Tra cứu nhanh
 export const SU_KIEN_SKILL_IDS = SU_KIEN_DS.map((s) => s.skill.id);
@@ -526,26 +571,6 @@ export function diemChoVat(itemId, soVat) {
   const it = ITEMS[itemId];
   if (!it || !it.suKien || !it.skBac) return 0;
   return Math.floor(soVat / 10) * SK_BAC[it.skBac - 1].diem10;   // đổi theo BÓ 10, phần lẻ giữ lại
-}
-/** Tên hiển thị của phụ kiện: 'boiSo' của Trung Thu -> 'Nguyệt Hoa Bội · Sơ'. */
-export function tenPhuKien(ma, khoa) {
-  const s = SU_KIEN_BY_MA[ma];
-  if (!s || !khoa) return khoa || '';
-  const ten = khoa.indexOf('boi') === 0 ? s.phuKien.boi : s.phuKien.an;
-  return ten + (khoa.slice(-2) === 'So' ? ' · Sơ' : ' · Thượng');
-}
-
-// ---- Art phụ kiện: id ảnh suy TỪ TÊN, không gõ tay 24 chuỗi ----
-// 'Xuân Huy Bội' + 'so' -> 'eq_sk_xuan_huy_boi_so' (art ở images/equip/).
-// ⚠ Phụ kiện KHÔNG phải ITEMS nên `ICON_FOLDERS` không tự có mục — main.js phải ghi danh
-//   SU_KIEN_ART_PHU_KIEN vào folder 'equip', không thì ico() rơi về 'items' và mất art.
-// ⚠ Phép suy này phải khớp TỪNG TỆP với docs/ART_SU_KIEN.md — _check_art_sukien đối chiếu cả 24.
-const boDauSK = (s) => String(s == null ? '' : s)
-  .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
-export function artPhuKien(ma, loai, bac) {
-  const s = SU_KIEN_BY_MA[ma];
-  if (!s || !loai || !bac) return '';
-  return 'eq_sk_' + boDauSK(loai === 'boi' ? s.phuKien.boi : s.phuKien.an).trim().replace(/\s+/g, '_') + '_' + bac;
 }
 export const SU_KIEN_ART_PHU_KIEN = SU_KIEN_DS.flatMap((s) =>
   ['boi', 'an'].flatMap((loai) => ['so', 'thuong'].map((bac) => artPhuKien(s.ma, loai, bac))));

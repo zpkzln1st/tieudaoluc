@@ -24,6 +24,17 @@ export const TOOL_SLOTS = [
   { id: 'duocLiem', name: 'Dược Liêm', icon: '🌾' },
 ];
 
+// Phụ kiện SỰ KIỆN (2 slot) — ĐỨNG NGOÀI EQUIP_SLOTS.
+// ⚠ Đừng nhét vào EQUIP_SLOTS: bảng đó dựng paper-doll hai cột và được Cẩm Nang đếm là
+//   "9 ô trang bị chiến đấu". Thêm vào là lệch cả hai chỗ. Hai ô này nằm đè chân dung, và
+//   chỉ hiện khi có sự kiện đang chạy.
+// Món lắp vào đây KHÔNG cộng chỉ số nào — chúng cộng % hiệu suất/EXP cho kĩ năng sự kiện,
+// và CHỈ trong bản đồ sự kiện của chính nó (xem engine/sukien.js).
+export const SK_PHU_KIEN_SLOTS = [
+  { id: 'skBoi', name: 'Bội', icon: '📿', han: '珮' },
+  { id: 'skAn',  name: 'Ấn',  icon: '🔮', han: '印' },
+];
+
 // Slot trang bị cũ đã bỏ — dùng để migrate save (trả món đang mặc về túi).
 export const RETIRED_SLOTS = ['quan', 'phuKhi', 'boiSuc'];
 

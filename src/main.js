@@ -11,7 +11,7 @@ import { LOGIN_REWARDS } from './data/daily.js';
 import { TUTORIAL_QUESTS, DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS } from './data/quests.js';
 import { LINH_THACH, LT_COVER_MS, linhThachForSkill } from './data/linhthach.js';
 import { NAV, VIEW_NAMES } from './data/nav.js';
-import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS } from './data/ui.js';
+import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS, SK_PHU_KIEN_SLOTS } from './data/ui.js';
 import { GEAR_IDS, instanceFromCatalog, rollSetPieceInstance, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
@@ -80,7 +80,7 @@ import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // d
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
-import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, phuKienCua, donSuKien } from './engine/sukien.js';
+import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien } from './engine/sukien.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
@@ -165,6 +165,22 @@ const _loadedLastSave = (state && state.lastSave) || 0;
 if (!state.equipment) state.equipment = {};
 if (!state.enhance) state.enhance = {};   // (legacy) cường hóa theo id — dời vào instance.plus ở migration dưới
 if (!Array.isArray(state.gearBag)) state.gearBag = [];
+// Migrate: PHỤ KIỆN SỰ KIỆN đổi từ CỜ trong save sang VẬT PHẨM trong túi (2026-08-08).
+//   Bản cũ ghi state.suKien.phuKien[ma].boiSo = true. Bỏ trắng là ai đã mở được trong đợt chạy
+//   thử mất sạch — đổi thẳng thành món trong gearBag rồi xoá cờ. Chạy đúng MỘT lần vì sau đó
+//   không còn cờ nào.
+if (state.suKien && state.suKien.phuKien && typeof state.suKien.phuKien === 'object') {
+  for (const ma of Object.keys(state.suKien.phuKien)) {
+    const c = state.suKien.phuKien[ma] || {};
+    for (const khoa of ['boiSo', 'boiThuong', 'anSo', 'anThuong']) {
+      if (!c[khoa]) continue;
+      const loai = khoa.indexOf('boi') === 0 ? 'boi' : 'an';
+      const bac = khoa.slice(-2) === 'So' ? 'so' : 'thuong';
+      try { thaPhuKien(state, ma, loai, bac); } catch (e) {}
+    }
+  }
+  state.suKien.phuKien = {};
+}
 // Migrate: slot trang bị đã bỏ (Quần/Phụ Khí/Bội Sức) -> trả món đang mặc về túi.
 RETIRED_SLOTS.forEach((slot) => {
   const id = state.equipment[slot];
@@ -1716,10 +1732,14 @@ const gameStore = {
   // Trạng thái mở/đóng đọc qua suKienDangChay (đã có ở trên, tôn trọng cờ chi_tac_gia).
   get svDef() { const ma = this.suKienDangChay; return ma ? SU_KIEN_BY_MA[ma] : null; },
   /** Danh sách nghề cho sidebar: kĩ năng sự kiện chỉ hiện khi sự kiện của nó đang mở. */
+  // THANH DỌC: kĩ năng sự kiện chỉ hiện khi sự kiện đang mở — bấm vào lúc đóng cũng không cày được.
   get skillIdsHienThi() {
     void this._tick;
     return Object.keys(this.SKILLS).filter((id) => { const s = this.SKILLS[id]; return !s.suKien || this.svMoCua(s.suKien); });
   },
+  // HỒ SƠ: hiện CỐ ĐỊNH cả sáu kĩ năng sự kiện, mở hay đóng cũng vậy (user chốt 2026-08-08).
+  //   Cấp kĩ năng sự kiện giữ riêng qua từng năm — giấu đi thì cày cả đợt xong không còn chỗ nào xem.
+  get skillIdsHoSo() { void this._tick; return Object.keys(this.SKILLS); },
   get svDiem() { void this._tick; return (this.state.suKien && this.state.suKien.diem) || 0; },
   svMoCua(ma) { void this._tick; return suKienDangMo(this.state, ma, now(), this.isAuthorAccount); },
   /** Nav chỉ hiện mục Sự Kiện khi có sự kiện đang mở hoặc sắp mở trong 7 ngày. */
@@ -1749,12 +1769,16 @@ const gameStore = {
   get svPhuKien() {
     void this._tick;
     const d = this.svDef; if (!d) return [];
-    const pk = phuKienCua(this.state, d.ma);
-    // `art`: chưa mở thì vẫn bày art bậc Sơ (mờ đi) — người chơi thấy trước cái mình đang săn.
+    // `co` = bậc ĐANG ĐEO ở ô, KHÔNG phải "đã từng nhận". Có trong túi mà chưa lắp thì ô vẫn trống.
+    // `coTui` = đã có món đó trong túi/đang đeo -> UI nói "có rồi, lắp vào" thay vì "đi săn tiếp".
+    // `art`: chưa đeo thì vẫn bày art bậc Sơ (mờ đi) — người chơi thấy trước cái mình đang săn.
     return [
-      { loai: 'boi', ten: d.phuKien.boi, nguon: 'Yêu Vương', co: pk.boiThuong ? 'thuong' : (pk.boiSo ? 'so' : null), eff: '+15% / +30% hiệu suất' },
-      { loai: 'an', ten: d.phuKien.an, nguon: 'Bí Cảnh', co: pk.anThuong ? 'thuong' : (pk.anSo ? 'so' : null), eff: '+20% / +40% kinh nghiệm' },
-    ].map((p) => Object.assign(p, { art: artPhuKien(d.ma, p.loai, p.co || 'so') }));
+      { loai: 'boi', ten: d.phuKien.boi, nguon: 'Yêu Vương', slot: 'skBoi', co: pkBacDeo(this.state, d.ma, 'boi'), eff: '+15% / +30% hiệu suất' },
+      { loai: 'an', ten: d.phuKien.an, nguon: 'Bí Cảnh', slot: 'skAn', co: pkBacDeo(this.state, d.ma, 'an'), eff: '+20% / +40% kinh nghiệm' },
+    ].map((p) => Object.assign(p, {
+      art: artPhuKien(d.ma, p.loai, p.co || 'so'),
+      coTui: ['so', 'thuong'].some((b) => coPhuKien(this.state, artPhuKien(d.ma, p.loai, b))),
+    }));
   },
   /** Art phụ kiện cho bảng Bảo Vật của Yêu Vương / Bí Cảnh sự kiện (chỗ đó chỉ có `ma` + `wb.phuKien`). */
   svArtPhuKien(ma, loai, bac) { return artPhuKien(ma, loai, bac); },
@@ -1818,7 +1842,6 @@ const gameStore = {
     if (this.currentLocation === d.loc.id) { this._applyView('combat'); return; }
     this.startKhinhCong(d.loc.id);
   },
-  svTenPhuKien(ma, khoa) { return tenPhuKien(ma, khoa); },
 
   // ---------- GIÁM SÁT (đợt C) — chỉ tài khoản tác giả ----------
   // ⚠⚠ `isAuthorAccount` chỉ để ẨN/HIỆN màn này. Nó KHÔNG phải hàng rào — ai sửa mã client
@@ -2531,7 +2554,7 @@ const gameStore = {
     if (rw.bac) p.push(this.fmt(rw.bac) + ' Bạc');
     if (rw.exp) p.push(this.fmt(rw.exp) + ' EXP');
     if (rw.diem) p.push(rw.diem + ' Điểm Sự Kiện');
-    if (rw.phuKienMo && this.suKienDangChay) p.push('Mở ' + tenPhuKien(this.suKienDangChay, rw.phuKienMo));
+    if (rw.phuKienRoi) p.push((this.ITEMS[rw.phuKienRoi] || {}).name || rw.phuKienRoi);
     return p.length ? 'Đoạt: ' + p.join(' · ') : 'Đã hạ gục.';
   },
   // ===== LINH THÚ (pet) =====
@@ -4956,8 +4979,9 @@ const gameStore = {
     for (const k of ks) if (!seen[k]) out.push(k);            // key lạ rơi xuống cuối, không nuốt mất
     return out.map((k) => ({ key: k, label: this.statLabel(k), val: this.gearVal(k, v.stats[k]), color: this.gearLineColor(v, k) }));
   },
+  SK_PHU_KIEN_SLOTS,
   slotName(slotId) {
-    const s = [...this.EQUIP_SLOTS, ...this.TOOL_SLOTS].find((x) => x.id === slotId);
+    const s = [...this.EQUIP_SLOTS, ...this.TOOL_SLOTS, ...SK_PHU_KIEN_SLOTS].find((x) => x.id === slotId);
     return s ? s.name : slotId;
   },
   openEquip(slot) { this.equipModal = { slot }; },

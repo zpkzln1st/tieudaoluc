@@ -29,8 +29,8 @@ import { addItem } from './inventory.js';
 import { pushNotif } from './notif.js';
 import { bangKyNangBonus } from './bangbuff.js';   // Tụ Hồn Quyết (+Hồn Thạch) · Tầm Bảo Quyết (+tỉ lệ Đồ Phổ)
 import { rng, rngHam } from './rng.js';           // bốc số CÓ HẠT GIỐNG — máy chủ tính lại được (Đợt D)
-import { congDiem, moPhuKien } from './sukien.js';   // Bí Cảnh SỰ KIỆN: thưởng Điểm + mở Ấn
-import { tenPhuKien } from '../data/sukien.js';      // tên phụ kiện cho thông báo
+import { congDiem, thaPhuKien } from './sukien.js';  // Bí Cảnh SỰ KIỆN: thưởng Điểm + thả Ấn 0,5%
+import { PHU_KIEN_ROI } from '../data/sukien.js';    // tỉ lệ rơi phụ kiện (tên lấy thẳng từ ITEMS)
 
 // ---- Hằng số cân bằng (TUNE) ----
 // Thưởng NỀN mỗi lượt (kế thừa "Treo Luyện" cũ). Nhân thêm D.pace để giữ loot/giờ khi durMs rút ngắn.
@@ -240,9 +240,14 @@ export function grantDungeonRun(state, dungeonId, acc, now) {
   if (_D && _D.suKien) {
     run.diem = Math.round((_D.diem || 0) * (run.cleared ? 1 : 0.4));
     if (run.diem) congDiem(state, run.diem);
-    if (run.cleared && _D.phuKien) { const mo = moPhuKien(state, _D.suKien, _D.phuKien.loai, _D.phuKien.bac); if (mo) run.phuKienMo = mo; }
+    // Phụ kiện Ấn: VẬT PHẨM rơi 0,5% mỗi lượt THÔNG QUAN (user chốt 2026-08-08).
+    // Rút lui giữa chừng vẫn có Điểm (40%) nhưng KHÔNG có cửa rơi phụ kiện.
+    if (run.cleared && _D.phuKien && rng(state, 'skPhuKien') < PHU_KIEN_ROI) {
+      const id = thaPhuKien(state, _D.suKien, _D.phuKien.loai, _D.phuKien.bac, rngHam(state, 'skPhuKien'));
+      if (id) run.phuKienRoi = id;
+    }
     acc.diem = (acc.diem || 0) + (run.diem || 0);
-    if (run.phuKienMo) acc.phuKienMo = run.phuKienMo;
+    if (run.phuKienRoi) acc.phuKienRoi = run.phuKienRoi;
   }
   acc.runs++; acc.bac += run.loot.bac || 0; acc.exp += run.loot.exp || 0; acc.honThach += run.loot.honThach || 0;
   for (const id in run.loot.items) acc.items[id] = (acc.items[id] || 0) + run.loot.items[id];
@@ -262,7 +267,7 @@ export function finalizeDungeonBatch(state, dungeonId, acc, now) {
   const single = acc.runs === 1;
   const summary = {
     dungeonId, at: now, runs: acc.runs, clears: acc.clears,
-    diem: acc.diem || 0, phuKienMo: acc.phuKienMo || null,   // Sự Kiện: Điểm + phụ kiện Ấn vừa mở
+    diem: acc.diem || 0, phuKienRoi: acc.phuKienRoi || null,   // Sự Kiện: Điểm + phụ kiện Ấn vừa rơi
     loot: { items: acc.items, bac: acc.bac, exp: acc.exp, honThach: acc.honThach },
     doPhoIds: acc.doPhoIds.slice(), biKipDrops: acc.biKipDrops.slice(), perRun: acc.perRun.slice(),
     power: acc.power,
@@ -282,7 +287,7 @@ export function finalizeDungeonBatch(state, dungeonId, acc, now) {
   if (acc.exp) _p.push(acc.exp.toLocaleString('vi-VN') + ' EXP');
   if (acc.honThach) _p.push(acc.honThach + ' Hồn Thạch');
   if (acc.diem) _p.push('<b class="text-amber-300">' + acc.diem + ' Điểm Sự Kiện</b>');
-  if (acc.phuKienMo) { const _sk = (DUNGEON_BY_ID[dungeonId] || {}).suKien; _p.push('<b class="text-amber-300">Mở ' + tenPhuKien(_sk, acc.phuKienMo) + '</b>'); }
+  if (acc.phuKienRoi) { const _it = ITEMS[acc.phuKienRoi]; _p.push('<b class="text-amber-300">Rơi ' + ((_it && _it.name) || acc.phuKienRoi) + '</b>'); }
   const dpCount = {};
   acc.doPhoIds.forEach((id) => { dpCount[id] = (dpCount[id] || 0) + 1; });
   for (const id in dpCount) _p.push(itemNameHtml(id, (ITEMS[id] || {}).name || 'Đồ Phổ') + (dpCount[id] > 1 ? ' ×' + dpCount[id] : ''));

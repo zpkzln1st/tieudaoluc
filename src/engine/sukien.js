@@ -6,7 +6,7 @@
 //   xong — cờ nằm trong save nhưng chỉ là tấm gương của phiên, nạp lại là store đặt lại.
 //   Nó CHỈ quyết định việc THẤY sự kiện đang chạy thử (chi_tac_gia); hàng rào thật vẫn là RLS.
 // ============================================================
-import { SU_KIEN_BY_MA, SK_BAC, PHU_KIEN_EFF, PHU_KIEN_EXP, QUAY_GIA, QUAY_TIEU_HAO } from '../data/sukien.js';
+import { SU_KIEN_BY_MA, SK_BAC, PHU_KIEN_EFF, PHU_KIEN_EXP, QUAY_GIA, QUAY_TIEU_HAO, artPhuKien } from '../data/sukien.js';
 import { SKILLS } from '../data/skills.js';
 import { ITEMS } from '../data/items.js';
 import { LOCATIONS } from '../data/locations.js';
@@ -33,29 +33,64 @@ export function skMocDong(state, ma) {
 }
 
 // ---- Phụ kiện: Bội (+hiệu suất) · Ấn (+EXP). Mở là GIỮ trong đợt; chỉ tác dụng trong sự kiện đó. ----
-export function phuKienCua(state, ma) { return ensureSuKien(state).phuKien[ma] || {}; }
-/** Mở phụ kiện (thắng Yêu Vương / thông quan Bí Cảnh lần đầu). Trả tên khoá vừa mở, null nếu đã có. */
-export function moPhuKien(state, ma, loai, bac) {
-  const s = ensureSuKien(state);
-  const khoa = loai + (bac === 'so' ? 'So' : 'Thuong');   // boiSo · boiThuong · anSo · anThuong
-  if (!s.phuKien[ma]) s.phuKien[ma] = {};
-  if (s.phuKien[ma][khoa]) return null;
-  s.phuKien[ma][khoa] = true;
-  return khoa;
+// ⛔ `phuKienCua` / `moPhuKien` (cờ trong save) ĐÃ GỠ 2026-08-08 — phụ kiện nay là VẬT PHẨM
+//    trong gearBag. Cờ cũ được main.js đổi sang vật phẩm một lần rồi xoá (xem migration).
+/**
+ * Món phụ kiện ĐANG ĐEO ở một ô, NẾU nó thuộc đúng sự kiện đang hỏi.
+ * ⚠⚠ Phải soi cả `suKien` của món: người chơi giữ Bội của Trung Thu qua tới Tết, đeo nguyên đó
+ *   mà không kiểm thì Bội Trung Thu cộng hiệu suất cho Thái Phúc — sai luật "chỉ hiệu lực trong
+ *   bản đồ sự kiện của nó".
+ */
+function pkDeo(state, ma, slot) {
+  const inst = state.equipment && state.equipment[slot];
+  if (!inst) return null;
+  const base = ITEMS[inst.gearId];
+  if (!base || base.type !== 'skPhuKien' || base.suKien !== ma) return null;
+  return base;
 }
-/** +hiệu suất kĩ năng sự kiện (0 · 0.15 · 0.30) — bản Thượng ĐÈ bản Sơ, không cộng dồn. */
+/** +hiệu suất kĩ năng sự kiện (0 · 0.15 · 0.30) — theo món Bội ĐANG ĐEO. */
 export function skEffBonus(state, skillId) {
   const sk = SKILLS[skillId];
   if (!sk || !sk.suKien) return 0;
-  const pk = phuKienCua(state, sk.suKien);
-  return pk.boiThuong ? PHU_KIEN_EFF.boiThuong : (pk.boiSo ? PHU_KIEN_EFF.boiSo : 0);
+  const b = pkDeo(state, sk.suKien, 'skBoi');
+  return b ? (PHU_KIEN_EFF['boi' + (b.pkBac === 'thuong' ? 'Thuong' : 'So')] || 0) : 0;
 }
-/** +EXP kĩ năng sự kiện (0 · 0.20 · 0.40) — bản Thượng ĐÈ bản Sơ. */
+/** +EXP kĩ năng sự kiện (0 · 0.20 · 0.40) — theo món Ấn ĐANG ĐEO. */
 export function skExpBonus(state, skillId) {
   const sk = SKILLS[skillId];
   if (!sk || !sk.suKien) return 0;
-  const pk = phuKienCua(state, sk.suKien);
-  return pk.anThuong ? PHU_KIEN_EXP.anThuong : (pk.anSo ? PHU_KIEN_EXP.anSo : 0);
+  const a = pkDeo(state, sk.suKien, 'skAn');
+  return a ? (PHU_KIEN_EXP['an' + (a.pkBac === 'thuong' ? 'Thuong' : 'So')] || 0) : 0;
+}
+/** Bậc đang đeo của một ô ('so' | 'thuong' | null) — cho UI, không dùng để tính số. */
+export function pkBacDeo(state, ma, loai) {
+  const b = pkDeo(state, ma, loai === 'boi' ? 'skBoi' : 'skAn');
+  return b ? b.pkBac : null;
+}
+/** Có món phụ kiện này trong túi hoặc đang đeo chưa? Dùng để KHỎI thả trùng món đã có. */
+export function coPhuKien(state, id) {
+  if (Array.isArray(state.gearBag) && state.gearBag.some((g) => g && g.gearId === id)) return true;
+  const eq = state.equipment || {};
+  for (const s in eq) if (eq[s] && eq[s].gearId === id) return true;
+  return false;
+}
+/**
+ * Thả một phụ kiện vào túi gear. Trả id nếu thả thật, null nếu đã có món đó rồi.
+ * ⚠ CHẶN TRÙNG: đeo được một món mỗi ô, có hai cái y hệt chỉ tổ chật túi mà không bán được
+ *   (value 0). Người chơi trúng lần hai thì coi như trượt, KHÔNG báo gì.
+ * ⚠ uid bốc từ `rnd` có hạt giống — máy chủ tính lại được (đợt D). Đừng dùng Date.now().
+ */
+export function thaPhuKien(state, ma, loai, bac, rnd) {
+  const id = artPhuKien(ma, loai, bac);
+  const base = ITEMS[id];
+  if (!base || coPhuKien(state, id)) return null;
+  if (!Array.isArray(state.gearBag)) state.gearBag = [];
+  const r = typeof rnd === 'function' ? rnd : Math.random;
+  state.gearBag.push({
+    uid: 'g' + Math.floor(r() * 2176782336).toString(36) + '_' + Math.floor(r() * 46656).toString(36),
+    gearId: id, itemLv: 1, quality: base.quality, reqLevel: 1, stats: {}, he: null, eleDmg: 0, plus: 0,
+  });
+  return id;
 }
 
 // ---- Điểm Sự Kiện ----
@@ -138,9 +173,12 @@ export function donSuKien(state, now) {
   if (!dongMa.length) return daLam;
   const dongSet = new Set(dongMa);
 
-  // Vật phẩm bốc hơi
+  // Vật phẩm bốc hơi — TRỪ những món khai `khongBocHoi` (trứng, món ăn, phụ kiện 0,5%).
+  // Phụ kiện vốn nằm trong gearBag nên vòng này không đụng tới; cờ ở đây là hàng rào thứ hai,
+  // phòng khi sau này có đường nào nhét chúng vào inventory.
   for (const id of Object.keys(state.inventory || {})) {
     const it = ITEMS[id];
+    if (it && it.khongBocHoi) continue;
     if (it && it.suKien && dongSet.has(it.suKien) && state.inventory[id] > 0) {
       daLam.push({ viec: 'vatPham', ten: it.name, so: state.inventory[id] });
       delete state.inventory[id];
