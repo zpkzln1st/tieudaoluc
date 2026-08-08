@@ -1810,6 +1810,17 @@ const gameStore = {
     return daMuaTrongDot(this.state, d.ma, loai);
   },
   get svTieuHao() { return QUAY_TIEU_HAO; },
+  /** Id để ico() lấy art một dòng hàng ở quầy: tiền tệ · món ăn của sự kiện đang mở · vật phẩm thường. */
+  svMonArt(mon) { return mon.tienTe || (mon.monAnSuKien ? ((this.svDef || {}).monAn || {}).id : mon.itemId) || ''; },
+  /** Màu PHẨM CHẤT THẬT của dòng hàng — hốc art tô theo nó, không tự đặt màu.
+   *  Tiền tệ (Hồn Thạch / Nguyên Bảo) không có phẩm chất trong ITEMS nên lấy vàng. */
+  svMonHex(mon) {
+    if (mon.tienTe) return '#fcd34d';
+    const q = (this.ITEMS[this.svMonArt(mon)] || {}).quality;
+    return (this.QUALITY[q] || {}).hex || '#94a3b8';
+  },
+  /** Ảnh nền banner sự kiện (ảnh bìa hồ sơ dùng lại). Thiếu tệp thì thẻ img tự ẩn. */
+  svCoverSrc() { const d = this.svDef; return d ? ('images/avatars/' + d.cover + '.webp') : ''; },
   svTenMon(mon) { return mon.tienTe ? ({ honThach: 'Hồn Thạch', nguyenBao: 'Nguyên Bảo' })[mon.tienTe] : (mon.monAnSuKien ? ((this.svDef || {}).monAn || {}).name : ((this.ITEMS[mon.itemId] || {}).name || mon.itemId)); },
   svDoi(itemId) {
     const r = doiVatPham(this.state, itemId, now());

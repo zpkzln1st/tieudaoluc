@@ -26,14 +26,13 @@ Cách dùng: mỗi loại tệp có một **khối STYLE** dán trước, rồi 
 | dùng chung, không nhân sáu | số tệp |
 |---|---|
 | Icon Điểm Sự Kiện | 1 |
-| Khung hai ô Phụ Kiện Sự Kiện | 1 |
 | Dấu "sự kiện đang mở" trên bản đồ thế giới | 1 |
 | Icon mục Sự Kiện ở thanh điều hướng | 1 |
-| **Cộng** | **4** |
+| **Cộng** | **3** |
 
-# TỔNG: 178 tệp
+# TỔNG: 177 tệp
 
-Làm từng sự kiện một thì mỗi đợt chỉ cần **29 tệp**. Bốn tệp dùng chung làm một lần cho cả sáu.
+Làm từng sự kiện một thì mỗi đợt chỉ cần **29 tệp**. Ba tệp dùng chung làm một lần cho cả sáu.
 Định dạng `.webp` cho mọi tệp, đúng như art đang có trong kho.
 
 ---
@@ -86,7 +85,7 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 
 ---
 
-# 0. BỐN TỆP DÙNG CHUNG
+# 0. BA TỆP DÙNG CHUNG
 
 **`images/nav/suKien.webp`** — Icon mục **Sự Kiện** ở thanh điều hướng. Dùng S3.
 ⚠ Đứng cạnh 26 icon nav khác (`images/nav/`) nên phải cùng cỡ, cùng độ đậm — soi `worldboss.webp`
@@ -96,8 +95,10 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 **`images/currency/diemSuKien.webp`** — Icon Điểm Sự Kiện. Dùng S3.
 `a round festival token coin of warm gold, an auspicious knot pattern stamped on its face, a red silk tassel threaded through the square center hole, faint warm glow`
 
-**`images/ui/oPhuKienSuKien.webp`** — Khung hai ô Phụ Kiện Sự Kiện. Dùng S3.
-`two empty ornate equipment sockets side by side carved from dark jade, thin gold filigree rim around each, one socket faintly warm-toned and the other faintly cool-toned, seen flat from the front`
+⛔ **ĐÃ BỎ — `images/ui/oPhuKienSuKien.webp`** (khung ngọc hai vòng). User bác 2026-08-08:
+*"cái ô phụ này tôi nghĩ k cần, bạn chia 2 khung đó ra, để item sự kiện vào, hiệu ứng giống như đeo pet ấy"*.
+Hai ô phụ kiện nay là art NỔI có bóng đổ, không nằm trong khung. Tệp vẫn còn trong kho, không đếm nữa.
+Prompt cũ giữ lại phòng khi cần: `two empty ornate equipment sockets side by side carved from dark jade, thin gold filigree rim around each, one socket faintly warm-toned and the other faintly cool-toned, seen flat from the front`
 
 **`images/ui/dauSuKien.webp`** — Dấu "sự kiện đang mở" trên bản đồ thế giới. Dùng S3.
 `a small red festival lantern hanging from a curved gold hook, gently glowing from within, a tiny banner ribbon beneath it`

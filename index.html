@@ -6728,120 +6728,206 @@
 
           <template x-if="g.svDef">
             <div class="space-y-3" x-data="{ get sv(){ return $store.game.svDef } }">
-              <!-- Banner -->
-              <div class="panel rounded-xl border p-4" :style="'border-color:' + sv.color + '55'">
-                <div class="flex items-start gap-3 flex-wrap">
+
+              <!-- ===== BANNER: ảnh bìa sự kiện chạy hết bề ngang ===== -->
+              <!-- Art vẽ theo khuôn "khoảng trống bên trái, cảnh dồn bên phải" (docs/ART_SU_KIEN.md)
+                   nên chữ đặt bên trái là đọc được mà không phải phủ tối cả tấm. -->
+              <div class="relative rounded-xl overflow-hidden border" :style="'border-color:' + sv.color + '66; box-shadow:0 0 40px -18px ' + sv.color">
+                <img :src="g.svCoverSrc()" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:52% 46%" onerror="this.remove()">
+                <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,rgba(7,11,20,.96) 0%,rgba(7,11,20,.86) 26%,rgba(7,11,20,.30) 56%,rgba(7,11,20,.12) 100%),linear-gradient(0deg,rgba(7,11,20,.55),transparent 46%)"></div>
+                <div class="relative p-5 min-h-[236px] flex items-center gap-4 flex-wrap">
                   <div class="min-w-0 flex-1">
-                    <div class="text-[17px] font-bold fserif goldtext leading-snug" x-text="sv.ten"></div>
-                    <div class="text-[12px] text-slate-400 mt-0.5" x-text="sv.moTa"></div>
-                    <div class="text-[11.5px] mt-1" :style="'color:' + sv.color" x-text="g.suKienConLaiText"></div>
-                  </div>
-                  <div class="shrink-0 flex flex-col items-end gap-1.5">
-                    <div class="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-600/40 flex items-center gap-2">
-                      <span class="w-8 h-8 inline-flex items-center justify-center shrink-0" x-html="g.ico('diemSuKien','🎟️')"></span>
-                      <div class="text-right">
-                        <div class="text-[10px] text-slate-500">Điểm Sự Kiện</div>
-                        <div class="text-[16px] font-bold text-amber-300" x-text="g.fmt(g.svDiem)"></div>
-                      </div>
+                    <div class="text-[30px] sm:text-[34px] fserif gold-text leading-tight" x-text="sv.ten"></div>
+                    <div class="text-[13px] text-slate-300 mt-1.5 max-w-[44ch]" style="text-shadow:0 1px 6px rgba(0,0,0,.9)" x-text="sv.moTa"></div>
+                    <div class="inline-flex items-center gap-2 mt-3 pl-2 pr-3.5 py-1 rounded-full border"
+                      :style="'border-color:' + sv.color + '8c; background:rgba(20,8,10,.72); color:' + sv.color">
+                      <span class="w-[22px] h-[22px] inline-flex items-center justify-center shrink-0" x-html="g.ico('dauSuKien','🏮')"></span>
+                      <span class="text-[12.5px]" x-text="g.suKienConLaiText"></span>
                     </div>
                   </div>
-                </div>
-                <div class="flex flex-wrap gap-1.5 mt-3">
-                  <template x-if="g.currentLocation !== sv.loc.id">
-                    <button @click="g.svToiBanDo()" class="px-2.5 py-1 rounded-lg border text-[12.5px] transition"
-                      :style="'border-color:' + sv.color + '66; color:' + sv.color" x-text="'Tới ' + sv.loc.name"></button>
-                  </template>
-                  <template x-if="g.currentLocation === sv.loc.id">
-                    <button @click="g.navTo('combat')" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-slate-500 text-[12.5px] transition">Đánh Quái</button>
-                  </template>
-                  <button @click="g.navTo('worldboss')" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-slate-500 text-[12.5px] transition">Yêu Vương</button>
-                  <button @click="g.navTo('dungeon')" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-slate-500 text-[12.5px] transition">Bí Cảnh</button>
+                  <div class="shrink-0 text-center px-5 py-3 rounded-xl border border-amber-600/50" style="background:rgba(8,11,18,.78);box-shadow:inset 0 0 24px rgba(245,185,66,.13),0 8px 26px -12px #000">
+                    <span class="w-12 h-12 mx-auto mb-1 inline-flex items-center justify-center" x-html="g.ico('diemSuKien','🎟️')"></span>
+                    <div class="text-[26px] fserif gold-text leading-none" x-text="g.fmt(g.svDiem)"></div>
+                    <div class="text-[10px] uppercase tracking-[.13em] text-amber-600/80 mt-1">Điểm Sự Kiện</div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Đổi vật phẩm lấy Điểm -->
+              <!-- ===== BỐN CỬA: mỗi cửa một tấm art thật, thay cho ba nút chữ ===== -->
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <!-- Bản đồ -->
+                <button @click="g.currentLocation === sv.loc.id ? g.navTo('combat') : g.svToiBanDo()"
+                  class="relative h-[176px] rounded-xl overflow-hidden border border-slate-800 text-left transition hover:border-rose-400/60"
+                  :style="'background:radial-gradient(96% 72% at 50% 30%,' + sv.color + '2b, transparent 70%), #0d121d'">
+                  <span class="absolute inset-0 p-3 pb-12 block" style="filter:drop-shadow(0 6px 12px rgba(0,0,0,.7))" x-html="g.ico(sv.loc.id, sv.loc.icon)"></span>
+                  <span class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(7,11,20,0) 40%,rgba(7,11,20,.94) 100%)"></span>
+                  <!-- ⚠ Thẻ art KHÔNG được nuốt mất chữ hành động: bản đầu chỉ ghi tên vùng, người
+                       chơi mất luôn nút "Tới ..." vốn có. Pill này nói rõ bấm vào thì đi đâu. -->
+                  <span class="absolute top-2 right-2 text-[11px] px-2 py-0.5 rounded-full bg-black/80 border"
+                    :class="g.currentLocation === sv.loc.id ? 'border-jade/50 text-jade' : 'border-amber-600/50 text-amber-300'"
+                    x-text="g.currentLocation === sv.loc.id ? 'Đánh Quái' : ('Tới ' + sv.loc.name)"></span>
+                  <span class="absolute left-0 right-0 bottom-0 p-2.5">
+                    <span class="block text-[14px] fserif text-slate-50 truncate" x-text="sv.loc.name"></span>
+                    <span class="block text-[11px] text-slate-400 truncate" x-text="sv.quai.map(q => q.name).join(' · ')"></span>
+                  </span>
+                </button>
+                <!-- Kĩ năng sự kiện -->
+                <button @click="g.navToSkill(sv.skill.id)"
+                  class="relative h-[176px] rounded-xl overflow-hidden border border-slate-800 text-left transition hover:border-rose-400/60"
+                  :style="'background:radial-gradient(96% 72% at 50% 30%,' + sv.color + '2b, transparent 70%), #0d121d'">
+                  <span class="absolute inset-0 p-3 pb-12 block" style="filter:drop-shadow(0 6px 12px rgba(0,0,0,.7))" x-html="g.ico(sv.skill.id, sv.skill.icon)"></span>
+                  <span class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(7,11,20,0) 40%,rgba(7,11,20,.94) 100%)"></span>
+                  <span class="absolute top-2 right-2 text-[11px] px-2 py-0.5 rounded-full bg-black/80 border border-jade/50 text-jade" x-text="'Lv ' + g.skillLevel(sv.skill.id)"></span>
+                  <span class="absolute left-0 right-0 bottom-0 p-2.5">
+                    <span class="block text-[14px] fserif text-slate-50 truncate" x-text="sv.skill.name"></span>
+                    <span class="block text-[11px] text-slate-400 truncate" x-text="sv.skill.gloss + ' · 6 bậc'"></span>
+                  </span>
+                </button>
+                <!-- Yêu Vương — chân dung ảnh DỌC 3:4, đầu ở dải y 4-45%: neo 24% mới trọn sừng -->
+                <button @click="g.navTo('worldboss')"
+                  class="relative h-[176px] rounded-xl overflow-hidden border border-slate-800 text-left transition hover:border-rose-400/60 bg-ink2">
+                  <img :src="'images/items/' + sv.boss[1].id + '.webp'" alt="" class="absolute inset-0 w-full h-full object-cover" style="object-position:50% 24%" onerror="this.remove()">
+                  <span class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(7,11,20,0) 40%,rgba(7,11,20,.94) 100%)"></span>
+                  <span class="absolute top-2 right-2 text-[11px] px-2 py-0.5 rounded-full bg-black/80 border" :style="'border-color:' + sv.color + '8c; color:' + sv.color">2 con</span>
+                  <span class="absolute left-0 right-0 bottom-0 p-2.5">
+                    <span class="block text-[14px] fserif text-slate-50">Yêu Vương</span>
+                    <span class="block text-[11px] text-slate-400 truncate" x-text="sv.boss.map(b => b.name).join(' · ')"></span>
+                  </span>
+                </button>
+                <!-- Bí Cảnh -->
+                <button @click="g.navTo('dungeon')"
+                  class="relative h-[176px] rounded-xl overflow-hidden border border-slate-800 text-left transition hover:border-rose-400/60 bg-ink2">
+                  <img :src="'images/dungeons/' + sv.biCanh[1].id + '.webp'" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">
+                  <span class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(7,11,20,0) 40%,rgba(7,11,20,.94) 100%)"></span>
+                  <span class="absolute top-2 right-2 text-[11px] px-2 py-0.5 rounded-full bg-black/80 border" :style="'border-color:' + sv.color + '8c; color:' + sv.color">2 cảnh</span>
+                  <span class="absolute left-0 right-0 bottom-0 p-2.5">
+                    <span class="block text-[14px] fserif text-slate-50">Bí Cảnh</span>
+                    <span class="block text-[11px] text-slate-400 truncate" x-text="sv.biCanh.map(d => d.name).join(' · ')"></span>
+                  </span>
+                </button>
+              </div>
+
+              <!-- ===== PHỤ KIỆN: hai ô ĐEO, art nổi có bóng đổ như ô Linh Thú ===== -->
               <div class="panel rounded-xl border border-slate-800 p-4">
-                <div class="text-[13px] font-bold fserif text-slate-200 mb-2">Đổi Vật Phẩm · theo bó 10</div>
-                <div class="space-y-1.5">
+                <div class="flex items-baseline gap-2 mb-2 flex-wrap">
+                  <div class="text-[15px] font-bold fserif text-slate-200">Phụ Kiện Sự Kiện</div>
+                  <div class="text-[11.5px] text-slate-500">chỉ hiệu lực trong <span x-text="sv.loc.name"></span></div>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <template x-for="p in g.svPhuKien" :key="p.loai">
+                    <button @click="g.openEquip(p.slot)" class="relative flex items-center gap-4 text-left rounded-xl border p-3 transition hover:brightness-110"
+                      :class="p.co ? 'border-amber-600/45' : 'border-slate-800'"
+                      :style="'background:radial-gradient(78% 120% at 16% 46%,' + sv.color + '21, transparent 68%), #0d121d' + (p.co ? ';box-shadow:inset 0 0 28px rgba(245,185,66,.10)' : '')">
+                      <span class="relative w-[124px] h-[118px] shrink-0">
+                        <span class="absolute pet-float-ground" :style="'left:50%;bottom:0;transform:translateX(-50%);width:54%;height:12px;border-radius:50%;filter:blur(3px);background:radial-gradient(ellipse,' + (p.co ? 'rgba(245,185,66,.6)' : 'rgba(71,85,105,.45)') + ',transparent 72%)'"></span>
+                        <span class="absolute inset-0 pet-float" :class="p.co ? '' : 'grayscale brightness-[.6]'"
+                          :style="'filter:drop-shadow(0 5px 9px rgba(0,0,0,.65))' + (p.co ? ' drop-shadow(0 0 10px rgba(245,185,66,.4))' : '')"
+                          x-html="g.ico(p.art, p.loai === 'boi' ? '📿' : '🔮')"></span>
+                      </span>
+                      <span class="min-w-0">
+                        <span class="block text-[15px] fserif" :class="p.co ? 'text-amber-300' : 'text-slate-400'" x-text="p.ten + (p.co === 'thuong' ? ' · Thượng' : p.co === 'so' ? ' · Sơ' : '')"></span>
+                        <!-- Ba trạng thái KHÁC NHAU, đừng gộp: đang đeo · có trong túi chưa lắp · chưa có. -->
+                        <span class="flex flex-wrap gap-1.5 mt-2">
+                          <span class="text-[10.5px] px-2.5 py-0.5 rounded-full border"
+                            :class="p.co ? 'border-amber-600/50 text-amber-300' : (p.coTui ? 'border-amber-600/50 text-amber-300' : 'border-slate-800 text-slate-500')"
+                            x-text="p.co ? 'Đang đeo' : (p.coTui ? 'Có trong túi — bấm để lắp' : 'Rơi 0,5% từ ' + p.nguon)"></span>
+                          <span class="text-[10.5px] px-2.5 py-0.5 rounded-full border border-jade/40 text-jade" x-text="p.eff"></span>
+                        </span>
+                      </span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+
+              <!-- ===== ĐỔI VẬT PHẨM: 2 cột, có thanh tiến độ tới bó 10 ===== -->
+              <div class="panel rounded-xl border border-slate-800 p-4">
+                <div class="flex items-baseline gap-2 mb-2">
+                  <div class="text-[15px] font-bold fserif text-slate-200">Đổi Vật Phẩm</div>
+                  <div class="text-[11.5px] text-slate-500">theo bó 10</div>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-2">
                   <template x-for="v in g.svVatPham" :key="v.id">
-                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/20 border border-slate-800">
-                      <span class="w-7 h-7 inline-flex items-center justify-center text-[16px] shrink-0" x-html="g.ico(v.id, v.icon)"></span>
-                      <span class="text-[12.5px] text-slate-200 truncate min-w-0 flex-1" x-text="v.name"></span>
-                      <span class="text-[11.5px] text-slate-500 shrink-0" x-text="'có ' + g.fmt(v.co)"></span>
-                      <span class="text-[11.5px] text-amber-300/80 shrink-0 w-[5.4rem] text-right whitespace-nowrap" x-text="'10 → ' + v.diem10 + ' Điểm'"></span>
+                    <div class="flex items-center gap-3 px-2.5 py-2 rounded-xl border"
+                      :class="v.co >= 10 ? 'border-amber-600/35 bg-amber-500/[.05]' : 'border-slate-800 bg-black/25'">
+                      <span class="w-11 h-11 shrink-0 inline-flex items-center justify-center" style="filter:drop-shadow(0 2px 5px rgba(0,0,0,.65))" x-html="g.ico(v.id, v.icon)"></span>
+                      <span class="flex-1 min-w-0">
+                        <span class="block text-[13px] text-slate-200 truncate" x-text="v.name"></span>
+                        <span class="flex items-center gap-2 mt-1">
+                          <span class="w-[74px] h-[5px] rounded-sm bg-[#0b1120] border border-slate-800 overflow-hidden shrink-0">
+                            <span class="block h-full" :style="'width:' + Math.min(100, (v.co % 10) / 10 * 100 || (v.co >= 10 ? 100 : 0)) + '%;background:linear-gradient(90deg,' + sv.color + ',#fb923c)'"></span>
+                          </span>
+                          <span class="text-[10.5px] text-slate-500 whitespace-nowrap">có <b class="text-slate-300 font-semibold" x-text="g.fmt(v.co)"></b><span x-text="v.co >= 10 ? (' · ' + Math.floor(v.co / 10) + ' bó') : ' / 10'"></span></span>
+                          <span class="text-[11px] text-amber-600/90 ml-auto whitespace-nowrap">bó 10 → <b class="text-amber-300 font-semibold" x-text="v.diem10"></b></span>
+                        </span>
+                      </span>
                       <button @click="g.svDoi(v.id)" :disabled="v.co < 10"
-                        class="shrink-0 px-2.5 py-0.5 rounded-full text-[11.5px] fserif border transition disabled:opacity-35"
-                        :class="v.co >= 10 ? 'text-amber-200 border-amber-600/50 bg-amber-500/10 hover:bg-amber-500/20' : 'text-slate-600 border-slate-800'"
+                        class="shrink-0 px-2.5 py-1 rounded-lg text-[12.5px] fserif border transition disabled:opacity-35"
+                        :class="v.co >= 10 ? 'text-amber-200 border-amber-600/50 bg-amber-500/12 hover:bg-amber-500/20' : 'text-slate-500 border-slate-800 bg-ink3'"
                         x-text="v.co >= 10 ? ('Đổi +' + v.doiDuoc) : 'Đổi'"></button>
                     </div>
                   </template>
                 </div>
               </div>
 
-              <!-- Phụ kiện sự kiện -->
+              <!-- ===== QUẦY: thẻ art có hốc tô theo PHẨM CHẤT + huy hiệu số lượng + dải giá ===== -->
               <div class="panel rounded-xl border border-slate-800 p-4">
-                <div class="text-[13px] font-bold fserif text-slate-200 mb-2">Phụ Kiện Sự Kiện · chỉ hiệu lực trong <span x-text="sv.loc.name"></span></div>
-                <!-- Khung ngọc hai vòng (images/ui/oPhuKienSuKien.webp). SỐ ĐO quét thẳng từ tệp art
-                     bằng _mockup/_khung_phukien_do.html: ảnh 500×500 nhưng khung chỉ nằm ở dải
-                     y 112-379, nên phải CẮT DỌC — không cắt thì thừa 46% khung là khoảng trống.
-                     Tâm hai lỗ: 30,1% và 70,0% bề ngang, 49,0% bề cao ẢNH; đường kính 22% bề ngang. -->
-                <div class="relative w-full max-w-[330px] mx-auto overflow-hidden" style="aspect-ratio:500/292">
-                  <img src="images/ui/oPhuKienSuKien.webp" class="absolute left-0 w-full pointer-events-none" style="top:-34.25%" alt="" onerror="this.remove()">
-                  <template x-for="(p, i) in g.svPhuKien" :key="p.loai">
-                    <span class="absolute -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden transition"
-                      :class="p.co ? '' : 'opacity-60 grayscale'"
-                      :style="'left:' + (i === 0 ? '30.1' : '70.0') + '%; top:49.66%; width:20%; aspect-ratio:1/1'"
-                      x-html="g.ico(p.art, p.loai === 'boi' ? '📿' : '🔮')"></span>
-                  </template>
+                <div class="flex items-center gap-3 mb-1">
+                  <span class="w-[42px] h-[42px] rounded-xl overflow-hidden border border-amber-600/40 shrink-0">
+                    <img :src="'images/avatars/' + sv.avatar[0] + '.webp'" alt="" class="w-full h-full object-cover" onerror="this.remove()">
+                  </span>
+                  <span class="min-w-0">
+                    <span class="block text-[15px] fserif text-slate-200 truncate" x-text="'Quầy ' + sv.quay.ten"></span>
+                    <span class="block text-[11.5px] text-slate-500 truncate" x-text="'Chủ quầy · ' + sv.quay.chu"></span>
+                  </span>
                 </div>
-                <div class="grid sm:grid-cols-2 gap-2 mt-2">
-                  <template x-for="p in g.svPhuKien" :key="p.loai">
-                    <button @click="g.openEquip(p.slot)" class="text-left px-3 py-2 rounded-lg bg-black/20 border transition hover:border-jade/50"
-                      :class="p.co ? 'border-amber-600/40' : 'border-slate-800'">
-                      <div class="flex items-center gap-2">
-                        <span class="text-[12.5px] fserif" :class="p.co ? 'text-amber-200' : 'text-slate-400'" x-text="p.ten + (p.co === 'thuong' ? ' · Thượng' : p.co === 'so' ? ' · Sơ' : '')"></span>
-                        <!-- Ba trạng thái KHÁC NHAU, đừng gộp: đang đeo · có trong túi chưa lắp · chưa có. -->
-                        <span class="ml-auto text-[10.5px] shrink-0" :class="p.co ? 'text-jade' : (p.coTui ? 'text-amber-300' : 'text-slate-600')"
-                          x-text="p.co ? 'Đang đeo' : (p.coTui ? 'Có trong túi — bấm để lắp' : 'Rơi 0,5% từ ' + p.nguon)"></span>
-                      </div>
-                      <div class="text-[10.5px] text-slate-500 mt-0.5" x-text="p.eff"></div>
-                    </button>
-                  </template>
-                </div>
-              </div>
 
-              <!-- Quầy đổi thưởng -->
-              <div class="panel rounded-xl border border-slate-800 p-4">
-                <div class="flex items-baseline gap-2 mb-2 flex-wrap">
-                  <div class="text-[13px] font-bold fserif text-slate-200" x-text="'Quầy ' + sv.quay.ten"></div>
-                  <div class="text-[10.5px] text-slate-500" x-text="'Chủ quầy · ' + sv.quay.chu"></div>
-                </div>
-                <!-- Gian Trân Phẩm -->
-                <div class="text-[11px] text-amber-300/80 fserif mb-1.5">Gian Trân Phẩm</div>
-                <div class="space-y-1.5 mb-3">
+                <div class="text-[10.5px] uppercase tracking-[.13em] text-rose-300/80 mt-3 mb-2">Gian Trân Phẩm</div>
+                <div class="grid sm:grid-cols-2 gap-2.5">
                   <template x-for="r in g.svTranPham" :key="r.loai">
-                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/20 border border-slate-800">
-                      <span class="w-7 h-7 inline-flex items-center justify-center text-[15px] shrink-0" x-html="g.ico(r.art, r.icon)"></span>
-                      <span class="text-[12.5px] text-slate-200 truncate min-w-0 flex-1" x-text="r.ten"></span>
-                      <span class="text-[10.5px] text-slate-600 shrink-0" x-text="r.han"></span>
-                      <span class="text-[11.5px] text-amber-300 shrink-0 w-[3.6rem] text-right" x-text="g.fmt(r.gia)"></span>
-                      <button @click="g.svMuaTranPham(r.loai)" :disabled="r.daMua || !r.du"
-                        class="shrink-0 px-2.5 py-0.5 rounded-full text-[11.5px] fserif border transition disabled:opacity-35"
-                        :class="r.daMua ? 'text-slate-600 border-slate-800' : (r.du ? 'text-amber-200 border-amber-600/50 bg-amber-500/10 hover:bg-amber-500/20' : 'text-slate-600 border-slate-800')"
-                        x-text="r.daMua ? 'Đã có' : 'Đổi'"></button>
+                    <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-amber-600/30" style="background:linear-gradient(115deg,rgba(245,185,66,.10),transparent 68%)">
+                      <span class="w-[56px] h-[56px] shrink-0 inline-flex items-center justify-center text-[26px]" style="filter:drop-shadow(0 4px 8px rgba(0,0,0,.7))" x-html="g.ico(r.art, r.icon)"></span>
+                      <span class="min-w-0 flex-1">
+                        <span class="block text-[13.5px] fserif text-slate-50 truncate" x-text="r.ten"></span>
+                        <span class="block text-[10.5px] text-slate-500 mt-0.5" x-text="r.han"></span>
+                      </span>
+                      <span class="shrink-0 text-right">
+                        <span class="inline-flex items-center gap-1.5 text-[14px] fserif gold-text">
+                          <span class="w-[18px] h-[18px] inline-flex items-center justify-center" x-html="g.ico('diemSuKien','🎟️')"></span><span x-text="g.fmt(r.gia)"></span>
+                        </span>
+                        <button @click="g.svMuaTranPham(r.loai)" :disabled="r.daMua || !r.du"
+                          class="block mt-1.5 ml-auto px-2.5 py-0.5 rounded-full text-[11.5px] fserif border transition disabled:opacity-35"
+                          :class="r.daMua ? 'text-slate-600 border-slate-800' : (r.du ? 'text-amber-200 border-amber-600/50 bg-amber-500/10 hover:bg-amber-500/20' : 'text-slate-600 border-slate-800')"
+                          x-text="r.daMua ? 'Đã có' : 'Đổi'"></button>
+                      </span>
                     </div>
                   </template>
                 </div>
-                <!-- Bốn gian tiêu hao -->
+
                 <template x-for="(gian, gi) in g.svTieuHao" :key="gian.gian">
-                  <div class="mb-2.5">
-                    <div class="text-[11px] text-slate-400 fserif mb-1.5" x-text="'Gian ' + gian.gian"></div>
-                    <div class="flex flex-wrap gap-1.5">
+                  <div>
+                    <div class="text-[10.5px] uppercase tracking-[.13em] text-rose-300/80 mt-3.5 mb-2" x-text="'Gian ' + gian.gian"></div>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
                       <template x-for="(mon, mi) in gian.ds" :key="mi">
+                        <!-- --qc = màu PHẨM CHẤT THẬT của món (QUALITY.hex), không tự đặt màu. -->
                         <button @click="g.svMuaTieuHao(gi, mi)" :disabled="g.svDiem < mon.diem"
-                          class="px-2.5 py-1 rounded-lg bg-black/20 border border-slate-800 hover:border-amber-600/40 text-left transition disabled:opacity-40">
-                          <span class="text-[11.5px] text-slate-200" x-text="g.svTenMon(mon) + (mon.qty > 1 ? ' ×' + mon.qty : '')"></span>
-                          <span class="text-[10.5px] text-amber-300/80 ml-1" x-text="mon.diem + ' Điểm'"></span>
+                          class="relative rounded-xl overflow-hidden border transition disabled:opacity-40"
+                          :style="'border-color:color-mix(in srgb,' + g.svMonHex(mon) + ' 34%,transparent);background:radial-gradient(88% 62% at 50% 0%, color-mix(in srgb,' + g.svMonHex(mon) + ' 13%,transparent), transparent 72%), linear-gradient(180deg,#111826,#0a0e18)'">
+                          <span class="block px-2 pt-3 pb-2.5 text-center">
+                            <span class="relative w-[64px] h-[64px] mx-auto mb-2 block rounded-[15px]"
+                              :style="'background:radial-gradient(circle at 50% 44%, color-mix(in srgb,' + g.svMonHex(mon) + ' 20%,transparent), transparent 68%); box-shadow:inset 0 0 16px color-mix(in srgb,' + g.svMonHex(mon) + ' 14%,transparent)'">
+                              <span class="absolute inset-0 p-1.5 inline-flex items-center justify-center"
+                                :style="'filter:drop-shadow(0 3px 6px rgba(0,0,0,.8)) drop-shadow(0 0 8px color-mix(in srgb,' + g.svMonHex(mon) + ' 40%,transparent))'"
+                                x-html="g.ico(g.svMonArt(mon), '📦')"></span>
+                              <template x-if="mon.qty > 1">
+                                <span class="absolute -right-1 -bottom-1 z-[2] text-[10.5px] font-bold px-1.5 rounded-[7px] text-ink" style="background:linear-gradient(180deg,#fde68a,#d69f2c);box-shadow:0 2px 5px rgba(0,0,0,.6)" x-text="'×' + g.fmt(mon.qty)"></span>
+                              </template>
+                            </span>
+                            <span class="block text-[11.5px] fserif leading-tight min-h-[2.6em]" :style="'color:' + g.svMonHex(mon)" x-text="g.svTenMon(mon)"></span>
+                          </span>
+                          <span class="flex items-center justify-center gap-1.5 px-2 py-1.5 border-t border-white/[.055]" style="background:linear-gradient(180deg,rgba(0,0,0,.26),rgba(0,0,0,.46))">
+                            <span class="w-4 h-4 inline-flex items-center justify-center" x-html="g.ico('diemSuKien','🎟️')"></span>
+                            <b class="text-[13px] fserif text-amber-300" x-text="g.fmt(mon.diem)"></b>
+                          </span>
                         </button>
                       </template>
                     </div>
