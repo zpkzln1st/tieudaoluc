@@ -408,13 +408,13 @@ export function artPhuKien(ma, loai, bac) {
 // ============================================================
 export const QUAY_GIA = { trung: 3000, danhHieu: 3000, avatar: 1200, cover: 2000 };
 
-// ⚠⚠ CÔNG TẮC ART ẢNH ĐẠI DIỆN / ẢNH BÌA — hiện đang TẮT.
+// ⚠⚠ CÔNG TẮC ART ẢNH ĐẠI DIỆN / ẢNH BÌA — THEO TỪNG SỰ KIỆN, không phải một cờ chung.
 // Ô ảnh ở Dung Mạo chỉ hiện khi TỆP ẢNH NẠP ĐƯỢC (`x-show="ok"` ở index.html, bật bởi @load của
 // thẻ img). Thiếu art thì mua xong KHÔNG hiện ở đâu cả — người chơi mất 3.400 Điểm lấy hư không.
-// ⇒ Chừng nào chưa thả đủ 18 tệp (12 ảnh đại diện + 6 ảnh bìa, xem docs/ART_SU_KIEN.md) thì
-//   quầy KHÔNG bày hai loại này. Thả art xong, đổi hằng số này thành true là hai hàng hiện lại.
+// ⇒ Vẽ xong ĐỦ BA TỆP của sự kiện nào (2 ảnh đại diện + 1 ảnh bìa) thì thêm mã sự kiện đó vào đây.
+//   Một cờ chung thì bật cho Tết là bật luôn cho 5 sự kiện chưa có art — bán hư không.
 // ⚠ Mục danh mục thì ĐÃ ghi danh sẵn bên dưới — thiếu mục thì art có thả vào cũng không bao giờ hiện.
-export const CO_ART_DUNG_MAO = false;
+export const CO_ART_DUNG_MAO = new Set(['tet']);
 export const QUAY_TIEU_HAO = [
   { gian: 'Đan Dược',   ds: [
     { itemId: 'cuongNguyenDan', qty: 1, diem: 120 }, { itemId: 'bachBaoDan', qty: 1, diem: 130 },

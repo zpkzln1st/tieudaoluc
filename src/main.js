@@ -1792,9 +1792,9 @@ const gameStore = {
       { loai: 'trung', art: 'egg_' + d.pet.base + '_linh', ten: d.pet.name + ' Noãn · Hiếm', icon: '🥚', gia: QUAY_GIA.trung, han: 'mỗi đợt' },
       { loai: 'danhHieu', art: '', ten: 'Danh hiệu ' + d.danhHieu.name, icon: '🏷️', gia: QUAY_GIA.danhHieu, han: 'vĩnh viễn' },
     ];
-    // ⚠ Ảnh đại diện / ảnh bìa CHỈ bày khi đã có art. Ô ảnh ở Dung Mạo chỉ hiện lúc tệp ảnh nạp
-    //   được, nên bày sớm là bán 3.400 Điểm lấy hư không. Thả art xong thì bật CO_ART_DUNG_MAO.
-    if (CO_ART_DUNG_MAO) rows.push(
+    // ⚠ Ảnh đại diện / ảnh bìa CHỈ bày khi sự kiện ĐÓ đã có art. Ô ảnh ở Dung Mạo chỉ hiện lúc tệp
+    //   ảnh nạp được, nên bày sớm là bán 3.400 Điểm lấy hư không. Vẽ xong thì thêm mã vào tập hợp.
+    if (CO_ART_DUNG_MAO.has(d.ma)) rows.push(
       { loai: 'avatar:' + d.avatar[0], art: d.avatar[0], ten: 'Ảnh đại diện · Nam', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
       { loai: 'avatar:' + d.avatar[1], art: d.avatar[1], ten: 'Ảnh đại diện · Nữ', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
       { loai: 'cover:' + d.cover, art: d.cover, ten: 'Ảnh bìa sự kiện', icon: '🏞️', gia: QUAY_GIA.cover, han: 'vĩnh viễn' },
@@ -3578,7 +3578,14 @@ const gameStore = {
   _bossFrameAt: 0,                                    // mốc lộ frame gần nhất
   _bossAwayChecked: false,                            // đã resolve hàng đợi lúc load chưa
   // Boss SỰ KIỆN chỉ hiện khi sự kiện của nó đang mở — đóng cửa là rail sạch như cũ.
-  get yeuVuongList() { void this._tick; return YEU_VUONG.filter((b) => !b.suKien || this.svMoCua(b.suKien)); },
+  // ⚠ Yêu Vương sự kiện được `data/sukien.js` PUSH VÀO CUỐI bảng gốc, nên không sắp lại thì
+  //   con Lv10 và Lv60 của sự kiện dính đuôi SAU con Lv100 — rail đang xếp theo cấp bỗng gãy.
+  //   Sắp ở TẦNG HIỂN THỊ thôi: bảng gốc giữ nguyên thứ tự (bộ sinh số + hạt giống neo vào nó).
+  //   `sort` của JS ổn định ⇒ trùng cấp thì con GỐC vẫn đứng trước con sự kiện.
+  get yeuVuongList() {
+    void this._tick;
+    return YEU_VUONG.filter((b) => !b.suKien || this.svMoCua(b.suKien)).sort((a, b) => a.reqLevel - b.reqLevel);
+  },
   get bossSelObj() { return YEU_VUONG_BY_ID[this.bossSel] || YEU_VUONG[0]; }, // THUẦN (không ghi state khi render); bossSel set ở ensureCombat
   selectBoss(id) { if (YEU_VUONG_BY_ID[id]) this.bossSel = id; },
   bossHe(id) { return bossHe(this.state, id); },
@@ -5536,7 +5543,11 @@ const gameStore = {
     }
   },
   // Bí Cảnh SỰ KIỆN chỉ hiện khi sự kiện của nó đang mở.
-  get dungeonList() { void this._tick; return this.DUNGEONS.filter((d) => !d.suKien || this.svMoCua(d.suKien)); },
+  // Cùng lý do với yeuVuongList: Bí Cảnh sự kiện push vào cuối, không sắp thì Lv25/Lv70 nằm sau Lv100.
+  get dungeonList() {
+    void this._tick;
+    return this.DUNGEONS.filter((d) => !d.suKien || this.svMoCua(d.suKien)).sort((a, b) => a.reqLevel - b.reqLevel);
+  },
   get dungeonSelObj() { return this.dungeonSel ? this.DUNGEON_BY_ID[this.dungeonSel] : null; },
   selectDungeon(id) { if (this.DUNGEON_BY_ID[id]) this.dungeonSel = id; },
   dungeonLocked(id) { void this._tick; const d = this.DUNGEON_BY_ID[id]; return !d || this.combatLevel < d.reqLevel; },
