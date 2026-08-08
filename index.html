@@ -6102,6 +6102,10 @@
                           x-text="r.chi_tac_gia ? 'Chỉ mình ngươi thấy' : 'Cả giang hồ đều thấy'"></button>
                         <button @click="g.lbDatNhanh(r)" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">14 Ngày</button>
                         <button @click="g.lbDatLich(r)" class="px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Ban Lệnh</button>
+                        <!-- Thu lệnh: chỉ hiện khi CÓ cái để thu (lịch đang chờ hoặc đang chạy). -->
+                        <template x-if="g.lbCoTheThu(r)">
+                          <button @click="g.lbThuLenh(r)" class="px-2.5 py-1 rounded-lg bg-rose-500/12 border border-rose-600/40 text-rose-200 hover:bg-rose-500/20 text-[12px] transition" x-text="g.lbNutThu(r)"></button>
+                        </template>
                       </div>
                     </div>
                   </template>

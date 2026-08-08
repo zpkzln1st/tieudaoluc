@@ -1511,7 +1511,13 @@ const gameStore = {
     try {
       const r = await cloudSuKienDs();
       if (!r.ok) this.lbLoi = 'Không đọc được lịch — kiểm tra đã chạy SQL_LENH_BAI.sql chưa.';
-      else this.lbRows = SU_KIEN_MA.map((ma) => r.rows.find((x) => x.ma === ma) || { ma, ten: ma, mo_luc: null, dong_luc: null, chi_tac_gia: true });
+      // ⚠⚠ `_mo0`/`_dong0` = BẢN CHỤP mốc trên máy chủ. Hai ô datetime-local ghi thẳng vào
+      //   `r.mo_luc`/`r.dong_luc`, nên gõ dở là hai trường đó đã khác máy chủ rồi. Nút Thu Lệnh
+      //   PHẢI đọc bản chụp — không thì "Đóng Ngay" ghi đè bằng mốc chưa hề được ban.
+      else this.lbRows = SU_KIEN_MA.map((ma) => {
+        const x = r.rows.find((y) => y.ma === ma) || { ma, ten: ma, mo_luc: null, dong_luc: null, chi_tac_gia: true };
+        return Object.assign({}, x, { _mo0: x.mo_luc || null, _dong0: x.dong_luc || null });
+      });
       // Danh sách khoá đọc RỜI: bảng khác, luật khác. Lỗi ở đây không được xoá lịch vừa đọc.
       try { const k = await cloudKhoaDs(); if (k.ok) this.lbKhoa = k.rows; } catch (e) {}
     } catch (e) { this.lbLoi = 'Không kết nối được.'; }
@@ -1534,6 +1540,8 @@ const gameStore = {
   async _lbGuiLich(r) {
     const rr = await cloudSuKienDat(r.ma, r.mo_luc || null, r.dong_luc || null, r.chi_tac_gia, r.cau_hinh || {});
     if (!rr.ok) { this.showToast('Không ban lệnh được — ' + rr.reason); return; }
+    r._mo0 = r.mo_luc ? new Date(r.mo_luc).toISOString() : null;   // ban lệnh xong thì bản chụp = mốc vừa ghi
+    r._dong0 = r.dong_luc ? new Date(r.dong_luc).toISOString() : null;
     this.showToast('Đã ban lệnh · ' + this.lbTen(r));
     this.taiSuKien();                              // đọc lại ngay cho chính mình thấy hiệu lực
     this._tick++;
@@ -1563,6 +1571,49 @@ const gameStore = {
       return;
     }
     this._lbGuiLich(r);
+  },
+  // ---- THU LỆNH: gỡ sự kiện lỡ ban nhầm ----
+  // ⚠⚠ VẪN GHI MỐC, KHÔNG ghi công tắc. Đóng ngay = hạ `dong_luc` về lúc này; huỷ lịch = xoá cả
+  //   hai mốc. Giữ đúng luật cũ: client đệm hai mốc nên mất mạng vẫn tự đóng đúng hạn.
+  // ⚠ Hai trường hợp KHÁC HẲN nhau, đừng gộp một nút: chưa tới giờ mở thì không ai mất gì, còn
+  //   đang chạy thì vật phẩm sự kiện trong hành lý MỌI NGƯỜI bốc hơi (donSuKien).
+  lbCoTheThu(r) {
+    void this._tick;                                 // "Sắp mở" tự thành "Đang mở" khi tới giờ
+    if (!r || !r._mo0 || !r._dong0) return false;
+    return now() < Date.parse(r._dong0);             // đã đóng rồi thì không còn gì để thu
+  },
+  lbNutThu(r) { void this._tick; return (r && r._mo0 && now() < Date.parse(r._mo0)) ? 'Huỷ Lịch' : 'Đóng Ngay'; },
+  lbThuLenh(r) {
+    if (!this.lbCoTheThu(r)) { this.showToast('Sự kiện này không có lịch nào đang chờ hoặc đang chạy.'); return; }
+    const ten = this.lbTen(r);
+    if (now() < Date.parse(r._mo0)) {
+      this.hoiXacNhan({
+        tieuDe: 'Huỷ Lịch',
+        loi: ten + ' chưa tới giờ mở — huỷ là gỡ sạch hai mốc, không ai mất gì.',
+        nut: 'Huỷ Lịch',
+        xong: () => { this._lbGuiThu(r, null, null); },
+      });
+      return;
+    }
+    this.hoiXacNhan({
+      tieuDe: 'Đóng Ngay',
+      loi: ten + ' đang ' + (r.chi_tac_gia ? 'chạy thử' : 'mở cho cả giang hồ') + '. Mốc đóng sẽ hạ về lúc này.',
+      canhBao: (r.chi_tac_gia ? 'Vật phẩm sự kiện trong hành lý ngươi' : 'Vật phẩm sự kiện trong hành lý MỌI NGƯỜI CHƠI')
+        + ' sẽ tan biến. Điểm Sự Kiện, trứng và món ăn giữ lại.',
+      nut: 'Đóng Ngay', nguy: true,
+      xong: () => { this._lbGuiThu(r, Date.parse(r._mo0), now()); },
+    });
+  },
+  async _lbGuiThu(r, mo, dong) {
+    const rr = await cloudSuKienDat(r.ma, mo, dong, r.chi_tac_gia, r.cau_hinh || {});
+    if (!rr.ok) { this.showToast('Không thu lệnh được — ' + rr.reason); return; }
+    r.mo_luc = mo ? this.lbChoOInput(mo) : '';
+    r.dong_luc = dong ? this.lbChoOInput(dong) : '';
+    r._mo0 = mo ? new Date(mo).toISOString() : null;      // bản chụp phải đi theo, kẻo nút thu lệnh còn nhớ mốc cũ
+    r._dong0 = dong ? new Date(dong).toISOString() : null;
+    this.showToast(dong ? ('Đã đóng · ' + this.lbTen(r)) : ('Đã huỷ lịch · ' + this.lbTen(r)));
+    this.taiSuKien();
+    this._tick++;
   },
   async lbPhatQua() {
     const uid = (this.lbQuaUid || '').trim();
@@ -1838,6 +1889,11 @@ const gameStore = {
       // Lịch sự kiện đọc được KHÔNG CẦN đăng nhập — ai cũng phải biết sự kiện nào đang mở.
       // ⚠ Hoãn 2 giây như đường Phong Vân Bảng: đừng tranh băng thông với lượt kéo save lúc mở game.
       setTimeout(() => { this.taiSuKien(); }, 2000);
+      // ⚠ Đọc LẠI mỗi 10 phút. Không có nhịp này thì lệnh THU của tác giả (đóng ngay vì lỡ ban
+      //   nhầm) chỉ tới được người chơi ở lần mở game sau — họ cày tiếp một sự kiện đã bị gỡ.
+      //   Cùng nhịp đó cũng làm sự kiện tới giờ mở tự hiện, khỏi bắt người chơi tải lại trang.
+      //   Rẻ: bảng 6 dòng, không cần đăng nhập, hỏng thì taiSuKien tự nuốt lỗi.
+      setInterval(() => { this.taiSuKien(); }, 10 * 60 * 1000);
       if (this.authUser) setTimeout(() => { this.nhanQuaChoSan(); }, 4000);
     } catch (e) {
       // Không nạp được SDK (mất mạng / CDN bị chặn). Game vẫn chạy offline; riêng người CHƯA có
