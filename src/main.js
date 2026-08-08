@@ -79,7 +79,7 @@ import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, a
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan } from './engine/lenhbai.js';
-import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, tenPhuKien } from './data/sukien.js';
+import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, tenPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, phuKienCua, donSuKien } from './engine/sukien.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
@@ -1489,7 +1489,17 @@ const gameStore = {
   //   ghi ở đây đều bị RLS phía Supabase từ chối.
   lbMo: false, lbTab: 'suKien', lbTai: false, lbLoi: '',
   lbRows: [], lbKhoa: [], lbQuaUid: '', lbQuaBac: 0, lbQuaHonThach: 0, lbQuaNguyenBao: 0, lbQuaLoiNhan: '', lbKhoaUid: '', lbKhoaLyDo: '',
-  openLenhBai() { this.lbMo = true; this.taiLenhBai(); },
+  // ⚠ PHẢI đóng Cài Đặt trước: modal Cài Đặt là z-[70], Lệnh Bài z-[59] — không đóng thì Lệnh Bài
+  //   mở BÊN DƯỚI, nhìn như bấm không ăn. Giám Sát cũng vậy (xem openGiamSat).
+  openLenhBai() { this.settingsModal = false; this.lbMo = true; this.taiLenhBai(); },
+  /** Tên tiếng Việt lấy từ DATA, không lấy từ cột `ten` của bảng SQL (cột đó gieo bằng ASCII). */
+  lbTen(r) { return ((SU_KIEN_BY_MA[r.ma] || {}).ten) || r.ten || r.ma; },
+  /** Điền nhanh: mở từ đầu giờ tới rồi chạy đúng 14 ngày. Bỏ hẳn cái bẫy quên nhập giờ. */
+  lbDatNhanh(r) {
+    const mo = new Date(now() + 3600000); mo.setMinutes(0, 0, 0);
+    r.mo_luc = this.lbChoOInput(mo.getTime());
+    r.dong_luc = this.lbChoOInput(mo.getTime() + 14 * 86400000);
+  },
   dongLenhBai() { this.lbMo = false; },
   async taiLenhBai() {
     this.lbTai = true; this.lbLoi = '';
@@ -1519,12 +1529,20 @@ const gameStore = {
   async _lbGuiLich(r) {
     const rr = await cloudSuKienDat(r.ma, r.mo_luc || null, r.dong_luc || null, r.chi_tac_gia, r.cau_hinh || {});
     if (!rr.ok) { this.showToast('Không ban lệnh được — ' + rr.reason); return; }
-    this.showToast('Đã ban lệnh · ' + (r.ten || r.ma));
+    this.showToast('Đã ban lệnh · ' + this.lbTen(r));
     this.taiSuKien();                              // đọc lại ngay cho chính mình thấy hiệu lực
+    this._tick++;
   },
   lbDatLich(r) {
     if (!r || !r.ma) return;
-    if (r.mo_luc && r.dong_luc && Date.parse(r.dong_luc) <= Date.parse(r.mo_luc)) {
+    // ⚠⚠ Ô `datetime-local` THIẾU PHẦN GIỜ thì `.value` trả về CHUỖI RỖNG, không phải ngày đã gõ.
+    //   Trước đây chỗ này gửi thẳng null rồi vẫn báo "Đã ban lệnh" — người ban lệnh tưởng xong,
+    //   mà sự kiện vẫn "Chưa đặt lịch". Chặn ở đây và nói rõ thiếu gì.
+    if (!r.mo_luc || !r.dong_luc) {
+      this.showToast('Thiếu ngày hoặc giờ — phải điền đủ CẢ ngày lẫn giờ ở hai ô. Bấm "14 Ngày" để điền nhanh.');
+      return;
+    }
+    if (Date.parse(r.dong_luc) <= Date.parse(r.mo_luc)) {
       this.showToast('Mốc đóng phải sau mốc mở.'); return;
     }
     // ⚠ Mở cho CẢ GIANG HỒ là việc không lùi được: người chơi thấy sự kiện rồi thì rút lại là mất
@@ -1532,7 +1550,7 @@ const gameStore = {
     if (!r.chi_tac_gia && r.mo_luc && r.dong_luc) {
       this.hoiXacNhan({
         tieuDe: 'Mở Cho Cả Giang Hồ',
-        loi: (r.ten || r.ma) + ' sẽ hiện với mọi người chơi từ ' + this.lbChoOInput(r.mo_luc).replace('T', ' ') + ' tới ' + this.lbChoOInput(r.dong_luc).replace('T', ' ') + '.',
+        loi: this.lbTen(r) + ' sẽ hiện với mọi người chơi từ ' + this.lbChoOInput(r.mo_luc).replace('T', ' ') + ' tới ' + this.lbChoOInput(r.dong_luc).replace('T', ' ') + '.',
         canhBao: 'Người chơi đã thấy rồi thì rút lại rất khó coi.',
         nut: 'Ban Lệnh', nguy: true,
         xong: () => { this._lbGuiLich(r); },
@@ -1687,10 +1705,14 @@ const gameStore = {
     const rows = [
       { loai: 'trung', ten: d.pet.name + ' Noãn · Hiếm', icon: '🥚', gia: QUAY_GIA.trung, han: 'mỗi đợt' },
       { loai: 'danhHieu', ten: 'Danh hiệu ' + d.danhHieu.name, icon: '🏷️', gia: QUAY_GIA.danhHieu, han: 'vĩnh viễn' },
+    ];
+    // ⚠ Ảnh đại diện / ảnh bìa CHỈ bày khi đã có art. Ô ảnh ở Dung Mạo chỉ hiện lúc tệp ảnh nạp
+    //   được, nên bày sớm là bán 3.400 Điểm lấy hư không. Thả art xong thì bật CO_ART_DUNG_MAO.
+    if (CO_ART_DUNG_MAO) rows.push(
       { loai: 'avatar:' + d.avatar[0], ten: 'Ảnh đại diện · Nam', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
       { loai: 'avatar:' + d.avatar[1], ten: 'Ảnh đại diện · Nữ', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
       { loai: 'cover:' + d.cover, ten: 'Ảnh bìa sự kiện', icon: '🏞️', gia: QUAY_GIA.cover, han: 'vĩnh viễn' },
-    ];
+    );
     return rows.map((r) => Object.assign(r, { daMua: this.svDaMua(r.loai), du: this.svDiem >= r.gia }));
   },
   svDaMua(loai) {
@@ -1741,7 +1763,7 @@ const gameStore = {
   //   cũng bật được panel. Hàng rào thật là luật RLS ở Supabase (docs/SQL_GIAM_SAT.sql):
   //   bật được panel mà không có token đúng uid thì mọi truy vấn trả về RỖNG.
   gsMo: false, gsTai: false, gsLoi: '', gsRows: [], gsChon: null, gsChiTiet: [], gsLocTacGia: true, gsMienTru: [],
-  openGiamSat() { this.gsMo = true; this.taiGiamSat(); },
+  openGiamSat() { this.settingsModal = false; this.gsMo = true; this.taiGiamSat(); },   // đóng Cài Đặt (z-70) kẻo màn này (z-59) nằm dưới
   dongGiamSat() { this.gsMo = false; this.gsChon = null; this.gsChiTiet = []; },
   async taiGiamSat() {
     this.gsTai = true; this.gsLoi = '';
@@ -3583,7 +3605,9 @@ const gameStore = {
   tierOf(level) { return this.REALM_TIERS.find(t => level >= t.min && level < t.max) || this.REALM_TIERS[this.REALM_TIERS.length - 1]; },
   locTier(loc) { return this.tierOf(loc.reqLevel); },
   // Vùng HIỆN trên bản đồ: 10 vùng gốc + bản đồ sự kiện KHI sự kiện đang mở. Đóng là biến khỏi map.
-  get locHienThi() { void this._tick; return this.LOCATIONS.filter((l) => !l.suKien || this.svMoCua(l.suKien)); },
+  // ⚠ CHỈ hiện bản đồ của sự kiện ĐANG HIỆN HÀNH, không phải mọi sự kiện đang mở. Sáu bản đồ dùng
+  //   chung một toạ độ (xem ghi chú ở data/sukien.js) nên hai cái cùng hiện là chồng khít lên nhau.
+  get locHienThi() { void this._tick; const ma = this.suKienDangChay; return this.LOCATIONS.filter((l) => !l.suKien || l.suKien === ma); },
   locsInTier(t) { return this.locHienThi.filter((l) => l.reqLevel >= t.min && l.reqLevel < t.max); },   // nhóm vùng theo tầng cảnh giới (cho list mobile); vùng sự kiện reqLevel 1 -> nằm tầng Nhân Gian khi mở
   isCurrentTier(t) { const lv = this.combatLevel; return lv >= t.min && lv < t.max; },
   // Đường linh khí cong (quadratic) giữa các vùng kế tiếp; bow nhẹ lên cho mềm

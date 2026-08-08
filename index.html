@@ -6080,12 +6080,12 @@
                   <template x-for="r in g.lbRows" :key="r.ma">
                     <div class="mb-2 px-3 py-2.5 rounded-lg border border-slate-800 bg-black/20">
                       <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="text-[13px] text-slate-200 fserif truncate" x-text="r.ten || r.ma"></div>
+                        <div class="text-[13px] text-slate-200 fserif truncate" x-text="g.lbTen(r)"></div>
                         <div class="text-[10.5px] shrink-0" :class="g.lbTrangThai(r).mau" x-text="g.lbTrangThai(r).chu"></div>
                       </div>
                       <div class="grid grid-cols-2 gap-2 mb-2">
                         <label class="block">
-                          <span class="block text-[10.5px] text-slate-500 mb-0.5">Mốc Mở</span>
+                          <span class="block text-[10.5px] text-slate-500 mb-0.5">Mốc Mở · phải đủ cả ngày lẫn giờ</span>
                           <input type="datetime-local" :value="g.lbChoOInput(r.mo_luc)" @change="r.mo_luc = $event.target.value"
                             class="w-full px-2 py-1 rounded bg-black/40 border border-slate-700 text-slate-200 text-[11.5px] focus:border-amber-600/60 outline-none">
                         </label>
@@ -6100,6 +6100,7 @@
                           class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap"
                           :class="r.chi_tac_gia ? 'text-amber-300 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
                           x-text="r.chi_tac_gia ? 'Chỉ mình ngươi thấy' : 'Cả giang hồ đều thấy'"></button>
+                        <button @click="g.lbDatNhanh(r)" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">14 Ngày</button>
                         <button @click="g.lbDatLich(r)" class="px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Ban Lệnh</button>
                       </div>
                     </div>

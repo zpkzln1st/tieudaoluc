@@ -21,6 +21,7 @@ import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './dungeon.js';
 import { LOCATIONS } from './locations.js';
 import { PET_SPECIES, PET_SKILLS } from './pets.js';
 import { TITLES, TITLE_LOAI } from './titles.js';
+import { AVATARS, COVERS } from './avatars.js';
 
 const MIN = 60 * 1000;
 
@@ -48,6 +49,7 @@ export const SU_KIEN_DS = [
   // ================= 1. TẾT =================
   {
     ma: 'tet', ten: 'Sự Kiện Tết', thang: 2, icon: '🧧', color: '#f87171',
+    charHan: '春', avColor: 'from-red-600 to-amber-700',
     moTa: 'Đêm giao thừa, sân miếu mở hội — pháo nổ, mai vàng, và một con Niên đang xuống núi.',
     loc: { id: 'truongXuanMieuHoi', name: 'Trường Xuân Miếu Hội', gloss: 'Evergreen Temple Fair', icon: '🏮',
       desc: 'Sân miếu đêm giao thừa: đèn lồng đỏ rực, cây nêu dựng cao, xác pháo rải kín mặt sân.' },
@@ -102,6 +104,7 @@ export const SU_KIEN_DS = [
   // ================= 2. MÙA XUÂN =================
   {
     ma: 'xuan', ten: 'Sự Kiện Mùa Xuân', thang: 4, icon: '🦋', color: '#4ade80',
+    charHan: '青', avColor: 'from-emerald-500 to-green-700',
     moTa: 'Thảo nguyên vừa qua mưa, trứng ngũ sắc giấu trong cỏ — và cỏ cây cả cánh đồng đang đứng dậy.',
     loc: { id: 'bichThaoNguyen', name: 'Bích Thảo Nguyên', gloss: 'Emerald Meadow', icon: '🌿',
       desc: 'Thảo nguyên xanh non sau mưa xuân: suối vừa tan băng, bướm bay rợp, trứng ngũ sắc giấu trong cỏ.' },
@@ -156,6 +159,7 @@ export const SU_KIEN_DS = [
   // ================= 3. ĐOAN NGỌ =================
   {
     ma: 'doanNgo', ten: 'Sự Kiện Đoan Ngọ', thang: 6, icon: '🐉', color: '#facc15',
+    charHan: '蓮', avColor: 'from-yellow-500 to-teal-700',
     moTa: 'Giữa trưa hè nắng nhất năm, thuyền rồng rẽ nước — và năm loài độc đang tụ về một chỗ.',
     loc: { id: 'doanDuongGiang', name: 'Đoan Dương Giang', gloss: 'Duanyang River', icon: '🛶',
       desc: 'Khúc sông trưa hè: thuyền rồng đua rẽ nước, đầm sen kín một bờ, khói hùng hoàng bay là là.' },
@@ -210,6 +214,7 @@ export const SU_KIEN_DS = [
   // ================= 4. VU LAN =================
   {
     ma: 'vuLan', ten: 'Sự Kiện Vu Lan', thang: 8, icon: '🏮', color: '#818cf8',
+    charHan: '燈', avColor: 'from-indigo-600 to-rose-800',
     moTa: 'Rằm tháng Bảy, hoa đăng trôi thành dòng lửa trên Vong Xuyên — bên kia bờ có người đứng đợi.',
     loc: { id: 'vongXuyenNgan', name: 'Vong Xuyên Ngạn', gloss: 'Bank of the Forgetting River', icon: '🕯️',
       desc: 'Bờ Vong Xuyên đêm rằm tháng Bảy: hoa đăng trôi thành dòng lửa, bỉ ngạn đỏ kín bờ, sương lạnh sát mặt nước.' },
@@ -264,6 +269,7 @@ export const SU_KIEN_DS = [
   // ================= 5. TRUNG THU =================
   {
     ma: 'trungThu', ten: 'Sự Kiện Trung Thu', thang: 9, icon: '🌕', color: '#93c5fd',
+    charHan: '月', avColor: 'from-sky-400 to-indigo-700',
     moTa: 'Đêm rằm tháng Tám, cầu Ngân Hà bắc xuống trần gian — lên Quảng Hàn Cung trước khi trăng lặn.',
     loc: { id: 'quangHanNguyetCanh', name: 'Quảng Hàn Nguyệt Cảnh', gloss: 'Moon Palace Realm', icon: '🌕',
       desc: 'Cung trăng lam bạc: quế thụ ngàn tuổi, đèn lồng trôi lơ lửng, bóng thỏ ngọc giã thuốc in trên vách đá.' },
@@ -318,6 +324,7 @@ export const SU_KIEN_DS = [
   // ================= 6. GIÁNG SINH =================
   {
     ma: 'giangSinh', ten: 'Sự Kiện Giáng Sinh', thang: 12, icon: '🔔', color: '#7dd3fc',
+    charHan: '雪', avColor: 'from-cyan-400 to-slate-700',
     moTa: 'Rừng thông tuyết phủ, chuông đồng khẽ vang — cuối rừng có căn nhà gỗ còn khói bếp.',
     loc: { id: 'hanTungTuyetNguyen', name: 'Hàn Tùng Tuyết Nguyên', gloss: 'Frostpine Snowfield', icon: '🌲',
       desc: 'Rừng thông tuyết phủ lúc chạng vạng: đèn ấm treo trên cành, tuần lộc trắng đi thành hàng, chuông đồng khẽ vang.' },
@@ -378,6 +385,14 @@ export const SU_KIEN_BY_MA = Object.fromEntries(SU_KIEN_DS.map((s) => [s.ma, s])
 // Giá trứng 3.000 là số tính: người chơi ít nhất (2 giờ/ngày = 3.224 điểm) vừa đủ mua con thú.
 // ============================================================
 export const QUAY_GIA = { trung: 3000, danhHieu: 3000, avatar: 1200, cover: 2000 };
+
+// ⚠⚠ CÔNG TẮC ART ẢNH ĐẠI DIỆN / ẢNH BÌA — hiện đang TẮT.
+// Ô ảnh ở Dung Mạo chỉ hiện khi TỆP ẢNH NẠP ĐƯỢC (`x-show="ok"` ở index.html, bật bởi @load của
+// thẻ img). Thiếu art thì mua xong KHÔNG hiện ở đâu cả — người chơi mất 3.400 Điểm lấy hư không.
+// ⇒ Chừng nào chưa thả đủ 18 tệp (12 ảnh đại diện + 6 ảnh bìa, xem docs/ART_SU_KIEN.md) thì
+//   quầy KHÔNG bày hai loại này. Thả art xong, đổi hằng số này thành true là hai hàng hiện lại.
+// ⚠ Mục danh mục thì ĐÃ ghi danh sẵn bên dưới — thiếu mục thì art có thả vào cũng không bao giờ hiện.
+export const CO_ART_DUNG_MAO = false;
 export const QUAY_TIEU_HAO = [
   { gian: 'Đan Dược',   ds: [
     { itemId: 'cuongNguyenDan', qty: 1, diem: 120 }, { itemId: 'bachBaoDan', qty: 1, diem: 130 },
@@ -466,8 +481,15 @@ for (const sk of SU_KIEN_DS) {
   });
 
   // ---- Bản đồ sự kiện: vùng thứ 11, chỉ hiện khi sự kiện mở (UI lọc theo cờ) ----
+  // ⚠⚠ TOẠ ĐỘ (34,35) LÀ SỐ ĐO, KHÔNG PHẢI ƯỚC LƯỢNG. Chỗ cũ (12,58) nằm ĐÈ bảng Tầng Cảnh Giới.
+  //   Ràng buộc: bảng đó là `absolute left-2 top-12 w-32` -> chiếm tới ~13% bề ngang; tooltip của
+  //   chấm là `w-44` (176px) canh giữa và `z-40` (cao hơn bảng z-30) nên nó VẼ ĐÈ LÊN bảng.
+  //   Quét toàn khung an toàn rồi lấy điểm cách xa 10 vùng gốc nhất: cách vùng gần nhất 17,8%,
+  //   thoáng hơn cặp sát nhau nhất của bản đồ gốc (Lam Linh Cốc / U Lâm = 17,3%).
+  // ⚠ Cả sáu bản đồ dùng CHUNG toạ độ này — được, vì mỗi lúc chỉ MỘT bản đồ sự kiện hiện
+  //   (locHienThi lọc theo suKienDangChay, xem main.js).
   LOCATIONS.push({ id: locId, name: sk.loc.name, gloss: sk.loc.gloss, reqLevel: 1, icon: sk.loc.icon,
-    mapX: 12, mapY: 58, desc: sk.loc.desc, suKien: ma, enemies: sk.quai.map((x) => x.id) });
+    mapX: 34, mapY: 35, desc: sk.loc.desc, suKien: ma, enemies: sk.quai.map((x) => x.id) });
 
   // ---- Linh Thú giới hạn: MỘT phẩm chất (trứng `_linh` = tinhPham). Trứng GIỮ sau sự kiện. ----
   PET_SPECIES[sk.pet.base] = { base: sk.pet.base, name: sk.pet.name, he: sk.pet.he, emoji: sk.pet.emoji,
@@ -479,6 +501,13 @@ for (const sk of SU_KIEN_DS) {
   // ---- Món ăn riêng: hồi 25% Sinh Lực, mua ở quầy, GIỮ sau sự kiện ----
   ITEMS[sk.monAn.id] = { id: sk.monAn.id, name: sk.monAn.name, icon: sk.monAn.icon, type: 'monan',
     quality: 'luongPham', value: 30, healPct: 25, desc: sk.monAn.desc };
+
+  // ---- Ảnh đại diện + ảnh bìa: GHI DANH MỤC ngay, kể cả khi chưa có art.
+  //      Thiếu mục thì sau này thả art vào cũng không bao giờ hiện, vì picker lọc theo AVATARS/COVERS.
+  //      Bày ra quầy hay chưa thì do CO_ART_DUNG_MAO quyết định (xem ghi chú ở hằng số đó).
+  AVATARS.push({ id: sk.avatar[0], name: sk.ten + ' · Nam', char: sk.charHan, color: sk.avColor, suKien: ma });
+  AVATARS.push({ id: sk.avatar[1], name: sk.ten + ' · Nữ',  char: sk.charHan, color: sk.avColor, suKien: ma });
+  COVERS.push({ id: sk.cover, name: sk.loc.name, char: sk.charHan, color: sk.avColor, suKien: ma });
 
   // ---- Danh hiệu: mua ở quầy, KHÔNG cộng chỉ số (thuần trang trí — sự kiện không đẻ sức mạnh) ----
   TITLES.push({ id: sk.danhHieu.id, name: sk.danhHieu.name, q: 'tinhPham', loai: 'suKien', bonus: {},

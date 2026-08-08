@@ -13,15 +13,15 @@ Cách dùng: mỗi loại tệp có một **khối STYLE** dán trước, rồi 
 | Icon kĩ năng | 1 | 6 | `images/skills/` |
 | Icon vật phẩm | 6 | 36 | `images/items/` |
 | Chân dung quái | 4 | 24 | `images/enemies/` |
-| Chân dung Yêu Vương | 2 | 12 | `images/enemies/` |
+| Chân dung Yêu Vương | 2 | 12 | `images/items/` ⚠ |
 | Bìa Bí Cảnh | 2 | 12 | `images/dungeons/` |
 | Icon phụ kiện | 4 | 24 | `images/equip/` |
-| Linh Thú | 1 | 6 | `images/pets/` |
+| Linh Thú | **4** | **24** | `images/pets/` ⚠ |
 | Trứng Linh Thú | 1 | 6 | `images/items/` |
 | Ảnh đại diện | 2 | 12 | `images/avatars/` |
 | Ảnh bìa hồ sơ | 1 | 6 | `images/avatars/` |
 | Icon món ăn riêng | 1 | 6 | `images/items/` |
-| **Cộng theo sự kiện** | **26** | **156** | |
+| **Cộng theo sự kiện** | **29** | **174** | |
 
 | dùng chung, không nhân sáu | số tệp |
 |---|---|
@@ -30,9 +30,9 @@ Cách dùng: mỗi loại tệp có một **khối STYLE** dán trước, rồi 
 | Dấu "sự kiện đang mở" trên bản đồ thế giới | 1 |
 | **Cộng** | **3** |
 
-# TỔNG: 159 tệp
+# TỔNG: 177 tệp
 
-Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba tệp dùng chung làm một lần cho cả sáu.
+Làm từng sự kiện một thì mỗi đợt chỉ cần **29 tệp**. Ba tệp dùng chung làm một lần cho cả sáu.
 Định dạng `.webp` cho mọi tệp, đúng như art đang có trong kho.
 
 ---
@@ -62,6 +62,12 @@ Làm từng sự kiện một thì mỗi đợt chỉ cần **26 tệp**. Ba t�
 
 **S8 · Linh Thú** *(dọc 3:4)*
 `Wuxia xianxia spirit-beast companion, full-body creature, semi-realistic painterly digital art, appealing collectible creature design, soft magical aura matching its element, cinematic rim lighting, dark atmospheric background, no text, no border —`
+
+**S8b · Linh Thú dạng thức tỉnh** *(dọc 3:4 — cùng khuôn S8, uy lực hơn hẳn)*
+`Wuxia xianxia spirit-beast in an awakened stronger form, full-body creature, semi-realistic painterly digital art, glowing sigils and intense elemental aura, same colour identity as its base form, cinematic rim lighting, dark atmospheric background, no text, no border —`
+
+**S8c · Art tuyệt kĩ Linh Thú** *(vuông, ~256×256)*
+`Wuxia martial technique icon, dynamic depiction of the move itself with the beast implied rather than centered, semi-realistic painterly digital art, strong motion and elemental energy, dark neutral background, readable at small size, no text, no border —`
 
 **S9 · Trứng Linh Thú** *(vuông, ~512×512)* — **MỘT tệp mỗi sự kiện**, hậu tố `_linh`.
 Linh Thú sự kiện chỉ có **một phẩm chất duy nhất là Hiếm** (`tinhPham`), nên chỉ cần đúng một bức.
@@ -121,6 +127,8 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `thuTueQuy.webp` | `a gaunt year-guarding demon in tattered ceremonial robes, holding an hourglass of red sand, face half hidden by a cracked opera mask, cold blue-red aura` |
 
 ## Chân dung Yêu Vương · S5
+⚠⚠ **Thả vào `images/items/`, KHÔNG phải `images/enemies/`.** Game phân giải icon bằng `ICON_FOLDERS[id] || 'items'`;
+Yêu Vương không nằm trong bảng `ENEMIES` nên rơi về `items`. Cả 10 Yêu Vương cũ đều nằm ở đó.
 | tệp | phần riêng |
 |---|---|
 | `yvLanVuong.webp` | `the king of lion-dance lions, enormous crimson mane blazing like fire, gilded horn and mirrored eyes, mid-leap above a drum, shockwaves of sound rippling outward, festival lanterns scattering` |
@@ -141,8 +149,14 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `eq_sk_nguyen_dan_an_thuong.webp` | `an imperial square seal of blood-red jade topped with a gold lion finial, dense archaic script on the base, faint gold light leaking from the carved strokes` |
 
 ## Linh Thú và trứng
-**`images/pets/kimDongNgu.webp`** · S8
+**`images/pets/pet_kimDongNgu_base.webp`** · S8 — dạng thường
 `a golden carp spirit-fish swimming through mid-air, scales of layered polished gold, long flowing crimson fins like silk banners, whiskers trailing sparks, faint gold Kim-element aura, poised as if about to leap a dragon gate`
+**`images/pets/pet_kimDongNgu_awk.webp`** · S8b — dạng THỨC TỈNH
+`the same creature as its base form, now awakened: larger and fiercer, glowing sigils on its body, its element aura burning far brighter and streaming off it, same colour identity so it reads as the same creature grown into its power`
+**`images/pets/skill_kimDongNgu_p.webp`** · S8c — bị động Ngư Dược Long Môn
+`a golden carp mid-leap through a stone dragon gate wreathed in gold light, water trailing from its fins, the gate arch glowing as it passes`
+**`images/pets/skill_kimDongNgu_a.webp`** · S8c — chủ động Kim Lân Kích
+`a golden carp whipping its tail like a drawn blade, a crescent of gold scale-light cutting through the air, spray flying`
 
 **`images/items/egg_kimDongNgu_linh.webp`** · S9
 `carp-scale shell, gold filigree rising like leaping fins and water spray, a red gem at the front centre`
@@ -191,6 +205,8 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `thaoMocTinh.webp` | `a humanoid figure woven from the grass of an entire meadow, body of braided stalks and flowering vines, hollow glowing green eyes, fresh grass sprouting where it stands` |
 
 ## Chân dung Yêu Vương · S5
+⚠⚠ **Thả vào `images/items/`, KHÔNG phải `images/enemies/`.** Game phân giải icon bằng `ICON_FOLDERS[id] || 'items'`;
+Yêu Vương không nằm trong bảng `ENEMIES` nên rơi về `items`. Cả 10 Yêu Vương cũ đều nằm ở đó.
 | tệp | phần riêng |
 |---|---|
 | `yvHoaLinh.webp` | `the first flower spirit of spring, a graceful being whose gown is layered blossom petals, crown of budding blooms, hovering above the grass while every flower in view turns toward her, pollen light swirling` |
@@ -211,8 +227,14 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `eq_sk_thanh_de_an_thuong.webp` | `a square seal of deep emerald jade topped with a budding-branch finial, dense archaic script on the base, green light leaking from the carved strokes` |
 
 ## Linh Thú và trứng
-**`images/pets/thaiVuDiep.webp`** · S8
+**`images/pets/pet_thaiVuDiep_base.webp`** · S8 — dạng thường
 `a large spirit butterfly with five-colored iridescent wings that shift like oil on water, delicate feathered antennae, trailing motes of pollen light, faint green Moc-element aura, wings caught mid-beat`
+**`images/pets/pet_thaiVuDiep_awk.webp`** · S8b — dạng THỨC TỈNH
+`the same creature as its base form, now awakened: larger and fiercer, glowing sigils on its body, its element aura burning far brighter and streaming off it, same colour identity so it reads as the same creature grown into its power`
+**`images/pets/skill_thaiVuDiep_p.webp`** · S8c — bị động Điệp Ảnh
+`a butterfly leaving three translucent afterimages behind it as it darts, each fainter than the last, motion blur of five-colour wings`
+**`images/pets/skill_thaiVuDiep_a.webp`** · S8c — chủ động Ngũ Sắc Phấn Vũ
+`a butterfly beating its wings hard, releasing a swirling storm of five-colour pollen that fills the frame`
 
 **`images/items/egg_thaiVuDiep_linh.webp`** · S9
 `pastel chrysalis shell, gold filigree spreading like butterfly wing veins, a green gem at the front centre`
@@ -261,6 +283,8 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `nguDocYeu.webp` | `a horrifying composite demon of the five poisons fused into one body — snake coils, centipede segments, scorpion tail, gecko limbs and a toad maw — sickly green-purple miasma boiling around it` |
 
 ## Chân dung Yêu Vương · S5
+⚠⚠ **Thả vào `images/items/`, KHÔNG phải `images/enemies/`.** Game phân giải icon bằng `ICON_FOLDERS[id] || 'items'`;
+Yêu Vương không nằm trong bảng `ENEMIES` nên rơi về `items`. Cả 10 Yêu Vương cũ đều nằm ở đó.
 | tệp | phần riêng |
 |---|---|
 | `yvXichLongChu.webp` | `a crimson dragon boat transformed into a true dragon, prow becoming a roaring dragon head, oars becoming clawed limbs, drum-beat shockwaves splitting the river, spray exploding upward` |
@@ -281,8 +305,14 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `eq_sk_ngu_doc_an_thuong.webp` | `a square seal of black jade topped with a five-headed venomous beast finial, archaic script on the base, sickly green light seeping from the strokes` |
 
 ## Linh Thú và trứng
-**`images/pets/xichDiemLongCau.webp`** · S8
+**`images/pets/pet_xichDiemLongCau_base.webp`** · S8 — dạng thường
 `a crimson dragon-horse foal, scaled hide the color of hot coals, mane and tail of living flame, small horn buds and fin-like ears, hooves leaving scorch marks in the air, faint red Hoa-element aura`
+**`images/pets/pet_xichDiemLongCau_awk.webp`** · S8b — dạng THỨC TỈNH
+`the same creature as its base form, now awakened: larger and fiercer, glowing sigils on its body, its element aura burning far brighter and streaming off it, same colour identity so it reads as the same creature grown into its power`
+**`images/pets/skill_xichDiemLongCau_p.webp`** · S8c — bị động Dương Cực
+`a blazing noon sun directly overhead, its light concentrating into a burning point over a crimson dragon-horse silhouette below`
+**`images/pets/skill_xichDiemLongCau_a.webp`** · S8c — chủ động Liệt Dương Trảm
+`a crimson dragon-horse rearing and bringing a hoof down wrapped in sun-fire, a vertical slash of molten light splitting the ground`
 
 **`images/items/egg_xichDiemLongCau_linh.webp`** · S9
 `molten-cracked scarlet shell, gold filigree curling like rising flame tongues, an amber gem at the front centre`
@@ -331,6 +361,8 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `maDienTuong.webp` | `the Horse-Face hell warden, a tall gaunt horse-headed guardian in grey official robes, holding an open name ledger and a brush, reading aloud, hollow black eye sockets` |
 
 ## Chân dung Yêu Vương · S5
+⚠⚠ **Thả vào `images/items/`, KHÔNG phải `images/enemies/`.** Game phân giải icon bằng `ICON_FOLDERS[id] || 'items'`;
+Yêu Vương không nằm trong bảng `ENEMIES` nên rơi về `items`. Cả 10 Yêu Vương cũ đều nằm ở đó.
 | tệp | phần riêng |
 |---|---|
 | `yvDeDangQuySu.webp` | `a lantern-bearing psychopomp demon, tall and thin in trailing dark robes, raising a bone-framed lantern whose light bleaches everything it touches, faint blank-faced spirits following behind it` |
@@ -351,8 +383,14 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `eq_sk_tam_sinh_an_thuong.webp` | `a square seal of black stone veined with red, topped with a coiled-flame finial, dense name-like script on the base, red light bleeding from the strokes` |
 
 ## Linh Thú và trứng
-**`images/pets/uMinhMieu.webp`** · S8
+**`images/pets/pet_uMinhMieu_base.webp`** · S8 — dạng thường
 `a sleek black underworld cat, fur that swallows light, two faint pale-gold ring markings on its brow, eyes like cold lanterns, tail tip dissolving into dark mist, faint ochre Tho-element aura, walking without sound`
+**`images/pets/pet_uMinhMieu_awk.webp`** · S8b — dạng THỨC TỈNH
+`the same creature as its base form, now awakened: larger and fiercer, glowing sigils on its body, its element aura burning far brighter and streaming off it, same colour identity so it reads as the same creature grown into its power`
+**`images/pets/skill_uMinhMieu_p.webp`** · S8c — bị động Âm Hành
+`a black cat walking across still water leaving no ripple, its outline dissolving into cold mist at the edges`
+**`images/pets/skill_uMinhMieu_a.webp`** · S8c — chủ động Câu Hồn Trảo
+`a black clawed paw raking forward through the dark, four trailing streaks of pale soul-light torn out behind it`
 
 **`images/items/egg_uMinhMieu_linh.webp`** · S9
 `black shell, gold filigree curling like cat whiskers and drifting smoke, a violet gem at the front centre`
@@ -401,6 +439,8 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `nguyetMaAnh.webp` | `a shadow the moonlight failed to erase, a pitch-black humanoid silhouette with no features, edges sharpening the brighter the light gets, standing upright on silver stone` |
 
 ## Chân dung Yêu Vương · S5
+⚠⚠ **Thả vào `images/items/`, KHÔNG phải `images/enemies/`.** Game phân giải icon bằng `ICON_FOLDERS[id] || 'items'`;
+Yêu Vương không nằm trong bảng `ENEMIES` nên rơi về `items`. Cả 10 Yêu Vương cũ đều nằm ở đó.
 | tệp | phần riêng |
 |---|---|
 | `yvNgocThoNguyetSu.webp` | `the jade rabbit envoy of the moon, a tall bipedal white rabbit in flowing silver-blue ceremonial cloth, hefting an enormous jade pestle like a warhammer, moon dust exploding from the impact point, cold silver aura` |
@@ -421,8 +461,14 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `eq_sk_quang_han_an_thuong.webp` | `a square seal of white moon-jade topped with a crouching rabbit finial, archaic script on the base, cold silver light spilling from the strokes` |
 
 ## Linh Thú và trứng
-**`images/pets/ngocTho.webp`** · S8
+**`images/pets/pet_ngocTho_base.webp`** · S8 — dạng thường
 `a jade rabbit spirit, coat of luminous white with faint jade-green translucence at the ear tips, large calm red eyes, a tiny jade pestle held against its chest, faint blue Thuy-element aura, sitting upright`
+**`images/pets/pet_ngocTho_awk.webp`** · S8b — dạng THỨC TỈNH
+`the same creature as its base form, now awakened: larger and fiercer, glowing sigils on its body, its element aura burning far brighter and streaming off it, same colour identity so it reads as the same creature grown into its power`
+**`images/pets/skill_ngocTho_p.webp`** · S8c — bị động Thiềm Cung Hộ
+`a translucent dome of pale moonlight shielding a small figure, jade cassia patterns rippling across the barrier surface`
+**`images/pets/skill_ngocTho_a.webp`** · S8c — chủ động Ngọc Chử Đảo
+`a jade pestle slamming down into a jade mortar, luminous medicine powder and moon dust exploding outward`
 
 **`images/items/egg_ngocTho_linh.webp`** · S9
 `moon-white shell, gold filigree curling like cassia sprays and crescent moons, a jade gem at the front centre`
@@ -471,6 +517,8 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `hanSuongYeu.webp` | `a frost demon condensed from a hundred winters of rime on pine branches, an elongated humanoid of clear jagged ice, breath that freezes the air visibly, hollow glacier-blue eyes` |
 
 ## Chân dung Yêu Vương · S5
+⚠⚠ **Thả vào `images/items/`, KHÔNG phải `images/enemies/`.** Game phân giải icon bằng `ICON_FOLDERS[id] || 'items'`;
+Yêu Vương không nằm trong bảng `ENEMIES` nên rơi về `items`. Cả 10 Yêu Vương cũ đều nằm ở đó.
 | tệp | phần riêng |
 |---|---|
 | `yvBachGiacLocVuong.webp` | `the white-antlered reindeer king, a majestic stag with enormous branching antlers of pale bone hung with tiny bells, hooves striking above the snow without leaving prints, aurora light behind him` |
@@ -491,8 +539,14 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 | `eq_sk_han_chung_an_thuong.webp` | `a square seal of clear blue glacier ice topped with a bell finial, archaic script frozen into the base, pale blue light shining through the whole block` |
 
 ## Linh Thú và trứng
-**`images/pets/bachLoc.webp`** · S8
+**`images/pets/pet_bachLoc_base.webp`** · S8 — dạng thường
 `a young white deer spirit, coat of pure snow-white with faint frost patterning along the flank, small budding antlers hung with two tiny brass bells, warm dark eyes, faint blue Thuy-element aura, standing on untouched snow leaving no prints`
+**`images/pets/pet_bachLoc_awk.webp`** · S8b — dạng THỨC TỈNH
+`the same creature as its base form, now awakened: larger and fiercer, glowing sigils on its body, its element aura burning far brighter and streaming off it, same colour identity so it reads as the same creature grown into its power`
+**`images/pets/skill_bachLoc_p.webp`** · S8c — bị động Đạp Tuyết Vô Ngân
+`a white deer stepping across deep snow leaving no prints at all, frost blooming outward from where each hoof passes`
+**`images/pets/skill_bachLoc_a.webp`** · S8c — chủ động Hàn Chung Nhất Kích
+`a bell of clear blue ice struck and ringing, concentric rings of cold light spreading out through falling snow`
 
 **`images/items/egg_bachLoc_linh.webp`** · S9
 `frost-fern shell, gold filigree branching like antlers and pine needles, a pale-blue gem at the front centre`
