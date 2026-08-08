@@ -6346,6 +6346,11 @@
                     <template x-if="$store.game.isTraveling && $store.game.travelToId===loc.id">
                       <span class="absolute inset-2 rounded-full ring-2 ring-amber-300/80 animate-pulse pointer-events-none"></span>
                     </template>
+                    <!-- Dấu "sự kiện đang mở": chỉ vùng sự kiện mới có `loc.suKien`, mà locHienThi
+                         đã lọc chỉ còn sự kiện đang hiện hành nên thấy dấu là thấy chỗ đang mở hội. -->
+                    <template x-if="loc.suKien">
+                      <span class="absolute -top-1 -right-1 w-9 h-9 pointer-events-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]" x-html="$store.game.ico('dauSuKien','🏮')"></span>
+                    </template>
 
                     <!-- Tên + Lv: căn chính giữa ngay dưới đảo -->
                     <div class="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 flex flex-col items-center pointer-events-none">
@@ -6601,19 +6606,41 @@
                   <div class="panel rounded-xl p-3.5">
                     <div class="flex items-center gap-2 mb-2.5"><span class="lbl">Bảo Vật · Drop khi hạ gục</span></div>
                     <div class="grid grid-cols-4 gap-2.5">
+                      <!-- ⚠⚠ Tinh Thể + trứng KHÔNG phải ô cố định: Yêu Vương sự kiện khai
+                           `tinhThe: 0` và `eggBase: null`. Bày cứng thì bảng hiện "10% Tinh Thể ×0"
+                           và ba ô trứng 5/1/0.02% cho thứ KHÔNG BAO GIỜ rơi — bảng nói dối. -->
                       <!-- Tinh Thể -->
-                      <div class="relative aspect-square rounded-lg bg-black/50 border border-amber-500/45 flex flex-col items-center justify-center gap-1 cursor-zoom-in" style="box-shadow:inset 0 0 12px rgba(245,158,11,.18)" @click="g.openLightbox('tinhTheYeuVuong','🔮','Tinh Thể Yêu Vương')">
-                        <span class="absolute -top-1 -right-1 text-[9px] font-bold px-1 rounded bg-amber-500 text-ink" x-text="'×'+b.wb.tinhThe"></span>
-                        <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico('tinhTheYeuVuong','🔮')"></span>
-                        <span class="text-[15px] font-bold leading-none text-amber-300">10%</span>
-                        <span class="text-[9px] uppercase tracking-wider text-slate-500 leading-none">Tinh Thể</span>
-                      </div>
+                      <template x-if="b.wb.tinhThe > 0">
+                        <div class="relative aspect-square rounded-lg bg-black/50 border border-amber-500/45 flex flex-col items-center justify-center gap-1 cursor-zoom-in" style="box-shadow:inset 0 0 12px rgba(245,158,11,.18)" @click="g.openLightbox('tinhTheYeuVuong','🔮','Tinh Thể Yêu Vương')">
+                          <span class="absolute -top-1 -right-1 text-[9px] font-bold px-1 rounded bg-amber-500 text-ink" x-text="'×'+b.wb.tinhThe"></span>
+                          <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico('tinhTheYeuVuong','🔮')"></span>
+                          <span class="text-[15px] font-bold leading-none text-amber-300">10%</span>
+                          <span class="text-[9px] uppercase tracking-wider text-slate-500 leading-none">Tinh Thể</span>
+                        </div>
+                      </template>
                       <!-- Trứng × 3 phẩm (viền + màu % theo PHẨM CHẤT: Phàm=Lương/blue, Linh=Tinh/emerald, Thần=Tuyệt/rose) -->
-                      <template x-for="t in [{s:'pham',l:'Phàm',ch:'5%'},{s:'linh',l:'Linh',ch:'1%'},{s:'than',l:'Thần',ch:'0.02%'}]" :key="t.s">
-                        <div class="aspect-square rounded-lg bg-black/50 border flex flex-col items-center justify-center gap-1 cursor-zoom-in" :class="g.itemQuality('egg_'+b.wb.eggBase+'_'+t.s).border" @click="g.openLightbox('egg_'+b.wb.eggBase+'_'+t.s,'🥚','Trứng '+t.l+' Phẩm')">
-                          <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico('egg_'+b.wb.eggBase+'_'+t.s,'🥚')"></span>
-                          <span class="text-[15px] font-bold leading-none" :class="g.itemQuality('egg_'+b.wb.eggBase+'_'+t.s).text" x-text="t.ch"></span>
-                          <span class="text-[9px] uppercase tracking-wider leading-none text-slate-500" x-text="t.l"></span>
+                      <template x-if="b.wb.eggBase">
+                        <template x-for="t in [{s:'pham',l:'Phàm',ch:'5%'},{s:'linh',l:'Linh',ch:'1%'},{s:'than',l:'Thần',ch:'0.02%'}]" :key="t.s">
+                          <div class="aspect-square rounded-lg bg-black/50 border flex flex-col items-center justify-center gap-1 cursor-zoom-in" :class="g.itemQuality('egg_'+b.wb.eggBase+'_'+t.s).border" @click="g.openLightbox('egg_'+b.wb.eggBase+'_'+t.s,'🥚','Trứng '+t.l+' Phẩm')">
+                            <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico('egg_'+b.wb.eggBase+'_'+t.s,'🥚')"></span>
+                            <span class="text-[15px] font-bold leading-none" :class="g.itemQuality('egg_'+b.wb.eggBase+'_'+t.s).text" x-text="t.ch"></span>
+                            <span class="text-[9px] uppercase tracking-wider leading-none text-slate-500" x-text="t.l"></span>
+                          </div>
+                        </template>
+                      </template>
+                      <!-- Yêu Vương sự kiện: Điểm Sự Kiện + phụ kiện Bội (lần hạ gục đầu) -->
+                      <template x-if="b.suKien">
+                        <div class="relative aspect-square rounded-lg bg-black/50 border border-amber-500/45 flex flex-col items-center justify-center gap-1" style="box-shadow:inset 0 0 12px rgba(245,158,11,.18)">
+                          <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico('diemSuKien','🎟️')"></span>
+                          <span class="text-[15px] font-bold leading-none text-amber-300" x-text="'+'+g.fmt(b.wb.diem)"></span>
+                          <span class="text-[9px] uppercase tracking-wider text-slate-500 leading-none">Điểm Sự Kiện</span>
+                        </div>
+                      </template>
+                      <template x-if="b.suKien && b.wb.phuKien">
+                        <div class="relative aspect-square rounded-lg bg-black/50 border border-jade/45 flex flex-col items-center justify-center gap-1 px-1 text-center">
+                          <span class="absolute -top-1 -right-1 text-[9px] font-bold px-1 rounded bg-jade text-ink">Lần đầu</span>
+                          <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico(g.svArtPhuKien(b.suKien, b.wb.phuKien.loai, b.wb.phuKien.bac),'📿')"></span>
+                          <span class="text-[9.5px] font-bold leading-tight text-jade" x-text="g.svTenPhuKien(b.suKien, b.wb.phuKien.loai, b.wb.phuKien.bac)"></span>
                         </div>
                       </template>
                       <!-- Hồn Thạch -->
@@ -6681,9 +6708,12 @@
                     <div class="text-[11.5px] mt-1" :style="'color:' + sv.color" x-text="g.suKienConLaiText"></div>
                   </div>
                   <div class="shrink-0 flex flex-col items-end gap-1.5">
-                    <div class="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-600/40 text-right">
-                      <div class="text-[10px] text-slate-500">Điểm Sự Kiện</div>
-                      <div class="text-[16px] font-bold text-amber-300" x-text="g.fmt(g.svDiem)"></div>
+                    <div class="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-600/40 flex items-center gap-2">
+                      <span class="w-8 h-8 inline-flex items-center justify-center shrink-0" x-html="g.ico('diemSuKien','🎟️')"></span>
+                      <div class="text-right">
+                        <div class="text-[10px] text-slate-500">Điểm Sự Kiện</div>
+                        <div class="text-[16px] font-bold text-amber-300" x-text="g.fmt(g.svDiem)"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -6722,11 +6752,23 @@
               <!-- Phụ kiện sự kiện -->
               <div class="panel rounded-xl border border-slate-800 p-4">
                 <div class="text-[13px] font-bold fserif text-slate-200 mb-2">Phụ Kiện Sự Kiện · chỉ hiệu lực trong <span x-text="sv.loc.name"></span></div>
-                <div class="grid sm:grid-cols-2 gap-2">
+                <!-- Khung ngọc hai vòng (images/ui/oPhuKienSuKien.webp). SỐ ĐO quét thẳng từ tệp art
+                     bằng _mockup/_khung_phukien_do.html: ảnh 500×500 nhưng khung chỉ nằm ở dải
+                     y 112-379, nên phải CẮT DỌC — không cắt thì thừa 46% khung là khoảng trống.
+                     Tâm hai lỗ: 30,1% và 70,0% bề ngang, 49,0% bề cao ẢNH; đường kính 22% bề ngang. -->
+                <div class="relative w-full max-w-[330px] mx-auto overflow-hidden" style="aspect-ratio:500/292">
+                  <img src="images/ui/oPhuKienSuKien.webp" class="absolute left-0 w-full pointer-events-none" style="top:-34.25%" alt="" onerror="this.remove()">
+                  <template x-for="(p, i) in g.svPhuKien" :key="p.loai">
+                    <span class="absolute -translate-x-1/2 -translate-y-1/2 rounded-full overflow-hidden transition"
+                      :class="p.co ? '' : 'opacity-60 grayscale'"
+                      :style="'left:' + (i === 0 ? '30.1' : '70.0') + '%; top:49.66%; width:20%; aspect-ratio:1/1'"
+                      x-html="g.ico(p.art, p.loai === 'boi' ? '📿' : '🔮')"></span>
+                  </template>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-2 mt-2">
                   <template x-for="p in g.svPhuKien" :key="p.loai">
                     <div class="px-3 py-2 rounded-lg bg-black/20 border" :class="p.co ? 'border-amber-600/40' : 'border-slate-800'">
                       <div class="flex items-center gap-2">
-                        <span class="text-[15px]" x-text="p.loai === 'boi' ? '📿' : '🔮'"></span>
                         <span class="text-[12.5px] fserif" :class="p.co ? 'text-amber-200' : 'text-slate-400'" x-text="p.ten + (p.co === 'thuong' ? ' · Thượng' : p.co === 'so' ? ' · Sơ' : '')"></span>
                         <span class="ml-auto text-[10.5px] shrink-0" :class="p.co ? 'text-jade' : 'text-slate-600'" x-text="p.co ? 'Đã mở' : 'Rơi từ ' + p.nguon"></span>
                       </div>
@@ -6747,7 +6789,7 @@
                 <div class="space-y-1.5 mb-3">
                   <template x-for="r in g.svTranPham" :key="r.loai">
                     <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/20 border border-slate-800">
-                      <span class="text-[15px] shrink-0" x-text="r.icon"></span>
+                      <span class="w-7 h-7 inline-flex items-center justify-center text-[15px] shrink-0" x-html="g.ico(r.art, r.icon)"></span>
                       <span class="text-[12.5px] text-slate-200 truncate min-w-0 flex-1" x-text="r.ten"></span>
                       <span class="text-[10.5px] text-slate-600 shrink-0" x-text="r.han"></span>
                       <span class="text-[11.5px] text-amber-300 shrink-0 w-[3.6rem] text-right" x-text="g.fmt(r.gia)"></span>
@@ -6947,6 +6989,26 @@
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
                               <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(sid,(g.ITEMS[sid]||{}).icon)"></span>
                               <span class="text-[8px] leading-tight text-slate-300" x-text="(g.ITEMS[sid]||{}).name"></span>
+                            </div>
+                          </div>
+                        </template>
+                        <!-- Bí Cảnh sự kiện: Điểm Sự Kiện + phụ kiện Ấn (lượt thông quan đầu).
+                             Thiếu hai ô này là bảng bỏ sót đúng hai thứ khiến người chơi vào đây. -->
+                        <template x-if="d.suKien">
+                          <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-amber-500/45">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico('diemSuKien','🎟️')"></span>
+                              <span class="text-[11px] font-bold leading-none text-amber-300" x-text="'+'+g.fmt(d.diem)"></span>
+                              <span class="text-[8.5px] uppercase text-slate-500 leading-none">Điểm Sự Kiện</span>
+                            </div>
+                          </div>
+                        </template>
+                        <template x-if="d.suKien && d.phuKien">
+                          <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-jade/45">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                              <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(g.svArtPhuKien(d.suKien, d.phuKien.loai, d.phuKien.bac),'🔮')"></span>
+                              <span class="text-[8.5px] font-bold leading-tight text-jade" x-text="g.svTenPhuKien(d.suKien, d.phuKien.loai, d.phuKien.bac)"></span>
+                              <span class="text-[8px] text-slate-500 leading-none">Lần đầu</span>
                             </div>
                           </div>
                         </template>

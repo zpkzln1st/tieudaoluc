@@ -481,15 +481,18 @@ for (const sk of SU_KIEN_DS) {
   });
 
   // ---- Bản đồ sự kiện: vùng thứ 11, chỉ hiện khi sự kiện mở (UI lọc theo cờ) ----
-  // ⚠⚠ TOẠ ĐỘ (34,35) LÀ SỐ ĐO, KHÔNG PHẢI ƯỚC LƯỢNG. Chỗ cũ (12,58) nằm ĐÈ bảng Tầng Cảnh Giới.
-  //   Ràng buộc: bảng đó là `absolute left-2 top-12 w-32` -> chiếm tới ~13% bề ngang; tooltip của
-  //   chấm là `w-44` (176px) canh giữa và `z-40` (cao hơn bảng z-30) nên nó VẼ ĐÈ LÊN bảng.
-  //   Quét toàn khung an toàn rồi lấy điểm cách xa 10 vùng gốc nhất: cách vùng gần nhất 17,8%,
-  //   thoáng hơn cặp sát nhau nhất của bản đồ gốc (Lam Linh Cốc / U Lâm = 17,3%).
+  // ⚠⚠ TOẠ ĐỘ (25,49) ĐO BẰNG DIỆN TÍCH ĐÈ NHAU THẬT, không đo bằng khoảng cách giữa hai chấm.
+  //   Hai lần trước sai vì đo nhầm thứ:
+  //     (12,58) đè bảng Tầng Cảnh Giới · (34,35) đè nhãn U Lâm 5.810 px² + Phù Không Hoa Viên
+  //     4.071 px² + Lam Linh Cốc 3.388 px².
+  //   Chấm KHÔNG phải một điểm: cụm gồm đảo 7,5rem + thẻ tên + thẻ Lv, đo được 151×180 px.
+  //   Đo lại bằng `_mockup/_tet_map_do.html` (quét cả khung, đối chiếu 10 vùng gốc + bảng Tầng
+  //   Cảnh Giới + dải chú thích): (25,49) đè 34 px² — bản đồ GỐC vốn đã có cặp đè 208 px²
+  //   (Huyền Đô / Phù Không Hoa Viên), nên 34 là dưới mức nền.
   // ⚠ Cả sáu bản đồ dùng CHUNG toạ độ này — được, vì mỗi lúc chỉ MỘT bản đồ sự kiện hiện
   //   (locHienThi lọc theo suKienDangChay, xem main.js).
   LOCATIONS.push({ id: locId, name: sk.loc.name, gloss: sk.loc.gloss, reqLevel: 1, icon: sk.loc.icon,
-    mapX: 34, mapY: 35, desc: sk.loc.desc, suKien: ma, enemies: sk.quai.map((x) => x.id) });
+    mapX: 25, mapY: 49, desc: sk.loc.desc, suKien: ma, enemies: sk.quai.map((x) => x.id) });
 
   // ---- Linh Thú giới hạn: MỘT phẩm chất (trứng `_linh` = tinhPham). Trứng GIỮ sau sự kiện. ----
   PET_SPECIES[sk.pet.base] = { base: sk.pet.base, name: sk.pet.name, he: sk.pet.he, emoji: sk.pet.emoji,
@@ -531,3 +534,18 @@ export function tenPhuKien(ma, khoa) {
   const ten = khoa.indexOf('boi') === 0 ? s.phuKien.boi : s.phuKien.an;
   return ten + (khoa.slice(-2) === 'So' ? ' · Sơ' : ' · Thượng');
 }
+
+// ---- Art phụ kiện: id ảnh suy TỪ TÊN, không gõ tay 24 chuỗi ----
+// 'Xuân Huy Bội' + 'so' -> 'eq_sk_xuan_huy_boi_so' (art ở images/equip/).
+// ⚠ Phụ kiện KHÔNG phải ITEMS nên `ICON_FOLDERS` không tự có mục — main.js phải ghi danh
+//   SU_KIEN_ART_PHU_KIEN vào folder 'equip', không thì ico() rơi về 'items' và mất art.
+// ⚠ Phép suy này phải khớp TỪNG TỆP với docs/ART_SU_KIEN.md — _check_art_sukien đối chiếu cả 24.
+const boDauSK = (s) => String(s == null ? '' : s)
+  .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+export function artPhuKien(ma, loai, bac) {
+  const s = SU_KIEN_BY_MA[ma];
+  if (!s || !loai || !bac) return '';
+  return 'eq_sk_' + boDauSK(loai === 'boi' ? s.phuKien.boi : s.phuKien.an).trim().replace(/\s+/g, '_') + '_' + bac;
+}
+export const SU_KIEN_ART_PHU_KIEN = SU_KIEN_DS.flatMap((s) =>
+  ['boi', 'an'].flatMap((loai) => ['so', 'thuong'].map((bac) => artPhuKien(s.ma, loai, bac))));

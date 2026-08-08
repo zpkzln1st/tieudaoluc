@@ -79,7 +79,7 @@ import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, a
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan } from './engine/lenhbai.js';
-import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, tenPhuKien } from './data/sukien.js';
+import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, phuKienCua, donSuKien } from './engine/sukien.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
@@ -434,6 +434,11 @@ if (MERCHANT && MERCHANT.id) ICON_FOLDERS[MERCHANT.id] = 'npc';
 // Trang bị thật (id bắt đầu 'eq_') -> art ở images/equip/<id>.png (tách khỏi vật phẩm thường).
 Object.keys(ITEMS).forEach((id) => { if (id.startsWith('eq_')) ICON_FOLDERS[id] = 'equip'; });
 DUNGEONS.forEach((d) => { ICON_FOLDERS[d.id] = 'dungeons'; }); // art phó bản Bí Cảnh: images/dungeons/<id>.png
+// Art sự kiện KHÔNG nằm trong bảng nào ở trên -> phải ghi danh tay, không thì ico() rơi về 'items'.
+SU_KIEN_ART_PHU_KIEN.forEach((id) => { ICON_FOLDERS[id] = 'equip'; });   // 24 phụ kiện Bội/Ấn
+ICON_FOLDERS['diemSuKien'] = 'currency';                                 // tiền chung của mọi sự kiện
+ICON_FOLDERS['dauSuKien'] = 'ui';                                        // dấu trên bản đồ thế giới
+SU_KIEN_DS.forEach((s) => { s.avatar.forEach((id) => { ICON_FOLDERS[id] = 'avatars'; }); ICON_FOLDERS[s.cover] = 'avatars'; });
 
 let resetting = false; // chặn beforeunload lưu lại khi đang reset
 
@@ -1694,24 +1699,30 @@ const gameStore = {
     void this._tick;
     const d = this.svDef; if (!d) return [];
     const pk = phuKienCua(this.state, d.ma);
+    // `art`: chưa mở thì vẫn bày art bậc Sơ (mờ đi) — người chơi thấy trước cái mình đang săn.
     return [
       { loai: 'boi', ten: d.phuKien.boi, nguon: 'Yêu Vương', co: pk.boiThuong ? 'thuong' : (pk.boiSo ? 'so' : null), eff: '+15% / +30% hiệu suất' },
       { loai: 'an', ten: d.phuKien.an, nguon: 'Bí Cảnh', co: pk.anThuong ? 'thuong' : (pk.anSo ? 'so' : null), eff: '+20% / +40% kinh nghiệm' },
-    ];
+    ].map((p) => Object.assign(p, { art: artPhuKien(d.ma, p.loai, p.co || 'so') }));
   },
+  /** Art phụ kiện cho bảng Bảo Vật của Yêu Vương / Bí Cảnh sự kiện (chỗ đó chỉ có `ma` + `wb.phuKien`). */
+  svArtPhuKien(ma, loai, bac) { return artPhuKien(ma, loai, bac); },
+  svTenPhuKien(ma, loai, bac) { return tenPhuKien(ma, loai + (bac === 'thuong' ? 'Thuong' : 'So')); },
   get svTranPham() {
     void this._tick;
     const d = this.svDef; if (!d) return [];
+    // `art`: id để ico() lấy ảnh thật. Trứng có art riêng; danh hiệu/ảnh chưa có art nên để trống,
+    // ico() sẽ rơi về emoji ở cột icon.
     const rows = [
-      { loai: 'trung', ten: d.pet.name + ' Noãn · Hiếm', icon: '🥚', gia: QUAY_GIA.trung, han: 'mỗi đợt' },
-      { loai: 'danhHieu', ten: 'Danh hiệu ' + d.danhHieu.name, icon: '🏷️', gia: QUAY_GIA.danhHieu, han: 'vĩnh viễn' },
+      { loai: 'trung', art: 'egg_' + d.pet.base + '_linh', ten: d.pet.name + ' Noãn · Hiếm', icon: '🥚', gia: QUAY_GIA.trung, han: 'mỗi đợt' },
+      { loai: 'danhHieu', art: '', ten: 'Danh hiệu ' + d.danhHieu.name, icon: '🏷️', gia: QUAY_GIA.danhHieu, han: 'vĩnh viễn' },
     ];
     // ⚠ Ảnh đại diện / ảnh bìa CHỈ bày khi đã có art. Ô ảnh ở Dung Mạo chỉ hiện lúc tệp ảnh nạp
     //   được, nên bày sớm là bán 3.400 Điểm lấy hư không. Thả art xong thì bật CO_ART_DUNG_MAO.
     if (CO_ART_DUNG_MAO) rows.push(
-      { loai: 'avatar:' + d.avatar[0], ten: 'Ảnh đại diện · Nam', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
-      { loai: 'avatar:' + d.avatar[1], ten: 'Ảnh đại diện · Nữ', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
-      { loai: 'cover:' + d.cover, ten: 'Ảnh bìa sự kiện', icon: '🏞️', gia: QUAY_GIA.cover, han: 'vĩnh viễn' },
+      { loai: 'avatar:' + d.avatar[0], art: d.avatar[0], ten: 'Ảnh đại diện · Nam', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
+      { loai: 'avatar:' + d.avatar[1], art: d.avatar[1], ten: 'Ảnh đại diện · Nữ', icon: '🖼️', gia: QUAY_GIA.avatar, han: 'vĩnh viễn' },
+      { loai: 'cover:' + d.cover, art: d.cover, ten: 'Ảnh bìa sự kiện', icon: '🏞️', gia: QUAY_GIA.cover, han: 'vĩnh viễn' },
     );
     return rows.map((r) => Object.assign(r, { daMua: this.svDaMua(r.loai), du: this.svDiem >= r.gia }));
   },
@@ -2894,6 +2905,9 @@ const gameStore = {
   ART_INSET: { eq_duocLiem_4: 9, eq_duocLiem_5: 9, eq_duocLiem_6: 9, eq_duocLiem_7: 9 },
   ico(id, emoji) {
     const safe = String(emoji || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    // id rỗng = CHƯA CÓ ART, nói thẳng ra emoji. Không có dòng này thì nó vẫn ra emoji, nhưng phải
+    // đi qua một lượt xin `images/items/.webp` rồi `.png` — hai lần 404 cho mỗi ô, mỗi nhịp vẽ.
+    if (!id) return `<span>${safe}</span>`;
     const folder = ICON_FOLDERS[id] || 'items';
     const drop = `this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{textContent:&quot;${safe}&quot;}))`;
     if (id && id.startsWith('dp_')) {   // ĐỒ PHỔ: cuộn nền THEO BẬC + art gear/tool lồng giữa. Tất cả WEBP-FIRST -> png -> emoji.

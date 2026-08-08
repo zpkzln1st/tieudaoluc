@@ -28,11 +28,12 @@ Cách dùng: mỗi loại tệp có một **khối STYLE** dán trước, rồi 
 | Icon Điểm Sự Kiện | 1 |
 | Khung hai ô Phụ Kiện Sự Kiện | 1 |
 | Dấu "sự kiện đang mở" trên bản đồ thế giới | 1 |
-| **Cộng** | **3** |
+| Icon mục Sự Kiện ở thanh điều hướng | 1 |
+| **Cộng** | **4** |
 
-# TỔNG: 177 tệp
+# TỔNG: 178 tệp
 
-Làm từng sự kiện một thì mỗi đợt chỉ cần **29 tệp**. Ba tệp dùng chung làm một lần cho cả sáu.
+Làm từng sự kiện một thì mỗi đợt chỉ cần **29 tệp**. Bốn tệp dùng chung làm một lần cho cả sáu.
 Định dạng `.webp` cho mọi tệp, đúng như art đang có trong kho.
 
 ---
@@ -85,7 +86,12 @@ mặt trước. Không có khung lồng ba chiều — cái đó là của bậc
 
 ---
 
-# 0. BA TỆP DÙNG CHUNG
+# 0. BỐN TỆP DÙNG CHUNG
+
+**`images/nav/suKien.webp`** — Icon mục **Sự Kiện** ở thanh điều hướng. Dùng S3.
+⚠ Đứng cạnh 26 icon nav khác (`images/nav/`) nên phải cùng cỡ, cùng độ đậm — soi `worldboss.webp`
+đang chạy trong game rồi bám theo, đừng vẽ chi tiết hơn.
+`a red festival lantern and a gold ceremonial banner crossed behind it, compact emblem silhouette, readable at 28 pixels`
 
 **`images/currency/diemSuKien.webp`** — Icon Điểm Sự Kiện. Dùng S3.
 `a round festival token coin of warm gold, an auspicious knot pattern stamped on its face, a red silk tassel threaded through the square center hole, faint warm glow`
