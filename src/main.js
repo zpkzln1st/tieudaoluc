@@ -83,6 +83,7 @@ import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien } from './engine/sukien.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
+import { batNgonNgu } from './i18n.js';       // lớp phủ dịch EN/ZH — từ điển chỉ nạp khi khác 'vi'
 import { vuaKhung } from './engine/toanman.js';   // thu tấm modal cho vừa màn, khỏi phải cuộn
 import { datTranNet } from './engine/muot.js';   // Cài Đặt → Chất Lượng Hình: trần tỉ lệ điểm ảnh cho bàn 3D
 
@@ -1363,6 +1364,14 @@ const gameStore = {
   //   thì ô giao diện đổi mà hiệu ứng/độ nét không đổi cho tới lần tải trang sau.
   // ============================================================
   get caiDat() { return this.state.settings || (this.state.settings = { ...CAI_DAT_MAC_DINH }); },
+  /** Đổi ngôn ngữ = lưu rồi TẢI LẠI TRANG. Lớp phủ dịch chỉ gắn lúc khởi động (src/i18n.js) —
+   *  đổi nóng thì phải gỡ bản dịch cũ khỏi từng node, phức tạp vô ích so với một lần tải lại. */
+  chonNgonNgu(v) {
+    if ((this.caiDat.ngonNgu || 'vi') === v) return;
+    this.caiDat.ngonNgu = v;
+    Storage.save(this.state);
+    location.reload();
+  },
   datCaiDat(khoa, giaTri) {
     this.caiDat[khoa] = giaTri;
     this.apDungCaiDat();
@@ -6115,6 +6124,10 @@ window.camNang = camNang;
 window.timKiemUI = timKiemUI;   // expose factory cho x-data modal Tim Kiem             // expose factory cho x-data modal Cẩm Nang
 Alpine.store('game', gameStore);
 Alpine.start();
+// LỚP PHỦ DỊCH (src/i18n.js) — gắn NGAY SAU Alpine.start: quan sát viên bắt mọi node Alpine chèn
+// về sau, còn khung đã vẽ thì quét một lượt. Splash Khai Tịch đang che nên người chơi không thấy
+// khung hình tiếng Việt lọt qua. `?lang=` chỉ để trang soi ép ngôn ngữ, không lưu.
+batNgonNgu(new URLSearchParams(location.search).get('lang') || (state.settings && state.settings.ngonNgu) || 'vi');
 Alpine.store('game').initRoute();           // Hash routing: mở đúng tab theo #link + lập history baseline (vuốt-back về tab trước)
 Alpine.store('game').initModalHistory();    // Bộ chặn modal: vuốt-back đóng modal đang mở (reactive theo _MODALS)
 window.addEventListener('popstate', () => { const s = window.Alpine?.store('game'); if (!s) return; if (s._mGuard > 0) { s._mGuard--; return; } if (s._mstack && s._mstack.length) { s._modalBack(); return; } s.applyHashRoute(); });   // modal đang mở -> vuốt-back chỉ ĐÓNG modal top, KHÔNG route tab

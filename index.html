@@ -16510,6 +16510,16 @@
             <!-- ⛔ ĐỪNG thêm dòng giải thích dưới nhãn. Nhãn đã nói đủ; dòng phụ chỉ làm người
                  đọc phải lội qua một câu văn nữa mới tới cái cần bấm. Thông tin nào thật sự cần
                  thì NHÉT VÀO NHÃN (xem "Chất Lượng Hình Bàn Cờ"), đừng viết thành câu. -->
+            <!-- Đổi ngôn ngữ là TẢI LẠI TRANG (lớp phủ dịch gắn lúc khởi động). Nhãn hai thứ
+                 tiếng kia viết bằng chính tiếng đó — người lỡ chuyển nhầm còn tìm được đường về. -->
+            <div class="cd-hang">
+              <div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Ngôn Ngữ</div></div>
+              <div class="dai shrink-0">
+                <button :class="(g.caiDat.ngonNgu||'vi')==='vi' ? 'on' : ''" @click="g.chonNgonNgu('vi')">Tiếng Việt</button>
+                <button :class="g.caiDat.ngonNgu==='en' ? 'on' : ''" @click="g.chonNgonNgu('en')">English</button>
+                <button :class="g.caiDat.ngonNgu==='zh' ? 'on' : ''" @click="g.chonNgonNgu('zh')">中文</button>
+              </div>
+            </div>
             <div class="cd-hang">
               <div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Giảm Hiệu Ứng</div></div>
               <div class="ct" :class="g.caiDat.giamHieuUng ? 'on' : ''" @click="g.datCaiDat('giamHieuUng', !g.caiDat.giamHieuUng)" role="switch" :aria-checked="g.caiDat.giamHieuUng"><span class="ct-nut"></span></div>
