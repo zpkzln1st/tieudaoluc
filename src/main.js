@@ -434,6 +434,15 @@ function fmtClock(sec) {
 const groupsOpen = {};
 NAV.forEach((g) => { groupsOpen[g.title] = !g.thuGon; });
 
+// ---- Các view CHƯA dựng: đúng những mục gắn `soon: true` trong data/nav.js ----
+// Chỉ những view này mới thay bằng trang giữ chỗ "Đang hoàn thiện".
+const SOON_VIEWS = new Set();
+NAV.forEach((g) => (g.items || []).forEach((it) => { if (it.soon) SOON_VIEWS.add(it.view); }));
+
+// ---- View có #link riêng: mọi mục trong data/nav.js, cộng trang kỹ năng ----
+// Suy thẳng từ NAV nên thêm tab mới là có link ngay, không phải nhớ sửa thêm chỗ này.
+const ROUTE_VIEWS = ['skill', ...NAV.flatMap((g) => (g.items || []).map((it) => it.view))];
+
 // ---- Bản đồ icon: id -> thư mục ảnh (ico() tự tìm đúng folder, không cần sửa chỗ gọi) ----
 const ICON_FOLDERS = {};
 Object.keys(ITEMS).forEach((id) => { ICON_FOLDERS[id] = 'items'; });
@@ -562,7 +571,7 @@ const gameStore = {
   openCoVua(id) { this._cvOpp = id || null; this.navTo('coVua'); },      // deep-link Cờ Vua từ Hồ Sơ Danh Sĩ
   _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'phongVanBang') this.taiNguoiThat(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
-  _ROUTE_VIEWS: ['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'binh', 'paoDeKuai', 'tavern', 'guild'],
+  _ROUTE_VIEWS: ROUTE_VIEWS,
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
   applyHashRoute() {   // đọc URL hash -> đổi view (KHÔNG push lại, tránh lặp). Gọi khi popstate (back/forward).
     const h = location.hash || '';
@@ -2851,7 +2860,10 @@ const gameStore = {
   },
   statLabelShort(k) { return ({ congKich: 'Công', hoThe: 'Thủ', neTranh: 'Né', menhTrung: 'Chính Xác', sinhLuc: 'Sinh Lực' })[k] || k; },
   get viewName() { return VIEW_NAMES[this.view] || ''; },
-  get isPlaceholderView() { return !['profile', 'trangbi', 'inventory', 'map', 'skill', 'combat', 'merchant', 'tangkinhcac', 'nhiemVu', 'worldboss', 'dungeon', 'phiCapDai', 'pets', 'phongVanBang', 'collection', 'tongmon', 'dangTienMong', 'dongPhu', 'kyTran', 'nguTuKy', 'coTuong', 'coVua', 'tienLen', 'binh', 'paoDeKuai', 'tavern', 'guild'].includes(this.view); },
+  // Trang giữ chỗ chỉ dành cho view gắn `soon` trong data/nav.js. Trước đây đây là danh sách
+  // trắng viết tay: dựng view mới mà quên thêm tên vào là màn đó bị dán thêm khối
+  // "Đang hoàn thiện — sắp ra mắt" ngay dưới nội dung thật (đã xảy ra với Sự Kiện).
+  get isPlaceholderView() { return SOON_VIEWS.has(this.view); },
   get currentSkill() { return this.SKILLS[this.selectedSkill]; },
 
   // ---------- ĐÀM ĐẠO (cốt truyện NPC nghề — chương mở theo cấp nghề + hội thoại nhánh) ----------
