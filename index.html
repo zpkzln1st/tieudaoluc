@@ -178,8 +178,8 @@
     .cd-hang + .cd-hang { border-top:1px solid rgba(30,41,59,.6); }
     .cd-oso { background:#0d131f; border:1px solid #1c2839; border-radius:.5rem; padding:.4rem .5rem; }
     /* Ô chọn nền thẻ Linh Thú — nút co theo nội dung, xếp thành hàng tự xuống dòng. */
-    .cd-nen { display:flex; flex-direction:column; align-items:center; gap:.3rem; width:62px; }
-    .cd-nen-o { position:relative; display:block; width:58px; height:58px; border-radius:.55rem; overflow:hidden;
+    .cd-nen { display:flex; flex-direction:column; align-items:center; gap:.3rem; min-width:0; }
+    .cd-nen-o { position:relative; display:block; width:100%; aspect-ratio:16/10; border-radius:.55rem; overflow:hidden;
                 background:#0f1521; border:1px solid #223047; box-shadow:inset 0 0 14px rgba(0,0,0,.6); }
     .cd-nen:hover .cd-nen-o { border-color:#3d5473; }
     .cd-nen.on .cd-nen-o { border-color:#34d399; box-shadow:0 0 0 1px #34d399, inset 0 0 14px rgba(0,0,0,.5); }
@@ -1443,8 +1443,9 @@
                   <div x-data="{ get p(){ return $store.game.activePetObj }, get q(){ return $store.game.petQ($store.game.activePetObj) }, get qh(){ return $store.game.petQHex($store.game.activePetObj) }, get el(){ return $store.game.petElColor($store.game.activePetObj) } }">
                     <!-- art trên nền cảnh (nền chọn ở Cài Đặt) · bấm -> trang Linh Thú -->
                     <!-- ⚠ `:style` dạng CHUỖI của Alpine GHI ĐÈ cả thuộc tính style tĩnh, nên cỡ ô
-                         phải nằm luôn trong chuỗi này. Tách ra `style="width:..."` là ô sập còn 0. -->
-                    <div @click="$store.game.navTo('pets')" class="relative mx-auto cursor-pointer rounded-xl overflow-hidden" :style="'width:192px;height:182px;border:1px solid '+qh+'40'">
+                         phải nằm luôn trong chuỗi này. Tách ra `style="width:..."` là ô sập còn 0.
+                         Ô ăn TRỌN bề ngang panel — nền chừa lề hai bên trông như dán tem. -->
+                    <div @click="$store.game.navTo('pets')" class="relative w-full cursor-pointer rounded-xl overflow-hidden" :style="'height:182px;border:1px solid '+qh+'40'">
                       <div class="npn" :class="'npn-'+$store.game.nenPetId" :style="'--q:'+qh+';--el:'+el" x-html="$store.game.nenPetHtml"></div>
                       <div class="absolute pet-float-ground" :style="'left:50%;bottom:4px;transform:translateX(-50%);width:60%;height:14px;border-radius:50%;background:radial-gradient(ellipse,'+qh+'66,transparent 72%);filter:blur(3px)'"></div>
                       <div class="absolute inset-0 pet-float" :class="$store.game.petFainted?'grayscale opacity-50':''" :style="'filter:drop-shadow(0 5px 9px rgba(0,0,0,.6)) drop-shadow(0 0 8px '+qh+'3a)'" x-html="$store.game.petArtTag(p)"></div>
@@ -16553,7 +16554,7 @@
             <!-- Nền thẻ Linh Thú — chọn bằng MẮT, không chọn bằng tên. Mỗi ô là chính bức nền đó
                  thu nhỏ, nên bấm vào là biết trước mình sắp thấy gì. -->
             <div class="cd-hang"><div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Nền Thẻ Linh Thú</div></div></div>
-            <div class="flex flex-wrap gap-2 mt-1.5">
+            <div class="grid grid-cols-3 gap-2 mt-1.5">
               <template x-for="n in g.NEN_PET" :key="n.id">
                 <button @click="g.datCaiDat('nenPet', n.id)" class="cd-nen" :class="g.nenPetId===n.id ? 'on' : ''" :title="n.ten">
                   <span class="cd-nen-o"><span class="npn" :class="'npn-'+n.id" style="--q:#a78bfa;--el:#fbbf24" x-html="n.html"></span></span>

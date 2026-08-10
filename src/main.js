@@ -244,6 +244,10 @@ migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành H�
 // Cài Đặt: đổ mặc định vào save cũ (giữ nguyên khoá người chơi đã đổi). Không cần bump SAVE_VERSION.
 if (!state.settings || typeof state.settings !== 'object') state.settings = {};
 for (const k of Object.keys(CAI_DAT_MAC_DINH)) if (state.settings[k] === undefined) state.settings[k] = CAI_DAT_MAC_DINH[k];
+// Nền thẻ Linh Thú đổi mặc định 'yenThuy' -> 'vangSang' (user chốt 2026-08-11). Bản cũ chỉ sống
+// được vài giờ nên save nào còn giữ 'yenThuy' là do MẶC ĐỊNH ghi vào chứ không phải người chơi
+// tự chọn. Chạy MỘT LẦN rồi cắm mốc — ai chọn lại 'yenThuy' sau này thì giữ nguyên ý họ.
+if (!state.settings._nenPetV2) { state.settings._nenPetV2 = 1; if (state.settings.nenPet === 'yenThuy') state.settings.nenPet = 'vangSang'; }
 // Bộ sinh số CÓ HẠT GIỐNG (Đợt D) — phải gieo TRƯỚC `advance()` offline ở dưới, không thì lượt
 // tính bù đầu tiên sau khi cập nhật vẫn rơi vào đường Math.random cũ.
 ensureRng(state);

@@ -16,7 +16,7 @@ export const CAI_DAT_MAC_DINH = {
   netHinh: 'tuDong',      // 'muot' (trần tỉ lệ điểm ảnh 1,5) | 'tuDong' (vẽ đúng độ phân giải màn)
   nguongBaoRoiDo: 2,      // phẩm tối thiểu để nổi toast lúc rơi trang bị (mốc trong QUALITY_KEYS)
   hoiKhiBan: true,        // hỏi lại trước khi bán hàng loạt
-  nenPet: 'yenThuy',      // nền thẻ Linh Thú (id trong src/data/nenpet.js)
+  nenPet: 'vangSang',     // nền thẻ Linh Thú (id trong src/data/nenpet.js)
   ngonNgu: 'vi',          // 'vi' | 'en' | 'zh' — lớp phủ dịch (src/i18n.js); đổi là tải lại trang
 };
 

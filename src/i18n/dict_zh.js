@@ -14301,4 +14301,5 @@ export const DICT = {
   "Đêm Trăng Sau Trúc": "竹後月夜",
   "Đàn Tế Cổ": "古祭壇",
   "Ngũ Hành Cảnh Địa": "五行境地",
+  "Vầng Sáng Theo Phẩm Chất": "品階光暈",
 };
