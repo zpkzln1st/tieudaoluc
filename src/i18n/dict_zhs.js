@@ -14302,4 +14302,5 @@ export const DICT = {
   "Đàn Tế Cổ": "古祭坛",
   "Ngũ Hành Cảnh Địa": "五行境地",
   "Vầng Sáng Theo Phẩm Chất": "品阶光晕",
+  "Nguyên Bản": "原本",
 };

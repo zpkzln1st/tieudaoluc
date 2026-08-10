@@ -14471,4 +14471,5 @@ export const DICT = {
   "Đàn Tế Cổ": "Ancient Altar",
   "Ngũ Hành Cảnh Địa": "Five Elements Domain",
   "Vầng Sáng Theo Phẩm Chất": "Aura by Quality",
+  "Nguyên Bản": "Original",
 };
