@@ -112,6 +112,9 @@
     /* ===== Linh Thú overview — Phù Du (bồng bềnh nhẹ, glow tĩnh, không xoay) ===== */
     @keyframes petFloat{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
     @keyframes petFloatGround{ 0%,100%{ opacity:.9 } 50%{ opacity:.55 } }
+    /* Nền cảnh sau con Linh Thú. Bức tranh nằm ở `background-image` của lớp .npn-<tên>
+       (bảng CSS do src/data/nenpet.js nạp). Đây chỉ là khung chứa. */
+    .npn{ position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:inherit; }
     .pet-float{ animation:petFloat 3.6s ease-in-out infinite; will-change:transform; }
     .pet-float-ground{ animation:petFloatGround 3.6s ease-in-out infinite; }
     @media (prefers-reduced-motion:reduce){ .pet-float,.pet-float-ground{ animation:none } }
@@ -174,6 +177,14 @@
     .cd-hang { display:flex; align-items:center; gap:.6rem; padding:.3rem 0; }
     .cd-hang + .cd-hang { border-top:1px solid rgba(30,41,59,.6); }
     .cd-oso { background:#0d131f; border:1px solid #1c2839; border-radius:.5rem; padding:.4rem .5rem; }
+    /* Ô chọn nền thẻ Linh Thú — nút co theo nội dung, xếp thành hàng tự xuống dòng. */
+    .cd-nen { display:flex; flex-direction:column; align-items:center; gap:.3rem; width:62px; }
+    .cd-nen-o { position:relative; display:block; width:58px; height:58px; border-radius:.55rem; overflow:hidden;
+                background:#0f1521; border:1px solid #223047; box-shadow:inset 0 0 14px rgba(0,0,0,.6); }
+    .cd-nen:hover .cd-nen-o { border-color:#3d5473; }
+    .cd-nen.on .cd-nen-o { border-color:#34d399; box-shadow:0 0 0 1px #34d399, inset 0 0 14px rgba(0,0,0,.5); }
+    .cd-nen-ten { font-size:10px; line-height:1.25; color:#64748b; text-align:center; }
+    .cd-nen.on .cd-nen-ten { color:#34d399; }
     .cd-the { background:radial-gradient(120% 150% at 12% 0%,rgba(20,184,166,.09),transparent 62%),#131a28;
               border:1px solid #223047; box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
     /* ===== TÀNG KINH CÁC — lưới võ học gom 1 HÀNG (Tâm Pháp · Bị Động · Chiêu Thức) ===== */
@@ -4523,6 +4534,8 @@
                 <!-- art-đài + Tu Vi (căn giữa dọc để lấp gap khi cột phải cao hơn) -->
                 <div class="flex flex-col gap-2.5 justify-center">
                   <div class="relative aspect-square rounded-xl overflow-hidden bg-ink2 flex items-center justify-center text-6xl" :style="'border:1px solid '+qh+'40'">
+                    <!-- Nền cảnh (chọn ở Cài Đặt). Đứng TRƯỚC art nên luôn nằm dưới con thú. -->
+                    <div class="npn" :class="'npn-'+$store.game.nenPetId" :style="'--q:'+qh+';--el:'+el" x-html="$store.game.nenPetHtml"></div>
                     <span x-text="$store.game.petEmoji(p)"></span>
                     <div class="absolute inset-0 transition" :class="$store.game.petFainted ? 'grayscale opacity-50' : ''" x-html="$store.game.petArtTag(p)"></div>
                     <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 50px '+qh+'26'"></div>
@@ -4674,6 +4687,7 @@
                 <template x-for="p in $store.game.petList" :key="p.id">
                   <div class="rounded-xl overflow-hidden h-full flex flex-col cursor-pointer transition hover:brightness-110" :class="(p.equipped?'ring-1 ring-jade ':'')+$store.game.petQ(p).border" x-data="{ get q(){ return $store.game.petQ(p) }, get qh(){ return $store.game.petQHex(p) }, get el(){ return $store.game.petElColor(p) }, get s(){ return $store.game.petStat(p) } }" :style="'background:linear-gradient(160deg,'+qh+'0e,#0f1521 70%)'+(p.equipped?';box-shadow:inset 0 0 26px '+qh+'1f':'')" @click="$store.game.openPetDetail(p.id)">
                     <div class="relative aspect-square bg-ink2 flex items-center justify-center text-5xl">
+                      <div class="npn" :class="'npn-'+$store.game.nenPetId" :style="'--q:'+qh+';--el:'+el" x-html="$store.game.nenPetHtml"></div>
                       <span x-text="$store.game.petEmoji(p)"></span>
                       <div class="absolute inset-0" x-html="$store.game.petArtTag(p)"></div>
                       <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 28px '+qh+'1c'"></div>
@@ -4880,6 +4894,7 @@
               <!-- Cột trái: ảnh + nút Lịch Luyện ngay dưới ảnh (không đè danh tính) -->
               <div class="flex flex-col gap-2">
                 <div class="relative aspect-square rounded-xl overflow-hidden bg-ink2 flex items-center justify-center text-6xl" :style="'border:1px solid '+qh+'40'">
+                  <div class="npn" :class="'npn-'+$store.game.nenPetId" :style="'--q:'+qh+';--el:'+el" x-html="$store.game.nenPetHtml"></div>
                   <span x-text="$store.game.petEmoji(p)"></span>
                   <div class="absolute inset-0 transition" :class="$store.game.petFaintedOf(p) ? 'grayscale opacity-50' : ''" x-html="$store.game.petArtTag(p)"></div>
                   <div class="absolute inset-0 pointer-events-none" :style="'box-shadow:inset 0 0 50px '+qh+'26'"></div>
@@ -16531,6 +16546,17 @@
                 <button :class="g.caiDat.netHinh==='muot' ? 'on' : ''" @click="g.datCaiDat('netHinh','muot')">Ưu Tiên Mượt</button>
                 <button :class="g.caiDat.netHinh!=='muot' ? 'on' : ''" @click="g.datCaiDat('netHinh','tuDong')">Tự Động</button>
               </div>
+            </div>
+            <!-- Nền thẻ Linh Thú — chọn bằng MẮT, không chọn bằng tên. Mỗi ô là chính bức nền đó
+                 thu nhỏ, nên bấm vào là biết trước mình sắp thấy gì. -->
+            <div class="cd-hang"><div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Nền Thẻ Linh Thú</div></div></div>
+            <div class="flex flex-wrap gap-2 mt-1.5">
+              <template x-for="n in g.NEN_PET" :key="n.id">
+                <button @click="g.datCaiDat('nenPet', n.id)" class="cd-nen" :class="g.nenPetId===n.id ? 'on' : ''" :title="n.ten">
+                  <span class="cd-nen-o"><span class="npn" :class="'npn-'+n.id" style="--q:#a78bfa;--el:#fbbf24" x-html="n.html"></span></span>
+                  <span class="cd-nen-ten" x-text="n.ten"></span>
+                </button>
+              </template>
             </div>
             <div class="cd-hang">
               <div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Toàn Màn Hình</div></div>

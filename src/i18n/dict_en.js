@@ -14464,4 +14464,10 @@ export const DICT = {
   "thất bại, để nó đào thoát": "failed, letting it escape",
   ", một trận trúng": ", one battle striking",
   "C H I Ế U": "C H E C K",
+  "Nền Thẻ Linh Thú": "Spirit Beast Backdrop",
+  "Yên Thuỷ Hàn Sơn": "Misty Water, Cold Mountain",
+  "Động Đá Soi Trong": "Stone Grotto Aglow",
+  "Đêm Trăng Sau Trúc": "Moon Behind Bamboo",
+  "Đàn Tế Cổ": "Ancient Altar",
+  "Ngũ Hành Cảnh Địa": "Five Elements Domain",
 };
