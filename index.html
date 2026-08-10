@@ -1441,8 +1441,11 @@
                 </div>
                 <template x-if="$store.game.activePetObj">
                   <div x-data="{ get p(){ return $store.game.activePetObj }, get q(){ return $store.game.petQ($store.game.activePetObj) }, get qh(){ return $store.game.petQHex($store.game.activePetObj) }, get el(){ return $store.game.petElColor($store.game.activePetObj) } }">
-                    <!-- art NỔI (không khung) + glow nền · bấm -> trang Linh Thú -->
-                    <div @click="$store.game.navTo('pets')" class="relative mx-auto cursor-pointer" style="width:192px;height:182px">
+                    <!-- art trên nền cảnh (nền chọn ở Cài Đặt) · bấm -> trang Linh Thú -->
+                    <!-- ⚠ `:style` dạng CHUỖI của Alpine GHI ĐÈ cả thuộc tính style tĩnh, nên cỡ ô
+                         phải nằm luôn trong chuỗi này. Tách ra `style="width:..."` là ô sập còn 0. -->
+                    <div @click="$store.game.navTo('pets')" class="relative mx-auto cursor-pointer rounded-xl overflow-hidden" :style="'width:192px;height:182px;border:1px solid '+qh+'40'">
+                      <div class="npn" :class="'npn-'+$store.game.nenPetId" :style="'--q:'+qh+';--el:'+el" x-html="$store.game.nenPetHtml"></div>
                       <div class="absolute pet-float-ground" :style="'left:50%;bottom:4px;transform:translateX(-50%);width:60%;height:14px;border-radius:50%;background:radial-gradient(ellipse,'+qh+'66,transparent 72%);filter:blur(3px)'"></div>
                       <div class="absolute inset-0 pet-float" :class="$store.game.petFainted?'grayscale opacity-50':''" :style="'filter:drop-shadow(0 5px 9px rgba(0,0,0,.6)) drop-shadow(0 0 8px '+qh+'3a)'" x-html="$store.game.petArtTag(p)"></div>
                     </div>
