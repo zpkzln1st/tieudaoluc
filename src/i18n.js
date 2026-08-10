@@ -187,8 +187,10 @@ const NOI_ZH = [[' ở ', '於'], [' nơi ', '於'], [' tại ', '於']];
 /** Nạp từ điển cho bài kiểm (không đụng DOM). */
 export function _napDeKiem(dict, lang) {
   TU_DIEN = new Map(); MAU = new Map(); THUONG = new Map(); MAU_DAI = [];
-  NOI = lang === 'zh' ? NOI_ZH : NOI_EN;
-  CACH = lang === 'zh' ? '' : ' ';
+  // 'zh' = phồn thể · 'zhs' = giản thể. Hai bản dùng CHUNG mọi luật ghép, chỉ khác mặt chữ.
+  const han = lang === 'zh' || lang === 'zhs';
+  NOI = han ? NOI_ZH : NOI_EN;
+  CACH = han ? '' : ' ';
   for (const k of Object.keys(dict)) {
     if (k.indexOf('#') >= 0) { MAU.set(k, dict[k]); continue; }
     TU_DIEN.set(k, dict[k]);
@@ -248,11 +250,17 @@ export async function batNgonNgu(lang) {
   if (dangChay || !lang || lang === 'vi') return;
   let mod;
   try {
-    mod = lang === 'zh' ? await import('./i18n/dict_zh.js') : await import('./i18n/dict_en.js');
+    // ⚠ dict_zhs.js là bản GIẢN THỂ, MÁY SINH từ chính dict_zh.js qua bảng chuyển 1-1
+    //   (_mockup/_covua_wip/_zh_gian.json). Đừng sửa tay — lần sinh sau là mất.
+    mod = lang === 'zh' ? await import('./i18n/dict_zh.js')
+        : lang === 'zhs' ? await import('./i18n/dict_zhs.js')
+        : await import('./i18n/dict_en.js');
   } catch (e) { return; }                       // thiếu tệp từ điển thì game chạy tiếng Việt như thường
   _napDeKiem(mod.DICT, lang);
   dangChay = true;
-  try { document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en'; } catch (e) {}
+  try {
+    document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : lang === 'zhs' ? 'zh-Hans' : 'en';
+  } catch (e) {}
   quet(document.body);
   new MutationObserver((ms) => {
     for (const m of ms) {
