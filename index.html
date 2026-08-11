@@ -6389,7 +6389,11 @@
 
               <!-- Landmark: đảo neo đúng tâm toạ độ, tên + Lv treo chính giữa dưới đảo -->
               <template x-for="loc in $store.game.locHienThi" :key="loc.id">
-                <div class="absolute -translate-x-1/2 -translate-y-1/2 group z-10"
+                <!-- ⚠ Mỗi landmark là MỘT tầng z riêng (z-10), nên `z-40` của bảng chú giải bên
+                     trong chỉ có tác dụng TRONG landmark đó — landmark vẽ sau vẫn đè lên bảng chú
+                     giải của landmark vẽ trước. `hover:z-50` nhấc cả cụm đang rê chuột lên trên
+                     cùng, bảng chú giải mới đọc trọn được. -->
+                <div class="absolute -translate-x-1/2 -translate-y-1/2 group z-10 hover:z-50"
                      :style="`left:${loc.mapX}%; top:${loc.mapY}%`">
                   <!-- Đảo (chính giữa điểm neo) -->
                   <div class="relative w-24 h-24 lg:w-[7.5rem] lg:h-[7.5rem] cursor-pointer" @click="$store.game.openLocation(loc.id)">
