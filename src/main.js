@@ -4343,6 +4343,10 @@ const gameStore = {
     NGU_HANH_LIST.forEach(h => { const m = nguHanhMod(my, h); if (m > 0) khac.push(h); else if (m < 0) bi.push(h); });
     return { my, khac, bi, khacNames: khac.map(heName).join(' / '), biNames: bi.map(heName).join(' / ') };
   },
+  // Câu này ghép SẴN cả con số rồi mới đưa ra ô chữ. Cắt thành "…mất thêm" + <b>20%</b> + "…"
+  // thì lớp phủ dịch phải tra ba mảnh rời, mà mảnh rời thì câu nào cũng thành mẫu riêng.
+  get loiTuHe() { return `Đánh trúng đúng hệ nó đang mang thì mất thêm ${Math.round(KHANG_TU_HE * 100)}% Sát Thương.`; },
+
   // --- Số ô kĩ năng mở theo Chiến Đấu Lv (4 ô gồm Tâm Pháp, +1 mỗi 30 cấp) ---
   get maxComboSlots() { return maxComboSlots(this.combatLevel); },
   get maxChieuSlots() { return maxChieuSlots(this.combatLevel); },

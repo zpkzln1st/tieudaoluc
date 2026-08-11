@@ -14296,4 +14296,8 @@ export const DICT = {
   ", một trận trúng": "，一戰中得",
   "C H I Ế U": "將 軍",
   "Đang ở đây": "你在此處",
+  "Yêu thú đổi hệ mỗi trận, không đoán trước được.": "妖獸每戰更換屬性，無法預測。",
+  "Đánh trúng đúng hệ nó đang mang thì mất thêm #% Sát Thương.": "打中牠當下所帶的屬性，再減 #% 傷害。",
+  "Chiêu Vô Hệ không bao giờ bị chặn.": "無屬性招式永不被抵擋。",
+  "Mang nhiều hệ chiêu thì trận nào cũng có đòn ăn được.": "多備幾種屬性的招式，每一戰都有能佔便宜的一擊。",
 };
