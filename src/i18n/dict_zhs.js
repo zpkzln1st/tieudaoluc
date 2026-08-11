@@ -14296,8 +14296,8 @@ export const DICT = {
   ", một trận trúng": "，一战中得",
   "C H I Ế U": "将 军",
   "Đang ở đây": "你在此处",
-  "Yêu thú đổi hệ mỗi trận, không đoán trước được.": "妖兽每战更换属性，无法预测。",
-  "Đánh trúng đúng hệ nó đang mang thì mất thêm #% Sát Thương.": "打中它当下所带的属性，再减 #% 伤害。",
-  "Chiêu Vô Hệ không bao giờ bị chặn.": "无属性招式永不被抵挡。",
-  "Mang nhiều hệ chiêu thì trận nào cũng có đòn ăn được.": "多备几种属性的招式，每一战都有能占便宜的一击。",
+  "Con này mỗi trận mang một ngũ hành khác nhau, không biết trước được.": "这一只每战所带的五行都不同，事先无从得知。",
+  "Chiêu cùng ngũ hành với nó bị trừ thêm #% sát thương.": "与它同五行的招式，再扣 #% 伤害。",
+  "Chiêu Vô Hệ thì không bị trừ.": "无属性招式则不被扣减。",
+  "Nên lắp chiêu đủ ngũ hành, trận nào cũng có một chiêu đánh mạnh.": "招式配齐五行，每一战都有一招打得重。",
 };

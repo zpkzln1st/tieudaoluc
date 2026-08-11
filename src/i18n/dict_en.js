@@ -14465,8 +14465,8 @@ export const DICT = {
   ", một trận trúng": ", one battle striking",
   "C H I Ế U": "C H E C K",
   "Đang ở đây": "You are here",
-  "Yêu thú đổi hệ mỗi trận, không đoán trước được.": "Demon beasts change element every fight — no way to predict it.",
-  "Đánh trúng đúng hệ nó đang mang thì mất thêm #% Sát Thương.": "Striking the element it currently carries costs you another #% Damage.",
-  "Chiêu Vô Hệ không bao giờ bị chặn.": "Elementless arts are never resisted.",
-  "Mang nhiều hệ chiêu thì trận nào cũng có đòn ăn được.": "Carry arts of several elements and every fight has a move that lands hard.",
+  "Con này mỗi trận mang một ngũ hành khác nhau, không biết trước được.": "This one carries a different element each fight, and you cannot know it beforehand.",
+  "Chiêu cùng ngũ hành với nó bị trừ thêm #% sát thương.": "Arts of the same element as it lose another #% damage.",
+  "Chiêu Vô Hệ thì không bị trừ.": "Elementless arts lose nothing.",
+  "Nên lắp chiêu đủ ngũ hành, trận nào cũng có một chiêu đánh mạnh.": "Equip arts covering every element, so every fight has one that hits hard.",
 };

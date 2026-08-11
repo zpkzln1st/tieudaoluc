@@ -4345,7 +4345,7 @@ const gameStore = {
   },
   // Câu này ghép SẴN cả con số rồi mới đưa ra ô chữ. Cắt thành "…mất thêm" + <b>20%</b> + "…"
   // thì lớp phủ dịch phải tra ba mảnh rời, mà mảnh rời thì câu nào cũng thành mẫu riêng.
-  get loiTuHe() { return `Đánh trúng đúng hệ nó đang mang thì mất thêm ${Math.round(KHANG_TU_HE * 100)}% Sát Thương.`; },
+  get loiTuHe() { return `Chiêu cùng ngũ hành với nó bị trừ thêm ${Math.round(KHANG_TU_HE * 100)}% sát thương.`; },
 
   // --- Số ô kĩ năng mở theo Chiến Đấu Lv (4 ô gồm Tâm Pháp, +1 mỗi 30 cấp) ---
   get maxComboSlots() { return maxComboSlots(this.combatLevel); },

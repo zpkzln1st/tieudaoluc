@@ -3284,6 +3284,40 @@
                 <!-- Nút đóng (góc phải panel) -->
                 <button @click="$store.game.closeCombatModal()" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400 z-10">✕</button>
 
+                <!-- Nút hỏi — luật ngũ hành nằm TRONG đây, không bày sẵn ra mặt thẻ.
+                     Rê chuột là hiện; màn cảm ứng không rê được nên bấm cũng mở. -->
+                <div class="absolute top-2.5 right-11 z-20" x-data="{ o:false }" @mouseleave="o=false">
+                  <button @mouseenter="o=true" @click="o=!o" @focus="o=true" @blur="o=false"
+                    class="w-8 h-8 rounded-full bg-ink/70 border flex items-center justify-center transition"
+                    :class="o ? 'border-jade text-jade' : 'border-slate-600 text-slate-300 hover:border-jade hover:text-jade'"
+                    title="Ngũ hành đánh nhau thế nào" aria-label="Ngũ hành đánh nhau thế nào">
+                    <span class="w-4 h-4 inline-flex" x-html="$store.game.svg('info','w-4 h-4')"></span>
+                  </button>
+                  <div x-show="o" x-cloak class="absolute right-0 top-full mt-1.5 w-[17.5rem] max-w-[78vw] rounded-lg border border-jade/35 bg-ink2/95 backdrop-blur px-3 py-2.5 shadow-xl shadow-black/60">
+                    <div class="text-[10px] uppercase tracking-[.16em] text-jade/80 font-semibold mb-1.5">Ngũ Hành</div>
+                    <!-- ⚠ Tên ngũ hành đặt ĐẦU câu, phần chữ còn lại là MỘT mảnh liền. Nhét tên
+                         vào GIỮA câu thì lớp phủ dịch phải tra hai mảnh cụt hai đầu, mà tiếng
+                         Trung đảo trật tự nên hai mảnh đó ghép lại thành câu sai. -->
+                    <div class="space-y-1 text-[11.5px] text-slate-300">
+                      <div>Tâm Pháp của ngươi là <b :class="$store.game.heInfo($store.game.combatStats.heChinh).text" x-text="$store.game.heName($store.game.combatStats.heChinh)"></b>.</div>
+                      <div class="text-slate-500 pt-0.5">Đánh quái:</div>
+                      <template x-if="$store.game.myHeMatchup.khac.length">
+                        <div class="pl-2"><b class="text-rose-300" x-text="$store.game.myHeMatchup.khacNames"></b><span> — sát thương +30%.</span></div>
+                      </template>
+                      <template x-if="$store.game.myHeMatchup.bi.length">
+                        <div class="pl-2"><b class="text-sky-300" x-text="$store.game.myHeMatchup.biNames"></b><span> — sát thương −20%.</span></div>
+                      </template>
+                    </div>
+                    <div class="my-2 h-px bg-slate-700/60"></div>
+                    <div class="space-y-1 text-[11.5px] text-slate-300">
+                      <div>Con này mỗi trận mang một ngũ hành khác nhau, không biết trước được.</div>
+                      <div x-text="$store.game.loiTuHe"></div>
+                      <div>Chiêu Vô Hệ thì không bị trừ.</div>
+                      <div class="text-slate-400">Nên lắp chiêu đủ ngũ hành, trận nào cũng có một chiêu đánh mạnh.</div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- HÀNG TRÊN: 2 cột [ảnh dọc | badge + chỉ số 2×2 + tuyệt kỹ] -->
                 <div class="flex gap-3 items-stretch mb-2">
                   <!-- Ảnh chân dung dọc -->
@@ -3298,7 +3332,8 @@
                   </div>
                   <!-- Phải: badge + chỉ số + tuyệt kỹ -->
                   <div class="flex-1 min-w-0 flex flex-col gap-2">
-                    <div class="flex items-center gap-1.5 flex-wrap pr-8">
+                    <!-- pr chừa chỗ cho HAI nút góc (hỏi + đóng), không phải một. -->
+                    <div class="flex items-center gap-1.5 flex-wrap pr-[4.75rem]">
                       <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-200" x-text="$store.game.combatSelObj.affinity"></span>
                       <span class="text-[10px] px-1.5 py-0.5 rounded bg-violet-900/60 text-violet-200 inline-flex items-center gap-1" title="Mỗi trận một ngũ hành khác nhau"><span x-html="$store.game.svg('zap','w-3 h-3')"></span>Ngũ hành ngẫu nhiên</span>
                       <template x-if="$store.game.combatSelKhangNen>0">
@@ -3332,24 +3367,6 @@
                 </div>
                 <!-- Lore -->
                 <div class="text-[11px] text-slate-400 italic mb-2" x-text="$store.game.combatSelObj.lore"></div>
-
-                <!-- Khắc/kháng ngũ hành -->
-                <div class="rounded-lg bg-ink3/40 border border-slate-700/40 px-3 py-2 mb-2">
-                  <!-- MỘT DÒNG MỘT Ý. Bản cũ dồn ba ý vào một câu ("tự vệ hệ nó mang… bị chặn
-                       thêm 20% — nhắm hệ KHẮC nó mới lợi. Chiêu Vô Hệ không dính kháng") rồi để
-                       nó tự ngắt dòng giữa mấy chữ in đậm, đọc ra ba mảnh rời rạc. -->
-                  <div class="text-[11px] flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                    <span class="text-slate-500">Hệ Tâm Pháp của ngươi:</span><b :class="$store.game.heInfo($store.game.combatStats.heChinh).text" x-text="$store.game.heName($store.game.combatStats.heChinh)"></b>
-                    <template x-if="$store.game.myHeMatchup.khac.length"><span class="text-slate-400">· đánh <b class="text-rose-300" x-text="$store.game.myHeMatchup.khacNames"></b> <span class="text-rose-300/70">+30% Sát Thương</span></span></template>
-                    <template x-if="$store.game.myHeMatchup.bi.length"><span class="text-slate-400">· đánh <b class="text-sky-300" x-text="$store.game.myHeMatchup.biNames"></b> <span class="text-sky-300/70">−20% Sát Thương</span></span></template>
-                  </div>
-                  <div class="mt-1.5 space-y-1 text-[10.5px] text-slate-500">
-                    <div class="flex items-start gap-1.5"><span class="w-3 h-3 mt-[3px] shrink-0 inline-flex" x-html="$store.game.svg('zap','w-3 h-3')"></span><span>Yêu thú đổi hệ mỗi trận, không đoán trước được.</span></div>
-                    <div class="flex items-start gap-1.5"><span class="w-3 h-3 mt-[3px] shrink-0 inline-flex" x-html="$store.game.svg('shield','w-3 h-3')"></span><span x-text="$store.game.loiTuHe"></span></div>
-                    <div class="flex items-start gap-1.5"><span class="w-3 h-3 mt-[3px] shrink-0 inline-flex" x-html="$store.game.svg('check','w-3 h-3')"></span><span>Chiêu Vô Hệ không bao giờ bị chặn.</span></div>
-                    <div class="flex items-start gap-1.5"><span class="w-3 h-3 mt-[3px] shrink-0 inline-flex" x-html="$store.game.svg('book','w-3 h-3')"></span><span>Mang nhiều hệ chiêu thì trận nào cũng có đòn ăn được.</span></div>
-                  </div>
-                </div>
 
                 <!-- ===== Phần thưởng mỗi con (thiết kế giàu) ===== -->
                 <div class="flex items-center gap-2 mb-2">
