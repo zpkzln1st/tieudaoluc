@@ -20,7 +20,7 @@ import { ENEMIES, YEU_VUONG, YEU_VUONG_BY_ID, mkQuai } from './combat.js';
 import { DUNGEONS, DUNGEON_BY_ID, DUNGEON_IDS } from './dungeon.js';
 import { LOCATIONS } from './locations.js';
 import { PET_SPECIES, PET_SKILLS } from './pets.js';
-import { TITLES, TITLE_LOAI } from './titles.js';
+import { TITLES, TITLE_LOAI, TITLE_BY_ID, TITLE_IDS } from './titles.js';
 import { AVATARS, COVERS } from './avatars.js';
 
 const MIN = 60 * 1000;
@@ -555,8 +555,12 @@ for (const sk of SU_KIEN_DS) {
   COVERS.push({ id: sk.cover, name: sk.loc.name, char: sk.charHan, color: sk.avColor, suKien: ma });
 
   // ---- Danh hiệu: mua ở quầy, KHÔNG cộng chỉ số (thuần trang trí — sự kiện không đẻ sức mạnh) ----
-  TITLES.push({ id: sk.danhHieu.id, name: sk.danhHieu.name, q: 'tinhPham', loai: 'suKien', bonus: {},
-    cond: { kind: 'suKienQuay' }, src: 'Đổi 3.000 Điểm ở quầy ' + sk.quay.ten, suKien: ma });
+  // ⚠ Phải ghi vào CẢ BẢNG TRA. `TITLE_BY_ID` dựng xong ngay trong titles.js, tức là TRƯỚC lúc
+  //   tệp này đẩy 6 danh hiệu sự kiện vào — chỉ `push` thì tra theo id ra `undefined`, và mọi chỗ
+  //   dùng bảng tra (toast mở khoá, màu phẩm chất ở quầy) đều lặng lẽ không thấy danh hiệu sự kiện.
+  const dh = { id: sk.danhHieu.id, name: sk.danhHieu.name, q: 'tinhPham', loai: 'suKien', bonus: {},
+    cond: { kind: 'suKienQuay' }, src: 'Đổi 3.000 Điểm ở quầy ' + sk.quay.ten, suKien: ma };
+  TITLES.push(dh); TITLE_BY_ID[dh.id] = dh; TITLE_IDS.push(dh.id);
 }
 ITEM_TYPES.suKien = 'Sự Kiện';
 ITEM_TYPES.skPhuKien = 'Phụ Kiện Sự Kiện';

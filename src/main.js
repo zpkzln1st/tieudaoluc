@@ -1813,7 +1813,10 @@ const gameStore = {
     // ico() sẽ rơi về emoji ở cột icon.
     const rows = [
       { loai: 'trung', art: 'egg_' + d.pet.base + '_linh', ten: d.pet.name + ' Noãn · Hiếm', icon: '🥚', gia: QUAY_GIA.trung, han: 'mỗi đợt' },
-      { loai: 'danhHieu', art: '', ten: 'Danh hiệu ' + d.danhHieu.name, icon: '🏷️', gia: QUAY_GIA.danhHieu, han: 'vĩnh viễn' },
+      // `hex`: danh hiệu có màu theo phẩm chất — bày đúng màu đó ra để người chơi thấy trước thứ
+      // mình sắp đổi, khỏi phải mua rồi mới biết. Danh hiệu sự kiện ghi danh ở data/sukien.js.
+      { loai: 'danhHieu', art: '', ten: 'Danh hiệu ' + d.danhHieu.name, icon: '🏷️', gia: QUAY_GIA.danhHieu, han: 'vĩnh viễn',
+        hex: (this.QUALITY[(TITLE_BY_ID[d.danhHieu.id] || {}).q] || {}).hex || '' },
     ];
     // ⚠ Ảnh đại diện / ảnh bìa CHỈ bày khi sự kiện ĐÓ đã có art. Ô ảnh ở Dung Mạo chỉ hiện lúc tệp
     //   ảnh nạp được, nên bày sớm là bán 3.400 Điểm lấy hư không. Vẽ xong thì thêm mã vào tập hợp.
