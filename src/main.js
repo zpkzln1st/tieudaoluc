@@ -66,7 +66,6 @@ import { ensureRng, rng, rngHam } from './engine/rng.js';   // Đợt D: bốc s
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
-import { NEN_PET, NEN_PET_CSS, NEN_PET_MAC_DINH } from './data/nenpet.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, donNguoiAnCu, conBaoLauCoNguoiMoi, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
@@ -244,13 +243,10 @@ migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành H�
 // Cài Đặt: đổ mặc định vào save cũ (giữ nguyên khoá người chơi đã đổi). Không cần bump SAVE_VERSION.
 if (!state.settings || typeof state.settings !== 'object') state.settings = {};
 for (const k of Object.keys(CAI_DAT_MAC_DINH)) if (state.settings[k] === undefined) state.settings[k] = CAI_DAT_MAC_DINH[k];
-// Nền thẻ Linh Thú: mặc định chốt lại là 'nguyenBan' — đúng như trước khi có hệ nền (user chốt
-// 2026-08-11). Hai mặc định trước ('yenThuy' rồi 'vangSang') mỗi bản chỉ sống vài giờ nên save
-// nào còn giữ chúng là do MẶC ĐỊNH ghi vào, không phải người chơi tự chọn. Chạy MỘT LẦN rồi cắm
-// mốc — ai tự chọn lại một trong hai kiểu đó về sau thì giữ nguyên ý họ.
-if (!state.settings._nenPetV3) {
-  state.settings._nenPetV3 = 1;
-  if (state.settings.nenPet === 'yenThuy' || state.settings.nenPet === 'vangSang') state.settings.nenPet = 'nguyenBan';
+// Nền thẻ Linh Thú đã GỠ (2026-08-11) — dọn khoá cũ khỏi save cho sạch. Giữ dòng này vài tháng
+// rồi bỏ; save của người chơi cũ vẫn còn `nenPet`/`_nenPetV3` nếu không dọn.
+if (state.settings.nenPet !== undefined || state.settings._nenPetV3 !== undefined) {
+  delete state.settings.nenPet; delete state.settings._nenPetV2; delete state.settings._nenPetV3;
 }
 // Bộ sinh số CÓ HẠT GIỐNG (Đợt D) — phải gieo TRƯỚC `advance()` offline ở dưới, không thì lượt
 // tính bù đầu tiên sau khi cập nhật vẫn rơi vào đường Math.random cũ.
@@ -442,16 +438,6 @@ function fmtClock(sec) {
 // đúng ý "luôn ở trạng thái thu gọn, chỉ mở khi người chơi bấm".
 const groupsOpen = {};
 NAV.forEach((g) => { groupsOpen[g.title] = !g.thuGon; });
-
-// ---- Nền thẻ Linh Thú: nạp bảng CSS một lần ----
-// Để trong JS chứ không nhét vào index.html vì mỗi bức tranh là một data-URI dài;
-// nhét thẳng vào trang thì trang nặng thêm ~120KB trước khi vẽ được khung đầu tiên.
-try {
-  const s = document.createElement('style');
-  s.id = 'nenpet-css';
-  s.textContent = NEN_PET_CSS;
-  document.head.appendChild(s);
-} catch (e) {}
 
 // ---- Các view CHƯA dựng: đúng những mục gắn `soon: true` trong data/nav.js ----
 // Chỉ những view này mới thay bằng trang giữ chỗ "Đang hoàn thiện".
@@ -2621,15 +2607,6 @@ const gameStore = {
     const f = 'pet_' + h.base + '_base';
     return `<img src="images/pets/${f}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/pets/${f}.png&quot;;}else{this.remove();}'>`;
   },
-  // ---------- NỀN THẺ LINH THÚ (chọn ở Cài Đặt) ----------
-  // Bức tranh là background-image trong CSS; đây chỉ trả về mấy lớp phủ nhuộm theo ngũ hành.
-  NEN_PET,
-  get nenPetId() {
-    const v = this.caiDat.nenPet;
-    return NEN_PET.some((n) => n.id === v) ? v : NEN_PET_MAC_DINH;   // save cũ / id lạ -> về mặc định
-  },
-  get nenPetHtml() { return (NEN_PET.find((n) => n.id === this.nenPetId) || NEN_PET[0]).html; },
-
   petRole(pet) { return (PET_SPECIES[pet.base] || {}).role || ''; },
   petHeName(pet) { const h = (PET_SPECIES[pet.base] || {}).he; return ({ kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ' })[h] || ''; },
   petQ(pet) { return this.QUALITY[pet.quality] || this.QUALITY.phamPham; },

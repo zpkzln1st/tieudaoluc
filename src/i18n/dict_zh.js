@@ -14295,13 +14295,5 @@ export const DICT = {
   "thất bại, để nó đào thoát": "失敗，任其脫逃",
   ", một trận trúng": "，一戰中得",
   "C H I Ế U": "將 軍",
-  "Nền Thẻ Linh Thú": "靈獸底景",
-  "Yên Thuỷ Hàn Sơn": "煙水寒山",
-  "Động Đá Soi Trong": "石洞透光",
-  "Đêm Trăng Sau Trúc": "竹後月夜",
-  "Đàn Tế Cổ": "古祭壇",
-  "Ngũ Hành Cảnh Địa": "五行境地",
-  "Vầng Sáng Theo Phẩm Chất": "品階光暈",
-  "Nguyên Bản": "原本",
   "Đang ở đây": "你在此處",
 };
