@@ -3320,8 +3320,11 @@
 
                 <!-- HÀNG TRÊN: 2 cột [ảnh dọc | badge + chỉ số 2×2 + tuyệt kỹ] -->
                 <div class="flex gap-3 items-stretch mb-2">
-                  <!-- Ảnh chân dung dọc -->
-                  <div class="relative w-36 shrink-0 rounded-lg overflow-hidden bg-gradient-to-b from-ink3 to-ink border border-slate-700/40">
+                  <!-- Ảnh chân dung dọc. Ô này CẮT ảnh (object-cover) nên bấm vào xem được tấm
+                       đầy đủ; báo bằng con trỏ zoom-in + tooltip, KHÔNG thêm icon kính lúp. -->
+                  <div class="relative w-36 shrink-0 rounded-lg overflow-hidden bg-gradient-to-b from-ink3 to-ink border border-slate-700/40 cursor-zoom-in"
+                       @click="$store.game.openLightbox($store.game.combatSel, $store.game.combatSelObj.icon, $store.game.combatSelObj.name, 'images/enemies/'+$store.game.combatSel+'.webp')"
+                       title="Bấm để xem ảnh lớn">
                     <div class="absolute inset-0 flex items-center justify-center text-6xl opacity-25" x-text="$store.game.combatSelObj.icon"></div>
                     <img loading="lazy" decoding="async" :src="'images/enemies/'+$store.game.combatSel+'.webp'" class="absolute inset-0 w-full h-full object-cover" style="object-position:center 22%" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                     <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/15 to-transparent"></div>
@@ -6539,7 +6542,12 @@
                     <div class="absolute -left-1.5 top-2 z-10 w-6 rounded-md flex flex-col items-center py-1.5 gap-0.5" :style="'background:linear-gradient(180deg,'+th(b).d+',#0a0e16);border:1px solid '+th(b).c+'66'">
                       <template x-for="ch in seal(b).split('')" :key="ch"><span class="text-[12px] leading-none" :style="'color:'+th(b).c" x-text="ch"></span></template>
                     </div>
-                    <div class="w-32 h-32 rounded-xl overflow-hidden flex items-center justify-center" :class="g.bossLocked(b.id)?'grayscale opacity-60':''" :style="'background:radial-gradient(circle,'+th(b).d+'66,#05070d);border:2px solid '+th(b).c+'66;font-size:52px'" x-html="g.ico(b.id,b.icon)"></div>
+                    <!-- Bấm xem ảnh lớn. Báo bằng con trỏ zoom-in + tooltip, KHÔNG thêm icon kính lúp.
+                         ⚠ KHÔNG truyền đường ảnh vào đây: `yvBachHo` không có mục trong ICON_FOLDERS
+                         nên `ico()` rơi về images/items/ — đoán tay thành images/enemies/ là ô phóng
+                         to trống trơn. Để `ico()` tự tra, chắc chắn trùng đúng ảnh ô nhỏ đang hiện. -->
+                    <div class="w-32 h-32 rounded-xl overflow-hidden flex items-center justify-center cursor-zoom-in" :class="g.bossLocked(b.id)?'grayscale opacity-60':''" :style="'background:radial-gradient(circle,'+th(b).d+'66,#05070d);border:2px solid '+th(b).c+'66;font-size:52px'" x-html="g.ico(b.id,b.icon)"
+                         @click="g.openLightbox(b.id, b.icon, b.name)" title="Bấm để xem ảnh lớn"></div>
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
@@ -16902,7 +16910,8 @@
   <template x-if="$store.game.lightbox">
     <div class="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm p-6 cursor-zoom-out" @click="$store.game.closeLightbox()">
       <template x-if="$store.game.lightbox.src">
-        <img loading="lazy" decoding="async" :src="$store.game.lightbox.src" alt="" style="max-width:84vw;max-height:78vh;width:auto;height:auto;border-radius:16px;box-shadow:0 24px 90px rgba(0,0,0,.7)" onerror="this.style.display='none'">
+        <!-- webp trước, thiếu thì thử png, thiếu nốt mới ẩn — giống mọi chỗ khác trong game. -->
+        <img loading="lazy" decoding="async" :src="$store.game.lightbox.src" alt="" style="max-width:84vw;max-height:78vh;width:auto;height:auto;border-radius:16px;box-shadow:0 24px 90px rgba(0,0,0,.7)" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.style.display='none'}">
       </template>
       <template x-if="!$store.game.lightbox.src">
         <div class="w-[70vmin] h-[70vmin] max-w-[520px] max-h-[520px] flex items-center justify-center" style="font-size:160px" x-html="$store.game.ico($store.game.lightbox.id, $store.game.lightbox.emoji)"></div>
