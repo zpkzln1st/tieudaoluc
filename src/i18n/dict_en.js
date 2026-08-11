@@ -14472,4 +14472,5 @@ export const DICT = {
   "Ngũ Hành Cảnh Địa": "Five Elements Domain",
   "Vầng Sáng Theo Phẩm Chất": "Aura by Quality",
   "Nguyên Bản": "Original",
+  "Đang ở đây": "You are here",
 };

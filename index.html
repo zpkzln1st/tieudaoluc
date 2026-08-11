@@ -115,6 +115,13 @@
     /* Nền cảnh sau con Linh Thú. Bức tranh nằm ở `background-image` của lớp .npn-<tên>
        (bảng CSS do src/data/nenpet.js nạp). Đây chỉ là khung chứa. */
     .npn{ position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:inherit; }
+    /* Bản Đồ — quầng sáng dưới chân đảo: "đang đứng ở đây" (ngọc) / "đang tới đây" (hổ phách).
+       TĨNH, không nhấp nháy. Đảo là hình nổi có bóng đổ sẵn nên ánh sáng hắt từ dưới đọc ra
+       ngay mà không kẻ hình học nào đè lên tranh. */
+    .loc-quang{ position:absolute; left:50%; bottom:6%; transform:translateX(-50%);
+                width:76%; height:24%; border-radius:50%; filter:blur(5px); }
+    .loc-quang-o { background:radial-gradient(ellipse at 50% 58%, rgba(52,211,153,.95), rgba(52,211,153,.30) 44%, rgba(52,211,153,0) 72%); }
+    .loc-quang-di{ background:radial-gradient(ellipse at 50% 58%, rgba(252,211,77,.95), rgba(252,211,77,.30) 44%, rgba(252,211,77,0) 72%); }
     .pet-float{ animation:petFloat 3.6s ease-in-out infinite; will-change:transform; }
     .pet-float-ground{ animation:petFloatGround 3.6s ease-in-out infinite; }
     @media (prefers-reduced-motion:reduce){ .pet-float,.pet-float-ground{ animation:none } }
@@ -6386,17 +6393,20 @@
                      :style="`left:${loc.mapX}%; top:${loc.mapY}%`">
                   <!-- Đảo (chính giữa điểm neo) -->
                   <div class="relative w-24 h-24 lg:w-[7.5rem] lg:h-[7.5rem] cursor-pointer" @click="$store.game.openLocation(loc.id)">
+                    <!-- "Ngươi đang ở đây" / "đang tới đây". Quầng sáng hắt DƯỚI CHÂN đảo, đặt
+                         TRƯỚC tranh nên luôn nằm dưới. ⛔ ĐỪNG quay lại vòng tròn kẻ đè lên đảo
+                         (user chê "thô quá" 2026-08-11) và ĐỪNG cho nhấp nháy — UI phải đứng yên. -->
+                    <template x-if="$store.game.isCurrentLocation(loc)">
+                      <span class="loc-quang loc-quang-o pointer-events-none"></span>
+                    </template>
+                    <template x-if="$store.game.isTraveling && $store.game.travelToId===loc.id">
+                      <span class="loc-quang loc-quang-di pointer-events-none"></span>
+                    </template>
                     <div class="w-full h-full flex items-center justify-center text-5xl transition-transform duration-200 group-hover:scale-110 drop-shadow-[0_8px_12px_rgba(0,0,0,0.7)]"
                       :class="$store.game.locUnlocked(loc) ? '' : 'grayscale opacity-45'"
                       x-html="$store.game.ico(loc.id, loc.icon)"></div>
                     <template x-if="!$store.game.locUnlocked(loc)">
                       <span class="absolute inset-0 flex items-center justify-center opacity-90 pointer-events-none"><span class="w-7 h-7 inline-flex" x-html="$store.game.svg('lock','w-7 h-7')"></span></span>
-                    </template>
-                    <template x-if="$store.game.isCurrentLocation(loc)">
-                      <span class="absolute inset-2 rounded-full ring-2 ring-jade/70 animate-pulse pointer-events-none"></span>
-                    </template>
-                    <template x-if="$store.game.isTraveling && $store.game.travelToId===loc.id">
-                      <span class="absolute inset-2 rounded-full ring-2 ring-amber-300/80 animate-pulse pointer-events-none"></span>
                     </template>
                     <!-- Dấu "sự kiện đang mở": chỉ vùng sự kiện mới có `loc.suKien`, mà locHienThi
                          đã lọc chỉ còn sự kiện đang hiện hành nên thấy dấu là thấy chỗ đang mở hội. -->
@@ -6406,12 +6416,17 @@
 
                     <!-- Tên + Lv: căn chính giữa ngay dưới đảo -->
                     <div class="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 flex flex-col items-center pointer-events-none">
-                      <div class="relative px-3 py-0.5 rounded bg-gradient-to-b from-[#1b2740] to-[#0e1626] border border-amber-400/40 shadow-md">
+                      <!-- Biển tên đổi sang sắc ngọc khi ĐANG ĐỨNG ở đây: quầng sáng dưới chân đảo
+                           nói được "chỗ này đang sáng đèn", còn biển tên mới nói CHẮC là chỗ nào. -->
+                      <div class="relative px-3 py-0.5 rounded bg-gradient-to-b from-[#1b2740] to-[#0e1626] border shadow-md"
+                        :class="$store.game.isCurrentLocation(loc) ? 'border-jade/70' : 'border-amber-400/40'">
                         <span class="text-[11px] font-semibold tracking-wide whitespace-nowrap"
-                          :class="$store.game.locUnlocked(loc) ? 'text-amber-50' : 'text-slate-400'"
+                          :class="$store.game.isCurrentLocation(loc) ? 'text-jade' : ($store.game.locUnlocked(loc) ? 'text-amber-50' : 'text-slate-400')"
                           style="font-family:serif" x-text="loc.name"></span>
-                        <span class="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rotate-45 bg-amber-300/90 border border-amber-100/50"></span>
-                        <span class="absolute -right-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rotate-45 bg-amber-300/90 border border-amber-100/50"></span>
+                        <span class="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rotate-45 border"
+                          :class="$store.game.isCurrentLocation(loc) ? 'bg-jade/90 border-jade/50' : 'bg-amber-300/90 border-amber-100/50'"></span>
+                        <span class="absolute -right-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rotate-45 border"
+                          :class="$store.game.isCurrentLocation(loc) ? 'bg-jade/90 border-jade/50' : 'bg-amber-300/90 border-amber-100/50'"></span>
                       </div>
                       <div class="mt-1 text-[9px] font-bold px-2 py-0.5 rounded bg-black/70 border whitespace-nowrap"
                         :class="$store.game.locTier(loc).text + ' ' + $store.game.locTier(loc).border"
@@ -6433,7 +6448,10 @@
 
               <!-- Chú thích đáy -->
               <div class="absolute bottom-0 inset-x-0 h-10 flex items-center justify-center gap-3 sm:gap-5 px-3 rounded-b-[10px] bg-gradient-to-t from-black/75 to-transparent text-[10px] sm:text-[11px] text-slate-300 z-30">
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_2px_rgba(52,211,153,0.55)]"></span>Đã mở</span>
+                <!-- Chấm ngọc này TRƯỚC ghi "Đã mở", mà bản đồ chẳng vẽ chấm nào cho vùng đã mở
+                     (đã mở = còn màu, chưa đạt cấp = xám + khoá). Nay sắc ngọc có nghĩa thật:
+                     quầng sáng dưới chân đảo ngươi đang đứng. -->
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_2px_rgba(52,211,153,0.55)]"></span>Đang ở đây</span>
                 <span class="flex items-center gap-1 text-slate-400"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span>Chưa đạt cấp</span>
                 <span class="hidden md:flex items-center gap-2 text-slate-500"><span class="text-amber-300/40">◆</span>Chạm địa điểm để xem chi tiết<span class="text-amber-300/40">◆</span></span>
               </div>

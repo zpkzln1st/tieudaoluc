@@ -14303,4 +14303,5 @@ export const DICT = {
   "Ngũ Hành Cảnh Địa": "五行境地",
   "Vầng Sáng Theo Phẩm Chất": "品階光暈",
   "Nguyên Bản": "原本",
+  "Đang ở đây": "你在此處",
 };
