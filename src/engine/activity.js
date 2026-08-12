@@ -27,6 +27,7 @@ import { consumableEffMult } from './setbonus.js';   // dòng ẩn Nhu Tình: +%
 import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
 import { skMo, skMocDong, skEffBonus, skExpBonus } from './sukien.js';   // Sự Kiện: kĩ năng riêng 6 bậc
+import { ncTocPct, ncExpPct, ncNhanDoiPct, ncVuotBacPct, ncDaiThanhPct, ncGiamCap, ncTranGio } from './ngocanh.js';   // Đốn Ngộ Cảnh
 
 export function getAction(skillId, actionId) {
   const skill = SKILLS[skillId];
@@ -35,7 +36,10 @@ export function getAction(skillId, actionId) {
 }
 
 export function idleCapMs(state) {
-  return ((state.settings?.idleCapHours || 8) + dongPhuCapBonusH(state)) * 3600 * 1000;
+  // Đốn Ngộ Cảnh · Nhất Tâm Nhị Dụng: +3 giờ mỗi bậc, CHỈ khi đang làm chính nghề đó.
+  const a = state.activity;
+  const ncGio = (a && a.type === 'skill' && a.skillId) ? ncTranGio(state, a.skillId) : 0;
+  return ((state.settings?.idleCapHours || 8) + dongPhuCapBonusH(state) + ncGio) * 3600 * 1000;
 }
 
 export function inputStatus(state, action) {
@@ -46,8 +50,12 @@ export function inputStatus(state, action) {
   });
 }
 
+/** Cấp thật sự cần để làm một việc — đã trừ Cựu Nghiệp của Đốn Ngộ Cảnh. Sàn là 1. */
+export function reqLvThat(state, skillId, action) {
+  return Math.max(1, (action.reqLevel || 0) - ncGiamCap(state, skillId));
+}
 export function canStartAction(state, skillId, action) {
-  if (levelFromXp(state.skills[skillId]?.xp || 0) < action.reqLevel) return false;
+  if (levelFromXp(state.skills[skillId]?.xp || 0) < reqLvThat(state, skillId, action)) return false;
   if (action.needsDoPho && !((((state.player && state.player.doPho) || {})[action.itemId] || 0) > 0)) return false; // bậc 4-7: phải còn lượt Đồ Phổ
   if (action.inputs) {
     for (const inp of action.inputs) {
@@ -71,7 +79,8 @@ function effDenom(state, skillId, effPct) {
   return professionEffMult(state, skillId) + toolEffBonus(state, skillId) + tinVatEffBonus(state, skillId) + bangEff(state) + (effPct || 0) / 100;
 }
 function cycleMsFor(state, skillId, action, effPct) {
-  return Math.max(1, Math.round(action.time * 1000 / effDenom(state, skillId, effPct)));
+  // Đốn Ngộ Cảnh · Thủ Thục: +10% tốc độ mỗi bậc, cộng thẳng vào mẫu số như Linh Thạch.
+  return Math.max(1, Math.round(action.time * 1000 / effDenom(state, skillId, effPct + ncTocPct(state, skillId))));
 }
 // Đốt 1 viên nếu còn; trả true nếu buff đang bật sau lời gọi.
 function burnLinhThach(state, act) {
@@ -470,18 +479,34 @@ export function advance(state, now) {
       // KĨ NĂNG SỰ KIỆN: EXP chỉ ăn phụ kiện Ấn (0/20/40%) — KHÔNG Nghề/Điểm Danh. Cùng lý do
       // với effDenom ở trên: trần chống gian lận của track sự kiện tính đúng theo vế này.
       const mult = (skill && skill.suKien) ? 1 + skExpBonus(state, act.skillId) : skillExpMultiplier(state, act.skillId);
-      const gainXp = Math.max(1, Math.round(action.xp * mult));
+      // Đốn Ngộ Cảnh: Thục Lộ (chính nghề, chỉ khi còn dưới ngưỡng cấp) + Truyền Thừa (nghề khác).
+      const gainXp = Math.max(1, Math.round(action.xp * mult * (1 + ncExpPct(state, act.skillId) / 100)));
       // Bội Sản chỉ áp khi hành động CÓ nguyên liệu vào VÀ sản phẩm KHÔNG phải trang bị.
       // Luật theo ACTION chứ không theo nghề: doanhTao có datSet/cat không tốn liệu (sinh vật liệu từ hư không),
       // daTao ra gear instance (nhân đôi = thêm một lần roll affix miễn phí, phá loot-hunt).
       const yieldOk = !!(action.inputs && action.inputs.length) && !(ITEMS[action.itemId] || {}).equip;
       const yieldPct = yieldOk ? buffYieldPct : 0;
-      let bonusOut = 0;
+      // ---- ĐỐN NGỘ CẢNH: ba nút của Nhánh Mộc, CHỈ áp cho việc KHAI THÁC ----
+      // Khai thác = không tốn nguyên liệu và sản phẩm không phải trang bị. Cho chế tạo ăn thì
+      // Nhất Đao Lưỡng Đoạn thành máy in trang bị, đúng lỗ hổng mà Bội Sản Thạch đã phải chặn.
+      const laKhaiThac = !(action.inputs && action.inputs.length) && !(ITEMS[action.itemId] || {}).equip;
+      const ncDoiPct = laKhaiThac ? ncNhanDoiPct(state, act.skillId) + ncDaiThanhPct(state, act.skillId) : 0;
+      const ncVuotPct = laKhaiThac ? ncVuotBacPct(state, act.skillId) : 0;
+      // Món "cao hơn một bậc" = việc kế tiếp của CHÍNH nghề đó khi xếp theo cấp yêu cầu.
+      let monCaoHon = '';
+      if (ncVuotPct) {
+        const ds = (skill.actions || []).slice().sort((a, b) => (a.reqLevel || 0) - (b.reqLevel || 0));
+        const i = ds.findIndex((a) => a.id === action.id);
+        if (i >= 0 && ds[i + 1] && ds[i + 1].itemId) monCaoHon = ds[i + 1].itemId;
+      }
+      let bonusOut = 0, vuotOut = 0;
       for (let i = 0; i < cycles; i++) {
         if (action.inputs) for (const inp of action.inputs) removeItem(state, inp.itemId, inp.qty);
         // Rèn gear (mọi món có .equip, gồm cả legacy tichSao/thietKiem/tichGiap) -> instance ROLL. Sản phẩm khác (thỏi/đan...) -> xếp chồng.
         if (action.itemId) { if (ITEMS[action.itemId] && ITEMS[action.itemId].equip) addGearInstance(state, rollGearInstance(action.itemId, null, rngHam(state, 'renDo'))); else addItem(state, action.itemId, 1); }
         if (yieldPct && i < buffedCycles && rng(state, 'boiSan') < yieldPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
+        if (ncDoiPct && rng(state, 'ncDoi') < ncDoiPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
+        if (monCaoHon && rng(state, 'ncVuot') < ncVuotPct / 100) { addItem(state, monCaoHon, 1); vuotOut++; }
         addSkillXp(state, act.skillId, gainXp);
         if (skill.stat) addStatXp(state, skill.stat, action.statXp);
         if (skill.stat2) addStatXp(state, skill.stat2, action.statXp);
@@ -498,6 +523,7 @@ export function advance(state, now) {
       }
       ghiNhatKyNgay(state, now, { luot: cycles, exp: cycles * gainXp + buffXp });
       if (bonusOut && action.itemId) state.counters.produced[action.itemId] = (state.counters.produced[action.itemId] || 0) + bonusOut;
+      if (vuotOut) state.counters.produced[monCaoHon] = (state.counters.produced[monCaoHon] || 0) + vuotOut;
       const sk = state.skills[act.skillId];
       if (sk) { sk.gathered = (sk.gathered || 0) + cycles; sk.timeMs = (sk.timeMs || 0) + advancedMs; }
       if (action.itemId) state.counters.produced[action.itemId] = (state.counters.produced[action.itemId] || 0) + cycles;

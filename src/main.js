@@ -42,8 +42,11 @@ import {
   startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS, ghiNhatKyNgay, khoaNgay,
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
   tinVatDone as _tinVatDone,
-  migrateDanSlots,
+  migrateDanSlots, reqLvThat,
 } from './engine/activity.js';
+// ĐỐN NGỘ CẢNH — Trùng Sinh nghề
+import { NGO_CANH_NUT, NGO_CANH_BY_ID, NHANH as NC_NHANH, TRUNG_SINH_MAX, DIEM_MOI_LAN, DIEM_MUA_HET, nutEffText } from './data/ngocanh.js';
+import { ensureNgoCanh, soTrungSinh, bacNut, diemConLai, coTheTrungSinh, trungSinh, muaNut, tayBang, ncBoKhoaVung } from './engine/ngocanh.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, buffVal, useBuffDan, duocLuTick } from './engine/buff.js';
 import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, HE_FX, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
   TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf,
@@ -271,6 +274,7 @@ try {
 } catch (e) {}
 ensureLenhBai(state);      // Sự kiện: dựng ô đệm hai mốc thời gian. Save cũ chưa có ô này.
 ensureSuKien(state);       // Sự kiện: Điểm + phụ kiện + sổ đã-mua
+ensureNgoCanh(state);      // Đốn Ngộ Cảnh: sổ Trùng Sinh + bậc từng nút, theo từng nghề
 try { donSuKien(state, Date.now()); } catch (e) {}   // sự kiện đã đóng -> vật phẩm bốc hơi, người về làng (mốc đệm trong save, chạy được cả offline)
 ensureKyHon(state);        // Kỳ Hồn CHUNG (mọi bàn cờ) — PHẢI sau các ensure trên để gộp được số của save cũ
 ensureGocNhin(state);      // Góc nhìn bàn cờ đã khoá (null = mỗi bàn tự canh)
@@ -3031,8 +3035,11 @@ const gameStore = {
     return e.slot === this.forgeSlot;
   },
   get currentSkillActions() {
+    void this._tick;
     const acts = (this.currentSkill && this.currentSkill.actions) || [];
-    let out = acts.filter((a) => !a.zone || a.zone === this.currentLocation);
+    // Đốn Ngộ Cảnh · Vô Câu Địa Giới: bỏ khoá vùng cho đúng nghề đã mua nút đó.
+    const boVung = ncBoKhoaVung(this.state, this.selectedSkill);
+    let out = acts.filter((a) => boVung || !a.zone || a.zone === this.currentLocation);
     if (this.selectedSkill === 'daTao' && this.forgeSlot !== 'all') out = out.filter((a) => this.forgeMatch(a));
     if (this.selectedSkill === 'daTao') out = out.filter((a) => this.forgeUnlocked(a.itemId)); // bậc 4-7 cần Đồ Phổ đã lĩnh ngộ
     if (this.skillSubTabsFor(this.selectedSkill)) { const t = this.effectiveSkillTab; out = out.filter((a) => this.skillActionCat(this.selectedSkill, a) === t); } // Luyện Kim/Luyện Đan: lọc theo tab
@@ -3410,8 +3417,71 @@ const gameStore = {
 
   actionInputs(action) { return inputStatus(this.state, action); },
   canStart(skillId, action) { return canStartAction(this.state, skillId, action); },
+  // ================= ĐỐN NGỘ CẢNH =================
+  // Popup mở từ ô "Tiến Độ Tu Luyện" của trang nghề, chỉ hiện khi nghề đã chạm Lv100
+  // hoặc đã Trùng Sinh ít nhất một lần.
+  ncMo: false,
+  ncSkill: '',
+  ncLoi: '',
+  openNgoCanh(skillId) { this.ncSkill = skillId || this.selectedSkill; this.ncLoi = ''; this.ncMo = true; },
+  closeNgoCanh() { this.ncMo = false; this.ncLoi = ''; },
+  get ncTenNghe() { return (this.SKILLS[this.ncSkill] || {}).name || this.ncSkill; },
+  get ncTs() { void this._tick; return soTrungSinh(this.state, this.ncSkill); },
+  get ncTsMax() { return TRUNG_SINH_MAX; },
+  get ncDiem() { void this._tick; return diemConLai(this.state, this.ncSkill); },
+  get ncDiemTong() { return TRUNG_SINH_MAX * DIEM_MOI_LAN; },
+  get ncMuaHet() { return DIEM_MUA_HET; },
+  get ncCoTheTS() { void this._tick; return coTheTrungSinh(this.state, this.ncSkill); },
+  get ncHetLuot() { return this.ncTs >= TRUNG_SINH_MAX; },
+  /** Ô "Đốn Ngộ Cảnh" chỉ hiện khi có việc để làm — chưa tới Lv100 mà chưa từng Trùng Sinh thì ẩn. */
+  ncHienO(skillId) { void this._tick; return this.skillLevel(skillId) >= 100 || soTrungSinh(this.state, skillId) > 0; },
+  /** Số lần Trùng Sinh của MỘT nghề bất kỳ (nút ngoài trang nghề đọc cái này, không phải `ncTs`). */
+  ncTsCua(skillId) { void this._tick; return soTrungSinh(this.state, skillId); },
+  /** Ba nhánh, mỗi nhánh các nút kèm bậc hiện tại và lý do khoá. */
+  get ncNhanhs() {
+    void this._tick;
+    const sk = this.ncSkill, diem = this.ncDiem;
+    return Object.keys(NC_NHANH).map((k) => ({
+      key: k, ...NC_NHANH[k],
+      nut: NGO_CANH_NUT.filter((n) => n.nhanh === k).map((n) => {
+        const bac = bacNut(this.state, sk, n.id);
+        const can = n.canNut ? NGO_CANH_BY_ID[n.canNut] : null;
+        const khoa = can && bacNut(this.state, sk, n.canNut) < can.max ? ('Cần ' + can.ten + ' đủ ' + can.max + ' bậc') : '';
+        return { id: n.id, ten: n.ten, gia: n.gia, max: n.max, bac, khoa,
+          eff: nutEffText(n, bac || 1),
+          muaDuoc: !khoa && bac < n.max && diem >= n.gia };
+      }),
+    }));
+  },
+  ncMua(nutId) {
+    const loi = muaNut(this.state, this.ncSkill, nutId);
+    if (loi) { this.ncLoi = loi; return; }
+    this.ncLoi = ''; this._tick++; Storage.save(this.state);
+  },
+  ncTrungSinh() {
+    this.hoiXacNhan({
+      tieuDe: 'Trùng Sinh ' + this.ncTenNghe,
+      loi: this.ncTenNghe + ' về cấp 1. Ngươi nhận ' + DIEM_MOI_LAN + ' Điểm Trùng Sinh.',
+      nut: 'Trùng Sinh',
+      xong: () => {
+        if (!trungSinh(this.state, this.ncSkill)) return;
+        this._tick++; Storage.save(this.state);
+        this.showToast(this.ncTenNghe + ' đã Trùng Sinh lần ' + soTrungSinh(this.state, this.ncSkill) + '.');
+      },
+    });
+  },
+  ncTay() {
+    this.hoiXacNhan({
+      tieuDe: 'Tẩy bảng ' + this.ncTenNghe,
+      loi: 'Trả lại toàn bộ điểm đã bỏ vào bảng. Số lần Trùng Sinh giữ nguyên.',
+      nut: 'Tẩy bảng',
+      xong: () => { tayBang(this.state, this.ncSkill); this.ncLoi = ''; this._tick++; Storage.save(this.state); },
+    });
+  },
+
   startLabel(skillId, action) {
-    if (this.skillLevel(skillId) < action.reqLevel) return 'Cần Lv ' + action.reqLevel;
+    const req = reqLvThat(this.state, skillId, action);   // đã trừ Cựu Nghiệp
+    if (this.skillLevel(skillId) < req) return 'Cần Lv ' + req;
     if (this.actionInputs(action).some((i) => !i.ok)) return 'Thiếu nguyên liệu';
     return 'Bắt Đầu';
   },

@@ -3089,7 +3089,21 @@
               </div>
               <div class="h-2 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-jade" :style="`width:${$store.game.skillProg($store.game.selectedSkill).frac*100}%`"></div></div>
               <div class="text-[11px] text-slate-500 mt-1" x-text="$store.game.fmt($store.game.skillProg($store.game.selectedSkill).need - $store.game.skillProg($store.game.selectedSkill).into) + ' EXP cần · ' + Math.round($store.game.skillProg($store.game.selectedSkill).frac*100) + '%'"></div>
-              <div class="mt-2 px-2 py-1.5 rounded bg-ink3 text-xs text-slate-500 flex items-center gap-2"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span>Đốn Ngộ Cảnh (Ascension)</div>
+              <!-- Chưa tới Lv100 và chưa từng Trùng Sinh thì để nguyên ô khoá. Tới rồi thì nó
+                   thành nút mở bảng Đốn Ngộ Cảnh. -->
+              <template x-if="!$store.game.ncHienO($store.game.selectedSkill)">
+                <div class="mt-2 px-2 py-1.5 rounded bg-ink3 text-xs text-slate-500 flex items-center gap-2"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span>Đốn Ngộ Cảnh</div>
+              </template>
+              <template x-if="$store.game.ncHienO($store.game.selectedSkill)">
+                <button @click="$store.game.openNgoCanh($store.game.selectedSkill)"
+                  class="mt-2 w-full px-2 py-1.5 rounded text-xs flex items-center gap-2 border border-amber-600/45 text-amber-200 transition hover:border-amber-400 hover:bg-amber-500/10"
+                  style="background:linear-gradient(180deg,rgba(245,185,66,.12),transparent)">
+                  <span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('star','w-3.5 h-3.5')"></span>
+                  <span class="fserif">Đốn Ngộ Cảnh</span>
+                  <span class="ml-auto text-[11px] text-amber-300/80"
+                    x-text="'Trùng Sinh ' + $store.game.ncTsCua($store.game.selectedSkill) + '/' + $store.game.ncTsMax"></span>
+                </button>
+              </template>
             </section>
             <section class="panel rounded-lg p-3">
               <div class="lbl mb-2">Thống Kê</div>
@@ -17063,6 +17077,90 @@
             class="px-4 py-1.5 rounded-lg text-[12.5px] fserif border transition"
             :class="x.nguy ? 'text-rose-200 border-rose-500/50 hover:border-rose-400 hover:bg-rose-500/12' : 'text-amber-200 border-amber-500/50 hover:border-amber-400 hover:bg-amber-500/12'"
             x-text="x.nut"></button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== MODAL: ĐỐN NGỘ CẢNH (Trùng Sinh nghề) =====================================
+       ⚠ KHÔNG có thanh cuộn. Ba cột × ba ô là khổ cố định, mọi thứ phải nằm gọn trong một
+         màn. Thêm ô mới thì phải bớt chỗ khác, đừng thêm overflow-y-auto.
+       ⚠ Đóng được bằng cả ba đường: ✕ góc · phím ESC · bấm nền (luật chung mọi modal). -->
+  <template x-if="$store.game.ncMo">
+    <div class="fixed inset-0 z-[92] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-5"
+         @click.self="$store.game.closeNgoCanh()" @keydown.escape.window="$store.game.closeNgoCanh()"
+         x-data="{ get g(){ return $store.game } }">
+      <div class="panel rounded-2xl w-[960px] max-w-full border border-amber-600/40 shadow-2xl overflow-hidden" @click.stop
+           style="box-shadow:0 30px 90px -20px rgba(0,0,0,.9)">
+
+        <!-- HÀNG ĐẦU: tên nghề · số lần Trùng Sinh · điểm -->
+        <div class="flex items-center gap-3 px-5 py-3.5 border-b border-slate-800"
+             style="background:linear-gradient(120deg,rgba(245,185,66,.13),transparent 62%)">
+          <span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="g.ico(g.ncSkill, '🪓')"></span>
+          <div class="min-w-0">
+            <div class="fserif text-[19px] gold-text leading-tight" style="font-weight:700" x-text="'Đốn Ngộ Cảnh · ' + g.ncTenNghe"></div>
+            <div class="text-[11.5px] text-slate-400 mt-0.5">
+              <span x-text="'Trùng Sinh ' + g.ncTs + ' / ' + g.ncTsMax"></span>
+              <span class="text-slate-600"> · </span>
+              <span x-text="'mỗi lần 3 điểm · mua hết bảng cần ' + g.ncMuaHet + ' điểm'"></span>
+            </div>
+          </div>
+          <div class="ml-auto text-right shrink-0">
+            <div class="text-[24px] fserif gold-text leading-none"><span x-text="g.ncDiem"></span><span class="text-[14px] text-slate-500"> / <span x-text="g.ncDiemTong"></span></span></div>
+            <div class="text-[9.5px] uppercase tracking-[.14em] text-amber-600/80 mt-1">Điểm Trùng Sinh</div>
+          </div>
+          <button @click="g.closeNgoCanh()" class="shrink-0 ml-2 text-slate-400 hover:text-rose-400 text-2xl leading-none">✕</button>
+        </div>
+
+        <!-- BA NHÁNH -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4">
+          <template x-for="nh in g.ncNhanhs" :key="nh.key">
+            <div class="rounded-xl p-3" style="background:#0b1120;border:1px solid #1e293b">
+              <div class="flex items-baseline gap-2 mb-2.5">
+                <div class="fserif text-[14px]" :style="'color:' + nh.mau" x-text="nh.ten"></div>
+                <div class="text-[11px] text-slate-500" x-text="nh.mo"></div>
+              </div>
+              <div class="space-y-2">
+                <template x-for="n in nh.nut" :key="n.id">
+                  <button @click="n.muaDuoc && g.ncMua(n.id)" :disabled="!n.muaDuoc"
+                    class="w-full text-left rounded-lg px-2.5 py-2 border transition"
+                    :class="n.khoa ? 'border-slate-800 opacity-45 cursor-not-allowed'
+                          : (n.bac ? 'border-slate-700' : (n.muaDuoc ? 'border-slate-700 hover:border-jade/60 hover:bg-jade/5' : 'border-slate-800 opacity-60 cursor-not-allowed'))"
+                    :style="n.bac ? ('background:radial-gradient(70% 130% at 12% 50%, color-mix(in srgb,' + nh.mau + ' 13%,transparent), transparent 68%), #0b1120;border-color:color-mix(in srgb,' + nh.mau + ' 50%,transparent)') : ''">
+                    <span class="flex items-center gap-2">
+                      <b class="text-[13px] fserif" :style="n.bac ? ('color:' + nh.mau) : ''" :class="n.bac ? '' : 'text-slate-200'" x-text="n.ten"></b>
+                      <span class="ml-auto shrink-0 text-[10.5px] px-1.5 py-0.5 rounded-full border border-slate-700 text-slate-400"
+                        x-text="n.gia + ' điểm' + (n.max > 1 ? '/bậc' : '')"></span>
+                    </span>
+                    <span class="block text-[11.5px] text-slate-400 mt-1 leading-snug" x-text="n.khoa || n.eff"></span>
+                    <span class="flex items-center gap-1 mt-1.5">
+                      <template x-for="i in n.max" :key="i">
+                        <i class="inline-block w-[7px] h-[7px] rounded-full"
+                           :style="i <= n.bac ? ('background:' + nh.mau + ';box-shadow:0 0 5px -1px ' + nh.mau) : 'background:#1e293b'"></i>
+                      </template>
+                      <span class="text-[10px] text-slate-500 ml-1" x-text="n.bac + '/' + n.max"></span>
+                    </span>
+                  </button>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- HÀNG CUỐI: Trùng Sinh · tẩy bảng -->
+        <div class="px-5 py-3.5 border-t border-slate-800 flex items-center gap-3 flex-wrap" style="background:rgba(15,21,33,.6)">
+          <div class="text-[11.5px] text-slate-500 min-w-0 flex-1">
+            <template x-if="g.ncLoi"><span class="text-rose-300" x-text="g.ncLoi"></span></template>
+            <template x-if="!g.ncLoi">
+              <span x-text="g.ncHetLuot ? 'Đã Trùng Sinh đủ 6 lần.' : (g.ncCoTheTS ? (g.ncTenNghe + ' về cấp 1, nhận 3 Điểm Trùng Sinh.') : ('Cần ' + g.ncTenNghe + ' đạt cấp 100.'))"></span>
+            </template>
+          </div>
+          <button @click="g.ncTay()" x-show="g.ncDiem < g.ncTs * 3"
+            class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] fserif border border-slate-700 text-slate-300 hover:border-rose-400/60 hover:text-rose-300 transition">Tẩy bảng</button>
+          <button @click="g.ncTrungSinh()" :disabled="!g.ncCoTheTS"
+            class="shrink-0 px-5 py-2 rounded-lg text-[13.5px] fserif transition disabled:opacity-35 disabled:cursor-not-allowed"
+            :class="g.ncCoTheTS ? 'text-ink' : 'text-slate-500 border border-slate-700'"
+            :style="g.ncCoTheTS ? 'background:linear-gradient(180deg,#fde68a,#d69f2c)' : ''">Trùng Sinh</button>
         </div>
       </div>
     </div>
