@@ -139,7 +139,7 @@ function cloudErrVi(msg) {
   const m = (msg || '').toLowerCase();
   // Chốt chống gian lận từ chối bản lưu (docs/SQL_CHONG_GIAN_LAN.sql). Nói thẳng cho người chơi
   // biết, đừng để họ tưởng đã đồng bộ xong — xem chú thích ở cloudPushSave.
-  if (m === 'tu-choi') return 'Máy chủ từ chối bản lưu này — tiến trình tăng quá nhanh. Nhắn tác giả nếu bạn chơi bình thường.';
+  if (m === 'tu-choi') return 'Máy chủ từ chối bản lưu này vì tiến trình tăng quá nhanh. Nếu bạn chơi bình thường, hãy nhắn cho tác giả để được kiểm tra.';
   if (m.includes('does not exist') || m.includes('relation') || m.includes('schema cache')) return 'Chưa tạo bảng lưu trên cloud (chạy SQL khởi tạo).';
   if (m.includes('row-level security') || m.includes('rls') || m.includes('policy')) return 'Quyền cloud chưa đúng (kiểm tra RLS bảng saves).';
   if (m.includes('jwt') || m.includes('expired') || m.includes('not authenticated')) return 'Phiên hết hạn — đăng nhập lại.';
@@ -1591,7 +1591,7 @@ const gameStore = {
     //   Trước đây chỗ này gửi thẳng null rồi vẫn báo "Đã ban lệnh" — người ban lệnh tưởng xong,
     //   mà sự kiện vẫn "Chưa đặt lịch". Chặn ở đây và nói rõ thiếu gì.
     if (!r.mo_luc || !r.dong_luc) {
-      this.showToast('Thiếu ngày hoặc giờ — phải điền đủ CẢ ngày lẫn giờ ở hai ô. Bấm "14 Ngày" để điền nhanh.');
+      this.showToast('Thiếu ngày hoặc giờ — cần điền đủ CẢ ngày và giờ ở cả hai ô. Bấm “14 Ngày” để điền nhanh.');
       return;
     }
     if (Date.parse(r.dong_luc) <= Date.parse(r.mo_luc)) {
@@ -1636,9 +1636,9 @@ const gameStore = {
     }
     this.hoiXacNhan({
       tieuDe: 'Đóng Ngay',
-      loi: ten + ' đang ' + (r.chi_tac_gia ? 'chạy thử' : 'mở cho cả giang hồ') + '. Mốc đóng sẽ hạ về lúc này.',
+      loi: ten + ' đang ' + (r.chi_tac_gia ? 'chạy thử' : 'mở cho cả giang hồ') + '. Mốc kết thúc sẽ được đưa về thời điểm này.',
       canhBao: (r.chi_tac_gia ? 'Vật phẩm sự kiện trong hành lý ngươi' : 'Vật phẩm sự kiện trong hành lý MỌI NGƯỜI CHƠI')
-        + ' sẽ tan biến. Điểm Sự Kiện, trứng và món ăn giữ lại.',
+        + ' sẽ biến mất. Điểm Sự Kiện, trứng và món ăn vẫn được giữ lại.',
       nut: 'Đóng Ngay', nguy: true,
       xong: () => { this._lbGuiThu(r, Date.parse(r._mo0), now()); },
     });
@@ -1677,7 +1677,7 @@ const gameStore = {
     if (this.author && uid === this.author.uid) { this.showToast('Không khoá chính tài khoản tác giả.'); return; }
     this.hoiXacNhan({
       tieuDe: 'Khoá Tài Khoản',
-      loi: 'Tài khoản ' + uid.slice(0, 8) + '… sẽ không đẩy save lên được nữa. Họ vẫn chơi ngoại tuyến bình thường và KHÔNG được báo là đã bị khoá.',
+      loi: 'Tài khoản ' + uid.slice(0, 8) + '… sẽ không thể tải bản lưu lên máy chủ nữa. Người chơi vẫn có thể chơi ngoại tuyến bình thường và sẽ không nhận thông báo rằng tài khoản đã bị khóa.',
       canhBao: 'Việc này ghi vào nhật ký, không xoá được.',
       nut: 'Khoá', nguy: true,
       xong: () => { this._lbKhoaGui(uid); },
@@ -2010,7 +2010,7 @@ const gameStore = {
         const { data, error } = await cloudSignUp(email, pass);
         if (error) { this.authErr = authErrVi(error.message); return; }
         if (data && data.session) { this.authUser = data.user; this.closeAuth(); this.showToast('Đã tạo tài khoản & đăng nhập.'); this.cloudSyncOnLogin(); }
-        else { this.authMsg = 'Đã gửi email xác nhận. Mở hộp thư bấm xác nhận rồi đăng nhập.'; this.authMode = 'login'; this.authPass = ''; }
+        else { this.authMsg = 'Đã gửi email xác nhận. Hãy mở hộp thư, bấm liên kết xác nhận rồi đăng nhập.'; this.authMode = 'login'; this.authPass = ''; }
       } else {
         const { data, error } = await cloudSignIn(email, pass);
         if (error) { this.authErr = authErrVi(error.message); return; }
@@ -2398,6 +2398,18 @@ const gameStore = {
   titleEquip(id) { const ti = this.state.titles; if (!ti || !(ti.owned || []).includes(id)) return; ti.equipped = id; Storage.save(this.state); },
   titleQClass(q) { return ({ phamPham: 'dh-q-pham', luongPham: 'dh-q-luong', tinhPham: 'dh-q-tinh', tuyetPham: 'dh-q-tuyet', truyenThe: 'dh-q-truyen', thanPham: 'dh-q-than', coBan: 'dh-q-coban' })[q] || 'dh-q-pham'; },
   titleHigh(q) { return q === 'truyenThe' || q === 'thanPham' || q === 'coBan'; },   // phẩm cao -> hiệu ứng động + aura
+  /**
+   * DẠNG BẢNG theo LOẠI danh hiệu (CSS `.k-*` ở index.html). Mỗi loại một khung/hình cắt riêng.
+   * ⚠ `toan` (Toàn Năng) KHÔNG có lớp — nó giữ nguyên Long Văn, đó là dạng mặc định.
+   * ⚠ Loại mới thêm sau mà quên khai ở đây thì rơi về Long Văn, KHÔNG vỡ giao diện.
+   */
+  titleKieuClass(loai) {
+    return ({
+      chien: 'k-daobai', thu: 'k-thuan', toc: 'k-bang', suu: 'k-trucgian', phu: 'k-kimbai',
+      thuCung: 'k-thubi', biCanh: 'k-huyenkham', boss: 'k-toayeu', nghe: 'k-thietde',
+      canhGioi: 'k-ngockhuong', mongCanh: 'k-mongvu', kyNghe: 'k-kycach', suKien: 'k-dangbai',
+    })[loai] || '';
+  },
   // ---------- Huy Hiệu (kĩ năng Lv100) ----------
   get badgesView() {
     return BADGES.map((b) => { const lv = this.skillLevel(b.skillId); const sk = this.SKILLS[b.skillId]; const nm = (sk && sk.name) || (b.skillId === 'chienDau' ? 'Chiến Đấu' : b.skillId); return { ...b, skillName: nm, level: lv, unlocked: lv >= BADGE_LV, equipped: (this.state.player.badges || []).includes(b.skillId) }; });
@@ -3746,7 +3758,7 @@ const gameStore = {
     const res = resolveBossQueueEngine(this.state, now(), (b) => this.combatLevel >= b.reqLevel);
     if (res.length) {
       const wins = res.filter((r) => r.win).length;
-      if (wins > 0) { this.showToast('⚔ Trong lúc vắng mặt, ngươi đã hạ ' + wins + ' Yêu Vương đang chờ! Xem Lịch Sử để rõ chiến quả.'); this.pushNotif('yeuVuong', 'Hạ ' + wins + ' Yêu Vương (vắng mặt)', 'Hàng đợi vây sát thành công — xem Lịch Sử để rõ chiến quả.'); }
+      if (wins > 0) { this.showToast('⚔ Trong lúc vắng mặt, ngươi đã hạ ' + wins + ' Yêu Vương đang chờ! Xem Lịch Sử để biết kết quả trận chiến.'); this.pushNotif('yeuVuong', 'Hạ ' + wins + ' Yêu Vương (vắng mặt)', 'Hàng đợi vây sát đã hoàn tất — xem Lịch Sử để biết kết quả.'); }
       else this.showToast('Khiêu chiến hàng đợi thất bại — Yêu Vương vẫn còn sống, hãy thử lại.');
       Storage.save(this.state);
     }
@@ -4303,7 +4315,7 @@ const gameStore = {
   thamNgo(id) {
     if (!this.ownsChieu(id)) { this.showToast('Chưa lĩnh ngộ chiêu này — học hoặc mua trước.'); return; }
     if (this.tangOf(id) >= TANG_MAX) { this.showToast('Chiêu này đã Đại Viên Mãn.'); return; }
-    if (this.ngoTinhLeft <= 0) { this.showToast('Hết Ngộ Tính — lên cấp Chiến Đấu để có thêm.'); return; }
+    if (this.ngoTinhLeft <= 0) { this.showToast('Đã hết Ngộ Tính — tăng cấp Chiến Đấu để nhận thêm.'); return; }
     this.state.combat.tang[id] = this.tangOf(id) + 1;
     this.afterLoadoutChange();
     const c = chieuById(id), b = tangCanh(this.tangOf(id));
@@ -4587,7 +4599,7 @@ const gameStore = {
     if (this.combatNoiThuong) { this.showToast('Đang suy yếu — chờ hồi phục đầy Sinh Lực.'); return; }
     const prev = this.buildCombatSummary('manual');   // đang đánh dở con khác -> chốt phiên cũ vào chuông (không mất dấu)
     if (startCombat(this.state, id, now())) { if (prev) this.pushCombatSummaryNotif(prev); this.chienBao = []; this._cycleStart = 0; this._cycleNow = now(); this._nlNow = null; this._roundNo = 0; Storage.save(this.state); }
-    else { const e = this.ENEMIES[id]; if (e && this.combatLevel < (e.reqLevel || 0)) this.showToast('Cần Chiến Đấu Lv ' + e.reqLevel + ' để khiêu chiến ' + e.name + ' — luyện yêu thú cấp thấp hơn trước.'); else this.showToast('Chưa thể khiêu chiến lúc này.'); }
+    else { const e = this.ENEMIES[id]; if (e && this.combatLevel < (e.reqLevel || 0)) this.showToast('Cần Chiến Đấu Lv ' + e.reqLevel + ' để khiêu chiến. ' + e.name + ' — luyện yêu thú cấp thấp hơn trước.'); else this.showToast('Chưa thể khiêu chiến lúc này.'); }
   },
   // Suy yếu: số giây hồi phục còn lại (banner đếm ngược). HP% lấy từ combatHpPct.
   get suyYeuRemainSec() { void this._cycleNow; const u = this.state.combat.suyYeuUntil; return u ? Math.max(0, Math.ceil((u - now()) / 1000)) : 0; },
@@ -4711,7 +4723,7 @@ const gameStore = {
     stopActivity(this.state);
     this.bagPeek = false;   // đóng Túi Tạm (phiên đã kết thúc)
     if (sum) { this.pushCombatSummaryNotif(sum); if (sum.kills > 0) this.combatSummary = sum; }
-    this.showToast('Trọng thương! Suy yếu — Sinh Lực đang tự hồi phục.');
+    this.showToast('Trọng Thương! Nhân vật đang Suy Yếu và tự hồi Sinh Lực.');
     Storage.save(this.state);
   },
   // ---------- Tổng Kết Chiến Trận (thu hoạch phiên đánh — modal + chuông) ----------
@@ -4752,7 +4764,7 @@ const gameStore = {
   },
   // Gục khi combat chạy NỀN (đang ở trang khác / tab ẩn): advance trả died+sess -> toast + chuông.
   notifyCombatBgDeath(rep) {
-    this.showToast('Trọng thương! Suy yếu — Sinh Lực đang tự hồi phục.');
+    this.showToast('Trọng Thương! Nhân vật đang Suy Yếu và tự hồi Sinh Lực.');
     this.bagPeek = false;   // đóng Túi Tạm nếu đang mở (phiên nền đã kết thúc)
     if (!rep || !rep.sess) return;
     const s = rep.sess, e = this.ENEMIES[rep.enemyId] || {};
@@ -4813,7 +4825,7 @@ const gameStore = {
   },
   equipFood(id) {
     const it = id && this.ITEMS[id];
-    if (id && !(it && (it.heal || it.healPct))) { this.showToast('Món này không dùng để hồi Sinh Lực.'); return; }
+    if (id && !(it && (it.heal || it.healPct))) { this.showToast('Vật phẩm này không dùng để hồi Sinh Lực.'); return; }
     this.state.combat.luongThuc = id || null;
     this.foodPicker = false;
     Storage.save(this.state);
@@ -5106,7 +5118,7 @@ const gameStore = {
   doEquip(uid) {
     const v = this.gearView(findGear(this.state, uid)); if (!v) return;
     const c = this.equipReqCtx(v);
-    if (c.req > 1 && c.level < c.req) { this.showToast('Cần ' + c.label + ' Lv ' + c.req + ' để mang ' + (v.name || 'món này') + '.'); return; }
+    if (c.req > 1 && c.level < c.req) { this.showToast('Cần ' + c.label + ' Lv ' + c.req + ' để mang theo. ' + (v.name || 'món này') + '.'); return; }
     if (equipItem(this.state, uid)) Storage.save(this.state);
   },
   doUnequip(slot) { if (unequipItem(this.state, slot)) Storage.save(this.state); },
@@ -5484,7 +5496,7 @@ const gameStore = {
       const url = location.origin + location.pathname + '?hoso=' + uid;
       this.khoeLink = url;
       try { await navigator.clipboard.writeText(url); this.showToast('Đã chép đường dẫn — gửi cho ai cũng xem được giá của ngươi.'); }
-      catch (e) { this.showToast('Chép không được. Đường dẫn hiện ngay dưới giá, tự chép nhé.'); }
+      catch (e) { this.showToast('Không thể tự sao chép. Đường dẫn đã hiện ngay bên dưới giá, bạn hãy sao chép thủ công.'); }
     } catch (e) { this.showToast('Chưa khoe được — kiểm tra kết nối.'); }
     finally { this.khoeDang = false; }
   },
@@ -5704,7 +5716,7 @@ const gameStore = {
   },
   startDungeonRun(id) {
     const d = this.DUNGEON_BY_ID[id]; if (!d) return;
-    if (this.dungeonLocked(id)) { this.showToast('Cần Chiến Đấu Lv ' + d.reqLevel + ' để vào ' + d.name + '.'); return; }
+    if (this.dungeonLocked(id)) { this.showToast('Cần Chiến Đấu Lv ' + d.reqLevel + ' để vào. ' + d.name + '.'); return; }
     if (!this.dungeonAtLoc(d)) { this.showToast('Cần bay tới ' + this.dungeonLocName(d) + ' mới treo ' + d.name + ' được.'); return; }
     if (this.dungeonRunning) { this.showToast('Đang có một lịch Bí Cảnh — chờ hoàn tất đã.'); return; }
     const n = this.dungeonRunsSel(id);
@@ -6100,7 +6112,7 @@ const gameStore = {
   devResetDanhSiOffers() { this._ensureDanhSiState(); this.state.danhSi.accepted = []; this.devSave(); this._tick++; this.showToast('Dev: reset lời mời Danh Sĩ đã nhận (re-test Bái Sư/Kỳ Ngộ + bí kíp truyền dạy).'); },
   devTmClearDrama() { const t = this.tm; if (!t) return; t.disciples.forEach((d) => { d.flags = {}; d.tamMaLv = 0; d.tamMaXp = 0; }); if (t.events) { t.events.rebels = []; t.events.pending = []; t.events.queue = []; } t.fallen = []; this.devSave(); this._tick++; this.showToast('Dev: gột sạch cờ xấu / tâm ma / phản đồ / cố nhân.'); },
   devTmClearCooldowns() { const t = this.tm; if (!t) return; t.disciples.forEach((d) => { d.luanVoCdUntil = 0; d.gioiLuatCdUntil = 0; }); if (t.diplomacy && t.diplomacy.ties) Object.keys(t.diplomacy.ties).forEach((k) => { t.diplomacy.ties[k].lastVisit = 0; }); t.shopCd = {}; if (t.bkAuction) t.bkAuction.at = 0; this.devSave(); this._tick++; this.showToast('Dev: reset CD Luận Võ / Giới Luật / Đãi Khách / Đấu Giá.'); },
-  devTmSeedDiplomacy(rep, n) { const t = this.tm; if (!t) return; rep = (rep == null) ? 119 : rep; n = n || 4; if (!t.diplomacy) t.diplomacy = { ties: {} }; if (!t.diplomacy.ties) t.diplomacy.ties = {}; for (let i = 0; i < n; i++) t.diplomacy.ties['sect' + i] = { rep, lastVisit: 0 }; this.devSave(); this._tick++; this.showToast('Dev: gieo bang giao ' + n + ' phái (rep ' + rep + '). Vào Đãi Khách Các → Tiếp Đãi để vượt ngưỡng Kết Minh.'); },
+  devTmSeedDiplomacy(rep, n) { const t = this.tm; if (!t) return; rep = (rep == null) ? 119 : rep; n = n || 4; if (!t.diplomacy) t.diplomacy = { ties: {} }; if (!t.diplomacy.ties) t.diplomacy.ties = {}; for (let i = 0; i < n; i++) t.diplomacy.ties['sect' + i] = { rep, lastVisit: 0 }; this.devSave(); this._tick++; this.showToast('Dev: gieo bang giao ' + n + ' phái (rep ' + rep + '). Vào Đãi Khách Các → Tiếp Đãi để tăng quan hệ vượt ngưỡng Kết Minh.'); },
   // ---- Dev: tua đồng hồ game (session-only; reload về thực). Chủ yếu xem Danh Sĩ tử vong/truyền nhân + bot + timer Tông Môn. ----
   get devNowOffsetDays() { void this._tick; return Math.round((_devNowOffset + _devThem()) / 8640000) / 10; },
   // ---- Dev: CHẠY NHANH thời gian (x100 / x1000 / x5000) ----

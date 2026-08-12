@@ -28,3 +28,6 @@ desktop.ini
 
 # Cong cu dev (tao khoa An Ky Tac Gia) — khong deploy
 _tools/
+
+# Tep xuat de sua chu (khong vao repo)
+_xuat/

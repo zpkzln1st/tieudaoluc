@@ -9,7 +9,7 @@ export const SKILLS = {
   // ---------------- GATHER ----------------
   phatMoc: {
     id: 'phatMoc', name: 'Đốn Củi', gloss: 'Chặt Cây', icon: '🪓', stat: 'lucDao',
-    npc: { name: 'Tiều Phu Lão Tường', quote: 'Một búa khai mộc, mười năm luyện lực. Tâm bất định, đao tất loạn.' },
+    npc: { name: 'Tiều Phu Lão Tường', quote: 'Một búa khai mộc, mười năm luyện lực. Tâm chưa vững thì rìu cũng loạn.' },
     actions: [
       { id: 'tungMoc',      name: 'Tùng Mộc',     gloss: 'Oak Log',           itemId: 'tungMoc',      zone: 'lamLinhCoc',    reqLevel: 1,   xp: 4,   time: 11.4, statXp: 1 },
       { id: 'trucMoc',      name: 'Trúc Mộc',      gloss: 'Yew Log',           itemId: 'trucMoc',      zone: 'uLam',          reqLevel: 8,   xp: 7,   time: 14.3, statXp: 2 },
@@ -25,7 +25,7 @@ export const SKILLS = {
   },
   thaiKhoang: {
     id: 'thaiKhoang', name: 'Đào Khoáng', gloss: 'Khai Khoáng', icon: '⛏️', stat: 'lucDao', stat2: 'hoThe',
-    npc: { name: 'Khoáng Phu Lão Hắc', quote: 'Kim thạch tàng phong, địa mạch hữu tức. Nhất chùy khai quặng, bách luyện thành tài.' },
+    npc: { name: 'Khoáng Phu Lão Hắc', quote: 'Kim thạch giấu mạch, địa tầng có hơi thở. Một chùy mở quặng, trăm lần tôi luyện mới thành tài.' },
     actions: [
       { id: 'hacThan',    name: 'Hắc Thán',      gloss: 'Coal Ore',   itemId: 'hacThan',    zone: 'lamLinhCoc',    reqLevel: 1,   xp: 4,   time: 10.9, statXp: 1 },
       { id: 'tichKhoang', name: 'Tích Khoáng',  gloss: 'Tin Ore',    itemId: 'tichKhoang', zone: 'lamLinhCoc',    reqLevel: 1,   xp: 4,   time: 10.9, statXp: 1 },
@@ -43,7 +43,7 @@ export const SKILLS = {
   },
   dieuNgu: {
     id: 'dieuNgu', name: 'Câu Cá', gloss: 'Câu Cá', icon: '🎣', stat: 'linhXao',
-    npc: { name: 'Ngư Ông Phúc Bá', quote: 'Thủy vô thường thế, ngư vô định tung. Tĩnh tâm quan thủy, tự đắc kỳ cơ.' },
+    npc: { name: 'Ngư Ông Phúc Bá', quote: 'Nước không có thế cố định, cá cũng chẳng đi một đường. Tĩnh tâm nhìn nước, cơ duyên tự hiện.' },
     actions: [
       { id: 'caTuyet', name: 'Tuyết Ngư', gloss: 'Cod',    itemId: 'caTuyet', zone: 'lamLinhCoc', reqLevel: 1,  xp: 3, time: 10.0, statXp: 1,  inputs: [{ itemId: 'moiHongTrung', qty: 1 }] },
       { id: 'caHoi',   name: 'Hồi Ngư',   gloss: 'Salmon', itemId: 'caHoi',   zone: 'uLam',       reqLevel: 8,  xp: 5, time: 13.0, statXp: 1,  inputs: [{ itemId: 'moiHongTrung', qty: 1 }] },
@@ -65,7 +65,7 @@ export const SKILLS = {
     // Tứ Trụ EXP so với Câu Cá ở cùng thời gian vòng (stat2 nhận ĐỦ statXp, không chia đôi) -> đè chết nghề đó.
     // KHÔNG có inputs — Câu Cá là nghề gather duy nhất tốn nguyên liệu, đừng nhân đôi gánh nặng.
     id: 'thaiDuoc', name: 'Hái Thuốc', gloss: 'Thái Dược', icon: '🌿', stat: 'hoThe',
-    npc: { name: 'Dược Nông Lão Thanh', quote: 'Thảo mộc hữu linh, thu thái hữu thời. Sai một khắc — linh dược hoá cỏ dại.' },
+    npc: { name: 'Dược Nông Lão Thanh', quote: 'Thảo mộc có linh, thu hái phải đúng thời. Sai một khắc, Linh Dược cũng hóa cỏ thường.' },
     actions: [
       { id: 'thanhNgaiThao',  name: 'Thanh Ngải Thảo',   gloss: 'Green Mugwort',    itemId: 'thanhNgaiThao',  zone: 'lamLinhCoc',    reqLevel: 1,   xp: 4,   time: 11.4, statXp: 1 },
       { id: 'tuDangHoa',      name: 'Tử Đằng Hoa',       gloss: 'Purple Wisteria',  itemId: 'tuDangHoa',      zone: 'uLam',          reqLevel: 8,   xp: 6,   time: 13.5, statXp: 2 },
@@ -83,7 +83,7 @@ export const SKILLS = {
   // ---------------- REFINE / CRAFT ----------------
   daLuyen: {
     id: 'daLuyen', name: 'Luyện Kim', gloss: 'Luyện Quặng', icon: '🔥', stat: 'thanPhap',
-    npc: { name: 'Âu Dã Tử', quote: 'Phàm binh hữu hình, thần binh hữu hồn. Ngươi muốn rèn thứ nào?' },
+    npc: { name: 'Âu Dã Tử', quote: 'Phàm binh có hình, thần binh có hồn. Ngươi muốn rèn thứ nào?' },
     actions: [
       { id: 'tichDinh',  name: 'Tích Đĩnh', gloss: 'Tin Bar',    itemId: 'tichDinh',  reqLevel: 1,  xp: 2,  time: 10.9, statXp: 1, inputs: [{ itemId: 'tichKhoang', qty: 1 }, { itemId: 'hacThan', qty: 1 }] },
       { id: 'dongDinh',  name: 'Đồng Đĩnh',  gloss: 'Copper Bar', itemId: 'dongDinh',  reqLevel: 8,  xp: 3,  time: 13.6, statXp: 1, inputs: [{ itemId: 'dongKhoang', qty: 1 }, { itemId: 'hacThan', qty: 1 }] },
@@ -103,7 +103,7 @@ export const SKILLS = {
   },
   phanhNham: {
     id: 'phanhNham', name: 'Nấu Ăn', gloss: 'Nấu Ăn', icon: '🍳', stat: 'linhXao',
-    npc: { name: 'Trù Sư Lữ Công', quote: 'Ngũ vị điều hòa, khí huyết tự thịnh. Hành tẩu giang hồ, bất khả khinh thực.' },
+    npc: { name: 'Trù Sư Lữ Công', quote: 'Ngũ Vị điều hòa thì Khí Huyết tự thịnh. Hành tẩu giang hồ, chớ xem nhẹ chuyện ăn uống.' },
     actions: [
       { id: 'khaoCaTuyet', name: 'Tuyết Ngư Nướng', gloss: 'Cooked Cod',    itemId: 'khaoCaTuyet', reqLevel: 1,  xp: 1, time: 7.3,  statXp: 1, inputs: [{ itemId: 'caTuyet', qty: 1 }, { itemId: 'hacThan', qty: 1 }] },
       { id: 'khaoCaHoi',   name: 'Hồi Ngư Nướng',   gloss: 'Cooked Salmon', itemId: 'khaoCaHoi',   reqLevel: 8,  xp: 3, time: 10.9, statXp: 1, inputs: [{ itemId: 'caHoi',   qty: 1 }, { itemId: 'hacThan', qty: 1 }] },
@@ -119,7 +119,7 @@ export const SKILLS = {
   },
   luyenDan: {
     id: 'luyenDan', name: 'Luyện Đan', gloss: 'Luyện Dược', icon: '⚗️', stat: 'thanPhap',
-    npc: { name: 'Lý Dược Vương', quote: 'Linh dược cứu nhân, độc thảo sát mệnh. Giữa hai thứ ấy, chỉ cách nhau một niệm.' },
+    npc: { name: 'Lý Dược Vương', quote: 'Linh Dược cứu người, Độc Thảo lấy mạng. Giữa hai thứ ấy đôi khi chỉ cách một niệm.' },
     actions: [
       // Liệu đổi sang linh thảo (nghề Hái Thuốc) — trước đây nấu đan bằng gỗ + cá, khiên cưỡng.
       { id: 'hoiKhiDan',        name: 'Hồi Khí Đan',         gloss: 'Battle Potion',   itemId: 'hoiKhiDan',        reqLevel: 1, xp: 10, time: 30.0, statXp: 1, inputs: [{ itemId: 'thanhNgaiThao', qty: 2 }] },
@@ -157,7 +157,7 @@ export const SKILLS = {
   },
   daTao: {
     id: 'daTao', name: 'Rèn Đúc', gloss: 'Rèn Binh Khí', icon: '🔨', stat: 'lucDao',
-    npc: { name: 'Thiết Tượng Lão Cường', quote: 'Thiết tại lô trung luyện, nhân tại thế gian ma. Trăm búa thành khí, vạn hỏa thành tâm.' },
+    npc: { name: 'Thiết Tượng Lão Cường', quote: 'Sắt luyện trong lò, người luyện giữa đời. Trăm búa thành khí, vạn lửa luyện tâm.' },
     actions: [
       { id: 'tichSao',   name: 'Cuốc Thiếc', gloss: 'Tin Pickaxe', itemId: 'tichSao',   reqLevel: 1,  xp: 15, time: 30.0, statXp: 2, inputs: [{ itemId: 'tichDinh', qty: 3 }] },
       { id: 'tichGiap',  name: 'Giáp Thiếc', gloss: 'Tin Armor',  itemId: 'tichGiap',  reqLevel: 5,  xp: 25, time: 40.0, statXp: 3, inputs: [{ itemId: 'tichDinh', qty: 5 }] },
@@ -173,7 +173,7 @@ export const SKILLS = {
   },
   doanhTao: {
     id: 'doanhTao', name: 'Xây Dựng', gloss: 'Doanh Tạo', icon: '🏗️', stat: 'lucDao',
-    npc: { name: 'Lỗ Ban Truyền Nhân', quote: 'Mộc thạch hữu pháp, phương thốn thành thành. Nhất xích định càn khôn, nhất tuyến khai cơ xảo.' },
+    npc: { name: 'Lỗ Ban Truyền Nhân', quote: 'Mộc thạch đều có quy củ, từng tấc đều phải chuẩn. Một thước định nền, một đường mực mở cơ xảo.' },
     actions: [
       { id: 'datSet',    name: 'Đất Sét',  gloss: 'Clay',        itemId: 'datSet',    reqLevel: 1,  xp: 12, time: 38.2, statXp: 1 },
       { id: 'cat',       name: 'Cát',      gloss: 'Sand',        itemId: 'cat',       reqLevel: 1,  xp: 12, time: 38.2, statXp: 1 },

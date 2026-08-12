@@ -125,7 +125,7 @@ const nguonGon = (id) => {
 };
 const khoiNguon = (id) => {
   const ds = nguonCua(id);
-  if (!ds.length) return [['p', 'Chưa có nguồn rơi nào ghi nhận trong bảng số — món này đến từ chế tạo, cửa hàng hoặc thưởng.']];
+  if (!ds.length) return [['p', 'Chưa ghi nhận nguồn rơi trực tiếp trong dữ liệu. Vật phẩm này có thể đến từ chế tạo, cửa hàng hoặc phần thưởng.']];
   return [['bang', ['Nguồn', 'Ở đâu', 'Tỉ lệ', 'Ghi chú'],
     ds.map((x) => [
       { quai: 'Quái', boss: 'Yêu Vương', bicanh: 'Bí Cảnh', bo: 'Bộ trang' }[x.loai] || x.loai,
@@ -283,7 +283,7 @@ export const CN_DB = [
         ]],
         ...((L.rare || []).length ? [['h', 'Vật phẩm hiếm'],
           ['bang', ['Vật phẩm', 'Tỉ lệ'], L.rare.map((r) => [tenItem(r.itemId), pct(r.chance, 2)])]] : []),
-        ['luu', 'Tỉ lệ trên là số ghi trong bảng số. Số thực nhận còn nhân với hệ số nhịp, Cơ Duyên và kĩ năng Tiên Minh.'],
+        ['luu', 'Tỉ lệ trên lấy từ dữ liệu hệ thống. Số lượng thực nhận còn chịu ảnh hưởng bởi hệ số nhịp, Cơ Duyên và kỹ năng Tiên Minh.'],
       ];
     },
   },
@@ -358,7 +358,7 @@ export const CN_DB = [
           ['Cộng hiệu suất', '+' + pct(q.gatherEff || 0, 0)], ['Giá bán', so(g.value) + ' Bạc'],
         ]],
         ['ct', 'Chu kỳ thực = thời gian cơ sở ÷ tổng hệ số hiệu suất'],
-        ['p', 'Hiệu suất công cụ cộng vào mẫu số cùng với cấp nghề, Tín Vật, kĩ năng Tiên Minh và Linh Thạch.'],
+        ['p', 'Hiệu suất công cụ được tính chung với cấp nghề, Tín Vật, kỹ năng Tiên Minh và Linh Thạch khi xác định thời gian hoàn thành.'],
         ['h', 'Nguồn kiếm'],
         ...khoiNguon(h.id),
       ];
@@ -513,8 +513,8 @@ export const CN_DB = [
       ['bang', ['Mục', 'Giá trị'], [
         ['Giá trị mỗi dòng', h.khoang], ['Đơn vị', h.kieu], ['Xuất hiện ở ô', h.o],
       ]],
-      ['p', 'Mỗi món trang bị rơi ra sẽ nhận ngẫu nhiên vài dòng phụ, giá trị nằm trong khoảng ghi ở trên. Số dòng nhiều hay ít là do <b>phẩm chất</b> của món quyết định, không phải cấp món.'],
-      ['p', 'Cùng một dòng, món nào lăn được số gần cận trên hơn thì <b>tên dòng đổi màu sáng hơn</b> — nhìn màu là biết món đó tốt tới đâu.'],
+      ['p', 'Mỗi trang bị rơi ra sẽ có một số dòng phụ ngẫu nhiên, với giá trị nằm trong khoảng ghi bên trên. Số lượng dòng phụ phụ thuộc vào <b>phẩm chất</b> của món, không phụ thuộc cấp món.'],
+      ['p', 'Với cùng một dòng phụ, chỉ số càng gần mức tối đa thì <b>màu tên dòng càng sáng</b>. Chỉ cần nhìn màu là có thể biết dòng đó tốt đến đâu.'],
     ],
   },
 
@@ -597,7 +597,7 @@ export const CN_DB = [
         ['Việc', h.viec], ['Công cụ dùng', h.congCu], ['Cấp tối đa', '100'],
       ]],
       ['ct', 'Chu kỳ thực = thời gian cơ sở ÷ tổng hệ số hiệu suất'],
-      ['p', 'Các nguồn hiệu suất cùng cộng vào mẫu số: cấp nghề, công cụ, Tín Vật Đàm Đạo, kĩ năng Tiên Minh, Linh Thạch, và buff Chinh Phạt của vùng đang đứng.'],
+      ['p', 'Các nguồn tăng hiệu suất được tính chung: cấp nghề, công cụ, Tín Vật Đàm Đạo, kỹ năng Tiên Minh, Linh Thạch và hiệu ứng Chinh Phạt của khu vực hiện tại.'],
     ],
   },
 
@@ -688,7 +688,7 @@ export const CN_DB = [
     chiTiet: (h) => [
       ...(h._b.lore ? [['p', h._b.lore]] : []),
       ['bang', ['Mục', 'Giá trị'], [['Nhánh', h.nhanh], ['Bậc', h.bac], ['Cộng cho đệ tử', h.cong]]],
-      ['p', 'Nguồn: đấu giá Tàng Thư Lâu và Bí Cảnh. Bí kíp trùng ghép lên bậc cao hơn. Bậc học được bị Tàng Thư Lâu chặn trần.'],
+      ['p', 'Nguồn nhận: đấu giá Tàng Thư Lâu và Bí Cảnh. Bí kíp trùng có thể ghép lên bậc cao hơn. Cấp Tàng Thư Lâu sẽ giới hạn bậc bí kíp có thể học.'],
     ],
   },
 
@@ -702,7 +702,7 @@ export const CN_DB = [
     chiTiet: (h) => [
       ...(h._p.desc ? [['p', h._p.desc]] : []),
       ['bang', ['Mục', 'Giá trị'], [['Dùng lên cảnh giới', h.canh]]],
-      ['p', 'Luyện ở Y Quán. Số lò và tốc luyện tăng theo cấp Y Quán. Phẩm đan bốc ngẫu nhiên, phẩm cao thì tỉ lệ phá cảnh cao hơn.'],
+      ['p', 'Luyện tại Y Quán. Số lò và tốc độ luyện tăng theo cấp Y Quán. Phẩm chất đan được xác định ngẫu nhiên; đan phẩm càng cao, tỉ lệ Phá Cảnh càng lớn.'],
     ],
   },
 
@@ -724,7 +724,7 @@ export const CN_DB = [
         ['Trần cấp', so(h.maxLv)], ['Tổng khi học hết', pct(h._k.moiCap * h._k.maxLv, 1)],
         ['Cấp minh yêu cầu', so(h.capBang)], ['Công Tích nền', so(h.gia)],
       ]],
-      ['p', 'Học bằng Công Tích. Cộng chỉ số thật cho mọi thành viên. Nhánh nào cũng bị một công trình chặn trần cấp.'],
+      ['p', 'Học bằng Công Tích. Kỹ năng cộng chỉ số thật cho toàn bộ thành viên; mỗi nhánh có cấp tối đa phụ thuộc vào công trình tương ứng.'],
     ],
   },
 
@@ -794,7 +794,7 @@ export const CN_DB = [
       ['bang', ['Cộng vào', 'Mức'], [
         ['Kinh nghiệm nghề', h.exp], ['Hiệu suất (rút ngắn chu kỳ)', h.eff], ['Sản lượng mỗi lượt', h.yield],
       ]],
-      ['p', 'Linh Thạch có thời lượng hoạt động; hết viên này thì tự đốt viên cùng loại kế tiếp. Hết sạch thì việc vẫn chạy, chỉ mất phần cộng thêm.'],
+      ['p', 'Linh Thạch có thời gian hiệu lực. Khi một viên hết, hệ thống sẽ tự dùng viên cùng loại tiếp theo; nếu hết sạch, hoạt động vẫn tiếp tục nhưng mất hiệu ứng cộng thêm.'],
       ['h', 'Nguồn kiếm'],
       ...khoiNguon(h._v.itemId || h.id),
     ],

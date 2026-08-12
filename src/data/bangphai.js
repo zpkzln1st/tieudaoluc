@@ -175,37 +175,38 @@ export const CH_NHOM_MAU = { tien: '#fbbf24', dan: '#5dcaa5', hiem: '#a78bfa', q
 // Ghi KẾT QUẢ THẬT ở cấp đó ("Chỗ cho 13 người"), không ghi mức cộng thêm ("+1 suất").
 export const CONG_TRINH = [
   { id: 'tongDan',    ten: 'Tổng Đàn',      maxLv: 10, gioXay: 4,  bacNen: 12000,
-    desc: 'Nhà chính. Nâng lên thì chứa được nhiều người hơn, và minh chúng nộp Minh Cống nhanh hơn.',
+    desc: 'Nhà chính. Nâng cấp để tăng sức chứa và giúp minh chúng nộp Minh Cống nhanh hơn.',
     moTaCap: (lv) => [['Giới hạn thành viên', (12 + lv) + ' người'], ['Minh Cống', '+' + (lv * 4) + '%']] },
   { id: 'binhKhiKho', ten: 'Binh Khí Khố',  maxLv: 10, gioXay: 5,  bacNen: 15000,
-    desc: 'Kho vũ khí. Xây tới cấp nào thì ba kĩ năng Công Kích, Phòng Ngự, Sinh Lực học được tới cấp đó.',
+    desc: 'Kho vũ khí. Cấp công trình quyết định cấp tối đa có thể học của ba kỹ năng Công Kích, Phòng Ngự và Sinh Lực.',
     moTaCap: (lv) => [['Giới hạn kĩ năng chiến đấu', lv ? ('cấp ' + lv) : 'chưa mở']] },
   { id: 'tuLinhTri',  ten: 'Tụ Linh Trì',   maxLv: 10, gioXay: 6,  bacNen: 18000,
-    desc: 'Ao linh khí. Ai trong minh đi đánh quái cũng được thêm kinh nghiệm.',
+    desc: 'Ao linh khí. Thành viên trong minh khi đánh quái sẽ nhận thêm Kinh Nghiệm.',
     moTaCap: (lv) => [['Kinh nghiệm đánh quái', '+' + (lv * 2) + '%'], ['Áp cho', 'cả Tiên Minh']] },
   { id: 'bangKho',    ten: 'Minh Khố',      maxLv: 10, gioXay: 4,  bacNen: 10000,
-    desc: 'Kho chung. Chứa được nhiều loại đồ hơn, và minh chúng nộp Bạc về nhiều hơn.',
+    desc: 'Kho chung. Nâng cấp để chứa được nhiều loại vật phẩm hơn và tăng lượng Bạc minh chúng nộp về.',
     moTaCap: (lv) => [['Sức chứa kho', (40 + lv * 20) + ' loại đồ'], ['Bạc minh chúng nộp về', '+' + (lv * 5) + '%']] },
   { id: 'tramYeuDai', ten: 'Trảm Yêu Đài',  maxLv: 10, gioXay: 8,  bacNen: 22000,
-    desc: 'Đài triệu Yêu Vương. Mỗi tuần gọi một con về cho cả minh xúm vào đánh, cấp càng cao con càng dữ và thưởng càng dày.',
+    // Vế "cấp càng cao con càng dữ" đã bỏ: `moTaCap` ngay dưới nó in thẳng "Yêu Vương mỗi tuần: bậc N".
+    desc: 'Đài triệu Yêu Vương. Mỗi tuần có thể gọi một Yêu Vương để toàn minh cùng tham chiến.',
     moTaCap: (lv) => [['Yêu Vương mỗi tuần', lv ? ('bậc ' + lv) : 'chưa gọi được']] },
   // ---- 5 công trình thêm sau ----
   // ⚠ ID = ĐÚNG TÊN FILE ART tác giả đã đặt (viết thường liền, khác lối camelCase của 5 cái cũ).
   // Giữ nguyên chứ không đổi cho "đẹp": art tra theo images/tienminh/<id>.webp, đổi id là mất ảnh.
   { id: 'luyendanphong', ten: 'Luyện Đan Phòng', maxLv: 10, gioXay: 5,  bacNen: 14000,
-    desc: 'Phòng luyện đan. Xây tới cấp nào thì bốn quyết kiếm chác — Tham Tài, Lùng Sục, Thổ Mộc, Toạ Quan — học được tới cấp đó.',
+    desc: 'Phòng luyện đan. Cấp công trình quyết định cấp tối đa của bốn kỹ năng kiếm chác: Tham Tài, Lùng Sục, Thổ Mộc và Tọa Quan.',
     moTaCap: (lv) => [['Giới hạn quyết kiếm chác', lv ? ('cấp ' + lv) : 'chưa mở']] },
   { id: 'tangkinhcac',   ten: 'Tàng Kinh Các',   maxLv: 10, gioXay: 6,  bacNen: 17000,
-    desc: 'Gác chứa kinh. Xây tới cấp nào thì bốn quyết tu luyện — Ngộ Đạo, Tụ Hồn, Tầm Bảo, Mục Thú — học được tới cấp đó.',
+    desc: 'Gác chứa kinh. Cấp công trình quyết định cấp tối đa của bốn kỹ năng tu luyện: Ngộ Đạo, Tụ Hồn, Tầm Bảo và Mục Thú.',
     moTaCap: (lv) => [['Giới hạn quyết tu luyện', lv ? ('cấp ' + lv) : 'chưa mở']] },
   { id: 'dienvotruong',  ten: 'Diễn Võ Trường',  maxLv: 10, gioXay: 7,  bacNen: 20000,
-    desc: 'Sân luyện võ. Minh chúng tập trận quen tay, mỗi tuần ngươi được thêm lượt xuất trận đánh Yêu Vương.',
+    desc: 'Sân luyện võ. Minh chúng tập trận tại đây; mỗi tuần bạn sẽ nhận thêm lượt xuất trận đánh Yêu Vương.',
     moTaCap: (lv) => [['Lượt xuất trận mỗi tuần', (BOSS_BANG_LUOT + lv) + ' lượt']] },
   { id: 'phicaptram',    ten: 'Phi Cáp Trạm',    maxLv: 10, gioXay: 4,  bacNen: 11000,
-    desc: 'Trạm chim đưa thư. Danh tiếng Tiên Minh bay xa, người tìm tới cửa xin nhập minh dày hơn.',
+    desc: 'Trạm chim đưa thư. Danh tiếng Tiên Minh càng cao, càng có nhiều người tìm đến xin gia nhập.',
     moTaCap: (lv) => [['Đơn xin mỗi lượt', (1 + lv) + '-' + (2 + lv) + ' người']] },
   { id: 'thikiemdai',    ten: 'Thí Kiếm Đài',    maxLv: 10, gioXay: 8,  bacNen: 24000,
-    desc: 'Đài tỉ kiếm. Minh chúng mài nghề trên đài, ra ngoài chém quái ghi được nhiều điểm Chinh Phạt hơn.',
+    desc: 'Đài tỉ kiếm. Minh chúng luyện kỹ năng trên đài, từ đó khi ra ngoài hạ quái sẽ ghi được nhiều điểm Chinh Phạt hơn.',
     moTaCap: (lv) => [['Điểm Chinh Phạt mỗi con', (CP_MOI_KILL + lv) + ' điểm']] },
 ];
 // Nhóm kĩ năng nào bị công trình nào chặn trần. Khoá KHÔNG có trong bảng này thì không ai chặn.

@@ -7,33 +7,33 @@
 export const CLASSES = {
   // --- Chiến đấu ---
   chienSi: { id: 'chienSi', name: 'Chiến Sĩ', gloss: 'Warrior', group: 'combat', icon: '⚔️',
-    desc: 'Thiết cốt cương thân, chính khí ngút trời. Đao thương qua tay hóa sấm sét, lấy cương mãnh phá vạn pháp — chính diện giao phong chẳng chút nao núng.', bonuses: ['+10% Lực Đạo EXP', '+5% Chiến Đấu EXP'] },
+    desc: 'Thân thể rắn như thép, chính khí ngút trời. Đao thương qua tay hóa thành thế sấm sét, lấy cương mãnh phá vạn pháp; đối đầu trực diện chưa từng nao núng.', bonuses: ['+10% Lực Đạo EXP', '+5% Chiến Đấu EXP'] },
   amVe: { id: 'amVe', name: 'Ám Vệ', gloss: 'Shadowblade', group: 'combat', icon: '🗡️',
-    desc: 'Ẩn thân trong bóng tối, đến đi tựa gió thoảng. Một nhát đoạt mệnh giữa chớp mắt, thân pháp quỷ dị khiến địch chưa kịp thấy bóng đã thân thủ dị xứ.', bonuses: ['+5% Thân Pháp EXP', '+10% Hiệu suất săn'] },
+    desc: 'Ẩn mình trong bóng tối, đến đi như gió thoảng. Một nhát đoạt mạng trong chớp mắt, thân pháp quỷ dị khiến đối thủ chưa kịp nhìn rõ đã mất mạng.', bonuses: ['+5% Thân Pháp EXP', '+10% Hiệu suất săn'] },
   duHiep: { id: 'duHiep', name: 'Du Hiệp', gloss: 'Ranger', group: 'combat', icon: '🏹',
-    desc: 'Rong ruổi chân trời, cung tiễn bất ly thân. Mũi tên rời dây xuyên mây vọng nguyệt — lấy khoảng cách làm khiên, lấy giang hồ làm nhà.', bonuses: ['+7% Linh Xảo EXP', '+8% Hiệu suất săn'] },
+    desc: 'Rong ruổi khắp chân trời, cung tiễn không rời tay. Mũi tên rời dây xuyên mây đón trăng; lấy khoảng cách làm khiên, lấy giang hồ làm nhà.', bonuses: ['+7% Linh Xảo EXP', '+8% Hiệu suất săn'] },
 
   // --- Kỹ năng ---
   tieuPhu: { id: 'tieuPhu', name: 'Tiều Phu', gloss: 'Lumberjack', group: 'skill', skill: 'phatMoc', icon: '🪓',
-    desc: 'Rìu nặng trên vai, sống đời sơn lâm. Mỗi nhát bổ xuống vang động núi rừng, gỗ quý chất đầy — bậc thầy đốn mộc chốn thâm sơn.', bonuses: ['+10% Đốn Củi EXP & Hiệu suất'] },
+    desc: 'Vác rìu nặng trên vai, sống giữa núi rừng. Mỗi nhát bổ vang động thâm sơn, gỗ quý chất đầy; là bậc thầy đốn mộc nơi rừng sâu.', bonuses: ['+10% Đốn Củi EXP & Hiệu suất'] },
   khoangDo: { id: 'khoangDo', name: 'Thợ Mỏ', gloss: 'Miner', group: 'skill', skill: 'thaiKhoang', icon: '⛏️',
-    desc: 'Lăn lộn nơi hầm sâu lòng đất, mắt tinh nhìn thấu mạch khoáng. Búa chim nện đá toé lửa, moi tận long mạch lấy kim ngọc châu báu.', bonuses: ['+10% Đào Khoáng EXP & Hiệu suất'] },
+    desc: 'Lăn lộn dưới hầm sâu, đôi mắt tinh tường nhìn ra từng mạch khoáng. Cuốc chim nện đá tóe lửa, lần theo long mạch để tìm kim ngọc và châu báu.', bonuses: ['+10% Đào Khoáng EXP & Hiệu suất'] },
   nguOng: { id: 'nguOng', name: 'Ngư Ông', gloss: 'Angler', group: 'skill', skill: 'dieuNgu', icon: '🎣',
-    desc: 'Một cần buông xuống, tĩnh tọa bên sông. Tâm như nước lặng chờ thời — kiên nhẫn đợi một khắc, cá lớn ắt cắn câu.', bonuses: ['+10% Câu Cá EXP & Hiệu suất'] },
+    desc: 'Buông một cần câu, tĩnh tọa bên sông. Tâm lặng như mặt nước, kiên nhẫn chờ đúng thời điểm; chỉ cần đủ tĩnh, cá lớn rồi cũng cắn câu.', bonuses: ['+10% Câu Cá EXP & Hiệu suất'] },
   truSu: { id: 'truSu', name: 'Đầu Bếp', gloss: 'Chef', group: 'skill', skill: 'phanhNham', icon: '🍳',
-    desc: 'Tay dao thớt biến sơn hào hải vị thành cao lương. Lửa đượm hương bay, một bàn tiệc đãi anh hùng thiên hạ, no lòng ấm dạ lữ khách phong trần.', bonuses: ['+10% Nấu Ăn EXP & Hiệu suất'] },
+    desc: 'Dao thớt trong tay biến sơn hào hải vị thành món ngon. Lửa bếp dậy hương, một bàn tiệc đủ đãi anh hùng bốn phương và sưởi ấm lữ khách phong trần.', bonuses: ['+10% Nấu Ăn EXP & Hiệu suất'] },
   daSu: { id: 'daSu', name: 'Thợ Luyện Kim', gloss: 'Smelter', group: 'skill', skill: 'daLuyen', icon: '🔥',
-    desc: 'Đứng giữa lò lửa ngút trời, quặng thô qua tay hóa tinh kim. Nghe hơi nóng mà đoán độ già non, luyện ra thỏi sáng loáng cho bậc thợ rèn.', bonuses: ['+10% Luyện Kim EXP & Hiệu suất'] },
+    desc: 'Đứng giữa lò lửa rực trời, biến quặng thô thành tinh kim. Chỉ nghe tiếng lửa và nhìn màu kim loại đã biết độ già non, luyện ra vật liệu tốt cho thợ rèn.', bonuses: ['+10% Luyện Kim EXP & Hiệu suất'] },
   nguThuSu: { id: 'nguThuSu', name: 'Ngự Thú Sư', gloss: 'Beastmaster', group: 'skill', pet: true, icon: '🐾',
-    desc: 'Lòng thông vạn vật, ý thấu muông thú. Thuần phục linh thú sơn lâm làm bạn đồng hành — một tiếng sáo ngân, cả bầy nghe lệnh.', bonuses: ['+10% Ngự Thú EXP'] },
+    desc: 'Hiểu tính muôn loài, cảm được ý của Linh Thú. Có thể thuần phục thú rừng làm bạn đồng hành; một tiếng sáo vang lên, cả bầy đều nghe lệnh.', bonuses: ['+10% Ngự Thú EXP'] },
 
   // --- Khổ tu (khóa — không đổi lại) ---
   pheNhan: { id: 'pheNhan', name: 'Phế Nhân', gloss: 'Forsaken', group: 'hardcore', locked: true, danger: true, allExpMult: 0.5, icon: '💀',
-    desc: 'Kẻ tu hành gập ghềnh nhất thiên hạ: căn cơ hao tổn, mỗi bước tiến đẫm mồ hôi xương máu. Chỉ dành cho kẻ ngạo nghễ dám thách thức chính số mệnh.', bonuses: ['-50% MỌI EXP'] },
+    desc: 'Con đường tu hành gian nan bậc nhất: căn cơ hao tổn, mỗi bước tiến đều phải trả bằng mồ hôi và máu. Chỉ hợp với người muốn tự mình thách thức số mệnh.', bonuses: ['-50% MỌI EXP'] },
   luuDay: { id: 'luuDay', name: 'Lưu Đày', gloss: 'Banished', group: 'hardcore', locked: true, danger: true, icon: '⛓️',
-    desc: 'Bị giang hồ ruồng bỏ, một thân một bóng bôn tẩu. Không bằng hữu, không giao dịch — chỉ có chính mình và con đường cô độc trải dài phía trước.', bonuses: ['Cấm Giao Dịch', '-50% phí Truyền Tống'] },
+    desc: 'Bị giang hồ ruồng bỏ, một thân một bóng phiêu bạt. Không bằng hữu, không giao dịch; chỉ còn chính mình và con đường cô độc phía trước.', bonuses: ['Cấm Giao Dịch', '-50% phí Truyền Tống'] },
   maChung: { id: 'maChung', name: 'Ma Chủng', gloss: 'Cursed', group: 'hardcore', locked: true, danger: true, allExpMult: 0.5, icon: '👹',
-    desc: 'Thân mang tà chú thượng cổ, nghịch thiên mà tu. Con đường gian nan bậc nhất thế gian — kẻ nhụt chí chớ dại bước vào, vinh quang chỉ thuộc về kẻ cuồng nhất.', bonuses: ['Lưu Đày + Phế Nhân'] },
+    desc: 'Mang tà chú thượng cổ trong người, nghịch thiên mà tu. Đây là một trong những con đường khắc nghiệt nhất; kẻ dễ nản chớ bước vào, phần thưởng chỉ dành cho người đủ gan đi đến cùng.', bonuses: ['Lưu Đày + Phế Nhân'] },
 };
 
 export const CLASS_GROUPS = [

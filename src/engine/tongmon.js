@@ -778,7 +778,7 @@ export function mergeBiKip(state, tier) {
 // Hợp Nhất THỦ CÔNG: tiêu ĐÚNG các bí kíp người chơi chọn (ids, có thể trùng id). Tất cả phải CÙNG bậc + đủ số (BK_MERGE_N) -> 1 bí kíp ngẫu nhiên bậc kế.
 export function mergeBiKipPick(state, ids) {
   const t = state.tongMon; if (!t) return { ok: false, msg: 'Chưa có tông môn' };
-  if (!Array.isArray(ids) || !ids.length) return { ok: false, msg: 'Chọn bí kíp để hợp nhất.' };
+  if (!Array.isArray(ids) || !ids.length) return { ok: false, msg: 'Chọn Bí Kíp để Hợp Nhất.' };
   const first = BI_KIP_BY_ID[ids[0]]; if (!first) return { ok: false, msg: 'Bí kíp không hợp lệ.' };
   const tier = first.tier;
   if (!ids.every((id) => (BI_KIP_BY_ID[id] || {}).tier === tier)) return { ok: false, msg: 'Phải cùng một bậc.' };

@@ -83,7 +83,7 @@ const A1 = {
   choices: [
     {
       label: 'Chứng hôn cho đôi trẻ',
-      flavor: 'Đứng ra tác hợp, để chúng kết làm đạo lữ trong môn.',
+      flavor: 'Đứng ra tác hợp, để hai người kết thành Đạo Lữ trong môn.',
       resolve: (c) => G(
         `Ngươi đứng ra chủ hôn dưới gốc ngân hạnh. ${c.main.name} và ${c.second.name} bái thiên địa, bái sư môn, rồi bái nhau. Từ đó hai người song tu — một cương một nhu quấn lấy nhau như rồng phượng, đạo tâm tương thông. Cả tông một phen rượu vui.`,
         [ { uy: 120 }, { khiVan: 5 }, { flag: { name: 'daoLu', value: c.second.uid, who: c.main.uid } }, { flag: { name: 'daoLu', value: c.main.uid, who: c.second.uid } } ],
@@ -99,18 +99,18 @@ const A1 = {
           ? B(`Ngươi ra lệnh cấm tuyệt, bắt cả hai bế quan riêng. ${c.main.name} cắn răng vâng lệnh, nhưng trong mắt đã vẩn một tầng oán khí — "đạo này vô tình đến thế sao?". Khổ luyện thì có khổ luyện, mà mầm bất phục cũng đã gieo.`,
               [ { capBonus: { n: 1, who: c.main.uid } }, { capBonus: { n: 1, who: c.second.uid } }, { khiVan: -4 }, { flag: { name: 'oanTham', value: true, who: c.main.uid } } ],
               `Chưởng Môn cấm tuyệt mối duyên ${c.main.name} · ${c.second.name} — khổ luyện tăng tiến, song oán thầm cũng nhen.`)
-          : M(`Ngươi ra lệnh cấm tuyệt. Hai đứa cúi đầu, nuốt mối tình vào lòng mà dồn cả vào kiếm. Vài tháng sau, đường tu của cả hai quả nhiên vững hơn — chỉ là những đêm trăng, thi thoảng vẫn có người ngồi một mình trên nóc Tàng Thư Lâu.`,
+          : M(`Bạn ra lệnh cấm tuyệt. Hai đệ tử cúi đầu, nuốt tình ý vào lòng rồi dồn hết tâm trí vào kiếm. Vài tháng sau, đường tu của cả hai quả nhiên vững hơn — chỉ là những đêm trăng, thỉnh thoảng vẫn có một người ngồi một mình trên nóc Tàng Thư Lâu.`,
               [ { capBonus: { n: 1, who: c.main.uid } }, { capBonus: { n: 1, who: c.second.uid } } ],
               `Chưởng Môn cấm tuyệt mối duyên ${c.main.name} · ${c.second.name} — ép tình thành kiếm, căn cơ vững thêm một phần.`);
       },
     },
     {
       label: 'Giao Y Quán xét đạo tâm',
-      flavor: 'Để Y Quán khám tâm mạch hai đứa rồi hẵng phán.',
+      flavor: 'Để Y Quán kiểm tra tâm mạch của cả hai rồi mới quyết định.',
       resolve: (c) => c.lucky(0.5)
-        ? G(`Y Quán bắt mạch ba ngày, phán: "Tình này giúp đạo, chẳng loạn đạo." Ngươi y lời chứng hôn. Quả nhiên ${c.main.name} cùng ${c.second.name} song tu thuận buồm, tâm cảnh sáng thêm một bậc.`,
+        ? G(`Y Quán bắt mạch ba ngày, phán: "Tình này trợ đạo, không loạn đạo." Ngươi y lời chứng hôn. Quả nhiên ${c.main.name} cùng ${c.second.name} song tu thuận buồm, tâm cảnh sáng thêm một bậc.`,
             [ { uy: 80 }, { khiVan: 6 }, { flag: { name: 'daoLu', value: c.second.uid, who: c.main.uid } }, { flag: { name: 'daoLu', value: c.main.uid, who: c.second.uid } } ],
-            `Y Quán phán "tình giúp đạo" — ${c.main.name} · ${c.second.name} chứng hôn, đạo tâm cùng sáng.`)
+            `Y Quán phán "Tình trợ đạo." — ${c.main.name} · ${c.second.name} chứng hôn, đạo tâm cùng sáng.`)
         : B(`Y Quán khám ra ${c.second.name} vì tình mà đạo tâm rạn, sát niệm âm thầm bám rễ. Ngươi đành hoãn mối duyên. ${c.second.name} ôm uất, từ đó hay lẻn xuống hậu sơn một mình…`,
             [ { khiVan: -5 }, { flag: { name: 'tamMaSeed', value: true, who: c.second.uid } } ],
             `Y Quán phát hiện ${c.second.name} tình loạn đạo tâm — mối duyên đành hoãn, mầm tâm ma chớm.`),
@@ -119,10 +119,10 @@ const A1 = {
       label: 'Hỏi thẳng ý hai đứa',
       flavor: 'Gọi riêng từng người, nghe lòng chúng muốn gì.',
       resolve: (c) => c.anyTrait(['Phóng Khoáng', 'Nhân Hậu', 'Trượng Nghĩa'], c.main) || c.anyTrait(['Phóng Khoáng', 'Nhân Hậu', 'Trượng Nghĩa'], c.second)
-        ? G(`Ngươi gọi riêng từng đứa. Cả hai đều nói cùng một câu: "Đệ tử nguyện lấy đạo làm trọng, lấy nhau làm bạn đồng hành." Lòng đã thông thì duyên tự thuận — ngươi gật đầu, chúng thành một đôi mà đạo chẳng hề vương.`,
+        ? G(`Bạn gọi riêng từng đệ tử. Cả hai đều nói cùng một câu: “Đệ tử nguyện lấy đạo làm trọng, lấy nhau làm bạn đồng hành.” Tâm ý đã thông, duyên tự thuận — bạn gật đầu cho họ kết thành một đôi mà đường tu vẫn vẹn.`,
             [ { uy: 90 }, { khiVan: 4 }, { flag: { name: 'daoLu', value: c.second.uid, who: c.main.uid } }, { flag: { name: 'daoLu', value: c.main.uid, who: c.second.uid } } ],
             `Hỏi tận lòng, ${c.main.name} · ${c.second.name} lấy đạo làm trọng — thành đôi mà tâm vô quái ngại.`)
-        : M(`Ngươi gọi riêng từng đứa. Hỏi ra mới biết, tình này một nóng một lạnh, lại có kẻ thứ ba ghé mắt. Ngươi gỡ tạm được mớ bòng bong, nhưng giang hồ nhi nữ, chuyện lòng đâu dứt một lần là xong.`,
+        : M(`Bạn gọi riêng từng đệ tử mới biết tình này một nóng một lạnh, lại có người thứ ba để ý. Mớ bòng bong tạm thời được gỡ, nhưng chuyện tình cảm trong giang hồ đâu thể giải quyết chỉ trong một lần.`,
             [ { uy: 20 }, { flag: { name: 'tinhTrieu', value: true, who: c.main.uid } } ],
             `Hỏi ý đôi trẻ ${c.main.name} · ${c.second.name} — tình duyên rối, tạm gỡ mà chưa dứt.`),
     },
@@ -287,11 +287,11 @@ const B1 = {
   cond: (t) => t.disciples.filter((d) => !d.awaiting).length >= 1,
   pick: () => [],
   story: () =>
-    `Một lão nhân áo vải bạc màu, lưng đeo thanh kiếm gỉ, gõ cổng tông xin một bữa cơm chay. Đệ tử gác cổng toan đuổi đi, may có kẻ tinh mắt nhận ra — ấy là Mộ Vân Tẩu, danh túc một thời nay đã ẩn thế. Lão cười khà: "Cơm ngon, ta truyền một chiêu làm lễ tạ." Cơ duyên ngàn năm có một, chỉ tiếc cao nhân tính khí thất thường, dạy ai là tùy hứng.`,
+    `Một lão nhân áo vải bạc màu, lưng đeo thanh kiếm gỉ, gõ cổng xin một bữa cơm chay. Đệ tử gác cổng định đuổi đi, may có người tinh mắt nhận ra đó là Mộ Vân Tẩu — danh túc một thời nay đã ẩn thế. Lão cười khà: “Cơm ngon, ta truyền một chiêu làm lễ tạ.” Cơ duyên hiếm có, chỉ tiếc cao nhân tính tình thất thường, chọn ai để dạy hoàn toàn tùy hứng.`,
   choices: [
     {
       label: 'Thiết yến trọng đãi, mời lão chọn người truyền dạy',
-      flavor: 'Bày tiệc chay long trọng, để Mộ Vân Tẩu tự chấm một đệ tử mà truyền.',
+      flavor: 'Bày tiệc chay long trọng, để Mộ Vân Tẩu tự chọn một đệ tử truyền dạy.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
         if (c.lucky(0.55)) {
@@ -308,7 +308,7 @@ const B1 = {
           `Cả tông nín thở chờ lão chọn thiên kiêu, ai ngờ Mộ Vân Tẩu lại chỉ thẳng ${d.name} — kẻ tư chất tầm thường ai cũng xem nhẹ. "Đá thô mà có ngọc, các ngươi không thấy đó thôi." Lão truyền cho ${d.name} một lộ khẩu quyết kỳ dị. Cả tông ngỡ ngàng, riêng ${d.name} ôm lấy cơ duyên mà mắt rưng rưng.`,
           [ { bac: -600 }, { capBonus: { n: 2, who: d.uid } }, { uy: 120 }, { flag: { name: 'phatPhan', value: true, who: d.uid } } ],
           `Mộ Vân Tẩu bỏ qua thiên kiêu, chấm ${d.name} vô danh — "ngọc trong đá", trần tu chất mở rộng bất ngờ.`,
-          'Ngọc trong đá, ngày sau ắt có chuyện để kể.'
+          'Ngọc còn ẩn trong đá, ngày sau ắt có chuyện để kể.'
         );
       },
     },
@@ -319,12 +319,12 @@ const B1 = {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
         return c.lucky(0.5)
           ? G(
-              `Mộ Vân Tẩu ngồi giữa luyện võ trường, một lời một câu vỡ ra trăm điều bế tắc. Cả lứa đệ tử nghe mà mồ hôi đầm đìa, kinh mạch như được khai thông. Trước khi đi, lão vuốt râu cười: "Tông môn này, hậu sinh khả úy." Một câu khen của danh túc, đủ vang khắp giang hồ.`,
+              `Mộ Vân Tẩu ngồi giữa Luyện Võ Trường, vài lời đã tháo gỡ hàng trăm điều bế tắc. Đệ tử nghe đến mồ hôi đầm đìa, kinh mạch như được khai thông. Trước khi đi, lão vuốt râu cười: “Tông môn này, hậu sinh khả úy.” Chỉ một câu khen của danh túc cũng đủ vang khắp giang hồ.`,
               [ { bac: -800 }, ...pool.slice(0, 6).map((d) => ({ capBonus: { n: 1, who: d.uid } })), { uy: 260 }, { khiVan: 5 } ],
-              `Mộ Vân Tẩu điểm hóa toàn tông một buổi, lại để lời khen "hậu sinh khả úy" — nền tảng cả lứa cùng vững.`
+              `Mộ Vân Tẩu điểm hóa toàn tông một buổi, lại để lại lời khen “hậu sinh khả úy” — căn cơ của cả lứa đệ tử cùng được củng cố.`
             )
           : M(
-              `Mộ Vân Tẩu giảng được nửa buổi thì lắc đầu: "Căn cơ chưa đủ, nói nhiều cũng phí." Lão chỉ qua loa vài chiêu rồi cáo từ. Đệ tử vớt vát được chút ít, song buổi giảng nhạt hơn kỳ vọng — bạc đã tốn mà cơ duyên chỉ hé một góc.`,
+              `Mộ Vân Tẩu giảng được nửa buổi thì lắc đầu: “Căn cơ chưa đủ, nói nhiều cũng phí.” Lão chỉ điểm vài chiêu rồi cáo từ. Đệ tử vẫn học được chút ít, nhưng buổi giảng không đạt kỳ vọng — bạc đã tốn mà cơ duyên chỉ hé một góc.`,
               [ { bac: -800 }, ...pool.slice(0, 4).map((d) => ({ capBonus: { n: 1, who: d.uid } })), { uy: 60 } ],
               `Mộ Vân Tẩu điểm hóa nửa chừng, chê căn cơ chưa đủ — cả lứa nhích nhẹ, cơ duyên dang dở.`
             );
@@ -332,7 +332,7 @@ const B1 = {
     },
     {
       label: 'Hỏi xin lão một món gia bảo ẩn thế',
-      flavor: 'Ngỏ lời xin Mộ Vân Tẩu để lại một món di bảo hoặc bí kíp.',
+      flavor: 'Ngỏ lời xin Mộ Vân Tẩu để lại một món Di Bảo hoặc Bí Kíp.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
         const d = highApt(pool);
@@ -350,7 +350,7 @@ const B1 = {
       },
     },
     {
-      label: 'Để đệ tử cao ngạo tỉ thí trước khi nhận dạy',
+      label: 'Để đệ tử cao ngạo lên Tỉ Thí trước khi nhận chỉ dạy.',
       flavor: 'Mặc một đệ tử khinh lão, đòi so chiêu phân cao thấp.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
@@ -377,7 +377,7 @@ const B2 = {
   cond: (t) => t.disciples.filter((d) => !d.awaiting).length >= 1,
   pick: () => [],
   story: () =>
-    `Một thương nhân mặt dày miệng dẻo, tự xưng Bách Hiểu Sinh, dắt ngựa tới cổng, mở tay nải khoe một tấm bản đồ ố vàng: "Bí tàng của một tuyệt thế cao nhân đã chết, trong có gia bảo trấn phái! Lão phu chỉ bán cho người có duyên." Hắn ra giá cắt cổ, ánh mắt láo liên. Bản đồ thật hay đồ giả lừa gà — chỉ trời mới biết.`,
+    `Một thương nhân miệng lưỡi khéo léo, tự xưng Bách Hiểu Sinh, dắt ngựa tới cổng rồi mở tay nải khoe tấm bản đồ ố vàng: “Bí tàng của một tuyệt thế cao nhân đã chết, bên trong có Gia Bảo trấn phái! Lão phu chỉ bán cho người có duyên.” Giá hắn đưa ra cao ngất, ánh mắt lại láo liên. Bản đồ thật hay đồ giả — chẳng ai biết chắc.`,
   choices: [
     {
       label: 'Mua đứt, cử đệ tử đi tầm bảo',
@@ -424,13 +424,13 @@ const B2 = {
       resolve: (c) =>
         c.lucky(0.5)
           ? G(
-              `Ngươi cười xua tấm bản đồ, chỉ rót rượu mời. Bách Hiểu Sinh rượu vào lời ra, buột miệng lắm chuyện: nào mạch gia bảo chôn nơi cổ tự, nào một môn phái lân cận đang ngấp nghé sinh sự. Tin tức quý hơn vàng — ngươi ghi lòng tạc dạ, tiễn hắn ra cổng.`,
+              `Bạn cười xua tấm bản đồ, chỉ rót rượu mời. Bách Hiểu Sinh uống vào lời ra, vô tình để lộ không ít tin: từ Gia Bảo chôn trong cổ tự đến môn phái lân cận đang có ý gây chuyện. Tin tức đôi khi quý hơn vàng — bạn ghi nhớ rồi tiễn hắn ra cổng.`,
               [ { uy: 60 }, { khiVan: 4 } ],
-              `Chưởng Môn mời Bách Hiểu Sinh kể chuyện thay vì mua đồ — moi được tin tức giang hồ quý giá.`,
+              `Chưởng Môn không mua đồ mà mời Bách Hiểu Sinh kể chuyện, nhờ đó moi được nhiều tin tức giang hồ có giá trị.`,
               'Nghe đâu một môn phái lân cận đang ngấp nghé sinh sự.'
             )
           : M(
-              `Ngươi mời rượu mong moi tin, nhưng Bách Hiểu Sinh chỉ rặt khoe khoang chuyện bán buôn, chẳng có gì đáng giá. Hắn ăn no uống say rồi đi, để lại cái cổng thoảng mùi rượu thừa. Mất một buổi mà chẳng được mấy.`,
+              `Bạn mời rượu mong moi tin, nhưng Bách Hiểu Sinh chỉ nói toàn chuyện buôn bán khoe khoang. Hắn ăn no uống say rồi rời đi, để lại một buổi tiếp khách gần như vô ích.`,
               [ { khiVan: 1 } ],
               `Chưởng Môn đãi rượu Bách Hiểu Sinh, song hắn chỉ khoác lác — chẳng moi được tin gì.`
             ),
@@ -443,14 +443,14 @@ const B2 = {
         const d = rnd(pool, c.rng);
         return c.dao === 'chinh'
           ? B(
-              `Ngươi quát đệ tử khám tay nải, quả nhiên lòi ra cả xấp đồ ăn cắp. Bách Hiểu Sinh quỳ sụp van xin. Ngươi tịch thu bản đồ, sung công đồ gian, đuổi hắn đi. Đồ thì lấy được không tốn một đồng, song dân hành thương rỉ tai nhau: "Tông ấy hà khắc, chớ dây." Từ nay khách buôn ngại ghé.`,
+              `Bạn cho đệ tử khám tay nải và phát hiện cả xấp đồ ăn cắp. Bách Hiểu Sinh quỳ xuống van xin. Bạn tịch thu tang vật, đuổi hắn khỏi sơn môn. Không mất Bạc mà thu được đồ, nhưng giới thương nhân bắt đầu rỉ tai nhau rằng “tông này quá hà khắc”, từ đó ngại ghé.`,
               [ { khiVan: -6 }, { uy: -40 }, { flag: { name: 'oanTham', value: true, who: d.uid } } ],
-              `Chưởng Môn tịch thu bản đồ, trị Bách Hiểu Sinh buôn đồ gian — được của mà mang tiếng hà khắc, khách buôn ngại ghé.`
+              `Chưởng Môn tịch thu tang vật của Bách Hiểu Sinh — được của nhưng mang tiếng hà khắc, khiến thương nhân ngại ghé.`
             )
           : M(
-              `Ngươi định ra tay tịch thu, nhưng tông môn vốn không câu nệ chính tà. Bách Hiểu Sinh thấy thế dữ, vứt cả tay nải mà chạy, để lại tấm bản đồ lăn lóc dưới đất. Ngươi nhặt lên — thật giả khôn lường, song chẳng tốn một đồng. Một phen nhặt may.`,
+              `Bạn định tịch thu, nhưng tông môn vốn không quá câu nệ chính tà. Bách Hiểu Sinh thấy tình hình không ổn, vứt tay nải bỏ chạy, để lại tấm bản đồ dưới đất. Thật giả chưa rõ, nhưng ít nhất chẳng tốn một đồng.`,
               [ { khiVan: -2 }, { uy: 20 } ],
-              `Chưởng Môn dọa tịch thu, Bách Hiểu Sinh bỏ của chạy lấy người — tấm bản đồ về tông mà thật giả khó tường.`
+              `Chưởng Môn dọa tịch thu, Bách Hiểu Sinh bỏ của chạy lấy người — tấm bản đồ rơi vào tay tông môn, nhưng thật giả vẫn khó biết.`
             );
       },
     },
@@ -462,7 +462,7 @@ const B3 = {
   cond: (t) => t.disciples.filter((d) => !d.awaiting).length >= 1,
   pick: () => [],
   story: () =>
-    `Một thiếu niên áo gấm cưỡi tuấn mã tới sơn môn, hai tay dâng thiệp đỏ — môn phái lân cận phái sứ sang. Có thể là cầu thân kết minh, có thể là dò xét hư thực, cũng có thể là hạ chiến thư trá hình. Sứ giả lễ phép cúi mình mà ánh mắt sắc như dao, từng lời đều cân nhắc đắn đo.`,
+    `Một thiếu niên áo gấm cưỡi tuấn mã tới sơn môn, hai tay dâng thiệp đỏ — môn phái lân cận phái sứ giả sang. Có thể họ muốn cầu thân kết minh, dò xét thực lực hoặc gửi một chiến thư trá hình. Sứ giả hành lễ rất đúng mực, nhưng ánh mắt sắc và từng lời đều được cân nhắc kỹ.`,
   choices: [
     {
       label: 'Trọng đãi, kết minh giao hảo',
@@ -470,15 +470,15 @@ const B3 = {
       resolve: (c) =>
         c.dao === 'ta'
           ? M(
-              `Ngươi mở tiệc kết minh, sứ giả vái dài nhận lễ. Hai nhà cắt máu ăn thề. Song đạo các ngươi vốn nghịch nhau — minh ước này như đồng sàng dị mộng, dưới chén rượu thề đã ngầm cài mầm nghi kỵ. Bằng mặt mà chưa hẳn bằng lòng.`,
+              `Bạn mở tiệc kết minh, sứ giả nhận lễ. Hai môn phái cắt máu ăn thề, nhưng đường lối vốn trái ngược nên minh ước này vẫn ẩn nhiều nghi kỵ. Bề ngoài hòa thuận, trong lòng chưa chắc đã thật sự tin nhau.`,
               [ { bac: -300 }, { uy: 120 }, { khiVan: 2 } ],
-              `Chưởng Môn kết minh môn phái lân cận, song đạo nghịch nhau — minh ước đồng sàng dị mộng, mầm phản gián ngầm gieo.`,
+              `Chưởng Môn kết minh với môn phái lân cận, nhưng đường lối trái ngược — minh ước có lợi trước mắt, song mầm nghi kỵ vẫn âm thầm tồn tại.`,
               'Minh ước gượng ép, ngày sau ắt có kẻ trở mặt.'
             )
           : G(
-              `Ngươi bày tiệc trọng đãi, đôi bên cắt máu ăn thề kết làm huynh đệ môn phái. Sứ giả mừng rỡ ra mặt, hẹn ngày tương trợ. Từ nay tông môn thêm một cánh tay ngoài giang hồ — kẻ nào dòm ngó cũng phải đắn đo.`,
+              `Bạn bày tiệc trọng đãi, đôi bên cắt máu ăn thề kết làm minh hữu. Sứ giả mừng rỡ, hẹn ngày tương trợ. Từ nay tông môn có thêm một đồng minh ngoài giang hồ, kẻ muốn gây sự cũng phải cân nhắc.`,
               [ { bac: -300 }, { uy: 200 }, { khiVan: 5 } ],
-              `Chưởng Môn kết minh giao hảo với môn phái lân cận — tông môn thêm vây cánh, giảm cơ bị khiêu chiến.`
+              `Chưởng Môn kết minh giao hảo với môn phái lân cận — tông môn thêm đồng minh, giảm nguy cơ bị khiêu chiến.`
             ),
     },
     {
@@ -507,9 +507,9 @@ const B3 = {
       flavor: 'Nhận thiệp qua loa, không kết minh không kết thù, tiễn khách về.',
       resolve: () =>
         M(
-          `Ngươi nhận thiệp, ban một chén trà nhạt rồi khoát tay tiễn khách. Sứ giả cúi chào, ánh mắt thoáng lạnh. Tông môn giữ được thế trung lập, chẳng vương vào ân oán nào — song cái cách lạnh nhạt ấy, e rằng đã ghi vào lòng kẻ kiêu căng bên kia một dấu hỏi.`,
+          `Bạn nhận thiệp, mời một chén trà nhạt rồi tiễn khách. Sứ giả cúi chào, ánh mắt thoáng lạnh. Tông môn giữ được thế trung lập, không vướng thêm ân oán, nhưng thái độ lạnh nhạt có thể khiến đối phương ghi nhớ.`,
           [ { khiVan: -1 } ],
-          `Chưởng Môn lạnh nhạt tiễn sứ, giữ thế trung lập — phe kia ghi "tông cao ngạo", nhích nhẹ cơ sinh khiêu chiến.`
+          `Chưởng Môn lạnh nhạt tiễn sứ, giữ thế trung lập — phe kia đánh giá tông môn “cao ngạo”, khiến nguy cơ bị khiêu chiến tăng nhẹ.`
         ),
     },
   ],
@@ -534,7 +534,7 @@ const C1 = {
   choices: [
     {
       label: 'Cử đệ tử mạnh nhất nghênh chiến',
-      flavor: 'Để đệ tử mạnh nhất bước lên đài, đường đường chính chính tỉ võ.',
+      flavor: 'Để đệ tử mạnh nhất bước lên đài, đường đường chính chính Tỉ Võ.',
       resolve: (c) => c.lucky(0.55)
         ? G(`${c.main.name} bước lên đài, kiếm quang chẻ gió. Ba mươi chiêu, Sài Nhất Đao bị đánh bật xuống đài, ôm đao tạ trận. Tên tông môn được xướng vang Phong Vân Bảng, Huyết Đao Môn cụp cờ rút lui, từ đó kiêng dè không dám hó hé.`,
             [ { uy: 450 }, { khiVan: 6 }, { bietHieu: { name: 'Trấn Sơn', who: c.main.uid } }, { flag: { name: 'triAn', value: true, who: c.main.uid } } ],
@@ -562,9 +562,9 @@ const C1 = {
       label: 'Từ chối tỉ thí, đóng cửa tạ khách',
       flavor: 'Hạ lệnh bế sơn môn, không tiếp chiến thư.',
       resolve: (c) =>
-        B(`Cổng sơn môn khép chặt, mặc Sài Nhất Đao đứng ngoài chửi rủa nửa ngày rồi hậm hực bỏ đi. Tránh được trận thua, song Huyết Đao Môn đi đến đâu cũng rêu rao tông này nhát gan né chiến. Giang hồ ngửi thấy mùi nhược, mấy mộn phái khác đã bắt đầu liếc mắt dòm ngó.`,
+        B(`Cổng sơn môn đóng chặt, mặc Sài Nhất Đao đứng ngoài chửi rủa nửa ngày rồi bỏ đi. Tránh được một trận thua, nhưng Huyết Đao Môn đi đến đâu cũng rêu rao tông này nhát gan né chiến. Giang hồ ngửi thấy dấu hiệu yếu thế, vài môn phái khác đã bắt đầu dòm ngó.`,
           [ { uy: -90 }, { khiVan: -3 } ],
-          `Tông bế quan từ chối Huyết Đao Môn — tránh trận mà mang tiếng nhát, giang hồ bắt đầu dòm ngó.`),
+          `Tông Môn bế quan từ chối Huyết Đao Môn — tránh được trận đấu nhưng mang tiếng nhát, khiến giang hồ bắt đầu dòm ngó.`),
     },
     {
       label: 'Đề nghị đổi luật, tỉ trí thay tỉ võ',
@@ -573,7 +573,7 @@ const C1 = {
         ? G(`Ngươi mỉm cười đề nghị: thay vì so đao kiếm, hãy so trí. Sài Nhất Đao một võ phu, miễn cưỡng nhận lời rồi thua liểng xiểng trước bàn cờ ${c.main.name} bày sẵn. Huyết Đao Môn ngậm bồ hòn rút lui, giang hồ phong tông là "tông của trí giả".`,
             [ { uy: 280 }, { khiVan: 4 }, { bietHieu: { name: 'Trí Giả', who: c.main.uid } } ],
             `${c.main.name} thắng Huyết Đao Môn trên bàn cờ thay vì đài võ — tông được xưng tụng "trí giả".`)
-        : M(`Sài Nhất Đao gằn giọng: "Võ lâm phân cao thấp bằng nắm đấm, không bằng cây bút!" rồi phất tay bỏ đi, vừa đi vừa mỉa tông này "sợ động thủ". Tránh được trận võ bất lợi, song cũng chuốc lời ong tiếng ve. Lái cuộc chơi đâu phải lúc nào cũng xuôi.`,
+        : M(`Sài Nhất Đao gằn giọng: “Võ lâm phân cao thấp bằng nắm đấm, không bằng cây bút!” rồi phất tay bỏ đi, vừa đi vừa mỉa tông môn sợ động thủ. Tránh được trận võ bất lợi, nhưng cũng chuốc thêm lời bàn tán.`,
             [ { uy: -30 } ],
             `Tông mời Huyết Đao Môn đấu trí, bị khước từ — tránh trận võ mà chuốc tiếng "sợ động thủ".`),
     },
@@ -604,15 +604,15 @@ const C2 = {
             `${c.main.name} đoạt linh mạch từ tay Thanh Vân Cốc — Khí Vận tông dồi dào dài lâu, ghi mốc Sử Sách.`)
         : B(`Trận chiến giằng co rồi nghiêng về Thanh Vân Cốc. ${c.main.name} hộc máu lui binh, mạch linh khí rơi vào tay đối phương, mấy đệ tử trọng thương khiêng về Y Quán. Uy Danh tổn, mà kẻ chủ chiến nuốt hận, ngày đêm thề có ngày đòi lại bằng được.`,
             [ { uy: -160 }, { khiVan: -6 }, { flag: { name: 'phatPhan', value: true, who: c.main.uid } } ],
-            `Tông bại trận tranh mạch với Thanh Vân Cốc — mất mạch, đệ tử trọng thương, kẻ thua ôm hận chờ phục thù.`),
+            `Tông Môn thua trận tranh Linh Mạch với Thanh Vân Cốc — mất mạch, đệ tử trọng thương, người thua ôm hận chờ ngày phục thù.`),
     },
     {
       label: 'Phân chia, thỏa thuận luân phiên dùng mạch',
       flavor: 'Cử người sang điều đình, chia đôi quyền dùng linh mạch.',
       resolve: (c) =>
-        M(`Hai bên ngồi xuống, gác kiếm, ký một bản giao ước: luân phiên đặt Tụ Linh Trận, mỗi tông hưởng một nửa khí mạch. Không một giọt máu rơi, quan hệ hai tông ấm lại. Chỉ là dưới mặt nước phẳng lặng, một mầm tranh chấp âm ỉ đã gieo — ngày nào đó hẳn có kẻ phá ước.`,
+        M(`Hai bên ngồi xuống, gác kiếm và ký giao ước: luân phiên đặt Tụ Linh Trận, mỗi tông hưởng một nửa khí mạch. Không ai đổ máu, quan hệ hai tông dịu lại. Tuy vậy, tranh chấp chỉ tạm lắng chứ chưa hoàn toàn biến mất.`,
           [ { khiVan: 6 }, { uy: 60 } ],
-          `Tông cùng Thanh Vân Cốc chia mạch luân phiên — hòa khí sinh tài, song mầm tranh chấp đã âm ỉ gieo.`),
+          `Tông Môn và Thanh Vân Cốc chia Linh Mạch theo lượt — đôi bên cùng có lợi, nhưng mầm tranh chấp vẫn còn.`),
     },
     {
       label: 'Nhường hẳn, đổi lấy nhân tình',
@@ -620,8 +620,8 @@ const C2 = {
       resolve: (c) => c.hasTrait('Nhân Hậu', c.main) || c.anyTrait(['Nhân Hậu', 'Trượng Nghĩa'], c.second)
         ? G(`${c.main.name} cung tay: "Mạch này nhường quý phái." Thanh Vân Cốc cả kinh trước khí độ ấy, cốc chủ thân chinh sang tạ ơn, kết làm bằng hữu. Bỏ một mạch linh khí, đổi lại một mối giao tình bền chặt — sau này hữu sự, ắt có người chìa tay.`,
             [ { uy: 120 }, { khiVan: 2 }, { flag: { name: 'triAn', value: true, who: c.main.uid } } ],
-            `Tông nhường linh mạch cho Thanh Vân Cốc — lấy nhân tình thay địa lợi, kết giao tình bền chặt.`)
-        : M(`Ngươi hạ lệnh lui binh, nhường mạch. Thanh Vân Cốc nhận, có ghi ơn, song trong tông không ít kẻ ấm ức "rõ ràng tới tay mà lại buông". Lùi một bước mở đường dài là thật, mà lòng quân chưa hẳn đã phục.`,
+            `Tông Môn nhường Linh Mạch cho Thanh Vân Cốc — đổi địa lợi lấy nhân tình, giúp quan hệ hai bên bền chặt hơn.`)
+        : M(`Bạn ra lệnh lui binh, nhường mạch. Thanh Vân Cốc nhận và ghi ơn, nhưng không ít đệ tử trong tông vẫn ấm ức: “Rõ ràng đã tới tay mà lại buông.” Lùi một bước để đi đường dài là thật, nhưng lòng quân chưa hoàn toàn phục.`,
             [ { uy: 30 }, { khiVan: -1 } ],
             `Tông nhường linh mạch cho Thanh Vân Cốc — được nhân tình, song lòng quân chưa phục.`),
     },
@@ -674,8 +674,8 @@ const D1 = {
           ),
     },
     {
-      label: 'Thuận nó theo ma đạo, để tự đi',
-      flavor: 'Không ngăn, để y mang tà điển rời sơn môn theo con đường đã chọn.',
+      label: 'Thuận theo con đường Ma Đạo của y, để y tự rời đi.',
+      flavor: 'Không ngăn cản, để y mang Tà Điển rời sơn môn và đi theo con đường đã chọn.',
       resolve: (c) => B(
         `Ngươi thở dài, lui sang một bên. "Đạo của con, con tự gánh." ${c.main.name} sững người, rồi vái ngươi ba vái thật sâu, ôm tà điển quay gót xuống núi, bóng tan vào màn đêm. Không thành thù ngay — nhưng quyển bí kíp tổ truyền đi theo y, và sĩ diện tông môn cũng sứt một mảnh. Giang hồ rồi sẽ đồn: tông này thả hổ về rừng.`,
         [ { uy: -120 }, { rebel: { who: c.main.uid } }, { queue: { eid: 'D2', delayH: 24, rebelFrom: c.main.uid } } ],
@@ -738,7 +738,7 @@ const D2 = {
       label: 'Phong tỏa tin tức, âm thầm xóa dấu',
       flavor: 'Bịt miệng giang hồ, lặng lẽ thu dọn mọi dấu vết liên quan tới kẻ phản.',
       resolve: (c) => c.anyTrait(['Mưu Trí', 'Thận Trọng']) // who mặc định = main; chuỗi D không pick nên main=null → false an toàn
-        ? M(`Ngươi cho người rải bạc khắp các quán trà, dập tắt mọi lời đồn trước khi nó kịp lan. Thể diện tông môn giữ được vẹn, giang hồ chẳng mấy ai hay. Nhưng trong môn, đệ tử ngầm hiểu "phản đồ vẫn nhởn nhơ ngoài kia" — sĩ khí chùng xuống một nấc. Cái sảy đã giấu, cái ung vẫn lớn.`,
+        ? M(`Bạn cho người rải Bạc ở các quán trà để dập lời đồn trước khi lan rộng. Thể diện tông môn được giữ, giang hồ gần như không hay biết. Nhưng trong môn, đệ tử vẫn hiểu rằng “phản đồ còn nhởn nhơ bên ngoài”, khiến sĩ khí giảm nhẹ. Bề ngoài yên chuyện, bên trong vẫn còn mối lo.`,
             [ { khiVan: -3 }, { queue: { eid: 'D3', delayH: 48, rebelFrom: c.rebel.fromUid } } ],
             `Chưởng Môn phong tỏa tin ${c.rebel.name} phản xuất — giữ được thể diện, sĩ khí âm thầm hao.`,
             'Tới lúc nó về, sẽ chẳng ai kịp trở tay…')
@@ -798,7 +798,7 @@ const D3 = {
     },
     {
       label: 'Cử kẻ có duyên nợ ra đơn đả độc đấu',
-      flavor: 'Để người mang ân oán sâu nhất với kẻ phản một mình bước ra, đối mặt tay đôi.',
+      flavor: 'Để người có ân oán sâu nhất với kẻ phản bội tự bước ra, đối mặt tay đôi.',
       resolve: (c) => c.lucky(0.5)
         ? G(
             `Một bóng người lặng lẽ bước ra giữa mưa — kẻ duyên nợ sâu nhất với ${c.rebel.name}. Không trống không trận, chỉ hai thanh kiếm và một trời ân oán. Họ đánh tới rạng đông, từng chiêu như kể lại cả một đời. Chiêu cuối cùng, kiếm xuyên qua tim cố nhân — kẻ ở lại quỳ xuống ôm xác, khóc mà cũng cười. Ân oán một đời, một kiếm dứt. Người thắng đêm ấy vượt tâm kiếp, thăng hoa cảnh giới.`,
@@ -876,7 +876,7 @@ const TMK = {
       ),
     },
     {
-      label: 'Lấy ma luyện tâm, để y tự độ',
+      label: 'Lấy Ma luyện Tâm, để y tự vượt qua.',
       flavor: 'Không can thiệp — đặt cược đồ nhi tự nuốt ma niệm thành đạo, hoặc gục ngã trong ma.',
       resolve: (c) => c.lucky(0.38)
         ? G(
@@ -971,13 +971,13 @@ const F2 = {
   id: 'F2', grp: 'F', kind: 'choice', han: '販', title: 'Dược Đầu Quá Môn', weight: 7, cdH: 36,
   cond: (t) => t.disciples.length >= 1,
   story: (c) =>
-    `Một lão dược đầu lưng đeo sọt thuốc, râu tóc bạc phơ, gõ cổng sơn môn xin nghỉ chân. Trong sọt y lấp ló mấy vị linh dược quý hiếm, hương thơm thoảng ra cũng đủ biết là hàng tốt. "Lão phu vân du khắp chốn, gặp tông môn hữu duyên mới chịu mở sọt. Quý nhân xem có gì vừa ý chăng?"`,
+    `Một lão dược phu lưng đeo sọt thuốc, râu tóc bạc phơ, gõ cổng xin nghỉ chân. Trong sọt thấp thoáng nhiều vị Linh Dược quý, chỉ ngửi hương đã biết hàng tốt. “Lão phu vân du khắp chốn, chỉ gặp tông môn hữu duyên mới chịu mở sọt. Quý nhân xem có gì vừa ý không?”`,
   choices: [
     {
       label: 'Mua trọn sọt thuốc',
       flavor: 'Trả tiền dứt khoát, ôm cả sọt linh dược về tông.',
       resolve: (c) => G(
-        `Ngươi sai người khiêng bạc ra, mua đứt cả sọt. Lão dược đầu cười khà khà, đổ hết linh dược vào Túi Đồ tông môn rồi vác sọt không thong dong xuống núi. Một phen giao dịch sòng phẳng, kho liệu tông môn dày thêm mấy phần.`,
+        `Bạn cho người mang Bạc ra mua trọn cả sọt. Lão dược phu cười khà, đổ hết Linh Dược vào Túi Đồ Tông Môn rồi vác sọt không xuống núi. Giao dịch sòng phẳng, kho nguyên liệu của tông môn đầy thêm đáng kể.`,
         [ { bac: -900 }, { mat: { id: 'mat_bachnien', n: 4 } }, { mat: { id: 'mat_huyenthiet', n: 3 } } ],
         `Mua trọn sọt thuốc của lão dược đầu — tốn Bạc, đổi lấy một mẻ linh dược bậc trung.`
       ),
@@ -986,10 +986,10 @@ const F2 = {
       label: 'Mặc cả tới cùng',
       flavor: 'Trả giá kì kèo từng đồng, ép lão hạ giá.',
       resolve: (c) => c.lucky(0.5)
-        ? G(`Ngươi kì kèo nửa buổi, lão dược đầu chịu thua cái miệng dẻo, vừa lắc đầu vừa cười "thôi thôi bán rẻ cho xong". Rốt cuộc vừa được giá hời, lão lại tặng kèm một vị linh sâm cho đỡ tức.`,
+        ? G(`Bạn mặc cả nửa buổi, cuối cùng lão dược phu chịu thua cái miệng khéo, vừa lắc đầu vừa cười: “Thôi, bán rẻ cho xong.” Không chỉ mua được giá hời, bạn còn được tặng thêm một vị Linh Sâm.`,
             [ { bac: -500 }, { mat: { id: 'mat_bachnien', n: 4 } }, { mat: { id: 'mat_cuudiep', n: 1 } } ],
             `Mặc cả thắng lão dược đầu — giá hời, lại được tặng kèm Cửu Diệp Linh Sâm.`)
-        : M(`Ngươi ép giá quá tay, lão dược đầu phật ý phất tay áo: "Tiếc rẻ vài đồng thì hữu duyên cũng thành vô duyên." Y vác sọt bỏ đi thẳng, chỉ để lại đúng một nắm cỏ linh rẻ tiền gọi là cho khỏi mất công.`,
+        : M(`Bạn ép giá quá tay, lão dược phu phật ý: “Tiếc vài đồng thì hữu duyên cũng thành vô duyên.” Y vác sọt bỏ đi, chỉ để lại một nắm Linh Thảo rẻ tiền coi như khỏi mất công ghé.`,
             [ { mat: { id: 'mat_tulinhthao', n: 2 } }, { khiVan: -1 } ],
             `Mặc cả hỏng — lão dược đầu phật ý bỏ đi, tông môn chỉ vớt được nắm cỏ linh.`),
     },
@@ -997,7 +997,7 @@ const F2 = {
       label: 'Lấy đặc sản tông đổi hàng',
       flavor: 'Không mất bạc, đem công sức tông môn đổi ngang lấy thuốc.',
       resolve: (c) => G(
-        `Ngươi sai đệ tử khiêng ra đặc sản sơn môn — trà linh, mật đá, da thú quý — đổi ngang lấy thuốc. Lão dược đầu vốn dân vân du, thấy toàn của lạ thì khoái chí, vui vẻ đổi hết sọt thuốc lấy mớ đặc sản đem đi khoe thiên hạ.`,
+        `Bạn cho đệ tử mang đặc sản sơn môn — Linh Trà, mật đá, da thú quý — ra đổi thuốc. Lão dược phu vốn thích của lạ, vui vẻ đổi cả sọt Linh Dược lấy số đặc sản ấy.`,
         [ { congHien: -60 }, { mat: { id: 'mat_huyenthiet', n: 3 } }, { mat: { id: 'mat_bachnien', n: 2 } } ],
         `Đổi đặc sản tông lấy thuốc của lão dược đầu — không tốn Bạc, hao chút Cống Hiến.`
       ),
@@ -1006,7 +1006,7 @@ const F2 = {
       label: 'Tiễn khách, không mua',
       flavor: 'Mời lão chén trà rồi tiễn xuống núi, không giao dịch.',
       resolve: (c) => M(
-        `Ngươi mời lão chén trà nóng, hàn huyên dăm câu rồi lễ phép tiễn xuống núi. Lão dược đầu cảm cái khí độ không tham, trước khi đi dúi lại một vị linh dược "kết duyên", dặn rằng đời người gặp nhau là quý. Tông môn chẳng mất gì, lại được tiếng khí khái.`,
+        `Bạn mời lão một chén trà nóng, trò chuyện đôi câu rồi lễ phép tiễn xuống núi. Cảm cái khí độ không tham, trước khi đi lão dúi lại một vị Linh Dược “kết duyên”. Tông môn chẳng mất gì mà còn được tiếng khí khái.`,
         [ { mat: { id: 'mat_bachnien', n: 1 } }, { khiVan: 2 }, { uy: 30 } ],
         `Tiễn lão dược đầu không mua — được tặng một vị linh dược kết duyên + chút tiếng khí khái.`
       ),
@@ -1019,7 +1019,7 @@ const F3 = {
   cond: (t) => t.disciples.filter((d) => !d.awaiting).length >= 1,
   pick: (t) => { const h = highApt(t.disciples.filter((d) => !d.awaiting)); return h ? [h.uid] : []; },
   story: (c) =>
-    `Tiều phu chân núi hớt hải báo: sau trận sạt lở, một cổ động bị niêm phong từ thời thượng cổ lộ ra cửa. Đệ tử dò xét về, nói bên trong linh khí nồng đậm khác thường, ẩn ước có dược điền cổ — song cũng nghe cả tiếng gió rít quái dị, e có cấm chế hung hiểm. Cơ duyên hay tử địa, khó mà nói trước.`,
+    `Tiều phu dưới chân núi hớt hải báo tin: sau một trận sạt lở, cửa một cổ động bị phong kín từ thời thượng cổ đã lộ ra. Đệ tử dò xét thấy bên trong Linh Khí rất đậm, dường như có Dược Điền cổ, nhưng cũng nghe tiếng gió rít kỳ lạ và cảm nhận cấm chế nguy hiểm. Là cơ duyên hay tử địa, chưa ai dám chắc.`,
   choices: [
     {
       label: 'Phái cao đồ vào thám hiểm',
@@ -1036,7 +1036,7 @@ const F3 = {
       label: 'Cả tông cẩn trọng cùng vào',
       flavor: 'Dàn trận, từng bước phá cấm chế, ăn chắc mặc bền.',
       resolve: (c) => G(
-        `Ngươi không phiêu lưu, điều cả tông dàn trận, người phá cấm kẻ cảnh giới, từng bước tiến sâu. Tuy không vét được tận đáy dược điền vì cấm chế quá hiểm, song cũng thu hoạch một mẻ linh dược kha khá mà chẳng ai sứt mẻ. Vững vàng, an toàn.`,
+        `Bạn không mạo hiểm, điều cả tông dàn trận, người phá cấm kẻ cảnh giới rồi tiến từng bước vào trong. Tuy không thể vét hết Dược Điền vì cấm chế quá hiểm, mọi người vẫn thu được một mẻ Linh Dược khá lớn mà không ai bị thương.`,
         [ { congHien: -40 }, { mat: { id: 'mat_huyenthiet', n: 3 } }, { mat: { id: 'mat_cuudiep', n: 2 } } ],
         `Cả tông cẩn trọng dò cổ động — thu một mẻ linh dược an toàn, hao chút Cống Hiến.`
       ),
@@ -1045,7 +1045,7 @@ const F3 = {
       label: 'Niêm phong lại, không động',
       flavor: 'Thấy hung hiểm khó lường, cho lấp cửa động, không tham.',
       resolve: (c) => M(
-        `Ngươi nhìn cái cửa động đen ngòm, nghe tiếng gió rít như tiếng người khóc, bèn lắc đầu cho đệ tử lấp lại. "Của trời cho mà mạng không hưởng nổi thì là họa, chẳng phải phúc." Tông môn bỏ lỡ một cơ duyên, đổi lại một đêm ngon giấc — và một bài học về sự biết đủ.`,
+        `Bạn nhìn cửa động đen ngòm, nghe tiếng gió rít như người khóc rồi quyết định cho đệ tử lấp lại. “Của trời cho mà không có mạng hưởng thì là họa, chẳng phải phúc.” Tông môn bỏ lỡ một cơ duyên, đổi lại sự an toàn và một bài học về biết đủ.`,
         [ { khiVan: 3 } ],
         `Niêm phong cổ động, không tham cơ duyên hung hiểm — Khí Vận an, lòng người vững.`
       ),
@@ -1073,7 +1073,7 @@ const G1 = {
   id: 'G1', grp: 'G', kind: 'auto', han: '律', title: 'Đại Điểm Giới Luật', weight: 4, cdH: 96,
   cond: (t) => (t.buildings && (t.buildings.gioiLuatDuong || 0) >= 1) && t.disciples.length >= 3,
   auto: (c) => G(
-    `Giới Luật Đường gióng chuông đại điểm, toàn môn tề tựu nghe đọc lại tông quy. Trưởng lão tuyên giới, đệ tử cúi đầu tự tỉnh, kẻ chớm tà niệm cũng phải rùng mình. Một phen chấn chỉnh, sĩ khí nghiêm cẩn, tà niệm lui xa.`,
+    `Giới Luật Đường gióng chuông đại điểm, toàn môn tập trung nghe đọc lại tông quy. Trưởng lão tuyên giới, đệ tử cúi đầu tự xét, người chớm tà niệm cũng phải dè chừng. Sau một phen chấn chỉnh, kỷ cương nghiêm hơn và Tà Niệm giảm xuống.`,
     [ { khiVan: 4 }, { uy: 40 } ],
     `Giới Luật Đường đại điểm toàn môn — tông phong nghiêm cẩn, Khí Vận tăng.`
   ),
@@ -1086,7 +1086,7 @@ const H1 = {
   id: 'H1', grp: 'H', kind: 'auto', han: '盟', title: 'Đồng Minh Triều Cống', weight: 5, cdH: 72,
   cond: (t) => (t.buildings && (t.buildings.daiKhachCac || 0) >= 1) && t.diplomacy && t.diplomacy.ties && Object.values(t.diplomacy.ties).some((tie) => (tie.rep || 0) >= 120),
   auto: (c) => G(
-    `Một đoàn ngựa xe rầm rộ tiến vào sơn môn — sứ giả của môn phái đồng minh mang trọng lễ tới đáp tình. Rương lớn rương nhỏ chất đầy linh dược quý cùng đôi lời chúc tụng khăng khít. Bang giao bền chặt, sĩ khí toàn môn phấn chấn.`,
+    `Một đoàn xe ngựa tiến vào sơn môn — sứ giả của môn phái đồng minh mang trọng lễ tới đáp tình. Rương lớn rương nhỏ chất đầy Linh Dược quý cùng lời chúc tốt đẹp. Bang giao bền hơn, sĩ khí toàn môn cũng tăng.`,
     [ { mat: { id: 'mat_bachnien', n: 3 } }, { mat: { id: 'mat_huyenthiet', n: 2 } }, { uy: 60 }, { khiVan: 3 } ],
     `Đồng minh triều cống — môn phái Kết Minh gửi trọng lễ, Uy Danh tăng.`
   ),

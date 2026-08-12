@@ -243,16 +243,16 @@ function ic(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 var LOI = {
   vao: ['Chia bài đi, tay tôi đang ngứa.', 'Ván này ai cầm Ba Bích thì mở màn.', 'Bài bạc là chuyện nhỏ, thua keo này ta bày keo khác.', 'Ngồi xuống thì đừng tính đường rút.', 'Lâu rồi mới có người dám ngồi cùng chiếu.'],
   heo: ['Heo đây, ai chặt được thì chặt.', 'Con này chắc không ai đè nổi đâu nhỉ.', 'Thả Heo dò đường một cái.', 'Tôi ra Heo, các vị liệu mà giữ hàng.'],
-  chatDuoc: ['Chặt! Cất Heo đi mà tiếc.', 'Đợi mãi mới có con Heo để chém.', 'Hàng này tôi giữ từ đầu ván đấy.', 'Xin lỗi, tứ quý nằm sẵn trong tay rồi.'],
-  biChat: ['Thôi xong, đụng hàng chặt rồi.', 'Giấu kỹ thế cơ à.', 'Tôi tưởng cả làng hết hàng chặt rồi chứ.', 'Đau, con Heo đó tôi tính để về đấy.'],
-  bo: ['Không đè nổi, tôi bỏ.', 'Bài tôi kẹt, mời các vị.', 'Bỏ lượt, để dành sức.', 'Nước này tôi chịu.'],
+  chatDuoc: ['Chặt! Tiếc con Heo vừa giữ lại.', 'Đợi mãi mới có con Heo để chém.', 'Hàng này tôi giữ từ đầu ván đấy.', 'Xin lỗi, tứ quý nằm sẵn trong tay rồi.'],
+  biChat: ['Thôi xong, đụng hàng chặt rồi.', 'Giấu kỹ thế cơ à.', 'Tôi tưởng cả làng hết hàng chặt rồi chứ.', 'Đau thật, con Heo đó tôi tính để về.'],
+  bo: ['Không đè nổi, tôi bỏ.', 'Bài tôi kẹt, mời các vị.', 'Bỏ lượt, giữ bài chờ thời.', 'Nước này tôi chịu.'],
   sapVe: ['Tôi còn hai lá thôi đấy, liệu mà chặn.', 'Sắp hết bài rồi, ai chặn được không?', 'Một lượt nữa là tôi về.'],
   veNhat: ['Về Nhất! Thu tiền thôi.', 'Bài đẹp thì đánh kiểu gì cũng thắng.', 'Tôi đi trước, các vị chia nhau phần thối nhé.'],
   thua: ['Bét rồi, hôm nay tay tôi lạnh quá.', 'Bài xấu thì đành chịu, ván sau gỡ.', 'Thua tâm phục, không kêu ca.'],
   khen: ['Nước đó đẹp đấy.', 'Tay bài này chắc chơi lâu năm rồi.', 'Được, các hạ có nghề.'],
-  dap: ['Nói ít thôi, đánh đi.', 'Ừ thì cứ đánh rồi biết.', 'Còn lâu mới tới lượt các hạ mừng.', 'Hay lắm, để xem cuối ván ai cười.', 'Được, tôi nghe đây.']
+  dap: ['Nói ít thôi, đánh đi.', 'Ừ thì cứ đánh rồi biết.', 'Còn lâu mới tới lượt các hạ mừng.', 'Hay lắm. Để xem cuối ván ai mới là người cười.', 'Được, tôi nghe đây.']
 };
-var CHIP_NGUOI = ['Chia bài đi.', 'Bài này khó nhằn đấy.', 'Chặt luôn cho nhanh.', 'Ai còn Heo thì ra đi.', 'Ván này tôi không nhường.', 'Nước đó đẹp thật.', 'Thua keo này bày keo khác.', 'Từ từ, để tôi tính đã.'];
+var CHIP_NGUOI = ['Chia bài đi.', 'Bài này khó nhằn đấy.', 'Chặt luôn cho nhanh.', 'Ai còn Heo thì ra đi.', 'Ván này tôi không nhường.', 'Nước đó đẹp thật.', 'Thua keo này bày keo khác.', 'Khoan, để tôi tính đã.'];
 
 // ============================================================
 function mountTienLen(host, opts) {
@@ -274,7 +274,7 @@ function mountTienLen(host, opts) {
   host.innerHTML =
     '<div class="tl-root">' +
       '<div class="tl-scene"></div><div class="tl-vig"></div><div class="tl-turn"></div>' +
-      '<div class="tl-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:11.5px;color:#7d6c58"></div></div>' +
+      '<div class="tl-fb"><div>Thiết bị này không thể khởi tạo chế độ 3D.</div><div class="fm" style="font-size:11.5px;color:#7d6c58"></div></div>' +
       '<div class="tl-title"><span class="hz">越南跑得快</span><span class="vz">Tiến Lên</span></div>' +
       '<div class="tl-chieu">' + (opts.chieu || '') + ' · cược ' + fmt(cuoc) + ' Trù Mã mỗi cửa</div>' +
       '<div class="tl-cur"><span class="dot"></span><span class="ct"></span></div>' +
@@ -1614,9 +1614,9 @@ function mountTienLen(host, opts) {
     el.className = 'tl-end ' + (hangToi === 1 ? 'win' : hangToi === 4 ? 'lose' : 'mid');
     el.querySelector('.bt').textContent = 'Về ' + HANG_TEN[hangToi - 1];
     var loiKet = hangToi === 1 ? 'Bài về tay trắng, tiền về tay mình — chiếu này bạn cầm trịch.'
-      : hangToi === 2 ? 'Chỉ chậm một lượt. Ván sau đổi vận.'
+      : hangToi === 2 ? 'Chỉ chậm một lượt thôi. Ván sau đổi vận.'
         : hangToi === 3 ? 'Bài kẹt giữa chừng, gỡ lại ở ván sau vậy.'
-          : 'Bét chiếu. Tiền thối đắt hơn tiền cược đấy.';
+          : 'Bét chiếu rồi. Tiền thối còn đắt hơn tiền cược đấy.';
     el.querySelector('.bs').textContent = loiKet;
 
     var tb = el.querySelector('tbody'), html = '';
@@ -1667,7 +1667,7 @@ function mountTienLen(host, opts) {
     } else if (a === 'spectate') {
       spectate = !spectate;
       $('.tl-view').classList.toggle('show', spectate);
-      toast(spectate ? 'Quan Chiến: kéo để xoay bàn, lăn chuột để phóng.' : 'Thoát Quan Chiến.');
+      toast(spectate ? 'Quan Chiến: kéo để xoay bàn, lăn chuột để phóng to/thu nhỏ.' : 'Thoát Quan Chiến.');
     } else if (a === 'saveview') {
       spectate = false; $('.tl-view').classList.remove('show');
       if (opts.onSaveView) opts.onSaveView({ theta: sph.theta, phi: sph.phi, zoom: sph.zoom || 1 });
@@ -1839,10 +1839,10 @@ export const CHIEU = [
     lore: 'Chén ngọc đặt giữa bàn — thắng thì uống, thua thì trả tiền rượu cả chiếu.',
     ds: ['toUyenNghiet', 'namCungLietHoa', 'doanMucPhong'] },
   { id: 'vanDai', ten: 'Chiếu Vân Đài', cuoc: 100000, tang: 3,
-    lore: 'Ba tay bài đều có danh trên giang hồ. Ngồi xuống là đã mất nửa phần thắng.',
+    lore: 'Ba tay bài đều có tiếng trên giang hồ. Ngồi xuống bàn này đã coi như mất nửa phần thắng.',
     ds: ['bangPhachNuHiep', 'langToCam', 'coNhanMaiKiem'] },
   { id: 'thienNguyen', ten: 'Chiếu Thiên Nguyên', cuoc: 500000, tang: 4,
-    lore: 'Chiếu cao nhất trong thiên hạ. Người thường không được mời ngồi.',
+    lore: 'Chiếu cao nhất trong thiên hạ. Không phải ai cũng có tư cách ngồi.',
     ds: ['vanVongNuong', 'moDungPhiTuyet', 'lacVoTran'] },
 ];
 const TANG_TEN = ['', 'Sơ Nhập', 'Thành Danh', 'Cao Thủ', 'Tuyệt Đỉnh'];
@@ -1965,7 +1965,7 @@ export function tienLen() {
 
     nhapChieu(c, saved) {
       if (this.inBattle) return;
-      if (this.truMa < c.cuoc * 4) { try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — đổi thêm ở Sảnh Bài.'); } catch (e) { } return; }
+      if (this.truMa < c.cuoc * 4) { try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — hãy đổi thêm tại Sảnh Bài.'); } catch (e) { } return; }
       // ngồi chiếu KHÁC thì bỏ ván dở cũ — mỗi lúc chỉ giữ một ván
       if (!saved && this.savedGame && this.savedGame.chieuId !== c.id) this.dropSaved();
       this._boSo = false; this._saved = saved || null;

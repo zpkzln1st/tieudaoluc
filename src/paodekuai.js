@@ -246,15 +246,15 @@ function ic(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 var LOI = {
   vao: ['Chia bài đi, tay tôi đang ngứa.', 'Ai cầm Ba Cơ thì mở lượt nhé.', 'Bài bạc là chuyện nhỏ, thua keo này ta bày keo khác.', 'Ngồi xuống thì đừng tính đường rút.', 'Lâu rồi mới có người dám ngồi cùng chiếu.'],
   heo: ['Lá Hai đây, cả bộ có mỗi một con.', 'Con này chắc không ai đè nổi đâu nhỉ.', 'Thả lá Hai dò đường một cái.', 'Tôi ra lá Hai, các vị liệu mà giữ bom.'],
-  chatDuoc: ['Bom! Cất bài đi mà tiếc.', 'Đợi mãi mới có chỗ thả bom.', 'Tứ quý này tôi giữ từ đầu ván đấy.', 'Xin lỗi, bốn con nằm sẵn trong tay rồi.'],
-  biChat: ['Thôi xong, dính bom rồi.', 'Giấu kỹ thế cơ à.', 'Tôi tưởng cả làng hết bom rồi chứ.', 'Đau, bộ đó tôi tính để chạy đấy.'],
-  bo: ['Không đè nổi, tôi bỏ.', 'Bài tôi kẹt, mời các vị.', 'Bỏ lượt, để dành sức.', 'Nước này tôi chịu.'],
+  chatDuoc: ['Bom! Tiếc mấy lá bài giữ lại quá.', 'Đợi mãi mới có chỗ thả bom.', 'Tứ quý này tôi giữ từ đầu ván đấy.', 'Xin lỗi, bốn con nằm sẵn trong tay rồi.'],
+  biChat: ['Thôi xong, dính bom rồi.', 'Giấu kỹ thế cơ à.', 'Tôi tưởng cả làng hết bom rồi chứ.', 'Đau thật, bộ đó tôi đang tính dùng để chạy.'],
+  bo: ['Không đè nổi, tôi bỏ.', 'Bài tôi kẹt, mời các vị.', 'Bỏ lượt, giữ bài chờ thời.', 'Nước này tôi chịu.'],
   sapVe: ['Tôi còn một lá thôi đấy, liệu mà chặn.', 'Sắp hết bài rồi, ai chặn được không?', 'Một lượt nữa là tôi trắng tay.'],
-  veNhat: ['Chạy hết rồi! Đếm bài đi các vị.', 'Bài đẹp thì đánh kiểu gì cũng thắng.', 'Tôi đi trước, bài đọng lại các vị tự tính nhé.'],
+  veNhat: ['Chạy hết rồi! Các vị đếm bài đi.', 'Bài đẹp thì đánh kiểu gì cũng thắng.', 'Tôi đi trước, bài đọng lại các vị tự tính nhé.'],
   thua: ['Bài đọng cả nắm, hôm nay tay tôi lạnh quá.', 'Bài xấu thì đành chịu, ván sau gỡ.', 'Thua tâm phục, không kêu ca.'],
-  dap: ['Nói ít thôi, đánh đi.', 'Ừ thì cứ đánh rồi biết.', 'Còn lâu mới tới lượt các hạ mừng.', 'Hay lắm, để xem cuối ván ai cười.', 'Được, tôi nghe đây.']
+  dap: ['Nói ít thôi, đánh đi.', 'Ừ thì cứ đánh rồi biết.', 'Còn lâu mới tới lượt các hạ mừng.', 'Hay lắm. Để xem cuối ván ai mới là người cười.', 'Được, tôi nghe đây.']
 };
-var CHIP_NGUOI = ['Chia bài đi.', 'Bài này khó nhằn đấy.', 'Thả bom cho nhanh.', 'Ai còn lá Hai thì ra đi.', 'Ván này tôi không nhường.', 'Nước đó đẹp thật.', 'Thua keo này bày keo khác.', 'Từ từ, để tôi tính đã.'];
+var CHIP_NGUOI = ['Chia bài đi.', 'Bài này khó nhằn đấy.', 'Thả bom cho nhanh.', 'Ai còn lá Hai thì ra đi.', 'Ván này tôi không nhường.', 'Nước đó đẹp thật.', 'Thua keo này bày keo khác.', 'Khoan, để tôi tính đã.'];
 
 // ============================================================
 function mountPaoDeKuai(host, opts) {
@@ -276,7 +276,7 @@ function mountPaoDeKuai(host, opts) {
   host.innerHTML =
     '<div class="pk-root">' +
       '<div class="pk-scene"></div><div class="pk-vig"></div><div class="pk-turn"></div>' +
-      '<div class="pk-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:11.5px;color:#7d6c58"></div></div>' +
+      '<div class="pk-fb"><div>Thiết bị này không thể khởi tạo chế độ 3D.</div><div class="fm" style="font-size:11.5px;color:#7d6c58"></div></div>' +
       '<div class="pk-title"><span class="hz">中国跑得快</span><span class="vz">Tiến Lên Trung Quốc</span></div>' +
       '<div class="pk-chieu">' + (opts.chieu || '') + ' · cược ' + fmt(cuoc) + ' Trù Mã mỗi cửa</div>' +
       '<div class="pk-cur"><span class="dot"></span><span class="ct"></span></div>' +
@@ -1603,7 +1603,7 @@ function mountPaoDeKuai(host, opts) {
     el.querySelector('.bs').textContent = nguoiVe === 0
       ? 'Chạy hết bài trước cả làng — điểm hai nhà kia về tay bạn.'
       : (thaVe === 0 ? 'Thả người ta về mà bài lẻ còn to hơn trong tay — phải đền thay cả nhà thứ ba.'
-        : 'Còn ' + conLai[0] + ' lá trên tay. Bài đọng lại bao nhiêu là mất bấy nhiêu.');
+        : 'Còn ' + conLai[0] + ' lá trên tay. Còn lại bao nhiêu lá thì mất bấy nhiêu điểm.');
 
     var tb = el.querySelector('tbody'), html = '';
     var thuTu = [0, 1, 2].sort(function (a, b) { return diem[b] - diem[a]; });
@@ -1657,7 +1657,7 @@ function mountPaoDeKuai(host, opts) {
     } else if (a === 'spectate') {
       spectate = !spectate;
       $('.pk-view').classList.toggle('show', spectate);
-      toast(spectate ? 'Quan Chiến: kéo để xoay bàn, lăn chuột để phóng.' : 'Thoát Quan Chiến.');
+      toast(spectate ? 'Quan Chiến: kéo để xoay bàn, lăn chuột để phóng to/thu nhỏ.' : 'Thoát Quan Chiến.');
     } else if (a === 'saveview') {
       spectate = false; $('.pk-view').classList.remove('show');
       if (opts.onSaveView) opts.onSaveView({ theta: sph.theta, phi: sph.phi, zoom: sph.zoom || 1 });
@@ -1815,10 +1815,10 @@ export const CHIEU = [
     lore: 'Chén ngọc đặt giữa bàn — thắng thì uống, thua thì trả tiền rượu cả chiếu.',
     ds: ['toUyenNghiet', 'namCungLietHoa'] },
   { id: 'vanDai', ten: 'Chiếu Vân Đài', cuoc: 10000, tang: 3,
-    lore: 'Hai tay bài đều có danh trên giang hồ. Ngồi xuống là đã mất nửa phần thắng.',
+    lore: 'Hai tay bài đều có tiếng trên giang hồ. Ngồi xuống bàn này đã coi như mất nửa phần thắng.',
     ds: ['bangPhachNuHiep', 'coNhanMaiKiem'] },
   { id: 'thienNguyen', ten: 'Chiếu Thiên Nguyên', cuoc: 50000, tang: 4,
-    lore: 'Chiếu cao nhất trong thiên hạ. Người thường không được mời ngồi.',
+    lore: 'Chiếu cao nhất trong thiên hạ. Không phải ai cũng có tư cách ngồi.',
     ds: ['vanVongNuong', 'lacVoTran'] },
 ];
 /** Trù Mã cần có để ngồi: gánh nổi ván xấu nhất (16 lá còn tay × 2 vì chưa ra được lá nào,
@@ -1942,7 +1942,7 @@ export function paoDeKuai() {
 
     nhapChieu(c, saved) {
       if (this.inBattle) return;
-      if (this.truMa < c.cuoc * HE_SO_NGOI) { try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — đổi thêm ở Sảnh Bài.'); } catch (e) { } return; }
+      if (this.truMa < c.cuoc * HE_SO_NGOI) { try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — hãy đổi thêm tại Sảnh Bài.'); } catch (e) { } return; }
       // ngồi chiếu KHÁC thì bỏ ván dở cũ — mỗi lúc chỉ giữ một ván
       if (!saved && this.savedGame && this.savedGame.chieuId !== c.id) this.dropSaved();
       this._boSo = false; this._saved = saved || null;

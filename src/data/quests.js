@@ -11,11 +11,11 @@
 export const TUTORIAL_QUESTS = [
   { id: 'tut1', name: 'Đốn 10 Tùng Mộc',     desc: 'Kỹ Năng → Đốn Củi → đốn Tùng Mộc.',                     type: 'produce', target: 'tungMoc',    count: 10, reward: { bac: 300 } },
   { id: 'tut2', name: 'Đào 10 Hắc Thán',       desc: 'Kỹ Năng → Đào Khoáng → Hắc Thán.',                       type: 'produce', target: 'hacThan',    count: 10, reward: { bac: 300 } },
-  { id: 'tut3', name: 'Đào 5 Tích Khoáng',    desc: 'Đào Khoáng → Tích Khoáng (để luyện thỏi).',             type: 'produce', target: 'tichKhoang', count: 5,  reward: { bac: 300 } },
+  { id: 'tut3', name: 'Đào 5 Tích Khoáng',    desc: 'Đào Khoáng → tích Khoáng để dùng khi Luyện Thỏi.',             type: 'produce', target: 'tichKhoang', count: 5,  reward: { bac: 300 } },
   { id: 'tut4', name: 'Luyện 5 Tích Đĩnh',   desc: 'Luyện Kim → Tích Đĩnh (cần Tích Khoáng + Hắc Thán).',    type: 'produce', target: 'tichDinh',   count: 5,  reward: { bac: 500 } },
   { id: 'tut5', name: 'Rèn 1 Cuốc Thiếc',     desc: 'Rèn Đúc → Cuốc Thiếc (cần Tích Đĩnh).',                type: 'produce', target: 'tichSao',    count: 1,  reward: { bac: 600, honThach: 20 } },
-  { id: 'tut6', name: 'Hạ 12 Sói Hoang',      desc: 'Chiến Đấu → Sói Hoang. Luyện tới Chiến Đấu Lv 2 để đủ sức trị Heo Rừng.', type: 'kill',    target: 'daLang',     count: 12, reward: { bac: 800 } },
-  { id: 'tut7', name: 'Hạ 3 Heo Rừng',        desc: 'Chiến Đấu → Heo Rừng. Hoàn tất tân thủ — nhận Trứng Linh Thú đầu tiên!', type: 'kill',    target: 'sonTru',     count: 3,  reward: { bac: 800, honThach: 30, eggPham: 1 } },
+  { id: 'tut6', name: 'Hạ 12 Sói Hoang',      desc: 'Chiến Đấu → Sói Hoang. Luyện đến Chiến Đấu Lv 2 để đủ sức đối phó Heo Rừng.', type: 'kill',    target: 'daLang',     count: 12, reward: { bac: 800 } },
+  { id: 'tut7', name: 'Hạ 3 Heo Rừng',        desc: 'Chiến Đấu → Heo Rừng. Hoàn tất phần tân thủ để nhận Trứng Linh Thú đầu tiên!', type: 'kill',    target: 'sonTru',     count: 3,  reward: { bac: 800, honThach: 30, eggPham: 1 } },
 ];
 
 // ---- Thưởng tính theo CÔNG SỨC: tỉ lệ count × đơn giá theo bậc req; kill quý hơn ×1.8; honThach/nguyenBao theo kỳ + bậc.

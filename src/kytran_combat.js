@@ -377,7 +377,7 @@ var KTB_TPL=''+
 '<div class="ktb">'+
   '<div class="ktb-top">'+
     '<div class="ktb-soul"><img class="soulic" src="images/kytran/tranhon.webp" alt="" onerror="this.style.display=\'none\'"><b class="soulv">0</b><span class="l">Trận Hồn</span></div>'+
-    '<div class="ktb-turnwrap"><div class="ktb-turn hero"><span class="dot"></span><span class="tt">Lượt: Ngươi</span></div><div class="ktb-extra">✦ Đi thêm!</div></div>'+
+    '<div class="ktb-turnwrap"><div class="ktb-turn hero"><span class="dot"></span><span class="tt">Lượt: Bạn</span></div><div class="ktb-extra">✦ Đi thêm!</div></div>'+
     '<button class="ktb-retreat" type="button">Rút Lui</button>'+
   '</div>'+
   '<div class="stage">'+
@@ -775,7 +775,7 @@ export function mountKtBattle(host, opts){
   }
 
   /* --- Hoán Tinh Di Đẩu: đổi tự do 2 ô (bấm lại ô đầu = hủy, không tốn charge) --- */
-  function enterTarget(sk){ S.tmode={ sk:sk.id, picked:[] }; sel=null; boardEl.classList.add('targeting'); toast('Chọn hai ô để Hoán Tinh Di Đẩu'); renderBoard(); }
+  function enterTarget(sk){ S.tmode={ sk:sk.id, picked:[] }; sel=null; boardEl.classList.add('targeting'); toast('Chọn hai ô để dùng Hoán Tinh Di Đẩu.'); renderBoard(); }
   async function doHoanTinh(a,b){
     var A=board[a.r][a.c], B=board[b.r][b.c];
     board[a.r][a.c]=B; board[b.r][b.c]=A;
@@ -848,10 +848,10 @@ export function mountKtBattle(host, opts){
       '<div class="l2-steps"><div class="l2-stp" data-go="1"><span class="no">1</span><span class="v">Tâm Pháp</span></div><div class="l2-stp" data-go="2"><span class="no">2</span><span class="v">Kỹ Năng</span></div></div>'+
       '<div class="l2-en"><span class="por"><img src="'+EN.art+'" alt="" onerror="this.style.visibility=\'hidden\'"></span><span class="info"><span class="lbl">Địch Thủ</span><div class="nm">'+EN.name+'</div><span class="mech">'+BOLT+' '+mechTxt+'</span></span></div>'+
       '<div class="l2-main">'+
-        '<div class="l2-step s1 on"><div class="l2-sech"><span class="t">Tâm Pháp</span><span class="hint">chọn 1 (hoặc bỏ trống)</span><span class="pick l2-tppick">0 / 1</span></div><div class="l2-gw"><div class="l2-g tp l2-tplist"></div></div></div>'+
+        '<div class="l2-step s1 on"><div class="l2-sech"><span class="t">Tâm Pháp</span><span class="hint">chọn 1 (hoặc để trống)</span><span class="pick l2-tppick">0 / 1</span></div><div class="l2-gw"><div class="l2-g tp l2-tplist"></div></div></div>'+
         '<div class="l2-step s2"><div class="l2-sech"><span class="t">Kỹ Năng</span><span class="hint">tối đa '+NEED+'</span><span class="pick l2-skpick">0 / '+NEED+'</span></div>'+(useTabs?'<div class="l2-tabs l2-sktabs"></div>':'')+'<div class="l2-gw"><div class="l2-g sk l2-sklist"></div></div></div>'+
       '</div>'+
-      '<div class="l2-ds empty">Bấm một Tâm Pháp để đọc công năng.</div>'+
+      '<div class="l2-ds empty">Bấm một Tâm Pháp để xem công dụng.</div>'+
       '<div class="l2-ft"></div>';
     var tpListEl=box.querySelector('.l2-tplist'), skListEl=box.querySelector('.l2-sklist'), tabsEl=box.querySelector('.l2-sktabs');
     var tpPickEl=box.querySelector('.l2-tppick'), skPickEl=box.querySelector('.l2-skpick');
@@ -871,7 +871,7 @@ export function mountKtBattle(host, opts){
       var tp=kind==='tp'; detEl.className='l2-ds'+(tp?' tp':''); detEl.style.setProperty('--a',acc(x));
       var kindTxt=tp?('Tâm Pháp · '+(x.role||'')):('Kỹ Năng · '+skCostLabel(x)); var body=tp?x.rule:x.desc;
       detEl.innerHTML='<div class="big"><img src="images/kytran/'+(tp?'tp':'sk')+'_'+x.id+'.webp" onerror="this.style.display=\'none\'"></div><div class="info"><div class="kind" style="color:'+acc(x)+'">'+kindTxt+'</div><div class="dnm">'+x.name+'</div><div class="desc">'+body+'</div></div>'; }
-    function resetDet(){ detEl.className='l2-ds empty'; detEl.style.removeProperty('--a'); detEl.textContent=(step===1?'Bấm một Tâm Pháp để đọc công năng.':'Bấm một kỹ năng để đọc công năng.'); }
+    function resetDet(){ detEl.className='l2-ds empty'; detEl.style.removeProperty('--a'); detEl.textContent=(step===1?'Bấm một Tâm Pháp để đọc công năng.':'Bấm một Kỹ Năng để xem công dụng.'); }
     function ltAll(){ renderTP(); renderSK(); renderSteps(); renderFoot(); }
     function goStep(n){ step=n; ltAll(); resetDet(); var gw=box.querySelector('.l2-step.on .l2-gw'); if(gw) gw.scrollTop=0; }
     box.addEventListener('click', function(e){

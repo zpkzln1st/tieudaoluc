@@ -68,13 +68,13 @@ export const LOOT_DROP_MULT = 0.5;     // giam ti le roi nguyen lieu (dung drop 
 export const ENEMIES = {
   // ===== Lam Linh Cốc (Lv1) + U Lâm (Lv8) — Nhân Gian (giữ nguyên, đã cân) =====
   daLang:  { id: 'daLang',  name: 'Sói Hoang',  gloss: 'Wild Wolf',  icon: '🐺', reqLevel: 1,  power: 15,  exp: 5,  statXp: 1, time: 6,  loot: [{ itemId: 'langBi', chance: 0.30 }],
-    hp:60,  atk:9,  def:3,  spd:72, affinity:'Mãnh Thú', lore:'Sói hoang đầu rừng, nhanh nhẹn, lao tới cắn xé — khí tức nó biến hoá thất thường khôn lường.',  atkFl:'lao tới đớp',     skill:{ name:'Liệt Trảo',     mult:1.6, cd:4, fl:'gầm gừ vung móng vuốt' } },
+    hp:60,  atk:9,  def:3,  spd:72, affinity:'Mãnh Thú', lore:'Sói hoang đầu rừng, nhanh nhẹn và hung dữ, thường lao tới cắn xé. Khí tức của nó thay đổi thất thường, rất khó đoán.',  atkFl:'lao tới đớp',     skill:{ name:'Liệt Trảo',     mult:1.6, cd:4, fl:'gầm gừ vung móng vuốt' } },
   sonTru:  { id: 'sonTru',  name: 'Heo Rừng',   gloss: 'Wild Boar',  icon: '🐗', reqLevel: 2,  power: 30,  exp: 8,  statXp: 1, time: 8,  loot: [{ itemId: 'truNha', chance: 0.25 }],
-    hp:100, atk:12, def:7,  spd:66, affinity:'Mãnh Thú', lore:'Mãnh thú da dày, chỉ biết cúi đầu lao húc, mỗi lần lâm trận lại nhuốm một loại khí tức khác.', atkFl:'thúc một cú',     skill:{ name:'Cuồng Húc',     mult:1.7, cd:4, fl:'cúi đầu cuồng nộ lao húc' } },
+    hp:100, atk:12, def:7,  spd:66, affinity:'Mãnh Thú', lore:'Mãnh thú da dày, chỉ biết cúi đầu lao húc. Mỗi khi lâm trận, khí tức trên người lại chuyển sang một Ngũ Hành khác.', atkFl:'thúc một cú',     skill:{ name:'Cuồng Húc',     mult:1.7, cd:4, fl:'cúi đầu cuồng nộ lao húc' } },
   hacHung: { id: 'hacHung', name: 'Gấu Đen',    gloss: 'Black Bear', icon: '🐻', reqLevel: 8,  power: 90,  exp: 15, statXp: 2, time: 12, loot: [{ itemId: 'hungChuong', chance: 0.20 }],
-    hp:300, atk:24, def:16, spd:58, affinity:'Hậu Bì', lore:'Gấu đen núi sâu, da dày lông rậm, thân thủ trầm trọng — ngũ hành biến ảo theo từng cơn cuồng nộ.', atkFl:'tát một chưởng',  skill:{ name:'Bàn Sơn Chưởng',mult:1.6, cd:5, fl:'vung chưởng to như cối đá' } },
+    hp:300, atk:24, def:16, spd:58, affinity:'Hậu Bì', lore:'Gấu đen núi sâu, da dày lông rậm, thân hình nặng nề. Mỗi cơn cuồng nộ lại khiến khí tức Ngũ Hành của nó thay đổi.', atkFl:'tát một chưởng',  skill:{ name:'Bàn Sơn Chưởng',mult:1.6, cd:5, fl:'vung chưởng to như cối đá' } },
   yeuHo:   { id: 'yeuHo',   name: 'Hồ Ly Tinh', gloss: 'Fox Spirit', icon: '🦊', reqLevel: 15, power: 220, exp: 25, statXp: 3, time: 15, loot: [{ itemId: 'hoVi', chance: 0.15 }],
-    hp:420, atk:40, def:22, spd:90, affinity:'Yêu Tinh', lore:'Hồ ly tu thành tinh, nguyên thần biến hoá, mỗi trận lại mượn một hành khí khác nhau để hộ thân.',  atkFl:'cào một phát',    skill:{ name:'Mê Hồn Trảo',   mult:1.5, cd:4, fl:'vờn quanh tung trảo mê hoặc' } },
+    hp:420, atk:40, def:22, spd:90, affinity:'Yêu Tinh', lore:'Hồ ly tu thành tinh, nguyên thần biến hóa. Mỗi trận nó lại mượn một loại hành khí khác nhau để hộ thân.',  atkFl:'cào một phát',    skill:{ name:'Mê Hồn Trảo',   mult:1.5, cd:4, fl:'vờn quanh tung trảo mê hoặc' } },
 
   // ===== Huyền Đô (Lv18) — Nhân Gian — lục lâm / hắc đạo =====
   daoTac:  mk(18, 'thuong', { id:'daoTac', name:'Đạo Tặc', gloss:'Highwayman', icon:'🗡️', affinity:'Lục Lâm', loot:[{itemId:'tangNgan',chance:0.28}],
@@ -153,9 +153,9 @@ export const ENEMIES = {
   // tinhTheYeuVuong o day — no la nut chan +10->+15 (~6.4/ngay tu boss); cay 8s/con thi 3% = ~13/gio,
   // vo nut chan. Cung KHONG ghi manhTrangBi (da co duong he thong, ghi them la dup kinh te Manh).
   batDietKimCang: mk(100, 'tinhAnh', { id:'batDietKimCang', name:'Bất Diệt Kim Cang', gloss:'Undying Vajra', icon:'🗿', affinity:'Hộ Pháp Kim Cang', loot:[{itemId:'thanThietTinh',chance:0.30}],
-    lore:'Kim thân cao chục trượng đúc từ xá lợi vạn phật, đứng trấn cổng trời — đao thương chạm vào chỉ nghe tiếng ngân, thân nó ngàn năm không sứt một vết.', atkFl:'giáng kim quyền', skill:{name:'Bất Hoại Kim Luân',mult:2.6,cd:6,fl:'kim luân sau lưng xoay tít, mỗi vòng dội một chấn kình đè nát đối thủ'} }),
+    lore:'Kim thân cao chục trượng được đúc từ xá lợi vạn Phật, đứng trấn trước cổng trời. Đao thương chạm vào chỉ vang tiếng ngân, thân thể ngàn năm gần như không sứt mẻ.', atkFl:'giáng kim quyền', skill:{name:'Bất Hoại Kim Luân',mult:2.6,cd:6,fl:'kim luân sau lưng xoay tít, mỗi vòng dội một chấn kình đè nát đối thủ'} }),
   coMaTo: mk(100, 'boss', { id:'coMaTo', name:'Cổ Ma Tổ', gloss:'Demon Ancestor', icon:'😈', isBoss:true, affinity:'Trùm Ma Đạo', loot:[{itemId:'maToTam',chance:0.02,noBoost:true},{itemId:'coMaHaiCot',chance:0.5}],
-    lore:'Thuỷ tổ của ma đạo, sức mạnh nghiêng trời lệch đất — đích đến tối hậu của mọi cao thủ giang hồ.', atkFl:'giáng ma uy', skill:{name:'Diệt Thế Ma Viêm',mult:3.0,cd:6,fl:'ma viêm huỷ diệt thiêu rụi tất thảy'} }),
+    lore:'Thủy tổ của Ma Đạo, sức mạnh đủ nghiêng trời lệch đất; là thử thách tối hậu trên con đường của mọi cao thủ giang hồ.', atkFl:'giáng ma uy', skill:{name:'Diệt Thế Ma Viêm',mult:3.0,cd:6,fl:'ma viêm huỷ diệt thiêu rụi tất thảy'} }),
 };
 
 // Bộ pháp -> Tứ Trụ nhận EXP (Phase 1). Sau thêm ảnh hưởng sát thương.
@@ -187,11 +187,11 @@ function eggDrops(base) {
 }
 export const YEU_VUONG = [
   Object.assign(mk(10, 'boss', { id: 'yvBachHo', name: 'Bạch Ngạch Hổ Vương', gloss: 'White-Browed Tiger King', icon: '🐯', isBoss: true, affinity: 'Yêu Vương · Bạch Hổ',
-    lore: 'Mãnh hổ trắng ngự sơn lâm, trán in chữ Vương, một tiếng gầm vang khiến trăm thú phục rạp dưới chân.', atkFl: 'vồ tới cắn xé',
+    lore: 'Mãnh hổ trắng thống lĩnh sơn lâm, trên trán mang chữ Vương. Chỉ một tiếng gầm cũng đủ khiến trăm thú cúi phục.', atkFl: 'vồ tới cắn xé',
     skill: { name: 'Bạch Hổ Lăng Không', mult: 2.2, cd: 5, fl: 'tung mình lăng không, móng vuốt trắng loá xé gió bổ xuống' } }),
     { wb: { cdHours: 2,  tinhThe: 1, honThach: 20,  bac: 300,   eggBase: 'bachHo',     eggs: eggDrops('bachHo') } }),
   Object.assign(mk(20, 'boss', { id: 'yvHuyenQuy', name: 'Hắc Giáp Huyền Quy', gloss: 'Black-Shell Dark Tortoise', icon: '🐢', isBoss: true, affinity: 'Yêu Vương · Huyền Quy',
-    lore: 'Linh quy nghìn năm mai đen như sắt nguội, ẩn mình đáy đầm sâu; một khi trồi lên, sóng dữ ngập trời cuốn phăng thuyền bè.', atkFl: 'húc mai giáp',
+    lore: 'Linh Quy nghìn năm có mai đen như sắt nguội, ẩn mình dưới đáy đầm sâu. Một khi trồi lên, sóng dữ có thể cuốn phăng cả thuyền bè.', atkFl: 'húc mai giáp',
     skill: { name: 'Huyền Vũ Trấn Ba', mult: 2.3, cd: 6, fl: 'thu mình trong mai đen rồi bùng nổ chấn ba, nước cuộn đá bay' } }),
     { wb: { cdHours: 3,  tinhThe: 1, honThach: 35,  bac: 600,   eggBase: 'huyenQuy',   eggs: eggDrops('huyenQuy') } }),
   Object.assign(mk(30, 'boss', { id: 'yvHuyetLang', name: 'Huyết Lang Vương', gloss: 'Blood Wolf King', icon: '🐺', isBoss: true, affinity: 'Yêu Vương · Huyết Lang',
@@ -199,7 +199,7 @@ export const YEU_VUONG = [
     skill: { name: 'Huyết Nguyệt Trảo', mult: 2.5, cd: 5, fl: 'vung trảo huyết quang xé toạc màn đêm' } }),
     { wb: { cdHours: 4,  tinhThe: 1, honThach: 60,  bac: 1200,  eggBase: 'huyetLang',  eggs: eggDrops('huyetLang') } }),
   Object.assign(mk(40, 'boss', { id: 'yvCuHung', name: 'Hồng Hoang Cự Hùng', gloss: 'Primordial Giant Bear', icon: '🐻', isBoss: true, affinity: 'Yêu Vương · Cự Hùng',
-    lore: 'Gấu khổng lồ sót lại từ thuở hồng hoang, thân cao tựa núi, một chưởng tát xuống đất nứt đá tan, thú rừng nghe tiếng gầm liền cụp đuôi.', atkFl: 'vung chưởng quật',
+    lore: 'Cự Hùng còn sót lại từ thời hồng hoang, thân cao như núi. Một chưởng đủ làm đất nứt đá vỡ, tiếng gầm khiến thú rừng phải co mình bỏ chạy.', atkFl: 'vung chưởng quật',
     skill: { name: 'Hồng Hoang Liệt Phách', mult: 2.6, cd: 6, fl: 'gầm vang trời rồi giáng song chưởng cuồng bạo nghiền nát tất thảy' } }),
     { wb: { cdHours: 5,  tinhThe: 1, honThach: 90,  bac: 2000,  eggBase: 'cuHung',     eggs: eggDrops('cuHung') } }),
   Object.assign(mk(50, 'boss', { id: 'yvDocGiao', name: 'Độc Giao Vương', gloss: 'Venom Serpent King', icon: '🐍', isBoss: true, affinity: 'Yêu Vương · Độc Giao',
@@ -207,7 +207,7 @@ export const YEU_VUONG = [
     skill: { name: 'Vạn Độc Triền Thân', mult: 2.7, cd: 6, fl: 'phun độc vụ xanh lè bủa vây tứ phía' } }),
     { wb: { cdHours: 6,  tinhThe: 1, honThach: 120, bac: 3000,  eggBase: 'docGiao',    eggs: eggDrops('docGiao') } }),
   Object.assign(mk(60, 'boss', { id: 'yvLoiBang', name: 'Cửu Tiêu Lôi Bằng', gloss: 'Ninth-Heaven Thunder Roc', icon: '🦅', isBoss: true, affinity: 'Yêu Vương · Lôi Bằng',
-    lore: 'Đại bằng ngự chín tầng mây, đôi cánh giương ra che kín nhật nguyệt, vỗ một cái là sấm sét đầy trời, bóng lướt qua khiến vạn vật rúng động.', atkFl: 'bổ nhào tạt cánh',
+    lore: 'Đại Bằng bay trên chín tầng mây, đôi cánh giương ra như che kín nhật nguyệt. Mỗi lần vỗ cánh, sấm sét nổi đầy trời, bóng lướt qua khiến vạn vật kinh động.', atkFl: 'bổ nhào tạt cánh',
     skill: { name: 'Cửu Tiêu Lôi Dực', mult: 2.8, cd: 6, fl: 'từ tầng mây bổ nhào, sải cánh kéo theo lôi đình giáng sấm rền' } }),
     { wb: { cdHours: 7,  tinhThe: 2, honThach: 170, bac: 4500,  eggBase: 'loiBang',    eggs: eggDrops('loiBang') } }),
   Object.assign(mk(70, 'boss', { id: 'yvHoaLan', name: 'Hỏa Lân Yêu Vương', gloss: 'Flame Qilin King', icon: '🦁', isBoss: true, affinity: 'Yêu Vương · Hỏa Lân',
@@ -215,15 +215,15 @@ export const YEU_VUONG = [
     skill: { name: 'Phần Thiên Lân Hỏa', mult: 2.9, cd: 6, fl: 'cuồng diễm hoá biển lửa thiêu rụi tám phương' } }),
     { wb: { cdHours: 8,  tinhThe: 2, honThach: 220, bac: 6000,  eggBase: 'hoaLan',     eggs: eggDrops('hoaLan') } }),
   Object.assign(mk(80, 'boss', { id: 'yvHoYeu', name: 'Mị Ảnh Hồ Yêu', gloss: 'Charm-Shadow Fox Demon', icon: '🦊', isBoss: true, affinity: 'Yêu Vương · Hồ Yêu',
-    lore: 'Hồ ly chín đuôi tu luyện ngàn năm hoá hình mị nữ, hồ quang lập loè mê hoặc lòng người, một ánh nhìn đủ đoạt hồn kẻ phàm.', atkFl: 'phất đuôi mê hoặc',
+    lore: 'Hồ ly chín đuôi tu luyện ngàn năm, hóa thành mị nữ. Hồ quang lập lòe mê hoặc tâm trí, chỉ một ánh nhìn cũng đủ khiến người thường mất hồn.', atkFl: 'phất đuôi mê hoặc',
     skill: { name: 'Cửu Vĩ Mị Hoặc', mult: 3.0, cd: 6, fl: 'chín đuôi xòe rộng toả hồ quang yêu mị, nhiếp hồn đoạt phách' } }),
     { wb: { cdHours: 9,  tinhThe: 2, honThach: 280, bac: 7500,  eggBase: 'hoYeu',      eggs: eggDrops('hoYeu') } }),
   Object.assign(mk(90, 'boss', { id: 'yvBangPhuong', name: 'Băng Phách Yêu Hậu', gloss: 'Frost Phoenix Empress', icon: '🦅', isBoss: true, affinity: 'Yêu Vương · Băng Phượng',
-    lore: 'Phượng hoàng băng phách ngự đỉnh tuyết vạn năm, cánh phất một cái là cả trời đất đóng băng.', atkFl: 'quạt cánh băng',
+    lore: 'Phượng Hoàng Băng Phách ngự trên đỉnh tuyết vạn năm. Chỉ một lần vỗ cánh, hàn khí đã đủ đóng băng cả một vùng trời đất.', atkFl: 'quạt cánh băng',
     skill: { name: 'Cửu Thiên Hàn Vũ', mult: 3.0, cd: 6, slow: true, fl: 'rải vũ băng phủ trắng chiến trường, vạn vật ngưng đọng' } }),
     { wb: { cdHours: 10, tinhThe: 2, honThach: 360, bac: 9000,  eggBase: 'bangPhuong', eggs: eggDrops('bangPhuong') } }),
   Object.assign(mk(100, 'boss', { id: 'yvThienMa', name: 'Thiên Ma Yêu Đế', gloss: 'Heaven Demon Emperor', icon: '😈', isBoss: true, affinity: 'Yêu Vương · Thiên Ma',
-    lore: 'Yêu đế thống lĩnh vạn yêu, ma khí ngút trời che lấp nhật nguyệt — kẻ thù tối hậu của giang hồ.', atkFl: 'giáng ma uy',
+    lore: 'Yêu Đế thống lĩnh vạn yêu, ma khí ngút trời che lấp nhật nguyệt; là kẻ thù tối hậu của giang hồ.', atkFl: 'giáng ma uy',
     skill: { name: 'Thiên Ma Diệt Thế', mult: 3.2, cd: 6, fl: 'ma viêm huỷ thiên diệt địa nuốt trọn tất thảy' } }),
     { wb: { cdHours: 12, tinhThe: 3, honThach: 600, bac: 15000, eggBase: 'thienMa',    eggs: eggDrops('thienMa') } }),
 ];

@@ -68,7 +68,7 @@ export const KT_CUNG = [
     id: 'thienCuong', tri: '☰', nm: 'Thiên Cương', he: 'Càn · Thiên', c: '#cbd5e1',
     scene: 'coMoKiemTong', hanh: 'kim', tier: 1,
     lore: 'Thiên môn thất thủ, thần tướng hóa yêu.',
-    story: 'Cổ trận án ngữ trời cao, thiên cơ vận chuyển bất tận, phàm phu ngước nhìn cũng phải rợn tóc gáy. Thủ Vệ Thần Tướng vốn là thần binh giữ cửa Càn, tâm khiếu nhiễm ma mà hóa yêu, trấn thủ vạn năm — chỉ kẻ ngộ được lẽ Càn Khôn Nghịch Chuyển mới đủ tư cách bước qua.',
+    story: 'Cổ trận treo giữa trời, Thiên Cơ vận chuyển không ngừng, người thường chỉ nhìn cũng thấy áp lực nặng nề. Thủ Vệ Thần Tướng vốn là thần binh giữ cửa Càn, nhưng tâm khiếu nhiễm Ma Khí rồi hóa yêu, trấn thủ nơi đây vạn năm. Chỉ người hiểu được lẽ Càn Khôn Nghịch Chuyển mới có thể vượt qua.',
     boss: { art: 'thuVeThanTuong', nm: 'Thủ Vệ Thần Tướng', sub: 'Trùm Thiên Cương', epithet: 'thần binh giữ cửa Càn, nay đã nhiễm ma', hp: 270, atk: 15, heavyEvery: 4, heavyMul: 1.6 },
     mobs: [
       { art: 'thienBinh', nm: 'Thiên Binh Tàn Giáp', hp: 83, atk: 11 },
@@ -83,7 +83,7 @@ export const KT_CUNG = [
     id: 'bangUyen', tri: '☵', nm: 'Băng Uyên', he: 'Khảm · Băng', c: '#22d3ee',
     scene: 'bangTamHanDam', hanh: 'thuy', tier: 2,
     lore: 'Vạn trượng hàn uyên, nhất niệm thành băng.',
-    story: 'Nơi hàn khí ngưng tụ từ cõi hư vô, vạn trượng băng nguyên ẩn chứa thứ lực lượng có thể đóng băng cả thời gian lẫn linh hồn. Hàn Giao Vương, kẻ tu luyện Băng Mãng cổ pháp, trấn thủ nơi này hàng vạn năm, chờ kẻ đủ mạnh đến phá trận, đoạt lấy bí quyết Ngưng Sương Quyết.',
+    story: 'Nơi Hàn Khí từ hư vô ngưng tụ thành băng nguyên vạn trượng, sức lạnh dường như có thể đóng băng cả thời gian và linh hồn. Hàn Giao Vương tu Băng Mãng Cổ Pháp, trấn thủ nơi này hàng vạn năm và chờ người đủ mạnh phá trận để đoạt Ngưng Sương Quyết.',
     boss: { art: 'hanGiaoVuong', nm: 'Hàn Giao Vương', sub: 'Trùm Băng Mãng', epithet: 'tu luyện Băng Mãng cổ pháp, trấn thủ vạn năm', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.8 },
     mobs: [
       { art: 'tuyetLang', nm: 'Tuyết Lang Băng Nha', hp: 111, atk: 13 },
@@ -98,7 +98,7 @@ export const KT_CUNG = [
     id: 'thachMa', tri: '☶', nm: 'Thạch Ma', he: 'Cấn · Thạch', c: '#d6a760',
     scene: 'luuVanDong', hanh: 'tho', tier: 3,
     lore: 'Thạch khai ma tỉnh, sơn băng địa liệt.',
-    story: 'Lòng núi nứt toác, ma khí từ mạch đất trào lên nhuộm đen từng phiến nham thạch ngàn năm. Thạch Hùng Vương thân đúc bằng kim thạch bất hoại, mỗi bước đi đủ khiến sơn cốc rung chuyển — ai muốn đoạt Kim Cang Hộ Thể, trước hết phải phá được thân giáp đá của hắn.',
+    story: 'Lòng núi nứt toác, Ma Khí từ địa mạch trào lên nhuộm đen nham thạch. Thạch Hùng Vương có thân thể như Kim Thạch bất hoại, mỗi bước đều làm sơn cốc rung chuyển. Muốn đoạt Kim Cang Hộ Thể, trước tiên phải phá được lớp giáp đá của hắn.',
     boss: { art: 'hacHung', nm: 'Thạch Hùng Vương', sub: 'Trùm Hậu Thổ', epithet: 'thân đúc kim thạch, một bước rung sơn cốc', hp: 430, atk: 21, heavyEvery: 3, heavyMul: 1.7 },
     mobs: [
       { art: 'sonTru', nm: 'Sơn Trư Húc Thạch', hp: 139, atk: 16 },
@@ -113,7 +113,7 @@ export const KT_CUNG = [
     id: 'thuyQuai', tri: '☱', nm: 'Thủy Quái', he: 'Đoài · Thủy', c: '#60a5fa',
     scene: 'thanhVanCoc', hanh: 'thuy', tier: 2,
     lore: 'Ba đào nuốt nguyệt, hải tộc loạn cương.',
-    story: 'Thủy vực mênh mông không thấy đáy, sóng dữ nuốt cả bóng trăng, hải tộc ẩn mình rình kẻ lữ khách lạc đường. Hải Yêu Chúa thống lĩnh vạn loài giao long, buông chướng khí khắp trận đồ, giữ chặt tuyệt học Ô Long Giao Tranh dưới lòng biển sâu.',
+    story: 'Thủy vực mênh mông không thấy đáy, sóng dữ nuốt cả bóng trăng, Hải Tộc ẩn mình rình kẻ lạc đường. Hải Yêu Chúa thống lĩnh vạn loài giao long, dùng Chướng Khí phủ kín trận đồ và canh giữ Ô Long Giao Tranh dưới biển sâu.',
     boss: { art: 'haiYeu', nm: 'Hải Yêu Chúa', sub: 'Trùm Hải Tộc', epithet: 'thống lĩnh vạn giao long, ẩn dưới đáy sâu', hp: 350, atk: 18, heavyEvery: 4, heavyMul: 1.7 },
     mobs: [
       { art: 'giaoNhan', nm: 'Giao Nhân Trảo Ba', hp: 111, atk: 13 },
@@ -128,7 +128,7 @@ export const KT_CUNG = [
     id: 'maDe', tri: '☯', nm: 'Ma Đế Điện', he: 'Trung Cung', c: '#c084fc',
     scene: 'thaiHuBiCanh', hanh: null, tier: 6,
     lore: 'Bát môn dĩ phá, ma đế lâm trần.',
-    story: 'Bát môn đã phá, cửu cung quy nhất, điện các u minh mở ra giữa tâm trận đồ — nơi tận cùng của Kỳ Trận. Thiên Ma Yêu Đế tọa trấn ngai xương, thống ngự cả tám cõi yêu ma; chỉ kẻ đã trảm tận tám Cung Chủ mới đủ tư cách nghênh chiến, tranh đoạt Thái Cực Vô Cực.',
+    story: 'Bát Môn đã phá, Cửu Cung quy nhất, điện các u minh mở ra giữa tâm trận — nơi tận cùng của Kỳ Trận. Thiên Ma Yêu Đế ngồi trên ngai xương, thống lĩnh tám cõi yêu ma. Chỉ người đã hạ đủ tám Cung Chủ mới có tư cách nghênh chiến và tranh đoạt Thái Cực Vô Cực.',
     boss: {
       art: 'coMaTo', nm: 'Thiên Ma Yêu Đế', sub: 'Trùm Cuối', epithet: 'tọa trấn ngai xương, thống ngự tám cõi yêu ma', hp: 720, atk: 32,
       heavyEvery: 3, heavyMul: 2.0, poisonEvery: 2, poisonK: 5, poisonDmg: 13,
@@ -146,7 +146,7 @@ export const KT_CUNG = [
     id: 'loiDinh', tri: '☳', nm: 'Lôi Đình', he: 'Chấn · Lôi', c: '#a78bfa',
     scene: 'thienCoDiTich', hanh: 'moc', tier: 4,
     lore: 'Lôi minh cửu tiêu, vạn vật phủ phục.',
-    story: 'Cửu tiêu sấm dậy, thiên lôi giáng liên hồi, vạn vật trong trận phải cúi đầu phủ phục trước uy thế phá thiên. Cửu Tiêu Lôi Bằng vỗ cánh là sét đánh ngang trời, trấn giữ Ngũ Lôi Chính Pháp — chính khí trảm tà bậc nhất cửu cung.',
+    story: 'Cửu Tiêu sấm dậy, Thiên Lôi liên tục giáng xuống. Cửu Tiêu Lôi Bằng chỉ cần vỗ cánh đã kéo sét ngang trời, trấn giữ Ngũ Lôi Chính Pháp — một trong những pháp môn trảm tà mạnh nhất Cửu Cung.',
     boss: { art: 'vanDieu', nm: 'Cửu Tiêu Lôi Bằng', sub: 'Trùm Lôi Cầm', epithet: 'vỗ cánh gọi thiên lôi, uy chấn cửu tiêu', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.8 },
     mobs: [
       { art: 'phuQuangDiep', nm: 'Điện Quang Điệp', hp: 167, atk: 18 },
@@ -161,7 +161,7 @@ export const KT_CUNG = [
     id: 'coDia', tri: '☷', nm: 'Cổ Địa', he: 'Khôn · Địa', c: '#a3a3a3',
     scene: 'hacPhongLam', hanh: 'tho', tier: 3,
     lore: 'Hoàng sa táng cốt, cổ độc phệ tâm.',
-    story: 'Cát vàng vùi lấp ngàn hài cốt, cổ độc luyện từ vạn xác chết gặm nhấm cả tâm trí kẻ lạc bước. Cổ Địa Ma Quân nuôi độc trùng trong huyết mạch, tẩm độc cả trận đồ — kẻ muốn học Hoá Độc Đại Pháp phải sống sót qua vạn độc phệ tâm.',
+    story: 'Cát vàng vùi lấp vô số hài cốt, Cổ Độc luyện từ xác chết bào mòn cả tâm trí kẻ lạc bước. Cổ Địa Ma Quân nuôi Độc Trùng trong huyết mạch, tẩm độc khắp trận đồ. Muốn học Hóa Độc Đại Pháp, trước tiên phải sống sót qua Vạn Độc Phệ Tâm.',
     boss: { art: 'luuSaQuy', nm: 'Cổ Địa Ma Quân', sub: 'Trùm Sa Quỷ', epithet: 'nuôi cổ độc trong huyết mạch, tẩm độc cả trận', hp: 430, atk: 21, poisonEvery: 2, poisonK: 4, poisonDmg: 11 },
     mobs: [
       { art: 'daLang', nm: 'Sa Lang Hoang Nguyên', hp: 139, atk: 16 },
@@ -176,7 +176,7 @@ export const KT_CUNG = [
     id: 'hoaDiem', tri: '☲', nm: 'Hỏa Diễm', he: 'Ly · Hỏa', c: '#fb7185',
     scene: 'xichDiemDiaCung', hanh: 'hoa', tier: 4,
     lore: 'Xích diễm liệt địa, vạn vật thành tro.',
-    story: 'Lửa đỏ liếm đất, dung nham cuộn trào, vạn vật lọt vào đều hóa thành tro bụi trong chớp mắt. Hỏa Lân Vương thân phủ vảy hỏa lân, mỗi đòn nặng tựa núi lửa phun trào, giấu trong ngọn lửa nghìn năm tuyệt kỹ Hoàng Kim Nhất Kích.',
+    story: 'Lửa đỏ phủ mặt đất, dung nham cuộn trào, thứ gì rơi vào cũng nhanh chóng thành tro. Hỏa Lân Vương thân phủ vảy lửa, mỗi đòn nặng như núi lửa bùng nổ và canh giữ Hoàng Kim Nhất Kích giữa ngọn lửa ngàn năm.',
     boss: { art: 'hoaYeu', nm: 'Hỏa Lân Vương', sub: 'Trùm Hỏa Yêu', epithet: 'thân phủ hỏa lân, một đòn tựa núi lửa', hp: 510, atk: 24, heavyEvery: 3, heavyMul: 1.9 },
     mobs: [
       { art: 'daLang', nm: 'Viêm Lang Xích Diễm', hp: 167, atk: 18 },
@@ -191,7 +191,7 @@ export const KT_CUNG = [
     id: 'phongYeu', tri: '☴', nm: 'Phong Yêu', he: 'Tốn · Phong', c: '#34d399',
     scene: 'vanYeuSon', hanh: 'moc', tier: 5,
     lore: 'Phong khởi yêu sơn, mị ảnh mê tâm.',
-    story: 'Gió cuốn khắp yêu sơn, ảo ảnh mê hoặc lòng người, khiến kẻ mạnh nhất cũng lạc trong mộng cảnh. Mị Ảnh Hồ Yêu tu thành chín đuôi, một ánh mắt đủ đảo lộn ngũ hành — kẻ đoạt được Ngũ Hành Đại Chuyển phải giữ vững tâm thần trước muôn trùng ảo thuật.',
+    story: 'Gió cuốn khắp Yêu Sơn, ảo ảnh chồng lên nhau khiến cả cao thủ cũng dễ lạc trong mộng. Mị Ảnh Hồ Yêu tu thành chín đuôi, một ánh mắt có thể đảo lộn Ngũ Hành. Muốn đoạt Ngũ Hành Đại Chuyển, phải giữ vững tâm trí trước vô số ảo thuật.',
     boss: { art: 'cuuViHoTien', nm: 'Mị Ảnh Hồ Yêu', sub: 'Trùm Hồ Tiên', epithet: 'hồ yêu chín đuôi, một liếc đảo ngũ hành', hp: 590, atk: 27, poisonEvery: 2, poisonK: 5, poisonDmg: 12 },
     mobs: [
       { art: 'yeuHo', nm: 'Yêu Hồ Tam Vĩ', hp: 195, atk: 21 },
@@ -209,11 +209,11 @@ export const KT_CUNG = [
 //   Khởi đầu có 'tuSa'; 4 cái còn lại mở từ reward Cung.
 // ============================================================
 export const KT_TAM_PHAP = [
-  { id: 'tuSa', name: 'Tụ Sa Thành Tháp', accent: '#f5b942', role: 'Tích Lũy', rule: 'Xóa càng nhiều ô trong một đòn, hiệu lực càng tăng vọt (một đòn 6 ô mạnh hơn hẳn hai đòn 3 ô). Tính tối đa 9 ô mỗi đòn.', lore: 'Tích cát vi sơn — nhất kích thiên quân.' },
-  { id: 'canKhon', name: 'Càn Khôn Nghịch Chuyển', accent: '#d4b45a', role: 'Sinh Hóa', rule: 'Ô mới rơi xuống thiên về loại kế trong vòng Ngũ Hành (Kiếm, Khí, Bảo, Tâm, Thuẫn), giúp chủ động gom chuỗi liên hoàn.', lore: 'Vạn vật tương sinh — diệt một, sinh một.' },
-  { id: 'hoaDoc', name: 'Hoá Độc Đại Pháp', accent: '#45a877', role: 'Dụng Độc', rule: 'Mỗi ô Độc của địch ngươi phá được nạp 1 Độc Tinh (tối đa 8). Đòn Kiếm kế cộng +4 sát thương mỗi Độc Tinh rồi xả sạch.', lore: 'Độc nhập ta tạng — hoàn lại kẻ gieo.' },
-  { id: 'kimCang', name: 'Kim Cang Hộ Thể', accent: '#e8c877', role: 'Kiên Thủ', rule: 'Mỗi lượt 25% Hộ Thuẫn hiện có dồn thẳng vào đòn Kiếm kế (không hao Hộ Thuẫn) — càng thủ, phản đòn càng nặng.', lore: 'Thân như kim thạch — phản chấn bách địch.' },
-  { id: 'thaiCuc', name: 'Thái Cực Vô Cực', accent: '#c084fc', role: 'Vận Khí', rule: 'Tạo ô đặc biệt được +15 Khí; kích nổ hoặc Hợp Bích +8 Khí. Trần nối lượt liên tiếp tăng từ 2 lên 3.', lore: 'Nhất khí hóa tam thanh — trận trung sinh trận.' },
+  { id: 'tuSa', name: 'Tụ Sa Thành Tháp', accent: '#f5b942', role: 'Tích Lũy', rule: 'Xóa càng nhiều ô trong cùng một đòn, hiệu quả tăng càng mạnh. Ví dụ: xóa 6 ô cùng lúc mạnh hơn rõ rệt so với hai lần xóa 3 ô. Mỗi đòn tính tối đa 9 ô.', lore: 'Tích cát vi sơn — nhất kích thiên quân.' },
+  { id: 'canKhon', name: 'Càn Khôn Nghịch Chuyển', accent: '#d4b45a', role: 'Sinh Hóa', rule: 'Ô mới rơi xuống sẽ ưu tiên loại kế tiếp trong vòng Ngũ Hành: Kiếm → Khí → Bảo → Tâm → Thuẫn. Có thể tận dụng để chủ động tạo chuỗi liên hoàn.', lore: 'Vạn vật tương sinh — diệt một, sinh một.' },
+  { id: 'hoaDoc', name: 'Hoá Độc Đại Pháp', accent: '#45a877', role: 'Dụng Độc', rule: 'Mỗi ô Độc của địch bị phá sẽ nạp 1 Độc Tinh, tối đa 8. Đòn Kiếm kế tiếp được cộng +4 sát thương cho mỗi Độc Tinh rồi tiêu hao toàn bộ.', lore: 'Độc nhập ta tạng — hoàn lại kẻ gieo.' },
+  { id: 'kimCang', name: 'Kim Cang Hộ Thể', accent: '#e8c877', role: 'Kiên Thủ', rule: 'Mỗi lượt, 25% Hộ Thuẫn hiện có được cộng thẳng vào đòn Kiếm kế tiếp mà không tiêu hao Hộ Thuẫn. Càng thủ chắc, đòn phản công càng mạnh.', lore: 'Thân như kim thạch — phản chấn bách địch.' },
+  { id: 'thaiCuc', name: 'Thái Cực Vô Cực', accent: '#c084fc', role: 'Vận Khí', rule: 'Tạo ô đặc biệt nhận +15 Khí; kích nổ ô đặc biệt hoặc Hợp Bích nhận +8 Khí. Giới hạn nối lượt liên tiếp tăng từ 2 lên 3.', lore: 'Nhất khí hóa tam thanh — trận trung sinh trận.' },
 ];
 
 // ============================================================

@@ -95,19 +95,23 @@ const HAN_NU  = '衣烟雪灵鸾月冰嫣霜寂';
 
 // --- Công trình (NỀN, giữ nhẹ; phục vụ đệ tử) ---
 export const BUILDINGS = {
-  tuHien:  { name: 'Tụ Hiền Đường', han: '宗', desc: 'Sảnh đường chiêu hiền nạp sĩ — nơi quy tụ anh tài bốn phương về dưới trướng tông môn. Bậc càng cao, sức chứa môn đồ càng rộng; cũng là chốn truyền hịch Chiêu Hiền vang khắp giang hồ.', slotBase: 4, slotPerLv: 1 },
-  dienVo:  { name: 'Diễn Võ Trường', han: '武', desc: 'Giáo trường luyện võ, ngày đêm vang tiếng binh khí va chạm. Đệ tử khổ luyện nơi đây, đạo cơ ngày một vững, tu vi tăng tiến mau hơn — mở rộng trường thì cả tông cùng hưởng.', buffPerLv: 0.06 },
-  tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Lầu cất giữ kinh thư bí lục của môn phái. Đệ tử nghiền ngẫm điển tịch, lĩnh ngộ huyền cơ — tích góp đều đặn thành Điểm Đấu Giá theo thời gian.', diemPerLvH: 12 },
-  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Đan phòng của tông môn, lò lửa quanh năm không tắt. Theo cổ phương mà nung luyện nguyên liệu trong Túi Đồ thành linh đan đột phá — mỗi mẻ tốn thời gian luyện. Bậc cao mở thêm lò và đan phẩm cao hơn.' },
-  duocVien:{ name: 'Dược Viên',     han: '藥', desc: 'Khu vườn ươm trồng linh dược, sương khói lượn quanh các luống đất. Mỗi luống nuôi một vị nguyên liệu, đủ ngày thì chín, hái về Túi Đồ. Bậc cao mở thêm luống và trồng được linh dược bậc cao.' },
-  luyenKhiCac:{ name: 'Luyện Khí Các', han: '器', desc: 'Gác lò rèn của tông môn, đe nung đỏ lửa, búa gõ vang chan chát. Tôi luyện gia bảo đệ tử đang đeo lên một tầng uy lực — bậc càng cao thì rèn được càng sâu.' },
-  giangDao:{ name: 'Giảng Đạo Đường', han: '講', desc: 'Giảng đường thâm u, cao nhân thuyết đạo cho hậu bối nghe. Thính giảng lâu ngày khai mở tâm khiếu — NÂNG TRẦN tư chất đệ tử, giúp kẻ căn cơ tầm thường vươn xa hơn số trời định. (Đắc Đạo vẫn là cảnh giới chỉ Thiên Tư chạm tới.)' },
-  tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Đại trận dẫn linh khí trời đất quy tụ về sơn môn, vận khí hanh thông cát tường. Linh khí dồi dào giúp Khí Vận tông môn tăng tiến, đồng thời bồi thêm tốc độ tu luyện cho toàn môn.', khiPerLv: 4 },
+  // ⚠ `desc` CHỈ tả cảnh, một câu. Luật và con số đã nằm ở khối "Hiệu Lực · Bậc N → N+1" ngay
+  //   dưới nó trong cùng modal (main.js `tmBuildDetail` dựng `effects` cho CẢ MƯỜI HAI công trình).
+  //   Bản cũ nhét thêm câu luật rồi câu "bậc cao thì..." vào đây — vừa lặp vừa dài, ô desc lại
+  //   `line-clamp` nên câu thứ ba người chơi không đọc được.
+  tuHien:  { name: 'Tụ Hiền Đường', han: '宗', desc: 'Sảnh đường chiêu hiền nạp sĩ, nơi quy tụ anh tài bốn phương về dưới trướng tông môn.', slotBase: 4, slotPerLv: 1 },
+  dienVo:  { name: 'Diễn Võ Trường', han: '武', desc: 'Giáo trường luyện võ, ngày đêm vang tiếng binh khí va chạm.', buffPerLv: 0.06 },
+  tangThu: { name: 'Tàng Thư Lâu',  han: '書', desc: 'Lầu cất giữ kinh thư bí lục của môn phái.', diemPerLvH: 12 },
+  yQuan:   { name: 'Y Quán',        han: '醫', desc: 'Đan phòng của tông môn, lò lửa quanh năm không tắt.' },
+  duocVien:{ name: 'Dược Viên',     han: '藥', desc: 'Khu vườn ươm trồng linh dược, sương khói lượn quanh các luống đất.' },
+  luyenKhiCac:{ name: 'Luyện Khí Các', han: '器', desc: 'Gác lò rèn của tông môn, đe nung đỏ lửa, búa gõ vang chan chát.' },
+  giangDao:{ name: 'Giảng Đạo Đường', han: '講', desc: 'Giảng đường thâm u, cao nhân thuyết đạo cho hậu bối nghe.' },
+  tuLinh:  { name: 'Tụ Linh Trận',  han: '陣', desc: 'Đại trận dẫn linh khí trời đất quy tụ về sơn môn, vận khí hanh thông cát tường.', khiPerLv: 4 },
   // --- Công trình XÃ HỘI (nội thất ở chunk riêng) ---
-  daiKhachCac:  { name: 'Đãi Khách Các', han: '賓', desc: 'Lầu tiếp đãi tân khách bốn phương, rượu thơm trà nóng quanh năm. Nơi tông môn kết giao các phái giang hồ, đón sứ giả gây dựng bang giao — bậc cao thì đón được nhiều khách quý, uy danh vang xa.' },
-  gioiLuatDuong:{ name: 'Giới Luật Đường', han: '律', desc: 'Đường nghiêm trị gia pháp môn quy, roi đồng giới xích lạnh người. Nơi tra xét kẻ sinh tâm ma, xử trí phản đồ, gột cờ xấu giữ sơn môn thanh tịnh — bậc cao thì uy nghiêm càng trọng, trấn tâm ma càng sâu.' },
-  luanVoDuong:  { name: 'Luận Võ Đường', han: '論', desc: 'Giảng võ đường cho đệ tử tỉ thí cao thấp, binh khí lách cách suốt ngày. Nơi luận bàn võ học, giao đấu nâng cao sĩ khí toàn môn — bậc cao thì mở thêm đối thủ và đài luận võ.' },
-  toSuDien:     { name: 'Tổ Sư Điện', han: '祖', desc: 'Điện thờ tổ sư lịch đại, khói hương nghi ngút trang nghiêm. Nơi cung phụng tiền nhân khai phái, ghi danh đệ tử Xuất Sư, Trưởng Lão cùng những người đã khuất — bậc cao thì bài vị càng nhiều, ấm phúc càng dày.' },
+  daiKhachCac:  { name: 'Đãi Khách Các', han: '賓', desc: 'Lầu tiếp đãi tân khách bốn phương, rượu thơm trà nóng quanh năm.' },
+  gioiLuatDuong:{ name: 'Giới Luật Đường', han: '律', desc: 'Đường nghiêm trị gia pháp môn quy, roi đồng giới xích lạnh người.' },
+  luanVoDuong:  { name: 'Luận Võ Đường', han: '論', desc: 'Giảng võ đường cho đệ tử tỉ thí cao thấp, binh khí lách cách suốt ngày.' },
+  toSuDien:     { name: 'Tổ Sư Điện', han: '祖', desc: 'Điện thờ tổ sư lịch đại, khói hương nghi ngút trang nghiêm.' },
 };
 export const BUILD_KEYS = ['tuHien', 'dienVo', 'tangThu', 'yQuan', 'duocVien', 'luyenKhiCac', 'giangDao', 'tuLinh', 'daiKhachCac', 'gioiLuatDuong', 'luanVoDuong', 'toSuDien'];
 

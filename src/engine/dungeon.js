@@ -128,7 +128,7 @@ export function runDungeon(state, dungeonId) {
       const tn = statLv(state, 'thanPhap'), lx = statLv(state, 'linhXao');
       const useLx = lx >= tn; const lv = useLx ? lx : tn; const via = useLx ? 'Ngộ Tính' : 'Thân Pháp';
       if (lv >= req + 2) {
-        add(i + 1, 'bay', ord + ' · Cạm Bẫy', `Cơ quan kích phát, ngươi cậy <span class="text-amber-300">${via}</span> né gọn — bình an vô sự.`, 'win');
+        add(i + 1, 'bay', ord + ' · Cạm Bẫy', `Cơ quan kích hoạt, bạn dựa vào <span class="text-amber-300">${via}</span> né gọn — bình an vô sự.`, 'win');
       } else { const loss = clamp(randInt(state, 'bcHiem', 11, 18), 8, 28); hp -= loss;
         add(i + 1, 'bay', ord + ' · Cạm Bẫy', `Trúng cạm bẫy cơ quan, né không kịp — tổn <b class="dmgr">${loss}%</b> sinh lực.`, 'hurt');
       }

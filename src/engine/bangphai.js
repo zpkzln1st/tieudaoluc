@@ -323,7 +323,7 @@ export function giaiTan(state, now) {
   b.nv = { ky: -1, ds: [], xong: [], moc: null };
   b.truyNa = { ngay: -1, ds: [], nhan: {}, moc: {} };
   b.bossB = { ky: -1, bossId: '', gop: 0, luot: 0, cdDen: 0, thangKy: -1 };
-  if (ten) ghiNhatKy(state, 'Giải tán <b>' + ten + '</b>. Cờ hạ, người tan.', now);
+  if (ten) ghiNhatKy(state, 'Giải tán <b>' + ten + '</b>. Cờ hạ xuống, người cũng tan biến.', now);
   return b;
 }
 
@@ -883,7 +883,7 @@ export function ensureMua(state, now) {
     b.bang.cpMua = mua; b.bang.cpVung = {}; b.bang.cpTong = 0; b.bang.hangVung = {};
     b.muaThuong = { mua: mua - 1, hang: b.muaThuong ? b.muaThuong.hang : 0, daNhan: false };
     ghiNhatKy(state, "Mùa Chinh Phạt mới bắt đầu — điểm về 0, tranh lại từ đầu.", now);
-    baoMinh(state, "Mùa Chinh Phạt mới", "Điểm mọi vùng về 0, tranh lại từ đầu. Hạng mùa trước đã chốt.", now);
+    baoMinh(state, "Mùa Chinh Phạt mới", "Điểm của mọi khu vực trở về 0 để bắt đầu tranh lại từ đầu. Thứ hạng mùa trước đã được chốt.", now);
   }
 }
 /** Cộng điểm Chinh Phạt cho bang tại một vùng. Gọi từ đường thưởng khi giết quái. */

@@ -22,25 +22,25 @@ const DUR_MS = DUR_DECAY_DAYS * 24 * 3600 * 1000;
 // lore = văn cổ thư (user tự viết, đã duyệt ở mockup — port nguyên văn).
 export const HOUSE_TIERS = [
   { lv: 0, name: 'Bãi Đất Trống', img: 'nha_0',
-    lore: 'Hoang địa sơ khai, linh mạch vị tỉnh. Nhất thạch định cơ, tông môn tự thử khai thiên.' },
+    lore: 'Mảnh đất hoang sơ, Linh Mạch còn chưa thức tỉnh. Chỉ từ một nền đá đầu tiên, Tông Môn bắt đầu dựng cơ nghiệp.' },
   { lv: 1, name: 'Thảo Lư', img: 'nha_1', reqLevel: 1, buildMs: 12 * H, bac: 300000,
     mats: { vanYeu: 400, datSet: 300, cat: 200 },
-    lore: 'Thảo lư lâm phong, cô đăng chiếu dạ. Tuy vô hoa vũ, diệc khả tĩnh tâm dưỡng khí.' },
+    lore: 'Thảo Lư nép giữa rừng, một ngọn đèn sáng trong đêm. Tuy còn đơn sơ, nơi đây đã đủ yên tĩnh để dưỡng khí và tu tâm.' },
   { lv: 2, name: 'Mộc Xá', img: 'nha_2', reqLevel: 10, buildMs: 24 * H, bac: 600000,
     mats: { vanYeu: 1000, gach: 800, thietKhau: 200 },
-    lore: 'Mộc xá sơ thành, trà yên vị tán. Môn nhân an cư ư thử, trú tập võ, dạ luyện khí.' },
+    lore: 'Mộc Xá vừa dựng xong, khói trà còn vương. Môn nhân có chỗ an cư, ban ngày luyện võ, ban đêm tu khí.' },
   { lv: 3, name: 'Trạch Viện', img: 'nha_3', reqLevel: 18, buildMs: 36 * H, bac: 1100000,
     mats: { thanhNgoa: 1200, luongMoc: 500, gach: 600, thietKhau: 300 },
-    lore: 'Thanh ngõa cao tường, viện môn thâm bế. Tông môn căn cơ tiệm ổn, khả thu đồ lập quy.' },
+    lore: 'Tường cao ngói xanh, cổng viện khép sâu. Căn cơ Tông Môn dần ổn định, đã có thể thu nhận đệ tử và lập quy củ.' },
   { lv: 4, name: 'Sơn Trang', img: 'nha_4', reqLevel: 24, buildMs: 54 * H, bac: 2000000,
     mats: { thachChuyen: 1500, thanhNgoa: 800, luongMoc: 500, gach: 800, thietKhau: 400 },
-    lore: 'Sơn trang y lĩnh, lâu viện tương liên. Nhất phương khí vận tiệm tụ, thanh danh thủy động giang hồ.' },
+    lore: 'Sơn Trang dựa lưng vào núi, lầu viện nối tiếp nhau. Khí vận dần hội tụ, danh tiếng cũng bắt đầu lan trong giang hồ.' },
   { lv: 5, name: 'Phủ Đệ', img: 'nha_5', reqLevel: 30, buildMs: 72 * H, bac: 3300000,
     mats: { hanNgocChuyen: 1600, tinhThachSong: 600, thachChuyen: 1000, thanhNgoa: 800, luongMoc: 500 },
-    lore: 'Phủ đệ nguy nhiên, trường đăng bất diệt. Tân khách quy phụ, môn hạ đệ tử nhật thịnh.' },
+    lore: 'Phủ Đệ uy nghi, đèn dài đêm không tắt. Khách khứa tìm đến, đệ tử trong môn ngày một đông.' },
   { lv: 6, name: 'Động Phủ', img: 'nha_6', reqLevel: 38, buildMs: 96 * H, bac: 5000000,
     mats: { kimTatTru: 1500, hanNgocChuyen: 2500, thachChuyen: 2500, tinhThachSong: 1000, thanhNgoa: 2000, thietKhau: 1000 },
-    lore: 'Động thiên khai cảnh, linh khí thành vân. Chân tu ẩn ư kỳ nội, đạo thống trường tồn bất diệt.' },
+    lore: 'Động Thiên mở thành một cõi riêng, Linh Khí tụ như mây. Người tu hành ẩn cư bên trong, Đạo Thống từ đây có nơi truyền nối lâu dài.' },
 ];
 
 // --- 3 công trình phụ đặc biệt (gắn mini-game) ---
@@ -49,8 +49,8 @@ export const BUILDINGS = {
   mongDai: {
     key: 'mongDai', name: 'Mộng Đài', img: 'mongdai', nav: 'dangTienMong',
     type: 'Đăng Tiên Mộng', reqHouse: 1, maxLv: 3, buildable: true,
-    func: 'Nơi kết nối hư thực, đăng đài nhập mộng — nuôi dưỡng thú vui mộng cảnh, thu cơ duyên ngộ đạo.',
-    lore: 'U mộng nhập đài, hương yên dẫn duyên. Môn nhân ngưng thần nhập cảnh, tham huyền ngộ đạo, linh cơ tự hiện.',
+    func: 'Nơi giao nhau giữa hư và thực. Bước lên đài để nhập mộng, trải nghiệm các thú vui trong mộng cảnh và tìm cơ duyên Ngộ Đạo.',
+    lore: 'Hương khói dẫn lối vào U Mộng. Môn nhân tĩnh tâm nhập cảnh, tham ngộ huyền cơ và chờ Linh Cơ tự hiện.',
     tags: ['Mộng Cảnh', 'Ngộ Đạo', 'Cơ Duyên'],
     eff: [
       'Giới Hạn Quy Đổi Tuần: 60 → 70 Nguyên Bảo',
@@ -67,7 +67,7 @@ export const BUILDINGS = {
     key: 'tramYeuDai', name: 'Trảm Yêu Đài', img: 'tramyeu', nav: 'kyTran',
     type: 'Kỳ Trận Trảm Yêu', reqHouse: 2, maxLv: 3, buildable: true,
     func: 'Bày trận đồ cửu cung, triệu Kỳ Trận trảm yêu ngay tại gia — thêm lượt xuất trận mỗi tuần.',
-    lore: 'Cửu cung bố trận, pháp kiếm trấn đàn. Phù hỏa nhất khởi, yêu vụ tận tán, tà khí bất xâm sơn môn.',
+    lore: 'Cửu Cung bày trận, Pháp Kiếm trấn đàn. Phù Hỏa vừa cháy, Yêu Vụ tan dần, giúp bảo vệ sơn môn khỏi Tà Khí.',
     tags: ['Trảm Yêu', 'Trận Đồ'],
     eff: [
       'Lượt Kỳ Trận Mỗi Tuần: 12 → 13',
@@ -85,7 +85,7 @@ export const BUILDINGS = {
     type: 'Quần Hùng Kỳ Trận', reqHouse: 99, maxLv: 0, buildable: false,
     grey: true, badge: 'Chưa Khai Phá',
     tease: 'Đất trống ngàn thước, chờ ngày quần hùng khai chiến.',
-    lore: 'Diễn võ trường khai, quần hùng tề tụ. Đài cao kỳ liệt, thắng phụ nhất chưởng chi gian.',
+    lore: 'Diễn Võ Trường mở cửa, quần hùng tụ hội. Trên đài cao, thắng bại có khi chỉ được định trong một chưởng.',
     tags: ['Autochess', 'Chưa Mở'],
   },
 };

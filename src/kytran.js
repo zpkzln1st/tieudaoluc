@@ -459,7 +459,7 @@ export function kyTran() {
       this._dlog('Nạp full: +50k Trận Hồn · Ngũ Hành Cấp 10 · mở hết TP+KN · đầy lượt · mở khóa mọi Cung');
     },
     devResetAll() {
-      if (!this.devConfirmReset) { this.devConfirmReset = true; this._dlog('Bấm lần nữa để XÓA TOÀN BỘ Kỳ Trận'); return; }
+      if (!this.devConfirmReset) { this.devConfirmReset = true; this._dlog('Bấm lần nữa để XÓA TOÀN BỘ Kỳ Trận.'); return; }
       this.devConfirmReset = false; this._devOpenAll = false;
       this.$store.game.state.kyTran = {};
       ensureKyTran(this.$store.game.state);

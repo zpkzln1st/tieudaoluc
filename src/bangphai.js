@@ -399,7 +399,7 @@ export function bangPhai() {
       g.hoiXacNhan({
         tieuDe: 'Đuổi Khỏi Bang?',
         loi: 'Đuổi <b class="text-amber-200">' + m.ten + '</b> (' + m.chucTen + ') khỏi bang.',
-        canhBao: 'Công lao đã góp của người này mất theo. Muốn nhận lại thì phải chiêu mộ từ đầu, tốn Bạc.',
+        canhBao: 'Công lao người này đã đóng góp sẽ mất theo. Nếu muốn nhận lại, bạn phải chiêu mộ từ đầu và tốn Bạc.',
         nut: 'Đuổi', huy: 'Thôi', nguy: true,
         xong: () => { kichNguoi(g.state, m.id, this.world, Date.now()); this.loNguoi = null; this._luu(); g.showToast('Đã đuổi ' + m.ten + '.'); },
       });
@@ -550,7 +550,7 @@ export function bangPhai() {
     linhMua() {
       const g = this.g;
       const n = nhanThuongMua(g.state, this.world, Date.now());
-      if (!n) { g.showToast('Chưa có thưởng mùa để lĩnh.'); return; }
+      if (!n) { g.showToast('Chưa có phần thưởng mùa để nhận.'); return; }
       g.state.currencies.honThach = (g.state.currencies.honThach || 0) + n;
       this._luu(); g.showToast('Lĩnh thưởng mùa — ' + this.fmt(n) + ' Hồn Thạch.');
     },

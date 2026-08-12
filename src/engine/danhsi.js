@@ -63,7 +63,7 @@ const AUTO_POOL = [
 const FEUD_REASONS = [
   'tranh đoạt một bộ tàn quyển thất lạc', 'bất đồng đạo nghĩa, thề không đội chung trời',
   'một trận sinh tử năm xưa bất phân thắng bại', 'tranh ngôi thứ trên Phong Vân Bảng',
-  'ân oán môn phái truyền đời chưa dứt', 'cùng để mắt một kỳ trân, kết thành cừu địch',
+  'ân oán môn phái truyền đời chưa dứt', 'cùng nhắm tới một Kỳ Trân, từ đó trở thành cừu địch.',
   'lời qua tiếng lại chốn Luận Võ, sinh hiềm khích',
 ];
 const ADV_FOE = ['tucDich', 'huyetCuu', 'cuuThu'], ADV_FRIEND = ['daoLu', 'suDo', 'triKy', 'dongMon'];

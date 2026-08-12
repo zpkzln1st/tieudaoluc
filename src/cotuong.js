@@ -154,7 +154,7 @@ function ic(name) { return '<svg viewBox="0 0 24 24" fill="none" stroke="current
 // Lời chọn sẵn cho NGƯỜI CHƠI
 const PLAYER_PRESETS = [
   'Xin chỉ giáo.', 'Nước này, tiền bối thấy sao?', 'Ván này tại hạ không nhường đâu.',
-  'Danh bất hư truyền, phục thật.', 'Hay! Nước đó tại hạ chịu thua.', 'Để xem ai vây được ai.',
+  'Danh bất hư truyền, phục thật.', 'Hay! Nước này tại hạ xin chịu thua.', 'Để xem cuối cùng ai vây được ai.',
   'Tiền bối đánh thong thả quá nhỉ.', 'Chưa chắc ai hơn ai đâu.', 'Tại hạ đi đây, cẩn thận đấy.',
   'Nước cờ hay, học được rồi.', 'Suýt trúng kế tiền bối rồi.', 'Còn lâu tại hạ mới chịu thua.',
   'Ván sau nhất định gỡ lại.', 'Đánh với cao thủ đúng là khác.', 'Thêm một ván nữa nhé?',
@@ -165,7 +165,7 @@ export function coTuongLines() { return LINES; }
 const LINES = {
   start: [
     'Các hạ mời ngồi, ván cờ này tại hạ chờ đã lâu.', 'Bàn cờ đã bày sẵn, các hạ cầm quân đỏ đi trước.',
-    'Lâu lắm mới có người đáng để ngồi đối diện.', 'Nghe danh đã lâu, hôm nay xin được lĩnh giáo.',
+    'Lâu lắm rồi mới gặp người đáng để ngồi đối diện.', 'Nghe danh đã lâu, hôm nay xin được lĩnh giáo.',
     'Các hạ cứ thong thả, tại hạ chẳng vội đâu.', 'Mời trà đã, rồi hãy thong thả phân cao thấp.',
     'Tại hạ đánh cờ mấy chục năm, chưa từng thua ai.', 'Đừng thấy tại hạ hiền mà tưởng dễ ăn.',
     'Pháo đầu hay bình phong mã, tuỳ các hạ chọn.', 'Ai thua ván này, ván sau nhớ gỡ lại nhé.',
@@ -185,7 +185,7 @@ const LINES = {
     'Đường lui của các hạ hẹp dần rồi.', 'Tại hạ đâu vội, cứ ép dần cho các hạ ngộp.',
     'Các hạ chặn bên này thì hở bên kia thôi.', 'Một nước hở thôi là các hạ trắng tay đấy.',
     'Sĩ tượng long rồi, cung tướng còn gì che?', 'Thế cờ nghiêng cả về đây rồi, các hạ thấy chứ?',
-    'Các hạ còn nước nào hay thì tính mau đi.', 'Chiếu! Xem các hạ gỡ thế nào.',
+    'Các hạ còn nước nào hay thì tính mau đi.', 'Chiếu! Để xem các hạ gỡ thế nào.',
   ],
   defend: [
     'Nước đó hiểm thật, may mà đỡ kịp.', 'Chậm chút nữa là trúng kế các hạ rồi.',
@@ -214,7 +214,7 @@ const LINES = {
   reply: [
     'Nghe cũng vui tai, nhưng bàn cờ vẫn còn đợi đấy.', 'Vừa đánh vừa trò chuyện, mới ra cái thú tao nhã.',
     'Hàn huyên gì thì hàn, đừng quên bên trên bàn cờ.', 'Trò chuyện cho vui thôi, thắng thua vẫn ở tay cờ.',
-    'Chuyện gẫu thì để mai, bàn cờ đang gấp lắm đấy.', 'Kể tiếp đi, tại hạ vừa nghe vừa tính đường vây.',
+    'Chuyện gẫu để sau. Ván cờ đang đến lúc căng rồi.', 'Kể tiếp đi, tại hạ vừa nghe vừa tính đường vây.',
     'Vui thì vui, mà đến lượt hạ quân của các hạ rồi.', 'Nghe các hạ kể, suýt nữa quên mất cả lượt cờ.',
   ],
 };
@@ -267,7 +267,7 @@ function mountCoTuong(host, opts) {
   host.innerHTML =
     '<div class="ct-root">' +
       '<div class="ct-scene"></div><div class="ct-vig"></div>' +
-      '<div class="ct-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:12px;color:#7c705f"></div></div>' +
+      '<div class="ct-fb"><div>Thiết bị này không thể khởi tạo chế độ 3D.</div><div class="fm" style="font-size:12px;color:#7c705f"></div></div>' +
       '<div class="ct-title"><span class="hz">象棋</span><span class="vz">Cờ Tướng</span></div>' +
       '<div class="ct-left">' +
         nutToanManHTML('ct') +
@@ -678,7 +678,7 @@ function mountCoTuong(host, opts) {
     tgt.theta = sph.theta; tgt.phi = sph.phi; tgt.r = sph.r;   // bám camera ĐANG ở đâu, đừng trôi tiếp về đích cũ
     const chat = $('.ct-chat'); if (chat) chat.classList.remove('show');
     $('.ct-view').classList.add('show');
-    toast('Quan Chiến — kéo, lăn chuột hoặc chụm hai ngón để chỉnh bàn');
+    toast('Quan Chiến — kéo để xoay, lăn chuột hoặc chụm hai ngón để phóng to/thu nhỏ bàn.');
   }
   // ⚠ PHẢI gọi cả ở endGame/resetGame: bỏ sót thì ván mới vẫn kẹt autorot=true,
   // mà onUp chỉ gọi tapBoard khi !autorot -> bàn cờ bấm không ăn, nhìn như game chết.

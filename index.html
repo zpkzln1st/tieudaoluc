@@ -88,6 +88,132 @@
     .dh-list{ min-width:0; }
     .dh-list .dh-txt{ white-space:normal; overflow-wrap:anywhere; }
 
+    /* ===== NÚT HỎI — dồn luật vào đây, mặt thẻ chỉ để một dòng ngắn =========================
+       Dùng: <span class="nh"><button class="nh-b" aria-label="Giải thích">…</button>
+               <span class="nh-box">…luật…</span></span>
+       ⚠ THUẦN CSS, không Alpine. Bản dài dòng ở modal quái phải viết 30 dòng x-data cho MỘT chỗ;
+         cả game có mấy chục chỗ cần nút này nên phải rẻ hơn thế.
+       ⚠ Mở bằng `:hover` LẪN `:focus-within`. Màn cảm ứng không rê được, nhưng chạm là nút
+         nhận focus nên hộp vẫn ra. */
+    .nh{ position:relative; display:inline-flex; vertical-align:-2px; }
+    .nh-b{ width:15px; height:15px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid #475569; color:#94a3b8; font-size:10px; line-height:1; font-weight:700; background:rgba(8,12,20,.6); cursor:help; }
+    .nh:hover .nh-b, .nh:focus-within .nh-b{ border-color:#14b8a6; color:#14b8a6; }
+    .nh-box{ position:absolute; left:50%; top:calc(100% + 6px); transform:translateX(-50%);
+      width:16rem; max-width:78vw; z-index:60; display:none;
+      border:1px solid rgba(20,184,166,.35); border-radius:.5rem; background:rgba(15,21,33,.97);
+      backdrop-filter:blur(4px); padding:.55rem .7rem; box-shadow:0 12px 28px -10px rgba(0,0,0,.85);
+      font-size:11.5px; line-height:1.55; color:#cbd5e1; text-align:left; white-space:normal; }
+    .nh:hover .nh-box, .nh:focus-within .nh-box{ display:block; }
+    /* Sát mép phải màn thì hộp lệch trái, khỏi tràn ra ngoài */
+    .nh-r .nh-box{ left:auto; right:0; transform:none; }
+    .nh-box b{ color:#e2e8f0; }
+
+    /* ===== DẠNG BẢNG THEO LOẠI DANH HIỆU =====================================================
+       Mỗi `loai` một DẠNG BẢNG riêng: khung, hình cắt, mặt nền. Lớp `k-*` gắn thêm vào thẻ bọc
+       `.dh` qua `titleKieuClass(loai)`; markup bốn chỗ vẽ danh hiệu KHÔNG đổi.
+       Toàn Năng giữ nguyên Long Văn (hai gạch + chấm) nên KHÔNG có lớp k-* — đó là mặc định.
+       ⚠ Mọi dạng có khung đều ẩn `.dh-li`: khung chính là dấu hiệu loại, để thêm hai gạch là rối.
+       ⚠ Thanh bên (index.html ~L1133) vốn KHÔNG vẽ `.dh-li` và KHÔNG có `dh-high`, nên ở đó chỉ
+         còn khung + chữ. Đã soi: khung vẫn đọc được ở cỡ chữ 11px.
+       ========================================================================================= */
+    .k-kimbai .dh-li, .k-bang .dh-li, .k-daobai .dh-li, .k-thuan .dh-li, .k-trucgian .dh-li,
+    .k-thubi .dh-li, .k-huyenkham .dh-li, .k-toayeu .dh-li, .k-thietde .dh-li,
+    .k-ngockhuong .dh-li, .k-mongvu .dh-li, .k-kycach .dh-li, .k-dangbai .dh-li{ display:none }
+
+    /* Phú Quý — tấm kim bài */
+    .k-kimbai{ padding:.06rem .62rem; border-radius:.45rem; gap:0;
+      background:linear-gradient(180deg, color-mix(in srgb,var(--dhc) 13%,transparent), color-mix(in srgb,var(--dhc) 4%,transparent));
+      border:1px solid color-mix(in srgb,var(--dhc) 40%,transparent);
+      box-shadow:inset 0 1px 0 color-mix(in srgb,var(--dhc) 26%,transparent), inset 0 -1px 0 rgba(0,0,0,.55), 0 0 12px -6px var(--dhc); }
+    /* Tốc — dải bảng vát chéo hai đầu */
+    .k-bang{ padding:.06rem .78rem; gap:0;
+      background:linear-gradient(180deg, color-mix(in srgb,var(--dhc) 20%,transparent), color-mix(in srgb,var(--dhc) 7%,transparent));
+      clip-path:polygon(7px 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 7px 100%, 0 50%);
+      filter:drop-shadow(0 0 6px color-mix(in srgb,var(--dhc) 26%,transparent)); }
+    /* Chiến — thẻ xiên, sống đao sáng bên trái */
+    .k-daobai{ padding:.06rem .9rem; gap:0;
+      background:linear-gradient(100deg, color-mix(in srgb,var(--dhc) 26%,transparent), color-mix(in srgb,var(--dhc) 5%,transparent) 62%);
+      clip-path:polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+      box-shadow:inset 3px 0 0 -1px color-mix(in srgb,var(--dhc) 85%,transparent); }
+    /* Thủ — đáy thu vào thành chân khiên */
+    .k-thuan{ padding:.06rem .78rem; gap:0;
+      background:linear-gradient(180deg, color-mix(in srgb,var(--dhc) 18%,transparent), color-mix(in srgb,var(--dhc) 4%,transparent));
+      clip-path:polygon(0 0, 100% 0, 100% 58%, calc(100% - 11px) 100%, 11px 100%, 0 58%);
+      box-shadow:inset 0 2px 0 -.5px color-mix(in srgb,var(--dhc) 75%,transparent); }
+    /* Sưu Tầm — nan tre dọc, hai sợi dây buộc */
+    .k-trucgian{ padding:.06rem .62rem; gap:0;
+      background:repeating-linear-gradient(90deg, color-mix(in srgb,var(--dhc) 15%,transparent) 0 6px, transparent 6px 7.5px);
+      border-top:1.5px solid color-mix(in srgb,var(--dhc) 55%,transparent);
+      border-bottom:1.5px solid color-mix(in srgb,var(--dhc) 55%,transparent); }
+    /* Ngự Thú — bo tròn hẳn, vành ngoài mềm */
+    .k-thubi{ padding:.06rem .8rem; gap:0; border-radius:999px;
+      background:radial-gradient(120% 160% at 22% 30%, color-mix(in srgb,var(--dhc) 24%,transparent), color-mix(in srgb,var(--dhc) 4%,transparent) 70%);
+      border:1px solid color-mix(in srgb,var(--dhc) 45%,transparent);
+      box-shadow:0 0 0 3px color-mix(in srgb,var(--dhc) 8%,transparent), 0 0 10px -4px var(--dhc); }
+    /* Bí Cảnh — hốc đá LÕM vào tường (mọi dạng khác đều là khối nổi) */
+    .k-huyenkham{ padding:.06rem .74rem; gap:0; border-radius:.35rem;
+      background:linear-gradient(180deg, rgba(0,0,0,.62) 0%, color-mix(in srgb,var(--dhc) 12%,transparent) 100%);
+      box-shadow:inset 0 3px 5px -1px rgba(0,0,0,.95), inset 3px 0 4px -3px rgba(0,0,0,.9),
+                 inset -3px 0 4px -3px rgba(0,0,0,.9), inset 0 -1.5px 0 color-mix(in srgb,var(--dhc) 55%,transparent),
+                 0 1px 0 rgba(255,255,255,.05); }
+    /* Yêu Vương — bốn góc khoá, không viền liền: dấu niêm phong */
+    .k-toayeu{ padding:.1rem .82rem; gap:0; --gc:color-mix(in srgb,var(--dhc) 82%,transparent);
+      background:
+        linear-gradient(var(--gc),var(--gc)) 0 0/11px 2px no-repeat,
+        linear-gradient(var(--gc),var(--gc)) 0 0/2px 11px no-repeat,
+        linear-gradient(var(--gc),var(--gc)) 100% 0/11px 2px no-repeat,
+        linear-gradient(var(--gc),var(--gc)) 100% 0/2px 11px no-repeat,
+        linear-gradient(var(--gc),var(--gc)) 0 100%/11px 2px no-repeat,
+        linear-gradient(var(--gc),var(--gc)) 0 100%/2px 11px no-repeat,
+        linear-gradient(var(--gc),var(--gc)) 100% 100%/11px 2px no-repeat,
+        linear-gradient(var(--gc),var(--gc)) 100% 100%/2px 11px no-repeat,
+        linear-gradient(180deg, color-mix(in srgb,var(--dhc) 14%,transparent), transparent);
+      filter:drop-shadow(0 0 6px color-mix(in srgb,var(--dhc) 24%,transparent)); }
+    /* Nghề — hình đe: trên rộng, dưới hẹp */
+    .k-thietde{ padding:.06rem .88rem; gap:0;
+      background:linear-gradient(180deg, color-mix(in srgb,var(--dhc) 24%,transparent), color-mix(in srgb,var(--dhc) 5%,transparent));
+      clip-path:polygon(0 0, 100% 0, calc(100% - 13px) 100%, 13px 100%);
+      box-shadow:inset 0 2px 0 -.5px color-mix(in srgb,var(--dhc) 70%,transparent); }
+    /* Cảnh Giới — bát giác cắt bốn góc, có vệt mặt ngọc */
+    .k-ngockhuong{ padding:.06rem .74rem; gap:0;
+      background:linear-gradient(122deg, color-mix(in srgb,var(--dhc) 8%,transparent) 38%,
+        color-mix(in srgb,var(--dhc) 30%,transparent) 50%, color-mix(in srgb,var(--dhc) 8%,transparent) 62%);
+      clip-path:polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px),
+        calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+      filter:drop-shadow(0 0 6px color-mix(in srgb,var(--dhc) 30%,transparent)); }
+    /* Mộng Cảnh — ánh quét ngang.
+       ⛔ Bản đầu làm TAN hai đầu chữ: hợp cảnh mộng mà "Mộng Du Giả" đọc ra "Mộng Du Gi". Chữ phải
+          đọc được trước đã. Nay chữ hiện đủ, cái động là vệt sáng RỘNG quét ngang — 5,2 giây, chậm
+          hơn Ánh Kim Quét của phẩm cao (3,4 giây) và vệt loang hơn, để hai thứ không lẫn nhau. */
+    @keyframes mongQuet{ from{ background-position:175% 0, 0 0 } to{ background-position:-75% 0, 0 0 } }
+    .k-mongvu{ padding:.06rem .55rem; gap:0; }
+    .k-mongvu .dh-txt{
+      background-image:
+        linear-gradient(100deg, transparent 28%, rgba(255,255,255,.88) 50%, transparent 72%),
+        linear-gradient(180deg, color-mix(in srgb,#fff 60%,var(--dhc)) 6%, var(--dhc) 52%, color-mix(in srgb,var(--dhc) 84%,#000) 100%);
+      background-size:265% 100%, 100% 100%; background-repeat:no-repeat; background-position:175% 0, 0 0;
+      -webkit-background-clip:text; background-clip:text;
+      animation:mongQuet 5.2s linear infinite; }
+    .k-mongvu::after{ content:''; position:absolute; inset:-30% -6%; z-index:0; pointer-events:none;
+      background:radial-gradient(60% 120% at 30% 50%, color-mix(in srgb,var(--dhc) 20%,transparent), transparent 72%),
+                 radial-gradient(50% 110% at 72% 55%, color-mix(in srgb,var(--dhc) 15%,transparent), transparent 70%);
+      filter:blur(5px); }
+    .k-mongvu > *{ position:relative; z-index:1 }
+    @media (prefers-reduced-motion:reduce){ .k-mongvu .dh-txt{ animation:none } }
+    /* Kỳ Nghệ — khung vuông sắc, nền kẻ ô bàn cờ */
+    .k-kycach{ padding:.06rem .6rem; gap:0; border-radius:0;
+      background:
+        repeating-linear-gradient(90deg, color-mix(in srgb,var(--dhc) 20%,transparent) 0 1px, transparent 1px 7px),
+        repeating-linear-gradient(0deg,  color-mix(in srgb,var(--dhc) 20%,transparent) 0 1px, transparent 1px 7px),
+        color-mix(in srgb,var(--dhc) 5%,transparent);
+      border:1px solid color-mix(in srgb,var(--dhc) 55%,transparent); }
+    /* Sự Kiện — viền KÉP, không dạng nào khác dùng hai đường viền */
+    .k-dangbai{ padding:.06rem .72rem; gap:0; border-radius:.3rem;
+      background:linear-gradient(180deg, color-mix(in srgb,var(--dhc) 15%,transparent), color-mix(in srgb,var(--dhc) 4%,transparent));
+      border:1px solid color-mix(in srgb,var(--dhc) 68%,transparent);
+      box-shadow:inset 0 0 0 1.5px rgba(7,11,20,.92), inset 0 0 0 3px color-mix(in srgb,var(--dhc) 38%,transparent), 0 0 11px -5px var(--dhc); }
+
     /* ===== Hào quang chạy viền (phẩm Sử Thi+ / item thuộc Bộ Trang) — conic comet 2 vệt, MƯỢT qua góc bo (không dash → không seam, không hụt góc) ===== */
     @keyframes haloSpin{ to{ transform:rotate(360deg); } }
     .halo2{ position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:3; overflow:hidden; padding:var(--hpad,1.1px);
@@ -733,36 +859,36 @@
        ⚠ Chữ do USER chốt từng câu — đừng tự biên tập lại cho "hay hơn".
        ⚠ Mọi câu phải ĐÚNG với mã nguồn; sai một câu là dẫn người chơi đi sai cả buổi. ---- */
     var SPL_MEO=[
-      'Mỗi lúc chỉ có thể thực hiện một hoạt động chính. Chọn việc mới thì việc đang làm sẽ tự dừng.',
-      'Khi rời game, nhân vật vẫn tiếp tục hoạt động tối đa 8 giờ. Nâng cấp Động Phủ để kéo dài thời gian này.',
-      'Bí Cảnh cũng được tính là một hoạt động chính. Khi cho nhân vật vào Bí Cảnh, công việc đang làm sẽ tự dừng lại.',
-      'Đóng trình duyệt vẫn được tính tiến độ, nhưng chỉ trong giới hạn thời gian ngoại tuyến. Nhớ quay lại nhận thành quả trước khi đầy thời gian.',
-      'Công cụ càng tốt thì tốc độ làm nghề càng nhanh. Đừng dùng mãi công cụ ban đầu khi đã có món tốt hơn.',
+      'Mỗi thời điểm chỉ có thể thực hiện một hoạt động chính. Khi chọn hoạt động mới, hoạt động hiện tại sẽ tự dừng.',
+      'Khi rời game, nhân vật vẫn tiếp tục hoạt động tối đa 8 giờ. Nâng cấp Động Phủ để tăng thời gian hoạt động ngoại tuyến.',
+      'Bí Cảnh cũng chiếm một hoạt động chính. Khi vào Bí Cảnh, hoạt động bạn đang làm sẽ tự dừng.',
+      'Đóng trình duyệt không làm mất tiến độ, nhưng chỉ được tính trong giới hạn thời gian ngoại tuyến. Hãy quay lại nhận thành quả trước khi chạm giới hạn.',
+      'Công cụ càng tốt, tốc độ làm nghề càng nhanh. Khi có công cụ tốt hơn, nhớ thay món khởi đầu để tăng hiệu suất.',
       'Ngũ hành khắc chế theo vòng: Kim khắc Mộc, Mộc khắc Thổ, Thổ khắc Thủy, Thủy khắc Hỏa, Hỏa khắc Kim.',
-      'Đánh vào kẻ địch thuộc hệ bị mình khắc sẽ gây thêm sát thương. Ngược lại, gặp hệ khắc mình sẽ chịu bất lợi.',
+      'Đánh kẻ địch thuộc hệ bị bạn khắc sẽ gây thêm sát thương. Ngược lại, gặp hệ khắc chế mình sẽ bị bất lợi.',
       'Đòn Vô Hệ không được hưởng lợi từ khắc chế, nhưng cũng không bị hệ nào áp chế.',
-      'Kháng ngũ hành trên trang bị có tác dụng rõ rệt trong chiến đấu. Đừng chỉ chăm chăm nhìn Công và Thủ.',
-      'Khi bị hạ gục, nhân vật sẽ rơi vào trạng thái Suy Yếu trong 60 giây. Hãy chờ hồi phục rồi mới tiếp tục chiến đấu.',
-      'Mặc đủ 3, 5 hoặc 7 món cùng một Bộ Trang sẽ mở thêm hiệu ứng ẩn. Gom đủ bộ thường có lợi hơn dùng nhiều món rời.',
+      'Kháng Ngũ Hành trên trang bị ảnh hưởng rõ rệt đến chiến đấu. Đừng chỉ nhìn mỗi Công và Thủ.',
+      'Khi bị hạ gục, nhân vật sẽ rơi vào trạng thái Suy Yếu trong 60 giây. Chờ hồi phục xong rồi hãy tiếp tục chiến đấu.',
+      'Mặc đủ 3, 5 hoặc 7 món cùng một Bộ Trang sẽ mở thêm hiệu ứng ẩn. Hoàn thiện bộ thường hiệu quả hơn ghép nhiều món rời.',
       'Bách Trang Các lưu lại mọi trang bị bạn từng nhặt được, kể cả những món đã bán hoặc tháo bỏ.',
-      'Dòng phụ của trang bị có thể được nâng cấp. Gặp món có chỉ số tốt thì nên đầu tư lâu dài, thay vì đổi đồ liên tục.',
+      'Dòng phụ trên trang bị có thể nâng cấp. Nếu gặp món có chỉ số tốt, bạn nên đầu tư lâu dài thay vì đổi trang bị liên tục.',
       'Trang bị khác hệ vẫn có thể sử dụng, nhưng sẽ không nhận đủ hiệu quả Cộng Hưởng.',
       'Khi vào Thiên Cơ Các, nên bật Toàn Màn Hình để bàn chơi rộng và dễ quan sát hơn.',
-      'Dùng nút Quan Chiến để xoay bàn. Khi tìm được góc nhìn vừa ý, hãy khóa lại. Mỗi bàn sẽ ghi nhớ góc nhìn riêng.',
-      'Trù Mã được đổi từ Bạc và không thể đổi ngược trở lại. Hãy cân nhắc kỹ trước khi tham gia các chiếu có mức cược cao.',
-      'Chiếu càng cao thì đối thủ càng mạnh. Người mới nên bắt đầu từ chiếu thấp để làm quen luật chơi.',
+      'Dùng nút Quan Chiến để xoay bàn. Khi có góc nhìn vừa ý, hãy khóa lại; mỗi bàn sẽ tự ghi nhớ góc nhìn riêng.',
+      'Trù Mã đổi từ Bạc và không thể đổi ngược lại. Hãy cân nhắc trước khi vào những chiếu có mức cược cao.',
+      'Chiếu càng cao, đối thủ càng mạnh. Người mới nên bắt đầu từ chiếu thấp để làm quen luật chơi.',
       'Cờ Tướng và Ngũ Tử Kỳ cùng tích lũy Kỳ Hồn. Chơi trò nào cũng góp phần nâng tiến độ chung.',
       'Cả ba trò bài đều có mục xem lại luật ngay tại bàn, nên không cần phải học thuộc từ trước.',
-      'Tông Môn dùng để chiêu mộ và bồi dưỡng đệ tử; Bang Phái dùng cho tranh đấu và hoạt động tập thể. Hai hệ thống có vai trò riêng, không thay thế cho nhau.',
-      'Chinh Phạt được tính theo mùa. Đánh quái trong từng khu vực sẽ giúp Bang Phái tích lũy điểm tại khu vực đó.',
-      'Hai mươi Danh Sĩ đều có hồ sơ và câu chuyện riêng. Họ vẫn tiếp tục hoạt động, thay đổi và phát triển ngay cả khi bạn rời game.',
-      'Ghé Tửu Lâu, mời rượu và trò chuyện để nghe tin giang hồ, đồng thời làm quen với các nhân vật trong bảng Danh Sĩ.',
-      'Đàm Đạo với chín vị sư phụ nghề nghiệp sẽ lần lượt mở ra câu chuyện và quá khứ của từng người.',
-      'Vạn Vật Phổ mang lại Phổ Lực lâu dài. Khi nhặt được vật phẩm mới, nhớ vào đăng ký để nhận thêm lợi ích.',
-      'Danh Hiệu được mở theo từng cột mốc. Danh hiệu đang đeo sẽ cộng chỉ số thật, không chỉ dùng để trang trí.',
-      'Khi không biết một tính năng nằm ở đâu, hãy bấm biểu tượng kính lúp trong thẻ nhân vật rồi nhập tên cần tìm.',
-      'Cẩm Nang, với biểu tượng quyển sách, giải thích toàn bộ tính năng trong game. Các số liệu được lấy trực tiếp từ hệ thống hiện tại.',
-      'Linh Thú có thể được cử đi Săn Mồi song song với các hoạt động khác, kể cả khi bạn đang làm nghề hoặc chiến đấu.'
+      'Tông Môn dùng để chiêu mộ và bồi dưỡng đệ tử; Bang Phái dành cho tranh đấu và hoạt động tập thể. Hai hệ thống có chức năng riêng, không thay thế nhau.',
+      'Chinh Phạt được tính theo mùa. Hạ quái ở từng khu vực sẽ giúp Bang Phái tích lũy điểm Chinh Phạt tại khu vực đó.',
+      'Hai mươi Danh Sĩ đều có hồ sơ và câu chuyện riêng. Họ vẫn tiếp tục hành động và phát triển ngay cả khi bạn rời game.',
+      'Ghé Tửu Lâu, mời rượu và trò chuyện để nghe tin giang hồ, đồng thời làm quen với các Danh Sĩ.',
+      'Đàm Đạo với chín vị sư phụ nghề nghiệp để dần mở ra câu chuyện và quá khứ của từng người.',
+      'Vạn Vật Phổ mang lại Phổ Lực vĩnh viễn. Khi nhặt được vật phẩm mới, nhớ đăng ký vào Phổ để nhận thêm lợi ích.',
+      'Danh Hiệu mở theo từng cột mốc. Danh hiệu đang đeo sẽ cộng chỉ số thật, không chỉ dùng để trang trí.',
+      'Nếu không biết một tính năng nằm ở đâu, bấm biểu tượng kính lúp trên thẻ nhân vật rồi nhập tên tính năng cần tìm.',
+      'Cẩm Nang, có biểu tượng quyển sách, giải thích các tính năng trong game. Số liệu hiển thị được lấy trực tiếp từ hệ thống hiện tại.',
+      'Linh Thú có thể đi Săn Mồi song song với các hoạt động khác, kể cả khi bạn đang làm nghề hoặc chiến đấu.'
     ];
     var meoEl=sp.querySelector('.spl-meo'), lastMeo=-1;
     function pickMeo(){
@@ -1031,12 +1157,12 @@
             <div>
               <div class="cs-kicker">Bước Một</div>
               <h1 class="cs-title">Nhập Môn</h1>
-              <div class="cs-tagline" x-text="g.authMode==='register' ? 'Lập tài khoản để tiến trình theo ngươi qua mọi máy.' : 'Đăng nhập để tiếp tục hành trình.'"></div>
+              <div class="cs-tagline" x-text="g.authMode==='register' ? 'Lập tài khoản để lưu tiến trình và tiếp tục chơi trên mọi thiết bị.' : 'Đăng nhập để tiếp tục hành trình.'"></div>
               <div class="cs-rule"></div>
 
               <div>
                   <template x-if="g.cloudHong">
-                    <div class="cs-loi">Không kết nối được máy chủ. Kiểm tra mạng rồi tải lại trang.</div>
+                    <div class="cs-loi">Không thể kết nối máy chủ. Hãy kiểm tra mạng rồi tải lại trang.</div>
                   </template>
                   <div class="cs-field">
                     <div class="cs-label">Thư Điện Tử</div>
@@ -1101,7 +1227,7 @@
             </div>
             <div class="cs-tplive" :class="{'empty': !$store.game.draftTamPhap}">
               <div class="n" x-show="$store.game.draftTamPhap" x-text="($store.game.TAM_PHAP_POOL.find(t=>t.id===$store.game.draftTamPhap)||{}).name"></div>
-              <div class="d" x-text="$store.game.draftTamPhap ? (($store.game.TAM_PHAP_POOL.find(t=>t.id===$store.game.draftTamPhap)||{}).short) : 'Chọn một Tâm Pháp để khởi tu'"></div>
+              <div class="d" x-text="$store.game.draftTamPhap ? (($store.game.TAM_PHAP_POOL.find(t=>t.id===$store.game.draftTamPhap)||{}).short) : 'Chọn một Tâm Pháp để bắt đầu tu luyện.'"></div>
             </div>
           </div>
 
@@ -1136,6 +1262,10 @@
               </div>
               <template x-if="$store.game.equippedTitleObj">
                 <div class="my-0.5 truncate" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
+                  <!-- ⚠ THANH BÊN KHÔNG mang dạng bảng theo loại. Ô này chỉ rộng ~130px; khung của
+                       các dạng ăn thêm ~25px lề ngang, tên dài mất thêm 2-3 chữ ("Bất Hoại Kim Thân"
+                       cụt thành "Bất Hoại Kim Th…"). Cùng lý do mà chỗ này vốn đã bỏ `.dh-li` và
+                       `dh-high` — hẹp quá thì bỏ trang trí, giữ chữ. -->
                   <span class="dh max-w-full min-w-0" :class="$store.game.titleQClass(t.q)" style="gap:.35rem"><span class="dh-txt truncate" style="font-size:11px" x-text="t.name"></span></span>
                 </div>
               </template>
@@ -1251,7 +1381,7 @@
               <div class="mt-2 text-xs px-3 py-2 rounded bg-rose-900/30 border border-rose-700/40 text-rose-300"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('xcircle','w-3.5 h-3.5')"></span>Hết nguyên liệu — thu thập thêm rồi tiếp tục.</div>
             </template>
             <template x-if="$store.game.actCapped">
-              <div class="mt-2 text-xs px-3 py-2 rounded bg-amber-900/30 border border-amber-700/40 text-amber-300"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('warn','w-3.5 h-3.5')"></span>Đạt giới hạn nhàn rỗi (8h). Nhận thưởng & bắt đầu lại.</div>
+              <div class="mt-2 text-xs px-3 py-2 rounded bg-amber-900/30 border border-amber-700/40 text-amber-300"><span class="w-3.5 h-3.5 inline-flex align-[-3px] mr-1" x-html="$store.game.svg('warn','w-3.5 h-3.5')"></span>Đã đạt giới hạn Nhàn Rỗi (8 giờ). Nhận thưởng rồi bắt đầu lượt mới.</div>
             </template>
           </div>
         </template>
@@ -1298,7 +1428,7 @@
                :class="$store.game.profileTab==='skins' ? 'frame-drag cursor-move' : ''"
                :style="$store.game.coverStyle"
                @pointerdown="$store.game.profileTab==='skins' && $store.game.adjStart('cover',$event)" @wheel="$store.game.profileTab==='skins' && ($event.preventDefault(), $store.game.adjWheel('cover',$event))"
-               :title="$store.game.profileTab==='skins' ? 'Kéo để di chuyển · lăn chuột để phóng to' : ''">
+               :title="$store.game.profileTab==='skins' ? 'Kéo để di chuyển · lăn chuột để phóng to.' : ''">
             <!-- Scrim trái-đáy: nổi chữ -->
             <div class="absolute inset-0 bg-gradient-to-tr from-black/85 via-black/25 to-transparent pointer-events-none"></div>
             <!-- Tên + cấp (góc trái dưới, tích hợp) -->
@@ -1307,7 +1437,7 @@
               <div class="inline-flex flex-col items-center">
                 <template x-if="$store.game.equippedTitleObj">
                   <div class="mb-1.5" x-data="{ get t(){ return $store.game.equippedTitleObj } }">
-                    <span class="dh" :class="$store.game.titleQClass(t.q) + ($store.game.titleHigh(t.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" x-text="t.name"></span><span class="dh-li r"></span></span>
+                    <span class="dh" :class="$store.game.titleQClass(t.q) + ' ' + $store.game.titleKieuClass(t.loai) + ($store.game.titleHigh(t.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" x-text="t.name"></span><span class="dh-li r"></span></span>
                   </div>
                 </template>
                 <div class="flex items-center gap-2">
@@ -1334,7 +1464,7 @@
             </template>
             <!-- Điều khiển khung: chỉ ở tab Dung Mạo (dời lên góc trên-phải để không đè Huy Hiệu) -->
             <div x-show="$store.game.profileTab==='skins'" class="absolute top-3 right-3 z-10 flex items-center gap-2" @pointerdown.stop>
-              <span class="hidden sm:inline text-[10px] text-white/75 bg-black/45 backdrop-blur rounded px-2 py-1 pointer-events-none">Kéo để di chuyển · lăn chuột phóng to</span>
+              <span class="hidden sm:inline text-[10px] text-white/75 bg-black/45 backdrop-blur rounded px-2 py-1 pointer-events-none">Kéo để di chuyển · lăn chuột để phóng to.</span>
               <button @click="$store.game.resetAdj('cover')" title="Đặt lại khung" class="w-7 h-7 rounded-full bg-black/55 backdrop-blur text-white/85 hover:text-jade flex items-center justify-center text-sm leading-none">↺</button>
             </div>
           </div>
@@ -1407,7 +1537,7 @@
                   </div>
                 </template>
                 <template x-if="!$store.game.hasActivity">
-                  <div class="text-center text-slate-500 py-2 text-xs">— Nhàn rỗi — Chọn kỹ năng để tu luyện.</div>
+                  <div class="text-center text-slate-500 py-2 text-xs">— Nhàn Rỗi — Chọn kỹ năng để bắt đầu tu luyện.</div>
                 </template>
               </section>
               <!-- More -->
@@ -1600,7 +1730,7 @@
                 <div class="grid grid-cols-7 gap-2">
                   <template x-for="o in $store.game.trungBayView" :key="o.i">
                     <button @click="$store.game.tbBam(o)"
-                      :title="o.co ? ($store.game.tbTen(o) + ($store.game.tbSua ? ' — bấm để hạ xuống' : ' — bấm xem chi tiết')) : 'Ô trống — bấm để treo đồ lên'"
+                      :title="o.co ? ($store.game.tbTen(o) + ($store.game.tbSua ? ' — Bấm để gỡ xuống' : ' — bấm xem chi tiết')) : 'Ô trống — bấm để treo vật phẩm.'"
                       class="relative aspect-square rounded flex items-center justify-center transition hover:brightness-110">
                       <!-- Ô TRỐNG: luôn có dấu ＋ mờ để thấy ngay là bấm được. -->
                       <template x-if="!o.co">
@@ -1632,7 +1762,7 @@
                 </div>
                 <!-- Dòng chỉ dẫn LUÔN có mặt, chỉ đổi chữ: khối không cao thấp theo số món đang treo. -->
                 <div class="text-[10px] text-slate-600 mt-2 leading-tight"
-                     x-text="$store.game.tbSua ? 'Bấm món để hạ xuống · bấm ô trống để treo món khác.' : ($store.game.tbSoTreo ? 'Bấm món để xem chi tiết · Sắp Xếp để đổi chỗ · Khoe để lấy đường dẫn.' : 'Giá còn trống — bấm một ô để treo trang bị, vật phẩm hay linh thú lên khoe.')"></div>
+                     x-text="$store.game.tbSua ? 'Bấm vật phẩm để gỡ xuống · bấm ô trống để treo món khác.' : ($store.game.tbSoTreo ? 'Bấm vật phẩm để xem chi tiết · Sắp Xếp để đổi vị trí · Khoe để lấy đường dẫn.' : 'Giá còn trống — bấm một ô để treo trang bị, vật phẩm hoặc Linh Thú lên khoe.')"></div>
                 <!-- Chép tự động hỏng (trình duyệt chặn) thì bày đường dẫn ra để tự chép. -->
                 <template x-if="$store.game.khoeLink">
                   <div class="mt-2 flex items-center gap-2">
@@ -1723,14 +1853,14 @@
               <!-- Khung ảnh đại diện: kéo + zoom -->
               <div class="lbl mb-2">Khung Ảnh Đại Diện</div>
               <div class="flex items-center gap-4 mb-5">
-                <div id="faceBox" class="frame-drag w-40 h-40 rounded-xl overflow-hidden border border-slate-700 bg-ink2 cursor-move select-none shrink-0 relative" :style="$store.game.faceStyle" @pointerdown="$store.game.adjStart('face',$event)" @wheel.prevent="$store.game.adjWheel('face',$event)" title="Kéo để chỉnh khung · lăn chuột để phóng to">
+                <div id="faceBox" class="frame-drag w-40 h-40 rounded-xl overflow-hidden border border-slate-700 bg-ink2 cursor-move select-none shrink-0 relative" :style="$store.game.faceStyle" @pointerdown="$store.game.adjStart('face',$event)" @wheel.prevent="$store.game.adjWheel('face',$event)" title="Kéo để chỉnh khung · lăn chuột để phóng to.">
                   <div class="absolute inset-0 ring-2 ring-inset ring-white/10 rounded-xl pointer-events-none"></div>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="text-xs text-slate-400 mb-1">Phóng to</div>
                   <input type="range" min="1" max="3" step="0.02" :value="$store.game.state.player.face.z" @input="$store.game.setAdjZoom('face',$event.target.value)" class="accent-jade cursor-pointer" style="width:240px;max-width:100%">
                   <button @click="$store.game.resetAdj('face')" class="mt-2 px-3 py-1 rounded-lg text-xs bg-ink3 border border-slate-700 hover:border-jade text-slate-300">↺ Đặt lại khung</button>
-                  <div class="text-[10px] text-slate-500 mt-2 leading-snug">Kéo để chọn khung · <b class="text-slate-400">phóng to để kéo dọc rộng hơn.</b></div>
+                  <div class="text-[10px] text-slate-500 mt-2 leading-snug">Kéo để chọn khung · <b class="text-slate-400">phóng to để có thêm khoảng kéo theo chiều dọc.</b></div>
                 </div>
               </div>
               <div class="flex items-center justify-between mb-3">
@@ -1752,7 +1882,7 @@
                 <template x-for="av in $store.game.AVATARS.filter(a => ($store.game.state.player.ownedAvatars||[]).includes(a.id))" :key="av.id">
                   <button x-data="{ok:false}" x-show="ok" class="group"
                           :class="$store.game.state.player.avatar===av.id ? 'cursor-zoom-in' : ''"
-                          :title="$store.game.state.player.avatar===av.id ? 'Bấm lại để xem ảnh lớn' : av.name"
+                          :title="$store.game.state.player.avatar===av.id ? 'Bấm lại để mở ảnh lớn.' : av.name"
                           @click="$store.game.state.player.avatar===av.id ? $store.game.openLightbox(av.id, '容', av.name, `images/avatars/${av.id}.webp`) : $store.game.selectAvatar(av.id)">
                     <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                          :class="$store.game.state.player.avatar===av.id ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
@@ -1783,7 +1913,7 @@
                 <template x-for="av in $store.game.COVERS.filter(c => ($store.game.state.player.ownedCovers||[]).includes(c.id))" :key="'cover-'+av.id">
                   <button class="group"
                           :class="$store.game.state.player.coverImg===av.id ? 'cursor-zoom-in' : ''"
-                          :title="$store.game.state.player.coverImg===av.id ? 'Bấm lại để xem ảnh lớn' : av.name"
+                          :title="$store.game.state.player.coverImg===av.id ? 'Bấm lại để mở ảnh lớn.' : av.name"
                           @click="$store.game.state.player.coverImg===av.id ? $store.game.openLightbox(av.id, '幀', av.name, `images/avatars/${av.id}.webp`) : $store.game.selectCover(av.id)">
                     <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                          :class="$store.game.state.player.coverImg===av.id ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
@@ -1856,7 +1986,7 @@
                       </div>
                       <div class="text-[12.5px] font-semibold leading-tight" :class="b.unlocked ? 'text-amber-200' : 'text-slate-400'" style="font-family:'Lora','Noto Serif SC',serif" x-text="b.name"></div>
                       <div class="text-[10px] text-slate-500 mt-0.5" x-text="b.skillName + ' · Lv' + b.level"></div>
-                      <div class="text-[10px] mt-1" :class="b.equipped ? 'text-jade font-semibold' : (b.unlocked ? 'text-amber-300/85' : 'text-slate-600')" x-text="b.equipped ? '✓ Đang đeo' : (b.unlocked ? '✦ Đại Thành · bấm để đeo' : 'Cần Lv 100')"></div>
+                      <div class="text-[10px] mt-1" :class="b.equipped ? 'text-jade font-semibold' : (b.unlocked ? 'text-amber-300/85' : 'text-slate-600')" x-text="b.equipped ? '✓ Đang đeo' : (b.unlocked ? '✦ Đại Thành · bấm để đeo.' : 'Cần Lv 100')"></div>
                     </div>
                   </template>
                 </div>
@@ -1932,7 +2062,7 @@
                   <div class="th-card rounded-xl px-4 py-3 border transition" :class="it.owned ? (it.on ? 'th-on border-jade/60 bg-jade/10' : 'border-slate-700/70 bg-ink3/40 cursor-pointer hover:border-jade/50 hover:bg-jade/5') : 'border-slate-800/60 bg-black/20 opacity-50'" @click="it.owned && !it.on && $store.game.titleEquip(it.id)">
                     <!-- Hàng 1: danh hiệu (co/wrap được) + phân loại (ghim phải, KHÔNG rớt dòng) -->
                     <div class="flex items-center gap-2">
-                      <span class="dh dh-list min-w-0" :class="$store.game.titleQClass(it.q) + (it.owned && $store.game.titleHigh(it.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" style="font-size:14.5px" x-text="it.name"></span><span class="dh-li r"></span></span>
+                      <span class="dh dh-list min-w-0" :class="$store.game.titleQClass(it.q) + ' ' + $store.game.titleKieuClass(it.loaiKey) + (it.owned && $store.game.titleHigh(it.q) ? ' dh-high' : '')"><span class="dh-li"></span><span class="dh-txt" style="font-size:14.5px" x-text="it.name"></span><span class="dh-li r"></span></span>
                       <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-slate-700/70 shrink-0 ml-auto" x-text="it.loai"></span>
                     </div>
                     <!-- Hàng 2: bonus/nguồn + trạng thái (cả thẻ = nút đeo) -->
@@ -2000,7 +2130,7 @@
             <section class="panel rounded-xl p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="lbl">Trang Bị</div>
-                <div class="text-[10px] text-slate-600">Bấm ô để trang bị / tháo</div>
+                <div class="text-[10px] text-slate-600">Bấm ô để trang bị / tháo.</div>
               </div>
               <div class="flex gap-3 items-stretch justify-center">
                 <!-- cột trái -->
@@ -2072,7 +2202,7 @@
                           class="relative w-11 h-11 rounded-lg border overflow-hidden transition hover:brightness-125"
                           :class="p.co ? 'border-amber-500/70 bg-black/60' : 'border-dashed border-slate-300/45 bg-black/70'"
                           :style="p.co ? 'box-shadow:0 0 13px -3px rgba(245,185,66,.8), inset 0 0 12px rgba(245,185,66,.16)' : 'box-shadow:0 2px 8px rgba(0,0,0,.7)'"
-                          :title="p.ten + (p.co === 'thuong' ? ' · Thượng — bấm để tháo/đổi' : p.co === 'so' ? ' · Sơ — bấm để tháo/đổi' : (p.coTui ? ' — có trong túi, bấm để lắp' : ' — chưa có, rơi 0,5% từ ' + p.nguon))">
+                          :title="p.ten + (p.co === 'thuong' ? ' · Thượng — bấm để tháo hoặc đổi.' : p.co === 'so' ? ' · Sơ — bấm để tháo hoặc đổi.' : (p.coTui ? ' — Có trong túi, bấm để trang bị.' : ' — chưa có, rơi 0,5% từ ' + p.nguon))">
                           <span class="absolute inset-0 inline-flex items-center justify-center p-0.5"
                             :class="p.co ? '' : 'opacity-45 grayscale'" x-html="g.ico(p.art, p.loai === 'boi' ? '📿' : '🔮')"></span>
                           <!-- Có trong túi mà chưa lắp: chấm ngọc nhắc bấm vào. Không có thì không nhắc. -->
@@ -2530,7 +2660,7 @@
         <div class="btc-panel w-full" style="max-width:960px">
           <div class="btc-hd">
             <div class="btc-title fserif">Bách Trang Các</div>
-            <div class="btc-sub">Gom <b style="color:#d6e3f2">Mảnh Trang Bị Hoàng Kim</b> từ <span x-text="g.TRANG_SETS[g.TRANG_SET_KEYS[0]].source"></span>, lĩnh hội <b style="color:#d6e3f2">Đồ Phổ Bộ</b> để mở khoá, rồi ghép nên trọn từng Bộ Trang trấn thân.</div>
+            <div class="btc-sub">Gom <b style="color:#d6e3f2">Mảnh Trang Bị Hoàng Kim</b> từ <span x-text="g.TRANG_SETS[g.TRANG_SET_KEYS[0]].source"></span>, lĩnh hội <b style="color:#d6e3f2">Đồ Phổ Bộ</b> để mở khóa, sau đó thu thập đủ từng món để hoàn thiện Bộ Trang.</div>
             <button class="btc-x" @click="g.closeBachTrang()" title="Đóng (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>
           <div class="btc-status">
@@ -2583,7 +2713,7 @@
                 <template x-if="!g.setUnlocked(key)">
                   <div class="btc-lockban">
                     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-                    <div><div class="t">Cần <span x-text="(g.ITEMS[g.TRANG_SETS[key].blueprintId]||{}).name"></span></div><div class="s">Rơi ở <b style="color:#d6e3f2" x-text="g.TRANG_SETS[key].blueprintSource"></b> — thông quan bí cảnh đó để lĩnh hội, rồi mới ghép được bộ này.</div></div>
+                    <div><div class="t">Cần <span x-text="(g.ITEMS[g.TRANG_SETS[key].blueprintId]||{}).name"></span></div><div class="s">Rơi ở <b style="color:#d6e3f2" x-text="g.TRANG_SETS[key].blueprintSource"></b> — Thông quan Bí Cảnh tương ứng để lĩnh hội, sau đó mới có thể ghép bộ này.</div></div>
                   </div>
                 </template>
                 <div class="btc-grid">
@@ -3086,7 +3216,7 @@
                               @pointercancel="$store.game.chieuDragEnd(false,$event)"
                               class="chieu-slot relative w-16 h-16 rounded-lg overflow-hidden border-2 transition shrink-0 cursor-grab"
                               :class="$store.game.NGU_HANH[c.type].ring+' hover:border-jade'+($store.game.chieuDrag.active&&$store.game.chieuDrag.over===idx?' chieu-hole':'')"
-                              :title="c.name+' — ưu tiên '+(idx+1)+', kéo để đổi thứ tự'">
+                              :title="c.name+' — ưu tiên '+(idx+1)+', kéo để đổi thứ tự.'">
                         <div class="absolute inset-0 bg-gradient-to-br" :class="$store.game.NGU_HANH[c.type].grad"></div>
                         <span class="absolute inset-0 flex items-center justify-center opacity-40" :class="$store.game.heInfo(c.type).text" x-html="$store.game.svg($store.game.heInfo(c.type).ig,'w-8 h-8')"></span>
                         <img loading="lazy" decoding="async" draggable="false" :src="'images/chieu/'+c.id+'.webp'" class="absolute inset-0 w-full h-full object-cover" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
@@ -3322,7 +3452,7 @@
                       <div>Con này mỗi trận mang một ngũ hành khác nhau, không biết trước được.</div>
                       <div x-text="$store.game.loiTuHe"></div>
                       <div>Chiêu Vô Hệ thì không bị trừ.</div>
-                      <div class="text-slate-400">Nên lắp chiêu đủ ngũ hành, trận nào cũng có một chiêu đánh mạnh.</div>
+                      <div class="text-slate-400">Nên trang bị chiêu thức đủ Ngũ Hành để gặp hệ nào cũng có đòn khắc chế mạnh.</div>
                     </div>
                   </div>
                 </div>
@@ -3333,7 +3463,7 @@
                        đầy đủ; báo bằng con trỏ zoom-in + tooltip, KHÔNG thêm icon kính lúp. -->
                   <div class="relative w-36 shrink-0 rounded-lg overflow-hidden bg-gradient-to-b from-ink3 to-ink border border-slate-700/40 cursor-zoom-in"
                        @click="$store.game.openLightbox($store.game.combatSel, $store.game.combatSelObj.icon, $store.game.combatSelObj.name, 'images/enemies/'+$store.game.combatSel+'.webp')"
-                       title="Bấm để xem ảnh lớn">
+                       title="Bấm để mở ảnh lớn.">
                     <div class="absolute inset-0 flex items-center justify-center text-6xl opacity-25" x-text="$store.game.combatSelObj.icon"></div>
                     <img loading="lazy" decoding="async" :src="'images/enemies/'+$store.game.combatSel+'.webp'" class="absolute inset-0 w-full h-full object-cover" style="object-position:center 22%" alt="" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.remove()}">
                     <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/15 to-transparent"></div>
@@ -3573,7 +3703,7 @@
               <section class="panel rounded-lg p-3 space-y-2">
                 <div class="flex items-center justify-between">
                   <div class="lbl">Yêu Thú Lân Cận</div>
-                  <div class="text-[10px] text-slate-500">Bấm để xem chi tiết</div>
+                  <div class="text-[10px] text-slate-500">Bấm để xem chi tiết..</div>
                 </div>
                 <template x-for="eid in $store.game.currentLocationEnemies" :key="eid">
                   <div @click="$store.game.openCombatModal(eid)" class="rounded-lg border p-2.5 cursor-pointer transition flex items-center gap-2.5" :class="$store.game.combatSel===eid?'border-jade bg-jade/8':'border-slate-800 bg-ink3/60 hover:border-slate-600'">
@@ -3745,7 +3875,7 @@
                     </template>
                   </button>
                 </div>
-                <div class="text-[10px] text-slate-500 mt-2 text-center leading-snug">Tự dùng khi Sinh Lực / Nội Lực &lt; <b class="text-amber-300">25%</b>. Dược Lư chỉ tự rút Tán và Hoàn.</div>
+                <div class="text-[10px] text-slate-500 mt-2 text-center leading-snug">Tự dùng khi Sinh Lực / Nội Lực &lt; <b class="text-amber-300">25%</b>. Dược Lư chỉ tự dùng Tán và Hoàn.</div>
                 <!-- Đan Bổ Trợ đang phát tác -->
                 <template x-if="$store.game.activeBuffs.length">
                   <div class="mt-2 pt-2 border-t border-slate-800 space-y-1">
@@ -3842,7 +3972,7 @@
                   <div class="text-jade font-bold flex items-center gap-2"><span class="fserif text-lg leading-none">爐</span>Dược Lư</div>
                   <button @click="$store.game.closeDuocLuPicker()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
                 </div>
-                <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug">Cắm sẵn một loại đan bổ trợ — hết hiệu lực thì tự rút viên kế trong hành trang. Chỉ tự rút dạng <b class="text-slate-300">Tán</b> và <b class="text-slate-300">Hoàn</b>; dạng <b class="text-slate-300">Đan</b> phải uống tay.</div>
+                <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug">Chọn sẵn một loại đan bổ trợ. Khi hết hiệu lực, Dược Lư sẽ tự dùng viên kế tiếp trong hành trang. Chỉ tự dùng dạng <b class="text-slate-300">Tán</b> và <b class="text-slate-300">Hoàn</b>; dạng <b class="text-slate-300">Đan</b> phải uống tay.</div>
                 <div class="p-3 overflow-y-auto space-y-2">
                   <template x-if="$store.game.duocLuList.length===0">
                     <div class="text-sm text-slate-500 text-center py-6 leading-relaxed">Chưa có đan bổ trợ — luyện ở <b class="text-slate-300">Luyện Đan</b>.</div>
@@ -3888,7 +4018,7 @@
                 <span class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-ink3 border border-amber-500/30 inline-flex items-center justify-center shrink-0 overflow-hidden p-1.5" x-html="$store.game.ico('phongVanBang','🏆')"></span>
                 <div class="text-[28px] gold-text fserif">Phong Vân Bảng</div>
               </div>
-              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif">Phong vân tụ hội, quần hùng tranh danh. Nhất bảng phân cao hạ, nhất chiến định giang hồ.</div>
+              <div class="text-[13px] text-slate-300/90 leading-snug mt-2 max-w-xl fserif">Phong vân tụ hội, quần hùng tranh danh. Một bảng phân cao thấp, một trận định danh giang hồ.</div>
               <template x-if="$store.game.playerRow">
                 <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-jade/10 border border-jade/40 text-[12px]">
                   <span class="text-slate-300">Hạng của ngươi</span>
@@ -4401,7 +4531,7 @@
                       <div x-data="{ok:true}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
                         <!-- Ô ảnh vốn KHÔNG bấm được (chỉ nút Mua) -> cho bấm luôn để xem lớn.
                              Báo hiệu bằng con trỏ zoom-in + tooltip, KHÔNG thêm icon kính lúp. -->
-                        <div class="aspect-square overflow-hidden bg-ink3 cursor-zoom-in" title="Bấm để xem ảnh lớn"
+                        <div class="aspect-square overflow-hidden bg-ink3 cursor-zoom-in" title="Bấm để mở ảnh lớn."
                              @click="$store.game.openLightbox(av.id, '容', av.name, `images/avatars/${av.id}.webp`)">
                           <img loading="lazy" decoding="async" :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center transition duration-200 group-hover:brightness-110" @error="ok=false">
                         </div>
@@ -4434,7 +4564,7 @@
                            mà ảnh trong hộp ẩn thì trình duyệt hoãn tải ⇒ vào Thương Điếm thấy TRỐNG TRƠN,
                            đổi tab một cái là đếm lại từ đầu. Nay hiện ngay, chỉ ô nào THIẾU ART mới tự ẩn. -->
                       <div x-data="{ok:true}" x-show="ok" class="rounded-xl overflow-hidden bg-ink3/60 border border-slate-800 text-left group">
-                        <div class="aspect-[16/9] overflow-hidden bg-black/40 cursor-zoom-in" title="Bấm để xem ảnh lớn"
+                        <div class="aspect-[16/9] overflow-hidden bg-black/40 cursor-zoom-in" title="Bấm để mở ảnh lớn."
                              @click="$store.game.openLightbox(cv.id, '幀', cv.name, `images/avatars/${cv.id}.webp`)">
                           <img loading="lazy" decoding="async" :src="`images/avatars/${cv.id}.webp`" class="w-full h-full object-cover transition duration-200 group-hover:brightness-110" @error="ok=false">
                         </div>
@@ -4574,7 +4704,7 @@
             <div class="panel rounded-2xl px-6 py-8 text-center">
               <div class="lbl text-slate-500 mb-1">Linh Thú Xuất Chiến</div>
               <div class="text-[14px] fserif text-slate-300">Chưa có linh thú xuất chiến.</div>
-              <div class="text-[11.5px] text-slate-500 mt-1">Đưa một con xuất trận để trợ lực cho ngươi.</div>
+              <div class="text-[11.5px] text-slate-500 mt-1">Đưa một Linh Thú xuất trận để trợ chiến cho bạn.</div>
             </div>
           </template>
           <template x-if="$store.game.activePetObj">
@@ -4793,7 +4923,7 @@
                         <span class="text-[13.5px] font-bold fserif text-slate-200" x-text="$store.game.hatchSpeciesName()"></span>
                         <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-black/45 border border-white/10 font-bold" :class="$store.game.hatchEggTierColor()" x-text="$store.game.hatchEggTierName()"></span>
                       </div>
-                      <div class="text-[10.5px] mt-0.5 leading-snug" :class="$store.game.hatchReady ? 'text-jade' : 'text-slate-500 italic'" x-text="$store.game.hatchReady ? 'Noãn đã rạn vỏ — khai noãn, để chân thân lộ diện.' : 'Chân thân còn giấu trong vỏ noãn…'"></div>
+                      <div class="text-[10.5px] mt-0.5 leading-snug" :class="$store.game.hatchReady ? 'text-jade' : 'text-slate-500 italic'" x-text="$store.game.hatchReady ? 'Trứng đã nứt vỏ — mở trứng để Linh Thú hiện thân.' : 'Chân thân còn giấu trong vỏ noãn…'"></div>
                     </div>
                   </div>
                   <template x-if="!$store.game.hatchReady">
@@ -4816,7 +4946,7 @@
 
               <!-- Danh sách trứng trong túi -->
               <template x-if="$store.game.eggsInInventory.length===0">
-                <div class="text-center text-slate-600 text-[12px] py-6">Tay trắng chưa một quả noãn. Hạ Yêu Vương nơi hoang dã để đoạt lấy.</div>
+                <div class="text-center text-slate-600 text-[12px] py-6">Trong tay chưa có Trứng Linh Thú. Hãy hạ Yêu Vương ngoài hoang dã để tìm trứng.</div>
               </template>
               <!-- Lò bận: báo MỘT LẦN ở đây, thay vì lặp nút "Lò Đang Bận" ở từng hàng (vừa ồn vừa ăn hết chỗ của tên) -->
               <template x-if="$store.game.hatchery && $store.game.eggsInInventory.length">
@@ -4874,7 +5004,7 @@
             <!-- BODY -->
             <div class="flex-1 min-h-0 p-3.5 space-y-2.5 overflow-y-auto">
               <template x-if="$store.game.huntTrackList.length===0">
-                <div class="text-center text-slate-600 text-[12.5px] py-10">Chưa có Linh Thú đang luyện.<br><span class="text-[11px]">Mở một con chưa xuất chiến → bấm <b class="text-amber-300">Lịch Luyện</b> để phái săn.</span></div>
+                <div class="text-center text-slate-600 text-[12.5px] py-10">Chưa có Linh Thú đang luyện.<br><span class="text-[11px]">Mở một con chưa xuất chiến → bấm <b class="text-amber-300">Lịch Luyện</b> để phái đi Săn Mồi.</span></div>
               </template>
               <template x-for="h in $store.game.huntTrackList" :key="h.pet.id">
                 <div class="rounded-xl p-3 border" :class="h.isRest ? 'bg-ink2/30' : 'bg-ink3/30'" :style="'border-color:'+(h.isRest?'#47556955':($store.game.petQHex(h.pet)+'44'))">
@@ -5061,7 +5191,7 @@
                     <span class="text-[11px] text-slate-500"><b class="text-violet-300" x-text="$store.game.fuseSel.length"></b> đã chọn</span>
                   </div>
                   <div class="text-[11px] text-slate-500 -mt-1">Chọn nhiều con (không đang dắt) làm vật tế → <b class="text-slate-300" x-text="$store.game.petName($store.game.petDetailObj)"></b> nhận tu vi + hấp thụ <b class="text-jade">1–5% chỉ số</b>. Cùng dòng &amp; phẩm: hấp thụ cao hơn, có cơ may <b class="text-amber-300">đột phá</b>. <span class="text-slate-600">(xếp theo độ hợp)</span></div>
-                  <template x-if="$store.game.fuseDonors.length===0"><div class="text-center text-slate-600 text-[12px] py-6">Chưa có linh thú nào để dung hợp (cần con khác, không đang dắt).</div></template>
+                  <template x-if="$store.game.fuseDonors.length===0"><div class="text-center text-slate-600 text-[12px] py-6">Chưa có Linh Thú nào có thể Dung Hợp. Cần một con khác và con đó không được đang đồng hành.</div></template>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <template x-for="d in $store.game.fuseDonors" :key="d.pet.id">
                       <button @click="$store.game.toggleFuseSel(d.pet.id)" class="relative flex items-center gap-2.5 p-2 rounded-lg border text-left transition" :class="$store.game.fuseSel.includes(d.pet.id) ? 'ring-1 ring-violet-400 bg-violet-500/10' : 'bg-ink3/40 hover:brightness-125'" :style="'border-color:'+$store.game.petQHex(d.pet)+'55'">
@@ -5102,7 +5232,7 @@
                 <div class="space-y-4 py-2 text-center" x-data="{ get r(){ return $store.game.releaseRewardObj||{} } }">
                   <div>
                     <div class="text-[15px] fserif text-slate-100">Phóng sanh <b :class="$store.game.petQ($store.game.petDetailObj).text" x-text="$store.game.petName($store.game.petDetailObj)"></b>?</div>
-                    <div class="text-[11px] text-slate-500 max-w-sm mx-auto mt-1 fserif italic">Thả linh thú về với núi rừng — chân thân tan thành linh khí, ngưng lại trong tay ngươi. Không thể gọi về.</div>
+                    <div class="text-[11px] text-slate-500 max-w-sm mx-auto mt-1 fserif italic">Thả Linh Thú về núi rừng. Linh Thú sẽ hóa thành linh khí và không thể gọi lại. Hành động này không thể hoàn tác.</div>
                   </div>
                   <div class="flex items-stretch justify-center gap-2.5 flex-wrap">
                     <div class="w-[108px] px-3 py-3 rounded-xl bg-ink3/50 border border-slate-700/70 flex flex-col items-center gap-1">
@@ -5130,7 +5260,7 @@
                 <div class="space-y-4 py-1" x-data="{ get c(){ return $store.game.awakenCostObj||{} }, get hsOk(){ return ($store.game.state.currencies.honThach||0) >= ($store.game.awakenCostObj||{}).honThach }, get matOk(){ return $store.game.awakenMatHave() >= ($store.game.awakenCostObj||{}).matQty } }">
                   <div class="text-center space-y-1">
                     <div class="text-[15px] fserif text-amber-200">Thức Tỉnh <b :class="q.text" x-text="$store.game.petName(p)"></b></div>
-                    <div class="text-[11px] text-slate-500 max-w-md mx-auto fserif italic">Dẫn động huyết mạch thượng cổ, phá vỏ phàm thai — linh thú lột xác, uy năng vọt bậc, hiện ra chân thân giấu kín bấy lâu.</div>
+                    <div class="text-[11px] text-slate-500 max-w-md mx-auto fserif italic">Đánh thức huyết mạch thượng cổ để Linh Thú lột xác, tăng mạnh sức mạnh và bộc lộ hình dạng thật.</div>
                   </div>
                   <div class="rounded-xl bg-ink3/50 border border-amber-800/30 p-3.5 space-y-2">
                     <div class="text-[11px] text-amber-300/90 font-semibold">Sau Thức Tỉnh</div>
@@ -5172,8 +5302,22 @@
               <template x-if="$store.game.petDetailMode==='huntPick'">
                 <div class="space-y-2.5">
                   <div class="text-[12px] text-amber-300 font-semibold">Phái <b :class="q.text" x-text="$store.game.petName(p)"></b> đi Săn Mồi</div>
-                  <div class="text-[11px] text-slate-500 -mt-1">Chỉ chọn được vùng pet đủ cảnh giới. Mỗi 10 phút thu tu vi, đôi khi rơi loot vùng đó. Pet kiệt sẽ tự nghỉ rồi săn tiếp.</div>
-                  <template x-if="$store.game.huntLocOptions(p).length===0"><div class="text-center text-slate-600 text-[12px] py-6">Chưa mở vùng nào để săn (cần Chiến Đấu Lv cao hơn).</div></template>
+                  <!-- Ba luật cũ nằm thẳng ở đây thành một khối chữ ba câu. Nay chỉ để một dòng
+                       ngắn, luật dồn vào nút hỏi. Bỏ luôn chữ "loot" — người Việt đọc không ra. -->
+                  <div class="text-[11px] text-slate-500 -mt-1 flex items-center gap-1.5">
+                    <span>Chọn bản đồ cho Linh Thú đi săn.</span>
+                    <span class="nh"><button type="button" class="nh-b" aria-label="Săn Mồi hoạt động thế nào">?</button>
+                      <!-- Chữ do user tự viết. Đây là KHUÔN GIỌNG cho mọi nút hỏi khác: gọi đúng
+                           tên thứ trong game (thể lực, bản đồ, cấp độ yêu cầu), không dùng đại từ
+                           "nó", không dùng chữ mơ hồ như "một ít" hay "khoẻ lại". -->
+                      <span class="nh-box">
+                        <b>Săn Mồi</b>
+                        <div class="mt-1">Linh Thú phải đủ cấp độ yêu cầu thì mới vào được bản đồ thám hiểm tương ứng.</div>
+                        <div>Cứ mỗi 10 phút thu hoạch được ngẫu nhiên tu vi và vật phẩm của bản đồ thám hiểm.</div>
+                        <div>Linh Thú tự nghỉ ngơi khi hết thể lực, tự động quay lại thám hiểm khi thể lực hồi phục.</div>
+                      </span></span>
+                  </div>
+                  <template x-if="$store.game.huntLocOptions(p).length===0"><div class="text-center text-slate-600 text-[12px] py-6">Chưa mở khu vực Săn Mồi nào. Hãy tăng cấp Chiến Đấu để mở thêm khu vực.</div></template>
                   <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
                     <template x-for="o in $store.game.huntLocOptions(p)" :key="o.loc.id">
                       <button @click="o.ok && $store.game.phaiSan(p.id, o.loc.id)" :disabled="!o.ok" class="w-full flex items-center gap-2.5 p-2 rounded-lg border text-left transition" :class="o.ok ? 'border-slate-700 bg-ink3/40 hover:border-amber-500 hover:bg-amber-500/5' : 'border-slate-800 bg-ink/40 opacity-45 cursor-not-allowed'">
@@ -5738,7 +5882,7 @@
                     <span class="text-lg fserif font-bold" :class="st==='locked'?'text-slate-400':(e.quality?$store.game.QUALITY[e.quality].text:'text-slate-100')" x-text="st==='locked'?'??? — Chưa gặp':e.name"></span>
                     <span x-show="st!=='locked' && e.sub" class="text-[10px] px-1.5 py-0.5 rounded bg-ink3 border border-slate-700 text-slate-300" x-text="e.sub"></span>
                   </div>
-                  <div class="text-[11px] text-slate-500 mb-3" x-text="st==='locked' ? 'Tìm gặp để bắt đầu thu lục.' : ('Nơi tìm: '+e.where)"></div>
+                  <div class="text-[11px] text-slate-500 mb-3" x-text="st==='locked' ? 'Tìm gặp lần đầu để ghi nhận vào Phổ.' : ('Nơi tìm: '+e.where)"></div>
                   <div class="rounded-lg px-3 py-2 mb-2 bg-ink3/60 border border-slate-700">
                     <div class="flex items-center justify-between text-[11px] mb-1">
                       <span class="text-slate-400" x-text="'Tiến độ ('+cat.unit+')'"></span>
@@ -5808,7 +5952,7 @@
             </div>
           </template>
           <template x-if="!g.hlNhom.length">
-            <div class="text-sm text-slate-600 py-6 text-center" x-text="g.inventoryByType.length ? 'Nhóm này chưa có gì.' : 'Túi trống. Hãy đi thu thập!'"></div>
+            <div class="text-sm text-slate-600 py-6 text-center" x-text="g.inventoryByType.length ? 'Nhóm này chưa có gì.' : 'Túi đang trống. Hãy đi thu thập vật phẩm!'"></div>
           </template>
           <template x-for="grp in g.hlNhom" :key="grp.type">
             <div class="mb-4">
@@ -5817,7 +5961,7 @@
                 <template x-for="it in grp.items" :key="it.uid || it.id">
                   <button @click="g.hlBam(it)" class="group flex flex-col items-center gap-1 text-center"
                     :class="g.hlChon && !g.hlBanDuoc(it) ? 'opacity-35 cursor-not-allowed' : ''"
-                    :title="!g.hlChon ? it.name+' — bấm xem chi tiết' : (g.hlBanDuoc(it) ? it.name+' — bấm để chọn' : it.name+' — không bán được')">
+                    :title="!g.hlChon ? it.name+' — bấm xem chi tiết' : (g.hlBanDuoc(it) ? it.name+' — Bấm để chọn.' : it.name+' — không bán được')">
                     <div class="relative w-full aspect-square rounded flex items-center justify-center ring-1 transition group-hover:ring-2 group-hover:brightness-110" :class="$store.game.itemQuality(it).bg + ' ' + (g.hlChon && g.hlDaChon(it) ? 'ring-2 ring-gold' : $store.game.itemQuality(it).ring)">
                       <template x-if="$store.game.itemHaloHex(it)"><i class="halo2" :style="$store.game.haloStyle(it)"></i></template>
                       <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-3xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="$store.game.ico(it.id, it.icon)"></span>
@@ -5846,7 +5990,7 @@
                 <div class="relative p-4 pb-0">
                   <button @click="$store.game.closeItemModal()" class="absolute top-3 right-3 w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 transition z-10 leading-none">✕</button>
                   <div class="flex items-start gap-3 pr-7">
-                    <div class="relative w-16 h-16 shrink-0 rounded-lg border-2 flex items-center justify-center bg-ink/40 cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="$store.game.itemQuality(m).border" @click="$store.game.openLightbox(m.id, m.icon, m.name)" title="Bấm để phóng to">
+                    <div class="relative w-16 h-16 shrink-0 rounded-lg border-2 flex items-center justify-center bg-ink/40 cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="$store.game.itemQuality(m).border" @click="$store.game.openLightbox(m.id, m.icon, m.name)" title="Bấm để phóng to.">
                       <span class="w-14 h-14 flex items-center justify-center text-3xl" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))" x-html="$store.game.ico(m.id, m.icon)"></span>
                     </div>
                     <div class="min-w-0 flex-1">
@@ -5924,7 +6068,7 @@
                   <!-- Đồ Phổ: Lĩnh Ngộ -> mở rèn ở Rèn Đúc -->
                   <template x-if="m.type==='doPho'">
                     <div class="rounded-lg bg-ink3/50 border px-3 py-2.5 mb-3" :class="$store.game.QUALITY[m.quality].border">
-                      <div class="text-[11.5px] text-slate-300 mb-1.5 leading-snug">Lĩnh ngộ để mở rèn <b :class="$store.game.QUALITY[m.quality].text" x-text="($store.game.ITEMS[m.gearId]||{}).name"></b> ở <b class="text-jade">Rèn Đúc</b> — <b class="text-amber-300">mỗi lượt chỉ rèn 1 món</b>, hết lượt phải lĩnh ngộ cuộn khác.</div>
+                      <div class="text-[11.5px] text-slate-300 mb-1.5 leading-snug">Lĩnh ngộ để mở khóa chế tạo. <b :class="$store.game.QUALITY[m.quality].text" x-text="($store.game.ITEMS[m.gearId]||{}).name"></b> ở <b class="text-jade">Rèn Đúc</b> — <b class="text-amber-300">mỗi lượt chỉ rèn 1 món</b>, hết lượt phải lĩnh ngộ cuộn khác.</div>
                       <div class="text-[11px] text-slate-400 mb-2">Lượt rèn hiện có: <b class="text-emerald-300" x-text="$store.game.doPhoChargeOf(m.id)"></b></div>
                       <button @click="$store.game.learnDoPho(m.id)" :disabled="(m.qty||0)<1" class="w-full py-2 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5">Lĩnh Ngộ</button>
                     </div>
@@ -6003,7 +6147,7 @@
             </div>
             <div class="flex-1 min-h-0 overflow-y-auto p-3">
               <template x-if="!g.tbNguon.length">
-                <div class="text-[12px] text-slate-600 text-center py-8">Chưa có gì để treo ở mục này.</div>
+                <div class="text-[12px] text-slate-600 text-center py-8">Chưa có vật phẩm nào để treo ở mục này.</div>
               </template>
               <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(64px,1fr))">
                 <template x-for="n in g.tbNguon" :key="n.k + ':' + n.ref">
@@ -6362,7 +6506,7 @@
                         <div class="text-[14px] font-semibold truncate" :class="$store.game.locUnlocked(loc)?'text-amber-50':'text-slate-400'" style="font-family:serif" x-text="loc.name"></div>
                         <div class="text-[11px] mt-0.5">
                           <template x-if="$store.game.isCurrentLocation(loc)"><span class="text-jade">● Đang ở đây</span></template>
-                          <template x-if="!$store.game.isCurrentLocation(loc) && $store.game.locUnlocked(loc)"><span class="text-emerald-400">Sẵn sàng — chạm để đến</span></template>
+                          <template x-if="!$store.game.isCurrentLocation(loc) && $store.game.locUnlocked(loc)"><span class="text-emerald-400">Sẵn sàng — bấm để đến.</span></template>
                           <template x-if="!$store.game.locUnlocked(loc)"><span class="inline-flex items-center gap-1 text-slate-500"><span class="w-3 h-3 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3 h-3')"></span><span x-text="'Cần Chiến Đấu Lv '+ loc.reqLevel"></span></span></template>
                         </div>
                       </div>
@@ -6490,7 +6634,7 @@
                      bản đồ: vành ngọc của ảnh đại diện. -->
                 <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full shrink-0" style="background:linear-gradient(160deg,#6ee7b7,#0f766e 60%,#134e4a);box-shadow:0 0 0 1px rgba(4,20,16,.9),0 0 8px -1px rgba(52,211,153,.6)"></span>Đang ở đây</span>
                 <span class="flex items-center gap-1 text-slate-400"><span class="w-3.5 h-3.5 inline-flex shrink-0" x-html="$store.game.svg('lock','w-3.5 h-3.5')"></span>Chưa đạt cấp</span>
-                <span class="hidden md:flex items-center gap-2 text-slate-500"><span class="text-amber-300/40">◆</span>Chạm địa điểm để xem chi tiết<span class="text-amber-300/40">◆</span></span>
+                <span class="hidden md:flex items-center gap-2 text-slate-500"><span class="text-amber-300/40">◆</span>Bấm vào địa điểm để xem chi tiết.<span class="text-amber-300/40">◆</span></span>
               </div>
 
             </div>
@@ -6556,7 +6700,7 @@
                          nên `ico()` rơi về images/items/ — đoán tay thành images/enemies/ là ô phóng
                          to trống trơn. Để `ico()` tự tra, chắc chắn trùng đúng ảnh ô nhỏ đang hiện. -->
                     <div class="w-32 h-32 rounded-xl overflow-hidden flex items-center justify-center cursor-zoom-in" :class="g.bossLocked(b.id)?'grayscale opacity-60':''" :style="'background:radial-gradient(circle,'+th(b).d+'66,#05070d);border:2px solid '+th(b).c+'66;font-size:52px'" x-html="g.ico(b.id,b.icon)"
-                         @click="g.openLightbox(b.id, b.icon, b.name)" title="Bấm để xem ảnh lớn"></div>
+                         @click="g.openLightbox(b.id, b.icon, b.name)" title="Bấm để mở ảnh lớn."></div>
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
@@ -6691,7 +6835,7 @@
                             <div><div class="lbl">Đang hồi sinh — giáng thế sau</div><div class="text-xl font-bold text-slate-100 font-mono" x-text="g.bossCdLive(b.id)"></div></div>
                           </div>
                           <template x-if="g.bossQueued(b.id)">
-                            <button @click="g.toggleBossQueue(b.id)" class="w-full py-3 rounded-lg text-center text-sm font-semibold transition hover:brightness-110" :style="'background:rgba('+th(b).g+',.12);border:1px solid '+th(b).c+'55;color:'+th(b).c">✓ Đã vào hàng đợi <span class="text-slate-500 text-[11px] font-normal">· bấm để rời</span></button>
+                            <button @click="g.toggleBossQueue(b.id)" class="w-full py-3 rounded-lg text-center text-sm font-semibold transition hover:brightness-110" :style="'background:rgba('+th(b).g+',.12);border:1px solid '+th(b).c+'55;color:'+th(b).c">✓ Đã vào hàng đợi <span class="text-slate-500 text-[11px] font-normal">· Bấm để rời.</span></button>
                           </template>
                           <template x-if="!g.bossQueued(b.id)">
                             <button @click="g.toggleBossQueue(b.id)" class="w-full py-3 rounded-lg font-bold text-sm transition hover:brightness-110" :style="'background:linear-gradient(180deg,rgba('+th(b).g+',.85),rgba('+th(b).g+',.5));color:#0a0e16'"><span class="inline-flex items-center gap-1.5"><span x-html="g.svg('clock','w-4 h-4')"></span>Vào Hàng Đợi</span></button>
@@ -6913,7 +7057,7 @@
                         <span class="flex flex-wrap gap-1.5 mt-2">
                           <span class="text-[10.5px] px-2.5 py-0.5 rounded-full border"
                             :class="p.co ? 'border-amber-600/50 text-amber-300' : (p.coTui ? 'border-amber-600/50 text-amber-300' : 'border-slate-800 text-slate-500')"
-                            x-text="p.co ? 'Đang đeo' : (p.coTui ? 'Có trong túi — bấm để lắp' : 'Rơi 0,5% từ ' + p.nguon)"></span>
+                            x-text="p.co ? 'Đang đeo' : (p.coTui ? 'Có trong túi — bấm để trang bị.' : 'Rơi 0,5% từ ' + p.nguon)"></span>
                           <span class="text-[10.5px] px-2.5 py-0.5 rounded-full border border-jade/40 text-jade" x-text="p.eff"></span>
                         </span>
                       </span>
@@ -7034,7 +7178,7 @@
             <div class="absolute right-0 -top-6 -bottom-6 w-2/5 pointer-events-none hidden md:block" style="background:radial-gradient(ellipse at 78% 50%, rgba(45,212,191,.16), transparent 66%)"></div>
             <div class="relative w-full p-5 md:p-6">
               <div class="text-[28px] gold-text fserif">Bí Cảnh Tầm Bảo</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Linh khí hội tụ, bảo khố hiện thế.</b> Trong mê cung cổ xưa ẩn giấu vô số trân bảo cùng truyền thừa thất lạc. Hãy tiến vào 9 tầng bí cảnh, tìm kiếm cơ duyên, thu thập <b class="text-amber-300">Đồ Phổ</b>, trang bị phẩm chất cao, Hồn Thạch và các nguyên liệu hiếm.</div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Linh khí hội tụ, bảo khố hiện thế.</b> Trong mê cung cổ xưa ẩn giấu nhiều trân bảo và truyền thừa thất lạc. Hãy vượt qua 9 tầng Bí Cảnh để tìm cơ duyên và thu thập <b class="text-amber-300">Đồ Phổ</b>, trang bị phẩm chất cao, Hồn Thạch và các nguyên liệu hiếm.</div>
             </div>
           </div>
 
@@ -7600,7 +7744,7 @@
                   <span class="text-3xl">＋</span><span class="text-[12px]">Chiêu Hiền</span><span class="text-[9px] text-slate-500" x-text="t.disciples.length + '/' + g.tmSlot()"></span>
                 </button>
               </div>
-              <div class="text-[10px] text-slate-600 mt-3 italic">Nhánh phụ — tu luyện idle thật, không tua giờ. Đệ tử &amp; gia bảo KHÔNG ảnh hưởng nhân vật chính.</div>
+              <div class="text-[10px] text-slate-600 mt-3 italic">Nhánh phụ — tu luyện theo thời gian thực, không tua thời gian. Đệ tử và Gia Bảo không ảnh hưởng đến nhân vật chính.</div>
             </div>
           </div>
           <!-- ===== CỘT PHẢI: Diễn Biến Tông Môn (focus) + Tin Giang Hồ (gọn) ===== -->
@@ -7791,7 +7935,7 @@
                       <div class="text-[11px] text-slate-400 leading-relaxed mt-1.5 pl-4" x-text="rl.subs.join('  ·  ')"></div>
                     </div>
                   </template>
-                  <div class="text-[10.5px] text-slate-600 italic px-1 pt-1 leading-relaxed">Tốc tu theo tư chất: Phàm Tư ×0.7 · Trung Tư ×1.0 · Thượng Tư ×1.4 · Tuyệt Tư ×2.0 · Thiên Tư ×3.2. Trần có thể NÂNG nhờ Gia Bảo / kỳ ngộ.</div>
+                  <div class="text-[10.5px] text-slate-600 italic px-1 pt-1 leading-relaxed">Tốc độ tu luyện theo tư chất: Phàm Tư ×0.7 · Trung Tư ×1.0 · Thượng Tư ×1.4 · Tuyệt Tư ×2.0 · Thiên Tư ×3.2.</div>
                 </div>
               </div>
             </div>
@@ -7963,7 +8107,7 @@
                       </div>
                     </template>
                   </div>
-                  <div class="text-[10px] text-slate-600 italic mt-3 text-center">Tiếp Đãi: +giao tình (mỗi 8h/sứ). Tặng Lễ: tốn Điểm Đấu Giá, +nhiều giao tình. Đạt <b class="text-amber-300/70">Kết Minh</b> → quà nguyên liệu + Uy Danh + đồng minh triều cống. Nâng bậc công trình mở thêm môn phái để kết giao.</div>
+                  <div class="text-[10px] text-slate-600 italic mt-3 text-center">Tiếp Đãi: tăng Giao Tình (mỗi 8 giờ/sứ). Tặng Lễ: tốn Điểm Đấu Giá nhưng tăng nhiều Giao Tình. Đạt <b class="text-amber-300/70">Kết Minh</b> → nhận quà nguyên liệu, Uy Danh và đồng minh triều cống. Nâng cấp công trình để mở thêm môn phái có thể kết giao.</div>
                 </div>
               </div>
             </div>
@@ -7976,7 +8120,7 @@
                 <div class="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(99,102,241,.14),transparent)">
                   <div class="flex items-center gap-2.5 min-w-0">
                     <span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[16px] shrink-0" style="color:#a5b4fc;border:1px solid rgba(129,140,248,.4);background:rgba(99,102,241,.12)">書</span>
-                    <div class="min-w-0"><div class="fserif text-[17px] leading-none text-indigo-200">Tàng Thư Lâu · Lĩnh Ngộ</div><div class="text-[10.5px] text-slate-500 mt-0.5 truncate">Chọn bí kíp → chọn đệ tử để lĩnh ngộ</div></div>
+                    <div class="min-w-0"><div class="fserif text-[17px] leading-none text-indigo-200">Tàng Thư Lâu · Lĩnh Ngộ</div><div class="text-[10.5px] text-slate-500 mt-0.5 truncate">Chọn bí kíp → chọn đệ tử để lĩnh ngộ.</div></div>
                   </div>
                   <div class="flex items-center gap-2.5 shrink-0">
                     <span class="text-[11px] text-slate-400 whitespace-nowrap">Ô lĩnh ngộ <b class="text-indigo-300" x-text="g.tmLinhNgoData.seats.used"></b><span class="text-slate-600">/</span><b class="text-slate-300" x-text="g.tmLinhNgoData.seats.total"></b></span>
@@ -8009,7 +8153,7 @@
                   </div>
                   <!-- ĐỆ TỬ -->
                   <div class="p-3.5">
-                    <div class="lbl mb-2">Đệ Tử <span class="text-slate-600 normal-case" x-show="g.biKipPick">· chọn để lĩnh ngộ</span></div>
+                    <div class="lbl mb-2">Đệ Tử <span class="text-slate-600 normal-case" x-show="g.biKipPick">· Chọn để lĩnh ngộ.</span></div>
                     <div class="space-y-2">
                       <template x-for="d in g.tmLinhNgoData.disciples" :key="d.uid">
                         <div class="rounded-lg border border-slate-800 p-2.5 flex items-center gap-2.5 bg-ink2/50">
@@ -8077,7 +8221,7 @@
                     <button @click="g.tmMergeBiKipPick()" :disabled="!g.bkMergeFull" class="w-full mt-2 py-2 rounded-lg text-[12.5px] font-bold fserif transition" :class="g.bkMergeFull?'bg-fuchsia-600/90 hover:bg-fuchsia-600 text-white':'bg-ink3 text-slate-600 border border-slate-800 cursor-not-allowed'" x-text="g.bkMergeFull ? ('Hợp Nhất → 1 '+g.bkMergeCur.nextName) : ('Chọn đủ cuốn ghép · '+g.bkMergeSel.length+'/'+g.bkMergeNeed)"></button>
                   </div>
                   <!-- kho bí kíp bậc nguồn -->
-                  <div class="lbl mb-1.5">Kho Bí Kíp bậc <span :style="'color:'+g.bkMergeCur.tierColor" x-text="g.bkMergeCur.tierName"></span> <span class="text-slate-600 normal-case tracking-normal">· bấm để chọn ghép</span></div>
+                  <div class="lbl mb-1.5">Kho Bí Kíp bậc <span :style="'color:'+g.bkMergeCur.tierColor" x-text="g.bkMergeCur.tierName"></span> <span class="text-slate-600 normal-case tracking-normal">· Bấm để chọn nguyên liệu ghép.</span></div>
                   <template x-if="!g.bkMergePool.length"><div class="text-[11px] text-slate-600 italic py-4 text-center">Chưa có bí kíp bậc này — mua ở Đấu Giá / nhặt Bí Cảnh / đệ tử lĩnh ngộ.</div></template>
                   <div class="flex flex-wrap gap-2">
                     <template x-for="bk in g.bkMergePool" :key="bk.id">
@@ -8091,7 +8235,7 @@
                       </div>
                     </template>
                   </div>
-                  <div class="text-[10.5px] text-slate-600 italic text-center pt-3">Tự chọn <b x-text="g.bkMergeNeed"></b> bí kíp cùng bậc (trùng hay khác cuốn đều được) → 1 bí kíp NGẪU NHIÊN bậc kế. Bậc Tuyệt là cao nhất. Side-only.</div>
+                  <div class="text-[10.5px] text-slate-600 italic text-center pt-3">Tự chọn <b x-text="g.bkMergeNeed"></b> bí kíp cùng bậc (trùng hoặc khác cuốn đều được) → nhận 1 bí kíp ngẫu nhiên ở bậc kế tiếp. Bậc Tuyệt là cao nhất.</div>
                 </div>
               </div>
             </div>
@@ -8104,19 +8248,19 @@
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.1),transparent)">
                   <div class="flex items-center gap-2.5">
                     <span class="w-7 h-7 rounded-lg flex items-center justify-center fserif text-[16px]" style="color:#22d3ee;border:1px solid rgba(34,211,238,.4);background:rgba(34,211,238,.1)">論</span>
-                    <div><div class="fserif text-[18px] leading-none text-cyan">Luận Võ Hội</div><div class="text-[10.5px] text-slate-500 mt-0.5">Bảng xếp hạng liên tông · đệ tử tự so tài · bấm chọn 2 đấu sĩ để Tỉ Thí xem</div></div>
+                    <div><div class="fserif text-[18px] leading-none text-cyan">Luận Võ Hội</div><div class="text-[10.5px] text-slate-500 mt-0.5">Bảng xếp hạng liên tông · đệ tử tự so tài · chọn 2 đấu sĩ để xem Tỉ Thí.</div></div>
                   </div>
                   <button @click="g.closeLuanVo()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                 </div>
                 <div class="px-5 py-2 border-b border-slate-800/60 shrink-0 flex items-center justify-between gap-2 text-[11px]">
                   <span :class="g.lvhPick?'text-cyan':'text-slate-500'">
-                    <template x-if="!g.lvhPick"><span>Bấm 1 đấu sĩ để xem <b>Đấu Lục</b> (lịch sử + xem lại trận).</span></template>
+                    <template x-if="!g.lvhPick"><span>Bấm một đấu sĩ để xem chi tiết. <b>Đấu Lục</b> (lịch sử + xem lại trận).</span></template>
                     <template x-if="g.lvhPick"><span>Đã chọn đấu sĩ · bấm <b>Tỉ Thí</b> ở đối thủ bất kỳ. <button @click="g.lvhPick=null" class="text-slate-500 hover:text-rose-400 underline">bỏ chọn</button></span></template>
                   </span>
                   <span class="text-slate-500 shrink-0">Hạng cao nhất tông ta <b class="text-amber-300" x-text="'#'+g.lvhMyRank"></b> · kỳ tới <b class="text-cyan" x-text="g.lvhNextText"></b></span>
                 </div>
                 <div class="flex-1 overflow-y-auto px-3 py-2.5 space-y-1">
-                  <template x-if="g.lvhBoard.total<2"><div class="text-[12px] text-slate-500 italic text-center py-10">Cần ít nhất 2 đệ tử (chưa Đắc Đạo) để tỉ thí.</div></template>
+                  <template x-if="g.lvhBoard.total<2"><div class="text-[12px] text-slate-500 italic text-center py-10">Cần ít nhất 2 đệ tử chưa Đắc Đạo để Tỉ Thí.</div></template>
                   <template x-for="e in g.lvhDisplay" :key="e.key">
                     <div>
                       <template x-if="e.separator"><div class="flex items-center gap-2 py-1 text-[9px] text-slate-600 tracking-widest"><div class="flex-1 border-t border-slate-800"></div>TÔNG TA<div class="flex-1 border-t border-slate-800"></div></div></template>
@@ -8159,7 +8303,7 @@
                       <button @click="g.lvhCloseHist()" class="text-slate-500 hover:text-rose-400 text-xl leading-none self-start">✕</button>
                     </div>
                     <div class="flex-1 overflow-y-auto px-4 py-3">
-                      <div class="lbl mb-1.5">Trận Gần Đây <span class="normal-case tracking-normal text-slate-600">· bấm để xem lại</span></div>
+                      <div class="lbl mb-1.5">Trận Gần Đây <span class="normal-case tracking-normal text-slate-600">· Bấm để xem lại.</span></div>
                       <div class="space-y-1.5">
                         <template x-for="m in hi.matches" :key="m.oppKey">
                           <div @click="g.lvhReplayMatch(m.oppKey)" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-ink2/40 hover:bg-ink2/80 border border-slate-800 cursor-pointer transition">
@@ -8354,7 +8498,7 @@
                         </div>
                       </template>
                     </div>
-                    <div class="text-[10px] text-slate-600 italic mt-2">Trách phạt gột cờ xấu + giảm tâm ma. Tâm ma cao / tính cao ngạo có thể phản tác (sinh bất phục).</div>
+                    <div class="text-[10px] text-slate-600 italic mt-2">Trách Phạt giúp xóa cờ xấu và giảm Tâm Ma. Nếu Tâm Ma cao hoặc tính cách quá cao ngạo, đệ tử có thể phản tác dụng và sinh Bất Phục.</div>
                   </div>
                   <!-- PHẢN ĐỒ -->
                   <div x-show="g.tmGioiLuatData.rebels.length">
@@ -8429,7 +8573,7 @@
                   <template x-if="g.tmItemView.phamBreak && g.tmItemView.phamBreak.length"><div class="flex flex-wrap items-center justify-center gap-2 mt-2"><template x-for="ph in g.tmItemView.phamBreak" :key="ph.key"><span class="text-[11px] px-2 py-0.5 rounded-full fserif font-bold" :style="'color:'+ph.color+';background:'+ph.color+'14;border:1px solid '+ph.color+'55'" x-text="ph.name+' ×'+ph.n"></span></template></div></template>
                 </div>
               </div>
-              <div class="text-[11px] text-slate-500 mt-5">Bấm bất kỳ để đóng</div>
+              <div class="text-[11px] text-slate-500 mt-5">Bấm vào bất kỳ đâu để đóng.</div>
             </div>
           </template>
 
@@ -8614,7 +8758,7 @@
                       </div>
                     </template>
                   </div>
-                  <template x-if="!g.tmDuocPlotCount"><div class="text-center text-[12px] text-slate-600 italic fserif py-8">Chưa có luống — nâng Dược Viên để mở đất trồng.</div></template>
+                  <template x-if="!g.tmDuocPlotCount"><div class="text-center text-[12px] text-slate-600 italic fserif py-8">Chưa có luống trồng — nâng Dược Viên để mở thêm đất.</div></template>
                 </div>
                 <!-- FOOTER -->
                 <div class="shrink-0 px-4 py-3 border-t border-slate-800" style="background:rgba(15,21,33,.55)">
@@ -8787,7 +8931,7 @@
                               <span class="text-[11.5px] fserif font-bold inline-flex items-center gap-1.5"><span class="fserif" :style="'color:'+(g.tmKiepInfo(d).deadly?'#fb7185':'#f5b942')">劫</span><span :style="'color:'+(g.tmKiepInfo(d).deadly?'#fb7185':'#f5b942')" x-text="g.tmKiepInfo(d).name"></span></span>
                               <span class="text-[11px] fserif text-slate-400">Tỉ lệ thành <b :style="'color:'+(g.tmKiepInfo(d).oddsPct>=60?'#34d399':(g.tmKiepInfo(d).oddsPct>=40?'#f5b942':'#fb7185'))" x-text="g.tmKiepInfo(d).oddsPct+'%'"></b></span>
                             </div>
-                            <div class="text-[10.5px] mt-0.5 leading-snug" :class="g.tmKiepInfo(d).deadly?'text-rose-300/80':'text-amber-300/70'" x-text="g.tmKiepInfo(d).deadly ? 'Độ kiếp sinh tử — thất bại CÓ THỂ khiến đệ tử hồn phi phách tán. Đan phẩm cao + Khí Vận cao + tâm ma thấp nâng tỉ lệ.' : 'Độ kiếp — thất bại tổn đạo phải lui tĩnh dưỡng (không tử vong).'"></div>
+                            <div class="text-[10.5px] mt-0.5 leading-snug" :class="g.tmKiepInfo(d).deadly?'text-rose-300/80':'text-amber-300/70'" x-text="g.tmKiepInfo(d).deadly ? 'Độ Kiếp là cửa sinh tử: thất bại có thể khiến đệ tử hồn phi phách tán. Đan phẩm cao, Khí Vận cao và Tâm Ma thấp sẽ tăng tỉ lệ thành công.' : 'Độ kiếp — thất bại tổn đạo phải lui tĩnh dưỡng (không tử vong).'"></div>
                           </div>
                         </template>
                         <div class="grid grid-cols-2 gap-2 mb-2.5">
@@ -8966,7 +9110,7 @@
                       </div>
                     </div>
                   </template>
-                  <div class="text-[10.5px] text-slate-600 italic text-center pt-1">Điểm Đấu Giá sinh từ Tàng Thư Lâu · phần thưởng side-only / cosmetic (không ảnh hưởng nhân vật chính).</div>
+                  <div class="text-[10.5px] text-slate-600 italic text-center pt-1">Điểm Đấu Giá nhận từ Tàng Thư Lâu · phần thưởng chỉ dành cho nhánh phụ / trang trí, không ảnh hưởng đến nhân vật chính.</div>
                 </div>
               </div>
             </div>
@@ -9032,8 +9176,8 @@
                         <span class="lbl inline-flex items-center gap-1.5"><span class="fserif text-amber-300 text-[13px]">器</span>Luyện Khí Các</span>
                         <span class="text-[11px]"><span class="text-slate-500">Cường hóa</span> <b class="text-amber-300" x-text="'+'+e.cur"></b><span class="text-slate-600"> / +</span><span class="text-slate-400" x-text="e.max"></span></span>
                       </div>
-                      <template x-if="!e.lkcBuilt"><div class="text-[11.5px] text-slate-500 italic text-center py-0.5">Xây <b class="text-amber-300/80">Luyện Khí Các</b> để rèn gia bảo cho đệ tử.</div></template>
-                      <template x-if="e.lkcBuilt && e.atMax"><div class="text-[11.5px] text-amber-300/80 text-center py-0.5">Đã đạt trần <b x-text="'+'+e.max"></b> — nâng Luyện Khí Các để rèn sâu hơn.</div></template>
+                      <template x-if="!e.lkcBuilt"><div class="text-[11.5px] text-slate-500 italic text-center py-0.5">Xây <b class="text-amber-300/80">Luyện Khí Các</b> để rèn Gia Bảo cho đệ tử.</div></template>
+                      <template x-if="e.lkcBuilt && e.atMax"><div class="text-[11.5px] text-amber-300/80 text-center py-0.5">Đã đạt trần <b x-text="'+'+e.max"></b> — Nâng Luyện Khí Các để mở cấp rèn cao hơn.</div></template>
                       <template x-if="e.lkcBuilt && !e.atMax">
                         <div>
                           <div class="flex flex-wrap gap-1.5 mb-2 text-[10.5px]">
@@ -10956,7 +11100,7 @@
 
               <!-- MỘNG THÂN -->
               <div class="mt-3">
-                <div class="lob-sec">Mộng Thân <span class="more">bấm để nhập mộng</span></div>
+                <div class="lob-sec">Mộng Thân <span class="more">Bấm để nhập mộng.</span></div>
                 <div class="grid grid-cols-3 gap-3">
                   <template x-for="h in HEROES" :key="h.id">
                     <div class="hcard" :style="'--c:'+heColor(h.he)+'66'" @click="phase='hero'">
@@ -11055,7 +11199,7 @@
                                 <span class="mtxt2"><span class="ic">⟡</span>Hiệu ứng Sát Cảnh <span class="cnt" x-text="'('+scModsDetail(scSel[h.id]).length+' luật)'"></span></span>
                                 <span class="mmore">Chi Tiết ›</span>
                               </div>
-                              <div class="text-[9.5px] text-slate-600 leading-snug" x-show="scSel[h.id]===0 && scMaxOf(h.id)===0">Đăng Tiên (thắng) để mở bậc khó hơn.</div>
+                              <div class="text-[9.5px] text-slate-600 leading-snug" x-show="scSel[h.id]===0 && scMaxOf(h.id)===0">Đăng Tiên thành công để mở độ khó cao hơn.</div>
                             </div>
                           </div>
                           <button @click.stop="startRun(h)" class="mt-1 text-center text-[13px] py-2 rounded-xl bg-gradient-to-r from-jade to-cyan text-ink font-bold hover:brightness-110 transition">Nhập Mộng ⟶</button>
@@ -11360,7 +11504,7 @@
               <!-- 4 LỰA CHỌN -->
               <template x-if="!_restResult">
                 <div>
-                  <p class="text-[12px] text-slate-400 mb-4">Một khắc an tĩnh trong mộng cảnh — chọn một điều để tu dưỡng.</p>
+                  <p class="text-[12px] text-slate-400 mb-4">Một khoảnh khắc yên tĩnh trong mộng cảnh — chọn một hướng để tu dưỡng.</p>
                   <div class="grid grid-cols-2 gap-2.5">
                     <button @click="restHeal()" class="dtm-restopt" style="--rc:#34d399"><span class="fserif t">Điều Tức</span><span class="d" x-text="'Hồi +'+Math.round(run.maxHp*restPct())+' HP'"></span></button>
                     <button @click="restLearn()" class="dtm-restopt" style="--rc:#38bdf8"><span class="fserif t">Tham Ngộ</span><span class="d">Lĩnh ngộ +1 chiêu</span></button>
@@ -11406,7 +11550,7 @@
               <div class="escrim"></div>
               <div class="econtent">
                 <div class="dtm-endtitle win">Đăng Tiên!</div>
-                <p class="text-slate-100 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Vượt mộng cảnh, tàn niệm cao thủ đã phục. Lĩnh ngộ theo ngươi tỉnh giấc.</p>
+                <p class="text-slate-100 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Vượt qua mộng cảnh, tàn niệm cao thủ đã chịu phục. Khi tỉnh giấc, bạn sẽ mang theo phần lĩnh ngộ vừa đạt được.</p>
                 <div class="text-[12.5px] mt-3 mb-6 leading-relaxed">
                   <span class="text-amber-200">Lĩnh ngộ mang về: <b x-text="'+'+_bankGain+' Mộng Ngân'"></b></span>
                   <template x-if="_newScUnlocked>0"><span class="text-rose-300"> · Mở Sát Cảnh <b x-text="_newScUnlocked"></b></span></template>
@@ -11428,7 +11572,7 @@
               <div class="econtent">
                 <div class="dtm-endtitle lose">Mộng Tan</div>
                 <p class="text-slate-200 mt-3 mb-1 text-[13.5px] max-w-md mx-auto leading-relaxed">Thần thức bị đánh bật khỏi mộng cảnh — giật mình tỉnh giấc ở Tàng Kinh Các.</p>
-                <p class="text-[12px] text-slate-400 mb-2">Thân thể vô sự. Lần sau dựng bộ bài khắc hệ tốt hơn.</p>
+                <p class="text-[12px] text-slate-400 mb-2">Thân thể không sao. Lần sau hãy sắp bộ bài khắc hệ tốt hơn.</p>
                 <div class="text-[12.5px] mb-6 leading-relaxed">
                   <span class="text-amber-200">Lĩnh ngộ mang về: <b x-text="'+'+_bankGain+' Mộng Ngân'"></b></span>
                   <template x-if="_newUnlocks.length"><div class="text-violet-300 mt-1" x-text="'Lĩnh ngộ chiêu mới: '+_newUnlocks.map(id=>cardName(id)).join(', ')"></div></template>
@@ -11499,7 +11643,7 @@
                   <div class="fserif text-xl gold-text">Đổi Lấy Nguyên Bảo</div>
                   <button @click="bridgeTab=false" class="dtm-xclose text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
                 </div>
-                <div class="text-[11px] text-amber-200/70 italic mb-4">Mộng Ngân tụ trong mộng ngưng thành chút Nguyên Bảo mang về thân thật — mỗi tuần thiên cơ chỉ cho đọng ngần ấy.</div>
+                <div class="text-[11px] text-amber-200/70 italic mb-4">Mộng Ngân ngưng tụ thành một ít Nguyên Bảo mang về hiện thực. Mỗi tuần chỉ có thể nhận đến giới hạn này.</div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
                   <div class="panel rounded-xl p-3 text-center"><div class="text-[10px] uppercase tracking-wider text-slate-500">Mộng Ngân</div><div class="fserif text-2xl gold-text" x-text="metaNgan()"></div></div>
                   <div class="panel rounded-xl p-3 text-center"><div class="text-[10px] uppercase tracking-wider text-slate-500">Nguyên Bảo</div><div class="fserif text-2xl text-amber-300 flex items-center justify-center gap-1"><img loading="lazy" decoding="async" src="images/currency/nguyenBao.webp" class="w-5 h-5 object-contain" alt="" onerror="this.style.display='none'"><span x-text="$store.game.state.currencies.nguyenBao||0"></span></div></div>
@@ -11537,7 +11681,7 @@
           <template x-if="_deckPick">
             <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4" @click.self="_cancelDeckPick()" @keydown.escape.window="_cancelDeckPick()">
               <div class="panel rounded-2xl border border-violet-500/40 p-5 max-w-3xl max-h-[85vh] overflow-y-auto">
-                <div class="flex items-center justify-between mb-1"><div class="fserif text-lg text-violet-300" x-text="_deckPick==='up' ? 'Khắc Cốt · chọn 1 chiêu để NÂNG CẤP' : 'Tinh Luyện · chọn 1 chiêu để LOẠI BỎ'"></div><button @click="_cancelDeckPick()" class="dtm-xclose text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
+                <div class="flex items-center justify-between mb-1"><div class="fserif text-lg text-violet-300" x-text="_deckPick==='up' ? 'Khắc Cốt · chọn 1 chiêu để NÂNG CẤP.' : 'Tinh Luyện · chọn 1 chiêu để LOẠI BỎ.'"></div><button @click="_cancelDeckPick()" class="dtm-xclose text-slate-500 hover:text-rose-400 text-xl">✕</button></div>
                 <div class="text-[11px] text-slate-400 mb-3" x-text="_deckPick==='up' ? 'Nâng thẳng số chính của thẻ (thẻ đã có dấu ＋ không nâng lại được).' : 'Bỏ 1 thẻ khỏi bộ bài — hiệu lực cả ván này.'"></div>
                 <div class="flex flex-wrap gap-2 justify-center">
                   <template x-for="(c,i) in run.deck" :key="i">
@@ -12012,7 +12156,7 @@
             </div>
             <div class="relative w-full px-5 pb-5 pt-1 sm:p-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif">Kỳ Trận · Cửu Cung Trấn Yêu</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-violet-300">Cửu cung bố trận, trấn áp bát phương.</b> Chinh phục 9 Cung yêu ma, dồn vào Trung Cung diệt Thiên Ma Yêu Đế, đoạt lấy tuyệt học trấn trận.</div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-violet-300">Cửu cung bố trận, trấn áp bát phương.</b> Chinh phục 9 Cung yêu ma, tiến vào Trung Cung diệt Thiên Ma Yêu Đế và đoạt lấy tuyệt học trấn trận.</div>
             </div>
           </div>
           <!-- tab -->
@@ -12092,11 +12236,11 @@
 
                 <h4>Nhanh</h4>
                 <div class="ktd-row">
-                  <button class="ktd-b on" @click="devLoadFull()">Nạp full để test</button>
-                  <button class="ktd-b warn" @click="devResetAll()" x-text="devConfirmReset?'Bấm lần nữa để XÓA':'Reset toàn bộ Kỳ Trận'"></button>
+                  <button class="ktd-b on" @click="devLoadFull()">Nạp đầy để thử nghiệm.</button>
+                  <button class="ktd-b warn" @click="devResetAll()" x-text="devConfirmReset?'Bấm lần nữa để XÓA.':'Reset toàn bộ Kỳ Trận'"></button>
                 </div>
 
-                <div class="ktd-log" x-text="devLog||'Sẵn sàng. Mọi thao tác chỉ đụng state.kyTran (0-power, cách ly).'"></div>
+                <div class="ktd-log" x-text="devLog||'Sẵn sàng. Mọi thao tác chỉ thay đổi state.kyTran (0-power, tách biệt hoàn toàn).'"></div>
               </div>
             </div>
           </div></template>
@@ -12191,7 +12335,7 @@
           <div x-show="!inBattle && ktTab==='nguhanh'">
             <div class="ktr-nghead">
               <div class="ttl">Ngũ Hành Vòng Trận</div>
-              <div class="sub">Ngũ hành luân chuyển · Sinh khắc định trận — mỗi mốc mở một cơ chế mới, Tương Khắc để áp chế Cung Chủ theo hệ</div>
+              <div class="sub">Ngũ Hành luân chuyển · sinh khắc định trận. Mỗi mốc mở một cơ chế mới; tận dụng Tương Khắc để áp chế Cung Chủ theo hệ.</div>
             </div>
             <div class="ktr-hero" x-data="{mHanh:false}" @keydown.escape.window="mHanh=false">
               <div class="laban">
@@ -12491,7 +12635,7 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">越南跑得快</span> Tiến Lên</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Trải nghiệm trò chơi bài quen thuộc, tính toán từng lượt đánh để về nhất trước mọi đối thủ.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Trải nghiệm trò chơi bài quen thuộc, tính toán từng lượt để về nhất trước các đối thủ.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="tl.van"></b> ván · Về Nhất: <b class="text-amber-300" x-text="tl.nhat"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(tl.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((tl.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(tl.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
@@ -12629,7 +12773,7 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">十三水</span> Binh Xập Xám</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Sắp xếp 13 lá bài thành ba chi hoàn chỉnh, vận dụng chiến thuật xếp bài để giành chiến thắng.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Sắp xếp 13 lá bài thành ba chi hoàn chỉnh, tính toán cách xếp để giành chiến thắng.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="bx.van"></b> ván · Ván ăn: <b class="text-amber-300" x-text="bx.thang"></b> · Sâm Banh: <b class="text-amber-300" x-text="bx.samBanh"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(bx.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((bx.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(bx.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
@@ -12743,7 +12887,7 @@
             <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(90deg,#0b0e16 0%,rgba(11,14,22,.86) 42%,rgba(11,14,22,.45) 100%)"></div>
             <div class="relative px-5 py-5 sm:px-6">
               <div class="text-[22px] sm:text-[28px] gold-text fserif" style="line-height:1.32;padding-bottom:3px"><span style="font-family:'Ma Shan Zheng',cursive;font-weight:400">中国跑得快</span> Tiến Lên Trung Quốc</div>
-              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Làm quen với lối chơi Tiến Lên phiên bản Trung Hoa, mang đến trải nghiệm mới lạ cùng nhiều chiến thuật hấp dẫn.</b></div>
+              <div class="text-[12.5px] sm:text-[13px] text-slate-300/90 leading-snug mt-2 max-w-2xl fserif"><b class="text-amber-300">Làm quen với Tiến Lên Trung Quốc, một biến thể có luật chơi và chiến thuật riêng.</b></div>
               <div class="mt-3 text-[12px] text-slate-400">Đã chơi: <b class="text-cyan-300" x-text="pk.van"></b> ván · Chạy nhất: <b class="text-amber-300" x-text="pk.nhat"></b> · Bom: <b class="text-amber-300" x-text="pk.bom||0"></b> · Kỳ Hồn: <b class="text-amber-300" x-text="$store.game.fmtC(kyHon)"></b></div>
               <div class="mt-1.5 text-[12px] text-slate-400">Lợi Nhuận Ròng: <b :class="(pk.lai||0)>=0 ? 'text-emerald-300' : 'text-rose-300'" x-text="((pk.lai||0)>=0?'+':'−') + $store.game.fmtC(Math.abs(pk.lai||0)) + ' Trù Mã'"></b> · Kỳ Nghệ: <b class="text-amber-200" x-text="kyNgheState.cur ? kyNgheState.cur.name : 'Chưa có danh hiệu'"></b></div>
 
@@ -13151,7 +13295,7 @@
                             <b class="text-jade" x-text="fmt(bacGopRaMinhCong)"></b> Minh Cống<template x-if="bacGopDu"><span class="text-slate-600" x-text="' (lẻ ' + fmt(bacGopDu) + ' Bạc chỉ thành Công Tích)'"></span></template>.</span>
                         </template>
                         <template x-if="bacGopSo > bac"><span>Không đủ Bạc — ngươi chỉ có <b x-text="fmt(bac)"></b>.</span></template>
-                        <template x-if="bacGopSo <= 0"><span>Đang có <b class="text-slate-300" x-text="fmt(bac)"></b> Bạc. Ba nút dưới ghi sẵn số Minh Cống đổi được.</span></template>
+                        <template x-if="bacGopSo <= 0"><span>Đang có <b class="text-slate-300" x-text="fmt(bac)"></b> Bạc. Ba nút bên dưới hiển thị sẵn số Minh Cống có thể đổi.</span></template>
                       </div>
                     </div>
 
@@ -13585,7 +13729,7 @@
               <template x-if="tab==='cuaHang'">
                 <div>
                   <!-- Không banner phụ: tên tab và Công Tích đều đã nằm sẵn phía trên. -->
-                  <div class="text-[11.5px] text-slate-500 px-1">Đổi bằng Công Tích. Mỗi món có hạn lượt riêng, sang ngày mới lại đầy.</div>
+                  <div class="text-[11.5px] text-slate-500 px-1">Đổi bằng Công Tích. Mỗi món có giới hạn lượt đổi riêng và sẽ làm mới vào ngày hôm sau.</div>
 
                   <div class="grid gap-3 mt-3 sm:grid-cols-2 xl:grid-cols-3">
                     <template x-for="h in hang" :key="h.id">
@@ -13715,7 +13859,7 @@
                 <div class="bp-ct-wrap">
                   <!-- KHÔNG banner phụ: tên tab đã nằm trên thanh tab, Ngân Khố đã nằm trên banner
                        chính. Vẽ lại là trùng, mà mỗi dòng thừa đẩy hàng thẻ thứ hai rớt khỏi màn. -->
-                  <div class="text-[11.5px] text-slate-500 px-1">Bấm để xem chi tiết</div>
+                  <div class="text-[11.5px] text-slate-500 px-1">Bấm để xem chi tiết..</div>
 
                   <template x-if="dangXay">
                     <div class="panel rounded-xl px-4 py-2.5 mt-3 border border-amber-500/25 flex items-center gap-3 flex-wrap">
@@ -13797,7 +13941,7 @@
                     <div class="panel rounded-xl overflow-hidden min-w-0">
                       <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
                         <div class="text-jade font-bold fserif">Chiến Khu</div>
-                        <div class="text-[10.5px] text-slate-600">10 vùng · bấm để xem bảng hạng</div>
+                        <div class="text-[10.5px] text-slate-600">10 vùng · bấm để xem bảng xếp hạng.</div>
                       </div>
                       <div class="divide-y divide-slate-800/60">
                         <template x-for="v in cp" :key="v.id">
@@ -14041,7 +14185,7 @@
                   <div class="panel rounded-xl overflow-hidden">
                     <div class="px-4 py-2.5 border-b border-slate-800">
                       <div class="text-jade font-bold fserif">Quyền Trong Tiên Minh</div>
-                      <div class="text-[11px] text-slate-600 mt-0.5">Chức từ bậc đã chọn trở lên mới làm được việc đó. Minh Chủ luôn làm được tất.</div>
+                      <div class="text-[11px] text-slate-600 mt-0.5">Chỉ thành viên từ chức bậc đã chọn trở lên mới có thể thực hiện việc này. Minh Chủ luôn có quyền thực hiện.</div>
                     </div>
                     <div class="divide-y divide-slate-800/60">
                       <template x-for="q in quyenList" :key="q.k">
@@ -14329,7 +14473,7 @@
             <div class="panel rounded-xl p-3 sm:p-4 min-w-0">
               <div class="flex items-baseline justify-between mb-3">
                 <div class="text-jade font-bold fserif">Bàn Rượu <span class="text-slate-500 text-[12px] font-normal" x-text="'· ' + khach.length + '/' + soGhe + ' ghế'"></span></div>
-                <span class="text-[11px] text-slate-600 hidden sm:block">Mời rượu để nghe chuyện</span>
+                <span class="text-[11px] text-slate-600 hidden sm:block">Mời rượu để nghe chuyện.</span>
               </div>
               <div class="grid gap-2.5 sm:grid-cols-2">
                 <template x-for="k in khach" :key="k.id">
@@ -14981,7 +15125,7 @@
               <div>
                 <p class="ql-sectitle">Độ Bền &amp; Bảo Trì</p>
                 <template x-if="soNeedRepair > 0">
-                  <div class="du-warn"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b x-text="soNeedRepair"></b> công trình đang dưới 80% — nên sửa chữa để giữ chức năng.</span></div>
+                  <div class="du-warn"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b x-text="soNeedRepair"></b> Công trình đang dưới 80% độ bền — nên sửa chữa để duy trì chức năng.</span></div>
                 </template>
                 <div class="du-list">
                   <template x-for="e in soDurList" :key="e.key">
@@ -15279,7 +15423,7 @@
           <button @click="$store.game.closeAction()" class="text-slate-500 hover:text-rose-400">✕</button>
         </div>
         <div class="text-center">
-          <button type="button" title="Bấm để phóng to"
+          <button type="button" title="Bấm để phóng to."
             @click="$store.game.openLightbox($store.game.modalAction.itemId || $store.game.modalSkill.id, $store.game.modalAction.itemId ? $store.game.ITEMS[$store.game.modalAction.itemId].icon : $store.game.modalSkill.icon, $store.game.modalAction.name)"
             class="w-28 h-28 mx-auto rounded-lg bg-ink3 flex items-center justify-center text-5xl cursor-zoom-in ring-1 ring-transparent hover:ring-jade/40 transition"
             x-html="$store.game.ico($store.game.modalAction.itemId || $store.game.modalSkill.id, $store.game.modalAction.itemId ? $store.game.ITEMS[$store.game.modalAction.itemId].icon : $store.game.modalSkill.icon)"></button>
@@ -15614,7 +15758,7 @@
             <div class="text-[12px]" :class="g.heInfo(he).text" x-text="g.monPhaiOf(he).name"></div>
             <div class="text-[11px] text-slate-400 leading-snug mt-0.5" x-text="g.monPhaiOf(he).desc"></div>
           </div>
-          <div class="text-[10px] text-slate-600 leading-snug">Khởi tu: sẵn nội công + 1 chiêu Sơ + 1 Bị Động cùng hệ. Còn lại học sau ở Tàng Kinh Các.</div>
+          <div class="text-[10px] text-slate-600 leading-snug">Khởi tu: có sẵn Nội Công + 1 chiêu Sơ + 1 Bị Động cùng hệ. Các kỹ năng còn lại học tại Tàng Kinh Các.</div>
         </div>
         <!-- footer -->
         <div class="p-3 border-t border-slate-800 bg-ink2/50 shrink-0">
@@ -15659,7 +15803,7 @@
                     <animate attributeName="stroke-dashoffset" from="0" to="6.4" dur="1.2s" repeatCount="indefinite"/>
                   </rect>
                 </svg>
-                <div class="relative w-[106px] h-[106px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to">
+                <div class="relative w-[106px] h-[106px] rounded-lg border-2 bg-gradient-to-br overflow-hidden flex items-center justify-center cursor-zoom-in hover:ring-2 hover:ring-amber-300/50 transition" :class="g.itemQuality(id).border+' '+g.itemQuality(id).grad" @click="g.openLightbox(id.id, id.icon, id.name)" title="Bấm để phóng to.">
                   <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(id.id, id.icon)"></span>
                 </div>
                 <template x-if="g.itemPlus(id)>0"><span class="eh-hex absolute z-[2]" style="bottom:4px;right:4px;width:40px;height:43px;font-size:14px;color:#fcd34d" x-text="g.itemPlus(id)"></span></template>
@@ -15702,9 +15846,9 @@
                   <div class="rounded-xl bg-ink3/50 border border-slate-800 p-4 min-h-[248px]">
                     <div class="text-[11px] uppercase tracking-wider text-amber-300/70 mb-2.5 font-medium">Nguyên liệu</div>
                     <div class="space-y-2.5">
-                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon, info.stoneName)" title="Bấm để phóng to" x-html="g.ico(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.stoneId).text" x-text="info.stoneName"></span></span><span class="tabular-nums shrink-0" :class="info.stoneOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.stoneHave)+' / '+info.stoneQty"></span></div>
-                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox('honThach','💠','Hồn Thạch')" title="Bấm để phóng to" x-html="g.ico('honThach','💠')"></span><span class="truncate font-medium text-rose-300">Hồn Thạch</span></span><span class="tabular-nums shrink-0" :class="info.honOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.honHave)+' / '+g.fmt(info.honThach)"></span></div>
-                      <template x-if="info.crystalQty>0"><div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon, info.crystalName)" title="Bấm để phóng to" x-html="g.ico(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.crystalId).text" x-text="info.crystalName"></span></span><span class="tabular-nums shrink-0" :class="info.crystalOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.crystalHave)+' / '+info.crystalQty"></span></div></template>
+                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon, info.stoneName)" title="Bấm để phóng to." x-html="g.ico(info.stoneId, (g.ITEMS[info.stoneId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.stoneId).text" x-text="info.stoneName"></span></span><span class="tabular-nums shrink-0" :class="info.stoneOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.stoneHave)+' / '+info.stoneQty"></span></div>
+                      <div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox('honThach','💠','Hồn Thạch')" title="Bấm để phóng to." x-html="g.ico('honThach','💠')"></span><span class="truncate font-medium text-rose-300">Hồn Thạch</span></span><span class="tabular-nums shrink-0" :class="info.honOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.honHave)+' / '+g.fmt(info.honThach)"></span></div>
+                      <template x-if="info.crystalQty>0"><div class="flex items-center justify-between text-[13px]"><span class="inline-flex items-center gap-2 text-slate-300 min-w-0"><span class="w-7 h-7 inline-flex items-center justify-center shrink-0 cursor-zoom-in rounded hover:ring-1 hover:ring-amber-300/50 transition" @click="g.openLightbox(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon, info.crystalName)" title="Bấm để phóng to." x-html="g.ico(info.crystalId, (g.ITEMS[info.crystalId]||{}).icon)"></span><span class="truncate font-medium" :class="g.itemQuality(info.crystalId).text" x-text="info.crystalName"></span></span><span class="tabular-nums shrink-0" :class="info.crystalOk?'text-slate-200':'text-rose-400'" x-text="g.fmt(info.crystalHave)+' / '+info.crystalQty"></span></div></template>
                     </div>
                   </div>
                 </div>
@@ -15760,7 +15904,7 @@
       <div class="panel rounded-xl p-6 w-80 max-w-full text-center shadow-2xl border border-rose-500/40" @click.stop>
         <div class="mb-2 flex justify-center text-amber-300"><span class="w-8 h-8 inline-flex" x-html="$store.game.svg('warn','w-8 h-8')"></span></div>
         <div class="font-bold text-lg text-rose-300">Xoá Tiến Trình?</div>
-        <div class="text-sm text-slate-400 mt-2 leading-snug">Xoá sạch nhân vật, cấp độ, vật phẩm — chơi lại từ đầu (đặt lại tên &amp; giới tính). Không thể hoàn tác.</div>
+        <div class="text-sm text-slate-400 mt-2 leading-snug">Xóa toàn bộ nhân vật, cấp độ và vật phẩm để chơi lại từ đầu, đồng thời đặt lại tên và giới tính. Không thể hoàn tác.</div>
         <div class="flex gap-2 mt-5">
           <button @click="$store.game.confirmReset=false" class="flex-1 py-2 rounded-lg bg-ink3 border border-slate-700 hover:border-slate-500 text-slate-300 transition">Huỷ</button>
           <button @click="$store.game.doReset()" class="flex-1 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium transition">Xoá &amp; Chơi lại</button>
@@ -16469,7 +16613,7 @@
 
                   <!-- Mốc EXP từng cấp -->
                   <h4>Mốc kinh nghiệm từng cấp</h4>
-                  <p>Tổng từ cấp 1 lên cấp <b x-text="100"></b>: <b class="text-jade" x-text="fs(tongToanBo)"></b> kinh nghiệm. Dùng chung cho Chiến Đấu, cả mười nghề và Linh Thú.</p>
+                  <p>Tổng từ cấp 1 lên cấp <b x-text="100"></b>: <b class="text-jade" x-text="fs(tongToanBo)"></b> Kinh Nghiệm dùng chung cho Chiến Đấu, cả mười nghề và Linh Thú.</p>
                   <button @click="moMoc = !moMoc"
                           class="px-3 py-1.5 rounded-lg text-[12px] fserif text-slate-300 border border-slate-700 hover:border-jade/50 hover:text-jade transition mb-2"
                           x-text="moMoc ? 'Thu bảng 99 mốc' : 'Xem bảng 99 mốc'"></button>
@@ -16534,7 +16678,7 @@
                   <!-- ⚠ Ô này TRƯỚC ĐÂY dán nhãn "Danh hiệu" — sai nghĩa, nó là TÊN nhân vật. -->
                   <div class="fserif truncate" style="font-size:15.5px;line-height:1.25" x-text="g.state.player.name"></div>
                   <template x-if="g.equippedTitleObj">
-                    <span class="dh" :class="g.titleQClass(g.equippedTitleObj.q)" style="gap:.35rem;margin-top:.1rem">
+                    <span class="dh" :class="g.titleQClass(g.equippedTitleObj.q) + ' ' + g.titleKieuClass(g.equippedTitleObj.loai)" style="gap:.35rem;margin-top:.1rem">
                       <span class="dh-li"></span><span class="dh-txt" style="font-size:11.5px" x-text="g.equippedTitleObj.name"></span><span class="dh-li r"></span>
                     </span>
                   </template>
@@ -16740,7 +16884,7 @@
           <div class="text-jade font-bold flex items-center gap-2"><span class="fserif text-lg leading-none">藥</span>Phục Dụng</div>
           <button @click="$store.game.closePhucDung()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
         </div>
-        <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug">Cho linh thú ăn thẳng linh thảo — hồi Thể Lực theo bậc cây và cộng Kinh Nghiệm. Bậc càng cao, một cây càng lời với linh thú mạnh.</div>
+        <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug">Cho Linh Thú ăn trực tiếp Linh Thảo để hồi Thể Lực và nhận Kinh Nghiệm. Linh Thảo bậc càng cao càng hiệu quả với Linh Thú mạnh.</div>
         <div class="p-3 overflow-y-auto space-y-2">
           <template x-if="$store.game.phucDungList.length===0">
             <div class="text-sm text-slate-500 text-center py-6 leading-relaxed">Chưa có linh thảo — hái ở <b class="text-slate-300">Hái Thuốc</b>.</div>
@@ -16856,7 +17000,7 @@
           class="w-full py-2.5 rounded-lg font-bold text-sm transition"
           :class="$store.game.authBusy ? 'bg-slate-700 text-slate-500 cursor-wait' : 'bg-jade text-ink hover:bg-jade/90'"
           x-text="$store.game.authBusy ? 'Đang xử lý…' : ($store.game.authMode==='register' ? 'Tạo tài khoản' : 'Đăng nhập')"></button>
-        <div class="text-[10px] text-slate-600 text-center mt-2.5">Cloud chỉ để sao lưu — không bắt buộc.</div>
+        <div class="text-[10px] text-slate-600 text-center mt-2.5">Lưu đám mây chỉ dùng để sao lưu, không bắt buộc.</div>
       </div>
     </div>
   </template>
@@ -16935,7 +17079,7 @@
         <div class="w-[70vmin] h-[70vmin] max-w-[520px] max-h-[520px] flex items-center justify-center" style="font-size:160px" x-html="$store.game.ico($store.game.lightbox.id, $store.game.lightbox.emoji)"></div>
       </template>
       <div class="mt-4 text-xl font-bold text-slate-100" x-text="$store.game.lightbox.name"></div>
-      <div class="mt-1 text-xs text-slate-500">Bấm bất kỳ đâu để đóng</div>
+      <div class="mt-1 text-xs text-slate-500">Bấm vào bất kỳ đâu để đóng.</div>
     </div>
   </template>
 
@@ -17035,7 +17179,7 @@
             </div>
           </template>
           <template x-if="!fx.summary.length && !fx.active.length && !fx.passive.length">
-            <div class="text-center text-slate-500 italic py-10 text-[12.5px] fserif">Chưa có hiệu ứng nào đang áp.<br><span class="text-[11px] text-slate-600">Lắp Linh Thạch · dắt Linh Thú · đeo Danh Hiệu · học Nghề · hoàn thiện Vạn Vật Phổ để nhận bonus.</span></div>
+            <div class="text-center text-slate-500 italic py-10 text-[12.5px] fserif">Chưa có hiệu ứng nào đang áp.<br><span class="text-[11px] text-slate-600">Lắp Linh Thạch · mang theo Linh Thú · đeo Danh Hiệu · học Nghề · hoàn thiện Vạn Vật Phổ để nhận thêm chỉ số.</span></div>
           </template>
         </div>
         <div class="px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 italic text-center shrink-0" style="background:rgba(15,21,33,.5)">Tổng hợp mọi hiệu ứng/bonus đang tác động lên nhân vật.</div>
@@ -17428,7 +17572,7 @@
               :class="$store.game.devHeSo === 1 ? 'bg-jade/25 border-jade text-jade' : 'bg-ink3 border-slate-700 text-slate-300'"
               class="px-3 py-1 rounded border text-xs">Tốc độ thực</button>
           </div>
-          <div class="text-[10px] text-slate-600 mb-3">Đồng hồ game chạy nhanh liên tục. Nghề/tu luyện vẫn ăn trần tích luỹ như khi offline, nên chạy nhanh không phá trần. Session-only. Đổi hệ số không làm giờ nhảy giật.</div>
+          <div class="text-[10px] text-slate-600 mb-3">Đồng hồ trong game có thể chạy nhanh liên tục. Nghề và tu luyện vẫn chịu giới hạn tích lũy như khi ngoại tuyến, nên tua nhanh không vượt giới hạn. Chỉ có hiệu lực trong phiên hiện tại; đổi hệ số không làm thời gian nhảy giật.</div>
           <div class="lbl mb-1.5">Tua đồng hồ <span class="text-slate-600 normal-case tracking-normal" x-text="'· lệch ' + $store.game.devNowOffsetDays + ' ngày'"></span></div>
           <div class="flex flex-wrap items-center gap-2 mb-2">
             <button @click="$store.game.devNowOffsetAdd(1)" class="px-3 py-1 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-200 text-xs">+1 ngày</button>
@@ -17437,8 +17581,8 @@
             <button @click="$store.game.devNowOffsetAdd(365)" class="px-3 py-1 rounded bg-indigo-900/40 border border-indigo-600/50 text-indigo-200 text-xs">+1 năm</button>
             <button @click="$store.game.devNowOffsetClear()" class="px-3 py-1 rounded bg-ink3 border border-slate-700 text-slate-300 text-xs">Về thực</button>
           </div>
-          <div class="text-[10px] text-slate-600 mb-3">Tua nhanh để xem Danh Sĩ tử vong/truyền nhân + bot + timer Tông Môn. Session-only (reload về thực). Lưu ý: tua rồi để timer Tông Môn chạy thì đừng "Về thực" giữa chừng (timer có thể kẹt) — dùng nút "Hoàn tất timer".</div>
-          <div class="text-[10px] text-slate-600">⚠️ Công cụ dev — test/cân bằng bản offline. Đăng nhập reset mỗi lần tải trang.</div>
+          <div class="text-[10px] text-slate-600 mb-3">Tua nhanh để kiểm tra Danh Sĩ tử vong/truyền nhân, nhân vật mô phỏng và bộ đếm Tông Môn. Chỉ có hiệu lực trong phiên hiện tại; tải lại trang sẽ về thời gian thực. Lưu ý: nếu đã tua và để bộ đếm Tông Môn chạy, không nên bấm “Về thực” giữa chừng vì có thể bị kẹt; hãy dùng nút “Hoàn tất bộ đếm”.</div>
+          <div class="text-[10px] text-slate-600">⚠️ Công cụ dành cho nhà phát triển — dùng để thử nghiệm và cân bằng bản offline. Trạng thái đăng nhập được đặt lại mỗi khi tải trang.</div>
         </div>
         </div>
       </div>

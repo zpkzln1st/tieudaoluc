@@ -142,8 +142,8 @@ const PLAYER_PRESETS = [
   'Nước này, tiền bối thấy sao?',
   'Ván này tại hạ không nhường đâu.',
   'Danh bất hư truyền, phục thật.',
-  'Hay! Nước đó tại hạ chịu thua.',
-  'Để xem ai vây được ai.',
+  'Hay! Nước này tại hạ xin chịu thua.',
+  'Để xem cuối cùng ai vây được ai.',
   'Tiền bối đánh thong thả quá nhỉ.',
   'Chưa chắc ai hơn ai đâu.',
   'Tại hạ đi đây, cẩn thận đấy.',
@@ -176,7 +176,7 @@ function mountNguTu(host, opts) {
   host.innerHTML =
     '<div class="ntk-root">' +
       '<div class="ntk-scene"></div><div class="ntk-vig"></div>' +
-      '<div class="ntk-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm" style="font-size:12px;color:#5f7d8b"></div></div>' +
+      '<div class="ntk-fb"><div>Thiết bị này không thể khởi tạo chế độ 3D.</div><div class="fm" style="font-size:12px;color:#5f7d8b"></div></div>' +
       '<div class="ntk-title"><span class="hz">五子棋</span><span class="vz">Ngũ Tử Kỳ</span></div>' +
       '<div class="ntk-left">' +
         nutToanManHTML('ntk') +
@@ -238,10 +238,10 @@ function mountNguTu(host, opts) {
   const LINES = {
     start: [
       'Các hạ mời ngồi, ván cờ này tại hạ chờ đã lâu.', 'Bàn cờ đã bày sẵn, các hạ cứ đi trước cho.',
-      'Lâu lắm mới có người đáng để ngồi đối diện.', 'Trời đẹp thế này, không đánh vài ván thì phí.',
+      'Lâu lắm rồi mới gặp người đáng để ngồi đối diện.', 'Trời đẹp thế này, không đánh vài ván thì phí.',
       'Các hạ cứ thong thả, tại hạ chẳng vội đâu.', 'Nghe danh đã lâu, hôm nay xin được lĩnh giáo.',
-      'Mời các hạ ra quân, để xem thử tay nghề.', 'Tại hạ đánh cờ mấy chục năm, chưa từng thua ai.',
-      'Các hạ trông tự tin lắm, để xem thực hư.', 'Nước đầu nhường các hạ, xem có chiêu gì hay.',
+      'Mời các hạ ra quân, để tại hạ xem thử bản lĩnh.', 'Tại hạ đánh cờ mấy chục năm, chưa từng thua ai.',
+      'Các hạ có vẻ rất tự tin. Để xem thực lực đến đâu.', 'Nước đầu nhường các hạ, xem có chiêu gì hay.',
       'Đừng ngại, bàn cờ này không cắn người đâu.', 'Đã lâu chưa gặp ai khiến tại hạ phải động não.',
       'Mời trà đã, rồi hãy thong thả phân cao thấp.', 'Các hạ thích đen hay trắng, tùy ý mà chọn.',
       'Chơi cho vui thôi, hà tất phải căng thẳng.', 'Cứ ra quân đi, chiêu nào tại hạ cũng tiếp được.',
@@ -265,7 +265,7 @@ function mountNguTu(host, opts) {
       'Thế chặn vừa rồi sắc bén, khó cho tại hạ.', 'Cao thật, nước đó tại hạ không ngờ tới.',
       'Các hạ đánh dịu mà quân sắc như dao.', 'Nước này học được rồi, tại hạ cảm ơn các hạ.',
       'Các hạ không dễ chơi chút nào, phải thận trọng.', 'Nước vừa rồi đánh vội, tiếc thật.',
-      'Lẽ ra quân ấy nên đặt chỗ khác.', 'A, sai một ly đi một dặm rồi.',
+      'Quân ấy đặt ở vị trí khác có lẽ hay hơn.', 'A, sai một ly đi một dặm rồi.',
       'Giá chặn sớm một nước thì đã khác.', 'Tham một nước, giờ thành ra khó xử.',
       'Nước đó lẽ ra đẹp hơn, đánh hỏng rồi.', 'Cờ còn dài, các hạ cứ thong thả.',
       'Đánh cờ cốt ở cái tình, việc gì phải vội.', 'Một ván cờ, một chén trà, thong dong là được.',
@@ -323,7 +323,7 @@ function mountNguTu(host, opts) {
       'Năm quân liền một hàng, thế là xong ván này.', 'Bẫy giăng từ giữa ván, các hạ không nhận ra sao.',
       'Các hạ tính nước nào cũng bị đoán ra cả.', 'Nước cuối đặt xong, bàn cờ này về tay tại hạ.',
       'Nói thật, giữa ván các hạ ép tại hạ toát mồ hôi.', 'Chậm nửa nhịp thôi, các hạ đã vây được tại hạ rồi.',
-      'Các hạ cầm quân chắc tay, chỉ tiếc thiếu chút may.', 'Các hạ để hở một hàng, coi như hết đường.',
+      'Các hạ cầm quân chắc tay, chỉ tiếc thiếu chút may.', 'Các hạ để hở một hàng rồi — e là khó cứu.',
       'Tiếc cho các hạ, sai đúng một nước ở góc kia.', 'Các hạ mải công một bên, quên mất bên kia bị vây.',
     ],
     lose: [
@@ -334,14 +334,14 @@ function mountNguTu(host, opts) {
       'Gừng càng già càng cay, chịu thua thôi.', 'Các hạ đi quân gọn ghẽ, tại hạ theo không kịp.',
       'Thua ván này, học được không ít.', 'Tay cờ của các hạ, quả nhiên danh bất hư truyền.',
       'Cờ hay đến vậy, thua cũng cam lòng.', 'Ván nữa đi, tại hạ chưa phục hẳn đâu.',
-      'Các hạ thắng đẹp, xin vỗ tay khen thật lòng.', 'Tại hạ chủ quan, để các hạ luồn vào giữa bàn.',
+      'Các hạ thắng đẹp, xin vỗ tay khen thật lòng.', 'Tại hạ chủ quan, để các hạ chen được vào giữa thế trận.',
       'Lâu lắm mới có người thắng được tại hạ như thế.', 'Bàn cờ nghiêng hẳn về các hạ, xin chịu thua.',
     ],
     draw: [
       'Ván này hòa rồi, kẻ tám lạng người nửa cân.', 'Tiếc thật, cả bàn cờ mà không phân nổi cao thấp.',
       'Các hạ kín thế thật, tại hạ không tìm ra kẽ hở.', 'Hòa cờ cũng là một cái duyên đấy chứ.',
       'Còn cờ còn đó, hẹn các hạ lần sau phân bại.', 'Ván cờ đẹp thế này, hòa cũng chẳng tiếc.',
-      'Nước cuối khóa chặt, hai bên cùng hết đường.', 'Hòa. Xem ra phải thêm ván nữa mới rõ cao thấp.',
+      'Nước cuối khóa chặt, hai bên cùng hết đường.', 'Hòa. Xem ra phải thêm một ván nữa mới phân rõ cao thấp.',
       'Đấu tới đấu lui, ai ngờ lại hòa một ván.', 'Các hạ cao thật, gỡ được một ván hòa là may.',
       'Đánh với các hạ, hòa cũng thấy đáng công.', 'Lần sau tái chiến, xin các hạ đừng nhường tay.',
     ],
@@ -349,7 +349,7 @@ function mountNguTu(host, opts) {
       'Các hạ ham nói vậy, không sợ lỡ tay đặt nhầm chỗ?', 'Nghe cũng vui tai, nhưng bàn cờ vẫn còn đợi đấy.',
       'Chuyện ấy hay thật, mà nước cờ của các hạ còn hay hơn.', 'Vừa đánh vừa trò chuyện, mới ra cái thú tao nhã.',
       'Hàn huyên gì thì hàn, đừng quên bên trên bàn cờ.', 'Trò chuyện cho vui thôi, thắng thua vẫn ở tay cờ.',
-      'Tại hạ thích người biết chuyện trò lúc đánh cờ.', 'Chuyện gẫu thì để mai, bàn cờ đang gấp lắm đấy.',
+      'Tại hạ thích người biết chuyện trò lúc đánh cờ.', 'Chuyện gẫu để sau. Ván cờ đang đến lúc căng rồi.',
       'Nghe thì cứ nghe, mà tay chẳng rời quân cờ.', 'Các hạ khôn khéo lắm, chỉ tiếc không ở thế cờ.',
       'Lời ngọt thật, song tại hạ không vì thế mà nhường.', 'Đánh cờ mà có bạn trò chuyện, cũng đỡ buồn tay.',
       'Chuyện đâu chuyện đó, quân đến cửa các hạ kia.', 'Kể tiếp đi, tại hạ vừa nghe vừa tính đường vây.',
@@ -556,7 +556,7 @@ function mountNguTu(host, opts) {
     tgt.theta = sph.theta; tgt.phi = sph.phi; tgt.r = sph.r;   // bám camera ĐANG ở đâu, đừng trôi tiếp về đích cũ
     const chat = $('.ntk-chat'); if (chat) chat.classList.remove('show');
     $('.ntk-view').classList.add('show');
-    toast('Quan Chiến — kéo, lăn chuột hoặc chụm hai ngón để chỉnh bàn');
+    toast('Quan Chiến — kéo để xoay, lăn chuột hoặc chụm hai ngón để phóng to/thu nhỏ bàn.');
   }
   // ⚠ PHẢI gọi cả ở endGame/resetGame: bỏ sót thì ván mới vẫn kẹt autorot=true,
   // mà onUp chỉ gọi tapBoard khi !autorot -> bàn cờ bấm không ăn, nhìn như game chết.

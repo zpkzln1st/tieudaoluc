@@ -101,7 +101,7 @@ export function tuuLau() {
     // ---- hỏi chuyện: miễn phí, mỗi khách 1 lần / 6 giờ ----
     hoiChuyen(k) {
       const g = this.g, now = Date.now();
-      if (!hoiDuoc(g.state, k.id, now)) { g.showToast(k.ten + ' vừa kể xong, để lát nữa hẵng hỏi.'); return; }
+      if (!hoiDuoc(g.state, k.id, now)) { g.showToast(k.ten + ' Vừa kể xong rồi, để lát nữa hãy hỏi tiếp.'); return; }
       const t = ensureTuuLau(g.state);
       t.hoiLan[k.id] = now;
       themDong(g.state, 'dap', k.ten, k.mau, loiHoiChuyen(k, now, this.cauCuoi(k)), now);

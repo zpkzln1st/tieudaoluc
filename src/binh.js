@@ -99,7 +99,7 @@ var SUC_CHI = [3, 5, 5];
 var BO_CUC = {
   1: {
     ten: 'Bốn Góc Bàn',
-    mo: 'Bốn nhà ngồi bốn phía như bàn bài thật. Mỗi nhà một khối ba chi 3·5·5 xếp trái, lá chồng nửa.',
+    mo: 'Bốn nhà ngồi ở bốn phía như bàn bài thật. Mỗi nhà có ba chi 3·5·5 xếp về bên trái, các lá chồng nhẹ lên nhau.',
     // ⚠ Cái ghìm cỡ lá ở kiểu này KHÔNG phải bề ngang mà là CHIỀU SÂU: khu rộng 3.96 nên dải x của
     // Nam/Bắc cắt ngang dải x của Đông/Tây, buộc phải lùi Nam/Bắc xa hơn cả chiều sâu một khu
     // (z0 ≥ d) — tới 3.30 là đã chạm mép nỉ, hết đường phóng.
@@ -135,7 +135,7 @@ var BO_CUC = {
   },
   2: {
     ten: 'Bốn Hàng So Chi',
-    mo: 'Mỗi nhà một hàng ngang 3+5+5, bốn hàng chồng lên nhau. Ba chi thẳng cột giữa bốn nhà nên so chi là rà mắt theo CỘT DỌC.',
+    mo: 'Mỗi nhà xếp một hàng ngang 3+5+5; bốn hàng chồng theo bốn phía. Ba chi thẳng cột giữa các nhà, nên có thể so chi bằng cách nhìn theo CỘT DỌC.',
     // Hàng 13 lá ăn hết bề ngang nỉ nên phải cho lá CHỒNG NHẸ (bước 0.62 < bề rộng lá 0.70,
     // lộ 88% mặt lá — bậc + chất nằm ở góc trên-trái chỉ chiếm ~27% nên vẫn đọc trọn).
     // Nhờ vậy lá to bằng kiểu 1 chứ không bị teo.
@@ -156,7 +156,7 @@ var BO_CUC = {
   },
   3: {
     ten: 'Hai Cặp Đối Nhau',
-    mo: 'Bốn khối 3·5·5 xếp lưới hai hàng hai cột, lấp kín mặt nỉ — không còn khoảng trống hình chữ thập ở giữa bàn.',
+    mo: 'Bốn bộ 3·5·5 xếp thành lưới hai hàng hai cột, phủ kín mặt nỉ và không để khoảng trống hình chữ thập ở giữa bàn.',
     sc: 0.95, step: 0.759, buocZ: 1.073, kheX: 0.50, kheZ: 0.50,
     // Bạn dưới-trái, rồi đi thuận chiều kim đồng hồ giữ đúng thứ tự chỗ ngồi
     GOC: [[-1, 1], [1, 1], [1, -1], [-1, -1]],
@@ -206,14 +206,14 @@ function mountBinh(host, opts) {
   host.innerHTML =
     '<div class="bx-root">' +
       '<div class="bx-scene"></div><div class="bx-vig"></div>' +
-      '<div class="bx-fb"><div>Không khởi tạo được 3D trên máy này.</div><div class="fm"></div></div>' +
+      '<div class="bx-fb"><div>Thiết bị này không thể khởi tạo chế độ 3D.</div><div class="fm"></div></div>' +
       '<div class="bx-title"><span class="hz">十三水</span><span class="vz">Binh Xập Xám</span></div>' +
       '<div class="bx-sub">' + (opts.chieu || '') + ' · cược ' + fmt(cuoc) + ' Trù Mã mỗi chi</div>' +
       '<div class="bx-canh"></div>' +
       // popup xếp bài — thao tác 2D, thấy rõ ba chi và bài chờ cùng lúc
       '<div class="bxp-wrap"><div class="bxp">' +
         '<div class="bxp-top"><b>Xếp Bài</b><span class="bxp-canh"></span>' +
-          '<span class="bxp-dh"></span><span class="bxp-x" data-a="dong" title="Đóng, ra bàn xem">✕</span></div>' +
+          '<span class="bxp-dh"></span><span class="bxp-x" data-a="dong" title="Đóng và trở lại bàn">✕</span></div>' +
         '<div class="bxp-mb"></div>' +
         '<div class="bxp-body"></div>' +
         '<div class="bxp-act">' +
@@ -1174,7 +1174,7 @@ function vePopup() {
   var lung = du && !B.hopLe(khu[1], khu[2], khu[3]);
   var c = p.querySelector('.bxp-canh');
   if (lung) c.textContent = 'Binh Lủng — chi dưới phải mạnh hơn chi trên';
-  else c.textContent = 'Kéo một lá thả sang lá khác để đổi chỗ';
+  else c.textContent = 'Kéo một lá và thả lên lá khác để đổi vị trí.';
   c.classList.toggle('xau', !!lung);
   p.querySelector('[data-a="binh"]').className = 'bx-btn pri' + (du && !lung ? '' : ' dis');
   // Mậu Binh có HAI đường: theo 13 lá (bốc được là có, xếp kiểu gì cũng ăn) và theo CÁCH XẾP
@@ -1998,7 +1998,7 @@ root.addEventListener('click', function (e) {
   else if (a === 'again') vanMoi(GIAY_VAN_MOI);   // ván mới: đếm 3 giây
   else if (a === 'spectate') {
     spectate = !spectate;
-    if (spectate) toast('Quan Chiến: kéo để xoay bàn, lăn chuột để phóng.');
+    if (spectate) toast('Quan Chiến: kéo để xoay bàn, lăn chuột để phóng to/thu nhỏ.');
     else {
       // Thoát Quan Chiến là CHỐT góc đang nhìn. ⚠ Lưu TỈ LỆ phóng (zoom) chứ không lưu khoảng
       // cách tuyệt đối — mỗi màn có khoảng cách "vừa khung" riêng (xem engine/gocnhin.js).
@@ -2078,10 +2078,10 @@ export const CHIEU = [
     lore: 'Ba tay chơi khét tiếng, chi cuối lật lên là có người đổi sắc mặt.',
     ds: ['huyetTiBaCo', 'doDuocMaCo', 'namCungLietHoa'] },
   { id: 'thanhLoan', ten: 'Chiếu Thanh Loan', cuoc: 20000, tang: 3,
-    lore: 'Chiếu của bậc thành danh. Xếp hụt một chi là mất cả gia sản một vùng.',
+    lore: 'Chiếu dành cho người đã thành danh. Xếp hỏng một chi cũng có thể mất cả gia sản.',
     ds: ['toUyenNghiet', 'doanMucPhong', 'huyetDoTangNguyen'] },
   { id: 'vanDai', ten: 'Chiếu Vân Đài', cuoc: 100000, tang: 4,
-    lore: 'Cao nhất thiên hạ. Ngồi được xuống đây đã là một thứ danh vọng.',
+    lore: 'Chiếu cao nhất thiên hạ. Chỉ riêng việc được ngồi xuống đây đã là một danh vọng.',
     ds: ['vanVongNuong', 'moDungPhiTuyet', 'lacVoTran'] },
 ];
 const TANG_TEN = ['', 'Sơ Nhập', 'Thành Danh', 'Cao Thủ', 'Tuyệt Đỉnh'];
@@ -2201,7 +2201,7 @@ export function binh() {
     nhapChieu(c) {
       if (this.inBattle) return;
       if (this.truMa < c.cuoc * HE_SO_NGOI) {
-        try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — đổi thêm ở Sảnh Bài.'); } catch (e) { }
+        try { this.$store.game.showToast('Chưa đủ Trù Mã để ngồi chiếu này — hãy đổi thêm tại Sảnh Bài.'); } catch (e) { }
         return;
       }
       this._boSo = false;

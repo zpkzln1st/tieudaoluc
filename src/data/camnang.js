@@ -89,7 +89,7 @@ export const CN_MUC = [
     id: 'tongquan', nhom: 'nhapmon', ten: 'Tổng Quan',
     tom: 'Thể loại nhàn tu, ba trục phát triển song song.',
     khoi: [
-      ['p', 'Tiêu Dao Lục là trò chơi <b>nhàn tu</b> (idle) chạy trên trình duyệt. Người chơi đặt một hoạt động, hoạt động tiếp tục chạy khi đóng trình duyệt, và được tính bù khi mở lại.'],
+      ['p', 'Tiêu Dao Lục là trò chơi nhàn rỗi chạy trên trình duyệt. Bạn chọn một hoạt động; hoạt động đó vẫn tiếp tục khi đóng trình duyệt và tiến độ sẽ được bù khi mở lại.'],
       ['p', 'Không có lớp nhân vật cố định. Ba trục phát triển chạy song song và nuôi lẫn nhau:'],
       ['bang', ['Trục', 'Hoạt động', 'Sản phẩm'], [
         ['Nghề', 'Thu hoạch, chế tạo', 'Nguyên liệu, trang bị, Bạc, cấp nghề'],
@@ -109,11 +109,11 @@ export const CN_MUC = [
     id: 'treomay', nhom: 'nhapmon', ten: 'Treo Máy & Ngoại Tuyến',
     tom: 'Một hoạt động tại một thời điểm; tiến độ tính bù khi vắng mặt.',
     khoi: [
-      ['p', 'Tại mỗi thời điểm chỉ có <b>một hoạt động chính</b>: làm nghề, chiến đấu, di chuyển, hoặc Bí Cảnh. Chọn hoạt động mới sẽ dừng hoạt động cũ.'],
+      ['p', 'Mỗi thời điểm chỉ có <b>một hoạt động chính</b>: làm nghề, chiến đấu, di chuyển hoặc Bí Cảnh. Chọn hoạt động mới sẽ dừng hoạt động hiện tại.'],
       ['ds', [
         'Tiến độ khi đóng trình duyệt được tính bù lúc mở lại, giới hạn bởi trần ngoại tuyến.',
         'Trần ngoại tuyến cơ sở 8 giờ, nới thêm theo bậc Động Phủ.',
-        'Kết quả khi treo máy và khi ngồi xem là <b>như nhau</b>. Hai đường thưởng dùng chung hệ số.',
+        'Kết quả khi treo máy và khi mở game theo dõi là <b>như nhau</b>; cả hai đều được tính theo cùng một hệ số thưởng.',
       ]],
       ['h', 'Điều kiện tự dừng'],
       ['bang', ['Tình huống', 'Hệ quả'], [
@@ -143,7 +143,7 @@ export const CN_MUC = [
     id: 'capdo', nhom: 'nhapmon', ten: 'Cấp Độ & Cảnh Giới',
     tom: 'Mỗi nghề một cấp riêng; Tổng Lv là tổng tất cả.',
     khoi: [
-      ['p', 'Mỗi nghề có cấp riêng, trần 100, cộng thêm cấp Chiến Đấu. <b>Tổng Lv</b> là tổng các cấp đó.'],
+      ['p', 'Mỗi nghề có cấp riêng, tối đa 100, cộng thêm cấp Chiến Đấu. <b>Tổng Lv</b> là tổng tất cả các cấp này.'],
       ['h', 'Tổng Lv quyết định'],
       ['ds', [
         'Mở nghề mới — mỗi 80 Tổng Lv mở thêm một nghề, chi phí tăng dần.',
@@ -160,7 +160,7 @@ export const CN_MUC = [
     khoi: [
       ['ds', [
         'Trò chơi tự lưu vào trình duyệt sau mỗi thay đổi lớn.',
-        'Đăng nhập tài khoản bổ sung bản lưu đám mây, dùng để đổi thiết bị.',
+        'Đăng nhập tài khoản để có thêm bản lưu đám mây, giúp bạn tiếp tục chơi trên thiết bị khác.',
         'Xoá dữ liệu trình duyệt làm mất bản cục bộ nếu chưa đồng bộ.',
       ]],
       ['p', 'Cửa sổ Cài Đặt có chức năng tải bản lưu xuống và nạp lại.'],
@@ -175,7 +175,7 @@ export const CN_MUC = [
       ['bang', ['Trụ', 'Tương ứng'], Object.values(STATS).map((s) => [s.name, s.gloss])],
       ['p', 'Tứ Trụ tăng theo cấp và theo trang bị, rồi quy thành các chỉ số chiến đấu:'],
       ['bang', ['Chỉ số', 'Ý nghĩa'], SECONDARY_STATS.map((s) => [s.name, s.desc])],
-      ['p', 'Chiến Lực là chỉ số tổng hợp dùng để so sánh nhanh, không tham gia trực tiếp vào công thức sát thương.'],
+      ['p', 'Chiến Lực là chỉ số tổng hợp để so sánh nhanh sức mạnh, không trực tiếp tham gia vào công thức tính sát thương.'],
       ['h', 'Thế đứng'],
       ['bang', ['Thế', 'Thiên về', 'Trụ gắn'], STANCES.map((s) => [s.name, s.gloss, (STATS[s.stat] || {}).name || s.stat])],
     ],
@@ -193,14 +193,14 @@ export const CN_MUC = [
       ['h', 'Phẩm chất và số dòng phụ'],
       ['bang', ['Phẩm chất', 'Số dòng phụ tối đa'],
         Object.keys(QUALITY).map((q) => [QUALITY[q].name, sn(QUALITY_LINES[q] || 0)])],
-      ['p', 'Món rơi hoặc rèn ra là <b>bản riêng</b>: cùng tên nhưng dòng phụ bốc khác nhau. Xem chi tiết từng món ở bảng <b>Trang Bị</b> trong Tra Cứu.'],
+      ['p', 'Trang bị nhận được hoặc rèn ra là <b>một bản riêng</b>: cùng tên nhưng dòng phụ có thể khác nhau. Xem từng món trong bảng <b>Trang Bị</b> ở Tra Cứu.'],
     ],
   },
   {
     id: 'dongan', nhom: 'nhanvat', ten: 'Dòng Phụ & Cường Hoá',
     tom: sn(n(AFFIX_KEYS)) + ' loại dòng phụ; ' + sn(n(THOI_TIERS)) + ' bậc thỏi cường hoá.',
     khoi: [
-      ['p', 'Dòng phụ bốc ngẫu nhiên từ <b>' + n(AFFIX_KEYS) + ' loại</b>. Mỗi ô có bộ trọng số riêng, nên dòng nào ra ở ô nào là cố định theo bảng số. Xem bảng <b>Dòng Phụ</b> trong Tra Cứu để biết khoảng giá trị và ô bốc được.'],
+      ['p', 'Dòng phụ bốc ngẫu nhiên từ <b>' + n(AFFIX_KEYS) + ' loại</b>. Mỗi ô có bộ trọng số riêng, vì vậy loại dòng có thể xuất hiện ở từng ô được cố định theo dữ liệu. Xem bảng <b>Dòng Phụ</b> trong Tra Cứu để biết khoảng giá trị và vị trí có thể xuất hiện.'],
       ['h', 'Cường hoá'],
       ['ds', [
         'Tốn Bạc và thỏi kim loại đúng bậc — có <b>' + n(THOI_TIERS) + ' bậc thỏi</b>.',
@@ -215,7 +215,7 @@ export const CN_MUC = [
           return [(QUALITY[q] || {}).name || q, pc(w / tong), pc(MONSTER_DROP_CHANCE * (w / tong), 3)];
         })],
       // ⛔ Quái KHÔNG còn rơi Mảnh Trang Bị (2026-08-03) — nay chỉ thông quan Bí Cảnh Lv70+ và Yêu Vương Lv90+.
-      ['ct', 'Quái không rơi Mảnh Trang Bị Hoàng Kim — Mảnh chỉ đến từ thông quan Bí Cảnh Lv 70+ và Yêu Vương Lv 90+.'],
+      ['ct', 'Quái không rơi Mảnh Trang Bị Hoàng Kim. Mảnh này chỉ nhận được khi thông quan Bí Cảnh Lv 70+ hoặc hạ Yêu Vương Lv 90+.'],
       ['p', 'Ở mức cơ sở, kỳ vọng khoảng <b>' + sn(Math.round(1 / MONSTER_DROP_CHANCE)) + ' trận</b> một món trang bị.'],
     ],
   },
@@ -223,9 +223,9 @@ export const CN_MUC = [
     id: 'botrang', nhom: 'nhanvat', ten: 'Bộ Trang',
     tom: sn(n(TRANG_SETS)) + ' bộ; dòng ẩn mở ở mốc 3, 5, 7 món.',
     khoi: [
-      ['p', 'Có <b>' + n(TRANG_SETS) + ' bộ trang</b>. Mặc đủ số món cùng một bộ mở dòng ẩn tại mốc 3, 5 và 7. Mốc sau bao gồm mốc trước.'],
-      ['p', 'Bộ hạng <b>Bạch Kim</b> ghép từ Mảnh Trang Bị theo đồ phổ bộ; đồ phổ rơi ở Bí Cảnh cấp cao.'],
-      ['p', 'Bảng <b>Bộ Trang</b> trong Tra Cứu ghi đủ dòng ẩn từng mốc, số mảnh mỗi món, và nơi rơi đồ phổ.'],
+      ['p', 'Có <b>' + n(TRANG_SETS) + ' bộ trang</b>. Mặc đủ số món cùng một bộ sẽ mở dòng ẩn ở mốc 3, 5 và 7 món; mốc cao hơn bao gồm toàn bộ hiệu ứng của mốc trước.'],
+      ['p', 'Bộ hạng <b>Bạch Kim</b> được ghép từ Mảnh Trang Bị theo Đồ Phổ của bộ; Đồ Phổ rơi ở các Bí Cảnh cấp cao.'],
+      ['p', 'Bảng <b>Bộ Trang</b> trong Tra Cứu ghi đầy đủ hiệu ứng ẩn theo từng mốc, số mảnh cần cho mỗi món và nơi rơi Đồ Phổ.'],
     ],
   },
   {
@@ -237,7 +237,7 @@ export const CN_MUC = [
       ]],
       ['p', 'Công cụ không tham gia chiến đấu. Phần cộng của công cụ vào thẳng mẫu số hiệu suất:'],
       ['ct', 'Chu kỳ thực = thời gian cơ sở ÷ tổng hệ số hiệu suất'],
-      ['p', 'Nguồn: rèn bằng nghề Rèn Đúc, mua ở Thương Điếm, hoặc rơi trong Bí Cảnh. Xem bảng <b>Công Cụ</b> trong Tra Cứu.'],
+      ['p', 'Nguồn nhận: rèn bằng nghề Rèn Đúc, mua tại Thương Điếm hoặc rơi trong Bí Cảnh. Xem bảng <b>Công Cụ</b> trong Tra Cứu.'],
     ],
   },
   {
@@ -262,10 +262,10 @@ export const CN_MUC = [
     khoi: [
       ['p', 'Giá Trưng Bày nằm ở trang <b>Hồ Sơ</b>, ngay trên khối Trang Bị.'],
       ['p', 'Treo được ba thứ: <b>trang bị</b>, <b>vật phẩm trong túi</b> và <b>linh thú</b>.'],
-      ['p', 'Bấm một ô trống là mở bảng chọn. Bấm món đã treo là mở thẻ chi tiết của nó.'],
-      ['p', 'Nút <b>Sắp Xếp</b> đổi sang chế độ hạ đồ xuống. Bấm <b>Xong</b> để quay lại.'],
-      ['p', 'Giá chỉ <b>trỏ tới</b> thứ ngươi đang có. Bán món hay thả linh thú thì ô tự trống.'],
-      ['p', 'Mỗi thứ chỉ treo được một ô. Treo nó sang ô mới thì ô cũ tự nhường chỗ.'],
+      ['p', 'Bấm ô trống để mở bảng chọn. Bấm món đang treo để xem thẻ chi tiết.'],
+      ['p', 'Bấm <b>Sắp Xếp</b> để chuyển sang chế độ gỡ và đổi vị trí vật phẩm. Bấm <b>Xong</b> để quay lại.'],
+      ['p', 'Giá chỉ <b>liên kết tới</b> vật phẩm hoặc Linh Thú bạn đang sở hữu. Nếu bán món hoặc thả Linh Thú, ô tương ứng sẽ tự trống.'],
+      ['p', 'Mỗi vật chỉ có thể treo ở một ô. Nếu treo sang ô mới, ô cũ sẽ tự được giải phóng.'],
       ['luu', 'Trưng Bày thuần trang trí — không cộng một điểm chỉ số nào.'],
     ],
   },
@@ -278,7 +278,7 @@ export const CN_MUC = [
         ['Công trình tiện ích', 'Xây bằng Bạc và nguyên liệu, mất thời gian thực'],
         ['Cửa vào Thiên Cơ Các', 'Các trò nhỏ đặt tại đây'],
       ]],
-      ['p', 'Công trình có <b>độ bền</b> giảm dần theo thời gian. Công trình hỏng ngừng tác dụng cho tới khi sửa; phí sửa thấp hơn phí xây mới.'],
+      ['p', 'Công trình có <b>Độ Bền</b> giảm dần theo thời gian. Khi hỏng, công trình sẽ ngừng tác dụng cho đến khi sửa; phí sửa thấp hơn xây mới.'],
     ],
   },
 
@@ -288,7 +288,7 @@ export const CN_MUC = [
     tom: sn(nTT(SKILLS)) + ' nghề, trần cấp 100 mỗi nghề.',
     khoi: [
       ['bang', ['Nghề', 'Việc'], Object.values(SKILLS).filter((s) => !s.suKien).map((s) => [s.name, s.gloss || ''])],
-      ['p', 'Mỗi nghề có cấp và kinh nghiệm riêng, trần 100. Mở nghề mới cần Tổng Lv đủ và một khoản Bạc; cứ mỗi 80 Tổng Lv mở thêm một nghề, chi phí tăng dần.'],
+      ['p', 'Mỗi nghề có cấp và Kinh Nghiệm riêng, tối đa 100. Muốn mở nghề mới cần đủ Tổng Lv và Bạc; cứ mỗi 80 Tổng Lv mở thêm một nghề, chi phí tăng dần.'],
     ],
   },
   {
@@ -314,7 +314,7 @@ export const CN_MUC = [
     id: 'linhthach', nhom: 'nghe', ten: 'Linh Thạch',
     tom: sn(n(LINH_THACH)) + ' loại, cộng kinh nghiệm / hiệu suất / sản lượng.',
     khoi: [
-      ['p', 'Linh Thạch là vật phẩm tiêu hao dùng khi làm nghề. Ba nhánh tác dụng: kinh nghiệm nghề, hiệu suất (rút ngắn chu kỳ), sản lượng mỗi lượt.'],
+      ['p', 'Linh Thạch là vật phẩm tiêu hao dùng khi làm nghề. Có ba nhóm hiệu ứng: tăng Kinh Nghiệm nghề, tăng hiệu suất để rút ngắn chu kỳ và tăng sản lượng mỗi lượt.'],
       ['ds', [
         'Mỗi viên phủ một khoảng thời gian hoạt động, hết thì tự đốt viên cùng loại kế tiếp.',
         'Hết sạch thì hoạt động vẫn chạy, chỉ mất phần cộng thêm.',
@@ -326,7 +326,7 @@ export const CN_MUC = [
     id: 'damdao', nhom: 'nghe', ten: 'Đàm Đạo',
     tom: sn(n(DAMDAO)) + ' mạch truyện, mỗi nghề một bậc thầy.',
     khoi: [
-      ['p', 'Mỗi nghề có một nhân vật bậc thầy và một mạch truyện mở dần theo cấp nghề. Cửa vào nằm tại trang của nghề.'],
+      ['p', 'Mỗi nghề có một bậc thầy và một mạch truyện riêng, mở dần theo cấp nghề. Bạn có thể vào mạch truyện ngay từ trang của nghề.'],
       ['p', 'Hoàn tất mạch truyện của một nghề cấp <b>Tín Vật</b>, cộng hiệu suất cố định cho nghề đó.'],
     ],
   },
@@ -340,23 +340,23 @@ export const CN_MUC = [
       ['ds', [
         'Bộ chiêu đã xếp quyết định thứ tự ra chiêu, mức tiêu Nội Lực và hồi chiêu.',
         'Sinh Lực duy trì bằng món ăn và đan dược gắn ở ô tự dùng.',
-        'Gục thì chuyển sang trạng thái Suy Yếu, hết thời gian mới đánh tiếp. Vật phẩm đã nhận không mất.',
+        'Khi bị hạ gục, nhân vật chuyển sang trạng thái Suy Yếu và chỉ có thể đánh tiếp sau khi hồi phục. Vật phẩm đã nhận không bị mất.',
       ]],
-      ['p', 'Có <b>' + nTT(ENEMIES) + ' loại quái</b> phân bố trên <b>' + nTT(LOCATIONS) + ' vùng</b>. Chỉ số từng con xem ở bảng <b>Quái</b> trong Tra Cứu.'],
+      ['p', 'Có <b>' + nTT(ENEMIES) + ' loại quái</b> phân bố trên <b>' + nTT(LOCATIONS) + ' vùng</b>. Chỉ số từng quái xem tại bảng <b>Quái</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'nguhanh', nhom: 'chiendau', ten: 'Ngũ Hành Khắc Chế',
     tom: 'Khắc +' + KHAC_LOI + ', bị khắc −' + KHAC_THIET + '.',
     khoi: [
-      ['p', 'Năm hệ: <b>' + HE5 + '</b>. Ngoài ra có <b>Vô Hệ</b> — đòn không thuộc hệ nào, không chịu và không hưởng khắc chế.'],
+      ['p', 'Năm hệ: <b>' + HE5 + '</b>. Ngoài ra còn có <b>Vô Hệ</b>: đòn không thuộc Ngũ Hành, không được hưởng và cũng không chịu khắc chế.'],
       ['ct', 'Vòng khắc: Kim → Mộc → Thổ → Thủy → Hỏa → Kim'],
       ['bang', ['Quan hệ', 'Hệ số sát thương'], [
         ['Đánh vào hệ mình khắc', '+' + KHAC_LOI],
         ['Đánh vào hệ khắc mình', '−' + KHAC_THIET],
         ['Cùng hệ hoặc Vô Hệ', 'không đổi'],
       ]],
-      ['p', 'Có <b>' + n(MON_PHAI) + ' môn phái</b> đặt tên cho các nhánh võ học theo hệ. Chọn nhánh không khoá việc học chiêu của nhánh khác.'],
+      ['p', 'Có <b>' + n(MON_PHAI) + ' môn phái</b> dùng để đặt tên cho các nhánh võ học theo hệ. Chọn một nhánh không khóa việc học chiêu của nhánh khác.'],
     ],
   },
   {
@@ -370,7 +370,7 @@ export const CN_MUC = [
       ]],
       ['h', 'Nguồn kháng'],
       ['ds', ['Tâm Pháp', 'Dòng phụ trang bị', 'Dòng ẩn Bộ Trang', 'Đan dược']],
-      ['p', 'Quái cũng có kháng riêng. Chỉ số kháng từng con ghi trong bảng <b>Quái</b> và <b>Yêu Vương</b> ở Tra Cứu.'],
+      ['p', 'Quái cũng có Kháng riêng. Chỉ số từng con được ghi trong bảng <b>Quái</b> và <b>Yêu Vương</b> ở Tra Cứu.'],
     ],
   },
   {
@@ -379,7 +379,7 @@ export const CN_MUC = [
     id: 'conghuong', nhom: 'chiendau', ten: 'Cộng Hưởng Ngũ Hành',
     tom: 'Cộng thẳng % sát thương cho chiêu ĐÚNG hệ đó.',
     khoi: [
-      ['p', '<b>Cộng Hưởng</b> của một hệ là <b>phần trăm sát thương cộng thêm cho những chiêu thuộc đúng hệ ấy</b>. Cộng Hưởng Kim chỉ làm mạnh chiêu hệ Kim, không đụng tới chiêu hệ khác.'],
+      ['p', '<b>Cộng Hưởng</b> của một hệ là <b>phần trăm sát thương cộng thêm cho chiêu đúng hệ đó</b>. Ví dụ, Cộng Hưởng Kim chỉ tăng sát thương chiêu hệ Kim.'],
       ['ct', 'Sát thương chiêu = sát thương gốc × (1 + Cộng Hưởng của hệ chiêu đó)'],
       ['h', 'Ba nguồn Cộng Hưởng'],
       ['bang', ['Nguồn', 'Cho hệ nào', 'Mức'], [
@@ -387,11 +387,11 @@ export const CN_MUC = [
         ['Bị động võ học', 'hệ ghi trên bị động', 'theo từng bị động'],
         ['Trang bị mang hệ', 'hệ của món đồ', 'theo từng món'],
       ]],
-      ['p', 'Dòng ẩn <b>7 món</b> của Bộ Trang cũng đổ vào đây — đó là lý do nó ghi dạng “Cộng Hưởng Kim +30%”.'],
+      ['p', 'Hiệu ứng ẩn ở mốc <b>7 món</b> của Bộ Trang cũng được tính vào Cộng Hưởng, vì vậy bạn có thể thấy các dòng như “Cộng Hưởng Kim +30%”.'],
       ['h', 'Khi bộ đồ lệch hệ Tâm Pháp'],
-      ['p', 'Cộng Hưởng <b>không mất đi</b>, nhưng chỉ ăn vào chiêu đúng hệ của nó. Mang Tâm Pháp Hỏa mà mặc bộ cho Cộng Hưởng Kim thì 30% ấy chỉ cộng cho chiêu hệ Kim đang lắp; chiêu hệ Hỏa không nhận gì.'],
-      ['p', 'Ô <b>Cộng Hưởng</b> ở bảng chỉ số chỉ hiện <b>hệ chính</b> (hệ của Tâm Pháp). Các hệ lệch hiện thành chip nhỏ ngay cạnh — nhìn đó để biết mình đang dư Cộng Hưởng ở hệ nào.'],
-      ['p', 'Cộng Hưởng <b>khác Khắc Chế</b>: Khắc Chế so hệ mình với hệ đối thủ, còn Cộng Hưởng chỉ nhìn hệ của chính chiêu mình đánh ra.'],
+      ['p', 'Cộng Hưởng <b>không mất đi</b>, nhưng chỉ áp dụng cho chiêu đúng hệ. Nếu dùng Tâm Pháp Hỏa nhưng mặc bộ có Cộng Hưởng Kim +30%, phần cộng này chỉ tăng chiêu hệ Kim đang trang bị; chiêu Hỏa không được hưởng.'],
+      ['p', 'Ô <b>Cộng Hưởng</b> trong bảng chỉ số chỉ hiển thị <b>hệ chính</b> của Tâm Pháp. Cộng Hưởng của các hệ khác hiện dưới dạng thẻ nhỏ bên cạnh để bạn dễ kiểm tra.'],
+      ['p', 'Cộng Hưởng <b>khác Khắc Chế</b>: Khắc Chế so hệ của bạn với hệ đối thủ, còn Cộng Hưởng chỉ xét hệ của chiêu đang tung ra.'],
     ],
   },
   {
@@ -423,8 +423,8 @@ export const CN_MUC = [
         ['Bị Động', sn(n(BI_DONG)), 'Chạy nền suốt trận'],
         ['Tuyệt Học', sn(n(TUYET_IDS)), 'Bậc cao nhất; cần đồ phổ, nguyên liệu hiếm và ' + sn(TUYET_BAC) + ' Bạc'],
       ]],
-      ['p', 'Chiêu thức chia bốn bậc: Sơ · Trung · Cao · Tuyệt. Số ô chiêu mở thêm theo cấp Chiến Đấu.'],
-      ['p', 'Chỉ số cụ thể của từng món xem ở các bảng <b>Chiêu Thức</b>, <b>Tâm Pháp</b>, <b>Bộ Pháp</b>, <b>Bị Động</b> trong Tra Cứu.'],
+      ['p', 'Chiêu thức chia thành bốn bậc: Sơ · Trung · Cao · Tuyệt. Số ô chiêu sẽ mở thêm theo cấp Chiến Đấu.'],
+      ['p', 'Xem chỉ số cụ thể tại các bảng <b>Chiêu Thức</b>, <b>Tâm Pháp</b>, <b>Bộ Pháp</b> và <b>Bị Động</b> trong Tra Cứu.'],
     ],
   },
   {
@@ -446,7 +446,7 @@ export const CN_MUC = [
     id: 'bicanh', nhom: 'chiendau', ten: 'Bí Cảnh',
     tom: sn(nTT(DUNGEONS)) + ' phó bản chạy theo lịch thời gian thực.',
     khoi: [
-      ['p', 'Bí Cảnh <b>chiếm chỗ hoạt động chính</b> — đặt lịch là dừng việc đang làm. Mỗi lượt đi qua các tầng theo cấu hình của phó bản đó rồi kết ở thủ lĩnh.'],
+      ['p', 'Bí Cảnh <b>chiếm một hoạt động chính</b>. Khi đặt lịch vào Bí Cảnh, hoạt động hiện tại sẽ dừng. Mỗi lượt đi qua các tầng theo cấu hình của phó bản rồi kết thúc ở thủ lĩnh.'],
       ['bang', ['Bí Cảnh', 'Cấp cần', 'Thời lượng', 'Phí vào'],
         DUNGEONS.filter((d) => !d.suKien).map((d) => [
           d.name, 'Lv ' + d.reqLevel, Math.round(d.durMs / 60000) + ' phút',
@@ -464,7 +464,7 @@ export const CN_MUC = [
     id: 'yeuvuong', nhom: 'chiendau', ten: 'Yêu Vương',
     tom: sn(nTT(YEU_VUONG)) + ' trùm thế giới, đánh theo lượt.',
     khoi: [
-      ['p', 'Yêu Vương đánh theo lượt, không treo máy. Mỗi con có thời gian hồi riêng sau khi bị hạ.'],
+      ['p', 'Yêu Vương chiến đấu theo lượt và không thể treo máy. Mỗi con có thời gian hồi riêng sau khi bị hạ.'],
       ['bang', ['Yêu Vương', 'Cấp cần', 'Hồi', 'Tinh Thể', 'Hồn Thạch', 'Bạc'],
         YEU_VUONG.filter((y) => !y.suKien).map((y) => [
           y.name, 'Lv ' + y.reqLevel, ((y.wb || {}).cdHours || 0) + ' giờ',
@@ -472,7 +472,7 @@ export const CN_MUC = [
         ])],
       ['ds', [
         'Yêu Vương không rơi trang bị ngẫu nhiên.',
-        'Trứng Linh Thú chỉ rơi ở đây. Tỉ lệ từng bậc trứng xem ở bảng <b>Yêu Vương</b> trong Tra Cứu.',
+        'Trứng Linh Thú chỉ rơi từ Yêu Vương. Tỉ lệ từng bậc trứng xem tại bảng <b>Yêu Vương</b> trong Tra Cứu.',
         'Thua trận phải dưỡng thương trước khi đánh lại.',
       ]],
     ],
@@ -483,21 +483,21 @@ export const CN_MUC = [
     id: 'linhthu_co', nhom: 'linhthu', ten: 'Linh Thú',
     tom: sn(n(PET_SPECIES)) + ' loài, ' + sn(n(PET_QUALITY)) + ' bậc phẩm chất.',
     khoi: [
-      ['p', 'Linh Thú nở từ trứng rơi ở Yêu Vương. Phẩm chất trứng quyết định phẩm chất thú; thang phẩm chất giống trang bị.'],
+      ['p', 'Linh Thú nở từ trứng rơi ở Yêu Vương. Phẩm chất trứng quyết định phẩm chất Linh Thú; hệ phẩm chất giống với trang bị.'],
       ['bang', ['Mục', 'Số lượng'], [
         ['Loài', sn(n(PET_SPECIES))], ['Bậc phẩm chất', sn(n(PET_QUALITY))],
         ['Kỹ năng', sn(n(PET_SKILLS))], ['Tiềm năng bốc lúc nở', sn(n(PET_OPT_POOL))],
         ['Bị động thức tỉnh', sn(n(AWK_PASSIVE_IDS))],
       ]],
-      ['p', 'Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng <b>Linh Thú</b> trong Tra Cứu.'],
+      ['p', 'Ấp trứng cần thời gian thực, phẩm chất càng cao thì thời gian ấp càng lâu. Danh sách loài xem tại bảng <b>Linh Thú</b> trong Tra Cứu.'],
     ],
   },
   {
     id: 'linhthu_ky', nhom: 'linhthu', ten: 'Thức Tỉnh & Hợp Nhất',
     tom: 'Mở bị động mới; có thể thất bại.',
     khoi: [
-      ['p', 'Thức Tỉnh mở thêm bị động từ bể <b>' + n(AWK_PASSIVE_IDS) + ' loại</b>. Cần vật phẩm chuyên dụng và có thể thất bại.'],
-      ['p', 'Hợp nhất cho phép tiêu nhiều thú để cải thiện một con mục tiêu.'],
+      ['p', 'Thức Tỉnh mở thêm bị động từ bể <b>' + n(AWK_PASSIVE_IDS) + ' loại</b>. Cần vật phẩm chuyên dụng và quá trình này có thể thất bại.'],
+      ['p', 'Dung Hợp cho phép dùng nhiều Linh Thú làm nguyên liệu để cải thiện một Linh Thú mục tiêu.'],
     ],
   },
   {
@@ -508,7 +508,7 @@ export const CN_MUC = [
         ['Ngự Thú', 'Thú cộng chỉ số cho người chơi và tham chiến'],
         ['Săn Mồi', 'Thú đi săn nền theo thời gian thực, mang vật phẩm về'],
       ]],
-      ['p', 'Thú đói làm giảm hiệu quả. Thức ăn đến từ nghề Trù Sư và vật phẩm dưỡng thú.'],
+      ['p', 'Linh Thú đói sẽ giảm hiệu quả. Thức ăn có thể nhận từ nghề Trù Sư và các vật phẩm dưỡng thú.'],
     ],
   },
 
@@ -517,7 +517,7 @@ export const CN_MUC = [
     id: 'tongmon_co', nhom: 'tongmon', ten: 'Tông Môn',
     tom: 'Người chơi làm chưởng môn, nuôi đệ tử.',
     khoi: [
-      ['p', 'Tông Môn là nhánh phát triển dài hạn. Người chơi làm chưởng môn; đệ tử tự tu luyện và làm việc, mang thành quả về cho tông.'],
+      ['p', 'Tông Môn là nhánh phát triển dài hạn. Người chơi giữ vai trò Chưởng Môn; đệ tử tự tu luyện, làm việc và mang thành quả về Tông.'],
       ['bang', ['Nhánh', 'Vai trò'], [
         ['Tông Môn', 'Nuôi dưỡng, chiều sâu, dài hạn'],
         ['Tiên Minh', 'Tranh hạng theo mùa, hoạt động bang'],
@@ -525,7 +525,7 @@ export const CN_MUC = [
       ['h', 'Tư chất đệ tử'],
       ['bang', ['Tư chất', 'Hệ số tu luyện', 'Trần'],
         Object.values(APT).map((a) => [a.name, '×' + a.mul, sn(a.cap)])],
-      ['p', 'Mỗi đệ tử còn có hệ ngũ hành và tính cách riêng. Số đệ tử nuôi được tăng theo công trình Tụ Hiền Đường.'],
+      ['p', 'Mỗi đệ tử có Ngũ Hành và tính cách riêng. Số đệ tử có thể chiêu mộ tăng theo cấp Tụ Hiền Đường.'],
     ],
   },
   {
@@ -539,7 +539,7 @@ export const CN_MUC = [
         ['Tâm Ma', 'Tích theo thời gian tu luyện, tối đa ' + TAMMA_MAX + ' tầng', 'Giảm tốc tu luyện, tăng rủi ro'],
         ['Thiên Kiếp', 'Xảy ra khi vượt cảnh giới lớn', 'Thất bại thì tụt cảnh giới hoặc mất đệ tử'],
       ]],
-      ['luu', 'Đệ tử tư chất thấp có tỉ lệ qua Thiên Kiếp thấp. Mất đệ tử là mất toàn bộ tiến độ của đệ tử đó.'],
+      ['luu', 'Đệ tử có tư chất thấp sẽ có tỉ lệ vượt Thiên Kiếp thấp hơn. Nếu mất đệ tử, toàn bộ tiến độ của đệ tử đó cũng mất.'],
     ],
   },
   {
@@ -555,7 +555,7 @@ export const CN_MUC = [
         ['Giới Luật Đường', 'Xử lý đệ tử phạm giới, giảm Tâm Ma'],
         ['Tụ Linh Trận', 'Tăng tốc tu luyện toàn tông'],
       ]],
-      ['p', 'Tổng cộng <b>' + n(BUILD_KEYS) + ' công trình</b>. Xây và nâng bằng nguyên liệu tông môn, mất thời gian thực.'],
+      ['p', 'Tổng cộng <b>' + n(BUILD_KEYS) + ' công trình</b>. Xây dựng và nâng cấp bằng nguyên liệu Tông Môn, đồng thời cần thời gian thực để hoàn thành.'],
     ],
   },
   {
@@ -579,7 +579,7 @@ export const CN_MUC = [
     tom: sn(n(DIPLO_TIERS)) + ' bậc quan hệ.',
     khoi: [
       ['bang', ['Bậc', 'Điểm tối thiểu'], DIPLO_TIERS.map((d) => [d.name, sn(d.min)])],
-      ['p', 'Tặng lễ, mời làm khách và luận võ đều cộng điểm quan hệ. Bậc cao mở quyền lợi riêng.'],
+      ['p', 'Tặng Lễ, Mời Khách và Luận Võ đều tăng điểm quan hệ. Quan hệ đạt bậc cao sẽ mở thêm quyền lợi riêng.'],
     ],
   },
 
@@ -588,7 +588,7 @@ export const CN_MUC = [
     id: 'tienminh_co', nhom: 'tienminh', ten: 'Lập Tiên Minh',
     tom: 'Cần Tổng Lv ' + sn(LV_LAP_BANG) + ' và ' + sn(PHI_LAP_BANG) + ' Bạc.',
     khoi: [
-      ['p', 'Người chơi tự lập Tiên Minh và giữ chức Minh Chủ. Các Tiên Minh khác trong giang hồ là đối thủ trên bảng Chinh Phạt, không phải nơi xin gia nhập.'],
+      ['p', 'Người chơi tự lập Tiên Minh và giữ chức Minh Chủ. Các Tiên Minh khác trong giang hồ là đối thủ trên bảng Chinh Phạt, không phải nơi để xin gia nhập.'],
       ['bang', ['Mục', 'Giá trị'], [
         ['Tổng Lv yêu cầu', sn(LV_LAP_BANG)], ['Phí lập', sn(PHI_LAP_BANG) + ' Bạc'],
         ['Trần cấp minh', sn(CAP_BANG_MAX)], ['Sức chứa tối đa', sn(TV_TRAN) + ' người'],
@@ -615,8 +615,8 @@ export const CN_MUC = [
     id: 'tienminh_ct', nhom: 'tienminh', ten: 'Công Trình & Kĩ Năng',
     tom: sn(n(CONG_TRINH)) + ' công trình · ' + sn(n(KY_NANG_BANG)) + ' kĩ năng.',
     khoi: [
-      ['p', 'Công trình xây bằng Bạc trong Ngân Khố, mất thời gian thực, không vượt được cấp minh. Mỗi lúc chỉ xây một công trình.'],
-      ['p', 'Kĩ năng học bằng Công Tích, cộng chỉ số thật cho mọi thành viên. Mỗi nhánh kĩ năng bị một công trình chặn trần cấp.'],
+      ['p', 'Công trình dùng Bạc trong Ngân Khố để xây, cần thời gian thực và không thể vượt cấp Tiên Minh. Mỗi thời điểm chỉ xây được một công trình.'],
+      ['p', 'Kỹ năng học bằng Công Tích và cộng chỉ số thật cho toàn bộ thành viên. Cấp tối đa của mỗi nhánh phụ thuộc vào công trình tương ứng.'],
       ['h', 'Tổng cộng khi học hết cây kĩ năng'],
       ['bang', ['Cộng vào', 'Tổng'],
         (() => {
@@ -635,7 +635,7 @@ export const CN_MUC = [
         ['Minh Vụ', 'Cả minh cùng góp, chỉ tiêu co giãn theo số thành viên', 'Theo kỳ'],
         ['Truy Nã', 'Cá nhân, mục tiêu chọn theo cấp người chơi', sn(TRUY_NA_MOI_NGAY) + ' lệnh mỗi ngày, đủ bốn bậc'],
       ]],
-      ['luu', 'Truy Nã chụp mốc số quái đã hạ tại thời điểm <b>nhận lệnh</b>. Quái hạ trước khi nhận không được tính.'],
+      ['luu', 'Truy Nã bắt đầu tính số quái bị hạ từ thời điểm <b>nhận lệnh</b>. Quái đã hạ trước đó sẽ không được tính.'],
     ],
   },
   {
@@ -655,13 +655,13 @@ export const CN_MUC = [
     id: 'tienminh_boss', nhom: 'tienminh', ten: 'Trảm Yêu Đài',
     tom: BOSS_BANG_LUOT + ' lượt mỗi người mỗi kỳ.',
     khoi: [
-      ['p', 'Sau khi xây Trảm Yêu Đài, mỗi kỳ minh triệu về một trùm riêng. Cả minh cùng gây sát thương.'],
+      ['p', 'Sau khi xây Trảm Yêu Đài, mỗi kỳ Tiên Minh có thể triệu hồi một trùm riêng để toàn minh cùng gây sát thương.'],
       ['bang', ['Mục', 'Giá trị'], [
         ['Lượt mỗi người mỗi kỳ', sn(BOSS_BANG_LUOT)],
         ['Cấp đài', 'Quyết định độ mạnh của trùm và mức thưởng'],
         ['Chia thưởng', 'Theo phần sát thương đã đóng góp'],
       ]],
-      ['luu', 'Trùm này tách hoàn toàn khỏi Yêu Vương thế giới: không dùng chung lượt, không dùng chung thời gian hồi.'],
+      ['luu', 'Trùm này hoàn toàn tách biệt với Yêu Vương thế giới: không dùng chung lượt và không dùng chung thời gian hồi.'],
     ],
   },
 
@@ -673,7 +673,7 @@ export const CN_MUC = [
       ['bang', ['Vùng', 'Cấp cần', 'Số loại quái'],
         LOCATIONS.filter((l) => !l.suKien).map((l) => [l.name, 'Lv ' + l.reqLevel, sn((l.enemies || []).length)])],
       ['ct', 'Phí Truyền Tống = Tổng Lv × khoảng cách  (Bạc)'],
-      ['p', 'Đi bộ mất thời gian thực theo khoảng cách. Truyền Tống đến ngay nhưng tốn Bạc. Vùng khoá cần đủ cấp mới vào.'],
+      ['p', 'Đi bộ cần thời gian thực tùy theo khoảng cách. Truyền Tống đến ngay nhưng tốn Bạc. Khu vực bị khóa yêu cầu đủ cấp mới có thể vào.'],
     ],
   },
   {
@@ -693,8 +693,8 @@ export const CN_MUC = [
     id: 'phicap', nhom: 'giangho', ten: 'Phi Cáp Đài',
     tom: 'Trung tâm thông báo.',
     khoi: [
-      ['p', 'Gom mọi sự kiện xảy ra khi người chơi vắng mặt: hoạt động hoàn tất, vật phẩm hiếm, đệ tử phá cảnh, tin Tiên Minh, sự kiện giang hồ.'],
-      ['p', 'Thông báo có thưởng lĩnh trực tiếp tại chỗ. Chấm xanh trên chuông báo còn tin chưa đọc.'],
+      ['p', 'Tổng hợp các sự kiện xảy ra khi bạn vắng mặt: hoạt động hoàn tất, vật phẩm hiếm, đệ tử Phá Cảnh, tin Tiên Minh và sự kiện giang hồ.'],
+      ['p', 'Thông báo có thưởng có thể nhận trực tiếp tại đây. Chấm xanh trên chuông báo hiệu vẫn còn tin chưa đọc.'],
     ],
   },
   {
@@ -702,11 +702,11 @@ export const CN_MUC = [
     tom: 'Bảng xếp hạng toàn giang hồ.',
     khoi: [
       ['p', 'Xếp hạng theo Tổng Lv, theo từng nghề, và theo Chiến Lực.'],
-      ['p', 'Giang hồ có sẵn ' + sn(BOT_COUNT) + ' cao thủ mô phỏng: họ lên cấp, đổi hoạt động và đổi vùng theo thời gian thực, nên thứ hạng thay đổi liên tục.'],
-      ['p', 'Mọi tài khoản đứng chung <b>một giang hồ</b>. Cùng một lúc, ai mở Phong Vân Bảng cũng thấy đúng những người ấy.'],
+      ['p', 'Giang hồ có sẵn ' + sn(BOT_COUNT) + ' Các cao thủ mô phỏng sẽ tự lên cấp, đổi hoạt động và di chuyển giữa các vùng theo thời gian thực, nên thứ hạng luôn thay đổi.'],
+      ['p', 'Mọi tài khoản cùng tồn tại trong <b>một giang hồ</b>. Ở cùng một thời điểm, ai mở Phong Vân Bảng cũng sẽ thấy cùng một danh sách người chơi.'],
       ['p', 'Cứ khoảng <b>' + sn(Math.round(TUOI_AN_CU_NGAY * 24 / (BOT_COUNT - SO_LAO_LANG))) + ' giờ</b> lại có một người nhập giang hồ. Ai đã ở đủ <b>' + sn(TUOI_AN_CU_NGAY) + ' ngày</b> thì ẩn cư, rời bảng.'],
-      ['p', 'Nhờ vậy lúc nào cũng có người mới chân ướt chân ráo để đua, chứ bảng không toàn cao thủ.'],
-      ['luu', 'Riêng <b>' + sn(SO_LAO_LANG) + ' lão làng</b> không ẩn cư. Họ ở lại mãi, giữ chỗ đỉnh bảng.'],
+      ['p', 'Nhờ vậy bảng xếp hạng luôn có người mới để cạnh tranh, không chỉ toàn cao thủ lâu năm.'],
+      ['luu', 'Riêng <b>' + sn(SO_LAO_LANG) + ' lão làng</b> không ẩn cư. Họ ở lại lâu dài và tiếp tục giữ vị trí trên bảng xếp hạng.'],
     ],
   },
   {
@@ -732,15 +732,15 @@ export const CN_MUC = [
         ['Góp Chuyện', 'Miễn phí', 'Thêm một dòng vào bảng tin'],
       ]],
       ['p', 'Khách mỗi phiên gồm một số Danh Sĩ và một số cao thủ giang hồ, đổi khi sang phiên mới.'],
-      ['luu', 'Tửu Lâu không cấp chỉ số hay vật phẩm. Đây là nơi kết giao và thu tin.'],
+      ['luu', 'Tửu Lâu không cộng chỉ số hay vật phẩm. Đây là nơi kết giao và thu thập tin tức.'],
     ],
   },
   {
     id: 'thuongdiem', nhom: 'giangho', ten: 'Thương Điếm',
     tom: 'Mua nguyên liệu cơ bản, bán đồ thừa.',
     khoi: [
-      ['p', 'Bán nguyên liệu cơ bản, mồi câu, món ăn, và vật phẩm trang trí như ảnh đại diện và ảnh nền hồ sơ.'],
-      ['p', 'Giá bán lại phụ thuộc phẩm chất và cấp món. Sàn Giao Dịch giữa người chơi đang phát triển.'],
+      ['p', 'Bán nguyên liệu cơ bản, mồi câu, món ăn và vật phẩm trang trí như Ảnh Đại Diện hoặc Ảnh Bìa Hồ Sơ.'],
+      ['p', 'Giá bán lại phụ thuộc vào phẩm chất và cấp vật phẩm. Sàn Giao Dịch giữa người chơi đang được phát triển.'],
     ],
   },
 
@@ -749,7 +749,7 @@ export const CN_MUC = [
     id: 'vanvat', nhom: 'suutap', ten: 'Vạn Vật Phổ',
     tom: sn(n(CODEX_CATS)) + ' phổ sưu tập.',
     khoi: [
-      ['p', 'Gặp một thực thể lần đầu sẽ tự ghi vào phổ tương ứng. Phổ cộng chỉ số theo hai mức: cộng lẻ theo số lượng, và cộng khi đủ bộ.'],
+      ['p', 'Khi gặp một thực thể lần đầu, hệ thống sẽ tự ghi vào Phổ tương ứng. Phổ cộng chỉ số theo hai cách: cộng dần theo số lượng và cộng thêm khi hoàn thành bộ.'],
       ['bang', ['Phổ', 'Đếm theo', 'Số mục', 'Đủ bộ'],
         CODEX_CATS.map((c) => [c.name, c.unit || '—', sn(c.total || (c.entries || []).length), (c.set || {}).label || '—'])],
     ],
@@ -759,9 +759,9 @@ export const CN_MUC = [
     tom: sn(nTT(TITLES)) + ' danh hiệu, ' + sn(n(TITLE_LOAI)) + ' loại.',
     khoi: [
       ['p', 'Đạt đủ điều kiện thì danh hiệu tự mở khoá.'],
-      ['p', '<b>Chỉ danh hiệu đang đeo mới cộng chỉ số.</b> Mở được nhiều cũng không cộng dồn — mỗi lúc chỉ đeo được một cái.'],
-      ['p', 'Dòng chỉ số ghi trên mỗi thẻ là <b>số bạn sẽ nhận nếu đeo cái đó</b>, không phải số đang có.'],
-      ['p', 'Vào <b>Tàng Hiệu Các</b>, bấm một danh hiệu đã mở là đeo. Danh hiệu đang đeo hiện ngay cạnh tên nhân vật.'],
+      ['p', '<b>Chỉ Danh Hiệu đang đeo mới cộng chỉ số.</b> Mở nhiều Danh Hiệu cũng không cộng dồn; mỗi thời điểm chỉ đeo được một.'],
+      ['p', 'Dòng chỉ số trên mỗi thẻ là <b>chỉ số bạn sẽ nhận khi đeo Danh Hiệu đó</b>, không phải chỉ số hiện tại.'],
+      ['p', 'Vào <b>Tàng Hiệu Các</b>, bấm một Danh Hiệu đã mở để đeo. Danh Hiệu đang dùng sẽ hiển thị ngay cạnh tên nhân vật.'],
       ['bang', ['Loại', 'Số danh hiệu'],
         Object.entries(TITLE_LOAI).map(([k, v]) => [v, sn(TITLES.filter((t) => t.loai === k).length)])],
       ['p', 'Điều kiện và mức cộng của từng danh hiệu ghi ở bảng <b>Danh Hiệu</b> trong Tra Cứu.'],
@@ -800,10 +800,10 @@ export const CN_MUC = [
       ]],
       ['p', 'Cờ Tướng và Ngũ Tử Kỳ dùng chung điểm Kỳ Hồn và danh hiệu Kỳ Nghệ.'],
       ['h', 'Toàn Màn Hình'],
-      ['p', 'Sáu bàn 3D đều có nút <b>Toàn Màn Hình</b> ở cột nút bên bàn: bàn phủ kín màn hình, không còn thanh đầu trang hay danh mục. Trên điện thoại, máy tự xoay ngang. Bấm lại — hoặc phím Esc — để thu về.'],
+      ['p', 'Sáu bàn 3D đều có nút <b>Toàn Màn Hình</b> ở cạnh bàn. Khi bật, bàn sẽ phủ kín màn hình và ẩn thanh đầu trang cùng danh mục; trên điện thoại, màn hình tự xoay ngang. Bấm lại hoặc nhấn Esc để thoát.'],
       ['h', 'Trù Mã — đồng riêng của chiếu bài'],
-      ['p', 'Ba trò bài — Tiến Lên, Tiến Lên Trung Quốc và Binh Xập Xám — cược bằng <b>Trù Mã</b>, không phải Bạc. Đổi Bạc lấy Trù Mã theo tỉ giá <b>1 đổi 1</b>, và chỉ đổi được một chiều.'],
-      ['luu', 'Trù Mã <b>không đổi ngược lại thành Bạc</b>. Nhờ vậy thắng bài không sinh ra Bạc — các trò này cách ly khỏi kinh tế chính, không ảnh hưởng cân bằng cày cuốc.'],
+      ['p', 'Ba trò bài — Tiến Lên, Tiến Lên Trung Quốc và Binh Xập Xám — cược bằng <b>Trù Mã</b>, không dùng Bạc. Bạc đổi sang Trù Mã theo tỉ lệ <b>1:1</b> và chỉ đổi được một chiều.'],
+      ['luu', 'Trù Mã <b>không thể đổi ngược thành Bạc</b>. Vì vậy thắng bài không tạo thêm Bạc, giúp các trò bài tách khỏi kinh tế chính và không ảnh hưởng cân bằng cày cuốc.'],
     ],
   },
 ];
