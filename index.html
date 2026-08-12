@@ -67,7 +67,13 @@
     .dh-txt{ font-family:'Lora','Noto Serif SC',serif; font-weight:700; letter-spacing:.015em;
       background:linear-gradient(180deg, color-mix(in srgb,#fff 60%,var(--dhc)) 6%, var(--dhc) 52%, color-mix(in srgb,var(--dhc) 84%,#000) 100%);
       -webkit-background-clip:text; background-clip:text; color:transparent;
-      filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 68%,transparent)) drop-shadow(0 0 8px color-mix(in srgb,var(--dhc) 38%,transparent));
+      /* ⚠⚠ LỚP BÓNG TỐI PHẢI ĐỨNG ĐẦU. Hai lớp glow phía sau CÙNG MÀU với chữ, nên đặt danh hiệu
+         lên chỗ sáng của ảnh bìa là chữ chìm hẳn. Đo trên ảnh chụp game (dải chữ, so với điểm
+         sáng nhất trong dải): bìa Hoa Sơn 2,31:1 · Thuý Yên 2,57:1 · Giáng Sinh 2,88:1 — dưới
+         sàn 3:1 của chữ đậm cỡ này. Tên nhân vật ngay bên dưới đọc tốt vì nó CÓ bóng tối; đây là
+         mượn đúng cách làm đó. ⚠ Sửa ở đây thì phải sửa cả `.dh-high .dh-txt` bên dưới — khối đó
+         khai `filter` riêng, bỏ sót là phẩm cao (chữ cam/vàng, đúng nhóm đo tệ nhất) trơ nguyên. */
+      filter:drop-shadow(0 1px 2px rgba(0,0,0,.95)) drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 68%,transparent)) drop-shadow(0 0 8px color-mix(in srgb,var(--dhc) 38%,transparent));
       line-height:1.32; padding-bottom:.06em; }   /* chừa đuôi chữ g — xem chú thích ở .gold-text */
     .dh-high::before{ content:''; position:absolute; inset:-55% -12%; z-index:0; background:radial-gradient(ellipse at center, color-mix(in srgb,var(--dhc) 16%,transparent), transparent 72%); pointer-events:none; }
     .dh-high > *{ position:relative; z-index:1; }
@@ -75,7 +81,7 @@
     .dh-high .dh-txt{
       background:linear-gradient(105deg, transparent 38%, rgba(255,255,255,.8) 50%, transparent 62%), linear-gradient(180deg, color-mix(in srgb,#fff 60%,var(--dhc)) 6%, var(--dhc) 52%, color-mix(in srgb,var(--dhc) 84%,#000) 100%);
       background-size:220% 100%, 100% 100%; background-position:160% 0, 0 0; background-repeat:no-repeat; -webkit-background-clip:text; background-clip:text;
-      filter:drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 72%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--dhc) 46%,transparent)) drop-shadow(0 0 20px color-mix(in srgb,var(--dhc) 24%,transparent));
+      filter:drop-shadow(0 1px 2px rgba(0,0,0,.95)) drop-shadow(0 0 3px color-mix(in srgb,var(--dhc) 72%,transparent)) drop-shadow(0 0 10px color-mix(in srgb,var(--dhc) 46%,transparent)) drop-shadow(0 0 20px color-mix(in srgb,var(--dhc) 24%,transparent));
       animation:dhSweep 3.4s linear infinite; }
     @media (prefers-reduced-motion: reduce){ .dh-high .dh-txt{ animation:none } }
     /* Danh hiệu trong LIST (Tàng Hiệu Các): cho TÊN co/wrap để tag "loại" luôn ghim phải, không rớt dòng (mobile tên dài) */

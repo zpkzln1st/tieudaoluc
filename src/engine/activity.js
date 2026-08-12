@@ -290,6 +290,24 @@ export function advance(state, now) {
     return null;
   }
 
+  // ⚠⚠ SỰ KIỆN ĐÓNG GIỮA LÚC TREO MÁY / NGOẠI TUYẾN — chốt đồng hồ lại ở MỐC ĐÓNG.
+  // Không có khối này thì tắt game lúc sự kiện còn mở, mở lại sau ba ngày là ăn trọn ba ngày
+  // cày trong vùng đã đóng cửa. Mốc `dong` là thời gian TUYỆT ĐỐI đã đệm sẵn trong save nên
+  // suy được cả khi mất mạng — đúng nguyên tắc gốc của engine/lenhbai.js.
+  // Cả ba đường việc đều phải chặn: đánh quái sự kiện · lịch luyện Bí Cảnh sự kiện · kĩ năng sự kiện.
+  // Cờ `suKien` do data/sukien.js tự ghi danh vào ENEMIES / DUNGEONS / SKILLS.
+  // Đây chỉ CẮT phần thưởng quá giờ. Việc DỪNG hẳn + báo cho người chơi là của
+  // svDungKhiHetHan() bên store — chỗ đó mới chốt được tổng kết phiên.
+  {
+    const maSK = act.type === 'combat' ? ((ENEMIES[act.enemyId] || {}).suKien || '')
+      : act.type === 'dungeon' ? ((DUNGEON_BY_ID[act.dungeonId] || {}).suKien || '')
+      : ((SKILLS[act.skillId] || {}).suKien || '');
+    if (maSK) {
+      const dong = skMocDong(state, maSK);
+      if (dong && now > dong) now = dong;
+    }
+  }
+
   // Bí Cảnh (LỊCH LUYỆN): N lượt liên tiếp. Mỗi lượt tới giờ -> roll + dồn loot vào kho NGAY (acc gom lại).
   // Hết cả lịch -> chốt tổng kết (lastResult + thông báo). Về giữa chừng vẫn giữ loot các lượt đã xong.
   if (act.type === 'dungeon') {

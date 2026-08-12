@@ -414,7 +414,9 @@ export const QUAY_GIA = { trung: 3000, danhHieu: 3000, avatar: 1200, cover: 2000
 // ⇒ Vẽ xong ĐỦ BA TỆP của sự kiện nào (2 ảnh đại diện + 1 ảnh bìa) thì thêm mã sự kiện đó vào đây.
 //   Một cờ chung thì bật cho Tết là bật luôn cho 5 sự kiện chưa có art — bán hư không.
 // ⚠ Mục danh mục thì ĐÃ ghi danh sẵn bên dưới — thiếu mục thì art có thả vào cũng không bao giờ hiện.
-export const CO_ART_DUNG_MAO = new Set(['tet', 'xuan']);
+// 2026-08-12: cả sáu sự kiện đã đủ 3 tệp (2 ảnh đại diện + 1 ảnh bìa) — đối chiếu bằng
+// _mockup/_covua_wip/_soi_art_moi.mjs, mục B ra 29/29 cho cả sáu.
+export const CO_ART_DUNG_MAO = new Set(['tet', 'xuan', 'doanNgo', 'vuLan', 'trungThu', 'giangSinh']);
 export const QUAY_TIEU_HAO = [
   { gian: 'Đan Dược',   ds: [
     { itemId: 'cuongNguyenDan', qty: 1, diem: 120 }, { itemId: 'bachBaoDan', qty: 1, diem: 130 },

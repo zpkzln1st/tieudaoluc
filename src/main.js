@@ -1879,6 +1879,38 @@ const gameStore = {
     if (this.currentLocation === d.loc.id) { this._applyView('combat'); return; }
     this.startKhinhCong(d.loc.id);
   },
+  // Sự kiện ĐÓNG CỬA mà người chơi còn đang cày trong đó -> dừng việc, đưa về vùng thường.
+  // ⚠ KHÔNG so với "sự kiện vừa chạy lúc nãy". So THẲNG việc đang làm với mọi sự kiện KHÔNG mở.
+  //   Nhờ vậy nó đúng cả khi người chơi tắt game giữa chừng rồi mở lại lúc sự kiện đã đóng —
+  //   nhớ mốc "vừa chạy" trong biến thì tải lại trang là mất, người chơi cày tiếp vùng đã đóng.
+  svDungKhiHetHan() {
+    const dangChay = this.suKienDangChay;
+    const dong = SU_KIEN_DS.filter((d) => d.ma !== dangChay);
+    if (!dong.length) return false;
+    const p = this.state.player, a = this.state.activity;
+    const laViecCua = (d) => {
+      if (!a) return false;
+      if (a.type === 'dungeon') return d.biCanh.some((b) => b.id === a.dungeonId);   // lịch luyện Bí Cảnh sự kiện
+      if (a.type === 'travel') return a.toId === d.loc.id;                            // đang trên đường tới vùng sự kiện
+      if (a.type === 'combat') return p.location === d.loc.id;
+      return a.skillId === d.skill.id || p.location === d.loc.id;                     // kĩ năng riêng của sự kiện, hoặc thu thập trong vùng
+    };
+    const dViec = dong.find(laViecCua);
+    const dVung = dong.find((d) => p.location === d.loc.id);
+    if (!dViec && !dVung) return false;
+    const d = dViec || dVung;
+    const tenViec = dViec ? this.actName : '';
+    if (dViec) this.stop();            // stop() tự chốt thu hoạch phiên + tổng kết lịch Bí Cảnh
+    if (dVung) p.location = 'lamLinhCoc';
+    const loi = d.ten + ' đã kết thúc.'
+      + (dViec ? ' Đã dừng: ' + tenViec + '.' : '')
+      + (dVung ? ' Ngươi rời ' + d.loc.name + ', về Lam Linh Cốc.' : '');
+    this.showToast(loi);
+    pushNotif(this.state, 'suKien', 'Sự kiện kết thúc', loi, now());
+    this._tick++;
+    Storage.save(this.state);
+    return true;
+  },
 
   // ---------- GIÁM SÁT (đợt C) — chỉ tài khoản tác giả ----------
   // ⚠⚠ `isAuthorAccount` chỉ để ẨN/HIỆN màn này. Nó KHÔNG phải hàng rào — ai sửa mã client
@@ -2499,7 +2531,21 @@ const gameStore = {
   get freeAvatarId() { return this.state.player.gender === 'nu' ? 'nu' : 'nam'; }, // ảnh theo giới tính: free
   ownsAvatar(id) { return id === this.freeAvatarId || (this.state.player.ownedAvatars || []).includes(id); },
   ownsCover(id) { return (this.state.player.ownedCovers || []).includes(id); }, // 'Giống Avatar' (null) luôn free
-  selectAvatar(id) { if (id && !this.ownsAvatar(id)) { this.showToast('Chưa sở hữu Ảnh Đại Diện này — mua ở Thương Điếm.'); return; } this.state.player.avatar = id; },
+  // ⚠ Đổi ảnh đại diện thì ẢNH BÌA PHẢI ĐỨNG YÊN. `coverImg=null` nghĩa là "Giống Avatar", nên
+  //   trước đây đổi avatar là banner nhảy theo — người chơi không hề đụng vào ảnh bìa.
+  //   Cách chữa: lúc đổi avatar mà ảnh bìa đang ở chế độ "Giống Avatar" thì GHIM nó lại vào tấm
+  //   đang hiện. Ai thật sự muốn bìa bám avatar thì bấm lại ô "Giống Avatar" — chọn tay, không tự.
+  selectAvatar(id) {
+    if (id && !this.ownsAvatar(id)) { this.showToast('Chưa sở hữu Ảnh Đại Diện này — mua ở Thương Điếm.'); return; }
+    const p = this.state.player;
+    if (!p.coverImg) {
+      const dangHien = this.avatarId;                                  // tấm bìa người chơi ĐANG nhìn
+      if (!Array.isArray(p.ownedCovers)) p.ownedCovers = [];
+      if (!p.ownedCovers.includes(dangHien)) p.ownedCovers.push(dangHien);   // đang bày free rồi, ghim không phải là bán
+      p.coverImg = dangHien;
+    }
+    p.avatar = id;
+  },
   get avatarId() { return this.state.player.avatar || this.freeAvatarId; },
   get avatarSrc() { return `images/avatars/${this.avatarId}.webp`; },
   // Ảnh BÌA (banner) tách riêng khỏi avatar — coverImg=null => giống avatar.
@@ -6231,6 +6277,7 @@ setInterval(() => {
   const s = window.Alpine?.store('game');
   if (!s) return;
   if (s.state.activity) { const rep = advance(s.state, now()); if (rep && rep.ranOut) s.notifyRanOut(rep); if (rep && rep.doneLimit) s.notifyDoneLimit(rep); if (rep && rep.type === 'combat' && rep.died) s.notifyCombatBgDeath(rep); }   // hết nguyên liệu / xong số lượt / gục nền -> tự dừng + báo (cả khi tab ẩn)
+  try { s.svDungKhiHetHan(); } catch (e) {}   // sự kiện đóng cửa -> dừng việc trong vùng sự kiện + đưa về vùng thường. ĐẶT SAU advance() để phần đã cày vẫn được tính.
   if (s.state.combat && s.state.combat.noiThuong && s.state.combat.suyYeuUntil && now() >= s.state.combat.suyYeuUntil) s.recoverFromSuyYeu();   // suy yếu xong khi tab ẩn
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
   // Đan Bổ Trợ: dọn buff hết hạn (deriveCombat đọc thẳng state.buffs nên phải prune bằng đồng hồ GAME),
