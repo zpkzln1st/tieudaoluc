@@ -1310,12 +1310,18 @@
                     <button @click="$store.game.navToSkill(sid)"
                       class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
                       :class="($store.game.view==='skill' && $store.game.selectedSkill===sid) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
-                      <span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
+                      <!-- ⚠ Số Trùng Sinh DÁN LÊN GÓC BIỂU TƯỢNG, không đứng thành chip riêng.
+                           Bản đầu để chip cạnh chữ: đo ra 7 trong 11 nghề vỡ xuống hai dòng
+                           (ô chữ chỉ còn 53px, "Đào Khoáng" cần 76px). Dán lên góc thì tốn 0px
+                           bề ngang. Cùng lối với huy hiệu số lượng ×N ở quầy. -->
+                      <span class="relative w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0">
+                        <span class="w-full h-full inline-flex items-center justify-center" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
+                        <span x-show="$store.game.ncTsCua(sid) > 0"
+                          class="nc-ts absolute -right-1 -top-1 z-[2] text-[9.5px] font-bold leading-none px-1 py-[1px] rounded-[6px] text-ink"
+                          style="background:linear-gradient(180deg,#fde68a,#d69f2c);box-shadow:0 1px 4px rgba(0,0,0,.7)"
+                          :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="$store.game.ncTsCua(sid)"></span>
+                      </span>
                       <span class="flex-1" x-text="$store.game.SKILLS[sid].name"></span>
-                      <!-- Trùng Sinh rồi thì cấp về 1, nhìn "Lv1" tưởng chưa cày gì. Chip vàng
-                           ✦N đứng cạnh cho biết đã Trùng Sinh mấy lần. Rê chuột ra chữ đầy đủ. -->
-                      <span x-show="$store.game.ncTsCua(sid) > 0" class="text-[10px] px-1 rounded shrink-0 border border-amber-600/50 text-amber-300 bg-amber-500/10"
-                        :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="'✦' + $store.game.ncTsCua(sid)"></span>
                       <span class="text-xs px-1 rounded bg-ink text-jade shrink-0" x-text="'Lv'+$store.game.skillLevel(sid)"></span>
                     </button>
                   </template>
@@ -1802,10 +1808,14 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   <template x-for="sid in $store.game.skillIdsHoSo" :key="sid">
                     <button @click="$store.game.navToSkill(sid)" class="bg-ink3 rounded p-2 flex items-center gap-2 hover:ring-1 hover:ring-jade/40">
-                      <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
+                      <span class="relative w-7 h-7 inline-flex items-center justify-center shrink-0">
+                        <span class="w-full h-full inline-flex items-center justify-center" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
+                        <span x-show="$store.game.ncTsCua(sid) > 0"
+                          class="nc-ts absolute -right-1 -top-1 z-[2] text-[9px] font-bold leading-none px-1 py-[1px] rounded-[6px] text-ink"
+                          style="background:linear-gradient(180deg,#fde68a,#d69f2c);box-shadow:0 1px 4px rgba(0,0,0,.7)"
+                          :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="$store.game.ncTsCua(sid)"></span>
+                      </span>
                       <span class="text-xs flex-1 text-left truncate" x-text="$store.game.SKILLS[sid].name"></span>
-                      <span x-show="$store.game.ncTsCua(sid) > 0" class="text-[10px] text-amber-300 shrink-0"
-                        :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="'✦' + $store.game.ncTsCua(sid)"></span>
                       <span class="text-xs text-jade shrink-0" x-text="'Lv'+$store.game.skillLevel(sid)"></span>
                     </button>
                   </template>
