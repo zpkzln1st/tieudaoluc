@@ -17099,11 +17099,10 @@
           <span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="g.ico(g.ncSkill, '🪓')"></span>
           <div class="min-w-0">
             <div class="fserif text-[19px] gold-text leading-tight" style="font-weight:700" x-text="'Đốn Ngộ Cảnh · ' + g.ncTenNghe"></div>
-            <div class="text-[11.5px] text-slate-400 mt-0.5">
-              <span x-text="'Trùng Sinh ' + g.ncTs + ' / ' + g.ncTsMax"></span>
-              <span class="text-slate-600"> · </span>
-              <span x-text="'mỗi lần 3 điểm · mua hết bảng cần ' + g.ncMuaHet + ' điểm'"></span>
-            </div>
+            <!-- ⛔ ĐỪNG thêm câu giải thích vào đây. Ban đầu tôi nhét "mỗi lần 3 điểm - mua hết
+                 bảng cần 33 điểm" ngay sau dòng này, user khoanh đỏ ngay. Số điểm đã nằm ở góc
+                 phải, giá từng nút đã nằm trên từng ô. -->
+            <div class="text-[11.5px] text-slate-400 mt-0.5" x-text="'Trùng Sinh ' + g.ncTs + ' / ' + g.ncTsMax"></div>
           </div>
           <div class="ml-auto text-right shrink-0">
             <div class="text-[24px] fserif gold-text leading-none"><span x-text="g.ncDiem"></span><span class="text-[14px] text-slate-500"> / <span x-text="g.ncDiemTong"></span></span></div>
@@ -17116,10 +17115,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4">
           <template x-for="nh in g.ncNhanhs" :key="nh.key">
             <div class="rounded-xl p-3" style="background:#0b1120;border:1px solid #1e293b">
-              <div class="flex items-baseline gap-2 mb-2.5">
-                <div class="fserif text-[14px]" :style="'color:' + nh.mau" x-text="nh.ten"></div>
-                <div class="text-[11px] text-slate-500" x-text="nh.mo"></div>
-              </div>
+              <!-- ⛔ Chỉ TÊN nhánh. Câu tả kiểu "lấy được nhiều hơn" đã bỏ — chín ô bên dưới
+                   đã nói rõ từng nút làm gì. -->
+              <div class="fserif text-[14px] mb-2.5" :style="'color:' + nh.mau" x-text="nh.ten"></div>
               <div class="space-y-2">
                 <template x-for="n in nh.nut" :key="n.id">
                   <button @click="n.muaDuoc && g.ncMua(n.id)" :disabled="!n.muaDuoc"
