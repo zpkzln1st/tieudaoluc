@@ -35,9 +35,11 @@ Màn Giám Sát là màn RIÊNG, mở từ Cài Đặt: sổ nghi vấn, chi ti�
 
 ---
 
-## 2. LỖI ĐANG CÓ — SỬA TRONG ĐỢT 1
+## 2. LỖI ĐANG CÓ — ĐÃ SỬA Ở ĐỢT 1
 
-**Hộp quà `diemSuKien` phát đi là mất trắng.** Ràng buộc `qua_hop_le` cho phép khoá `diemSuKien`. Hàm `nhanQuaChoSan` (`src/main.js:1742`) chỉ cộng `bac`, `honThach`, `nguyenBao`. Máy chủ đánh dấu `nhan_luc` xong mà người chơi không nhận được gì. Sửa: cộng `diemSuKien` vào `state.suKien.diem` và thêm ô nhập thứ tư.
+**Hộp quà `diemSuKien` phát đi là mất trắng.** Ràng buộc `qua_hop_le` cho phép khoá `diemSuKien`. Hàm `nhanQuaChoSan` chỉ cộng `bac`, `honThach`, `nguyenBao`. Máy chủ đánh dấu `nhan_luc` xong mà người chơi không nhận được gì.
+
+Đã vá: đường nhận cộng qua `congDiem`, tab Hộp Quà có ô nhập thứ tư. Bài kiểm chốt cứng cả bốn khoá ở cả hai đường.
 
 ---
 
@@ -254,7 +256,7 @@ Trong khoảng mốc bảo trì:
 
 | Đợt | Gồm | Chạy lại SQL |
 |---|---|---|
-| 1 | A1 A2 A3 A4 · B1 B2 · D2 · vá lỗi `diemSuKien` | chỉ thêm view `nguoi_choi_gom` |
+| 1 ✅ | A1 A2 A3 A4 · B1 B2 · D2 · vá lỗi `diemSuKien` | `docs/SQL_LENH_BAI_2.sql` |
 | 2 | C1 · E (cáo thị + thư riêng) | có |
 | 3 | D1 D3 · G1 G2 | có |
 | 4 | C2 C3 (mã đổi quà) | có |

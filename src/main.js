@@ -80,10 +80,10 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
-import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien } from './engine/sukien.js';
+import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { batNgonNgu } from './i18n.js';       // lớp phủ dịch EN/ZH — từ điển chỉ nạp khi khác 'vi'
@@ -1536,7 +1536,11 @@ const gameStore = {
   //   Ai sửa mã client cũng bật được panel, nhưng không có token đúng uid tác giả thì mọi lệnh
   //   ghi ở đây đều bị RLS phía Supabase từ chối.
   lbMo: false, lbTab: 'suKien', lbTai: false, lbLoi: '',
-  lbRows: [], lbKhoa: [], lbQuaUid: '', lbQuaBac: 0, lbQuaHonThach: 0, lbQuaNguyenBao: 0, lbQuaLoiNhan: '', lbKhoaUid: '', lbKhoaLyDo: '',
+  lbRows: [], lbKhoa: [], lbQuaUid: '', lbQuaBac: 0, lbQuaHonThach: 0, lbQuaNguyenBao: 0, lbQuaDiem: 0, lbQuaLoiNhan: '', lbKhoaUid: '', lbKhoaLyDo: '',
+  // Tab Người Chơi: danh sách từ view `nguoi_choi_gom` (nhẹ), bản lưu đọc riêng khi bấm vào một người.
+  lbNguoi: [], lbNguoiTai: false, lbTimTu: '', lbNguoiChon: null, lbSave: null, lbSaveTai: false,
+  // Tab Nhật Ký: sổ chỉ thêm được của Lệnh Bài.
+  lbNhatKy: [], lbNhatKyTai: false, lbNhatKyLoc: '', lbNhatKyChon: null,
   // ⚠ PHẢI đóng Cài Đặt trước: modal Cài Đặt là z-[70], Lệnh Bài z-[59] — không đóng thì Lệnh Bài
   //   mở BÊN DƯỚI, nhìn như bấm không ăn. Giám Sát cũng vậy (xem openGiamSat).
   openLenhBai() { this.settingsModal = false; this.lbMo = true; this.taiLenhBai(); },
@@ -1548,7 +1552,7 @@ const gameStore = {
     r.mo_luc = this.lbChoOInput(mo.getTime());
     r.dong_luc = this.lbChoOInput(mo.getTime() + 14 * 86400000);
   },
-  dongLenhBai() { this.lbMo = false; },
+  dongLenhBai() { this.lbMo = false; this.lbNguoiChon = null; this.lbSave = null; this.lbNhatKyChon = null; },
   async taiLenhBai() {
     this.lbTai = true; this.lbLoi = '';
     try {
@@ -1563,6 +1567,8 @@ const gameStore = {
       });
       // Danh sách khoá đọc RỜI: bảng khác, luật khác. Lỗi ở đây không được xoá lịch vừa đọc.
       try { const k = await cloudKhoaDs(); if (k.ok) this.lbKhoa = k.rows; } catch (e) {}
+      // Nhật ký đọc NGAY lúc mở, không đợi bấm sang tab: đèn báo lệnh lạ phải sáng từ đầu.
+      try { const nk = await cloudNhatKyDs(100, this.lbNhatKyLoc || null); if (nk.ok) this.lbNhatKy = nk.rows; } catch (e) {}
     } catch (e) { this.lbLoi = 'Không kết nối được.'; }
     finally { this.lbTai = false; }
   },
@@ -1667,11 +1673,12 @@ const gameStore = {
     if (+this.lbQuaBac > 0) noiDung.bac = Math.min(2000000, +this.lbQuaBac);
     if (+this.lbQuaHonThach > 0) noiDung.honThach = Math.min(100000, +this.lbQuaHonThach);
     if (+this.lbQuaNguyenBao > 0) noiDung.nguyenBao = Math.min(10000, +this.lbQuaNguyenBao);
+    if (+this.lbQuaDiem > 0) noiDung.diemSuKien = Math.min(100000, +this.lbQuaDiem);
     if (!Object.keys(noiDung).length) { this.showToast('Hộp quà trống.'); return; }
     const r = await cloudPhatQua(uid, noiDung, this.lbQuaLoiNhan || '');
     if (!r.ok) { this.showToast('Không phát được — ' + r.reason); return; }
     this.showToast('Đã gửi hộp quà.');
-    this.lbQuaUid = ''; this.lbQuaBac = 0; this.lbQuaHonThach = 0; this.lbQuaNguyenBao = 0; this.lbQuaLoiNhan = '';
+    this.lbQuaUid = ''; this.lbQuaBac = 0; this.lbQuaHonThach = 0; this.lbQuaNguyenBao = 0; this.lbQuaDiem = 0; this.lbQuaLoiNhan = '';
   },
   lbKhoaThem() {
     const uid = (this.lbKhoaUid || '').trim();
@@ -1699,6 +1706,99 @@ const gameStore = {
     if (!r.ok) { this.showToast('Không gỡ được.'); return; }
     this.lbKhoa = this.lbKhoa.filter((x) => x.user_id !== uid);
     this.showToast('Đã gỡ khoá.');
+  },
+
+  // ---------- LỆNH BÀI · tab NGƯỜI CHƠI (đợt 2 — view `nguoi_choi_gom`) ----------
+  // ⚠ Danh sách đi qua VIEW KHÔNG có cột `data`. Một dòng save nặng ~120 KB, kéo cả bảng là treo máy.
+  //   Bản lưu chỉ đọc khi bấm đúng một người (lbSoiSave).
+  lbDoiTab(t) {
+    this.lbTab = t;
+    if (t === 'nguoi' && !this.lbNguoi.length) this.lbTaiNguoi();   // tải lười: chưa mở tab thì chưa gọi mạng
+  },
+  async lbTaiNguoi() {
+    this.lbNguoiTai = true;
+    try {
+      const r = await cloudNguoiChoiDs(50);
+      if (r.ok) this.lbNguoi = r.rows;
+      else this.showToast('Không đọc được danh sách — kiểm tra đã chạy SQL_LENH_BAI_2.sql chưa.');
+    } catch (e) { this.showToast('Không kết nối được.'); }
+    finally { this.lbNguoiTai = false; }
+  },
+  async lbTimNguoi() {
+    const t = (this.lbTimTu || '').trim();
+    if (!t) { this.lbTaiNguoi(); return; }              // xoá ô tìm là quay về danh sách gần đây
+    this.lbNguoiTai = true;
+    try { const r = await cloudTimNguoiChoi(t, 30); if (r.ok) this.lbNguoi = r.rows; }
+    catch (e) {} finally { this.lbNguoiTai = false; }
+  },
+  lbTenNguoi(r) { return (r && r.ten) || 'Chưa đặt tên'; },
+  lbDangKhoa(uid) { return (this.lbKhoa || []).some((k) => k.user_id === uid); },
+  lbXemNguoi(uid) {
+    if (this.lbNguoiChon === uid) { this.lbNguoiChon = null; this.lbSave = null; return; }
+    this.lbNguoiChon = uid; this.lbSave = null;         // đổi người thì bỏ bản tóm tắt cũ, kẻo đọc nhầm số
+  },
+  /** Đọc bản lưu MỘT người rồi rút tóm tắt. ⚠ Nặng ~120 KB — chỉ gọi khi bấm nút, đừng gọi trong vòng lặp. */
+  async lbSoiSave(uid) {
+    this.lbSaveTai = true; this.lbSave = null;
+    try {
+      const r = await cloudDocSaveCua(uid);
+      if (!r.ok || !r.row) { this.showToast('Không đọc được bản lưu.'); return; }
+      this.lbSave = this.lbTomTatSave(r.row);
+    } catch (e) { this.showToast('Không đọc được bản lưu.'); }
+    finally { this.lbSaveTai = false; }
+  },
+  /**
+   * Rút số từ bản lưu của người khác.
+   * ⚠⚠ Save là jsonb do MÁY NGƯỜI CHƠI gửi lên. Ô nào cũng có thể thiếu hoặc sai kiểu.
+   *   Đọc phải phòng thủ từng vế — soi một bản lưu hỏng mà ném lỗi là vỡ cả màn Lệnh Bài.
+   */
+  lbTomTatSave(row) {
+    const d = (row && row.data) || {};
+    const so = (v) => (typeof v === 'number' && isFinite(v)) ? v : 0;
+    const sk = (d.skills && typeof d.skills === 'object') ? d.skills : {};
+    const ids = Object.keys(sk);
+    const inv = (d.inventory && typeof d.inventory === 'object') ? d.inventory : {};
+    return {
+      ten: (d.player && d.player.name) || 'Chưa đặt tên',
+      capChienDau: levelFromXp(so(sk.chienDau && sk.chienDau.xp)),
+      capNghe: ids.reduce((t, id) => t + (id === 'chienDau' ? 0 : levelFromXp(so(sk[id] && sk[id].xp))), 0),
+      gioLam: Math.round(ids.reduce((t, id) => t + so(sk[id] && sk[id].timeMs), 0) / 3600000),
+      bac: so(d.currencies && d.currencies.bac),
+      honThach: so(d.currencies && d.currencies.honThach),
+      nguyenBao: so(d.currencies && d.currencies.nguyenBao),
+      diemSuKien: so(d.suKien && d.suKien.diem),
+      soVatPham: Object.keys(inv).length,
+      soTrangBi: Array.isArray(d.gearBag) ? d.gearBag.length : 0,
+      soDanhHieu: (d.titles && Array.isArray(d.titles.owned)) ? d.titles.owned.length : 0,
+      luuLuc: (row && row.updated_at) || null,
+    };
+  },
+  /** Cầm mã tài khoản sang tab khác. Bỏ hẳn việc chép tay chuỗi 36 ký tự. */
+  lbSangQua(uid) { this.lbQuaUid = uid; this.lbTab = 'qua'; },
+  lbSangKhoa(uid) { this.lbKhoaUid = uid; this.lbTab = 'khoa'; },
+
+  // ---------- LỆNH BÀI · tab NHẬT KÝ (sổ chỉ thêm được) ----------
+  async lbTaiNhatKy() {
+    this.lbNhatKyTai = true;
+    try { const r = await cloudNhatKyDs(100, this.lbNhatKyLoc || null); if (r.ok) this.lbNhatKy = r.rows; }
+    catch (e) {} finally { this.lbNhatKyTai = false; }
+  },
+  lbDoiLocNhatKy(v) { this.lbNhatKyLoc = v; this.lbNhatKyChon = null; this.lbTaiNhatKy(); },
+  lbViecChu(v) { return ({ su_kien: 'Sự Kiện', qua_tang: 'Hộp Quà', khoa_tai_khoan: 'Khoá Tài Khoản' })[v] || v; },
+  lbThaoTacChu(v) { return ({ INSERT: 'Thêm', UPDATE: 'Sửa', DELETE: 'Xoá' })[v] || v; },
+  lbChiTietChu(d) { try { return JSON.stringify((d && d.chi_tiet) || {}, null, 1); } catch (e) { return '—'; } },
+  /**
+   * ⚠⚠ ĐÈN BÁO LỆNH LẠ. Toàn bộ quyền của Lệnh Bài treo trên đúng một điều kiện: `auth.uid()` bằng
+   *   uid tác giả. Lộ mật khẩu là mất tất — SQL không vá được chuyện đó. Sổ nhật ký là thứ duy nhất
+   *   còn lại để biết, nên dòng nào do tài khoản khác ra lệnh phải đập vào mắt ngay.
+   */
+  get lbLenhLa() {
+    const uid = (this.author && this.author.uid) || '';
+    return (this.lbNhatKy || []).filter((d) => d.ai && d.ai !== uid).length;
+  },
+  lbLaLenhLa(d) {
+    const uid = (this.author && this.author.uid) || '';
+    return !!(d && d.ai && d.ai !== uid);
   },
 
   // ---------- SỰ KIỆN — đường ĐỌC, chạy cho MỌI người chơi ----------
@@ -1742,6 +1842,10 @@ const gameStore = {
         if (n.bac) this.state.currencies.bac = (this.state.currencies.bac || 0) + n.bac;
         if (n.honThach) this.state.currencies.honThach = (this.state.currencies.honThach || 0) + n.honThach;
         if (n.nguyenBao) this.state.currencies.nguyenBao = (this.state.currencies.nguyenBao || 0) + n.nguyenBao;
+        // ⚠⚠ `diemSuKien` NẰM TRONG DANH SÁCH CHO PHÉP của ràng buộc `qua_hop_le` phía máy chủ.
+        //   Thiếu vế này thì quà điểm phát đi là MẤT TRẮNG: máy chủ đã đánh dấu `nhan_luc`
+        //   (không lùi được) mà người chơi không nhận được gì. Bốn khoá cho phép phải có đủ bốn vế.
+        if (n.diemSuKien) congDiem(this.state, n.diemSuKien);
         ghiQuaDaNhan(this.state, q.id);
         dem++;
         // ⚠⚠ LƯU NGAY SAU TỪNG MÓN, đừng đợi tới cuối vòng lặp và càng đừng đợi autosave.
@@ -1931,8 +2035,20 @@ const gameStore = {
       else this.gsRows = r.rows;
       // Danh sách miễn trừ đọc RỜI: bảng khác, luật khác. Lỗi ở đây không được xoá sổ nghi vấn.
       try { const m = await cloudMienTruDs(); if (m.ok) this.gsMienTru = m.rows.map((x) => x.user_id); } catch (e) {}
+      // Danh sách khoá: nút Khoá ngay trong màn này phải biết ai đang bị khoá rồi.
+      try { const k = await cloudKhoaDs(); if (k.ok) this.lbKhoa = k.rows; } catch (e) {}
     } catch (e) { this.gsLoi = 'Không kết nối được.'; }
     finally { this.gsTai = false; }
+  },
+  /**
+   * Khoá thẳng từ màn Giám Sát — trước đây phải chép mã tài khoản sang Lệnh Bài.
+   * ⚠ Dùng lại `lbKhoaThem` nguyên vẹn: chỗ đó đã chặn tự khoá tài khoản tác giả và đã có hộp xác nhận.
+   */
+  gsKhoaNhanh(uid) {
+    if (!uid) return;
+    this.lbKhoaUid = uid;
+    this.lbKhoaLyDo = 'khoá từ màn Giám Sát';
+    this.lbKhoaThem();
   },
   gsDuocMien(uid) { return (this.gsMienTru || []).includes(uid); },
   /** Bật/tắt miễn trừ cho một tài khoản — cửa thoát hiểm khi chốt chặn oan. */
@@ -1991,6 +2107,10 @@ const gameStore = {
       //   Rẻ: bảng 6 dòng, không cần đăng nhập, hỏng thì taiSuKien tự nuốt lỗi.
       setInterval(() => { this.taiSuKien(); }, 10 * 60 * 1000);
       if (this.authUser) setTimeout(() => { this.nhanQuaChoSan(); }, 4000);
+      // ⚠⚠ Đọc sổ nhật ký một lần lúc vào game, CHỈ với tài khoản tác giả. Đèn báo lệnh lạ mà chỉ
+      //   sáng sau khi tự nhớ mở Lệnh Bài thì phát hiện muộn — mật khẩu lộ là mất cả máy chủ.
+      //   Rẻ: một truy vấn, một tài khoản duy nhất trong cả làng.
+      if (this.isAuthorAccount) setTimeout(() => { this.lbTaiNhatKy(); }, 6000);
     } catch (e) {
       // Không nạp được SDK (mất mạng / CDN bị chặn). Game vẫn chạy offline; riêng người CHƯA có
       // nhân vật thì màn đăng nhập phải nói rõ lý do, đừng bắt họ nhìn form rồi bấm vào hư không.

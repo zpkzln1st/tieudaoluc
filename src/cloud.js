@@ -260,6 +260,69 @@ export async function cloudPhatQua(uid, noiDung, loiNhan) {
   return { ok: true };
 }
 
+// ---- DANH SACH NGUOI CHOI (dot 2 — view `nguoi_choi_gom`, xem docs/SQL_LENH_BAI_2.sql) ----
+/**
+ * Nguoi choi sap theo lan dong bo gan nhat.
+ * ⚠ View KHONG co cot `data`. Muon soi ban luu thi goi `cloudDocSaveCua` cho DUNG MOT nguoi —
+ *   mot dong save nang ~120 KB, keo ca bang ve la treo may.
+ */
+export async function cloudNguoiChoiDs(gioiHan) {
+  const sb = await getClient();
+  const { data, error } = await sb.from('nguoi_choi_gom')
+    .select('user_id,updated_at,last_save,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu')
+    .order('updated_at', { ascending: false })
+    .limit(Math.max(1, Math.min(200, gioiHan || 50)));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+
+/**
+ * Tim nguoi choi theo TEN NHAN VAT.
+ * ⚠ Bo `%` va `_` khoi tu khoa: hai ky tu do la ky tu dai dien cua `ilike`, go vao la khop bua.
+ *   Day khong phai lo bao mat (RLS van giu), chi la ket qua sai y nguoi tim.
+ */
+export async function cloudTimNguoiChoi(tuKhoa, gioiHan) {
+  const t = String(tuKhoa || '').replace(/[%_\\]/g, '').trim();
+  if (!t) return { ok: true, rows: [] };
+  const sb = await getClient();
+  const { data, error } = await sb.from('nguoi_choi_gom')
+    .select('user_id,updated_at,last_save,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu')
+    .ilike('ten', '%' + t + '%')
+    .order('tong_cap', { ascending: false })
+    .limit(Math.max(1, Math.min(100, gioiHan || 30)));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+
+/**
+ * Doc ban luu cua MOT tai khoan — CHI DOC.
+ * ⚠⚠ Nang ~120 KB mot dong. Chi goi khi tac gia bam vao dung mot nguoi, dung goi trong vong lap.
+ * ⚠ Khong co duong nao GHI nguoc lai: bang `saves` khong cap quyen update cho tac gia (co y).
+ */
+export async function cloudDocSaveCua(uid) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { data, error } = await sb.from('saves').select('data,last_save,updated_at')
+    .eq('user_id', uid).maybeSingle();
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, row: data };
+}
+
+// ---- NHAT KY LENH BAI (so chi them duoc) ----
+/**
+ * Doc so nhat ky. Chi tac gia doc duoc (RLS).
+ * ⚠ Bang nay KHONG co luat ghi cho bat ky ai — moi dong deu do trigger security definer ghi vao.
+ */
+export async function cloudNhatKyDs(gioiHan, viec) {
+  const sb = await getClient();
+  let q = sb.from('lenh_bai_nhat_ky').select('id,luc,ai,viec,thao_tac,muc_tieu,chi_tiet');
+  if (viec) q = q.eq('viec', viec);
+  const { data, error } = await q.order('luc', { ascending: false })
+    .limit(Math.max(1, Math.min(300, gioiHan || 100)));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, rows: data || [] };
+}
+
 // ---- KHOA TAI KHOAN ----
 export async function cloudKhoaDs() {
   const sb = await getClient();
