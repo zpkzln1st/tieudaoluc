@@ -1867,7 +1867,17 @@ const gameStore = {
         //   Máy chủ đã đánh dấu `nhan_luc` rồi — đó là việc KHÔNG LÙI ĐƯỢC. Nếu người chơi đóng
         //   tab ngay lúc này thì tiền chỉ nằm trong RAM, mà máy chủ thì coi như đã trả xong.
         //   Món quà bốc hơi vĩnh viễn và không có đường nào đòi lại.
+        // ⚠⚠ DÒNG NÀY PHẢI ĐỨNG SÁT `ghiQuaDaNhan`. Chen bất cứ việc gì vào giữa là mở đường cho
+        //   một lỗi ở đoạn chen làm mất luôn lượt lưu — đúng cái bẫy mất quà nói trên.
         try { Storage.save(this.state); } catch (e) {}
+        // Toast bay qua vài giây rồi mất. Ghi vào chuông để còn xem lại món quà gồm những gì.
+        // Đây cũng là chỗ DUY NHẤT `loi_nhan` hiện ra — tác giả gõ lời nhắn mà không ai đọc thì gõ làm gì.
+        const ke = [];
+        if (n.bac) ke.push('+' + this.fmt(n.bac) + ' Bạc');
+        if (n.honThach) ke.push('+' + this.fmt(n.honThach) + ' Hồn Thạch');
+        if (n.nguyenBao) ke.push('+' + this.fmt(n.nguyenBao) + ' Nguyên Bảo');
+        if (n.diemSuKien) ke.push('+' + this.fmt(n.diemSuKien) + ' Điểm Sự Kiện');
+        this.pushNotif('khac', 'Nhận hộp quà', ke.join(' · ') + (q.loi_nhan ? ' — ' + q.loi_nhan : ''));
       }
       if (dem) this.showToast('Nhận được ' + dem + ' hộp quà.');
       return dem;
@@ -2122,6 +2132,9 @@ const gameStore = {
       //   Rẻ: bảng 6 dòng, không cần đăng nhập, hỏng thì taiSuKien tự nuốt lỗi.
       setInterval(() => { this.taiSuKien(); }, 10 * 60 * 1000);
       if (this.authUser) setTimeout(() => { this.nhanQuaChoSan(); }, 4000);
+      // ⚠ Trước đây quà CHỈ nhận được lúc vào game. Người đang mở tab phải tải lại trang mới thấy —
+      //   tác giả gửi quà xong ngồi đợi mà tưởng hỏng. Đi chung nhịp 10 phút của lịch sự kiện.
+      if (this.authUser) setInterval(() => { this.nhanQuaChoSan(); }, 10 * 60 * 1000);
       // ⚠⚠ Đọc sổ nhật ký một lần lúc vào game, CHỈ với tài khoản tác giả. Đèn báo lệnh lạ mà chỉ
       //   sáng sau khi tự nhớ mở Lệnh Bài thì phát hiện muộn — mật khẩu lộ là mất cả máy chủ.
       //   Rẻ: một truy vấn, một tài khoản duy nhất trong cả làng.
