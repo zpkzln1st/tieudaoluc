@@ -3437,6 +3437,16 @@ const gameStore = {
   ncHienO(skillId) { void this._tick; return this.skillLevel(skillId) >= 100 || soTrungSinh(this.state, skillId) > 0; },
   /** Số lần Trùng Sinh của MỘT nghề bất kỳ (nút ngoài trang nghề đọc cái này, không phải `ncTs`). */
   ncTsCua(skillId) { void this._tick; return soTrungSinh(this.state, skillId); },
+  /**
+   * Bậc Chuyển: 1..6 -> 一二三四五六 và "Nhất Chuyển".."Lục Chuyển".
+   * ⚠ 六 phải có trong chuỗi `&text=` của Noto Serif SC ở <head>. Năm chữ kia đã sẵn.
+   */
+  ncHan(skillId) { return ['', '一', '二', '三', '四', '五', '六'][this.ncTsCua(skillId)] || ''; },
+  ncTenChuyen(skillId) {
+    return ['', 'Nhất Chuyển', 'Nhị Chuyển', 'Tam Chuyển', 'Tứ Chuyển', 'Ngũ Chuyển', 'Lục Chuyển'][this.ncTsCua(skillId)] || '';
+  },
+  /** Kiểu huy hiệu người chơi chọn ở Cài Đặt. */
+  get ncHuyHieuClass() { return this.caiDat.huyHieuChuyen === 'kimVong' ? 'kim-vong' : 'an-son'; },
   /** Ba nhánh, mỗi nhánh các nút kèm bậc hiện tại và lý do khoá. */
   get ncNhanhs() {
     void this._tick;
