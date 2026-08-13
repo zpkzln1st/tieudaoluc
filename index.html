@@ -17090,7 +17090,7 @@
     <div class="fixed inset-0 z-[92] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-5"
          @click.self="$store.game.closeNgoCanh()" @keydown.escape.window="$store.game.closeNgoCanh()"
          x-data="{ get g(){ return $store.game } }">
-      <div class="panel rounded-2xl w-[960px] max-w-full border border-amber-600/40 shadow-2xl overflow-hidden" @click.stop
+      <div class="panel rounded-2xl w-[1100px] max-w-full border border-amber-600/40 shadow-2xl overflow-hidden" @click.stop
            style="box-shadow:0 30px 90px -20px rgba(0,0,0,.9)">
 
         <!-- HÀNG ĐẦU: tên nghề · số lần Trùng Sinh · điểm -->
@@ -17112,31 +17112,44 @@
         </div>
 
         <!-- BA NHÁNH -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4">
+        <!-- ⚠ Chín ô phải BẰNG NHAU. Câu hiệu lực dài ngắn khác nhau (Điểm Mộc Thành Kim xuống
+             hai dòng) nên để ô tự co là bảng so le ngay. Ba cột `items-stretch`, mỗi cột chia
+             ĐÚNG BA HÀNG bằng nhau, nút `h-full`. -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 items-stretch">
           <template x-for="nh in g.ncNhanhs" :key="nh.key">
-            <div class="rounded-xl p-3" style="background:#0b1120;border:1px solid #1e293b">
+            <div class="rounded-xl p-3 flex flex-col" style="background:#0b1120;border:1px solid #1e293b">
               <!-- ⛔ Chỉ TÊN nhánh. Câu tả kiểu "lấy được nhiều hơn" đã bỏ — chín ô bên dưới
                    đã nói rõ từng nút làm gì. -->
               <div class="fserif text-[14px] mb-2.5" :style="'color:' + nh.mau" x-text="nh.ten"></div>
-              <div class="space-y-2">
+              <div class="flex-1 grid gap-2" style="grid-template-rows:repeat(3,minmax(0,1fr))">
                 <template x-for="n in nh.nut" :key="n.id">
                   <button @click="n.muaDuoc && g.ncMua(n.id)" :disabled="!n.muaDuoc"
-                    class="w-full text-left rounded-lg px-2.5 py-2 border transition"
+                    class="h-full w-full text-left rounded-lg px-2.5 py-2 border transition flex items-center gap-2.5"
                     :class="n.khoa ? 'border-slate-800 opacity-45 cursor-not-allowed'
                           : (n.bac ? 'border-slate-700' : (n.muaDuoc ? 'border-slate-700 hover:border-jade/60 hover:bg-jade/5' : 'border-slate-800 opacity-60 cursor-not-allowed'))"
                     :style="n.bac ? ('background:radial-gradient(70% 130% at 12% 50%, color-mix(in srgb,' + nh.mau + ' 13%,transparent), transparent 68%), #0b1120;border-color:color-mix(in srgb,' + nh.mau + ' 50%,transparent)') : ''">
-                    <span class="flex items-center gap-2">
-                      <b class="text-[13px] fserif" :style="n.bac ? ('color:' + nh.mau) : ''" :class="n.bac ? '' : 'text-slate-200'" x-text="n.ten"></b>
-                      <span class="ml-auto shrink-0 text-[10.5px] px-1.5 py-0.5 rounded-full border border-slate-700 text-slate-400"
-                        x-text="n.gia + ' điểm' + (n.max > 1 ? '/bậc' : '')"></span>
+                    <!-- Art MƯỢN của Tín Vật (images/tinvat). Chưa có art riêng cho chín nút này;
+                         mượn còn hơn để ô trống hoặc trám bằng chữ. Vẽ xong thì đổi `art` ở data. -->
+                    <span class="w-[38px] h-[38px] shrink-0 rounded-full overflow-hidden grid place-items-center"
+                      :style="'border:1.5px solid ' + (n.bac ? 'color-mix(in srgb,' + nh.mau + ' 60%,transparent)' : '#1e293b') + ';background:#080d16'">
+                      <img loading="lazy" decoding="async" :src="'images/' + n.art + '.webp'" alt=""
+                        class="w-[78%] h-[78%] object-contain" :class="n.bac ? '' : 'grayscale-0 opacity-80'"
+                        onerror="this.style.display='none'">
                     </span>
-                    <span class="block text-[11.5px] text-slate-400 mt-1 leading-snug" x-text="n.khoa || n.eff"></span>
-                    <span class="flex items-center gap-1 mt-1.5">
-                      <template x-for="i in n.max" :key="i">
-                        <i class="inline-block w-[7px] h-[7px] rounded-full"
-                           :style="i <= n.bac ? ('background:' + nh.mau + ';box-shadow:0 0 5px -1px ' + nh.mau) : 'background:#1e293b'"></i>
-                      </template>
-                      <span class="text-[10px] text-slate-500 ml-1" x-text="n.bac + '/' + n.max"></span>
+                    <span class="min-w-0 flex-1">
+                      <span class="flex items-center gap-2">
+                        <b class="text-[13px] fserif" :style="n.bac ? ('color:' + nh.mau) : ''" :class="n.bac ? '' : 'text-slate-200'" x-text="n.ten"></b>
+                        <span class="ml-auto shrink-0 text-[10.5px] px-1.5 py-0.5 rounded-full border border-slate-700 text-slate-400"
+                          x-text="n.gia + ' điểm' + (n.max > 1 ? '/bậc' : '')"></span>
+                      </span>
+                      <span class="block text-[11.5px] text-slate-400 mt-1 leading-snug" x-text="n.khoa || n.eff"></span>
+                      <span class="flex items-center gap-1 mt-1.5">
+                        <template x-for="i in n.max" :key="i">
+                          <i class="inline-block w-[7px] h-[7px] rounded-full"
+                             :style="i <= n.bac ? ('background:' + nh.mau + ';box-shadow:0 0 5px -1px ' + nh.mau) : 'background:#1e293b'"></i>
+                        </template>
+                        <span class="text-[10px] text-slate-500 ml-1" x-text="n.bac + '/' + n.max"></span>
+                      </span>
                     </span>
                   </button>
                 </template>

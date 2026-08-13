@@ -17,30 +17,30 @@ export const DIEM_TRAN = TRUNG_SINH_MAX * DIEM_MOI_LAN;
 // ⚠ Mua hết bảng cần 31 điểm mà chỉ có 18 — CỐ Ý. Không chọn được hết thì mỗi người một hướng.
 export const NGO_CANH_NUT = [
   // ---------- NHÁNH MỘC: lấy được nhiều hơn ----------
-  { id: 'luongDoan', nhanh: 'moc', ten: 'Nhất Đao Lưỡng Đoạn', max: 3, gia: 1,
+  { id: 'luongDoan', nhanh: 'moc', art: 'tinvat/phatMoc', ten: 'Nhất Đao Lưỡng Đoạn', max: 3, gia: 1,
     eff: 'Tăng 15% tỉ lệ nhân đôi vật phẩm khai thác.', khoa: 'nhanDoiPct', moiBac: 15 },
-  { id: 'thanhKim', nhanh: 'moc', ten: 'Điểm Mộc Thành Kim', max: 2, gia: 2,
+  { id: 'thanhKim', nhanh: 'moc', art: 'tinvat/doanhTao', ten: 'Điểm Mộc Thành Kim', max: 2, gia: 2,
     eff: 'Tăng 8% tỉ lệ khai thác ra tài nguyên cao hơn 1 bậc.', khoa: 'vuotBacPct', moiBac: 8 },
-  { id: 'coThu', nhanh: 'moc', ten: 'Cửu Chuyển Đại Thành', max: 1, gia: 4,
+  { id: 'coThu', nhanh: 'moc', art: 'tinvat/thaiDuoc', ten: 'Cửu Chuyển Đại Thành', max: 1, gia: 4,
     eff: 'Tăng 30% sản lượng khi cấp nghề đạt 100.', khoa: 'daiThanhPct', moiBac: 30,
     canNut: 'luongDoan' },   // phải mua đủ 3 bậc Nhất Đao Lưỡng Đoạn
 
   // ---------- NHÁNH TỐC: cày lại nhanh hơn ----------
   // Bậc KHÔNG đổi %, chỉ nới ngưỡng cấp được hưởng: 50 -> 75 -> 100.
-  { id: 'thucLo', nhanh: 'toc', ten: 'Thục Lộ', max: 3, gia: 1,
+  { id: 'thucLo', nhanh: 'toc', art: 'tinvat/thaiKhoang', ten: 'Thục Lộ', max: 3, gia: 1,
     eff: 'Tăng 25% EXP khi cấp nghề dưới {nguong}.', khoa: 'thucLoPct', moiBac: 0,
     pct: 25, nguong: [50, 75, 100] },
-  { id: 'thuThuc', nhanh: 'toc', ten: 'Thủ Thục', max: 3, gia: 1,
+  { id: 'thuThuc', nhanh: 'toc', art: 'tinvat/daLuyen', ten: 'Thủ Thục', max: 3, gia: 1,
     eff: 'Tăng 10% tốc độ khai thác.', khoa: 'tocPct', moiBac: 10 },
-  { id: 'cuuNghiep', nhanh: 'toc', ten: 'Cựu Nghiệp', max: 2, gia: 2,
+  { id: 'cuuNghiep', nhanh: 'toc', art: 'tinvat/phanhNham', ten: 'Cựu Nghiệp', max: 2, gia: 2,
     eff: 'Giảm yêu cầu cấp của mọi việc xuống 15 cấp.', khoa: 'giamCap', moiBac: 15 },
 
   // ---------- NHÁNH ĐẠO: bớt phiền khi reset ----------
-  { id: 'nhiDung', nhanh: 'dao', ten: 'Nhất Tâm Nhị Dụng', max: 2, gia: 2,
+  { id: 'nhiDung', nhanh: 'dao', art: 'tinvat/luyenDan', ten: 'Nhất Tâm Nhị Dụng', max: 2, gia: 2,
     eff: 'Tăng thời gian làm nghề tối đa thêm 3 tiếng.', khoa: 'tranGio', moiBac: 3 },
-  { id: 'voCau', nhanh: 'dao', ten: 'Vô Câu Địa Giới', max: 1, gia: 2,
+  { id: 'voCau', nhanh: 'dao', art: 'tinvat/daTao', ten: 'Vô Câu Địa Giới', max: 1, gia: 2,
     eff: 'Làm được mọi việc của nghề ở bất kỳ vùng nào.', khoa: 'boKhoaVung', moiBac: 1 },
-  { id: 'truyenThua', nhanh: 'dao', ten: 'Truyền Thừa', max: 2, gia: 3,
+  { id: 'truyenThua', nhanh: 'dao', art: 'tinvat/toaQuan', ten: 'Truyền Thừa', max: 2, gia: 3,
     eff: 'Tăng 15% EXP mọi nghề khác.', khoa: 'ngheKhacPct', moiBac: 15 },
 ];
 

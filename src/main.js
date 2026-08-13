@@ -3447,7 +3447,7 @@ const gameStore = {
         const bac = bacNut(this.state, sk, n.id);
         const can = n.canNut ? NGO_CANH_BY_ID[n.canNut] : null;
         const khoa = can && bacNut(this.state, sk, n.canNut) < can.max ? ('Cần ' + can.ten + ' đủ ' + can.max + ' bậc') : '';
-        return { id: n.id, ten: n.ten, gia: n.gia, max: n.max, bac, khoa,
+        return { id: n.id, ten: n.ten, gia: n.gia, max: n.max, bac, khoa, art: n.art,
           eff: nutEffText(n, bac || 1),
           muaDuoc: !khoa && bac < n.max && diem >= n.gia };
       }),
