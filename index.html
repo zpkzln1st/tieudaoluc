@@ -6401,13 +6401,31 @@
               <template x-if="!g.lbLoi && g.lbTab === 'nguoi'">
                 <div class="px-1">
                   <div class="flex items-center gap-2 mb-2">
-                    <input type="text" x-model="g.lbTimTu" @keydown.enter="g.lbTimNguoi()" placeholder="Tên nhân vật"
+                    <input type="text" x-model="g.lbTimTu" @keydown.enter="g.lbTimNguoi()" placeholder="Tên nhân vật hoặc mã tài khoản"
                       class="flex-1 min-w-0 px-2 py-1 rounded bg-black/40 border border-slate-700 text-slate-200 text-[11.5px] focus:border-amber-600/60 outline-none">
                     <button @click="g.lbTimNguoi()" class="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Tìm</button>
                     <button @click="g.lbTimTu=''; g.lbTaiNguoi()" class="shrink-0 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">Gần Đây</button>
                   </div>
                   <template x-if="g.lbNguoiTai"><div class="text-[12px] text-slate-600 text-center py-6">Đang đọc…</div></template>
-                  <template x-if="!g.lbNguoiTai && !g.lbNguoi.length"><div class="text-[12px] text-slate-600 text-center py-6">Không tìm thấy ai.</div></template>
+                  <!-- ⚠ Ba lý do rỗng phải tách ra. Màn hình trắng giống nhau thì không ai đoán được. -->
+                  <template x-if="!g.lbNguoiTai && g.lbNguoiLoi">
+                    <div class="mb-2 px-3 py-2 rounded-lg border border-rose-600/50 bg-rose-950/20 text-[11.5px] text-rose-200" x-text="g.lbNguoiLoi"></div>
+                  </template>
+                  <template x-if="!g.lbNguoiTai && !g.lbNguoiLoi && !g.lbNguoi.length && g.lbTimTu.trim()">
+                    <div class="text-[12px] text-slate-600 text-center py-6">
+                      Không tìm thấy ai.
+                      <div class="text-[10.5px] mt-1">Người chưa bấm Khoe thì chưa có tên. Bấm Gần Đây để hiện mọi tài khoản đã đồng bộ.</div>
+                    </div>
+                  </template>
+                  <template x-if="!g.lbNguoiTai && !g.lbNguoiLoi && !g.lbNguoi.length && !g.lbTimTu.trim()">
+                    <div class="text-[12px] text-slate-600 text-center py-6">
+                      Chưa tài khoản nào đẩy bản lưu lên.
+                      <div class="text-[10.5px] mt-1">Tài khoản mới phải vào game và đợi một lượt đồng bộ mới hiện ở đây.</div>
+                    </div>
+                  </template>
+                  <template x-if="!g.lbNguoiTai && g.lbNguoi.length">
+                    <div class="text-[10.5px] text-slate-600 mb-1.5" x-text="g.lbNguoi.length + ' tài khoản'"></div>
+                  </template>
                   <template x-for="n in g.lbNguoi" :key="n.user_id">
                     <div class="mb-1.5">
                       <button @click="g.lbXemNguoi(n.user_id)" class="w-full text-left px-3 py-2 rounded-lg border transition"

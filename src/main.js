@@ -1538,7 +1538,7 @@ const gameStore = {
   lbMo: false, lbTab: 'suKien', lbTai: false, lbLoi: '',
   lbRows: [], lbKhoa: [], lbQuaUid: '', lbQuaBac: 0, lbQuaHonThach: 0, lbQuaNguyenBao: 0, lbQuaDiem: 0, lbQuaLoiNhan: '', lbKhoaUid: '', lbKhoaLyDo: '',
   // Tab Người Chơi: danh sách từ view `nguoi_choi_gom` (nhẹ), bản lưu đọc riêng khi bấm vào một người.
-  lbNguoi: [], lbNguoiTai: false, lbTimTu: '', lbNguoiChon: null, lbSave: null, lbSaveTai: false,
+  lbNguoi: [], lbNguoiTai: false, lbNguoiLoi: '', lbTimTu: '', lbNguoiChon: null, lbSave: null, lbSaveTai: false,
   // Tab Nhật Ký: sổ chỉ thêm được của Lệnh Bài.
   lbNhatKy: [], lbNhatKyTai: false, lbNhatKyLoc: '', lbNhatKyChon: null,
   // ⚠ PHẢI đóng Cài Đặt trước: modal Cài Đặt là z-[70], Lệnh Bài z-[59] — không đóng thì Lệnh Bài
@@ -1715,21 +1715,36 @@ const gameStore = {
     this.lbTab = t;
     if (t === 'nguoi' && !this.lbNguoi.length) this.lbTaiNguoi();   // tải lười: chưa mở tab thì chưa gọi mạng
   },
+  /**
+   * ⚠⚠ BA LÝ DO danh sách rỗng, và trước đây cả ba ra CÙNG MỘT màn hình trắng:
+   *   1. Chưa chạy docs/SQL_LENH_BAI_2.sql — view chưa tồn tại.
+   *   2. Tài khoản đó chưa đẩy bản lưu lên máy chủ lần nào.
+   *   3. Gõ tên mà người đó chưa bấm Khoe nên chưa có tên.
+   *   Phải nói thẳng lý do, đừng để người dùng ngồi tìm một cái bảng chưa có.
+   */
+  _lbNhanLoi(r) {
+    if (r && r.thieuBang) return 'Chưa chạy docs/SQL_LENH_BAI_2.sql trên Supabase.';
+    return 'Không đọc được danh sách — ' + ((r && r.reason) || 'mất kết nối') + '.';
+  },
   async lbTaiNguoi() {
-    this.lbNguoiTai = true;
+    this.lbNguoiTai = true; this.lbNguoiLoi = '';
     try {
       const r = await cloudNguoiChoiDs(50);
       if (r.ok) this.lbNguoi = r.rows;
-      else this.showToast('Không đọc được danh sách — kiểm tra đã chạy SQL_LENH_BAI_2.sql chưa.');
-    } catch (e) { this.showToast('Không kết nối được.'); }
+      else { this.lbNguoi = []; this.lbNguoiLoi = this._lbNhanLoi(r); }
+    } catch (e) { this.lbNguoi = []; this.lbNguoiLoi = 'Không kết nối được.'; }
     finally { this.lbNguoiTai = false; }
   },
   async lbTimNguoi() {
     const t = (this.lbTimTu || '').trim();
     if (!t) { this.lbTaiNguoi(); return; }              // xoá ô tìm là quay về danh sách gần đây
-    this.lbNguoiTai = true;
-    try { const r = await cloudTimNguoiChoi(t, 30); if (r.ok) this.lbNguoi = r.rows; }
-    catch (e) {} finally { this.lbNguoiTai = false; }
+    this.lbNguoiTai = true; this.lbNguoiLoi = '';
+    try {
+      const r = await cloudTimNguoiChoi(t, 30);
+      if (r.ok) this.lbNguoi = r.rows;
+      else { this.lbNguoi = []; this.lbNguoiLoi = this._lbNhanLoi(r); }
+    } catch (e) { this.lbNguoi = []; this.lbNguoiLoi = 'Không kết nối được.'; }
+    finally { this.lbNguoiTai = false; }
   },
   lbTenNguoi(r) { return (r && r.ten) || 'Chưa đặt tên'; },
   lbDangKhoa(uid) { return (this.lbKhoa || []).some((k) => k.user_id === uid); },

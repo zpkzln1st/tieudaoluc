@@ -262,6 +262,18 @@ export async function cloudPhatQua(uid, noiDung, loiNhan) {
 
 // ---- DANH SACH NGUOI CHOI (dot 2 — view `nguoi_choi_gom`, xem docs/SQL_LENH_BAI_2.sql) ----
 /**
+ * Loi nay la "chua chay tep SQL", khong phai "khong co ai".
+ * ⚠ Hai truong hop nay ra cung mot man hinh trong neu khong tach ra — nguoi dung ngoi tim
+ *   nguoi choi trong khi that ra bang con chua ton tai.
+ * PostgREST tra PGRST205 (khong thay bang trong so do), Postgres tra 42P01 (relation does not exist).
+ */
+function _thieuBang(e) {
+  const ma = (e && e.code) || '';
+  const chu = (e && e.message) || '';
+  return ma === 'PGRST205' || ma === '42P01' || /does not exist|Could not find the table/i.test(chu);
+}
+const _UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/**
  * Nguoi choi sap theo lan dong bo gan nhat.
  * ⚠ View KHONG co cot `data`. Muon soi ban luu thi goi `cloudDocSaveCua` cho DUNG MOT nguoi —
  *   mot dong save nang ~120 KB, keo ca bang ve la treo may.
@@ -272,25 +284,29 @@ export async function cloudNguoiChoiDs(gioiHan) {
     .select('user_id,updated_at,last_save,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu')
     .order('updated_at', { ascending: false })
     .limit(Math.max(1, Math.min(200, gioiHan || 50)));
-  if (error) return { ok: false, reason: error.message };
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
   return { ok: true, rows: data || [] };
 }
 
 /**
- * Tim nguoi choi theo TEN NHAN VAT.
+ * Tim nguoi choi theo TEN NHAN VAT hoac theo MA TAI KHOAN.
+ * ⚠⚠ CHI TIM THEO TEN LA BO SOT. Cot `ten` den tu bang `ho_so_cong_khai`, ma bang do chi co dong
+ *   khi nguoi choi da bam Khoe. Nguoi moi tao nhan vat, chua khoe lan nao, thi `ten` la null —
+ *   `ilike` khong bao gio khop null nen ho bien mat khoi ket qua. Go ma tai khoan phai ra.
  * ⚠ Bo `%` va `_` khoi tu khoa: hai ky tu do la ky tu dai dien cua `ilike`, go vao la khop bua.
- *   Day khong phai lo bao mat (RLS van giu), chi la ket qua sai y nguoi tim.
  */
 export async function cloudTimNguoiChoi(tuKhoa, gioiHan) {
   const t = String(tuKhoa || '').replace(/[%_\\]/g, '').trim();
   if (!t) return { ok: true, rows: [] };
   const sb = await getClient();
-  const { data, error } = await sb.from('nguoi_choi_gom')
-    .select('user_id,updated_at,last_save,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu')
-    .ilike('ten', '%' + t + '%')
+  let q = sb.from('nguoi_choi_gom')
+    .select('user_id,updated_at,last_save,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu');
+  // Chuoi dung khuon uuid thi tim thang theo ma tai khoan; nguoc lai tim theo ten.
+  q = _UUID.test(t) ? q.eq('user_id', t) : q.ilike('ten', '%' + t + '%');
+  const { data, error } = await q
     .order('tong_cap', { ascending: false })
     .limit(Math.max(1, Math.min(100, gioiHan || 30)));
-  if (error) return { ok: false, reason: error.message };
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
   return { ok: true, rows: data || [] };
 }
 
