@@ -109,6 +109,21 @@
     .nh-r .nh-box{ left:auto; right:0; transform:none; }
     .nh-box b{ color:#e2e8f0; }
 
+    /* ===== Huy hiệu số lần Trùng Sinh, dán góc biểu tượng nghề =====
+       Bản đầu là ô chữ nhật bo góc, màu gold phẳng — đọc ra như con số thông báo chưa xem.
+       Nay là ĐỒNG TIỀN: tròn, vành tối tách khỏi art nghề, mặt vàng có gờ sáng trên và bóng
+       dưới, số khắc bằng Lora như mọi con số trang trọng khác trong game. */
+    .nc-ts{ position:absolute; right:-3px; top:-3px; z-index:2;
+      width:15px; height:15px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Lora','Noto Serif SC',serif; font-weight:700; font-size:9.5px; line-height:1;
+      color:#3a2606; letter-spacing:0;
+      background:radial-gradient(circle at 50% 32%, #fff3c4 0%, #f7d070 42%, #d69f2c 74%, #a9741a 100%);
+      box-shadow:0 0 0 1.5px #0b1120, 0 0 0 2.2px rgba(245,185,66,.45),
+                 inset 0 .8px .6px rgba(255,255,255,.85), inset 0 -.8px .6px rgba(90,58,8,.55),
+                 0 1px 4px rgba(0,0,0,.75), 0 0 7px -2px rgba(245,185,66,.9); }
+    .nc-ts.nho{ width:13.5px; height:13.5px; font-size:8.5px; }
+
     /* ===== DẠNG BẢNG THEO LOẠI DANH HIỆU =====================================================
        Mỗi `loai` một DẠNG BẢNG riêng: khung, hình cắt, mặt nền. Lớp `k-*` gắn thêm vào thẻ bọc
        `.dh` qua `titleKieuClass(loai)`; markup bốn chỗ vẽ danh hiệu KHÔNG đổi.
@@ -1317,8 +1332,7 @@
                       <span class="relative w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0">
                         <span class="w-full h-full inline-flex items-center justify-center" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
                         <span x-show="$store.game.ncTsCua(sid) > 0"
-                          class="nc-ts absolute -right-1 -top-1 z-[2] text-[9.5px] font-bold leading-none px-1 py-[1px] rounded-[6px] text-ink"
-                          style="background:linear-gradient(180deg,#fde68a,#d69f2c);box-shadow:0 1px 4px rgba(0,0,0,.7)"
+                          class="nc-ts"
                           :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="$store.game.ncTsCua(sid)"></span>
                       </span>
                       <span class="flex-1" x-text="$store.game.SKILLS[sid].name"></span>
@@ -1811,8 +1825,7 @@
                       <span class="relative w-7 h-7 inline-flex items-center justify-center shrink-0">
                         <span class="w-full h-full inline-flex items-center justify-center" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
                         <span x-show="$store.game.ncTsCua(sid) > 0"
-                          class="nc-ts absolute -right-1 -top-1 z-[2] text-[9px] font-bold leading-none px-1 py-[1px] rounded-[6px] text-ink"
-                          style="background:linear-gradient(180deg,#fde68a,#d69f2c);box-shadow:0 1px 4px rgba(0,0,0,.7)"
+                          class="nc-ts nho"
                           :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="$store.game.ncTsCua(sid)"></span>
                       </span>
                       <span class="text-xs flex-1 text-left truncate" x-text="$store.game.SKILLS[sid].name"></span>
