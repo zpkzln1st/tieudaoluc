@@ -1312,6 +1312,10 @@
                       :class="($store.game.view==='skill' && $store.game.selectedSkill===sid) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
                       <span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
                       <span class="flex-1" x-text="$store.game.SKILLS[sid].name"></span>
+                      <!-- Trùng Sinh rồi thì cấp về 1, nhìn "Lv1" tưởng chưa cày gì. Chip vàng
+                           ✦N đứng cạnh cho biết đã Trùng Sinh mấy lần. Rê chuột ra chữ đầy đủ. -->
+                      <span x-show="$store.game.ncTsCua(sid) > 0" class="text-[10px] px-1 rounded shrink-0 border border-amber-600/50 text-amber-300 bg-amber-500/10"
+                        :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="'✦' + $store.game.ncTsCua(sid)"></span>
                       <span class="text-xs px-1 rounded bg-ink text-jade shrink-0" x-text="'Lv'+$store.game.skillLevel(sid)"></span>
                     </button>
                   </template>
@@ -1800,6 +1804,8 @@
                     <button @click="$store.game.navToSkill(sid)" class="bg-ink3 rounded p-2 flex items-center gap-2 hover:ring-1 hover:ring-jade/40">
                       <span class="w-7 h-7 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(sid, $store.game.SKILLS[sid].icon)"></span>
                       <span class="text-xs flex-1 text-left truncate" x-text="$store.game.SKILLS[sid].name"></span>
+                      <span x-show="$store.game.ncTsCua(sid) > 0" class="text-[10px] text-amber-300 shrink-0"
+                        :title="'Trùng Sinh ' + $store.game.ncTsCua(sid) + ' lần'" x-text="'✦' + $store.game.ncTsCua(sid)"></span>
                       <span class="text-xs text-jade shrink-0" x-text="'Lv'+$store.game.skillLevel(sid)"></span>
                     </button>
                   </template>

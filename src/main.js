@@ -6328,7 +6328,10 @@ function rafLoop() {
       else if (t - s._cycleStart >= CYCLE_MS) { s._cycleStart = t; s.resolveCycle(); } // đếm đủ 8s -> ra vòng
     } else if (s.state.activity) {
       const rep = advance(s.state, now());
-      if (rep && rep.type === 'skill' && rep.cycles > 0 && rep.itemId) s.showLootPop(rep.itemId, rep.cycles);   // online: bắn loot float mỗi khi thu vật phẩm
+      // online: bắn loot float mỗi khi thu vật phẩm. Dùng `soVatPham` (đã gồm phần nhân đôi)
+      // chứ không phải `cycles`, và bắn thêm một ô riêng cho món vượt bậc của Đốn Ngộ Cảnh.
+      if (rep && rep.type === 'skill' && rep.cycles > 0 && rep.itemId) s.showLootPop(rep.itemId, rep.soVatPham || rep.cycles);
+      if (rep && rep.ncVuot > 0 && rep.ncVuotItem) s.showLootPop(rep.ncVuotItem, rep.ncVuot);
       if (rep && rep.arrived && s._teleReturnView) { const v = s._teleReturnView; s._teleReturnView = null; s.navTo(v); }   // Khinh Công tới nơi -> quay lại tab đã bấm "Đổi vùng"
       if (rep && rep.ranOut) s.notifyRanOut(rep);   // hết nguyên liệu -> hoạt động tự dừng, báo rõ lý do
       if (rep && rep.doneLimit) s.notifyDoneLimit(rep);   // làm đủ số lượt đã đặt -> báo xong việc

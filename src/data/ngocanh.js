@@ -18,11 +18,11 @@ export const DIEM_TRAN = TRUNG_SINH_MAX * DIEM_MOI_LAN;
 export const NGO_CANH_NUT = [
   // ---------- NHÁNH MỘC: lấy được nhiều hơn ----------
   { id: 'luongDoan', nhanh: 'moc', art: 'tinvat/phatMoc', ten: 'Nhất Đao Lưỡng Đoạn', max: 3, gia: 1,
-    eff: 'Tăng 15% tỉ lệ nhân đôi vật phẩm khai thác.', khoa: 'nhanDoiPct', moiBac: 15 },
+    eff: 'Tăng {v}% tỉ lệ nhân đôi vật phẩm khai thác.', khoa: 'nhanDoiPct', moiBac: 15 },
   { id: 'thanhKim', nhanh: 'moc', art: 'tinvat/doanhTao', ten: 'Điểm Mộc Thành Kim', max: 2, gia: 2,
-    eff: 'Tăng 8% tỉ lệ khai thác ra tài nguyên cao hơn 1 bậc.', khoa: 'vuotBacPct', moiBac: 8 },
+    eff: 'Tăng {v}% tỉ lệ khai thác ra tài nguyên cao hơn 1 bậc.', khoa: 'vuotBacPct', moiBac: 8 },
   { id: 'coThu', nhanh: 'moc', art: 'tinvat/thaiDuoc', ten: 'Cửu Chuyển Đại Thành', max: 1, gia: 4,
-    eff: 'Tăng 30% sản lượng khi cấp nghề đạt 100.', khoa: 'daiThanhPct', moiBac: 30,
+    eff: 'Tăng {v}% sản lượng khi cấp nghề đạt 100.', khoa: 'daiThanhPct', moiBac: 30,
     canNut: 'luongDoan' },   // phải mua đủ 3 bậc Nhất Đao Lưỡng Đoạn
 
   // ---------- NHÁNH TỐC: cày lại nhanh hơn ----------
@@ -31,17 +31,17 @@ export const NGO_CANH_NUT = [
     eff: 'Tăng 25% EXP khi cấp nghề dưới {nguong}.', khoa: 'thucLoPct', moiBac: 0,
     pct: 25, nguong: [50, 75, 100] },
   { id: 'thuThuc', nhanh: 'toc', art: 'tinvat/daLuyen', ten: 'Thủ Thục', max: 3, gia: 1,
-    eff: 'Tăng 10% tốc độ khai thác.', khoa: 'tocPct', moiBac: 10 },
+    eff: 'Tăng {v}% tốc độ khai thác.', khoa: 'tocPct', moiBac: 10 },
   { id: 'cuuNghiep', nhanh: 'toc', art: 'tinvat/phanhNham', ten: 'Cựu Nghiệp', max: 2, gia: 2,
-    eff: 'Giảm yêu cầu cấp của mọi việc xuống 15 cấp.', khoa: 'giamCap', moiBac: 15 },
+    eff: 'Giảm yêu cầu cấp của mọi việc xuống {v} cấp.', khoa: 'giamCap', moiBac: 15 },
 
   // ---------- NHÁNH ĐẠO: bớt phiền khi reset ----------
   { id: 'nhiDung', nhanh: 'dao', art: 'tinvat/luyenDan', ten: 'Nhất Tâm Nhị Dụng', max: 2, gia: 2,
-    eff: 'Tăng thời gian làm nghề tối đa thêm 3 tiếng.', khoa: 'tranGio', moiBac: 3 },
+    eff: 'Tăng thời gian làm nghề tối đa thêm {v} tiếng.', khoa: 'tranGio', moiBac: 3 },
   { id: 'voCau', nhanh: 'dao', art: 'tinvat/daTao', ten: 'Vô Câu Địa Giới', max: 1, gia: 2,
     eff: 'Làm được mọi việc của nghề ở bất kỳ vùng nào.', khoa: 'boKhoaVung', moiBac: 1 },
   { id: 'truyenThua', nhanh: 'dao', art: 'tinvat/toaQuan', ten: 'Truyền Thừa', max: 2, gia: 3,
-    eff: 'Tăng 15% EXP mọi nghề khác.', khoa: 'ngheKhacPct', moiBac: 15 },
+    eff: 'Tăng {v}% EXP mọi nghề khác.', khoa: 'ngheKhacPct', moiBac: 15 },
 ];
 
 export const NGO_CANH_BY_ID = Object.fromEntries(NGO_CANH_NUT.map((n) => [n.id, n]));
@@ -55,9 +55,17 @@ export const NHANH = {
 /** Tổng điểm cần để mua trọn bảng — tính từ data, đừng gõ tay. */
 export const DIEM_MUA_HET = NGO_CANH_NUT.reduce((s, n) => s + n.gia * n.max, 0);
 
-/** Câu hiệu lực của một nút ở bậc `bac` (0 = chưa mua, hiện câu của bậc 1). */
+/**
+ * Câu hiệu lực của một nút ở bậc `bac`.
+ * ⚠ Trả về SỐ ĐANG CÓ, không phải số mỗi bậc. Mua 3 bậc Nhất Đao Lưỡng Đoạn thì phải đọc ra
+ *   "Tăng 45%", không phải "Tăng 15%" — bắt người chơi tự nhân là sai.
+ *   Chưa mua (bậc 0) thì hiện số của bậc 1, tức thứ nhận được nếu bỏ điểm vào.
+ */
 export function nutEffText(nut, bac) {
-  if (!nut.nguong) return nut.eff;
-  const i = Math.min(Math.max(1, bac) , nut.nguong.length) - 1;
-  return nut.eff.replace('{nguong}', nut.nguong[i]);
+  const n = Math.max(1, bac || 0);
+  if (nut.nguong) {
+    const i = Math.min(n, nut.nguong.length) - 1;
+    return nut.eff.replace('{nguong}', nut.nguong[i]);
+  }
+  return nut.eff.replace('{v}', String(nut.moiBac * n));
 }

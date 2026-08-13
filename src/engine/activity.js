@@ -499,13 +499,13 @@ export function advance(state, now) {
         const i = ds.findIndex((a) => a.id === action.id);
         if (i >= 0 && ds[i + 1] && ds[i + 1].itemId) monCaoHon = ds[i + 1].itemId;
       }
-      let bonusOut = 0, vuotOut = 0;
+      let bonusOut = 0, vuotOut = 0, ncDoiOut = 0;
       for (let i = 0; i < cycles; i++) {
         if (action.inputs) for (const inp of action.inputs) removeItem(state, inp.itemId, inp.qty);
         // Rèn gear (mọi món có .equip, gồm cả legacy tichSao/thietKiem/tichGiap) -> instance ROLL. Sản phẩm khác (thỏi/đan...) -> xếp chồng.
         if (action.itemId) { if (ITEMS[action.itemId] && ITEMS[action.itemId].equip) addGearInstance(state, rollGearInstance(action.itemId, null, rngHam(state, 'renDo'))); else addItem(state, action.itemId, 1); }
         if (yieldPct && i < buffedCycles && rng(state, 'boiSan') < yieldPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
-        if (ncDoiPct && rng(state, 'ncDoi') < ncDoiPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
+        if (ncDoiPct && rng(state, 'ncDoi') < ncDoiPct / 100) { addItem(state, action.itemId, 1); bonusOut++; ncDoiOut++; }
         if (monCaoHon && rng(state, 'ncVuot') < ncVuotPct / 100) { addItem(state, monCaoHon, 1); vuotOut++; }
         addSkillXp(state, act.skillId, gainXp);
         if (skill.stat) addStatXp(state, skill.stat, action.statXp);
@@ -529,7 +529,11 @@ export function advance(state, now) {
       if (action.itemId) state.counters.produced[action.itemId] = (state.counters.produced[action.itemId] || 0) + cycles;
       act.sessionCount += cycles;
       act.lastResolved += advancedMs;   // các đoạn có cycleMs khác nhau -> cộng ms THẬT, không nhân cycles×cycleMs
-      report = { type: 'skill', skillId: act.skillId, itemId: action.itemId, cycles, xp: cycles * gainXp + buffXp, capped: cappedByTime };
+      // ⚠ `soVatPham` KHÁC `cycles`: nhân đôi làm số món vào túi nhiều hơn số vòng. Bảng nổi
+      //   phải đọc số này, không thì cày ra 2 khúc gỗ mà ô nổi vẫn ghi "+1".
+      report = { type: 'skill', skillId: act.skillId, itemId: action.itemId, cycles,
+        soVatPham: cycles + bonusOut, ncDoi: ncDoiOut, ncVuot: vuotOut, ncVuotItem: monCaoHon,
+        xp: cycles * gainXp + buffXp, capped: cappedByTime };
     }
     if (action.needsDoPho && cycles > 0 && state.player && state.player.doPho) { // trừ lượt Đồ Phổ đã dùng
       state.player.doPho[action.itemId] = Math.max(0, (state.player.doPho[action.itemId] || 0) - cycles);
