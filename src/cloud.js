@@ -431,6 +431,70 @@ export async function cloudHoSoXoa(uid) {
   return { ok: true };
 }
 
+// ============================================================
+// MA DOI QUA (dot 5) — bang `ma_qua`, xem docs/SQL_LENH_BAI_5.sql.
+// tu_dong = false: nguoi choi go tay. tu_dong = true: client tu doi khi dang nhap.
+// ============================================================
+
+/**
+ * Doi mot ma. Tra { ok, noiDung } — noiDung null nghia la khong doi duoc.
+ * ⚠⚠ May chu KHONG noi ro vi sao khong doi duoc (sai ma / het luot / het han / da doi roi deu
+ *   tra rong nhu nhau). Phan biet ra la mo duong cho nguoi ta do ma.
+ * ⚠ Ghi "da doi" nam trong ham security definer phia may chu, khong phai o day.
+ */
+export async function cloudDoiMaQua(ma) {
+  const m = String(ma || '').trim().toUpperCase();
+  if (!m) return { ok: false, reason: 'no-ma' };
+  const sb = await getClient();
+  const { data, error } = await sb.rpc('doi_ma_qua', { p_ma: m });
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, noiDung: data || null };
+}
+
+/**
+ * Ma TU DONG dang trong han. Luat RLS chi lo ra loai nay — ma go tay khong ai doc duoc.
+ * ⚠ Khong can dang nhap de doc, nhung doi thi phai (ham doi_ma_qua doi auth.uid()).
+ */
+export async function cloudMaTuDongDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('ma_qua').select('ma,mo_luc,dong_luc').eq('tu_dong', true).limit(20);
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, rows: data || [] };
+}
+
+/** Toan bo ma — chi tac gia doc duoc (RLS). */
+export async function cloudMaQuaDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('ma_qua')
+    .select('ma,noi_dung,luot_toi_da,luot_da_dung,tu_dong,mo_luc,dong_luc,ghi_chu')
+    .order('tao_luc', { ascending: false }).limit(50);
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, rows: data || [] };
+}
+
+export async function cloudMaQuaTao(r) {
+  const sb = await getClient();
+  const { error } = await sb.from('ma_qua').insert({
+    ma: String((r && r.ma) || '').trim().toUpperCase(),
+    noi_dung: (r && r.noiDung) || {},
+    luot_toi_da: Math.max(0, Math.floor((r && r.luotToiDa) || 0)),
+    tu_dong: !!(r && r.tuDong),
+    mo_luc: (r && r.moLuc) ? new Date(r.moLuc).toISOString() : null,
+    dong_luc: (r && r.dongLuc) ? new Date(r.dongLuc).toISOString() : null,
+    ghi_chu: (r && r.ghiChu) || '',
+  });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
+export async function cloudMaQuaXoa(ma) {
+  if (!ma) return { ok: false, reason: 'no-ma' };
+  const sb = await getClient();
+  const { error } = await sb.from('ma_qua').delete().eq('ma', ma);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
 /** So lieu may chu cho tab Thong Ke. Nguoi thuong goi ra so cua chinh ho (RLS). */
 export async function cloudThongKe() {
   const sb = await getClient();

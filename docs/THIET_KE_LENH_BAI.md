@@ -97,7 +97,7 @@ Client dựng mảng rồi `insert` một lệnh. Luật `qua_tang_tac_gia_phat`
 ⚠ Hộp xác nhận ghi rõ SỐ NGƯỜI nhận. Phát nhầm 200 hộp thì phải vào Supabase xoá tay 200 dòng.
 ⚠ Danh sách lấy trong **200 tài khoản đồng bộ gần nhất**. Con số này hiện thẳng trên giao diện.
 
-### C2. Mã Đổi Quà
+### C2. Mã Đổi Quà ✅ đã dựng (`docs/SQL_LENH_BAI_5.sql`)
 ```sql
 create table if not exists public.ma_qua (
   ma            text primary key,          -- chữ HOA, không dấu
@@ -120,11 +120,17 @@ Nội dung dùng lại ràng buộc `qua_hop_le` — cùng danh sách cho phép,
 Hàm `doi_ma_qua(p_ma text)` `security definer` làm bốn việc trong một giao dịch: kiểm mốc, kiểm lượt, ghi `ma_qua_da_doi`, tăng `luot_da_dung`. Trả nội dung hoặc `null`.
 
 ⚠ **Khoá chính kép `(ma, user_id)` là cái chặn đổi hai lần.** Đừng kiểm bằng `select` rồi `insert` — hai người gõ cùng lúc là lọt.
+⚠ `select … for update` khoá dòng lại: hai người gõ cùng lúc không cùng đọc `luot_da_dung` cũ rồi cùng tăng một.
 ⚠ Client nhận xong phải `Storage.save()` NGAY. Cùng lý do với hộp quà: máy chủ đã đánh dấu, đóng tab là mất.
+⚠⚠ **Luật RLS chỉ lộ ra mã TỰ ĐỘNG.** Cho đọc cả mã gõ tay là ai cũng mở bảng điều khiển trình duyệt ra xem hết mã.
+⚠ Máy chủ không nói vì sao mã hỏng. Sai mã, hết lượt, hết hạn, đã đổi rồi — đều trả rỗng như nhau.
+⚠ Nhật ký chỉ ghi INSERT và DELETE. Mỗi lượt đổi đều `update luot_da_dung`; ghi sổ thì một mã phát cho cả làng đẻ ra hàng nghìn dòng.
 
-### C3. Quà đăng nhập theo mốc
-Bảng `qua_moc`: nội dung + `mo_luc` + `dong_luc`. Ai đăng nhập trong khoảng đó nhận đúng một lần.
-Dùng lại `ma_qua_da_doi` với `ma` là khoá của mốc. Không cần bảng thứ hai.
+Người chơi gõ mã ở **Hồ Sơ → khối Khác → Mã Đổi Quà**.
+
+### C3. Quà đăng nhập theo mốc ✅ đã dựng
+Cùng bảng `ma_qua`, cờ `tu_dong`. Client đọc danh sách mã tự động rồi tự đổi — người chơi không phải gõ gì.
+Không đẻ bảng thứ hai: cùng vòng đời, cùng luật, cùng đường nhận.
 
 ### C4. Quà mang vật phẩm và trang bị
 Phải nới `qua_hop_le` thêm khoá `items` (bản đồ mã vật phẩm sang số lượng).
@@ -266,7 +272,7 @@ Trong khoảng mốc bảo trì:
 | 1 ✅ | A1 A2 A3 A4 · B1 B2 · D2 · vá lỗi `diemSuKien` | `docs/SQL_LENH_BAI_2.sql` |
 | 2 ✅ | C1 · E (cáo thị + thư riêng) | `docs/SQL_LENH_BAI_3.sql` |
 | 3 ✅ | D1 D3 · G1 G2 | `docs/SQL_LENH_BAI_4.sql` |
-| 4 | C2 C3 (mã đổi quà) | có |
+| 4 ✅ | C2 C3 (mã đổi quà) | `docs/SQL_LENH_BAI_5.sql` |
 | 5 | F (hệ số máy chủ) · H (bảo trì) | có, kèm sửa `tran_he_so` |
 | 6 | C4 (quà mang vật phẩm) | có |
 

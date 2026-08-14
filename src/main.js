@@ -80,7 +80,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -620,7 +620,7 @@ const gameStore = {
     //   ô thứ nhất có số hiệu 0, mà 0 là giá trị giả — đăng ký thẳng thì vuốt-back
     //   ở đúng ô đầu tiên lại lùi cả tab thay vì đóng bảng.
     ['tbChonMo', 'tbDong'],
-    ['hoSoKhachMo', 'dongHoSoKhach'], ['gsMo', 'dongGiamSat'], ['lbMo', 'dongLenhBai'],
+    ['hoSoKhachMo', 'dongHoSoKhach'], ['gsMo', 'dongGiamSat'], ['lbMo', 'dongLenhBai'], ['mqMo', 'dongMaQua'],
   ],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
@@ -1548,6 +1548,9 @@ const gameStore = {
   lbKhoaHan: 0,
   // Tab Thống Kê: view `thong_ke_may_chu`.
   lbTK: null, lbTKTai: false, lbTKLoi: '',
+  // Tab Mã Quà: bảng `ma_qua`. tuDong = quà tự rơi vào túi, không phải gõ.
+  lbMQDs: [], lbMQTai: false,
+  lbMQ: { ma: '', bac: 0, honThach: 0, nguyenBao: 0, diem: 0, luotToiDa: 1, tuDong: false, moLuc: '', dongLuc: '', ghiChu: '' },
   // Tab Nhật Ký: sổ chỉ thêm được của Lệnh Bài.
   lbNhatKy: [], lbNhatKyTai: false, lbNhatKyLoc: '', lbNhatKyChon: null,
   // ⚠ PHẢI đóng Cài Đặt trước: modal Cài Đặt là z-[70], Lệnh Bài z-[59] — không đóng thì Lệnh Bài
@@ -1857,6 +1860,7 @@ const gameStore = {
     if (t === 'nguoi' && !this.lbNguoi.length) this.lbTaiNguoi();
     if (t === 'caoThi' && !this.lbCTDs.length) this.lbTaiCaoThi();
     if (t === 'thongKe' && !this.lbTK) this.lbTaiThongKe();
+    if (t === 'maQua' && !this.lbMQDs.length) this.lbTaiMaQua();
   },
   /**
    * ⚠⚠ BA LÝ DO danh sách rỗng, và trước đây cả ba ra CÙNG MỘT màn hình trắng:
@@ -1916,6 +1920,74 @@ const gameStore = {
         if (!r.ok) { this.showToast('Không gỡ được — ' + r.reason); return; }
         n.ten = null; n.tong_cap = 0; n.chien_luc = 0;   // dòng vẫn ở đó, chỉ mất phần hồ sơ
         this.showToast('Đã gỡ khỏi Phong Vân Bảng.');
+      },
+    });
+  },
+
+  // ---------- LỆNH BÀI · tab MÃ QUÀ ----------
+  async lbTaiMaQua() {
+    this.lbMQTai = true;
+    try { const r = await cloudMaQuaDs(); if (r.ok) this.lbMQDs = r.rows; else if (r.thieuBang) this.showToast('Chưa chạy docs/SQL_LENH_BAI_5.sql trên Supabase.'); }
+    catch (e) {} finally { this.lbMQTai = false; }
+  },
+  lbMQNhanh() {
+    const mo = new Date(now() + 3600000); mo.setMinutes(0, 0, 0);
+    this.lbMQ.moLuc = this.lbChoOInput(mo.getTime());
+    this.lbMQ.dongLuc = this.lbChoOInput(mo.getTime() + 7 * 86400000);
+  },
+  lbMQKeChu(r) { return this.quaKeChu((r && r.noi_dung) || {}); },
+  lbMQLuotChu(r) {
+    if (!r) return '';
+    return (r.luot_toi_da > 0) ? (this.fmt(r.luot_da_dung || 0) + '/' + this.fmt(r.luot_toi_da) + ' lượt')
+                               : (this.fmt(r.luot_da_dung || 0) + ' lượt · không giới hạn');
+  },
+  lbMQTao() {
+    const q = this.lbMQ;
+    const ma = (q.ma || '').trim().toUpperCase();
+    // ⚠ Khuôn mã chốt cứng ở máy chủ là ^[A-Z0-9_]{3,32}$. Chặn sớm ở đây cho khỏi gõ xong bị từ chối.
+    if (!/^[A-Z0-9_]{3,32}$/.test(ma)) { this.showToast('Mã chỉ gồm chữ hoa, số và gạch dưới, từ 3 tới 32 ký tự.'); return; }
+    const noiDung = {};
+    if (+q.bac > 0) noiDung.bac = Math.min(2000000, +q.bac);
+    if (+q.honThach > 0) noiDung.honThach = Math.min(100000, +q.honThach);
+    if (+q.nguyenBao > 0) noiDung.nguyenBao = Math.min(10000, +q.nguyenBao);
+    if (+q.diem > 0) noiDung.diemSuKien = Math.min(100000, +q.diem);
+    if (!Object.keys(noiDung).length) { this.showToast('Mã chưa có phần thưởng nào.'); return; }
+    // ⚠⚠ Mã TỰ ĐỘNG là quà phát cho cả làng — người chơi không phải làm gì. Hỏi trước.
+    if (q.tuDong) {
+      this.hoiXacNhan({
+        tieuDe: 'Quà Tự Động',
+        loi: 'Mọi người đăng nhập trong khoảng mốc sẽ tự nhận ' + this.quaKeChu(noiDung) + '.',
+        canhBao: 'Người chơi không phải gõ gì. Gỡ mã đi thì ai đã nhận vẫn giữ quà.',
+        nut: 'Tạo Mã', nguy: true,
+        xong: () => { this._lbMQGui(ma, noiDung); },
+      });
+      return;
+    }
+    this._lbMQGui(ma, noiDung);
+  },
+  async _lbMQGui(ma, noiDung) {
+    const q = this.lbMQ;
+    const r = await cloudMaQuaTao({
+      ma, noiDung, luotToiDa: +q.luotToiDa || 0, tuDong: !!q.tuDong,
+      moLuc: q.moLuc || null, dongLuc: q.dongLuc || null, ghiChu: q.ghiChu || '',
+    });
+    if (!r.ok) { this.showToast('Không tạo được — ' + r.reason); return; }
+    this.showToast('Đã tạo mã ' + ma + '.');
+    this.lbMQ = { ma: '', bac: 0, honThach: 0, nguyenBao: 0, diem: 0, luotToiDa: 1, tuDong: false, moLuc: '', dongLuc: '', ghiChu: '' };
+    this.lbTaiMaQua();
+  },
+  lbMQXoa(r) {
+    if (!r || !r.ma) return;
+    this.hoiXacNhan({
+      tieuDe: 'Gỡ Mã',
+      loi: 'Mã ' + r.ma + ' sẽ không đổi được nữa.',
+      canhBao: 'Ai đã đổi rồi thì vẫn giữ quà.',
+      nut: 'Gỡ', nguy: true,
+      xong: async () => {
+        const rr = await cloudMaQuaXoa(r.ma);
+        if (!rr.ok) { this.showToast('Không gỡ được — ' + rr.reason); return; }
+        this.lbMQDs = this.lbMQDs.filter((x) => x.ma !== r.ma);
+        this.showToast('Đã gỡ mã.');
       },
     });
   },
@@ -2025,6 +2097,29 @@ const gameStore = {
     const ng = Math.floor(ms / 86400000), h = Math.floor((ms % 86400000) / 3600000);
     return ng > 0 ? ('Còn ' + ng + ' ngày ' + h + ' giờ') : ('Còn ' + h + ' giờ');
   },
+  /**
+   * Cộng nội dung một hộp quà vào bản lưu.
+   * ⚠⚠ BỐN KHOÁ, khớp đúng danh sách cho phép của ràng buộc `qua_hop_le` phía máy chủ. Thiếu một
+   *   vế là quà khoá đó phát đi mất trắng — máy chủ đã đánh dấu đã trả mà người chơi không được gì.
+   * ⚠ Dùng CHUNG cho hộp quà và mã đổi quà. Hai đường nhận mà cộng khác nhau là chỗ sinh lệch.
+   */
+  _congQua(n) {
+    if (!n) return;
+    if (n.bac) this.state.currencies.bac = (this.state.currencies.bac || 0) + n.bac;
+    if (n.honThach) this.state.currencies.honThach = (this.state.currencies.honThach || 0) + n.honThach;
+    if (n.nguyenBao) this.state.currencies.nguyenBao = (this.state.currencies.nguyenBao || 0) + n.nguyenBao;
+    if (n.diemSuKien) congDiem(this.state, n.diemSuKien);
+  },
+  /** Liệt kê nội dung quà thành một dòng chữ. */
+  quaKeChu(n) {
+    const ke = [];
+    if (!n) return '';
+    if (n.bac) ke.push('+' + this.fmt(n.bac) + ' Bạc');
+    if (n.honThach) ke.push('+' + this.fmt(n.honThach) + ' Hồn Thạch');
+    if (n.nguyenBao) ke.push('+' + this.fmt(n.nguyenBao) + ' Nguyên Bảo');
+    if (n.diemSuKien) ke.push('+' + this.fmt(n.diemSuKien) + ' Điểm Sự Kiện');
+    return ke.join(' · ');
+  },
   /** Nhận hết quà đang chờ. Gọi khi vào game và khi bấm tay. */
   async nhanQuaChoSan() {
     try {
@@ -2036,15 +2131,8 @@ const gameStore = {
         const rr = await cloudNhanQua(q.id);
         if (!rr.ok || !rr.noiDung) continue;       // rỗng = người khác/lần trước đã nhận rồi
         const n = rr.noiDung;
-        if (n.bac) this.state.currencies.bac = (this.state.currencies.bac || 0) + n.bac;
-        if (n.honThach) this.state.currencies.honThach = (this.state.currencies.honThach || 0) + n.honThach;
-        if (n.nguyenBao) this.state.currencies.nguyenBao = (this.state.currencies.nguyenBao || 0) + n.nguyenBao;
-        // ⚠⚠ `diemSuKien` NẰM TRONG DANH SÁCH CHO PHÉP của ràng buộc `qua_hop_le` phía máy chủ.
-        //   Thiếu vế này thì quà điểm phát đi là MẤT TRẮNG: máy chủ đã đánh dấu `nhan_luc`
-        //   (không lùi được) mà người chơi không nhận được gì. Bốn khoá cho phép phải có đủ bốn vế.
-        if (n.diemSuKien) congDiem(this.state, n.diemSuKien);
+        this._congQua(n);
         ghiQuaDaNhan(this.state, q.id);
-        dem++;
         // ⚠⚠ LƯU NGAY SAU TỪNG MÓN, đừng đợi tới cuối vòng lặp và càng đừng đợi autosave.
         //   Máy chủ đã đánh dấu `nhan_luc` rồi — đó là việc KHÔNG LÙI ĐƯỢC. Nếu người chơi đóng
         //   tab ngay lúc này thì tiền chỉ nằm trong RAM, mà máy chủ thì coi như đã trả xong.
@@ -2052,16 +2140,65 @@ const gameStore = {
         // ⚠⚠ DÒNG NÀY PHẢI ĐỨNG SÁT `ghiQuaDaNhan`. Chen bất cứ việc gì vào giữa là mở đường cho
         //   một lỗi ở đoạn chen làm mất luôn lượt lưu — đúng cái bẫy mất quà nói trên.
         try { Storage.save(this.state); } catch (e) {}
+        dem++;
         // Toast bay qua vài giây rồi mất. Ghi vào chuông để còn xem lại món quà gồm những gì.
         // Đây cũng là chỗ DUY NHẤT `loi_nhan` hiện ra — tác giả gõ lời nhắn mà không ai đọc thì gõ làm gì.
-        const ke = [];
-        if (n.bac) ke.push('+' + this.fmt(n.bac) + ' Bạc');
-        if (n.honThach) ke.push('+' + this.fmt(n.honThach) + ' Hồn Thạch');
-        if (n.nguyenBao) ke.push('+' + this.fmt(n.nguyenBao) + ' Nguyên Bảo');
-        if (n.diemSuKien) ke.push('+' + this.fmt(n.diemSuKien) + ' Điểm Sự Kiện');
-        this.pushNotif('khac', 'Nhận hộp quà', ke.join(' · ') + (q.loi_nhan ? ' — ' + q.loi_nhan : ''));
+        this.pushNotif('khac', 'Nhận hộp quà', this.quaKeChu(n) + (q.loi_nhan ? ' — ' + q.loi_nhan : ''));
       }
       if (dem) this.showToast('Nhận được ' + dem + ' hộp quà.');
+      return dem;
+    } catch (e) { return 0; }
+  },
+
+  // ---------- MÃ ĐỔI QUÀ — màn của NGƯỜI CHƠI ----------
+  mqMo: false, mqO: '', mqDangDoi: false, mqKetQua: '',
+  openMaQua() { this.mqMo = true; this.mqO = ''; this.mqKetQua = ''; },
+  dongMaQua() { this.mqMo = false; },
+  /**
+   * Đổi mã người chơi gõ tay.
+   * ⚠⚠ Máy chủ đã đánh dấu "đã đổi" TRƯỚC khi trả nội dung về. Phải `Storage.save` ngay, y hệt
+   *   đường hộp quà — đóng tab lúc này là quà bốc hơi mà máy chủ vẫn coi như đã trả.
+   * ⚠ Máy chủ không nói vì sao hỏng. Đừng đoán hộ nó: một câu duy nhất cho mọi trường hợp.
+   */
+  async doiMaQua() {
+    const m = (this.mqO || '').trim().toUpperCase();
+    if (!m) { this.mqKetQua = 'Chưa nhập mã.'; return; }
+    if (!this.authUser) { this.mqKetQua = 'Phải đăng nhập mới đổi được mã.'; return; }
+    this.mqDangDoi = true; this.mqKetQua = '';
+    try {
+      const r = await cloudDoiMaQua(m);
+      if (!r.ok) { this.mqKetQua = r.thieuBang ? 'Máy chủ chưa mở tính năng này.' : 'Không kết nối được máy chủ.'; return; }
+      if (!r.noiDung) { this.mqKetQua = 'Mã không dùng được.'; return; }
+      this._congQua(r.noiDung);
+      try { Storage.save(this.state); } catch (e) {}
+      const ke = this.quaKeChu(r.noiDung);
+      this.mqKetQua = 'Nhận được ' + ke + '.';
+      this.mqO = '';
+      this.pushNotif('khac', 'Đổi mã quà', ke);
+      this._tick++;
+    } catch (e) { this.mqKetQua = 'Không kết nối được máy chủ.'; }
+    finally { this.mqDangDoi = false; }
+  },
+  /**
+   * Mã TỰ ĐỘNG: quà tự rơi vào túi người đang đăng nhập trong khoảng mốc.
+   * ⚠ Luật RLS chỉ lộ ra mã tự động đang trong hạn, nên danh sách này vốn đã lọc sẵn.
+   * ⚠ Đổi trùng không sao: khoá chính kép phía máy chủ trả rỗng, vòng lặp bỏ qua.
+   */
+  async taiMaTuDong() {
+    if (!this.authUser) return 0;
+    try {
+      const r = await cloudMaTuDongDs();
+      if (!r.ok || !r.rows.length) return 0;
+      let dem = 0;
+      for (const m of r.rows) {
+        const rr = await cloudDoiMaQua(m.ma);
+        if (!rr.ok || !rr.noiDung) continue;         // rỗng = đã đổi rồi, hoặc hết lượt
+        this._congQua(rr.noiDung);
+        try { Storage.save(this.state); } catch (e) {}
+        dem++;
+        this.pushNotif('khac', 'Nhận quà', this.quaKeChu(rr.noiDung));
+      }
+      if (dem) { this.showToast('Nhận được ' + dem + ' phần quà.'); this._tick++; }
       return dem;
     } catch (e) { return 0; }
   },
@@ -2347,6 +2484,9 @@ const gameStore = {
       // ⚠ Trước đây quà CHỈ nhận được lúc vào game. Người đang mở tab phải tải lại trang mới thấy —
       //   tác giả gửi quà xong ngồi đợi mà tưởng hỏng. Đi chung nhịp 10 phút của lịch sự kiện.
       if (this.authUser) setInterval(() => { this.nhanQuaChoSan(); }, 10 * 60 * 1000);
+      // Mã tự động: quà rơi vào túi người đang đăng nhập trong khoảng mốc, không phải gõ gì.
+      if (this.authUser) setTimeout(() => { this.taiMaTuDong(); }, 5000);
+      if (this.authUser) setInterval(() => { this.taiMaTuDong(); }, 10 * 60 * 1000);
       // ⚠⚠ Đọc sổ nhật ký một lần lúc vào game, CHỈ với tài khoản tác giả. Đèn báo lệnh lạ mà chỉ
       //   sáng sau khi tự nhớ mở Lệnh Bài thì phát hiện muộn — mật khẩu lộ là mất cả máy chủ.
       //   Rẻ: một truy vấn, một tài khoản duy nhất trong cả làng.
@@ -2596,6 +2736,7 @@ const gameStore = {
       { ten: 'Thống Kê', mo: true, lam: 'thongKe' },
       { ten: 'Vạn Vật Phổ', mo: true, di: 'collection' },
       { ten: 'Hiệu Ứng', mo: true, lam: 'hieuUng' },
+      { ten: 'Mã Đổi Quà', mo: true, lam: 'maQua' },
       { ten: 'Mã Giới Thiệu' },
     ];
   },
@@ -2604,6 +2745,7 @@ const gameStore = {
     if (m.di) { this.navTo(m.di); return; }
     if (m.lam === 'daily') { this.openDaily(); return; }
     if (m.lam === 'hieuUng') { this.openHieuUng(); return; }
+    if (m.lam === 'maQua') { this.openMaQua(); return; }
     if (m.lam === 'thongKe') { this.openThongKe(); return; }
   },
 
