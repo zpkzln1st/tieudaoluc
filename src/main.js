@@ -1676,6 +1676,48 @@ const gameStore = {
     this.taiSuKien();
     this._tick++;
   },
+  // ---------- LỆNH BÀI · CHỌN VẬT PHẨM CHO HỘP QUÀ (đợt 6) ----------
+  // ⚠ Trần khớp đúng ràng buộc phía máy chủ (docs/SQL_LENH_BAI_7.sql): 10 loại · 999 cái mỗi loại
+  //   · tổng giá trị 2.000.000. Lệch một con số là gõ xong mới bị từ chối.
+  VP_MA_TOI_DA: 10, VP_SL_TOI_DA: 999, VP_TRAN_GIA_TRI: 2000000,
+  lbVPTim: '', lbVPSl: 1, lbQuaItems: {},
+  /** Vật phẩm xếp chồng khớp từ khoá. Trang bị không tặng được nên loại luôn. */
+  get lbVPTimThay() {
+    const t = (this.lbVPTim || '').trim().toLowerCase();
+    if (!t) return [];
+    const ra = [];
+    for (const id of Object.keys(this.ITEMS)) {
+      const v = this.ITEMS[id];
+      if (v.gearId) continue;
+      if (!(v.name || '').toLowerCase().includes(t) && !id.toLowerCase().includes(t)) continue;
+      ra.push({ id, name: v.name, icon: v.icon, value: v.value || 0 });
+      if (ra.length >= 12) break;
+    }
+    return ra;
+  },
+  get lbQuaItemDs() {
+    return Object.keys(this.lbQuaItems).map((id) => ({
+      id, sl: this.lbQuaItems[id],
+      name: (this.ITEMS[id] || {}).name || id,
+      gt: ((this.ITEMS[id] || {}).value || 0) * this.lbQuaItems[id],
+    }));
+  },
+  get lbQuaTongGT() { return this.lbQuaItemDs.reduce((t, x) => t + x.gt, 0); },
+  lbVPThem(id) {
+    const sl = Math.max(1, Math.min(this.VP_SL_TOI_DA, Math.floor(+this.lbVPSl || 1)));
+    if (!this.lbQuaItems[id] && Object.keys(this.lbQuaItems).length >= this.VP_MA_TOI_DA) {
+      this.showToast('Một hộp quà chỉ mang được ' + this.VP_MA_TOI_DA + ' loại vật phẩm.'); return;
+    }
+    const thu = Object.assign({}, this.lbQuaItems, { [id]: sl });
+    const tong = Object.keys(thu).reduce((t, k) => t + ((this.ITEMS[k] || {}).value || 0) * thu[k], 0);
+    if (tong > this.VP_TRAN_GIA_TRI) {
+      this.showToast('Tổng giá trị vượt ' + this.fmt(this.VP_TRAN_GIA_TRI) + ' — người nhận sẽ bị đẩy vào sổ nghi vấn.'); return;
+    }
+    this.lbQuaItems = thu;
+    this.lbVPTim = '';
+  },
+  lbVPBo(id) { const t = Object.assign({}, this.lbQuaItems); delete t[id]; this.lbQuaItems = t; },
+
   /** Bốn ô nhập gộp thành nội dung hộp quà. Rỗng thì trả null. */
   _lbQuaNoiDung() {
     // ⚠ Trần ở đây CHỈ để báo sớm cho dễ chịu. Ràng buộc THẬT nằm ở check constraint của bảng
@@ -1685,10 +1727,12 @@ const gameStore = {
     if (+this.lbQuaHonThach > 0) n.honThach = Math.min(100000, +this.lbQuaHonThach);
     if (+this.lbQuaNguyenBao > 0) n.nguyenBao = Math.min(10000, +this.lbQuaNguyenBao);
     if (+this.lbQuaDiem > 0) n.diemSuKien = Math.min(100000, +this.lbQuaDiem);
+    if (Object.keys(this.lbQuaItems).length) n.items = Object.assign({}, this.lbQuaItems);
     return Object.keys(n).length ? n : null;
   },
   _lbQuaDonO() {
     this.lbQuaUid = ''; this.lbQuaBac = 0; this.lbQuaHonThach = 0; this.lbQuaNguyenBao = 0; this.lbQuaDiem = 0; this.lbQuaLoiNhan = '';
+    this.lbQuaItems = {}; this.lbVPTim = ''; this.lbVPSl = 1;
   },
   /**
    * Nạp danh sách người nhận cho hai nguồn hàng loạt.
@@ -2172,6 +2216,16 @@ const gameStore = {
     if (n.honThach) this.state.currencies.honThach = (this.state.currencies.honThach || 0) + n.honThach;
     if (n.nguyenBao) this.state.currencies.nguyenBao = (this.state.currencies.nguyenBao || 0) + n.nguyenBao;
     if (n.diemSuKien) congDiem(this.state, n.diemSuKien);
+    // ⚠ Bỏ qua mã không còn trong game. Quà cũ phát từ lâu có thể mang mã đã xoá khỏi `items.js`
+    //   — cộng bừa vào hành lý là đẻ ra một ô không có tên, không có art, không bán được.
+    const it = n.items;
+    if (it && typeof it === 'object') {
+      for (const id of Object.keys(it)) {
+        const sl = Math.floor(Number(it[id]) || 0);
+        if (sl <= 0 || !this.ITEMS[id]) continue;
+        this.state.inventory[id] = (this.state.inventory[id] || 0) + sl;
+      }
+    }
   },
   /** Liệt kê nội dung quà thành một dòng chữ. */
   quaKeChu(n) {
@@ -2181,6 +2235,13 @@ const gameStore = {
     if (n.honThach) ke.push('+' + this.fmt(n.honThach) + ' Hồn Thạch');
     if (n.nguyenBao) ke.push('+' + this.fmt(n.nguyenBao) + ' Nguyên Bảo');
     if (n.diemSuKien) ke.push('+' + this.fmt(n.diemSuKien) + ' Điểm Sự Kiện');
+    const it = n.items;
+    if (it && typeof it === 'object') {
+      for (const id of Object.keys(it)) {
+        const t = this.ITEMS[id];
+        ke.push('+' + this.fmt(it[id]) + ' ' + (t ? t.name : id));
+      }
+    }
     return ke.join(' · ');
   },
   /** Nhận hết quà đang chờ. Gọi khi vào game và khi bấm tay. */

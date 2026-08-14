@@ -132,13 +132,22 @@ Người chơi gõ mã ở **Hồ Sơ → khối Khác → Mã Đổi Quà**.
 Cùng bảng `ma_qua`, cờ `tu_dong`. Client đọc danh sách mã tự động rồi tự đổi — người chơi không phải gõ gì.
 Không đẻ bảng thứ hai: cùng vòng đời, cùng luật, cùng đường nhận.
 
-### C4. Quà mang vật phẩm và trang bị
-Phải nới `qua_hop_le` thêm khoá `items` (bản đồ mã vật phẩm sang số lượng).
-⚠ **Danh sách mã vật phẩm hợp lệ nằm trong `src/data/`, Postgres không đọc được.** Hai lối:
-- Sinh danh sách mã vào một bảng `vat_pham_hop_le` bằng `_sinh_sql_tran.mjs`, ràng buộc soi bảng đó.
-- Hoặc chỉ cho phép mã khớp `^[a-zA-Z0-9_]{2,40}$` và chặn số lượng ở 999. Mã sai thì client bỏ qua, không vỡ.
+### C4. Quà mang vật phẩm ✅ đã dựng (`docs/SQL_LENH_BAI_7.sql`, tệp SINH)
+Nới `qua_hop_le` thêm đúng một khoá `items` — bản đồ mã vật phẩm sang số lượng. Vẫn là danh sách CHO PHÉP.
 
-Trang bị thì KHÔNG phát qua hộp quà. Trang bị là thực thể có dòng roll ngẫu nhiên. Muốn tặng thì phát Bạc để người chơi tự mua ở Bách Trang Các.
+**Postgres không đọc được `src/data/items.js`**, nên `_mockup/_covua_wip/_sinh_sql_vatpham.mjs` sinh 378 mã cùng giá trị vào bảng `vat_pham_hop_le`. Thêm vật phẩm mới thì chạy lại bộ sinh.
+
+Chia việc kiểm làm hai tầng, vì **`check` không được chứa truy vấn con**:
+- `qua_hop_le` (immutable) kiểm khuôn dạng: tối đa 10 loại, mỗi loại 1–999, số nguyên.
+- Trigger `kiem_vat_pham_qua` tra bảng: mã phải có thật, tổng giá trị ≤ 2.000.000.
+
+⚠⚠ Trần giá trị 2.000.000 không phải số cho đẹp. Người nhận bán hết chỗ quà ra Bạc; sàn ghi sổ của chốt chống gian lận là 5.000.000. Tặng một món quà rồi đẩy chính người được tặng vào sổ nghi vấn là lỗ hổng của người phát.
+
+⚠ Ở đây dùng `raise exception` LÀ ĐÚNG, khác chốt chống gian lận. Chốt đó phải trả `null` vì lỗi cuốn ngược dòng sổ vừa ghi; còn ở đây không có sổ nào đang ghi, và người ban lệnh cần biết mình vừa gõ sai mã.
+
+⚠ Trang bị KHÔNG phát qua hộp quà — nó là thực thể có dòng roll ngẫu nhiên. Bộ sinh loại 72 mục có `gearId`. Muốn tặng thì phát Bạc để người chơi tự mua ở Bách Trang Các.
+
+⚠ Client bỏ qua mã không còn trong game. Quà cũ mang mã đã xoá mà cộng bừa vào hành lý là đẻ ra một ô không tên, không art, không bán được.
 
 ---
 
@@ -271,9 +280,10 @@ Trong khoảng mốc bảo trì:
 | 3 ✅ | D1 D3 · G1 G2 | `docs/SQL_LENH_BAI_4.sql` |
 | 4 ✅ | C2 C3 (mã đổi quà) | `docs/SQL_LENH_BAI_5.sql` |
 | 5 ✅ | F (hệ số máy chủ) · H (bảo trì) | chạy LẠI `docs/SQL_CHONG_GIAN_LAN.sql` + `docs/SQL_LENH_BAI_6.sql` |
-| 6 | C4 (quà mang vật phẩm) | có |
+| 6 ✅ | C4 (quà mang vật phẩm) | `docs/SQL_LENH_BAI_7.sql` |
 
-Đợt 4 và 5 để sau cùng vì cả hai đụng thẳng vào chốt chống gian lận.
+Cả sáu đợt đã dựng xong. Thứ tự chạy SQL trên Supabase, một lần cho máy chủ mới:
+`SQL_LENH_BAI.sql` → `SQL_GIAM_SAT.sql` → `SQL_CHONG_GIAN_LAN.sql` → `SQL_HO_SO_CONG_KHAI.sql` → `SQL_LENH_BAI_2.sql` → `_3` → `_4` → `_5` → `_6` → `_7`.
 
 ---
 
