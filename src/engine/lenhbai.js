@@ -19,6 +19,7 @@ export function ensureLenhBai(state) {
   if (!s.dem || typeof s.dem !== 'object') s.dem = {};   // ma -> { mo, dong, chiTacGia, ten }
   if (typeof s.docLuc !== 'number') s.docLuc = 0;        // lan doc bang gan nhat
   if (!Array.isArray(s.quaDaNhan)) s.quaDaNhan = [];     // id qua da nhan, chan nhan lai khi doc lai
+  if (!Array.isArray(s.caoThiDaXem)) s.caoThiDaXem = []; // id cao thi da bay, chan bay lai moi nhip doc
   return s;
 }
 
@@ -124,4 +125,17 @@ export function ghiQuaDaNhan(state, id) {
   if (s.quaDaNhan.indexOf(id) >= 0) return;
   s.quaDaNhan.push(id);
   if (s.quaDaNhan.length > QUA_NHO_TOI_DA) s.quaDaNhan.splice(0, s.quaDaNhan.length - QUA_NHO_TOI_DA);
+}
+
+// ---- CAO THI: da bay cho nguoi choi xem chua ----
+// ⚠ Nhip doc chay 10 phut mot lan. Khong nho id da bay thi cu 10 phut mot cai chuong lai keu
+//   voi CUNG mot cao thi, suot ca doi cao thi do.
+export function caoThiDaXem(state, id) {
+  return ensureLenhBai(state).caoThiDaXem.indexOf(id) >= 0;
+}
+export function ghiCaoThiDaXem(state, id) {
+  const s = ensureLenhBai(state);
+  if (s.caoThiDaXem.indexOf(id) >= 0) return;
+  s.caoThiDaXem.push(id);
+  if (s.caoThiDaXem.length > QUA_NHO_TOI_DA) s.caoThiDaXem.splice(0, s.caoThiDaXem.length - QUA_NHO_TOI_DA);
 }

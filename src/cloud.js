@@ -260,6 +260,63 @@ export async function cloudPhatQua(uid, noiDung, loiNhan) {
   return { ok: true };
 }
 
+/**
+ * Phat CUNG MOT hop qua cho nhieu tai khoan trong MOT lenh ghi.
+ * ⚠⚠ Mot lenh chu khong phai vong lap: nua chung that bai thi nua so nguoi co qua, nua khong,
+ *   ma khong co duong nao biet ai da nhan. Postgres cuon nguoc ca me neu co dong nao hong.
+ * ⚠ Trung lap bi bo truoc khi gui — gui hai dong cho cung mot nguoi la ho nhan hai lan.
+ */
+export async function cloudPhatQuaNhieu(uids, noiDung, loiNhan) {
+  const ds = [...new Set((uids || []).filter(Boolean))];
+  if (!ds.length) return { ok: false, reason: 'khong co ai nhan' };
+  const sb = await getClient();
+  const { error } = await sb.from('qua_tang')
+    .insert(ds.map((u) => ({ user_id: u, noi_dung: noiDung || {}, loi_nhan: loiNhan || '' })));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, so: ds.length };
+}
+
+// ============================================================
+// CAO THI (dot 3) — bang `cao_thi`, xem docs/SQL_LENH_BAI_3.sql.
+// Mot bang lam ca hai viec: `muc_tieu` rong la cao thi chung, co uid la thu rieng.
+// ⚠ Luat RLS DA LOC MOC. Nguoi thuong doc ham nay chi ra cai dang trong han — khong can loc lai
+//   o client, va cung khong the doc truoc cai chua toi gio dang.
+// ============================================================
+
+/** Cao thi dang trong han cua chinh minh. KHONG can dang nhap (bao tri phai toi duoc ca khach). */
+export async function cloudCaoThiDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('cao_thi')
+    .select('id,tieu_de,noi_dung,muc,muc_tieu,mo_luc,dong_luc')
+    .order('id', { ascending: false }).limit(30);
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, rows: data || [] };
+}
+
+/** Dang mot cao thi moi. Chi tac gia ghi duoc (RLS chan, khong phai giao dien chan). */
+export async function cloudCaoThiDang(r) {
+  const sb = await getClient();
+  const { error } = await sb.from('cao_thi').insert({
+    tieu_de: (r && r.tieuDe) || '',
+    noi_dung: (r && r.noiDung) || '',
+    muc: (r && r.muc) || 'thuong',
+    muc_tieu: (r && r.mucTieu) || null,
+    mo_luc: (r && r.moLuc) ? new Date(r.moLuc).toISOString() : null,
+    dong_luc: (r && r.dongLuc) ? new Date(r.dongLuc).toISOString() : null,
+  });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
+/** Go mot cao thi. Dong nhat ky van con — so chi them duoc. */
+export async function cloudCaoThiXoa(id) {
+  if (!id) return { ok: false, reason: 'no-id' };
+  const sb = await getClient();
+  const { error } = await sb.from('cao_thi').delete().eq('id', id);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
 // ---- DANH SACH NGUOI CHOI (dot 2 — view `nguoi_choi_gom`, xem docs/SQL_LENH_BAI_2.sql) ----
 /**
  * Loi nay la "chua chay tep SQL", khong phai "khong co ai".

@@ -80,8 +80,8 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs } from './cloud.js';
-import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan } from './engine/lenhbai.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa } from './cloud.js';
+import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
 import { verifyAuthorCert } from './engine/author.js';
@@ -1539,6 +1539,11 @@ const gameStore = {
   lbRows: [], lbKhoa: [], lbQuaUid: '', lbQuaBac: 0, lbQuaHonThach: 0, lbQuaNguyenBao: 0, lbQuaDiem: 0, lbQuaLoiNhan: '', lbKhoaUid: '', lbKhoaLyDo: '',
   // Tab Người Chơi: danh sách từ view `nguoi_choi_gom` (nhẹ), bản lưu đọc riêng khi bấm vào một người.
   lbNguoi: [], lbNguoiTai: false, lbNguoiLoi: '', lbTimTu: '', lbNguoiChon: null, lbSave: null, lbSaveTai: false,
+  // Phát quà hàng loạt: `mot` = một mã tài khoản · `hd7` = vào trong 7 ngày · `tatCa` = mọi tài khoản đọc được.
+  lbQuaNguon: 'mot', lbQuaDs: [], lbQuaDsTai: false,
+  // Tab Cáo Thị: bảng `cao_thi` — muc_tieu rỗng là cáo thị chung, có mã tài khoản là thư riêng.
+  lbCTDs: [], lbCTTai: false,
+  lbCT: { tieuDe: '', noiDung: '', muc: 'thuong', mucTieu: '', moLuc: '', dongLuc: '' },
   // Tab Nhật Ký: sổ chỉ thêm được của Lệnh Bài.
   lbNhatKy: [], lbNhatKyTai: false, lbNhatKyLoc: '', lbNhatKyChon: null,
   // ⚠ PHẢI đóng Cài Đặt trước: modal Cài Đặt là z-[70], Lệnh Bài z-[59] — không đóng thì Lệnh Bài
@@ -1664,21 +1669,132 @@ const gameStore = {
     this.taiSuKien();
     this._tick++;
   },
-  async lbPhatQua() {
-    const uid = (this.lbQuaUid || '').trim();
-    if (!uid) { this.showToast('Thiếu mã tài khoản.'); return; }
+  /** Bốn ô nhập gộp thành nội dung hộp quà. Rỗng thì trả null. */
+  _lbQuaNoiDung() {
     // ⚠ Trần ở đây CHỈ để báo sớm cho dễ chịu. Ràng buộc THẬT nằm ở check constraint của bảng
     //   `qua_tang` — quà vượt trần sẽ đẩy chính người được tặng vào sổ nghi vấn.
-    const noiDung = {};
-    if (+this.lbQuaBac > 0) noiDung.bac = Math.min(2000000, +this.lbQuaBac);
-    if (+this.lbQuaHonThach > 0) noiDung.honThach = Math.min(100000, +this.lbQuaHonThach);
-    if (+this.lbQuaNguyenBao > 0) noiDung.nguyenBao = Math.min(10000, +this.lbQuaNguyenBao);
-    if (+this.lbQuaDiem > 0) noiDung.diemSuKien = Math.min(100000, +this.lbQuaDiem);
-    if (!Object.keys(noiDung).length) { this.showToast('Hộp quà trống.'); return; }
-    const r = await cloudPhatQua(uid, noiDung, this.lbQuaLoiNhan || '');
-    if (!r.ok) { this.showToast('Không phát được — ' + r.reason); return; }
-    this.showToast('Đã gửi hộp quà.');
+    const n = {};
+    if (+this.lbQuaBac > 0) n.bac = Math.min(2000000, +this.lbQuaBac);
+    if (+this.lbQuaHonThach > 0) n.honThach = Math.min(100000, +this.lbQuaHonThach);
+    if (+this.lbQuaNguyenBao > 0) n.nguyenBao = Math.min(10000, +this.lbQuaNguyenBao);
+    if (+this.lbQuaDiem > 0) n.diemSuKien = Math.min(100000, +this.lbQuaDiem);
+    return Object.keys(n).length ? n : null;
+  },
+  _lbQuaDonO() {
     this.lbQuaUid = ''; this.lbQuaBac = 0; this.lbQuaHonThach = 0; this.lbQuaNguyenBao = 0; this.lbQuaDiem = 0; this.lbQuaLoiNhan = '';
+  },
+  /**
+   * Nạp danh sách người nhận cho hai nguồn hàng loạt.
+   * ⚠⚠ CHỈ 200 TÀI KHOẢN GẦN NHẤT. Máy chủ đông hơn thì số dư bị bỏ im lặng — nên giao diện phải
+   *   ghi rõ con số, đừng để người ban lệnh tưởng đã phát cho cả làng.
+   */
+  async lbTaiDsNhan() {
+    this.lbQuaDsTai = true;
+    try { const r = await cloudNguoiChoiDs(200); this.lbQuaDs = r.ok ? r.rows : []; }
+    catch (e) { this.lbQuaDs = []; }
+    finally { this.lbQuaDsTai = false; }
+  },
+  lbDoiNguonQua(v) {
+    this.lbQuaNguon = v;
+    if (v !== 'mot' && !this.lbQuaDs.length) this.lbTaiDsNhan();
+  },
+  /** Mã tài khoản sẽ nhận, theo nguồn đang chọn. */
+  get lbQuaNhanDs() {
+    if (this.lbQuaNguon === 'mot') { const u = (this.lbQuaUid || '').trim(); return u ? [u] : []; }
+    const moc = now() - 7 * 86400000;
+    return (this.lbQuaDs || [])
+      .filter((x) => this.lbQuaNguon === 'tatCa' || (x.updated_at && Date.parse(x.updated_at) >= moc))
+      .map((x) => x.user_id);
+  },
+  lbNguonChu(v) { return ({ mot: 'Một Người', hd7: 'Vào Trong 7 Ngày', tatCa: 'Toàn Bộ' })[v] || v; },
+  lbPhatQua() {
+    const ds = this.lbQuaNhanDs;
+    if (!ds.length) { this.showToast(this.lbQuaNguon === 'mot' ? 'Thiếu mã tài khoản.' : 'Không có ai trong danh sách.'); return; }
+    const noiDung = this._lbQuaNoiDung();
+    if (!noiDung) { this.showToast('Hộp quà trống.'); return; }
+    if (ds.length === 1) { this._lbGuiQua(ds, noiDung); return; }
+    // ⚠ Phát hàng loạt là việc không lùi được: gỡ lại phải xoá tay từng dòng. Nói rõ SỐ NGƯỜI.
+    const ke = [];
+    if (noiDung.bac) ke.push(this.fmt(noiDung.bac) + ' Bạc');
+    if (noiDung.honThach) ke.push(this.fmt(noiDung.honThach) + ' Hồn Thạch');
+    if (noiDung.nguyenBao) ke.push(this.fmt(noiDung.nguyenBao) + ' Nguyên Bảo');
+    if (noiDung.diemSuKien) ke.push(this.fmt(noiDung.diemSuKien) + ' Điểm Sự Kiện');
+    this.hoiXacNhan({
+      tieuDe: 'Phát Quà Hàng Loạt',
+      loi: ds.length + ' tài khoản sẽ nhận ' + ke.join(' · ') + '.',
+      canhBao: 'Phát nhầm thì phải vào Supabase xoá tay từng dòng.',
+      nut: 'Phát Cho ' + ds.length + ' Người', nguy: true,
+      xong: () => { this._lbGuiQua(ds, noiDung); },
+    });
+  },
+  async _lbGuiQua(ds, noiDung) {
+    const r = ds.length === 1
+      ? await cloudPhatQua(ds[0], noiDung, this.lbQuaLoiNhan || '')
+      : await cloudPhatQuaNhieu(ds, noiDung, this.lbQuaLoiNhan || '');
+    if (!r.ok) { this.showToast('Không phát được — ' + r.reason); return; }
+    this.showToast(ds.length === 1 ? 'Đã gửi hộp quà.' : ('Đã gửi ' + ds.length + ' hộp quà.'));
+    this._lbQuaDonO();
+  },
+
+  // ---------- LỆNH BÀI · tab CÁO THỊ ----------
+  async lbTaiCaoThi() {
+    this.lbCTTai = true;
+    try { const r = await cloudCaoThiDs(); if (r.ok) this.lbCTDs = r.rows; }
+    catch (e) {} finally { this.lbCTTai = false; }
+  },
+  /** Điền nhanh: đăng từ đầu giờ tới rồi treo đúng 7 ngày. Bỏ cái bẫy quên nhập giờ. */
+  lbCTNhanh() {
+    const mo = new Date(now() + 3600000); mo.setMinutes(0, 0, 0);
+    this.lbCT.moLuc = this.lbChoOInput(mo.getTime());
+    this.lbCT.dongLuc = this.lbChoOInput(mo.getTime() + 7 * 86400000);
+  },
+  lbCTMucChu(m) { return ({ thuong: 'Thường', quan_trong: 'Quan Trọng', bao_tri: 'Bảo Trì' })[m] || m; },
+  lbCTMucMau(m) { return m === 'bao_tri' ? 'text-rose-300' : (m === 'quan_trong' ? 'text-amber-300' : 'text-slate-400'); },
+  lbCTAiNhan(c) { return c && c.muc_tieu ? ('Thư riêng · ' + String(c.muc_tieu).slice(0, 8) + '…') : 'Cả giang hồ'; },
+  lbCTDang() {
+    const c = this.lbCT;
+    if (!c.tieuDe.trim()) { this.showToast('Thiếu tiêu đề.'); return; }
+    if (!c.noiDung.trim()) { this.showToast('Thiếu nội dung.'); return; }
+    // ⚠ Trần độ dài phía máy chủ là 80 và 600. Chặn sớm ở đây cho khỏi mất công gõ rồi bị từ chối.
+    if (c.tieuDe.length > 80) { this.showToast('Tiêu đề quá 80 chữ.'); return; }
+    if (c.noiDung.length > 600) { this.showToast('Nội dung quá 600 chữ.'); return; }
+    if (!c.moLuc || !c.dongLuc) { this.showToast('Thiếu mốc đăng hoặc mốc gỡ — bấm “7 Ngày” để điền nhanh.'); return; }
+    if (Date.parse(c.dongLuc) <= Date.parse(c.moLuc)) { this.showToast('Mốc gỡ phải sau mốc đăng.'); return; }
+    if (c.mucTieu.trim()) { this._lbCTGui(); return; }             // thư riêng: chỉ một người đọc
+    this.hoiXacNhan({
+      tieuDe: 'Đăng Cho Cả Giang Hồ',
+      loi: '“' + c.tieuDe.trim() + '” sẽ hiện với mọi người chơi từ ' + c.moLuc.replace('T', ' ') + ' tới ' + c.dongLuc.replace('T', ' ') + '.',
+      canhBao: 'Việc này ghi vào nhật ký, không xoá được.',
+      nut: 'Đăng', nguy: true,
+      xong: () => { this._lbCTGui(); },
+    });
+  },
+  async _lbCTGui() {
+    const c = this.lbCT;
+    const r = await cloudCaoThiDang({
+      tieuDe: c.tieuDe.trim(), noiDung: c.noiDung.trim(), muc: c.muc,
+      mucTieu: c.mucTieu.trim() || null, moLuc: c.moLuc, dongLuc: c.dongLuc,
+    });
+    if (!r.ok) { this.showToast('Không đăng được — ' + r.reason); return; }
+    this.showToast('Đã đăng cáo thị.');
+    this.lbCT = { tieuDe: '', noiDung: '', muc: 'thuong', mucTieu: '', moLuc: '', dongLuc: '' };
+    this.lbTaiCaoThi();
+    this.taiCaoThi();                                // đọc lại ngay cho chính mình thấy hiệu lực
+  },
+  lbCTXoa(c) {
+    if (!c || !c.id) return;
+    this.hoiXacNhan({
+      tieuDe: 'Gỡ Cáo Thị',
+      loi: '“' + (c.tieu_de || '') + '” sẽ biến mất khỏi màn hình mọi người chơi.',
+      canhBao: 'Ai đã đọc rồi thì vẫn còn dòng trong chuông của họ.',
+      nut: 'Gỡ', nguy: true,
+      xong: async () => {
+        const r = await cloudCaoThiXoa(c.id);
+        if (!r.ok) { this.showToast('Không gỡ được — ' + r.reason); return; }
+        this.lbCTDs = this.lbCTDs.filter((x) => x.id !== c.id);
+        this.showToast('Đã gỡ cáo thị.');
+      },
+    });
   },
   lbKhoaThem() {
     const uid = (this.lbKhoaUid || '').trim();
@@ -1713,7 +1829,9 @@ const gameStore = {
   //   Bản lưu chỉ đọc khi bấm đúng một người (lbSoiSave).
   lbDoiTab(t) {
     this.lbTab = t;
-    if (t === 'nguoi' && !this.lbNguoi.length) this.lbTaiNguoi();   // tải lười: chưa mở tab thì chưa gọi mạng
+    // Tải lười: chưa mở tab thì chưa gọi mạng.
+    if (t === 'nguoi' && !this.lbNguoi.length) this.lbTaiNguoi();
+    if (t === 'caoThi' && !this.lbCTDs.length) this.lbTaiCaoThi();
   },
   /**
    * ⚠⚠ BA LÝ DO danh sách rỗng, và trước đây cả ba ra CÙNG MỘT màn hình trắng:
@@ -1880,6 +1998,33 @@ const gameStore = {
         this.pushNotif('khac', 'Nhận hộp quà', ke.join(' · ') + (q.loi_nhan ? ' — ' + q.loi_nhan : ''));
       }
       if (dem) this.showToast('Nhận được ' + dem + ' hộp quà.');
+      return dem;
+    } catch (e) { return 0; }
+  },
+
+  // ---------- CÁO THỊ — đường ĐỌC, chạy cho MỌI người chơi ----------
+  /**
+   * Đọc cáo thị đang trong hạn rồi bày vào chuông.
+   * ⚠ Luật RLS đã lọc mốc mở và mốc đóng ở máy chủ. Cái chưa tới giờ đăng không đọc được, kể cả
+   *   khi mở bảng điều khiển trình duyệt.
+   * ⚠ Nuốt lỗi: chưa chạy SQL_LENH_BAI_3.sql thì hàm này lỗi, mà lỗi ở đây KHÔNG được làm vỡ
+   *   đường lưu save.
+   * ⚠⚠ `caoThiDaXem` chặn bày lại. Không có nó thì cứ 10 phút chuông lại kêu với CÙNG một cáo thị.
+   */
+  async taiCaoThi() {
+    try {
+      const r = await cloudCaoThiDs();
+      if (!r.ok || !r.rows.length) return 0;
+      let dem = 0;
+      for (const c of r.rows) {
+        if (caoThiDaXem(this.state, c.id)) continue;
+        ghiCaoThiDaXem(this.state, c.id);
+        this.pushNotif('caoThi', c.tieu_de || 'Cáo thị', c.noi_dung || '');
+        // Mức thường chỉ nằm im trong chuông. Hai mức kia đập vào mắt ngay.
+        if (c.muc === 'quan_trong' || c.muc === 'bao_tri') this.showToast(c.tieu_de || 'Cáo thị');
+        dem++;
+      }
+      if (dem) this._tick++;
       return dem;
     } catch (e) { return 0; }
   },
@@ -2126,6 +2271,9 @@ const gameStore = {
       // Lịch sự kiện đọc được KHÔNG CẦN đăng nhập — ai cũng phải biết sự kiện nào đang mở.
       // ⚠ Hoãn 2 giây như đường Phong Vân Bảng: đừng tranh băng thông với lượt kéo save lúc mở game.
       setTimeout(() => { this.taiSuKien(); }, 2000);
+      // Cáo thị đọc được KHÔNG CẦN đăng nhập — thông báo bảo trì phải tới được cả khách.
+      setTimeout(() => { this.taiCaoThi(); }, 3000);
+      setInterval(() => { this.taiCaoThi(); }, 10 * 60 * 1000);
       // ⚠ Đọc LẠI mỗi 10 phút. Không có nhịp này thì lệnh THU của tác giả (đóng ngay vì lỡ ban
       //   nhầm) chỉ tới được người chơi ở lần mở game sau — họ cày tiếp một sự kiện đã bị gỡ.
       //   Cùng nhịp đó cũng làm sự kiện tới giờ mở tự hiện, khỏi bắt người chơi tải lại trang.
@@ -2769,6 +2917,7 @@ const gameStore = {
     { id: 'linhThu',  label: 'Linh Thú',      col: '#14b8a6', art: 'pets',       ic: '🐾', seal: '獸' }, // nav Linh Thú
     { id: 'dongPhu',  label: 'Động Phủ',      col: '#c9a24b', art: 'dongPhu',    ic: '🏠', seal: '府' }, // nav Động Phủ
     { id: 'tienMinh', label: 'Tiên Minh',     col: '#f5b942', art: 'guild',      ic: '🏯', seal: '盟' }, // nav Tiên Minh (images/nav/guild.webp)
+    { id: 'caoThi',   label: 'Cáo Thị',       col: '#f5b942', svg: 'scroll',               seal: '告' }, // thông báo của tác giả (bảng cao_thi)
     { id: 'khac',     label: 'Khác',          col: '#fbbf24', svg: 'star',                 seal: '他' },
     { id: 'sanGD',    label: 'Sàn Giao Dịch', col: '#22d3ee', art: 'market',     ic: '⚖️', seal: '易' }, // nav Sàn Giao Dịch
   ],

@@ -90,10 +90,12 @@ Hàm mới trong `cloud.js`: `cloudNhatKyDs(gioiHan, viec)`. **Không cần SQL 
 
 ## 5. NHÓM C — HỘP QUÀ
 
-### C1. Phát hàng loạt
-Ba nguồn danh sách: chọn tay nhiều người · lấy 50 hạng đầu Phong Vân Bảng · lấy mọi tài khoản có `updated_at` trong 7 ngày.
-Client dựng mảng rồi `insert` một lần. Luật `qua_tang_tac_gia_phat` đã cho phép insert nhiều dòng. **Không cần SQL mới.**
-⚠ Hộp xác nhận phải ghi rõ SỐ NGƯỜI nhận. Phát nhầm 200 hộp thì phải xoá tay 200 dòng.
+### C1. Phát hàng loạt ✅ đã dựng
+Ba nguồn: **Một Người** (mã tài khoản) · **Vào Trong 7 Ngày** · **Toàn Bộ**.
+Client dựng mảng rồi `insert` một lệnh. Luật `qua_tang_tac_gia_phat` đã cho phép insert nhiều dòng. **Không cần SQL mới.**
+⚠ Một lệnh ghi chứ không phải vòng lặp. Nửa chừng hỏng thì Postgres cuốn ngược cả mẻ.
+⚠ Hộp xác nhận ghi rõ SỐ NGƯỜI nhận. Phát nhầm 200 hộp thì phải vào Supabase xoá tay 200 dòng.
+⚠ Danh sách lấy trong **200 tài khoản đồng bộ gần nhất**. Con số này hiện thẳng trên giao diện.
 
 ### C2. Mã Đổi Quà
 ```sql
@@ -161,7 +163,7 @@ create policy "ho_so_tac_gia_xoa" on public.ho_so_cong_khai
 
 ---
 
-## 7. NHÓM E — CÁO THỊ
+## 7. NHÓM E — CÁO THỊ ✅ đã dựng (`docs/SQL_LENH_BAI_3.sql`)
 
 ```sql
 create table if not exists public.cao_thi (
@@ -178,10 +180,13 @@ create table if not exists public.cao_thi (
 Luật đọc: `muc_tieu is null or auth.uid() = muc_tieu`. Chỉ tác giả ghi.
 `muc_tieu` khác null là **thư riêng** — không cần bảng thứ hai.
 
-Client đọc cùng nhịp `setInterval taiSuKien` 10 phút đã có. Cáo thị đã đọc thì ghi id vào bản lưu, không hiện lại.
-Mức `quan_trong` hiện popup một lần. Mức `thuong` hiện chấm đỏ trên biểu tượng thư.
+Client đọc theo nhịp 10 phút riêng. Cáo thị đã đọc thì ghi id vào bản lưu, không bày lại.
+Mọi mức đều vào **chuông thông báo**, nhóm Cáo Thị. Mức `quan_trong` và `bao_tri` hiện thêm một dòng nổi ngay lúc đó.
 
 ⚠ Cáo thị là chữ do tác giả gõ. Bày bằng `x-text`, tuyệt đối không `x-html`.
+⚠ Luật RLS lọc CẢ HAI mốc ở máy chủ. Client tự lọc thì ai mở bảng điều khiển trình duyệt cũng đọc trước được cáo thị chưa tới giờ đăng.
+⚠ Mức `bao_tri` hiện mới chỉ là chữ. Việc tạm ngừng đẩy bản lưu nằm ở đợt 5 (nhóm H).
+⚠ Trang soi dùng lại `--user-data-dir` nên bản lưu sống sót giữa các lượt chụp. Phép kiểm cáo thị phải dùng **id mới mỗi lần chạy**, không thì id cũ nằm sẵn trong `caoThiDaXem` và phép đo báo "không bày lần nào" trong khi mã vẫn đúng.
 
 ---
 
@@ -257,7 +262,7 @@ Trong khoảng mốc bảo trì:
 | Đợt | Gồm | Chạy lại SQL |
 |---|---|---|
 | 1 ✅ | A1 A2 A3 A4 · B1 B2 · D2 · vá lỗi `diemSuKien` | `docs/SQL_LENH_BAI_2.sql` |
-| 2 | C1 · E (cáo thị + thư riêng) | có |
+| 2 ✅ | C1 · E (cáo thị + thư riêng) | `docs/SQL_LENH_BAI_3.sql` |
 | 3 | D1 D3 · G1 G2 | có |
 | 4 | C2 C3 (mã đổi quà) | có |
 | 5 | F (hệ số máy chủ) · H (bảo trì) | có, kèm sửa `tran_he_so` |
