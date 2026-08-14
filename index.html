@@ -6360,27 +6360,65 @@
            (docs/SQL_LENH_BAI.sql): bật được panel mà không có token đúng uid thì mọi lệnh ghi bị từ chối. -->
       <template x-if="$store.game.lbMo">
         <div class="fixed inset-0 z-[59] flex items-center justify-center p-4" style="background:rgba(2,6,12,.86)" @click.self="$store.game.dongLenhBai()" @keydown.escape.window="$store.game.dongLenhBai()">
-          <div class="panel rounded-xl border border-amber-600/35 w-full max-w-[600px] max-h-[86dvh] flex flex-col overflow-hidden" @click.stop x-data="{ get g(){ return $store.game } }">
-            <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 shrink-0">
+          <!-- ⚠⚠ KHUNG CỐ ĐỊNH 880 × 620. Ba dải đầu · tiêu đề mục · chân KHÔNG đổi chiều cao khi
+               chuyển mục, nên khung đứng yên. Chỉ vùng giữa cuộn. Bản cũ co theo nội dung nên mỗi
+               lần bấm sang mục khác là cả tấm nhảy một cái.
+               `max-h`/`max-w` giữ lại cho màn hẹp: máy nhỏ thì co, máy rộng thì đứng đúng 880×620. -->
+          <div class="panel rounded-xl border border-amber-600/35 w-full max-w-[880px] h-[620px] max-h-[86dvh] flex flex-col overflow-hidden" @click.stop x-data="{ get g(){ return $store.game } }">
+            <div class="h-14 shrink-0 flex items-center justify-between gap-3 px-4 border-b border-slate-800">
               <div class="min-w-0">
                 <div class="text-[14px] font-bold text-amber-200 fserif leading-tight">Lệnh Bài</div>
-                <div class="text-[10.5px] text-slate-500">Ban lệnh mở sự kiện · phát quà · khoá tài khoản</div>
+                <div class="text-[10.5px] text-slate-500">Bảng điều khiển máy chủ · tài khoản tác giả</div>
               </div>
-              <button @click="g.dongLenhBai()" class="w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 leading-none shrink-0">✕</button>
+              <div class="flex items-center gap-2 shrink-0">
+                <button @click="g.taiLenhBai()" :disabled="g.lbTai" class="px-2.5 py-1 rounded-lg text-[11.5px] fserif border border-slate-700 text-slate-400 hover:border-slate-500 disabled:opacity-40" x-text="g.lbTai ? 'Đang đọc…' : 'Đọc Lại'"></button>
+                <button @click="g.dongLenhBai()" class="w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 leading-none">✕</button>
+              </div>
             </div>
-            <div class="flex items-center gap-1.5 flex-wrap px-4 py-2 border-b border-slate-800 shrink-0">
-              <template x-for="t in [['suKien','Sự Kiện'],['nguoi','Người Chơi'],['qua','Hộp Quà'],['maQua','Mã Quà'],['caoThi','Cáo Thị'],['heSo','Hệ Số'],['moKhoa','Mở Khoá'],['khoa','Khoá Tài Khoản'],['thongKe','Thống Kê'],['nhatKy','Nhật Ký']]" :key="t[0]">
-                <button @click="g.lbDoiTab(t[0])" class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap inline-flex items-center gap-1"
-                  :class="g.lbTab === t[0] ? 'text-amber-200 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'">
-                  <span x-text="t[1]"></span>
-                  <!-- Chấm đỏ TĨNH: có lệnh do tài khoản khác ban. Xem lbLenhLa. -->
-                  <template x-if="t[0]==='nhatKy' && g.lbLenhLa"><span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span></template>
-                </button>
-              </template>
-              <button @click="g.taiLenhBai()" :disabled="g.lbTai" class="ml-auto px-2.5 py-0.5 rounded-full text-[10.5px] fserif border border-slate-700 text-slate-400 hover:border-slate-500 disabled:opacity-40" x-text="g.lbTai ? 'Đang đọc…' : 'Đọc lại'"></button>
-            </div>
-            <div class="flex-1 min-h-0 overflow-y-auto p-3">
+
+            <div class="flex-1 min-h-0 flex">
+              <!-- CỘT DỌC: mười một mục chia bốn nhóm. Thanh tab ngang phải xuống hai hàng và
+                   đẩy nội dung tụt xuống mỗi lần thêm mục mới. -->
+              <div class="w-[172px] shrink-0 border-r border-slate-800 bg-black/20 overflow-y-auto py-2 px-2">
+                <template x-for="nh in g.LB_NHOM" :key="nh.ten">
+                  <!-- ⚠ `first:` phải đặt ở khối NHÓM chứ không ở cái nhãn: mỗi nhóm là một khối riêng
+                       nên nhãn nào cũng là con đầu của khối mình, và cả bốn nhãn cùng mất lề trên. -->
+                  <div class="mt-3.5 first:mt-0">
+                    <div class="text-[9.5px] tracking-[0.12em] uppercase text-slate-600 px-2 mb-1" x-text="nh.ten"></div>
+                    <template x-for="m in nh.muc" :key="m[0]">
+                      <button @click="g.lbDoiTab(m[0])" class="w-full text-left px-2 py-1.5 rounded-lg text-[12.5px] border transition flex items-center gap-2"
+                        :class="g.lbTab === m[0] ? 'text-amber-200 border-amber-600/45 bg-amber-500/10' : 'text-slate-400 border-transparent hover:bg-slate-500/10'">
+                        <span class="truncate" x-text="m[1]"></span>
+                        <!-- Chấm đỏ TĨNH: có lệnh do tài khoản khác ban. Xem lbLenhLa. -->
+                        <template x-if="m[0]==='nhatKy' && g.lbLenhLa"><span class="ml-auto w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span></template>
+                        <template x-if="g.lbDemMuc(m[0])"><span class="ml-auto text-[10px] text-slate-600 shrink-0" x-text="g.lbDemMuc(m[0])"></span></template>
+                      </button>
+                    </template>
+                  </div>
+                </template>
+              </div>
+
+              <div class="flex-1 min-w-0 flex flex-col">
+                <div class="h-11 shrink-0 flex items-center gap-2.5 px-4 border-b border-slate-800">
+                  <span class="text-[13.5px] font-bold text-slate-200 fserif shrink-0" x-text="g.lbTieuDe.ten"></span>
+                  <span class="text-[10.5px] text-slate-500 truncate" x-text="g.lbTieuDe.phu"></span>
+                </div>
+                <div class="flex-1 min-h-0 overflow-y-auto p-3">
               <template x-if="g.lbLoi"><div class="text-[12px] text-rose-400 text-center py-8" x-text="g.lbLoi"></div></template>
+
+              <!-- ---- GIÁM SÁT ----
+                   Sổ nghi vấn là màn CHỈ ĐỌC, dựng từ đợt C. Giữ nguyên tấm riêng của nó và mở từ đây:
+                   ⚠ nhét nội dung vào đây thì cụm miễn trừ + cụm khoá nhanh phải viết lại, mà chúng
+                   đang chạy đúng — đổi chỗ một màn đang chạy để cho gọn mắt là đánh đổi tồi. -->
+              <template x-if="!g.lbLoi && g.lbTab === 'giamSat'">
+                <div class="px-1">
+                  <div class="px-3 py-2.5 rounded-lg border border-slate-800 bg-black/20">
+                    <div class="text-[12.5px] text-slate-200">Sổ nghi vấn mở ở tấm riêng.</div>
+                    <div class="text-[10.5px] text-slate-500 mt-0.5">Tài khoản vượt trần tốc độ, kèm cửa Miễn Trừ.</div>
+                    <button @click="g.dongLenhBai(); g.gsMo = true; g.taiGiamSat()" class="mt-2 px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Mở Giám Sát</button>
+                  </div>
+                </div>
+              </template>
 
               <!-- ---- SỰ KIỆN ---- -->
               <template x-if="!g.lbLoi && g.lbTab === 'suKien'">
@@ -6914,6 +6952,12 @@
                   <div class="mt-3 text-[10px] text-slate-600 leading-snug">Sổ chỉ thêm được. Không ai xoá được dòng nào, kể cả ngươi.</div>
                 </div>
               </template>
+                </div>
+                <div class="h-11 shrink-0 flex items-center px-4 border-t border-slate-800 bg-black/25">
+                  <span class="text-[10.5px] text-slate-600 truncate" x-text="g.lbTieuDe.chan"></span>
+                  <button @click="g.dongLenhBai()" class="ml-auto shrink-0 px-2.5 py-1 rounded-lg text-[11.5px] fserif border border-slate-700 text-slate-400 hover:border-slate-500">Đóng</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

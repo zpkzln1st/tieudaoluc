@@ -1898,6 +1898,41 @@ const gameStore = {
   // ---------- LỆNH BÀI · tab NGƯỜI CHƠI (đợt 2 — view `nguoi_choi_gom`) ----------
   // ⚠ Danh sách đi qua VIEW KHÔNG có cột `data`. Một dòng save nặng ~120 KB, kéo cả bảng là treo máy.
   //   Bản lưu chỉ đọc khi bấm đúng một người (lbSoiSave).
+  /**
+   * Cột dọc của Lệnh Bài — mười một mục chia bốn nhóm.
+   * ⚠ Thêm mục mới thì thêm vào ĐÂY và vào `LB_TIEU_DE` bên dưới. Hai bảng này là nguồn duy nhất;
+   *   viết tay danh sách ở giao diện là lần sau thêm mục lại quên một chỗ.
+   */
+  LB_NHOM: [
+    { ten: 'Người chơi', muc: [['nguoi', 'Người Chơi'], ['khoa', 'Khoá Tài Khoản'], ['giamSat', 'Giám Sát']] },
+    { ten: 'Ban thưởng', muc: [['qua', 'Hộp Quà'], ['maQua', 'Mã Quà']] },
+    { ten: 'Máy chủ', muc: [['suKien', 'Sự Kiện'], ['caoThi', 'Cáo Thị'], ['heSo', 'Hệ Số'], ['moKhoa', 'Mở Khoá']] },
+    { ten: 'Sổ sách', muc: [['thongKe', 'Thống Kê'], ['nhatKy', 'Nhật Ký']] },
+  ],
+  LB_TIEU_DE: {
+    nguoi:   { ten: 'Người Chơi', phu: 'Tìm theo tên nhân vật hoặc mã tài khoản', chan: 'Bấm một người để mở việc.' },
+    khoa:    { ten: 'Khoá Tài Khoản', phu: 'Chặn đẩy bản lưu lên máy chủ, có hạn hoặc không hạn', chan: 'Dòng hết hạn vẫn nằm lại làm lịch sử vi phạm.' },
+    giamSat: { ten: 'Giám Sát', phu: 'Sổ nghi vấn — tài khoản vượt trần tốc độ', chan: 'Màn chỉ đọc.' },
+    qua:     { ten: 'Hộp Quà', phu: 'Phát cho một người hoặc cả giang hồ', chan: 'Quà tới người chơi ở nhịp đọc mười phút.' },
+    maQua:   { ten: 'Mã Quà', phu: 'Mã gõ tay, hoặc quà tự rơi vào túi theo mốc', chan: 'Mỗi mã một lần cho mỗi tài khoản.' },
+    suKien:  { ten: 'Sự Kiện', phu: 'Ban lệnh mở và thu lệnh sáu lễ trong năm', chan: 'Bảng ghi mốc, không ghi công tắc.' },
+    caoThi:  { ten: 'Cáo Thị', phu: 'Thông báo cho cả giang hồ, hoặc thư riêng một người', chan: 'Cáo thị vào chuông của người chơi.' },
+    heSo:    { ten: 'Hệ Số', phu: 'Nhân kinh nghiệm · tỉ lệ rơi đồ · giá bán, tối đa năm lần', chan: 'Chốt chống gian lận nới trần theo hệ số này.' },
+    moKhoa:  { ten: 'Mở Khoá', phu: 'Số lần Trùng Sinh đang mở cho cả giang hồ', chan: 'Hạ số này không làm tụt cấp ai.' },
+    thongKe: { ten: 'Thống Kê', phu: 'Số liệu máy chủ, đếm theo bản lưu', chan: 'Người chưa đăng nhập lần nào không có mặt.' },
+    nhatKy:  { ten: 'Nhật Ký', phu: 'Sổ chỉ thêm được, không ai xoá nổi', chan: 'Dòng do tài khoản khác ban có viền đỏ.' },
+  },
+  get lbTieuDe() { return this.LB_TIEU_DE[this.lbTab] || { ten: '', phu: '', chan: '' }; },
+  /** Số nhỏ bên phải một mục ở cột dọc. Rỗng thì không hiện gì. */
+  lbDemMuc(t) {
+    void this._tick;
+    if (t === 'khoa') { const n = (this.lbKhoa || []).filter((k) => !this.lbKhoaHetHan(k)).length; return n || ''; }
+    if (t === 'maQua') return (this.lbMQDs || []).length || '';
+    if (t === 'caoThi') return (this.lbCTDs || []).length || '';
+    if (t === 'heSo') return (this.lbHSDs || []).length || '';
+    if (t === 'moKhoa') return this.lbMKChuyen || '';
+    return '';
+  },
   lbDoiTab(t) {
     this.lbTab = t;
     // Tải lười: chưa mở tab thì chưa gọi mạng.
