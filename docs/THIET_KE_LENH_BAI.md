@@ -198,34 +198,31 @@ Mọi mức đều vào **chuông thông báo**, nhóm Cáo Thị. Mức `quan_t
 
 ---
 
-## 8. NHÓM F — HỆ SỐ TOÀN MÁY CHỦ
+## 8. NHÓM F — HỆ SỐ TOÀN MÁY CHỦ ✅ đã dựng (bảng nằm trong `docs/SQL_CHONG_GIAN_LAN.sql`)
 
-```sql
-create table if not exists public.he_so_may_chu (
-  khoa      text primary key,     -- exp | rot_do | gia_ban
-  gia_tri   numeric not null default 1,
-  mo_luc    timestamptz,
-  dong_luc  timestamptz
-);
-```
-Ai cũng đọc. Chỉ tác giả ghi. Client đệm vào bản lưu như đệm mốc sự kiện.
+Bảng `he_so_may_chu`: nhiều dòng, mỗi dòng là một đợt. Ba khoá: `exp` · `rot_do` · `gia_ban`. Trần **×5** chốt cứng ở máy chủ.
 
-### ⚠⚠ BẪY: HỆ SỐ KINH NGHIỆM ĐỤNG TRẦN CHỐNG GIAN LẬN
+### ⚠⚠ BẢNG NÀY PHẢI NẰM TRONG TỆP CHỐT, KHÔNG PHẢI TỆP LỆNH BÀI RIÊNG
 
-Chốt tầng 2 đo `Δxp ≤ (Δthời gian) × xp_mỗi_giây × he_so_an_toan`. `he_so_an_toan` đang là **10**.
-Hệ số nhân kinh nghiệm cao nhất người chơi thật đạt được là **×3,38**. Tỉ lệ chạm trần: 3,38 / 10 = **0,34**.
+Chốt đọc nó ở **mỗi lần ghi bản lưu**. Hàm plpgsql truy vấn một bảng chưa tồn tại thì không nổ lúc tạo hàm — nó nổ **lúc chạy**, và lúc đó là cả làng không lưu được save. Để chung một tệp thì chạy tệp đó là có cả hai, không bao giờ lệch.
 
-| Nhân kinh nghiệm toàn máy chủ | Tỉ lệ chạm trần | Hậu quả |
-|---|---|---|
-| ×2 | 0,68 | an toàn |
-| ×3 | 1,01 | **cả làng bị ghi sổ nghi vấn** |
-| ×10 | 3,38 | **cả làng bị chặn đồng bộ** |
+### Cách giải quyết bẫy trần
 
-⇒ **Nhân kinh nghiệm tối đa ×2 nếu không sửa gì thêm.** Muốn cao hơn thì phải nâng `he_so_an_toan` trong bảng `tran_he_so` TRƯỚC, cùng một tệp SQL, cùng một lần chạy.
+Trước đây bẫy là: bật ×3 thì cả làng bị ghi sổ oan. Nay **chốt tự nhân hệ số vào trần**, nên bật bao nhiêu cũng không oan ai.
 
-Trần tuyệt đối `tran_moi_lan_ghi` = 2.218.261 xp mỗi lần ghi. Cày thật 14 giờ nghề nhanh nhất được 297.000 xp. Nhân đôi thành 594.000, vẫn dưới trần 3,7 lần. Không phải sửa.
+Chốt lấy `max(gia_tri)` của các đợt **giao với khoảng giữa hai lần ghi**, không lấy đợt "đang bật lúc này" — người cày lúc ×2 rồi đồng bộ sau khi đợt đó tắt vẫn phải được tính.
 
-Hệ số rơi đồ và hệ số giá bán KHÔNG đụng trần nào — hai thứ đó không sinh kinh nghiệm.
+Nhân vào **cả hai** trần:
+- trần theo nhịp (`hs := hs * hs_exp`)
+- trần tuyệt đối mỗi lần ghi (`tran_lan := tran_lan * hs_exp`) — thiếu vế này thì một phiên treo 14 giờ ở kỹ năng sự kiện bậc 6 nhân 5 là vượt trần 2.218.261, ghi sổ oan.
+
+⚠ Nới trần tuyệt đối KHÔNG mở cửa cho gian lận thô. `devSetAllLevel(100)` cộng 20,17 triệu xp mà không động vào `timeMs` một mili giây nào, nên tầng 2B vẫn bắt được nó gấp hàng trăm lần. Tầng 1 chưa bao giờ là hàng rào duy nhất.
+
+⚠ Trần ×5 là để một lần lỡ tay không thành cửa mở toang: hệ số càng cao thì trần càng rộng.
+
+Phía game, hệ số nhân trong `addSkillXp` — **một chỗ duy nhất**, vì mọi đường cộng kinh nghiệm đều đi qua đó. Nhân rải rác là chắc chắn sót một đường, và đường sót đó sẽ lệch với trần phía máy chủ.
+
+Hệ số rơi đồ và giá bán không đụng trần nào — hai thứ đó không sinh kinh nghiệm.
 
 ---
 
@@ -251,9 +248,9 @@ Dùng để gửi cáo thị mời quay lại kèm hộp quà.
 
 ---
 
-## 10. NHÓM H — BẢO TRÌ
+## 10. NHÓM H — BẢO TRÌ ✅ đã dựng (`docs/SQL_LENH_BAI_6.sql`)
 
-Một dòng trong `he_so_may_chu` khoá `bao_tri`, hoặc một dòng `cao_thi` mức `bao_tri`. Dùng lại bảng có sẵn, không đẻ bảng mới.
+Một dòng `cao_thi` mức `bao_tri` gửi cả giang hồ. Dùng lại bảng có sẵn, không đẻ bảng mới — cùng một chỗ đặt lịch, cùng một chỗ gỡ, cùng một chỗ người chơi đọc.
 
 Trong khoảng mốc bảo trì:
 - Client hiện cáo thị và tạm ngừng đẩy bản lưu.
@@ -273,7 +270,7 @@ Trong khoảng mốc bảo trì:
 | 2 ✅ | C1 · E (cáo thị + thư riêng) | `docs/SQL_LENH_BAI_3.sql` |
 | 3 ✅ | D1 D3 · G1 G2 | `docs/SQL_LENH_BAI_4.sql` |
 | 4 ✅ | C2 C3 (mã đổi quà) | `docs/SQL_LENH_BAI_5.sql` |
-| 5 | F (hệ số máy chủ) · H (bảo trì) | có, kèm sửa `tran_he_so` |
+| 5 ✅ | F (hệ số máy chủ) · H (bảo trì) | chạy LẠI `docs/SQL_CHONG_GIAN_LAN.sql` + `docs/SQL_LENH_BAI_6.sql` |
 | 6 | C4 (quà mang vật phẩm) | có |
 
 Đợt 4 và 5 để sau cùng vì cả hai đụng thẳng vào chốt chống gian lận.

@@ -27,9 +27,23 @@ export function levelFromXp(totalXp) {
   return xpProgress(totalXp).level;
 }
 
+/**
+ * He so kinh nghiem TOAN MAY CHU (Lenh Bai dot 5, bang `he_so_may_chu`).
+ * Client dem so nay vao `state.heSo.exp` moi nhip doc; mat mang thi giu nguyen so cu.
+ * ⚠⚠ NHAN O DAY, khong nhan o tung cho goi. Moi duong cong xp deu di qua `addSkillXp`
+ *   (activity.js treo may · awardKill · dungeon.js · worldboss.js). Nhan rai rac la chac chan
+ *   sot mot duong, va duong sot do se lech voi tran chong gian lan phia may chu.
+ * ⚠ Chot phia may chu cung nhan dung he so nay vao tran (xem docs/SQL_CHONG_GIAN_LAN.sql).
+ *   Doi mot ben ma quen ben kia la ca lang bi ghi so oan.
+ */
+export function heSoExp(state) {
+  const h = state && state.heSo && state.heSo.exp;
+  return (typeof h === 'number' && isFinite(h) && h > 0) ? h : 1;
+}
+
 export function addSkillXp(state, skillId, xp) {
   if (!state.skills[skillId]) state.skills[skillId] = { xp: 0 };
-  state.skills[skillId].xp += xp;
+  state.skills[skillId].xp += Math.round(xp * heSoExp(state));   // he so co the le (1,5) — dung de xp thanh so le
 }
 export function addStatXp(state, statId, xp) {
   if (!state.stats[statId]) state.stats[statId] = { xp: 0 };

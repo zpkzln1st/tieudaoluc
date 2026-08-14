@@ -108,6 +108,53 @@ on conflict (khoa) do update set gia_tri = excluded.gia_tri;
 -- Cung ly do voi bang tren: khong bat RLS thi ke gian tu sua he so.
 alter table public.tran_he_so enable row level security;
 
+-- ---------- 4b. HE SO TOAN MAY CHU (Lenh Bai dot 5) ----------
+-- ⚠⚠ BANG NAY PHAI NAM TRONG CHINH TEP CHOT, khong duoc de o tep Lenh Bai rieng.
+--    Chot doc no o moi lan ghi save. Ham plpgsql truy van mot bang CHUA TON TAI khong no luc
+--    tao ham — no no LUC CHAY, va luc do la CA LANG khong luu duoc save nua.
+--    De chung mot tep thi chay tep nay la co ca hai, khong bao gio lech.
+--
+-- NHIEU DONG mot khoa la CO Y: moi dong la mot dot. Chot phai biet he so da bat trong KHOANG
+-- GIUA hai lan ghi, khong phai he so "dang bat luc nay" — nguoi cay luc x2 roi dong bo sau khi
+-- dot do tat se bi ghi so oan.
+create table if not exists public.he_so_may_chu (
+  id       bigserial   primary key,
+  khoa     text        not null,          -- exp | rot_do | gia_ban
+  gia_tri  numeric     not null,
+  mo_luc   timestamptz,
+  dong_luc timestamptz,
+  ghi_chu  text        not null default '',
+  tao_luc  timestamptz not null default now()
+);
+alter table public.he_so_may_chu drop constraint if exists he_so_khoa_hop_le;
+alter table public.he_so_may_chu add constraint he_so_khoa_hop_le
+  check (khoa in ('exp', 'rot_do', 'gia_ban'));
+-- ⚠⚠ TRAN 5 LA CON SO DO DUOC, khong phai so tron cho dep.
+--    He so an toan cua chot la 10. Nguoi choi that manh nhat dang cham
+--    3.38/10 = 0.34 tran.
+--    Chot da nhan he so nay vao tran nen ban than no khong lam ai bi ghi so oan; tran 5
+--    la de mot lan lo tay khong bien thanh cua mo toang.
+alter table public.he_so_may_chu drop constraint if exists he_so_gia_tri_hop_le;
+alter table public.he_so_may_chu add constraint he_so_gia_tri_hop_le
+  check (gia_tri > 0 and gia_tri <= 5);
+alter table public.he_so_may_chu enable row level security;
+
+-- Ai cung doc duoc dot DANG chay (client can biet de nhan EXP/rot do). Dot chua toi gio thi khong.
+drop policy if exists "he_so_ai_cung_doc" on public.he_so_may_chu;
+create policy "he_so_ai_cung_doc" on public.he_so_may_chu
+  for select using (
+    (mo_luc is null or mo_luc <= now()) and (dong_luc is null or dong_luc > now())
+  );
+drop policy if exists "he_so_tac_gia_doc" on public.he_so_may_chu;
+create policy "he_so_tac_gia_doc" on public.he_so_may_chu
+  for select using (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
+drop policy if exists "he_so_tac_gia_them" on public.he_so_may_chu;
+create policy "he_so_tac_gia_them" on public.he_so_may_chu
+  for insert with check (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
+drop policy if exists "he_so_tac_gia_xoa" on public.he_so_may_chu;
+create policy "he_so_tac_gia_xoa" on public.he_so_may_chu
+  for delete using (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
+
 -- ---------- 5. HAM PHU: doc so trong jsonb ma khong bao gio no ----------
 -- ⚠ Save la jsonb do CLIENT gui len: mot o dang so hom nay co the thanh chuoi/null ngay mai.
 --   Ep kieu thang la trigger nem loi -> KHONG AI LUU DUOC SAVE NUA. Luon di qua ham nay.
@@ -142,6 +189,7 @@ language plpgsql security definer set search_path = public as $$
 declare
   giay numeric; cho_phep numeric; hs numeric; bu numeric; bac_san numeric; tran_lan numeric;
   nhip_ms numeric; hs_gio numeric; phu_cap numeric; sai_so numeric; gap_chan numeric;
+  hs_exp numeric;
   r record; cu numeric; moi numeric; tang numeric; tran_cho numeric; gap_nay numeric;
   gio_cu numeric; gio_moi numeric; d_gio numeric; d_track numeric;
   ha_cu numeric; ha_moi numeric; d_ha numeric; d_boc numeric;
@@ -166,6 +214,23 @@ begin
   nhip_ms := coalesce(nhip_ms, 8000); hs_gio := coalesce(hs_gio, 1.5);
   phu_cap := coalesce(phu_cap, 78978); sai_so := coalesce(sai_so, 2);
   gap_chan := coalesce(gap_chan, 3);
+
+  -- ⚠⚠ HE SO EXP TOAN MAY CHU. Bat x2 cuoi tuan ma tran khong nhan theo la CA LANG bi ghi so
+  --    roi bi chan. Lay cai LON NHAT tung bat trong KHOANG GIUA hai lan ghi, khong lay cai
+  --    "dang bat luc nay": nguoi cay luc x2 roi dong bo sau khi dot do tat cung phai duoc tinh.
+  --    Bang nam trong CHINH TEP NAY (muc 4b) nen truy van khong bao gio no vi thieu bang.
+  select coalesce(max(gia_tri), 1) into hs_exp from public.he_so_may_chu
+   where khoa = 'exp'
+     and (mo_luc  is null or mo_luc  <  now())
+     and (dong_luc is null or dong_luc > OLD.updated_at);
+  hs_exp := greatest(1, coalesce(hs_exp, 1));
+  hs := hs * hs_exp;
+  -- ⚠⚠ TRAN TUYET DOI cung phai nhan theo. Khong nhan thi mot phien treo 14 gio o ki nang su kien
+  --    bac 6 (~1,93 trieu xp) nhan 5 la vuot tran 2.218.261 — ghi so oan nguoi choi that.
+  -- ⚠ Noi tran nay KHONG mo cua cho gian lan tho: devSetAllLevel(100) cong 20.166.012 xp
+  --   ma KHONG dong vao 'timeMs' mot mili giay nao, nen TANG 2B (xp phai co gio lam di kem) van
+  --   bat duoc no gap hang tram lan. Tang 1 chua bao gio la hang rao duy nhat.
+  tran_lan := tran_lan * hs_exp;
 
   giay := greatest(0, extract(epoch from (now() - OLD.updated_at)));
   cho_phep := (giay + bu) * hs;

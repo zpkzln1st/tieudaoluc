@@ -80,7 +80,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -1861,6 +1861,7 @@ const gameStore = {
     if (t === 'caoThi' && !this.lbCTDs.length) this.lbTaiCaoThi();
     if (t === 'thongKe' && !this.lbTK) this.lbTaiThongKe();
     if (t === 'maQua' && !this.lbMQDs.length) this.lbTaiMaQua();
+    if (t === 'heSo' && !this.lbHSDs.length) this.lbTaiHeSo();
   },
   /**
    * ⚠⚠ BA LÝ DO danh sách rỗng, và trước đây cả ba ra CÙNG MỘT màn hình trắng:
@@ -1988,6 +1989,68 @@ const gameStore = {
         if (!rr.ok) { this.showToast('Không gỡ được — ' + rr.reason); return; }
         this.lbMQDs = this.lbMQDs.filter((x) => x.ma !== r.ma);
         this.showToast('Đã gỡ mã.');
+      },
+    });
+  },
+
+  // ---------- LỆNH BÀI · tab HỆ SỐ ----------
+  lbHSDs: [], lbHSTai: false, lbHSLoi: '',
+  lbHS: { khoa: 'exp', giaTri: 2, moLuc: '', dongLuc: '', ghiChu: '' },
+  HS_TOI_DA: 5,                       // khớp ràng buộc `he_so_gia_tri_hop_le` phía máy chủ
+  async lbTaiHeSo() {
+    this.lbHSTai = true; this.lbHSLoi = '';
+    try {
+      const r = await cloudHeSoDs();
+      if (r.ok) this.lbHSDs = r.rows;
+      else { this.lbHSDs = []; this.lbHSLoi = r.thieuBang ? 'Chưa chạy lại docs/SQL_CHONG_GIAN_LAN.sql trên Supabase.' : ('Không đọc được — ' + r.reason + '.'); }
+    } catch (e) { this.lbHSLoi = 'Không kết nối được.'; }
+    finally { this.lbHSTai = false; }
+  },
+  lbHSKhoaChu(k) { return ({ exp: 'Kinh Nghiệm', rot_do: 'Tỉ Lệ Rơi Đồ', gia_ban: 'Giá Bán' })[k] || k; },
+  lbHSNhanh() {
+    const mo = new Date(now() + 3600000); mo.setMinutes(0, 0, 0);
+    this.lbHS.moLuc = this.lbChoOInput(mo.getTime());
+    this.lbHS.dongLuc = this.lbChoOInput(mo.getTime() + 2 * 86400000);
+  },
+  lbHSDat() {
+    const h = this.lbHS;
+    const v = Number(h.giaTri);
+    if (!isFinite(v) || v <= 1) { this.showToast('Hệ số phải lớn hơn 1.'); return; }
+    if (v > this.HS_TOI_DA) { this.showToast('Hệ số tối đa là ' + this.HS_TOI_DA + '.'); return; }
+    if (!h.moLuc || !h.dongLuc) { this.showToast('Thiếu mốc mở hoặc mốc đóng — bấm “2 Ngày” để điền nhanh.'); return; }
+    if (Date.parse(h.dongLuc) <= Date.parse(h.moLuc)) { this.showToast('Mốc đóng phải sau mốc mở.'); return; }
+    this.hoiXacNhan({
+      tieuDe: 'Bật Hệ Số Toàn Máy Chủ',
+      loi: this.lbHSKhoaChu(h.khoa) + ' nhân ' + v + ' lần cho mọi người chơi, từ ' + h.moLuc.replace('T', ' ') + ' tới ' + h.dongLuc.replace('T', ' ') + '.',
+      canhBao: h.khoa === 'exp'
+        ? 'Chốt chống gian lận đọc cùng bảng này nên trần tự nới theo. Chưa chạy lại SQL_CHONG_GIAN_LAN.sql thì cả làng bị ghi sổ oan.'
+        : 'Việc này ghi vào nhật ký, không xoá được.',
+      nut: 'Bật', nguy: true,
+      xong: () => { this._lbHSGui(v); },
+    });
+  },
+  async _lbHSGui(v) {
+    const h = this.lbHS;
+    const r = await cloudHeSoDat({ khoa: h.khoa, giaTri: v, moLuc: h.moLuc, dongLuc: h.dongLuc, ghiChu: h.ghiChu });
+    if (!r.ok) { this.showToast('Không bật được — ' + r.reason); return; }
+    this.showToast('Đã bật hệ số.');
+    this.lbHS = { khoa: 'exp', giaTri: 2, moLuc: '', dongLuc: '', ghiChu: '' };
+    this.lbTaiHeSo();
+    this.taiHeSo();
+  },
+  lbHSXoa(r) {
+    if (!r || !r.id) return;
+    this.hoiXacNhan({
+      tieuDe: 'Gỡ Hệ Số',
+      loi: this.lbHSKhoaChu(r.khoa) + ' ×' + r.gia_tri + ' sẽ ngừng ngay.',
+      canhBao: 'Kinh nghiệm người chơi đã nhận thì vẫn giữ.',
+      nut: 'Gỡ', nguy: true,
+      xong: async () => {
+        const rr = await cloudHeSoXoa(r.id);
+        if (!rr.ok) { this.showToast('Không gỡ được — ' + rr.reason); return; }
+        this.lbHSDs = this.lbHSDs.filter((x) => x.id !== r.id);
+        this.showToast('Đã gỡ hệ số.');
+        this.taiHeSo();
       },
     });
   },
@@ -2148,6 +2211,44 @@ const gameStore = {
       if (dem) this.showToast('Nhận được ' + dem + ' hộp quà.');
       return dem;
     } catch (e) { return 0; }
+  },
+
+  // ---------- HỆ SỐ TOÀN MÁY CHỦ — đường ĐỌC, chạy cho MỌI người chơi ----------
+  /**
+   * Đọc các đợt hệ số đang chạy rồi đệm vào bản lưu.
+   * ⚠⚠ Chốt chống gian lận phía máy chủ NHÂN ĐÚNG hệ số này vào trần. Đổi một bên mà quên bên kia
+   *   là cả làng bị ghi sổ oan. Cả hai cùng đọc một bảng `he_so_may_chu`.
+   * ⚠ Nuốt lỗi: chưa chạy lại SQL_CHONG_GIAN_LAN.sql thì hàm này lỗi, và lỗi ở đây KHÔNG được
+   *   làm vỡ đường lưu save. Mất mạng thì giữ nguyên hệ số cũ đã đệm.
+   * ⚠ Nhiều đợt chồng nhau thì lấy đợt CAO NHẤT — y hệt cách chốt máy chủ lấy `max(gia_tri)`.
+   */
+  async taiHeSo() {
+    try {
+      const r = await cloudHeSoDs();
+      if (!r.ok) return;
+      const moi = { exp: 1, rotDo: 1, giaBan: 1 };
+      const K = { exp: 'exp', rot_do: 'rotDo', gia_ban: 'giaBan' };
+      for (const d of r.rows) {
+        const k = K[d.khoa]; if (!k) continue;
+        const v = Number(d.gia_tri);
+        if (isFinite(v) && v > moi[k]) moi[k] = v;
+      }
+      const cu = this.state.heSo || { exp: 1, rotDo: 1, giaBan: 1 };
+      this.state.heSo = moi;
+      // Báo MỘT lần khi đợt mới bật, đừng nhắc lại mỗi nhịp đọc.
+      if (moi.exp !== (cu.exp || 1) && moi.exp > 1) this.pushNotif('caoThi', 'Kinh nghiệm toàn máy chủ', 'Đang nhân ' + moi.exp + ' lần.');
+      if (moi.rotDo !== (cu.rotDo || 1) && moi.rotDo > 1) this.pushNotif('caoThi', 'Tỉ lệ rơi đồ toàn máy chủ', 'Đang nhân ' + moi.rotDo + ' lần.');
+      this._tick++;
+    } catch (e) {}
+  },
+  get heSoDangChay() {
+    void this._tick;
+    const h = this.state.heSo || {};
+    const ds = [];
+    if ((h.exp || 1) > 1) ds.push('Kinh Nghiệm ×' + h.exp);
+    if ((h.rotDo || 1) > 1) ds.push('Rơi Đồ ×' + h.rotDo);
+    if ((h.giaBan || 1) > 1) ds.push('Giá Bán ×' + h.giaBan);
+    return ds;
   },
 
   // ---------- MÃ ĐỔI QUÀ — màn của NGƯỜI CHƠI ----------
@@ -2475,6 +2576,9 @@ const gameStore = {
       // Cáo thị đọc được KHÔNG CẦN đăng nhập — thông báo bảo trì phải tới được cả khách.
       setTimeout(() => { this.taiCaoThi(); }, 3000);
       setInterval(() => { this.taiCaoThi(); }, 10 * 60 * 1000);
+      // Hệ số toàn máy chủ: đệm vào bản lưu, mất mạng vẫn giữ số cũ.
+      setTimeout(() => { this.taiHeSo(); }, 3500);
+      setInterval(() => { this.taiHeSo(); }, 10 * 60 * 1000);
       // ⚠ Đọc LẠI mỗi 10 phút. Không có nhịp này thì lệnh THU của tác giả (đóng ngay vì lỡ ban
       //   nhầm) chỉ tới được người chơi ở lần mở game sau — họ cày tiếp một sự kiện đã bị gỡ.
       //   Cùng nhịp đó cũng làm sự kiện tới giờ mở tự hiện, khỏi bắt người chơi tải lại trang.

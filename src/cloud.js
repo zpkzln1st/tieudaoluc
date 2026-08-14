@@ -495,6 +495,44 @@ export async function cloudMaQuaXoa(ma) {
   return { ok: true };
 }
 
+// ============================================================
+// HE SO TOAN MAY CHU (dot 5) — bang `he_so_may_chu`.
+// ⚠⚠ Bang nay nam trong docs/SQL_CHONG_GIAN_LAN.sql chu KHONG phai tep Lenh Bai rieng: chot doc
+//    no o moi lan ghi save, de o tep khac la co luc bang chua ton tai ma chot da goi -> ca lang
+//    khong luu duoc save.
+// ============================================================
+
+/** Cac dot he so DANG chay. Luat RLS da loc moc; nguoi thuong khong thay dot chua toi gio. */
+export async function cloudHeSoDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('he_so_may_chu')
+    .select('id,khoa,gia_tri,mo_luc,dong_luc,ghi_chu')
+    .order('id', { ascending: false }).limit(30);
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, rows: data || [] };
+}
+
+export async function cloudHeSoDat(r) {
+  const sb = await getClient();
+  const { error } = await sb.from('he_so_may_chu').insert({
+    khoa: (r && r.khoa) || 'exp',
+    gia_tri: Number((r && r.giaTri) || 1),
+    mo_luc: (r && r.moLuc) ? new Date(r.moLuc).toISOString() : null,
+    dong_luc: (r && r.dongLuc) ? new Date(r.dongLuc).toISOString() : null,
+    ghi_chu: (r && r.ghiChu) || '',
+  });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
+export async function cloudHeSoXoa(id) {
+  if (!id) return { ok: false, reason: 'no-id' };
+  const sb = await getClient();
+  const { error } = await sb.from('he_so_may_chu').delete().eq('id', id);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
 /** So lieu may chu cho tab Thong Ke. Nguoi thuong goi ra so cua chinh ho (RLS). */
 export async function cloudThongKe() {
   const sb = await getClient();
