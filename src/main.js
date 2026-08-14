@@ -1975,16 +1975,35 @@ const gameStore = {
     try { const r = await cloudMaQuaDs(); if (r.ok) this.lbMQDs = r.rows; else if (r.thieuBang) this.showToast('Chưa chạy docs/SQL_LENH_BAI_5.sql trên Supabase.'); }
     catch (e) {} finally { this.lbMQTai = false; }
   },
+  /**
+   * Điền nhanh: MỞ NGAY, hết hạn sau 7 ngày.
+   * ⚠⚠ KHÔNG bê nút "14 Ngày" của Sự Kiện sang đây. Nút đó đặt mốc mở là ĐẦU GIỜ TỚI — hợp với
+   *   sự kiện (cần báo trước), nhưng với mã quà thì tác giả tạo xong đưa mã cho người chơi ngay,
+   *   và họ gõ vào chỉ nhận được đúng một câu "Mã không dùng được" suốt tối đa một giờ.
+   */
   lbMQNhanh() {
-    const mo = new Date(now() + 3600000); mo.setMinutes(0, 0, 0);
-    this.lbMQ.moLuc = this.lbChoOInput(mo.getTime());
-    this.lbMQ.dongLuc = this.lbChoOInput(mo.getTime() + 7 * 86400000);
+    this.lbMQ.moLuc = this.lbChoOInput(now());
+    this.lbMQ.dongLuc = this.lbChoOInput(now() + 7 * 86400000);
   },
   lbMQKeChu(r) { return this.quaKeChu((r && r.noi_dung) || {}); },
   lbMQLuotChu(r) {
     if (!r) return '';
     return (r.luot_toi_da > 0) ? (this.fmt(r.luot_da_dung || 0) + '/' + this.fmt(r.luot_toi_da) + ' lượt')
                                : (this.fmt(r.luot_da_dung || 0) + ' lượt · không giới hạn');
+  },
+  /**
+   * Trạng thái mã, nói THẲNG lý do không đổi được.
+   * ⚠ Người chơi chỉ nhận đúng một câu "Mã không dùng được" (cố ý, để không ai dò mã). Người BAN
+   *   LỆNH thì phải thấy rõ vì sao — không thì ngồi đoán như tôi vừa bắt ngươi làm.
+   */
+  lbMQTrangThai(r) {
+    void this._tick;
+    if (!r) return { chu: '', mau: 'text-slate-500' };
+    const t = now();
+    if (r.mo_luc && t < Date.parse(r.mo_luc)) return { chu: 'Chưa tới giờ mở', mau: 'text-sky-300' };
+    if (r.dong_luc && t >= Date.parse(r.dong_luc)) return { chu: 'Đã hết hạn', mau: 'text-slate-500' };
+    if (r.luot_toi_da > 0 && (r.luot_da_dung || 0) >= r.luot_toi_da) return { chu: 'Hết lượt', mau: 'text-rose-300' };
+    return { chu: 'Đang dùng được', mau: 'text-jade' };
   },
   lbMQTao() {
     const q = this.lbMQ;

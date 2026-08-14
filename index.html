@@ -6640,11 +6640,12 @@
                       <div class="mb-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-black/20">
                         <div class="flex items-center justify-between gap-2">
                           <code class="text-[12px] text-amber-200 tracking-wider truncate" x-text="r.ma"></code>
-                          <span class="shrink-0 text-[10px]" :class="r.tu_dong ? 'text-jade' : 'text-slate-500'" x-text="r.tu_dong ? 'Tự động' : 'Gõ tay'"></span>
+                          <span class="shrink-0 text-[10px]" :class="g.lbMQTrangThai(r).mau" x-text="g.lbMQTrangThai(r).chu"></span>
                         </div>
                         <div class="text-[10.5px] text-slate-400 mt-0.5 truncate" x-text="g.lbMQKeChu(r)"></div>
                         <div class="flex items-center justify-between gap-2 mt-1">
-                          <span class="text-[10px] text-slate-600 truncate" x-text="g.lbMQLuotChu(r)"></span>
+                          <span class="text-[10px] text-slate-600 truncate"
+                            x-text="(r.tu_dong ? 'Tự động' : 'Gõ tay') + ' · ' + g.lbMQLuotChu(r) + ' · mở ' + (r.mo_luc ? g.lbChoOInput(r.mo_luc).replace('T',' ') : 'ngay')"></span>
                           <button @click="g.lbMQXoa(r)" class="shrink-0 px-2 py-0.5 rounded-full text-[10.5px] fserif border border-slate-700 text-slate-400 hover:border-rose-500/60 hover:text-rose-300 transition">Gỡ</button>
                         </div>
                       </div>
