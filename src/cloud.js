@@ -533,6 +533,29 @@ export async function cloudHeSoXoa(id) {
   return { ok: true };
 }
 
+// ============================================================
+// MO KHOA NOI DUNG DAN (bang `mo_khoa`, xem docs/SQL_LENH_BAI_8.sql).
+// Khoa `tran_chuyen` = so lan Trung Sinh dang mo. Ngay mo may chu la 0.
+// ============================================================
+
+/** Doc moi khoa mo dan. KHONG can dang nhap — client phai biet de ve dung giao dien. */
+export async function cloudMoKhoaDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('mo_khoa').select('khoa,gia_tri,ghi_chu,cap_nhat');
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, rows: data || [] };
+}
+
+/** Dat mot khoa. Chi tac gia ghi duoc (RLS chan, khong phai giao dien chan). */
+export async function cloudMoKhoaDat(khoa, giaTri) {
+  const sb = await getClient();
+  const { error } = await sb.from('mo_khoa')
+    .update({ gia_tri: Math.max(0, Math.floor(Number(giaTri) || 0)), cap_nhat: new Date().toISOString() })
+    .eq('khoa', khoa);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
 /** So lieu may chu cho tab Thong Ke. Nguoi thuong goi ra so cua chinh ho (RLS). */
 export async function cloudThongKe() {
   const sb = await getClient();

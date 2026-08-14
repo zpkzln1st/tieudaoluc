@@ -6369,7 +6369,7 @@
               <button @click="g.dongLenhBai()" class="w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 leading-none shrink-0">✕</button>
             </div>
             <div class="flex items-center gap-1.5 flex-wrap px-4 py-2 border-b border-slate-800 shrink-0">
-              <template x-for="t in [['suKien','Sự Kiện'],['nguoi','Người Chơi'],['qua','Hộp Quà'],['maQua','Mã Quà'],['caoThi','Cáo Thị'],['heSo','Hệ Số'],['khoa','Khoá Tài Khoản'],['thongKe','Thống Kê'],['nhatKy','Nhật Ký']]" :key="t[0]">
+              <template x-for="t in [['suKien','Sự Kiện'],['nguoi','Người Chơi'],['qua','Hộp Quà'],['maQua','Mã Quà'],['caoThi','Cáo Thị'],['heSo','Hệ Số'],['moKhoa','Mở Khoá'],['khoa','Khoá Tài Khoản'],['thongKe','Thống Kê'],['nhatKy','Nhật Ký']]" :key="t[0]">
                 <button @click="g.lbDoiTab(t[0])" class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap inline-flex items-center gap-1"
                   :class="g.lbTab === t[0] ? 'text-amber-200 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'">
                   <span x-text="t[1]"></span>
@@ -6806,6 +6806,34 @@
                     </template>
                   </div>
                   <div class="mt-3 text-[10px] text-slate-600 leading-snug">Bật hệ số kinh nghiệm lần đầu thì phải chạy lại docs/SQL_CHONG_GIAN_LAN.sql trước.</div>
+                </div>
+              </template>
+
+              <!-- ---- MỞ KHOÁ ----
+                   Số lần Trùng Sinh đang mở cho cả giang hồ. Ngày mở máy chủ là 0: ai cũng dừng ở cấp 100.
+                   ⚠ Hạ số này KHÔNG làm tụt cấp ai — người đã chuyển giữ nguyên trần của họ. -->
+              <template x-if="!g.lbLoi && g.lbTab === 'moKhoa'">
+                <div class="px-1">
+                  <template x-if="g.lbMKLoi">
+                    <div class="px-3 py-2 rounded-lg border border-rose-600/50 bg-rose-950/20 text-[11.5px] text-rose-200" x-text="g.lbMKLoi"></div>
+                  </template>
+                  <template x-if="!g.lbMKLoi">
+                    <div>
+                      <div class="text-[10.5px] text-slate-500 mb-1">Số Chuyển Đang Mở · Đốn Ngộ Cảnh</div>
+                      <div class="flex items-center gap-1.5 flex-wrap mb-2">
+                        <template x-for="n in [0,1,2,3,4,5,6,7,8,9,10]" :key="n">
+                          <button @click="g.lbMKDat(n)" class="w-8 h-8 rounded-lg text-[12px] fserif border transition"
+                            :class="g.lbMKChuyen===n ? 'text-amber-200 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                            x-text="n"></button>
+                        </template>
+                      </div>
+                      <div class="px-3 py-2 rounded-lg border border-slate-800 bg-black/20">
+                        <div class="text-[12.5px] text-slate-200" x-text="g.lbMKChuyen === 0 ? 'Đốn Ngộ Cảnh đang đóng.' : ('Đang mở ' + g.lbMKChuyen + ' chuyển.')"></div>
+                        <div class="text-[10.5px] text-slate-500 mt-0.5" x-text="'Trần cấp cao nhất: ' + (100 + g.lbMKChuyen * 10)"></div>
+                      </div>
+                      <div class="mt-3 text-[10px] text-slate-600 leading-snug">Hạ số này không làm tụt cấp ai. Người đã chuyển giữ nguyên trần của họ, chỉ không đi tiếp được.</div>
+                    </div>
+                  </template>
                 </div>
               </template>
 

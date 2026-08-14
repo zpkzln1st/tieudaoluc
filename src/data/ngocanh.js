@@ -9,8 +9,14 @@
 //   Làm mười bảng riêng thì mỗi lần chỉnh số phải sửa mười chỗ, và không ai cân bằng nổi.
 // ============================================================
 
-export const TRUNG_SINH_MAX = 6;      // trùng sinh tối đa 6 lần mỗi nghề
-export const DIEM_MOI_LAN = 3;        // mỗi lần được 3 điểm  ->  tổng 18
+/**
+ * Trùng Sinh tối đa mười lần mỗi nghề — trần cấp 100 lên 200.
+ * ⚠⚠ ĐÂY LÀ TRẦN CỦA MÃ NGUỒN, không phải số đang mở cho người chơi. Số đang mở nằm ở máy chủ
+ *   (bảng `mo_khoa`, khoá `tran_chuyen`) và tác giả nâng dần qua Lệnh Bài. Ngày mở máy chủ nó là 0:
+ *   ai cũng dừng ở cấp 100.
+ */
+export const TRUNG_SINH_MAX = 10;
+export const DIEM_MOI_LAN = 3;        // mỗi lần được 3 điểm  ->  tổng 30
 /**
  * Mỗi lần Trùng Sinh nâng TRẦN CẤP thêm ngần này. Sáu lần: 100 -> 160.
  * ⚠⚠ Phải chạm trần HIỆN TẠI mới Trùng Sinh tiếp được. Sáu vòng cày hết 14.780 giờ một nghề

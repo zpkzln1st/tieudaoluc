@@ -56,9 +56,27 @@ export function diemConLai(state, skillId) {
   return oCua(state, skillId).ts * DIEM_MOI_LAN - diemDaTieu(state, skillId);
 }
 
-/** Nghề đã chạm trần cấp chưa — điều kiện DUY NHẤT để Trùng Sinh. */
+/**
+ * Số lần Trùng Sinh máy chủ ĐANG MỞ. Tác giả nâng dần qua Lệnh Bài (bảng `mo_khoa`).
+ * ⚠⚠ Ngày mở máy chủ là 0 — không ai Trùng Sinh được, cả làng dừng ở cấp 100.
+ * ⚠ Mất mạng thì giữ số đã đệm trong bản lưu. Không đệm được thì về 0, tức khoá — chọn phía AN TOÀN:
+ *   mở nhầm là người chơi vượt trần nội dung chưa cân bằng, khoá nhầm chỉ là chờ thêm một nhịp đọc.
+ */
+export function chuyenDangMo(state) {
+  const v = state && state.moKhoa && state.moKhoa.tranChuyen;
+  if (typeof v !== 'number' || !isFinite(v) || v <= 0) return 0;
+  return Math.min(TRUNG_SINH_MAX, Math.floor(v));
+}
+
+/**
+ * Nghề đã chạm trần cấp chưa, VÀ máy chủ đã mở tới lần này chưa.
+ * ⚠⚠ Điều kiện mở khoá CHỈ chặn lần Trùng Sinh TIẾP THEO. Nó KHÔNG hạ trần của người đã chuyển —
+ *   hạ trần là cấp họ tụt xuống, thanh kinh nghiệm nhảy lùi, và mọi việc đang làm bị khoá lại.
+ */
 export function coTheTrungSinh(state, skillId) {
-  if (soTrungSinh(state, skillId) >= TRUNG_SINH_MAX) return false;
+  const ts = soTrungSinh(state, skillId);
+  if (ts >= TRUNG_SINH_MAX) return false;
+  if (ts >= chuyenDangMo(state)) return false;
   return capKyNang(state, skillId) >= tranCap(state, skillId);
 }
 

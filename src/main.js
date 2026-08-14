@@ -46,7 +46,7 @@ import {
 } from './engine/activity.js';
 // ĐỐN NGỘ CẢNH — Trùng Sinh nghề
 import { NGO_CANH_NUT, NGO_CANH_BY_ID, NHANH as NC_NHANH, TRUNG_SINH_MAX, DIEM_MOI_LAN, DIEM_MUA_HET, nutEffText } from './data/ngocanh.js';
-import { ensureNgoCanh, soTrungSinh, bacNut, diemConLai, coTheTrungSinh, trungSinh, muaNut, tayBang, ncBoKhoaVung, capKyNang, tienDoKyNang, tranCap } from './engine/ngocanh.js';
+import { ensureNgoCanh, soTrungSinh, bacNut, diemConLai, coTheTrungSinh, trungSinh, muaNut, tayBang, ncBoKhoaVung, capKyNang, tienDoKyNang, tranCap, chuyenDangMo } from './engine/ngocanh.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, buffVal, useBuffDan, duocLuTick } from './engine/buff.js';
 import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, HE_FX, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
   TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf,
@@ -80,7 +80,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -1906,6 +1906,7 @@ const gameStore = {
     if (t === 'thongKe' && !this.lbTK) this.lbTaiThongKe();
     if (t === 'maQua' && !this.lbMQDs.length) this.lbTaiMaQua();
     if (t === 'heSo' && !this.lbHSDs.length) this.lbTaiHeSo();
+    if (t === 'moKhoa') this.lbTaiMoKhoa();
   },
   /**
    * ⚠⚠ BA LÝ DO danh sách rỗng, và trước đây cả ba ra CÙNG MỘT màn hình trắng:
@@ -2052,6 +2053,41 @@ const gameStore = {
         if (!rr.ok) { this.showToast('Không gỡ được — ' + rr.reason); return; }
         this.lbMQDs = this.lbMQDs.filter((x) => x.ma !== r.ma);
         this.showToast('Đã gỡ mã.');
+      },
+    });
+  },
+
+  // ---------- LỆNH BÀI · tab MỞ KHOÁ ----------
+  lbMKTai: false, lbMKLoi: '', lbMKChuyen: 0,
+  async lbTaiMoKhoa() {
+    this.lbMKTai = true; this.lbMKLoi = '';
+    try {
+      const r = await cloudMoKhoaDs();
+      if (!r.ok) { this.lbMKLoi = r.thieuBang ? 'Chưa chạy docs/SQL_LENH_BAI_8.sql trên Supabase.' : ('Không đọc được — ' + r.reason + '.'); return; }
+      const d = (r.rows || []).find((x) => x.khoa === 'tran_chuyen');
+      this.lbMKChuyen = d ? Math.max(0, Math.floor(Number(d.gia_tri) || 0)) : 0;
+    } catch (e) { this.lbMKLoi = 'Không kết nối được.'; }
+    finally { this.lbMKTai = false; }
+  },
+  lbMKDat(n) {
+    const v = Math.max(0, Math.min(TRUNG_SINH_MAX, Math.floor(n)));
+    if (v === this.lbMKChuyen) return;
+    // ⚠⚠ Mở thêm là việc không lùi được về mặt trải nghiệm: người chơi thấy Đốn Ngộ Cảnh sáng lên
+    //   rồi hạ xuống là mất uy tín. Hạ thì không ai tụt cấp, chỉ không đi tiếp được.
+    this.hoiXacNhan({
+      tieuDe: v > this.lbMKChuyen ? 'Mở Thêm Trùng Sinh' : 'Hạ Số Chuyển Đang Mở',
+      loi: v === 0 ? 'Đóng hẳn Đốn Ngộ Cảnh — cả giang hồ dừng ở cấp 100.'
+                   : ('Mở ' + v + ' chuyển. Trần cấp cao nhất thành ' + (100 + v * 10) + '.'),
+      canhBao: v > this.lbMKChuyen
+        ? 'Người chơi thấy Đốn Ngộ Cảnh sáng lên rồi hạ xuống là mất uy tín.'
+        : 'Người đã chuyển giữ nguyên trần của họ, chỉ không đi tiếp được.',
+      nut: v > this.lbMKChuyen ? 'Mở' : 'Hạ', nguy: true,
+      xong: async () => {
+        const r = await cloudMoKhoaDat('tran_chuyen', v);
+        if (!r.ok) { this.showToast('Không đặt được — ' + r.reason); return; }
+        this.lbMKChuyen = v;
+        this.showToast(v === 0 ? 'Đã đóng Đốn Ngộ Cảnh.' : ('Đã mở ' + v + ' chuyển.'));
+        this.taiMoKhoa();
       },
     });
   },
@@ -2330,6 +2366,29 @@ const gameStore = {
     if ((h.giaBan || 1) > 1) ds.push('Giá Bán ×' + h.giaBan);
     return ds;
   },
+
+  // ---------- MỞ KHOÁ NỘI DUNG — đường ĐỌC, chạy cho MỌI người chơi ----------
+  /**
+   * Đọc số lần Trùng Sinh máy chủ đang mở rồi đệm vào bản lưu.
+   * ⚠ Nuốt lỗi: chưa chạy SQL_LENH_BAI_8.sql thì hàm này lỗi, và lỗi ở đây KHÔNG được làm vỡ
+   *   đường lưu save. Chưa đệm được thì `chuyenDangMo` trả 0, tức khoá — phía an toàn.
+   */
+  async taiMoKhoa() {
+    try {
+      const r = await cloudMoKhoaDs();
+      if (!r.ok || !r.rows.length) return;
+      if (!this.state.moKhoa || typeof this.state.moKhoa !== 'object') this.state.moKhoa = {};
+      const cu = this.state.moKhoa.tranChuyen || 0;
+      for (const d of r.rows) {
+        if (d.khoa === 'tran_chuyen') this.state.moKhoa.tranChuyen = Math.max(0, Math.floor(Number(d.gia_tri) || 0));
+      }
+      const moi = this.state.moKhoa.tranChuyen || 0;
+      // Báo MỘT lần khi mở thêm, đừng nhắc lại mỗi nhịp đọc.
+      if (moi > cu) this.pushNotif('caoThi', 'Mở thêm Trùng Sinh', 'Đốn Ngộ Cảnh nay đi được ' + moi + ' chuyển, trần cấp ' + (100 + moi * 10) + '.');
+      this._tick++;
+    } catch (e) {}
+  },
+  get chuyenDaMo() { void this._tick; return chuyenDangMo(this.state); },
 
   // ---------- MÃ ĐỔI QUÀ — màn của NGƯỜI CHƠI ----------
   mqMo: false, mqO: '', mqDangDoi: false, mqKetQua: '',
@@ -2658,6 +2717,8 @@ const gameStore = {
       setInterval(() => { this.taiCaoThi(); }, 10 * 60 * 1000);
       // Hệ số toàn máy chủ: đệm vào bản lưu, mất mạng vẫn giữ số cũ.
       setTimeout(() => { this.taiHeSo(); }, 3500);
+      setTimeout(() => { this.taiMoKhoa(); }, 3800);
+      setInterval(() => { this.taiMoKhoa(); }, 10 * 60 * 1000);
       setInterval(() => { this.taiHeSo(); }, 10 * 60 * 1000);
       // ⚠ Đọc LẠI mỗi 10 phút. Không có nhịp này thì lệnh THU của tác giả (đóng ngay vì lỡ ban
       //   nhầm) chỉ tới được người chơi ở lần mở game sau — họ cày tiếp một sự kiện đã bị gỡ.

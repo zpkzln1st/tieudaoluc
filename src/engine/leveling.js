@@ -4,12 +4,14 @@
 // ============================================================
 export const MAX_LEVEL = 100;
 /**
- * Trần cấp CAO NHẤT một kỹ năng có thể chạm tới: 100 + 10 mỗi lần Trùng Sinh, sáu lần là 160.
+ * Trần cấp CAO NHẤT một kỹ năng có thể chạm tới: 100 + 10 mỗi lần Trùng Sinh, mười lần là 200.
+ * ⚠ Đây là trần của MÃ NGUỒN. Số lần đang mở cho người chơi nằm ở máy chủ (bảng `mo_khoa`),
+ *   tác giả nâng dần qua Lệnh Bài. Ngày mở máy chủ là 0: ai cũng dừng ở cấp 100.
  * ⚠ KHÔNG phải chạy lại bộ sinh trần chống gian lận vì con số này. Trần mỗi lần ghi tính theo
  *   TỐC ĐỘ cày (xp mỗi giây × thời gian trôi), mà nâng trần cấp không làm ai cày nhanh hơn —
  *   nó chỉ kéo dài quãng đường. Giữ trần cũ là chặt hơn, và người chơi thật vẫn không chạm tới.
  */
-export const MAX_LEVEL_TRAN = 160;
+export const MAX_LEVEL_TRAN = 200;
 
 // EXP cần để đi từ `level` lên `level+1`.
 // Nền 55×N² + "thuế tám cấp cuối" của vòng, neo cấp áp chót lên trần 100 = đúng 1.200.000.
