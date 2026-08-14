@@ -3119,7 +3119,8 @@
               <div class="flex items-center gap-2 mb-2">
                 <span class="w-6 h-6 inline-flex items-center justify-center shrink-0" x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></span>
                 <span class="flex-1 text-sm font-medium" x-text="$store.game.currentSkill.name"></span>
-                <span class="text-xs text-jade" x-text="'Lv ' + $store.game.skillLevel($store.game.selectedSkill)"></span>
+                <!-- Trần chỉ hiện khi đã Trùng Sinh: người chưa chuyển lần nào thấy "Lv 42" như cũ. -->
+                <span class="text-xs text-jade" x-text="'Lv ' + $store.game.skillLevel($store.game.selectedSkill) + ($store.game.ncTsCua($store.game.selectedSkill) ? ' / ' + $store.game.skillTran($store.game.selectedSkill) : '')"></span>
               </div>
               <div class="h-2 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-jade" :style="`width:${$store.game.skillProg($store.game.selectedSkill).frac*100}%`"></div></div>
               <div class="text-[11px] text-slate-500 mt-1" x-text="$store.game.fmt($store.game.skillProg($store.game.selectedSkill).need - $store.game.skillProg($store.game.selectedSkill).into) + ' EXP cần · ' + Math.round($store.game.skillProg($store.game.selectedSkill).frac*100) + '%'"></div>
@@ -17666,7 +17667,8 @@
           <div class="text-[11.5px] text-slate-500 min-w-0 flex-1">
             <template x-if="g.ncLoi"><span class="text-rose-300" x-text="g.ncLoi"></span></template>
             <template x-if="!g.ncLoi">
-              <span x-text="g.ncHetLuot ? 'Đã Trùng Sinh đủ 6 lần.' : (g.ncCoTheTS ? (g.ncTenNghe + ' về cấp 1, nhận 3 Điểm Trùng Sinh.') : ('Cần ' + g.ncTenNghe + ' đạt cấp 100.'))"></span>
+              <!-- Trần cấp lên 10 sau mỗi lần, nên câu điều kiện phải đọc trần THẬT chứ không ghi cứng 100. -->
+              <span x-text="g.ncHetLuot ? 'Đã Trùng Sinh đủ 6 lần.' : (g.ncCoTheTS ? (g.ncTenNghe + ' về cấp 1, trần cấp lên ' + (g.skillTran(g.ncSkill) + 10) + ', nhận 3 Điểm Trùng Sinh.') : ('Cần ' + g.ncTenNghe + ' đạt cấp ' + g.skillTran(g.ncSkill) + ' — còn thiếu ' + g.ncConThieu(g.ncSkill) + ' cấp.'))"></span>
             </template>
           </div>
           <button @click="g.ncTay()" x-show="g.ncDiem < g.ncTs * 3"

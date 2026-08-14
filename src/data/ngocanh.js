@@ -11,6 +11,14 @@
 
 export const TRUNG_SINH_MAX = 6;      // trùng sinh tối đa 6 lần mỗi nghề
 export const DIEM_MOI_LAN = 3;        // mỗi lần được 3 điểm  ->  tổng 18
+/**
+ * Mỗi lần Trùng Sinh nâng TRẦN CẤP thêm ngần này. Sáu lần: 100 -> 160.
+ * ⚠⚠ Phải chạm trần HIỆN TẠI mới Trùng Sinh tiếp được. Sáu vòng cày hết 14.780 giờ một nghề
+ *   (nghề nhanh nhất, chưa nhân hệ số nào) — luật cũ trần đứng yên ở 100 chỉ tốn 5.706 giờ.
+ * ⚠ Đổi số này thì phải chạy lại `_mockup/_covua_wip/_sinh_sql_tran.mjs`: chốt chống gian lận
+ *   tính trần mỗi lần ghi theo tổng đường cong tới trần cao nhất.
+ */
+export const CAP_MOI_LAN = 10;
 export const DIEM_TRAN = TRUNG_SINH_MAX * DIEM_MOI_LAN;
 
 // `gia` = điểm cho MỖI bậc. `max` = số bậc.

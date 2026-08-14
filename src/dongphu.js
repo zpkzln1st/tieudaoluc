@@ -7,6 +7,7 @@
 import { Storage } from './engine/save.js';
 import { ITEMS, QUALITY } from './data/items.js';
 import { levelFromXp } from './engine/leveling.js';
+import { capKyNang } from './engine/ngocanh.js';   // cap nghe phai tinh theo TRAN cua no (Trung Sinh nang tran)
 import {
   HOUSE_TIERS, BUILDINGS, BUILDING_KEYS, DONGPHU_MAX_HOUSE, DUR_REPAIR_BELOW, DUR_DECAY_DAYS,
   planBuild, startBuild, cancelBuild, resolveDongPhu,
@@ -65,7 +66,7 @@ export function dongPhu() {
     opensAt(lv) { return unlocksAtHouse(lv); },
     // kế hoạch nâng nhà (bậc kế) — dùng cho khối chi phí + CTA
     get housePlan() { try { return planBuild(this.st, 'house'); } catch (e) { return null; } },
-    get doanhTaoLv() { try { return levelFromXp((this.st.skills && this.st.skills.doanhTao && this.st.skills.doanhTao.xp) || 0); } catch (e) { return 0; } },
+    get doanhTaoLv() { try { return capKyNang(this.st, 'doanhTao'); } catch (e) { return 0; } },
     get nextHouseTier() { const p = this.housePlan; return p ? HOUSE_TIERS[p.toLevel] : null; },
     // màu tên nguyên liệu theo phẩm chất
     matColor(id) { return QUALITY_HEX[(ITEMS[id] || {}).quality] || '#c7ccc9'; },

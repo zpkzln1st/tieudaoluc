@@ -27,7 +27,7 @@ import { consumableEffMult } from './setbonus.js';   // dòng ẩn Nhu Tình: +%
 import { grantDungeonRun, finalizeDungeonBatch, newDungeonAcc } from './dungeon.js';
 import { dongPhuCapBonusH } from './dongphu.js';   // Động Phủ: +1h trần treo mỗi bậc nhà (điểm móc DUY NHẤT)
 import { skMo, skMocDong, skEffBonus, skExpBonus } from './sukien.js';   // Sự Kiện: kĩ năng riêng 6 bậc
-import { ncTocPct, ncExpPct, ncNhanDoiPct, ncVuotBacPct, ncDaiThanhPct, ncGiamCap, ncTranGio } from './ngocanh.js';   // Đốn Ngộ Cảnh
+import { ncTocPct, ncExpPct, ncNhanDoiPct, ncVuotBacPct, ncDaiThanhPct, ncGiamCap, ncTranGio, capKyNang } from './ngocanh.js';   // Đốn Ngộ Cảnh
 
 export function getAction(skillId, actionId) {
   const skill = SKILLS[skillId];
@@ -55,7 +55,9 @@ export function reqLvThat(state, skillId, action) {
   return Math.max(1, (action.reqLevel || 0) - ncGiamCap(state, skillId));
 }
 export function canStartAction(state, skillId, action) {
-  if (levelFromXp(state.skills[skillId]?.xp || 0) < reqLvThat(state, skillId, action)) return false;
+  // ⚠ Cap phai tinh theo TRAN cua ki nang do (Trung Sinh nang tran). Dung levelFromXp thang la
+  //   nguoi da Trung Sinh bi ket cap 100 va moi phep so cap yeu cau deu sai theo.
+  if (capKyNang(state, skillId) < reqLvThat(state, skillId, action)) return false;
   if (action.needsDoPho && !((((state.player && state.player.doPho) || {})[action.itemId] || 0) > 0)) return false; // bậc 4-7: phải còn lượt Đồ Phổ
   if (action.inputs) {
     for (const inp of action.inputs) {

@@ -4,8 +4,8 @@
 // state.ngoCanh = { <skillId>: { ts: <số lần trùng sinh>, nut: { <nutId>: <bậc> } } }
 // Điểm chưa tiêu = ts * DIEM_MOI_LAN - (tổng điểm đã bỏ vào các nút). Không lưu rời để khỏi lệch.
 // ============================================================
-import { NGO_CANH_NUT, NGO_CANH_BY_ID, TRUNG_SINH_MAX, DIEM_MOI_LAN } from '../data/ngocanh.js';
-import { MAX_LEVEL, levelFromXp } from './leveling.js';
+import { NGO_CANH_NUT, NGO_CANH_BY_ID, TRUNG_SINH_MAX, DIEM_MOI_LAN, CAP_MOI_LAN } from '../data/ngocanh.js';
+import { MAX_LEVEL, levelFromXp, xpProgress } from './leveling.js';
 
 export function ensureNgoCanh(state) {
   if (!state.ngoCanh || typeof state.ngoCanh !== 'object') state.ngoCanh = {};
@@ -22,6 +22,29 @@ function oCua(state, skillId) {
 export const soTrungSinh = (state, skillId) => oCua(state, skillId).ts;
 export const bacNut = (state, skillId, nutId) => oCua(state, skillId).nut[nutId] || 0;
 
+/**
+ * TRẦN CẤP của một kỹ năng: 100, cộng 10 mỗi lần Trùng Sinh. Sáu lần là 160.
+ * ⚠ Kỹ năng chưa Trùng Sinh lần nào thì trần đúng 100 — y hệt trước, không ai bị đổi đường cong.
+ * ⚠ Chiến Đấu không có bảng Đốn Ngộ Cảnh nên `ts` luôn 0, trần luôn 100.
+ */
+export function tranCap(state, skillId) {
+  return MAX_LEVEL + Math.min(TRUNG_SINH_MAX, soTrungSinh(state, skillId)) * CAP_MOI_LAN;
+}
+
+/**
+ * CẤP của một kỹ năng, đã tính đúng trần của nó.
+ * ⚠⚠ Dùng hàm NÀY thay cho `levelFromXp(state.skills[id].xp)` ở mọi chỗ đọc cấp kỹ năng.
+ *   Gọi thẳng `levelFromXp` là tính theo trần 100, nên người đã Trùng Sinh sẽ bị kẹt cấp:
+ *   cày quá 100 mà cấp không nhúc nhích, và mọi phép so cấp yêu cầu đều sai theo.
+ */
+export function capKyNang(state, skillId) {
+  return levelFromXp(((state.skills || {})[skillId] || {}).xp || 0, tranCap(state, skillId));
+}
+/** Tiến độ thanh kinh nghiệm của một kỹ năng, đã tính đúng trần. */
+export function tienDoKyNang(state, skillId) {
+  return xpProgress(((state.skills || {})[skillId] || {}).xp || 0, tranCap(state, skillId));
+}
+
 /** Điểm đã tiêu vào bảng của một nghề. */
 export function diemDaTieu(state, skillId) {
   const o = oCua(state, skillId);
@@ -36,7 +59,7 @@ export function diemConLai(state, skillId) {
 /** Nghề đã chạm trần cấp chưa — điều kiện DUY NHẤT để Trùng Sinh. */
 export function coTheTrungSinh(state, skillId) {
   if (soTrungSinh(state, skillId) >= TRUNG_SINH_MAX) return false;
-  return levelFromXp((state.skills[skillId] || {}).xp || 0) >= MAX_LEVEL;
+  return capKyNang(state, skillId) >= tranCap(state, skillId);
 }
 
 /**
@@ -87,7 +110,7 @@ export const ncNhanDoiPct = (state, skillId) => bacNut(state, skillId, 'luongDoa
 export const ncVuotBacPct = (state, skillId) => bacNut(state, skillId, 'thanhKim') * 8;
 /** % sản lượng cộng thêm khi nghề ĐANG ở Lv100 (0 hoặc 30). */
 export const ncDaiThanhPct = (state, skillId) =>
-  (bacNut(state, skillId, 'coThu') && levelFromXp((state.skills[skillId] || {}).xp || 0) >= MAX_LEVEL) ? 30 : 0;
+  (bacNut(state, skillId, 'coThu') && capKyNang(state, skillId) >= tranCap(state, skillId)) ? 30 : 0;
 /** % tốc độ khai thác (0..30). */
 export const ncTocPct = (state, skillId) => bacNut(state, skillId, 'thuThuc') * 10;
 /** Số cấp được giảm ở yêu cầu của mọi việc (0..30). */
@@ -102,7 +125,7 @@ export function ncThucLoPct(state, skillId) {
   const bac = bacNut(state, skillId, 'thucLo');
   if (!bac) return 0;
   const nguong = NGO_CANH_BY_ID.thucLo.nguong[bac - 1];
-  return levelFromXp((state.skills[skillId] || {}).xp || 0) < nguong ? NGO_CANH_BY_ID.thucLo.pct : 0;
+  return capKyNang(state, skillId) < nguong ? NGO_CANH_BY_ID.thucLo.pct : 0;
 }
 
 /**

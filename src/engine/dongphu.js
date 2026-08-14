@@ -9,6 +9,7 @@
 //   Tiền + vật liệu chảy MỘT CHIỀU VÀO. Hủy Xây hoàn 100% liệu, MẤT Bạc.
 // ============================================================
 import { levelFromXp } from './leveling.js';
+import { capKyNang } from './ngocanh.js';   // cap nghe phai tinh theo TRAN cua no (Trung Sinh nang tran)
 
 export const DONGPHU_MAX_HOUSE = 6;
 export const IDLE_BASE_H = 8;            // trần treo NỀN (khớp settings.idleCapHours mặc định)
@@ -161,7 +162,7 @@ export function startBuild(state, target, now) {
   const plan = planBuild(state, target);
   if (!plan) return { ok: false, msg: 'Không thể nâng cấp lúc này.' };
   if (target === 'house') {
-    const lv = levelFromXp((state.skills && state.skills.doanhTao && state.skills.doanhTao.xp) || 0);
+    const lv = capKyNang(state, 'doanhTao');
     if (lv < plan.reqLevel) return { ok: false, msg: 'Cần Doanh Tạo cấp ' + plan.reqLevel + '.' };
   } else {
     if ((dp.house || 0) < plan.reqHouse) return { ok: false, msg: 'Cần Nhà Chính bậc ' + plan.reqHouse + '.' };

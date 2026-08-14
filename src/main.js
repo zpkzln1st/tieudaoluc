@@ -46,7 +46,7 @@ import {
 } from './engine/activity.js';
 // ĐỐN NGỘ CẢNH — Trùng Sinh nghề
 import { NGO_CANH_NUT, NGO_CANH_BY_ID, NHANH as NC_NHANH, TRUNG_SINH_MAX, DIEM_MOI_LAN, DIEM_MUA_HET, nutEffText } from './data/ngocanh.js';
-import { ensureNgoCanh, soTrungSinh, bacNut, diemConLai, coTheTrungSinh, trungSinh, muaNut, tayBang, ncBoKhoaVung } from './engine/ngocanh.js';
+import { ensureNgoCanh, soTrungSinh, bacNut, diemConLai, coTheTrungSinh, trungSinh, muaNut, tayBang, ncBoKhoaVung, capKyNang, tienDoKyNang, tranCap } from './engine/ngocanh.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, buffVal, useBuffDan, duocLuTick } from './engine/buff.js';
 import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, HE_FX, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
   TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf,
@@ -349,7 +349,7 @@ if (state.damDao === undefined) state.damDao = {}; // Đàm Đạo: { <skillId>:
   for (const slot in (state.equipment || {})) {
     const inst = state.equipment[slot]; if (!inst) continue;
     const e = (ITEMS[inst.gearId] || {}).equip;
-    const lvl = (e && e.gatherSkill) ? levelFromXp(state.skills?.[e.gatherSkill]?.xp || 0) : _cl; // công cụ: cấp NGHỀ
+    const lvl = (e && e.gatherSkill) ? capKyNang(state, e.gatherSkill) : _cl;   // công cụ: cấp NGHỀ, theo trần của nghề đó
     const req = inst.reqLevel || (e && e.reqLevel) || 0;
     if (req > 1 && lvl < req) { state.gearBag.push(inst); state.equipment[slot] = null; }   // trả instance về túi
   }
@@ -3915,8 +3915,13 @@ const gameStore = {
   },
 
   // ---------- Kỹ năng / Tứ Trụ ----------
-  skillProg(id) { return xpProgress(this.state.skills[id]?.xp || 0); },
-  skillLevel(id) { return levelFromXp(this.state.skills[id]?.xp || 0); },
+  // ⚠⚠ HAI HÀM NÀY LÀ CỬA DUY NHẤT giao diện đọc cấp kỹ năng. Phải đi qua `tranCap` vì Trùng Sinh
+  //   nâng trần thêm 10 cấp mỗi lần. Gọi thẳng `levelFromXp` là người đã Trùng Sinh kẹt ở cấp 100:
+  //   cày mãi mà thanh kinh nghiệm đầy ắp không nhúc nhích.
+  skillProg(id) { return tienDoKyNang(this.state, id); },
+  skillLevel(id) { return capKyNang(this.state, id); },
+  /** Trần cấp hiện tại của một kỹ năng — giao diện cần để ghi "Lv 100 / 160". */
+  skillTran(id) { return tranCap(this.state, id); },
   statProg(id) { return xpProgress(this.state.stats[id]?.xp || 0); },
   statLevel(id) { return levelFromXp(this.state.stats[id]?.xp || 0); },
   get totalLevel() { return this.combatLevel + Object.keys(this.SKILLS).reduce((s, id) => s + this.skillLevel(id), 0); },
@@ -4122,6 +4127,8 @@ const gameStore = {
   get ncHetLuot() { return this.ncTs >= TRUNG_SINH_MAX; },
   /** Ô "Đốn Ngộ Cảnh" chỉ hiện khi có việc để làm — chưa tới Lv100 mà chưa từng Trùng Sinh thì ẩn. */
   ncHienO(skillId) { void this._tick; return this.skillLevel(skillId) >= 100 || soTrungSinh(this.state, skillId) > 0; },
+  /** Còn thiếu bao nhiêu cấp nữa mới Trùng Sinh tiếp được. 0 nghĩa là đã chạm trần. */
+  ncConThieu(skillId) { void this._tick; return Math.max(0, tranCap(this.state, skillId) - this.skillLevel(skillId)); },
   /** Số lần Trùng Sinh của MỘT nghề bất kỳ (nút ngoài trang nghề đọc cái này, không phải `ncTs`). */
   ncTsCua(skillId) { void this._tick; return soTrungSinh(this.state, skillId); },
   /**
