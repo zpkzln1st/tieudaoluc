@@ -6376,10 +6376,27 @@
               </div>
             </div>
 
+            <!-- ĐIỆN THOẠI: cột dọc 172px nuốt gần nửa bề ngang của màn 390px — ô tìm còn 20px và
+                 vùng nội dung mọc thanh cuộn ngang. Dưới 640px thì bỏ cột, thay bằng một dải chọn
+                 mục cuộn ngang MỘT hàng, nội dung chiếm trọn bề ngang. -->
+            <div class="sm:hidden shrink-0 border-b border-slate-800 bg-black/20 overflow-x-auto">
+              <div class="flex items-center gap-1.5 px-3 py-2 w-max">
+                <template x-for="nh in g.LB_NHOM" :key="'m-' + nh.ten">
+                  <template x-for="m in nh.muc" :key="'m-' + m[0]">
+                    <button @click="g.lbDoiTab(m[0])" class="px-2.5 py-1 rounded-full text-[11px] fserif border transition whitespace-nowrap inline-flex items-center gap-1"
+                      :class="g.lbTab === m[0] ? 'text-amber-200 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800'">
+                      <span x-text="m[1]"></span>
+                      <template x-if="m[0]==='nhatKy' && g.lbLenhLa"><span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span></template>
+                    </button>
+                  </template>
+                </template>
+              </div>
+            </div>
+
             <div class="flex-1 min-h-0 flex">
               <!-- CỘT DỌC: mười một mục chia bốn nhóm. Thanh tab ngang phải xuống hai hàng và
                    đẩy nội dung tụt xuống mỗi lần thêm mục mới. -->
-              <div class="w-[172px] shrink-0 border-r border-slate-800 bg-black/20 overflow-y-auto py-2 px-2">
+              <div class="hidden sm:block w-[172px] shrink-0 border-r border-slate-800 bg-black/20 overflow-y-auto py-2 px-2">
                 <template x-for="nh in g.LB_NHOM" :key="nh.ten">
                   <!-- ⚠ `first:` phải đặt ở khối NHÓM chứ không ở cái nhãn: mỗi nhóm là một khối riêng
                        nên nhãn nào cũng là con đầu của khối mình, và cả bốn nhãn cùng mất lề trên. -->
@@ -6399,9 +6416,10 @@
               </div>
 
               <div class="flex-1 min-w-0 flex flex-col">
+                <!-- Dòng phụ giấu trên điện thoại: bề ngang không đủ, cắt nham nhở còn khó đọc hơn không có. -->
                 <div class="h-11 shrink-0 flex items-center gap-2.5 px-4 border-b border-slate-800">
                   <span class="text-[13.5px] font-bold text-slate-200 fserif shrink-0" x-text="g.lbTieuDe.ten"></span>
-                  <span class="text-[10.5px] text-slate-500 truncate" x-text="g.lbTieuDe.phu"></span>
+                  <span class="hidden sm:block text-[10.5px] text-slate-500 truncate" x-text="g.lbTieuDe.phu"></span>
                 </div>
                 <div class="flex-1 min-h-0 overflow-y-auto p-3">
               <template x-if="g.lbLoi"><div class="text-[12px] text-rose-400 text-center py-8" x-text="g.lbLoi"></div></template>
@@ -6463,9 +6481,11 @@
                    `data`. Bản lưu nặng ~120 KB nên chỉ đọc khi bấm nút Soi Bản Lưu của đúng một người. -->
               <template x-if="!g.lbLoi && g.lbTab === 'nguoi'">
                 <div class="px-1">
-                  <div class="flex items-center gap-2 mb-2">
+                  <!-- ⚠ `flex-wrap` + ô tìm chiếm trọn hàng trên màn hẹp: để một hàng thì ô nhập bị
+                       ba cái nút bóp còn hai chục điểm ảnh. -->
+                  <div class="flex items-center gap-2 mb-2 flex-wrap">
                     <input type="text" x-model="g.lbTimTu" @keydown.enter="g.lbTimNguoi()" placeholder="Tên nhân vật hoặc mã tài khoản"
-                      class="flex-1 min-w-0 px-2 py-1 rounded bg-black/40 border border-slate-700 text-slate-200 text-[11.5px] focus:border-amber-600/60 outline-none">
+                      class="w-full sm:w-auto sm:flex-1 min-w-0 px-2 py-1 rounded bg-black/40 border border-slate-700 text-slate-200 text-[11.5px] focus:border-amber-600/60 outline-none">
                     <button @click="g.lbTimNguoi()" class="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Tìm</button>
                     <button @click="g.lbTimTu=''; g.lbTaiNguoi()" class="shrink-0 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">Gần Đây</button>
                     <button @click="g.lbTaiMatTich()" class="shrink-0 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">Mất Tích</button>
@@ -6517,7 +6537,9 @@
                           <template x-if="g.lbSaveTai"><div class="text-[10.5px] text-slate-600 py-1">Đang đọc bản lưu…</div></template>
                           <template x-if="g.lbSave">
                             <div>
-                              <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                              <!-- Hai cột trên máy rộng, một cột trên điện thoại: nhồi hai cột vào
+                                   200 điểm ảnh là mọi nhãn cụt đuôi ("Tổng Cấ…", "Hồn Th…"). -->
+                              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5">
                                 <template x-for="p in [
                                   ['Tên Nhân Vật', g.lbSave.ten],
                                   ['Chiến Đấu', 'Lv ' + g.lbSave.capChienDau],
