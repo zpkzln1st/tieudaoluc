@@ -399,16 +399,45 @@ export async function cloudNhatKyDs(gioiHan, viec) {
 // ---- KHOA TAI KHOAN ----
 export async function cloudKhoaDs() {
   const sb = await getClient();
-  const { data, error } = await sb.from('khoa_tai_khoan').select('user_id,ly_do,luc');
+  const { data, error } = await sb.from('khoa_tai_khoan').select('user_id,ly_do,luc,het_luc');
   if (error) return { ok: false, reason: error.message };
   return { ok: true, rows: data || [] };
 }
-export async function cloudKhoaThem(uid, lyDo) {
+/**
+ * Khoa mot tai khoan. `hetLuc` rong = khoa khong han.
+ * ⚠ Van la ghi MOC chu khong ghi cong tac: toi gio la chot tu thoi chan, khong can ai bam go.
+ */
+export async function cloudKhoaThem(uid, lyDo, hetLuc) {
   if (!uid) return { ok: false, reason: 'no-uid' };
   const sb = await getClient();
-  const { error } = await sb.from('khoa_tai_khoan').upsert({ user_id: uid, ly_do: lyDo || '' }, { onConflict: 'user_id' });
+  const { error } = await sb.from('khoa_tai_khoan').upsert(
+    { user_id: uid, ly_do: lyDo || '', het_luc: hetLuc ? new Date(hetLuc).toISOString() : null },
+    { onConflict: 'user_id' },
+  );
   if (error) return { ok: false, reason: error.message };
   return { ok: true };
+}
+
+/**
+ * Go mot ho so khoi Phong Van Bang. Dung cho ten nhan vat tuc tiu.
+ * ⚠ Go KHONG PHAI la cam: nguoi choi bam Khoe lan nua la ho so hien lai. Muon chan han thi khoa
+ *   tai khoan — trigger tren `ho_so_cong_khai` se chan luon duong ghi.
+ */
+export async function cloudHoSoXoa(uid) {
+  if (!uid) return { ok: false, reason: 'no-uid' };
+  const sb = await getClient();
+  const { error } = await sb.from('ho_so_cong_khai').delete().eq('user_id', uid);
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}
+
+/** So lieu may chu cho tab Thong Ke. Nguoi thuong goi ra so cua chinh ho (RLS). */
+export async function cloudThongKe() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('thong_ke_may_chu')
+    .select('tong_tai_khoan,vao_24_gio,vao_7_ngay,vao_30_ngay,mat_tich,cu_nhat,moi_nhat').maybeSingle();
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, row: data };
 }
 export async function cloudKhoaBo(uid) {
   if (!uid) return { ok: false, reason: 'no-uid' };

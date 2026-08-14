@@ -138,7 +138,7 @@ Trang bị thì KHÔNG phát qua hộp quà. Trang bị là thực thể có dò
 
 ## 6. NHÓM D — KỶ LUẬT
 
-### D1. Khoá có hạn
+### D1. Khoá có hạn ✅ đã dựng (`docs/SQL_LENH_BAI_4.sql`)
 Thêm cột: `alter table public.khoa_tai_khoan add column if not exists het_luc timestamptz;`
 `null` = khoá không hạn. Hàm `chan_tai_khoan_bi_khoa` sửa điều kiện:
 ```sql
@@ -147,13 +147,15 @@ if exists (select 1 from public.khoa_tai_khoan k
   return null;
 end if;
 ```
-Đúng luật ghi MỐC: tới giờ là tự hết, không cần ai bấm gỡ.
-⚠ Dòng cũ vẫn nằm lại trong bảng sau khi hết hạn. Đó là CÓ Ý — giữ lịch sử vi phạm. Giao diện lọc riêng hai mục "đang khoá" và "đã hết hạn".
+Đúng luật ghi MỐC: tới giờ là tự hết, không cần ai bấm gỡ. Bốn lựa chọn: Không Hạn · 1 Ngày · 7 Ngày · 30 Ngày.
+⚠ Dòng cũ vẫn nằm lại trong bảng sau khi hết hạn. Đó là CÓ Ý — giữ lịch sử vi phạm.
+⚠⚠ **Mọi phép hỏi "có đang bị khoá không" phải kèm điều kiện mốc.** Thấy dòng là kết luận đang khoá thì người đã hết hạn bị coi là khoá vĩnh viễn. Chỗ này sai được ở cả hai tầng: hàm `chan_tai_khoan_bi_khoa` phía máy chủ và `lbDangKhoa` phía giao diện.
+Giao diện: dòng còn hạn đếm ngược, dòng hết hạn xám lại và nút đổi thành "Xoá Dòng".
 
 ### D2. Nút Khoá trong màn Giám Sát
 Hiện phải chép mã tài khoản từ Giám Sát sang Lệnh Bài. Thêm nút gọi thẳng `_lbKhoaGui`. **Không cần SQL mới.**
 
-### D3. Gỡ hồ sơ khỏi Phong Vân Bảng
+### D3. Gỡ hồ sơ khỏi Phong Vân Bảng ✅ đã dựng
 Dùng cho tên nhân vật tục tĩu. `ho_so_cong_khai` hiện KHÔNG có luật delete cho ai cả.
 ```sql
 create policy "ho_so_tac_gia_xoa" on public.ho_so_cong_khai
@@ -221,7 +223,7 @@ Hệ số rơi đồ và hệ số giá bán KHÔNG đụng trần nào — hai 
 
 ---
 
-## 9. NHÓM G — SỐ LIỆU MÁY CHỦ
+## 9. NHÓM G — SỐ LIỆU MÁY CHỦ ✅ đã dựng
 
 ### G1. Tab Thống Kê
 ```sql
@@ -263,7 +265,7 @@ Trong khoảng mốc bảo trì:
 |---|---|---|
 | 1 ✅ | A1 A2 A3 A4 · B1 B2 · D2 · vá lỗi `diemSuKien` | `docs/SQL_LENH_BAI_2.sql` |
 | 2 ✅ | C1 · E (cáo thị + thư riêng) | `docs/SQL_LENH_BAI_3.sql` |
-| 3 | D1 D3 · G1 G2 | có |
+| 3 ✅ | D1 D3 · G1 G2 | `docs/SQL_LENH_BAI_4.sql` |
 | 4 | C2 C3 (mã đổi quà) | có |
 | 5 | F (hệ số máy chủ) · H (bảo trì) | có, kèm sửa `tran_he_so` |
 | 6 | C4 (quà mang vật phẩm) | có |

@@ -80,7 +80,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -1544,6 +1544,10 @@ const gameStore = {
   // Tab Cáo Thị: bảng `cao_thi` — muc_tieu rỗng là cáo thị chung, có mã tài khoản là thư riêng.
   lbCTDs: [], lbCTTai: false,
   lbCT: { tieuDe: '', noiDung: '', muc: 'thuong', mucTieu: '', moLuc: '', dongLuc: '' },
+  // Khoá có hạn: số ngày. 0 = không hạn.
+  lbKhoaHan: 0,
+  // Tab Thống Kê: view `thong_ke_may_chu`.
+  lbTK: null, lbTKTai: false, lbTKLoi: '',
   // Tab Nhật Ký: sổ chỉ thêm được của Lệnh Bài.
   lbNhatKy: [], lbNhatKyTai: false, lbNhatKyLoc: '', lbNhatKyChon: null,
   // ⚠ PHẢI đóng Cài Đặt trước: modal Cài Đặt là z-[70], Lệnh Bài z-[59] — không đóng thì Lệnh Bài
@@ -1796,24 +1800,44 @@ const gameStore = {
       },
     });
   },
+  /** Mốc hết hạn theo số ngày đang chọn. 0 ngày = khoá không hạn (trả null). */
+  _lbKhoaHetLuc() { return this.lbKhoaHan > 0 ? (now() + this.lbKhoaHan * 86400000) : null; },
+  lbHanChu(n) { return n === 0 ? 'Không Hạn' : (n + ' Ngày'); },
+  /**
+   * ⚠⚠ Dòng khoá đã hết hạn VẪN NẰM LẠI trong bảng — giữ làm lịch sử vi phạm.
+   *   Mọi phép hỏi "có đang bị khoá không" phải kèm điều kiện mốc, đừng chỉ tìm thấy dòng là kết luận.
+   */
+  lbKhoaHetHan(k) { return !!(k && k.het_luc && now() >= Date.parse(k.het_luc)); },
+  lbKhoaConChu(k) {
+    if (!k || !k.het_luc) return 'Không hạn';
+    const con = Date.parse(k.het_luc) - now();
+    if (con <= 0) return 'Đã hết hạn';
+    const ng = Math.floor(con / 86400000), gio = Math.floor((con % 86400000) / 3600000);
+    return ng > 0 ? ('Còn ' + ng + ' ngày ' + gio + ' giờ') : ('Còn ' + gio + ' giờ');
+  },
   lbKhoaThem() {
     const uid = (this.lbKhoaUid || '').trim();
     if (!uid) { this.showToast('Thiếu mã tài khoản.'); return; }
     // ⚠ Chặn tự khoá chính mình: khoá xong thì chính tài khoản tác giả không đẩy save lên được nữa,
     //   mà cũng chẳng còn đường nào trong game để tự gỡ ra.
     if (this.author && uid === this.author.uid) { this.showToast('Không khoá chính tài khoản tác giả.'); return; }
+    const han = this.lbKhoaHan > 0 ? (' trong ' + this.lbKhoaHan + ' ngày') : ' cho tới khi ngươi gỡ';
     this.hoiXacNhan({
       tieuDe: 'Khoá Tài Khoản',
-      loi: 'Tài khoản ' + uid.slice(0, 8) + '… sẽ không thể tải bản lưu lên máy chủ nữa. Người chơi vẫn có thể chơi ngoại tuyến bình thường và sẽ không nhận thông báo rằng tài khoản đã bị khóa.',
+      loi: 'Tài khoản ' + uid.slice(0, 8) + '… sẽ không thể tải bản lưu lên máy chủ' + han + '. Người chơi vẫn có thể chơi ngoại tuyến bình thường và sẽ không nhận thông báo rằng tài khoản đã bị khóa.',
       canhBao: 'Việc này ghi vào nhật ký, không xoá được.',
       nut: 'Khoá', nguy: true,
       xong: () => { this._lbKhoaGui(uid); },
     });
   },
   async _lbKhoaGui(uid) {
-    const r = await cloudKhoaThem(uid, this.lbKhoaLyDo || '');
+    const hetLuc = this._lbKhoaHetLuc();
+    const r = await cloudKhoaThem(uid, this.lbKhoaLyDo || '', hetLuc);
     if (!r.ok) { this.showToast('Không khoá được — ' + r.reason); return; }
-    this.lbKhoa = this.lbKhoa.filter((x) => x.user_id !== uid).concat([{ user_id: uid, ly_do: this.lbKhoaLyDo || '', luc: new Date().toISOString() }]);
+    this.lbKhoa = this.lbKhoa.filter((x) => x.user_id !== uid).concat([{
+      user_id: uid, ly_do: this.lbKhoaLyDo || '', luc: new Date().toISOString(),
+      het_luc: hetLuc ? new Date(hetLuc).toISOString() : null,
+    }]);
     this.lbKhoaUid = ''; this.lbKhoaLyDo = '';
     this.showToast('Đã khoá — tài khoản này không đẩy save lên được nữa.');
   },
@@ -1832,6 +1856,7 @@ const gameStore = {
     // Tải lười: chưa mở tab thì chưa gọi mạng.
     if (t === 'nguoi' && !this.lbNguoi.length) this.lbTaiNguoi();
     if (t === 'caoThi' && !this.lbCTDs.length) this.lbTaiCaoThi();
+    if (t === 'thongKe' && !this.lbTK) this.lbTaiThongKe();
   },
   /**
    * ⚠⚠ BA LÝ DO danh sách rỗng, và trước đây cả ba ra CÙNG MỘT màn hình trắng:
@@ -1865,7 +1890,46 @@ const gameStore = {
     finally { this.lbNguoiTai = false; }
   },
   lbTenNguoi(r) { return (r && r.ten) || 'Chưa đặt tên'; },
-  lbDangKhoa(uid) { return (this.lbKhoa || []).some((k) => k.user_id === uid); },
+  // ⚠ Phải kèm điều kiện mốc: dòng khoá đã hết hạn vẫn nằm lại trong bảng làm lịch sử.
+  lbDangKhoa(uid) { return (this.lbKhoa || []).some((k) => k.user_id === uid && !this.lbKhoaHetHan(k)); },
+  /** Người chơi quá 7 ngày không đồng bộ. Dùng để gửi cáo thị mời quay lại kèm hộp quà. */
+  async lbTaiMatTich() {
+    this.lbNguoiTai = true; this.lbNguoiLoi = ''; this.lbTimTu = '';
+    try {
+      const r = await cloudNguoiChoiDs(200);
+      if (!r.ok) { this.lbNguoi = []; this.lbNguoiLoi = this._lbNhanLoi(r); return; }
+      const moc = now() - 7 * 86400000;
+      this.lbNguoi = r.rows.filter((x) => !x.updated_at || Date.parse(x.updated_at) <= moc);
+    } catch (e) { this.lbNguoi = []; this.lbNguoiLoi = 'Không kết nối được.'; }
+    finally { this.lbNguoiTai = false; }
+  },
+  /** Gỡ một hồ sơ khỏi Phong Vân Bảng. Dùng cho tên nhân vật tục tĩu. */
+  lbGoHoSo(n) {
+    if (!n || !n.user_id) return;
+    this.hoiXacNhan({
+      tieuDe: 'Gỡ Khỏi Phong Vân Bảng',
+      loi: 'Hồ sơ của ' + this.lbTenNguoi(n) + ' sẽ biến mất khỏi bảng xếp hạng và khỏi đường khoe.',
+      canhBao: 'Người chơi bấm Khoe lần nữa là hồ sơ hiện lại. Muốn chặn hẳn thì khoá tài khoản.',
+      nut: 'Gỡ', nguy: true,
+      xong: async () => {
+        const r = await cloudHoSoXoa(n.user_id);
+        if (!r.ok) { this.showToast('Không gỡ được — ' + r.reason); return; }
+        n.ten = null; n.tong_cap = 0; n.chien_luc = 0;   // dòng vẫn ở đó, chỉ mất phần hồ sơ
+        this.showToast('Đã gỡ khỏi Phong Vân Bảng.');
+      },
+    });
+  },
+
+  // ---------- LỆNH BÀI · tab THỐNG KÊ ----------
+  async lbTaiThongKe() {
+    this.lbTKTai = true; this.lbTKLoi = '';
+    try {
+      const r = await cloudThongKe();
+      if (r.ok) this.lbTK = r.row;
+      else { this.lbTK = null; this.lbTKLoi = r.thieuBang ? 'Chưa chạy docs/SQL_LENH_BAI_4.sql trên Supabase.' : ('Không đọc được — ' + r.reason + '.'); }
+    } catch (e) { this.lbTK = null; this.lbTKLoi = 'Không kết nối được.'; }
+    finally { this.lbTKTai = false; }
+  },
   lbXemNguoi(uid) {
     if (this.lbNguoiChon === uid) { this.lbNguoiChon = null; this.lbSave = null; return; }
     this.lbNguoiChon = uid; this.lbSave = null;         // đổi người thì bỏ bản tóm tắt cũ, kẻo đọc nhầm số

@@ -51,4 +51,37 @@ select '6 · rang buoc qua', conname, pg_get_constraintdef(oid)
   from pg_constraint
  where conrelid = 'public.qua_tang'::regclass and contype = 'c'
 
+-- ---- DOT 2: view danh sach nguoi choi (SQL_LENH_BAI_2.sql) ----
+-- ⚠⚠ Cot `data` LOT VAO VIEW la moi lan mo man Lenh Bai keo ve ca tram MB. Phai la "khong co cot data".
+union all
+select '7 · view dot 2', 'nguoi_choi_gom',
+       case when not exists (select 1 from information_schema.views
+                              where table_schema = 'public' and table_name = 'nguoi_choi_gom')
+            then '⚠ CHUA CHAY SQL_LENH_BAI_2.sql'
+            when exists (select 1 from information_schema.columns
+                          where table_schema = 'public' and table_name = 'nguoi_choi_gom'
+                            and column_name = 'data')
+            then '⚠ HONG — view co cot data'
+            else 'OK · khong co cot data' end
+
+-- ---- DOT 3: bang cao thi (SQL_LENH_BAI_3.sql) ----
+union all
+select '8 · bang dot 3', tablename,
+       case when rowsecurity then 'RLS bat' else '⚠ RLS TAT' end
+  from pg_tables where schemaname = 'public' and tablename = 'cao_thi'
+
+union all
+select '8 · luat cao thi', policyname, cmd
+  from pg_policies where schemaname = 'public' and tablename = 'cao_thi'
+
+union all
+select '8 · rang buoc cao thi', conname, pg_get_constraintdef(oid)
+  from pg_constraint
+ where conrelid = to_regclass('public.cao_thi') and contype = 'c'
+
+union all
+select '8 · trigger cao thi', tgname, 'co'
+  from pg_trigger
+ where tgrelid = to_regclass('public.cao_thi') and not tgisinternal
+
 order by 1, 2;

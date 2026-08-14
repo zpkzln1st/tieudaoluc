@@ -6344,7 +6344,7 @@
               <button @click="g.dongLenhBai()" class="w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 leading-none shrink-0">✕</button>
             </div>
             <div class="flex items-center gap-1.5 flex-wrap px-4 py-2 border-b border-slate-800 shrink-0">
-              <template x-for="t in [['suKien','Sự Kiện'],['nguoi','Người Chơi'],['qua','Hộp Quà'],['caoThi','Cáo Thị'],['khoa','Khoá Tài Khoản'],['nhatKy','Nhật Ký']]" :key="t[0]">
+              <template x-for="t in [['suKien','Sự Kiện'],['nguoi','Người Chơi'],['qua','Hộp Quà'],['caoThi','Cáo Thị'],['khoa','Khoá Tài Khoản'],['thongKe','Thống Kê'],['nhatKy','Nhật Ký']]" :key="t[0]">
                 <button @click="g.lbDoiTab(t[0])" class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap inline-flex items-center gap-1"
                   :class="g.lbTab === t[0] ? 'text-amber-200 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'">
                   <span x-text="t[1]"></span>
@@ -6405,6 +6405,7 @@
                       class="flex-1 min-w-0 px-2 py-1 rounded bg-black/40 border border-slate-700 text-slate-200 text-[11.5px] focus:border-amber-600/60 outline-none">
                     <button @click="g.lbTimNguoi()" class="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Tìm</button>
                     <button @click="g.lbTimTu=''; g.lbTaiNguoi()" class="shrink-0 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">Gần Đây</button>
+                    <button @click="g.lbTaiMatTich()" class="shrink-0 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">Mất Tích</button>
                   </div>
                   <template x-if="g.lbNguoiTai"><div class="text-[12px] text-slate-600 text-center py-6">Đang đọc…</div></template>
                   <!-- ⚠ Ba lý do rỗng phải tách ra. Màn hình trắng giống nhau thì không ai đoán được. -->
@@ -6448,6 +6449,7 @@
                             <button @click="g.lbSoiSave(n.user_id)" :disabled="g.lbSaveTai" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition disabled:opacity-40">Soi Bản Lưu</button>
                             <button @click="g.lbSangQua(n.user_id)" class="px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Phát Quà</button>
                             <button @click="g.lbSangKhoa(n.user_id)" class="px-2.5 py-1 rounded-lg bg-rose-500/12 border border-rose-600/40 text-rose-200 hover:bg-rose-500/20 text-[12px] transition">Khoá Tài Khoản</button>
+                            <button @click="g.lbGoHoSo(n)" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-rose-500/60 hover:text-rose-300 text-[12px] transition">Gỡ Khỏi Phong Vân Bảng</button>
                           </div>
                           <template x-if="g.lbSaveTai"><div class="text-[10.5px] text-slate-600 py-1">Đang đọc bản lưu…</div></template>
                           <template x-if="g.lbSave">
@@ -6603,19 +6605,69 @@
                     <span class="block text-[10.5px] text-slate-500 mb-0.5">Lý Do</span>
                     <input type="text" x-model="g.lbKhoaLyDo" class="w-full px-2 py-1 rounded bg-black/40 border border-slate-700 text-slate-200 text-[11.5px] outline-none">
                   </label>
+                  <!-- Khoá có hạn: vẫn ghi MỐC, tới giờ là chốt tự thôi chặn, không cần ai bấm gỡ. -->
+                  <div class="flex items-center gap-1.5 flex-wrap mb-2">
+                    <span class="text-[10.5px] text-slate-500">Thời Hạn</span>
+                    <template x-for="h in [0,1,7,30]" :key="h">
+                      <button @click="g.lbKhoaHan = h" class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap"
+                        :class="g.lbKhoaHan===h ? 'text-amber-200 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                        x-text="g.lbHanChu(h)"></button>
+                    </template>
+                  </div>
                   <button @click="g.lbKhoaThem()" class="px-2.5 py-1 rounded-lg bg-rose-500/12 border border-rose-600/40 text-rose-200 hover:bg-rose-500/20 text-[12px] transition">Khoá Tài Khoản</button>
                   <div class="mt-3 pt-3 border-t border-slate-800">
                     <template x-if="!g.lbKhoa.length"><div class="text-[12px] text-slate-600 text-center py-4">Chưa khoá ai.</div></template>
+                    <!-- ⚠ Dòng hết hạn VẪN NẰM LẠI làm lịch sử vi phạm — bày riêng, đừng trộn với đang khoá. -->
                     <template x-for="k in g.lbKhoa" :key="k.user_id">
-                      <div class="mb-1.5 px-3 py-2 rounded-lg border border-rose-900/40 bg-rose-950/10 flex items-center gap-2">
+                      <div class="mb-1.5 px-3 py-2 rounded-lg border flex items-center gap-2"
+                        :class="g.lbKhoaHetHan(k) ? 'border-slate-800 bg-black/20' : 'border-rose-900/40 bg-rose-950/10'">
                         <div class="min-w-0 flex-1">
                           <code class="block truncate text-[10.5px] text-sky-300/90" x-text="k.user_id"></code>
                           <div class="text-[10.5px] text-slate-500 truncate" x-text="k.ly_do || '—'"></div>
                         </div>
-                        <button @click="g.lbKhoaBo(k.user_id)" class="shrink-0 px-2 py-0.5 rounded-full text-[10.5px] fserif border border-slate-700 text-slate-400 hover:border-jade/50 hover:text-jade transition">Gỡ Khoá</button>
+                        <span class="shrink-0 text-[10px]" :class="g.lbKhoaHetHan(k) ? 'text-slate-600' : 'text-rose-300'" x-text="g.lbKhoaConChu(k)"></span>
+                        <button @click="g.lbKhoaBo(k.user_id)" class="shrink-0 px-2 py-0.5 rounded-full text-[10.5px] fserif border border-slate-700 text-slate-400 hover:border-jade/50 hover:text-jade transition"
+                          x-text="g.lbKhoaHetHan(k) ? 'Xoá Dòng' : 'Gỡ Khoá'"></button>
                       </div>
                     </template>
                   </div>
+                </div>
+              </template>
+
+              <!-- ---- THỐNG KÊ ----
+                   View `thong_ke_may_chu` gom số ở máy chủ. Người thường gọi ra số của chính họ (RLS). -->
+              <template x-if="!g.lbLoi && g.lbTab === 'thongKe'">
+                <div class="px-1">
+                  <template x-if="g.lbTKTai"><div class="text-[12px] text-slate-600 text-center py-6">Đang đọc…</div></template>
+                  <template x-if="!g.lbTKTai && g.lbTKLoi">
+                    <div class="px-3 py-2 rounded-lg border border-rose-600/50 bg-rose-950/20 text-[11.5px] text-rose-200" x-text="g.lbTKLoi"></div>
+                  </template>
+                  <template x-if="!g.lbTKTai && g.lbTK">
+                    <div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <template x-for="p in [
+                          ['Tổng Tài Khoản', g.fmt(g.lbTK.tong_tai_khoan || 0)],
+                          ['Vào Trong 24 Giờ', g.fmt(g.lbTK.vao_24_gio || 0)],
+                          ['Vào Trong 7 Ngày', g.fmt(g.lbTK.vao_7_ngay || 0)],
+                          ['Vào Trong 30 Ngày', g.fmt(g.lbTK.vao_30_ngay || 0)],
+                          ['Mất Tích Quá 7 Ngày', g.fmt(g.lbTK.mat_tich || 0)]
+                        ]" :key="p[0]">
+                          <div class="px-3 py-2 rounded-lg border border-slate-800 bg-black/20">
+                            <div class="text-[10.5px] text-slate-500" x-text="p[0]"></div>
+                            <div class="text-[16px] text-amber-200 fserif" x-text="p[1]"></div>
+                          </div>
+                        </template>
+                      </div>
+                      <div class="mt-2 text-[10.5px] text-slate-600">
+                        Bản lưu mới nhất <span class="text-slate-400" x-text="g.lbTK.moi_nhat ? g.notifAgo(new Date(g.lbTK.moi_nhat).getTime()) : '—'"></span>
+                      </div>
+                      <div class="mt-2 flex items-center gap-2 flex-wrap">
+                        <button @click="g.lbTaiThongKe()" class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 text-slate-300 hover:border-jade/50 hover:text-jade text-[12px] transition">Đọc Lại</button>
+                        <button @click="g.lbTab='nguoi'; g.lbTaiMatTich()" class="px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Xem Người Mất Tích</button>
+                      </div>
+                      <div class="mt-3 text-[10px] text-slate-600 leading-snug">Đếm theo bản lưu trên máy chủ. Người chưa đăng nhập lần nào không có mặt ở đây.</div>
+                    </div>
+                  </template>
                 </div>
               </template>
 
