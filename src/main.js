@@ -1444,7 +1444,11 @@ const gameStore = {
    */
   get mucBaoRoiDo() {
     const ten = (i) => ((this.QUALITY[this.QUALITY_KEYS[i]] || {}).name || '?');
-    return [{ v: 0, ten: 'Mọi Phẩm' }, { v: 2, ten: 'Từ ' + ten(2) }, { v: 4, ten: 'Từ ' + ten(4) }];
+    // ⚠ Nhãn CHỈ ghi TÊN PHẨM. Bản cũ ghép 'Từ ' + tên phẩm ⇒ "Từ Hiếm", mà "từ hiếm" là một
+    //   danh từ có sẵn (chữ hiếm gặp) nên mắt bắt nhầm cụm đó trước.
+    // ⚠ Ghép chữ lúc chạy còn TRƯỢT TỪ ĐIỂN: "Từ Hiếm" không có khoá nào, bản EN/ZH đứng nguyên
+    //   tiếng Việt. Tên phẩm trơ thì đã có sẵn khoá (Hiếm/Sử Thi).
+    return [{ v: 0, ten: 'Mọi Phẩm' }, { v: 2, ten: ten(2) }, { v: 4, ten: ten(4) }];
   },
 
   // ---- Về Trò Chơi ----
