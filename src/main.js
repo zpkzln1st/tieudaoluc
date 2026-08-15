@@ -475,6 +475,18 @@ ICON_FOLDERS['diemSuKien'] = 'currency';                                 // ti�
 ICON_FOLDERS['dauSuKien'] = 'ui';                                        // dấu trên bản đồ thế giới
 SU_KIEN_DS.forEach((s) => { s.avatar.forEach((id) => { ICON_FOLDERS[id] = 'avatars'; }); ICON_FOLDERS[s.cover] = 'avatars'; });
 
+// ============================================================
+// ẢNH BÌA CẢNH — bìa lấy từ kho ảnh Bí Cảnh thay vì kho ảnh đại diện
+// ============================================================
+// ⚠ Nhân vật mới TRƯỚC ĐÂY có bìa trùng y hệt ảnh đại diện (`coverImg` bỏ trống = "Giống Avatar"),
+//   nhìn ra một tấm ảnh dán hai lần trên cùng một trang.
+// ⚠ Art MƯỢN: chưa vẽ ảnh bìa riêng. Mượn cảnh Thanh Vân Cốc — cảnh bình minh, KHÔNG có nhân vật
+//   nên không đá nhau với ô mặt. Vẽ được ảnh thật thì đổi đúng một dòng dưới đây.
+const BIA_CANH_TIEN_TO = 'canh:';
+const BIA_MAC_DINH = BIA_CANH_TIEN_TO + 'thanhVanCoc';
+const laBiaCanh = (id) => typeof id === 'string' && id.startsWith(BIA_CANH_TIEN_TO);
+const idBiaCanh = (id) => id.slice(BIA_CANH_TIEN_TO.length);
+
 let resetting = false; // chặn beforeunload lưu lại khi đang reset
 
 // ---- Icon đường nét (SVG, đồng bộ chủ đề; thay emoji "rác" của hệ thống) ----
@@ -3334,7 +3346,9 @@ const gameStore = {
   },
   get freeAvatarId() { return this.state.player.gender === 'nu' ? 'nu' : 'nam'; }, // ảnh theo giới tính: free
   ownsAvatar(id) { return id === this.freeAvatarId || (this.state.player.ownedAvatars || []).includes(id); },
-  ownsCover(id) { return (this.state.player.ownedCovers || []).includes(id); }, // 'Giống Avatar' (null) luôn free
+  // ⚠ Ảnh bìa CẢNH (tiền tố `canh:`) luôn free — nó là bìa mặc định của mọi nhân vật mới, không
+  //   phải hàng bán ở Thương Điếm. Thiếu vế này thì người chơi bấm lại ô mặc định là bị chặn.
+  ownsCover(id) { return laBiaCanh(id) || (this.state.player.ownedCovers || []).includes(id); }, // 'Giống Avatar' (null) luôn free
   // ⚠ Đổi ảnh đại diện thì ẢNH BÌA PHẢI ĐỨNG YÊN. `coverImg=null` nghĩa là "Giống Avatar", nên
   //   trước đây đổi avatar là banner nhảy theo — người chơi không hề đụng vào ảnh bìa.
   //   Cách chữa: lúc đổi avatar mà ảnh bìa đang ở chế độ "Giống Avatar" thì GHIM nó lại vào tấm
@@ -3353,9 +3367,12 @@ const gameStore = {
   get avatarId() { return this.state.player.avatar || this.freeAvatarId; },
   get avatarSrc() { return `images/avatars/${this.avatarId}.webp`; },
   // Ảnh BÌA (banner) tách riêng khỏi avatar — coverImg=null => giống avatar.
+  BIA_MAC_DINH,      // bìa nhân vật mới nhận; giao diện cần đọc để tô sáng ô đang chọn
   selectCover(id) { if (id && !this.ownsCover(id)) { this.showToast('Chưa sở hữu Ảnh Bìa này — mua ở Thương Điếm.'); return; } this.state.player.coverImg = id; },
   get coverImgId() { return this.state.player.coverImg || this.avatarId; },
-  get coverSrc() { return `images/avatars/${this.coverImgId}.webp`; },
+  // ⚠ Ảnh bìa lấy từ HAI kho: ảnh đại diện (`images/avatars/`) và cảnh Bí Cảnh (`images/dungeons/`).
+  //   Phân biệt bằng tiền tố `canh:` — đừng đoán theo tên tệp.
+  get coverSrc() { const id = this.coverImgId; return laBiaCanh(id) ? `images/dungeons/${idBiaCanh(id)}.webp` : `images/avatars/${id}.webp`; },
   // --- Thu phóng + kéo thả: background-size (zoom) + background-position (pan, tự giới hạn, KHÔNG hở) ---
   // cover (banner rộng) → cover theo CHIỀU NGANG; face (ô vuông) → cover theo CHIỀU DỌC.
   get coverStyle() { const c = this.state.player.cover || { x: 50, y: 50, z: 1 }; const size = c.z > 1 ? `${c.z * 100}% auto` : 'cover'; return `background-image:url('${this.coverSrc}'); background-repeat:no-repeat; background-size:${size}; background-position:${c.x}% ${c.y}%;`; },
@@ -3982,6 +3999,12 @@ const gameStore = {
     this.state.player.gender = this.draftGender;
     this.state.player.class = null;
     this.state.player.created = true;
+    // ẢNH BÌA MẶC ĐỊNH — KHÔNG để trùng ảnh đại diện. `coverImg` bỏ trống nghĩa là "Giống Avatar",
+    // nên nhân vật mới nào cũng có banner y hệt ô mặt, nhìn ra một tấm ảnh dán hai lần.
+    // ⚠ Art MƯỢN: chưa vẽ ảnh bìa riêng nên mượn cảnh Bí Cảnh Thanh Vân Cốc (cảnh bình minh,
+    //   không có nhân vật, hợp chất nhập môn). Vẽ xong ảnh thật thì đổi BIA_MAC_DINH.
+    this.state.player.coverImg = BIA_MAC_DINH;
+    this.state.player.cover = { x: 50, y: 48, z: 1 };
     // Tâm Pháp khởi tu → set bài võ + sở hữu NHẬP MÔN theo hệ đã chọn (không còn ép Hỏa)
     const kit = starterLoadoutFor(this.draftTamPhap);
     const lo = this.state.combat.loadout;

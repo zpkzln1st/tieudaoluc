@@ -1934,7 +1934,16 @@
                 <div class="lbl">Chọn Ảnh Bìa</div>
               </div>
               <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-                <!-- Giống avatar (mặc định) -->
+                <!-- ẢNH BÌA MẶC ĐỊNH — tấm nhân vật mới nhận. ⚠ Phải có ô này: bìa mặc định mà
+                     không có đường quay lại thì đổi đi một lần là mất luôn, không lấy lại được. -->
+                <button @click="$store.game.selectCover($store.game.BIA_MAC_DINH)" class="group">
+                  <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition"
+                       :class="$store.game.state.player.coverImg === $store.game.BIA_MAC_DINH ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
+                    <img loading="lazy" decoding="async" src="images/dungeons/thanhVanCoc.webp" class="w-full h-full object-cover object-center">
+                  </div>
+                  <div class="text-[10px] text-center mt-1 truncate" :class="$store.game.state.player.coverImg === $store.game.BIA_MAC_DINH ? 'text-jade' : 'text-slate-400'">Thanh Vân Cốc</div>
+                </button>
+                <!-- Giống avatar -->
                 <button @click="$store.game.selectCover(null)" class="group">
                   <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                        :class="!$store.game.state.player.coverImg ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
