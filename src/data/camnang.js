@@ -111,8 +111,8 @@ export const CN_MUC = [
     khoi: [
       ['p', 'Mỗi thời điểm chỉ có <b>một hoạt động chính</b>: làm nghề, chiến đấu, di chuyển hoặc Bí Cảnh. Chọn hoạt động mới sẽ dừng hoạt động hiện tại.'],
       ['ds', [
-        'Tiến độ khi đóng trình duyệt được tính bù lúc mở lại, giới hạn bởi trần ngoại tuyến.',
-        'Trần ngoại tuyến cơ sở 8 giờ, nới thêm theo bậc Động Phủ.',
+        'Tiến độ khi đóng trình duyệt được tính bù lúc mở lại, giới hạn bởi mức ngoại tuyến tối đa.',
+        'Ngoại tuyến tối đa cơ sở 8 giờ, nới thêm theo bậc Động Phủ.',
         'Kết quả khi treo máy và khi mở game theo dõi là <b>như nhau</b>; cả hai đều được tính theo cùng một hệ số thưởng.',
       ]],
       ['h', 'Điều kiện tự dừng'],
@@ -271,10 +271,10 @@ export const CN_MUC = [
   },
   {
     id: 'dongphu', nhom: 'nhanvat', ten: 'Động Phủ',
-    tom: 'Nới trần ngoại tuyến và mở công trình tiện ích.',
+    tom: 'Nới mức ngoại tuyến tối đa và mở công trình tiện ích.',
     khoi: [
       ['bang', ['Chức năng', 'Chi tiết'], [
-        ['Nới trần ngoại tuyến', 'Bậc nhà càng cao, số giờ tính bù càng nhiều'],
+        ['Nới mức ngoại tuyến tối đa', 'Bậc nhà càng cao, số giờ tính bù càng nhiều'],
         ['Công trình tiện ích', 'Xây bằng Bạc và nguyên liệu, mất thời gian thực'],
         ['Cửa vào Thiên Cơ Các', 'Các trò nhỏ đặt tại đây'],
       ]],
@@ -285,7 +285,7 @@ export const CN_MUC = [
   // ================= NGHỀ =================
   {
     id: 'muoinghe', nhom: 'nghe', ten: 'Danh Sách Nghề',
-    tom: sn(nTT(SKILLS)) + ' nghề, trần cấp 100 mỗi nghề.',
+    tom: sn(nTT(SKILLS)) + ' nghề, cấp tối đa 100 mỗi nghề.',
     khoi: [
       ['bang', ['Nghề', 'Việc'], Object.values(SKILLS).filter((s) => !s.suKien).map((s) => [s.name, s.gloss || ''])],
       ['p', 'Mỗi nghề có cấp và Kinh Nghiệm riêng, tối đa 100. Muốn mở nghề mới cần đủ Tổng Lv và Bạc; cứ mỗi 80 Tổng Lv mở thêm một nghề, chi phí tăng dần.'],
@@ -361,11 +361,11 @@ export const CN_MUC = [
   },
   {
     id: 'khang', nhom: 'chiendau', ten: 'Kháng Ngũ Hành',
-    tom: 'Trần kháng ' + pc(KHANG_CAP) + '; Tâm Pháp cho sẵn ' + pc(KHANG_TU_HE) + ' hệ mình.',
+    tom: 'Kháng Tối Đa ' + pc(KHANG_CAP) + '; Tâm Pháp cho sẵn ' + pc(KHANG_TU_HE) + ' hệ mình.',
     khoi: [
       ['p', 'Mỗi hệ có một chỉ số kháng riêng, giảm trực tiếp sát thương của hệ đó.'],
       ['bang', ['Mục', 'Giá trị'], [
-        ['Trần kháng mỗi hệ', pc(KHANG_CAP)],
+        ['Kháng Tối Đa mỗi hệ', pc(KHANG_CAP)],
         ['Kháng sẵn có từ Tâm Pháp cho hệ của nó', pc(KHANG_TU_HE)],
       ]],
       ['h', 'Nguồn kháng'],
@@ -429,12 +429,12 @@ export const CN_MUC = [
   },
   {
     id: 'tang', nhom: 'chiendau', ten: 'Tầng Võ Học',
-    tom: 'Trần luyện ' + TANG_MAX + ', trần thật ' + TANG_HARD_MAX + '.',
+    tom: 'Luyện Tối Đa ' + TANG_MAX + ', tối đa thật ' + TANG_HARD_MAX + '.',
     khoi: [
       ['bang', ['Mục', 'Giá trị'], [
-        ['Trần luyện trực tiếp', sn(TANG_MAX)],
+        ['Luyện Tối Đa trực tiếp', sn(TANG_MAX)],
         ['Trang bị cộng thêm tối đa', '+' + sn(TANG_GEAR_MAX)],
-        ['Trần thật', sn(TANG_HARD_MAX)],
+        ['Tối Đa Thật', sn(TANG_HARD_MAX)],
         ['Uy lực mỗi tầng', '+' + pc(TANG_OVER_STEP, 0)],
       ]],
       ['h', 'Bốn mốc cảnh giới'],
@@ -523,7 +523,7 @@ export const CN_MUC = [
         ['Tiên Minh', 'Tranh hạng theo mùa, hoạt động bang'],
       ]],
       ['h', 'Tư chất đệ tử'],
-      ['bang', ['Tư chất', 'Hệ số tu luyện', 'Trần'],
+      ['bang', ['Tư chất', 'Hệ số tu luyện', 'Tối Đa'],
         Object.values(APT).map((a) => [a.name, '×' + a.mul, sn(a.cap)])],
       ['p', 'Mỗi đệ tử có Ngũ Hành và tính cách riêng. Số đệ tử có thể chiêu mộ tăng theo cấp Tụ Hiền Đường.'],
     ],
@@ -547,9 +547,9 @@ export const CN_MUC = [
     tom: sn(n(BUILD_KEYS)) + ' công trình.',
     khoi: [
       ['bang', ['Công trình', 'Chức năng'], [
-        ['Tụ Hiền Đường', 'Chiêu nạp đệ tử, nới trần số người'],
+        ['Tụ Hiền Đường', 'Chiêu nạp đệ tử, nới số người tối đa'],
         ['Diễn Võ Trường', 'Đệ tử luyện võ'],
-        ['Tàng Thư Lâu', 'Chứa và học Bí Kíp, chặn trần bậc học được'],
+        ['Tàng Thư Lâu', 'Chứa và học Bí Kíp, chặn bậc học được tối đa'],
         ['Y Quán', 'Luyện đan; số lò tăng theo cấp'],
         ['Dược Viên', 'Trồng linh dược; số luống tăng theo cấp'],
         ['Giới Luật Đường', 'Xử lý đệ tử phạm giới, giảm Tâm Ma'],
@@ -567,7 +567,7 @@ export const CN_MUC = [
           l.name, Object.entries(l.prof).map(([k, v]) => nhanKhoa(k) + ' +' + pc(v)).join(' · '),
         ])],
       ['ds', [
-        'Bí kíp chia bốn bậc; bậc học được bị Tàng Thư Lâu chặn trần.',
+        'Bí kíp chia bốn bậc; bậc học được bị Tàng Thư Lâu chặn mức tối đa.',
         'Nguồn: đấu giá Tàng Thư Lâu và Bí Cảnh.',
         'Bí kíp trùng ghép lên bậc cao hơn.',
       ]],
@@ -591,7 +591,7 @@ export const CN_MUC = [
       ['p', 'Người chơi tự lập Tiên Minh và giữ chức Minh Chủ. Các Tiên Minh khác trong giang hồ là đối thủ trên bảng Chinh Phạt, không phải nơi để xin gia nhập.'],
       ['bang', ['Mục', 'Giá trị'], [
         ['Tổng Lv yêu cầu', sn(LV_LAP_BANG)], ['Phí lập', sn(PHI_LAP_BANG) + ' Bạc'],
-        ['Trần cấp minh', sn(CAP_BANG_MAX)], ['Sức chứa tối đa', sn(TV_TRAN) + ' người'],
+        ['Cấp Minh Tối Đa', sn(CAP_BANG_MAX)], ['Sức chứa tối đa', sn(TV_TRAN) + ' người'],
       ]],
       ['h', 'Ba đường chiêu mộ'],
       ['ds', ['Đơn Xin Nhập Minh', 'Bảng Chiêu Hiền', 'Người quen ở Tửu Lâu qua Giao Tình']],

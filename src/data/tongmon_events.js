@@ -307,7 +307,7 @@ const B1 = {
         return M(
           `Cả tông nín thở chờ lão chọn thiên kiêu, ai ngờ Mộ Vân Tẩu lại chỉ thẳng ${d.name} — kẻ tư chất tầm thường ai cũng xem nhẹ. "Đá thô mà có ngọc, các ngươi không thấy đó thôi." Lão truyền cho ${d.name} một lộ khẩu quyết kỳ dị. Cả tông ngỡ ngàng, riêng ${d.name} ôm lấy cơ duyên mà mắt rưng rưng.`,
           [ { bac: -600 }, { capBonus: { n: 2, who: d.uid } }, { uy: 120 }, { flag: { name: 'phatPhan', value: true, who: d.uid } } ],
-          `Mộ Vân Tẩu bỏ qua thiên kiêu, chấm ${d.name} vô danh — "ngọc trong đá", trần tu chất mở rộng bất ngờ.`,
+          `Mộ Vân Tẩu bỏ qua thiên kiêu, chấm ${d.name} vô danh — "ngọc trong đá", tu chất tối đa mở rộng bất ngờ.`,
           'Ngọc còn ẩn trong đá, ngày sau ắt có chuyện để kể.'
         );
       },

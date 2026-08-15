@@ -272,7 +272,7 @@ export function simTongMon(state, nowMs, capHours) {
       const absMax = aptHardCap(d);
       if ((d.giangBonus || 0) < GIANG_MAX_BONUS && disciCap(d) < absMax) {
         d.capBonus = (d.capBonus || 0) + 1; d.giangBonus = (d.giangBonus || 0) + 1;
-        chronicle(t, `${d.name} thính giảng đắc ngộ, trần tư chất nới rộng — vươn tới ${REALMS[disciCap(d)].name}.`);
+        chronicle(t, `${d.name} thính giảng đắc ngộ, tư chất tối đa nới rộng — vươn tới ${REALMS[disciCap(d)].name}.`);
       } else {
         chronicle(t, `${d.name} mãn khóa thính giảng trở về, tư chất đã chạm giới hạn.`);
       }
@@ -390,7 +390,7 @@ export function doBreakthrough(state, uid) {
   if (!d || !d.breakReady) return { ok: false, msg: 'Đệ tử chưa tới Bình Cảnh.' };
   if (d.kiepCdUntil && Date.now() < d.kiepCdUntil) return { ok: false, msg: 'Đạo thương chưa lành — đợi tĩnh dưỡng rồi độ kiếp lại.' };
   const cap = disciCap(d);
-  if (d.realm >= cap) { d.breakReady = false; return { ok: false, msg: 'Đã đạt trần cảnh giới.' }; }
+  if (d.realm >= cap) { d.breakReady = false; return { ok: false, msg: 'Đã đạt cảnh giới tối đa.' }; }
   const req = breakReqOf(d); if (!req) return { ok: false, msg: 'Không rõ yêu cầu đột phá.' };
   if (((t.pills || {})[req.pill] || 0) < 1) return { ok: false, msg: `Thiếu ${req.pillName} (luyện ở Y Quán).` };
   if ((state.currencies.honThach || 0) < req.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${req.honThach}).` };
@@ -500,8 +500,8 @@ export function enrollGiang(state, uid, nowMs) {
   if (d.breakReady) return { ok: false, msg: 'Đệ tử đang Bình Cảnh — đột phá trước đã.' };
   if (d.lichLuyenUntil) return { ok: false, msg: 'Đệ tử đang lịch luyện.' };
   if (d.giangUntil) return { ok: false, msg: 'Đệ tử đang thính giảng.' };
-  if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return { ok: false, msg: `Đã tận Giảng Đạo (+${GIANG_MAX_BONUS} trần).` };
-  if (disciCap(d) >= giangAbsMax(d)) return { ok: false, msg: (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo — không cần giảng.' : 'Tư chất đã chạm trần — giảng cũng vô ích.' };
+  if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return { ok: false, msg: `Đã tận Giảng Đạo (+${GIANG_MAX_BONUS} tối đa).` };
+  if (disciCap(d) >= giangAbsMax(d)) return { ok: false, msg: (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo — không cần giảng.' : 'Tư chất đã chạm mức tối đa — giảng cũng vô ích.' };
   if (giangSeatInfo(t).free < 1) return { ok: false, msg: 'Hết ghế thính giảng — nâng Giảng Đạo Đường.' };
   d.giangUntil = (nowMs || Date.now()) + GIANG_H * 3600000;
   return { ok: true, msg: `${d.name} vào Giảng Đạo Đường thính giảng (${GIANG_H}h).` };
@@ -663,7 +663,7 @@ export function enhanceGear(state, discipleUid, slot) {
   if (lv < 1) return { ok: false, msg: 'Cần xây Luyện Khí Các.' };
   const d = t.disciples.find((x) => x.uid === discipleUid); if (!d || !d.gear || !d.gear[slot]) return { ok: false, msg: 'Ô này chưa có gia bảo.' };
   const inst = d.gear[slot], cur = inst.tmPlus || 0, max = lkcMaxPlus(lv);
-  if (cur >= max) return { ok: false, msg: `Đã đạt trần +${max} — nâng Luyện Khí Các để rèn sâu hơn.` };
+  if (cur >= max) return { ok: false, msg: `Đã đạt mức tối đa +${max} — nâng Luyện Khí Các để rèn sâu hơn.` };
   const step = lkcStep(cur);
   if (((t.mats || {})[step.mat] || 0) < step.matQty) return { ok: false, msg: `Thiếu ${(MATS[step.mat] || {}).name} (cần ${step.matQty}).` };
   if ((state.currencies.honThach || 0) < step.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${step.honThach}).` };
@@ -732,7 +732,7 @@ export function startLinhNgo(state, biKipId, uid, nowMs) {
   if (d.linhNgoUntil) return { ok: false, msg: 'Đệ tử đang lĩnh ngộ bí kíp khác.' };
   if (!Array.isArray(d.skills)) d.skills = [];
   if (d.skills.includes(biKipId)) return { ok: false, msg: `${d.name} đã thông 「${bk.ten}」.` };
-  if (d.skills.length >= biKipSlotMax(d.realm)) return { ok: false, msg: `${d.name} hết ô võ học (trần ${biKipSlotMax(d.realm)} theo cảnh giới).` };
+  if (d.skills.length >= biKipSlotMax(d.realm)) return { ok: false, msg: `${d.name} hết ô võ học (tối đa ${biKipSlotMax(d.realm)} theo cảnh giới).` };
   if (linhNgoSeatInfo(t).free < 1) return { ok: false, msg: 'Hết chỗ lĩnh ngộ — nâng Tàng Thư Lâu.' };
   const now = nowMs || Date.now();
   t.biKipBag[biKipId] -= 1; if (t.biKipBag[biKipId] <= 0) delete t.biKipBag[biKipId];

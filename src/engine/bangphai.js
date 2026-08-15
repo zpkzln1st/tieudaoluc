@@ -605,7 +605,7 @@ export function hocKyNang(state, id, now) {
   const lv = capKyNang(state, id);
   if (b.bang.cap < kn.capBang) return 'Cần bang cấp ' + kn.capBang + '.';
   const tran = tranKyNang(state, kn);
-  if (lv >= tran) return lv >= kn.maxLv ? 'Đã học tới trần.' : 'Cần nâng Binh Khí Khố lên cấp ' + (lv + 1) + '.';
+  if (lv >= tran) return lv >= kn.maxLv ? 'Đã học tới mức tối đa.' : 'Cần nâng Binh Khí Khố lên cấp ' + (lv + 1) + '.';
   const gia = giaKyNang(kn, lv + 1);
   if (b.congTich < gia) return 'Thiếu Công Tích — cần ' + gia + '.';
   b.congTich -= gia;

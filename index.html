@@ -5682,7 +5682,7 @@
                     <span class="block text-[14px] font-bold leading-tight" style="font-family:'Lora','Noto Serif SC',serif"
                           :class="$store.game.tangCanhOf(it.id)?'text-amber-100':'text-slate-400'"
                           x-text="$store.game.tangCanhOf(it.id) ? $store.game.tangCanhOf(it.id).name : 'Chưa nhập môn'"></span>
-                    <span class="block text-[11px] text-slate-500 mt-0.5">Tầng <b class="text-slate-300" x-text="$store.game.tangOf(it.id)"></b> · trần <span x-text="$store.game.TANG_MAX"></span></span>
+                    <span class="block text-[11px] text-slate-500 mt-0.5">Tầng <b class="text-slate-300" x-text="$store.game.tangOf(it.id)"></b> · tối đa <span x-text="$store.game.TANG_MAX"></span></span>
                   </span>
                 </div>
                 <div class="flex-1 min-h-0 overflow-hidden flex flex-col gap-1 mt-2.5">
@@ -6432,7 +6432,7 @@
                 <div class="px-1">
                   <div class="px-3 py-2.5 rounded-lg border border-slate-800 bg-black/20">
                     <div class="text-[12.5px] text-slate-200">Sổ nghi vấn mở ở tấm riêng.</div>
-                    <div class="text-[10.5px] text-slate-500 mt-0.5">Tài khoản vượt trần tốc độ, kèm cửa Miễn Trừ.</div>
+                    <div class="text-[10.5px] text-slate-500 mt-0.5">Tài khoản vượt tốc độ tối đa, kèm cửa Miễn Trừ.</div>
                     <button @click="g.openGiamSat()" class="mt-2 px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition">Mở Giám Sát</button>
                   </div>
                 </div>
@@ -6645,7 +6645,7 @@
                   <button @click="g.lbPhatQua()" class="px-2.5 py-1 rounded-lg bg-amber-500/12 border border-amber-600/40 text-amber-200 hover:bg-amber-500/20 text-[12px] transition"
                     x-text="g.lbQuaNhanDs.length > 1 ? ('Gửi Cho ' + g.lbQuaNhanDs.length + ' Người') : 'Gửi Hộp Quà'"></button>
                   <div class="mt-3 text-[10.5px] text-slate-600 leading-relaxed">
-                    Hộp quà không mang được kinh nghiệm. Trần Bạc nằm dưới sàn ghi sổ của chốt chống gian lận, nên tặng quà không đẩy người nhận vào sổ nghi vấn.
+                    Hộp quà không mang được kinh nghiệm. Bạc tối đa nằm dưới sàn ghi sổ của chốt chống gian lận, nên tặng quà không đẩy người nhận vào sổ nghi vấn.
                   </div>
                 </div>
               </template>
@@ -6889,9 +6889,9 @@
                       </div>
                       <div class="px-3 py-2 rounded-lg border border-slate-800 bg-black/20">
                         <div class="text-[12.5px] text-slate-200" x-text="g.lbMKChuyen === 0 ? 'Đốn Ngộ Cảnh đang đóng.' : ('Đang mở ' + g.lbMKChuyen + ' chuyển.')"></div>
-                        <div class="text-[10.5px] text-slate-500 mt-0.5" x-text="'Trần cấp cao nhất: ' + (100 + g.lbMKChuyen * 10)"></div>
+                        <div class="text-[10.5px] text-slate-500 mt-0.5" x-text="'Cấp tối đa: ' + (100 + g.lbMKChuyen * 10)"></div>
                       </div>
-                      <div class="mt-3 text-[10px] text-slate-600 leading-snug">Hạ số này không làm tụt cấp ai. Người đã chuyển giữ nguyên trần của họ, chỉ không đi tiếp được.</div>
+                      <div class="mt-3 text-[10px] text-slate-600 leading-snug">Hạ số này không làm tụt cấp ai. Người đã chuyển giữ nguyên mức tối đa của họ, chỉ không đi tiếp được.</div>
                     </div>
                   </template>
                 </div>
@@ -6994,7 +6994,7 @@
             <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-800 shrink-0">
               <div class="min-w-0">
                 <div class="text-[14px] font-bold text-amber-200 fserif leading-tight">Giám Sát</div>
-                <div class="text-[10.5px] text-slate-500">Sổ nghi vấn — tài khoản vượt trần tốc độ</div>
+                <div class="text-[10.5px] text-slate-500">Sổ nghi vấn — tài khoản vượt tốc độ tối đa</div>
               </div>
               <button @click="g.dongGiamSat()" class="w-6 h-6 rounded-full text-slate-500 hover:text-rose-400 leading-none shrink-0">✕</button>
             </div>
@@ -7009,7 +7009,7 @@
               <template x-if="g.gsLoi"><div class="text-[12px] text-rose-400 text-center py-8" x-text="g.gsLoi"></div></template>
               <template x-if="!g.gsLoi && !g.gsTai && !g.gsHien.length">
                 <div class="text-[12px] text-slate-600 text-center py-8">
-                  Sổ trống — chưa ai vượt trần.
+                  Sổ trống — chưa ai vượt mức tối đa.
                   <template x-if="g.gsSoTacGia"><div class="text-[10.5px] mt-1" x-text="'(đang ẩn ' + g.gsSoTacGia + ' dòng của chính ngươi)'"></div></template>
                 </div>
               </template>
@@ -7056,7 +7056,7 @@
               </template>
             </div>
             <div class="px-4 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 leading-snug shrink-0">
-              Vượt trần thì ghi sổ. Vượt từ <b class="text-slate-500">3 lần</b> trở lên thì máy chủ từ chối luôn bản lưu đó.
+              Vượt mức tối đa thì ghi sổ. Vượt từ <b class="text-slate-500">3 lần</b> trở lên thì máy chủ từ chối luôn bản lưu đó.
               Tài khoản của ngươi không bao giờ bị chặn.
             </div>
           </div>
@@ -8521,7 +8521,7 @@
                           <span class="w-2 h-2 rounded-full shrink-0" :style="'background:'+rl.color+';box-shadow:0 0 6px '+rl.color"></span>
                           <span class="fserif text-[14px]" :style="'color:'+rl.color" x-text="(i+1)+'. '+rl.name"></span>
                         </div>
-                        <template x-if="rl.capApts.length"><span class="shrink-0 text-[9.5px] px-1.5 py-0.5 rounded-full border border-amber-500/40 text-amber-300/90 whitespace-nowrap" x-text="'Trần · '+rl.capApts.join(', ')"></span></template>
+                        <template x-if="rl.capApts.length"><span class="shrink-0 text-[9.5px] px-1.5 py-0.5 rounded-full border border-amber-500/40 text-amber-300/90 whitespace-nowrap" x-text="'Tối Đa · '+rl.capApts.join(', ')"></span></template>
                       </div>
                       <div class="text-[11px] text-slate-400 leading-relaxed mt-1.5 pl-4" x-text="rl.subs.join('  ·  ')"></div>
                     </div>
@@ -8760,7 +8760,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 italic text-center" style="background:rgba(15,21,33,.5)">Lĩnh ngộ tốn giờ theo bậc (Sơ nhanh, Tuyệt lâu) · số ô đồng thời = bậc Tàng Thư Lâu · trần số bí kíp/đệ tử theo cảnh giới. Võ học cộng Thực Lực + Uy Danh + lợi thế Đài Tỉ Võ.</div>
+                <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 italic text-center" style="background:rgba(15,21,33,.5)">Lĩnh ngộ tốn giờ theo bậc (Sơ nhanh, Tuyệt lâu) · số ô đồng thời = bậc Tàng Thư Lâu · số bí kíp/đệ tử tối đa theo cảnh giới. Võ học cộng Thực Lực + Uy Danh + lợi thế Đài Tỉ Võ.</div>
               </div>
             </div>
           </template>
@@ -9471,7 +9471,7 @@
                     <div class="flex items-center gap-2 flex-wrap text-[11px]">
                       <span class="lbl mr-1">Tu Vi</span>
                       <span><span class="text-slate-500">Cảnh Giới</span> <b class="fserif" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmRealmFull(d)"></b></span><span class="text-slate-700">·</span>
-                      <span><span class="text-slate-500">Trần</span> <b class="fserif text-slate-200" x-text="g.tmCapName(d)"></b></span><span class="text-slate-700">·</span>
+                      <span><span class="text-slate-500">Tối Đa</span> <b class="fserif text-slate-200" x-text="g.tmCapName(d)"></b></span><span class="text-slate-700">·</span>
                       <span><span class="text-slate-500">Tốc Tu</span> <b class="fserif text-cyan" x-text="'×'+g.tmSpeedMul(d).toFixed(2)"></b></span>
                       <span class="flex-1 min-w-[90px] flex items-center gap-2"><span class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden"><span class="block h-full rounded-full" :style="'width:'+g.tmProgPct(d)+'%;background:'+g.tmRealmColor(d)+';box-shadow:0 0 5px '+g.tmRealmColor(d)+'88'"></span></span><span class="text-[10px]" :style="'color:'+g.tmRealmColor(d)" x-text="g.tmProgPct(d)+'%'"></span></span>
                     </div>
@@ -9500,7 +9500,7 @@
                     <div class="text-[11.5px] min-w-0">
                       <span class="lbl mr-1">Thính Giảng</span>
                       <template x-if="g.tmGiangInfo(d)"><span class="text-amber-300">Đang nghe giảng · còn <b x-text="g.tmGiangCdText(d)"></b></span></template>
-                      <template x-if="!g.tmGiangInfo(d) && g.tmCanGiang(d)"><span class="text-slate-500">Nâng trần tư chất · <span x-text="g.tmGiangH"></span>h/bậc · đã +<b class="text-amber-300/90" x-text="g.tmGiangBonus(d)"></b>/<span x-text="g.tmGiangMax()"></span></span></template>
+                      <template x-if="!g.tmGiangInfo(d) && g.tmCanGiang(d)"><span class="text-slate-500">Nâng tư chất tối đa · <span x-text="g.tmGiangH"></span>h/bậc · đã +<b class="text-amber-300/90" x-text="g.tmGiangBonus(d)"></b>/<span x-text="g.tmGiangMax()"></span></span></template>
                       <template x-if="!g.tmGiangInfo(d) && !g.tmCanGiang(d)"><span class="text-slate-600 italic" x-text="g.tmGiangReason(d)||'Không khả dụng'"></span></template>
                     </div>
                     <template x-if="g.tmGiangInfo(d)"><span class="shrink-0 text-[11.5px] text-amber-300/80 fserif">Đang thính giảng…</span></template>
@@ -9768,7 +9768,7 @@
                         <span class="text-[11px]"><span class="text-slate-500">Cường hóa</span> <b class="text-amber-300" x-text="'+'+e.cur"></b><span class="text-slate-600"> / +</span><span class="text-slate-400" x-text="e.max"></span></span>
                       </div>
                       <template x-if="!e.lkcBuilt"><div class="text-[11.5px] text-slate-500 italic text-center py-0.5">Xây <b class="text-amber-300/80">Luyện Khí Các</b> để rèn Gia Bảo cho đệ tử.</div></template>
-                      <template x-if="e.lkcBuilt && e.atMax"><div class="text-[11.5px] text-amber-300/80 text-center py-0.5">Đã đạt trần <b x-text="'+'+e.max"></b> — Nâng Luyện Khí Các để mở cấp rèn cao hơn.</div></template>
+                      <template x-if="e.lkcBuilt && e.atMax"><div class="text-[11.5px] text-amber-300/80 text-center py-0.5">Đã đạt mức tối đa <b x-text="'+'+e.max"></b> — Nâng Luyện Khí Các để mở cấp rèn cao hơn.</div></template>
                       <template x-if="e.lkcBuilt && !e.atMax">
                         <div>
                           <div class="flex flex-wrap gap-1.5 mb-2 text-[10.5px]">
@@ -16572,7 +16572,7 @@
         <template x-if="$store.game.offlineReport.capped">
           <div class="flex items-center gap-1.5 text-amber-300" style="padding:0 20px 4px;font-size:11px">
             <span class="rounded-full bg-amber-400 inline-block shrink-0" style="width:6px;height:6px"></span>
-            Đã chạm trần nhàn rỗi — vào luyện tiếp kẻo phí.
+            Đã chạm mức nhàn rỗi tối đa — vào luyện tiếp kẻo phí.
           </div>
         </template>
         <div style="padding:14px 20px">
@@ -17791,7 +17791,7 @@
             <template x-if="g.ncLoi"><span class="text-rose-300" x-text="g.ncLoi"></span></template>
             <template x-if="!g.ncLoi">
               <!-- Trần cấp lên 10 sau mỗi lần, nên câu điều kiện phải đọc trần THẬT chứ không ghi cứng 100. -->
-              <span x-text="g.ncHetLuot ? 'Đã Trùng Sinh đủ 6 lần.' : (g.ncCoTheTS ? (g.ncTenNghe + ' về cấp 1, trần cấp lên ' + (g.skillTran(g.ncSkill) + 10) + ', nhận 3 Điểm Trùng Sinh.') : ('Cần ' + g.ncTenNghe + ' đạt cấp ' + g.skillTran(g.ncSkill) + ' — còn thiếu ' + g.ncConThieu(g.ncSkill) + ' cấp.'))"></span>
+              <span x-text="g.ncHetLuot ? 'Đã Trùng Sinh đủ 6 lần.' : (g.ncCoTheTS ? (g.ncTenNghe + ' về cấp 1, cấp tối đa lên ' + (g.skillTran(g.ncSkill) + 10) + ', nhận 3 Điểm Trùng Sinh.') : ('Cần ' + g.ncTenNghe + ' đạt cấp ' + g.skillTran(g.ncSkill) + ' — còn thiếu ' + g.ncConThieu(g.ncSkill) + ' cấp.'))"></span>
             </template>
           </div>
           <button @click="g.ncTay()" x-show="g.ncDiem < g.ncTs * 3"

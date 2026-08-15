@@ -732,7 +732,7 @@ const gameStore = {
     { key: 'canhgioi', label: 'Cảnh Giới', kw: ['đột phá', 'Bình Cảnh', 'viên mãn', 'Đắc Đạo', 'đắc đạo', 'Xuất Sư', 'Trưởng Lão', '★'] },
     { key: 'lichluyen', label: 'Lịch Luyện', kw: ['lịch luyện'] },
     { key: 'luyendan', label: 'Luyện Đan', kw: ['Y Quán', 'luyện thành', 'xuất lò'] },
-    { key: 'giangdao', label: 'Giảng Đạo', kw: ['thính giảng', 'trần tư chất'] },
+    { key: 'giangdao', label: 'Giảng Đạo', kw: ['thính giảng', 'tư chất tối đa'] },
     { key: 'giabao', label: 'Gia Bảo', kw: ['gia bảo', 'Luyện Khí Các', 'tôi luyện'] },
   ],
   tmChronCat(text) { const T = text || ''; for (const c of this.CHRON_CATS) { if (c.kw.some((k) => T.includes(k))) return c.key; } return 'sukien'; },
@@ -845,8 +845,8 @@ const gameStore = {
     if (d.awaiting) return 'Đã Đắc Đạo';
     if (d.breakReady) return 'Đang Bình Cảnh';
     if (d.lichLuyenUntil) return 'Đang lịch luyện';
-    if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return 'Đã tận Giảng Đạo (+' + GIANG_MAX_BONUS + ' trần)';
-    if (disciCap(d) >= aptHardCap(d)) return (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo' : 'Tư chất đã chạm trần';
+    if ((d.giangBonus || 0) >= GIANG_MAX_BONUS) return 'Đã tận Giảng Đạo (+' + GIANG_MAX_BONUS + ' tối đa)';
+    if (disciCap(d) >= aptHardCap(d)) return (d.apt === 'thien') ? 'Thiên Tư đã thông Đắc Đạo' : 'Tư chất đã chạm mức tối đa';
     if (this.tmGiangSeats.free < 1) return 'Hết ghế thính giảng';
     return '';
   },
@@ -1220,7 +1220,7 @@ const gameStore = {
       fx.push({ label: 'Trồng nguyên liệu tối đa', cur: mt(lv), next: mt(nlv) });
     } else if (key === 'luyenKhiCac') {
       const mp = (L) => (L < 1 ? '—' : '+' + lkcMaxPlus(L));
-      fx.push({ label: 'Trần cường hóa gia bảo', cur: mp(lv), next: mp(nlv) });
+      fx.push({ label: 'Cường Hóa Gia Bảo Tối Đa', cur: mp(lv), next: mp(nlv) });
     } else if (key === 'giangDao') {
       fx.push({ label: 'Ghế thính giảng', cur: giangSeats(lv) + '', next: giangSeats(nlv) + '' });
     } else if (SOCIAL_BLD[key]) {   // 4 công trình xã hội — nội thất build ở chunk riêng
@@ -1916,12 +1916,12 @@ const gameStore = {
   LB_TIEU_DE: {
     nguoi:   { ten: 'Người Chơi', phu: 'Tìm theo tên nhân vật hoặc mã tài khoản', chan: 'Bấm một người để mở việc.' },
     khoa:    { ten: 'Khoá Tài Khoản', phu: 'Chặn đẩy bản lưu lên máy chủ, có hạn hoặc không hạn', chan: 'Dòng hết hạn vẫn nằm lại làm lịch sử vi phạm.' },
-    giamSat: { ten: 'Giám Sát', phu: 'Sổ nghi vấn — tài khoản vượt trần tốc độ', chan: 'Màn chỉ đọc.' },
+    giamSat: { ten: 'Giám Sát', phu: 'Sổ nghi vấn — tài khoản vượt tốc độ tối đa', chan: 'Màn chỉ đọc.' },
     qua:     { ten: 'Hộp Quà', phu: 'Phát cho một người hoặc cả giang hồ', chan: 'Quà tới người chơi ở nhịp đọc mười phút.' },
     maQua:   { ten: 'Mã Quà', phu: 'Mã gõ tay, hoặc quà tự rơi vào túi theo mốc', chan: 'Mỗi mã một lần cho mỗi tài khoản.' },
     suKien:  { ten: 'Sự Kiện', phu: 'Ban lệnh mở và thu lệnh sáu lễ trong năm', chan: 'Bảng ghi mốc, không ghi công tắc.' },
     caoThi:  { ten: 'Cáo Thị', phu: 'Thông báo cho cả giang hồ, hoặc thư riêng một người', chan: 'Cáo thị vào chuông của người chơi.' },
-    heSo:    { ten: 'Hệ Số', phu: 'Nhân kinh nghiệm · tỉ lệ rơi đồ · giá bán, tối đa năm lần', chan: 'Chốt chống gian lận nới trần theo hệ số này.' },
+    heSo:    { ten: 'Hệ Số', phu: 'Nhân kinh nghiệm · tỉ lệ rơi đồ · giá bán, tối đa năm lần', chan: 'Chốt chống gian lận nới mức tối đa theo hệ số này.' },
     moKhoa:  { ten: 'Mở Khoá', phu: 'Số lần Trùng Sinh đang mở cho cả giang hồ', chan: 'Hạ số này không làm tụt cấp ai.' },
     thongKe: { ten: 'Thống Kê', phu: 'Số liệu máy chủ, đếm theo bản lưu', chan: 'Người chưa đăng nhập lần nào không có mặt.' },
     nhatKy:  { ten: 'Nhật Ký', phu: 'Sổ chỉ thêm được, không ai xoá nổi', chan: 'Dòng do tài khoản khác ban có viền đỏ.' },
@@ -2116,10 +2116,10 @@ const gameStore = {
     this.hoiXacNhan({
       tieuDe: v > this.lbMKChuyen ? 'Mở Thêm Trùng Sinh' : 'Hạ Số Chuyển Đang Mở',
       loi: v === 0 ? 'Đóng hẳn Đốn Ngộ Cảnh — cả giang hồ dừng ở cấp 100.'
-                   : ('Mở ' + v + ' chuyển. Trần cấp cao nhất thành ' + (100 + v * 10) + '.'),
+                   : ('Mở ' + v + ' chuyển. Cấp tối đa thành ' + (100 + v * 10) + '.'),
       canhBao: v > this.lbMKChuyen
         ? 'Người chơi thấy Đốn Ngộ Cảnh sáng lên rồi hạ xuống là mất uy tín.'
-        : 'Người đã chuyển giữ nguyên trần của họ, chỉ không đi tiếp được.',
+        : 'Người đã chuyển giữ nguyên mức tối đa của họ, chỉ không đi tiếp được.',
       nut: v > this.lbMKChuyen ? 'Mở' : 'Hạ', nguy: true,
       xong: async () => {
         const r = await cloudMoKhoaDat('tran_chuyen', v);
@@ -2161,7 +2161,7 @@ const gameStore = {
       tieuDe: 'Bật Hệ Số Toàn Máy Chủ',
       loi: this.lbHSKhoaChu(h.khoa) + ' nhân ' + v + ' lần cho mọi người chơi, từ ' + h.moLuc.replace('T', ' ') + ' tới ' + h.dongLuc.replace('T', ' ') + '.',
       canhBao: h.khoa === 'exp'
-        ? 'Chốt chống gian lận đọc cùng bảng này nên trần tự nới theo. Chưa chạy lại SQL_CHONG_GIAN_LAN.sql thì cả làng bị ghi sổ oan.'
+        ? 'Chốt chống gian lận đọc cùng bảng này nên mức tối đa tự nới theo. Chưa chạy lại SQL_CHONG_GIAN_LAN.sql thì cả làng bị ghi sổ oan.'
         : 'Việc này ghi vào nhật ký, không xoá được.',
       nut: 'Bật', nguy: true,
       xong: () => { this._lbHSGui(v); },
@@ -2423,7 +2423,7 @@ const gameStore = {
       }
       const moi = this.state.moKhoa.tranChuyen || 0;
       // Báo MỘT lần khi mở thêm, đừng nhắc lại mỗi nhịp đọc.
-      if (moi > cu) this.pushNotif('caoThi', 'Mở thêm Trùng Sinh', 'Đốn Ngộ Cảnh nay đi được ' + moi + ' chuyển, trần cấp ' + (100 + moi * 10) + '.');
+      if (moi > cu) this.pushNotif('caoThi', 'Mở thêm Trùng Sinh', 'Đốn Ngộ Cảnh nay đi được ' + moi + ' chuyển, cấp tối đa ' + (100 + moi * 10) + '.');
       this._tick++;
     } catch (e) {}
   },
@@ -2725,7 +2725,7 @@ const gameStore = {
   },
   /** Tên bốn phép kiểm — mã khoá của máy chủ đổi sang lời người đọc được. */
   GS_PHEP: {
-    nhip: 'vượt trần tốc độ',
+    nhip: 'vượt tốc độ tối đa',
     quy_gio: 'giờ làm nhiều hơn đồng hồ',
     xp_khong_gio: 'kinh nghiệm không có giờ làm',
     khoa_boc_so: 'số con hạ không khớp lần bốc số',

@@ -711,7 +711,7 @@ export const CN_DB = [
     id: 'knbang', ten: 'Kĩ Năng Tiên Minh', nhom: 'Tiên Minh', dv: 'kĩ năng',
     cot: [
       { k: 'ten', ten: 'Kĩ năng' }, { k: 'tac', ten: 'Cộng' },
-      { k: 'moiCap', ten: 'Mỗi cấp' }, { k: 'maxLv', ten: 'Trần', so: true },
+      { k: 'moiCap', ten: 'Mỗi cấp' }, { k: 'maxLv', ten: 'Tối Đa', so: true },
       { k: 'capBang', ten: 'Cấp minh cần', so: true }, { k: 'gia', ten: 'Công Tích nền', so: true },
     ],
     hang: () => KY_NANG_BANG.map((k) => ({
@@ -721,7 +721,7 @@ export const CN_DB = [
     chiTiet: (h) => [
       ['bang', ['Mục', 'Giá trị'], [
         ['Cộng vào', h.tac], ['Mỗi cấp', h.moiCap],
-        ['Trần cấp', so(h.maxLv)], ['Tổng khi học hết', pct(h._k.moiCap * h._k.maxLv, 1)],
+        ['Cấp Tối Đa', so(h.maxLv)], ['Tổng khi học hết', pct(h._k.moiCap * h._k.maxLv, 1)],
         ['Cấp minh yêu cầu', so(h.capBang)], ['Công Tích nền', so(h.gia)],
       ]],
       ['p', 'Học bằng Công Tích. Kỹ năng cộng chỉ số thật cho toàn bộ thành viên; mỗi nhánh có cấp tối đa phụ thuộc vào công trình tương ứng.'],
@@ -732,7 +732,7 @@ export const CN_DB = [
   {
     id: 'ctbang', ten: 'Công Trình Tiên Minh', nhom: 'Tiên Minh', dv: 'công trình',
     cot: [
-      { k: 'ten', ten: 'Công trình' }, { k: 'maxLv', ten: 'Trần', so: true },
+      { k: 'ten', ten: 'Công trình' }, { k: 'maxLv', ten: 'Tối Đa', so: true },
       { k: 'gio', ten: 'Giờ xây', so: true }, { k: 'bacNen', ten: 'Bạc nền', so: true },
       { k: 'tac', ten: 'Tác dụng' },
     ],
@@ -747,7 +747,7 @@ export const CN_DB = [
       return [
         ['p', c.desc || ''],
         ['bang', ['Mục', 'Giá trị'], [
-          ['Trần cấp', so(c.maxLv)], ['Giờ xây cấp 1', c.gioXay + ' giờ'], ['Bạc nền', so(c.bacNen)],
+          ['Cấp Tối Đa', so(c.maxLv)], ['Giờ xây cấp 1', c.gioXay + ' giờ'], ['Bạc nền', so(c.bacNen)],
         ]],
         ...(mau.length ? [['h', 'Tác dụng theo cấp'],
           ['bang', ['Mục', 'Cấp 1', 'Cấp ' + c.maxLv],
