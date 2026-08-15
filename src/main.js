@@ -2671,7 +2671,9 @@ const gameStore = {
   //   cũng bật được panel. Hàng rào thật là luật RLS ở Supabase (docs/SQL_GIAM_SAT.sql):
   //   bật được panel mà không có token đúng uid thì mọi truy vấn trả về RỖNG.
   gsMo: false, gsTai: false, gsLoi: '', gsRows: [], gsChon: null, gsChiTiet: [], gsLocTacGia: true, gsMienTru: [],
-  openGiamSat() { this.settingsModal = false; this.gsMo = true; this.taiGiamSat(); },   // đóng Cài Đặt (z-70) kẻo màn này (z-59) nằm dưới
+  // Cửa DUY NHẤT vào Giám Sát — mở từ tab Giám Sát của Lệnh Bài. Đóng cả Cài Đặt (z-70) lẫn
+  // Lệnh Bài kẻo màn này (z-59) nằm dưới.
+  openGiamSat() { this.settingsModal = false; this.dongLenhBai(); this.gsMo = true; this.taiGiamSat(); },
   dongGiamSat() { this.gsMo = false; this.gsChon = null; this.gsChiTiet = []; },
   async taiGiamSat() {
     this.gsTai = true; this.gsLoi = '';
@@ -7055,8 +7057,40 @@ const gameStore = {
   },
 
   // ---------- Tiện ích ----------
-  resetGame() { this.confirmReset = true; },
-  doReset() { resetting = true; this.confirmReset = false; Storage.wipe(); location.reload(); },
+  // XOÁ TIẾN TRÌNH — hai lớp chặn: gõ lại đúng TÊN NHÂN VẬT, rồi nhập MẬT KHẨU tài khoản.
+  // ⚠ Ô mật khẩu CHỈ hỏi khi đang đăng nhập. Chơi khách thì không có mật khẩu nào để đối chiếu,
+  //   bày ô ra là bày một cửa không mở được.
+  resetTen: '', resetMk: '', resetDangKiem: false, resetLoi: '',
+  resetGame() { this.resetTen = ''; this.resetMk = ''; this.resetLoi = ''; this.resetDangKiem = false; this.confirmReset = true; },
+  dongReset() { this.confirmReset = false; this.resetTen = ''; this.resetMk = ''; this.resetLoi = ''; },
+  // Nhân vật chưa đặt tên (vào thẳng từ màn tạo) thì không có gì để gõ lại — bỏ qua lớp này.
+  get resetCanTen() { return !!((this.state.player.name || '').trim()); },
+  get resetTenDung() { return !this.resetCanTen || (this.resetTen || '').trim() === (this.state.player.name || '').trim(); },
+  get resetSanSang() { return this.resetTenDung && (!this.isLoggedIn || (this.resetMk || '').length > 0) && !this.resetDangKiem; },
+  async doReset() {
+    if (!this.resetSanSang) return;
+    // ⚠ Đối chiếu mật khẩu bằng cách ĐĂNG NHẬP LẠI chính tài khoản đó. Sai mật khẩu thì Supabase
+    //   trả lỗi mà KHÔNG đụng tới phiên đang chạy — người gõ nhầm không bị đá ra ngoài.
+    if (this.isLoggedIn) {
+      this.resetDangKiem = true; this.resetLoi = '';
+      try {
+        // ⚠ Tách hai lỗi ra: 400 là SAI MẬT KHẨU, còn lại là không tới được máy chủ. Gộp làm một
+        //   thì lúc rớt mạng người chơi bị mắng gõ sai mật khẩu, loay hoay gõ lại mãi.
+        const { error } = await cloudSignIn(this.authUserEmail, this.resetMk);
+        if (error) { this.resetLoi = error.status === 400 ? 'Mật khẩu không đúng.' : 'Không kết nối được máy chủ.'; return; }
+        // ⚠⚠ XOÁ BẢN CLOUD TRƯỚC, KHÔNG THÌ XOÁ HỤT. Chỉ xoá localStorage rồi tải lại thì
+        //   `cloudSyncOnLogin` thấy máy này trống mà cloud có dòng, nó kéo bản cloud về —
+        //   tiến trình quay lại nguyên vẹn, người chơi tưởng đã xoá.
+        // ⚠ Ghi ĐÈ bằng bản trắng chứ KHÔNG xoá dòng: cửa xoá dòng cũng chính là cửa người bị
+        //   khoá tài khoản dùng để thoát (xem docs/SQL_LENH_BAI.sql). Ghi đè thì không cần
+        //   thêm quyền nào ở Supabase. Chốt chống gian lận chỉ soi phần TĂNG nên bản trắng lọt.
+        const day = await cloudPushSave(createInitialState());
+        if (!day.ok) { this.resetLoi = 'Máy chủ không nhận lệnh xoá. Thử lại.'; return; }
+      } catch (e) { this.resetLoi = 'Không kết nối được máy chủ.'; return; }
+      finally { this.resetDangKiem = false; }
+    }
+    resetting = true; this.confirmReset = false; Storage.wipe(); location.reload();
+  },
 };
 
 // ---- Khởi động Alpine ----

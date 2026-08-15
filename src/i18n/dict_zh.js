@@ -14300,4 +14300,11 @@ export const DICT = {
   "Chiêu cùng ngũ hành với nó bị trừ thêm #% sát thương.": "與牠同五行的招式，再扣 #% 傷害。",
   "Chiêu Vô Hệ thì không bị trừ.": "無屬性招式則不被扣減。",
   "Nên lắp chiêu đủ ngũ hành, trận nào cũng có một chiêu đánh mạnh.": "招式配齊五行，每一戰都有一招打得重。",
+  "Xóa toàn bộ nhân vật, cấp độ và vật phẩm để chơi lại từ đầu, đồng thời đặt lại tên và giới tính. Không thể hoàn tác.": "清空全部角色、等級與物品，從頭重來，同時重設名字與性別。無法復原。",
+  "Xoá & Chơi lại": "刪除並重來",
+  "Gõ lại tên nhân vật": "請重新輸入角色名稱",
+  "Mật khẩu tài khoản": "帳號密碼",
+  "Mật khẩu không đúng.": "密碼錯誤。",
+  "Không kết nối được máy chủ.": "無法連線伺服器。",
+  "Đang Kiểm…": "驗證中…",
 };

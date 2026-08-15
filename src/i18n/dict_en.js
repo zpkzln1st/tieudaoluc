@@ -14469,4 +14469,11 @@ export const DICT = {
   "Chiêu cùng ngũ hành với nó bị trừ thêm #% sát thương.": "Arts of the same element as it lose another #% damage.",
   "Chiêu Vô Hệ thì không bị trừ.": "Elementless arts lose nothing.",
   "Nên lắp chiêu đủ ngũ hành, trận nào cũng có một chiêu đánh mạnh.": "Equip arts covering every element, so every fight has one that hits hard.",
+  "Xóa toàn bộ nhân vật, cấp độ và vật phẩm để chơi lại từ đầu, đồng thời đặt lại tên và giới tính. Không thể hoàn tác.": "Wipes every character, level and item so you start over, and resets your name and gender. Cannot be undone.",
+  "Xoá & Chơi lại": "Delete & Restart",
+  "Gõ lại tên nhân vật": "Retype your character name",
+  "Mật khẩu tài khoản": "Account password",
+  "Mật khẩu không đúng.": "Wrong password.",
+  "Không kết nối được máy chủ.": "Could not reach the server.",
+  "Đang Kiểm…": "Checking…",
 };
