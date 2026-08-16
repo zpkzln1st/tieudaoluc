@@ -2769,7 +2769,12 @@ const gameStore = {
   async initCloud() {
     try {
       this.authUser = await cloudGetUser();
-      await cloudOnAuth((user) => { this.authUser = user; try { datCoTacGia(this.state, this.isAuthorAccount); } catch (e) {} });
+      await cloudOnAuth((user) => {
+        this.authUser = user;
+        try { datCoTacGia(this.state, this.isAuthorAccount); } catch (e) {}
+        // Đang đứng ở màn Sàn mà phiên vừa khôi phục xong -> tải lại Sàn ngay, đừng bắt bấm tay.
+        if (user && this.view === 'market') { this.sanLoi = ''; try { this.taiSan(); } catch (e) {} }
+      });
       try { datCoTacGia(this.state, this.isAuthorAccount); } catch (e) {}   // cờ CHỈ để thấy sự kiện chạy thử (chi_tac_gia); hàng rào thật là RLS
       if (this.authUser) this.cloudSyncOnLogin();   // đã đăng nhập sẵn (reload) -> kéo/so cloud
       // Lịch sự kiện đọc được KHÔNG CẦN đăng nhập — ai cũng phải biết sự kiện nào đang mở.
@@ -7104,7 +7109,16 @@ const gameStore = {
   sanDs: [], sanCuaToi: [], sanTai: false, sanLoi: '',
   sanTreoUid: null, sanTreoGia: '',
   get sanMo() { return this.view === 'market'; },
+  _sanChoAuth: 0,
   async taiSan() {
+    // ⚠⚠ ĐỪNG kết luận "chưa đăng nhập" NGAY khi màn vừa dựng. Tải lại trang lúc đang đứng ở màn
+    //   Sàn thì `x-init` chạy TRƯỚC khi phiên khôi phục xong (`authKiemTra` còn true) — người đã
+    //   đăng nhập vẫn thấy dòng "phải đăng nhập", và không có gì chạy lại nên nó nằm đó vĩnh viễn.
+    //   Chờ tới khi phiên ngã ngũ rồi mới kết luận.
+    if (!this.isLoggedIn && this.authKiemTra && this._sanChoAuth < 20) {
+      this._sanChoAuth++; setTimeout(() => this.taiSan(), 400); return;
+    }
+    this._sanChoAuth = 0;
     if (!this.isLoggedIn) { this.sanLoi = 'Phải đăng nhập mới vào Sàn được.'; return; }
     this.sanTai = true; this.sanLoi = '';
     try {
