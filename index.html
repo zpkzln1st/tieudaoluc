@@ -359,7 +359,9 @@
     .dd-o.trong::after { content:''; width:6px; height:6px; border-radius:50%; background:#141d2b; }
     .dd-o.day { background:#0a0f1a; border:1px solid var(--vien);
       box-shadow:0 0 10px -3px var(--glow), inset 0 1px 0 rgba(255,255,255,.10); }
-    .dd-o img { width:100%; height:100%; object-fit:cover; display:block; }
+    /* ⚠ `contain` chứ KHÔNG `cover`: art viên đan có khí toả ra sát rìa khung, `cover` cắt cụt
+       phần khí đó. Đo trên art thật (1254px, 46-81% pixel trong suốt) mới thấy. */
+    .dd-o img { width:100%; height:100%; object-fit:contain; display:block; }
     .dd-hon { width:34px; height:34px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center;
       font-family:'Lora',Georgia,serif; font-size:15px; border:1px solid #1a2434; background:#070c15; color:#2c3a4f;
       box-shadow:inset 0 2px 5px -2px rgba(0,0,0,.9); }
@@ -16794,7 +16796,7 @@
                     <span class="dd-o" :class="j <= g.ddBang[g.ddNhanh][i] ? 'day' : 'trong'"
                           :style="j <= g.ddBang[g.ddNhanh][i] ? '--vien:'+g.DD_NHANH_INFO[g.ddNhanh].mau+'9a;--glow:'+g.DD_NHANH_INFO[g.ddNhanh].mau : ''">
                       <template x-if="j <= g.ddBang[g.ddNhanh][i]">
-                        <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(g.ddArt(i+1), '')"></span>
+                        <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(g.ddArt(g.ddNhanh, i+1), '')"></span>
                       </template>
                     </span>
                   </template>

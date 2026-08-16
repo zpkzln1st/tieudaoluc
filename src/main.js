@@ -17,7 +17,7 @@ import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
 import { giaSanTrangBi, giaSanVatPham } from './data/giasan.js';
-import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, DD_ART_MUON, ddMoiVien } from './data/dandien.js';
+import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
@@ -7217,7 +7217,7 @@ const gameStore = {
   get ddDaNap() { return ddDemTong(this.state).da; },
   get ddHanSo() { return ['一', '二', '三', '四', '五', '六', '七', '八', '九']; },
   get ddHonDaMo() { return ddHonDaMo(this.state); },
-  ddArt(pham) { return DD_ART_MUON[pham - 1]; },
+  ddArt(nhanh, pham) { return ddArtCua(nhanh, pham); },
   ddDemNhanh(nh) { return ddDemNhanh(this.state, nh).da; },
   ddONhanh(nh) { return DD_O.reduce((s, n) => s + n, 0); },
   // Cộng thêm của MỘT nhánh — dùng cho khối tổng bên phải trong modal.
