@@ -1685,7 +1685,7 @@ const gameStore = {
     this.hoiXacNhan({
       tieuDe: 'Đóng Ngay',
       loi: ten + ' đang ' + (r.chi_tac_gia ? 'chạy thử' : 'mở cho cả giang hồ') + '. Mốc kết thúc sẽ được đưa về thời điểm này.',
-      canhBao: (r.chi_tac_gia ? 'Vật phẩm sự kiện trong hành lý ngươi' : 'Vật phẩm sự kiện trong hành lý MỌI NGƯỜI CHƠI')
+      canhBao: (r.chi_tac_gia ? 'Vật phẩm sự kiện trong hành lý bạn' : 'Vật phẩm sự kiện trong hành lý MỌI NGƯỜI CHƠI')
         + ' sẽ biến mất. Điểm Sự Kiện, trứng và món ăn vẫn được giữ lại.',
       nut: 'Đóng Ngay', nguy: true,
       xong: () => { this._lbGuiThu(r, Date.parse(r._mo0), now()); },
@@ -1894,7 +1894,7 @@ const gameStore = {
     // ⚠ Chặn tự khoá chính mình: khoá xong thì chính tài khoản tác giả không đẩy save lên được nữa,
     //   mà cũng chẳng còn đường nào trong game để tự gỡ ra.
     if (this.author && uid === this.author.uid) { this.showToast('Không khoá chính tài khoản tác giả.'); return; }
-    const han = this.lbKhoaHan > 0 ? (' trong ' + this.lbKhoaHan + ' ngày') : ' cho tới khi ngươi gỡ';
+    const han = this.lbKhoaHan > 0 ? (' trong ' + this.lbKhoaHan + ' ngày') : ' cho tới khi bạn gỡ';
     this.hoiXacNhan({
       tieuDe: 'Khoá Tài Khoản',
       loi: 'Tài khoản ' + uid.slice(0, 8) + '… sẽ không thể tải bản lưu lên máy chủ' + han + '. Người chơi vẫn có thể chơi ngoại tuyến bình thường và sẽ không nhận thông báo rằng tài khoản đã bị khóa.',
@@ -2308,7 +2308,7 @@ const gameStore = {
       const daLam = donSuKien(this.state, now());
       const mat = daLam.filter((x) => x.viec === 'vatPham');
       if (mat.length) this.showToast('Sự kiện đã đóng — ' + mat.length + ' loại vật phẩm sự kiện đã tan biến.');
-      if (daLam.some((x) => x.viec === 'veLang')) this.showToast('Sự kiện đã đóng — ngươi được đưa về ' + this.LOCATIONS[0].name + '.');
+      if (daLam.some((x) => x.viec === 'veLang')) this.showToast('Sự kiện đã đóng — bạn được đưa về ' + this.LOCATIONS[0].name + '.');
       this._tick++;
     } catch (e) {}
   },
@@ -2684,7 +2684,7 @@ const gameStore = {
     if (dVung) p.location = 'lamLinhCoc';
     const loi = d.ten + ' đã kết thúc.'
       + (dViec ? ' Đã dừng: ' + tenViec + '.' : '')
-      + (dVung ? ' Ngươi rời ' + d.loc.name + ', về Lam Linh Cốc.' : '');
+      + (dVung ? ' Bạn rời ' + d.loc.name + ', về Lam Linh Cốc.' : '');
     this.showToast(loi);
     pushNotif(this.state, 'suKien', 'Sự kiện kết thúc', loi, now());
     this._tick++;
@@ -2943,7 +2943,7 @@ const gameStore = {
     }
     // Linh Thú kề bên (stat flat → tổng lực + thẻ)
     const pet = this.activePetObj;
-    if (pet) { const b = this.activePetBonusApplied() || {}, pc = this.petElColor(pet), lines = Object.keys(b).map((k) => '+' + this.fmt(b[k]) + ' ' + this.statLabelShort(k)); Object.keys(b).forEach((k) => addFlat(k, this.statLabelShort(k), b[k], '獸', pc)); passive.push({ seal: '獸', color: pc, name: 'Linh Thú · ' + this.petName(pet), lines: lines.length ? lines : ['Đồng hành cùng ngươi'] }); }
+    if (pet) { const b = this.activePetBonusApplied() || {}, pc = this.petElColor(pet), lines = Object.keys(b).map((k) => '+' + this.fmt(b[k]) + ' ' + this.statLabelShort(k)); Object.keys(b).forEach((k) => addFlat(k, this.statLabelShort(k), b[k], '獸', pc)); passive.push({ seal: '獸', color: pc, name: 'Linh Thú · ' + this.petName(pet), lines: lines.length ? lines : ['Đồng hành cùng bạn'] }); }
     // Danh Hiệu (% → tổng lực + thẻ)
     const tt = this.equippedTitleObj;
     if (tt) { const txt = titleBonusText(tt); if (tt.bonus) Object.keys(tt.bonus).forEach((k) => addPct(k, tt.bonus[k], '號', '#f5b942')); passive.push({ seal: '號', color: '#f5b942', name: 'Danh Hiệu · ' + tt.name, lines: txt ? txt.split(' · ') : ['Vinh danh giang hồ'] }); }
@@ -3734,7 +3734,7 @@ const gameStore = {
     h.readyAt = t;
     this.collectHatch();                                        // tự Storage.save + thông báo
   },
-  equipPet(petId) { const p = (this.state.pets || []).find((x) => x.id === petId); if (p && (p.state === 'hunt' || p.state === 'rest')) stopHunt(this.state, petId, now()); (this.state.pets || []).forEach((x) => { x.equipped = (x.id === petId); }); Storage.save(this.state); if (p) this.showToast(this.petName(p) + ' đã xuất trận, kề vai cùng ngươi.'); },
+  equipPet(petId) { const p = (this.state.pets || []).find((x) => x.id === petId); if (p && (p.state === 'hunt' || p.state === 'rest')) stopHunt(this.state, petId, now()); (this.state.pets || []).forEach((x) => { x.equipped = (x.id === petId); }); Storage.save(this.state); if (p) this.showToast(this.petName(p) + ' đã xuất trận, kề vai cùng bạn.'); },
   unequipActivePet() { (this.state.pets || []).forEach((p) => { p.equipped = false; }); Storage.save(this.state); },
   // Bonus pet ĐÃ CAP (số thực cộng vào nhân vật) = stats(có pet) − stats(không pet).
   activePetBonusApplied() {
@@ -4300,7 +4300,7 @@ const gameStore = {
   ncTrungSinh() {
     this.hoiXacNhan({
       tieuDe: 'Trùng Sinh ' + this.ncTenNghe,
-      loi: this.ncTenNghe + ' về cấp 1. Ngươi nhận ' + DIEM_MOI_LAN + ' Điểm Trùng Sinh.',
+      loi: this.ncTenNghe + ' về cấp 1. Bạn nhận ' + DIEM_MOI_LAN + ' Điểm Trùng Sinh.',
       nut: 'Trùng Sinh',
       xong: () => {
         if (!trungSinh(this.state, this.ncSkill)) return;
@@ -4667,7 +4667,7 @@ const gameStore = {
     const res = resolveBossQueueEngine(this.state, now(), (b) => this.combatLevel >= b.reqLevel);
     if (res.length) {
       const wins = res.filter((r) => r.win).length;
-      if (wins > 0) { this.showToast('⚔ Trong lúc vắng mặt, ngươi đã hạ ' + wins + ' Yêu Vương đang chờ! Xem Lịch Sử để biết kết quả trận chiến.'); this.pushNotif('yeuVuong', 'Hạ ' + wins + ' Yêu Vương (vắng mặt)', 'Hàng đợi vây sát đã hoàn tất — xem Lịch Sử để biết kết quả.'); }
+      if (wins > 0) { this.showToast('⚔ Trong lúc vắng mặt, bạn đã hạ ' + wins + ' Yêu Vương đang chờ! Xem Lịch Sử để biết kết quả trận chiến.'); this.pushNotif('yeuVuong', 'Hạ ' + wins + ' Yêu Vương (vắng mặt)', 'Hàng đợi vây sát đã hoàn tất — xem Lịch Sử để biết kết quả.'); }
       else this.showToast('Khiêu chiến hàng đợi thất bại — Yêu Vương vẫn còn sống, hãy thử lại.');
       Storage.save(this.state);
     }
@@ -6404,7 +6404,7 @@ const gameStore = {
       if (!uid) { this.showToast('Chưa lấy được mã tài khoản.'); return; }
       const url = location.origin + location.pathname + '?hoso=' + uid;
       this.khoeLink = url;
-      try { await navigator.clipboard.writeText(url); this.showToast('Đã chép đường dẫn — gửi cho ai cũng xem được giá của ngươi.'); }
+      try { await navigator.clipboard.writeText(url); this.showToast('Đã chép đường dẫn — gửi cho ai cũng xem được giá của bạn.'); }
       catch (e) { this.showToast('Không thể tự sao chép. Đường dẫn đã hiện ngay bên dưới giá, bạn hãy sao chép thủ công.'); }
     } catch (e) { this.showToast('Chưa khoe được — kiểm tra kết nối.'); }
     finally { this.khoeDang = false; }
@@ -7131,7 +7131,7 @@ const gameStore = {
       'chua-co-ban-luu': 'Chưa có bản lưu trên máy chủ — bấm Đồng Bộ Ngay rồi thử lại.',
       'khong-co-mon-nay': 'Món này không có trong túi trên máy chủ — đồng bộ rồi thử lại.',
       'dang-treo-roi': 'Món này đang treo bán rồi.', 'khong-co-tin': 'Tin rao không còn.',
-      'khong-phai-tin-cua-minh': 'Không phải tin của ngươi.', 'tin-da-xong': 'Tin này đã xong.',
+      'khong-phai-tin-cua-minh': 'Tin này không phải của bạn.', 'tin-da-xong': 'Tin này đã xong.',
       'khong-tu-mua-cua-minh': 'Không mua được tin của chính mình.',
       'khong-du-bac': 'Không đủ Bạc.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.' })[v] || v;
   },
