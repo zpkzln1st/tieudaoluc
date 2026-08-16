@@ -15,6 +15,8 @@ import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS, SK_PHU_KIEN_SL
 import { GEAR_IDS, instanceFromCatalog, rollSetPieceInstance, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
+import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, DD_ART_MUON, ddMoiVien } from './data/dandien.js';
+import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
 import { coTuong, ensureCoTuong } from './cotuong.js';               // Cờ Tướng (象棋 3D, cách ly)
@@ -80,7 +82,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanGo, cloudSanMua } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -243,6 +245,14 @@ if (!state.counters) state.counters = { produced: {}, kills: {} };
 Object.keys(SKILLS).forEach((id) => { if (!state.skills[id]) state.skills[id] = { xp: 0 }; });
 ensureBuffs(state);        // Đan Bổ Trợ: khởi tạo state.buffs
 migrateDanSlots(state);    // save cũ chỉ có 1 ô cb.dan -> tách thành Hồi Sinh Lực / Hồi Nội Lực / Dược Lư
+// ĐAN ĐIỀN: vá save CŨ. `createInitialState()` chỉ chạy cho nhân vật MỚI, nên mọi save có từ trước
+// đợt này đều thiếu khoá `danDien` — bấm Giữ ở bảng Luyện là `state.danDien.luyen = {}` ném lỗi,
+// im lặng, nút nhìn như chết. Vá ở đây, không cần bump SAVE_VERSION.
+if (!state.danDien || typeof state.danDien !== 'object') state.danDien = {};
+for (const nh of ['tinh', 'khi', 'than']) {
+  if (!Array.isArray(state.danDien[nh])) state.danDien[nh] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+}
+if (!state.danDien.luyen || typeof state.danDien.luyen !== 'object') state.danDien.luyen = { tinh: 0, khi: 0, than: 0 };
 // Cài Đặt: đổ mặc định vào save cũ (giữ nguyên khoá người chơi đã đổi). Không cần bump SAVE_VERSION.
 if (!state.settings || typeof state.settings !== 'object') state.settings = {};
 for (const k of Object.keys(CAI_DAT_MAC_DINH)) if (state.settings[k] === undefined) state.settings[k] = CAI_DAT_MAC_DINH[k];
@@ -7082,6 +7092,144 @@ const gameStore = {
     };
     r.readAsText(file);
   },
+
+  // ---------- SÀN GIAO DỊCH — chỉ NGƯỜI CHƠI bán, KHÔNG có bot ----------
+  // ⚠⚠ CLIENT KHÔNG ĐỘNG VÀO TÚI. Ba hàm treo/gỡ/mua nằm trên máy chủ, tự đọc túi trong
+  //   `saves.data`, tự bỏ món, tự ghi lại (docs/SQL_SAN_GIAO_DICH.sql). Client tự gỡ món là mở
+  //   đường nhân đôi: nạp lại bản lưu cũ thì món về túi mà tin rao vẫn treo.
+  // ⚠⚠ GỌI XONG PHẢI TẢI LẠI SAVE. Bản trên máy này lập tức thành bản CŨ (thiếu món, thiếu Bạc,
+  //   `sanSeq` lùi). Chốt chặn quay ngược sẽ TỪ CHỐI mọi lần đẩy sau đó — người chơi mất đồng bộ
+  //   vĩnh viễn mà không hiểu vì sao.
+  sanTab: 'mua',            // 'mua' = đang xem chợ · 'ban' = tin của mình
+  sanDs: [], sanCuaToi: [], sanTai: false, sanLoi: '',
+  sanTreoUid: null, sanTreoGia: '',
+  get sanMo() { return this.view === 'market'; },
+  async taiSan() {
+    if (!this.isLoggedIn) { this.sanLoi = 'Phải đăng nhập mới vào Sàn được.'; return; }
+    this.sanTai = true; this.sanLoi = '';
+    try {
+      const [a, b] = await Promise.all([cloudSanDs(80), cloudSanCuaToi(50)]);
+      if (!a.ok) { this.sanLoi = 'Chưa đọc được Sàn — kiểm tra đã chạy SQL_SAN_GIAO_DICH.sql chưa.'; return; }
+      this.sanDs = a.ds; this.sanCuaToi = (b.ok ? b.ds : []);
+    } catch (e) { this.sanLoi = 'Không kết nối được máy chủ.'; }
+    finally { this.sanTai = false; }
+  },
+  // Trang bị treo được: trong TÚI, không phải món đang mặc.
+  get sanDoTreoDuoc() { return (this.state.gearBag || []).filter((g) => g && g.uid); },
+  // ⚠ Dùng lại `gearView` — chính hàm dựng tooltip trang bị. Đừng tự ghép tên: tên món còn phụ
+  //   thuộc bộ trang, cường hóa, phẩm chất; ghép tay là lệch với chỗ khác trong game.
+  sanXem(m) { try { return this.gearView(m); } catch (e) { return null; } },
+  sanTenMon(m) { const v = this.sanXem(m); return (v && v.name) || (m && m.gearId) || '?'; },
+  // Sau MỌI thao tác sàn: kéo bản mới từ cloud về rồi tải lại trang.
+  async _sanNapLai() {
+    const r = await cloudLoadSave();
+    if (r.ok && r.row) this._applyCloudSave(r.row.data);
+    else location.reload();
+  },
+  _sanVi(v) {
+    return ({ 'chua-dang-nhap': 'Chưa đăng nhập.', 'gia-sai': 'Giá không hợp lệ.',
+      'chua-co-ban-luu': 'Chưa có bản lưu trên máy chủ — bấm Đồng Bộ Ngay rồi thử lại.',
+      'khong-co-mon-nay': 'Món này không có trong túi trên máy chủ — đồng bộ rồi thử lại.',
+      'dang-treo-roi': 'Món này đang treo bán rồi.', 'khong-co-tin': 'Tin rao không còn.',
+      'khong-phai-tin-cua-minh': 'Không phải tin của ngươi.', 'tin-da-xong': 'Tin này đã xong.',
+      'khong-tu-mua-cua-minh': 'Không mua được tin của chính mình.',
+      'khong-du-bac': 'Không đủ Bạc.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.' })[v] || v;
+  },
+  async sanTreo(uid, gia) {
+    const g = Math.round(Number(gia) || 0);
+    if (!uid || g <= 0) { this.showToast('Nhập giá đã.'); return; }
+    this.sanTai = true;
+    const r = await cloudSanTreo(uid, g);
+    this.sanTai = false;
+    if (!r.ok) { this.showToast(this._sanVi(r.vi || r.reason)); return; }
+    this.showToast('Đã treo bán.'); await this._sanNapLai();
+  },
+  async sanGo(id) {
+    this.sanTai = true;
+    const r = await cloudSanGo(id);
+    this.sanTai = false;
+    if (!r.ok) { this.showToast(this._sanVi(r.vi || r.reason)); return; }
+    this.showToast('Đã gỡ xuống, món về túi.'); await this._sanNapLai();
+  },
+  async sanMua(id) {
+    this.sanTai = true;
+    const r = await cloudSanMua(id);
+    this.sanTai = false;
+    if (!r.ok) { this.showToast(this._sanVi(r.vi || r.reason)); return; }
+    this.showToast('Đã mua.'); await this._sanNapLai();
+  },
+  get sanThueTxt() { return '15%'; },
+  sanThue(gia) { return Math.ceil((Number(gia) || 0) * 0.15); },
+
+  // ---------- ĐAN ĐIỀN (Tinh · Khí · Thần) ----------
+  // Cửa vào: ô 丹 đè góc trên trái chân dung ở màn Trang Bị. Xem docs/THIET_KE_DAN_DIEN.md.
+  ddMo: false,
+  ddNhanh: 'tinh',
+  moDanDien() { this.ddMo = true; },
+  dongDanDien() { this.ddMo = false; },
+  chonDdNhanh(nh) { if (DD_NHANH.includes(nh)) this.ddNhanh = nh; },
+  DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI,
+  get ddBang() { return ddBang(this.state); },
+  get ddTongO() { return DD_TONG_O; },
+  get ddDaNap() { return ddDemTong(this.state).da; },
+  get ddHanSo() { return ['一', '二', '三', '四', '五', '六', '七', '八', '九']; },
+  get ddHonDaMo() { return ddHonDaMo(this.state); },
+  ddArt(pham) { return DD_ART_MUON[pham - 1]; },
+  ddDemNhanh(nh) { return ddDemNhanh(this.state, nh).da; },
+  ddONhanh(nh) { return DD_O.reduce((s, n) => s + n, 0); },
+  // Cộng thêm của MỘT nhánh — dùng cho khối tổng bên phải trong modal.
+  ddCongNhanh(nh) {
+    const chi = {}; for (const k of Object.keys(DD_NGAN_SACH[nh] || {})) chi[k] = 0;
+    const b = ddBang(this.state);
+    for (let p = 1; p <= 9; p++) {
+      const n = b[nh][p - 1] || 0; if (!n) continue;
+      const v = ddMoiVien(nh, p); for (const k in v) chi[k] += v[k] * n;
+    }
+    const hon = ddHonDaMo(this.state).reduce((s, p) => s + (DD_HON_THUONG[p - 1] || 0), 0);
+    if (hon) for (const k in chi) chi[k] *= (1 + hon);
+    return chi;
+  },
+  get ddHonPct() { return ddHonDaMo(this.state).reduce((s, p) => s + (DD_HON_THUONG[p - 1] || 0), 0); },
+  // ⚠ Nhãn lấy ĐÚNG tên game đã đặt (gear.js): "Kháng Tất Cả", "Giảm Thời Gian Khống Chế".
+  //   Đừng bịa nhãn mới — người chơi chưa từng gặp ở đâu khác.
+  ddNhanChiSo(k) {
+    return ({ hpPct: 'Sinh Lực', defPct: 'Phòng Ngự', atkPct: 'Công Kích', nlMax: 'Nội Lực Tối Đa',
+      nlRegenPct: 'Hồi Nội Lực', khangPct: 'Kháng Tất Cả', menhTrung: 'Chính Xác',
+      ccGiamPct: 'Giảm Thời Gian Khống Chế' })[k] || k;
+  },
+  ddSoChiSo(k, v) { return ({ nlMax: 1, menhTrung: 1 })[k] ? '+' + Math.round(v) : '+' + (v * 100).toFixed(1) + '%'; },
+
+  // ---------- LUYỆN ĐAN ĐIỀN — quay lại điểm Tinh · Khí · Thần ----------
+  // ⚠ Số ở đây là DRAFT, chưa tune. Xem docs/THIET_KE_DAN_DIEN.md §4.
+  // ⚠⚠ LUYỆN KHÔNG DÍNH GÌ TỚI VIÊN ĐAN. Trần neo vào CẤP CHIẾN ĐẤU, y như bản gốc (nhân vật
+  //   cấp 159 có trần 706, cấp 108 có trần 452). Bản trước tôi neo vào số viên đã nạp — sai:
+  //   người chưa nạp viên nào thì trần bằng 0, cả bảng Luyện đứng chết.
+  // ⚠ Một trần DÙNG CHUNG cho cả ba nhánh, không phải mỗi nhánh một trần.
+  luyenMo: false,
+  luyenThu: null,          // kết quả VỪA QUAY, chưa Giữ — Bỏ là mất
+  moLuyenDan() { this.luyenThu = null; this.luyenMo = true; },
+  dongLuyenDan() { this.luyenMo = false; this.luyenThu = null; },
+  get luyenDiem() { const l = (this.state.danDien && this.state.danDien.luyen) || {}; const r = {}; for (const nh of DD_NHANH) r[nh] = l[nh] || 0; return r; },
+  get luyenTran() { return capKyNang(this.state, 'chienDau') * 5; },
+  get luyenGia() { return 5000 + capKyNang(this.state, 'chienDau') * 800; },
+  get luyenDuTien() { return (this.state.currencies.bac || 0) >= this.luyenGia; },
+  quayLuyen() {
+    if (!this.luyenDuTien) { this.showToast('Không đủ Bạc (cần ' + this.fmt(this.luyenGia) + ').'); return; }
+    this.state.currencies.bac -= this.luyenGia;
+    const tran = this.luyenTran, r = {};
+    for (const nh of DD_NHANH) r[nh] = Math.floor(Math.random() * (tran + 1));
+    this.luyenThu = r;
+    Storage.save(this.state);
+  },
+  luuLuyen() {
+    if (!this.luyenThu) return;
+    // ⚠ Vẫn phải tự vệ ở đây dù đã vá lúc nạp: bản lưu nhập tay qua bảng Dev không đi qua đường vá.
+    if (!this.state.danDien || typeof this.state.danDien !== 'object') this.state.danDien = {};
+    if (!this.state.danDien.luyen) this.state.danDien.luyen = {};
+    for (const nh of DD_NHANH) this.state.danDien.luyen[nh] = this.luyenThu[nh];
+    this.luyenThu = null; Storage.save(this.state); this.showToast('Đã giữ kết quả luyện.');
+  },
+  huyLuyen() { this.luyenThu = null; },
 
   // ---------- Tiện ích ----------
   // XOÁ TIẾN TRÌNH — hai lớp chặn: gõ lại đúng TÊN NHÂN VẬT, rồi nhập MẬT KHẨU tài khoản.

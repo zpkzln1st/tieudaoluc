@@ -5,6 +5,7 @@
 // THUẦN (không Alpine). deriveCombat dùng derivedStats (Tứ Trụ + trang bị).
 // ============================================================
 import { derivedStats, gearEle, khangClamp, KHANG_CAP, giamNhanClamp, GIAM_NHAN_CAP, dodgeFromNeTranh, hitFromMenhTrung } from '../engine/stats.js';
+import { danDienBonus } from '../engine/dandien.js';
 import { levelFromXp } from '../engine/leveling.js';
 import { titleBonus } from '../engine/titles.js';
 import { ITEMS } from './items.js';   // đọc buff của Đan Bổ Trợ (danBuffPct)
@@ -536,6 +537,7 @@ export function deriveCombat(state, loadout, opts){
   // Đan Bổ Trợ họ Cường Nguyên: +% Công/Thủ/Sinh Lực. Đọc THẲNG state.buffs (đã được prune theo
   // đồng hồ game mỗi tick) -> giữ deriveCombat thuần, không cần truyền `now` vào đây.
   const bf = danBuffPct(state);
+  const dd = danDienBonus(state);
   return {
     maxHP: Math.max(1, Math.round(d.sinhLuc * (1+M.hp) * (1 + bf.hpPct))),
     atk: Math.max(1, Math.round(d.congKich * (1+M.dmg) * nt * (1 + bf.atkPct))),
@@ -561,7 +563,9 @@ export function deriveCombat(state, loadout, opts){
     // Đợt 1: chưa có nguồn nào cấp -> luôn toàn 0, hành vi game KHÔNG đổi. Trần kháng đặt ở Đợt 2.
     khang: d.khang || { kim:0, moc:0, thuy:0, hoa:0, tho:0 },
     heChinh, tamPhapHeBonus, eleBonus, heBonus,
-    maxNL: Math.round((100 + (tp.noiLuc||0)) * (1+M.nl)), nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen)),
+    // ĐAN ĐIỀN nhánh KHÍ: cộng thẳng vào trần Nội Lực (điểm) và nhân vào tốc hồi (%).
+    maxNL: Math.round((100 + (tp.noiLuc||0) + (dd.nlMax||0)) * (1+M.nl)),
+    nlRegen: Math.round((tp.nlRegen||0) * (1+M.nlRegen+(dd.nlRegenPct||0))),
     // GIẢM SÁT THƯƠNG PHẢI CHỊU — thay chỗ của hồi máu mỗi hiệp (đã bỏ). Kẹp trần 0,40.
     giamNhan: giamNhanClamp(M.giamNhan), giamNhanCap: GIAM_NHAN_CAP,
     tang: (state && state.combat && state.combat.tang) || {},   // Tầng từng chiêu (Ngộ Tính) — makeFight áp vào

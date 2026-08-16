@@ -343,6 +343,50 @@
     .dai > button + button { border-left:1px solid #263449; }
     .dai > button:hover { color:#e2e8f0; }
     .dai > button.on { background:rgba(34,211,238,.15); color:#67e8f9; }
+    /* ===== ĐAN ĐIỀN (Tinh · Khí · Thần) ===== */
+    /* ⚠ GLOW TĨNH — không animation, không hạt bay. UI phải đứng yên. */
+    .dd-lo { position:relative; border-radius:14px; padding:12px 12px 10px; background:#0a0f1a; border:1px solid #16202f;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.02), inset 0 0 40px -28px var(--nhanh); }
+    .dd-lo::before { content:''; position:absolute; inset:0; border-radius:14px; pointer-events:none;
+      background:radial-gradient(120% 90% at 12% 0%, var(--nhanhMo), transparent 62%); }
+    .dd-hang { display:flex; align-items:center; gap:7px; height:34px; margin-bottom:7px; }
+    .dd-cum { display:flex; gap:7px; flex:none; }
+    .dd-o { width:34px; height:34px; border-radius:9px; flex:none; position:relative; display:flex;
+      align-items:center; justify-content:center; overflow:hidden; }
+    /* Ô TRỐNG: hốc chìm, viền LIỀN. Viền đứt đọc ra "chỗ thả đồ, chưa dựng xong". */
+    .dd-o.trong { background:#070c15; border:1px solid #172131;
+      box-shadow:inset 0 2px 5px -2px rgba(0,0,0,.9); }
+    .dd-o.trong::after { content:''; width:6px; height:6px; border-radius:50%; background:#141d2b; }
+    .dd-o.day { background:#0a0f1a; border:1px solid var(--vien);
+      box-shadow:0 0 10px -3px var(--glow), inset 0 1px 0 rgba(255,255,255,.10); }
+    .dd-o img { width:100%; height:100%; object-fit:cover; display:block; }
+    .dd-hon { width:34px; height:34px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center;
+      font-family:'Lora',Georgia,serif; font-size:15px; border:1px solid #1a2434; background:#070c15; color:#2c3a4f;
+      box-shadow:inset 0 2px 5px -2px rgba(0,0,0,.9); }
+    .dd-hon.mo { border-color:#c9962f; color:#f5cd6a; background:linear-gradient(180deg,rgba(245,185,66,.16),rgba(245,185,66,.05));
+      box-shadow:0 0 11px -3px rgba(245,185,66,.8), inset 0 1px 0 rgba(255,235,180,.22); }
+    /* ⚠ nowrap BẮT BUỘC: thiếu nó thì "Nhất Phẩm" xuống hai dòng, cả bậc thang lệch nhau. */
+    .dd-nhan { width:104px; flex:none; display:flex; align-items:center; justify-content:flex-end; gap:6px; white-space:nowrap; }
+    .dd-nhan .ten { font-family:'Lora',Georgia,serif; font-size:12.5px; color:#7c8ba1; }
+    .dd-nhan.day .ten { color:#dbe3ec; }
+    .dd-nhan .an { width:19px; height:19px; flex:none; border-radius:5px; display:flex; align-items:center; justify-content:center;
+      font-family:'Lora',Georgia,serif; font-size:11px; color:#41506a; border:1px solid #1a2434; background:#070c15; }
+    .dd-nhan.day .an { color:var(--nhanh); border-color:var(--vien); }
+    .dd-dai { display:inline-flex; background:#080d16; border:1px solid #1a2434; border-radius:11px; padding:3px; gap:3px; }
+    .dd-dai > button { padding:5px 14px; border-radius:8px; font-size:13px; color:#8b9ab0; background:transparent; border:0;
+      cursor:pointer; font-family:'Lora',Georgia,serif; display:inline-flex; align-items:baseline; gap:5px; }
+    .dd-dai > button.on { color:#080d16; font-weight:700; }
+    /* Khối tổng NỔI trong khoảng trống của bậc thang (đúng như bản gốc). */
+    .dd-tong { position:absolute; top:12px; right:12px; width:196px; border-radius:12px; padding:10px 11px;
+      background:linear-gradient(180deg,#0d1522,#0a0f1a); border:1px solid #1c2637;
+      box-shadow:0 8px 26px -18px #000, inset 0 1px 0 rgba(255,255,255,.03); }
+    .dd-thanh { height:4px; border-radius:99px; background:#111a28; overflow:hidden; }
+    .dd-thanh > i { display:block; height:100%; border-radius:99px; }
+    .dd-hoi { width:16px; height:16px; border-radius:50%; border:1px solid #26334a; background:#070c15; color:#5b6b83;
+      font-size:10.5px; line-height:1; cursor:help; display:inline-flex; align-items:center; justify-content:center; }
+    .dd-hoi:hover { color:#cbd5e1; border-color:#475569; }
+    @media (max-width:700px){ .dd-tong { position:static; width:auto; margin-top:10px; } }
+
     /* Nhãn mục: icon + chữ + đường kẻ chạy hết ngang */
     .cd-muc { display:flex; align-items:center; gap:.5rem; margin-bottom:.6rem; }
     .cd-muc .cd-ke { flex:1; height:1px; background:linear-gradient(90deg,#1e293b,transparent); }
@@ -561,6 +605,13 @@
        Khe 15px chứ không 10px: ô đang mang quầng sáng loang 15px, sát quá thì viền lẫn vào hào quang. */
     .gtip-r{ left:calc(100% + 15px); }  .gtip-l{ right:calc(100% + 15px); }
     .gtip-at{ top:0; }                  .gtip-ab{ bottom:0; }
+    /* MỘT DÒNG, MỞ XUỐNG — cho hàng ô đứng trên chân dung (Đan Điền · Luyện · Phụ Kiện Sự Kiện).
+       ⚠ Dùng lại chính `.gtip` chứ KHÔNG dựng bộ tooltip thứ hai: hai bộ là hai kiểu viền, hai
+         kiểu nền, sớm muộn lệch nhau. Ở đây chỉ đổi CHỖ MỞ và cho bề ngang co theo chữ. */
+    .gtip-dn{ top:calc(100% + 12px); left:50%; transform:translateX(-50%);
+              width:auto; white-space:nowrap; padding:6px 10px; }
+    .gtip-dn::after{ top:-12px; left:calc(50% - 6px); border-bottom-color:var(--q,#475569); }
+    .dd-tip:hover .gtip{ opacity:1; transition-delay:.06s; }
     .gtip-up{ bottom:calc(100% + 15px); left:0; }
     .gtip-up::after{ bottom:-12px; left:calc(var(--mui,38px) - 6px); border-top-color:var(--q,#475569); }
     .gtip::after{ content:""; position:absolute; border:6px solid transparent; }
@@ -2229,33 +2280,61 @@
                       </span>
                   </template>
                 </div>
-                <!-- avatar giữa -->
+                <!-- avatar giữa — hàng ô đứng TRÊN chân dung, không đè lên art -->
+                <div class="flex-1 min-w-0 flex flex-col">
+                <!-- ⚠ CANH GIỮA, không canh phải: hàng này còn thêm ô nữa. Canh phải thì mỗi lần
+                     thêm một ô là cả hàng dịch sang trái, mắt thấy giao diện nhảy. Canh giữa thì
+                     ô mới nở đều hai bên, mấy ô cũ gần như đứng yên. -->
+                <div class="flex flex-row flex-wrap gap-1.5 justify-center mb-1.5">
+                    <template x-for="p in (g.suKienDangChay ? g.svPhuKien : [])" :key="p.loai">
+                      <!-- ⚠ Ô trống nằm ĐÈ nền art sáng: mờ 25% + viền nhạt là nhìn như không có ô
+                           (đo thật: có trong DOM, 44x44, mắt không thấy). Nền đen đặc + viền rõ hơn.
+                           Bấm mở đúng bảng Đổi Trang Bị như mọi ô khác — cùng một đường equip. -->
+                      <button @click="g.openEquip(p.slot)"
+                        class="relative w-11 h-11 rounded-lg border overflow-hidden transition hover:brightness-125"
+                        :class="p.co ? 'border-amber-500/70 bg-black/60' : 'border-dashed border-slate-300/45 bg-black/70'"
+                        :style="p.co ? 'box-shadow:0 0 13px -3px rgba(245,185,66,.8), inset 0 0 12px rgba(245,185,66,.16)' : 'box-shadow:0 2px 8px rgba(0,0,0,.7)'"
+                        :title="p.ten + (p.co === 'thuong' ? ' · Thượng — bấm để tháo hoặc đổi.' : p.co === 'so' ? ' · Sơ — bấm để tháo hoặc đổi.' : (p.coTui ? ' — Có trong túi, bấm để trang bị.' : ' — chưa có, rơi 0,5% từ ' + p.nguon))">
+                        <span class="absolute inset-0 inline-flex items-center justify-center p-0.5"
+                          :class="p.co ? '' : 'opacity-45 grayscale'" x-html="g.ico(p.art, p.loai === 'boi' ? '📿' : '🔮')"></span>
+                        <!-- Có trong túi mà chưa lắp: chấm ngọc nhắc bấm vào. Không có thì không nhắc. -->
+                        <template x-if="!p.co && p.coTui">
+                          <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-jade ring-2 ring-ink"></span>
+                        </template>
+                      </button>
+                    </template>
+                    <!-- ĐAN ĐIỀN + LUYỆN — hai ô đứng CÙNG CỘT với ô Phụ Kiện Sự Kiện.
+                         ⚠ Hai ô này LUÔN có mặt, không ẩn theo sự kiện: chỉ số Đan Điền là của
+                           nhân vật, không phải nội dung theo mùa. Vì thế điều kiện "có sự kiện"
+                           nằm trong x-for phía trên chứ không bọc cả cột. -->
+                    <span class="dd-tip relative inline-flex" style="--q:#a78bfa">
+                    <button @click="g.moDanDien()"
+                      class="relative w-11 h-11 rounded-lg border border-violet-400/60 bg-black/70 overflow-hidden transition hover:brightness-125 flex items-center justify-center"
+                      style="box-shadow:0 0 13px -3px rgba(167,139,250,.75), inset 0 0 12px rgba(167,139,250,.14)"
+                      >
+                      <span class="absolute inset-0 inline-flex items-center justify-center p-0.5" x-html="g.ico('hoiKhiDan', '')"></span>
+                      <template x-if="g.ddDaNap > 0">
+                        <span class="absolute bottom-0 left-0 h-[3px] bg-violet-400/70"
+                              :style="'width:' + Math.round(g.ddDaNap / g.ddTongO * 100) + '%'"></span>
+                      </template>
+                    </button>
+                      <span class="gtip gtip-dn text-[11.5px] text-slate-200">Đan Điền <span class="text-slate-500" x-text="g.ddDaNap + ' / ' + g.ddTongO + ' viên'"></span></span>
+                    </span>
+                    <span class="dd-tip relative inline-flex" style="--q:#38bdf8">
+                    <button @click="g.moLuyenDan()"
+                      class="relative w-11 h-11 rounded-lg border border-sky-400/60 bg-black/70 overflow-hidden transition hover:brightness-125 flex items-center justify-center"
+                      style="box-shadow:0 0 13px -3px rgba(56,189,248,.7), inset 0 0 12px rgba(56,189,248,.14)"
+                      >
+                      <span class="absolute inset-0 inline-flex items-center justify-center p-0.5" x-html="g.ico('bachBaoDan', '')"></span>
+                    </button>
+                      <span class="gtip gtip-dn text-[11.5px] text-slate-200">Luyện <span class="text-slate-500">quay lại điểm Tinh · Khí · Thần</span></span>
+                    </span>
+                </div>
                 <div class="cdg-host flex-1 min-w-0 relative rounded-lg overflow-hidden border border-jade/30 bg-ink2">
                   <div class="absolute inset-0 flex items-center justify-center text-6xl text-slate-700" style="font-family:'Lora','Noto Serif SC',serif">道</div>
                   <img loading="lazy" decoding="async" :src="'images/avatars/'+$store.game.avatarId+'.webp'" class="absolute inset-0 w-full h-full object-cover object-top" alt="" onerror="this.style.display='none'">
                   <!-- Hai ô Phụ Kiện Sự Kiện đè góc trên phải chân dung. Chỉ hiện khi có sự kiện
                        đang chạy — hết sự kiện là phụ kiện mất tác dụng, để lại hai ô trống là rác. -->
-                  <template x-if="g.suKienDangChay">
-                    <div class="absolute top-2 right-2 z-10 flex flex-col gap-1.5">
-                      <template x-for="p in g.svPhuKien" :key="p.loai">
-                        <!-- ⚠ Ô trống nằm ĐÈ nền art sáng: mờ 25% + viền nhạt là nhìn như không có ô
-                             (đo thật: có trong DOM, 44x44, mắt không thấy). Nền đen đặc + viền rõ hơn.
-                             Bấm mở đúng bảng Đổi Trang Bị như mọi ô khác — cùng một đường equip. -->
-                        <button @click="g.openEquip(p.slot)"
-                          class="relative w-11 h-11 rounded-lg border overflow-hidden transition hover:brightness-125"
-                          :class="p.co ? 'border-amber-500/70 bg-black/60' : 'border-dashed border-slate-300/45 bg-black/70'"
-                          :style="p.co ? 'box-shadow:0 0 13px -3px rgba(245,185,66,.8), inset 0 0 12px rgba(245,185,66,.16)' : 'box-shadow:0 2px 8px rgba(0,0,0,.7)'"
-                          :title="p.ten + (p.co === 'thuong' ? ' · Thượng — bấm để tháo hoặc đổi.' : p.co === 'so' ? ' · Sơ — bấm để tháo hoặc đổi.' : (p.coTui ? ' — Có trong túi, bấm để trang bị.' : ' — chưa có, rơi 0,5% từ ' + p.nguon))">
-                          <span class="absolute inset-0 inline-flex items-center justify-center p-0.5"
-                            :class="p.co ? '' : 'opacity-45 grayscale'" x-html="g.ico(p.art, p.loai === 'boi' ? '📿' : '🔮')"></span>
-                          <!-- Có trong túi mà chưa lắp: chấm ngọc nhắc bấm vào. Không có thì không nhắc. -->
-                          <template x-if="!p.co && p.coTui">
-                            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-jade ring-2 ring-ink"></span>
-                          </template>
-                        </button>
-                      </template>
-                    </div>
-                  </template>
                   <div class="cdg-ov">
                     <template x-if="g.equippedTitleObj">
                       <div class="cdg-dh" x-text="g.equippedTitleObj.name"></div>
@@ -2269,6 +2348,7 @@
                       <div class="cdg-cl"><div class="l">Chiến Lực</div><div class="v" x-text="g.fmt(g.stats.chienLuc)"></div></div>
                     </div>
                   </div>
+                </div>
                 </div>
                 <!-- cột phải -->
                 <div class="flex flex-col gap-3 shrink-0">
@@ -15778,6 +15858,123 @@
         </div>
       </template>
 
+      <!-- ===== VIEW: SÀN GIAO DỊCH — chỉ NGƯỜI CHƠI bán, KHÔNG có bot =====
+           ⚠⚠ Client KHÔNG đụng vào túi. Treo / gỡ / mua đều là hàm trên máy chủ tự đọc túi trong
+             `saves.data`, tự bỏ món, tự ghi lại (docs/SQL_SAN_GIAO_DICH.sql). Client tự gỡ món là
+             mở đường nhân đôi: nạp lại bản lưu cũ thì món về túi mà tin rao vẫn treo.
+           ⛔ ĐỪNG thêm tin rao do bot đăng. Sàn cũ bị gỡ đúng vì chuyện đó — bot không sinh ra
+             cung cầu, mọi con số "cân bằng" chỉ là số tự đặt rồi đo lại chính nó. -->
+      <template x-if="$store.game.view==='market'">
+        <section x-data="{ get g(){ return $store.game } }" x-init="g.taiSan()">
+          <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <div class="dd-dai">
+              <button :class="g.sanTab==='mua' ? 'on' : ''" :style="g.sanTab==='mua' ? 'background:linear-gradient(180deg,#14b8a6,#14b8a6cc)' : ''" @click="g.sanTab='mua'">Chợ</button>
+              <button :class="g.sanTab==='ban' ? 'on' : ''" :style="g.sanTab==='ban' ? 'background:linear-gradient(180deg,#f5b942,#f5b942cc)' : ''" @click="g.sanTab='ban'">Tin Của Ngươi</button>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="text-[11.5px] text-slate-500">Thuế bán <b class="text-slate-300" x-text="g.sanThueTxt"></b></span>
+              <button @click="g.taiSan()" :disabled="g.sanTai"
+                class="px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 hover:border-jade text-slate-300 text-[12.5px] transition disabled:opacity-50"
+                x-text="g.sanTai ? 'Đang tải…' : 'Tải Lại'"></button>
+            </div>
+          </div>
+
+          <template x-if="g.sanLoi">
+            <div class="panel rounded-lg p-4 text-[13px] text-rose-300" x-text="g.sanLoi"></div>
+          </template>
+
+          <!-- ===== CHỢ ===== -->
+          <template x-if="g.sanTab==='mua' && !g.sanLoi">
+            <div>
+              <template x-if="!g.sanDs.length && !g.sanTai">
+                <div class="panel rounded-lg p-8 text-center text-slate-500 text-[13px]">Chưa ai treo bán món nào.</div>
+              </template>
+              <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+                <template x-for="r in g.sanDs" :key="'san-'+r.id">
+                  <div class="panel rounded-lg p-3 flex items-center gap-3">
+                    <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0"
+                          x-html="g.ico((g.sanXem(r.mon)||{}).art || (r.mon && r.mon.gearId), '')"></span>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanTenMon(r.mon)"></div>
+                      <div class="text-[11px] text-slate-500 truncate">
+                        <span x-text="g.qualityName(r.mon)"></span><span x-text="' · Cấp ' + (r.mon.itemLv||1)"></span>
+                        <template x-if="r.mon.plus > 0"><span class="text-amber-300" x-text="' · +' + r.mon.plus"></span></template>
+                      </div>
+                      <div class="text-[11px] text-slate-600 truncate" x-text="'Người bán: ' + (r.ten_ban || '—')"></div>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <div class="fserif text-amber-300 text-[13.5px]" x-text="g.fmt(r.gia)"></div>
+                      <button @click="g.sanMua(r.id)" :disabled="g.sanTai"
+                        class="mt-1 px-2.5 py-1 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[12.5px] transition disabled:opacity-50">Mua</button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- ===== TIN CỦA NGƯƠI ===== -->
+          <template x-if="g.sanTab==='ban' && !g.sanLoi">
+            <div class="flex flex-col gap-3">
+              <div class="panel rounded-lg p-3">
+                <div class="lbl mb-2">Treo Bán Trang Bị</div>
+                <!-- ⚠ CHỈ trang bị. Vật phẩm xếp chồng không có `uid` riêng nên không có gì để chốt
+                     chặn quay ngược bám vào — cho lên sàn là mở đường nhân đôi. -->
+                <template x-if="!g.sanDoTreoDuoc.length">
+                  <div class="text-[12.5px] text-slate-500">Túi chưa có trang bị nào để treo.</div>
+                </template>
+                <div class="flex flex-wrap gap-2 items-end">
+                  <template x-if="g.sanDoTreoDuoc.length">
+                    <select x-model="g.sanTreoUid" class="px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
+                      <option value="">— chọn món —</option>
+                      <template x-for="m in g.sanDoTreoDuoc" :key="'tr-'+m.uid">
+                        <option :value="m.uid" x-text="g.sanTenMon(m) + (m.plus ? ' +' + m.plus : '')"></option>
+                      </template>
+                    </select>
+                  </template>
+                  <template x-if="g.sanDoTreoDuoc.length">
+                    <input type="number" min="1" x-model="g.sanTreoGia" placeholder="Giá (Bạc)"
+                      class="w-32 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
+                  </template>
+                  <template x-if="g.sanDoTreoDuoc.length">
+                    <button @click="g.sanTreo(g.sanTreoUid, g.sanTreoGia)" :disabled="g.sanTai || !g.sanTreoUid"
+                      class="px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition disabled:opacity-40">Treo Bán</button>
+                  </template>
+                  <!-- Số tiền thực nhận hiện NGAY khi gõ giá — không bắt người chơi tự trừ thuế. -->
+                  <template x-if="g.sanTreoGia > 0">
+                    <span class="text-[11.5px] text-slate-500">Thực nhận <b class="text-amber-300" x-text="g.fmt(Math.round(g.sanTreoGia) - g.sanThue(g.sanTreoGia))"></b> Bạc</span>
+                  </template>
+                </div>
+              </div>
+
+              <template x-if="!g.sanCuaToi.length && !g.sanTai">
+                <div class="panel rounded-lg p-8 text-center text-slate-500 text-[13px]">Ngươi chưa treo tin nào.</div>
+              </template>
+              <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+                <template x-for="r in g.sanCuaToi" :key="'toi-'+r.id">
+                  <div class="panel rounded-lg p-3 flex items-center gap-3">
+                    <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0"
+                          x-html="g.ico((g.sanXem(r.mon)||{}).art || (r.mon && r.mon.gearId), '')"></span>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanTenMon(r.mon)"></div>
+                      <div class="text-[11px]" :class="r.trang_thai==='treo' ? 'text-jade' : 'text-slate-500'"
+                           x-text="r.trang_thai==='treo' ? 'Đang treo' : (r.trang_thai==='ban' ? 'Đã bán' : 'Đã gỡ')"></div>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <div class="fserif text-amber-300 text-[13.5px]" x-text="g.fmt(r.gia)"></div>
+                      <template x-if="r.trang_thai==='treo'">
+                        <button @click="g.sanGo(r.id)" :disabled="g.sanTai"
+                          class="mt-1 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 hover:border-rose-500/60 text-slate-300 hover:text-rose-300 text-[12.5px] transition disabled:opacity-50">Gỡ Xuống</button>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </section>
+      </template>
+
       <!-- ===== VIEW: PLACEHOLDER ===== -->
       <template x-if="$store.game.isPlaceholderView">
         <section class="panel rounded-lg p-10 text-center">
@@ -16492,6 +16689,174 @@
           <div class="flex gap-2 mt-4">
             <button @click="$store.game.closeBioEdit()" class="flex-1 py-2 rounded-lg bg-ink3 border border-slate-700 hover:border-slate-500 text-slate-300 transition">Huỷ</button>
             <button @click="$store.game.saveBio()" class="flex-1 py-2 rounded-lg bg-jade/85 hover:bg-jade text-ink font-medium transition">Lưu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Modal ĐAN ĐIỀN (Tinh · Khí · Thần) — docs/THIET_KE_DAN_DIEN.md =====
+       ⚠ Ô Đan Hồn BÁM NGAY SAU ô cuối của từng hàng nên nó chạy xéo theo bậc thang. Ghim thành
+         cột thẳng bên phải thì hàng Nhất Phẩm (2 ô) hở một khoảng dài tám ô, đọc ra hai khối rời.
+       ⛔ ĐỪNG ngăn giữa Ngũ Phẩm và Lục Phẩm. Đã thử kẻ vạch rồi thử vùng nền sẫm, chủ dự án bác
+         cả hai. Lưới là MỘT khối liền; luật nguồn nằm trong nút hỏi.
+       ⚠ GLOW TĨNH. Không animation, không hạt bay, không ánh quét. -->
+  <template x-if="$store.game.ddMo">
+    <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+         @click.self="$store.game.dongDanDien()" @keydown.escape.window="$store.game.dongDanDien()"
+         x-data="{ get g(){ return $store.game } }">
+      <div class="panel rounded-2xl overflow-hidden shadow-2xl w-[41rem] max-w-[96vw] max-h-[92dvh] flex flex-col">
+        <div class="shrink-0" style="background:radial-gradient(130% 190% at 50% -40%,rgba(245,185,66,.10),transparent 60%)">
+          <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+            <span class="fserif gold-text" style="font-size:19px">Đan Điền</span>
+            <button @click="g.dongDanDien()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
+          </div>
+          <div class="flex items-center gap-2 px-5">
+            <span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,#3d4f6b)"></span>
+            <span class="text-gold" style="font-size:9px;line-height:1">◆</span>
+            <span class="flex-1 h-px" style="background:linear-gradient(270deg,transparent,#3d4f6b)"></span>
+          </div>
+        </div>
+
+        <div class="flex-1 min-h-0 overflow-y-auto px-5 py-3">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="dd-dai">
+              <template x-for="nh in g.DD_NHANH" :key="'ddn-'+nh">
+                <button @click="g.chonDdNhanh(nh)" :class="g.ddNhanh===nh ? 'on' : ''"
+                  :style="g.ddNhanh===nh ? 'background:linear-gradient(180deg,'+g.DD_NHANH_INFO[nh].mau+','+g.DD_NHANH_INFO[nh].mau+'cc)' : ''">
+                  <span x-text="g.DD_NHANH_INFO[nh].ten"></span>
+                  <span style="opacity:.8;font-size:11.5px" x-text="Math.round(g.ddDemNhanh(nh)/g.ddONhanh(nh)*100)+'%'"></span>
+                </button>
+              </template>
+            </div>
+            <span class="fserif" style="font-size:13px">
+              <span :style="'color:'+g.DD_NHANH_INFO[g.ddNhanh].mau" x-text="g.ddDaNap"></span><span class="text-slate-500" x-text="' / '+g.ddTongO+' viên'"></span>
+            </span>
+          </div>
+
+          <div class="dd-lo mt-3" :style="'--nhanh:'+g.DD_NHANH_INFO[g.ddNhanh].mau+';--nhanhMo:'+g.DD_NHANH_INFO[g.ddNhanh].mau+'14'">
+            <template x-for="(soO, i) in g.DD_O" :key="'ddh-'+i">
+              <div class="dd-hang">
+                <span class="dd-nhan" :class="g.ddBang[g.ddNhanh][i] >= soO ? 'day' : ''"
+                      :style="'--nhanh:'+g.DD_NHANH_INFO[g.ddNhanh].mau+';--vien:'+g.DD_NHANH_INFO[g.ddNhanh].mau+'66'">
+                  <span class="ten" x-text="g.DD_PHAM_TEN[i]"></span>
+                  <span class="an" x-text="g.ddHanSo[i]"></span>
+                </span>
+                <span class="dd-cum">
+                  <template x-for="j in soO" :key="'ddo-'+i+'-'+j">
+                    <span class="dd-o" :class="j <= g.ddBang[g.ddNhanh][i] ? 'day' : 'trong'"
+                          :style="j <= g.ddBang[g.ddNhanh][i] ? '--vien:'+g.DD_NHANH_INFO[g.ddNhanh].mau+'9a;--glow:'+g.DD_NHANH_INFO[g.ddNhanh].mau : ''">
+                      <template x-if="j <= g.ddBang[g.ddNhanh][i]">
+                        <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(g.ddArt(i+1), '')"></span>
+                      </template>
+                    </span>
+                  </template>
+                </span>
+                <span class="dd-hon" :class="g.ddHonDaMo.includes(i+1) ? 'mo' : ''"
+                      :title="'Đan Hồn ' + g.DD_PHAM_TEN[i] + (g.ddHonDaMo.includes(i+1) ? ' — đã mở' : ' — cần lấp đủ ' + g.DD_PHAM_TEN[i] + ' ở cả ba nhánh')">魂</span>
+              </div>
+            </template>
+
+            <div class="dd-tong">
+              <div class="fserif" style="font-size:14.5px;line-height:1.3"
+                   :style="'color:'+g.DD_NHANH_INFO[g.ddNhanh].mau" x-text="g.DD_NHANH_INFO[g.ddNhanh].ten + ' Đan'"></div>
+              <div class="lbl" style="margin-top:1px" x-text="g.DD_NHANH_INFO[g.ddNhanh].vai"></div>
+              <div class="dd-thanh" style="margin-top:8px">
+                <i :style="'width:'+Math.round(g.ddDemNhanh(g.ddNhanh)/g.ddONhanh(g.ddNhanh)*100)+'%;background:'+g.DD_NHANH_INFO[g.ddNhanh].mau"></i>
+              </div>
+              <div class="flex justify-end mt-1">
+                <span class="fserif" style="font-size:12.5px">
+                  <span :style="'color:'+g.DD_NHANH_INFO[g.ddNhanh].mau" x-text="g.ddDemNhanh(g.ddNhanh)"></span><span class="text-slate-500" x-text="' / '+g.ddONhanh(g.ddNhanh)+' viên'"></span>
+                </span>
+              </div>
+              <div style="height:1px;background:#1a2434;margin:8px 0 7px"></div>
+              <div class="flex flex-col gap-1">
+                <template x-for="(v, k) in g.ddCongNhanh(g.ddNhanh)" :key="'ddc-'+k">
+                  <div class="flex items-baseline justify-between gap-2">
+                    <span style="font-size:11.5px;color:#8b9ab0" x-text="g.ddNhanChiSo(k)"></span>
+                    <span class="fserif" style="font-size:12.5px" :style="'color:'+g.DD_NHANH_INFO[g.ddNhanh].mau" x-text="g.ddSoChiSo(k, v)"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 mt-2.5 flex-wrap">
+            <span class="flex items-center gap-1.5">
+              <span class="dd-hoi" :title="'Nhất Phẩm đến ' + g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI-1] + ' nấu ở Dược Lư.&#10;Từ ' + g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI] + ' trở lên chỉ rơi từ Yêu Vương và Bí Cảnh.'">?</span>
+              <span style="font-size:11.5px;color:#64748b">Nguồn đan</span>
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="dd-hoi" title="Lấp đủ một phẩm ở cả ba nhánh thì mở Đan Hồn phẩm đó.&#10;Đan Hồn cộng thêm phần trăm lên chính ba chỉ số.">?</span>
+              <span style="font-size:11.5px;color:#64748b">Đan Hồn</span>
+              <span class="fserif gold-text" style="font-size:12.5px" x-text="g.ddHonDaMo.length + ' / 9'"></span>
+              <template x-if="g.ddHonPct > 0">
+                <span class="fserif gold-text" style="font-size:12.5px" x-text="'+' + Math.round(g.ddHonPct*100) + '%'"></span>
+              </template>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Modal LUYỆN ĐAN ĐIỀN — quay lại điểm Tinh · Khí · Thần =====
+       ⚠⚠ Trần luyện NEO VÀO SỐ VIÊN ĐÃ NẠP của chính nhánh đó. Không neo thì luyện thành đường
+         tắt: người chưa lấp ô nào vẫn quay ra điểm cao, cả cái lưới 162 viên hoá vô nghĩa.
+       ⚠ Quay xong PHẢI bấm Giữ mới ăn. Bấm Bỏ là mất kết quả, giữ nguyên số cũ. -->
+  <template x-if="$store.game.luyenMo">
+    <div class="fixed inset-0 z-[71] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+         @click.self="$store.game.dongLuyenDan()" @keydown.escape.window="$store.game.dongLuyenDan()"
+         x-data="{ get g(){ return $store.game } }">
+      <div class="panel rounded-2xl overflow-hidden shadow-2xl w-[23rem] max-w-[94vw]">
+        <div style="background:radial-gradient(130% 190% at 50% -40%,rgba(56,189,248,.10),transparent 60%)">
+          <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+            <span class="fserif gold-text" style="font-size:18px">Luyện Đan Điền</span>
+            <button @click="g.dongLuyenDan()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
+          </div>
+          <div class="flex items-center gap-2 px-5">
+            <span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,#3d4f6b)"></span>
+            <span class="text-gold" style="font-size:9px;line-height:1">◆</span>
+            <span class="flex-1 h-px" style="background:linear-gradient(270deg,transparent,#3d4f6b)"></span>
+          </div>
+        </div>
+
+        <div class="px-5 py-3">
+          <div class="flex flex-col gap-2">
+            <template x-for="nh in g.DD_NHANH" :key="'ly-'+nh">
+              <div class="flex items-center gap-2.5">
+                <span class="fserif" style="width:34px;flex:none" :style="'color:'+g.DD_NHANH_INFO[nh].mau" x-text="g.DD_NHANH_INFO[nh].ten"></span>
+                <span class="dd-thanh flex-1"><i :style="'width:'+(g.luyenTran ? Math.round(g.luyenDiem[nh]/g.luyenTran*100) : 0)+'%;background:'+g.DD_NHANH_INFO[nh].mau"></i></span>
+                <span class="fserif" style="width:78px;flex:none;text-align:right;font-size:12.5px">
+                  <span :style="'color:'+g.DD_NHANH_INFO[nh].mau" x-text="g.luyenDiem[nh]"></span><span class="text-slate-500" x-text="' / '+g.luyenTran"></span>
+                </span>
+                <!-- Chênh lệch của lượt vừa quay: lên xanh, xuống đỏ. Chỉ hiện khi ĐANG có kết quả. -->
+                <span style="width:44px;flex:none;text-align:right;font-size:12.5px" class="fserif"
+                      :class="!g.luyenThu ? '' : (g.luyenThu[nh] > g.luyenDiem[nh] ? 'text-jade' : (g.luyenThu[nh] < g.luyenDiem[nh] ? 'text-rose-400' : 'text-slate-500'))"
+                      x-text="!g.luyenThu ? '' : ((g.luyenThu[nh] - g.luyenDiem[nh] > 0 ? '+' : '') + (g.luyenThu[nh] - g.luyenDiem[nh]))"></span>
+              </div>
+            </template>
+          </div>
+
+          <div style="height:1px;background:#1a2434;margin:12px 0 10px"></div>
+
+
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <span class="text-[12px]" :class="g.luyenDuTien ? 'text-slate-400' : 'text-rose-400'">
+              <span x-text="g.fmt(g.luyenGia)"></span> Bạc mỗi lượt
+            </span>
+            <div class="flex gap-2">
+              <template x-if="!g.luyenThu">
+                <button @click="g.quayLuyen()" :disabled="!g.luyenDuTien"
+                  class="px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[13px] transition disabled:opacity-40 disabled:cursor-not-allowed">Luyện</button>
+              </template>
+              <template x-if="g.luyenThu">
+                <div class="flex gap-2">
+                  <button @click="g.huyLuyen()" class="px-3 py-1.5 rounded-lg bg-ink3 border border-slate-700 hover:border-slate-500 text-slate-300 text-[13px] transition">Bỏ</button>
+                  <button @click="g.luuLuyen()" class="px-3 py-1.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[13px] transition">Giữ</button>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </div>

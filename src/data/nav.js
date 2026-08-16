@@ -46,7 +46,8 @@ export const NAV = [
   ] },
   { title: 'Giao Thương', items: [
     { view: 'merchant', name: 'Thương Điếm',    gloss: 'Merchant', icon: '🏪' },
-    { view: 'market',   name: 'Sàn Giao Dịch',  gloss: 'Market',   icon: '⚖️', soon: true },
+    // ⚠ Bỏ cờ `soon` là view thoát trang giữ chỗ (isPlaceholderView đọc thẳng cờ này).
+    { view: 'market',   name: 'Sàn Giao Dịch',  gloss: 'Market',   icon: '⚖️' },
   ] },
   { title: 'Khác', items: [
     { view: 'guild',      name: 'Tiên Minh',  gloss: 'Guild',      icon: '🏯' },

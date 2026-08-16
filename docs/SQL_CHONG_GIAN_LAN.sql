@@ -197,6 +197,14 @@ declare
   gap_lon numeric := 0;
   la_tg boolean; duoc_mien boolean; chan boolean := false;
 begin
+  -- ⚠⚠ LENH GHI CUA SAN GIAO DICH THI CHO QUA (docs/SQL_SAN_GIAO_DICH.sql).
+  --    Nguoi ban nhan mot cuc Bac tu san — do la tien do SAN chuyen giua hai tai khoan, khong
+  --    phai nguoi choi tu cay ra. Thieu dong nay thi ban duoc mon dat tien la bi ghi so nghi van
+  --    OAN, va du ba lan la bi CHAN that.
+  --    Co `app.san` chi song trong giao dich cua ham san (`set_config(..., true)`), client khong
+  --    dat duoc qua PostgREST.
+  if coalesce(current_setting('app.san', true), '') = '1' then return NEW; end if;
+
   -- Dong dau tien: khong co moc nao de so.
   if TG_OP <> 'UPDATE' then return NEW; end if;
 

@@ -13,6 +13,7 @@ import { enhanceMul } from './enhance.js';
 import { petBonus } from './pets.js';
 import { codexBonus } from './codex.js';
 import { titleBonus } from './titles.js';
+import { danDienBonus } from './dandien.js';   // Đan Điền: Tinh · Khí · Thần
 
 // ---- TRẦN KHÁNG NGŨ HÀNH ----
 // Đặt ở đây (tầng DƯỚI) chứ không ở votong.js: votong.js đã import derivedStats từ file này, để
@@ -113,6 +114,14 @@ export function derivedStats(state, opts) {
   let neTranh   = sl('thanPhap') * 5 + g.neTranh;
   let menhTrung = sl('linhXao') * 5 + g.menhTrung;
   let sinhLuc   = 100 + sl('hoThe') * 10 + g.sinhLuc;
+  // ĐIỂM LUYỆN Đan Điền — cộng PHẲNG, đứng cùng tầng với chỉ số trang bị (trước mọi phép nhân %).
+  {
+    const dl = danDienBonus(state);
+    congKich  += dl.luyenKhi  || 0;
+    hoThe     += dl.luyenTinh || 0;
+    sinhLuc   += (dl.luyenTinh || 0) * 2;   // Tinh thiên về trụ: 1 điểm = 1 Phòng Ngự + 2 Sinh Lực
+    menhTrung += dl.luyenThan || 0;
+  }
   // Linh Thú đang mang: cộng THẲNG toàn bộ chỉ số pet (full-add, KHÔNG trần). noPet=true -> bỏ qua (cho UI so sánh).
   if (!(opts && opts.noPet)) {
     const pb = petBonus(state);
@@ -128,14 +137,17 @@ export function derivedStats(state, opts) {
   // DÒNG ẨN kênh B (`sp`) đứng chung tầng với Vạn Vật Phổ + Danh Hiệu: CỘNG với nhau rồi mới nhân
   // một lần, tức chúng cộng dồn chứ không nhân chồng. Không dòng roll nào cho % nhân — cả bảng
   // AFFIX chỉ có điểm phẳng — nên đây là thứ chỉ bộ trang mới có.
+  // ĐAN ĐIỀN đứng CÙNG TẦNG với Vạn Vật Phổ / Danh Hiệu / Bộ Trang / kĩ năng bang: cộng hết rồi
+  // mới nhân MỘT lần, không nhân chồng. Xem engine/dandien.js.
+  const dd = danDienBonus(state);
   const cx = codexBonus(state), tb = titleBonus(state), sp = setBonus(state).pct, bg = bangKyNangBonus(state);
   // `bg.allPct` = Hợp Lực Quyết (kĩ năng bang) — đứng CÙNG TẦNG với codex/danh hiệu/bộ trang:
   // cộng hết rồi mới nhân một lần, không nhân chồng.
-  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct + sp.atkPct + sp.allPct + bg.atkPct + bg.allPct));
-  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct + sp.defPct + sp.allPct + bg.defPct + bg.allPct));
-  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct + sp.hpPct  + sp.allPct + bg.hpPct  + bg.allPct));
+  congKich  = Math.round(congKich  * (1 + cx.atkPct + cx.allPct + tb.atkPct + tb.allPct + sp.atkPct + sp.allPct + bg.atkPct + bg.allPct + dd.atkPct));
+  hoThe     = Math.round(hoThe     * (1 + cx.defPct + cx.allPct + tb.defPct + tb.allPct + sp.defPct + sp.allPct + bg.defPct + bg.allPct + dd.defPct));
+  sinhLuc   = Math.round(sinhLuc   * (1 + cx.hpPct  + cx.allPct + tb.hpPct  + tb.allPct + sp.hpPct  + sp.allPct + bg.hpPct  + bg.allPct + dd.hpPct));
   neTranh   = Math.round(neTranh   * (1 + cx.allPct + tb.allPct + sp.allPct + bg.allPct));
-  menhTrung = Math.round(menhTrung * (1 + cx.allPct + tb.allPct + sp.allPct + bg.allPct));
+  menhTrung = Math.round((menhTrung + (dd.menhTrung||0)) * (1 + cx.allPct + tb.allPct + sp.allPct + bg.allPct));
   const combatLv  = levelFromXp(state.skills['chienDau']?.xp || 0);
   const chienLuc  = congKich + hoThe + neTranh + menhTrung + combatLv * 3;
   // baoKich/baoSat/tocDo: chỉ từ gear (không Tứ Trụ/codex), chuyển thẳng cho deriveCombat.
@@ -147,13 +159,17 @@ export function derivedStats(state, opts) {
   // Thủ), nên số hiện ra phải đúng bằng số người chơi THẬT SỰ nhận, không phải số thô trước trần.
   // Cường hóa KHÔNG chạm tới kháng (xem gearStats) — nên trần ở đây chỉ chặn trường hợp dồn nhiều món
   // cùng một hệ, chứ không phải chặn cường hóa.
-  const kAll = g.khangAll || 0;
+  // ⚠ Nhánh THẦN của Đan Điền cộng vào CẢ NĂM hệ, y như dòng "Kháng Tất Cả" của trang bị — cộng
+  //   TRƯỚC khi kẹp trần, để số hiện ra đúng bằng số người chơi thật sự nhận.
+  const kAll = (g.khangAll || 0) + (dd.khangPct || 0) * 100;
   const kh = (v) => khangClamp(((v || 0) + kAll) / 100);
   const khang = { kim: kh(g.khangKim), moc: kh(g.khangMoc), thuy: kh(g.khangThuy), hoa: kh(g.khangHoa), tho: kh(g.khangTho) };
   // ccGiam: 5 dòng giảm THỜI GIAN khống chế (điểm nguyên -> tỉ lệ, kẹp trần 0,60).
-  const ccGiam = { ngat: ccClamp((g.giamNgat || 0) / 100), cham: ccClamp((g.giamCham || 0) / 100),
-                   doc: ccClamp((g.giamDoc || 0) / 100), bong: ccClamp((g.giamBong || 0) / 100),
-                   choang: ccClamp((g.giamChoang || 0) / 100) };
+  // Đan Điền nhánh Thần cắt thêm cả năm dòng, cộng trước khi kẹp trần.
+  const ddCc = (dd.ccGiamPct || 0) * 100;
+  const ccGiam = { ngat: ccClamp(((g.giamNgat || 0) + ddCc) / 100), cham: ccClamp(((g.giamCham || 0) + ddCc) / 100),
+                   doc: ccClamp(((g.giamDoc || 0) + ddCc) / 100), bong: ccClamp(((g.giamBong || 0) + ddCc) / 100),
+                   choang: ccClamp(((g.giamChoang || 0) + ddCc) / 100) };
   // tangCong: SỐ TẦNG cộng cho mọi chiêu đang lắp, KHÔNG phải điểm chỉ số. Trần cộng dồn 3.
   // Cắt trần ở đây (không ở gear) để ba món cùng roll Tầng vẫn không vượt được TANG_GEAR_MAX.
   return { congKich, hoThe, neTranh, menhTrung, sinhLuc, chienLuc, baoKich: g.baoKich || 0, baoSat: g.baoSat || 0, tocDo: g.tocDo || 0, khang, ccGiam, tangCong: Math.min(3, g.tangCong || 0), tangExp: (g.tangExp || 0) / 100 };

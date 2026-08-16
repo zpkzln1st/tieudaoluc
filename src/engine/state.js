@@ -45,6 +45,9 @@ export function createInitialState() {
     equipment: {},          // { slotId: instance|null } — instance đang mặc (KHÔNG còn id-string)
     enhance: {},            // (LEGACY) { itemId: plus } — đã dời vào instance.plus; giữ để migrate save cũ
     linhThach: {},          // { skillId: itemId } — Linh Thạch đã lắp cho mỗi kỹ năng
+    // ĐAN ĐIỀN — số ô đã lấp của từng phẩm, ba nhánh Tinh/Khí/Thần (xem data/dandien.js).
+    // ⚠ Save cũ thiếu khoá này: `ddBang()` tự vá về mảng 0, không cần bump SAVE_VERSION.
+    danDien: { tinh: [0, 0, 0, 0, 0, 0, 0, 0, 0], khi: [0, 0, 0, 0, 0, 0, 0, 0, 0], than: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
     combat: {               // Tuyệt Học Phổ: trạng thái chiến đấu
       sinhLuc: null,        // Sinh Lực hiện tại (null = đầy); cạn -> Trọng Thương
       noiThuong: false,     // suy yếu (bị hạ) -> chặn chiến đấu tới khi tự hồi đầy HP
