@@ -15923,78 +15923,81 @@
           <!-- ===== TIN CỦA NGƯƠI ===== -->
           <template x-if="g.sanTab==='ban' && !g.sanLoi">
             <div class="flex flex-col gap-3">
+              <!-- ===== CHỌN MÓN: LƯỚI CÓ ART, cùng khuôn ô với Trưng Bày =====
+                   ⚠ Bản trước là hai ô <select> chữ trơn — người bán không nhìn thấy món mình sắp
+                     bán. Ô art là khuôn game đã dùng ở Trưng Bày và Hành Lý; dùng lại, đừng đẻ
+                     khuôn thứ ba.
+                   ⚠ Hai tab CỐ ĐỊNH, không mọc/rụng theo thứ đang có: chỗ bấm phải đứng yên. -->
               <div class="panel rounded-lg p-3">
-                <div class="lbl mb-2">Treo Bán Trang Bị</div>
-                <!-- ⚠ CHỈ trang bị. Vật phẩm xếp chồng không có `uid` riêng nên không có gì để chốt
-                     chặn quay ngược bám vào — cho lên sàn là mở đường nhân đôi. -->
-                <template x-if="!g.sanDoTreoDuoc.length">
-                  <div class="text-[12.5px] text-slate-500">Túi chưa có trang bị nào để treo.</div>
+                <div class="flex flex-wrap gap-1 mb-2.5">
+                  <template x-for="t in g.sanBanTabs" :key="t.id">
+                    <button @click="g.sanDatBanTab(t.id)" class="px-2.5 py-0.5 rounded-full text-[11px] fserif border transition"
+                      :class="g.sanBanTab === t.id ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                      x-text="t.ten"></button>
+                  </template>
+                </div>
+                <!-- Màn trống phải có đường ra, không báo "chưa có gì" rồi bỏ mặc. -->
+                <template x-if="!g.sanBanNguon.length">
+                  <div class="text-center py-6">
+                    <div class="text-[12.5px] text-slate-500" x-text="g.sanBanTab === 'vp' ? 'Túi chưa có vật phẩm nào bán được.' : 'Túi chưa có trang bị nào để treo.'"></div>
+                    <button @click="g.navTo('inventory')"
+                      class="mt-2.5 px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition">Mở Hành Lý</button>
+                  </div>
                 </template>
-                <div class="flex flex-wrap gap-2 items-end">
-                  <template x-if="g.sanDoTreoDuoc.length">
-                    <select x-model="g.sanTreoUid" class="px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
-                      <option value="">— chọn món —</option>
-                      <template x-for="m in g.sanDoTreoDuoc" :key="'tr-'+m.uid">
-                        <option :value="m.uid" x-text="g.sanTenMon(m) + (m.plus ? ' +' + m.plus : '')"></option>
-                      </template>
-                    </select>
-                  </template>
-                  <template x-if="g.sanDoTreoDuoc.length">
-                    <input type="number" min="1" x-model="g.sanTreoGia" placeholder="Giá (Bạc)"
-                      class="w-32 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
-                  </template>
-                  <template x-if="g.sanDoTreoDuoc.length">
-                    <button @click="g.sanTreo(g.sanTreoUid, g.sanTreoGia)" :disabled="g.sanTai || !g.sanTreoUid || !g.sanDuGia"
-                      class="px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition disabled:opacity-40">Treo Bán</button>
-                  </template>
-                  <!-- ⚠ Hiện GIÁ SÀN ngay khi chọn món. Không hiện thì người chơi gõ giá, bấm, rồi
-                       mới bị máy chủ từ chối — bắt thử mò. -->
-                  <template x-if="g.sanSanHienTai > 0">
-                    <span class="text-[11.5px]" :class="g.sanDuGia ? 'text-slate-500' : 'text-rose-400'">Giá sàn <b x-text="g.fmt(g.sanSanHienTai)"></b> Bạc</span>
-                  </template>
-                  <!-- Số tiền thực nhận hiện NGAY khi gõ giá — không bắt người chơi tự trừ thuế. -->
-                  <template x-if="g.sanTreoGia > 0">
-                    <span class="text-[11.5px] text-slate-500">Thực nhận <b class="text-amber-300" x-text="g.fmt(Math.round(g.sanTreoGia) - g.sanThue(g.sanTreoGia))"></b> Bạc</span>
+                <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(64px,1fr))">
+                  <template x-for="n in g.sanBanNguon" :key="n.k + ':' + n.ref">
+                    <button @click="g.sanChonO(n)" class="group flex flex-col items-center gap-1 text-center" :title="n.ten">
+                      <div class="relative w-full aspect-square rounded flex items-center justify-center transition group-hover:brightness-110">
+                        <span class="absolute inset-0 rounded ring-1 flex items-center justify-center" :class="g.itemQuality(n.obj).bg + ' ' + g.itemQuality(n.obj).ring">
+                          <template x-if="g.itemHaloHex(n.obj)"><i class="halo2" :style="g.haloStyle(n.obj)"></i></template>
+                          <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-2xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="g.ico(n.obj.id, n.obj.icon)"></span>
+                          <template x-if="n.obj.plus > 0"><span class="absolute top-0.5 right-0.5 text-[8px] font-bold text-amber-300 bg-ink/85 rounded px-0.5 leading-none" x-text="'+'+n.obj.plus"></span></template>
+                          <template x-if="n.obj.qty > 1"><span class="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-200" x-text="g.fmt(n.obj.qty)"></span></template>
+                        </span>
+                        <template x-if="g.sanDangChonO(n)">
+                          <span class="absolute -inset-0.5 rounded ring-2 ring-amber-300 pointer-events-none"></span>
+                        </template>
+                      </div>
+                      <span class="text-[9.5px] leading-tight line-clamp-2 w-full min-h-[22px] opacity-80 group-hover:opacity-100"
+                            :class="g.itemQuality(n.obj).text" x-text="n.ten"></span>
+                    </button>
                   </template>
                 </div>
               </div>
 
-              <!-- ===== TREO BÁN VẬT PHẨM XẾP CHỒNG ===== -->
-              <!-- ⚠ Giá sàn tính CẢ LÔ. Hiện ngay khi chọn món, không bắt người chơi thử mò. -->
-              <div class="panel rounded-lg p-3">
-                <div class="lbl mb-2">Treo Bán Vật Phẩm</div>
-                <template x-if="!g.sanVpTreoDuoc.length">
-                  <div class="text-[12.5px] text-slate-500">Túi chưa có vật phẩm nào bán được.</div>
-                </template>
-                <div class="flex flex-wrap gap-2 items-end">
-                  <template x-if="g.sanVpTreoDuoc.length">
-                    <select x-model="g.sanVpUid" class="px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
-                      <option value="">— chọn vật phẩm —</option>
-                      <template x-for="m in g.sanVpTreoDuoc" :key="'vp-'+m.id">
-                        <option :value="m.id" x-text="m.ten + ' · có ' + m.co"></option>
-                      </template>
-                    </select>
-                  </template>
-                  <template x-if="g.sanVpDangChon">
-                    <input type="number" min="1" :max="g.sanVpDangChon.co" x-model="g.sanVpSo" placeholder="Số lượng"
-                      class="w-24 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
-                  </template>
-                  <template x-if="g.sanVpDangChon">
-                    <input type="number" min="1" x-model="g.sanVpGia" placeholder="Giá cả lô"
+              <!-- ===== ĐẶT GIÁ — chỉ hiện khi đã chọn một ô =====
+                   ⚠ Giá sàn hiện NGAY khi chọn món. Không hiện thì người chơi gõ giá, bấm, rồi mới
+                     bị máy chủ từ chối — bắt thử mò.
+                   ⚠ Vật phẩm tính giá sàn CẢ LÔ: sàn một cái × số lượng. -->
+              <template x-if="g.sanBanChon">
+                <div class="panel rounded-lg p-3">
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0 text-xl"
+                          x-html="g.ico(g.sanBanChon.obj.id, g.sanBanChon.obj.icon)"></span>
+                    <div class="min-w-0">
+                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanBanChon.ten"></div>
+                      <!-- Đỏ CHỈ khi người chơi đã gõ giá và giá đó đang bị chặn. Đỏ sẵn lúc ô giá
+                           còn trống là mắng người chơi trước khi họ làm gì. -->
+                      <div class="text-[11px]" :class="(g.sanBanGia > 0 && !g.sanBanDuGia) ? 'text-rose-400' : 'text-slate-500'">
+                        <span x-text="g.sanBanTab === 'vp' ? 'Giá sàn cả lô' : 'Giá sàn'"></span>
+                        <b x-text="g.fmt(g.sanBanSan)"></b> Bạc
+                      </div>
+                    </div>
+                    <template x-if="g.sanBanTab === 'vp'">
+                      <input type="number" min="1" :max="g.sanBanChon.obj.qty" x-model="g.sanVpSo" placeholder="Số lượng"
+                        class="w-24 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
+                    </template>
+                    <input type="number" min="1" x-model="g.sanBanGia" :placeholder="g.sanBanTab === 'vp' ? 'Giá cả lô' : 'Giá (Bạc)'"
                       class="w-32 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
-                  </template>
-                  <template x-if="g.sanVpDangChon">
-                    <button @click="g.sanTreoVp()" :disabled="g.sanTai || !g.sanVpDuGia"
+                    <button @click="g.sanBanTreo()" :disabled="g.sanTai || !g.sanBanDuGia || !(g.sanBanGia > 0)"
                       class="px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition disabled:opacity-40">Treo Bán</button>
-                  </template>
-                  <template x-if="g.sanVpSanLo > 0">
-                    <span class="text-[11.5px]" :class="g.sanVpDuGia ? 'text-slate-500' : 'text-rose-400'">Giá sàn cả lô <b x-text="g.fmt(g.sanVpSanLo)"></b> Bạc</span>
-                  </template>
-                  <template x-if="g.sanVpGia > 0">
-                    <span class="text-[11.5px] text-slate-500">Thực nhận <b class="text-amber-300" x-text="g.fmt(Math.round(g.sanVpGia) - g.sanThue(g.sanVpGia))"></b> Bạc</span>
-                  </template>
+                    <!-- Số tiền thực nhận hiện NGAY khi gõ giá — không bắt người chơi tự trừ thuế. -->
+                    <template x-if="g.sanBanGia > 0">
+                      <span class="text-[11.5px] text-slate-500">Thực nhận <b class="text-amber-300" x-text="g.fmt(Math.round(g.sanBanGia) - g.sanThue(g.sanBanGia))"></b> Bạc</span>
+                    </template>
+                  </div>
                 </div>
-              </div>
+              </template>
 
               <template x-if="!g.sanCuaToi.length && !g.sanTai">
                 <div class="panel rounded-xl p-6 text-center text-[13px] text-slate-500">Chưa treo tin nào. Chọn món ở ô trên rồi đặt giá.</div>

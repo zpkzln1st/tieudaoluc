@@ -7199,10 +7199,52 @@ const gameStore = {
     const r = await cloudSanTreoVp(m.id, so, Math.round(Number(this.sanVpGia) || 0));
     this.sanTai = false;
     if (!r.ok) { this.showToast(this._sanVi(r.vi || r.reason)); return; }
-    this.showToast('Da treo ban.'); this.sanVpUid = ''; this.sanVpGia = ''; await this._sanNapLai();
+    this.showToast('Đã treo bán.'); this.sanVpUid = ''; this.sanVpGia = ''; await this._sanNapLai();
   },
   get sanThueTxt() { return '15%'; },
   sanThue(gia) { return Math.ceil((Number(gia) || 0) * 0.15); },
+
+  // ---- Treo Bán: LƯỚI CÓ ART, cùng khuôn ô với Trưng Bày ----
+  // ⚠ Bản trước là hai ô <select> chữ trơn: người bán không nhìn thấy món mình sắp bán. Ô art là
+  //   khuôn game đã dùng ở Trưng Bày và Hành Lý — dùng lại, đừng đẻ khuôn thứ ba.
+  // ⚠ HAI TAB CỐ ĐỊNH, không mọc/rụng theo thứ đang có: chỗ bấm phải đứng yên giữa hai lần mở.
+  sanBanTab: 'do',
+  get sanBanTabs() { return [{ id: 'do', ten: 'Trang Bị' }, { id: 'vp', ten: 'Vật Phẩm' }]; },
+  sanDatBanTab(t) {
+    this.sanBanTab = t;
+    this.sanTreoUid = null; this.sanVpUid = '';
+    this.sanTreoGia = ''; this.sanVpGia = ''; this.sanVpSo = 1;
+  },
+  /** Ô của lưới Treo Bán, một dạng cho cả hai tab: { k, ref, ten, san, obj }. */
+  get sanBanNguon() {
+    if (this.sanBanTab === 'vp') {
+      return this.sanVpTreoDuoc.map((m) => ({
+        k: 'vp', ref: m.id, ten: m.ten, san: m.san,
+        obj: { ...(this.ITEMS[m.id] || {}), id: m.id, qty: m.co },
+      }));
+    }
+    return this.sanDoTreoDuoc.map((g) => this.gearView(g)).filter(Boolean)
+      .sort((a, b) => this.qualityRank(b) - this.qualityRank(a) || (b.itemLv || 0) - (a.itemLv || 0))
+      .map((v) => ({ k: 'do', ref: v.uid, ten: v.name, san: this.sanGiaSan(v), obj: v }));
+  },
+  sanChonO(n) {
+    if (n.k === 'vp') { this.sanVpUid = (this.sanVpUid === n.ref ? '' : n.ref); this.sanVpSo = 1; this.sanVpGia = ''; }
+    else { this.sanTreoUid = (this.sanTreoUid === n.ref ? null : n.ref); this.sanTreoGia = ''; }
+  },
+  sanDangChonO(n) { return n.k === 'vp' ? this.sanVpUid === n.ref : this.sanTreoUid === n.ref; },
+  get sanBanChon() {
+    const ref = this.sanBanTab === 'vp' ? this.sanVpUid : this.sanTreoUid;
+    return ref ? (this.sanBanNguon.find((n) => n.ref === ref) || null) : null;
+  },
+  get sanBanSan() { return this.sanBanTab === 'vp' ? this.sanVpSanLo : this.sanSanHienTai; },
+  get sanBanDuGia() { return this.sanBanTab === 'vp' ? this.sanVpDuGia : this.sanDuGia; },
+  // Một ô giá cho cả hai tab. Getter + setter để `x-model` ghi thẳng về đúng biến của tab đang mở.
+  get sanBanGia() { return this.sanBanTab === 'vp' ? this.sanVpGia : this.sanTreoGia; },
+  set sanBanGia(v) { if (this.sanBanTab === 'vp') this.sanVpGia = v; else this.sanTreoGia = v; },
+  sanBanTreo() {
+    if (this.sanBanTab === 'vp') return this.sanTreoVp();
+    return this.sanTreo(this.sanTreoUid, this.sanTreoGia);
+  },
 
   // ---------- ĐAN ĐIỀN (Tinh · Khí · Thần) ----------
   // Cửa vào: ô 丹 đè góc trên trái chân dung ở màn Trang Bị. Xem docs/THIET_KE_DAN_DIEN.md.
