@@ -18,7 +18,7 @@ import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
 import { giaSanTrangBi, giaSanVatPham } from './data/giasan.js';
 import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien } from './data/dandien.js';
-import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo } from './engine/dandien.js';
+import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
 import { coTuong, ensureCoTuong } from './cotuong.js';               // Cờ Tướng (象棋 3D, cách ly)
@@ -3915,6 +3915,11 @@ const gameStore = {
     // id rỗng = CHƯA CÓ ART, nói thẳng ra emoji. Không có dòng này thì nó vẫn ra emoji, nhưng phải
     // đi qua một lượt xin `images/items/.webp` rồi `.png` — hai lần 404 cho mỗi ô, mỗi nhịp vẽ.
     if (!id) return `<span>${safe}</span>`;
+    // ĐAN ĐIỀN: nhánh nào chưa vẽ art riêng thì MƯỢN art đan sẵn có theo phẩm (`ddArtCua`).
+    // ⚠ Thiếu dòng này thì Khí Đan và Thần Đan xin `images/items/ddKhi1.webp` — không có tệp nên
+    //   rơi về emoji ⚱️ trơn, 18/27 ô trong Hành Lý thành hàng lỗi.
+    const ddIt = this.ITEMS && this.ITEMS[id];
+    if (ddIt && ddIt.type === 'danDien') id = ddArtCua(ddIt.nhanh, ddIt.pham);
     const folder = ICON_FOLDERS[id] || 'items';
     const drop = `this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{textContent:&quot;${safe}&quot;}))`;
     if (id && id.startsWith('dp_')) {   // ĐỒ PHỔ: cuộn nền THEO BẬC + art gear/tool lồng giữa. Tất cả WEBP-FIRST -> png -> emoji.
@@ -6195,7 +6200,9 @@ const gameStore = {
   // lên người. Trước gộp chung khi hai loại kia còn chung một tab.
   hlNhomCua(t) {
     if (t === 'trangbi') return 'trangbi';
-    if (t === 'dan') return 'dan';
+    // Đan Đan Điền đi cùng tab Đan Dược: người chơi tìm một viên đan thì mở tab đan. Để nó rơi về
+    // "Khác" là chôn 27 viên lẫn với chiến lợi phẩm. Dòng tiêu đề trong lưới vẫn ghi "Đan Điền".
+    if (t === 'dan' || t === 'danDien') return 'dan';
     if (t === 'monan') return 'monan';
     if (t === 'doPho') return 'doPho';
     if (t === 'go' || t === 'khoang' || t === 'ca' || t === 'thaoDuoc') return 'tho';
@@ -6870,6 +6877,21 @@ const gameStore = {
   },
   devBuffClear() { this.state.buffs = {}; this.devSave(); this._tick++; this.showToast('Dev: đã xoá hết buff.'); },
 
+  // ĐAN ĐIỀN — phát đủ đan để lấp TRỌN lưới 162 ô, không phải phát bừa một nắm.
+  // Ô nhiều nhất là Cửu Phẩm 10 ô ⇒ 10 viên mỗi loại là đủ cho mọi phẩm, dư ra để thử nạp khi đầy.
+  devGiveDanDien() {
+    let n = 0;
+    for (const nh of DD_NHANH) for (let p = 1; p <= 9; p++) { addItem(this.state, 'dd' + nh[0].toUpperCase() + nh.slice(1) + p, 10); n++; }
+    this.devSave(); this._tick++;
+    this.showToast('Dev: nhận 10 viên × ' + n + ' loại đan (đủ lấp trọn 162 ô).');
+  },
+  // LUYỆN — mỗi lượt quay tốn `luyenGia` Bạc. Phát Bạc rồi mở thẳng bảng, khỏi đi vòng qua màn Trang Bị.
+  devMoLuyen() {
+    this.state.currencies.bac = (this.state.currencies.bac || 0) + 1000000;
+    this.devSave(); this._tick++;
+    this.moLuyenDan();
+  },
+
   devGiveAll() {       // TOÀN BỘ vật phẩm đã đăng ký + tiền tệ
     Object.keys(this.ITEMS).forEach((id) => { if (this.ITEMS[id].equip) addGearInstance(this.state, rollGearInstance(id)); else addItem(this.state, id, 20); });
     ['bac', 'honThach', 'nguyenBao'].forEach((k) => { this.state.currencies[k] = (this.state.currencies[k] || 0) + 1000000; });
@@ -7183,9 +7205,14 @@ const gameStore = {
   // ⚠ Giá sàn tính CẢ LÔ: sàn một cái × số lượng. Máy chủ chặn lại bằng bảng `san_gia_vp`
   //   (docs/SQL_SAN_GIA_VP.sql, máy sinh từ items.js) — máy chủ không biết `value` của vật phẩm.
   sanVpUid: '', sanVpSo: 1, sanVpGia: '',
+  // ⚠ BỎ đan Đan Điền: bảng `san_gia_vp` trên máy chủ (docs/SQL_SAN_GIA_VP.sql) sinh trước khi 27
+  //   viên đan được đăng ký, nên máy chủ tra ra `null` rồi từ chối bằng "Món này không treo bán
+  //   được". Bày món ra lưới rồi để máy chủ từ chối là bắt người chơi thử mò. Muốn mở thì chạy lại
+  //   `_mockup/_covua_wip/_sinh_bang_gia.mjs` và chủ dự án chạy lại tệp SQL đó.
   get sanVpTreoDuoc() {
     const inv = this.state.inventory || {};
-    return Object.keys(inv).filter((k) => inv[k] > 0 && this.ITEMS[k] && this.ITEMS[k].value > 0)
+    return Object.keys(inv).filter((k) => inv[k] > 0 && this.ITEMS[k] && this.ITEMS[k].value > 0
+        && this.ITEMS[k].type !== 'danDien')
       .map((k) => ({ id: k, ten: this.ITEMS[k].name, co: inv[k], san: giaSanVatPham(this.ITEMS[k]) }))
       .sort((a, b) => b.san - a.san);
   },
@@ -7315,6 +7342,27 @@ const gameStore = {
     this.luyenThu = null; Storage.save(this.state); this.showToast('Đã giữ kết quả luyện.');
   },
   huyLuyen() { this.luyenThu = null; },
+
+  // ---------- NẠP ĐAN vào Đan Điền ----------
+  // ⚠ Viên đan là vật phẩm `type: 'danDien'` mang sẵn `nhanh` + `pham`. Ô đích suy TỪ VIÊN, không
+  //   cho người chơi chọn — nhánh và phẩm là thuộc tính của viên, chọn được thì thành đổi phẩm.
+  // ⚠ Thứ tự BẮT BUỘC: `ddNap` trước, xoá khỏi túi sau. Xoá trước mà ô đã đầy là MẤT VIÊN.
+  ddONhanhPham(nhanh, pham) { return DD_O[pham - 1] || 0; },
+  ddConTrong(nhanh, pham) { return this.ddONhanhPham(nhanh, pham) - (this.ddBang[nhanh][pham - 1] || 0); },
+  napDanDien(id, so) {
+    const it = this.ITEMS[id];
+    if (!it || it.type !== 'danDien') return;
+    const co = countItem(this.state, id);
+    const trong = this.ddConTrong(it.nhanh, it.pham);
+    if (trong <= 0) { this.showToast('Ô ' + DD_NHANH_INFO[it.nhanh].ten + ' ' + DD_PHAM_TEN[it.pham - 1] + ' đã đầy.'); return; }
+    const n = Math.max(1, Math.min(Number(so) || 1, co, trong));
+    let xong = 0;
+    for (let i = 0; i < n; i++) { if (!ddNap(this.state, it.nhanh, it.pham)) break; xong++; }
+    if (!xong) return;
+    removeItem(this.state, id, xong);
+    Storage.save(this.state); this._tick++;
+    this.showToast('Đã nạp ' + xong + ' viên vào Đan Điền.');
+  },
 
   // ---------- Tiện ích ----------
   // XOÁ TIẾN TRÌNH — hai lớp chặn: gõ lại đúng TÊN NHÂN VẬT, rồi nhập MẬT KHẨU tài khoản.

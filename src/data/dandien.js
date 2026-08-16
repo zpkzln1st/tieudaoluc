@@ -74,7 +74,11 @@ export function ddHonTen(pham) { return 'Đan Hồn ' + DD_PHAM_TEN[pham - 1]; }
 // ============================================================
 // ⚠ Art: chưa có ảnh riêng. MƯỢN icon đan sẵn có cho tới khi vẽ xong — xem `ddArtMuon`.
 //   Đừng thay art thiếu bằng chữ hay emoji.
-const PHAM_QUALITY = ['thuong', 'tot', 'hiem', 'cucHiem', 'truyenThe', 'truyenThe', 'huyenThoai', 'huyenThoai', 'docNhat'];
+// ⚠ MÃ phẩm chất, KHÔNG phải tên hiển thị. Bảng cũ ghi 'thuong' / 'hiem' / 'huyenThoai' — không mã
+//   nào trong số đó có trong `QUALITY` của items.js, nên viên đan rơi về ô xám và Cẩm Nang in ra
+//   nguyên mã tiếng Anh. Mã thật: phamPham · luongPham · tinhPham · tuyetPham · truyenThe ·
+//   thanPham · coBan (bài kiểm Cẩm Nang bắt được lỗi này ngay khi 27 viên vào bảng vật phẩm).
+const PHAM_QUALITY = ['phamPham', 'luongPham', 'tinhPham', 'tuyetPham', 'truyenThe', 'truyenThe', 'thanPham', 'thanPham', 'coBan'];
 
 // Art MƯỢN: chưa vẽ art riêng cho 27 viên. Mượn 9 ảnh đan sẵn có trong `images/items/`, mỗi phẩm
 // một ảnh, dùng chung cho cả ba nhánh — nhánh phân biệt bằng MÀU VIỀN.

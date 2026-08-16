@@ -6213,6 +6213,31 @@
                       <button @click="$store.game.learnDoPho(m.id)" :disabled="(m.qty||0)<1" class="w-full py-2 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5">Lĩnh Ngộ</button>
                     </div>
                   </template>
+                  <!-- Đan Điền: nạp viên vào lưới -->
+                  <!-- ⚠ Không cho chọn ô đích. Nhánh và phẩm là THUỘC TÍNH CỦA VIÊN; chọn được thì
+                       thành đổi phẩm, mà phẩm mới là thứ quyết định giá trị. -->
+                  <template x-if="m.type==='danDien'" x-data="{ get g(){ return $store.game },
+                            get trong(){ return $store.game.ddConTrong(m.nhanh, m.pham) },
+                            get het(){ return Math.min(m.qty || 0, $store.game.ddConTrong(m.nhanh, m.pham)) } }">
+                    <div class="rounded-lg bg-ink3/50 border px-3 py-2.5 mb-3" :class="$store.game.QUALITY[m.quality].border">
+                      <div class="text-[11.5px] mb-2" :class="trong > 0 ? 'text-slate-300' : 'text-slate-500'">
+                        <span x-text="'Ô ' + g.DD_NHANH_INFO[m.nhanh].ten + ' ' + g.DD_PHAM_TEN[m.pham-1]"></span>
+                        <template x-if="trong > 0"><span> còn trống <b class="text-emerald-300" x-text="trong"></b>.</span></template>
+                        <template x-if="trong <= 0"><span> đã đầy.</span></template>
+                      </div>
+                      <template x-if="trong > 0 && (m.qty||0) > 0">
+                        <div class="flex flex-wrap gap-2">
+                          <button @click="g.napDanDien(m.id, 1)"
+                            class="px-3 py-1.5 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition">Nạp Một Viên</button>
+                          <template x-if="het > 1">
+                            <button @click="g.napDanDien(m.id, het)"
+                              class="px-3 py-1.5 rounded-lg text-[12px] font-bold bg-ink3 border border-slate-700 hover:border-amber-500 text-slate-200 transition"
+                              x-text="'Nạp ' + het + ' Viên'"></button>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
                   <!-- Số lượng + giá -->
                   <!-- Số lượng + giá: gộp thành MỘT hàng chữ thay vì hai hộp cao — hai con số này chỉ để
                        liếc qua, không đáng chiếm cỡ chữ to bằng cả tên món. -->
@@ -18539,6 +18564,11 @@
             <button @click="$store.game.devBuffOn()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">🔥 Bật thử Đan Bổ Trợ (2 họ)</button>
             <button @click="$store.game.devBuffShort()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">⏱️ Rút buff còn 10 giây (xem lúc hết hạn)</button>
             <button @click="$store.game.devBuffClear()" class="px-3 py-1 rounded bg-rose-900/40 border border-rose-700/50 text-rose-200 text-xs">✖ Xoá hết buff</button>
+          </div>
+          <div class="lbl mb-1.5 mt-4">Đan Điền · Luyện</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button @click="$store.game.devGiveDanDien()" class="px-3 py-1 rounded bg-emerald-900/40 border border-emerald-600/50 text-emerald-200 text-xs">⚱️ Nhận 10 viên mỗi loại đan (đủ lấp 162 ô)</button>
+            <button @click="$store.game.devMoLuyen()" class="px-3 py-1 rounded bg-cyan-900/40 border border-cyan-700/50 text-cyan-200 text-xs">🜂 +1 triệu Bạc rồi mở bảng Luyện</button>
           </div>
           <div class="lbl mb-1.5 mt-4">Bí Cảnh & Đồ Phổ</div>
           <div class="flex flex-wrap items-center gap-2">

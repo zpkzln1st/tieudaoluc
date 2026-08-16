@@ -4,6 +4,7 @@
 // ============================================================
 // text/border/grad dùng cho khung độ hiếm (popup loot, tooltip...). bg/ring giữ cho lưới kho cũ.
 import { GEAR, setGearLookup } from './gear.js';
+import { ddItems } from './dandien.js';
 
 // Bậc 1→7: Thường(xám) · Tốt(lá) · Hiếm(dương) · Cực Hiếm(tím) · Sử Thi(hồng tím) · Truyền Thuyết(cam) · Độc Nhất(vàng kim).
 // ID nội bộ GIỮ NGUYÊN (phamPham…coBan) để không vỡ save cũ — chỉ đổi name + màu.
@@ -33,6 +34,7 @@ export const ITEM_TYPES = {
   monan:   'Món Ăn',
   vatlieu: 'Vật Liệu',
   dan:     'Đan Dược',
+  danDien: 'Đan Điền',
   trangbi: 'Trang Bị',
   khac:    'Chiến Lợi Phẩm',
   trung:   'Trứng Linh Thú',
@@ -254,6 +256,11 @@ export const ITEMS = {
 
 // Gộp catalog trang bị thật (eq_*) vào ITEMS — xem src/data/gear.js.
 Object.assign(ITEMS, GEAR);
+// 27 viên đan của Đan Điền (3 nhánh × 9 phẩm) — sinh từ src/data/dandien.js.
+// ⚠ Bảng này ĐÃ VIẾT XONG TỪ ĐỢT TRƯỚC MÀ KHÔNG AI GỌI: `ddItems()` export ra rồi nằm đó, nên
+//   27 viên đan chưa từng tồn tại trong game — không rơi được, không cầm được, nạp cũng trượt vì
+//   `ITEMS[id]` là undefined. Đăng ký ở đây là chỗ duy nhất đúng.
+Object.assign(ITEMS, ddItems());
 // Cho gear.js tra cuu instance qua TOÀN BỘ ITEMS (gồm 3 món equippable legacy tichSao/thietKiem/tichGiap ngoài GEAR).
 setGearLookup(ITEMS);
 
