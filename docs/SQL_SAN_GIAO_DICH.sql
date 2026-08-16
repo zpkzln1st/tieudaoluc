@@ -346,3 +346,128 @@ begin
 exception when unique_violation then
   return jsonb_build_object('ok', false, 'vi', 'dang-treo-roi');
 end $$;
+
+-- ============================================================
+-- 10. VAT PHAM XEP CHONG — lieu, do che tao, trung pet, cong cu (chay lan ba)
+-- ============================================================
+-- ⚠ Chay `docs/SQL_SAN_GIA_VP.sql` TRUOC tep nay: bang gia san cho vat pham nam o do.
+-- ⚠⚠ VI SAO VAT PHAM XEP CHONG VAN AN TOAN du khong co `uid`: chot chan quay nguoc thu HAI
+--    (`sanSeq` chi tien khong lui) khong can `uid` gi ca. Nap ban luu cu de lay lai mon thi ban
+--    do mang so dem lui -> may chu tu choi -> save khong bao gio len duoc cloud -> khong ban duoc.
+--    Chot `uid` chi la lop thu hai, rieng cho trang bi.
+
+alter table public.san_rao add column if not exists loai     text   not null default 'gear';
+alter table public.san_rao add column if not exists item_id  text;
+alter table public.san_rao add column if not exists so_luong int    not null default 1;
+
+/* Treo ban vat pham xep chong. `p_so` la SO LUONG, `p_gia` la gia CA LO. */
+create or replace function public.san_treo_vp(p_item text, p_so int, p_gia bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare me uuid := auth.uid(); s jsonb; co int; ten text; san bigint; tong bigint;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if p_so is null or p_so <= 0 or p_so > 9999 then return jsonb_build_object('ok', false, 'vi', 'so-luong-sai'); end if;
+  if p_gia is null or p_gia <= 0 or p_gia > 1000000000 then return jsonb_build_object('ok', false, 'vi', 'gia-sai'); end if;
+
+  s := public.san_doc_save(me);
+  if s is null then return jsonb_build_object('ok', false, 'vi', 'chua-co-ban-luu'); end if;
+
+  co := coalesce((s->'inventory'->>p_item)::int, 0);
+  if co < p_so then return jsonb_build_object('ok', false, 'vi', 'khong-du-so-luong', 'co', co); end if;
+
+  -- Gia san tinh CA LO: san mot cai x so luong.
+  select gia_san into san from public.san_gia_vp where item_id = p_item;
+  if san is null then return jsonb_build_object('ok', false, 'vi', 'mon-nay-khong-ban-duoc'); end if;
+  tong := san * p_so;
+  if p_gia < tong then return jsonb_build_object('ok', false, 'vi', 'duoi-gia-san', 'san', tong); end if;
+
+  ten := coalesce(s->'player'->>'name', '');
+  -- ⚠ Tru het thi XOA HAN khoa, dung de lai so 0 — tui do rac dan len theo thoi gian.
+  if co - p_so <= 0 then s := s #- array['inventory', p_item];
+  else s := jsonb_set(s, array['inventory', p_item], to_jsonb(co - p_so), true); end if;
+  perform public.san_ghi_save(me, s);
+
+  insert into public.san_rao (nguoi_ban, ten_ban, mon, mon_uid, gia, loai, item_id, so_luong)
+  values (me, ten, jsonb_build_object('itemId', p_item, 'so', p_so), 'vp:' || p_item || ':' || extract(epoch from clock_timestamp())::text,
+          p_gia, 'item', p_item, p_so);
+
+  return jsonb_build_object('ok', true);
+end $$;
+
+/* Go xuong — nhan CA HAI loai. Thay han ham cu. */
+create or replace function public.san_go(p_id bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare me uuid := auth.uid(); r public.san_rao%rowtype; s jsonb; co int;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  select * into r from public.san_rao where id = p_id for update;
+  if not found then return jsonb_build_object('ok', false, 'vi', 'khong-co-tin'); end if;
+  if r.nguoi_ban <> me then return jsonb_build_object('ok', false, 'vi', 'khong-phai-tin-cua-minh'); end if;
+  if r.trang_thai <> 'treo' then return jsonb_build_object('ok', false, 'vi', 'tin-da-xong'); end if;
+
+  s := public.san_doc_save(me);
+  if s is null then return jsonb_build_object('ok', false, 'vi', 'chua-co-ban-luu'); end if;
+
+  update public.san_rao set trang_thai = 'go', xong_luc = now() where id = p_id;
+
+  if r.loai = 'item' then
+    co := coalesce((s->'inventory'->>r.item_id)::int, 0);
+    s := jsonb_set(s, array['inventory', r.item_id], to_jsonb(co + r.so_luong), true);
+  else
+    s := jsonb_set(s, '{gearBag}', coalesce(s->'gearBag', '[]'::jsonb) || jsonb_build_array(r.mon), true);
+  end if;
+  perform public.san_ghi_save(me, s);
+  return jsonb_build_object('ok', true);
+end $$;
+
+/* Mua — nhan CA HAI loai. Thay han ham cu. */
+create or replace function public.san_mua(p_id bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare me uuid := auth.uid(); r public.san_rao%rowtype;
+        sM jsonb; sB jsonb; bacM bigint; bacB bigint; thue bigint; co int;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  select * into r from public.san_rao where id = p_id for update;
+  if not found then return jsonb_build_object('ok', false, 'vi', 'khong-co-tin'); end if;
+  if r.trang_thai <> 'treo' then return jsonb_build_object('ok', false, 'vi', 'tin-da-xong'); end if;
+  if r.nguoi_ban = me then return jsonb_build_object('ok', false, 'vi', 'khong-tu-mua-cua-minh'); end if;
+
+  sM := public.san_doc_save(me);
+  sB := public.san_doc_save(r.nguoi_ban);
+  if sM is null or sB is null then return jsonb_build_object('ok', false, 'vi', 'thieu-ban-luu'); end if;
+
+  bacM := coalesce((sM->'currencies'->>'bac')::bigint, 0);
+  if bacM < r.gia then return jsonb_build_object('ok', false, 'vi', 'khong-du-bac'); end if;
+  bacB := coalesce((sB->'currencies'->>'bac')::bigint, 0);
+  thue := public.san_thue(r.gia);
+
+  update public.san_rao set trang_thai = 'ban', nguoi_mua = me, xong_luc = now() where id = p_id;
+  insert into public.san_so (rao_id, nguoi_ban, nguoi_mua, gia, thue)
+  values (r.id, r.nguoi_ban, me, r.gia, thue);
+
+  sM := jsonb_set(sM, '{currencies,bac}', to_jsonb(bacM - r.gia), true);
+  if r.loai = 'item' then
+    co := coalesce((sM->'inventory'->>r.item_id)::int, 0);
+    sM := jsonb_set(sM, array['inventory', r.item_id], to_jsonb(co + r.so_luong), true);
+  else
+    sM := jsonb_set(sM, '{gearBag}', coalesce(sM->'gearBag', '[]'::jsonb) || jsonb_build_array(r.mon), true);
+  end if;
+  perform public.san_ghi_save(me, sM);
+
+  sB := jsonb_set(sB, '{currencies,bac}', to_jsonb(bacB + (r.gia - thue)), true);
+  perform public.san_ghi_save(r.nguoi_ban, sB);
+
+  return jsonb_build_object('ok', true, 'gia', r.gia, 'thue', thue);
+end $$;

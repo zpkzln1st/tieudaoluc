@@ -630,3 +630,13 @@ export async function cloudSanMua(id) {
   if (error) return { ok: false, reason: error.message };
   return data || { ok: false, reason: 'khong-tra-loi' };
 }
+
+/** Treo ban VAT PHAM XEP CHONG (lieu, do che tao, trung pet, cong cu). `gia` la gia CA LO. */
+export async function cloudSanTreoVp(itemId, soLuong, gia) {
+  const sb = await getClient();
+  const { data, error } = await sb.rpc('san_treo_vp', {
+    p_item: String(itemId), p_so: Math.round(soLuong), p_gia: Math.round(gia),
+  });
+  if (error) return { ok: false, reason: error.message };
+  return data || { ok: false, reason: 'khong-tra-loi' };
+}

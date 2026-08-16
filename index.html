@@ -15957,6 +15957,43 @@
                 </div>
               </div>
 
+              <!-- ===== TREO BÁN VẬT PHẨM XẾP CHỒNG ===== -->
+              <!-- ⚠ Giá sàn tính CẢ LÔ. Hiện ngay khi chọn món, không bắt người chơi thử mò. -->
+              <div class="panel rounded-lg p-3">
+                <div class="lbl mb-2">Treo Bán Vật Phẩm</div>
+                <template x-if="!g.sanVpTreoDuoc.length">
+                  <div class="text-[12.5px] text-slate-500">Túi chưa có vật phẩm nào bán được.</div>
+                </template>
+                <div class="flex flex-wrap gap-2 items-end">
+                  <template x-if="g.sanVpTreoDuoc.length">
+                    <select x-model="g.sanVpUid" class="px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
+                      <option value="">— chọn vật phẩm —</option>
+                      <template x-for="m in g.sanVpTreoDuoc" :key="'vp-'+m.id">
+                        <option :value="m.id" x-text="m.ten + ' · có ' + m.co"></option>
+                      </template>
+                    </select>
+                  </template>
+                  <template x-if="g.sanVpDangChon">
+                    <input type="number" min="1" :max="g.sanVpDangChon.co" x-model="g.sanVpSo" placeholder="Số lượng"
+                      class="w-24 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
+                  </template>
+                  <template x-if="g.sanVpDangChon">
+                    <input type="number" min="1" x-model="g.sanVpGia" placeholder="Giá cả lô"
+                      class="w-32 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
+                  </template>
+                  <template x-if="g.sanVpDangChon">
+                    <button @click="g.sanTreoVp()" :disabled="g.sanTai || !g.sanVpDuGia"
+                      class="px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition disabled:opacity-40">Treo Bán</button>
+                  </template>
+                  <template x-if="g.sanVpSanLo > 0">
+                    <span class="text-[11.5px]" :class="g.sanVpDuGia ? 'text-slate-500' : 'text-rose-400'">Giá sàn cả lô <b x-text="g.fmt(g.sanVpSanLo)"></b> Bạc</span>
+                  </template>
+                  <template x-if="g.sanVpGia > 0">
+                    <span class="text-[11.5px] text-slate-500">Thực nhận <b class="text-amber-300" x-text="g.fmt(Math.round(g.sanVpGia) - g.sanThue(g.sanVpGia))"></b> Bạc</span>
+                  </template>
+                </div>
+              </div>
+
               <template x-if="!g.sanCuaToi.length && !g.sanTai">
                 <div class="panel rounded-xl p-6 text-center text-[13px] text-slate-500">Chưa treo tin nào. Chọn món ở ô trên rồi đặt giá.</div>
               </template>

@@ -84,7 +84,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanGo, cloudSanMua } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -7149,7 +7149,7 @@ const gameStore = {
       'dang-treo-roi': 'Món này đang treo bán rồi.', 'khong-co-tin': 'Tin rao không còn.',
       'khong-phai-tin-cua-minh': 'Tin này không phải của bạn.', 'tin-da-xong': 'Tin này đã xong.',
       'khong-tu-mua-cua-minh': 'Không mua được tin của chính mình.',
-      'khong-du-bac': 'Không đủ Bạc.', 'duoi-gia-san': 'Giá thấp hơn giá sàn.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.' })[v] || v;
+      'khong-du-bac': 'Không đủ Bạc.', 'duoi-gia-san': 'Giá thấp hơn giá sàn.', 'so-luong-sai': 'Số lượng không hợp lệ.', 'khong-du-so-luong': 'Không đủ số lượng trong túi.', 'mon-nay-khong-ban-duoc': 'Món này không treo bán được.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.' })[v] || v;
   },
   async sanTreo(uid, gia) {
     const g = Math.round(Number(gia) || 0);
@@ -7179,6 +7179,28 @@ const gameStore = {
   get sanMonDangChon() { return (this.state.gearBag || []).find((g) => g && g.uid === this.sanTreoUid) || null; },
   get sanSanHienTai() { return this.sanGiaSan(this.sanMonDangChon); },
   get sanDuGia() { const s = this.sanSanHienTai; return !s || Math.round(Number(this.sanTreoGia) || 0) >= s; },
+  // ---- Treo ban VAT PHAM XEP CHONG ----
+  // ⚠ Giá sàn tính CẢ LÔ: sàn một cái × số lượng. Máy chủ chặn lại bằng bảng `san_gia_vp`
+  //   (docs/SQL_SAN_GIA_VP.sql, máy sinh từ items.js) — máy chủ không biết `value` của vật phẩm.
+  sanVpUid: '', sanVpSo: 1, sanVpGia: '',
+  get sanVpTreoDuoc() {
+    const inv = this.state.inventory || {};
+    return Object.keys(inv).filter((k) => inv[k] > 0 && this.ITEMS[k] && this.ITEMS[k].value > 0)
+      .map((k) => ({ id: k, ten: this.ITEMS[k].name, co: inv[k], san: giaSanVatPham(this.ITEMS[k]) }))
+      .sort((a, b) => b.san - a.san);
+  },
+  get sanVpDangChon() { return this.sanVpTreoDuoc.find((x) => x.id === this.sanVpUid) || null; },
+  get sanVpSanLo() { const m = this.sanVpDangChon; return m ? m.san * Math.max(1, Math.round(Number(this.sanVpSo) || 1)) : 0; },
+  get sanVpDuGia() { const s = this.sanVpSanLo; return !s || Math.round(Number(this.sanVpGia) || 0) >= s; },
+  async sanTreoVp() {
+    const m = this.sanVpDangChon; if (!m) return;
+    const so = Math.max(1, Math.min(m.co, Math.round(Number(this.sanVpSo) || 1)));
+    this.sanTai = true;
+    const r = await cloudSanTreoVp(m.id, so, Math.round(Number(this.sanVpGia) || 0));
+    this.sanTai = false;
+    if (!r.ok) { this.showToast(this._sanVi(r.vi || r.reason)); return; }
+    this.showToast('Da treo ban.'); this.sanVpUid = ''; this.sanVpGia = ''; await this._sanNapLai();
+  },
   get sanThueTxt() { return '15%'; },
   sanThue(gia) { return Math.ceil((Number(gia) || 0) * 0.15); },
 
