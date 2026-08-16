@@ -17,7 +17,7 @@ import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
 import { giaSanTrangBi, giaSanVatPham } from './data/giasan.js';
-import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien } from './data/dandien.js';
+import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
@@ -7348,6 +7348,33 @@ const gameStore = {
   //   cho người chơi chọn — nhánh và phẩm là thuộc tính của viên, chọn được thì thành đổi phẩm.
   // ⚠ Thứ tự BẮT BUỘC: `ddNap` trước, xoá khỏi túi sau. Xoá trước mà ô đã đầy là MẤT VIÊN.
   ddONhanhPham(nhanh, pham) { return DD_O[pham - 1] || 0; },
+  /** Ô thứ mấy của hàng `pham` sẽ được lấp ở lượt nạp tới. Ô đó là ô DUY NHẤT bấm được. */
+  ddOKeTiep(pham) { return (this.ddBang[this.ddNhanh][pham - 1] || 0) + 1; },
+  /**
+   * Bấm ô trống ở lưới Đan Điền → hỏi xác nhận → nạp một viên.
+   * ⚠ Chỉ ô KẾ TIẾP của hàng nhận bấm. Viên đan luôn rơi vào ô trống đầu tiên, nên cho bấm ô trống
+   *   thứ năm rồi lấp ô thứ nhất là đánh đố người chơi.
+   */
+  bamODanDien(pham) {
+    const nh = this.ddNhanh, id = ddItemId(nh, pham), it = this.ITEMS[id];
+    if (!it) return;
+    if (this.ddConTrong(nh, pham) <= 0) return;
+    const co = countItem(this.state, id);
+    if (co <= 0) {
+      this.showToast('Chưa có ' + it.name + ' trong túi. '
+        + (pham <= DD_PHAM_NAU_TOI ? 'Nấu ở Dược Lư.' : 'Rơi từ Yêu Vương và Bí Cảnh.'));
+      return;
+    }
+    this.hoiXacNhan({
+      tieuDe: 'Nạp Đan',
+      // ⚠ Đừng ghi thêm "vào ô Nhất Phẩm nhánh Tinh": tên viên ĐÃ mang cả nhánh lẫn phẩm, viết
+      //   lại là lặp đúng hai chữ vừa đọc.
+      loi: 'Nạp một <b>' + it.name + '</b>.<br>Trong túi có <b>' + this.fmt(co) + '</b> viên.',
+      canhBao: 'Nạp rồi không gỡ ra được.',
+      nut: 'Nạp',
+      xong: () => this.napDanDien(id, 1),
+    });
+  },
   ddConTrong(nhanh, pham) { return this.ddONhanhPham(nhanh, pham) - (this.ddBang[nhanh][pham - 1] || 0); },
   napDanDien(id, so) {
     const it = this.ITEMS[id];

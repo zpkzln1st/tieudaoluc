@@ -351,8 +351,18 @@
       background:radial-gradient(120% 90% at 12% 0%, var(--nhanhMo), transparent 62%); }
     .dd-hang { display:flex; align-items:center; gap:7px; height:34px; margin-bottom:7px; }
     .dd-cum { display:flex; gap:7px; flex:none; }
+    /* ⚠ Ô là thẻ <button> (bấm để nạp đan) nên phải tự dọn nền + đệm mặc định của nút, không thì
+       nó phình ra và ăn màu nút hệ thống. */
     .dd-o { width:34px; height:34px; border-radius:9px; flex:none; position:relative; display:flex;
-      align-items:center; justify-content:center; overflow:hidden; }
+      align-items:center; justify-content:center; overflow:hidden; padding:0; background:none;
+      font:inherit; color:inherit; appearance:none; }
+    .dd-o:disabled { cursor:default; }
+    /* Ô KẾ TIẾP: chỗ duy nhất bấm được. Viền sáng hơn một nấc để mắt biết bấm vào đâu — TĨNH,
+       không nhấp nháy. */
+    .dd-o.trong.ke { cursor:pointer; border-color:#2c3a52; }
+    .dd-o.trong.ke::after { background:#26344a; }
+    .dd-o.trong.ke:hover { border-color:var(--nhanh);
+      box-shadow:inset 0 2px 5px -2px rgba(0,0,0,.9), 0 0 8px -3px var(--nhanh); }
     /* Ô TRỐNG: hốc chìm, viền LIỀN. Viền đứt đọc ra "chỗ thả đồ, chưa dựng xong". */
     .dd-o.trong { background:#070c15; border:1px solid #172131;
       box-shadow:inset 0 2px 5px -2px rgba(0,0,0,.9); }
@@ -16819,14 +16829,20 @@
                   <span class="ten" x-text="g.DD_PHAM_TEN[i]"></span>
                   <span class="an" x-text="g.ddHanSo[i]"></span>
                 </span>
+                <!-- ⚠ Ô KẾ TIẾP của hàng là ô DUY NHẤT bấm được. Viên đan luôn rơi vào ô trống đầu
+                     tiên; cho bấm ô trống thứ năm rồi lấp ô thứ nhất là đánh đố người chơi. -->
                 <span class="dd-cum">
                   <template x-for="j in soO" :key="'ddo-'+i+'-'+j">
-                    <span class="dd-o" :class="j <= g.ddBang[g.ddNhanh][i] ? 'day' : 'trong'"
+                    <button type="button" class="dd-o"
+                          :class="(j <= g.ddBang[g.ddNhanh][i] ? 'day' : 'trong') + (j === g.ddOKeTiep(i+1) ? ' ke' : '')"
+                          :disabled="j !== g.ddOKeTiep(i+1)"
+                          :title="j === g.ddOKeTiep(i+1) ? 'Nạp ' + g.DD_NHANH_INFO[g.ddNhanh].ten + ' Đan · ' + g.DD_PHAM_TEN[i] : ''"
+                          @click="g.bamODanDien(i+1)"
                           :style="j <= g.ddBang[g.ddNhanh][i] ? '--vien:'+g.DD_NHANH_INFO[g.ddNhanh].mau+'9a;--glow:'+g.DD_NHANH_INFO[g.ddNhanh].mau : ''">
                       <template x-if="j <= g.ddBang[g.ddNhanh][i]">
                         <span class="w-full h-full inline-flex items-center justify-center" x-html="g.ico(g.ddArt(g.ddNhanh, i+1), '')"></span>
                       </template>
-                    </span>
+                    </button>
                   </template>
                 </span>
                 <span class="dd-hon" :class="g.ddHonDaMo.includes(i+1) ? 'mo' : ''"
