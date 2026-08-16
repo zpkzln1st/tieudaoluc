@@ -15942,8 +15942,13 @@
                       class="w-32 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
                   </template>
                   <template x-if="g.sanDoTreoDuoc.length">
-                    <button @click="g.sanTreo(g.sanTreoUid, g.sanTreoGia)" :disabled="g.sanTai || !g.sanTreoUid"
+                    <button @click="g.sanTreo(g.sanTreoUid, g.sanTreoGia)" :disabled="g.sanTai || !g.sanTreoUid || !g.sanDuGia"
                       class="px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition disabled:opacity-40">Treo Bán</button>
+                  </template>
+                  <!-- ⚠ Hiện GIÁ SÀN ngay khi chọn món. Không hiện thì người chơi gõ giá, bấm, rồi
+                       mới bị máy chủ từ chối — bắt thử mò. -->
+                  <template x-if="g.sanSanHienTai > 0">
+                    <span class="text-[11.5px]" :class="g.sanDuGia ? 'text-slate-500' : 'text-rose-400'">Giá sàn <b x-text="g.fmt(g.sanSanHienTai)"></b> Bạc</span>
                   </template>
                   <!-- Số tiền thực nhận hiện NGAY khi gõ giá — không bắt người chơi tự trừ thuế. -->
                   <template x-if="g.sanTreoGia > 0">

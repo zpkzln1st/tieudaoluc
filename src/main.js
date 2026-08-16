@@ -15,6 +15,8 @@ import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS, RETIRED_SLOTS, SK_PHU_KIEN_SL
 import { GEAR_IDS, instanceFromCatalog, rollSetPieceInstance, rollGearInstance, rollMonsterDrop, MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, AFFIX, TRANG_SETS, TRANG_SET_KEYS } from './data/gear.js';
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
+// ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
+import { giaSanTrangBi, giaSanVatPham } from './data/giasan.js';
 import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, DD_ART_MUON, ddMoiVien } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
@@ -7147,7 +7149,7 @@ const gameStore = {
       'dang-treo-roi': 'Món này đang treo bán rồi.', 'khong-co-tin': 'Tin rao không còn.',
       'khong-phai-tin-cua-minh': 'Tin này không phải của bạn.', 'tin-da-xong': 'Tin này đã xong.',
       'khong-tu-mua-cua-minh': 'Không mua được tin của chính mình.',
-      'khong-du-bac': 'Không đủ Bạc.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.' })[v] || v;
+      'khong-du-bac': 'Không đủ Bạc.', 'duoi-gia-san': 'Giá thấp hơn giá sàn.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.' })[v] || v;
   },
   async sanTreo(uid, gia) {
     const g = Math.round(Number(gia) || 0);
@@ -7172,6 +7174,11 @@ const gameStore = {
     if (!r.ok) { this.showToast(this._sanVi(r.vi || r.reason)); return; }
     this.showToast('Đã mua.'); await this._sanNapLai();
   },
+  // Gia san toi thieu cua mon dang chon o o Treo Ban.
+  sanGiaSan(m) { return m && m.itemLv ? giaSanTrangBi(m.itemLv, m.quality, m.plus) : 0; },
+  get sanMonDangChon() { return (this.state.gearBag || []).find((g) => g && g.uid === this.sanTreoUid) || null; },
+  get sanSanHienTai() { return this.sanGiaSan(this.sanMonDangChon); },
+  get sanDuGia() { const s = this.sanSanHienTai; return !s || Math.round(Number(this.sanTreoGia) || 0) >= s; },
   get sanThueTxt() { return '15%'; },
   sanThue(gia) { return Math.ceil((Number(gia) || 0) * 0.15); },
 

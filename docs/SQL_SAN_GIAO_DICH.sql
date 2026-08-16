@@ -268,3 +268,81 @@ create trigger a_san_chan_quay_nguoc
 --
 -- ⛔ DUNG dinh nghia lai `kiem_toc_do` o day de "goi sang ham goc". Khong co ham goc nao ca —
 --    lam the la de len ham that, moi luot luu cua ca lang dut ngay.
+
+-- ============================================================
+-- 9. GIA SAN TOI THIEU — CHOT THAT (chay lan hai, 2026-08-16)
+-- ============================================================
+-- ⚠⚠ BAN SONG SINH cua `src/data/giasan.js`. Client tinh de HIEN, may chu tinh de CHAN.
+--    Sua mot ben ma quen ben kia la nguoi choi thay mot gia, bam vao lai bi tu choi vi gia khac.
+--    Bai kiem `_check_giasan.mjs` so hai ban tren vai chuc ca.
+-- ⚠ Moc chot: CUC HIEM cap 100 = 1 trieu Bac. Ba bac tren leo thoai x1,8 — de x2,6 thi Doc Nhat
+--   ra 3.213 gio cay, ma ca hanh trinh len cap 100 chi co 577 gio, khong bao gio co ai mua.
+-- ⚠ TIEN LAM TRON LEN (`ceil`) — he thong khong lo.
+
+create or replace function public.san_hs_pham(p text)
+returns numeric language sql immutable as $$
+  select case p
+    when 'phamPham' then 13 when 'luongPham' then 33 when 'tinhPham' then 80
+    when 'tuyetPham' then 199 when 'truyenThe' then 358 when 'thanPham' then 645
+    when 'coBan' then 1160 else 13 end
+$$;
+
+-- Chi phi ep ky vong quy ra Bac, index = so cong (+0 .. +15).
+create or replace function public.san_cp_ep(p int)
+returns numeric language sql immutable as $$
+  select (array[0,21,51,89,145,283,425,750,1120,1617,2308,4230,10661,20328,34067,62067])
+         [greatest(0, least(15, coalesce(p, 0))) + 1]
+$$;
+
+/* Gia san cua MOT mon dua tren chinh JSON cua no. Tra 0 neu khong doc duoc (khong chan oan). */
+create or replace function public.san_gia_toi_thieu(p_mon jsonb)
+returns bigint
+language plpgsql
+immutable
+as $$
+declare lv int; pham text; cong int; gia_npc numeric;
+begin
+  lv   := coalesce((p_mon->>'itemLv')::int, 0);
+  pham := coalesce(p_mon->>'quality', 'phamPham');
+  cong := coalesce((p_mon->>'plus')::int, 0);
+  if lv <= 0 then return 0; end if;                    -- khong phai trang bi -> khong chot o day
+  gia_npc := round(lv * lv * 0.5 + 20);
+  return ceil(gia_npc * public.san_hs_pham(pham) + public.san_cp_ep(cong) + 3)::bigint;
+end $$;
+
+-- ⚠ Chen chot vao `san_treo`: tu choi ngay khi gia thap hon san. Tra ve CA con so de client
+--   hien duoc "gia toi thieu la X" chu khong bao chung chung.
+create or replace function public.san_treo(p_uid text, p_gia bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare me uuid := auth.uid(); s jsonb; tui jsonb; mon jsonb; i int; ten text; con jsonb := '[]'::jsonb; san bigint;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if p_gia is null or p_gia <= 0 or p_gia > 1000000000 then return jsonb_build_object('ok', false, 'vi', 'gia-sai'); end if;
+
+  s := public.san_doc_save(me);
+  if s is null then return jsonb_build_object('ok', false, 'vi', 'chua-co-ban-luu'); end if;
+  tui := coalesce(s->'gearBag', '[]'::jsonb);
+
+  mon := null;
+  for i in 0 .. jsonb_array_length(tui) - 1 loop
+    if tui->i->>'uid' = p_uid then mon := tui->i; else con := con || jsonb_build_array(tui->i); end if;
+  end loop;
+  if mon is null then return jsonb_build_object('ok', false, 'vi', 'khong-co-mon-nay'); end if;
+
+  san := public.san_gia_toi_thieu(mon);
+  if san > 0 and p_gia < san then
+    return jsonb_build_object('ok', false, 'vi', 'duoi-gia-san', 'san', san);
+  end if;
+
+  ten := coalesce(s->'player'->>'name', '');
+  perform public.san_ghi_save(me, jsonb_set(s, '{gearBag}', con, true));
+  insert into public.san_rao (nguoi_ban, ten_ban, mon, mon_uid, gia)
+  values (me, ten, mon, p_uid, p_gia);
+  return jsonb_build_object('ok', true);
+exception when unique_violation then
+  return jsonb_build_object('ok', false, 'vi', 'dang-treo-roi');
+end $$;
