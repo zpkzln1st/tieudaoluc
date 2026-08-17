@@ -377,6 +377,12 @@
       box-shadow:inset 0 2px 5px -2px rgba(0,0,0,.9); }
     .dd-hon.mo { border-color:#c9962f; color:#f5cd6a; background:linear-gradient(180deg,rgba(245,185,66,.16),rgba(245,185,66,.05));
       box-shadow:0 0 11px -3px rgba(245,185,66,.8), inset 0 1px 0 rgba(255,235,180,.22); }
+    /* Art Đan Hồn: MỘT tấm duy nhất. Chưa mở thì lọc xám + hạ sáng, mở thì trả về nguyên bản —
+       khỏi phải vẽ hai tấm cho hai trạng thái. */
+    .dd-hon-ic { width:78%; height:78%; display:flex; align-items:center; justify-content:center;
+      filter:grayscale(1) brightness(.45); opacity:.7; }
+    .dd-hon.mo .dd-hon-ic { filter:none; opacity:1; }
+    .dd-hon-ic img { width:100%; height:100%; object-fit:contain; display:block; }
     /* ⚠ nowrap BẮT BUỘC: thiếu nó thì "Nhất Phẩm" xuống hai dòng, cả bậc thang lệch nhau. */
     .dd-nhan { width:104px; flex:none; display:flex; align-items:center; justify-content:flex-end; gap:6px; white-space:nowrap; }
     .dd-nhan .ten { font-family:'Lora',Georgia,serif; font-size:12.5px; color:#7c8ba1; }
@@ -2324,7 +2330,7 @@
                       class="relative w-11 h-11 rounded-lg border border-violet-400/60 bg-black/70 overflow-hidden transition hover:brightness-125 flex items-center justify-center"
                       style="box-shadow:0 0 13px -3px rgba(167,139,250,.75), inset 0 0 12px rgba(167,139,250,.14)"
                       >
-                      <span class="absolute inset-0 inline-flex items-center justify-center p-0.5" x-html="g.ico('hoiKhiDan', '')"></span>
+                      <span class="absolute inset-0 inline-flex items-center justify-center p-0.5" x-html="g.ico('cuaDanDien', '')"></span>
                       <template x-if="g.ddDaNap > 0">
                         <span class="absolute bottom-0 left-0 h-[3px] bg-violet-400/70"
                               :style="'width:' + Math.round(g.ddDaNap / g.ddTongO * 100) + '%'"></span>
@@ -2337,7 +2343,7 @@
                       class="relative w-11 h-11 rounded-lg border border-sky-400/60 bg-black/70 overflow-hidden transition hover:brightness-125 flex items-center justify-center"
                       style="box-shadow:0 0 13px -3px rgba(56,189,248,.7), inset 0 0 12px rgba(56,189,248,.14)"
                       >
-                      <span class="absolute inset-0 inline-flex items-center justify-center p-0.5" x-html="g.ico('bachBaoDan', '')"></span>
+                      <span class="absolute inset-0 inline-flex items-center justify-center p-0.5" x-html="g.ico('cuaLuyenDan', '')"></span>
                     </button>
                       <span class="gtip gtip-dn text-[11.5px] text-slate-200">Luyện <span class="text-slate-500">quay lại điểm Tinh · Khí · Thần</span></span>
                     </span>
@@ -16854,8 +16860,12 @@
                     </button>
                   </template>
                 </span>
+                <!-- ⚠ Trước đây ô này là chữ Hán 魂 gõ thẳng. Nay là art thật; CHỈ MỘT tấm, trạng
+                     thái chưa mở xử lý bằng bộ lọc xám ở CSS chứ không cần tệp ảnh thứ hai. -->
                 <span class="dd-hon" :class="g.ddHonDaMo.includes(i+1) ? 'mo' : ''"
-                      :title="'Đan Hồn ' + g.DD_PHAM_TEN[i] + (g.ddHonDaMo.includes(i+1) ? ' — đã mở' : ' — cần lấp đủ ' + g.DD_PHAM_TEN[i] + ' ở cả ba nhánh')">魂</span>
+                      :title="'Đan Hồn ' + g.DD_PHAM_TEN[i] + (g.ddHonDaMo.includes(i+1) ? ' — đã mở' : ' — cần lấp đủ ' + g.DD_PHAM_TEN[i] + ' ở cả ba nhánh')">
+                  <span class="dd-hon-ic" x-html="g.ico('danHon', '')"></span>
+                </span>
               </div>
             </template>
 
