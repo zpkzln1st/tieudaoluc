@@ -165,40 +165,59 @@ a single refining furnace on a FULLY TRANSPARENT background (alpha channel, abso
 
 # PHẦN BA — NỀN DƯỢC PHƯƠNG (2026-08-17)
 
-Dược Phương là công thức nấu đan ở Dược Lư, sắp dựng ở đợt nền. Nó cần **nền riêng**, y như Đồ Phổ
-trang bị đã có (`dopho_23` · `dopho_45` · `dopho_6` · `dopho_7` · `dopho_chieu`, đều 500×500,
-34–40 KB). Cách vẽ trong game: game lấy tấm nền này, rồi **lồng art viên đan vào giữa** — nên
-giữa tấm phải có một mặt phẳng trống.
+Dược Phương là công thức nấu đan ở Dược Lư. Nó cần **nền riêng**, y như Đồ Phổ trang bị đã có
+(`dopho_23` · `dopho_45` · `dopho_6` · `dopho_7` · `dopho_chieu`, đều 500×500, 34–40 KB).
 
-| tệp | dùng cho | phẩm chất |
-|---|---|---|
-| `images/items/duocphuong_12.webp` | Dược Phương phẩm 1–2 | Thường · Tốt |
-| `images/items/duocphuong_34.webp` | Dược Phương phẩm 3–4 | Hiếm · Cực Hiếm |
-| `images/items/duocphuong_5.webp` | Dược Phương phẩm 5 | Sử Thi |
+## ⚠⚠ GAME LỒNG MỘT Ô VUÔNG VÀO GIỮA TẤM
+
+Đây là điều quan trọng nhất, vòng đầu tôi viết prompt thiếu nó nên art ra sai.
+
+Hàm `ico()` trong `src/main.js` vẽ hai lớp: **nền phủ kín khung**, rồi **một ô vuông đè lên giữa**
+chứa art viên đan. Ô đó nền gần như đen (`#070908`), bo góc, có viền theo phẩm chất, và:
+
+| số đo | giá trị |
+|---|---|
+| tâm ô | 50% ngang · 49% dọc |
+| bề rộng · bề cao | **44% × 44%** khung |
+| bo góc | 14% |
+
+⇒ **Nguyên vùng vuông giữa tấm, rộng gần một nửa khung, sẽ BỊ CHE HOÀN TOÀN.** Vẽ gì ở đó cũng
+mất. Dây buộc vắt ngang giữa cũng mất, mà nhìn ra như dây bị cắt đứt.
+
+## Vòng đầu sai thế nào
+
+Prompt cũ tả "tờ giấy thuốc **gấp**, buộc dây gai ngang thân". Art ra một **gói giấy gấp kín**, nút
+dây nằm đúng giữa. Không lồng viên đan vào được: chỗ đó không phải mặt phẳng, và cái gói đóng kín
+thì không đọc ra "công thức".
+
+Xem lại `dopho_45.webp` mới thấy cách nhà đã giải: **cuộn ĐÃ MỞ**, hai trục gỗ trên dưới, mặt
+cuộn là một khoảng tranh nhạt, mọi hoa văn dồn ra RÌA, giữa để trơn.
 
 ## Đọc trước khi gen
 
-- Vuông **500×500**, **nền trong suốt**, WebP.
-- ⚠⚠ **PHẢI KHÁC HẲN CUỘN ĐỒ PHỔ.** Hai thứ đứng cạnh nhau trong cùng lưới Hành Lý. Đồ Phổ là
-  **cuộn tròn**; Dược Phương là **tờ giấy thuốc GẤP, dáng chữ nhật đứng**. Ở ô 34px người chơi
-  phân biệt bằng bóng, không bằng màu.
-- ⚠⚠ **CHỪA MẶT PHẲNG TRỐNG Ở GIỮA.** Game lồng art viên đan vào ô vuông giữa tấm, chiếm khoảng
-  **44% bề ngang**. Vẽ chữ, vẽ hoa văn hay vẽ vật gì vào giữa là bị viên đan đè lên.
+- Vuông **500×500**, **nền trong suốt**, WebP, khoảng 30–45 KB.
+- **Vật ở dạng MỞ, mặt phẳng hướng thẳng vào người xem.** Không gấp, không cuộn lại, không buộc kín.
+- **Vùng vuông giữa tấm (44% khung) phải trơn tuyệt đối.** Không hoa văn, không dây, không chữ,
+  không vệt mực. Mọi thứ vẽ thêm dồn ra bốn rìa và bốn góc.
+- ⚠⚠ **PHẢI KHÁC HẲN CUỘN ĐỒ PHỔ** — hai thứ đứng cạnh nhau trong cùng lưới Hành Lý, ô chỉ 34px.
+  Đồ Phổ có **hai thanh trục gỗ nằm ngang trên và dưới**; Dược Phương **KHÔNG có trục**, thay bằng
+  **mép giấy rách tự nhiên** và một cái kẹp gỗ ở cạnh trên. Bóng phải khác nhau ở cỡ 34px.
+- **Đơn sắc, nhạt.** Nền càng nhạt thì viên đan lồng vào càng nổi. Đừng dùng màu bão hoà.
 - ⚠ **KHÔNG viết chữ.** Nét bút chỉ được là nguệch ngoạc vô nghĩa, không thành chữ Hán đọc được.
-- Ba bậc phân biệt bằng **chất giấy và cách đóng**, không chỉ bằng màu: giấy thô buộc dây gai →
-  giấy dó viền lụa → lụa gấm có triện sáp.
+- Ba bậc phân biệt bằng **chất liệu**, không chỉ bằng màu: giấy dó thô → giấy mịn viền lụa →
+  lụa gấm có triện sáp.
 
 ---
 
-STYLE CHUNG: Wuxia xianxia game art, semi-realistic painterly digital illustration blended with Chinese ink-wash sensibility, ultra detailed high-quality rendering, soft diffuse studio light from the upper left, restrained saturation with no neon, clean readable silhouette that stays legible at small icon size, square 1:1 composition (500x500), no text, no watermark, no signature, no logo, no border, no frame, no UI element. Negative prompt: text, watermark, signature, logo, readable characters, calligraphy that forms real words, modern objects, blurry, lowres, extra limbs, deformed hands, cartoonish, oversaturated neon colors, cluttered messy background —
+STYLE CHUNG: Wuxia xianxia game art, semi-realistic painterly digital illustration blended with Chinese ink-wash sensibility, ultra detailed high-quality rendering, soft diffuse studio light from the upper left, restrained saturation with no neon, clean readable silhouette that stays legible at small icon size, square 1:1 composition (500x500), no text, no watermark, no signature, no logo, no border, no frame, no UI element. Negative prompt: text, watermark, signature, logo, readable characters, calligraphy that forms real words, folded paper, rolled up, closed packet, cord across the middle, ornament in the centre, modern objects, blurry, lowres, cartoonish, oversaturated neon colors, cluttered messy background —
 
 ---
 
 [duocphuong_12] Nền Dược Phương bậc thấp -> images/items/duocphuong_12.webp
-a single folded apothecary prescription slip on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the slip centred upright and filling about 86% of the frame: a portrait-format sheet of coarse buff-grey mulberry paper with visible fibre flecks and softly frayed edges, the paper creased twice horizontally so the upper and lower thirds fold slightly toward the viewer while the MIDDLE THIRD STAYS FLAT AND COMPLETELY EMPTY, a plain hemp cord tied once around the waist of the slip with two short loose ends, faint smudges of dried herb stain at the lower corners, a thin warm rim-light down the left edge; the central flat area must remain a clean bare paper surface with absolutely nothing drawn on it, no marks, no ink, no ornament
+a single OPEN apothecary recipe sheet lying flat and facing the viewer on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the sheet centred upright and filling about 88% of the frame: a portrait sheet of coarse buff mulberry paper with visible fibre flecks and softly torn deckled edges, held at the top edge by a small plain wooden clip; the decoration sits ONLY around the outer border — a faint sepia ink sprig of dried herbs climbing the left margin, a small mortar and pestle sketched at the bottom left corner, a few scattered dried leaf fragments at the bottom right corner, three tiny ink tally marks in the top right corner; the ENTIRE CENTRE of the sheet is bare blank paper, a wide clean empty square area with absolutely nothing on it — no ink, no cord, no ornament, no shading beyond the paper grain; the whole image monochrome warm sepia and very pale, soft light from the upper left, a thin warm rim-light along the torn edges
 
 [duocphuong_34] Nền Dược Phương bậc giữa -> images/items/duocphuong_34.webp
-a single folded apothecary prescription slip on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the slip centred upright and filling about 88% of the frame: a portrait-format sheet of fine pale ivory paper edged along both long sides with a narrow band of deep indigo silk, the sheet creased twice so the upper and lower thirds fold gently forward while the MIDDLE THIRD STAYS FLAT AND COMPLETELY EMPTY, a slim brass clasp pinching the top edge, a few loose dried herb leaves tucked under the clasp and just peeking out, cool silver rim-light along the silk bands; the central flat area must remain a clean bare paper surface with absolutely nothing drawn on it, no marks, no ink, no ornament
+a single OPEN apothecary recipe sheet lying flat and facing the viewer on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the sheet centred upright and filling about 88% of the frame: a portrait sheet of fine pale ivory paper, both long edges bound with a narrow band of muted indigo silk, the top edge held by a slim brass clip; the decoration sits ONLY around the outer border — a faint indigo ink drawing of a hanging herb bundle down the left margin, a small brass apothecary balance sketched at the bottom left corner, a coiled ginseng root at the bottom right corner, a row of small measuring marks along the inner edge of the left silk band; the ENTIRE CENTRE of the sheet is bare blank paper, a wide clean empty square area with absolutely nothing on it — no ink, no clasp, no ornament; the whole image monochrome pale indigo-green and low contrast, soft light from the upper left, cool silver rim-light along the silk bands
 
 [duocphuong_5] Nền Dược Phương bậc cao -> images/items/duocphuong_5.webp
-a single folded apothecary prescription slip on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the slip centred upright and filling about 90% of the frame: a portrait-format panel of lustrous pale gold brocade silk woven with a faint cloud-scroll damask visible only at a glancing angle, its short edges bound in dark lacquered wood battens, the panel creased twice so the upper and lower thirds fold forward while the MIDDLE THIRD STAYS FLAT AND COMPLETELY EMPTY, a round crimson wax seal pressed at the lower right corner well clear of the centre, a slow curl of faint golden vapour rising from behind the top batten, warm gold rim-light; the central flat area must remain a clean bare silk surface with absolutely nothing drawn on it, no marks, no ink, no ornament
+a single OPEN apothecary recipe panel lying flat and facing the viewer on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the panel centred upright and filling about 90% of the frame: a portrait panel of lustrous pale gold brocade silk woven with a faint cloud-scroll damask that catches the light only at the very edges, the top edge held by a slender dark lacquered wooden clip; the decoration sits ONLY around the outer border — a faint gold ink drawing of a three-legged pill furnace at the bottom left corner, a spray of spirit-herb leaves climbing the right margin, a round crimson wax seal pressed into the bottom right CORNER well clear of the middle, a thin thread of pale golden vapour curling along the top edge; the ENTIRE CENTRE of the panel is bare blank silk, a wide clean empty square area with absolutely nothing on it — no pattern, no ink, no ornament; the whole image monochrome pale gold on ivory, soft light from the upper left, warm gold rim-light
