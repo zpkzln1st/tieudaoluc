@@ -21,6 +21,7 @@ import { TOOL_SLOTS } from '../data/ui.js';               // nguồn chân lý c
 import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '../data/tongmon.js';   // rơi bí kíp về Tông Môn (main->phụ 1 chiều, side-only)
 import { deriveCombat, TUYET_IDS } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
+import { DD_TI_LE_ROI, ddDanRoi } from '../data/dandien.js';   // đan Đan Điền rơi theo cấp phó bản
 import { levelFromXp, addSkillXp } from './leveling.js';
 import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
 import { skillExpMultiplier } from '../data/classes.js';   // chuỗi Điểm Danh (+EXP mọi nguồn) — Bí Cảnh trước bỏ sót
@@ -192,6 +193,16 @@ export function runDungeon(state, dungeonId) {
   if (cleared && D.loot.rare) for (const r of D.loot.rare) {
     if (r.itemId.slice(0, 6) === 'dpset_' && ((state.inventory || {})[r.itemId] || 0) > 0) continue;
     if (rng(state, 'bcQuy') < (r.chance || 0) * RUN.rareMul * P) addLoot(r.itemId, 1);
+  }
+  // ĐAN ĐAN ĐIỀN — phẩm suy từ CẤP YÊU CẦU của phó bản (data/dandien.js), nhánh bốc đều ba.
+  // ⚠ Miền RIÊNG `bcDan`, KHÔNG dùng chung `bcQuy`: thêm một lần bốc vào miền cũ là mọi lần bốc
+  //   đồ quý phía sau lệch hết, máy chủ tính lại ra khác client.
+  // ⚠ KHÔNG nhân `rareMul`/`P`: tỉ lệ này neo theo LƯỢT, đã cân sẵn ở `DD_TI_LE_ROI`. Nhân pace
+  //   vào là phó bản ngắn thành mỏ đan.
+  let danRoiId = null;
+  if (cleared && rng(state, 'bcDan') < DD_TI_LE_ROI) {
+    danRoiId = ddDanRoi(D.reqLevel, rng(state, 'bcDanNhanh'));
+    addLoot(danRoiId, 1);
   }
   // MẢNH TRANG BỊ HOÀNG KIM: chắc chắn, KHÔNG nhân rareMul/pace — số đã cân sẵn theo lượt/ngày ở
   // data/dungeon.js. Nhân pace vào đây là phá luôn ý đồ "phẳng giữa các phó bản Lv70+".

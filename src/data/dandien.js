@@ -33,6 +33,29 @@ export const DD_O = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 export const DD_PHAM_NAU_TOI = 5;
 export const DD_TI_LE_ROI = 0.06;         // mỗi lượt Yêu Vương / Bí Cảnh đủ cấp
 
+// ============================================================
+// ĐƯỜNG RƠI — phẩm mấy rơi ở đâu
+// ============================================================
+// Cấp YÊU CẦU của phó bản / Yêu Vương quyết định phẩm rơi. Bậc thang dưới đây bám ĐÚNG mốc cấp
+// của chín Bí Cảnh (10·25·40·55·70·80·85·92·100) và mười Yêu Vương (10·20…·100) đang có, nên mỗi
+// bậc đều có ít nhất một cửa thả ra.
+// ⚠ ĐỪNG gõ bảng riêng cho từng phó bản: thêm một phó bản mới là quên một dòng. Suy từ CẤP.
+export const DD_CAP_THEO_PHAM = [1, 20, 30, 40, 55, 68, 78, 88, 100];
+
+/** Phẩm đan rơi ở cửa có cấp yêu cầu `cap`. Trả 1..9. */
+export function ddPhamRoiTheoCap(cap) {
+  const c = Number(cap) || 1;
+  let p = 1;
+  for (let i = 0; i < DD_CAP_THEO_PHAM.length; i++) if (c >= DD_CAP_THEO_PHAM[i]) p = i + 1;
+  return p;
+}
+
+/** Mã viên đan rơi ở cửa cấp `cap`, nhánh bốc theo `r` trong [0,1). */
+export function ddDanRoi(cap, r) {
+  const nh = DD_NHANH[Math.min(DD_NHANH.length - 1, Math.floor((Number(r) || 0) * DD_NHANH.length))];
+  return ddItemId(nh, ddPhamRoiTheoCap(cap));
+}
+
 export const DD_TONG_O = DD_O.reduce((s, n) => s + n, 0) * DD_NHANH.length;          // 162
 export const DD_TONG_NAU = DD_O.slice(0, DD_PHAM_NAU_TOI).reduce((s, n) => s + n, 0) * DD_NHANH.length;  // 60
 export const DD_TONG_ROI = DD_TONG_O - DD_TONG_NAU;                                  // 102

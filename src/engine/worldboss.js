@@ -12,6 +12,7 @@
 import { deriveCombat, makeFight, stepFight, boPhapStats } from '../data/votong.js';
 import { YEU_VUONG, YEU_VUONG_BY_ID } from '../data/combat.js';
 import { addItem } from './inventory.js';
+import { DD_TI_LE_ROI, ddDanRoi } from '../data/dandien.js';   // đan Đan Điền rơi theo cấp Yêu Vương
 import { addSkillXp, addStatXp } from './leveling.js';
 import { skillExpMultiplier } from '../data/classes.js';
 import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
@@ -197,6 +198,14 @@ function grantReward(state, boss, now) {
   // game, nên hai con này trần ~2 trận/ngày: 0,4 Mảnh/ngày, tức 1050 ngày một bộ. Đây là trục CHUNG
   // (cày quái và Bí Cảnh mỗi lối ~4-6 Mảnh/ngày nữa) nên phần Yêu Vương phải chắc chắn, không hên xui.
   if ((boss.reqLevel || 0) >= 90) { addItem(state, 'manhTrangBi', 2); r.items.manhTrangBi = (r.items.manhTrangBi || 0) + 2; }
+  // ĐAN ĐAN ĐIỀN — phẩm suy từ CẤP YÊU CẦU của Yêu Vương (data/dandien.js), nhánh bốc đều ba.
+  // ⚠ Miền RIÊNG `yvDan`, không dùng chung với `yvTinhThe`/`yvTrung`.
+  // ⚠ Đặt SAU nhánh sự kiện `return` ở trên: Yêu Vương sự kiện KHÔNG thả đan, đúng luật
+  //   docs/THIET_KE_SU_KIEN.md I9 (không Tinh Thể, không trứng thường, không Mảnh).
+  if (rng(state, 'yvDan') < DD_TI_LE_ROI) {
+    const dan = ddDanRoi(boss.reqLevel, rng(state, 'yvDanNhanh'));
+    addItem(state, dan, 1); r.items[dan] = (r.items[dan] || 0) + 1;
+  }
   return r;
 }
 
