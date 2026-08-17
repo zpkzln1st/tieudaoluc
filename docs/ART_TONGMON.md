@@ -61,9 +61,9 @@ subtle gold filigree, soft glow, isolated on transparent background, painterly g
 
 ---
 
-## 4. TRANH NỀN 16 SỰ KIỆN — `images/tongmon/events/<id>.webp`
+## 4. TRANH NỀN 23 SỰ KIỆN — `images/tongmon/events/<id>.webp`
 **Nơi để:** `images/tongmon/events/` (tạo mới) · **Kích thước:** ~1200×420 · **Nền:** tối, để chữ Hán watermark + tiêu đề gold phủ lên (ảnh chỉ là bối cảnh khí quyển, đừng quá sáng/đông).
-**Tên file = id viết thường:** `a1 a2 a3 b1 b2 b3 c1 c2 d1 d2 d3 e1 e2 e3 e4 e5`.
+**Tên file = id viết thường:** `a1 a2 a3 b1 b2 b3 c1 c2 d1 d2 d3 e1 e2 e3 e4 e5 f1 f2 f3 f4 g1 h1` + `tmk`.
 
 Định hướng theo nhóm (màu chủ đạo khớp viền modal):
 - **A — Drama đệ tử (rose #fb7185):** hai bóng đệ tử dưới gốc ngân hạnh / sân luyện đêm, tình & xung đột.
@@ -87,12 +87,51 @@ subtle gold filigree, soft glow, isolated on transparent background, painterly g
   - `f3` Cổ Động Khai Phong: cửa cổ động bị sạt lở lộ ra, khí xanh mờ ảo phun ra, ánh bảo vật le lói bên trong, hiểm khí.
   - `f4` Thiên Tài Giáng Thế: sao băng đáp xuống đỉnh núi đêm, nơi rơi mọc đóa linh chi phát quang ngũ sắc, tinh thạch quanh đó.
 
+- **G — Giới Luật (rose #fb7185):** kỷ cương, chấn chỉnh tông quy.
+  - `g1` Đại Điểm Giới Luật: Giới Luật Đường gióng chuông đại điểm, toàn môn xếp hàng nghe trưởng lão tuyên giới, đệ tử cúi đầu tự xét.
+- **H — Bang Giao (cyan #22d3ee):** đồng minh, trọng lễ, ngoại giao.
+  - `h1` Đồng Minh Triều Cống: đoàn xe ngựa của môn phái đồng minh tiến vào sơn môn, rương lớn rương nhỏ chất đầy linh dược.
+
+⚠⚠ **BA SỐ ĐO THẬT — đo trên 21 tệp đang có, khác con số ~1200×420 ghi ở trên:**
+- Kích thước thật **2120×742** (tỉ lệ 2,86:1), WebP, trung bình **68,7 KB**.
+- Trong game ảnh nằm ở dải đầu modal **700×176** với `object-cover` ⇒ **cắt mất ~14% trên và ~14% dưới**.
+  Đừng đặt gì quan trọng sát mép trên hoặc mép dưới.
+- Một lớp phủ tối đè từ **BÊN TRÁI** (92% đục ở mép trái, nhạt dần tới 46% bề ngang), và **tiêu đề
+  vàng nằm bên trái** ⇒ **chủ thể phải LỆCH PHẢI**, chừa bên trái cho chữ. Xem `f1.webp` làm mẫu.
+- Chữ Hán watermark cỡ 9rem đè ở **góc trên phải**, mờ 10% ⇒ góc đó đừng để chi tiết vụn.
 **Prompt mẫu (thay phần in hoa theo từng id):**
 ```
 Atmospheric wide wuxia scene banner: [MÔ TẢ CẢNH THEO ID], painterly xianxia concept art, moody dark
 palette with [MÀU NHÓM] accent glow, misty, cinematic, muted so text and a large faint calligraphy
 character can overlay on top, 1200x420, no text
 ```
+
+### Hai prompt còn thiếu — viết đầy đủ, dán thẳng
+
+**[g1] Đại Điểm Giới Luật** → `images/tongmon/events/g1.webp`
+```
+Atmospheric wide wuxia scene banner: inside the stone courtyard of a mountain sect Hall of Discipline at
+cold dawn, a great bronze bell hanging under dark eaves on the RIGHT still trembling from being struck, a
+stern white-bearded elder in grey robes standing on the stone dais beneath it holding an open ledger of
+sect law, ranks of young disciples in pale robes kneeling in disciplined rows below him with heads bowed,
+their faces not readable, thin mist between the rows, bare flagstones and a plain empty sky filling the
+LEFT THIRD of the frame, painterly xianxia concept art, moody dark palette with a restrained rose-red
+accent glow on the bell and the elder, cinematic, severe and orderly mood, muted enough that gold title
+text and a large faint calligraphy character can overlay on top, 2120x742, no text
+```
+
+**[h1] Đồng Minh Triều Cống** → `images/tongmon/events/h1.webp`
+```
+Atmospheric wide wuxia scene banner: a tribute caravan of the allied sect arriving at a mountain gate at
+dusk, on the RIGHT two ox-drawn wooden carts loaded with lacquered chests, the lid of the front chest open
+to show bundles of glowing spirit herbs and rolls of silk, an envoy in fine blue robes bowing with both
+hands raised in salute beside the cart, sect gatekeepers in pale robes receiving him, red lanterns strung
+along the gate posts above, the road and drifting evening mist opening out into the empty LEFT THIRD of
+the frame, painterly xianxia concept art, moody dark palette with a restrained cyan accent glow from the
+herbs and lantern light, cinematic, ceremonial and cordial mood, muted enough that gold title text and a
+large faint calligraphy character can overlay on top, 2120x742, no text
+```
+
 
 ---
 
