@@ -160,3 +160,45 @@ a single alchemy vessel on a FULLY TRANSPARENT background (alpha channel, absolu
 
 [cuaLuyenDan] Cửa vào bảng Luyện -> images/items/cuaLuyenDan.webp
 a single refining furnace on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), centred and filling about 84% of the frame: a tall narrow bronze pill-furnace with a domed pierced lid and a stepped foot, its body divided by three vertical ribs, the metal a cool dark bronze with a thin silver-blue rim-light down the left edge; through the pierced lid a bright cold blue-white forge-light glows from within, and three short tongues of that same cold light escape the vents and curl upward, each tongue tinted a different hue — one warm red, one cool blue, one pale violet; the three colours read clearly as three separate flames without touching each other
+
+---
+
+# PHẦN BA — NỀN DƯỢC PHƯƠNG (2026-08-17)
+
+Dược Phương là công thức nấu đan ở Dược Lư, sắp dựng ở đợt nền. Nó cần **nền riêng**, y như Đồ Phổ
+trang bị đã có (`dopho_23` · `dopho_45` · `dopho_6` · `dopho_7` · `dopho_chieu`, đều 500×500,
+34–40 KB). Cách vẽ trong game: game lấy tấm nền này, rồi **lồng art viên đan vào giữa** — nên
+giữa tấm phải có một mặt phẳng trống.
+
+| tệp | dùng cho | phẩm chất |
+|---|---|---|
+| `images/items/duocphuong_12.webp` | Dược Phương phẩm 1–2 | Thường · Tốt |
+| `images/items/duocphuong_34.webp` | Dược Phương phẩm 3–4 | Hiếm · Cực Hiếm |
+| `images/items/duocphuong_5.webp` | Dược Phương phẩm 5 | Sử Thi |
+
+## Đọc trước khi gen
+
+- Vuông **500×500**, **nền trong suốt**, WebP.
+- ⚠⚠ **PHẢI KHÁC HẲN CUỘN ĐỒ PHỔ.** Hai thứ đứng cạnh nhau trong cùng lưới Hành Lý. Đồ Phổ là
+  **cuộn tròn**; Dược Phương là **tờ giấy thuốc GẤP, dáng chữ nhật đứng**. Ở ô 34px người chơi
+  phân biệt bằng bóng, không bằng màu.
+- ⚠⚠ **CHỪA MẶT PHẲNG TRỐNG Ở GIỮA.** Game lồng art viên đan vào ô vuông giữa tấm, chiếm khoảng
+  **44% bề ngang**. Vẽ chữ, vẽ hoa văn hay vẽ vật gì vào giữa là bị viên đan đè lên.
+- ⚠ **KHÔNG viết chữ.** Nét bút chỉ được là nguệch ngoạc vô nghĩa, không thành chữ Hán đọc được.
+- Ba bậc phân biệt bằng **chất giấy và cách đóng**, không chỉ bằng màu: giấy thô buộc dây gai →
+  giấy dó viền lụa → lụa gấm có triện sáp.
+
+---
+
+STYLE CHUNG: Wuxia xianxia game art, semi-realistic painterly digital illustration blended with Chinese ink-wash sensibility, ultra detailed high-quality rendering, soft diffuse studio light from the upper left, restrained saturation with no neon, clean readable silhouette that stays legible at small icon size, square 1:1 composition (500x500), no text, no watermark, no signature, no logo, no border, no frame, no UI element. Negative prompt: text, watermark, signature, logo, readable characters, calligraphy that forms real words, modern objects, blurry, lowres, extra limbs, deformed hands, cartoonish, oversaturated neon colors, cluttered messy background —
+
+---
+
+[duocphuong_12] Nền Dược Phương bậc thấp -> images/items/duocphuong_12.webp
+a single folded apothecary prescription slip on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the slip centred upright and filling about 86% of the frame: a portrait-format sheet of coarse buff-grey mulberry paper with visible fibre flecks and softly frayed edges, the paper creased twice horizontally so the upper and lower thirds fold slightly toward the viewer while the MIDDLE THIRD STAYS FLAT AND COMPLETELY EMPTY, a plain hemp cord tied once around the waist of the slip with two short loose ends, faint smudges of dried herb stain at the lower corners, a thin warm rim-light down the left edge; the central flat area must remain a clean bare paper surface with absolutely nothing drawn on it, no marks, no ink, no ornament
+
+[duocphuong_34] Nền Dược Phương bậc giữa -> images/items/duocphuong_34.webp
+a single folded apothecary prescription slip on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the slip centred upright and filling about 88% of the frame: a portrait-format sheet of fine pale ivory paper edged along both long sides with a narrow band of deep indigo silk, the sheet creased twice so the upper and lower thirds fold gently forward while the MIDDLE THIRD STAYS FLAT AND COMPLETELY EMPTY, a slim brass clasp pinching the top edge, a few loose dried herb leaves tucked under the clasp and just peeking out, cool silver rim-light along the silk bands; the central flat area must remain a clean bare paper surface with absolutely nothing drawn on it, no marks, no ink, no ornament
+
+[duocphuong_5] Nền Dược Phương bậc cao -> images/items/duocphuong_5.webp
+a single folded apothecary prescription slip on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), the slip centred upright and filling about 90% of the frame: a portrait-format panel of lustrous pale gold brocade silk woven with a faint cloud-scroll damask visible only at a glancing angle, its short edges bound in dark lacquered wood battens, the panel creased twice so the upper and lower thirds fold forward while the MIDDLE THIRD STAYS FLAT AND COMPLETELY EMPTY, a round crimson wax seal pressed at the lower right corner well clear of the centre, a slow curl of faint golden vapour rising from behind the top batten, warm gold rim-light; the central flat area must remain a clean bare silk surface with absolutely nothing drawn on it, no marks, no ink, no ornament
