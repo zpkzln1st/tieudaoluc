@@ -638,6 +638,11 @@
                  width:212px; white-space:normal; padding:7px 10px;
                  font-size:11.5px; line-height:1.45; color:#cbd5e1; }
     .gtip-ngang::after{ left:100%; top:calc(50% - 6px); border-left-color:var(--q,#475569); }
+    /* BẢNG LUYỆN — bốn cột, cột nhãn tự bằng nhãn rộng nhất nên ba thanh luôn khởi từ cùng một chỗ.
+       `display:contents` để mỗi hàng của `x-for` nhả thẳng bốn ô con vào lưới. */
+    .luyen-bang{ display:grid; grid-template-columns:max-content 1fr 78px 44px;
+                 align-items:center; column-gap:10px; row-gap:8px; }
+    .luyen-hang{ display:contents; }
     /* MỞ LÊN TRÊN — cho nút hỏi nằm ở đáy khung. */
     .gtip-len{ bottom:calc(100% + 11px); left:0; width:268px; white-space:normal;
                padding:7px 10px; font-size:11.5px; line-height:1.45; color:#cbd5e1; }
@@ -16980,16 +16985,23 @@
         </div>
 
         <div class="px-5 py-3">
-          <div class="flex flex-col gap-2">
+          <!-- ⚠⚠ LƯỚI, không phải ba hàng flex rời. Bản trước cho nhãn `width:34px;flex:none`, mà
+               ô flex KHÔNG co xuống dưới bề rộng chữ: "Thần" rộng 38,9px nên ô phình theo chữ và
+               ba thanh bắt đầu ở 542,7 / 533,6 / 545,9 — lệch 12,3px (đo trên game thật).
+               Cột đầu để `max-content` thì nó tự bằng nhãn RỘNG NHẤT, đúng cả khi đổi sang
+               English ("Essence" dài gấp đôi) hay tiếng Trung (một chữ Hán). Không có số ma. -->
+          <div class="luyen-bang">
             <template x-for="nh in g.DD_NHANH" :key="'ly-'+nh">
-              <div class="flex items-center gap-2.5">
-                <span class="fserif" style="width:34px;flex:none" :style="'color:'+g.DD_NHANH_INFO[nh].mau" x-text="g.DD_NHANH_INFO[nh].ten"></span>
-                <span class="dd-thanh flex-1"><i :style="'width:'+(g.luyenTran ? Math.round(g.luyenDiem[nh]/g.luyenTran*100) : 0)+'%;background:'+g.DD_NHANH_INFO[nh].mau"></i></span>
-                <span class="fserif" style="width:78px;flex:none;text-align:right;font-size:12.5px">
+              <div class="luyen-hang">
+                <span class="fserif" :style="'color:'+g.DD_NHANH_INFO[nh].mau" x-text="g.DD_NHANH_INFO[nh].ten"></span>
+                <span class="dd-thanh"><i :style="'width:'+(g.luyenTran ? Math.round(g.luyenDiem[nh]/g.luyenTran*100) : 0)+'%;background:'+g.DD_NHANH_INFO[nh].mau"></i></span>
+                <span class="fserif" style="text-align:right;font-size:12.5px">
                   <span :style="'color:'+g.DD_NHANH_INFO[nh].mau" x-text="g.luyenDiem[nh]"></span><span class="text-slate-500" x-text="' / '+g.luyenTran"></span>
                 </span>
-                <!-- Chênh lệch của lượt vừa quay: lên xanh, xuống đỏ. Chỉ hiện khi ĐANG có kết quả. -->
-                <span style="width:44px;flex:none;text-align:right;font-size:12.5px" class="fserif"
+                <!-- Chênh lệch của lượt vừa quay: lên xanh, xuống đỏ. Chỉ hiện khi ĐANG có kết quả.
+                     ⚠ Cột này giữ bề ngang CỐ ĐỊNH dù đang trống — để nó co lại thì cả hàng nhảy
+                       ngang mỗi lần bấm Luyện. -->
+                <span style="text-align:right;font-size:12.5px" class="fserif"
                       :class="!g.luyenThu ? '' : (g.luyenThu[nh] > g.luyenDiem[nh] ? 'text-jade' : (g.luyenThu[nh] < g.luyenDiem[nh] ? 'text-rose-400' : 'text-slate-500'))"
                       x-text="!g.luyenThu ? '' : ((g.luyenThu[nh] - g.luyenDiem[nh] > 0 ? '+' : '') + (g.luyenThu[nh] - g.luyenDiem[nh]))"></span>
               </div>
