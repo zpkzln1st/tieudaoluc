@@ -119,3 +119,44 @@ a single alchemical pill cracked open on a FULLY TRANSPARENT background (alpha c
 
 [ddThan9] Thần Đan · Cửu Phẩm -> images/items/ddThan9.webp
 a supreme alchemical relic on a FULLY TRANSPARENT background (alpha channel, no backdrop, no vignette, no ground plane), centred and filling about 88% of the frame: a small captured star of amethyst violet, its core a dense luminous bead ringed by a perfect flat halo disc of pale bone-white incised with seal-script constellation patterns, four long ribbons of glowing violet qi streaming outward and curling like silk in still air, a faint field of suspended motes held in orbit around the whole object, radiating a soft cool bloom without any lens flare, ivory rim-light doubled by a second faint gold highlight from below; unmistakably the summit of the ladder
+
+---
+
+# PHẦN HAI — BA BIỂU TƯỢNG CÒN THIẾU (2026-08-17)
+
+27 viên đan đã có art thật, `DD_ART_THAT` đã bật cho cả ba nhánh. Còn **ba chỗ** đang lấy chữ Hán
+hoặc mượn art đan làm biểu tượng:
+
+| chỗ | đang dùng gì | tệp cần vẽ |
+|---|---|---|
+| Huy hiệu Đan Hồn (9 cái trong lưới, ô 34px) | chữ Hán `魂` gõ thẳng | `images/items/danHon.webp` |
+| Nút mở Đan Điền (đè chân dung, ô 44px) | mượn art `hoiKhiDan` | `images/items/cuaDanDien.webp` |
+| Nút mở bảng Luyện (đè chân dung, ô 44px) | mượn art `bachBaoDan` | `images/items/cuaLuyenDan.webp` |
+
+## Đọc trước khi gen
+
+- Vuông **500×500**, **nền trong suốt**, WebP — giống 27 viên vừa xong.
+- ⚠ **Ba tấm này phải KHÁC HẲN viên đan.** Chúng đứng ngay cạnh đan trong cùng một khung; vẽ ra
+  quả cầu tròn nữa là lẫn. Đan Hồn dùng dáng **ngọn lửa hồn**, hai nút cửa dùng dáng **lò** và
+  **đài sen kép**.
+- ⚠ `danHon` có HAI trạng thái: đã mở và chưa mở. **Chỉ vẽ MỘT tấm — bản đã mở.** Bản chưa mở tôi
+  xử lý bằng CSS (xám + mờ), không cần tệp thứ hai.
+- ⚠ `danHon` hiện ở ô **34px**, nhỏ nhất trong ba tấm. Bóng phải đọc được ở cỡ đó: một khối chính,
+  không chi tiết vụn.
+- Hai nút cửa nằm trên nền đen có viền sáng sẵn (tím cho Đan Điền, lam cho Luyện) nên **đừng vẽ
+  thêm khung hay viền**.
+
+---
+
+STYLE CHUNG: Wuxia xianxia game art, semi-realistic painterly digital illustration blended with Chinese ink-wash sensibility, ultra detailed high-quality rendering, soft diffuse studio light from the upper left, restrained saturation with no neon, clean readable silhouette that stays legible at small icon size, square 1:1 composition (500x500), no text, no watermark, no signature, no logo, no border, no frame, no UI element. Negative prompt: text, watermark, signature, logo, modern objects, blurry, lowres, extra limbs, deformed hands, cartoonish, oversaturated neon colors, cluttered messy background —
+
+---
+
+[danHon] Huy hiệu Đan Hồn -> images/items/danHon.webp
+a single soul-flame emblem on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), centred and filling about 80% of the frame: a teardrop-shaped flame of pale gold spirit-fire burning upright and perfectly still, its outline crisp and calligraphic like a single confident brush stroke, the flame's heart a warm white core that fades to antique gold at the tips, wrapped at its waist by a thin open ring of dark bronze incised with a plain seal-script fret, two small motes of gold light hovering just clear of the flame's tip; the whole silhouette one solid readable shape with no thin wisps and no scattered sparks, so it stays legible when shrunk to a 34 pixel badge
+
+[cuaDanDien] Cửa vào Đan Điền -> images/items/cuaDanDien.webp
+a single alchemy vessel on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), centred and filling about 84% of the frame: a small squat three-legged bronze cauldron seen slightly from above, its shoulder banded with a plain incised meander and its rim turned outward, the vessel's dark patinated bronze catching a thin warm rim-light; rising out of the open mouth a single compact bloom of violet qi that gathers into one small luminous bead hovering a fingerwidth above the rim, the qi kept short and dense so it never leaves the cauldron's outline; grounded solid and heavy, an object a person could lift with both hands
+
+[cuaLuyenDan] Cửa vào bảng Luyện -> images/items/cuaLuyenDan.webp
+a single refining furnace on a FULLY TRANSPARENT background (alpha channel, absolutely no backdrop, no vignette, no ground plane), centred and filling about 84% of the frame: a tall narrow bronze pill-furnace with a domed pierced lid and a stepped foot, its body divided by three vertical ribs, the metal a cool dark bronze with a thin silver-blue rim-light down the left edge; through the pierced lid a bright cold blue-white forge-light glows from within, and three short tongues of that same cold light escape the vents and curl upward, each tongue tinted a different hue — one warm red, one cool blue, one pale violet; the three colours read clearly as three separate flames without touching each other
