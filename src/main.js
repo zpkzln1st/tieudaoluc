@@ -7357,7 +7357,11 @@ const gameStore = {
     if (!this.luyenDuTien) { this.showToast('Không đủ Bạc (cần ' + this.fmt(this.luyenGia) + ').'); return; }
     this.state.currencies.bac -= this.luyenGia;
     const tran = this.luyenTran, r = {};
-    for (const nh of DD_NHANH) r[nh] = Math.floor(Math.random() * (tran + 1));
+    // ⚠⚠ BỘ SINH SỐ CÓ HẠT GIỐNG, không `Math.random()`. Máy chủ phải TÍNH LẠI được mọi đường
+    //   thưởng để bắt gian lận (docs/THIET_KE_ONLINE.md đợt D). Bản trước dùng `Math.random()`
+    //   nên bài kiểm "tính lại được" báo đỏ, và tải lại trang là bốc lại được kết quả khác.
+    //   Miền riêng `luyenDan`: thêm bớt một lần bốc ở đây không xê dịch mọi hệ khác.
+    for (const nh of DD_NHANH) r[nh] = Math.floor(rng(this.state, 'luyenDan') * (tran + 1));
     this.luyenThu = r;
     Storage.save(this.state);
   },

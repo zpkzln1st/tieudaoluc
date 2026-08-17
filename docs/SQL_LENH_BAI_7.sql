@@ -8,7 +8,7 @@
 -- CACH DUNG: Supabase > SQL Editor > dan tron tep nay > Run. Chay lai duoc nhieu lan.
 -- Phai chay SAU khi da chay SQL_LENH_BAI.sql va SQL_LENH_BAI_5.sql.
 --
--- 378 vat pham xep chong. Da bo 72 muc (trang bi + ma khong dung khuon).
+-- 405 vat pham xep chong. Da bo 72 muc (trang bi + ma khong dung khuon).
 -- Gia tri cao nhat: maToTam = 12.000.
 -- ============================================================
 
@@ -376,6 +376,33 @@ insert into public.vat_pham_hop_le (ma, gia_tri) values
   ('eq_minh_vuong_dap_van_ngoa', 5020),
   ('eq_minh_vuong_tran_hon_gioi', 5020),
   ('eq_minh_vuong_tran_bat_dong_boi', 5020),
+  ('ddTinh1', 40),
+  ('ddTinh2', 160),
+  ('ddTinh3', 360),
+  ('ddTinh4', 640),
+  ('ddTinh5', 1000),
+  ('ddTinh6', 1440),
+  ('ddTinh7', 1960),
+  ('ddTinh8', 2560),
+  ('ddTinh9', 3240),
+  ('ddKhi1', 40),
+  ('ddKhi2', 160),
+  ('ddKhi3', 360),
+  ('ddKhi4', 640),
+  ('ddKhi5', 1000),
+  ('ddKhi6', 1440),
+  ('ddKhi7', 1960),
+  ('ddKhi8', 2560),
+  ('ddKhi9', 3240),
+  ('ddThan1', 40),
+  ('ddThan2', 160),
+  ('ddThan3', 360),
+  ('ddThan4', 640),
+  ('ddThan5', 1000),
+  ('ddThan6', 1440),
+  ('ddThan7', 1960),
+  ('ddThan8', 2560),
+  ('ddThan9', 3240),
   ('egg_bachHo_pham', 120),
   ('egg_bachHo_linh', 450),
   ('egg_bachHo_than', 1400),
