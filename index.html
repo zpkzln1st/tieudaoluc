@@ -18168,8 +18168,15 @@
                thì khối này không dựng, hộp giữ nguyên dáng cũ. -->
           <div class="flex items-start gap-3">
             <template x-if="x.anh">
-              <span class="w-14 h-14 shrink-0 rounded-lg border flex items-center justify-center bg-ink/40 text-3xl"
-                    :class="x.anhVien || 'border-slate-600/50'" x-html="x.anh"></span>
+              <!-- Số lượng đứng NGAY TRÊN ảnh như mọi ô vật phẩm khác, không viết thành câu. -->
+              <span class="relative w-14 h-14 shrink-0 rounded-lg border flex items-center justify-center bg-ink/40 text-3xl overflow-hidden"
+                    :class="x.anhVien || 'border-slate-600/50'">
+                <span class="absolute inset-0 flex items-center justify-center p-0.5" x-html="x.anh"></span>
+                <template x-if="x.anhSo">
+                  <span class="absolute bottom-0.5 right-1 text-[11px] font-bold text-slate-100"
+                        style="text-shadow:0 1px 3px rgba(0,0,0,.95)" x-text="x.anhSo"></span>
+                </template>
+              </span>
             </template>
             <div class="text-[13px] text-slate-300 leading-relaxed flex-1 min-w-0" x-html="x.loi"></div>
           </div>

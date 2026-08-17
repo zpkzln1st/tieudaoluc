@@ -7394,10 +7394,11 @@ const gameStore = {
       tieuDe: 'Sử Dụng Đan',
       // ⚠ Đừng ghi thêm "vào ô Nhất Phẩm nhánh Tinh": tên viên ĐÃ mang cả nhánh lẫn phẩm, viết
       //   lại là lặp đúng hai chữ vừa đọc.
-      loi: 'Sử dụng một <b>' + it.name + '</b>.'
-         + this.ddCongMotVienHtml(nh, pham)
-         + 'Trong túi có <b>' + this.fmt(co) + '</b> viên.',
+      // ⚠ Số viên trong túi đứng trên ẢNH dạng "×18", không viết thành câu "Trong túi có 18 viên."
+      //   Mọi ô vật phẩm trong game đều ghi số lượng kiểu đó; viết ra chữ là đẻ khuôn thứ hai.
+      loi: 'Sử dụng một <b>' + it.name + '</b>.' + this.ddCongMotVienHtml(nh, pham),
       anh: this.ico(id, it.icon),
+      anhSo: '×' + this.fmt(co),
       anhVien: (this.QUALITY[it.quality] || {}).border || '',
       canhBao: 'Dùng rồi không lấy lại được.',
       nut: 'Sử Dụng',
