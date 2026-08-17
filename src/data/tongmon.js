@@ -140,16 +140,24 @@ export const PILLS = {
 };
 export const PILL_KEYS = Object.keys(PILLS);
 export const PILL_BY_REALM = {}; PILL_KEYS.forEach((k) => { PILL_BY_REALM[PILLS[k].realm] = k; });
-// Đột phá realm R: cần 1 đan PILL_BY_REALM[R] + Hồn Thạch (main, 1 chiều). DRAFT.
+// Đột phá realm R: cần 1 đan PILL_BY_REALM[R] + Hồn Thạch (main, 1 chiều).
+// CHỐT (đo 2026-08-17): cả thang cộng lại 72.000 Hồn Thạch cho MỘT đệ tử lên Đắc Đạo, tức
+//   ~139 ngày nếu dồn toàn bộ Hồn Thạch từ Bí Cảnh mạnh nhất (520/ngày). Nhưng sáu cảnh đầu
+//   chỉ tốn 13.000 (~25 ngày) — hai cảnh chót ngốn 48.000. Đó là chủ ý: Đắc Đạo là mốc của
+//   số ít, không phải chặng ai cũng đi.
 export const BREAK_HONTHACH = [100, 300, 800, 1800, 3500, 6500, 11000, 18000, 30000];
 
-// ===== THIÊN KIẾP: đột phá CẢNH CAO (realm 7,8) = độ kiếp có RỦI RO. realm 8->9 (Đắc Đạo) thất bại CÓ THỂ TỬ VONG. Cảnh thấp vẫn đột phá tức thì. DRAFT. =====
+// ===== THIÊN KIẾP: đột phá CẢNH CAO (realm 7,8) = độ kiếp có RỦI RO. realm 8->9 (Đắc Đạo) thất bại CÓ THỂ TỬ VONG. Cảnh thấp vẫn đột phá tức thì. =====
+// CHỐT: đệ tử thường + đan Hạ Phẩm + Khí Vận 50 đi đúng tỉ lệ nền (74% / 56%). Đệ tử Thiên tư
+//   + đan Cực Phẩm + Khí Vận 90 chạm trần 95%. Ở Cửu Cửu, người chơi giỏi nhất vẫn chịu kỳ
+//   vọng mất 2% đệ tử — đủ để có sức nặng mà không thành trò may rủi.
 // key = realm ĐANG đột phá TỪ (doBreakthrough đọc d.realm trước khi tăng). baseOdds = tỉ lệ thành nền.
 export const THIEN_KIEP = {
   7: { name: 'Đại Thừa Thiên Kiếp', baseOdds: 0.74, deadly: false, deathOnFail: 0 },    // Đại Thừa -> Độ Kiếp: thất bại = tổn đạo, KHÔNG chết
   8: { name: 'Cửu Cửu Thiên Kiếp',  baseOdds: 0.56, deadly: true,  deathOnFail: 0.40 },  // Độ Kiếp -> Đắc Đạo: thất bại có thể HỒN PHI PHÁCH TÁN
 };
-export const KIEP_CD_H = 12;   // giờ tĩnh dưỡng giữa 2 lần độ kiếp sau khi thất bại (DRAFT)
+export const KIEP_CD_H = 12;   // giờ tĩnh dưỡng giữa 2 lần độ kiếp sau khi thất bại
+// CHỐT: đệ tử thường chờ trung bình 4 giờ ở Đại Thừa, 9 giờ ở Cửu Cửu.
 export function thienKiepOf(realm) { return THIEN_KIEP[realm] || null; }
 // Tỉ lệ THÀNH công độ kiếp (0..1): nền + phẩm đan (phamBonus) − gánh nặng tâm ma (0.05/bậc) + Khí Vận + tư chất.
 export function kiepOdds(d, phamBonus, khiVan) {
@@ -158,13 +166,17 @@ export function kiepOdds(d, phamBonus, khiVan) {
   if (d.apt === 'thien') p += 0.10; else if (d.apt === 'tuyet') p += 0.04;
   return Math.max(0.05, Math.min(0.95, p));
 }
-// Luyện đan TỐN THỜI GIAN (lò Y Quán): giờ chín theo từng đan (DRAFT, scale theo cảnh giới).
+// Luyện đan TỐN THỜI GIAN (lò Y Quán): giờ chín theo từng đan, dài dần theo cảnh giới.
+// CHỐT: cả chín viên cộng lại 154 giờ = 6,4 ngày nếu chỉ có một lò.
 export const PILL_BREW_H = { trucCoDan: 2, ketDanDan: 3, ngungAnhDan: 5, hoaThanDan: 8, quyHuDan: 12, hopDaoDan: 16, daiThuaDan: 24, doKiepDan: 36, phiThangDan: 48 };
 export function pillBrewH(pillId) { return PILL_BREW_H[pillId] || 4; }
-// Số LÒ luyện song song theo bậc Y Quán (DRAFT): Bậc 1 = 1 lò, +1 mỗi 3 bậc.
+// Số LÒ luyện song song theo bậc Y Quán: Bậc 1 = 1 lò, +1 mỗi 3 bậc.
+// CHỐT: bậc 9 có 4 lò, kéo 154 giờ xuống còn 1,6 ngày.
 export function yQuanFurnaces(lv) { return 1 + Math.floor((lv || 0) / 3); }
 
-// ===== ĐAN PHẨM (phẩm chất đan) — roll lúc KHỞI LÒ theo bậc Y Quán + Khí Vận. breakBonus = CỘNG vào tỉ lệ vượt Thiên Kiếp (hệ Thiên Kiếp dùng). Lưu SONG SONG t.pillQual, t.pills giữ TỔNG (save-safe). DRAFT. =====
+// ===== ĐAN PHẨM (phẩm chất đan) — roll lúc KHỞI LÒ theo bậc Y Quán + Khí Vận. breakBonus = CỘNG vào tỉ lệ vượt Thiên Kiếp (hệ Thiên Kiếp dùng). Lưu SONG SONG t.pillQual, t.pills giữ TỔNG (save-safe). =====
+// CHỐT: Cực Phẩm +24% là thứ đưa Cửu Cửu Thiên Kiếp từ 56% lên sát trần 95% — nên nuôi Y Quán
+//   bậc cao có việc rõ ràng, không phải trang trí.
 export const PILL_PHAM = [
   { key: 'ha',     name: 'Hạ Phẩm',     short: 'Hạ',     color: '#94a3b8', breakBonus: 0.00 },
   { key: 'trung',  name: 'Trung Phẩm',  short: 'Trung',  color: '#34d399', breakBonus: 0.06 },
@@ -188,35 +200,47 @@ export function rollPillPham(yQuanLv, khiVan, rnd) {
 }
 
 // ===== LỊCH LUYỆN: phái đệ tử RẢNH đi kiếm nguyên liệu (nguồn chính, không mua-điểm) =====
-export const LICH_LUYEN_H = 4;   // giờ thực / chuyến (DRAFT)
+export const LICH_LUYEN_H = 4;   // giờ thực / chuyến — CHỐT: 6 chuyến/ngày/đệ tử rảnh
 export function lichLuyenTier(realm) { return realm <= 1 ? 1 : (realm <= 3 ? 2 : 3); }   // bậc liệu theo cảnh giới đệ tử
 
 // ===== DƯỢC VIÊN: trồng nguyên liệu idle (luống · gieo -> chờ giờ thực -> thu tay). Nguồn liệu phụ, idle thật. =====
-export const DUOC_PLOT_BASE = 2;                  // số luống ở Bậc 1 (DRAFT)
-export const DUOC_GROW_H = { 1: 2, 2: 5, 3: 10 }; // giờ chín theo BẬC nguyên liệu (DRAFT)
-export const DUOC_YIELD  = { 1: 4, 2: 3, 3: 2 };  // thu hoạch / luống theo bậc liệu (DRAFT)
+// ⚠⚠ `duocMaxTier` là TRẦN, không phải bậc bắt buộc gieo: người chơi tự chọn trồng liệu bậc nào.
+//   Dược Viên bậc 5 trồng liệu bậc 1 ra 288 liệu/ngày, trồng bậc 3 ra 29 — chậm hơn vì liệu quý
+//   hơn, KHÔNG phải nâng cấp bị phạt. (Đo lần đầu tưởng ngược, đọc `sowPlot` mới rõ.)
+export const DUOC_PLOT_BASE = 2;                  // số luống ở Bậc 1
+export const DUOC_GROW_H = { 1: 2, 2: 5, 3: 10 }; // giờ chín theo BẬC nguyên liệu
+export const DUOC_YIELD  = { 1: 4, 2: 3, 3: 2 };  // thu hoạch / luống theo bậc liệu
+// CHỐT: một đệ tử cần 71 liệu bậc 3 cho năm lần đột phá chót — Dược Viên bậc 5 gánh trong 2,4 ngày.
 export function duocPlotCount(t) { const lv = (t && t.buildings && t.buildings.duocVien) || 0; return lv < 1 ? 0 : DUOC_PLOT_BASE + (lv - 1); }   // Bậc1=2 luống, +1/bậc
 export function duocMaxTier(t) { const lv = (t && t.buildings && t.buildings.duocVien) || 0; return lv <= 2 ? 1 : (lv <= 4 ? 2 : 3); }            // trồng tới bậc liệu nào
 
 // ===== LUYỆN KHÍ CÁC: cường hóa Gia Bảo đệ tử — SIDE-ONLY, ghi inst.tmPlus (chỉ gearPow đọc; reclaim xóa). =====
-export function lkcMaxPlus(lv) { return (lv || 0) < 1 ? 0 : 3 * (lv || 0); }   // trần tmPlus = 3 × bậc Luyện Khí Các (DRAFT)
-export function lkcStep(tmPlus) { const p = tmPlus || 0; return { mat: 'mat_huyenthiet', matQty: 2 + p, honThach: Math.round(60 * Math.pow(1.45, p)) }; }   // liệu để lên tmPlus+1 (DRAFT)
+export function lkcMaxPlus(lv) { return (lv || 0) < 1 ? 0 : 3 * (lv || 0); }   // trần tmPlus = 3 × bậc Luyện Khí Các
+// CHỐT: Luyện Khí Các bậc 5 (trần +15) tốn 34.979 Hồn Thạch + 135 Huyền Thiết cho MỘT món Gia Bảo.
+//   Đắt ngang nửa thang đột phá, và đó là chủ ý: đây là chỗ TIÊU Hồn Thạch dài hạn, side-only.
+export function lkcStep(tmPlus) { const p = tmPlus || 0; return { mat: 'mat_huyenthiet', matQty: 2 + p, honThach: Math.round(60 * Math.pow(1.45, p)) }; }   // liệu để lên tmPlus+1
 
 // ===== GIẢNG ĐẠO ĐƯỜNG: thính giảng idle -> +1 TRẦN tư chất (capBonus). Tối đa +2/đệ tử; Đắc Đạo vẫn độc quyền Thiên (luật disciCap). =====
-export const GIANG_H = 48;            // giờ thực / khóa thính giảng (+1 trần) — DRAFT
+export const GIANG_H = 48;            // giờ thực / khóa thính giảng (+1 trần)
+// CHỐT: 4 ngày để một đệ tử ăn hết +2 trần tư chất.
 export const GIANG_MAX_BONUS = 2;     // trần cộng tối đa từ Giảng Đạo / đệ tử
 export function giangSeats(lv) { return lv || 0; }   // số ghế thính giảng đồng thời = bậc công trình
 
-// ===== GIỚI LUẬT ĐƯỜNG: răn dạy đệ tử sinh tâm ma / cờ xấu -> gột cờ xấu + giảm tâm ma (mạnh theo bậc). DRAFT. =====
+// ===== GIỚI LUẬT ĐƯỜNG: răn dạy đệ tử sinh tâm ma / cờ xấu -> gột cờ xấu + giảm tâm ma (mạnh theo bậc). =====
+// CHỐT: nghỉ 6 giờ giữa hai lần răn, gột 1 bậc tâm ma ở công trình bậc 1 và 5 bậc ở bậc 9 —
+//   tức bậc 9 gột trọn thang TAMMA_MAX trong một lần.
 export const GIOI_LUAT_CD_H = 6;                                                  // giờ tĩnh tâm giữa 2 lần răn 1 đệ tử
 export const GIOI_LUAT_BAD_FLAGS = ['oanTham', 'tamMaSeed', 'batPhuc', 'phatPhan'];   // cờ xấu Giới Luật gột được
 export function gioiLuatPotency(lv) { return 1 + Math.floor((lv || 1) / 2); }     // số bậc tâm ma gột mỗi lần (theo bậc công trình)
 
-// ===== LUẬN VÕ ĐƯỜNG: tỉ thí đệ tử (kết quả SIDE-ONLY: uy/record cosmetic, KHÔNG sinh power về main). DRAFT. =====
+// ===== LUẬN VÕ ĐƯỜNG: tỉ thí đệ tử (kết quả SIDE-ONLY: uy/record cosmetic, KHÔNG sinh power về main). =====
+// CHỐT: hồi sức 2 giờ nên một đệ tử đấu tối đa 12 trận/ngày, mỗi trận thắng 8 Uy Danh.
 export const LUANVO_CD_H = 2;        // giờ hồi sức của đấu sĩ sau 1 trận
 export const LUANVO_WIN_UY = 8;      // Uy Danh thưởng người thắng (cosmetic, side-only)
 
-// ===== ĐÃI KHÁCH CÁC: bang giao bot-sect. rep -> bậc giao tình (Người Lạ/Sơ Giao/Hữu Hảo/Kết Minh). Thưởng SIDE-ONLY (uy/mats/cosmetic, KHÔNG bac/honThach/power). DRAFT. =====
+// ===== ĐÃI KHÁCH CÁC: bang giao bot-sect. rep -> bậc giao tình (Người Lạ/Sơ Giao/Hữu Hảo/Kết Minh). Thưởng SIDE-ONLY (uy/mats/cosmetic, KHÔNG bac/honThach/power). =====
+// CHỐT: chỉ Tiếp Đãi (8 giao tình, nghỉ 8 giờ) thì cần 15 lần = 5 ngày mới lên Kết Minh (120).
+//   Tặng Lễ 22 giao tình rút xuống 6 lần, đổi lại tốn 60 Điểm Đấu Giá mỗi lần.
 export const DIPLO_HOST_REP = 8;          // giao tình mỗi lần Tiếp Đãi
 export const DIPLO_HOST_UY = 4;           // uy mỗi Tiếp Đãi
 export const DIPLO_HOST_CD_H = 8;         // giờ giữa 2 lần tiếp đãi 1 sect
@@ -234,7 +258,7 @@ export const DIPLO_TIERS = [
 export function diploTier(rep) { let cur = DIPLO_TIERS[0]; for (const x of DIPLO_TIERS) if ((rep || 0) >= x.min) cur = x; return cur; }
 export function diploNextMin(rep) { for (const x of DIPLO_TIERS) if ((rep || 0) < x.min) return x.min; return null; }   // ngưỡng bậc kế (null = đã max)
 
-// ===== BÍ KÍP / VÕ HỌC (Tàng Thư Lâu cho đệ tử LĨNH NGỘ). Bậc giống main (Sơ/Trung/Cao/Tuyệt). Hiệu ứng SIDE-ONLY (disciStats/Luận Võ/Uy, KHÔNG về combat main). DRAFT. =====
+// ===== BÍ KÍP / VÕ HỌC (Tàng Thư Lâu cho đệ tử LĨNH NGỘ). Bậc giống main (Sơ/Trung/Cao/Tuyệt). Hiệu ứng SIDE-ONLY (disciStats/Luận Võ/Uy, KHÔNG về combat main). =====
 // Bậc: mul = hệ số nhân hiệu ứng, learnH = giờ lĩnh ngộ, weight = độ phổ biến (sơ/trung dễ, cao/tuyệt hiếm). Màu khớp votong TIER_STYLE.
 export const BI_KIP_TIER = {
   'sơ':    { key: 'sơ',    name: 'Sơ',    mul: 1.0, learnH: 6,  weight: 50, color: '#cbd5e1' },
@@ -286,7 +310,9 @@ export function biKipPower(bk) { return bk ? Math.round(55 * ((BI_KIP_TIER[bk.ti
 export function biKipSlotMax(realm) { return 1 + Math.floor((realm || 0) / 2); }   // trần số bí kíp học được theo cảnh giới (realm 0→1 ... 9→5)
 export function biKipLearnH(bk) { return bk ? ((BI_KIP_TIER[bk.tier] || {}).learnH || 6) : 6; }
 
-// --- ĐẤU GIÁ BÍ KÍP: phiên rao bán N lô bí kíp ở Đấu Giá Hội, làm mới mỗi BK_AUCTION_REFRESH_H giờ. Tiêu Điểm Đấu Giá (sinh từ Tàng Thư Lâu). Bậc cao hiếm + GATE theo cấp Tàng Thư Lâu (kho càng giàu, bí lục càng quý). SIDE-ONLY. DRAFT — tune. ---
+// --- ĐẤU GIÁ BÍ KÍP: phiên rao bán N lô bí kíp ở Đấu Giá Hội, làm mới mỗi BK_AUCTION_REFRESH_H giờ. Tiêu Điểm Đấu Giá (sinh từ Tàng Thư Lâu). Bậc cao hiếm + GATE theo cấp Tàng Thư Lâu (kho càng giàu, bí lục càng quý). SIDE-ONLY. ---
+// CHỐT: 4 lô mỗi phiên, làm mới 8 giờ = 12 lô/ngày. Lô Tuyệt 1.600 Điểm và chỉ xuất hiện từ
+//   Tàng Thư Lâu bậc 5 — đó là hàng rào chính, giá chỉ là hàng rào phụ.
 export const BK_AUCTION_SLOTS = 4;            // số lô mỗi phiên
 export const BK_AUCTION_REFRESH_H = 8;        // giờ làm mới phiên (bán hết -> đợi phiên sau = rate-limit "assist CHẬM")
 export const BK_AUCTION_PRICE = { 'sơ': 60, 'trung': 200, 'cao': 650, 'tuyệt': 1600 };   // Điểm theo bậc
@@ -310,8 +336,9 @@ export function genBkAuction(tangThuLv, rnd) {
   return lots;
 }
 
-// --- RƠI BÍ KÍP TỪ BÍ CẢNH (main -> phụ 1 chiều, vào biKipBag tông môn). Bậc tối đa GATE theo độ khó phó bản (reqLevel): bí lục quý chỉ rơi ở bí cảnh thâm sâu. SIDE-ONLY. DRAFT. ---
-export const BICANH_BK_CHANCE = 0.06;   // xác suất nền khi THÔNG QUAN (×mode doPhoMul ×cơ duyên) — tune
+// --- RƠI BÍ KÍP TỪ BÍ CẢNH (main -> phụ 1 chiều, vào biKipBag tông môn). Bậc tối đa GATE theo độ khó phó bản (reqLevel): bí lục quý chỉ rơi ở bí cảnh thâm sâu. SIDE-ONLY. ---
+export const BICANH_BK_CHANCE = 0.06;   // xác suất nền khi THÔNG QUAN (×mode doPhoMul ×cơ duyên)
+// CHỐT: 6%, ĐÚNG BẰNG tỉ lệ rơi đan Đan Điền — hai đường thưởng phụ của Bí Cảnh đi cùng nhịp.
 export function biCanhBkMaxTier(reqLevel) {
   const lv = reqLevel || 0;
   if (lv >= 90) return 'tuyệt';
@@ -329,8 +356,11 @@ export function rollBiCanhBiKip(reqLevel, rnd) {
   return pool[0].id;
 }
 
-// --- DANH SĨ TRUYỀN DẠY BÍ KÍP (main -> phụ): bậc theo thực lực danh sĩ (rankPower), ưu tiên trùng ngũ hành. DETERMINISTIC (hashVal từ h32 phía gọi). capTier giới hạn bậc (kỳ ngộ không gate -> cap Trung; bái sư gate Uy cao -> tới Tuyệt). SIDE-ONLY. DRAFT. ---
-// --- HỢP NHẤT BÍ KÍP: gộp K bí kíp cùng bậc (trùng / dư) -> 1 bí kíp NGẪU NHIÊN bậc kế. Sink cho bản dư + đường lên Cao/Tuyệt không thuần RNG. Tuyệt không hợp lên. DRAFT. ---
+// --- DANH SĨ TRUYỀN DẠY BÍ KÍP (main -> phụ): bậc theo thực lực danh sĩ (rankPower), ưu tiên trùng ngũ hành. DETERMINISTIC (hashVal từ h32 phía gọi). capTier giới hạn bậc (kỳ ngộ không gate -> cap Trung; bái sư gate Uy cao -> tới Tuyệt). SIDE-ONLY. ---
+// CHỐT: mốc thực lực 620 / 760 / 880 chia bốn bậc; kỳ ngộ chặn ở Trung nên Tuyệt chỉ tới từ
+//   bái sư danh sĩ mạnh — một đường, không hai.
+// --- HỢP NHẤT BÍ KÍP: gộp K bí kíp cùng bậc (trùng / dư) -> 1 bí kíp NGẪU NHIÊN bậc kế. Sink cho bản dư + đường lên Cao/Tuyệt không thuần RNG. Tuyệt không hợp lên. ---
+// CHỐT: 3 Sơ ra 1 Trung, 3 Trung ra 1 Cao, 2 Cao ra 1 Tuyệt ⇒ 18 quyển Sơ đổi được 1 Tuyệt.
 export const BK_MERGE_N = { 'sơ': 3, 'trung': 3, 'cao': 2 };
 export function danhSiBiKipId(rankPower, he, hashVal, capTier) {
   const rp = rankPower || 500;
@@ -345,7 +375,9 @@ export function danhSiBiKipId(rankPower, he, hashVal, capTier) {
   return use[(hashVal >>> 0) % use.length].id;
 }
 
-// ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. DRAFT — tune theo cảm giác. =====
+// ===== TÂM MA KIẾP: tích lũy tâm ma (SỐ d.tamMaLv/tamMaXp) -> nổ KIẾP khi đầy bậc. HYBRID: bậc thấp tự áp chế (auto), bậc cao (>=CHOICE) thành SỰ KIỆN CHỌN. =====
+// CHỐT: 240 giờ nền cho một bậc = 10 ngày, tức đệ tử KHÔNG cờ xấu gần như không bao giờ tự tới
+//   bậc 3 (30 ngày). Tâm ma là hệ quả của CỜ XẤU, không phải đồng hồ đếm ngược của mọi đệ tử.
 export const TAMMA_MAX = 5;            // bậc tâm ma tối đa
 export const TAMMA_BASE_H = 240;       // giờ thực để đầy 1 bậc ở NỀN (không cờ) — chill, hiếm khi tự tới
 export const TAMMA_CHOICE_LV = 3;      // tamMaLv (sau khi tăng) >= mức này -> kiếp thành SỰ KIỆN CHỌN (drama); dưới -> auto tự áp chế
@@ -373,7 +405,7 @@ export function tamMaMult(d, dao) {
 }
 
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
-// cost DRAFT — tune. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
+// CHỐT: giá 80 -> 400 Điểm. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
 export const TM_SHOP = [
   { id: 'khiVan',  name: 'Khí Vận Phù',       han: '運', cost: 80,  color: '#22d3ee', desc: 'Tế trời cầu vận — +15 Khí Vận tông môn (tối đa 100).' },
   { id: 'recruit', name: 'Chiêu Hiền Lệnh',   han: '賢', cost: 150, color: '#34d399', desc: 'Truyền hịch khắp giang hồ — làm mới lứa Chiêu Hiền, tư chất vượt trội hơn hẳn.' },
@@ -382,7 +414,9 @@ export const TM_SHOP = [
   { id: 'rename',  name: 'Đổi Tên Tông Môn',  han: '名', cost: 300, color: '#f5b942', desc: 'Khắc lại biển hiệu sơn môn — đặt một tên mới cho tông.', input: true },
   { id: 'dao',     name: 'Cải Đạo Tông Môn',  han: '道', cost: 400, color: '#e879f9', desc: 'Chuyển hướng đạo thống (Chính / Tà / Trung Dung) — đổi cách giang hồ nhìn tông.', dao: true },
 ];
-// chi phí nâng 1 công trình lên bậc kế (DRAFT — TUNE): theo bậc hiện tại
+// chi phí nâng 1 công trình lên bậc kế: theo bậc hiện tại
+// CHỐT: hệ số 1,9 mỗi bậc — bậc 1 tốn 800 Bạc, bậc 5 tốn 10.435, bậc 9 tốn 135.949. Nâng một
+//   công trình lên bậc 9 hết ~285.000 Bạc, cỡ một tuần cày Bạc dồn hết vào Tông Môn.
 export function buildCost(lv) { return { bac: Math.round(800 * Math.pow(1.9, lv)), congHien: Math.round(40 * Math.pow(1.7, lv)) }; }
 
 // ---- Sinh 1 đệ tử ngẫu nhiên (ứng viên chiêu mộ / starter) ----
