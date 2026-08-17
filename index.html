@@ -630,6 +630,18 @@
               width:auto; white-space:nowrap; padding:6px 10px; }
     .gtip-dn::after{ top:-12px; left:calc(50% - 6px); border-bottom-color:var(--q,#475569); }
     .dd-tip:hover .gtip{ opacity:1; transition-delay:.06s; }
+    /* MỞ SANG TRÁI, canh giữa theo chiều dọc — cho ô nằm sát mép phải trong khung CÓ CUỘN.
+       ⚠ Mở xuống (`gtip-dn`) thì hàng cuối bị chính khung cuộn cắt cụt. */
+    /* ⚠ BỀ NGANG CỐ ĐỊNH, không `width:auto`: phần tử tuyệt đối cho xuống dòng thì co theo khung
+       cha — khung cha đây là ô 34px nên tooltip teo thành một cột chữ dọc. Đo thật mới thấy. */
+    .gtip-ngang{ right:calc(100% + 11px); top:50%; transform:translateY(-50%);
+                 width:212px; white-space:normal; padding:7px 10px;
+                 font-size:11.5px; line-height:1.45; color:#cbd5e1; }
+    .gtip-ngang::after{ left:100%; top:calc(50% - 6px); border-left-color:var(--q,#475569); }
+    /* MỞ LÊN TRÊN — cho nút hỏi nằm ở đáy khung. */
+    .gtip-len{ bottom:calc(100% + 11px); left:0; width:268px; white-space:normal;
+               padding:7px 10px; font-size:11.5px; line-height:1.45; color:#cbd5e1; }
+    .gtip-len::after{ bottom:-12px; left:9px; border-top-color:var(--q,#475569); }
     .gtip-up{ bottom:calc(100% + 15px); left:0; }
     .gtip-up::after{ bottom:-12px; left:calc(var(--mui,38px) - 6px); border-top-color:var(--q,#475569); }
     .gtip::after{ content:""; position:absolute; border:6px solid transparent; }
@@ -16862,9 +16874,27 @@
                 </span>
                 <!-- ⚠ Trước đây ô này là chữ Hán 魂 gõ thẳng. Nay là art thật; CHỈ MỘT tấm, trạng
                      thái chưa mở xử lý bằng bộ lọc xám ở CSS chứ không cần tệp ảnh thứ hai. -->
-                <span class="dd-hon" :class="g.ddHonDaMo.includes(i+1) ? 'mo' : ''"
-                      :title="'Đan Hồn ' + g.DD_PHAM_TEN[i] + (g.ddHonDaMo.includes(i+1) ? ' — đã mở' : ' — cần lấp đủ ' + g.DD_PHAM_TEN[i] + ' ở cả ba nhánh')">
-                  <span class="dd-hon-ic" x-html="g.ico('danHon', '')"></span>
+                <!-- ⚠ Tooltip dùng `.gtip` của game, KHÔNG dùng `title` gốc: tooltip trần của trình
+                     duyệt lệch hẳn khuôn, hiện chậm, và đè lên lưới. Mở SANG TRÁI vì ô nằm sát mép
+                     phải; mở xuống thì hàng cuối bị khung cuộn cắt cụt. -->
+                <span class="dd-tip relative inline-flex shrink-0" style="--q:#c9962f">
+                  <span class="dd-hon" :class="g.ddHonDaMo.includes(i+1) ? 'mo' : ''">
+                    <span class="dd-hon-ic" x-html="g.ico('danHon', '')"></span>
+                  </span>
+                  <!-- ⚠ Chữ và SỐ tách thành hai node riêng. Ghép cả câu trong một `x-text` thì
+                       lớp phủ dịch phải tra nguyên câu CÓ SỐ ở giữa — không khoá nào khớp, bản
+                       EN/ZH đứng nguyên tiếng Việt. Ảnh chụp bản tiếng Trung mới lộ ra. -->
+                  <span class="gtip gtip-ngang">
+                    <b class="fserif text-amber-200"><span>Đan Hồn</span> <span x-text="g.DD_PHAM_TEN[i]"></span></b>
+                    <span class="block mt-0.5"><span>Cộng thêm</span>
+                      <b x-text="Math.round(g.DD_HON_THUONG[i]*100) + '%'"></b>
+                      <span>lên toàn bộ chỉ số Đan Điền.</span></span>
+                    <!-- Điều kiện chỉ hiện khi nó đang CHẶN. -->
+                    <template x-if="!g.ddHonDaMo.includes(i+1)">
+                      <span class="block mt-0.5 text-slate-400"><span>Cần lấp đủ</span>
+                        <span x-text="g.DD_PHAM_TEN[i]"></span> <span>ở cả ba nhánh.</span></span>
+                    </template>
+                  </span>
                 </span>
               </div>
             </template>
@@ -16893,13 +16923,29 @@
             </div>
           </div>
 
+          <!-- ⚠ Hai nút hỏi này cũng bỏ `title` gốc, dùng `.gtip` như mọi chỗ khác. Mở LÊN TRÊN vì
+               chúng nằm ở đáy khung. -->
           <div class="flex items-center gap-4 mt-2.5 flex-wrap">
-            <span class="flex items-center gap-1.5">
-              <span class="dd-hoi" :title="'Nhất Phẩm đến ' + g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI-1] + ' nấu ở Dược Lư.&#10;Từ ' + g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI] + ' trở lên chỉ rơi từ Yêu Vương và Bí Cảnh.'">?</span>
+            <span class="dd-tip relative inline-flex items-center gap-1.5" style="--q:#475569">
+              <span class="dd-hoi">?</span>
               <span style="font-size:11.5px;color:#64748b">Nguồn đan</span>
+              <span class="gtip gtip-len">
+                <span class="block"><span>Nhất Phẩm đến</span>
+                  <span x-text="g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI-1]"></span> <span>nấu ở Dược Lư.</span></span>
+                <span class="block mt-0.5"><span>Từ</span>
+                  <span x-text="g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI]"></span>
+                  <span>trở lên chỉ rơi từ Yêu Vương và Bí Cảnh.</span></span>
+              </span>
             </span>
-            <span class="flex items-center gap-1.5">
-              <span class="dd-hoi" title="Lấp đủ một phẩm ở cả ba nhánh thì mở Đan Hồn phẩm đó.&#10;Đan Hồn cộng thêm phần trăm lên chính ba chỉ số.">?</span>
+            <span class="dd-tip relative inline-flex items-center gap-1.5" style="--q:#c9962f">
+              <span class="dd-hoi">?</span>
+              <span class="gtip gtip-len">
+                <span class="block">Lấp đủ một phẩm ở cả ba nhánh thì mở Đan Hồn phẩm đó.</span>
+                <span class="block mt-0.5"><span>Chín Đan Hồn cộng thêm</span>
+                  <b x-text="g.ddHonThuongTxt"></b> <span>lên toàn bộ chỉ số Đan Điền.</span></span>
+                <span class="block mt-0.5 text-amber-200"><span>Mở hết là</span>
+                  <b x-text="'+' + Math.round(g.ddHonTongPct*100) + '%'"></b></span>
+              </span>
               <span style="font-size:11.5px;color:#64748b">Đan Hồn</span>
               <span class="fserif gold-text" style="font-size:12.5px" x-text="g.ddHonDaMo.length + ' / 9'"></span>
               <template x-if="g.ddHonPct > 0">

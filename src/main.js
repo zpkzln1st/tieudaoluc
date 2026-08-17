@@ -7280,7 +7280,7 @@ const gameStore = {
   moDanDien() { this.ddMo = true; },
   dongDanDien() { this.ddMo = false; },
   chonDdNhanh(nh) { if (DD_NHANH.includes(nh)) this.ddNhanh = nh; },
-  DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI,
+  DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_HON_THUONG,
   get ddBang() { return ddBang(this.state); },
   get ddTongO() { return DD_TONG_O; },
   get ddDaNap() { return ddDemTong(this.state).da; },
@@ -7302,6 +7302,9 @@ const gameStore = {
     return chi;
   },
   get ddHonPct() { return ddHonDaMo(this.state).reduce((s, p) => s + (DD_HON_THUONG[p - 1] || 0), 0); },
+  // Bậc thang thưởng của chín Đan Hồn, và tổng khi mở hết — người chơi hỏi "cái này cộng bao nhiêu".
+  get ddHonThuongTxt() { return DD_HON_THUONG.map((v) => Math.round(v * 100) + '%').join(' · '); },
+  get ddHonTongPct() { return DD_HON_THUONG.reduce((s, v) => s + v, 0); },
   // ⚠ Nhãn lấy ĐÚNG tên game đã đặt (gear.js): "Kháng Tất Cả", "Giảm Thời Gian Khống Chế".
   //   Đừng bịa nhãn mới — người chơi chưa từng gặp ở đâu khác.
   ddNhanChiSo(k) {

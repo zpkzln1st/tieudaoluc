@@ -14668,4 +14668,13 @@ export const DICT = {
   "Trong túi có": "In your bag:",
   "viên.": "pills.",
   "ô.": "slots.",
+  "% lên toàn bộ chỉ số Đan Điền.": "% to every Dantian stat.",
+  "lên toàn bộ chỉ số Đan Điền.": "to every Dantian stat.",
+  "Cần lấp đủ": "Must fill all of",
+  "ở cả ba nhánh.": "in all three branches.",
+  "Chín Đan Hồn cộng thêm": "The nine Pill Souls add",
+  "Lấp đủ một phẩm ở cả ba nhánh thì mở Đan Hồn phẩm đó.": "Fill one grade in all three branches to unlock that Pill Soul.",
+  "Mở hết là": "All nine give",
+  "Tinh": "Essence",
+  "nấu ở Dược Lư.": "are brewed at the Medicine Furnace.",
 };
