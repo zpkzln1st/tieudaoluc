@@ -6230,19 +6230,20 @@
                             get trong(){ return $store.game.ddConTrong(m.nhanh, m.pham) },
                             get het(){ return Math.min(m.qty || 0, $store.game.ddConTrong(m.nhanh, m.pham)) } }">
                     <div class="rounded-lg bg-ink3/50 border px-3 py-2.5 mb-3" :class="$store.game.QUALITY[m.quality].border">
+                      <div class="text-[11.5px] text-emerald-300 mb-1.5" x-text="g.ddCongMotVienTxt(m.nhanh, m.pham)"></div>
+                      <!-- ⚠ Đừng nhắc lại tên ô: dòng mô tả ngay trên đã ghi "lấp một ô Khí Tam Phẩm". -->
                       <div class="text-[11.5px] mb-2" :class="trong > 0 ? 'text-slate-300' : 'text-slate-500'">
-                        <span x-text="'Ô ' + g.DD_NHANH_INFO[m.nhanh].ten + ' ' + g.DD_PHAM_TEN[m.pham-1]"></span>
-                        <template x-if="trong > 0"><span> còn trống <b class="text-emerald-300" x-text="trong"></b>.</span></template>
-                        <template x-if="trong <= 0"><span> đã đầy.</span></template>
+                        <template x-if="trong > 0"><span>Còn trống <b class="text-emerald-300" x-text="trong"></b> ô.</span></template>
+                        <template x-if="trong <= 0"><span>Ô này đã đầy.</span></template>
                       </div>
                       <template x-if="trong > 0 && (m.qty||0) > 0">
                         <div class="flex flex-wrap gap-2">
                           <button @click="g.napDanDien(m.id, 1)"
-                            class="px-3 py-1.5 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition">Nạp Một Viên</button>
+                            class="px-3 py-1.5 rounded-lg text-[12px] font-bold bg-amber-600/85 hover:bg-amber-500 text-ink transition">Dùng Một Viên</button>
                           <template x-if="het > 1">
                             <button @click="g.napDanDien(m.id, het)"
                               class="px-3 py-1.5 rounded-lg text-[12px] font-bold bg-ink3 border border-slate-700 hover:border-amber-500 text-slate-200 transition"
-                              x-text="'Nạp ' + het + ' Viên'"></button>
+                              x-text="'Dùng ' + het + ' Viên'"></button>
                           </template>
                         </div>
                       </template>
@@ -16836,7 +16837,7 @@
                     <button type="button" class="dd-o"
                           :class="(j <= g.ddBang[g.ddNhanh][i] ? 'day' : 'trong') + (j === g.ddOKeTiep(i+1) ? ' ke' : '')"
                           :disabled="j !== g.ddOKeTiep(i+1)"
-                          :title="j === g.ddOKeTiep(i+1) ? 'Nạp ' + g.DD_NHANH_INFO[g.ddNhanh].ten + ' Đan · ' + g.DD_PHAM_TEN[i] : ''"
+                          :title="j === g.ddOKeTiep(i+1) ? 'Sử dụng ' + g.DD_NHANH_INFO[g.ddNhanh].ten + ' Đan · ' + g.DD_PHAM_TEN[i] : ''"
                           @click="g.bamODanDien(i+1)"
                           :style="j <= g.ddBang[g.ddNhanh][i] ? '--vien:'+g.DD_NHANH_INFO[g.ddNhanh].mau+'9a;--glow:'+g.DD_NHANH_INFO[g.ddNhanh].mau : ''">
                       <template x-if="j <= g.ddBang[g.ddNhanh][i]">
@@ -18155,7 +18156,15 @@
           <button @click="$store.game.dongXacNhan()" class="text-slate-500 hover:text-rose-400 text-xl leading-none">✕</button>
         </div>
         <div class="px-5 py-4">
-          <div class="text-[13px] text-slate-300 leading-relaxed" x-html="x.loi"></div>
+          <!-- Ô ART tuỳ chọn (`anh`): hộp hỏi về MỘT MÓN thì phải thấy món đó. Không truyền `anh`
+               thì khối này không dựng, hộp giữ nguyên dáng cũ. -->
+          <div class="flex items-start gap-3">
+            <template x-if="x.anh">
+              <span class="w-14 h-14 shrink-0 rounded-lg border flex items-center justify-center bg-ink/40 text-3xl"
+                    :class="x.anhVien || 'border-slate-600/50'" x-html="x.anh"></span>
+            </template>
+            <div class="text-[13px] text-slate-300 leading-relaxed flex-1 min-w-0" x-html="x.loi"></div>
+          </div>
           <template x-if="x.canhBao">
             <div class="mt-3 rounded-lg px-3 py-2 text-[12px] leading-relaxed border"
                  :class="x.nguy ? 'bg-rose-500/8 border-rose-500/30 text-rose-200/90' : 'bg-amber-500/8 border-amber-500/30 text-amber-200/90'"

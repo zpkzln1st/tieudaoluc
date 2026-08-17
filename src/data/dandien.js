@@ -112,7 +112,9 @@ export function ddItems() {
         icon: '⚱️', type: 'danDien', nhanh: nh, pham: p,
         quality: PHAM_QUALITY[p - 1] || 'thuong',
         value: 40 * p * p,
-        desc: 'Nạp vào Đan Điền, mở một ô ' + DD_NHANH_INFO[nh].ten + ' ' + DD_PHAM_TEN[p - 1] + '.',
+        // ⚠ MỘT động từ cho một việc: mọi nút và mọi câu đều là "sử dụng / dùng". Trước đây mô tả
+        //   ghi "nạp" còn nút ghi "dùng" — hai chữ cho cùng một hành động.
+        desc: 'Sử dụng để lấp một ô ' + DD_NHANH_INFO[nh].ten + ' ' + DD_PHAM_TEN[p - 1] + '.',
       };
     }
   }

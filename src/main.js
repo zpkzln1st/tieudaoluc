@@ -7310,6 +7310,19 @@ const gameStore = {
       ccGiamPct: 'Giảm Thời Gian Khống Chế' })[k] || k;
   },
   ddSoChiSo(k, v) { return ({ nlMax: 1, menhTrung: 1 })[k] ? '+' + Math.round(v) : '+' + (v * 100).toFixed(1) + '%'; },
+  // ⚠ MỘT viên cần thước đo mảnh hơn khối tổng: cả lưới mới +20%, nên một viên chỉ 0,06%–0,55%.
+  //   Làm tròn một chữ số như khối tổng thì Nhất Phẩm và Nhị Phẩm cùng ra "+0.1%", còn Nội Lực
+  //   Tối Đa của Nhất Phẩm ra thẳng "+0". Hai viên khác nhau mà hiện cùng một số là số nói dối.
+  ddSoMotVien(k, v) {
+    const g = (n) => String(+n.toFixed(2));
+    return ({ nlMax: 1, menhTrung: 1 })[k] ? '+' + g(v) : '+' + g(v * 100) + '%';
+  },
+  /** Chỉ số MỘT viên cộng, dạng [{ten, so}] — dùng cho hộp xác nhận và popup vật phẩm. */
+  ddCongMotVien(nhanh, pham) {
+    const v = ddMoiVien(nhanh, pham);
+    return Object.keys(v).map((k) => ({ ten: this.ddNhanChiSo(k), so: this.ddSoMotVien(k, v[k]) }));
+  },
+  ddCongMotVienTxt(nhanh, pham) { return this.ddCongMotVien(nhanh, pham).map((r) => r.ten + ' ' + r.so).join(' · '); },
 
   // ---------- LUYỆN ĐAN ĐIỀN — quay lại điểm Tinh · Khí · Thần ----------
   // ⚠ Số ở đây là DRAFT, chưa tune. Xem docs/THIET_KE_DAN_DIEN.md §4.
@@ -7366,12 +7379,16 @@ const gameStore = {
       return;
     }
     this.hoiXacNhan({
-      tieuDe: 'Nạp Đan',
+      tieuDe: 'Sử Dụng Đan',
       // ⚠ Đừng ghi thêm "vào ô Nhất Phẩm nhánh Tinh": tên viên ĐÃ mang cả nhánh lẫn phẩm, viết
       //   lại là lặp đúng hai chữ vừa đọc.
-      loi: 'Nạp một <b>' + it.name + '</b>.<br>Trong túi có <b>' + this.fmt(co) + '</b> viên.',
-      canhBao: 'Nạp rồi không gỡ ra được.',
-      nut: 'Nạp',
+      loi: 'Sử dụng một <b>' + it.name + '</b>.'
+         + '<br><span style="color:#6ee7b7">' + this.ddCongMotVienTxt(nh, pham) + '</span>'
+         + '<br>Trong túi có <b>' + this.fmt(co) + '</b> viên.',
+      anh: this.ico(id, it.icon),
+      anhVien: (this.QUALITY[it.quality] || {}).border || '',
+      canhBao: 'Dùng rồi không lấy lại được.',
+      nut: 'Sử Dụng',
       xong: () => this.napDanDien(id, 1),
     });
   },
@@ -7388,7 +7405,7 @@ const gameStore = {
     if (!xong) return;
     removeItem(this.state, id, xong);
     Storage.save(this.state); this._tick++;
-    this.showToast('Đã nạp ' + xong + ' viên vào Đan Điền.');
+    this.showToast('Đã dùng ' + xong + ' viên.');
   },
 
   // ---------- Tiện ích ----------
