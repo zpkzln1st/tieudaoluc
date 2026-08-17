@@ -84,10 +84,12 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
+import { TINH_NANG, TINH_NANG_DOT, TINH_NANG_BY_MA } from './data/tinhnang.js';
+import { demTinhNang, tinhNangMo, tinhNangTrangThai, tinhNangDangBat } from './engine/tinhnang.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { batNgonNgu } from './i18n.js';       // lớp phủ dịch EN/ZH — từ điển chỉ nạp khi khác 'vi'
@@ -1581,6 +1583,8 @@ const gameStore = {
   lbMQ: { ma: '', bac: 0, honThach: 0, nguyenBao: 0, diem: 0, luotToiDa: 1, tuDong: false, moLuc: '', dongLuc: '', ghiChu: '' },
   // Tab Nhật Ký: sổ chỉ thêm được của Lệnh Bài.
   lbNhatKy: [], lbNhatKyTai: false, lbNhatKyLoc: '', lbNhatKyChon: null,
+  // Tab Tính Năng: bảng `tinh_nang` — cờ bật/tắt của cả lộ trình (docs/LO_TRINH_3_NAM.md).
+  lbTNTai: false, lbTNLoi: '',
   // ⚠ PHẢI đóng Cài Đặt trước: modal Cài Đặt là z-[70], Lệnh Bài z-[59] — không đóng thì Lệnh Bài
   //   mở BÊN DƯỚI, nhìn như bấm không ăn. Giám Sát cũng vậy (xem openGiamSat).
   openLenhBai() { this.settingsModal = false; this.lbMo = true; this.taiLenhBai(); },
@@ -1927,14 +1931,14 @@ const gameStore = {
   // ⚠ Danh sách đi qua VIEW KHÔNG có cột `data`. Một dòng save nặng ~120 KB, kéo cả bảng là treo máy.
   //   Bản lưu chỉ đọc khi bấm đúng một người (lbSoiSave).
   /**
-   * Cột dọc của Lệnh Bài — mười một mục chia bốn nhóm.
+   * Cột dọc của Lệnh Bài — mười hai mục chia bốn nhóm.
    * ⚠ Thêm mục mới thì thêm vào ĐÂY và vào `LB_TIEU_DE` bên dưới. Hai bảng này là nguồn duy nhất;
    *   viết tay danh sách ở giao diện là lần sau thêm mục lại quên một chỗ.
    */
   LB_NHOM: [
     { ten: 'Người chơi', muc: [['nguoi', 'Người Chơi'], ['khoa', 'Khoá Tài Khoản'], ['giamSat', 'Giám Sát']] },
     { ten: 'Ban thưởng', muc: [['qua', 'Hộp Quà'], ['maQua', 'Mã Quà']] },
-    { ten: 'Máy chủ', muc: [['suKien', 'Sự Kiện'], ['caoThi', 'Cáo Thị'], ['heSo', 'Hệ Số'], ['moKhoa', 'Mở Khoá']] },
+    { ten: 'Máy chủ', muc: [['suKien', 'Sự Kiện'], ['caoThi', 'Cáo Thị'], ['heSo', 'Hệ Số'], ['moKhoa', 'Mở Khoá'], ['tinhNang', 'Tính Năng']] },
     { ten: 'Sổ sách', muc: [['thongKe', 'Thống Kê'], ['nhatKy', 'Nhật Ký']] },
   ],
   LB_TIEU_DE: {
@@ -1947,6 +1951,7 @@ const gameStore = {
     caoThi:  { ten: 'Cáo Thị', phu: 'Thông báo cho cả giang hồ, hoặc thư riêng một người', chan: 'Cáo thị vào chuông của người chơi.' },
     heSo:    { ten: 'Hệ Số', phu: 'Nhân kinh nghiệm · tỉ lệ rơi đồ · giá bán, tối đa năm lần', chan: 'Chốt chống gian lận nới mức tối đa theo hệ số này.' },
     moKhoa:  { ten: 'Mở Khoá', phu: 'Số lần Trùng Sinh đang mở cho cả giang hồ', chan: 'Hạ số này không làm tụt cấp ai.' },
+    tinhNang: { ten: 'Tính Năng', phu: 'Cờ bật tắt từng hệ thống của lộ trình ba năm', chan: 'Cờ tắt thì cửa vào không mọc ra.' },
     thongKe: { ten: 'Thống Kê', phu: 'Số liệu máy chủ, đếm theo bản lưu', chan: 'Người chưa đăng nhập lần nào không có mặt.' },
     nhatKy:  { ten: 'Nhật Ký', phu: 'Sổ chỉ thêm được, không ai xoá nổi', chan: 'Dòng do tài khoản khác ban có viền đỏ.' },
   },
@@ -1959,6 +1964,7 @@ const gameStore = {
     if (t === 'caoThi') return (this.lbCTDs || []).length || '';
     if (t === 'heSo') return (this.lbHSDs || []).length || '';
     if (t === 'moKhoa') return this.lbMKChuyen || '';
+    if (t === 'tinhNang') { void this._tick; return tinhNangDangBat(this.state) || ''; }
     return '';
   },
   lbDoiTab(t) {
@@ -1970,6 +1976,7 @@ const gameStore = {
     if (t === 'maQua' && !this.lbMQDs.length) this.lbTaiMaQua();
     if (t === 'heSo' && !this.lbHSDs.length) this.lbTaiHeSo();
     if (t === 'moKhoa') this.lbTaiMoKhoa();
+    if (t === 'tinhNang') this.lbTaiTinhNang();
   },
   /**
    * ⚠⚠ BA LÝ DO danh sách rỗng, và trước đây cả ba ra CÙNG MỘT màn hình trắng:
@@ -2153,6 +2160,80 @@ const gameStore = {
         this.taiMoKhoa();
       },
     });
+  },
+
+  // ---------- LỆNH BÀI · tab TÍNH NĂNG ----------
+  // Bảng `tinh_nang`: mỗi hệ thống của lộ trình một cờ, mặc định tắt. Xem docs/LO_TRINH_3_NAM.md.
+  async lbTaiTinhNang() {
+    this.lbTNTai = true; this.lbTNLoi = '';
+    try {
+      const r = await cloudTinhNangDs();
+      if (!r.ok) { this.lbTNLoi = r.thieuBang ? 'Chưa chạy docs/SQL_LENH_BAI_9.sql trên Supabase.' : ('Không đọc được — ' + r.reason + '.'); return; }
+      demTinhNang(this.state, r.rows, now());
+      this._tick++;
+    } catch (e) { this.lbTNLoi = 'Không kết nối được.'; }
+    finally { this.lbTNTai = false; }
+  },
+  /** Ba quãng lộ trình, mỗi quãng một khối. Danh sách lấy từ data, không viết tay ở giao diện. */
+  get lbTNNhom() {
+    return TINH_NANG_DOT.map((d) => ({ ten: d, muc: TINH_NANG.filter((t) => t.dot === d) }));
+  },
+  lbTNTrangThai(ma) { void this._tick; return tinhNangTrangThai(this.state, ma); },
+  /**
+   * Chữ bên phải mỗi thẻ: AI ĐANG THẤY tính năng đó.
+   * ⚠ KHÔNG lặp lại tên mức đang chọn — nút đã tô sáng rồi. Bản đầu ghi đúng ba chữ "Cả Giang Hồ"
+   *   hai lần trên cùng một thẻ; nhìn ảnh chụp mới thấy.
+   * ⚠ Mức Tắt không hiện gì: tắt là mặc định, không đáng một dòng chữ.
+   */
+  lbTNChu(ma) {
+    const t = this.lbTNTrangThai(ma);
+    if (t === 'mo') return { chu: 'Người chơi đang thấy', mau: 'text-jade' };
+    if (t === 'thu') return { chu: 'Chỉ bạn thấy', mau: 'text-amber-300' };
+    if (t === 'tat') return { chu: '', mau: 'text-slate-500' };
+    return { chu: 'Chưa Đọc Được', mau: 'text-rose-300' };
+  },
+  /**
+   * Đặt một cờ. `v` là một trong ba: `tat` · `thu` · `mo`.
+   * ⚠⚠ Hỏi xác nhận ở đúng hai lối: MỞ cho cả giang hồ, và RỜI khỏi trạng thái đang mở cho cả
+   *   giang hồ. Hai lối đó người chơi nhìn thấy ngay. Lối `tat` sang `thu` thì không ai thấy gì
+   *   nên hỏi là hỏi thừa.
+   */
+  lbTNDat(ma, v) {
+    const t = TINH_NANG_BY_MA[ma]; if (!t) return;
+    const cu = this.lbTNTrangThai(ma);
+    if (cu === v) return;
+    const chuaDung = 'Chưa có màn nào đọc cờ này. Bật lên không đổi gì trong game.';
+    if (v === 'mo') {
+      this.hoiXacNhan({
+        tieuDe: 'Mở Cho Cả Giang Hồ',
+        loi: t.ten + ' hiện ra với mọi người chơi.',
+        canhBao: t.daDung ? 'Việc này ghi vào nhật ký, không xoá được.' : chuaDung,
+        nut: 'Mở', nguy: true,
+        xong: () => { this._lbTNGui(ma, v); },
+      });
+      return;
+    }
+    if (cu === 'mo') {
+      this.hoiXacNhan({
+        tieuDe: v === 'tat' ? 'Tắt Tính Năng' : 'Thu Về Chạy Thử',
+        loi: t.ten + ' biến mất khỏi game của mọi người chơi.',
+        canhBao: 'Thứ người chơi đã làm trong tính năng này vẫn giữ nguyên.',
+        nut: v === 'tat' ? 'Tắt' : 'Thu Về', nguy: true,
+        xong: () => { this._lbTNGui(ma, v); },
+      });
+      return;
+    }
+    this._lbTNGui(ma, v);
+  },
+  async _lbTNGui(ma, v) {
+    // ⚠ Tắt thì hạ luôn `chi_tac_gia` về true. Lần sau lỡ tay bật lại là rơi vào chạy thử, không
+    //   phải rơi thẳng ra cả giang hồ.
+    const bat = v !== 'tat';
+    const chiTacGia = v !== 'mo';
+    const r = await cloudTinhNangDat(ma, bat, chiTacGia);
+    if (!r.ok) { this.showToast('Không đặt được — ' + r.reason); return; }
+    await this.lbTaiTinhNang();
+    this.showToast(v === 'tat' ? 'Đã tắt.' : (v === 'thu' ? 'Đang chạy thử — chỉ bạn thấy.' : 'Đã mở cho cả giang hồ.'));
   },
 
   // ---------- LỆNH BÀI · tab HỆ SỐ ----------
@@ -2452,6 +2533,29 @@ const gameStore = {
     } catch (e) {}
   },
   get chuyenDaMo() { void this._tick; return chuyenDangMo(this.state); },
+
+  // ---------- TÍNH NĂNG — đường ĐỌC, chạy cho MỌI người chơi ----------
+  /**
+   * Đọc bảng cờ bật/tắt rồi đệm vào bản lưu.
+   * ⚠⚠ Đọc hỏng thì GIỮ NGUYÊN bản đã đệm, không xoá về rỗng. Rớt mạng một nhịp mà tắt sạch
+   *   tính năng là người chơi đang đứng trong màn đó bị hất ra giữa chừng.
+   * ⚠ Nuốt lỗi: chưa chạy SQL_LENH_BAI_9.sql thì hàm này lỗi, và lỗi ở đây KHÔNG được làm vỡ
+   *   đường lưu save.
+   */
+  async taiTinhNang() {
+    try {
+      const r = await cloudTinhNangDs();
+      if (!r.ok) return;
+      demTinhNang(this.state, r.rows, now());
+      this._tick++;
+    } catch (e) {}
+  },
+  /**
+   * CỬA DUY NHẤT mọi tính năng mới phải đi qua trước khi vẽ ra màn hình.
+   * ⚠ Cờ tắt thì cửa vào KHÔNG MỌC RA. Đừng để lại một màn trống hay một nút bấm không ăn.
+   * ⚠ Đây chỉ là cửa VẼ. Tính năng nào đụng tới số liệu máy chủ thì phải có luật RLS riêng.
+   */
+  moChua(ma) { void this._tick; return tinhNangMo(this.state, ma, this.isAuthorAccount); },
 
   // ---------- MÃ ĐỔI QUÀ — màn của NGƯỜI CHƠI ----------
   mqMo: false, mqO: '', mqDangDoi: false, mqKetQua: '',
@@ -2789,6 +2893,10 @@ const gameStore = {
       setTimeout(() => { this.taiHeSo(); }, 3500);
       setTimeout(() => { this.taiMoKhoa(); }, 3800);
       setInterval(() => { this.taiMoKhoa(); }, 10 * 60 * 1000);
+      // Cờ bật/tắt tính năng: cùng nhịp 10 phút. Tác giả bật xong thì người đang mở tab thấy
+      // trong vòng mười phút, không phải đợi lần mở game sau.
+      setTimeout(() => { this.taiTinhNang(); }, 4200);
+      setInterval(() => { this.taiTinhNang(); }, 10 * 60 * 1000);
       setInterval(() => { this.taiHeSo(); }, 10 * 60 * 1000);
       // ⚠ Đọc LẠI mỗi 10 phút. Không có nhịp này thì lệnh THU của tác giả (đóng ngay vì lỡ ban
       //   nhầm) chỉ tới được người chơi ở lần mở game sau — họ cày tiếp một sự kiện đã bị gỡ.

@@ -26,12 +26,30 @@
 | Mốc giờ | `su_kien` | ✔ | nội dung theo mùa, có mở có đóng |
 | Số mở dần | `mo_khoa` | ✔ | trần cấp, số vòng Trùng Sinh, số ô, số bậc |
 | Hệ số | `he_so_may_chu` | ✔ | nhân kinh nghiệm · rơi đồ · giá bán (trần 5) |
-| **Cờ bật/tắt** | `tinh_nang` | ✘ **phải dựng** | mọi hệ thống mới |
+| **Cờ bật/tắt** | `tinh_nang` | ✔ | mọi hệ thống mới |
 
-Bảng `tinh_nang` cần đúng năm cột: `ma` · `bat` · `chi_tac_gia` · `cau_hinh` jsonb · `cap_nhat`.
-Thêm một tab **Tính Năng** vào `LB_NHOM` nhóm "Máy chủ", cạnh Mở Khoá.
+Bảng `tinh_nang` có đúng năm cột: `ma` · `bat` · `chi_tac_gia` · `cau_hinh` jsonb · `cap_nhat`.
+Tab **Tính Năng** nằm trong `LB_NHOM` nhóm "Máy chủ", cạnh Mở Khoá.
 
 ⚠ `LB_NHOM` và `LB_TIEU_DE` là NGUỒN DUY NHẤT của danh sách tab — thêm mục phải sửa cả hai.
+
+### Chỗ nằm của bộ khoá này
+
+| việc | tệp |
+|---|---|
+| Danh sách 13 cờ + cờ `daDung` | `src/data/tinhnang.js` |
+| Phép suy thuần | `src/engine/tinhnang.js` |
+| Cửa duy nhất màn mới phải hỏi | `moChua(ma)` trong `src/main.js` |
+| Bảng + luật RLS + nhật ký | `docs/SQL_LENH_BAI_9.sql` |
+| Bài kiểm 43 | `_mockup/_covua_wip/_check_tinhnang.mjs` |
+
+Dựng một tính năng mới thì làm đúng ba việc:
+1. Bọc mọi cửa vào của nó bằng `moChua('<mã>')`.
+2. Đổi `daDung: false` thành `true` trong `src/data/tinhnang.js`.
+3. Chạy bài kiểm 43. Nó soi hai chiều: khai `daDung: true` mà không có chỗ đọc là báo đỏ,
+   có chỗ đọc mà khai `false` cũng báo đỏ. Đây là thứ chặn công tắc chết.
+
+Không phải sửa SQL. Mười ba mã đã nằm sẵn trong danh sách cho phép của máy chủ.
 
 ---
 
@@ -41,7 +59,7 @@ Chưa thêm nội dung nào. Trả nợ và dựng bộ khoá, vì mọi thứ s
 
 | việc | vì sao trước |
 |---|---|
-| Bảng `tinh_nang` + tab Lệnh Bài + hàm `moChua(ma)` | không có nó thì mọi đợt sau không ngủ được |
+| ~~Bảng `tinh_nang` + tab Lệnh Bài + hàm `moChua(ma)`~~ **XONG** | không có nó thì mọi đợt sau không ngủ được |
 | Đan Điền: 15 công thức Dược Lư + bảng rơi phẩm 6–9 | 162 ô đang không có đường lấy đan |
 | Tông Môn hiện `NaN%` | lỗi sản phẩm đang nằm trên live |
 | 795 chuỗi chưa dịch | mỗi đợt mới lại đẻ thêm chuỗi; dọn sớm thì rẻ |

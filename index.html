@@ -6552,7 +6552,7 @@
             </div>
 
             <div class="flex-1 min-h-0 flex">
-              <!-- CỘT DỌC: mười một mục chia bốn nhóm. Thanh tab ngang phải xuống hai hàng và
+              <!-- CỘT DỌC: mười hai mục chia bốn nhóm. Thanh tab ngang phải xuống hai hàng và
                    đẩy nội dung tụt xuống mỗi lần thêm mục mới. -->
               <div class="hidden sm:block w-[172px] shrink-0 border-r border-slate-800 bg-black/20 overflow-y-auto py-2 px-2">
                 <template x-for="nh in g.LB_NHOM" :key="nh.ten">
@@ -7055,6 +7055,62 @@
                 </div>
               </template>
 
+              <!-- ---- TÍNH NĂNG ----
+                   Bảng `tinh_nang`: mỗi hệ thống của lộ trình ba năm một cờ, mặc định TẮT.
+                   ⚠ Danh sách mục lấy từ src/data/tinhnang.js qua g.lbTNNhom — ĐỪNG viết tay ở đây,
+                   thêm một cờ mới là lần sau lại quên một chỗ. -->
+              <template x-if="!g.lbLoi && g.lbTab === 'tinhNang'">
+                <div class="px-1">
+                  <template x-if="g.lbTNLoi">
+                    <div class="px-3 py-2 rounded-lg border border-rose-600/50 bg-rose-950/20 text-[11.5px] text-rose-200" x-text="g.lbTNLoi"></div>
+                  </template>
+                  <template x-if="!g.lbTNLoi">
+                    <div>
+                      <!-- Luật dồn vào nút hỏi, mặt thẻ chỉ một dòng ngắn. -->
+                      <div class="text-[10.5px] text-slate-500 mb-2 flex items-center gap-1.5">
+                        <span>Chọn mức mở cho từng tính năng.</span>
+                        <span class="nh"><button type="button" class="nh-b" aria-label="Cờ tính năng hoạt động thế nào">?</button>
+                          <span class="nh-box">
+                            <b>Cờ Tính Năng</b>
+                            <div class="mt-1">Cờ mới lên máy chủ luôn nằm ở mức Đang Tắt.</div>
+                            <div>Mức Chỉ Tác Giả cho bạn chơi thử ngay trên bản live, người chơi khác không thấy gì.</div>
+                            <div>Mức Cả Giang Hồ mở tính năng cho mọi người chơi.</div>
+                            <div>Cờ tắt thì cửa vào không mọc ra, không để lại màn trống.</div>
+                            <div>Cờ ghi Chưa Dựng thì chưa có màn nào trong game đọc nó.</div>
+                            <div>Mỗi lần đổi mức đều ghi vào Nhật Ký.</div>
+                          </span></span>
+                      </div>
+                      <template x-for="nh in g.lbTNNhom" :key="nh.ten">
+                        <div class="mt-3 first:mt-0">
+                          <div class="text-[9.5px] tracking-[0.12em] uppercase text-slate-600 mb-1" x-text="nh.ten"></div>
+                          <template x-for="t in nh.muc" :key="t.ma">
+                            <div class="mb-1.5 px-3 py-2 rounded-lg border border-slate-800 bg-black/20">
+                              <div class="flex items-center gap-2">
+                                <div class="text-[12.5px] text-slate-200 fserif truncate" x-text="t.ten"></div>
+                                <!-- Dấu này là thứ chặn công tắc chết: cờ chưa có màn nào đọc thì nói thẳng ra.
+                                     ⚠ Bo góc VUÔNG chứ không tròn, và nằm ở hàng TÊN. Bản đầu để nó tròn và
+                                     xếp cạnh ba nút, nhìn ảnh chụp mới thấy mắt đọc nó thành mức thứ tư. -->
+                                <template x-if="!t.daDung">
+                                  <span class="shrink-0 px-1.5 py-0.5 rounded-md text-[9.5px] border border-dashed border-slate-700 text-slate-600">Chưa Dựng</span>
+                                </template>
+                                <div class="ml-auto text-[10.5px] shrink-0" :class="g.lbTNChu(t.ma).mau" x-text="g.lbTNChu(t.ma).chu"></div>
+                              </div>
+                              <div class="text-[10.5px] text-slate-500 mt-0.5" x-text="t.mo"></div>
+                              <div class="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                                <template x-for="b in [['tat','Tắt'],['thu','Chỉ Tác Giả'],['mo','Cả Giang Hồ']]" :key="b[0]">
+                                  <button @click="g.lbTNDat(t.ma, b[0])" class="px-2.5 py-0.5 rounded-full text-[10.5px] fserif border transition whitespace-nowrap"
+                                    :class="g.lbTNTrangThai(t.ma)===b[0] ? 'text-amber-200 border-amber-600/50 bg-amber-500/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                                    x-text="b[1]"></button>
+                                </template>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </template>
               <!-- ---- THỐNG KÊ ----
                    View `thong_ke_may_chu` gom số ở máy chủ. Người thường gọi ra số của chính họ (RLS). -->
               <template x-if="!g.lbLoi && g.lbTab === 'thongKe'">

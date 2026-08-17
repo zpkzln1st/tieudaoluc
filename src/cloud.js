@@ -556,6 +556,38 @@ export async function cloudMoKhoaDat(khoa, giaTri) {
   return { ok: true };
 }
 
+// ============================================================
+// TINH NANG — co bat/tat (bang `tinh_nang`, xem docs/SQL_LENH_BAI_9.sql).
+// ⚠⚠ Bang nay la NEN cua ca lo trinh: moi tinh nang moi len live o trang thai NGU, tac gia bat
+//    bang Lenh Bai. Doc duoc KHONG CAN dang nhap — khach vao xem cung phai thay dung giao dien.
+// ============================================================
+
+/** Doc moi co bat/tat. Loi thi tang tren giu nguyen ban da dem, KHONG duoc coi la tat het. */
+export async function cloudTinhNangDs() {
+  const sb = await getClient();
+  const { data, error } = await sb.from('tinh_nang').select('ma,bat,chi_tac_gia,cau_hinh,cap_nhat');
+  if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
+  return { ok: true, rows: data || [] };
+}
+
+/**
+ * Dat mot co. Chi tac gia ghi duoc (RLS chan, khong phai giao dien chan).
+ * ⚠ Chi UPDATE, khong upsert: dong nao khong co san trong bang la ma sai — de may chu tu choi
+ *   con hon de client de ra mot co la khong ai doc.
+ */
+export async function cloudTinhNangDat(ma, bat, chiTacGia) {
+  if (!ma) return { ok: false, reason: 'no-ma' };
+  const sb = await getClient();
+  const { data, error } = await sb.from('tinh_nang')
+    .update({ bat: !!bat, chi_tac_gia: !!chiTacGia, cap_nhat: new Date().toISOString() })
+    .eq('ma', ma).select('ma');
+  if (error) return { ok: false, reason: error.message };
+  // ⚠⚠ RLS tu choi UPDATE thi Supabase tra ve MANG RONG chu khong bao loi. Khong soi vế nay thi
+  //   giao dien bao "Da bat" trong khi may chu khong ghi gi — dung cai bay da dinh o duong khac.
+  if (!data || !data.length) return { ok: false, reason: 'may chu tu choi' };
+  return { ok: true };
+}
+
 /** So lieu may chu cho tab Thong Ke. Nguoi thuong goi ra so cua chinh ho (RLS). */
 export async function cloudThongKe() {
   const sb = await getClient();
