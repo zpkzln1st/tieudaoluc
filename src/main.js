@@ -7323,6 +7323,18 @@ const gameStore = {
     return Object.keys(v).map((k) => ({ ten: this.ddNhanChiSo(k), so: this.ddSoMotVien(k, v[k]) }));
   },
   ddCongMotVienTxt(nhanh, pham) { return this.ddCongMotVien(nhanh, pham).map((r) => r.ten + ' ' + r.so).join(' · '); },
+  /**
+   * Cùng dữ liệu, dạng HTML MỖI CHỈ SỐ MỘT DÒNG — tên trái, số phải.
+   * ⚠ Nhánh Khí có ba chỉ số, gộp một dòng thì nó tự ngắt giữa tên chỉ số ("Hồi Nội / Lực") và
+   *   dấu · rơi xuống đầu dòng sau. Chia dòng là để chỗ ngắt do mình quyết, không do bề ngang.
+   */
+  ddCongMotVienHtml(nhanh, pham) {
+    return '<div style="margin:5px 0;color:#6ee7b7">'
+      + this.ddCongMotVien(nhanh, pham).map((r) =>
+        '<div style="display:flex;justify-content:space-between;gap:14px;line-height:1.55">'
+        + '<span>' + r.ten + '</span><b>' + r.so + '</b></div>').join('')
+      + '</div>';
+  },
 
   // ---------- LUYỆN ĐAN ĐIỀN — quay lại điểm Tinh · Khí · Thần ----------
   // ⚠ Số ở đây là DRAFT, chưa tune. Xem docs/THIET_KE_DAN_DIEN.md §4.
@@ -7383,8 +7395,8 @@ const gameStore = {
       // ⚠ Đừng ghi thêm "vào ô Nhất Phẩm nhánh Tinh": tên viên ĐÃ mang cả nhánh lẫn phẩm, viết
       //   lại là lặp đúng hai chữ vừa đọc.
       loi: 'Sử dụng một <b>' + it.name + '</b>.'
-         + '<br><span style="color:#6ee7b7">' + this.ddCongMotVienTxt(nh, pham) + '</span>'
-         + '<br>Trong túi có <b>' + this.fmt(co) + '</b> viên.',
+         + this.ddCongMotVienHtml(nh, pham)
+         + 'Trong túi có <b>' + this.fmt(co) + '</b> viên.',
       anh: this.ico(id, it.icon),
       anhVien: (this.QUALITY[it.quality] || {}).border || '',
       canhBao: 'Dùng rồi không lấy lại được.',

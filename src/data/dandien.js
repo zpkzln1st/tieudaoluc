@@ -89,10 +89,10 @@ export const DD_ART_MUON = ['hoiKhiDan', 'hoatHuyetDan', 'quanKhiDan', 'cuongNgu
 // Nhánh nào ĐÃ CÓ ART THẬT thì thêm vào đây — nhánh đó thôi mượn, dùng `ddTinh1`…`ddTinh9`.
 // ⚠ Thêm nhánh vào danh sách này TRƯỚC KHI thả tệp vào `images/items/` là ô trống trơn: `ico()`
 //   rơi về emoji chứ không rơi ngược về art mượn. Thả tệp xong mới thêm tên nhánh.
-// Nhánh Tinh đã có art thật: 9 tệp `ddTinh1`…`ddTinh9`, 500×500, nền trong suốt, 30–86 KB.
-// Đo bằng `_mockup/_do_anh_dan_v3.html` + `_mockup/_do_phumuc_items.html`: phủ mực ở ô 34px là
+// Đủ art thật cho CẢ BA nhánh: 27 tệp `ddTinh1`…`ddThan9`, 500×500, nền trong suốt, 30–102 KB.
+// Đo bằng `_mockup/_do_anh_dan_v3.html` + `_mockup/_soi_dan_34.html`: phủ mực ở ô 34px là
 // 15,6–51,3%, nằm dưới mốc 90% của 246 art vật phẩm khác (52,9%).
-export const DD_ART_THAT = ['tinh'];
+export const DD_ART_THAT = ['tinh', 'khi', 'than'];
 
 /** Art của một ô: art thật nếu nhánh đã có, không thì mượn theo phẩm. */
 export function ddArtCua(nhanh, pham) {

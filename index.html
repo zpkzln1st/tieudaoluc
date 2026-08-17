@@ -6230,7 +6230,15 @@
                             get trong(){ return $store.game.ddConTrong(m.nhanh, m.pham) },
                             get het(){ return Math.min(m.qty || 0, $store.game.ddConTrong(m.nhanh, m.pham)) } }">
                     <div class="rounded-lg bg-ink3/50 border px-3 py-2.5 mb-3" :class="$store.game.QUALITY[m.quality].border">
-                      <div class="text-[11.5px] text-emerald-300 mb-1.5" x-text="g.ddCongMotVienTxt(m.nhanh, m.pham)"></div>
+                      <!-- Mỗi chỉ số MỘT DÒNG, tên trái số phải. Gộp một dòng thì nhánh Khí (ba chỉ
+                           số) tự ngắt giữa tên chỉ số và dấu · rơi xuống đầu dòng sau. -->
+                      <div class="text-[11.5px] text-emerald-300 mb-2">
+                        <template x-for="r in g.ddCongMotVien(m.nhanh, m.pham)" :key="r.ten">
+                          <div class="flex items-center justify-between gap-3.5 leading-[1.55]">
+                            <span x-text="r.ten"></span><b x-text="r.so"></b>
+                          </div>
+                        </template>
+                      </div>
                       <!-- ⚠ Đừng nhắc lại tên ô: dòng mô tả ngay trên đã ghi "lấp một ô Khí Tam Phẩm". -->
                       <div class="text-[11.5px] mb-2" :class="trong > 0 ? 'text-slate-300' : 'text-slate-500'">
                         <template x-if="trong > 0"><span>Còn trống <b class="text-emerald-300" x-text="trong"></b> ô.</span></template>
