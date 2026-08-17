@@ -1,7 +1,8 @@
 // ============================================================
 // ĐĂNG TIÊN MỘNG — lore (flavor) 109 thẻ MỚI. Soạn qua workflow 6-agent (5 hệ + neutral/Thần Thoại)
 // + harmonize (giọng võ lâm/tu tiên, tiếng Việt CÓ DẤU, không chép nguyên). 17 thẻ [C] cũ giữ flavor trong POOL.
-// Số DRAFT về nội dung — user tinh chỉnh thẻ nào chưa ưng.
+// ⚠ CHỜ CHỦ DỰ ÁN DUYỆT — đây là văn thẻ bài, không phải con số cân bằng. Không ai ngoài chủ
+//   dự án chốt được thẻ nào chưa ưng, nên mục này cố ý để ngỏ.
 // ============================================================
 export const CARD_LORE = {
   // --- KIM ---

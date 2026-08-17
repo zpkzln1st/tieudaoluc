@@ -548,7 +548,9 @@ export const DAMDAO = {
 //   Vật NPC "trao" trong truyện -> +TIN_VAT_EFF_PCT% Hiệu Suất (tốc độ) cho nghề đó.
 //   Cách ly: KHÔNG phải sức mạnh combat trực tiếp (cộng vào tốc độ như Công Cụ).
 // ============================================================
-export const TIN_VAT_EFF_PCT = 15;  // % hiệu suất (tốc độ) mỗi Tín Vật — DRAFT, tune sau
+// CHỐT: mười Tín Vật, mỗi cái +15% hiệu suất — gom trọn bộ là +150%, tức nghề chạy nhanh gấp
+//   hai rưỡi. Đây là phần thưởng của việc đi hết cốt truyện chín NPC nghề, không phải drop.
+export const TIN_VAT_EFF_PCT = 15;  // % hiệu suất (tốc độ) mỗi Tín Vật
 export const TIN_VAT = {
   phatMoc:    { name: 'Lão Phủ',        vat: 'Cây rìu mòn của lão tiều phu.',                    glyph: '斧' },
   thaiKhoang: { name: 'Khoáng Đăng',    vat: 'Cây đèn cũ đã soi lão phu ra khỏi hầm sập.',       glyph: '燈' },

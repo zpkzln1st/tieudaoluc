@@ -114,9 +114,9 @@ let _lbBots = null, _lbBotKey = '';   // cache hàng bot BXH (module-level, non-
 let _nbData = null, _nbKey = '';      // cache Đồng Đạo Lân Cận theo (skill:phút)
 let _tmbBots = null, _tmbKey = '';    // cache hàng bot TÔNG MÔN BẢNG theo (seed:createdAt:phút)
 let _lvhBotsCache = null, _lvhBotsKey = '';   // cache đại biểu bot Luận Võ Hội (seed:createdAt:kỳ)
-const LVH_PERIOD = 24 * 3600 * 1000;          // kỳ Luận Võ Hội = 24h (vòng tròn nội bộ re-roll mỗi kỳ). DRAFT.
-const LVH_BOT_N = 60;                          // số đại biểu bot lên bảng (DRAFT)
-// Danh hiệu top-3 đệ tử (theo điểm vòng tròn nội bộ mỗi kỳ) — GIỮ khi còn top, +Uy nhẹ. DRAFT.
+const LVH_PERIOD = 24 * 3600 * 1000;          // kỳ Luận Võ Hội = 24h (vòng tròn nội bộ re-roll mỗi kỳ)
+const LVH_BOT_N = 60;                          // số đại biểu bot lên bảng
+// Danh hiệu top-3 đệ tử (theo điểm vòng tròn nội bộ mỗi kỳ) — GIỮ khi còn top, +Uy nhẹ.
 const LVH_TITLES = [{ name: 'Võ Khôi', color: '#f5b942', uy: 50 }, { name: 'Á Khôi', color: '#cbd5e1', uy: 30 }, { name: 'Thám Hoa', color: '#d97706', uy: 15 }];
 // Pool tên tông môn bot (prefix × suffix -> hàng trăm tổ hợp, deterministic theo seed bot)
 const TMB_PREFIX = ['Thanh Vân', 'Huyết Đao', 'Thiên Kiếm', 'Côn Lôn', 'Tiêu Dao', 'Vô Cực', 'Lạc Hà', 'Bạch Vân', 'Huyền Thiên', 'Cửu U', 'Tử Hà', 'Linh Tê', 'Phá Quân', 'Vạn Kiếm', 'Hàn Băng', 'Lưu Vân', 'Diệt Tuyệt', 'Thái Hư', 'Ngạo Thiên', 'Cô Nguyệt'];
@@ -990,7 +990,7 @@ const gameStore = {
     const roster = genRoster(w.seed, w.createdAt, now()).slice(0, LVH_BOT_N);
     _lvhBotsCache = roster.map((b, i) => {
       const seed = lvHash(b.name + '|lvh'), clv = botCombatLv(b, tnow);
-      const chienLuc = Math.round(60 + clv * clv * 0.16 * (0.9 + (seed % 21) / 100));   // DRAFT scale ~disciPower
+      const chienLuc = Math.round(60 + clv * clv * 0.16 * (0.9 + (seed % 21) / 100));   // scale bám disciPower: cấp 100 ra ~1.660 Chiến Lực
       const tier = clv >= 82 ? 'tuyệt' : clv >= 56 ? 'cao' : clv >= 30 ? 'trung' : 'sơ';
       const ti = BI_KIP_TIER_ORDER.indexOf(tier), pool = BI_KIP.filter((bk) => bk.tier === tier), bk1 = pool[seed % pool.length];
       const lower = BI_KIP_TIER_ORDER[Math.max(0, ti - 1)], pool2 = BI_KIP.filter((bk) => bk.tier === lower), bk2 = pool2[(seed >>> 7) % pool2.length];
@@ -7340,7 +7340,11 @@ const gameStore = {
   },
 
   // ---------- LUYỆN ĐAN ĐIỀN — quay lại điểm Tinh · Khí · Thần ----------
-  // ⚠ Số ở đây là DRAFT, chưa tune. Xem docs/THIET_KE_DAN_DIEN.md §4.
+  // CHỐT (đo 2026-08-17): trần = cấp Chiến Đấu × 5, giá = 5.000 + cấp × 800.
+  //   Cấp 100: trần 500 điểm/nhánh, 85.000 Bạc/lượt, kỳ vọng một lượt ra 250 điểm.
+  //   1 điểm Tinh = +1 Phòng Ngự +2 Sinh Lực · 1 điểm Khí = +1 Công Kích.
+  // ⚠⚠ Giữ là GHI ĐÈ chứ không cộng dồn — quay ra số thấp hơn là TỤT. Đó là chỗ ăn thua,
+  //   và cũng là chỗ tiêu Bạc dài hạn: kéo con số lên dần bằng nhiều lượt.
   // ⚠⚠ LUYỆN KHÔNG DÍNH GÌ TỚI VIÊN ĐAN. Trần neo vào CẤP CHIẾN ĐẤU, y như bản gốc (nhân vật
   //   cấp 159 có trần 706, cấp 108 có trần 452). Bản trước tôi neo vào số viên đã nạp — sai:
   //   người chưa nạp viên nào thì trần bằng 0, cả bảng Luyện đứng chết.

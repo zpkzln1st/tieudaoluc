@@ -68,7 +68,10 @@ export const DD_TONG_ROI = DD_TONG_O - DD_TONG_NAU;                             
 //   ⇒ viên phẩm p cho: ngân_sách × p / 330. Cộng đủ 54 ô thì ra ĐÚNG ngân sách, sai số làm tròn 0.
 export const DD_TRONG_SO = DD_O.reduce((s, n, i) => s + n * (i + 1), 0);   // 330
 
-// Ngân sách khi lưới ĐẦY (DRAFT — phải đo lại time-to-100 sau khi ráp).
+// Ngân sách khi lưới ĐẦY.
+// CHỐT: lưới đầy cho +20% mỗi dòng, Đan Hồn mở hết nhân thêm 37% ⇒ Sinh Lực · Phòng Ngự ·
+//   Công Kích mỗi thứ +27,4%. Nhìn cạnh Vạn Vật Phổ (allPct +56,6% khi trọn bảy phổ) thì
+//   Đan Điền nhẹ hơn một bậc — đúng vai: 162 viên đan dễ gom hơn 417 mục sưu tập.
 export const DD_NGAN_SACH = {
   tinh: { hpPct: 0.20, defPct: 0.20 },
   khi:  { atkPct: 0.20, nlMax: 30, nlRegenPct: 0.20 },

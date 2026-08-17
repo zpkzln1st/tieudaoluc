@@ -297,7 +297,9 @@ export function simTongMon(state, nowMs, capHours) {
       }
     }
   }
-  // sản lượng idle (side-only) — scale theo GIỜ (DRAFT, TUNE)
+  // sản lượng idle (side-only) — scale theo GIỜ.
+  // CHỐT: Tàng Thư Lâu bậc 9 ra 2.592 Điểm/ngày (đủ 1,6 lô Tuyệt ở Đấu Giá); mười đệ tử tu
+  //   luyện ra 744 Cống Hiến/ngày; Tụ Linh bậc 5 kéo Khí Vận 0 lên 100 trong 50 giờ.
   t.diem = (t.diem || 0) + dt * (BUILDINGS.tangThu.diemPerLvH * (t.buildings.tangThu || 0)) / 3600;
   t.congHien = (t.congHien || 0) + dt * (tuCount * 3 + 1) / 3600;        // ~3/giờ mỗi đệ tử tu luyện + 1 nền
   t.khiVan = Math.min(100, (t.khiVan || 50) + dt * (BUILDINGS.tuLinh.khiPerLv * (t.buildings.tuLinh || 0)) / 36000);

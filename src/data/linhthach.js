@@ -19,7 +19,8 @@
 // Combat KHÔNG dùng Linh Thạch (combat buff bằng Đan — hệ riêng).
 // ============================================================
 
-// Một viên phủ bao nhiêu thời gian HOẠT ĐỘNG. 20 phút -> 10 viên = 200 phút. DRAFT.
+// Một viên phủ bao nhiêu thời gian HOẠT ĐỘNG.
+// CHỐT: 20 phút một viên, tức mười viên gánh 3,3 giờ cày. Chín loại linh thạch chia ba dòng.
 export const LT_COVER_MS = 20 * 60 * 1000;
 
 export const LINH_THACH = {

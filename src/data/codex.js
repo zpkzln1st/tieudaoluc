@@ -68,7 +68,8 @@ export const CODEX_CATS = [
   {
     // BÁCH TRANG CÁC — phổ riêng cho 77 món Bộ Trang (Bạch Kim), tách khỏi Binh Khí Phổ. Đếm y như
     // binhkhi (obtained>0 -> đủ), nhóm theo TÊN BỘ nên 11 bộ đọc thành 11 mục. Thưởng thiên PHÒNG THỦ
-    // hợp lore "trấn thân". SỐ DRAFT — nguồn ghép cực chậm (420 Mảnh/bộ) nên trọn phổ là chặng rất xa.
+    // hợp lore "trấn thân". CHỐT: trọn cả bảy phổ cho Công Kích +9,9% · Phòng Ngự +26,6% · Sinh Lực +15,6% và allPct
+    // +56,6%. Nguồn ghép cực chậm (420 Mảnh/bộ) nên đó là chặng rất xa — cố ý.
     key: 'bachtrang', name: 'Bách Trang Các', kind: 'gear', unit: 'ghép', threshold: 1,
     per: { field: 'defPct', val: 0.002, label: '+0.2% Thủ' },
     set: { field: 'allPct', val: 0.08, label: '+8% mọi chỉ số' },

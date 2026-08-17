@@ -3,7 +3,9 @@
 //   Bản đồ Bát Quái 9 Cung: mỗi Cung = 5 trận lâu la + 1 Cung Chủ.
 //   Chiếm 8 Cung ngoài → mở Trung Cung Ma Đế.
 //   art = tên file images/enemies/<art>.webp · scene = images/dungeons/<scene>.webp.
-//   Số HP/ATK là DRAFT theo công thức (mob: 55+28*tier+12*i · boss: 190+80*tier) — tune sau.
+//   HP/ATK suy từ công thức (mob: 55+28*tier+12*i · boss: 190+80*tier).
+//   CHỐT: boss luôn nặng gấp ~3 lần con quái đầu tầng ở MỌI bậc (3,5x ở tier 0 · 3,0x ở tier 8)
+//   — thang không doãng ra cũng không bóp lại theo tầng.
 // ============================================================
 
 export const KT_CONST = {
@@ -236,7 +238,7 @@ export const KT_SINH = { kiem: 'khi', khi: 'bao', bao: 'tim', tim: 'khien', khie
 
 // ============================================================
 // ĐỐI TRẬN PHA 2 — KỸ NĂNG CUNG CHỦ (nạp kép: sig theo lượt + khi-skill nạp Khí + bite Sát Khí).
-//   Chỉ Cung Chủ có chiêu; lâu la KHÔNG. Số DRAFT (tune bằng harness, tính tới hero full-power).
+//   Chỉ Cung Chủ có chiêu; lâu la KHÔNG. CHỐT: chín cung, năm hành.
 //   sig = chiêu DAMAGE bắn đều mỗi sigEvery lượt (telegraph 1 lượt trước) · khiSkills = chiêu khống chế/thủ khi đủ Khí.
 //   Palette: cuongTap · coDoc · lietDiem · hanNgung · cuongThachGiap · baDaoThon · cuuTieuLoi · thonKhi · maDeDietThe
 // ============================================================

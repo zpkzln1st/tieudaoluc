@@ -325,7 +325,7 @@ export const GEAR_IDS = Object.keys(GEAR);
 // • tangCong trần cộng dồn 3 -> cho bộ ăn 2, chừa 1 cho dòng roll hiếm nhất game.
 // • Chính Xác gần như vô dụng toàn game (né của quái chỉ 2-12%) — không lấy làm chữ ký bộ nào.
 //
-// MỌI SỐ Ở ĐÂY LÀ DRAFT.
+// CHỐT: mười một Bộ Trang. Mốc 3/5/7 món; món thứ bảy mới mở dòng allPct (kimQuang +12%).
 // ============================================================
 export const SET_BONUS = {
   // --- VÔ HỆ: chống mọi thứ, không thiên lệch ---

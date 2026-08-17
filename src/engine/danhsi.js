@@ -230,9 +230,11 @@ function decorate(c, now) {
 
 // ============================================================
 // TỬ VONG + TRUYỀN NHÂN (deterministic, stateless): danh sĩ có thọ nguyên; quá hạn -> tạ thế, TRUYỀN NHÂN kế vị (giữ roster 20).
-// MVP: 1 đời kế vị (gen-1). deathAt suy từ rankPower + jitter h32, mốc EPOCH. DRAFT thọ nguyên.
+// MVP: 1 đời kế vị (gen-1). deathAt suy từ rankPower + jitter h32, mốc EPOCH.
 // ============================================================
-const LIFE_MIN_Y = 1.3, LIFE_SPAN_Y = 4.7;     // thọ nguyên: yếu nhất ~1.3 năm, mạnh nhất ~6 năm kể từ EPOCH (DRAFT)
+// CHỐT: thọ nguyên trải đều 1,3 - 6 năm nên sau 3 năm khoảng 7/20 danh sĩ đã qua đời, sau 6 năm
+//   thì cả hai mươi. Lứa kế vị gen-1 gánh phần sau đó — bảng không bao giờ trống.
+const LIFE_MIN_Y = 1.3, LIFE_SPAN_Y = 4.7;     // thọ nguyên: yếu nhất ~1.3 năm, mạnh nhất ~6 năm kể từ EPOCH
 function deathAt(c) {
   const born = c.bornAt || EPOCH;
   const norm = Math.min(1, Math.max(0, ((c.rankPower || 500) - 420) / 530));   // mạnh -> thọ hơn

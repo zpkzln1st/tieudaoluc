@@ -56,7 +56,13 @@ export function dangTienMong() {
   };
   // ===== POOL 117 thẻ (15 phái ×7 + 12 neutral) · 5 bậc so/thuong/hiem/tuyet (than để dành 9 huyền thoại) =====
   // [C] = thẻ live cũ (reuse art book_*, giữ flavor); các thẻ khác MỚI (Hán fallback, cần art, chưa có flavor — soạn lore ở mục 7).
-  // Số DRAFT (tune qua harness/cảm giác). eff schema phẳng: dmg/hits/aoe/blk/heal/poison/weaken/str/dodge/draw/drain + burn/burnT/stun/pen/energy/keepBlock/exhaust/blkToDmg/detonate/selfDmg.
+  // CHỐT (đo bằng `_mockup/_do_can_bang_dtm.html` chạy trên bộ mô phỏng `_harness.js`):
+  //   Đăng Tiên Mộng là roguelike CÓ TIẾN TRÌNH BỀN — số được cân quanh nâng cấp Mộng Ngân,
+  //   không quanh ván đầu. Cùng một con bot, cùng mộng thân Kiếm: chưa nâng gì thắng 0% và
+  //   chỉ tới tầng 3,2/20; Cố Bản 10 + Tụ Khí 3 lên 29% (tầng 13); Cố Bản 20 + Tụ Khí 5 lên
+  //   72% (tầng 18). Ván đầu thua là ĐÚNG Ý ĐỒ, không phải số hỏng.
+  //   ⚠ Tụ Khí là đòn bẩy mạnh hơn Cố Bản nhiều: +2 Khí một mình đã kéo 0% lên 7%.
+  // eff schema phẳng: dmg/hits/aoe/blk/heal/poison/weaken/str/dodge/draw/drain + burn/burnT/stun/pen/energy/keepBlock/exhaust/blkToDmg/detonate/selfDmg.
   const POOL = {
     // ---------- NEUTRAL (12, vô phái) ----------
     coBanKiem: { name: 'Cơ Bản Kiếm', han: '劍', he: 'vatly', cost: 1, type: 'atk', rar: 'so', dmg: 6, desc: 'Gây 6 ST.', flavor: 'Chiêu kiếm nhập môn, thẳng tới thẳng lui. Cao thủ nào cũng khởi từ một đường kiếm mộc mạc như thế — vạn pháp quy căn.' },
@@ -207,7 +213,7 @@ export function dangTienMong() {
     nhatNhanDoanMenhThich: { name: 'Nhất Nhãn Đoạn Mệnh Thích', han: '刃', he: 'kim', cost: 3, type: 'atk', rar: 'than', dmg: 34, pen: true, execute: 20, exhaust: true, desc: '34 ST · Phá Giáp · Đoạt Mệnh +20 (địch <20% HP) · Đoạn.' },
     hanBangCuuTuyetChuong: { name: 'Hàn Băng Cửu Tuyệt Chưởng', han: '掌', he: 'thuy', cost: 3, type: 'atk', rar: 'than', dmg: 9, aoe: true, weaken: 3, stun: 1, exhaust: true, desc: '9 ST toàn địch · Suy Yếu 3 · Choáng 1 · Đoạn.' },
   };
-  // Hợp Bích — hiệu ứng CỘNG THÊM khi chơi thẻ THỨ 2+ cùng phái trong 1 lượt (design §3). Áp inline trong playCard. Số DRAFT.
+  // Hợp Bích — hiệu ứng CỘNG THÊM khi chơi thẻ THỨ 2+ cùng phái trong 1 lượt (design §3). Áp inline trong playCard.
   const HOP_BICH = {
     'Thiên Vương': { blkBonus: 4, forcePen: true },          // Kim Cang Bất Hoại: +4 Hộ Thể & đòn Phá Giáp
     'Thiếu Lâm': { keepBlock: true, blkToDmgBonus: 0.5 },     // Kim Cang Phục Ma: giữ giáp & Công +½ Hộ Thể
@@ -225,7 +231,8 @@ export function dangTienMong() {
     'Côn Lôn': { stunBonus: 1, drawBonus: 1 },               // Càn Khôn Đảo Chuyển: đòn Choáng +1 lượt & rút +1
     'Thiên Sơn': { healFlat: 4, weakenBonus: 1 },            // Lục Dương Hồi Xuân: hồi 4 & Suy Yếu +1
   };
-  // 6 mộng thân — mỗi ngũ hành 1 + 1 Vô hệ. kiem FREE, còn lại mở bằng Mộng Ngân persistent + điều kiện (unlock). Số/điều kiện DRAFT.
+  // 6 mộng thân — mỗi ngũ hành 1 + 1 Vô hệ. kiem FREE, còn lại mở bằng Mộng Ngân persistent + điều kiện (unlock).
+  // CHỐT: sáu mộng thân chạy sát nhau — chưa nâng cấp thì cả sáu đều 0%, tầng sâu nhất 3,6-4,8.
   const HEROES = [
     { id: 'kiem', name: 'Lãng Kiếm Khách', han: '劍', he: 'tho', hp: 58, khi: 3, passive: 'Lợi Nhận', passiveDesc: 'Thẻ Công đầu tiên mỗi lượt gây thêm 3 sát thương.', desc: 'Vô môn vô phái, độc bộ thiên nhai. Nhất kiếm tùy thân, bán sinh phong trần. Kiếm vị xuất, sát cơ tiên khởi; hàn quang nhất thiểm, thắng phụ dĩ phân.', unlock: null, start: ['coBanKiem', 'coBanKiem', 'coBanKiem', 'coBanQuyen', 'tichTa', 'hoaSon', 'langBa', 'dichCan', 'ngaMi', 'thaiCuc'] },
     { id: 'doc', name: 'Cẩm Hương Độc Khách', han: '毒', he: 'moc', hp: 52, khi: 3, passive: 'Dụng Độc', passiveDesc: 'Thẻ gây Độc áp dụng thêm 2 Độc.', desc: 'Độc hành vô ảnh, sát nhân vô thanh. Kẻ này không trọng cường công, chỉ lấy kỳ độc nhập mạch, loạn khí, tổn thần. Một khi độc tức đã thấm kinh lạc, sinh tử liền khó thoát khỏi lòng bàn tay.', unlock: { cost: 300 }, start: ['coBanKiem', 'coBanQuyen', 'amKhi', 'amKhi', 'amKhi', 'hapTinh', 'thanhPhong', 'langBa', 'cuuAm', 'ngaMi'] },
@@ -275,13 +282,13 @@ export function dangTienMong() {
     bongLai: { name: 'Bồng Lai Tán Tiên', han: '蓬', he: 'kim', hp: 68, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 11 }, { t: 'heal', v: 12 }, { t: 'def', v: 14 }, { t: 'atk', v: 15 }, { t: 'buff', v: 3 }] },
     // --- Mộng Chủ (boss) ---
     maGiao: { name: 'Ma Giáo Hộ Pháp · tàn niệm', han: '魔', he: 'moc', hp: 84, boss: true, intents: [{ t: 'atk', v: 12 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }, { t: 'def', v: 14 }, { t: 'heal', v: 12 }] },
-    // --- 5 Chưởng Môn còn thiếu (boss chưởng môn, LITE: dùng cơ chế player-side poison/burn/weaken/stun + pen; gimmick nhẹ). Số DRAFT. ---
+    // --- 5 Chưởng Môn còn thiếu (boss chưởng môn, LITE: dùng cơ chế player-side poison/burn/weaken/stun + pen; gimmick nhẹ). ---
     thien_vuong: { name: 'Thiên Vương Đế Quân', han: '霸', he: 'kim', hp: 85, elite: true, chuongMon: true, intents: [{ t: 'def', v: 16 }, { t: 'atk', v: 12 }, { t: 'def', v: 14 }, { t: 'charge' }, { t: 'atk', v: 26, big: true, pen: true }, { t: 'atk', v: 8, hits: 2 }] },
     ngu_doc: { name: 'Ngũ Độc Giáo Chủ', han: '毒', he: 'moc', hp: 80, elite: true, chuongMon: true, intents: [{ t: 'poison', v: 5 }, { t: 'poison', v: 5 }, { t: 'weaken', v: 3 }, { t: 'poison', v: 6 }, { t: 'charge' }, { t: 'atk', v: 8, big: true, pen: true }, { t: 'heal', v: 8 }, { t: 'poison', v: 5 }, { t: 'def', v: 6 }] },
     thuy_yen: { name: 'Băng Hà Tôn Chủ', han: '冰', he: 'thuy', hp: 76, elite: true, chuongMon: true, intents: [{ t: 'atk', v: 10 }, { t: 'weaken', v: 3 }, { t: 'def', v: 16 }, { t: 'atk', v: 7, hits: 2 }, { t: 'stun' }, { t: 'atk', v: 12 }] },
     thien_nhan: { name: 'Xích Diễm Tôn Giả', han: '焰', he: 'hoa', hp: 72, elite: true, chuongMon: true, intents: [{ t: 'burn', v: 4, burnT: 3 }, { t: 'atk', v: 6 }, { t: 'buff', v: 2 }, { t: 'burn', v: 5, burnT: 3 }, { t: 'atk', v: 8, pen: true }, { t: 'charge' }, { t: 'atk', v: 14, big: true }, { t: 'heal', v: 8 }] },
     con_lon: { name: 'Thiết Cầm Tiên Sinh', han: '琴', he: 'tho', hp: 75, elite: true, chuongMon: true, intents: [{ t: 'def', v: 9 }, { t: 'stun' }, { t: 'atk', v: 16 }, { t: 'def', v: 8 }, { t: 'weaken', v: 3 }, { t: 'atk', v: 5, hits: 2 }] },
-    // --- 9 HUYỀN THOẠI (boss đỉnh — tàn niệm danh sĩ; art images/danhsi/<id>.webp; huyen:true -> loại "Huyền Thoại" + màn xuất trận; hạ được mở thẻ Thần Thoại tương ứng). HP cao 96-118. Số DRAFT. ---
+    // --- 9 HUYỀN THOẠI (boss đỉnh — tàn niệm danh sĩ; art images/danhsi/<id>.webp; huyen:true -> loại "Huyền Thoại" + màn xuất trận; hạ được mở thẻ Thần Thoại tương ứng). HP cao 96-118. ---
     lacVoTran: { name: 'Tiếu Diện Độc La Sát', han: '香', he: 'moc', hp: 108, huyen: true, intents: [{ t: 'poison', v: 5 }, { t: 'atk', v: 9 }, { t: 'buff', v: 4 }, { t: 'poison', v: 7 }, { t: 'atk', v: 6, hits: 2 }, { t: 'charge' }, { t: 'atk', v: 22, big: true, pen: true }] },
     doDuocMaCo: { name: 'Vạn Độc Ma Cô', han: '蠱', he: 'moc', hp: 112, huyen: true, intents: [{ t: 'poison', v: 4 }, { t: 'atk', v: 8 }, { t: 'poison', v: 6 }, { t: 'heal', v: 10 }, { t: 'def', v: 12 }, { t: 'atk', v: 5, hits: 3 }, { t: 'poison', v: 9 }] },
     namCungLietHoa: { name: 'Bán Diện Hồng Liên', han: '焰', he: 'hoa', hp: 116, huyen: true, intents: [{ t: 'burn', v: 4, burnT: 3 }, { t: 'atk', v: 10 }, { t: 'buff', v: 4 }, { t: 'burn', v: 5, burnT: 2 }, { t: 'atk', v: 7, hits: 2 }, { t: 'charge' }, { t: 'atk', v: 24, big: true }] },
@@ -482,7 +489,8 @@ export function dangTienMong() {
     { id: 'tinhThat', key: 'restBonus', kind: 'flag', name: 'Tịnh Thất Phù', han: '淨', desc: 'Tĩnh Thất hồi 35% (thay 30%).', costs: [1000], gate: null, gateText: '' },
   ];
   const DTM_SC_MAX = 15;   // Sát Cảnh bậc tối đa (SC1-5 cũ + SC6-15 mới, cộng dồn §8)
-  const DTM_BRIDGE_RATE = 20;      // (assist) đổi bao nhiêu Mộng Ngân lấy 1 Nguyên Bảo — DRAFT
+  const DTM_BRIDGE_RATE = 20;      // (assist) đổi bao nhiêu Mộng Ngân lấy 1 Nguyên Bảo
+    // CHỐT: một ván chưa nâng cấp gom 52-99 Mộng Ngân, tức 3-5 Nguyên Bảo mỗi ván.
   // Trần assist tuần KHÔNG còn hardcode: đọc dtmBridgeWeekCap(state) từ Động Phủ (nền 60, Mộng Đài bậc 1/2/3 -> 70/75/80).
   let _uid = 0;
   const mk = (id) => ({ uid: ++_uid, _cast: null, id, ...POOL[id] });
@@ -633,7 +641,7 @@ export function dangTienMong() {
     cardName(id) { return (POOL[id] || {}).name || id; },
     unlockCondText(id) { return { thienVuong: 'Hạ Mộng Chủ (Đăng Tiên)', hapTinh: 'Đạt Tầng 3', tichTa: 'Đạt Tầng 4' }[id] || ''; },
     lobbyCardLocked(c) { return !!(c && c.id && (POOL[c.id] || {}).rar === 'tuyet' && !this._cardUnlocked(c.id)); },
-    // Roll thẻ thưởng CÓ TRỌNG SỐ theo bậc (loại 'so'/'than' filler + Tuyệt chưa mở); không lặp. DRAFT.
+    // Roll thẻ thưởng CÓ TRỌNG SỐ theo bậc (loại 'so'/'than' filler + Tuyệt chưa mở); không lặp.
     _rollKeys(n) {
       const W = { thuong: 3, hiem: 1.5, tuyet: 0.45, than: 0.06 };   // Thần Thoại (đã mở khóa) CỰC HIẾM — chỉ hiện run sau khi đã hạ huyền thoại
       const avail = Object.keys(POOL).filter((k) => { const c = POOL[k]; return c.rar !== 'so' && this._cardUnlocked(k); });   // _cardUnlocked gate Tuyệt chưa mở + Thần Thoại chưa mở khóa
@@ -983,7 +991,7 @@ export function dangTienMong() {
     },
 
     hasRelic(id) { return this.run.relics.some((r) => r.id === id); },
-    // Rơi di vật CÓ TRỌNG SỐ theo phẩm chất + loại màn: Ác Thủ/Mộng Chủ -> di vật xịn (hiếm/tuyệt) nhiều hơn. DRAFT.
+    // Rơi di vật CÓ TRỌNG SỐ theo phẩm chất + loại màn: Ác Thủ/Mộng Chủ -> di vật xịn (hiếm/tuyệt) nhiều hơn.
     _dropRelic() {
       const have = this.run.relics.map((r) => r.id);
       const pool = RELICS.filter((x) => !have.includes(x.id)); if (!pool.length) return null;
@@ -1016,8 +1024,9 @@ export function dangTienMong() {
     // Sinh 1 đợt quái từ mảng id (HP scale theo tầng + Sát Cảnh, +AI plan/planNext). Dùng cho mở trận & đợt kế.
     _spawnEnemies(ids) {
       const sc = this.run.sc || 0;
-      const hpScl = 1 + this.mapTier * 0.08 + sc * 0.08;                                  // HP quái theo tầng + Sát Cảnh (DRAFT)
-      const dmgScl = 1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5);                // sát thương ĐÒN theo tầng + SC6 (+5%/bậc từ SC6) — DRAFT
+      const hpScl = 1 + this.mapTier * 0.08 + sc * 0.08;                                  // HP quái theo tầng + Sát Cảnh
+      const dmgScl = 1 + this.mapTier * 0.04 + 0.05 * Math.max(0, sc - 5);                // sát thương ĐÒN theo tầng + SC6 (+5%/bậc từ SC6)
+      // CHỐT: Sát Cảnh cắn thật — mộng thân Kiếm đi được tầng 3,72 ở SC0 nhưng chỉ 1,99 ở SC8.
       this.enemies = (ids || []).map((id) => { const t = ENEMIES[id];
         const ints = t.intents.map((it) => (it.t === 'atk' && it.v != null) ? { ...it, v: Math.round(it.v * dmgScl) } : it);   // copy có scale (KHÔNG mutate ENEMIES gốc; def/heal/buff giữ nguyên)
         return { id, name: t.name, han: t.han, he: t.he, _art: EART[id] || id, elite: !!t.elite, boss: !!t.boss, chuongMon: !!t.chuongMon, huyen: !!t.huyen, maxHp: Math.round(t.hp * hpScl), hp: Math.round(t.hp * hpScl), block: 0, poison: 0, weak: 0, str: 0, burn: 0, burnT: 0, stun: 0, stunImmune: 0, intents: ints, plan: 0, planNext: 0, floats: [], hit: false, burst: null, atkfx: null }; });
@@ -1047,16 +1056,16 @@ export function dangTienMong() {
       this._saveRun();
     },
     handSize() { return 5 + (this.hasRelic('linhPhu') ? 1 : 0); },
-    // Hàng bài PC: co nhỏ vừa 1 hàng (≤5 thẻ full-size; đông hơn thu dần). Mobile giữ cuộn (trả 1). Số/công thức = DRAFT.
+    // Hàng bài PC: co nhỏ vừa 1 hàng (≤5 thẻ full-size; đông hơn thu dần). Mobile giữ cuộn (trả 1).
     handScale() { const n = this.hand.length; if (n <= 5 || (typeof window !== 'undefined' && window.innerWidth <= 640)) return 1;
       let avail = 858; try { const el = document.querySelector('.dtm-root .min-h-\\[256px\\]'); if (el && el.clientWidth > 100) avail = el.clientWidth - 22; } catch (e) {}
-      const per = (avail - (n - 1) * 8) / n; return Math.max(0.5, Math.min(1, per / 146)); },   // đo bề rộng hàng bài thật -> vừa mọi cỡ màn PC. Số DRAFT.
+      const per = (avail - (n - 1) * 8) / n; return Math.max(0.5, Math.min(1, per / 146)); },   // đo bề rộng hàng bài thật -> vừa mọi cỡ màn PC.
     startTurnPassive() { this._sectPlayed = {}; if (this.run.hero.id === 'thien') this.player.block += 3; if (this.hasRelic('tuKhiDan')) this.player.block += 3; if (this.hasRelic('satKhi')) this.player.str += 1; this._firstAtkUsed = false; },
     // Màu glow viền chạy (Kim Quang) cho thẻ: Thần Thoại = tím Tử Quang (luôn); Hợp Bích = màu hệ (khi đã chơi ≥1 thẻ cùng phái/lượt, trong trận). '' = không glow.
     cardGlow(c) { if (!c) return ''; if (c.rar === 'than') return '#c084fc'; if (this.phase === 'battle' && c.sect && this._sectPlayed && (this._sectPlayed[c.sect] || 0) >= 1) return HE_COLOR[c.he] || '#94a3b8'; return ''; },
     hopBichName(sect) { return { 'Thiên Vương': 'Kim Cang Bất Hoại', 'Thiếu Lâm': 'Kim Cang Phục Ma', 'Bồng Lai': 'Vân Du Tiên Tích', 'Đường Môn': 'Mãn Thiên Hoa Vũ', 'Ngũ Độc': 'Bách Độc Câu Phát', 'Ma Giáo': 'Huyết Ma Đồng Nguyên', 'Nga Mi': 'Cửu Dương Tương Sinh', 'Hoa Sơn': 'Ngũ Nhạc Kiếm Ý', 'Thúy Yên': 'Hàn Băng Phong Tỏa', 'Thiên Nhẫn': 'Liên Hoàn Phần Thiên', 'Cái Bang': 'Túy Quyền Liên Hoàn', 'Nhật Nguyệt': 'Huyết Nhật Đồng Huy', 'Võ Đang': 'Thái Cực Sinh Nghi', 'Côn Lôn': 'Càn Khôn Đảo Chuyển', 'Thiên Sơn': 'Lục Dương Hồi Xuân' }[sect] || ''; },
     curIntent(e) { return e.intents[e.plan] || e.intents[0]; },
-    // ----- AI bộ bài quái: chọn chiêu KẾ theo tình huống, KHÔNG còn chuỗi cố định. Giữ telegraph: chiêu đang hiện = chiêu SẼ ra cuối lượt (planNext = chiêu lượt sau, cho Lưỡng Nghi Kính). Mọi trọng số = DRAFT. -----
+    // ----- AI bộ bài quái: chọn chiêu KẾ theo tình huống, KHÔNG còn chuỗi cố định. Giữ telegraph: chiêu đang hiện = chiêu SẼ ra cuối lượt (planNext = chiêu lượt sau, cho Lưỡng Nghi Kính). -----
     _wpick(w) { let s = 0; for (const x of w) s += x; if (s <= 0) return 0; let r = Math.random() * s; for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return w.length - 1; },
     _planPick(e, avoidIdx) {
       const ints = e.intents; if (!ints || !ints.length) return 0;
@@ -1391,8 +1400,8 @@ export function dangTienMong() {
     winBattle() {
       if (this.hasRelic('huyetNgoc')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);
       if (this.hasRelic('hoiNguyen')) this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(this.run.maxHp * 0.12));   // di vật: Hồi Nguyên Châu
-      const _base = { boss: 60, huyenthoai: 55, miniboss: 45, elite: 35, swarm: 26, battle: 18 }[this.battleKind] || 18;   // DRAFT
-      this.rewardGold = _base + ((this.waves && this.waves.length > 1) ? (this.waves.length - 1) * 12 : 0) + (this.hasRelic('tuBao') ? 10 : 0);   // +12/đợt phụ + Tụ Bảo Bồn (DRAFT)
+      const _base = { boss: 60, huyenthoai: 55, miniboss: 45, elite: 35, swarm: 26, battle: 18 }[this.battleKind] || 18;
+      this.rewardGold = _base + ((this.waves && this.waves.length > 1) ? (this.waves.length - 1) * 12 : 0) + (this.hasRelic('tuBao') ? 10 : 0);   // +12/đợt phụ + Tụ Bảo Bồn
       if (this._hiddenElite) { this.rewardGold += 40; this._hiddenElite = false; }   // Kỳ Ngộ elite ẩn: thắng -> thưởng hậu (di vật vẫn rơi theo nhánh elite)
       if ((this.run.sc || 0) >= 2) this.rewardGold = Math.round(this.rewardGold * 0.9); this.runNgan += this.rewardGold;
       if (this.battleKind === 'boss') { this.afterNode(); return; }
@@ -1420,7 +1429,7 @@ export function dangTienMong() {
     _drawReward() { this.rewardGold = 0; this.rewardCards = this._rollKeys(3).map(mk); this._setReroll(); this.phase = 'reward'; },   // rút 1/3 thẻ (không thưởng Ngân)
     _giveRelic() { const r = this._dropRelic(); if (r) { this.run.relics.push(r); this._evtRelic = r; this.log = 'Nhận di vật: ' + r.name; } else { this.runNgan += 40; this.log = 'Di vật đã đủ — nhận +40 Mộng Ngân.'; } },   // _evtRelic -> khung chi tiết ở màn kết quả Kỳ Ngộ
     _coin() { return Math.random() < 0.5; },
-    // Nâng cấp thẻ (Kỳ Ngộ): nâng THẲNG số chính theo loại + gắn c.up (dấu "+"); thẻ thuần hiệu ứng (không số) -> giảm 1 Khí. Bảng số DRAFT.
+    // Nâng cấp thẻ (Kỳ Ngộ): nâng THẲNG số chính theo loại + gắn c.up (dấu "+"); thẻ thuần hiệu ứng (không số) -> giảm 1 Khí.
     _upgradeCard(c) {
       if (!c || c.up) return false; let boosted = false;
       if (c.dmg) { c.dmg += 3; boosted = true; } if (c.blk) { c.blk += 3; boosted = true; } if (c.heal) { c.heal += 3; boosted = true; }

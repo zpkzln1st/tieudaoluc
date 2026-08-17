@@ -547,7 +547,9 @@ export function resolvePetHunts(state, now, capMs) {
 // PHỤC DỤNG — cho linh thú ăn THẲNG linh thảo (không cần nấu thành đan).
 //   Hồi % Thể Lực TỐI ĐA (số phẳng sẽ vô dụng với pet đỉnh 700 Thể Lực) + một phần EXP linh thú.
 //   Triết lý: ĐỔI HƯỚNG chứ không tăng tổng — bình thường hái thuốc chỉ nuôi Hộ Thể, nay dồn được
-//   sang nuôi linh thú. MỌI SỐ LÀ DRAFT.
+//   sang nuôi linh thú.
+//   CHỐT: mười bậc linh thảo, hồi 11% tới 20%+ Thể Lực tối đa và 12 tới 60+ EXP linh thú —
+//   thang đi lên đều, không có bậc nào nhảy cóc.
 // ============================================================
 const HERB_FEED = {   // id -> { stamPct, petXp }  (bậc 1..10)
   thanhNgaiThao:  { stamPct: 11, petXp: 12 },

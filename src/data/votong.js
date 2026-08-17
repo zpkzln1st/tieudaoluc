@@ -446,7 +446,8 @@ const CHIEU_TIER_COST = { 'sơ':{ bac:50000 }, 'trung':{ bac:200000 }, 'cao':{ n
 export function chieuCost(c){ if(c && c.tier==='tuyệt') return null; return (c && c.cost) || (c && CHIEU_TIER_COST[c.tier]) || { bac:50000 }; }
 
 // ---- CHẾ TUYỆT KĨ: cần Đồ Phổ (mở khoá, rơi Bí Cảnh cao) + liệu boss + Bạc. Thêm tuyệt kĩ mới = thêm 1 entry.
-//   MỌI SỐ Ở ĐÂY LÀ DRAFT — tune sau khi chơi thật. Mặc định mọi tuyệt kĩ dùng chung TUYET_MATS/TUYET_BAC,
+//   CHỐT: 500.000 Bạc + liệu boss cho MỘT tuyệt kĩ; chế trọn bảy cái hết 3.500.000 Bạc.
+//   Mặc định mọi tuyệt kĩ dùng chung TUYET_MATS/TUYET_BAC,
 //   muốn lệch riêng thì thêm mats/bac vào entry của nó.
 export const TUYET_MATS = { hoPhuDauLinh:20, hachCoLinh:10, cuuViTinh:5, maToTam:2 };
 export const TUYET_BAC  = 500000;
