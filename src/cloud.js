@@ -617,7 +617,9 @@ export async function cloudKhoaBo(uid) {
 export async function cloudSanDs(gioiHan) {
   const sb = await getClient();
   const { data, error } = await sb.from('san_rao')
-    .select('id,nguoi_ban,ten_ban,mon,gia,tao_luc')
+    // ⚠ PHAI lay ca `loai,item_id,so_luong`. Thieu ba cot nay thi the tin vat pham chi con song nho
+    //   duong lui `r.mon.itemId` / `r.mon.so`, va `r.loai` luon undefined — dung nhung mong.
+    .select('id,nguoi_ban,ten_ban,mon,gia,tao_luc,loai,item_id,so_luong')
     .eq('trang_thai', 'treo')
     .order('tao_luc', { ascending: false })
     .limit(Math.min(200, gioiHan || 80));
@@ -631,7 +633,7 @@ export async function cloudSanCuaToi(gioiHan) {
   const uid = await _uid();
   if (!uid) return { ok: false, reason: 'no-auth' };
   const { data, error } = await sb.from('san_rao')
-    .select('id,mon,gia,trang_thai,tao_luc,xong_luc')
+    .select('id,mon,gia,trang_thai,tao_luc,xong_luc,loai,item_id,so_luong')
     .eq('nguoi_ban', uid)
     .order('tao_luc', { ascending: false })
     .limit(Math.min(100, gioiHan || 50));
@@ -669,6 +671,65 @@ export async function cloudSanTreoVp(itemId, soLuong, gia) {
   const { data, error } = await sb.rpc('san_treo_vp', {
     p_item: String(itemId), p_so: Math.round(soLuong), p_gia: Math.round(gia),
   });
+  if (error) return { ok: false, reason: error.message };
+  return data || { ok: false, reason: 'khong-tra-loi' };
+}
+
+// ============================================================
+// THU MUA (buy-order) — docs/SQL_SAN_THU_MUA.sql
+// ============================================================
+// ⚠ `gia` o day la gia MOI CAI, khac cua Treo Ban (gia ca lo). Khop mot phan can don gia.
+// ⚠ Ba ham dat / go / ban deu ghi lai `saves.data` o phia may chu, y het ba ham Treo Ban —
+//   goi xong PHAI tai lai save tu cloud, khong thi ban luu tren may nay thanh ban cu.
+
+/** Don thu mua DANG TREO cua ca lang. Tra { ok, ds }. */
+export async function cloudSanTmDs(gioiHan) {
+  const sb = await getClient();
+  const { data, error } = await sb.from('san_thu_mua')
+    .select('id,nguoi_dat,ten_dat,item_id,gia,so_dat,so_con,tao_luc')
+    .eq('trang_thai', 'treo')
+    .order('tao_luc', { ascending: false })
+    .limit(Math.min(200, gioiHan || 80));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, ds: data || [] };
+}
+
+/** Don CUA MINH, ke ca da xong / da go. */
+export async function cloudSanTmCuaToi(gioiHan) {
+  const sb = await getClient();
+  const uid = await _uid();
+  if (!uid) return { ok: false, reason: 'no-auth' };
+  const { data, error } = await sb.from('san_thu_mua')
+    .select('id,item_id,gia,so_dat,so_con,ky_quy,trang_thai,tao_luc,xong_luc')
+    .eq('nguoi_dat', uid)
+    .order('tao_luc', { ascending: false })
+    .limit(Math.min(100, gioiHan || 50));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, ds: data || [] };
+}
+
+/** Dat mot don thu mua. `gia` la gia MOI CAI. Bac ky quy tru ngay. */
+export async function cloudSanTmDat(itemId, soLuong, gia) {
+  const sb = await getClient();
+  const { data, error } = await sb.rpc('san_thu_mua_dat', {
+    p_item: String(itemId), p_so: Math.round(soLuong), p_gia: Math.round(gia),
+  });
+  if (error) return { ok: false, reason: error.message };
+  return data || { ok: false, reason: 'khong-tra-loi' };
+}
+
+/** Go don xuong, Bac ky quy con lai ve tui. */
+export async function cloudSanTmHuy(id) {
+  const sb = await getClient();
+  const { data, error } = await sb.rpc('san_thu_mua_huy', { p_id: id });
+  if (error) return { ok: false, reason: error.message };
+  return data || { ok: false, reason: 'khong-tra-loi' };
+}
+
+/** Ban vao mot don. May chu tu cat xuong so giao duoc. */
+export async function cloudSanTmBan(id, soLuong) {
+  const sb = await getClient();
+  const { data, error } = await sb.rpc('san_thu_mua_ban', { p_id: id, p_so: Math.round(soLuong) });
   if (error) return { ok: false, reason: error.message };
   return data || { ok: false, reason: 'khong-tra-loi' };
 }

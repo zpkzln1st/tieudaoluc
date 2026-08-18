@@ -102,7 +102,17 @@ Không mở hệ mới. Lấp cho đủ những hệ đã dựng khung.
 - ⚠ Tông Môn = NUÔI · Bang Phái = ĐÁNH. Đừng lẫn hai vai.
 
 **4.4 Kinh tế** — cờ `sanThuMua`
-- Sàn thêm Thu Mua (buy-order). Đây là nửa còn thiếu của chợ P2P.
+- ~~Sàn thêm Thu Mua (buy-order)~~ **ĐÃ DỰNG, ĐANG NGỦ.** Bảng `san_thu_mua` + ba hàm
+  `san_thu_mua_dat` · `_huy` · `_ban` ở `docs/SQL_SAN_THU_MUA.sql`. Bật bằng Lệnh Bài, tab Tính Năng.
+  - Bạc ký quỹ trừ ngay lúc đặt đơn; gỡ đơn hoàn phần chưa khớp. Bất biến `ky_quy = gia × so_con`.
+  - Khớp MỘT PHẦN, giá là giá **mỗi cái** (Treo Bán là giá cả lô). Trần 10 đơn, ký quỹ gộp 5.000.000 Bạc.
+  - Đơn thu mua cũng phải theo giá sàn `san_gia_vp` — thiếu chốt này là cửa sau đi vòng qua bảng giá.
+  - Chỉ nhận hàng xếp chồng. Trang bị có dòng roll mà giá sàn không đọc dòng roll, nên đặt đơn
+    mua trang bị là bốc thăm một chiều.
+  - ⚠⚠ Mỗi lần khớp **ghi một dòng đã xong vào `san_rao`**. Nhờ đó `dan_mua_san` của tầng 2E đếm
+    đúng và **không phải sửa `SQL_CHONG_GIAN_LAN.sql`**. Bỏ dòng ấy là người gom đan qua đơn thu
+    mua bị chặn thật ở ô thứ 60. Bài kiểm 46 giữ ràng buộc này.
+  - Chưa làm: hạn 48 giờ cho đơn (hết hạn phải hoàn Bạc, mà chỉ ghi được lúc chủ đơn online).
 - Thêm chỗ tiêu Bạc: Động Phủ bậc cao, phí bang, đúc lại dòng roll.
 
 **4.5 Vạn Vật Phổ chốt số** — cờ `phoLuc`

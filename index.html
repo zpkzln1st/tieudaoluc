@@ -15994,8 +15994,12 @@
         <section class="mx-auto w-full" style="max-width:880px" x-data="{ get g(){ return $store.game } }" x-init="g.taiSan()">
           <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
             <div class="dd-dai">
-              <button :class="g.sanTab==='mua' ? 'on' : ''" :style="g.sanTab==='mua' ? 'background:linear-gradient(180deg,#14b8a6,#14b8a6cc)' : ''" @click="g.sanTab='mua'">Chợ</button>
-              <button :class="g.sanTab==='ban' ? 'on' : ''" :style="g.sanTab==='ban' ? 'background:linear-gradient(180deg,#f5b942,#f5b942cc)' : ''" @click="g.sanTab='ban'">Treo Bán</button>
+              <button :class="g.sanTab==='mua' ? 'on' : ''" :style="g.sanTab==='mua' ? 'background:linear-gradient(180deg,#14b8a6,#14b8a6cc)' : ''" @click="g.sanDatTab('mua')">Chợ</button>
+              <button :class="g.sanTab==='ban' ? 'on' : ''" :style="g.sanTab==='ban' ? 'background:linear-gradient(180deg,#f5b942,#f5b942cc)' : ''" @click="g.sanDatTab('ban')">Treo Bán</button>
+              <!-- ⚠ Cờ tắt thì nút KHÔNG MỌC RA. Tắt là vô hình, không phải nút mờ. -->
+              <template x-if="g.moChua('sanThuMua')">
+                <button :class="g.sanTab==='thumua' ? 'on' : ''" :style="g.sanTab==='thumua' ? 'background:linear-gradient(180deg,#818cf8,#818cf8cc)' : ''" @click="g.sanDatTab('thumua')">Thu Mua</button>
+              </template>
             </div>
             <div class="flex items-center gap-2.5">
               <span class="text-[11.5px] text-slate-500">Thuế bán <b class="text-slate-300" x-text="g.sanThueTxt"></b></span>
@@ -16144,6 +16148,131 @@
                   </div>
                 </template>
               </div>
+            </div>
+          </template>
+
+          <!-- ===== THU MUA — treo BẠC rồi chờ người bán giao =====
+               ⚠ Cả khối nằm trong `moChua('sanThuMua')`. Cờ tắt thì không có gì mọc ra, và tab
+                 cũng không có nên không để lại màn trống. -->
+          <template x-if="g.sanTab==='thumua' && !g.sanLoi && g.moChua('sanThuMua')">
+            <div class="flex flex-col gap-3">
+
+              <!-- Đặt đơn -->
+              <div class="panel rounded-lg p-3">
+                <div class="flex items-center justify-between gap-2 mb-2.5 flex-wrap">
+                  <div class="text-[12.5px] text-slate-400">Đặt giá rồi chờ bên bán giao tới.</div>
+                  <!-- Luật dài nằm trong nút hỏi, dùng đúng khuôn `.dd-tip` của Đan Điền. -->
+                  <span class="dd-tip relative inline-flex items-center gap-1.5" style="--q:#818cf8">
+                    <span class="dd-hoi">?</span>
+                    <span class="gtip gtip-len">
+                      <span class="block">Bạc ký quỹ trừ ngay lúc đặt đơn.</span>
+                      <span class="block mt-0.5">Gỡ đơn thì phần Bạc chưa khớp về túi.</span>
+                      <span class="block mt-0.5">Giá gõ vào là giá mỗi cái.</span>
+                      <span class="block mt-0.5">Bên giao món chịu thuế <b x-text="g.sanThueTxt"></b>.</span>
+                      <span class="block mt-0.5 text-amber-200">Treo nhiều nhất 10 đơn, ký quỹ gộp tối đa 5.000.000 Bạc.</span>
+                    </span>
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-1 mb-2.5">
+                  <template x-for="t in g.sanTmNhomTabs" :key="t.id">
+                    <button @click="g.sanTmNhom = t.id; g.sanTmItem = ''" class="px-2.5 py-0.5 rounded-full text-[11px] fserif border transition"
+                      :class="g.sanTmNhom === t.id ? 'text-indigo-300 border-indigo-400/50 bg-indigo-400/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                      x-text="t.ten"></button>
+                  </template>
+                </div>
+                <!-- Lưới ô art — CÙNG khuôn với lưới Treo Bán, đừng đẻ khuôn thứ ba. -->
+                <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(64px,1fr))">
+                  <template x-for="n in g.sanTmLuoi" :key="'tm-'+n.id">
+                    <button @click="g.sanTmChonO(n.id)" class="group flex flex-col items-center gap-1 text-center" :title="n.ten">
+                      <div class="relative w-full aspect-square rounded flex items-center justify-center transition group-hover:brightness-110">
+                        <span class="absolute inset-0 rounded ring-1 flex items-center justify-center" :class="g.itemQuality(n.obj).bg + ' ' + g.itemQuality(n.obj).ring">
+                          <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-2xl" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.55))" x-html="g.ico(n.obj.id, n.obj.icon)"></span>
+                        </span>
+                        <template x-if="g.sanTmItem === n.id">
+                          <span class="absolute -inset-0.5 rounded ring-2 ring-indigo-300 pointer-events-none"></span>
+                        </template>
+                      </div>
+                      <div class="text-[9.5px] leading-tight text-slate-400 line-clamp-2" x-text="n.ten"></div>
+                    </button>
+                  </template>
+                </div>
+                <!-- Hàng đặt giá: chỉ mọc khi đã chọn món. -->
+                <template x-if="g.sanTmMon">
+                  <div class="mt-3 pt-3 border-t border-slate-800 flex items-center gap-3 flex-wrap">
+                    <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0" x-html="g.ico(g.sanTmMon.id, g.sanTmMon.icon)"></span>
+                    <div class="min-w-0">
+                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanTmMon.name"></div>
+                      <div class="text-[11.5px]" :class="g.sanTmDuGia ? 'text-slate-500' : 'text-rose-300'">
+                        Giá sàn mỗi cái <b x-text="g.fmt(g.sanTmSanMotCai)"></b> Bạc
+                      </div>
+                    </div>
+                    <input type="number" min="1" max="9999" x-model="g.sanTmSo" placeholder="Số lượng"
+                      class="w-24 px-2 py-1.5 rounded-lg bg-ink3 border border-slate-700 text-slate-200 text-[12.5px]">
+                    <input type="number" min="1" x-model="g.sanTmGia" placeholder="Giá mỗi cái"
+                      class="w-32 px-2 py-1.5 rounded-lg bg-ink3 border border-slate-700 text-slate-200 text-[12.5px]">
+                    <span class="text-[11.5px] text-slate-500">Ký quỹ <b class="text-amber-300" x-text="g.fmt(g.sanTmKyQuy)"></b> Bạc</span>
+                    <button @click="g.sanTmDat()" :disabled="!g.sanTmDatDuoc || g.sanTai"
+                      class="px-3 py-1.5 rounded-lg bg-indigo-400/15 border border-indigo-400/40 text-indigo-300 hover:bg-indigo-400/25 text-[12.5px] transition disabled:opacity-40">Đặt Đơn</button>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Đơn của cả làng -->
+              <div class="panel rounded-lg p-3">
+                <div class="text-[12.5px] text-slate-400 mb-2.5">Đơn đang treo</div>
+                <template x-if="!g.sanTmDonCuaLang.length">
+                  <div class="text-center py-6">
+                    <div class="text-[12.5px] text-slate-500">Chưa ai đặt đơn nào.</div>
+                    <button @click="g.sanDatTab('ban')" class="mt-2.5 px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition">Treo Bán Đồ</button>
+                  </div>
+                </template>
+                <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+                  <template x-for="d in g.sanTmDonCuaLang" :key="'tmd-'+d.id">
+                    <div class="panel rounded-lg p-3 flex items-center gap-3">
+                      <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0" x-html="g.ico(d.item_id, d.obj.icon)"></span>
+                      <div class="min-w-0 flex-1">
+                        <div class="text-[13px] text-slate-200 truncate" x-text="d.ten"></div>
+                        <div class="text-[11px] text-slate-500 truncate" x-text="'Còn thiếu ' + g.fmt(d.so_con) + ' · Túi có ' + g.fmt(d.co)"></div>
+                        <div class="text-[11px] text-slate-600 truncate" x-text="'Đặt bởi: ' + (d.ten_dat || '—')"></div>
+                      </div>
+                      <div class="text-right shrink-0">
+                        <div class="fserif text-amber-300 text-[13.5px]" x-text="g.fmt(d.gia)"></div>
+                        <button @click="g.sanTmBan(d.id)" :disabled="g.sanTai || d.co < 1"
+                          class="mt-1 px-2.5 py-1 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[12.5px] transition disabled:opacity-40">Bán Ngay</button>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Đơn của mình -->
+              <div class="panel rounded-lg p-3">
+                <div class="text-[12.5px] text-slate-400 mb-2.5">Đơn Đã Đặt</div>
+                <template x-if="!g.sanTmCuaToi.length">
+                  <div class="text-[12.5px] text-slate-500 py-2">Chưa đặt đơn nào. Chọn một món ở trên rồi đặt giá.</div>
+                </template>
+                <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+                  <template x-for="d in g.sanTmCuaToi" :key="'tmt-'+d.id">
+                    <div class="panel rounded-lg p-3 flex items-center gap-3">
+                      <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0" x-html="g.ico(d.item_id, (g.ITEMS[d.item_id]||{}).icon)"></span>
+                      <div class="min-w-0 flex-1">
+                        <div class="text-[13px] text-slate-200 truncate" x-text="(g.ITEMS[d.item_id]||{}).name || d.item_id"></div>
+                        <div class="text-[11px]" :class="d.trang_thai==='treo' ? 'text-indigo-300' : 'text-slate-500'"
+                             x-text="d.trang_thai==='treo' ? ('Đã nhận ' + g.fmt(d.so_dat - d.so_con) + ' / ' + g.fmt(d.so_dat)) : (d.trang_thai==='xong' ? 'Đã đủ' : 'Đã gỡ')"></div>
+                        <div class="text-[11px] text-slate-600" x-text="'Ký quỹ còn ' + g.fmt(d.ky_quy) + ' Bạc'"></div>
+                      </div>
+                      <div class="text-right shrink-0">
+                        <div class="fserif text-amber-300 text-[13.5px]" x-text="g.fmt(d.gia)"></div>
+                        <template x-if="d.trang_thai==='treo'">
+                          <button @click="g.sanTmHuy(d.id)" :disabled="g.sanTai"
+                            class="mt-1 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 hover:border-rose-500/60 text-slate-300 hover:text-rose-300 text-[12.5px] transition disabled:opacity-50">Gỡ Xuống</button>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
             </div>
           </template>
         </section>

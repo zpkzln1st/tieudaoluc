@@ -24,7 +24,7 @@ export const TINH_NANG = [
     mo: 'Mở nhánh đệ tử và năm quyển Bí Kíp.' },
   { ma: 'bangChien',    ten: 'Bang Phái Tranh Chấp',       dot: 'Năm thứ nhất', daDung: false,
     mo: 'Bang Phái tranh chấp theo mốc mỗi tuần.' },
-  { ma: 'sanThuMua',    ten: 'Sàn Thu Mua',                dot: 'Năm thứ nhất', daDung: false,
+  { ma: 'sanThuMua',    ten: 'Sàn Thu Mua',                dot: 'Năm thứ nhất', daDung: true,
     mo: 'Sàn Giao Dịch thêm đơn Thu Mua.' },
   { ma: 'phoLuc',       ten: 'Phổ Lực',                    dot: 'Năm thứ nhất', daDung: false,
     mo: 'Vạn Vật Phổ trả thưởng Phổ Lực.' },
