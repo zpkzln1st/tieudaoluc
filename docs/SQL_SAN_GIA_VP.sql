@@ -1,9 +1,11 @@
 -- ============================================================
--- BANG GIA SAN — VAT PHAM XEP CHONG (284 mon)
+-- BANG GIA SAN — VAT PHAM XEP CHONG (323 mon)
 -- ============================================================
 -- ⚠⚠ MAY SINH boi _mockup/_covua_wip/_sinh_bang_gia.mjs tu src/data/items.js.
 --    DUNG SUA TAY. Them vat pham moi vao game thi sinh lai tep nay roi chay lai.
--- Luat: cong cu / do pho / trung = value x 5 + 3 ; con lai = value + 3. Lam tron LEN.
+-- Luat: cong cu / do pho / trung = value x 5 + 3 ;
+--       dan Dan Dien pham 6-9 (chi roi) = value x 80 + 3 ;
+--       con lai (ke ca dan pham 1-5 nau duoc) = value + 3. Lam tron LEN.
 
 create table if not exists public.san_gia_vp (
   item_id text primary key,
@@ -43,6 +45,33 @@ insert into public.san_gia_vp (item_id, gia_san) values
   ('duongThuTan', 13),
   ('cuongNguyenTan', 12),
   ('hoatHuyetDan', 11),
+  ('ddTinh9', 259203),
+  ('ddKhi9', 259203),
+  ('ddThan9', 259203),
+  ('ddTinh8', 204803),
+  ('ddKhi8', 204803),
+  ('ddThan8', 204803),
+  ('ddTinh7', 156803),
+  ('ddKhi7', 156803),
+  ('ddThan7', 156803),
+  ('ddTinh6', 115203),
+  ('ddKhi6', 115203),
+  ('ddThan6', 115203),
+  ('ddTinh5', 1003),
+  ('ddKhi5', 1003),
+  ('ddThan5', 1003),
+  ('ddTinh4', 643),
+  ('ddKhi4', 643),
+  ('ddThan4', 643),
+  ('ddTinh3', 363),
+  ('ddKhi3', 363),
+  ('ddThan3', 363),
+  ('ddTinh2', 163),
+  ('ddKhi2', 163),
+  ('ddThan2', 163),
+  ('ddTinh1', 43),
+  ('ddKhi1', 43),
+  ('ddThan1', 43),
   ('thanTinhDinh', 603),
   ('sanHoDinh', 423),
   ('vanThietDinh', 293),
@@ -194,6 +223,12 @@ insert into public.san_gia_vp (item_id, gia_san) values
   ('ocTuyenHap', 95),
   ('bangLanNuong', 63),
   ('tinhLanHap', 38),
+  ('banhChung', 33),
+  ('banhTroiNguSac', 33),
+  ('banhUTro', 33),
+  ('chaoThiThuc', 33),
+  ('banhTrungThu', 33),
+  ('banhGungMat', 33),
   ('khaoCaTon', 18),
   ('khaoCaHoi', 12),
   ('khaoCaTuyet', 8),
@@ -265,6 +300,12 @@ insert into public.san_gia_vp (item_id, gia_san) values
   ('egg_hoYeu_linh', 2253),
   ('egg_bangPhuong_linh', 2253),
   ('egg_thienMa_linh', 2253),
+  ('egg_kimDongNgu_linh', 2253),
+  ('egg_thaiVuDiep_linh', 2253),
+  ('egg_xichDiemLongCau_linh', 2253),
+  ('egg_uMinhMieu_linh', 2253),
+  ('egg_ngocTho_linh', 2253),
+  ('egg_bachLoc_linh', 2253),
   ('egg_bachHo_pham', 603),
   ('egg_huyenQuy_pham', 603),
   ('egg_huyetLang_pham', 603),

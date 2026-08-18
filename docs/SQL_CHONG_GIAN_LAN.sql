@@ -203,6 +203,40 @@ language sql immutable as $$
   select public.so_jsonb(d -> 'rngDem' -> 'bcDanNhanh') + public.so_jsonb(d -> 'rngDem' -> 'yvDanNhanh');
 $$;
 
+-- So vien dan Dan Dien tai khoan nay MUA RONG tren San Giao Dich, trong khoang pham [tu, den].
+-- ⚠⚠ VI SAO PHAI CO: tang 2E chot 'so o da lap <= so lan boc so'. Vien dan MUA tren san khong di
+--    qua rng(state,'bcDanNhanh') nen no lap o ma khong cong bo dem. Co 'app.san' chi mien cho lenh
+--    ghi CUA SAN; lenh ghi luc NGUOI CHOI DUNG vien dan la save thuong, khong duoc mien.
+--    Khong co ham nay thi mua 21 vien la bi ghi so, mua 60 vien la bi CHAN THAT — nguoi choi sach.
+-- ⚠⚠ DOC TU BANG 'san_rao', KHONG doc tu ban luu. Ban luu do may nguoi choi giu, khai bao nhieu
+--    cung duoc; 'san_rao' chi ghi duoc bang ham cua san.
+-- ⚠ MUA TRU DI BAN. Chi tinh mua thi mua roi ban lai la bom tran mien phi (chi mat thue).
+-- ⚠ greatest(..., 0): ban rong tra 0. Phep nay chi duoc NOI tran, khong bao gio duoc SIET —
+--   siet la ghi so oan nguoi cay that.
+-- ⚠ plpgsql chu khong phai sql: than plpgsql khong bi phan tich luc tao ham, nen tep nay van chay
+--   duoc khi chua ai chay SQL_SAN_GIAO_DICH.sql. Chua co bang thi tra 0 = giu nguyen tran cu.
+create or replace function public.dan_mua_san(u uuid, tu int, den int) returns numeric
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare n numeric;
+begin
+  if to_regclass('public.san_rao') is null then return 0; end if;
+  select coalesce(sum(case when r.nguoi_mua = u then r.so_luong else -r.so_luong end), 0) into n
+    from public.san_rao r
+   where r.trang_thai = 'ban' and r.loai = 'item'
+     and r.item_id ~ '^dd(Tinh|Khi|Than)[1-9]$'
+     and substring(r.item_id from '[1-9]$')::int between tu and den
+     and (r.nguoi_mua = u or r.nguoi_ban = u);
+  return greatest(coalesce(n, 0), 0);
+end $$;
+
+-- Cua so cho phep tra nhanh. Bang 'san_rao' da co chi muc theo nguoi_ban, chua co theo nguoi_mua.
+-- ⚠ Boc trong DO de tep nay van chay duoc khi chua ai chay SQL_SAN_GIAO_DICH.sql.
+do $$ begin
+  if to_regclass('public.san_rao') is not null then
+    create index if not exists san_rao_nguoi_mua on public.san_rao (nguoi_mua) where trang_thai = 'ban';
+  end if;
+end $$;
+
 -- ---------- 6. CHOT: chay moi lan save duoc ghi de ----------
 -- ⚠ Lay THOI GIAN CUA MAY CHU (now() so voi OLD.updated_at), khong tin moc gio cua client.
 --   Tua dong ho tren may nguoi choi khong an thua.
@@ -405,6 +439,13 @@ begin
     o_cao_moi := o_dan_dien(NEW.data, 6, 9);
     if o_cao_moi > o_cao_cu then
       tran_cho := boc_dan + sai_dd;
+      -- ⚠⚠ CONG THEM SO VIEN MUA TREN SAN. Vien dan mua khong di qua bo dem boc so, nen thieu ve
+      --    nay la nguoi mua dan bi ghi so tu o thu 21 va bi CHAN THAT o o thu 60.
+      -- ⚠ Chi truy van 'san_rao' KHI tran co so da vuot. Cua nay dong voi gan het moi lenh luu,
+      --   nen khong dat them mot phep doc bang vao duong nong.
+      if o_cao_moi > tran_cho then
+        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 6, 9);
+      end if;
       if o_cao_moi > tran_cho then
         gap_nay := o_cao_moi / greatest(tran_cho, 1);
         gap_lon := greatest(gap_lon, gap_nay);
@@ -419,6 +460,10 @@ begin
     o_moi := o_dan_dien(NEW.data, 1, 9);
     if o_moi > o_cu then
       tran_cho := boc_dan + so_jsonb(NEW.data->'skills'->'luyenDan'->'timeMs') / (giay_nau * 1000) + sai_dd;
+      -- ⚠ Ca luoi, nen lay ca 9 pham: mua tron 60 o nau duoc cung dung bang gap 3,0 = nguong chan.
+      if o_moi > tran_cho then
+        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 1, 9);
+      end if;
       if o_moi > tran_cho then
         gap_nay := o_moi / greatest(tran_cho, 1);
         gap_lon := greatest(gap_lon, gap_nay);
@@ -468,7 +513,7 @@ create trigger kiem_toc_do_tren_saves
 -- Tang 2C (khoa boc so):    sua so con da ha ma khong di qua engine.
 -- Tang 2D (ngoai su kien):  cay ki nang su kien ngoai khoang mo/dong cua bang su_kien.
 -- Tang 2E (Dan Dien):       lap o Dan Dien nhieu hon so vien dan tung roi ra (bo dem boc so)
---                           cong suc nau suy tu gio Luyen Dan.
+--                           cong suc nau suy tu gio Luyen Dan, cong so vien MUA RONG tren San.
 -- KHONG bat: cay nhanh hon that trong pham vi he so an toan 10 lan.
 --
 -- CHAN tu 3 lan tran tro len — TRU tai khoan tac gia va uid trong bang mien_tru.

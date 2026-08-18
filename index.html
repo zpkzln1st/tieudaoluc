@@ -16022,11 +16022,11 @@
                 <template x-for="r in g.sanDs" :key="'san-'+r.id">
                   <div class="panel rounded-lg p-3 flex items-center gap-3">
                     <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0"
-                          x-html="g.ico((g.sanXem(r.mon)||{}).art || (r.mon && r.mon.gearId), '')"></span>
+                          x-html="g.sanTinArt(r)"></span>
                     <div class="min-w-0 flex-1">
-                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanTenMon(r.mon)"></div>
+                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanTinTen(r)"></div>
                       <div class="text-[11px] text-slate-500 truncate">
-                        <span x-text="g.qualityName(r.mon)"></span><span x-text="' · Cấp ' + (r.mon.itemLv||1)"></span>
+                        <span x-text="g.sanTinPhu(r)"></span>
                         <template x-if="r.mon.plus > 0"><span class="text-amber-300" x-text="' · +' + r.mon.plus"></span></template>
                       </div>
                       <div class="text-[11px] text-slate-600 truncate" x-text="'Người bán: ' + (r.ten_ban || '—')"></div>
@@ -16128,9 +16128,9 @@
                 <template x-for="r in g.sanCuaToi" :key="'toi-'+r.id">
                   <div class="panel rounded-lg p-3 flex items-center gap-3">
                     <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0"
-                          x-html="g.ico((g.sanXem(r.mon)||{}).art || (r.mon && r.mon.gearId), '')"></span>
+                          x-html="g.sanTinArt(r)"></span>
                     <div class="min-w-0 flex-1">
-                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanTenMon(r.mon)"></div>
+                      <div class="text-[13px] text-slate-200 truncate" x-text="g.sanTinTen(r)"></div>
                       <div class="text-[11px]" :class="r.trang_thai==='treo' ? 'text-jade' : 'text-slate-500'"
                            x-text="r.trang_thai==='treo' ? 'Đang treo' : (r.trang_thai==='ban' ? 'Đã bán' : 'Đã gỡ')"></div>
                     </div>

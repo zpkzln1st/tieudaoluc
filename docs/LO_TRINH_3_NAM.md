@@ -62,9 +62,26 @@ Chưa thêm nội dung nào. Trả nợ và dựng bộ khoá, vì mọi thứ s
 | ~~Bảng `tinh_nang` + tab Lệnh Bài + hàm `moChua(ma)`~~ **XONG** | không có nó thì mọi đợt sau không ngủ được |
 | ~~Đan Điền: 15 công thức Dược Lư~~ **XONG** · còn bảng rơi phẩm 6–9 | 162 ô đang không có đường lấy đan |
 | ~~Tông Môn hiện `NaN%`~~ **XONG** | lỗi sản phẩm đang nằm trên live |
-| 795 chuỗi chưa dịch | mỗi đợt mới lại đẻ thêm chuỗi; dọn sớm thì rẻ |
-| Chống gian lận: soi chỉ số Đan Điền | chỉ số mới chưa có trần, đây là lỗ |
-| `san_gia_vp` bổ sung 27 viên đan | đan đang bị loại khỏi Sàn vì máy chủ chưa có giá |
+| ~~795 chuỗi chưa dịch~~ **XONG** | mỗi đợt mới lại đẻ thêm chuỗi; dọn sớm thì rẻ |
+| ~~Chống gian lận: soi chỉ số Đan Điền~~ **XONG** | chỉ số mới chưa có trần, đây là lỗ |
+| ~~`san_gia_vp` bổ sung 27 viên đan~~ **XONG** | đan đang bị loại khỏi Sàn vì máy chủ chưa có giá |
+
+**Đợt 0 đã xong.** Bảng `san_gia_vp` nay có 323 dòng: thêm 27 viên đan và 12 vật phẩm sáu lễ
+(6 trứng linh thú + 6 món ăn) — nhóm sau cũng đang bị Sàn loại vì bộ sinh chỉ đọc `items.js`
+trong khi `sukien.js` tự ghi danh lúc nạp.
+
+Đan chia **hai băng giá**, cắt đúng chỗ nấu/rơi:
+
+| băng | giá sàn | vì sao |
+|---|---|---|
+| phẩm 1–5 (nấu ở Dược Lư) | `giá NPC + 3` | 0,06–0,25 giờ máy chạy một viên |
+| phẩm 6–9 (chỉ rơi) | `giá NPC × 80 + 3` | 37,5–50 giờ máy chạy một viên |
+
+Hệ số 80 là `HS_PHAM.tinhPham` sẵn có — một viên đan rơi ngang một trang bị Hiếm cùng giá NPC.
+Đổi mức này chỉ cần sửa `HS_DAN_ROI` trong `src/data/giasan.js` rồi chạy lại `_sinh_bang_gia.mjs`.
+
+⚠ Kèm theo: tầng 2E của chống gian lận phải cộng **số viên đan mua ròng trên Sàn**
+(`dan_mua_san`). Thiếu vế đó thì người mua đan bị ghi sổ từ ô thứ 21 và bị **chặn thật** ở ô thứ 60.
 
 ---
 

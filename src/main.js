@@ -7302,6 +7302,28 @@ const gameStore = {
   //   thuộc bộ trang, cường hóa, phẩm chất; ghép tay là lệch với chỗ khác trong game.
   sanXem(m) { try { return this.gearView(m); } catch (e) { return null; } },
   sanTenMon(m) { const v = this.sanXem(m); return (v && v.name) || (m && m.gearId) || '?'; },
+  // ---- Thẻ tin rao: MỘT tin có HAI dạng ----
+  // ⚠⚠ Trang bị treo nguyên instance (`r.mon` có `uid`, `gearId`, `itemLv`). Vật phẩm xếp chồng
+  //    treo `{ itemId, so }` — không `gearId`, không `itemLv`. Trước đây thẻ chỉ vẽ theo dạng
+  //    trang bị, nên MỌI tin vật phẩm hiện ô art trống, tên `?` và dòng phụ ghi "Cấp 1".
+  // ⚠ Nhận dạng theo cột `loai` của máy chủ trước, `r.mon.itemId` chỉ là đường lùi cho tin cũ.
+  sanTinVp(r) { return !!(r && (r.loai === 'item' || (r.mon && r.mon.itemId))); },
+  sanTinItem(r) { return (this.sanTinVp(r) && this.ITEMS[r.item_id || (r.mon && r.mon.itemId)]) || null; },
+  sanTinArt(r) {
+    const it = this.sanTinItem(r);
+    if (it) return this.ico(it.id, it.icon);
+    return this.ico((this.sanXem(r.mon) || {}).art || (r.mon && r.mon.gearId), '');
+  },
+  sanTinTen(r) {
+    const it = this.sanTinItem(r);
+    return it ? it.name : this.sanTenMon(r.mon);
+  },
+  /** Dòng phụ dưới tên: trang bị đọc phẩm chất + cấp món, vật phẩm đọc phẩm chất + số lượng. */
+  sanTinPhu(r) {
+    const it = this.sanTinItem(r);
+    if (it) return this.qualityName(it) + ' · ×' + this.fmt(r.so_luong || (r.mon && r.mon.so) || 1);
+    return this.qualityName(r.mon) + ' · Cấp ' + ((r.mon && r.mon.itemLv) || 1);
+  },
   // Sau MỌI thao tác sàn: kéo bản mới từ cloud về rồi tải lại trang.
   async _sanNapLai() {
     const r = await cloudLoadSave();
@@ -7349,14 +7371,12 @@ const gameStore = {
   // ⚠ Giá sàn tính CẢ LÔ: sàn một cái × số lượng. Máy chủ chặn lại bằng bảng `san_gia_vp`
   //   (docs/SQL_SAN_GIA_VP.sql, máy sinh từ items.js) — máy chủ không biết `value` của vật phẩm.
   sanVpUid: '', sanVpSo: 1, sanVpGia: '',
-  // ⚠ BỎ đan Đan Điền: bảng `san_gia_vp` trên máy chủ (docs/SQL_SAN_GIA_VP.sql) sinh trước khi 27
-  //   viên đan được đăng ký, nên máy chủ tra ra `null` rồi từ chối bằng "Món này không treo bán
-  //   được". Bày món ra lưới rồi để máy chủ từ chối là bắt người chơi thử mò. Muốn mở thì chạy lại
-  //   `_mockup/_covua_wip/_sinh_bang_gia.mjs` và chủ dự án chạy lại tệp SQL đó.
+  // ⛔ ĐỪNG loại type nào ra khỏi lưới này. Bảng `san_gia_vp` trên máy chủ đã có giá cho MỌI món
+  //   xếp chồng, bài kiểm 38 soi hai chiều: món trong game mà thiếu dòng giá là đỏ, lưới này loại
+  //   một type cũng là đỏ. Loại ở client thì món biến mất trước mắt người chơi mà không ai biết.
   get sanVpTreoDuoc() {
     const inv = this.state.inventory || {};
-    return Object.keys(inv).filter((k) => inv[k] > 0 && this.ITEMS[k] && this.ITEMS[k].value > 0
-        && this.ITEMS[k].type !== 'danDien')
+    return Object.keys(inv).filter((k) => inv[k] > 0 && this.ITEMS[k] && this.ITEMS[k].value > 0)
       .map((k) => ({ id: k, ten: this.ITEMS[k].name, co: inv[k], san: giaSanVatPham(this.ITEMS[k]) }))
       .sort((a, b) => b.san - a.san);
   },
