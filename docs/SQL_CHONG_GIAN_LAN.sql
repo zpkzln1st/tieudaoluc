@@ -102,7 +102,10 @@ insert into public.tran_he_so (khoa, gia_tri) values
   -- ⚠⚠ CHAN: chi TU CHOI ghi de khi vuot tran tu ngan nay lan tro len. Duoi muc do chi ghi so.
   --   Do that: nguoi choi that manh nhat cach tran 3.0 lan (Chien Dau) / 3.1 lan (nghe),
   --   nen moc 3 lan la ngoai tam voi cua loi choi that.
-  ('gap_de_chan', 3)
+  ('gap_de_chan', 3),
+  -- ---- tang 2E: Dan Dien ----
+  ('sai_so_dan_dien', 20),      -- cho lech ngan nay o (qua tac gia phat khong qua bo dem boc so)
+  ('giay_nau_dan_re_nhat', 45)      -- cong thuc Duoc Phuong nhanh nhat: mot vien ton ngan nay giay
 on conflict (khoa) do update set gia_tri = excluded.gia_tri;
 
 -- Cung ly do voi bang tren: khong bat RLS thi ke gian tu sua he so.
@@ -181,6 +184,25 @@ language sql immutable as $$
                        then d #> '{counters,kills}' else '{}'::jsonb end);
 $$;
 
+-- So O DA LAP cua luoi Dan Dien trong khoang pham [tu, den]. KEP theo suc chua tung pham:
+-- ban luu khai 999 o mot o cung chi tinh dung suc chua that (engine cung kep y het, ddBang()).
+create or replace function public.o_dan_dien(d jsonb, tu int, den int) returns numeric
+language sql immutable as $$
+  select coalesce(sum(least(public.so_jsonb(d #> array['danDien', b.nh, (c.i - 1)::text]), c.suc)), 0)
+  from (values ('tinh'),('khi'),('than')) as b(nh)
+  cross join (values (1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,9),(9,10)) as c(i, suc)
+  where c.i between tu and den;
+$$;
+
+-- So VIEN DAN da ROI ra cho tai khoan nay, tinh theo BO DEM BOC SO.
+-- ⚠⚠ Day la rang buoc DUNG BANG, khong uoc luong: moi vien dan roi ton DUNG MOT lan boc o
+--    mien rieng 'bcDanNhanh' (engine/dungeon.js) hoac 'yvDanNhanh' (engine/worldboss.js).
+--    Hai mien do KHONG dung chung voi bat ky duong boc nao khac.
+create or replace function public.boc_dan_dien(d jsonb) returns numeric
+language sql immutable as $$
+  select public.so_jsonb(d -> 'rngDem' -> 'bcDanNhanh') + public.so_jsonb(d -> 'rngDem' -> 'yvDanNhanh');
+$$;
+
 -- ---------- 6. CHOT: chay moi lan save duoc ghi de ----------
 -- ⚠ Lay THOI GIAN CUA MAY CHU (now() so voi OLD.updated_at), khong tin moc gio cua client.
 --   Tua dong ho tren may nguoi choi khong an thua.
@@ -193,6 +215,8 @@ declare
   r record; cu numeric; moi numeric; tang numeric; tran_cho numeric; gap_nay numeric;
   gio_cu numeric; gio_moi numeric; d_gio numeric; d_track numeric;
   ha_cu numeric; ha_moi numeric; d_ha numeric; d_boc numeric;
+  sai_dd numeric; giay_nau numeric; boc_dan numeric;
+  o_cu numeric; o_moi numeric; o_cao_cu numeric; o_cao_moi numeric;
   vuot jsonb := '[]'::jsonb;
   gap_lon numeric := 0;
   la_tg boolean; duoc_mien boolean; chan boolean := false;
@@ -201,7 +225,7 @@ begin
   --    Nguoi ban nhan mot cuc Bac tu san — do la tien do SAN chuyen giua hai tai khoan, khong
   --    phai nguoi choi tu cay ra. Thieu dong nay thi ban duoc mon dat tien la bi ghi so nghi van
   --    OAN, va du ba lan la bi CHAN that.
-  --    Co `app.san` chi song trong giao dich cua ham san (`set_config(..., true)`), client khong
+  --    Co 'app.san' chi song trong giao dich cua ham san (set_config(..., true)), client khong
   --    dat duoc qua PostgREST.
   if coalesce(current_setting('app.san', true), '') = '1' then return NEW; end if;
 
@@ -217,11 +241,14 @@ begin
   select gia_tri into phu_cap  from tran_he_so where khoa = 'phu_cap_chien_dau';
   select gia_tri into sai_so   from tran_he_so where khoa = 'sai_so_boc_so';
   select gia_tri into gap_chan from tran_he_so where khoa = 'gap_de_chan';
+  select gia_tri into sai_dd   from tran_he_so where khoa = 'sai_so_dan_dien';
+  select gia_tri into giay_nau from tran_he_so where khoa = 'giay_nau_dan_re_nhat';
   hs := coalesce(hs, 10); bu := coalesce(bu, 50400);
   bac_san := coalesce(bac_san, 5000000); tran_lan := coalesce(tran_lan, 2218261);
   nhip_ms := coalesce(nhip_ms, 8000); hs_gio := coalesce(hs_gio, 1.5);
   phu_cap := coalesce(phu_cap, 78978); sai_so := coalesce(sai_so, 2);
   gap_chan := coalesce(gap_chan, 3);
+  sai_dd := coalesce(sai_dd, 20); giay_nau := coalesce(giay_nau, 45);
 
   -- ⚠⚠ HE SO EXP TOAN MAY CHU. Bat x2 cuoi tuan ma tran khong nhan theo la CA LANG bi ghi so
   --    roi bi chan. Lay cai LON NHAT tung bat trong KHOANG GIUA hai lan ghi, khong lay cai
@@ -364,6 +391,43 @@ begin
     end loop;
   end if;
 
+  -- ===== TANG 2E: DAN DIEN =====
+  -- Luoi Dan Dien cong 162 o chi so VINH VIEN ma khong nam trong bat ky phep soi nao:
+  -- sua thang 'state.danDien' la len het, khong dong vao xp lan gio lam mot chut nao.
+  -- ⚠ CHI kiem khi CA HAI ban save deu co hat giong, y het tang 2C: ban truoc dot D khong co
+  --   'rngDem' nen bo dem boc so bang 0, kiem la ghi so oan ca lang.
+  -- ⚠ Chi kiem khi so o TANG. Ban luu nam yen khong bao gio bi soi.
+  if jsonb_typeof(OLD.data->'rngHat') = 'number' and jsonb_typeof(NEW.data->'rngHat') = 'number' then
+    boc_dan  := boc_dan_dien(NEW.data);
+    -- 2E-a: pham 6-9 KHONG CO CONG THUC — chung chi den tu duong roi. Tran nay CHAT,
+    --       khong phu thuoc cap nghe: bao nhieu vien roi thi bay nhieu lan boc, khong hon.
+    o_cao_cu  := o_dan_dien(OLD.data, 6, 9);
+    o_cao_moi := o_dan_dien(NEW.data, 6, 9);
+    if o_cao_moi > o_cao_cu then
+      tran_cho := boc_dan + sai_dd;
+      if o_cao_moi > tran_cho then
+        gap_nay := o_cao_moi / greatest(tran_cho, 1);
+        gap_lon := greatest(gap_lon, gap_nay);
+        vuot := vuot || jsonb_build_object('phep', 'dan_dien_roi', 'khoa', 'pham6_9',
+                  'tang', o_cao_moi, 'tran', round(tran_cho), 'gap', round(gap_nay, 1));
+      end if;
+    end if;
+    -- 2E-b: ca luoi. Pham 1-5 nau duoc nen cong them suc nau suy tu GIO LUYEN DAN.
+    --       Long hon 2E-a nhieu, nhung van chan duoc ban luu sua tay: luoi day ma gio luyen dan
+    --       bang 0 va chua boc lan nao thi khong duong nao giai thich noi.
+    o_cu  := o_dan_dien(OLD.data, 1, 9);
+    o_moi := o_dan_dien(NEW.data, 1, 9);
+    if o_moi > o_cu then
+      tran_cho := boc_dan + so_jsonb(NEW.data->'skills'->'luyenDan'->'timeMs') / (giay_nau * 1000) + sai_dd;
+      if o_moi > tran_cho then
+        gap_nay := o_moi / greatest(tran_cho, 1);
+        gap_lon := greatest(gap_lon, gap_nay);
+        vuot := vuot || jsonb_build_object('phep', 'dan_dien_tong', 'khoa', 'tong',
+                  'tang', o_moi, 'tran', round(tran_cho), 'gap', round(gap_nay, 1));
+      end if;
+    end if;
+  end if;
+
   -- ===== GHI SO + CHAN =====
   if jsonb_array_length(vuot) > 0 then
     -- Tai khoan tac gia dung bang dev (F9) nen se tu bao dong. Danh dau de con loc ra.
@@ -403,6 +467,8 @@ create trigger kiem_toc_do_tren_saves
 --                           vi khong co gio lam thi tran chi con phu cap 78.978 xp.
 -- Tang 2C (khoa boc so):    sua so con da ha ma khong di qua engine.
 -- Tang 2D (ngoai su kien):  cay ki nang su kien ngoai khoang mo/dong cua bang su_kien.
+-- Tang 2E (Dan Dien):       lap o Dan Dien nhieu hon so vien dan tung roi ra (bo dem boc so)
+--                           cong suc nau suy tu gio Luyen Dan.
 -- KHONG bat: cay nhanh hon that trong pham vi he so an toan 10 lan.
 --
 -- CHAN tu 3 lan tran tro len — TRU tai khoan tac gia va uid trong bang mien_tru.
