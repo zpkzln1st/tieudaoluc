@@ -60,7 +60,7 @@ Chưa thêm nội dung nào. Trả nợ và dựng bộ khoá, vì mọi thứ s
 | việc | vì sao trước |
 |---|---|
 | ~~Bảng `tinh_nang` + tab Lệnh Bài + hàm `moChua(ma)`~~ **XONG** | không có nó thì mọi đợt sau không ngủ được |
-| ~~Đan Điền: 15 công thức Dược Lư~~ **XONG** · còn bảng rơi phẩm 6–9 | 162 ô đang không có đường lấy đan |
+| ~~Đan Điền: 15 công thức Dược Lư + bảng rơi phẩm 6–9~~ **XONG** | 162 ô đang không có đường lấy đan |
 | ~~Tông Môn hiện `NaN%`~~ **XONG** | lỗi sản phẩm đang nằm trên live |
 | ~~795 chuỗi chưa dịch~~ **XONG** | mỗi đợt mới lại đẻ thêm chuỗi; dọn sớm thì rẻ |
 | ~~Chống gian lận: soi chỉ số Đan Điền~~ **XONG** | chỉ số mới chưa có trần, đây là lỗ |
@@ -91,7 +91,7 @@ Không mở hệ mới. Lấp cho đủ những hệ đã dựng khung.
 
 **4.1 Nội dung chiến đấu** — cờ `noiDungBac2`
 - Yêu Vương + Bí Cảnh: tune lại theo số đo thật, thêm bậc khó thứ hai.
-- Bảng rơi phẩm 6–9 của Đan Điền gắn vào đây.
+- Đan Điền phẩm 6–9 đã rơi thật (6% mỗi lượt, `DD_TI_LE_ROI`); bậc khó thứ hai chỉnh lại tỉ lệ đó.
 - Trần cấp mở dần qua `mo_khoa.tran_chuyen` (đã có, trần cứng 10 vòng).
 
 **4.2 Tông Môn P2 · P3** — cờ `tongMonDrama`
