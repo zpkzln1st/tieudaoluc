@@ -3189,7 +3189,7 @@
               <template x-if="$store.game.selectedSkill==='daTao' && $store.game.currentSkillActions.length===0">
                 <div class="text-[12px] text-slate-500 text-center py-6">Không có món rèn nào thuộc loại này.</div>
               </template>
-              <!-- Phân loại Luyện Kim (Đúc Thỏi / Đá Cường Hóa) & Luyện Đan (Linh Thạch / Đan Dược) — dạng dropdown -->
+              <!-- Phân loại Luyện Kim (Đúc Thỏi / Đá Cường Hóa) & Luyện Đan (Linh Thạch / Đan Dược / Dược Phương) — dạng dropdown -->
               <template x-if="$store.game.skillSubTabs">
                 <div class="flex items-center gap-2 mb-2.5">
                   <span class="lbl">Phân loại</span>
@@ -3201,7 +3201,7 @@
               <template x-for="action in $store.game.currentSkillActions" :key="action.id">
                 <button @click="$store.game.openAction($store.game.selectedSkill, action.id)"
                   class="w-full flex items-center gap-3 p-3 rounded bg-ink3/60 border border-slate-800 hover:border-jade/40 text-left transition">
-                  <div class="w-14 h-14 rounded bg-ink flex items-center justify-center text-2xl shrink-0" x-html="$store.game.ico(action.itemId || $store.game.currentSkill.id, action.itemId ? $store.game.ITEMS[action.itemId].icon : $store.game.currentSkill.icon)"></div>
+                  <div class="w-14 h-14 rounded bg-ink flex items-center justify-center text-2xl shrink-0" x-html="$store.game.icoCongThuc(action)"></div>
                   <div class="flex-1 min-w-0">
                     <div class="text-sm font-medium" :class="action.itemId ? $store.game.itemQuality(action.itemId).text : ''" x-text="action.name"></div>
                     <div class="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-400 mt-0.5">
@@ -16991,7 +16991,7 @@
               <span style="font-size:11.5px;color:#64748b">Nguồn đan</span>
               <span class="gtip gtip-len">
                 <span class="block"><span>Nhất Phẩm đến</span>
-                  <span x-text="g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI-1]"></span> <span>nấu ở Dược Lư.</span></span>
+                  <span x-text="g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI-1]"></span> <span>nấu ở nghề Luyện Đan, mục Dược Phương.</span></span>
                 <span class="block mt-0.5"><span>Từ</span>
                   <span x-text="g.DD_PHAM_TEN[g.DD_PHAM_NAU_TOI]"></span>
                   <span>trở lên chỉ rơi từ Yêu Vương và Bí Cảnh.</span></span>

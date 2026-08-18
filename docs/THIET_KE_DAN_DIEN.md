@@ -76,8 +76,37 @@ Chín mốc. Đây là chỗ chống lối chơi dồn hết vào một nhánh.
 
 | phẩm | lấy ở đâu | cổng |
 |---|---|---|
-| 1–5 | **Dược Lư** (hệ Luyện Đan đang chạy) | cấp nghề Luyện Đan + linh thảo nghề Hái Thuốc |
+| 1–5 | **Dược Phương** — mục thứ ba của nghề Luyện Đan (ĐÃ DỰNG) | cấp nghề Luyện Đan + linh thảo nghề Hái Thuốc |
 | 6–9 | **10 Yêu Vương** (hồi sinh 2–?giờ mỗi con) + **9 Bí Cảnh** (một lượt 90 phút trở lên) | cấp + tỉ lệ rơi thấp |
+
+### Dược Phương — 15 công thức, số đã chốt
+
+Ba nhánh × năm phẩm. Mỗi công thức ăn hai loại linh thảo của nghề Hái Thuốc.
+**Ba nhánh cùng phẩm dùng CHUNG một bộ liệu** — Đan Hồn đòi lấp đủ cả ba nhánh, bắt một nhánh
+đắt hơn hai nhánh kia là phạt người chơi vì thứ họ không chọn được.
+
+| phẩm | cấp Luyện Đan | thời gian | EXP | liệu |
+|---|---|---|---|---|
+| Nhất | 15 | 45s | 30 | Thanh Ngải Thảo ×8 · Tử Đằng Hoa ×5 |
+| Nhị | 30 | 60s | 48 | Tử Đằng Hoa ×8 · Đương Quy Căn ×5 |
+| Tam | 50 | 80s | 74 | Thạch Hộc Lan ×8 · Tuyết Liên Hoa ×5 |
+| Tứ | 70 | 100s | 125 | Ngọc Tuyền Sâm ×8 · Vân Lộ Chi ×5 |
+| Ngũ | 90 | 125s | 188 | Thất Tinh Thảo ×8 · Trầm Vụ Lan ×5 |
+
+**Đo thật (bài kiểm 45 mục F):** nấu trọn 60 viên tốn **8,0 giờ hái thảo + 1,5 giờ nấu = 9,6 giờ**
+máy chạy, thu 6.759 EXP Luyện Đan.
+
+⚠⚠ **Hàng rào thật là CẤP NGHỀ, không phải số linh thảo.** Muốn chạm Ngũ Phẩm phải có Luyện Đan
+90 **và** Hái Thuốc 92. Đó mới là quãng đường dài; 9,6 giờ kia chỉ là phần đuôi.
+Muốn siết thì sửa `DD_CONG_THUC` trong `src/data/dandien.js` — một chỗ, mười lăm công thức tự theo.
+
+⚠ xp/giây bám đúng đường cong Luyện Đan sẵn có: 0,67 ở Lv15 → 1,50 ở Lv90, đều dưới trần 1,65
+của nghề. Vượt trần là Dược Phương thành đường lên cấp nhanh nhất, không còn là chỗ nấu đan.
+
+⚠ Nền tờ phương (`duocphuong_12/34/5.webp`) vẽ sau lưng viên đan, ô giữa 44% — đúng khoảng
+trống ba tấm art chừa sẵn. Ghép trong `ico()` của main.js, dùng lại khuôn của Đồ Phổ.
+
+---
 
 ### Bài toán thời gian — chỗ quyết định "đáng tự hào"
 Người chơi đều đặn: ước 6 lượt Yêu Vương + 4 lượt Bí Cảnh mỗi ngày = **10 lượt/ngày**.

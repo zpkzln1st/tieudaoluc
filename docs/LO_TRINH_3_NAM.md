@@ -60,8 +60,8 @@ Chưa thêm nội dung nào. Trả nợ và dựng bộ khoá, vì mọi thứ s
 | việc | vì sao trước |
 |---|---|
 | ~~Bảng `tinh_nang` + tab Lệnh Bài + hàm `moChua(ma)`~~ **XONG** | không có nó thì mọi đợt sau không ngủ được |
-| Đan Điền: 15 công thức Dược Lư + bảng rơi phẩm 6–9 | 162 ô đang không có đường lấy đan |
-| Tông Môn hiện `NaN%` | lỗi sản phẩm đang nằm trên live |
+| ~~Đan Điền: 15 công thức Dược Lư~~ **XONG** · còn bảng rơi phẩm 6–9 | 162 ô đang không có đường lấy đan |
+| ~~Tông Môn hiện `NaN%`~~ **XONG** | lỗi sản phẩm đang nằm trên live |
 | 795 chuỗi chưa dịch | mỗi đợt mới lại đẻ thêm chuỗi; dọn sớm thì rẻ |
 | Chống gian lận: soi chỉ số Đan Điền | chỉ số mới chưa có trần, đây là lỗ |
 | `san_gia_vp` bổ sung 27 viên đan | đan đang bị loại khỏi Sàn vì máy chủ chưa có giá |

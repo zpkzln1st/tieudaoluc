@@ -4,6 +4,7 @@
 // ============================================================
 import { ITEMS } from './items.js';
 import { mkGearRecipe, forgeableGear } from './gear.js';
+import { ddCongThuc } from './dandien.js';
 
 export const SKILLS = {
   // ---------------- GATHER ----------------
@@ -194,6 +195,10 @@ export const SKILLS = {
 // RÈN ĐÚC (bước 5): tự sinh công thức rèn cho mọi gear rèn được trong catalog (sample giờ; eq_* thật về sau).
 //   Nối thẳng chuỗi Luyện Kim — Thỏi chọn theo tier itemLv (gear.js). Drop-only/boss bị loại.
 SKILLS.daTao.actions.push(...forgeableGear(ITEMS).map(mkGearRecipe));
+
+// DƯỢC PHƯƠNG: 15 công thức nấu đan Đan Điền phẩm 1–5, sinh từ src/data/dandien.js.
+// ⚠ Phẩm 6–9 KHÔNG có công thức — chúng chỉ rơi từ Yêu Vương và Bí Cảnh.
+SKILLS.luyenDan.actions.push(...ddCongThuc());
 
 // Tứ Trụ (giữ Hán-Việt — là chỉ số võ học, hợp chất)
 export const STATS = {

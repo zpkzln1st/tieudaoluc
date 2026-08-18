@@ -17,7 +17,7 @@ import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
 import { giaSanTrangBi, giaSanVatPham } from './data/giasan.js';
-import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId } from './data/dandien.js';
+import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
@@ -3965,6 +3965,17 @@ const gameStore = {
     if (this.forgeSlot === 'cuoc') return TOOL_SLOTS.some((t) => t.id === e.slot);
     return e.slot === this.forgeSlot;
   },
+  /**
+   * Biểu tượng một dòng công thức. Đan Đan Điền thì lồng viên đan vào tờ Dược Phương;
+   * mọi công thức khác vẫn vẽ y như cũ.
+   * ⚠ Dùng lại đúng bộ ghép ảnh của Đồ Phổ trong `ico()`, đừng dựng bộ thứ hai.
+   */
+  icoCongThuc(a) {
+    if (!a) return '';
+    const id = a.itemId;
+    if (id && ddNauDuoc(id)) return this.ico('phuong_' + id, (this.ITEMS[id] || {}).icon);
+    return this.ico(id || this.currentSkill.id, id ? this.ITEMS[id].icon : this.currentSkill.icon);
+  },
   get currentSkillActions() {
     void this._tick;
     const acts = (this.currentSkill && this.currentSkill.actions) || [];
@@ -3983,14 +3994,20 @@ const gameStore = {
   skillTab: 'thoi',
   skillSubTabsFor(skillId) {
     if (skillId === 'daLuyen') return [{ k: 'thoi', n: 'Đúc Thỏi' }, { k: 'da', n: 'Chế Tạo Đá Cường Hóa' }];
-    if (skillId === 'luyenDan') return [{ k: 'linhThach', n: 'Linh Thạch' }, { k: 'dan', n: 'Đan Dược' }];
+    if (skillId === 'luyenDan') return [{ k: 'linhThach', n: 'Linh Thạch' }, { k: 'dan', n: 'Đan Dược' }, { k: 'duocPhuong', n: 'Dược Phương' }];
     return null;
   },
   get skillSubTabs() { return this.skillSubTabsFor(this.selectedSkill); },
   get effectiveSkillTab() { const subs = this.skillSubTabs; if (!subs) return null; return subs.some((s) => s.k === this.skillTab) ? this.skillTab : subs[0].k; },
   skillActionCat(skillId, action) {
     if (skillId === 'daLuyen') return (action.itemId || '').startsWith('daCuongHoa') ? 'da' : 'thoi';
-    if (skillId === 'luyenDan') return (this.ITEMS[action.itemId] && this.ITEMS[action.itemId].type === 'dan') ? 'dan' : 'linhThach';
+    if (skillId === 'luyenDan') {
+      // ⚠ Ba tab, KHÔNG phải hai. Đan Điền mang `type: 'danDien'` — thiếu nhánh này thì 15 công
+      //   thức Dược Phương rơi hết vào tab Linh Thạch.
+      const t = (this.ITEMS[action.itemId] || {}).type;
+      if (t === 'danDien') return 'duocPhuong';
+      return t === 'dan' ? 'dan' : 'linhThach';
+    }
     return null;
   },
   // --- "Có gì ở đây" (modal địa điểm): tách quái thường / boss, + tài nguyên cày được theo vùng ---
@@ -4030,6 +4047,25 @@ const gameStore = {
     if (ddIt && ddIt.type === 'danDien') id = ddArtCua(ddIt.nhanh, ddIt.pham);
     const folder = ICON_FOLDERS[id] || 'items';
     const drop = `this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{textContent:&quot;${safe}&quot;}))`;
+    // DƯỢC PHƯƠNG: tờ phương làm nền, viên đan lồng giữa. CÙNG khuôn với Đồ Phổ ngay bên dưới
+    // — 44% ở giữa là đúng khoảng trống mà ba tấm art chừa sẵn (xem docs/ART_DAN_DIEN.md).
+    // ⚠ `phuong_<itemId>` chỉ sống trong lời gọi, KHÔNG phải một vật phẩm.
+    if (id && id.startsWith('phuong_')) {
+      const danId = id.slice(7);
+      const it = (this.ITEMS && this.ITEMS[danId]) || {};
+      const bgFile = ddNenPhuong(it.pham), art = ddArtCua(it.nhanh, it.pham);
+      if (bgFile && art) {
+        const qm = (this.QUALITY && this.QUALITY[it.quality]) || null;
+        const bd = qm ? qm.border : 'border-slate-500/50';
+        const inner = `<img src="images/items/${art}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/items/${art}.png&quot;;}else{${drop};}'>`;
+        return `<span class="relative block w-full h-full">`
+          + `<img src="images/items/${bgFile}.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/items/${bgFile}.png&quot;;}else{${drop};}'>`
+          + `<span class="absolute overflow-hidden border ${bd}" style="left:50%;top:49%;transform:translate(-50%,-50%);width:44%;height:44%;border-radius:14%">`
+          + inner
+          + `</span></span>`;
+      }
+      id = danId;   // thiếu nền thì vẽ viên đan trơn, đừng rơi về emoji
+    }
     if (id && id.startsWith('dp_')) {   // ĐỒ PHỔ: cuộn nền THEO BẬC + art gear/tool lồng giữa. Tất cả WEBP-FIRST -> png -> emoji.
       const qq = ((this.ITEMS && this.ITEMS[id]) || {}).quality;
       const qmeta = (this.QUALITY && this.QUALITY[qq]) || null;
@@ -7506,7 +7542,7 @@ const gameStore = {
     const co = countItem(this.state, id);
     if (co <= 0) {
       this.showToast('Chưa có ' + it.name + ' trong túi. '
-        + (pham <= DD_PHAM_NAU_TOI ? 'Nấu ở Dược Lư.' : 'Rơi từ Yêu Vương và Bí Cảnh.'));
+        + (pham <= DD_PHAM_NAU_TOI ? 'Nấu ở nghề Luyện Đan, mục Dược Phương.' : 'Rơi từ Yêu Vương và Bí Cảnh.'));
       return;
     }
     this.hoiXacNhan({

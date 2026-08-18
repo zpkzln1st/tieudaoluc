@@ -146,3 +146,66 @@ export function ddItems() {
   }
   return ra;
 }
+
+// ============================================================
+// DƯỢC PHƯƠNG — 15 công thức nấu đan phẩm 1–5 ở Dược Lư (nghề Luyện Đan)
+// ============================================================
+// Nguồn của phẩm 1–5 theo docs/THIET_KE_DAN_DIEN.md §3: cấp nghề Luyện Đan + linh thảo nghề Hái Thuốc.
+// Phẩm 6–9 KHÔNG có công thức — chúng chỉ rơi từ Yêu Vương và Bí Cảnh.
+//
+// ⚠⚠ HÀNG RÀO THẬT LÀ CẤP NGHỀ, không phải số linh thảo. Nấu trọn 60 viên chỉ tốn 9,6 giờ máy
+//    chạy (8,0 giờ hái thảo + 1,5 giờ nấu), nhưng muốn chạm Ngũ Phẩm thì phải có Luyện Đan 90 VÀ
+//    Hái Thuốc 92 — hai nghề đó mới là quãng đường dài. Đo bằng `_check_duoclu` mục E.
+//
+// ⚠ BA NHÁNH DÙNG CHUNG một bộ linh thảo ở mỗi phẩm. Cố ý: Đan Hồn đòi lấp đủ cả ba nhánh, nên
+//   bắt một nhánh đắt hơn hai nhánh kia là phạt người chơi vì thứ họ không chọn được.
+//
+// Bậc thang xp/giây bám đúng đường cong Luyện Đan sẵn có: 0,67 ở Lv15 → 1,50 ở Lv90.
+export const DD_CONG_THUC = {
+  1: { reqLevel: 15, time: 45,  xp: 30,  statXp: 2, inputs: [{ itemId: 'thanhNgaiThao', qty: 8 }, { itemId: 'tuDangHoa', qty: 5 }] },
+  2: { reqLevel: 30, time: 60,  xp: 48,  statXp: 4, inputs: [{ itemId: 'tuDangHoa', qty: 8 }, { itemId: 'duongQuyCan', qty: 5 }] },
+  3: { reqLevel: 50, time: 80,  xp: 74,  statXp: 5, inputs: [{ itemId: 'thachHocLan', qty: 8 }, { itemId: 'tuyetLienHoa', qty: 5 }] },
+  4: { reqLevel: 70, time: 100, xp: 125, statXp: 7, inputs: [{ itemId: 'ngocTuyenSam', qty: 8 }, { itemId: 'vanLoChi', qty: 5 }] },
+  5: { reqLevel: 90, time: 125, xp: 188, statXp: 9, inputs: [{ itemId: 'thatTinhThao', qty: 8 }, { itemId: 'tramVuLan', qty: 5 }] },
+};
+
+// Nền tờ Dược Phương vẽ sau lưng viên đan trong danh sách công thức. Ba tấm cho năm phẩm:
+// bậc thấp 1–2 · bậc giữa 3–4 · bậc cao 5. Art ở `images/items/`, giữa tấm để trống sẵn cho viên đan.
+const DD_NEN = ['duocphuong_12', 'duocphuong_12', 'duocphuong_34', 'duocphuong_34', 'duocphuong_5'];
+
+/** Mã art nền Dược Phương của phẩm `pham`. Phẩm 6–9 không nấu được nên trả rỗng. */
+export function ddNenPhuong(pham) {
+  const p = Math.floor(Number(pham) || 0);
+  return (p >= 1 && p <= DD_PHAM_NAU_TOI) ? DD_NEN[p - 1] : '';
+}
+
+/** Viên đan này có nấu ở Dược Lư được không (dùng để giao diện biết lúc nào vẽ nền tờ phương). */
+export function ddNauDuoc(itemId) {
+  for (const nh of DD_NHANH) for (let p = 1; p <= DD_PHAM_NAU_TOI; p++) if (ddItemId(nh, p) === itemId) return p;
+  return 0;
+}
+
+const DD_GLOSS_NHANH = { tinh: 'Essence', khi: 'Qi', than: 'Spirit' };
+const DD_GLOSS_PHAM = ['I', 'II', 'III', 'IV', 'V'];
+
+/**
+ * 15 công thức cho `SKILLS.luyenDan.actions`. Sinh từ DD_CONG_THUC — KHÔNG gõ tay 15 khối.
+ * ⚠ `id` trùng `itemId`, đúng quy ước của mọi công thức khác trong skills.js.
+ */
+export function ddCongThuc() {
+  const ra = [];
+  for (const nh of DD_NHANH) {
+    for (let p = 1; p <= DD_PHAM_NAU_TOI; p++) {
+      const c = DD_CONG_THUC[p]; if (!c) continue;
+      const id = ddItemId(nh, p);
+      ra.push({
+        id, itemId: id,
+        name: DD_NHANH_INFO[nh].ten + ' Đan · ' + DD_PHAM_TEN[p - 1],
+        gloss: DD_GLOSS_NHANH[nh] + ' Pill ' + DD_GLOSS_PHAM[p - 1],
+        reqLevel: c.reqLevel, xp: c.xp, time: c.time, statXp: c.statXp,
+        inputs: c.inputs.map((x) => ({ itemId: x.itemId, qty: x.qty })),
+      });
+    }
+  }
+  return ra;
+}

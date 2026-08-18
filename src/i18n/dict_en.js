@@ -14737,4 +14737,7 @@ export const DICT = {
   "Đàm Đạo mở phần hai, gắn với bản đồ mới.": "Discourse opens part two, tied to the new map.",
   "Người chơi đang thấy": "Players can see it",
   "Chỉ bạn thấy": "Only you can see it",
+  "Dược Phương": "Recipe Sheets",
+  "Nấu ở nghề Luyện Đan, mục Dược Phương.": "Brewed under the Alchemy profession, Recipe Sheets tab.",
+  "nấu ở nghề Luyện Đan, mục Dược Phương.": "brewed under the Alchemy profession, Recipe Sheets tab.",
 };

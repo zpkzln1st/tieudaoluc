@@ -14568,4 +14568,7 @@ export const DICT = {
   "Đàm Đạo mở phần hai, gắn với bản đồ mới.": "谈道开启第二部，接上新地图。",
   "Người chơi đang thấy": "玩家看得到",
   "Chỉ bạn thấy": "只有你看得到",
+  "Dược Phương": "药方",
+  "Nấu ở nghề Luyện Đan, mục Dược Phương.": "在炼丹职业的药方栏炼制。",
+  "nấu ở nghề Luyện Đan, mục Dược Phương.": "在炼丹职业的药方栏炼制。",
 };
