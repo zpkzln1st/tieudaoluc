@@ -26,6 +26,10 @@ export const TINH_NANG = [
     mo: 'Bang Phái tranh chấp theo mốc mỗi tuần.' },
   { ma: 'sanThuMua',    ten: 'Sàn Thu Mua',                dot: 'Năm thứ nhất', daDung: true,
     mo: 'Sàn Giao Dịch thêm đơn Thu Mua.' },
+  // ⚠ Mã NGOÀI lộ trình ba năm — thêm mã mới thì phải sửa cả chốt `tinh_nang_ma_hop_le` trong
+  //   docs/SQL_LENH_BAI_9.sql, và chủ dự án chạy lại tệp đó. Bài kiểm 43 soi hai đầu.
+  { ma: 'thinhKinh',    ten: 'Thỉnh Kinh',                 dot: 'Năm thứ nhất', daDung: true,
+    mo: 'Mở màn Thỉnh Kinh: phái Hộ Kinh Sứ áp tải kinh thư.' },
   { ma: 'phoLuc',       ten: 'Phổ Lực',                    dot: 'Năm thứ nhất', daDung: false,
     mo: 'Vạn Vật Phổ trả thưởng Phổ Lực.' },
   { ma: 'dauTruong',    ten: 'Đấu Trường',                 dot: 'Năm thứ hai',  daDung: false,

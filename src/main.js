@@ -17,6 +17,9 @@ import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
 import { giaSanTrangBi, giaSanVatPham, dsXepChong } from './data/giasan.js';
+import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, tkExpLenCap } from './data/thinhkinh.js';
+import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop,
+  tkThuongThuc, tkNhan, tkDoanDangDi, tkCuopDuoc } from './engine/thinhkinh.js';
 import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
@@ -7540,6 +7543,93 @@ const gameStore = {
   sanBanTreo() {
     if (this.sanBanTab === 'vp') return this.sanTreoVp();
     return this.sanTreo(this.sanTreoUid, this.sanTreoGia);
+  },
+
+  // ============================================================
+  // THỈNH KINH — cờ `thinhKinh`, docs/THIET_KE_THINH_KINH.md
+  // ============================================================
+  // ⚠ Mục ở cột dọc CHỈ MỌC RA khi cờ mở — cùng khuôn với Sự Kiện (`svNavHien`).
+  get tkNavHien() { return this.moChua('thinhKinh'); },
+  // Bảng số phơi ra cho template — đừng gõ lại con số nào trong index.html.
+  TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA,
+  /** Bảo đảm khối state + reset lượt theo ngày. Gọi ở mọi cửa vào của màn. */
+  get tkT() { return tkEnsure(this.state, now()); },
+  get tkLuot() { void this._tick; return this.tkT.luot; },
+  get tkSuCho() { void this._tick; return this.tkT.suCho || ''; },
+  get tkSuChoObj() { return TK_SU_BY_ID[this.tkSuCho] || null; },
+  get tkDangDi() { void this._tick; return tkDangDi(this.state); },
+  get tkDaVe() { void this._tick; return tkDaVe(this.state, now()); },
+  get tkSuDangDi() { return TK_SU_BY_ID[(this.state.thinhKinh || {}).su] || null; },
+  /** Đồng hồ đếm ngược, dạng `12 phút 30 giây`. */
+  get tkConLaiTxt() {
+    const ms = tkConLai(this.state, now());
+    const g = Math.floor(ms / 1000);
+    return Math.floor(g / 60) + ' phút ' + String(g % 60).padStart(2, '0') + ' giây';
+  },
+  get tkConBiCuop() { void this._tick; return tkConBiCuop(this.state); },
+  get tkThuongXem() { void this._tick; return tkThuongThuc(this.state); },
+  tkCapCua(suId) { return tkCap(this.state, suId); },
+  tkExpCanCua(suId) { return tkExpLenCap(this.tkCapCua(suId).lv); },
+  /** Số đệ tử Tông Môn cử đi hộ vệ được — mỗi đệ tử chặn đúng một lần cướp. */
+  get tkDeTuCo() { return (((this.state.tongmon || {}).disciples) || []).length; },
+  get tkHoVeToiDa() { return Math.min(this.tkLuot.hoVe || 0, this.tkDeTuCo); },
+  tkHoVeChon: 0,
+  /** Giá Làm Mới: lần đầu mỗi lượt miễn phí, từ lần hai tốn Nguyên Bảo. */
+  get tkLamMoiGia() { void this._tick; return (this.tkT.lamMoiDaDung || 0) === 0 ? 0 : TK_LAM_MOI_GIA; },
+  get tkLamMoiDuoc() { const g = this.tkLamMoiGia; return g === 0 || (this.state.currencies.nguyenBao || 0) >= g; },
+
+  tkBoc() {
+    if (this.tkDangDi) return;
+    const t = this.tkT;
+    if ((t.luot.thinh || 0) <= 0) { this.showToast('Hết lượt thỉnh kinh hôm nay.'); return; }
+    t.suCho = tkBoc(this.state); t.lamMoiDaDung = 0; this.tkHoVeChon = 0;
+    this._tick++; Storage.save(this.state);
+  },
+  tkLamMoi() {
+    if (this.tkDangDi || !this.tkSuCho) return;
+    const gia = this.tkLamMoiGia;
+    if (!this.tkLamMoiDuoc) { this.showToast('Không đủ Nguyên Bảo.'); return; }
+    if (gia > 0) this.state.currencies.nguyenBao -= gia;
+    const t = this.tkT;
+    t.suCho = tkBoc(this.state); t.lamMoiDaDung = (t.lamMoiDaDung || 0) + 1;
+    this._tick++; Storage.save(this.state);
+  },
+  tkKhoiHanh() {
+    const r = tkKhoiHanh(this.state, now(), Math.min(this.tkHoVeChon, this.tkHoVeToiDa));
+    if (!r.ok) {
+      this.showToast(({ 'dang-di': 'Đang có chuyến chưa về.', 'chua-boc-su': 'Chưa bốc được Hộ Kinh Sứ.',
+        'het-luot': 'Hết lượt thỉnh kinh hôm nay.' })[r.vi] || 'Chưa khởi hành được.');
+      return;
+    }
+    // Mỗi hộ vệ cử đi tiêu một lượt hộ vệ của ngày.
+    this.tkT.luot.hoVe = Math.max(0, (this.tkT.luot.hoVe || 0) - (this.state.thinhKinh.hoVe || 0));
+    this.tkHoVeChon = 0;
+    this.showToast('Đã khởi hành.'); this._tick++; Storage.save(this.state);
+  },
+  tkNhanThuong() {
+    const r = tkNhan(this.state, now());
+    if (!r.ok) { this.showToast('Chuyến chưa về.'); return; }
+    this.state.currencies.bac = (this.state.currencies.bac || 0) + r.bac;
+    this.state.currencies.honThach = (this.state.currencies.honThach || 0) + r.honThach;
+    const s = TK_SU_BY_ID[r.su];
+    this.showToast('Nhận ' + this.fmt(r.bac) + ' Bạc · ' + this.fmt(r.honThach) + ' Hồn Thạch.'
+      + (r.lenCap ? ' ' + (s ? s.ten : '') + ' lên cấp!' : ''));
+    this._tick++; Storage.save(this.state);
+  },
+  /** Các đoàn đang đi trên đường mây. Suy từ giờ máy chủ, KHÔNG lưu vào bản lưu. */
+  get tkDoan() { void this._tick; return tkDoanDangDi(now()); },
+  tkChonDoan: '',
+  get tkDoanChon() { return this.tkDoan.find((d) => d.key === this.tkChonDoan) || null; },
+  tkCuop(key) {
+    const d = this.tkDoan.find((x) => x.key === key); if (!d) return;
+    const t = this.tkT;
+    if ((t.luot.cuop || 0) <= 0) { this.showToast('Hết lượt cướp kinh hôm nay.'); return; }
+    if ((d.daBiCuop || 0) >= TK_CUOP_TOI_DA) { this.showToast('Đoàn này đã bị cướp đủ số lần.'); return; }
+    const bac = tkCuopDuoc(this.state, d, this.combatLevel || 1);
+    t.luot.cuop -= 1;
+    this.state.currencies.bac = (this.state.currencies.bac || 0) + bac;
+    this.showToast('Cướp được ' + this.fmt(bac) + ' Bạc.');
+    this._tick++; Storage.save(this.state);
   },
 
   // ---------- ĐAN ĐIỀN (Tinh · Khí · Thần) ----------

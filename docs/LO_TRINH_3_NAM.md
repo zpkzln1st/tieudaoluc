@@ -115,6 +115,12 @@ Không mở hệ mới. Lấp cho đủ những hệ đã dựng khung.
   - Chưa làm: hạn 48 giờ cho đơn (hết hạn phải hoàn Bạc, mà chỉ ghi được lúc chủ đơn online).
 - Thêm chỗ tiêu Bạc: Động Phủ bậc cao, phí bang, đúc lại dòng roll.
 
+**4.4b Thỉnh Kinh** — cờ `thinhKinh`
+- Màn ngày: phái Hộ Kinh Sứ áp tải kinh thư, cướp đoàn bot trên đường mây.
+- ⚠ Mã cờ này **ngoài lộ trình gốc** — đã thêm vào chốt `tinh_nang_ma_hop_le`, phải chạy lại
+  `docs/SQL_LENH_BAI_9.sql`.
+- Thiết kế + số: [THIET_KE_THINH_KINH.md](THIET_KE_THINH_KINH.md) · art: [ART_THINH_KINH.md](ART_THINH_KINH.md).
+
 **4.5 Vạn Vật Phổ chốt số** — cờ `phoLuc`
 - Số thưởng đang là placeholder. Chốt xong mới bật.
 

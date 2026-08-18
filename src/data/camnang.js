@@ -16,6 +16,7 @@ import { SKILLS, STATS } from './skills.js';
 import { LOCATIONS, REALM_TIERS } from './locations.js';
 import { QUALITY, ITEM_TYPES, ITEMS, DOPHO_IDS, EGG_IDS } from './items.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS } from './ui.js';
+import { TK_LUOT, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_CUOP_MAT, TK_CAP_TRAN, TK_MOI_CAP } from './thinhkinh.js';
 import {
   AFFIX_KEYS, TRANG_SETS, GEAR_IDS, THOI_TIERS, QUALITY_LINES,
   MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, MONSTER_QUALITY_W,
@@ -707,6 +708,19 @@ export const CN_MUC = [
       ['p', 'Cứ khoảng <b>' + sn(Math.round(TUOI_AN_CU_NGAY * 24 / (BOT_COUNT - SO_LAO_LANG))) + ' giờ</b> lại có một người nhập giang hồ. Ai đã ở đủ <b>' + sn(TUOI_AN_CU_NGAY) + ' ngày</b> thì ẩn cư, rời bảng.'],
       ['p', 'Nhờ vậy bảng xếp hạng luôn có người mới để cạnh tranh, không chỉ toàn cao thủ lâu năm.'],
       ['luu', 'Riêng <b>' + sn(SO_LAO_LANG) + ' lão làng</b> không ẩn cư. Họ ở lại lâu dài và tiếp tục giữ vị trí trên bảng xếp hạng.'],
+    ],
+  },
+  {
+    id: 'thinhkinh', nhom: 'giangho', ten: 'Thỉnh Kinh',
+    tom: 'Phái Hộ Kinh Sứ áp tải kinh thư, và cướp đoàn khác trên đường mây.',
+    khoi: [
+      // ⚠ Số lấy thẳng từ `data/thinhkinh.js`, đừng gõ lại — Cẩm Nang từng cắt mất số 0 cuối.
+      ['p', 'Mỗi ngày có <b>' + sn(TK_LUOT.thinh) + ' lượt thỉnh kinh</b>, <b>' + sn(TK_LUOT.cuop) + ' lượt cướp kinh</b> và <b>' + sn(TK_LUOT.hoVe) + ' lượt hộ vệ</b>.'],
+      ['p', 'Bốc một Hộ Kinh Sứ rồi cho khởi hành. Bậc càng cao thì chuyến càng ngắn mà thưởng càng lớn.'],
+      ['p', 'Làm Mới lần đầu mỗi lượt miễn phí, từ lần hai tốn <b>' + sn(TK_LAM_MOI_GIA) + ' Nguyên Bảo</b>.'],
+      ['p', 'Một chuyến chịu tối đa <b>' + sn(TK_CUOP_TOI_DA) + ' lần cướp</b>, mỗi lần mất <b>' + Math.round(TK_CUOP_MAT * 100) + '%</b> Bạc. Mỗi hộ vệ chặn đúng một lần.'],
+      ['p', 'Hộ Kinh Sứ lên cấp bằng tu vi của chính chuyến đi, trần <b>Cấp ' + sn(TK_CAP_TRAN) + '</b>. Mỗi cấp cộng thêm <b>' + Math.round(TK_MOI_CAP * 100) + '%</b> thưởng.'],
+      ['luu', 'Hồn Thạch và tu vi Hộ Kinh Sứ <b>không bị cướp</b>. Cướp chỉ lấy được Bạc.'],
     ],
   },
   {

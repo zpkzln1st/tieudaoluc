@@ -38,7 +38,9 @@ alter table public.tinh_nang add constraint tinh_nang_ma_hop_le
   check (ma in (
     'noiDungBac2', 'tongMonDrama', 'bangChien', 'sanThuMua', 'phoLuc',
     'dauTruong', 'muaGiai', 'bangChienPvp', 'coOnline', 'dongPhuHub',
-    'banDoBac3', 'cheTacBac3', 'cotTruyen2'
+    'banDoBac3', 'cheTacBac3', 'cotTruyen2',
+    -- Ma NGOAI lo trinh ba nam, them 2026-08-18 (man Thinh Kinh).
+    'thinhKinh'
   ));
 
 -- ⚠ `cau_hinh` phai la mot doi tuong. Nhet mot con so hay mot mang vao day thi client doc ra
@@ -54,7 +56,8 @@ alter table public.tinh_nang enable row level security;
 insert into public.tinh_nang (ma) values
   ('noiDungBac2'), ('tongMonDrama'), ('bangChien'), ('sanThuMua'), ('phoLuc'),
   ('dauTruong'), ('muaGiai'), ('bangChienPvp'), ('coOnline'), ('dongPhuHub'),
-  ('banDoBac3'), ('cheTacBac3'), ('cotTruyen2')
+  ('banDoBac3'), ('cheTacBac3'), ('cotTruyen2'),
+  ('thinhKinh')
 on conflict (ma) do nothing;
 
 -- ---------- 2. LUAT ----------
