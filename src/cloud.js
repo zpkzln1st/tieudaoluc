@@ -685,15 +685,38 @@ export async function cloudSanTreoVp(itemId, soLuong, gia) {
 /** Han mot don thu mua, tinh bang mili giay. Doi so nay phai doi ca `san_tm_han()` ben SQL. */
 export const SAN_TM_HAN_MS = 48 * 60 * 60 * 1000;
 
+// ⚠⚠ DONG HO MAY NGUOI CHOI KHONG TIN DUOC. May chay nhanh ba ngay la moi phep tinh han 48 gio
+//   sai het: luoi don thu mua RONG SACH ma khong mot dau hieu nao. Do lech mot lan roi bu vao.
+// ⚠ MOI phan hoi HTTP deu co header `Date`, ke ca phan hoi 401 — nen phep do nay khong phu thuoc
+//   bang nao, khong can quyen gi, va khong doc du lieu cua ai.
+// ⚠ Header `Date` chi chinh xac toi GIAY. Voi cua so 48 gio thi thua du.
+let _lechGio = null;
+
+/** Mili giay phai CONG vao `Date.now()` de ra gio may chu. Hong thi tra 0 (coi nhu khong lech). */
+export async function cloudLechGio() {
+  if (_lechGio !== null) return _lechGio;
+  try {
+    const t0 = Date.now();
+    const r = await fetch(SUPABASE_URL + '/rest/v1/', { method: 'HEAD', headers: { apikey: SUPABASE_ANON_KEY } });
+    const d = r.headers.get('date');
+    if (!d) { _lechGio = 0; return 0; }
+    // Bu NUA vong goi: moc trong header la luc may chu tra loi, khong phai luc ta hoi.
+    const giua = t0 + (Date.now() - t0) / 2;
+    const l = new Date(d).getTime() - giua;
+    _lechGio = Number.isFinite(l) ? l : 0;
+  } catch (e) { _lechGio = 0; }
+  return _lechGio;
+}
+
 /**
  * Don thu mua DANG TREO cua ca lang, da bo don qua han. Tra { ok, ds }.
- * ⚠ Moc gio o day lay tu DONG HO MAY NGUOI CHOI, nen no chi la phep loc cho MAT do roi. Hang rao
- *   that la chot `don-het-han` trong `san_thu_mua_ban`: dong ho lech thi don qua han van hien ra,
- *   bam Ban Ngay se bi may chu tu choi.
+ * ⚠ Moc gio DA BU LECH voi may chu (`cloudLechGio`), nen dong ho may nay chay sai cung khong lam
+ *   bien mat don hop le. Du vay day van chi la phep loc cho MAT do roi — hang rao that la chot
+ *   `don-het-han` trong `san_thu_mua_ban`.
  */
 export async function cloudSanTmDs(gioiHan) {
   const sb = await getClient();
-  const moc = new Date(Date.now() - SAN_TM_HAN_MS).toISOString();
+  const moc = new Date(Date.now() + (await cloudLechGio()) - SAN_TM_HAN_MS).toISOString();
   const { data, error } = await sb.from('san_thu_mua')
     .select('id,nguoi_dat,ten_dat,item_id,gia,so_dat,so_con,tao_luc')
     .eq('trang_thai', 'treo')

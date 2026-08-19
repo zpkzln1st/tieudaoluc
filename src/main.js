@@ -87,7 +87,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -7298,6 +7298,8 @@ const gameStore = {
       this.sanDs = a.ds; this.sanCuaToi = (b.ok ? b.ds : []);
       // ⚠ Cờ TẮT thì không gọi hai truy vấn này — bảng có thể chưa tồn tại trên máy chủ, và tab
       //   cũng không mọc ra nên chẳng ai đọc tới. Cờ tắt là VÔ HÌNH, không phải hỏng.
+      this.sanLechGio = await cloudLechGio();
+      this._sanTmBatNhip();
       if (this.moChua('sanThuMua')) {
         // ⚠⚠ THU HỒI TRƯỚC, ĐỌC DANH SÁCH SAU. Đảo thứ tự là bảng đơn còn bày đơn vừa hết hạn, và
         //   ô Bạc trên đầu màn vẫn là số cũ — hai con số đá nhau ngay trước mắt người chơi.
@@ -7426,6 +7428,10 @@ const gameStore = {
   //    NGAY lúc đặt đơn — không ký quỹ thì bên giao hàng xong mới biết bên kia hết Bạc.
   // ⚠ Giá gõ vào là giá MỖI CÁI, khác Treo Bán (giá cả lô). Khớp một phần thì phải có đơn giá.
   sanTmDs: [], sanTmCuaToi: [], sanTmSoKhop: [], sanTmNhom: 'tho', sanTmItem: '', sanTmSo: 1, sanTmGia: '',
+  /** Mili giây cộng vào `Date.now()` để ra giờ máy chủ. Đo một lần lúc mở Sàn. */
+  sanLechGio: 0,
+  /** Nhịp đếm ngược. Alpine cần một ô thay đổi mới chịu vẽ lại chữ "Còn X giờ". */
+  sanTmNhip: 0, _sanTmDongHo: null,
   /** Nhóm món của lưới chọn — dùng lại đúng nhóm của Hành Lý, bỏ hai mục không bán được. */
   get sanTmNhomTabs() { return this.hlTabs.filter((t) => t.id !== 'all' && t.id !== 'trangbi'); },
   /**
@@ -7469,8 +7475,24 @@ const gameStore = {
    *   trong `san_thu_mua_ban`, và vòng `san_thu_mua_thu_hoi` trả Bạc ký quỹ.
    */
   sanTmConMs(d) {
+    // ⚠ Đọc `sanTmNhip` để Alpine biết ô này phụ thuộc vào nhịp — không đọc thì chữ đếm ngược
+    //   đứng im suốt phiên. Giá trị của nó không dùng vào việc gì.
+    void this.sanTmNhip;
     const t = d && d.tao_luc ? new Date(d.tao_luc).getTime() : 0;
-    return t ? (t + SAN_TM_HAN_MS) - Date.now() : 0;
+    // ⚠⚠ Cộng `sanLechGio`: đồng hồ máy người chơi sai thì mọi con số ở đây sai theo.
+    return t ? (t + SAN_TM_HAN_MS) - (Date.now() + this.sanLechGio) : 0;
+  },
+  /**
+   * Nhịp đếm ngược, MỖI PHÚT một lần.
+   * ⚠ Chữ đếm ngược chỉ tới đơn vị phút, nhích nhanh hơn là làm màn hình động mà không thêm tin gì.
+   * ⚠ Tự tắt khi rời màn Sàn — đừng để một cái đồng hồ chạy mãi sau lưng.
+   */
+  _sanTmBatNhip() {
+    if (this._sanTmDongHo) return;
+    this._sanTmDongHo = setInterval(() => {
+      if (this.view !== 'market') { clearInterval(this._sanTmDongHo); this._sanTmDongHo = null; return; }
+      this.sanTmNhip++;
+    }, 60000);
   },
   /** Chữ đếm ngược trên thẻ đơn. Dưới một giờ thì đổi sang phút. */
   sanTmConLai(d) {
