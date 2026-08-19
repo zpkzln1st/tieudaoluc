@@ -19,7 +19,7 @@ import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 import { giaSanTrangBi, giaSanVatPham, dsXepChong } from './data/giasan.js';
 import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG, tkExpLenCap } from './data/thinhkinh.js';
 import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop,
-  tkThuongThuc, tkNhan, tkDoanDangDi, tkCuopDuoc } from './engine/thinhkinh.js';
+  tkThuongThuc, tkNhan, tkDoanDangDi, tkDoanCuaTa, tkCuopDuoc } from './engine/thinhkinh.js';
 import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
@@ -7618,6 +7618,12 @@ const gameStore = {
   },
   /** Các đoàn đang đi trên đường mây. Suy từ giờ máy chủ, KHÔNG lưu vào bản lưu. */
   get tkDoan() { void this._tick; return tkDoanDangDi(now()); },
+  /**
+   * Đoàn CỦA NGƯỜI CHƠI, hoặc `null` khi chưa phái chuyến nào.
+   * ⚠ Nó đi một lượt từ mép trái tới mép phải và tới nơi đúng lúc đồng hồ về 0 — chính là cái
+   *   đếm ngược vẽ thành hình. Nằm ở làn giữa riêng nên không đụng làn nào của bot.
+   */
+  get tkDoanTa() { void this._tick; return tkDoanCuaTa(this.state, now()); },
   tkChonDoan: '',
   get tkDoanChon() { return this.tkDoan.find((d) => d.key === this.tkChonDoan) || null; },
   tkCuop(key) {
