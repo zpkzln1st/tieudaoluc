@@ -14423,6 +14423,7 @@ export const DICT = {
   "Phái Hộ Kinh Sứ áp tải kinh thư, và cướp đoàn khác trên đường mây.": "Send an escort beast to convoy the scriptures, and raid other convoys on the cloud road.",
   "Kinh thư đang áp tải": "Scriptures under escort",
   "Đài mây còn trống.": "The cloud dais is empty.",
+  "Bấm một đoàn để xem, rồi cướp.": "Tap a convoy to inspect it, then raid.",
   "Chưởng Môn": "Sect Master",
   "đang": "currently",
   "Tới": "To",

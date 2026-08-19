@@ -16327,21 +16327,83 @@
             </div>
           </template>
 
+          <!-- ĐƯỜNG MÂY: các đoàn đang trôi, cướp được. ĐẶT TRÊN hàng chọn Hộ Kinh Sứ.
+               ⚠ Dấu đoàn KHÔNG bọc khoanh tròn tối và KHÔNG có viên chữ nền đen — art nền là một
+                 bức vẽ, dán chip tối lên là ra hình sticker. Art thả thẳng, đổ bóng cho tách nền,
+                 tên chữ sáng có viền bóng.
+               ⚠ Glow của đoàn đang chọn là TĨNH, không nhấp nháy. -->
+          <div class="panel rounded-lg p-3 mb-3">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+              <div class="text-[12.5px] text-slate-400">Đường mây</div>
+              <div class="text-[11.5px] text-slate-600">Bấm một đoàn để xem, rồi cướp.</div>
+            </div>
+            <div class="relative rounded-lg overflow-hidden" style="height:300px;background:linear-gradient(180deg,#9fc7d6 0%,#cfe3ea 46%,#eef4f6 100%)">
+              <img src="images/bg/thinhKinhNen.webp" class="absolute inset-0 w-full h-full object-cover" alt=""
+                   onerror="this.style.display='none'">
+              <template x-for="d in g.tkDoan" :key="d.key">
+                <!-- ⛔ ĐỪNG đặt `transition:left` ở đây. Đoàn đi tới mép phải thì VÒNG về mép trái;
+                     có transition là nó TRƯỢT NGƯỢC qua cả bản đồ mất một giây — ảnh chụp lần hai
+                     bắt được đúng cảnh đó, hai đoàn dồn cục vào nhau. Không transition thì mỗi
+                     nhịp dịch 1,9px (mắt không thấy giật), còn lúc vòng là nhảy dứt khoát. -->
+                <button @click="g.tkChonDoan = (g.tkChonDoan === d.key ? '' : d.key)"
+                        class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                        :style="'left:' + d.x + '%;top:' + d.y + '%'">
+                  <span class="w-11 h-11 inline-flex items-center justify-center text-[19px]"
+                        :style="g.tkChonDoan === d.key
+                          ? 'filter:drop-shadow(0 0 6px #f5b942) drop-shadow(0 2px 3px rgba(0,0,0,.5));transform:scale(1.14)'
+                          : 'filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))'"
+                        x-html="g.ico(d.su, '☁️')"></span>
+                  <!-- ⚠ Nền là bức vẽ có cả vùng RẤT SÁNG (mặt trời góc trái) lẫn vùng tối. Chữ
+                       trắng bóng nhẹ đọc được ở vùng tối mà chìm ở vùng sáng. Ba lớp bóng đặc tạo
+                       viền tối quanh nét chữ — đọc được trên cả hai, mà không phải dán hộp đen. -->
+                  <span class="mt-0.5 text-[9.5px] whitespace-nowrap fserif"
+                        :style="'color:' + (g.tkChonDoan === d.key ? '#ffd77a' : '#ffffff') + ';text-shadow:0 0 3px #0b1220,0 1px 2px #0b1220,0 0 7px rgba(11,18,32,.95)'"
+                        x-text="d.ten"></span>
+                </button>
+              </template>
+            </div>
+            <template x-if="g.tkDoanChon">
+              <div class="mt-3 pt-3 border-t border-slate-800 flex items-center gap-3 flex-wrap">
+                <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0" x-html="g.ico(g.tkDoanChon.su, '☁️')"></span>
+                <div class="min-w-0 flex-1">
+                  <div class="text-[13px] text-slate-200" x-text="g.tkDoanChon.ten + ' · Cấp ' + g.tkDoanChon.capNv"></div>
+                  <div class="text-[11.5px] text-slate-500" x-text="g.TK_SU_BY_ID[g.tkDoanChon.su].ten + ' Cấp ' + g.tkDoanChon.cap + ' · đã bị cướp ' + g.tkDoanChon.daBiCuop + '/' + g.TK_CUOP_TOI_DA"></div>
+                  <div class="text-[11px] text-slate-600">Cấp mục tiêu càng thấp, cướp được càng ít.</div>
+                </div>
+                <button @click="g.tkCuop(g.tkDoanChon.key)" :disabled="g.tkLuot.cuop <= 0 || g.tkDoanChon.daBiCuop >= g.TK_CUOP_TOI_DA"
+                  class="px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-400/40 text-rose-300 hover:bg-rose-500/25 text-[12.5px] transition disabled:opacity-40">Cướp Kinh</button>
+              </div>
+            </template>
+          </div>
+
           <!-- CHƯA ĐI: bốc Hộ Kinh Sứ -->
           <template x-if="!g.tkDangDi">
             <div class="panel rounded-lg p-3 mb-3">
               <div class="text-[12.5px] text-slate-400 mb-2.5">Bốc một Hộ Kinh Sứ rồi cho khởi hành.</div>
               <div class="grid gap-2 mb-3" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+                <!-- ⚠⚠ Ô ĐANG BỐC TRÚNG phải đọc được từ xa. Bản trước chỉ hạ độ mờ bốn ô kia
+                     xuống 30% — nhìn ra bốn ô nhạt, không nhìn ra ô nào ĐƯỢC CHỌN.
+                     Nay ô trúng có: viền theo màu bậc, nền loang màu bậc, hào quang TĨNH, nhấc lên
+                     2px, và một dải gạch dưới. Bốn ô kia xám và thụt xuống.
+                 ⚠ Glow TĨNH, không nhấp nháy — luật của dự án. -->
                 <template x-for="s in g.TK_SU" :key="'tks-'+s.id">
-                  <div class="flex flex-col items-center gap-1 text-center">
-                    <div class="relative w-full aspect-square rounded flex items-center justify-center"
-                         :style="g.tkSuCho === s.id ? ('box-shadow:0 0 0 2px ' + s.mau + ';background:' + s.mau + '1a') : 'background:rgba(255,255,255,.02)'">
-                      <span class="absolute inset-0 rounded overflow-hidden flex items-center justify-center text-2xl"
-                            :style="g.tkSuCho === s.id ? '' : 'opacity:.3;filter:grayscale(1)'"
+                  <div class="flex flex-col items-center gap-1 text-center"
+                       :style="g.tkSuCho === s.id ? 'transform:translateY(-2px)' : ''">
+                    <div class="relative w-full aspect-square rounded-lg flex items-center justify-center"
+                         :style="g.tkSuCho === s.id
+                           ? ('box-shadow:0 0 0 2px ' + s.mau + ', 0 0 14px ' + s.mau + '66;background:radial-gradient(circle at 50% 55%, ' + s.mau + '2e 0%, rgba(255,255,255,.02) 70%)')
+                           : 'background:rgba(255,255,255,.02);box-shadow:0 0 0 1px rgba(148,163,184,.14)'">
+                      <span class="absolute inset-0 rounded-lg overflow-hidden flex items-center justify-center text-2xl"
+                            :style="g.tkSuCho === s.id ? '' : 'opacity:.34;filter:grayscale(1)'"
                             x-html="g.ico(s.id, '☁️')"></span>
                     </div>
-                    <div class="text-[10px] leading-tight" :style="g.tkSuCho === s.id ? ('color:' + s.mau) : 'color:#64748b'" x-text="s.ten"></div>
-                    <div class="text-[9.5px] text-slate-600" x-text="'Cấp ' + g.tkCapCua(s.id).lv"></div>
+                    <div class="text-[10px] leading-tight fserif"
+                         :style="g.tkSuCho === s.id ? ('color:' + s.mau + ';font-weight:700') : 'color:#64748b'" x-text="s.ten"></div>
+                    <div class="text-[9.5px]" :style="g.tkSuCho === s.id ? ('color:' + s.mau + 'cc') : 'color:#475569'"
+                         x-text="'Cấp ' + g.tkCapCua(s.id).lv"></div>
+                    <!-- Dải gạch dưới: chỗ này LUÔN chiếm sẵn 2px nên hàng không nhảy khi đổi ô. -->
+                    <span class="rounded-full"
+                          :style="'width:60%;height:2px;background:' + (g.tkSuCho === s.id ? s.mau : 'transparent')"></span>
                   </div>
                 </template>
               </div>
@@ -16365,11 +16427,15 @@
                         class="w-6 h-6 rounded bg-ink3 border border-slate-700 text-slate-300 text-[13px] leading-none transition disabled:opacity-30">+</button>
                     </div>
                   </template>
+                  <!-- ⚠ Đường ra lúc chưa có đệ tử — nhưng để NHẠT. Nút chính của hàng này là
+                       Khởi Hành; nút phụ nổi hơn nút chính là mắt bị kéo sai chỗ. -->
                   <template x-if="g.tkDeTuCo === 0">
-                    <button @click="g.navTo('tongmon')" class="px-3 py-1.5 rounded-lg bg-cyan/15 border border-cyan/40 text-cyan hover:bg-cyan/25 text-[12.5px] transition">Chiêu Mộ Đệ Tử</button>
+                    <button @click="g.navTo('tongmon')" class="px-3 py-1.5 rounded-lg bg-ink3 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-slate-200 text-[12.5px] transition">Chiêu Mộ Đệ Tử</button>
                   </template>
+                  <!-- NÚT CHÍNH: nền đặc, chữ nền tối — nổi hơn mọi nút phụ cùng hàng. -->
                   <button @click="g.tkKhoiHanh()"
-                    class="px-3 py-1.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[12.5px] transition">Khởi Hành</button>
+                    class="px-4 py-1.5 rounded-lg text-[12.5px] font-bold transition"
+                    style="background:linear-gradient(180deg,#3fbf8f,#2fa377);color:#07130f;box-shadow:0 1px 0 rgba(255,255,255,.18) inset">Khởi Hành</button>
                 </div>
               </template>
               <!-- Chưa bốc: đài mây còn trống. Art `daiMayTrong` vẽ đúng cảnh đó. -->
@@ -16384,37 +16450,6 @@
               </template>
             </div>
           </template>
-
-          <!-- ĐƯỜNG MÂY: các đoàn đang đi, cướp được -->
-          <div class="panel rounded-lg p-3">
-            <div class="text-[12.5px] text-slate-400 mb-2.5">Đường mây</div>
-            <div class="relative rounded-lg overflow-hidden" style="height:300px;background:linear-gradient(180deg,#9fc7d6 0%,#cfe3ea 46%,#eef4f6 100%)">
-              <img src="images/bg/thinhKinhNen.webp" class="absolute inset-0 w-full h-full object-cover" alt=""
-                   onerror="this.style.display='none'">
-              <template x-for="d in g.tkDoan" :key="d.key">
-                <button @click="g.tkChonDoan = (g.tkChonDoan === d.key ? '' : d.key)"
-                        class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition"
-                        :style="'left:' + d.x + '%;top:' + d.y + '%'">
-                  <span class="w-9 h-9 rounded-full inline-flex items-center justify-center text-[17px]"
-                        :style="'background:rgba(8,14,22,.55);box-shadow:0 0 0 ' + (g.tkChonDoan === d.key ? '2px #f5b942' : '1px rgba(255,255,255,.4)')"
-                        x-html="g.ico(d.su, '☁️')"></span>
-                  <span class="mt-0.5 px-1 rounded text-[9px] whitespace-nowrap" style="background:rgba(8,14,22,.6);color:#cbd5e1" x-text="d.ten"></span>
-                </button>
-              </template>
-            </div>
-            <template x-if="g.tkDoanChon">
-              <div class="mt-3 pt-3 border-t border-slate-800 flex items-center gap-3 flex-wrap">
-                <span class="w-11 h-11 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0" x-html="g.ico(g.tkDoanChon.su, '☁️')"></span>
-                <div class="min-w-0 flex-1">
-                  <div class="text-[13px] text-slate-200" x-text="g.tkDoanChon.ten + ' · Cấp ' + g.tkDoanChon.capNv"></div>
-                  <div class="text-[11.5px] text-slate-500" x-text="g.TK_SU_BY_ID[g.tkDoanChon.su].ten + ' Cấp ' + g.tkDoanChon.cap + ' · đã bị cướp ' + g.tkDoanChon.daBiCuop + '/' + g.TK_CUOP_TOI_DA"></div>
-                  <div class="text-[11px] text-slate-600">Cấp mục tiêu càng thấp, cướp được càng ít.</div>
-                </div>
-                <button @click="g.tkCuop(g.tkDoanChon.key)" :disabled="g.tkLuot.cuop <= 0 || g.tkDoanChon.daBiCuop >= g.TK_CUOP_TOI_DA"
-                  class="px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-400/40 text-rose-300 hover:bg-rose-500/25 text-[12.5px] transition disabled:opacity-40">Cướp Kinh</button>
-              </div>
-            </template>
-          </div>
 
         </section>
       </template>

@@ -119,11 +119,32 @@ export function tkNhan(state, now) {
 // ============================================================
 /** Bao nhiêu đoàn hiện cùng lúc. */
 export const TK_SO_DOAN = 8;
-// Lưới rải đoàn: 4 cột × 2 hàng. Nhiễu chạy TRONG ô nên hai đoàn không bao giờ đè nhau.
-export const O_COT = 4;
-const O_LE_X = 10, O_LE_Y = 26, O_RONG = 22, O_CAO = 34, O_NHIEU_X = 10, O_NHIEU_Y = 14;
 /** Nửa bề rộng một dấu đoàn, tính theo phần trăm khung — dùng cho phép đo chồng lấn. */
 export const TK_DAU_NUA = 5;
+
+// ============================================================
+// ĐOÀN TRÔI TRÊN ĐƯỜNG MÂY
+// ============================================================
+// ⚠⚠ HAI LÀN, MỖI LÀN BỐN ĐOÀN, LỆCH PHA ĐỀU. Đây là thứ vừa cho đoàn TRÔI THẬT vừa bảo đảm
+//    không đoàn nào đè đoàn nào: bốn đoàn cùng làn luôn cách nhau đúng 1/4 quãng đường, mà một
+//    dấu đoàn chỉ rộng 10% khung. Bản trước rải toạ độ tự do rồi phải chữa bằng lưới cứng —
+//    lưới cứng thì hết đè nhưng đoàn đứng chết một chỗ.
+// ⚠ Vị trí suy TỪ GIỜ, không lưu vào bản lưu. Cùng một `now` luôn ra cùng chỗ.
+export const TK_LAN = 2;                        // số làn
+export const TK_MOI_LAN = TK_SO_DOAN / TK_LAN;  // 4 đoàn mỗi làn
+const CHU_KY_TROI = 6 * 60 * 1000;              // một vòng qua hết bề ngang: 6 phút
+const TROI_X0 = 5, TROI_RONG = 90;              // quãng đường ngang, phần trăm khung
+const LAN_Y = [32, 66];                         // tâm hai làn, phần trăm khung
+
+/**
+ * Phần đường đoàn thứ `i` đã đi, trong `[0, 1)`. HÀM THUẦN.
+ * ⚠ `pha` chia đều theo chỗ đứng TRONG LÀN: đoàn 0 và 2 cùng làn 0 nhưng lệch nhau 1/4 quãng.
+ */
+export function tkTroi(now, i) {
+  const pha = Math.floor(i / TK_LAN) / TK_MOI_LAN;
+  const t = ((now || 0) % CHU_KY_TROI) / CHU_KY_TROI;
+  return (t + pha) % 1;
+}
 /** Đoàn đổi lứa mỗi ngần này — cùng nhịp với thời gian một chuyến. */
 const NHIP_DOAN = 20 * PHUT;
 
@@ -148,12 +169,12 @@ export function tkDoanDangDi(now) {
       su, cap,
       daBiCuop: Math.abs(hash2(h, 91)) % (TK_CUOP_TOI_DA + 1),
       conLai: NHIP_DOAN - ((now || 0) % NHIP_DOAN),
-      // ⚠⚠ TOẠ ĐỘ CHIA Ô LƯỚI, KHÔNG BỐC TỰ DO. Bản đầu bốc x/y tự do trong cả khung: bảng số vẫn
-      //    xanh (đoàn nào cũng nằm trong khung) nhưng ẢNH CHỤP lộ ra hai đoàn đè lên nhau, tám
-      //    đoàn chỉ đọc được sáu nhãn. Lưới 4×2 bảo đảm mỗi đoàn một ô, nhiễu chỉ chạy TRONG ô.
-      //    Đây đúng bài học cũ: đo bản đồ phải đo DIỆN TÍCH ĐÈ, không đo khoảng cách hai chấm.
-      x: Math.round(O_LE_X + (i % O_COT) * O_RONG + (Math.abs(hash2(h, 13)) % 100) / 100 * O_NHIEU_X),
-      y: Math.round(O_LE_Y + Math.floor(i / O_COT) * O_CAO + (Math.abs(hash2(h, 29)) % 100) / 100 * O_NHIEU_Y),
+      // ⚠⚠ TROI THEO GIỜ. `pha` cố định theo chỗ đứng trong làn nên bốn đoàn cùng làn luôn cách
+      //    nhau đúng 1/4 quãng — trôi mà không bao giờ đè nhau. Đo bằng DIỆN TÍCH ĐÈ ở bài kiểm 47.
+      // ⚠ Đoàn đi từ trái sang phải rồi quay lại đầu; `t` là phần đường đã đi, trong [0,1).
+      x: Math.round((TROI_X0 + tkTroi(now, i) * TROI_RONG) * 10) / 10,
+      y: Math.round(LAN_Y[i % TK_LAN] + (Math.abs(hash2(h, 29)) % 100) / 100 * 8 - 4),
+      lan: i % TK_LAN,
     });
   }
   return ra;

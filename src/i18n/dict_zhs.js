@@ -14254,6 +14254,7 @@ export const DICT = {
   "Phái Hộ Kinh Sứ áp tải kinh thư, và cướp đoàn khác trên đường mây.": "遣护经使押送经书，并在云路上劫掠他队。",
   "Kinh thư đang áp tải": "押送中的经书",
   "Đài mây còn trống.": "云台尚空。",
+  "Bấm một đoàn để xem, rồi cướp.": "点一支队伍查看，再行劫掠。",
   "Chưởng Môn": "掌门",
   "đang": "正在",
   "Tới": "前往",
