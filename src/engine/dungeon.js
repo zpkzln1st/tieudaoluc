@@ -22,7 +22,7 @@ import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '..
 import { deriveCombat, TUYET_IDS } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
 import { DD_TI_LE_ROI, ddDanRoi } from '../data/dandien.js';   // đan Đan Điền rơi theo cấp phó bản
-import { levelFromXp, addSkillXp } from './leveling.js';
+import { levelFromXp, addSkillXp, MAX_LEVEL } from './leveling.js';
 import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang bị (chỉ cấp Chiến Đấu)
 import { skillExpMultiplier } from '../data/classes.js';   // chuỗi Điểm Danh (+EXP mọi nguồn) — Bí Cảnh trước bỏ sót
 import { buffVal } from './buff.js';                       // đan Ngộ Đạo (+EXP Chiến Đấu)
@@ -35,10 +35,20 @@ import { PHU_KIEN_ROI } from '../data/sukien.js';    // tỉ lệ rơi phụ ki�
 
 // ---- Hằng số cân bằng (TUNE) ----
 // Thưởng NỀN mỗi lượt (kế thừa "Treo Luyện" cũ). Nhân thêm D.pace để giữ loot/giờ khi durMs rút ngắn.
-const RUN = { bacMul: 3, expMul: 3, honMul: 2, lieuN: 2, daChance: 0.70, doPhoMul: 1.6, rareMul: 1.5 };
+// ⚠ EXPORT de bo sinh tran chong gian lan (_sinh_sql_tran.mjs) doc duoc he so THAT. Go cung so 3
+//   ben bo sinh la co ngay hai ben lech nhau, va nguoi choi sach bi ghi so oan.
+export const RUN = { bacMul: 3, expMul: 3, honMul: 2, lieuN: 2, daChance: 0.70, doPhoMul: 1.6, rareMul: 1.5 };
 const COMBAT_BASE_LOSS = { thuong: 9, tinhAnh: 15, boss: 24 };   // % máu/tầng combat (trước hệ số chênh cấp)
 const ORD = ['Một', 'Hai', 'Ba', 'Bốn', 'Năm', 'Sáu', 'Bảy', 'Tám'];
-const HAZARD_NAME_BY_STAT = { sinhLuc: 'sinh khí', hoThe: 'thể chất', thanPhap: 'thân pháp', linhXao: 'ngộ tính', lucDao: 'sức mạnh' };
+// ⚠ ĐÚNG BỐN Tứ Trụ, không hơn. Trước đây bảng này còn khoá `sinhLuc` — mà `sinhLuc` là máu
+//   hiện tại ở `state.player`, KHÔNG phải một Tứ Trụ. Khoá thừa ấy CHE mất lỗi: hai phó bản khai
+//   `hazard:'sinhLuc'` vẫn in ra tên đẹp "sinh khí" trong khi tầng luôn hụt. Bỏ khoá đi thì lần
+//   sau sai tên chỉ số là lộ ngay trên màn.
+const HAZARD_NAME_BY_STAT = { hoThe: 'thể chất', thanPhap: 'thân pháp', linhXao: 'ngộ tính', lucDao: 'sức mạnh' };
+// ⚠⚠ Tứ Trụ nằm ở `state.stats` nên Trùng Sinh KHÔNG với tới — trần của chúng là MAX_LEVEL.
+//    Cửa nào đòi cao hơn trần là cửa BẤT KHẢ VĨNH VIỄN: Thái Hư (req 100) từng đòi 102 và 104,
+//    không build nào chạm nổi, mỗi lượt ăn không 26,9% máu.
+const tranTuTru = (n) => Math.min(n, MAX_LEVEL);
 
 function pick(state, mien, a) { return a[Math.floor(rng(state, mien) * a.length)]; }
 function randInt(state, mien, lo, hi) { return lo + Math.floor(rng(state, mien) * (hi - lo + 1)); }
@@ -117,7 +127,7 @@ export function runDungeon(state, dungeonId) {
       hp -= loss;
       add(i + 1, type, ord + ' · ' + (elite ? 'Tinh Anh' : 'Tao Ngộ'),
         elite ? `<b>${mob}</b> trấn giữ tầng sâu — ác chiến hạ gục, hao <b class="dmgr">${loss}%</b>.`
-              : `Đàn <b>${mob}</b> lao ra cản đường — ngươi đánh dạt, hao <b class="dmgr">${loss}%</b>.`, 'win');
+              : `Đàn <b>${mob}</b> lao ra cản đường — đánh dạt được, hao <b class="dmgr">${loss}%</b>.`, 'win');
     } else if (type === 'hazard') {
       const lv = statLv(state, D.hazard); const sName = HAZARD_NAME_BY_STAT[D.hazard] || D.hazard;
       if (lv >= req) { const loss = clamp(Math.round(4 * (1 - dodge * 0.4)), 1, 6); hp -= loss;
@@ -128,7 +138,7 @@ export function runDungeon(state, dungeonId) {
     } else if (type === 'bay') {
       const tn = statLv(state, 'thanPhap'), lx = statLv(state, 'linhXao');
       const useLx = lx >= tn; const lv = useLx ? lx : tn; const via = useLx ? 'Ngộ Tính' : 'Thân Pháp';
-      if (lv >= req + 2) {
+      if (lv >= tranTuTru(req + 2)) {
         add(i + 1, 'bay', ord + ' · Cạm Bẫy', `Cơ quan kích hoạt, bạn dựa vào <span class="text-amber-300">${via}</span> né gọn — bình an vô sự.`, 'win');
       } else { const loss = clamp(randInt(state, 'bcHiem', 11, 18), 8, 28); hp -= loss;
         add(i + 1, 'bay', ord + ' · Cạm Bẫy', `Trúng cạm bẫy cơ quan, né không kịp — tổn <b class="dmgr">${loss}%</b> sinh lực.`, 'hurt');
@@ -140,8 +150,8 @@ export function runDungeon(state, dungeonId) {
         { lv: statLv(state, 'lucDao'), verb: 'cường hành phá ấn', via: 'Sức Mạnh', loss: 6 },
       ];
       const best = cands.reduce((a, b) => (b.lv > a.lv ? b : a));
-      if (best.lv >= req + 4) { coDuyenBonus = true; if (best.loss) hp -= best.loss;
-        add(i + 1, 'coDuyen', ord + ' · Cơ Duyên', `Trước cổ rương phong ấn, ngươi ${best.verb} <span class="text-amber-300">(${best.via})</span> — <span class="text-amber-300 font-bold">đoạt trân bảo!</span>${best.loss ? ` (hao <b class="dmgr">${best.loss}%</b>)` : ''}`, 'fortune');
+      if (best.lv >= tranTuTru(req + 4)) { coDuyenBonus = true; if (best.loss) hp -= best.loss;
+        add(i + 1, 'coDuyen', ord + ' · Cơ Duyên', `Trước cổ rương phong ấn, ${best.verb} <span class="text-amber-300">(${best.via})</span> — <span class="text-amber-300 font-bold">đoạt trân bảo!</span>${best.loss ? ` (hao <b class="dmgr">${best.loss}%</b>)` : ''}`, 'fortune');
       } else { const loss = clamp(randInt(state, 'bcHiem', 10, 15), 6, 24); hp -= loss;
         add(i + 1, 'coDuyen', ord + ' · Cơ Duyên', `Cổ rương khoá chặt, phá không nổi mà dính phản phệ — tổn <b class="dmgr">${loss}%</b>, lỡ trân bảo.`, 'hurt');
       }
@@ -152,7 +162,7 @@ export function runDungeon(state, dungeonId) {
   }
 
   // Rút lui GIỮA CHỪNG (chưa tới boss) -> thêm dòng tổng kết (boss-fail đã tự ghi rồi)
-  if (hp <= 0 && !cleared && reachedTang < total) add(reachedTang, 'fail', 'Rút Lui', `Sinh lực cạn kiệt, ngươi buộc phải <span class="text-rose-300 font-bold">rút lui</span> khỏi ${D.name}.`, 'fail');
+  if (hp <= 0 && !cleared && reachedTang < total) add(reachedTang, 'fail', 'Rút Lui', `Sinh lực cạn kiệt, buộc phải <span class="text-rose-300 font-bold">rút lui</span> khỏi ${D.name}.`, 'fail');
   const hpPct = Math.max(0, Math.round(hp));
   if (!cleared) coDuyenBonus = false; // rút lui -> bỏ bonus cơ duyên
 

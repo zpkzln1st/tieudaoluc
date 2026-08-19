@@ -97,7 +97,7 @@ insert into public.tran_he_so (khoa, gia_tri) values
   ('he_so_gio', 1.5),                -- quy gio lam duoc phep vuot dong ho bao nhieu lan
   -- Phu cap "thuong theo cuc" cho Chien Dau: Bi Canh mot lich day (14h) + tron luot Yeu Vuong,
   -- da nhan he so nhan EXP toi da (3.38x). Hai nguon nay KHONG ghi timeMs nao.
-  ('phu_cap_chien_dau', 78978),
+  ('phu_cap_chien_dau', 114130),
   ('sai_so_boc_so', 2),        -- khoa boc so: cho lech ngan nay lan boc
   -- ⚠⚠ CHAN: chi TU CHOI ghi de khi vuot tran tu ngan nay lan tro len. Duoi muc do chi ghi so.
   --   Do that: nguoi choi that manh nhat cach tran 3.0 lan (Chien Dau) / 3.1 lan (nghe),
@@ -280,7 +280,7 @@ begin
   hs := coalesce(hs, 10); bu := coalesce(bu, 50400);
   bac_san := coalesce(bac_san, 5000000); tran_lan := coalesce(tran_lan, 2218261);
   nhip_ms := coalesce(nhip_ms, 8000); hs_gio := coalesce(hs_gio, 1.5);
-  phu_cap := coalesce(phu_cap, 78978); sai_so := coalesce(sai_so, 2);
+  phu_cap := coalesce(phu_cap, 114130); sai_so := coalesce(sai_so, 2);
   gap_chan := coalesce(gap_chan, 3);
   sai_dd := coalesce(sai_dd, 20); giay_nau := coalesce(giay_nau, 45);
 
@@ -509,7 +509,7 @@ create trigger kiem_toc_do_tren_saves
 -- Tang 1 (dong ho may chu): sua Bac, nhan do, tua dong ho may minh.
 -- Tang 2A (quy gio lam):    thoi phong thoi gian hoat dong.
 -- Tang 2B (xp phai co gio): sua thang so xp / nhay cap — ke ca nhay TUNG IT MOT nhieu lan,
---                           vi khong co gio lam thi tran chi con phu cap 78.978 xp.
+--                           vi khong co gio lam thi tran chi con phu cap 114.130 xp.
 -- Tang 2C (khoa boc so):    sua so con da ha ma khong di qua engine.
 -- Tang 2D (ngoai su kien):  cay ki nang su kien ngoai khoang mo/dong cua bang su_kien.
 -- Tang 2E (Dan Dien):       lap o Dan Dien nhieu hon so vien dan tung roi ra (bo dem boc so)

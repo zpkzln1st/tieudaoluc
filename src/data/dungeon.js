@@ -51,7 +51,7 @@ export const DUNGEONS = [
   {
     id: 'hacPhongLam', name: 'Hắc Phong Lâm', gloss: 'Black Gale Wood', seal: '瘴',
     reqLevel: 25, realm: 'Nhân Gian', loc: 'huyenDo', theme: 'Độc lâm chướng khí', color: '#84cc16',
-    hazard: 'sinhLuc', hazardName: 'Độc Chướng',
+    hazard: 'hoThe', hazardName: 'Độc Chướng',
     lore: 'Rừng đen phủ chướng khí tía lục, nấm độc phát quang giữa sương lam.',
     mobs: ['Độc Vụ Yểm', 'Lục Lân Mãng'], boss: 'Hắc Phong Độc Chu',
     tangs: ['thuong', 'hazard', 'boss'],
@@ -138,7 +138,7 @@ export const DUNGEONS = [
   {
     id: 'vanYeuSon', name: 'Vạn Yêu Sơn', gloss: 'Myriad Demon Peak', seal: '妖',
     reqLevel: 85, realm: 'Tiên Cảnh', loc: 'quanTinhDai', theme: 'Yêu thú hoành hành', color: '#e879f9',
-    hazard: 'sinhLuc', hazardName: 'Yêu Khí Ăn Mòn',
+    hazard: 'hoThe', hazardName: 'Yêu Khí Ăn Mòn',
     lore: 'Núi yêu chạng vạng máu, mắt thú lập loè, yêu khí ngút trời.',
     mobs: ['Huyết Nha Lang', 'Cửu Anh Mãng Xà'], boss: 'Vạn Yêu Chi Vương',
     tangs: ['thuong', 'tinhAnh', 'hazard', 'thuong', 'tinhAnh', 'boss'],

@@ -192,7 +192,7 @@ export const SU_KIEN_DS = [
         atkFl: 'vung đuôi độc quét', skill: { name: 'Ngũ Độc Câu Phát', mult: 2.8, cd: 6, fl: 'rắn rết bọ cạp dưới trướng đồng loạt xông lên' } },
     ],
     biCanh: [
-      { id: 'lienHoaDang', name: 'Liên Hoa Đãng', seal: '蓮', lv: 25, hazard: 'sinhLuc', hazardName: 'Chướng Khí Đầm Sen',
+      { id: 'lienHoaDang', name: 'Liên Hoa Đãng', seal: '蓮', lv: 25, hazard: 'hoThe', hazardName: 'Chướng Khí Đầm Sen',
         theme: 'Đầm sen mênh mông', color: '#facc15', boss: 'Cửu Khúc Liên Yêu',
         lore: 'Đầm sen mênh mông, lá to bằng chiếc thuyền, dưới nước có gì đó đang bơi theo.' },
       { id: 'longChuThuyCung', name: 'Long Chu Thủy Cung', seal: '龍', lv: 70, hazard: 'thanPhap', hazardName: 'Xoáy Nước Đáy Sông',
@@ -247,7 +247,7 @@ export const SU_KIEN_DS = [
         atkFl: 'hắt một muôi canh', skill: { name: 'Nhất Oản Vong Tình', mult: 2.8, cd: 6, fl: 'múc một chén đầy, mùi canh bay tới đâu ký ức rơi tới đó' } },
     ],
     biCanh: [
-      { id: 'biNganHoaHai', name: 'Bỉ Ngạn Hoa Hải', seal: '彼', lv: 25, hazard: 'sinhLuc', hazardName: 'Hoa Hương Đoạt Phách',
+      { id: 'biNganHoaHai', name: 'Bỉ Ngạn Hoa Hải', seal: '彼', lv: 25, hazard: 'linhXao', hazardName: 'Hoa Hương Đoạt Phách',
         theme: 'Biển hoa đỏ không lá', color: '#818cf8', boss: 'Bỉ Ngạn Hoa Linh',
         lore: 'Biển hoa đỏ không một chiếc lá, đi giữa đó thì không nghe được tiếng chân mình.' },
       { id: 'naiHaKieu', name: 'Nại Hà Kiều', seal: '奈', lv: 70, hazard: 'linhXao', hazardName: 'Sương Quên Nại Hà',
@@ -497,6 +497,10 @@ for (const sk of SU_KIEN_DS) {
       reqLevel: d.lv, realm: sk.ten, loc: locId, theme: d.theme, color: d.color, lore: d.lore,
       mobs: [sk.quai[i === 0 ? 0 : 2].name, sk.quai[i === 0 ? 1 : 3].name], boss: d.boss,
       tangs: K.tangs, durMs: K.durMs, pace: K.pace, cost: K.cost,
+      // ⚠⚠ ĐỪNG BỎ HAI KHOÁ NÀY. `tangs` có tầng 'hazard', mà tầng ấy đọc `D.hazard` và
+      //    `D.hazardName`. Thiếu chúng thì tầng LUÔN hụt (12 phó bản sự kiện thông quan 0%) và
+      //    dòng log in ra chữ "undefined" cho người chơi đọc.
+      hazard: d.hazard, hazardName: d.hazardName,
       diem: K.diem, phuKien: { loai: 'an', bac: i === 0 ? 'so' : 'thuong' },
       loot: { bac: K.loot.bac, exp: K.loot.exp, honThach: K.loot.honThach, lieu, da: [], rare: [] } };
     DUNGEONS.push(def);

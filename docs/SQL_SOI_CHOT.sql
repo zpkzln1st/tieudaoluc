@@ -21,7 +21,7 @@ with soi(tt, muc, thay, phai_la) as (
     (4,  'he so gio (tang 2A)',
      (select gia_tri::text from tran_he_so where khoa = 'he_so_gio'), '1.5'),
     (5,  'phu cap Chien Dau (tang 2B)',
-     (select gia_tri::text from tran_he_so where khoa = 'phu_cap_chien_dau'), '78978'),
+     (select gia_tri::text from tran_he_so where khoa = 'phu_cap_chien_dau'), '114130'),
     (6,  'sai so boc so (tang 2C)',
      (select gia_tri::text from tran_he_so where khoa = 'sai_so_boc_so'), '2'),
     (7,  'moc CHAN (gap may lan tran)',

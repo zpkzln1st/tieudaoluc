@@ -94,6 +94,26 @@ Không mở hệ mới. Lấp cho đủ những hệ đã dựng khung.
 - Đan Điền phẩm 6–9 đã rơi thật (6% mỗi lượt, `DD_TI_LE_ROI`); bậc khó thứ hai chỉnh lại tỉ lệ đó.
 - Trần cấp mở dần qua `mo_khoa.tran_chuyen` (đã có, trần cứng 10 vòng).
 
+**4.1a Vá năm lỗi Bí Cảnh — đợt 2026-08-19.** Đo thật bằng `runDungeon`, ≥2.000 lượt mỗi ô.
+Cả năm đều là lỗi IM LẶNG: không ném lỗi, không cảnh báo, bảng số vẫn xanh.
+
+| Lỗi | Hậu quả đo được | Sau khi vá |
+|---|---|---|
+| `hazard: 'sinhLuc'` — **không phải Tứ Trụ** (nó là máu ở `state.player`) | Vạn Yêu Sơn Lv85 thông quan **0%** cả ba build | 100% (né giữa/cao) |
+| Bộ dựng `def` ở `sukien.js` quên chép `hazard`+`hazardName` | 12/21 phó bản hụt tầng; sáu cái Lv70 **0%**; màn in chữ **"undefined"** | 100%, 0 chữ undefined |
+| Cửa `bay` đòi `req+2`, `coDuyen` đòi `req+4`, trần Tứ Trụ là 100 | Thái Hư **bất khả vĩnh viễn** ở hai tầng, ăn không 26,9% máu/lượt | HP còn 3,5 → **40** |
+| Khoá `sinhLuc` trong `HAZARD_NAME_BY_STAT` **che** lỗi trên | Khai sai tên vẫn in ra tên đẹp nên nhìn màn không biết | gỡ; sai tên là lộ ngay |
+| Bộ sinh trần chống gian lận lấy `loot.exp` **thô** | Engine trả `× RUN.expMul × pace` ⇒ trần hụt **1,5 lần**, người chơi sạch bị ghi sổ | `78.978 → 114.130` |
+
+⚠ Tứ Trụ nằm ở `state.stats` nên **Trùng Sinh KHÔNG với tới** — trần của chúng luôn là `MAX_LEVEL`.
+Cửa nào đòi cao hơn là cửa chết. Nay kẹp bằng `tranTuTru()`.
+⛔ Ba dòng log Bí Cảnh dùng chữ **"ngươi"** — đã bỏ. Lời chiêu thức của boss thì giữ (lời NPC).
+Bài kiểm 15 mở rộng 49 → **69 mục**, kiểm chuẩn **13/13**. **Chạy lại `docs/SQL_CHONG_GIAN_LAN.sql`.**
+
+⚠ Còn tồn, chờ chốt: đường cong độ khó **không đơn điệu** — Thiên Cơ Lv92 (2,7% ở né thấp) khó hơn
+hẳn Thái Hư Lv100 (100%). Và **Chiến Lực không ảnh hưởng gì tới Bí Cảnh**: Chiến Lực 2.300 với
+202.298 cho 5.000/5.000 lượt trùng khít. Chỉ Cấp · Né · Tứ Trụ có việc.
+
 **4.2 Tông Môn P2 · P3** — cờ `tongMonDrama`
 - Nhánh drama đệ tử, Bí Kíp BK1–BK5 đã thiết kế xong, chỉ chờ dựng.
 
