@@ -14421,6 +14421,8 @@ export const DICT = {
   "Bạch Trạch": "Bai Ze",
   "Bốc một Hộ Kinh Sứ rồi cho khởi hành. Bậc càng cao thì chuyến càng ngắn mà thưởng càng lớn.": "Draw an escort beast, then set out. The higher the rank, the shorter the trip and the larger the reward.",
   "Phái Hộ Kinh Sứ áp tải kinh thư, và cướp đoàn khác trên đường mây.": "Send an escort beast to convoy the scriptures, and raid other convoys on the cloud road.",
+  "Kinh thư đang áp tải": "Scriptures under escort",
+  "Đài mây còn trống.": "The cloud dais is empty.",
   "Chưởng Môn": "Sect Master",
   "đang": "currently",
   "Tới": "To",

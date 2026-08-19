@@ -17,7 +17,7 @@ import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
 import { giaSanTrangBi, giaSanVatPham, dsXepChong } from './data/giasan.js';
-import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, tkExpLenCap } from './data/thinhkinh.js';
+import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG, tkExpLenCap } from './data/thinhkinh.js';
 import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop,
   tkThuongThuc, tkNhan, tkDoanDangDi, tkCuopDuoc } from './engine/thinhkinh.js';
 import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong } from './data/dandien.js';
@@ -7551,7 +7551,7 @@ const gameStore = {
   // ⚠ Mục ở cột dọc CHỈ MỌC RA khi cờ mở — cùng khuôn với Sự Kiện (`svNavHien`).
   get tkNavHien() { return this.moChua('thinhKinh'); },
   // Bảng số phơi ra cho template — đừng gõ lại con số nào trong index.html.
-  TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA,
+  TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG,
   /** Bảo đảm khối state + reset lượt theo ngày. Gọi ở mọi cửa vào của màn. */
   get tkT() { return tkEnsure(this.state, now()); },
   get tkLuot() { void this._tick; return this.tkT.luot; },

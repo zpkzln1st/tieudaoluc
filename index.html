@@ -16313,6 +16313,9 @@
                 <div class="text-[12px] text-slate-400" x-text="g.tkDaVe ? 'Đã về tới Tàng Kinh Các.' : ('Còn ' + g.tkConLaiTxt)"></div>
                 <div class="text-[11.5px] text-slate-500" x-text="'Còn chịu được ' + g.tkConBiCuop + ' lần cướp'"></div>
               </div>
+              <!-- Bó kinh thư đang được áp tải. Art `kinhThu`. -->
+              <span class="w-10 h-10 inline-flex items-center justify-center shrink-0" :title="'Kinh thư đang áp tải'"
+                    x-html="g.ico('kinhThu', '📜')"></span>
               <div class="text-right shrink-0">
                 <div class="fserif text-amber-300 text-[13.5px]" x-text="g.fmt(g.tkThuongXem.bac) + ' Bạc'"></div>
                 <div class="text-[11.5px] text-cyan" x-text="g.fmt(g.tkThuongXem.honThach) + ' Hồn Thạch'"></div>
@@ -16369,8 +16372,12 @@
                     class="px-3 py-1.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[12.5px] transition">Khởi Hành</button>
                 </div>
               </template>
+              <!-- Chưa bốc: đài mây còn trống. Art `daiMayTrong` vẽ đúng cảnh đó. -->
               <template x-if="!g.tkSuChoObj">
-                <div class="pt-3 border-t border-slate-800">
+                <div class="pt-3 border-t border-slate-800 flex items-center gap-3 flex-wrap">
+                  <span class="w-14 h-14 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0"
+                        x-html="g.ico(g.TK_ART_TRONG, '☁️')"></span>
+                  <div class="min-w-0 flex-1 text-[12.5px] text-slate-500">Đài mây còn trống.</div>
                   <button @click="g.tkBoc()" :disabled="g.tkLuot.thinh <= 0"
                     class="px-3 py-1.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[12.5px] transition disabled:opacity-40">Thỉnh Kinh</button>
                 </div>

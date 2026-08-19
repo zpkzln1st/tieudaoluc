@@ -14252,6 +14252,8 @@ export const DICT = {
   "Bạch Trạch": "白澤",
   "Bốc một Hộ Kinh Sứ rồi cho khởi hành. Bậc càng cao thì chuyến càng ngắn mà thưởng càng lớn.": "抽一頭護經使然後啟程。品階越高，路程越短而賞賜越豐。",
   "Phái Hộ Kinh Sứ áp tải kinh thư, và cướp đoàn khác trên đường mây.": "遣護經使押送經書，並在雲路上劫掠他隊。",
+  "Kinh thư đang áp tải": "押送中的經書",
+  "Đài mây còn trống.": "雲台尚空。",
   "Chưởng Môn": "掌門",
   "đang": "正在",
   "Tới": "前往",
