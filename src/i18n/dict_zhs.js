@@ -14270,6 +14270,8 @@ export const DICT = {
   "Đã hoàn": "已退回",
   "Đơn này đã quá hạn 48 giờ.": "此收购单已超过 48 小时期限。",
   "Hết hạn": "已过期",
+  "Sàn đang tạm đóng.": "交易行暂时关闭。",
+  "Bên kia đang không giao dịch được.": "对方目前无法交易。",
   "Chưởng Môn": "掌门",
   "đang": "正在",
   "Tới": "前往",

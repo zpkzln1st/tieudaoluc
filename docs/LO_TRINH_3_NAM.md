@@ -120,6 +120,21 @@ Không mở hệ mới. Lấp cho đủ những hệ đã dựng khung.
     hai con số với nhau.
   - **Sổ khớp cho chủ đơn**: bảng "Đã Nhận" hiện từng lô hàng, nguồn là `san_rao` lọc tiền tố `tm:`.
   - Chưa làm: chủ đơn không được báo lúc có hàng về (chưa nối vào hệ thông báo).
+
+**4.4a An toàn Sàn — đợt 2026-08-19.** Hai lỗ vá cùng lúc, cả hai đều có sẵn từ trước.
+- **Quyền RPC**: `docs/SQL_KHOA_CUA_RPC.sql` thu hồi `EXECUTE` của bốn hàm `security definer`
+  **nhận uid làm tham số** (`san_ghi_save` · `san_doc_save` · `san_doc_save_khoa` · `dan_mua_san`).
+  PostgreSQL mặc định cấp `EXECUTE` cho `PUBLIC` ⇒ **mặc định là MỞ**. Từ nay viết hàm nhận uid
+  làm tham số thì đặt `revoke` ngay dưới lệnh `create`.
+- **Giao dịch nửa sống nửa chết**: bảng `saves` có nhiều chốt BEFORE; hai chốt chạy đầu
+  (`a_bao_tri`, `a_khoa_tai_khoan`) trả `null` = **bỏ lệnh ghi im lặng** và **không** đọc cờ miễn
+  trừ `app.san`. Mà `san_rao` · `san_so` · `san_thu_mua` không có chốt nào nên sổ vẫn commit.
+  ⇒ Treo bán lúc bảo trì thì tin lên Sàn mà **món vẫn nằm trong túi**.
+  Vá **hai lớp**: `san_ghi_save` đếm `row_count`, 0 dòng thì `raise` để **cuốn ngược cả giao dịch**
+  (lớp này bắt được cả chốt chưa ai nghĩ ra); và `san_ghi_duoc(uid)` cho 11 chỗ ghi từ chối sớm
+  bằng `san-tam-dong`, hai chỗ khớp hai bên còn soi cả bên kia.
+- Bài kiểm 46: 116 → 146 mục, kiểm chuẩn **55/55**.
+
 - Thêm chỗ tiêu Bạc: Động Phủ bậc cao, phí bang, đúc lại dòng roll.
 
 **4.4b Thỉnh Kinh** — cờ `thinhKinh`

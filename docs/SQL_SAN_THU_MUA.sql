@@ -3,7 +3,8 @@
 -- ============================================================
 -- CACH DUNG: Supabase > SQL Editor > dan tron tep nay > Run. Chay lai duoc nhieu lan.
 -- ⚠ PHAI chay SAU `docs/SQL_SAN_GIAO_DICH.sql` va `docs/SQL_SAN_GIA_VP.sql`:
---   tep nay dung lai `san_thue`, `san_ghi_save`, bang `san_rao`, `san_so`, `san_gia_vp`.
+--   tep nay dung lai `san_thue`, `san_ghi_save`, `san_ghi_duoc`, bang `san_rao`, `san_so`,
+--   `san_gia_vp`.
 -- ⚠ KHONG can chay lai `docs/SQL_CHONG_GIAN_LAN.sql` — tep nay khong dong vao no. Xem muc 6.
 --
 -- KHAC voi Treo Ban: ben do treo MON roi cho nguoi mua; ben nay treo BAC roi cho nguoi ban.
@@ -113,6 +114,7 @@ as $$
 declare me uuid := auth.uid(); s jsonb; bac bigint; san bigint; ky bigint; n int; gop bigint; ten text;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   if p_so is null or p_so <= 0 or p_so > 9999 then return jsonb_build_object('ok', false, 'vi', 'so-luong-sai'); end if;
   if p_gia is null or p_gia <= 0 or p_gia > 5000000 then return jsonb_build_object('ok', false, 'vi', 'gia-sai'); end if;
 
@@ -162,6 +164,7 @@ as $$
 declare me uuid := auth.uid(); d public.san_thu_mua%rowtype; s jsonb; bac bigint;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
 
   -- ⚠⚠ KHOA DON TRUOC, ban luu SAU. Dao thu tu la co luc mot lan khop dang chay chen vao giua,
   --    va lenh ghi cua huy de len lo hang vua nhan.
@@ -200,6 +203,7 @@ as $$
 declare me uuid := auth.uid(); moc timestamptz; s jsonb; tong bigint; n int; bac bigint;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   moc := now() - public.san_tm_han();
 
   -- ⚠⚠ KHOA DON TRUOC, ban luu SAU — dung thu tu voi muc 4 va muc 6, khong thi ket cung.
@@ -246,6 +250,7 @@ declare me uuid := auth.uid(); d public.san_thu_mua%rowtype;
         sB jsonb; sM jsonb; co int; k int; tien bigint; thue bigint; bacB bigint; ten text; rid bigint;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   if p_so is null or p_so <= 0 or p_so > 9999 then return jsonb_build_object('ok', false, 'vi', 'so-luong-sai'); end if;
 
   select * into d from public.san_thu_mua where id = p_id for update;
@@ -257,6 +262,8 @@ begin
   -- ⚠ Tu ban vao don cua minh la duong bom bo dem `dan_mua_san` mien phi (chi mat thue), va la
   --   duong thoi gia gia tao. Chan thang.
   if d.nguoi_dat = me then return jsonb_build_object('ok', false, 'vi', 'khong-tu-mua-cua-minh'); end if;
+  -- ⚠ Lenh nay ghi HAI ban luu. Chu don khong ghi duoc thi hang di ma Bac khong ve.
+  if not public.san_ghi_duoc(d.nguoi_dat) then return jsonb_build_object('ok', false, 'vi', 'ben-kia-tam-khoa'); end if;
 
   -- ⚠⚠ KHOA HAI BAN LUU THEO uid TANG DAN. Hai lan khop cheo nhau ma khoa nguoc thu tu la KET CUNG.
   if me < d.nguoi_dat then

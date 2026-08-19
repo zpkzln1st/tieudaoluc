@@ -7348,6 +7348,9 @@ const gameStore = {
     else location.reload();
   },
   _sanVi(v) {
+    // ⚠ Lưới an toàn trong `san_ghi_save` ném ra một chuỗi dài kèm uid. Đừng bày nguyên văn cho
+    //   người chơi — bắt lấy tiền tố rồi nói bằng lời người.
+    if (typeof v === 'string' && v.indexOf('san-ghi-bi-chan') >= 0) return 'Sàn đang tạm đóng.';
     return ({ 'chua-dang-nhap': 'Chưa đăng nhập.', 'gia-sai': 'Giá không hợp lệ.',
       'chua-co-ban-luu': 'Chưa có bản lưu trên máy chủ — bấm Đồng Bộ Ngay rồi thử lại.',
       'khong-co-mon-nay': 'Món này không có trong túi trên máy chủ — đồng bộ rồi thử lại.',
@@ -7356,7 +7359,9 @@ const gameStore = {
       'khong-tu-mua-cua-minh': 'Không mua được tin của chính mình.',
       'khong-du-bac': 'Không đủ Bạc.', 'duoi-gia-san': 'Giá thấp hơn giá sàn.', 'so-luong-sai': 'Số lượng không hợp lệ.', 'khong-du-so-luong': 'Không đủ số lượng trong túi.', 'mon-nay-khong-ban-duoc': 'Món này không treo bán được.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.',
       'ky-quy-qua-tran': 'Bạc ký quỹ vượt mức 5.000.000.', 'qua-nhieu-don': 'Đang treo đủ 10 đơn rồi.',
-      'don-het-han': 'Đơn này đã quá hạn 48 giờ.' })[v] || v;
+      'don-het-han': 'Đơn này đã quá hạn 48 giờ.',
+      'san-tam-dong': 'Sàn đang tạm đóng.',
+      'ben-kia-tam-khoa': 'Bên kia đang không giao dịch được.' })[v] || v;
   },
   async sanTreo(uid, gia) {
     const g = Math.round(Number(gia) || 0);

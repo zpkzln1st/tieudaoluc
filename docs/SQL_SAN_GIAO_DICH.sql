@@ -89,7 +89,7 @@ language plpgsql
 security definer
 set search_path = pg_catalog, public
 as $$
-declare moi jsonb; seq bigint;
+declare moi jsonb; seq bigint; n int;
 begin
   seq := coalesce((p_data->>'sanSeq')::bigint, 0) + 1;
   moi := jsonb_set(p_data, '{sanSeq}', to_jsonb(seq), true);
@@ -100,7 +100,69 @@ begin
          last_save = (extract(epoch from now()) * 1000)::bigint,
          updated_at = now()
    where user_id = p_uid;
+
+  -- ⚠⚠ LUOI AN TOAN CUOI CUNG — DUNG GO BON DONG DUOI.
+  --    Bang `saves` co NHIEU chot BEFORE. Mot chot tra `null` la Postgres BO LENH GHI ma KHONG
+  --    bao loi gi. Ma cac bang so sach (`san_rao`, `san_so`, `san_thu_mua`) KHONG co chot nao
+  --    nen lenh ghi vao do VAN COMMIT. Ket qua la giao dich nua song nua chet: so ghi la da giao
+  --    dich, con do va Bac khong he chuyen. Vi du that: treo ban luc bao tri thi tin len San ma
+  --    mon VAN NAM TRONG TUI — ban xong la NHAN DOI mon.
+  --    Dem `row_count` la cach DUY NHAT biet dieu do vua xay ra.
+  -- ⚠ O DAY `raise` MOI DUNG, nguoc voi le thuong cua du an. Le "tu choi bang return, dung raise"
+  --   co la vi exception cuon nguoc ca so. Cuon nguoc chinh la cai ta CAN o day: cuon het thi
+  --   khong con nua vo nao. Lop nay bat duoc ca nhung chot CHUA AI NGHI RA.
+  get diagnostics n = row_count;
+  if n <> 1 then
+    raise exception 'san-ghi-bi-chan: lenh ghi ban luu bi mot chot chan (uid=%, so dong=%)', p_uid, n;
+  end if;
 end $$;
+
+-- ---------- CUA CHAN SOM: GHI DUOC BAN LUU KHONG ----------
+-- Lop THU HAI, chi de bao loi tu te. Lop thu nhat la phep dem `row_count` ngay tren.
+-- ⚠ Hai chot chay DAU tren `saves` (`a_bao_tri_tren_saves`, `a_khoa_tai_khoan_tren_saves`)
+--   KHONG doc co mien tru `app.san` nhu hai chot chay sau, nen lenh ghi cua San van bi chung bo.
+--   Ham nay hoi TRUOC de tra loi tu te thay vi de `raise` nem ra mot chuoi ky thuat.
+-- ⚠⚠ HAI VI TU DUOI DAY PHAI KHOP TUNG CHU voi `chan_khi_bao_tri` (docs/SQL_LENH_BAI_6.sql) va
+--   `chan_tai_khoan_bi_khoa` (docs/SQL_LENH_BAI.sql). Lech nhau la ham nay bao "ghi duoc" ma chot
+--   van bo lenh ghi — luc do chi con lop mot do lai, va nguoi choi an mot loi kho hieu.
+-- ⚠ MOT reason DUY NHAT cho ca hai truong hop. Noi thang "tai khoan bi khoa" la pha tinh IM LANG
+--   cua chot khoa: nguoi gian lan biet minh bi khoa thi lap tai khoan khac.
+-- ⚠⚠ plpgsql CHU KHONG PHAI sql. Than ham `language sql` BI PHAN TICH ngay luc tao ham, nen neu
+--    ai chay tep nay TRUOC SQL_LENH_BAI.sql / SQL_LENH_BAI_6.sql thi hai bang duoi day chua ton tai
+--    va lenh `create function` NO NGAY, hong ca tep. Than plpgsql thi khong bi phan tich.
+--    Day dung la khuon `dan_mua_san` (docs/SQL_CHONG_GIAN_LAN.sql) da dung san — dung lai, dung de
+--    khuon thu hai. Chua co bang thi coi nhu chua co chot do, va dung the that.
+create or replace function public.san_ghi_duoc(p_uid uuid)
+returns boolean
+language plpgsql stable security definer
+set search_path = pg_catalog, public
+as $$
+begin
+  if p_uid is null then return false; end if;
+
+  -- Chot khoa tai khoan: KHONG mien cho ai ca, ke ca tac gia (khop `chan_tai_khoan_bi_khoa`).
+  if to_regclass('public.khoa_tai_khoan') is not null
+     and exists (select 1 from public.khoa_tai_khoan k where k.user_id = p_uid) then
+    return false;
+  end if;
+
+  -- Chot bao tri: tac gia KHONG bao gio bi chan (khop `chan_khi_bao_tri`).
+  if p_uid = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid then return true; end if;
+
+  if to_regclass('public.cao_thi') is not null
+     and exists (select 1 from public.cao_thi
+                  where muc = 'bao_tri'
+                    and muc_tieu is null
+                    and (mo_luc   is null or mo_luc   <= now())
+                    and (dong_luc is null or dong_luc >  now())) then
+    return false;
+  end if;
+
+  return true;
+end $$;
+-- ⚠ Ham nay NHAN uid LAM THAM SO ⇒ revoke NGAY TAI CHO, dung doi tep khac. Xem
+--   docs/SQL_KHOA_CUA_RPC.sql muc 1: mac dinh cua Postgres la MO, khong phai DONG.
+revoke all on function public.san_ghi_duoc(uuid) from public, anon, authenticated;
 
 -- ============================================================
 -- 4. TREO BAN
@@ -116,6 +178,7 @@ as $$
 declare me uuid := auth.uid(); s jsonb; tui jsonb; mon jsonb; i int; ten text; con jsonb := '[]'::jsonb;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   if p_gia is null or p_gia <= 0 or p_gia > 1000000000 then return jsonb_build_object('ok', false, 'vi', 'gia-sai'); end if;
 
   s := public.san_doc_save(me);
@@ -155,6 +218,7 @@ as $$
 declare me uuid := auth.uid(); r public.san_rao%rowtype; s jsonb;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
 
   -- Khoa dong lai roi moi doc, khoi hai may cung go mot tin.
   select * into r from public.san_rao where id = p_id for update;
@@ -185,11 +249,14 @@ declare me uuid := auth.uid(); r public.san_rao%rowtype;
         sM jsonb; sB jsonb; bacM bigint; bacB bigint; thue bigint;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
 
   select * into r from public.san_rao where id = p_id for update;
   if not found then return jsonb_build_object('ok', false, 'vi', 'khong-co-tin'); end if;
   if r.trang_thai <> 'treo' then return jsonb_build_object('ok', false, 'vi', 'tin-da-xong'); end if;
   if r.nguoi_ban = me then return jsonb_build_object('ok', false, 'vi', 'khong-tu-mua-cua-minh'); end if;
+  -- ⚠ Lenh nay ghi HAI ban luu. Ben kia khong ghi duoc thi cung nua song nua chet.
+  if not public.san_ghi_duoc(r.nguoi_ban) then return jsonb_build_object('ok', false, 'vi', 'ben-kia-tam-khoa'); end if;
 
   sM := public.san_doc_save(me);
   sB := public.san_doc_save(r.nguoi_ban);
@@ -321,6 +388,7 @@ as $$
 declare me uuid := auth.uid(); s jsonb; tui jsonb; mon jsonb; i int; ten text; con jsonb := '[]'::jsonb; san bigint;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   if p_gia is null or p_gia <= 0 or p_gia > 1000000000 then return jsonb_build_object('ok', false, 'vi', 'gia-sai'); end if;
 
   s := public.san_doc_save(me);
@@ -370,6 +438,7 @@ as $$
 declare me uuid := auth.uid(); s jsonb; co int; ten text; san bigint; tong bigint;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   if p_so is null or p_so <= 0 or p_so > 9999 then return jsonb_build_object('ok', false, 'vi', 'so-luong-sai'); end if;
   if p_gia is null or p_gia <= 0 or p_gia > 1000000000 then return jsonb_build_object('ok', false, 'vi', 'gia-sai'); end if;
 
@@ -408,6 +477,7 @@ as $$
 declare me uuid := auth.uid(); r public.san_rao%rowtype; s jsonb; co int;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   select * into r from public.san_rao where id = p_id for update;
   if not found then return jsonb_build_object('ok', false, 'vi', 'khong-co-tin'); end if;
   if r.nguoi_ban <> me then return jsonb_build_object('ok', false, 'vi', 'khong-phai-tin-cua-minh'); end if;
@@ -439,10 +509,13 @@ declare me uuid := auth.uid(); r public.san_rao%rowtype;
         sM jsonb; sB jsonb; bacM bigint; bacB bigint; thue bigint; co int;
 begin
   if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  if not public.san_ghi_duoc(me) then return jsonb_build_object('ok', false, 'vi', 'san-tam-dong'); end if;
   select * into r from public.san_rao where id = p_id for update;
   if not found then return jsonb_build_object('ok', false, 'vi', 'khong-co-tin'); end if;
   if r.trang_thai <> 'treo' then return jsonb_build_object('ok', false, 'vi', 'tin-da-xong'); end if;
   if r.nguoi_ban = me then return jsonb_build_object('ok', false, 'vi', 'khong-tu-mua-cua-minh'); end if;
+  -- ⚠ Lenh nay ghi HAI ban luu. Ben kia khong ghi duoc thi cung nua song nua chet.
+  if not public.san_ghi_duoc(r.nguoi_ban) then return jsonb_build_object('ok', false, 'vi', 'ben-kia-tam-khoa'); end if;
 
   sM := public.san_doc_save(me);
   sB := public.san_doc_save(r.nguoi_ban);

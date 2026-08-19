@@ -67,6 +67,11 @@ revoke all on function public.san_doc_save_khoa(uuid) from public, anon, authent
 revoke all on function public.dan_mua_san(uuid, integer, integer) from public, anon, authenticated;
 
 
+-- ⚠ `san_ghi_duoc(uuid)` cung nhan uid lam tham so, nhung no TU REVOKE ngay trong
+--   docs/SQL_SAN_GIAO_DICH.sql cho no duoc dinh nghia. Do la le tu nay ve sau: viet ham nhan uid
+--   lam tham so thi dat `revoke` ngay duoi lenh `create`, dung de danh cho tep nay.
+
+
 -- ---------- 4. VI SAO PHAI CHAY SAU CUNG ----------
 -- `create or replace function` GIU NGUYEN ACL cu, nen chay lai mot tep san co KHONG tu no mo lai
 -- cua. NHUNG `drop function` roi `create` lai thi ACL VE MAC DINH, tuc la MO lai cho anon.

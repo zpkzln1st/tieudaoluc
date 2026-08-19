@@ -14439,6 +14439,8 @@ export const DICT = {
   "Đã hoàn": "Refunded",
   "Đơn này đã quá hạn 48 giờ.": "This order has passed the 48-hour limit.",
   "Hết hạn": "Expired",
+  "Sàn đang tạm đóng.": "The Market is closed for now.",
+  "Bên kia đang không giao dịch được.": "The other party cannot trade right now.",
   "Chưởng Môn": "Sect Master",
   "đang": "currently",
   "Tới": "To",
