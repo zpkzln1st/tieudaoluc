@@ -14424,6 +14424,7 @@ export const DICT = {
   "Kinh thư đang áp tải": "Scriptures under escort",
   "Đài mây còn trống.": "The cloud dais is empty.",
   "Bấm một đoàn để xem, rồi cướp.": "Tap a convoy to inspect it, then raid.",
+  "Bậc càng cao thì đoàn lướt càng nhanh.": "The higher the rank, the faster the convoy glides.",
   "Chưởng Môn": "Sect Master",
   "đang": "currently",
   "Tới": "To",

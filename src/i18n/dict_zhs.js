@@ -14255,6 +14255,7 @@ export const DICT = {
   "Kinh thư đang áp tải": "押送中的经书",
   "Đài mây còn trống.": "云台尚空。",
   "Bấm một đoàn để xem, rồi cướp.": "点一支队伍查看，再行劫掠。",
+  "Bậc càng cao thì đoàn lướt càng nhanh.": "品阶越高，队伍掠行越快。",
   "Chưởng Môn": "掌门",
   "đang": "正在",
   "Tới": "前往",

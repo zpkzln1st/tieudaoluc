@@ -16335,11 +16335,28 @@
           <div class="panel rounded-lg p-3 mb-3">
             <div class="flex items-center justify-between gap-2 mb-2.5">
               <div class="text-[12.5px] text-slate-400">Đường mây</div>
-              <div class="text-[11.5px] text-slate-600">Bấm một đoàn để xem, rồi cướp.</div>
+              <div class="text-[11.5px] text-slate-600">Bậc càng cao thì đoàn lướt càng nhanh.</div>
             </div>
-            <div class="relative rounded-lg overflow-hidden" style="height:300px;background:linear-gradient(180deg,#9fc7d6 0%,#cfe3ea 46%,#eef4f6 100%)">
+            <!-- ⚠ Chiều cao chốt 270px, KHÔNG nới. Cả màn phải lọt một khung nhìn — bản 400px đẩy
+                 hàng chọn Hộ Kinh Sứ xuống dưới nếp gấp, phải lăn chuột mới thấy nút Khởi Hành. -->
+            <div class="relative rounded-lg overflow-hidden" style="height:270px;background:linear-gradient(180deg,#9fc7d6 0%,#cfe3ea 46%,#eef4f6 100%)">
               <img src="images/bg/thinhKinhNen.webp" class="absolute inset-0 w-full h-full object-cover" alt=""
                    onerror="this.style.display='none'">
+              <!-- ĐOÀN CỦA TA — làn giữa riêng, viền vàng, có chữ dán nhãn. Đi một lượt từ mép
+                   trái tới mép phải rồi tới nơi đúng lúc đồng hồ về 0.
+                   ⚠ Không bấm được: đây là đoàn của mình, không có gì để cướp. -->
+              <template x-if="g.tkDoanTa">
+                <div class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
+                     :style="'left:' + g.tkDoanTa.x + '%;top:' + g.tkDoanTa.y + '%'">
+                  <span class="w-12 h-12 inline-flex items-center justify-center text-[20px]"
+                        style="filter:drop-shadow(0 0 8px #f5b942) drop-shadow(0 2px 3px rgba(0,0,0,.5))"
+                        x-html="g.ico(g.tkDoanTa.su, '☁️')"></span>
+                  <!-- ⚠ Nhãn là TÊN NHÂN VẬT. Viên chữ vàng đã đủ nói đây là đoàn của mình, khỏi
+                       phải ghép thêm chữ — ghép vào là viên dài gấp đôi rồi thò khỏi khung. -->
+                  <span class="mt-0.5 px-1.5 rounded-full text-[9.5px] whitespace-nowrap fserif font-bold"
+                        style="background:rgba(245,185,66,.92);color:#1a1206" x-text="g.tkDoanTa.ten"></span>
+                </div>
+              </template>
               <template x-for="d in g.tkDoan" :key="d.key">
                 <!-- ⛔ ĐỪNG đặt `transition:left` ở đây. Đoàn đi tới mép phải thì VÒNG về mép trái;
                      có transition là nó TRƯỢT NGƯỢC qua cả bản đồ mất một giây — ảnh chụp lần hai
@@ -16389,10 +16406,14 @@
                 <template x-for="s in g.TK_SU" :key="'tks-'+s.id">
                   <div class="flex flex-col items-center gap-1 text-center"
                        :style="g.tkSuCho === s.id ? 'transform:translateY(-2px)' : ''">
-                    <div class="relative w-full aspect-square rounded-lg flex items-center justify-center"
-                         :style="g.tkSuCho === s.id
+                    <!-- ⚠ CHIỀU CAO CHỐT, không `aspect-square`. Ô vuông theo bề ngang thì màn
+                         rộng là ô cao gần 200px, năm ô đẩy nút Khởi Hành khỏi khung nhìn. -->
+                    <!-- ⚠⚠ CHIỀU CAO NẰM TRONG `:style`, không để ở `style` tĩnh. Alpine ghi đè cả
+                         chuỗi `style`, nên đặt tách ra là ô sập còn 0 và art biến mất — lỗi im lặng. -->
+                    <div class="relative w-full rounded-lg flex items-center justify-center"
+                         :style="'height:104px;' + (g.tkSuCho === s.id
                            ? ('box-shadow:0 0 0 2px ' + s.mau + ', 0 0 14px ' + s.mau + '66;background:radial-gradient(circle at 50% 55%, ' + s.mau + '2e 0%, rgba(255,255,255,.02) 70%)')
-                           : 'background:rgba(255,255,255,.02);box-shadow:0 0 0 1px rgba(148,163,184,.14)'">
+                           : 'background:rgba(255,255,255,.02);box-shadow:0 0 0 1px rgba(148,163,184,.14)')">
                       <span class="absolute inset-0 rounded-lg overflow-hidden flex items-center justify-center text-2xl"
                             :style="g.tkSuCho === s.id ? '' : 'opacity:.34;filter:grayscale(1)'"
                             x-html="g.ico(s.id, '☁️')"></span>
