@@ -630,6 +630,15 @@
               width:auto; white-space:nowrap; padding:6px 10px; }
     .gtip-dn::after{ top:-12px; left:calc(50% - 6px); border-bottom-color:var(--q,#475569); }
     .dd-tip:hover .gtip{ opacity:1; transition-delay:.06s; }
+    /* ĐƯỜNG MÂY — dấu đoàn đã là `position:absolute` nên tự làm khung neo cho tooltip; ở đây chỉ
+       cần THÊM MỘT CÒ HOVER, dùng nguyên bộ `.gtip` chứ không dựng bộ tooltip thứ hai. */
+    .tk-doan:hover .gtip{ opacity:1; transition-delay:.06s; }
+    /* ⚠⚠ PHẢI NÂNG CẢ DẤU ĐOÀN LÊN, không chỉ nâng tooltip. Dấu đoàn mang `transform` nên nó TỰ
+       TẠO MỘT TẦNG XẾP riêng; `z-index:30` của `.gtip` chỉ có tác dụng BÊN TRONG tầng ấy, còn
+       ngoài kia mấy đoàn đứng sau trong DOM vẫn vẽ đè lên. Ảnh chụp cho thấy tooltip bị tên và
+       art của đoàn khác chồng lên mất mấy con số. */
+    .tk-doan{ z-index:1; }
+    .tk-doan:hover, .tk-doan:has(.gtip.on){ z-index:40; }
     /* MỞ SANG TRÁI, canh giữa theo chiều dọc — cho ô nằm sát mép phải trong khung CÓ CUỘN.
        ⚠ Mở xuống (`gtip-dn`) thì hàng cuối bị chính khung cuộn cắt cụt. */
     /* ⚠ BỀ NGANG CỐ ĐỊNH, không `width:auto`: phần tử tuyệt đối cho xuống dòng thì co theo khung
@@ -16367,7 +16376,7 @@
                      bắt được đúng cảnh đó, hai đoàn dồn cục vào nhau. Không transition thì mỗi
                      nhịp dịch 1,9px (mắt không thấy giật), còn lúc vòng là nhảy dứt khoát. -->
                 <button @click="g.tkChonDoan = (g.tkChonDoan === d.key ? '' : d.key)"
-                        class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                        class="tk-doan absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
                         :style="'left:' + d.x + '%;top:' + d.y + '%'">
                   <span class="w-11 h-11 inline-flex items-center justify-center text-[19px]"
                         :style="g.tkChonDoan === d.key
@@ -16380,6 +16389,22 @@
                   <span class="mt-0.5 text-[9.5px] whitespace-nowrap fserif"
                         :style="'color:' + (g.tkChonDoan === d.key ? '#ffd77a' : '#ffffff') + ';text-shadow:0 0 3px #0b1220,0 1px 2px #0b1220,0 0 7px rgba(11,18,32,.95)'"
                         x-text="d.ten"></span>
+                  <!-- Tooltip: đưa chuột vào là đọc được đối thủ, khỏi phải bấm.
+                       ⚠ Mở về phía KHÔNG có mép gần — 220px luôn nằm gọn trong khung bản đồ. -->
+                  <span class="gtip" :class="g.tkTipBen(d) + ' ' + g.tkTipDoc(d)"
+                        :style="'--q:' + g.TK_SU_BY_ID[d.su].mau + ';padding:8px 10px;width:214px;text-align:left'">
+                    <span class="block fserif text-[12.5px] text-slate-100" x-text="d.ten + ' · Cấp ' + d.capNv"></span>
+                    <span class="block text-[11px] mt-1" :style="'color:' + g.TK_SU_BY_ID[d.su].mau"
+                          x-text="g.TK_SU_BY_ID[d.su].ten + ' · Cấp ' + d.cap"></span>
+                    <span class="block text-[11px] text-slate-400 mt-1" x-text="'Còn đi ' + g.tkDoanConTxt(d)"></span>
+                    <span class="block text-[11px] mt-0.5"
+                          :style="'color:' + (d.daBiCuop >= g.TK_CUOP_TOI_DA ? '#f87171' : '#94a3b8')"
+                          x-text="'Đã bị cướp ' + d.daBiCuop + '/' + g.TK_CUOP_TOI_DA"></span>
+                    <span class="block text-[11px] mt-1"
+                          :style="'color:' + (d.daBiCuop >= g.TK_CUOP_TOI_DA ? '#64748b' : '#f5b942')"
+                          x-text="d.daBiCuop >= g.TK_CUOP_TOI_DA ? 'Đã hết lần cướp' : ('Cướp được khoảng ' + g.fmt(g.tkCuopUoc(d)) + ' Bạc')"></span>
+                    <span class="block text-[10.5px] text-slate-600 mt-1">Cấp mục tiêu càng thấp, cướp được càng ít.</span>
+                  </span>
                 </button>
               </template>
             </div>

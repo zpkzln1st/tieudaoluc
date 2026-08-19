@@ -19,7 +19,7 @@ import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 import { giaSanTrangBi, giaSanVatPham, dsXepChong } from './data/giasan.js';
 import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG, tkExpLenCap } from './data/thinhkinh.js';
 import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop,
-  tkThuongThuc, tkNhan, tkDoanDangDi, tkDoanCuaTa, tkCuopDuoc } from './engine/thinhkinh.js';
+  tkThuongThuc, tkNhan, tkDoanDangDi, tkDoanCuaTa, tkCuopDuoc, tkCuopUocLuong } from './engine/thinhkinh.js';
 import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
@@ -7656,6 +7656,20 @@ const gameStore = {
   get tkDoanTa() { void this._tick; return tkDoanCuaTa(this.state, now()); },
   tkChonDoan: '',
   get tkDoanChon() { return this.tkDoan.find((d) => d.key === this.tkChonDoan) || null; },
+  /**
+   * Cướp được KHOẢNG bao nhiêu — cho tooltip xem trước.
+   * ⚠⚠ Bản THUẦN, không bốc số. Gọi `tkCuopDuoc` để hiện là mỗi nhịp vẽ đốt một lần bốc ở miền
+   *    `tkCuop`, làm hỏng chính bộ đếm mà trần chống gian lận đọc.
+   */
+  tkCuopUoc(d) { return tkCuopUocLuong(d, this.combatLevel || 1); },
+  /** Đoàn còn đi bao lâu nữa, dạng `12 phút 30 giây`. */
+  tkDoanConTxt(d) {
+    const g = Math.max(0, Math.floor(((d && d.conLai) || 0) / 1000));
+    return Math.floor(g / 60) + ' phút ' + String(g % 60).padStart(2, '0') + ' giây';
+  },
+  /** Tooltip mở về phía nào để 220px luôn nằm gọn trong khung bản đồ. */
+  tkTipBen(d) { return (d && d.x > 50) ? 'gtip-l' : 'gtip-r'; },
+  tkTipDoc(d) { return (d && d.y > 40) ? 'gtip-ab' : 'gtip-at'; },
   tkCuop(key) {
     const d = this.tkDoan.find((x) => x.key === key); if (!d) return;
     const t = this.tkT;

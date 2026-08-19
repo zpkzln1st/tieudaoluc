@@ -289,9 +289,22 @@ export function tkDoanCuaTa(state, now) {
 export function tkCuopDuoc(state, doan, capMinh) {
   if (!doan) return 0;
   if ((doan.daBiCuop || 0) >= TK_CUOP_TOI_DA) return 0;
-  const g = tkThuong(doan.su, doan.cap);
-  const tyLe = Math.max(TK_CUOP_KEP[0], Math.min(TK_CUOP_KEP[1], (doan.capNv || 1) / Math.max(1, capMinh || 1)));
   // Một nhúm ngẫu nhiên cho hai lần cướp cùng đoàn không ra y hệt nhau.
   const nhun = 0.85 + rng(state, 'tkCuop') * 0.3;
-  return Math.max(1, Math.round(g.bac * TK_CUOP_AN * tyLe * nhun));
+  return Math.max(1, Math.round(tkCuopUocLuong(doan, capMinh) * nhun));
+}
+
+/**
+ * Cướp được KHOẢNG bao nhiêu — bản THUẦN, không bốc số. Dùng để HIỆN cho người chơi xem trước.
+ * ⚠⚠ ĐỪNG gọi `tkCuopDuoc` chỉ để hiện một con số. Nó bốc ở miền `tkCuop`, mà mỗi lần bốc là bộ
+ *    đếm `rngDem.tkCuop` nhích lên một. Vẽ tooltip mỗi nhịp là đốt hàng nghìn lần bốc mà người
+ *    chơi không cướp lần nào — bộ đếm ấy chính là thứ trần chống gian lận đọc để biết đã bốc bao
+ *    nhiêu, làm hỏng nó là hỏng một hàng rào.
+ */
+export function tkCuopUocLuong(doan, capMinh) {
+  if (!doan) return 0;
+  if ((doan.daBiCuop || 0) >= TK_CUOP_TOI_DA) return 0;
+  const g = tkThuong(doan.su, doan.cap);
+  const tyLe = Math.max(TK_CUOP_KEP[0], Math.min(TK_CUOP_KEP[1], (doan.capNv || 1) / Math.max(1, capMinh || 1)));
+  return Math.max(1, Math.round(g.bac * TK_CUOP_AN * tyLe));
 }
