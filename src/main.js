@@ -7578,21 +7578,51 @@ const gameStore = {
   get tkLamMoiGia() { void this._tick; return (this.tkT.lamMoiDaDung || 0) === 0 ? 0 : TK_LAM_MOI_GIA; },
   get tkLamMoiDuoc() { const g = this.tkLamMoiGia; return g === 0 || (this.state.currencies.nguyenBao || 0) >= g; },
 
+  // ---- Hiệu ứng QUAY: đèn chạy qua năm ô rồi dừng lại đúng ô bốc được ----
+  // ⚠ Đèn chạy CHỈ đổi viền và màu chữ, KHÔNG nhấc ô lên và KHÔNG đổi bề rộng — hàng phải đứng
+  //   yên trong lúc quay, không thì năm ô nhảy nhót theo đèn.
+  // ⚠ Ô thông tin bên dưới đọc `tkSuHien`: lúc quay thì nó theo đèn, quay xong thì theo ô bốc được.
+  tkQuay: false, tkQuayO: -1,
+  get tkSuHien() { return this.tkQuay ? (TK_SU[this.tkQuayO] || null) : this.tkSuChoObj; },
+  _tkQuayToi(ma, xong) {
+    if (this.tkQuay) return;
+    const n = TK_SU.length;
+    const dich = Math.max(0, TK_SU.findIndex((s) => s.id === ma));
+    const tong = n * 3 + dich + 1;         // ba vòng rồi dừng đúng ô đích
+    this.tkQuay = true;
+    let i = 0;
+    const buoc = () => {
+      this.tkQuayO = i % n; this._tick++;
+      i++;
+      if (i > tong) { this.tkQuay = false; this.tkQuayO = -1; xong(); this._tick++; return; }
+      // Chậm dần về cuối — đây là thứ làm cái dừng có sức nặng.
+      setTimeout(buoc, 40 + Math.round(150 * Math.pow(i / tong, 3)));
+    };
+    buoc();
+  },
+
   tkBoc() {
-    if (this.tkDangDi) return;
+    if (this.tkDangDi || this.tkQuay) return;
     const t = this.tkT;
     if ((t.luot.thinh || 0) <= 0) { this.showToast('Hết lượt thỉnh kinh hôm nay.'); return; }
-    t.suCho = tkBoc(this.state); t.lamMoiDaDung = 0; this.tkHoVeChon = 0;
-    this._tick++; Storage.save(this.state);
+    const ma = tkBoc(this.state);
+    this.tkHoVeChon = 0;
+    this._tkQuayToi(ma, () => {
+      t.suCho = ma; t.lamMoiDaDung = 0;
+      Storage.save(this.state);
+    });
   },
   tkLamMoi() {
-    if (this.tkDangDi || !this.tkSuCho) return;
+    if (this.tkDangDi || !this.tkSuCho || this.tkQuay) return;
     const gia = this.tkLamMoiGia;
     if (!this.tkLamMoiDuoc) { this.showToast('Không đủ Nguyên Bảo.'); return; }
     if (gia > 0) this.state.currencies.nguyenBao -= gia;
     const t = this.tkT;
-    t.suCho = tkBoc(this.state); t.lamMoiDaDung = (t.lamMoiDaDung || 0) + 1;
-    this._tick++; Storage.save(this.state);
+    const ma = tkBoc(this.state);
+    this._tkQuayToi(ma, () => {
+      t.suCho = ma; t.lamMoiDaDung = (t.lamMoiDaDung || 0) + 1;
+      Storage.save(this.state);
+    });
   },
   tkKhoiHanh() {
     const r = tkKhoiHanh(this.state, now(), Math.min(this.tkHoVeChon, this.tkHoVeToiDa));

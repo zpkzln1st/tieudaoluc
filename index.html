@@ -8692,7 +8692,11 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <template x-for="(c,i) in t.recruitPool" :key="c.uid">
-                    <div class="panel rounded-xl overflow-hidden border" :style="'border-color:'+g.tmApt(c).color+'55'">
+                    <!-- ⚠⚠ `flex flex-col` + nút `mt-auto` bên dưới: NÚT LUÔN NẰM ĐÁY THẺ. Trước đây
+                         thẻ nào có ba dòng đặc điểm thì tụt xuống một dòng, ba nút Thu Nhận đứng ba
+                         độ cao khác nhau. Đẩy nút xuống đáy thì lưới tự kéo ba thẻ bằng nhau, không
+                         phải chốt chiều cao bằng số — chốt số là cắt mất đặc điểm thứ tư. -->
+                    <div class="panel rounded-xl overflow-hidden border flex flex-col" :style="'border-color:'+g.tmApt(c).color+'55'">
                       <!-- CHÂN DUNG -->
                       <div class="relative overflow-hidden bg-ink2" style="aspect-ratio:3/4">
                         <div class="absolute inset-0 flex items-center justify-center fserif text-[3.6rem] select-none" :style="'color:'+g.tmHe(c).color+'2e'" x-text="c.han"></div>
@@ -8704,12 +8708,12 @@
                         </div>
                       </div>
                       <!-- THÔNG TIN + NÚT -->
-                      <div class="p-2.5">
+                      <div class="p-2.5 flex flex-col flex-1">
                         <div class="flex flex-wrap items-center gap-1 min-h-[20px] mb-2">
                           <span class="text-[9px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-bold" :style="'color:'+g.tmHe(c).color+';border-color:'+g.tmHe(c).color+'66;background:'+g.tmHe(c).color+'14'"><span class="w-1.5 h-1.5 rounded-full" :style="'background:'+g.tmHe(c).color"></span><span x-text="g.tmHe(c).name"></span></span>
                           <template x-for="tr in c.traits" :key="tr"><span class="text-[9px] px-1.5 py-0.5 rounded bg-ink2 text-slate-300 border border-slate-700/60" x-text="tr"></span></template>
                         </div>
-                        <button @click="g.tmRecruit(i)" class="w-full py-1.5 rounded-lg text-[12px] font-bold bg-jade/80 hover:bg-jade text-ink transition">Thu Nhận</button>
+                        <button @click="g.tmRecruit(i)" class="mt-auto w-full py-1.5 rounded-lg text-[12px] font-bold bg-jade/80 hover:bg-jade text-ink transition">Thu Nhận</button>
                       </div>
                     </div>
                   </template>
@@ -16410,31 +16414,36 @@
                          rộng là ô cao gần 200px, năm ô đẩy nút Khởi Hành khỏi khung nhìn. -->
                     <!-- ⚠⚠ CHIỀU CAO NẰM TRONG `:style`, không để ở `style` tĩnh. Alpine ghi đè cả
                          chuỗi `style`, nên đặt tách ra là ô sập còn 0 và art biến mất — lỗi im lặng. -->
+                    <!-- `sang` = ô đang được đèn quay chiếu tới, hoặc ô đã bốc trúng khi quay xong. -->
                     <div class="relative w-full rounded-lg flex items-center justify-center"
-                         :style="'height:104px;' + (g.tkSuCho === s.id
+                         x-data="{ get sang(){ return g.tkQuay ? (g.TK_SU[g.tkQuayO] || {}).id === s.id : g.tkSuCho === s.id } }"
+                         :style="'height:104px;' + (sang
                            ? ('box-shadow:0 0 0 2px ' + s.mau + ', 0 0 14px ' + s.mau + '66;background:radial-gradient(circle at 50% 55%, ' + s.mau + '2e 0%, rgba(255,255,255,.02) 70%)')
                            : 'background:rgba(255,255,255,.02);box-shadow:0 0 0 1px rgba(148,163,184,.14)')">
                       <span class="absolute inset-0 rounded-lg overflow-hidden flex items-center justify-center text-2xl"
-                            :style="g.tkSuCho === s.id ? '' : 'opacity:.34;filter:grayscale(1)'"
+                            :style="sang ? '' : 'opacity:.34;filter:grayscale(1)'"
                             x-html="g.ico(s.id, '☁️')"></span>
                     </div>
                     <div class="text-[10px] leading-tight fserif"
-                         :style="g.tkSuCho === s.id ? ('color:' + s.mau + ';font-weight:700') : 'color:#64748b'" x-text="s.ten"></div>
+                         :style="(g.tkQuay ? (g.TK_SU[g.tkQuayO]||{}).id === s.id : g.tkSuCho === s.id) ? ('color:' + s.mau + ';font-weight:700') : 'color:#64748b'" x-text="s.ten"></div>
                     <div class="text-[9.5px]" :style="g.tkSuCho === s.id ? ('color:' + s.mau + 'cc') : 'color:#475569'"
                          x-text="'Cấp ' + g.tkCapCua(s.id).lv"></div>
                     <!-- Dải gạch dưới: chỗ này LUÔN chiếm sẵn 2px nên hàng không nhảy khi đổi ô. -->
                     <span class="rounded-full"
-                          :style="'width:60%;height:2px;background:' + (g.tkSuCho === s.id ? s.mau : 'transparent')"></span>
+                          :style="'width:60%;height:2px;background:' + (g.tkSuCho === s.id && !g.tkQuay ? s.mau : 'transparent')"></span>
                   </div>
                 </template>
               </div>
-              <template x-if="g.tkSuChoObj">
+              <template x-if="g.tkSuHien">
                 <div class="pt-3 border-t border-slate-800 flex items-center gap-3 flex-wrap">
-                  <div class="min-w-0">
-                    <div class="text-[13px] fserif" :style="'color:' + g.tkSuChoObj.mau" x-text="g.tkSuChoObj.ten"></div>
-                    <div class="text-[11.5px] text-slate-500" x-text="g.tkSuChoObj.phut + ' phút · ' + g.fmt(g.tkSuChoObj.bac_) + ' Bạc · ' + g.tkSuChoObj.honThach + ' Hồn Thạch'"></div>
+                  <!-- ⚠⚠ BỀ RỘNG CHỐT CỨNG. Tên và ba con số dài ngắn khác nhau theo từng bậc, để
+                       ô này co giãn là mấy cái nút bên phải nhảy chỗ mỗi lần đổi Hộ Kinh Sứ — và
+                       trong lúc đèn quay thì chúng nhảy liên tục. -->
+                  <div style="width:214px" class="shrink-0">
+                    <div class="text-[13px] fserif truncate" :style="'color:' + g.tkSuHien.mau" x-text="g.tkSuHien.ten"></div>
+                    <div class="text-[11.5px] text-slate-500 truncate" x-text="g.tkSuHien.phut + ' phút · ' + g.fmt(g.tkSuHien.bac_) + ' Bạc · ' + g.tkSuHien.honThach + ' Hồn Thạch'"></div>
                   </div>
-                  <button @click="g.tkLamMoi()" :disabled="!g.tkLamMoiDuoc"
+                  <button @click="g.tkLamMoi()" :disabled="!g.tkLamMoiDuoc || g.tkQuay"
                     class="px-3 py-1.5 rounded-lg bg-ink3 border border-slate-700 hover:border-amber-400/60 text-slate-300 text-[12.5px] transition disabled:opacity-40"
                     x-text="g.tkLamMoiGia === 0 ? 'Làm Mới · Miễn Phí' : ('Làm Mới · ' + g.tkLamMoiGia + ' Nguyên Bảo')"></button>
                   <!-- Cử hộ vệ. Chưa có Tông Môn thì chỉ đường vào, không để ô trống trơn. -->
@@ -16454,18 +16463,20 @@
                     <button @click="g.navTo('tongmon')" class="px-3 py-1.5 rounded-lg bg-ink3 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-slate-200 text-[12.5px] transition">Chiêu Mộ Đệ Tử</button>
                   </template>
                   <!-- NÚT CHÍNH: nền đặc, chữ nền tối — nổi hơn mọi nút phụ cùng hàng. -->
-                  <button @click="g.tkKhoiHanh()"
-                    class="px-4 py-1.5 rounded-lg text-[12.5px] font-bold transition"
+                  <button @click="g.tkKhoiHanh()" :disabled="g.tkQuay"
+                    class="px-4 py-1.5 rounded-lg text-[12.5px] font-bold transition disabled:opacity-40"
                     style="background:linear-gradient(180deg,#3fbf8f,#2fa377);color:#07130f;box-shadow:0 1px 0 rgba(255,255,255,.18) inset">Khởi Hành</button>
                 </div>
               </template>
-              <!-- Chưa bốc: đài mây còn trống. Art `daiMayTrong` vẽ đúng cảnh đó. -->
-              <template x-if="!g.tkSuChoObj">
+              <!-- Chưa bốc: đài mây còn trống. Art `daiMayTrong` vẽ đúng cảnh đó.
+                   ⚠ Dùng `tkSuHien` chứ không `tkSuChoObj`: lúc đèn đang quay lần đầu thì `suCho`
+                     vẫn rỗng, để khối này hiện là hàng dưới nhảy qua nhảy lại giữa hai bố cục. -->
+              <template x-if="!g.tkSuHien">
                 <div class="pt-3 border-t border-slate-800 flex items-center gap-3 flex-wrap">
                   <span class="w-14 h-14 rounded-lg bg-black/40 border border-slate-700 inline-flex items-center justify-center shrink-0"
                         x-html="g.ico(g.TK_ART_TRONG, '☁️')"></span>
                   <div class="min-w-0 flex-1 text-[12.5px] text-slate-500">Đài mây còn trống.</div>
-                  <button @click="g.tkBoc()" :disabled="g.tkLuot.thinh <= 0"
+                  <button @click="g.tkBoc()" :disabled="g.tkLuot.thinh <= 0 || g.tkQuay"
                     class="px-3 py-1.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[12.5px] transition disabled:opacity-40">Thỉnh Kinh</button>
                 </div>
               </template>
