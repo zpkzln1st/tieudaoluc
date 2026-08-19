@@ -682,12 +682,22 @@ export async function cloudSanTreoVp(itemId, soLuong, gia) {
 // ⚠ Ba ham dat / go / ban deu ghi lai `saves.data` o phia may chu, y het ba ham Treo Ban —
 //   goi xong PHAI tai lai save tu cloud, khong thi ban luu tren may nay thanh ban cu.
 
-/** Don thu mua DANG TREO cua ca lang. Tra { ok, ds }. */
+/** Han mot don thu mua, tinh bang mili giay. Doi so nay phai doi ca `san_tm_han()` ben SQL. */
+export const SAN_TM_HAN_MS = 48 * 60 * 60 * 1000;
+
+/**
+ * Don thu mua DANG TREO cua ca lang, da bo don qua han. Tra { ok, ds }.
+ * ⚠ Moc gio o day lay tu DONG HO MAY NGUOI CHOI, nen no chi la phep loc cho MAT do roi. Hang rao
+ *   that la chot `don-het-han` trong `san_thu_mua_ban`: dong ho lech thi don qua han van hien ra,
+ *   bam Ban Ngay se bi may chu tu choi.
+ */
 export async function cloudSanTmDs(gioiHan) {
   const sb = await getClient();
+  const moc = new Date(Date.now() - SAN_TM_HAN_MS).toISOString();
   const { data, error } = await sb.from('san_thu_mua')
     .select('id,nguoi_dat,ten_dat,item_id,gia,so_dat,so_con,tao_luc')
     .eq('trang_thai', 'treo')
+    .gte('tao_luc', moc)
     .order('tao_luc', { ascending: false })
     .limit(Math.min(200, gioiHan || 80));
   if (error) return { ok: false, reason: error.message };
@@ -732,4 +742,37 @@ export async function cloudSanTmBan(id, soLuong) {
   const { data, error } = await sb.rpc('san_thu_mua_ban', { p_id: id, p_so: Math.round(soLuong) });
   if (error) return { ok: false, reason: error.message };
   return data || { ok: false, reason: 'khong-tra-loi' };
+}
+
+/**
+ * Thu hoi Bac ky quy cua nhung don CUA CHINH MINH da qua 48 gio. Tra { ok, don, hoan }.
+ * ⚠ Ham may chu khong nhan tham so nao — khong co duong goi ho nguoi khac. Bac ve tui duoc la vi
+ *   dang co mat de ghi ban luu, nen client goi ham nay ngay truoc khi doc hai danh sach Thu Mua.
+ */
+export async function cloudSanTmThuHoi() {
+  const sb = await getClient();
+  const { data, error } = await sb.rpc('san_thu_mua_thu_hoi');
+  if (error) return { ok: false, reason: error.message };
+  return data || { ok: false, reason: 'khong-tra-loi' };
+}
+
+/**
+ * SO KHOP cua chu don: tung lo hang da giao vao don cua minh. Tra { ok, ds }.
+ * ⚠ Nguon la bang `san_rao` chu khong phai `san_thu_mua`: bang don chi giu SO GOP (`so_dat` tru
+ *   `so_con`), khong giu tung lan khop. Moi lan khop `san_thu_mua_ban` ghi mot dong `san_rao` co
+ *   `mon_uid` bat dau bang `tm:` — loc dung tien to do la ra so khop, khong lan sang don mua o Cho.
+ * ⚠ Doc duoc la nho chinh sach `san_ai_cung_xem` da cho `nguoi_mua = auth.uid()`.
+ */
+export async function cloudSanTmSoKhop(gioiHan) {
+  const sb = await getClient();
+  const uid = await _uid();
+  if (!uid) return { ok: false, reason: 'no-auth' };
+  const { data, error } = await sb.from('san_rao')
+    .select('id,ten_ban,item_id,so_luong,gia,xong_luc')
+    .eq('nguoi_mua', uid)
+    .like('mon_uid', 'tm:%')
+    .order('xong_luc', { ascending: false })
+    .limit(Math.min(100, gioiHan || 30));
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, ds: data || [] };
 }

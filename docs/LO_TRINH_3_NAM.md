@@ -102,8 +102,9 @@ Không mở hệ mới. Lấp cho đủ những hệ đã dựng khung.
 - ⚠ Tông Môn = NUÔI · Bang Phái = ĐÁNH. Đừng lẫn hai vai.
 
 **4.4 Kinh tế** — cờ `sanThuMua`
-- ~~Sàn thêm Thu Mua (buy-order)~~ **ĐÃ DỰNG, ĐANG NGỦ.** Bảng `san_thu_mua` + ba hàm
-  `san_thu_mua_dat` · `_huy` · `_ban` ở `docs/SQL_SAN_THU_MUA.sql`. Bật bằng Lệnh Bài, tab Tính Năng.
+- ~~Sàn thêm Thu Mua (buy-order)~~ **ĐÃ DỰNG, ĐANG NGỦ.** Bảng `san_thu_mua` + bốn hàm
+  `san_thu_mua_dat` · `_huy` · `_ban` · `_thu_hoi` ở `docs/SQL_SAN_THU_MUA.sql`. Bật bằng Lệnh Bài,
+  tab Tính Năng.
   - Bạc ký quỹ trừ ngay lúc đặt đơn; gỡ đơn hoàn phần chưa khớp. Bất biến `ky_quy = gia × so_con`.
   - Khớp MỘT PHẦN, giá là giá **mỗi cái** (Treo Bán là giá cả lô). Trần 10 đơn, ký quỹ gộp 5.000.000 Bạc.
   - Đơn thu mua cũng phải theo giá sàn `san_gia_vp` — thiếu chốt này là cửa sau đi vòng qua bảng giá.
@@ -112,7 +113,13 @@ Không mở hệ mới. Lấp cho đủ những hệ đã dựng khung.
   - ⚠⚠ Mỗi lần khớp **ghi một dòng đã xong vào `san_rao`**. Nhờ đó `dan_mua_san` của tầng 2E đếm
     đúng và **không phải sửa `SQL_CHONG_GIAN_LAN.sql`**. Bỏ dòng ấy là người gom đan qua đơn thu
     mua bị chặn thật ở ô thứ 60. Bài kiểm 46 giữ ràng buộc này.
-  - Chưa làm: hạn 48 giờ cho đơn (hết hạn phải hoàn Bạc, mà chỉ ghi được lúc chủ đơn online).
+  - Hạn đơn **48 giờ**, tách làm hai nửa. Đơn quá hạn thôi khớp đúng giờ — chốt nằm trong
+    `san_thu_mua_ban`. Bạc ký quỹ về túi ở lần chủ đơn mở Sàn kế tiếp — `san_thu_mua_thu_hoi`.
+    Ghi bản lưu của ai thì phải đợi người ấy online, nên nửa sau không thể đúng giờ được.
+  - Số 48 chỉ gõ cứng **một chỗ**: hàm `san_tm_han()`. Bên JS là `SAN_TM_HAN_MS`, bài kiểm 46 so
+    hai con số với nhau.
+  - **Sổ khớp cho chủ đơn**: bảng "Đã Nhận" hiện từng lô hàng, nguồn là `san_rao` lọc tiền tố `tm:`.
+  - Chưa làm: chủ đơn không được báo lúc có hàng về (chưa nối vào hệ thông báo).
 - Thêm chỗ tiêu Bạc: Động Phủ bậc cao, phí bang, đúc lại dòng roll.
 
 **4.4b Thỉnh Kinh** — cờ `thinhKinh`

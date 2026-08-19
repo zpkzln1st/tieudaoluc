@@ -87,7 +87,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -7299,8 +7299,16 @@ const gameStore = {
       // ⚠ Cờ TẮT thì không gọi hai truy vấn này — bảng có thể chưa tồn tại trên máy chủ, và tab
       //   cũng không mọc ra nên chẳng ai đọc tới. Cờ tắt là VÔ HÌNH, không phải hỏng.
       if (this.moChua('sanThuMua')) {
-        const [c, d] = await Promise.all([cloudSanTmDs(80), cloudSanTmCuaToi(50)]);
+        // ⚠⚠ THU HỒI TRƯỚC, ĐỌC DANH SÁCH SAU. Đảo thứ tự là bảng đơn còn bày đơn vừa hết hạn, và
+        //   ô Bạc trên đầu màn vẫn là số cũ — hai con số đá nhau ngay trước mắt người chơi.
+        const th = await cloudSanTmThuHoi();
+        if (th && th.ok && th.don > 0) {
+          this.showToast('Đã hoàn ' + this.fmt(th.hoan) + ' Bạc từ đơn thu mua hết hạn.');
+          await this._sanNapLai();
+        }
+        const [c, d, e] = await Promise.all([cloudSanTmDs(80), cloudSanTmCuaToi(50), cloudSanTmSoKhop(30)]);
         this.sanTmDs = (c.ok ? c.ds : []); this.sanTmCuaToi = (d.ok ? d.ds : []);
+        this.sanTmSoKhop = (e.ok ? e.ds : []);
       }
     } catch (e) { this.sanLoi = 'Không kết nối được máy chủ.'; }
     finally { this.sanTai = false; }
@@ -7347,7 +7355,8 @@ const gameStore = {
       'khong-phai-tin-cua-minh': 'Tin này không phải của bạn.', 'tin-da-xong': 'Tin này đã xong.',
       'khong-tu-mua-cua-minh': 'Không mua được tin của chính mình.',
       'khong-du-bac': 'Không đủ Bạc.', 'duoi-gia-san': 'Giá thấp hơn giá sàn.', 'so-luong-sai': 'Số lượng không hợp lệ.', 'khong-du-so-luong': 'Không đủ số lượng trong túi.', 'mon-nay-khong-ban-duoc': 'Món này không treo bán được.', 'thieu-ban-luu': 'Một bên chưa có bản lưu trên máy chủ.',
-      'ky-quy-qua-tran': 'Bạc ký quỹ vượt mức 5.000.000.', 'qua-nhieu-don': 'Đang treo đủ 10 đơn rồi.' })[v] || v;
+      'ky-quy-qua-tran': 'Bạc ký quỹ vượt mức 5.000.000.', 'qua-nhieu-don': 'Đang treo đủ 10 đơn rồi.',
+      'don-het-han': 'Đơn này đã quá hạn 48 giờ.' })[v] || v;
   },
   async sanTreo(uid, gia) {
     const g = Math.round(Number(gia) || 0);
@@ -7411,7 +7420,7 @@ const gameStore = {
   // ⚠⚠ Treo Bán treo MÓN rồi chờ người mua. Thu Mua treo BẠC rồi chờ người bán. Bạc ký quỹ trừ
   //    NGAY lúc đặt đơn — không ký quỹ thì bên giao hàng xong mới biết bên kia hết Bạc.
   // ⚠ Giá gõ vào là giá MỖI CÁI, khác Treo Bán (giá cả lô). Khớp một phần thì phải có đơn giá.
-  sanTmDs: [], sanTmCuaToi: [], sanTmNhom: 'tho', sanTmItem: '', sanTmSo: 1, sanTmGia: '',
+  sanTmDs: [], sanTmCuaToi: [], sanTmSoKhop: [], sanTmNhom: 'tho', sanTmItem: '', sanTmSo: 1, sanTmGia: '',
   /** Nhóm món của lưới chọn — dùng lại đúng nhóm của Hành Lý, bỏ hai mục không bán được. */
   get sanTmNhomTabs() { return this.hlTabs.filter((t) => t.id !== 'all' && t.id !== 'trangbi'); },
   /**
@@ -7444,10 +7453,38 @@ const gameStore = {
   get sanTmDonCuaLang() {
     // ⚠ Lọc ở đây chỉ để mắt đỡ rối. Hàng rào thật là chốt `khong-tu-mua-cua-minh` trên máy chủ.
     const me = (this.authUser && this.authUser.id) || '';
-    return (this.sanTmDs || []).filter((d) => d && d.nguoi_dat !== me)
+    return (this.sanTmDs || []).filter((d) => d && d.nguoi_dat !== me && this.sanTmConMs(d) > 0)
       .map((d) => ({ ...d, ten: (this.ITEMS[d.item_id] || {}).name || d.item_id,
         co: this.sanTmCoBaoNhieu(d.item_id), obj: this.ITEMS[d.item_id] || {} }))
       .sort((a, b) => (b.co > 0 ? 1 : 0) - (a.co > 0 ? 1 : 0) || b.gia - a.gia);
+  },
+  /**
+   * HẠN ĐƠN 48 GIỜ — số mili giây còn lại. Số âm là đã quá hạn.
+   * ⚠ Mốc lấy từ đồng hồ máy người chơi nên chỉ dùng để HIỆN. Hàng rào thật là chốt `don-het-han`
+   *   trong `san_thu_mua_ban`, và vòng `san_thu_mua_thu_hoi` trả Bạc ký quỹ.
+   */
+  sanTmConMs(d) {
+    const t = d && d.tao_luc ? new Date(d.tao_luc).getTime() : 0;
+    return t ? (t + SAN_TM_HAN_MS) - Date.now() : 0;
+  },
+  /** Chữ đếm ngược trên thẻ đơn. Dưới một giờ thì đổi sang phút. */
+  sanTmConLai(d) {
+    const ms = this.sanTmConMs(d);
+    if (ms <= 0) return 'Hết hạn';
+    const gio = Math.floor(ms / 3600000);
+    return gio >= 1 ? ('Còn ' + gio + ' giờ') : ('Còn ' + Math.max(1, Math.round(ms / 60000)) + ' phút');
+  },
+  /**
+   * SỔ KHỚP của chủ đơn: từng lô hàng đã giao vào đơn của mình, mới nhất trên đầu.
+   * ⚠ Bảng đơn chỉ giữ SỐ GỘP (`so_dat` trừ `so_con`), không giữ từng lần khớp. Nguồn của sổ này
+   *   là `san_rao`, lọc theo tiền tố `tm:` nên không lẫn sang món mình mua ở Chợ.
+   */
+  get sanTmSoKhopDs() {
+    return (this.sanTmSoKhop || []).map((r) => ({
+      id: r.id, ten: (this.ITEMS[r.item_id] || {}).name || r.item_id,
+      obj: this.ITEMS[r.item_id] || { id: r.item_id }, so: r.so_luong || 1, gia: r.gia || 0,
+      ban: r.ten_ban || '—', luc: this.saveTimeText(r.xong_luc ? new Date(r.xong_luc).getTime() : 0),
+    }));
   },
   async sanTmDat() {
     const m = this.sanTmMon; if (!m || !this.sanTmDatDuoc) return;

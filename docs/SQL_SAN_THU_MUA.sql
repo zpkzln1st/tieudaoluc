@@ -4,7 +4,7 @@
 -- CACH DUNG: Supabase > SQL Editor > dan tron tep nay > Run. Chay lai duoc nhieu lan.
 -- ⚠ PHAI chay SAU `docs/SQL_SAN_GIAO_DICH.sql` va `docs/SQL_SAN_GIA_VP.sql`:
 --   tep nay dung lai `san_thue`, `san_ghi_save`, bang `san_rao`, `san_so`, `san_gia_vp`.
--- ⚠ KHONG can chay lai `docs/SQL_CHONG_GIAN_LAN.sql` — tep nay khong dong vao no. Xem muc 5.
+-- ⚠ KHONG can chay lai `docs/SQL_CHONG_GIAN_LAN.sql` — tep nay khong dong vao no. Xem muc 6.
 --
 -- KHAC voi Treo Ban: ben do treo MON roi cho nguoi mua; ben nay treo BAC roi cho nguoi ban.
 --
@@ -16,6 +16,12 @@
 --      bang do. Bo dong ghi ay thi nguoi gom dan qua don thu mua bi ghi so tu o thu 21 va bi
 --      CHAN THAT o o thu 60 — dung cai bay da vá hom qua, chi doi cua.
 --   3. TU CHOI BANG `return`, KHONG `raise exception`. Exception cuon nguoc ca so.
+--
+-- ⚠ HAN DON 48 GIO (docs/NOI_DUNG_GAME.md H4 ghi Free 48h / Member 14 ngay; game nay khong co Hoi
+--   Vien nen dung mot muc). Het han thi don THOI KHOP NGAY — chot nam trong `san_thu_mua_ban`.
+--   Con Bac ky quy phai nam cho toi luc chu don vao game, vi hoan Bac la ghi ban luu CUA HO ma
+--   ban luu chi ghi duoc luc ho online. Do la viec cua ham `san_thu_mua_thu_hoi` o muc 5: client
+--   goi no moi lan mo San.
 -- ============================================================
 
 -- ---------- 1. BANG DON THU MUA ----------
@@ -30,7 +36,8 @@ create table if not exists public.san_thu_mua (
   so_dat     int         not null check (so_dat > 0 and so_dat <= 9999),
   so_con     int         not null check (so_con >= 0),
   ky_quy     bigint      not null check (ky_quy >= 0),
-  trang_thai text        not null default 'treo' check (trang_thai in ('treo','xong','huy')),
+  -- 'het' = qua han 48 gio, Bac ky quy da tra ve tui chu don. Khac 'huy' (chu don tu go xuong).
+  trang_thai text        not null default 'treo' check (trang_thai in ('treo','xong','huy','het')),
   tao_luc    timestamptz not null default now(),
   xong_luc   timestamptz,
   check (so_con <= so_dat),
@@ -40,8 +47,16 @@ create table if not exists public.san_thu_mua (
   check (ky_quy = gia::bigint * so_con)
 );
 
+-- ⚠ `create table if not exists` KHONG sua duoc bang da co. Ai da chay ban truoc cua tep nay thi
+--   rang buoc cu van chi cho 3 gia tri, va lenh `update ... 'het'` cua muc 5 se no. Nan lai o day.
+alter table public.san_thu_mua drop constraint if exists san_thu_mua_trang_thai_check;
+alter table public.san_thu_mua add  constraint san_thu_mua_trang_thai_check
+  check (trang_thai in ('treo','xong','huy','het'));
+
 create index if not exists san_tm_dang_treo on public.san_thu_mua (item_id, gia desc) where trang_thai = 'treo';
 create index if not exists san_tm_cua_toi   on public.san_thu_mua (nguoi_dat, trang_thai);
+-- Chi muc rieng cho phep quet don qua han cua MOT nguoi (muc 5 chay moi lan mo San).
+create index if not exists san_tm_het_han    on public.san_thu_mua (nguoi_dat, tao_luc) where trang_thai = 'treo';
 
 alter table public.san_thu_mua enable row level security;
 -- Don dang treo thi ai cung xem duoc (nguoi ban can thay de giao hang). Don da xong/huy chi chu don xem.
@@ -50,6 +65,14 @@ create policy "san_tm_ai_cung_xem" on public.san_thu_mua
   for select using (trang_thai = 'treo' or nguoi_dat = auth.uid());
 -- ⚠⚠ KHONG cap insert / update / delete cho BAT KY AI. Ba ham duoi la duong duy nhat.
 --    Day la hang rao that; giao dien chi la cai vo.
+
+-- ---------- HAN DON: MOT NGUON DUY NHAT ----------
+-- ⚠⚠ Hai cho doc han nay: chot thoi-khop o muc 6 va vong thu hoi o muc 5. Go cung con so 48 o hai
+--   noi la co ngay chung lech nhau — luc do don thoi khop ma Bac khong ai tra ve.
+create or replace function public.san_tm_han()
+returns interval
+language sql immutable
+as $$ select interval '48 hours' $$;
 
 -- ---------- 2. TIEN ICH: DOC BAN LUU CO KHOA DONG ----------
 -- ⚠⚠ `san_doc_save` san co KHONG khoa dong. Voi Treo Ban thi khong sao vi mot lenh chi cham mot
@@ -162,7 +185,52 @@ begin
   return jsonb_build_object('ok', true, 'hoan', d.ky_quy);
 end $$;
 
--- ---------- 5. BAN VAO DON ----------
+-- ---------- 5. THU HOI DON QUA HAN, HOAN BAC KY QUY ----------
+-- ⚠⚠ CHI THU HOI DON CUA CHINH NGUOI GOI. Khong nhan tham so nao ca — khong co duong nao goi ho
+--    nguoi khac, va cung khong can: hoan Bac la ghi ban luu, ma ban luu chi ghi duoc luc chu no
+--    online. Client goi ham nay moi lan mo San, nen chu don thay Bac ve ngay lan vao dau tien.
+-- ⚠ Don qua han THOI KHOP tu dung moc gio (muc 6 chan), khong doi ham nay chay. Ham nay chi lo
+--   phan Bac. Nho vay don cua nguoi bo game khong con hut hang cua ca lang nua.
+create or replace function public.san_thu_mua_thu_hoi()
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare me uuid := auth.uid(); moc timestamptz; s jsonb; tong bigint; n int; bac bigint;
+begin
+  if me is null then return jsonb_build_object('ok', false, 'vi', 'chua-dang-nhap'); end if;
+  moc := now() - public.san_tm_han();
+
+  -- ⚠⚠ KHOA DON TRUOC, ban luu SAU — dung thu tu voi muc 4 va muc 6, khong thi ket cung.
+  -- ⚠ `for update` KHONG dung chung duoc voi ham gop, nen khoa o lenh nay roi cong o lenh sau.
+  perform id from public.san_thu_mua
+   where nguoi_dat = me and trang_thai = 'treo' and tao_luc < moc
+   for update;
+
+  select count(*), coalesce(sum(ky_quy), 0) into n, tong
+    from public.san_thu_mua
+   where nguoi_dat = me and trang_thai = 'treo' and tao_luc < moc;
+  -- Khong co don nao qua han thi ra ngay, KHONG dong vao ban luu. Ham nay chay moi lan mo San
+  -- nen duong khong-lam-gi phai that re: mot lenh dem, het.
+  if n = 0 then return jsonb_build_object('ok', true, 'don', 0, 'hoan', 0); end if;
+
+  s := public.san_doc_save_khoa(me);
+  if s is null then return jsonb_build_object('ok', false, 'vi', 'chua-co-ban-luu'); end if;
+
+  update public.san_thu_mua
+     set trang_thai = 'het', so_con = 0, ky_quy = 0, xong_luc = now()
+   where nguoi_dat = me and trang_thai = 'treo' and tao_luc < moc;
+
+  bac := coalesce((s->'currencies'->>'bac')::bigint, 0);
+  s := public.san_bao_dam_o(s, 'currencies');
+  s := jsonb_set(s, '{currencies,bac}', to_jsonb(bac + tong), true);
+  perform public.san_ghi_save(me, s);
+
+  return jsonb_build_object('ok', true, 'don', n, 'hoan', tong);
+end $$;
+
+-- ---------- 6. BAN VAO DON ----------
 -- ⚠⚠ DONG `insert into public.san_rao` O CUOI HAM NAY LA RANG BUOC SONG CON, khong phai so sach.
 --    `dan_mua_san` (docs/SQL_CHONG_GIAN_LAN.sql) dem vien dan Dan Dien mua rong bang cach doc
 --    `san_rao` voi trang_thai='ban' and loai='item'. Moi lan khop ghi mot dong day du sau o thi
@@ -183,6 +251,9 @@ begin
   select * into d from public.san_thu_mua where id = p_id for update;
   if not found then return jsonb_build_object('ok', false, 'vi', 'khong-co-tin'); end if;
   if d.trang_thai <> 'treo' then return jsonb_build_object('ok', false, 'vi', 'tin-da-xong'); end if;
+  -- ⚠⚠ HAN 48 GIO CHAN O DAY, khong cho vong thu hoi cua muc 5. Chu don bo game thi vong ay khong
+  --   bao gio chay, ma don van con `trang_thai = 'treo'` — thieu dong nay la don do khop mai mai.
+  if d.tao_luc < now() - public.san_tm_han() then return jsonb_build_object('ok', false, 'vi', 'don-het-han'); end if;
   -- ⚠ Tu ban vao don cua minh la duong bom bo dem `dan_mua_san` mien phi (chi mat thue), va la
   --   duong thoi gia gia tao. Chan thang.
   if d.nguoi_dat = me then return jsonb_build_object('ok', false, 'vi', 'khong-tu-mua-cua-minh'); end if;
@@ -230,7 +301,7 @@ begin
                   to_jsonb(coalesce((sM->'inventory'->>d.item_id)::int, 0) + k), true);
   perform public.san_ghi_save(d.nguoi_dat, sM);
 
-  -- ⚠⚠ DONG SONG CON (xem chu thich dau muc 5). Tien to `tm:` cua `mon_uid` khong bao gio dung
+  -- ⚠⚠ DONG SONG CON (xem chu thich dau muc 6). Tien to `tm:` cua `mon_uid` khong bao gio dung
   --    `uid` trang bi nen chot chan quay nguoc khong vuong; dong nay mang trang_thai 'ban' nen
   --    nam ngoai chi muc `san_rao_uid_dang_treo` va ngoai luoi Cho.
   insert into public.san_rao (nguoi_ban, ten_ban, mon, mon_uid, gia, trang_thai, nguoi_mua, xong_luc, loai, item_id, so_luong)
@@ -250,8 +321,9 @@ end $$;
 -- · KHONG nhan trang bi. `san_gia_toi_thieu` chi doc itemLv/quality/plus, khong doc dong roll —
 --   hai mon Cuc Hiem cap 100 +0 cung gia san 998.983 ma khac nhau ba tang. Dat don mua trang bi
 --   la boc tham mot chieu. Chi hang xep chong, dung bang gia `san_gia_vp`.
--- · KHONG co han 48 gio cho don. Het han phai hoan Bac, ma hoan Bac phai ghi ban luu cua chu don
---   — viec do chi lam duoc luc ho dang online. Bu lai: don go xuong duoc bat cu luc nao.
+-- · KHONG tra Bac ky quy dung luc don het han. Don thoi khop DUNG GIO, nhung Bac cho toi lan chu
+--   don mo San gan nhat (`san_thu_mua_thu_hoi`) — ghi ban luu cua ai thi phai doi nguoi ay online.
+--   Bu lai: don go xuong duoc bat cu luc nao, va so Bac cho khong bao gio hut di.
 -- · KHONG khop tran nhieu don trong mot lan bam. Mot lan bam mot don.
 -- · KHONG dong duoc lo nap lai ban luu cu: chot `sanSeq` chi so `moi < cu`, chep lai dung so hien
 --   tai van lot. Lo nay co san tu truoc; tran ky quy 5.000.000 nam gon trong tran im lang cua
@@ -264,11 +336,17 @@ end $$;
 --
 --   select 'bang san_thu_mua' as muc, count(*)::text as ket_qua from public.san_thu_mua
 --   union all
---   select 'ba ham', count(*)::text from pg_proc
---    where proname in ('san_thu_mua_dat','san_thu_mua_huy','san_thu_mua_ban')
+--   select 'bon ham', count(*)::text from pg_proc
+--    where proname in ('san_thu_mua_dat','san_thu_mua_huy','san_thu_mua_ban','san_thu_mua_thu_hoi')
 --   union all
---   select 'hai tien ich', count(*)::text from pg_proc
---    where proname in ('san_doc_save_khoa','san_bao_dam_o')
+--   select 'ba tien ich', count(*)::text from pg_proc
+--    where proname in ('san_doc_save_khoa','san_bao_dam_o','san_tm_han')
+--   union all
+--   select 'han don (phai la 48:00:00)', public.san_tm_han()::text
+--   union all
+--   select 'rang buoc trang_thai co het chua',
+--          case when pg_get_constraintdef(oid) like '%het%' then 'OK' else 'HONG' end
+--     from pg_constraint where conname = 'san_thu_mua_trang_thai_check'
 --   union all
 --   select 'RLS bat', case when relrowsecurity then 'OK' else 'HONG' end
 --     from pg_class where relname = 'san_thu_mua'
