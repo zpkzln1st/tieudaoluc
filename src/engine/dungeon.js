@@ -38,6 +38,21 @@ import { PHU_KIEN_ROI } from '../data/sukien.js';    // tỉ lệ rơi phụ ki�
 // ⚠ EXPORT de bo sinh tran chong gian lan (_sinh_sql_tran.mjs) doc duoc he so THAT. Go cung so 3
 //   ben bo sinh la co ngay hai ben lech nhau, va nguoi choi sach bi ghi so oan.
 export const RUN = { bacMul: 3, expMul: 3, honMul: 2, lieuN: 2, daChance: 0.70, doPhoMul: 1.6, rareMul: 1.5 };
+
+// ---- NGHỊCH THIÊN: bậc khó thứ hai của Bí Cảnh ----
+// ⚠⚠ HAI NÚM, CHỈ HAI. Đo được 7/9 phó bản thông quan 100% ngay cả khi Tứ Trụ Lv1 — trục độ khó
+//    đã có sẵn (Tứ Trụ) mà đang bỏ không. Vặn đúng nó, đừng đẻ trục mới.
+// ⚠ KHÔNG đổi `durMs` · `pace` · `cost` ⇒ loot/giờ đúng bằng hệ số nhân, khỏi đo lại bảng thời lượng.
+// ⚠ MỘT bậc chứ không phải ba: trần 2,40 của `combatLoss` là chỗ hết dư địa.
+export const NT = {
+  mocTuTru: 25,    // ba cửa stat-check cộng thêm chừng này (vẫn kẹp ở MAX_LEVEL)
+  deDoa: 12,       // tầng đánh cộng thêm chừng này vào mốc đe doạ
+  lootMul: 1.5,    // Bạc · EXP · Hồn Thạch · bảng quý
+  doPhoMul: 3,     // 1 cái mỗi 2.500 giờ là hố; ×3 = 1 cái mỗi 833 giờ, vẫn hiếm hơn Cổ Mộ
+  danTiLe: 0.10,   // đan Đan Điền phẩm 6-9: 6% -> 10%
+  // ⚠⚠ MẢNH TRANG BỊ **KHÔNG NHÂN**. Gộp hai nguồn đã 15,98 Mảnh/ngày = 26,3 ngày một bộ, trong
+  //    khi ghi chú `gear.js` ước ~42 ngày — đang nhanh hơn ước tính rồi.
+};
 const COMBAT_BASE_LOSS = { thuong: 9, tinhAnh: 15, boss: 24 };   // % máu/tầng combat (trước hệ số chênh cấp)
 const ORD = ['Một', 'Hai', 'Ba', 'Bốn', 'Năm', 'Sáu', 'Bảy', 'Tám'];
 // ⚠ ĐÚNG BỐN Tứ Trụ, không hơn. Trước đây bảng này còn khoá `sinhLuc` — mà `sinhLuc` là máu
@@ -88,14 +103,21 @@ function rollChieuDoPhoId(state) {
 }
 
 // ---- MÔ PHỎNG 1 LƯỢT (thuần, không mutate kho) ----
-export function runDungeon(state, dungeonId) {
+export function runDungeon(state, dungeonId, nt) {
   const D = DUNGEON_BY_ID[dungeonId];
   if (!D) return null;
+  // ⚠ `nt` do NƠI GỌI quyết định, và được CHỐT LÚC ĐẶT LỊCH (`state.activity.nghichThien`) chứ
+  //   không đọc live — không thì bật/tắt giữa chừng là đổi kết quả của lượt đang chạy.
+  const NGHICH = !!nt;
+  const LM = NGHICH ? NT.lootMul : 1;
   const P = D.pace || 1;   // hệ số giữ loot/giờ = Treo Luyện cũ (durMs rút ngắn từ treoMs cũ)
   const C = deriveCombat(state, state.combat && state.combat.loadout, { ignoreNoiThuong: true }); // phòng thủ: state.combat thiếu vẫn chạy
   const dodge = clamp(C.dodge || 0, 0, 0.35);
   const cl = levelFromXp(state.skills?.chienDau?.xp || 0);
   const req = D.reqLevel;
+  // ⚠⚠ NÚM MỘT của Nghịch Thiên. Ba cửa stat-check đọc `reqCua` chứ không đọc `req` — vẫn kẹp
+  //    MAX_LEVEL vì Tứ Trụ nằm ở `state.stats`, Trùng Sinh không với tới.
+  const reqCua = NGHICH ? tranTuTru(req + NT.mocTuTru) : req;
   const power = Math.round(C.atk + C.def * 1.4 + C.maxHP * 0.12 + C.spd * 0.6);
 
   const tangs = (D.tangs && D.tangs.length) ? D.tangs : ['thuong', 'boss'];
@@ -113,7 +135,7 @@ export function runDungeon(state, dungeonId) {
     reachedTang = i + 1;
 
     if (type === 'boss') {
-      const loss = combatLoss(COMBAT_BASE_LOSS.boss, req + 16);
+      const loss = combatLoss(COMBAT_BASE_LOSS.boss, req + 16 + (NGHICH ? NT.deDoa : 0));
       if (hp - loss > 0) { hp -= loss; cleared = true;
         add(i + 1, 'boss', ord + ' · Thủ Lĩnh', `<b class="text-purple-300">${D.boss}</b> giáng thế! Tử chiến hạ gục — hao <b class="dmgr">${loss}%</b>. <span class="text-emerald-300 font-bold">Thông quan!</span>`, 'boss');
       } else {
@@ -123,22 +145,22 @@ export function runDungeon(state, dungeonId) {
     } else if (type === 'tinhAnh' || type === 'thuong') {
       const elite = type === 'tinhAnh';
       const mob = D.mobs[elite ? 1 : 0] || D.mobs[0] || 'yêu thú';
-      const loss = combatLoss(COMBAT_BASE_LOSS[type], req + Math.round(depth * 12));
+      const loss = combatLoss(COMBAT_BASE_LOSS[type], req + Math.round(depth * 12) + (NGHICH ? NT.deDoa : 0));
       hp -= loss;
       add(i + 1, type, ord + ' · ' + (elite ? 'Tinh Anh' : 'Tao Ngộ'),
         elite ? `<b>${mob}</b> trấn giữ tầng sâu — ác chiến hạ gục, hao <b class="dmgr">${loss}%</b>.`
               : `Đàn <b>${mob}</b> lao ra cản đường — đánh dạt được, hao <b class="dmgr">${loss}%</b>.`, 'win');
     } else if (type === 'hazard') {
       const lv = statLv(state, D.hazard); const sName = HAZARD_NAME_BY_STAT[D.hazard] || D.hazard;
-      if (lv >= req) { const loss = clamp(Math.round(4 * (1 - dodge * 0.4)), 1, 6); hp -= loss;
+      if (lv >= reqCua) { const loss = clamp(Math.round(4 * (1 - dodge * 0.4)), 1, 6); hp -= loss;
         add(i + 1, 'hazard', ord + ' · ' + D.hazardName, `<b>${D.hazardName}</b> ập tới, ${sName} thâm hậu chống đỡ ung dung — chỉ hao <b class="dmgr">${loss}%</b>.`, 'win');
-      } else { const loss = clamp(Math.round((9 + (req - lv) * 0.6) * (1 - dodge * 0.3)), 8, 42); hp -= loss;
+      } else { const loss = clamp(Math.round((9 + (reqCua - lv) * 0.6) * (1 - dodge * 0.3)), 8, 42); hp -= loss;
         add(i + 1, 'hazard', ord + ' · ' + D.hazardName, `<b>${D.hazardName}</b> ngấm vào tạng phủ — ${sName} chưa đủ, tổn <b class="dmgr">${loss}%</b>.`, 'hurt');
       }
     } else if (type === 'bay') {
       const tn = statLv(state, 'thanPhap'), lx = statLv(state, 'linhXao');
       const useLx = lx >= tn; const lv = useLx ? lx : tn; const via = useLx ? 'Ngộ Tính' : 'Thân Pháp';
-      if (lv >= tranTuTru(req + 2)) {
+      if (lv >= tranTuTru(reqCua + 2)) {
         add(i + 1, 'bay', ord + ' · Cạm Bẫy', `Cơ quan kích hoạt, bạn dựa vào <span class="text-amber-300">${via}</span> né gọn — bình an vô sự.`, 'win');
       } else { const loss = clamp(randInt(state, 'bcHiem', 11, 18), 8, 28); hp -= loss;
         add(i + 1, 'bay', ord + ' · Cạm Bẫy', `Trúng cạm bẫy cơ quan, né không kịp — tổn <b class="dmgr">${loss}%</b> sinh lực.`, 'hurt');
@@ -150,7 +172,7 @@ export function runDungeon(state, dungeonId) {
         { lv: statLv(state, 'lucDao'), verb: 'cường hành phá ấn', via: 'Sức Mạnh', loss: 6 },
       ];
       const best = cands.reduce((a, b) => (b.lv > a.lv ? b : a));
-      if (best.lv >= tranTuTru(req + 4)) { coDuyenBonus = true; if (best.loss) hp -= best.loss;
+      if (best.lv >= tranTuTru(reqCua + 4)) { coDuyenBonus = true; if (best.loss) hp -= best.loss;
         add(i + 1, 'coDuyen', ord + ' · Cơ Duyên', `Trước cổ rương phong ấn, ${best.verb} <span class="text-amber-300">(${best.via})</span> — <span class="text-amber-300 font-bold">đoạt trân bảo!</span>${best.loss ? ` (hao <b class="dmgr">${best.loss}%</b>)` : ''}`, 'fortune');
       } else { const loss = clamp(randInt(state, 'bcHiem', 10, 15), 6, 24); hp -= loss;
         add(i + 1, 'coDuyen', ord + ' · Cơ Duyên', `Cổ rương khoá chặt, phá không nổi mà dính phản phệ — tổn <b class="dmgr">${loss}%</b>, lỡ trân bảo.`, 'hurt');
@@ -170,10 +192,10 @@ export function runDungeon(state, dungeonId) {
   const items = {};
   const addLoot = (id, qty) => { if (id && qty > 0) items[id] = (items[id] || 0) + qty; };
   const partialMul = cleared ? 1 : 0.4;
-  const bac = Math.round(randInt(state, 'bcBac', D.loot.bac[0], D.loot.bac[1]) * RUN.bacMul * P * partialMul);
-  const exp = Math.round((D.loot.exp || 0) * RUN.expMul * P * (cleared ? 1 : 0.5));
+  const bac = Math.round(randInt(state, 'bcBac', D.loot.bac[0], D.loot.bac[1]) * RUN.bacMul * P * partialMul * LM);
+  const exp = Math.round((D.loot.exp || 0) * RUN.expMul * P * (cleared ? 1 : 0.5) * LM);
   const _bg = bangKyNangBonus(state);   // kĩ năng bang: Tụ Hồn Quyết · Tầm Bảo Quyết
-  const honThach = Math.round(randInt(state, 'bcHon', D.loot.honThach[0], D.loot.honThach[1]) * RUN.honMul * P * partialMul * (1 + _bg.honThachPct));
+  const honThach = Math.round(randInt(state, 'bcHon', D.loot.honThach[0], D.loot.honThach[1]) * RUN.honMul * P * partialMul * (1 + _bg.honThachPct) * LM);
 
   const lieuN = Math.max(1, Math.round(RUN.lieuN * P)) + (coDuyenBonus ? 1 : 0) + kyNgoBonus;   // cơ duyên + mỗi kỳ ngộ -> thêm 1 lượt rải liệu
   for (let i = 0; i < lieuN; i++) { if (!D.loot.lieu.length) break; addLoot(pick(state, 'bcLieu', D.loot.lieu), randInt(state, 'bcLieu', 1, 2)); }
@@ -181,19 +203,19 @@ export function runDungeon(state, dungeonId) {
 
   let doPhoId = null;
   if (cleared && D.loot.doPho) {
-    const chance = (D.loot.doPhoChance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1) * (1 + _bg.bcDoPhoPct);
+    const chance = (D.loot.doPhoChance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1) * (1 + _bg.bcDoPhoPct) * (NGHICH ? NT.doPhoMul : 1);
     if (rng(state, 'bcDoPho') < chance) { doPhoId = rollDoPhoId(state, D); if (doPhoId) addLoot(doPhoId, 1); }
   }
   // Đồ Phổ CÔNG CỤ: roll RIÊNG (pool tool), không cạnh tranh với doPho gear combat -> không loãng loot trang bị
   let toolDoPhoId = null;
   if (cleared && D.loot.toolDoPho) {
-    const tchance = (D.loot.toolDoPho.chance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1) * (1 + _bg.bcDoPhoPct);
+    const tchance = (D.loot.toolDoPho.chance || 0) * RUN.doPhoMul * P * (coDuyenBonus ? 1.3 : 1) * (1 + _bg.bcDoPhoPct) * (NGHICH ? NT.doPhoMul : 1);
     if (rng(state, 'bcDpCongCu') < tchance) { toolDoPhoId = rollToolDoPhoId(state, D); if (toolDoPhoId) addLoot(toolDoPhoId, 1); }
   }
   // Đồ Phổ TUYỆT KĨ: roll RIÊNG (pool tuyệt kĩ CHƯA sở hữu) -> không đụng pool gear/tool, không rơi trùng vô ích
   let chieuDoPhoId = null;
   if (cleared && D.loot.chieuDoPho) {
-    const cchance = (D.loot.chieuDoPho.chance || 0) * P * (coDuyenBonus ? 1.3 : 1);
+    const cchance = (D.loot.chieuDoPho.chance || 0) * P * (coDuyenBonus ? 1.3 : 1) * (NGHICH ? NT.doPhoMul : 1);
     if (rng(state, 'bcDpChieu') < cchance) { chieuDoPhoId = rollChieuDoPhoId(state); if (chieuDoPhoId) addLoot(chieuDoPhoId, 1); }
   }
   // Đồ Phổ BỘ TRANG (dpset_*) đi chung bảng `rare` nhưng CHỈ rơi bản CHƯA có — cùng lối với
@@ -202,7 +224,7 @@ export function runDungeon(state, dungeonId) {
   // cho quy đổi. Bỏ qua sớm để lượt trúng rơi vào món hiếm khác.
   if (cleared && D.loot.rare) for (const r of D.loot.rare) {
     if (r.itemId.slice(0, 6) === 'dpset_' && ((state.inventory || {})[r.itemId] || 0) > 0) continue;
-    if (rng(state, 'bcQuy') < (r.chance || 0) * RUN.rareMul * P) addLoot(r.itemId, 1);
+    if (rng(state, 'bcQuy') < (r.chance || 0) * RUN.rareMul * P * LM) addLoot(r.itemId, 1);
   }
   // ĐAN ĐAN ĐIỀN — phẩm suy từ CẤP YÊU CẦU của phó bản (data/dandien.js), nhánh bốc đều ba.
   // ⚠ Miền RIÊNG `bcDan`, KHÔNG dùng chung `bcQuy`: thêm một lần bốc vào miền cũ là mọi lần bốc
@@ -210,7 +232,10 @@ export function runDungeon(state, dungeonId) {
   // ⚠ KHÔNG nhân `rareMul`/`P`: tỉ lệ này neo theo LƯỢT, đã cân sẵn ở `DD_TI_LE_ROI`. Nhân pace
   //   vào là phó bản ngắn thành mỏ đan.
   let danRoiId = null;
-  if (cleared && rng(state, 'bcDan') < DD_TI_LE_ROI) {
+  // ⚠⚠ CHỈ đổi TỈ LỆ. Vẫn dùng nguyên miền `bcDan` và mỗi lần rơi ĐÚNG MỘT viên — trần chống
+  //    gian lận tầng 2E neo vào SỐ LẦN BỐC chứ không vào tỉ lệ, nên đổi tỉ lệ là an toàn; còn đẻ
+  //    miền mới hoặc thả nhiều viên một lần là CHẶN NHẦM người chơi sạch.
+  if (cleared && rng(state, 'bcDan') < (NGHICH ? NT.danTiLe : DD_TI_LE_ROI)) {
     danRoiId = ddDanRoi(D.reqLevel, rng(state, 'bcDanNhanh'));
     addLoot(danRoiId, 1);
   }
@@ -237,10 +262,16 @@ export function newDungeonAcc() {
 }
 
 // Chạy 1 lượt: nhập thưởng THẲNG vào state (loot dồn vào kho ngay) + gom vào acc.
-export function grantDungeonRun(state, dungeonId, acc, now) {
-  const run = runDungeon(state, dungeonId);
+export function grantDungeonRun(state, dungeonId, acc, now, nt) {
+  const run = runDungeon(state, dungeonId, nt);
   if (!run) return null;
   if (state.codex && state.codex.dungeonRuns) state.codex.dungeonRuns[dungeonId] = (state.codex.dungeonRuns[dungeonId] || 0) + 1;
+  // ⚠ Đếm RIÊNG số lần THÔNG QUAN. Cửa vào Nghịch Thiên đòi đã thông quan bậc một ít nhất một lần,
+  //   mà `dungeonRuns` đếm cả lượt RÚT LUI nên không dùng thay được.
+  if (run && run.cleared && state.codex) {
+    if (!state.codex.dungeonClears) state.codex.dungeonClears = {};
+    state.codex.dungeonClears[dungeonId] = (state.codex.dungeonClears[dungeonId] || 0) + 1;
+  }
   if (run.loot.bac) state.currencies.bac = (state.currencies.bac || 0) + run.loot.bac;
   if (run.loot.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + run.loot.honThach;
   // EXP Bí Cảnh ăn ĐỦ hệ số như cày quái: Điểm Danh (skillExpMultiplier) + đan Ngộ Đạo (cbExpPct) +
@@ -324,10 +355,10 @@ export function finalizeDungeonBatch(state, dungeonId, acc, now) {
 }
 
 // Chạy NGAY N lượt liên tiếp rồi chốt (dùng cho dev / entry đơn giản).
-export function grantDungeon(state, dungeonId, count, now) {
+export function grantDungeon(state, dungeonId, count, now, nt) {
   if (!DUNGEON_BY_ID[dungeonId]) return null;
   const n = Math.max(1, Math.floor(count) || 1);
   const acc = newDungeonAcc();
-  for (let i = 0; i < n; i++) grantDungeonRun(state, dungeonId, acc, now);
+  for (let i = 0; i < n; i++) grantDungeonRun(state, dungeonId, acc, now, nt);
   return finalizeDungeonBatch(state, dungeonId, acc, now);
 }

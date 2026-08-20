@@ -266,13 +266,16 @@ export function maxDungeonRuns(state, D) {
   return Math.max(1, Math.floor(idleCapMs(state) / D.durMs));
 }
 // LỊCH LUYỆN: đặt N lượt liên tiếp (N*durMs <= trần treo máy). Phí do main trừ trước (N * phí vào).
-export function startDungeon(state, dungeonId, runs, now) {
+export function startDungeon(state, dungeonId, runs, now, nt) {
   const D = DUNGEON_BY_ID[dungeonId];
   if (!D) return false;
   if (levelFromXp(state.skills['chienDau']?.xp || 0) < D.reqLevel) return false;
   const n = Math.max(1, Math.min(Math.floor(runs) || 1, maxDungeonRuns(state, D)));
   state.activity = {
     type: 'dungeon', dungeonId,
+    // ⚠⚠ CHỐT LÚC ĐẶT LỊCH, không đọc live. Một lịch chạy nhiều giờ; bật/tắt Nghịch Thiên giữa
+    //    chừng mà đọc live là các lượt đã chạy xong bị tính lại theo mức khác.
+    nghichThien: !!nt,
     runs: n, durMs: D.durMs, cycleMs: n * D.durMs,   // tổng thời gian cả lịch
     startedAt: now, lastResolved: now, progress: 0,
     acc: newDungeonAcc(),
@@ -326,7 +329,7 @@ export function advance(state, now) {
     if (!act.acc) act.acc = newDungeonAcc();
     const done = Math.min(act.runs, Math.floor((now - act.startedAt) / (act.durMs || 1)));
     const newRuns = done - act.acc.runs;
-    for (let k = 0; k < newRuns; k++) grantDungeonRun(state, act.dungeonId, act.acc, now);
+    for (let k = 0; k < newRuns; k++) grantDungeonRun(state, act.dungeonId, act.acc, now, act.nghichThien);
     if (done >= act.runs) {
       const result = finalizeDungeonBatch(state, act.dungeonId, act.acc, now);
       state.activity = null;

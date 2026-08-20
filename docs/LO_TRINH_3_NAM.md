@@ -144,6 +144,44 @@ của việc kẹp trần Tứ Trụ ở 4.1a. Ở `req = 100` không còn dư �
 
 Bài kiểm mới **48** `_check_yeuvuong.mjs` (13 mục, kiểm chuẩn **9/9**).
 
+**4.1c 「Nghịch Thiên」 — bậc khó thứ hai, cờ `noiDungBac2`.** CHỈ Bí Cảnh, **MỘT** bậc.
+Yêu Vương không thêm bậc: đo được 1,65 trận là hạ một con, 0% ca không hạ nổi — nút chặn của nó
+là hồi chiêu chứ không phải tường độ khó.
+
+**HAI NÚM, chỉ hai.** Không đổi `durMs` · `pace` · `cost` ⇒ loot/giờ đúng bằng hệ số nhân.
+
+| núm | làm gì |
+|---|---|
+| Mốc Tứ Trụ | ba cửa đòi `min(req + 25, 100)` thay vì `req` |
+| Đe doạ | tầng đánh và tầng boss cộng thêm 12 bậc |
+
+| loot | hệ số |
+|---|---|
+| Bạc · EXP · Hồn Thạch · bảng quý | ×1,5 |
+| Đồ Phổ (cả ba loại) | ×3 |
+| Đan Đan Điền phẩm 6–9 | 6% → **10%** mỗi lượt |
+| **Mảnh Trang Bị** | **×1 — không đổi** |
+
+Cửa vào: cấp ≥ `reqLevel` · **đã thông quan bậc thường ít nhất một lần** (`codex.dungeonClears`,
+đếm riêng vì `dungeonRuns` tính cả lượt rút lui) · cờ `noiDungBac2`.
+
+⚠⚠ Chế độ **CHỐT LÚC ĐẶT LỊCH** (`state.activity.nghichThien`), không đọc live — một lịch chạy
+nhiều giờ, bật/tắt giữa chừng mà đọc live là các lượt đã xong bị tính lại theo mức khác.
+⚠⚠ Đan chỉ đổi **TỈ LỆ**, giữ nguyên miền `bcDan` và mỗi lần đúng một viên. Trần 2E neo vào **số
+lần bốc** chứ không vào tỉ lệ, nên đổi tỉ lệ là an toàn; đẻ miền mới hoặc thả nhiều viên là chặn
+nhầm người chơi sạch.
+⚠ Trần chống gian lận `phu_cap_chien_dau`: **114.130 → 166.858**. **Chạy lại `SQL_CHONG_GIAN_LAN.sql`.**
+
+Đo ở người cuối game (cấp 100, Tứ Trụ 100, né tối đa) — cả 9 phó bản đều qua, HP còn lại giảm dần:
+
+| Lv | 10 | 25 | 40 | 55 | 70 | 80 | 85 | 92 | 100 |
+|---|---|---|---|---|---|---|---|---|---|
+| HP còn (NT) | 88 | 85 | 83 | 85 | 72 | 58 | 22 | 30 | **16** |
+
+⇒ Thái Hư từ phó bản **dễ nhất** (HP 40) thành **chặt nhất** (HP 16). Chỗ tồn ở 4.1b đã hết.
+Bài kiểm 15 lên **95 mục**, kiểm chuẩn **28/28**. Không cần art mới: Nghịch Thiên dùng lại trọn
+bộ art phó bản sẵn có, công tắc và dải báo đều là khuôn `.dd-dai` / `.dd-tip` đã có.
+
 **4.2 Tông Môn P2 · P3** — cờ `tongMonDrama`
 - Nhánh drama đệ tử, Bí Kíp BK1–BK5 đã thiết kế xong, chỉ chờ dựng.
 

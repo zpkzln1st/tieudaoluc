@@ -86,7 +86,7 @@ import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
-import { grantDungeon, finalizeDungeonBatch } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
+import { grantDungeon, finalizeDungeonBatch, NT } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
@@ -6694,6 +6694,27 @@ const gameStore = {
 
   // ======================= BÍ CẢNH (Dungeon idle) =======================
   dungeonSel: null,
+  /**
+   * NGHỊCH THIÊN — bậc khó thứ hai của Bí Cảnh. Người chơi tự chọn trước khi đặt lịch.
+   * ⚠ Cờ này chỉ là Ý ĐỊNH. Nó được CHỐT vào `state.activity.nghichThien` lúc đặt lịch, nên bật
+   *   tắt giữa chừng không đổi được lượt đang chạy.
+   */
+  dgNghichThien: false,
+  /** Công tắc có mọc ra không: cần cờ tính năng, và phó bản phải mở. */
+  ntHien(id) { return this.moChua('noiDungBac2') && !this.dungeonLocked(id); },
+  /** Số lần đã thông quan phó bản này ở bậc một. */
+  ntSoLanQua(id) { return ((this.state.codex && this.state.codex.dungeonClears) || {})[id] || 0; },
+  /**
+   * Vào được Nghịch Thiên chưa: phải thông quan bậc một ít nhất MỘT lần.
+   * ⚠ Đọc `dungeonClears` chứ KHÔNG đọc `dungeonRuns` — cái sau đếm cả lượt rút lui.
+   */
+  ntMoDuoc(id) { return this.ntHien(id) && this.ntSoLanQua(id) > 0; },
+  datNghichThien(id, bat) {
+    if (bat && !this.ntMoDuoc(id)) return;
+    this.dgNghichThien = !!bat;
+  },
+  /** Hệ số loot của Nghịch Thiên, để nút hỏi khỏi gõ số cứng. */
+  get ntHeSo() { return NT; },
   ensureDungeon() {
     if (!this.state.dungeon) this.state.dungeon = { lastResult: null, history: [] };
     const ds = this.dungeonList;   // đã lọc Bí Cảnh sự kiện đóng — kẻo mặc định trúng phó bản tàng hình
@@ -6795,7 +6816,9 @@ const gameStore = {
     this.state.currencies.bac -= cost.bac;
     if (cost.honThach) this.state.currencies.honThach -= cost.honThach;
     const prev = this.buildCombatSummary('manual');            // đang đánh dở -> chốt phiên combat cũ vào chuông
-    if (!startDungeon(this.state, id, n, now())) {             // lỗi -> hoàn phí
+    // ⚠ Chỉ bật Nghịch Thiên khi CỬA THẬT SỰ MỞ — công tắc có thể còn bật từ phó bản trước.
+    const nt = this.dgNghichThien && this.ntMoDuoc(id);
+    if (!startDungeon(this.state, id, n, now(), nt)) {          // lỗi -> hoàn phí
       this.state.currencies.bac += cost.bac;
       if (cost.honThach) this.state.currencies.honThach += cost.honThach;
       this.showToast('Không thể vào Bí Cảnh.'); return;

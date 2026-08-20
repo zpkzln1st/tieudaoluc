@@ -18,7 +18,7 @@
  * `mo` = một câu, động từ đứng đầu. Đây là câu tác giả đọc lúc quyết định có bật hay không.
  */
 export const TINH_NANG = [
-  { ma: 'noiDungBac2',  ten: 'Nội Dung Chiến Đấu Bậc Hai', dot: 'Năm thứ nhất', daDung: false,
+  { ma: 'noiDungBac2',  ten: 'Nội Dung Chiến Đấu Bậc Hai', dot: 'Năm thứ nhất', daDung: true,
     mo: 'Yêu Vương và Bí Cảnh thêm bậc khó thứ hai.' },
   { ma: 'tongMonDrama', ten: 'Tông Môn Bậc Hai',           dot: 'Năm thứ nhất', daDung: false,
     mo: 'Mở nhánh đệ tử và năm quyển Bí Kíp.' },

@@ -8041,6 +8041,9 @@
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/40 border border-slate-700 text-slate-300" x-text="'Lv '+d.reqLevel"></span>
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/40 border border-slate-700 text-slate-400" x-text="d.realm"></span>
                         <span class="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded" :style="'background:'+d.color+'22;border:1px solid '+d.color+'55;color:'+d.color"><span class="w-2.5 h-2.5 inline-flex shrink-0" x-html="$store.game.svg('warn','w-2.5 h-2.5')"></span><span x-text="d.hazardName"></span></span>
+                        <template x-if="g.dgNghichThien && g.ntMoDuoc(d.id)">
+                          <span class="text-[10px] px-1.5 py-0.5 rounded fserif" style="background:rgba(244,63,94,.16);border:1px solid rgba(244,63,94,.55);color:#fda4af">Nghịch Thiên</span>
+                        </template>
                         <span class="ml-auto shrink-0 text-[11px] font-medium px-2.5 py-0.5 rounded inline-flex items-center gap-1.5" :style="'background:rgba(0,0,0,.5);border:1px solid '+d.color+'99;color:#f1e3c2'"><span class="w-3.5 h-3.5 inline-flex" :style="'color:'+d.color" x-html="g.svg('clock','w-3.5 h-3.5')"></span>Mỗi lượt <b :style="'color:'+d.color" x-text="g.fmtDurHM(g.dungeonDurSec(d.id))"></b></span>
                       </div>
                       <div class="text-[11.5px] text-slate-300 italic mt-2 leading-snug max-w-xl" x-text="'“'+d.lore+'”'"></div>
@@ -8077,7 +8080,35 @@
                     <!-- rảnh + ĐANG Ở ĐÚNG VÙNG: Lịch Luyện (Kiểu A) — chọn lượt · tổng · nút bắt đầu CO GỌN -->
                     <template x-if="!g.dungeonLocked(d.id) && !g.dungeonRunning && g.dungeonAtLoc(d)">
                       <div>
-                        <div class="mb-2.5"><span class="lbl">Lịch Luyện</span></div>
+                        <div class="mb-2.5 flex items-center justify-between gap-3 flex-wrap">
+                          <span class="lbl">Lịch Luyện</span>
+                          <!-- ⚠ Cờ tắt thì công tắc KHÔNG MỌC RA. Tắt là vô hình, không phải nút mờ. -->
+                          <template x-if="g.ntHien(d.id)">
+                            <span class="inline-flex items-center gap-2">
+                              <span class="dd-dai">
+                                <button :class="!g.dgNghichThien ? 'on' : ''" @click="g.datNghichThien(d.id, false)">Thường</button>
+                                <button :class="g.dgNghichThien ? 'on' : ''" :disabled="!g.ntMoDuoc(d.id)"
+                                  :style="g.dgNghichThien ? 'background:linear-gradient(180deg,#f43f5e,#f43f5ecc)' : ''"
+                                  @click="g.datNghichThien(d.id, true)">Nghịch Thiên</button>
+                              </span>
+                              <span class="dd-tip relative inline-flex items-center gap-1.5" style="--q:#f43f5e">
+                                <span class="dd-hoi">?</span>
+                                <span class="gtip gtip-len">
+                                  <span class="block">Cùng phó bản, mở lại ở mức khó hơn.</span>
+                                  <span class="block mt-0.5">Ba cửa Tứ Trụ đòi cao thêm <b x-text="g.ntHeSo.mocTuTru"></b> cấp.</span>
+                                  <span class="block mt-0.5">Địch mạnh thêm <b x-text="g.ntHeSo.deDoa"></b> bậc.</span>
+                                  <span class="block mt-0.5">Bạc · EXP · Hồn Thạch nhân <b x-text="g.ntHeSo.lootMul"></b>.</span>
+                                  <span class="block mt-0.5">Đồ Phổ nhân <b x-text="g.ntHeSo.doPhoMul"></b>.</span>
+                                  <span class="block mt-0.5">Đan Đan Điền lên <b x-text="Math.round(g.ntHeSo.danTiLe*100)+'%'"></b> mỗi lượt.</span>
+                                  <span class="block mt-0.5 text-slate-400">Mảnh Trang Bị giữ nguyên.</span>
+                                  <template x-if="!g.ntMoDuoc(d.id)">
+                                    <span class="block mt-0.5 text-amber-200">Phải thông quan bậc thường một lần đã.</span>
+                                  </template>
+                                </span>
+                              </span>
+                            </span>
+                          </template>
+                        </div>
                         <div class="flex items-center justify-between flex-wrap gap-x-4 gap-y-2.5">
                           <span class="inline-flex items-center gap-1.5 text-[12px] text-slate-400">Số lượt
                             <button @click="g.dungeonRunsDec(d.id)" :disabled="g.dungeonRunsSel(d.id)<=1" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-300 leading-none disabled:opacity-30 disabled:cursor-not-allowed">−</button>
