@@ -82,7 +82,7 @@ import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
 import { BICANH_BK_CHANCE, biCanhBkMaxTier } from './data/tongmon.js';   // Bí Kíp rơi từ Bí Cảnh -> bày được trong lưới Bảo Vật
 import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, thienKiepOf, kiepOdds, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_KEYS, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, BK_AUCTION_REFRESH_H, BK_MERGE_N, LICH_LUYEN_H, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, tamTinhOf, tamTinhTier, DANH_KHI_NGUONG, genDisciple } from './data/tongmon.js';
-import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
+import { TM_GRP, TM_EVENTS, TM_EVENT_BY_ID } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
@@ -702,7 +702,7 @@ const gameStore = {
   tmFlagChips(d) { const M = { daoLu: ['Đạo Lữ', '#34d399'], oanTham: ['Oán Thầm', '#fb7185'], tamMaSeed: ['Mầm Tâm Ma', '#a78bfa'], tinhTrieu: ['Tình Triều', '#f472b6'], cuuChuoc: ['Cải Tà', '#34d399'], triAn: ['Tri Ân', '#34d399'], batPhuc: ['Bất Phục', '#fb7185'], phatPhan: ['Phát Phẫn', '#f5b942'] }; const out = []; if (d.bietHieu) out.push([d.bietHieu, '#f5b942']); for (const k in (d.flags || {})) { if (M[k]) out.push(M[k]); } return out; },
   // Diễn Biến Tông Môn: gán seal Hán + màu theo loại sự kiện (suy từ text Sử Sách)
   tmDienBienSeal(text) { const T = text || ''; const M = [['Xuất Sư', '仙', '#f5b942'], ['★', '仙', '#f5b942'], ['đắc đạo', '仙', '#f5b942'], ['Trưởng Lão', '師', '#fbbf24'], ['đột phá', '破', '#22d3ee'], ['Phản Đồ', '叛', '#a78bfa'], ['đào tẩu', '叛', '#a78bfa'], ['phản xuất', '叛', '#a78bfa'], ['đạo lữ', '緣', '#34d399'], ['gia bảo', '寶', '#fbbf24'], ['Thu nhận', '入', '#94a3b8'], ['tâm ma', '魔', '#fb7185'], ['chiến thắng', '戰', '#fb7185'], ['Khí Vận', '運', '#22d3ee'], ['linh khí', '運', '#22d3ee']]; for (const [k, s, c] of M) { if (T.includes(k)) return { seal: s, color: c }; } return { seal: '事', color: '#64748b' }; },
-  get tmDienBien() { void this._tick; return ((this.tm && this.tm.soSach) || []).slice(0, 18).map((s) => { const m = this.tmDienBienSeal(s.text); return { text: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color, icon: this.tmChronIcon(s) }; }); },
+  get tmDienBien() { void this._tick; return ((this.tm && this.tm.soSach) || []).slice(0, 18).map((s) => { const m = this.tmDienBienSeal(s.text); return { text: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color, icon: this.tmChronIcon(s), ky: this._kyView(s.ky) }; }); },
   // tô màu tên đệ tử (theo phẩm chất / tư chất) + cảnh giới (theo màu cảnh giới) trong dòng Diễn Biến
   _chronHtml(text, gid) {
     const t = this.tm; if (!t) return text;
@@ -791,7 +791,7 @@ const gameStore = {
     let arr = (this.tm && this.tm.soSach) || [];
     if (q) arr = arr.filter((s) => (s.text || '').toLowerCase().includes(q));
     if (cat !== 'all') arr = arr.filter((s) => this.tmChronCat(s.text) === cat);
-    return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color, icon: this.tmChronIcon(s) }; });
+    return arr.map((s) => { const m = this.tmDienBienSeal(s.text); return { raw: s.text, html: this._chronHtml(s.text, s.gid), t: s.t, seal: m.seal, color: m.color, icon: this.tmChronIcon(s), ky: this._kyView(s.ky) }; });
   },
   // Chân dung đệ tử: pool ngẫu nhiên gán cố định theo uid (images/tongmon/disciples/<sex>_<n>.webp). DISC_FACES = số ảnh mỗi giới (0 = chưa có art → dùng seal Hán).
   tmFace(d) { const n = (d.sex === 'nu') ? this.DISC_FACES.nu : this.DISC_FACES.nam; if (!n) return ''; let h = 0; const u = d.uid || ''; for (let i = 0; i < u.length; i++) h = (h * 31 + u.charCodeAt(i)) >>> 0; return 'images/tongmon/disciples/' + (d.sex === 'nu' ? 'nu' : 'nam') + '_' + ((h % n) + 1) + '.webp'; },
@@ -1345,6 +1345,25 @@ const gameStore = {
   tmGrpLabel(g) { return (TM_GRP[g] || TM_GRP.A).label; },
   // Mặt đệ tử trong sự kiện: tra theo castUids (sống deterministic qua tmFace). '' nếu đệ tử đã rời (rơi về placeholder Hán).
   tmEvtFace(ci) { const cur = this.tmEvtCur; if (!cur || !cur.castUids || !this.tm) return ''; const uid = cur.castUids[ci]; const d = (this.tm.disciples || []).find((x) => x.uid === uid); return d ? this.tmFace(d) : ''; },
+  // ---- HỒI TƯỞNG: dòng Sử Sách của sự kiện AUTO mở lại được cảnh đã qua. ----
+  // Chỉ `{eid, txt}` nằm trong bản lưu; tên, chữ Hán, nhóm, art đều suy từ TM_EVENT_BY_ID lúc vẽ.
+  _kyView(k) {
+    if (!k || !k.eid) return null;
+    const ev = TM_EVENT_BY_ID[k.eid];
+    if (!ev) return null;                       // eid lạ (bản lưu của bản game mới hơn) -> im lặng bỏ qua
+    return { eid: ev.id, txt: k.txt || '', han: ev.han, grp: ev.grp, title: ev.title };
+  },
+  // Mở lại một cảnh: nạp `tmEvtCur`/`tmEvtResult` giả rồi bật đúng modal sự kiện sẵn có.
+  // `tmEvtIdx = -1` nên `tmEvtChoose` tự chặn — không thể lỡ tay giải quyết lại sự kiện.
+  tmHoiTuong(ky) {
+    const v = this._kyView(ky); if (!v) return;
+    this.tmEvtIdx = -1;
+    this.tmEvtCur = { eid: v.eid, grp: v.grp, han: v.han, title: v.title, story: '', cast: [], castUids: [], rebel: null, choices: [] };
+    // `hoiTuong` để markup biết co modal lại — cảnh xem lại chỉ có một đoạn chữ, không cần 724px.
+    this.tmEvtResult = { tone: 'lanh', toneLabel: 'HỒI TƯỞNG', toneColor: this.tmGrpColor(v.grp), text: v.txt, chips: [], tease: null, chronicle: '', hoiTuong: true };
+    this.tmEvtOpen = true;
+    this._tick++;
+  },
   openTmEvt(idx) { const p = this.tmEvtPending[idx]; if (!p) return; this.tmEvtIdx = idx; this.tmEvtCur = p; this.tmEvtResult = null; this.tmEvtOpen = true; },
   tmEvtChoose(ci) {
     if (this.tmEvtIdx < 0) return;

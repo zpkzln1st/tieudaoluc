@@ -8611,11 +8611,12 @@
               <div class="max-h-[560px] overflow-y-auto">
                 <template x-if="!g.tmDienBien.length"><div class="px-4 py-5 text-center text-[12px] text-slate-600 italic fserif">Chưa có dòng nào — chuyện tông môn sẽ chép vào đây.</div></template>
                 <template x-for="(s,si) in g.tmDienBien" :key="si">
-                  <div class="flex gap-3 px-4 py-2.5 border-b border-slate-800/40 hover:bg-ink3/30 transition">
+                  <div class="flex gap-3 px-4 py-2.5 border-b border-slate-800/40 hover:bg-ink3/30 transition" :class="s.ky ? 'cursor-pointer' : ''" @click="s.ky && g.tmHoiTuong(s.ky)">
                     <template x-if="s.icon.kind==='disc'"><div class="w-8 h-8 rounded-lg shrink-0 overflow-hidden border mt-0.5 bg-ink2" :style="'border-color:'+s.icon.color+'77'"><img loading="lazy" decoding="async" :src="s.icon.src" alt="" class="w-full h-full object-cover object-top" onerror="this.remove()"></div></template>
                     <template x-if="s.icon.kind==='sect'"><div class="relative w-8 h-8 rounded-lg shrink-0 overflow-hidden bg-ink2 border border-amber-500/40 flex items-center justify-center mt-0.5"><span class="fserif text-amber-300 text-[15px]">宗</span><img loading="lazy" decoding="async" src="images/ui/tongmon_emblem.webp" alt="" class="absolute inset-0 w-full h-full object-contain" onerror="this.remove()"></div></template>
                     <template x-if="s.icon.kind==='seal'"><div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[16px] mt-0.5" :style="'background:'+s.color+'1c;border:1px solid '+s.color+'55;color:'+s.color" x-text="s.seal"></div></template>
                     <div class="flex-1 min-w-0"><div class="text-[12.5px] text-slate-200 leading-snug fserif" x-html="s.html"></div><div class="text-[10px] text-slate-600 mt-0.5" x-text="g.notifAgo(s.t)"></div></div>
+                    <template x-if="s.ky"><span class="shrink-0 self-center fserif text-[15px] opacity-45" :style="'color:'+g.tmGrpColor(s.ky.grp)" x-text="s.ky.han"></span></template>
                   </div>
                 </template>
               </div>
@@ -8645,7 +8646,7 @@
           <!-- MODAL SỰ KIỆN GIANG HỒ (kể chuyện -> hồi kết) -->
           <template x-if="g.tmEvtOpen && g.tmEvtCur">
             <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmEvt()">
-              <div class="panel rounded-2xl w-[700px] max-w-full h-[724px] max-h-[92dvh] overflow-hidden flex flex-col border" :style="'border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'55'" @click.stop>
+              <div class="panel rounded-2xl w-[700px] max-w-full max-h-[92dvh] overflow-hidden flex flex-col border" :class="(g.tmEvtResult && g.tmEvtResult.hoiTuong) ? 'h-auto' : 'h-[724px]'" :style="'border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'55'" @click.stop>
                 <!-- SCENE HEADER -->
                 <div class="relative px-5 py-4 overflow-hidden shrink-0 flex flex-col" :style="'height:176px;background:linear-gradient(165deg,'+g.tmGrpColor(g.tmEvtCur.grp)+'1c 0%, #0f1521 60%)'">
                   <img loading="lazy" decoding="async" :src="'images/tongmon/events/'+g.tmEvtCur.eid.toLowerCase()+'.webp'" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'">
@@ -8656,7 +8657,7 @@
                       <span class="text-[10px] px-2 py-0.5 rounded-full border" :style="'color:'+g.tmGrpColor(g.tmEvtCur.grp)+';border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'66;background:'+g.tmGrpColor(g.tmEvtCur.grp)+'14'" x-text="g.tmGrpLabel(g.tmEvtCur.grp)"></span>
                       <div class="gold-text fserif text-[22px] leading-tight mt-2" x-text="g.tmEvtCur.title"></div>
                     </div>
-                    <button @click="g.closeTmEvt()" class="text-slate-500 hover:text-rose-400 text-xl leading-none mt-0.5 shrink-0">✕</button>
+                    <button @click="g.closeTmEvt()" class="w-7 h-7 rounded-lg bg-ink/70 border border-slate-700/70 text-slate-300 hover:text-rose-400 hover:border-rose-500/50 text-[15px] leading-none shrink-0 flex items-center justify-center transition">✕</button>
                   </div>
                   <div class="relative flex flex-wrap gap-2.5 mt-auto" x-show="(g.tmEvtCur.cast && g.tmEvtCur.cast.length) || g.tmEvtCur.rebel">
                     <template x-for="(cd,ci) in g.tmEvtCur.cast" :key="ci">
@@ -10127,15 +10128,16 @@
                 <div class="flex-1 overflow-y-auto divide-y divide-slate-800/50">
                   <template x-if="!g.tmSoSachFull.length"><div class="px-5 py-8 text-center text-[12.5px] text-slate-600 italic fserif">Chưa có ghi chép nào khớp.</div></template>
                   <template x-for="(s,si) in g.tmSoSachFull" :key="si">
-                    <div class="flex gap-3 px-4 py-2.5 hover:bg-ink3/30">
+                    <div class="flex gap-3 px-4 py-2.5 hover:bg-ink3/30" :class="s.ky ? 'cursor-pointer' : ''" @click="s.ky && g.tmHoiTuong(s.ky)">
                       <template x-if="s.icon.kind==='disc'"><div class="w-8 h-8 rounded-lg shrink-0 overflow-hidden border mt-0.5 bg-ink2" :style="'border-color:'+s.icon.color+'77'"><img loading="lazy" decoding="async" :src="s.icon.src" alt="" class="w-full h-full object-cover object-top" onerror="this.remove()"></div></template>
                       <template x-if="s.icon.kind==='sect'"><div class="relative w-8 h-8 rounded-lg shrink-0 overflow-hidden bg-ink2 border border-amber-500/40 flex items-center justify-center mt-0.5"><span class="fserif text-amber-300 text-[15px]">宗</span><img loading="lazy" decoding="async" src="images/ui/tongmon_emblem.webp" alt="" class="absolute inset-0 w-full h-full object-contain" onerror="this.remove()"></div></template>
                       <template x-if="s.icon.kind==='seal'"><div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center fserif leading-none text-[16px] mt-0.5" :style="'background:'+s.color+'1c;border:1px solid '+s.color+'55;color:'+s.color" x-text="s.seal"></div></template>
                       <div class="flex-1 min-w-0"><div class="text-[12.5px] text-slate-200 leading-snug fserif" x-html="s.html"></div><div class="text-[10px] text-slate-600 mt-0.5" x-text="g.notifAgo(s.t)"></div></div>
+                      <template x-if="s.ky"><span class="shrink-0 self-center fserif text-[15px] opacity-45" :style="'color:'+g.tmGrpColor(s.ky.grp)" x-text="s.ky.han"></span></template>
                     </div>
                   </template>
                 </div>
-                <div class="px-4 py-2 border-t border-slate-800 text-[10.5px] text-slate-600 shrink-0" x-text="g.tmSoSachFull.length + ' dòng biên niên · tối đa 80'"></div>
+                <div class="px-4 py-2 border-t border-slate-800 text-[10.5px] text-slate-600 shrink-0" x-text="g.tmSoSachFull.length + ' dòng biên niên · tối đa 80 · 20 cảnh gần nhất xem lại được'"></div>
               </div>
             </div>
           </template>

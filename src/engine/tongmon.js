@@ -80,7 +80,21 @@ export function ensureTongMon(state, nowMs) {
   for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0; if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0; if (typeof d.daoTam !== 'number') d.daoTam = 0; if (typeof d.tamTinh !== 'number') d.tamTinh = 0; if (!Array.isArray(d.nhatKy)) d.nhatKy = []; if (!Array.isArray(d.skills)) d.skills = []; }
 }
 
-function chronicle(t, text, gid) { const e = { t: Date.now(), text }; if (gid) e.gid = gid; t.soSach.unshift(e); if (t.soSach.length > 80) t.soSach.length = 80; }
+// Ghi một dòng Sử Sách. `opt.gid` = mã món đồ (để câu chữ 「…」 bấm ra được modal vật phẩm).
+// `opt.ky` = KÝ ỨC { eid, txt }: mẩu chuyện của một sự kiện AUTO, để xem lại được sau.
+// ⚠ Chỉ SỰ KIỆN AUTO mới cần ký ức — sự kiện CHỌN người chơi vừa đọc xong tại chỗ rồi.
+//   Ký ức phình theo CHIỀU DÀI CHUYỆN (~266 ký tự) nên có trần RIÊNG, chặt hơn trần 80 dòng.
+const KY_CAP = 20;                     // Diễn Biến chỉ vẽ 18 dòng ⇒ mọi dòng nhìn thấy đều mở lại được
+function chronicle(t, text, opt) {
+  const e = { t: Date.now(), text };
+  if (opt && opt.gid) e.gid = opt.gid;
+  if (opt && opt.ky) e.ky = opt.ky;
+  t.soSach.unshift(e);
+  if (t.soSach.length > 80) t.soSach.length = 80;
+  // Quá trần thì bỏ CHỮ của ký ức cũ, GIỮ NGUYÊN dòng biên niên — dòng không mất, chỉ hết mở lại được.
+  let n = 0;
+  for (const r of t.soSach) { if (r.ky && ++n > KY_CAP) delete r.ky; }
+}
 
 // ============================================================
 // SỰ KIỆN GIANG HỒ (chọn-mù) — roll trong simTongMon, resolve khi người chơi chọn.
@@ -167,7 +181,7 @@ function danhKhiRot(t, d, n) {
     so.at = Date.now();
     if (!so.doi.length) so.doi.push(d.name);
     so.tieuSu = danhKhiTieuSu(so.doi.length, d.name, inst.uid);
-    chronicle(t, `器 Gia bảo thức tỉnh Danh Khí 「${so.ten}」 trong tay ${d.name}.`, inst.gearId);
+    chronicle(t, `器 Gia bảo thức tỉnh Danh Khí 「${so.ten}」 trong tay ${d.name}.`, { gid: inst.gearId });
     chips.push(chip('Danh Khí · ' + so.ten, '#f5b942'));
   }
   danhKhiGonSo(t);
@@ -225,7 +239,8 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
   const ttChip = shiftTamTinh(t, cast, TAM_TINH_TONE[oc.tone] || 0);
   if (ttChip) chips.push(ttChip);
   if ((cast || []).length) { const rnd = rngHam(state, 'tongMon'); for (const d of cast) { ghiNhatKy(d, oc.tone, ev.title, now, rnd); chips.push(...danhKhiRot(t, d, DANH_KHI_MOC.suKien)); } }
-  if (oc.chronicle) chronicle(t, oc.chronicle);
+  // Sự kiện AUTO áp thẳng rồi biến mất, người chơi không hề thấy — gắn ký ức để xem lại được.
+  if (oc.chronicle) chronicle(t, oc.chronicle, ev.kind === 'auto' ? { ky: { eid: ev.id, txt: oc.text || '' } } : null);
   t.events.seen = (t.events.seen || 0) + 1;
   return chips;
 }
@@ -746,6 +761,7 @@ export function danhKhiDaThuc(t) {
 
 // ---- PHẢN ĐỒ: hồ sơ để dựng trận đấu và vẽ thẻ đối thủ. Chiến Lực mạnh dần theo ngày lẩn trốn. ----
 export function rebelHoSo(t, r, nowMs) {
+  const nay = typeof nowMs === 'number' ? nowMs : Date.now();   // ⚠ `nowMs || Date.now()` coi số 0 là "không truyền"
   if (!r) return null;
   const skills = (r.skills || []).map((id) => BI_KIP_BY_ID[id]).filter(Boolean);
   let best = null, bestTi = -1;
@@ -754,9 +770,9 @@ export function rebelHoSo(t, r, nowMs) {
   return {
     fromUid: r.fromUid, name: r.name, han: r.han, sex: r.sex, he: r.he,
     apt: r.apt, realm: r.realm,
-    chienLuc: rebelSucManh(r, nowMs),
+    chienLuc: rebelSucManh(r, nay),
     chienLucGoc: r.chienLuc || 0,
-    ngayTron: Math.floor(Math.max(0, ((nowMs || Date.now()) - (r.at || 0)) / 86400000)),
+    ngayTron: Math.floor(Math.max(0, (nay - (r.at || 0)) / 86400000)),
     loaiCat: best ? (LOAI_CAT[best.loai] || '') : '',
     skillIds: (r.skills || []).slice(),
     gearIds,
@@ -855,7 +871,7 @@ export function giftGear(state, discipleUid, gearUid, slot, itemName) {
   d.gear[slot] = inst;
   danhKhiThemDoi(t, inst, d.name);                 // ghi một đời chủ vào gia phả món đồ
   danhKhiRot(t, d, DANH_KHI_MOC.truyenDoi);
-  chronicle(t, itemName ? `Ban gia bảo 「${itemName}」 cho ${d.name}.` : `Ban gia bảo cho ${d.name}.`, inst.gearId);
+  chronicle(t, itemName ? `Ban gia bảo 「${itemName}」 cho ${d.name}.` : `Ban gia bảo cho ${d.name}.`, { gid: inst.gearId });
   return true;
 }
 export function reclaimGear(state, discipleUid, slot) {

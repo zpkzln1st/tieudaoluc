@@ -491,7 +491,10 @@ export const REBEL_MANH_MOI_NGAY = 0.05;                 // +5% Chiến Lực m�
 export const REBEL_MANH_TOI_DA = 2.0;                    // không quá gấp đôi lúc rời môn
 export function rebelSucManh(r, nowMs) {
   const goc = Math.max(1, (r && r.chienLuc) || (((r && r.realm) || 0) + 1) * 20);
-  const ngay = Math.max(0, ((nowMs || Date.now()) - ((r && r.at) || 0)) / 86400000);
+  // ⚠ KHÔNG dùng `nowMs || Date.now()`: mốc 0 là số hợp lệ mà bị coi là "không truyền" ⇒ rơi về
+  //   đồng hồ thật ⇒ ra thẳng hệ số kịch trần. Bẫy này đo mới lộ, chỗ gọi thật chưa bao giờ trúng.
+  const nay = typeof nowMs === 'number' ? nowMs : Date.now();
+  const ngay = Math.max(0, (nay - ((r && r.at) || 0)) / 86400000);
   return Math.round(goc * Math.min(REBEL_MANH_TOI_DA, 1 + ngay * REBEL_MANH_MOI_NGAY));
 }
 
