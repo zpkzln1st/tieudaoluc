@@ -19,6 +19,7 @@ import { combatExpMult } from './stats.js';   // dòng Tăng EXP trên trang b�
 import { buffVal } from './buff.js';           // đan Ngộ Đạo (+EXP Chiến Đấu)
 import { genRoster, botCombatLv, hash2 } from './bots.js';   // Giang Hồ Bảng dùng roster bot thật (deterministic)
 import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: hạ Yêu Vương cho điểm Chinh Phạt dày
+import { tongMonTinVui } from './tongmon.js';   // tin thắng truyền về sơn môn (main -> phụ, 1 chiều, chỉ flavor)
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { skMo, congDiem, thaPhuKien } from './sukien.js';   // Yêu Vương SỰ KIỆN: thưởng Điểm + thả Bội 0,5%
 import { PHU_KIEN_ROI } from '../data/sukien.js';
@@ -149,6 +150,7 @@ export function applyBossWin(state, bossId, now) {
   b.healUntil = 0;                                      // thắng = không còn dưỡng thương (phòng thủ: không để mốc cũ chặn trận sau)
   try { ghiKillChinhPhat(state, (state.player && state.player.location) || '', true, now); } catch (e) {}
   recordHistory(state, { id: bossId, name: boss.name, eggBase: boss.wb.eggBase, t: now, win: true, reward, rare: isRareReward(reward) });
+  tongMonTinVui(state, 'X1', { ten: (boss && boss.name) || 'Yêu Vương' }, now);   // sơn môn nghe tin thắng
   return reward;
 }
 // THUA: boss GIỮ máu đã mất (carry-over, KHÔNG về 100%), người chơi dưỡng thương 3p, rời hàng đợi, ghi lịch sử.

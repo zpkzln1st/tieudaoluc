@@ -19,6 +19,7 @@ import { DUNGEON_BY_ID } from '../data/dungeon.js';
 import { ITEMS, itemNameHtml } from '../data/items.js';   // tên vật phẩm (tô màu phẩm chất) cho thông báo Phi Cáp Đài
 import { TOOL_SLOTS } from '../data/ui.js';               // nguồn chân lý các ô công cụ -> pool Đồ Phổ công cụ suy động
 import { BICANH_BK_CHANCE, rollBiCanhBiKip, BI_KIP_BY_ID, BI_KIP_TIER } from '../data/tongmon.js';   // rơi bí kíp về Tông Môn (main->phụ 1 chiều, side-only)
+import { tongMonTinVui } from './tongmon.js';   // Chưởng Môn hồi sơn -> sơn môn nghe chuyện (main -> phụ, 1 chiều)
 import { deriveCombat, TUYET_IDS } from '../data/votong.js';
 import { GEAR, BAC_QUALITY } from '../data/gear.js';
 import { DD_TI_LE_ROI, ddDanRoi } from '../data/dandien.js';   // đan Đan Điền rơi theo cấp phó bản
@@ -331,6 +332,7 @@ export function finalizeDungeonBatch(state, dungeonId, acc, now) {
     biKipDrop: single ? (acc.biKipDrops[0] || null) : null,
   };
   state.dungeon.lastResult = { ...summary, seen: false };
+  if (summary && summary.clears > 0) tongMonTinVui(state, 'X2', { ten: (DUNGEON_BY_ID[dungeonId] || {}).name || 'Bí Cảnh' }, now);
   state.dungeon.history = [summary, ...(state.dungeon.history || [])].slice(0, 20);
   // ---- Thông báo (chuông + Phi Cáp Đài) ----
   const _dn = (DUNGEON_BY_ID[dungeonId] || {}).name || 'Bí Cảnh';

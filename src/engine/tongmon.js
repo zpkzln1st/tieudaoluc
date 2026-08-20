@@ -98,7 +98,7 @@ const chip = (label, color) => ({ label, color });
 
 function resolveCast(t, uids) { return (uids || []).map((u) => t.disciples.find((d) => d.uid === u)).filter(Boolean); }
 
-function evtCtx(state, t, cast, rebel) {
+function evtCtx(state, t, cast, rebel, tin) {
   const main = cast[0] || null, second = cast[1] || null;
   const khiVan = t.khiVan || 50;
   // ⚠ Đợt D: bốc số CÓ HẠT GIỐNG. Sự kiện gọi ev.pick(t) — chỉ nhận t chứ không nhận state,
@@ -108,7 +108,7 @@ function evtCtx(state, t, cast, rebel) {
   const lucky = (base) => rng() < Math.max(0.03, Math.min(0.97, (base == null ? 0.5 : base) + (khiVan - 50) / 200));
   const hasTrait = (tr, who) => { const w = who || main; return !!(w && w.traits && w.traits.includes(tr)); };
   const anyTrait = (trs, who) => trs.some((tr) => hasTrait(tr, who));
-  return { t, khiVan, dao: t.dao, cast, main, second, rebel, rng, lucky, hasTrait, anyTrait };
+  return { t, khiVan, dao: t.dao, cast, main, second, rebel, tin: tin || {}, rng, lucky, hasTrait, anyTrait };
 }
 
 // ---- TÂM TÌNH: dịch trục hân hoan ↔ uất ức. Chip chỉ nổi khi ĐỔI BẬC (đổi vài điểm thì im). ----
@@ -211,6 +211,7 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
       t.disciples.push(nd); chips.push(chip(rebel.name + ' · quy hàng', '#34d399')); } }
     else if ('dismissRebel' in e) { if (rebel) { const i = t.events.rebels.findIndex((r) => r.fromUid === rebel.fromUid); if (i >= 0) t.events.rebels.splice(i, 1); chips.push(chip(rebel.name + ' · dứt nợ', '#94a3b8')); } }
     else if ('bietHieu' in e) { const d = findD(e.bietHieu.who); if (d) { d.bietHieu = e.bietHieu.name; chips.push(chip('Biệt hiệu · ' + e.bietHieu.name, '#f5b942')); } }
+    else if ('tamTinh' in e) { const ds = e.tamTinh.all ? t.disciples : [findD(e.tamTinh.who)].filter(Boolean); const c = shiftTamTinh(t, ds, e.tamTinh.n || 0); if (c) chips.push(c); }
     else if ('queue' in e) { t.events.queue.push({ eid: e.queue.eid, notBefore: now + (e.queue.delayH || 24) * 3600 * 1000, rebelFrom: e.queue.rebelFrom || (rebel ? rebel.fromUid : null) }); }
   }
   // Kết cục sự kiện dội vào TÂM TÌNH của diễn viên, và mỗi đứa tự ghi một mẩu nhật ký.
@@ -229,7 +230,7 @@ function fireEvent(state, t, eid, payload, now) {
   if (payload && payload.castUids) cast = resolveCast(t, payload.castUids);
   else if (ev.pick) { try { cast = resolveCast(t, ev.pick(t) || []); } catch (e) { cast = []; } }
   const rebel = (payload && payload.rebelFrom) ? (t.events.rebels.find((r) => r.fromUid === payload.rebelFrom) || null) : null;
-  const ctx = evtCtx(state, t, cast, rebel);
+  const ctx = evtCtx(state, t, cast, rebel, payload && payload.tin);
   t.events.cd[eid] = now + (ev.cdH || 24) * 3600 * 1000;
   if (ev.kind === 'auto') { let oc; try { oc = ev.auto(ctx); } catch (e) { return false; } if (oc) applyOutcome(state, t, ev, oc, cast, rebel, now); return true; }
   let story = ''; try { story = ev.story ? ev.story(ctx) : ''; } catch (e) { story = ''; }
@@ -375,6 +376,20 @@ export function resolveEventDuel(state, pendingIdx, choiceIdx, discipleUid) {
   return { ok: true, thang, fight, duelist: { uid: dau.uid, name: dau.name }, rebel: ho,
     tone: oc.tone, toneLabel: tn.label, toneColor: tn.color, text: oc.text, chips,
     chronicle: oc.chronicle || '', tease: oc.tease || null, title: ev.title, grp: ev.grp, han: ev.han };
+}
+
+// ---- TIN TỪ GIANG HỒ: nhánh CHÍNH làm được việc lớn -> sơn môn nghe tin. ----
+// ⛔ MỘT CHIỀU. Sự kiện nhóm X chỉ cho Uy Danh / Khí Vận / tâm tình — không thứ gì chảy ngược về main.
+// Có khoá lại theo `cdH` của từng tin, nên hạ mười con Yêu Vương một lúc vẫn chỉ một dòng Sử Sách.
+export function tongMonTinVui(state, eid, tin, nowMs) {
+  const t = state && state.tongMon;
+  if (!t || !t.events || !(t.disciples || []).length) return false;      // chưa lập tông thì không có ai nghe
+  const ev = TM_EVENT_BY_ID[eid];
+  if (!ev || ev.grp !== 'X') return false;                               // chỉ nhóm X đi đường này
+  const now = nowMs || Date.now();
+  if ((t.events.cd[eid] || 0) > now) return false;                       // còn khoá -> im lặng bỏ qua
+  if (!tin || !tin.ten) return false;
+  return fireEvent(state, t, eid, { tin }, now);
 }
 
 // ---- DEV: ép nổ 1 sự kiện theo id (F9) ----

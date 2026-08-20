@@ -77,7 +77,7 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, donNguoiAnCu, conBaoLauCoNguoiMoi, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, resolveEventDuel, rebelHoSo, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, resolveEventDuel, rebelHoSo, tongMonTinVui, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
 import { BICANH_BK_CHANCE, biCanhBkMaxTier } from './data/tongmon.js';   // Bí Kíp rơi từ Bí Cảnh -> bày được trong lưới Bảo Vật
@@ -3402,6 +3402,8 @@ const gameStore = {
   checkTitles() {
     const newly = syncTitles(this.state, now());   // ⚠ dùng đồng hồ GAME (có tua/chạy nhanh của Bảng Dev)
     for (const id of newly) { const tt = TITLE_BY_ID[id]; if (tt) this.showToast('🏅 Mở khoá Danh Hiệu 〘' + tt.name + '〙!'); }
+    // Sơn môn nghe tin (main -> phụ, MỘT CHIỀU, chỉ flavor). Có khoá lại nên mở một loạt cũng chỉ một dòng.
+    if (newly.length) { const tt = TITLE_BY_ID[newly[0]]; if (tt) tongMonTinVui(this.state, 'X3', { ten: tt.name }, now()); }
   },
   get equippedTitleObj() { const eq = this.state.titles && this.state.titles.equipped; return eq ? (TITLE_BY_ID[eq] || null) : null; },
   get titlesFlat() {
@@ -4595,7 +4597,9 @@ const gameStore = {
       loi: this.ncTenNghe + ' về cấp 1. Bạn nhận ' + DIEM_MOI_LAN + ' Điểm Trùng Sinh.',
       nut: 'Trùng Sinh',
       xong: () => {
+        const _tenNghe = this.ncTenNghe;
         if (!trungSinh(this.state, this.ncSkill)) return;
+        tongMonTinVui(this.state, 'X4', { ten: _tenNghe }, now());   // sơn môn nhìn vào mà thấm (1 chiều, chỉ flavor)
         this._tick++; Storage.save(this.state);
         this.showToast(this.ncTenNghe + ' đã Trùng Sinh lần ' + soTrungSinh(this.state, this.ncSkill) + '.');
       },

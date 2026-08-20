@@ -36,6 +36,7 @@
 //   { recapture:{} }                  // thu phục lại rebel (ctx.rebel) thành đệ tử
 //   { dismissRebel:{} }               // rebel rời đi / bị diệt (gỡ khỏi danh sách)
 //   { bietHieu:{name, who} }          // gắn biệt hiệu (cosmetic) lên đệ tử
+//   { tamTinh:{n, all?:true, who?} }  // dịch Tâm Tình (all = cả tông; nhóm X không có cast)
 //   { queue:{eid, delayH?, rebelFrom?} } // hẹn nổ sự kiện chuỗi (D2/D3...) sau delayH giờ
 //   who: truyền UID đệ tử (vd ctx.main.uid). Effect nào target không tồn tại sẽ bị bỏ qua an toàn.
 // ============================================================
@@ -50,6 +51,7 @@ export const TM_GRP = {
   F: { label: 'Kỳ Ngộ',               color: '#34d399' },
   G: { label: 'Giới Luật',            color: '#fb7185' },
   H: { label: 'Bang Giao',            color: '#22d3ee' },
+  X: { label: 'Tin Từ Giang Hồ',      color: '#f5b942' },
 };
 
 // Pool tên NPC khách giang hồ (sự kiện nhóm B/C dùng) — Hán-Việt
@@ -1140,6 +1142,54 @@ const H1 = {
 // ============================================================
 // TỔNG HỢP — A1-3, B1-3, C1-2, D1-3 chuỗi + TMK, E1-5 auto, F1-4 kỳ ngộ, G1 giới luật, H1 bang giao
 // ============================================================
+// ============================================================
+// NHÓM X — TIN TỪ GIANG HỒ (cross-link nhánh chính -> nhánh phụ, MỘT CHIỀU)
+// Nhánh chính làm được việc lớn thì sơn môn nghe tin. `chain:true` nên KHÔNG bao giờ tự nổ ngẫu
+// nhiên — chỉ nổ qua `tongMonTinVui(state, eid, tin)` từ đúng chỗ trao thưởng của nhánh chính.
+// ⛔ THUẦN FLAVOR: chỉ cho Uy Danh / Khí Vận / tâm tình đệ tử. TUYỆT ĐỐI không trả Bạc, Hồn Thạch,
+//    nguyên liệu hay bất cứ thứ gì chảy ngược về nhánh chính.
+// ctx thêm `tin` = { ten } do chỗ gọi truyền vào.
+// ============================================================
+const X1 = {
+  id: 'X1', grp: 'X', kind: 'auto', han: '捷', title: 'Tin Thắng Truyền Về', weight: 0, cdH: 20, chain: true,
+  cond: (t) => t.disciples.length > 0,
+  auto: (c) => G(
+    `Chim ưng đưa thư đáp xuống Diễn Võ Trường lúc chạng vạng. Tin từ ngoài núi: 「${c.tin.ten}」 đã ngã xuống dưới tay Chưởng Môn. Đám đệ tử nhỏ bỏ cả chổi, chạy ùa ra cổng sơn môn nhìn về phía tây, hò reo tới khản giọng. Đêm ấy Diễn Võ Trường sáng đèn tới canh ba — đứa nào cũng muốn múa thêm vài đường.`,
+    [ { uy: 60 }, { khiVan: 2 }, { tamTinh: { n: 12, all: true } } ],
+    `Tin hạ 「${c.tin.ten}」 truyền về sơn môn — đệ tử nô nức luyện tập thâu đêm.`
+  ),
+};
+
+const X2 = {
+  id: 'X2', grp: 'X', kind: 'auto', han: '歸', title: 'Bí Cảnh Hồi Sơn', weight: 0, cdH: 14, chain: true,
+  cond: (t) => t.disciples.length > 0,
+  auto: (c) => G(
+    `Chưởng Môn từ 「${c.tin.ten}」 trở về, áo còn vương bụi cổ động. Đệ tử vây kín sân trước, đứa hỏi bên trong có gì, đứa đòi xem chiến lợi phẩm, đứa chỉ đứng nhìn không nói. Một đứa nhỏ nhất rụt rè: "Bao giờ con mới đi được ạ?" Cả sân cười ồ, nhưng đêm ấy cả sân cũng ngồi chép lại từng lời kể.`,
+    [ { uy: 35 }, { tamTinh: { n: 10, all: true } } ],
+    `Chưởng Môn hồi sơn từ 「${c.tin.ten}」 — đệ tử vây quanh nghe chuyện tới khuya.`
+  ),
+};
+
+const X3 = {
+  id: 'X3', grp: 'X', kind: 'auto', han: '名', title: 'Danh Chấn Giang Hồ', weight: 0, cdH: 40, chain: true,
+  cond: (t) => t.disciples.length > 0,
+  auto: (c) => G(
+    `Khách qua đường ghé sơn môn xin nước, buột miệng nhắc tới cái danh hiệu 「${c.tin.ten}」 mà giang hồ đang đồn. Đệ tử pha trà nghe được, tay run làm sánh cả ấm. Chẳng mấy chốc cả sơn môn biết chuyện. Bọn nhỏ đứng thẳng lưng hơn thường ngày — hoá ra cái tên mình theo học không phải hạng tầm thường.`,
+    [ { uy: 80 }, { khiVan: 3 }, { tamTinh: { n: 14, all: true } } ],
+    `Giang hồ đồn danh hiệu 「${c.tin.ten}」 của Chưởng Môn — môn hạ nở mày nở mặt.`
+  ),
+};
+
+const X4 = {
+  id: 'X4', grp: 'X', kind: 'auto', han: '劫', title: 'Đạo Tâm Tái Tạo', weight: 0, cdH: 60, chain: true,
+  cond: (t) => t.disciples.length > 0,
+  auto: (c) => G(
+    `Chưởng Môn bế quan mấy ngày, ra khỏi thạch thất thì cả người khác hẳn — cái nghề 「${c.tin.ten}」 phá đi luyện lại từ đầu. Trưởng bối trong môn thở dài bảo đó là gan trời. Đệ tử không hiểu hết, chỉ thấy sư phụ mình dám đập vỡ thứ đã dựng xong rồi dựng lại. Đêm đó có mấy đứa ngồi rất lâu trước ngọn đèn của chính mình.`,
+    [ { uy: 50 }, { khiVan: 4 }, { tamTinh: { n: 8, all: true } } ],
+    `Chưởng Môn trùng sinh 「${c.tin.ten}」 — môn hạ nhìn vào mà thấm cái giá của đạo tâm.`
+  ),
+};
+
 export const TM_EVENTS = [
   A1, A2, A3,
   B1, B2, B3,
@@ -1148,6 +1198,7 @@ export const TM_EVENTS = [
   E1, E2, E3, E4, E5,
   F1, F2, F3, F4,
   G1, H1,
+  X1, X2, X3, X4,
 ];
 
 export const TM_EVENT_BY_ID = TM_EVENTS.reduce((m, e) => { m[e.id] = e; return m; }, {});
