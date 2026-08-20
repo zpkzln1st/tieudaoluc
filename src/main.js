@@ -77,11 +77,11 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, donNguoiAnCu, conBaoLauCoNguoiMoi, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
 import { BICANH_BK_CHANCE, biCanhBkMaxTier } from './data/tongmon.js';   // Bí Kíp rơi từ Bí Cảnh -> bày được trong lưới Bảo Vật
-import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, thienKiepOf, kiepOdds, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_KEYS, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, BK_AUCTION_REFRESH_H, BK_MERGE_N, LICH_LUYEN_H, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, tamTinhOf, tamTinhTier, genDisciple } from './data/tongmon.js';
+import { REALMS, APT, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, buildCost, disciCap, aptHardCap, originLabelOf, originBioOf, SUB_STAGES, subStageName, subStageIndex, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, PILL_PHAM_KEYS, pillPham, thienKiepOf, kiepOdds, diploTier, diploNextMin, DIPLO_HOST_CD_H, DIPLO_GIFT_DIEM, BI_KIP, BI_KIP_KEYS, BI_KIP_BY_ID, BI_KIP_LOAI, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipSlotMax, BK_AUCTION_REFRESH_H, BK_MERGE_N, LICH_LUYEN_H, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, TAMMA_MAX, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, tamTinhOf, tamTinhTier, DANH_KHI_NGUONG, genDisciple } from './data/tongmon.js';
 import { TM_GRP, TM_EVENTS } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
@@ -1179,6 +1179,23 @@ const gameStore = {
   tmNhatKy(d) {
     void this._tick;
     return ((d && d.nhatKy) || []).map((n) => ({ khi: this.notifAgo(n.t), su: n.su || '', txt: n.txt || '' }));
+  },
+  // Danh Khí của một món Gia Bảo đang đeo. Trả null khi món đó chưa thức tỉnh.
+  tmDanhKhi(inst) {
+    void this._tick;
+    const so = danhKhiCua(this.tm, inst);
+    if (!so || !so.ten) return null;
+    return { ten: so.ten, tieuSu: so.tieuSu || '', doi: (so.doi || []).join(' → ') };
+  },
+  // Sổ Danh Khí đã thức tỉnh, mới nhất trước — vẽ ở Tổ Sư Điện.
+  get tmDanhKhiLuc() {
+    void this._tick;
+    return danhKhiDaThuc(this.tm).map((x) => ({
+      uid: x.uid, ten: x.ten, tieuSu: x.tieuSu || '',
+      doi: (x.doi || []).join(' → '),
+      tenDo: (this.ITEMS[x.gearId] || {}).name || '',
+      icon: this.ico(x.gearId, (this.ITEMS[x.gearId] || {}).icon),
+    }));
   },
   tmDaoTam(d) {
     void this._tick;
@@ -7153,6 +7170,24 @@ const gameStore = {
   devTmSetBuildings(lv) { const t = this.tm; if (!t) return; lv = Math.max(0, Math.floor(lv || 0)); Object.keys(BUILDINGS).forEach((k) => { t.buildings[k] = Math.max(t.buildings[k] || 0, lv); }); this.devSave(); this.showToast('Dev: mọi công trình ≥ Bậc ' + lv); },
   devTmAddDisciples(n) { const t = this.tm; if (!t) return; n = n || 3; for (let i = 0; i < n; i++) t.disciples.push(genDisciple()); this.devSave(); this.showToast('Dev: +' + n + ' đệ tử ngẫu nhiên'); },
   devTmRealmAll(realm) { const t = this.tm; if (!t) return; realm = Math.max(0, Math.min(9, Math.floor(realm || 0))); t.disciples.forEach((d) => { d.realm = Math.min(realm, disciCap(d)); d.xp = 0; d.breakReady = false; d.awaiting = false; }); this.devSave(); this.showToast('Dev: mọi đệ tử về ' + REALMS[realm].name); },
+  devTmBanGiaBao(n) {   // ban Gia Bảo ngẫu nhiên cho MỌI đệ tử (dựng cảnh Danh Khí)
+    const t = this.tm; if (!t) return;
+    const SLOT = ['vuKhi', 'mu', 'giap', 'dai', 'gang', 'trangSuc', 'nhan', 'giay'];
+    let dem = 0;
+    t.disciples.forEach((d) => {
+      for (let i = 0; i < (n || 1); i++) {
+        const slot = SLOT[i % SLOT.length];
+        const ids = GEAR_IDS.filter((id) => ((((this.ITEMS[id] || {}).equip) || {}).slot) === slot);
+        if (!ids.length) continue;
+        const inst = rollGearInstance(ids[Math.floor(Math.random() * ids.length)]);
+        if (!inst) continue;
+        addGearInstance(this.state, inst);
+        if (giftGear(this.state, d.uid, inst.uid, slot, (this.ITEMS[inst.gearId] || {}).name)) dem++;
+      }
+    });
+    this.devSave(); this._tick++; this.showToast('Dev: ban ' + dem + ' món Gia Bảo');
+  },
+  devTmDanhKhiEpThuc() { const n = danhKhiEpThuc(this.state); this.devSave(); this._tick++; this.showToast('Dev: ' + n + ' món thức tỉnh Danh Khí'); },
   devTmBreakReadyAll() { const t = this.tm; if (!t) return; let n = 0; t.disciples.forEach((d) => { if (!d.awaiting && !d.lichLuyenUntil && d.realm < disciCap(d)) { d.xp = 1; d.breakReady = true; n++; } }); this.devSave(); this.showToast('Dev: ' + n + ' đệ tử → Bình Cảnh (test đột phá)'); },
   devTmFinishTimers() { const n = now(), t = this.tm; if (!t) return; t.disciples.forEach((d) => { if (d.lichLuyenUntil) d.lichLuyenUntil = n - 1; if (d.linhNgoUntil) d.linhNgoUntil = n - 1; if (d.giangUntil) d.giangUntil = n - 1; }); (t.brewing || []).forEach((b) => { b.until = n - 1; }); ((t.duocVien || {}).plots || []).forEach((p) => { if (p) p.until = n - 1; }); this.devSave(); this.showToast('Dev: hoàn tất Lịch Luyện / Lĩnh Ngộ / Thính Giảng / Lò đan / Dược Viên'); },
   // ---- Dev: TIÊN MINH ----

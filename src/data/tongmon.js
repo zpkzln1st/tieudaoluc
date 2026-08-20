@@ -486,6 +486,46 @@ export const NHAT_KY_GIONG = {
 };// Giọng mặc định khi đệ tử chưa có tính cách nào khớp.
 export const NHAT_KY_GIONG_MAC = ['Ta gấp sổ lại, thổi tắt đèn.', 'Đêm còn dài, ta ngồi thêm một lát.'];
 
+// --- DANH KHÍ: món Gia Bảo ban đi ban lại qua nhiều đời đệ tử, uống đủ giai thoại thì THỨC TỈNH. ---
+// Thức tỉnh = có tên riêng + khung riêng + một dòng tiểu sử ở Tổ Sư Điện. Cosmetic THUẦN, 0 lực.
+// Sổ linh nằm ở TÔNG (`t.danhKhi[gearUid]`) chứ KHÔNG nằm trên món đồ — thu hồi về kho chính là
+// món đồ sạch trơn, không mang gì của nhánh phụ về main.
+export const DANH_KHI_NGUONG = 40;                       // linh phải uống đủ mới thức tỉnh
+export const DANH_KHI_MOC = {                            // mỗi mốc cho bao nhiêu linh
+  suKien: 2,        // chủ nhân là diễn viên một sự kiện
+  dotPha: 5,        // chủ nhân đột phá cảnh giới
+  cuongHoa: 3,      // rèn thêm một bậc ở Luyện Khí Các
+  truyenDoi: 8,     // được ban sang một đời đệ tử mới
+};
+export const DANH_KHI_SO_TOI_DA = 200;                   // trần số dòng trong sổ linh
+const DK_TRUOC = ['Tống', 'Trảm', 'Phá', 'Trấn', 'Vong', 'Tuyệt', 'Hàn', 'Lệ', 'Cửu', 'Thiên', 'Huyết', 'Tịch', 'Vô', 'Kinh'];
+const DK_SAU   = ['Hận', 'Nguyệt', 'Phong', 'Sương', 'Uyên', 'Minh', 'Ly', 'Ngân', 'Tuyền', 'Hồn', 'Ảnh', 'Lôi', 'Tuyết', 'Sinh'];
+function dkBam(s) { let h = 2166136261 >>> 0; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+// Tên TẤT ĐỊNH theo uid món đồ — cùng món thì muôn đời cùng một tên.
+export function danhKhiTen(gearUid) {
+  const h = dkBam(gearUid || '');
+  return DK_TRUOC[h % DK_TRUOC.length] + ' ' + DK_SAU[(h >>> 8) % DK_SAU.length];
+}
+// Một dòng tiểu sử TẤT ĐỊNH theo uid — 44 món cùng lúc thức tỉnh vẫn ra 44 câu khác nhau.
+const DK_SU_MOT = [
+  'Chưa rời tay {chu} một ngày nào.',
+  'Vào tay {chu} là nhận chủ, chưa từng đổi người.',
+  'Một đời chỉ theo một người, và người đó là {chu}.',
+  'Nằm im mấy chục năm trong kho, gặp {chu} mới chịu tỉnh.',
+];
+const DK_SU_NHIEU = [
+  'Qua tay {n} đời đệ tử, cuối cùng dừng lại ở {chu}.',
+  '{n} đời người cầm nó, mỗi đời để lại một vết trên cán.',
+  'Truyền qua {n} tay, tới {chu} thì nghe được tiếng chủ.',
+  'Chôn theo {n} lời hứa, {chu} là người cuối cùng nhắc lại.',
+];
+export function danhKhiTieuSu(soDoi, chuNhan, gearUid) {
+  const doi = Math.max(1, soDoi || 1);
+  const pool = doi <= 1 ? DK_SU_MOT : DK_SU_NHIEU;
+  const cau = pool[(dkBam(gearUid || chuNhan || '') >>> 13) % pool.length];
+  return cau.split('{chu}').join(chuNhan || 'người ấy').split('{n}').join(String(doi));
+}
+
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // CHỐT: giá 80 -> 400 Điểm. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
 export const TM_SHOP = [

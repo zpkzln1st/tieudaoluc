@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, TAM_TINH_NGUOI_H, TAM_TINH_TONE, tamTinhOf, tamTinhTier, tamTinhTocMul, NHAT_KY_CAP, NHAT_KY_MO, NHAT_KY_GIONG, NHAT_KY_GIONG_MAC, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, TAM_TINH_NGUOI_H, TAM_TINH_TONE, tamTinhOf, tamTinhTier, tamTinhTocMul, NHAT_KY_CAP, NHAT_KY_MO, NHAT_KY_GIONG, NHAT_KY_GIONG_MAC, DANH_KHI_NGUONG, DANH_KHI_MOC, DANH_KHI_SO_TOI_DA, danhKhiTen, danhKhiTieuSu, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { luanVo, luanVoCycle, luanVoMarginLabel, LOAI_CAT } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
@@ -60,6 +60,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.luanVo || typeof t.luanVo !== 'object') t.luanVo = {};             // record Luận Võ (uid -> {w,l}), side-only
   if (!t.diplomacy || typeof t.diplomacy !== 'object') t.diplomacy = { ties: {} };   // Đãi Khách Các: bang giao bot-sect (sectId -> {rep,lastVisit}), side-only
   if (!t.diplomacy.ties || typeof t.diplomacy.ties !== 'object') t.diplomacy.ties = {};
+  if (!t.danhKhi || typeof t.danhKhi !== 'object') t.danhKhi = {};                   // sổ linh Danh Khí (gearUid -> {linh,ten,at,doi[],tenDo}), cosmetic side-only
   if (!t.biKipBag || typeof t.biKipBag !== 'object') t.biKipBag = {};                 // Tàng Thư Lâu: kho bí kíp sở hữu (biKipId -> count), side-only
   if (!t.bkGranted) { t.bkGranted = true; ['bk_cobankiem', 'bk_badao', 'bk_thanhtam'].forEach((id) => { t.biKipBag[id] = (t.biKipBag[id] || 0) + 1; }); }   // tặng 3 bí kíp sơ khởi đầu (1 lần)
   if (!Array.isArray(t.brewing)) t.brewing = [];                                   // backfill lò luyện đan
@@ -124,6 +125,48 @@ function shiftTamTinh(t, ds, n) {
   return chip('Tâm tình · ' + bacMoi.name, bacMoi.color);
 }
 
+// ---- DANH KHÍ: rót "linh" vào mọi Gia Bảo đệ tử đang đeo; đủ ngưỡng thì THỨC TỈNH. ----
+// ⚠ Sổ nằm ở t.danhKhi theo uid món đồ, KHÔNG ghi gì lên chính món đồ — giữ nguyên cách ly.
+function danhKhiSo(t, inst) {
+  if (!t.danhKhi || typeof t.danhKhi !== 'object') t.danhKhi = {};
+  const uid = inst && inst.uid; if (!uid) return null;
+  return t.danhKhi[uid] || (t.danhKhi[uid] = { linh: 0, ten: '', at: 0, doi: [], tieuSu: '', gearId: inst.gearId || '' });
+}
+// Cắt bớt sổ khi quá dài: bỏ dòng CHƯA thức tỉnh và ít linh nhất trước.
+function danhKhiGonSo(t) {
+  const ks = Object.keys(t.danhKhi || {});
+  if (ks.length <= DANH_KHI_SO_TOI_DA) return;
+  ks.filter((k) => !t.danhKhi[k].ten)
+    .sort((a, b) => (t.danhKhi[a].linh || 0) - (t.danhKhi[b].linh || 0))
+    .slice(0, ks.length - DANH_KHI_SO_TOI_DA)
+    .forEach((k) => { delete t.danhKhi[k]; });
+}
+// Ghi tên một đời chủ vào gia phả món đồ (không ghi trùng liên tiếp).
+function danhKhiThemDoi(t, inst, tenChu) {
+  const so = danhKhiSo(t, inst); if (!so) return;
+  if (so.doi[so.doi.length - 1] !== tenChu) so.doi.push(tenChu);
+  if (so.doi.length > 12) so.doi.splice(0, so.doi.length - 12);
+}
+// Rót linh cho mọi Gia Bảo của MỘT đệ tử. Trả mảng chip cho món vừa thức tỉnh.
+function danhKhiRot(t, d, n) {
+  if (!d || !d.gear || !n) return [];
+  const chips = [];
+  for (const k in d.gear) {
+    const inst = d.gear[k]; if (!inst) continue;
+    const so = danhKhiSo(t, inst); if (!so || so.ten) continue;          // đã thức tỉnh thì thôi
+    so.linh = (so.linh || 0) + n;
+    if (so.linh < DANH_KHI_NGUONG) continue;
+    so.ten = danhKhiTen(inst.uid);
+    so.at = Date.now();
+    if (!so.doi.length) so.doi.push(d.name);
+    so.tieuSu = danhKhiTieuSu(so.doi.length, d.name, inst.uid);
+    chronicle(t, `器 Gia bảo thức tỉnh Danh Khí 「${so.ten}」 trong tay ${d.name}.`, inst.gearId);
+    chips.push(chip('Danh Khí · ' + so.ten, '#f5b942'));
+  }
+  danhKhiGonSo(t);
+  return chips;
+}
+
 // ---- NHẬT KÝ: đệ tử tự ghi một mẩu ngôi thứ nhất. Câu mở theo kết cục, câu sau theo tính cách. ----
 function ghiNhatKy(d, tone, tenSu, now, rnd) {
   if (!d) return;
@@ -162,7 +205,7 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
   // Kết cục sự kiện dội vào TÂM TÌNH của diễn viên, và mỗi đứa tự ghi một mẩu nhật ký.
   const ttChip = shiftTamTinh(t, cast, TAM_TINH_TONE[oc.tone] || 0);
   if (ttChip) chips.push(ttChip);
-  if ((cast || []).length) { const rnd = rngHam(state, 'tongMon'); for (const d of cast) ghiNhatKy(d, oc.tone, ev.title, now, rnd); }
+  if ((cast || []).length) { const rnd = rngHam(state, 'tongMon'); for (const d of cast) { ghiNhatKy(d, oc.tone, ev.title, now, rnd); chips.push(...danhKhiRot(t, d, DANH_KHI_MOC.suKien)); } }
   if (oc.chronicle) chronicle(t, oc.chronicle);
   t.events.seen = (t.events.seen || 0) + 1;
   return chips;
@@ -455,6 +498,7 @@ export function doBreakthrough(state, uid) {
     if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} phục một viên ${req.pillName}, đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
     else chronicle(t, `${d.name} phục một viên ${req.pillName}, đột phá ${REALMS[d.realm].name}!`);
     shiftTamTinh(t, [d], 25);
+    danhKhiRot(t, d, DANH_KHI_MOC.dotPha);
     ghiNhatKy(d, 'lanh', 'Đột Phá ' + REALMS[d.realm].name, Date.now(), rngHam(state, 'tongMon'));
     return { ok: true, msg: `${d.name} đột phá ${REALMS[d.realm].name}!`, realm: REALMS[d.realm].name };
   }
@@ -611,6 +655,20 @@ export function runLuanVo(state, aUid, bUid, nowMs) {
   chronicle(t, `Luận Võ Đường: ${a.name} tỉ thí ${b.name} — ${res.winnerName} ${luanVoMarginLabel(res.margin)}.`);
   return { ok: true, res, aWon, marginLabel: luanVoMarginLabel(res.margin) };
 }
+// ---- Đọc sổ Danh Khí: một món (theo uid) hoặc cả sổ đã thức tỉnh. ----
+// DEV: ép mọi Gia Bảo đang đeo uống đủ linh — xem Danh Khí ngay, khỏi chờ vài chục sự kiện.
+export function danhKhiEpThuc(state) {
+  const t = state.tongMon; if (!t) return 0;
+  let n = 0;
+  for (const d of (t.disciples || [])) n += danhKhiRot(t, d, DANH_KHI_NGUONG).length;
+  return n;
+}
+export function danhKhiCua(t, inst) { const uid = inst && inst.uid; if (!uid || !t || !t.danhKhi) return null; return t.danhKhi[uid] || null; }
+export function danhKhiDaThuc(t) {
+  const so = (t && t.danhKhi) || {};
+  return Object.keys(so).filter((k) => so[k].ten).map((k) => Object.assign({ uid: k }, so[k])).sort((a, b) => (b.at || 0) - (a.at || 0));
+}
+
 export function luanVoRecord(t, uid) { return (t && t.luanVo && t.luanVo[uid]) || { w: 0, l: 0 }; }
 
 // ---- ĐÃI KHÁCH CÁC: bang giao bot-sect (chỉ key sectId, KHÔNG đụng roster bot ở engine). Thưởng SIDE-ONLY (uy/mats/cosmetic). ----
@@ -696,6 +754,8 @@ export function giftGear(state, discipleUid, gearUid, slot, itemName) {
   const old = d.gear[slot];
   if (old) state.gearBag.push(old);              // thu hồi món cũ về kho
   d.gear[slot] = inst;
+  danhKhiThemDoi(t, inst, d.name);                 // ghi một đời chủ vào gia phả món đồ
+  danhKhiRot(t, d, DANH_KHI_MOC.truyenDoi);
   chronicle(t, itemName ? `Ban gia bảo 「${itemName}」 cho ${d.name}.` : `Ban gia bảo cho ${d.name}.`, inst.gearId);
   return true;
 }
@@ -722,6 +782,7 @@ export function enhanceGear(state, discipleUid, slot) {
   if ((state.currencies.honThach || 0) < step.honThach) return { ok: false, msg: `Thiếu Hồn Thạch (cần ${step.honThach}).` };
   t.mats[step.mat] -= step.matQty; state.currencies.honThach -= step.honThach;
   inst.tmPlus = cur + 1;
+  danhKhiRot(t, d, DANH_KHI_MOC.cuongHoa);
   return { ok: true, msg: `Cường hóa gia bảo → +${inst.tmPlus}`, plus: inst.tmPlus };
 }
 
