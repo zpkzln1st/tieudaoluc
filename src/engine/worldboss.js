@@ -39,9 +39,20 @@ export function ensureBoss(state) {
 }
 export const BOSS_HEAL_MS = 180000;               // dưỡng thương 3 phút sau khi bại trận (hoặc item — sau)
 
-// Ngũ hành hiện tại của boss (roll + lưu nếu chưa có).
+/**
+ * Ngũ hành của boss.
+ * ⚠⚠ DATA LÀ NGUỒN CHÂN LÝ. Cả 10 Yêu Vương đều khai `he` cố định trong `data/combat.js`.
+ *    Trước đây hàm này tự bốc rồi NHỚ VÀO BẢN LƯU, nên dù data có khai hệ thì bản lưu cũ vẫn giữ
+ *    hệ ngẫu nhiên cũ vĩnh viễn. Nay đọc data TRƯỚC, và dọn luôn ô nhớ cũ.
+ * ⚠ Vẫn giữ đường bốc ngẫu nhiên làm lối lùi cho con nào chưa khai hệ (boss sự kiện thêm sau).
+ */
 export function bossHe(state, bossId) {
   const b = ensureBoss(state);
+  const co = YEU_VUONG_BY_ID[bossId];
+  if (co && co.he && HE_LIST.includes(co.he)) {
+    if (b.he[bossId]) delete b.he[bossId];   // dọn hệ ngẫu nhiên mà bản lưu cũ còn giữ
+    return co.he;
+  }
   if (!b.he[bossId]) b.he[bossId] = HE_LIST[Math.floor(rng(state, 'yvHe') * HE_LIST.length)];
   return b.he[bossId];
 }
@@ -132,7 +143,7 @@ export function applyBossWin(state, bossId, now) {
   const reward = grantReward(state, boss, now);
   const b = ensureBoss(state);
   b.cd[bossId] = now + boss.wb.cdHours * 3600 * 1000;   // hồi sinh
-  delete b.he[bossId];                                  // lần sau đổi hệ
+  delete b.he[bossId];                                  // dọn ô nhớ; hệ nay đọc từ data, không đổi nữa
   b.queue[bossId] = false;                              // rời hàng đợi
   b.hp[bossId] = boss.hp;                               // GIẾT → hồi sinh lần sau MÁU ĐẦY
   b.healUntil = 0;                                      // thắng = không còn dưỡng thương (phòng thủ: không để mốc cũ chặn trận sau)

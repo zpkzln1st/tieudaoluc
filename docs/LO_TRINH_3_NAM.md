@@ -110,9 +110,39 @@ Cửa nào đòi cao hơn là cửa chết. Nay kẹp bằng `tranTuTru()`.
 ⛔ Ba dòng log Bí Cảnh dùng chữ **"ngươi"** — đã bỏ. Lời chiêu thức của boss thì giữ (lời NPC).
 Bài kiểm 15 mở rộng 49 → **69 mục**, kiểm chuẩn **13/13**. **Chạy lại `docs/SQL_CHONG_GIAN_LAN.sql`.**
 
-⚠ Còn tồn, chờ chốt: đường cong độ khó **không đơn điệu** — Thiên Cơ Lv92 (2,7% ở né thấp) khó hơn
-hẳn Thái Hư Lv100 (100%). Và **Chiến Lực không ảnh hưởng gì tới Bí Cảnh**: Chiến Lực 2.300 với
-202.298 cho 5.000/5.000 lượt trùng khít. Chỉ Cấp · Né · Tứ Trụ có việc.
+⚠ **Chiến Lực không ảnh hưởng gì tới Bí Cảnh**: Chiến Lực 2.300 với 202.298 cho 5.000/5.000 lượt
+trùng khít. Chỉ Cấp · Né (trần 0,35) · Tứ Trụ có việc. `power` chỉ để hiện lên màn.
+
+**4.1b Tune theo số đo — đợt 2026-08-20.** Chủ dự án chốt ba hướng.
+
+**Yêu Vương khai hệ CỐ ĐỊNH.** Trước đây không con nào khai `he` nên engine bốc ngẫu nhiên mỗi
+trận, dù bốn con đã mang sẵn ngũ hành trong tên. Đo: cùng bài Hỏa, boss Kim thắng 98–100% còn boss
+Hỏa thắng 0–22%. Nay hai con mỗi hệ, không hai con liền nhau trùng hệ:
+
+| Lv | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| hệ | kim | thủy | kim | mộc | thổ | mộc | hỏa | thổ | thủy | hỏa |
+
+⚠⚠ **Đổi data thôi là KHÔNG ăn.** `bossHe()` có đường bốc riêng và **nhớ kết quả vào bản lưu**
+(`state.boss.he[bossId]`), nên bản lưu cũ giữ hệ ngẫu nhiên cũ vĩnh viễn. Nay đọc data trước và dọn
+luôn ô nhớ cũ. Vẫn giữ lối lùi bốc ngẫu nhiên cho **12 Yêu Vương sự kiện** chưa khai hệ.
+
+**Thiên Cơ Di Tích Lv92 hạ xuống.** Nó có **ba tầng cửa** (`bay`·`coDuyen`·`bay`) mà không tầng nhẹ
+nào ⇒ ở đúng cấp cả ba đều hụt, mất không ~41% máu trước khi gặp boss. Nay còn hai tầng cửa, thêm
+`thuong` mở đầu và `kyNgo` — cùng hình dạng với Thái Hư.
+
+| build | trước | sau |
+|---|---|---|
+| né thấp | 2,5% | **21,4%** |
+| né giữa | 8,9% | **69,3%** |
+| né cao | 84,6% | **100%** (HP còn 11) |
+
+⚠ Vạn Yêu Sơn Lv85 vẫn 0% ở né thấp — nó không có tầng cửa nào, khó vì **2 tầng tinh anh + boss**.
+Đúng chủ đề "nhiều quái", và Né chính là thứ hoá giải. Để nguyên.
+⚠ Thái Hư Lv100 nay là phó bản **dễ nhất** trong bốn cái cuối (100% mọi build, HP còn 40) — hệ quả
+của việc kẹp trần Tứ Trụ ở 4.1a. Ở `req = 100` không còn dư địa cho tầng cửa làm khó. Chưa xử lý.
+
+Bài kiểm mới **48** `_check_yeuvuong.mjs` (13 mục, kiểm chuẩn **9/9**).
 
 **4.2 Tông Môn P2 · P3** — cờ `tongMonDrama`
 - Nhánh drama đệ tử, Bí Kíp BK1–BK5 đã thiết kế xong, chỉ chờ dựng.

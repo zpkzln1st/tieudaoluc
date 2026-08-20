@@ -159,7 +159,11 @@ export const DUNGEONS = [
     hazard: 'linhXao', hazardName: 'Cổ Trận Cơ Quan',
     lore: 'Di tích đại trận thất truyền, bánh răng đá quay giữa phù văn lưu quang.',
     mobs: ['Cơ Quan Thạch Nhân', 'Thủ Trận Đồng Vệ'], boss: 'Thiên Cơ Cổ Linh',
-    tangs: ['bay', 'coDuyen', 'hazard', 'tinhAnh', 'bay', 'boss'],
+    // ⚠ BA tang CUA (bay + coDuyen + bay) ma khong tang nhe nao: o dung cap thi ca ba deu hut
+    //   (bay doi req+2, coDuyen doi req+4) nen mat khong ~41% mau truoc khi gap boss. Do duoc:
+    //   2,5% / 8,9% / 84,6% thong quan — phong ban DUY NHAT khong qua noi o build ne toi da.
+    //   Nay con HAI tang cua, them 'thuong' mo dau va 'kyNgo' — cung hinh dang voi Thai Hu.
+    tangs: ['thuong', 'bay', 'coDuyen', 'hazard', 'tinhAnh', 'kyNgo', 'boss'],
     durMs: 170 * MIN, pace: 0.5152, cost: { bac: 8500, honThach: 55 },
     loot: {
       bac: [1800, 2800], exp: 3600, honThach: [36, 56],

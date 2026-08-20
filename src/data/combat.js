@@ -3,7 +3,9 @@
 // reqLevel = Chiến Đấu Lv đề xuất. exp = Chiến Đấu EXP/con. statXp = Tứ Trụ EXP/con.
 // loot = [{ itemId, chance }] roll mỗi con. NGŨ HÀNH yêu thú KHÔNG cố định:
 //   mỗi TRẬN roll ngẫu nhiên 1 trong Kim/Mộc/Thủy/Hỏa/Thổ (votong.js rollHe). affinity = loại yêu thú.
-//   (Boss có thể đặt `he:'<hệ>'` để cố định — hiện để ngẫu nhiên cho đồng nhất.)
+//   (Boss đặt `he:'<hệ>'` để cố định. ⚠ 10 Yêu Vương ĐỀU đã khai hệ: đo được cùng một bài Hỏa
+//    thì boss Kim thắng 98-100% còn boss Hỏa thắng 0-22% — để ngẫu nhiên là bắt người chơi chịu
+//    phương sai mà không làm gì được. Hai con mỗi hệ, không hai con liền nhau trùng hệ.)
 // ============================================================
 
 // ---- Bộ sinh chỉ số theo CẤP + DÁNG (cân bằng tập trung 1 chỗ — dễ chỉnh) ----
@@ -186,43 +188,43 @@ function eggDrops(base) {
   ];
 }
 export const YEU_VUONG = [
-  Object.assign(mk(10, 'boss', { id: 'yvBachHo', name: 'Bạch Ngạch Hổ Vương', gloss: 'White-Browed Tiger King', icon: '🐯', isBoss: true, affinity: 'Yêu Vương · Bạch Hổ',
+  Object.assign(mk(10, 'boss', { id: 'yvBachHo', he: 'kim', name: 'Bạch Ngạch Hổ Vương', gloss: 'White-Browed Tiger King', icon: '🐯', isBoss: true, affinity: 'Yêu Vương · Bạch Hổ',
     lore: 'Mãnh hổ trắng thống lĩnh sơn lâm, trên trán mang chữ Vương. Chỉ một tiếng gầm cũng đủ khiến trăm thú cúi phục.', atkFl: 'vồ tới cắn xé',
     skill: { name: 'Bạch Hổ Lăng Không', mult: 2.2, cd: 5, fl: 'tung mình lăng không, móng vuốt trắng loá xé gió bổ xuống' } }),
     { wb: { cdHours: 2,  tinhThe: 1, honThach: 20,  bac: 300,   eggBase: 'bachHo',     eggs: eggDrops('bachHo') } }),
-  Object.assign(mk(20, 'boss', { id: 'yvHuyenQuy', name: 'Hắc Giáp Huyền Quy', gloss: 'Black-Shell Dark Tortoise', icon: '🐢', isBoss: true, affinity: 'Yêu Vương · Huyền Quy',
+  Object.assign(mk(20, 'boss', { id: 'yvHuyenQuy', he: 'thuy', name: 'Hắc Giáp Huyền Quy', gloss: 'Black-Shell Dark Tortoise', icon: '🐢', isBoss: true, affinity: 'Yêu Vương · Huyền Quy',
     lore: 'Linh Quy nghìn năm có mai đen như sắt nguội, ẩn mình dưới đáy đầm sâu. Một khi trồi lên, sóng dữ có thể cuốn phăng cả thuyền bè.', atkFl: 'húc mai giáp',
     skill: { name: 'Huyền Vũ Trấn Ba', mult: 2.3, cd: 6, fl: 'thu mình trong mai đen rồi bùng nổ chấn ba, nước cuộn đá bay' } }),
     { wb: { cdHours: 3,  tinhThe: 1, honThach: 35,  bac: 600,   eggBase: 'huyenQuy',   eggs: eggDrops('huyenQuy') } }),
-  Object.assign(mk(30, 'boss', { id: 'yvHuyetLang', name: 'Huyết Lang Vương', gloss: 'Blood Wolf King', icon: '🐺', isBoss: true, affinity: 'Yêu Vương · Huyết Lang',
+  Object.assign(mk(30, 'boss', { id: 'yvHuyetLang', he: 'kim', name: 'Huyết Lang Vương', gloss: 'Blood Wolf King', icon: '🐺', isBoss: true, affinity: 'Yêu Vương · Huyết Lang',
     lore: 'Sói chúa khát máu trăm năm, lông đỏ như nhuộm máu, một tiếng tru làm muông thú quỳ rạp.', atkFl: 'lao tới cắn xé',
     skill: { name: 'Huyết Nguyệt Trảo', mult: 2.5, cd: 5, fl: 'vung trảo huyết quang xé toạc màn đêm' } }),
     { wb: { cdHours: 4,  tinhThe: 1, honThach: 60,  bac: 1200,  eggBase: 'huyetLang',  eggs: eggDrops('huyetLang') } }),
-  Object.assign(mk(40, 'boss', { id: 'yvCuHung', name: 'Hồng Hoang Cự Hùng', gloss: 'Primordial Giant Bear', icon: '🐻', isBoss: true, affinity: 'Yêu Vương · Cự Hùng',
+  Object.assign(mk(40, 'boss', { id: 'yvCuHung', he: 'moc', name: 'Hồng Hoang Cự Hùng', gloss: 'Primordial Giant Bear', icon: '🐻', isBoss: true, affinity: 'Yêu Vương · Cự Hùng',
     lore: 'Cự Hùng còn sót lại từ thời hồng hoang, thân cao như núi. Một chưởng đủ làm đất nứt đá vỡ, tiếng gầm khiến thú rừng phải co mình bỏ chạy.', atkFl: 'vung chưởng quật',
     skill: { name: 'Hồng Hoang Liệt Phách', mult: 2.6, cd: 6, fl: 'gầm vang trời rồi giáng song chưởng cuồng bạo nghiền nát tất thảy' } }),
     { wb: { cdHours: 5,  tinhThe: 1, honThach: 90,  bac: 2000,  eggBase: 'cuHung',     eggs: eggDrops('cuHung') } }),
-  Object.assign(mk(50, 'boss', { id: 'yvDocGiao', name: 'Độc Giao Vương', gloss: 'Venom Serpent King', icon: '🐍', isBoss: true, affinity: 'Yêu Vương · Độc Giao',
+  Object.assign(mk(50, 'boss', { id: 'yvDocGiao', he: 'tho', name: 'Độc Giao Vương', gloss: 'Venom Serpent King', icon: '🐍', isBoss: true, affinity: 'Yêu Vương · Độc Giao',
     lore: 'Giao long ngậm độc nghìn năm, mỗi hơi thở là một làn chướng khí làm cỏ cây héo rũ.', atkFl: 'phun độc vụ',
     skill: { name: 'Vạn Độc Triền Thân', mult: 2.7, cd: 6, fl: 'phun độc vụ xanh lè bủa vây tứ phía' } }),
     { wb: { cdHours: 6,  tinhThe: 1, honThach: 120, bac: 3000,  eggBase: 'docGiao',    eggs: eggDrops('docGiao') } }),
-  Object.assign(mk(60, 'boss', { id: 'yvLoiBang', name: 'Cửu Tiêu Lôi Bằng', gloss: 'Ninth-Heaven Thunder Roc', icon: '🦅', isBoss: true, affinity: 'Yêu Vương · Lôi Bằng',
+  Object.assign(mk(60, 'boss', { id: 'yvLoiBang', he: 'moc', name: 'Cửu Tiêu Lôi Bằng', gloss: 'Ninth-Heaven Thunder Roc', icon: '🦅', isBoss: true, affinity: 'Yêu Vương · Lôi Bằng',
     lore: 'Đại Bằng bay trên chín tầng mây, đôi cánh giương ra như che kín nhật nguyệt. Mỗi lần vỗ cánh, sấm sét nổi đầy trời, bóng lướt qua khiến vạn vật kinh động.', atkFl: 'bổ nhào tạt cánh',
     skill: { name: 'Cửu Tiêu Lôi Dực', mult: 2.8, cd: 6, fl: 'từ tầng mây bổ nhào, sải cánh kéo theo lôi đình giáng sấm rền' } }),
     { wb: { cdHours: 7,  tinhThe: 2, honThach: 170, bac: 4500,  eggBase: 'loiBang',    eggs: eggDrops('loiBang') } }),
-  Object.assign(mk(70, 'boss', { id: 'yvHoaLan', name: 'Hỏa Lân Yêu Vương', gloss: 'Flame Qilin King', icon: '🦁', isBoss: true, affinity: 'Yêu Vương · Hỏa Lân',
+  Object.assign(mk(70, 'boss', { id: 'yvHoaLan', he: 'hoa', name: 'Hỏa Lân Yêu Vương', gloss: 'Flame Qilin King', icon: '🦁', isBoss: true, affinity: 'Yêu Vương · Hỏa Lân',
     lore: 'Kỳ lân lửa giáng thế, vảy đỏ rực như than hồng, vó giẫm tới đâu đất nứt phun nham tới đó.', atkFl: 'phun cuồng diễm',
     skill: { name: 'Phần Thiên Lân Hỏa', mult: 2.9, cd: 6, fl: 'cuồng diễm hoá biển lửa thiêu rụi tám phương' } }),
     { wb: { cdHours: 8,  tinhThe: 2, honThach: 220, bac: 6000,  eggBase: 'hoaLan',     eggs: eggDrops('hoaLan') } }),
-  Object.assign(mk(80, 'boss', { id: 'yvHoYeu', name: 'Mị Ảnh Hồ Yêu', gloss: 'Charm-Shadow Fox Demon', icon: '🦊', isBoss: true, affinity: 'Yêu Vương · Hồ Yêu',
+  Object.assign(mk(80, 'boss', { id: 'yvHoYeu', he: 'tho', name: 'Mị Ảnh Hồ Yêu', gloss: 'Charm-Shadow Fox Demon', icon: '🦊', isBoss: true, affinity: 'Yêu Vương · Hồ Yêu',
     lore: 'Hồ ly chín đuôi tu luyện ngàn năm, hóa thành mị nữ. Hồ quang lập lòe mê hoặc tâm trí, chỉ một ánh nhìn cũng đủ khiến người thường mất hồn.', atkFl: 'phất đuôi mê hoặc',
     skill: { name: 'Cửu Vĩ Mị Hoặc', mult: 3.0, cd: 6, fl: 'chín đuôi xòe rộng toả hồ quang yêu mị, nhiếp hồn đoạt phách' } }),
     { wb: { cdHours: 9,  tinhThe: 2, honThach: 280, bac: 7500,  eggBase: 'hoYeu',      eggs: eggDrops('hoYeu') } }),
-  Object.assign(mk(90, 'boss', { id: 'yvBangPhuong', name: 'Băng Phách Yêu Hậu', gloss: 'Frost Phoenix Empress', icon: '🦅', isBoss: true, affinity: 'Yêu Vương · Băng Phượng',
+  Object.assign(mk(90, 'boss', { id: 'yvBangPhuong', he: 'thuy', name: 'Băng Phách Yêu Hậu', gloss: 'Frost Phoenix Empress', icon: '🦅', isBoss: true, affinity: 'Yêu Vương · Băng Phượng',
     lore: 'Phượng Hoàng Băng Phách ngự trên đỉnh tuyết vạn năm. Chỉ một lần vỗ cánh, hàn khí đã đủ đóng băng cả một vùng trời đất.', atkFl: 'quạt cánh băng',
     skill: { name: 'Cửu Thiên Hàn Vũ', mult: 3.0, cd: 6, slow: true, fl: 'rải vũ băng phủ trắng chiến trường, vạn vật ngưng đọng' } }),
     { wb: { cdHours: 10, tinhThe: 2, honThach: 360, bac: 9000,  eggBase: 'bangPhuong', eggs: eggDrops('bangPhuong') } }),
-  Object.assign(mk(100, 'boss', { id: 'yvThienMa', name: 'Thiên Ma Yêu Đế', gloss: 'Heaven Demon Emperor', icon: '😈', isBoss: true, affinity: 'Yêu Vương · Thiên Ma',
+  Object.assign(mk(100, 'boss', { id: 'yvThienMa', he: 'hoa', name: 'Thiên Ma Yêu Đế', gloss: 'Heaven Demon Emperor', icon: '😈', isBoss: true, affinity: 'Yêu Vương · Thiên Ma',
     lore: 'Yêu Đế thống lĩnh vạn yêu, ma khí ngút trời che lấp nhật nguyệt; là kẻ thù tối hậu của giang hồ.', atkFl: 'giáng ma uy',
     skill: { name: 'Thiên Ma Diệt Thế', mult: 3.2, cd: 6, fl: 'ma viêm huỷ thiên diệt địa nuốt trọn tất thảy' } }),
     { wb: { cdHours: 12, tinhThe: 3, honThach: 600, bac: 15000, eggBase: 'thienMa',    eggs: eggDrops('thienMa') } }),
