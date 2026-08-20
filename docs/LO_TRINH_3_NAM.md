@@ -231,8 +231,49 @@ bộ art phó bản sẵn có, công tắc và dải báo đều là khuôn `.dd
   `docs/SQL_LENH_BAI_9.sql`.
 - Thiết kế + số: [THIET_KE_THINH_KINH.md](THIET_KE_THINH_KINH.md) · art: [ART_THINH_KINH.md](ART_THINH_KINH.md).
 
-**4.5 Vạn Vật Phổ chốt số** — cờ `phoLuc`
-- Số thưởng đang là placeholder. Chốt xong mới bật.
+**4.5 Vạn Vật Phổ chốt số** — cờ `phoLuc` · **ĐÃ CHỐT 2026-08-20**
+Đo thật: **7 phổ** (tài liệu cũ ghi 5), **417 ô**. Số cũ hỏng theo **hai chiều cùng lúc**.
+
+| chỉ số | Vạn Vật Phổ chiếm ngân sách sức mạnh (trước) |
+|---|---|
+| Công · Thủ · Sinh Lực | **58–59%** |
+| Né Tránh | **78%** |
+
+Lớn hơn **bốn nguồn kia cộng lại** 1,37–1,43 lần. Mà phân bổ còn hỏng nặng hơn: bốn phổ ngưỡng = 1
+tự chúng cho `allPct` **+35%** gần như miễn phí, còn Vật Phẩm + Yêu Thú đòi **5,55 năm** ở trần
+14 giờ/ngày (neo dự án: 577 giờ cho trọn hành trình lên cấp 100).
+
+**Chốt: cắt sâu + đổi hình đường thưởng.** Thay mốc "trọn bộ" bằng **thang mốc 25/50/75/100%**.
+
+| | trước | sau |
+|---|---|---|
+| atkPct | +9,90% | **+4,95%** |
+| defPct | +26,60% | **+9,87%** |
+| hpPct | +15,60% | **+6,85%** |
+| allPct | +56,60% | **+16,30%** |
+| xong 75% mọi phổ cầm được | 20% | **68%** |
+| xong 90% | 23% | **85%** |
+| ngưỡng Vật Phẩm | 10.000 | **500** |
+| ngưỡng Bí Cảnh | 100 | **50** |
+
+Ngang hàng Đan Điền trọn lưới (+27,4%). `codexBonus()` chạy thật khớp đúng bảng.
+
+**Bốn lỗi im lặng đã vá:**
+- **19 ô bất khả** trong Vật Phẩm Phổ (18 ô Đồ Phổ `dpset_`/`dpchieu_` mang type `'khac'` lọt vào
+  `VATPHAM_TYPES` mà engine cố ý không thả bản đã có, cộng `khoangPhuLinhThach` không có đường thả
+  nào) ⇒ mốc 100% vĩnh viễn không ai chạm. **156 → 137 ô.**
+- **Danh Sĩ Phổ khoá vĩnh viễn** khi danh sĩ tạ thế: truyền nhân mang id `<gốc>:g1` mà ô phổ đòi id
+  gốc. 13/20 tạ thế trong ba năm. Nay `openDanhSi` ghi **id GỐC**.
+- `MANH_SOURCE` vẫn mời người chơi đi cày **quái Lv 90+** — lối đã đóng từ 03-08.
+- Modal Hiệu Ứng in **"+0%"** trong khi header in "+0,4%" (`Math.round` nuốt số nhỏ).
+
+⚠ Neo Mảnh cũ SAI: tài liệu ghi "420 Mảnh = 26 ngày" (đòi 16,15 Mảnh/ngày) mà trần đo được chỉ
+**13,00 Mảnh/ngày** ⇒ trọn Bách Trang Các là **498 ngày**, không phải 286. Đã sửa theo số đo.
+⚠ Cờ `phoLuc` là **công tắc chết** — không chỗ nào đọc `moChua('phoLuc')`. Nhưng chết trung thực:
+`daDung: false` khớp thực tế nên bài kiểm 43 vẫn xanh. Màn Vạn Vật Phổ **mở cho mọi người**, nên
+chốt số ở đây là thay đổi người chơi NHÌN THẤY.
+⚠ **THIẾU ART: `images/enemies/batDietKimCang.webp`** — 416/417 ô còn lại đều có art thật.
+Trang soi mới `_mockup/_vanvatpho_probe.html` (8 phép đo trong game thật).
 
 ## 5. Năm thứ hai — người chơi gặp nhau
 

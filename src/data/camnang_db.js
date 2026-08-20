@@ -810,12 +810,16 @@ export const CN_DB = [
     hang: () => CODEX_CATS.map((c) => ({
       id: c.key, ten: c.name, dv: NHAN_DEM[c.key] || ('Số lần ' + (c.unit || 'ghi nhận')),
       muc: c.total || (c.entries || []).length,
-      le: (c.per || {}).label || '—', bo: (c.set || {}).label || '—', _c: c,
+      // ⚠ `set` cũ đã thay bằng thang `moc` (25/50/75/100%). Cột này hiện nấc CAO NHẤT.
+      le: (c.per || {}).label || '—',
+      bo: c.moc ? ('+' + (((c.moc.thang || []).slice(-1)[0] || 0) * 100).toFixed(1).replace('.', ',') + '% mọi chỉ số') : '—',
+      _c: c,
     })),
     chiTiet: (h) => [
       ['bang', ['Mục', 'Giá trị'], [
         ['Đếm theo', h.dv], ['Số mục', so(h.muc)],
-        ['Cộng mỗi mục', h.le], ['Đủ bộ', h.bo],
+        ['Cộng mỗi mục', h.le], ['Mốc 100%', h.bo],
+        ...(h._c.moc ? [['Thang mốc 25/50/75/100%', (h._c.moc.thang || []).map((v) => '+' + (v * 100).toFixed(1).replace('.', ',') + '%').join(' · ')]] : []),
         ...(h._c.threshold ? [['Ngưỡng đầy một mục', so(h._c.threshold)]] : []),
       ]],
       ...((h._c.groups || []).length ? [['h', 'Nhóm'],

@@ -401,7 +401,10 @@ export const KIM_QUANG_IDS = GEAR_IDS.filter((id) => ((GEAR[id].equip) || {}).se
 const MANH_COST = 60;
 // Nguồn Mảnh — CHUNG cho cả 11 bộ. Màn Bách Trang Các đọc chuỗi này; sửa nguồn rơi ở
 // engine/activity.js · engine/dungeon.js · engine/worldboss.js thì phải sửa luôn câu này.
-const MANH_SOURCE = 'quái Lv 90+ · thông quan Bí Cảnh · Yêu Vương Lv 90+';
+// ⚠ Lối cày quái ĐÃ ĐÓNG (2026-08-03) — đừng mời người chơi đi cày chỗ không còn rơi nữa.
+//   Trần đo được: 13,00 Mảnh/ngày (Yêu Vương Lv 90+ 8,80 + Bí Cảnh 4,20) ⇒ trọn một bộ 420 Mảnh
+//   là 498 ngày, không phải 286 như ghi chép cũ.
+const MANH_SOURCE = 'thông quan Bí Cảnh · Yêu Vương Lv 90+';
 // Bí Cảnh "nhà" của từng bộ — Đồ Phổ Bộ rơi ở đây (data/dungeon.js loot.rare). Ghép theo HỆ:
 // mỗi phó bản hệ nào giữ đúng 2 bộ hệ đó. Bảng rơi THẬT nằm ở dungeon.js — bảng này chỉ dựng chữ
 // cho màn Bách Trang Các. SỬA MỘT BÊN PHẢI SỬA BÊN KIA, lệch nhau là chỉ người chơi chạy sai chỗ.

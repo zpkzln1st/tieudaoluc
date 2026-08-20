@@ -763,9 +763,11 @@ export const CN_MUC = [
     id: 'vanvat', nhom: 'suutap', ten: 'Vạn Vật Phổ',
     tom: sn(n(CODEX_CATS)) + ' phổ sưu tập.',
     khoi: [
-      ['p', 'Khi gặp một thực thể lần đầu, hệ thống sẽ tự ghi vào Phổ tương ứng. Phổ cộng chỉ số theo hai cách: cộng dần theo số lượng và cộng thêm khi hoàn thành bộ.'],
-      ['bang', ['Phổ', 'Đếm theo', 'Số mục', 'Đủ bộ'],
-        CODEX_CATS.map((c) => [c.name, c.unit || '—', sn(c.total || (c.entries || []).length), (c.set || {}).label || '—'])],
+      ['p', 'Khi gặp một thực thể lần đầu, hệ thống sẽ tự ghi vào Phổ tương ứng. Phổ cộng chỉ số theo hai cách: cộng dần theo từng mục, và cộng thêm ở bốn mốc tiến độ 25 · 50 · 75 · 100%.'],
+      // ⚠ `set` cũ đã thay bằng thang `moc`. Cột này hiện nấc CAO NHẤT (mốc 100%).
+      ['bang', ['Phổ', 'Đếm theo', 'Số mục', 'Mốc 100%'],
+        CODEX_CATS.map((c) => [c.name, c.unit || '—', sn(c.total || (c.entries || []).length),
+          c.moc ? ('+' + (((c.moc.thang || []).slice(-1)[0] || 0) * 100).toFixed(1).replace('.', ',') + '% mọi chỉ số') : '—'])],
     ],
   },
   {

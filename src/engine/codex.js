@@ -60,6 +60,9 @@ export function codexCatDone(state, cat) {
 // Phổ Lực là bonus VĨNH VIỄN, trễ dưới một giây thì không ai thấy — còn đi đếm cho đủ sáu chỗ
 // ghi (addItem · kho trang bị · bộ đếm hạ gục · linh thú · bí cảnh · danh sĩ) thì sót một chỗ là
 // chỉ số đứng hình cho tới lần ghi sau, tệ hơn nhiều.
+/** Bốn mốc tiến độ của thang mốc. Đổi chỗ này là đổi cả bảy phổ. */
+export const MOC_TIEN_DO = [0.25, 0.5, 0.75, 1];
+
 const CB_HAN = 1000;
 let _cbVal = null, _cbMoc = 0, _cbState = null;
 export function codexBonus(state) {
@@ -70,7 +73,18 @@ export function codexBonus(state) {
   for (const cat of CODEX_CATS) {
     const done = codexCatDone(state, cat);
     if (done > 0 && cat.per && out[cat.per.field] != null) out[cat.per.field] += cat.per.val * done;
-    if (done >= cat.entries.length && cat.set && out[cat.set.field] != null) out[cat.set.field] += cat.set.val;
+    // ⚠⚠ THANG MỐC thay cho mốc "trọn bộ". `thang` là giá trị CỘNG DỒN tại 25/50/75/100% số ô —
+    //    lấy mốc CAO NHẤT đã đạt, KHÔNG cộng nhiều mốc.
+    //    Vì sao đổi: đo được 74% phần thưởng dồn vào mốc 100%, nên xong 90% mọi phổ người chơi chỉ
+    //    cầm 23%. Đường thưởng dựng đứng đúng ở chặng bất khả.
+    if (cat.moc && out[cat.moc.field] != null && (cat.entries || []).length) {
+      const ti = done / cat.entries.length;
+      let them = 0;
+      for (let i = 0; i < MOC_TIEN_DO.length; i++) {
+        if (ti >= MOC_TIEN_DO[i] - 1e-9) them = (cat.moc.thang || [])[i] || them;
+      }
+      out[cat.moc.field] += them;
+    }
   }
   _cbVal = out; _cbMoc = t; _cbState = state;
   return out;

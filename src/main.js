@@ -65,7 +65,7 @@ import { addItem, removeItem, countItem } from './engine/inventory.js';
 import { derivedStats, combatExpMult } from './engine/stats.js';
 import { equippedSetCount, isSetPieceInst, SET_QUALITY, SET_TIERS, SET_PCT_KEYS, SET_ELE_KEY, SET_MISC_KEYS } from './engine/setbonus.js';
 import { CODEX_CATS, CODEX_BY_KEY } from './data/codex.js';
-import { ensureCodex, codexCount, codexCatDone, codexBonus } from './engine/codex.js';
+import { ensureCodex, codexCount, codexCatDone, codexBonus, MOC_TIEN_DO } from './engine/codex.js';
 import { enhanceMul, enhanceStep, canEnhance, tryEnhance, MAX_PLUS } from './engine/enhance.js';
 import { equipItem, unequipItem, addGearInstance, removeGearByUid, findGear } from './engine/equip.js';
 import { TITLES, TITLE_BY_ID, TITLE_LOAI, titleBonusText } from './data/titles.js';
@@ -3067,10 +3067,13 @@ const gameStore = {
     if (tt) { const txt = titleBonusText(tt); if (tt.bonus) Object.keys(tt.bonus).forEach((k) => addPct(k, tt.bonus[k], '號', '#f5b942')); passive.push({ seal: '號', color: '#f5b942', name: 'Danh Hiệu · ' + tt.name, lines: txt ? txt.split(' · ') : ['Vinh danh giang hồ'] }); }
     // Vạn Vật Phổ (codex Phổ Lực, % → tổng lực + thẻ)
     const cb = codexBonus(this.state), cbLines = [];
-    if (cb.allPct) cbLines.push('+' + Math.round(cb.allPct * 100) + '% Toàn chỉ số');
-    if (cb.atkPct) cbLines.push('+' + Math.round(cb.atkPct * 100) + '% Công Kích');
-    if (cb.defPct) cbLines.push('+' + Math.round(cb.defPct * 100) + '% Phòng Ngự');
-    if (cb.hpPct) cbLines.push('+' + Math.round(cb.hpPct * 100) + '% Sinh Lực');
+    // ⚠ `Math.round(x*100)` NUỐT số nhỏ: 0,4% in ra "+0%" trong khi header cùng game in "+0,4%" —
+    //   hai chỗ nói hai số. Giữ một chữ số thập phân, bỏ đuôi ",0" cho số tròn.
+    const pct1 = (v) => { const s = (v * 100).toFixed(1); return (s.endsWith('.0') ? s.slice(0, -2) : s).replace('.', ','); };
+    if (cb.allPct) cbLines.push('+' + pct1(cb.allPct) + '% Toàn chỉ số');
+    if (cb.atkPct) cbLines.push('+' + pct1(cb.atkPct) + '% Công Kích');
+    if (cb.defPct) cbLines.push('+' + pct1(cb.defPct) + '% Phòng Ngự');
+    if (cb.hpPct) cbLines.push('+' + pct1(cb.hpPct) + '% Sinh Lực');
     ['allPct', 'atkPct', 'defPct', 'hpPct'].forEach((k) => addPct(k, cb[k], '譜', '#a78bfa'));
     if (cbLines.length) passive.push({ seal: '譜', color: '#a78bfa', name: 'Vạn Vật Phổ', lines: cbLines });
     // Nghề đã học — GỘP thành 1 thẻ (mỗi nghề +EXP/+Hiệu Suất cho kỹ năng tương ứng, KHÔNG gộp vào tổng lực)
@@ -4339,7 +4342,18 @@ const gameStore = {
   // ===== DANH SĨ GIANG HỒ (20 deep AI, lazy-sim) =====
   dsSel: null,
   get danhSiBang() { void this._tick; return danhSiList(now()); },
-  openDanhSi(id) { this.dsSel = id; const s = this._ensureDanhSiState(); if (id && !s.seen.includes(id)) { s.seen.push(id); this.tmSave(); } },   // đánh dấu đã khám phá (Danh Sĩ Lục)
+  /**
+   * Đánh dấu đã khám phá (Danh Sĩ Lục).
+   * ⚠⚠ GHI ID GỐC, không ghi id truyền nhân. Truyền nhân mang id `<gốc>:g1` (`engine/danhsi.js`),
+   *    mà ô Vạn Vật Phổ đối chiếu id GỐC (`engine/codex.js`). Ghi thẳng id truyền nhân là ô phổ
+   *    KHÔNG BAO GIỜ đầy — 13/20 danh sĩ tạ thế trong ba năm lộ trình, nên mốc 100% thành bất khả.
+   */
+  openDanhSi(id) {
+    this.dsSel = id;
+    const s = this._ensureDanhSiState();
+    const goc = String(id || '').split(':')[0];
+    if (goc && !s.seen.includes(goc)) { s.seen.push(goc); this.tmSave(); }
+  },
   closeDanhSi() { this.dsSel = null; },
   // DANH SĨ LỤC: codex sưu tập 20 danh sĩ (đã khám phá / chưa), trạng thái truyền nhân.
   // KỲ NGỘ / BÁI SƯ / TRUY NÃ: lời mời player-facing của danh sĩ đang xem (nhận 1 lần, persist state.danhSi.accepted).
@@ -5226,6 +5240,25 @@ const gameStore = {
   codexCnt(catKey, id) { return codexCount(this.state, catKey, id); },
   codexEntryState(cat, e) { const c = codexCount(this.state, cat.key, e.id); return c >= cat.threshold ? 'done' : (c > 0 ? 'prog' : 'locked'); },
   codexEntryPct(cat, e) { return Math.min(100, Math.round(codexCount(this.state, cat.key, e.id) / cat.threshold * 100)); },
+  /**
+   * THANG MỐC của một phổ: bốn nấc 25/50/75/100% số ô.
+   * ⚠ Thay cho mốc "trọn bộ" cũ. Đo được 74% phần thưởng từng dồn vào mốc 100%, mà mốc ấy lại là
+   *   chặng bất khả — xong 90% mọi phổ người chơi chỉ cầm 23%.
+   */
+  codexMocDs(cat) {
+    if (!cat || !cat.moc) return [];
+    const n = (cat.entries || []).length || 1, done = this.codexCatDoneN(cat);
+    return MOC_TIEN_DO.map((ti, i) => ({
+      ti, can: Math.ceil(n * ti),
+      val: (cat.moc.thang || [])[i] || 0,
+      dat: done >= Math.ceil(n * ti),
+    }));
+  },
+  /** Bonus mốc ĐANG cầm (nấc cao nhất đã đạt). */
+  codexMocDangCam(cat) {
+    const ds = this.codexMocDs(cat).filter((m) => m.dat);
+    return ds.length ? ds[ds.length - 1].val : 0;
+  },
   codexCatDoneN(cat) { return codexCatDone(this.state, cat); },
   codexGroupDone(cat, grp) { let n = 0; for (const e of grp.entries) if (codexCount(this.state, cat.key, e.id) >= cat.threshold) n++; return n; },
   get codexTotalDone() { return CODEX_CATS.reduce((a, c) => a + codexCatDone(this.state, c), 0); },

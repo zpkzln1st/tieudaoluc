@@ -6004,9 +6004,17 @@
           <div class="rounded-lg border-2 p-3 flex items-center gap-3" :class="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length ? 'border-amber-400/70 bg-amber-950/20' : 'border-slate-700/70 bg-ink2/50'">
             <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :class="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length ? 'bg-amber-500/20 text-amber-300' : 'bg-ink3 text-slate-500'" x-html="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length ? g.svg('star','w-5 h-5') : g.svg('lock','w-5 h-5')"></div>
             <div class="flex-1 min-w-0">
-              <div class="text-[10px] uppercase tracking-wider text-slate-500">Thưởng trọn bộ</div>
-              <div class="text-[13.5px] font-semibold" :class="g.codexCatDoneN(g.codexCat)>=g.codexCat.entries.length?'text-amber-200':'text-slate-300'" x-text="g.codexCat.setLabel"></div>
-              <div class="text-[10px] text-slate-500 mt-0.5">Mỗi mục đạt <b class="text-slate-400" x-text="g.fmt(g.codexCat.threshold)+' '+g.codexCat.unit"></b> là thu lục đủ (<span x-text="g.codexCat.per.label"></span>).</div>
+              <div class="text-[10px] uppercase tracking-wider text-slate-500">Thưởng theo mốc</div>
+              <!-- ⚠ Bốn nấc 25/50/75/100%. Nấc đã đạt tô vàng, nấc chưa tới để xám — người chơi
+                   nhìn là biết còn bao xa, thay vì chỉ thấy một mốc "trọn bộ" xa tít. -->
+              <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                <template x-for="(m,i) in g.codexMocDs(g.codexCat)" :key="i">
+                  <span class="text-[11px] px-1.5 py-0.5 rounded border"
+                    :class="m.dat ? 'text-amber-200 border-amber-500/50 bg-amber-500/10' : 'text-slate-500 border-slate-700'"
+                    x-text="Math.round(m.ti*100)+'% → +'+(m.val*100).toFixed(1).replace('.',',')+'%'"></span>
+                </template>
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1">Mỗi mục đạt <b class="text-slate-400" x-text="g.fmt(g.codexCat.threshold)+' '+g.codexCat.unit"></b> là thu lục đủ (<span x-text="g.codexCat.per.label"></span>). Mốc cộng <b class="text-slate-400">mọi chỉ số</b>, lấy nấc cao nhất.</div>
             </div>
             <div class="text-right shrink-0">
               <div class="text-[11px] text-slate-400" x-text="g.codexCatDoneN(g.codexCat)+'/'+g.codexCat.entries.length"></div>
