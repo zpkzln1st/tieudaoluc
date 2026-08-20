@@ -183,7 +183,19 @@ Bài kiểm 15 lên **95 mục**, kiểm chuẩn **28/28**. Không cần art m�
 bộ art phó bản sẵn có, công tắc và dải báo đều là khuôn `.dd-dai` / `.dd-tip` đã có.
 
 **4.2 Tông Môn P2 · P3** — cờ `tongMonDrama`
-- Nhánh drama đệ tử, Bí Kíp BK1–BK5 đã thiết kế xong, chỉ chờ dựng.
+- ~~Nhánh drama đệ tử~~ **ĐÃ DỰNG, ĐANG NGỦ.** Năm hệ của "Đợt 1" trong `docs/THIET_KE_TONGMON.md`:
+  - **Đạo Tâm** riêng từng đệ tử (trục Chính ↔ Trung Dung ↔ Tà). 39/53 nút sự kiện gắn `daoTam`.
+    Ngả về Tà thì tích Tâm Ma nhanh gấp 1,4 lần; ngả về Chính thì chậm còn 0,6.
+  - **Tâm Tình + Nhật Ký**: tâm tình dịch theo kết cục sự kiện rồi nguôi một nửa mỗi 24 giờ,
+    đổi tốc tu luyện ±8%. Nhật ký tự sinh ngôi thứ nhất, giữ 8 dòng gần nhất.
+  - **Danh Khí**: Gia Bảo uống đủ 40 "linh" thì thức tỉnh, có tên riêng + khung riêng + tiểu sử
+    ở Tổ Sư Điện. Sổ linh nằm ở tông, KHÔNG ghi lên món đồ — thu hồi về kho chính là đồ sạch trơn.
+  - **Phản Đồ quay lại**: hồ sơ chụp đủ bí kíp + Gia Bảo lúc phản, mỗi ngày lẩn trốn mạnh thêm 5%
+    (không quá gấp đôi). Lựa chọn "cử một đệ tử ra đơn đả độc đấu" ở D3 đánh THẬT ở Đài Tỉ Võ.
+  - **Tin Từ Giang Hồ** (nhóm X, 4 tin): hạ Yêu Vương · thông quan Bí Cảnh · mở khoá Danh Hiệu ·
+    Trùng Sinh. MỘT CHIỀU và thuần flavor — chỉ Uy Danh / Khí Vận / tâm tình, không gì về main.
+- ⚠ Dòng cũ ghi "Bí Kíp BK1–BK5 chỉ chờ dựng" là **SAI**: BK1→BK5 đã LIVE từ 2026-06-25.
+- Bật bằng Lệnh Bài, tab Tính Năng. Bài kiểm 49 `_check_tongmon_drama` (238 mục, kiểm chuẩn 44/44).
 
 **4.3 Bang Phái có ăn thua** — cờ `bangChien`
 - Bang Phái đã dựng lại lần bốn. Nay thêm tranh chấp giữa bang: mỗi tuần một mốc.
