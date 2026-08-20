@@ -420,6 +420,72 @@ export function daoTamTier(v) { let out = DAO_TAM_TIERS[0]; for (const x of DAO_
 // Tà tích Tâm Ma nhanh hơn, Chính chậm hơn: Tà Đạo tận cùng ×1,4 · Chính Đạo tận cùng ×0,6.
 export function daoTamTamMaMul(d) { return 1 - (daoTamOf(d) / DAO_TAM_BIEN) * 0.4; }
 
+// --- TÂM TÌNH: một trục hân hoan ↔ uất ức, tự nguội dần về Bình Thản khi không có chuyện gì. ---
+// Nguồn dịch: kết cục sự kiện (tone), đột phá, Giới Luật, Tâm Ma. Đổi tốc tu luyện ±8%.
+export const TAM_TINH_BIEN = 100;
+export const TAM_TINH_NGUOI_H = 24;                     // cứ 24 giờ nguôi đi một nửa
+export const TAM_TINH_TIERS = [
+  { min: -100, key: 'uatHan',   name: 'Uất Hận',    color: '#f43f5e' },
+  { min: -55,  key: 'uUat',     name: 'U Uất',      color: '#fb7185' },
+  { min: -18,  key: 'binhThan', name: 'Bình Thản',  color: '#94a3b8' },
+  { min: 19,   key: 'phanChan', name: 'Phấn Chấn',  color: '#34d399' },
+  { min: 56,   key: 'hanHoan',  name: 'Hân Hoan',   color: '#fbbf24' },
+];
+export function tamTinhOf(d) { const v = (d && d.tamTinh) || 0; return Math.max(-TAM_TINH_BIEN, Math.min(TAM_TINH_BIEN, v)); }
+export function tamTinhTier(v) { let out = TAM_TINH_TIERS[0]; for (const x of TAM_TINH_TIERS) if (v >= x.min) out = x; return out; }
+// Hân Hoan tận cùng ×1,08 · Uất Hận tận cùng ×0,92.
+export function tamTinhTocMul(d) { return 1 + (tamTinhOf(d) / TAM_TINH_BIEN) * 0.08; }
+// Độ dịch tâm tình theo KẾT CỤC sự kiện.
+export const TAM_TINH_TONE = { lanh: 18, trung: 0, du: -18 };
+
+// --- NHẬT KÝ: mỗi đệ tử tự ghi vài dòng ngôi thứ nhất sau chuyện lớn. Cosmetic thuần. ---
+export const NHAT_KY_CAP = 8;                            // giữ 8 dòng gần nhất
+// Câu MỞ theo kết cục. Câu SAU theo tính cách. Ghép hai câu = một mẩu nhật ký.
+export const NHAT_KY_MO = {
+  lanh: [
+    'Chuyện hôm nay xuôi hơn ta tưởng.',
+    'Đêm nay ta ngồi thiền mà khoé miệng cứ cong lên.',
+    'Sơn môn có chuyện mừng, ta cũng được thơm lây.',
+    'Việc thành rồi. Tay ta còn run.',
+    'Sư phụ gật đầu một cái, thế là đủ cho cả tháng.',
+    'Ta bước qua Diễn Võ Trường mà chân nhẹ tênh.',
+    'Hôm nay đáng để ghi lại.',
+  ],
+  trung: [
+    'Chuyện hôm nay chẳng ra lành cũng chẳng ra dữ.',
+    'Ta ngồi tới khuya mà vẫn chưa gọi được tên cảm giác này.',
+    'Sơn môn vẫn thế, chỉ trong lòng ta là khác đi một chút.',
+    'Rồi cũng qua. Chỉ là qua theo cách ta không ngờ.',
+    'Được một phần, mất một phần. Ta chưa tính xong.',
+    'Gió đổi chiều giữa chừng, ta đứng nhìn không nói gì.',
+    'Ghi vài dòng cho khỏi quên, chứ chưa hiểu để làm gì.',
+  ],
+  du: [
+    'Hôm nay là một ngày ta muốn quên.',
+    'Ta rửa tay ba lần mà vẫn thấy chưa sạch.',
+    'Sơn môn im ắng. Cái im ắng ấy nặng hơn tiếng quát.',
+    'Việc hỏng rồi. Ta ngồi trong bóng tối rất lâu.',
+    'Đèn tắt từ canh hai, ta vẫn chưa nhắm được mắt.',
+    'Có tiếng ai khóc phía Y Quán. Ta không dám sang.',
+    'Ta viết dòng này ba lần mới xong.',
+  ],
+};// Câu thứ hai — GIỌNG theo tính cách. Khoá phải trùng khít TRAITS (bài kiểm soi hai đầu).
+export const NHAT_KY_GIONG = {
+  'Lì Lợm':      ['Ngã thì đứng dậy, có gì đâu mà kể lể.', 'Đau thì đau, ta chưa lùi bước nào.'],
+  'Cao Ngạo':    ['Ta vốn đã biết trước, chẳng qua không buồn nói ra.', 'Đám ấy còn lâu mới hiểu ta đang nghĩ gì.'],
+  'Cần Mẫn':     ['Thôi, mai dậy sớm hơn một canh giờ là bù được.', 'Ta chép thêm ba lượt khẩu quyết rồi mới ngủ.'],
+  'Mưu Trí':     ['Ta ghi lại đây, sau này còn dùng tới.', 'Có một nước cờ ta còn giấu, chưa tới lúc lật.'],
+  'Hiếu Chiến':  ['Giá lúc đó ta cứ rút kiếm ra thì đã khác.', 'Tay ta ngứa lắm rồi, chỉ chờ một cái cớ.'],
+  'Nhân Hậu':    ['Chỉ mong không ai vì chuyện này mà khổ.', 'Ta để phần cơm cho đứa nhỏ gác cổng.'],
+  'Cô Độc':      ['Chẳng có ai để ta kể, nên ta kể với trang giấy này.', 'Cả sơn môn đông thế mà ta vẫn ngồi một mình.'],
+  'Phóng Khoáng':['Rượu còn nửa vò, uống nốt rồi ngủ.', 'Nghĩ nhiều tổn thọ, ta đi ngắm trăng đây.'],
+  'Thận Trọng':  ['Lần sau ta phải dò kỹ hơn một bước.', 'Ta soát lại ba lượt, vẫn thấy còn chỗ hở.'],
+  'Si Tình':     ['Không biết người ấy đêm nay có ngủ được không.', 'Ta giữ lại cái dây buộc tóc ấy, chẳng để làm gì.'],
+  'Cuồng Ngạo':  ['Cả sơn môn này rồi sẽ phải nhớ tên ta.', 'Trời có sập ta cũng đỡ được, huống chi chuyện này.'],
+  'Trượng Nghĩa':['Ơn thì ta trả, oán thì ta cũng không quên.', 'Ai đứng về phía ta, ta đứng về phía họ tới cùng.'],
+};// Giọng mặc định khi đệ tử chưa có tính cách nào khớp.
+export const NHAT_KY_GIONG_MAC = ['Ta gấp sổ lại, thổi tắt đèn.', 'Đêm còn dài, ta ngồi thêm một lát.'];
+
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // CHỐT: giá 80 -> 400 Điểm. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
 export const TM_SHOP = [
@@ -455,7 +521,8 @@ export function genDisciple(opt = {}, rnd) {
     he: opt.he || pick(HE_KEYS),
     traits, dream: pick(DREAMS), tamMa: pick(TAMMA),   // tamMa = LORE STRING (hiển thị) — KHÔNG phải số
     tamMaLv: 0, tamMaXp: 0,
-    daoTam: 0,                             // ĐẠO TÂM: −100 Tà .. +100 Chính. Chỉ sự kiện dịch được.                            // hệ Tâm Ma Kiếp (SỐ): tamMaLv = bậc tâm ma (mức độ), tamMaXp = tích lũy trong bậc (0..1)
+    daoTam: 0,                             // ĐẠO TÂM: −100 Tà .. +100 Chính. Chỉ sự kiện dịch được.
+    tamTinh: 0, nhatKy: [],                // TÂM TÌNH: −100 uất .. +100 hân hoan (tự nguôi) · NHẬT KÝ: dòng tự sinh, cosmetic                            // hệ Tâm Ma Kiếp (SỐ): tamMaLv = bậc tâm ma (mức độ), tamMaXp = tích lũy trong bậc (0..1)
     realm: 0, xp: 0, capBonus: 0, giangBonus: 0,   // capBonus: bậc trần được NÂNG (sự kiện + Giảng Đạo); giangBonus: phần đến TỪ Giảng Đạo (cap GIANG_MAX_BONUS)
     flags: {},                              // cờ do SỰ KIỆN gắn (daoLu/oanTham/tamMaSeed/biệt hiệu…) — side-only
     skills: [],                             // bí kíp đã LĨNH NGỘ (id BI_KIP) — side-only, cộng disciStats/Luận Võ/Uy

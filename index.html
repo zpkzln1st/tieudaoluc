@@ -9900,7 +9900,37 @@
                             <div class="text-[10.5px] text-slate-400 leading-snug">Ở lại làm cố vấn, truyền dạy hậu bối.</div></button>
                         </div>
                       </template>
-                      <div class="flex-1 min-h-0 rounded-lg border border-dashed border-slate-800 p-3 text-[11.5px] text-slate-600 italic flex items-center justify-center text-center">… chỗ cho nội dung tương lai (kỹ năng · quan hệ · nhật ký tu luyện)</div>
+                      <div class="flex-1 min-h-0 rounded-lg bg-ink2/40 border border-slate-800/60 p-3 flex flex-col">
+                        <div class="flex items-center justify-between gap-2 mb-1.5 shrink-0">
+                          <span class="tmtip inline-flex">
+                            <span class="lbl cursor-help">Tâm Tình</span>
+                            <span class="tmtipbox panel rounded-lg p-3 text-left shadow-xl border-slate-600">
+                              <span class="fserif text-[12.5px] block mb-1 text-slate-200">Tâm Tình</span>
+                              <span class="text-[11.5px] text-slate-300 leading-snug block">Kết cục sự kiện và đột phá làm tâm tình dao động, rồi tự nguôi dần về Bình Thản.</span>
+                              <span class="block mt-1.5 pt-1.5 border-t border-slate-700/60"><span class="lbl">Tác dụng</span><span class="block text-[11.5px] text-slate-200 mt-0.5">Hân Hoan tăng tốc tu luyện tối đa 8%, Uất Hận giảm tối đa 8%.</span></span>
+                            </span>
+                          </span>
+                          <span class="text-[11.5px] fserif font-bold" :style="'color:'+g.tmTamTinh(d).color" x-text="g.tmTamTinh(d).ten"></span>
+                        </div>
+                        <div class="relative h-1.5 rounded-full shrink-0" style="background:linear-gradient(90deg,#f43f5e55,#94a3b844,#fbbf2455)">
+                          <div class="absolute top-1/2 w-2.5 h-2.5 rounded-full ring-2 ring-ink2 transition-all" :style="'left:'+g.tmTamTinh(d).pct+'%;transform:translate(-50%,-50%);background:'+g.tmTamTinh(d).color"></div>
+                        </div>
+                        <div class="lbl mt-3 mb-1.5 shrink-0">Nhật Ký</div>
+                        <div class="flex-1 min-h-0 overflow-y-auto pr-0.5 space-y-2">
+                          <template x-for="(nk,ki) in g.tmNhatKy(d)" :key="ki">
+                            <div class="rounded-lg bg-ink3/40 border border-slate-800 px-2.5 py-1.5">
+                              <div class="flex items-baseline justify-between gap-2">
+                                <span class="text-[10.5px] fserif text-amber-300/80 truncate" x-text="nk.su"></span>
+                                <span class="text-[9.5px] text-slate-600 shrink-0" x-text="nk.khi"></span>
+                              </div>
+                              <div class="text-[11.5px] text-slate-300 fserif italic leading-snug mt-0.5" x-text="nk.txt"></div>
+                            </div>
+                          </template>
+                          <template x-if="!g.tmNhatKy(d).length">
+                            <div class="text-[11.5px] text-slate-600 italic text-center py-4">Chưa gặp chuyện gì đáng ghi.</div>
+                          </template>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

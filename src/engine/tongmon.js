@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, TAM_TINH_NGUOI_H, TAM_TINH_TONE, tamTinhOf, tamTinhTier, tamTinhTocMul, NHAT_KY_CAP, NHAT_KY_MO, NHAT_KY_GIONG, NHAT_KY_GIONG_MAC, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { luanVo, luanVoCycle, luanVoMarginLabel, LOAI_CAT } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
@@ -69,7 +69,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
   if (!t.events.cd) t.events.cd = {};
-  for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0; if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0; if (typeof d.daoTam !== 'number') d.daoTam = 0; if (!Array.isArray(d.skills)) d.skills = []; }
+  for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0; if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0; if (typeof d.daoTam !== 'number') d.daoTam = 0; if (typeof d.tamTinh !== 'number') d.tamTinh = 0; if (!Array.isArray(d.nhatKy)) d.nhatKy = []; if (!Array.isArray(d.skills)) d.skills = []; }
 }
 
 function chronicle(t, text, gid) { const e = { t: Date.now(), text }; if (gid) e.gid = gid; t.soSach.unshift(e); if (t.soSach.length > 80) t.soSach.length = 80; }
@@ -110,6 +110,33 @@ function evtCtx(state, t, cast, rebel) {
   return { t, khiVan, dao: t.dao, cast, main, second, rebel, rng, lucky, hasTrait, anyTrait };
 }
 
+// ---- TÂM TÌNH: dịch trục hân hoan ↔ uất ức. Chip chỉ nổi khi ĐỔI BẬC (đổi vài điểm thì im). ----
+function shiftTamTinh(t, ds, n) {
+  if (!n) return null;
+  let bacCu = null, bacMoi = null;
+  for (const d of (ds || [])) {
+    if (!d) continue;
+    const cu = tamTinhOf(d);
+    d.tamTinh = Math.max(-TAM_TINH_BIEN, Math.min(TAM_TINH_BIEN, cu + n));
+    if (bacCu === null) { bacCu = tamTinhTier(cu); bacMoi = tamTinhTier(tamTinhOf(d)); }
+  }
+  if (!bacMoi || !bacCu || bacMoi.key === bacCu.key) return null;
+  return chip('Tâm tình · ' + bacMoi.name, bacMoi.color);
+}
+
+// ---- NHẬT KÝ: đệ tử tự ghi một mẩu ngôi thứ nhất. Câu mở theo kết cục, câu sau theo tính cách. ----
+function ghiNhatKy(d, tone, tenSu, now, rnd) {
+  if (!d) return;
+  if (!Array.isArray(d.nhatKy)) d.nhatKy = [];
+  const mo = NHAT_KY_MO[tone] || NHAT_KY_MO.trung;
+  const cauMo = mo[Math.floor(rnd() * mo.length)] || mo[0];
+  const tr = (d.traits || []).find((x) => NHAT_KY_GIONG[x]);
+  const gio = tr ? NHAT_KY_GIONG[tr] : NHAT_KY_GIONG_MAC;
+  const cauGiong = gio[Math.floor(rnd() * gio.length)] || gio[0];
+  d.nhatKy.unshift({ t: now, su: tenSu || '', txt: cauMo + ' ' + cauGiong });
+  if (d.nhatKy.length > NHAT_KY_CAP) d.nhatKy.length = NHAT_KY_CAP;
+}
+
 // Áp 1 OUTCOME -> trả về mảng chip "Dư Âm" để hiển thị.
 function applyOutcome(state, t, ev, oc, cast, rebel, now) {
   const chips = [];
@@ -132,6 +159,10 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
     else if ('bietHieu' in e) { const d = findD(e.bietHieu.who); if (d) { d.bietHieu = e.bietHieu.name; chips.push(chip('Biệt hiệu · ' + e.bietHieu.name, '#f5b942')); } }
     else if ('queue' in e) { t.events.queue.push({ eid: e.queue.eid, notBefore: now + (e.queue.delayH || 24) * 3600 * 1000, rebelFrom: e.queue.rebelFrom || (rebel ? rebel.fromUid : null) }); }
   }
+  // Kết cục sự kiện dội vào TÂM TÌNH của diễn viên, và mỗi đứa tự ghi một mẩu nhật ký.
+  const ttChip = shiftTamTinh(t, cast, TAM_TINH_TONE[oc.tone] || 0);
+  if (ttChip) chips.push(ttChip);
+  if ((cast || []).length) { const rnd = rngHam(state, 'tongMon'); for (const d of cast) ghiNhatKy(d, oc.tone, ev.title, now, rnd); }
   if (oc.chronicle) chronicle(t, oc.chronicle);
   t.events.seen = (t.events.seen || 0) + 1;
   return chips;
@@ -254,11 +285,12 @@ export function resolveEvent(state, pendingIdx, choiceIdx) {
 // ---- DEV: ép nổ 1 sự kiện theo id (F9) ----
 export function forceFireEvent(state, eid) { const t = state.tongMon; if (!t) return false; return fireEvent(state, t, eid, {}, Date.now()); }
 
-// ---- Tốc độ tu luyện 1 đệ tử (fraction/giây của cảnh giới hiện tại) ----
-export function disciSpeed(t, d) {
-  const buff = 1 + (BUILDINGS.dienVo.buffPerLv * (t.buildings.dienVo || 0)) + 0.02 * (t.buildings.tuLinh || 0);
-  const sec = REALMS[d.realm].hours * 3600;
-  return (APT[d.apt].mul * buff) / sec;
+// ---- 1 NGUỒN hệ số tốc tu luyện: tư chất × công trình × tâm tình. ----
+// ⚠ Trước đây công thức này nằm ở BA chỗ (sim, disciSpeed, main.tmSpeedMul) — thêm một vế là lệch ba nơi.
+export function disciTocMul(t, d) {
+  const b = (t && t.buildings) || {};
+  const buff = 1 + (BUILDINGS.dienVo.buffPerLv * (b.dienVo || 0)) + 0.02 * (b.tuLinh || 0);
+  return APT[d.apt].mul * buff * tamTinhTocMul(d);
 }
 
 // ---- Lazy-sim: tiến độ tu luyện + sản lượng theo elapsed ----
@@ -270,8 +302,10 @@ export function simTongMon(state, nowMs, capHours) {
   t.lastSimAt = nowMs;
   const breaks = [];
   let tuCount = 0;
-  const buff = 1 + (BUILDINGS.dienVo.buffPerLv * (t.buildings.dienVo || 0)) + 0.02 * (t.buildings.tuLinh || 0);
+  // TÂM TÌNH tự nguôi về Bình Thản: cứ TAM_TINH_NGUOI_H giờ còn một nửa.
+  const nguoi = Math.pow(0.5, dt / (TAM_TINH_NGUOI_H * 3600));
   for (const d of t.disciples) {
+    if (d.tamTinh) { const v = tamTinhOf(d) * nguoi; d.tamTinh = Math.abs(v) < 0.5 ? 0 : v; }
     // LỊCH LUYỆN: đang đi -> KHÔNG tu; xong -> thu nguyên liệu về Túi Đồ
     if (d.lichLuyenUntil) {
       if (nowMs < d.lichLuyenUntil) continue;
@@ -297,7 +331,7 @@ export function simTongMon(state, nowMs, capHours) {
     if (d.breakReady) continue;                  // BÌNH CẢNH: viên mãn, chờ người chơi đột phá (KHÔNG tự lên)
     const cap = disciCap(d);
     if (d.realm >= cap) { if (cap >= 9 && !d.awaiting) d.awaiting = true; continue; }
-    const spd = APT[d.apt].mul * buff;       // hệ số tốc; mỗi cảnh giới tốn (hours*3600/spd) giây thực
+    const spd = disciTocMul(t, d);           // hệ số tốc; mỗi cảnh giới tốn (hours*3600/spd) giây thực
     let rem = dt;
     while (rem > 0 && d.realm < cap) {
       const realmSec = (REALMS[d.realm].hours * 3600) / spd;   // tổng giây thực để xong cảnh giới này
@@ -420,6 +454,8 @@ export function doBreakthrough(state, uid) {
     d.realm++; d.xp = 0; d.breakReady = false;
     if (d.realm >= cap && cap >= 9) { d.awaiting = true; chronicle(t, `★ ${d.name} phục một viên ${req.pillName}, đột phá Đắc Đạo — chờ ngươi định đoạt tiền đồ.`); }
     else chronicle(t, `${d.name} phục một viên ${req.pillName}, đột phá ${REALMS[d.realm].name}!`);
+    shiftTamTinh(t, [d], 25);
+    ghiNhatKy(d, 'lanh', 'Đột Phá ' + REALMS[d.realm].name, Date.now(), rngHam(state, 'tongMon'));
     return { ok: true, msg: `${d.name} đột phá ${REALMS[d.realm].name}!`, realm: REALMS[d.realm].name };
   }
   // ---- ĐỘ THIÊN KIẾP (cảnh cao, có rủi ro) ----
