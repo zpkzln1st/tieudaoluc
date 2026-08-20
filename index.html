@@ -8971,7 +8971,7 @@
                     </div>
                   </div>
                   <!-- CỐ NHÂN ĐÃ KHUẤT -->
-                  <div>
+                  <div x-show="g.moChua('tongMonDrama')">
                     <div class="flex items-center gap-2 mb-2"><span class="text-[12.5px] fserif" style="color:#f5b942">器 Danh Khí Truyền Đời</span><span class="text-[10px] text-slate-600" x-text="'· '+g.tmDanhKhiLuc.length"></span><span class="flex-1 h-px bg-slate-800/80"></span></div>
                     <template x-if="!g.tmDanhKhiLuc.length"><div class="text-[11px] text-slate-600 italic">Chưa món gia bảo nào uống đủ giai thoại để thức tỉnh.</div></template>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -9910,7 +9910,7 @@
                           <div class="flex items-center gap-1.5 mt-1"><div class="flex-1 h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full transition-all" :style="'width:'+g.tmTamMaView(d).xpPct+'%;background:'+g.tmTamMaView(d).tier.color"></div></div><span class="text-[9px] tabular-nums fserif shrink-0" :style="'color:'+g.tmTamMaView(d).tier.color" x-text="g.tmTamMaView(d).lv+'/'+g.tmTamMaView(d).max"></span></div>
                         </div>
                       </div>
-                      <div class="rounded-lg bg-ink3/50 border border-slate-800 px-2.5 py-2 mb-2">
+                      <div class="rounded-lg bg-ink3/50 border border-slate-800 px-2.5 py-2 mb-2" x-show="g.moChua('tongMonDrama')">
                         <div class="flex items-center justify-between gap-2 mb-1.5">
                           <span class="tmtip inline-flex">
                             <span class="lbl cursor-help">Đạo Tâm</span>
@@ -9988,7 +9988,8 @@
                             <div class="text-[10.5px] text-slate-400 leading-snug">Ở lại làm cố vấn, truyền dạy hậu bối.</div></button>
                         </div>
                       </template>
-                      <div class="flex-1 min-h-0 rounded-lg bg-ink2/40 border border-slate-800/60 p-3 flex flex-col">
+                      <div x-show="!g.moChua('tongMonDrama')" class="flex-1 min-h-0 rounded-lg border border-dashed border-slate-800 p-3 text-[11.5px] text-slate-600 italic flex items-center justify-center text-center">… chỗ cho nội dung tương lai (kỹ năng · quan hệ · nhật ký tu luyện)</div>
+                      <div class="flex-1 min-h-0 rounded-lg bg-ink2/40 border border-slate-800/60 p-3 flex flex-col" x-show="g.moChua('tongMonDrama')">
                         <div class="flex items-center justify-between gap-2 mb-1.5 shrink-0">
                           <span class="tmtip inline-flex">
                             <span class="lbl cursor-help">Tâm Tình</span>

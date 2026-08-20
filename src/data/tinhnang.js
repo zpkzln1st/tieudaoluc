@@ -20,8 +20,8 @@
 export const TINH_NANG = [
   { ma: 'noiDungBac2',  ten: 'Nội Dung Chiến Đấu Bậc Hai', dot: 'Năm thứ nhất', daDung: true,
     mo: 'Yêu Vương và Bí Cảnh thêm bậc khó thứ hai.' },
-  { ma: 'tongMonDrama', ten: 'Tông Môn Bậc Hai',           dot: 'Năm thứ nhất', daDung: false,
-    mo: 'Mở nhánh đệ tử và năm quyển Bí Kíp.' },
+  { ma: 'tongMonDrama', ten: 'Tông Môn Bậc Hai',           dot: 'Năm thứ nhất', daDung: true,
+    mo: 'Đệ tử có Đạo Tâm, Tâm Tình và nhật ký; Gia Bảo thức tỉnh Danh Khí; Phản Đồ quay lại đánh thật.' },
   { ma: 'bangChien',    ten: 'Bang Phái Tranh Chấp',       dot: 'Năm thứ nhất', daDung: false,
     mo: 'Bang Phái tranh chấp theo mốc mỗi tuần.' },
   { ma: 'sanThuMua',    ten: 'Sàn Thu Mua',                dot: 'Năm thứ nhất', daDung: true,

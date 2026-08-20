@@ -838,6 +838,20 @@ const D3 = {
       // ⚠ `duel` = lựa chọn KHÔNG bốc thăm. Engine dừng lại cho người chơi cử đấu sĩ, chạy trận
       //   THẬT ở Đài Tỉ Võ (Chiến Lực · ngũ hành · bí kíp hai bên), rồi mới áp duelWin/duelLose.
       duel: true,
+      // ⚠ Nhánh DỰ PHÒNG khi cờ `tongMonDrama` đang TẮT: không có màn cử người, rơi về bốc thăm
+      //   như bản cũ. Có nhánh này thì nút không bao giờ chết, dù cờ bật hay tắt.
+      resolve: (c) => c.lucky(0.5)
+        ? G(
+            `Một bóng người lặng lẽ bước ra giữa mưa — kẻ duyên nợ sâu nhất với ${c.rebel.name}. Không trống không trận, chỉ hai thanh kiếm và một trời ân oán. Họ đánh tới rạng đông, từng chiêu như kể lại cả một đời. Chiêu cuối cùng, kiếm xuyên qua tim cố nhân — kẻ ở lại quỳ xuống ôm xác, khóc mà cũng cười. Ân oán một đời, một kiếm dứt.`,
+            [ { uy: 450 }, { khiVan: 5 }, { dismissRebel: {} } ],
+            `Một kiếm dứt ân oán một đời với ${c.rebel.name} — giai thoại bi tráng.`
+          )
+        : M(
+            `Kẻ duyên nợ bước ra một mình, nhưng sát đạo ${c.rebel.name} quá mạnh. Một chiêu, người ấy đã nằm dưới kiếm y. ${c.rebel.name} kề mũi kiếm vào cổ cố nhân… rồi khựng lại, thu kiếm, ngoảnh đi: "Mạng này ta tha. Nợ, để lần sau." Bóng đen tan vào màn mưa.`,
+            [ { uy: -80 }, { queue: { eid: 'D3', delayH: 48, rebelFrom: c.rebel.fromUid } } ],
+            `Đơn đấu bại trận, ${c.rebel.name} tha mạng rồi rút lui — duyên nợ còn dở dang.`,
+            'Sợi duyên chưa dứt, nó sẽ còn về…'
+          ),
       duelWin: (c) => G(
         `${c.duelist.name} bước ra giữa mưa, không trống không trận, chỉ hai thanh kiếm và một trời ân oán. Họ đánh tới rạng đông, từng chiêu như kể lại cả một đời. Chiêu cuối cùng, kiếm xuyên qua tim cố nhân — ${c.duelist.name} quỳ xuống ôm xác ${c.rebel.name}, khóc mà cũng cười. Ân oán một đời, một kiếm dứt. Đêm ấy ${c.duelist.name} vượt tâm kiếp, đạo tâm sáng như trăng rằm.`,
         [ { uy: 450 }, { khiVan: 5 }, { dismissRebel: {} } ],

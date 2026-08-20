@@ -77,7 +77,7 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, donNguoiAnCu, conBaoLauCoNguoiMoi, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, resolveEventDuel, rebelHoSo, tongMonTinVui, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, resolveEventDuel, rebelHoSo, tongMonTinVui, datCoDrama, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
 import { BICANH_BK_CHANCE, biCanhBkMaxTier } from './data/tongmon.js';   // Bí Kíp rơi từ Bí Cảnh -> bày được trong lưới Bảo Vật
@@ -693,7 +693,7 @@ const gameStore = {
   tmRealmColors: ['#cbd5e1', '#34d399', '#60a5fa', '#22d3ee', '#a78bfa', '#c4b5fd', '#e879f9', '#fb923c', '#f5b942', '#fbbf24'],
   get tm() { return this.state.tongMon; },
   get tmSelDisciple() { return this.tm ? this.tm.disciples.find((d) => d.uid === this.tmSelUid) : null; },
-  tmTick() { try { simTongMon(this.state, now()); } catch (e) {} this._tick++; },
+  tmTick() { this._bomCoDrama(); try { simTongMon(this.state, now()); } catch (e) {} this._tick++; },
   tmSave() { Storage.save(this.state); },
   tmSlot() { return slotCount(this.tm); },
   tmUyDanh() { return uyDanhOf(this.tm); },
@@ -1183,6 +1183,7 @@ const gameStore = {
   // Danh Khí của một món Gia Bảo đang đeo. Trả null khi món đó chưa thức tỉnh.
   tmDanhKhi(inst) {
     void this._tick;
+    if (!this.moChua('tongMonDrama')) return null;      // cờ tắt -> không khung vàng, không tên riêng
     const so = danhKhiCua(this.tm, inst);
     if (!so || !so.ten) return null;
     return { ten: so.ten, tieuSu: so.tieuSu || '', doi: (so.doi || []).join(' → ') };
@@ -2678,6 +2679,8 @@ const gameStore = {
    * ⚠ Đây chỉ là cửa VẼ. Tính năng nào đụng tới số liệu máy chủ thì phải có luật RLS riêng.
    */
   moChua(ma) { void this._tick; return tinhNangMo(this.state, ma, this.isAuthorAccount); },
+  // Bơm cờ `tongMonDrama` xuống engine Tông Môn (engine không tự hỏi tinhNangMo được).
+  _bomCoDrama() { datCoDrama(this.moChua('tongMonDrama')); },
 
   // ---------- MÃ ĐỔI QUÀ — màn của NGƯỜI CHƠI ----------
   mqMo: false, mqO: '', mqDangDoi: false, mqKetQua: '',
@@ -7268,7 +7271,7 @@ const gameStore = {
         const slot = SLOT[i % SLOT.length];
         const ids = GEAR_IDS.filter((id) => ((((this.ITEMS[id] || {}).equip) || {}).slot) === slot);
         if (!ids.length) continue;
-        const inst = rollGearInstance(ids[Math.floor(Math.random() * ids.length)]);
+        const inst = rollGearInstance(ids[(i * 7 + t.disciples.indexOf(d)) % ids.length]);   // chọn tất định — main.js không được gọi thẳng Math.random
         if (!inst) continue;
         addGearInstance(this.state, inst);
         if (giftGear(this.state, d.uid, inst.uid, slot, (this.ITEMS[inst.gearId] || {}).name)) dem++;
@@ -8247,6 +8250,7 @@ setInterval(() => {
   s.tickHunts();          // Săn Mồi: giải quyết lượt săn của Linh Thú (độc lập activity)
   // Đan Bổ Trợ: dọn buff hết hạn (deriveCombat đọc thẳng state.buffs nên phải prune bằng đồng hồ GAME),
   // rồi để Dược Lư tự rút viên kế — CHỈ dạng Tán/Hoàn, dạng Đan phải uống tay.
+  try { s._bomCoDrama(); } catch (e) {}   // cờ Tông Môn Bậc Hai: bơm TRƯỚC checkTitles (X3 đi qua đó)
   try {
     const gone = pruneBuffs(s.state, now());
     if (gone.length) s._tick++;

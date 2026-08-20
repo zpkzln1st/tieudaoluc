@@ -7,6 +7,13 @@ import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { luanVo, luanVoCycle, luanVoMarginLabel, LOAI_CAT } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
 
+// ---- CỜ TÍNH NĂNG `tongMonDrama` (Đợt 1: Đạo Tâm · Tâm Tình/Nhật Ký · Danh Khí · Quyết Chiến · Tin Từ Giang Hồ) ----
+// ⚠ Engine KHÔNG tự hỏi `tinhNangMo` được — hàm đó cần biết tài khoản có phải tác giả không.
+//   main.js bơm cờ vào mỗi nhịp. Mặc định TẮT: chưa bơm thì mọi cửa đều đóng (fail closed).
+let _dramaMo = false;
+export function datCoDrama(mo) { _dramaMo = !!mo; }
+export function coDrama() { return _dramaMo; }
+
 const QRANK = { phamPham: 1, luongPham: 2, tinhPham: 3, tuyetPham: 4, truyenThe: 5, thanPham: 6, coBan: 7 };
 // uy cộng dồn tới từng cảnh giới (để tính Uy Danh "tổng" của 1 đệ tử)
 const CUM_UY = REALMS.reduce((a, r, i) => { a.push((a[i - 1] || 0) + r.uy); return a; }, []);
@@ -113,7 +120,7 @@ function evtCtx(state, t, cast, rebel, tin) {
 
 // ---- TÂM TÌNH: dịch trục hân hoan ↔ uất ức. Chip chỉ nổi khi ĐỔI BẬC (đổi vài điểm thì im). ----
 function shiftTamTinh(t, ds, n) {
-  if (!n) return null;
+  if (!coDrama() || !n) return null;
   let bacCu = null, bacMoi = null;
   for (const d of (ds || [])) {
     if (!d) continue;
@@ -149,7 +156,7 @@ function danhKhiThemDoi(t, inst, tenChu) {
 }
 // Rót linh cho mọi Gia Bảo của MỘT đệ tử. Trả mảng chip cho món vừa thức tỉnh.
 function danhKhiRot(t, d, n) {
-  if (!d || !d.gear || !n) return [];
+  if (!coDrama() || !d || !d.gear || !n) return [];
   const chips = [];
   for (const k in d.gear) {
     const inst = d.gear[k]; if (!inst) continue;
@@ -169,7 +176,7 @@ function danhKhiRot(t, d, n) {
 
 // ---- NHẬT KÝ: đệ tử tự ghi một mẩu ngôi thứ nhất. Câu mở theo kết cục, câu sau theo tính cách. ----
 function ghiNhatKy(d, tone, tenSu, now, rnd) {
-  if (!d) return;
+  if (!coDrama() || !d) return;
   if (!Array.isArray(d.nhatKy)) d.nhatKy = [];
   const mo = NHAT_KY_MO[tone] || NHAT_KY_MO.trung;
   const cauMo = mo[Math.floor(rnd() * mo.length)] || mo[0];
@@ -307,7 +314,7 @@ function autoTamMa(state, t, d) {
 
 // ---- ĐẠO TÂM: lựa chọn của người chơi dịch trục Chính ↔ Tà của CẢ cast. Chip chỉ báo HƯỚNG, không lộ số. ----
 function shiftDaoTam(t, ds, n) {
-  if (!n) return null;
+  if (!coDrama() || !n) return null;
   let doi = false;
   for (const d of (ds || [])) {
     if (!d) continue;
@@ -328,7 +335,7 @@ export function resolveEvent(state, pendingIdx, choiceIdx) {
   const ch = ev.choices[choiceIdx]; if (!ch) return null;
   // ⚠ Lựa chọn ĐẤU: chưa áp gì cả — trả cờ để giao diện mở màn chọn người nghênh chiến.
   //   Kết cục do resolveEventDuel áp sau, khi đã biết ai thắng.
-  if (ch.duel) return { duel: true, pendingIdx, choiceIdx, rebel: rebel ? rebelHoSo(t, rebel, Date.now()) : null, title: ev.title };
+  if (ch.duel && coDrama()) return { duel: true, pendingIdx, choiceIdx, rebel: rebel ? rebelHoSo(t, rebel, Date.now()) : null, title: ev.title };
   const ctx = evtCtx(state, t, cast, rebel);
   let oc; try { oc = ch.resolve(ctx); } catch (e) { oc = { tone: 'trung', text: 'Chuyện qua đi như gió thoảng.', effects: [], chronicle: '' }; }
   const now = Date.now();
@@ -346,7 +353,7 @@ export function resolveEventDuel(state, pendingIdx, choiceIdx, discipleUid) {
   const t = state.tongMon; if (!t || !t.events) return null;
   const p = t.events.pending[pendingIdx]; if (!p) return null;
   const ev = TM_EVENT_BY_ID[p.eid]; if (!ev) return null;
-  const ch = ev.choices[choiceIdx]; if (!ch || !ch.duel) return null;
+  const ch = ev.choices[choiceIdx]; if (!ch || !ch.duel || !coDrama()) return null;
   const rebelRaw = p.rebelFrom ? (t.events.rebels.find((r) => r.fromUid === p.rebelFrom) || null) : null;
   if (!rebelRaw) return null;
   const dau = (t.disciples || []).find((x) => x.uid === discipleUid);
@@ -382,6 +389,7 @@ export function resolveEventDuel(state, pendingIdx, choiceIdx, discipleUid) {
 // ⛔ MỘT CHIỀU. Sự kiện nhóm X chỉ cho Uy Danh / Khí Vận / tâm tình — không thứ gì chảy ngược về main.
 // Có khoá lại theo `cdH` của từng tin, nên hạ mười con Yêu Vương một lúc vẫn chỉ một dòng Sử Sách.
 export function tongMonTinVui(state, eid, tin, nowMs) {
+  if (!coDrama()) return false;                                          // tính năng đang ngủ
   const t = state && state.tongMon;
   if (!t || !t.events || !(t.disciples || []).length) return false;      // chưa lập tông thì không có ai nghe
   const ev = TM_EVENT_BY_ID[eid];
@@ -400,7 +408,7 @@ export function forceFireEvent(state, eid) { const t = state.tongMon; if (!t) re
 export function disciTocMul(t, d) {
   const b = (t && t.buildings) || {};
   const buff = 1 + (BUILDINGS.dienVo.buffPerLv * (b.dienVo || 0)) + 0.02 * (b.tuLinh || 0);
-  return APT[d.apt].mul * buff * tamTinhTocMul(d);
+  return APT[d.apt].mul * buff * (coDrama() ? tamTinhTocMul(d) : 1);
 }
 
 // ---- Lazy-sim: tiến độ tu luyện + sản lượng theo elapsed ----
