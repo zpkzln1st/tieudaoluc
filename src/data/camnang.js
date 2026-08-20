@@ -11,6 +11,10 @@
 // Khối nội dung:
 //   ['h', 'Tiêu đề nhỏ'] · ['p', 'Đoạn'] · ['ds', [...]] ·
 //   ['bang', [cột], [[ô]]] · ['ct', 'Công thức'] · ['luu', 'Điểm cần lưu ý']
+//
+// ⚠ `coTinhNang: '<mã cờ>'` — trang chỉ hiện khi cờ tính năng đó đang mở. Tầng data KHÔNG đọc
+//   được cờ (module thuần, không có $store); BỘ LỌC nằm ở `src/camnang.js` (`mucHien`/`mucDs`).
+//   Thêm trường này mà quên sửa bộ lọc thì nó là CHỮ CHẾT — trang vẫn hiện, không báo gì.
 // ============================================================
 import { SKILLS, STATS } from './skills.js';
 import { LOCATIONS, REALM_TIERS } from './locations.js';
@@ -33,7 +37,10 @@ import { CODEX_CATS } from './codex.js';
 import { TITLES, TITLE_LOAI } from './titles.js';
 import { BADGES, BADGE_LV } from './badges.js';
 import { BOT_COUNT, TUOI_AN_CU_NGAY, SO_LAO_LANG } from './bots.js';
-import { REALMS, BUILD_KEYS, PILL_KEYS, BI_KIP, BI_KIP_LOAI, APT, DIPLO_TIERS, TAMMA_MAX, SUB_STAGES } from './tongmon.js';
+import { REALMS, BUILD_KEYS, PILL_KEYS, BI_KIP, BI_KIP_LOAI, APT, DIPLO_TIERS, TAMMA_MAX, SUB_STAGES,
+  DAO_TAM_TIERS, daoTamTamMaMul, TAM_TINH_TIERS, TAM_TINH_NGUOI_H, TAM_TINH_TONE, tamTinhTocMul, NHAT_KY_CAP,
+  DANH_KHI_NGUONG, DANH_KHI_MOC, REBEL_MANH_MOI_NGAY, REBEL_MANH_TOI_DA, rebelSucManh } from './tongmon.js';
+import { TM_EVENTS } from './tongmon_events.js';   // bảng tin nhóm X — KHÔNG gõ tay bốn dòng
 import {
   CONG_TRINH, KY_NANG_BANG, CUA_HANG_BANG, NV_BANG, TV_TRAN, CAP_BANG_MAX,
   BAC_MOI_MINH_CONG, CP_BUFF_HANG, MUA_THUONG_BANG, BOSS_BANG_LUOT, LV_LAP_BANG, PHI_LAP_BANG,
@@ -581,6 +588,87 @@ export const CN_MUC = [
     khoi: [
       ['bang', ['Bậc', 'Điểm tối thiểu'], DIPLO_TIERS.map((d) => [d.name, sn(d.min)])],
       ['p', 'Tặng Lễ, Mời Khách và Luận Võ đều tăng điểm quan hệ. Quan hệ đạt bậc cao sẽ mở thêm quyền lợi riêng.'],
+    ],
+  },
+  // ---- ĐỢT 1 "drama đệ tử" — cả năm trang nằm sau cờ `tongMonDrama` ----
+  {
+    id: 'tongmon_daotam', nhom: 'tongmon', ten: 'Đạo Tâm', coTinhNang: 'tongMonDrama',
+    tom: sn(n(DAO_TAM_TIERS)) + ' bậc, từ Tà Đạo tới Chính Đạo.',
+    khoi: [
+      ['p', 'Mỗi đệ tử có một Đạo Tâm riêng, khác với đạo thống của cả tông. Giao diện chỉ hiện tên bậc, không hiện con số.'],
+      ['bang', ['Bậc', 'Tốc tích Tâm Ma tại mốc'],
+        DAO_TAM_TIERS.map((t) => [t.name, '×' + goZeroThua(daoTamTamMaMul({ daoTam: t.min }).toFixed(2))])],
+      ['ds', [
+        'Nguồn dịch duy nhất là lựa chọn của người chơi ở sự kiện giang hồ.',
+        'Một lựa chọn áp cho toàn bộ đệ tử đóng vai trong sự kiện đó.',
+        'Ngả về Tà thì tích Tâm Ma nhanh hơn, ngả về Chính thì chậm hơn.',
+      ]],
+      ['luu', 'Lựa chọn ở sự kiện không nói trước sẽ dịch Đạo Tâm về phía nào.'],
+    ],
+  },
+  {
+    id: 'tongmon_tamtinh', nhom: 'tongmon', ten: 'Tâm Tình & Nhật Ký', coTinhNang: 'tongMonDrama',
+    tom: sn(n(TAM_TINH_TIERS)) + ' bậc tâm tình, nhật ký giữ ' + sn(NHAT_KY_CAP) + ' dòng.',
+    khoi: [
+      ['bang', ['Bậc', 'Tốc tu luyện tại mốc'],
+        TAM_TINH_TIERS.map((t) => [t.name, '×' + goZeroThua(tamTinhTocMul({ tamTinh: t.min }).toFixed(2))])],
+      ['bang', ['Kết cục sự kiện', 'Dịch tâm tình'],
+        [['Kết lành', '+' + sn(TAM_TINH_TONE.lanh)], ['Lành dữ khó lường', sn(TAM_TINH_TONE.trung)], ['Kết dữ', sn(TAM_TINH_TONE.du)]]],
+      ['ds', [
+        'Tâm tình tự nguôi một nửa mỗi ' + sn(TAM_TINH_NGUOI_H) + ' giờ, cuối cùng về Bình Thản.',
+        'Đột phá cảnh giới làm tâm tình vọt lên; ra trận thua làm tâm tình tụt xuống.',
+        'Mỗi đệ tử tự ghi nhật ký sau chuyện lớn, giọng văn theo tính cách của chính nó.',
+      ]],
+      ['luu', 'Nhật ký chỉ để đọc, không cộng gì cho đệ tử.'],
+    ],
+  },
+  {
+    id: 'tongmon_danhkhi', nhom: 'tongmon', ten: 'Danh Khí', coTinhNang: 'tongMonDrama',
+    tom: 'Gia Bảo uống đủ ' + sn(DANH_KHI_NGUONG) + ' linh thì thức tỉnh.',
+    khoi: [
+      ['p', 'Món Gia Bảo ban cho đệ tử tích dần "linh" qua các mốc dưới đây. Đủ ngưỡng thì thức tỉnh thành Danh Khí: có tên riêng, khung riêng, và một dòng tiểu sử ở Tổ Sư Điện.'],
+      ['bang', ['Mốc', 'Linh nhận được'],
+        [['Chủ nhân đóng vai một sự kiện', '+' + sn(DANH_KHI_MOC.suKien)],
+         ['Chủ nhân đột phá cảnh giới', '+' + sn(DANH_KHI_MOC.dotPha)],
+         ['Rèn thêm một bậc ở Luyện Khí Các', '+' + sn(DANH_KHI_MOC.cuongHoa)],
+         ['Được ban sang một đời đệ tử mới', '+' + sn(DANH_KHI_MOC.truyenDoi)]]],
+      ['ds', [
+        'Tên Danh Khí cố định theo món đồ — cùng một món thì muôn đời một tên.',
+        'Gia phả ghi lại từng đời đệ tử đã cầm món đó.',
+        'Thu hồi món đồ về kho chính thì Danh Khí không theo về; ban lại cho đệ tử là nó hiện lại.',
+      ]],
+      ['luu', 'Danh Khí chỉ là danh xưng, không cộng thêm chỉ số nào cho đệ tử.'],
+    ],
+  },
+  {
+    id: 'tongmon_phando', nhom: 'tongmon', ten: 'Phản Đồ', coTinhNang: 'tongMonDrama',
+    tom: 'Mỗi ngày lẩn trốn mạnh thêm ' + pc(REBEL_MANH_MOI_NGAY) + ', không quá ×' + goZeroThua(REBEL_MANH_TOI_DA.toFixed(1)) + '.',
+    khoi: [
+      ['p', 'Đệ tử hắc hóa rời tông mang theo toàn bộ bí kíp từng được dạy và Gia Bảo từng được ban. Càng lẩn trốn lâu càng mạnh.'],
+      ['bang', ['Ngày lẩn trốn', 'Chiến Lực so với lúc rời môn'],
+        [0, 5, 10, 15, 20, 30].map((ng) => [sn(ng) + ' ngày', '×' + goZeroThua((rebelSucManh({ chienLuc: 1000, at: 0 }, ng * 86400000) / 1000).toFixed(2))])],
+      ['ds', [
+        'Khi kẻ phản quay lại, người chơi cử một đệ tử ra đơn đả độc đấu.',
+        'Trận đấu phân cao thấp bằng Chiến Lực, ngũ hành tương khắc và bí kíp hai bên — không bốc thăm.',
+        'Đệ tử đang lịch luyện, đang thính giảng hoặc đang chờ định đoạt thì không ra trận được.',
+        'Chiêu hàng thành công thì bí kíp và Gia Bảo theo kẻ phản trở về tông.',
+      ]],
+      ['luu', 'Thua trận không mất đệ tử, nhưng kẻ phản sẽ còn quay lại.'],
+    ],
+  },
+  {
+    id: 'tongmon_tin', nhom: 'tongmon', ten: 'Tin Từ Giang Hồ', coTinhNang: 'tongMonDrama',
+    tom: sn(TM_EVENTS.filter((e) => e.grp === 'X').length) + ' loại tin từ nhánh chính.',
+    khoi: [
+      ['p', 'Nhân vật chính làm được việc lớn thì sơn môn nghe tin. Tin chỉ cộng Uy Danh, Khí Vận và tâm tình đệ tử — không có thứ gì chảy ngược về nhân vật chính.'],
+      ['bang', ['Tin', 'Khoá lại sau khi nổ'],
+        TM_EVENTS.filter((e) => e.grp === 'X').map((e) => [e.title, sn(e.cdH) + ' giờ'])],
+      ['ds', [
+        'Hạ Yêu Vương, thông quan Bí Cảnh, mở khoá Danh Hiệu và Trùng Sinh đều truyền tin về.',
+        'Tin đang trong thời gian khoá lại thì nổ mấy lần cũng chỉ ghi một dòng Sử Sách.',
+        'Chưa lập tông môn thì không ai nghe, tin không nổ.',
+      ]],
+      ['luu', 'Bấm một dòng Sử Sách có dấu chữ Hán để xem lại cảnh đã qua.'],
     ],
   },
 

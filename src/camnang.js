@@ -19,6 +19,8 @@ const DAU = new RegExp('[̀-ͯ]', 'g');
 const boDau = (s) => String(s == null ? '' : s).normalize('NFD').replace(DAU, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 
 // Chuỗi tìm kiếm của các trang Cơ Chế — dựng sẵn một lần.
+// ⚠ KHÔNG lọc cờ ở đây: bảng này chỉ dựng CHUỖI TÌM cho mọi trang, còn việc trang nào được hiện
+//   do `mucLuc` quyết. Lọc hai lần là một chỗ nữa để quên đồng bộ.
 const TRA_MUC = Object.fromEntries(CN_MUC.map((m) => [m.id, boDau(cnText(m))]));
 
 // Hàng của từng bảng tra cứu tính MỘT LẦN rồi giữ lại: 746 thực thể, dựng lại
@@ -143,16 +145,22 @@ export function camNang() {
 
     // ---------- CƠ CHẾ ----------
     get nhom() { return CN_NHOM; },
-    get muc() { return CN_MUC_BY_ID[this.mucId] || CN_MUC[0]; },
+    // ---- CỬA GÁC: mọi cửa của chế độ Cơ Chế đi qua đây, không nơi nào đọc CN_MUC thô nữa. ----
+    // `moChua` có `void this._tick` nên getter tự vẽ lại khi cờ đổi — phải đọc cờ TRỰC TIẾP,
+    // đừng nhét vào biến đệm hay hằng mô-đun (CACHE ở đầu tệp dựng một lần rồi đóng băng).
+    mucHien(m) { return !m.coTinhNang || this.g.moChua(m.coTinhNang); },
+    get mucDs() { return CN_MUC.filter((m) => this.mucHien(m)); },
+    // Đang đọc một trang mà cờ tắt giữa chừng thì rơi về trang hiện được đầu tiên, không rơi ra rỗng.
+    get muc() { const m = CN_MUC_BY_ID[this.mucId]; return (m && this.mucHien(m)) ? m : (this.mucDs[0] || CN_MUC[0]); },
     get mucLuc() {
       const k = this.tuKhoa;
       const hop = (m) => !k || (TRA_MUC[m.id] || '').includes(k);
       return CN_NHOM
-        .map((g) => ({ ...g, muc: CN_MUC.filter((m) => m.nhom === g.id && hop(m)) }))
+        .map((g) => ({ ...g, muc: this.mucDs.filter((m) => m.nhom === g.id && hop(m)) }))
         .filter((g) => g.muc.length);
     },
     get soMucHop() { return this.mucLuc.reduce((s, g) => s + g.muc.length, 0); },
-    get tongMuc() { return CN_MUC.length; },
+    get tongMuc() { return this.mucDs.length; },   // đếm số ở đầu màn — không lọc thì con số tố cáo có thứ bị giấu
     chonMuc(id) {
       this.mucId = id; this.dangDoc = true;
       this.$nextTick(() => { const el = this.$refs.than; if (el) el.scrollTop = 0; });
@@ -160,12 +168,14 @@ export function camNang() {
     get tenNhom() { return (CN_NHOM.find((x) => x.id === this.muc.nhom) || {}).ten || ''; },
     get hanNhom() { return (CN_NHOM.find((x) => x.id === this.muc.nhom) || {}).han || ''; },
     nhay(buoc) {
-      const i = CN_MUC.findIndex((m) => m.id === this.mucId);
-      const j = Math.min(CN_MUC.length - 1, Math.max(0, i + buoc));
-      if (j !== i) this.chonMuc(CN_MUC[j].id);
+      const ds = this.mucDs;
+      const i = ds.findIndex((m) => m.id === this.mucId);
+      const j = Math.min(ds.length - 1, Math.max(0, i + buoc));
+      if (j !== i && ds[j]) this.chonMuc(ds[j].id);
     },
-    get coTruoc() { return CN_MUC.findIndex((m) => m.id === this.mucId) > 0; },
-    get coSau() { return CN_MUC.findIndex((m) => m.id === this.mucId) < CN_MUC.length - 1; },
+    // ⚠ Đây là cửa lộ nhất: quên lọc thì nút "Trang Sau" nhảy thẳng vào trang đã giấu.
+    get coTruoc() { return this.mucDs.findIndex((m) => m.id === this.mucId) > 0; },
+    get coSau() { const ds = this.mucDs; return ds.findIndex((m) => m.id === this.mucId) < ds.length - 1; },
 
     // ---------- TÍNH TOÁN ----------
     ngheId: 'thaiKhoang',
