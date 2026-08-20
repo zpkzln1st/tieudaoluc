@@ -401,8 +401,24 @@ export function tamMaMult(d, dao) {
   for (const k in (d.flags || {})) if (k in TAMMA_FLAG_ACCEL) m += TAMMA_FLAG_ACCEL[k];
   (d.traits || []).forEach((tr) => { if (TAMMA_TRAIT_PRONE.includes(tr)) m += 0.3; if (TAMMA_TRAIT_CALM.includes(tr)) m -= 0.25; });
   if (dao === 'ta') m += 0.5; else if (dao === 'chinh') m -= 0.3;
-  return Math.max(0.2, Math.min(6, m));
+  return Math.max(0.2, Math.min(6, m * daoTamTamMaMul(d)));
 }
+
+// --- ĐẠO TÂM: trục Chính ↔ Trung Dung ↔ Tà của TỪNG đệ tử (khác `t.dao` là đạo thống CẢ TÔNG) ---
+// Thanh ẩn: giao diện chỉ hiện TÊN BẬC và vạch, không phơi con số ra.
+// Nguồn dịch DUY NHẤT là `choice.daoTam` của sự kiện — engine áp cho cả cast lúc chọn.
+export const DAO_TAM_BIEN = 100;                        // hai đầu trục: −100 (Tà) .. +100 (Chính)
+export const DAO_TAM_TIERS = [
+  { min: -100, key: 'ta',         name: 'Tà Đạo',      color: '#f43f5e' },
+  { min: -55,  key: 'thienTa',    name: 'Thiên Tà',    color: '#fb7185' },
+  { min: -18,  key: 'trung',      name: 'Trung Dung',  color: '#94a3b8' },
+  { min: 19,   key: 'thienChinh', name: 'Thiên Chính', color: '#60a5fa' },
+  { min: 56,   key: 'chinh',      name: 'Chính Đạo',   color: '#38bdf8' },
+];
+export function daoTamOf(d) { const v = (d && d.daoTam) || 0; return Math.max(-DAO_TAM_BIEN, Math.min(DAO_TAM_BIEN, v)); }
+export function daoTamTier(v) { let out = DAO_TAM_TIERS[0]; for (const x of DAO_TAM_TIERS) if (v >= x.min) out = x; return out; }
+// Tà tích Tâm Ma nhanh hơn, Chính chậm hơn: Tà Đạo tận cùng ×1,4 · Chính Đạo tận cùng ×0,6.
+export function daoTamTamMaMul(d) { return 1 - (daoTamOf(d) / DAO_TAM_BIEN) * 0.4; }
 
 // --- Đấu Giá Hội: tiêu ĐIỂM ĐẤU GIÁ (t.diem). TẤT CẢ phần thưởng SIDE-ONLY / cosmetic (giữ cách ly) ---
 // CHỐT: giá 80 -> 400 Điểm. input:true -> cần nhập tên · dao:true -> chọn Chính/Tà/Trung
@@ -438,7 +454,8 @@ export function genDisciple(opt = {}, rnd) {
     sex, han: opt.han || han, origin, originLabel: originLabelOf(origin, sex), bio: originBioOf(origin, sex), apt,
     he: opt.he || pick(HE_KEYS),
     traits, dream: pick(DREAMS), tamMa: pick(TAMMA),   // tamMa = LORE STRING (hiển thị) — KHÔNG phải số
-    tamMaLv: 0, tamMaXp: 0,                            // hệ Tâm Ma Kiếp (SỐ): tamMaLv = bậc tâm ma (mức độ), tamMaXp = tích lũy trong bậc (0..1)
+    tamMaLv: 0, tamMaXp: 0,
+    daoTam: 0,                             // ĐẠO TÂM: −100 Tà .. +100 Chính. Chỉ sự kiện dịch được.                            // hệ Tâm Ma Kiếp (SỐ): tamMaLv = bậc tâm ma (mức độ), tamMaXp = tích lũy trong bậc (0..1)
     realm: 0, xp: 0, capBonus: 0, giangBonus: 0,   // capBonus: bậc trần được NÂNG (sự kiện + Giảng Đạo); giangBonus: phần đến TỪ Giảng Đạo (cap GIANG_MAX_BONUS)
     flags: {},                              // cờ do SỰ KIỆN gắn (daoLu/oanTham/tamMaSeed/biệt hiệu…) — side-only
     skills: [],                             // bí kíp đã LĨNH NGỘ (id BI_KIP) — side-only, cộng disciStats/Luận Võ/Uy

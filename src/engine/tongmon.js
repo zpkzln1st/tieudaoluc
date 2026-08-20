@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { luanVo, luanVoCycle, luanVoMarginLabel, LOAI_CAT } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
@@ -69,7 +69,7 @@ export function ensureTongMon(state, nowMs) {
   if (!t.events) t.events = { pending: [], cd: {}, queue: [], rebels: [], seen: 0 };
   ['pending', 'queue', 'rebels'].forEach((k) => { if (!Array.isArray(t.events[k])) t.events[k] = []; });
   if (!t.events.cd) t.events.cd = {};
-  for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0; if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0; if (!Array.isArray(d.skills)) d.skills = []; }
+  for (const d of t.disciples) { if (!d.flags) d.flags = {}; if (typeof d.giangBonus !== 'number') d.giangBonus = 0; if (typeof d.tamMaLv !== 'number') d.tamMaLv = 0; if (typeof d.tamMaXp !== 'number') d.tamMaXp = 0; if (typeof d.daoTam !== 'number') d.daoTam = 0; if (!Array.isArray(d.skills)) d.skills = []; }
 }
 
 function chronicle(t, text, gid) { const e = { t: Date.now(), text }; if (gid) e.gid = gid; t.soSach.unshift(e); if (t.soSach.length > 80) t.soSach.length = 80; }
@@ -219,6 +219,19 @@ function autoTamMa(state, t, d) {
   if (rng(state, 'tamMa') < 0.22) { if (!d.flags) d.flags = {}; d.flags.tamMaSeed = true; }   // tâm ma chưa trị, dễ gieo mầm sâu hơn
 }
 
+// ---- ĐẠO TÂM: lựa chọn của người chơi dịch trục Chính ↔ Tà của CẢ cast. Chip chỉ báo HƯỚNG, không lộ số. ----
+function shiftDaoTam(t, ds, n) {
+  if (!n) return null;
+  let doi = false;
+  for (const d of (ds || [])) {
+    if (!d) continue;
+    const cu = daoTamOf(d), moi = Math.max(-DAO_TAM_BIEN, Math.min(DAO_TAM_BIEN, cu + n));
+    if (moi !== cu) { d.daoTam = moi; doi = true; }
+  }
+  if (!doi) return null;                                   // đã kịch một đầu trục -> không báo suông
+  return chip(n > 0 ? 'Đạo Tâm ngả về Chính' : 'Đạo Tâm ngả về Tà', n > 0 ? '#38bdf8' : '#f43f5e');
+}
+
 // ---- API: người chơi chọn 1 lựa chọn ở pending[pendingIdx] -> trả OUTCOME hiển thị (Hồi Kết) ----
 export function resolveEvent(state, pendingIdx, choiceIdx) {
   const t = state.tongMon; if (!t || !t.events) return null;
@@ -231,6 +244,8 @@ export function resolveEvent(state, pendingIdx, choiceIdx) {
   let oc; try { oc = ch.resolve(ctx); } catch (e) { oc = { tone: 'trung', text: 'Chuyện qua đi như gió thoảng.', effects: [], chronicle: '' }; }
   const now = Date.now();
   const chips = applyOutcome(state, t, ev, oc, cast, rebel, now);
+  const dtChip = shiftDaoTam(t, cast, ch.daoTam || 0);
+  if (dtChip) chips.push(dtChip);
   t.events.pending.splice(pendingIdx, 1);
   const tn = TONE_META[oc.tone] || TONE_META.trung;
   return { tone: oc.tone, toneLabel: tn.label, toneColor: tn.color, text: oc.text, chips, chronicle: oc.chronicle || '', tease: oc.tease || null, title: ev.title, grp: ev.grp, han: ev.han };

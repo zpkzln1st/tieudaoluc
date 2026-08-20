@@ -9,7 +9,8 @@
 //     cond(t)->bool                  // điều kiện đủ tư cách nổ (t = state.tongMon)
 //     pick(t)->[uid,...]             // (choice) chọn đệ tử "diễn viên"; mặc định []
 //     story(ctx)->string             // đoạn kể trước lựa chọn
-//     choices:[ {label, flavor, resolve(ctx)->OUTCOME} ]   // (choice) 3-4 nút action-only
+//     choices:[ {label, flavor, daoTam?:±n, resolve(ctx)->OUTCOME} ]   // (choice) 3-4 nút action-only
+//       daoTam = độ dịch Đạo Tâm áp cho CẢ cast (âm về Tà, dương về Chính). Thiếu = trung tính.
 //     auto(ctx)->OUTCOME             // (auto, nhóm E) nổ là áp luôn, KHÔNG modal
 //   }
 // OUTCOME = { tone:'lanh'|'du'|'trung', text, effects:[...], chronicle, tease? }
@@ -83,6 +84,7 @@ const A1 = {
   choices: [
     {
       label: 'Chứng hôn cho đôi trẻ',
+      daoTam: 6,
       flavor: 'Đứng ra tác hợp, để hai người kết thành Đạo Lữ trong môn.',
       resolve: (c) => G(
         `Ngươi đứng ra chủ hôn dưới gốc ngân hạnh. ${c.main.name} và ${c.second.name} bái thiên địa, bái sư môn, rồi bái nhau. Từ đó hai người song tu — một cương một nhu quấn lấy nhau như rồng phượng, đạo tâm tương thông. Cả tông một phen rượu vui.`,
@@ -92,6 +94,7 @@ const A1 = {
     },
     {
       label: 'Cấm tuyệt, ép chuyên tâm tu',
+      daoTam: -4,
       flavor: 'Ra lệnh cắt đứt, dồn cả hai vào khổ luyện.',
       resolve: (c) => {
         const oan = c.anyTrait(['Cao Ngạo', 'Lì Lợm', 'Cuồng Ngạo'], c.main) || c.anyTrait(['Cao Ngạo', 'Lì Lợm', 'Cuồng Ngạo'], c.second);
@@ -117,6 +120,7 @@ const A1 = {
     },
     {
       label: 'Hỏi thẳng ý hai đứa',
+      daoTam: 4,
       flavor: 'Gọi riêng từng người, nghe lòng chúng muốn gì.',
       resolve: (c) => c.anyTrait(['Phóng Khoáng', 'Nhân Hậu', 'Trượng Nghĩa'], c.main) || c.anyTrait(['Phóng Khoáng', 'Nhân Hậu', 'Trượng Nghĩa'], c.second)
         ? G(`Bạn gọi riêng từng đệ tử. Cả hai đều nói cùng một câu: “Đệ tử nguyện lấy đạo làm trọng, lấy nhau làm bạn đồng hành.” Tâm ý đã thông, duyên tự thuận — bạn gật đầu cho họ kết thành một đôi mà đường tu vẫn vẹn.`,
@@ -184,6 +188,7 @@ const A2 = {
     },
     {
       label: 'Phái chung một nhiệm vụ sống chết',
+      daoTam: -5,
       flavor: 'Đẩy cả hai đi chung một chuyến gian nan, buộc chúng sống chết có nhau.',
       resolve: (c) =>
         c.lucky(0.5)
@@ -196,6 +201,7 @@ const A2 = {
     },
     {
       label: 'Triệu kẻ yếu thế, đích thân chỉ điểm',
+      daoTam: 6,
       flavor: 'Gọi riêng kẻ thua, đích thân Chưởng Môn truyền dạy mấy phần tâm pháp.',
       resolve: (c) =>
         G(`Đêm ấy ngươi gọi riêng ${c.second.name} lên đỉnh các, đốt một lò trà, đem chỗ bế tắc trong đường tu của nó mà gỡ từng nút. "Cảnh giới đến sớm muộn vốn tùy duyên, nhưng đạo tâm hơn nhau ở chỗ chịu được tủi." ${c.second.name} nghe xong, cúi đầu rưng rưng — cờ bất phục năm xưa, nay hóa thành tri ân.`,
@@ -226,6 +232,7 @@ const A3 = {
   choices: [
     {
       label: 'Truy xét đến cùng, trị kẻ hạ độc',
+      daoTam: 3,
       flavor: 'Mở cuộc tra xét, lôi kẻ hạ độc ra ánh sáng mà trị theo môn quy.',
       resolve: (c) =>
         c.lucky(0.55)
@@ -254,6 +261,7 @@ const A3 = {
     },
     {
       label: 'Bắt thiên kiêu san sẻ tuyệt học',
+      daoTam: -4,
       flavor: 'Lệnh thiên kiêu khiêm nhường, đem sở học chỉ điểm lại cho đồng môn.',
       resolve: (c) =>
         c.anyTrait(['Cao Ngạo', 'Cuồng Ngạo'], c.main)
@@ -266,6 +274,7 @@ const A3 = {
     },
     {
       label: 'Ghép cặp sư phụ – đồ',
+      daoTam: 6,
       flavor: 'Ép thiên kiêu nhận kẻ ganh tị làm đồ đệ, kèm cặp tận tay.',
       resolve: (c) =>
         c.lucky(0.5)
@@ -291,6 +300,7 @@ const B1 = {
   choices: [
     {
       label: 'Thiết yến trọng đãi, mời lão chọn người truyền dạy',
+      daoTam: 4,
       flavor: 'Bày tiệc chay long trọng, để Mộ Vân Tẩu tự chọn một đệ tử truyền dạy.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
@@ -332,6 +342,7 @@ const B1 = {
     },
     {
       label: 'Hỏi xin lão một món gia bảo ẩn thế',
+      daoTam: -4,
       flavor: 'Ngỏ lời xin Mộ Vân Tẩu để lại một món Di Bảo hoặc Bí Kíp.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
@@ -351,6 +362,7 @@ const B1 = {
     },
     {
       label: 'Để đệ tử cao ngạo lên Tỉ Thí trước khi nhận chỉ dạy.',
+      daoTam: -3,
       flavor: 'Mặc một đệ tử khinh lão, đòi so chiêu phân cao thấp.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
@@ -400,6 +412,7 @@ const B2 = {
     },
     {
       label: 'Mặc cả ép giá, dọa lột mặt nạ kẻ lừa',
+      daoTam: -6,
       flavor: 'Cử đệ tử khôn khéo ra mặt, vừa trả giá vừa dò thật giả.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
@@ -420,6 +433,7 @@ const B2 = {
     },
     {
       label: 'Không mua, mời thương nhân ở lại kể chuyện',
+      daoTam: 5,
       flavor: 'Gác tấm bản đồ, rót rượu mời hắn kể tin tức giang hồ.',
       resolve: (c) =>
         c.lucky(0.5)
@@ -437,6 +451,7 @@ const B2 = {
     },
     {
       label: 'Tịch thu bản đồ, trị kẻ buôn đồ gian',
+      daoTam: -4,
       flavor: 'Ra lệnh khám tay nải, lục soát lai lịch tấm bản đồ.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
@@ -466,6 +481,7 @@ const B3 = {
   choices: [
     {
       label: 'Trọng đãi, kết minh giao hảo',
+      daoTam: 5,
       flavor: 'Bày lễ tiếp đãi long trọng, ngỏ lời kết minh hai nhà.',
       resolve: (c) =>
         c.dao === 'ta'
@@ -483,6 +499,7 @@ const B3 = {
     },
     {
       label: 'Thử tài sứ giả, dò ngược ý đồ',
+      daoTam: -3,
       flavor: 'Cử đệ tử mưu trí tiếp khách, vừa đối đáp vừa dò xét.',
       resolve: (c) => {
         const pool = c.t.disciples.filter((d) => !d.awaiting);
@@ -534,6 +551,7 @@ const C1 = {
   choices: [
     {
       label: 'Cử đệ tử mạnh nhất nghênh chiến',
+      daoTam: 3,
       flavor: 'Để đệ tử mạnh nhất bước lên đài, đường đường chính chính Tỉ Võ.',
       resolve: (c) => c.lucky(0.55)
         ? G(`${c.main.name} bước lên đài, kiếm quang chẻ gió. Ba mươi chiêu, Sài Nhất Đao bị đánh bật xuống đài, ôm đao tạ trận. Tên tông môn được xướng vang Phong Vân Bảng, Huyết Đao Môn cụp cờ rút lui, từ đó kiêng dè không dám hó hé.`,
@@ -545,6 +563,7 @@ const C1 = {
     },
     {
       label: 'Cử đệ tử yếu hơn, lấy thế khinh địch',
+      daoTam: -5,
       flavor: 'Cố tình đưa một đệ tử yếu hơn ra quân, giương đông kích tây.',
       resolve: (c) => c.hasTrait('Mưu Trí', c.main) || c.hasTrait('Mưu Trí', c.second)
         ? (c.lucky(0.5)
@@ -597,6 +616,7 @@ const C2 = {
   choices: [
     {
       label: 'Động thủ tranh đoạt bằng vũ lực',
+      daoTam: -6,
       flavor: 'Dẫn đệ tử mạnh nhất cùng môn đồ xông lên, đoạt mạch bằng nắm đấm.',
       resolve: (c) => c.lucky(0.55)
         ? G(`${c.main.name} dẫn đầu lao vào, kiếm khí cuồn cuộn quét tan thế trận Thanh Vân Cốc. Hai canh giờ huyết chiến, đối phương lui binh, để lại linh mạch. Tụ Linh Trận dựng lên ngay nơi mạch chảy, khí vận tông từ đó dồi dào dài lâu — dẫu vài đệ tử phải vào Y Quán dưỡng thương.`,
@@ -608,6 +628,7 @@ const C2 = {
     },
     {
       label: 'Phân chia, thỏa thuận luân phiên dùng mạch',
+      daoTam: 4,
       flavor: 'Cử người sang điều đình, chia đôi quyền dùng linh mạch.',
       resolve: (c) =>
         M(`Hai bên ngồi xuống, gác kiếm và ký giao ước: luân phiên đặt Tụ Linh Trận, mỗi tông hưởng một nửa khí mạch. Không ai đổ máu, quan hệ hai tông dịu lại. Tuy vậy, tranh chấp chỉ tạm lắng chứ chưa hoàn toàn biến mất.`,
@@ -616,6 +637,7 @@ const C2 = {
     },
     {
       label: 'Nhường hẳn, đổi lấy nhân tình',
+      daoTam: 7,
       flavor: 'Lui binh, nhường trọn linh mạch cho Thanh Vân Cốc.',
       resolve: (c) => c.hasTrait('Nhân Hậu', c.main) || c.anyTrait(['Nhân Hậu', 'Trượng Nghĩa'], c.second)
         ? G(`${c.main.name} cung tay: "Mạch này nhường quý phái." Thanh Vân Cốc cả kinh trước khí độ ấy, cốc chủ thân chinh sang tạ ơn, kết làm bằng hữu. Bỏ một mạch linh khí, đổi lại một mối giao tình bền chặt — sau này hữu sự, ắt có người chìa tay.`,
@@ -627,6 +649,7 @@ const C2 = {
     },
     {
       label: 'Cài đệ tử Mưu Trí "ngư ông đắc lợi"',
+      daoTam: -7,
       flavor: 'Sai một đệ tử mưu trí ngầm khích các phe đánh nhau, mình thủ lợi.',
       resolve: (c) => c.lucky(0.5)
         ? B(`${c.second.name} ngầm tung tin, khích Thanh Vân Cốc với một mộn phái thứ ba lao vào tranh mạch. Hai bên đánh nhau sứt đầu mẻ trán, ${c.second.name} ung dung dẫn người vào tiếp quản linh mạch không tốn một binh. Cả mạch về tay, giang hồ kháo nhau tông này "mưu cao khó lường".`,
@@ -659,6 +682,7 @@ const D1 = {
   choices: [
     {
       label: 'Phế ma công, nhốt Y Quán chữa',
+      daoTam: 5,
       flavor: 'Đoạt tà điển, áp chế kinh mạch, giam vào Y Quán dồn sức cứu chữa.',
       resolve: (c) => (c.lucky(0.45) && c.anyTrait(['Nhân Hậu', 'Cần Mẫn', 'Thận Trọng'], c.main))
         ? G(
@@ -675,6 +699,7 @@ const D1 = {
     },
     {
       label: 'Thuận theo con đường Ma Đạo của y, để y tự rời đi.',
+      daoTam: -10,
       flavor: 'Không ngăn cản, để y mang Tà Điển rời sơn môn và đi theo con đường đã chọn.',
       resolve: (c) => B(
         `Ngươi thở dài, lui sang một bên. "Đạo của con, con tự gánh." ${c.main.name} sững người, rồi vái ngươi ba vái thật sâu, ôm tà điển quay gót xuống núi, bóng tan vào màn đêm. Không thành thù ngay — nhưng quyển bí kíp tổ truyền đi theo y, và sĩ diện tông môn cũng sứt một mảnh. Giang hồ rồi sẽ đồn: tông này thả hổ về rừng.`,
@@ -685,6 +710,7 @@ const D1 = {
     },
     {
       label: 'Lập đàn lấy ma luyện đạo, đánh cược',
+      daoTam: -6,
       flavor: 'Huy động Trưởng Lão dựng Tụ Linh Trận trấn ma, cùng y vượt qua tâm kiếp.',
       resolve: (c) => c.lucky(0.4)
         ? G(
@@ -701,6 +727,7 @@ const D1 = {
     },
     {
       label: 'Trục xuất ngay, dứt hậu họa',
+      daoTam: -3,
       flavor: 'Tuyên trước toàn môn, phế danh tịch, đuổi thẳng xuống núi không cho biện bạch.',
       resolve: (c) => B(
         `Ngươi gõ chuông tụ tập toàn môn, đương chúng xé danh tịch ${c.main.name}, đuổi thẳng xuống núi. Y không van xin, chỉ ngoảnh lại cười lạnh một tiếng trước khi khuất sau rặng tùng. Vài đệ tử thân với y cúi gằm mặt, lén lau nước mắt — chúng thấy tông môn lần này quá vô tình. Cắt cỏ thì dứt, mà gốc oán đã gieo vào lòng kẻ bị ruồng.`,
@@ -719,6 +746,7 @@ const D2 = {
   choices: [
     {
       label: 'Phát Truy Sát Lệnh, cử cao đồ đuổi bắt',
+      daoTam: -6,
       flavor: 'Điều đệ tử mạnh nhất truy lùng dấu vết, quyết giải kẻ phản về sơn môn.',
       resolve: (c) => c.lucky(0.4)
         ? M(
@@ -736,6 +764,7 @@ const D2 = {
     },
     {
       label: 'Phong tỏa tin tức, âm thầm xóa dấu',
+      daoTam: -4,
       flavor: 'Bịt miệng giang hồ, lặng lẽ thu dọn mọi dấu vết liên quan tới kẻ phản.',
       resolve: (c) => c.anyTrait(['Mưu Trí', 'Thận Trọng']) // who mặc định = main; chuỗi D không pick nên main=null → false an toàn
         ? M(`Bạn cho người rải Bạc ở các quán trà để dập lời đồn trước khi lan rộng. Thể diện tông môn được giữ, giang hồ gần như không hay biết. Nhưng trong môn, đệ tử vẫn hiểu rằng “phản đồ còn nhởn nhơ bên ngoài”, khiến sĩ khí giảm nhẹ. Bề ngoài yên chuyện, bên trong vẫn còn mối lo.`,
@@ -759,6 +788,7 @@ const D2 = {
     },
     {
       label: 'Gửi cố nhân thân nó đi khuyên về',
+      daoTam: 7,
       flavor: 'Cử người đồng môn thân thiết nhất một mình xuống núi, lựa lời gọi cố nhân hồi đầu.',
       resolve: (c) => c.lucky(0.45)
         ? G(
@@ -798,6 +828,7 @@ const D3 = {
     },
     {
       label: 'Cử kẻ có duyên nợ ra đơn đả độc đấu',
+      daoTam: 3,
       flavor: 'Để người có ân oán sâu nhất với kẻ phản bội tự bước ra, đối mặt tay đôi.',
       resolve: (c) => c.lucky(0.5)
         ? G(
@@ -814,6 +845,7 @@ const D3 = {
     },
     {
       label: 'Dang tay chiêu hàng, lấy ân báo oán',
+      daoTam: 10,
       flavor: 'Không rút kiếm, một mình bước tới trước mặt kẻ phản, mở lời tha thứ đón nó về.',
       resolve: (c) => (c.lucky(0.45) && (c.dao === 'chinh' || c.anyTrait(['Nhân Hậu', 'Trượng Nghĩa'])))
         ? G(
@@ -829,6 +861,7 @@ const D3 = {
     },
     {
       label: 'Hợp lực môn-bot vây diệt',
+      daoTam: -4,
       flavor: 'Gọi các môn phái từng kết minh đem viện binh, liên quân vây kín kẻ phản.',
       resolve: (c) => M(
         `Ngươi cho thả tín hiệu cầu viện. Chẳng mấy chốc, cờ xí các môn phái từng kết minh kéo tới rợp sườn núi. Liên quân vây kín, ${c.rebel.name} dù mạnh cũng khó địch muôn người — y bị dồn tới chân vách, gãy kiếm gục xuống. Thắng chắc tay, nhưng chiến lợi phải chia, nhân tình phải trả, và ngươi mất luôn cơ hội tự tay gỡ mối nghiệt duyên này. Sử Sách ghi một chữ "thắng" — lạnh tanh, chẳng có cái đẹp bi tráng của một trận solo.`,
@@ -853,6 +886,7 @@ const TMK = {
   choices: [
     {
       label: 'Thân chinh hộ pháp, dẫn khí trấn ma',
+      daoTam: 7,
       flavor: 'Đích thân ngồi trấn bên cạnh, vận chân khí gột rửa ma niệm cho đồ nhi suốt mấy ngày đêm.',
       resolve: (c) => (c.lucky(0.5) || c.anyTrait(['Nhân Hậu', 'Thận Trọng', 'Cần Mẫn'], c.main))
         ? G(
@@ -868,6 +902,7 @@ const TMK = {
     },
     {
       label: 'Ban linh đan trấn áp tâm thần',
+      daoTam: 2,
       flavor: 'Lấy đan dược trấn tâm của tông môn, ép ma niệm chìm xuống — trị ngọn, hao tài.',
       resolve: (c) => M(
         `Ngươi sai Y Quán dâng một viên đan trấn tâm hiếm quý, bón cho ${c.main.name}. Đan vào bụng, ma khí lập tức bị áp chế, y thiếp đi một giấc dài an ổn. Tỉnh dậy thì tâm thần đã tịnh — nhưng ai cũng hiểu, đan dược trị được cái ngọn chứ chẳng nhổ được cái gốc. Tốn của tông một phần, đổi lấy mấy phần an tâm.`,
@@ -877,6 +912,7 @@ const TMK = {
     },
     {
       label: 'Lấy Ma luyện Tâm, để y tự vượt qua.',
+      daoTam: -8,
       flavor: 'Không can thiệp — đặt cược đồ nhi tự nuốt ma niệm thành đạo, hoặc gục ngã trong ma.',
       resolve: (c) => c.lucky(0.38)
         ? G(
@@ -975,6 +1011,7 @@ const F2 = {
   choices: [
     {
       label: 'Mua trọn sọt thuốc',
+      daoTam: 3,
       flavor: 'Trả tiền dứt khoát, ôm cả sọt linh dược về tông.',
       resolve: (c) => G(
         `Bạn cho người mang Bạc ra mua trọn cả sọt. Lão dược phu cười khà, đổ hết Linh Dược vào Túi Đồ Tông Môn rồi vác sọt không xuống núi. Giao dịch sòng phẳng, kho nguyên liệu của tông môn đầy thêm đáng kể.`,
@@ -984,6 +1021,7 @@ const F2 = {
     },
     {
       label: 'Mặc cả tới cùng',
+      daoTam: -3,
       flavor: 'Trả giá kì kèo từng đồng, ép lão hạ giá.',
       resolve: (c) => c.lucky(0.5)
         ? G(`Bạn mặc cả nửa buổi, cuối cùng lão dược phu chịu thua cái miệng khéo, vừa lắc đầu vừa cười: “Thôi, bán rẻ cho xong.” Không chỉ mua được giá hời, bạn còn được tặng thêm một vị Linh Sâm.`,
@@ -1023,6 +1061,7 @@ const F3 = {
   choices: [
     {
       label: 'Phái cao đồ vào thám hiểm',
+      daoTam: -3,
       flavor: 'Cử đệ tử mạnh nhất một mình đột nhập tận sâu cổ động.',
       resolve: (c) => c.lucky(0.55)
         ? G(`${c.main.name} vận khí hộ thân, lách qua mấy lớp cấm chế cổ xưa, lần tới một dược điền giấu trong lòng núi — linh sâm ngàn năm mọc thành khóm, tinh hồn thạch lấp lánh dưới khe. Người hái sạch mang ra, áo bào ám đầy linh khí, cả tông một phen reo mừng.`,
@@ -1034,6 +1073,7 @@ const F3 = {
     },
     {
       label: 'Cả tông cẩn trọng cùng vào',
+      daoTam: 3,
       flavor: 'Dàn trận, từng bước phá cấm chế, ăn chắc mặc bền.',
       resolve: (c) => G(
         `Bạn không mạo hiểm, điều cả tông dàn trận, người phá cấm kẻ cảnh giới rồi tiến từng bước vào trong. Tuy không thể vét hết Dược Điền vì cấm chế quá hiểm, mọi người vẫn thu được một mẻ Linh Dược khá lớn mà không ai bị thương.`,
