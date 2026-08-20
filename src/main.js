@@ -77,7 +77,7 @@ import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, donNguoiAnCu, conBaoLauCoNguoiMoi, genJiangHuFeed } from './engine/bots.js';
-import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
+import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, resolveEventDuel, rebelHoSo, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
 import { danhSiList, danhSiProfile, offerOf } from './engine/danhsi.js';
 import { CAT_NAME, LOAI_CAT, h32 as lvHash, luanVo, luanVoCycle, luanVoMarginLabel } from './engine/luanvo.js';   // tên nhóm tương khắc + core tỉ thí (Luận Võ Hội)
 import { BICANH_BK_CHANCE, biCanhBkMaxTier } from './data/tongmon.js';   // Bí Kíp rơi từ Bí Cảnh -> bày được trong lưới Bảo Vật
@@ -1043,8 +1043,8 @@ const gameStore = {
   _lvhFighter(e) {
     const chieuPool = (e.skillIds || []).map((id) => { const bk = BI_KIP_BY_ID[id]; return bk ? { id: bk.id, ten: bk.ten, lines: bk.chieu || [] } : null; }).filter(Boolean);
     const skills = (e.skillIds || []).map((id) => this.biKipView(id)).filter(Boolean);
-    let st = null;
-    if (e.isMine && this.tm) { const d = (this.tm.disciples || []).find((x) => x.uid === e.uid); st = d ? disciStats(d) : null; }
+    let st = e.stats || null;                     // Phản Đồ đưa sẵn bộ chỉ số THẬT (disciStats)
+    if (!st && e.isMine && this.tm) { const d = (this.tm.disciples || []).find((x) => x.uid === e.uid); st = d ? disciStats(d) : null; }
     if (!st) { const c = e.chienLuc; st = { atk: Math.round(c * 2.4), def: Math.round(c * 2.1), maxHP: Math.round(c * 32), spd: Math.round(80 + c * 0.18), crit: Math.min(0.6, 0.05 + c * 0.0006), dodge: Math.min(0.3, 0.04 + c * 0.0003) }; }
     return {
       combatant: { name: e.name, chienLuc: e.chienLuc, he: e.he, loaiCat: e.loaiCat, chieuPool },
@@ -1345,8 +1345,93 @@ const gameStore = {
   // Mặt đệ tử trong sự kiện: tra theo castUids (sống deterministic qua tmFace). '' nếu đệ tử đã rời (rơi về placeholder Hán).
   tmEvtFace(ci) { const cur = this.tmEvtCur; if (!cur || !cur.castUids || !this.tm) return ''; const uid = cur.castUids[ci]; const d = (this.tm.disciples || []).find((x) => x.uid === uid); return d ? this.tmFace(d) : ''; },
   openTmEvt(idx) { const p = this.tmEvtPending[idx]; if (!p) return; this.tmEvtIdx = idx; this.tmEvtCur = p; this.tmEvtResult = null; this.tmEvtOpen = true; },
-  tmEvtChoose(ci) { if (this.tmEvtIdx < 0) return; const r = resolveEvent(this.state, this.tmEvtIdx, ci); if (r) { this.tmEvtResult = r; this.tmSave(); } },
-  closeTmEvt() { this.tmEvtOpen = false; this.tmEvtCur = null; this.tmEvtResult = null; this.tmEvtIdx = -1; },
+  tmEvtChoose(ci) {
+    if (this.tmEvtIdx < 0) return;
+    const r = resolveEvent(this.state, this.tmEvtIdx, ci);
+    if (!r) return;
+    // Lựa chọn ĐÁNH: engine chưa áp gì — mở màn cử người nghênh chiến.
+    if (r.duel) { this.tmDuel = { pendingIdx: r.pendingIdx, choiceIdx: r.choiceIdx, rebel: r.rebel }; this._tick++; return; }
+    this.tmEvtResult = r; this.tmSave();
+  },
+
+  // ===== QUYẾT CHIẾN PHẢN ĐỒ: cử một đệ tử ra đấu tay đôi với kẻ phản đã quay lại. =====
+  // Trận chạy bằng Thực Lực Đệ Tử (Chiến Lực · ngũ hành · bí kíp) — KHÔNG bốc thăm, KHÔNG đụng main.
+  tmDuel: null,        // đang chọn đấu sĩ: { pendingIdx, choiceIdx, rebel }
+  tmDuelKq: null,      // kết cục đã áp, chờ diễn xong trận mới hiện
+  tmDuelHuy() { this.tmDuel = null; this._tick++; },
+  // Đệ tử ĐANG RẢNH mới ra trận được (đang lịch luyện / thính giảng / chờ Đắc Đạo thì không).
+  get tmDuelRoster() {
+    void this._tick;
+    const t = this.tm; if (!t) return [];
+    return (t.disciples || [])
+      .filter((d) => !d.awaiting && !d.lichLuyenUntil && !d.giangUntil)
+      .map((d) => {
+        const lc = disciLoaiCat(d), hi = HE[d.he] || HE.kim;
+        return {
+          uid: d.uid, name: d.name, han: d.han, face: this.tmFace(d),
+          color: (APT[d.apt] || {}).color || '#cbd5e1',
+          realmName: (REALMS[d.realm] || {}).name || '',
+          chienLuc: disciPower(d), heColor: hi.color,
+          loaiCatName: lc ? CAT_NAME[lc] : '', soBiKip: (d.skills || []).length,
+        };
+      })
+      .sort((a, b) => b.chienLuc - a.chienLuc);
+  },
+  // Thẻ kẻ phản: Chiến Lực đã mạnh thêm theo ngày lẩn trốn, kèm bí kíp và Gia Bảo nó mang đi.
+  get tmDuelRebel() {
+    void this._tick;
+    const q = this.tmDuel; if (!q || !q.rebel) return null;
+    const r = q.rebel, hi = HE[r.he] || HE.kim;
+    return {
+      name: r.name, han: r.han, face: this.tmFace({ sex: r.sex, uid: r.fromUid }),
+      color: (APT[r.apt] || {}).color || '#a78bfa',
+      realmName: (REALMS[r.realm] || {}).name || '',
+      chienLuc: r.chienLuc, ngayTron: r.ngayTron,
+      heHan: hi.han, heColor: hi.color, loaiCatName: r.loaiCat ? CAT_NAME[r.loaiCat] : '',
+      biKip: (r.skillIds || []).map((id) => this.biKipView(id)).filter(Boolean),
+      doBan: (r.gearIds || []).map((gid) => (this.ITEMS[gid] || {}).name || '').filter(Boolean),
+    };
+  },
+  // Dựng một "hàng bảng" để dùng lại y nguyên bộ thẻ đấu sĩ của Đài Tỉ Võ.
+  _tmDuelHangDeTu(uid) {
+    const d = (this.tm.disciples || []).find((x) => x.uid === uid); if (!d) return null;
+    const lc = disciLoaiCat(d), hi = HE[d.he] || HE.kim;
+    return { key: 'qc_d', isBot: false, isMine: true, uid: d.uid, name: d.name, han: d.han, face: this.tmFace(d),
+      color: (APT[d.apt] || {}).color || '#cbd5e1', he: d.he, heName: hi.name, heHan: hi.han, heColor: hi.color,
+      loaiCat: lc, loaiCatName: lc ? CAT_NAME[lc] : '', sub: (REALMS[d.realm] || {}).name || '',
+      chienLuc: disciPower(d), skillIds: (d.skills || []).slice(), w: 0, l: 0 };
+  },
+  _tmDuelHangPhanDo(r) {
+    const hi = HE[r.he] || HE.kim;
+    return { key: 'qc_r', isBot: true, isMine: false, uid: null, name: r.name, han: r.han,
+      face: this.tmFace({ sex: r.sex, uid: r.fromUid }), color: (APT[r.apt] || {}).color || '#a78bfa',
+      he: r.he, heName: hi.name, heHan: hi.han, heColor: hi.color,
+      loaiCat: r.loaiCat, loaiCatName: r.loaiCat ? CAT_NAME[r.loaiCat] : '', sub: 'Phản Đồ',
+      chienLuc: r.chienLuc, skillIds: (r.skillIds || []).slice(), stats: r.stats || null, w: 0, l: 0 };
+  },
+  tmDuelStart(uid) {
+    const q = this.tmDuel; if (!q) return;
+    const r = resolveEventDuel(this.state, q.pendingIdx, q.choiceIdx, uid);
+    if (!r) { this.showToast('Không mở được trận.'); return; }
+    if (r.ok === false) { this.showToast(r.msg); return; }
+    this.tmSave();
+    const fa = this._lvhFighter(this._tmDuelHangDeTu(uid) || this._tmDuelHangPhanDo(r.rebel));
+    const fb = this._lvhFighter(this._tmDuelHangPhanDo(r.rebel));
+    this.luanVoFight = { a: fa.fd, b: fb.fd, rounds: r.fight.rounds, aWon: r.thang,
+      winnerName: r.fight.winnerName, marginLabel: r.fight.marginLabel,
+      heFactor: r.fight.heFactor, loaiFactor: r.fight.loaiFactor };
+    this.luanVoRound = 0; this.luanVoOpen = true; this._lvPlay();
+    this.tmDuelKq = r; this.tmDuel = null; this._tick++;
+  },
+  // Diễn xong trận -> đóng Đài Tỉ Võ, hiện Hồi Kết ngay trong modal sự kiện đang mở.
+  tmDuelFinish() {
+    const r = this.tmDuelKq;
+    this._lvStop(); this.luanVoFight = null; this.luanVoRound = 0; this.luanVoOpen = false;
+    this.tmDuelKq = null;
+    if (r) this.tmEvtResult = r;
+    this._tick++;
+  },
+  closeTmEvt() { this.tmEvtOpen = false; this.tmEvtCur = null; this.tmEvtResult = null; this.tmEvtIdx = -1; this.tmDuel = null; this.tmDuelKq = null; },
   devFireEvent(eid) { forceFireEvent(this.state, eid); this.tmSave(); this.showToast('DEV: nổ sự kiện ' + eid); },
   navToSkill(id) { this._applySkill(id); this._pushHash('#skill=' + id); },
   _applySkill(id) { this.view = 'skill'; this.navOpen = false; this.selectedSkill = id; const _s = this.skillSubTabsFor(id); if (_s) this.skillTab = _s[0].k; document.getElementById('mainPane')?.scrollTo({ top: 0 }); },

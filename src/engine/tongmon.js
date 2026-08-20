@@ -2,7 +2,7 @@
 // ENGINE — TÔNG MÔN (nhánh phụ). CÁCH LY: KHÔNG import combat/deriveCombat/stats.
 // Lazy-sim idle (tu luyện + sản lượng) theo thời gian thực. Mọi thực lực side-only.
 // ============================================================
-import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, TAM_TINH_NGUOI_H, TAM_TINH_TONE, tamTinhOf, tamTinhTier, tamTinhTocMul, NHAT_KY_CAP, NHAT_KY_MO, NHAT_KY_GIONG, NHAT_KY_GIONG_MAC, DANH_KHI_NGUONG, DANH_KHI_MOC, DANH_KHI_SO_TOI_DA, danhKhiTen, danhKhiTieuSu, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
+import { REALMS, APT, APT_KEYS, HE, BUILDINGS, BUILD_KEYS, TM_SHOP, MATS, MAT_KEYS, PILLS, PILL_KEYS, PILL_BY_REALM, BREAK_HONTHACH, THIEN_KIEP, KIEP_CD_H, kiepOdds, LICH_LUYEN_H, lichLuyenTier, DUOC_GROW_H, DUOC_YIELD, duocPlotCount, duocMaxTier, pillBrewH, yQuanFurnaces, PILL_PHAM_KEYS, PILL_PHAM_BY_KEY, rollPillPham, lkcMaxPlus, lkcStep, GIANG_H, GIANG_MAX_BONUS, giangSeats, GIOI_LUAT_CD_H, GIOI_LUAT_BAD_FLAGS, gioiLuatPotency, LUANVO_CD_H, LUANVO_WIN_UY, DIPLO_HOST_REP, DIPLO_HOST_UY, DIPLO_HOST_CD_H, DIPLO_GIFT_REP, DIPLO_GIFT_UY, DIPLO_GIFT_DIEM, DIPLO_ALLY_UY, DIPLO_ALLY_MATS, diploTier, BI_KIP, BI_KIP_BY_ID, BI_KIP_TIER, BI_KIP_TIER_ORDER, BI_KIP_ADD_STATS, biKipMods, biKipPower, biKipSlotMax, biKipLearnH, BK_AUCTION_REFRESH_H, genBkAuction, BK_MERGE_N, TAMMA_MAX, TAMMA_BASE_H, TAMMA_CHOICE_LV, tamMaMult, tamMaTier, DAO_TAM_BIEN, daoTamOf, daoTamTier, TAM_TINH_BIEN, TAM_TINH_NGUOI_H, TAM_TINH_TONE, tamTinhOf, tamTinhTier, tamTinhTocMul, NHAT_KY_CAP, NHAT_KY_MO, NHAT_KY_GIONG, NHAT_KY_GIONG_MAC, DANH_KHI_NGUONG, DANH_KHI_MOC, DANH_KHI_SO_TOI_DA, danhKhiTen, danhKhiTieuSu, rebelSucManh, genDisciple, disciCap, aptHardCap, buildCost } from '../data/tongmon.js';
 import { TM_EVENTS, TM_EVENT_BY_ID } from '../data/tongmon_events.js';
 import { rng, rngHam } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { luanVo, luanVoCycle, luanVoMarginLabel, LOAI_CAT } from './luanvo.js';   // core tỉ thí dùng chung (side-only, KHÔNG combat)
@@ -196,8 +196,19 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
     else if ('tamMa' in e) { const d = findD(e.tamMa.who); if (d) { if (e.tamMa.clear) { d.tamMaLv = 0; d.tamMaXp = 0; } if ('dLv' in e.tamMa) d.tamMaLv = Math.max(0, Math.min(TAMMA_MAX, (d.tamMaLv || 0) + e.tamMa.dLv)); if ('dXp' in e.tamMa) d.tamMaXp = Math.max(0, Math.min(1, (d.tamMaXp || 0) + e.tamMa.dXp)); const dl = e.tamMa.dLv || 0; if (e.tamMa.clear || dl < 0) chips.push(chip('Tâm ma tiêu tán · ' + d.name, '#34d399')); else if (dl > 0) chips.push(chip('Tâm ma trỗi dậy · ' + d.name, '#fb7185')); } }
     else if ('capBonus' in e) { const d = findD(e.capBonus.who); if (d) { d.capBonus = (d.capBonus || 0) + e.capBonus.n; chips.push(chip('+' + e.capBonus.n + ' bậc trần · ' + d.name, '#34d399')); } }
     else if ('realmUp' in e) { const d = findD(e.realmUp.who); if (d) { const cap = disciCap(d); d.realm = Math.min(cap, d.realm + e.realmUp.n); d.xp = 0; if (d.realm >= cap && cap >= 9) d.awaiting = true; chips.push(chip('Đột phá +' + e.realmUp.n + ' · ' + d.name, '#fbbf24')); } }
-    else if ('rebel' in e) { const i = t.disciples.findIndex((d) => d.uid === e.rebel.who); if (i >= 0) { const d = t.disciples[i]; t.disciples.splice(i, 1); t.events.rebels.push({ name: d.name, han: d.han, apt: d.apt, he: d.he, sex: d.sex, realm: d.realm, fromUid: d.uid, at: now }); chips.push(chip(d.name + ' → Phản Đồ', '#a78bfa')); } }
-    else if ('recapture' in e) { if (rebel) { const i = t.events.rebels.findIndex((r) => r.fromUid === rebel.fromUid); if (i >= 0) t.events.rebels.splice(i, 1); const nd = genDisciple({ name: rebel.name, han: rebel.han, apt: rebel.apt, he: rebel.he }); nd.realm = rebel.realm; nd.flags = { cuuChuoc: true }; t.disciples.push(nd); chips.push(chip(rebel.name + ' · quy hàng', '#34d399')); } }
+    else if ('rebel' in e) { const i = t.disciples.findIndex((d) => d.uid === e.rebel.who); if (i >= 0) { const d = t.disciples[i]; t.disciples.splice(i, 1); t.events.rebels.push({
+        name: d.name, han: d.han, apt: d.apt, he: d.he, sex: d.sex, realm: d.realm, fromUid: d.uid, at: now,
+        // ⚠ Nó mang theo TẤT CẢ: tuyệt học từng được dạy và Gia Bảo từng được ban. Vũ khí trao đi
+        //   nay chĩa ngược lại. (Đồ vốn đã rời kho chính từ lúc ban — đây chỉ là chụp lại để dựng boss.)
+        traits: (d.traits || []).slice(), daoTam: daoTamOf(d), tamMa: d.tamMa || '',
+        skills: (d.skills || []).slice(), gear: d.gear || {}, chienLuc: disciPower(d),
+      }); chips.push(chip(d.name + ' → Phản Đồ', '#a78bfa')); } }
+    else if ('recapture' in e) { if (rebel) { const i = t.events.rebels.findIndex((r) => r.fromUid === rebel.fromUid); if (i >= 0) t.events.rebels.splice(i, 1); const nd = genDisciple({ name: rebel.name, han: rebel.han, apt: rebel.apt, he: rebel.he }); nd.realm = rebel.realm; nd.flags = { cuuChuoc: true };
+      if (Array.isArray(rebel.traits) && rebel.traits.length) nd.traits = rebel.traits.slice();
+      if (typeof rebel.daoTam === 'number') nd.daoTam = rebel.daoTam;
+      nd.skills = Array.isArray(rebel.skills) ? rebel.skills.slice() : [];
+      nd.gear = (rebel.gear && typeof rebel.gear === 'object') ? rebel.gear : {};   // quy hàng thì gia bảo cũng theo về
+      t.disciples.push(nd); chips.push(chip(rebel.name + ' · quy hàng', '#34d399')); } }
     else if ('dismissRebel' in e) { if (rebel) { const i = t.events.rebels.findIndex((r) => r.fromUid === rebel.fromUid); if (i >= 0) t.events.rebels.splice(i, 1); chips.push(chip(rebel.name + ' · dứt nợ', '#94a3b8')); } }
     else if ('bietHieu' in e) { const d = findD(e.bietHieu.who); if (d) { d.bietHieu = e.bietHieu.name; chips.push(chip('Biệt hiệu · ' + e.bietHieu.name, '#f5b942')); } }
     else if ('queue' in e) { t.events.queue.push({ eid: e.queue.eid, notBefore: now + (e.queue.delayH || 24) * 3600 * 1000, rebelFrom: e.queue.rebelFrom || (rebel ? rebel.fromUid : null) }); }
@@ -314,6 +325,9 @@ export function resolveEvent(state, pendingIdx, choiceIdx) {
   const cast = resolveCast(t, p.castUids || []);
   const rebel = p.rebelFrom ? (t.events.rebels.find((r) => r.fromUid === p.rebelFrom) || null) : null;
   const ch = ev.choices[choiceIdx]; if (!ch) return null;
+  // ⚠ Lựa chọn ĐẤU: chưa áp gì cả — trả cờ để giao diện mở màn chọn người nghênh chiến.
+  //   Kết cục do resolveEventDuel áp sau, khi đã biết ai thắng.
+  if (ch.duel) return { duel: true, pendingIdx, choiceIdx, rebel: rebel ? rebelHoSo(t, rebel, Date.now()) : null, title: ev.title };
   const ctx = evtCtx(state, t, cast, rebel);
   let oc; try { oc = ch.resolve(ctx); } catch (e) { oc = { tone: 'trung', text: 'Chuyện qua đi như gió thoảng.', effects: [], chronicle: '' }; }
   const now = Date.now();
@@ -323,6 +337,44 @@ export function resolveEvent(state, pendingIdx, choiceIdx) {
   t.events.pending.splice(pendingIdx, 1);
   const tn = TONE_META[oc.tone] || TONE_META.trung;
   return { tone: oc.tone, toneLabel: tn.label, toneColor: tn.color, text: oc.text, chips, chronicle: oc.chronicle || '', tease: oc.tease || null, title: ev.title, grp: ev.grp, han: ev.han };
+}
+
+// ---- Đấu tay đôi với Phản Đồ: chạy trận THẬT bằng Thực Lực Đệ Tử, rồi áp kết cục thắng/thua. ----
+// Trả { fight, ...outcome } — fight để giao diện diễn lại từng hiệp ở Đài Tỉ Võ.
+export function resolveEventDuel(state, pendingIdx, choiceIdx, discipleUid) {
+  const t = state.tongMon; if (!t || !t.events) return null;
+  const p = t.events.pending[pendingIdx]; if (!p) return null;
+  const ev = TM_EVENT_BY_ID[p.eid]; if (!ev) return null;
+  const ch = ev.choices[choiceIdx]; if (!ch || !ch.duel) return null;
+  const rebelRaw = p.rebelFrom ? (t.events.rebels.find((r) => r.fromUid === p.rebelFrom) || null) : null;
+  if (!rebelRaw) return null;
+  const dau = (t.disciples || []).find((x) => x.uid === discipleUid);
+  if (!dau) return { ok: false, msg: 'Chọn một đệ tử để nghênh chiến.' };
+  if (dau.awaiting || dau.lichLuyenUntil || dau.giangUntil) return { ok: false, msg: dau.name + ' đang bận, không ra trận được.' };
+
+  const nowMs = Date.now();
+  const ho = rebelHoSo(t, rebelRaw, nowMs);
+  const A = { name: dau.name, chienLuc: disciPower(dau), he: dau.he, loaiCat: disciLoaiCat(dau), chieuPool: disciChieuPool(dau) };
+  const B = { name: ho.name, chienLuc: ho.chienLuc, he: ho.he, loaiCat: ho.loaiCat, chieuPool: ho.chieuPool };
+  const fight = luanVoCycle(A, B, 'quyetchien:' + dau.uid + '~' + ho.fromUid + ':' + p.at);
+  const thang = fight.winner === 'a';
+
+  const cast = resolveCast(t, p.castUids || []);
+  const ctx = evtCtx(state, t, cast, rebelRaw);
+  ctx.duelist = dau;                                   // đệ tử được cử ra — outcome gọi tên nó
+  ctx.rebelHoSo = ho;
+  const fn = thang ? ch.duelWin : ch.duelLose;
+  let oc; try { oc = fn(ctx); } catch (er) { oc = { tone: 'trung', text: 'Trận đấu qua đi trong sương mù.', effects: [], chronicle: '' }; }
+  const chips = applyOutcome(state, t, ev, oc, cast, rebelRaw, nowMs);
+  const dtChip = shiftDaoTam(t, cast.concat([dau]), ch.daoTam || 0);
+  if (dtChip) chips.push(dtChip);
+  shiftTamTinh(t, [dau], thang ? 30 : -25);
+  ghiNhatKy(dau, thang ? 'lanh' : 'du', 'Quyết Chiến Phản Đồ', nowMs, rngHam(state, 'tongMon'));
+  t.events.pending.splice(pendingIdx, 1);
+  const tn = TONE_META[oc.tone] || TONE_META.trung;
+  return { ok: true, thang, fight, duelist: { uid: dau.uid, name: dau.name }, rebel: ho,
+    tone: oc.tone, toneLabel: tn.label, toneColor: tn.color, text: oc.text, chips,
+    chronicle: oc.chronicle || '', tease: oc.tease || null, title: ev.title, grp: ev.grp, han: ev.han };
 }
 
 // ---- DEV: ép nổ 1 sự kiện theo id (F9) ----
@@ -668,6 +720,30 @@ export function danhKhiDaThuc(t) {
   const so = (t && t.danhKhi) || {};
   return Object.keys(so).filter((k) => so[k].ten).map((k) => Object.assign({ uid: k }, so[k])).sort((a, b) => (b.at || 0) - (a.at || 0));
 }
+
+// ---- PHẢN ĐỒ: hồ sơ để dựng trận đấu và vẽ thẻ đối thủ. Chiến Lực mạnh dần theo ngày lẩn trốn. ----
+export function rebelHoSo(t, r, nowMs) {
+  if (!r) return null;
+  const skills = (r.skills || []).map((id) => BI_KIP_BY_ID[id]).filter(Boolean);
+  let best = null, bestTi = -1;
+  skills.forEach((bk) => { const ti = BI_KIP_TIER_ORDER.indexOf(bk.tier); if (ti > bestTi) { bestTi = ti; best = bk; } });
+  const gearIds = Object.keys(r.gear || {}).map((k) => (r.gear[k] || {}).gearId).filter(Boolean);
+  return {
+    fromUid: r.fromUid, name: r.name, han: r.han, sex: r.sex, he: r.he,
+    apt: r.apt, realm: r.realm,
+    chienLuc: rebelSucManh(r, nowMs),
+    chienLucGoc: r.chienLuc || 0,
+    ngayTron: Math.floor(Math.max(0, ((nowMs || Date.now()) - (r.at || 0)) / 86400000)),
+    loaiCat: best ? (LOAI_CAT[best.loai] || '') : '',
+    skillIds: (r.skills || []).slice(),
+    gearIds,
+    chieuPool: skills.map((bk) => ({ id: bk.id, ten: bk.ten, lines: bk.chieu || [] })),
+    // Phản Đồ vốn là đệ tử THẬT -> chỉ số tính bằng chính disciStats, không suy ngược từ Chiến Lực.
+    stats: disciStats({ realm: r.realm || 0, apt: r.apt || 'trung', he: r.he, xp: 1, capBonus: 0,
+      skills: (r.skills || []).slice(), gear: r.gear || {} }),
+  };
+}
+export function rebelDangCho(t) { return ((t && t.events && t.events.rebels) || []).slice(); }
 
 export function luanVoRecord(t, uid) { return (t && t.luanVo && t.luanVo[uid]) || { w: 0, l: 0 }; }
 

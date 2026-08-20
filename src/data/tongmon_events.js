@@ -11,6 +11,9 @@
 //     story(ctx)->string             // đoạn kể trước lựa chọn
 //     choices:[ {label, flavor, daoTam?:±n, resolve(ctx)->OUTCOME} ]   // (choice) 3-4 nút action-only
 //       daoTam = độ dịch Đạo Tâm áp cho CẢ cast (âm về Tà, dương về Chính). Thiếu = trung tính.
+//       duel:true + duelWin(ctx)/duelLose(ctx) = lựa chọn ĐÁNH THẬT: engine dừng cho người chơi
+//       cử đấu sĩ, chạy luanVoCycle với Phản Đồ, rồi áp đúng một trong hai nhánh. ctx thêm
+//       `duelist` (đệ tử được cử) và `rebelHoSo`.
 //     auto(ctx)->OUTCOME             // (auto, nhóm E) nổ là áp luôn, KHÔNG modal
 //   }
 // OUTCOME = { tone:'lanh'|'du'|'trung', text, effects:[...], chronicle, tease? }
@@ -827,21 +830,23 @@ const D3 = {
           ),
     },
     {
-      label: 'Cử kẻ có duyên nợ ra đơn đả độc đấu',
+      label: 'Cử một đệ tử ra đơn đả độc đấu',
       daoTam: 3,
-      flavor: 'Để người có ân oán sâu nhất với kẻ phản bội tự bước ra, đối mặt tay đôi.',
-      resolve: (c) => c.lucky(0.5)
-        ? G(
-            `Một bóng người lặng lẽ bước ra giữa mưa — kẻ duyên nợ sâu nhất với ${c.rebel.name}. Không trống không trận, chỉ hai thanh kiếm và một trời ân oán. Họ đánh tới rạng đông, từng chiêu như kể lại cả một đời. Chiêu cuối cùng, kiếm xuyên qua tim cố nhân — kẻ ở lại quỳ xuống ôm xác, khóc mà cũng cười. Ân oán một đời, một kiếm dứt. Người thắng đêm ấy vượt tâm kiếp, thăng hoa cảnh giới.`,
-            [ { uy: 450 }, { khiVan: 5 }, { dismissRebel: {} } ],
-            `Một kiếm dứt ân oán một đời với ${c.rebel.name} — kẻ thắng vượt tâm kiếp thăng hoa, giai thoại bi tráng.`
-          )
-        : M(
-            `Kẻ duyên nợ bước ra solo, nhưng sát đạo ${c.rebel.name} quá mạnh. Một chiêu, người ấy đã nằm dưới kiếm y, máu loang mặt sân. ${c.rebel.name} kề mũi kiếm vào cổ cố nhân… rồi khựng lại. Mưa rửa trôi sát khí trên mặt y. Y thu kiếm, ngoảnh đi: "Mạng này ta tha. Nợ, để lần sau." Bóng đen tan vào màn mưa — chừa lại một sợi duyên chưa dứt.`,
-            [ { uy: -80 }, { queue: { eid: 'D3', delayH: 48, rebelFrom: c.rebel.fromUid } } ],
-            `Solo bại trận, ${c.rebel.name} động lòng tha mạng cố nhân rồi rút lui — duyên nợ còn dở dang.`,
-            'Sợi duyên chưa dứt, nó sẽ còn về…'
-          ),
+      flavor: 'Chọn một người trong môn bước ra giữa mưa, đối mặt tay đôi, không ai xen vào.',
+      // ⚠ `duel` = lựa chọn KHÔNG bốc thăm. Engine dừng lại cho người chơi cử đấu sĩ, chạy trận
+      //   THẬT ở Đài Tỉ Võ (Chiến Lực · ngũ hành · bí kíp hai bên), rồi mới áp duelWin/duelLose.
+      duel: true,
+      duelWin: (c) => G(
+        `${c.duelist.name} bước ra giữa mưa, không trống không trận, chỉ hai thanh kiếm và một trời ân oán. Họ đánh tới rạng đông, từng chiêu như kể lại cả một đời. Chiêu cuối cùng, kiếm xuyên qua tim cố nhân — ${c.duelist.name} quỳ xuống ôm xác ${c.rebel.name}, khóc mà cũng cười. Ân oán một đời, một kiếm dứt. Đêm ấy ${c.duelist.name} vượt tâm kiếp, đạo tâm sáng như trăng rằm.`,
+        [ { uy: 450 }, { khiVan: 5 }, { dismissRebel: {} } ],
+        `${c.duelist.name} một kiếm dứt ân oán một đời với ${c.rebel.name} — kẻ thắng vượt tâm kiếp thăng hoa, giai thoại bi tráng.`
+      ),
+      duelLose: (c) => M(
+        `${c.duelist.name} bước ra, nhưng sát đạo ${c.rebel.name} đã luyện tới mức kinh người. Chưa hết mười chiêu, người ấy đã nằm dưới kiếm y, máu loang mặt sân. ${c.rebel.name} kề mũi kiếm vào cổ đồng môn cũ… rồi khựng lại. Mưa rửa trôi sát khí trên mặt y. Y thu kiếm, ngoảnh đi: "Mạng này ta tha. Nợ, để lần sau." Bóng đen tan vào màn mưa — chừa lại một sợi duyên chưa dứt.`,
+        [ { uy: -80 }, { queue: { eid: 'D3', delayH: 48, rebelFrom: c.rebel.fromUid } } ],
+        `${c.duelist.name} solo bại trận, ${c.rebel.name} động lòng tha mạng rồi rút lui — duyên nợ còn dở dang.`,
+        'Sợi duyên chưa dứt, nó sẽ còn về…'
+      ),
     },
     {
       label: 'Dang tay chiêu hàng, lấy ân báo oán',

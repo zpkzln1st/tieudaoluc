@@ -486,6 +486,15 @@ export const NHAT_KY_GIONG = {
 };// Giọng mặc định khi đệ tử chưa có tính cách nào khớp.
 export const NHAT_KY_GIONG_MAC = ['Ta gấp sổ lại, thổi tắt đèn.', 'Đêm còn dài, ta ngồi thêm một lát.'];
 
+// --- PHẢN ĐỒ QUAY LẠI: kẻ phản lẩn trốn ngoài giang hồ thì mỗi ngày mạnh thêm một ít. ---
+export const REBEL_MANH_MOI_NGAY = 0.05;                 // +5% Chiến Lực mỗi ngày thực
+export const REBEL_MANH_TOI_DA = 2.0;                    // không quá gấp đôi lúc rời môn
+export function rebelSucManh(r, nowMs) {
+  const goc = Math.max(1, (r && r.chienLuc) || (((r && r.realm) || 0) + 1) * 20);
+  const ngay = Math.max(0, ((nowMs || Date.now()) - ((r && r.at) || 0)) / 86400000);
+  return Math.round(goc * Math.min(REBEL_MANH_TOI_DA, 1 + ngay * REBEL_MANH_MOI_NGAY));
+}
+
 // --- DANH KHÍ: món Gia Bảo ban đi ban lại qua nhiều đời đệ tử, uống đủ giai thoại thì THỨC TỈNH. ---
 // Thức tỉnh = có tên riêng + khung riêng + một dòng tiểu sử ở Tổ Sư Điện. Cosmetic THUẦN, 0 lực.
 // Sổ linh nằm ở TÔNG (`t.danhKhi[gearUid]`) chứ KHÔNG nằm trên món đồ — thu hồi về kho chính là

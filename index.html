@@ -8686,7 +8686,7 @@
                 <!-- BODY -->
                 <div class="overflow-y-auto px-5 py-4 grow">
                   <!-- ① KỂ CHUYỆN -->
-                  <div x-show="!g.tmEvtResult">
+                  <div x-show="!g.tmEvtResult && !g.tmDuel">
                     <p class="fserif text-[14.5px] leading-[1.75] text-slate-200/95" x-text="g.tmEvtCur.story"></p>
                     <div class="mt-4 space-y-2.5">
                       <template x-for="(ch,ci) in g.tmEvtCur.choices" :key="ci">
@@ -8697,6 +8697,70 @@
                       </template>
                     </div>
                   </div>
+                  <!-- ①b CỬ NGƯỜI NGHÊNH CHIẾN (lựa chọn ĐÁNH: trận chạy bằng Thực Lực Đệ Tử) -->
+                  <template x-if="g.tmDuel && !g.tmEvtResult">
+                    <div x-data="{ get pd(){ return g.tmDuelRebel } }">
+                      <template x-if="pd">
+                        <div class="rounded-xl border p-3 flex items-start gap-3" style="border-color:#a78bfa55;background:rgba(167,139,250,.06)">
+                          <div class="relative w-[74px] h-[98px] rounded-lg overflow-hidden bg-ink2 border shrink-0" :style="'border-color:'+pd.color+'66'">
+                            <div class="absolute inset-0 flex items-center justify-center fserif text-[2.4rem]" :style="'color:'+pd.heColor+'2e'" x-text="pd.han"></div>
+                            <template x-if="pd.face"><img loading="lazy" decoding="async" :src="pd.face" alt="" class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.remove()"></template>
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                              <span class="fserif text-[16px]" :style="'color:'+pd.color" x-text="pd.name"></span>
+                              <span class="text-[10px] px-2 py-0.5 rounded-full border border-violet-500/50 text-violet-300">Phản Đồ</span>
+                              <span class="text-[11px]" :style="'color:'+pd.heColor" x-text="pd.heHan"></span>
+                              <span class="text-[11px] text-slate-400" x-text="pd.realmName"></span>
+                              <span class="text-[10px] text-slate-500" x-show="pd.loaiCatName" x-text="pd.loaiCatName"></span>
+                            </div>
+                            <div class="flex items-baseline gap-2 mt-1">
+                              <span class="lbl">Chiến Lực</span>
+                              <b class="fserif text-[17px] text-rose-300" x-text="g.fmt(pd.chienLuc)"></b>
+                              <span class="text-[11px] text-slate-500" x-show="pd.ngayTron>0" x-text="'· lẩn trốn '+pd.ngayTron+' ngày, mạnh hơn lúc rời môn'"></span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 mt-1.5" x-show="pd.biKip.length">
+                              <template x-for="bk in pd.biKip" :key="bk.id">
+                                <span class="text-[10px] px-1.5 py-0.5 rounded fserif" :style="'color:'+bk.tierColor+';border:1px solid '+bk.tierColor+'55;background:'+bk.tierColor+'14'" x-text="bk.ten"></span>
+                              </template>
+                            </div>
+                            <div class="text-[11.5px] text-amber-300/80 mt-1.5 leading-snug" x-show="pd.doBan.length">
+                              <span class="lbl text-amber-300/60">Gia Bảo nó mang đi</span>
+                              <span x-text="pd.doBan.join(' · ')"></span>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                      <div class="flex items-center justify-between gap-3 mt-4 mb-2">
+                        <span class="lbl">Cử Một Đệ Tử Ra Trận</span>
+                        <button @click="g.tmDuelHuy()" class="px-3 py-1 rounded-lg text-[11.5px] fserif border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 transition shrink-0">Chọn cách khác</button>
+                      </div>
+                      <template x-if="!g.tmDuelRoster.length">
+                        <div class="rounded-lg border border-dashed border-slate-700 px-3 py-5 text-center">
+                          <div class="text-[12.5px] text-slate-400">Không đệ tử nào rảnh để ra trận.</div>
+                          <button @click="g.tmDuelHuy()" class="mt-3 px-4 py-1.5 rounded-lg text-[12px] fserif border border-slate-600 text-slate-300 hover:border-jade hover:text-jade transition">Chọn cách khác</button>
+                        </div>
+                      </template>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <template x-for="dv in g.tmDuelRoster" :key="dv.uid">
+                          <button @click="g.tmDuelStart(dv.uid)" class="text-left rounded-lg border border-slate-700 bg-ink3/40 px-2.5 py-2 transition hover:border-rose-400 hover:bg-ink3/80 flex items-center gap-2.5">
+                            <span class="relative w-9 h-9 rounded-md overflow-hidden bg-ink2 border shrink-0 flex items-center justify-center fserif text-[15px]" :style="'border-color:'+dv.color+'55;color:'+dv.heColor">
+                              <span x-text="dv.han"></span>
+                              <template x-if="dv.face"><img loading="lazy" decoding="async" :src="dv.face" alt="" class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.remove()"></template>
+                            </span>
+                            <span class="min-w-0 flex-1">
+                              <span class="fserif text-[12.5px] block truncate" :style="'color:'+dv.color" x-text="dv.name"></span>
+                              <span class="text-[9.5px] text-slate-500 block truncate" x-text="dv.realmName + (dv.loaiCatName ? ' · '+dv.loaiCatName : '')"></span>
+                            </span>
+                            <span class="text-right shrink-0">
+                              <span class="fserif text-[13px] text-amber-300 block" x-text="g.fmt(dv.chienLuc)"></span>
+                              <span class="text-[9px] text-slate-600 block" x-text="dv.soBiKip+' bí kíp'"></span>
+                            </span>
+                          </button>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
                   <!-- ② HỒI KẾT -->
                   <template x-if="g.tmEvtResult">
                     <div>
@@ -8717,7 +8781,8 @@
                 </div>
                 <!-- FOOTER cố định (note / nút Tiếp tục) -->
                 <div class="shrink-0 px-5 py-3 border-t border-slate-800/70">
-                  <div x-show="!g.tmEvtResult" class="text-center text-[11px] text-slate-600 fserif italic">Lựa rồi mới biết lành dữ — như chuyện giang hồ, không ai báo trước.</div>
+                  <div x-show="!g.tmEvtResult && !g.tmDuel" class="text-center text-[11px] text-slate-600 fserif italic">Lựa rồi mới biết lành dữ — như chuyện giang hồ, không ai báo trước.</div>
+                  <div x-show="g.tmDuel" class="text-center text-[11px] text-slate-600 fserif italic">Trận này phân cao thấp bằng thực lực — chọn người cho đúng.</div>
                   <template x-if="g.tmEvtResult"><button @click="g.closeTmEvt()" class="w-full py-2.5 rounded-lg bg-jade/85 hover:bg-jade text-ink font-bold fserif">Tiếp tục</button></template>
                 </div>
               </div>
@@ -9116,7 +9181,7 @@
 
           <!-- MODAL LUẬN VÕ ĐƯỜNG (tỉ thí đệ tử — chọn đấu sĩ rồi chọn đối thủ) -->
           <template x-if="g.luanVoOpen">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="g.closeLuanVo()" @keydown.escape.window="g.closeLuanVo()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="!g.tmDuelKq && g.closeLuanVo()" @keydown.escape.window="!g.tmDuelKq && g.closeLuanVo()">
               <div @click.stop class="panel rounded-2xl w-[680px] max-w-full h-[640px] max-h-[92dvh] flex flex-col overflow-hidden border border-sky-600/40">
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.1),transparent)">
                   <div class="flex items-center gap-2.5">
@@ -9202,7 +9267,7 @@
               </template>
               <!-- ĐÀI TỈ VÕ (cycle từng hiệp: HP + chiến báo) -->
               <template x-if="g.luanVoFight">
-                <div class="absolute inset-0 z-[5] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click.self="g.luanVoFightDone && g.closeLuanVoResult()" @keydown.escape.window="g.luanVoFightDone && g.closeLuanVoResult()">
+                <div class="absolute inset-0 z-[5] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4" @click.self="g.luanVoFightDone && !g.tmDuelKq && g.closeLuanVoResult()" @keydown.escape.window="g.luanVoFightDone && !g.tmDuelKq && g.closeLuanVoResult()">
                   <div @click.stop class="panel rounded-2xl w-[720px] max-w-full h-[648px] max-h-[94vh] flex flex-col overflow-hidden border border-sky-500/45 shadow-2xl" x-data="{ f: $store.game.luanVoFight }">
                     <div class="flex items-center justify-between gap-2 px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.12),transparent)">
                       <div class="flex items-center gap-2.5">
@@ -9329,7 +9394,8 @@
                       </template>
                       <div class="flex justify-center">
                         <button x-show="!g.luanVoFightDone" @click="g.luanVoSkip()" class="px-6 py-1.5 rounded-lg text-[12px] font-bold fserif border border-slate-700 text-slate-300 hover:border-cyan/50 hover:text-cyan transition">Bỏ Qua »</button>
-                        <button x-show="g.luanVoFightDone" @click="g.closeLuanVoResult()" class="px-8 py-1.5 rounded-lg text-[12px] font-bold fserif bg-sky-600/90 hover:bg-sky-600 text-white transition">Tiếp</button>
+                        <button x-show="g.luanVoFightDone && !g.tmDuelKq" @click="g.closeLuanVoResult()" class="px-8 py-1.5 rounded-lg text-[12px] font-bold fserif bg-sky-600/90 hover:bg-sky-600 text-white transition">Tiếp</button>
+                        <button x-show="g.luanVoFightDone && g.tmDuelKq" @click="g.tmDuelFinish()" class="px-8 py-1.5 rounded-lg text-[12px] font-bold fserif bg-amber-600/90 hover:bg-amber-600 text-white transition">Nghe Hồi Kết</button>
                       </div>
                     </div>
                     </div>
