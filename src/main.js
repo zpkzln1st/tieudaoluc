@@ -7281,6 +7281,15 @@ const gameStore = {
   devTmSetBuildings(lv) { const t = this.tm; if (!t) return; lv = Math.max(0, Math.floor(lv || 0)); Object.keys(BUILDINGS).forEach((k) => { t.buildings[k] = Math.max(t.buildings[k] || 0, lv); }); this.devSave(); this.showToast('Dev: mọi công trình ≥ Bậc ' + lv); },
   devTmAddDisciples(n) { const t = this.tm; if (!t) return; n = n || 3; for (let i = 0; i < n; i++) t.disciples.push(genDisciple()); this.devSave(); this.showToast('Dev: +' + n + ' đệ tử ngẫu nhiên'); },
   devTmRealmAll(realm) { const t = this.tm; if (!t) return; realm = Math.max(0, Math.min(9, Math.floor(realm || 0))); t.disciples.forEach((d) => { d.realm = Math.min(realm, disciCap(d)); d.xp = 0; d.breakReady = false; d.awaiting = false; }); this.devSave(); this.showToast('Dev: mọi đệ tử về ' + REALMS[realm].name); },
+  // DEV: bắn một Tin Từ Giang Hồ (nhóm X) kèm tên — `devFireEvent` không truyền `tin` được
+  // nên lời kể sẽ lọt chữ "undefined"; đây là đường đúng để soi bốn tranh x1–x4.
+  devTmTinVui(eid) {
+    const TEN = { X1: 'Huyết Lang Vương', X2: 'Vạn Yêu Sơn', X3: 'Kiếm Tôn', X4: 'Chiến Đấu' };
+    if (this.tm && this.tm.events) this.tm.events.cd = {};
+    const ok = tongMonTinVui(this.state, eid, { ten: TEN[eid] || 'Thử Nghiệm' }, now());
+    this.tmSave(); this._tick++;
+    this.showToast(ok ? 'Dev: nổ tin ' + eid : 'Dev: ' + eid + ' không nổ (cờ tắt / chưa có đệ tử / còn khoá)');
+  },
   devTmBanGiaBao(n) {   // ban Gia Bảo ngẫu nhiên cho MỌI đệ tử (dựng cảnh Danh Khí)
     const t = this.tm; if (!t) return;
     const SLOT = ['vuKhi', 'mu', 'giap', 'dai', 'gang', 'trangSuc', 'nhan', 'giay'];

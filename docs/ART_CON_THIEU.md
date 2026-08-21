@@ -1,4 +1,29 @@
-# ART CÒN THIẾU — danh sách gọn, prompt dán thẳng
+# ART CÒN THIẾU — ✅ ĐÃ VẼ XONG 19/19
+
+> **Chốt 2026-08-20.** Cả 19 tệp đã thả vào kho, đã đo, và đã **nhìn tận mắt trong game thật**.
+> Giữ lại toàn bộ prompt bên dưới làm hồ sơ — cần vẽ lại tấm nào thì dán lại đúng dòng đó.
+
+**Ba lớp kiểm đã chạy, không lớp nào thay được lớp nào:**
+
+| lớp | hỏi gì | kết quả |
+|---|---|---|
+| Đo tệp | có tệp chưa · đúng tỉ lệ chưa · alpha đúng chưa · nặng quá không | 19/19 đạt |
+| Nạp trình duyệt | ảnh **giải mã được** không (tệp hỏng vẫn có kích thước) | 19/19 nạp được |
+| Ảnh chụp game thật | có **đường vẽ** tới nó không, đứng đúng chỗ không | 4 loại đều đúng |
+
+⚠ Lớp thứ ba là lớp không bỏ được: một tệp đúng cỡ nằm sai thư mục vẫn qua được hai lớp đầu.
+
+**Đã soi trong game:** tranh X1/X2/X4 ở màn Hồi Tưởng · `batDietKimCang` ở danh sách quái bãi
+Thiên Thành · art tuyệt kĩ 「Phá Lãng Xung Phong」 của Xích Long Chu · icon Thỉnh Kinh trên cột
+điều hướng (nay là tranh vẽ, không còn emoji ☁️).
+
+**Một điểm ghi lại:** `yvXichLongChu.webp` nặng **315 KB**, hơn tấm nặng nhất của 10 tệp `yv*` cũ
+(288 KB) khoảng 9%. Ô hiển thị chỉ 56×56 nên đây là mức thừa, tuy chưa tới ngưỡng gây trắng ô.
+Thu nhỏ lúc rảnh thì gọn hơn.
+
+---
+
+# Hồ sơ prompt (giữ nguyên)
 
 > Kiểm kê 2026-08-20 bằng cách quét chéo **1.438 đường dẫn ảnh mã trỏ tới** so với **1.442 tệp
 > trên đĩa**. **19 tệp cần vẽ.** Mọi cỡ dưới đây **đo trực tiếp từ header WebP của tệp anh em**,
@@ -20,9 +45,9 @@ dưới 250 KB, tranh nền dưới 400 KB.
 | C. Art tuyệt kĩ Yêu Vương sự kiện | 12 | 1254×1254 | có nền |
 | D. Icon điều hướng | 1 | 500×500 | **trong suốt** |
 | E. Icon thông báo | 1 | 500×500 | **trong suốt** |
-| **TỔNG** | **19** | | |
+| **TỔNG** | **19 ✅** | | |
 
-**Thứ tự nên làm:** A → B → C → D → E.
+~~**Thứ tự nên làm:** A → B → C → D → E.~~ **Đã vẽ xong cả năm nhóm.**
 A là lỗ hổng duy nhất người chơi thấy **ngay hôm nay** (không nằm sau cờ nào). B chặn đường mở cờ
 `tongMonDrama`. D chặn đường mở cờ `thinhKinh`.
 
