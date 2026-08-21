@@ -197,9 +197,50 @@ bộ art phó bản sẵn có, công tắc và dải báo đều là khuôn `.dd
 - ⚠ Dòng cũ ghi "Bí Kíp BK1–BK5 chỉ chờ dựng" là **SAI**: BK1→BK5 đã LIVE từ 2026-06-25.
 - Bật bằng Lệnh Bài, tab Tính Năng. Bài kiểm 49 `_check_tongmon_drama` (238 mục, kiểm chuẩn 44/44).
 
-**4.3 Bang Phái có ăn thua** — cờ `bangChien`
-- Bang Phái đã dựng lại lần bốn. Nay thêm tranh chấp giữa bang: mỗi tuần một mốc.
+**4.3 Bang Phái có ăn thua** — cờ `bangChien` · **ĐÃ DỰNG, ĐANG NGỦ (2026-08-21)**
 - ⚠ Tông Môn = NUÔI · Bang Phái = ĐÁNH. Đừng lẫn hai vai.
+- **Dựng theo đúng mockup `_mockup/bangchien.html`** (vẽ 28-07, nằm sẵn trong kho). Không đẻ bản
+  mới — đây chính là bài học đắt nhất của Bang Phái: bản thiết kế đã có, đi bịa là mất ba vòng.
+
+**Một trận mỗi tuần.** Tiên Minh tranh MỘT vùng (Đất Tranh) với MỘT bang đối thủ, bày năm cặp
+đấu tay đôi, thắng ba cặp là thắng cả trận.
+
+| núm | số |
+|---|---|
+| số cặp / cần thắng | 5 / 3 |
+| khắc ngũ hành | dùng lại `nguHanhMod` của combat: **+30% / −20%**, không chép công thức sang |
+| kẹp cửa thắng một cặp | 0,08 – 0,92 |
+| nhãn cửa | An Toàn ≥0,62 · Hên Xui ≥0,47 · Hiểm ≥0,33 · Nguy Hiểm |
+| thắng | vét `8.000 + cấp địch × 900` Bạc + 2–4 Mảnh + 600 Công Tích + giữ đất **một tuần** |
+| thua | bị vét lại **60%** số đó, **kẹp theo Ngân Khố đang có** + 120 Công Tích |
+| giữ đất | tính như **hạng nhất** vùng đó ⇒ +10% tốc độ nghề, đúng một tuần |
+
+Cửa vào: đã lập Tiên Minh · đã xây **Diễn Võ Trường** · đủ 4 minh chúng. Nhịp tuần dùng CHUNG
+biên với Boss Bang nên hai kỳ rơi cùng lúc.
+
+**Bốn thứ suy từ (seed, kỳ tuần) nên không phình bản lưu**: Đất Tranh · bang đối thủ · năm suất
+quân địch · cấp từng suất. Chỉ ba thứ phải lưu: cách XẾP quân, đã KHAI CHIẾN chưa, và SỬ 4 trận.
+
+**⚠⚠ Ba lỗi IM LẶNG bài kiểm báo xanh mà ẢNH CHỤP mới bắt được:**
+
+| lỗi | hậu quả đo được |
+|---|---|
+| Đất Tranh bốc ĐỀU trong mọi vùng đã mở | người Lv 60 tranh vùng **Lv 1**. Nay bốc trong dải trên (`BC_DAI_VUNG = 40`) |
+| cấp quân địch neo vào cấp **người chơi** | minh chúng là bot Lv 100 đấu địch Lv 61 — trận nào cũng thắng dễ. Nay neo vào cấp trung bình CẢ NĂM SUẤT |
+| ô chân dung người chơi TRỐNG TRƠN | `state.player.avatar` rỗng khi chưa mua ảnh; engine không biết ảnh mặc định. Nay hỏi `g.avatarId` |
+
+**⚠⚠ Một lỗi im lặng khác do chính bài kiểm bắt:** quân địch bốc trong sổ giang hồ ĐANG SỐNG thì
+**đổi mặt giữa tuần** — sổ nở thêm người mỗi chu kỳ nên `roster[h % roster.length]` trỏ sang người
+khác, và `botCombatLv` cũng bò theo giờ. Nay dựng thẳng từ bảng tên/chân dung bot rồi **chốt vào
+bản lưu** (`bc.dich`).
+
+Bài kiểm mới **50** `_check_bangchien.mjs` (**119 mục**), kiểm chuẩn `_kiemchuan_bangchien.mjs`
+**30/30 phép phá bắt đúng chỗ**. Trang soi game thật `_mockup/_bangchien_probe.html`.
+Không cần art mới: dùng lại `images/ui/bangphai_banner.webp` + chân dung bot + chip ngũ hành sẵn có.
+Bật bằng Lệnh Bài, tab Tính Năng.
+
+⛔ CHƯA làm (mockup có nhưng để đợt sau): **cấm địa riêng cho bang** (là hệ mới hẳn, không phải
+một dòng thưởng) và **thương tích nghỉ hai ngày** (đẻ ca thiếu suất, phải xử lí riêng).
 
 **4.4 Kinh tế** — cờ `sanThuMua`
 - ~~Sàn thêm Thu Mua (buy-order)~~ **ĐÃ DỰNG, ĐANG NGỦ.** Bảng `san_thu_mua` + bốn hàm

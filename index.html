@@ -14056,6 +14056,30 @@
            ước của 10: 5 cột (2 hàng) khi đủ rộng, 2 cột (5 hàng) khi hẹp. Đo container chứ
            không đo cửa sổ: khung này nằm trong cột giữa, hai bên còn thanh điều hướng. */
         .bp-ct-wrap{ container-type:inline-size; }
+        /* ---------- BANG CHIẾN ---------- */
+        .bc-war{ min-height:126px; border:1px solid #3a2a1c; }
+        .bc-li{ list-style:none; padding:4px 0 4px 17px; position:relative; line-height:1.45; }
+        .bc-li:before{ content:""; position:absolute; left:3px; top:11px; width:5px; height:5px; border-radius:99px; }
+        .bc-li-win:before{ background:#14b8a6; } .bc-li-lose:before{ background:#fb7185; }
+        /* Khung đo là KHỔ CỦA PANEL chứ không phải khổ cửa sổ — hai bên còn thanh điều hướng. */
+        .bc-wrap{ container-type:inline-size; }
+        .bc-pair{ display:grid; grid-template-columns:1fr; gap:8px; align-items:center; }
+        @container (min-width:760px){ .bc-pair{ grid-template-columns:1fr 186px 1fr; gap:12px; } }
+        .bc-pair-me{ background:rgba(20,184,166,.045); }
+        .bc-f{ display:flex; gap:10px; align-items:center; min-width:0; width:100%;
+               border:1px solid #1e293b; border-radius:10px; padding:8px 10px; background:rgba(7,11,20,.5);
+               transition:border-color .15s, background .15s; }
+        .bc-f[type="button"]:not(:disabled){ cursor:pointer; }
+        .bc-f[type="button"]:not(:disabled):hover{ border-color:#475569; }
+        .bc-f-right{ flex-direction:row-reverse; text-align:right; }
+        .bc-f-you{ border-color:rgba(34,211,238,.45); background:rgba(34,211,238,.06); }
+        .bc-f-chon{ border-color:rgba(245,185,66,.75); background:rgba(245,185,66,.10); }
+        .bc-ava{ width:46px; height:58px; border-radius:8px; overflow:hidden; flex:0 0 auto;
+                 border:1px solid #2a3550; display:block; }
+        .bc-ava img{ width:100%; height:100%; object-fit:cover; object-position:50% 15%; display:block; }
+        .bc-n{ display:block; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .bc-he{ font-size:11px; border-radius:6px; padding:1px 7px; font-weight:700; white-space:nowrap; }
+        .bc-verdict{ font-size:12.5px; font-weight:700; border-radius:8px; padding:4px 0; }
         .bp-ct-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
         /* Ngưỡng 700 = bề rộng khung ở cửa sổ 1024 (đo được 754) vẫn còn 5 cột, thẻ 141px —
            đúng cỡ bản cũ. Dưới nữa mới rơi về 2 cột, lúc đó thẻ 243px ở cửa sổ 768. */
@@ -14225,11 +14249,8 @@
 
               <!-- TAB -->
               <div class="flex flex-wrap gap-1.5 mb-3">
-                <template x-for="t in [
-                    {id:'nha',ten:'Tổng Đàn'},{id:'thanhVien',ten:'Minh Chúng'},{id:'chieuMo',ten:'Chiêu Mộ'},
-                    {id:'nhiemVu',ten:'Minh Vụ'},{id:'cuaHang',ten:'Minh Hội Các'},{id:'kyNang',ten:'Kĩ Năng'},
-                    {id:'congTrinh',ten:'Công Trình'},{id:'chinhPhat',ten:'Chinh Phạt'},{id:'boss',ten:'Trảm Yêu'},
-                    {id:'thietLap',ten:'Thiết Lập'}]" :key="t.id">
+                <!-- Danh sach tab lay tu getter `bpTabs` — Bang Chien chi moc ra khi co `bangChien` bat. -->
+                <template x-for="t in bpTabs" :key="t.id">
                   <button @click="tab = t.id"
                     class="px-3 py-1.5 rounded-lg text-[12px] fserif border transition inline-flex items-center gap-1.5"
                     :class="tab === t.id ? 'text-amber-200 border-amber-500/55 bg-amber-500/10' : 'text-slate-400 border-slate-800 hover:border-slate-600'">
@@ -15177,6 +15198,189 @@
                         </div>
                         </div>
                       </div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+
+              <!-- ===== TAB: BANG CHIẾN ===== (cờ `bangChien`; tab chỉ mọc khi cờ bật) -->
+              <template x-if="tab==='bangChien'">
+                <div class="space-y-3.5">
+                  <template x-if="bcVuongChu">
+                    <div class="panel rounded-xl p-5 text-center">
+                      <div class="text-jade font-bold fserif text-[15px]">Bang Chiến</div>
+                      <div class="text-[12.5px] text-slate-300/85 mt-2 fserif" x-text="bcVuongChu"></div>
+                    </div>
+                  </template>
+
+                  <template x-if="!bcVuongChu && bcTran">
+                    <div class="space-y-3.5" x-data="{ get r(){ return bcTran } }">
+                      <!-- ĐẦU ĐỀ TRẬN -->
+                      <div class="bc-war rounded-xl overflow-hidden relative">
+                        <img loading="lazy" decoding="async" src="images/ui/bangphai_banner.webp" alt=""
+                             class="absolute inset-0 w-full h-full object-cover" style="object-position:center 34%;filter:saturate(.85)"
+                             onerror="this.remove()">
+                        <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(7,11,20,.55),rgba(7,11,20,.93) 78%)"></div>
+                        <div class="relative px-5 py-4 text-center">
+                          <div class="text-[10.5px] tracking-[.28em] uppercase" style="color:#b78a3e">Bang Chiến · ngày giao chiến</div>
+                          <div class="flex items-center justify-center gap-4 flex-wrap mt-2">
+                            <span class="text-[22px] font-bold leading-tight gold-text" x-text="bang.ten"></span>
+                            <span class="text-[14px] tracking-[.2em]" style="color:#7f8ea6">— tranh —</span>
+                            <span class="text-[22px] font-bold leading-tight text-slate-200" x-text="r.doiThu.ten"></span>
+                          </div>
+                          <div class="text-[13px] text-slate-300 mt-2">
+                            Đất tranh: <b class="text-amber-300" x-text="r.loc.name"></b>
+                            <span class="text-slate-500" x-text="' · Lv ' + r.loc.reqLevel"></span>
+                            <template x-if="r.giuMayTuan > 1">
+                              <span class="text-slate-500" x-text="' · ' + r.doiThu.ten + ' giữ đã ' + r.giuMayTuan + ' tuần'"></span>
+                            </template>
+                          </div>
+                          <div class="mt-2.5 inline-block text-[12px] rounded-full px-3.5 py-[3px]"
+                               :class="r.xong ? 'text-teal-200 border border-teal-500/40 bg-teal-500/10' : 'text-rose-200 border border-rose-500/40 bg-rose-500/8'"
+                               x-text="r.xong ? ('Trận tuần này đã đánh xong · kỳ mới sau ' + bcConLai(r.conLaiMs))
+                                             : ('Còn ' + bcConLai(r.conLaiMs) + ' bày trận — hết giờ là quân đang xếp sẵn tự ra trận')"></div>
+                        </div>
+                      </div>
+
+                      <!-- ĐƯỢC / MẤT -->
+                      <div class="grid gap-3 md:grid-cols-2">
+                        <div class="rounded-xl px-4 py-3 border border-teal-500/35"
+                             style="background:linear-gradient(150deg,rgba(20,184,166,.09),rgba(15,21,33,.6) 65%)">
+                          <div class="text-[14px] font-bold text-teal-300 fserif">Thắng thì được</div>
+                          <ul class="mt-1.5 space-y-1">
+                            <li class="bc-li bc-li-win text-[12.5px] text-slate-300">
+                              Chiếm <b class="text-slate-100" x-text="r.loc.name"></b> — cả minh làm nghề ở đó
+                              <b class="text-teal-300" x-text="'+' + Math.round(bcBuffGiu * 100) + '% tốc độ'"></b> trong một tuần
+                            </li>
+                            <li class="bc-li bc-li-win text-[12.5px] text-slate-300">
+                              Vét Ngân Khố <span x-text="r.doiThu.ten"></span>: <b class="text-amber-300" x-text="fmt(r.vetBac) + ' Bạc'"></b>
+                            </li>
+                            <li class="bc-li bc-li-win text-[12.5px] text-slate-300">Cướp được Mảnh Trang Bị về kho</li>
+                          </ul>
+                        </div>
+                        <div class="rounded-xl px-4 py-3 border border-rose-500/35"
+                             style="background:linear-gradient(150deg,rgba(244,63,94,.08),rgba(15,21,33,.6) 65%)">
+                          <div class="text-[14px] font-bold text-rose-300 fserif">Thua thì mất</div>
+                          <ul class="mt-1.5 space-y-1">
+                            <li class="bc-li bc-li-lose text-[12.5px] text-slate-300">
+                              Bị vét lại <b class="text-rose-300" x-text="fmt(Math.round(r.vetBac * 0.6)) + ' Bạc'"></b> trong Ngân Khố
+                            </li>
+                            <li class="bc-li bc-li-lose text-[12.5px] text-slate-300">
+                              Mất <b class="text-slate-100" x-text="r.loc.name"></b> — không có buff nghề ở đó tuần sau
+                            </li>
+                            <li class="bc-li bc-li-lose text-[12.5px] text-slate-300">Phải đợi tới tuần sau mới đánh lại được</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <!-- BÀY TRẬN -->
+                      <div class="panel rounded-xl overflow-hidden">
+                        <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                          <span class="text-jade font-bold fserif">Bày Trận — 5 cặp đấu tay đôi</span>
+                          <span class="text-[10.5px] text-slate-600">bấm hai suất bên mình để đổi chỗ · thắng 3 cặp là thắng cả trận</span>
+                        </div>
+                        <div class="bc-wrap divide-y divide-slate-800/60">
+                          <template x-for="c in r.cap" :key="c.khe">
+                            <div class="bc-pair px-3.5 py-2.5" :class="c.ta.laTa ? 'bc-pair-me' : ''">
+                              <!-- bên ta -->
+                              <button type="button" class="bc-f text-left" :disabled="r.xong"
+                                      :class="[c.ta.laTa ? 'bc-f-you' : '', bcKheChon === c.khe ? 'bc-f-chon' : '']"
+                                      @click="bcBam(c.khe)">
+                                <span class="bc-ava" :style="'background:' + (c.ta.laTa ? '#0e2a33' : '#0a0f1a')">
+                                  <img loading="lazy" decoding="async" :src="'images/avatars/' + bcAva(c.ta) + '.webp'"
+                                       alt="" onerror="this.remove()">
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                  <span class="bc-n" :class="c.ta.laTa ? 'text-cyan-300' : 'text-slate-100'" x-text="c.ta.ten"></span>
+                                  <span class="flex gap-1.5 items-center mt-0.5 flex-wrap">
+                                    <span class="bc-he" :class="bcHeChip(c.ta.he).badge" x-text="bcHeChip(c.ta.he).han + ' ' + bcHeChip(c.ta.he).ten"></span>
+                                    <span class="text-[11.5px] text-slate-400 tabular-nums" x-text="'Lv ' + c.ta.lv"></span>
+                                  </span>
+                                  <span class="block text-[10.5px] mt-0.5" style="color:#5d6b82" x-text="c.ta.phu"></span>
+                                </span>
+                              </button>
+                              <!-- cột giữa -->
+                              <div class="text-center">
+                                <div class="bc-verdict border" :class="bcMauCua(c.cua.ma)" x-text="c.cua.ten"></div>
+                                <div class="text-[11px] mt-1" style="color:#7f8ea6">
+                                  <span x-text="c.viSao.he"></span><br><span x-text="c.viSao.cap"></span>
+                                </div>
+                              </div>
+                              <!-- bên địch -->
+                              <div class="bc-f bc-f-right">
+                                <span class="bc-ava" style="background:#0a0f1a">
+                                  <img loading="lazy" decoding="async" :src="'images/avatars/' + bcAva(c.dich) + '.webp'"
+                                       alt="" onerror="this.remove()">
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                  <span class="bc-n text-slate-100" x-text="c.dich.ten"></span>
+                                  <span class="flex gap-1.5 items-center mt-0.5 flex-wrap justify-end">
+                                    <span class="text-[11.5px] text-slate-400 tabular-nums" x-text="'Lv ' + c.dich.lv"></span>
+                                    <span class="bc-he" :class="bcHeChip(c.dich.he).badge" x-text="bcHeChip(c.dich.he).han + ' ' + bcHeChip(c.dich.he).ten"></span>
+                                  </span>
+                                  <span class="block text-[10.5px] mt-0.5" style="color:#5d6b82" x-text="c.dich.phu"></span>
+                                </span>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                        <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap border-t border-slate-800">
+                          <div class="text-[13px] text-slate-300">
+                            Cục diện:
+                            <b class="text-teal-300" x-text="r.dem.an + ' chắc'"></b> ·
+                            <b class="text-amber-300" x-text="r.dem.hen + ' hên xui'"></b> ·
+                            <b class="text-orange-300" x-text="r.dem.hiem + ' hiểm'"></b> ·
+                            <b class="text-rose-300" x-text="r.dem.nguy + ' bỏ'"></b>
+                            <span class="text-slate-500" x-text="' — cửa thắng cả trận ' + bcKiVong(r) + '%'"></span>
+                          </div>
+                          <div class="flex gap-2 flex-wrap">
+                            <button type="button" @click="bcTuXepGiup()" :disabled="r.xong"
+                              class="px-4 py-2 rounded-lg text-[13px] fserif border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 transition disabled:opacity-40">Tự Xếp Giúp</button>
+                            <button type="button" @click="bcKhaiChien()" :disabled="r.xong"
+                              class="px-5 py-2 rounded-lg text-[13px] fserif font-bold border border-rose-500/55 text-rose-100 transition disabled:opacity-40"
+                              style="background:linear-gradient(180deg,rgba(244,63,94,.22),rgba(244,63,94,.08))"
+                              x-text="r.xong ? 'Đã Khai Chiến' : 'Khai Chiến'"></button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- TRẬN TRƯỚC -->
+                      <template x-if="r.su && r.su.length">
+                        <div class="panel rounded-xl overflow-hidden">
+                          <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                            <span class="text-jade font-bold fserif">Trận Đã Qua</span>
+                            <span class="text-[10.5px] text-slate-600" x-text="'giữ ' + r.su.length + ' trận gần nhất'"></span>
+                          </div>
+                          <div class="divide-y divide-slate-800/60">
+                            <template x-for="(t, i) in r.su" :key="t.ky">
+                              <div class="px-4 py-3">
+                                <div class="flex items-center justify-center gap-3.5 text-[24px] font-bold py-1">
+                                  <span :class="t.thang ? 'text-teal-300' : 'text-slate-400'" x-text="t.diem[0]"></span>
+                                  <span class="text-[17px]" style="color:#3f4a63">–</span>
+                                  <span class="text-slate-400" x-text="t.diem[1]"></span>
+                                </div>
+                                <div class="text-center text-[12px] text-slate-500" x-text="t.locTen + ' · tranh với ' + t.doiTen"></div>
+                                <div class="mt-2 space-y-0">
+                                  <template x-for="(d, k) in t.dong" :key="k">
+                                    <div class="flex items-center gap-2.5 text-[12.5px] py-1.5 border-t border-dashed border-slate-800">
+                                      <span class="w-5 text-center font-bold" :class="d.thang ? 'text-teal-300' : 'text-rose-400'" x-text="d.thang ? '✓' : '✗'"></span>
+                                      <span class="min-w-0 flex-1 truncate" :class="d.laTa ? 'text-cyan-300' : 'text-slate-300'" x-text="d.ten"></span>
+                                      <span class="text-slate-600 shrink-0" x-text="d.thang ? 'thắng' : 'bại'"></span>
+                                      <span class="min-w-0 flex-1 truncate text-right text-slate-400" x-text="d.dichTen"></span>
+                                    </div>
+                                  </template>
+                                </div>
+                                <div class="mt-2.5 rounded-lg px-3 py-2 text-[12.5px]"
+                                     :class="t.thang ? 'border border-amber-500/30 text-amber-100' : 'border border-slate-700 text-slate-400'"
+                                     :style="t.thang ? 'background:rgba(245,185,66,.06)' : ''"
+                                     x-text="t.thang
+                                       ? ('Chiếm được ' + t.locTen + ' · vét ' + fmt(t.bac) + ' Bạc + ' + t.manh + ' Mảnh Trang Bị vào Ngân Khố · cả minh được buff nghề ở vùng đó.')
+                                       : ('Thua trận · mất ' + fmt(-t.bac) + ' Bạc trong Ngân Khố · vẫn được ' + fmt(t.ct) + ' Công Tích.')"></div>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
                     </div>
                   </template>
                 </div>

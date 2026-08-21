@@ -259,6 +259,39 @@ export const BOSS_BANG_LUOT = 8;                     // trần lượt xuất tr
 export const BOSS_BANG_CD_MS = 20 * 60 * 1000;       // nghỉ giữa hai lượt
 export const BOSS_BANG_MAU_HE_SO = 2.2;              // máu = máu Yêu Vương gốc × hệ số × cấp Trảm Yêu Đài
 
+// ---------- BANG CHIẾN ----------
+// Mỗi tuần Tiên Minh tranh MỘT vùng với MỘT bang đối thủ, bày năm cặp đấu tay đôi.
+// ⚠ Nhịp tuần dùng CHUNG biên với Boss Bang (cùng 7 ngày kể từ mốc 0) nên hai kỳ rơi đúng cùng
+//   lúc — người chơi chỉ phải nhớ một ngày trong tuần, không phải hai.
+export const BC_KY_MS = 7 * 24 * 3600 * 1000;
+export const BC_SO_CAP = 5;              // năm cặp đấu tay đôi
+export const BC_CAN_THANG = 3;           // thắng ba cặp là thắng cả trận
+export const BC_SU_CAP = 4;              // giữ lại bốn trận gần nhất
+/** Kẹp cửa thắng của một cặp: cặp nào cũng còn cửa, không có cặp cầm chắc trọn vẹn. */
+export const BC_TI_LE_SAN = 0.08;
+export const BC_TI_LE_TRAN = 0.92;
+/** Ngưỡng đọc cửa thắng của MỘT cặp — nhãn ở cột giữa. Số đo trong `_check_bangchien.mjs`. */
+// ⚠ Ngưỡng "Hên Xui" phải ÔM lấy mốc 50%. Để nó bắt đầu từ 0,52 thì một cặp 49% — đúng nghĩa
+//   ăn thua đủ — lại bị đọc thành "Hiểm", người chơi bỏ cặp đáng đánh. Ảnh chụp game thật lộ ra.
+export const BC_NGUONG = [
+  { tu: 0.62, ma: 'an',   ten: 'An Toàn' },
+  { tu: 0.47, ma: 'hen',  ten: 'Hên Xui' },
+  { tu: 0.33, ma: 'hiem', ten: 'Hiểm' },
+  { tu: 0,    ma: 'nguy', ten: 'Nguy Hiểm' },
+];
+/** Đất Tranh chỉ bốc trong DẢI TRÊN của các vùng đã mở — người cấp 60 tranh vùng Lv 1 là vô nghĩa. */
+export const BC_DAI_VUNG = 40;
+/** Vét Ngân Khố bang bại trận. Bạc = nền + cấp bang đối thủ × bậc. */
+export const BC_VET_BAC_NEN = 8000;
+export const BC_VET_BAC_CAP = 900;
+export const BC_VET_MANH = [2, 4];       // Mảnh Trang Bị cướp được, theo cấp đối thủ
+export const BC_CT_THANG = 600;          // Công Tích cho người chơi khi thắng trận
+export const BC_CT_THUA = 120;           // thua vẫn có, ít
+/** Thua thì bị vét lại chừng này phần Bạc so với lúc thắng. Không bao giờ vét quá Ngân Khố đang có. */
+export const BC_VET_KHI_THUA = 0.6;
+/** Giữ được Đất Tranh thì cả minh ăn buff nghề bậc nhất ở vùng đó, đúng một tuần. */
+export const BC_BUFF_GIU = 0.10;
+
 // ---------- QUYỀN ----------
 // Ngưỡng bậc chức được làm việc gì. Bang chủ (bậc 6) luôn làm được mọi thứ.
 export const QUYEN_MAC_DINH = { rutKho: 3, nhanNv: 0, moiNguoi: 4, duyetDon: 4 };
