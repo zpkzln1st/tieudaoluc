@@ -13,7 +13,7 @@
 | 1 | **Icon Tông Môn** ở thanh điều hướng (đang THIẾU — mọi nav khác đã có) | `tongmon.webp` | `images/nav/` | ~500×500 · **trong suốt** | ❌ thả file là chạy (đang fallback emoji ⛩️) |
 | 2 | **Banner/hero** đầu trang Tông Môn | `tongmon_banner.webp` | `images/ui/` | ~2560×1024 (≈2.5:1) · tối trái cho chữ | ✅ cần hook nhỏ (hero đang dùng gradient) |
 | 3 | **Ấn/huy hiệu tông môn** (ô avatar hero, đang hiện chữ "Ti") | `tongmon_emblem.webp` | `images/ui/` | ~256×256 · trong suốt | ✅ cần hook nhỏ |
-| 4 | **Tranh nền 16 sự kiện** (dải header modal kể chuyện) | `<id>.webp` (a1…e5) | `images/tongmon/events/` | ~1200×420 · tối, watermark Hán phủ lên | ✅ cần hook (header đang gradient+Hán) |
+| 4 | **Tranh nền 16 sự kiện** (dải header modal kể chuyện) | `<id>.webp` (a1…x4) | `images/tongmon/events/` | **2120×742** · tối, watermark Hán phủ lên | ✅ cần hook (header đang gradient+Hán) |
 | 5 | **Tile 5 công trình** (đang là chữ Hán mờ) | `<key>.webp` | `images/tongmon/buildings/` | ~312×416 (3:4) · tối | ✅ cần hook (tuỳ chọn) |
 
 > Folder `images/tongmon/` CHƯA tồn tại — tạo mới khi làm #4/#5.
@@ -62,8 +62,12 @@ subtle gold filigree, soft glow, isolated on transparent background, painterly g
 ---
 
 ## 4. TRANH NỀN 23 SỰ KIỆN — `images/tongmon/events/<id>.webp`
-**Nơi để:** `images/tongmon/events/` (tạo mới) · **Kích thước:** ~1200×420 · **Nền:** tối, để chữ Hán watermark + tiêu đề gold phủ lên (ảnh chỉ là bối cảnh khí quyển, đừng quá sáng/đông).
-**Tên file = id viết thường:** `a1 a2 a3 b1 b2 b3 c1 c2 d1 d2 d3 e1 e2 e3 e4 e5 f1 f2 f3 f4 g1 h1` + `tmk`.
+**Nơi để:** `images/tongmon/events/` · **Kích thước:** **2120×742** (đo thật trên 23 tệp; con số ~1200×420 ở bản cũ là SAI) · **Nền:** tối, để chữ Hán watermark + tiêu đề gold phủ lên (ảnh chỉ là bối cảnh khí quyển, đừng quá sáng/đông).
+**Tên file = id viết thường:** `a1 a2 a3 b1 b2 b3 c1 c2 d1 d2 d3 e1 e2 e3 e4 e5 f1 f2 f3 f4 g1 h1` + `tmk`
++ **nhóm X**: `x1 x2 x3 x4`.
+
+> ⚠ `TM_EVENTS` có **27** sự kiện. Danh sách trên trước đây chỉ ghi 23 id — bỏ sót cả nhóm X,
+> và đó là lý do bốn tấm `x1`–`x4` bị quên. **Bốn prompt đã viết sẵn ở [ART_CON_THIEU.md](ART_CON_THIEU.md).**
 
 Định hướng theo nhóm (màu chủ đạo khớp viền modal):
 - **A — Drama đệ tử (rose #fb7185):** hai bóng đệ tử dưới gốc ngân hạnh / sân luyện đêm, tình & xung đột.
@@ -103,7 +107,7 @@ subtle gold filigree, soft glow, isolated on transparent background, painterly g
 ```
 Atmospheric wide wuxia scene banner: [MÔ TẢ CẢNH THEO ID], painterly xianxia concept art, moody dark
 palette with [MÀU NHÓM] accent glow, misty, cinematic, muted so text and a large faint calligraphy
-character can overlay on top, 1200x420, no text
+character can overlay on top, 2120x742, no text
 ```
 
 ### Hai prompt còn thiếu — viết đầy đủ, dán thẳng

@@ -7,9 +7,11 @@
 
 - **Chốt tên → ráp data → GEN ẢNH.** Tên tệp phải khớp chính xác `id` camelCase. GitHub Pages
   **phân biệt hoa/thường** — gen trước rồi đổi tên sau là ảnh vỡ im lặng trên bản live.
-- Năm Hộ Kinh Sứ vào `images/items/`, **nền trong suốt**, vuông 244×244, giống mọi ảnh vật phẩm khác.
+- Năm Hộ Kinh Sứ vào `images/items/`, **nền trong suốt**, vuông **500×500** (đo thật trên 7 tệp đã gen; con số 244×244 ở bản cũ là SAI), giống mọi ảnh vật phẩm khác.
 - Nền đường mây vào `images/bg/`, **1600×620**, có nền, không trong suốt.
-- Bó kinh thư và đài mây rỗng vào `images/items/`, nền trong suốt, 244×244.
+- Bó kinh thư và đài mây rỗng vào `images/items/`, nền trong suốt, **500×500**.
+- ⚠ **`daiMayTrong.webp` hiện là 612×408 (3:2)** — tệp duy nhất không vuông. Khung là ô vuông
+  56×56 `object-contain` nên ảnh chỉ lấp 52×34,7 px, hụt gần nửa ô. Đáng vẽ lại theo cỡ vuông.
 - ⚠⚠ **PHÂN BIỆT BẰNG DÁNG THÚ, KHÔNG CHỈ ĐỔI MÀU.** Người chơi nhìn ô nhỏ trong hàng năm ô phải
   đoán ra bậc ngay. Năm con là năm loài khác hẳn nhau, không phải một con đổi năm màu.
 - **Cả năm con đều đang ĐỨNG TRÊN MỘT ĐÁM MÂY** và **đeo một bó kinh thư** — đó là thứ nói cho
@@ -20,6 +22,12 @@
   được và khỏi đụng tạo hình nhân vật người chơi.
 
 ---
+
+## ⚠ CÒN THIẾU MỘT TỆP NGOÀI DANH SÁCH 8 TRÊN
+
+`images/nav/thinhKinh.webp` — **icon mục "Thỉnh Kinh" ở cột điều hướng**, tức CỬA VÀO của cả màn.
+Hiện rơi về emoji ☁️, đứng cạnh 27 icon vẽ tay. Cỡ **500×500, nền trong suốt**.
+**Prompt đã viết sẵn ở [ART_CON_THIEU.md](ART_CON_THIEU.md) mục D.**
 
 STYLE CHUNG: Wuxia xianxia game art, semi-realistic painterly digital illustration blended with Chinese ink-wash sensibility, ultra detailed high-quality rendering, soft diffuse light from the upper left, restrained saturation with no neon, clean readable silhouette that stays legible at small icon size, square 1:1 composition (244x244), transparent background, no text, no watermark, no signature, no logo, no border, no frame, no UI element, no human rider. Negative prompt: text, chinese characters, watermark, signature, logo, human figure, rider, modern objects, blurry, lowres, extra limbs, deformed anatomy, cartoonish, oversaturated neon colors, cluttered messy background —
 
@@ -84,14 +92,14 @@ Hiện ở thẻ phần thưởng và ở ô hàng hoá đang áp tải.
 
 | tệp | thư mục | cỡ | nền |
 |---|---|---|---|
-| `hksThanhNguu` | `images/items/` | 244×244 | trong suốt |
-| `hksThachLan` | `images/items/` | 244×244 | trong suốt |
-| `hksTuyetVien` | `images/items/` | 244×244 | trong suốt |
-| `hksDangXa` | `images/items/` | 244×244 | trong suốt |
-| `hksBachTrach` | `images/items/` | 244×244 | trong suốt |
-| `kinhThu` | `images/items/` | 244×244 | trong suốt |
-| `daiMayTrong` | `images/items/` | 244×244 | trong suốt |
-| `thinhKinhNen` | `images/bg/` | 1600×620 | có nền |
+| `hksThanhNguu` | `images/items/` | 500×500 | trong suốt |
+| `hksThachLan` | `images/items/` | 500×500 | trong suốt |
+| `hksTuyetVien` | `images/items/` | 500×500 | trong suốt |
+| `hksDangXa` | `images/items/` | 500×500 | trong suốt |
+| `hksBachTrach` | `images/items/` | 500×500 | trong suốt |
+| `kinhThu` | `images/items/` | 500×500 | trong suốt |
+| `daiMayTrong` | `images/items/` | 612×408 ⚠ **không vuông — nên vẽ lại 500×500** | trong suốt |
+| `thinhKinhNen` | `images/bg/` | 2014×781 | có nền |
 
 ⚠ Thả tệp xong phải **thu nhỏ** trước khi commit — bài học cũ: một ô 80px từng nặng 170KB làm ô
 art trắng bệch. Mốc: ảnh vật phẩm dưới 110 KB, nền dưới 400 KB.
