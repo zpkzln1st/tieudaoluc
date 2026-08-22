@@ -22,6 +22,7 @@ import {
   chinhPhat, bangXepHangMua, bangXepHangVung, nhanThuongMua, muaConLai, soMua,
   bossBang, xuatTranBoss, chotBossBang, moBossBang,
   bangChienTran, bangChienVuong, moBangChien, bcDoiCho, bcTuXep, khaiChien, bcKiVongThang,
+  bcCamDia, bcQuangVung, bcQuangMoiGio,
   bangChieuHien, nguoiQuen, chieuHienConLai,
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, KY_NANG_BANG, giaKyNang,
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
@@ -367,6 +368,25 @@ export function bangPhai() {
     },
     bcConLai(ms) { return this.gioTxt(ms); },
     get bcBuffGiu() { return BC_BUFF_GIU; },
+    /** Cấm Địa đang mở — quặng riêng của minh, chảy thẳng về Minh Khố. */
+    get bcCamDiaDs() { void this._t; return this.bcMo ? bcCamDia(this.g.state, this.world, Date.now()) : []; },
+    /** Mạch quặng của Đất Tranh tuần này — để ô "Thắng thì được" gọi đúng tên thứ sẽ đào được. */
+    bcQuangCua(locId) { const a = bcQuangVung(locId); return a ? { ten: a.name, moiGio: bcQuangMoiGio(a) } : null; },
+    /**
+     * Minh chúng đang dưỡng thương. Tên lấy từ danh sách thành viên thật, không lưu tên vào
+     * bản lưu — đổi tên ở một chỗ là mọi chỗ theo.
+     */
+    get bcThuongDs() {
+      void this._t;
+      const bc = this.bp && this.bp.bc; if (!bc || !bc.thuong) return [];
+      const t = Date.now();
+      const ten = {};
+      thanhVien(this.g.state, this.world, t).forEach((m) => { ten[m.id] = m; });
+      return Object.keys(bc.thuong)
+        .filter((id) => (bc.thuong[id] || 0) > t)
+        .map((id) => ({ id, ten: (ten[id] || {}).ten || id, av: (ten[id] || {}).av, conMs: bc.thuong[id] - t }))
+        .sort((a, b) => a.conMs - b.conMs);
+    },
     /** Chip ngũ hành — dùng LẠI bảng NGU_HANH của combat, không đẻ bảng màu thứ hai. */
     bcHeChip(he) { const h = NGU_HANH[he] || NGU_HANH.vohe; return { han: h.han, ten: h.name, badge: h.badge }; },
     /**
@@ -403,7 +423,7 @@ export function bangPhai() {
       this.g.hoiXacNhan({
         tieuDe: 'Khai Chiến?',
         loi: 'Khai chiến rồi thì không đổi cặp được nữa. Cửa thắng cả trận đang là ' + this.bcKiVong(r) + '%.',
-        canhBao: 'Thua thì Ngân Khố bị vét ' + this.fmt(Math.round(r.vetBac * 0.6)) + ' Bạc.',
+        canhBao: 'Thua thì Ngân Khố mất ' + this.fmt(Math.round(r.vetBac * 0.6)) + ' Bạc.',
         nut: 'Khai Chiến', nguy: true,
         xong: () => {
           const ghi = khaiChien(this.g.state, this.world, Date.now());
@@ -418,7 +438,7 @@ export function bangPhai() {
       this._luu();
       const dau = tuDong ? 'Tuần trước quân tự ra trận — ' : '';
       this.g.showToast(dau + (ghi.thang
-        ? ('thắng ' + ghi.doiTen + ' ' + ghi.diem.join('-') + ', chiếm ' + ghi.locTen + ' — vét '
+        ? ('thắng ' + ghi.doiTen + ' ' + ghi.diem.join('-') + ', chiếm ' + ghi.locTen + ' — lấy '
           + this.fmt(ghi.bac) + ' Bạc, ' + ghi.manh + ' Mảnh, ' + this.fmt(ghi.ct) + ' Công Tích.')
         : ('thua ' + ghi.doiTen + ' ' + ghi.diem.join('-') + ' ở ' + ghi.locTen + ' — mất '
           + this.fmt(-ghi.bac) + ' Bạc trong Ngân Khố.')));
@@ -434,6 +454,11 @@ export function bangPhai() {
         if (r && r.xong) this.g.showToast(r.xong.ten + ' xây xong — đạt cấp ' + r.xong.lv + '.');
         // Trận Bang Chiến tuần trước tự ra trận vì không kịp ra lệnh — lĩnh Mảnh ở đây, y lối boss.
         if (r && r.bc) this._bcLinh(r.bc, true);
+        // Quặng Cấm Địa đã vào thẳng Minh Khố ở engine — ở đây chỉ báo một dòng cho biết.
+        if (r && r.quang && r.quang.thu.length) {
+          this.g.showToast('Cấm Địa gửi về Minh Khố: '
+            + r.quang.thu.map((x) => x.ten + ' ×' + this.fmt(x.so)).join(' · ') + '.');
+        }
         if (r && r.boss) {
           this.g.state.currencies.honThach = (this.g.state.currencies.honThach || 0) + r.boss.honThach;
           if (r.boss.manh) addItem(this.g.state, 'manhTrangBi', r.boss.manh);

@@ -292,6 +292,22 @@ export const BC_VET_KHI_THUA = 0.6;
 /** Giữ được Đất Tranh thì cả minh ăn buff nghề bậc nhất ở vùng đó, đúng một tuần. */
 export const BC_BUFF_GIU = 0.10;
 
+// ---------- CẤM ĐỊA ----------
+// Giữ được Đất Tranh thì mở luôn một Cấm Địa ở vùng đó: quặng tự chảy về Minh Khố, chỉ người
+// trong minh mới có. Mất đất là cấm địa đóng ngay.
+// ⚠ Quặng lấy THẲNG từ bảng nghề Đào Khoáng (`SKILLS.thaiKhoang.actions[].zone`), KHÔNG đẻ bảng
+//   thứ hai — đẻ bảng thứ hai là mở đường cho hai bảng lệch nhau về sau.
+/** Phần so với tốc độ một người đào liên tục. Neo theo tỉ lệ nên vùng cao vùng thấp đều cân. */
+export const BC_CAM_DIA_PHAN = 0.04;
+/** Dồn tối đa chừng này giờ — tắt game một tuần không đổ về một cục vô lý. Khớp THU_TRAN_MS. */
+export const BC_CAM_DIA_TRAN_MS = 24 * 3600 * 1000;
+
+// ---------- THƯƠNG TÍCH ----------
+// Minh chúng thua cặp của mình thì có thể trọng thương, nghỉ hai ngày. Trận sau thiếu suất.
+// ⚠ NGƯỜI CHƠI KHÔNG BAO GIỜ bị thương — mất suất của chính mình là mất luôn quyền chơi.
+export const BC_THUONG_TI_LE = 0.35;
+export const BC_THUONG_MS = 2 * 24 * 3600 * 1000;
+
 // ---------- QUYỀN ----------
 // Ngưỡng bậc chức được làm việc gì. Bang chủ (bậc 6) luôn làm được mọi thứ.
 export const QUYEN_MAC_DINH = { rutKho: 3, nhanNv: 0, moiNguoi: 4, duyetDon: 4 };

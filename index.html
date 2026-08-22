@@ -15237,8 +15237,8 @@
                           </div>
                           <div class="mt-2.5 inline-block text-[12px] rounded-full px-3.5 py-[3px]"
                                :class="r.xong ? 'text-teal-200 border border-teal-500/40 bg-teal-500/10' : 'text-rose-200 border border-rose-500/40 bg-rose-500/8'"
-                               x-text="r.xong ? ('Trận tuần này đã đánh xong · kỳ mới sau ' + bcConLai(r.conLaiMs))
-                                             : ('Còn ' + bcConLai(r.conLaiMs) + ' bày trận — hết giờ là quân đang xếp sẵn tự ra trận')"></div>
+                               x-text="r.xong ? ('Trận tuần này đã đánh xong · trận mới sau ' + bcConLai(r.conLaiMs))
+                                             : ('Còn ' + bcConLai(r.conLaiMs) + ' bày trận — hết giờ thì đội hình đang xếp tự ra trận')"></div>
                         </div>
                       </div>
 
@@ -15246,39 +15246,81 @@
                       <div class="grid gap-3 md:grid-cols-2">
                         <div class="rounded-xl px-4 py-3 border border-teal-500/35"
                              style="background:linear-gradient(150deg,rgba(20,184,166,.09),rgba(15,21,33,.6) 65%)">
-                          <div class="text-[14px] font-bold text-teal-300 fserif">Thắng thì được</div>
+                          <div class="text-[14px] font-bold text-teal-300 fserif">Thắng Được Gì</div>
                           <ul class="mt-1.5 space-y-1">
                             <li class="bc-li bc-li-win text-[12.5px] text-slate-300">
                               Chiếm <b class="text-slate-100" x-text="r.loc.name"></b> — cả minh làm nghề ở đó
-                              <b class="text-teal-300" x-text="'+' + Math.round(bcBuffGiu * 100) + '% tốc độ'"></b> trong một tuần
+                              <b class="text-teal-300" x-text="'nhanh thêm ' + Math.round(bcBuffGiu * 100) + '%'"></b> trong một tuần
                             </li>
                             <li class="bc-li bc-li-win text-[12.5px] text-slate-300">
-                              Vét Ngân Khố <span x-text="r.doiThu.ten"></span>: <b class="text-amber-300" x-text="fmt(r.vetBac) + ' Bạc'"></b>
+                              Lấy <b class="text-amber-300" x-text="fmt(r.vetBac) + ' Bạc'"></b> trong Ngân Khố <span x-text="r.doiThu.ten"></span>
                             </li>
-                            <li class="bc-li bc-li-win text-[12.5px] text-slate-300">Cướp được Mảnh Trang Bị về kho</li>
+                            <li class="bc-li bc-li-win text-[12.5px] text-slate-300">Lấy được Mảnh Trang Bị về Minh Khố</li>
+                            <template x-if="bcQuangCua(r.loc.id)">
+                              <li class="bc-li bc-li-win text-[12.5px] text-slate-300">
+                                Mở Cấm Địa ở đó — <b class="text-teal-300" x-text="bcQuangCua(r.loc.id).ten"></b>
+                                tự chảy về Minh Khố, chỉ người trong minh mới có
+                              </li>
+                            </template>
                           </ul>
                         </div>
                         <div class="rounded-xl px-4 py-3 border border-rose-500/35"
                              style="background:linear-gradient(150deg,rgba(244,63,94,.08),rgba(15,21,33,.6) 65%)">
-                          <div class="text-[14px] font-bold text-rose-300 fserif">Thua thì mất</div>
+                          <div class="text-[14px] font-bold text-rose-300 fserif">Thua Mất Gì</div>
                           <ul class="mt-1.5 space-y-1">
                             <li class="bc-li bc-li-lose text-[12.5px] text-slate-300">
-                              Bị vét lại <b class="text-rose-300" x-text="fmt(Math.round(r.vetBac * 0.6)) + ' Bạc'"></b> trong Ngân Khố
+                              Mất <b class="text-rose-300" x-text="fmt(Math.round(r.vetBac * 0.6)) + ' Bạc'"></b> trong Ngân Khố
                             </li>
                             <li class="bc-li bc-li-lose text-[12.5px] text-slate-300">
-                              Mất <b class="text-slate-100" x-text="r.loc.name"></b> — không có buff nghề ở đó tuần sau
+                              Mất <b class="text-slate-100" x-text="r.loc.name"></b> — tuần sau làm nghề ở đó không còn nhanh thêm
                             </li>
                             <li class="bc-li bc-li-lose text-[12.5px] text-slate-300">Phải đợi tới tuần sau mới đánh lại được</li>
                           </ul>
                         </div>
                       </div>
 
+                      <!-- CẤM ĐỊA — chỉ hiện khi đang giữ được đất -->
+                      <template x-if="bcCamDiaDs.length">
+                        <div class="panel rounded-xl overflow-hidden">
+                          <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                            <span class="text-jade font-bold fserif">Cấm Địa</span>
+                            <span class="text-[10.5px] text-slate-600">quặng tự chảy về Minh Khố · chỉ người trong minh mới có</span>
+                          </div>
+                          <div class="divide-y divide-slate-800/60">
+                            <template x-for="c in bcCamDiaDs" :key="c.locId">
+                              <div class="flex items-center gap-3 px-4 py-2.5 flex-wrap">
+                                <span class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center" style="background:#0a0f1a"
+                                      x-html="$store.game.ico(c.itemId, '⛏️')"></span>
+                                <span class="min-w-0">
+                                  <b class="text-[13px] text-slate-100" x-text="c.ten"></b>
+                                  <span class="text-[11px] text-slate-500" x-text="' · ' + c.locTen"></span>
+                                </span>
+                                <b class="ml-auto text-[12.5px] text-teal-300 tabular-nums shrink-0"
+                                   x-text="c.moiGio.toFixed(1) + ' mỗi giờ'"></b>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+
                       <!-- BÀY TRẬN -->
                       <div class="panel rounded-xl overflow-hidden">
                         <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
                           <span class="text-jade font-bold fserif">Bày Trận — 5 cặp đấu tay đôi</span>
-                          <span class="text-[10.5px] text-slate-600">bấm hai suất bên mình để đổi chỗ · thắng 3 cặp là thắng cả trận</span>
+                          <span class="text-[10.5px] text-slate-600">bấm hai người bên mình để đổi chỗ cho nhau · thắng 3 cặp là thắng cả trận</span>
                         </div>
+                        <template x-if="bcThuongDs.length">
+                          <div class="px-4 py-2 border-b border-slate-800 flex items-center gap-2 flex-wrap text-[12px]">
+                            <span class="text-rose-300 font-semibold">Đang dưỡng thương</span>
+                            <template x-for="x in bcThuongDs" :key="x.id">
+                              <span class="text-slate-400">
+                                <b class="text-slate-200" x-text="x.ten"></b>
+                                <span class="text-slate-600" x-text="'(còn ' + bcConLai(x.conMs) + ')'"></span>
+                              </span>
+                            </template>
+                            <span class="text-slate-600">— chưa ra trận được</span>
+                          </div>
+                        </template>
                         <div class="bc-wrap divide-y divide-slate-800/60">
                           <template x-for="c in r.cap" :key="c.khe">
                             <div class="bc-pair px-3.5 py-2.5" :class="c.ta.laTa ? 'bc-pair-me' : ''">
@@ -15327,10 +15369,10 @@
                         <div class="px-4 py-3 flex items-center justify-between gap-3 flex-wrap border-t border-slate-800">
                           <div class="text-[13px] text-slate-300">
                             Cục diện:
-                            <b class="text-teal-300" x-text="r.dem.an + ' chắc'"></b> ·
+                            <b class="text-teal-300" x-text="r.dem.an + ' an toàn'"></b> ·
                             <b class="text-amber-300" x-text="r.dem.hen + ' hên xui'"></b> ·
                             <b class="text-orange-300" x-text="r.dem.hiem + ' hiểm'"></b> ·
-                            <b class="text-rose-300" x-text="r.dem.nguy + ' bỏ'"></b>
+                            <b class="text-rose-300" x-text="r.dem.nguy + ' nguy hiểm'"></b>
                             <span class="text-slate-500" x-text="' — cửa thắng cả trận ' + bcKiVong(r) + '%'"></span>
                           </div>
                           <div class="flex gap-2 flex-wrap">
@@ -15349,7 +15391,7 @@
                         <div class="panel rounded-xl overflow-hidden">
                           <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
                             <span class="text-jade font-bold fserif">Trận Đã Qua</span>
-                            <span class="text-[10.5px] text-slate-600" x-text="'giữ ' + r.su.length + ' trận gần nhất'"></span>
+                            <span class="text-[10.5px] text-slate-600" x-text="r.su.length + ' trận gần nhất'"></span>
                           </div>
                           <div class="divide-y divide-slate-800/60">
                             <template x-for="(t, i) in r.su" :key="t.ky">
@@ -15370,11 +15412,16 @@
                                     </div>
                                   </template>
                                 </div>
+                                <template x-if="t.biThuong && t.biThuong.length">
+                                  <div class="mt-2 text-[12px] text-rose-300/90">
+                                    Trọng thương: <b class="text-slate-200" x-text="t.biThuong.join(' · ')"></b>
+                                  </div>
+                                </template>
                                 <div class="mt-2.5 rounded-lg px-3 py-2 text-[12.5px]"
                                      :class="t.thang ? 'border border-amber-500/30 text-amber-100' : 'border border-slate-700 text-slate-400'"
                                      :style="t.thang ? 'background:rgba(245,185,66,.06)' : ''"
                                      x-text="t.thang
-                                       ? ('Chiếm được ' + t.locTen + ' · vét ' + fmt(t.bac) + ' Bạc + ' + t.manh + ' Mảnh Trang Bị vào Ngân Khố · cả minh được buff nghề ở vùng đó.')
+                                       ? ('Chiếm được ' + t.locTen + ' · lấy ' + fmt(t.bac) + ' Bạc và ' + t.manh + ' Mảnh Trang Bị · cả minh làm nghề ở vùng đó nhanh thêm ' + Math.round(bcBuffGiu * 100) + '%.')
                                        : ('Thua trận · mất ' + fmt(-t.bac) + ' Bạc trong Ngân Khố · vẫn được ' + fmt(t.ct) + ' Công Tích.')"></div>
                               </div>
                             </template>

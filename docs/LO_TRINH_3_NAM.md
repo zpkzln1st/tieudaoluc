@@ -239,8 +239,35 @@ Bài kiểm mới **50** `_check_bangchien.mjs` (**119 mục**), kiểm chuẩn 
 Không cần art mới: dùng lại `images/ui/bangphai_banner.webp` + chân dung bot + chip ngũ hành sẵn có.
 Bật bằng Lệnh Bài, tab Tính Năng.
 
-⛔ CHƯA làm (mockup có nhưng để đợt sau): **cấm địa riêng cho bang** (là hệ mới hẳn, không phải
-một dòng thưởng) và **thương tích nghỉ hai ngày** (đẻ ca thiếu suất, phải xử lí riêng).
+**ĐỢT 2 — Cấm Địa + Thương Tích (2026-08-22).** Hai thứ còn lại của mockup, nay đã dựng nốt.
+
+| hệ | luật |
+|---|---|
+| **Cấm Địa** | Giữ được Đất Tranh thì mở Cấm Địa ở vùng đó. Quặng **của chính vùng đó** tự chảy về Minh Khố, chỉ người trong minh mới có. Mất đất là đóng ngay. |
+| **Thương Tích** | Minh chúng thua cặp của mình có **35%** trọng thương, nghỉ **2 ngày**, không ra trận được. ⛔ Người chơi KHÔNG BAO GIỜ bị thương — mất suất của chính mình là mất luôn quyền chơi. |
+
+⭐ Quặng lấy THẲNG từ `SKILLS.thaiKhoang.actions[].zone` — không đẻ bảng thứ hai. Tốc độ neo theo
+**tốc độ đào của chính mạch đó** (`BC_CAM_DIA_PHAN = 4%`) nên vùng thấp vùng cao đều cân: đo được
+13,21/giờ ở vùng thấp nhất và 1,85/giờ ở vùng cao nhất, gấp 7,2 lần — cùng một bậc.
+Dồn tối đa 24 giờ, mốc riêng `bc.mocQ` (KHÔNG dùng chung `mocThu` của `thuSan`: cờ tắt thì hàm này
+không chạy mà `thuSan` vẫn chạy, dùng chung mốc là lúc bật cờ sẽ đổ về một cục cả quãng đang tắt).
+
+**⚠⚠ Hai lỗi IM LẶNG bắt được ở đợt 2:**
+- **`| 0` trên MỐC MILI-GIÂY** cắt xuống 32 bit: `1785172800000` thành `-1533595136`. Ba chỗ dính.
+  Hậu quả: người bị thương vẫn ra trận, và thương tích tự lành ngay lập tức. (`giu` thì `| 0` vẫn
+  đúng vì đó là CHỈ SỐ TUẦN, số nhỏ.)
+- **Quân địch bị chốt khi minh còn trống.** `ensureBangChien` chốt `bc.dich` ngay lần chạy đầu
+  trong tuần, kể cả lúc chưa đủ 5 quân — cấp nền khi đó chỉ là cấp người chơi. **Ảnh chụp máy chủ
+  thật của chủ dự án lộ ra: quân ta Lv 41–85 mà quân địch Lv 2–10, cửa thắng 96%.** Nay chưa đủ
+  quân thì chưa chốt.
+
+**⚠ Văn phong đợt 1 bị chủ dự án bác.** Sáu chỗ hỏng, sửa hết: chữ **"buff"** (tiếng Anh giữa giao
+diện Hán-Việt) · **"0 bỏ"** trong khi thẻ ghi "Nguy Hiểm" (một thứ hai tên) · **"Thắng thì được"**
+(câu cụt, không phải tiêu đề) · **"suất"** dùng cho người · **"vét"** (chữ thô) · **"kỳ"** (game
+không dùng chữ đó ở đâu khác). Nay: "Thắng Được Gì / Thua Mất Gì" · "an toàn/hên xui/hiểm/nguy
+hiểm" đúng tên thẻ · "lấy" · "trận mới sau" · "bấm hai người bên mình".
+
+Bài kiểm 50 lên **153 mục**, kiểm chuẩn **40/40**.
 
 **4.4 Kinh tế** — cờ `sanThuMua`
 - ~~Sàn thêm Thu Mua (buy-order)~~ **ĐÃ DỰNG, ĐANG NGỦ.** Bảng `san_thu_mua` + bốn hàm

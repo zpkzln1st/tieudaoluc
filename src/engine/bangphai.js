@@ -17,7 +17,8 @@ import { LOCATIONS } from '../data/locations.js';
 import { YEU_VUONG, YEU_VUONG_BY_ID, ENEMIES } from '../data/combat.js';
 import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant, botTracks } from './bots.js';
 import { CAT_HEX, BOT_HO, BOT_TEN, BOT_AVATAR_IDS, ARCHETYPES, ARCHETYPE_IDS } from '../data/bots.js';
-import { ITEMS } from '../data/items.js';   // nguồn chân lý tên + lời văn vật phẩm
+import { ITEMS } from '../data/items.js';
+import { SKILLS } from '../data/skills.js';   // Cấm Địa lấy quặng THẲNG từ bảng nghề Đào Khoáng   // nguồn chân lý tên + lời văn vật phẩm
 import { nguHanhMod, heName, NGU_HANH_LIST, tamPhapById } from '../data/votong.js';
 import { rng } from './rng.js';           // boc so CO HAT GIONG — may chu tinh lai duoc
 import { pushNotif } from './notif.js';     // thuần state, không DOM — dùng chung với chuông + Phi Cáp Đài
@@ -39,6 +40,7 @@ import {
   BOSS_BANG_KY_MS, BOSS_BANG_LUOT, BOSS_BANG_CD_MS, BOSS_BANG_MAU_HE_SO,
   BC_KY_MS, BC_SO_CAP, BC_CAN_THANG, BC_SU_CAP, BC_TI_LE_SAN, BC_TI_LE_TRAN, BC_NGUONG,
   BC_VET_BAC_NEN, BC_VET_BAC_CAP, BC_VET_MANH, BC_CT_THANG, BC_CT_THUA, BC_VET_KHI_THUA, BC_DAI_VUNG,
+  BC_CAM_DIA_PHAN, BC_CAM_DIA_TRAN_MS, BC_THUONG_TI_LE, BC_THUONG_MS,
   QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
   CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, GIAO_TINH_GIAM_BAC, giaoTinhCan, KN_TRAN_THEO_CT,
 } from '../data/bangphai.js';
@@ -107,7 +109,7 @@ export function ensureBangPhai(state) {
   if (!b.bossB || typeof b.bossB !== 'object') b.bossB = { ky: -1, bossId: '', gop: 0, luot: 0, cdDen: 0, thangKy: -1 };
   if (!b.chSo || typeof b.chSo !== 'object') b.chSo = { ngay: -1, mua: {} };
   if (!b.muaThuong || typeof b.muaThuong !== 'object') b.muaThuong = { mua: -1, hang: 0, daNhan: true };
-  if (!b.bc || typeof b.bc !== 'object') b.bc = { ky: -1, xep: null, xong: false, su: [], giu: {}, dich: null };
+  if (!b.bc || typeof b.bc !== 'object') b.bc = { ky: -1, xep: null, xong: false, su: [], giu: {}, dich: null, thuong: {}, mocQ: 0 };
   return b;
 }
 
@@ -1153,7 +1155,11 @@ function bcGiuMayTuan(state, world, now) {
 export function bcQuanTa(state, world, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang) return [];
-  const ds = thanhVien(state, world, t).slice().sort((x, y) => y.lv - x.lv);
+  // ⚠ Nguoi dang bi thuong KHONG duoc ra tran. Day chinh la cai gia cua tran thua tuan truoc.
+  const thuong = (b.bc && b.bc.thuong) || {};
+  const ds = thanhVien(state, world, t)
+    .filter((m) => !((thuong[m.id] || 0) > t))
+    .slice().sort((x, y) => y.lv - x.lv);
   const ta = [{
     id: 'ta', ten: (state.player && state.player.name) || 'Minh Chủ', laTa: true,
     lv: (state.player && state.player.level) | 0, he: bcHeNguoiChoi(state),
@@ -1216,6 +1222,57 @@ export function bcQuanDich(state, world, now) {
 }
 
 /**
+ * Quặng của Cấm Địa một vùng. Lấy THẲNG từ bảng nghề Đào Khoáng — vùng nào cũng có ít nhất một
+ * mạch, vùng có hai mạch thì lấy mạch cao nhất.
+ */
+export function bcQuangVung(locId) {
+  const ds = ((SKILLS.thaiKhoang && SKILLS.thaiKhoang.actions) || []).filter((a) => a.zone === locId);
+  return ds.length ? ds[ds.length - 1] : null;
+}
+/** Số quặng mỗi giờ của một Cấm Địa. Neo theo TỐC ĐỘ ĐÀO của chính mạch đó nên vùng nào cũng cân. */
+export function bcQuangMoiGio(a) {
+  if (!a || !(a.time > 0)) return 0;
+  return (3600 / a.time) * BC_CAM_DIA_PHAN;
+}
+/** Danh sách Cấm Địa đang mở. THUẦN — không ghi state. */
+export function bcCamDia(state, world, now) {
+  const b = ensureBangPhai(state), t = now || Date.now(), ky = bcKyCua(t);
+  const giu = (b.bc && b.bc.giu) || {};
+  const out = [];
+  for (const locId of Object.keys(giu)) {
+    if ((giu[locId] | 0) < ky) continue;
+    const loc = LOCATIONS.find((l) => l.id === locId);
+    const a = bcQuangVung(locId);
+    if (!loc || !a) continue;
+    out.push({ locId, locTen: loc.name, itemId: a.itemId, ten: a.name, moiGio: bcQuangMoiGio(a) });
+  }
+  return out;
+}
+/**
+ * Chảy quặng Cấm Địa về Minh Khố. Mốc riêng `bc.mocQ` chứ KHÔNG dùng chung `mocThu` của
+ * `thuSan`: cờ `bangChien` tắt thì hàm này không chạy, mà `thuSan` thì vẫn chạy — dùng chung
+ * một mốc là lúc bật cờ lên sẽ đổ về một cục của cả quãng đang tắt.
+ */
+export function bcThuQuang(state, world, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  if (!b.bang) return null;
+  const bc = ensureBangChien(state, world, t);
+  if (!bc.mocQ) { bc.mocQ = t; return null; }
+  const troi = Math.min(BC_CAM_DIA_TRAN_MS, Math.max(0, t - bc.mocQ));
+  if (troi < 60000) return null;
+  const ds = bcCamDia(state, world, t);
+  if (!ds.length) { bc.mocQ = t; return null; }
+  const gio = troi / GIO;
+  const thu = [];
+  for (const c of ds) {
+    const so = Math.floor(c.moiGio * gio);
+    if (so > 0 && gopKho(state, c.itemId, so)) thu.push({ itemId: c.itemId, ten: c.ten, so, locTen: c.locTen });
+  }
+  bc.mocQ = t;
+  return thu.length ? { gio: Math.round(gio * 10) / 10, thu } : null;
+}
+
+/**
  * Cửa thắng của MỘT cặp. Sức = cấp × hệ số khắc ngũ hành ĐANG CHẠY (`nguHanhMod`, +30% / −20%).
  * ⚠ Dùng lại đúng hàm của combat chứ không chép công thức sang — chép là đẻ bản thứ hai rồi lệch.
  */
@@ -1243,14 +1300,26 @@ export function bcViSao(ta, dich) {
 
 export function ensureBangChien(state, world, now) {
   const b = ensureBangPhai(state), t = now || Date.now(), ky = bcKyCua(t);
-  if (!b.bc || typeof b.bc !== 'object') b.bc = { ky: -1, xep: null, xong: false, su: [], giu: {}, dich: null };
+  if (!b.bc || typeof b.bc !== 'object') b.bc = { ky: -1, xep: null, xong: false, su: [], giu: {}, dich: null, thuong: {}, mocQ: 0 };
   if (!Array.isArray(b.bc.su)) b.bc.su = [];
   if (!b.bc.giu || typeof b.bc.giu !== 'object') b.bc.giu = {};
   if (b.bc.ky !== ky) { b.bc.ky = ky; b.bc.xep = null; b.bc.xong = false; b.bc.dich = null; }
   // Quân địch CHỐT một lần cho cả tuần. Suy lại mỗi lần đọc là nó tự đổi mặt giữa tuần.
-  if (!Array.isArray(b.bc.dich) || b.bc.dich.length !== BC_SO_CAP) b.bc.dich = bcSinhQuanDich(state, world, t);
+  // ⚠⚠ Nhưng CHƯA ĐỦ QUÂN thì CHƯA được chốt. Chốt lúc minh còn trống thì cấp nền chỉ là cấp
+  //    người chơi, quân địch đóng băng ở cấp đó suốt tuần — chiêu thêm bao nhiêu người cũng
+  //    không đổi, và trận thành đi bộ. Ảnh chụp máy chủ thật lộ ra: quân ta Lv 41-85 mà quân
+  //    địch Lv 2-10, cửa thắng 96%.
+  if (!Array.isArray(b.bc.dich) || b.bc.dich.length !== BC_SO_CAP) {
+    if (bcQuanTa(state, world, t).length === BC_SO_CAP) b.bc.dich = bcSinhQuanDich(state, world, t);
+  }
   // Đất giữ được chỉ có giá trị đúng một tuần. Hết hạn thì tự rụng, không phải chờ ai gỡ.
   for (const k of Object.keys(b.bc.giu)) if ((b.bc.giu[k] | 0) < ky) delete b.bc.giu[k];
+  if (!b.bc.thuong || typeof b.bc.thuong !== 'object') b.bc.thuong = {};
+  if (typeof b.bc.mocQ !== 'number') b.bc.mocQ = 0;
+  // Thương tích hết hạn thì tự lành, không phải chờ ai gỡ.
+  // ⚠⚠ KHONG dung `| 0` cho MOC MILI-GIAY: no cat xuong 32 bit, 1785172800000 thanh -1533595136.
+  //    Cho `giu` thi `| 0` van dung vi do la CHI SO TUAN (so nho). Bai kiem 50 bat dung cho nay.
+  for (const k of Object.keys(b.bc.thuong)) if ((b.bc.thuong[k] || 0) <= t) delete b.bc.thuong[k];
   return b.bc;
 }
 
@@ -1300,7 +1369,10 @@ export function bangChienVuong(state, world, now) {
   const b = ensureBangPhai(state);
   if (!b.bang) return 'chua-lap-minh';
   if (!moBangChien(state)) return 'chua-dien-vo-truong';
-  const ds = thanhVien(state, world, now || Date.now());
+  // ⚠ Phai dem nguoi KHOE. Dem tong so la cho vao tran roi bay tran thieu suat, hong im lang.
+  const t = now || Date.now();
+  const thuong = (b.bc && b.bc.thuong) || {};
+  const ds = thanhVien(state, world, t).filter((m) => !((thuong[m.id] || 0) > t));
   if (ds.length < BC_SO_CAP - 1) return 'thieu-minh-chung';
   return '';
 }
@@ -1366,7 +1438,7 @@ export function khaiChien(state, world, now) {
   const bc = ensureBangChien(state, world, t);
   const dong = r.cap.map((c) => {
     const thang = rng(state, 'bangChien') < c.tiLe;
-    return { ten: c.ta.ten, laTa: !!c.ta.laTa, dichTen: c.dich.ten, thang };
+    return { id: c.ta.id, ten: c.ta.ten, laTa: !!c.ta.laTa, dichTen: c.dich.ten, thang };
   });
   const soThang = dong.filter((x) => x.thang).length;
   const thangTran = soThang >= BC_CAN_THANG;
@@ -1392,8 +1464,18 @@ export function khaiChien(state, world, now) {
   themCongTich(state, ct);
   themBangCong(state, Math.round(ct / 4), t);
 
+  // Minh chung THUA cap cua minh thi co the trong thuong, nghi hai ngay.
+  // ⛔ Nguoi choi khong bao gio bi thuong — mat suat cua chinh minh la mat luon quyen choi.
+  const biThuong = [];
+  for (const d of dong) {
+    if (d.thang || d.laTa || !d.id) continue;
+    if (rng(state, 'bangChien') >= BC_THUONG_TI_LE) continue;
+    bc.thuong[d.id] = t + BC_THUONG_MS;
+    biThuong.push(d.ten);
+  }
   const ghi = {
     ky: bc.ky, locId: r.loc.id, locTen: r.loc.name, doiTen: r.doiThu.ten, doiMau: r.doiThu.mauCo,
+    biThuong,
     thang: thangTran, diem: [soThang, BC_SO_CAP - soThang], dong, bac, manh, ct,
   };
   bc.su = [ghi].concat(bc.su || []).slice(0, BC_SU_CAP);
@@ -1447,6 +1529,7 @@ export function nhipBang(state, world, now, combatLv, coBc) {
   if (coBc) {
     out.bc = bcTuRaTran(state, world, t);   // phải chạy TRƯỚC ensureBangChien (nó dọn kỳ cũ)
     ensureBangChien(state, world, t);
+    out.quang = bcThuQuang(state, world, t);
   }
   return out;
 }

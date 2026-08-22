@@ -45,7 +45,7 @@ import {
   CONG_TRINH, KY_NANG_BANG, CUA_HANG_BANG, NV_BANG, TV_TRAN, CAP_BANG_MAX,
   BAC_MOI_MINH_CONG, CP_BUFF_HANG, MUA_THUONG_BANG, BOSS_BANG_LUOT, LV_LAP_BANG, PHI_LAP_BANG,
   TRUY_NA_MOI_NGAY, MUA_MS, CP_MOI_KILL,
-  BC_SO_CAP, BC_CAN_THANG, BC_BUFF_GIU, BC_VET_KHI_THUA, BC_SU_CAP,
+  BC_SO_CAP, BC_CAN_THANG, BC_BUFF_GIU, BC_VET_KHI_THUA, BC_SU_CAP, BC_THUONG_TI_LE, BC_THUONG_MS,
 } from './bangphai.js';
 import { DAILY_QUESTS, WEEKLY_QUESTS, MONTHLY_QUESTS, TUTORIAL_QUESTS } from './quests.js';
 import { LOGIN_REWARDS } from './daily.js';
@@ -774,11 +774,13 @@ export const CN_MUC = [
         ['Đánh kẻ mình khắc', '+30% sức'],
         ['Bị kẻ khác khắc', '−20% sức'],
         ['Giữ được Đất Tranh', '+' + pc(BC_BUFF_GIU) + ' tốc độ nghề ở vùng đó, trong một tuần'],
-        ['Thua thì bị vét lại', pc(BC_VET_KHI_THUA) + ' số Bạc lẽ ra vét được'],
+        ['Thua thì mất lại', pc(BC_VET_KHI_THUA) + ' số Bạc lẽ ra lấy được'],
         ['Số trận cũ còn xem lại được', sn(BC_SU_CAP)],
+        ['Minh chúng thua cặp của mình', sn(Math.round(BC_THUONG_TI_LE*100)) + '% trọng thương, nghỉ ' + sn(BC_THUONG_MS/86400000) + ' ngày'],
+        ['Cấm Địa khi giữ được đất', 'quặng của vùng đó tự chảy về Minh Khố'],
       ]],
-      ['p', 'Thắng thì vét Ngân Khố của bang bại trận và cướp được Mảnh Trang Bị.'],
-      ['luu', 'Thua thì chính Ngân Khố của mình bị vét. Số bị vét không bao giờ vượt quá số Bạc đang có.'],
+      ['p', 'Thắng thì lấy Bạc trong Ngân Khố của bang bại trận, và lấy được Mảnh Trang Bị.'],
+      ['luu', 'Thua thì chính Ngân Khố của mình bị lấy. Số bị lấy không bao giờ vượt quá số Bạc đang có.'],
       ['luu', 'Hết tuần mà chưa bấm Khai Chiến thì quân đang xếp sẵn tự ra trận.'],
     ],
   },
