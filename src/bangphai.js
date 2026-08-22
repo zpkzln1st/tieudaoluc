@@ -23,6 +23,7 @@ import {
   bossBang, xuatTranBoss, chotBossBang, moBossBang,
   bangChienTran, bangChienVuong, moBangChien, bcDoiCho, bcTuXep, khaiChien, bcKiVongThang,
   bcCamDia, bcQuangVung, bcQuangMoiGio,
+  moTapKich, tapKichVung, tapKichVuong, tapKich, TK_LUOT_NGAY, TK_PHAT_PHAN,
   bangChieuHien, nguoiQuen, chieuHienConLai,
   CHUC, CHUC_BY_ID, LV_LAP_BANG, PHI_LAP_BANG, KY_NANG_BANG, giaKyNang,
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
@@ -308,6 +309,47 @@ export function bangPhai() {
       const v = this.vungXem; if (!v) return [];
       try { return bangXepHangVung(this.g.state, this.world, v.id, Date.now()).ds.slice(0, 8); } catch (e) { return []; }
     },
+    // ---------- tập kích ----------
+    // Cùng cờ `bangChien` với Bang Chiến: đây là nốt cuối của mục 4.3, không phải hệ riêng.
+    get tkMo() { return this.bcCo && !!this.bang && moTapKich(this.g.state); },
+    /** Màn trống PHẢI nói rõ đang thiếu gì và chỉ đúng chỗ đi tiếp. */
+    get tkVuongChu() {
+      if (!this.bcCo) return '';
+      const v = tapKichVuong(this.g.state);
+      if (v === 'chua-lap-minh') return 'Phải lập Tiên Minh trước đã.';
+      if (v === 'chua-binh-khi-kho') return 'Phải xây Binh Khí Khố. Vào tab Công Trình để dựng.';
+      return '';
+    },
+    /** Toàn cảnh Tập Kích của ĐÚNG vùng đang xem ở Chiến Khu — không đẻ bộ chọn vùng thứ hai. */
+    get tk() {
+      void this._t;
+      if (!this.tkMo) return null;
+      const v = this.vungXem; if (!v) return null;
+      try { return tapKichVung(this.g.state, this.world, v.id, Date.now()); } catch (e) { return null; }
+    },
+    get tkLuotNgay() { return TK_LUOT_NGAY; },
+    tkDanh(x) {
+      const r = this.tk; if (!r || !x || !x.danhDuoc) return;
+      if (r.luot <= 0) { this.g.showToast('Hôm nay hết lượt tập kích.'); return; }
+      this.g.hoiXacNhan({
+        tieuDe: 'Tập kích ' + x.ten + '?',
+        loi: 'Cửa thắng ' + Math.round(x.tiLe * 100) + '%. Thắng thì cướp <b>'
+          + this.fmt(x.cuop) + '</b> điểm Chinh Phạt ở ' + r.loc.name + '.',
+        // ⚠ Chỉ mất được TỚI SỐ ĐANG CÓ ở vùng đó. Doạ một khoản lớn hơn số thật là nói sai.
+        canhBao: 'Thua thì mất <b>' + this.fmt(Math.min(r.diemTa, Math.round(x.cuop * TK_PHAT_PHAN)))
+          + '</b> điểm của mình ở vùng đó. Tốn một lượt dù thắng hay thua.',
+        nut: 'Tập Kích', nguy: true,
+        xong: () => {
+          const ghi = tapKich(this.g.state, this.world, r.loc.id, x.id, Date.now());
+          if (!ghi || ghi.loi) { this.g.showToast('Chưa tập kích được.'); return; }
+          this._luu();
+          this.g.showToast(ghi.thang
+            ? ('Đánh úp ' + ghi.doiTen + ' thành công — cướp ' + this.fmt(ghi.diem) + ' điểm Chinh Phạt.')
+            : ('Bị ' + ghi.doiTen + ' đánh lui — mất ' + this.fmt(-ghi.diem) + ' điểm Chinh Phạt.'));
+        },
+      });
+    },
+
     get coThuongMua() { return !!(this.bp && this.bp.muaThuong && !this.bp.muaThuong.daNhan && (this.bp.muaThuong.hang | 0) >= 1); },
     get hangMuaTruoc() { return this.bp && this.bp.muaThuong ? (this.bp.muaThuong.hang | 0) : 0; },
 

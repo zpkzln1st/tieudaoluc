@@ -670,6 +670,10 @@
        ⚠ Phải đứng SAU `.gtip-len`/`.gtip-xuong`: cùng độ ưu tiên nên thứ tự dòng quyết định. */
     .gtip-giua{ left:50%; transform:translateX(-50%); }
     .gtip-giua::after{ left:calc(50% - 6px); }
+    /* Neo MÉP PHẢI — cho nút hỏi đứng cuối một hàng: canh giữa hay neo trái đều cho 268px
+       chạy quá mép phải của khung. Cũng phải đứng SAU `.gtip-len`/`.gtip-xuong`. */
+    .gtip-phai{ left:auto; right:0; }
+    .gtip-phai::after{ left:auto; right:9px; }
     .gtip-up{ bottom:calc(100% + 15px); left:0; }
     .gtip-up::after{ bottom:-12px; left:calc(var(--mui,38px) - 6px); border-top-color:var(--q,#475569); }
     .gtip::after{ content:""; position:absolute; border:6px solid transparent; }
@@ -15089,6 +15093,76 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- ===== TẬP KÍCH — nốt cuối mục 4.3, cùng cờ `bangChien`.
+                       Ăn theo ĐÚNG vùng đang chọn ở Chiến Khu bên trên: đẻ thêm một bộ chọn
+                       vùng thứ hai là hai chỗ chỉ về hai vùng khác nhau trên cùng một màn. -->
+                  <template x-if="bcCo">
+                    <div class="panel rounded-xl overflow-hidden">
+                      <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                        <div class="text-jade font-bold fserif">Tập Kích<span class="text-slate-500 font-normal" x-text="tk ? (' · ' + tk.loc.name) : ''"></span></div>
+                        <div class="text-[10.5px] flex items-center gap-1.5">
+                          <template x-if="tk">
+                            <span class="text-slate-500">Còn <b class="text-amber-300" x-text="tk.luot"></b> / <span x-text="tkLuotNgay"></span> lượt hôm nay</span>
+                          </template>
+                          <span class="dd-tip relative inline-flex items-center" style="--q:#f43f5e"><span class="dd-hoi">?</span><span class="gtip gtip-len gtip-phai"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Đánh úp một bang khác để cướp điểm Chinh Phạt của họ ở đúng vùng đang chọn. Thắng thì điểm chuyển sang Tiên Minh mình. Thua thì mất một phần điểm của mình ở vùng đó.</span></span></span>
+                        </div>
+                      </div>
+
+                      <template x-if="tkVuongChu">
+                        <div class="px-4 py-4 text-[12px] text-slate-400" x-text="tkVuongChu"></div>
+                      </template>
+
+                      <template x-if="!tkVuongChu && tk">
+                        <div>
+                          <div class="px-4 py-2 text-[11px] text-slate-500 border-b border-slate-800/60 flex items-center gap-2 flex-wrap">
+                            <span>Sức bên ta <b class="text-cyan-300" x-text="fmt(tk.sucTa)"></b></span>
+                            <span class="text-slate-700">·</span>
+                            <span x-text="tk.dangDanh ? ('Vùng đang có ' + tk.dangDanh + ' trận tập kích — quân giữ đất phòng bị chặt hơn') : 'Vùng đang yên'"></span>
+                          </div>
+                          <div class="divide-y divide-slate-800/60">
+                            <template x-for="x in tk.ds" :key="x.id">
+                              <div class="flex items-center gap-2.5 px-3.5 py-2.5 flex-wrap" :class="x.danhDuoc ? '' : 'opacity-45'">
+                                <span class="w-1.5 h-8 rounded-full shrink-0" :style="'background:'+x.mauCo"></span>
+                                <div class="min-w-0 flex-1">
+                                  <div class="text-[12.5px] text-slate-200 truncate" x-text="x.ten"></div>
+                                  <div class="text-[10.5px] text-slate-600" x-text="'cấp ' + x.cap + ' · ' + x.soTv + ' người · sức giữ đất ' + fmt(x.sucDich)"></div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                  <div class="text-[12px] tabular-nums text-slate-300" x-text="fmt(x.diem) + ' điểm'"></div>
+                                  <div class="text-[10.5px]" :class="x.danhDuoc ? 'text-jade' : 'text-slate-600'"
+                                       x-text="x.danhDuoc ? ('cướp được ' + fmt(x.cuop)) : 'chưa có điểm'"></div>
+                                </div>
+                                <span class="text-[10.5px] px-2 py-[3px] rounded-full border shrink-0" :class="bcMauCua(x.cua.ma)" x-text="x.cua.ten"></span>
+                                <button class="shrink-0 px-3 py-1.5 rounded-lg text-[11.5px] fserif border transition"
+                                        :class="(x.danhDuoc && tk.luot > 0) ? 'text-rose-200 border-rose-500/50 hover:bg-rose-500/10' : 'text-slate-600 border-slate-700 cursor-not-allowed'"
+                                        :disabled="!(x.danhDuoc && tk.luot > 0)"
+                                        @click="tkDanh(x)">Tập Kích</button>
+                              </div>
+                            </template>
+                          </div>
+                          <template x-if="tk.su.length">
+                            <div class="px-4 py-2.5 border-t border-slate-800">
+                              <div class="text-[10.5px] text-slate-600 mb-1.5">Trận gần đây</div>
+                              <div class="space-y-1">
+                                <template x-for="s in tk.su.slice(0,5)" :key="s.ts">
+                                  <div class="text-[11px] flex items-center gap-1.5 flex-wrap">
+                                    <span :class="s.thang ? 'text-jade' : 'text-rose-300'" x-text="s.thang ? 'Thắng' : 'Thua'"></span>
+                                    <span class="text-slate-400" x-text="s.doiTen"></span>
+                                    <span class="text-slate-600" x-text="'· ' + s.locTen"></span>
+                                    <!-- ⚠ `s.diem >= 0 ? '+'` in ra "+0 điểm" cho trận thua không mất gì —
+                                         dấu cộng trên số 0 đọc như vừa được thưởng. Chỉ cộng khi > 0. -->
+                                    <span class="ml-auto tabular-nums" :class="s.diem > 0 ? 'text-jade' : (s.diem < 0 ? 'text-rose-300' : 'text-slate-500')"
+                                          x-text="(s.diem > 0 ? '+' : '') + fmt(s.diem) + ' điểm'"></span>
+                                  </div>
+                                </template>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+                  </template>
                 </div>
               </template>
 

@@ -308,6 +308,39 @@ export const BC_CAM_DIA_TRAN_MS = 24 * 3600 * 1000;
 export const BC_THUONG_TI_LE = 0.35;
 export const BC_THUONG_MS = 2 * 24 * 3600 * 1000;
 
+// ---------- TẬP KÍCH ----------
+// Bang Chiến là MỘT trận mỗi tuần, vùng do máy chọn. Tập Kích là việc làm HẰNG NGÀY: người chơi
+// tự chọn vùng, tự chọn bang, đánh úp để cướp điểm Chinh Phạt của họ ở đúng vùng đó.
+// ⚠ Bang AI không có bản lưu — điểm của họ suy từ (hạt giống, mùa, giờ). Phần cướp được phải
+//   ghi vào SỔ RIÊNG rồi TRỪ lúc dựng bảng hạng, không thể ghi ngược vào bang AI.
+/** Số trận đánh được mỗi ngày. */
+export const TK_LUOT_NGAY = 3;
+/** Thắng thì cướp chừng này phần điểm của địch ở vùng đó. */
+export const TK_PHAN = 0.06;
+/** Trần điểm cướp được MỘT trận — chặn đường một trận lật cả bảng hạng. */
+export const TK_TRAN_DIEM = 4000;
+/** Thua thì mất chừng này phần so với số lẽ ra cướp được. Không bao giờ để điểm âm. */
+export const TK_PHAT_PHAN = 0.4;
+/**
+ * Sức giữ đất của một bang: cấp bang nhân hệ số này, cộng số người nhân hệ số dưới.
+ * ⚠⚠ Bản đầu để 26/9 và ẢNH CHỤP lộ ra là hỏng: cả mười hai bang đều ra thẻ "Hiểm" hoặc
+ *    "Nguy Hiểm", kể cả bang yếu nhất — đánh đâu cũng thua thì cả màn thành vô nghĩa.
+ *    Đo lại ở 18/6: sức ta 418 thì bang yếu nhất ra 0,69 (An Toàn), bang mạnh nhất 0,43 (Hiểm).
+ */
+export const TK_SUC_CAP = 18;
+export const TK_SUC_TV = 6;
+/** Mỗi trận đang diễn ra trong vùng làm quân giữ đất phòng bị chặt hơn chừng này. */
+export const TK_PHONG_BI = 0.06;
+/** Nhiều nhất mấy trận cùng diễn ra trong một vùng. */
+export const TK_TRAN_DANG_DANH = 4;
+/** Số trận đang diễn ra đổi theo mốc nửa giờ — đủ thấy vùng đang động, không nhấp nháy. */
+export const TK_NHIP_MS = 30 * 60 * 1000;
+/** Công Tích cho người chơi sau một trận. */
+export const TK_CT_THANG = 140;
+export const TK_CT_THUA = 30;
+/** Sử giữ lại mấy trận gần nhất. */
+export const TK_SU_CAP = 12;
+
 // ---------- QUYỀN ----------
 // Ngưỡng bậc chức được làm việc gì. Bang chủ (bậc 6) luôn làm được mọi thứ.
 export const QUYEN_MAC_DINH = { rutKho: 3, nhanNv: 0, moiNguoi: 4, duyetDon: 4 };

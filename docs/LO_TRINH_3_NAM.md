@@ -269,6 +269,41 @@ hiểm" đúng tên thẻ · "lấy" · "trận mới sau" · "bấm hai ngườ
 
 Bài kiểm 50 lên **153 mục**, kiểm chuẩn **40/40**.
 
+**ĐỢT 3 — TẬP KÍCH (2026-08-22).** Nốt cuối của mục này. Bang Chiến là MỘT trận mỗi tuần, vùng do
+máy chọn. Tập Kích là việc làm HẰNG NGÀY: người chơi tự chọn vùng, tự chọn bang, đánh úp để cướp
+điểm Chinh Phạt. Nằm ngay trong tab **Chinh Phạt**, ăn theo đúng vùng đang chọn ở Chiến Khu.
+
+| núm | số |
+|---|---|
+| lượt mỗi ngày | 3 |
+| cửa vào | đã lập Tiên Minh · đã xây **Binh Khí Khố** |
+| sức bên ta | tổng cấp năm suất quân (dùng lại `bcQuanTa` của Bang Chiến) |
+| sức giữ đất | `cấp bang × 18 + số người × 6`, nhân thêm `1 + 6% × số trận đang diễn ra` |
+| kẹp cửa thắng | 0,08 – 0,92, đọc bằng **đúng bảng nhãn của Bang Chiến** |
+| thắng | cướp `6%` điểm địch ở vùng đó, trần `4.000` một trận + 140 Công Tích |
+| thua | mất `40%` số lẽ ra cướp được, **kẹp theo điểm đang có** + 30 Công Tích |
+
+**Điểm CHUYỂN CHỦ chứ không đẻ ra.** Bang AI không có bản lưu — điểm của họ suy từ (hạt giống,
+mùa, giờ) — nên phần cướp được ghi vào **sổ trừ** `tk.cuop['<bangId>|<locId>']` rồi trừ ở
+`cpConLai`. Mọi cửa dựng bảng hạng phải đi qua đó; bỏ sót một cửa là cùng một bang hiện hai con
+điểm khác nhau ở hai bảng. Sang mùa mới thì dọn sổ **cùng lúc** với điểm của mình.
+
+**"Vùng đang có N trận tập kích"** không phải con số trang trí: mỗi trận làm quân giữ đất phòng bị
+chặt hơn 6%. Suy từ (hạt giống, vùng, mốc nửa giờ) nên không phình bản lưu.
+
+**⚠⚠ ẢNH CHỤP LẠI BẮT ĐƯỢC THỨ BẢNG SỐ KHÔNG BẮT.** Bản đầu để `TK_SUC_CAP = 26 / TK_SUC_TV = 9`:
+cả mười hai bang đều ra thẻ "Hiểm" hoặc "Nguy Hiểm", **kể cả bang yếu nhất** — đánh đâu cũng thua
+thì cả màn vô nghĩa. Bài kiểm xanh hết vì không mục nào đòi hỏi một DẢI cửa thắng. Nay 18/6, đo
+lại: sức ta 418 thì bang yếu nhất 0,69 (An Toàn), bang mạnh nhất 0,43 (Hiểm). Hai lỗi nhỏ khác
+cùng lộ ra từ ảnh: sử ghi **"+0 điểm"** cho trận thua không mất gì (dấu cộng trên số 0 đọc như vừa
+được thưởng), và lời cảnh báo **doạ một khoản không bao giờ mất** khi chưa có điểm ở vùng đó.
+
+**⚠ Kiểm chuẩn bắt 4 mục bài kiểm RỖNG.** Bốn mục chạy bằng một hạt giống bất kỳ, trận đó THUA nên
+sổ trừ vốn đã rỗng — mục báo xanh mà không đo được gì. Nay chốt sẵn `HAT_THANG`/`HAT_THUA` và dùng
+chung cho mọi mục đòi hỏi "có cướp được điểm". Cùng một lớp bẫy với `if (thắng) {...} else {...}`.
+
+Bài kiểm 50 lên **221 mục**, kiểm chuẩn **57/57**. Trang soi `_mockup/_tapkich_nhin.html`.
+
 **4.4 Kinh tế** — cờ `sanThuMua`
 - ~~Sàn thêm Thu Mua (buy-order)~~ **ĐÃ DỰNG, ĐANG NGỦ.** Bảng `san_thu_mua` + bốn hàm
   `san_thu_mua_dat` · `_huy` · `_ban` · `_thu_hoi` ở `docs/SQL_SAN_THU_MUA.sql`. Bật bằng Lệnh Bài,

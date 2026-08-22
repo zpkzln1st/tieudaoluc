@@ -41,6 +41,8 @@ import {
   BC_KY_MS, BC_SO_CAP, BC_CAN_THANG, BC_SU_CAP, BC_TI_LE_SAN, BC_TI_LE_TRAN, BC_NGUONG,
   BC_VET_BAC_NEN, BC_VET_BAC_CAP, BC_VET_MANH, BC_CT_THANG, BC_CT_THUA, BC_VET_KHI_THUA, BC_DAI_VUNG,
   BC_CAM_DIA_PHAN, BC_CAM_DIA_TRAN_MS, BC_THUONG_TI_LE, BC_THUONG_MS,
+  TK_LUOT_NGAY, TK_PHAN, TK_TRAN_DIEM, TK_PHAT_PHAN, TK_SUC_CAP, TK_SUC_TV,
+  TK_PHONG_BI, TK_TRAN_DANG_DANH, TK_NHIP_MS, TK_CT_THANG, TK_CT_THUA, TK_SU_CAP,
   QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
   CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, GIAO_TINH_GIAM_BAC, giaoTinhCan, KN_TRAN_THEO_CT,
 } from '../data/bangphai.js';
@@ -53,6 +55,7 @@ export {
   giaCongTrinh, gioCongTrinh, NV_BANG, TRUY_NA_BAC, MUA_MS, CP_BUFF_HANG, MUA_THUONG_BANG,
   BOSS_BANG_LUOT, bangCongCanCho, QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
   CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, giaoTinhCan,
+  TK_LUOT_NGAY, TK_PHAN, TK_TRAN_DIEM, TK_PHAT_PHAN,
 };
 
 const GIO = 3600000, NGAY_MS = 86400000;
@@ -110,6 +113,8 @@ export function ensureBangPhai(state) {
   if (!b.chSo || typeof b.chSo !== 'object') b.chSo = { ngay: -1, mua: {} };
   if (!b.muaThuong || typeof b.muaThuong !== 'object') b.muaThuong = { mua: -1, hang: 0, daNhan: true };
   if (!b.bc || typeof b.bc !== 'object') b.bc = { ky: -1, xep: null, xong: false, su: [], giu: {}, dich: null, thuong: {}, mocQ: 0 };
+  // Tập Kích: `cuop` là SỔ TRỪ điểm bang AI (khoá '<bangId>|<locId>'), `mua` để dọn sổ sang mùa.
+  if (!b.tk || typeof b.tk !== 'object') b.tk = { ngay: -1, danh: 0, mua: -1, cuop: {}, su: [] };
   return b;
 }
 
@@ -888,6 +893,9 @@ export function ensureMua(state, now) {
   if (!b.bang) return;
   if (b.bang.cpMua !== mua) {
     b.bang.cpMua = mua; b.bang.cpVung = {}; b.bang.cpTong = 0; b.bang.hangVung = {};
+    // ⚠⚠ Sổ Tập Kích phải dọn CÙNG LÚC. Điểm bang AI cũng về 0 theo mùa, giữ lại sổ trừ của
+    //    mùa trước là mùa mới bang nào bị cướp nhiều cũng bắt đầu ở 0 và không bò lên nổi.
+    if (b.tk) { b.tk.cuop = {}; b.tk.mua = mua; b.tk.su = []; }
     b.muaThuong = { mua: mua - 1, hang: b.muaThuong ? b.muaThuong.hang : 0, daNhan: false };
     ghiNhatKy(state, "Mùa Chinh Phạt mới bắt đầu — điểm về 0, tranh lại từ đầu.", now);
     baoMinh(state, "Mùa Chinh Phạt mới", "Điểm của mọi khu vực trở về 0 để bắt đầu tranh lại từ đầu. Thứ hạng mùa trước đã được chốt.", now);
@@ -911,10 +919,28 @@ export function ghiKillChinhPhat(state, locId, laBoss, now) {
   return themCpVung(state, locId, (laBoss ? CP_MOI_BOSS : CP_MOI_KILL) + them, now);
 }
 
+/**
+ * Điểm một bang AI CÒN LẠI ở một vùng — đã trừ phần bị Tập Kích cướp mất.
+ * ⚠ Bang AI không có bản lưu nên không ghi ngược vào họ được. Mọi cửa dựng bảng hạng phải đi
+ *   qua đây, bỏ sót một cửa là cùng một bang hiện hai con điểm khác nhau ở hai bảng.
+ */
+export function cpConLai(state, x, locId) {
+  const b = ensureBangPhai(state);
+  const goc = ((x && x.cpVung) || {})[locId] || 0;
+  const mat = ((b.tk && b.tk.cuop) || {})[String(x && x.id) + '|' + String(locId)] || 0;
+  return Math.max(0, goc - mat);
+}
+/** Tổng điểm mùa của một bang AI, cũng đã trừ phần bị cướp. */
+export function cpTongConLai(state, x) {
+  let s = 0;
+  for (const loc of LOCATIONS) s += cpConLai(state, x, loc.id);
+  return s;
+}
+
 /** Bảng xếp hạng MỘT vùng: bang AI + bang ta, sắp theo điểm. Tự gắn hạng cho bang ta. */
 export function bangXepHangVung(state, world, locId, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
-  const ds = bangAI(world, t).map((x) => ({ id: x.id, ten: x.ten, mauCo: x.mauCo, cap: x.cap, diem: x.cpVung[locId] || 0, laTa: false }));
+  const ds = bangAI(world, t).map((x) => ({ id: x.id, ten: x.ten, mauCo: x.mauCo, cap: x.cap, diem: cpConLai(state, x, locId), laTa: false }));
   if (b.bang) ds.push({ id: 'ta', ten: b.bang.ten, mauCo: MAU_BANG_TA, cap: b.bang.cap, diem: (b.bang.cpVung || {})[locId] || 0, laTa: true });
   ds.sort((x, y) => y.diem - x.diem);
   ds.forEach((x, i) => { x.hang = i + 1; });
@@ -953,7 +979,7 @@ export function chinhPhat(state, world, now) {
 /** Bảng xếp hạng TỔNG mùa (cộng mọi vùng). */
 export function bangXepHangMua(state, world, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
-  const ds = bangAI(world, t).map((x) => ({ id: x.id, ten: x.ten, mauCo: x.mauCo, cap: x.cap, diem: x.cpTong, laTa: false }));
+  const ds = bangAI(world, t).map((x) => ({ id: x.id, ten: x.ten, mauCo: x.mauCo, cap: x.cap, diem: cpTongConLai(state, x), laTa: false }));
   if (b.bang) ds.push({ id: 'ta', ten: b.bang.ten, mauCo: MAU_BANG_TA, cap: b.bang.cap, diem: b.bang.cpTong || 0, laTa: true });
   ds.sort((x, y) => y.diem - x.diem);
   ds.forEach((x, i) => { x.hang = i + 1; x.thuong = MUA_THUONG_BANG[i] || 0; });
@@ -1127,7 +1153,7 @@ export function bcDatTranh(state, world, now) {
 export function bcDoiThu(state, world, now) {
   const t = now || Date.now(), loc = bcDatTranh(state, world, t);
   const ds = bangAI(world, t)
-    .map((x) => ({ id: x.id, ten: x.ten, mauCo: x.mauCo, cap: x.cap, soTv: x.soTv, diem: x.cpVung[loc.id] || 0 }))
+    .map((x) => ({ id: x.id, ten: x.ten, mauCo: x.mauCo, cap: x.cap, soTv: x.soTv, diem: cpConLai(state, x, loc.id) }))
     .sort((x, y) => y.diem - x.diem);
   const b = ensureBangPhai(state);
   const diemTa = (b.bang && (b.bang.cpVung || {})[loc.id]) || 0;
@@ -1511,6 +1537,148 @@ function bcTuRaTran(state, world, now) {
  * @param coBc cờ tính năng `bangChien`. MẶC ĐỊNH TẮT — engine không tự hỏi cờ được, chủ gọi
  *   phải truyền vào. Thiếu tham số là cửa ĐÓNG, không phải cửa mở.
  */
+// ============================================================
+// TẬP KÍCH — đánh úp một bang khác ở MỘT vùng, cướp điểm Chinh Phạt của họ.
+//
+// Khác Bang Chiến ở ba chỗ: Bang Chiến là MỘT trận mỗi tuần, vùng do máy chọn, bày năm cặp;
+// Tập Kích là việc làm HẰNG NGÀY, người chơi tự chọn vùng và tự chọn bang, đánh một phát ăn ngay.
+// ⚠⚠ Bang AI không có bản lưu — điểm của họ suy từ (hạt giống, mùa, giờ). Cướp được bao nhiêu
+//    phải ghi vào SỔ TRỪ `b.tk.cuop` rồi trừ ở `cpConLai`, KHÔNG ghi ngược vào bang AI được.
+// ============================================================
+/** Binh Khí Khố là kho vũ khí — chưa xây thì chưa trang bị cho quân đi đánh úp được. */
+export function moTapKich(state) { return capCongTrinh(state, 'binhKhiKho') > 0; }
+
+function ensureTapKich(state, now) {
+  const b = ensureBangPhai(state), ng = ngayCua(now);
+  if (b.tk.ngay !== ng) { b.tk.ngay = ng; b.tk.danh = 0; }
+  return b.tk;
+}
+
+/** Số lượt tập kích còn lại hôm nay. */
+export function tkLuotConLai(state, now) {
+  const tk = ensureTapKich(state, now);
+  return Math.max(0, TK_LUOT_NGAY - (tk.danh | 0));
+}
+
+/**
+ * Số trận tập kích ĐANG DIỄN RA trong một vùng. Suy từ (hạt giống, vùng, mốc nửa giờ) nên
+ * không phình bản lưu và máy nào cũng ra cùng một số.
+ * ⚠ Đây KHÔNG phải con số trang trí: mỗi trận đang diễn ra làm quân giữ đất phòng bị chặt hơn.
+ */
+export function tkDangDanh(world, locId, now) {
+  const t = now || Date.now();
+  const h = mix(mix(((world && world.seed) || 1) ^ 0x7A3, h32(String(locId || ''))), Math.floor(t / TK_NHIP_MS));
+  return h % (TK_TRAN_DANG_DANH + 1);
+}
+
+/** Sức bên ta = tổng cấp năm suất quân. Dùng lại `bcQuanTa`, không đẻ danh sách thứ hai. */
+export function tkSucTa(state, world, now) {
+  return bcQuanTa(state, world, now).reduce((a, x) => a + Math.max(1, x.lv | 0), 0);
+}
+
+/** Sức giữ đất của một bang ở một vùng, đã cộng phòng bị theo số trận đang diễn ra. */
+export function tkSucDich(world, bang, locId, now) {
+  if (!bang) return 1;
+  const nen = (bang.cap | 0) * TK_SUC_CAP + (bang.soTv | 0) * TK_SUC_TV;
+  return Math.max(1, Math.round(nen * (1 + TK_PHONG_BI * tkDangDanh(world, locId, now))));
+}
+
+/** Cửa thắng một trận tập kích. Kẹp cùng ngưỡng với Bang Chiến, và đọc bằng cùng bảng nhãn. */
+export function tkTiLe(sTa, sDich) {
+  const a = Math.max(1, sTa), d = Math.max(1, sDich);
+  return Math.min(BC_TI_LE_TRAN, Math.max(BC_TI_LE_SAN, a / (a + d)));
+}
+
+/** Điểm cướp được nếu thắng. */
+export function tkCuopDuoc(diemDich) {
+  return Math.min(TK_TRAN_DIEM, Math.round(Math.max(0, diemDich) * TK_PHAN));
+}
+
+/** Vì sao chưa tập kích được. Trả '' khi vào được — màn trống phải có đường ra. */
+export function tapKichVuong(state) {
+  const b = ensureBangPhai(state);
+  if (!b.bang) return 'chua-lap-minh';
+  if (!moTapKich(state)) return 'chua-binh-khi-kho';
+  return '';
+}
+
+/** Toàn cảnh MỘT vùng cho màn Tập Kích: từng bang, sức giữ đất, cửa thắng, điểm cướp được. */
+export function tapKichVung(state, world, locId, now) {
+  const t = now || Date.now();
+  const loc = LOCATIONS.find((l) => l.id === locId) || LOCATIONS[0];
+  const sTa = tkSucTa(state, world, t);
+  const dangDanh = tkDangDanh(world, loc.id, t);
+  const ds = bangAI(world, t).map((x) => {
+    const diem = cpConLai(state, x, loc.id);
+    const sDich = tkSucDich(world, x, loc.id, t);
+    const p = tkTiLe(sTa, sDich);
+    return {
+      id: x.id, ten: x.ten, mauCo: x.mauCo, cap: x.cap, soTv: x.soTv,
+      diem, sucDich: sDich, tiLe: p, cua: bcDocCua(p),
+      cuop: tkCuopDuoc(diem), danhDuoc: diem > 0,
+    };
+  }).sort((x, y) => y.diem - x.diem);
+  const b = ensureBangPhai(state);
+  return {
+    loc, sucTa: sTa, dangDanh, ds,
+    // Điểm của chính mình ở vùng này. Thua thì chỉ mất được TỚI ĐÂY, không mất hơn — lời cảnh
+    // báo trước khi bấm phải nói đúng con số này, không thì nó doạ một khoản không bao giờ mất.
+    diemTa: (b.bang && (b.bang.cpVung || {})[loc.id]) || 0,
+    luot: tkLuotConLai(state, t), tranNgay: TK_LUOT_NGAY,
+    vuong: tapKichVuong(state), su: ((b.tk || {}).su || []).slice(0, TK_SU_CAP),
+  };
+}
+
+/**
+ * Đánh MỘT trận tập kích. Bốc CÓ HẠT GIỐNG (miền `bangChien`) nên máy chủ tính lại được y hệt.
+ * Trả bản ghi trận, hoặc `{ loi }` khi chưa đánh được.
+ */
+export function tapKich(state, world, locId, bangId, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  const vuong = tapKichVuong(state);
+  if (vuong) return { loi: vuong };
+  ensureMua(state, t);
+  const tk = ensureTapKich(state, t);
+  if (tkLuotConLai(state, t) <= 0) return { loi: 'het-luot' };
+  const r = tapKichVung(state, world, locId, t);
+  const dich = r.ds.find((x) => x.id === bangId);
+  if (!dich) return { loi: 'khong-co-muc-tieu' };
+  if (!dich.danhDuoc) return { loi: 'muc-tieu-chua-co-diem' };
+
+  tk.danh = (tk.danh | 0) + 1;
+  const thang = rng(state, 'bangChien') < dich.tiLe;
+  const khoa = String(dich.id) + '|' + String(r.loc.id);
+  let diem = 0;
+  if (thang) {
+    // ⚠ Không cướp quá số địch ĐANG CÓ, không thì sổ trừ vượt điểm gốc và bang đó đứng 0 mãi.
+    diem = Math.min(dich.cuop, dich.diem);
+    tk.cuop[khoa] = (tk.cuop[khoa] || 0) + diem;
+    themCpVung(state, r.loc.id, diem, t);
+  } else {
+    // Thua thì địch phản kích, ta mất một phần điểm ở CHÍNH vùng đó. Không bao giờ để âm.
+    const mat = Math.round(dich.cuop * TK_PHAT_PHAN);
+    const co = (b.bang.cpVung || {})[r.loc.id] || 0;
+    diem = -Math.min(co, mat);
+    if (diem) {
+      b.bang.cpVung[r.loc.id] = co + diem;
+      b.bang.cpTong = Math.max(0, (b.bang.cpTong || 0) + diem);
+    }
+  }
+  const ct = thang ? TK_CT_THANG : TK_CT_THUA;
+  themCongTich(state, ct);
+  themBangCong(state, Math.round(ct / 4), t);
+
+  const ghi = {
+    ts: t, locId: r.loc.id, locTen: r.loc.name, doiId: dich.id, doiTen: dich.ten,
+    doiMau: dich.mauCo, thang, diem, ct, tiLe: dich.tiLe,
+  };
+  tk.su = [ghi].concat(tk.su || []).slice(0, TK_SU_CAP);
+  ghiNhatKy(state, thang
+    ? ('Tập Kích — đánh úp <b>' + dich.ten + '</b> ở <b>' + r.loc.name + '</b>, cướp ' + diem + ' điểm Chinh Phạt.')
+    : ('Tập Kích — bị <b>' + dich.ten + '</b> đánh lui ở <b>' + r.loc.name + '</b>, mất ' + (-diem) + ' điểm Chinh Phạt.'), t);
+  return ghi;
+}
+
 export function nhipBang(state, world, now, combatLv, coBc) {
   const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang) return null;
@@ -1530,6 +1698,7 @@ export function nhipBang(state, world, now, combatLv, coBc) {
     out.bc = bcTuRaTran(state, world, t);   // phải chạy TRƯỚC ensureBangChien (nó dọn kỳ cũ)
     ensureBangChien(state, world, t);
     out.quang = bcThuQuang(state, world, t);
+    ensureTapKich(state, t);                // sang ngày mới thì trả lại lượt tập kích
   }
   return out;
 }
