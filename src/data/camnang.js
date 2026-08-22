@@ -21,6 +21,7 @@ import { LOCATIONS, REALM_TIERS } from './locations.js';
 import { QUALITY, ITEM_TYPES, ITEMS, DOPHO_IDS, EGG_IDS } from './items.js';
 import { EQUIP_SLOTS, TOOL_SLOTS, SECONDARY_STATS } from './ui.js';
 import { TK_LUOT, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_CUOP_MAT, TK_CAP_TRAN, TK_MOI_CAP } from './thinhkinh.js';
+import { DT_LUOT_NGAY, DT_DIEM_NEN, DT_DIEM_SAN, DT_BAC } from './dautruong.js';
 import {
   AFFIX_KEYS, TRANG_SETS, GEAR_IDS, THOI_TIERS, QUALITY_LINES,
   MONSTER_DROP_CHANCE, MANH_DROP_CHANCE, MANH_DROP_MIN_LV, MONSTER_QUALITY_W,
@@ -840,6 +841,19 @@ export const CN_MUC = [
       ['p', 'Một chuyến chịu tối đa <b>' + sn(TK_CUOP_TOI_DA) + ' lần cướp</b>, mỗi lần mất <b>' + Math.round(TK_CUOP_MAT * 100) + '%</b> Bạc. Mỗi hộ vệ chặn đúng một lần.'],
       ['p', 'Hộ Kinh Sứ lên cấp bằng tu vi của chính chuyến đi, trần <b>Cấp ' + sn(TK_CAP_TRAN) + '</b>. Mỗi cấp cộng thêm <b>' + Math.round(TK_MOI_CAP * 100) + '%</b> thưởng.'],
       ['luu', 'Hồn Thạch và tu vi Hộ Kinh Sứ <b>không bị cướp</b>. Cướp chỉ lấy được Bạc.'],
+    ],
+  },
+  {
+    id: 'dautruong', nhom: 'giangho', ten: 'Đấu Trường', coTinhNang: 'dauTruong',
+    tom: 'Đấu với bản chụp bộ chiến đấu của người chơi khác, ăn Đấu Điểm.',
+    khoi: [
+      // ⚠ Số lấy thẳng từ `data/dautruong.js`, đừng gõ lại — Cẩm Nang từng cắt mất số 0 cuối.
+      ['p', 'Đấu Trường là đấu <b>không đồng bộ</b>. Đối thủ là bản chụp bộ chiến đấu của người chơi khác, nên không cần hai người cùng vào một lúc.'],
+      ['p', 'Mỗi ngày có <b>' + sn(DT_LUOT_NGAY) + ' lượt</b>. Đấu Điểm khởi đầu là <b>' + sn(DT_DIEM_NEN) + '</b> và không bao giờ tụt dưới <b>' + sn(DT_DIEM_SAN) + '</b>.'],
+      ['p', 'Thắng người có Đấu Điểm cao hơn thì được cộng nhiều hơn. Thua người có Đấu Điểm thấp hơn thì bị trừ nhiều hơn.'],
+      ['bang', ['Bậc', 'Đấu Điểm'], DT_BAC.map((x) => [x.ten, x.tu > 0 ? ('từ ' + sn(x.tu)) : 'dưới ' + sn(DT_BAC[DT_BAC.length - 2].tu)])],
+      ['p', 'Phải bấm <b>Khoe</b> ở Hồ Sơ một lần thì bộ chiến đấu mới lên bảng, và người khác mới khiêu chiến được.'],
+      ['luu', 'Đấu Trường chỉ trả <b>Bạc</b> và <b>Đấu Điểm</b>. Không trả vật phẩm, không cộng chỉ số, không mở khoá gì.'],
     ],
   },
   {

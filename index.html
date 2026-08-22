@@ -1468,7 +1468,7 @@
               <template x-if="!group.skills">
                 <div class="space-y-1">
                   <template x-for="it in group.items" :key="it.view">
-                    <button @click="$store.game.navTo(it.view)" x-show="(it.view!=='suKien' || $store.game.svNavHien) && (it.view!=='thinhKinh' || $store.game.tkNavHien)"
+                    <button @click="$store.game.navTo(it.view)" x-show="(it.view!=='suKien' || $store.game.svNavHien) && (it.view!=='thinhKinh' || $store.game.tkNavHien) && (it.view!=='dauTruong' || $store.game.dtNavHien)"
                       class="w-full flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-ink3 transition"
                       :class="$store.game.navItemActive(it) ? 'bg-ink3 ring-1 ring-jade/40' : ''">
                       <span class="w-[2.1rem] h-[2.1rem] inline-flex items-center justify-center shrink-0" x-html="$store.game.ico(it.view, it.icon)"></span>
@@ -17077,6 +17077,130 @@
                     class="px-3 py-1.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[12.5px] transition disabled:opacity-40">Thỉnh Kinh</button>
                 </div>
               </template>
+            </div>
+          </template>
+
+        </section>
+      </template>
+
+      <!-- ===== VIEW: ĐẤU TRƯỜNG (mục 5.1, cờ `dauTruong`) =====
+           PvP KHÔNG ĐỒNG BỘ: đối thủ là BẢN CHỤP bộ chiến đấu người ta tự đẩy lên hồ sơ công
+           khai. Không có bảng đấu chung nào — mọi thứ tính ở máy người chơi. -->
+      <template x-if="$store.game.view==='dauTruong' && $store.game.moChua('dauTruong')">
+        <section class="mx-auto w-full" style="max-width:960px" x-data="{ get g(){ return $store.game } }">
+
+          <!-- Hàng đầu: bậc + Đấu Điểm + lượt còn -->
+          <div class="panel rounded-lg p-3 mb-3 flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-3 flex-wrap text-[12.5px]">
+              <span class="px-2 py-[3px] rounded-full text-[11.5px] fserif border"
+                    :style="'color:'+g.dtBac.mau+';border-color:'+g.dtBac.mau+'66;background:'+g.dtBac.mau+'14'"
+                    x-text="g.dtBac.ten"></span>
+              <span class="text-slate-400"><b class="text-amber-300" x-text="g.fmt(g.dtDiem)"></b> Đấu Điểm</span>
+              <span class="text-slate-400">Thắng <b class="text-jade" x-text="g.dtThang"></b> · Thua <b class="text-rose-300" x-text="g.dtThua"></b></span>
+              <span class="text-slate-400">Còn <b class="text-cyan-300" x-text="g.dtLuot"></b> / <span x-text="g.DT_LUOT_NGAY"></span> lượt hôm nay</span>
+            </div>
+            <span class="dd-tip relative inline-flex items-center" style="--q:#f5b942">
+              <span class="dd-hoi">?</span>
+              <span class="gtip gtip-len gtip-phai"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Đối thủ là bản chụp bộ chiến đấu của người chơi khác, không cần hai máy cùng lúc. Thắng người trên cơ được nhiều Đấu Điểm hơn. Đấu Trường chỉ trả Bạc và Đấu Điểm.</span></span>
+            </span>
+          </div>
+
+          <template x-if="g.dtVuongChu">
+            <div class="panel rounded-lg p-6 text-center">
+              <div class="text-[13px] text-slate-300 fserif" x-text="g.dtVuongChu"></div>
+            </div>
+          </template>
+
+          <template x-if="!g.dtVuongChu">
+            <div class="panel rounded-lg overflow-hidden">
+              <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                <div class="text-jade font-bold fserif">Bảng Khiêu Chiến</div>
+                <button @click="g.dtTai()" :disabled="g.dtDangTai"
+                        class="px-3 py-1 rounded-lg text-[11.5px] fserif border border-slate-600 text-slate-300 hover:border-jade hover:text-jade transition disabled:opacity-50"
+                        x-text="g.dtDangTai ? 'Đang tìm…' : 'Tìm lại'"></button>
+              </div>
+
+              <template x-if="g.dtLoi">
+                <div class="px-4 py-6 text-[12px] text-slate-400 text-center" x-text="g.dtLoi"></div>
+              </template>
+
+              <template x-if="!g.dtLoi">
+                <div class="divide-y divide-slate-800/60">
+                  <template x-for="x in g.dtDs" :key="x.uid">
+                    <!-- ⚠⚠ Khối chân dung + tên phải là MỘT cụm `w-full sm:w-auto`. Để bốn cụm cùng
+                         nằm thẳng trong một hàng `flex-wrap` thì ở khổ 390px cột tên bị ba cụm
+                         `shrink-0` bên phải ép còn ~40px: tên co thành "M…" và dòng phụ xếp dọc
+                         từng chữ một. Ảnh chụp 390px lộ ra, bảng số thì không thấy. -->
+                    <div class="flex items-center gap-3 px-3.5 py-2.5 flex-wrap">
+                      <div class="flex items-center gap-3 min-w-0 w-full sm:w-auto sm:flex-1">
+                        <span class="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-ink3 inline-flex items-center justify-center">
+                          <img loading="lazy" decoding="async" :src="'images/avatars/'+(x.avatar||'nam1')+'.webp'" class="w-full h-full object-cover" alt=""
+                               onerror="this.style.display='none'">
+                        </span>
+                        <div class="min-w-0 flex-1">
+                          <div class="text-[13px] text-slate-100 fserif truncate" x-text="x.ten"></div>
+                          <div class="text-[10.5px] text-slate-600" x-text="'Tổng Lv ' + g.fmt(x.tongCap) + ' · Chiến Đấu Lv ' + g.fmt(x.chienDau) + ' · Chiến Lực ' + g.fmt(x.chienLuc)"></div>
+                        </div>
+                      </div>
+                      <div class="shrink-0">
+                        <div class="text-[11.5px] fserif" :style="'color:'+x.bac.mau" x-text="x.bac.ten"></div>
+                        <div class="text-[10.5px] text-slate-500 tabular-nums" x-text="g.fmt(x.diem) + ' Đấu Điểm'"></div>
+                      </div>
+                      <span class="text-[10.5px] px-2 py-[3px] rounded-full border border-slate-600 text-slate-300 shrink-0 tabular-nums"
+                            x-text="'kỳ vọng ' + Math.round(x.kyVong*100) + '%'"></span>
+                      <button @click="g.dtDanhVoi(x)" :disabled="g.dtLuot<=0"
+                              class="shrink-0 ml-auto px-3 py-1.5 rounded-lg text-[11.5px] fserif border transition"
+                              :class="g.dtLuot>0 ? 'text-amber-200 border-amber-500/50 hover:bg-amber-500/10' : 'text-slate-600 border-slate-700 cursor-not-allowed'">Khiêu Chiến</button>
+                    </div>
+                  </template>
+                </div>
+              </template>
+
+              <template x-if="g.dtSu.length">
+                <div class="px-4 py-2.5 border-t border-slate-800">
+                  <div class="text-[10.5px] text-slate-600 mb-1.5">Trận gần đây</div>
+                  <div class="space-y-1">
+                    <template x-for="s in g.dtSu" :key="s.ts">
+                      <div class="text-[11px] flex items-center gap-1.5 flex-wrap">
+                        <span :class="s.thang ? 'text-jade' : 'text-rose-300'" x-text="s.thang ? 'Thắng' : 'Thua'"></span>
+                        <span class="text-slate-400" x-text="s.ten"></span>
+                        <span class="text-slate-600" x-text="'· còn ' + s.mauTa + '% Sinh Lực'"></span>
+                        <span class="ml-auto tabular-nums" :class="s.doiDiem >= 0 ? 'text-jade' : 'text-rose-300'"
+                              x-text="(s.doiDiem > 0 ? '+' : '') + s.doiDiem + ' Đấu Điểm'"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- DIỄN BIẾN TRẬN — mở ngay sau khi đánh xong. Dùng lại nguyên dòng chiến báo của
+               combat nên câu chữ y hệt lúc đánh yêu thú, không đẻ bộ chữ thứ hai. -->
+          <template x-if="g.dtTran">
+            <div class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background:rgba(2,6,12,.8)"
+                 @click.self="g.dtDongTran()" @keydown.escape.window="g.dtDongTran()">
+              <div class="panel rounded-xl border-2 w-full max-w-xl overflow-hidden max-h-[86dvh] flex flex-col"
+                   :style="'border-color:'+(g.dtTran.thang ? '#5dcaa588' : '#fb718588')">
+                <div class="relative p-4 shrink-0 border-b border-slate-800">
+                  <button @click="g.dtDongTran()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-ink/70 border border-slate-600 hover:border-rose-500 text-slate-300 hover:text-rose-400">✕</button>
+                  <div class="text-lg fserif" :class="g.dtTran.thang ? 'text-jade' : 'text-rose-200'"
+                       x-text="g.dtTran.thang ? ('Thắng ' + g.dtTran.ten) : ('Thua ' + g.dtTran.ten)"></div>
+                  <div class="text-[11.5px] text-slate-400 mt-1">
+                    <span :class="g.dtTran.doiDiem >= 0 ? 'text-jade' : 'text-rose-300'"
+                          x-text="(g.dtTran.doiDiem > 0 ? '+' : '') + g.dtTran.doiDiem + ' Đấu Điểm'"></span>
+                    <span class="text-slate-600"> · </span>
+                    <span x-text="g.fmt(g.dtTran.bac) + ' Bạc'"></span>
+                    <span class="text-slate-600"> · </span>
+                    <span x-text="'Sinh Lực còn ' + g.dtTran.mauTa + '%'"></span>
+                  </div>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-3 space-y-1 text-[11.5px] leading-snug">
+                  <template x-for="(d, i) in (g.dtTran.log || [])" :key="i">
+                    <div :class="d.c" x-html="d.h"></div>
+                  </template>
+                </div>
+              </div>
             </div>
           </template>
 

@@ -45,6 +45,8 @@ export const NAV = [
     { view: 'phongVanBang', name: 'Phong Vân Bảng', gloss: 'Leaderboard', icon: '🏆' },
     // ⚠ Mục CHỈ HIỆN khi cờ `thinhKinh` mở — cùng khuôn với Sự Kiện (`tkNavHien` ở main.js).
     { view: 'thinhKinh', name: 'Thỉnh Kinh', gloss: 'Scripture Escort', icon: '☁️' },
+    // ⚠ Cùng khuôn: chỉ hiện khi cờ `dauTruong` mở (`dtNavHien` ở main.js).
+    { view: 'dauTruong', name: 'Đấu Trường', gloss: 'Arena', icon: '🏟️' },
   ] },
   { title: 'Giao Thương', items: [
     { view: 'merchant', name: 'Thương Điếm',    gloss: 'Merchant', icon: '🏪' },
@@ -64,4 +66,5 @@ export const VIEW_NAMES = {
   combat: 'Chiến Đấu', tangkinhcac: 'Tàng Kinh Các', dungeon: 'Bí Cảnh', worldboss: 'Yêu Vương', suKien: 'Sự Kiện',
   pets: 'Linh Thú', tongmon: 'Tông Môn', phongVanBang: 'Phong Vân Bảng', merchant: 'Thương Điếm', market: 'Sàn Giao Dịch', dangTienMong: 'Đăng Tiên Mộng', dongPhu: 'Động Phủ', kyTran: 'Kỳ Trận', nguTuKy: 'Ngũ Tử Kỳ', coTuong: 'Cờ Tướng', coVua: 'Cờ Vua', tienLen: 'Tiến Lên', binh: 'Binh Xập Xám', paoDeKuai: 'Tiến Lên Trung Quốc',
   guild: 'Tiên Minh', tavern: 'Tửu Lâu', collection: 'Vạn Vật Phổ', thinhKinh: 'Thỉnh Kinh',
+  dauTruong: 'Đấu Trường',
 };

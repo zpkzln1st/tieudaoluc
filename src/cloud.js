@@ -97,25 +97,43 @@ export async function cloudPushSave(state) {
 //   binh thuong vi caller nuot loi. Thieu bang KHONG duoc lam vo duong luu save.
 // ============================================================
 
-/** Day ho so cua CHINH MINH len. `hoSo` la ban CHUP (khong phai tham chieu vao save). */
+/**
+ * Day ho so cua CHINH MINH len. `hoSo` la ban CHUP (khong phai tham chieu vao save).
+ *
+ * ⚠⚠ HAI COT `chien_bo` / `dau_diem` CHI CO sau khi chay docs/SQL_DAU_TRUONG.sql. Day nguyen ca
+ *    goi len mot bang CHUA co hai cot do thi Supabase TU CHOI CA GOI — tuc la nut Khoe von dang
+ *    chay tot bong dung chet, cho MOI NGUOI chua chay tep SQL moi. Vi vay: hong vi cot la thi
+ *    BO hai cot do ra roi day lai, va nho lai cho ca phien de khoi hoi lai moi lan.
+ */
+let _hoSoCoCotDauTruong = true;
+const COT_DAU_TRUONG = ['chien_bo', 'dau_diem'];
 export async function cloudPushHoSo(hoSo) {
   const sb = await getClient();
   const uid = await _uid();
   if (!uid) return { ok: false, reason: 'no-auth' };
-  const { error } = await sb.from('ho_so_cong_khai').upsert(
-    { user_id: uid, ...hoSo, cap_nhat: new Date().toISOString() },
-    { onConflict: 'user_id' },
-  );
+  const day = async (bo) => {
+    const o = { user_id: uid, ...hoSo, cap_nhat: new Date().toISOString() };
+    if (bo) for (const k of COT_DAU_TRUONG) delete o[k];
+    const { error } = await sb.from('ho_so_cong_khai').upsert(o, { onConflict: 'user_id' });
+    return error;
+  };
+  let error = await day(!_hoSoCoCotDauTruong);
+  if (error && _hoSoCoCotDauTruong && COT_DAU_TRUONG.some((k) => String(error.message || '').includes(k))) {
+    _hoSoCoCotDauTruong = false;                 // chua chay SQL_DAU_TRUONG.sql — thoi day hai cot do
+    error = await day(true);
+  }
   if (error) return { ok: false, reason: error.message };
-  return { ok: true };
+  return { ok: true, coCotDauTruong: _hoSoCoCotDauTruong };
 }
+/** Bang `ho_so_cong_khai` da co hai cot cua Dau Truong chua — man Dau Truong doc de noi ro. */
+export function cloudCoCotDauTruong() { return _hoSoCoCotDauTruong; }
 
 /** Doc ho so cong khai cua MOT NGUOI theo ma tai khoan. Khong can dang nhap. */
 export async function cloudLoadHoSo(uid) {
   if (!uid) return { ok: false, reason: 'no-uid' };
   const sb = await getClient();
   const { data, error } = await sb.from('ho_so_cong_khai')
-    .select('user_id,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu,trung_bay,cap_nhat')
+    .select('user_id,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu,trung_bay,chien_bo,dau_diem,cap_nhat')
     .eq('user_id', uid).maybeSingle();
   if (error) return { ok: false, reason: error.message };
   return { ok: true, row: data };            // row = null neu nguoi do chua khoe gi
@@ -134,6 +152,25 @@ export async function cloudLoadBangNguoiThat(gioiHan) {
     .limit(Math.max(1, Math.min(500, gioiHan || 200)));
   if (error) return { ok: false, reason: error.message };
   return { ok: true, rows: data || [] };
+}
+
+/**
+ * DAU TRUONG (muc 5.1) — doc nguoi CO BAN CHUP BO CHIEN DAU, xep theo Dau Diem.
+ * ⚠ Hai cot `chien_bo` / `dau_diem` chi co sau khi chay docs/SQL_DAU_TRUONG.sql. Chua chay thi
+ *   Supabase tra loi "cot khong ton tai" — o day NUOT loi va tra rong, man Dau Truong tu noi ro
+ *   dang thieu gi. Duong luu save KHONG duoc vo theo, y loi `cloudPushHoSo` da lam.
+ */
+export async function cloudLoadDoiThuDauTruong(gioiHan) {
+  try {
+    const sb = await getClient();
+    const { data, error } = await sb.from('ho_so_cong_khai')
+      .select('user_id,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu,chien_bo,dau_diem,cap_nhat')
+      .not('chien_bo', 'is', null)
+      .order('dau_diem', { ascending: false })
+      .limit(Math.max(1, Math.min(200, gioiHan || 60)));
+    if (error) return { ok: false, reason: error.message, rows: [] };
+    return { ok: true, rows: data || [] };
+  } catch (e) { return { ok: false, reason: String(e && e.message), rows: [] }; }
 }
 
 /** Ma tai khoan cua chinh minh — de dung duong dan khoe. */

@@ -87,12 +87,13 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch, NT } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudLoadDoiThuDauTruong, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
 import { TINH_NANG, TINH_NANG_DOT, TINH_NANG_BY_MA } from './data/tinhnang.js';
 import { demTinhNang, tinhNangMo, tinhNangTrangThai, tinhNangDangBat } from './engine/tinhnang.js';
+import { ensureDauTruong, dtChupBo, dtGhepCap, dtLuotConLai, dtBacCua, dauTran, dauTruongVuong, DT_LUOT_NGAY, DT_DIEM_NEN } from './engine/dautruong.js';
 import { verifyAuthorCert } from './engine/author.js';
 import { tuBatFPS } from './engine/fps.js';   // ?fps=1 -> hiện đồng hồ khung hình
 import { batNgonNgu } from './i18n.js';       // lớp phủ dịch EN/ZH — từ điển chỉ nạp khi khác 'vi'
@@ -607,7 +608,7 @@ const gameStore = {
   openCoTuong(id) { this._ctOpp = id || null; this.navTo('coTuong'); },  // deep-link Cờ Tướng từ Hồ Sơ Danh Sĩ
   _cvOpp: null,
   openCoVua(id) { this._cvOpp = id || null; this.navTo('coVua'); },      // deep-link Cờ Vua từ Hồ Sơ Danh Sĩ
-  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'phongVanBang') this.taiNguoiThat(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'phongVanBang') this.taiNguoiThat(); if (view === 'dauTruong') this.dtTai(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
   _ROUTE_VIEWS: ROUTE_VIEWS,
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
@@ -6722,6 +6723,11 @@ const gameStore = {
       avatar: this.avatarId || null,
       danh_hieu: t ? t.name : null,
       trung_bay: this.trungBayChup,
+      // ĐẤU TRƯỜNG (5.1): bản chụp BỘ CHIẾN ĐẤU + Đấu Điểm. Hai cột này chỉ có sau khi chạy
+      // docs/SQL_DAU_TRUONG.sql; `cloudPushHoSo` tự bỏ chúng ra nếu bảng chưa có, nên nút Khoe
+      // của người chưa chạy tệp SQL vẫn chạy y như cũ.
+      chien_bo: dtChupBo(this.state),
+      dau_diem: Math.round(ensureDauTruong(this.state).diem || 0),
     };
   },
   // Bảng `ho_so_cong_khai` có thể CHƯA được dựng (cần chạy docs/SQL_HO_SO_CONG_KHAI.sql).
@@ -7844,6 +7850,74 @@ const gameStore = {
   // ============================================================
   // ⚠ Mục ở cột dọc CHỈ MỌC RA khi cờ mở — cùng khuôn với Sự Kiện (`svNavHien`).
   get tkNavHien() { return this.moChua('thinhKinh'); },
+  get dtNavHien() { return this.moChua('dauTruong'); },
+
+  // ============================================================
+  // ĐẤU TRƯỜNG — mục 5.1 lộ trình, cờ `dauTruong`, docs/SQL_DAU_TRUONG.sql
+  // PvP KHÔNG ĐỒNG BỘ: đánh với BẢN CHỤP bộ chiến đấu người ta tự đẩy lên.
+  // ⚠ Chỉ trả Bạc + Đấu Điểm. KHÔNG vật phẩm, KHÔNG chỉ số — Đấu Điểm do máy người chơi khai.
+  // ============================================================
+  DT_LUOT_NGAY, DT_DIEM_NEN,
+  dtDs: [],                 // đối thủ đã ghép cặp
+  dtDangTai: false,
+  dtLoi: '',                // vì sao chưa đọc được danh sách (chưa chạy tệp SQL, mất mạng...)
+  dtTran: null,             // bản ghi trận vừa đánh — mở modal diễn biến
+  get dtT() { void this._tick; return ensureDauTruong(this.state); },
+  get dtDiem() { return Math.round(this.dtT.diem || DT_DIEM_NEN); },
+  get dtBac() { return dtBacCua(this.dtDiem); },
+  get dtLuot() { void this._tick; return dtLuotConLai(this.state, now()); },
+  get dtThang() { return this.dtT.thang | 0; },
+  get dtThua() { return this.dtT.thua | 0; },
+  get dtSu() { void this._tick; return (this.dtT.su || []).slice(0, 8); },
+  /** Màn trống PHẢI nói rõ đang thiếu gì và chỉ đúng chỗ đi tiếp. */
+  get dtVuongChu() {
+    const v = dauTruongVuong(this.state, this.isLoggedIn);
+    if (v === 'chua-dang-nhap') return 'Phải đăng nhập mới vào Đấu Trường được — đối thủ đọc từ hồ sơ công khai.';
+    if (v === 'chua-co-bo-chien-dau') return 'Chưa có bộ chiến đấu. Vào Tàng Kinh Các chọn Tâm Pháp và chiêu thức trước.';
+    return '';
+  },
+  async dtTai() {
+    if (this.dtDangTai) return;
+    this.dtDangTai = true; this.dtLoi = '';
+    try {
+      const uid = await cloudMyUid();
+      const r = await cloudLoadDoiThuDauTruong(60);
+      if (!r.ok) {
+        // ⚠ Nói rõ nguyên nhân thường gặp nhất thay vì in nguyên câu lỗi của máy chủ.
+        this.dtLoi = /chien_bo|dau_diem/.test(String(r.reason || ''))
+          ? 'Máy chủ chưa có bảng đấu — cần chạy docs/SQL_DAU_TRUONG.sql.'
+          : 'Chưa đọc được danh sách đối thủ. Thử lại sau.';
+        this.dtDs = [];
+      } else {
+        this.dtDs = dtGhepCap(r.rows, uid, this.dtDiem);
+        if (!this.dtDs.length) this.dtLoi = 'Chưa có ai đẩy bộ chiến đấu lên. Bấm Khoe ở Hồ Sơ để góp mặt.';
+      }
+    } catch (e) { this.dtLoi = 'Chưa đọc được danh sách đối thủ. Thử lại sau.'; this.dtDs = []; }
+    this.dtDangTai = false;
+    this._tick++;
+  },
+  dtDanhVoi(x) {
+    if (!x || this.dtVuongChu) return;
+    if (this.dtLuot <= 0) { this.showToast('Hôm nay hết lượt Đấu Trường.'); return; }
+    this.hoiXacNhan({
+      tieuDe: 'Khiêu chiến ' + x.ten + '?',
+      loi: 'Kỳ vọng thắng ' + Math.round(x.kyVong * 100) + '%. Đối thủ đang <b>' + x.bac.ten
+        + '</b> · <b>' + this.fmt(x.diem) + '</b> Đấu Điểm.',
+      canhBao: 'Tốn một lượt dù thắng hay thua. Thua thì tụt Đấu Điểm.',
+      nut: 'Khiêu Chiến',
+      xong: () => {
+        const g = dauTran(this.state, x, now());
+        if (!g || g.loi) { this.showToast('Chưa đánh được.'); return; }
+        // Engine không đụng túi — chỗ phát Bạc là đây, đúng lối `chotBossBang`.
+        this.state.currencies.bac = (this.state.currencies.bac || 0) + (g.bac || 0);
+        this.dtTran = g;
+        Storage.save(this.state);
+        this._dayHoSo();               // đẩy Đấu Điểm mới lên cho người khác thấy
+        this._tick++;
+      },
+    });
+  },
+  dtDongTran() { this.dtTran = null; },
   // Bảng số phơi ra cho template — đừng gõ lại con số nào trong index.html.
   TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG,
   /** Bảo đảm khối state + reset lượt theo ngày. Gọi ở mọi cửa vào của màn. */

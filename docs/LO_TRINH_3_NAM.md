@@ -392,9 +392,57 @@ Trang soi mới `_mockup/_vanvatpho_probe.html` (8 phép đo trong game thật).
 
 ## 5. Năm thứ hai — người chơi gặp nhau
 
-**5.1 Đấu trường** — cờ `dauTruong`
-- PvP không đồng bộ trước: đánh với BẢN CHỤP của người khác, không cần hai máy cùng lúc.
-- Hồ sơ công khai đã có bản chụp 904 byte — dùng lại đúng đường đó.
+**5.1 Đấu trường** — cờ `dauTruong` · **ĐÃ DỰNG, ĐANG NGỦ (2026-08-22)**
+- PvP không đồng bộ: đánh với BẢN CHỤP bộ chiến đấu của người khác, không cần hai máy cùng lúc.
+
+**⚠ Chỗ tài liệu này ghi thiếu:** bảng `ho_so_cong_khai` cũ **không mang bộ chiến đấu** — nó chỉ
+có `ten · tong_cap · chien_dau · chien_luc · avatar · danh_hieu · trung_bay`. "Bản chụp 904 byte"
+là bảy ô Trưng Bày, không dựng lại được một đối thủ nào. ⇒ `docs/SQL_DAU_TRUONG.sql` nới bảng cũ
+thêm **hai cột**: `chien_bo jsonb` (bản chụp ~360 byte, chốt trần 1.200 ký tự) và
+`dau_diem int` (nền 1.000, chốt 0–100.000) + một chỉ mục để bảng xếp hạng khỏi quét trọn bảng.
+**KHÔNG dựng bảng mới** — PvP không đồng bộ thì không cần chỗ nào ghi trận đấu chung.
+
+| núm | số |
+|---|---|
+| lượt mỗi ngày | 5 |
+| Đấu Điểm nền / sàn | 1.000 / 600 |
+| hệ số Elo | 24 (thắng người ngang cơ +12) |
+| dải ghép cặp | lệch ≤ 250 điểm; giang hồ ít người thì nới dần, không trả danh sách rỗng |
+| Bạc thưởng | `300 + cấp Chiến Đấu × 12`; thua vẫn có **25%** |
+| bậc | Sơ Học · Nhập Môn · Hào Kiệt · Cao Thủ · Tuyệt Đỉnh · Thánh Thủ |
+
+**MƯỢN NGUYÊN BỘ MÔ PHỎNG của combat** (`deriveCombat` + `makeFight` + `stepFight`), đúng lối
+`dameMotTranBoss` của Yêu Vương — không chép công thức sang. Đối thủ dựng thành một `enemy` như
+yêu thú, nhưng mang chỉ số/ngũ hành/kháng/chiêu THẬT của người kia.
+
+**⚠⚠ CHỈ TRẢ BẠC VÀ ĐẤU ĐIỂM.** Đấu Điểm do máy người chơi khai, cùng lớp với `chien_luc` đã khai
+từ đợt A2 — RLS chỉ chặn sửa hồ sơ CỦA NGƯỜI KHÁC. Treo phần thưởng sức mạnh vào một con số
+client khai là mở toang cửa. Muốn xếp hạng ăn tiền thật thì phải làm 5.2 với trần tốc độ máy chủ.
+
+**⚠⚠ Nút Khoe của người CHƯA chạy tệp SQL không được chết theo.** Đẩy nguyên gói có hai cột mới
+lên một bảng chưa có chúng thì Supabase **từ chối cả gói**. `cloudPushHoSo` nay thử một lần, thấy
+lỗi vì cột thì **bỏ hai cột đó ra rồi đẩy lại**, và nhớ cho cả phiên.
+
+**⚠⚠ BA LỖI ẢNH CHỤP BẮT ĐƯỢC MÀ 52 BÀI KIỂM BÁO XANH:**
+- **Khổ 390px hỏng hẳn**: ba cụm `shrink-0` bên phải ép cột tên còn ~40px — tên co thành "M…",
+  dòng phụ xếp dọc từng chữ một. Nay chân dung + tên là MỘT cụm `w-full sm:w-auto`.
+- **Bày theo độ GẦN điểm** nên hàng đọc ra 1.010 · 950 · 1.080 · 880, nhìn như danh sách xáo bừa.
+  Nay CHỌN theo độ gần, BÀY theo Đấu Điểm giảm dần.
+- **Câu mở màn của `makeFight` viết cho YÊU THÚ**: "gầm lên, toàn thân bốc cháy rừng rực" — đối thủ
+  ở đây là NGƯỜI. Nay thay đúng dòng đầu: "ôm quyền thi lễ, vận khởi Hỏa khí — trận đấu bắt đầu."
+
+**⚠ Kiểm chuẩn bắt 3 mục bài kiểm RỖNG**, trong đó một mục đáng nhớ: `su.length <= DT_SU_CAP` là
+phép đo **bám vào chính hằng số nó đang canh** — nâng hằng số lên 100.000 thì mục vẫn xanh mà bản
+lưu phình mãi. Nay đòi hỏi một con số ĐỘC LẬP (đánh 40 trận, sử ≤ 25 bản ghi).
+
+**⚠ Chữ dán vào chuỗi có thẻ HTML thì bộ đếm dịch KHÔNG THẤY** (`_dump_ghep.mjs` coi mọi chuỗi
+chứa `<` `>` là mã). Câu mở màn ban đầu dán liền `<span class="…">` nên hai khúc chữ Việt biến mất
+khỏi bản đếm — bản EN/ZH sẽ đứng nguyên tiếng Việt mà không ai báo gì. Nay tách thành hằng số
+sạch, và bài kiểm 52 có một mục canh đúng chuyện đó.
+
+Bài kiểm **52** `_check_dautruong.mjs` (**71 mục**), kiểm chuẩn `_kiemchuan_dautruong.mjs`
+**17/17**. Trang soi `_mockup/_dautruong_nhin.html`. Không cần art mới.
+⇒ **Chủ dự án phải chạy `docs/SQL_DAU_TRUONG.sql`** rồi bật cờ ở Lệnh Bài, tab Tính Năng.
 
 **5.2 Mùa giải** — cờ `muaGiai` + `mo_khoa.mua_so`
 - Ba tháng một mùa, bảng xếp hạng đóng băng cuối mùa, thưởng danh hiệu riêng.
