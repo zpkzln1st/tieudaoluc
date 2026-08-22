@@ -14807,6 +14807,8 @@ export const DICT = {
   "mỗi giờ ": "per hour",
   "% trọng thương, nghỉ": "% chance of grave wounds, out for",
   "% trọng thương, nghỉ ": "% chance of grave wounds, out for",
+  "Luật": "Rules",
+  "Luật ": "Rules",
   "Chưởng Môn": "Sect Master",
   "đang": "currently",
   "Tới": "To",

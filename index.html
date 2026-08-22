@@ -726,8 +726,14 @@
     .sb-row.off .b{ color:#4a5568; }
     .sb-row.on{ color:#6ee7b7; }                         /* đủ món -> sáng */
     .sb-row.on .b{ color:#9fb2c9; }
-    /* Màn cảm ứng không có hover — tắt hẳn, chi tiết xem ở bảng Đổi Trang Bị. */
-    @media (hover:none),(pointer:coarse){ .gtip{ display:none; } }
+    /* ⚠⚠ Màn cảm ứng không có hover. TRƯỚC ĐÂY tắt HẲN mọi `.gtip`, nên sáu nút hỏi "?" bấm
+       vào không ra gì — không phải mờ, mà là `display:none`. Luật dài coi như biến mất trên
+       điện thoại, và càng dồn thêm luật vào nút hỏi thì càng mất nhiều.
+       Nay chỉ tắt đường HOVER; `.gtip.on` (mở bằng cách BẤM vào "?") vẫn hiện. */
+    @media (hover:none),(pointer:coarse){ .gtip:not(.on){ display:none; } }
+    /* Trên cảm ứng, hộp đang mở phải ĂN được cú bấm để bấm ra ngoài mới đóng đúng chỗ. */
+    @media (hover:none),(pointer:coarse){ .gtip.on{ pointer-events:auto; } }
+    .dd-hoi.on{ color:#cbd5e1; border-color:#475569; background:#0f1a2b; }
 
     /* ===== OVERLAY CHÂN DUNG (paper-doll, cột giữa) =====
        Tiền tố `cdg-` chứ KHÔNG `por-`: lớp `.por` đã có chủ trong kytran_combat.js.
@@ -9050,7 +9056,7 @@
                       </div>
                     </template>
                   </div>
-                  <div class="text-[10px] text-slate-600 italic mt-3 text-center">Tiếp Đãi: tăng Giao Tình (mỗi 8 giờ/sứ). Tặng Lễ: tốn Điểm Đấu Giá nhưng tăng nhiều Giao Tình. Đạt <b class="text-amber-300/70">Kết Minh</b> → nhận quà nguyên liệu, Uy Danh và đồng minh triều cống. Nâng cấp công trình để mở thêm môn phái có thể kết giao.</div>
+                  <div class="text-[10px] text-slate-600 mt-3"><span class="flex items-center justify-center gap-1.5"><span>Luật</span><span class="dd-tip relative inline-flex items-center" style="--q:#a78bfa"><span class="dd-hoi">?</span><span class="gtip gtip-len"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Tiếp Đãi: tăng Giao Tình (mỗi 8 giờ/sứ). Tặng Lễ: tốn Điểm Đấu Giá nhưng tăng nhiều Giao Tình. Đạt <b class="text-amber-300/70">Kết Minh</b> → nhận quà nguyên liệu, Uy Danh và đồng minh triều cống. Nâng cấp công trình để mở thêm môn phái có thể kết giao.</span></span></span></span></div>
                 </div>
               </div>
             </div>
@@ -9112,7 +9118,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600 italic text-center" style="background:rgba(15,21,33,.5)">Lĩnh ngộ tốn giờ theo bậc (Sơ nhanh, Tuyệt lâu) · số ô đồng thời = bậc Tàng Thư Lâu · số bí kíp/đệ tử tối đa theo cảnh giới. Võ học cộng Thực Lực + Uy Danh + lợi thế Đài Tỉ Võ.</div>
+                <div class="shrink-0 px-5 py-2.5 border-t border-slate-800 text-[10px] text-slate-600" style="background:rgba(15,21,33,.5)"><span class="flex items-center justify-center gap-1.5"><span>Luật</span><span class="dd-tip relative inline-flex items-center" style="--q:#38bdf8"><span class="dd-hoi">?</span><span class="gtip gtip-len"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Lĩnh ngộ tốn giờ theo bậc (Sơ nhanh, Tuyệt lâu) · số ô đồng thời = bậc Tàng Thư Lâu · số bí kíp/đệ tử tối đa theo cảnh giới. Võ học cộng Thực Lực + Uy Danh + lợi thế Đài Tỉ Võ.</span></span></span></span></div>
               </div>
             </div>
           </template>
@@ -9442,7 +9448,7 @@
                         </div>
                       </template>
                     </div>
-                    <div class="text-[10px] text-slate-600 italic mt-2">Trách Phạt giúp xóa cờ xấu và giảm Tâm Ma. Nếu Tâm Ma cao hoặc tính cách quá cao ngạo, đệ tử có thể phản tác dụng và sinh Bất Phục.</div>
+                    <div class="text-[10px] text-slate-600 mt-2"><span class="flex items-center justify-center gap-1.5"><span>Luật</span><span class="dd-tip relative inline-flex items-center" style="--q:#f43f5e"><span class="dd-hoi">?</span><span class="gtip gtip-len"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Trách Phạt giúp xóa cờ xấu và giảm Tâm Ma. Nếu Tâm Ma cao hoặc tính cách quá cao ngạo, đệ tử có thể phản tác dụng và sinh Bất Phục.</span></span></span></span></div>
                   </div>
                   <!-- PHẢN ĐỒ -->
                   <div x-show="g.tmGioiLuatData.rebels.length">
@@ -19013,7 +19019,7 @@
           <div class="text-jade font-bold flex items-center gap-2"><span class="fserif text-lg leading-none">藥</span>Phục Dụng</div>
           <button @click="$store.game.closePhucDung()" class="w-7 h-7 rounded-full bg-black/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center transition">✕</button>
         </div>
-        <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug">Cho Linh Thú ăn trực tiếp Linh Thảo để hồi Thể Lực và nhận Kinh Nghiệm. Linh Thảo bậc càng cao càng hiệu quả với Linh Thú mạnh.</div>
+        <div class="px-5 pt-2.5 text-[11px] text-slate-500 leading-snug"><span class="flex items-center justify-center gap-1.5"><span>Luật</span><span class="dd-tip relative inline-flex items-center" style="--q:#34d399"><span class="dd-hoi">?</span><span class="gtip gtip-len"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Cho Linh Thú ăn trực tiếp Linh Thảo để hồi Thể Lực và nhận Kinh Nghiệm. Linh Thảo bậc càng cao càng hiệu quả với Linh Thú mạnh.</span></span></span></span></div>
         <div class="p-3 overflow-y-auto space-y-2">
           <template x-if="$store.game.phucDungList.length===0">
             <div class="text-sm text-slate-500 text-center py-6 leading-relaxed">Chưa có linh thảo — hái ở <b class="text-slate-300">Hái Thuốc</b>.</div>
@@ -19853,5 +19859,36 @@
     })();
   </script>
 
+<script>
+  // ===== NUT HOI "?" — MO BANG CACH BAM =====
+  // ⚠ Uy quyen tren document nen SAU nut hoi hien co (va moi nut them sau nay) tu chay,
+  //   khong phai sua tung cho markup. Chuot van dung duong hover cu, khong doi gi.
+  // ⚠ Khuon: .dd-tip > (.dd-hoi + .gtip). Chi tim trong dung cai bo do, khong quet ca trang.
+  (function(){
+    function hopCua(nut){
+      var bo = nut.closest('.dd-tip') || nut.parentElement;
+      return bo ? bo.querySelector('.gtip') : null;
+    }
+    function dongHet(tru){
+      document.querySelectorAll('.gtip.on').forEach(function(g){ if (g !== tru) g.classList.remove('on'); });
+      document.querySelectorAll('.dd-hoi.on').forEach(function(n){ n.classList.remove('on'); });
+    }
+    document.addEventListener('click', function(e){
+      var nut = e.target.closest && e.target.closest('.dd-hoi');
+      if (nut) {
+        var hop = hopCua(nut);
+        if (!hop) return;
+        var dangMo = hop.classList.contains('on');
+        dongHet(null);
+        if (!dangMo) { hop.classList.add('on'); nut.classList.add('on'); }
+        e.preventDefault(); e.stopPropagation();
+        return;
+      }
+      // Bam ra ngoai thi dong — tru khi bam vao chinh long hop dang mo.
+      if (!(e.target.closest && e.target.closest('.gtip.on'))) dongHet(null);
+    }, true);
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') dongHet(null); });
+  })();
+</script>
 </body>
 </html>

@@ -14638,6 +14638,8 @@ export const DICT = {
   "mỗi giờ ": "每小時",
   "% trọng thương, nghỉ": "% 重傷，休養",
   "% trọng thương, nghỉ ": "% 重傷，休養",
+  "Luật": "規則",
+  "Luật ": "規則",
   "Chưởng Môn": "掌門",
   "đang": "正在",
   "Tới": "前往",
