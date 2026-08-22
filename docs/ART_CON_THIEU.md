@@ -251,14 +251,14 @@ chừa hai dải trống trên dưới. Bảy tệp `hks*`/`kinhThu` cùng bộ 
 
 ---
 
-# Art MỒ CÔI — có trên đĩa mà không đường vẽ nào (42 tệp, trước là 49)
+# Art MỒ CÔI — có trên đĩa mà không đường vẽ nào (49 tệp)
 
 Không cần vẽ gì, ghi lại để khỏi tưởng là thiếu:
 
 | nhóm | số | vì sao mồ côi |
 |---|---|---|
 | `images/dongphu/ui/badge_hex2..20` + `badge_hexcungchu` | 20 | `tranBadge()` chốt cứng luôn trả `badge_hex.webp`, `bossBadge()` luôn trả `badge_hexfinalboss.webp` |
-| ~~`images/ui/enhance/*`~~ | ~~7~~ | **ĐÃ NỐI 2026-08-22** — đầu modal thành dải giấy (nền giấy + vệt bút + gạch chân + ấn son), nút Cường Hóa có hai mặt riêng, mây góc ở góc phải dưới. Đo trong game thật: 7/7 tệp có đường vẽ |
+| `images/ui/enhance/*` | 7 | Trọn bộ giao diện Cường Hoá đã vẽ xong nhưng **chưa nối vào** `index.html` |
 | `images/equip/eq_<tên riêng>` | 6 | Binh khí đặt tên riêng thời trước; nay Danh Sĩ suy binh khí theo khuôn `eq_<loại>_<bậc>` |
 | `images/dtm/*` | 6 | 3 `port_master_*` bị thay bằng art riêng; 3 tệp hiệu ứng đòn không có đường vẽ |
 | `images/kytran/tile_*` | 5 | Art quân cờ cho loại ô ngoài 5 loại đang chạy — thêm loại phải sửa hàm, không chỉ thả tệp |
