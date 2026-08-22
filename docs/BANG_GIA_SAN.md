@@ -204,34 +204,34 @@ Bảng dưới là mức **+0**. Ép rồi thì cộng thêm: +10 thêm 2.308 ·
 
 | món | loại | bán NPC | sàn tối thiểu | chênh |
 |---|---|---|---|---|
-| Thiên Trì Ngư | Cá | 250 | 253 | ×1.0 |
-| Hải Giao Ngư | Cá | 175 | 178 | ×1.0 |
-| Tinh Diệu Ngư | Cá | 120 | 123 | ×1.0 |
-| Vân Lý Ngư | Cá | 88 | 91 | ×1.0 |
-| Ốc Tuyền Ngư | Cá | 60 | 63 | ×1.1 |
-| Băng Lân Ngư | Cá | 40 | 43 | ×1.1 |
-| Tinh Lân Ngư | Cá | 22 | 25 | ×1.1 |
-| Lư Ngư | Cá | 11 | 14 | ×1.3 |
-| Hương Ngư | Cá | 7 | 10 | ×1.4 |
-| Hồi Ngư | Cá | 4 | 7 | ×1.8 |
-| Tuyết Ngư | Cá | 2 | 5 | ×2.5 |
-| Ngộ Đạo Đan | Đan Dược | 168 | 171 | ×1.0 |
-| Bách Bảo Đan | Đan Dược | 156 | 159 | ×1.0 |
-| Dưỡng Thú Đan | Đan Dược | 152 | 155 | ×1.0 |
-| Cường Nguyên Đan | Đan Dược | 148 | 151 | ×1.0 |
-| Hoàn Hồn Đan | Đan Dược | 70 | 73 | ×1.0 |
-| Ngộ Đạo Hoàn | Đan Dược | 48 | 51 | ×1.1 |
-| Bách Bảo Hoàn | Đan Dược | 46 | 49 | ×1.1 |
-| Dưỡng Thú Hoàn | Đan Dược | 44 | 47 | ×1.1 |
-| Cường Nguyên Hoàn | Đan Dược | 39 | 42 | ×1.1 |
-| Hồi Khí Đan | Đan Dược | 25 | 28 | ×1.1 |
-| Tục Mệnh Đan | Đan Dược | 20 | 23 | ×1.1 |
-| Quán Khí Đan | Đan Dược | 16 | 19 | ×1.2 |
-| Bách Bảo Tán | Đan Dược | 11 | 14 | ×1.3 |
-| Ngộ Đạo Tán | Đan Dược | 11 | 14 | ×1.3 |
-| Dưỡng Thú Tán | Đan Dược | 10 | 13 | ×1.3 |
-| Cường Nguyên Tán | Đan Dược | 9 | 12 | ×1.3 |
-| Hoạt Huyết Đan | Đan Dược | 8 | 11 | ×1.4 |
+| Thiên Trì Ngư | Cá | 250 | 298 | ×1.2 |
+| Hải Giao Ngư | Cá | 175 | 210 | ×1.2 |
+| Tinh Diệu Ngư | Cá | 120 | 145 | ×1.2 |
+| Vân Lý Ngư | Cá | 88 | 108 | ×1.2 |
+| Ốc Tuyền Ngư | Cá | 60 | 75 | ×1.3 |
+| Băng Lân Ngư | Cá | 40 | 51 | ×1.3 |
+| Tinh Lân Ngư | Cá | 22 | 30 | ×1.4 |
+| Lư Ngư | Cá | 11 | 17 | ×1.5 |
+| Hương Ngư | Cá | 7 | 12 | ×1.7 |
+| Hồi Ngư | Cá | 4 | 9 | ×2.3 |
+| Tuyết Ngư | Cá | 2 | 6 | ×3.0 |
+| Ngộ Đạo Đan | Đan Dược | 168 | 202 | ×1.2 |
+| Bách Bảo Đan | Đan Dược | 156 | 188 | ×1.2 |
+| Dưỡng Thú Đan | Đan Dược | 152 | 183 | ×1.2 |
+| Cường Nguyên Đan | Đan Dược | 148 | 178 | ×1.2 |
+| Hoàn Hồn Đan | Đan Dược | 70 | 86 | ×1.2 |
+| Ngộ Đạo Hoàn | Đan Dược | 48 | 60 | ×1.3 |
+| Bách Bảo Hoàn | Đan Dược | 46 | 58 | ×1.3 |
+| Dưỡng Thú Hoàn | Đan Dược | 44 | 56 | ×1.3 |
+| Cường Nguyên Hoàn | Đan Dược | 39 | 50 | ×1.3 |
+| Hồi Khí Đan | Đan Dược | 25 | 33 | ×1.3 |
+| Tục Mệnh Đan | Đan Dược | 20 | 28 | ×1.4 |
+| Quán Khí Đan | Đan Dược | 16 | 23 | ×1.4 |
+| Bách Bảo Tán | Đan Dược | 11 | 17 | ×1.5 |
+| Ngộ Đạo Tán | Đan Dược | 11 | 17 | ×1.5 |
+| Dưỡng Thú Tán | Đan Dược | 10 | 16 | ×1.6 |
+| Cường Nguyên Tán | Đan Dược | 9 | 15 | ×1.7 |
+| Hoạt Huyết Đan | Đan Dược | 8 | 13 | ×1.6 |
 | Tinh Đan · Cửu Phẩm | Đan Điền | 3.240 | 259.203 | ×80.0 |
 | Khí Đan · Cửu Phẩm | Đan Điền | 3.240 | 259.203 | ×80.0 |
 | Thần Đan · Cửu Phẩm | Đan Điền | 3.240 | 259.203 | ×80.0 |
@@ -244,31 +244,31 @@ Bảng dưới là mức **+0**. Ép rồi thì cộng thêm: +10 thêm 2.308 ·
 | Tinh Đan · Lục Phẩm | Đan Điền | 1.440 | 115.203 | ×80.0 |
 | Khí Đan · Lục Phẩm | Đan Điền | 1.440 | 115.203 | ×80.0 |
 | Thần Đan · Lục Phẩm | Đan Điền | 1.440 | 115.203 | ×80.0 |
-| Tinh Đan · Ngũ Phẩm | Đan Điền | 1.000 | 1.003 | ×1.0 |
-| Khí Đan · Ngũ Phẩm | Đan Điền | 1.000 | 1.003 | ×1.0 |
-| Thần Đan · Ngũ Phẩm | Đan Điền | 1.000 | 1.003 | ×1.0 |
-| Tinh Đan · Tứ Phẩm | Đan Điền | 640 | 643 | ×1.0 |
-| Khí Đan · Tứ Phẩm | Đan Điền | 640 | 643 | ×1.0 |
-| Thần Đan · Tứ Phẩm | Đan Điền | 640 | 643 | ×1.0 |
-| Tinh Đan · Tam Phẩm | Đan Điền | 360 | 363 | ×1.0 |
-| Khí Đan · Tam Phẩm | Đan Điền | 360 | 363 | ×1.0 |
-| Thần Đan · Tam Phẩm | Đan Điền | 360 | 363 | ×1.0 |
-| Tinh Đan · Nhị Phẩm | Đan Điền | 160 | 163 | ×1.0 |
-| Khí Đan · Nhị Phẩm | Đan Điền | 160 | 163 | ×1.0 |
-| Thần Đan · Nhị Phẩm | Đan Điền | 160 | 163 | ×1.0 |
-| Tinh Đan · Nhất Phẩm | Đan Điền | 40 | 43 | ×1.1 |
-| Khí Đan · Nhất Phẩm | Đan Điền | 40 | 43 | ×1.1 |
-| Thần Đan · Nhất Phẩm | Đan Điền | 40 | 43 | ×1.1 |
-| Thần Tinh Đĩnh | Thỏi Kim Loại | 600 | 603 | ×1.0 |
-| San Hô Đĩnh | Thỏi Kim Loại | 420 | 423 | ×1.0 |
-| Vẫn Thiết Đĩnh | Thỏi Kim Loại | 290 | 293 | ×1.0 |
-| Vân Mẫu Đĩnh | Thỏi Kim Loại | 210 | 213 | ×1.0 |
-| Hoàng Kim Đĩnh | Thỏi Kim Loại | 145 | 148 | ×1.0 |
-| Hàn Thiết Đĩnh | Thỏi Kim Loại | 95 | 98 | ×1.0 |
-| Tinh Thạch Đĩnh | Thỏi Kim Loại | 55 | 58 | ×1.1 |
-| Thiết Đĩnh | Thỏi Kim Loại | 28 | 31 | ×1.1 |
-| Đồng Đĩnh | Thỏi Kim Loại | 16 | 19 | ×1.2 |
-| Tích Đĩnh | Thỏi Kim Loại | 8 | 11 | ×1.4 |
+| Tinh Đan · Ngũ Phẩm | Đan Điền | 1.000 | 1.180 | ×1.2 |
+| Khí Đan · Ngũ Phẩm | Đan Điền | 1.000 | 1.180 | ×1.2 |
+| Thần Đan · Ngũ Phẩm | Đan Điền | 1.000 | 1.180 | ×1.2 |
+| Tinh Đan · Tứ Phẩm | Đan Điền | 640 | 757 | ×1.2 |
+| Khí Đan · Tứ Phẩm | Đan Điền | 640 | 757 | ×1.2 |
+| Thần Đan · Tứ Phẩm | Đan Điền | 640 | 757 | ×1.2 |
+| Tinh Đan · Tam Phẩm | Đan Điền | 360 | 428 | ×1.2 |
+| Khí Đan · Tam Phẩm | Đan Điền | 360 | 428 | ×1.2 |
+| Thần Đan · Tam Phẩm | Đan Điền | 360 | 428 | ×1.2 |
+| Tinh Đan · Nhị Phẩm | Đan Điền | 160 | 192 | ×1.2 |
+| Khí Đan · Nhị Phẩm | Đan Điền | 160 | 192 | ×1.2 |
+| Thần Đan · Nhị Phẩm | Đan Điền | 160 | 192 | ×1.2 |
+| Tinh Đan · Nhất Phẩm | Đan Điền | 40 | 51 | ×1.3 |
+| Khí Đan · Nhất Phẩm | Đan Điền | 40 | 51 | ×1.3 |
+| Thần Đan · Nhất Phẩm | Đan Điền | 40 | 51 | ×1.3 |
+| Thần Tinh Đĩnh | Thỏi Kim Loại | 600 | 710 | ×1.2 |
+| San Hô Đĩnh | Thỏi Kim Loại | 420 | 498 | ×1.2 |
+| Vẫn Thiết Đĩnh | Thỏi Kim Loại | 290 | 345 | ×1.2 |
+| Vân Mẫu Đĩnh | Thỏi Kim Loại | 210 | 251 | ×1.2 |
+| Hoàng Kim Đĩnh | Thỏi Kim Loại | 145 | 175 | ×1.2 |
+| Hàn Thiết Đĩnh | Thỏi Kim Loại | 95 | 116 | ×1.2 |
+| Tinh Thạch Đĩnh | Thỏi Kim Loại | 55 | 69 | ×1.3 |
+| Thiết Đĩnh | Thỏi Kim Loại | 28 | 37 | ×1.3 |
+| Đồng Đĩnh | Thỏi Kim Loại | 16 | 23 | ×1.4 |
+| Tích Đĩnh | Thỏi Kim Loại | 8 | 13 | ×1.6 |
 | Đồ Phổ: Minh Vương Khải Giáp | Đồ Phổ | 2.008 | 10.043 | ×5.0 |
 | Đồ Phổ: Kim Long Bảo Đái | Đồ Phổ | 2.008 | 10.043 | ×5.0 |
 | Đồ Phổ: Lôi Đình Thủ Sáo | Đồ Phổ | 2.008 | 10.043 | ×5.0 |
@@ -341,94 +341,94 @@ Bảng dưới là mức **+0**. Ép rồi thì cộng thêm: +10 thêm 2.308 ·
 | Đồ Phổ: Kiên Cương Sản | Đồ Phổ | 88 | 443 | ×5.0 |
 | Đồ Phổ: Thanh Lân Can | Đồ Phổ | 88 | 443 | ×5.0 |
 | Đồ Phổ: Lợi Nhận Liêm | Đồ Phổ | 88 | 443 | ×5.0 |
-| Thần Đàn Mộc | Gỗ | 200 | 203 | ×1.0 |
-| Trầm Hải Mộc | Gỗ | 130 | 133 | ×1.0 |
-| Tinh Hoa Mộc | Gỗ | 80 | 83 | ×1.0 |
-| Phù Vân Mộc | Gỗ | 50 | 53 | ×1.1 |
-| Hồng Mộc | Gỗ | 30 | 33 | ×1.1 |
-| Hàn Tùng | Gỗ | 22 | 25 | ×1.1 |
-| Phong Mộc | Gỗ | 16 | 19 | ×1.2 |
-| Bạch Dương Mộc | Gỗ | 9 | 12 | ×1.3 |
-| Trúc Mộc | Gỗ | 5 | 8 | ×1.6 |
-| Tùng Mộc | Gỗ | 2 | 5 | ×2.5 |
-| Tâm Ma Tổ | Chiến Lợi Phẩm | 12.000 | 12.003 | ×1.0 |
-| Tinh Cửu Vĩ | Chiến Lợi Phẩm | 5.000 | 5.003 | ×1.0 |
-| Hạch Cổ Linh | Chiến Lợi Phẩm | 1.600 | 1.603 | ×1.0 |
-| Hài Cốt Cổ Ma | Chiến Lợi Phẩm | 950 | 953 | ×1.0 |
-| Đồ Phổ: Viêm Đế Phần Thiên | Chiến Lợi Phẩm | 900 | 903 | ×1.0 |
-| Đồ Phổ: Bắc Minh Đảo Hải | Chiến Lợi Phẩm | 900 | 903 | ×1.0 |
-| Đồ Phổ: Vạn Mộc Quy Nguyên | Chiến Lợi Phẩm | 900 | 903 | ×1.0 |
-| Đồ Phổ: Thái A Trảm Thần | Chiến Lợi Phẩm | 900 | 903 | ×1.0 |
-| Đồ Phổ: Bàn Cổ Trấn Nhạc | Chiến Lợi Phẩm | 900 | 903 | ×1.0 |
-| Đồ Phổ: Vô Tướng Sát Kiếp | Chiến Lợi Phẩm | 900 | 903 | ×1.0 |
-| Đồ Phổ: Thiên Nhân Hợp Nhất | Chiến Lợi Phẩm | 900 | 903 | ×1.0 |
-| Tinh Thể Yêu Vương | Chiến Lợi Phẩm | 800 | 803 | ×1.0 |
-| Tinh Thần Thiết | Chiến Lợi Phẩm | 780 | 783 | ×1.0 |
-| Hồn Mê Vụ | Chiến Lợi Phẩm | 620 | 623 | ×1.0 |
-| Giao Châu | Chiến Lợi Phẩm | 540 | 543 | ×1.0 |
-| Tinh Hư Không | Chiến Lợi Phẩm | 430 | 433 | ×1.0 |
-| Hổ Phù Đầu Lĩnh | Chiến Lợi Phẩm | 350 | 353 | ×1.0 |
-| Tinh Tủy | Chiến Lợi Phẩm | 340 | 343 | ×1.0 |
-| Lông Vũ Vân Điểu | Chiến Lợi Phẩm | 290 | 293 | ×1.0 |
-| Phấn Phù Quang | Chiến Lợi Phẩm | 240 | 243 | ×1.0 |
-| Mật Sa Mãng | Chiến Lợi Phẩm | 200 | 203 | ×1.0 |
-| Huyễn Sa | Chiến Lợi Phẩm | 165 | 168 | ×1.0 |
-| Hàn Thiết Tinh | Chiến Lợi Phẩm | 130 | 133 | ×1.0 |
-| Da Tuyết Lang | Chiến Lợi Phẩm | 95 | 98 | ×1.0 |
-| U Minh Thạch | Chiến Lợi Phẩm | 90 | 93 | ×1.0 |
-| Linh Phách | Chiến Lợi Phẩm | 70 | 73 | ×1.0 |
-| Sa Thủy Tinh | Chiến Lợi Phẩm | 60 | 63 | ×1.1 |
-| Túi Bạc Đoạt | Chiến Lợi Phẩm | 45 | 48 | ×1.1 |
-| Đuôi Cáo | Chiến Lợi Phẩm | 35 | 38 | ×1.1 |
-| Hắc Thiết Phiến | Chiến Lợi Phẩm | 30 | 33 | ×1.1 |
-| Chân Gấu | Chiến Lợi Phẩm | 20 | 23 | ×1.1 |
-| Nanh Heo Rừng | Chiến Lợi Phẩm | 10 | 13 | ×1.3 |
-| Da Sói | Chiến Lợi Phẩm | 6 | 9 | ×1.5 |
-| Thần Tinh Khoáng | Khoáng Sản | 270 | 273 | ×1.0 |
-| San Hô Khoáng | Khoáng Sản | 190 | 193 | ×1.0 |
-| Vẫn Thiết | Khoáng Sản | 130 | 133 | ×1.0 |
-| Vân Mẫu Thạch | Khoáng Sản | 95 | 98 | ×1.0 |
-| Hoàng Kim Sa | Khoáng Sản | 65 | 68 | ×1.0 |
-| Hàn Thiết Khoáng | Khoáng Sản | 42 | 45 | ×1.1 |
-| Tinh Thạch Khoáng | Khoáng Sản | 24 | 27 | ×1.1 |
-| Thiết Khoáng | Khoáng Sản | 10 | 13 | ×1.3 |
-| Thạch Khôi | Khoáng Sản | 8 | 11 | ×1.4 |
-| Đồng Khoáng | Khoáng Sản | 6 | 9 | ×1.5 |
-| Hắc Thán | Khoáng Sản | 3 | 6 | ×2.0 |
-| Tích Khoáng | Khoáng Sản | 3 | 6 | ×2.0 |
-| Thiên Câu Nhị | Mồi Câu | 95 | 98 | ×1.0 |
-| Giao Long Đản | Mồi Câu | 65 | 68 | ×1.0 |
-| Vân Mộng Nhị | Mồi Câu | 32 | 35 | ×1.1 |
-| Hàn Tủy Nhị | Mồi Câu | 15 | 18 | ×1.2 |
-| Tửu Khúc | Mồi Câu | 8 | 11 | ×1.4 |
-| Tép Đồng | Mồi Câu | 3 | 6 | ×2.0 |
-| Hồng Trùng | Mồi Câu | 1 | 4 | ×4.0 |
-| Thiên Trì Ngư Tần | Món Ăn | 380 | 383 | ×1.0 |
-| Hải Giao Ngư Hầm | Món Ăn | 270 | 273 | ×1.0 |
-| Tinh Diệu Ngư Nướng | Món Ăn | 185 | 188 | ×1.0 |
-| Vân Lý Ngư Tần | Món Ăn | 135 | 138 | ×1.0 |
-| Canh Ốc Tuyền Ngư | Món Ăn | 92 | 95 | ×1.0 |
-| Băng Lân Ngư Nướng | Món Ăn | 60 | 63 | ×1.1 |
-| Tinh Lân Ngư Hấp | Món Ăn | 35 | 38 | ×1.1 |
-| Bánh Chưng | Món Ăn | 30 | 33 | ×1.1 |
-| Bánh Trôi Ngũ Sắc | Món Ăn | 30 | 33 | ×1.1 |
-| Bánh Ú Tro | Món Ăn | 30 | 33 | ×1.1 |
-| Cháo Thí Thực | Món Ăn | 30 | 33 | ×1.1 |
-| Bánh Trung Thu | Món Ăn | 30 | 33 | ×1.1 |
-| Bánh Gừng Mật | Món Ăn | 30 | 33 | ×1.1 |
-| Hương Ngư Nướng | Món Ăn | 15 | 18 | ×1.2 |
-| Hồi Ngư Nướng | Món Ăn | 9 | 12 | ×1.3 |
-| Tuyết Ngư Nướng | Món Ăn | 5 | 8 | ×1.6 |
-| Cửu Diệp Linh Chi | Linh Thảo | 140 | 143 | ×1.0 |
-| Trầm Vụ Lan | Linh Thảo | 90 | 93 | ×1.0 |
-| Thất Tinh Thảo | Linh Thảo | 56 | 59 | ×1.1 |
-| Vân Lộ Chi | Linh Thảo | 35 | 38 | ×1.1 |
-| Ngọc Tuyền Sâm | Linh Thảo | 21 | 24 | ×1.1 |
-| Tuyết Liên Hoa | Linh Thảo | 15 | 18 | ×1.2 |
-| Thạch Hộc Lan | Linh Thảo | 11 | 14 | ×1.3 |
-| Đương Quy Căn | Linh Thảo | 6 | 9 | ×1.5 |
-| Tử Đằng Hoa | Linh Thảo | 4 | 7 | ×1.8 |
-| Thanh Ngải Thảo | Linh Thảo | 2 | 5 | ×2.5 |
+| Thần Đàn Mộc | Gỗ | 200 | 239 | ×1.2 |
+| Trầm Hải Mộc | Gỗ | 130 | 157 | ×1.2 |
+| Tinh Hoa Mộc | Gỗ | 80 | 98 | ×1.2 |
+| Phù Vân Mộc | Gỗ | 50 | 63 | ×1.3 |
+| Hồng Mộc | Gỗ | 30 | 39 | ×1.3 |
+| Hàn Tùng | Gỗ | 22 | 30 | ×1.4 |
+| Phong Mộc | Gỗ | 16 | 23 | ×1.4 |
+| Bạch Dương Mộc | Gỗ | 9 | 15 | ×1.7 |
+| Trúc Mộc | Gỗ | 5 | 10 | ×2.0 |
+| Tùng Mộc | Gỗ | 2 | 6 | ×3.0 |
+| Tâm Ma Tổ | Chiến Lợi Phẩm | 12.000 | 14.122 | ×1.2 |
+| Tinh Cửu Vĩ | Chiến Lợi Phẩm | 5.000 | 5.886 | ×1.2 |
+| Hạch Cổ Linh | Chiến Lợi Phẩm | 1.600 | 1.886 | ×1.2 |
+| Hài Cốt Cổ Ma | Chiến Lợi Phẩm | 950 | 1.122 | ×1.2 |
+| Đồ Phổ: Viêm Đế Phần Thiên | Chiến Lợi Phẩm | 900 | 1.063 | ×1.2 |
+| Đồ Phổ: Bắc Minh Đảo Hải | Chiến Lợi Phẩm | 900 | 1.063 | ×1.2 |
+| Đồ Phổ: Vạn Mộc Quy Nguyên | Chiến Lợi Phẩm | 900 | 1.063 | ×1.2 |
+| Đồ Phổ: Thái A Trảm Thần | Chiến Lợi Phẩm | 900 | 1.063 | ×1.2 |
+| Đồ Phổ: Bàn Cổ Trấn Nhạc | Chiến Lợi Phẩm | 900 | 1.063 | ×1.2 |
+| Đồ Phổ: Vô Tướng Sát Kiếp | Chiến Lợi Phẩm | 900 | 1.063 | ×1.2 |
+| Đồ Phổ: Thiên Nhân Hợp Nhất | Chiến Lợi Phẩm | 900 | 1.063 | ×1.2 |
+| Tinh Thể Yêu Vương | Chiến Lợi Phẩm | 800 | 945 | ×1.2 |
+| Tinh Thần Thiết | Chiến Lợi Phẩm | 780 | 922 | ×1.2 |
+| Hồn Mê Vụ | Chiến Lợi Phẩm | 620 | 733 | ×1.2 |
+| Giao Châu | Chiến Lợi Phẩm | 540 | 639 | ×1.2 |
+| Tinh Hư Không | Chiến Lợi Phẩm | 430 | 510 | ×1.2 |
+| Hổ Phù Đầu Lĩnh | Chiến Lợi Phẩm | 350 | 416 | ×1.2 |
+| Tinh Tủy | Chiến Lợi Phẩm | 340 | 404 | ×1.2 |
+| Lông Vũ Vân Điểu | Chiến Lợi Phẩm | 290 | 345 | ×1.2 |
+| Phấn Phù Quang | Chiến Lợi Phẩm | 240 | 286 | ×1.2 |
+| Mật Sa Mãng | Chiến Lợi Phẩm | 200 | 239 | ×1.2 |
+| Huyễn Sa | Chiến Lợi Phẩm | 165 | 198 | ×1.2 |
+| Hàn Thiết Tinh | Chiến Lợi Phẩm | 130 | 157 | ×1.2 |
+| Da Tuyết Lang | Chiến Lợi Phẩm | 95 | 116 | ×1.2 |
+| U Minh Thạch | Chiến Lợi Phẩm | 90 | 110 | ×1.2 |
+| Linh Phách | Chiến Lợi Phẩm | 70 | 86 | ×1.2 |
+| Sa Thủy Tinh | Chiến Lợi Phẩm | 60 | 75 | ×1.3 |
+| Túi Bạc Đoạt | Chiến Lợi Phẩm | 45 | 57 | ×1.3 |
+| Đuôi Cáo | Chiến Lợi Phẩm | 35 | 45 | ×1.3 |
+| Hắc Thiết Phiến | Chiến Lợi Phẩm | 30 | 39 | ×1.3 |
+| Chân Gấu | Chiến Lợi Phẩm | 20 | 28 | ×1.4 |
+| Nanh Heo Rừng | Chiến Lợi Phẩm | 10 | 16 | ×1.6 |
+| Da Sói | Chiến Lợi Phẩm | 6 | 11 | ×1.8 |
+| Thần Tinh Khoáng | Khoáng Sản | 270 | 322 | ×1.2 |
+| San Hô Khoáng | Khoáng Sản | 190 | 228 | ×1.2 |
+| Vẫn Thiết | Khoáng Sản | 130 | 157 | ×1.2 |
+| Vân Mẫu Thạch | Khoáng Sản | 95 | 116 | ×1.2 |
+| Hoàng Kim Sa | Khoáng Sản | 65 | 80 | ×1.2 |
+| Hàn Thiết Khoáng | Khoáng Sản | 42 | 53 | ×1.3 |
+| Tinh Thạch Khoáng | Khoáng Sản | 24 | 32 | ×1.3 |
+| Thiết Khoáng | Khoáng Sản | 10 | 16 | ×1.6 |
+| Thạch Khôi | Khoáng Sản | 8 | 13 | ×1.6 |
+| Đồng Khoáng | Khoáng Sản | 6 | 11 | ×1.8 |
+| Hắc Thán | Khoáng Sản | 3 | 8 | ×2.7 |
+| Tích Khoáng | Khoáng Sản | 3 | 8 | ×2.7 |
+| Thiên Câu Nhị | Mồi Câu | 95 | 116 | ×1.2 |
+| Giao Long Đản | Mồi Câu | 65 | 80 | ×1.2 |
+| Vân Mộng Nhị | Mồi Câu | 32 | 42 | ×1.3 |
+| Hàn Tủy Nhị | Mồi Câu | 15 | 22 | ×1.5 |
+| Tửu Khúc | Mồi Câu | 8 | 13 | ×1.6 |
+| Tép Đồng | Mồi Câu | 3 | 8 | ×2.7 |
+| Hồng Trùng | Mồi Câu | 1 | 5 | ×5.0 |
+| Thiên Trì Ngư Tần | Món Ăn | 380 | 451 | ×1.2 |
+| Hải Giao Ngư Hầm | Món Ăn | 270 | 322 | ×1.2 |
+| Tinh Diệu Ngư Nướng | Món Ăn | 185 | 222 | ×1.2 |
+| Vân Lý Ngư Tần | Món Ăn | 135 | 163 | ×1.2 |
+| Canh Ốc Tuyền Ngư | Món Ăn | 92 | 112 | ×1.2 |
+| Băng Lân Ngư Nướng | Món Ăn | 60 | 75 | ×1.3 |
+| Tinh Lân Ngư Hấp | Món Ăn | 35 | 45 | ×1.3 |
+| Bánh Chưng | Món Ăn | 30 | 39 | ×1.3 |
+| Bánh Trôi Ngũ Sắc | Món Ăn | 30 | 39 | ×1.3 |
+| Bánh Ú Tro | Món Ăn | 30 | 39 | ×1.3 |
+| Cháo Thí Thực | Món Ăn | 30 | 39 | ×1.3 |
+| Bánh Trung Thu | Món Ăn | 30 | 39 | ×1.3 |
+| Bánh Gừng Mật | Món Ăn | 30 | 39 | ×1.3 |
+| Hương Ngư Nướng | Món Ăn | 15 | 22 | ×1.5 |
+| Hồi Ngư Nướng | Món Ăn | 9 | 15 | ×1.7 |
+| Tuyết Ngư Nướng | Món Ăn | 5 | 10 | ×2.0 |
+| Cửu Diệp Linh Chi | Linh Thảo | 140 | 169 | ×1.2 |
+| Trầm Vụ Lan | Linh Thảo | 90 | 110 | ×1.2 |
+| Thất Tinh Thảo | Linh Thảo | 56 | 70 | ×1.3 |
+| Vân Lộ Chi | Linh Thảo | 35 | 45 | ×1.3 |
+| Ngọc Tuyền Sâm | Linh Thảo | 21 | 29 | ×1.4 |
+| Tuyết Liên Hoa | Linh Thảo | 15 | 22 | ×1.5 |
+| Thạch Hộc Lan | Linh Thảo | 11 | 17 | ×1.5 |
+| Đương Quy Căn | Linh Thảo | 6 | 11 | ×1.8 |
+| Tử Đằng Hoa | Linh Thảo | 4 | 9 | ×2.3 |
+| Thanh Ngải Thảo | Linh Thảo | 2 | 6 | ×3.0 |
 | Chiếu Dạ Ngọc Sư Tử | Công Cụ | 5.020 | 25.103 | ×5.0 |
 | Khai Thiên Thần Phủ | Công Cụ | 4.025 | 20.128 | ×5.0 |
 | Quật Địa Thiên Sản | Công Cụ | 4.025 | 20.128 | ×5.0 |
@@ -459,8 +459,8 @@ Bảng dưới là mức **+0**. Ép rồi thì cộng thêm: +10 thêm 2.308 ·
 | Kiên Cương Sản | Công Cụ | 219 | 1.098 | ×5.0 |
 | Thanh Lân Can | Công Cụ | 219 | 1.098 | ×5.0 |
 | Lợi Nhận Liêm | Công Cụ | 219 | 1.098 | ×5.0 |
-| Kiếm Sắt | Trang Bị | 120 | 123 | ×1.0 |
-| Giáp Thiếc | Trang Bị | 60 | 63 | ×1.1 |
+| Kiếm Sắt | Trang Bị | 120 | 145 | ×1.2 |
+| Giáp Thiếc | Trang Bị | 60 | 75 | ×1.3 |
 | Thanh Tông Mã | Công Cụ | 52 | 263 | ×5.1 |
 | Thiết Phủ | Công Cụ | 51 | 258 | ×5.1 |
 | Thiết Sản | Công Cụ | 51 | 258 | ×5.1 |
@@ -503,27 +503,27 @@ Bảng dưới là mức **+0**. Ép rồi thì cộng thêm: +10 thêm 2.308 ·
 | Hồ Yêu Noãn · Thường | Trứng Linh Thú | 120 | 603 | ×5.0 |
 | Băng Phượng Noãn · Thường | Trứng Linh Thú | 120 | 603 | ×5.0 |
 | Thiên Ma Noãn · Thường | Trứng Linh Thú | 120 | 603 | ×5.0 |
-| Kim Tất Trụ | Vật Liệu | 260 | 263 | ×1.0 |
-| Đá Cường Hóa Cao | Vật Liệu | 260 | 263 | ×1.0 |
-| Hàn Ngọc Chuyên | Vật Liệu | 140 | 143 | ×1.0 |
-| Thôi Vận Thạch Thượng Phẩm | Vật Liệu | 128 | 131 | ×1.0 |
-| Tinh Thạch Song | Vật Liệu | 120 | 123 | ×1.0 |
-| Bội Sản Thạch Thượng Phẩm | Vật Liệu | 110 | 113 | ×1.0 |
-| Đá Cường Hóa Trung | Vật Liệu | 95 | 98 | ×1.0 |
-| Tụ Khí Thạch Thượng Phẩm | Vật Liệu | 92 | 95 | ×1.0 |
-| Thôi Vận Thạch Trung Phẩm | Vật Liệu | 50 | 53 | ×1.1 |
-| Linh Thạch Khoáng Phu | Vật Liệu | 50 | 53 | ×1.1 |
-| Bội Sản Thạch Trung Phẩm | Vật Liệu | 45 | 48 | ×1.1 |
-| Khớp Sắt | Vật Liệu | 40 | 43 | ×1.1 |
-| Tụ Khí Thạch Trung Phẩm | Vật Liệu | 40 | 43 | ×1.1 |
-| Lương Mộc | Vật Liệu | 40 | 43 | ×1.1 |
-| Thạch Chuyên | Vật Liệu | 32 | 35 | ×1.1 |
-| Đá Cường Hóa Sơ | Vật Liệu | 30 | 33 | ×1.1 |
-| Gạch | Vật Liệu | 18 | 21 | ×1.2 |
-| Thanh Ngõa | Vật Liệu | 15 | 18 | ×1.2 |
-| Thôi Vận Thạch Sơ Phẩm | Vật Liệu | 12 | 15 | ×1.3 |
-| Ván Gỗ | Vật Liệu | 10 | 13 | ×1.3 |
-| Bội Sản Thạch Sơ Phẩm | Vật Liệu | 10 | 13 | ×1.3 |
-| Tụ Khí Thạch Sơ Phẩm | Vật Liệu | 9 | 12 | ×1.3 |
-| Đất Sét | Vật Liệu | 2 | 5 | ×2.5 |
-| Cát | Vật Liệu | 2 | 5 | ×2.5 |
+| Kim Tất Trụ | Vật Liệu | 260 | 310 | ×1.2 |
+| Đá Cường Hóa Cao | Vật Liệu | 260 | 310 | ×1.2 |
+| Hàn Ngọc Chuyên | Vật Liệu | 140 | 169 | ×1.2 |
+| Thôi Vận Thạch Thượng Phẩm | Vật Liệu | 128 | 155 | ×1.2 |
+| Tinh Thạch Song | Vật Liệu | 120 | 145 | ×1.2 |
+| Bội Sản Thạch Thượng Phẩm | Vật Liệu | 110 | 133 | ×1.2 |
+| Đá Cường Hóa Trung | Vật Liệu | 95 | 116 | ×1.2 |
+| Tụ Khí Thạch Thượng Phẩm | Vật Liệu | 92 | 112 | ×1.2 |
+| Thôi Vận Thạch Trung Phẩm | Vật Liệu | 50 | 63 | ×1.3 |
+| Linh Thạch Khoáng Phu | Vật Liệu | 50 | 63 | ×1.3 |
+| Bội Sản Thạch Trung Phẩm | Vật Liệu | 45 | 57 | ×1.3 |
+| Khớp Sắt | Vật Liệu | 40 | 51 | ×1.3 |
+| Tụ Khí Thạch Trung Phẩm | Vật Liệu | 40 | 51 | ×1.3 |
+| Lương Mộc | Vật Liệu | 40 | 51 | ×1.3 |
+| Thạch Chuyên | Vật Liệu | 32 | 42 | ×1.3 |
+| Đá Cường Hóa Sơ | Vật Liệu | 30 | 39 | ×1.3 |
+| Gạch | Vật Liệu | 18 | 25 | ×1.4 |
+| Thanh Ngõa | Vật Liệu | 15 | 22 | ×1.5 |
+| Thôi Vận Thạch Sơ Phẩm | Vật Liệu | 12 | 18 | ×1.5 |
+| Ván Gỗ | Vật Liệu | 10 | 16 | ×1.6 |
+| Bội Sản Thạch Sơ Phẩm | Vật Liệu | 10 | 16 | ×1.6 |
+| Tụ Khí Thạch Sơ Phẩm | Vật Liệu | 9 | 15 | ×1.7 |
+| Đất Sét | Vật Liệu | 2 | 6 | ×3.0 |
+| Cát | Vật Liệu | 2 | 6 | ×3.0 |

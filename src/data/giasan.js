@@ -31,6 +31,22 @@ export const CP_EP = [0, 21, 51, 89, 145, 283, 425, 750, 1120, 1617, 2308, 4230,
 // ⚠ Giá sàn KHÔNG BAO GIỜ bằng giá NPC. Bằng nhau thì chẳng ai buồn lên sàn.
 export const CHENH = 3;
 
+/**
+ * Thuế Sàn — khai ĐÚNG MỘT CHỖ ở đây, `src/main.js` đọc lại.
+ * ⚠ Bản SQL `san_thue()` là bản song sinh; sửa số này thì phải sửa cả bên đó.
+ */
+export const THUE_SAN = 0.15;
+/**
+ * Sàn THẤP NHẤT để người bán, sau khi trừ thuế, vẫn hơn bán thẳng cho NPC đúng CHENH Bạc.
+ *
+ * ⚠⚠ VÌ SAO PHẢI CÓ: `CHENH` cộng THẲNG 3 Bạc, mà thuế lại nhân theo phần trăm. Từ `value` 18
+ *    trở lên thuế nuốt sạch 3 Bạc đó rồi ăn lấn vào vốn — bán ở ĐÚNG GIÁ SÀN lỗ hơn bán cho
+ *    Thương Điếm. Đo trên 323 món xếp chồng: 125 món LỖ, 12 món hoà vốn; món càng đắt lỗ càng
+ *    tiệm cận đúng −15% (Tâm Ma Tổ value 12.000 mất 1.798 Bạc).
+ * ⚠ Neo vào THUE_SAN chứ đừng gõ 0,85: docs/NOI_DUNG_GAME.md còn định mức 12% cho hội viên.
+ */
+export const sanSauThue = (giaNpc) => Math.ceil((((giaNpc || 0) + CHENH)) / (1 - THUE_SAN));
+
 // Hàng hiếm xếp chồng: công cụ · đồ phổ · trứng pet.
 export const HS_HIEM = 5;
 export const LOAI_HIEM = ['doPho', 'trung'];
@@ -79,14 +95,22 @@ export function giaSanTrangBi(itemLv, quality, plus) {
   return len(giaNpcTrangBi(itemLv) * hs + ep + CHENH);
 }
 
-/** Giá sàn của MỘT vật phẩm xếp chồng (một cái, chưa nhân số lượng). */
+/**
+ * Giá sàn của MỘT vật phẩm xếp chồng (một cái, chưa nhân số lượng).
+ *
+ * ⚠⚠ CÁI KẸP `sanSauThue` PHẢI NẰM TRONG CHÍNH HÀM NÀY, đừng tách ra hàm thứ hai: có bốn cửa
+ *    đọc giá sàn ở `main.js` cộng bộ sinh bảng giá và ba hàm SQL — đẻ hàm thứ hai là đẻ đường
+ *    bỏ sót, chỉ cần một cửa quên gọi là người chơi thấy một giá còn máy chủ chặn theo giá khác.
+ * ⚠ Kẹp bằng `Math.max` nên hai nhánh hàng hiếm (×5) và đan rơi (×80) KHÔNG suy suyển — chúng
+ *   vốn đã cao gấp mấy lần cái kẹp.
+ */
 export function giaSanVatPham(it) {
   const v = (it && it.value) || 0;
   // ⚠ Đan Đan Điền xét TRƯỚC nhánh hàng hiếm: phẩm quyết định băng giá, không phải `type`.
   if (it && it.type === 'danDien') {
     const roi = (Number(it.pham) || 0) > DD_PHAM_NAU_TOI;
-    return len(v * (roi ? HS_DAN_ROI : 1) + CHENH);
+    return Math.max(len(v * (roi ? HS_DAN_ROI : 1) + CHENH), sanSauThue(v));
   }
   const hiem = laCongCu(it) || (it && LOAI_HIEM.includes(it.type));
-  return len(hiem ? v * HS_HIEM + CHENH : v + CHENH);
+  return Math.max(len(hiem ? v * HS_HIEM + CHENH : v + CHENH), sanSauThue(v));
 }

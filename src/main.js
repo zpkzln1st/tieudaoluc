@@ -16,7 +16,7 @@ import { GEAR_IDS, instanceFromCatalog, rollSetPieceInstance, rollGearInstance, 
 import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.js';
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
-import { giaSanTrangBi, giaSanVatPham, dsXepChong } from './data/giasan.js';
+import { giaSanTrangBi, giaSanVatPham, dsXepChong, THUE_SAN } from './data/giasan.js';
 import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG, tkExpLenCap } from './data/thinhkinh.js';
 import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop,
   tkThuongThuc, tkNhan, tkDoanDangDi, tkDoanCuaTa, tkCuopDuoc, tkCuopUocLuong } from './engine/thinhkinh.js';
@@ -7646,8 +7646,10 @@ const gameStore = {
     if (!r.ok) { this.showToast(this._sanVi(r.vi || r.reason)); return; }
     this.showToast('Đã treo bán.'); this.sanVpUid = ''; this.sanVpGia = ''; await this._sanNapLai();
   },
-  get sanThueTxt() { return '15%'; },
-  sanThue(gia) { return Math.ceil((Number(gia) || 0) * 0.15); },
+  // ⚠ Doc THANG hang so trong data/giasan.js — truoc day so 15% go cung o CA HAI dong nay,
+  //   doi thue la phai nho sua ba cho (nhan, chu, va cong thuc gia san).
+  get sanThueTxt() { return Math.round(THUE_SAN * 100) + '%'; },
+  sanThue(gia) { return Math.ceil((Number(gia) || 0) * THUE_SAN); },
 
   // ============================================================
   // THU MUA (buy-order) — cờ `sanThuMua`, docs/SQL_SAN_THU_MUA.sql
