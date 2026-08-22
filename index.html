@@ -391,9 +391,13 @@
       font-family:'Lora',Georgia,serif; font-size:13.5px; color:#41506a; border:1px solid #1a2434; background:#070c15; }
     .dd-nhan.day .an { color:var(--nhanh); border-color:var(--vien); }
     .dd-dai { display:inline-flex; background:#080d16; border:1px solid #1a2434; border-radius:11px; padding:3px; gap:3px; }
+    /* ⚠⚠ font-weight PHAI giong nhau o CA HAI trang thai. De dam chi cho nut 'on' thi chu dam
+       rong hon chu thuong, nut phinh ra, ca dai co gian va cac nut dich cho moi lan bam.
+       Do that o San Giao Dich: dai 175,91 -> 178,08 px (nhay 2,17 px), nut 'Treo Ban' nhay 2,03 px.
+       Nut dang mo da co nen vang + chu den, khong can dam them de phan biet. */
     .dd-dai > button { padding:6px 17px; border-radius:9px; font-size:16px; color:#8b9ab0; background:transparent; border:0;
-      cursor:pointer; font-family:'Lora',Georgia,serif; display:inline-flex; align-items:baseline; gap:5px; }
-    .dd-dai > button.on { color:#080d16; font-weight:700; }
+      cursor:pointer; font-family:'Lora',Georgia,serif; font-weight:700; display:inline-flex; align-items:baseline; gap:5px; }
+    .dd-dai > button.on { color:#080d16; }
     /* Khối tổng NỔI trong khoảng trống của bậc thang (đúng như bản gốc). */
     .dd-tong { position:absolute; top:15px; right:15px; width:245px; border-radius:14px; padding:13px 14px;
       background:linear-gradient(180deg,#0d1522,#0a0f1a); border:1px solid #1c2637;
