@@ -5,7 +5,14 @@
 // ============================================================
 // Tên theo môn phái thể hiện trên từng ảnh (emblem). char/color = fallback khi thiếu ảnh.
 
-// Sinh ô dự phòng (chưa có art): thả ảnh images/avatars/<id>.webp vào là tự hiện.
+// Sinh ô cho dải id LIÊN TỤC đã có art `images/avatars/<id>.webp`.
+//
+// ⚠⚠ CHÚ THÍCH CŨ NÓI SAI: nó ghi *"ô dự phòng — ẩn đến khi thả art"*, nhưng hàm này sinh ô
+//    VÔ ĐIỀU KIỆN, không có cơ chế ẩn nào cả. Tầng data chạy trong trình duyệt, không đọc được
+//    thư mục ảnh. Hậu quả: `nam20` · `nu19` · `nu20` chưa có art vẫn bày ra Thương Điếm — ba ô
+//    ảnh vỡ, bán 500 Bạc một cái. Bộ soi toàn màn bắt được đúng ba tệp 404 đó (2026-08-22).
+// ⇒ DẢI Ở ĐÂY PHẢI KHỚP SỐ TỆP ART CÓ THẬT. Thả thêm art thì NỚI dải ra — không tự động.
+//    Bài kiểm `_check_art_avatar.mjs` soi hai chiều nên lệch một cái là báo đỏ ngay.
 // Khi gán art, sửa name ở đây cho đúng môn phái/nhân vật.
 function spareSlots(prefix, from, to, char, color) {
   const out = [];
@@ -28,8 +35,8 @@ export const AVATARS = [
   { id: 'nam7', name: 'Thiên Vương',  char: '男', color: NAM_COLOR },
   { id: 'nam8', name: 'Thiếu Lâm',    char: '男', color: NAM_COLOR },
   { id: 'nam9', name: 'Lăng Vân Các', char: '男', color: NAM_COLOR },
-  // Nam — ô dự phòng nam10–nam20 (ẩn đến khi thả art)
-  ...spareSlots('nam', 10, 20, '男', NAM_COLOR),
+  // Nam — nam10–nam19 (dải khớp đúng số art đang có; nam20 CHƯA có art nên chưa bày)
+  ...spareSlots('nam', 10, 19, '男', NAM_COLOR),
 
   // Nữ — đã có art + tên môn phái
   { id: 'nu',  name: 'Kiếm Tông',  char: '女', color: NU_COLOR },
@@ -40,8 +47,8 @@ export const AVATARS = [
   { id: 'nu5', name: 'Nga Mi',     char: '女', color: NU_COLOR },
   { id: 'nu6', name: 'Ngũ Độc',    char: '女', color: NU_COLOR },
   { id: 'nu7', name: 'Thiên Nhẫn', char: '女', color: NU_COLOR },
-  // Nữ — ô dự phòng nu8–nu20 (ẩn đến khi thả art)
-  ...spareSlots('nu', 8, 20, '女', NU_COLOR),
+  // Nữ — nu8–nu18 (dải khớp đúng số art đang có; nu19/nu20 CHƯA có art nên chưa bày)
+  ...spareSlots('nu', 8, 18, '女', NU_COLOR),
 ];
 
 // ============================================================
