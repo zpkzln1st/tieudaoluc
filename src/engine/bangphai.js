@@ -41,6 +41,7 @@ import {
   BC_KY_MS, BC_SO_CAP, BC_CAN_THANG, BC_SU_CAP, BC_TI_LE_SAN, BC_TI_LE_TRAN, BC_NGUONG,
   BC_VET_BAC_NEN, BC_VET_BAC_CAP, BC_VET_MANH, BC_CT_THANG, BC_CT_THUA, BC_VET_KHI_THUA, BC_DAI_VUNG,
   BC_CAM_DIA_PHAN, BC_CAM_DIA_TRAN_MS, BC_THUONG_TI_LE, BC_THUONG_MS,
+  KHO_MON_MOI_CONG, KHO_MUC,
   TK_LUOT_NGAY, TK_PHAN, TK_TRAN_DIEM, TK_PHAT_PHAN, TK_SUC_CAP, TK_SUC_TV,
   TK_PHONG_BI, TK_TRAN_DANG_DANH, TK_NHIP_MS, TK_CT_THANG, TK_CT_THUA, TK_SU_CAP,
   QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
@@ -56,6 +57,7 @@ export {
   BOSS_BANG_LUOT, bangCongCanCho, QUYEN_MAC_DINH, BAC_MOI_MINH_CONG,
   CHIEU_HIEN_N, CHIEU_HIEN_MS, GIAO_TINH_TRAN, giaoTinhCan,
   TK_LUOT_NGAY, TK_PHAN, TK_TRAN_DIEM, TK_PHAT_PHAN,
+  KHO_MON_MOI_CONG, KHO_MUC,
 };
 
 const GIO = 3600000, NGAY_MS = 86400000;
@@ -122,7 +124,7 @@ function bangMoi(ten, tonChi, now) {
   return {
     ten, tonChi: tonChi || '', thongBao: '', lapLuc: now,
     cap: 1, bangCong: 0, quy: 0,
-    kho: {}, kyNang: {},
+    kho: {}, khoDu: 0, kyNang: {},
     congTrinh: { tongDan: 1, binhKhiKho: 0, tuLinhTri: 0, bangKho: 0, tramYeuDai: 0 },
     xayDung: null,
     quyen: Object.assign({}, QUYEN_MAC_DINH),
@@ -569,7 +571,14 @@ export function gopKho(state, itemId, so) {
   const kho = b.bang.kho;
   if (!kho[itemId] && Object.keys(kho).length >= oKhoToiDa(b.bang)) return 0;   // hết ô
   kho[itemId] = (kho[itemId] || 0) + n;
-  themBangCong(state, Math.max(1, Math.round(n / 4)));
+  // ⚠⚠ TRƯỚC ĐÂY: `themBangCong(state, Math.max(1, Math.round(n / 4)))` — thưởng MỖI LẦN GỌI.
+  //    Đo thật: cùng 100 món, góp một lần được 26 Minh Cống, góp từng món một được 100 (gấp 3,8
+  //    lần), mà 20 lần × 5 món lại chỉ được 20. Sàn `max(1, …)` biến việc bấm lắt nhắt thành lối
+  //    chơi tốt nhất, và phép thưởng thì không đơn điệu.
+  //    NAY: dồn SỐ DƯ. Cứ đủ `KHO_MON_MOI_CONG` món là 1 Minh Cống, chia làm mấy lần cũng như nhau.
+  b.bang.khoDu = (b.bang.khoDu || 0) + n;
+  const diem = Math.floor(b.bang.khoDu / KHO_MON_MOI_CONG);
+  if (diem > 0) { b.bang.khoDu -= diem * KHO_MON_MOI_CONG; themBangCong(state, diem); }
   return n;
 }
 export function rutKho(state, itemId, so) {

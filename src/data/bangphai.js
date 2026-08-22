@@ -308,6 +308,23 @@ export const BC_CAM_DIA_TRAN_MS = 24 * 3600 * 1000;
 export const BC_THUONG_TI_LE = 0.35;
 export const BC_THUONG_MS = 2 * 24 * 3600 * 1000;
 
+// ---------- MINH KHỐ ----------
+/**
+ * Bao nhiêu món góp vào Minh Khố thì được 1 Minh Cống.
+ * ⚠⚠ Trước đây engine thưởng `max(1, round(n/4))` MỖI LẦN GỌI, nên chia nhỏ ra bấm nhiều lần
+ *    thì được nhiều hơn: đo thật, cùng 100 món thì góp một lần được **26** Minh Cống còn góp
+ *    từng món một được **100** — gấp 3,8 lần. Bấm lắt nhắt thành lối chơi TỐT NHẤT, ngược hoàn
+ *    toàn. Lại còn không đơn điệu: 20 lần × 5 món chỉ được 20 vì `round(5/4)` = 1.
+ *    Nay dồn SỐ DƯ vào `bang.khoDu` nên chia làm mấy lần cũng ra đúng một con số.
+ */
+export const KHO_MON_MOI_CONG = 4;
+/** Ba mức của bộ chọn "mỗi lần rút/góp bao nhiêu". `0` = trọn chồng. */
+export const KHO_MUC = [
+  { so: 1, ten: '1' },
+  { so: 10, ten: '10' },
+  { so: 0, ten: 'Hết' },
+];
+
 // ---------- TẬP KÍCH ----------
 // Bang Chiến là MỘT trận mỗi tuần, vùng do máy chọn. Tập Kích là việc làm HẰNG NGÀY: người chơi
 // tự chọn vùng, tự chọn bang, đánh úp để cướp điểm Chinh Phạt của họ ở đúng vùng đó.

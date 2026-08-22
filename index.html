@@ -7384,14 +7384,19 @@
 
               <!-- Đường linh khí (cong, chấm sáng, chảy) -->
               <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <template x-for="(s,i) in $store.game.mapSegments" :key="i">
-                  <path :d="s.d" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"
-                    stroke-width="1.6" stroke-dasharray="0.1 3.2"
-                    :stroke="s.reached ? 'rgba(165,243,252,0.95)' : 'rgba(148,163,184,0.38)'"
-                    :style="s.reached ? 'filter:drop-shadow(0 0 2.5px rgba(103,232,249,0.9))' : ''">
-                    <animate attributeName="stroke-dashoffset" from="0" to="-6.6" dur="1.6s" repeatCount="indefinite"/>
-                  </path>
-                </template>
+                <!-- ⚠⚠ HAI PATH TĨNH, KHÔNG `x-for`. `<template x-for>` trong `<svg>` dựng thẻ
+                     theo namespace HTML nên không ra `SVGElement`: không vẽ được nét nào, mà còn
+                     ném `s is not defined` tám lần mỗi lần mở Bản Đồ. Cùng cái bẫy đã chữa ở hai
+                     biểu đồ màn Hồ Sơ. Một `d` chứa được nhiều khúc `M…Q…` nên gộp lại là đủ. -->
+                <path :d="$store.game.mapDuongChuaMo" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"
+                  stroke-width="1.6" stroke-dasharray="0.1 3.2" stroke="rgba(148,163,184,0.38)">
+                  <animate attributeName="stroke-dashoffset" from="0" to="-6.6" dur="1.6s" repeatCount="indefinite"/>
+                </path>
+                <path :d="$store.game.mapDuongDaMo" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"
+                  stroke-width="1.6" stroke-dasharray="0.1 3.2" stroke="rgba(165,243,252,0.95)"
+                  style="filter:drop-shadow(0 0 2.5px rgba(103,232,249,0.9))">
+                  <animate attributeName="stroke-dashoffset" from="0" to="-6.6" dur="1.6s" repeatCount="indefinite"/>
+                </path>
               </svg>
 
               <!-- Panel Tầng Cảnh Giới -->
@@ -14353,6 +14358,20 @@
                         <div class="text-jade font-bold fserif">Minh Khố</div>
                         <div class="text-[11px] text-slate-600"><span x-text="khoList.length"></span>/<span x-text="oKho"></span> ô</div>
                       </div>
+                      <!-- ⚠⚠ MỘT bộ chọn cho CẢ HAI CHIỀU. Trước đây rút cố định 1 món mỗi lần
+                           bấm còn góp cố định 10 — cùng một cái kho mà hai chiều hai luật, và rút
+                           một chồng 91 món là 91 lần bấm. Mặc định "Hết" vì đó là việc hay làm nhất. -->
+                      <div class="flex items-center gap-2 mb-2 flex-wrap">
+                        <span class="lbl">Mỗi Lần Rút Hoặc Góp</span>
+                        <div class="flex gap-1">
+                          <template x-for="m in khoMuc" :key="m.so">
+                            <button @click="khoSo = m.so"
+                              class="px-2 py-0.5 rounded-full text-[10.5px] fserif border transition"
+                              :class="khoSo === m.so ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                              x-text="m.ten"></button>
+                          </template>
+                        </div>
+                      </div>
                       <!-- Ô ICON, không phải thẻ chữ: một dòng chữ mỗi món thì 49 món đã tràn cả
                            màn. Icon 44px xếp lưới -> nhìn phát thấy hết, tên+số lượng+lời văn dồn
                            vào TOOLTIP (rê chuột). Máy cảm ứng không rê được -> bấm ô mở modal
@@ -14383,7 +14402,7 @@
                               <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
                               <span class="absolute bottom-0 right-0.5 text-[9px] tabular-nums text-amber-300 leading-none px-0.5 rounded bg-black/70" x-text="fmt(it.so)"></span>
                               <!-- Nút rút chỉ hiện khi rê vào: bày sẵn thì mỗi ô một chữ "rút" lấn hết icon. -->
-                              <button @click.stop="rutTuKho(it, 1)"
+                              <button @click.stop="rutTuKho(it)"
                                 class="absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition text-[9px] leading-none px-1 py-0.5 rounded bg-black/80 text-slate-400 hover:text-jade">rút</button>
                             </div>
                           </template>
@@ -14408,7 +14427,7 @@
                       <div class="grid gap-1.5 h-[212px] overflow-y-auto pr-1 content-start"
                            style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr));scrollbar-gutter:stable">
                         <template x-for="it in gopHien" :key="it.id">
-                          <button @click="gopVaoKho(it, Math.min(it.so, 10))"
+                          <button @click="gopVaoKho(it)"
                             @mouseenter="moTip($event, it)" @mouseleave="dongTip()"
                             class="relative aspect-square rounded-lg border bg-ink2/40 transition kho-o"
                             :style="'border-color:' + it.mau + '55'">

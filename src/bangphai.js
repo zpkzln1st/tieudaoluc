@@ -29,7 +29,7 @@ import {
   CONG_TRINH, CONG_TRINH_BY_ID, giaCongTrinh, gioCongTrinh, bangCongCanCho,
   QUYEN_MAC_DINH, BAC_MOI_MINH_CONG, MUA_MS,
 } from './engine/bangphai.js';
-import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG, KY_NANG_HAN, KN_TRAN_THEO_CT, BC_BUFF_GIU } from './data/bangphai.js';
+import { QUYEN_LABEL, CUA_HANG_BANG, CH_NHOM_MAU, TILE_KHAC, ART_CT_KHUNG, KY_NANG_HAN, KN_TRAN_THEO_CT, BC_BUFF_GIU, KHO_MUC } from './data/bangphai.js';
 import { NGU_HANH } from './data/votong.js';   // chip ngũ hành dùng chung với combat
 
 export { ensureBangPhai };
@@ -619,20 +619,26 @@ export function bangPhai() {
     gopHet() { this.bacGop = String(this.bac); },
 
     // ---------- kho ----------
-    gopVaoKho(it, so) {
-      const g = this.g, n = Math.min(it.so, so);
+    // ⚠ Trước đây rút CỐ ĐỊNH 1 món mỗi lần bấm còn góp CỐ ĐỊNH 10 — cùng một cái kho mà hai
+    //   chiều hai luật, và rút một chồng 91 món là 91 lần bấm. Nay MỘT bộ chọn cho cả hai chiều.
+    get khoMuc() { return KHO_MUC; },
+    /** Số món một lần bấm chuyển. `0` = trọn chồng. */
+    khoSo: 0,
+    _khoLay(it) { return this.khoSo > 0 ? Math.min(it.so, this.khoSo) : it.so; },
+    gopVaoKho(it) {
+      const g = this.g, n = this._khoLay(it);
       if (!n) return;
-      if (!gopKho(g.state, it.id, n)) { g.showToast('Kho bang đã đầy ô.'); return; }
+      if (!gopKho(g.state, it.id, n)) { g.showToast('Minh Khố đã đầy ô.'); return; }
       g.state.inventory[it.id] -= n;
       if (g.state.inventory[it.id] <= 0) delete g.state.inventory[it.id];
-      this._luu(); g.showToast('Góp ' + n + ' ' + it.ten + ' vào kho bang.');
+      this._luu(); g.showToast('Góp ' + this.fmt(n) + ' ' + it.ten + ' vào Minh Khố.');
     },
-    rutTuKho(it, so) {
+    rutTuKho(it) {
       const g = this.g;
-      const lay = rutKho(g.state, it.id, Math.min(it.so, so));
+      const lay = rutKho(g.state, it.id, this._khoLay(it));
       if (!lay) { g.showToast('Không rút được.'); return; }
       addItem(g.state, it.id, lay);
-      this._luu(); g.showToast('Rút ' + lay + ' ' + it.ten + '.');
+      this._luu(); g.showToast('Rút ' + this.fmt(lay) + ' ' + it.ten + '.');
     },
 
     // ---------- kĩ năng ----------

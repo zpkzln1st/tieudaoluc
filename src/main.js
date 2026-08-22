@@ -5047,6 +5047,17 @@ const gameStore = {
     }
     return segs;
   },
+  /**
+   * Đường linh khí gộp thành ĐÚNG HAI path tĩnh — một cho khúc đã mở, một cho khúc chưa mở.
+   *
+   * ⚠⚠ KHÔNG ĐƯỢC dùng `<template x-for>` bên trong `<svg>`. Alpine dựng nội dung template bằng
+   *    namespace HTML nên thẻ sinh ra KHÔNG phải `SVGElement`: không vẽ được nét nào, mà mọi biểu
+   *    thức con còn ném `s is not defined` — đo được 8 lỗi mỗi lần mở Bản Đồ. Đây đúng là cái bẫy
+   *    đã dính ở hai biểu đồ màn Hồ Sơ, chỉ là chỗ này sót lại.
+   *    Một thuộc tính `d` chứa được NHIỀU khúc `M…Q…`, nên gộp hết vào một chuỗi là đủ.
+   */
+  get mapDuongDaMo() { return this.mapSegments.filter((s) => s.reached).map((s) => s.d).join(' '); },
+  get mapDuongChuaMo() { return this.mapSegments.filter((s) => !s.reached).map((s) => s.d).join(' '); },
 
   // ---------- Vị trí & Hành trình ----------
   locationObj(id) { return this.LOCATIONS.find((l) => l.id === id) || null; },
