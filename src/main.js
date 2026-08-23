@@ -87,7 +87,7 @@ import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
 import { grantDungeon, finalizeDungeonBatch, NT } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
-import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudLoadDoiThuDauTruong, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
+import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudOnAuthEvent, cloudGuiThuDoiMatKhau, cloudDatMatKhau, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudLoadDoiThuDauTruong, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoXoa, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
 import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
@@ -602,6 +602,9 @@ const gameStore = {
   devAuthed: false, devLoginOpen: false, devPass: '', devLoginErr: '', devTab: 'char',   // cổng đăng nhập F9 (theo phiên — reload phải đăng nhập lại)
   // Tài khoản / Cloud (Supabase Auth — Giai đoạn B). Offline-first: KHÔNG đăng nhập vẫn chơi.
   authUser: null, authOpen: false, authMode: 'login', authEmail: '', authPass: '', authErr: '', authMsg: '', authBusy: false,
+  // Quên mật khẩu: `authMode === 'quen'` là màn xin thư. `datLaiMo` là màn đặt mật khẩu mới, chỉ
+  // bật khi Supabase báo `PASSWORD_RECOVERY` (người vừa bấm đường trong thư quay về).
+  datLaiMo: false, datLaiPass: '', datLaiPass2: '',
   // Cloud save (Giai đoạn C) — đồng bộ save ↔ Supabase. cloudConflict = { cloud, local, _cloudData } khi 2 bản lệch.
   cloudSyncing: false, cloudLastSync: 0, cloudErr: '', cloudConflict: null, _cloudLastPushed: -1,
   devLvInput: 50,
@@ -3036,7 +3039,11 @@ const gameStore = {
   async initCloud() {
     try {
       this.authUser = await cloudGetUser();
-      await cloudOnAuth((user) => {
+      await cloudOnAuthEvent((event, user) => {
+        // ⚠⚠ BẮT `PASSWORD_RECOVERY` TRƯỚC KHI GÁN `authUser`. Người bấm đường trong thư đổi mật
+        //    khẩu quay về đây với một phiên khôi phục — nếu chỉ gán `authUser` rồi thôi thì họ
+        //    vào thẳng game mà mật khẩu vẫn là cái đã quên, lần sau lại kẹt y như cũ.
+        if (event === 'PASSWORD_RECOVERY') { this.datLaiMo = true; this.authErr = ''; this.authMsg = ''; }
         this.authUser = user;
         try { datCoTacGia(this.state, this.isAuthorAccount); } catch (e) {}
         // Đang đứng ở màn Sàn mà phiên vừa khôi phục xong -> tải lại Sàn ngay, đừng bắt bấm tay.
@@ -3109,6 +3116,41 @@ const gameStore = {
     } finally {
       this.authBusy = false; this.authPass = '';
     }
+  },
+  // ---------- Quên mật khẩu ----------
+  // ⚠ Trước bản này KHÔNG có đường nào lấy lại mật khẩu, mà `needsAuth` lại bắt lập tài khoản
+  //   mới chơi được phát đầu. Quên mật khẩu là mất luôn nhân vật lẫn bản lưu, không cứu được.
+  async doGuiThuDoiMatKhau() {
+    const email = (this.authEmail || '').trim();
+    this.authErr = ''; this.authMsg = '';
+    if (!email) { this.authErr = 'Nhập thư điện tử đã dùng để lập tài khoản.'; return; }
+    this.authBusy = true;
+    try {
+      const { error } = await cloudGuiThuDoiMatKhau(email);
+      if (error) { this.authErr = authErrVi(error.message); return; }
+      // ⚠ Báo CÙNG MỘT CÂU dù email có tồn tại hay không. Báo khác nhau là biến ô này thành chỗ
+      //   dò xem ai đã lập tài khoản.
+      this.authMsg = 'Đã gửi thư đổi mật khẩu. Mở hộp thư rồi bấm đường dẫn trong thư.';
+      this.authMode = 'login';
+    } catch (e) {
+      this.authErr = 'Không kết nối được máy chủ (kiểm tra mạng) — thử lại.';
+    } finally { this.authBusy = false; }
+  },
+  async doDatMatKhauMoi() {
+    const a = this.datLaiPass || '', b = this.datLaiPass2 || '';
+    this.authErr = ''; this.authMsg = '';
+    if (a.length < 6) { this.authErr = 'Mật khẩu tối thiểu 6 ký tự.'; return; }
+    if (a !== b) { this.authErr = 'Hai ô mật khẩu chưa khớp nhau.'; return; }
+    this.authBusy = true;
+    try {
+      const { error } = await cloudDatMatKhau(a);
+      if (error) { this.authErr = authErrVi(error.message); return; }
+      this.datLaiMo = false; this.datLaiPass = ''; this.datLaiPass2 = '';
+      this.showToast('Đã đổi mật khẩu.');
+      this.cloudSyncOnLogin();
+    } catch (e) {
+      this.authErr = 'Không kết nối được máy chủ (kiểm tra mạng) — thử lại.';
+    } finally { this.authBusy = false; }
   },
   async doSignOut() {
     if (this.isLoggedIn) { try { await this._cloudPushNow(); } catch (e) { /* best-effort lưu bản chót */ } }
@@ -3572,9 +3614,21 @@ const gameStore = {
     const want = Math.min(cfg.count, cfg.pool.length);
     // Còn hạn + đủ số + mọi id còn trong pool (đổi data cũ -> bốc lại) thì giữ.
     if (st.period === cur && st.list && st.list.length === want && st.list.every((e) => cfg.pool.some((q) => q.id === e.id))) return;
-    // Lọc mục tiêu đủ cấp; thiếu thì lùi về cả pool (người mới vẫn đủ 7 cái).
+    // ⚠⚠ THIẾU MỤC ĐỦ SỨC THÌ BÙ THÊM, ĐỪNG THAY CẢ DANH SÁCH. Bản cũ lùi về `cfg.pool` — bốc
+    //    lại từ TOÀN BỘ bể, nên mấy mục đủ sức cũng bị hoà vào đám không với tới rồi trôi mất.
+    //    Đo thật (`_do_be_nhiemvu.mjs`, 400 lượt bốc mỗi mức): trong 7 nhiệm vụ bày ra,
+    //      bể Tuần  cấp 1            — làm được 2,46 → 6,00
+    //      bể Tháng cấp 1 · 20 · 40  — làm được 2,38 → 5,00
+    //    Bể Tháng hỏng tới tận cấp 59, không riêng người mới. Bể Ngày vốn đã đủ nên không đổi.
+    // ⚠ Phần bù lấy mục có `req` THẤP NHẤT trong số chưa với tới — đó là cái người chơi sắp mở
+    //   được, chứ không phải một mục cấp 100 bày ra cho có. Vẫn giữ đủ 7 thẻ.
+    // ⚠ Cấp cao KHÔNG đổi gì: đủ mục đủ sức thì `bu` rỗng, đo được 7,00 ở cả bản cũ lẫn bản này.
     const elig = cfg.pool.filter((q) => this.questUnlocked(q));
-    const usable = elig.length >= want ? elig : cfg.pool;
+    const bu = elig.length >= want ? []
+      : cfg.pool.filter((q) => !this.questUnlocked(q))
+          .sort((a, b) => (a.req || 1) - (b.req || 1))
+          .slice(0, want - elig.length);
+    const usable = elig.concat(bu);
     // Bốc ngẫu nhiên `want` cái rồi xếp lại theo thứ tự gốc cho ổn định.
     const idx = usable.map((_, i) => i);
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng(this.state, 'nhiemVu') * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
@@ -3635,6 +3689,14 @@ const gameStore = {
   qProgress(entry) { return this.periodProgress(this.questTab, entry); },
   qDone(entry) { return this.periodDone(this.questTab, entry); },
   qClaim(i) { this.claimPeriodQuest(this.questTab, i); },
+  // ⚠ Thẻ nào chưa với tới thì NÓI RA CẦN GÌ. Trước đây nó chỉ nằm im ở tiến độ 0/N, người chơi
+  //   không biết là chưa đủ cấp hay là mình chưa tìm ra chỗ làm. Trả '' khi đã đủ — chỗ gọi ẩn nhãn.
+  qCanCap(entry) {
+    const q = this.qDef(entry);
+    if (!q || this.questUnlocked(q)) return '';
+    const ten = q.type === 'kill' ? 'Chiến Đấu' : ((this.SKILLS[q.skill] || {}).name || 'Kỹ Năng');
+    return ten + ' Lv ' + (q.req || 1);
+  },
 
   get hasClaimableQuest() {
     if (this.tutDone) return true;

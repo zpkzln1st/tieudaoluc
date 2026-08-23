@@ -46,6 +46,28 @@ export async function cloudOnAuth(cb) {
   const sb = await getClient();
   return sb.auth.onAuthStateChange((_event, session) => cb(session?.user || null));
 }
+// ⚠ Ban tren NUOT mat ten su kien. Duong doi mat khau can dung ten do (`PASSWORD_RECOVERY`),
+//   nen co ban thu hai tra ca hai. Dung bo ban tren — cho khac dang goi no.
+export async function cloudOnAuthEvent(cb) {
+  const sb = await getClient();
+  return sb.auth.onAuthStateChange((event, session) => cb(event, session?.user || null));
+}
+
+// ---- Quen mat khau ----
+// ⚠⚠ KHONG truyen `redirectTo`. Supabase chi cho quay lai nhung duong da khai trong danh sach
+//    cho phep o bang dieu khien; truyen mot duong chua khai thi thu gui di ma bam vao khong ve
+//    duoc. Bo trong thi no dung Site URL da cau hinh san — chinh la duong ma thu xac nhan lap
+//    tai khoan dang dung, tuc la duong DA CHAY DUOC. Khoi phai dong vao bang dieu khien.
+export async function cloudGuiThuDoiMatKhau(email) {
+  const sb = await getClient();
+  return sb.auth.resetPasswordForEmail(email);       // { data, error }
+}
+// Dat mat khau moi cho phien DANG MO. Chi goi duoc sau khi nguoi ta bam duong trong thu va quay
+// lai — luc do SDK da tu dung phien khoi phuc tu dia chi trang (`detectSessionInUrl` mac dinh bat).
+export async function cloudDatMatKhau(matKhau) {
+  const sb = await getClient();
+  return sb.auth.updateUser({ password: matKhau });  // { data, error }
+}
 
 // ---- Cloud save (bang 'saves', RLS: moi user chi dong cua minh) ----
 async function _uid() {

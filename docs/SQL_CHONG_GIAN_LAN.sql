@@ -240,6 +240,12 @@ end $$;
 -- ---------- 6. CHOT: chay moi lan save duoc ghi de ----------
 -- ⚠ Lay THOI GIAN CUA MAY CHU (now() so voi OLD.updated_at), khong tin moc gio cua client.
 --   Tua dong ho tren may nguoi choi khong an thua.
+-- ⚠⚠ CAU TREN CHI DUNG KHI DA CHAY `docs/SQL_DONG_DAU_GIO.sql`. `OLD.updated_at` von la chuoi
+--    ma lan day truoc CLIENT tu dat trong loi goi upsert (src/cloud.js) — khong co trigger nao
+--    ep no ve gio may chu. Day mot ban luu voi `updated_at` lui ve nam 2000 thi `giay` o duoi
+--    ra khoang 8x10^8, va MOI cai tran trong ham nay no theo. Tep kia dat mot chot
+--    `a_dong_dau_gio_tren_saves` chay TRUOC chot nay (Postgres xep trigger BEFORE theo TEN) de
+--    ghi de `new.updated_at := now()`. Chua chay tep do thi ca muc 6 nay chi la trang tri.
 create or replace function public.kiem_toc_do() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
