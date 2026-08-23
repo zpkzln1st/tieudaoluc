@@ -1275,7 +1275,10 @@
   <!-- ⚠ MÀN KHAI TỊCH NAY CÓ HAI BƯỚC: tài khoản -> nhân vật (user chốt 2026-08-05).
        Dùng CHUNG một khung: cùng nền, cùng khối chữ, đổi ruột. Dựng màn đăng nhập riêng thì
        phải chép lại trọn bộ CSS `cs-*`, mà hai bản CSS song song là chắc chắn lệch nhau. -->
-  <template x-if="$store.game.needsCreation || $store.game.needsAuth">
+  <!-- ⚠⚠ PHẢI CÓ VẾ `datLaiMo`. Người bấm đường trong thư đổi mật khẩu quay về với một phiên
+       HỢP LỆ, nên `needsAuth` là false; ai đã có nhân vật thì `needsCreation` cũng false —
+       cả khung này không dựng ra, và bảng đổi mật khẩu không bao giờ hiện. Đo được đúng vậy. -->
+  <template x-if="$store.game.needsCreation || $store.game.needsAuth || $store.game.datLaiMo">
     <div id="createScreen">
       <div class="cs-bg"></div>
       <div class="cs-scrim"></div>
@@ -1297,15 +1300,16 @@
           </template>
 
           <!-- ===== BƯỚC MỘT: TÀI KHOẢN ===== -->
-          <template x-if="!g.khaiTichChoDoi && g.needsAuth">
+          <!-- ===== ĐỔI MẬT KHẨU — NHÁNH RIÊNG, đứng trước hai nhánh kia =====
+               ⚠⚠ ĐỪNG nhét lại vào trong nhánh `needsAuth`. Người tới đây ĐÃ CÓ phiên (đường
+               trong thư tự đăng nhập họ), nên `needsAuth` là false và nhánh kia không dựng ra. -->
+          <template x-if="!g.khaiTichChoDoi && g.datLaiMo">
             <div>
-              <div class="cs-kicker">Bước Một</div>
-              <h1 class="cs-title" x-text="g.datLaiMo ? 'Đặt Lại Mật Khẩu' : (g.authMode==='quen' ? 'Quên Mật Khẩu' : 'Nhập Môn')"></h1>
-              <div class="cs-tagline" x-text="g.datLaiMo ? 'Nhập mật khẩu mới cho tài khoản này.' : (g.authMode==='quen' ? 'Nhập thư điện tử đã dùng để lập tài khoản.' : (g.authMode==='register' ? 'Lập tài khoản để lưu tiến trình và tiếp tục chơi trên mọi thiết bị.' : 'Đăng nhập để tiếp tục hành trình.'))"></div>
+              <div class="cs-kicker">Lấy Lại Tài Khoản</div>
+              <h1 class="cs-title">Đổi Mật Khẩu</h1>
+              <div class="cs-tagline">Nhập mật khẩu mới cho tài khoản này.</div>
               <div class="cs-rule"></div>
-
-              <!-- ===== ĐẶT LẠI MẬT KHẨU — chỉ hiện khi vừa bấm đường trong thư quay về ===== -->
-              <template x-if="g.datLaiMo">
+              <div>
                 <div>
                   <div class="cs-field">
                     <div class="cs-label">Mật Khẩu Mới</div>
@@ -1321,11 +1325,26 @@
                   <div class="cs-ctawrap">
                     <button class="cs-cta" @click="g.doDatMatKhauMoi()" :disabled="g.authBusy"
                       x-text="g.authBusy ? 'Đang Xử Lý…' : 'Đổi Mật Khẩu'"></button>
+                    <!-- Màn này phải có ĐƯỜNG RA. Đường dẫn hết hạn thì người ta đang mang một
+                         phiên hợp lệ mà vẫn không biết mật khẩu, không tự thoát được. -->
+                    <div class="cs-doi">
+                      <span>Đường dẫn hỏng?</span>
+                      <button @click="g.datLaiMo=false; g.setAuthMode('quen')">Gửi lại thư</button>
+                    </div>
                   </div>
                 </div>
-              </template>
+              </div>
+            </div>
+          </template>
 
-              <template x-if="!g.datLaiMo">
+          <!-- ===== BƯỚC MỘT: TÀI KHOẢN ===== -->
+          <template x-if="!g.khaiTichChoDoi && g.needsAuth && !g.datLaiMo">
+            <div>
+              <div class="cs-kicker">Bước Một</div>
+              <h1 class="cs-title" x-text="g.authMode==='quen' ? 'Quên Mật Khẩu' : 'Nhập Môn'"></h1>
+              <div class="cs-tagline" x-text="g.authMode==='quen' ? 'Nhập thư điện tử đã dùng để lập tài khoản.' : (g.authMode==='register' ? 'Lập tài khoản để lưu tiến trình và tiếp tục chơi trên mọi thiết bị.' : 'Đăng nhập để tiếp tục hành trình.')"></div>
+              <div class="cs-rule"></div>
+
               <div>
                   <template x-if="g.cloudHong">
                     <div class="cs-loi">Không thể kết nối máy chủ. Hãy kiểm tra mạng rồi tải lại trang.</div>
@@ -1362,12 +1381,13 @@
                     </template>
                   </div>
               </div>
-              </template>
             </div>
           </template>
 
           <!-- ===== BƯỚC HAI: NHÂN VẬT ===== -->
-          <template x-if="!g.khaiTichChoDoi && !g.needsAuth">
+          <!-- ⚠ `&& !g.datLaiMo`: người quay về từ thư đổi mật khẩu đã có phiên, nếu máy đó chưa
+               có nhân vật thì nhánh này cướp mất màn đổi mật khẩu. Đo được đúng vậy. -->
+          <template x-if="!g.khaiTichChoDoi && !g.needsAuth && !g.datLaiMo">
             <div>
           <div class="cs-kicker">Khởi Tạo Nhân Vật</div>
           <h1 class="cs-title">Khai Tịch Giang Hồ</h1>
@@ -19357,14 +19377,24 @@
         </div>
         <input type="email" x-ref="authEmail" x-model="$store.game.authEmail" @keydown.enter="$store.game.doAuth()" @keydown.escape="$store.game.closeAuth()" placeholder="Email" autocomplete="username"
           class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100 text-sm mb-2">
-        <input type="password" x-model="$store.game.authPass" @keydown.enter="$store.game.doAuth()" @keydown.escape="$store.game.closeAuth()" :placeholder="$store.game.authMode==='register' ? 'Mật khẩu (≥6 ký tự)' : 'Mật khẩu'" autocomplete="current-password"
-          class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100 text-sm mb-2">
+        <!-- Màn Quên Mật Khẩu chỉ xin thư điện tử. -->
+        <template x-if="$store.game.authMode!=='quen'">
+          <input type="password" x-model="$store.game.authPass" @keydown.enter="$store.game.doAuth()" @keydown.escape="$store.game.closeAuth()" :placeholder="$store.game.authMode==='register' ? 'Mật khẩu (≥6 ký tự)' : 'Mật khẩu'" autocomplete="current-password"
+            class="w-full px-3 py-2 rounded bg-ink3 border border-slate-700 focus:border-jade outline-none text-slate-100 text-sm mb-2">
+        </template>
         <template x-if="$store.game.authErr"><div class="text-[11px] text-rose-400 mb-2 flex items-center gap-1"><span class="w-3 h-3 inline-flex shrink-0" x-html="$store.game.svg('warn','w-3 h-3')"></span><span x-text="$store.game.authErr"></span></div></template>
         <template x-if="$store.game.authMsg"><div class="text-[11px] text-jade mb-2 flex items-center gap-1">✓ <span x-text="$store.game.authMsg"></span></div></template>
-        <button @click="$store.game.doAuth()" :disabled="$store.game.authBusy"
+        <button @click="$store.game.authMode==='quen' ? $store.game.doGuiThuDoiMatKhau() : $store.game.doAuth()" :disabled="$store.game.authBusy"
           class="w-full py-2.5 rounded-lg font-bold text-sm transition"
           :class="$store.game.authBusy ? 'bg-slate-700 text-slate-500 cursor-wait' : 'bg-jade text-ink hover:bg-jade/90'"
-          x-text="$store.game.authBusy ? 'Đang xử lý…' : ($store.game.authMode==='register' ? 'Tạo tài khoản' : 'Đăng nhập')"></button>
+          x-text="$store.game.authBusy ? 'Đang xử lý…' : ($store.game.authMode==='quen' ? 'Gửi thư đổi mật khẩu' : ($store.game.authMode==='register' ? 'Tạo tài khoản' : 'Đăng nhập'))"></button>
+        <!-- ⚠⚠ CỬA NÀY MỚI LÀ CỬA CỦA NGƯỜI HAY QUÊN MẬT KHẨU NHẤT: người ĐÃ CÓ nhân vật mà bị
+             đăng xuất chỉ vào được bằng đây, màn Khai Tịch không dựng ra cho họ. -->
+        <div class="text-center mt-2">
+          <button @click="$store.game.setAuthMode($store.game.authMode==='quen' ? 'login' : 'quen')"
+            class="text-[11px] text-slate-500 hover:text-jade underline transition"
+            x-text="$store.game.authMode==='quen' ? 'Quay lại đăng nhập' : 'Quên mật khẩu?'"></button>
+        </div>
         <div class="text-[10px] text-slate-600 text-center mt-2.5">Lưu đám mây chỉ dùng để sao lưu, không bắt buộc.</div>
       </div>
     </div>

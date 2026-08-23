@@ -136,9 +136,18 @@ const PROF_LV_STEP = 80; // mỗi 80 Tổng Lv mở thêm 1 nghề
 // Đổi mật khẩu: chạy devHash('matkhaumoi') rồi thay DEV_PASS_HASH. (Gate client-side chặn người chơi thường; F12 vẫn lách được — đã rõ, chống cheat thật cần server.)
 function devHash(s) { let h = 2166136261 >>> 0; const str = String(s); for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 const DEV_PASS_HASH = 1011525020;   // hash mật khẩu Dev (KHÔNG ghi plaintext ở đây — repo deploy public)
+// ⚠⚠ ĐỌC DẤU KHÔI PHỤC NGAY LÚC NẠP, ĐỪNG CHỜ SỰ KIỆN. Supabase gắn `#…&type=recovery` vào địa
+//    chỉ trang, rồi SDK phân tích xong là GỠ hash đi. Sự kiện `PASSWORD_RECOVERY` bắn ra NGAY
+//    TRONG lúc SDK khởi tạo, mà `cloudGetUser()` lại chờ đúng lúc khởi tạo đó xong — đăng ký
+//    nghe sau là bắt hụt. Đọc thẳng từ hash lúc mô-đun nạp mới là đường chắc.
+const VE_DOI_MAT_KHAU = /(^|[#&])type=recovery/.test(location.hash || '');
 // Dịch lỗi Auth Supabase (tiếng Anh) sang tiếng Việt cho các lỗi hay gặp.
 function authErrVi(msg) {
   const m = (msg || '').toLowerCase();
+  // Đường khôi phục ném đúng mấy câu này — không dịch thì người chơi đọc nguyên tiếng Anh.
+  if (m.includes('invalid or has expired') || m.includes('otp_expired')) return 'Đường dẫn đã hết hạn. Xin gửi lại thư.';
+  if (m.includes('auth session missing')) return 'Phiên đổi mật khẩu đã hết. Xin gửi lại thư.';
+  if (m.includes('should be different from the old')) return 'Mật khẩu mới phải khác mật khẩu cũ.';
   if (m.includes('invalid login')) return 'Sai email hoặc mật khẩu.';
   if (m.includes('already registered') || m.includes('already been registered') || m.includes('user already')) return 'Email này đã được đăng ký.';
   if (m.includes('email not confirmed')) return 'Email chưa xác nhận — mở hộp thư bấm xác nhận trước.';
@@ -604,7 +613,7 @@ const gameStore = {
   authUser: null, authOpen: false, authMode: 'login', authEmail: '', authPass: '', authErr: '', authMsg: '', authBusy: false,
   // Quên mật khẩu: `authMode === 'quen'` là màn xin thư. `datLaiMo` là màn đặt mật khẩu mới, chỉ
   // bật khi Supabase báo `PASSWORD_RECOVERY` (người vừa bấm đường trong thư quay về).
-  datLaiMo: false, datLaiPass: '', datLaiPass2: '',
+  datLaiMo: VE_DOI_MAT_KHAU, datLaiPass: '', datLaiPass2: '',
   // Cloud save (Giai đoạn C) — đồng bộ save ↔ Supabase. cloudConflict = { cloud, local, _cloudData } khi 2 bản lệch.
   cloudSyncing: false, cloudLastSync: 0, cloudErr: '', cloudConflict: null, _cloudLastPushed: -1,
   devLvInput: 50,
@@ -3050,7 +3059,11 @@ const gameStore = {
         if (user && this.view === 'market') { this.sanLoi = ''; try { this.taiSan(); } catch (e) {} }
       });
       try { datCoTacGia(this.state, this.isAuthorAccount); } catch (e) {}   // cờ CHỈ để thấy sự kiện chạy thử (chi_tac_gia); hàng rào thật là RLS
-      if (this.authUser) this.cloudSyncOnLogin();   // đã đăng nhập sẵn (reload) -> kéo/so cloud
+      // ⚠⚠ ĐANG ĐỔI MẬT KHẨU THÌ ĐỪNG ĐỘNG VÀO BẢN LƯU. Phiên khôi phục là một phiên hợp lệ, nên
+      //    mọi đường đồng bộ đều tưởng người ta vừa đăng nhập bình thường. Máy vừa bấm đường trong
+      //    thư thường là MÁY LẠ (đĩa trống) — kéo/đẩy lúc này là đúng cảnh "máy mới ghi đè bản lưu
+      //    mây". Và `_applyCloudSave` còn hẹn `location.reload()`, cuốn phăng màn đang gõ mật khẩu.
+      if (this.authUser && !this.datLaiMo) this.cloudSyncOnLogin();   // đã đăng nhập sẵn (reload) -> kéo/so cloud
       // Lịch sự kiện đọc được KHÔNG CẦN đăng nhập — ai cũng phải biết sự kiện nào đang mở.
       // ⚠ Hoãn 2 giây như đường Phong Vân Bảng: đừng tranh băng thông với lượt kéo save lúc mở game.
       setTimeout(() => { this.taiSuKien(); }, 2000);
@@ -3071,13 +3084,16 @@ const gameStore = {
       //   Cùng nhịp đó cũng làm sự kiện tới giờ mở tự hiện, khỏi bắt người chơi tải lại trang.
       //   Rẻ: bảng 6 dòng, không cần đăng nhập, hỏng thì taiSuKien tự nuốt lỗi.
       setInterval(() => { this.taiSuKien(); }, 10 * 60 * 1000);
-      if (this.authUser) setTimeout(() => { this.nhanQuaChoSan(); }, 4000);
+      // ⚠ `!this.datLaiMo` ở cả bốn dòng dưới: máy chủ đánh dấu quà ĐÃ TRẢ ngay lúc nhận, mà bản
+      //   lưu lúc này là bản trắng sắp bị vứt — nhận ở đây là quà bốc hơi vĩnh viễn. Mã một-lần
+      //   đổi xong cũng mất y vậy. Đợi đổi mật khẩu xong, tải lại trang rồi hãy nhận.
+      if (this.authUser && !this.datLaiMo) setTimeout(() => { this.nhanQuaChoSan(); }, 4000);
       // ⚠ Trước đây quà CHỈ nhận được lúc vào game. Người đang mở tab phải tải lại trang mới thấy —
       //   tác giả gửi quà xong ngồi đợi mà tưởng hỏng. Đi chung nhịp 10 phút của lịch sự kiện.
-      if (this.authUser) setInterval(() => { this.nhanQuaChoSan(); }, 10 * 60 * 1000);
+      if (this.authUser && !this.datLaiMo) setInterval(() => { this.nhanQuaChoSan(); }, 10 * 60 * 1000);
       // Mã tự động: quà rơi vào túi người đang đăng nhập trong khoảng mốc, không phải gõ gì.
-      if (this.authUser) setTimeout(() => { this.taiMaTuDong(); }, 5000);
-      if (this.authUser) setInterval(() => { this.taiMaTuDong(); }, 10 * 60 * 1000);
+      if (this.authUser && !this.datLaiMo) setTimeout(() => { this.taiMaTuDong(); }, 5000);
+      if (this.authUser && !this.datLaiMo) setInterval(() => { this.taiMaTuDong(); }, 10 * 60 * 1000);
       // ⚠⚠ Đọc sổ nhật ký một lần lúc vào game, CHỈ với tài khoản tác giả. Đèn báo lệnh lạ mà chỉ
       //   sáng sau khi tự nhớ mở Lệnh Bài thì phát hiện muộn — mật khẩu lộ là mất cả máy chủ.
       //   Rẻ: một truy vấn, một tài khoản duy nhất trong cả làng.
@@ -3145,9 +3161,12 @@ const gameStore = {
     try {
       const { error } = await cloudDatMatKhau(a);
       if (error) { this.authErr = authErrVi(error.message); return; }
-      this.datLaiMo = false; this.datLaiPass = ''; this.datLaiPass2 = '';
+      this.datLaiPass = ''; this.datLaiPass2 = '';
       this.showToast('Đã đổi mật khẩu.');
-      this.cloudSyncOnLogin();
+      // ⚠⚠ TẢI LẠI TRANG, đừng gỡ bốn cái khoá bằng tay. Bốn đường đồng bộ đều đang bị `datLaiMo`
+      //    chặn; gỡ tay là chắc chắn sót một cái, mà sót cái nào cũng là đè bản lưu thật. Tải lại
+      //    một lần thì mọi đường chạy lại từ đầu với phiên mới, sạch sẽ.
+      setTimeout(() => { location.replace(location.pathname + location.search); }, 700);
     } catch (e) {
       this.authErr = 'Không kết nối được máy chủ (kiểm tra mạng) — thử lại.';
     } finally { this.authBusy = false; }
@@ -3225,6 +3244,11 @@ const gameStore = {
   async cloudSyncNow() { if (!this.isLoggedIn) return; const ok = await this._cloudPushNow(); this.showToast(ok ? 'Đã đồng bộ lên cloud.' : (this.cloudErr || 'Đồng bộ lỗi.')); },
   // Gọi định kỳ (mỗi 15s) + lúc rời trang: đẩy nếu save đã đổi so với lần đẩy trước.
   cloudAutoPushTick() {
+    // ⚠⚠ CHẶN QUAN TRỌNG NHẤT TRONG BỐN CHẶN. Nhịp này chạy mỗi 15 giây và `_cloudLastPushed`
+    //    khởi tạo −1 nên MỌI mốc đều lớn hơn — tức là nó sẽ đẩy bản lưu trắng của máy lạ đè lên
+    //    bản thật, ngay giữa lúc người ta đang gõ mật khẩu mới. Chặn `cloudSyncOnLogin` mà quên
+    //    dòng này thì coi như không chặn gì.
+    if (this.datLaiMo) return;
     if (!this.isLoggedIn || this.cloudSyncing || this.cloudConflict) return;
     const ls = this.state.lastSave || 0;
     if (ls > this._cloudLastPushed) this._cloudPushNow();
