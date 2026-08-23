@@ -328,7 +328,13 @@ function recomputePetStats(pet) {   // đổi phẩm -> tính lại baseStats/gr
   for (const k of STAT_KEYS) { const b = sp.stats[k] || 0; if (b > 0) { bs[k] = Math.max(1, Math.round(b * pq.qMul)); gr[k] = Math.round(b * (k === 'sinhLuc' ? 0.09 : 0.11) * pq.gMul * 100) / 100; } }
   pet.baseStats = bs; pet.growth = gr;
 }
-export function upgradePetQuality(pet) {
+// ⚠⚠ NHẬN `state` LÀM THAM SỐ ĐẦU. Bản cũ khai `upgradePetQuality(pet)` mà trong thân lại gọi
+//    `rollOpts(state, …)` — không có tên `state` nào trong tầm nhìn, tệp này cũng không giữ
+//    `state` ở tầng module. Đo 2026-08-22: ném `ReferenceError: state is not defined` ở CẢ NĂM
+//    đường thăng phẩm, và ném SAU khi `pet.quality` đã đổi. Hai chỗ gọi đều không bọc try:
+//    `fuseMany` đã xoá xong đám vật tế nên Linh Thú biến mất im lặng; `awakenPet` đã trừ Hồn
+//    Thạch rồi mới ném nên người chơi mất tiền mà màn hình không nhúc nhích.
+export function upgradePetQuality(state, pet) {
   const i = qRank(pet.quality); if (i >= Q_ORDER.length - 1) return false;
   pet.quality = Q_ORDER[i + 1];
   recomputePetStats(pet);
@@ -372,7 +378,7 @@ export function fuseMany(state, targetId, donorIds) {
   const leveled = addXpToPet(state, t, xp);
   let upgraded = false;
   const upChance = 1 - pSurv;
-  if (upChance > 0 && rng(state, 'dungHop') < upChance) upgraded = upgradePetQuality(t);
+  if (upChance > 0 && rng(state, 'dungHop') < upChance) upgraded = upgradePetQuality(state, t);
   return { target: t, count: donors.length, xp, leveled, absorbed, upgraded };
 }
 // Phần thưởng phóng sanh (Bạc luôn; Hồn Thạch ≥Tuyệt; Linh Phách ≥Tinh).
@@ -443,7 +449,7 @@ export function awakenPet(state, id) {
   const newOpt = addOneOpt(state, p);
   p.awkPassive = pickAwkPassive(state);
   let mutated = false;
-  if (rng(state, 'thucTinh') < 0.15) mutated = upgradePetQuality(p);   // 15% biến dị thăng 1 phẩm (recompute stat + mở opt slot nếu có)
+  if (rng(state, 'thucTinh') < 0.15) mutated = upgradePetQuality(state, p);   // 15% biến dị thăng 1 phẩm (recompute stat + mở opt slot nếu có)
   return { pet: p, cost: c, newOpt, awkPassive: p.awkPassive, mutated };
 }
 

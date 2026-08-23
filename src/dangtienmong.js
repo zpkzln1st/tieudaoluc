@@ -821,7 +821,13 @@ export function dangTienMong() {
       }
     },
     // ===== Bảng Dev/Test — CHỈ đụng this.* (component) + state.dangTien + DOM. KHÔNG đụng currencies/gearBag/combat. =====
-    devHotkey() { if (!this.devEnabled) { this.devEnabled = true; try { localStorage.setItem('dtm_dev', '1'); } catch (e) {} } this.devPanel = !this.devPanel; },
+    // ⚠⚠ CHỈ MỞ/ĐÓNG, TUYỆT ĐỐI KHÔNG TỰ BẬT. Bản cũ tự đặt `devEnabled = true` rồi ghi cờ vào
+    //    localStorage, nên `?dev=1` chỉ là trang trí: người chơi bất kỳ bấm Ctrl+Shift+D là có
+    //    nguyên bảng Dev, và nút DEV hiện vĩnh viễn từ đó. Bảng này phát Mộng Ngân, mà Mộng Ngân
+    //    đổi thẳng ra Nguyên Bảo — trong khi chống gian lận máy chủ chỉ soi `bac`, không soi
+    //    `nguyenBao`. Ctrl+Shift+D còn là phím tắt sẵn có của trình duyệt nên bấm trúng không hiếm.
+    //    Muốn vào thì mở bằng `?dev=1`, đúng lối bảng Dev chính của game (nó còn đòi mật khẩu).
+    devHotkey() { if (!this.devEnabled) return; this.devPanel = !this.devPanel; },
     devDisable() { this.devEnabled = false; this.devPanel = false; try { localStorage.removeItem('dtm_dev'); } catch (e) {} },
     _devLog(m) { this.log = '[Dev] ' + m; },
     _devRun() { if (!this.run) this.startRun(this.HEROES[0]); },   // cần 1 ván (hero + bộ bài) để thao tác

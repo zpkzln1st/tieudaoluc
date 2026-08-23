@@ -20,6 +20,7 @@ import { CAT_HEX, BOT_HO, BOT_TEN, BOT_AVATAR_IDS, ARCHETYPES, ARCHETYPE_IDS } f
 import { ITEMS } from '../data/items.js';
 import { SKILLS } from '../data/skills.js';   // Cấm Địa lấy quặng THẲNG từ bảng nghề Đào Khoáng   // nguồn chân lý tên + lời văn vật phẩm
 import { nguHanhMod, heName, NGU_HANH_LIST, tamPhapById } from '../data/votong.js';
+import { levelFromXp } from './leveling.js';   // cấp Chiến Đấu — nguồn chân lý, không tự tính lại
 import { rng } from './rng.js';           // boc so CO HAT GIONG — may chu tinh lai duoc
 import { pushNotif } from './notif.js';     // thuần state, không DOM — dùng chung với chuông + Phi Cáp Đài
 
@@ -113,7 +114,11 @@ export function ensureBangPhai(state) {
   if (!b.truyNa || typeof b.truyNa !== 'object') b.truyNa = { ngay: -1, ds: [], nhan: {}, moc: {} };
   if (!b.bossB || typeof b.bossB !== 'object') b.bossB = { ky: -1, bossId: '', gop: 0, luot: 0, cdDen: 0, thangKy: -1 };
   if (!b.chSo || typeof b.chSo !== 'object') b.chSo = { ngay: -1, mua: {} };
-  if (!b.muaThuong || typeof b.muaThuong !== 'object') b.muaThuong = { mua: -1, hang: 0, daNhan: true };
+  // ⚠ `daChot` là cờ RIÊNG cho việc "đã chốt hạng mùa này chưa". Trước đây `chotHangMua` lấy
+  //   chính `hang` làm cờ, mà `hang` cũng là kết quả — chốt trúng hạng 0 thì nó chốt lại mãi,
+  //   chốt trúng hạng khác 0 thì không bao giờ chốt lại nữa. Bang mới lập coi như đã chốt.
+  if (!b.muaThuong || typeof b.muaThuong !== 'object') b.muaThuong = { mua: -1, hang: 0, daNhan: true, daChot: true };
+  if (b.muaThuong.daChot === undefined) b.muaThuong.daChot = true;   // bản lưu cũ: đừng chốt lại mùa đã qua
   if (!b.bc || typeof b.bc !== 'object') b.bc = { ky: -1, xep: null, xong: false, su: [], giu: {}, dich: null, thuong: {}, mocQ: 0 };
   // Tập Kích: `cuop` là SỔ TRỪ điểm bang AI (khoá '<bangId>|<locId>'), `mua` để dọn sổ sang mùa.
   if (!b.tk || typeof b.tk !== 'object') b.tk = { ngay: -1, danh: 0, mua: -1, cuop: {}, su: [] };
@@ -901,11 +906,23 @@ export function ensureMua(state, now) {
   const b = ensureBangPhai(state), mua = muaCua(now);
   if (!b.bang) return;
   if (b.bang.cpMua !== mua) {
+    // ⚠⚠ CẤT MÙA VỪA ĐÓNG TRƯỚC KHI XOÁ — đây là chỗ lỗi cũ. Hàm này không có `world` nên tự nó
+    //    không xếp hạng được; `chotHangMua` mới làm việc đó, mà tới lúc ấy điểm đã sạch. Nên phải
+    //    cất sẵn ba thứ: SỐ MÙA vừa đóng, ĐIỂM của mình, và bản chụp SỔ TRỪ Tập Kích. Thiếu sổ
+    //    trừ thì mấy bang AI mình đã cướp lại hiện đủ điểm, đẩy hạng của mình tụt xuống.
+    // ⚠ Và phải đặt lại `hang: 0` mỗi mùa. Bản cũ bê nguyên hạng mùa trước sang, cộng với chuyện
+    //   lấy chính `hang` làm cờ đã-chốt, nên một con số chốt nhầm là đóng băng vĩnh viễn: đo được
+    //   bang hạng 1 với 46,4 triệu điểm mà lĩnh thưởng ra 0 Hồn Thạch.
+    const muaCu = b.bang.cpMua;
+    const diemTaCu = b.bang.cpTong || 0;
+    const cuopCu = { ...((b.tk && b.tk.cuop) || {}) };
+
     b.bang.cpMua = mua; b.bang.cpVung = {}; b.bang.cpTong = 0; b.bang.hangVung = {};
     // ⚠⚠ Sổ Tập Kích phải dọn CÙNG LÚC. Điểm bang AI cũng về 0 theo mùa, giữ lại sổ trừ của
     //    mùa trước là mùa mới bang nào bị cướp nhiều cũng bắt đầu ở 0 và không bò lên nổi.
     if (b.tk) { b.tk.cuop = {}; b.tk.mua = mua; b.tk.su = []; }
-    b.muaThuong = { mua: mua - 1, hang: b.muaThuong ? b.muaThuong.hang : 0, daNhan: false };
+
+    b.muaThuong = { mua: muaCu, hang: 0, daNhan: false, daChot: false, diemTa: diemTaCu, cuop: cuopCu };
     ghiNhatKy(state, "Mùa Chinh Phạt mới bắt đầu — điểm về 0, tranh lại từ đầu.", now);
     baoMinh(state, "Mùa Chinh Phạt mới", "Điểm của mọi khu vực trở về 0 để bắt đầu tranh lại từ đầu. Thứ hạng mùa trước đã được chốt.", now);
   }
@@ -1004,13 +1021,31 @@ export function nhanThuongMua(state, world, now) {
   if (thuong) ghiNhatKy(state, 'Kết mùa — Tiên Minh xếp hạng <b>' + hang + '</b>, lĩnh ' + thuong + ' Hồn Thạch.', now);
   return thuong;
 }
-/** Chốt hạng mùa vừa qua (gọi khi phát hiện sang mùa mới). */
+/**
+ * Chốt hạng mùa vừa qua. `ensureMua` đã cất sẵn điểm và sổ trừ của mùa đó.
+ * ⚠⚠ XẾP HẠNG THEO BẢN ĐÃ CẤT, KHÔNG theo điểm đang sống. Bản cũ gọi thẳng
+ *    `bangXepHangMua(state, world, now)` NGAY SAU khi `ensureMua` xoá sạch điểm, nên nó luôn
+ *    chốt trúng hạng bét (đo được: hạng 13/13) rồi đóng băng con số đó vĩnh viễn.
+ * ⚠ Mốc đưa cho `bangAI` phải là mili-giây CUỐI CÙNG của mùa đã đóng, không phải `now` —
+ *   `bangAI` suy điểm theo số giờ đã trôi trong mùa, đưa `now` là đo mùa MỚI vừa mở.
+ */
 export function chotHangMua(state, world, now) {
   const b = ensureBangPhai(state);
-  if (!b.bang || !b.muaThuong || b.muaThuong.hang) return;
-  const ds = bangXepHangMua(state, world, now);
+  if (!b.bang || !b.muaThuong || b.muaThuong.daChot) return;
+  const mocDong = (b.muaThuong.mua + 1) * MUA_MS - 1;
+  const soCuop = b.muaThuong.cuop || {};
+  const conLai = (x, locId) => Math.max(0, (((x && x.cpVung) || {})[locId] || 0)
+    - (soCuop[String(x && x.id) + '|' + String(locId)] || 0));
+  const ds = bangAI(world, mocDong).map((x) => ({
+    id: x.id, laTa: false,
+    diem: LOCATIONS.reduce((s, loc) => s + conLai(x, loc.id), 0),
+  }));
+  ds.push({ id: 'ta', laTa: true, diem: b.muaThuong.diemTa | 0 });
+  ds.sort((x, y) => y.diem - x.diem);
+  ds.forEach((x, i) => { x.hang = i + 1; });
   const ta = ds.find((x) => x.laTa);
   b.muaThuong.hang = ta ? ta.hang : 0;
+  b.muaThuong.daChot = true;
   // Thưởng mùa phải TỰ TAY LĨNH — không báo thì người chơi không biết mà vào lấy.
   const thuong = b.muaThuong.hang >= 1 ? (MUA_THUONG_BANG[b.muaThuong.hang - 1] || 0) : 0;
   if (thuong) baoMinh(state, 'Thưởng mùa Chinh Phạt', 'Mùa vừa qua Tiên Minh xếp hạng ' + b.muaThuong.hang
@@ -1143,8 +1178,18 @@ export function bcHeNguoiChoi(state) {
 }
 
 /** Đất Tranh của tuần: bốc trong các vùng người chơi ĐÃ VỚI TỚI, cố định suốt tuần. */
+// ⚠⚠ `state.player.level` KHÔNG TỒN TẠI. `createInitialState()` không dựng khoá đó và cả kho
+//    không có chỗ nào gán nó — chỉ mỗi tệp bài kiểm `_check_bangchien.mjs` tự bịa ra, nên bài
+//    kiểm xanh suốt trong khi game thì đọc `undefined | 0` = 0. Hậu quả đo được 2026-08-22:
+//    Đất Tranh tuần nào cũng bốc Lam Linh Cốc (vùng Lv 1) dù nhân vật có 50 triệu XP Chiến Đấu,
+//    và suất Minh Chủ ra trận với `Lv 0` nên cặp của chính người chơi luôn tụt xuống sàn 8%.
+//    Cấp Chiến Đấu chỉ có một nguồn: `levelFromXp(skills.chienDau.xp)` — y hệt `dautruong.js`.
+function capChienDau(state) {
+  return levelFromXp((((state || {}).skills || {}).chienDau || {}).xp || 0);
+}
+
 export function bcDatTranh(state, world, now) {
-  const t = now || Date.now(), lv = (state && state.player && state.player.level) | 0;
+  const t = now || Date.now(), lv = capChienDau(state);
   const mo = LOCATIONS.filter((l) => (l.reqLevel || 1) <= Math.max(1, lv));
   const mo0 = mo.length ? mo : [LOCATIONS[0]];
   // ⚠ Boc DEU trong moi vung da mo la SAI: nguoi cap 60 mo 7 vung thi phan lon tuan roi vao
@@ -1197,7 +1242,7 @@ export function bcQuanTa(state, world, now) {
     .slice().sort((x, y) => y.lv - x.lv);
   const ta = [{
     id: 'ta', ten: (state.player && state.player.name) || 'Minh Chủ', laTa: true,
-    lv: (state.player && state.player.level) | 0, he: bcHeNguoiChoi(state),
+    lv: capChienDau(state), he: bcHeNguoiChoi(state),
     av: (state.player && state.player.avatar) || '', mau: '#22d3ee',
     phu: 'Minh Chủ', chucTen: 'Minh Chủ',
   }];
@@ -1230,7 +1275,7 @@ function bcSinhQuanDich(state, world, now) {
   //   Neo vao cap TRUNG BINH ca nam suat. An toan vi quan dich duoc CHOT mot lan cho ca tuan.
   const qta = bcQuanTa(state, world, t);
   const nen = qta.length ? Math.max(1, Math.round(qta.reduce((x, y) => x + y.lv, 0) / qta.length))
-    : Math.max(1, (state && state.player && state.player.level) | 0);
+    : Math.max(1, capChienDau(state));
   const lech = Math.round(((dt.bang.cap || 1) - 14) * 0.8);
   const out = [];
   for (let i = 0; i < BC_SO_CAP; i++) {

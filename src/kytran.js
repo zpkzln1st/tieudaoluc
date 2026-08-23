@@ -424,7 +424,10 @@ export function kyTran() {
       try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('kt_dev', '1'); else localStorage.removeItem('kt_dev'); } this.devEnabled = localStorage.getItem('kt_dev') === '1'; } catch (e) {}
     },
     ktDevKey(e) { if (e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd' || e.keyCode === 68)) { e.preventDefault(); this.devToggle(); } },
-    devToggle() { if (!this.devEnabled) { this.devEnabled = true; try { localStorage.setItem('kt_dev', '1'); } catch (e) {} } this.devPanel = !this.devPanel; },
+    // ⚠⚠ CHỈ MỞ/ĐÓNG, KHÔNG TỰ BẬT — cùng lỗ với `devHotkey` của Đăng Tiên Mộng. Bảng này cho
+    //    +50.000 Trận Hồn, mở hết Tâm Pháp, và `devFillWeek()` xoá sạch giới hạn lượt tuần —
+    //    mà điểm Kỳ Trận đổ thẳng vào Trận Đồ Bảng công khai. Vào bằng `?dev=1`.
+    devToggle() { if (!this.devEnabled) return; this.devPanel = !this.devPanel; },
     devOff() { this.devEnabled = false; this.devPanel = false; this._devOpenAll = false; try { localStorage.removeItem('kt_dev'); } catch (e) {} },
     _dlog(m) { this.devLog = m; },
     _dsave() { try { Storage.save(this.$store.game.state); } catch (e) {} },

@@ -232,6 +232,34 @@ A single wuxia public-notice icon: a weathered paper proclamation sheet nailed t
 
 ---
 
+# F. ICON ĐIỀU HƯỚNG ĐẤU TRƯỜNG — 1 tệp
+
+**Thêm 2026-08-23.** Soi trước ra mắt bắt được: `images/nav/dauTruong.webp` **không tồn tại trong
+kho**. Đây là mục **duy nhất** trong 30 mục cột dọc thiếu art — 29 mục kia đủ.
+
+⚠⚠ Nút Đấu Trường ở `index.html:1471` dùng `x-show` chứ không `x-if`, nên nó **vẫn dựng trong DOM
+kể cả khi cờ `dauTruong` đang tắt**. Nghĩa là bản live hiện xin `dauTruong.webp` rồi `dauTruong.png`,
+404 cả hai, cho **mọi người chơi, mọi lần nạp trang** — rồi mới rơi về emoji 🏟️.
+
+**Cỡ: 500×500, NỀN TRONG SUỐT (alpha).** Vẽ **một vật thể căn giữa, chừa lề ~8%**, không chữ.
+Hiển thị ở **33,6×33,6 px** ⇒ vùng vẽ thật ~29,6px. Bóng dáng phải đọc được ở 30px.
+
+#### `images/nav/dauTruong.webp`
+**Icon mục "Đấu Trường"** trên cột điều hướng dọc.
+Hệ Đấu Trường: PvP không đồng bộ — đánh với bản chụp bộ chiến đấu người khác, ăn Đấu Điểm và leo
+sáu bậc Sơ Học → Thánh Thủ.
+
+⚠ Phải **KHÁC HẲN** ba icon chiến đấu đứng gần nó: `combat.webp` (đánh quái), `worldboss.webp`
+(Yêu Vương), `dungeon.webp` (Bí Cảnh). Nên lấy **lôi đài** — cái sàn đấu tay đôi — làm bóng dáng,
+chứ đừng lấy binh khí bắt chéo. Và để nó **thấp và rộng**, khỏi đụng bóng dáng cổng cao của
+`tongmon.webp`. Tấm bài ngọc treo trước sàn là thứ mang nghĩa THỨ BẬC, đúng cái riêng của màn này.
+
+```
+A single wuxia duel-arena icon: a low wide octagonal raised fighting platform of dark polished wood with a stone-block base, a thick braided crimson rope strung between four short corner posts forming a ring, two slender banner poles rising from the rear corners with narrow crimson pennants furled against them, a small oval jade rank-tablet hanging on a gold chain from the front edge of the platform, the platform deck empty, painterly detailed game icon, centered, ~8% margin, isolated on transparent background, soft rim light from upper left, front 3/4 view, wide low stable silhouette that stays readable at 30 pixels, restrained crimson and dark wood palette with one jade-green accent, NO text and no readable characters, no human figure, no weapon, 500x500
+```
+
+---
+
 # Đã kiểm và LOẠI RA — không phải art thiếu
 
 | tệp | vì sao không tính |

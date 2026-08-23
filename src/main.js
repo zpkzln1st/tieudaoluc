@@ -173,9 +173,16 @@ function weekStr() {
 function monthStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
 
 // ---- Khởi tạo state + offline gains ----
-let state = Storage.load() || createInitialState();
-// lastSave NGAY LÚC NẠP từ đĩa (trước khi vòng game autosave bump) — mốc so sánh cloud đáng tin (xem cloudSyncOnLogin)
-const _loadedLastSave = (state && state.lastSave) || 0;
+// ⚠⚠ PHẢI BIẾT ĐĨA CÓ BẢN LƯU HAY KHÔNG. `createInitialState()` đặt `lastSave: Date.now()`
+//    (engine/state.js:77), nên bản trắng mang mốc BÂY GIỜ. Trước đây `_loadedLastSave` lấy luôn
+//    con số đó làm "mốc trên đĩa", mà mốc trên máy chủ thì luôn ở quá khứ ⇒ `cloudSyncOnLogin`
+//    thấy đĩa mới hơn và ĐẨY BẢN TRẮNG ĐÈ LÊN bản lưu thật. Máy mới, xoá dữ liệu trình duyệt,
+//    trình duyệt khác, chế độ ẩn danh — đăng nhập phát là mất sạch, im lặng.
+const _saveTrenDia = Storage.load();
+let state = _saveTrenDia || createInitialState();
+// lastSave NGAY LÚC NẠP từ đĩa (trước khi vòng game autosave bump) — mốc so sánh cloud đáng tin
+// (xem cloudSyncOnLogin). Đĩa TRỐNG thì mốc là 0, không phải Date.now() của bản vừa dựng.
+const _loadedLastSave = (_saveTrenDia && _saveTrenDia.lastSave) || 0;
 if (!state.equipment) state.equipment = {};
 if (!state.enhance) state.enhance = {};   // (legacy) cường hóa theo id — dời vào instance.plus ở migration dưới
 if (!Array.isArray(state.gearBag)) state.gearBag = [];
@@ -469,6 +476,15 @@ NAV.forEach((g) => (g.items || []).forEach((it) => { if (it.soon) SOON_VIEWS.add
 // ---- View có #link riêng: mọi mục trong data/nav.js, cộng trang kỹ năng ----
 // Suy thẳng từ NAV nên thêm tab mới là có link ngay, không phải nhớ sửa thêm chỗ này.
 const ROUTE_VIEWS = ['skill', ...NAV.flatMap((g) => (g.items || []).map((it) => it.view))];
+
+// ---- Mã art HỢP LỆ: chữ, số, gạch dưới. Không có gì khác. ----
+// ⚠⚠ Đây là hàng rào CẤY MÃ cho `ico()` và `hsAnhThu()`. Hai hàm đó dán mã thẳng vào `src="…"`
+//    và vào thân `onerror='…'`, rồi lời gọi vẽ ra bằng `x-html`. Mã đi vào không phải lúc nào
+//    cũng của mình: tin rao trên Sàn mang `mon.gearId`, giá Trưng Bày mang `trung_bay[].base` —
+//    cả hai đều nằm trong bản lưu do MÁY NGƯỜI KHÁC gửi lên, không qua chốt nào của máy chủ.
+// ⚠ Đo trước khi chốt rào này (`_do_tap_kytu_id.mjs`): 1.868/1.868 mã thật đều khớp, kể cả mã
+//   ghép lúc chạy. Nới rào ra thì phải đo lại — thêm một ký tự là mở lại đúng cái cửa này.
+const ID_ART_HOP_LE = /^[A-Za-z0-9_]+$/;
 
 // ---- Bản đồ icon: id -> thư mục ảnh (ico() tự tìm đúng folder, không cần sửa chỗ gọi) ----
 const ICON_FOLDERS = {};
@@ -3151,9 +3167,14 @@ const gameStore = {
     if (!row) { await this._cloudPushNow(); return; }            // cloud trống -> đẩy local lên
     const tCloud = row.last_save || 0;
     const tLocal = _loadedLastSave;                              // mốc trên ĐĨA lúc nạp (không bị autosave bump)
+    // ⚠⚠ CỬA NÀY PHẢI ĐỨNG TRƯỚC PHÉP SO MỐC. Máy chưa có nhân vật thì trên đĩa không có gì đáng
+    //    giữ, và đẩy lên là XOÁ TRẮNG bản lưu thật trên máy chủ. Trước đây nó đứng SAU phép so
+    //    mốc nên không bao giờ chạy tới: đĩa trống ⇒ tLocal là mốc bản vừa dựng, luôn mới hơn
+    //    tCloud ⇒ nhánh đẩy nuốt hết. Đổi thứ tự hai dòng này là chữa xong.
+    // ⚠ Và trong game KHÔNG CÓ nút kéo bản mây về — mất ở đây là mất hẳn, không tự cứu được.
+    if (!this.state.player || !this.state.player.created) { this._applyCloudSave(row.data); return; } // máy này mới tinh -> lấy cloud
     if (tCloud <= tLocal) { await this._cloudPushNow(); return; } // đĩa local mới hơn/bằng cloud -> đẩy local (cùng máy)
     // cloud MỚI HƠN bản trên đĩa máy này:
-    if (!this.state.player || !this.state.player.created) { this._applyCloudSave(row.data); return; } // máy này mới tinh -> lấy cloud
     const localSum = this.saveSummary(this.state); localSum.lastSave = tLocal || localSum.lastSave;   // mốc hiển thị = lúc nạp
     this.cloudConflict = { cloud: this.saveSummary(row.data), local: localSum, _cloudData: row.data }; // lệch -> hỏi người chơi
   },
@@ -4190,6 +4211,17 @@ const gameStore = {
     // id rỗng = CHƯA CÓ ART, nói thẳng ra emoji. Không có dòng này thì nó vẫn ra emoji, nhưng phải
     // đi qua một lượt xin `images/items/.webp` rồi `.png` — hai lần 404 cho mỗi ô, mỗi nhịp vẽ.
     if (!id) return `<span>${safe}</span>`;
+    // ⚠⚠ HÀNG RÀO CẤY MÃ. Hàm này dán `id` THẲNG vào `src="…"` và vào cả thân `onerror='…'`, rồi
+    //    lời gọi vẽ ra bằng `x-html`. Có đường cho `id` do MÁY NGƯỜI KHÁC đặt: `sanTinArt()` đọc
+    //    `r.mon.gearId` trong tin rao — mà tin rao lấy món từ bản lưu, còn bản lưu là thứ máy
+    //    người bán gửi lên. Một `gearId` kiểu `x" onerror="…" a="` phá được thuộc tính `src` và
+    //    cấy vào một `onerror` thật; kẻ tấn công đọc được phiên Supabase trong localStorage,
+    //    tức là chiếm tài khoản người xem. Đo 2026-08-22: cấy được, thẻ dựng xong có onerror riêng.
+    //    Chặn ở ĐÂY chứ đừng đi vá từng cửa gọi — đây là chỗ duy nhất mọi đường phải đi qua.
+    //    Đo trước khi chốt: cả 1.868 mã thật (ITEMS · SKILLS · ENEMIES · CLASSES · NGHE · GEAR ·
+    //    PET_SPECIES · LOCATIONS · TITLES + mọi mã ghép `phuong_` `dp_` `dpset_` `dpchieu_` `pet_`)
+    //    đều khớp rào này, nên rào KHÔNG giết art nào.
+    if (!ID_ART_HOP_LE.test(String(id))) return `<span>${safe}</span>`;
     // ĐAN ĐIỀN: nhánh nào chưa vẽ art riêng thì MƯỢN art đan sẵn có theo phẩm (`ddArtCua`).
     // ⚠ Thiếu dòng này thì Khí Đan và Thần Đan xin `images/items/ddKhi1.webp` — không có tệp nên
     //   rơi về emoji ⚱️ trơn, 18/27 ô trong Hành Lý thành hàng lỗi.
@@ -6790,7 +6822,16 @@ const gameStore = {
       if (uid) this.xemHoSoKhach(uid);
     } catch (e) {}
   },
-  hsAnhThu(c) { const f = 'pet_' + c.base + '_' + (c.thuc ? 'awk' : 'base'); return `<img src="images/pets/${f}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src="images/pets/${f}.png";}else{this.remove();}'>`; },
+  // ⚠⚠ `c` là một ô Trưng Bày của NGƯỜI KHÁC, đọc từ `ho_so_cong_khai.trung_bay`. Máy chủ chỉ
+  //    chốt đúng bảy ô (SQL_HO_SO_CONG_KHAI.sql:26), KHÔNG soi nội dung. Nên `c.base` là chuỗi
+  //    người ta tự đặt, mà dòng dưới dán nó vào `src="…"` lẫn thân `onerror='…'` rồi vẽ bằng
+  //    `x-html` — y hệt lỗ đã bịt ở `ico()`. Không khớp rào thì bỏ ô trống, đừng dựng thẻ.
+  hsAnhThu(c) {
+    const b = String((c && c.base) || '');
+    if (!ID_ART_HOP_LE.test(b)) return '';
+    const f = 'pet_' + b + '_' + (c.thuc ? 'awk' : 'base');
+    return `<img src="images/pets/${f}.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src="images/pets/${f}.png";}else{this.remove();}'>`;
+  },
 
   // ---- NGƯỜI CHƠI THẬT trên Phong Vân Bảng ----
   // ⚠ Trước đây bảng ghép 200 bot với DUY NHẤT bản thân mình. Hai tài khoản thấy chung một
@@ -7950,7 +7991,11 @@ const gameStore = {
   tkCapCua(suId) { return tkCap(this.state, suId); },
   tkExpCanCua(suId) { return tkExpLenCap(this.tkCapCua(suId).lv); },
   /** Số đệ tử Tông Môn cử đi hộ vệ được — mỗi đệ tử chặn đúng một lần cướp. */
-  get tkDeTuCo() { return (((this.state.tongmon || {}).disciples) || []).length; },
+  // ⚠⚠ Khoá thật là `tongMon` (chữ M hoa). Bản cũ gõ `state.tongmon` nên getter này LUÔN bằng 0:
+  //    `tkHoVeToiDa` cụt về 0, khối chọn Hộ Vệ không bao giờ dựng, và người có cả sơn môn đầy đệ
+  //    tử vẫn bị màn Thỉnh Kinh bảo đi "Chiêu Mộ Đệ Tử". Đoàn kinh thư ra đường không ai áp tải.
+  //    Dùng luôn getter `tm` cho khỏi có chỗ thứ hai gõ tên khoá.
+  get tkDeTuCo() { return (((this.tm || {}).disciples) || []).length; },
   get tkHoVeToiDa() { return Math.min(this.tkLuot.hoVe || 0, this.tkDeTuCo); },
   tkHoVeChon: 0,
   /** Giá Làm Mới: lần đầu mỗi lượt miễn phí, từ lần hai tốn Nguyên Bảo. */

@@ -28,6 +28,21 @@ const MO_MAN_A = ' ôm quyền thi lễ, vận khởi ';
 const MO_MAN_B = ' khí — trận đấu bắt đầu.';
 const so = (v, mac) => (typeof v === 'number' && isFinite(v) ? v : mac);
 
+// ⚠⚠ TÊN ĐỐI THỦ LÀ CHỮ NGƯỜI TA TỰ GÕ. Nó tới từ cột `ten` của `ho_so_cong_khai`, và cột đó
+//    khai `text not null default ''` — máy chủ không chốt độ dài lẫn nội dung. Dòng mở màn ở
+//    `dauTran` nối thẳng tên vào một chuỗi HTML, `votong.js` còn chép sang `eName` rồi rải vào
+//    hơn mười dòng log nữa, và `index.html:17219` vẽ tất cả bằng `x-html`. Đo 2026-08-22: đặt
+//    tên là một thẻ `<img onerror=…>` thì 4/4 dòng chiến báo mang nguyên chuỗi đó, và nó còn
+//    được ghi vào sổ sử trong bản lưu người xem.
+//    Lọc ở ĐÂY — chỗ duy nhất tên rời bảng để vào bộ mô phỏng — nên mọi dòng phía sau đều sạch.
+//    Cắt 24 ký tự: ô nhập chỉ cho 16, phần dài hơn chắc chắn không phải tên người.
+function tenSach(t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+    .slice(0, 24);
+}
+
 export function ensureDauTruong(state) {
   if (!state.dauTruong || typeof state.dauTruong !== 'object') state.dauTruong = {};
   const d = state.dauTruong;
@@ -104,7 +119,7 @@ export function dtDoiThu(row) {
     if (c && c.mult && (!sk || c.mult > sk.mult)) sk = { name: c.name, mult: c.mult, cd: c.cd || 4, fl: 'thi triển ' + c.name };
   }
   return {
-    name: (row.ten || 'Vô Danh'),
+    name: (tenSach(row.ten) || 'Vô Danh'),
     hp, atk, def: Math.max(0, Math.round(so(cb.def, 0))), spd: Math.max(1, Math.round(so(cb.spd, 100))),
     he, khang, dodge: Math.max(0, Math.min(0.5, so(cb.dodge, 0))),
     skill: sk, atkFl: 'ra một chiêu',
@@ -135,7 +150,9 @@ export function dtGhepCap(rows, uidMinh, diemMinh) {
     const dt = dtDoiThu(r);
     if (!dt) continue;
     ds.push({
-      uid: r.user_id, ten: r.ten || 'Vô Danh', avatar: r.avatar || null, danhHieu: r.danh_hieu || null,
+      // ⚠ Lọc luôn ở đây chứ không chỉ ở `dtDoiThu`: `ten` này chảy tiếp vào sổ sử trong bản lưu
+      //   (`dauTran` chép `doiThu.ten`), nên để một chuỗi thô nằm lại trong save là còn đường sống.
+      uid: r.user_id, ten: tenSach(r.ten) || 'Vô Danh', avatar: r.avatar || null, danhHieu: r.danh_hieu || null,
       tongCap: r.tong_cap | 0, chienDau: r.chien_dau | 0, chienLuc: Number(r.chien_luc || 0),
       diem: so(r.dau_diem, DT_DIEM_NEN) | 0, doi: dt, row: r,
     });
