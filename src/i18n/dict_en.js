@@ -14915,6 +14915,8 @@ export const DICT = {
   "Phiên đổi mật khẩu đã hết. Xin gửi lại thư.": "The password reset session has ended. Please request a new email.",
   "Mật khẩu mới phải khác mật khẩu cũ.": "The new password must differ from the old one.",
   "Gửi thư đổi mật khẩu": "Send password reset email",
+  "Nghề này chỉ làm được trong dịp": "This profession only works during",
+  "Chưa hẹn ngày mở.": "No opening date set yet.",
   "Chưởng Môn": "Sect Master",
   "đang": "currently",
   "Tới": "To",

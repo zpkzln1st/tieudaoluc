@@ -14746,6 +14746,8 @@ export const DICT = {
   "Phiên đổi mật khẩu đã hết. Xin gửi lại thư.": "重设密码的工作阶段已结束。请重新寄送信件。",
   "Mật khẩu mới phải khác mật khẩu cũ.": "新密码必须与旧密码不同。",
   "Gửi thư đổi mật khẩu": "寄送重设密码信",
+  "Nghề này chỉ làm được trong dịp": "此职业仅限于",
+  "Chưa hẹn ngày mở.": "尚未定下开放日期。",
   "Chưởng Môn": "掌门",
   "đang": "正在",
   "Tới": "前往",

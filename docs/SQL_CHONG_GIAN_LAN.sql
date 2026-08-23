@@ -251,7 +251,7 @@ language plpgsql security definer set search_path = public as $$
 declare
   giay numeric; cho_phep numeric; hs numeric; bu numeric; bac_san numeric; tran_lan numeric;
   nhip_ms numeric; hs_gio numeric; phu_cap numeric; sai_so numeric; gap_chan numeric;
-  hs_exp numeric;
+  hs_exp numeric; hs_ban numeric;
   r record; cu numeric; moi numeric; tang numeric; tran_cho numeric; gap_nay numeric;
   gio_cu numeric; gio_moi numeric; d_gio numeric; d_track numeric;
   ha_cu numeric; ha_moi numeric; d_ha numeric; d_boc numeric;
@@ -307,6 +307,18 @@ begin
   --   bat duoc no gap hang tram lan. Tang 1 chua bao gio la hang rao duy nhat.
   tran_lan := tran_lan * hs_exp;
 
+  -- ⚠⚠ HE SO GIA BAN TOAN MAY CHU. Client nhan he so nay vao Bac thu ve o 'sellItem'/'sellGear'
+  --    (src/main.js, qua heSoGiaBan cua engine/leveling.js). Bat x2 gia ban ma tran Bac khong noi
+  --    theo la ban ca tui do mot phat bi ghi so oan. Lay dung khuon hs_exp o tren.
+  -- ⚠ He so 'rot_do' KHONG can noi tran nao: no chi doi TI LE roi, khong them mot lan boc so nao,
+  --   nen tang 2C va tang 2E (deu dem theo LAN BOC) khong dong den. Client cung khong duoc nhan
+  --   no vao duong roi dan o dungeon.js/worldboss.js — xem chu thich cua heSoRotDo.
+  select coalesce(max(gia_tri), 1) into hs_ban from public.he_so_may_chu
+   where khoa = 'gia_ban'
+     and (mo_luc  is null or mo_luc  <  now())
+     and (dong_luc is null or dong_luc > OLD.updated_at);
+  hs_ban := greatest(1, coalesce(hs_ban, 1));
+
   giay := greatest(0, extract(epoch from (now() - OLD.updated_at)));
   cho_phep := (giay + bu) * hs;
 
@@ -336,7 +348,7 @@ begin
   moi := so_jsonb(NEW.data->'currencies'->'bac');
   tang := moi - cu;
   if tang > bac_san then
-    tran_cho := (select xp_giay from tran_toc_do where khoa = 'chienDau') * cho_phep;
+    tran_cho := (select xp_giay from tran_toc_do where khoa = 'chienDau') * cho_phep * hs_ban;
     if tang > tran_cho then
       gap_nay := tang / greatest(tran_cho, 1);
       gap_lon := greatest(gap_lon, gap_nay);

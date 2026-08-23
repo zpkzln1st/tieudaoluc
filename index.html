@@ -3259,7 +3259,9 @@
             </template>
             <div class="panel rounded-lg p-3 space-y-2">
               <!-- Nghề thu thập: chỉ hiện tài nguyên của vùng đang đứng -->
-              <template x-if="$store.game.currentSkillIsGather">
+              <!-- ⚠ Kĩ năng sự kiện lúc sự kiện ĐÓNG thì KHÔNG bày dòng này: tài nguyên của nghề đó
+                   nằm trong bản đồ sự kiện, in tên vùng đang đứng ra là chỉ sai chỗ. -->
+              <template x-if="$store.game.currentSkillIsGather && !$store.game.svKnDong">
                 <div class="flex items-center justify-between px-1 pb-1.5 mb-0.5 border-b border-slate-800 text-[11px]">
                   <span class="inline-flex items-center gap-1 text-jade"><span class="w-3.5 h-3.5 inline-flex" x-html="$store.game.svg('pin','w-3.5 h-3.5')"></span>Tài nguyên tại <b x-text="$store.game.currentLocationObj.name"></b></span>
                   <!-- Dùng openZoneChange (như nút Đổi vùng bên Chiến Đấu): nhớ tab đang đứng để sau khi
@@ -3267,9 +3269,16 @@
                   <button @click="$store.game.openZoneChange()" class="text-slate-500 hover:text-jade">đổi vùng ở Bản Đồ ›</button>
                 </div>
               </template>
-              <!-- Kĩ năng SỰ KIỆN đứng ngoài bản đồ sự kiện: chỉ đúng MỘT nút đưa tới nơi -->
-              <template x-if="($store.game.SKILLS[$store.game.selectedSkill]||{}).suKien && $store.game.currentSkillActions.length===0">
-                <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Nghề này chỉ làm được trong <b class="text-amber-300" x-text="(($store.game.svDef||{}).loc||{}).name || ''"></b> — <button @click="$store.game.svToiBanDo()" class="text-amber-300 font-bold hover:brightness-125 underline decoration-amber-500/40 underline-offset-2">tới đó ngay</button>.</div>
+              <!-- Kĩ năng SỰ KIỆN đứng ngoài bản đồ sự kiện: chỉ đúng MỘT nút đưa tới nơi.
+                   ⚠ Neo theo sự kiện CỦA CHÍNH KĨ NĂNG (`svKn*`), đừng neo theo sự kiện đang chạy:
+                   Hồ Sơ bày cố định cả 6 ô nên ô của sự kiện đóng in ra tên địa điểm RỖNG. -->
+              <template x-if="$store.game.svKnMa && $store.game.svKnMoCua && $store.game.currentSkillActions.length===0">
+                <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Nghề này chỉ làm được trong <b class="text-amber-300" x-text="$store.game.svKnLocTen"></b> — <button @click="$store.game.svKnToiBanDo()" class="text-amber-300 font-bold hover:brightness-125 underline decoration-amber-500/40 underline-offset-2">tới đó ngay</button>.</div>
+              </template>
+              <!-- Sự kiện của kĩ năng này ĐANG ĐÓNG: nói rõ dịp nào mới cày được, và BỎ hẳn nút.
+                   Nút cũ gọi `svToiBanDo()`, mà hàm đó return ngay khi không có sự kiện nào chạy. -->
+              <template x-if="$store.game.svKnDong && $store.game.currentSkillActions.length===0">
+                <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Nghề này chỉ làm được trong dịp <b class="text-amber-300" x-text="$store.game.svKnTen"></b>.<br><span class="text-slate-400" x-text="$store.game.svKnMoLaiText"></span></div>
               </template>
               <template x-if="$store.game.currentSkillIsGather && !($store.game.SKILLS[$store.game.selectedSkill]||{}).suKien && $store.game.currentSkillActions.length===0">
                 <div class="text-[12px] text-slate-500 text-center py-6 leading-relaxed">Vùng <b class="text-slate-300" x-text="$store.game.currentLocationObj.name"></b> không có tài nguyên nghề này — <button @click="$store.game.openZoneChange()" class="text-jade font-bold hover:brightness-125 underline decoration-jade/40 underline-offset-2">đổi vùng ở Bản Đồ</button>.</div>
@@ -6417,13 +6426,13 @@
                       </div>
                       <button @click="$store.game.banChot(); $store.game.sellFromModal($store.game.banQty)"
                               class="sellbtn w-full py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)"
-                              x-text="'Bán '+$store.game.fmt($store.game.banQty||1)+' (+'+$store.game.fmt((m.value||0)*($store.game.banQty||1))+' Bạc)'"></button>
+                              x-text="'Bán '+$store.game.fmt($store.game.banQty||1)+' (+'+$store.game.fmt($store.game.banDuocBac(m, $store.game.banQty||1))+' Bạc)'"></button>
                     </div>
                   </template>
                   <!-- ⚠ `=== 1` chứ KHÔNG phải `<= 1`: món đang mặc và món chưa có trong túi đều ra 0.
                        Để `<= 1` thì hai thứ đó cũng mọc ra nút Bán, bấm vào không bán được gì. -->
                   <template x-if="(m.value||0) > 0 && $store.game.itemModalMax === 1">
-                    <button @click="$store.game.sellFromModal(1)" class="sellbtn w-full py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)" x-text="'Bán (+'+$store.game.fmt(m.value||0)+' Bạc)'"></button>
+                    <button @click="$store.game.sellFromModal(1)" class="sellbtn w-full py-1.5 rounded-lg text-[11.5px] font-bold transition" :style="'--q:'+$store.game.gtipHex(m)" x-text="'Bán (+'+$store.game.fmt($store.game.banDuocBac(m, 1))+' Bạc)'"></button>
                   </template>
                   <template x-if="m.dangMac">
                     <div class="text-[11px] text-jade text-center py-1">Đang mặc trên người.</div>

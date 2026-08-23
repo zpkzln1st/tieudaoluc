@@ -52,6 +52,12 @@ export function xpTronDuong(tran) {
   return s;
 }
 
+/** Doc MOT khoa he so toan may chu tu save. Thieu / hong / khong duong deu ve 1 (phia an toan). */
+function _heSo(state, khoa) {
+  const h = state && state.heSo && state.heSo[khoa];
+  return (typeof h === 'number' && isFinite(h) && h > 0) ? h : 1;
+}
+
 /**
  * He so kinh nghiem TOAN MAY CHU (Lenh Bai dot 5, bang `he_so_may_chu`).
  * Client dem so nay vao `state.heSo.exp` moi nhip doc; mat mang thi giu nguyen so cu.
@@ -61,10 +67,23 @@ export function xpTronDuong(tran) {
  * ⚠ Chot phia may chu cung nhan dung he so nay vao tran (xem docs/SQL_CHONG_GIAN_LAN.sql).
  *   Doi mot ben ma quen ben kia la ca lang bi ghi so oan.
  */
-export function heSoExp(state) {
-  const h = state && state.heSo && state.heSo.exp;
-  return (typeof h === 'number' && isFinite(h) && h > 0) ? h : 1;
-}
+export function heSoExp(state) { return _heSo(state, 'exp'); }
+
+/**
+ * He so TI LE ROI DO toan may chu (`he_so_may_chu.rot_do`).
+ * Nhan vao `lootMul` cua CA HAI duong thuong: activity.js (treo may) va main.js awardKill (dang xem).
+ * ⛔ KHONG duoc nhan vao duong roi DAN o dungeon.js / worldboss.js: tang 2E chot 'so o Dan Dien
+ *   da lap <= so lan boc so o mien `bcDanNhanh`/`yvDanNhanh'. Moi vien tuong ung DUNG MOT lan boc,
+ *   nhan he so vao do la tu lam vo chinh cai tran do.
+ */
+export function heSoRotDo(state) { return _heSo(state, 'rotDo'); }
+
+/**
+ * He so GIA BAN toan may chu (`he_so_may_chu.gia_ban`). Nhan vao Bac thu ve khi ban do.
+ * ⚠ Chot chong gian lan phia may chu nhan dung he so nay vao tran Bac moi lan ghi
+ *   (xem docs/SQL_CHONG_GIAN_LAN.sql). Doi mot ben ma quen ben kia la ca lang bi ghi so oan.
+ */
+export function heSoGiaBan(state) { return _heSo(state, 'giaBan'); }
 
 export function addSkillXp(state, skillId, xp) {
   if (!state.skills[skillId]) state.skills[skillId] = { xp: 0 };

@@ -71,7 +71,7 @@ import { equipItem, unequipItem, addGearInstance, removeGearByUid, findGear } fr
 import { TITLES, TITLE_BY_ID, TITLE_LOAI, titleBonusText } from './data/titles.js';
 import { ensureTitles, syncTitles, titleBonus } from './engine/titles.js';
 import { BADGES, BADGE_LV } from './data/badges.js';
-import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp } from './engine/leveling.js';
+import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp, heSoRotDo, heSoGiaBan } from './engine/leveling.js';
 import { ensureRng, rng, rngHam } from './engine/rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { pushNotif } from './engine/notif.js';
 import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
@@ -679,7 +679,19 @@ const gameStore = {
     //   ở đúng ô đầu tiên lại lùi cả tab thay vì đóng bảng.
     ['tbChonMo', 'tbDong'],
     ['hoSoKhachMo', 'dongHoSoKhach'], ['gsMo', 'dongGiamSat'], ['lbMo', 'dongLenhBai'], ['mqMo', 'dongMaQua'],
+    // Đợt bổ sung: 18 modal trước đây đứng ngoài danh sách. Vuốt-back ở chúng đổi TAB mà modal
+    // vẫn dính trên màn, vì _closeAllModalsForNav() chỉ rút _mstack.
+    ['actionModal', 'closeAction'], ['ddMo', 'dongDanDien'], ['luyenMo', 'dongLuyenDan'], ['ncMo', 'closeNgoCanh'],
+    ['combatSummary', 'closeCombatSummary'], ['bagPeek', 'closeBagPeek'], ['dungeonShowResult', 'closeDungeonResult'],
+    ['dtTran', 'dtDongTran'], ['offlineReport', 'dismissOffline'], ['confirmReset', 'dongReset'], ['authOpen', 'closeAuth'],
+    'authorOpen',
+    ['tmItemView', 'closeItemView'], ['tmGearView', 'closeTmGear'], ['tmKiepResult', 'closeKiepResult'],
+    ['tmBreakCine', 'closeBreakCine'], ['tmSelDisciple', 'closeDisciple'], ['tmBuildSel', 'tmDongCongTrinh'],
   ],
+  // ⛔ KHÔNG đăng ký `cloudConflict`: modal đó bắt buộc chọn một bên, đóng ngang là mất cả hai
+  //   đường. `navOpen` là ngăn kéo điều hướng, đóng theo nút chọn tab. `devPanel`/`devLoginOpen`
+  //   là bảng của tác giả. Năm cờ này nằm trong danh sách miễn trừ của bài kiểm 54.
+  _MODAL_MIEN_TRU: ['navOpen', 'cloudConflict', 'devPanel', 'devLoginOpen', 'devAuthed'],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
   _mClose(m) { if (typeof m === 'string') { this[m] = false; } else if (typeof this[m[1]] === 'function') { this[m[1]](); } else { this[m[0]] = false; } },
@@ -1289,6 +1301,7 @@ const gameStore = {
   tmUpgrade(key) { if (upgradeBuilding(this.state, key)) { this.tmSave(); this.showToast('Nâng cấp ' + BUILDINGS[key].name); } else this.showToast('Thiếu Bạc / Cống Hiến'); },
   // Popup chi tiết công trình: hiệu lực bậc HIỆN TẠI -> bậc SAU (cụ thể từng loại).
   tmBuildSel: null,
+  tmDongCongTrinh() { this.tmBuildSel = null; },   // đóng bằng null (không phải false) — markup so `tmBuildSel==='duocVien'`
   tmCraftOpen: false,
   tmBuildDetail(key) {
     const b = BUILDINGS[key]; const lv = this.tmBuildLv(key), nlv = lv + 1; const fx = [];
@@ -2934,7 +2947,35 @@ const gameStore = {
     this.showToast('Nhận ' + r.qty + ' ' + (r.ten === 'honThach' ? 'Hồn Thạch' : r.ten === 'nguyenBao' ? 'Nguyên Bảo' : r.ten) + '.');
   },
   svToiBanDo() {
-    const d = this.svDef; if (!d) return;
+    const d = this.svDef; if (!d) { this.showToast('Sự kiện chưa mở.'); return; }
+    if (this.currentLocation === d.loc.id) { this._applyView('combat'); return; }
+    this.startKhinhCong(d.loc.id);
+  },
+
+  // ---------- Kĩ năng SỰ KIỆN mở từ Hồ Sơ — neo theo sự kiện CỦA CHÍNH KĨ NĂNG ----------
+  // ⚠ Hồ Sơ bày cố định cả 6 ô kĩ năng sự kiện, mở hay đóng cũng vậy. Trang kĩ năng cũ lấy tên
+  //   địa điểm từ `svDef` (sự kiện ĐANG chạy) nên hai cảnh in ra chuỗi rỗng: sự kiện đóng hết,
+  //   và sự kiện A đang chạy mà người chơi bấm ô của sự kiện B.
+  get svKnMa() { const s = this.SKILLS[this.selectedSkill] || {}; return s.suKien || ''; },
+  get svKnMoCua() { const ma = this.svKnMa; return !!ma && this.svMoCua(ma); },
+  get svKnDong() { return !!this.svKnMa && !this.svKnMoCua; },   // kĩ năng sự kiện mà sự kiện của nó đang đóng
+  get svKnTen() { return (SU_KIEN_BY_MA[this.svKnMa] || {}).ten || ''; },
+  get svKnLocTen() { return ((SU_KIEN_BY_MA[this.svKnMa] || {}).loc || {}).name || ''; },
+  /** Sự kiện của kĩ năng này mở lại lúc nào. Chưa đặt lịch thì nói thẳng là chưa hẹn ngày. */
+  get svKnMoLaiText() {
+    void this._tick;
+    const ma = this.svKnMa; if (!ma) return '';
+    const d = (ensureLenhBai(this.state).dem || {})[ma];
+    if (!d || !d.mo || !d.dong) return 'Chưa hẹn ngày mở.';
+    if (d.chiTacGia && !this.isAuthorAccount) return 'Chưa hẹn ngày mở.';
+    const con = d.mo - now();
+    if (con <= 0) return 'Chưa hẹn ngày mở.';
+    const ng = Math.floor(con / 86400000), h = Math.floor((con % 86400000) / 3600000);
+    return 'Mở sau ' + (ng > 0 ? ng + ' ngày ' + h + ' giờ' : h + ' giờ') + '.';
+  },
+  svKnToiBanDo() {
+    const d = SU_KIEN_BY_MA[this.svKnMa];
+    if (!d || !this.svKnMoCua) { this.showToast('Sự kiện chưa mở.'); return; }
     if (this.currentLocation === d.loc.id) { this._applyView('combat'); return; }
     this.startKhinhCong(d.loc.id);
   },
@@ -6067,7 +6108,8 @@ const gameStore = {
     // hai đường cho ra hai số khác nhau, hoặc kĩ năng bang trơ ở một bên.
     const _bg = bangKyNangBonus(this.state);                                  // Kĩ năng bang: Tham Tài / Lùng Sục
     const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct + _bg.bacPct + buffVal(this.state, 'bacPct', _now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
-    const lootMul = 1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct + _bg.dropPct;   // P7 — Lùng Sục
+    // ⚠ `heSoRotDo` nhân CUỐI, sau mọi khoản cộng dồn — khớp từng vế với engine/activity.js.
+    const lootMul = (1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct + _bg.dropPct) * heSoRotDo(this.state);   // P7 — Lùng Sục
     // Bách Bảo lootPct CHỈ nhân loot nguyên liệu thường (matMul), TUYỆT ĐỐI không đụng
     // MONSTER_DROP_CHANCE (gear 0,3%) — y hệt luật ở activity.js.
     const matMul = lootMul * (1 + buffVal(this.state, 'lootPct', _now) / 100);
@@ -6329,12 +6371,20 @@ const gameStore = {
     this.buyVatPham(this.muaModal.id, this.muaQty);
     this.closeMua();
   },
+  /** Bạc thu về khi bán `qty` món — số HIỆN TRÊN NÚT phải làm tròn y hệt lúc bán thật. */
+  banDuocBac(m, qty) {
+    const q = Math.max(1, Math.floor(qty) || 1), hs = heSoGiaBan(this.state);
+    return (m && m.isGear) ? Math.round((m.value || 0) * hs) * q : Math.round((m.value || 0) * q * hs);
+  },
   /** Trả { n, bac } đã bán được — chỗ gọi cần con số THẬT để báo, đừng tự nhân lại. */
   sellItem(itemId, qty) {
     const have = this.state.inventory[itemId] || 0;
     qty = Math.min(qty, have);
     if (qty <= 0) return { n: 0, bac: 0 };
-    const bac = (this.ITEMS[itemId]?.value || 0) * qty;
+    // ⚠ Hệ số Giá Bán toàn máy chủ nhân Ở ĐÂY. Mọi đường bán đều đi qua `sellItem`/`sellGear`;
+    //   nhân rải rác ở chỗ gọi là chắc chắn sót một đường. ⛔ KHÔNG nhân vào giá Sàn Giao Dịch —
+    //   Sàn có chốt giá riêng phía máy chủ (`bac_san_toi_thieu`), lệch là hàng bị từ chối.
+    const bac = Math.round((this.ITEMS[itemId]?.value || 0) * qty * heSoGiaBan(this.state));
     this.state.currencies.bac += bac;
     removeItem(this.state, itemId, qty);
     Storage.save(this.state);
@@ -6382,7 +6432,7 @@ const gameStore = {
   sellGear(uid) {                                  // bán 1 instance gear (theo uid trong túi) -> Bạc thu được
     const inst = removeGearByUid(this.state, uid);
     if (!inst) return 0;
-    const bac = (this.ITEMS[inst.gearId] || {}).value || 0;
+    const bac = Math.round(((this.ITEMS[inst.gearId] || {}).value || 0) * heSoGiaBan(this.state));
     this.state.currencies.bac = (this.state.currencies.bac || 0) + bac;
     Storage.save(this.state);
     return bac;
@@ -6725,11 +6775,15 @@ const gameStore = {
   },
   /** o = số ô đã chọn · n = tổng số món (chồng tính đủ) · bac = tiền thu về · quy = món Hiếm trở lên. */
   get hlChonInfo() {
+    // ⚠ Làm tròn Y HỆT lúc bán thật, đừng nhân hệ số vào tổng: `sellGear` làm tròn TỪNG món,
+    //   `sellItem` làm tròn CẢ CHỒNG. Gộp một kiểu là số hỏi trước lệch số toast báo sau.
+    const hs = heSoGiaBan(this.state);
     let o = 0, n = 0, bac = 0, quy = 0;
     for (const it of this.hlHien) {
       if (!this.hlSel[this.hlRef(it)] || !this.hlBanDuoc(it)) continue;
       const q = it.qty || 1;
-      o++; n += q; bac += (it.value || 0) * q;
+      o++; n += q;
+      bac += it.uid ? Math.round((it.value || 0) * hs) * q : Math.round((it.value || 0) * q * hs);
       if (this.qualityRank(it) >= 3) quy += q;
     }
     return { o, n, bac, quy };
