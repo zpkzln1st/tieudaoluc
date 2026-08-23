@@ -674,6 +674,11 @@
        chạy quá mép phải của khung. Cũng phải đứng SAU `.gtip-len`/`.gtip-xuong`. */
     .gtip-phai{ left:auto; right:0; }
     .gtip-phai::after{ left:auto; right:9px; }
+    /* ⚠⚠ ĐỪNG THÊM MEDIA QUERY LẬT NEO Ở ĐÂY. Đã thử: hàng chứa nút hỏi là `flex-wrap`, nên ở
+       khổ hẹp có nút tụt về sát mép TRÁI (Đấu Trường) mà có nút vẫn nằm bên PHẢI (Thỉnh Kinh).
+       Lật cả họ `.gtip-phai` thì chữa được cái này, hỏng cái kia — đo ra đúng như vậy.
+       Vị trí cái NEO mới là thứ đổi, nên không lớp tĩnh nào đúng mọi khổ.
+       ⇒ Hộp được KÉO LẠI CHO VỪA KHUNG lúc mở, ở bộ nút hỏi cuối tệp (`keoVaoKhung`). */
     .gtip-up{ bottom:calc(100% + 15px); left:0; }
     .gtip-up::after{ bottom:-12px; left:calc(var(--mui,38px) - 6px); border-top-color:var(--q,#475569); }
     .gtip::after{ content:""; position:absolute; border:6px solid transparent; }
@@ -16897,7 +16902,10 @@
             </div>
             <span class="dd-tip relative inline-flex items-center gap-1.5" style="--q:#8fc6dd">
               <span class="dd-hoi">?</span>
-              <span class="gtip gtip-len">
+              <!-- ⚠ Cùng lỗi với Đấu Trường, mà nặng gấp đôi: nút hỏi ở HÀNG ĐẦU nên mở lên là
+                   lọt khỏi dải cuộn 143px, và thiếu `gtip-phai` nên hộp còn chạy quá mép phải
+                   235px — khung ngoài `overflow-x:hidden` cắt thẳng. Xuống + neo phải là hết. -->
+              <span class="gtip gtip-xuong gtip-phai">
                 <span class="block">Bậc Hộ Kinh Sứ càng cao thì chuyến càng ngắn mà thưởng càng lớn.</span>
                 <span class="block mt-0.5">Làm Mới lần đầu mỗi lượt miễn phí, từ lần hai tốn <b x-text="g.TK_LAM_MOI_GIA"></b> Nguyên Bảo.</span>
                 <span class="block mt-0.5">Mỗi hộ vệ chặn đúng một lần bị cướp.</span>
@@ -17120,7 +17128,10 @@
             </div>
             <span class="dd-tip relative inline-flex items-center" style="--q:#f5b942">
               <span class="dd-hoi">?</span>
-              <span class="gtip gtip-len gtip-phai"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Đối thủ là bản chụp bộ chiến đấu của người chơi khác, không cần hai máy cùng lúc. Thắng người trên cơ được nhiều Đấu Điểm hơn. Đấu Trường chỉ trả Bạc và Đấu Điểm.</span></span>
+              <!-- ⚠ MỞ XUỐNG, đừng mở lên. Nút hỏi này nằm ở HÀNG ĐẦU của màn nên phía trên nó
+                   không còn chỗ: đo được hộp lọt khỏi dải cuộn 98px, người chơi thấy một khung
+                   cụt đầu. Nút hỏi ở hàng đầu thì luôn phải là `gtip-xuong`. -->
+              <span class="gtip gtip-xuong gtip-phai"><span class="block px-3 py-2.5 text-[11.5px] leading-snug text-slate-300">Đối thủ là bản chụp bộ chiến đấu của người chơi khác, không cần hai máy cùng lúc. Thắng người trên cơ được nhiều Đấu Điểm hơn. Đấu Trường chỉ trả Bạc và Đấu Điểm.</span></span>
             </span>
           </div>
 
@@ -20050,8 +20061,44 @@
       return bo ? bo.querySelector('.gtip') : null;
     }
     function dongHet(tru){
-      document.querySelectorAll('.gtip.on').forEach(function(g){ if (g !== tru) g.classList.remove('on'); });
+      document.querySelectorAll('.gtip.on').forEach(function(g){
+        if (g !== tru) { g.classList.remove('on'); g.style.removeProperty('transform'); }
+      });
       document.querySelectorAll('.dd-hoi.on').forEach(function(n){ n.classList.remove('on'); });
+    }
+    // ⚠⚠ KEO HOP LAI CHO VUA KHUNG. Cac lop `.gtip-phai`/`.gtip-giua`/mac dinh chi neo hop vao
+    //    mot phia CO DINH cua nut hoi — ma hang chua nut hoi la `flex-wrap`, nen doi kho la nut
+    //    doi cho, va cai neo dung o kho nay thanh sai o kho kia. Do that man Dau Truong: neo phai
+    //    vua khung o 1200px nhung chay qua mep TRAI 236px o 390px; neo trai thi nguoc lai.
+    //    Khong lop tinh nao dung ca hai, nen do va keo lai ngay luc mo.
+    // ⚠⚠ KEO BANG `transform`, DUNG BANG LE (margin). Da thu le va do lai: hop neo phai
+    //    (`left:auto; right:0`) thi `margin-left` KHONG dich no mot li nao — no chi doi be ngang,
+    //    ma be ngang o day chot cung 268px. Do xong van ra "cat TRAI 236px" y het luc chua va.
+    // ⚠⚠ Va KHONG the doan phia bang `getComputedStyle(hop).left === 'auto'`: trinh duyet TINH RA
+    //    `left` (do duoc `-490px`) chu khong tra ve `auto`, nen phep thu do luon re nham nhanh.
+    //    `transform` thi dich duoc bat ke hop neo trai hay neo phai.
+    // ⚠ Phai NOI THEM vao phep bien doi san co chu dung ghi de: `.gtip-giua`/`.gtip-dn` dang dung
+    //   `translateX(-50%)` de canh giua, ghi de la hop nhay sang mot ben.
+    function keoVaoKhung(hop){
+      hop.style.removeProperty('transform');
+      // ⚠ ĐỪNG đặt biến này tên `cs`. Bài kiểm 46 quét `cs.<tên>` trong tệp này để soi chỉ số
+      //   đệ tử Tông Môn, nên một biến cục bộ tên `cs` là nó báo đỏ "đọc trường overflowX không
+      //   có thật trong disciStats()". Dính rồi.
+      var p = hop.parentElement, khung = null;
+      while (p && p !== document.body) {
+        var kieu = getComputedStyle(p);
+        if (/(auto|hidden|scroll|clip)/.test(kieu.overflowX)) { khung = p; break; }
+        p = p.parentElement;
+      }
+      var r = hop.getBoundingClientRect();
+      var cr = khung ? khung.getBoundingClientRect()
+                     : { left: 0, right: document.documentElement.clientWidth };
+      var le = 6, day = 0;
+      if (r.left < cr.left + le) day = (cr.left + le) - r.left;          // thut ra ngoai mep trai
+      else if (r.right > cr.right - le) day = (cr.right - le) - r.right;  // chay qua mep phai
+      if (!day) return;
+      var tf = getComputedStyle(hop).transform;
+      hop.style.transform = (tf && tf !== 'none' ? tf + ' ' : '') + 'translateX(' + Math.round(day) + 'px)';
     }
     document.addEventListener('click', function(e){
       var nut = e.target.closest && e.target.closest('.dd-hoi');
@@ -20060,7 +20107,7 @@
         if (!hop) return;
         var dangMo = hop.classList.contains('on');
         dongHet(null);
-        if (!dangMo) { hop.classList.add('on'); nut.classList.add('on'); }
+        if (!dangMo) { hop.classList.add('on'); nut.classList.add('on'); keoVaoKhung(hop); }
         e.preventDefault(); e.stopPropagation();
         return;
       }
@@ -20068,6 +20115,15 @@
       if (!(e.target.closest && e.target.closest('.gtip.on'))) dongHet(null);
     }, true);
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') dongHet(null); });
+    // ⚠ Hộp mở bằng RÊ CHUỘT (`.gslot:hover .gtip`, `.dd-tip:hover .gtip`) không đi qua nhánh bấm
+    //   ở trên, nên phải kéo lại ở đây — không thì ô Thỉnh Kinh trên bản đồ mây vẫn bị xén ở khổ
+    //   hẹp (đo được 26–53px). Rê chuột là đường của MÁY TÍNH; điện thoại đi đường bấm.
+    document.addEventListener('mouseover', function(e){
+      var bo = e.target.closest && e.target.closest('.gslot, .dd-tip, .tk-doan');
+      if (!bo) return;
+      var hop = bo.querySelector('.gtip');
+      if (hop && !hop.classList.contains('on')) keoVaoKhung(hop);
+    }, true);
   })();
 </script>
 </body>
