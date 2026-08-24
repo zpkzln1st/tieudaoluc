@@ -3212,7 +3212,15 @@
               <span class="sk-fl f3"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
               <span class="sk-fl f4"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
               <div class="sk-row">
-                <div class="sk-ic" title="Xem chân dung lớn" @click="$store.game.openLightbox($store.game.currentSkill.id, $store.game.currentSkill.icon, $store.game.currentSkill.npc.name, 'images/damdao/'+$store.game.currentSkill.id+'.webp')"><img loading="lazy" decoding="async" class="sk-por" :src="'images/damdao/'+$store.game.currentSkill.id+'.webp'" alt="" onerror="this.remove()"><span x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></span></div>
+                <!-- CHÂN DUNG NPC phủ lên ô icon nghề; nghề không có chân dung thì để lộ icon.
+                     ⚠ Cửa là `hasDamDao()` — `DAMDAO` có đúng 10 nghề, và cũng đúng 10 tệp
+                       `images/damdao/<id>.webp`. Sáu kĩ năng sự kiện không có cái nào, nên không
+                       gắn `src` cho chúng: gắn vào là 404 một lần mỗi trang, chẳng để làm gì.
+                     ⚠⚠ Và ẨN khi ảnh lỗi, ĐỪNG `this.remove()`. Đây là MỘT thẻ tĩnh dùng chung
+                       cho mọi nghề: gỡ nó ở một nghề thiếu art là mất luôn chân dung của cả 10
+                       nghề CÓ art, tới khi tải lại trang mới về.
+                     `x-effect` đọc `selectedSkill` nên đổi nghề là cờ tự bật lại. -->
+                <div class="sk-ic" :title="$store.game.hasDamDao($store.game.selectedSkill) ? 'Xem chân dung lớn' : ''" x-data="{ porHong: false }" x-effect="$store.game.selectedSkill; porHong = false" @click="$store.game.hasDamDao($store.game.selectedSkill) && $store.game.openLightbox($store.game.currentSkill.id, $store.game.currentSkill.icon, $store.game.currentSkill.npc.name, 'images/damdao/'+$store.game.currentSkill.id+'.webp')"><template x-if="$store.game.hasDamDao($store.game.selectedSkill)"><img loading="lazy" decoding="async" class="sk-por" x-show="!porHong" :src="'images/damdao/'+$store.game.currentSkill.id+'.webp'" alt="" @error="porHong = true"></template><span x-html="$store.game.ico($store.game.currentSkill.id, $store.game.currentSkill.icon)"></span></div>
                 <div class="sk-body">
                   <div class="sk-nm" x-text="$store.game.currentSkill.npc.name"></div>
                   <div class="sk-qt" x-text="'“' + $store.game.currentSkill.npc.quote + '”'"></div>
@@ -5904,7 +5912,13 @@
 
               <!-- TAB TU LUYỆN — lục giác Tầng + 4 mốc cảnh giới + 3 ô số. MỌI khối cao CỐ ĐỊNH nên đổi
                    Tầng hay đổi chiêu đều không làm popup co giãn / đẻ con lăn. Cố ý KHÔNG bày lại hiệu ứng
-                   của từng mốc bằng chữ: nó đã hiện thành SỐ THẬT ở ba ô bên dưới, nói hai lần là thừa. -->
+                   của từng mốc bằng chữ: nó đã hiện thành SỐ THẬT ở ba ô bên dưới, nói hai lần là thừa.
+                   ⚠⚠ PHẢI `x-if` cùng điều kiện với THANH TAB ở trên, không được để `x-show` trần.
+                   `x-show` chỉ ẩn bằng CSS — Alpine vẫn CHẠY mọi biểu thức bên trong. Khối này gọi
+                   `chieuObj(it.id).nl` và `banMenhAnOf(it.id).name`, mà hai hàm đó chỉ trả về vật thể
+                   với CHIÊU. Mở popup của một Tâm Pháp / Bị Động là ném TypeError ngay, và cú ném đó
+                   làm hỏng luôn cả popup — bấm ô mà không ra gì. -->
+              <template x-if="it.kind==='chieu' && $store.game.itemOwned(it)">
               <div x-show="$store.game.tkTab==='tang'" class="flex-1 min-h-0 flex flex-col">
                 <div class="flex items-center gap-3 shrink-0">
                   <span class="eh-hex lv-hex" x-text="$store.game.tangOf(it.id)"></span>
@@ -5977,6 +5991,7 @@
                   </template>
                 </div>
               </div>
+              </template><!-- /tab Tu Luyện — chỉ dựng cho CHIÊU đã sở hữu -->
             </div>
             <!-- CHÂN: CTA ghim đáy, cao cố định -->
             <div class="shrink-0 p-3.5 border-t border-slate-800/80 bg-ink/40">
@@ -9110,7 +9125,7 @@
 
           <!-- MODAL ĐÃI KHÁCH CÁC (bang giao bot-sect: Tiếp Đãi / Tặng Lễ -> Kết Minh) -->
           <template x-if="g.daiKhachOpen">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeDaiKhach()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeDaiKhach()" @keydown.escape.window="g.closeDaiKhach()">
               <div @click.stop class="panel rounded-2xl w-[720px] max-w-full h-[620px] max-h-[92dvh] flex flex-col overflow-hidden border border-teal-600/35">
                 <div class="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(20,184,166,.12),transparent)">
                   <div class="flex items-center gap-2.5 min-w-0">
@@ -10132,7 +10147,7 @@
 
           <!-- MODAL ĐẤU GIÁ HỘI (shop tiêu Điểm Đấu Giá) -->
           <template x-if="g.shopOpen">
-            <div class="fixed inset-0 z-[79] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeShop()">
+            <div class="fixed inset-0 z-[79] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeShop()" @keydown.escape.window="g.closeShop()">
               <div class="panel rounded-2xl w-[600px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(245,185,66,.08),transparent)">
                   <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-amber-300" x-html="g.svg('scales','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Đấu Giá Hội</div></div>
@@ -10213,7 +10228,7 @@
 
           <!-- MODAL SỬ SÁCH (biên niên đầy đủ) -->
           <template x-if="g.soSachOpen">
-            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeSoSach()">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeSoSach()" @keydown.escape.window="g.closeSoSach()">
               <div class="panel rounded-2xl w-[640px] max-w-full h-[80vh] max-h-[760px] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(245,185,66,.08),transparent)">
                   <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-amber-300" x-html="g.svg('scroll','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Sử Sách Tông Môn</div></div>
@@ -17334,7 +17349,7 @@
     .locm-icf{ border:1px solid rgba(201,162,75,.55); box-shadow:inset 0 0 0 2px rgba(10,15,22,.7), inset 0 0 16px -6px rgba(201,162,75,.5); }
   </style>
   <template x-if="$store.game.locationModal">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" x-data="{ zoom:false }" @click="$store.game.closeLocation()">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" x-data="{ zoom:false }" @click="$store.game.closeLocation()" @keydown.escape.window="$store.game.closeLocation()">
       <div class="locm-panel rounded-2xl w-[30rem] max-w-[94vw] max-h-[92vh] flex flex-col overflow-hidden" @click.stop>
         <span class="locm-fl a"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
         <span class="locm-fl b"><svg viewBox="0 0 34 34"><path d="M2 16V6a4 4 0 014-4h10"/><path d="M7 11V8h3"/></svg></span>
@@ -17696,7 +17711,7 @@
 
   <!-- ===== Modal Trang Bị (kiểu IdleMMO) ===== -->
   <template x-if="$store.game.equipModal">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeEquip()">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeEquip()" @keydown.escape.window="$store.game.closeEquip()">
       <div class="panel rounded-xl w-[31rem] max-w-full border border-jade/25 overflow-hidden flex flex-col max-h-[88vh]" @click.stop
            x-data="{ get g(){ return $store.game }, get slot(){ return $store.game.equipModal.slot } }">
         <!-- Header -->
@@ -18004,7 +18019,7 @@
 
   <!-- ===== Modal sửa Tiểu Sử (≤250 ký tự) ===== -->
   <template x-if="$store.game.bioModal">
-    <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeBioEdit()">
+    <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeBioEdit()" @keydown.escape.window="$store.game.closeBioEdit()">
       <div class="panel rounded-2xl w-[30rem] max-w-[94vw] overflow-hidden shadow-2xl" @click.stop>
         <div class="px-6 pt-5 pb-3 border-b border-slate-800 flex items-center justify-between">
           <div class="text-lg font-bold flex items-center gap-2 fserif"><span class="text-jade" x-html="$store.game.svg('scroll','w-5 h-5')"></span>Tiểu Sử</div>
