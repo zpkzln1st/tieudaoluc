@@ -5025,9 +5025,18 @@ const gameStore = {
     if (!this.act) return;
     const a = this.act;
     const carrySess = a.type === 'combat' ? a.sess : null, carryCount = a.sessionCount || 0;   // refresh chỉ reset đồng hồ treo — GIỮ thu hoạch phiên
+    // ⚠⚠ ↻ chỉ ĐẶT LẠI ĐỒNG HỒ, không phải bắt đầu phiên mới. Trước đây nó làm mất hai thứ:
+    //   1. SỐ LƯỢT người chơi đã gõ (thiếu tham số thứ 5) — việc chạy vô hạn tới khi hết nguyên liệu.
+    //   2. Viên LINH THẠCH đang cháy: `startActivity` đốt thêm một viên và vứt phần phủ còn lại.
+    const carryLimit = a.limit || 0;
+    const carryBuff = a.buff ? { buff: a.buff, buffMsLeft: a.buffMsLeft, buffXpAcc: a.buffXpAcc, buffAt: a.buffAt, ltId: a.ltId } : null;
     stopActivity(this.state);
     if (a.type === 'combat') { startCombat(this.state, a.enemyId, now()); const na = this.state.activity; if (na && carrySess) { na.sess = carrySess; na.sessionCount = carryCount; } }
-    else startActivity(this.state, a.skillId, a.actionId, now());
+    else {
+      startActivity(this.state, a.skillId, a.actionId, now(), carryLimit, !!carryBuff);
+      const na = this.state.activity;
+      if (na && carryBuff) Object.assign(na, carryBuff);
+    }
     Storage.save(this.state);
   },
 

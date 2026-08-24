@@ -34,6 +34,17 @@ export function ensureBoss(state) {
   if (!b.he) b.he = {};
   if (!b.queue) b.queue = {};
   if (!Array.isArray(b.history)) b.history = [];
+  // ⚠⚠ `history` bi CAT CUNG con HISTORY_CAP dong (xem recordHistory). Dem so lan thang bang cach
+  //   LOC no la mot bo dem TUT DUOC: thang lan thu 41 thi lan thu 1 roi khoi so, so dem GIAM.
+  //   Bang Phai dem tren chinh so nay (tongBossKill · demMuc laBoss · Truy Na Huyet Lenh), nen mot
+  //   lenh truy na da nhan co the thanh KHONG BAO GIO NOP DUOC.
+  //   ⇒ Hai bo dem CHI TIEN duoi day; tu nay khong cho nao dem lai tu `history` nua.
+  //   Ban luu CU: gieo mot lan tu phan `history` con lai — thap hon so that, nhung dung bang cai cu.
+  if (typeof b.tongThang !== 'number') b.tongThang = b.history.filter((x) => x && x.win).length;
+  if (!b.thangTheo || typeof b.thangTheo !== 'object') {
+    b.thangTheo = {};
+    for (const x of b.history) if (x && x.win && x.id) b.thangTheo[x.id] = (b.thangTheo[x.id] || 0) + 1;
+  }
   if (!b.hp) b.hp = {};                           // máu HIỆN TẠI mỗi boss (carry-over giữa các lần thử)
   if (typeof b.healUntil !== 'number') b.healUntil = 0;  // mốc hết dưỡng thương (toàn cục cho người chơi)
   return b;
@@ -173,8 +184,18 @@ export function applyBossRetreat(state, bossId, now, bHpEnd) {
 
 function recordHistory(state, entry) {
   const b = ensureBoss(state);
+  // Bo dem CHI TIEN — cong TRUOC khi cat so, nen cat bao nhieu cung khong anh huong.
+  if (entry && entry.win) {
+    b.tongThang = (b.tongThang || 0) + 1;
+    if (entry.id) b.thangTheo[entry.id] = (b.thangTheo[entry.id] || 0) + 1;
+  }
   b.history.unshift(entry);
   if (b.history.length > HISTORY_CAP) b.history.length = HISTORY_CAP;
+}
+/** So lan ha Yeu Vuong — doc BO DEM, tuyet doi dung loc lai `history` (so do bi cat con 40 dong). */
+export function soLanThang(state, bossId) {
+  const b = ensureBoss(state);
+  return bossId ? (b.thangTheo[bossId] || 0) : (b.tongThang || 0);
 }
 function isRareReward(rw) {
   if (!rw || !rw.items) return false;

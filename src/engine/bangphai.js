@@ -14,6 +14,16 @@
 // ⚠ BUFF CHỈ SỐ nằm ở engine/bangbuff.js (file nhẹ, không import vòng). Đừng nhét vào đây.
 // ============================================================
 import { LOCATIONS } from '../data/locations.js';
+/**
+ * VÙNG CỦA BANG PHÁI — bỏ 6 vùng sự kiện.
+ * ⚠⚠ `data/sukien.js` TỰ NHỒI 6 vùng sự kiện vào `LOCATIONS` ngay lúc nạp, và chúng khai
+ *   `reqLevel: 1` nên lọt qua MỌI cửa cấp. Bang Phái không được đụng tới chúng: vùng sự kiện đóng
+ *   gần như cả năm, mà đất tranh / Chinh Phạt / Cấm Địa lại rải điểm vào đó — điểm không ai lấy
+ *   được, và Cấm Địa ở đó không có mạch quặng nào nên không ra một cục nào.
+ * ⚠ Phải lọc TẠI CHỖ GỌI, đừng cache ở tầng mô-đun: thứ tự nạp không bảo đảm `sukien.js` đã chạy
+ *   xong trước tệp này.
+ */
+const vungBang = () => LOCATIONS.filter((l) => !l.suKien);
 import { YEU_VUONG, YEU_VUONG_BY_ID, ENEMIES } from '../data/combat.js';
 import { genRoster, botCombatLv, botTotalLv, botTitle, botAvatar, botArchName, botActivity, botDominant, botTracks } from './bots.js';
 import { CAT_HEX, BOT_HO, BOT_TEN, BOT_AVATAR_IDS, ARCHETYPES, ARCHETYPE_IDS } from '../data/bots.js';
@@ -288,7 +298,7 @@ export function bangAI(world, now) {
     const cap = 4 + (h % 22);                                  // cấp bang 4-25
     const soTv = 8 + (mix(h, 7) % 18);                          // 8-25 người
     const cpVung = {}; let cpTong = 0;
-    LOCATIONS.forEach((loc, j) => {
+    vungBang().forEach((loc, j) => {
       const hh = mix(mix(h, 0x9E11), j);
       // Bang nào cũng chỉ dồn sức vào vài vùng — rải đều thì vùng nào cũng đông, không ai
       // trội, người chơi chen vào chỗ nào cũng như nhau và bảng hạng thành vô nghĩa.
@@ -385,7 +395,8 @@ export function chieuMo(state, botId, world, now) {
   }
   // Mỗi người cày một vùng riêng — điểm Chinh Phạt của họ đổ vào đúng vùng đó, nên bang
   // đông người thì phủ được nhiều vùng chứ không dồn hết một chỗ.
-  const vung = LOCATIONS[mix(h32(botId), 0x1D3) % LOCATIONS.length].id;
+  const _vb = vungBang();
+  const vung = _vb[mix(h32(botId), 0x1D3) % _vb.length].id;
   b.bang.tv.push({ id: botId, chuc: CHUC_THAP, vaoLuc: t, gopBac: 0, ct: 0, cp: 0, vung });
   b.bang.donXin = (b.bang.donXin || []).filter((x) => x !== botId);
   const ho = moTaBot(r, t);
@@ -553,14 +564,32 @@ export function thuSan(state, world, now) {
   const ds = thanhVien(state, world, t);
   let bac = 0, bangCong = 0;
   const khoBoost = 1 + ((b.bang.congTrinh.bangKho | 0) * 0.05);
+  // ⚠⚠ GIU SO DU. Truoc day lam tron RIENG TUNG NGUOI TUNG NHIP roi day `mocThu` len vo dieu kien:
+  //   nhip 60 giay thi `gio = 1/60`, phan cua moi nguoi nho hon 1 nen lam tron ve 0, va phan du
+  //   VUT DI MAI MAI. Do that: 180 nhip 60 giay ra 0 Bac / 0 Chinh Phat, trong khi MOT nhip 3 gio
+  //   ra 66 Bac / 6 Chinh Phat — mat 100%.
+  //   Nay cong vao so du roi moi cat phan nguyen; phan le nam lai cho nhip sau.
+  if (!b.bang.duThu || typeof b.bang.duThu !== 'object') b.bang.duThu = {};
+  const du = b.bang.duThu;
+  if (typeof du.bac !== 'number') du.bac = 0;
+  if (typeof du.bangCong !== 'number') du.bangCong = 0;
+  if (!du.cp || typeof du.cp !== 'object') du.cp = {};
+  const catDu = (khoa, them) => {                 // cong vao so du, tra ve phan NGUYEN lay duoc
+    const tong = (du[khoa] || 0) + them;
+    const n = Math.floor(tong);
+    du[khoa] = tong - n;
+    return n;
+  };
   for (const m of ds) {
     const s = sanMoiGio(m, m.chucBac);
-    const addBac = Math.round(s.bac * gio * khoBoost);
-    const addCp = Math.round(s.cp * gio);
-    bac += addBac; bangCong += Math.round(s.bangCong * gio);
+    const addBac = catDu('bac', s.bac * gio * khoBoost);
+    const tongCp = (du.cp[m.id] || 0) + s.cp * gio;
+    const addCp = Math.floor(tongCp);
+    du.cp[m.id] = tongCp - addCp;
+    bac += addBac; bangCong += catDu('bangCong', s.bangCong * gio);
     const raw = b.bang.tv.find((x) => x.id === m.id);
     if (raw) { raw.gopBac = (raw.gopBac || 0) + addBac; raw.cp = (raw.cp || 0) + addCp; }
-    themCpVung(state, m.vung, addCp, t);
+    if (addCp > 0) themCpVung(state, m.vung, addCp, t);
   }
   b.bang.quy += bac;
   themBangCong(state, bangCong, t);
@@ -731,10 +760,17 @@ function tongProduced(state) {
   let s = 0; for (const id in p) if (Object.prototype.hasOwnProperty.call(p, id)) s += p[id] || 0;
   return s;
 }
-function tongBossKill(state) {
-  const h = (state.boss && state.boss.history) || [];
-  return h.filter((x) => x && x.win).length;
+// ⚠⚠ ĐỪNG lọc lại `boss.history`: sổ đó bị cắt cứng còn 40 dòng nên số đếm TỤT ĐƯỢC, và mốc đã
+//   đạt có thể tự huỷ. Đọc BỘ ĐẾM CHỈ TIẾN (`boss.tongThang` / `boss.thangTheo`) — chỉ
+//   engine/worldboss.js ghi hai trường này.
+// ⚠ ĐỪNG `import` worldboss.js vào đây: nó đã import CHÍNH tệp này (vòng tròn), và nó kéo theo
+//   `data/sukien.js` — tệp đó TỰ NHỒI 6 vùng sự kiện vào `LOCATIONS` lúc nạp, nên chỉ thêm một
+//   dòng import là mọi bài kiểm của Bang Phái thấy 16 vùng thay vì 10.
+function soLanThang(state, bossId) {
+  const b = state.boss || {};
+  return bossId ? ((b.thangTheo && b.thangTheo[bossId]) || 0) : (b.tongThang || 0);
 }
+function tongBossKill(state) { return soLanThang(state); }
 function mocHienTai(state) {
   const b = ensureBangPhai(state);
   return {
@@ -865,7 +901,9 @@ function ensureTruyNa(state, world, now, combatLv) {
   return b.truyNa;
 }
 function demMuc(state, muc, laBoss) {
-  if (laBoss) return ((state.boss && state.boss.history) || []).filter((x) => x && x.win && x.id === muc).length;
+  // ⚠⚠ Tiến độ Truy Nã PHẢI đọc bộ đếm chỉ-tiến. Lọc `boss.history` (cắt còn 40 dòng) thì số đếm
+  //   tụt được, và lệnh đã nhận thành KHÔNG BAO GIỜ NỘP ĐƯỢC.
+  if (laBoss) return soLanThang(state, muc);
   return ((state.counters && state.counters.kills) || {})[muc] || 0;
 }
 export function danhSachTruyNa(state, world, now, combatLv) {
@@ -959,7 +997,7 @@ export function cpConLai(state, x, locId) {
 /** Tổng điểm mùa của một bang AI, cũng đã trừ phần bị cướp. */
 export function cpTongConLai(state, x) {
   let s = 0;
-  for (const loc of LOCATIONS) s += cpConLai(state, x, loc.id);
+  for (const loc of vungBang()) s += cpConLai(state, x, loc.id);
   return s;
 }
 
@@ -979,7 +1017,7 @@ export function bangXepHangVung(state, world, locId, now) {
 export function chinhPhat(state, world, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
   ensureMua(state, t);
-  const out = LOCATIONS.map((loc) => {
+  const out = vungBang().map((loc) => {
     const r = bangXepHangVung(state, world, loc.id, t);
     const ta = r.ds.find((x) => x.laTa);
     return {
@@ -1038,7 +1076,7 @@ export function chotHangMua(state, world, now) {
     - (soCuop[String(x && x.id) + '|' + String(locId)] || 0));
   const ds = bangAI(world, mocDong).map((x) => ({
     id: x.id, laTa: false,
-    diem: LOCATIONS.reduce((s, loc) => s + conLai(x, loc.id), 0),
+    diem: vungBang().reduce((s, loc) => s + conLai(x, loc.id), 0),
   }));
   ds.push({ id: 'ta', laTa: true, diem: b.muaThuong.diemTa | 0 });
   ds.sort((x, y) => y.diem - x.diem);
@@ -1142,7 +1180,8 @@ export function chotBossBang(state, world, now) {
   const manh = 1 + Math.floor(capDai / 3) + (tiLe >= 0.4 ? 1 : 0);
   themCongTich(state, ct);
   themBangCong(state, Math.round(ct / 4), t);
-  themCpVung(state, LOCATIONS[Math.min(LOCATIONS.length - 1, Math.floor((r.boss.reqLevel || 10) / 11))].id, CP_MOI_BOSS, t);
+  const _vbB = vungBang();
+  themCpVung(state, _vbB[Math.min(_vbB.length - 1, Math.floor((r.boss.reqLevel || 10) / 11))].id, CP_MOI_BOSS, t);
   ghiNhatKy(state, 'Cả minh hạ <b>' + r.boss.name + '</b> — công của ngươi ' + Math.round(tiLe * 100) + '%.', t);
   baoMinh(state, 'Hạ ' + r.boss.name,
     'Cả minh vây đánh hạ được ' + r.boss.name + ' (Lv ' + (r.boss.reqLevel || '?') + '). Công của ngươi '
@@ -1190,8 +1229,8 @@ function capChienDau(state) {
 
 export function bcDatTranh(state, world, now) {
   const t = now || Date.now(), lv = capChienDau(state);
-  const mo = LOCATIONS.filter((l) => (l.reqLevel || 1) <= Math.max(1, lv));
-  const mo0 = mo.length ? mo : [LOCATIONS[0]];
+  const mo = vungBang().filter((l) => (l.reqLevel || 1) <= Math.max(1, lv));
+  const mo0 = mo.length ? mo : [vungBang()[0]];
   // ⚠ Boc DEU trong moi vung da mo la SAI: nguoi cap 60 mo 7 vung thi phan lon tuan roi vao
   //   vung Lv 1-18, tranh mot manh dat khong ai them. Boc trong DAI TREN, cung loi `bossBangCua`.
   const cao = mo0.reduce((m, x) => Math.max(m, x.reqLevel || 1), 0);
@@ -1344,8 +1383,13 @@ export function bcThuQuang(state, world, now) {
   if (!ds.length) { bc.mocQ = t; return null; }
   const gio = troi / GIO;
   const thu = [];
+  // ⚠⚠ GIU SO DU — cung benh voi `thuSan`. `Math.floor` moi nhip roi day `bc.mocQ` len vo dieu kien:
+  //   nhip 60 giay ma quang duoi 60 cuc/gio thi luon ra 0, Cam Dia KHONG BAO GIO ra duoc cuc nao.
+  if (!bc.duQ || typeof bc.duQ !== 'object') bc.duQ = {};
   for (const c of ds) {
-    const so = Math.floor(c.moiGio * gio);
+    const tong = (bc.duQ[c.itemId] || 0) + c.moiGio * gio;
+    const so = Math.floor(tong);
+    bc.duQ[c.itemId] = tong - so;
     if (so > 0 && gopKho(state, c.itemId, so)) thu.push({ itemId: c.itemId, ten: c.ten, so, locTen: c.locTen });
   }
   bc.mocQ = t;

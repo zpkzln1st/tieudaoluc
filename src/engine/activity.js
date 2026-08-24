@@ -148,7 +148,13 @@ export function ghiNhatKyNgay(state, now, them) {
 // ---- Bắt đầu hoạt động kỹ năng ----
 // `soLuot` = làm đúng ngần ấy lượt rồi tự dừng. 0 / bỏ trống = chạy tới khi hết nguyên liệu
 // hoặc chạm trần nhàn rỗi (nếp cũ).
-export function startActivity(state, skillId, actionId, now, soLuot) {
+/**
+ * @param giuBuff true = ĐỪNG đốt Linh Thạch, người gọi sẽ tự đặt lại viên đang cháy.
+ *   Dùng cho nút ↻ "Làm mới": nó chỉ đặt lại đồng hồ treo chứ không phải bắt đầu phiên mới, mà
+ *   `burnLinhThach` thì đốt vô điều kiện — mỗi lần bấm ↻ là mất thêm một viên VÀ vứt bỏ toàn bộ
+ *   phần phủ còn lại của viên đang cháy.
+ */
+export function startActivity(state, skillId, actionId, now, soLuot, giuBuff) {
   const action = getAction(skillId, actionId);
   if (!action) return false;
   if (!canStartAction(state, skillId, action)) return false;
@@ -169,7 +175,7 @@ export function startActivity(state, skillId, actionId, now, soLuot) {
     buff: null, buffMsLeft: 0, buffXpAcc: 0,
     buffAt: now,       // MỐC đã tính đá tới đâu — xem ghi chú ở advance()
   };
-  burnLinhThach(state, state.activity);   // viên đầu trừ ngay khi bấm Bắt Đầu
+  if (!giuBuff) burnLinhThach(state, state.activity);   // viên đầu trừ ngay khi bấm Bắt Đầu
   if (state.activity.buff) state.activity.cycleMs = cycleMsFor(state, skillId, action, state.activity.buff.effPct);
   return true;
 }
@@ -511,8 +517,11 @@ export function advance(state, now) {
         if (action.inputs) for (const inp of action.inputs) removeItem(state, inp.itemId, inp.qty);
         // Rèn gear (mọi món có .equip, gồm cả legacy tichSao/thietKiem/tichGiap) -> instance ROLL. Sản phẩm khác (thỏi/đan...) -> xếp chồng.
         if (action.itemId) { if (ITEMS[action.itemId] && ITEMS[action.itemId].equip) addGearInstance(state, rollGearInstance(action.itemId, null, rngHam(state, 'renDo'))); else addItem(state, action.itemId, 1); }
-        if (yieldPct && i < buffedCycles && rng(state, 'boiSan') < yieldPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
-        if (ncDoiPct && rng(state, 'ncDoi') < ncDoiPct / 100) { addItem(state, action.itemId, 1); bonusOut++; ncDoiOut++; }
+        // ⚠⚠ PHAI soi `action.itemId`. Thien Dinh (nghe Toa Quan) khong ra vat pham nao — `itemId`
+        //   la null. Nhanh chinh o tren da soi, hai nhanh NHAN DOI nay thi khong, nen chung goi
+        //   `addItem(state, null, 1)` va ghi mot muc rac khoa "null" vao tui do + Van Vat Pho.
+        if (action.itemId && yieldPct && i < buffedCycles && rng(state, 'boiSan') < yieldPct / 100) { addItem(state, action.itemId, 1); bonusOut++; }
+        if (action.itemId && ncDoiPct && rng(state, 'ncDoi') < ncDoiPct / 100) { addItem(state, action.itemId, 1); bonusOut++; ncDoiOut++; }
         if (monCaoHon && rng(state, 'ncVuot') < ncVuotPct / 100) { addItem(state, monCaoHon, 1); vuotOut++; }
         addSkillXp(state, act.skillId, gainXp);
         if (skill.stat) addStatXp(state, skill.stat, action.statXp);

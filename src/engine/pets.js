@@ -263,16 +263,26 @@ export function resetPetCombat(state) {
   const cb = state.combat; if (!cb) return;
   const p = activePet(state);
   cb.petHp = p ? petHpMax(p) : null;
+  cb.petId = p ? p.id : null;     // ⚠ máu pet phải GẮN VỚI CON PET — xem ghi chú ở petCombatCycle
   cb.petFainted = false;
   cb.petCd = 0;   // tuyệt kĩ chủ động sẵn sàng đầu phiên
 }
 // Pet tự dùng Món Ăn/Đan hồi HP khi <25% (chung ô với chủ -> tốn thêm item). Trả lượng hồi.
 function petAutoHeal(state) {
   const cb = state.combat; if (!cb) return 0;
+  // ⚠⚠ PHAI doc CA `healPct`, khong chi `heal`. Ba dan hoi mau (Hoat Huyet Dan...) CHI mang
+  //   `healPct`, khong co `heal` phang; ma o "Hoi Sinh Luc" VAN cho lap dan (main.js nhan ca hai).
+  //   Truoc day chi soi `heal` nen lap dan vao o do la Linh Thu MAT HAN duong tu hoi, im lang.
+  //   `healPct` la % Sinh Luc TOI DA cua PET — dung mau cua chu.
+  const p = activePet(state);
+  const maxHP = p ? petHpMax(p) : 0;
+  const luong = (o) => (o.healPct ? Math.round(maxHP * o.healPct / 100) : (o.heal || 0));
   const fid = cb.luongThuc, food = fid && ITEMS[fid];
-  if (food && food.heal && (state.inventory[fid] || 0) > 0) { removeItem(state, fid, 1); return Math.round(food.heal * consumableEffMult(state)); }
+  if (food && (food.heal || food.healPct) && (state.inventory[fid] || 0) > 0) {
+    removeItem(state, fid, 1); return Math.round(luong(food) * consumableEffMult(state));
+  }
   const did = cb.dan, dan = did && ITEMS[did];
-  if (dan && dan.heal && (state.inventory[did] || 0) > 0) { removeItem(state, did, 1); return dan.heal; }
+  if (dan && (dan.heal || dan.healPct) && (state.inventory[did] || 0) > 0) { removeItem(state, did, 1); return luong(dan); }
   return 0;
 }
 // 1 cycle combat của pet ĐANG MANG: gánh 20% sát thương (dmg) -> HP pet, −4 Thể Lực, auto-heal, ngất.
@@ -280,6 +290,11 @@ function petAutoHeal(state) {
 export function petCombatCycle(state, dmg, now) {
   const cb = state.combat; if (!cb) return { absorb: 0, heal: 0, skill: null };
   const p = activePet(state); if (!p) return { absorb: 0, heal: 0, skill: null };
+  // ⚠⚠ `cb.petHp` / `cb.petFainted` KHONG gan voi con pet nao ca. `resetPetCombat` chi chay o
+  //   `startCombat`, nen doi pet GIUA PHIEN (Linh Thú -> Ngự Thú -> đeo con khác) thi con MOI thua
+  //   ke mau con lai va CA TRANG THAI NGAT cua con cu: deo con day mau vao van thay no ngat ngay.
+  //   ⇒ Gan mau voi `cb.petId`; khac con la dat lai.
+  if (cb.petId !== p.id) { cb.petId = p.id; cb.petHp = petHpMax(p); cb.petFainted = false; cb.petCd = 0; }
   if (cb.petHp == null) cb.petHp = petHpMax(p);
   if (cb.petFainted) return { absorb: 0, heal: 0, skill: null };
   const stam = petStamView(p, now);
