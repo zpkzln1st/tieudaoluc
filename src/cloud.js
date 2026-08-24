@@ -686,18 +686,32 @@ export async function cloudSanDs(gioiHan) {
   return { ok: true, ds: data || [] };
 }
 
-/** Tin CUA MINH (ca da ban / da go) — de xem lai. */
+/**
+ * Tin CUA MINH (ca da ban / da go) — de xem lai.
+ * ⚠⚠ LAY TIN DANG TREO RIENG MOT LUOT, DUNG XEP CHUNG ROI CAT. Ban cu xep het moi trang thai vao
+ *   mot luot roi cat 50 dong moi nhat: nguoi ban chay tay ma con mot tin treo lau ngay thi chinh
+ *   lich su ban/go cua ho DAY tin do ra khoi danh sach. Tin bien mat truoc mat nhung van song tren
+ *   may chu — mat han cua go xuong, mon ket trong do, ma tran 10 don van tinh no. Tin dang treo
+ *   nhieu nhat la 10 nen luot rieng nay khong bao gio nang.
+ */
+const SAN_COT = 'id,mon,gia,trang_thai,tao_luc,xong_luc,loai,item_id,so_luong';
 export async function cloudSanCuaToi(gioiHan) {
   const sb = await getClient();
   const uid = await _uid();
   if (!uid) return { ok: false, reason: 'no-auth' };
-  const { data, error } = await sb.from('san_rao')
-    .select('id,mon,gia,trang_thai,tao_luc,xong_luc,loai,item_id,so_luong')
-    .eq('nguoi_ban', uid)
-    .order('tao_luc', { ascending: false })
-    .limit(Math.min(100, gioiHan || 50));
-  if (error) return { ok: false, reason: error.message };
-  return { ok: true, ds: data || [] };
+  const tran = Math.min(100, gioiHan || 50);
+  const treo = await sb.from('san_rao').select(SAN_COT)
+    .eq('nguoi_ban', uid).eq('trang_thai', 'treo')
+    .order('tao_luc', { ascending: false }).limit(tran);
+  if (treo.error) return { ok: false, reason: treo.error.message };
+  const dsTreo = treo.data || [];
+  const con = Math.max(0, tran - dsTreo.length);
+  if (!con) return { ok: true, ds: dsTreo };
+  const cu = await sb.from('san_rao').select(SAN_COT)
+    .eq('nguoi_ban', uid).neq('trang_thai', 'treo')
+    .order('tao_luc', { ascending: false }).limit(con);
+  if (cu.error) return { ok: false, reason: cu.error.message };
+  return { ok: true, ds: dsTreo.concat(cu.data || []) };
 }
 
 /** Treo ban MOT trang bi theo `uid` cua instance. */

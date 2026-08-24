@@ -277,6 +277,11 @@ for (const nh of ['tinh', 'khi', 'than']) {
   if (!Array.isArray(state.danDien[nh])) state.danDien[nh] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 }
 if (!state.danDien.luyen || typeof state.danDien.luyen !== 'object') state.danDien.luyen = { tinh: 0, khi: 0, than: 0 };
+// ĐIỂM DANH: gieo mốc CHỈ TIẾN KHÔNG LÙI cho save cũ. Không gieo thì mốc rỗng, và cửa chống vặn
+// đồng hồ chỉ đóng lại sau lần điểm danh kế — hở đúng một vòng 28 ngày.
+if (state.login && typeof state.login === 'object' && !state.login.ngayCaoNhat && state.login.lastDay) {
+  state.login.ngayCaoNhat = state.login.lastDay;
+}
 // Cài Đặt: đổ mặc định vào save cũ (giữ nguyên khoá người chơi đã đổi). Không cần bump SAVE_VERSION.
 if (!state.settings || typeof state.settings !== 'object') state.settings = {};
 for (const k of Object.keys(CAI_DAT_MAC_DINH)) if (state.settings[k] === undefined) state.settings[k] = CAI_DAT_MAC_DINH[k];
@@ -2629,6 +2634,11 @@ const gameStore = {
   },
   /** Nhận hết quà đang chờ. Gọi khi vào game và khi bấm tay. */
   async nhanQuaChoSan() {
+    // ⛔ ĐANG CHỜ CHỌN BẢN LƯU thì đừng nhận. Máy chủ đánh dấu `nhan_luc` là việc KHÔNG LÙI ĐƯỢC,
+    //   mà người chơi bấm "lấy bản trên mây" một cái là bản vừa cộng quà bị ghi đè sạch. Quà bốc
+    //   hơi vĩnh viễn còn máy chủ thì coi như đã trả xong. Chờ chọn xong hẵng nhận (xem
+    //   `useLocalSave`; nhánh lấy bản mây thì tải lại trang, vòng sau nhận).
+    if (this.cloudConflict || this.napCloud) return 0;
     try {
       const r = await cloudQuaChoNhan();
       if (!r.ok || !r.rows.length) return 0;
@@ -2779,6 +2789,9 @@ const gameStore = {
    */
   async taiMaTuDong() {
     if (!this.authUser) return 0;
+    // ⛔ Y HỆT HỘP QUÀ, mà nặng hơn: mã đổi rồi thì máy này KHÔNG có sổ ghi "đã nhận" nào để lần
+    //   sau nhận bù. Đổi giữa lúc đang chờ chọn bản lưu là mất trắng phần quà.
+    if (this.cloudConflict || this.napCloud) return 0;
     try {
       const r = await cloudMaTuDongDs();
       if (!r.ok || !r.rows.length) return 0;
@@ -3108,6 +3121,9 @@ const gameStore = {
       // Lịch sự kiện đọc được KHÔNG CẦN đăng nhập — ai cũng phải biết sự kiện nào đang mở.
       // ⚠ Hoãn 2 giây như đường Phong Vân Bảng: đừng tranh băng thông với lượt kéo save lúc mở game.
       setTimeout(() => { this.taiSuKien(); }, 2000);
+      // ⚠ Đo lệch đồng hồ máy chủ SỚM — Điểm Danh lấy ngày từ đó. Mất mạng thì lệch về 0 và
+      //   Điểm Danh rơi về đồng hồ máy, nhưng mốc `ngayCaoNhat` chỉ-tiến-không-lùi vẫn chặn.
+      this.doLechGioMc();
       // Cáo thị đọc được KHÔNG CẦN đăng nhập — thông báo bảo trì phải tới được cả khách.
       setTimeout(() => { this.taiCaoThi(); }, 3000);
       setInterval(() => { this.taiCaoThi(); }, 10 * 60 * 1000);
@@ -3237,6 +3253,13 @@ const gameStore = {
   // Đẩy state hiện tại lên cloud (đảm bảo đã lưu localStorage trước để lastSave mới nhất).
   async _cloudPushNow() {
     if (!this.isLoggedIn) return false;
+    // ⛔ ĐANG XOÁ TIẾN TRÌNH thì mọi đường đẩy khác phải im. Nhịp 15 giây chen vào ngay sau lúc
+    //   `doReset` ghi bản trắng lên máy chủ là đẩy nguyên tiến trình cũ trở lại. Người chơi xoá
+    //   xong, tải lại, máy này trống, `cloudSyncOnLogin` kéo bản cũ về — tưởng đã xoá mà chưa.
+    if (resetting) return false;
+    // ⚠⚠ ĐÓNG DẤU TÀI KHOẢN LÊN BẢN LƯU. Thiếu dấu này thì đổi tài khoản trong cùng một phiên là
+    //   bản của người trước đè lên máy chủ của người sau (xem cửa ở `cloudSyncOnLogin`).
+    try { this.state.cloudUid = this.authUser.id; } catch (e) {}
     this.cloudSyncing = true;
     try {
       const r = await cloudPushSave(this.state);
@@ -3253,6 +3276,9 @@ const gameStore = {
   _applyCloudSave(cloudData) {
     this.napCloud = true;   // giữ màn Khai Tịch ở trạng thái CHỜ, đừng để form tạo nhân vật chớp lên
     Storage.lock();   // chặn autosave RAM cũ ghi đè trong lúc chờ reload
+    // ⚠ Đóng dấu tài khoản đang đăng nhập lên bản vừa kéo về. Không đóng thì bản đó còn mang dấu
+    //   chủ cũ, và lần vào sau cửa đổi-tài-khoản bắt oan chính chủ.
+    try { if (cloudData && this.authUser) cloudData.cloudUid = this.authUser.id; } catch (e) {}
     try { localStorage.setItem('tieudao_save_v1', JSON.stringify(cloudData)); } catch (e) {}
     this._cloudLastPushed = (cloudData && cloudData.lastSave) || 0;
     this.showToast('Đã tải tiến trình từ cloud.');
@@ -3266,6 +3292,16 @@ const gameStore = {
     try { res = await cloudLoadSave(); } catch (e) { this.cloudErr = 'Không tải được dữ liệu cloud.'; return; }
     if (!res.ok) { if (res.reason !== 'no-auth') this.cloudErr = cloudErrVi(res.reason); return; }
     const row = res.row;
+    // ⚠⚠ CỬA ĐỔI TÀI KHOẢN — PHẢI ĐỨNG TRƯỚC MỌI NHÁNH ĐẨY. Đăng xuất rồi đăng nhập tài khoản
+    //    khác trong CÙNG một phiên thì đĩa vẫn đang giữ bản lưu của người trước, và
+    //    `_loadedLastSave` vẫn là mốc của người trước — mốc đó gần như luôn mới hơn mốc trên máy
+    //    chủ của người sau. Thiếu cửa này thì nhánh "đĩa mới hơn -> đẩy lên" nuốt trọn: bản của
+    //    người trước ghi đè bản của người sau, MẤT HẲN (trong game không có nút kéo bản mây về).
+    // ⚠ Máy chủ trống thì tài khoản mới bắt đầu từ bản TRẮNG, tuyệt đối không nhận bản người trước.
+    // ⚠ Bản lưu cũ chưa từng được đóng dấu thì `dauDia` rỗng — đi tiếp đường cũ, đừng bắt oan.
+    const dauDia = (this.state && this.state.cloudUid) || '';
+    const dauNay = (this.authUser && this.authUser.id) || '';
+    if (dauDia && dauNay && dauDia !== dauNay) { this._applyCloudSave(row ? row.data : createInitialState()); return; }
     if (!row) { await this._cloudPushNow(); return; }            // cloud trống -> đẩy local lên
     const tCloud = row.last_save || 0;
     const tLocal = _loadedLastSave;                              // mốc trên ĐĨA lúc nạp (không bị autosave bump)
@@ -3281,7 +3317,9 @@ const gameStore = {
     this.cloudConflict = { cloud: this.saveSummary(row.data), local: localSum, _cloudData: row.data }; // lệch -> hỏi người chơi
   },
   useCloudSave() { const c = this.cloudConflict; if (!c) return; this.cloudConflict = null; this._applyCloudSave(c._cloudData); },
-  useLocalSave() { this.cloudConflict = null; this._cloudPushNow().then((ok) => this.showToast(ok ? 'Đã giữ bản máy này.' : (this.cloudErr || 'Đồng bộ lỗi.'))); },
+  // ⚠ Nhận bù hộp quà/mã ở đây: lúc modal còn mở hai đường đó tự đứng im để khỏi mất quà, giờ
+  //   chọn xong rồi thì gọi lại ngay, đừng bắt người chơi đợi hết nhịp mười phút.
+  useLocalSave() { this.cloudConflict = null; this._cloudPushNow().then((ok) => { this.showToast(ok ? 'Đã giữ bản máy này.' : (this.cloudErr || 'Đồng bộ lỗi.')); this.nhanQuaChoSan(); this.taiMaTuDong(); }); },
   async cloudSyncNow() { if (!this.isLoggedIn) return; const ok = await this._cloudPushNow(); this.showToast(ok ? 'Đã đồng bộ lên cloud.' : (this.cloudErr || 'Đồng bộ lỗi.')); },
   // Gọi định kỳ (mỗi 15s) + lúc rời trang: đẩy nếu save đã đổi so với lần đẩy trước.
   cloudAutoPushTick() {
@@ -3290,6 +3328,10 @@ const gameStore = {
     //    bản thật, ngay giữa lúc người ta đang gõ mật khẩu mới. Chặn `cloudSyncOnLogin` mà quên
     //    dòng này thì coi như không chặn gì.
     if (this.datLaiMo) return;
+    // ⛔ HAI CHẶN CÙNG HỌ, cùng một kiểu bẫy: trang còn sống thêm vài trăm mili-giây sau khi đã
+    //   quyết xong, đủ cho nhịp này đẩy bản CŨ trong RAM đè lên. `napCloud` = vừa chọn "lấy bản
+    //   trên mây", đang chờ tải lại. `resetting` = vừa xoá tiến trình, đang chờ tải lại.
+    if (this.napCloud || resetting) return;
     if (!this.isLoggedIn || this.cloudSyncing || this.cloudConflict) return;
     const ls = this.state.lastSave || 0;
     if (ls > this._cloudLastPushed) this._cloudPushNow();
@@ -3364,26 +3406,43 @@ const gameStore = {
       .map((e) => ({ label: e.label, text: e.pct ? ('+' + (Math.round(e.val * 1000) / 10) + '%') : ('+' + this.fmt(Math.round(e.val))), sources: e.sources }));
     return { active, passive, summary };
   },
-  get canClaimDaily() { return this.state.login.lastDay !== todayStr(); },
+  // ---------- Điểm Danh ----------
+  // ⚠⚠ ĐỪNG SO CHUỖI NGÀY CỦA ĐỒNG HỒ MÁY. Vặn giờ hệ điều hành tới rồi lui là quay hết vòng 28
+  //    ngày trong một buổi, lĩnh trọn Nguyên Bảo mà không chờ ngày nào. Hai lớp chặn:
+  //      1. Lấy ngày theo ĐỒNG HỒ MÁY CHỦ (`cloudLechGio` đo lệch một lần lúc vào game).
+  //      2. Mốc `ngayCaoNhat` CHỈ TIẾN KHÔNG LÙI — mất mạng thì lệch về 0, lớp 1 hở, lớp 2 vẫn kín.
+  //    Vặn tới thì được đúng một lần, mà mốc cao nhất nhảy theo: phải chờ ngày THẬT đuổi kịp mới
+  //    điểm được lần sau. Lời một ngày, mất mấy tháng — không ai đi đường đó.
+  lechGioMc: 0,
+  async doLechGioMc() { try { this.lechGioMc = await cloudLechGio(); } catch (e) { this.lechGioMc = 0; } },
+  ngayMc() { return ymd(new Date(Date.now() + (this.lechGioMc || 0))); },
+  ngayMcHomQua() { return ymd(new Date(Date.now() + (this.lechGioMc || 0) - 86400000)); },
+  get canClaimDaily() {
+    const h = this.ngayMc();
+    return h !== this.state.login.lastDay && h >= (this.state.login.ngayCaoNhat || '');
+  },
   get loginStreak() { return this.state.login.streak || 0; },
   get dailyExpBonus() { return Math.min(20, Math.floor((this.state.login.streak || 0) / 10)); },   // +1% EXP mỗi 10 ngày chuỗi, tối đa 20%
   get loginNextIndex() {
     const prev = this.state.login.streak || 0;
     const cyc = this.LOGIN_REWARDS.length;
     if (!this.canClaimDaily) return (Math.max(1, prev) - 1) % cyc;
-    const consecutive = this.state.login.lastDay === yestStr();
+    const consecutive = this.state.login.lastDay === this.ngayMcHomQua();
     const newStreak = consecutive ? prev + 1 : 1;
     return (newStreak - 1) % cyc;
   },
   claimDaily() {
     if (!this.canClaimDaily) return;
-    const consecutive = this.state.login.lastDay === yestStr();
+    const homNay = this.ngayMc();
+    const consecutive = this.state.login.lastDay === this.ngayMcHomQua();
     const newStreak = consecutive ? (this.state.login.streak || 0) + 1 : 1;
     const r = this.LOGIN_REWARDS[(newStreak - 1) % this.LOGIN_REWARDS.length] || {};
     if (r.bac) this.state.currencies.bac = (this.state.currencies.bac || 0) + r.bac;
     if (r.honThach) this.state.currencies.honThach = (this.state.currencies.honThach || 0) + r.honThach;
     if (r.nguyenBao) this.state.currencies.nguyenBao = (this.state.currencies.nguyenBao || 0) + r.nguyenBao;
-    this.state.login.lastDay = todayStr();
+    this.state.login.lastDay = homNay;
+    // Mốc chỉ tiến không lùi — vặn đồng hồ về quá khứ là `canClaimDaily` đóng cửa.
+    if (homNay > (this.state.login.ngayCaoNhat || '')) this.state.login.ngayCaoNhat = homNay;
     this.state.login.streak = newStreak;
     Storage.save(this.state);
   },
@@ -3666,9 +3725,30 @@ const gameStore = {
     monthly: { pool: MONTHLY_QUESTS, count: 7, period: () => monthStr() },
   },
   // Đảm bảo danh sách nhiệm vụ của 1 kỳ đúng với kỳ hiện tại; sang kỳ mới thì bốc lại + reset.
+  /**
+   * Cấp Chiến Đấu tối thiểu để VÀO ĐƯỢC vùng có sản vật này. Trả 0 với đồ chế biến (không bám vùng).
+   * Cửa vào vùng là `locUnlocked` -> `combatLevel >= loc.reqLevel`.
+   */
+  capVungCuaSanVat(target) {
+    if (!target) return 0;
+    for (const k of Object.keys(this.SKILLS)) {
+      const a = (this.SKILLS[k].actions || []).find((x) => x.itemId === target);
+      if (!a) continue;
+      if (!a.zone) return 0;
+      const l = (this.LOCATIONS || []).find((x) => x.id === a.zone);
+      return (l && l.reqLevel) || 0;
+    }
+    return 0;
+  },
   questUnlocked(q) {   // chỉ bốc nhiệm vụ người chơi đủ sức (mục tiêu đã mở theo cấp) -> khó dần + đa dạng theo tiến trình
     const req = q.req || 1;
-    return q.type === 'kill' ? this.combatLevel >= req : this.skillLevel(q.skill) >= req;
+    if (q.type === 'kill') return this.combatLevel >= req;
+    // ⚠⚠ HAI CỬA CHỨ KHÔNG PHẢI MỘT: cấp NGHỀ để làm nổi động tác, và cấp CHIẾN ĐẤU để VÀO được
+    //   vùng có sản vật. Thiếu cửa thứ hai thì người cày nghề mà không đánh nhau nhận toàn việc
+    //   không tới nơi mà làm — Phạt Mộc lên 70 trong lúc Chiến Đấu vẫn 5, mà Phù Không Hoa Viên
+    //   đòi Chiến Đấu 70. Đo thật (`_check_be_nhiemvu_vung.mjs`): nghề 99 · Chiến Đấu 5 ra 17
+    //   việc không làm nổi trong 53 mục của ba bể.
+    return this.skillLevel(q.skill) >= req && this.combatLevel >= this.capVungCuaSanVat(q.target);
   },
   ensurePeriodQuests(kind) {
     const cfg = this.periodConfig[kind];
@@ -6927,7 +7007,12 @@ const gameStore = {
   async _dayHoSo() {
     try {
       const r = await cloudPushHoSo(this.hoSoCongKhaiData);
-      if (r && r.ok) this.taiNguoiThat(true);      // vừa ghi xong thì đọc lại bảng cho tươi
+      // ⚠⚠ CHỈ ĐỌC LẠI BẢNG KHI ĐANG ĐỨNG Ở BẢNG, và ĐỪNG ép qua chốt 60 giây. Hàm này đi kèm
+      //   MỌI lần đẩy save, tức là 15 giây một lần suốt cả phiên. Ép qua chốt là cứ 15 giây lại
+      //   kéo về 200 dòng `ho_so_cong_khai` cho người đang cày quái ở màn khác — họ không nhìn
+      //   thấy một dòng nào trong số đó. Dòng CỦA MÌNH thì `nguoiThatRows` lọc bỏ sẵn, nên đọc
+      //   lại ngay sau khi ghi cũng chẳng làm hàng của mình tươi hơn.
+      if (r && r.ok && this.view === 'phongVanBang') this.taiNguoiThat();
     } catch (e) { /* chưa dựng bảng — bỏ qua */ }
   },
   khoeLink: '',
@@ -7782,7 +7867,10 @@ const gameStore = {
   async _sanNapLai() {
     const r = await cloudLoadSave();
     if (r.ok && r.row) this._applyCloudSave(r.row.data);
-    else location.reload();
+    // ⚠⚠ KHOÁ TRƯỚC KHI TẢI LẠI. Máy chủ đã dời món khỏi túi rồi; `beforeunload` mà kịp chạy thì
+    //   nó ghi bản RAM CŨ (món vẫn còn trong túi) đè lên đĩa, và lần đẩy sau đè ngược lên máy chủ
+    //   — món vừa bán quay lại túi mà tin rao vẫn treo. Nhánh trên đã khoá trong `_applyCloudSave`.
+    else { Storage.lock(); location.reload(); }
   },
   _sanVi(v) {
     // ⚠ Lưới an toàn trong `san_ghi_save` ném ra một chuỗi dài kèm uid. Đừng bày nguyên văn cho
@@ -7842,11 +7930,22 @@ const gameStore = {
       .sort((a, b) => b.san - a.san);
   },
   get sanVpDangChon() { return this.sanVpTreoDuoc.find((x) => x.id === this.sanVpUid) || null; },
-  get sanVpSanLo() { const m = this.sanVpDangChon; return m ? m.san * Math.max(1, Math.round(Number(this.sanVpSo) || 1)) : 0; },
+  /**
+   * Số lượng THẬT sẽ được treo — kẹp xuống số đang có trong túi.
+   * ⚠⚠ MỘT CON SỐ, MỘT CHỖ TÍNH. Trước đây giá sàn đọc số người chơi GÕ VÀO còn lệnh treo lại kẹp
+   *   xuống số đang có: túi có 3 mà gõ 100 thì màn hình bày giá sàn của 100 cái rồi treo đúng 3
+   *   cái. Thuộc tính `max` trên thẻ nhập KHÔNG chặn được — nó chỉ quản cái nút tăng giảm.
+   */
+  get sanVpSoThat() {
+    const n = Math.max(1, Math.round(Number(this.sanVpSo) || 1));
+    const m = this.sanVpDangChon;
+    return m ? Math.min(m.co, n) : n;
+  },
+  get sanVpSanLo() { const m = this.sanVpDangChon; return m ? m.san * this.sanVpSoThat : 0; },
   get sanVpDuGia() { const s = this.sanVpSanLo; return !s || Math.round(Number(this.sanVpGia) || 0) >= s; },
   async sanTreoVp() {
     const m = this.sanVpDangChon; if (!m) return;
-    const so = Math.max(1, Math.min(m.co, Math.round(Number(this.sanVpSo) || 1)));
+    const so = this.sanVpSoThat;   // ⚠ CÙNG con số mà giá sàn đang dùng — xem `sanVpSoThat`
     this.sanTai = true;
     const r = await cloudSanTreoVp(m.id, so, Math.round(Number(this.sanVpGia) || 0));
     this.sanTai = false;
@@ -8427,6 +8526,13 @@ const gameStore = {
   get resetSanSang() { return this.resetTenDung && (!this.isLoggedIn || (this.resetMk || '').length > 0) && !this.resetDangKiem; },
   async doReset() {
     if (!this.resetSanSang) return;
+    // ⚠⚠ DỰNG CỜ NGAY TỪ ĐÂY, đừng đợi tới dòng cuối. Từ lúc này tới lúc tải lại có hai vòng chờ
+    //    máy chủ; nhịp đẩy 15 giây chạy xen vào giữa là đẩy nguyên tiến trình cũ đè lên bản trắng
+    //    vừa ghi, và người chơi tải lại thì thấy mọi thứ còn nguyên. `_cloudPushNow` cùng
+    //    `cloudAutoPushTick` đều soi cờ này. Lệnh ghi bản trắng ở dưới gọi thẳng `cloudPushSave`
+    //    nên không bị chính cờ này chặn.
+    // ⚠ Mọi đường THẤT BẠI phải hạ cờ xuống, không thì `beforeunload` thôi lưu cho tới hết phiên.
+    resetting = true;
     // ⚠ Đối chiếu mật khẩu bằng cách ĐĂNG NHẬP LẠI chính tài khoản đó. Sai mật khẩu thì Supabase
     //   trả lỗi mà KHÔNG đụng tới phiên đang chạy — người gõ nhầm không bị đá ra ngoài.
     if (this.isLoggedIn) {
@@ -8435,7 +8541,7 @@ const gameStore = {
         // ⚠ Tách hai lỗi ra: 400 là SAI MẬT KHẨU, còn lại là không tới được máy chủ. Gộp làm một
         //   thì lúc rớt mạng người chơi bị mắng gõ sai mật khẩu, loay hoay gõ lại mãi.
         const { error } = await cloudSignIn(this.authUserEmail, this.resetMk);
-        if (error) { this.resetLoi = error.status === 400 ? 'Mật khẩu không đúng.' : 'Không kết nối được máy chủ.'; return; }
+        if (error) { resetting = false; this.resetLoi = error.status === 400 ? 'Mật khẩu không đúng.' : 'Không kết nối được máy chủ.'; return; }
         // ⚠⚠ XOÁ BẢN CLOUD TRƯỚC, KHÔNG THÌ XOÁ HỤT. Chỉ xoá localStorage rồi tải lại thì
         //   `cloudSyncOnLogin` thấy máy này trống mà cloud có dòng, nó kéo bản cloud về —
         //   tiến trình quay lại nguyên vẹn, người chơi tưởng đã xoá.
@@ -8443,11 +8549,11 @@ const gameStore = {
         //   khoá tài khoản dùng để thoát (xem docs/SQL_LENH_BAI.sql). Ghi đè thì không cần
         //   thêm quyền nào ở Supabase. Chốt chống gian lận chỉ soi phần TĂNG nên bản trắng lọt.
         const day = await cloudPushSave(createInitialState());
-        if (!day.ok) { this.resetLoi = 'Máy chủ không nhận lệnh xoá. Thử lại.'; return; }
-      } catch (e) { this.resetLoi = 'Không kết nối được máy chủ.'; return; }
+        if (!day.ok) { resetting = false; this.resetLoi = 'Máy chủ không nhận lệnh xoá. Thử lại.'; return; }
+      } catch (e) { resetting = false; this.resetLoi = 'Không kết nối được máy chủ.'; return; }
       finally { this.resetDangKiem = false; }
     }
-    resetting = true; this.confirmReset = false; Storage.wipe(); location.reload();
+    this.confirmReset = false; Storage.wipe(); location.reload();
   },
 };
 
@@ -8588,6 +8694,24 @@ document.addEventListener('visibilitychange', () => {
   const s = window.Alpine?.store('game');
   if (s && s.bossFight && !s.bossFight.done) s.finishBossFightNow();
 });
+
+/**
+ * ⚠⚠ ẨN TAB CŨNG PHẢI ZERO VÒNG ĐẾM FOREGROUND, y hệt lúc RỜI màn Chiến Đấu.
+ *   `rafLoop` đã chặn đường RỜI MÀN (`!liveOn` -> `_cycleStart = 0`), nhưng ẩn tab thì `view` vẫn
+ *   là `combat` nên `liveOn` vẫn đúng — chặn đó không chạy. rAF thì ngừng, `_cycleStart` đứng im
+ *   ở mốc cũ, trong khi nhịp 5 giây vẫn gọi `advance()` trả thưởng cho đúng quãng vắng ấy. Quay
+ *   lại tab là `t - _cycleStart >= CYCLE_MS` đúng NGAY -> phát thêm một vòng `awardKill` chồng lên
+ *   phần đã trả. Alt-tab đều tay là farm được phần dôi ra.
+ * ⚠ Zero ở CẢ HAI chiều. Zero lúc ẩn thôi thì chưa chắc: một khung rAF có thể chạy nốt sau sự
+ *   kiện rồi đặt lại mốc, và mốc đó đóng băng suốt lúc tab ẩn.
+ * ⚠ Giá phải trả là mất tối đa một vòng 8 giây đang đếm dở mỗi lần đổi tab — đúng bằng cái giá
+ *   đang trả khi đổi màn, và rẻ hơn nhiều so với việc để hở đường farm.
+ */
+function zeroVongDemKhiDoiTamNhin() {
+  const s = window.Alpine?.store('game');
+  if (s) s._cycleStart = 0;
+}
+document.addEventListener('visibilitychange', zeroVongDemKhiDoiTamNhin);
 
 // ---- Nhịp 1s cho đồng hồ đếm ngược (reactive _tick) ----
 setInterval(() => { const s = window.Alpine?.store('game'); if (s) s._tick++; }, 1000);

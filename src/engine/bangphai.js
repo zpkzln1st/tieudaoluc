@@ -1254,6 +1254,19 @@ export function bcDoiThu(state, world, now) {
   return { bang: taDan ? ds[1] || ds[0] : ds[0], taDan, loc };
 }
 
+/**
+ * Đối thủ ĐÃ CHỐT của tuần này — đi CẶP với năm suất quân đã chốt (xem `ensureBangChien`).
+ * Chưa chốt được (minh còn thiếu người) thì suy tạm, cùng nguồn với lúc chốt.
+ */
+export function bcDoiThuChot(state, world, now) {
+  const b = ensureBangPhai(state), t = now || Date.now();
+  const bc = b.bc;
+  if (bc && bc.dt && bc.dt.bang && bc.ky === bcKyCua(t)) {
+    return { bang: bc.dt.bang, taDan: !!bc.dt.taDan, loc: bcDatTranh(state, world, t) };
+  }
+  return bcDoiThu(state, world, t);
+}
+
 /** Bao nhiêu tuần liền bang đó giữ Đất Tranh — chỉ để in một dòng chữ, không ăn vào luật. */
 function bcGiuMayTuan(state, world, now) {
   const t = now || Date.now(), ky = bcKyCua(t);
@@ -1427,14 +1440,27 @@ export function ensureBangChien(state, world, now) {
   if (!b.bc || typeof b.bc !== 'object') b.bc = { ky: -1, xep: null, xong: false, su: [], giu: {}, dich: null, thuong: {}, mocQ: 0 };
   if (!Array.isArray(b.bc.su)) b.bc.su = [];
   if (!b.bc.giu || typeof b.bc.giu !== 'object') b.bc.giu = {};
-  if (b.bc.ky !== ky) { b.bc.ky = ky; b.bc.xep = null; b.bc.xong = false; b.bc.dich = null; }
+  if (b.bc.ky !== ky) { b.bc.ky = ky; b.bc.xep = null; b.bc.xong = false; b.bc.dich = null; b.bc.dt = null; }
   // Quân địch CHỐT một lần cho cả tuần. Suy lại mỗi lần đọc là nó tự đổi mặt giữa tuần.
   // ⚠⚠ Nhưng CHƯA ĐỦ QUÂN thì CHƯA được chốt. Chốt lúc minh còn trống thì cấp nền chỉ là cấp
   //    người chơi, quân địch đóng băng ở cấp đó suốt tuần — chiêu thêm bao nhiêu người cũng
   //    không đổi, và trận thành đi bộ. Ảnh chụp máy chủ thật lộ ra: quân ta Lv 41-85 mà quân
   //    địch Lv 2-10, cửa thắng 96%.
+  // ⚠⚠ CHỐT LUÔN TÊN BANG ĐỐI THỦ, đừng chỉ chốt năm suất quân. Trước bản này `bangChienTran`
+  //    suy lại đối thủ MỖI LẦN ĐỌC (`bcDoiThu` đọc điểm Chinh Phạt đang chạy), còn quân địch thì
+  //    đóng băng từ đầu tuần. Điểm đổi giữa tuần — mình đi Tập Kích, bot cày — là bang dẫn đầu
+  //    đổi: màn hình đề tên bang MỚI mà năm suất quân vẫn là của bang CŨ. Sai màu cờ, sai cấp
+  //    nền, và `vetBac` tính theo cấp bang mới trong khi độ khó là của bang cũ.
+  //    Bài kiểm 50 vốn đã đo được "bang dẫn đầu CÓ đổi giữa tuần" và "quân địch ổn định cả tuần"
+  //    — hai số đó xanh cạnh nhau suốt mà không ai nối chúng lại.
   if (!Array.isArray(b.bc.dich) || b.bc.dich.length !== BC_SO_CAP) {
-    if (bcQuanTa(state, world, t).length === BC_SO_CAP) b.bc.dich = bcSinhQuanDich(state, world, t);
+    if (bcQuanTa(state, world, t).length === BC_SO_CAP) {
+      const dt0 = bcDoiThu(state, world, t);
+      if (dt0.bang) {
+        b.bc.dich = bcSinhQuanDich(state, world, t);
+        b.bc.dt = { bang: { id: dt0.bang.id, ten: dt0.bang.ten, mauCo: dt0.bang.mauCo, cap: dt0.bang.cap, soTv: dt0.bang.soTv, diem: dt0.bang.diem }, taDan: !!dt0.taDan };
+      }
+    }
   }
   // Đất giữ được chỉ có giá trị đúng một tuần. Hết hạn thì tự rụng, không phải chờ ai gỡ.
   for (const k of Object.keys(b.bc.giu)) if ((b.bc.giu[k] | 0) < ky) delete b.bc.giu[k];
@@ -1465,7 +1491,7 @@ export function bangChienTran(state, world, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang || !moBangChien(state)) return null;
   const bc = ensureBangChien(state, world, t);
-  const dt = bcDoiThu(state, world, t);
+  const dt = bcDoiThuChot(state, world, t);   // ⚠ bản ĐÃ CHỐT — phải khớp với `bcQuanDich` bên dưới
   if (!dt.bang) return null;
   const ta = bcQuanTa(state, world, t), dich = bcQuanDich(state, world, t);
   if (ta.length < BC_SO_CAP || dich.length < BC_SO_CAP) return null;

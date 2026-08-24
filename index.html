@@ -16761,7 +16761,10 @@
                       </div>
                     </div>
                     <template x-if="g.sanBanTab === 'vp'">
-                      <input type="number" min="1" :max="g.sanBanChon.obj.qty" x-model="g.sanVpSo" placeholder="Số lượng"
+                      <!-- ⚠ `max` KHÔNG chặn người gõ tay, nó chỉ quản nút tăng giảm. `@change`
+                           (rời ô, không phải mỗi phím) kéo ô về đúng số sẽ treo thật, để giá sàn
+                           bày ra và số treo lên là MỘT con số. -->
+                      <input type="number" min="1" :max="g.sanBanChon.obj.qty" x-model="g.sanVpSo" @change="g.sanVpSo = g.sanVpSoThat" placeholder="Số lượng"
                         class="w-24 px-2 py-1.5 rounded-lg bg-black/40 border border-slate-700 text-slate-200 text-[12.5px] outline-none">
                     </template>
                     <input type="number" min="1" x-model="g.sanBanGia" :placeholder="g.sanBanTab === 'vp' ? 'Giá cả lô' : 'Giá (Bạc)'"

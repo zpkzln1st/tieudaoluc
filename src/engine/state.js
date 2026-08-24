@@ -64,7 +64,7 @@ export function createInitialState() {
     // ⚠ Mặc định NẰM Ở `CAI_DAT_MAC_DINH` ngay dưới, đừng gõ tay hai nơi: save cũ được vá bằng
     //   chính bảng đó lúc nạp (main.js), lệch một khoá là người cũ và người mới chơi hai game khác nhau.
     settings: { ...CAI_DAT_MAC_DINH },
-    login: { lastDay: null, streak: 0 },     // điểm danh
+    login: { lastDay: null, streak: 0, ngayCaoNhat: '' },   // điểm danh — `ngayCaoNhat` CHỈ TIẾN KHÔNG LÙI, chặn vặn đồng hồ máy
     titles: { owned: [], equipped: null },   // Danh Hiệu: sở hữu + đang đeo. KHÔNG cho sẵn cái nào —
                                              // 'Sơ Nhập Giang Hồ' nay là thưởng của chuỗi Nhiệm Vụ Tân Thủ.
     counters: { produced: {}, kills: {} },   // đếm chính xác cho nhiệm vụ
