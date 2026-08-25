@@ -20,29 +20,36 @@
 -- Chien Dau: lay con quai nhieu exp nhat CHIA CHO NHIP THAT cua engine (8 giay mot con).
 --   ⚠ KHONG dung 'enemy.time': do la nhip MOI DON, ca hai con Lv100 deu ghi 17. Lay exp/time
 --     ra 23,47 xp/giay — HEP hon that 2,1 lan, tang 2 se bao oan nguoi choi that.
+-- ⚠⚠ 'tran_lan' la TRAN TUYET DOI MOI LAN GHI, RIENG cho tung track.
+--    Ban truoc dung MOT so phang cho ca 17 track, do theo ki nang su kien: Chien Dau vot nhanh
+--    gap 2,4 lan nen nguoi cay SACH bi TU CHOI GHI SAVE ngay lan dong bo dau tien sau mot dem
+--    treo may (do that 3,91 lan tran). Nay moi track mot tran, suy tu chinh toc do cua no
+--    nhan tran nhan roi cua no.
 create table if not exists public.tran_toc_do (
   khoa    text primary key,
-  xp_giay numeric not null
+  xp_giay numeric not null,
+  tran_lan numeric
 );
-insert into public.tran_toc_do (khoa, xp_giay) values
-  ('chienDau', 49.8750),
-  ('daLuyen', 1.4744),
-  ('daTao', 5.8929),
-  ('dieuNgu', 2.2000),
-  ('doanhTao', 4.2667),
-  ('luyenDan', 1.6471),
-  ('phanhNham', 1.2857),
-  ('phatMoc', 2.2667),
-  ('thaiDang', 21.0526),
-  ('thaiDuoc', 2.2368),
-  ('thaiKhoang', 2.2436),
-  ('thaiLien', 21.0526),
-  ('thaiNguyet', 21.0526),
-  ('thaiPhuc', 21.0526),
-  ('thaiThanh', 21.0526),
-  ('thaiTuyet', 21.0526),
-  ('toaQuan', 0.5000)
-on conflict (khoa) do update set xp_giay = excluded.xp_giay;
+alter table public.tran_toc_do add column if not exists tran_lan numeric;
+insert into public.tran_toc_do (khoa, xp_giay, tran_lan) values
+  ('chienDau', 49.8750, 17484512),
+  ('daLuyen', 1.4744, 695335),
+  ('daTao', 5.8929, 2779178),
+  ('dieuNgu', 2.2000, 1037560),
+  ('doanhTao', 4.2667, 2012237),
+  ('luyenDan', 1.6471, 776783),
+  ('phanhNham', 1.2857, 606367),
+  ('phatMoc', 2.2667, 1069001),
+  ('thaiDang', 21.0526, 9928801),
+  ('thaiDuoc', 2.2368, 1054935),
+  ('thaiKhoang', 2.2436, 1058118),
+  ('thaiLien', 21.0526, 9928801),
+  ('thaiNguyet', 21.0526, 9928801),
+  ('thaiPhuc', 21.0526, 9928801),
+  ('thaiThanh', 21.0526, 9928801),
+  ('thaiTuyet', 21.0526, 9928801),
+  ('toaQuan', 0.5000, 235810)
+on conflict (khoa) do update set xp_giay = excluded.xp_giay, tran_lan = excluded.tran_lan;
 
 -- ⚠⚠ BAT RLS CHO CA BANG TRAN. Supabase cap quyen cho khoa an danh tren moi bang trong "public";
 --   khong bat RLS thi ke gian TU NANG TRAN len vo cuc roi muon khai gi thi khai — chot thanh
@@ -87,7 +94,7 @@ create table if not exists public.tran_he_so (
 );
 insert into public.tran_he_so (khoa, gia_tri) values
   ('he_so_an_toan', 10),        -- nhan them vao tran theo NHIP
-  ('bu_nhan_roi_giay', 50400),  -- 14 gio: tran treo toi da (8h nen + 6h Dong Phu)
+  ('bu_nhan_roi_giay', 72000),  -- 20 gio: tran treo toi da (8h nen + 6h Dong Phu)
   ('bac_san_toi_thieu', 5000000), -- duoi muc nay thi khong buon ghi so Bac
   -- ⚠ CHAN TUYET DOI: mot lan ghi khong duoc tang qua ngan nay xp o BAT KY track nao.
   --   = 0.11 x ca duong len cap 100 (20.166.012 xp).
@@ -95,12 +102,12 @@ insert into public.tran_he_so (khoa, gia_tri) values
   -- ---- tang 2 ----
   ('nhip_danh_ms', 8000),       -- COMBAT_CYCLE_MS: mot con mot vong
   ('he_so_gio', 1.5),                -- quy gio lam duoc phep vuot dong ho bao nhieu lan
-  -- Phu cap "thuong theo cuc" cho Chien Dau: Bi Canh mot lich day (14h) + tron luot Yeu Vuong,
+  -- Phu cap "thuong theo cuc" cho Chien Dau: Bi Canh mot lich day (20h) + tron luot Yeu Vuong,
   -- da nhan he so nhan EXP toi da (3.38x). Hai nguon nay KHONG ghi timeMs nao.
-  ('phu_cap_chien_dau', 166858),
+  ('phu_cap_chien_dau', 245950),
   ('sai_so_boc_so', 2),        -- khoa boc so: cho lech ngan nay lan boc
   -- ⚠⚠ CHAN: chi TU CHOI ghi de khi vuot tran tu ngan nay lan tro len. Duoi muc do chi ghi so.
-  --   Do that: nguoi choi that manh nhat cach tran 3.0 lan (Chien Dau) / 3.1 lan (nghe),
+  --   Do that: nguoi choi that manh nhat cach tran 2.0 lan (Chien Dau) / 2.0 lan (nghe),
   --   nen moc 3 lan la ngoai tam voi cua loi choi that.
   ('gap_de_chan', 3),
   -- ---- tang 2E: Dan Dien ----
@@ -251,7 +258,7 @@ language plpgsql security definer set search_path = public as $$
 declare
   giay numeric; cho_phep numeric; hs numeric; bu numeric; bac_san numeric; tran_lan numeric;
   nhip_ms numeric; hs_gio numeric; phu_cap numeric; sai_so numeric; gap_chan numeric;
-  hs_exp numeric; hs_ban numeric;
+  hs_exp numeric; hs_ban numeric; so_cua_so numeric;
   r record; cu numeric; moi numeric; tang numeric; tran_cho numeric; gap_nay numeric;
   gio_cu numeric; gio_moi numeric; d_gio numeric; d_track numeric;
   ha_cu numeric; ha_moi numeric; d_ha numeric; d_boc numeric;
@@ -283,12 +290,20 @@ begin
   select gia_tri into gap_chan from tran_he_so where khoa = 'gap_de_chan';
   select gia_tri into sai_dd   from tran_he_so where khoa = 'sai_so_dan_dien';
   select gia_tri into giay_nau from tran_he_so where khoa = 'giay_nau_dan_re_nhat';
-  hs := coalesce(hs, 10); bu := coalesce(bu, 50400);
+  hs := coalesce(hs, 10); bu := coalesce(bu, 72000);
   bac_san := coalesce(bac_san, 5000000); tran_lan := coalesce(tran_lan, 2218261);
   nhip_ms := coalesce(nhip_ms, 8000); hs_gio := coalesce(hs_gio, 1.5);
-  phu_cap := coalesce(phu_cap, 166858); sai_so := coalesce(sai_so, 2);
+  phu_cap := coalesce(phu_cap, 245950); sai_so := coalesce(sai_so, 2);
   gap_chan := coalesce(gap_chan, 3);
   sai_dd := coalesce(sai_dd, 20); giay_nau := coalesce(giay_nau, 45);
+
+  -- ⚠⚠ TINH 'giay' va 'so_cua_so' NGAY TU DAY, TRUOC moi phep nhan tran. Dat chung o duoi (canh
+  --    'cho_phep') la dong 'phu_cap := ... least(so_cua_so, 20)' chay khi 'so_cua_so' con NULL,
+  --    va 'least(NULL, 20)' ra NULL -> 'phu_cap' NULL -> 'tang > NULL' khong bao gio dung ->
+  --    CA TANG 2B TAT NGOM ma khong mot dong loi nao. Toi vua tu lam ra loi do va bat duoc bang
+  --    cach doc tep SQL sinh ra; phep do bang JS KHONG thay, vi no khong chay thu tu cua plpgsql.
+  giay := greatest(0, extract(epoch from (now() - OLD.updated_at)));
+  so_cua_so := greatest(1, ceil((giay + bu) / bu));
 
   -- ⚠⚠ HE SO EXP TOAN MAY CHU. Bat x2 cuoi tuan ma tran khong nhan theo la CA LANG bi ghi so
   --    roi bi chan. Lay cai LON NHAT tung bat trong KHOANG GIUA hai lan ghi, khong lay cai
@@ -306,6 +321,20 @@ begin
   --   ma KHONG dong vao 'timeMs' mot mili giay nao, nen TANG 2B (xp phai co gio lam di kem) van
   --   bat duoc no gap hang tram lan. Tang 1 chua bao gio la hang rao duy nhat.
   tran_lan := tran_lan * hs_exp;
+  -- ⚠⚠ PHU CAP CUNG PHAI NO THEO, ca hai chieu:
+  --   1. Nhan 'hs_exp': dot x2 EXP toan may chu lam phan thuong-theo-cuc cua Bi Canh to gap doi,
+  --      ma phu cap dung yen -> nguoi chay Bi Canh SACH bi ghi so, x4 tro len la bi CHAN.
+  --   2. No theo khoang cach hai lan ghi: phu cap la khoan cho MOT lan day tran nhan roi. Nguoi
+  --      choi mat mang / chua dang nhap ca tuan roi moi day duoc mot cuc bay lich Bi Canh thi
+  --      con so that gap 6,1 lan phu cap phang -> CHAN THAT, ma tang 1 khong bat vi van duoi tran.
+  --      Chia cho 'bu' chu khong phai mot hang so roi: 'bu' chinh la mot lan day tran nhan roi.
+  -- ⚠⚠ RIENG PHU CAP THI PHAI CHAN SO CUA SO LAI. Phu cap la khoan cho xp KHONG kem gio lam
+  --    (Bi Canh, Yeu Vuong), tuc la ve duy nhat cua tang 2B con lai khi ke gian lan bom thang
+  --    so xp. De no no vo han thi chi can NHIN THAT LAU roi day mot cuc: cho 30 ngay la phu cap
+  --    thanh 9,1 trieu, du cho cu nhay cap 100 (20,17 trieu) tut xuong 2,2 lan — DUOI nguong chan.
+  --    Chan o 20 cua so (~16,7 ngay): cu nhay cap 100 van 4,1 lan -> CHAN. Nguoi cay THAT khong
+  --    dung toi tran nay vi ho co gio lam that, ve chinh cua 2B da du rong.
+  phu_cap := phu_cap * hs_exp * least(so_cua_so, 20);
 
   -- ⚠⚠ HE SO GIA BAN TOAN MAY CHU. Client nhan he so nay vao Bac thu ve o 'sellItem'/'sellGear'
   --    (src/main.js, qua heSoGiaBan cua engine/leveling.js). Bat x2 gia ban ma tran Bac khong noi
@@ -319,8 +348,12 @@ begin
      and (dong_luc is null or dong_luc > OLD.updated_at);
   hs_ban := greatest(1, coalesce(hs_ban, 1));
 
-  giay := greatest(0, extract(epoch from (now() - OLD.updated_at)));
   cho_phep := (giay + bu) * hs;
+  -- ⚠⚠ BAO NHIEU LAN DAY TRAN NHAN ROI da troi qua ke tu lan ghi truoc.
+  --    Game choi duoc KHONG CAN dang nhap, va nhip day chi chay khi 'isLoggedIn'. Nguoi cay sach
+  --    ca tuan o che do chua dang nhap (hoac mat mang / Supabase nghi) roi moi day mot cuc la
+  --    chuyen binh thuong. Tran tuyet doi va phu cap deu phai no theo, khong thi cang cham dong
+  --    bo cang de bi CHAN — dung cai bay ma nguoi choi khong the tu biet de tranh.
 
   gio_cu  := tong_gio_lam(OLD.data);  gio_moi := tong_gio_lam(NEW.data);
   d_gio   := gio_moi - gio_cu;
@@ -329,12 +362,16 @@ begin
 
   -- ===== TANG 1: tran theo DONG HO MAY CHU =====
   -- xp tung track: lay CAI CHAT HON trong hai tran (theo nhip · theo duong cong cap).
-  for r in select khoa, xp_giay from tran_toc_do loop
+  for r in select khoa, xp_giay, tran_lan as tran_track from tran_toc_do loop
     cu  := so_jsonb(OLD.data->'skills'->r.khoa->'xp');
     moi := so_jsonb(NEW.data->'skills'->r.khoa->'xp');
     tang := moi - cu;
     if tang <= 0 then continue; end if;
-    tran_cho := least(r.xp_giay * cho_phep, tran_lan);
+    -- ⚠⚠ TRAN TUYET DOI LAY THEO TUNG TRACK. Ban cu dung mot so PHANG cho ca 17 track, do theo
+    --    ki nang su kien: Chien Dau vot nhanh gap 2,4 lan nen nguoi cay SACH bi TU CHOI GHI SAVE
+    --    (3,91 lan tran) ngay lan dong bo dau tien sau mot dem treo may.
+    -- ⚠ 'coalesce' de con chay duoc voi bang cu chua co cot 'tran_lan': thieu thi lui ve so phang.
+    tran_cho := least(r.xp_giay * cho_phep, coalesce(r.tran_track, tran_lan) * hs_exp * so_cua_so);
     if tang > tran_cho then
       gap_nay := tang / greatest(tran_cho, 1);
       gap_lon := greatest(gap_lon, gap_nay);
@@ -404,7 +441,13 @@ begin
   -- counters.kills. Hai so nay di khoa buoc voi nhau. Ai sua tay so con da ha (hoac cong
   -- xp qua duong khac roi che bang kills) se lam lech khoa nay.
   -- ⚠ CHI kiem khi CA HAI ban save deu co hat giong: ban truoc dot D khong co 'rngDem'.
-  if d_ha > 0 and jsonb_typeof(OLD.data->'rngHat') = 'number' and jsonb_typeof(NEW.data->'rngHat') = 'number' then
+  -- ⚠⚠ VA PHAI CUNG MOT HAT GIONG. 'd_boc' la HIEU cua hai bo dem TUYET DOI, nen hieu do chi co
+  --    nghia khi hai ban luu cung mot dong doi hat. Nguoi choi hai may: may B con giu ban truoc
+  --    dot D, mo len la 'rng.js' gieo hat MOI va 'rngDem' ve rong, trong khi 'counters.kills'
+  --    giu nguyen — day len la lech dung bang so con da ha tu truoc, va bi CHAN ngay lan dau
+  --    du ho khong gian lan mot con nao. Khac hat thi BO QUA vong nay, dung bat oan.
+  if d_ha > 0 and jsonb_typeof(OLD.data->'rngHat') = 'number' and jsonb_typeof(NEW.data->'rngHat') = 'number'
+     and so_jsonb(OLD.data->'rngHat') = so_jsonb(NEW.data->'rngHat') then
     d_boc := so_jsonb(NEW.data->'rngDem'->'ropBac') - so_jsonb(OLD.data->'rngDem'->'ropBac');
     tran_cho := greatest(0, d_boc) + sai_so;
     if d_ha > tran_cho then
@@ -430,12 +473,23 @@ begin
       moi := so_jsonb(NEW.data->'skills'->r.khoa->'xp');
       tang := moi - cu;
       if tang <= 0 then continue; end if;
+      -- ⚠⚠ HAI MEP PHAI CO DEM NHU NHAU. Mep dong von co 1 gio dem, mep mo thi KHONG CO MOT GIAY
+      --    NAO: dong ho may nguoi choi nhanh 15 giay la bon cua chan phia client deu mo (ca bon
+      --    deu hoi dong ho MAY MINH), ho cay that, roi bi chan ngay. Do that: +15s -> 1 lan chan,
+      --    +60s -> 4 lan. Nay mep mo cung duoc 1 gio dem.
       if not exists (
         select 1 from public.su_kien s
          where s.ma = r.ma and s.mo_luc is not null and s.dong_luc is not null
-           and s.mo_luc < now() and OLD.updated_at < s.dong_luc + interval '1 hour'
+           and s.mo_luc - interval '1 hour' < now() and OLD.updated_at < s.dong_luc + interval '1 hour'
       ) then
-        gap_nay := gap_chan;   -- du nguong chan; van qua duong mien_tru/tac gia nhu moi phep khac
+        -- ⚠⚠ KHONG GAN CUNG 'gap_chan' NUA — day la cho gay ra KET BAN LUU VINH VIEN.
+        --    Gan cung nghia la tu choi ghi NGAY LAN DAU. Ma lenh ghi bi tu choi thi 'updated_at'
+        --    KHONG NHICH, nen lan sau 'OLD.updated_at' van nam ngoai cua so, van bi tu choi —
+        --    vong lap khong loi ra. Dong ho may cham qua 60 phut, hay hai may dong bo lech thu
+        --    tu, deu roi vao day: bay xp ket lai vinh vien, moi 15 giay mot dong nghi van.
+        --    Nay chi GHI SO. Muon chan thi phai co mot phep do khac cung bao, nhu moi tang khac.
+        --    Ke cay ngoai su kien van lo ra day day trong so nghi van de tac gia doi chieu.
+        gap_nay := 1;
         gap_lon := greatest(gap_lon, gap_nay);
         vuot := vuot || jsonb_build_object('phep', 'ngoai_su_kien', 'khoa', r.khoa, 'tang', tang,
                   'tran', 0, 'gap', round(gap_nay, 1));
@@ -527,7 +581,7 @@ create trigger kiem_toc_do_tren_saves
 -- Tang 1 (dong ho may chu): sua Bac, nhan do, tua dong ho may minh.
 -- Tang 2A (quy gio lam):    thoi phong thoi gian hoat dong.
 -- Tang 2B (xp phai co gio): sua thang so xp / nhay cap — ke ca nhay TUNG IT MOT nhieu lan,
---                           vi khong co gio lam thi tran chi con phu cap 166.858 xp.
+--                           vi khong co gio lam thi tran chi con phu cap 245.950 xp.
 -- Tang 2C (khoa boc so):    sua so con da ha ma khong di qua engine.
 -- Tang 2D (ngoai su kien):  cay ki nang su kien ngoai khoang mo/dong cua bang su_kien.
 -- Tang 2E (Dan Dien):       lap o Dan Dien nhieu hon so vien dan tung roi ra (bo dem boc so)
