@@ -79,9 +79,18 @@ with soi(tt, muc, thay, phai_la) as (
                   then '0' else '1' end
         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
        where n.nspname = 'public' and p.proname = 'kiem_toc_do'), '1'),
-    (22, 'chot dong dau gio dung TRUOC chot kiem toc do (thu tu ten)',
-     (select case when min(tgname) = 'a_dong_dau_gio_tren_saves' then '1' else '0' end
-        from pg_trigger where tgrelid = 'public.saves'::regclass and not tgisinternal), '1')
+    -- ⚠⚠ ĐIỀU CẦN SOI LA "DUNG TRUOC `kiem_toc_do`", KHONG PHAI "DUNG DAU BANG".
+    --    Ban dau toi viet `min(tgname) = 'a_dong_dau_gio_tren_saves'` va no bao LECH oan: tren
+    --    bang `saves` co BON chot tien to `a_` (a_bao_tri · a_dong_dau_gio · a_khoa_tai_khoan ·
+    --    a_san_chan_quay_nguoc), va `a_bao_tri` dung truoc theo bang chu cai. Phep do doi mot
+    --    dieu chat hon dieu that su can, nen no bat oan mot may chu dang dung.
+    (22, 'chot dong dau gio CO, va dung truoc chot kiem toc do',
+     (select case when exists (
+          select 1 from pg_trigger
+           where tgrelid = 'public.saves'::regclass and not tgisinternal
+             and tgname = 'a_dong_dau_gio_tren_saves'
+             and tgname < 'kiem_toc_do_tren_saves')
+        then '1' else '0' end), '1')
 )
 select tt, muc,
        coalesce(thay, '(khong co)') as thay,
@@ -104,4 +113,13 @@ union all
 select 35, 'lan ghi gan nhat',      (select coalesce(max(luc)::text, '(chua co)') from nghi_van), '', ''
 union all
 select 36, 'so nguoi dang mien tru',(select count(*)::text from mien_tru), '', ''
+union all
+-- ⚠ BAY THANG DANH SACH CHOT THEO DUNG THU TU CHAY. Postgres chay trigger BEFORE theo THU TU TEN.
+--   Mot dong "OK/LECH" chi cho biet KET LUAN; dong nay cho biet BANG CHUNG, de con tu doc khi
+--   phep do va su that noi khac nhau.
+select 40, '--- chot tren bang saves, theo thu tu chay ---', '', '', ''
+union all
+select 41, 'thu tu chay',
+       (select string_agg(tgname, '  ->  ' order by tgname)
+          from pg_trigger where tgrelid = 'public.saves'::regclass and not tgisinternal), '', ''
 order by tt;
