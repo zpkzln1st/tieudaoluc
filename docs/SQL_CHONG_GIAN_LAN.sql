@@ -164,6 +164,14 @@ create policy "he_so_tac_gia_them" on public.he_so_may_chu
 drop policy if exists "he_so_tac_gia_xoa" on public.he_so_may_chu;
 create policy "he_so_tac_gia_xoa" on public.he_so_may_chu
   for delete using (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
+-- ⚠⚠ LUAT SUA — BAT BUOC PHAI CO. Nut "Go" o Lenh Bai nay DAT 'dong_luc' ve bay gio chu khong xoa
+--    dong nua (xem chu thich cua 'cloudHeSoDong', src/cloud.js): dong bi xoa thi khong con moc nao
+--    de chot dem mieng 10 phut bu cho bo dem o client, va nguoi ban hang loat trong khe do bi ghi
+--    so oan. Thieu luat nay thi lenh sua bi RLS chan IM LANG — nut trong nhu chay ma khong lam gi.
+drop policy if exists "he_so_tac_gia_sua" on public.he_so_may_chu;
+create policy "he_so_tac_gia_sua" on public.he_so_may_chu
+  for update using (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid)
+          with check (auth.uid() = '942e0821-009d-4c43-b191-a4701656d2c1'::uuid);
 
 -- ---------- 5. HAM PHU: doc so trong jsonb ma khong bao gio no ----------
 -- ⚠ Save la jsonb do CLIENT gui len: mot o dang so hom nay co the thanh chuoi/null ngay mai.
@@ -235,6 +243,51 @@ begin
      and (r.nguoi_mua = u or r.nguoi_ban = u);
   return greatest(coalesce(n, 0), 0);
 end $$;
+-- ⚠ Khoa cua NGAY TAI DAY. Dong nay von chi nam o docs/SQL_KHOA_CUA_RPC.sql — nghia la chay tep
+--   nay tren mot CSDL moi ma chua chay tep kia thi ham ho ra cho ca anon. Lenh revoke chay lai duoc
+--   nhieu lan nen de o ca hai noi khong hai gi.
+revoke all on function public.dan_mua_san(uuid, integer, integer) from public, anon, authenticated;
+
+-- ⚠⚠ DAN DIEN NHAN TU HOP QUA / MA QUA cung phai duoc tinh vao han muc, y het dan mua tren San.
+--    Hai duong do cong THANG vao tui ('_congQua', src/main.js) — KHONG di qua bo dem boc so va
+--    KHONG de lai dong nao trong 'san_rao'. Nen nguoi nhan lap o xong la vuot tran 2E:
+--    tac gia phat 60 vien pham cao (gia tri 194.400 Bac = 9,7% tran giao dien 2.000.000, khong
+--    mot cau canh bao nao) thi nguoi nhan bi CHAN THAT, ban luu thoi dong bo ma khong bao gi.
+--    Rao chan giao dien dem GIA TRI chu khong dem SO VIEN nen no cho lot toi 617 vien pham 9.
+-- ⚠ Chua o MAY CHU chu khong phai cam tac gia phat dan: phat dan la viec hop le, cai sai la
+--   han muc khong biet den no.
+create or replace function public.dan_qua_tang(u uuid, tu int, den int) returns numeric
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare n numeric := 0; m numeric := 0;
+begin
+  -- Hop qua: chi dem dong DA NHAN cua chinh nguoi nay.
+  if to_regclass('public.qua_tang') is not null then
+    select coalesce(sum(v.value::numeric), 0) into n
+      from public.qua_tang q
+      cross join lateral jsonb_each_text(coalesce(q.noi_dung->'items', '{}'::jsonb)) as v(key, value)
+     where q.user_id = u and q.nhan_luc is not null
+       and v.key ~ '^dd(Tinh|Khi|Than)[1-9]$'
+       and substring(v.key from '[1-9]$')::int between tu and den;
+  end if;
+  -- Ma qua: bang 'ma_qua_da_doi' ghi ai da doi ma nao.
+  if to_regclass('public.ma_qua_da_doi') is not null and to_regclass('public.ma_qua') is not null then
+    select coalesce(sum(v.value::numeric), 0) into m
+      from public.ma_qua_da_doi d
+      join public.ma_qua g on g.ma = d.ma
+      cross join lateral jsonb_each_text(coalesce(g.noi_dung->'items', '{}'::jsonb)) as v(key, value)
+     where d.user_id = u
+       and v.key ~ '^dd(Tinh|Khi|Than)[1-9]$'
+       and substring(v.key from '[1-9]$')::int between tu and den;
+  end if;
+  return greatest(coalesce(n, 0) + coalesce(m, 0), 0);
+end $$;
+-- ⚠⚠ KHOA CUA NGAY TAI DAY, dung de sang tep khac. Supabase MO moi ham trong schema 'public' ra
+--    lam RPC theo mac dinh (xem docs/SQL_KHOA_CUA_RPC.sql). Ham nay nhan 'uuid' va DOC BANG cua
+--    NGUOI KHAC, nen de ho thi ai cung goi duoc de biet nguoi khac nhan bao nhieu vien dan.
+--    'dan_mua_san' da bi khoa tu lau o tep kia; ham MOI ma quen khoa la lai ho mot cua.
+-- ⚠ Dat ngay canh lenh tao de hai thu di CUNG NHAU. Tach ra hai tep la som muon cung lech —
+--   dung cai benh ma [[gotcha-tieudao-sinh-sql-lech-bo-sinh]] da ghi so.
+revoke all on function public.dan_qua_tang(uuid, integer, integer) from public, anon, authenticated;
 
 -- Cua so cho phep tra nhanh. Bang 'san_rao' da co chi muc theo nguoi_ban, chua co theo nguoi_mua.
 -- ⚠ Boc trong DO de tep nay van chay duoc khi chua ai chay SQL_SAN_GIAO_DICH.sql.
@@ -312,7 +365,11 @@ begin
   select coalesce(max(gia_tri), 1) into hs_exp from public.he_so_may_chu
    where khoa = 'exp'
      and (mo_luc  is null or mo_luc  <  now())
-     and (dong_luc is null or dong_luc > OLD.updated_at);
+     -- ⚠⚠ CONG DEM BANG DUNG NHIP LAM MOI CUA CLIENT (10 phut). Client giu he so trong bo dem
+     --    va chi lam moi moi 10 phut, con nhip day save la 15 giay — nen ngay sau khi mot dot
+     --    dong, client VAN nhan he so ma tran thi da ve x1. Khong co dem nay thi ai cay/ban trong
+     --    khe do deu bi ghi so oan. Dem chi NOI tran nen khong mo cua cho gian lan.
+     and (dong_luc is null or dong_luc + interval '600 seconds' > OLD.updated_at);
   hs_exp := greatest(1, coalesce(hs_exp, 1));
   hs := hs * hs_exp;
   -- ⚠⚠ TRAN TUYET DOI cung phai nhan theo. Khong nhan thi mot phien treo 14 gio o ki nang su kien
@@ -345,7 +402,9 @@ begin
   select coalesce(max(gia_tri), 1) into hs_ban from public.he_so_may_chu
    where khoa = 'gia_ban'
      and (mo_luc  is null or mo_luc  <  now())
-     and (dong_luc is null or dong_luc > OLD.updated_at);
+     -- ⚠⚠ Cung mot dem voi 'exp' o tren — cung mot bo dem client, cung mot khe lech.
+     --    Do that: dot x2 chi can 3,3 ngay cay gom hang la cham muc ghi so, dot x5 chi can 1,3 ngay.
+     and (dong_luc is null or dong_luc + interval '600 seconds' > OLD.updated_at);
   hs_ban := greatest(1, coalesce(hs_ban, 1));
 
   cho_phep := (giay + bu) * hs;
@@ -519,8 +578,13 @@ begin
       --    nay la nguoi mua dan bi ghi so tu o thu 21 va bi CHAN THAT o o thu 60.
       -- ⚠ Chi truy van 'san_rao' KHI tran co so da vuot. Cua nay dong voi gan het moi lenh luu,
       --   nen khong dat them mot phep doc bang vao duong nong.
+      -- ⚠⚠ VA SO VIEN NHAN TU HOP QUA / MA QUA. Cung mot benh voi vien mua tren San: cong thang
+      --    vao tui, khong qua bo dem boc so. Thieu ve nay thi tac gia phat dan lam qua ra mat la
+      --    nguoi nhan bi CHAN THAT, ma rao chan giao dien khong he canh bao (no dem GIA TRI chu
+      --    khong dem SO VIEN — 60 vien pham 9 chi bang 9,7% tran 2.000.000 Bac).
       if o_cao_moi > tran_cho then
-        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 6, 9);
+        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 6, 9)
+                             + dan_qua_tang(NEW.user_id, 6, 9);
       end if;
       if o_cao_moi > tran_cho then
         gap_nay := o_cao_moi / greatest(tran_cho, 1);
@@ -538,7 +602,8 @@ begin
       tran_cho := boc_dan + so_jsonb(NEW.data->'skills'->'luyenDan'->'timeMs') / (giay_nau * 1000) + sai_dd;
       -- ⚠ Ca luoi, nen lay ca 9 pham: mua tron 60 o nau duoc cung dung bang gap 3,0 = nguong chan.
       if o_moi > tran_cho then
-        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 1, 9);
+        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 1, 9)
+                             + dan_qua_tang(NEW.user_id, 1, 9);
       end if;
       if o_moi > tran_cho then
         gap_nay := o_moi / greatest(tran_cho, 1);

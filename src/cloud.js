@@ -561,11 +561,17 @@ export async function cloudMaQuaXoa(ma) {
 //    khong luu duoc save.
 // ============================================================
 
-/** Cac dot he so DANG chay. Luat RLS da loc moc; nguoi thuong khong thay dot chua toi gio. */
+/**
+ * Cac dot he so DANG chay. Luat RLS da loc moc; nguoi thuong khong thay dot chua toi gio.
+ * ⚠ Loc bo dot DA DONG: tu khi nut "Go" chuyen sang DAT `dong_luc` thay vi xoa dong (xem
+ *   `cloudHeSoDong`), dong da go van nam lai trong bang. Khong loc thi mot danh sach mang ten
+ *   "dang chay" lai bay ca dot da tat — dung cai kieu noi doi nho ma lan sau doc nham.
+ */
 export async function cloudHeSoDs() {
   const sb = await getClient();
   const { data, error } = await sb.from('he_so_may_chu')
     .select('id,khoa,gia_tri,mo_luc,dong_luc,ghi_chu')
+    .or('dong_luc.is.null,dong_luc.gt.' + new Date().toISOString())
     .order('id', { ascending: false }).limit(30);
   if (error) return { ok: false, reason: error.message, thieuBang: _thieuBang(error) };
   return { ok: true, rows: data || [] };
@@ -584,11 +590,29 @@ export async function cloudHeSoDat(r) {
   return { ok: true };
 }
 
-export async function cloudHeSoXoa(id) {
+/**
+ * Go mot dot he so: DAT `dong_luc` VE BAY GIO, khong xoa dong.
+ *
+ * ⚠⚠ TRUOC DAY HAM NAY XOA HAN DONG, va do la mot cua bat oan nguoi choi that.
+ *   Chot chong gian lan doc he so qua cua so `dong_luc + 10 phut > OLD.updated_at` — mieng dem
+ *   10 phut do la de bu cho BO DEM O CLIENT (client chi lam moi `state.heSo` moi 10 phut, con
+ *   nhip day save la 15 giay). Nhung dong bi XOA thi khong con `dong_luc` nao de dem cho: may chu
+ *   ve x1 tuc thi, trong khi may nguoi choi khac VAN nhan he so cu them toi 10 phut. Ai ban hang
+ *   loat trong khe do la bi ghi so oan — dung cai loi vua di va, chui ra bang duong khac.
+ * ⚠ Dat `dong_luc` thi dong con nam lai lam so: tac gia thay dot da dong luc nao, va chot van
+ *   dem duoc mieng 10 phut. Muon xoa han thi vao thang Supabase — do la viec hiem, khong phai
+ *   viec bam mot nut.
+ */
+export async function cloudHeSoDong(id) {
   if (!id) return { ok: false, reason: 'no-id' };
   const sb = await getClient();
-  const { error } = await sb.from('he_so_may_chu').delete().eq('id', id);
+  // ⚠⚠ XIN TRA VE DONG (`.select`) LA CO Y — cung ly do voi `cloudPushSave`. RLS chan mot lenh
+  //   UPDATE bang cach cho no khop 0 dong, KHONG bao loi. Khong xin dong tra ve thi day la mot
+  //   ca "thanh cong" gia: nut bao "Da go" ma dot van dang chay.
+  const { data, error } = await sb.from('he_so_may_chu')
+    .update({ dong_luc: new Date().toISOString() }).eq('id', id).select('id');
   if (error) return { ok: false, reason: error.message };
+  if (!data || !data.length) return { ok: false, reason: 'khong dong duoc dot nay' };
   return { ok: true };
 }
 
