@@ -362,7 +362,11 @@ begin
 
   -- ===== TANG 1: tran theo DONG HO MAY CHU =====
   -- xp tung track: lay CAI CHAT HON trong hai tran (theo nhip · theo duong cong cap).
-  for r in select khoa, xp_giay, tran_lan as tran_track from tran_toc_do loop
+  -- ⚠⚠ PHAI GHI RO TEN BANG: 'tran_lan' vua la COT cua tran_toc_do vua la BIEN plpgsql khai o
+  --    tren. PL/pgSQL mac dinh 'variable_conflict = error', nen viet tran (khong co ten bang) la
+  --    Postgres nem "column reference tran_lan is ambiguous" o MOI LAN GHI SAVE — ca lang khong
+  --    ai luu duoc nua, te hon han cai loi dang di va. Ghi ro ten bang thi no chac chan la COT.
+  for r in select khoa, xp_giay, tran_toc_do.tran_lan as tran_track from tran_toc_do loop
     cu  := so_jsonb(OLD.data->'skills'->r.khoa->'xp');
     moi := so_jsonb(NEW.data->'skills'->r.khoa->'xp');
     tang := moi - cu;
