@@ -241,7 +241,12 @@ begin
      and r.item_id ~ '^dd(Tinh|Khi|Than)[1-9]$'
      and substring(r.item_id from '[1-9]$')::int between tu and den
      and (r.nguoi_mua = u or r.nguoi_ban = u);
-  return greatest(coalesce(n, 0), 0);
+  -- ⚠⚠ TRA VE SO RONG, CO THE AM — KHONG kep o day. Kep rieng tung ham la mat ve TRU: nhan dan
+  --    lam qua roi ban het di thi 'dan_qua_tang' van cong nguyen so vien, con so am cua duong San
+  --    bi kep ve 0 nuot mat, nen han muc phinh len ma trong tay khong con vien nao.
+  --    Do that: nhan 34 vien roi ban het -> cua so mien to no tu 20 o len 54 o.
+  --    Nay kep MOT LAN o cho goi, tren TONG cua ca hai duong.
+  return coalesce(n, 0);
 end $$;
 -- ⚠ Khoa cua NGAY TAI DAY. Dong nay von chi nam o docs/SQL_KHOA_CUA_RPC.sql — nghia la chay tep
 --   nay tren mot CSDL moi ma chua chay tep kia thi ham ho ra cho ca anon. Lenh revoke chay lai duoc
@@ -279,7 +284,8 @@ begin
        and v.key ~ '^dd(Tinh|Khi|Than)[1-9]$'
        and substring(v.key from '[1-9]$')::int between tu and den;
   end if;
-  return greatest(coalesce(n, 0) + coalesce(m, 0), 0);
+  -- Cung le voi 'dan_mua_san': tra so tho, viec kep de cho goi lam MOT LAN tren tong.
+  return coalesce(n, 0) + coalesce(m, 0);
 end $$;
 -- ⚠⚠ KHOA CUA NGAY TAI DAY, dung de sang tep khac. Supabase MO moi ham trong schema 'public' ra
 --    lam RPC theo mac dinh (xem docs/SQL_KHOA_CUA_RPC.sql). Ham nay nhan 'uuid' va DOC BANG cua
@@ -309,7 +315,7 @@ end $$;
 create or replace function public.kiem_toc_do() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
-  giay numeric; cho_phep numeric; hs numeric; bu numeric; bac_san numeric; tran_lan numeric;
+  giay numeric; cho_phep numeric; cho_phep_bac numeric; hs numeric; hs_goc numeric; bu numeric; bac_san numeric; tran_lan numeric;
   nhip_ms numeric; hs_gio numeric; phu_cap numeric; sai_so numeric; gap_chan numeric;
   hs_exp numeric; hs_ban numeric; so_cua_so numeric;
   r record; cu numeric; moi numeric; tang numeric; tran_cho numeric; gap_nay numeric;
@@ -371,6 +377,13 @@ begin
      --    khe do deu bi ghi so oan. Dem chi NOI tran nen khong mo cua cho gian lan.
      and (dong_luc is null or dong_luc + interval '600 seconds' > OLD.updated_at);
   hs_exp := greatest(1, coalesce(hs_exp, 1));
+  -- ⚠⚠ GIU LAI HE SO AN TOAN CHUA NHAN he so EXP. Tran BAC khong duoc an theo dot EXP: dot EXP
+  --    khong lam ai kiem duoc them mot dong Bac nao, no chi cho xp. Nhan vao la tran Bac tu noi
+  --    ra dung bang so lan cua dot — do that: dot EXP x5 keo tran Bac tu 35.917.481 len
+  --    179.587.406, va moc CHAN tu 107.752.444 len 538.762.219. Ca hai dot x5 thi tran thanh
+  --    897.937.031 va moc chan thanh 2.693.811.094 — mot cai lo, khong phai mot cai tran.
+  --    Tran Bac da co he so rieng cua no la 'hs_ban' (dot Gia Ban); 'hs_exp' la an theo hai lan.
+  hs_goc := hs;
   hs := hs * hs_exp;
   -- ⚠⚠ TRAN TUYET DOI cung phai nhan theo. Khong nhan thi mot phien treo 14 gio o ki nang su kien
   --    bac 6 (~1,93 trieu xp) nhan 5 la vuot tran 2.218.261 — ghi so oan nguoi choi that.
@@ -408,6 +421,8 @@ begin
   hs_ban := greatest(1, coalesce(hs_ban, 1));
 
   cho_phep := (giay + bu) * hs;
+  -- Duong rieng cho Bac: KHONG an theo dot EXP (xem chu thich cua 'hs_goc' o tren).
+  cho_phep_bac := (giay + bu) * hs_goc;
   -- ⚠⚠ BAO NHIEU LAN DAY TRAN NHAN ROI da troi qua ke tu lan ghi truoc.
   --    Game choi duoc KHONG CAN dang nhap, va nhip day chi chay khi 'isLoggedIn'. Nguoi cay sach
   --    ca tuan o che do chua dang nhap (hoac mat mang / Supabase nghi) roi moi day mot cuc la
@@ -448,7 +463,7 @@ begin
   moi := so_jsonb(NEW.data->'currencies'->'bac');
   tang := moi - cu;
   if tang > bac_san then
-    tran_cho := (select xp_giay from tran_toc_do where khoa = 'chienDau') * cho_phep * hs_ban;
+    tran_cho := (select xp_giay from tran_toc_do where khoa = 'chienDau') * cho_phep_bac * hs_ban;
     if tang > tran_cho then
       gap_nay := tang / greatest(tran_cho, 1);
       gap_lon := greatest(gap_lon, gap_nay);
@@ -583,8 +598,10 @@ begin
       --    nguoi nhan bi CHAN THAT, ma rao chan giao dien khong he canh bao (no dem GIA TRI chu
       --    khong dem SO VIEN — 60 vien pham 9 chi bang 9,7% tran 2.000.000 Bac).
       if o_cao_moi > tran_cho then
-        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 6, 9)
-                             + dan_qua_tang(NEW.user_id, 6, 9);
+        -- ⚠ KEP MOT LAN TREN TONG. Kep rieng tung ham la mat ve TRU cua duong San (xem chu thich
+        --   trong 'dan_mua_san'): ban dan tang di ma han muc van con nguyen.
+        tran_cho := tran_cho + greatest(dan_mua_san(NEW.user_id, 6, 9)
+                                      + dan_qua_tang(NEW.user_id, 6, 9), 0);
       end if;
       if o_cao_moi > tran_cho then
         gap_nay := o_cao_moi / greatest(tran_cho, 1);
@@ -602,8 +619,9 @@ begin
       tran_cho := boc_dan + so_jsonb(NEW.data->'skills'->'luyenDan'->'timeMs') / (giay_nau * 1000) + sai_dd;
       -- ⚠ Ca luoi, nen lay ca 9 pham: mua tron 60 o nau duoc cung dung bang gap 3,0 = nguong chan.
       if o_moi > tran_cho then
-        tran_cho := tran_cho + dan_mua_san(NEW.user_id, 1, 9)
-                             + dan_qua_tang(NEW.user_id, 1, 9);
+        -- ⚠ Kep MOT LAN tren tong, y het 2E-a o tren.
+        tran_cho := tran_cho + greatest(dan_mua_san(NEW.user_id, 1, 9)
+                                      + dan_qua_tang(NEW.user_id, 1, 9), 0);
       end if;
       if o_moi > tran_cho then
         gap_nay := o_moi / greatest(tran_cho, 1);
