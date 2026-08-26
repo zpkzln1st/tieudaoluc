@@ -6784,8 +6784,18 @@ const gameStore = {
     const next = x.stats || {};
     const worn = this.state.equipment && this.state.equipment[slot];
     const cur = (worn && worn.stats) || {};
+    // ⚠⚠ NHÂN CƯỜNG HOÁ VÀO CẢ HAI VẾ, khớp đúng `gearStats` ở engine/stats.js (kháng và dòng
+    //    `flat` không ăn). Bản cũ so CHỈ SỐ THÔ: món đang mặc gần như luôn là món duy nhất được
+    //    cường hoá, nên phép so luôn thiên vị món trong túi. Vũ khí +10 (×1,80) Công Kích thô 400
+    //    = 720 thật, đứng cạnh một món thô 450 chưa cường: món mới được gắn nhãn 'Đề cử', mũi tên
+    //    ▲50 màu lục, bấm 'Trang Bị Nhanh' là tụt 37% Công Kích mà không một dòng chữ nào báo.
+    // ⚠ Làm tròn TỪNG MÓN ở đây, còn `gearStats` làm tròn TỔNG cộng dồn — hai bên lệch được ±1
+    //   điểm. Chấp nhận cho một bảng so sánh; đừng tưởng là lỗi mới.
+    const mN = enhanceMul(x.plus || 0), mW = enhanceMul((worn && worn.plus) || 0);
+    const ap = (o, k, m) => Math.round((o[k] || 0) * ((k.indexOf('khang') === 0 || (AFFIX[k] && AFFIX[k].flat)) ? 1 : m));
     const keys = [...new Set([...Object.keys(next), ...Object.keys(cur)])];
-    return keys.map((k) => ({ key: k, label: this.gearStatLabel(k), next: next[k] || 0, cur: cur[k] || 0, delta: (next[k] || 0) - (cur[k] || 0) }));
+    return keys.map((k) => { const n = ap(next, k, mN), c = ap(cur, k, mW);
+      return { key: k, label: this.gearStatLabel(k), next: n, cur: c, delta: n - c }; });
   },
   // Icon 5 kháng dùng LẠI icon hệ trong NGU_HANH[he].ig — riêng Hỏa tên icon là 'flame' chứ không phải
   // 'hoa' (SVG_PATHS không có key 'hoa'; svg() trả chuỗi RỖNG khi thiếu key nên sẽ mất icon âm thầm).
@@ -6806,7 +6816,10 @@ const gameStore = {
   othersForSlot(slot) {
     const rec = this.recommendedForSlot(slot);
     let list = this.equippableForSlot(slot).filter((v) => !rec || v.uid !== rec.uid);
-    if (this.equipFilterBetter) list = list.filter((v) => this.gearGainTotal(v) > 0);
+    // ⚠ Công cụ và phụ kiện sự kiện có `stats` RỖNG nên `gearGainTotal` luôn bằng 0 — bật bộ lọc
+    //   này là danh sách trống trơn, trong khi trong túi đang có Khai Thiên Thần Phủ +50% hiệu
+    //   suất. Sức mạnh của chúng nằm ở `gatherEff`, miễn trừ chúng khỏi phép so chỉ số.
+    if (this.equipFilterBetter) list = list.filter((v) => this.gearGainTotal(v) > 0 || (v.gatherEff || 0) > 0);
     return list;
   },
 
@@ -6837,8 +6850,16 @@ const gameStore = {
   enhancePreview(x) {
     if (!x || !x.stats) return [];
     const plus = this.itemPlus(x), curMul = enhanceMul(plus), nxtMul = enhanceMul(plus + 1);
-    return Object.keys(x.stats).map((k) => ({ key: k, label: this.gearStatLabel(k), icon: this.gearStatIcon(k),
-      cur: Math.round(x.stats[k] * curMul), next: Math.round(x.stats[k] * nxtMul) }));
+    return Object.keys(x.stats).map((k) => {
+      // ⚠⚠ KHÁNG KHÔNG ĂN CƯỜNG HOÁ — chốt nằm ở `engine/stats.js` (`k.indexOf('khang') === 0`).
+      //    Bảng xem trước trước đây nhân hết mọi dòng, nên nó hứa Kháng Hoả 32 → 33 và người chơi
+      //    bỏ 8 Đá Cường Hoá Cao + 3.600 Hồn Thạch + 3 Tinh Thể để lên +15, xong thì kháng đứng im.
+      //    Càng cường cao con số hứa càng phình (ở +15 là ×2,20) trong khi giá trị thật im từ +0.
+      const kh = k.indexOf('khang') === 0;
+      const c = kh ? 1 : curMul, n = kh ? 1 : nxtMul;
+      return { key: k, label: this.gearStatLabel(k), icon: this.gearStatIcon(k),
+        cur: Math.round(x.stats[k] * c), next: Math.round(x.stats[k] * n) };
+    });
   },
   doEnhance() {
     const inst = this.enhanceInst(); if (!inst) return;

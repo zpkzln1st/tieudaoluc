@@ -17793,7 +17793,10 @@
               <div class="h-px flex-1 bg-slate-800"></div>
             </div>
           </template>
-          <template x-if="g.equippableForSlot(slot).length===0">
+          <!-- ⚠ Gác bằng "BẢNG RỖNG" chứ không bằng "túi rỗng". Bật 'Chỉ hiện tốt hơn' là bảng
+               trống mà túi vẫn đầy, nên câu trấn an không hiện và người chơi nhìn một thân bảng
+               trắng bóc, kết luận mình chưa có món nào. -->
+          <template x-if="!g.recommendedForSlot(slot) && g.othersForSlot(slot).length===0">
             <div class="text-sm text-slate-600 py-3 text-center">Không có trang bị phù hợp trong túi.</div>
           </template>
           <div class="space-y-2">

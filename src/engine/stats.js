@@ -10,6 +10,8 @@ import { setBonus } from './setbonus.js';
 export { SET_TIERS, SET_PCT_KEYS, SET_ELE_KEY, SET_MISC_KEYS, equippedSetCount, setBonus, consumableEffMult } from './setbonus.js';
 import { levelFromXp } from './leveling.js';
 import { enhanceMul } from './enhance.js';
+// Bảng dòng phụ — đọc cờ `flat` để biết dòng nào KHÔNG được nhân theo cường hoá.
+import { AFFIX } from '../data/gear.js';
 import { petBonus } from './pets.js';
 import { codexBonus } from './codex.js';
 import { titleBonus } from './titles.js';
@@ -78,7 +80,11 @@ export function gearStats(state) {
       // KHÁNG KHÔNG ĂN CƯỜNG HÓA. Nó là % có TRẦN CỨNG nên nhân lên chỉ để đâm vào trần rồi mất trắng:
       // đo thật, bộ giáp bậc 7 cường hóa +15 chạm trần 100% số lần, tức mọi điểm cường hóa đổ vào dòng
       // kháng đều vô nghĩa. Để cường hóa lo chỉ số thô, để phẩm chất lo kháng — hai trục tách bạch.
-      const m = k.indexOf('khang') === 0 ? 1 : mul;
+      // ⚠⚠ Dòng khai `flat: true` cũng KHÔNG ăn cường hoá. `tangCong` (Kĩ Năng Vốn Có) là số
+      //    TẦNG chứ không phải điểm chỉ số — chú thích ở data/gear.js ghi rõ 'nhân lên sẽ phá
+      //    thẳng hệ Tầng'. Bản cũ chỉ miễn trừ khoá `khang*`, nên một chiếc nhẫn `tangCong: 2`
+      //    cường lên +7 thành 3 Tầng: chạm trần, thứ lẽ ra phải tốn Ngộ Tính mới lên được.
+      const m = (k.indexOf('khang') === 0 || (AFFIX[k] && AFFIX[k].flat)) ? 1 : mul;
       g[k] = (g[k] || 0) + inst.stats[k] * m;
     }
   }

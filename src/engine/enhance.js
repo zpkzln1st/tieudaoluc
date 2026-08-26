@@ -44,6 +44,13 @@ export function enhanceStep(plus) {
 export function canEnhance(state, inst) {
   const step = enhanceStep(gearPlus(inst));
   if (!step) return false;
+  // ⛔⛔ MÓN KHÔNG CÓ CHỈ SỐ NỀN THÌ CƯỜNG HOÁ KHÔNG ĐỔI MỘT CON SỐ NÀO. Công cụ (Rìu · Cuốc ·
+  //    Cần Câu · Dược Liêm) khai `stats: {}` rỗng, sức mạnh nằm ở `gatherEff` mà `toolEffBonus`
+  //    đọc THẲNG từ catalog — `plus` không chảy vào đó. Phụ kiện sự kiện cũng `stats: {}`.
+  //    Trước đây nút vẫn sáng: đi hết bảng +15 là ném đi 39 Đá Cường Hoá + 14.905 Hồn Thạch +
+  //    6 Tinh Thể mà hiệu suất không nhích một phần trăm. Chốt ở ĐÂY vì `tryEnhance` gọi lại
+  //    chính hàm này, nên một dòng khoá cả nút lẫn hành động.
+  if (!inst || !inst.stats || Object.keys(inst.stats).length === 0) return false;
   if ((state.inventory[step.stoneId] || 0) < step.stoneQty) return false;
   if ((state.currencies.honThach || 0) < step.honThach) return false;
   if (step.crystalQty > 0 && (state.inventory[step.crystalId] || 0) < step.crystalQty) return false;
