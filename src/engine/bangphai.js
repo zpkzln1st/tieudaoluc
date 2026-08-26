@@ -139,7 +139,7 @@ function bangMoi(ten, tonChi, now) {
   return {
     ten, tonChi: tonChi || '', thongBao: '', lapLuc: now,
     cap: 1, bangCong: 0, quy: 0,
-    kho: {}, khoDu: 0, kyNang: {},
+    kho: {}, khoDu: 0, khoNet: 0, khoDaThuong: 0, kyNang: {},
     congTrinh: { tongDan: 1, binhKhiKho: 0, tuLinhTri: 0, bangKho: 0, tramYeuDai: 0 },
     xayDung: null,
     quyen: Object.assign({}, QUYEN_MAC_DINH),
@@ -604,24 +604,40 @@ export function gopKho(state, itemId, so) {
   if (!b.bang || !itemId || n <= 0) return 0;
   const kho = b.bang.kho;
   if (!kho[itemId] && Object.keys(kho).length >= oKhoToiDa(b.bang)) return 0;   // hết ô
+  khoDungSo(b);            // ⚠ PHẢI dựng sổ TRƯỚC khi đụng vào kho — nó đếm số món ĐANG có
   kho[itemId] = (kho[itemId] || 0) + n;
-  // ⚠⚠ TRƯỚC ĐÂY: `themBangCong(state, Math.max(1, Math.round(n / 4)))` — thưởng MỖI LẦN GỌI.
-  //    Đo thật: cùng 100 món, góp một lần được 26 Minh Cống, góp từng món một được 100 (gấp 3,8
-  //    lần), mà 20 lần × 5 món lại chỉ được 20. Sàn `max(1, …)` biến việc bấm lắt nhắt thành lối
-  //    chơi tốt nhất, và phép thưởng thì không đơn điệu.
-  //    NAY: dồn SỐ DƯ. Cứ đủ `KHO_MON_MOI_CONG` món là 1 Minh Cống, chia làm mấy lần cũng như nhau.
-  b.bang.khoDu = (b.bang.khoDu || 0) + n;
-  const diem = Math.floor(b.bang.khoDu / KHO_MON_MOI_CONG);
-  if (diem > 0) { b.bang.khoDu -= diem * KHO_MON_MOI_CONG; themBangCong(state, diem); }
+  // ⚠⚠ TRƯỚC ĐÂY (đợt 1): `themBangCong(state, Math.max(1, Math.round(n / 4)))` — thưởng MỖI LẦN
+  //    GỌI. Đo thật: cùng 100 món, góp một lần được 26 Minh Cống, góp từng món một được 100 (gấp
+  //    3,8 lần). Sàn `max(1, …)` biến việc bấm lắt nhắt thành lối chơi tốt nhất.
+  // ⛔⛔ ĐỢT 1 VÁ CHƯA HẾT. Dồn số dư chữa được kiểu bấm lắt nhắt, nhưng `rutKho` KHÔNG trừ lại
+  //    gì cả — góp 100 món lấy 25 Minh Cống, rút đúng 100 món đó ra, góp lại, lại 25 nữa. Một
+  //    chồng đồ in ra Minh Cống VÔ HẠN, mà Minh Cống là thứ nâng cấp cả Tiên Minh.
+  //    NAY: thưởng theo MỐC RÒNG CAO NHẤT (`khoDaThuong`). Rút ra thì hạ số ròng nhưng KHÔNG đòi
+  //    lại Minh Cống đã phát; góp lại đúng chồng đồ cũ thì không vượt mốc cũ nên không được gì.
+  //    Chỉ đồ MỚI (đẩy số ròng qua mốc cao nhất) mới sinh Minh Cống.
+  b.bang.khoNet += n;
+  const nen = Math.floor(b.bang.khoNet / KHO_MON_MOI_CONG);
+  if (nen > b.bang.khoDaThuong) { themBangCong(state, nen - b.bang.khoDaThuong); b.bang.khoDaThuong = nen; }
   return n;
+}
+/** Dựng hai sổ mới cho bản lưu CŨ, ở mức TRUNG TÍNH: không phát bù, không đòi lại. */
+function khoDungSo(b) {
+  if (b.bang.khoNet != null && b.bang.khoDaThuong != null) return;
+  let dangCo = 0;
+  for (const k in (b.bang.kho || {})) dangCo += (b.bang.kho[k] | 0);
+  b.bang.khoNet = dangCo;
+  b.bang.khoDaThuong = Math.floor(dangCo / KHO_MON_MOI_CONG);
 }
 export function rutKho(state, itemId, so) {
   const b = ensureBangPhai(state), n = Math.max(0, Math.floor(so || 0));
   if (!b.bang || !itemId || n <= 0) return 0;
   const co = b.bang.kho[itemId] || 0, lay = Math.min(co, n);
   if (!lay) return 0;
+  khoDungSo(b);            // ⚠ PHẢI dựng sổ TRƯỚC khi đụng vào kho — nó đếm số món ĐANG có
   b.bang.kho[itemId] = co - lay;
   if (b.bang.kho[itemId] <= 0) delete b.bang.kho[itemId];
+  // Hạ số ròng — mốc `khoDaThuong` GIỮ NGUYÊN, đó chính là thứ chặn vòng góp-rút-góp.
+  b.bang.khoNet = Math.max(0, b.bang.khoNet - lay);
   return lay;
 }
 /** Bậc chức có đủ quyền làm việc `k` không. Bang chủ (người chơi) luôn đủ. */
