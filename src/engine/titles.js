@@ -7,6 +7,12 @@ import { codexCatDone } from './codex.js';
 import { CODEX_CATS } from '../data/codex.js';
 import { TITLES, TITLE_BY_ID } from '../data/titles.js';
 import { TUTORIAL_QUESTS } from '../data/quests.js';
+// ⚠ `SKILLS` = ĐÚNG 10 nghề. `state.skills` thì có thêm `chienDau` và 6 kĩ năng sự kiện, nên
+//   duyệt thẳng nó là đếm ra một con số KHÁC với Tổng Cấp mà game bày cho người chơi.
+import { SKILLS } from '../data/skills.js';
+// ⚠⚠ Bộ đếm CHỈ-TIẾN của Yêu Vương. `state.boss.history` bị cắt cứng còn 40 dòng, đếm trên nó là
+//   một bộ đếm TỤT ĐƯỢC — xem chú thích dài ở `ensureBoss` trong worldboss.js.
+import { soLanThang } from './worldboss.js';
 
 const QORDER = ['phamPham', 'luongPham', 'tinhPham', 'tuyetPham', 'truyenThe', 'thanPham', 'coBan'];
 const qRank = (q) => { const i = QORDER.indexOf(q); return i < 0 ? 0 : i; };
@@ -33,9 +39,13 @@ export function titleUnlocked(state, c) {
     // nên save cũ đã có 'Sơ Nhập Giang Hồ' thì vẫn giữ nguyên sau khi đổi điều kiện này.
     case 'tutorial':   return (state.quests?.tutorial?.index || 0) >= TUTORIAL_QUESTS.length;
     case 'combatLv':   return lv(state.skills?.chienDau?.xp) >= c.v;
+    // ⚠⚠ PHẢI khớp `get totalLevel()` ở main.js: Chiến Đấu + ĐÚNG 10 nghề trong `SKILLS`.
+    //    Bản cũ duyệt `state.skills` nên cộng `chienDau` HAI LẦN, lại cộng thêm 6 kĩ năng sự kiện
+    //    — con số của danh hiệu lệch hẳn con số Tổng Cấp game bày ra, mở sớm cả trăm cấp.
     case 'totalLv': {
-      let tot = lv(state.skills?.chienDau?.xp);
-      for (const id in (state.skills || {})) tot += lv(state.skills[id].xp);
+      const sk = state.skills || {};
+      let tot = lv(sk.chienDau?.xp);
+      for (const id in SKILLS) tot += lv(sk[id]?.xp);
       return tot >= c.v;
     }
     case 'stat':       return lv(state.stats?.[c.id]?.xp) >= c.v;
@@ -43,10 +53,16 @@ export function titleUnlocked(state, c) {
     case 'totalKills': { let s = 0; for (const k in (state.counters?.kills || {})) s += state.counters.kills[k] || 0; return s >= c.v; }
     case 'kill':       return (state.counters?.kills?.[c.id] || 0) >= c.v;
     case 'produced':   return (state.counters?.produced?.[c.id] || 0) >= c.v;
-    case 'bossDistinct': return new Set((state.boss?.history || []).map((h) => h.id)).size >= c.v;
-    case 'bossTotal':  return (state.boss?.history || []).length >= c.v;
-    case 'dungeonClears': { let s = 0; const dr = state.codex?.dungeonRuns || {}; for (const k in dr) s += dr[k] || 0; return s >= c.v; }
-    case 'dungeonDistinct': return Object.keys(state.codex?.dungeonRuns || {}).length >= c.v;
+    // ⛔⛔ HAI DÒNG DƯỚI trước đây đếm trên `state.boss.history` — sổ đó bị cắt cứng còn 40 dòng
+    //    VÀ ghi cả trận THUA/HOÀ. Hậu quả kép: 'Trấn Yêu Thần Tướng' (đòi 100) KHÔNG BAO GIỜ mở
+    //    được, còn ba danh hiệu 'Hạ N Yêu Vương' thì tự mở cho người mới chỉ THỬ đánh rồi gục.
+    //    `thangTheo` / `tongThang` chỉ cộng trong nhánh `entry.win` và cộng TRƯỚC khi cắt sổ.
+    case 'bossDistinct': return Object.keys(state.boss?.thangTheo || {}).length >= c.v;
+    case 'bossTotal':  return soLanThang(state) >= c.v;
+    // ⛔⛔ `dungeonRuns` đếm CẢ lượt RÚT LUI (dungeon.js:269 ghi rõ). Ba danh hiệu 'Thông quan'
+    //    mở cho người thua sạch 30 lượt. Sổ đúng là `dungeonClears`, chỉ cộng khi `run.cleared`.
+    case 'dungeonClears': { let s = 0; const dr = state.codex?.dungeonClears || {}; for (const k in dr) s += dr[k] || 0; return s >= c.v; }
+    case 'dungeonDistinct': { const dc = state.codex?.dungeonClears || {}; return Object.keys(dc).filter((k) => (dc[k] || 0) > 0).length >= c.v; }
     case 'petCount':   return (state.pets || []).length >= c.v;
     case 'petAwk':     return (state.pets || []).filter((p) => p && p.evolved).length >= c.v;
     case 'codexCatAny': { let n = 0; for (const cat of CODEX_CATS) if (codexCatDone(state, cat) >= cat.entries.length) n++; return n >= c.v; }

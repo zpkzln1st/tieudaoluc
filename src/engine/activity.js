@@ -17,7 +17,7 @@ import { bangNgheBonus, bangKyNangBonus } from './bangbuff.js';
 import { ghiKillChinhPhat } from './bangphai.js';   // Bang Phái: điểm Chinh Phạt khi hạ quái (nhánh treo máy)
 import { rng, rngHam } from './rng.js';                    // bốc số CÓ HẠT GIỐNG — máy chủ tính lại được (Đợt D)
 import { addSkillXp, addStatXp, levelFromXp, heSoRotDo } from './leveling.js';
-import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal } from './pets.js';
+import { gainPetXp, resetPetCombat, petCombatCycle, activeAwkVal, activePet, petOptPct } from './pets.js';
 import { skillExpMultiplier, professionEffMult } from '../data/classes.js';
 import { DAMDAO, TIN_VAT_EFF_PCT } from '../data/damdao.js';   // Tín Vật: thưởng Đàm Đạo -> +% hiệu suất nghề
 import { DUNGEON_BY_ID } from '../data/dungeon.js';
@@ -372,7 +372,9 @@ export function advance(state, now) {
       // kĩ năng bang TRƠ ở đó — Tham Tài Quyết / Lùng Sục Quyết từng chết hẳn vì cả hai chỗ
       // đều chỉ đọc danh hiệu: tốn 1.600×5 Công Tích, ô hiện "+4.0% Bạc Nhặt", mà không ăn gì.
       const _bg = bangKyNangBonus(state);                                // Kĩ năng bang: Tham Tài / Lùng Sục
-      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + _tb.bacPct + _bg.bacPct + buffVal(state, 'bacPct', now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
+      // ⚠ `petOptPct(…,'moneyFind')` phải có ở CẢ HAI đường thưởng (đây và main.js `awardKill`) —
+      //   bẫy "hai đường thưởng combat" đã dính nhiều lần. Dòng Bạc Rơi trước đây không ai đọc.
+      const moneyMul = 1 + activeAwkVal(state, 'moneyBonus') + petOptPct(activePet(state), 'moneyFind') + _tb.bacPct + _bg.bacPct + buffVal(state, 'bacPct', now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
       // ⚠ `heSoRotDo` nhân CUỐI, sau mọi khoản cộng dồn: hệ số toàn máy chủ là bội số của cả cụm.
       //   Phải có mặt ở CẢ HAI đường thưởng (đây + awardKill ở main.js), y hệt `_bg`.
       const lootMul = (1 + activeAwkVal(state, 'lootBonus') + _tb.dropPct + _bg.dropPct) * heSoRotDo(state);   // P7 — Lùng Sục

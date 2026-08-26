@@ -10,7 +10,19 @@ export function ensureCodex(state) {
   const cx = state.codex;
   if (!cx.obtained) cx.obtained = {};
   if (!cx.dungeonRuns) cx.dungeonRuns = {};
+  if (!cx.dungeonClears) cx.dungeonClears = {};
   if (!cx.petSeen) cx.petSeen = {};
+  // ⚠ Sổ THÔNG QUAN (`dungeonClears`) có SAU `dungeonRuns`. Bản lưu cũ chưa có sổ này, mà nay ba
+  //   danh hiệu Bí Cảnh đọc chính nó — không dựng lại thì người đã thông quan thật bị tính là
+  //   chưa lần nào. Dựng một lần từ nhật ký Bí Cảnh (20 dòng gần nhất), chỉ lấy `clears`.
+  //   Cờ RIÊNG, không dùng chung `_backfilled` — bản lưu cũ đã cắm cờ đó từ lâu.
+  if (!cx._clearsBackfilled) {
+    for (const h of ((state.dungeon && state.dungeon.history) || [])) {
+      const id = h && h.dungeonId, n = (h && h.clears) | 0;
+      if (id && n > 0) cx.dungeonClears[id] = (cx.dungeonClears[id] || 0) + n;
+    }
+    cx._clearsBackfilled = 1;
+  }
   if (!cx._backfilled) {
     const prod = (state.counters && state.counters.produced) || {};
     for (const id in prod) cx.obtained[id] = Math.max(cx.obtained[id] || 0, prod[id] || 0);

@@ -14664,6 +14664,7 @@ export const DICT = {
   "# trang": "# 頁",
   "Chưa đọc được bản lưu trên máy chủ — tạm ngừng đồng bộ để khỏi ghi đè.": "尚未讀取到伺服器上的存檔——暫停同步以免覆蓋。",
   "Chưa đọc được bản lưu trên máy chủ.": "尚未讀取到伺服器上的存檔。",
+  "Người trong chuyện đã rời tông môn — chuyện này khép lại, không ai phải gánh thay.": "當事弟子已離開宗門——此事就此作罷，無人代擔。",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "孵蛋耗真實時間；品質越高孵化越久。物種列表見查詢中的",
   "Thức Tỉnh mở thêm bị động từ bể": "覺醒可自",
   "20 loại": "20 種",

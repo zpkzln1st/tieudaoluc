@@ -74,7 +74,7 @@ import { BADGES, BADGE_LV } from './data/badges.js';
 import { xpProgress, levelFromXp, xpForLevel, addSkillXp, addStatXp, heSoRotDo, heSoGiaBan } from './engine/leveling.js';
 import { ensureRng, rng, rngHam } from './engine/rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
 import { pushNotif } from './engine/notif.js';
-import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
+import { startIncubation, finishHatch, incubRemainMs, incubReady, incubSkipCost, hatchDurMs, petStatAt, activePet, petOptPct, gainPetXp, petXpToNext, petCombatCycle, petStamView, petStamMax, petHpMax, petPassive, petActiveEff, petAwkPassive, fusePreview, fuseMany, releaseReward, releasePet, devSpawnPet, awakenCost, canAwaken, awakenAfford, awakenPet, activeAwkVal, startHunt, stopHunt, resolvePetHunts, nguThuLv, huntSlots, huntSlotsUsed, petBusy, HUNT_TICK_MS, petTuTru, phucDungGain, feedPetHerb } from './engine/pets.js';
 import { PET_SPECIES, PET_QUALITY, PET_OPT_BY_ID, AWK_PASSIVES } from './data/pets.js';
 import { genRoster, botCombatLv, botTotalLv, botDominant, botTitleFor, botCatFor, botAvatar, botActivity, nearbyBotsBy, ensureWorld, donNguoiAnCu, conBaoLauCoNguoiMoi, genJiangHuFeed } from './engine/bots.js';
 import { ensureTongMon, simTongMon, slotCount, recruitCost, doRecruit, refreshRecruitPool, recruitResetInfo, doRecruitReset, breakReqOf, doBreakthrough, startBrew, collectBrew, collectAllBrews, startLichLuyen, sowPlot, harvestPlot, harvestAllPlots, enhanceGear, enrollGiang, canEnrollGiang, giangSeatInfo, disciplineDisciple, disciNeedsDiscipline, runLuanVo, luanVoRecord, diplomacyHost, diplomacyGift, startLinhNgo, linhNgoSeatInfo, biKipBagAdd, bkAuctionRefresh, buyBkLot, mergeBiKip, mergeBiKipPick, disciLoaiCat, disciPower, disciStats, disciTocMul, danhKhiCua, danhKhiDaThuc, danhKhiEpThuc, uyDanhOf, xuatSu, phongTruongLao, upgradeBuilding, giftGear, reclaimGear, resolveEvent, resolveEventDuel, rebelHoSo, tongMonTinVui, datCoDrama, forceFireEvent, tmShopBuy } from './engine/tongmon.js';
@@ -1306,7 +1306,10 @@ const gameStore = {
   tmOriginLabel(d) { return originLabelOf(d.origin, d.sex) || d.originLabel || ''; },
   tmOriginBio(d) { return originBioOf(d.origin, d.sex) || d.bio || ''; },
   tmAtCap(d) { return d.realm >= disciCap(d); },
-  tmProgPct(d) { if (d.awaiting || this.tmAtCap(d)) return 100; const n = (SUB_STAGES[d.realm] || []).length || 1; return Math.round((((d.xp || 0) * n) % 1) * 100); },   // tiến trong TIỂU cảnh hiện tại
+  // ⚠ `breakReady` (Bình Cảnh) phải nằm trong cửa 100%. Đệ tử Bình Cảnh có `xp = 1` mà `realm <
+  //   trần`, nên công thức dưới ra `(1 × n) % 1` = 0 — thanh tụt về rỗng và in '0%' ngay cạnh
+  //   dòng `tmTuViVal` in đầy và nhãn 'Đại Viên Mãn'. Ba con số cạnh nhau nói ba đằng.
+  tmProgPct(d) { if (d.awaiting || d.breakReady || this.tmAtCap(d)) return 100; const n = (SUB_STAGES[d.realm] || []).length || 1; return Math.round((((d.xp || 0) * n) % 1) * 100); },   // tiến trong TIỂU cảnh hiện tại
   tuViNeed(realm) { return (REALMS[realm] ? REALMS[realm].hours : 1) * 3600; },   // tu vi điểm cần để đầy 1 đại cảnh
   // Dòng GIÁ TRỊ tu vi dạng SỐ: hiện tại / tối đa của đại cảnh (trực quan hơn thanh %). Cập nhật sống theo _tick.
   tmTuViVal(d) {
@@ -6251,7 +6254,8 @@ const gameStore = {
     // ⚠ Khớp TỪNG VẾ với nhánh treo máy ở engine/activity.js — lệch một vế là cùng con quái mà
     // hai đường cho ra hai số khác nhau, hoặc kĩ năng bang trơ ở một bên.
     const _bg = bangKyNangBonus(this.state);                                  // Kĩ năng bang: Tham Tài / Lùng Sục
-    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + _tb.bacPct + _bg.bacPct + buffVal(this.state, 'bacPct', _now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
+    // ⚠ Dòng Bạc Rơi của Linh Thú phải khớp TỪNG VẾ với đường thưởng ngoại tuyến (activity.js).
+    const moneyMul = 1 + activeAwkVal(this.state, 'moneyBonus') + petOptPct(activePet(this.state), 'moneyFind') + _tb.bacPct + _bg.bacPct + buffVal(this.state, 'bacPct', _now) / 100;  // P7 — Tham Tài (+ họ Bách Bảo)
     // ⚠ `heSoRotDo` nhân CUỐI, sau mọi khoản cộng dồn — khớp từng vế với engine/activity.js.
     const lootMul = (1 + activeAwkVal(this.state, 'lootBonus') + _tb.dropPct + _bg.dropPct) * heSoRotDo(this.state);   // P7 — Lùng Sục
     // Bách Bảo lootPct CHỈ nhân loot nguyên liệu thường (matMul), TUYỆT ĐỐI không đụng

@@ -118,6 +118,15 @@ const TONE_META = { lanh: { label: 'KẾT LÀNH', color: '#34d399' }, du: { labe
 const chip = (label, color) => ({ label, color });
 
 function resolveCast(t, uids) { return (uids || []).map((u) => t.disciples.find((d) => d.uid === u)).filter(Boolean); }
+// ⚠⚠ GIỮ CHỖ, KHÔNG DỒN. Sự kiện treo có thể nằm chờ nhiều ngày; giữa chừng người chơi Xuất Sư /
+//    Phong Trưởng Lão, hoặc đệ tử chết dưới Thiên Kiếp. `filter(Boolean)` dồn mảng lại nên
+//    `cast[1]` TỤT LÊN `cast[0]` — `ctx.main` đổi sang người khác trong khi đoạn kể trên màn hình
+//    đã dựng sẵn từ lúc sự kiện nổ và vẫn gọi đúng tên người cũ. Hiệu ứng (cờ xấu, trừ Khí Vận)
+//    rơi lên NHẦM ĐỆ TỬ. Bản giữ chỗ này để chỗ trống thành `null`, và chỗ gọi từ chối sự kiện.
+function castGiuCho(t, uids) { return (uids || []).map((u) => t.disciples.find((d) => d.uid === u) || null); }
+/** Có ai trong vai diễn đã rời tông không? Rời rồi thì sự kiện phải khép lại, đừng áp lên người khác. */
+function castThieuNguoi(t, uids) { return (uids || []).length > 0 && castGiuCho(t, uids).some((d) => !d); }
+const KHEP_VI_VANG = 'Người trong chuyện đã rời tông môn — chuyện này khép lại, không ai phải gánh thay.';
 
 function evtCtx(state, t, cast, rebel, tin) {
   const main = cast[0] || null, second = cast[1] || null;
@@ -216,7 +225,11 @@ function applyOutcome(state, t, ev, oc, cast, rebel, now) {
     else if ('clearFlag' in e) { const d = findD(e.clearFlag.who); if (d && d.flags) { delete d.flags[e.clearFlag.name]; const lb = FLAG_LABEL[e.clearFlag.name]; chips.push(chip('Gỡ cờ · ' + (lb ? lb.t.replace('Cờ · ', '') : e.clearFlag.name), '#94a3b8')); } }   // XÓA THẬT cờ (Giới Luật / hóa giải tâm ma)
     else if ('tamMa' in e) { const d = findD(e.tamMa.who); if (d) { if (e.tamMa.clear) { d.tamMaLv = 0; d.tamMaXp = 0; } if ('dLv' in e.tamMa) d.tamMaLv = Math.max(0, Math.min(TAMMA_MAX, (d.tamMaLv || 0) + e.tamMa.dLv)); if ('dXp' in e.tamMa) d.tamMaXp = Math.max(0, Math.min(1, (d.tamMaXp || 0) + e.tamMa.dXp)); const dl = e.tamMa.dLv || 0; if (e.tamMa.clear || dl < 0) chips.push(chip('Tâm ma tiêu tán · ' + d.name, '#34d399')); else if (dl > 0) chips.push(chip('Tâm ma trỗi dậy · ' + d.name, '#fb7185')); } }
     else if ('capBonus' in e) { const d = findD(e.capBonus.who); if (d) { d.capBonus = (d.capBonus || 0) + e.capBonus.n; chips.push(chip('+' + e.capBonus.n + ' bậc trần · ' + d.name, '#34d399')); } }
-    else if ('realmUp' in e) { const d = findD(e.realmUp.who); if (d) { const cap = disciCap(d); d.realm = Math.min(cap, d.realm + e.realmUp.n); d.xp = 0; if (d.realm >= cap && cap >= 9) d.awaiting = true; chips.push(chip('Đột phá +' + e.realmUp.n + ' · ' + d.name, '#fbbf24')); } }
+    // ⚠⚠ PHẢI HẠ `breakReady` và `kiepCdUntil` cùng lúc. Đệ tử đang Bình Cảnh chờ đan mà trúng
+    //    `realmUp` thì lên cảnh mới với `xp = 0` nhưng CỜ BÌNH CẢNH CÒN BẬT — `simTongMon` có
+    //    `if (d.breakReady) continue;` nên đệ tử đó NGỪNG TU VĨNH VIỄN, mà thanh tu vi vẫn vẽ đầy
+    //    kèm chữ 'Bình Cảnh'. Hai dòng này khớp đúng đường chuẩn ở `doBreakthrough`.
+    else if ('realmUp' in e) { const d = findD(e.realmUp.who); if (d) { const cap = disciCap(d); d.realm = Math.min(cap, d.realm + e.realmUp.n); d.xp = 0; d.breakReady = false; d.kiepCdUntil = 0; if (d.realm >= cap && cap >= 9) d.awaiting = true; chips.push(chip('Đột phá +' + e.realmUp.n + ' · ' + d.name, '#fbbf24')); } }
     else if ('rebel' in e) { const i = t.disciples.findIndex((d) => d.uid === e.rebel.who); if (i >= 0) { const d = t.disciples[i]; t.disciples.splice(i, 1); t.events.rebels.push({
         name: d.name, han: d.han, apt: d.apt, he: d.he, sex: d.sex, realm: d.realm, fromUid: d.uid, at: now,
         // ⚠ Nó mang theo TẤT CẢ: tuyệt học từng được dạy và Gia Bảo từng được ban. Vũ khí trao đi
@@ -345,6 +358,14 @@ export function resolveEvent(state, pendingIdx, choiceIdx) {
   const t = state.tongMon; if (!t || !t.events) return null;
   const p = t.events.pending[pendingIdx]; if (!p) return null;
   const ev = TM_EVENT_BY_ID[p.eid]; if (!ev) { t.events.pending.splice(pendingIdx, 1); return null; }
+  // Vai diễn thiếu người -> khép sự kiện và NÓI RÕ. Đi tiếp là áp hiệu ứng lên nhầm đệ tử, hoặc
+  // ném TypeError rồi bị `try/catch` nuốt thành một kết cục trắng không ai hiểu vì sao.
+  if (castThieuNguoi(t, p.castUids)) {
+    t.events.pending.splice(pendingIdx, 1);
+    const tnv = TONE_META.trung;
+    return { tone: 'trung', toneLabel: tnv.label, toneColor: tnv.color, text: KHEP_VI_VANG,
+      chips: [], chronicle: '', title: ev.title, grp: ev.grp, han: ev.han };
+  }
   const cast = resolveCast(t, p.castUids || []);
   const rebel = p.rebelFrom ? (t.events.rebels.find((r) => r.fromUid === p.rebelFrom) || null) : null;
   const ch = ev.choices[choiceIdx]; if (!ch) return null;
@@ -382,6 +403,13 @@ export function resolveEventDuel(state, pendingIdx, choiceIdx, discipleUid) {
   const fight = luanVoCycle(A, B, 'quyetchien:' + dau.uid + '~' + ho.fromUid + ':' + p.at);
   const thang = fight.winner === 'a';
 
+  // Cùng hàng rào với `resolveEvent`: thiếu người trong vai thì khép lại, đừng áp lên người khác.
+  if (castThieuNguoi(t, p.castUids)) {
+    t.events.pending.splice(pendingIdx, 1);
+    const tnv = TONE_META.trung;
+    return { tone: 'trung', toneLabel: tnv.label, toneColor: tnv.color, text: KHEP_VI_VANG,
+      chips: [], chronicle: '', title: ev.title, grp: ev.grp, han: ev.han };
+  }
   const cast = resolveCast(t, p.castUids || []);
   const ctx = evtCtx(state, t, cast, rebelRaw);
   ctx.duelist = dau;                                   // đệ tử được cử ra — outcome gọi tên nó
@@ -439,17 +467,24 @@ export function simTongMon(state, nowMs, capHours) {
   const nguoi = Math.pow(0.5, dt / (TAM_TINH_NGUOI_H * 3600));
   for (const d of t.disciples) {
     if (d.tamTinh) { const v = tamTinhOf(d) * nguoi; d.tamTinh = Math.abs(v) < 0.5 ? 0 : v; }
+    // ⚠⚠ MỐC VỀ TỚI NƠI. Hai khối dưới chỉ `continue` khi CÒN ĐANG ĐI; đến nhịp chuyến kết thúc
+    //    thì chúng xoá mốc rồi rơi thẳng xuống phần tu luyện, mà `rem = dt` là TRỌN khoảng vắng.
+    //    Mở game lại sau 14 giờ là đệ tử vừa lĩnh thưởng chuyến đi, vừa được cộng đủ 14 giờ tu của
+    //    chính quãng "đang đi -> KHÔNG tu". Lặp lại được mỗi ngày.
+    let veLuc = 0;
     // LỊCH LUYỆN: đang đi -> KHÔNG tu; xong -> thu nguyên liệu về Túi Đồ
     if (d.lichLuyenUntil) {
       if (nowMs < d.lichLuyenUntil) continue;
       const rw = d.lichLuyenReward || {};
       for (const m in rw) t.mats[m] = (t.mats[m] || 0) + rw[m];
       chronicle(t, `${d.name} lịch luyện trở về, mang theo ${Object.keys(rw).map((m) => (MATS[m] || {}).name + '×' + rw[m]).join(', ')}.`);
+      veLuc = Math.max(veLuc, d.lichLuyenUntil);     // ⚠ lấy TRƯỚC dòng dưới, nó xoá mất mốc
       d.lichLuyenUntil = 0; d.lichLuyenReward = null;
     }
     // GIẢNG ĐẠO: đang thính giảng -> KHÔNG tu; xong -> +1 TRẦN tư chất (nếu chưa tới giới hạn giảng / trần tuyệt đối)
     if (d.giangUntil) {
       if (nowMs < d.giangUntil) continue;
+      veLuc = Math.max(veLuc, d.giangUntil);         // ⚠ lấy TRƯỚC dòng dưới
       d.giangUntil = 0;
       const absMax = aptHardCap(d);
       if ((d.giangBonus || 0) < GIANG_MAX_BONUS && disciCap(d) < absMax) {
@@ -465,7 +500,8 @@ export function simTongMon(state, nowMs, capHours) {
     const cap = disciCap(d);
     if (d.realm >= cap) { if (cap >= 9 && !d.awaiting) d.awaiting = true; continue; }
     const spd = disciTocMul(t, d);           // hệ số tốc; mỗi cảnh giới tốn (hours*3600/spd) giây thực
-    let rem = dt;
+    // Vừa về từ chuyến đi thì CHỈ tính tu luyện từ lúc về, không tính cả quãng đi vắng.
+    let rem = veLuc ? Math.max(0, Math.min(dt, (nowMs - veLuc) / 1000)) : dt;
     while (rem > 0 && d.realm < cap) {
       const realmSec = (REALMS[d.realm].hours * 3600) / spd;   // tổng giây thực để xong cảnh giới này
       const need = (1 - (d.xp || 0)) * realmSec;               // còn lại để đột phá

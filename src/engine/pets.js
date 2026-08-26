@@ -4,7 +4,7 @@
 // ============================================================
 import { ITEMS } from '../data/items.js';
 import { removeItem, addItem } from './inventory.js';
-import { levelFromXp, addSkillXp, xpForLevel } from './leveling.js';
+import { levelFromXp, addSkillXp, xpForLevel, heSoExp } from './leveling.js';
 import { LOCATIONS } from '../data/locations.js';
 import { ENEMIES } from '../data/combat.js';
 import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PET_SKILLS, AWK_PASSIVES, AWK_PASSIVE_IDS } from '../data/pets.js';
@@ -141,9 +141,25 @@ export function petStatAt(pet) {
     if (d && d.fmt === 'flat' && d.stat) s[d.stat] = (s[d.stat] || 0) + o.val;
   }
   if (pet.fuseBonus) for (const k of STAT_KEYS) if (pet.fuseBonus[k]) s[k] = (s[k] || 0) + pet.fuseBonus[k];   // chỉ số hấp thụ từ Dung Hợp
+  // ⛔⛔ TÁM DÒNG DỊ BẨM `fmt:'pct'` TRƯỚC ĐÂY KHÔNG AI ĐỌC. Vòng lặp trên chỉ cộng dòng `flat`,
+  //    còn atkPct · hpPct · dodgePct · critRate · critDmg · lifesteal · eleDmg · moneyFind thì
+  //    không có một chỗ tiêu thụ nào trong cả kho. Trọng số chết là 48/132 hũ combat = 36,4%:
+  //    thẻ Linh Thú bày ra "Công Kích % +6%" mà Chiến Lực không nhúc nhích một điểm.
+  //    Nặng hơn: người chơi trả 1.700 Hồn Thạch để Thức Tỉnh, được hứa "Khai mở 1 Dị Bẩm mới",
+  //    ~36% rơi vào một con số chỉ để nhìn.
+  //    NAY: ba dòng nhân chỉ số nối vào đây, bốn dòng combat nối ở `petCombatCycle`, `moneyFind`
+  //    nối ở CẢ HAI đường thưởng (activity.js + main.js).
+  if (s.congKich) s.congKich = Math.round(s.congKich * (1 + petOptPct(pet, 'atkPct')));
+  if (s.sinhLuc) s.sinhLuc = Math.round(s.sinhLuc * (1 + petOptPct(pet, 'hpPct')));
+  if (s.neTranh) s.neTranh = Math.round(s.neTranh * (1 + petOptPct(pet, 'dodgePct')));
   const sm = awkStatMul(pet);                                                                                  // P7 — bị động Thức Tỉnh nhân % chỉ số
   if (sm) for (const k of STAT_KEYS) if (s[k] && sm[k]) s[k] = Math.round(s[k] * (1 + sm[k]));
   return s;
+}
+/** Giá trị một dòng Dị Bẩm `fmt:'pct'` của pet, trả về dạng TỈ LỆ (6% -> 0,06). 0 nếu không có. */
+export function petOptPct(pet, id) {
+  const o = (pet && pet.opts || []).find((x) => x && x.id === id);
+  return o ? (o.val || 0) / 100 : 0;
 }
 
 export function activePet(state) { return (state.pets || []).find((p) => p.equipped) || null; }
@@ -195,7 +211,10 @@ export function gainPetXp(state, amount, wins = 1) {
   const awk = petAwkPassive(p);
   const base = awk && awk.petExpBonus ? amount * (1 + awk.petExpBonus) : amount;
   // + họ Dưỡng Thú (đan) + Mục Thú Quyết (kĩ năng bang) — hai nguồn CỘNG với nhau rồi nhân một lần.
-  const amt = Math.round(base * (1 + danBuffField(state, 'petExpPct') / 100 + bangKyNangBonus(state).petExpPct));
+  // ⚠⚠ NHÂN HỆ SỐ EXP MÁY CHỦ Ở ĐÂY. Xp Linh Thú KHÔNG đi qua `addSkillXp` nên nó là đường tiến
+  //    trình DUY NHẤT bị bỏ quên khi tác giả bật đợt EXP ×2. Trớ trêu là ngay dòng dưới,
+  //    `addSkillXp(state,'nguThu',…)` lại ăn hệ số — cùng một hàm, Ngự Thú nhân còn con thú thì không.
+  const amt = Math.round(base * (1 + danBuffField(state, 'petExpPct') / 100 + bangKyNangBonus(state).petExpPct) * heSoExp(state));
   addSkillXp(state, 'nguThu', NGU_THU_XP_COMBAT * Math.max(1, wins));   // P7 — +Ngự Thú XP theo SỐ trận thắng (live=1, offline=done)
   return { pet: p, leveled: addXpToPet(state, p, amt) };
 }
@@ -304,13 +323,19 @@ export function petCombatCycle(state, dmg, now) {
   // chia lửa — pet GÁNH bằng HP (bị động absorb cộng thêm %)
   const chia = Math.min(cb.petHp, Math.round(gross * (CHIA_LUA + (pas.absorb || 0))));
   cb.petHp -= chia;
-  let heal = pas.lifesteal ? Math.round(atk * pas.lifesteal) : 0;   // bị động hút máu mỗi cycle
+  // Hút Sinh Lực = bị động Thức Tỉnh + DÒNG DỊ BẨM `lifesteal` (dòng này trước đây không ai đọc).
+  let heal = Math.round(atk * ((pas.lifesteal || 0) + petOptPct(p, 'lifesteal')));
   if (pas.cycleHealPct) heal += Math.round((st.sinhLuc || 0) * pas.cycleHealPct);   // P7 — Hồi Xuân: hồi chủ = % Sinh Lực pet/nhịp
   // chủ động (đủ nhịp + còn Thể Lực): burst đỡ thêm sát thương + hồi; tốn thêm Thể Lực
   let offense = 0, skill = null, extraStam = 0;
   if (act) {
     if ((cb.petCd || 0) <= 0) {
-      const burst = Math.round(atk * act.mult * (1 + (pas.dmgBonus || 0)));
+      // `eleDmg` (Tăng Sát Thương Hệ) cộng thẳng vào đòn tuyệt kĩ; `critRate`/`critDmg` bốc một
+      // lần trên chính đòn đó. Ba dòng này trước đây chỉ là con số bày ra cho đẹp.
+      // ⚠ Dùng `rng(state, …)` chứ KHÔNG dùng Math.random — máy chủ phải tính lại được (đợt D).
+      let burst = Math.round(atk * act.mult * (1 + (pas.dmgBonus || 0) + petOptPct(p, 'eleDmg')));
+      const cr = petOptPct(p, 'critRate');
+      if (cr > 0 && rng(state, 'petBaoKich') < cr) burst = Math.round(burst * (1 + petOptPct(p, 'critDmg')));
       offense = burst + (act.block ? gross : 0);
       if (act.healMul) heal += Math.round(burst * act.healMul);
       cb.petCd = Math.max(1, (act.cd || 3) - (pas.cdCut || 0));
@@ -354,7 +379,18 @@ export function upgradePetQuality(state, pet) {
   pet.quality = Q_ORDER[i + 1];
   recomputePetStats(pet);
   const need = PET_QUALITY[pet.quality].optSlots - (pet.opts ? pet.opts.length : 0);   // mở thêm ô opt nếu phẩm mới nhiều hơn
-  if (need > 0) pet.opts = (pet.opts || []).concat(rollOpts(state, pet.quality).slice(0, need));
+  // ⚠⚠ `rollOpts` khởi tạo `used` RỖNG — nó không biết pet đang mang dòng gì, nên dòng cấy thêm
+  //    TRÙNG id với dòng cũ là chuyện thường (Công Kích và Sinh Lực chiếm 30% hũ combat).
+  //    Hậu quả kép: `petStatAt` duyệt cả mảng nên cộng ĐÔI dòng phẳng đó; và ba chỗ vẽ đều dùng
+  //    `x-for :key="o.id"` nên Alpine kêu 'Duplicate key' rồi dựng THIẾU thẻ.
+  //    Lọc trùng nhưng vẫn GIỮ thiên hướng combat của `rollOpts`; lọc xong mà còn thiếu ô thì
+  //    `addOneOpt` (đã lọc trùng đúng luật) bù nốt.
+  if (need > 0) {
+    const co = new Set((pet.opts || []).map((o) => o && o.id));
+    pet.opts = (pet.opts || []).concat(rollOpts(state, pet.quality).filter((o) => !co.has(o.id)).slice(0, need));
+    let vong = 0;
+    while (pet.opts.length < PET_QUALITY[pet.quality].optSlots && vong++ < 20) { if (!addOneOpt(state, pet)) break; }
+  }
   return true;
 }
 // % chỉ số donor mà target HẤP THỤ (vĩnh viễn): cùng dòng+phẩm 5% / cùng 1 thứ 3% / khác 1%.
@@ -544,7 +580,8 @@ function resolveOneHunt(state, p, now, capMs) {
   }
   p.huntAt = cursor;
   let leveled = 0;
-  if (exp > 0) leveled = addXpToPet(state, p, exp);
+  // Săn Mồi cũng phải ăn hệ số EXP máy chủ — dòng ngay dưới (`nguThu`) vốn đã ăn qua `addSkillXp`.
+  if (exp > 0) leveled = addXpToPet(state, p, Math.round(exp * heSoExp(state)));
   if (nguXp > 0) addSkillXp(state, 'nguThu', nguXp);
   for (const id in loot) addItem(state, id, loot[id]);
   if (ticks === 0) return null;
@@ -594,12 +631,22 @@ export function feedPetHerb(state, itemId, now) {
   if (!p) return { ok: false, msg: 'Chưa có linh thú nào xuất chiến.' };
   const max = petStamMax(p);
   const cur = petStamView(p, now);
-  if (cur >= max && p.level >= petLevelCap(state, p)) return { ok: false, msg: 'Linh thú đã sung mãn, chưa cần phục dụng.' };
+  // ⚠⚠ CỬA CHẶN CŨ DÙNG "VÀ" nên chỉ chặn khi đầy CẢ hai vế. Đầy một vế thôi là cây linh thảo
+  //    vẫn bị nuốt, phần vượt trần bay mất, mà lời báo vẫn in nguyên số DỰ TÍNH — người chơi cho
+  //    ăn Cửu Diệp Linh Chi, toast khoe '+510 Kinh Nghiệm' mà thanh Tu Vi không nhích một pixel.
+  //    NAY: tính LƯỢNG THẬT trước, cả hai vế bằng 0 thì từ chối và giữ lại cây thuốc; báo cáo chỉ
+  //    nói những vế thật sự vào được.
+  const hoiThat = Math.max(0, Math.min(max, cur + Math.round(max * g.stamPct / 100)) - cur);
+  const chamTran = p.level >= petLevelCap(state, p) && (p.xp || 0) >= petXpToNext(p.level);
+  const xpThat = chamTran ? 0 : g.petXp;
+  if (hoiThat <= 0 && xpThat <= 0) return { ok: false, msg: 'Linh thú đã sung mãn, chưa cần phục dụng.' };
   removeItem(state, itemId, 1);
-  const heal = Math.round(max * g.stamPct / 100);
-  p.tl = Math.min(max, cur + heal); p.tlAt = now;
-  const lv = addXpToPet(state, p, g.petXp);
-  return { ok: true, leveled: lv, heal, msg: (ITEMS[itemId] || {}).name + ' — linh thú hồi ' + heal + ' Thể Lực, +' + g.petXp + ' Kinh Nghiệm.' };
+  p.tl = cur + hoiThat; p.tlAt = now;
+  const lv = xpThat > 0 ? addXpToPet(state, p, xpThat) : 0;
+  const ve = [];
+  if (hoiThat > 0) ve.push('hồi ' + hoiThat + ' Thể Lực');
+  if (xpThat > 0) ve.push('+' + xpThat + ' Kinh Nghiệm');
+  return { ok: true, leveled: lv, heal: hoiThat, msg: (ITEMS[itemId] || {}).name + ' — linh thú ' + ve.join(', ') + '.' };
 }
 
 // Tổng % của MỘT trường từ Đan Bổ Trợ đang chạy. KHÔNG kiểm hạn ở đây — pruneBuffs chạy mỗi tick
