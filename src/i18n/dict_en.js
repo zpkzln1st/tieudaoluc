@@ -14849,6 +14849,8 @@ export const DICT = {
   "Sinh Lực còn": "Health left",
   "Đệ tử không có ô cho 「": "The disciple has no slot for 「",
   "」 — ban vào là không lấy lại được.": "」 — granting it there means it cannot be taken back.",
+  "Đang hiện 200 tin mới nhất. Tin cũ hơn chưa lên bảng.": "Showing the 200 newest listings. Older ones are not on the board yet.",
+  "Không nhận được người này — có lẽ họ đã rời giang hồ.": "Could not admit this person — they may have left the martial world.",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "Incubation takes real time; higher quality takes longer. See the species list in the",
   "Thức Tỉnh mở thêm bị động từ bể": "Awakening unlocks extra passives from a pool of",
   "20 loại": "20 types",

@@ -556,7 +556,11 @@ export function bangPhai() {
       const g = this.g; if (!this.bang) return;
       if (nhan) {
         if (this.tv.length >= this.tranTv) { g.showToast('Bang đã đủ người.'); return; }
-        chieuMo(g.state, t.id, this.world, Date.now());     // duyệt đơn thì KHÔNG tốn Bạc
+        // ⚠ ĐỌC GIÁ TRỊ TRẢ VỀ. Bỏ qua nó là báo "được nhận vào bang" trong khi người đó vẫn nằm
+        //   nguyên trong danh sách đơn — người chơi bấm mãi không hiểu vì sao.
+        if (!chieuMo(g.state, t.id, this.world, Date.now())) {   // duyệt đơn thì KHÔNG tốn Bạc
+          g.showToast('Không nhận được người này — có lẽ họ đã rời giang hồ.'); return;
+        }
         g.showToast(t.ten + ' được nhận vào bang.');
       } else {
         this.bang.donXin = (this.bang.donXin || []).filter((x) => x !== t.id);

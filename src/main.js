@@ -1191,7 +1191,12 @@ const gameStore = {
     const lv = this.tmBuildLv('daiKhachCac'), tnow = now(), count = Math.min(16, 4 + 2 * lv);
     const roster = genRoster(w.seed, w.createdAt, now()), ties = (t.diplomacy && t.diplomacy.ties) || {};
     const envoys = roster.slice(0, count).map((b, i) => {
-      const sectId = 'sect' + i, daoKey = ['chinh', 'ta', 'trung'][b.titleSeed % 3], di = this.daoInfo(daoKey), tl = botTotalLv(b, tnow);
+      // ⚠⚠ NEO VÀO THỰC THỂ, ĐỪNG NEO VÀO CHỖ ĐỨNG. `genRoster` là CỬA SỔ TRƯỢT: cứ ~46 giờ có một
+      //    người mới nhập giang hồ và cả mảng dịch một ô. Khoá theo chỉ số `'sect' + i` nghĩa là uy
+      //    tín người chơi dày công gây dựng bị đẩy sang môn phái bên cạnh — ô vẫn ghi Kết Minh với
+      //    đúng số giao tình cũ, mà tên môn phái và tên Chưởng Môn đã là người khác. Sau ~1 tháng
+      //    cả danh sách đồng minh xoay hết một vòng. `b.id` ('bot' + n) thì ổn định vĩnh viễn.
+      const sectId = 'sect:' + b.id, daoKey = ['chinh', 'ta', 'trung'][b.titleSeed % 3], di = this.daoInfo(daoKey), tl = botTotalLv(b, tnow);
       const tie = ties[sectId] || { rep: 0, lastVisit: 0 }, tier = diploTier(tie.rep), nextMin = diploNextMin(tie.rep);
       const cdMs = (tie.lastVisit || 0) + DIPLO_HOST_CD_H * 3600000 - tnow, h = Math.floor(cdMs / 3600000), m = Math.floor((cdMs % 3600000) / 60000);
       return { id: sectId, name: TMB_PREFIX[b.titleSeed % TMB_PREFIX.length] + ' ' + TMB_SUFFIX[b.actSeed % TMB_SUFFIX.length], master: b.name, daoLabel: di[0], daoColor: di[1], uy: Math.round(85 * Math.pow(tl / 100, 3.8) * (0.90 + (b.actSeed % 21) * 0.01)), avatar: botAvatar(b), rep: tie.rep || 0, tierName: tier.name, tierColor: tier.color, tierKey: tier.key, nextMin, onCd: cdMs > 0, cdText: cdMs > 0 ? (h > 0 ? (h + 'h' + (m > 0 ? (' ' + m + 'm') : '')) : (m + 'm')) : '' };
@@ -7094,8 +7099,12 @@ const gameStore = {
     const banThat = () => {
       let n = 0, bac = 0;
       for (const it of ds) {
-        const r = it.uid ? this.sellGearStack(it.uid, this.gearStackUids(it.uid).length)
-          : this.sellItem(it.id, this.state.inventory[it.id] || 0);
+        // ⚠⚠ BÁN ĐÚNG SỐ ĐÃ HIỆN TRONG BẢNG HỎI (`it.qty`), đừng đọc lại túi lúc bấm. Hoạt động
+        //    treo máy vẫn cộng vật phẩm vào túi trong lúc modal mở: bảng ghi "Bán 100 món", người
+        //    chơi đọc dòng cảnh báo nửa phút, câu thêm 8 con, bấm Bán là mất 108 con — kể cả món
+        //    phẩm Hiếm vừa rơi vào mà câu cảnh báo chưa từng nhắc tới.
+        const r = it.uid ? this.sellGearStack(it.uid, it.qty || 1)
+          : this.sellItem(it.id, Math.min(it.qty || 1, this.state.inventory[it.id] || 0));
         n += r.n; bac += r.bac;
       }
       this.hlSel = {};
@@ -8017,7 +8026,11 @@ const gameStore = {
     if (!this.isLoggedIn) { this.sanLoi = 'Phải đăng nhập mới vào Sàn được.'; return; }
     this.sanTai = true; this.sanLoi = '';
     try {
-      const [a, b] = await Promise.all([cloudSanDs(80), cloudSanCuaToi(50)]);
+      // ⚠⚠ Chợ KHÔNG có ô tìm, bộ lọc hay phân trang — mọi tin nằm ngoài lượt đọc này là VÔ HÌNH
+      //    với người mua, mà tin rao thì không có hạn và không ai giới hạn số tin mỗi tài khoản.
+      //    80 là quá hẹp: một người dốc túi treo 30-40 món là đủ đẩy tin của người khác ra ngoài.
+      //    `cloudSanDs` tự chặn trần 200 nên xin 200 là lấy hết mức cho phép.
+      const [a, b] = await Promise.all([cloudSanDs(200), cloudSanCuaToi(200)]);
       if (!a.ok) { this.sanLoi = 'Chưa đọc được Sàn — kiểm tra đã chạy SQL_SAN_GIAO_DICH.sql chưa.'; return; }
       this.sanDs = a.ds; this.sanCuaToi = (b.ok ? b.ds : []);
       // ⚠ Cờ TẮT thì không gọi hai truy vấn này — bảng có thể chưa tồn tại trên máy chủ, và tab
@@ -8385,7 +8398,8 @@ const gameStore = {
     this.dtDangTai = true; this.dtLoi = '';
     try {
       const uid = await cloudMyUid();
-      const r = await cloudLoadDoiThuDauTruong(60);
+      // Truyền điểm của chính mình để máy chủ cắt CỬA SỔ quanh nó, không lấy top-60 toàn cục.
+      const r = await cloudLoadDoiThuDauTruong(60, this.dtDiem);
       if (!r.ok) {
         // ⚠ Nói rõ nguyên nhân thường gặp nhất thay vì in nguyên câu lỗi của máy chủ.
         this.dtLoi = /chien_bo|dau_diem/.test(String(r.reason || ''))

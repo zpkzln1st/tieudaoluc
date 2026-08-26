@@ -182,16 +182,31 @@ export async function cloudLoadBangNguoiThat(gioiHan) {
  *   Supabase tra loi "cot khong ton tai" — o day NUOT loi va tra rong, man Dau Truong tu noi ro
  *   dang thieu gi. Duong luu save KHONG duoc vo theo, y loi `cloudPushHoSo` da lam.
  */
-export async function cloudLoadDoiThuDauTruong(gioiHan) {
+/**
+ * ⚠⚠ NẠP THEO CỬA SỔ QUANH ĐIỂM CỦA CHÍNH MÌNH, không lấy top-N toàn cục.
+ *    Bản cũ lấy 60 người ĐẤU ĐIỂM CAO NHẤT. Khi số tài khoản có `chien_bo` vượt 60 thì mọi người
+ *    ngoài top biến mất khỏi bảng khiêu chiến của cả làng: người tụt xuống 900 điểm chỉ còn đối
+ *    thủ 1.150+ để đánh, đốt hết 5 lượt/ngày là thua sạch rồi trượt tới sàn và không leo lại được;
+ *    mà chính họ cũng không hiện trong bảng của ai — hai người ở nửa dưới vĩnh viễn không gặp nhau.
+ *    `ascending: true` ở nhánh TRÊN là mấu chốt: nó lấy người NGAY TRÊN mình chứ không lấy người
+ *    đứng đầu bảng.
+ */
+const DT_COT = 'user_id,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu,chien_bo,dau_diem,cap_nhat';
+export async function cloudLoadDoiThuDauTruong(gioiHan, diemMinh) {
   try {
     const sb = await getClient();
-    const { data, error } = await sb.from('ho_so_cong_khai')
-      .select('user_id,ten,tong_cap,chien_dau,chien_luc,avatar,danh_hieu,chien_bo,dau_diem,cap_nhat')
-      .not('chien_bo', 'is', null)
-      .order('dau_diem', { ascending: false })
-      .limit(Math.max(1, Math.min(200, gioiHan || 60)));
-    if (error) return { ok: false, reason: error.message, rows: [] };
-    return { ok: true, rows: data || [] };
+    const tong = Math.max(2, Math.min(200, gioiHan || 60));
+    const nua = Math.ceil(tong / 2);
+    const d = Math.round(Number(diemMinh) || 1000);
+    const [tren, duoi] = await Promise.all([
+      sb.from('ho_so_cong_khai').select(DT_COT).not('chien_bo', 'is', null)
+        .gte('dau_diem', d).order('dau_diem', { ascending: true }).limit(nua),
+      sb.from('ho_so_cong_khai').select(DT_COT).not('chien_bo', 'is', null)
+        .lt('dau_diem', d).order('dau_diem', { ascending: false }).limit(nua),
+    ]);
+    if (tren.error) return { ok: false, reason: tren.error.message, rows: [] };
+    if (duoi.error) return { ok: false, reason: duoi.error.message, rows: [] };
+    return { ok: true, rows: (tren.data || []).concat(duoi.data || []) };
   } catch (e) { return { ok: false, reason: String(e && e.message), rows: [] }; }
 }
 
@@ -723,10 +738,14 @@ export async function cloudSanCuaToi(gioiHan) {
   const sb = await getClient();
   const uid = await _uid();
   if (!uid) return { ok: false, reason: 'no-auth' };
-  const tran = Math.min(100, gioiHan || 50);
+  const tran = Math.min(200, gioiHan || 50);
+  // ⚠⚠ TIN ĐANG TREO PHẢI LẤY HẾT. Chú thích cũ dựa vào "tin đang treo nhiều nhất là 10" — trần đó
+  //    KHÔNG CÓ THẬT: `san_thu_mua_dat` mới chặn 10 ĐƠN THU MUA, còn `san_treo`/`san_treo_vp`
+  //    không đếm số tin của người bán một lần nào. Nút "Gỡ Xuống" chỉ mọc trong danh sách này, nên
+  //    tin không lọt vào đây là món vừa không nằm trong túi, vừa không gỡ về được.
   const treo = await sb.from('san_rao').select(SAN_COT)
     .eq('nguoi_ban', uid).eq('trang_thai', 'treo')
-    .order('tao_luc', { ascending: false }).limit(tran);
+    .order('tao_luc', { ascending: false }).limit(200);
   if (treo.error) return { ok: false, reason: treo.error.message };
   const dsTreo = treo.data || [];
   const con = Math.max(0, tran - dsTreo.length);

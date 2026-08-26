@@ -14680,6 +14680,8 @@ export const DICT = {
   "Sinh Lực còn": "生命剩余",
   "Đệ tử không có ô cho 「": "弟子没有可放「",
   "」 — ban vào là không lấy lại được.": "」的栏位——赐下去便取不回。",
+  "Đang hiện 200 tin mới nhất. Tin cũ hơn chưa lên bảng.": "目前显示最新的 200 则。更旧的尚未上榜。",
+  "Không nhận được người này — có lẽ họ đã rời giang hồ.": "无法接纳此人——想必已退出江湖。",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "孵蛋耗真实时间；品质越高孵化越久。物种列表见查询中的",
   "Thức Tỉnh mở thêm bị động từ bể": "觉醒可自",
   "20 loại": "20 种",

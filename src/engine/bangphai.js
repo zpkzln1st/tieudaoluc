@@ -380,10 +380,17 @@ const CHUC_THAP = 'tanNhap';
 export function chieuMo(state, botId, world, now) {
   const b = ensureBangPhai(state), t = now || Date.now();
   if (!b.bang || !botId) return false;
-  if (b.bang.tv.length >= tranThanhVien(b.bang)) return false;
   if (b.bang.tv.some((m) => m.id === botId)) return false;
   const roster = genRoster((world && world.seed) || 1, (world && world.createdAt) || 0, t) || [];
   const r = roster.find((x) => x.id === botId); if (!r) return false;
+  // ⚠⚠ ĐẾM TRÊN SỐ NGƯỜI CÒN THẬT, không đếm số thô. `genRoster` là cửa sổ trượt: cứ ~1,92 ngày
+  //    lại có một minh chúng rời sổ. `thanhVien` (lớp hiển thị) lọc họ ra, còn cửa trần này thì
+  //    trước đây đếm cả người đã ẩn cư — hai con số lệch nhau suốt phiên vì `donNguoiAnCu` chỉ
+  //    chạy MỘT LẦN lúc nạp trang. Hậu quả: banner ghi 24/25 mà mời ai cũng bị từ chối không rõ
+  //    lý do. Dọn ngay ở đây cho hai con số khớp lại.
+  const conThat = new Set(roster.map((x) => x.id));
+  b.bang.tv = b.bang.tv.filter((m) => !m.id || !String(m.id).startsWith('bot') || conThat.has(m.id));
+  if (b.bang.tv.length >= tranThanhVien(b.bang)) return false;
   // CỬA GIAO TÌNH — chặn ở đây chứ không ở lớp view, để không đường nào lách được.
   // Người trên Bảng Chiêu Hiền là đường công khai, ai cũng mời được (chỉ đắt hơn).
   // Ngoài bảng ra thì phải quen đủ bậc: cao thủ kén hơn (giaoTinhCan).
