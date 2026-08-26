@@ -74,7 +74,11 @@ export function ddNap(state, nhanh, pham) {
   const b = ddBang(state);
   if ((b[nhanh][pham - 1] || 0) >= DD_O[pham - 1]) return false;   // ô đã đầy
   b[nhanh][pham - 1]++;
-  state.danDien = b;
+  // ⚠⚠ GHI ĐÈ TỪNG NHÁNH, đừng gán cả cụm. `ddBang()` chỉ dựng lại BA MẢNG lưới, nó KHÔNG mang
+  //   theo `state.danDien.luyen` — gán `state.danDien = b` là xoá trắng điểm Luyện Tinh · Khí ·
+  //   Thần mà người chơi đã mua bằng Bạc (`quayLuyen` 5.000 + cấp×800 một lượt quay).
+  //   Nạp đúng một viên đan là mất sạch, im lặng, không đòi lại được.
+  Object.assign(state.danDien, b);
   return true;
 }
 

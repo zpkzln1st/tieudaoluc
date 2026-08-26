@@ -14662,6 +14662,8 @@ export const DICT = {
   "chọn 1 (hoặc để trống)": "选 1 (或留空)",
   "Bấm một Tâm Pháp để xem công dụng.": "点击一项心法以查看其作用。",
   "# trang": "# 页",
+  "Chưa đọc được bản lưu trên máy chủ — tạm ngừng đồng bộ để khỏi ghi đè.": "尚未读取到伺服器上的存档——暂停同步以免覆盖。",
+  "Chưa đọc được bản lưu trên máy chủ.": "尚未读取到伺服器上的存档。",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "孵蛋耗真实时间；品质越高孵化越久。物种列表见查询中的",
   "Thức Tỉnh mở thêm bị động từ bể": "觉醒可自",
   "20 loại": "20 种",

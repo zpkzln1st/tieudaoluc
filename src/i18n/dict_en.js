@@ -14831,6 +14831,8 @@ export const DICT = {
   "chọn 1 (hoặc để trống)": "pick 1 (or none)",
   "Bấm một Tâm Pháp để xem công dụng.": "Tap a Heart Method to see what it does.",
   "# trang": "# pages",
+  "Chưa đọc được bản lưu trên máy chủ — tạm ngừng đồng bộ để khỏi ghi đè.": "Could not read your save on the server — syncing is paused so nothing gets overwritten.",
+  "Chưa đọc được bản lưu trên máy chủ.": "Could not read your save on the server.",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "Incubation takes real time; higher quality takes longer. See the species list in the",
   "Thức Tỉnh mở thêm bị động từ bể": "Awakening unlocks extra passives from a pool of",
   "20 loại": "20 types",

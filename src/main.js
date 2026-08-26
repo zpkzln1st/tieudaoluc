@@ -500,6 +500,27 @@ const ROUTE_VIEWS = ['skill', ...NAV.flatMap((g) => (g.items || []).map((it) => 
 //   ghép lúc chạy. Nới rào ra thì phải đo lại — thêm một ký tự là mở lại đúng cái cửa này.
 const ID_ART_HOP_LE = /^[A-Za-z0-9_]+$/;
 
+// ⚠⚠ HÀNG RÀO CẤY MÃ THỨ HAI — cho phần CHỮ (emoji/nhãn), không phải cho `id`.
+//    `ico()` nhận hai tham số. `id` đã có `ID_ART_HOP_LE` canh; tham số EMOJI thì trước đây chỉ
+//    được thoát `\` và `"` — đủ cho một chuỗi JS, KHÔNG đủ cho HTML. Mà `index.html:6567` vẽ
+//    `g.ico(c.id, c.icon)` bằng `x-html`, với `c` là một ô Trưng Bày đọc từ
+//    `ho_so_cong_khai.trung_bay` của NGƯỜI KHÁC — máy chủ không chốt nội dung cột đó.
+//    `<img src=x onerror=…>` đi thẳng vào `<span>…</span>` rồi chạy, đọc được phiên Supabase
+//    trong localStorage của người XEM = chiếm tài khoản.
+//    ⚠ Viết bằng split/join chứ KHÔNG bằng hằng số regex: hằng regex chứa dấu nháy làm hỏng bộ
+//      bóc thân hàm (_boc_ham_main.mjs), tức là mất luôn đường ĐO hàm này bằng bài kiểm.
+/** Thoát chữ trước khi dán vào NỘI DUNG HTML. Emoji thật không chứa ký tự nào dưới đây. */
+function thoatHtml(s) {
+  return String(s == null ? '' : s)
+    .split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;')
+    .split('"').join('&quot;').split("'").join('&#39;');
+}
+/** Thoát chữ trước khi dán vào một CHUỖI JS NẰM TRONG thuộc tính HTML (`onerror='…"chữ"…'`).
+ *  Hai tầng: tầng JS trước (`\` `"`), tầng HTML sau — trình duyệt giải mã HTML rồi mới đọc JS. */
+function thoatJsTrongThuocTinh(s) {
+  return thoatHtml(String(s == null ? '' : s).split('\\').join('\\\\').split('"').join('\\"'));
+}
+
 // ---- Bản đồ icon: id -> thư mục ảnh (ico() tự tìm đúng folder, không cần sửa chỗ gọi) ----
 const ICON_FOLDERS = {};
 Object.keys(ITEMS).forEach((id) => { ICON_FOLDERS[id] = 'items'; });
@@ -621,6 +642,13 @@ const gameStore = {
   datLaiMo: VE_DOI_MAT_KHAU, datLaiPass: '', datLaiPass2: '',
   // Cloud save (Giai đoạn C) — đồng bộ save ↔ Supabase. cloudConflict = { cloud, local, _cloudData } khi 2 bản lệch.
   cloudSyncing: false, cloudLastSync: 0, cloudErr: '', cloudConflict: null, _cloudLastPushed: -1,
+  // ⚠⚠ CHƯA SOI ĐƯỢC BẢN TRÊN MÂY. `cloudSyncOnLogin` có BA kết cục, không phải hai: đọc được,
+  //    đọc ra bản, và ĐỌC KHÔNG ĐƯỢC (mạng rớt, máy chủ 5xx, phiên hết hạn). Nhánh thứ ba trước
+  //    đây chỉ đặt một chuỗi lỗi rồi thoát, không dựng cờ nào — nên 15 giây sau `cloudAutoPushTick`
+  //    thấy `lastSave > _cloudLastPushed` (khởi tạo −1) và đẩy nguyên bản RAM lên đè. Trên máy mới
+  //    bản RAM là bản TRẮNG ⇒ xoá sạch tiến trình thật, im lặng, không đòi lại được.
+  //    Cờ này chặn MỌI đường đẩy cho tới khi soi lại được. Thà không đồng bộ còn hơn ghi đè mù.
+  cloudChuaSoi: false, _soiLaiLuc: 0,
   devLvInput: 50,
   devItemSel: null,
   selectedSkill: 'phatMoc',
@@ -3232,6 +3260,7 @@ const gameStore = {
     if (this.isLoggedIn) { try { await this._cloudPushNow(); } catch (e) { /* best-effort lưu bản chót */ } }
     try { await cloudSignOut(); } catch (e) { /* vẫn xoá phiên ở client */ }
     this.authUser = null; this.cloudConflict = null; this.cloudErr = ''; this.cloudLastSync = 0; this._cloudLastPushed = -1;
+    this.cloudChuaSoi = false; this._soiLaiLuc = 0;   // phiên mới soi lại từ đầu
     this.showToast('Đã đăng xuất.');
   },
   // ---------- Cloud save (đồng bộ save ↔ Supabase) ----------
@@ -3257,6 +3286,9 @@ const gameStore = {
     //   `doReset` ghi bản trắng lên máy chủ là đẩy nguyên tiến trình cũ trở lại. Người chơi xoá
     //   xong, tải lại, máy này trống, `cloudSyncOnLogin` kéo bản cũ về — tưởng đã xoá mà chưa.
     if (resetting) return false;
+    // ⛔⛔ CHƯA SOI ĐƯỢC BẢN TRÊN MÂY thì KHÔNG ĐẨY. Chặn ở ĐÂY chứ không chỉ ở nhịp 15 giây —
+    //    `createCharacter` và `doSignOut` gọi thẳng hàm này, không đi qua nhịp đó.
+    if (this.cloudChuaSoi) { this.cloudErr = 'Chưa đọc được bản lưu trên máy chủ — tạm ngừng đồng bộ để khỏi ghi đè.'; return false; }
     // ⚠⚠ ĐÓNG DẤU TÀI KHOẢN LÊN BẢN LƯU. Thiếu dấu này thì đổi tài khoản trong cùng một phiên là
     //   bản của người trước đè lên máy chủ của người sau (xem cửa ở `cloudSyncOnLogin`).
     try { this.state.cloudUid = this.authUser.id; } catch (e) {}
@@ -3289,8 +3321,12 @@ const gameStore = {
     if (!this.isLoggedIn) return;
     this.cloudErr = '';
     let res;
-    try { res = await cloudLoadSave(); } catch (e) { this.cloudErr = 'Không tải được dữ liệu cloud.'; return; }
-    if (!res.ok) { if (res.reason !== 'no-auth') this.cloudErr = cloudErrVi(res.reason); return; }
+    // ⚠⚠ HAI NHÁNH DƯỚI ĐÂY LÀ "CHƯA BIẾT TRÊN MÂY CÓ GÌ", không phải "trên mây trống".
+    //    Dựng cờ `cloudChuaSoi` rồi mới thoát — thiếu cờ là nhịp đẩy 15 giây ghi đè bản thật.
+    this._soiLaiLuc = now();
+    try { res = await cloudLoadSave(); } catch (e) { this.cloudErr = 'Không tải được dữ liệu cloud.'; this.cloudChuaSoi = true; return; }
+    if (!res.ok) { if (res.reason !== 'no-auth') this.cloudErr = cloudErrVi(res.reason); this.cloudChuaSoi = true; return; }
+    this.cloudChuaSoi = false;   // đọc được rồi — từ đây mọi đường đẩy mở lại
     const row = res.row;
     // ⚠⚠ CỬA ĐỔI TÀI KHOẢN — PHẢI ĐỨNG TRƯỚC MỌI NHÁNH ĐẨY. Đăng xuất rồi đăng nhập tài khoản
     //    khác trong CÙNG một phiên thì đĩa vẫn đang giữ bản lưu của người trước, và
@@ -3320,7 +3356,17 @@ const gameStore = {
   // ⚠ Nhận bù hộp quà/mã ở đây: lúc modal còn mở hai đường đó tự đứng im để khỏi mất quà, giờ
   //   chọn xong rồi thì gọi lại ngay, đừng bắt người chơi đợi hết nhịp mười phút.
   useLocalSave() { this.cloudConflict = null; this._cloudPushNow().then((ok) => { this.showToast(ok ? 'Đã giữ bản máy này.' : (this.cloudErr || 'Đồng bộ lỗi.')); this.nhanQuaChoSan(); this.taiMaTuDong(); }); },
-  async cloudSyncNow() { if (!this.isLoggedIn) return; const ok = await this._cloudPushNow(); this.showToast(ok ? 'Đã đồng bộ lên cloud.' : (this.cloudErr || 'Đồng bộ lỗi.')); },
+  async cloudSyncNow() {
+    if (!this.isLoggedIn) return;
+    // Chưa soi được bản trên mây thì SOI LẠI trước, đừng đẩy mù. Soi được thì đường dưới chạy tiếp.
+    if (this.cloudChuaSoi) {
+      await this.cloudSyncOnLogin();
+      if (this.cloudChuaSoi) { this.showToast(this.cloudErr || 'Chưa đọc được bản lưu trên máy chủ.'); return; }
+      if (this.cloudConflict || this.napCloud) return;   // soi ra rồi: hoặc đang hỏi, hoặc đang kéo bản mây về
+    }
+    const ok = await this._cloudPushNow();
+    this.showToast(ok ? 'Đã đồng bộ lên cloud.' : (this.cloudErr || 'Đồng bộ lỗi.'));
+  },
   // Gọi định kỳ (mỗi 15s) + lúc rời trang: đẩy nếu save đã đổi so với lần đẩy trước.
   cloudAutoPushTick() {
     // ⚠⚠ CHẶN QUAN TRỌNG NHẤT TRONG BỐN CHẶN. Nhịp này chạy mỗi 15 giây và `_cloudLastPushed`
@@ -3333,6 +3379,12 @@ const gameStore = {
     //   trên mây", đang chờ tải lại. `resetting` = vừa xoá tiến trình, đang chờ tải lại.
     if (this.napCloud || resetting) return;
     if (!this.isLoggedIn || this.cloudSyncing || this.cloudConflict) return;
+    // ⛔⛔ Chưa soi được bản trên mây thì đừng đẩy — thử SOI LẠI mỗi phút thay vì ghi đè mù.
+    //    Không có nhánh này thì một lần mạng chập lúc đăng nhập là khoá đồng bộ vĩnh viễn.
+    if (this.cloudChuaSoi) {
+      if (now() - (this._soiLaiLuc || 0) >= 60000) this.cloudSyncOnLogin();
+      return;
+    }
     const ls = this.state.lastSave || 0;
     if (ls > this._cloudLastPushed) this._cloudPushNow();
   },
@@ -4414,10 +4466,13 @@ const gameStore = {
   // khỏi phải gen lại ảnh. Thêm art tràn mép về sau thì thêm 1 dòng vào đây.
   ART_INSET: { eq_duocLiem_4: 9, eq_duocLiem_5: 9, eq_duocLiem_6: 9, eq_duocLiem_7: 9 },
   ico(id, emoji) {
-    const safe = String(emoji || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    // Xem hai hàm thoát ở đầu tệp: `chuHtml` dán vào nội dung HTML, `safe` dán vào chuỗi JS
+    // nằm trong thuộc tính `onerror='…'`.
+    const chuHtml = thoatHtml(emoji);
+    const safe = thoatJsTrongThuocTinh(emoji);
     // id rỗng = CHƯA CÓ ART, nói thẳng ra emoji. Không có dòng này thì nó vẫn ra emoji, nhưng phải
     // đi qua một lượt xin `images/items/.webp` rồi `.png` — hai lần 404 cho mỗi ô, mỗi nhịp vẽ.
-    if (!id) return `<span>${safe}</span>`;
+    if (!id) return `<span>${chuHtml}</span>`;
     // ⚠⚠ HÀNG RÀO CẤY MÃ. Hàm này dán `id` THẲNG vào `src="…"` và vào cả thân `onerror='…'`, rồi
     //    lời gọi vẽ ra bằng `x-html`. Có đường cho `id` do MÁY NGƯỜI KHÁC đặt: `sanTinArt()` đọc
     //    `r.mon.gearId` trong tin rao — mà tin rao lấy món từ bản lưu, còn bản lưu là thứ máy
@@ -4428,7 +4483,7 @@ const gameStore = {
     //    Đo trước khi chốt: cả 1.868 mã thật (ITEMS · SKILLS · ENEMIES · CLASSES · NGHE · GEAR ·
     //    PET_SPECIES · LOCATIONS · TITLES + mọi mã ghép `phuong_` `dp_` `dpset_` `dpchieu_` `pet_`)
     //    đều khớp rào này, nên rào KHÔNG giết art nào.
-    if (!ID_ART_HOP_LE.test(String(id))) return `<span>${safe}</span>`;
+    if (!ID_ART_HOP_LE.test(String(id))) return `<span>${chuHtml}</span>`;
     // ĐAN ĐIỀN: nhánh nào chưa vẽ art riêng thì MƯỢN art đan sẵn có theo phẩm (`ddArtCua`).
     // ⚠ Thiếu dòng này thì Khí Đan và Thần Đan xin `images/items/ddKhi1.webp` — không có tệp nên
     //   rơi về emoji ⚱️ trơn, 18/27 ô trong Hành Lý thành hàng lỗi.
@@ -4507,7 +4562,7 @@ const gameStore = {
   },
   // Ảnh chân dung YÊU THÚ — object-cover (lấp đầy khung), fallback emoji. Dùng ở danh sách + popup Suy Tính.
   enemyArt(id, emoji) {
-    const safe = String(emoji || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const safe = thoatJsTrongThuocTinh(emoji);   // cùng hàng rào với ico(), xem đầu tệp
     return `<img src="images/enemies/${id}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=&quot;images/enemies/${id}.png&quot;;}else{this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{textContent:&quot;${safe}&quot;}));}'>`;
   },
   // Icon đường nét nội tuyến (thay emoji hệ thống). cls điều khiển kích thước/màu.
@@ -5672,7 +5727,7 @@ const gameStore = {
   closeCodex() { this.codexDetail = null; },
   // Art tile theo loại phổ: quái/pet dùng ảnh thật (fallback emoji nền), gear/vật phẩm dùng ico(), bí cảnh dùng triện.
   codexArtTag(cat, e) {
-    const safe = String(e.icon || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const safe = thoatJsTrongThuocTinh(e.icon);   // cùng hàng rào với ico(), xem đầu tệp
     const drop = `this.replaceWith(Object.assign(document.createElement(&quot;span&quot;),{className:&quot;text-4xl opacity-90&quot;,textContent:&quot;${safe}&quot;}))`;
     if (cat.kind === 'enemy') return `<img src="images/enemies/${e.id}.webp" class="w-full h-full object-cover" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
     if (cat.kind === 'pet') return `<img src="images/pets/pet_${e.id}_base.webp" class="w-full h-full object-contain" alt="" onerror='if(this.src.endsWith(&quot;.webp&quot;)){this.src=this.src.replace(&quot;.webp&quot;,&quot;.png&quot;)}else{${drop}}'>`;
