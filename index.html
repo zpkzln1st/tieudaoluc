@@ -2089,13 +2089,19 @@
                      bấm LẠI vào cái ĐANG chọn = xem ảnh lớn. Con trỏ zoom-in chỉ hiện ở ô đang chọn,
                      đó là tín hiệu duy nhất cần thiết. -->
                 <template x-for="av in $store.game.AVATARS.filter(a => ($store.game.state.player.ownedAvatars||[]).includes(a.id))" :key="av.id">
-                  <button x-data="{ok:false}" x-show="ok" class="group"
+                  <!-- ⚠⚠ ok BẮT ĐẦU LÀ true. Bản cũ `{ok:false}` + `x-show="ok"` + `@load="ok=true"`
+                       là một CÁI KHOÁ TỰ CHỐT: `x-show` sai nghĩa là thẻ `display:none`, mà ảnh để
+                       `loading="lazy"` thì trình duyệt KHÔNG tải ảnh nằm trong hộp ẩn — `@load`
+                       không bao giờ bắn, `ok` không bao giờ thành true. Mua xong một Ảnh Đại Diện
+                       là nó KHÔNG hiện ra ở Dung Mạo để chọn. Lưới Thương Điếm đã vá đúng bẫy này
+                       (dòng 4813), lưới ở đây thì chưa. Nay hiện ngay, chỉ ô THIẾU ART mới tự ẩn. -->
+                  <button x-data="{ok:true}" x-show="ok" class="group"
                           :class="$store.game.state.player.avatar===av.id ? 'cursor-zoom-in' : ''"
                           :title="$store.game.state.player.avatar===av.id ? 'Bấm lại để mở ảnh lớn.' : av.name"
                           @click="$store.game.state.player.avatar===av.id ? $store.game.openLightbox(av.id, '容', av.name, `images/avatars/${av.id}.webp`) : $store.game.selectAvatar(av.id)">
                     <div class="aspect-square rounded-xl overflow-hidden bg-ink3 ring-2 transition flex items-center justify-center"
                          :class="$store.game.state.player.avatar===av.id ? 'ring-jade' : 'ring-transparent group-hover:ring-slate-600'">
-                      <img loading="lazy" decoding="async" :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center" @load="ok=true" x-init="$nextTick(() => { if ($el.complete && $el.naturalWidth > 0) ok = true })">
+                      <img loading="lazy" decoding="async" :src="`images/avatars/${av.id}.webp`" class="w-full h-full object-cover object-center" @error="ok=false">
                     </div>
                     <div class="text-[10px] text-center mt-1 truncate" :class="$store.game.state.player.avatar===av.id ? 'text-jade' : 'text-slate-400'" x-text="av.name"></div>
                   </button>
@@ -8355,7 +8361,9 @@
                             <span class="absolute top-0.5 right-0.5 z-10 text-[8px] font-bold px-1 rounded bg-black/70 border border-slate-600 text-slate-300">hiếm</span>
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
                               <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(r.itemId,(g.ITEMS[r.itemId]||{}).icon)"></span>
-                              <span class="text-[10px] font-bold leading-none" :class="g.itemQuality(r.itemId).text" x-text="(r.chance*100).toFixed(1)+'%'"></span>
+                              <!-- ⚠ Tỉ lệ THẬT, không phải số thô: engine bốc bằng
+                                   `chance × RUN.rareMul × pace`. `dungeonSetChance` đã quy đổi sẵn. -->
+                              <span class="text-[10px] font-bold leading-none" :class="g.itemQuality(r.itemId).text" x-text="(g.dungeonSetChance(d.id, r.itemId)*100).toFixed(1)+'%'"></span>
                               <!-- Trước chỉ có con số: nhặt được rồi vẫn không biết ô này là món gì. -->
                               <span class="text-[8px] leading-tight text-slate-400 truncate w-full" x-text="(g.ITEMS[r.itemId]||{}).name"></span>
                             </div>

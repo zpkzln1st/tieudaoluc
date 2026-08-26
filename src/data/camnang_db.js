@@ -610,7 +610,10 @@ export const CN_DB = [
       { k: 'thu', ten: 'Hộ Thể', so: true }, { k: 'mau', ten: 'Sinh Lực', so: true },
       { k: 'ne', ten: 'Né Tránh', so: true }, { k: 'trung', ten: 'Chính Xác', so: true },
     ],
-    hang: () => Object.entries(PET_SPECIES).map(([key, s]) => {
+    // ⚠ LỌC CỜ `suKien` — Cẩm Nang chỉ nói về thế giới THƯỜNG TRỰC (luật ghi ở đầu tệp, và
+    //   `engine/timkiem.js` đã lọc đúng). Sáu loài linh thú chỉ có ở lễ hội mà bày quanh năm thì
+    //   người chơi giữa tháng 3 đi tìm mãi không ra, còn số ở đầu bảng cũng đếm dư.
+    hang: () => Object.entries(PET_SPECIES).filter(([, s]) => !s.suKien).map(([key, s]) => {
       const st = s.stats || {};
       return {
         id: s.base || key, ten: s.name, _icon: s.emoji, he: tenHe(s.he), _he: s.he,
@@ -642,7 +645,8 @@ export const CN_DB = [
       { k: 'ten', ten: 'Danh hiệu' }, { k: 'loai', ten: 'Loại' },
       { k: 'pham', ten: 'Phẩm chất', mau: 'pham' }, { k: 'dk', ten: 'Điều kiện' }, { k: 'thuong', ten: 'Cộng' },
     ],
-    hang: () => TITLES.map((t) => ({
+    // ⚠ Cùng luật với bảng Linh Thú ngay trên: bỏ danh hiệu chỉ đổi được ở quầy lễ hội.
+    hang: () => TITLES.filter((t) => !t.suKien).map((t) => ({
       id: t.id, ten: t.name, _pham: t.q, pham: tenPham(t.q),
       loai: TITLE_LOAI[t.loai] || t.loai || '—',
       dk: t.src || '—',

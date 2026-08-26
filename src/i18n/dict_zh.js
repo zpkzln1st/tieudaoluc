@@ -14682,6 +14682,8 @@ export const DICT = {
   "」 — ban vào là không lấy lại được.": "」的欄位——賜下去便取不回。",
   "Đang hiện 200 tin mới nhất. Tin cũ hơn chưa lên bảng.": "目前顯示最新的 200 則。更舊的尚未上榜。",
   "Không nhận được người này — có lẽ họ đã rời giang hồ.": "無法接納此人——想必已退出江湖。",
+  "Phải có Tiên Minh của mình trước đã — 〈": "得先有自己的仙盟——〈",
+  "〉 nằm ở bảng Chinh Phạt.": "〉在征伐榜上。",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "孵蛋耗真實時間；品質越高孵化越久。物種列表見查詢中的",
   "Thức Tỉnh mở thêm bị động từ bể": "覺醒可自",
   "20 loại": "20 種",

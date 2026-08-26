@@ -337,7 +337,13 @@ export function advance(state, now) {
     if (!act.acc) act.acc = newDungeonAcc();
     const done = Math.min(act.runs, Math.floor((now - act.startedAt) / (act.durMs || 1)));
     const newRuns = done - act.acc.runs;
-    for (let k = 0; k < newRuns; k++) grantDungeonRun(state, act.dungeonId, act.acc, now, act.nghichThien);
+    // ⚠⚠ GHI VÀO NHẬT KÝ NGÀY. `ghiNhatKyNgay` là nguồn DUY NHẤT của hai biểu đồ ở Hồ Sơ, mà
+    //    trước đây chỉ hai đường cày quái gọi nó — EXP Bí Cảnh (một trong hai nguồn EXP Chiến Đấu
+    //    lớn nhất game) biến mất khỏi sổ, cột hôm qua trống trơn dù treo Bí Cảnh cả ngày.
+    for (let k = 0; k < newRuns; k++) {
+      const r = grantDungeonRun(state, act.dungeonId, act.acc, now, act.nghichThien);
+      if (r && r.xpGot) ghiNhatKyNgay(state, now, { luot: 1, exp: r.xpGot });
+    }
     if (done >= act.runs) {
       const result = finalizeDungeonBatch(state, act.dungeonId, act.acc, now);
       state.activity = null;

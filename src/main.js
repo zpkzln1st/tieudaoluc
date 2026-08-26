@@ -86,7 +86,7 @@ import { TM_GRP, TM_EVENTS, TM_EVENT_BY_ID } from './data/tongmon_events.js';
 import { BOT_COUNT, CAT_HEX } from './data/bots.js';
 import { teleportCost, travelTimeMs, mapDistance } from './engine/travel.js';
 import { bossHe, bossReady, bossCdEnd, bossQueued, setBossQueue, runBossFight, applyBossWin, applyBossLose, applyBossRetreat, resolveBossQueue as resolveBossQueueEngine, genBossFeed, bossCurHp, bossMaxHp, bossHealing, bossHealLeftMs, ensureBoss, bossResetHp } from './engine/worldboss.js';
-import { grantDungeon, finalizeDungeonBatch, NT } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
+import { grantDungeon, finalizeDungeonBatch, NT, RUN } from './engine/dungeon.js';   // dev + chốt Lịch Luyện khi dừng sớm
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudOnAuthEvent, cloudGuiThuDoiMatKhau, cloudDatMatKhau, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudLoadDoiThuDauTruong, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoDong, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
@@ -687,6 +687,13 @@ const gameStore = {
     if (h.indexOf('#skill=') === 0) { const id = decodeURIComponent(h.slice(7)); if (this.SKILLS && this.SKILLS[id]) { this._applySkill(id); return; } }
     let v = h.replace(/^#/, '');
     if (!this._ROUTE_VIEWS.includes(v)) v = 'profile';
+    // ⚠⚠ CỜ TÍNH NĂNG PHẢI GÁC CẢ ĐƯỜNG HASH. Hai màn này bị gác NGAY TRÊN template
+    //    (`x-if="view==='thinhKinh' && moChua('thinhKinh')"`) và KHÔNG có nhánh thay thế — cờ đóng
+    //    thì khung giữa TRẮNG BÓC. Mục ở cột dọc có lọc cờ, nhưng bảng đường đi thì không, nên
+    //    F5 / bấm Lùi / mở bookmark `#dauTruong` đi vòng qua đúng cái hàng rào duy nhất. Nặng thêm:
+    //    `_applyView('dauTruong')` còn bắn hai lượt gọi máy chủ cho một màn không được phép hiện.
+    if (v === 'thinhKinh' && !this.tkNavHien) v = 'profile';
+    if (v === 'dauTruong' && !this.dtNavHien) v = 'profile';
     this._applyView(v);
   },
   initRoute() {   // lúc tải: mở đúng tab theo #link sẵn có, hoặc lập baseline #<view hiện tại>
@@ -1786,7 +1793,15 @@ const gameStore = {
       this.showToast('〈' + m.ten + '〉 — tìm trên Phong Vân Bảng.');
       return;
     }
-    if (d.loai === 'bang') { this.bpTabDich = 'chinhPhat'; this.navTo('guild'); }
+    // ⚠ Chưa có Tiên Minh thì cả dải tab lẫn bảng Chinh Phạt đều không dựng ra (chúng nằm trong
+    //   `x-if="bang"`), nên đặt `bpTabDich` là ghi vào một biến chẳng ai đọc và người chơi rơi
+    //   thẳng vào trang 'Tự Dựng Cờ' với nút xám — bấm xong không nhận được gì cả. Nói một câu.
+    if (d.loai === 'bang') {
+      if (!(this.state.bangPhai && this.state.bangPhai.bang)) {
+        this.showToast('Phải có Tiên Minh của mình trước đã — 〈' + (m.ten || '') + '〉 nằm ở bảng Chinh Phạt.');
+      } else { this.bpTabDich = 'chinhPhat'; }
+      this.navTo('guild');
+    }
   },
   bpTabDich: null,
   // ---------- Ấn Ký Tác Giả (chứng chỉ ký số — nhận diện người thiết kế, không giả mạo được) ----------
@@ -4918,7 +4933,23 @@ const gameStore = {
     this._ensureDanhSiState().accepted.push(o.offerId);
     this.tmSave(); this._tick++;
   },
-  get dsProfile() { void this._tick; return this.dsSel ? danhSiProfile(this.dsSel, now()) : null; },
+  // ⚠⚠ NHỚ KẾT QUẢ THEO PHÚT. Modal Danh Sĩ dò `p.` gần bốn mươi chỗ và ba tab đều dùng `x-show`
+  //    (Alpine VẪN CHẠY biểu thức của tab đang ẩn), mà `_tick` nhích mỗi giây — nghĩa là mỗi giây
+  //    dựng lại TRỌN hồ sơ gần bốn mươi lần: `danhSiList` trang trí rồi sắp xếp cả 20 danh sĩ,
+  //    `adversariesOf`, `bienNien`, `luanVoOf`, `statsOf`, thêm một `danhSiById` cho từng mối quan
+  //    hệ. Getter còn trả MẢNG MỚI mỗi lượt nên `x-for` phải đối chiếu lại danh sách mỗi giây.
+  //    Danh Sĩ là lazy-sim, tươi theo phút là quá đủ. Cùng lối với `tongMonBang`.
+  _dsMemo: null,
+  get dsProfile() {
+    void this._tick;
+    if (!this.dsSel) return null;
+    const key = this.dsSel + ':' + Math.floor(now() / 60000);
+    const m = this._dsMemo;
+    if (m && m.key === key) return m.val;
+    const val = danhSiProfile(this.dsSel, now());
+    this._dsMemo = { key, val };
+    return val;
+  },
   daoInfo(dao) { return ({ chinh: ['Chính Đạo', '#14b8a6'], ta: ['Tà Đạo', '#e879f9'], trung: ['Trung Dung', '#94a3b8'] })[dao] || ['Trung Dung', '#94a3b8']; },
   get tongMonBang() {
     const w = this.state.world; if (!w || !this.tm) return [];
@@ -5394,7 +5425,10 @@ const gameStore = {
   _finishBossFight() {
     const F = this.bossFight; if (!F || F.done) return;
     F.done = true;
-    if (F.win) { F.reward = applyBossWin(this.state, F.id, now()); const _b = YEU_VUONG_BY_ID[F.id]; this.pushNotif('yeuVuong', 'Hạ ' + (_b ? _b.name : 'Yêu Vương'), this._bossRewardText(F.reward)); }
+    // ⚠ Ghi EXP Yêu Vương vào nhật ký ngày — `ghiNhatKyNgay` là nguồn DUY NHẤT của hai biểu đồ ở
+    //   Hồ Sơ, mà trước đây chỉ hai đường cày quái gọi nó. Hạ vài Yêu Vương xong xem biểu đồ 7
+    //   ngày thấy cột trống trơn.
+    if (F.win) { F.reward = applyBossWin(this.state, F.id, now()); const _b = YEU_VUONG_BY_ID[F.id]; if (F.reward && F.reward.exp) ghiNhatKyNgay(this.state, now(), { luot: 1, exp: F.reward.exp }); this.pushNotif('yeuVuong', 'Hạ ' + (_b ? _b.name : 'Yêu Vương'), this._bossRewardText(F.reward)); }
     else if (F.timeout) applyBossRetreat(this.state, F.id, now(), F.bHp);   // giằng co (600 nhịp, không gục) → boss giữ máu, KHÔNG dưỡng thương, thử lại ngay
     else applyBossLose(this.state, F.id, now(), F.bHp);   // gục → boss giữ máu + người chơi dưỡng thương 3p
     Storage.save(this.state);
@@ -5409,6 +5443,8 @@ const gameStore = {
     const res = resolveBossQueueEngine(this.state, now(), (b) => this.combatLevel >= b.reqLevel);
     if (res.length) {
       const wins = res.filter((r) => r.win).length;
+      // Đường VẮNG MẶT cũng phải vào nhật ký ngày, khớp từng vế với đường đánh LIVE.
+      for (const r of res) if (r.win && r.reward && r.reward.exp) ghiNhatKyNgay(this.state, now(), { luot: 1, exp: r.reward.exp });
       if (wins > 0) { this.showToast('⚔ Trong lúc vắng mặt, bạn đã hạ ' + wins + ' Yêu Vương đang chờ! Xem Lịch Sử để biết kết quả trận chiến.'); this.pushNotif('yeuVuong', 'Hạ ' + wins + ' Yêu Vương (vắng mặt)', 'Hàng đợi vây sát đã hoàn tất — xem Lịch Sử để biết kết quả.'); }
       else this.showToast('Khiêu chiến hàng đợi thất bại — Yêu Vương vẫn còn sống, hãy thử lại.');
       Storage.save(this.state);
@@ -7609,7 +7645,12 @@ const gameStore = {
   dungeonSetChance(dungeonId, setId) {
     const d = this.DUNGEON_BY_ID[dungeonId]; if (!d) return 0;
     const r = (d.loot.rare || []).find((x) => x.itemId === setId);
-    return r ? r.chance : 0;
+    // ⚠⚠ QUY ĐỔI VỀ TỈ LỆ THẬT. Engine bốc đồ hiếm bằng `chance × RUN.rareMul × pace`
+    //    (dungeon.js), mà bảng này trước đây in SỐ THÔ. Các ô hàng xóm (`dungeonDoPhoChance`,
+    //    `dungeonBiKipChance`…) đều đã quy đổi đúng — chỉ riêng nhóm `rare` nói sai. Thái Hư
+    //    `dpset_kimQuang` hiện 0,1% mà thật là 0,075%: người chơi tính ~1.000 lượt, thực tế
+    //    ~1.333 lượt, mỗi lượt 3 giờ.
+    return r ? (r.chance || 0) * RUN.rareMul * (d.pace || 1) : 0;
   },
 
   // ======================= ĐỒ PHỔ (Lĩnh Ngộ -> mở Rèn Đúc) =======================

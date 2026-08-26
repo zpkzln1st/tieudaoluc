@@ -277,7 +277,15 @@ export function grantDungeonRun(state, dungeonId, acc, now, nt) {
   if (run.loot.honThach) state.currencies.honThach = (state.currencies.honThach || 0) + run.loot.honThach;
   // EXP Bí Cảnh ăn ĐỦ hệ số như cày quái: Điểm Danh (skillExpMultiplier) + đan Ngộ Đạo (cbExpPct) +
   // Tăng EXP trang bị (combatExpMult). Trước chỉ có vế cuối nên chuỗi đăng nhập và đan trơ trong Bí Cảnh.
-  if (run.loot.exp) addSkillXp(state, 'chienDau', Math.max(1, Math.round(run.loot.exp * skillExpMultiplier(state, 'chienDau') * (1 + buffVal(state, 'cbExpPct', now) / 100) * combatExpMult(state))));
+  // ⚠ Phơi số EXP THẬT SỰ đã cộng ra ngoài (`run.xpGot`) để phía gọi ghi vào nhật ký ngày —
+  //   `acc.exp` chỉ là EXP GỐC chưa nhân hệ số, lấy nó ghi sổ là ghi sai số.
+  //   ⛔ ĐỪNG import `ghiNhatKyNgay` vào đây: activity.js đã import dungeon.js rồi, thêm chiều
+  //      ngược lại là vòng tròn mô-đun.
+  if (run.loot.exp) {
+    const _xp = Math.max(1, Math.round(run.loot.exp * skillExpMultiplier(state, 'chienDau') * (1 + buffVal(state, 'cbExpPct', now) / 100) * combatExpMult(state)));
+    addSkillXp(state, 'chienDau', _xp);
+    run.xpGot = _xp;
+  }
   for (const id in run.loot.items) addItem(state, id, run.loot.items[id]);
   // BÍ KÍP -> Tàng Thư Lâu Tông Môn (main->phụ 1 chiều; side-only)
   if (run.biKipDropId && state.tongMon) {
