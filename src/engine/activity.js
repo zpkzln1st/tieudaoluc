@@ -234,6 +234,8 @@ export function migrateDanSlots(state) {
 export function startCombat(state, enemyId, now) {
   const enemy = ENEMIES[enemyId];
   if (!enemy) return false;
+  // Quái của sự kiện ĐÃ ĐÓNG thì không vào trận được — đối xứng với hàng rào kĩ năng ở dòng 166.
+  if (enemy.suKien && !skMo(state, enemy.suKien, now)) return false;
   if (levelFromXp(state.skills['chienDau']?.xp || 0) < enemy.reqLevel) return false;
   if (state.combat.noiThuong) return false; // phải về thành dưỡng sức trước
   const profile = combatProfile(state, state.combat.loadout, enemy);

@@ -13,6 +13,9 @@ import { PET_SPECIES, PET_QUALITY, EGG_TO_PET_Q, PET_OPT_POOL, PET_OPT_BY_ID, PE
 import { consumableEffMult } from './setbonus.js';
 import { bangKyNangBonus } from './bangbuff.js';   // Mục Thú Quyết: +EXP Linh Thú
 import { rng } from './rng.js';   // Đợt D: bốc số có hạt giống -> máy chủ tính lại được
+// sukien.js KHÔNG import pets.js nên nhập từ đây không tạo vòng. Cần `skMo` để chặn bãi săn của
+// sự kiện đã đóng — pet săn ở đó chỉ thu về đồ sẽ bị xoá sạch ở lần nạp sau.
+import { skMo } from './sukien.js';
 
 const STAT_KEYS = ['congKich', 'hoThe', 'neTranh', 'menhTrung', 'sinhLuc'];
 
@@ -539,6 +542,8 @@ export function startHunt(state, petId, locId, now) {
   if (huntSlotsUsed(state) >= huntSlots(state)) return null;
   const loc = LOCATIONS.find((l) => l.id === locId);
   if (!loc || p.level < loc.reqLevel) return null;
+  // Bãi săn của sự kiện ĐÃ ĐÓNG thì không nhận — hàng rào thứ hai sau bảng chọn ở giao diện.
+  if (loc.suKien && !skMo(state, loc.suKien, now)) return null;
   p.tl = petStamView(p, now);                                          // chốt Thể Lực hiện tại làm vốn săn
   p.huntLoc = locId; p.huntAt = now;
   p.huntStats = { exp: 0, ticks: 0, loot: {} };                        // thống kê phiên săn (cho popup Lịch Luyện)

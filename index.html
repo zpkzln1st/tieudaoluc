@@ -1567,7 +1567,7 @@
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="px-2 py-1 rounded bg-ink3 border border-slate-700 text-xs font-mono" x-text="$store.game.fmtClock($store.game.actRemaining)"></span>
-                <button @click="$store.game.refreshActivity()" title="Làm mới" class="w-7 h-7 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade">↻</button>
+                <button x-show="!$store.game.actIsDungeon" @click="$store.game.refreshActivity()" title="Làm mới" class="w-7 h-7 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade">↻</button>
                 <button @click="$store.game.stop()" title="Dừng" class="w-7 h-7 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400">✕</button>
               </div>
             </div>
@@ -1711,7 +1711,7 @@
                         <div class="text-[10px] text-slate-400 truncate" x-text="$store.game.actIsDungeon ? 'Bí Cảnh · đang khám phá' : ($store.game.actSub + ' · ' + $store.game.actExpPerSec + ' EXP/s')"></div>
                       </div>
                       <div class="flex items-center gap-1">
-                        <button @click="$store.game.refreshActivity()" title="Làm mới" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade text-xs">↻</button>
+                        <button x-show="!$store.game.actIsDungeon" @click="$store.game.refreshActivity()" title="Làm mới" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade text-xs">↻</button>
                         <button @click="$store.game.stop()" title="Dừng" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 text-xs">✕</button>
                       </div>
                     </div>
@@ -3253,7 +3253,7 @@
                   </template>
                   <span class="flex-1"></span>
                   <span class="text-[11px] text-slate-400 shrink-0" x-text="$store.game.actExpPerSec + ' EXP/s'"></span>
-                  <button @click="$store.game.refreshActivity()" title="Làm mới" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade text-xs">↻</button>
+                  <button x-show="!$store.game.actIsDungeon" @click="$store.game.refreshActivity()" title="Làm mới" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-jade text-slate-400 hover:text-jade text-xs">↻</button>
                   <button @click="$store.game.stop()" title="Dừng" class="w-6 h-6 rounded bg-ink3 border border-slate-700 hover:border-rose-500 text-slate-400 hover:text-rose-400 text-xs">✕</button>
                 </div>
                 <div class="flex items-center gap-2.5">

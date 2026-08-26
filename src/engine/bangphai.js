@@ -871,8 +871,12 @@ export function nhanNv(state, world, id, now) {
 // ============================================================
 // NHIỆM VỤ TRUY NÃ — bảng lệnh đổi mỗi ngày, mục tiêu là quái/Yêu Vương có thật.
 // ============================================================
-const QUAI_LIST = Object.keys(ENEMIES || {}).map((id) => ({ id, ...ENEMIES[id] }))
-  .filter((e) => !e.isBoss).sort((a, b2) => (a.reqLevel || 1) - (b2.reqLevel || 1));
+// ⚠⚠ HÀM, KHÔNG PHẢI HẰNG SỐ TẦNG MÔ-ĐUN. `data/sukien.js` nhồi 24 quái sự kiện vào `ENEMIES`
+//    lúc nạp mô-đun, mà THỨ TỰ NẠP không bảo đảm sukien.js chạy xong trước tệp này (cùng cảnh
+//    báo đã ghi ở đầu tệp cho `LOCATIONS`). Dựng bảng một lần lúc nạp là chốt lại một ảnh chụp
+//    có thể thiếu, còn lọc `!e.suKien` thì lại không ăn. Gọi lúc cần thì cả hai vế đều đúng.
+const quaiList = () => Object.keys(ENEMIES || {}).map((id) => ({ id, ...ENEMIES[id] }))
+  .filter((e) => !e.isBoss && !e.suKien).sort((a, b2) => (a.reqLevel || 1) - (b2.reqLevel || 1));
 
 /**
  * Bảng truy nã đổi mỗi ngày, đủ 4 bậc.
@@ -886,14 +890,19 @@ function ensureTruyNa(state, world, now, combatLv) {
   const lv = Math.max(1, combatLv || 1);
   if (b.truyNa.ngay !== ng || !b.truyNa.ds.length) {
     const seed = (world && world.seed) || 1, ds = [];
-    const mo = QUAI_LIST.filter((e) => (e.reqLevel || 1) <= lv);
-    const pool = mo.length ? mo : QUAI_LIST.slice(0, 3);
+    const dsQuai = quaiList();
+    const mo = dsQuai.filter((e) => (e.reqLevel || 1) <= lv);
+    const pool = mo.length ? mo : dsQuai.slice(0, 3);
     for (let i = 0; i < TRUY_NA_MOI_NGAY; i++) {
       const h = mix(mix(seed ^ 0xB0A7, ng), i);
       const bac = TRUY_NA_BAC[Math.min(TRUY_NA_BAC.length - 1, i)];   // mỗi ngày đủ 4 bậc
       let muc, ten, reqLv;
       if (bac.laBoss) {
-        const moBoss = YEU_VUONG.filter((x) => x.reqLevel <= lv);
+        // ⚠⚠ BỎ YÊU VƯƠNG SỰ KIỆN. `data/sukien.js` nhồi 12 con sự kiện thẳng vào `YEU_VUONG` lúc
+        //    nạp mô-đun, mà đường đánh Yêu Vương thì lọc chúng ra. Lệnh Truy Nã Huyết Lệnh bốc
+        //    trúng một con như vậy là lệnh KHOÁ CHẾT: không màn nào có con đó để mà hạ, mà lệnh
+        //    thì không có nút huỷ. Đếm ở cấp 60: 12/18 = 67% số ngày.
+        const moBoss = YEU_VUONG.filter((x) => x.reqLevel <= lv && !x.suKien);
         const bo = (moBoss.length ? moBoss : [YEU_VUONG[0]])[h % Math.max(1, moBoss.length || 1)];
         muc = bo.id; ten = bo.name; reqLv = bo.reqLevel;
       } else {
@@ -1113,7 +1122,9 @@ export function moBossBang(state) { return capCongTrinh(state, 'tramYeuDai') > 0
 
 export function bossBangCua(world, now, capDai) {
   const tran = Math.min(100, 10 + (capDai | 0) * 12);
-  const mo = YEU_VUONG.filter((x) => x.reqLevel <= tran);
+  // ⚠ Cùng bệnh với Truy Nã: bỏ Yêu Vương sự kiện, không thì Trảm Yêu Đài triệu về boss lễ hội
+  //   giữa tháng 8 — con quái không có ở màn nào, không ở bản đồ nào, không ở Cẩm Nang.
+  const mo = YEU_VUONG.filter((x) => !x.suKien && x.reqLevel <= tran);
   const pool0 = mo.length ? mo : [YEU_VUONG[0]];
   // ⚠ CHỈ lọc theo trần rồi bốc đều là SAI: nâng Trảm Yêu Đài lên max chỉ làm rổ TO RA, mà
   // bốc đều thì vẫn hay ra con Lv 10 — người chơi đổ cả triệu Bạc vào đài mà boss y như cũ.

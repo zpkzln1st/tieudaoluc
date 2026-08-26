@@ -314,7 +314,12 @@ try {
 ensureLenhBai(state);      // Sự kiện: dựng ô đệm hai mốc thời gian. Save cũ chưa có ô này.
 ensureSuKien(state);       // Sự kiện: Điểm + phụ kiện + sổ đã-mua
 ensureNgoCanh(state);      // Đốn Ngộ Cảnh: sổ Trùng Sinh + bậc từng nút, theo từng nghề
-try { donSuKien(state, Date.now()); } catch (e) {}   // sự kiện đã đóng -> vật phẩm bốc hơi, người về làng (mốc đệm trong save, chạy được cả offline)
+// ⚠⚠ LÚC NẠP THÌ KHÔNG XOÁ VẬT PHẨM. Lịch ở đây là bản ĐỆM của lần đọc trước; lịch thật mãi hai
+//    giây sau mới về (`taiSuKien`). Tác giả gia hạn một sự kiện là người vắng mặt vài ngày quay
+//    lại đúng lúc đó mất sạch kho vật phẩm sự kiện, rồi sự kiện lại mở bình thường. Ba việc hoàn
+//    tác được vẫn chạy ngay. Việc xoá để `taiSuKien` làm, khi đã cầm lịch thật trong tay.
+let _donSKLucNap = [];
+try { _donSKLucNap = donSuKien(state, Date.now(), false) || []; } catch (e) {}
 ensureKyHon(state);        // Kỳ Hồn CHUNG (mọi bàn cờ) — PHẢI sau các ensure trên để gộp được số của save cũ
 ensureGocNhin(state);      // Góc nhìn bàn cờ đã khoá (null = mỗi bàn tự canh)
 ensureDongPhu(state); resolveDongPhu(state, Date.now());   // Động Phủ: khởi tạo + hoàn công job xong TRƯỚC advance offline & simTongMon (trần treo nhà áp cho cả khoảng vắng)
@@ -2608,10 +2613,14 @@ const gameStore = {
       if (!r.ok) return;
       demSuKien(this.state, r.rows, now());
       // Lịch vừa đệm xong: sự kiện nào đã đóng thì dọn ngay, và BÁO một lần — đừng im lặng nuốt đồ.
-      const daLam = donSuKien(this.state, now());
+      // Gộp cả phần dọn LÚC NẠP vào đây. Không gộp thì báo cáo của lượt dọn đó bị vứt đi, và
+      // người chơi bị đưa về làng mà không hiểu vì sao.
+      const daLam = _donSKLucNap.concat(donSuKien(this.state, now()));
+      _donSKLucNap = [];
       const mat = daLam.filter((x) => x.viec === 'vatPham');
       if (mat.length) this.showToast('Sự kiện đã đóng — ' + mat.length + ' loại vật phẩm sự kiện đã tan biến.');
       if (daLam.some((x) => x.viec === 'veLang')) this.showToast('Sự kiện đã đóng — bạn được đưa về ' + this.LOCATIONS[0].name + '.');
+      if (daLam.some((x) => x.viec === 'sanMoi')) this.showToast('Sự kiện đã đóng — linh thú đã được gọi về khỏi bãi săn.');
       this._tick++;
     } catch (e) {}
   },
@@ -2713,8 +2722,14 @@ const gameStore = {
       if (!r.ok) return;
       const moi = { exp: 1, rotDo: 1, giaBan: 1 };
       const K = { exp: 'exp', rot_do: 'rotDo', gia_ban: 'giaBan' };
+      // ⚠⚠ LỌC CẢ MỐC MỞ. Câu truy vấn chỉ lọc `dong_luc` (bảng Lệnh Bài cần thấy cả đợt SẮP mở
+      //    để bày ra), nên nếu không lọc ở đây thì client bật hệ số NGAY khi tác giả bấm Lưu —
+      //    trước cả mốc mở. Chốt chống gian lận phía máy chủ thì CÓ lọc `mo_luc`, nên hai bên
+      //    nhìn hai con số khác nhau: người chơi ăn hệ số mà trần lại tính theo hệ số 1.
+      const bayGio = now();
       for (const d of r.rows) {
         const k = K[d.khoa]; if (!k) continue;
+        if (d.mo_luc && new Date(d.mo_luc).getTime() > bayGio) continue;   // chưa tới giờ mở
         const v = Number(d.gia_tri);
         if (isFinite(v) && v > moi[k]) moi[k] = v;
       }
@@ -3036,7 +3051,10 @@ const gameStore = {
       if (!a) return false;
       if (a.type === 'dungeon') return d.biCanh.some((b) => b.id === a.dungeonId);   // lịch luyện Bí Cảnh sự kiện
       if (a.type === 'travel') return a.toId === d.loc.id;                            // đang trên đường tới vùng sự kiện
-      if (a.type === 'combat') return p.location === d.loc.id;
+      // ⚠⚠ NHẬN DIỆN BẰNG CỜ SỰ KIỆN CỦA CHÍNH CON QUÁI, đừng neo vào vị trí. `donSuKien` chạy
+      //    TRƯỚC hàm này lúc nạp game và đã đưa người chơi về làng — dấu vết vị trí bị xoá sạch,
+      //    nên vế cũ luôn sai và trận đánh quái sự kiện không bao giờ bị dừng.
+      if (a.type === 'combat') return ((this.ENEMIES[a.enemyId] || {}).suKien || '') === d.ma;
       return a.skillId === d.skill.id || p.location === d.loc.id;                     // kĩ năng riêng của sự kiện, hoặc thu thập trong vùng
     };
     const dViec = dong.find(laViecCua);
@@ -4171,7 +4189,11 @@ const gameStore = {
   petHuntLocName(pet) { const l = (this.LOCATIONS || []).find((x) => x.id === pet.huntLoc); return l ? l.name : ''; },
   // Vùng pet có thể săn: player đã mở (combatLv ≥ reqLevel); ok = pet đủ cấp vùng.
   huntLocOptions(pet) {
-    return (this.LOCATIONS || []).filter((l) => this.combatLevel >= l.reqLevel)
+    // ⚠⚠ LỌC BẢN ĐỒ SỰ KIỆN ĐANG ĐÓNG. `src/data/sukien.js` đẩy thẳng 6 bản đồ sự kiện vào
+    //    `LOCATIONS` với `reqLevel: 1` ngay lúc nạp mô-đun, vô điều kiện. Bản đồ thế giới lọc
+    //    chúng bằng `locHienThi`, bảng Săn Mồi thì trước đây không — pet săn ở đó chỉ thu về đúng
+    //    thứ vật phẩm sẽ bị `donSuKien` xoá sạch ở lần nạp sau.
+    return (this.LOCATIONS || []).filter((l) => (!l.suKien || this.svMoCua(l.suKien)) && this.combatLevel >= l.reqLevel)
       .map((l) => ({ loc: l, ok: pet.level >= l.reqLevel, lootNames: (l.enemies || []).map((eid) => (this.ENEMIES[eid] || {}).name).filter(Boolean) }));
   },
   phaiSan(petId, locId) {
@@ -5138,21 +5160,28 @@ const gameStore = {
   },
 
   start(skillId, actionId, soLuot) {
+    this._chotLichBiCanh();                           // đang treo lịch Bí Cảnh -> chốt trước, đừng để mẻ trả trước bay im lặng
     const prev = this.buildCombatSummary('manual');   // đang đánh dở -> chốt phiên combat cũ vào chuông (không mất dấu)
     if (startActivity(this.state, skillId, actionId, now(), soLuot)) { if (prev) this.pushCombatSummaryNotif(prev); Storage.save(this.state); }
   },
-  stop() {
+  // ⚠⚠ LỊCH BÍ CẢNH LÀ MẺ TRẢ TIỀN TRƯỚC cho ĐỦ N lượt (`startDungeonRun` trừ hết ngay). Bất cứ
+  //    đường nào thay `state.activity` mà không đi qua đây là N lượt còn lại bay sạch cả phí lẫn
+  //    thưởng, im lặng, không có modal Tổng Kết và không dòng nào vào Lịch Sử Thám Hiểm.
+  //    Trả `true` nếu vừa chốt một lịch Bí Cảnh.
+  _chotLichBiCanh() {
     const a = this.state.activity;
-    if (a && a.type === 'dungeon') {                       // LỊCH LUYỆN: dừng sớm -> chốt tổng kết các lượt ĐÃ XONG (loot đã dồn kho)
-      advance(this.state, now());                          // grant nốt lượt vừa hoàn tất tính tới giờ
-      const a2 = this.state.activity;
-      if (a2 && a2.type === 'dungeon') {                    // vẫn còn lịch (chưa xong hết) -> chốt phần dở
-        if (a2.acc && a2.acc.runs > 0) finalizeDungeonBatch(this.state, a2.dungeonId, a2.acc, now());
-        stopActivity(this.state);
-      }
-      this.bagPeek = false; this._tick++; Storage.save(this.state);
-      return;
+    if (!a || a.type !== 'dungeon') return false;
+    advance(this.state, now());                            // grant nốt lượt vừa hoàn tất tính tới giờ
+    const a2 = this.state.activity;
+    if (a2 && a2.type === 'dungeon') {                     // vẫn còn lịch (chưa xong hết) -> chốt phần dở
+      if (a2.acc && a2.acc.runs > 0) finalizeDungeonBatch(this.state, a2.dungeonId, a2.acc, now());
+      stopActivity(this.state);
     }
+    this.bagPeek = false; this._tick++;
+    return true;
+  },
+  stop() {
+    if (this._chotLichBiCanh()) { Storage.save(this.state); return; }   // LỊCH LUYỆN: dừng sớm -> chốt tổng kết các lượt ĐÃ XONG
     const sum = this.buildCombatSummary('manual');   // combat: chốt thu hoạch phiên trước khi dừng (null nếu hoạt động khác)
     stopActivity(this.state);
     this.bagPeek = false;   // đóng Túi Tạm (phiên đã kết thúc)
@@ -5161,6 +5190,12 @@ const gameStore = {
   },
   refreshActivity() {
     if (!this.act) return;
+    // ⛔⛔ LỊCH BÍ CẢNH KHÔNG CÓ ĐỒNG HỒ ĐỂ ĐẶT LẠI. Nó là mẻ TRẢ TIỀN TRƯỚC cho đủ N lượt; nhánh
+    //    "còn lại" bên dưới gọi `startActivity(undefined, undefined)` — trả false mà `stopActivity`
+    //    ở trên đã xoá sạch lịch rồi. Kết quả: mất trắng phí lẫn thưởng của các lượt còn lại,
+    //    không modal Tổng Kết, không dòng nào vào Lịch Sử Thám Hiểm. Nút ✕ ngay cạnh thì chốt
+    //    đàng hoàng — hai nút cạnh nhau cho hai kết quả khác hẳn.
+    if (this.act.type === 'dungeon') { this._tick++; return; }
     const a = this.act;
     const carrySess = a.type === 'combat' ? a.sess : null, carryCount = a.sessionCount || 0;   // refresh chỉ reset đồng hồ treo — GIỮ thu hoạch phiên
     // ⚠⚠ ↻ chỉ ĐẶT LẠI ĐỒNG HỒ, không phải bắt đầu phiên mới. Trước đây nó làm mất hai thứ:
@@ -5408,6 +5443,7 @@ const gameStore = {
     const loc = this.locationObj(id);
     if (!loc || id === this.currentLocation || !this.locUnlocked(loc)) return;
     if (loc.suKien && !this.svMoCua(loc.suKien)) { this.showToast('Sự kiện chưa mở.'); return; }
+    this._chotLichBiCanh();                           // đang treo lịch Bí Cảnh -> chốt trước
     const prev = this.buildCombatSummary('manual');   // đang đánh dở -> chốt phiên combat cũ vào chuông
     if (startTravel(this.state, id, now())) { if (prev) this.pushCombatSummaryNotif(prev); Storage.save(this.state); }
     this.closeLocation();
@@ -6161,6 +6197,7 @@ const gameStore = {
   },
   fight(id) {
     if (this.combatNoiThuong) { this.showToast('Đang suy yếu — chờ hồi phục đầy Sinh Lực.'); return; }
+    this._chotLichBiCanh();                           // đang treo lịch Bí Cảnh -> chốt trước, đừng để mẻ trả trước bay im lặng
     const prev = this.buildCombatSummary('manual');   // đang đánh dở con khác -> chốt phiên cũ vào chuông (không mất dấu)
     if (startCombat(this.state, id, now())) { if (prev) this.pushCombatSummaryNotif(prev); this.chienBao = []; this._cycleStart = 0; this._cycleNow = now(); this._nlNow = null; this._roundNo = 0; Storage.save(this.state); }
     else { const e = this.ENEMIES[id]; if (e && this.combatLevel < (e.reqLevel || 0)) this.showToast('Cần Chiến Đấu Lv ' + e.reqLevel + ' để khiêu chiến. ' + e.name + ' — luyện yêu thú cấp thấp hơn trước.'); else this.showToast('Chưa thể khiêu chiến lúc này.'); }
@@ -6470,7 +6507,12 @@ const gameStore = {
     Storage.save(this.state);
     this.showToast('Đã mua Ảnh Bìa 〈' + ((this.COVERS.find((c) => c.id === id) || {}).name || '') + '〉.');
   },
-  vatPhamPrice(id) { return Math.ceil((this.ITEMS[id] ? this.ITEMS[id].value : 0) * 1.2); },
+  // ⚠⚠ GIÁ MUA PHẢI ĂN HỆ SỐ Y NHƯ GIÁ BÁN. `sellItem`/`sellGear` nhân `heSoGiaBan`, giá mua thì
+  //    trước đây là hằng số cứng — đợt "Giá Bán ×2" biến Thương Điếm thành máy in Bạc: mua 1,2×
+  //    value rồi bán lại 2× value, lãi vô hạn trong hai cú bấm, mà trần chống gian lận phía máy
+  //    chủ cũng đã được nới theo `hs_ban` nên không bắt được. Nhân cả hai vế thì biên 20% giữ
+  //    nguyên ở MỌI hệ số: vòng mua-rồi-bán luôn lỗ 20%.
+  vatPhamPrice(id) { return Math.ceil((this.ITEMS[id] ? this.ITEMS[id].value : 0) * 1.2 * heSoGiaBan(this.state)); },
   buyVatPham(id, qty) {
     const n = Math.max(1, Math.floor(qty || 1));
     const price = this.vatPhamPrice(id) * n;

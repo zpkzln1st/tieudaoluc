@@ -9,6 +9,7 @@
 import { SU_KIEN_BY_MA, SK_BAC, PHU_KIEN_EFF, PHU_KIEN_EXP, QUAY_GIA, QUAY_TIEU_HAO, artPhuKien } from '../data/sukien.js';
 import { SKILLS } from '../data/skills.js';
 import { ITEMS } from '../data/items.js';
+import { ENEMIES } from '../data/combat.js';   // dọn TRẬN ĐÁNH quái sự kiện, không chỉ dọn nghề
 import { LOCATIONS } from '../data/locations.js';
 import { addItem, removeItem } from './inventory.js';
 import { ensureLenhBai, suKienDangMo, suKienHienHanh } from './lenhbai.js';
@@ -166,7 +167,15 @@ export function muaTieuHao(state, ma, gianIdx, monIdx, now) {
 //   · Yêu Vương sự kiện đang trong hàng đợi -> gỡ khỏi hàng đợi.
 // Trả danh sách việc đã làm để store báo MỘT lần, không im lặng nuốt đồ của người ta.
 // ============================================================
-export function donSuKien(state, now) {
+/**
+ * ⚠⚠ `xoaVatPham` — CỬA MỘT CHIỀU. Xoá vật phẩm là việc DUY NHẤT ở đây không hoàn tác được.
+ *    Lúc NẠP GAME hàm này chạy trên lịch ĐỆM CŨ (`state.suKien.dem` của lần đọc trước), còn lịch
+ *    thật mãi hai giây sau mới về. Tác giả gia hạn một sự kiện là người chơi vắng vài ngày quay
+ *    lại đúng lúc đó bị xoá sạch kho vật phẩm sự kiện, rồi hai giây sau sự kiện lại mở bình thường
+ *    — đồ mất hẳn, không một dòng báo. ⇒ Lúc nạp truyền `false`; chỉ đường ĐÃ ĐỌC LỊCH THẬT mới
+ *    được xoá. Ba việc còn lại (dừng việc · về làng · gỡ hàng đợi) đều hoàn tác được nên cứ chạy.
+ */
+export function donSuKien(state, now, xoaVatPham = true) {
   ensureSuKien(state);
   const daLam = [];
   const dongMa = Object.keys(SU_KIEN_BY_MA).filter((ma) => !skMo(state, ma, now));
@@ -176,7 +185,7 @@ export function donSuKien(state, now) {
   // Vật phẩm bốc hơi — TRỪ những món khai `khongBocHoi` (trứng, món ăn, phụ kiện 0,5%).
   // Phụ kiện vốn nằm trong gearBag nên vòng này không đụng tới; cờ ở đây là hàng rào thứ hai,
   // phòng khi sau này có đường nào nhét chúng vào inventory.
-  for (const id of Object.keys(state.inventory || {})) {
+  if (xoaVatPham) for (const id of Object.keys(state.inventory || {})) {
     const it = ITEMS[id];
     if (it && it.khongBocHoi) continue;
     if (it && it.suKien && dongSet.has(it.suKien) && state.inventory[id] > 0) {
@@ -189,6 +198,24 @@ export function donSuKien(state, now) {
   if (act && act.type === 'skill') {
     const sk = SKILLS[act.skillId];
     if (sk && sk.suKien && dongSet.has(sk.suKien)) { state.activity = null; daLam.push({ viec: 'hoatDong', ten: sk.name }); }
+  }
+  // ⚠⚠ TRẬN ĐÁNH quái sự kiện cũng phải dừng. Trước đây chỉ nhánh 'skill' bị gỡ, còn 'combat' giữ
+  //    nguyên — mà ngay dưới đây vị trí người chơi bị đưa về làng, xoá mất dấu vết DUY NHẤT mà
+  //    `svDungKhiHetHan` dùng để nhận ra trận đánh sự kiện. Hậu quả: cày quái của sự kiện ĐÃ ĐÓNG
+  //    vô hạn trong khi đứng ở vùng làng, mà đồ nhặt được thì bốc hơi ở lần nạp sau.
+  if (act && act.type === 'combat') {
+    const e = ENEMIES[act.enemyId];
+    if (e && e.suKien && dongSet.has(e.suKien)) { state.activity = null; daLam.push({ viec: 'hoatDong', ten: e.name }); }
+  }
+  // Linh Thú đang Săn Mồi trong bản đồ đã đóng -> gọi về. Không gọi thì nó cứ thu về đúng thứ đồ
+  // vừa bị xoá ở vòng trên, mỗi lần vào game lại mất sạch.
+  for (const p of (state.pets || [])) {
+    if (!p || p.state !== 'hunt' || !p.huntLoc) continue;
+    const hl = LOCATIONS.find((l) => l.id === p.huntLoc);
+    if (hl && hl.suKien && dongSet.has(hl.suKien)) {
+      p.state = 'idle'; p.huntLoc = null; p.huntAt = 0;
+      daLam.push({ viec: 'sanMoi', ten: hl.name });
+    }
   }
   // Đưa người chơi ra khỏi bản đồ đã đóng
   const loc = LOCATIONS.find((l) => l.id === (state.player && state.player.location));

@@ -14834,6 +14834,7 @@ export const DICT = {
   "Chưa đọc được bản lưu trên máy chủ — tạm ngừng đồng bộ để khỏi ghi đè.": "Could not read your save on the server — syncing is paused so nothing gets overwritten.",
   "Chưa đọc được bản lưu trên máy chủ.": "Could not read your save on the server.",
   "Người trong chuyện đã rời tông môn — chuyện này khép lại, không ai phải gánh thay.": "The disciple involved has left the sect — this matter is closed; no one else bears it.",
+  "Sự kiện đã đóng — linh thú đã được gọi về khỏi bãi săn.": "The event has closed — your spirit beast has been called back from the hunting ground.",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "Incubation takes real time; higher quality takes longer. See the species list in the",
   "Thức Tỉnh mở thêm bị động từ bể": "Awakening unlocks extra passives from a pool of",
   "20 loại": "20 types",
