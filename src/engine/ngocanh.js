@@ -92,6 +92,16 @@ export function trungSinh(state, skillId) {
   if (!coTheTrungSinh(state, skillId)) return false;
   const o = oCua(state, skillId);
   o.ts += 1;
+  // ⚠⚠ GHI SỔ HUY HIỆU TRƯỚC KHI XOÁ XP. Huy Hiệu không có sổ riêng — nó suy ra từ CẤP HIỆN TẠI
+  //    mỗi lần vẽ, mà dòng dưới đưa xp về 0. Người chơi cày nghìn giờ lên Lv100 lấy huy hiệu, đeo
+  //    lên banner Hồ Sơ, Trùng Sinh xong là nó biến mất và ô đeo vẫn bị chiếm bởi một huy hiệu vô
+  //    hình. Danh Hiệu đã có sổ `owned` không bao giờ gỡ; Huy Hiệu nay cũng vậy.
+  //    100 = `BADGE_LV` ở data/badges.js — giữ hằng số tại chỗ để engine khỏi import tầng data.
+  if (capKyNang(state, skillId) >= 100) {
+    const p = state.player || (state.player = {});
+    if (!Array.isArray(p.badgesOwned)) p.badgesOwned = [];
+    if (!p.badgesOwned.includes(skillId)) p.badgesOwned.push(skillId);
+  }
   if (state.skills[skillId]) state.skills[skillId].xp = 0;
   if (state.activity && state.activity.type === 'skill' && state.activity.skillId === skillId) state.activity = null;
   return true;
@@ -126,7 +136,10 @@ export function tayBang(state, skillId) {
 export const ncNhanDoiPct = (state, skillId) => bacNut(state, skillId, 'luongDoan') * 15;
 /** % ra tài nguyên cao hơn một bậc (0..16). */
 export const ncVuotBacPct = (state, skillId) => bacNut(state, skillId, 'thanhKim') * 8;
-/** % sản lượng cộng thêm khi nghề ĐANG ở Lv100 (0 hoặc 30). */
+/** % sản lượng cộng thêm khi nghề ĐANG ở TRẦN của vòng hiện tại (0 hoặc 30).
+ *  ⚠ KHÔNG phải Lv100 — trần là 100 + số lần Trùng Sinh × 10. Câu chữ bày cho người chơi ở
+ *  `data/ngocanh.js` đã sửa cho khớp. Đừng đổi ngược điều kiện này về 100: làm vậy là người Tam
+ *  Chuyển trở lên ăn buff suốt từ cấp 100 tới trần, khác hẳn ý đồ "Đại Thành". */
 export const ncDaiThanhPct = (state, skillId) =>
   (bacNut(state, skillId, 'coThu') && capKyNang(state, skillId) >= tranCap(state, skillId)) ? 30 : 0;
 /** % tốc độ khai thác (0..30). */

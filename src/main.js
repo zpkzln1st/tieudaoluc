@@ -191,7 +191,11 @@ const _saveTrenDia = Storage.load();
 let state = _saveTrenDia || createInitialState();
 // lastSave NGAY LÚC NẠP từ đĩa (trước khi vòng game autosave bump) — mốc so sánh cloud đáng tin
 // (xem cloudSyncOnLogin). Đĩa TRỐNG thì mốc là 0, không phải Date.now() của bản vừa dựng.
-const _loadedLastSave = (_saveTrenDia && _saveTrenDia.lastSave) || 0;
+// ⚠⚠ `let` chứ không `const`. Đây là mốc "bản trên ĐĨA đáng tin nhất mà phiên này biết". Sau khi
+//    CHÍNH phiên này đẩy lên máy chủ (ví dụ lúc Đăng Xuất), dòng trên máy chủ là của chính nó —
+//    giữ mốc cũ thì đăng nhập lại cùng tài khoản luôn nổ hộp "Hai bản tiến trình khác nhau" dù cả
+//    máy chỉ có MỘT nhân vật, và chọn "Dùng bản Cloud" là mất trắng phần chơi từ lúc đăng xuất.
+let _mocDia = (_saveTrenDia && _saveTrenDia.lastSave) || 0;
 if (!state.equipment) state.equipment = {};
 if (!state.enhance) state.enhance = {};   // (legacy) cường hóa theo id — dời vào instance.plus ở migration dưới
 if (!Array.isArray(state.gearBag)) state.gearBag = [];
@@ -3300,6 +3304,18 @@ const gameStore = {
     if (!this.cloudLastSync) return 'chưa đồng bộ';
     return 'đồng bộ lúc ' + new Date(this.cloudLastSync).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   },
+  // ⚠⚠ ĐẨY HỎNG THÌ PHẢI CHO NGƯỜI CHƠI THẤY. Trước đây chỗ duy nhất vẽ `cloudErr` là bảng Cài
+  //    Đặt — một dòng chữ đỏ và một chấm 7px nằm trong modal người chơi phải tự bấm mở. Chốt
+  //    chống gian lận từ chối bản lưu, hoặc phiên hết hạn giữa buổi, thì họ cày tiếp cả tối rồi
+  //    hôm sau mở máy khác ra mới biết mình mất trọn buổi đó.
+  //    Báo MỘT LẦN mỗi khi lời lỗi ĐỔI — nhịp 15 giây gọi lại hoài, không chặn là bắn 4 toast/phút.
+  _baoLoiCloud(loi) {
+    if (this.cloudErr !== loi) {
+      this.showToast(loi);
+      try { this.pushNotif('khac', 'Chưa lưu được lên cloud', loi); } catch (e) {}
+    }
+    this.cloudErr = loi;
+  },
   // Đẩy state hiện tại lên cloud (đảm bảo đã lưu localStorage trước để lastSave mới nhất).
   async _cloudPushNow() {
     if (!this.isLoggedIn) return false;
@@ -3318,11 +3334,13 @@ const gameStore = {
       const r = await cloudPushSave(this.state);
       if (r.ok) {
         this._cloudLastPushed = this.state.lastSave || 0; this.cloudLastSync = now(); this.cloudErr = '';
+        // Dòng trên máy chủ vừa là của CHÍNH phiên này -> nó không còn "mới hơn đĩa" nữa.
+        _mocDia = Math.max(_mocDia, this.state.lastSave || 0);
         this._dayHoSo();                       // hồ sơ khoe đi kèm save — 142 byte, không chờ kết quả
         return true;
       }
-      this.cloudErr = cloudErrVi(r.reason); return false;
-    } catch (e) { this.cloudErr = 'Không kết nối cloud.'; return false; }
+      this._baoLoiCloud(cloudErrVi(r.reason)); return false;
+    } catch (e) { this._baoLoiCloud('Không kết nối cloud.'); return false; }
     finally { this.cloudSyncing = false; }
   },
   // Ghi đè localStorage bằng bản cloud rồi tải lại trang (nạp sạch state mới).
@@ -3334,6 +3352,7 @@ const gameStore = {
     try { if (cloudData && this.authUser) cloudData.cloudUid = this.authUser.id; } catch (e) {}
     try { localStorage.setItem('tieudao_save_v1', JSON.stringify(cloudData)); } catch (e) {}
     this._cloudLastPushed = (cloudData && cloudData.lastSave) || 0;
+    _mocDia = (cloudData && cloudData.lastSave) || 0;   // đĩa vừa bị ghi đè bằng bản mây -> mốc theo nó
     this.showToast('Đã tải tiến trình từ cloud.');
     setTimeout(() => location.reload(), 700);
   },
@@ -3361,7 +3380,7 @@ const gameStore = {
     if (dauDia && dauNay && dauDia !== dauNay) { this._applyCloudSave(row ? row.data : createInitialState()); return; }
     if (!row) { await this._cloudPushNow(); return; }            // cloud trống -> đẩy local lên
     const tCloud = row.last_save || 0;
-    const tLocal = _loadedLastSave;                              // mốc trên ĐĨA lúc nạp (không bị autosave bump)
+    const tLocal = _mocDia;                                      // mốc trên ĐĨA (không bị autosave bump)
     // ⚠⚠ CỬA NÀY PHẢI ĐỨNG TRƯỚC PHÉP SO MỐC. Máy chưa có nhân vật thì trên đĩa không có gì đáng
     //    giữ, và đẩy lên là XOÁ TRẮNG bản lưu thật trên máy chủ. Trước đây nó đứng SAU phép so
     //    mốc nên không bao giờ chạy tới: đĩa trống ⇒ tLocal là mốc bản vừa dựng, luôn mới hơn
@@ -3370,7 +3389,10 @@ const gameStore = {
     if (!this.state.player || !this.state.player.created) { this._applyCloudSave(row.data); return; } // máy này mới tinh -> lấy cloud
     if (tCloud <= tLocal) { await this._cloudPushNow(); return; } // đĩa local mới hơn/bằng cloud -> đẩy local (cùng máy)
     // cloud MỚI HƠN bản trên đĩa máy này:
-    const localSum = this.saveSummary(this.state); localSum.lastSave = tLocal || localSum.lastSave;   // mốc hiển thị = lúc nạp
+    // ⚠ Ô "Bản máy này" lấy tên + cấp từ `this.state` ĐANG SỐNG, và nút "Giữ bản máy này" cũng
+    //   đẩy chính `this.state` lên — nên ô GIỜ phải là `this.state.lastSave`. Ép về mốc lúc nạp
+    //   trang là hai dòng cạnh nhau nói hai chuyện khác nhau về cùng một nhân vật.
+    const localSum = this.saveSummary(this.state);
     this.cloudConflict = { cloud: this.saveSummary(row.data), local: localSum, _cloudData: row.data }; // lệch -> hỏi người chơi
   },
   useCloudSave() { const c = this.cloudConflict; if (!c) return; this.cloudConflict = null; this._applyCloudSave(c._cloudData); },
@@ -3751,20 +3773,27 @@ const gameStore = {
   },
   // ---------- Huy Hiệu (kĩ năng Lv100) ----------
   get badgesView() {
-    return BADGES.map((b) => { const lv = this.skillLevel(b.skillId); const sk = this.SKILLS[b.skillId]; const nm = (sk && sk.name) || (b.skillId === 'chienDau' ? 'Chiến Đấu' : b.skillId); return { ...b, skillName: nm, level: lv, unlocked: lv >= BADGE_LV, equipped: (this.state.player.badges || []).includes(b.skillId) }; });
+    return BADGES.map((b) => { const lv = this.skillLevel(b.skillId); const sk = this.SKILLS[b.skillId]; const nm = (sk && sk.name) || (b.skillId === 'chienDau' ? 'Chiến Đấu' : b.skillId); return { ...b, skillName: nm, level: lv, unlocked: this.badgeDaDat(b.skillId), equipped: (this.state.player.badges || []).includes(b.skillId) }; });
   },
   get badgeUnlockedCount() { return this.badgesView.filter((b) => b.unlocked).length; },
+  /** ĐÃ TỪNG Đại Thành nghề này chưa. Trùng Sinh đưa cấp về 1 nhưng huy hiệu đã đạt thì giữ mãi —
+   *  `badgesOwned` ghi lúc Trùng Sinh (engine/ngocanh.js), cùng lối với sổ `owned` của Danh Hiệu. */
+  badgeDaDat(skillId) { return this.skillLevel(skillId) >= BADGE_LV || (this.state.player.badgesOwned || []).includes(skillId); },
   get badgeEquippedCount() { return (this.state.player.badges || []).length; },
   // Huy Hiệu đeo (chỉ cái đã Đại Thành, đúng thứ tự đeo) — render góc banner.
-  get equippedBadgeList() { return (this.state.player.badges || []).filter((id) => this.skillLevel(id) >= BADGE_LV).map((id) => ({ skillId: id })); },
+  get equippedBadgeList() { return (this.state.player.badges || []).filter((id) => this.badgeDaDat(id)).map((id) => ({ skillId: id })); },
   // 3 ô "Đang Đeo" (điền huy hiệu hoặc null) — kèm tên, cho sub-tab Huy Hiệu trong Dung Mạo.
   get equippedBadgeSlots() { const view = this.badgesView; const worn = this.equippedBadgeList.map((hb) => { const b = view.find((x) => x.skillId === hb.skillId); return { skillId: hb.skillId, name: (b && b.name) || hb.skillId }; }); return [0, 1, 2].map((i) => worn[i] || null); },
   toggleBadge(skillId) {
-    if (this.skillLevel(skillId) < BADGE_LV) { this.showToast('Chưa Đại Thành (cần kĩ năng Lv 100) — không đeo được.'); return; }
+    // ⚠⚠ CỬA CẤP CHỈ GÁC ĐƯỜNG ĐEO, KHÔNG GÁC ĐƯỜNG GỠ. Trước đây nó đứng đầu hàm, nên sau khi
+    //    Trùng Sinh (cấp về 1) người chơi không gỡ nổi huy hiệu đang chiếm ô: màn ghi 'Đeo 3/3'
+    //    mà chỉ vẽ ra 2, bấm đeo cái khác thì bị chặn.
     if (!Array.isArray(this.state.player.badges)) this.state.player.badges = [];
     const arr = this.state.player.badges, i = arr.indexOf(skillId);
-    if (i >= 0) arr.splice(i, 1);
-    else { if (arr.length >= 3) { this.showToast('Tối đa 3 Huy Hiệu — gỡ bớt 1 trước.'); return; } arr.push(skillId); }
+    if (i >= 0) { arr.splice(i, 1); Storage.save(this.state); this._tick++; return; }
+    if (!this.badgeDaDat(skillId)) { this.showToast('Chưa Đại Thành (cần kĩ năng Lv 100) — không đeo được.'); return; }
+    if (arr.length >= 3) { this.showToast('Tối đa 3 Huy Hiệu — gỡ bớt 1 trước.'); return; }
+    arr.push(skillId);
     Storage.save(this.state);
   },
   setBadgeSize(v) { this.state.player.badgeSize = Math.max(32, Math.min(72, parseInt(v) || 48)); Storage.save(this.state); },
@@ -4903,12 +4932,23 @@ const gameStore = {
   /** Số lần Trùng Sinh của MỘT nghề bất kỳ (nút ngoài trang nghề đọc cái này, không phải `ncTs`). */
   ncTsCua(skillId) { void this._tick; return soTrungSinh(this.state, skillId); },
   /**
-   * Bậc Chuyển: 1..6 -> 一二三四五六 và "Nhất Chuyển".."Lục Chuyển".
-   * ⚠ 六 phải có trong chuỗi `&text=` của Noto Serif SC ở <head>. Năm chữ kia đã sẵn.
+   * Bậc Chuyển: 1..10 -> 一 … 十 và "Nhất Chuyển".."Thập Chuyển".
+   * ⚠⚠ MƯỜI ô, không phải sáu. `TRUNG_SINH_MAX = 10` mà hai bảng tra chỉ có sáu — từ chuyển thứ
+   *    bảy trở đi chỉ số vượt mảng, ra `undefined`, `|| ''` nuốt mất: huy hiệu tròn viền vàng mà
+   *    bên trong TRỐNG KHÔNG. Vế `|| String(n)` là chốt cuối: mai kia nâng trần lên 12 thì nó
+   *    hiện "11" chứ không bao giờ rỗng lại nữa.
+   * ⚠⚠ CẢ MƯỜI chữ Hán phải có trong chuỗi `&text=` của Noto Serif SC ở <head>. Chú thích cũ ghi
+   *    "Năm chữ kia đã sẵn" là SAI — 五 · 八 · 九 · 十 đều thiếu, tức huy hiệu Ngũ Chuyển đang
+   *    hỏng font NGAY BÂY GIỜ (rơi xuống SimSun rồi bị bôi đậm giả). Đã thêm vào chuỗi.
    */
-  ncHan(skillId) { return ['', '一', '二', '三', '四', '五', '六'][this.ncTsCua(skillId)] || ''; },
+  ncHan(skillId) {
+    const n = this.ncTsCua(skillId);
+    return ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'][n] || (n > 0 ? String(n) : '');
+  },
   ncTenChuyen(skillId) {
-    return ['', 'Nhất Chuyển', 'Nhị Chuyển', 'Tam Chuyển', 'Tứ Chuyển', 'Ngũ Chuyển', 'Lục Chuyển'][this.ncTsCua(skillId)] || '';
+    const n = this.ncTsCua(skillId);
+    return ['', 'Nhất Chuyển', 'Nhị Chuyển', 'Tam Chuyển', 'Tứ Chuyển', 'Ngũ Chuyển', 'Lục Chuyển',
+      'Thất Chuyển', 'Bát Chuyển', 'Cửu Chuyển', 'Thập Chuyển'][n] || (n > 0 ? ('Chuyển ' + n) : '');
   },
   /** Kiểu huy hiệu người chơi chọn ở Cài Đặt. */
   get ncHuyHieuClass() { return this.caiDat.huyHieuChuyen === 'kimVong' ? 'kim-vong' : 'an-son'; },

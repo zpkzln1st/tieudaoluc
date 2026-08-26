@@ -36,7 +36,10 @@ export const NGO_CANH_NUT = [
   { id: 'thanhKim', nhanh: 'moc', art: 'tinvat/doanhTao', ten: 'Điểm Mộc Thành Kim', max: 2, gia: 2,
     eff: 'Tăng {v}% tỉ lệ khai thác ra tài nguyên cao hơn 1 bậc.', khoa: 'vuotBacPct', moiBac: 8 },
   { id: 'coThu', nhanh: 'moc', art: 'tinvat/thaiDuoc', ten: 'Cửu Chuyển Đại Thành', max: 1, gia: 4,
-    eff: 'Tăng {v}% sản lượng khi cấp nghề đạt 100.', khoa: 'daiThanhPct', moiBac: 30,
+    // ⚠ ĐỪNG ghi cứng con số 100. Điều kiện thật (engine/ngocanh.js) so với TRẦN CỦA VÒNG HIỆN
+    //   TẠI (100 + số lần Trùng Sinh × 10). Mua nổi nút này thì đã Tam Chuyển, tức trần đã 130 —
+    //   người chơi cày lại tới đúng cấp 100 rồi ngồi đếm sản vật mà không thấy một lần nào tăng.
+    eff: 'Tăng {v}% sản lượng khi cấp nghề chạm trần.', khoa: 'daiThanhPct', moiBac: 30,
     canNut: 'luongDoan' },   // phải mua đủ 3 bậc Nhất Đao Lưỡng Đoạn
 
   // ---------- NHÁNH TỐC: cày lại nhanh hơn ----------
