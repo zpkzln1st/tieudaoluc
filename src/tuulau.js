@@ -112,7 +112,15 @@ export function tuuLau() {
 
     // ---- người chơi góp chuyện ----
     gopChuyen(txt) {
-      const g = this.g, s = String(txt == null ? this.loi : txt).trim();
+      const g = this.g;
+      // ⚠⚠ THOÁT CHỮ TRƯỚC KHI CẤT. `index.html` vẽ dòng bảng tin bằng `x-html`, nên một câu như
+      //    `<img src=x onerror=…>` gõ vào ô "Nói một câu…" là mã CHẠY THẬT trong trang game, đọc
+      //    được phiên Supabase trong localStorage. Tệ hơn: dòng nằm trong `banTin` của bản lưu nên
+      //    nó chạy lại MỖI LẦN mở Tửu Lâu chứ không phải một lần rồi thôi.
+      //    Chốt ở ĐÂY — đây là cửa duy nhất chữ người chơi đi vào bảng tin.
+      const tho = String(txt == null ? this.loi : txt).trim().slice(0, 80);
+      const s = tho.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;')
+        .split('"').join('&quot;').split("'").join('&#39;');
       if (!s) return;
       const now = Date.now(), ten = (g.state.player || {}).name || 'Ngươi';
       themDong(g.state, 'loi', ten, '#f3d9a8', s, now);

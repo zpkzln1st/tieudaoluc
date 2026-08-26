@@ -200,6 +200,17 @@ export function dauTran(state, doiThu, now) {
   }
   let vong = 0;
   while (!f.over && vong++ < DT_TRAN_VONG) stepFight(f);
+  // ⚠⚠ CÂU KẾT của `makeFight` cũng viết cho YÊU THÚ và hứa `+${e.exp} EXP`, mà đối thủ dựng ở
+  //    `dtDoiThu` KHÔNG có trường `exp` — in ra "+undefined EXP", lại còn gọi một võ giả là con
+  //    thú "rống lên thê lương". Khối trên đã vá câu MỞ MÀN vì đúng lý do đó mà bỏ sót câu kết.
+  //    Đấu Trường cố ý chỉ trả Bạc + Đấu Điểm, nên thay hẳn dòng cuối.
+  if (f.over && f.result === 'win' && f.log && f.log.length) {
+    f.log[f.log.length - 1] = {
+      h: '✅ ' + e.name + ' đỡ không nổi, bại trận. Hạ sau ' + (f.t | 0) + 's · Sinh Lực còn '
+        + Math.max(0, Math.round(f.p.hp / Math.max(1, f.p.maxHP) * 100)) + '%.',
+      c: 'text-emerald-300',
+    };
+  }
   // Hết vòng mà chưa ngã ngũ: ai còn nhiều phần máu hơn thì thắng. Không để trận treo lơ lửng.
   const thang = f.over ? f.result === 'win'
     : (f.p.hp / Math.max(1, f.p.maxHP)) >= (f.e.hp / Math.max(1, f.e.maxHP));

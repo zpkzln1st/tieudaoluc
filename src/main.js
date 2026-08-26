@@ -53,7 +53,7 @@ import {
 } from './engine/activity.js';
 // ĐỐN NGỘ CẢNH — Trùng Sinh nghề
 import { NGO_CANH_NUT, NGO_CANH_BY_ID, NHANH as NC_NHANH, TRUNG_SINH_MAX, DIEM_MOI_LAN, DIEM_MUA_HET, nutEffText } from './data/ngocanh.js';
-import { ensureNgoCanh, soTrungSinh, bacNut, diemConLai, coTheTrungSinh, trungSinh, muaNut, tayBang, ncBoKhoaVung, capKyNang, tienDoKyNang, tranCap, chuyenDangMo } from './engine/ngocanh.js';
+import { ensureNgoCanh, soTrungSinh, bacNut, diemConLai, coTheTrungSinh, trungSinh, muaNut, tayBang, ncBoKhoaVung, capKyNang, tienDoKyNang, tranCap, chuyenDangMo, ncExpPct } from './engine/ngocanh.js';
 import { ensureBuffs, pruneBuffs, activeBuffList, buffVal, useBuffDan, duocLuTick } from './engine/buff.js';
 import { deriveCombat, combatProfile, makeFight, stepFight, CHIEU, BO_PHAP, BI_DONG, TAM_PHAP, TAM_PHAP_POOL, tamPhapById, chieuById, biDongById, normBiDong, NGU_HANH, NGU_HANH_LIST, HE_FX, nguHanhMod, isVoHe, heName, heInfo, maxComboSlots, maxChieuSlots, nextSlotLevel, COMBAT_CYCLE_MS, boPhapById, boPhapStats, normBoPhap, MON_PHAI, monPhaiOf, chieuCost, tamPhapCost, biDongCost, skillSource, normOwned, starterLoadoutFor, TIER_LABEL, TIER_ORDER, tierStyle, TUYET_IDS, tuyetRecipe,
   TANG_MAX, TANG_BANDS, tangClamp, tangMul, tangCanh, banMenhAn, chieuAtTang, chieuOf,
@@ -90,7 +90,7 @@ import { grantDungeon, finalizeDungeonBatch, NT } from './engine/dungeon.js';   
 import { cloudSignUp, cloudSignIn, cloudSignOut, cloudGetUser, cloudOnAuth, cloudOnAuthEvent, cloudGuiThuDoiMatKhau, cloudDatMatKhau, cloudLoadSave, cloudPushSave, cloudPushHoSo, cloudLoadHoSo, cloudMyUid, cloudLoadBangNguoiThat, cloudLoadDoiThuDauTruong, cloudNghiVanGom, cloudNghiVanCua, cloudMienTruDs, cloudMienTruThem, cloudMienTruBo, cloudSuKienDs, cloudSuKienDat, cloudQuaChoNhan, cloudNhanQua, cloudPhatQua, cloudKhoaDs, cloudKhoaThem, cloudKhoaBo, cloudNguoiChoiDs, cloudTimNguoiChoi, cloudDocSaveCua, cloudNhatKyDs, cloudPhatQuaNhieu, cloudCaoThiDs, cloudCaoThiDang, cloudCaoThiXoa, cloudHoSoXoa, cloudThongKe, cloudDoiMaQua, cloudMaTuDongDs, cloudMaQuaDs, cloudMaQuaTao, cloudMaQuaXoa, cloudHeSoDs, cloudHeSoDat, cloudHeSoDong, cloudMoKhoaDs, cloudMoKhoaDat, cloudTinhNangDs, cloudTinhNangDat, cloudSanDs, cloudSanCuaToi, cloudSanTreo, cloudSanTreoVp, cloudSanGo, cloudSanMua, cloudSanTmDs, cloudSanTmCuaToi, cloudSanTmDat, cloudSanTmHuy, cloudSanTmBan, cloudSanTmThuHoi, cloudSanTmSoKhop, SAN_TM_HAN_MS, cloudLechGio } from './cloud.js';
 import { SU_KIEN_MA, ensureLenhBai, demSuKien, suKienDangMo, suKienHienHanh, suKienConLai, suKienSapMo, quaDaNhan, ghiQuaDaNhan, caoThiDaXem, ghiCaoThiDaXem } from './engine/lenhbai.js';
 import { SU_KIEN_DS, SU_KIEN_BY_MA, SK_BAC, QUAY_GIA, QUAY_TIEU_HAO, CO_ART_DUNG_MAO, SU_KIEN_ART_PHU_KIEN, tenPhuKien, artPhuKien } from './data/sukien.js';
-import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem } from './engine/sukien.js';
+import { ensureSuKien, datCoTacGia, doiVatPham, muaTranPham, muaTieuHao, daMuaTrongDot, pkBacDeo, coPhuKien, thaPhuKien, donSuKien, congDiem, skExpBonus } from './engine/sukien.js';
 import { TINH_NANG, TINH_NANG_DOT, TINH_NANG_BY_MA } from './data/tinhnang.js';
 import { demTinhNang, tinhNangMo, tinhNangTrangThai, tinhNangDangBat } from './engine/tinhnang.js';
 import { ensureDauTruong, dtChupBo, dtGhepCap, dtLuotConLai, dtBacCua, dauTran, dauTruongVuong, DT_LUOT_NGAY, DT_DIEM_NEN } from './engine/dautruong.js';
@@ -1396,7 +1396,14 @@ const gameStore = {
   openGiftPicker(slot) { this.giftSlot = slot || null; this.giftList = this.tmGiftList(); this.giftSlotChips = [...new Set(this.giftList.map((it) => it.slot).filter(Boolean))]; this.giftFilter = (slot && this.giftSlotChips.includes(slot)) ? slot : 'all'; this._recomputeGift(); this.giftOpen = true; },
   setGiftFilter(f) { this.giftFilter = f; this._recomputeGift(); },
   _recomputeGift() { this.giftShown = this.giftFilter === 'all' ? this.giftList.slice() : this.giftList.filter((it) => it.slot === this.giftFilter); },
-  tmGift(gearUid) { const inst = (this.state.gearBag || []).find((g) => g.uid === gearUid); if (!inst) return; const it = this.ITEMS[inst.gearId] || {}; const eq = it.equip; if (!eq || !eq.slot) { this.showToast('Món này không trang bị được'); return; } if (giftGear(this.state, this.tmSelUid, gearUid, eq.slot, it.name)) { this.tmSave(); this.giftOpen = false; this.showToast('Đã ban 「' + (it.name || 'gia bảo') + '」'); } },
+  // ⚠⚠ DANH SÁCH TRẮNG Ô GIA BẢO — phải khớp đúng lưới vẽ ở index.html. `tmGift` ban theo
+  //    `it.equip.slot` của CHÍNH MÓN chứ không theo ô vừa bấm, mà bảng chọn lại bày TOÀN BỘ kho.
+  //    Ô nào không có trong lưới thì món ban vào đó không có chỗ vẽ ⇒ không có nút tháo về kho ⇒
+  //    mất hẳn (vẫn được `gearTotal()` cộng vào Thực Lực nên càng không ai ngờ nó còn đó).
+  //    Đã nuốt Dược Liêm; cùng đường đó nuốt luôn Bội/Ấn sự kiện (`skBoi`/`skAn`) — thứ rơi 0,5%
+  //    và `value: 0` nên không bán lại được.
+  TM_SLOTS: ['mu', 'giap', 'dai', 'gang', 'vuKhi', 'trangSuc', 'nhan', 'giay', 'toaKy', 'canCau', 'cuoc', 'riu', 'duocLiem'],
+  tmGift(gearUid) { const inst = (this.state.gearBag || []).find((g) => g.uid === gearUid); if (!inst) return; const it = this.ITEMS[inst.gearId] || {}; const eq = it.equip; if (!eq || !eq.slot) { this.showToast('Món này không trang bị được'); return; } if (!this.TM_SLOTS.includes(eq.slot)) { this.showToast('Đệ tử không có ô cho 「' + (it.name || 'món này') + '」 — ban vào là không lấy lại được.'); return; } if (giftGear(this.state, this.tmSelUid, gearUid, eq.slot, it.name)) { this.tmSave(); this.giftOpen = false; this.showToast('Đã ban 「' + (it.name || 'gia bảo') + '」'); } },
   tmReclaim(uid, slot) { if (reclaimGear(this.state, uid, slot)) this.tmSave(); },
   // --- DƯỢC VIÊN (trồng nguyên liệu idle) ---
   tmDuocOpen: false, tmDuocSowIdx: -1,
@@ -1766,7 +1773,10 @@ const gameStore = {
       // hoSoMinhChung() chỉ dựng được hồ sơ cho người ĐANG Ở TRONG minh của mình.
       // Người giang hồ ngoài minh thì trang thật của họ là Phong Vân Bảng.
       const h = hoSoMinhChung(this.state, this.state.world, d.id, now());
-      if (h) { this.bpHoSo = h; return; }
+      // ⚠⚠ PHẢI SANG MÀN TIÊN MINH TRƯỚC. Modal hồ sơ minh chúng nằm LỒNG trong khối
+      //    `x-if="view==='guild'"`, nên đứng ở màn khác mà chỉ dựng cờ là bấm như không bấm —
+      //    không toast, không hồ sơ, mà `bpHoSo` có trong `_MODALS` nên còn nuốt một lần vuốt-back.
+      if (h) { this.navTo('guild'); this.bpHoSo = h; return; }
       this.navTo('phongVanBang');
       this.showToast('〈' + m.ten + '〉 — tìm trên Phong Vân Bảng.');
       return;
@@ -3941,8 +3951,17 @@ const gameStore = {
   qCanCap(entry) {
     const q = this.qDef(entry);
     if (!q || this.questUnlocked(q)) return '';
-    const ten = q.type === 'kill' ? 'Chiến Đấu' : ((this.SKILLS[q.skill] || {}).name || 'Kỹ Năng');
-    return ten + ' Lv ' + (q.req || 1);
+    // ⚠⚠ IN CỬA ĐANG CHẶN, đừng in mãi cửa THỨ NHẤT. `questUnlocked` có HAI cửa: cấp nghề, và cấp
+    //    Chiến Đấu để vào được vùng có sản vật. Bể nhiệm vụ CỐ Ý bù các mục chưa với tới nên cảnh
+    //    này chắc chắn xảy ra: người Đốn Củi Lv 70 / Chiến Đấu Lv 5 đọc chip vàng 'Cần Đốn Củi
+    //    Lv 48' rồi đi đốn, tiến độ đứng im 0/700, không chỗ nào nói cái thật sự thiếu là Chiến Đấu.
+    const req = q.req || 1;
+    if (q.type === 'kill') return 'Chiến Đấu Lv ' + req;
+    const can = [];
+    if (this.skillLevel(q.skill) < req) can.push(((this.SKILLS[q.skill] || {}).name || 'Kỹ Năng') + ' Lv ' + req);
+    const capVung = this.capVungCuaSanVat(q.target);
+    if (this.combatLevel < capVung) can.push('Chiến Đấu Lv ' + capVung);
+    return can.length ? can.join(' · ') : (((this.SKILLS[q.skill] || {}).name || 'Kỹ Năng') + ' Lv ' + req);
   },
 
   get hasClaimableQuest() {
@@ -4034,6 +4053,11 @@ const gameStore = {
     { id: 'caoThi',   label: 'Cáo Thị',       col: '#f5b942', svg: 'scroll',               seal: '告' }, // thông báo của tác giả (bảng cao_thi)
     { id: 'khac',     label: 'Khác',          col: '#fbbf24', svg: 'star',                 seal: '他' },
     { id: 'sanGD',    label: 'Sàn Giao Dịch', col: '#22d3ee', art: 'market',     ic: '⚖️', seal: '易' }, // nav Sàn Giao Dịch
+    // ⚠⚠ THIẾU MỤC NÀY thì `pushNotif(state,'suKien',…)` rơi ra ngoài MỌI thẻ lọc — `notifFor` so
+    //    khớp CHÍNH XÁC `n.type === type` nên nó không thuộc cả thẻ "Khác", `notifUnread` cũng
+    //    không đếm. Người chơi bị hất khỏi bản đồ sự kiện, mở chuông tìm lời giải thích thì không
+    //    thấy đâu. Mọi loại truyền cho `pushNotif` PHẢI có mặt trong bảng này.
+    { id: 'suKien',   label: 'Sự Kiện',       col: '#f472b6', art: 'suKien',     ic: '🏮', seal: '慶' }, // nav Sự Kiện
   ],
   notifTypeMeta(type) { return this.NOTIF_TYPES.find((t) => t.id === type) || this.NOTIF_TYPES.find((t) => t.id === 'khac'); },
   // Icon nhóm: art game có sẵn (ico) cho nhóm map tính năng; Tất cả/Khác = SVG nền + art ui phủ lên (images/ui/notif_<id>) khi có.
@@ -4086,6 +4110,10 @@ const gameStore = {
   petRole(pet) { return (PET_SPECIES[pet.base] || {}).role || ''; },
   petHeName(pet) { const h = (PET_SPECIES[pet.base] || {}).he; return ({ kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ' })[h] || ''; },
   petQ(pet) { return this.QUALITY[pet.quality] || this.QUALITY.phamPham; },
+  /** Phẩm chất CÓ ĐƯỜNG LUI. Ô Trưng Bày trong hồ sơ NGƯỜI KHÁC mang `pham` do máy người ta gửi
+   *  lên, mà máy chủ chỉ chốt SỐ Ô chứ không soi nội dung — `QUALITY[lạ].bg` ném TypeError, lưới
+   *  bảy ô mất sạch nền lẫn viền và khối chi tiết không dựng ra. */
+  qPham(p) { return this.QUALITY[p] || this.QUALITY.phamPham; },
   petStat(pet) { return petStatAt(pet); },
   // Danh sách buff hiển thị: Tứ Trụ chữ ký (sig, amber) đứng đầu + 5 buff thường (ngọc). 6 ô chia đều.
   petGainList(pet) {
@@ -5181,7 +5209,16 @@ const gameStore = {
       return (cycleSec > 0 ? expPerKill / cycleSec : this.actEnemy.exp / this.actEnemy.time).toFixed(2);
     }
     if (!this.actAction) return '0';
-    return (cycleSec > 0 ? this.actAction.xp / cycleSec : this.actAction.xp / this.actAction.time).toFixed(2);
+    // ⚠⚠ NHÁNH NGHỀ PHẢI SOI GƯƠNG `activity.js`. Trước đây nó trả thẳng `xp / cycleSec`: không
+    //    nhân hệ số EXP nghề (bái sư +10%, chuỗi Điểm Danh tới +20%), không cộng EXP của Linh
+    //    Thạch đang đốt, không có `ncExpPct` của Đốn Ngộ Cảnh — trong khi MẪU SỐ `cycleSec` thì
+    //    LẠI đã tính bonus Hiệu Suất. Nửa có nửa không: người chơi bái sư xong mở thẻ ra thấy số
+    //    không nhúc nhích và kết luận bonus không chạy.
+    const _sk = this.actSkill, _id = this.act.skillId;
+    const _mult = (_sk && _sk.suKien) ? 1 + skExpBonus(this.state, _id) : skillExpMultiplier(this.state, _id);
+    const _xp = Math.max(1, Math.round(this.actAction.xp * _mult * (1 + ncExpPct(this.state, _id) / 100)))
+      + this.actAction.xp * _mult * (((this.act.buff && this.act.buff.expPct) || 0) / 100);
+    return (cycleSec > 0 ? _xp / cycleSec : _xp / this.actAction.time).toFixed(2);
   },
   get actIdleCap() { return idleCapMs(this.state) / 1000; },
   get actRemaining() { void this._tick; return this.act ? Math.max(0, this.actIdleCap - (now() - this.act.startedAt) / 1000) : 0; },
@@ -6775,9 +6812,14 @@ const gameStore = {
     const v = this.gearView(findGear(this.state, uid)); if (!v) return;
     const c = this.equipReqCtx(v);
     if (c.req > 1 && c.level < c.req) { this.showToast('Cần ' + c.label + ' Lv ' + c.req + ' để mang theo. ' + (v.name || 'món này') + '.'); return; }
-    if (equipItem(this.state, uid)) Storage.save(this.state);
+    // ⚠⚠ PHẢI LÀM MỚI BẢN CHỤP CHIẾN ĐẤU. `act.hpLostPerKill` và `act.maxHP` chỉ được chụp MỘT LẦN
+    //    ở `startCombat`, và trước đây chỉ `afterLoadoutChange` (đổi bài võ) mới làm mới chúng.
+    //    Đeo bộ giáp tốt hơn rồi tắt máy đi ngủ: nhánh treo máy vẫn trừ đúng lượng máu mất mỗi con
+    //    của bộ đồ CŨ và vẫn kẹp máu hồi ở Sinh Lực tối đa CŨ — vẫn gục sau đúng ngần ấy con, mất
+    //    phần lớn cửa sổ treo 8-14 giờ, trong khi bảng Suy Tính (tính mới) vẫn báo 'An Toàn'.
+    if (equipItem(this.state, uid)) { this.refreshActivityProfile(); Storage.save(this.state); }
   },
-  doUnequip(slot) { if (unequipItem(this.state, slot)) Storage.save(this.state); },
+  doUnequip(slot) { if (unequipItem(this.state, slot)) { this.refreshActivityProfile(); Storage.save(this.state); } },
   // --- Hiển thị chi tiết trang bị (badge ngũ hành + so sánh) ---
   // Nhãn RÚT GỌN (modal Trang Bị + Cường Hóa). Ba bảng nhãn (đây, statLabel, gearStatIcon) đều fallback
   // `|| k` nên thiếu key nào là chỗ đó lòi chữ tiếng Anh 'khangKim' ra UI — phải thêm đủ cả ba.
