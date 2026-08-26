@@ -14674,6 +14674,8 @@ export const DICT = {
   "Cửu Chuyển": "九轉",
   "Thập Chuyển": "十轉",
   "Chuyển": "轉",
+  "Ba lá trơn chỉ được đánh khi đó là toàn bộ bài còn lại.": "三張同點只有在那是手上全部餘牌時才能出。",
+  "Trọn ván": "整局",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "孵蛋耗真實時間；品質越高孵化越久。物種列表見查詢中的",
   "Thức Tỉnh mở thêm bị động từ bể": "覺醒可自",
   "20 loại": "20 種",

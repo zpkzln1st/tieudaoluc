@@ -1104,6 +1104,10 @@ function tamBan() {
   };
 }
 
+// ⚠⚠ RỜI CHIẾU ĐÚNG LÚC ĐANG CHIA BÀI. Hẹn giờ `xong` của lượt chia không ai huỷ, nên 45 giây
+//    sau nó vẫn nổ: máy binh hộ rồi trừ Trù Mã của một ván người chơi đã bỏ đi. Giữ id để
+//    `destroy()` dập tắt, và cắm thêm cờ `daHuy` cho nhánh nào lỡ chạy tới.
+var daHuy = false, tmChia = null;
 /** Chia bài: 52 lá bay từ giữa bàn ra bốn khu. Gọi `xong` khi bay hết. */
 function chiaBaiAnim(xong) {
   var giua = new THREE.Vector3(0, TOPY + 0.9, 0);
@@ -1121,7 +1125,7 @@ function chiaBaiAnim(xong) {
     }
   }
   boCanShadow = true;
-  setTimeout(xong, 300 + n * 11 + 420);
+  tmChia = setTimeout(function () { if (!daHuy) xong(); }, 300 + n * 11 + 420);
 }
 
 // ================= popup xếp bài (2D) =================
@@ -1595,6 +1599,27 @@ function hienTong() {
     }
     h += '</tr>';
   }
+  // ⚠⚠ DÒNG "TRỌN VÁN". Ba ô chi ở trên chỉ cộng `soChi + thưởng bộ`; chúng KHÔNG có khoản Sâm
+  //    Banh (thắng/thua trọn ba chi, ±3) và khoản của nhà dính Mậu Binh / Binh Lủng — hai khoản đó
+  //    engine cộng thẳng vào `kqVan.chi`. Người chơi cộng tay ba ô rồi so dòng Tổng thấy lệch đúng
+  //    3 chi mỗi lần Sâm Banh và kết luận game chấm điểm sai.
+  //    Tính bằng PHẦN DƯ (Tổng − ba ô) nên nó đúng theo định nghĩa — không dựng lại công thức của
+  //    engine ở chỗ thứ hai để rồi lệch tiếp lần nữa.
+  var duTron = [];
+  for (var s6 = 0; s6 < 4; s6++) {
+    var coBai = kqVan.dg[s6], anTrang = kqVan.mb[s6] || kqVan.lung[s6], baO = 0;
+    if (coBai && !anTrang) for (var r2 = 0; r2 < 3; r2++) baO += netChiCua(s6, r2);
+    duTron.push((kqVan.chi[s6] | 0) - baO);
+  }
+  if (duTron.some(function (x) { return x !== 0; })) {
+    h += '<tr><td class="lb">Trọn ván</td>';
+    for (var s7 = 0; s7 < 4; s7++) {
+      var dv = duTron[s7];
+      h += '<td class="' + (s7 === 0 ? 'me' : '') + '"><b class="' + (dv > 0 ? 'pos' : dv < 0 ? 'neg' : '') + '">'
+        + (dv > 0 ? '+' : '') + dv + '</b></td>';
+    }
+    h += '</tr>';
+  }
   h += '<tr class="tong"><td class="lb">Tổng</td>';
   for (var s5 = 0; s5 < 4; s5++) {
     var t = kqVan.chi[s5];
@@ -2045,6 +2070,11 @@ try {
 return {
   destroy: function () {
     cancelAnimationFrame(raf);
+    // Dập mọi hẹn giờ còn treo. Thiếu dòng này thì rời chiếu giữa lúc chia bài xong 45 giây sau
+    // máy vẫn binh hộ rồi trừ Trù Mã của một ván người chơi đã bỏ đi.
+    daHuy = true;
+    clearTimeout(tmChia); tmChia = null;
+    clearTimeout(cueT); clearTimeout(toastT);
     tatDongHo();
     if (huyDem) { huyDem(); huyDem = null; }
     tm.destroy();                       // rời chiếu mà còn phủ màn hình là kẹt ở màn đen

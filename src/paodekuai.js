@@ -1406,6 +1406,8 @@ function mountPaoDeKuai(host, opts) {
     var bo = cs.length ? TL.classify(cs) : null;
     var hopLe = !!bo && TL.beats(bo, cur);
     if (hopLe && moBai && cs.indexOf(0) < 0) hopLe = false;    // lượt mở màn phải có Ba Bích
+    // Cùng luật với nhánh nút Đánh — để nút không sáng oan rồi bấm mới báo lỗi.
+    if (hopLe && bo.loai === 'ba' && cs.length !== hands[0].length) hopLe = false;
     var bDanh = $('[data-a="danh"]'), bBo = $('[data-a="bo"]');
     bDanh.className = 'pk-btn pri' + (hopLe && luot === 0 && !over && !dangCho ? '' : ' dis');
     bBo.className = 'pk-btn' + (luot === 0 && cur && !over && !dangCho ? '' : ' dis');
@@ -1421,7 +1423,12 @@ function mountPaoDeKuai(host, opts) {
       hands: hands.map(function (h) { return h.slice(); }),
       cur: curCards.slice(),                 // lưu LÁ, dựng lại bộ bằng classify cho khỏi lệch phiên bản
       luot: luot, chuBai: chuBai, moBai: moBai,
-      daBo: daBo.slice(), raBai: raBai.slice(), xong: xong.slice()
+      // ⚠⚠ BỐN SỔ NÀY PHẢI ĐI THEO ẢNH CHỤP. `bomDem` là công bom đã đánh (mỗi quả ăn 5 điểm từ
+      //    MỖI đối thủ), ba cái còn lại là dấu vết luật "thả người ta về". Thiếu chúng thì bày lại
+      //    ván dở là mất sạch công bom — người chơi đánh ba quả bom rồi F5 và ván tính như chưa
+      //    có quả nào.
+      daBo: daBo.slice(), raBai: raBai.slice(), xong: xong.slice(),
+      bomDem: bomDem.slice(), thaVe: thaVe, loiTu: loiTu, loiCho: loiCho
     };
   }
   function luuVan() { if (opts.onSave) { try { opts.onSave(chupVan()); } catch (e) { } } }
@@ -1433,6 +1440,11 @@ function mountPaoDeKuai(host, opts) {
     cur = curCards.length ? TL.classify(curCards) : null;
     luot = s.luot | 0; chuBai = s.chuBai | 0; moBai = !!s.moBai;
     daBo = (s.daBo || []).slice(); raBai = (s.raBai || []).slice(); xong = (s.xong || []).slice();
+    // ⚠ Bản lưu CŨ không có bốn sổ này — mặc định về trạng thái đầu ván, đúng như trước đây.
+    bomDem = (s.bomDem || [0, 0, 0]).slice();
+    thaVe = (s.thaVe == null ? -1 : s.thaVe | 0);
+    loiTu = (s.loiTu == null ? -1 : s.loiTu | 0);
+    loiCho = (s.loiCho == null ? -1 : s.loiCho | 0);
     chon = {}; over = false; saidN = 0; dangCho = false;
     $('.pk-banner').classList.remove('show');
     for (var i = 0; i < 3; i++) { var g = handGroups[i]; while (g.children.length) g.remove(g.children[0]); xepLai(i, false); }
@@ -1644,6 +1656,12 @@ function mountPaoDeKuai(host, opts) {
       if (!bo) { toast('Mấy lá này không thành bộ.'); return; }
       if (!TL.beats(bo, cur)) { toast('Bộ này không đè được ' + TL.tenBo(cur) + '.'); return; }
       if (moBai && cs.indexOf(0) < 0) { toast('Lượt mở màn phải đánh kèm Ba Bích.'); return; }
+      // ⚠⚠ NHẮC LẠI LUẬT CỦA ENGINE. Nhánh nút này soát bằng `classify` + `beats`, KHÔNG đi qua
+      //    `genMoves` — mà luật "ba lá trơn chỉ hợp lệ khi là toàn bộ bài còn lại" nằm trong
+      //    `them()` của genMoves. Thiếu dòng này thì người chơi xả ba lá cùng bậc lúc còn 10 lá
+      //    trên tay: ba nhà máy không sinh nổi bộ đó để đè lại nên chỉ bỏ lượt, vòng bài quay về
+      //    cho người chơi mở tiếp — luật của chính trò bị phá và độ khó mọi chiếu sập.
+      if (bo.loai === 'ba' && cs.length !== hands[0].length) { toast('Ba lá trơn chỉ được đánh khi đó là toàn bộ bài còn lại.'); return; }
       danhBo(0, cs);
     } else if (a === 'bo') {
       if (luot !== 0 || !cur) return;

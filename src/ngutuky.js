@@ -523,7 +523,11 @@ function mountNguTu(host, opts) {
     current = s ? (saved.cur === AI ? AI : HUMAN) : HUMAN;
     over = false; saidN = 0;
     $('.ntk-banner').classList.remove('show'); turnUI(); updConfirm();
-    if (s) { toast('Tiếp tục ván dở'); if (current === AI) setTimeout(function () { if (!over) aiTurn(); }, 700); }
+    // ⚠⚠ PHẢI TRUYỀN SỐ THẾ HỆ VÁN. `aiTurn(v)` mở đầu bằng `if (over || v !== van || …) return;`
+    //    — gọi rỗng thì `undefined !== van` (van vừa ++ ở trên) nên nó thoát ngay: vào lại ván dở
+    //    đúng lượt đối thủ là bàn cờ ĐỨNG HÌNH, không đặt được quân nào. Cờ Vua và Cờ Tướng gọi
+    //    qua `hen()` nên truyền đúng thế hệ và không dính.
+    if (s) { toast('Tiếp tục ván dở'); if (current === AI) { const vNay = van; setTimeout(function () { if (!over) aiTurn(vNay); }, 700); } }
     else { try { setTimeout(function () { if (!over) bossSay('start'); }, 750); } catch (e) {} }
   }
   function persist() {   // lưu sau MỖI nước để F5 / rời view vẫn vào lại được

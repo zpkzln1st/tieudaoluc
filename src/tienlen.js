@@ -1635,7 +1635,9 @@ function mountTienLen(host, opts) {
     var kyHon = hangToi === 1 ? 20 : hangToi === 2 ? 6 : 0;
     var rw = el.querySelector('.tl-rw');
     rw.innerHTML = (kyHon ? '<span>Kỳ Hồn +' + kyHon + '</span>' : '') +
-      '<span>Bạc ' + (kq.dong[0] >= 0 ? '+' : '−') + fmt(Math.abs(kq.dong[0])) + '</span>';
+      // ⚠ Thứ ăn thua ở chiếu là TRÙ MÃ, không phải Bạc. Nhãn cũ gọi sai tên đồng tiền nên người
+      //   chơi tưởng mình vừa mất Bạc — mà Trù Mã là ngõ cụt một chiều, thắng bài không sinh Bạc.
+      '<span>Trù Mã ' + (kq.dong[0] >= 0 ? '+' : '−') + fmt(Math.abs(kq.dong[0])) + '</span>';
 
     $('.tl-banner').classList.add('show');
     vuaKhung($('.tl-end'), root);      // ép bảng vừa khung, khỏi phải lăn chuột xem kết quả

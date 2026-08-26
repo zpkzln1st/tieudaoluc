@@ -14843,6 +14843,8 @@ export const DICT = {
   "Cửu Chuyển": "Ninth Turn",
   "Thập Chuyển": "Tenth Turn",
   "Chuyển": "Turn",
+  "Ba lá trơn chỉ được đánh khi đó là toàn bộ bài còn lại.": "A bare triple may only be played when it is your entire remaining hand.",
+  "Trọn ván": "Whole round",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "Incubation takes real time; higher quality takes longer. See the species list in the",
   "Thức Tỉnh mở thêm bị động từ bể": "Awakening unlocks extra passives from a pool of",
   "20 loại": "20 types",
