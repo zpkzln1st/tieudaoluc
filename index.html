@@ -1198,6 +1198,22 @@
       radial-gradient(120% 70% at 50% -6%, rgba(245,185,66,.16), transparent 46%),
       linear-gradient(180deg, rgba(5,7,14,.62) 0%, rgba(5,7,14,.3) 30%, rgba(5,7,14,.5) 72%, rgba(5,7,14,.92) 100%); }
     #createScreen .cs-scroll{ position:absolute; inset:0; z-index:5; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; align-items:center; padding:clamp(14px,4vw,26px) clamp(12px,4vw,22px) 32px; }
+    /* Nút loa của màn Khai Tịch. Art phía sau sáng loang lổ nên nút PHẢI có nền tối riêng —
+       thả icon trần lên ảnh là có chỗ nhìn không ra.
+       ⚠ Hai trạng thái chỉ khác MÀU, giữ nguyên cỡ và khoảng đệm: đổi cỡ theo trạng thái là nút
+         nhảy mỗi lần bấm. */
+    /* ⚠⚠ NỀN PHẢI ĐẬM VÀ CÓ QUẦNG. Bản đầu để nền `rgba(9,13,20,.72)` với icon xám `#8ea0b8`:
+       thân màn RỘNG đọc rõ vì góc trên-phải là trời sáng, còn thân màn HẸP thì góc đó là sương
+       tối — đĩa tối trên nền tối, ảnh chụp gần như không thấy nút đâu. Một nền cho hai thân thì
+       phải chọn theo thân TỐI hơn. */
+    #createScreen .cs-loa{ position:absolute; z-index:6; top:clamp(12px,2.6vw,20px); right:clamp(12px,2.6vw,20px);
+      width:36px; height:36px; border-radius:99px; display:inline-flex; align-items:center; justify-content:center;
+      background:rgba(6,9,15,.9); border:1px solid rgba(245,185,66,.5); color:#e2e8f0;
+      box-shadow:0 2px 12px rgba(0,0,0,.7), 0 0 0 3px rgba(6,9,15,.35);
+      -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); cursor:pointer;
+      transition:color .15s, border-color .15s, background .15s; }
+    #createScreen .cs-loa:hover{ color:#f2b23e; border-color:rgba(245,185,66,.85); background:rgba(6,9,15,.98); }
+    #createScreen .cs-loa.tat{ color:#64748b; }
     #createScreen .cs-hero-bleed{ display:none; }
     #createScreen .cs-hero-top{ display:block; width:100%; max-width:440px; height:clamp(178px,54vw,236px); object-fit:contain; object-position:center top; margin:0 auto -8px; position:relative; z-index:2;
       -webkit-mask:linear-gradient(180deg,#000 66%,transparent 98%); mask:linear-gradient(180deg,#000 66%,transparent 98%); filter:drop-shadow(0 16px 28px rgba(0,0,0,.6)); pointer-events:none; }
@@ -1289,6 +1305,19 @@
       <div class="cs-bg"></div>
       <div class="cs-scrim"></div>
       <img loading="lazy" decoding="async" class="cs-hero-bleed" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
+      <!-- Nút loa — NEO GÓC TRÊN-PHẢI CỦA CẢ MÀN, cố ý đứng NGOÀI bảng.
+           ⚠⚠ Màn này có HAI THÂN: màn hẹp thì hàng logo canh giữa và bảng có khung vàng, màn
+              rộng thì bảng bỏ khung và mọi thứ dạt trái. Nhét nút vào hàng logo là phá canh giữa
+              ở thân hẹp. Neo ngoài bảng thì MỘT chỗ đặt chạy đúng cả hai thân.
+           ⚠ Cũng là chỗ xa nút "Nhập Giang Hồ" nhất — nút tắt nhạc mà đặt cạnh nút hành động duy
+             nhất của màn là mời người ta bấm nhầm.
+           ⚠ `z-index:6`: `.cs-scroll` phủ kín màn ở z5, thấp hơn là bấm không tới. -->
+      <button class="cs-loa" :class="$store.game.nhacDangBat ? '' : 'tat'"
+              @click="$store.game.tatMoNhac()"
+              :title="$store.game.nhacDangBat ? 'Tắt nhạc nền' : 'Bật nhạc nền'"
+              :aria-label="$store.game.nhacDangBat ? 'Tắt nhạc nền' : 'Bật nhạc nền'">
+        <span class="w-[18px] h-[18px] inline-flex" x-html="$store.game.svg($store.game.nhacDangBat ? 'nhac' : 'nhacTat','w-[18px] h-[18px]')"></span>
+      </button>
       <div class="cs-scroll">
         <img loading="lazy" decoding="async" class="cs-hero-top" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
         <div class="cs-panel"><div class="cs-inner" x-data="{ get g(){ return $store.game } }">
