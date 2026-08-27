@@ -49,6 +49,8 @@ import { dongPhu } from './dongphu.js';                              // Động 
 import { ensureDongPhu, resolveDongPhu } from './engine/dongphu.js'; // Động Phủ (engine thuần)
 import { HOUSE_TIERS as DP_HOUSE_TIERS, BUILDINGS as DP_BUILDINGS } from './engine/dongphu.js';
 import { Storage, KhoaCuaSo } from './engine/save.js';
+import { chonBan, datBan, datBat as nhacDatBat, datAmLuong as nhacDatAmLuong, moKhoaKhiBam,
+  banDangPhat, nhacChienDauKeTiep, NHAC_KHAI_TICH } from './engine/nhac.js';
 import {
   startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS, ghiNhatKyNgay, khoaNgay,
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
@@ -580,6 +582,9 @@ let resetting = false; // chặn beforeunload lưu lại khi đang reset
 // ---- Icon đường nét (SVG, đồng bộ chủ đề; thay emoji "rác" của hệ thống) ----
 const SVG_PATHS = {
   pin:    '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  // Nhạc nền: loa có sóng / loa bị gạch. Cùng khuôn nét với cả bộ — 24×24, không tô, nét 1,8.
+  nhac:    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+  nhacTat: '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/>',
   heart:  '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.49 4.04 3 5.5l7 7z"/>',
   zap:    '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   map:    '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14"/><path d="M15 6v14"/>',
@@ -688,7 +693,7 @@ const gameStore = {
   openCoTuong(id) { this._ctOpp = id || null; this.navTo('coTuong'); },  // deep-link Cờ Tướng từ Hồ Sơ Danh Sĩ
   _cvOpp: null,
   openCoVua(id) { this._cvOpp = id || null; this.navTo('coVua'); },      // deep-link Cờ Vua từ Hồ Sơ Danh Sĩ
-  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'phongVanBang') this.taiNguoiThat(); if (view === 'dauTruong') this.dtTai(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
+  _applyView(view) { this.view = view; this.navOpen = false; this._closeAllModalsForNav(); if (view !== 'inventory') { this.hlChon = false; this.hlSel = {}; } if (view === 'nhiemVu') this.ensureQuests(); if (view === 'combat' || view === 'worldboss') this.ensureCombat(); if (view === 'dungeon') this.ensureDungeon(); if (view === 'phongVanBang') this.taiNguoiThat(); if (view === 'dauTruong') this.dtTai(); if (view === 'tongmon') this.tmTick(); if (view === 'dongPhu') { try { resolveDongPhu(this.state, now()); if (this.state.dongPhu) this.state.dongPhu.doneUnseen = false; } catch (e) {} } this.nhipNhac(); document.getElementById('mainPane')?.scrollTo({ top: 0 }); },
   // ---------- Hash routing: mỗi tab 1 #link (chia sẻ/bookmark/F5 giữ tab); vuốt-back về tab trước thay vì thoát web ----------
   _ROUTE_VIEWS: ROUTE_VIEWS,
   _pushHash(h) { try { if (location.hash !== h) history.pushState({ h }, '', h); } catch (e) {} },
@@ -1708,7 +1713,55 @@ const gameStore = {
       document.documentElement.classList.toggle('giam-hieu-ung', !!this.caiDat.giamHieuUng);
       // Độ nét bàn 3D: trần tỉ lệ điểm ảnh. 'muot' = 1,5 · 'tuDong' = vẽ đúng độ phân giải màn.
       datTranNet(this.caiDat.netHinh === 'muot' ? 1.5 : 3);
+      // Nhạc nền: đổ hai nấc xuống bộ phát rồi chọn lại bản cho màn đang mở.
+      nhacDatAmLuong(this.caiDat.nhacAmLuong != null ? this.caiDat.nhacAmLuong : 55);
+      nhacDatBat(this.caiDat.nhacBat !== false);
+      this.nhipNhac();
     } catch (e) {}
+  },
+
+  // ---------- Nhạc nền ----------
+  _nhacManTruoc: '',
+  _nhacR: 0,
+  _nhacHenGhi: null,
+  /**
+   * Chọn và phát bản hợp với màn đang mở. Gọi mỗi lần đổi màn, đổi vùng, hoặc đổi cài đặt.
+   * ⚠⚠ Chọn bản Chiến Đấu bằng `nhacChienDauKeTiep()` (xoay vòng), TUYỆT ĐỐI KHÔNG dùng
+   *    `rng(state, mien)`. `rng` nhích bộ đếm `rngDem` — thứ mà trần chống gian lận ở máy chủ
+   *    đọc. Nhạc không phải lối chơi; đốt bộ đếm vì một bản nhạc là tự chuốc lấy ghi sổ oan.
+   * ⚠ Chỉ đổi bản khi BƯỚC VÀO màn Chiến Đấu. Đổi mỗi lần gọi thì mỗi nhịp vẽ một bản, nghe như
+   *   đài hỏng.
+   */
+  nhipNhac() {
+    try {
+      // Màn Khai Tịch (chờ tải · đăng nhập · tạo nhân vật) có bản riêng, không theo vùng.
+      if (this.khaiTichChoDoi || this.needsAuth || this.needsCreation || this.datLaiMo) {
+        this._nhacManTruoc = '@khaitich';
+        datBan(NHAC_KHAI_TICH);
+        return;
+      }
+      if (this.view === 'combat' && this._nhacManTruoc !== 'combat') this._nhacR = nhacChienDauKeTiep();
+      this._nhacManTruoc = this.view;
+      datBan(chonBan(this.view, (this.state.player && this.state.player.location) || '', this._nhacR));
+    } catch (e) {}
+  },
+  get nhacDangBat() { void this._tick; return this.caiDat.nhacBat !== false; },
+  get nhacNac() { void this._tick; return this.caiDat.nhacAmLuong != null ? this.caiDat.nhacAmLuong : 55; },
+  get nhacBanDangPhat() { void this._tick; return banDangPhat(); },
+  /** Nút loa ở thanh trên: bật/tắt nhanh, không phải mở Cài Đặt. */
+  tatMoNhac() { this.datCaiDat('nhacBat', !this.nhacDangBat); },
+  /**
+   * Kéo thanh trượt âm lượng.
+   * ⚠ Đổi tiếng NGAY nhưng HOÃN ghi bản lưu 400ms: kéo một cái là hàng chục sự kiện `input`, ghi
+   *   mỗi cái là băm bản lưu 112KB vài chục lần trong một giây.
+   */
+  keoAmLuongNhac(v) {
+    const n = Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
+    this.caiDat.nhacAmLuong = n;
+    nhacDatAmLuong(n);
+    clearTimeout(this._nhacHenGhi);
+    this._nhacHenGhi = setTimeout(() => { try { Storage.save(this.state); } catch (e) {} }, 400);
+    this._tick++;
   },
   /** Trần treo máy THẬT = nền + bậc Động Phủ. ⚠ Ô cũ chỉ đọc `idleCapHours` nên nhà bậc 6 vẫn ghi "8 giờ". */
   get idleCapText() {
@@ -5616,6 +5669,7 @@ const gameStore = {
     }
     this.state.player.location = id;
     Storage.save(this.state);
+    this.nhipNhac();          // đổi vùng là đổi nhạc — bản của vùng mới nhoà vào chỗ bản cũ
     this.closeLocation();
     if (this._teleReturnView) { const v = this._teleReturnView; this._teleReturnView = null; this.navTo(v); }   // quay lại tab đã bấm "Đổi vùng"
   },
@@ -8965,6 +9019,10 @@ setTimeout(() => { try { kiemHanFont(); } catch (e) {} }, 1500);
 Alpine.store('game').initCloud();           // Tài khoản/Cloud: khôi phục phiên Supabase (lazy, offline-safe)
 Alpine.store('game').initAuthorSeal();      // Ấn Ký Tác Giả: verify chứng chỉ ký số (offline-safe)
 
+// Nhạc nền: trình duyệt CẤM phát tiếng trước cú bấm đầu tiên, nên chỉ đăng ký chờ ở đây.
+moKhoaKhiBam();
+Alpine.store('game').nhipNhac();
+
 // Khoá liên cửa sổ: giành quyền ghi ngay lúc mở, rồi đóng dấu còn sống theo nhịp.
 // ⚠ Gọi TRƯỚC vòng lưu đầu tiên — chậm một nhịp là cửa sổ mới đã kịp ghi đè một lần.
 Alpine.store('game').nhipCuaSo();
@@ -9087,7 +9145,16 @@ function zeroVongDemKhiDoiTamNhin() {
 document.addEventListener('visibilitychange', zeroVongDemKhiDoiTamNhin);
 
 // ---- Nhịp 1s cho đồng hồ đếm ngược (reactive _tick) ----
-setInterval(() => { const s = window.Alpine?.store('game'); if (s) s._tick++; }, 1000);
+setInterval(() => {
+  const s = window.Alpine?.store('game');
+  if (!s) return;
+  s._tick++;
+  // ⚠ Soi lại nhạc mỗi giây. `datBan` thoát ngay khi đang phát đúng bản nên rẻ như một phép so
+  //   chuỗi. Có nhịp này thì mọi lối chuyển cảnh đều đổi được nhạc — kể cả lối tôi chưa móc tay
+  //   vào (tạo nhân vật xong, đăng nhập xong, mở khoá sau cú bấm đầu). Móc tay từng chỗ là chắc
+  //   chắn sót một chỗ, mà sót thì nhạc đứng im không ai biết vì sao.
+  s.nhipNhac();
+}, 1000);
 
 window.addEventListener('beforeunload', () => {
   if (resetting) return; // đang reset -> KHÔNG lưu đè lên save vừa xoá

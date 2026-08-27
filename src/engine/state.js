@@ -18,6 +18,10 @@ export const CAI_DAT_MAC_DINH = {
   hoiKhiBan: true,        // hỏi lại trước khi bán hàng loạt
   ngonNgu: 'vi',          // 'vi' | 'en' | 'zh' — lớp phủ dịch (src/i18n.js); đổi là tải lại trang
   huyHieuChuyen: 'anSon', // huy hiệu Chuyển dán góc biểu tượng nghề: 'anSon' (ấn đỏ) | 'kimVong' (vòng vàng)
+  nhacBat: true,          // bật nhạc nền
+  // ⚠ Nấc 55 ra khoảng 0,30 âm lượng thật (bình phương — xem `amLuongThat` ở engine/nhac.js).
+  //   Nhạc gen bằng máy nén rất to; để nấc cao hơn là vào game bị dội thẳng vào tai giây đầu tiên.
+  nhacAmLuong: 55,        // nấc thanh trượt 0–100
 };
 
 export function createInitialState() {

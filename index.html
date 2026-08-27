@@ -1488,6 +1488,13 @@
             <button @click="$store.game.openCamNang()" title="Cẩm Nang" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5C10.5 6 8.5 5.2 5.5 5.2H3v13h2.5c3 0 5 .8 6.5 2.3"/><path d="M12 7.5c1.5-1.5 3.5-2.3 6.5-2.3H21v13h-2.5c-3 0-5 .8-6.5 2.3"/><path d="M12 7.5v13"/></svg>
             </button>
+            <!-- Loa: tắt/mở nhanh, khỏi phải mở Cài Đặt. Hai trạng thái chỉ khác MÀU và khác hình
+                 loa (có sóng / bị gạch) — không đổi cỡ, không đổi khoảng đệm, để hàng nút đứng yên. -->
+            <button @click="$store.game.tatMoNhac()" :title="$store.game.nhacDangBat ? 'Tắt nhạc nền' : 'Bật nhạc nền'"
+                    class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition"
+                    :class="$store.game.nhacDangBat ? 'text-slate-400 hover:text-jade' : 'text-slate-600 hover:text-slate-400'">
+              <span class="w-[18px] h-[18px] inline-flex" x-html="$store.game.svg($store.game.nhacDangBat ? 'nhac' : 'nhacTat','w-[18px] h-[18px]')"></span>
+            </button>
             <button @click="$store.game.openSettings()" title="Cài đặt" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
@@ -19117,6 +19124,28 @@
               <div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Toàn Màn Hình</div></div>
               <button @click="g.chuyenToanManHinh()" class="shrink-0 px-2.5 py-1 rounded-lg bg-ink3 border border-slate-700 hover:border-jade text-slate-300 text-[12.5px] transition"
                 x-text="g.dangToanManHinh ? 'Thoát' : 'Phủ Kín Màn'"></button>
+            </div>
+          </div>
+
+          <!-- ===== ÂM THANH ===== -->
+          <div>
+            <div class="cd-muc"><span class="w-3.5 h-3.5 inline-flex text-slate-500 shrink-0" x-html="g.svg('nhac','w-3.5 h-3.5')"></span><span class="lbl">Âm Thanh</span><span class="cd-ke"></span></div>
+            <div class="cd-hang">
+              <div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Nhạc Nền</div></div>
+              <div class="ct" :class="g.nhacDangBat ? 'on' : ''" @click="g.tatMoNhac()" role="switch" :aria-checked="g.nhacDangBat"><span class="ct-nut"></span></div>
+            </div>
+            <!-- ⚠ Tắt nhạc thì hàng Âm Lượng MỜ ĐI chứ KHÔNG biến mất. Giấu hẳn là mọi hàng dưới
+                 nhảy lên một nấc mỗi lần bấm công tắc — bảng cài đặt phải đứng yên.
+                 ⚠ Ô phần trăm chốt bề rộng: "5%" và "100%" rộng khác nhau, không chốt thì thanh
+                 trượt xê dịch trong lúc đang kéo. -->
+            <div class="cd-hang" :class="g.nhacDangBat ? '' : 'opacity-40'">
+              <div class="min-w-0 flex-1"><div class="text-[13px] text-slate-200">Âm Lượng</div></div>
+              <div class="flex items-center gap-2.5 shrink-0">
+                <input type="range" min="0" max="100" step="1" :value="g.nhacNac" :disabled="!g.nhacDangBat"
+                       @input="g.keoAmLuongNhac($event.target.value)"
+                       class="accent-jade cursor-pointer" style="width:130px;max-width:100%">
+                <span class="text-[12px] text-slate-400 tabular-nums" style="width:2.6rem;text-align:right" x-text="g.nhacNac + '%'"></span>
+              </div>
             </div>
           </div>
 
