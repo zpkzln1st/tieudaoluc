@@ -11,7 +11,7 @@ import { hash2, genRoster, botCombatLv } from './bots.js';
 import { MAY_CHU_SEED, MAY_CHU_MO_LUC } from '../data/bots.js';
 import {
   TK_SU, TK_SU_BY_ID, TK_LUOT, TK_CAP_TRAN, TK_EXP_CHUYEN, TK_CUOP_TOI_DA, TK_CUOP_MAT,
-  TK_CUOP_AN, TK_CUOP_KEP, tkBocSu, tkThuong, tkExpLenCap,
+  TK_CUOP_TI_LE, TK_CUOP_AN, TK_CUOP_KEP, tkBocSu, tkThuong, tkExpLenCap,
 } from '../data/thinhkinh.js';
 
 const PHUT = 60 * 1000;
@@ -28,7 +28,10 @@ export function tkEnsure(state, now) {
   const ngay = tkNgay(now || 0);
   if (t.luot.ngay !== ngay) t.luot = { ngay, thinh: TK_LUOT.thinh, cuop: TK_LUOT.cuop, hoVe: TK_LUOT.hoVe };
   if (typeof t.lamMoiDaDung !== 'number') t.lamMoiDaDung = 0;
-  if (typeof t.biCuop !== 'number') t.biCuop = 0;
+  // ⚠ `biCuop` TỪNG là số đếm cất trong bản lưu, mà không chỗ nào tăng nó — hộ vệ đốt lượt mỗi
+  //   ngày trong khi chặn zero. Nay số lần bị cướp SUY TỪ `batDau` (xem `tkBiCuop`), không cất
+  //   nữa. Dọn khoá cũ để không còn hai chỗ cùng trả lời một câu hỏi.
+  if ('biCuop' in t) delete t.biCuop;
   return t;
 }
 
@@ -70,48 +73,103 @@ export function tkKhoiHanh(state, now, soHoVe) {
   t.su = t.suCho; t.suCho = '';
   t.batDau = now; t.hetLuc = now + s.phut * PHUT;
   t.hoVe = Math.max(0, Math.min(TK_LUOT.hoVe, Math.floor(soHoVe || 0)));
-  t.biCuop = 0;
   t.luot.thinh -= 1;
   t.lamMoiDaDung = 0;
   return { ok: true };
 }
 
 /**
- * Số lần chuyến này CÒN bị cướp được. Mỗi hộ vệ chặn đúng một lần.
- * ⚠ Kẹp ở 0: cử ba hộ vệ không làm số âm rồi thành cộng ngược vào thưởng.
+ * Số cửa ải chuyến này phải đi qua. Mỗi hộ vệ dẹp đúng một cửa.
+ * ⚠ Kẹp ở 0: cử dư hộ vệ không làm số âm rồi thành cộng ngược vào thưởng.
  */
-export function tkConBiCuop(state) {
+export function tkSoCuaAi(state) {
   const t = state.thinhKinh || {};
-  return Math.max(0, TK_CUOP_TOI_DA - (t.hoVe || 0) - (t.biCuop || 0));
+  return Math.max(0, TK_CUOP_TOI_DA - (t.hoVe || 0));
 }
 
-/** Thưởng thực nhận của chuyến đang chạy, đã trừ phần bị cướp. */
-export function tkThuongThuc(state) {
+// ============================================================
+// BỊ CƯỚP DỌC ĐƯỜNG
+// ============================================================
+// ⛔⛔ CƠ CHẾ NÀY TỪNG KHÔNG ĐƯỢC NỐI. `t.biCuop` cất trong bản lưu mà KHÔNG một dòng nào tăng nó,
+//    nên hộ vệ đốt hai lượt mỗi ngày để chặn ZERO, và dòng "Còn chịu được N lần cướp" báo một rủi
+//    ro không tồn tại. Chủ dự án chốt số ngày 2026-08-27: mỗi cửa ải 50%.
+//
+// ⚠⚠ SUY TỪ `hash2(batDau, i)`, TUYỆT ĐỐI KHÔNG GỌI `rng()`. Hai lẽ:
+//    1. Người chơi phải THẤY cướp xảy ra dọc đường, tức giao diện hỏi lại mỗi nhịp vẽ. `rng()`
+//       nhích bộ đếm `rngDem` mỗi lần gọi — đúng cái bẫy đã phải tách `tkCuopUocLuong` ra để tránh.
+//    2. `batDau` chốt lúc khởi hành nên không quay lại bốc lại được, và máy chủ tính lại được y hệt.
+//
+// Cửa ải rải ĐỀU trên hành trình, không cái nào ở vạch xuất phát hay vạch đích: cửa thứ `i` nằm ở
+// mốc `(i+1)/(n+1)` của chặng đường.
+
+/** Cửa ải thứ `i` của chuyến khởi hành lúc `batDau` có thành một lần cướp không. THUẦN. */
+function cuaAiBiCuop(batDau, i) {
+  return (hash2(batDau, i * 7919 + 13) % 10000) < Math.round(TK_CUOP_TI_LE * 10000);
+}
+
+/** Đi được bao nhiêu phần chặng đường, trong `[0, 1]`. THUẦN. */
+export function tkTienDo(state, now) {
   const t = state.thinhKinh || {};
-  if (!t.su) return { bac: 0, honThach: 0, exp: 0 };
-  const g = tkThuong(t.su, tkCap(state, t.su).lv);
-  // ⚠ Hồn Thạch và EXP KHÔNG bị cướp. Cướp mà lấy được cả tu vi thì người bị cướp mất động lực đi.
-  const mat = Math.min(1, (t.biCuop || 0) * TK_CUOP_MAT);
-  return { bac: Math.max(0, Math.round(g.bac * (1 - mat))), honThach: g.honThach, exp: TK_EXP_CHUYEN };
+  if (!t.su || !t.hetLuc) return 0;
+  const tong = Math.max(1, (t.hetLuc || 0) - (t.batDau || 0));
+  return Math.max(0, Math.min(1, ((now || 0) - (t.batDau || 0)) / tong));
+}
+
+/** Số lần ĐÃ bị cướp tính tới `now`. THUẦN — cùng `now` luôn ra cùng số. */
+export function tkBiCuop(state, now) {
+  const t = state.thinhKinh || {};
+  if (!t.su || !t.batDau) return 0;
+  const n = tkSoCuaAi(state);
+  const td = tkTienDo(state, now);
+  let d = 0;
+  for (let i = 0; i < n; i++) if ((i + 1) / (n + 1) <= td && cuaAiBiCuop(t.batDau, i)) d++;
+  return d;
 }
 
 /**
- * Nhận thưởng. Trả `{ ok, bac, honThach, exp, lenCap }`. ĐỔI state.
+ * Còn mấy cửa ải nữa chưa đi qua — tức chuyến này CÒN có thể bị cướp thêm mấy lần.
+ * ⚠ Chưa khởi hành thì trả về số cửa của chuyến KHÔNG hộ vệ, để màn chọn hộ vệ có số mà bày.
+ */
+export function tkConBiCuop(state, now) {
+  const t = state.thinhKinh || {};
+  if (!t.su) return TK_CUOP_TOI_DA;
+  const n = tkSoCuaAi(state);
+  const td = tkTienDo(state, now);
+  let con = 0;
+  for (let i = 0; i < n; i++) if ((i + 1) / (n + 1) > td) con++;
+  return con;
+}
+
+/** Thưởng thực nhận của chuyến đang chạy, đã trừ phần bị cướp tính tới `now`. */
+export function tkThuongThuc(state, now) {
+  const t = state.thinhKinh || {};
+  if (!t.su) return { bac: 0, honThach: 0, exp: 0, biCuop: 0 };
+  const g = tkThuong(t.su, tkCap(state, t.su).lv);
+  // ⚠ Hồn Thạch và EXP KHÔNG bị cướp. Cướp mà lấy được cả tu vi thì người bị cướp mất động lực đi.
+  const biCuop = tkBiCuop(state, now);
+  const mat = Math.min(1, biCuop * TK_CUOP_MAT);
+  return { bac: Math.max(0, Math.round(g.bac * (1 - mat))), honThach: g.honThach, exp: TK_EXP_CHUYEN, biCuop };
+}
+
+/**
+ * Nhận thưởng. Trả `{ ok, bac, honThach, exp, lenCap, biCuop }`. ĐỔI state.
  * ⚠ Chỗ gọi phải tự cộng Bạc / Hồn Thạch vào ví — hàm này không đụng `currencies` để còn dùng lại
  *   được ở chỗ khác và để bài kiểm đo được phép tính riêng.
+ * ⚠⚠ Đọc `tkThuongThuc` TRƯỚC khi xoá `t.su`/`t.batDau`. Số lần bị cướp suy từ `batDau`, xoá xong
+ *    mới hỏi là ra 0 — mất trắng phần trừ, thành ra người chơi nhận đủ như chưa hề bị cướp.
  */
 export function tkNhan(state, now) {
   const t = tkEnsure(state, now);
   if (!tkDaVe(state, now)) return { ok: false, vi: 'chua-ve' };
-  const q = tkThuongThuc(state);
+  const q = tkThuongThuc(state, now);
   const suId = t.su;
   const c = tkCap(state, suId);
   let lv = c.lv, xp = c.xp + q.exp, lenCap = 0;
   while (lv < TK_CAP_TRAN && xp >= tkExpLenCap(lv)) { xp -= tkExpLenCap(lv); lv++; lenCap++; }
   if (lv >= TK_CAP_TRAN) xp = 0;
   t.cap[suId] = { lv, xp };
-  t.su = ''; t.hetLuc = 0; t.batDau = 0; t.biCuop = 0; t.hoVe = 0;
-  return { ok: true, bac: q.bac, honThach: q.honThach, exp: q.exp, lenCap, su: suId };
+  t.su = ''; t.hetLuc = 0; t.batDau = 0; t.hoVe = 0;
+  return { ok: true, bac: q.bac, honThach: q.honThach, exp: q.exp, lenCap, su: suId, biCuop: q.biCuop };
 }
 
 // ============================================================

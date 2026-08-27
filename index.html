@@ -16903,8 +16903,9 @@
               <span class="gtip gtip-xuong gtip-phai">
                 <span class="block">Bậc Hộ Kinh Sứ càng cao thì chuyến càng ngắn mà thưởng càng lớn.</span>
                 <span class="block mt-0.5">Làm Mới lần đầu mỗi lượt miễn phí, từ lần hai tốn <b x-text="g.TK_LAM_MOI_GIA"></b> Nguyên Bảo.</span>
-                <span class="block mt-0.5">Mỗi hộ vệ chặn đúng một lần bị cướp.</span>
-                <span class="block mt-0.5">Một chuyến chịu tối đa <b x-text="g.TK_CUOP_TOI_DA"></b> lần cướp, mỗi lần mất 12% Bạc.</span>
+                <span class="block mt-0.5">Một chuyến đi qua <b x-text="g.TK_CUOP_TOI_DA"></b> cửa ải, mỗi cửa bị cướp <b x-text="g.tkCuopTiLePct + '%'"></b>.</span>
+                <span class="block mt-0.5">Mỗi hộ vệ dẹp đúng một cửa ải.</span>
+                <span class="block mt-0.5">Mỗi lần bị cướp mất 12% Bạc của chuyến.</span>
                 <span class="block mt-0.5 text-amber-200">Hồn Thạch và tu vi Hộ Kinh Sứ không bị cướp.</span>
               </span>
             </span>
@@ -16918,7 +16919,10 @@
               <div class="min-w-0 flex-1">
                 <div class="text-[13.5px] fserif" :style="'color:' + g.tkSuDangDi.mau" x-text="g.tkSuDangDi.ten + ' · Cấp ' + g.tkCapCua(g.tkSuDangDi.id).lv"></div>
                 <div class="text-[12px] text-slate-400" x-text="g.tkDaVe ? 'Đã về tới Tàng Kinh Các.' : ('Còn ' + g.tkConLaiTxt)"></div>
-                <div class="text-[11.5px] text-slate-500" x-text="'Còn chịu được ' + g.tkConBiCuop + ' lần cướp'"></div>
+                <!-- ⚠ Dòng cũ ghi "Còn chịu được N lần cướp" — một rủi ro KHÔNG CÓ THẬT, vì
+                     `biCuop` hồi đó không chỗ nào tăng. Nay nói đúng hai việc: đã mất bao nhiêu,
+                     và còn mấy cửa ải nữa. -->
+                <div class="text-[11.5px]" :class="g.tkBiCuop ? 'text-rose-300' : 'text-slate-500'" x-text="g.tkTinhHinhCuop"></div>
               </div>
               <!-- Bó kinh thư đang được áp tải. Art `kinhThu`. -->
               <span class="w-10 h-10 inline-flex items-center justify-center shrink-0" :title="'Kinh thư đang áp tải'"

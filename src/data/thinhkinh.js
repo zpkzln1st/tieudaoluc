@@ -25,6 +25,28 @@ export const TK_LUOT = { thinh: 3, cuop: 5, hoVe: 2 };
 export const TK_CUOP_TOI_DA = 4;
 export const TK_CUOP_MAT = 0.12;
 
+/**
+ * Xác suất MỖI CỬA ẢI thành một lần bị cướp. Chủ dự án chốt **0,50** (2026-08-27).
+ * Một chuyến đi qua `TK_CUOP_TOI_DA − số hộ vệ` cửa ải, rải đều trên hành trình.
+ *
+ * ⚠⚠ CON SỐ NÀY THẾ GIỚI ĐÃ TỰ QUẢNG CÁO TRƯỚC. Mỗi đoàn bot trên Đường mây hiện
+ *    `daBiCuop = hash % (TK_CUOP_TOI_DA + 1)`, tức rải đều 0–4, trung bình **2 trên 4 cửa**.
+ *    Đặt tỉ lệ khác 0,50 là bảng tin của đoàn bot nói một đằng, chuyến của mình một nẻo.
+ *
+ * Số đo (`_do_thinhkinh_bicuop.mjs`, tính chính xác trên cả 125 tổ hợp ba chuyến một ngày):
+ *   không hộ vệ : mất 5.674 Bạc/ngày = **24,0%** thu nhập = 1,04 giờ cày
+ *   2 hộ vệ dồn : mất 3.835 Bạc/ngày = 16,2%
+ *   Hai hộ vệ giữ được 1.839 Bạc/ngày — đó là giá của một suất đệ tử Tông Môn.
+ *   Đối chiếu: đi CƯỚP bot được 4.823 Bạc/ngày. Biết cử hộ vệ thì còn dương, không cử thì âm
+ *   hơn phần cướp được. Chịu khó thì có lời — đúng hình dạng cần.
+ *   Ca xấu nhất: mất 48% Bạc của chuyến, xác suất 6,25% khi không hộ vệ.
+ *
+ * ⛔ ĐỪNG cho tỉ lệ chạy theo bậc. Bảng dưới đã chốt *"bậc càng cao: chuyến NGẮN HƠN mà thưởng
+ *    LỚN HƠN, hai vế cùng chiều là thứ làm người chơi muốn bấm Làm Mới"*. Bậc cao bị nhòm nhiều
+ *    hơn là thêm một vế NGƯỢC CHIỀU, làm loãng đúng chủ ý đó.
+ */
+export const TK_CUOP_TI_LE = 0.50;
+
 /** Làm Mới: lần đầu mỗi lượt miễn phí, từ lần hai tốn ngần này Nguyên Bảo. */
 export const TK_LAM_MOI_GIA = 20;
 

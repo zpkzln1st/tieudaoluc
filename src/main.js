@@ -17,8 +17,8 @@ import { CLASSES, CLASS_GROUPS, NGHE, skillExpMultiplier } from './data/classes.
 import { createInitialState, CAI_DAT_MAC_DINH } from './engine/state.js';
 // ⚠ Cong thuc gia san co BAN SONG SINH bang SQL (san_gia_toi_thieu). Sua day phai sua ca do.
 import { giaSanTrangBi, giaSanVatPham, dsXepChong, THUE_SAN } from './data/giasan.js';
-import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG, tkExpLenCap } from './data/thinhkinh.js';
-import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop,
+import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_CUOP_MAT, TK_CUOP_TI_LE, TK_ART_TRONG, tkExpLenCap } from './data/thinhkinh.js';
+import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop, tkSoCuaAi, tkBiCuop,
   tkThuongThuc, tkNhan, tkDoanDangDi, tkDoanCuaTa, tkCuopDuoc, tkCuopUocLuong } from './engine/thinhkinh.js';
 import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, DD_TI_LE_ROI, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong, ddPhamRoiTheoCap } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
@@ -8549,8 +8549,25 @@ const gameStore = {
     const g = Math.floor(ms / 1000);
     return Math.floor(g / 60) + ' phút ' + String(g % 60).padStart(2, '0') + ' giây';
   },
-  get tkConBiCuop() { void this._tick; return tkConBiCuop(this.state); },
-  get tkThuongXem() { void this._tick; return tkThuongThuc(this.state); },
+  get tkConBiCuop() { void this._tick; return tkConBiCuop(this.state, now()); },
+  get tkSoCuaAi() { void this._tick; return tkSoCuaAi(this.state); },
+  get tkBiCuop() { void this._tick; return tkBiCuop(this.state, now()); },
+  /** Phần trăm Bạc đã mất vì bị cướp, làm tròn — để câu báo nói đúng số người chơi thấy. */
+  get tkMatPct() { void this._tick; return Math.round(Math.min(1, this.tkBiCuop * TK_CUOP_MAT) * 100); },
+  get tkCuopTiLePct() { return Math.round(TK_CUOP_TI_LE * 100); },
+  /**
+   * Một câu về tình hình dọc đường. Dựng ở ĐÂY chứ không ghép ngoài giao diện: ghép ngoài đó thì
+   * bộ dịch chỉ thấy từng mảnh rời ("Bị cướp", "cửa ải"), còn dựng bằng chuỗi mẫu thì nó thấy
+   * nguyên câu và đặt được khoá mẫu `#`.
+   */
+  get tkTinhHinhCuop() {
+    void this._tick;
+    const bi = this.tkBiCuop, con = this.tkConBiCuop;
+    const a = bi ? `Bị cướp ${bi} lần, mất ${this.tkMatPct}% Bạc.` : 'Chưa gặp cướp.';
+    const b = con ? `Còn ${con} cửa ải.` : 'Đã qua hết cửa ải.';
+    return a + ' ' + b;
+  },
+  get tkThuongXem() { void this._tick; return tkThuongThuc(this.state, now()); },
   tkCapCua(suId) { return tkCap(this.state, suId); },
   tkExpCanCua(suId) { return tkExpLenCap(this.tkCapCua(suId).lv); },
   /** Số đệ tử Tông Môn cử đi hộ vệ được — mỗi đệ tử chặn đúng một lần cướp. */
@@ -8629,7 +8646,10 @@ const gameStore = {
     this.state.currencies.bac = (this.state.currencies.bac || 0) + r.bac;
     this.state.currencies.honThach = (this.state.currencies.honThach || 0) + r.honThach;
     const s = TK_SU_BY_ID[r.su];
+    // ⚠ Bị cướp thì PHẢI nói ra. Nhận ít hơn con số vẫn nhớ mà không ai giải thích là người chơi
+    //   tưởng game tính sai.
     this.showToast('Nhận ' + this.fmt(r.bac) + ' Bạc · ' + this.fmt(r.honThach) + ' Hồn Thạch.'
+      + (r.biCuop ? ` Dọc đường bị cướp ${r.biCuop} lần.` : '')
       + (r.lenCap ? ' ' + (s ? s.ten : '') + ' lên cấp!' : ''));
     this._tick++; Storage.save(this.state);
   },
