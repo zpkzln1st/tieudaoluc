@@ -1,7 +1,11 @@
 // ============================================================
 // MAIN — Bootstrap: nối ENGINE (logic thuần) với UI (Alpine).
 // ============================================================
-import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/module.esm.js';
+// ⛔⛔ GHIM BẢN, KHÔNG NẠP TỪ MÁY CHỦ NGOÀI. Trước đây là `alpinejs@3.x.x` trên jsdelivr — bản
+//    TRÔI. Alpine là thứ vẽ TOÀN BỘ giao diện: bản mới đổi hành vi, hoặc CDN chặn/hỏng, là game
+//    KHÔNG CHẠY ĐƯỢC, không phải mất một tính năng. Tệp dưới là 3.16.3 tải về 2026-08-27.
+//    ⚠ Nâng bản thì tải tệp MỚI về đặt tên theo bản, đừng sửa đè lên tệp cũ.
+import Alpine from './lib/alpine-3.16.3.module.esm.js';
 import { SKILLS, STATS } from './data/skills.js';
 import { DAMDAO, TIN_VAT, TIN_VAT_EFF_PCT } from './data/damdao.js';
 import { ITEMS, QUALITY, ITEM_TYPES, itemNameHtml } from './data/items.js';
@@ -1655,6 +1659,25 @@ const gameStore = {
     Storage.save(this.state);
   },
   openSettings() { this.settingsModal = true; },
+  /**
+   * Chép mã tài khoản vào bảng nháp.
+   * ⚠⚠ VIỆC NÀY PHẢI NẰM Ở ĐÂY, KHÔNG ĐƯỢC VIẾT THẲNG VÀO `@click`. Trước đây nút đó mang cả một
+   *    câu lệnh `try{...}catch(e){}` trong thuộc tính. Alpine bọc biểu thức thành `let x = <biểu
+   *    thức>`, mà `try` là CÂU LỆNH chứ không phải biểu thức ⇒ ném `SyntaxError: Unexpected token
+   *    'try'` ngay lúc dựng nút. Bộ quét chạy-thật bắt được đúng chỗ này.
+   * ⚠ `navigator.clipboard` không có ở ngữ cảnh không bảo mật, và có thể bị từ chối quyền — nên
+   *   vẫn phải bọc try/catch, chỉ là bọc ở đây.
+   */
+  chepMaTaiKhoan() {
+    const ma = (this.authUser && this.authUser.id) || '';
+    if (!ma) { this.showToast('Chưa đăng nhập nên chưa có mã tài khoản.'); return; }
+    try {
+      navigator.clipboard.writeText(ma);
+      this.showToast('Đã chép mã tài khoản');
+    } catch (e) {
+      this.showToast('Không chép được — hãy tự bôi đen rồi chép.');
+    }
+  },
   closeSettings() { this.settingsModal = false; },
 
   // ============================================================

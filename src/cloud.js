@@ -1,17 +1,45 @@
 // ============================================================
 // CLOUD — Supabase client + Auth (Giai doan B).
-// Game van OFFLINE-FIRST: SDK nap LAZY qua CDN ESM khi can dung dau tien;
-// neu mat mang / CDN loi thi caller try/catch nuot -> game KHONG vo, chi mat tinh nang cloud.
+// Game van OFFLINE-FIRST: SDK nap LAZY tu tep trong kho khi can dung dau tien;
+// neu nap that bai thi caller try/catch nuot -> game KHONG vo, chi mat tinh nang cloud.
 // ============================================================
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './cloud-config.js';
 
-const SDK_URL = 'https://esm.sh/@supabase/supabase-js@2';
-let _sb = null;   // client (tao 1 lan, tai su dung)
+// ⛔⛔ GHIM BAN, KHONG NAP TU MAY CHU NGOAI. Truoc day la `https://esm.sh/@supabase/supabase-js@2`
+//    — ban TROI theo so major, va esm.sh con keo them NAM mo-dun con qua mang. Ban duoi la UMD
+//    2.112.4 tai ve 2026-08-27, TU CHUA (da soi: 0 import ngoai).
+//    ⚠ Duong dan suy tu `import.meta.url`, khong go tay tu goc trang: GitHub Pages phuc vu o
+//      `/tieudaoluc/` nen go tay la sai duong ngay khi doi cho dat.
+const SDK_URL = new URL('./lib/supabase-js-2.112.4.umd.js', import.meta.url).href;
+let _sb = null;      // client (tao 1 lan, tai su dung)
+let _sdkCho = null;  // loi hua nap SDK — nap MOT lan du goi bao nhieu lan
+
+/**
+ * Nap SDK Supabase (ban UMD, dat `window.supabase`).
+ * ⚠ Ban UMD KHONG phai mo-dun ESM nen khong `import()` duoc — phai chen the <script>.
+ */
+function napSdk() {
+  if (typeof window !== 'undefined' && window.supabase && window.supabase.createClient) return Promise.resolve(window.supabase);
+  if (_sdkCho) return _sdkCho;
+  _sdkCho = new Promise((xong, hong) => {
+    const s = document.createElement('script');
+    s.src = SDK_URL;
+    s.async = true;
+    s.onload = () => {
+      if (window.supabase && window.supabase.createClient) xong(window.supabase);
+      else hong(new Error('SDK Supabase nap xong ma khong thay createClient'));
+    };
+    // ⚠ Xoa loi hua khi hong. Giu lai la mot lan tai truot khoa vinh vien toi khi tai lai trang.
+    s.onerror = () => { _sdkCho = null; hong(new Error('khong nap duoc SDK Supabase')); };
+    document.head.appendChild(s);
+  });
+  return _sdkCho;
+}
 
 // Tao/lay client — nap SDK lazy. Throw neu nap that bai (caller xu ly).
 export async function getClient() {
   if (_sb) return _sb;
-  const { createClient } = await import(SDK_URL);
+  const { createClient } = await napSdk();
   _sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,        // luu phien o localStorage -> reload van dang nhap
