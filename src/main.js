@@ -20,7 +20,7 @@ import { giaSanTrangBi, giaSanVatPham, dsXepChong, THUE_SAN } from './data/giasa
 import { TK_SU, TK_SU_BY_ID, TK_LAM_MOI_GIA, TK_CUOP_TOI_DA, TK_ART_TRONG, tkExpLenCap } from './data/thinhkinh.js';
 import { tkEnsure, tkCap, tkDangDi, tkDaVe, tkConLai, tkBoc, tkKhoiHanh, tkConBiCuop,
   tkThuongThuc, tkNhan, tkDoanDangDi, tkDoanCuaTa, tkCuopDuoc, tkCuopUocLuong } from './engine/thinhkinh.js';
-import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong } from './data/dandien.js';
+import { DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_TONG_O, DD_NGAN_SACH, DD_HON_THUONG, DD_TI_LE_ROI, ddArtCua, ddMoiVien, ddItemId, ddNauDuoc, ddNenPhuong, ddPhamRoiTheoCap } from './data/dandien.js';
 import { ddBang, ddDemTong, ddDemNhanh, ddHonDaMo, ddNap } from './engine/dandien.js';
 import { dangTienMong, ensureDangTien } from './dangtienmong.js';   // Đăng Tiên Mộng (game thẻ bài, cách ly)
 import { nguTuKy, ensureNguTu } from './ngutuky.js';                 // Ngũ Tử Kỳ (cờ caro 3D, cách ly)
@@ -44,7 +44,7 @@ import { kyTran, ensureKyTran } from './kytran.js';                  // Kỳ Tr�
 import { dongPhu } from './dongphu.js';                              // Động Phủ (nhà riêng — component view)
 import { ensureDongPhu, resolveDongPhu } from './engine/dongphu.js'; // Động Phủ (engine thuần)
 import { HOUSE_TIERS as DP_HOUSE_TIERS, BUILDINGS as DP_BUILDINGS } from './engine/dongphu.js';
-import { Storage } from './engine/save.js';
+import { Storage, KhoaCuaSo } from './engine/save.js';
 import {
   startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS, ghiNhatKyNgay, khoaNgay,
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
@@ -141,6 +141,12 @@ const DEV_PASS_HASH = 1011525020;   // hash mật khẩu Dev (KHÔNG ghi plainte
 //    TRONG lúc SDK khởi tạo, mà `cloudGetUser()` lại chờ đúng lúc khởi tạo đó xong — đăng ký
 //    nghe sau là bắt hụt. Đọc thẳng từ hash lúc mô-đun nạp mới là đường chắc.
 const VE_DOI_MAT_KHAU = /(^|[#&])type=recovery/.test(location.hash || '');
+// Bấm "Gửi lại thư" ở màn Đổi Mật Khẩu: bỏ phiên khôi phục rồi TẢI LẠI trang cho sạch, xong mở
+// thẳng màn xin thư. Dấu này là đường duy nhất mang ý định đó qua được lần tải lại.
+const VE_QUEN_MAT_KHAU = (function () {
+  try { if (sessionStorage.getItem('tdl_quen_mk')) { sessionStorage.removeItem('tdl_quen_mk'); return true; } } catch (e) {}
+  return false;
+})();
 // Dịch lỗi Auth Supabase (tiếng Anh) sang tiếng Việt cho các lỗi hay gặp.
 function authErrVi(msg) {
   const m = (msg || '').toLowerCase();
@@ -645,7 +651,7 @@ const gameStore = {
   devPanel: false,
   devAuthed: false, devLoginOpen: false, devPass: '', devLoginErr: '', devTab: 'char',   // cổng đăng nhập F9 (theo phiên — reload phải đăng nhập lại)
   // Tài khoản / Cloud (Supabase Auth — Giai đoạn B). Offline-first: KHÔNG đăng nhập vẫn chơi.
-  authUser: null, authOpen: false, authMode: 'login', authEmail: '', authPass: '', authErr: '', authMsg: '', authBusy: false,
+  authUser: null, authOpen: false, authMode: VE_QUEN_MAT_KHAU ? 'quen' : 'login', authEmail: '', authPass: '', authErr: '', authMsg: '', authBusy: false,
   // Quên mật khẩu: `authMode === 'quen'` là màn xin thư. `datLaiMo` là màn đặt mật khẩu mới, chỉ
   // bật khi Supabase báo `PASSWORD_RECOVERY` (người vừa bấm đường trong thư quay về).
   datLaiMo: VE_DOI_MAT_KHAU, datLaiPass: '', datLaiPass2: '',
@@ -739,8 +745,10 @@ const gameStore = {
   ],
   // ⛔ KHÔNG đăng ký `cloudConflict`: modal đó bắt buộc chọn một bên, đóng ngang là mất cả hai
   //   đường. `navOpen` là ngăn kéo điều hướng, đóng theo nút chọn tab. `devPanel`/`devLoginOpen`
-  //   là bảng của tác giả. Năm cờ này nằm trong danh sách miễn trừ của bài kiểm 54.
-  _MODAL_MIEN_TRU: ['navOpen', 'cloudConflict', 'devPanel', 'devLoginOpen', 'devAuthed'],
+  //   là bảng của tác giả. `cuaSoKhach` là lớp phủ "đang mở ở cửa sổ khác": đóng ngang nó là
+  //   ngồi chơi trong cửa sổ KHÔNG GHI được, tức là mất hết công cày mà không hay.
+  //   Sáu cờ này nằm trong danh sách miễn trừ của bài kiểm 54.
+  _MODAL_MIEN_TRU: ['navOpen', 'cloudConflict', 'devPanel', 'devLoginOpen', 'devAuthed', 'cuaSoKhach'],
   _mstack: [], _mGuard: 0,
   _mKey(m) { return typeof m === 'string' ? m : m[0]; },
   _mClose(m) { if (typeof m === 'string') { this[m] = false; } else if (typeof this[m[1]] === 'function') { this[m[1]](); } else { this[m[0]] = false; } },
@@ -3292,6 +3300,19 @@ const gameStore = {
       this.authErr = 'Không kết nối được máy chủ (kiểm tra mạng) — thử lại.';
     } finally { this.authBusy = false; }
   },
+  // ⚠⚠ ĐỪNG hạ `datLaiMo` xuống rồi đổi màn tại chỗ. Hai thứ hỏng cùng lúc:
+  //    1) Form xin thư đòi `needsAuth`, mà phiên khôi phục vẫn còn nên `needsAuth` là false —
+  //       màn hiện ra sẽ là Khởi Tạo Nhân Vật, hoặc rơi thẳng vào game.
+  //    2) `datLaiMo` chính là khoá chặn nhịp đẩy 15 giây. Hạ nó khi chưa hề so bản lưu lần nào
+  //       là bản trắng của máy lạ đè lên bản thật, im lặng, không đòi lại được.
+  //    Đường đúng: bỏ phiên khôi phục rồi TẢI LẠI, để mọi cờ dựng lại từ đầu.
+  async guiLaiThuDoiMatKhau() {
+    this.authErr = ''; this.authMsg = ''; this.authBusy = true;
+    try { sessionStorage.setItem('tdl_quen_mk', '1'); } catch (e) {}
+    // ⛔ KHÔNG gọi `doSignOut()` — nó đẩy bản lưu lên máy chủ trước khi thoát, đúng cái phải tránh.
+    try { await cloudSignOut(); } catch (e) {}
+    location.replace(location.pathname + location.search);
+  },
   async doDatMatKhauMoi() {
     const a = this.datLaiPass || '', b = this.datLaiPass2 || '';
     this.authErr = ''; this.authMsg = '';
@@ -3441,7 +3462,26 @@ const gameStore = {
     this.showToast(ok ? 'Đã đồng bộ lên cloud.' : (this.cloudErr || 'Đồng bộ lỗi.'));
   },
   // Gọi định kỳ (mỗi 15s) + lúc rời trang: đẩy nếu save đã đổi so với lần đẩy trước.
+  // ---------- Khoá liên cửa sổ ----------
+  // `true` = cửa sổ này đang là KHÁCH: không ghi bản lưu, không đẩy lên máy chủ, giao diện dựng
+  // lớp phủ. Xem hàng rào thật ở `KhoaCuaSo` trong engine/save.js.
+  cuaSoKhach: false,
+  /** Gọi một lần lúc mở game + mỗi nhịp: giữ dấu, hoặc nhận ra mình vừa mất quyền ghi. */
+  nhipCuaSo() {
+    if (this.cuaSoKhach) return;                       // đã là khách thì đợi người chơi quyết
+    if (KhoaCuaSo.cuaSoKhacDangGiu()) { this.cuaSoKhach = true; KhoaCuaSo.datKhach(true); this._tick++; return; }
+    KhoaCuaSo.giuQuyen();
+  },
+  /** Người chơi chọn "Chơi ở cửa sổ này". */
+  gianhCuaSo() {
+    KhoaCuaSo.giuQuyen();
+    // ⚠⚠ PHẢI TẢI LẠI. Bản trong RAM của cửa sổ này đã cũ — cửa sổ kia cày tiếp suốt lúc nó
+    //    giữ quyền. Giành quyền rồi lưu thẳng bản RAM cũ là đúng cái lỗi đang đi vá.
+    location.reload();
+  },
   cloudAutoPushTick() {
+    // ⛔ Cửa sổ khách không được đẩy lên máy chủ: bản trong RAM của nó đã cũ.
+    if (this.cuaSoKhach || !KhoaCuaSo.coQuyen()) return;
     // ⚠⚠ CHẶN QUAN TRỌNG NHẤT TRONG BỐN CHẶN. Nhịp này chạy mỗi 15 giây và `_cloudLastPushed`
     //    khởi tạo −1 nên MỌI mốc đều lớn hơn — tức là nó sẽ đẩy bản lưu trắng của máy lạ đè lên
     //    bản thật, ngay giữa lúc người ta đang gõ mật khẩu mới. Chặn `cloudSyncOnLogin` mà quên
@@ -6609,8 +6649,16 @@ const gameStore = {
   // ---------- Phường Thị ----------
   merchantTab: 'avatar',
   setMerchantTab(t) { this.merchantTab = t; },
+  // ⛔ ẢNH SỰ KIỆN KHÔNG BÀY Ở THƯƠNG ĐIẾM. `sukien.js` đẩy 12 ảnh đại diện + 6 ảnh bìa vào
+  //    `AVATARS`/`COVERS` lúc nạp mô-đun, mà lưới ở đây duyệt CẢ BẢNG — nên ảnh của sáu lễ bày
+  //    bán bằng Hồn Thạch quanh năm, mất hẳn nghĩa "chỉ đổi được trong mùa đó". Đường đúng là
+  //    quầy sự kiện tương ứng, đổi bằng Điểm (`svQuayRows`). Chủ dự án chốt 2026-08-26.
+  get avatarThuongDiem() { return this.AVATARS.filter((a) => !a.suKien); },
+  get coverThuongDiem() { return this.COVERS.filter((c) => !c.suKien); },
   buyAvatar(id) {
     if (this.ownsAvatar(id)) return;
+    // Chặn ở CHÍNH CÁI VÒI, không chỉ ở lưới: lọc giao diện chỉ giấu nút đi.
+    if ((this.AVATARS.find((a) => a.id === id) || {}).suKien) return;
     if ((this.state.currencies.honThach || 0) < AVATAR_PRICE) { this.showToast('Không đủ Hồn Thạch (cần ' + this.fmt(AVATAR_PRICE) + ').'); return; }
     this.state.currencies.honThach -= AVATAR_PRICE;
     this.state.player.ownedAvatars.push(id);
@@ -6619,6 +6667,7 @@ const gameStore = {
   },
   buyCover(id) {
     if (this.ownsCover(id)) return;
+    if ((this.COVERS.find((c) => c.id === id) || {}).suKien) return;
     if ((this.state.currencies.honThach || 0) < COVER_PRICE) { this.showToast('Không đủ Hồn Thạch (cần ' + this.fmt(COVER_PRICE) + ').'); return; }
     this.state.currencies.honThach -= COVER_PRICE;
     this.state.player.ownedCovers.push(id);
@@ -7709,14 +7758,21 @@ const gameStore = {
     if (!(this.state.inventory[ref] > 0)) this.closeItemModal();
   },
 
-  // ---------- Dev / Admin (offline) — cổng mật khẩu F9 ----------
-  // F9: đã đăng nhập -> bật/tắt panel; chưa -> mở/đóng màn đăng nhập. Panel CHỈ hiện + dùng được khi devAuthed.
+  // ---------- Dev / Admin (offline) — CHỈ TÀI KHOẢN TÁC GIẢ, sau đó tới cổng mật khẩu F9 ----------
+  // ⛔⛔ HAI CỬA, VÀ CỬA NGOÀI LÀ TÀI KHOẢN. Trước bản này bất kỳ ai bấm F9 cũng thấy ô "Mật khẩu"
+  //    hiện lên — người chơi thường không có việc gì phải biết bảng này tồn tại, mà ô mật khẩu
+  //    hiện ra là lời mời dò. Nay `isAuthorAccount` chặn ngay ở lối vào: không phải tài khoản tác
+  //    giả thì F9 không làm gì cả, không một ô nào hiện.
+  // ⚠ `isAuthorAccount` chỉ ẨN/HIỆN, KHÔNG phải hàng rào chống gian lận — hàng rào thật là RLS ở
+  //   máy chủ. Cổng mật khẩu giữ nguyên làm cửa trong.
   toggleDev() {
+    if (!this.isAuthorAccount) return;
     if (this.devAuthed) { this.devPanel = !this.devPanel; return; }
     this.devLoginOpen = !this.devLoginOpen;
     if (this.devLoginOpen) { this.devPass = ''; this.devLoginErr = ''; }
   },
   devLogin() {
+    if (!this.isAuthorAccount) { this.devLoginOpen = false; this.devPass = ''; return; }
     if (devHash(this.devPass) === DEV_PASS_HASH) { this.devAuthed = true; this.devLoginOpen = false; this.devPanel = true; this.devPass = ''; this.devLoginErr = ''; }
     else { this.devLoginErr = 'Sai mật khẩu.'; this.devPass = ''; }
   },
@@ -8619,6 +8675,13 @@ const gameStore = {
   ddNhanh: 'tinh',
   moDanDien() { this.ddMo = true; },
   dongDanDien() { this.ddMo = false; },
+  // Ô "đan" của bảng Bảo Vật Yêu Vương / Bí Cảnh. Phẩm suy từ CẤP YÊU CẦU của cửa đó, đúng
+  // đường `grantReward` đang bốc (engine/worldboss.js). Lấy nhánh đầu làm ảnh đại diện — cả ba
+  // nhánh Tinh · Khí · Thần rơi đều nhau nên bày một cái là đủ nói.
+  yvDanRoi(cap) {
+    const pham = ddPhamRoiTheoCap(cap || 1);
+    return { pham, ten: DD_PHAM_TEN[pham - 1], id: ddItemId(DD_NHANH[0], pham), ti: Math.round(DD_TI_LE_ROI * 100) };
+  },
   chonDdNhanh(nh) { if (DD_NHANH.includes(nh)) this.ddNhanh = nh; },
   DD_NHANH, DD_NHANH_INFO, DD_PHAM_TEN, DD_O, DD_PHAM_NAU_TOI, DD_HON_THUONG,
   get ddBang() { return ddBang(this.state); },
@@ -8858,6 +8921,14 @@ setTimeout(() => { try { Alpine.store('game').taiNguoiThat(); } catch (e) {} }, 
 setTimeout(() => { try { kiemHanFont(); } catch (e) {} }, 1500);
 Alpine.store('game').initCloud();           // Tài khoản/Cloud: khôi phục phiên Supabase (lazy, offline-safe)
 Alpine.store('game').initAuthorSeal();      // Ấn Ký Tác Giả: verify chứng chỉ ký số (offline-safe)
+
+// Khoá liên cửa sổ: giành quyền ghi ngay lúc mở, rồi đóng dấu còn sống theo nhịp.
+// ⚠ Gọi TRƯỚC vòng lưu đầu tiên — chậm một nhịp là cửa sổ mới đã kịp ghi đè một lần.
+Alpine.store('game').nhipCuaSo();
+setInterval(() => { const s = window.Alpine?.store('game'); if (s) s.nhipCuaSo(); }, KhoaCuaSo.nhip);
+// Trả dấu lúc rời trang — tải lại trang mà không trả thì chính nó tự thấy "cửa sổ khác đang mở".
+// `pagehide` chứ không `beforeunload`: `beforeunload` không bắn trên iOS Safari và chặn bfcache.
+window.addEventListener('pagehide', () => { KhoaCuaSo.traDau(); });
 
 // Cloud save: tự đẩy định kỳ (15s) nếu save đã đổi + đẩy ngay khi ẩn/rời trang (best-effort).
 setInterval(() => { const s = window.Alpine?.store('game'); if (s) s.cloudAutoPushTick(); }, 15000);

@@ -507,8 +507,6 @@ export function dangTienMong() {
     rewardCards: [], rewardGold: 0, event: {}, shopItems: [], _gotRelic: null, _gotThan: null, _eventResult: null, _pendingEventResult: false, _evtBefore: null, _evtRelic: null,
     // ----- Bách Khoa Thẻ + Chi Tiết Quái (2 chức năng tra cứu, chỉ đọc POOL/ENEMIES/MOVES + DOM) -----
     dtlEnemy: null, wikiOpen: false, wikiSearch: '', fHe: 'all', fLoai: 'all', fBac: 'all', fPhai: 'all', phaiExpanded: false, wikiFiltOpen: false, dtmFiltDrop: null, scInfo: null, cardDetail: null, lightbox: null, _chipTip: null, _hoverCard: null,
-    // ----- Bảng Dev/Test (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D; CHỈ đụng this.* + state.dangTien + DOM) -----
-    devEnabled: false, devPanel: false, devCardSel: '', devEnemySel: '', devHp: '', devKhi: '', devEnemyHp: '',
     HEROES, RELICS, metaUp: META_UP,
     lobbyFoes: [
       { art: 'cuongDao', nm: 'Cường Đạo' }, { art: 'satThu', nm: 'Sát Thủ' },
@@ -521,7 +519,6 @@ export function dangTienMong() {
     ],
     // ----- BRIDGE persist (chỉ Tầng Mộng sâu nhất, cách ly) -----
     dtInit() { try { this._rootEl = this.$el; const g = this.$store.game; ensureDangTien(g.state); this.deepest = g.state.dangTien.deepest || 0; this.scSel = Object.assign({ kiem: 0, thien: 0, doc: 0, thuy: 0, hoa: 0, vo: 0 }, g.state.dangTien.scMaxByHero || {}); } catch (e) {}
-      try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('dtm_dev', '1'); else localStorage.removeItem('dtm_dev'); } this.devEnabled = localStorage.getItem('dtm_dev') === '1'; } catch (e2) {}
       // MOBILE: chọn thẻ (tap-1) -> hiện bản xem phóng to (căn giữa) để đọc đầy đủ; bỏ chọn/đánh -> ẩn. (PC dùng hover, canh TRÊN thẻ.)
       try { this.$watch('selUid', (v) => { if (window.innerWidth > 640) return; if (v && this.phase === 'battle') { this._hoverCard = this.hand.find((c) => c.uid === v) || null; this.$nextTick(() => this._positionPreview(null)); } else this._hoverCard = null; }); } catch (e3) {} },
     persist() { try { const g = this.$store.game; const s = g.state.dangTien; s.deepest = Math.max(s.deepest || 0, this.deepest || 0); Storage.save(g.state); } catch (e) {} },
@@ -820,39 +817,6 @@ export function dangTienMong() {
         prev.style.left = Math.max(8, (window.innerWidth - pw) / 2) + 'px'; prev.style.top = '54px';
       }
     },
-    // ===== Bảng Dev/Test — CHỈ đụng this.* (component) + state.dangTien + DOM. KHÔNG đụng currencies/gearBag/combat. =====
-    // ⚠⚠ CHỈ MỞ/ĐÓNG, TUYỆT ĐỐI KHÔNG TỰ BẬT. Bản cũ tự đặt `devEnabled = true` rồi ghi cờ vào
-    //    localStorage, nên `?dev=1` chỉ là trang trí: người chơi bất kỳ bấm Ctrl+Shift+D là có
-    //    nguyên bảng Dev, và nút DEV hiện vĩnh viễn từ đó. Bảng này phát Mộng Ngân, mà Mộng Ngân
-    //    đổi thẳng ra Nguyên Bảo — trong khi chống gian lận máy chủ chỉ soi `bac`, không soi
-    //    `nguyenBao`. Ctrl+Shift+D còn là phím tắt sẵn có của trình duyệt nên bấm trúng không hiếm.
-    //    Muốn vào thì mở bằng `?dev=1`, đúng lối bảng Dev chính của game (nó còn đòi mật khẩu).
-    devHotkey() { if (!this.devEnabled) return; this.devPanel = !this.devPanel; },
-    devDisable() { this.devEnabled = false; this.devPanel = false; try { localStorage.removeItem('dtm_dev'); } catch (e) {} },
-    _devLog(m) { this.log = '[Dev] ' + m; },
-    _devRun() { if (!this.run) this.startRun(this.HEROES[0]); },   // cần 1 ván (hero + bộ bài) để thao tác
-    devCardList() { return Object.keys(POOL).map((id) => ({ id, name: POOL[id].name, rar: POOL[id].rar })).sort((a, b) => a.name.localeCompare(b.name, 'vi')); },
-    devEnemyList() { return Object.keys(ENEMIES).map((id) => ({ id, name: ENEMIES[id].name })).sort((a, b) => a.name.localeCompare(b.name, 'vi')); },
-    devAddCard(where) { const id = this.devCardSel; if (!id || !POOL[id]) return; this._devRun(); if (where === 'hand') { if (this.phase !== 'battle') { this._devLog('Phải đang trong trận mới có thể thêm vào tay.'); return; } this.hand.push(mk(id)); } else { this.run.deck.push(mk(id)); } this._devLog((where === 'hand' ? '+tay: ' : '+bộ bài: ') + POOL[id].name); },
-    devSpawn(multi) { const id = this.devEnemySel; if (!id || !ENEMIES[id]) return; this._devRun(); const ids = multi ? [id, id] : [id]; this.waves = [ids]; this.waveIdx = 0; this._waveFlash = 0; this.battleKind = 'miniboss'; this._spawnEnemies(ids); this.drawPile = shuffle(this.run.deck.map((c) => ({ ...c }))); this.discard = []; this.hand = []; this.player = { block: 0, str: 0, dodge: false, keepBlock: false, poison: 0, burn: 0, burnT: 0, weaken: 0, stun: 0, _han: 0 }; this.khi = this.maxKhi; this.phase = 'battle'; this.startTurnPassive(); this.draw(this.handSize()); this._devLog('sinh trận: ' + ENEMIES[id].name + (multi ? ' ×2' : '')); },
-    devSetHp() { if (!this.run) return; const v = parseInt(this.devHp, 10); if (isNaN(v)) return; const vv = Math.max(1, v); if (vv > this.run.maxHp) this.run.maxHp = vv; this.run.hp = vv; this._devLog('HP người chơi = ' + vv); },
-    devSetKhi() { const v = parseInt(this.devKhi, 10); if (isNaN(v)) return; const vv = Math.max(0, v); if (vv > this.maxKhi) this.maxKhi = vv; this.khi = vv; this._devLog('Khí = ' + vv); },
-    devSetEnemyHp() { const e = this.enemies[this.tgtIdx()]; if (!e) return; const v = parseInt(this.devEnemyHp, 10); if (isNaN(v)) return; const vv = Math.max(1, v); if (vv > e.maxHp) e.maxHp = vv; e.hp = vv; this._devLog('HP quái = ' + vv); },
-    devStatus(who, kind) {
-      const o = who === 'player' ? this.player : this.enemies[this.tgtIdx()]; if (!o) return;
-      const wk = who === 'player' ? 'weaken' : 'weak';   // player.weaken vs enemy.weak
-      if (kind === 'poison') o.poison = (o.poison || 0) + 3;
-      else if (kind === 'burn') { o.burn = (o.burn || 0) + 3; o.burnT = Math.max(o.burnT || 0, 3); }
-      else if (kind === 'weaken') o[wk] = (o[wk] || 0) + 2;
-      else if (kind === 'stun') o.stun = (o.stun || 0) + 1;
-      else if (kind === 'block') o.block = (o.block || 0) + 10;
-      else if (kind === 'str') o.str = (o.str || 0) + 2;
-      this._devLog((who === 'player' ? 'người chơi' : 'quái') + ' +' + kind);
-    },
-    devUnlockAll() { try { const s = this.$store.game.state.dangTien; const ids = Object.keys(POOL).filter((id) => POOL[id].rar === 'tuyet' || POOL[id].rar === 'than'); s.unlockedCards = Array.from(new Set((s.unlockedCards || []).concat(ids))); Storage.save(this.$store.game.state); this._devLog('mở khóa ' + ids.length + ' thẻ Tuyệt/Thần'); } catch (e) {} },
-    devSetScAll(n) { try { const s = this.$store.game.state.dangTien; ['kiem', 'thien', 'doc'].forEach((h) => { s.scMaxByHero[h] = n; this.scSel[h] = n; }); if (this.run) this.run.sc = n; Storage.save(this.$store.game.state); this._devLog('Sát Cảnh = ' + n + ' (mọi hero)'); } catch (e) {} },
-    devAddNgan(n) { this.runNgan = (this.runNgan || 0) + n; try { const s = this.$store.game.state.dangTien; s.mongNgan = (s.mongNgan || 0) + n; Storage.save(this.$store.game.state); } catch (e) {} this._devLog('+' + n + ' Mộng Ngân'); },
-    devJumpTier() { if (!this.run) { this._devLog('chưa có ván'); return; } this.mapTier = Math.min((this.map.length || 20) - 1, (this.mapTier || 0) + 1); this.deepest = Math.max(this.deepest || 0, this.mapTier); this.persist(); this.buildMapView(); this.phase = 'map'; this._saveRun(); try { this._scrollMapCur(); } catch (e) {} this._devLog('nhảy tầng ' + (this.mapTier + 1)); },
 
     startRun(h) {
       if (!this.heroUnlocked(h.id)) return;   // mộng thân chưa mở khóa -> không vào ván

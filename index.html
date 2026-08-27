@@ -1329,7 +1329,7 @@
                          phiên hợp lệ mà vẫn không biết mật khẩu, không tự thoát được. -->
                     <div class="cs-doi">
                       <span>Đường dẫn hỏng?</span>
-                      <button @click="g.datLaiMo=false; g.setAuthMode('quen')">Gửi lại thư</button>
+                      <button @click="g.guiLaiThuDoiMatKhau()" :disabled="g.authBusy">Gửi lại thư</button>
                     </div>
                   </div>
                 </div>
@@ -4816,7 +4816,9 @@
                 <div class="panel rounded-xl p-4">
                   <div class="text-jade font-bold fserif mb-3">Ảnh Đại Diện</div>
                   <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-                    <template x-for="av in $store.game.AVATARS" :key="'shop-av-'+av.id">
+                    <!-- ⛔ `avatarThuongDiem` chứ KHÔNG phải `AVATARS`: bảng gốc đã có 12 ảnh sự kiện
+                         do `sukien.js` tự ghi danh vào. Ảnh sự kiện chỉ đổi ở quầy sự kiện. -->
+                    <template x-for="av in $store.game.avatarThuongDiem" :key="'shop-av-'+av.id">
                       <!-- ⚠ ok BẮT ĐẦU LÀ true: trước đây `{ok:false}` + `@load="ok=true"` nghĩa là
                            thẻ nằm `display:none` cho tới khi ảnh tải xong. Ảnh lại để `loading="lazy"`
                            mà ảnh trong hộp ẩn thì trình duyệt hoãn tải ⇒ vào Thương Điếm thấy TRỐNG TRƠN,
@@ -4851,7 +4853,8 @@
                 <div class="panel rounded-xl p-4">
                   <div class="text-jade font-bold fserif mb-3">Ảnh Bìa</div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <template x-for="cv in $store.game.COVERS" :key="'shop-cv-'+cv.id">
+                    <!-- ⛔ `coverThuongDiem` chứ KHÔNG phải `COVERS` — xem ghi chú ở lưới Ảnh Đại Diện. -->
+                    <template x-for="cv in $store.game.coverThuongDiem" :key="'shop-cv-'+cv.id">
                       <!-- ⚠ ok BẮT ĐẦU LÀ true: trước đây `{ok:false}` + `@load="ok=true"` nghĩa là
                            thẻ nằm `display:none` cho tới khi ảnh tải xong. Ảnh lại để `loading="lazy"`
                            mà ảnh trong hộp ẩn thì trình duyệt hoãn tải ⇒ vào Thương Điếm thấy TRỐNG TRƠN,
@@ -7849,6 +7852,29 @@
                           <span class="text-[9.5px] font-bold leading-tight text-jade" x-text="g.svTenPhuKien(b.suKien, b.wb.phuKien.loai, b.wb.phuKien.bac)"></span>
                         </div>
                       </template>
+                      <!-- ⚠⚠ HAI Ô DƯỚI ĐÂY TỪNG THIẾU. `grantReward` (engine/worldboss.js) thả CHẮC
+                           CHẮN 2 Mảnh Trang Bị cho Yêu Vương cấp ≥90 và bốc một viên đan Đan Điền
+                           6%, mà lưới không vẽ thứ nào — bảng bỏ sót đúng hai thứ đáng giá nhất.
+                           Cùng họ với ô Tinh Thể ở trên, nhưng sai theo chiều ngược lại: chỗ kia
+                           bày thứ KHÔNG rơi, chỗ này giấu thứ CÓ rơi. -->
+                      <!-- Mảnh Trang Bị Hoàng Kim — chắc chắn ×2, chỉ Yêu Vương cấp ≥90 -->
+                      <template x-if="!b.suKien && (b.reqLevel||0) >= 90">
+                        <div class="relative aspect-square rounded-lg bg-black/50 border border-amber-400/50 flex flex-col items-center justify-center gap-1 cursor-zoom-in" style="box-shadow:inset 0 0 12px rgba(251,191,36,.18)" @click="g.openLightbox('manhTrangBi','🔆','Mảnh Trang Bị Hoàng Kim')">
+                          <span class="absolute -top-1 -right-1 text-[9px] font-bold px-1 rounded bg-amber-400 text-ink">×2</span>
+                          <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico('manhTrangBi','🔆')"></span>
+                          <span class="text-[15px] font-bold leading-none text-amber-300">100%</span>
+                          <span class="text-[9px] uppercase tracking-wider text-slate-500 leading-none">Mảnh Trang Bị</span>
+                        </div>
+                      </template>
+                      <!-- Đan Đan Điền — phẩm suy từ cấp yêu cầu. Yêu Vương sự kiện KHÔNG thả đan. -->
+                      <template x-if="!b.suKien">
+                        <div class="relative aspect-square rounded-lg bg-black/50 border border-violet-500/45 flex flex-col items-center justify-center gap-1 cursor-zoom-in"
+                             x-data="{ get dd(){ return g.yvDanRoi(b.reqLevel) } }" @click="g.openLightbox(dd.id,'💊','Đan '+dd.ten)">
+                          <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico(dd.id,'💊')"></span>
+                          <span class="text-[15px] font-bold leading-none text-violet-300" x-text="dd.ti+'%'"></span>
+                          <span class="text-[9px] uppercase tracking-wider text-slate-500 leading-none" x-text="'Đan '+dd.ten"></span>
+                        </div>
+                      </template>
                       <!-- Hồn Thạch -->
                       <div class="aspect-square rounded-lg bg-black/50 border border-rose-600/40 flex flex-col items-center justify-center gap-1 cursor-zoom-in" @click="g.openLightbox('honThach','🔴','Hồn Thạch')">
                         <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico('honThach','🔴')"></span>
@@ -7897,9 +7923,16 @@
         <div class="space-y-3" x-data="{ get g(){ return $store.game } }">
           <!-- Chưa có sự kiện mở -->
           <template x-if="!g.svDef">
+            <!-- ⚠ MÀN TRỐNG PHẢI CÓ ĐƯỜNG RA. Đóng hết sáu lễ thì đây là màn duy nhất trong game
+                 không dẫn đi đâu được — bộ quét chạy-thật bắt đúng chỗ này. -->
             <div class="panel rounded-xl border border-slate-800 p-6 text-center">
               <div class="text-[15px] fserif text-slate-300">Chưa có sự kiện nào đang mở.</div>
               <template x-if="g.svSapMoText"><div class="text-[12.5px] text-amber-300 mt-2" x-text="g.svSapMoText"></div></template>
+              <template x-if="!g.svSapMoText"><div class="text-[12.5px] text-slate-500 mt-2">Sáu lễ trong năm mở theo lịch. Tới ngày sẽ hiện ở đây.</div></template>
+              <div class="mt-4 flex items-center justify-center gap-2 flex-wrap">
+                <button @click="g.navTo('map')" class="px-3.5 py-2 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-[13px] font-bold transition">Về Bản Đồ</button>
+                <button @click="g.navTo('combat')" class="px-3.5 py-2 rounded-lg bg-ink3 border border-slate-700 hover:border-slate-500 text-slate-300 text-[13px] transition">Về Chiến Đấu</button>
+              </div>
             </div>
           </template>
 
@@ -8398,6 +8431,17 @@
                             </div>
                           </div>
                         </template>
+                        <!-- Đan Đan Điền — `dungeon.js` thả 6% mỗi lượt thông quan mà lưới trước đây
+                             không vẽ. Cùng một chỗ thiếu với bảng Bảo Vật Yêu Vương; vá một bên mà
+                             bỏ bên kia thì nửa còn lại vẫn giấu đồ. -->
+                        <div class="relative aspect-square overflow-hidden rounded-lg bg-black/50 border border-violet-500/45 cursor-zoom-in"
+                             x-data="{ get dd(){ return g.yvDanRoi(d.reqLevel) } }" @click="g.openLightbox(dd.id,'💊','Đan '+dd.ten)">
+                          <div class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 p-1 text-center">
+                            <span class="w-10 h-10 inline-flex items-center justify-center" x-html="g.ico(dd.id,'💊')"></span>
+                            <span class="text-[10px] font-bold leading-none text-violet-300" x-text="dd.ti+'%'"></span>
+                            <span class="text-[8px] leading-tight text-slate-400 truncate w-full" x-text="'Đan '+dd.ten"></span>
+                          </div>
+                        </div>
                         <!-- Bí Kíp KHÔNG cố định một bản: bốc từ cả nhóm theo cấp phó bản. Nên ô này
                              bấm được để mở DANH MỤC (cùng lối với ô Đồ Phổ) — trước đó chỉ có mỗi
                              con số, người chơi không biết rơi ra bí kíp gì. -->
@@ -12062,26 +12106,6 @@
         .dtmk-lightbox{ position:fixed; inset:0; z-index:130; background:rgba(3,5,8,.92); display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
         .dtmk-lightbox img{ max-width:96vw; max-height:92vh; border-radius:12px; box-shadow:0 20px 80px -10px #000; }
         /* ===== Bảng Dev/Test (teleport body — class global, KHÔNG scope .dtm-root) ===== */
-        .dtm-devbtn{ position:fixed; bottom:14px; right:14px; z-index:140; font-family:'Lora','Noto Serif SC',serif; font-size:11px; font-weight:800; letter-spacing:.16em; color:#1a1206; background:linear-gradient(180deg,#fcd34d,#d97706); border:1px solid #00000066; border-radius:8px; padding:5px 11px; box-shadow:0 4px 14px -4px #000, 0 0 0 1px #fbbf2455; cursor:pointer; opacity:.8; }
-        .dtm-devbtn:hover{ opacity:1; box-shadow:0 6px 18px -4px #000, 0 0 12px -2px #fbbf24; }
-        .dtm-devwrap{ position:fixed; inset:0; z-index:141; background:rgba(3,5,10,.66); display:flex; align-items:center; justify-content:center; padding:16px; }
-        .dtm-devpanel{ width:min(560px,96vw); max-height:88vh; overflow-y:auto; background:linear-gradient(180deg,#0e1626,#0a0f1b); border:1px solid #fbbf2455; border-radius:14px; box-shadow:0 30px 90px -20px #000; padding:15px 18px 18px; color:#dbe4ee; font-size:12.5px; }
-        .dtm-devhead{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #1e293b; padding-bottom:8px; margin-bottom:4px; }
-        .dtm-devhead .t{ color:#f8d27a; font-size:17px; }
-        .dtm-devx{ color:#94a3b8; cursor:pointer; background:none; border:none; padding:2px 4px; display:flex; }
-        .dtm-devx:hover{ color:#e6edf3; }
-        .dtm-devpanel h4{ font-family:'Lora','Noto Serif SC',serif; color:#fbbf24; font-size:12.5px; margin:14px 0 6px; letter-spacing:.02em; }
-        .dtm-devrow{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-        .dtm-devlbl{ color:#94a3b8; font-size:11px; width:100%; }
-        .dtm-devpanel select, .dtm-devpanel input{ background:#070b12; border:1px solid #33415588; border-radius:7px; color:#e6edf3; padding:5px 8px; font-size:12px; }
-        .dtm-devpanel select{ max-width:100%; flex:1 1 190px; min-width:0; }
-        .dtm-devpanel input[type=number]{ width:76px; }
-        .dtm-devbn{ background:#16233a; border:1px solid #3a4d6b; border-radius:7px; color:#cfe0f2; padding:5px 10px; font-size:11.5px; cursor:pointer; font-weight:600; }
-        .dtm-devbn:hover{ background:#1e3050; border-color:#5877a3; }
-        .dtm-devbn.warn{ border-color:#c0525288; color:#fca5a5; background:#1a0f12; }
-        .dtm-devbn.warn:hover{ background:#2a1418; }
-        .dtm-devhint{ color:#64748b; font-size:10.5px; }
-        .dtm-devhint b{ color:#94a3b8; font-weight:700; }
         /* Tooltip chip nổi tự do (teleport body) — không bị khung thẻ cắt */
         .dtm-chiptip{ position:fixed; z-index:99999; max-width:230px; padding:7px 10px; background:#0b1120f8; border:1px solid var(--tc,#5b6b82); border-radius:9px; color:#eef3fa; font-size:11.5px; font-weight:600; line-height:1.4; box-shadow:0 12px 30px -8px #000, 0 0 0 1px #00000066; pointer-events:none; }
         .dtm-chiptip .tt{ font-family:'Lora','Noto Serif SC',serif; font-weight:700; font-size:12px; margin-bottom:2px; }
@@ -12104,7 +12128,7 @@
         @media (max-width:640px){ .dtm-cardprev{ width:min(372px,94vw); } }
 </style>
       <template x-if="$store.game.view==='dangTienMong'">
-        <div class="dtm-root max-w-[1200px] mx-auto" x-data="dangTienMong()" x-init="dtInit()" @keydown.window="if($event.ctrlKey&&$event.shiftKey&&$event.code==='KeyD'){$event.preventDefault();devHotkey();}">
+        <div class="dtm-root max-w-[1200px] mx-auto" x-data="dangTienMong()" x-init="dtInit()">
           <div class="dtm-bg" :style="'background-image:url('+bgImg()+')'"></div>
           <div class="dtm-fog"></div>
           <!-- SVG line-icon sprite (Bách Khoa / Chi Tiết) — không emoji -->
@@ -12146,54 +12170,6 @@
               <div class="brct"><div class="brband" :style="'--brhe:'+heColor(_bossReveal.he)"><div class="brsub fserif" x-text="_bossReveal.title"></div><div class="brnm fserif" x-text="_bossReveal.name"></div></div></div>
             </div>
           </template>
-          <!-- ===== Bảng Dev/Test (teleport body — tránh isolation:isolate; ẩn, gate ?dev=1 / Ctrl+Shift+D) ===== -->
-          <template x-teleport="body"><div class="dtmk-portal">
-            <button x-show="devEnabled" @click="devHotkey()" class="dtm-devbtn" title="Bảng Dev/Test (Ctrl+Shift+D)">DEV</button>
-            <template x-if="devPanel">
-              <div class="dtm-devwrap" @click.self="devPanel=false" @keydown.escape.window="devPanel=false">
-                <div class="dtm-devpanel">
-                  <div class="dtm-devhead"><span class="t fserif">Bảng Dev / Test</span><button class="dtm-devx" @click="devPanel=false"><svg width="16" height="16" viewBox="0 0 24 24"><use href="#dtmk-i-x"/></svg></button></div>
-                  <h4>Sinh quái · Boss</h4>
-                  <div class="dtm-devrow">
-                    <select x-model="devEnemySel"><option value="">— chọn quái / boss —</option><template x-for="e in devEnemyList()" :key="e.id"><option :value="e.id" x-text="e.name"></option></template></select>
-                    <button class="dtm-devbn" @click="devSpawn(false)">Sinh trận</button>
-                    <button class="dtm-devbn" @click="devSpawn(true)">×2</button>
-                  </div>
-                  <h4>Thêm thẻ vào tay / bộ bài</h4>
-                  <div class="dtm-devrow">
-                    <select x-model="devCardSel"><option value="">— chọn thẻ —</option><template x-for="c in devCardList()" :key="c.id"><option :value="c.id" x-text="c.name"></option></template></select>
-                    <button class="dtm-devbn" @click="devAddCard('hand')">Vào tay</button>
-                    <button class="dtm-devbn" @click="devAddCard('deck')">Vào bộ bài</button>
-                  </div>
-                  <h4>Chỉ số</h4>
-                  <div class="dtm-devrow">
-                    <span>HP người chơi</span><input type="number" x-model="devHp"><button class="dtm-devbn" @click="devSetHp()">Đặt</button>
-                    <span>Khí</span><input type="number" x-model="devKhi"><button class="dtm-devbn" @click="devSetKhi()">Đặt</button>
-                  </div>
-                  <div class="dtm-devrow" style="margin-top:6px"><span>HP quái (mục tiêu)</span><input type="number" x-model="devEnemyHp"><button class="dtm-devbn" @click="devSetEnemyHp()">Đặt</button></div>
-                  <h4>Trạng thái thử</h4>
-                  <div class="dtm-devrow"><span class="dtm-devlbl">Người chơi</span>
-                    <button class="dtm-devbn" @click="devStatus('player','poison')">+Độc</button><button class="dtm-devbn" @click="devStatus('player','burn')">+Bỏng</button><button class="dtm-devbn" @click="devStatus('player','weaken')">+Suy Yếu</button><button class="dtm-devbn" @click="devStatus('player','stun')">+Choáng</button><button class="dtm-devbn" @click="devStatus('player','block')">+Hộ Thể</button><button class="dtm-devbn" @click="devStatus('player','str')">+Lực</button>
-                  </div>
-                  <div class="dtm-devrow" style="margin-top:6px"><span class="dtm-devlbl">Quái (mục tiêu)</span>
-                    <button class="dtm-devbn" @click="devStatus('enemy','poison')">+Độc</button><button class="dtm-devbn" @click="devStatus('enemy','burn')">+Bỏng</button><button class="dtm-devbn" @click="devStatus('enemy','weaken')">+Suy Yếu</button><button class="dtm-devbn" @click="devStatus('enemy','stun')">+Choáng</button><button class="dtm-devbn" @click="devStatus('enemy','block')">+Hộ Thể</button><button class="dtm-devbn" @click="devStatus('enemy','str')">+Lực</button>
-                  </div>
-                  <h4>Mở khóa & Sát Cảnh</h4>
-                  <div class="dtm-devrow">
-                    <button class="dtm-devbn" @click="devUnlockAll()">Mở toàn bộ thẻ Tuyệt</button>
-                    <span class="dtm-devlbl" style="margin-left:8px">Sát Cảnh</span>
-                    <template x-for="n in (scMax()+1)" :key="n"><button class="dtm-devbn" @click="devSetScAll(n-1)" x-text="n-1"></button></template>
-                  </div>
-                  <h4>Mộng Ngân & Tầng</h4>
-                  <div class="dtm-devrow">
-                    <button class="dtm-devbn" @click="devAddNgan(100)">+100 Mộng Ngân</button><button class="dtm-devbn" @click="devAddNgan(1000)">+1000</button><button class="dtm-devbn" @click="devJumpTier()">Nhảy tầng +1</button>
-                  </div>
-                  <div class="dtm-devhint" x-show="log" x-text="'Log: '+log" style="margin-top:12px"></div>
-                  <div class="dtm-devrow" style="margin-top:10px;justify-content:space-between"><span class="dtm-devhint">Gate: <b>?dev=1</b> · phím <b>Ctrl+Shift+D</b></span><button class="dtm-devbn warn" @click="devDisable()">Tắt chế độ Dev</button></div>
-                </div>
-              </div>
-            </template>
-          </div></template>
           <div class="dtm-hdr flex items-center justify-between mb-3" x-show="phase!=='lobby'">
             <div class="flex items-center gap-2">
               <span class="relative w-8 h-8 rounded-lg flex items-center justify-center fserif text-[18px] overflow-hidden" style="color:#a78bfa;border:1px solid #a78bfa55;background:#a78bfa15">夢<img loading="lazy" decoding="async" src="images/dtm/emblem.webp" class="absolute inset-0 w-full h-full object-contain" alt="" onerror="this.remove()"></span>
@@ -13258,29 +13234,9 @@
         }
         @keyframes ktrPop{ from{ opacity:0; transform:translate(-50%,-46%) scale(.97); } to{ opacity:1; transform:translate(-50%,-50%) scale(1); } }
         /* ===== Bảng Dev/Test Kỳ Trận (teleport body — class GLOBAL, không scope .kt-root) ===== */
-        .ktd-btn{position:fixed;bottom:14px;right:14px;z-index:140;font-family:'Lora','Noto Serif SC',serif;font-size:11px;font-weight:700;letter-spacing:.14em;color:#062521;background:linear-gradient(180deg,#5eead4,#14b8a6);border:1px solid #00000055;border-radius:8px;padding:5px 11px;box-shadow:0 4px 14px -4px #000;cursor:pointer;opacity:.82}
-        .ktd-btn:hover{opacity:1;box-shadow:0 6px 18px -4px #000,0 0 12px -3px #2dd4bf}
-        .ktd-wrap{position:fixed;inset:0;z-index:141;background:rgba(3,5,10,.66);display:flex;align-items:center;justify-content:center;padding:16px}
-        .ktd-panel{width:min(560px,96vw);max-height:88vh;overflow-y:auto;background:linear-gradient(180deg,#0e1626,#0a0f1b);border:1px solid rgba(45,212,191,.32);border-radius:14px;box-shadow:0 30px 90px -20px #000;padding:15px 18px 18px;color:#dbe4ee;font-size:12.5px}
-        .ktd-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding-bottom:8px}
-        .ktd-head .t{color:#5eead4;font-size:17px}
-        .ktd-x{color:#94a3b8;cursor:pointer;background:none;border:none;padding:0 4px;font-size:18px;line-height:1}
-        .ktd-x:hover{color:#e6edf3}
-        .ktd-panel h4{font-family:'Lora','Noto Serif SC',serif;color:#2dd4bf;font-size:12.5px;margin:14px 0 6px}
-        .ktd-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-        .ktd-lbl{color:#94a3b8;font-size:11px;width:100%}
-        .ktd-lbl b{color:#e8c877}
-        .ktd-panel select,.ktd-panel input{background:#070b12;border:1px solid #33415588;border-radius:7px;color:#e6edf3;padding:5px 8px;font-size:12px}
-        .ktd-panel input{width:92px}
-        .ktd-b{background:#16233a;border:1px solid #2b3d57;color:#dbe4ee;border-radius:7px;padding:5px 10px;font-size:12px;font-family:inherit;cursor:pointer}
-        .ktd-b:hover{background:#1e2f4a;border-color:#3a4f6e}
-        .ktd-b.on{border-color:#2dd4bf;color:#5eead4;background:#0f2b2a}
-        .ktd-b.warn{border-color:#7f1d1d;color:#fca5a5;background:#1f1113}
-        .ktd-b.warn:hover{background:#2a1416}
-        .ktd-log{margin-top:12px;font-size:11px;color:#7dd3fc;border-top:1px solid #1e293b;padding-top:8px;min-height:15px}
       </style>
       <template x-if="$store.game.view==='kyTran'">
-        <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()" @keydown.window="ktDevKey($event)">
+        <div class="kt-root max-w-[1200px] mx-auto" x-data="kyTran()" x-init="ktInit()">
           <!-- thanh đầu -->
           <!-- Banner chuẩn (đồng bộ Yêu Vương / Bí Cảnh / Nghề): min-h 160, art nền + overlay + chip trạng thái góc phải. Ẩn khi vào trận (mobile khỏi phải cuộn xuống board) -->
           <div x-show="!inBattle" class="relative panel rounded-xl overflow-hidden min-h-[200px] sm:min-h-[160px] flex flex-col sm:flex-row sm:items-center">
@@ -13308,81 +13264,6 @@
           <!-- ===== TRẬN MATCH-3 (mount imperative khi inBattle) ===== -->
           <div x-show="inBattle" style="margin-top:12px"><div x-ref="battleHost"></div></div>
 
-          <!-- ===== BẢNG DEV/TEST (ẩn — ?dev=1 hoặc Ctrl+Shift+D; teleport body; chỉ đụng state.kyTran) ===== -->
-          <template x-teleport="body"><div>
-            <button class="ktd-btn" x-show="devEnabled" @click="devToggle()" title="Bảng Dev Kỳ Trận (Ctrl+Shift+D)">DEV · KỲ TRẬN</button>
-            <div class="ktd-wrap" x-show="devPanel" @keydown.escape.window="devPanel=false">
-              <div class="ktd-panel" @click.outside="devPanel=false">
-                <div class="ktd-head">
-                  <span class="t fserif">Bảng Dev · Kỳ Trận</span>
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <button class="ktd-b warn" @click="devOff()" title="Tắt hẳn chế độ Dev">Tắt Dev</button>
-                    <button class="ktd-x" @click="devPanel=false" aria-label="Đóng">×</button>
-                  </div>
-                </div>
-
-                <h4>Kinh Tế</h4>
-                <div class="ktd-row">
-                  <span class="ktd-lbl">Trận Hồn: <b x-text="kt.tranHon"></b> · Lượt tuần: <b x-text="weekLeft+' / '+weekCap"></b></span>
-                  <button class="ktd-b" @click="devAddHon(1000)">+1.000</button>
-                  <button class="ktd-b" @click="devAddHon(10000)">+10.000</button>
-                  <input type="number" x-model="devHon" placeholder="đặt =" @keydown.enter="devSetHon()">
-                  <button class="ktd-b" @click="devSetHon()">Đặt</button>
-                  <button class="ktd-b" @click="devFillWeek()">Đầy lượt tuần</button>
-                </div>
-
-                <h4>Ngũ Hành (áp cho mọi Hành)</h4>
-                <div class="ktd-row">
-                  <button class="ktd-b" @click="devSetHanhAll(0)">Cấp 0</button>
-                  <button class="ktd-b" @click="devSetHanhAll(4)">Cấp 4</button>
-                  <button class="ktd-b" @click="devSetHanhAll(7)">Cấp 7</button>
-                  <button class="ktd-b" @click="devSetHanhAll(10)">Cấp 10</button>
-                  <input type="number" x-model="devHanh" placeholder="0-10" @keydown.enter="devSetHanhInput()">
-                  <button class="ktd-b" @click="devSetHanhInput()">Đặt</button>
-                </div>
-
-                <h4>Mở Khóa</h4>
-                <div class="ktd-row">
-                  <button class="ktd-b" @click="devUnlockTp()">Mở hết Tâm Pháp</button>
-                  <button class="ktd-b" @click="devUnlockSk()">Mở hết Kỹ Năng</button>
-                  <button class="ktd-b" @click="devFillCodex()">Mở hết Trảm Yêu Lục</button>
-                </div>
-
-                <h4>Cung · Tiến Độ</h4>
-                <div class="ktd-row">
-                  <button class="ktd-b" :class="_devOpenAll?'on':''" @click="devOpenAll()">Mở khóa mọi Cung</button>
-                  <button class="ktd-b" @click="devConquerOuter()">Chiếm 8 Cung ngoài</button>
-                  <button class="ktd-b" @click="devConquerAll()">Chiếm trọn 9 Cung</button>
-                  <button class="ktd-b warn" @click="devResetProg()">Xoá tiến độ</button>
-                </div>
-                <div class="ktd-row" style="margin-top:6px">
-                  <span class="ktd-lbl">Đặt tiến độ 1 Cung:</span>
-                  <select x-model="devCungSel">
-                    <template x-for="c in KT_CUNG" :key="c.id"><option :value="c.id" x-text="c.nm+' ('+(kt.prog[c.id]||0)+'/6)'"></option></template>
-                  </select>
-                  <button class="ktd-b" @click="devSetProg(0)">Trận 0</button>
-                  <button class="ktd-b" @click="devSetProg(5)">→ Cung Chủ (5)</button>
-                  <button class="ktd-b" @click="devSetProg(6)">Chiếm (6)</button>
-                </div>
-
-                <h4>Trùng (NG+)</h4>
-                <div class="ktd-row">
-                  <span class="ktd-lbl">Hiện: <b x-text="'Trùng '+trungRoman(trung)"></b></span>
-                  <button class="ktd-b" @click="devSetTrung(1)">I</button>
-                  <button class="ktd-b" @click="devSetTrung(2)">II</button>
-                  <button class="ktd-b" @click="devSetTrung(3)">III</button>
-                </div>
-
-                <h4>Nhanh</h4>
-                <div class="ktd-row">
-                  <button class="ktd-b on" @click="devLoadFull()">Nạp đầy để thử nghiệm.</button>
-                  <button class="ktd-b warn" @click="devResetAll()" x-text="devConfirmReset?'Bấm lần nữa để XÓA.':'Reset toàn bộ Kỳ Trận'"></button>
-                </div>
-
-                <div class="ktd-log" x-text="devLog||'Sẵn sàng. Mọi thao tác chỉ thay đổi state.kyTran (0-power, tách biệt hoàn toàn).'"></div>
-              </div>
-            </div>
-          </div></template>
 
           <!-- ===== TAB: ĐẠI TRẬN ĐỒ ===== -->
           <div x-show="!inBattle && ktTab==='map'">
@@ -19488,6 +19369,24 @@
           <button @click="$store.game.useLocalSave()" class="px-3 py-2.5 rounded-lg bg-jade/15 border border-jade/40 text-jade hover:bg-jade/25 text-sm font-bold transition">Giữ bản máy này</button>
         </div>
         <div class="text-[10px] text-slate-600 text-center mt-2.5">Chọn "Dùng bản Cloud" sẽ tải lại trang.</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== Đang mở ở cửa sổ khác — CHẶN HẲN, chỉ có một đường ra =====
+       Hàng rào thật nằm ở `KhoaCuaSo` (engine/save.js): cửa sổ khách không ghi được bản lưu dù
+       lớp phủ này có bị gỡ đi. Lớp phủ chỉ để người chơi BIẾT và chọn.
+       ⛔ Cố ý KHÔNG có đường đóng bằng nền/Esc: đóng nó đi là ngồi chơi trong cửa sổ không lưu. -->
+  <template x-if="$store.game.cuaSoKhach">
+    <div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+      <div class="panel rounded-xl w-[420px] max-w-full p-5 border border-amber-500/40 shadow-2xl">
+        <div class="font-bold text-amber-300 flex items-center gap-2 mb-2" style="font-family:'Lora','Noto Serif SC',serif"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('warn','w-4 h-4')"></span>Đang mở ở cửa sổ khác</div>
+        <div class="text-[12.5px] text-slate-300 leading-relaxed">Tiêu Dao Lục chỉ ghi tiến trình ở một cửa sổ.</div>
+        <div class="text-[12.5px] text-slate-400 leading-relaxed mt-1">Cửa sổ này đã ngưng ghi, để khỏi đè mất phần cửa sổ kia vừa chơi.</div>
+        <div class="mt-4">
+          <button @click="$store.game.gianhCuaSo()" class="px-4 py-2.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-200 hover:bg-amber-500/25 text-sm font-bold transition">Chơi ở cửa sổ này</button>
+        </div>
+        <div class="text-[11px] text-slate-500 mt-3">Chọn nút trên thì trang tải lại và lấy bản lưu mới nhất. Cửa sổ kia sẽ ngưng ghi.</div>
       </div>
     </div>
   </template>

@@ -76,7 +76,6 @@ export function kyTran() {
       let pick = KT_CUNG.findIndex((c, i) => this.cungSt(i) === 'active');
       if (pick < 0) pick = KT_CUNG.findIndex((c, i) => this.cungSt(i) === 'open');
       this.selCung = pick >= 0 ? pick : 0;
-      this.devInit();
       // Rời tab Kỳ Trận giữa trận → tháo combat (gỡ listener resize + dừng async), tính như bỏ trận
       this.$watch('$store.game.view', (v) => {
         if (v !== 'kyTran' && this._battle) { try { this._battle.destroy(); } catch (e) {} this._battle = null; this.inBattle = false; }
@@ -100,7 +99,6 @@ export function kyTran() {
     cungProg(i) { return this.kt.prog[KT_CUNG[i].id] || 0; },
     cungDone(i) { return this.cungProg(i) >= 6; },
     cungUnlocked(i) {
-      if (this._devOpenAll) return true;                                        // Dev: mở khóa mọi Cung để test
       if (i === 4) return KT_CUNG.every((c, j) => j === 4 || this.cungDone(j)); // Trung Cung: cần 8 Cung ngoài
       if (i === 0) return true;                                                 // Thiên Cương: cửa khởi đầu
       return ktNeighbors(i).some((n) => this.cungDone(n));
@@ -417,58 +415,5 @@ export function kyTran() {
       };
     },
 
-    // ===== BẢNG DEV/TEST (ẩn — gate ?dev=1 hoặc Ctrl+Shift+D trong view Kỳ Trận; CHỈ đụng state.kyTran + this.*) =====
-    devEnabled: false, devPanel: false, _devOpenAll: false, devConfirmReset: false, devLog: '',
-    devCungSel: 'thienCuong', devHon: '', devHanh: '',
-    devInit() {
-      try { const m = /[?&]dev=([01])/.exec(location.search); if (m) { if (m[1] === '1') localStorage.setItem('kt_dev', '1'); else localStorage.removeItem('kt_dev'); } this.devEnabled = localStorage.getItem('kt_dev') === '1'; } catch (e) {}
-    },
-    ktDevKey(e) { if (e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd' || e.keyCode === 68)) { e.preventDefault(); this.devToggle(); } },
-    // ⚠⚠ CHỈ MỞ/ĐÓNG, KHÔNG TỰ BẬT — cùng lỗ với `devHotkey` của Đăng Tiên Mộng. Bảng này cho
-    //    +50.000 Trận Hồn, mở hết Tâm Pháp, và `devFillWeek()` xoá sạch giới hạn lượt tuần —
-    //    mà điểm Kỳ Trận đổ thẳng vào Trận Đồ Bảng công khai. Vào bằng `?dev=1`.
-    devToggle() { if (!this.devEnabled) return; this.devPanel = !this.devPanel; },
-    devOff() { this.devEnabled = false; this.devPanel = false; this._devOpenAll = false; try { localStorage.removeItem('kt_dev'); } catch (e) {} },
-    _dlog(m) { this.devLog = m; },
-    _dsave() { try { Storage.save(this.$store.game.state); } catch (e) {} },
-    // Kinh tế
-    devAddHon(n) { this.kt.tranHon = Math.max(0, (this.kt.tranHon || 0) + n); this._dsave(); this._dlog('Trận Hồn = ' + this.kt.tranHon); },
-    devSetHon() { const v = parseInt(this.devHon, 10); if (isNaN(v)) return; this.kt.tranHon = Math.max(0, v); this.devHon = ''; this._dsave(); this._dlog('Trận Hồn = ' + this.kt.tranHon); },
-    devFillWeek() { this.weekCheck(); this.kt.week.used = 0; this._dsave(); this._dlog('Đầy lượt tuần (' + this.weekCap + ')'); },
-    // Ngũ Hành
-    devSetHanhAll(n) { const vv = Math.max(0, Math.min(10, n)); KT_HANH_ORDER.forEach((k) => { this.kt.nguHanh[k] = vv; }); this._dsave(); this._dlog('Mọi Ngũ Hành = Cấp ' + vv); },
-    devSetHanhInput() { const v = parseInt(this.devHanh, 10); if (isNaN(v)) return; this.devHanh = ''; this.devSetHanhAll(v); },
-    // Mở khóa
-    devUnlockTp() { this.kt.tp = KT_TAM_PHAP.map((t) => t.id); this._dsave(); this._dlog('Mở hết ' + this.kt.tp.length + ' Tâm Pháp'); },
-    devUnlockSk() { this.kt.sk = KT_SKILLS.map((s) => s.id); this._dsave(); this._dlog('Mở hết ' + this.kt.sk.length + ' Kỹ Năng'); },
-    // Cung / tiến độ
-    devSetProg(n) { this.kt.prog[this.devCungSel] = n; this._dsave(); const c = KT_CUNG.find((x) => x.id === this.devCungSel); this._dlog((c ? c.nm : this.devCungSel) + ' → ' + n + '/6 trận'); },
-    devConquerOuter() { KT_CUNG.forEach((c) => { if (c.id !== 'maDe') this.kt.prog[c.id] = 6; }); this._dsave(); this._dlog('Chiếm 8 Cung ngoài (mở Ma Đế)'); },
-    devConquerAll() { KT_CUNG.forEach((c) => { this.kt.prog[c.id] = 6; }); this._dsave(); this._dlog('Chiếm trọn 9 Cung (mở Nhập Trùng)'); },
-    devResetProg() { this.kt.prog = {}; this.selCung = 0; this._dsave(); this._dlog('Đã xoá tiến độ Cung'); },
-    devOpenAll() { this._devOpenAll = !this._devOpenAll; this._dlog('Mở khóa mọi Cung: ' + (this._devOpenAll ? 'BẬT' : 'tắt')); },
-    // Trùng / codex
-    devSetTrung(n) { this.kt.trung = n; this.confirmTrung = false; this._dsave(); this._dlog('Trùng = ' + this.trungRoman(n)); },
-    devFillCodex() { KT_CUNG.forEach((c) => { c.mobs.forEach((m, i) => { this.kt.codex[c.id + ':' + i] = Math.max(1, this.kt.codex[c.id + ':' + i] || 0); }); this.kt.codex[c.id + ':boss'] = Math.max(1, this.kt.codex[c.id + ':boss'] || 0); }); this._dsave(); this._dlog('Mở hết Trảm Yêu Lục'); },
-    // Combo nhanh + reset
-    devLoadFull() {
-      this.kt.tranHon = (this.kt.tranHon || 0) + 50000;
-      KT_HANH_ORDER.forEach((k) => { this.kt.nguHanh[k] = 10; });
-      this.kt.tp = KT_TAM_PHAP.map((t) => t.id);
-      this.kt.sk = KT_SKILLS.map((s) => s.id);
-      this.weekCheck(); this.kt.week.used = 0;
-      this._devOpenAll = true;
-      this._dsave();
-      this._dlog('Nạp full: +50k Trận Hồn · Ngũ Hành Cấp 10 · mở hết TP+KN · đầy lượt · mở khóa mọi Cung');
-    },
-    devResetAll() {
-      if (!this.devConfirmReset) { this.devConfirmReset = true; this._dlog('Bấm lần nữa để XÓA TOÀN BỘ Kỳ Trận.'); return; }
-      this.devConfirmReset = false; this._devOpenAll = false;
-      this.$store.game.state.kyTran = {};
-      ensureKyTran(this.$store.game.state);
-      this.selCung = 0; this.selHanh = 'moc';
-      this._dsave();
-      this._dlog('Đã reset toàn bộ Kỳ Trận');
-    },
   };
 }
