@@ -771,6 +771,13 @@ const gameStore = {
     });
   },
   _modalBack() { const e = this._mstack.pop(); if (e) this._mClose(e.m); },   // vuốt-back: đóng modal TOP
+  // Esc -> đóng ĐÚNG bảng trên cùng. Mỗi lớp phủ tự gọi `escDong('<cờ>')`, nhưng chỉ cờ đang nằm ở
+  //   ĐỈNH `_mstack` mới được đóng. Hai bảng chồng nhau đều nghe trên `window`: không có chốt này
+  //   thì MỘT cú Esc đóng cả hai (Xem Món z-95 nằm trên Túi Đồ z-78 là cặp có thật).
+  // ⛔ KHÔNG pop `_mstack` ở đây: để effect của initModalHistory tự rút + nuốt một entry history,
+  //   y hệt đường bấm nút ✕. Pop tay là history còn lại một entry chết.
+  // Sáu cờ trong _MODAL_MIEN_TRU không có lớp phủ nào gọi hàm này — chúng bắt buộc chọn một bên.
+  escDong(k) { const e = this._mstack[this._mstack.length - 1]; if (e && e.k === k) this._mClose(e.m); },
   _closeAllModalsForNav() { while (this._mstack.length) { const e = this._mstack.pop(); this._mClose(e.m); } },   // rời tab: đóng + xoá stack CÙNG LÚC -> reconcile no-op
 
   // Popup Bảng Chỉ Số (mobile) — chỉ set cờ, bộ chặn lo history

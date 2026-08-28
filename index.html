@@ -4241,7 +4241,7 @@
 
           <!-- POPUP: Chọn Lương Thực (lắp vào Ô Lương Thực) -->
           <template x-if="$store.game.foodPicker">
-            <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeFoodPicker()">
+            <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeFoodPicker()" @keydown.escape.window="$store.game.escDong('foodPicker')">
               <div class="panel rounded-xl w-[24rem] max-w-[94vw] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl" @click.stop>
                 <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
                   <div class="text-jade font-bold flex items-center gap-2"><span x-html="$store.game.svg('heart','w-5 h-5')"></span>Chọn Món Ăn</div>
@@ -4271,7 +4271,7 @@
 
           <!-- POPUP: Chọn Đan (lắp vào Ô Đan) -->
           <template x-if="$store.game.danPicker">
-            <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeDanPicker()">
+            <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" @click="$store.game.closeDanPicker()" @keydown.escape.window="$store.game.escDong('danPicker')">
               <div class="panel rounded-xl w-[24rem] max-w-[94vw] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl" @click.stop>
                 <div class="px-5 pt-4 pb-3 border-b border-slate-800 flex items-center justify-between">
                   <div class="text-jade font-bold flex items-center gap-2"><span class="fserif text-lg leading-none">丹</span>Chọn Đan</div>
@@ -4777,7 +4777,7 @@
 
           <!-- Lightbox phóng to chân dung danh sĩ -->
           <template x-if="$store.game.tmFaceFull">
-            <div class="fixed inset-0 z-[85] flex items-center justify-center p-6 cursor-zoom-out" style="background:rgba(0,0,0,.86);backdrop-filter:blur(4px)" @click="$store.game.closeFaceFull()">
+            <div class="fixed inset-0 z-[85] flex items-center justify-center p-6 cursor-zoom-out" style="background:rgba(0,0,0,.86);backdrop-filter:blur(4px)" @click="$store.game.closeFaceFull()" @keydown.escape.window="$store.game.escDong('tmFaceFull')">
               <img loading="lazy" decoding="async" :src="$store.game.tmFaceFull" alt="" class="max-w-full max-h-full rounded-xl shadow-2xl object-contain" onerror="$store.game.closeFaceFull()">
             </div>
           </template>
@@ -9056,7 +9056,7 @@
 
           <!-- MODAL CẢNH GIỚI PHỔ (bảng tra hệ thống cảnh giới) -->
           <template x-if="g.tmRealmGuideOpen">
-            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmRealmGuideOpen=false">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmRealmGuideOpen=false" @keydown.escape.window="g.escDong('tmRealmGuideOpen')">
               <div class="panel rounded-2xl w-[560px] max-w-full h-[640px] max-h-[90vh] flex flex-col overflow-hidden border border-slate-700" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(34,211,238,.07),transparent)">
                   <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-cyan" x-html="g.svg('scroll','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Cảnh Giới Phổ</div></div>
@@ -9084,7 +9084,7 @@
 
           <!-- MODAL CHI TIẾT CÔNG TRÌNH -->
           <template x-if="g.tmBuildSel">
-            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmBuildSel=null" x-data="{ get b(){ return g.tmBuildDetail(g.tmBuildSel) } }">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmBuildSel=null" x-data="{ get b(){ return g.tmBuildDetail(g.tmBuildSel) } }" @keydown.escape.window="g.escDong('tmBuildSel')">
               <div class="panel rounded-2xl w-[560px] max-w-full max-h-[88dvh] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
                 <div class="flex gap-3.5 p-4 border-b border-slate-800 shrink-0" style="background:linear-gradient(120deg,rgba(245,185,66,.09),transparent 62%)">
                   <div class="relative w-[116px] h-[155px] sm:w-[132px] sm:h-[176px] rounded-xl overflow-hidden bg-ink2 border border-amber-500/25 shrink-0 cursor-zoom-in group" @click="g.openFaceFull('images/tongmon/buildings/'+g.tmBuildSel+'.webp')">
@@ -9153,7 +9153,7 @@
 
           <!-- MODAL TỔ SƯ ĐIỆN (chiêm bái tiền nhân: Huyền Thoại Xuất Sư · Trưởng Lão · Cố Nhân Đã Khuất) -->
           <template x-if="g.toSuOpen">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeToSu()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeToSu()" @keydown.escape.window="g.escDong('toSuOpen')">
               <div @click.stop class="panel rounded-2xl w-[640px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-amber-600/35">
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(180,120,40,.12),transparent)">
                   <div class="flex items-center gap-2.5">
@@ -9272,7 +9272,7 @@
 
           <!-- MODAL TÀNG THƯ LÂU · LĨNH NGỘ BÍ KÍP -->
           <template x-if="g.tangThuOpen">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeTangThu()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeTangThu()" @keydown.escape.window="g.escDong('tangThuOpen')">
               <div @click.stop class="panel rounded-2xl w-[760px] max-w-full h-[640px] max-h-[92dvh] flex flex-col overflow-hidden border border-indigo-500/35">
                 <div class="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(99,102,241,.14),transparent)">
                   <div class="flex items-center gap-2.5 min-w-0">
@@ -9333,7 +9333,7 @@
 
           <!-- MODAL HỢP NHẤT BÍ KÍP (gộp K bí kíp cùng bậc -> 1 bí kíp bậc kế) -->
           <template x-if="g.bkMergeOpen">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeBkMerge()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeBkMerge()" @keydown.escape.window="g.escDong('bkMergeOpen')">
               <div class="panel rounded-2xl w-[480px] max-w-full max-h-[88vh] flex flex-col overflow-hidden border border-fuchsia-500/35" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(217,70,239,.10),transparent)">
                   <div class="flex items-center gap-2"><span class="w-6 h-6 rounded-md flex items-center justify-center fserif text-[14px] text-fuchsia-200 border border-fuchsia-400/40 bg-fuchsia-500/10">合</span><div class="text-[17px] fserif leading-none text-fuchsia-100">Hợp Nhất Bí Kíp</div></div>
@@ -9626,7 +9626,7 @@
 
           <!-- MODAL GIỚI LUẬT ĐƯỜNG (răn dạy đệ tử sinh tâm ma / cờ xấu) -->
           <template x-if="g.gioiLuatOpen">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeGioiLuat()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click="g.closeGioiLuat()" @keydown.escape.window="g.escDong('gioiLuatOpen')">
               <div @click.stop class="panel rounded-2xl w-[600px] max-w-full h-[580px] max-h-[92dvh] flex flex-col overflow-hidden border border-rose-600/35">
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(190,30,60,.12),transparent)">
                   <div class="flex items-center gap-2.5">
@@ -9678,7 +9678,7 @@
 
           <!-- MODAL TÚI ĐỒ (chia mục: Nguyên Liệu / Đan Dược / ... — scale khi thêm loại) -->
           <template x-if="g.tmBagOpen">
-            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmBagOpen=false">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmBagOpen=false" @keydown.escape.window="g.escDong('tmBagOpen')">
               <div class="panel rounded-2xl w-[600px] max-w-full h-[600px] max-h-[92dvh] flex flex-col overflow-hidden border border-slate-700" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(148,163,184,.08),transparent)">
                   <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-slate-300" x-html="g.svg('scroll','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Túi Đồ</div></div>
@@ -9718,7 +9718,7 @@
 
           <!-- LIGHTBOX xem art vật phẩm (click tile Túi Đồ) -->
           <template x-if="g.tmItemView">
-            <div class="fixed inset-0 z-[95] flex flex-col items-center justify-center bg-black/88 backdrop-blur-sm p-6 cursor-zoom-out" @click="g.closeItemView()">
+            <div class="fixed inset-0 z-[95] flex flex-col items-center justify-center bg-black/88 backdrop-blur-sm p-6 cursor-zoom-out" @click="g.closeItemView()" @keydown.escape.window="g.escDong('tmItemView')">
               <div @click.stop class="flex flex-col items-center">
                 <div class="relative rounded-2xl overflow-hidden border shadow-2xl" :style="'border-color:'+g.tmItemView.color+'66;width:min(80vw,360px);height:min(80vw,360px);background:#0b1018'">
                   <span class="absolute inset-0 flex items-center justify-center text-7xl opacity-50" x-text="g.tmItemView.emoji"></span>
@@ -9786,7 +9786,7 @@
 
           <!-- MODAL LUYỆN ĐAN (Y Quán — có LÒ + thời gian) -->
           <template x-if="g.tmCraftOpen">
-            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmCraftOpen=false">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.tmCraftOpen=false" @keydown.escape.window="g.escDong('tmCraftOpen')">
               <div class="panel rounded-2xl w-[580px] max-w-full h-[660px] max-h-[92dvh] flex flex-col overflow-hidden border border-amber-500/30" @click.stop>
                 <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 shrink-0" style="background:linear-gradient(90deg,rgba(245,185,66,.08),transparent)">
                   <div class="flex items-center gap-2"><span class="w-5 h-5 inline-flex text-amber-300" x-html="g.svg('flame','w-5 h-5')"></span><div class="text-[18px] gold-text fserif leading-none">Luyện Đan · Y Quán</div></div>
@@ -9850,7 +9850,7 @@
 
           <!-- MODAL DƯỢC VIÊN (trồng nguyên liệu idle) -->
           <template x-if="g.tmDuocOpen">
-            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeDuocVien()">
+            <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeDuocVien()" @keydown.escape.window="g.escDong('tmDuocOpen')">
               <div class="panel rounded-2xl w-[560px] max-w-full h-[660px] max-h-[92dvh] flex flex-col overflow-hidden border border-emerald-500/30 relative" @click.stop>
                 <!-- HEADER (ảnh vườn nền + tiêu đề + tóm tắt trạng thái) -->
                 <div class="relative shrink-0 overflow-hidden" style="height:118px">
@@ -9963,7 +9963,7 @@
 
           <!-- MODAL CHI TIẾT ĐỆ TỬ -->
           <template x-if="g.tmSelDisciple">
-            <div class="fixed inset-0 z-[72] flex items-start sm:items-center justify-center overflow-y-auto bg-black/72 backdrop-blur-sm p-4" @click="g.closeDisciple()">
+            <div class="fixed inset-0 z-[72] flex items-start sm:items-center justify-center overflow-y-auto bg-black/72 backdrop-blur-sm p-4" @click="g.closeDisciple()" @keydown.escape.window="g.escDong('tmSelDisciple')">
               <div class="panel rounded-2xl w-[1000px] max-w-[96vw] h-auto sm:h-[860px] max-h-[92dvh] my-auto flex flex-col overflow-hidden border" :style="'border-color:'+g.tmApt(d).color+'66'" @click.stop>
                 <!-- TITLE BAR -->
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 border-b border-slate-800/70 shrink-0">
@@ -10366,7 +10366,7 @@
 
           <!-- POPUP CHỈ SỐ GIA BẢO (click ô đã lắp trong tab Gia Bảo) -->
           <template x-if="g.tmGearView">
-            <div class="fixed inset-0 z-[81] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmGear()">
+            <div class="fixed inset-0 z-[81] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmGear()" @keydown.escape.window="g.escDong('tmGearView')">
               <div class="panel rounded-2xl w-[360px] max-w-full overflow-hidden border-2" :class="g.itemQuality(g.tmGearView).border" @click.stop>
                 <div class="flex items-start gap-3 p-4 border-b border-slate-800">
                   <span class="w-12 h-12 rounded-lg bg-ink flex items-center justify-center shrink-0" x-html="g.ico(g.tmGearView.id,(g.ITEMS[g.tmGearView.id]||{}).icon)"></span>
@@ -10426,7 +10426,7 @@
 
           <!-- LIGHTBOX xem ảnh chân dung full -->
           <template x-if="g.tmFaceFull">
-            <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/90 p-6 cursor-zoom-out" @click="g.closeFaceFull()">
+            <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/90 p-6 cursor-zoom-out" @click="g.closeFaceFull()" @keydown.escape.window="g.escDong('tmFaceFull')">
               <img loading="lazy" decoding="async" :src="g.tmFaceFull" alt="" class="max-w-[92vw] max-h-[92vh] rounded-xl shadow-2xl object-contain" onerror="$store.game.closeFaceFull()">
               <button @click="g.closeFaceFull()" class="absolute top-4 right-5 text-slate-300 hover:text-white text-3xl leading-none">✕</button>
             </div>
@@ -10434,7 +10434,7 @@
 
           <!-- PICKER GIA BẢO -->
           <template x-if="g.giftOpen">
-            <div class="fixed inset-0 z-[74] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="g.giftOpen=false">
+            <div class="fixed inset-0 z-[74] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="g.giftOpen=false" @keydown.escape.window="g.escDong('giftOpen')">
               <div class="panel rounded-2xl w-[440px] max-w-full h-[560px] max-h-[85vh] flex flex-col overflow-hidden" @click.stop>
                 <div class="flex items-center justify-between px-4 pt-3 pb-2 border-b border-slate-800 shrink-0"><div class="fserif text-jade">Ban Gia Bảo <span class="text-[11px] text-slate-500 font-normal">· từ kho main</span></div><button @click="g.giftOpen=false" class="text-slate-500 hover:text-rose-400 text-lg">✕</button></div>
                 <div class="flex gap-1.5 px-3 py-2 overflow-x-auto border-b border-slate-800 shrink-0" style="scrollbar-width:none">
@@ -17514,7 +17514,7 @@
 
   <!-- ===== Modal hành động (mở khi bấm 1 hành động) ===== -->
   <template x-if="$store.game.actionModal">
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click="$store.game.closeAction()">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click="$store.game.closeAction()" @keydown.escape.window="$store.game.escDong('actionModal')">
       <!-- ⚠ max-h + overflow: nội dung modal co giãn (danh sách Linh Thạch, Nguyên Liệu nhiều
            dòng). Không chặn thì panel cao quá màn là tràn ra ngoài và KHÔNG cuộn được. -->
       <div class="panel rounded-xl p-5 w-80 max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto" @click.stop>
@@ -17799,7 +17799,7 @@
 
   <!-- ===== Popup CHI TIẾT Tâm Pháp khởi tu (xem võ học hệ trước khi chọn) ===== -->
   <template x-if="$store.game.tpDetail">
-    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeTpDetail()">
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeTpDetail()" @keydown.escape.window="$store.game.escDong('tpDetail')">
       <div class="panel rounded-xl w-[30rem] max-w-full border-2 overflow-hidden flex flex-col max-h-[88vh]" @click.stop
            x-data="{ get g(){ return $store.game }, get tp(){ return $store.game.tpDetailObj }, get he(){ return ($store.game.tpDetailObj||{}).he } }" :class="g.heInfo(he).ring">
         <!-- header art -->
@@ -17886,7 +17886,7 @@
       background-size:100% 100%; background-position:center; }
   </style>
   <template x-if="$store.game.enhanceModal">
-    <div class="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeEnhance()">
+    <div class="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeEnhance()" @keydown.escape.window="$store.game.escDong('enhanceModal')">
       <div class="panel eh-panel rounded-2xl w-[600px] max-w-[95vw] overflow-hidden relative" @click.stop
            style="border:1px solid rgba(94,234,212,.42);box-shadow:inset 0 0 0 4px #0b1220,inset 0 0 0 5px rgba(94,234,212,.22),0 25px 60px rgba(0,0,0,.6)"
            x-data="{ get g(){ return $store.game }, get id(){ return $store.game.enhanceId() } }">
@@ -18271,7 +18271,7 @@
 
   <!-- ===== HỒI TRÌNH (offline) — thiệp "Phi Cáp Truyền Thư" giữa màn (Mẫu A) ===== -->
   <template x-if="$store.game && $store.game.offlineReport">
-    <div class="fixed inset-0 z-[81] flex items-center justify-center p-4" style="background:rgba(0,0,0,.55);backdrop-filter:blur(2px)" @click="$store.game.dismissOffline()">
+    <div class="fixed inset-0 z-[81] flex items-center justify-center p-4" style="background:rgba(0,0,0,.55);backdrop-filter:blur(2px)" @click="$store.game.dismissOffline()" @keydown.escape.window="$store.game.escDong('offlineReport')">
       <div class="panel rounded-2xl overflow-hidden border border-jade/40" style="width:340px;max-width:92vw;box-shadow:0 14px 50px rgba(0,0,0,.6),0 0 34px rgba(20,184,166,.10)" @click.stop>
         <div style="height:2px;background:linear-gradient(90deg,transparent,rgba(245,185,66,.85) 22%,#fff4d6 50%,rgba(245,185,66,.85) 78%,transparent)"></div>
         <div class="flex items-center gap-2.5" style="padding:14px 20px 10px">
@@ -19378,7 +19378,7 @@
 
   <!-- ===== Modal Tài Khoản (Đăng nhập / Đăng ký — Supabase) ===== -->
   <template x-if="$store.game.authOpen">
-    <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeAuth()">
+    <div class="fixed inset-0 z-[78] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" @click="$store.game.closeAuth()" @keydown.escape.window="$store.game.escDong('authOpen')">
       <div class="panel rounded-xl w-[360px] max-w-full p-5 border border-jade/40 shadow-2xl" @click.stop x-init="$nextTick(() => $refs.authEmail && $refs.authEmail.focus())">
         <div class="flex items-center justify-between mb-3">
           <div class="font-bold text-jade flex items-center gap-2" style="font-family:'Lora','Noto Serif SC',serif"><span class="w-4 h-4 inline-flex" x-html="$store.game.svg('cloud','w-4 h-4')"></span>Tài Khoản</div>
@@ -19613,7 +19613,7 @@
 
   <!-- ===== Lightbox: xem ảnh phóng to (bấm icon trong modal) ===== -->
   <template x-if="$store.game.lightbox">
-    <div class="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm p-6 cursor-zoom-out" @click="$store.game.closeLightbox()">
+    <div class="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm p-6 cursor-zoom-out" @click="$store.game.closeLightbox()" @keydown.escape.window="$store.game.escDong('lightbox')">
       <template x-if="$store.game.lightbox.src">
         <!-- webp trước, thiếu thì thử png, thiếu nốt mới ẩn — giống mọi chỗ khác trong game. -->
         <img loading="lazy" decoding="async" :src="$store.game.lightbox.src" alt="" style="max-width:84vw;max-height:78vh;width:auto;height:auto;border-radius:16px;box-shadow:0 24px 90px rgba(0,0,0,.7)" onerror="if(this.src.endsWith('.webp')){this.src=this.src.replace('.webp','.png')}else{this.style.display='none'}">
@@ -19732,7 +19732,7 @@
 
   <!-- ===== Modal Điểm Danh (30 ngày) ===== -->
   <template x-if="$store.game.dailyModal">
-    <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-2 sm:p-4" @click="$store.game.dailyModal=false">
+    <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 backdrop-blur-sm p-2 sm:p-4" @click="$store.game.dailyModal=false" @keydown.escape.window="$store.game.escDong('dailyModal')">
       <!-- ⚠ KHÔNG cuộn (user chốt: "đừng có con lăn, tự co giãn theo màn hình lớn nhỏ").
            Lưới 7×4 với ô cao cố định thì trên máy màn thấp là tràn. Đã thử cho ô co theo flex
            (`flex-1` + con `h-full`) và HỎNG: tấm chỉ có `max-height` nên chiều cao KHÔNG xác định,
