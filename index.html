@@ -18702,8 +18702,11 @@
     .cd-nut-to{ width:52px; height:52px; border-radius:14px; color:#0b111d; background:linear-gradient(180deg,#6ee7b7,#34d399);
                 border:1px solid rgba(52,211,153,.6); box-shadow:0 8px 22px -8px rgba(52,211,153,.8); }
     .cd-nut-to:hover{ color:#06281c; }
-    .cd-hang{ display:flex; align-items:center; gap:11px; width:100%; padding:8px 11px; border-radius:11px;
-              border:1px solid transparent; cursor:pointer; text-align:left; transition:.13s; }
+    /* ⚠ `min-height` CỐ ĐỊNH cho mọi hàng. Khúc có dòng phụ thì cao hai dòng, khúc không có thì cao
+         một dòng — cả danh sách nhấp nhô cao thấp, nhìn ra ngay là lệch. Chốt chiều cao rồi canh
+         giữa theo chiều dọc: hàng có dòng phụ vừa đầy, hàng không có thì nằm giữa. */
+    .cd-hang{ display:flex; align-items:center; gap:11px; width:100%; min-height:52px; padding:8px 11px;
+              border-radius:11px; border:1px solid transparent; cursor:pointer; text-align:left; transition:.13s; }
     .cd-hang:hover{ background:rgba(255,255,255,.04); border-color:#26344a; }
     /* ⚠ Hàng đang nghe chỉ khác MÀU và khác VIỀN — không đổi cỡ chữ, không đổi khoảng đệm.
          Đổi bề dày chữ là cả danh sách co giãn mỗi lần sang bài, mắt đọc ra sự bất định. */
@@ -18752,7 +18755,7 @@
               <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
             </div>
             <div class="min-w-0 flex-1">
-              <div class="text-[15px] text-slate-100 truncate" x-text="g.cdKhuc ? g.cdKhuc.ten : 'Chưa chọn khúc nào'"></div>
+              <div class="text-[15px] text-slate-100 truncate" x-text="g.cdKhuc ? g.cdKhuc.ten : 'Chưa Chọn Bài'"></div>
               <div class="text-[11.5px] text-slate-500 truncate" x-text="g.cdKhuc && g.cdKhuc.phu ? g.cdKhuc.phu : ''"></div>
             </div>
             <template x-if="g.cdDangPhat"><span class="cd-song"><i></i><i></i><i></i></span></template>
@@ -18772,17 +18775,17 @@
 
           <!-- NÚT ĐIỀU KHIỂN -->
           <div class="flex items-center justify-center gap-3 mt-3.5">
-            <button class="cd-nut" :class="g.cdXao ? 'on' : ''" @click="g.cdDoiXao()" :aria-label="g.cdXao ? 'Tắt xáo khúc' : 'Xáo khúc'">
+            <button class="cd-nut" :class="g.cdXao ? 'on' : ''" @click="g.cdDoiXao()" :aria-label="g.cdXao ? 'Tắt Xáo Trộn' : 'Xáo Trộn'">
               <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
             </button>
-            <button class="cd-nut" @click="g.cdLui()" aria-label="Khúc trước">
+            <button class="cd-nut" @click="g.cdLui()" aria-label="Bài Trước">
               <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M6 6h2v12H6z"/><path d="M19 6v12l-9-6z"/></svg>
             </button>
             <button class="cd-nut cd-nut-to" @click="g.cdPhatDung()" :aria-label="g.cdDangPhat ? 'Tạm dừng' : 'Phát'">
               <template x-if="!g.cdDangPhat"><svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg></template>
               <template x-if="g.cdDangPhat"><svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></template>
             </button>
-            <button class="cd-nut" @click="g.cdKeTiep()" aria-label="Khúc kế">
+            <button class="cd-nut" @click="g.cdKeTiep()" aria-label="Bài Sau">
               <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16 6h2v12h-2z"/><path d="M5 6v12l9-6z"/></svg>
             </button>
             <!-- Ba nấc lặp trên MỘT nút, bấm vòng. Nhãn nằm ở chú thích bên dưới, khỏi ba nút rời. -->
@@ -18796,7 +18799,7 @@
             </button>
           </div>
           <div class="text-center text-[11px] text-slate-500 mt-2">
-            <span x-text="g.cdLapTen"></span><span x-show="g.cdXao"> · Xáo khúc</span>
+            <span x-text="g.cdLapTen"></span><span x-show="g.cdXao"> · Xáo Trộn</span>
           </div>
 
           <!-- ÂM LƯỢNG -->
@@ -18812,7 +18815,7 @@
         <!-- KHÚC MỤC -->
         <div class="px-3 pb-3 border-t border-slate-700/60 pt-2.5 min-h-0 flex flex-col">
           <div class="px-2 pb-1.5 text-[11px] text-slate-500 flex items-center justify-between shrink-0">
-            <span>Khúc mục</span><span x-text="g.cdKhucMuc.length + ' khúc'"></span>
+            <span>Danh Sách</span><span x-text="g.cdKhucMuc.length + ' bài'"></span>
           </div>
           <div class="cd-ds">
             <template x-for="(k, i) in g.cdKhucMuc" :key="k.ma">

@@ -19,7 +19,7 @@ export const CAM_DAI_THU_MUC = 'audio/playaudio/';
  */
 export const CAM_DAI_KHUC = [
   { ma: 'kiemhieptinhduyen',     ten: 'Kiếm Hiệp Tình Duyên',        phu: 'Trần Phi Bình' },
-  { ma: 'giacmongthoitrai',      ten: 'Giấc Mộng Thời Trai',         phu: 'Khúc trong Võ Lâm Truyền Kỳ' },
+  { ma: 'giacmongthoitrai',      ten: 'Giấc Mộng Thời Trai',         phu: 'Nhạc trong Võ Lâm Truyền Kỳ' },
   { ma: 'daianhhung',            ten: 'Đại Anh Hùng',                phu: '' },
   { ma: 'khucdochanh',           ten: 'Khúc Độc Hành',               phu: '' },
   { ma: 'duongxauotmua',         ten: 'Đường Xa Ướt Mưa',            phu: '' },

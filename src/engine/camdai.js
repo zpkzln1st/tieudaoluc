@@ -18,8 +18,12 @@ export { amLuongThat };
 
 export const LAP_KIEU = ['khong', 'tatca', 'mot'];
 
-/** Nhãn tiếng Việt của kiểu lặp. Một chỗ duy nhất, khỏi hai nơi ghi hai kiểu. */
-export const LAP_TEN = { khong: 'Không lặp', tatca: 'Lặp cả khúc mục', mot: 'Lặp một khúc' };
+/**
+ * Nhãn tiếng Việt của kiểu lặp. Một chỗ duy nhất, khỏi hai nơi ghi hai kiểu.
+ * ⚠ Chữ phải là lời NGƯỜI CHƠI nói. Bản đầu ghi "Lặp cả khúc mục" — chủ dự án bác ngay vì nghe
+ *   như máy dịch. "Khúc mục" là từ tôi tự đặt, không ai dùng.
+ */
+export const LAP_TEN = { khong: 'Không Lặp', tatca: 'Lặp Tất Cả', mot: 'Lặp Một Bài' };
 
 /**
  * Khúc kế tiếp.

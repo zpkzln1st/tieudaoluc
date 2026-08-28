@@ -1836,7 +1836,7 @@ const gameStore = {
       this.cdSangKhuc(false);
       return;
     } else if (viec === 'loi') {
-      this.showToast('Cầm Đài · không mở được khúc này');
+      this.showToast('Cầm Đài · không mở được bài này');
     }
     this.cdDangPhat = cdDangPhat();
     this._tick++;
