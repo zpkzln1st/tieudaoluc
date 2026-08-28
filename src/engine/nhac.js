@@ -23,6 +23,23 @@ export const NHAC_VUNG = {
   thienThanh: 'thienthanh',
 };
 
+/**
+ * SÁU BẢN ĐỒ LỄ MƯỢN KÉ nhạc của vùng thường trực — chủ dự án chốt: chưa làm nhạc riêng cho lễ.
+ *
+ * ⚠⚠ MƯỢN THEO CẢNH, ĐỪNG ĐỂ RƠI VỀ BẢN MẶC ĐỊNH. Không có bảng này thì cả sáu lễ đều rơi về
+ *    `lamlinhcoc` — nhạc thung lũng cấp 1 phát trong Cung Trăng và trên bờ Vong Xuyên. Mượn thì
+ *    mượn cho đúng cảnh, tốn đúng một bảng tra.
+ * ⚠ Không thêm tệp nào. Mỗi mục dưới đây trỏ vào một bản ĐÃ CÓ.
+ */
+export const NHAC_LE = {
+  truongXuanMieuHoi: 'huyendo',        // sân miếu đêm giao thừa, đèn lồng, đông người -> thành người
+  bichThaoNguyen: 'lamlinhcoc',        // thảo nguyên xanh sau mưa xuân -> thung lũng cỏ
+  doanDuongGiang: 'meaolucchau',       // khúc sông trưa hè, đầm sen -> ốc đảo nhiều nước
+  vongXuyenNgan: 'tichngudao',         // bờ Vong Xuyên, hoa đăng, sương lạnh -> đảo tiếng thì thầm
+  quangHanNguyetCanh: 'quantinhdai',   // cung trăng lam bạc -> đài ngắm sao
+  hanTungTuyetNguyen: 'langtieuphong', // rừng thông tuyết phủ -> đỉnh núi cao lạnh
+};
+
 /** Ba bản Chiến Đấu — đổi bản mỗi lần BƯỚC VÀO màn, không đổi giữa chừng. */
 export const NHAC_CHIEN_DAU = ['chiendau', 'chiendau2', 'chiendau3'];
 
@@ -63,7 +80,7 @@ export function chonBan(view, vungId, r) {
     return NHAC_CHIEN_DAU[Math.max(0, Math.min(NHAC_CHIEN_DAU.length - 1, i))];
   }
   if (rieng) return rieng;
-  return NHAC_VUNG[vungId] || NHAC_MAC_DINH;
+  return NHAC_VUNG[vungId] || NHAC_LE[vungId] || NHAC_MAC_DINH;
 }
 
 /** Đường tới tệp của một bản. */
