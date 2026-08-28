@@ -2948,8 +2948,13 @@
           .btc-grid{ grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:9px; padding:10px; }
         }
       </style>
+      <!-- ⚠ `x-if` chu KHONG `x-show`: `x-show` chi doi style, ma Alpine ghi style theo duong hoan
+           lai nen bang phai doi mot khung hinh moi hien. Do bang num `?doi=0` cua bo quet: 18/19
+           bang tren man nay hien NGAY trong cung luot tac vu, rieng bang nay tre — no la lop phu
+           modal duy nhat con dung `x-show`. Doi sang `x-if` thi no dung dong bo nhu 18 cai kia,
+           va 169 the con duoc go khoi DOM luc dong. -->
+      <template x-if="$store.game.bachTrangOpen">
       <div class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4" style="background:rgba(2,6,12,.82)"
-           x-show="$store.game.bachTrangOpen" x-cloak
            @click.self="$store.game.closeBachTrang()" @keydown.escape.window="$store.game.closeBachTrang()"
            x-data="{ get g(){ return $store.game } }">
         <div class="btc-panel w-full" style="max-width:960px">
@@ -3043,6 +3048,7 @@
           <div class="btc-note">Mỗi món tốn <b><span x-text="g.TRANG_SETS[g.TRANG_SET_KEYS[0]].manhCost"></span> Mảnh</b> · ghép ra <b>đúng món chọn</b> (không lo trùng). Cần <b>Đồ Phổ Bộ</b> tương ứng mới mở khoá bộ đó.</div>
         </div>
       </div>
+      </template>
 
       <!-- ===== VIEW: NHIỆM VỤ ===== -->
       <template x-if="$store.game.view==='nhiemVu'">
