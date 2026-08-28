@@ -8861,7 +8861,7 @@
 
           <!-- MODAL SỰ KIỆN GIANG HỒ (kể chuyện -> hồi kết) -->
           <template x-if="g.tmEvtOpen && g.tmEvtCur">
-            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmEvt()">
+            <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/72 backdrop-blur-sm p-4" @click="g.closeTmEvt()" @keydown.escape.window="g.closeTmEvt()">
               <div class="panel rounded-2xl w-[700px] max-w-full max-h-[92dvh] overflow-hidden flex flex-col border" :class="(g.tmEvtResult && g.tmEvtResult.hoiTuong) ? 'h-auto' : 'h-[724px]'" :style="'border-color:'+g.tmGrpColor(g.tmEvtCur.grp)+'55'" @click.stop>
                 <!-- SCENE HEADER -->
                 <div class="relative px-5 py-4 overflow-hidden shrink-0 flex flex-col" :style="'height:176px;background:linear-gradient(165deg,'+g.tmGrpColor(g.tmEvtCur.grp)+'1c 0%, #0f1521 60%)'">
