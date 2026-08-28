@@ -639,6 +639,13 @@
     .gtip-dn{ top:calc(100% + 12px); left:50%; transform:translateX(-50%);
               width:auto; white-space:nowrap; padding:6px 10px; }
     .gtip-dn::after{ top:-12px; left:calc(50% - 6px); border-bottom-color:var(--q,#475569); }
+    /* Neo MÉP thay vì canh giữa — cho nút đứng đầu và đứng cuối một hàng. `.gtip-dn` canh giữa nút,
+       mà nút đầu hàng chỉ cách mép khung chừng 20px nên nhãn dài tràn hẳn ra ngoài thẻ. Vẫn là
+       chính bộ `.gtip`, chỉ đổi CHỖ NEO — không dựng bộ tooltip thứ hai. */
+    .gtip-dn.gtip-dn-trai{ left:0; transform:none; }
+    .gtip-dn.gtip-dn-trai::after{ left:10px; }
+    .gtip-dn.gtip-dn-phai{ left:auto; right:0; transform:none; }
+    .gtip-dn.gtip-dn-phai::after{ left:auto; right:10px; }
     .dd-tip:hover .gtip{ opacity:1; transition-delay:.06s; }
     /* ĐƯỜNG MÂY — dấu đoàn đã là `position:absolute` nên tự làm khung neo cho tooltip; ở đây chỉ
        cần THÊM MỘT CÒ HOVER, dùng nguyên bộ `.gtip` chứ không dựng bộ tooltip thứ hai. */
@@ -1502,31 +1509,63 @@
               <div class="text-[10px] text-slate-300/90" x-text="'Tổng Lv ' + $store.game.totalLevel"></div>
             </div>
           </div>
-          <div class="flex justify-around mt-2.5 select-none">
+          <!-- ⚠ Chú thích của bảy nút này dùng `.dd-tip` + `.gtip gtip-dn` — ĐÚNG bộ tooltip của
+               game. Trước đây chúng dùng `title=` của trình duyệt: khung xám hệ điều hành, phông
+               hệ thống, hiện chậm cả giây, lạc hẳn khỏi mọi chú thích khác trong game.
+               ⚠ Nút đầu và nút cuối neo MÉP (`gtip-dn-trai` / `gtip-dn-phai`): canh giữa thì nhãn
+               dài tràn ra ngoài thẻ vì nút chỉ cách mép khung chừng 20px. -->
+          <div class="flex justify-around mt-2.5 -mx-2 select-none">
             <!-- Icon line tối giản (currentColor: slate → jade khi hover). Chuông Thông Báo đã ở top bar + Phi Cáp Đài -> bỏ ở đây. -->
-            <button @click="$store.game.showToast('Phi Cáp · nhắn tin — sắp ra mắt')" title="Trò chuyện" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
+            <span class="dd-tip relative inline-flex" style="--q:#475569">
+            <button @click="$store.game.showToast('Phi Cáp · nhắn tin — sắp ra mắt')" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
-            <button @click="$store.game.openTim()" title="Tìm kiếm" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
+            <span class="gtip gtip-dn gtip-dn-trai text-[11.5px] text-slate-200">Trò Chuyện</span>
+            </span>
+            <span class="dd-tip relative inline-flex" style="--q:#475569">
+            <button @click="$store.game.openTim()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </button>
-            <button @click="$store.game.showToast('Bằng Hữu — sắp ra mắt')" title="Bằng hữu" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
+            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Tìm Kiếm</span>
+            </span>
+            <span class="dd-tip relative inline-flex" style="--q:#475569">
+            <button @click="$store.game.showToast('Bằng Hữu — sắp ra mắt')" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </button>
+            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Bằng Hữu</span>
+            </span>
             <!-- Cẩm Nang: cùng bộ icon nét 1.8 với bốn nút kia (sách mở) — đừng thay bằng emoji. -->
-            <button @click="$store.game.openCamNang()" title="Cẩm Nang" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
+            <span class="dd-tip relative inline-flex" style="--q:#475569">
+            <button @click="$store.game.openCamNang()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5C10.5 6 8.5 5.2 5.5 5.2H3v13h2.5c3 0 5 .8 6.5 2.3"/><path d="M12 7.5c1.5-1.5 3.5-2.3 6.5-2.3H21v13h-2.5c-3 0-5 .8-6.5 2.3"/><path d="M12 7.5v13"/></svg>
             </button>
+            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Cẩm Nang</span>
+            </span>
+            <!-- Cầm Đài: khúc mục người chơi tự chọn mà nghe. KHÁC nút loa bên cạnh — loa là tắt/mở
+                 NHẠC NỀN. Hai thứ khác nhau nên hai hình khác nhau: nốt nhạc / loa. -->
+            <span class="dd-tip relative inline-flex" style="--q:#475569">
+            <button @click="$store.game.openCamDai()" class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center transition"
+                    :class="$store.game.cdDangPhat ? 'text-jade' : 'text-slate-400 hover:text-jade'">
+              <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </button>
+            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Cầm Đài</span>
+            </span>
             <!-- Loa: tắt/mở nhanh, khỏi phải mở Cài Đặt. Hai trạng thái chỉ khác MÀU và khác hình
                  loa (có sóng / bị gạch) — không đổi cỡ, không đổi khoảng đệm, để hàng nút đứng yên. -->
-            <button @click="$store.game.tatMoNhac()" :title="$store.game.nhacDangBat ? 'Tắt nhạc nền' : 'Bật nhạc nền'"
-                    class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition"
+            <span class="dd-tip relative inline-flex" style="--q:#475569">
+            <button @click="$store.game.tatMoNhac()"
+                    class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center transition"
                     :class="$store.game.nhacDangBat ? 'text-slate-400 hover:text-jade' : 'text-slate-600 hover:text-slate-400'">
               <span class="w-[18px] h-[18px] inline-flex" x-html="$store.game.svg($store.game.nhacDangBat ? 'nhac' : 'nhacTat','w-[18px] h-[18px]')"></span>
             </button>
-            <button @click="$store.game.openSettings()" title="Cài đặt" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
+            <span class="gtip gtip-dn gtip-dn-phai text-[11.5px] text-slate-200" x-text="$store.game.nhacDangBat ? 'Tắt Nhạc Nền' : 'Bật Nhạc Nền'"></span>
+            </span>
+            <span class="dd-tip relative inline-flex" style="--q:#475569">
+            <button @click="$store.game.openSettings()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
+            <span class="gtip gtip-dn gtip-dn-phai text-[11.5px] text-slate-200">Cài Đặt</span>
+            </span>
           </div>
         </div>
       </div>
@@ -18642,6 +18681,156 @@
     @media (max-width:767.98px){ .cn-body{ grid-template-columns:minmax(0,1fr); } }
     @media (max-width:639.98px){ .cn-modal{ width:100vw; height:100dvh; max-width:100vw; border-radius:0; } }
   </style>
+  <!-- ===== CẦM ĐÀI — bộ nghe khúc mục ===== -->
+  <style>
+    /* Khung ngoài mượn `.panel` chung của game, chỉ dựng riêng phần của bộ phát. */
+    .cd-num{ font-variant-numeric:tabular-nums; }   /* số giây đứng yên, không nhảy cột theo bề chữ */
+    /* Thanh tua + thanh âm lượng: một khuôn cho cả hai, khỏi hai kiểu con trượt. */
+    .cd-thanh{ -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:99px;
+               background:#1e293b; outline:none; cursor:pointer; }
+    .cd-thanh::-webkit-slider-thumb{ -webkit-appearance:none; width:13px; height:13px; border-radius:50%;
+               background:#34d399; border:2px solid #0f1521; box-shadow:0 0 8px -1px rgba(52,211,153,.8); cursor:pointer; }
+    .cd-thanh::-moz-range-thumb{ width:13px; height:13px; border-radius:50%; background:#34d399;
+               border:2px solid #0f1521; cursor:pointer; }
+    /* Phần đã nghe tô ngọc, phần còn lại xám — vẽ bằng nền chuyển sắc theo phần trăm. */
+    .cd-thanh.cd-do{ background:linear-gradient(90deg,#34d399 0%,#34d399 var(--p,0%),#1e293b var(--p,0%),#1e293b 100%); }
+    .cd-nut{ width:38px; height:38px; border-radius:11px; border:1px solid #26344a; background:rgba(15,23,38,.6);
+             color:#8296ae; display:grid; place-items:center; cursor:pointer; transition:.14s; }
+    .cd-nut:hover{ color:#e7eef7; border-color:#3a4c68; }
+    .cd-nut.on{ color:#34d399; border-color:rgba(52,211,153,.55); background:rgba(52,211,153,.1); }
+    /* Nút phát to hơn hẳn — mắt phải tìm ra nó ngay, không phải dò trong năm nút bằng nhau. */
+    .cd-nut-to{ width:52px; height:52px; border-radius:14px; color:#0b111d; background:linear-gradient(180deg,#6ee7b7,#34d399);
+                border:1px solid rgba(52,211,153,.6); box-shadow:0 8px 22px -8px rgba(52,211,153,.8); }
+    .cd-nut-to:hover{ color:#06281c; }
+    .cd-hang{ display:flex; align-items:center; gap:11px; width:100%; padding:8px 11px; border-radius:11px;
+              border:1px solid transparent; cursor:pointer; text-align:left; transition:.13s; }
+    .cd-hang:hover{ background:rgba(255,255,255,.04); border-color:#26344a; }
+    /* ⚠ Hàng đang nghe chỉ khác MÀU và khác VIỀN — không đổi cỡ chữ, không đổi khoảng đệm.
+         Đổi bề dày chữ là cả danh sách co giãn mỗi lần sang bài, mắt đọc ra sự bất định. */
+    .cd-hang.on{ background:rgba(52,211,153,.09); border-color:rgba(52,211,153,.45); }
+    .cd-hang.on .cd-ten{ color:#a7f3d0; }
+    .cd-so{ width:22px; flex:none; text-align:right; font-size:11.5px; color:#64748b; font-variant-numeric:tabular-nums; }
+    .cd-ten{ font-size:13px; color:#cbd5e1; line-height:1.35; }
+    .cd-phu{ font-size:11px; color:#64748b; line-height:1.35; }
+    /* Ba vạch nhún khi đang phát — dấu hiệu duy nhất cần thiết, khỏi thêm chữ "đang phát". */
+    .cd-song{ display:inline-flex; align-items:flex-end; gap:2px; height:13px; flex:none; }
+    .cd-song i{ width:2.5px; background:#34d399; border-radius:1px; animation:cdSong .9s ease-in-out infinite; }
+    .cd-song i:nth-child(1){ height:5px;  animation-delay:0s; }
+    .cd-song i:nth-child(2){ height:11px; animation-delay:.18s; }
+    .cd-song i:nth-child(3){ height:7px;  animation-delay:.36s; }
+    @keyframes cdSong{ 0%,100%{ transform:scaleY(.45); } 50%{ transform:scaleY(1); } }
+    /* ⚠ Ba vạch trên KHÔNG cần luật riêng cho chế độ Giảm Hiệu Ứng: luật chung đã rút thời lượng
+         mọi hoạt ảnh xuống .001ms ở lớp gốc (dòng ~336). Và bài kiểm Cài Đặt CẤM cách tắt hẳn —
+         tắt hẳn thì lớp trang trí nào dựa vào trạng thái cuối của hoạt ảnh sẽ đứng lại ở khung
+         ĐẦU, tức là biến mất chứ không phải đứng yên.
+         ⭐ Chính dòng chú thích này lúc đầu viết ra nguyên văn cái mẫu bị cấm, và bài kiểm bắt
+            trúng chữ trong chú thích. Nói về một khuôn cấm thì đừng chép lại đúng khuôn ấy. */
+    .cd-ds{ overflow-y:auto; max-height:min(46vh,340px); }
+    @media (max-width:639.98px){
+      .cd-nut{ width:34px; height:34px; } .cd-nut-to{ width:48px; height:48px; }
+      .cd-ds{ max-height:38vh; }
+    }
+  </style>
+  <template x-if="$store.game.camDaiMo">
+    <div class="fixed inset-0 z-[76] flex items-center justify-center bg-black/78 backdrop-blur-sm p-3 sm:p-4"
+         @click.self="$store.game.closeCamDai()" @keydown.escape.window="$store.game.escDong('camDaiMo')"
+         x-data="{ get g(){ return $store.game } }">
+      <div class="panel rounded-2xl w-full max-w-[560px] max-h-[92dvh] overflow-hidden flex flex-col border border-slate-700/70">
+        <!-- ĐẦU BẢNG -->
+        <div class="relative px-5 py-4 border-b border-slate-700/60 shrink-0">
+          <!-- ⛔ KHÔNG thêm dòng mô tả dưới tiêu đề. Đã thử một câu giải thích "chọn bài mà nghe,
+               Cầm Đài cất tiếng thì Nhạc Nền tạm nghỉ" và chủ dự án bác ngay: bảng tự nói được
+               nó là gì, câu ấy chỉ tổ chán mắt. -->
+          <div class="gold-text fserif text-[22px] leading-tight">Cầm Đài</div>
+          <button @click="g.closeCamDai()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-ink/70 border border-slate-700/70 text-slate-400 hover:text-rose-400 hover:border-rose-500/50 text-[15px] leading-none flex items-center justify-center transition">✕</button>
+        </div>
+
+        <!-- ĐANG NGHE -->
+        <div class="px-5 pt-4 pb-3 shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl border border-slate-700/70 bg-ink2 grid place-items-center shrink-0 text-jade">
+              <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-[15px] text-slate-100 truncate" x-text="g.cdKhuc ? g.cdKhuc.ten : 'Chưa chọn khúc nào'"></div>
+              <div class="text-[11.5px] text-slate-500 truncate" x-text="g.cdKhuc && g.cdKhuc.phu ? g.cdKhuc.phu : ''"></div>
+            </div>
+            <template x-if="g.cdDangPhat"><span class="cd-song"><i></i><i></i><i></i></span></template>
+          </div>
+
+          <!-- THANH TUA -->
+          <div class="flex items-center gap-3 mt-3.5">
+            <span class="cd-num text-[11.5px] text-slate-500 w-9 text-right" x-text="g.cdGioHien"></span>
+            <input type="range" class="cd-thanh cd-do flex-1" min="0" :max="g.cdTong || 0" step="0.5"
+                   :style="'--p:' + g.cdPhanTram + '%'"
+                   :value="g.cdGiay"
+                   @pointerdown="g.cdBatKeo()"
+                   @input="g.cdKeoTua($event.target.value)"
+                   @change="g.cdThaKeo($event.target.value)">
+            <span class="cd-num text-[11.5px] text-slate-500 w-9" x-text="g.cdGioTong"></span>
+          </div>
+
+          <!-- NÚT ĐIỀU KHIỂN -->
+          <div class="flex items-center justify-center gap-3 mt-3.5">
+            <button class="cd-nut" :class="g.cdXao ? 'on' : ''" @click="g.cdDoiXao()" :aria-label="g.cdXao ? 'Tắt xáo khúc' : 'Xáo khúc'">
+              <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
+            </button>
+            <button class="cd-nut" @click="g.cdLui()" aria-label="Khúc trước">
+              <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M6 6h2v12H6z"/><path d="M19 6v12l-9-6z"/></svg>
+            </button>
+            <button class="cd-nut cd-nut-to" @click="g.cdPhatDung()" :aria-label="g.cdDangPhat ? 'Tạm dừng' : 'Phát'">
+              <template x-if="!g.cdDangPhat"><svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg></template>
+              <template x-if="g.cdDangPhat"><svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></template>
+            </button>
+            <button class="cd-nut" @click="g.cdKeTiep()" aria-label="Khúc kế">
+              <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16 6h2v12h-2z"/><path d="M5 6v12l9-6z"/></svg>
+            </button>
+            <!-- Ba nấc lặp trên MỘT nút, bấm vòng. Nhãn nằm ở chú thích bên dưới, khỏi ba nút rời. -->
+            <button class="cd-nut" :class="g.cdLap !== 'khong' ? 'on' : ''" @click="g.cdDoiLap()" :aria-label="g.cdLapTen">
+              <template x-if="g.cdLap !== 'mot'">
+                <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+              </template>
+              <template x-if="g.cdLap === 'mot'">
+                <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/><path d="M11 10h1v4"/></svg>
+              </template>
+            </button>
+          </div>
+          <div class="text-center text-[11px] text-slate-500 mt-2">
+            <span x-text="g.cdLapTen"></span><span x-show="g.cdXao"> · Xáo khúc</span>
+          </div>
+
+          <!-- ÂM LƯỢNG -->
+          <div class="flex items-center gap-3 mt-3">
+            <span class="text-slate-500 shrink-0 inline-flex w-[17px] h-[17px]" x-html="g.svg('nhac','w-[17px] h-[17px]')"></span>
+            <input type="range" class="cd-thanh cd-do flex-1" min="0" max="100" step="1"
+                   :style="'--p:' + g.cdNac + '%'" :value="g.cdNac"
+                   @input="g.cdKeoAmLuong($event.target.value)">
+            <span class="cd-num text-[11.5px] text-slate-500 w-9 text-right" x-text="g.cdNac + '%'"></span>
+          </div>
+        </div>
+
+        <!-- KHÚC MỤC -->
+        <div class="px-3 pb-3 border-t border-slate-700/60 pt-2.5 min-h-0 flex flex-col">
+          <div class="px-2 pb-1.5 text-[11px] text-slate-500 flex items-center justify-between shrink-0">
+            <span>Khúc mục</span><span x-text="g.cdKhucMuc.length + ' khúc'"></span>
+          </div>
+          <div class="cd-ds">
+            <template x-for="(k, i) in g.cdKhucMuc" :key="k.ma">
+              <button class="cd-hang" :class="g.cdKhuc && g.cdKhuc.ma === k.ma ? 'on' : ''" @click="g.cdChon(k.ma)">
+                <span class="cd-so" x-text="i + 1"></span>
+                <span class="min-w-0 flex-1">
+                  <span class="cd-ten block truncate" x-text="k.ten"></span>
+                  <span class="cd-phu block truncate" x-show="k.phu" x-text="k.phu"></span>
+                </span>
+                <template x-if="g.cdKhuc && g.cdKhuc.ma === k.ma && g.cdDangPhat"><span class="cd-song"><i></i><i></i><i></i></span></template>
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <template x-if="$store.game.camNangOpen">
     <div class="fixed inset-0 z-[75] flex items-center justify-center bg-black/78 backdrop-blur-sm p-0 sm:p-4"
          x-data="camNang()" x-init="cnInit()" @click.self="dong()" @keydown.escape.window="dong()">

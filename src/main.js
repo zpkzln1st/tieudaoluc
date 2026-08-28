@@ -51,6 +51,12 @@ import { HOUSE_TIERS as DP_HOUSE_TIERS, BUILDINGS as DP_BUILDINGS } from './engi
 import { Storage, KhoaCuaSo } from './engine/save.js';
 import { chonBan, datBan, datBat as nhacDatBat, datAmLuong as nhacDatAmLuong, moKhoaKhiBam,
   banDangPhat, nhacChienDauKeTiep, NHAC_KHAI_TICH } from './engine/nhac.js';
+import { CAM_DAI_KHUC, CAM_DAI_MA } from './data/camdai.js';
+import { LAP_KIEU, LAP_TEN, khucKeTiep as cdKhucKeTiep, khucTruoc as cdKhucTruoc,
+  dinhDangThoiGian as cdDinhDang, datBoBao as cdDatBoBao, datKhuc as cdDatKhuc,
+  tamDung as cdTamDung, dungHan as cdDungHan, datGiay as cdDatGiay,
+  datAmLuong as cdDatAmLuong, dangPhat as cdDangPhat, giay as cdGiay,
+  tongGiay as cdTongGiay } from './engine/camdai.js';
 import {
   startActivity, startCombat, startTravel, stopActivity, advance, getAction, idleCapMs, SUY_YEU_MS, ghiNhatKyNgay, khoaNgay,
   canStartAction, inputStatus, startDungeon, maxDungeonRuns, autoEatTick, autoDanNL,
@@ -751,6 +757,7 @@ const gameStore = {
     'authorOpen',
     ['tmItemView', 'closeItemView'], ['tmGearView', 'closeTmGear'], ['tmKiepResult', 'closeKiepResult'],
     ['tmBreakCine', 'closeBreakCine'], ['tmSelDisciple', 'closeDisciple'], ['tmBuildSel', 'tmDongCongTrinh'],
+    ['camDaiMo', 'closeCamDai'],
   ],
   // ⛔ KHÔNG đăng ký `cloudConflict`: modal đó bắt buộc chọn một bên, đóng ngang là mất cả hai
   //   đường. `navOpen` là ngăn kéo điều hướng, đóng theo nút chọn tab. `devPanel`/`devLoginOpen`
@@ -1768,6 +1775,153 @@ const gameStore = {
     nhacDatAmLuong(n);
     clearTimeout(this._nhacHenGhi);
     this._nhacHenGhi = setTimeout(() => { try { Storage.save(this.state); } catch (e) {} }, 400);
+    this._tick++;
+  },
+
+  // ---------- Cầm Đài ----------
+  // Chỗ người chơi TỰ chọn khúc mà nghe. Khác nhạc nền: nhạc nền tự đổi theo màn, không ai chọn.
+  // ⚠ Cài đặt riêng của Cầm Đài để trong `state.camDai`, KHÔNG nhét vào `caiDat`. Bài kiểm Cài Đặt
+  //   đòi mỗi khoá trong `caiDat` phải có chỗ đọc NGOÀI màn Cài Đặt; thanh âm lượng Cầm Đài lại
+  //   nằm ngay trong popup của nó, nên nhét vào đó là tự chuốc một công tắc trông như chết.
+  camDaiMo: false,
+  cdDangPhat: false,
+  cdGiay: 0,
+  cdTong: 0,
+  cdDangKeo: false,        // người chơi đang giữ thanh tua -> đừng đè số lên tay họ
+  _cdHenGhi: null,
+
+  /** Ổ cài đặt riêng, dựng lười ngay lần đọc đầu để bản lưu cũ vẫn mở được. */
+  get cdO() {
+    if (!this.state.camDai || typeof this.state.camDai !== 'object') {
+      this.state.camDai = { khuc: '', nac: 70, xao: false, lap: 'tatca' };
+    }
+    const o = this.state.camDai;
+    if (typeof o.nac !== 'number') o.nac = 70;
+    if (typeof o.xao !== 'boolean') o.xao = false;
+    if (LAP_KIEU.indexOf(o.lap) < 0) o.lap = 'tatca';
+    return o;
+  },
+  get cdKhucMuc() { return CAM_DAI_KHUC; },
+  get cdChiSo() { void this._tick; const m = this.cdO.khuc; const i = CAM_DAI_MA.indexOf(m); return i; },
+  get cdKhuc() { void this._tick; const i = this.cdChiSo; return i >= 0 ? CAM_DAI_KHUC[i] : null; },
+  get cdNac() { void this._tick; return this.cdO.nac; },
+  get cdXao() { void this._tick; return !!this.cdO.xao; },
+  get cdLap() { void this._tick; return this.cdO.lap; },
+  get cdLapTen() { void this._tick; return LAP_TEN[this.cdO.lap] || LAP_TEN.tatca; },
+  get cdGioHien() { void this._tick; return cdDinhDang(this.cdGiay); },
+  get cdGioTong() { void this._tick; return cdDinhDang(this.cdTong); },
+  /** Phần trăm đã nghe. Chưa biết tổng thì trả 0 — đừng chia cho 0 rồi ra NaN trên thanh tua. */
+  get cdPhanTram() { void this._tick; return this.cdTong > 0 ? Math.max(0, Math.min(100, this.cdGiay / this.cdTong * 100)) : 0; },
+
+  openCamDai() {
+    this.camDaiMo = true;
+    cdDatBoBao((viec) => this._cdNhan(viec));
+    cdDatAmLuong(this.cdO.nac);
+    // Mở bảng mà chưa từng chọn khúc nào thì trỏ sẵn vào khúc đầu — KHÔNG tự phát.
+    // Tự phát lúc mở bảng là cướp tiếng của người chơi.
+    if (this.cdChiSo < 0) this.cdO.khuc = CAM_DAI_MA[0];
+    this._tick++;
+  },
+  closeCamDai() { this.camDaiMo = false; },
+
+  /**
+   * Báo từ bộ phát. Cập nhật THẲNG vào ô phản ứng, không để giao diện đọc thẳng thẻ audio bằng
+   * getter — getter Alpine bị gọi lại rất nhiều lần mỗi nhịp vẽ.
+   */
+  _cdNhan(viec) {
+    if (viec === 'nhip') {
+      if (!this.cdDangKeo) this.cdGiay = cdGiay();
+      this.cdTong = cdTongGiay();
+    } else if (viec === 'het') {
+      this.cdSangKhuc(false);
+      return;
+    } else if (viec === 'loi') {
+      this.showToast('Cầm Đài · không mở được khúc này');
+    }
+    this.cdDangPhat = cdDangPhat();
+    this._tick++;
+  },
+
+  /** Nhạc nền phải NGHỈ khi Cầm Đài cất tiếng — hai dòng nhạc chồng nhau nghe không ra gì. */
+  _cdNghiNhacNen() { try { nhacDatBat(false); } catch (e) {} },
+  /** Trả nhạc nền về đúng ý người chơi trong Cài Đặt, chứ không phải bật bừa. */
+  _cdTraNhacNen() { try { nhacDatBat(this.nhacDangBat); this.nhipNhac(); } catch (e) {} },
+
+  cdGhiO() {
+    clearTimeout(this._cdHenGhi);
+    this._cdHenGhi = setTimeout(() => { try { Storage.save(this.state); } catch (e) {} }, 400);
+  },
+
+  /** Bấm thẳng vào một khúc trong danh sách. */
+  cdChon(ma) {
+    if (!ma) return;
+    this.cdO.khuc = ma;
+    this.cdGiay = 0; this.cdTong = 0;
+    this._cdNghiNhacNen();
+    cdDatKhuc(ma, true);
+    this.cdDangPhat = true;
+    this.cdGhiO();
+    this._tick++;
+  },
+
+  /** Nút phát/tạm dừng ở giữa. */
+  cdPhatDung() {
+    if (this.cdChiSo < 0) { this.cdChon(CAM_DAI_MA[0]); return; }
+    if (cdDangPhat()) {
+      cdTamDung();
+      this.cdDangPhat = false;
+      this._cdTraNhacNen();
+    } else {
+      this._cdNghiNhacNen();
+      cdDatKhuc(this.cdO.khuc, true);
+      this.cdDangPhat = true;
+    }
+    this._tick++;
+  },
+
+  /**
+   * Sang khúc khác. `tuTay` = người chơi bấm nút, khác với khúc tự hết.
+   * Trả về -1 nghĩa là hết mục và kiểu lặp là "không lặp" -> dừng hẳn, trả nhạc nền về.
+   */
+  cdSangKhuc(tuTay, lui) {
+    const n = CAM_DAI_MA.length, i = this.cdChiSo;
+    const k = lui ? cdKhucTruoc(n, i, this.cdO.xao) : cdKhucKeTiep(n, i, this.cdO.xao, this.cdO.lap, !!tuTay);
+    if (k < 0) {
+      cdDungHan();
+      this.cdDangPhat = false; this.cdGiay = 0;
+      this._cdTraNhacNen();
+      this._tick++;
+      return;
+    }
+    // Lặp một khúc: `khucKeTiep` trả về chính chỗ cũ, phải tua về đầu chứ không thì nó đứng ở cuối.
+    if (k === i && !tuTay) { cdDatGiay(0); cdDatKhuc(CAM_DAI_MA[k], true); this.cdDangPhat = true; this._tick++; return; }
+    this.cdChon(CAM_DAI_MA[k]);
+  },
+  cdKeTiep() { this.cdSangKhuc(true, false); },
+  cdLui() { this.cdSangKhuc(true, true); },
+
+  /** Kéo thanh tua. Giữ tay thì chỉ đổi số hiện, thả tay mới thật sự nhảy. */
+  cdBatKeo() { this.cdDangKeo = true; },
+  cdKeoTua(v) { this.cdGiay = Math.max(0, Math.min(this.cdTong || 0, Number(v) || 0)); this._tick++; },
+  cdThaKeo(v) {
+    this.cdDangKeo = false;
+    cdDatGiay(Number(v) || 0);
+    this._tick++;
+  },
+
+  cdKeoAmLuong(v) {
+    const n = Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
+    this.cdO.nac = n;
+    cdDatAmLuong(n);
+    this.cdGhiO();
+    this._tick++;
+  },
+  cdDoiXao() { this.cdO.xao = !this.cdO.xao; this.cdGhiO(); this._tick++; },
+  /** Ba nấc lặp, bấm vòng: không lặp -> lặp cả mục -> lặp một khúc. */
+  cdDoiLap() {
+    const i = LAP_KIEU.indexOf(this.cdO.lap);
+    this.cdO.lap = LAP_KIEU[(i + 1) % LAP_KIEU.length];
+    this.cdGhiO();
     this._tick++;
   },
   /** Trần treo máy THẬT = nền + bậc Động Phủ. ⚠ Ô cũ chỉ đọc `idleCapHours` nên nhà bậc 6 vẫn ghi "8 giờ". */
