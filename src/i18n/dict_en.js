@@ -14917,6 +14917,7 @@ export const DICT = {
   "Chưa Chọn Bài": "No track chosen",
   "Cầm Đài · không mở được bài này": "Music Hall - cannot open this track",
   "Nhạc trong Võ Lâm Truyền Kỳ": "From the game Vo Lam Truyen Ky",
+  "Hào Quang Thở": "Breathing glow",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "Incubation takes real time; higher quality takes longer. See the species list in the",
   "Thức Tỉnh mở thêm bị động từ bể": "Awakening unlocks extra passives from a pool of",
   "20 loại": "20 types",

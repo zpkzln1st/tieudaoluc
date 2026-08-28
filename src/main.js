@@ -4105,7 +4105,9 @@ const gameStore = {
   },
   setBadgeSize(v) { this.state.player.badgeSize = Math.max(32, Math.min(72, parseInt(v) || 48)); Storage.save(this.state); },
   // Kho hiệu ứng huy hiệu — người chơi tự chọn cho TỪNG huy hiệu (đồng điệu hoặc phá cách).
-  get BADGE_FX() { return [{ id: 'none', name: 'Tĩnh' }, { id: 'sweep', name: 'Ánh Kim Quét' }, { id: 'glow', name: 'Glow Thở' }, { id: 'twinkle', name: 'Lấp Lánh' }]; },
+  // ⛔ KHÔNG chữ tiếng Anh trong giao diện. Nhãn này từng là "Glow Thở" — lọt một chữ Anh vào giữa
+  //    ba nhãn Hán-Việt, chủ dự án bắt được khi chơi trên điện thoại.
+  get BADGE_FX() { return [{ id: 'none', name: 'Tĩnh' }, { id: 'sweep', name: 'Ánh Kim Quét' }, { id: 'glow', name: 'Hào Quang Thở' }, { id: 'twinkle', name: 'Lấp Lánh' }]; },
   badgeFxOf(skillId) { return (this.state.player.badgeFx || {})[skillId] || 'sweep'; },
   setBadgeFx(skillId, fx) { if (!this.state.player.badgeFx) this.state.player.badgeFx = {}; this.state.player.badgeFx[skillId] = fx; Storage.save(this.state); },
   // -- Tân thủ --

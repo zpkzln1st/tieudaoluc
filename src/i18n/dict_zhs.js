@@ -14748,6 +14748,7 @@ export const DICT = {
   "Chưa Chọn Bài": "尚未选曲",
   "Cầm Đài · không mở được bài này": "琴台·此曲无法开启",
   "Nhạc trong Võ Lâm Truyền Kỳ": "武林传奇游戏配乐",
+  "Hào Quang Thở": "光晕呼吸",
   "Ấp trứng mất thời gian thực; phẩm chất càng cao ấp càng lâu. Danh sách loài xem ở bảng": "孵蛋耗真实时间；品质越高孵化越久。物种列表见查询中的",
   "Thức Tỉnh mở thêm bị động từ bể": "觉醒可自",
   "20 loại": "20 种",

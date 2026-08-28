@@ -1707,6 +1707,20 @@
               animation:hbTwinkle 4.2s ease-in-out infinite; animation-delay:var(--d,0s); }
             @keyframes hbTwinkle{ 0%,85%,100%{ opacity:0; transform:scale(.3) } 93%{ opacity:1; transform:scale(1) } }
             @media (prefers-reduced-motion:reduce){ .hb-sweep,.hb-glint{ animation:none!important; opacity:0!important } .hbfx-glow > img{ animation:none!important } }
+            /* ⚠⚠ TRẦN CỠ HUY HIỆU Ở MÀN HẸP. Cỡ do người chơi chọn (32..72px) đặt thẳng vào
+               `style` của từng huy hiệu. Ở khổ 390px, ba cái 72px chiếm 230px mà tên nhân vật đã
+               chạy tới x=146 — đo được hai khối ĐÈ NHAU 634px vuông, huy hiệu nằm chồng lên tên.
+               Chốt 44px cho màn hẹp; màn rộng vẫn giữ đúng cỡ người chơi chọn.
+               `!important` là bắt buộc: cỡ kia nằm ở thuộc tính `style`, luật thường không đè được. */
+            @media (max-width:639.98px){
+              /* ⚠⚠ CHỈ THU NHỎ LÀ KHÔNG ĐỦ. Tên + hai thẻ chỉ số chiếm cố định ~224px kể từ mép
+                 trái (bề ngang theo NỘI DUNG, không co theo màn). Ở 390px thu còn 44px thì huy
+                 hiệu hết đè tên nhưng vẫn đâm vào thẻ "Tổng Cấp" 281px vuông; xuống 320px thì
+                 chẳng cỡ nào chung được một hàng. Dời hẳn lên GÓC TRÊN-TRÁI — chỗ đó trống ở cả
+                 hai thẻ Hồ Sơ và Dung Mạo (góc trên-phải đã có nút đổi khung). */
+              .hb-banner{ top:.75rem; bottom:auto; left:.75rem; right:auto; gap:6px; }
+              .hb-banner .hb-shim{ width:40px!important; height:40px!important; }
+            }
           </style>
           <!-- Banner: CHỈ kéo/chỉnh khung khi ở tab Dung Mạo (skins); các tab khác chỉ hiển thị -->
           <div id="coverBox" class="group relative h-[307px] rounded-lg overflow-hidden border border-slate-800 bg-ink2 select-none"
@@ -1737,7 +1751,7 @@
             </div>
             <!-- Huy Hiệu đeo (góc phải-dưới) — chỉ hiển thị; trang bị/gỡ + cỡ + hiệu ứng ở Dung Mạo -> sub-tab Huy Hiệu. Hiệu ứng chạy ĐỒNG BỘ (bỏ so le --d). -->
             <template x-if="$store.game.equippedBadgeList.length">
-              <div class="absolute bottom-3 right-3 z-10 flex items-end gap-2 pointer-events-none">
+              <div class="hb-banner absolute bottom-3 right-3 z-10 flex items-end gap-2 pointer-events-none">
                 <template x-for="hb in $store.game.equippedBadgeList" :key="hb.skillId">
                   <span class="hb-shim" :class="'hbfx-'+$store.game.badgeFxOf(hb.skillId)" :style="'width:'+($store.game.state.player.badgeSize||48)+'px;height:'+($store.game.state.player.badgeSize||48)+'px'">
                     <img loading="lazy" decoding="async" :src="'images/ui/huyhieu/'+hb.skillId+'.webp'" onerror="this.style.display='none'">
