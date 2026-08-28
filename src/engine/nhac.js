@@ -58,8 +58,24 @@ export function nhacChienDauKeTiep() {
   return (_keChienDau + 0.5) / NHAC_CHIEN_DAU.length;
 }
 
-/** Màn mang nhạc RIÊNG, đè lên nhạc vùng. */
-export const NHAC_MAN = { combat: '@chienDau', worldboss: 'yeuvuong', dungeon: 'bicanh' };
+/**
+ * Màn mang nhạc RIÊNG, đè lên nhạc vùng.
+ *
+ * ⚠ TÁM TRÒ THIÊN CƠ CÁC cũng MƯỢN KÉ, chưa có bản riêng — chủ dự án chốt. Không có mấy dòng
+ *   này thì mở Cờ Vua ra vẫn nghe nguyên nhạc vùng đang đứng, tức là mini-game không có mặt mũi
+ *   âm thanh nào cả.
+ *   · Sáu trò cờ/bài dùng CHUNG `huyendo`: cùng một cảnh — ngồi bàn trong thành, nghĩ nước đi.
+ *   · Kỳ Trận Trảm Yêu mượn `yeuvuong`: nó là đánh yêu, nặng tay, khác hẳn cày thường.
+ *   · Đăng Tiên Mộng mượn `phukhonghoavien`: Phù Không = lơ lửng giữa hư không, hợp chữ "mộng"
+ *     hơn là vẻ uy nghi của Thiên Thành.
+ */
+export const NHAC_MAN = {
+  combat: '@chienDau', worldboss: 'yeuvuong', dungeon: 'bicanh',
+  nguTuKy: 'huyendo', coTuong: 'huyendo', coVua: 'huyendo',
+  tienLen: 'huyendo', binh: 'huyendo', paoDeKuai: 'huyendo',
+  kyTran: 'yeuvuong',
+  dangTienMong: 'phukhonghoavien',
+};
 
 export const NHAC_KHAI_TICH = 'khaitich';
 export const NHAC_MAC_DINH = 'lamlinhcoc';
