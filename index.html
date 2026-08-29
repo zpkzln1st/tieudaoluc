@@ -327,6 +327,19 @@
     body { background:#070b14; }
     .panel { background:#0f1521; border:1px solid #1e293b; }
 
+    /* HÀNH LÝ — màn hẹp chốt CỨNG 5 ô một hàng.
+       Đo ở khổ 390px: lưới rộng 328px, khe 7,2px, `minmax(72px,1fr)` chỉ nhét được 4 ô; khổ 360px
+       thì tụt xuống còn 3. Chủ dự án muốn 5.
+       ⚠ KHÔNG hạ số trong `minmax` rồi để `auto-fill` tự đếm: số cột khi ấy trôi theo bề ngang —
+         360px ra 5 mà 430px ra 6. `repeat(5, ...)` thì hẹp rộng gì cũng đúng 5, ô tự co.
+       ⚠ `!important` là bắt buộc: `grid-template-columns` đang nằm ở thuộc tính `style`. */
+    @media (max-width:639.98px){
+      /* ⚠ Đừng thêm `gap` ở đây: lớp `gap-2` của Tailwind nạp SAU nên nó thắng, dòng gap viết ra
+         chỉ là lời nói dối trong mã. Giữ nguyên khe 7,2px vẫn đủ 5 cột — đo ở 360/390/430px ra ô
+         53,8 / 59,8 / 67,8px. */
+      .hl-luoi{ grid-template-columns:repeat(5,minmax(0,1fr))!important; }
+    }
+
     /* ===== CÀI ĐẶT ===== */
     /* Giảm Hiệu Ứng — khuôn "reduce motion" chuẩn: KHÔNG tắt hẳn `animation` mà rút còn tức thì.
        ⚠ Tắt hẳn là hỏng: rất nhiều lớp trang trí nằm ở `opacity:0` rồi mới hiện ra bằng
@@ -6393,7 +6406,7 @@
           <template x-for="grp in g.hlNhom" :key="grp.type">
             <div class="mb-4">
               <div class="text-xs text-jade mb-2" x-text="grp.label"></div>
-              <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(72px,1fr))">
+              <div class="grid gap-2 hl-luoi" style="grid-template-columns:repeat(auto-fill,minmax(72px,1fr))">
                 <template x-for="it in grp.items" :key="it.uid || it.id">
                   <button @click="g.hlBam(it)" class="group flex flex-col items-center gap-1 text-center"
                     :class="g.hlChon && !g.hlBanDuoc(it) ? 'opacity-35 cursor-not-allowed' : ''"
@@ -18422,8 +18435,15 @@
   </style>
   <div class="fixed bottom-24 right-5 z-[80] flex flex-col items-end gap-2.5 pointer-events-none max-w-[min(420px,calc(100vw-2.5rem))]" x-cloak>
     <template x-for="f in $store.game.lootFloats" :key="f.id">
+      <!-- ⚠⚠ PHẢI có lớp nền ĐỤC dưới cùng. Trước đây nền chỉ là dải màu alpha 0,18 → 0,07, tức
+           gần như trong suốt: chữ ở màn phía sau xuyên thẳng qua lời báo, đọc không ra.
+           Cú pháp `background: <dải màu>, <màu đặc>` xếp dải màu LÊN TRÊN nền đặc — giữ đúng sắc
+           màu cũ mà không còn nhìn xuyên.
+           ⛔⛔ CHÚ THÍCH PHẢI NẰM NGOÀI THẺ. Lần đầu tôi đặt nó GIỮA hai thuộc tính của `<div>` —
+              HTML không cho phép, thẻ hỏng và `:style` không còn là thuộc tính nữa: nền ra `none`,
+              lời báo mất sạch viền lẫn màu. Trình duyệt KHÔNG báo lỗi gì; bài đo mới thấy. -->
       <div class="lootfloat flex items-center gap-3 rounded-2xl" :class="f.icon ? 'pl-3 pr-5 py-2.5' : 'px-4 py-2.5'"
-           :style="'border:1px solid '+f.color+'b3;background:linear-gradient(120deg,'+f.color+'2e,'+f.color+'12);box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 18px -6px '+f.color+'99'">
+           :style="'border:1px solid '+f.color+'b3;background:linear-gradient(120deg,'+f.color+'2e,'+f.color+'12),#0c1420;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 18px -6px '+f.color+'99'">
         <template x-if="f.icon">
           <span class="w-10 h-10 flex items-center justify-center shrink-0 rounded-xl overflow-hidden" :style="'background:#0c1420;border:1px solid '+f.color+'66'" x-html="f.icon"></span>
         </template>
