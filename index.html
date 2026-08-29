@@ -5972,7 +5972,10 @@
             </div>
             <!-- THÂN: overflow HIDDEN + lore kẹp dòng -> nội dung luôn vừa khung, KHÔNG bao giờ có con lăn -->
             <!-- THÂN: cột flex — Khẩu quyết CO theo chỗ trống còn lại + mờ dần ở đáy (không xén ngang dòng) -->
-            <div class="flex-1 min-h-0 overflow-hidden p-3.5 flex flex-col">
+            <!-- ⚠ `overflow-y-auto` chứ không `overflow-hidden`: thân bảng này vốn NHỒI nội dung vào
+                 hộp cố định rồi cắt phần thừa. Màn điện thoại thấp thì phần bị cắt là thật —
+                 người chơi không có đường nào xem tới. Cho cuộn thì chật mấy cũng còn đường. -->
+            <div class="flex-1 min-h-0 overflow-y-auto p-3.5 flex flex-col">
               <!-- TAB — chỉ Chiêu Thức ĐÃ lĩnh ngộ mới có Tầng. Dùng tab thay vì chèn thêm khối vì khung
                    popup cao CỨNG 716px và đã dùng hết chỗ: nhét thẳng vào là đẻ con lăn. -->
               <template x-if="it.kind==='chieu' && $store.game.itemOwned(it)">
@@ -6039,7 +6042,13 @@
                     <span class="block text-[11px] text-slate-500 mt-0.5">Tầng <b class="text-slate-300" x-text="$store.game.tangOf(it.id)"></b> · tối đa <span x-text="$store.game.TANG_MAX"></span></span>
                   </span>
                 </div>
-                <div class="flex-1 min-h-0 overflow-hidden flex flex-col gap-1 mt-2.5">
+                <!-- ⚠⚠ `overflow-y-auto` chứ KHÔNG `overflow-hidden`. Bốn hàng cần tối thiểu 131px
+                     (4×30 + khe). Đo trên điện thoại: khung nhìn cao 700px thì khối này được 132px
+                     — vừa đủ; xuống 640px chỉ còn 77px, 600px còn 40px, 560px còn 3px. Với
+                     `overflow-hidden` thì phần thiếu bị CẮT THẲNG và người chơi không có đường nào
+                     xem được Tầng 20 — đúng cái chủ dự án chụp lại. Cho cuộn thì chật mấy cũng còn
+                     đường tới. -->
+                <div class="flex-1 min-h-[131px] overflow-y-auto flex flex-col gap-1 mt-2.5">
                   <template x-for="b in $store.game.TANG_BANDS" :key="b.at">
                     <!-- flex:1 chứ KHÔNG cố định 38px: màn thấp kẹp 92dvh chỉ còn ~128px cho khối này,
                          để cứng là hàng thứ tư bị xén cụt. Cho 4 hàng chia đều chỗ đang có. -->
@@ -7973,7 +7982,12 @@
                              x-data="{ get dd(){ return g.yvDanRoi(b.reqLevel) } }" @click="g.openLightbox(dd.id,'💊','Đan '+dd.ten)">
                           <span class="w-12 h-12 inline-flex items-center justify-center" x-html="g.ico(dd.id,'💊')"></span>
                           <span class="text-[15px] font-bold leading-none text-violet-300" x-text="dd.ti+'%'"></span>
-                          <span class="text-[9px] uppercase tracking-wider text-slate-500 leading-none" x-text="'Đan '+dd.ten"></span>
+                          <!-- ⚠ Nhãn này DÀI nhất lưới ("Đan Nhất Phẩm" — 13 chữ, so với "Bạc",
+                               "EXP"). Với `tracking-wider` cỡ 9px nó xuống HAI DÒNG, và vì ô là
+                               `aspect-square` nên dòng thừa ĐẨY Ô CAO THÊM 9px — đo được 76×85
+                               giữa bảy ô 76×76, cả hàng lệch hẳn. Ép một dòng: cỡ 8px, giãn chữ
+                               thường, `whitespace-nowrap`. -->
+                          <span class="text-[8px] uppercase tracking-normal text-slate-500 leading-none whitespace-nowrap" x-text="'Đan '+dd.ten"></span>
                         </div>
                       </template>
                       <!-- Hồn Thạch -->
@@ -19730,11 +19744,16 @@
     <div class="fixed inset-0 z-[92] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-5"
          @click.self="$store.game.closeNgoCanh()" @keydown.escape.window="$store.game.closeNgoCanh()"
          x-data="{ get g(){ return $store.game } }">
-      <div class="panel rounded-2xl w-[1100px] max-w-full border border-amber-600/40 shadow-2xl overflow-hidden" @click.stop
+      <!-- ⚠⚠ PHẢI có trần chiều cao + thân cuộn được. Trước đây bảng này chỉ có `overflow-hidden`
+           mà KHÔNG có `max-h`: trên điện thoại, ba nhánh xếp dọc thành một cây cao hơn màn, bảng
+           bị canh giữa nên CẢ HÀNG ĐẦU (tên nghề, số điểm) lẫn phần đáy đều nằm ngoài màn và
+           KHÔNG có đường nào cuộn tới. Đúng khuôn các bảng khác trong tệp này: `max-h` + `flex
+           flex-col`, hàng đầu `shrink-0`, thân `overflow-y-auto`. -->
+      <div class="panel rounded-2xl w-[1100px] max-w-full max-h-[92dvh] flex flex-col border border-amber-600/40 shadow-2xl overflow-hidden" @click.stop
            style="box-shadow:0 30px 90px -20px rgba(0,0,0,.9)">
 
         <!-- HÀNG ĐẦU: tên nghề · số lần Trùng Sinh · điểm -->
-        <div class="flex items-center gap-3 px-5 py-3.5 border-b border-slate-800"
+        <div class="flex items-center gap-3 px-5 py-3.5 border-b border-slate-800 shrink-0"
              style="background:linear-gradient(120deg,rgba(245,185,66,.13),transparent 62%)">
           <span class="w-9 h-9 inline-flex items-center justify-center shrink-0" x-html="g.ico(g.ncSkill, '🪓')"></span>
           <div class="min-w-0">
@@ -19757,7 +19776,7 @@
         <!-- ⚠ Chín ô phải BẰNG NHAU. Câu hiệu lực dài ngắn khác nhau (Điểm Mộc Thành Kim xuống
              hai dòng) nên để ô tự co là bảng so le ngay. Ba cột `items-stretch`, mỗi cột chia
              ĐÚNG BA HÀNG bằng nhau, nút `h-full`. -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 items-stretch">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 items-stretch min-h-0 overflow-y-auto">
           <template x-for="nh in g.ncNhanhs" :key="nh.key">
             <div class="rounded-xl p-3 flex flex-col" style="background:#0b1120;border:1px solid #1e293b">
               <!-- ⛔ Chỉ TÊN nhánh. Câu tả kiểu "lấy được nhiều hơn" đã bỏ — chín ô bên dưới
