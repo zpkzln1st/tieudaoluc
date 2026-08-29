@@ -646,6 +646,17 @@
     .gtip-dn.gtip-dn-trai::after{ left:10px; }
     .gtip-dn.gtip-dn-phai{ left:auto; right:0; transform:none; }
     .gtip-dn.gtip-dn-phai::after{ left:auto; right:10px; }
+    /* MỘT DÒNG, MỞ LÊN — cho hàng nút nằm SÁT ĐÁY một thẻ có `overflow-hidden`.
+       ⚠⚠ Mở xuống ở đó là chú thích rơi ra ngoài thẻ và bị thẻ CẮT SẠCH: nó vẫn có `opacity:1`,
+          vẫn có toạ độ hợp lệ, nên phép đo hình học báo "hiện được" — mà mắt không thấy gì.
+          Đo đúng phải hỏi: có thẻ cha nào đang cắt nó không. */
+    .gtip-tren{ bottom:calc(100% + 12px); left:50%; transform:translateX(-50%);
+                width:auto; white-space:nowrap; padding:6px 10px; }
+    .gtip-tren::after{ bottom:-12px; left:calc(50% - 6px); border-top-color:var(--q,#475569); }
+    .gtip-tren.gtip-tren-trai{ left:0; transform:none; }
+    .gtip-tren.gtip-tren-trai::after{ left:10px; }
+    .gtip-tren.gtip-tren-phai{ left:auto; right:0; transform:none; }
+    .gtip-tren.gtip-tren-phai::after{ left:auto; right:10px; }
     .dd-tip:hover .gtip{ opacity:1; transition-delay:.06s; }
     /* ĐƯỜNG MÂY — dấu đoàn đã là `position:absolute` nên tự làm khung neo cho tooltip; ở đây chỉ
        cần THÊM MỘT CÒ HOVER, dùng nguyên bộ `.gtip` chứ không dựng bộ tooltip thứ hai. */
@@ -1509,7 +1520,11 @@
               <div class="text-[10px] text-slate-300/90" x-text="'Tổng Lv ' + $store.game.totalLevel"></div>
             </div>
           </div>
-          <!-- ⚠ Chú thích của bảy nút này dùng `.dd-tip` + `.gtip gtip-dn` — ĐÚNG bộ tooltip của
+          <!-- ⚠⚠ Chú thích bảy nút này phải MỞ LÊN (`gtip-tren`). Thẻ hồ sơ bọc ngoài có
+               `overflow-hidden`, mà hàng nút nằm SÁT ĐÁY thẻ — mở xuống là chú thích rơi ra ngoài
+               và bị cắt sạch. Nó vẫn `opacity:1`, vẫn có toạ độ hợp lệ, nên phép đo hình học báo
+               "hiện được" trong khi mắt không thấy gì; bộ quét bố cục điện thoại mới bắt ra.
+          ⚠ Chú thích của bảy nút này dùng `.dd-tip` + `.gtip` — ĐÚNG bộ tooltip của
                game. Trước đây chúng dùng `title=` của trình duyệt: khung xám hệ điều hành, phông
                hệ thống, hiện chậm cả giây, lạc hẳn khỏi mọi chú thích khác trong game.
                ⚠ Nút đầu và nút cuối neo MÉP (`gtip-dn-trai` / `gtip-dn-phai`): canh giữa thì nhãn
@@ -1520,26 +1535,26 @@
             <button @click="$store.game.showToast('Phi Cáp · nhắn tin — sắp ra mắt')" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </button>
-            <span class="gtip gtip-dn gtip-dn-trai text-[11.5px] text-slate-200">Trò Chuyện</span>
+            <span class="gtip gtip-tren gtip-tren-trai text-[11.5px] text-slate-200">Trò Chuyện</span>
             </span>
             <span class="dd-tip relative inline-flex" style="--q:#475569">
             <button @click="$store.game.openTim()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             </button>
-            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Tìm Kiếm</span>
+            <span class="gtip gtip-tren text-[11.5px] text-slate-200">Tìm Kiếm</span>
             </span>
             <span class="dd-tip relative inline-flex" style="--q:#475569">
             <button @click="$store.game.showToast('Bằng Hữu — sắp ra mắt')" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </button>
-            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Bằng Hữu</span>
+            <span class="gtip gtip-tren text-[11.5px] text-slate-200">Bằng Hữu</span>
             </span>
             <!-- Cẩm Nang: cùng bộ icon nét 1.8 với bốn nút kia (sách mở) — đừng thay bằng emoji. -->
             <span class="dd-tip relative inline-flex" style="--q:#475569">
             <button @click="$store.game.openCamNang()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5C10.5 6 8.5 5.2 5.5 5.2H3v13h2.5c3 0 5 .8 6.5 2.3"/><path d="M12 7.5c1.5-1.5 3.5-2.3 6.5-2.3H21v13h-2.5c-3 0-5 .8-6.5 2.3"/><path d="M12 7.5v13"/></svg>
             </button>
-            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Cẩm Nang</span>
+            <span class="gtip gtip-tren text-[11.5px] text-slate-200">Cẩm Nang</span>
             </span>
             <!-- Cầm Đài: khúc mục người chơi tự chọn mà nghe. KHÁC nút loa bên cạnh — loa là tắt/mở
                  NHẠC NỀN. Hai thứ khác nhau nên hai hình khác nhau: nốt nhạc / loa. -->
@@ -1548,7 +1563,7 @@
                     :class="$store.game.cdDangPhat ? 'text-jade' : 'text-slate-400 hover:text-jade'">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
             </button>
-            <span class="gtip gtip-dn text-[11.5px] text-slate-200">Cầm Đài</span>
+            <span class="gtip gtip-tren text-[11.5px] text-slate-200">Cầm Đài</span>
             </span>
             <!-- Loa: tắt/mở nhanh, khỏi phải mở Cài Đặt. Hai trạng thái chỉ khác MÀU và khác hình
                  loa (có sóng / bị gạch) — không đổi cỡ, không đổi khoảng đệm, để hàng nút đứng yên. -->
@@ -1558,13 +1573,13 @@
                     :class="$store.game.nhacDangBat ? 'text-slate-400 hover:text-jade' : 'text-slate-600 hover:text-slate-400'">
               <span class="w-[18px] h-[18px] inline-flex" x-html="$store.game.svg($store.game.nhacDangBat ? 'nhac' : 'nhacTat','w-[18px] h-[18px]')"></span>
             </button>
-            <span class="gtip gtip-dn gtip-dn-phai text-[11.5px] text-slate-200" x-text="$store.game.nhacDangBat ? 'Tắt Nhạc Nền' : 'Bật Nhạc Nền'"></span>
+            <span class="gtip gtip-tren gtip-tren-phai text-[11.5px] text-slate-200" x-text="$store.game.nhacDangBat ? 'Tắt Nhạc Nền' : 'Bật Nhạc Nền'"></span>
             </span>
             <span class="dd-tip relative inline-flex" style="--q:#475569">
             <button @click="$store.game.openSettings()" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-jade flex items-center justify-center transition">
               <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
-            <span class="gtip gtip-dn gtip-dn-phai text-[11.5px] text-slate-200">Cài Đặt</span>
+            <span class="gtip gtip-tren gtip-tren-phai text-[11.5px] text-slate-200">Cài Đặt</span>
             </span>
           </div>
         </div>
