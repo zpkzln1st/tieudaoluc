@@ -14489,20 +14489,10 @@
                         <div class="text-jade font-bold fserif">Minh Khố</div>
                         <div class="text-[11px] text-slate-600"><span x-text="khoList.length"></span>/<span x-text="oKho"></span> ô</div>
                       </div>
-                      <!-- ⚠⚠ MỘT bộ chọn cho CẢ HAI CHIỀU. Trước đây rút cố định 1 món mỗi lần
-                           bấm còn góp cố định 10 — cùng một cái kho mà hai chiều hai luật, và rút
-                           một chồng 91 món là 91 lần bấm. Mặc định "Hết" vì đó là việc hay làm nhất. -->
-                      <div class="flex items-center gap-2 mb-2 flex-wrap">
-                        <span class="lbl">Mỗi Lần Rút Hoặc Góp</span>
-                        <div class="flex gap-1">
-                          <template x-for="m in khoMuc" :key="m.so">
-                            <button @click="khoSo = m.so"
-                              class="px-2 py-0.5 rounded-full text-[10.5px] fserif border transition"
-                              :class="khoSo === m.so ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
-                              x-text="m.ten"></button>
-                          </template>
-                        </div>
-                      </div>
+                      <!-- ⛔ ĐỪNG dựng lại bộ chọn "Mỗi Lần Rút Hoặc Góp 1 · 10 · Hết" ở đây. Nó
+                           đặt số TRƯỚC rồi mọi cú bấm dùng chung con số ấy — chủ dự án bác: bấm
+                           món nào thì phải hỏi số của MÓN ẤY. Trên màn hẹp nó còn nằm ngoài tầm
+                           cuộn, bấm một cái là cả chồng đi mất. Nay bấm ô nào cũng mở hộp hỏi. -->
                       <!-- Ô ICON, không phải thẻ chữ: một dòng chữ mỗi món thì 49 món đã tràn cả
                            màn. Icon 44px xếp lưới -> nhìn phát thấy hết, tên+số lượng+lời văn dồn
                            vào TOOLTIP (rê chuột). Máy cảm ứng không rê được -> bấm ô mở modal
@@ -14533,7 +14523,7 @@
                               <span class="absolute inset-0 grid place-items-center text-[17px] p-1" x-html="$store.game.ico(it.id, it.icon)"></span>
                               <span class="absolute bottom-0 right-0.5 text-[9px] tabular-nums text-amber-300 leading-none px-0.5 rounded bg-black/70" x-text="fmt(it.so)"></span>
                               <!-- Nút rút chỉ hiện khi rê vào: bày sẵn thì mỗi ô một chữ "rút" lấn hết icon. -->
-                              <button @click.stop="rutTuKho(it)"
+                              <button @click.stop="moKhoHoi(it, 'rut')"
                                 class="absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition text-[9px] leading-none px-1 py-0.5 rounded bg-black/80 text-slate-400 hover:text-jade">rút</button>
                             </div>
                           </template>
@@ -14558,7 +14548,7 @@
                       <div class="grid gap-1.5 h-[212px] overflow-y-auto pr-1 content-start"
                            style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr));scrollbar-gutter:stable">
                         <template x-for="it in gopHien" :key="it.id">
-                          <button @click="gopVaoKho(it)"
+                          <button @click="moKhoHoi(it, 'gop')"
                             @mouseenter="moTip($event, it)" @mouseleave="dongTip()"
                             class="relative aspect-square rounded-lg border bg-ink2/40 transition kho-o"
                             :style="'border-color:' + it.mau + '55'">
@@ -14572,6 +14562,57 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- ===== HỎI SỐ LƯỢNG — bấm ô nào cũng qua đây trước khi đồ đi ===== -->
+                  <!-- ⚠ Cờ `khoHoi` là biến CỤC BỘ của `bangPhai()`, không nằm trong store, nên nó
+                       KHÔNG vào được sổ `_MODALS`. Vì thế phải tự gắn `@click.self` và
+                       `@keydown.escape.window` — thiếu là bảng không có đường ra. -->
+                  <template x-if="khoHoi">
+                    <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/78 backdrop-blur-sm p-4"
+                         @click.self="dongKhoHoi()" @keydown.escape.window="dongKhoHoi()">
+                      <div class="panel rounded-2xl w-full max-w-[340px] border border-slate-700/70 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-800 flex items-center gap-3">
+                          <span class="w-11 h-11 rounded-lg border grid place-items-center shrink-0 bg-ink2/40 text-[20px]"
+                                :style="'border-color:' + khoHoi.it.mau + '55'" x-html="$store.game.ico(khoHoi.it.id, khoHoi.it.icon)"></span>
+                          <div class="min-w-0">
+                            <div class="text-[14px] text-slate-100 truncate" x-text="khoHoi.it.ten"></div>
+                            <div class="text-[11px] text-slate-500">
+                              <span x-text="khoHoi.chieu === 'gop' ? 'Góp vào Minh Khố' : 'Rút khỏi Minh Khố'"></span>
+                              · đang có <b class="text-slate-300" x-text="fmt(khoHoi.it.so)"></b>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="p-4">
+                          <div class="flex items-center gap-2">
+                            <button class="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:border-jade hover:text-jade transition text-[17px] leading-none"
+                                    @click="khoHoiDat(khoHoi.so - 1)">−</button>
+                            <input type="number" min="1" :max="khoHoi.it.so" :value="khoHoi.so"
+                                   @input="khoHoiDat($event.target.value)"
+                                   class="flex-1 min-w-0 h-9 rounded-lg bg-ink2 border border-slate-700 text-center text-[15px] text-slate-100 tabular-nums focus:border-jade outline-none">
+                            <button class="w-9 h-9 rounded-lg border border-slate-700 text-slate-300 hover:border-jade hover:text-jade transition text-[17px] leading-none"
+                                    @click="khoHoiDat(khoHoi.so + 1)">+</button>
+                          </div>
+                          <!-- Mốc nhanh: dùng lại đúng KHO_MUC cũ, thêm mốc "Hết" luôn kẹp ở tối đa. -->
+                          <div class="flex gap-1.5 mt-2.5">
+                            <template x-for="m in khoMuc" :key="m.so">
+                              <button class="flex-1 py-1 rounded-lg text-[11.5px] fserif border transition"
+                                      :class="(m.so === 0 ? khoHoi.so === khoHoi.it.so : khoHoi.so === m.so)
+                                              ? 'text-jade border-jade/50 bg-jade/10' : 'text-slate-500 border-slate-800 hover:border-slate-600'"
+                                      @click="khoHoiDat(m.so === 0 ? khoHoi.it.so : m.so)" x-text="m.ten"></button>
+                            </template>
+                          </div>
+                          <div class="flex gap-2 mt-4">
+                            <button class="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition text-[13px]"
+                                    @click="dongKhoHoi()">Thôi</button>
+                            <button class="flex-1 py-2 rounded-lg bg-jade/15 border border-jade/50 text-jade hover:bg-jade/25 transition text-[13px] fserif"
+                                    @click="khoHoiChot()">
+                              <span x-text="(khoHoi.chieu === 'gop' ? 'Góp ' : 'Rút ') + fmt(khoHoi.so)"></span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
 
                   <!-- CỘT PHẢI: nhật ký (đứng một mình nên kéo cao bằng cột trái, khỏi phải lăn hai chỗ) -->
                   <div class="panel rounded-xl overflow-hidden flex flex-col">

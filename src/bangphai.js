@@ -624,22 +624,44 @@ export function bangPhai() {
 
     // ---------- kho ----------
     // ⚠ Trước đây rút CỐ ĐỊNH 1 món mỗi lần bấm còn góp CỐ ĐỊNH 10 — cùng một cái kho mà hai
-    //   chiều hai luật, và rút một chồng 91 món là 91 lần bấm. Nay MỘT bộ chọn cho cả hai chiều.
+    //   chiều hai luật, và rút một chồng 91 món là 91 lần bấm.
+    // ⛔ Vòng hai: bộ chọn "mỗi lần rút hoặc góp 1 · 10 · Hết" đặt SẴN ở đầu bảng ĐÃ BỎ. Chủ dự án
+    //   bác — bấm món nào thì phải hỏi số của MÓN ẤY. Trên màn hẹp bộ chọn kia còn nằm ngoài tầm
+    //   cuộn, bấm một cái là cả chồng đi mất, không kịp trở tay. Hai cơ chế cho một việc thì sớm
+    //   muộn lệch nhau, nên bỏ hẳn cái cũ chứ không để song song.
     get khoMuc() { return KHO_MUC; },
-    /** Số món một lần bấm chuyển. `0` = trọn chồng. */
-    khoSo: 0,
-    _khoLay(it) { return this.khoSo > 0 ? Math.min(it.so, this.khoSo) : it.so; },
-    gopVaoKho(it) {
-      const g = this.g, n = this._khoLay(it);
-      if (!n) return;
+
+    /** `null` = đóng. Mở thì mang `{ it, chieu:'gop'|'rut', so }`. */
+    khoHoi: null,
+    moKhoHoi(it, chieu) { this.khoHoi = { it, chieu, so: it.so }; },
+    dongKhoHoi() { this.khoHoi = null; },
+    /** Kẹp trong 1..tối đa. Gõ bậy, bỏ trống hay số âm đều về 1 — đừng để chốt ra 0. */
+    khoHoiDat(n) {
+      if (!this.khoHoi) return;
+      let v = Math.floor(Number(n));
+      if (!isFinite(v) || v < 1) v = 1;
+      this.khoHoi.so = Math.min(this.khoHoi.it.so, v);
+    },
+    khoHoiChot() {
+      if (!this.khoHoi) return;
+      const { it, chieu, so } = this.khoHoi;
+      this.khoHoi = null;
+      if (chieu === 'gop') this.gopVaoKho(it, so); else this.rutTuKho(it, so);
+    },
+
+    // ⚠ Số lượng là THAM SỐ, không đọc lén từ một ô trạng thái nào khác — bên gọi đã hỏi rồi.
+    gopVaoKho(it, n) {
+      const g = this.g;
+      n = Math.max(1, Math.min(it.so, Math.floor(Number(n)) || 0));
       if (!gopKho(g.state, it.id, n)) { g.showToast('Minh Khố đã đầy ô.'); return; }
       g.state.inventory[it.id] -= n;
       if (g.state.inventory[it.id] <= 0) delete g.state.inventory[it.id];
       this._luu(); g.showToast('Góp ' + this.fmt(n) + ' ' + it.ten + ' vào Minh Khố.');
     },
-    rutTuKho(it) {
+    rutTuKho(it, n) {
       const g = this.g;
-      const lay = rutKho(g.state, it.id, this._khoLay(it));
+      n = Math.max(1, Math.min(it.so, Math.floor(Number(n)) || 0));
+      const lay = rutKho(g.state, it.id, n);
       if (!lay) { g.showToast('Không rút được.'); return; }
       addItem(g.state, it.id, lay);
       this._luu(); g.showToast('Rút ' + this.fmt(lay) + ' ' + it.ten + '.');
