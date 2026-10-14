@@ -180,11 +180,27 @@ function cloudErrVi(msg) {
   // Chốt chống gian lận từ chối bản lưu (docs/SQL_CHONG_GIAN_LAN.sql). Nói thẳng cho người chơi
   // biết, đừng để họ tưởng đã đồng bộ xong — xem chú thích ở cloudPushSave.
   if (m === 'tu-choi') return 'Máy chủ từ chối bản lưu này vì tiến trình tăng quá nhanh. Nếu bạn chơi bình thường, hãy nhắn cho tác giả để được kiểm tra.';
+  // ⚠⚠ XOÁ DỮ LIỆU LÀ PHIÊN CŨ CHẾT THEO, và vế này PHẢI ĐỨNG TRƯỚC vế thiếu-bảng ngay dưới.
+  //    Trình duyệt vẫn giữ thẻ phiên của tài khoản vừa bị xoá nên mọi lệnh cloud sau đó đều
+  //    trượt. Lời máy chủ cho ca đó CÓ CHỨA cụm `does not exist` — để vế thiếu-bảng đứng trước
+  //    thì nó bắt mất, rồi game đi mách "chưa tạo bảng, chạy SQL khởi tạo", tức là chỉ sai
+  //    đường hoàn toàn: bảng vẫn còn nguyên, chỉ cái thẻ phiên là hỏng.
+  //    Phải soi `sub claim` chứ không soi `does not exist` suông, vì cụm sau là của ca thiếu bảng.
+  if (m.includes('refresh token') || m.includes('refresh_token') || m.includes('sub claim'))
+    return 'Phiên đăng nhập không còn hiệu lực (dữ liệu tài khoản đã đổi) — đăng xuất rồi đăng nhập lại.';
+  if (m.includes('user not found') || m.includes('user_not_found'))
+    return 'Không còn tài khoản này trên máy chủ — đăng nhập lại bằng tài khoản đang dùng.';
   if (m.includes('does not exist') || m.includes('relation') || m.includes('schema cache')) return 'Chưa tạo bảng lưu trên cloud (chạy SQL khởi tạo).';
   if (m.includes('row-level security') || m.includes('rls') || m.includes('policy')) return 'Quyền cloud chưa đúng (kiểm tra RLS bảng saves).';
   if (m.includes('jwt') || m.includes('expired') || m.includes('not authenticated')) return 'Phiên hết hạn — đăng nhập lại.';
+  // ⚠ `maybeSingle()` gặp nhiều dòng (hoặc bảng vừa bị dọn tay) thì trả mã PGRST116.
+  if (m.includes('pgrst116') || m.includes('multiple (or no) rows') || m.includes('json object requested'))
+    return 'Bản lưu trên máy chủ không đọc được (có thể vừa bị xoá) — bấm Đồng Bộ Ngay để ghi lại.';
   if (m.includes('failed to fetch') || m.includes('network')) return 'Không kết nối được cloud (mạng?).';
-  return 'Đồng bộ cloud lỗi: ' + (msg || 'không rõ');
+  // ⛔ ĐỪNG bày nguyên văn lỗi máy chủ: nó là tiếng Anh, mà giao diện game KHÔNG có chữ tiếng Anh.
+  //    Giữ nguyên văn trong console cho người sửa, còn trên màn thì nói bằng lời người chơi hiểu.
+  try { if (msg) console.warn('[cloud] ' + msg); } catch (e) {}
+  return 'Đồng bộ cloud lỗi — thử lại, hoặc đăng nhập lại nếu vẫn vậy.';
 }
 // Ngày địa phương dạng YYYY-MM-DD (cho điểm danh)
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -4151,6 +4167,23 @@ const gameStore = {
     }
     return 0;
   },
+  /**
+   * Vùng CHỨA sản vật này, hoặc null. Cùng đường tra với `capVungCuaSanVat` ở trên — tách ra chỉ
+   * để NÓI ĐƯỢC TÊN chỗ cần vào.
+   * ⚠ Người chơi đọc 'Cần Chiến Đấu Lv 70' trên một nhiệm vụ ĐỐN CÂY thì tưởng game ra đề sai.
+   *   Cửa đó có thật và CÓ LÝ: cây mọc trong vùng mà cửa vào đòi cấp Chiến Đấu. Thiếu cái tên
+   *   vùng thì con số trông như lỗi, nên phải in kèm.
+   */
+  vungCuaSanVat(target) {
+    if (!target) return null;
+    for (const k of Object.keys(this.SKILLS)) {
+      const a = (this.SKILLS[k].actions || []).find((x) => x.itemId === target);
+      if (!a) continue;
+      if (!a.zone) return null;
+      return (this.LOCATIONS || []).find((x) => x.id === a.zone) || null;
+    }
+    return null;
+  },
   questUnlocked(q) {   // chỉ bốc nhiệm vụ người chơi đủ sức (mục tiêu đã mở theo cấp) -> khó dần + đa dạng theo tiến trình
     const req = q.req || 1;
     if (q.type === 'kill') return this.combatLevel >= req;
@@ -4259,7 +4292,15 @@ const gameStore = {
     const can = [];
     if (this.skillLevel(q.skill) < req) can.push(((this.SKILLS[q.skill] || {}).name || 'Kỹ Năng') + ' Lv ' + req);
     const capVung = this.capVungCuaSanVat(q.target);
-    if (this.combatLevel < capVung) can.push('Chiến Đấu Lv ' + capVung);
+    if (this.combatLevel < capVung) {
+      // ⚠ KÈM TÊN VÙNG. Con số trần trụi trên một nhiệm vụ đốn cây đọc ra như game ra đề sai;
+      //   có tên vùng kèm theo là người chơi hiểu ngay cửa đó chặn cái gì.
+      // ⚠⚠ NGOẶC ĐƠN, ĐỪNG nối thêm một chữ nối nào. Chữ nối kiểu 'vào' phải vào từ điển mới
+      //    dịch được, mà nó quá phổ thông: thêm vào là lớp phủ dịch đổi MỌI chữ 'vào' trong game.
+      //    Tên vùng là tên riêng nên tự đi qua được cả ba thứ tiếng — ngoặc đơn là xong, không nợ.
+      const v = this.vungCuaSanVat(q.target);
+      can.push('Chiến Đấu Lv ' + capVung + (v && v.name ? ' (' + v.name + ')' : ''));
+    }
     return can.length ? can.join(' · ') : (((this.SKILLS[q.skill] || {}).name || 'Kỹ Năng') + ' Lv ' + req);
   },
 
@@ -8420,11 +8461,22 @@ const gameStore = {
   // Sau MỌI thao tác sàn: kéo bản mới từ cloud về rồi tải lại trang.
   async _sanNapLai() {
     const r = await cloudLoadSave();
-    if (r.ok && r.row) this._applyCloudSave(r.row.data);
+    if (r.ok && r.row) { this._applyCloudSave(r.row.data); return; }   // đã khoá trong `_applyCloudSave`
     // ⚠⚠ KHOÁ TRƯỚC KHI TẢI LẠI. Máy chủ đã dời món khỏi túi rồi; `beforeunload` mà kịp chạy thì
     //   nó ghi bản RAM CŨ (món vẫn còn trong túi) đè lên đĩa, và lần đẩy sau đè ngược lên máy chủ
-    //   — món vừa bán quay lại túi mà tin rao vẫn treo. Nhánh trên đã khoá trong `_applyCloudSave`.
-    else { Storage.lock(); location.reload(); }
+    //   — món vừa bán quay lại túi mà tin rao vẫn treo. Khoá ĐẦU TIÊN, trước cả nhánh hoãn dưới.
+    Storage.lock();
+    // ⚠⚠ ĐỌC LỖI ≠ CHƯA CÓ BẢN LƯU. Bản cũ dồn cả hai vào một nhánh rồi tải lại trang IM LẶNG,
+    //    nên một cú trượt mạng đọc ra y như "máy chủ trống": người chơi thấy trang tự nạp lại mà
+    //    không biết thao tác sàn vừa rồi đã vào hay chưa. Đọc lỗi thì PHẢI NÓI.
+    // ⚠ Và phải HOÃN tải lại: gọi `showToast` rồi `location.reload()` ngay dòng sau thì lời báo
+    //   bị trang mới cuốn đi trước khi mắt kịp thấy — nói mà không ai đọc được thì bằng không nói.
+    if (!r.ok && r.reason !== 'no-auth') {
+      this.showToast(cloudErrVi(r.reason));
+      setTimeout(() => location.reload(), 1600);
+      return;
+    }
+    location.reload();
   },
   _sanVi(v) {
     // ⚠ Lưới an toàn trong `san_ghi_save` ném ra một chuỗi dài kèm uid. Đừng bày nguyên văn cho

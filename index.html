@@ -369,6 +369,27 @@
     .dd-lo::before { content:''; position:absolute; inset:0; border-radius:14px; pointer-events:none;
       background:radial-gradient(120% 90% at 12% 0%, var(--nhanhMo), transparent 62%); }
     .dd-hang { display:flex; align-items:center; gap:9px; height:42px; margin-bottom:9px; }
+    /* ===== KHỔ HẸP: LÒ CUỘN NGANG =====
+       ⚠⚠ BẬC THANG KHÔNG CO ĐƯỢC, và đó là CHỦ Ý. Hàng rộng nhất là: nhãn 130 + 10 ô × 42 +
+          9 khe × 9 + ô Đan Hồn 42 + lề lò 30 = ~721px. Lòng tấm ở điện thoại chỉ còn ~291px,
+          nên ~430px bị đẩy ra ngoài — đo được 67 thẻ tràn, nặng nhất 395px ở khổ 360.
+       ⛔ ĐÃ CÂN BA ĐƯỜNG KHÁC, BỎ CẢ BA:
+          · Thu ô: muốn vừa 291px thì ô phải còn ~15px — nhỏ hơn cả đầu ngón tay, mà ô là NÚT.
+          · Cho ô xuống dòng: bậc thang vỡ, mà bậc thang chính là thứ phải đọc được.
+          · Thu cả tấm bằng `transform`: tỉ lệ rơi xuống ~0,40 nên chữ phẩm không đọc nổi.
+       ⇒ Cuộn ngang là đường duy nhất giữ được CẢ ô 42px (bấm được) LẪN bậc thang (đọc được).
+       ⚠ `width:max-content` cho hàng: thiếu nó thì hàng bị bóp theo khung cuộn, `flex:none`
+         của ô khiến phần thừa tràn ra NGOÀI khung chứ không vào vùng cuộn được.
+       ⚠ Nhoè mép phải để hàng đang bị cắt đọc ra là "còn nữa, kéo ngang" chứ không phải hỏng —
+         cùng cách đã dùng cho khung Chiến Lợi Phẩm. */
+    @media (max-width:640px){
+      .dd-lo { overflow-x:auto; overscroll-behavior-x:contain;
+        -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);
+                mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent); }
+      .dd-hang { width:max-content; }
+      .dd-nhan { width:106px; }
+      .dd-nhan .ten { font-size:13.5px; }
+    }
     .dd-cum { display:flex; gap:9px; flex:none; }
     /* ⚠ Ô là thẻ <button> (bấm để nạp đan) nên phải tự dọn nền + đệm mặc định của nút, không thì
        nó phình ra và ăn màu nút hệ thống. */
@@ -1324,6 +1345,18 @@
     #createScreen .cs-doi{ margin-top:14px; font-size:12.5px; color:#94a3b8; }
     #createScreen .cs-doi button{ color:#f6d98c; font-weight:700; margin-left:5px; text-decoration:underline; text-underline-offset:3px; }
     #createScreen .cs-doi button:hover{ color:#fde9a9; }
+    /* ===== CHỌN NGÔN NGỮ — đứng TRƯỚC cả hai bước =====
+       ⚠ `flex-wrap` chứ không một hàng cứng: bốn nhãn đầy đủ dài ~215px, màn 360px còn vừa nhưng
+         máy hẹp hơn thì phải xuống dòng chứ không được đẩy ra ngoài bảng.
+       ⚠ Nhãn viết bằng CHÍNH thứ tiếng đó — ai lỡ chuyển nhầm vẫn tìm được đường về. Cùng lẽ
+         với hàng Ngôn Ngữ ở Cài Đặt. */
+    #createScreen .cs-ngon{ display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin:2px 0 15px; }
+    #createScreen .cs-ngon button{ padding:5px 11px; border-radius:99px; font-size:12.5px; font-weight:700;
+      color:#94a3b8; border:1px solid rgba(148,163,184,.28); background:rgba(6,9,15,.55);
+      line-height:1.3; cursor:pointer; white-space:nowrap;
+      transition:color .15s, border-color .15s, background .15s; }
+    #createScreen .cs-ngon button:hover{ color:#f2b23e; border-color:rgba(245,185,66,.6); }
+    #createScreen .cs-ngon button.on{ color:#0b0e16; background:#f2b23e; border-color:#f2b23e; }
   </style>
   <!-- ⚠ MÀN KHAI TỊCH NAY CÓ HAI BƯỚC: tài khoản -> nhân vật (user chốt 2026-08-05).
        Dùng CHUNG một khung: cùng nền, cùng khối chữ, đổi ruột. Dựng màn đăng nhập riêng thì
@@ -1353,6 +1386,21 @@
         <img loading="lazy" decoding="async" class="cs-hero-top" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
         <div class="cs-panel"><div class="cs-inner" x-data="{ get g(){ return $store.game } }">
           <div class="cs-brand"><img loading="lazy" decoding="async" src="images/ui/logo-emblem.webp" alt="" onerror="this.style.display='none'"><span>Tiêu Dao Lục</span></div>
+
+          <!-- ⚠⚠ ĐẶT NGOÀI CẢ HAI NHÁNH `x-if` (tài khoản · nhân vật) LÀ CÓ CHỦ Ý. Người chưa đọc
+               được tiếng Việt phải đổi được thứ tiếng TRƯỚC khi hiểu hai bước kia đang hỏi gì;
+               nhét vào một bước thì bước còn lại mất đường đổi.
+          ⚠ Dùng `$store.game` chứ KHÔNG dùng `g`: getter `g` nằm ở `.cs-inner` thì có, nhưng viết
+            thẳng `$store.game` là đúng nếp nút loa ở trên và không phụ thuộc tầng x-data.
+          ⚠ Bấm vào đây là TẢI LẠI TRANG (xem `chonNgonNgu`): lớp phủ dịch chỉ gắn lúc khởi động.
+            Vì vậy hàng này nằm ngay dưới logo — chỗ người ta bấm TRƯỚC khi nhập gì, khỏi mất chữ
+            đang gõ dở. -->
+          <div class="cs-ngon" role="group" aria-label="Ngôn Ngữ">
+            <button :class="($store.game.caiDat.ngonNgu||'vi')==='vi' ? 'on' : ''" @click="$store.game.chonNgonNgu('vi')">Tiếng Việt</button>
+            <button :class="$store.game.caiDat.ngonNgu==='en' ? 'on' : ''" @click="$store.game.chonNgonNgu('en')">English</button>
+            <button :class="$store.game.caiDat.ngonNgu==='zh' ? 'on' : ''" @click="$store.game.chonNgonNgu('zh')">繁體</button>
+            <button :class="$store.game.caiDat.ngonNgu==='zhs' ? 'on' : ''" @click="$store.game.chonNgonNgu('zhs')">简体</button>
+          </div>
 
           <!-- ⚠ ĐANG CHỜ thì không vẽ bước nào cả. Hai lúc phải chờ: đang khôi phục phiên
                (vẽ form là người đã đăng nhập thấy chớp màn đăng nhập, tưởng bị đá ra), và vừa
@@ -3223,7 +3271,10 @@
                            `shrink-0` ép cột tên xuống ĐÚNG 0px ở lưới hai cột — thẻ nào có nhãn
                            là mất sạch tên nhiệm vụ. -->
                       <template x-if="$store.game.qCanCap(entry)">
-                        <div class="mt-1"><span class="inline-block text-[10px] px-1.5 py-0.5 rounded border border-amber-400/40 text-amber-300/90 whitespace-nowrap">Cần <span x-text="$store.game.qCanCap(entry)"></span></span></div>
+                        <!-- ⚠ KHÔNG `whitespace-nowrap`: chip giờ in cả hai cửa kèm tên vùng
+                             ('Cần Phạt Mộc Lv 48 · Chiến Đấu Lv 70 vào Phù Không Hoa Viên'), dài hơn
+                             bề ngang thẻ ở điện thoại. Cấm xuống dòng thì phần đuôi bị đẩy ra ngoài. -->
+                        <div class="mt-1"><span class="inline-block text-[10px] px-1.5 py-0.5 rounded border border-amber-400/40 text-amber-300/90 leading-snug">Cần <span x-text="$store.game.qCanCap(entry)"></span></span></div>
                       </template>
                       <div class="relative mt-1.5 h-5 rounded-full bg-slate-800 overflow-hidden">
                         <div class="h-full transition-all" :class="$store.game.questTabMeta.fill" :style="`width:${$store.game.qProgress(entry) / $store.game.qDef(entry).count * 100}%`"></div>
@@ -8894,10 +8945,19 @@
                       <template x-if="g.tmFace(d)"><img loading="lazy" decoding="async" :src="g.tmFace(d)" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()"></template>
                       <span class="absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded bg-ink/80 border font-bold" :style="'color:'+g.tmApt(d).color+';border-color:'+g.tmApt(d).color+'66'" x-text="g.tmApt(d).name"></span>
                       <span class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center text-[10px] fserif border border-slate-600" :style="'color:'+g.tmHe(d).color" x-text="g.tmHe(d).han"></span>
-                      <template x-if="d.awaiting"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1 py-0.5 rounded bg-amber-500 text-ink font-bold">Đắc Đạo</span></template>
-                      <template x-if="d.breakReady"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-violet-500 text-white font-bold animate-pulse">Đột Phá</span></template>
-                      <template x-if="d.lichLuyenUntil && !d.breakReady"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-sky-600 text-white font-bold">Lịch Luyện</span></template>
-                      <template x-if="d.giangUntil && !d.breakReady && !d.lichLuyenUntil"><span class="absolute bottom-1.5 left-1.5 text-[8px] px-1.5 py-0.5 rounded bg-amber-600 text-white font-bold">Thính Giảng</span></template>
+                      <!-- ⚠⚠ BỐN CỜ TRẠNG THÁI XẾP DỌC TRONG MỘT KHUNG. ĐỪNG ghim từng cờ vào
+                           `absolute bottom-1.5 left-1.5` như bản cũ: ghim riêng thì hai cờ cùng đúng
+                           là ĐÈ NHAU ở đúng một điểm, thẻ sau phủ kín thẻ trước mà trình duyệt KHÔNG
+                           báo gì. Save cũ còn giữ cả `awaiting` lẫn `breakReady` là ra đúng cảnh đó —
+                           chỗ xoá phòng thân trong `tongmon.js` chính là dấu vết của chuyện ấy.
+                      ⚠ Ba vế chặn `!d.breakReady` bỏ theo: chính chúng GIẤU cờ chuyến đi, mà chuyến
+                        đi có đồng hồ chạy nên là thứ người chơi cần thấy nhất. -->
+                      <div class="absolute bottom-1.5 left-1.5 flex flex-col items-start gap-0.5 pointer-events-none">
+                        <template x-if="d.awaiting"><span class="text-[8px] px-1 py-0.5 rounded bg-amber-500 text-ink font-bold">Đắc Đạo</span></template>
+                        <template x-if="d.breakReady"><span class="text-[8px] px-1.5 py-0.5 rounded bg-violet-500 text-white font-bold animate-pulse">Đột Phá</span></template>
+                        <template x-if="d.lichLuyenUntil"><span class="text-[8px] px-1.5 py-0.5 rounded bg-sky-600 text-white font-bold">Lịch Luyện</span></template>
+                        <template x-if="d.giangUntil"><span class="text-[8px] px-1.5 py-0.5 rounded bg-amber-600 text-white font-bold">Thính Giảng</span></template>
+                      </div>
                     </div>
                     <div class="p-2 bg-ink3/40">
                       <div class="fserif text-[13px] truncate" :style="'color:'+g.tmApt(d).color" x-text="d.name"></div>
@@ -18510,6 +18570,10 @@
     .cbti-gear{ --q:#f5b942; box-shadow:0 0 8px rgba(245,185,66,.3); }
     .cbti-lg{ width:108px; height:108px; border-radius:18px; }
     .cbti-lg i{ font-size:14px; padding:1px 6px; right:-5px; bottom:-5px; }
+    /* ⚠ Ô 108px là khổ MÁY TÍNH. Ở 390px, trừ lề hai bên thì lòng tấm còn ~318px: ba ô 108 +
+       hai khe = 348px, tức hàng ba ô TRÀN. Thu còn 84px thì ba ô vừa đúng một hàng. */
+    @media (max-width:640px){ .cbti-lg{ width:84px; height:84px; border-radius:14px; }
+      .cbti-lg i{ font-size:12px; padding:0 4px; } }
     @keyframes cbtiPop{ 0%{ transform:scale(.55) } 55%{ transform:scale(1.12); box-shadow:0 0 12px rgba(245,185,66,.45) } 100%{ transform:scale(1) } }
     @media (prefers-reduced-motion:reduce){ .cbti{ animation:none } }
     /* Tooltip đồ rơi (hover ô .cbti) — tên + phẩm chất + loại + số lượng, tô theo màu phẩm chất (--q) */
@@ -18535,44 +18599,48 @@
         <span class="absolute pointer-events-none" style="top:9px;left:9px;width:34px;height:34px;border:1.5px solid rgba(232,200,119,.55);border-right:none;border-bottom:none;border-radius:10px 0 0 0"></span>
         <span class="absolute pointer-events-none" style="top:9px;right:9px;width:34px;height:34px;border:1.5px solid rgba(232,200,119,.55);border-left:none;border-bottom:none;border-radius:0 10px 0 0"></span>
         <!-- Header -->
-        <div class="text-center pt-5 px-7">
-          <div class="text-[13px] tracking-[.3em] uppercase text-amber-200/70" x-text="$store.game.combatSummary.reason==='death' ? '— Trọng Thương —' : '— Thu Quân —'"></div>
-          <div class="text-[32px] gold-text" style="font-family:'Lora','Noto Serif SC',serif;font-weight:700">Tổng Kết Chiến Trận</div>
-          <div class="text-[15px] text-slate-400 mt-1.5"><span x-text="$store.game.combatSummary.enemyName"></span><template x-if="$store.game.combatSummary.durMs>0"><span> — giao chiến <b class="text-slate-200" x-text="$store.game.fmtTime(Math.round($store.game.combatSummary.durMs/1000))"></b></span></template></div>
+        <!-- ⚠⚠ CẢ TẤM NÀY TRƯỚC ĐÂY KHÔNG CÓ MỘT BẬC `sm:` NÀO — chữ 32px/34px, khe `gap-12`,
+             lề `px-7` đều là khổ máy tính. Ở 390px thì lòng tấm còn ~318px mà ba cột
+             Trảm/Thắng/Bại cần ~321px, nên hàng số bị bóp rồi chữ nhãn tụt dòng.
+             Giữ nguyên khổ cũ từ `sm:` trở lên; chỉ hạ bậc ở điện thoại. -->
+        <div class="text-center pt-5 px-4 sm:px-7">
+          <div class="text-[11px] sm:text-[13px] tracking-[.22em] sm:tracking-[.3em] uppercase text-amber-200/70" x-text="$store.game.combatSummary.reason==='death' ? '— Trọng Thương —' : '— Thu Quân —'"></div>
+          <div class="text-[22px] sm:text-[32px] gold-text" style="font-family:'Lora','Noto Serif SC',serif;font-weight:700">Tổng Kết Chiến Trận</div>
+          <div class="text-[12.5px] sm:text-[15px] text-slate-400 mt-1.5"><span x-text="$store.game.combatSummary.enemyName"></span><template x-if="$store.game.combatSummary.durMs>0"><span> — giao chiến <b class="text-slate-200" x-text="$store.game.fmtTime(Math.round($store.game.combatSummary.durMs/1000))"></b></span></template></div>
         </div>
-        <div class="flex items-center gap-3 mx-7 mt-4 text-amber-200/60 text-[13px]"><span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span>◆<span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span></div>
+        <div class="flex items-center gap-3 mx-4 sm:mx-7 mt-4 text-amber-200/60 text-[13px]"><span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span>◆<span class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(232,200,119,.35),transparent)"></span></div>
         <!-- Hero: Trảm / Thắng / Bại -->
-        <div class="flex justify-center gap-12 pt-4 px-6 text-center">
-          <div><div class="text-[34px] font-bold text-slate-100 leading-none" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.fmt($store.game.combatSummary.kills)"></div><div class="text-[12px] tracking-[.13em] uppercase text-slate-500 mt-2">Đã Trảm</div></div>
-          <div><div class="text-[34px] font-bold text-jade leading-none" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.fmt($store.game.combatSummary.win)"></div><div class="text-[12px] tracking-[.13em] uppercase text-slate-500 mt-2">Vòng Thắng</div></div>
-          <div><div class="text-[34px] font-bold text-rose-400 leading-none" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.fmt($store.game.combatSummary.lose)"></div><div class="text-[12px] tracking-[.13em] uppercase text-slate-500 mt-2">Vòng Bại</div></div>
+        <div class="flex justify-center gap-7 sm:gap-12 pt-4 px-3 sm:px-6 text-center">
+          <div><div class="text-[26px] sm:text-[34px] font-bold text-slate-100 leading-none" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.fmt($store.game.combatSummary.kills)"></div><div class="text-[10.5px] sm:text-[12px] tracking-[.06em] sm:tracking-[.13em] uppercase text-slate-500 mt-1.5 sm:mt-2">Đã Trảm</div></div>
+          <div><div class="text-[26px] sm:text-[34px] font-bold text-jade leading-none" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.fmt($store.game.combatSummary.win)"></div><div class="text-[10.5px] sm:text-[12px] tracking-[.06em] sm:tracking-[.13em] uppercase text-slate-500 mt-1.5 sm:mt-2">Vòng Thắng</div></div>
+          <div><div class="text-[26px] sm:text-[34px] font-bold text-rose-400 leading-none" style="font-family:'Lora','Noto Serif SC',serif" x-text="$store.game.fmt($store.game.combatSummary.lose)"></div><div class="text-[10.5px] sm:text-[12px] tracking-[.06em] sm:tracking-[.13em] uppercase text-slate-500 mt-1.5 sm:mt-2">Vòng Bại</div></div>
         </div>
         <!-- Gains: EXP + Bạc -->
-        <div class="grid grid-cols-2 gap-3 px-7 pt-4">
-          <div class="flex items-center gap-3 rounded-2xl border border-slate-700/70 bg-ink3/50 px-4 py-3">
-            <img loading="lazy" decoding="async" src="images/ui/exp.webp" class="w-8 h-8 object-contain shrink-0" onerror="this.remove()">
-            <div class="min-w-0"><div class="text-[20px] font-bold font-mono text-jade leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.xp)"></div><div class="text-[11.5px] text-slate-500">EXP Chiến Đấu · Lv <span x-text="$store.game.combatLevel"></span> · <span x-text="Math.round($store.game.combatProg.frac*100)+'%'"></span></div></div>
+        <div class="grid grid-cols-2 gap-2 sm:gap-3 px-4 sm:px-7 pt-4">
+          <div class="flex items-center gap-2 sm:gap-3 rounded-2xl border border-slate-700/70 bg-ink3/50 px-2.5 sm:px-4 py-2.5 sm:py-3">
+            <img loading="lazy" decoding="async" src="images/ui/exp.webp" class="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0" onerror="this.remove()">
+            <div class="min-w-0"><div class="text-[17px] sm:text-[20px] font-bold font-mono text-jade leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.xp)"></div><div class="text-[10.5px] sm:text-[11.5px] text-slate-500">EXP Chiến Đấu · Lv <span x-text="$store.game.combatLevel"></span> · <span x-text="Math.round($store.game.combatProg.frac*100)+'%'"></span></div></div>
           </div>
-          <div class="flex items-center gap-3 rounded-2xl border border-slate-700/70 bg-ink3/50 px-4 py-3">
-            <span class="w-8 h-8 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
-            <div class="min-w-0"><div class="text-[20px] font-bold font-mono text-amber-300 leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.bac)"></div><div class="text-[11.5px] text-slate-500">Bạc</div></div>
+          <div class="flex items-center gap-2 sm:gap-3 rounded-2xl border border-slate-700/70 bg-ink3/50 px-2.5 sm:px-4 py-2.5 sm:py-3">
+            <span class="w-7 h-7 sm:w-8 sm:h-8 inline-flex shrink-0" x-html="$store.game.ico('bac','🟡')"></span>
+            <div class="min-w-0"><div class="text-[17px] sm:text-[20px] font-bold font-mono text-amber-300 leading-tight" x-text="'+'+$store.game.fmt($store.game.combatSummary.bac)"></div><div class="text-[10.5px] sm:text-[11.5px] text-slate-500">Bạc</div></div>
           </div>
         </div>
         <!-- Chiến Lợi Phẩm -->
-        <div class="flex items-center gap-2.5 px-7 pt-4 pb-2 text-[13px] tracking-[.13em] uppercase text-slate-500"><span class="shrink-0">Chiến Lợi Phẩm</span><template x-if="$store.game.combatSummaryLootN"><span class="tracking-normal normal-case text-slate-300 shrink-0" x-text="'· '+$store.game.fmt($store.game.combatSummaryLootN)+' nguyên liệu'"></span></template><template x-if="$store.game.combatSummaryGearN"><span class="tracking-normal normal-case text-amber-300/90 shrink-0" x-text="'· '+$store.game.fmt($store.game.combatSummaryGearN)+' trang bị'"></span></template><span class="flex-1 h-px bg-slate-800"></span></div>
+        <div class="flex items-center gap-2.5 px-4 sm:px-7 pt-4 pb-2 text-[11px] sm:text-[13px] tracking-[.08em] sm:tracking-[.13em] uppercase text-slate-500"><span class="shrink-0">Chiến Lợi Phẩm</span><template x-if="$store.game.combatSummaryLootN"><span class="tracking-normal normal-case text-slate-300 shrink-0" x-text="'· '+$store.game.fmt($store.game.combatSummaryLootN)+' nguyên liệu'"></span></template><template x-if="$store.game.combatSummaryGearN"><span class="tracking-normal normal-case text-amber-300/90 shrink-0" x-text="'· '+$store.game.fmt($store.game.combatSummaryGearN)+' trang bị'"></span></template><span class="flex-1 h-px bg-slate-800"></span></div>
         <!-- ⚠ Khung cuộn cắt NGANG GIỮA hàng ô nên nhìn như lưới bị vỡ. Nhoè dần ở mép dưới
              để hàng bị cắt đọc ra là "còn nữa, cuộn xuống" chứ không phải hỏng. -->
-        <div class="px-7 flex flex-wrap gap-3 max-h-[248px] overflow-y-auto pb-2"
+        <div class="px-4 sm:px-7 flex flex-wrap gap-2 sm:gap-3 max-h-[248px] overflow-y-auto pb-2"
              style="-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent)">
           <template x-if="!$store.game.combatSummary.loot.length && !$store.game.combatSummary.gear.length"><span class="text-[13px] text-slate-600 italic">— trận này chưa rơi vật phẩm —</span></template>
           <template x-for="l in $store.game.combatSummary.loot" :key="l.id">
             <span class="cbti cbti-lg" :style="'animation:none;--q:'+$store.game.qualHex(($store.game.ITEMS[l.id]||{}).quality)" :title="(($store.game.ITEMS[l.id]||{}).name||l.id)+' ×'+l.n">
-              <span class="w-20 h-20 inline-flex items-center justify-center text-6xl" x-html="$store.game.ico(l.id, ($store.game.ITEMS[l.id]||{}).icon||'📦')"></span><i x-text="'×'+l.n"></i>
+              <span class="w-16 h-16 sm:w-20 sm:h-20 inline-flex items-center justify-center text-4xl sm:text-6xl" x-html="$store.game.ico(l.id, ($store.game.ITEMS[l.id]||{}).icon||'📦')"></span><i x-text="'×'+l.n"></i>
             </span>
           </template>
           <template x-for="(g,gi) in $store.game.combatSummary.gear" :key="'g'+gi">
             <span class="cbti cbti-lg" :style="'animation:none;--q:'+$store.game.qualHex(g.quality)" :title="(($store.game.ITEMS[g.gearId]||{}).name||'Trang bị')+' — đã vào Hành Lý'">
-              <span class="w-20 h-20 inline-flex items-center justify-center text-6xl" x-html="$store.game.ico(g.gearId, '🗡')"></span>
+              <span class="w-16 h-16 sm:w-20 sm:h-20 inline-flex items-center justify-center text-4xl sm:text-6xl" x-html="$store.game.ico(g.gearId, '🗡')"></span>
             </span>
           </template>
           <!-- ⚠ Phải là MỘT Ô đúng khổ như các ô kia. Để chữ trần thì nó nhét vào giữa lưới ô
@@ -20067,7 +20135,13 @@
         <div class="px-2 py-3 sm:px-5 sm:py-4 shrink-0">
           <div class="grid grid-cols-7 gap-1 sm:gap-2.5">
             <template x-for="(r, i) in $store.game.LOGIN_REWARDS" :key="r.day">
-              <div class="relative rounded-xl border flex flex-col items-center text-center p-1 sm:p-3 transition" style="container-type:size;aspect-ratio:1"
+              <!-- ⚠⚠ Ô VUÔNG LÀ CÁI LÀM MẤT CHỮ. `aspect-ratio:1` trong lưới 7 cột: ở 360px mỗi
+                   ô chỉ còn ~43px, mà SÀN của mấy `clamp()` bên dưới cộng lại đã 48px — phần thừa
+                   bị `overflow-hidden` của thẻ con cắt thẳng, KHÔNG có đường nào xem tới.
+                   Cho ô một chiều cao XÁC ĐỊNH ở điện thoại (vẫn đủ định để `cqh` tính được) rồi
+                   trả lại ô vuông từ `sm:` lên. ⛔ ĐỪNG đổi sang min-height: `container-type:size`
+                   đòi chiều cao xác định, min-height thì `cqh` quy về 0 và ô xẹp. -->
+              <div class="relative rounded-xl border flex flex-col items-center text-center p-1 sm:p-3 transition h-[52px] sm:h-auto sm:aspect-square" style="container-type:size"
                    :class="(i === $store.game.loginNextIndex && $store.game.canClaimDaily)
                      ? 'border-jade bg-jade/10 ring-2 ring-jade/50 animate-pulse'
                      : (r.milestone ? 'border-amber-400/60 bg-amber-500/10' : 'border-slate-800 bg-ink3/40')">
@@ -20077,18 +20151,23 @@
                 <div class="flex-1 min-h-0 flex flex-col items-center justify-center font-bold leading-none overflow-hidden">
                   <template x-if="!r.milestone">
                     <div class="flex flex-col items-center gap-0.5 sm:gap-1">
-                      <span class="inline-flex items-center justify-center" style="width:clamp(20px,42cqh,56px);height:clamp(20px,42cqh,56px)" x-html="$store.game.ico(r.bac ? 'bac' : 'honThach', r.bac ? '🟡' : '🔴')"></span>
-                      <span style="font-size:clamp(10px,17cqh,20px)" :class="r.bac ? 'text-gold' : 'text-rose-200'" x-text="r.bac ? $store.game.fmt(r.bac) : r.honThach"></span>
+                      <span class="inline-flex items-center justify-center" style="width:clamp(16px,42cqh,56px);height:clamp(16px,42cqh,56px)" x-html="$store.game.ico(r.bac ? 'bac' : 'honThach', r.bac ? '🟡' : '🔴')"></span>
+                      <span style="font-size:clamp(9px,17cqh,20px)" :class="r.bac ? 'text-gold' : 'text-rose-200'" x-text="r.bac ? $store.game.fmt(r.bac) : r.honThach"></span>
                     </div>
                   </template>
                   <template x-if="r.milestone">
                     <div class="flex flex-col items-center gap-0.5 sm:gap-1.5">
-                      <div class="flex flex-col sm:flex-row items-center gap-0 sm:gap-1.5 leading-none"><span class="inline-flex items-center justify-center shrink-0" style="width:clamp(15px,26cqh,36px);height:clamp(15px,26cqh,36px)" x-html="$store.game.ico('honThach','🔴')"></span><span class="text-rose-200" style="font-size:clamp(9px,14cqh,16px)" x-text="r.honThach"></span></div>
-                      <div class="flex flex-col sm:flex-row items-center gap-0 sm:gap-1.5 leading-none"><span class="inline-flex items-center justify-center shrink-0" style="width:clamp(15px,26cqh,36px);height:clamp(15px,26cqh,36px)" x-html="$store.game.ico('nguyenBao','🔷')"></span><span class="text-cyan" style="font-size:clamp(9px,14cqh,16px)" x-text="r.nguyenBao"></span></div>
+                      <!-- ⚠⚠ XẾP NGANG, ĐỪNG `flex-col` ở điện thoại. Cộng theo đơn vị ô: hai hàng
+                           xếp dọc là 2×(26cqh+14cqh) = 80cqh, thêm dòng "Ngày" 11cqh nữa thành 91%
+                           chiều cao ô — cộng padding vào thì TRÀN Ở MỌI KHỔ, nâng chiều cao ô cũng
+                           không cứu được vì `cqh` phình theo. Xếp ngang thì mỗi hàng chỉ cao bằng
+                           cái cao nhất: 2×26cqh = 52cqh, còn dư chỗ cho dòng "Ngày". -->
+                      <div class="flex flex-row items-center gap-1 sm:gap-1.5 leading-none"><span class="inline-flex items-center justify-center shrink-0" style="width:clamp(13px,26cqh,36px);height:clamp(13px,26cqh,36px)" x-html="$store.game.ico('honThach','🔴')"></span><span class="text-rose-200" style="font-size:clamp(9px,14cqh,16px)" x-text="r.honThach"></span></div>
+                      <div class="flex flex-row items-center gap-1 sm:gap-1.5 leading-none"><span class="inline-flex items-center justify-center shrink-0" style="width:clamp(13px,26cqh,36px);height:clamp(13px,26cqh,36px)" x-html="$store.game.ico('nguyenBao','🔷')"></span><span class="text-cyan" style="font-size:clamp(9px,14cqh,16px)" x-text="r.nguyenBao"></span></div>
                     </div>
                   </template>
                 </div>
-                <div class="text-slate-500 leading-none mt-0.5 sm:mt-1 shrink-0" style="font-size:clamp(8px,11cqh,12px)">Ngày <span x-text="r.day"></span></div>
+                <div class="text-slate-500 leading-none mt-0.5 sm:mt-1 shrink-0" style="font-size:clamp(7px,11cqh,12px)">Ngày <span x-text="r.day"></span></div>
                 <template x-if="i < $store.game.loginNextIndex || (i === $store.game.loginNextIndex && !$store.game.canClaimDaily)">
                   <div class="absolute inset-0 rounded-xl bg-black/70 flex items-center justify-center text-emerald-400 font-bold" style="font-size:clamp(16px,40cqh,36px)">✓</div>
                 </template>
