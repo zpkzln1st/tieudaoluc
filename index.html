@@ -1345,18 +1345,35 @@
     #createScreen .cs-doi{ margin-top:14px; font-size:12.5px; color:#94a3b8; }
     #createScreen .cs-doi button{ color:#f6d98c; font-weight:700; margin-left:5px; text-decoration:underline; text-underline-offset:3px; }
     #createScreen .cs-doi button:hover{ color:#fde9a9; }
-    /* ===== CHỌN NGÔN NGỮ — đứng TRƯỚC cả hai bước =====
-       ⚠ `flex-wrap` chứ không một hàng cứng: bốn nhãn đầy đủ dài ~215px, màn 360px còn vừa nhưng
-         máy hẹp hơn thì phải xuống dòng chứ không được đẩy ra ngoài bảng.
-       ⚠ Nhãn viết bằng CHÍNH thứ tiếng đó — ai lỡ chuyển nhầm vẫn tìm được đường về. Cùng lẽ
-         với hàng Ngôn Ngữ ở Cài Đặt. */
-    #createScreen .cs-ngon{ display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin:2px 0 15px; }
-    #createScreen .cs-ngon button{ padding:5px 11px; border-radius:99px; font-size:12.5px; font-weight:700;
-      color:#94a3b8; border:1px solid rgba(148,163,184,.28); background:rgba(6,9,15,.55);
-      line-height:1.3; cursor:pointer; white-space:nowrap;
+    /* ===== CHỌN NGÔN NGỮ — MỘT NÚT TRÒN Ở GÓC, BẤM MỚI XOÈ =====
+       ⛔⛔ ĐỪNG BÀY CẢ BỐN THỨ TIẾNG RA SẴN. Bản đầu làm vậy và chủ dự án bác thẳng: một hàng
+          bốn nút chiếm nguyên một dòng ngay dưới logo, chen vào giữa thương hiệu và bước đang
+          làm, trong khi hầu hết người chơi không bao giờ đụng tới nó. Gom vào một nút.
+       ⚠ Neo NGOÀI bảng, sát nút loa, đúng lẽ đã ghi ở `.cs-loa`: màn này có HAI THÂN (hẹp thì
+         canh giữa, rộng thì dạt trái), nhét vào bảng là phá canh giữa ở thân hẹp.
+       ⚠ 44px = 36px bề ngang nút loa + 8px khe. Đổi khổ nút loa thì sửa luôn số này.
+       ⚠ `z-index:7` chứ không 6: phải nằm TRÊN nút loa, không thì bảng xoè chui xuống dưới nó.
+       ⚠ Chỉ CÁI NÚT là biểu tượng. Nhãn trong bảng xoè vẫn viết ĐẦY ĐỦ, bằng chính thứ tiếng
+         đó — ai lỡ chuyển nhầm vẫn tìm được đường về. */
+    #createScreen .cs-ngon{ position:absolute; z-index:7; top:clamp(12px,2.6vw,20px);
+      right:calc(clamp(12px,2.6vw,20px) + 44px); }
+    #createScreen .cs-ngon-nut{ width:36px; height:36px; border-radius:99px; display:inline-flex;
+      align-items:center; justify-content:center; background:rgba(6,9,15,.9);
+      border:1px solid rgba(245,185,66,.5); color:#e2e8f0;
+      box-shadow:0 2px 12px rgba(0,0,0,.7), 0 0 0 3px rgba(6,9,15,.35);
+      -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); cursor:pointer;
       transition:color .15s, border-color .15s, background .15s; }
-    #createScreen .cs-ngon button:hover{ color:#f2b23e; border-color:rgba(245,185,66,.6); }
-    #createScreen .cs-ngon button.on{ color:#0b0e16; background:#f2b23e; border-color:#f2b23e; }
+    #createScreen .cs-ngon-nut:hover,
+    #createScreen .cs-ngon-nut.mo{ color:#f2b23e; border-color:rgba(245,185,66,.85); background:rgba(6,9,15,.98); }
+    #createScreen .cs-ngon-bang{ position:absolute; top:calc(100% + 8px); right:0; min-width:150px;
+      padding:5px; border-radius:12px; background:rgba(6,9,15,.97);
+      border:1px solid rgba(245,185,66,.4); box-shadow:0 14px 34px rgba(0,0,0,.72);
+      -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+    #createScreen .cs-ngon-bang button{ display:block; width:100%; text-align:left;
+      padding:7px 11px; border-radius:8px; font-size:13px; color:#cbd5e1; white-space:nowrap;
+      cursor:pointer; transition:color .13s, background .13s; }
+    #createScreen .cs-ngon-bang button:hover{ color:#f2b23e; background:rgba(245,185,66,.1); }
+    #createScreen .cs-ngon-bang button.on{ color:#f2b23e; background:rgba(245,185,66,.14); font-weight:700; }
   </style>
   <!-- ⚠ MÀN KHAI TỊCH NAY CÓ HAI BƯỚC: tài khoản -> nhân vật (user chốt 2026-08-05).
        Dùng CHUNG một khung: cùng nền, cùng khối chữ, đổi ruột. Dựng màn đăng nhập riêng thì
@@ -1382,25 +1399,29 @@
               :aria-label="$store.game.nhacDangBat ? 'Tắt nhạc nền' : 'Bật nhạc nền'">
         <span class="w-[18px] h-[18px] inline-flex" x-html="$store.game.svg($store.game.nhacDangBat ? 'nhac' : 'nhacTat','w-[18px] h-[18px]')"></span>
       </button>
+      <!-- ⚠⚠ ĐỨNG NGOÀI CẢ HAI NHÁNH `x-if` (tài khoản · nhân vật) LÀ CÓ CHỦ Ý: người chưa đọc
+           được tiếng Việt phải đổi được thứ tiếng TRƯỚC khi hiểu hai bước kia đang hỏi gì.
+           Nhét vào một bước thì bước còn lại mất đường đổi.
+      ⚠ Dùng `$store.game` chứ không dùng `g`: getter `g` nằm ở `.cs-inner`, còn khối này nằm
+        NGOÀI bảng nên không với tới tầng x-data đó — đúng nếp nút loa ngay trên.
+      ⚠ Bấm một mục là TẢI LẠI TRANG (xem `chonNgonNgu`): lớp phủ dịch chỉ gắn lúc khởi động.
+        Nút nằm ở góc, xa ô nhập và xa nút Đăng Nhập, nên khó bấm nhầm lúc đang gõ dở. -->
+      <div class="cs-ngon" x-data="{ mo: false }" @click.outside="mo = false" @keydown.escape.window="mo = false">
+        <button class="cs-ngon-nut" :class="mo ? 'mo' : ''" @click="mo = !mo"
+                :aria-expanded="mo" aria-haspopup="true" title="Ngôn Ngữ" aria-label="Ngôn Ngữ">
+          <span class="w-[18px] h-[18px] inline-flex" x-html="$store.game.svg('ngonNgu','w-[18px] h-[18px]')"></span>
+        </button>
+        <div class="cs-ngon-bang" x-show="mo" x-transition.opacity x-cloak>
+          <button :class="($store.game.caiDat.ngonNgu||'vi')==='vi' ? 'on' : ''" @click="$store.game.chonNgonNgu('vi')">Tiếng Việt</button>
+          <button :class="$store.game.caiDat.ngonNgu==='en' ? 'on' : ''" @click="$store.game.chonNgonNgu('en')">English</button>
+          <button :class="$store.game.caiDat.ngonNgu==='zh' ? 'on' : ''" @click="$store.game.chonNgonNgu('zh')">繁體</button>
+          <button :class="$store.game.caiDat.ngonNgu==='zhs' ? 'on' : ''" @click="$store.game.chonNgonNgu('zhs')">简体</button>
+        </div>
+      </div>
       <div class="cs-scroll">
         <img loading="lazy" decoding="async" class="cs-hero-top" src="images/ui/khaitich_hero.webp" alt="" onerror="this.style.display='none'">
         <div class="cs-panel"><div class="cs-inner" x-data="{ get g(){ return $store.game } }">
           <div class="cs-brand"><img loading="lazy" decoding="async" src="images/ui/logo-emblem.webp" alt="" onerror="this.style.display='none'"><span>Tiêu Dao Lục</span></div>
-
-          <!-- ⚠⚠ ĐẶT NGOÀI CẢ HAI NHÁNH `x-if` (tài khoản · nhân vật) LÀ CÓ CHỦ Ý. Người chưa đọc
-               được tiếng Việt phải đổi được thứ tiếng TRƯỚC khi hiểu hai bước kia đang hỏi gì;
-               nhét vào một bước thì bước còn lại mất đường đổi.
-          ⚠ Dùng `$store.game` chứ KHÔNG dùng `g`: getter `g` nằm ở `.cs-inner` thì có, nhưng viết
-            thẳng `$store.game` là đúng nếp nút loa ở trên và không phụ thuộc tầng x-data.
-          ⚠ Bấm vào đây là TẢI LẠI TRANG (xem `chonNgonNgu`): lớp phủ dịch chỉ gắn lúc khởi động.
-            Vì vậy hàng này nằm ngay dưới logo — chỗ người ta bấm TRƯỚC khi nhập gì, khỏi mất chữ
-            đang gõ dở. -->
-          <div class="cs-ngon" role="group" aria-label="Ngôn Ngữ">
-            <button :class="($store.game.caiDat.ngonNgu||'vi')==='vi' ? 'on' : ''" @click="$store.game.chonNgonNgu('vi')">Tiếng Việt</button>
-            <button :class="$store.game.caiDat.ngonNgu==='en' ? 'on' : ''" @click="$store.game.chonNgonNgu('en')">English</button>
-            <button :class="$store.game.caiDat.ngonNgu==='zh' ? 'on' : ''" @click="$store.game.chonNgonNgu('zh')">繁體</button>
-            <button :class="$store.game.caiDat.ngonNgu==='zhs' ? 'on' : ''" @click="$store.game.chonNgonNgu('zhs')">简体</button>
-          </div>
 
           <!-- ⚠ ĐANG CHỜ thì không vẽ bước nào cả. Hai lúc phải chờ: đang khôi phục phiên
                (vẽ form là người đã đăng nhập thấy chớp màn đăng nhập, tưởng bị đá ra), và vừa

@@ -607,6 +607,8 @@ const SVG_PATHS = {
   // Nhạc nền: loa có sóng / loa bị gạch. Cùng khuôn nét với cả bộ — 24×24, không tô, nét 1,8.
   nhac:    '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
   nhacTat: '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/>',
+  // Ngôn ngữ: quả cầu có kinh tuyến. Cùng khuôn với cả bộ — 24×24, không tô, nét 1,8.
+  ngonNgu: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>',
   heart:  '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.49 4.04 3 5.5l7 7z"/>',
   zap:    '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   map:    '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14"/><path d="M15 6v14"/>',
