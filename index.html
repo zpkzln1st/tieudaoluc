@@ -18247,7 +18247,15 @@
     <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
          @click.self="$store.game.dongDanDien()" @keydown.escape.window="$store.game.dongDanDien()"
          x-data="{ get g(){ return $store.game } }">
-      <div class="panel rounded-2xl overflow-hidden shadow-2xl w-[51rem] max-w-[96vw] max-h-[92dvh] flex flex-col">
+      <!-- ⚠⚠ KHÔNG CUỘN DỌC. Chủ dự án chốt cho Điểm Danh rồi và ở đây cũng vậy: "đừng có con
+           lăn, tự co giãn theo màn hình lớn nhỏ". Giữ bố cục thật rồi THU CẢ TẤM cho vừa màn —
+           cùng hàm `vuaKhung` đang dùng cho Điểm Danh và bảng tổng kết ván bài.
+      ⚠ Bỏ `max-h-[92dvh]`: còn trần chiều cao thì `vuaKhung` đo ra chiều cao ĐÃ BỊ KẸP chứ không
+        phải chiều cao thật, nên nó tính ra tỉ lệ thu sai rồi phần dưới vẫn mất.
+      ⚠ Hàm tự trả lại quyền cuộn nếu phải thu quá 0,52 — dưới mức đó chữ bé không đọc nổi, thà
+        cho cuộn còn hơn bày một tấm không đọc được. -->
+      <div class="panel rounded-2xl overflow-hidden shadow-2xl w-[51rem] max-w-[96vw] flex flex-col"
+           x-init="$nextTick(() => g.vuaManHinh($el))" @resize.window="g.vuaManHinh($el)">
         <div class="shrink-0" style="background:radial-gradient(130% 190% at 50% -40%,rgba(245,185,66,.10),transparent 60%)">
           <div class="px-5 pt-4 pb-3 flex items-center justify-between">
             <span class="fserif gold-text" style="font-size:19px">Đan Điền</span>
@@ -18260,7 +18268,10 @@
           </div>
         </div>
 
-        <div class="flex-1 min-h-0 overflow-y-auto px-5 py-3">
+        <!-- ⚠ Bỏ `flex-1 min-h-0 overflow-y-auto`: khung cuộn ở đây làm chiều cao tự nhiên của
+             tấm đứng im, nên `vuaKhung` tưởng tấm vừa rồi KHÔNG thu gì cả — mà phần thừa thì vẫn
+             nằm trong khung cuộn. Để nội dung cao thật thì hàm kia mới có cái để đo. -->
+        <div class="shrink-0 px-5 py-3">
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <div class="dd-dai">
               <template x-for="nh in g.DD_NHANH" :key="'ddn-'+nh">
