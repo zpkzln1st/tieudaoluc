@@ -369,27 +369,6 @@
     .dd-lo::before { content:''; position:absolute; inset:0; border-radius:14px; pointer-events:none;
       background:radial-gradient(120% 90% at 12% 0%, var(--nhanhMo), transparent 62%); }
     .dd-hang { display:flex; align-items:center; gap:9px; height:42px; margin-bottom:9px; }
-    /* ===== KHỔ HẸP: LÒ CUỘN NGANG =====
-       ⚠⚠ BẬC THANG KHÔNG CO ĐƯỢC, và đó là CHỦ Ý. Hàng rộng nhất là: nhãn 130 + 10 ô × 42 +
-          9 khe × 9 + ô Đan Hồn 42 + lề lò 30 = ~721px. Lòng tấm ở điện thoại chỉ còn ~291px,
-          nên ~430px bị đẩy ra ngoài — đo được 67 thẻ tràn, nặng nhất 395px ở khổ 360.
-       ⛔ ĐÃ CÂN BA ĐƯỜNG KHÁC, BỎ CẢ BA:
-          · Thu ô: muốn vừa 291px thì ô phải còn ~15px — nhỏ hơn cả đầu ngón tay, mà ô là NÚT.
-          · Cho ô xuống dòng: bậc thang vỡ, mà bậc thang chính là thứ phải đọc được.
-          · Thu cả tấm bằng `transform`: tỉ lệ rơi xuống ~0,40 nên chữ phẩm không đọc nổi.
-       ⇒ Cuộn ngang là đường duy nhất giữ được CẢ ô 42px (bấm được) LẪN bậc thang (đọc được).
-       ⚠ `width:max-content` cho hàng: thiếu nó thì hàng bị bóp theo khung cuộn, `flex:none`
-         của ô khiến phần thừa tràn ra NGOÀI khung chứ không vào vùng cuộn được.
-       ⚠ Nhoè mép phải để hàng đang bị cắt đọc ra là "còn nữa, kéo ngang" chứ không phải hỏng —
-         cùng cách đã dùng cho khung Chiến Lợi Phẩm. */
-    @media (max-width:640px){
-      .dd-lo { overflow-x:auto; overscroll-behavior-x:contain;
-        -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);
-                mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent); }
-      .dd-hang { width:max-content; }
-      .dd-nhan { width:106px; }
-      .dd-nhan .ten { font-size:13.5px; }
-    }
     .dd-cum { display:flex; gap:9px; flex:none; }
     /* ⚠ Ô là thẻ <button> (bấm để nạp đan) nên phải tự dọn nền + đệm mặc định của nút, không thì
        nó phình ra và ăn màu nút hệ thống. */
@@ -448,6 +427,35 @@
       font-size:13px; line-height:1; cursor:help; display:inline-flex; align-items:center; justify-content:center; }
     .dd-hoi:hover { color:#cbd5e1; border-color:#475569; }
     @media (max-width:700px){ .dd-tong { position:static; width:auto; margin-top:10px; } }
+
+    /* ===== KHỔ HẸP: CẢ BẬC THANG PHẢI VỪA MÀN =====
+       ⛔⛔ ĐỪNG CHO LÒ CUỘN NGANG. Đã thử và chủ dự án bác thẳng: cuộn thì mỗi hàng chỉ ló ra
+          ba ô, mà ba ô thì hàng Nhất Phẩm với hàng Cửu Phẩm TRÔNG Y HỆT NHAU — bậc thang biến
+          mất, đúng cái thứ duy nhất người ta cần đọc ở màn này. Giữ ô 42px mà mất bậc thang là
+          đổi nhầm thứ.
+       ⇒ Cách đúng: THU Ô cho cả bậc thang lọt vào bề ngang, và dời NHÃN LÊN DÒNG TRÊN để lấy
+         lại ~110px — chính chỗ đó mới đủ cho mười ô.
+       ⚠⚠ KHỐI NÀY PHẢI NẰM SAU TOÀN BỘ luật `.dd-*` ở trên. Đặt nó lên trước thì `.dd-o{width:42px}`
+          viết sau sẽ ĐÈ LẠI (cùng độ ưu tiên, luật sau thắng) — ô vẫn 42px, hàng vẫn tràn, mà
+          chẳng có lỗi nào được báo. Đã dính đúng một lần.
+       ⚠⚠ Ô phải CÙNG MỘT KHỔ ở mọi hàng. Đừng cho ô co giãn kiểu `flex:1`: hàng hai ô sẽ phình
+          ra bằng hàng mười ô, và bậc thang lại mất lần nữa — hỏng y như cuộn ngang.
+          Vì vậy khổ ô là một BIẾN tính theo bề ngang màn, đặt ở lò, mọi hàng dùng chung.
+       ⚠ Công thức: hàng rộng nhất = 10 ô + 9 khe + 1 khe + ô Đan Hồn = 11 Ô VÀ 10 KHE.
+         124px = lề tấm (~29) + lề thân tấm (40) + lề lò (16) + 10 khe × 3px + dư an toàn.
+         QUÊN TRỪ 10 KHE là ô tính ra to hơn chỗ thật có, và hàng cuối cùng vẫn tràn.
+       ⚠ Ô Đan Hồn vẫn BÁM CUỐI HÀNG, không dời đi đâu — nó chạy xéo theo bậc thang là CÓ CHỦ Ý. */
+    @media (max-width:640px){
+      .dd-lo { padding:11px 8px 9px; --o:clamp(16px, calc((100vw - 124px) / 11), 42px); --k:3px; }
+      .dd-hang { flex-wrap:wrap; height:auto; gap:var(--k); margin-bottom:10px; }
+      .dd-nhan { width:100%; justify-content:flex-start; gap:5px; }
+      .dd-nhan .ten { font-size:13px; }
+      .dd-nhan .an { width:19px; height:19px; font-size:11px; }
+      .dd-cum { gap:var(--k); }
+      .dd-o, .dd-hon { width:var(--o); height:var(--o); }
+      .dd-o { border-radius:calc(var(--o) * 0.26); }
+      .dd-hon { font-size:calc(var(--o) * 0.46); }
+    }
 
     /* Nhãn mục: icon + chữ + đường kẻ chạy hết ngang */
     .cd-muc { display:flex; align-items:center; gap:.5rem; margin-bottom:.6rem; }

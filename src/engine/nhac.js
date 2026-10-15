@@ -138,6 +138,56 @@ function taoThe() {
 
 function dungBoDem() { if (_hen) { clearInterval(_hen); _hen = null; } }
 
+// ============================================================
+// NHỚ CHỖ ĐANG NGHE
+// ⚠⚠ Không có phần này thì `datBan` đặt `currentTime = 0` MỖI LẦN đổi bản, nên hễ ghé Kỳ Trận
+//    hay vào một trận rồi quay ra là nhạc vùng kêu lại từ nốt đầu. Đo thật
+//    (`_do_nhac_chuyen.html`): rời `lamlinhcoc` ở 0,02s, đi Kỳ Trận rồi Chiến Đấu, quay về thì
+//    `lamlinhcoc` bắt đầu lại ở 0,00s. Người chơi ra vào liên tục nên KHÔNG BAO GIỜ nghe hết
+//    được một bản — đó đúng là thứ họ gọi là "ngắt nhạc giữa chừng".
+// ⚠ Dùng `sessionStorage` chứ KHÔNG dùng `localStorage`, có chủ ý: nó sống qua lần TẢI LẠI
+//   TRANG (đường đăng nhập có `location.reload()`, đổi ngôn ngữ cũng vậy) nhưng không sống qua
+//   lần mở game mới. Mở game mới thì bản Khai Tịch nên vào từ đầu, chứ nhảy vào giữa bài nghe
+//   như máy chưa tắt hẳn.
+const MOC_KHOA = 'tieudao_nhac_moc_v1';
+let _moc = {};
+try { _moc = JSON.parse(sessionStorage.getItem(MOC_KHOA) || '{}') || {}; } catch (e) { _moc = {}; }
+function ghiMoc() { try { sessionStorage.setItem(MOC_KHOA, JSON.stringify(_moc)); } catch (e) {} }
+
+/** Chốt lại chỗ bản đang phát dừng ở đâu. Gọi TRƯỚC mỗi lần đổi bản, và lúc rời trang. */
+function nhoCho() {
+  if (!_dang || !_banHien) return;
+  try {
+    const t = _dang.currentTime;
+    if (t > 0.3) { _moc[_banHien] = t; ghiMoc(); }
+  } catch (e) {}
+}
+
+/**
+ * Tua bản vừa mở về đúng chỗ lần trước bỏ dở.
+ * ⚠ `currentTime` chỉ đặt được KHI ĐÃ CÓ metadata (biết thời lượng). Đặt sớm quá thì trình duyệt
+ *   lờ đi trong im lặng — nên phải hẹn vào `loadedmetadata` nếu chưa sẵn sàng.
+ * ⚠ Lấy dư theo thời lượng: bản có `loop` nên mốc cũ luôn quy được về trong bài.
+ */
+function tuaVeCho(the, ban) {
+  const batDau = Number(_moc[ban]) || 0;
+  if (batDau <= 0.3) return;
+  const dat = () => {
+    try {
+      const d = the.duration;
+      if (isFinite(d) && d > 1) the.currentTime = batDau % d;
+    } catch (e) {}
+  };
+  if (the.readyState >= 1) dat();
+  else the.addEventListener('loadedmetadata', dat, { once: true });
+}
+
+// Rời trang thì chốt nốt — đường đăng nhập có `location.reload()`, thiếu chỗ này là mất mốc.
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', nhoCho);
+  window.addEventListener('beforeunload', nhoCho);
+}
+
 /**
  * Nhoà từ thẻ đang phát sang thẻ mới.
  * ⚠ Nhoà bằng một bộ đếm DUY NHẤT, và dừng bộ đếm cũ trước khi mở bộ mới. Hai bộ đếm cùng kéo
@@ -183,9 +233,13 @@ export function datBan(ban) {
   if (ban === _banHien && _dang && !_dang.paused) return;
   try {
     if (!_A) { _A = taoThe(); _B = taoThe(); }
+    // ⚠ CHỐT CHỖ CŨ TRƯỚC KHI ĐỔI. Sau khi gán `src` mới thì thẻ kia vẫn giữ bản cũ, nhưng
+    //   `_banHien` đã bị ghi đè nên không còn biết mốc vừa đo là của bản nào.
+    nhoCho();
     const the = (_dang === _A) ? _B : _A;
     the.src = duongBan(ban);
     the.currentTime = 0;
+    tuaVeCho(the, ban);
     the.volume = 0;
     the.onerror = () => {
       if (_daBaoLoi[ban]) return;
